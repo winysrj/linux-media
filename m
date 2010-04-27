@@ -1,146 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:48631 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759303Ab0D3SiS (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39213 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750981Ab0D0BT4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Apr 2010 14:38:18 -0400
-From: stefan.ringel@arcor.de
+	Mon, 26 Apr 2010 21:19:56 -0400
+From: Wolfram Sang <w.sang@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, d.belimov@gmail.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH] tm6000: bugfix analog init for tm6010
-Date: Thu, 29 Apr 2010 14:24:47 +0200
-Message-Id: <1272543887-6344-1-git-send-email-stefan.ringel@arcor.de>
+Cc: =?UTF-8?q?Michael=20M=C3=BCller?= <mueller_michael@alice-dsl.net>,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	Olivier Grenie <olivier.grenie@dibcom.fr>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Date: Tue, 27 Apr 2010 03:18:57 +0200
+Message-Id: <1272331137-17597-1-git-send-email-w.sang@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: [PATCH] Add Elgato EyeTV Diversity to dibcom driver
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+From: Michael Müller <mueller michael@alice-dsl.net>
 
-- change values in function tm6000_set_fourcc_format
-- disable digital source
-- add vbi and audio init
+This patch introduces support for DVB-T for the following dibcom
+based card: Elgato EyeTV Diversity (USB-ID: 0fd9:0011)
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+Support for the Elgato silver IR remote is added too (set parameter
+dvb_usb_dib0700_ir_proto=0)
+
+[wsa: rebased to current linuxtv-master]
+
+Signed-off-by: Michael Müller <mueller_michael@alice-dsl.net>
+Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Olivier Grenie <olivier.grenie@dibcom.fr>
+Cc: Patrick Boettcher <pboettcher@kernellabs.com>
 ---
- drivers/staging/tm6000/tm6000-core.c |   97 ++++++++++++++++++++++++++++++++-
- 1 files changed, 94 insertions(+), 3 deletions(-)
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |   46 +++++++++++++++++++++++++-
+ drivers/media/dvb/dvb-usb/dvb-usb-ids.h     |    1 +
+ 2 files changed, 45 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-index 0b4dc64..860553f 100644
---- a/drivers/staging/tm6000/tm6000-core.c
-+++ b/drivers/staging/tm6000/tm6000-core.c
-@@ -157,9 +157,9 @@ void tm6000_set_fourcc_format(struct tm6000_core *dev)
- {
- 	if (dev->dev_type == TM6010) {
- 		if (dev->fourcc == V4L2_PIX_FMT_UYVY)
--			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xfc);
-+			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xd0);
- 		else
--			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xfd);
-+			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0x90);
- 	} else {
- 		if (dev->fourcc == V4L2_PIX_FMT_UYVY)
- 			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xd0);
-@@ -177,7 +177,98 @@ int tm6000_init_analog_mode (struct tm6000_core *dev)
- 		val = tm6000_get_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, 0);
- 		val |= 0x60;
- 		tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, val);
--		tm6000_set_reg(dev, TM6010_REQ07_RFE_POWER_DOWN, 0xcf);
-+		val = tm6000_get_reg(dev,
-+			TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE, 0);
-+		val &= ~0x40;
-+		tm6000_set_reg(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE, val);
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+index 2deca21..800800a 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -794,6 +794,43 @@ static struct dvb_usb_rc_key ir_codes_dib0700_table[] = {
+ 	{ 0x7a13, KEY_VOLUMEDOWN },
+ 	{ 0x7a40, KEY_POWER },
+ 	{ 0x7a41, KEY_MUTE },
 +
-+		/* Init teletext */
-+		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x01);
-+		tm6000_set_reg(dev, TM6010_REQ07_R41_TELETEXT_VBI_CODE1, 0x27);
-+		tm6000_set_reg(dev, TM6010_REQ07_R42_VBI_DATA_HIGH_LEVEL, 0x55);
-+		tm6000_set_reg(dev, TM6010_REQ07_R43_VBI_DATA_TYPE_LINE7, 0x66);
-+		tm6000_set_reg(dev, TM6010_REQ07_R44_VBI_DATA_TYPE_LINE8, 0x66);
-+		tm6000_set_reg(dev, TM6010_REQ07_R45_VBI_DATA_TYPE_LINE9, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R46_VBI_DATA_TYPE_LINE10, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R47_VBI_DATA_TYPE_LINE11, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R48_VBI_DATA_TYPE_LINE12, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R49_VBI_DATA_TYPE_LINE13, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R4A_VBI_DATA_TYPE_LINE14, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R4B_VBI_DATA_TYPE_LINE15, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R4C_VBI_DATA_TYPE_LINE16, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R4D_VBI_DATA_TYPE_LINE17, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R4E_VBI_DATA_TYPE_LINE18, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R4F_VBI_DATA_TYPE_LINE19, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R50_VBI_DATA_TYPE_LINE20, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R51_VBI_DATA_TYPE_LINE21, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R52_VBI_DATA_TYPE_LINE22, 0x66);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R53_VBI_DATA_TYPE_LINE23, 0x00);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R54_VBI_DATA_TYPE_RLINES, 0x00);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R55_VBI_LOOP_FILTER_GAIN, 0x01);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R56_VBI_LOOP_FILTER_I_GAIN, 0x00);
-+		tm6000_set_reg(dev,
-+			TM6010_REQ07_R57_VBI_LOOP_FILTER_P_GAIN, 0x02);
-+		tm6000_set_reg(dev, TM6010_REQ07_R58_VBI_CAPTION_DTO1, 0x35);
-+		tm6000_set_reg(dev, TM6010_REQ07_R59_VBI_CAPTION_DTO0, 0xa0);
-+		tm6000_set_reg(dev, TM6010_REQ07_R5A_VBI_TELETEXT_DTO1, 0x11);
-+		tm6000_set_reg(dev, TM6010_REQ07_R5B_VBI_TELETEXT_DTO0, 0x4c);
-+		tm6000_set_reg(dev, TM6010_REQ07_R40_TELETEXT_VBI_CODE0, 0x01);
-+		tm6000_set_reg(dev, TM6010_REQ07_R3F_RESET, 0x00);
-+
-+
-+		/* Init audio */
-+		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x00);
-+		tm6000_set_reg(dev, TM6010_REQ08_R02_A_FIX_GAIN_CTRL, 0x04);
-+		tm6000_set_reg(dev, TM6010_REQ08_R03_A_AUTO_GAIN_CTRL, 0x00);
-+		tm6000_set_reg(dev, TM6010_REQ08_R04_A_SIF_AMP_CTRL, 0xa0);
-+		tm6000_set_reg(dev, TM6010_REQ08_R05_A_STANDARD_MOD, 0x05);
-+		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD, 0x06);
-+		tm6000_set_reg(dev, TM6010_REQ08_R07_A_LEFT_VOL, 0x00);
-+		tm6000_set_reg(dev, TM6010_REQ08_R08_A_RIGHT_VOL, 0x00);
-+		tm6000_set_reg(dev, TM6010_REQ08_R09_A_MAIN_VOL, 0x08);
-+		tm6000_set_reg(dev, TM6010_REQ08_R0A_A_I2S_MOD, 0x91);
-+		tm6000_set_reg(dev, TM6010_REQ08_R0B_A_ASD_THRES1, 0x20);
-+		tm6000_set_reg(dev, TM6010_REQ08_R0C_A_ASD_THRES2, 0x12);
-+		tm6000_set_reg(dev, TM6010_REQ08_R0D_A_AMD_THRES, 0x20);
-+		tm6000_set_reg(dev, TM6010_REQ08_R0E_A_MONO_THRES1, 0xf0);
-+		tm6000_set_reg(dev, TM6010_REQ08_R0F_A_MONO_THRES2, 0x80);
-+		tm6000_set_reg(dev, TM6010_REQ08_R10_A_MUTE_THRES1, 0xc0);
-+		tm6000_set_reg(dev, TM6010_REQ08_R11_A_MUTE_THRES2, 0x80);
-+		tm6000_set_reg(dev, TM6010_REQ08_R12_A_AGC_U, 0x12);
-+		tm6000_set_reg(dev, TM6010_REQ08_R13_A_AGC_ERR_T, 0xfe);
-+		tm6000_set_reg(dev, TM6010_REQ08_R14_A_AGC_GAIN_INIT, 0x20);
-+		tm6000_set_reg(dev, TM6010_REQ08_R15_A_AGC_STEP_THR, 0x14);
-+		tm6000_set_reg(dev, TM6010_REQ08_R16_A_AGC_GAIN_MAX, 0xfe);
-+		tm6000_set_reg(dev, TM6010_REQ08_R17_A_AGC_GAIN_MIN, 0x01);
-+		tm6000_set_reg(dev, TM6010_REQ08_R18_A_TR_CTRL, 0xa0);
-+		tm6000_set_reg(dev, TM6010_REQ08_R19_A_FH_2FH_GAIN, 0x32);
-+		tm6000_set_reg(dev, TM6010_REQ08_R1A_A_NICAM_SER_MAX, 0x64);
-+		tm6000_set_reg(dev, TM6010_REQ08_R1B_A_NICAM_SER_MIN, 0x20);
-+		tm6000_set_reg(dev, REQ_08_SET_GET_AVREG_BIT, 0x1c, 0x00);
-+		tm6000_set_reg(dev, REQ_08_SET_GET_AVREG_BIT, 0x1d, 0x00);
-+		tm6000_set_reg(dev, TM6010_REQ08_R1E_A_GAIN_DEEMPH_OUT, 0x13);
-+		tm6000_set_reg(dev, TM6010_REQ08_R1F_A_TEST_INTF_SEL, 0x00);
-+		tm6000_set_reg(dev, TM6010_REQ08_R20_A_TEST_PIN_SEL, 0x00);
-+		tm6000_set_reg(dev, TM6010_REQ08_RE4_ADC_IN2_SEL, 0xf3);
-+		tm6000_set_reg(dev, TM6010_REQ08_R06_A_SOUND_MOD, 0x00);
-+		tm6000_set_reg(dev, TM6010_REQ08_R01_A_INIT, 0x80);
++	/* Key codes for the Elgato EyeTV Diversity silver remote,
++	   set dvb_usb_dib0700_ir_proto=0 */
++	{ 0x4501, KEY_POWER },
++	{ 0x4502, KEY_MUTE },
++	{ 0x4503, KEY_1 },
++	{ 0x4504, KEY_2 },
++	{ 0x4505, KEY_3 },
++	{ 0x4506, KEY_4 },
++	{ 0x4507, KEY_5 },
++	{ 0x4508, KEY_6 },
++	{ 0x4509, KEY_7 },
++	{ 0x450a, KEY_8 },
++	{ 0x450b, KEY_9 },
++	{ 0x450c, KEY_LAST },
++	{ 0x450d, KEY_0 },
++	{ 0x450e, KEY_ENTER },
++	{ 0x450f, KEY_RED },
++	{ 0x4510, KEY_CHANNELUP },
++	{ 0x4511, KEY_GREEN },
++	{ 0x4512, KEY_VOLUMEDOWN },
++	{ 0x4513, KEY_OK },
++	{ 0x4514, KEY_VOLUMEUP },
++	{ 0x4515, KEY_YELLOW },
++	{ 0x4516, KEY_CHANNELDOWN },
++	{ 0x4517, KEY_BLUE },
++	{ 0x4518, KEY_LEFT }, /* Skip backwards */
++	{ 0x4519, KEY_PLAYPAUSE },
++	{ 0x451a, KEY_RIGHT }, /* Skip forward */
++	{ 0x451b, KEY_REWIND },
++	{ 0x451c, KEY_L }, /* Live */
++	{ 0x451d, KEY_FASTFORWARD },
++	{ 0x451e, KEY_STOP }, /* 'Reveal' for Teletext */
++	{ 0x451f, KEY_MENU }, /* KEY_TEXT for Teletext */
++	{ 0x4540, KEY_RECORD }, /* Font 'Size' for Teletext */
++	{ 0x4541, KEY_SCREEN }, /*  Full screen toggle, 'Hold' for Teletext */
++	{ 0x4542, KEY_SELECT }, /* Select video input, 'Select' for Teletext */
+ };
  
- 	} else {
- 		/* Enables soft reset */
+ /* STK7700P: Hauppauge Nova-T Stick, AVerMedia Volar */
+@@ -2049,6 +2086,7 @@ struct usb_device_id dib0700_usb_id_table[] = {
+ /* 65 */{ USB_DEVICE(USB_VID_PINNACLE,	USB_PID_PINNACLE_PCTV73ESE) },
+ 	{ USB_DEVICE(USB_VID_PINNACLE,	USB_PID_PINNACLE_PCTV282E) },
+ 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK8096GP) },
++	{ USB_DEVICE(USB_VID_ELGATO,    USB_PID_ELGATO_EYETV_DIVERSITY) },
+ 	{ 0 }		/* Terminating entry */
+ };
+ MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
+@@ -2393,7 +2431,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+ 			}
+ 		},
+ 
+-		.num_device_descs = 6,
++		.num_device_descs = 7,
+ 		.devices = {
+ 			{   "DiBcom STK7070PD reference design",
+ 				{ &dib0700_usb_id_table[17], NULL },
+@@ -2419,7 +2457,11 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+ 			{  "Sony PlayTV",
+ 				{ &dib0700_usb_id_table[44], NULL },
+ 				{ NULL },
+-			}
++			},
++			{   "Elgato EyeTV Diversity",
++				{ &dib0700_usb_id_table[68], NULL },
++				{ NULL },
++			},
+ 		},
+ 		.rc_interval      = DEFAULT_RC_INTERVAL,
+ 		.rc_key_map       = ir_codes_dib0700_table,
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+index de1f3af..085c4e4 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+@@ -290,6 +290,7 @@
+ #define USB_PID_MSI_DIGI_VOX_MINI_III                   0x8807
+ #define USB_PID_SONY_PLAYTV				0x0003
+ #define USB_PID_MYGICA_D689				0xd811
++#define USB_PID_ELGATO_EYETV_DIVERSITY			0x0011
+ #define USB_PID_ELGATO_EYETV_DTT			0x0021
+ #define USB_PID_ELGATO_EYETV_DTT_Dlx			0x0020
+ #define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_COLD		0x5000
 -- 
-1.7.0.2
+1.7.0
 
