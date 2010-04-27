@@ -1,143 +1,382 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from racoon.tvdr.de ([188.40.50.18]:43266 "EHLO racoon.tvdr.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752144Ab0DRNTo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Apr 2010 09:19:44 -0400
-Received: from whale.cadsoft.de (whale.tvdr.de [192.168.100.6])
-	by racoon.tvdr.de (8.14.3/8.14.3) with ESMTP id o3IDJfF2020059
-	for <linux-media@vger.kernel.org>; Sun, 18 Apr 2010 15:19:41 +0200
-Message-ID: <4BCB06E7.8050806@tvdr.de>
-Date: Sun, 18 Apr 2010 15:19:35 +0200
-From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-MIME-Version: 1.0
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:33898 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753533Ab0D0V5G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Apr 2010 17:57:06 -0400
+Received: by mail-ew0-f220.google.com with SMTP id 20so4568645ewy.1
+        for <linux-media@vger.kernel.org>; Tue, 27 Apr 2010 14:57:05 -0700 (PDT)
+From: Roel Van Nyen <roel.vannyen@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: Re: [linux-media] Re: [PATCH] Add FE_CAN_PSK_8 to allow apps to identify
- PSK_8 capable 	DVB devices
-References: <4BC19294.4010200@tvdr.de> <s2n1a297b361004151321rb51b5225q79842aac2964371b@mail.gmail.com>
-In-Reply-To: <s2n1a297b361004151321rb51b5225q79842aac2964371b@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Roel Van Nyen <roel.vannyen@gmail.com>
+Subject: [PATCH] Staging: tm6000: fix coding style issues of tm6000-cards.c
+Date: Tue, 27 Apr 2010 23:57:00 +0200
+Message-Id: <1272405420-26785-1-git-send-email-roel.vannyen@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15.04.2010 22:21, Manu Abraham wrote:
-> Hi Klaus,
-> 
-> On Sun, Apr 11, 2010 at 1:12 PM, Klaus Schmidinger
-> <Klaus.Schmidinger@tvdr.de> wrote:
->> The enum fe_caps provides flags that allow an application to detect
->> whether a device is capable of handling various modulation types etc.
->> A flag for detecting PSK_8, however, is missing.
->> This patch adds the flag FE_CAN_PSK_8 to frontend.h and implements
->> it for the gp8psk-fe.c and cx24116.c driver (apparently the only ones
->> with PSK_8). Only the gp8psk-fe.c has been explicitly tested, though.
-> 
-> 
-> The FE_CAN_PSK_8 is a misnomer. In fact what you are looking for is
-> FE_CAN_TURBO_FEC
+fix coding style issues
 
-Well, when processing the NIT data in VDR, for instance, the possible
-modulation types that can be used according to the driver's frontend.h
-are
-        QPSK,
-        QAM_16,
-        QAM_32,
-        QAM_64,
-        QAM_128,
-        QAM_256,
-        QAM_AUTO,
-        VSB_8,
-        VSB_16,
-        PSK_8,
-        APSK_16,
-        APSK_32,
-        DQPSK,
+Signed-off-by: Roel Van Nyen <roel.vannyen@gmail.com>
+---
+ drivers/staging/tm6000/tm6000-cards.c |  131 ++++++++++++++++-----------------
+ 1 files changed, 63 insertions(+), 68 deletions(-)
 
-There is nothing in frontend.h that would be in any way related to
-"turbo fec" (whatever that may be).
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 2935533..a7e2b54 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -246,7 +246,7 @@ struct tm6000_board tm6000_boards[] = {
+ };
+ 
+ /* table of devices that work with this driver */
+-struct usb_device_id tm6000_id_table [] = {
++struct usb_device_id tm6000_id_table[] = {
+ 	{ USB_DEVICE(0x6000, 0x0001), .driver_info = TM5600_BOARD_10MOONS_UT821 },
+ 	{ USB_DEVICE(0x6000, 0x0002), .driver_info = TM6010_BOARD_GENERIC },
+ 	{ USB_DEVICE(0x06e1, 0xf332), .driver_info = TM6000_BOARD_ADSTECH_DUAL_TV },
+@@ -271,23 +271,23 @@ struct usb_device_id tm6000_id_table [] = {
+ 
+ int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+ {
+-	int rc=0;
++	int rc = 0;
+ 	struct tm6000_core *dev = ptr;
+ 
+-	if (dev->tuner_type!=TUNER_XC2028)
++	if (dev->tuner_type != TUNER_XC2028)
+ 		return 0;
+ 
+ 	switch (command) {
+ 	case XC2028_RESET_CLK:
+-		tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT,
++		tm6000_set_reg(dev, REQ_04_EN_DISABLE_MCU_INT,
+ 					0x02, arg);
+ 		msleep(10);
+-		rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
++		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+ 					TM6000_GPIO_CLK, 0);
+-		if (rc<0)
++		if (rc < 0)
+ 			return rc;
+ 		msleep(10);
+-		rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
++		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+ 					TM6000_GPIO_CLK, 1);
+ 		break;
+ 	case XC2028_TUNER_RESET:
+@@ -320,24 +320,24 @@ int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+ 			}
+ 			break;
+ 		case 1:
+-			tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT,
++			tm6000_set_reg(dev, REQ_04_EN_DISABLE_MCU_INT,
+ 						0x02, 0x01);
+ 			msleep(10);
+ 			break;
+ 
+ 		case 2:
+-			rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
++			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+ 						TM6000_GPIO_CLK, 0);
+-			if (rc<0)
++			if (rc < 0)
+ 				return rc;
+ 			msleep(100);
+-			rc=tm6000_set_reg (dev, REQ_03_SET_GET_MCU_PIN,
++			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+ 						TM6000_GPIO_CLK, 1);
+ 			msleep(100);
+ 			break;
+ 		}
+ 	}
+-	return (rc);
++	return rc;
+ }
+ 
+ int tm6000_cards_setup(struct tm6000_core *dev)
+@@ -437,28 +437,28 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+ 	return 0;
+ };
+ 
+-static void tm6000_config_tuner (struct tm6000_core *dev)
++static void tm6000_config_tuner(struct tm6000_core *dev)
+ {
+-	struct tuner_setup           tun_setup;
++	struct tuner_setup tun_setup;
+ 
+ 	/* Load tuner module */
+ 	v4l2_i2c_new_subdev(&dev->v4l2_dev, &dev->i2c_adap,
+-		"tuner", "tuner",dev->tuner_addr, NULL);
++		"tuner", "tuner", dev->tuner_addr, NULL);
+ 
+ 	memset(&tun_setup, 0, sizeof(tun_setup));
+-	tun_setup.type   = dev->tuner_type;
+-	tun_setup.addr   = dev->tuner_addr;
++	tun_setup.type = dev->tuner_type;
++	tun_setup.addr = dev->tuner_addr;
+ 	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
+ 	tun_setup.tuner_callback = tm6000_tuner_callback;
+ 
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr, &tun_setup);
+ 
+ 	if (dev->tuner_type == TUNER_XC2028) {
+-		struct v4l2_priv_tun_config  xc2028_cfg;
+-		struct xc2028_ctrl           ctl;
++		struct v4l2_priv_tun_config xc2028_cfg;
++		struct xc2028_ctrl ctl;
+ 
+ 		memset(&xc2028_cfg, 0, sizeof(xc2028_cfg));
+-		memset (&ctl,0,sizeof(ctl));
++		memset(&ctl, 0, sizeof(ctl));
+ 
+ 		ctl.input1 = 1;
+ 		ctl.read_not_reliable = 0;
+@@ -469,7 +469,7 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+ 		xc2028_cfg.tuner = TUNER_XC2028;
+ 		xc2028_cfg.priv  = &ctl;
+ 
+-		switch(dev->model) {
++		switch (dev->model) {
+ 		case TM6010_BOARD_HAUPPAUGE_900H:
+ 		case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
+ 		case TM6010_BOARD_TWINHAN_TU501:
+@@ -509,8 +509,8 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+ 	dev->caps = tm6000_boards[dev->model].caps;
+ 
+ 	/* initialize hardware */
+-	rc=tm6000_init (dev);
+-	if (rc<0)
++	rc = tm6000_init(dev);
++	if (rc < 0)
+ 		goto err;
+ 
+ 	rc = v4l2_device_register(&dev->udev->dev, &dev->v4l2_dev);
+@@ -518,8 +518,8 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+ 		goto err;
+ 
+ 	/* register i2c bus */
+-	rc=tm6000_i2c_register(dev);
+-	if (rc<0)
++	rc = tm6000_i2c_register(dev);
++	if (rc < 0)
+ 		goto err;
+ 
+ 	/* Default values for STD and resolutions */
+@@ -528,7 +528,7 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+ 	dev->norm = V4L2_STD_PAL_M;
+ 
+ 	/* Configure tuner */
+-	tm6000_config_tuner (dev);
++	tm6000_config_tuner(dev);
+ 
+ 	/* Set video standard */
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_std, dev->norm);
+@@ -545,20 +545,20 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+ 			"tvaudio", "tvaudio", I2C_ADDR_TDA9874, NULL);
+ 
+ 	/* register and initialize V4L2 */
+-	rc=tm6000_v4l2_register(dev);
+-	if (rc<0)
++	rc = tm6000_v4l2_register(dev);
++	if (rc < 0)
+ 		goto err;
+ 
+-	if(dev->caps.has_dvb) {
++	if (dev->caps.has_dvb) {
+ 		dev->dvb = kzalloc(sizeof(*(dev->dvb)), GFP_KERNEL);
+-		if(!dev->dvb) {
++		if (!dev->dvb) {
+ 			rc = -ENOMEM;
+ 			goto err2;
+ 		}
+ 
+ #ifdef CONFIG_VIDEO_TM6000_DVB
+ 		rc = tm6000_dvb_register(dev);
+-		if(rc < 0) {
++		if (rc < 0) {
+ 			kfree(dev->dvb);
+ 			dev->dvb = NULL;
+ 			goto err2;
+@@ -579,24 +579,23 @@ err:
+ /* high bandwidth multiplier, as encoded in highspeed endpoint descriptors */
+ #define hb_mult(wMaxPacketSize) (1 + (((wMaxPacketSize) >> 11) & 0x03))
+ 
+-static void get_max_endpoint (  struct usb_device *usbdev,
++static void get_max_endpoint (struct usb_device *usbdev,
+ 				char *msgtype,
+ 				struct usb_host_endpoint *curr_e,
+ 				unsigned int *maxsize,
+-				struct usb_host_endpoint **ep  )
++				struct usb_host_endpoint **ep)
+ {
+ 	u16 tmp = le16_to_cpu(curr_e->desc.wMaxPacketSize);
+ 	unsigned int size = tmp & 0x7ff;
+ 
+ 	if (usbdev->speed == USB_SPEED_HIGH)
+-		size = size * hb_mult (tmp);
++		size = size * hb_mult(tmp);
+ 
+-	if (size>*maxsize) {
++	if (size > *maxsize) {
+ 		*ep = curr_e;
+ 		*maxsize = size;
+-		printk("tm6000: %s endpoint: 0x%02x (max size=%u bytes)\n",
+-					msgtype, curr_e->desc.bEndpointAddress,
+-					size);
++		printk(KERN_INFO "tm6000: %s endpoint: 0x%02x (max size=%u bytes)\n",
++			msgtype, curr_e->desc.bEndpointAddress, size);
+ 	}
+ }
+ 
+@@ -609,22 +608,21 @@ static int tm6000_usb_probe(struct usb_interface *interface,
+ {
+ 	struct usb_device *usbdev;
+ 	struct tm6000_core *dev = NULL;
+-	int i,rc=0;
+-	int nr=0;
++	int i, rc = 0;
++	int nr = 0;
+ 	char *speed;
+ 
+-
+-	usbdev=usb_get_dev(interface_to_usbdev(interface));
++	usbdev = usb_get_dev(interface_to_usbdev(interface));
+ 
+ 	/* Selects the proper interface */
+-	rc=usb_set_interface(usbdev,0,1);
+-	if (rc<0)
++	rc = usb_set_interface(usbdev, 0, 1);
++	if (rc < 0)
+ 		goto err;
+ 
+ 	/* Check to see next free device and mark as used */
+-	nr=find_first_zero_bit(&tm6000_devused,TM6000_MAXBOARDS);
++	nr = find_first_zero_bit(&tm6000_devused, TM6000_MAXBOARDS);
+ 	if (nr >= TM6000_MAXBOARDS) {
+-		printk ("tm6000: Supports only %i tm60xx boards.\n",TM6000_MAXBOARDS);
++		printk(KERN_ERR "tm6000: Supports only %i tm60xx boards.\n", TM6000_MAXBOARDS);
+ 		usb_put_dev(usbdev);
+ 		return -ENOMEM;
+ 	}
+@@ -632,23 +630,22 @@ static int tm6000_usb_probe(struct usb_interface *interface,
+ 	/* Create and initialize dev struct */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+ 	if (dev == NULL) {
+-		printk ("tm6000" ": out of memory!\n");
++		printk(KERN_ERR "tm6000" ": out of memory!\n");
+ 		usb_put_dev(usbdev);
+ 		return -ENOMEM;
+ 	}
+ 	spin_lock_init(&dev->slock);
+ 
+ 	/* Increment usage count */
+-	tm6000_devused|=1<<nr;
++	tm6000_devused |= 1<<nr;
+ 	snprintf(dev->name, 29, "tm6000 #%d", nr);
+ 
+-	dev->model=id->driver_info;
+-	if ((card[nr]>=0) && (card[nr]<ARRAY_SIZE(tm6000_boards))) {
+-		dev->model=card[nr];
+-	}
++	dev->model = id->driver_info;
++	if ((card[nr] >= 0) && (card[nr] < ARRAY_SIZE(tm6000_boards)))
++		dev->model = card[nr];
+ 
+-	dev->udev= usbdev;
+-	dev->devno=nr;
++	dev->udev = usbdev;
++	dev->devno = nr;
+ 
+ 	switch (usbdev->speed) {
+ 	case USB_SPEED_LOW:
+@@ -680,7 +677,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
+ 			dir_out = ((e->desc.bEndpointAddress &
+ 					USB_ENDPOINT_DIR_MASK) == USB_DIR_OUT);
+ 
+-			printk("tm6000: alt %d, interface %i, class %i\n",
++			printk(KERN_INFO "tm6000: alt %d, interface %i, class %i\n",
+ 			       i,
+ 			       interface->altsetting[i].desc.bInterfaceNumber,
+ 			       interface->altsetting[i].desc.bInterfaceClass);
+@@ -713,7 +710,7 @@ static int tm6000_usb_probe(struct usb_interface *interface,
+ 	}
+ 
+ 
+-	printk("tm6000: New video device @ %s Mbps (%04x:%04x, ifnum %d)\n",
++	printk(KERN_INFO "tm6000: New video device @ %s Mbps (%04x:%04x, ifnum %d)\n",
+ 		speed,
+ 		le16_to_cpu(dev->udev->descriptor.idVendor),
+ 		le16_to_cpu(dev->udev->descriptor.idProduct),
+@@ -721,8 +718,8 @@ static int tm6000_usb_probe(struct usb_interface *interface,
+ 
+ /* check if the the device has the iso in endpoint at the correct place */
+ 	if (!dev->isoc_in) {
+-		printk("tm6000: probing error: no IN ISOC endpoint!\n");
+-		rc= -ENODEV;
++		printk(KERN_ERR"tm6000: probing error: no IN ISOC endpoint!\n");
++		rc = -ENODEV;
+ 
+ 		goto err;
+ 	}
+@@ -730,19 +727,19 @@ static int tm6000_usb_probe(struct usb_interface *interface,
+ 	/* save our data pointer in this interface device */
+ 	usb_set_intfdata(interface, dev);
+ 
+-	printk("tm6000: Found %s\n", tm6000_boards[dev->model].name);
++	printk(KERN_INFO "tm6000: Found %s\n", tm6000_boards[dev->model].name);
+ 
+-	rc=tm6000_init_dev(dev);
++	rc = tm6000_init_dev(dev);
+ 
+-	if (rc<0)
++	if (rc < 0)
+ 		goto err;
+ 
+ 	return 0;
+ 
+ err:
+-	printk("tm6000: Error %d while registering\n", rc);
++	printk(KERN_ERR "tm6000: Error %d while registering\n", rc);
+ 
+-	tm6000_devused&=~(1<<nr);
++	tm6000_devused &= ~(1<<nr);
+ 	usb_put_dev(usbdev);
+ 
+ 	kfree(dev);
+@@ -762,12 +759,12 @@ static void tm6000_usb_disconnect(struct usb_interface *interface)
+ 	if (!dev)
+ 		return;
+ 
+-	printk("tm6000: disconnecting %s\n", dev->name);
++	printk(KERN_INFO "tm6000: disconnecting %s\n", dev->name);
+ 
+ 	mutex_lock(&dev->lock);
+ 
+ #ifdef CONFIG_VIDEO_TM6000_DVB
+-	if(dev->dvb) {
++	if (dev->dvb) {
+ 		tm6000_dvb_unregister(dev);
+ 		kfree(dev->dvb);
+ 	}
+@@ -779,8 +776,6 @@ static void tm6000_usb_disconnect(struct usb_interface *interface)
+ 
+ 	v4l2_device_unregister(&dev->v4l2_dev);
+ 
+-//	wake_up_interruptible_all(&dev->open);
+-
+ 	dev->state |= DEV_DISCONNECTED;
+ 
+ 	usb_put_dev(dev->udev);
+@@ -807,7 +802,7 @@ static int __init tm6000_module_init(void)
+ 	/* register this driver with the USB subsystem */
+ 	result = usb_register(&tm6000_usb_driver);
+ 	if (result)
+-		printk("tm6000"
++		printk(KERN_ERR "tm6000"
+ 			   " usb_register failed. Error number %d.\n", result);
+ 
+ 	return result;
+-- 
+1.6.3.3
 
-Of course we can rename FE_CAN_PSK_8 to FE_CAN_TURBO_FEC, but wouldn't
-something like
-
- if (Modulation == PSK_8 && !(frontendInfo.caps & FE_CAN_TURBO_FEC))
-    return false;
-
-be even more irritating than a straight forward
-
- if (Modulation == PSK_8 && !(frontendInfo.caps & FE_CAN_PSK_8))
-    return false;
-
-After all it's
-
- if (Modulation == QAM_256 && !(frontendInfo.caps & FE_CAN_QAM_256))
-    return false;
-
-Please advise. Whatever you prefer is fine with me.
-All I need in VDR is a flag that allows me to detect whether a device
-can handle a given transponder's modulation. I don't really care how
-that flag is named ;-).
-
-> FE_CAN_8PSK will be matched by any DVB-S2 capable frontend, so that
-> name is very likely to cause a very large confusion.
-
-I chose FE_CAN_PSK_8 over FE_CAN_8PSK, because the modulation itself
-is named PSK_8. This allows for easily finding all PSK_8 related places
-with 'grep'. Personally I find the FE_CAN_8VSB and FE_CAN_16VSB misnomers,
-because the modulations are named VSB_8 and VSB_16, respectively. They
-should have been named FE_CAN_VSB_8 and FE_CAN_VSB_16 in the first place.
-But that's, of course, a different story...
-
-Klaus Schmidinger
-
-> Another thing I am not entirely sure though ... The cx24116 requires a
-> separate firmware and maybe some necessary code changes (?) for Turbo
-> FEC to be supported, so I wonder whether applying the flag to the
-> cx24116 driver would be any relevant....
-> 
-> With regards to the Genpix driver, i guess the flag would be necessary.
-> 
->> Signed-off-by: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
->> Tested-by: Derek Kelly <user.vdr@gmail.com>
-> 
-> Other than for the naming of the Flag (which i suggest strongly to
-> update the patch) and the application to the cx24116 driver, it looks
-> appropriate;
-> 
-> Acked-by: Manu Abraham <manu@linuxtv.org>
-> 
-> 
-> 
-> 
->>
->> --- linux/include/linux/dvb/frontend.h.001      2010-04-05 16:13:08.000000000 +0200
->> +++ linux/include/linux/dvb/frontend.h  2010-04-10 12:08:47.000000000 +0200
->> @@ -62,6 +62,7 @@
->>        FE_CAN_8VSB                     = 0x200000,
->>        FE_CAN_16VSB                    = 0x400000,
->>        FE_HAS_EXTENDED_CAPS            = 0x800000,   /* We need more bitspace for newer APIs, indicate this. */
->> +       FE_CAN_PSK_8                    = 0x8000000,  /* frontend supports "8psk modulation" */
->>        FE_CAN_2G_MODULATION            = 0x10000000, /* frontend supports "2nd generation modulation" (DVB-S2) */
->>        FE_NEEDS_BENDING                = 0x20000000, /* not supported anymore, don't use (frontend requires frequency bending) */
->>        FE_CAN_RECOVER                  = 0x40000000, /* frontend can recover from a cable unplug automatically */
->> --- linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c.001     2010-04-05 16:13:08.000000000 +0200
->> +++ linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c 2010-04-10 12:18:37.000000000 +0200
->> @@ -349,7 +349,7 @@
->>                         * FE_CAN_QAM_16 is for compatibility
->>                         * (Myth incorrectly detects Turbo-QPSK as plain QAM-16)
->>                         */
->> -                       FE_CAN_QPSK | FE_CAN_QAM_16
->> +                       FE_CAN_QPSK | FE_CAN_QAM_16 | FE_CAN_PSK_8
->>        },
->>
->>        .release = gp8psk_fe_release,
->> --- linux/drivers/media/dvb/frontends/cx24116.c.001     2010-04-05 16:13:08.000000000 +0200
->> +++ linux/drivers/media/dvb/frontends/cx24116.c 2010-04-10 13:40:32.000000000 +0200
->> @@ -1496,7 +1496,7 @@
->>                        FE_CAN_FEC_4_5 | FE_CAN_FEC_5_6 | FE_CAN_FEC_6_7 |
->>                        FE_CAN_FEC_7_8 | FE_CAN_FEC_AUTO |
->>                        FE_CAN_2G_MODULATION |
->> -                       FE_CAN_QPSK | FE_CAN_RECOVER
->> +                       FE_CAN_QPSK | FE_CAN_RECOVER | FE_CAN_PSK_8
->>        },
->>
->>        .release = cx24116_release,
