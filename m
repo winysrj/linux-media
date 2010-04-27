@@ -1,94 +1,335 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47298 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750836Ab0DKFDR (ORCPT
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:44587 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751011Ab0D0FM7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Apr 2010 01:03:17 -0400
-Subject: Re: [ivtv-devel] cx18: "missing audio" for analog recordings
-From: Andy Walls <awalls@md.metrocast.net>
-To: Discussion list for development of the IVTV driver
-	<ivtv-devel@ivtvdriver.org>
-Cc: Mark Lord <mlord@pobox.com>, Darren Blaber <dmbtech@gmail.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <1270961760.5365.14.camel@palomino.walls.org>
-References: <4B8BE647.7070709@teksavvy.com>
-	 <1267493641.4035.17.camel@palomino.walls.org>
-	 <4B8CA8DD.5030605@teksavvy.com>
-	 <1267533630.3123.17.camel@palomino.walls.org> <4B9DA003.90306@teksavvy.com>
-	 <1268653884.3209.32.camel@palomino.walls.org> <4BC0FB79.7080601@pobox.com>
-	 <1270940043.3100.43.camel@palomino.walls.org> <4BC1401F.9080203@pobox.com>
-	 <1270961760.5365.14.camel@palomino.walls.org>
-Content-Type: text/plain
-Date: Sun, 11 Apr 2010 01:03:41 -0400
-Message-Id: <1270962221.5365.16.camel@palomino.walls.org>
+	Tue, 27 Apr 2010 01:12:59 -0400
+Received: by ewy20 with SMTP id 20so4104942ewy.1
+        for <linux-media@vger.kernel.org>; Mon, 26 Apr 2010 22:12:57 -0700 (PDT)
+Date: Tue, 27 Apr 2010 15:15:45 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Bee Hock Goh <beehock@gmail.com>
+Cc: Stefan Ringel <stefan.ringel@arcor.de>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] tm6000 fix i2c
+Message-ID: <20100427151545.217a5c90@glory.loctelecom.ru>
+In-Reply-To: <k2m6e8e83e21004260558sb3695c27o5d061b7bc69198c1@mail.gmail.com>
+References: <20100423104804.784fb730@glory.loctelecom.ru>
+	<4BD1B985.8060703@arcor.de>
+	<20100426102514.2c13761e@glory.loctelecom.ru>
+	<k2m6e8e83e21004260558sb3695c27o5d061b7bc69198c1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-04-11 at 00:56 -0400, Andy Walls wrote:
-> On Sat, 2010-04-10 at 23:21 -0400, Mark Lord wrote:
-> > On 10/04/10 06:54 PM, Andy Walls wrote:
-> > >
-> > > Hmmm.  Darren's having problems (loss of video/black screen) with my
-> > > patches under my cx18-audio repo, but I'm not quite convinced he doesn't
-> > > have some other PCI bus problem either.
-> > >
-> > > Anyway, my plan now is this:
-> > >
-> > > 1. on cx18-av-core.c:input_change()
-> > > 	a. set register 0x808 for audio autodetection
-> > > 	b. restart the format detection loop
-> > > 	c. set or reset a 1.5 second timeout
-> > >
-> > > 2. after the timer expires, if no audio standard was detected,
-> > > 	a. force the audio standard by programming register 0x808
-> > > 		(e.g. BTSC for NTSC-M)
-> > > 	b. restart the format detection loop so the micrcontroller will
-> > > 		do the unmute when it detects audio
-> > >
-> > > Darren is in NTSC-M/BTSC land.  What TV standard are you dealing with?
-> > ..
-> > 
-> > I'm in Canada, using the tuner for over-the-air NTSC broadcasts.
-> 
-> 
-> Try this:
-> 
-> 	http://linuxtv.org/hg/~awalls/cx18-audio2
-> 
-> this waits 1.5 seconds after an input/channel change to see if the audio
-> standard micrcontroller can detect the standard.  If it can't, the
-> driver tells it to try a fallback detection.  Right now, only the NTSC-M
-> fallback detection is set to force a mode (i.e. BTSC), all the others
-> "fall back" to their same auto-detection.
-> 
-> Some annoyances with the fallback to a forced audio standard, mode, and
-> format:
-> 
-> 1. Static gets unmuted on stations with no signal. :(
-> 
-> 2. I can't seem to force mode "MONO2 (LANGUAGE B)".  I'm guessing the
-> microcontroller keeps setting it back down to "MONO1 (LANGUAGE A/Mono L
-> +R channel for BTSC, EIAJ, A2)"  Feel free to experiment with the LSB of
-                                                                    ^^^
+On Mon, 26 Apr 2010 20:58:24 +0800
+Bee Hock Goh <beehock@gmail.com> wrote:
 
-Bah, wrong byte.  That should have been the LSN of the MSB of the 0x1101
-number.  I'm too tired. 
+> thanks. This is work fine on my tm5600.
 
-Regards,
-Andy
+Good news.
+ 
+> btw, can you use the git tree? There is some codes update from Stefan
+> there for the tm6000-i2c that is still not sync with hg.
 
-> the fallback setting magic number (0x1101) in
-> cx18-av-core.c:input_change().
-> 
-> 
-> Regards,
-> Andy
-> 
-> 
-> _______________________________________________
-> ivtv-devel mailing list
-> ivtv-devel@ivtvdriver.org
-> http://ivtvdriver.org/mailman/listinfo/ivtv-devel
+no problemm. Give me access and URL.
 
+With my best regards, Dmitry.
+
+> On Mon, Apr 26, 2010 at 8:25 AM, Dmitri Belimov <d.belimov@gmail.com>
+> wrote:
+> > Hi
+> >
+> > Rework last I2C patch.
+> > Set correct limit for I2C packet.
+> > Use different method for the tm5600/tm6000 and tm6010 to read word.
+> >
+> > Try this patch.
+> >
+> > diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000-i2c.c
+> > --- a/linux/drivers/staging/tm6000/tm6000-i2c.c Mon Apr 05 22:56:43
+> > 2010 -0400 +++ b/linux/drivers/staging/tm6000/tm6000-i2c.c Mon Apr
+> > 26 04:15:56 2010 +1000 @@ -24,6 +24,7 @@
+> >  #include <linux/kernel.h>
+> >  #include <linux/usb.h>
+> >  #include <linux/i2c.h>
+> > +#include <linux/delay.h>
+> >
+> >  #include "compat.h"
+> >  #include "tm6000.h"
+> > @@ -45,11 +46,49 @@
+> >                        printk(KERN_DEBUG "%s at %s: " fmt, \
+> >                        dev->name, __FUNCTION__ , ##args); } while
+> > (0)
+> >
+> > +static void tm6000_i2c_reset(struct tm6000_core *dev)
+> > +{
+> > +       tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> > TM6000_GPIO_CLK, 0);
+> > +       msleep(15);
+> > +       tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> > TM6000_GPIO_CLK, 1);
+> > +       msleep(15);
+> > +}
+> > +
+> >  static int tm6000_i2c_send_regs(struct tm6000_core *dev, unsigned
+> > char addr, __u8 reg, char *buf, int len)
+> >  {
+> > -       return tm6000_read_write_usb(dev, USB_DIR_OUT |
+> > USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> > -               REQ_16_SET_GET_I2C_WR1_RDN, addr | reg << 8, 0,
+> > buf, len);
+> > +       int rc;
+> > +       unsigned int tsleep;
+> > +       unsigned int i2c_packet_limit = 16;
+> > +
+> > +       if (dev->dev_type == TM6010)
+> > +               i2c_packet_limit = 64;
+> > +
+> > +       if (!buf)
+> > +               return -1;
+> > +
+> > +       if (len < 1 || len > i2c_packet_limit){
+> > +               printk("Incorrect lenght of i2c packet = %d, limit
+> > set to %d\n",
+> > +                       len, i2c_packet_limit);
+> > +               return -1;
+> > +       }
+> > +
+> > +       /* capture mutex */
+> > +       rc = tm6000_read_write_usb(dev, USB_DIR_OUT |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> > +               addr | reg << 8, 0, buf, len);
+> > +
+> > +       if (rc < 0) {
+> > +               /* release mutex */
+> > +               return rc;
+> > +       }
+> > +
+> > +       /* Calculate delay time, 14000us for 64 bytes */
+> > +       tsleep = ((len * 200) + 200 + 1000) / 1000;
+> > +       msleep(tsleep);
+> > +
+> > +       /* release mutex */
+> > +       return rc;
+> >  }
+> >
+> >  /* Generic read - doesn't work fine with 16bit registers */
+> > @@ -58,23 +97,41 @@
+> >  {
+> >        int rc;
+> >        u8 b[2];
+> > +       unsigned int i2c_packet_limit = 16;
+> >
+> > -       if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 ==
+> > addr) && (reg % 2 == 0)) {
+> > +       if (dev->dev_type == TM6010)
+> > +               i2c_packet_limit = 64;
+> > +
+> > +       if (!buf)
+> > +               return -1;
+> > +
+> > +       if (len < 1 || len > i2c_packet_limit){
+> > +               printk("Incorrect lenght of i2c packet = %d, limit
+> > set to %d\n",
+> > +                       len, i2c_packet_limit);
+> > +               return -1;
+> > +       }
+> > +
+> > +       /* capture mutex */
+> > +       if ((dev->caps.has_zl10353) && (dev->demod_addr << 1 ==
+> > addr)
+> > +       && (reg % 2 == 0)) {
+> >                /*
+> >                 * Workaround an I2C bug when reading from zl10353
+> >                 */
+> >                reg -= 1;
+> >                len += 1;
+> >
+> > -               rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> > -                       REQ_16_SET_GET_I2C_WR1_RDN, addr | reg <<
+> > 8, 0, b, len);
+> > +               rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> > +               addr | reg << 8, 0, b, len);
+> >
+> >                *buf = b[1];
+> >        } else {
+> > -               rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> > -                       REQ_16_SET_GET_I2C_WR1_RDN, addr | reg <<
+> > 8, 0, buf, len);
+> > +               rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> > +               addr | reg << 8, 0, buf, len);
+> >        }
+> >
+> > +       /* release mutex */
+> >        return rc;
+> >  }
+> >
+> > @@ -85,8 +142,137 @@
+> >  static int tm6000_i2c_recv_regs16(struct tm6000_core *dev,
+> > unsigned char addr, __u16 reg, char *buf, int len)
+> >  {
+> > -       return tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR | USB_RECIP_DEVICE,
+> > -               REQ_14_SET_GET_I2C_WR2_RDN, addr, reg, buf, len);
+> > +       int rc;
+> > +       unsigned char ureg;
+> > +
+> > +       if (!buf || len != 2)
+> > +               return -1;
+> > +
+> > +       /* capture mutex */
+> > +       if (dev->dev_type == TM6010){
+> > +               ureg = reg & 0xFF;
+> > +               rc = tm6000_read_write_usb(dev, USB_DIR_OUT |
+> > USB_TYPE_VENDOR |
+> > +                       USB_RECIP_DEVICE,
+> > REQ_16_SET_GET_I2C_WR1_RDN,
+> > +                       addr | (reg & 0xFF00), 0, &ureg, 1);
+> > +
+> > +               if (rc < 0) {
+> > +                       /* release mutex */
+> > +                       return rc;
+> > +               }
+> > +
+> > +               msleep(1400 / 1000);
+> > +               rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR |
+> > +                       USB_RECIP_DEVICE, REQ_35_AFTEK_TUNER_READ,
+> > +                       reg, 0, buf, len);
+> > +       }
+> > +       else {
+> > +               rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR |
+> > +                       USB_RECIP_DEVICE,
+> > REQ_14_SET_GET_I2C_WR2_RDN,
+> > +                       addr, reg, buf, len);
+> > +       }
+> > +
+> > +       /* release mutex */
+> > +       return rc;
+> > +}
+> > +
+> > +static int tm6000_i2c_read_sequence(struct tm6000_core *dev,
+> > unsigned char addr,
+> > +                                 __u16 reg, char *buf, int len)
+> > +{
+> > +       int rc;
+> > +
+> > +       if (dev->dev_type != TM6010)
+> > +               return -1;
+> > +
+> > +       if (!buf)
+> > +               return -1;
+> > +
+> > +       if (len < 1 || len > 64){
+> > +               printk("Incorrect lenght of i2c packet = %d, limit
+> > set to 64\n",
+> > +                       len);
+> > +               return -1;
+> > +       }
+> > +
+> > +       /* capture mutex */
+> > +       rc = tm6000_read_write_usb(dev, USB_DIR_IN |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_35_AFTEK_TUNER_READ,
+> > +               reg, 0, buf, len);
+> > +       /* release mutex */
+> > +       return rc;
+> > +}
+> > +
+> > +static int tm6000_i2c_write_sequence(struct tm6000_core *dev,
+> > +                               unsigned char addr, __u16 reg, char
+> > *buf,
+> > +                               int len)
+> > +{
+> > +       int rc;
+> > +       unsigned int tsleep;
+> > +       unsigned int i2c_packet_limit = 16;
+> > +
+> > +       if (dev->dev_type == TM6010)
+> > +               i2c_packet_limit = 64;
+> > +
+> > +       if (!buf)
+> > +               return -1;
+> > +
+> > +       if (len < 1 || len > i2c_packet_limit){
+> > +               printk("Incorrect lenght of i2c packet = %d, limit
+> > set to %d\n",
+> > +                       len, i2c_packet_limit);
+> > +               return -1;
+> > +       }
+> > +
+> > +       /* capture mutex */
+> > +       rc = tm6000_read_write_usb(dev, USB_DIR_OUT |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_16_SET_GET_I2C_WR1_RDN,
+> > +               addr | reg << 8, 0, buf+1, len-1);
+> > +
+> > +       if (rc < 0) {
+> > +               /* release mutex */
+> > +               return rc;
+> > +       }
+> > +
+> > +       /* Calculate delay time, 13800us for 64 bytes */
+> > +       tsleep = ((len * 200) + 1000) / 1000;
+> > +       msleep(tsleep);
+> > +
+> > +       /* release mutex */
+> > +       return rc;
+> > +}
+> > +
+> > +static int tm6000_i2c_write_uni(struct tm6000_core *dev, unsigned
+> > char addr,
+> > +                                 __u16 reg, char *buf, int len)
+> > +{
+> > +       int rc;
+> > +       unsigned int tsleep;
+> > +       unsigned int i2c_packet_limit = 16;
+> > +
+> > +       if (dev->dev_type == TM6010)
+> > +               i2c_packet_limit = 64;
+> > +
+> > +       if (!buf)
+> > +               return -1;
+> > +
+> > +       if (len < 1 || len > i2c_packet_limit){
+> > +               printk("Incorrect lenght of i2c packet = %d, limit
+> > set to %d\n",
+> > +                       len, i2c_packet_limit);
+> > +               return -1;
+> > +       }
+> > +
+> > +       /* capture mutex */
+> > +       rc = tm6000_read_write_usb(dev, USB_DIR_OUT |
+> > USB_TYPE_VENDOR |
+> > +               USB_RECIP_DEVICE, REQ_30_I2C_WRITE,
+> > +               addr | reg << 8, 0, buf+1, len-1);
+> > +
+> > +       if (rc < 0) {
+> > +               /* release mutex */
+> > +               return rc;
+> > +       }
+> > +
+> > +       /* Calculate delay time, 14800us for 64 bytes */
+> > +       tsleep = ((len * 200) + 1000 + 1000) / 1000;
+> > +       msleep(tsleep);
+> > +
+> > +       /* release mutex */
+> > +       return rc;
+> >  }
+> >
+> >  static int tm6000_i2c_xfer(struct i2c_adapter *i2c_adap,
+> >
+> >
+> > With my best regards, Dmitry.
