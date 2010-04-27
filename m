@@ -1,366 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43402 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757316Ab0DHTha (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Apr 2010 15:37:30 -0400
-Date: Thu, 8 Apr 2010 16:37:16 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 8/8] V4L/DVB: ir-core: move subsystem internal calls to
- ir-core-priv.h
-Message-ID: <20100408163716.70862743@pedra>
-In-Reply-To: <cover.1270754989.git.mchehab@redhat.com>
-References: <cover.1270754989.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:55642 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752792Ab0D0VMH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Apr 2010 17:12:07 -0400
+Message-Id: <201004272111.o3RLBKix019982@imap1.linux-foundation.org>
+Subject: [patch 02/11] dib7000p: reduce large stack usage
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	randy.dunlap@oracle.com, pboettcher@dibcom.fr
+From: akpm@linux-foundation.org
+Date: Tue, 27 Apr 2010 14:11:20 -0700
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ir-core.h has the kABI to be used by the bridge drivers, when needing to register
-IR protocols and pass IR events. However, the same file also contains IR subsystem
-internal calls, meant to be used inside ir-core and between ir-core and the raw
-decoders.
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Better to move those functions to an internal header, for some reasons:
+Reduce the static stack usage of one of the 2 top offenders as listed by
+'make checkstack':
 
-1) Header will be a little more cleaner;
+Building with CONFIG_FRAME_WARN=2048 produces:
 
-2) It avoids the need of recompile everything (bridge/hardware drivers, etc),
-   just because a new decoder were added, or some other internal change were needed;
+drivers/media/dvb/frontends/dib7000p.c:1367: warning: the frame size of 2320 bytes is larger than 2048 bytes
 
-3) Better organize the ir-core API, splitting the functions that are internal to
-   IR core and the ancillary drivers (decoders, lirc_dev) from the features that
-   should be exported to IR subsystem clients.
+and in 'make checkstack', the stack usage goes from:
+0x00002409 dib7000p_i2c_enumeration [dib7000p]:		2328
+to unlisted with this patch.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Also change one caller of dib7000p_i2c_enumeration() to check its
+return value.
 
- create mode 100644 drivers/media/IR/ir-core-priv.h
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Patrick Boettcher <pboettcher@dibcom.fr>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-new file mode 100644
-index 0000000..ab785bc
---- /dev/null
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -0,0 +1,112 @@
-+/*
-+ * Remote Controller core raw events header
-+ *
-+ * Copyright (C) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation version 2 of the License.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ */
-+
-+#ifndef _IR_RAW_EVENT
-+#define _IR_RAW_EVENT
-+
-+#include <media/ir-core.h>
-+
-+struct ir_raw_handler {
-+	struct list_head list;
-+
-+	int (*decode)(struct input_dev *input_dev, s64 duration);
-+	int (*raw_register)(struct input_dev *input_dev);
-+	int (*raw_unregister)(struct input_dev *input_dev);
-+};
-+
-+struct ir_raw_event_ctrl {
-+	struct work_struct		rx_work;	/* for the rx decoding workqueue */
-+	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
-+	ktime_t				last_event;	/* when last event occurred */
-+	enum raw_event_type		last_type;	/* last event type */
-+	struct input_dev		*input_dev;	/* pointer to the parent input_dev */
-+};
-+
-+/* macros for IR decoders */
-+#define PULSE(units)				((units))
-+#define SPACE(units)				(-(units))
-+#define IS_RESET(duration)			((duration) == 0)
-+#define IS_PULSE(duration)			((duration) > 0)
-+#define IS_SPACE(duration)			((duration) < 0)
-+#define DURATION(duration)			(abs((duration)))
-+#define IS_TRANSITION(x, y)			((x) * (y) < 0)
-+#define DECREASE_DURATION(duration, amount)			\
-+	do {							\
-+		if (IS_SPACE(duration))				\
-+			duration += (amount);			\
-+		else if (IS_PULSE(duration))			\
-+			duration -= (amount);			\
-+	} while (0)
-+
-+#define TO_UNITS(duration, unit_len)				\
-+	((int)((duration) > 0 ?					\
-+		DIV_ROUND_CLOSEST(abs((duration)), (unit_len)) :\
-+		-DIV_ROUND_CLOSEST(abs((duration)), (unit_len))))
-+#define TO_US(duration)		((int)TO_UNITS(duration, 1000))
-+
-+/*
-+ * Routines from ir-keytable.c to be used internally on ir-core and decoders
-+ */
-+
-+u32 ir_g_keycode_from_table(struct input_dev *input_dev,
-+			    u32 scancode);
-+void ir_repeat(struct input_dev *dev);
-+void ir_keydown(struct input_dev *dev, int scancode, u8 toggle);
-+
-+/*
-+ * Routines from ir-sysfs.c - Meant to be called only internally inside
-+ * ir-core
-+ */
-+
-+int ir_register_class(struct input_dev *input_dev);
-+void ir_unregister_class(struct input_dev *input_dev);
-+
-+/*
-+ * Routines from ir-raw-event.c to be used internally and by decoders
-+ */
-+int ir_raw_event_register(struct input_dev *input_dev);
-+void ir_raw_event_unregister(struct input_dev *input_dev);
-+static inline void ir_raw_event_reset(struct input_dev *input_dev)
-+{
-+	ir_raw_event_store(input_dev, 0);
-+	ir_raw_event_handle(input_dev);
-+}
-+int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
-+void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
-+void ir_raw_init(void);
-+
-+
-+/*
-+ * Decoder initialization code
-+ *
-+ * Those load logic are called during ir-core init, and automatically
-+ * loads the compiled decoders for their usage with IR raw events
-+ */
-+
-+/* from ir-nec-decoder.c */
-+#ifdef CONFIG_IR_NEC_DECODER_MODULE
-+#define load_nec_decode()	request_module("ir-nec-decoder")
-+#else
-+#define load_nec_decode()	0
-+#endif
-+
-+/* from ir-rc5-decoder.c */
-+#ifdef CONFIG_IR_RC5_DECODER_MODULE
-+#define load_rc5_decode()	request_module("ir-rc5-decoder")
-+#else
-+#define load_rc5_decode()	0
-+#endif
-+
-+#endif /* _IR_RAW_EVENT */
-diff --git a/drivers/media/IR/ir-functions.c b/drivers/media/IR/ir-functions.c
-index ab06919..db591e4 100644
---- a/drivers/media/IR/ir-functions.c
-+++ b/drivers/media/IR/ir-functions.c
-@@ -24,6 +24,7 @@
- #include <linux/string.h>
- #include <linux/jiffies.h>
- #include <media/ir-common.h>
-+#include "ir-core-priv.h"
- 
- /* -------------------------------------------------------------------------- */
- 
-diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-index 67b2aa1..01bddc4 100644
---- a/drivers/media/IR/ir-keytable.c
-+++ b/drivers/media/IR/ir-keytable.c
-@@ -14,7 +14,7 @@
- 
- 
- #include <linux/input.h>
--#include <media/ir-common.h>
-+#include "ir-core-priv.h"
- 
- /* Sizes are in bytes, 256 bytes allows for 32 entries on x64 */
- #define IR_TAB_MIN_SIZE	256
-diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
-index 5085f90..f22d1af 100644
---- a/drivers/media/IR/ir-nec-decoder.c
-+++ b/drivers/media/IR/ir-nec-decoder.c
-@@ -12,8 +12,8 @@
-  *  GNU General Public License for more details.
-  */
- 
--#include <media/ir-core.h>
- #include <linux/bitrev.h>
-+#include "ir-core-priv.h"
- 
- #define NEC_NBITS		32
- #define NEC_UNIT		562500  /* ns */
-diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-index 3a25d8d..2efc051 100644
---- a/drivers/media/IR/ir-raw-event.c
-+++ b/drivers/media/IR/ir-raw-event.c
-@@ -12,10 +12,10 @@
-  *  GNU General Public License for more details.
-  */
- 
--#include <media/ir-core.h>
- #include <linux/workqueue.h>
- #include <linux/spinlock.h>
- #include <linux/sched.h>
-+#include "ir-core-priv.h"
- 
- /* Define the max number of pulse/space transitions to buffer */
- #define MAX_IR_EVENT_SIZE      512
-diff --git a/drivers/media/IR/ir-rc5-decoder.c b/drivers/media/IR/ir-rc5-decoder.c
-index d6def8c..59bcaa9 100644
---- a/drivers/media/IR/ir-rc5-decoder.c
-+++ b/drivers/media/IR/ir-rc5-decoder.c
-@@ -19,7 +19,7 @@
-  * the first two bits are start bits, and a third one is a filing bit
-  */
- 
--#include <media/ir-core.h>
-+#include "ir-core-priv.h"
- 
- #define RC5_NBITS		14
- #define RC5_UNIT		888888 /* ns */
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index 17d4341..a222d4f 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -14,7 +14,7 @@
- 
- #include <linux/input.h>
- #include <linux/device.h>
--#include <media/ir-core.h>
-+#include "ir-core-priv.h"
- 
- #define IRRCV_NUM_DEVICES	256
- 
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index e9a0cbf..40b6250 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -31,13 +31,6 @@ enum rc_driver_type {
- 	RC_DRIVER_IR_RAW,	/* Needs a Infra-Red pulse/space decoder */
- };
- 
--enum raw_event_type {
--	IR_SPACE	= (1 << 0),
--	IR_PULSE	= (1 << 1),
--	IR_START_EVENT	= (1 << 2),
--	IR_STOP_EVENT	= (1 << 3),
--};
--
- /**
-  * struct ir_dev_props - Allow caller drivers to set special properties
-  * @driver_type: specifies if the driver or hardware have already a decoder,
-@@ -65,14 +58,6 @@ struct ir_dev_props {
- 	void			(*close)(void *priv);
- };
- 
--struct ir_raw_event_ctrl {
--	struct work_struct		rx_work;	/* for the rx decoding workqueue */
--	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
--	ktime_t				last_event;	/* when last event occurred */
--	enum raw_event_type		last_type;	/* last event type */
--	struct input_dev		*input_dev;	/* pointer to the parent input_dev */
--};
--
- struct ir_input_dev {
- 	struct device			dev;		/* device */
- 	char				*driver_name;	/* Name of the driver module */
-@@ -92,22 +77,16 @@ struct ir_input_dev {
- 	u8				last_toggle;	/* toggle of last command */
- };
- 
--struct ir_raw_handler {
--	struct list_head list;
--
--	int (*decode)(struct input_dev *input_dev, s64 duration);
--	int (*raw_register)(struct input_dev *input_dev);
--	int (*raw_unregister)(struct input_dev *input_dev);
-+enum raw_event_type {
-+	IR_SPACE        = (1 << 0),
-+	IR_PULSE        = (1 << 1),
-+	IR_START_EVENT  = (1 << 2),
-+	IR_STOP_EVENT   = (1 << 3),
- };
- 
- #define to_ir_input_dev(_attr) container_of(_attr, struct ir_input_dev, attr)
- 
--/* Routines from ir-keytable.c */
--
--u32 ir_g_keycode_from_table(struct input_dev *input_dev,
--			    u32 scancode);
--void ir_repeat(struct input_dev *dev);
--void ir_keydown(struct input_dev *dev, int scancode, u8 toggle);
-+/* From ir-keytable.c */
- int __ir_input_register(struct input_dev *dev,
- 		      const struct ir_scancode_table *ir_codes,
- 		      const struct ir_dev_props *props,
-@@ -143,60 +122,11 @@ static inline int ir_input_register(struct input_dev *dev,
- 
- void ir_input_unregister(struct input_dev *input_dev);
- 
--/* Routines from ir-sysfs.c */
-+/* From ir-raw-event.c */
- 
--int ir_register_class(struct input_dev *input_dev);
--void ir_unregister_class(struct input_dev *input_dev);
--
--/* Routines from ir-raw-event.c */
--int ir_raw_event_register(struct input_dev *input_dev);
--void ir_raw_event_unregister(struct input_dev *input_dev);
- void ir_raw_event_handle(struct input_dev *input_dev);
- int ir_raw_event_store(struct input_dev *input_dev, s64 duration);
- int ir_raw_event_store_edge(struct input_dev *input_dev, enum raw_event_type type);
--static inline void ir_raw_event_reset(struct input_dev *input_dev)
--{
--	ir_raw_event_store(input_dev, 0);
--	ir_raw_event_handle(input_dev);
--}
--int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
--void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
--void ir_raw_init(void);
- 
--/* from ir-nec-decoder.c */
--#ifdef CONFIG_IR_NEC_DECODER_MODULE
--#define load_nec_decode()	request_module("ir-nec-decoder")
--#else
--#define load_nec_decode()	0
--#endif
--
--/* from ir-rc5-decoder.c */
--#ifdef CONFIG_IR_RC5_DECODER_MODULE
--#define load_rc5_decode()	request_module("ir-rc5-decoder")
--#else
--#define load_rc5_decode()	0
--#endif
--
--/* macros for ir decoders */
--#define PULSE(units)				((units))
--#define SPACE(units)				(-(units))
--#define IS_RESET(duration)			((duration) == 0)
--#define IS_PULSE(duration)			((duration) > 0)
--#define IS_SPACE(duration)			((duration) < 0)
--#define DURATION(duration)			(abs((duration)))
--#define IS_TRANSITION(x, y)			((x) * (y) < 0)
--#define DECREASE_DURATION(duration, amount)			\
--	do {							\
--		if (IS_SPACE(duration))				\
--			duration += (amount);			\
--		else if (IS_PULSE(duration))			\
--			duration -= (amount);			\
--	} while (0)
--
--#define TO_UNITS(duration, unit_len)				\
--	((int)((duration) > 0 ?					\
--		DIV_ROUND_CLOSEST(abs((duration)), (unit_len)) :\
--		-DIV_ROUND_CLOSEST(abs((duration)), (unit_len))))
--#define TO_US(duration)		((int)TO_UNITS(duration, 1000))
- 
- #endif /* _IR_CORE */
--- 
-1.6.6.1
+ drivers/media/dvb/dvb-usb/cxusb.c      |    5 +--
+ drivers/media/dvb/frontends/dib7000p.c |   36 ++++++++++++++---------
+ 2 files changed, 25 insertions(+), 16 deletions(-)
 
+diff -puN drivers/media/dvb/dvb-usb/cxusb.c~dib7000p-reduce-large-stack-usage drivers/media/dvb/dvb-usb/cxusb.c
+--- a/drivers/media/dvb/dvb-usb/cxusb.c~dib7000p-reduce-large-stack-usage
++++ a/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -1025,8 +1025,9 @@ static int cxusb_dualdig4_rev2_frontend_
+ 
+ 	cxusb_bluebird_gpio_pulse(adap->dev, 0x02, 1);
+ 
+-	dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18,
+-				 &cxusb_dualdig4_rev2_config);
++	if (dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18,
++				 &cxusb_dualdig4_rev2_config) < 0)
++		return -ENODEV;
+ 
+ 	adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80,
+ 			      &cxusb_dualdig4_rev2_config);
+diff -puN drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage drivers/media/dvb/frontends/dib7000p.c
+--- a/drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage
++++ a/drivers/media/dvb/frontends/dib7000p.c
+@@ -1324,46 +1324,54 @@ EXPORT_SYMBOL(dib7000p_pid_filter);
+ 
+ int dib7000p_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 default_addr, struct dib7000p_config cfg[])
+ {
+-	struct dib7000p_state st = { .i2c_adap = i2c };
++	struct dib7000p_state *dpst;
+ 	int k = 0;
+ 	u8 new_addr = 0;
+ 
++	dpst = kzalloc(sizeof(struct dib7000p_state), GFP_KERNEL);
++	if (!dpst)
++		return -ENODEV;
++
++	dpst->i2c_adap = i2c;
++
+ 	for (k = no_of_demods-1; k >= 0; k--) {
+-		st.cfg = cfg[k];
++		dpst->cfg = cfg[k];
+ 
+ 		/* designated i2c address */
+ 		new_addr          = (0x40 + k) << 1;
+-		st.i2c_addr = new_addr;
+-		dib7000p_write_word(&st, 1287, 0x0003); /* sram lead in, rdy */
+-		if (dib7000p_identify(&st) != 0) {
+-			st.i2c_addr = default_addr;
+-			dib7000p_write_word(&st, 1287, 0x0003); /* sram lead in, rdy */
+-			if (dib7000p_identify(&st) != 0) {
++		dpst->i2c_addr = new_addr;
++		dib7000p_write_word(dpst, 1287, 0x0003); /* sram lead in, rdy */
++		if (dib7000p_identify(dpst) != 0) {
++			dpst->i2c_addr = default_addr;
++			dib7000p_write_word(dpst, 1287, 0x0003); /* sram lead in, rdy */
++			if (dib7000p_identify(dpst) != 0) {
+ 				dprintk("DiB7000P #%d: not identified\n", k);
++				kfree(dpst);
+ 				return -EIO;
+ 			}
+ 		}
+ 
+ 		/* start diversity to pull_down div_str - just for i2c-enumeration */
+-		dib7000p_set_output_mode(&st, OUTMODE_DIVERSITY);
++		dib7000p_set_output_mode(dpst, OUTMODE_DIVERSITY);
+ 
+ 		/* set new i2c address and force divstart */
+-		dib7000p_write_word(&st, 1285, (new_addr << 2) | 0x2);
++		dib7000p_write_word(dpst, 1285, (new_addr << 2) | 0x2);
+ 
+ 		dprintk("IC %d initialized (to i2c_address 0x%x)", k, new_addr);
+ 	}
+ 
+ 	for (k = 0; k < no_of_demods; k++) {
+-		st.cfg = cfg[k];
+-		st.i2c_addr = (0x40 + k) << 1;
++		dpst->cfg = cfg[k];
++		dpst->i2c_addr = (0x40 + k) << 1;
+ 
+ 		// unforce divstr
+-		dib7000p_write_word(&st, 1285, st.i2c_addr << 2);
++		dib7000p_write_word(dpst, 1285, dpst->i2c_addr << 2);
+ 
+ 		/* deactivate div - it was just for i2c-enumeration */
+-		dib7000p_set_output_mode(&st, OUTMODE_HIGH_Z);
++		dib7000p_set_output_mode(dpst, OUTMODE_HIGH_Z);
+ 	}
+ 
++	kfree(dpst);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(dib7000p_i2c_enumeration);
+_
