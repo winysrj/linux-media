@@ -1,61 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:6961 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755445Ab0DIVU1 (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:40966 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756949Ab0D0VWE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Apr 2010 17:20:27 -0400
-Subject: Re: [PATCH] V4L/DVB: saa7146: IRQF_DISABLED causes only trouble
-From: Andy Walls <awalls@md.metrocast.net>
-To: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
-Cc: linux-media@vger.kernel.org, stable@kernel.org
-In-Reply-To: <877hoifeec.fsf@nemi.mork.no>
-References: <1269202135-340-1-git-send-email-bjorn@mork.no>
-	 <1269206641.6135.68.camel@palomino.walls.org> <87ocigwvrf.fsf@nemi.mork.no>
-	 <1270634174.3021.176.camel@palomino.walls.org>
-	 <877hoifeec.fsf@nemi.mork.no>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 09 Apr 2010 17:20:40 -0400
-Message-Id: <1270848040.3038.36.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Tue, 27 Apr 2010 17:22:04 -0400
+Message-Id: <201004272111.o3RLBNSk019996@imap1.linux-foundation.org>
+Subject: [patch 06/11] drivers/media/video/zc0301/zc0301_core.c: improve error handling
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	error27@gmail.com, laurent.pinchart@ideasonboard.com,
+	luca.risolia@studio.unibo.it
+From: akpm@linux-foundation.org
+Date: Tue, 27 Apr 2010 14:11:23 -0700
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ANSI_X3.4-1968
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-04-08 at 12:05 +0200, Bjørn Mork wrote:
-> Ehh...., this is very embarrassing, but please disregard all my
-> statements about a hanging system related to IRQF_DISABLED.
-> 
-> It turns out that I've had a faulty SATA hard drive which probably have
-> caused all these problems.  I do not understand the inner workings of
-> the SATA hardware and software, but it appears that this drive has been
-> able to block interrupts for a considerable time without SMART detecting
-> any error at all.  I wrongly suspected saa7146 to be the cause because
-> these problems appeared after adding the saa7146 hardware.  But that was
-> probably just a coincidence (or maybe not really, only unrelated: I
-> suspect that the problem was triggered by the powercycle when adding
-> this card)
-> 
-> The drive has now been replaced, and I will start verifying that use of
-> saa7146 with IRQF_DISABLED does not in fact pose any real problems at
-> all.
+From: Dan Carpenter <error27@gmail.com>
 
-Don't bother.
+Return an error if the controller is not found.
 
-It's probably a good thing you found your root cause.  Your patch was
-going to be invalidated in the near future: 
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Cc: Luca Risolia <luca.risolia@studio.unibo.it>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
 
-	http://lwn.net/Articles/380931/
+ drivers/media/video/zc0301/zc0301_core.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-It appears that IRQF_DISABLED behavior is to be the default behavior for
-all drivers and the flag is to have no effect.
-
-
-
-> I still find the discussion about it's usefulness interesting though...
-
-Good. :)
-
-
-Regards,
-Andy
-
+diff -puN drivers/media/video/zc0301/zc0301_core.c~drivers-media-video-zc0301-zc0301_corec-improve-error-handling drivers/media/video/zc0301/zc0301_core.c
+--- a/drivers/media/video/zc0301/zc0301_core.c~drivers-media-video-zc0301-zc0301_corec-improve-error-handling
++++ a/drivers/media/video/zc0301/zc0301_core.c
+@@ -1153,7 +1153,7 @@ zc0301_vidioc_s_ctrl(struct zc0301_devic
+ 	if (copy_from_user(&ctrl, arg, sizeof(ctrl)))
+ 		return -EFAULT;
+ 
+-	for (i = 0; i < ARRAY_SIZE(s->qctrl); i++)
++	for (i = 0; i < ARRAY_SIZE(s->qctrl); i++) {
+ 		if (ctrl.id == s->qctrl[i].id) {
+ 			if (s->qctrl[i].flags & V4L2_CTRL_FLAG_DISABLED)
+ 				return -EINVAL;
+@@ -1163,7 +1163,9 @@ zc0301_vidioc_s_ctrl(struct zc0301_devic
+ 			ctrl.value -= ctrl.value % s->qctrl[i].step;
+ 			break;
+ 		}
+-
++	}
++	if (i == ARRAY_SIZE(s->qctrl))
++		return -EINVAL;
+ 	if ((err = s->set_ctrl(cam, &ctrl)))
+ 		return err;
+ 
+_
