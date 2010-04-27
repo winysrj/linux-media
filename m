@@ -1,65 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:60281 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752940Ab0DUMMX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Apr 2010 08:12:23 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L18006HP78E1M70@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Apr 2010 13:12:19 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L1800FQJ77O7T@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 21 Apr 2010 13:11:49 +0100 (BST)
-Date: Wed, 21 Apr 2010 13:39:43 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH v3 1/3] v4l: Add a new ERROR flag for DQBUF after recoverable
- streaming errors
-In-reply-to: <1271849985-368-1-git-send-email-p.osciak@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Message-id: <1271849985-368-2-git-send-email-p.osciak@samsung.com>
-References: <1271849985-368-1-git-send-email-p.osciak@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:43827 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756011Ab0D0QJ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Apr 2010 12:09:57 -0400
+Message-ID: <4BD70C45.7030408@redhat.com>
+Date: Tue, 27 Apr 2010 13:09:41 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] V4L: Events: Include slab.h explicitly
+References: <1272380899-30398-1-git-send-email-saaguirre@ti.com> <A24693684029E5489D1D202277BE894454F77AEF@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894454F77AEF@dlee02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This flag is intended to indicate streaming errors, which might have
-resulted in corrupted video data in the buffer, but the buffer can still
-be reused and streaming may continue.
+Aguirre, Sergio wrote:
+> Sakari,
+> 
+> This patch is based on your event branch:
+> 
+> http://gitorious.org/omap3camera/mainline/commits/event
+> 
+> And is required on latest kernel to compile v4l2-event.c, to make use of kmalloc and other slab.h functions/defines.
 
-Setting this flag and returning 0 is different from returning EIO. The
-latter should now indicate more serious (unrecoverable) errors.
 
-This patch also solves a problem with the ioctl handling code in
-vl42-ioctl.c, which does not copy buffer identification data back to the
-userspace when EIO is returned, so there is no way for applications
-to discover on which buffer the operation failed in such cases.
+True.
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/linux/videodev2.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+Sakari,
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 15d80f7..b417bd5 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -551,6 +551,9 @@ struct v4l2_buffer {
- #define V4L2_BUF_FLAG_KEYFRAME	0x0008	/* Image is a keyframe (I-frame) */
- #define V4L2_BUF_FLAG_PFRAME	0x0010	/* Image is a P-frame */
- #define V4L2_BUF_FLAG_BFRAME	0x0020	/* Image is a B-frame */
-+/* Buffer is ready, but the data contained within is corrupted.
-+ * Always set together with V4L2_BUF_FLAG_DONE (for backward compatibility). */
-+#define V4L2_BUF_FLAG_ERROR	0x0040
- #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
- #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
- 
+Please, add this patch on your series before any Makefile entries that would try to compile
+the events interface (or just fold it to the patch that added v4l2-event.c).
+
+Cheers,
+Mauro.
+
+> Regards,
+> Sergio
+> 
+>> -----Original Message-----
+>> From: Aguirre, Sergio
+>> Sent: Tuesday, April 27, 2010 10:08 AM
+>> To: Sakari Ailus
+>> Cc: linux-media@vger.kernel.org; Aguirre, Sergio
+>> Subject: [PATCH] V4L: Events: Include slab.h explicitly
+>>
+>> After commit ID:
+>>
+>>   commit de380b55f92986c1a84198149cb71b7228d15fbd
+>>   Author: Tejun Heo <tj@kernel.org>
+>>   Date:   Wed Mar 24 17:06:43 2010 +0900
+>>
+>>       percpu: don't implicitly include slab.h from percpu.h
+>>
+>> slab.h include was not longer implicitly included with sched.h.
+>>
+>> So, now we have to include slab.h explicitly.
+>>
+>> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+>> ---
+>>  drivers/media/video/v4l2-event.c |    1 +
+>>  1 files changed, 1 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-
+>> event.c
+>> index aea4332..7f31cd2 100644
+>> --- a/drivers/media/video/v4l2-event.c
+>> +++ b/drivers/media/video/v4l2-event.c
+>> @@ -26,6 +26,7 @@
+>>  #include <media/v4l2-fh.h>
+>>  #include <media/v4l2-event.h>
+>>
+>> +#include <linux/slab.h>
+>>  #include <linux/sched.h>
+>>
+>>  int v4l2_event_init(struct v4l2_fh *fh)
+>> --
+>> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 -- 
-1.7.1.rc1.12.ga601
 
+Cheers,
+Mauro
