@@ -1,66 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:42899 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756587Ab0DNRkO (ORCPT
+Received: from spamtitan2.stone-is.org ([87.238.161.121]:55282 "EHLO
+	out2.stone-is.org" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754021Ab0D0Q1D convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Apr 2010 13:40:14 -0400
-Received: by gwaa18 with SMTP id a18so168550gwa.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Apr 2010 10:40:13 -0700 (PDT)
+	Tue, 27 Apr 2010 12:27:03 -0400
+Received: from localhost (unknown [127.0.0.1])
+	by out2.stone-is.org (Postfix) with ESMTP id A13F3E383ED
+	for <linux-media@vger.kernel.org>; Tue, 27 Apr 2010 15:46:01 +0000 (UTC)
+Received: from out2.stone-is.org ([127.0.0.1])
+	by localhost (out2.stone-is.org [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id O35HeH1Wnzpz for <linux-media@vger.kernel.org>;
+	Tue, 27 Apr 2010 17:45:47 +0200 (CEST)
+Received: from be11.1-eurohost.com (vz02.stone-is.net [87.238.162.138])
+	by out2.stone-is.org (Postfix) with ESMTP id 8DDEF1580445
+	for <linux-media@vger.kernel.org>; Tue, 27 Apr 2010 17:21:54 +0200 (CEST)
+Message-ID: <20100427172933.gas5iopk2sk0w0kw@webmail.diode.be>
+Date: Tue, 27 Apr 2010 17:29:33 +0200
+From: Tiemen <maillist@diode.be>
+To: linux-media@vger.kernel.org
+Subject: support for micron MT9[M/T]xxx sensors with CY7C68013 (Cypress
+	FX2) bridge cameras
 MIME-Version: 1.0
-In-Reply-To: <4BC5FB77.2020303@vorgon.com>
-References: <4BC5FB77.2020303@vorgon.com>
-Date: Wed, 14 Apr 2010 13:40:12 -0400
-Message-ID: <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>
-Subject: Re: cx5000 default auto sleep mode
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "Timothy D. Lenz" <tlenz@vorgon.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII;
+	DelSp=Yes	format=flowed
+Content-Disposition: inline
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 14, 2010 at 1:29 PM, Timothy D. Lenz <tlenz@vorgon.com> wrote:
-> Thanks to Andy Walls, found out why I kept loosing 1 tuner on a FusionHD7
-> Dual express. Didn't know linux supported an auto sleep mode on the tuner
-> chips and that it defaulted to on. Seems like it would be better to default
-> to off. If someone wants an auto power down/sleep mode and their software
-> supports it, then let the program activate it. Seems people are more likely
-> to want the tuners to stay on then keep shutting down.
->
-> Spent over a year trying to figure out why vdr would loose control of 1 of
-> the dual tuners when the atscepg pluging was used thinking it was a problem
-> with the plugin.
+Hello developers,
 
-The xc5000 power management changes I made were actually pretty
-thoroughly tested with that card (between myself and Michael Krufky,
-we tested it with just about every card that uses the tuner).  In
-fact, we uncovered several power management bugs in other drivers as a
-result of that effort.  It was a grueling effort that I spent almost
-three months working on.
+I recently got hold of two USB c-mount cameras with Micron CMOS chips.  
+One is a Mightex MCE-B013 (MT9M001 sensor), the other a development  
+kit with MT9T031 sensor. I had hoped to use these with v4l2, as  
+drivers for these sensors are in the code tree. Initial attemps to use  
+these with the sn9c20x driver failed, and the reason became clear when  
+I inspected the hardware: both cameras use the CY7C68013A (a.k.a  
+EZ-USB FX2) bridge. v4l supports this chip when it is combined with  
+Omnivision sensors, cfr. `OVFX2' in ov519.c.
 
-Generally I agree with the premise that functionality like this should
-only be enabled for boards it was tested with.  However, in this case
-it actually was pretty extensively tested with all the cards in
-question (including this one), and thus it was deemed safe to enable
-by default.  We've had cases in the past where developers exercised
-poor judgement and blindly turned on power management to make it work
-with one card, disregarding the possible breakage that could occur
-with other cards that use the same driver -- this was *not* one of
-those cases.
+Now, the LinuxTV Wiki, section `How to add support for a device',  
+suggests that support attempts might be more feasible if drivers for  
+individual components are available. But I am not sure if this also  
+applies for a microcontroller like the FX2. Thus I wanted to ask:
 
-If there is a bug, it should be pretty straightforward to fix provided
-it can be reproduced.
+- Is somebody already working on support for such cameras?
 
-Regarding the general assertion that the power management should be
-disabled by default, I disagree.  The power savings is considerable,
-the time to bring the tuner out of sleep is negligible, and it's
-generally good policy.
+- Can it be assumed that the FX2 will function the same, regardless of  
+which sensor (Micron vs. Omnivision) is attached to it?
 
-Andy, do you have any actual details regarding the nature of the problem?
 
-Devin
+Thank you,
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Tiemen
