@@ -1,110 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:60202 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754119Ab0D0VMH (ORCPT
+Received: from fmmailgate02.web.de ([217.72.192.227]:34344 "EHLO
+	fmmailgate02.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750788Ab0D1Hpl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Apr 2010 17:12:07 -0400
-Message-Id: <201004272111.o3RLBIVe019979@imap1.linux-foundation.org>
-Subject: [patch 01/11] dib3000mc: reduce large stack usage
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	randy.dunlap@oracle.com, pboettcher@dibcom.fr
-From: akpm@linux-foundation.org
-Date: Tue, 27 Apr 2010 14:11:18 -0700
+	Wed, 28 Apr 2010 03:45:41 -0400
+Received: from smtp07.web.de  ( [172.20.5.215])
+	by fmmailgate02.web.de (Postfix) with ESMTP id 1777E15F20D2F
+	for <linux-media@vger.kernel.org>; Wed, 28 Apr 2010 09:45:40 +0200 (CEST)
+Received: from [80.88.20.160] (helo=[127.0.0.1])
+	by smtp07.web.de with asmtp (TLSv1:AES256-SHA:256)
+	(WEB.DE 4.110 #4)
+	id 1O71xj-0005Mt-00
+	for linux-media@vger.kernel.org; Wed, 28 Apr 2010 09:45:40 +0200
+Message-ID: <4BD7E7A3.2060101@web.de>
+Date: Wed, 28 Apr 2010 09:45:39 +0200
+From: =?ISO-8859-1?Q?Andr=E9_Weidemann?= <Andre.Weidemann@web.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ANSI_X3.4-1968
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] TT S2-1600 allow more current for diseqc
+References: <20100411231805.4bc7fdef@borg.bxl.tuxicoman.be>
+In-Reply-To: <20100411231805.4bc7fdef@borg.bxl.tuxicoman.be>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Hello Guy,
+On 11.04.2010 23:18, Guy Martin wrote:
 
-Reduce the static stack usage of one of the 2 top offenders as listed by
-'make checkstack':
+>
+> Hi linux-media,
+>
+> The following patch increases the current limit for the isl6423 chip
+> on the TT S2-1600 card. This allows DiSEqC to work with more complex
+> and current demanding configurations.
+>
+> Signed-off-by: Guy Martin<gmsoft@tuxicoman.be>
 
-Building with CONFIG_FRAME_WARN=2048 produces:
 
-drivers/media/dvb/frontends/dib3000mc.c:853: warning: the frame size of 2224 bytes is larger than 2048 bytes
 
-and in 'make checkstack', the stack usage goes from:
-0x00000bbd dib3000mc_i2c_enumeration [dib3000mc]:	2232
-to unlisted with this patch.
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Patrick Boettcher <pboettcher@dibcom.fr>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
+I am sorry for the late reply.
+I advise not to pull this change into the kernel sources.
+The card has only been testet with the a maximum current of 515mA.
+Anything above is outside the specification for this card.
 
- drivers/media/dvb/frontends/dib3000mc.c |   35 +++++++++++++---------
- 1 file changed, 22 insertions(+), 13 deletions(-)
-
-diff -puN drivers/media/dvb/frontends/dib3000mc.c~dib3000mc-reduce-large-stack-usage drivers/media/dvb/frontends/dib3000mc.c
---- a/drivers/media/dvb/frontends/dib3000mc.c~dib3000mc-reduce-large-stack-usage
-+++ a/drivers/media/dvb/frontends/dib3000mc.c
-@@ -814,42 +814,51 @@ EXPORT_SYMBOL(dib3000mc_set_config);
- 
- int dib3000mc_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 default_addr, struct dib3000mc_config cfg[])
- {
--	struct dib3000mc_state st = { .i2c_adap = i2c };
-+	struct dib3000mc_state *dmcst;
- 	int k;
- 	u8 new_addr;
- 
- 	static u8 DIB3000MC_I2C_ADDRESS[] = {20,22,24,26};
- 
-+	dmcst = kzalloc(sizeof(struct dib3000mc_state), GFP_KERNEL);
-+	if (dmcst == NULL)
-+		return -ENODEV;
-+
-+	dmcst->i2c_adap = i2c;
-+
- 	for (k = no_of_demods-1; k >= 0; k--) {
--		st.cfg = &cfg[k];
-+		dmcst->cfg = &cfg[k];
- 
- 		/* designated i2c address */
- 		new_addr          = DIB3000MC_I2C_ADDRESS[k];
--		st.i2c_addr = new_addr;
--		if (dib3000mc_identify(&st) != 0) {
--			st.i2c_addr = default_addr;
--			if (dib3000mc_identify(&st) != 0) {
-+		dmcst->i2c_addr = new_addr;
-+		if (dib3000mc_identify(dmcst) != 0) {
-+			dmcst->i2c_addr = default_addr;
-+			if (dib3000mc_identify(dmcst) != 0) {
- 				dprintk("-E-  DiB3000P/MC #%d: not identified\n", k);
-+				kfree(dmcst);
- 				return -ENODEV;
- 			}
- 		}
- 
--		dib3000mc_set_output_mode(&st, OUTMODE_MPEG2_PAR_CONT_CLK);
-+		dib3000mc_set_output_mode(dmcst, OUTMODE_MPEG2_PAR_CONT_CLK);
- 
- 		// set new i2c address and force divstr (Bit 1) to value 0 (Bit 0)
--		dib3000mc_write_word(&st, 1024, (new_addr << 3) | 0x1);
--		st.i2c_addr = new_addr;
-+		dib3000mc_write_word(dmcst, 1024, (new_addr << 3) | 0x1);
-+		dmcst->i2c_addr = new_addr;
- 	}
- 
- 	for (k = 0; k < no_of_demods; k++) {
--		st.cfg = &cfg[k];
--		st.i2c_addr = DIB3000MC_I2C_ADDRESS[k];
-+		dmcst->cfg = &cfg[k];
-+		dmcst->i2c_addr = DIB3000MC_I2C_ADDRESS[k];
- 
--		dib3000mc_write_word(&st, 1024, st.i2c_addr << 3);
-+		dib3000mc_write_word(dmcst, 1024, dmcst->i2c_addr << 3);
- 
- 		/* turn off data output */
--		dib3000mc_set_output_mode(&st, OUTMODE_HIGH_Z);
-+		dib3000mc_set_output_mode(dmcst, OUTMODE_HIGH_Z);
- 	}
-+
-+	kfree(dmcst);
- 	return 0;
- }
- EXPORT_SYMBOL(dib3000mc_i2c_enumeration);
-_
+Kind Regards
+  André
