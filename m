@@ -1,60 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f217.google.com ([209.85.217.217]:54429 "EHLO
-	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752324Ab0DHOBK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 10:01:10 -0400
-Received: by gxk9 with SMTP id 9so1367655gxk.8
-        for <linux-media@vger.kernel.org>; Thu, 08 Apr 2010 07:01:09 -0700 (PDT)
+Received: from mail-yw0-f194.google.com ([209.85.211.194]:62061 "EHLO
+	mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751733Ab0D1Hct (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Apr 2010 03:32:49 -0400
+Received: by ywh32 with SMTP id 32so8280888ywh.33
+        for <linux-media@vger.kernel.org>; Wed, 28 Apr 2010 00:32:47 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1270727417-3872-1-git-send-email-weiyi.huang@gmail.com>
-References: <1270727417-3872-1-git-send-email-weiyi.huang@gmail.com>
-Date: Thu, 8 Apr 2010 10:01:08 -0400
-Message-ID: <m2y829197381004080701uf00e37cavaf0eaac85d6c15f@mail.gmail.com>
-Subject: Re: [PATCH 11/16] V4L/DVB: DVB: ngene, remove unused #include
-	<linux/version.h>
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Huang Weiyi <weiyi.huang@gmail.com>
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <20100428154903.374449eb@glory.loctelecom.ru>
+References: <20100423104804.784fb730@glory.loctelecom.ru>
+	 <4BD1B985.8060703@arcor.de>
+	 <20100426102514.2c13761e@glory.loctelecom.ru>
+	 <k2m6e8e83e21004260558sb3695c27o5d061b7bc69198c1@mail.gmail.com>
+	 <20100427151545.217a5c90@glory.loctelecom.ru>
+	 <t2v6e8e83e21004262307wfc0b746x22779c4a2ad431ee@mail.gmail.com>
+	 <20100428154903.374449eb@glory.loctelecom.ru>
+Date: Wed, 28 Apr 2010 15:32:47 +0800
+Message-ID: <h2j6e8e83e21004280032g3913236mfa97a6e099e046ce@mail.gmail.com>
+Subject: Re: tm6000
+From: Bee Hock Goh <beehock@gmail.com>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: Stefan Ringel <stefan.ringel@arcor.de>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 8, 2010 at 7:50 AM, Huang Weiyi <weiyi.huang@gmail.com> wrote:
-> Remove unused #include <linux/version.h>('s) in
->  drivers/media/dvb/ngene/ngene-core.c
+its working fine on my tm5600. Run fine for more than 5mins without crashing.
+
+But it does crashed everytime when its playing on the first channel
+and I switch channel in mythtv. I am waiting for usb/serial cable to
+arrive from ebay to find out why.
+
+I hope to work on the audio part though.
+
+On Wed, Apr 28, 2010 at 1:49 PM, Dmitri Belimov <d.belimov@gmail.com> wrote:
+> Hi
 >
-> Signed-off-by: Huang Weiyi <weiyi.huang@gmail.com>
-> ---
->  drivers/media/dvb/ngene/ngene-core.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
+> Anyone can watch TV with tm6000 module??
 >
-> diff --git a/drivers/media/dvb/ngene/ngene-core.c b/drivers/media/dvb/ngene/ngene-core.c
-> index 645e8b8..6dc567b 100644
-> --- a/drivers/media/dvb/ngene/ngene-core.c
-> +++ b/drivers/media/dvb/ngene/ngene-core.c
-> @@ -37,7 +37,6 @@
->  #include <linux/pci_ids.h>
->  #include <linux/smp_lock.h>
->  #include <linux/timer.h>
-> -#include <linux/version.h>
->  #include <linux/byteorder/generic.h>
->  #include <linux/firmware.h>
->  #include <linux/vmalloc.h>
-
-Hello Huang,
-
-I just wanted to let you know that KernelLabs has a rather large
-project ongoing to clean up the ngene driver.  So while I have no
-objection to this patch in principle, please be advised that there is
-not much value in doing additional cleanup to that driver as it is
-likely to be redundant (and will just increase our work in merging the
-changes upstream).
-
-Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> I try mplayer. My PC crashed inside copy_streams function after some time.
+>
+> With my best regards, Dmitry.
+>
