@@ -1,63 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:53948 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932839Ab0D3RlN (ORCPT
+Received: from mail-qy0-f189.google.com ([209.85.221.189]:61915 "EHLO
+	mail-qy0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751094Ab0D1EcX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Apr 2010 13:41:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Greg KH <greg@kroah.com>
-Subject: Re: [RFC 0/2] UVC gadget driver
-Date: Thu, 29 Apr 2010 09:14:03 +0200
-Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	robert.lukassen@tomtom.com
-References: <1272495179-2652-1-git-send-email-laurent.pinchart@ideasonboard.com> <20100429034111.GA16573@kroah.com>
-In-Reply-To: <20100429034111.GA16573@kroah.com>
+	Wed, 28 Apr 2010 00:32:23 -0400
 MIME-Version: 1.0
-Message-Id: <201004290914.04140.laurent.pinchart@ideasonboard.com>
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20100424051206.GA3101@hardeman.nu>
+References: <20100401145632.5631756f@pedra>
+	 <t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
+	 <20100402102011.GA6947@hardeman.nu>
+	 <p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>
+	 <20100407093205.GB3029@hardeman.nu>
+	 <z2hbe3a4a1004231040uce51091fnf24b97de215e3ef1@mail.gmail.com>
+	 <20100424051206.GA3101@hardeman.nu>
+Date: Wed, 28 Apr 2010 00:32:22 -0400
+Message-ID: <h2hbe3a4a1004272132y46e90a8ak862f20620053b1cc@mail.gmail.com>
+Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
+	and decoder plugins
+From: Jarod Wilson <jarod@wilsonet.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: Jon Smirl <jonsmirl@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+On Sat, Apr 24, 2010 at 1:12 AM, David Härdeman <david@hardeman.nu> wrote:
+> On Fri, Apr 23, 2010 at 01:40:34PM -0400, Jarod Wilson wrote:
+>> So now that I'm more or less done with porting the imon driver, I
+>> think I'm ready to start tackling the mceusb driver. But I'm debating
+>> on what approach to take with respect to lirc support. It sort of
+>> feels like we should have lirc_dev ported as an ir "decoder"
+>> driver/plugin before starting to port mceusb to ir-core, so that we
+>> can maintain lirc compat and transmit support. Alternatively, I could
+>> port mceusb without lirc support for now, leaving it to only use
+>> in-kernel decoding and have no transmit support for the moment, then
+>> re-add lirc support. I'm thinking that porting lirc_dev as, say,
+>> ir-lirc-decoder first is probably the way to go though. Anyone else
+>> want to share their thoughts on this?
+>
+> I think it would make sense to start with a mce driver without the TX
+> and lirc bits first. Adding lirc rx support can be done as a separate
+> "raw" decoder later (so its scope is outside the mce driver anyway) and
+> TX support is not implemented in ir-core yet and we haven't had any
+> discussion yet on which form it should take.
 
-On Thursday 29 April 2010 05:41:11 Greg KH wrote:
-> On Thu, Apr 29, 2010 at 12:52:57AM +0200, Laurent Pinchart wrote:
-> > Hi everybody,
-> > 
-> > Here's a new version of the UVC gadget driver I posted on the list some
-> > time ago, rebased on 2.6.34-rc5.
-> > 
-> > The private events API has been replaced by the new V4L2 events API that
-> > will be available in 2.6.34 (the code is already available in the
-> > v4l-dvb tree on linuxtv.org, and should be pushed to
-> > git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git very
-> > soon).
-> > 
-> > Further testing of the changes related to the events API is required
-> > (this is planned for the next few days). As it seems to be the UVC
-> > gadget driver season (Robert Lukassen posted his own implementation -
-> > having a different goal - two days ago)
-> 
-> What are the different goals here?  Shouldn't there just be only one way
-> to implement this, or am I missing something?
-
-Both drivers act as "webcams". Robert's version exports the local frame buffer 
-through USB, making the "webcam" capture what's displayed on the device. My 
-version exposes a V4L2 interface to userspace, allowing an application on the 
-device to send whatever it wants over USB (for instance frames captured from a 
-sensor, making the device a real camera).
-
-> > , I thought I'd post the patch as an RFC. I'd like the UVC function
-> > driver to make it to 2.6.35, comments are more than welcome.
-> 
-> It needs to get into my tree _now_ if you are wanting it in .35....
-> Just fyi.
-
-Does now mean today, or before next week ?
+So after looking at folks feedback, I did settle on starting the
+mceusb port first, my logic going more or less like this... Having a
+well-supported general-purpose IR receiver functional is a Good Thing
+for people wanting to work on protocol support (i.e., so they have a
+way to actually test protocol support). Having an
+already-ir-core-ified driver to test out an ir-lirc-decoder (lirc_dev
+port) would also be rather helpful. So rather than trying to port
+lirc_dev before there's anything that can actually make use of it,
+give myself something to work with. I'm kind of thinking that
+ir-lirc-decoder might actually be ir-lirc-codec, able to do xmit as
+well, maintaining full compat with lirc userspace, and then we'd have
+a separate input subsystem based xmit method at some point, which
+might be the "preferred/blessed" route. This means ripping a bunch of
+code out of lirc_mceusb.c only to put it back in later, but that's not
+terribly painful. I've already got as far as having an mceusb.c that
+has no lirc dependency, which builds, but doesn't actually do anything
+useful yet (not wired up to ir-core). Should be able to get something
+functional RSN, I hope...
 
 -- 
-Regards,
-
-Laurent Pinchart
+Jarod Wilson
+jarod@wilsonet.com
