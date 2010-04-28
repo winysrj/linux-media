@@ -1,78 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4868 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754135Ab0DIG6q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Apr 2010 02:58:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: V4L2 and Media controller mini-summit in Helsinki 14.--16. June
-Date: Fri, 9 Apr 2010 08:58:52 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Cohen <david.cohen@nokia.com>,
-	"Koskipaa Antti (Nokia-D/Helsinki)" <antti.koskipaa@nokia.com>,
-	"'vimarsh.zutshi@nokia.com'" <vimarsh.zutshi@nokia.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Aguirre Rodriguez, Sergio Alberto" <saaguirre@ti.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	Guru Raj <gururaj.nagendra@intel.com>
-References: <4BBA3BC3.2060205@maxwell.research.nokia.com>
-In-Reply-To: <4BBA3BC3.2060205@maxwell.research.nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201004090858.52251.hverkuil@xs4all.nl>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:13905 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752691Ab0D1HFk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Apr 2010 03:05:40 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L1K00B1WRPE4B30@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Apr 2010 08:05:38 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L1K00JLRRPEJ8@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Apr 2010 08:05:38 +0100 (BST)
+Date: Wed, 28 Apr 2010 09:05:21 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v4 1/3] v4l: Add a new ERROR flag for DQBUF after recoverable
+ streaming errors
+In-reply-to: <1272438323-4790-1-git-send-email-p.osciak@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1272438323-4790-2-git-send-email-p.osciak@samsung.com>
+References: <1272438323-4790-1-git-send-email-p.osciak@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 05 April 2010 21:36:35 Sakari Ailus wrote:
-> Hello everyone,
-> 
-> I'm glad to announce Nokia will be hosting a V4L2 and Media controller
-> mini-summit in Helsinki, Finland from 14th to 16th June --- that's from
-> Monday to Wednesday. The event replaces the V4L2 Media Controller
-> mini-summit in Oslo in April / May proposed by Hans Verkuil. Just the
-> location is different; Hans is still responsible for the technical content.
+This flag is intended to indicate streaming errors, which might have
+resulted in corrupted video data in the buffer, but the buffer can still
+be reused and streaming may continue.
 
-Then I'd better start on that technical content :-)
+Setting this flag and returning 0 is different from returning EIO. The
+latter should now indicate more serious (unrecoverable) errors.
 
-Here is a short overview of the topics I want to put on the agenda (in no
-particular order):
+This patch also solves a problem with the ioctl handling code in
+vl42-ioctl.c, which does not copy buffer identification data back to the
+userspace when EIO is returned, so there is no way for applications
+to discover on which buffer the operation failed in such cases.
 
-- Media controller progress. Especially with regards to the roadmap of getting
-  this merged.
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/videodev2.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-- Memory handling. See this link for a report on a preliminary meeting:
-  http://www.mail-archive.com/linux-media@vger.kernel.org/msg16618.html
-  It would be nice if we can spend some more time on the memory pool
-  concept.
-
-- V4L1 removal. We need to decide how we are going to do this. In particular
-  the role that libv4l1 can play in this is of interest. Also: which
-  unmaintained applications should we 'adopt' and convert from V4L1 to V4L2.
-
-- Work on the V4L core framework: what is in place, what still needs to be
-  done, what other parts can be moved to the core.
-
-- Compliance tests. I'd like to start discussing this as well. I think we
-  have to start work on a tool that will do basic compliance testing of new
-  (and existing) drivers. The API is so big that it is way too easy to forget
-  things. My guess is that at least 80% of all drivers violate the spec in
-  one way or another. Relates as well to the framework topic: if we can move
-  more into the core, then it is much easier to enforce spec compliance.
-
-- Anything else someone wants to discuss?
-
-Regards,
-
-	Hans
-
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 15d80f7..7b6e047 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -551,6 +551,8 @@ struct v4l2_buffer {
+ #define V4L2_BUF_FLAG_KEYFRAME	0x0008	/* Image is a keyframe (I-frame) */
+ #define V4L2_BUF_FLAG_PFRAME	0x0010	/* Image is a P-frame */
+ #define V4L2_BUF_FLAG_BFRAME	0x0020	/* Image is a B-frame */
++/* Buffer is ready, but the data contained within is corrupted. */
++#define V4L2_BUF_FLAG_ERROR	0x0040
+ #define V4L2_BUF_FLAG_TIMECODE	0x0100	/* timecode field is valid */
+ #define V4L2_BUF_FLAG_INPUT     0x0200  /* input field is valid */
+ 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+1.7.1.rc1.12.ga601
+
