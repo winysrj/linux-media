@@ -1,69 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.195]:56192 "EHLO mout.perfora.net"
+Received: from mx1.redhat.com ([209.132.183.28]:14993 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752387Ab0DTAO6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Apr 2010 20:14:58 -0400
-Message-ID: <4BCCF1FA.6070209@vorgon.com>
-Date: Mon, 19 Apr 2010 17:14:50 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
-MIME-Version: 1.0
+	id S1753349Ab0D1RhC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Apr 2010 13:37:02 -0400
+Date: Wed, 28 Apr 2010 13:37:00 -0400
+From: Jarod Wilson <jarod@redhat.com>
 To: linux-media@vger.kernel.org
-Subject: Re: cx5000 default auto sleep mode
-References: <4BC5FB77.2020303@vorgon.com> <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>
-In-Reply-To: <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: linux-input@vger.kernel.org
+Subject: [PATCH] IR/imon: add proper auto-repeat support
+Message-ID: <20100428173700.GA14240@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Set the EV_REP bit, so reported key repeats actually make their
+way out to userspace, and fix up the handling of repeats a bit,
+routines for which are shamelessly heisted from ati_remote2.c.
 
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/imon.c |   38 +++++++++++++++++++++++++++++++-------
+ 1 files changed, 31 insertions(+), 7 deletions(-)
 
-On 4/14/2010 10:40 AM, Devin Heitmueller wrote:
-> On Wed, Apr 14, 2010 at 1:29 PM, Timothy D. Lenz<tlenz@vorgon.com>  wrote:
->> Thanks to Andy Walls, found out why I kept loosing 1 tuner on a FusionHD7
->> Dual express. Didn't know linux supported an auto sleep mode on the tuner
->> chips and that it defaulted to on. Seems like it would be better to default
->> to off. If someone wants an auto power down/sleep mode and their software
->> supports it, then let the program activate it. Seems people are more likely
->> to want the tuners to stay on then keep shutting down.
->>
->> Spent over a year trying to figure out why vdr would loose control of 1 of
->> the dual tuners when the atscepg pluging was used thinking it was a problem
->> with the plugin.
->
-> The xc5000 power management changes I made were actually pretty
-> thoroughly tested with that card (between myself and Michael Krufky,
-> we tested it with just about every card that uses the tuner).  In
-> fact, we uncovered several power management bugs in other drivers as a
-> result of that effort.  It was a grueling effort that I spent almost
-> three months working on.
->
-> Generally I agree with the premise that functionality like this should
-> only be enabled for boards it was tested with.  However, in this case
-> it actually was pretty extensively tested with all the cards in
-> question (including this one), and thus it was deemed safe to enable
-> by default.  We've had cases in the past where developers exercised
-> poor judgement and blindly turned on power management to make it work
-> with one card, disregarding the possible breakage that could occur
-> with other cards that use the same driver -- this was *not* one of
-> those cases.
->
-> If there is a bug, it should be pretty straightforward to fix provided
-> it can be reproduced.
->
-> Regarding the general assertion that the power management should be
-> disabled by default, I disagree.  The power savings is considerable,
-> the time to bring the tuner out of sleep is negligible, and it's
-> generally good policy.
->
-> Andy, do you have any actual details regarding the nature of the problem?
->
-> Devin
->
+diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
+index b65c31a..16e2e7f 100644
+--- a/drivers/media/IR/imon.c
++++ b/drivers/media/IR/imon.c
+@@ -130,6 +130,7 @@ struct imon_context {
+ 	u64 ir_type;			/* iMON or MCE (RC6) IR protocol? */
+ 	u8 mce_toggle_bit;		/* last mce toggle bit */
+ 	bool release_code;		/* some keys send a release code */
++	unsigned long jiffies;		/* repeat timer */
+ 
+ 	u8 display_type;		/* store the display type */
+ 	bool pad_mouse;			/* toggle kbd(0)/mouse(1) mode */
+@@ -146,7 +147,6 @@ struct imon_context {
+ };
+ 
+ #define TOUCH_TIMEOUT	(HZ/30)
+-#define MCE_TIMEOUT_MS	200
+ 
+ /* vfd character device file operations */
+ static const struct file_operations vfd_fops = {
+@@ -1394,6 +1394,8 @@ static int imon_parse_press_type(struct imon_context *ictx,
+ 				 unsigned char *buf, u8 ktype)
+ {
+ 	int press_type = 0;
++	int rep_delay = ictx->idev->rep[REP_DELAY];
++	int rep_period = ictx->idev->rep[REP_PERIOD];
+ 
+ 	/* key release of 0x02XXXXXX key */
+ 	if (ictx->kc == KEY_RESERVED && buf[0] == 0x02 && buf[3] == 0x00)
+@@ -1418,12 +1420,12 @@ static int imon_parse_press_type(struct imon_context *ictx,
+ 			ictx->mce_toggle_bit = buf[2];
+ 			press_type = 1;
+ 			mod_timer(&ictx->itimer,
+-				  jiffies + msecs_to_jiffies(MCE_TIMEOUT_MS));
++				  jiffies + msecs_to_jiffies(rep_delay));
+ 		/* repeat */
+ 		} else {
+ 			press_type = 2;
+ 			mod_timer(&ictx->itimer,
+-				  jiffies + msecs_to_jiffies(MCE_TIMEOUT_MS));
++				  jiffies + msecs_to_jiffies(rep_period));
+ 		}
+ 
+ 	/* incoherent or irrelevant data */
+@@ -1458,12 +1460,14 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 	u32 remote_key = 0;
+ 	struct input_dev *idev = NULL;
+ 	int press_type = 0;
+-	int msec;
++	int msec, rep_delay, rep_period;
+ 	struct timeval t;
+ 	static struct timeval prev_time = { 0, 0 };
+ 	u8 ktype = IMON_KEY_IMON;
+ 
+ 	idev = ictx->idev;
++	rep_delay = idev->rep[REP_DELAY];
++	rep_period = idev->rep[REP_PERIOD];
+ 
+ 	/* filter out junk data on the older 0xffdc imon devices */
+ 	if ((buf[0] == 0xff) && (buf[7] == 0xff))
+@@ -1529,8 +1533,28 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 	}
+ 
+ 	press_type = imon_parse_press_type(ictx, buf, ktype);
+-	if (press_type < 0)
++
++	switch (press_type) {
++	/* release */
++	case 0:
++		break;
++	/* press */
++	case 1:
++		ictx->jiffies = jiffies + msecs_to_jiffies(rep_delay);
++		break;
++	/* repeat */
++	case 2:
++		/* don't repeat too fast */
++		if (!time_after_eq(jiffies, ictx->jiffies))
++			return;
++
++		ictx->jiffies = jiffies + msecs_to_jiffies(rep_period);
++		break;
++	case -EINVAL:
++	default:
+ 		goto not_input_data;
++		break;
++	}
+ 
+ 	if (ictx->kc == KEY_UNKNOWN)
+ 		goto unknown_key;
+@@ -1541,7 +1565,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 		do_gettimeofday(&t);
+ 		msec = tv2int(&t, &prev_time);
+ 		prev_time = t;
+-		if (msec < 200)
++		if (msec < rep_delay)
+ 			return;
+ 	}
+ 
+@@ -1686,7 +1710,7 @@ static struct input_dev *imon_init_idev(struct imon_context *ictx)
+ 	strlcat(ictx->phys_idev, "/input0", sizeof(ictx->phys_idev));
+ 	idev->phys = ictx->phys_idev;
+ 
+-	idev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REL);
++	idev->evbit[0] = BIT_MASK(EV_KEY) | BIT_MASK(EV_REP) | BIT_MASK(EV_REL);
+ 
+ 	idev->keybit[BIT_WORD(BTN_MOUSE)] =
+ 		BIT_MASK(BTN_LEFT) | BIT_MASK(BTN_RIGHT);
 
-I turned debug back on yesterday and it's been running since. No tuners 
-have gone down yet, but here are some logs:
-http://24.255.17.209:2400/vdr/logs/
-
-When/if a tuner goes down again I'll put fresh logs up
+-- 
+Jarod Wilson
+jarod@redhat.com
 
