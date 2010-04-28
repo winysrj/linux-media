@@ -1,148 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f220.google.com ([209.85.219.220]:40308 "EHLO
-	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208Ab0DNH2v (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2272 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750948Ab0D1TjA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Apr 2010 03:28:51 -0400
-Received: by ewy20 with SMTP id 20so2945235ewy.1
-        for <linux-media@vger.kernel.org>; Wed, 14 Apr 2010 00:28:48 -0700 (PDT)
-Date: Wed, 14 Apr 2010 17:31:02 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH] tm6000, moving cards name defines
-Message-ID: <20100414173102.58b0f184@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/dKkpb5_Bb4aTjW8_Gxhicb7"
+	Wed, 28 Apr 2010 15:39:00 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3SJcw39051187
+	for <linux-media@vger.kernel.org>; Wed, 28 Apr 2010 21:38:58 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 28 Apr 2010 21:38:58 +0200 (CEST)
+Message-Id: <201004281938.o3SJcw39051187@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/dKkpb5_Bb4aTjW8_Gxhicb7
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi
+Results of the daily build of v4l-dvb:
 
-Move TV cards name defines to better place header file.
+date:        Wed Apr 28 19:00:24 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14605:5910305f6d48
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: b88a1e83c9bfa5afbe1dd7481ea15fbea5ad9e55
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000-cards.c
---- a/linux/drivers/staging/tm6000/tm6000-cards.c	Mon Apr 05 22:56:43 2010 -0400
-+++ b/linux/drivers/staging/tm6000/tm6000-cards.c	Wed Apr 14 11:18:03 2010 +1000
-@@ -35,22 +35,6 @@
- #include "tuner-xc2028.h"
- #include "xc5000.h"
- 
--#define TM6000_BOARD_UNKNOWN			0
--#define TM5600_BOARD_GENERIC			1
--#define TM6000_BOARD_GENERIC			2
--#define TM6010_BOARD_GENERIC			3
--#define TM5600_BOARD_10MOONS_UT821		4
--#define TM5600_BOARD_10MOONS_UT330		5
--#define TM6000_BOARD_ADSTECH_DUAL_TV		6
--#define TM6000_BOARD_FREECOM_AND_SIMILAR	7
--#define TM6000_BOARD_ADSTECH_MINI_DUAL_TV	8
--#define TM6010_BOARD_HAUPPAUGE_900H		9
--#define TM6010_BOARD_BEHOLD_WANDER		10
--#define TM6010_BOARD_BEHOLD_VOYAGER		11
--#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
--#define TM6010_BOARD_TWINHAN_TU501		13
--
--#define TM6000_MAXBOARDS        16
- static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
- 
- module_param_array(card,  int, NULL, 0444);
-diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000.h
---- a/linux/drivers/staging/tm6000/tm6000.h	Mon Apr 05 22:56:43 2010 -0400
-+++ b/linux/drivers/staging/tm6000/tm6000.h	Wed Apr 14 11:18:03 2010 +1000
-@@ -41,6 +41,23 @@
- #include "dmxdev.h"
- 
- #define TM6000_VERSION KERNEL_VERSION(0, 0, 2)
-+
-+#define TM6000_BOARD_UNKNOWN			0
-+#define TM5600_BOARD_GENERIC			1
-+#define TM6000_BOARD_GENERIC			2
-+#define TM6010_BOARD_GENERIC			3
-+#define TM5600_BOARD_10MOONS_UT821		4
-+#define TM5600_BOARD_10MOONS_UT330		5
-+#define TM6000_BOARD_ADSTECH_DUAL_TV		6
-+#define TM6000_BOARD_FREECOM_AND_SIMILAR	7
-+#define TM6000_BOARD_ADSTECH_MINI_DUAL_TV	8
-+#define TM6010_BOARD_HAUPPAUGE_900H		9
-+#define TM6010_BOARD_BEHOLD_WANDER		10
-+#define TM6010_BOARD_BEHOLD_VOYAGER		11
-+#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
-+#define TM6010_BOARD_TWINHAN_TU501		13
-+
-+#define TM6000_MAXBOARDS        16
- 
- /* Inputs */
- 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc1-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc1-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc1-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc1-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+Detailed results are available here:
 
-With my best regards, Dmitry.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
---MP_/dKkpb5_Bb4aTjW8_Gxhicb7
-Content-Type: text/x-patch; name=tm6000_defs.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=tm6000_defs.patch
+Full logs are available here:
 
-diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000-cards.c
---- a/linux/drivers/staging/tm6000/tm6000-cards.c	Mon Apr 05 22:56:43 2010 -0400
-+++ b/linux/drivers/staging/tm6000/tm6000-cards.c	Wed Apr 14 11:18:03 2010 +1000
-@@ -35,22 +35,6 @@
- #include "tuner-xc2028.h"
- #include "xc5000.h"
- 
--#define TM6000_BOARD_UNKNOWN			0
--#define TM5600_BOARD_GENERIC			1
--#define TM6000_BOARD_GENERIC			2
--#define TM6010_BOARD_GENERIC			3
--#define TM5600_BOARD_10MOONS_UT821		4
--#define TM5600_BOARD_10MOONS_UT330		5
--#define TM6000_BOARD_ADSTECH_DUAL_TV		6
--#define TM6000_BOARD_FREECOM_AND_SIMILAR	7
--#define TM6000_BOARD_ADSTECH_MINI_DUAL_TV	8
--#define TM6010_BOARD_HAUPPAUGE_900H		9
--#define TM6010_BOARD_BEHOLD_WANDER		10
--#define TM6010_BOARD_BEHOLD_VOYAGER		11
--#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
--#define TM6010_BOARD_TWINHAN_TU501		13
--
--#define TM6000_MAXBOARDS        16
- static unsigned int card[]     = {[0 ... (TM6000_MAXBOARDS - 1)] = UNSET };
- 
- module_param_array(card,  int, NULL, 0444);
-diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000.h
---- a/linux/drivers/staging/tm6000/tm6000.h	Mon Apr 05 22:56:43 2010 -0400
-+++ b/linux/drivers/staging/tm6000/tm6000.h	Wed Apr 14 11:18:03 2010 +1000
-@@ -41,6 +41,23 @@
- #include "dmxdev.h"
- 
- #define TM6000_VERSION KERNEL_VERSION(0, 0, 2)
-+
-+#define TM6000_BOARD_UNKNOWN			0
-+#define TM5600_BOARD_GENERIC			1
-+#define TM6000_BOARD_GENERIC			2
-+#define TM6010_BOARD_GENERIC			3
-+#define TM5600_BOARD_10MOONS_UT821		4
-+#define TM5600_BOARD_10MOONS_UT330		5
-+#define TM6000_BOARD_ADSTECH_DUAL_TV		6
-+#define TM6000_BOARD_FREECOM_AND_SIMILAR	7
-+#define TM6000_BOARD_ADSTECH_MINI_DUAL_TV	8
-+#define TM6010_BOARD_HAUPPAUGE_900H		9
-+#define TM6010_BOARD_BEHOLD_WANDER		10
-+#define TM6010_BOARD_BEHOLD_VOYAGER		11
-+#define TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE	12
-+#define TM6010_BOARD_TWINHAN_TU501		13
-+
-+#define TM6000_MAXBOARDS        16
- 
- /* Inputs */
- 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+The V4L-DVB specification from this daily build is here:
 
---MP_/dKkpb5_Bb4aTjW8_Gxhicb7--
+http://www.xs4all.nl/~hverkuil/spec/media.html
