@@ -1,182 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2566 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755825Ab0EABDH (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3199 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753078Ab0D1MhM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Apr 2010 21:03:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Frederic Weisbecker <fweisbec@gmail.com>
-Subject: Re: [PATCH 0/5] Pushdown bkl from v4l ioctls
-Date: Thu, 29 Apr 2010 08:44:29 +0200
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Arnd Bergmann <arnd@arndb.de>, John Kacur <jkacur@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Jan Blunck <jblunck@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg KH <gregkh@suse.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org> <1272512564-14683-1-git-send-regression-fweisbec@gmail.com>
-In-Reply-To: <1272512564-14683-1-git-send-regression-fweisbec@gmail.com>
+	Wed, 28 Apr 2010 08:37:12 -0400
+Message-ID: <9bc05165144f526ccb015c1ae4f44f9b.squirrel@webmail.xs4all.nl>
+In-Reply-To: <4BD82905.2020408@infradead.org>
+References: <1272359898-32020-1-git-send-email-jkacur@redhat.com>
+    <201004271317.45503.arnd@arndb.de>
+    <alpine.LFD.2.00.1004271352510.3318@localhost>
+    <201004271503.18077.arnd@arndb.de> <4BD82905.2020408@infradead.org>
+Date: Wed, 28 Apr 2010 14:37:10 +0200
+Subject: Re: [PATCH 10/10] bkl: Fix-up compile problems as a result of the
+ bkl-pushdown.
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Arnd Bergmann" <arnd@arndb.de>, "John Kacur" <jkacur@redhat.com>,
+	"lkml" <linux-kernel@vger.kernel.org>,
+	"Linus Torvalds" <torvalds@linux-foundation.org>,
+	"Frederic Weisbecker" <fweisbec@gmail.com>,
+	"Jan Blunck" <jblunck@gmail.com>,
+	"Thomas Gleixner" <tglx@linutronix.de>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201004290844.29347.hverkuil@xs4all.nl>
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 29 April 2010 05:42:39 Frederic Weisbecker wrote:
-> Hi,
-> 
-> Linus suggested to rename struct v4l2_file_operations::ioctl
-> into bkl_ioctl to eventually get something greppable and make
-> its background explicit.
-> 
-> While at it I thought it could be a good idea to just pushdown
-> the bkl to every v4l drivers that have an .ioctl, so that we
-> actually remove struct v4l2_file_operations::ioctl for good.
-> 
-> It passed make allyesconfig on sparc.
-> Please tell me what you think.
 
-I much prefer to keep the bkl inside the v4l2 core. One reason is that I
-think that we can replace the bkl in the core with a mutex. Still not
-ideal of course, so the next step will be to implement proper locking in
-each driver. For this some additional v4l infrastructure work needs to be
-done. I couldn't proceed with that until the v4l events API patches went in,
-and that happened yesterday.
+> Hi Arnd,
+>
+> Arnd Bergmann wrote:
+>> On Tuesday 27 April 2010, John Kacur wrote:
+>>> Well it is certainly possible that my fixup is not correct too - your
+>>> patch cannot be correct, because it doesn't compile! Here is what I get
+>>> when I apply your patch to a recent linus/master
+>>
+>> Ah, I see.
+>>
+>>> make O=/bld/arnd/ drivers/media/video/v4l2-dev.o
+>>> -----CUT A BUNCH OF STUFF OUT ---
+>>>   CC      drivers/media/video/v4l2-dev.o
+>>> /home/jkacur/jk-2.6/drivers/media/video/v4l2-dev.c: In function
+>>> ‘v4l2_ioctl’:
+>>> /home/jkacur/jk-2.6/drivers/media/video/v4l2-dev.c:230: warning:
+>>> passing
+>>> argument 1 of ‘vdev->fops->ioctl’ from incompatible pointer type
+>>> /home/jkacur/jk-2.6/drivers/media/video/v4l2-dev.c:230: note: expected
+>>> ‘struct file *’ but argument is of type ‘struct inode *’
+>>
+>> I didn't realize that the prototype for the locked ->ioctl function in
+>> v4l2 does not take the inode argument, so that needs to be dropped from
+>> my patch (i.e. not added).
+>>
+>> Or we do it slightly better and clean up the code a bit in the process.
+>>
+>> Mauro, does this patch make sense to you? It would be good to have your
+>> Ack so we can queue this in the series leading to the removal of the
+>> ->ioctl file operation. We can also do the minimal change and let you
+>> take care of fixing this up in a different way in your own tree.
+>
+> We had a similar discussion a while ago at linux-media. The idea is to do
+> it on a deeper level, changing the drivers to not need to use KBL.
+> Hans is working on those patches. Not sure about the current status.
 
-So from my point of view the timeline is this:
+I'm waiting for the event patch series from Sakari to go in before I can
+continue working on this.
 
-1) I do the infrastructure work this weekend. This will make it much easier to
-convert drivers to do proper locking. And it will also simplify v4l2_priority
-handling, so I'm killing two birds with one stone :-)
+> Anyway, I think that the better is to apply first your patch, to avoid
+> breaking your patch series, and then ours, as we may otherwise have some
+> conflicts between your tree and drivers/media git tree.
 
-2) Wait until Arnd's patch gets merged that pushes the bkl down to v4l2-dev.c
+I have no real problem with this patch, as long as people realize that
+this only moves the BKL from one place to another and does not really fix
+any drivers.
 
-3) Investigate what needs to be done to replace the bkl with a v4l2-dev.c
-global mutex. Those drivers that call the bkl themselves should probably be
-converted to do proper locking, but there are only about 14 drivers that do
-this. The other 60 or so drivers should work fine if a v4l2-dev global lock
-is used. At this point the bkl is effectively removed from the v4l subsystem.
-
-4) Work on the remaining 60 drivers to do proper locking and get rid of the
-v4l2-dev global lock. This is probably less work than it sounds.
-
-Since your patch moves everything down to the driver level it will actually
-make this work harder rather than easier. And it touches almost all drivers
-as well.
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
 Regards,
 
-	Hans
+       Hans
 
-> 
-> Thanks.
-> 
-> Frederic Weisbecker (5):
->       v4l: Pushdown bkl into video_ioctl2
->       v4l: Use video_ioctl2_unlocked from drivers that don't want the bkl
->       v4l: Change users of video_ioctl2 to use unlocked_ioctl
->       v4l: Pushdown bkl to drivers that implement their own ioctl
->       v4l: Remove struct v4l2_file_operations::ioctl
-> 
->  drivers/media/common/saa7146_fops.c              |    2 +-
->  drivers/media/radio/dsbr100.c                    |    2 +-
->  drivers/media/radio/radio-aimslab.c              |    2 +-
->  drivers/media/radio/radio-aztech.c               |    2 +-
->  drivers/media/radio/radio-cadet.c                |    2 +-
->  drivers/media/radio/radio-gemtek-pci.c           |    2 +-
->  drivers/media/radio/radio-gemtek.c               |    2 +-
->  drivers/media/radio/radio-maestro.c              |    2 +-
->  drivers/media/radio/radio-maxiradio.c            |    2 +-
->  drivers/media/radio/radio-miropcm20.c            |    2 +-
->  drivers/media/radio/radio-mr800.c                |    2 +-
->  drivers/media/radio/radio-rtrack2.c              |    2 +-
->  drivers/media/radio/radio-sf16fmi.c              |    2 +-
->  drivers/media/radio/radio-sf16fmr2.c             |    2 +-
->  drivers/media/radio/radio-si4713.c               |    2 +-
->  drivers/media/radio/radio-tea5764.c              |    2 +-
->  drivers/media/radio/radio-terratec.c             |    2 +-
->  drivers/media/radio/radio-timb.c                 |    2 +-
->  drivers/media/radio/radio-trust.c                |    2 +-
->  drivers/media/radio/radio-typhoon.c              |    2 +-
->  drivers/media/radio/radio-zoltrix.c              |    2 +-
->  drivers/media/radio/si470x/radio-si470x-common.c |    2 +-
->  drivers/media/video/arv.c                        |    2 +-
->  drivers/media/video/au0828/au0828-video.c        |   14 ++++----
->  drivers/media/video/bt8xx/bttv-driver.c          |   26 +++++++-------
->  drivers/media/video/bw-qcam.c                    |   11 +++++-
->  drivers/media/video/c-qcam.c                     |   11 +++++-
->  drivers/media/video/cafe_ccic.c                  |   14 ++++----
->  drivers/media/video/cpia.c                       |   11 +++++-
->  drivers/media/video/cpia2/cpia2_v4l.c            |   11 +++++-
->  drivers/media/video/cx18/cx18-streams.c          |   12 +++---
->  drivers/media/video/cx231xx/cx231xx-video.c      |    4 +-
->  drivers/media/video/cx23885/cx23885-417.c        |    2 +-
->  drivers/media/video/cx23885/cx23885-video.c      |    4 +-
->  drivers/media/video/cx88/cx88-blackbird.c        |    2 +-
->  drivers/media/video/cx88/cx88-video.c            |    4 +-
->  drivers/media/video/davinci/vpfe_capture.c       |    2 +-
->  drivers/media/video/davinci/vpif_capture.c       |    2 +-
->  drivers/media/video/davinci/vpif_display.c       |    2 +-
->  drivers/media/video/em28xx/em28xx-video.c        |    4 +-
->  drivers/media/video/et61x251/et61x251_core.c     |   27 +++++++++++----
->  drivers/media/video/gspca/gspca.c                |    2 +-
->  drivers/media/video/hdpvr/hdpvr-video.c          |    2 +-
->  drivers/media/video/meye.c                       |    2 +-
->  drivers/media/video/omap24xxcam.c                |   10 +++---
->  drivers/media/video/ov511.c                      |   15 +++++---
->  drivers/media/video/pms.c                        |    2 +-
->  drivers/media/video/pvrusb2/pvrusb2-v4l2.c       |   20 +++++++----
->  drivers/media/video/pwc/pwc-if.c                 |   19 ++++++----
->  drivers/media/video/s2255drv.c                   |   12 +++---
->  drivers/media/video/saa5246a.c                   |   11 ++++--
->  drivers/media/video/saa5249.c                    |    6 +++-
->  drivers/media/video/saa7134/saa7134-empress.c    |   14 ++++----
->  drivers/media/video/saa7134/saa7134-video.c      |   26 +++++++-------
->  drivers/media/video/se401.c                      |   20 +++++++----
->  drivers/media/video/sn9c102/sn9c102_core.c       |   27 +++++++++++----
->  drivers/media/video/soc_camera.c                 |    2 +-
->  drivers/media/video/stk-webcam.c                 |   14 ++++----
->  drivers/media/video/stradis.c                    |   26 +++++++++++----
->  drivers/media/video/stv680.c                     |   20 +++++++----
->  drivers/media/video/tlg2300/pd-radio.c           |    8 ++--
->  drivers/media/video/tlg2300/pd-video.c           |    2 +-
->  drivers/media/video/usbvideo/usbvideo.c          |   21 ++++++++----
->  drivers/media/video/usbvideo/vicam.c             |   14 +++++++-
->  drivers/media/video/usbvision/usbvision-video.c  |    4 +-
->  drivers/media/video/uvc/uvc_v4l2.c               |   11 +++++-
->  drivers/media/video/v4l2-dev.c                   |   38 ++-------------------
->  drivers/media/video/v4l2-ioctl.c                 |   17 ++++++++-
->  drivers/media/video/vivi.c                       |    2 +-
->  drivers/media/video/w9966.c                      |    2 +-
->  drivers/media/video/w9968cf.c                    |   25 +++++++++++---
->  drivers/media/video/zc0301/zc0301_core.c         |   27 +++++++++++----
->  drivers/media/video/zoran/zoran_driver.c         |   16 ++++----
->  drivers/media/video/zr364xx.c                    |   14 ++++----
->  drivers/staging/cx25821/cx25821-audups11.c       |   18 ++++++----
->  drivers/staging/cx25821/cx25821-video0.c         |   14 ++++----
->  drivers/staging/cx25821/cx25821-video1.c         |   14 ++++----
->  drivers/staging/cx25821/cx25821-video2.c         |   14 ++++----
->  drivers/staging/cx25821/cx25821-video3.c         |   14 ++++----
->  drivers/staging/cx25821/cx25821-video4.c         |   14 ++++----
->  drivers/staging/cx25821/cx25821-video5.c         |   14 ++++----
->  drivers/staging/cx25821/cx25821-video6.c         |   14 ++++----
->  drivers/staging/cx25821/cx25821-video7.c         |   14 ++++----
->  drivers/staging/cx25821/cx25821-videoioctl.c     |   27 +++++++++++----
->  drivers/staging/cx25821/cx25821-vidups10.c       |   19 +++++++----
->  drivers/staging/cx25821/cx25821-vidups9.c        |   18 ++++++----
->  drivers/staging/dream/camera/msm_v4l2.c          |   27 +++++++++++----
->  drivers/staging/go7007/go7007-v4l2.c             |    2 +-
->  drivers/staging/tm6000/tm6000-video.c            |    2 +-
->  include/media/v4l2-dev.h                         |    1 -
->  include/media/v4l2-ioctl.h                       |    2 +
->  sound/i2c/other/tea575x-tuner.c                  |    2 +-
->  92 files changed, 530 insertions(+), 360 deletions(-)
-> 
+>
+> So,
+>
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+>>
+>> ---
+>> Subject: v4l: convert v4l2-dev to unlocked_ioctl
+>>
+>> v4l2 implements two separate file operations for drivers that use locked
+>> and unlocked ioctl callbacks. Since we want to remove the ioctl file
+>> operation
+>> in favor of the unlocked variant, this separation no longer seems
+>> helpful.
+>>
+>> Unfortunately, there are still 77 drivers with locked ioctl functions in
+>> their v4l2_file_operations, which need to be taken care of separately.
+>>
+>> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+>> ---
+>>  drivers/media/video/v4l2-dev.c |   52
+>> +++++++++++----------------------------
+>>  1 files changed, 15 insertions(+), 37 deletions(-)
+>>
+>> diff --git a/drivers/media/video/v4l2-dev.c
+>> b/drivers/media/video/v4l2-dev.c
+>> index 7090699..ab198ba 100644
+>> --- a/drivers/media/video/v4l2-dev.c
+>> +++ b/drivers/media/video/v4l2-dev.c
+>> @@ -25,6 +25,7 @@
+>>  #include <linux/init.h>
+>>  #include <linux/kmod.h>
+>>  #include <linux/slab.h>
+>> +#include <linux/smp_lock.h>
+>>  #include <asm/uaccess.h>
+>>  #include <asm/system.h>
+>>
+>> @@ -215,28 +216,24 @@ static unsigned int v4l2_poll(struct file *filp,
+>> struct poll_table_struct *poll)
+>>  	return vdev->fops->poll(filp, poll);
+>>  }
+>>
+>> -static int v4l2_ioctl(struct inode *inode, struct file *filp,
+>> -		unsigned int cmd, unsigned long arg)
+>> +static long v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned
+>> long arg)
+>>  {
+>>  	struct video_device *vdev = video_devdata(filp);
+>> +	int ret;
+>>
+>> -	if (!vdev->fops->ioctl)
+>> -		return -ENOTTY;
+>>  	/* Allow ioctl to continue even if the device was unregistered.
+>>  	   Things like dequeueing buffers might still be useful. */
+>> -	return vdev->fops->ioctl(filp, cmd, arg);
+>> -}
+>> -
+>> -static long v4l2_unlocked_ioctl(struct file *filp,
+>> -		unsigned int cmd, unsigned long arg)
+>> -{
+>> -	struct video_device *vdev = video_devdata(filp);
+>> +	if (vdev->fops->unlocked_ioctl) {
+>> +		ret = vdev->fops->unlocked_ioctl(filp, cmd, arg);
+>> +	} else if (vdev->fops->ioctl) {
+>> +		/* TODO: convert all drivers to unlocked_ioctl */
+>> +		lock_kernel();
+>> +		ret = vdev->fops->ioctl(filp, cmd, arg);
+>> +		unlock_kernel();
+>> +	} else
+>> +		ret = -ENOTTY;
+>>
+>> -	if (!vdev->fops->unlocked_ioctl)
+>> -		return -ENOTTY;
+>> -	/* Allow ioctl to continue even if the device was unregistered.
+>> -	   Things like dequeueing buffers might still be useful. */
+>> -	return vdev->fops->unlocked_ioctl(filp, cmd, arg);
+>> +	return ret;
+>>  }
+>>
+>>  #ifdef CONFIG_MMU
+>> @@ -307,22 +304,6 @@ static int v4l2_release(struct inode *inode, struct
+>> file *filp)
+>>  	return ret;
+>>  }
+>>
+>> -static const struct file_operations v4l2_unlocked_fops = {
+>> -	.owner = THIS_MODULE,
+>> -	.read = v4l2_read,
+>> -	.write = v4l2_write,
+>> -	.open = v4l2_open,
+>> -	.get_unmapped_area = v4l2_get_unmapped_area,
+>> -	.mmap = v4l2_mmap,
+>> -	.unlocked_ioctl = v4l2_unlocked_ioctl,
+>> -#ifdef CONFIG_COMPAT
+>> -	.compat_ioctl = v4l2_compat_ioctl32,
+>> -#endif
+>> -	.release = v4l2_release,
+>> -	.poll = v4l2_poll,
+>> -	.llseek = no_llseek,
+>> -};
+>> -
+>>  static const struct file_operations v4l2_fops = {
+>>  	.owner = THIS_MODULE,
+>>  	.read = v4l2_read,
+>> @@ -330,7 +311,7 @@ static const struct file_operations v4l2_fops = {
+>>  	.open = v4l2_open,
+>>  	.get_unmapped_area = v4l2_get_unmapped_area,
+>>  	.mmap = v4l2_mmap,
+>> -	.ioctl = v4l2_ioctl,
+>> +	.unlocked_ioctl = v4l2_ioctl,
+>>  #ifdef CONFIG_COMPAT
+>>  	.compat_ioctl = v4l2_compat_ioctl32,
+>>  #endif
+>> @@ -517,10 +498,7 @@ static int __video_register_device(struct
+>> video_device *vdev, int type, int nr,
+>>  		ret = -ENOMEM;
+>>  		goto cleanup;
+>>  	}
+>> -	if (vdev->fops->unlocked_ioctl)
+>> -		vdev->cdev->ops = &v4l2_unlocked_fops;
+>> -	else
+>> -		vdev->cdev->ops = &v4l2_fops;
+>> +	vdev->cdev->ops = &v4l2_fops;
+>>  	vdev->cdev->owner = vdev->fops->owner;
+>>  	ret = cdev_add(vdev->cdev, MKDEV(VIDEO_MAJOR, vdev->minor), 1);
+>>  	if (ret < 0) {
+>
+>
+> --
+>
+> Cheers,
+> Mauro
+>
+
 
 -- 
 Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
