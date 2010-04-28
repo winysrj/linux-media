@@ -1,49 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:42176 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751314Ab0DUH6i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Apr 2010 03:58:38 -0400
-Message-ID: <4BCEB022.2040807@linuxtv.org>
-Date: Wed, 21 Apr 2010 09:58:26 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab via Mercurial <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, manu@linuxtv.org, user.vdr@gmail.com,
-	Klaus.Schmidinger@vdr.de
-Subject: Re: [git:v4l-dvb/master] V4L/DVB: Add FE_CAN_PSK_8 to allow apps
- to	identify PSK_8 capable DVB devices
-References: <E1O4Rsq-0006zj-NH@www.linuxtv.org>
-In-Reply-To: <E1O4Rsq-0006zj-NH@www.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:60514 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752691Ab0D1HFg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Apr 2010 03:05:36 -0400
+Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L1K00FJFRP4KQ@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Apr 2010 08:05:28 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L1K000EGRP40Z@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Apr 2010 08:05:28 +0100 (BST)
+Date: Wed, 28 Apr 2010 09:05:20 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v4 0/3] Fix DQBUF behavior for recoverable streaming errors
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Message-id: <1272438323-4790-1-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro,
+Hello,
 
-Mauro Carvalho Chehab wrote:
-> Subject: V4L/DVB: Add FE_CAN_PSK_8 to allow apps to identify PSK_8 capable DVB devices
-> Author:  Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-> Date:    Sun Apr 11 06:12:52 2010 -0300
+this is the fourth version of a series that introduces a V4L2_BUF_FLAG_ERROR
+flag for recoverable stream errors. It allows applications to gracefully recover
+in case of such errors instead of losing the buffer or having to guess
+its index.
 
-I wonder why this patch was applied without any modification. It seems
-like, as Manu pointed out, the flag should really indicate support for
-Turbo-FEC modes rather than just 8PSK (which is already a subset of
-FE_CAN_2G_MODULATION).
+Changes since v3:
+- fixed a typo in docs
+- removed a comment which no longer relevant
 
-Btw., there is also no FE_CAN_APSK_16, FE_CAN_APSK_32 or FE_CAN_DQPSK.
+Contents:
+[PATCH v4 1/3] v4l: Add a new ERROR flag for DQBUF after recoverable streaming errors
+[PATCH 2/3] v4l: videobuf: Add support for V4L2_BUF_FLAG_ERROR
+[PATCH v4 3/3] v4l: Add documentation for the new error flag
 
-Also, I'm unsure how to instruct a driver whether to choose Turbo-FEC
-mode or not in case it supports both DVB-S2 and what's used in the US.
-
-Third, it was stated that cx24116's support for Turbo-FEC was untested
-and probably unsupported.
-
-So I'd vote for reverting this patch until these issues are cleared.
-
-If my assumptions above are correct, my proposal is to rename the flag
- to FE_CAN_TURBO_FEC (as Manu proposed earlier) and remove it from
-cx24116.c.
-
-Regards,
-Andreas
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
