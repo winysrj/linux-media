@@ -1,47 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp4.tech.numericable.fr ([82.216.111.40]:53882 "EHLO
-	smtp4.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750980Ab0D1IdB convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:53350 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751093Ab0D1O2S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 04:33:01 -0400
-Date: Wed, 28 Apr 2010 10:33:03 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: =?UTF-8?B?QW5kcsOp?= Weidemann <Andre.Weidemann@web.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] TT S2-1600 allow more current for diseqc
-Message-ID: <20100428103303.2fe4c9ea@zombie>
-In-Reply-To: <4BD7E7A3.2060101@web.de>
-References: <20100411231805.4bc7fdef@borg.bxl.tuxicoman.be>
-	<4BD7E7A3.2060101@web.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 28 Apr 2010 10:28:18 -0400
+Message-ID: <4BD845E5.6040709@maxwell.research.nokia.com>
+Date: Wed, 28 Apr 2010 17:27:49 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Sergio Aguirre <saaguirre@ti.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] V4L: Events: Include slab.h explicitly
+References: <1272380899-30398-1-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1272380899-30398-1-git-send-email-saaguirre@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 28 Apr 2010 09:45:39 +0200
-André Weidemann <Andre.Weidemann@web.de> wrote:
+Sergio Aguirre wrote:
+> After commit ID:
+> 
+>   commit de380b55f92986c1a84198149cb71b7228d15fbd
+>   Author: Tejun Heo <tj@kernel.org>
+>   Date:   Wed Mar 24 17:06:43 2010 +0900
+> 
+>       percpu: don't implicitly include slab.h from percpu.h
+> 
+> slab.h include was not longer implicitly included with sched.h.
+> 
+> So, now we have to include slab.h explicitly.
+> 
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  drivers/media/video/v4l2-event.c |    1 +
+>  1 files changed, 1 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+> index aea4332..7f31cd2 100644
+> --- a/drivers/media/video/v4l2-event.c
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -26,6 +26,7 @@
+>  #include <media/v4l2-fh.h>
+>  #include <media/v4l2-event.h>
+>  
+> +#include <linux/slab.h>
+>  #include <linux/sched.h>
+>  
+>  int v4l2_event_init(struct v4l2_fh *fh)
 
-> I advise not to pull this change into the kernel sources.
-> The card has only been testet with the a maximum current of 515mA.
-> Anything above is outside the specification for this card.
+Thanks for the patch, Sergio!
 
-
-I'm currently running two of these cards in the same box with this
-patch.
-Actually, later on I've even set curlim = SEC_CURRENT_LIM_OFF because
-sometimes diseqc wasn't working fine and that seemed to solve the
-problem.
-
-I used to have skystar2 cards before and I did not run into those
-issues. Diseqc just worked fine.
-
-For reference each tt s2 is plugged to a diseqc switch with 4 output,
-each output connected to a quad lnb.
-
-Is there another way to solve this ?
-Maybe add a module parameter for people who want to override the
-default ?
+I was going to say that I'll send a new pull request but apparently
+forgot to send this one in time. Anyway, this is now included in the
+patchset, merged with another patch.
 
 Regards,
-  Guy
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
