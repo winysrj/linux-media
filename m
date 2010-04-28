@@ -1,185 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2134 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754541Ab0DZHeO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 03:34:14 -0400
-Message-Id: <4ac5b4151b331d08f6d7908fcf1ead0872fe8416.1272267137.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1272267136.git.hverkuil@xs4all.nl>
-References: <cover.1272267136.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Mon, 26 Apr 2010 09:34:09 +0200
-Subject: [PATCH 11/15] [RFC] wm8775: convert to the new control framework
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Received: from arroyo.ext.ti.com ([192.94.94.40]:37075 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752981Ab0D1GRN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Apr 2010 02:17:13 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "mchehab@redhat.com" <mchehab@redhat.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>
+Date: Wed, 28 Apr 2010 11:46:52 +0530
+Subject: RE: [PATCH-V7] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver on
+ top of DSS2
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E2A59ED@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1270634430-5549-2-git-send-email-hvaibhav@ti.com>
+ <A24693684029E5489D1D202277BE894454F77EAB@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894454F77EAB@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: multipart/mixed;
+	boundary="_002_19F8576C6E063C45BE387C64729E7394044E2A59EDdbde02enttico_"
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/wm8775.c |   79 ++++++++++++++++++++++++++---------------
- 1 files changed, 50 insertions(+), 29 deletions(-)
+--_002_19F8576C6E063C45BE387C64729E7394044E2A59EDdbde02enttico_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/video/wm8775.c b/drivers/media/video/wm8775.c
-index f1f261a..9a8e3ad 100644
---- a/drivers/media/video/wm8775.c
-+++ b/drivers/media/video/wm8775.c
-@@ -34,6 +34,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-i2c-drv.h>
- 
- MODULE_DESCRIPTION("wm8775 driver");
-@@ -52,8 +53,9 @@ enum {
- 
- struct wm8775_state {
- 	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_ctrl *mute;
- 	u8 input;		/* Last selected input (0-0xf) */
--	u8 muted;
- };
- 
- static inline struct wm8775_state *to_state(struct v4l2_subdev *sd)
-@@ -61,6 +63,11 @@ static inline struct wm8775_state *to_state(struct v4l2_subdev *sd)
- 	return container_of(sd, struct wm8775_state, sd);
- }
- 
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct wm8775_state, hdl)->sd;
-+}
-+
- static int wm8775_write(struct v4l2_subdev *sd, int reg, u16 val)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-@@ -94,7 +101,7 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
- 		return -EINVAL;
- 	}
- 	state->input = input;
--	if (state->muted)
-+	if (!v4l2_ctrl_g(state->mute))
- 		return 0;
- 	wm8775_write(sd, R21, 0x0c0);
- 	wm8775_write(sd, R14, 0x1d4);
-@@ -103,29 +110,21 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int wm8775_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int wm8775_s_ctrl(struct v4l2_ctrl *ctrl)
- {
-+	struct v4l2_subdev *sd = to_sd(ctrl);
- 	struct wm8775_state *state = to_state(sd);
- 
--	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
--		return -EINVAL;
--	ctrl->value = state->muted;
--	return 0;
--}
--
--static int wm8775_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct wm8775_state *state = to_state(sd);
--
--	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
--		return -EINVAL;
--	state->muted = ctrl->value;
--	wm8775_write(sd, R21, 0x0c0);
--	wm8775_write(sd, R14, 0x1d4);
--	wm8775_write(sd, R15, 0x1d4);
--	if (!state->muted)
--		wm8775_write(sd, R21, 0x100 + state->input);
--	return 0;
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		wm8775_write(sd, R21, 0x0c0);
-+		wm8775_write(sd, R14, 0x1d4);
-+		wm8775_write(sd, R15, 0x1d4);
-+		if (!ctrl->val)
-+			wm8775_write(sd, R21, 0x100 + state->input);
-+		return 0;
-+	}
-+	return -EINVAL;
- }
- 
- static int wm8775_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
-@@ -139,8 +138,8 @@ static int wm8775_log_status(struct v4l2_subdev *sd)
- {
- 	struct wm8775_state *state = to_state(sd);
- 
--	v4l2_info(sd, "Input: %d%s\n", state->input,
--			state->muted ? " (muted)" : "");
-+	v4l2_info(sd, "Input: %d\n", state->input);
-+	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
- 	return 0;
- }
- 
-@@ -161,11 +160,20 @@ static int wm8775_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *fre
- 
- /* ----------------------------------------------------------------------- */
- 
-+static const struct v4l2_ctrl_ops wm8775_ctrl_ops = {
-+	.s_ctrl = wm8775_s_ctrl,
-+};
-+
- static const struct v4l2_subdev_core_ops wm8775_core_ops = {
- 	.log_status = wm8775_log_status,
- 	.g_chip_ident = wm8775_g_chip_ident,
--	.g_ctrl = wm8775_g_ctrl,
--	.s_ctrl = wm8775_s_ctrl,
-+	.g_ext_ctrls = v4l2_sd_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_sd_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_sd_s_ext_ctrls,
-+	.g_ctrl = v4l2_sd_g_ctrl,
-+	.s_ctrl = v4l2_sd_s_ctrl,
-+	.queryctrl = v4l2_sd_queryctrl,
-+	.querymenu = v4l2_sd_querymenu,
- };
- 
- static const struct v4l2_subdev_tuner_ops wm8775_tuner_ops = {
-@@ -204,13 +212,24 @@ static int wm8775_probe(struct i2c_client *client,
- 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
- 			client->addr << 1, client->adapter->name);
- 
--	state = kmalloc(sizeof(struct wm8775_state), GFP_KERNEL);
-+	state = kzalloc(sizeof(struct wm8775_state), GFP_KERNEL);
- 	if (state == NULL)
- 		return -ENOMEM;
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &wm8775_ops);
- 	state->input = 2;
--	state->muted = 0;
-+
-+	v4l2_ctrl_handler_init(&state->hdl, 1);
-+	state->mute = v4l2_ctrl_new_std(&state->hdl, &wm8775_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-+	sd->ctrl_handler = &state->hdl;
-+	if (state->hdl.error) {
-+		int err = state->hdl.error;
-+
-+		v4l2_ctrl_handler_free(&state->hdl);
-+		kfree(state);
-+		return err;
-+	}
- 
- 	/* Initialize wm8775 */
- 
-@@ -247,9 +266,11 @@ static int wm8775_probe(struct i2c_client *client,
- static int wm8775_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct wm8775_state *state = to_state(sd);
- 
- 	v4l2_device_unregister_subdev(sd);
--	kfree(to_state(sd));
-+	v4l2_ctrl_handler_free(&state->hdl);
-+	kfree(state);
- 	return 0;
- }
- 
--- 
-1.6.4.2
+> -----Original Message-----
+> From: Aguirre, Sergio
+> Sent: Wednesday, April 28, 2010 12:27 AM
+> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
+> Cc: mchehab@redhat.com; Karicheri, Muralidharan; hverkuil@xs4all.nl
+> Subject: RE: [PATCH-V7] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver=
+ on
+> top of DSS2
+>=20
+> Vaibhav,
+>=20
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
+> > Sent: Wednesday, April 07, 2010 5:01 AM
+> > To: linux-media@vger.kernel.org
+> > Cc: mchehab@redhat.com; Karicheri, Muralidharan; hverkuil@xs4all.nl;
+> > Hiremath, Vaibhav
+> > Subject: [PATCH-V7] OMAP2/3 V4L2: Add support for OMAP2/3 V4L2 driver o=
+n
+> > top of DSS2
+> >
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> > Features Supported -
+> > 	1. Provides V4L2 user interface for the video pipelines of DSS
+> > 	2. Basic streaming working on LCD, DVI and TV.
+> > 	3. Works on latest DSS2 library from Tomi
+> > 	4. Support for various pixel formats like YUV, UYVY, RGB32, RGB24,
+> > 	   RGB565
+> > 	5. Supports Alpha blending.
+> > 	6. Supports Color keying both source and destination.
+> > 	7. Supports rotation.
+> > 	8. Supports cropping.
+> > 	9. Supports Background color setting.
+> > 	10. Allocated buffers to only needed size
+> >
+>=20
+> This patch is broken in latest kernel. There are 2 main problems:
+[Hiremath, Vaibhav] Sergio,
 
+I do have patch fixing this issue and waiting V4L2 master to get updated fi=
+rst. I have attached patch here.
+
+The very first thing is this patch has been created against latest V4L2/mas=
+ter branch and not linux-omap branch. So there could be some gap between th=
+e merges of 2 branches.
+
+Also on regular basis (almost daily) I am making sure that all the patches =
+which are submitted to the list are still get applied cleanly and works, ob=
+viously against their respective repositories.
+
+Thanks,
+Vaibhav
+>=20
+> 1. ARCH_OMAP24XX and ARCH_OMAP34XX doesn't exist anymore in latest kernel=
+.
+>=20
+> Tony has left only ARCH_OMAP2420, ARCH_OMAP2430 and ARCH_OMAP3430. So, I =
+did
+> the change represented in patch #0001.
+>=20
+> 2. It doesn't compile.
+>=20
+> See attached log.
+>=20
+> I was able to partially fix some problems:
+>=20
+> drivers/media/video/omap/omap_vout.c: In function 'vidioc_reqbufs':
+> drivers/media/video/omap/omap_vout.c:1841: error: implicit declaration of
+> function 'kfree'
+> drivers/media/video/omap/omap_vout.c: In function
+> 'omap_vout_create_video_devices':
+> drivers/media/video/omap/omap_vout.c:2375: error: implicit declaration of
+> function 'kmalloc'
+> ...
+> drivers/media/video/omap/omap_vout.c: In function 'omap_vout_probe':
+> drivers/media/video/omap/omap_vout.c:2514: error: implicit declaration of
+> function 'kzalloc'
+> drivers/media/video/omap/omap_vout.c:2514: warning: assignment makes poin=
+ter
+> from integer without a cast
+>=20
+> With the attached patch #0002. But still the other problems are related t=
+o
+> latest DSS2 framework changes.
+>=20
+> Can you please take a look at those?
+>=20
+> Regards,
+> Sergio
+>=20
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> >  drivers/media/video/Kconfig             |    2 +
+> >  drivers/media/video/Makefile            |    2 +
+> >  drivers/media/video/omap/Kconfig        |   11 +
+> >  drivers/media/video/omap/Makefile       |    7 +
+> >  drivers/media/video/omap/omap_vout.c    | 2644
+> > +++++++++++++++++++++++++++++++
+> >  drivers/media/video/omap/omap_voutdef.h |  147 ++
+> >  drivers/media/video/omap/omap_voutlib.c |  293 ++++
+> >  drivers/media/video/omap/omap_voutlib.h |   34 +
+> >  8 files changed, 3140 insertions(+), 0 deletions(-)
+> >  create mode 100644 drivers/media/video/omap/Kconfig
+> >  create mode 100644 drivers/media/video/omap/Makefile
+> >  create mode 100644 drivers/media/video/omap/omap_vout.c
+> >  create mode 100644 drivers/media/video/omap/omap_voutdef.h
+> >  create mode 100644 drivers/media/video/omap/omap_voutlib.c
+> >  create mode 100644 drivers/media/video/omap/omap_voutlib.h
+> >
+>=20
+> <snip>
+
+--_002_19F8576C6E063C45BE387C64729E7394044E2A59EDdbde02enttico_
+Content-Type: application/octet-stream;
+	name="0001-OMAP-V4L2-Display-Rebased-against-latest-DSS2-chang.patch"
+Content-Description: 0001-OMAP-V4L2-Display-Rebased-against-latest-DSS2-chang.patch
+Content-Disposition: attachment;
+	filename="0001-OMAP-V4L2-Display-Rebased-against-latest-DSS2-chang.patch";
+	size=4111; creation-date="Wed, 28 Apr 2010 11:44:11 GMT";
+	modification-date="Wed, 28 Apr 2010 11:44:11 GMT"
+Content-Transfer-Encoding: base64
+
+RnJvbSA2MmUwZjVkMWVmZDgxMjgwZjU4OTZjMWMxOGVkNzE5NzMzYWNhNDFmIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBWYWliaGF2IEhpcmVtYXRoIDxodmFpYmhhdkB0aS5jb20+CkRh
+dGU6IFdlZCwgMjggQXByIDIwMTAgMTE6NDE6NDggKzA1MzAKU3ViamVjdDogW1BBVENIXSBPTUFQ
+OlY0TDIgRGlzcGxheTogUmViYXNlZCBhZ2FpbnN0IGxhdGVzdCBEU1MyIGNoYW5nZXMKCkNoYW5n
+ZXMgLQoJLSBLY29uZmlnIG9wdGlvbiBkZXBlbmRhbmN5IGNoYW5nZWQgdG8gQVJDSF9PTUFQMi8z
+IGZyb20KCUFSQ0hfT01BUDI0WFgvMzRYWAoJLSBUaGVyZSBhcmUgc29tZSBtb21lbnRzIG9mIGZ1
+bmN0aW9uIGZyb20gb21hcF9kc3NfZGV2aWNlCgl0byBvbWFwX2Rzc19kcml2ZXIuIEluY29ycG9y
+YXRlZCBjaGFuZ2VzIGZvciB0aGUgc2FtZS4KClNpZ25lZC1vZmYtYnk6IFZhaWJoYXYgSGlyZW1h
+dGggPGh2YWliaGF2QHRpLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAvS2NvbmZp
+ZyAgICAgfCAgICAyICstCiBkcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAvb21hcF92b3V0LmMgfCAg
+IDM1ICsrKysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLQogMiBmaWxlcyBjaGFuZ2VkLCAy
+MCBpbnNlcnRpb25zKCspLCAxNyBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL21l
+ZGlhL3ZpZGVvL29tYXAvS2NvbmZpZyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21hcC9LY29uZmln
+CmluZGV4IDk3YzUzOTQuLmMxZDE5MzMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8v
+b21hcC9LY29uZmlnCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vb21hcC9LY29uZmlnCkBAIC0x
+LDYgKzEsNiBAQAogY29uZmlnIFZJREVPX09NQVAyX1ZPVVQKIAl0cmlzdGF0ZSAiT01BUDIvT01B
+UDMgVjRMMi1EaXNwbGF5IGRyaXZlciIKLQlkZXBlbmRzIG9uIEFSQ0hfT01BUDI0WFggfHwgQVJD
+SF9PTUFQMzRYWAorCWRlcGVuZHMgb24gQVJDSF9PTUFQMiB8fCBBUkNIX09NQVAzCiAJc2VsZWN0
+IFZJREVPQlVGX0dFTgogCXNlbGVjdCBWSURFT0JVRl9ETUFfU0cKIAlzZWxlY3QgT01BUDJfRFNT
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL29tYXAvb21hcF92b3V0LmMgYi9kcml2
+ZXJzL21lZGlhL3ZpZGVvL29tYXAvb21hcF92b3V0LmMKaW5kZXggNGMwYWI0OS4uMTU2ZWQyOSAx
+MDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9vbWFwL29tYXBfdm91dC5jCisrKyBiL2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vb21hcC9vbWFwX3ZvdXQuYwpAQCAtMzgsNiArMzgsNyBAQAogI2lu
+Y2x1ZGUgPGxpbnV4L2RtYS1tYXBwaW5nLmg+CiAjaW5jbHVkZSA8bGludXgvaXJxLmg+CiAjaW5j
+bHVkZSA8bGludXgvdmlkZW9kZXYyLmg+CisjaW5jbHVkZSA8bGludXgvc2xhYi5oPgogCiAjaW5j
+bHVkZSA8bWVkaWEvdmlkZW9idWYtZG1hLXNnLmg+CiAjaW5jbHVkZSA8bWVkaWEvdjRsMi1kZXZp
+Y2UuaD4KQEAgLTI0ODksNyArMjQ5MCw3IEBAIHN0YXRpYyBpbnQgb21hcF92b3V0X3JlbW92ZShz
+dHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCiAJZm9yIChrID0gMDsgayA8IHZpZF9kZXYt
+Pm51bV9kaXNwbGF5czsgaysrKSB7CiAJCWlmICh2aWRfZGV2LT5kaXNwbGF5c1trXS0+c3RhdGUg
+IT0gT01BUF9EU1NfRElTUExBWV9ESVNBQkxFRCkKLQkJCXZpZF9kZXYtPmRpc3BsYXlzW2tdLT5k
+aXNhYmxlKHZpZF9kZXYtPmRpc3BsYXlzW2tdKTsKKwkJCXZpZF9kZXYtPmRpc3BsYXlzW2tdLT5k
+cml2ZXItPmRpc2FibGUodmlkX2Rldi0+ZGlzcGxheXNba10pOwogCiAJCW9tYXBfZHNzX3B1dF9k
+ZXZpY2UodmlkX2Rldi0+ZGlzcGxheXNba10pOwogCX0KQEAgLTI1NDYsNyArMjU0Nyw5IEBAIHN0
+YXRpYyBpbnQgX19pbml0IG9tYXBfdm91dF9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpw
+ZGV2KQogCQkJZGVmX2Rpc3BsYXkgPSBOVUxMOwogCQl9CiAJCWlmIChkZWZfZGlzcGxheSkgewot
+CQkJcmV0ID0gZGVmX2Rpc3BsYXktPmVuYWJsZShkZWZfZGlzcGxheSk7CisJCQlzdHJ1Y3Qgb21h
+cF9kc3NfZHJpdmVyICpkc3NkcnYgPSBkZWZfZGlzcGxheS0+ZHJpdmVyOworCQkJCisJCQlyZXQg
+PSBkc3NkcnYtPmVuYWJsZShkZWZfZGlzcGxheSk7CiAJCQlpZiAocmV0KSB7CiAJCQkJLyogSGVy
+ZSB3ZSBhcmUgbm90IGNvbnNpZGVyaW5nIGEgZXJyb3IKIAkJCQkgKiAgYXMgZGlzcGxheSBtYXkg
+YmUgZW5hYmxlZCBieSBmcmFtZQpAQCAtMjU2MCwyMSArMjU2MywyMSBAQCBzdGF0aWMgaW50IF9f
+aW5pdCBvbWFwX3ZvdXRfcHJvYmUoc3RydWN0IHBsYXRmb3JtX2RldmljZSAqcGRldikKIAkJCWlm
+IChkZWZfZGlzcGxheS0+Y2FwcyAmCiAJCQkJCU9NQVBfRFNTX0RJU1BMQVlfQ0FQX01BTlVBTF9V
+UERBVEUpIHsKICNpZmRlZiBDT05GSUdfRkJfT01BUDJfRk9SQ0VfQVVUT19VUERBVEUKLQkJCQlp
+ZiAoZGVmX2Rpc3BsYXktPmVuYWJsZV90ZSkKLQkJCQkJZGVmX2Rpc3BsYXktPmVuYWJsZV90ZShk
+ZWZfZGlzcGxheSwgMSk7Ci0JCQkJaWYgKGRlZl9kaXNwbGF5LT5zZXRfdXBkYXRlX21vZGUpCi0J
+CQkJCWRlZl9kaXNwbGF5LT5zZXRfdXBkYXRlX21vZGUoZGVmX2Rpc3BsYXksCisJCQkJaWYgKGRz
+c2Rydi0+ZW5hYmxlX3RlKQorCQkJCQlkc3NkcnYtPmVuYWJsZV90ZShkZWZfZGlzcGxheSwgMSk7
+CisJCQkJaWYgKGRzc2Rydi0+c2V0X3VwZGF0ZV9tb2RlKQorCQkJCQlkc3NkcnYtPnNldF91cGRh
+dGVfbW9kZShkZWZfZGlzcGxheSwKIAkJCQkJCQlPTUFQX0RTU19VUERBVEVfQVVUTyk7CiAjZWxz
+ZQkvKiBNQU5VQUxfVVBEQVRFICovCi0JCQkJaWYgKGRlZl9kaXNwbGF5LT5lbmFibGVfdGUpCi0J
+CQkJCWRlZl9kaXNwbGF5LT5lbmFibGVfdGUoZGVmX2Rpc3BsYXksIDApOwotCQkJCWlmIChkZWZf
+ZGlzcGxheS0+c2V0X3VwZGF0ZV9tb2RlKQotCQkJCQlkZWZfZGlzcGxheS0+c2V0X3VwZGF0ZV9t
+b2RlKGRlZl9kaXNwbGF5LAorCQkJCWlmIChkc3NkcnYtPmVuYWJsZV90ZSkKKwkJCQkJZHNzZHJ2
+LT5lbmFibGVfdGUoZGVmX2Rpc3BsYXksIDApOworCQkJCWlmIChkc3NkcnYtPnNldF91cGRhdGVf
+bW9kZSkKKwkJCQkJZHNzZHJ2LT5zZXRfdXBkYXRlX21vZGUoZGVmX2Rpc3BsYXksCiAJCQkJCQkJ
+T01BUF9EU1NfVVBEQVRFX01BTlVBTCk7CiAjZW5kaWYKIAkJCX0gZWxzZSB7Ci0JCQkJaWYgKGRl
+Zl9kaXNwbGF5LT5zZXRfdXBkYXRlX21vZGUpCi0JCQkJCWRlZl9kaXNwbGF5LT5zZXRfdXBkYXRl
+X21vZGUoZGVmX2Rpc3BsYXksCisJCQkJaWYgKGRzc2Rydi0+c2V0X3VwZGF0ZV9tb2RlKQorCQkJ
+CQlkc3NkcnYtPnNldF91cGRhdGVfbW9kZShkZWZfZGlzcGxheSwKIAkJCQkJCQlPTUFQX0RTU19V
+UERBVEVfQVVUTyk7CiAJCQl9CiAJCX0KQEAgLTI1OTMsOCArMjU5Niw4IEBAIHN0YXRpYyBpbnQg
+X19pbml0IG9tYXBfdm91dF9wcm9iZShzdHJ1Y3QgcGxhdGZvcm1fZGV2aWNlICpwZGV2KQogCWZv
+ciAoaSA9IDA7IGkgPCB2aWRfZGV2LT5udW1fZGlzcGxheXM7IGkrKykgewogCQlzdHJ1Y3Qgb21h
+cF9kc3NfZGV2aWNlICpkaXNwbGF5ID0gdmlkX2Rldi0+ZGlzcGxheXNbaV07CiAKLQkJaWYgKGRp
+c3BsYXktPnVwZGF0ZSkKLQkJCWRpc3BsYXktPnVwZGF0ZShkaXNwbGF5LCAwLCAwLAorCQlpZiAo
+ZGlzcGxheS0+ZHJpdmVyLT51cGRhdGUpCisJCQlkaXNwbGF5LT5kcml2ZXItPnVwZGF0ZShkaXNw
+bGF5LCAwLCAwLAogCQkJCQlkaXNwbGF5LT5wYW5lbC50aW1pbmdzLnhfcmVzLAogCQkJCQlkaXNw
+bGF5LT5wYW5lbC50aW1pbmdzLnlfcmVzKTsKIAl9CkBAIC0yNjA5LDggKzI2MTIsOCBAQCBwcm9i
+ZV9lcnIxOgogCQlpZiAob3ZsLT5tYW5hZ2VyICYmIG92bC0+bWFuYWdlci0+ZGV2aWNlKQogCQkJ
+ZGVmX2Rpc3BsYXkgPSBvdmwtPm1hbmFnZXItPmRldmljZTsKIAotCQlpZiAoZGVmX2Rpc3BsYXkp
+Ci0JCQlkZWZfZGlzcGxheS0+ZGlzYWJsZShkZWZfZGlzcGxheSk7CisJCWlmIChkZWZfZGlzcGxh
+eSAmJiBkZWZfZGlzcGxheS0+ZHJpdmVyKQorCQkJZGVmX2Rpc3BsYXktPmRyaXZlci0+ZGlzYWJs
+ZShkZWZfZGlzcGxheSk7CiAJfQogcHJvYmVfZXJyMDoKIAlrZnJlZSh2aWRfZGV2KTsKLS0gCjEu
+Ni4yLjQKCg==
+
+--_002_19F8576C6E063C45BE387C64729E7394044E2A59EDdbde02enttico_--
