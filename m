@@ -1,58 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.meta.ua ([194.0.131.41]:55306 "EHLO smtp.meta.ua"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751973Ab0DQPPh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Apr 2010 11:15:37 -0400
-Received: from 198-147-92-178.pool.ukrtel.net ([178.92.147.198]:54777)
-	by smtp.meta.ua with esmtpsa id 1O39Rc-0001BP-0J by authid <geroin22@meta.ua>
-	for <linux-media@vger.kernel.org>; Sat, 17 Apr 2010 17:56:28 +0300
-Message-ID: <4BC9CC02.5060305@meta.ua>
-Date: Sat, 17 Apr 2010 17:56:02 +0300
-From: "geroin22@meta.ua " <geroin22@meta.ua>
+Received: from perceval.irobotique.be ([92.243.18.41]:44508 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753588Ab0D1NCg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Apr 2010 09:02:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 10/10] bkl: Fix-up compile problems as a result of the bkl-pushdown.
+Date: Wed, 28 Apr 2010 15:02:49 +0200
+Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
+	"Arnd Bergmann" <arnd@arndb.de>, "John Kacur" <jkacur@redhat.com>,
+	"lkml" <linux-kernel@vger.kernel.org>,
+	"Linus Torvalds" <torvalds@linux-foundation.org>,
+	"Frederic Weisbecker" <fweisbec@gmail.com>,
+	"Jan Blunck" <jblunck@gmail.com>,
+	"Thomas Gleixner" <tglx@linutronix.de>,
+	"Linux Media Mailing List" <linux-media@vger.kernel.org>
+References: <1272359898-32020-1-git-send-email-jkacur@redhat.com> <4BD82905.2020408@infradead.org> <9bc05165144f526ccb015c1ae4f44f9b.squirrel@webmail.xs4all.nl>
+In-Reply-To: <9bc05165144f526ccb015c1ae4f44f9b.squirrel@webmail.xs4all.nl>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Add support analog part of Compro Videomate E800
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201004281502.51174.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Vladimir Geroy geroin22@yandex.ru
+Hi Hans,
 
-diff -Naur a/linux/drivers/media/video/cx23885/cx23885-cards.c 
-b/linux/drivers/media/video/cx23885/cx23885-cards.c
---- a/linux/drivers/media/video/cx23885/cx23885-cards.c    2009-11-27 
-16:52:15.000000000 +0200
-+++ b/linux/drivers/media/video/cx23885/cx23885-cards.c    2009-12-12 
-15:26:41.370488942 +0200
-@@ -287,7 +287,29 @@
-     },
-     [CX23885_BOARD_COMPRO_VIDEOMATE_E800] = {
-         .name        = "Compro VideoMate E800",
--        .portc        = CX23885_MPEG_DVB,
-+        .porta        = CX23885_ANALOG_VIDEO,
-+         .portc        = CX23885_MPEG_DVB,
-+        .tuner_type    = TUNER_XC2028,
-+        .tuner_addr    = 0x61,
-+        .input        = {
-+            {
-+                .type   = CX23885_VMUX_TELEVISION,
-+                .vmux   = CX25840_COMPOSITE2,
-+            }, {
-+                .type   = CX23885_VMUX_COMPOSITE1,
-+                .vmux   = CX25840_COMPOSITE8,
-+            }, {
-+                .type   = CX23885_VMUX_SVIDEO,
-+                .vmux   = CX25840_SVIDEO_LUMA3 |
-+                    CX25840_SVIDEO_CHROMA4,
-+            }, {
-+                .type   = CX23885_VMUX_COMPONENT,
-+                .vmux   = CX25840_COMPONENT_ON |
-+                    CX25840_VIN1_CH1 |
-+                    CX25840_VIN6_CH2 |
-+                    CX25840_VIN7_CH3,
-+            },
-+        },
-     },
-     [CX23885_BOARD_HAUPPAUGE_HVR1290] = {
-         .name        = "Hauppauge WinTV-HVR1290",
+On Wednesday 28 April 2010 14:37:10 Hans Verkuil wrote:
+> > Arnd Bergmann wrote:
+
+[snip]
+
+> >> Mauro, does this patch make sense to you? It would be good to have your
+> >> Ack so we can queue this in the series leading to the removal of the
+> >> ->ioctl file operation. We can also do the minimal change and let you
+> >> take care of fixing this up in a different way in your own tree.
+> > 
+> > We had a similar discussion a while ago at linux-media. The idea is to do
+> > it on a deeper level, changing the drivers to not need to use KBL.
+> > Hans is working on those patches. Not sure about the current status.
+> 
+> I'm waiting for the event patch series from Sakari to go in before I can
+> continue working on this.
+> 
+> > Anyway, I think that the better is to apply first your patch, to avoid
+> > breaking your patch series, and then ours, as we may otherwise have some
+> > conflicts between your tree and drivers/media git tree.
+> 
+> I have no real problem with this patch, as long as people realize that
+> this only moves the BKL from one place to another and does not really fix
+> any drivers.
+
+Seems that Arnd was more convincing than me. I've submitted the exact same 
+patch a while ago :-)
+
+Of course this doesn't solve the BKL issue, but it pushes it one level down, 
+closer to the drivers. Higher levels can then stop caring about it. Of course 
+lower levels will still need to remove the BKL.
+
+-- 
+Regards,
+
+Laurent Pinchart
