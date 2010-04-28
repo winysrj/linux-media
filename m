@@ -1,53 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2957 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152Ab0DFFlW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Apr 2010 01:41:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Serialization flag example
-Date: Tue, 6 Apr 2010 00:58:54 +0200
-Cc: David Ellingsworth <david@identd.dyndns.org>,
-	hermann-pitton@arcor.de, awalls@md.metrocast.net,
-	mchehab@redhat.com, dheitmueller@kernellabs.com,
-	abraham.manu@gmail.com, linux-media@vger.kernel.org
-References: <32832848.1270295705043.JavaMail.ngmail@webmail10.arcor-online.net> <x2r30353c3d1004032014qc2b31bd5uab4da9a0d364e8ff@mail.gmail.com> <201004060046.12997.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201004060046.12997.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:44048 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753349Ab0D1Rhb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Apr 2010 13:37:31 -0400
+Date: Wed, 28 Apr 2010 13:37:29 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org
+Subject: [PATCH] IR/imon: minor change_protocol fixups
+Message-ID: <20100428173729.GA14256@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201004060058.54050.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 06 April 2010 00:46:11 Laurent Pinchart wrote:
-> On Sunday 04 April 2010 05:14:17 David Ellingsworth wrote:
-> > After looking at the proposed solution, I personally find the
-> > suggestion for a serialization flag to be quite ridiculous. As others
-> > have mentioned, the mere presence of the flag means that driver
-> > writers will gloss over any concurrency issues that might exist in
-> > their driver on the mere assumption that specifying the serialization
-> > flag will handle it all for them.
-> 
-> I happen to agree with this. Proper locking is difficult, but that's not a 
-> reason to introduce such a workaround. I'd much rather see proper 
-> documentation for driver developers on how to implement locking properly.
+This is a follow-up to my prior patch implementing ir-core's
+change_protocol functionality in the imon driver, which eliminates
+a false warning when change_protocol is called without a specific
+protocol selected yet (i.e., still IR_TYPE_UNKNOWN). It also removes
+some extraneous blank lines getting spewn into dmesg.
 
-I've taken a different approach in another tree:
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 
-http://linuxtv.org/hg/~hverkuil/v4l-dvb-ser2/
+---
+ drivers/media/IR/imon.c |   20 +++++++++-----------
+ 1 files changed, 9 insertions(+), 11 deletions(-)
 
-It adds two callbacks to ioctl_ops: pre_hook and post_hook. You can use these
-to do things like prio checking and taking your own mutex to serialize the
-ioctl call.
-
-This might be a good compromise between convenience and not hiding anything.
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
+index 16e2e7f..6fb3b05 100644
+--- a/drivers/media/IR/imon.c
++++ b/drivers/media/IR/imon.c
+@@ -999,7 +999,7 @@ int imon_ir_change_protocol(void *priv, u64 ir_type)
+ 	unsigned char ir_proto_packet[] = {
+ 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x86 };
+ 
+-	if (!(ir_type & ictx->props->allowed_protos))
++	if (ir_type && !(ir_type & ictx->props->allowed_protos))
+ 		dev_warn(dev, "Looks like you're trying to use an IR protocol "
+ 			 "this device does not support\n");
+ 
+@@ -1014,12 +1014,11 @@ int imon_ir_change_protocol(void *priv, u64 ir_type)
+ 		break;
+ 	case IR_TYPE_UNKNOWN:
+ 	case IR_TYPE_OTHER:
+-		dev_dbg(dev, "Configuring IR receiver for iMON protocol");
+-		if (pad_stabilize) {
+-			printk(KERN_CONT "\n");
++		dev_dbg(dev, "Configuring IR receiver for iMON protocol\n");
++		if (pad_stabilize)
+ 			pad_mouse = true;
+-		} else {
+-			printk(KERN_CONT " (without PAD stabilization)\n");
++		else {
++			dev_dbg(dev, "PAD stabilize functionality disabled\n");
+ 			pad_mouse = false;
+ 		}
+ 		/* ir_proto_packet[0] = 0x00; // already the default */
+@@ -1027,12 +1026,11 @@ int imon_ir_change_protocol(void *priv, u64 ir_type)
+ 		break;
+ 	default:
+ 		dev_warn(dev, "Unsupported IR protocol specified, overriding "
+-			 "to iMON IR protocol");
+-		if (pad_stabilize) {
+-			printk(KERN_CONT "\n");
++			 "to iMON IR protocol\n");
++		if (pad_stabilize)
+ 			pad_mouse = true;
+-		} else {
+-			printk(KERN_CONT " (without PAD stabilization)\n");
++		else {
++			dev_dbg(dev, "PAD stabilize functionality disabled\n");
+ 			pad_mouse = false;
+ 		}
+ 		/* ir_proto_packet[0] = 0x00; // already the default */
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG
+Jarod Wilson
+jarod@redhat.com
+
