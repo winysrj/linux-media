@@ -1,66 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:44508 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753588Ab0D1NCg (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:45490 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751472Ab0D1MOw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Apr 2010 09:02:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hans Verkuil" <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 10/10] bkl: Fix-up compile problems as a result of the bkl-pushdown.
-Date: Wed, 28 Apr 2010 15:02:49 +0200
-Cc: "Mauro Carvalho Chehab" <mchehab@infradead.org>,
-	"Arnd Bergmann" <arnd@arndb.de>, "John Kacur" <jkacur@redhat.com>,
-	"lkml" <linux-kernel@vger.kernel.org>,
-	"Linus Torvalds" <torvalds@linux-foundation.org>,
-	"Frederic Weisbecker" <fweisbec@gmail.com>,
-	"Jan Blunck" <jblunck@gmail.com>,
-	"Thomas Gleixner" <tglx@linutronix.de>,
-	"Linux Media Mailing List" <linux-media@vger.kernel.org>
-References: <1272359898-32020-1-git-send-email-jkacur@redhat.com> <4BD82905.2020408@infradead.org> <9bc05165144f526ccb015c1ae4f44f9b.squirrel@webmail.xs4all.nl>
-In-Reply-To: <9bc05165144f526ccb015c1ae4f44f9b.squirrel@webmail.xs4all.nl>
+	Wed, 28 Apr 2010 08:14:52 -0400
+Message-ID: <4BD826B2.8000707@infradead.org>
+Date: Wed, 28 Apr 2010 09:14:42 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Dmitri Belimov <d.belimov@gmail.com>
+CC: Bee Hock Goh <beehock@gmail.com>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	linux-media@vger.kernel.org
+Subject: Re: tm6000
+References: <20100423104804.784fb730@glory.loctelecom.ru>	<4BD1B985.8060703@arcor.de>	<20100426102514.2c13761e@glory.loctelecom.ru>	<k2m6e8e83e21004260558sb3695c27o5d061b7bc69198c1@mail.gmail.com>	<20100427151545.217a5c90@glory.loctelecom.ru>	<t2v6e8e83e21004262307wfc0b746x22779c4a2ad431ee@mail.gmail.com> <20100428154903.374449eb@glory.loctelecom.ru>
+In-Reply-To: <20100428154903.374449eb@glory.loctelecom.ru>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201004281502.51174.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Wednesday 28 April 2010 14:37:10 Hans Verkuil wrote:
-> > Arnd Bergmann wrote:
-
-[snip]
-
-> >> Mauro, does this patch make sense to you? It would be good to have your
-> >> Ack so we can queue this in the series leading to the removal of the
-> >> ->ioctl file operation. We can also do the minimal change and let you
-> >> take care of fixing this up in a different way in your own tree.
-> > 
-> > We had a similar discussion a while ago at linux-media. The idea is to do
-> > it on a deeper level, changing the drivers to not need to use KBL.
-> > Hans is working on those patches. Not sure about the current status.
+Dmitri Belimov wrote:
+> Hi
 > 
-> I'm waiting for the event patch series from Sakari to go in before I can
-> continue working on this.
+> Anyone can watch TV with tm6000 module??
 > 
-> > Anyway, I think that the better is to apply first your patch, to avoid
-> > breaking your patch series, and then ours, as we may otherwise have some
-> > conflicts between your tree and drivers/media git tree.
+> I try mplayer. My PC crashed inside copy_streams function after some time.
 > 
-> I have no real problem with this patch, as long as people realize that
-> this only moves the BKL from one place to another and does not really fix
-> any drivers.
+> With my best regards, Dmitry.
 
-Seems that Arnd was more convincing than me. I've submitted the exact same 
-patch a while ago :-)
-
-Of course this doesn't solve the BKL issue, but it pushes it one level down, 
-closer to the drivers. Higher levels can then stop caring about it. Of course 
-lower levels will still need to remove the BKL.
+It is still causing panic on my tests. Probably, the routine is still writing
+something out of the buffer area.
 
 -- 
-Regards,
 
-Laurent Pinchart
+Cheers,
+Mauro
