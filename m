@@ -1,164 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-15.arcor-online.net ([151.189.21.55]:45116 "EHLO
-	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756328Ab0DOX6d (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:48088 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755534Ab0D1Wwn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Apr 2010 19:58:33 -0400
-Subject: Re: Kworld Plus TV Hybrid PCI (DVB-T 210SE)
-From: hermann pitton <hermann-pitton@arcor.de>
-To: 0123peter@gmail.com
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <g1hj97-b2a.ln1@psd.motzarella.org>
-References: <4B94CF9B.3060000@gmail.com>
-	 <1268777563.5120.57.camel@pc07.localdom.local>
-	 <0h2e77-gjl.ln1@psd.motzarella.org>
-	 <1269298611.5158.20.camel@pc07.localdom.local>
-	 <0uh687-4c1.ln1@psd.motzarella.org>
-	 <1269895933.3176.12.camel@pc07.localdom.local>
-	 <iou897-qu3.ln1@psd.motzarella.org>
-	 <1271302350.3184.16.camel@pc07.localdom.local>
-	 <g1hj97-b2a.ln1@psd.motzarella.org>
-Content-Type: text/plain
-Date: Fri, 16 Apr 2010 01:50:45 +0200
-Message-Id: <1271375445.12504.69.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 28 Apr 2010 18:52:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
+Cc: robert.lukassen@tomtom.com
+Subject: [RFC 0/2] UVC gadget driver
+Date: Thu, 29 Apr 2010 00:52:57 +0200
+Message-Id: <1272495179-2652-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Peter,
+Hi everybody,
 
-Am Donnerstag, den 15.04.2010, 23:30 +1000 schrieb 0123peter@gmail.com:
-> on Thu, 15 Apr 2010 01:32 pm
-> in the Usenet newsgroup gmane.linux.drivers.video-input-infrastructure
-> hermann pitton wrote:
-> 
-> > Hi,
-> > 
-> > to be honest, there is a little too much delay on those reports.
-> 
-> I have been very slow, sorry.  
+Here's a new version of the UVC gadget driver I posted on the list some time
+ago, rebased on 2.6.34-rc5.
 
-no problem, but it becomes also a little hard to me to recap the issues.
+The private events API has been replaced by the new V4L2 events API that will
+be available in 2.6.34 (the code is already available in the v4l-dvb tree on
+linuxtv.org, and should be pushed to
+git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git very
+soon).
 
-As said, Hartmut had the best pointers I guess.
+Further testing of the changes related to the events API is required (this is
+planned for the next few days). As it seems to be the UVC gadget driver season
+(Robert Lukassen posted his own implementation - having a different goal - two
+days ago), I thought I'd post the patch as an RFC. I'd like the UVC function
+driver to make it to 2.6.35, comments are more than welcome.
 
-> >> > did not even notice a problem with Trent's prior patch.
-> >> > The same is also at vivi.
-> >> > 
-> >> >> Should I have a file called /etc/modprobe.d/TVanywhereAD 
-> >> >> that contains the line, 
-> >> >> 
-> >> >> options saa7134 card=94 gpio_tracking i2c_debug=1
-> >> >> 
-> >> >> and then watch the command line output of "kaffeine"?  
-> >> 
-> >> I've found a GUI that allows tweaking lots of module parameters 
-> >> that I have never heard of.  Card=94 in the config file, 
-> >> gpio_tracking and i2c_debug are set to "1" in the GUI.  
-> >> 
-> >> Strange things are appearing in dmesg and syslog.  I assume that 
-> >> [snip]
-> >> saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-> >> i2c-adapter i2c-0: Invalid 7-bit address 0x7a
-> >> saa7133[0]: i2c xfer: < 8e ERROR: NO_DEVICE
-> >> [snip]
-> >> is significant.  
-> > 
-> > No, not at all for my knowledge.
-> 
-> Unsurprisingly, that just highlights my ignorance.  
-> 
-> >> > If you want to produce debug output for failing firmware loading from
-> >> > file after a cold boot, yes, you might eventually be able to see that
-> >> > failing tuner initialization brings down i2c.
-> >> > 
-> >> > If it is a additional new regression, then mercurial bisect can find the
-> >> > patch in question fairly quick.
-> >> 
-> >> That sounds like something that I should be able to do, if only 
-> >> I'd read the instructions.  
-> > 
-> > It is totally up to you and all others with that hardware.
-> 
-> Can you provide a like for where to start reading?
+Laurent Pinchart (2):
+  USB gadget: video class function driver
+  USB gadget: Webcam device
 
-README.patches.  
+ drivers/usb/gadget/Kconfig     |    9 +-
+ drivers/usb/gadget/Makefile    |    2 +
+ drivers/usb/gadget/f_uvc.c     |  661 ++++++++++++++++++++++++++++++++++++++++
+ drivers/usb/gadget/f_uvc.h     |  376 +++++++++++++++++++++++
+ drivers/usb/gadget/uvc.h       |  242 +++++++++++++++
+ drivers/usb/gadget/uvc_queue.c |  583 +++++++++++++++++++++++++++++++++++
+ drivers/usb/gadget/uvc_queue.h |   89 ++++++
+ drivers/usb/gadget/uvc_v4l2.c  |  374 +++++++++++++++++++++++
+ drivers/usb/gadget/uvc_video.c |  386 +++++++++++++++++++++++
+ drivers/usb/gadget/webcam.c    |  399 ++++++++++++++++++++++++
+ 10 files changed, 3120 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/usb/gadget/f_uvc.c
+ create mode 100644 drivers/usb/gadget/f_uvc.h
+ create mode 100644 drivers/usb/gadget/uvc.h
+ create mode 100644 drivers/usb/gadget/uvc_queue.c
+ create mode 100644 drivers/usb/gadget/uvc_queue.h
+ create mode 100644 drivers/usb/gadget/uvc_v4l2.c
+ create mode 100644 drivers/usb/gadget/uvc_video.c
+ create mode 100644 drivers/usb/gadget/webcam.c
 
-     Part III - Best Practices
-	1. Community best practices
-	2. Mercurial specific procedures
-	3. Knowing about newer patches committed at the development repositories
-	4. Patch submission from the community
-	5. Identifying regressions with Mercurial
+-- 
+Regards,
 
-> > Since already in some multiple broken conditions, never working without
-> > flaws previously, I would suggest not to wait any longer, until some
-> > sort of hadron collider is available ...
-> 
-> Now I'm discouraged.  It might be a better use of my time to do 
-> something else - anything else.  Maybe I'll just put it in a box 
-> for a year and see what happens.  
-
-I (un)fortunately ;) don't have such hardware and Hartmut did not have
-any at that time either.
-
-Don't just wait, also no need to hurry on next day.
-
-If the problem is described well, someone can take it as a challenge to
-work on it. We indeed had people from CERN fixing tuners.
-
-Trying to recap.
-
-You have been interested to add the card to auto detection, but firmware
-load was only successful in one of three cases only already that time
-and we have not been aware of that flaw in the beginning.
-
-Hartmut assumed later, on such a card is some locking protection needed
-during the firmware load, and my guess is the longish tuner
-initialization sequence gets corrupted, because of that missing locking,
-and all goes doom. (at least well known on all of such before any
-support for the tda8275a)
-
-Now, improved, only one of ten tries loads the firmware and keeps the
-card in a responding state. That is of course also very unpleasant for
-using mercurial bisect, I really do admit.
-
-Also, as reported too now, with two of such kind of cards in one
-machine, likely better don't try at all.
-
-OTOH, the m$ driver obviously does manage to load the firmware even for
-multiple such cards. (but maybe breaks all others ...)
-
-Which doesn't help us, since rebooting after that only hides our
-problem.
-
-Those cards following the Philips/NXP/Trident reference designs do not
-have it, but I don't test per day anymore. (we have problems with
-different cards with the same PCI subsystem IDs and different LNAs too,
-introduced by OEMs)
-
-So, on some first thought, which is only as random as the card's
-behavior, debug logs from the time it was added might be useful.
-(i2c works/works not)
-
-That it is now even worse, is still a chance to find out something more
-and not only a improved regression on something never working properly.
-
-If the hardware is not going out of specs by will, excluding others, OEM
-engineers, having more details, can still help to improve it for us too.
-
-Anyway, we should have start with some #ifdef 0 on it.
-
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
-
+Laurent Pinchart
 
