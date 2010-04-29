@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f227.google.com ([209.85.220.227]:57881 "EHLO
-	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752586Ab0DDWIx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Apr 2010 18:08:53 -0400
-Received: by fxm27 with SMTP id 27so637837fxm.28
-        for <linux-media@vger.kernel.org>; Sun, 04 Apr 2010 15:08:52 -0700 (PDT)
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:57442 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932696Ab0D3S5A convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Apr 2010 14:57:00 -0400
+Received: by bwz19 with SMTP id 19so316618bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 30 Apr 2010 11:56:58 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <o2lbcb3ef431004041455x49a28290h3fe76b498735e029@mail.gmail.com>
-References: <bcb3ef431003081127y43d6d785jdc34e845fa07e746@mail.gmail.com>
-	 <a3ef07921003081241t16e1a63ag1d8f93ebe35f15f2@mail.gmail.com>
-	 <201003092133.12235.liplianin@me.by>
-	 <o2lbcb3ef431004041455x49a28290h3fe76b498735e029@mail.gmail.com>
-Date: Mon, 5 Apr 2010 02:08:52 +0400
-Message-ID: <o2p1a297b361004041508ob3c0d940k723d518abee94ede@mail.gmail.com>
-Subject: Re: s2-liplianin, mantis: sysfs: cannot create duplicate filename
-	'/devices/virtual/irrcv'
-From: Manu Abraham <abraham.manu@gmail.com>
-To: MartinG <gronslet@gmail.com>
-Cc: Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <x2h94764e701004100814k2fa8b3fcq29868b73da1fc36c@mail.gmail.com>
+References: <y2p94764e701004091616x59467e3qc4efc2580dad53d@mail.gmail.com>
+	 <1270857748.8003.7.camel@pc07.localdom.local>
+	 <x2h94764e701004100814k2fa8b3fcq29868b73da1fc36c@mail.gmail.com>
+Date: Thu, 29 Apr 2010 19:25:39 +0200
+Message-ID: <m2z19a3b7a81004291025h3396cff8z498fdfcc065209bb@mail.gmail.com>
+Subject: Re: [PATCH] DVB-T initial scan file for Israel (dvb-utils)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Shaul Kremer <shaulkr@gmail.com>
+Cc: hermann pitton <hermann-pitton@arcor.de>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 5, 2010 at 1:55 AM, MartinG <gronslet@gmail.com> wrote:
+2010/4/10 Shaul Kremer <shaulkr@gmail.com>:
+<snip>
+> Sounds good. Here:
+>
+> # HG changeset patch
+> # User Shaul Kremer <shaulkr@gmail.com>
+> # Date 1270911802 -10800
+> # Node ID 9c2dabea9d1b63a75593b920d41159e7ba607747
+> # Parent  7de0663facd92bbb9049aeeda3dcba9601228f30
+> Added DVB-T initial tuning tables for Israel.
+>
+> diff -r 7de0663facd9 -r 9c2dabea9d1b util/scan/dvb-t/il-All
+> --- /dev/null   Thu Jan 01 00:00:00 1970 +0000
+> +++ b/util/scan/dvb-t/il-All    Sat Apr 10 18:03:22 2010 +0300
+> @@ -0,0 +1,5 @@
+> +# Israel, Israel Broadcasting Authority's transmitters
+> +# Generated from list in http://www.iba.org.il/reception/
+> +# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> +T 514000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
+> +T 538000000 8MHz 2/3 NONE QAM16 8k 1/4 NONE
 
-> Thanks, I've pulled the linuxtv tree, and it compiled, installed and
-> seems to work just fine. No more "mantis_ack_wait (0): Slave RACK Fail
-> !" I hope ;).
+Applied, thanks (for the next time: please attach patch instead of inlining it).
 
-That error is from the older version of my driver. You don't find that
-error in the updated version. Always try to use a stabler tree[1], or
-a development version[2], rather than one having unknown changes,
-unless you know what you are doing: which might not be what happened
-to you. Use the stabler version if you are faint hearted, or the
-development version, if you like to be on the bleeding edge of
-development. Anything other than that, who knows ..
-
-
-Manu
-
-[1] http://linuxtv.org/hg/v4l-dvb
-[2] http://jusst.de/hg/mantis-v4l-dvb
+Christoph
