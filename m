@@ -1,141 +1,73 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <robin@rainton.com>) id 1NoBfq-00018q-It
-	for linux-dvb@linuxtv.org; Sun, 07 Mar 2010 09:17:24 +0100
-Received: from mail-pw0-f54.google.com ([209.85.160.54])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-b) with esmtp
-	for <linux-dvb@linuxtv.org>
-	id 1NoBfp-0002mr-JZ; Sun, 07 Mar 2010 09:17:18 +0100
-Received: by pwj1 with SMTP id 1so3343894pwj.41
-	for <linux-dvb@linuxtv.org>; Sun, 07 Mar 2010 00:17:14 -0800 (PST)
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp.alice.nl ([217.149.195.8]:51343 "EHLO smtp.alice.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757918Ab0D3Tbc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Apr 2010 15:31:32 -0400
+Message-ID: <4BD9D114.6010308@cobradevil.org>
+Date: Thu, 29 Apr 2010 20:33:56 +0200
+From: william <kc@cobradevil.org>
 MIME-Version: 1.0
-Date: Sun, 7 Mar 2010 19:17:14 +1100
-Message-ID: <38f022bc1003070017t11140027kfb98f71427f74bfe@mail.gmail.com>
-From: Robin Rainton <robin@rainton.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Any success with MSI TV Anywhere A/D V1.1?
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+CC: liplianin@me.by
+Subject: Re: debugging my Tevii S660 usb 2.0 dvb-s2 device
+References: <59062.192.87.141.196.1272466066.squirrel@webmail.spothost.nl> <4BD87EA2.5090700@cobradevil.org>
+In-Reply-To: <4BD87EA2.5090700@cobradevil.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
-Hi List,
+Hi all and Igor,
 
-Ages ago I wrote about trying to get a MSI TV Anywhere A/D V1.1 to
-work (in my MythBackend, but that part isn't important). Doing a quick
-search notice this was over 2 years ago! The original thread on the
-archives is here:
+i only showed information with the drivers from tevii but then i looked 
+again at the source from the hg v4l repo and there was support for my s660.
+So sorry i asked questions about the drivers from tevii itself.
 
-http://www.mail-archive.com/linux-dvb@linuxtv.org/msg28514.html
+But now the following:
 
-Anyhow, at the time I gave up as it just wouldn't play. As some time
-has passed and was messing around with hardware decided to pull out
-the card and give it another go. It looks promising still, but still
-doesn't work :(
+[   45.654362] dvb-usb: found a 'TeVii S660 USB' in cold state, will try 
+to load a firmware
+[   45.654379] usb 1-3: firmware: requesting dvb-usb-s630.fw
+[   45.717438] dvb-usb: downloading firmware from file 'dvb-usb-s630.fw'
+[   45.717450] dw2102: start downloading DW210X firmware
+[   45.824245] usb 1-3: USB disconnect, address 3
+[   45.930055] dvb-usb: found a 'TeVii S660 USB' in warm state.
+[   45.930167] dvb-usb: will pass the complete MPEG2 transport stream to 
+the software demuxer.
+[   45.930233] DVB: registering new adapter (TeVii S660 USB)
+[   56.182533] dvb-usb: MAC address: 00:00:00:00:00:00
+[   56.262532] mt312: R(126): 00
+[   56.262543] Only Zarlink VP310/MT312/ZL10313 are supported chips.
+[   56.607024] ds3000_attach
+[   56.642535] ds3000_readreg: read reg 0x00, value 0x00
+[   56.642542] Invalid probe, probably not a DS3000
+[   56.642816] dvb-usb: no frontend was attached by 'TeVii S660 USB'
+[   56.643037] input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:1d.7/usb1/1-3/input/input5
+[   56.643189] dvb-usb: schedule remote query interval to 150 msecs.
+[   56.643203] dvb-usb: TeVii S660 USB successfully initialized and 
+connected.
+[   56.643290] usbcore: registered new interface driver dw2102
+[   56.773230] dvb-usb: TeVii S660 USB successfully deinitialized and 
+disconnected.
+[   57.050043] usb 1-3: new high speed USB device using ehci_hcd and 
+address 5
 
-Has anyone managed to get this card working in the mean time, or
-should I give up for sure this time and bin it? :(
+in my previous post i got a message that an mt312 chip was found and now 
+it does not find anything.
+so now i don't have a dvb device at all.
 
-Cheers,
+the firmware is from the drivers from tevii. I tried and the s630 
+firmware and later the s660 firmware renamed to s630 but none worked.
 
-Robin
+After installing the driver/changing the firmware, I shutdown the 
+computer removed the power from the tevii device and then replugged and 
+started my computer again.
 
-P.S. Some info to help out... dmesg gives this on boot:
+Igor or someone else do you have an idea what is happening?
 
-saa7130/34: v4l2 driver version 0.2.15 loaded
-saa7134 0000:07:00.0: PCI INT A -> GSI 21 (level, low) -> IRQ 21
-saa7133[0]: found at 0000:07:00.0, rev: 209, irq: 21, latency: 255,
-mmio: 0xf37ff000
-saa7133[0]: subsystem: 1462:8625, board: MSI TV@nywhere A/D v1.1
-[card=135,autodetected]
-saa7133[0]: board init: gpio is 100
-IRQ 21/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7133[0]: i2c eeprom 00: 62 14 25 86 ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
-i2c-adapter i2c-1: Invalid 7-bit address 0x7a
-tuner 1-004b: chip found @ 0x96 (saa7133[0])
-tda829x 1-004b: setting tuner address to 61
-usbcore: registered new interface driver snd-usb-audio
-tda829x 1-004b: type set to tda8290+75a
-saa7133[0]: dsp access error
-saa7133[0]: registered device video1 [v4l2]
-saa7133[0]: registered device vbi0
-saa7133[0]: registered device radio0
-dvb_init() allocating 1 frontend
-DVB: registering new adapter (saa7133[0])
-DVB: registering adapter 0 frontend 0 (Philips TDA10046H DVB-T)...
-tda1004x: setting up plls for 48MHz sampling clock
+With kind regards
 
-When one tries to use the device this sort of thing happens:
+William van de Velde
 
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: found firmware revision 20 -- ok
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: found firmware revision 20 -- ok
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: found firmware revision 33 -- invalid
-tda1004x: trying to boot from eeprom
-tda1004x: found firmware revision 33 -- invalid
-tda1004x: waiting for firmware upload...
-saa7134 0000:07:00.0: firmware: requesting dvb-fe-tda10046.fw
-tda1004x: found firmware revision 33 -- invalid
-tda1004x: firmware upload failed
-tda1004x: setting up plls for 48MHz sampling clock
-tda1004x: found firmware revision ea -- invalid
-tda1004x: trying to boot from eeprom
-tda1004x: found firmware revision ea -- invalid
-tda1004x: waiting for firmware upload...
-saa7134 0000:07:00.0: firmware: requesting dvb-fe-tda10046.fw
-tda1004x: Error during firmware upload
-tda1004x: found firmware revision ea -- invalid
-tda1004x: firmware upload failed
-saa7133[0]/dvb: could not access tda8290 I2C gate
-saa7133[0]/dvb: could not access tda8290 I2C gate
-saa7133[0]/dvb: could not access tda8290 I2C gate
-saa7133[0]/dvb: could not access tda8290 I2C gate
-saa7133[0]/dvb: could not access tda8290 I2C gate
-saa7133[0]/dvb: could not access tda8290 I2C gate
-tda827xa_set_params: could not write to tuner at addr: 0xc2
-saa7133[0]/dvb: could not access tda8290 I2C gate
-saa7133[0]/dvb: could not access tda8290 I2C gate
-saa7133[0]/dvb: could not access tda8290 I2C gate
-saa7133[0]/dvb: could not access tda8290 I2C gate
-saa7133[0]/dvb: could not access tda8290 I2C gate
-tda827xa_set_params: could not write to tuner at addr: 0xc2
 
-Oddly, the version of the firmware it reports seems to change even
-though the file does not change.
-
-That said, I have tried two different versions of firmware placed in
-'/lib/firmware'. One is 24478 bytes, the other is 24602 bytes. Neither
-seem to work. This is very sad :(
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
