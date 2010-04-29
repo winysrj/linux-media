@@ -1,75 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:39347 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754236Ab0DTTdg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Apr 2010 15:33:36 -0400
-Date: Tue, 20 Apr 2010 13:33:34 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com
-Subject: Re: [PATCH 1/3] MFD: WL1273 FM Radio: MFD driver for the FM radio.
-Message-ID: <20100420133334.75184ea5@bike.lwn.net>
-In-Reply-To: <1271776807-2710-2-git-send-email-matti.j.aaltonen@nokia.com>
-References: <1271776807-2710-1-git-send-email-matti.j.aaltonen@nokia.com>
-	<1271776807-2710-2-git-send-email-matti.j.aaltonen@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:40342 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752234Ab0D2Dmr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Apr 2010 23:42:47 -0400
+From: Frederic Weisbecker <fweisbec@gmail.com>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Frederic Weisbecker <fweisbec@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Arnd Bergmann <arnd@arndb.de>, John Kacur <jkacur@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Jan Blunck <jblunck@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/5] v4l: Pushdown bkl into video_ioctl2
+Date: Thu, 29 Apr 2010 05:42:40 +0200
+Message-Id: <1272512564-14683-2-git-send-regression-fweisbec@gmail.com>
+In-Reply-To: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org>
+References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 20 Apr 2010 18:20:05 +0300
-"Matti J. Aaltonen" <matti.j.aaltonen@nokia.com> wrote:
+video_ioctl2 is a generic ioctl helper used by a lot of drivers.
+Most of them put it as their bkl'ed .ioctl callback, then let's
+pushdown the bkl inside but also provide an unlocked version for
+those that use it as an unlocked ioctl.
 
-> This is a parent driver for two child drivers: the V4L2 driver and
-> the ALSA codec driver. The MFD part provides the I2C communication
-> to the device and the state handling.
+Signed-off-by: Frederic Weisbecker <fweisbec@gmail.com>
+---
+ drivers/media/video/v4l2-ioctl.c |   17 +++++++++++++++--
+ include/media/v4l2-ioctl.h       |    2 ++
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-So I was taking a quick look at this; it mostly looks OK (though I wonder
-about all those symbol exports - does all that stuff need to be in the
-core?).  One thing caught my eye, though:
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 3da8d8f..0ff2595 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -16,6 +16,7 @@
+ #include <linux/slab.h>
+ #include <linux/types.h>
+ #include <linux/kernel.h>
++#include <linux/smp_lock.h>
+ 
+ #define __OLD_VIDIOC_ /* To allow fixing old calls */
+ #include <linux/videodev.h>
+@@ -2007,8 +2008,8 @@ static unsigned long cmd_input_size(unsigned int cmd)
+ 	}
+ }
+ 
+-long video_ioctl2(struct file *file,
+-	       unsigned int cmd, unsigned long arg)
++long video_ioctl2_unlocked(struct file *file,
++			   unsigned int cmd, unsigned long arg)
+ {
+ 	char	sbuf[128];
+ 	void    *mbuf = NULL;
+@@ -2102,4 +2103,16 @@ out:
+ 	kfree(mbuf);
+ 	return err;
+ }
++EXPORT_SYMBOL(video_ioctl2_unlocked);
++
++long video_ioctl2(struct file *file, unsigned int cmd, unsigned long arg)
++{
++	long ret;
++
++	lock_kernel();
++	ret = video_ioctl2_unlocked(file, cmd, arg);
++	unlock_kernel();
++
++	return ret;
++}
+ EXPORT_SYMBOL(video_ioctl2);
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index e8ba0f2..08b3e42 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -316,5 +316,7 @@ extern long video_usercopy(struct file *file, unsigned int cmd,
+ /* Standard handlers for V4L ioctl's */
+ extern long video_ioctl2(struct file *file,
+ 			unsigned int cmd, unsigned long arg);
++extern long video_ioctl2_unlocked(struct file *file,
++				  unsigned int cmd, unsigned long arg);
+ 
+ #endif /* _V4L2_IOCTL_H */
+-- 
+1.6.2.3
 
-> +int wl1273_fm_rds_off(struct wl1273_core *core)
-> +{
-> +	struct device *dev = &core->i2c_dev->dev;
-> +	int r;
-> +
-> +	if (core->mode == WL1273_MODE_TX)
-> +		return 0;
-> +
-> +	wait_for_completion_timeout(&core->busy, msecs_to_jiffies(1000));
-
-The use of a completion here looks like a mistake to me.  This isn't a
-normal pattern, and I'm not quite sure what you're trying to do.  Here,
-also, you're ignoring the return value, so you don't know if completion
-was signaled or not.
-
-If you look in functions like:
-
-> +int wl1273_fm_set_rx_freq(struct wl1273_core *core, unsigned int freq)
-> +{
-
-[...]
-
-> +	INIT_COMPLETION(core->busy);
-> +	r = wl1273_fm_write_cmd(core, WL1273_TUNER_MODE_SET,
-> +				TUNER_MODE_PRESET);
-> +	if (r) {
-> +		complete(&core->busy);
-> +		goto err;
-> +	}
-
-What will prevent multiple threads from doing INIT_COMPLETION()
-simultaneously?  It  looks racy to me.  What happens if multiple
-threads try to wait simultaneously on the completion?
-
-OK, looking further, you're not using it for mutual exclusion.  In fact,
-you're not using anything for mutual exclusion; how do you prevent
-concurrent access to the hardware registers?
-
-What I would suggest you do is remove the completion in favor of a wait
-queue which the interrupt handler can use to signal that something has
-completed.  You can then use wait_event() to wait for a wakeup and test
-that the specific condition you are waiting for has come to pass.
-
-jon
