@@ -1,58 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.195]:65064 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753645Ab0DGSfN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Apr 2010 14:35:13 -0400
-Message-ID: <4BBCD05A.2060305@vorgon.com>
-Date: Wed, 07 Apr 2010 11:35:06 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:49921 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754627Ab0D3TeZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Apr 2010 15:34:25 -0400
+Received: by bwz19 with SMTP id 19so333844bwz.21
+        for <linux-media@vger.kernel.org>; Fri, 30 Apr 2010 12:34:23 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Possible bug with FusionHDTV7 Dual Express
-References: <4BBA462E.5060203@vorgon.com>
-In-Reply-To: <4BBA462E.5060203@vorgon.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <5b9ce2991003080900t6626e07fhddb17549ac4b7aa7@mail.gmail.com>
+References: <5b9ce2991003080858na3fc76bj52f3a1bc13a9acf6@mail.gmail.com>
+	 <5b9ce2991003080900t6626e07fhddb17549ac4b7aa7@mail.gmail.com>
+Date: Thu, 29 Apr 2010 19:50:28 +0200
+Message-ID: <h2i19a3b7a81004291050i13ae0a3cxdae84847561c4367@mail.gmail.com>
+Subject: Re: updated frequency list for Denmark (DVB-T)
+From: Christoph Pfister <christophpfister@gmail.com>
+To: =?UTF-8?Q?Ren=C3=A9_Kjellerup?= <rk.katana.steel@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ran fin without problems for several days. Changed setting to "-D 0 -D 1 
--D 2" So it would use all 3 tuners (default) and left it on the 3rd 
-tuner. Next morning first tuner was down. Today I'm trying it with "-D 0 
--D 2" So it uses the first tuner of the dual and the 3rd tuner (second 
-card). Leaving it set with vdr on the 3rd tuner.
+2010/3/8 René Kjellerup <rk.katana.steel@gmail.com>:
+> this is all the used frequencies of the Main MUX 1 & 2 transponders
 
-On 4/5/2010 1:21 PM, Timothy D. Lenz wrote:
-> For some time I have been having problems with VDR seemingly loosing
-> control over one of the two tuners. It seems to be related to the
-> atscepg plugin. It happened quicker after VDR had timer recorded a show.
-> Removing the plugin seemed to stop it but also get no epg data. basicly,
-> which ever tuner vdr was displaying from, the other tuner would seem to
-> stop working. You get no signal. But only vdr needed to be restarted to
-> get the tuner back. One tuner always seemed to go down within 24hrs when
-> using the plugin. It seems to be related to when the plugin used a free
-> tuner to scan epg.
->
-> I put a second card in, an HVR-1800 which became the 3rd dvb device
-> according to vdr. Same thing kept happening. Always the first or second
-> tuner since no mater which vdr was using, it would always be one of
-> those that was left free. I started vdr with "-D 1 -D 2" to force vdr to
-> only use 1 tuner of the dual and the second card. I also use femon to
-> make sure vdr is using dvb1 after changing channels so that the plugin
-> uses the second card for scanning.
->
-> It has been running for a couple of days and done recordings without
-> loosing a tuner. Since forcing it to use only one tuner of the dual
-> seems to have stopped the problem, it is starting to look like a driver
-> problem with the fusion card. Today I used femon to put vdr on dvb2 so
-> that the plugin uses the fusion to scan epg. In a couple days if the
-> problem still doesn't show, I may swap slot positions of the two cards
-> so vdr use the 1800 without forcing by blocking a tuner.
->
-> The plugin Author has also been looking into this, but he only recently
-> got a second tuner card working.
+Updated, thanks!
+
+> René
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
+> -- as life grows older, I gain experience.
+
+Christoph
