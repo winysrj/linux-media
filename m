@@ -1,51 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:59271 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932798Ab0DHPxV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 11:53:21 -0400
-Date: Thu, 8 Apr 2010 17:53:17 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jon Smirl <jonsmirl@gmail.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC2] Teach drivers/media/IR/ir-raw-event.c to use durations
-Message-ID: <20100408155317.GA21848@hardeman.nu>
-References: <20100407201835.GA8438@hardeman.nu>
- <4BBD6550.6030000@infradead.org>
- <r2l9e4733911004080541s58fd4e70o215800426290a09a@mail.gmail.com>
- <4BBDD4ED.5040007@infradead.org>
+Received: from kroah.org ([198.145.64.141]:47308 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754247Ab0D2Dkx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Apr 2010 23:40:53 -0400
+Date: Wed, 28 Apr 2010 20:41:11 -0700
+From: Greg KH <greg@kroah.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	robert.lukassen@tomtom.com
+Subject: Re: [RFC 0/2] UVC gadget driver
+Message-ID: <20100429034111.GA16573@kroah.com>
+References: <1272495179-2652-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4BBDD4ED.5040007@infradead.org>
+In-Reply-To: <1272495179-2652-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 08, 2010 at 10:06:53AM -0300, Mauro Carvalho Chehab wrote:
-> Jon Smirl wrote:
-> > On Thu, Apr 8, 2010 at 1:10 AM, Mauro Carvalho Chehab
-> > <mchehab@infradead.org> wrote:
-> >> On the previous code, it is drivers responsibility to call the 
-> >> function that
-> >> de-queue. On saa7134, I've scheduled it to wake after 15 ms. So, instead of
-> >> 32 wakeups, just one is done, and the additional delay introduced by it is not
-> >> enough to disturb the user.
-> > 
-> > The wakeup is variable when the default thread is used. My quad core
-> > desktop wakes up on every pulse. My embedded system wakes up about
-> > every 15 pulses. The embedded system called schedule_work() fifteen
-> > times from the IRQ, but the kernel collapsed them into a single
-> > wakeup. I'd stick with the default thread and let the kernel get
-> > around to processing IR whenever it has some time.
+On Thu, Apr 29, 2010 at 12:52:57AM +0200, Laurent Pinchart wrote:
+> Hi everybody,
 > 
-> Makes sense.
+> Here's a new version of the UVC gadget driver I posted on the list some time
+> ago, rebased on 2.6.34-rc5.
+> 
+> The private events API has been replaced by the new V4L2 events API that will
+> be available in 2.6.34 (the code is already available in the v4l-dvb tree on
+> linuxtv.org, and should be pushed to
+> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git very
+> soon).
+> 
+> Further testing of the changes related to the events API is required (this is
+> planned for the next few days). As it seems to be the UVC gadget driver season
+> (Robert Lukassen posted his own implementation - having a different goal - two
+> days ago)
 
-Given Jon's experience, it would perhaps make sense to remove 
-ir_raw_event_handle() and call schedule_work() from every call to 
-ir_raw_event_store()?
+What are the different goals here?  Shouldn't there just be only one way
+to implement this, or am I missing something?
 
-One thing less for IR drivers to care about...
+> , I thought I'd post the patch as an RFC. I'd like the UVC function
+> driver to make it to 2.6.35, comments are more than welcome.
 
--- 
-David Härdeman
+It needs to get into my tree _now_ if you are wanting it in .35....
+Just fyi.
+
+thanks,
+
+greg k-h
