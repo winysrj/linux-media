@@ -1,43 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:42836 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757098Ab0D0WFY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Apr 2010 18:05:24 -0400
-Message-ID: <4BD75F98.9000804@linuxtv.org>
-Date: Wed, 28 Apr 2010 00:05:12 +0200
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:65054 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758336Ab0D3Ucj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Apr 2010 16:32:39 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 0/5] Pushdown bkl from v4l ioctls
+Date: Thu, 29 Apr 2010 09:38:09 +0200
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Frederic Weisbecker <fweisbec@gmail.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	John Kacur <jkacur@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Jan Blunck <jblunck@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg KH <gregkh@suse.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org> <201004290844.29347.hverkuil@xs4all.nl> <201004290910.43412.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201004290910.43412.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: akpm@linux-foundation.org
-CC: mchehab@infradead.org, linux-media@vger.kernel.org,
-	randy.dunlap@oracle.com, pboettcher@dibcom.fr
-Subject: Re: [patch 02/11] dib7000p: reduce large stack usage
-References: <201004272111.o3RLBKix019982@imap1.linux-foundation.org>
-In-Reply-To: <201004272111.o3RLBKix019982@imap1.linux-foundation.org>
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201004290938.09573.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-akpm@linux-foundation.org wrote:
-> diff -puN drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage drivers/media/dvb/frontends/dib7000p.c
-> --- a/drivers/media/dvb/frontends/dib7000p.c~dib7000p-reduce-large-stack-usage
-> +++ a/drivers/media/dvb/frontends/dib7000p.c
-> @@ -1324,46 +1324,54 @@ EXPORT_SYMBOL(dib7000p_pid_filter);
->  
->  int dib7000p_i2c_enumeration(struct i2c_adapter *i2c, int no_of_demods, u8 default_addr, struct dib7000p_config cfg[])
->  {
-> -	struct dib7000p_state st = { .i2c_adap = i2c };
-> +	struct dib7000p_state *dpst;
->  	int k = 0;
->  	u8 new_addr = 0;
->  
-> +	dpst = kzalloc(sizeof(struct dib7000p_state), GFP_KERNEL);
-> +	if (!dpst)
-> +		return -ENODEV;
+On Thursday 29 April 2010 09:10:42 Laurent Pinchart wrote:
+> On Thursday 29 April 2010 08:44:29 Hans Verkuil wrote:
+> >
+> > 3) Investigate what needs to be done to replace the bkl with a v4l2-dev.c
+> > global mutex. Those drivers that call the bkl themselves should probably be
+> > converted to do proper locking, but there are only about 14 drivers that do
+> > this. The other 60 or so drivers should work fine if a v4l2-dev global lock
+> > is used. At this point the bkl is effectively removed from the v4l
+> > subsystem.
+> > 
+> > 4) Work on the remaining 60 drivers to do proper locking and get rid of the
+> > v4l2-dev global lock. This is probably less work than it sounds.
+> > 
+> > Since your patch moves everything down to the driver level it will actually
+> > make this work harder rather than easier. And it touches almost all drivers
+> > as well.
+> 
+> Every driver will need to be carefully checked to make sure the BKL can be 
+> replaced by a v4l2-dev global mutex. Why would it be more difficult to do so 
+> if the BKL is pushed down to the drivers ?
 
-I think ENOMEM would be appropriate here.
+Note that you can completely skip the step of a v4l2-dev global mutex with
+Frederic's patch. This is the only use of the BKL in the common v4l2
+code as far as I can tell, so instead of introducing yet another global
+lock, you can go straight to stage 4 and look at each driver separately,
+possibly introducing a per driver lock.
 
-The same applies to patch 01/11.
-
-Regards,
-Andreas
+	Arnd
