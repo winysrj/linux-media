@@ -1,173 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2867 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754541Ab0DZHd4 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3619 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757633Ab0D3QuC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Apr 2010 03:33:56 -0400
-Message-Id: <726d8aa69a6dac2fb3226b13ad6b6be8c3a5544d.1272267137.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1272267136.git.hverkuil@xs4all.nl>
-References: <cover.1272267136.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Mon, 26 Apr 2010 09:33:54 +0200
-Subject: [PATCH 08/15] [RFC] cx25840/ivtv: replace ugly priv control with s_config
+	Fri, 30 Apr 2010 12:50:02 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3TJdZ6L010534
+	for <linux-media@vger.kernel.org>; Thu, 29 Apr 2010 21:39:35 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 29 Apr 2010 21:39:35 +0200 (CEST)
+Message-Id: <201004291939.o3TJdZ6L010534@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cx25840 used a private control CX25840_CID_ENABLE_PVR150_WORKAROUND
-to be told whether to enable a workaround for certain pvr150 cards.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-This is really config data that it needs to get at load time.
+Results of the daily build of v4l-dvb:
 
-Implemented this in cx25840 and ivtv.
+date:        Thu Apr 29 19:00:29 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14618:905d76b95175
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: d3be2fab3a10b6c798a5f9970146d166d3345c37
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/cx25840/cx25840-core.c |   23 +++++++++++++++--------
- drivers/media/video/cx25840/cx25840-core.h |    8 --------
- drivers/media/video/ivtv/ivtv-driver.c     |    9 +--------
- drivers/media/video/ivtv/ivtv-i2c.c        |    7 +++++++
- include/media/cx25840.h                    |   11 +++++++++++
- 5 files changed, 34 insertions(+), 24 deletions(-)
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc1-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc1-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc1-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc1-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-index f2461cd..b8aa5d2 100644
---- a/drivers/media/video/cx25840/cx25840-core.c
-+++ b/drivers/media/video/cx25840/cx25840-core.c
-@@ -915,11 +915,6 @@ static int cx25840_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
- 	switch (ctrl->id) {
--	case CX25840_CID_ENABLE_PVR150_WORKAROUND:
--		state->pvr150_workaround = ctrl->value;
--		set_input(client, state->vid_input, state->aud_input);
--		break;
--
- 	case V4L2_CID_BRIGHTNESS:
- 		if (ctrl->value < 0 || ctrl->value > 255) {
- 			v4l_err(client, "invalid brightness setting %d\n",
-@@ -982,9 +977,6 @@ static int cx25840_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
- 	switch (ctrl->id) {
--	case CX25840_CID_ENABLE_PVR150_WORKAROUND:
--		ctrl->value = state->pvr150_workaround;
--		break;
- 	case V4L2_CID_BRIGHTNESS:
- 		ctrl->value = (s8)cx25840_read(client, 0x414) + 128;
- 		break;
-@@ -1601,10 +1593,25 @@ static int cx25840_log_status(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
-+static int cx25840_s_config(struct v4l2_subdev *sd, int irq, void *platform_data)
-+{
-+	struct cx25840_state *state = to_state(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	if (platform_data) {
-+		struct cx25840_platform_data *pdata = platform_data;
-+
-+		state->pvr150_workaround = pdata->pvr150_workaround;
-+		set_input(client, state->vid_input, state->aud_input);
-+	}
-+	return 0;
-+}
-+
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_subdev_core_ops cx25840_core_ops = {
- 	.log_status = cx25840_log_status,
-+	.s_config = cx25840_s_config,
- 	.g_chip_ident = cx25840_g_chip_ident,
- 	.g_ctrl = cx25840_g_ctrl,
- 	.s_ctrl = cx25840_s_ctrl,
-diff --git a/drivers/media/video/cx25840/cx25840-core.h b/drivers/media/video/cx25840/cx25840-core.h
-index 5534544..50b7887 100644
---- a/drivers/media/video/cx25840/cx25840-core.h
-+++ b/drivers/media/video/cx25840/cx25840-core.h
-@@ -26,14 +26,6 @@
- #include <media/v4l2-chip-ident.h>
- #include <linux/i2c.h>
- 
--/* ENABLE_PVR150_WORKAROUND activates a workaround for a hardware bug that is
--   present in Hauppauge PVR-150 (and possibly PVR-500) cards that have
--   certain NTSC tuners (tveeprom tuner model numbers 85, 99 and 112). The
--   audio autodetect fails on some channels for these models and the workaround
--   is to select the audio standard explicitly. Many thanks to Hauppauge for
--   providing this information. */
--#define CX25840_CID_ENABLE_PVR150_WORKAROUND (V4L2_CID_PRIVATE_BASE+0)
--
- struct cx25840_state {
- 	struct i2c_client *c;
- 	struct v4l2_subdev sd;
-diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-index 1b79475..85aab0e 100644
---- a/drivers/media/video/ivtv/ivtv-driver.c
-+++ b/drivers/media/video/ivtv/ivtv-driver.c
-@@ -1253,15 +1253,8 @@ int ivtv_init_on_first_open(struct ivtv *itv)
- 	IVTV_DEBUG_INFO("Getting firmware version..\n");
- 	ivtv_firmware_versions(itv);
- 
--	if (itv->card->hw_all & IVTV_HW_CX25840) {
--		struct v4l2_control ctrl;
--
-+	if (itv->card->hw_all & IVTV_HW_CX25840)
- 		v4l2_subdev_call(itv->sd_video, core, load_fw);
--		/* CX25840_CID_ENABLE_PVR150_WORKAROUND */
--		ctrl.id = V4L2_CID_PRIVATE_BASE;
--		ctrl.value = itv->pvr150_workaround;
--		v4l2_subdev_call(itv->sd_video, core, s_ctrl, &ctrl);
--	}
- 
- 	vf.tuner = 0;
- 	vf.type = V4L2_TUNER_ANALOG_TV;
-diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
-index a5b92d1..d391bbd 100644
---- a/drivers/media/video/ivtv/ivtv-i2c.c
-+++ b/drivers/media/video/ivtv/ivtv-i2c.c
-@@ -63,6 +63,7 @@
- #include "ivtv-cards.h"
- #include "ivtv-gpio.h"
- #include "ivtv-i2c.h"
-+#include <media/cx25840.h>
- 
- /* i2c implementation for cx23415/6 chip, ivtv project.
-  * Author: Kevin Thayer (nufan_wfk at yahoo.com)
-@@ -292,6 +293,12 @@ int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
- 	if (hw == IVTV_HW_UPD64031A || hw == IVTV_HW_UPD6408X) {
- 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
- 				adap, mod, type, 0, I2C_ADDRS(hw_addrs[idx]));
-+	} else if (hw == IVTV_HW_CX25840) {
-+		struct cx25840_platform_data pdata;
-+
-+		pdata.pvr150_workaround = itv->pvr150_workaround;
-+		sd = v4l2_i2c_new_subdev_cfg(&itv->v4l2_dev,
-+				adap, mod, type, 0, &pdata, hw_addrs[idx], NULL);
- 	} else {
- 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
- 				adap, mod, type, hw_addrs[idx], NULL);
-diff --git a/include/media/cx25840.h b/include/media/cx25840.h
-index 0b0cb17..df28412 100644
---- a/include/media/cx25840.h
-+++ b/include/media/cx25840.h
-@@ -97,4 +97,15 @@ enum cx25840_audio_input {
- 	CX25840_AUDIO8,
- };
- 
-+/* pvr150_workaround activates a workaround for a hardware bug that is
-+   present in Hauppauge PVR-150 (and possibly PVR-500) cards that have
-+   certain NTSC tuners (tveeprom tuner model numbers 85, 99 and 112). The
-+   audio autodetect fails on some channels for these models and the workaround
-+   is to select the audio standard explicitly. Many thanks to Hauppauge for
-+   providing this information.
-+   This platform data only needs to be supplied by the ivtv driver. */
-+struct cx25840_platform_data {
-+	int pvr150_workaround;
-+};
-+
- #endif
--- 
-1.6.4.2
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
