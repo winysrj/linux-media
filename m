@@ -1,73 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58611 "EHLO mx1.redhat.com"
+Received: from kroah.org ([198.145.64.141]:47926 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755006Ab0DASmn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Apr 2010 14:42:43 -0400
-Message-ID: <4BB4E91B.9030508@redhat.com>
-Date: Thu, 01 Apr 2010 15:42:35 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1758706Ab0D3R2f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Apr 2010 13:28:35 -0400
+Date: Thu, 29 Apr 2010 00:32:10 -0700
+From: Greg KH <greg@kroah.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	robert.lukassen@tomtom.com
+Subject: Re: [RFC 0/2] UVC gadget driver
+Message-ID: <20100429073210.GA9462@kroah.com>
+References: <1272495179-2652-1-git-send-email-laurent.pinchart@ideasonboard.com> <20100429034111.GA16573@kroah.com> <201004290914.04140.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: V4L-DVB drivers and BKL
-References: <201004011001.10500.hverkuil@xs4all.nl>	 <201004011411.02344.laurent.pinchart@ideasonboard.com>	 <4BB4A9E2.9090706@redhat.com> <201004011642.19889.hverkuil@xs4all.nl>	 <4BB4B569.3080608@redhat.com>	 <x2y829197381004010958u82deb516if189d4fb00fbc5e6@mail.gmail.com>	 <4BB4D9AB.6070907@redhat.com> <g2q829197381004011129lc706e6c3jcac6dcc756012173@mail.gmail.com>
-In-Reply-To: <g2q829197381004011129lc706e6c3jcac6dcc756012173@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201004290914.04140.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Devin Heitmueller wrote:
-> On Thu, Apr 1, 2010 at 1:36 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> If you take a look at em28xx-dvb, it is not lock-protected. If the bug is due
->> to the async load, we'll need to add the same locking at *alsa and *dvb
->> parts of em28xx.
+On Thu, Apr 29, 2010 at 09:14:03AM +0200, Laurent Pinchart wrote:
+> Hi Greg,
 > 
-> Yes, that is correct.  The problem effects both dvb and alsa, although
-> empirically it is more visible with the dvb case.
-
-In the case of the initialization, the lock is needed, even if we fing a
-way to load the module synchronously.
-
+> On Thursday 29 April 2010 05:41:11 Greg KH wrote:
+> > On Thu, Apr 29, 2010 at 12:52:57AM +0200, Laurent Pinchart wrote:
+> > > Hi everybody,
+> > > 
+> > > Here's a new version of the UVC gadget driver I posted on the list some
+> > > time ago, rebased on 2.6.34-rc5.
+> > > 
+> > > The private events API has been replaced by the new V4L2 events API that
+> > > will be available in 2.6.34 (the code is already available in the
+> > > v4l-dvb tree on linuxtv.org, and should be pushed to
+> > > git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git very
+> > > soon).
+> > > 
+> > > Further testing of the changes related to the events API is required
+> > > (this is planned for the next few days). As it seems to be the UVC
+> > > gadget driver season (Robert Lukassen posted his own implementation -
+> > > having a different goal - two days ago)
+> > 
+> > What are the different goals here?  Shouldn't there just be only one way
+> > to implement this, or am I missing something?
 > 
->> Yet, in this specific case, as the errors are due to the reception of
->> wrong data from tvp5150, maybe the problem is due to the lack of a
->> proper lock at the i2c access.
+> Both drivers act as "webcams". Robert's version exports the local frame buffer 
+> through USB, making the "webcam" capture what's displayed on the device. My 
+> version exposes a V4L2 interface to userspace, allowing an application on the 
+> device to send whatever it wants over USB (for instance frames captured from a 
+> sensor, making the device a real camera).
+
+Ah.  So your's has the advantage of being able to do what his does as
+well, right?
+
+> > > , I thought I'd post the patch as an RFC. I'd like the UVC function
+> > > driver to make it to 2.6.35, comments are more than welcome.
+> > 
+> > It needs to get into my tree _now_ if you are wanting it in .35....
+> > Just fyi.
 > 
-> The problem is because hald sees the new device and is making v4l2
-> calls against the tvp5150 even though the gpio has been toggled over
-> to digital mode.  Hence an i2c lock won't help. 
+> Does now mean today, or before next week ?
 
-If the i2c lock was toggled to digital mode, then it means that the i2c
-code is being in use simultaneously by analog and digital mode. It also
-means that an i2c IR device, or alsa will have troubles also. So, we
-really need one i2c lock that will protect the access to the I2C bus as
-a hole, including the i2c gate.
+Before next week would be good, as soon as possible is best.
 
-> We would need to implement proper locking of analog versus digital mode, 
-> which unfortunately would either result in hald getting back -EBUSY on open
-> of the V4L device or the DVB module loading being deferred while the
-> v4l side of the board is in use (neither of which is a very good
-> solution).
+thanks,
 
-Yes, this is also needed: we shouldn't let simultaneous stream access to the
-analog and digital mode at the same time, but I don't see, by itself, any problem
-on having both analog and digital nodes opened at the same time. So, the solution
-seems to lock some resources between digital/analog access.
- 
-> This is what got me thinking a few weeks ago that perhaps the
-> submodules should not be loaded asynchronously.  In that case, at
-> least the main em28xx module could continue to hold the lock while the
-> submodules are still being loaded.
-> 
-> Devin
-> 
-
-
--- 
-
-Cheers,
-Mauro
+greg k-h
