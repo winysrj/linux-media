@@ -1,58 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:42416 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933775Ab0DHXJt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Apr 2010 19:09:49 -0400
-Date: Fri, 9 Apr 2010 01:09:48 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [patch 3/3] Convert drivers/media/dvb/ttpci/budget-ci.c to use
-	ir-core
-Message-ID: <20100408230948.GB18316@hardeman.nu>
-References: <20100402185827.425741206@hardeman.nu> <20100402190255.774628605@hardeman.nu> <4BBE51C2.8060505@infradead.org>
+Received: from perceval.irobotique.be ([92.243.18.41]:38829 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933364Ab0D3RqL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Apr 2010 13:46:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 0/5] Pushdown bkl from v4l ioctls
+Date: Thu, 29 Apr 2010 09:10:42 +0200
+Cc: Frederic Weisbecker <fweisbec@gmail.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>, John Kacur <jkacur@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Jan Blunck <jblunck@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg KH <gregkh@suse.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org> <1272512564-14683-1-git-send-regression-fweisbec@gmail.com> <201004290844.29347.hverkuil@xs4all.nl>
+In-Reply-To: <201004290844.29347.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4BBE51C2.8060505@infradead.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201004290910.43412.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 08, 2010 at 06:59:30PM -0300, Mauro Carvalho Chehab wrote:
->david@hardeman.nu wrote:
->> This patch converts drivers/media/dvb/ttpci/budget-ci.c to use ir-core
->> rather than rolling its own keydown timeout handler and reporting keys
->> via drivers/media/IR/ir-functions.c.
->
->Hmm... had you test this patch? It got me an error here:
+Hi Hans,
 
-Sorry, I must have sent you the wrong one :)
+On Thursday 29 April 2010 08:44:29 Hans Verkuil wrote:
+> On Thursday 29 April 2010 05:42:39 Frederic Weisbecker wrote:
+> > Hi,
+> > 
+> > Linus suggested to rename struct v4l2_file_operations::ioctl
+> > into bkl_ioctl to eventually get something greppable and make
+> > its background explicit.
+> > 
+> > While at it I thought it could be a good idea to just pushdown
+> > the bkl to every v4l drivers that have an .ioctl, so that we
+> > actually remove struct v4l2_file_operations::ioctl for good.
+> > 
+> > It passed make allyesconfig on sparc.
+> > Please tell me what you think.
+> 
+> I much prefer to keep the bkl inside the v4l2 core. One reason is that I
+> think that we can replace the bkl in the core with a mutex. Still not
+> ideal of course, so the next step will be to implement proper locking in
+> each driver. For this some additional v4l infrastructure work needs to be
+> done. I couldn't proceed with that until the v4l events API patches went
+> in, and that happened yesterday.
+> 
+> So from my point of view the timeline is this:
+> 
+> 1) I do the infrastructure work this weekend. This will make it much easier
+> to convert drivers to do proper locking. And it will also simplify
+> v4l2_priority handling, so I'm killing two birds with one stone :-)
+> 
+> 2) Wait until Arnd's patch gets merged that pushes the bkl down to
+> v4l2-dev.c
+> 
+> 3) Investigate what needs to be done to replace the bkl with a v4l2-dev.c
+> global mutex. Those drivers that call the bkl themselves should probably be
+> converted to do proper locking, but there are only about 14 drivers that do
+> this. The other 60 or so drivers should work fine if a v4l2-dev global lock
+> is used. At this point the bkl is effectively removed from the v4l
+> subsystem.
+> 
+> 4) Work on the remaining 60 drivers to do proper locking and get rid of the
+> v4l2-dev global lock. This is probably less work than it sounds.
+> 
+> Since your patch moves everything down to the driver level it will actually
+> make this work harder rather than easier. And it touches almost all drivers
+> as well.
 
->drivers/media/dvb/ttpci/budget-ci.c: In function ‘msp430_ir_init’:
->drivers/media/dvb/ttpci/budget-ci.c:228: error: implicit declaration of function ‘ir_input_init’
->drivers/media/dvb/ttpci/budget-ci.c:228: error: ‘struct budget_ci_ir’ has no member named ‘state’
->
->The fix is trivial. Just drop this line:
->
->        ir_input_init(input_dev, &budget_ci->ir.state, IR_TYPE_RC5);
->
->It shouldn't cause any troubles, since the only things this function currently do are:
->        ir->ir_type = ir_type;
->
->        if (repeat)
->                set_bit(EV_REP, dev->evbit);
->
->As the repeat is inside ir-core, and the ir struct is not used anymore, this removal
->should cause no harm.
->
->So, I am dropping the line at the code I'm committing at v4l-dvb.git, to avoid bisect
->breakages.
-
-You're entirely correct, that line should have been dropped (I even sent 
-the same thing as part of my latest patch series before I read this 
-mail, but if you can fixup the original patch that'd be even better).
-
+Every driver will need to be carefully checked to make sure the BKL can be 
+replaced by a v4l2-dev global mutex. Why would it be more difficult to do so 
+if the BKL is pushed down to the drivers ?
 
 -- 
-David Härdeman
+Regards,
+
+Laurent Pinchart
