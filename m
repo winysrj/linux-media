@@ -1,36 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f217.google.com ([209.85.217.217]:62907 "EHLO
-	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755976Ab0DGX5U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Apr 2010 19:57:20 -0400
-Received: by gxk9 with SMTP id 9so969270gxk.8
-        for <linux-media@vger.kernel.org>; Wed, 07 Apr 2010 16:57:19 -0700 (PDT)
+Received: from perceval.irobotique.be ([92.243.18.41]:44522 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932848Ab0D3R0V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Apr 2010 13:26:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Greg KH <greg@kroah.com>
+Subject: Re: [RFC 0/2] UVC gadget driver
+Date: Thu, 29 Apr 2010 09:34:50 +0200
+Cc: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	robert.lukassen@tomtom.com
+References: <1272495179-2652-1-git-send-email-laurent.pinchart@ideasonboard.com> <201004290914.04140.laurent.pinchart@ideasonboard.com> <20100429073210.GA9462@kroah.com>
+In-Reply-To: <20100429073210.GA9462@kroah.com>
 MIME-Version: 1.0
-Date: Thu, 8 Apr 2010 07:57:19 +0800
-Message-ID: <x2l6e8e83e21004071657yf6fabbabv2652ef643b5a1595@mail.gmail.com>
-Subject: [PATCH] TM6000: Fix code which cause memory corruption
-From: Bee Hock Goh <beehock@gmail.com>
-To: Linux Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201004290934.50743.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-code was doing malloc when buf is null causing memory corruption. The
-analog part is still pretty much broken but at least fixing this will
-stop it from crashing the machine when streamon.
+Hi Greg,
 
-Signed-off-by: Bee Hock Goh <beehock@gmail.com>
-diff -r 7c0b887911cf linux/drivers/staging/tm6000/tm6000-video.c
---- a/linux/drivers/staging/tm6000/tm6000-video.c       Mon Apr 05
-22:56:43 2010 -0400
-+++ b/linux/drivers/staging/tm6000/tm6000-video.c       Thu Apr 08
-07:45:05 2010 +0800
-@@ -502,7 +502,7 @@
-        unsigned long copied;
+On Thursday 29 April 2010 09:32:10 Greg KH wrote:
+> On Thu, Apr 29, 2010 at 09:14:03AM +0200, Laurent Pinchart wrote:
+> > On Thursday 29 April 2010 05:41:11 Greg KH wrote:
+> > > On Thu, Apr 29, 2010 at 12:52:57AM +0200, Laurent Pinchart wrote:
+> > > > Hi everybody,
+> > > > 
+> > > > Here's a new version of the UVC gadget driver I posted on the list
+> > > > some time ago, rebased on 2.6.34-rc5.
+> > > > 
+> > > > The private events API has been replaced by the new V4L2 events API
+> > > > that will be available in 2.6.34 (the code is already available in
+> > > > the v4l-dvb tree on linuxtv.org, and should be pushed to
+> > > > git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+> > > > very soon).
+> > > > 
+> > > > Further testing of the changes related to the events API is required
+> > > > (this is planned for the next few days). As it seems to be the UVC
+> > > > gadget driver season (Robert Lukassen posted his own implementation -
+> > > > having a different goal - two days ago)
+> > > 
+> > > What are the different goals here?  Shouldn't there just be only one
+> > > way to implement this, or am I missing something?
+> > 
+> > Both drivers act as "webcams". Robert's version exports the local frame
+> > buffer through USB, making the "webcam" capture what's displayed on the
+> > device. My version exposes a V4L2 interface to userspace, allowing an
+> > application on the device to send whatever it wants over USB (for
+> > instance frames captured from a sensor, making the device a real
+> > camera).
+> 
+> Ah.  So your's has the advantage of being able to do what his does as
+> well, right?
 
-        get_next_buf(dma_q, &buf);
--       if (!buf)
-+       if (buf)
-                outp = videobuf_to_vmalloc(&buf->vb);
+I think so (although I'm not sure if a userspace application can capture the 
+content of the frame buffer on sync events).
 
-        if (!outp)
+> > > > , I thought I'd post the patch as an RFC. I'd like the UVC function
+> > > > driver to make it to 2.6.35, comments are more than welcome.
+> > > 
+> > > It needs to get into my tree _now_ if you are wanting it in .35....
+> > > Just fyi.
+> > 
+> > Does now mean today, or before next week ?
+> 
+> Before next week would be good, as soon as possible is best.
+
+I'd like to test the events API changes some more. I'll have time to do this 
+before next week.
+
+-- 
+Regards,
+
+Laurent Pinchart
