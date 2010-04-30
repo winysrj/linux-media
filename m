@@ -1,169 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:20644 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755020Ab0DTUWq convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:62319 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932654Ab0D3RPb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Apr 2010 16:22:46 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so2710176fga.1
-        for <linux-media@vger.kernel.org>; Tue, 20 Apr 2010 13:22:44 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 20 Apr 2010 17:20:57 -0300
-Message-ID: <o2o499b283a1004201320pf468d4faqe5998e82641d914@mail.gmail.com>
-Subject: [PATCH] cx25821-video-upstream.c: Added severity to printk calls
-From: Ricardo Maraschini <ricardo.maraschini@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 30 Apr 2010 13:15:31 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH 0/3] TI WL1273 FM Radio Driver v2.
+Date: Fri, 30 Apr 2010 15:59:45 +0300
+Message-Id: <1272632388-16048-1-git-send-email-matti.j.aaltonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ricardo Maraschini <ricardo.maraschini@gmail.com>
+Hello.
 
---- a/linux/drivers/staging/cx25821/cx25821-video-upstream.c    Sun
-Apr 18 11:12:11 2010 -0300
-+++ b/linux/drivers/staging/cx25821/cx25821-video-upstream.c    Tue
-Apr 20 11:21:17 2010 -0300
-@@ -257,7 +257,7 @@
+I've implemented most of the changes proposed on the previous review round. 
+There are some things to be done in the RDS handling...
 
-       if (!dev->_is_running) {
-               printk
--                  ("cx25821: No video file is currently running so return!\n");
-+                  (KERN_INFO "cx25821: No video file is currently
-running so return!\n");
-               return;
-       }
-       /* Disable RISC interrupts */
-@@ -345,19 +345,19 @@
+I've left the region handling as it was because neither of the chip's
+regions cover the complete range. Japan is from 76 - 90MHz and
+Europe/US is 87.5 to 108 MHz.
 
-       if (IS_ERR(myfile)) {
-               const int open_errno = -PTR_ERR(myfile);
--               printk("%s(): ERROR opening file(%s) with errno = %d!\n",
-+               printk(KERN_ERR "%s(): ERROR opening file(%s) with
-errno = %d!\n",
-                      __func__, dev->_filename, open_errno);
-               return PTR_ERR(myfile);
-       } else {
-               if (!(myfile->f_op)) {
--                       printk("%s: File has no file operations registered!",
-+                       printk(KERN_ERR "%s: File has no file
-operations registered!",
-                              __func__);
-                       filp_close(myfile, NULL);
-                       return -EIO;
-               }
+Some of the private IOCTL were not necessary because corresponding standardized
+controls already exist. And for setting the audio mode to digital or analog
+I created an ALSA control because that's an audio thing anyway. 
 
-               if (!myfile->f_op->read) {
--                       printk("%s: File has no READ operations registered!",
-+                       printk(KERN_ERR "%s: File has no READ
-operations registered!",
-                              __func__);
-                       filp_close(myfile, NULL);
-                       return -EIO;
-@@ -410,7 +410,7 @@
-           container_of(work, struct cx25821_dev, _irq_work_entry);
+A couple of private IOCTLs are still there: 
 
-       if (!dev) {
--               printk("ERROR %s(): since container_of(work_struct) FAILED!\n",
-+               printk(KERN_ERR "ERROR %s(): since
-container_of(work_struct) FAILED!\n",
-                      __func__);
-               return;
-       }
-@@ -436,12 +436,12 @@
+1. WL1273_CID_FM_REGION for setting the region. This may not be a good
+candidate for standardization as the region control shouldn't exist 
+in the kernel in general...
 
-       if (IS_ERR(myfile)) {
-               const int open_errno = -PTR_ERR(myfile);
--               printk("%s(): ERROR opening file(%s) with errno = %d!\n",
-+               printk(KERN_ERR "%s(): ERROR opening file(%s) with
-errno = %d!\n",
-                      __func__, dev->_filename, open_errno);
-               return PTR_ERR(myfile);
-       } else {
-               if (!(myfile->f_op)) {
--                       printk("%s: File has no file operations registered!",
-+                       printk(KERN_ERR "%s: File has no file
-operations registered!",
-                              __func__);
-                       filp_close(myfile, NULL);
-                       return -EIO;
-@@ -449,7 +449,7 @@
+2. WL1273_CID_FM_SEEK_SPACING: defines what resolution is used when scanning 
+automatically for stations (50KHz, 100KHz or 200KHz). This could be
+useful in genaral. Could this be a field in the v4l2_hw_freq_seek struct?
 
-               if (!myfile->f_op->read) {
-                       printk
--                           ("%s: File has no READ operations
-registered!  Returning.",
-+                           (KERN_ERR "%s: File has no READ operations
-registered!  Returning.",
-                            __func__);
-                       filp_close(myfile, NULL);
-                       return -EIO;
-@@ -525,7 +525,7 @@
+3. WL1273_CID_FM_RDS_CTRL for turning on and off the RDS reception / 
+transmission. To me this seems like a useful standard control...
 
-       if (!dev->_dma_virt_addr) {
-               printk
--                   ("cx25821: FAILED to allocate memory for Risc
-buffer! Returning.\n");
-+                   (KERN_ERR "cx25821: FAILED to allocate memory for
-Risc buffer! Returning.\n");
-               return -ENOMEM;
-       }
+4. WL1273_CID_SEARCH_LVL for setting the threshold level when detecting radio
+channels when doing automatic scan. This could be useful for fine tuning
+because automatic  scanning seems to be kind of problematic... This could also
+be a field in the v4l2_hw_freq_seek struct?
 
-@@ -546,7 +546,7 @@
+5. WL1273_CID_FM_RADIO_MODE: Now the radio has the following modes: off, 
+suspend, rx and tx. It probably would be better to separate the powering 
+state (off, on, suspend) from the FM radio state (rx, tx)... 
 
-       if (!dev->_data_buf_virt_addr) {
-               printk
--                   ("cx25821: FAILED to allocate memory for data
-buffer! Returning.\n");
-+                   (KERN_ERR "cx25821: FAILED to allocate memory for
-data buffer! Returning.\n");
-               return -ENOMEM;
-       }
+Could the VIDIOC_S_MODULATOR and VIDIOC_S_TUNER IOCTLs be used for setting the
+TX/RX mode?
 
-@@ -641,20 +641,20 @@
-       } else {
-               if (status & FLD_VID_SRC_UF)
-                       printk
--                           ("%s: Video Received Underflow Error Interrupt!\n",
-+                           (KERN_ERR "%s: Video Received Underflow
-Error Interrupt!\n",
-                            __func__);
+Now there already exits a class for fm transmitters: V4L2_CTRL_CLASS_FM_TX.
+Should a corresponding class be created for FM tuners?
 
-               if (status & FLD_VID_SRC_SYNC)
--                       printk("%s: Video Received Sync Error Interrupt!\n",
-+                       printk(KERN_ERR "%s: Video Received Sync Error
-Interrupt!\n",
-                              __func__);
+B.R.
+Matti A.
 
-               if (status & FLD_VID_SRC_OPC_ERR)
--                       printk("%s: Video Received OpCode Error Interrupt!\n",
-+                       printk(KERN_ERR "%s: Video Received OpCode
-Error Interrupt!\n",
-                              __func__);
-       }
+Matti J. Aaltonen (3):
+  MFD: WL1273 FM Radio: MFD driver for the FM radio.
+  WL1273 FM Radio: Digital audio codec.
+  V4L2: WL1273 FM Radio: Controls for the FM radio.
 
-       if (dev->_file_status == END_OF_FILE) {
--               printk("cx25821: EOF Channel 1 Framecount = %d\n",
-+               printk(KERN_ERR "cx25821: EOF Channel 1 Framecount = %d\n",
-                      dev->_frame_count);
-               return -1;
-       }
-@@ -794,7 +794,7 @@
-       int str_length = 0;
+ drivers/media/radio/Kconfig        |   15 +
+ drivers/media/radio/Makefile       |    1 +
+ drivers/media/radio/radio-wl1273.c | 1849 ++++++++++++++++++++++++++++++++++++
+ drivers/mfd/Kconfig                |    6 +
+ drivers/mfd/Makefile               |    2 +
+ drivers/mfd/wl1273-core.c          |  609 ++++++++++++
+ include/linux/mfd/wl1273-core.h    |  323 +++++++
+ sound/soc/codecs/Kconfig           |    6 +
+ sound/soc/codecs/Makefile          |    2 +
+ sound/soc/codecs/wl1273.c          |  587 ++++++++++++
+ sound/soc/codecs/wl1273.h          |   40 +
+ 11 files changed, 3440 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/radio-wl1273.c
+ create mode 100644 drivers/mfd/wl1273-core.c
+ create mode 100644 include/linux/mfd/wl1273-core.h
+ create mode 100644 sound/soc/codecs/wl1273.c
+ create mode 100644 sound/soc/codecs/wl1273.h
 
-       if (dev->_is_running) {
--               printk("Video Channel is still running so return!\n");
-+               printk(KERN_INFO "Video Channel is still running so return!\n");
-               return 0;
-       }
-
-@@ -806,7 +806,7 @@
-
-       if (!dev->_irq_queues) {
-               printk
--                   ("cx25821: create_singlethread_workqueue() for
-Video FAILED!\n");
-+                   (KERN_ERR "cx25821:
-create_singlethread_workqueue() for Video FAILED!\n");
-               return -ENOMEM;
-       }
-       /* 656/VIP SRC Upstream Channel I & J and 7 - Host Bus Interface for
