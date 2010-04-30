@@ -1,90 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41353 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755894Ab0DVBza (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Apr 2010 21:55:30 -0400
-Date: Wed, 21 Apr 2010 21:55:25 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: Re: [PATCH 3/3] ir-core: add imon driver
-Message-ID: <20100422015525.GA14221@redhat.com>
-References: <20100416212622.GA6888@redhat.com>
- <20100416212902.GD2427@redhat.com>
- <20100420182236.2e5a1325@pedra>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100420182236.2e5a1325@pedra>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4316 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753510Ab0D3TjT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Apr 2010 15:39:19 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o3UJdB2C077757
+	for <linux-media@vger.kernel.org>; Fri, 30 Apr 2010 21:39:11 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 30 Apr 2010 21:39:11 +0200 (CEST)
+Message-Id: <201004301939.o3UJdB2C077757@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 20, 2010 at 06:22:36PM -0300, Mauro Carvalho Chehab wrote:
-> Em Fri, 16 Apr 2010 17:29:02 -0400
-> Jarod Wilson <jarod@redhat.com> escreveu:
-> 
-> > 
-> > This is a new driver for the SoundGraph iMON and Antec Veris IR/display
-> > devices commonly found in many home theater pc cases and as after-market
-> > case additions.
-> 
-> 
-> > +/* IR protocol: native iMON, Windows MCE (RC-6), or iMON w/o PAD stabilize */
-> > +static int ir_protocol;
-> > +module_param(ir_protocol, int, S_IRUGO | S_IWUSR);
-> > +MODULE_PARM_DESC(ir_protocol, "Which IR protocol to use. 0=auto-detect, "
-> > +		 "1=Windows Media Center Ed. (RC-6), 2=iMON native, "
-> > +		 "4=iMON w/o PAD stabilize (default: auto-detect)");
-> > +
-> 
-> You don't need this. Let's the protocol to be adjustable via sysfs. All you need to do is
-> to use the set_protocol callbacks with something like:
-> 
->         props->allowed_protos = IR_TYPE_RC6 | IR_TYPE_<imon protocol>;
->         props->change_protocol = imon_ir_change_protocol;
-> 
-> You can see an example of such implementation at drivers/media/video/em28xx-em28xx-input.c.
-> Look for em28xx_ir_change_protocol() function.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Working on it now... I'm about 95% of the way there, just need to sort out
-one last little bit...
+Results of the daily build of v4l-dvb:
 
-> That's said, I'm not sure what would be better way to map IR_TYPE_<imon protocol>. Maybe we
-> can just use IR_TYPE_OTHER.
-> 
-> So, basically, we'll have:
-> 
-> 	IR_TYPE_OTHER | IR_TYPE_RC6	- auto-detected between RC-6 and iMON
-> 	IR_TYPE_OTHER			- iMON proprietary protocol
-> 	IR_TYPE_RC6			- RC-6 protocol
-> 
-> 
-> By doing this, the userspace application ir-keycode will already be able to handle the
-> IR protocol.
+date:        Fri Apr 30 19:00:22 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14619:ee9826bc7106
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: d3be2fab3a10b6c798a5f9970146d166d3345c37
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-I'm going to go with IR_TYPE_OTHER for the iMON native proto for now. To
-be honest, I don't have a clue what the actual IR protocol looks like... I
-should try one of my iMON remotes w/an mce transceiver to see if I can
-figure it out...
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc1-armv5: OK
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc1-armv5-davinci: OK
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc1-armv5-ixp: OK
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc1-armv5-omap2: OK
+linux-2.6.22.19-i686: WARNINGS
+linux-2.6.23.17-i686: WARNINGS
+linux-2.6.24.7-i686: OK
+linux-2.6.25.20-i686: OK
+linux-2.6.26.8-i686: OK
+linux-2.6.27.44-i686: OK
+linux-2.6.28.10-i686: OK
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: OK
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc1-m32r: OK
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc1-mips: OK
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: WARNINGS
+linux-2.6.23.17-x86_64: WARNINGS
+linux-2.6.24.7-x86_64: OK
+linux-2.6.25.20-x86_64: OK
+linux-2.6.26.8-x86_64: OK
+linux-2.6.27.44-x86_64: OK
+linux-2.6.28.10-x86_64: OK
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: OK
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: WARNINGS
+linux-2.6.17.14-i686: WARNINGS
+linux-2.6.18.8-i686: WARNINGS
+linux-2.6.19.7-i686: WARNINGS
+linux-2.6.20.21-i686: WARNINGS
+linux-2.6.21.7-i686: WARNINGS
+linux-2.6.16.62-x86_64: WARNINGS
+linux-2.6.17.14-x86_64: WARNINGS
+linux-2.6.18.8-x86_64: WARNINGS
+linux-2.6.19.7-x86_64: WARNINGS
+linux-2.6.20.21-x86_64: WARNINGS
+linux-2.6.21.7-x86_64: WARNINGS
 
-> I'm not sure how to map the "PAD stablilize" case, but it seems that the better would be to
-> add a sysfs node for it, at sys/class/rc/rc0. There are other cases where some protocols
-> may require some adjustments, so I'm thinking on having some protocol-specific properties there.
+Detailed results are available here:
 
-For the moment, I'm dropping the ir_protocol modparam and adding a
-pad_stabilize one. It was a hack to have it as a protocol, all it really
-needs to do is bypass a function when processing the pad signals. Can
-convert it to something more standard once we have a standard for
-protocol-specific properties. (The pad_thresh modparam is probably a
-similar case).
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-> Except for that, the patch looked sane to my eyes. So, I'll add it on my tree and wait for a
-> latter patch from you addressing the protocol control.
+Full logs are available here:
 
-Good deal, I'm working off the v4l-dvb git tree now, hope to have
-something a bit later tonight or tomorrow.
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
--- 
-Jarod Wilson
-jarod@redhat.com
+The V4L-DVB specification from this daily build is here:
 
+http://www.xs4all.nl/~hverkuil/spec/media.html
