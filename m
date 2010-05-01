@@ -1,36 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta6.srv.hcvlny.cv.net ([167.206.4.212]:55140 "EHLO
-	mta6.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753374Ab0EGNqn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 09:46:43 -0400
-Received: from MacBook-Pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta6.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0L21001WEY9UJXO0@mta6.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Fri, 07 May 2010 09:46:42 -0400 (EDT)
-Date: Fri, 07 May 2010 09:46:42 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Hauppauge HVR-4400
-In-reply-to: <4BE3CC3E.3020103@gmail.com>
-To: Jed <jedi.theone@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-id: <4BE419C2.7060609@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <201005041400.10530.jan_moebius@web.de>
- <z2q829197381005040636vbd2d7254n4674dcc21cc751f4@mail.gmail.com>
- <4BE03311.4010702@gmail.com> <4BE03D6A.5060100@kernellabs.com>
- <4BE3CC3E.3020103@gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:51344 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752716Ab0EAXnm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 19:43:42 -0400
+Received: by fxm10 with SMTP id 10so1187910fxm.19
+        for <linux-media@vger.kernel.org>; Sat, 01 May 2010 16:43:40 -0700 (PDT)
+Content-Type: text/plain; charset=iso-8859-2; format=flowed; delsp=yes
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Sun, 02 May 2010 01:44:17 +0300
+Subject: [dvb-apps] Updated initial scan file for hr-All
+Cc: "Christoph Pfister" <christophpfister@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+From: =?iso-8859-2?B?U2FtdWVsIFJha2l0bmnoYW4=?=
+	<samuel.rakitnican@gmail.com>
+Message-ID: <op.vb1v7xiondeod6@crni>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Why'd they have to go & use a completely different architecture, lame.
 
-It's just business, get used to it. If you don't like their stuff then buy a 
-different product. Vote with your wallet. That's the power you have as a consumer.
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
-
+--- hr-All      2010-05-02 01:32:22.000000000 +0200
++++ hr-All.new  2010-05-02 01:30:14.000000000 +0200
+@@ -12,9 +12,9 @@
+  T 594000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+  T 618000000 8MHz 3/4 NONE QAM64 8k 1/4 NONE
+  T 642000000 8MHz 3/4 NONE QAM64 8k 1/4 NONE
+-T 650000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
+  T 658000000 8MHz 3/4 NONE QAM64 8k 1/4 NONE
+  T 666000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
++T 674000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE # HD - Split, Marjan
+  T 682000000 8MHz 3/4 NONE QAM64 8k 1/4 NONE
+  T 690000000 8MHz 3/4 NONE QAM64 8k 1/4 NONE
+  T 714000000 8MHz 3/4 NONE QAM64 8k 1/4 NONE
