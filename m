@@ -1,81 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 93-97-173-237.zone5.bethere.co.uk ([93.97.173.237]:62619 "EHLO
-	tim.rpsys.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752638Ab0EaWG2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 18:06:28 -0400
-Subject: Re: [PATCH] drivers: remove all i2c_set_clientdata(client, NULL)
-From: Richard Purdie <rpurdie@rpsys.net>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Wolfram Sang <w.sang@pengutronix.de>
-Cc: linux-i2c@vger.kernel.org, Jean Delvare <khali@linux-fr.org>,
-	George Joseph <george.joseph@fairview5.com>,
-	Riku Voipio <riku.voipio@iki.fi>,
-	Guillaume Ligneul <guillaume.ligneul@gmail.com>,
-	"Ben Dooks (embedded platforms)" <ben-linux@fluff.org>,
-	Alessandro Rubini <rubini@cvml.unipv.it>,
-	Colin Leroy <colin@colino.net>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4998 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751360Ab0EAJyj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 05:54:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 0/5] Pushdown bkl from v4l ioctls
+Date: Sat, 1 May 2010 11:55:37 +0200
+Cc: Frederic Weisbecker <fweisbec@gmail.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>, John Kacur <jkacur@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Jan Blunck <jblunck@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Liam Girdwood <lrg@slimlogic.co.uk>,
-	Paul Gortmaker <p_gortmaker@yahoo.com>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Greg Kroah-Hartman <gregkh@suse.de>, lm-sensors@lm-sensors.org,
-	linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
-	linuxppc-dev@ozlabs.org, linux-media@vger.kernel.org,
-	linux-mtd@lists.infradead.org, rtc-linux@googlegroups.com,
-	devel@driverdev.osuosl.org
-In-Reply-To: <20100531190911.GC30712@core.coreip.homeip.net>
-References: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
-	 <20100531190911.GC30712@core.coreip.homeip.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 31 May 2010 22:48:32 +0100
-Message-ID: <1275342512.24079.1559.camel@rex>
-Mime-Version: 1.0
+	Greg KH <gregkh@suse.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org> <201004290844.29347.hverkuil@xs4all.nl> <201004290910.43412.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201004290910.43412.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201005011155.37057.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2010-05-31 at 12:09 -0700, Dmitry Torokhov wrote:
-> On Mon, May 31, 2010 at 02:55:48PM +0200, Wolfram Sang wrote:
-> > I2C-drivers can use the clientdata-pointer to point to private data. As I2C
-> > devices are not really unregistered, but merely detached from their driver, it
-> > used to be the drivers obligation to clear this pointer during remove() or a
-> > failed probe(). As a couple of drivers forgot to do this, it was agreed that it
-> > was cleaner if the i2c-core does this clearance when appropriate, as there is
-> > no guarantee for the lifetime of the clientdata-pointer after remove() anyhow.
-> > This feature was added to the core with commit
-> > e4a7b9b04de15f6b63da5ccdd373ffa3057a3681 to fix the faulty drivers.
-> > 
-> > As there is no need anymore to clear the clientdata-pointer, remove all current
-> > occurrences in the drivers to simplify the code and prevent confusion.
-> > 
-> > Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-> > Cc: Jean Delvare <khali@linux-fr.org>
-> > ---
-> > 
-> > Some more notes:
-> > 
-> > I waited for rc1 as I knew there were some drivers/patches coming along which
-> > needed to be processed, too.
-> > 
-> > I'd suggest that this goes via the i2c-tree, so we get rid of all occurences at
-> > once.
-> > 
+On Thursday 29 April 2010 09:10:42 Laurent Pinchart wrote:
+> Hi Hans,
 > 
-> Frankly I'd prefer taking input stuff through my tree with the goal of
-> .36 merge window just to minimize potential merge issues. This is a
-> simple cleanup patch that has no dependencies, so there is little gain
-> from doing it all in one go.
+> On Thursday 29 April 2010 08:44:29 Hans Verkuil wrote:
+> > On Thursday 29 April 2010 05:42:39 Frederic Weisbecker wrote:
+> > > Hi,
+> > > 
+> > > Linus suggested to rename struct v4l2_file_operations::ioctl
+> > > into bkl_ioctl to eventually get something greppable and make
+> > > its background explicit.
+> > > 
+> > > While at it I thought it could be a good idea to just pushdown
+> > > the bkl to every v4l drivers that have an .ioctl, so that we
+> > > actually remove struct v4l2_file_operations::ioctl for good.
+> > > 
+> > > It passed make allyesconfig on sparc.
+> > > Please tell me what you think.
+> > 
+> > I much prefer to keep the bkl inside the v4l2 core. One reason is that I
+> > think that we can replace the bkl in the core with a mutex. Still not
+> > ideal of course, so the next step will be to implement proper locking in
+> > each driver. For this some additional v4l infrastructure work needs to be
+> > done. I couldn't proceed with that until the v4l events API patches went
+> > in, and that happened yesterday.
+> > 
+> > So from my point of view the timeline is this:
+> > 
+> > 1) I do the infrastructure work this weekend. This will make it much easier
+> > to convert drivers to do proper locking. And it will also simplify
+> > v4l2_priority handling, so I'm killing two birds with one stone :-)
+> > 
+> > 2) Wait until Arnd's patch gets merged that pushes the bkl down to
+> > v4l2-dev.c
+> > 
+> > 3) Investigate what needs to be done to replace the bkl with a v4l2-dev.c
+> > global mutex. Those drivers that call the bkl themselves should probably be
+> > converted to do proper locking, but there are only about 14 drivers that do
+> > this. The other 60 or so drivers should work fine if a v4l2-dev global lock
+> > is used. At this point the bkl is effectively removed from the v4l
+> > subsystem.
+> > 
+> > 4) Work on the remaining 60 drivers to do proper locking and get rid of the
+> > v4l2-dev global lock. This is probably less work than it sounds.
+> > 
+> > Since your patch moves everything down to the driver level it will actually
+> > make this work harder rather than easier. And it touches almost all drivers
+> > as well.
+> 
+> Every driver will need to be carefully checked to make sure the BKL can be 
+> replaced by a v4l2-dev global mutex. Why would it be more difficult to do so 
+> if the BKL is pushed down to the drivers ?
 
-How about asking Linus to take this one now, then its done and we can
-all move on rather than queuing up problems for the next merge window?
+The main reason is really that pushing the bkl into the v4l core makes it
+easier to review. I noticed for example that this patch series forgot to change
+the video_ioctl2 call in ivtv-ioctl.c to video_ioctl2_unlocked. And there may
+be other places as well that were missed. Having so many drivers changed also
+means a lot of careful reviewing.
 
-Acked-by: Richard Purdie <rpurdie@linux.intel.com>
+But I will not block this change. However, I do think it would be better to
+create a video_ioctl2_bkl rather than add a video_ioctl2_unlocked. The current
+video_ioctl2 function *is* already unlocked. So you are subtle changing the
+behavior of video_ioctl2. Not a good idea IMHO. And yes, grepping for
+video_ioctl2_bkl is also easy to do and makes it more obvious that the BKL is
+used in drivers that call this.
 
-Cheers,
+Regards,
 
-Richard
+	Hans
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
