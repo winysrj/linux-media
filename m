@@ -1,95 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:33908 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753771Ab0ECAIM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 20:08:12 -0400
-Message-ID: <4BDE13E7.1010409@infradead.org>
-Date: Sun, 02 May 2010 21:08:07 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Bee Hock Goh <beehock@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	stefan Ringel <stefan.ringel@arcor.de>
-Subject: Re: [PATCH] tm6000: Prevent Kernel Oops changing channel when stream
- is 	still on.
-References: <u2s6e8e83e21005010151ie123c8e5o45e7d0a3bbc8aa64@mail.gmail.com>
-In-Reply-To: <u2s6e8e83e21005010151ie123c8e5o45e7d0a3bbc8aa64@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:38136 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751739Ab0EALHu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 07:07:50 -0400
+Date: Sat, 1 May 2010 12:11:11 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Frederic Weisbecker <fweisbec@gmail.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Arnd Bergmann <arnd@arndb.de>, John Kacur <jkacur@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Jan Blunck <jblunck@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg KH <gregkh@suse.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/5] Pushdown bkl from v4l ioctls
+Message-ID: <20100501121111.4ac32c35@lxorguk.ukuu.org.uk>
+In-Reply-To: <201004290844.29347.hverkuil@xs4all.nl>
+References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org>
+	<1272512564-14683-1-git-send-regression-fweisbec@gmail.com>
+	<201004290844.29347.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The two patches fixed the OOPS I was having.
+> I much prefer to keep the bkl inside the v4l2 core. One reason is that I
+> think that we can replace the bkl in the core with a mutex. Still not
+> ideal of course, so the next step will be to implement proper locking in
 
-The big problem I'm still suffering with HVR-900H is that tm6000 insists on dying:
+I did look at this a long time ago - it doesn't really work becaue the
+mutex you propose then has to be dropped and taken in the sleeping parts
+of each ioctl to avoid app problems and in some cases threaded apps
+deadlocking.
 
-hub 1-0:1.0: port 8 disabled by hub (EMI?), re-enabling...
-usb 1-8: USB disconnect, address 5
-tm6000 tm6000_irq_callback :urb resubmit failed (error=-19)
-tm6000 tm6000_irq_callback :urb resubmit failed (error=-19)
-tm6000 tm6000_irq_callback :urb resubmit failed (error=-19)
-tm6000 tm6000_irq_callback :urb resubmit failed (error=-19)
-tm6000 tm6000_irq_callback :urb resubmit failed (error=-19)
-tm6000: disconnecting tm6000 #2
-xc2028 2-0061: destroying instance
-
-As the chipset stops answering USB, a new, non-fatal bug hits:
-
-------------[ cut here ]------------
-WARNING: at lib/list_debug.c:48 list_del+0x30/0x87()
-Hardware name:  
-list_del corruption. prev->next should be ffff88003df65ec0, but was (null)
-Modules linked in: ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder ir_nec_decoder ir_core tm6000(C) v4l2_common videodev v4l1_compat v4l2_compat_ioctl32 videobuf_vmalloc videobuf_core autofs4 hidp rfcomm l2cap crc16 bluetooth iptable_filter ip_tables ip6t_REJECT xt_tcpudp ip6table_filter ip6_tables x_tables ipv6 powernow_k8 dm_multipath scsi_dh sbs sbshc battery acpi_memhotplug ac lp snd_intel8x0 snd_ac97_codec ac97_bus snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device i2c_algo_bit snd_pcm_oss snd_mixer_oss sg snd_pcm nvidia(P) ide_cd_mod snd_timer serio_raw parport_pc cdrom snd button parport floppy i2c_nforce2 k8temp soundcore snd_page_alloc pcspkr shpchp hwmon forcedeth i2c_core dm_snapshot dm_zero dm_mirror dm_region_hash dm_log dm_mod sata_nv libata sd_mod scsi_mod ext3 jbd uhci_hcd ohci_hcd ehci_hcd [last unloaded: tuner_xc2028]
-Pid: 12402, comm: mplayer Tainted: P        WC 2.6.33 #4
-Call Trace:
- [<ffffffff81179c24>] ? list_del+0x30/0x87
- [<ffffffff8103a43f>] ? warn_slowpath_common+0x77/0x8e
- [<ffffffff8103a4b2>] ? warn_slowpath_fmt+0x51/0x59
- [<ffffffff810c54a5>] ? free_block+0xdf/0xfe
- [<ffffffff8102c9bc>] ? __wake_up_sync_key+0x3a/0x56
- [<ffffffff81179c24>] ? list_del+0x30/0x87
- [<ffffffffa015e9c8>] ? videobuf_queue_cancel+0x48/0xba [videobuf_core]
- [<ffffffffa013e2b3>] ? videobuf_vm_close+0x80/0x14d [videobuf_vmalloc]
- [<ffffffff810b23d1>] ? remove_vma+0x2c/0x72
- [<ffffffff810b2522>] ? exit_mmap+0x10b/0x129
- [<ffffffff8103813c>] ? mmput+0x34/0xa2
- [<ffffffff8103c077>] ? exit_mm+0x109/0x114
- [<ffffffff8103d2b0>] ? do_exit+0x1de/0x66e
- [<ffffffff8103d7ad>] ? do_group_exit+0x6d/0x97
- [<ffffffff8103d7e9>] ? sys_exit_group+0x12/0x16
- [<ffffffff810028ab>] ? system_call_fastpath+0x16/0x1b
----[ end trace fed27d3fe75cb89b ]---
-------------[ cut here ]------------
-WARNING: at lib/list_debug.c:51 list_del+0x5c/0x87()
-Hardware name:  
-list_del corruption. next->prev should be ffff88003df65bc0, but was (null)
-Modules linked in: ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder ir_nec_decoder ir_core tm6000(C) v4l2_common videodev v4l1_compat v4l2_compat_ioctl32 videobuf_vmalloc videobuf_core autofs4 hidp rfcomm l2cap crc16 bluetooth iptable_filter ip_tables ip6t_REJECT xt_tcpudp ip6table_filter ip6_tables x_tables ipv6 powernow_k8 dm_multipath scsi_dh sbs sbshc battery acpi_memhotplug ac lp snd_intel8x0 snd_ac97_codec ac97_bus snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device i2c_algo_bit snd_pcm_oss snd_mixer_oss sg snd_pcm nvidia(P) ide_cd_mod snd_timer serio_raw parport_pc cdrom snd button parport floppy i2c_nforce2 k8temp soundcore snd_page_alloc pcspkr shpchp hwmon forcedeth i2c_core dm_snapshot dm_zero dm_mirror dm_region_hash dm_log dm_mod sata_nv libata sd_mod scsi_mod ext3 jbd uhci_hcd ohci_hcd ehci_hcd [last unloaded: tuner_xc2028]
-Pid: 12402, comm: mplayer Tainted: P        WC 2.6.33 #4
-Call Trace:
- [<ffffffff81179c50>] ? list_del+0x5c/0x87
- [<ffffffff8103a43f>] ? warn_slowpath_common+0x77/0x8e
- [<ffffffff8103a4b2>] ? warn_slowpath_fmt+0x51/0x59
- [<ffffffff810c54a5>] ? free_block+0xdf/0xfe
- [<ffffffff81035d58>] ? __wake_up+0x30/0x44
- [<ffffffff81179c50>] ? list_del+0x5c/0x87
- [<ffffffffa015e9c8>] ? videobuf_queue_cancel+0x48/0xba [videobuf_core]
- [<ffffffffa013e2b3>] ? videobuf_vm_close+0x80/0x14d [videobuf_vmalloc]
- [<ffffffff810b23d1>] ? remove_vma+0x2c/0x72
- [<ffffffff810b2522>] ? exit_mmap+0x10b/0x129
- [<ffffffff8103813c>] ? mmput+0x34/0xa2
- [<ffffffff8103c077>] ? exit_mm+0x109/0x114
- [<ffffffff8103d2b0>] ? do_exit+0x1de/0x66e
- [<ffffffff8103d7ad>] ? do_group_exit+0x6d/0x97
- [<ffffffff8103d7e9>] ? sys_exit_group+0x12/0x16
- [<ffffffff810028ab>] ? system_call_fastpath+0x16/0x1b
----[ end trace fed27d3fe75cb89c ]---
-usbcore: deregistering interface driver tm6000
-
-
-Cheers,
-Mauro
-
--- 
-
-Cheers,
-Mauro
+I think Arnd is right on his approach to this, having tried the other way.
