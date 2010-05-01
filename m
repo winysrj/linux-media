@@ -1,173 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3896 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375Ab0EPNTy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 May 2010 09:19:54 -0400
-Message-Id: <9c10438085a3a69cff344e13bd6259561fd3b18c.1274015085.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1274015084.git.hverkuil@xs4all.nl>
-References: <cover.1274015084.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 16 May 2010 15:21:32 +0200
-Subject: [PATCH 08/15] [RFCv2] cx25840/ivtv: replace ugly priv control with s_config
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:57519 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751274Ab0EAQxQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 12:53:16 -0400
+Received: by wye20 with SMTP id 20so841366wye.19
+        for <linux-media@vger.kernel.org>; Sat, 01 May 2010 09:53:15 -0700 (PDT)
+Date: Sat, 1 May 2010 16:58:50 +0200
+From: Frederic Weisbecker <fweisbec@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Arnd Bergmann <arnd@arndb.de>, John Kacur <jkacur@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Jan Blunck <jblunck@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Greg KH <gregkh@suse.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/5] Pushdown bkl from v4l ioctls
+Message-ID: <20100501145848.GA5353@nowhere>
+References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org> <201004290844.29347.hverkuil@xs4all.nl> <201004290910.43412.laurent.pinchart@ideasonboard.com> <201005011155.37057.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201005011155.37057.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cx25840 used a private control CX25840_CID_ENABLE_PVR150_WORKAROUND
-to be told whether to enable a workaround for certain pvr150 cards.
+On Sat, May 01, 2010 at 11:55:37AM +0200, Hans Verkuil wrote:
+> On Thursday 29 April 2010 09:10:42 Laurent Pinchart wrote:
+> > Hi Hans,
+> > 
+> > On Thursday 29 April 2010 08:44:29 Hans Verkuil wrote:
+> > > On Thursday 29 April 2010 05:42:39 Frederic Weisbecker wrote:
+> > > > Hi,
+> > > > 
+> > > > Linus suggested to rename struct v4l2_file_operations::ioctl
+> > > > into bkl_ioctl to eventually get something greppable and make
+> > > > its background explicit.
+> > > > 
+> > > > While at it I thought it could be a good idea to just pushdown
+> > > > the bkl to every v4l drivers that have an .ioctl, so that we
+> > > > actually remove struct v4l2_file_operations::ioctl for good.
+> > > > 
+> > > > It passed make allyesconfig on sparc.
+> > > > Please tell me what you think.
+> > > 
+> > > I much prefer to keep the bkl inside the v4l2 core. One reason is that I
+> > > think that we can replace the bkl in the core with a mutex. Still not
+> > > ideal of course, so the next step will be to implement proper locking in
+> > > each driver. For this some additional v4l infrastructure work needs to be
+> > > done. I couldn't proceed with that until the v4l events API patches went
+> > > in, and that happened yesterday.
+> > > 
+> > > So from my point of view the timeline is this:
+> > > 
+> > > 1) I do the infrastructure work this weekend. This will make it much easier
+> > > to convert drivers to do proper locking. And it will also simplify
+> > > v4l2_priority handling, so I'm killing two birds with one stone :-)
+> > > 
+> > > 2) Wait until Arnd's patch gets merged that pushes the bkl down to
+> > > v4l2-dev.c
+> > > 
+> > > 3) Investigate what needs to be done to replace the bkl with a v4l2-dev.c
+> > > global mutex. Those drivers that call the bkl themselves should probably be
+> > > converted to do proper locking, but there are only about 14 drivers that do
+> > > this. The other 60 or so drivers should work fine if a v4l2-dev global lock
+> > > is used. At this point the bkl is effectively removed from the v4l
+> > > subsystem.
+> > > 
+> > > 4) Work on the remaining 60 drivers to do proper locking and get rid of the
+> > > v4l2-dev global lock. This is probably less work than it sounds.
+> > > 
+> > > Since your patch moves everything down to the driver level it will actually
+> > > make this work harder rather than easier. And it touches almost all drivers
+> > > as well.
+> > 
+> > Every driver will need to be carefully checked to make sure the BKL can be 
+> > replaced by a v4l2-dev global mutex. Why would it be more difficult to do so 
+> > if the BKL is pushed down to the drivers ?
+> 
+> The main reason is really that pushing the bkl into the v4l core makes it
+> easier to review. I noticed for example that this patch series forgot to change
+> the video_ioctl2 call in ivtv-ioctl.c to video_ioctl2_unlocked. And there may
+> be other places as well that were missed. Having so many drivers changed also
+> means a lot of careful reviewing.
 
-This is really config data that it needs to get at load time.
 
-Implemented this in cx25840 and ivtv.
+Indeed, that's because I did it in a half automated way and my script
+didn't took the direct calls to video_ioctl2() into account, so I had
+to check them manually and probably missed a few, I will fix this one and
+double check.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/cx25840/cx25840-core.c |   23 +++++++++++++++--------
- drivers/media/video/cx25840/cx25840-core.h |    8 --------
- drivers/media/video/ivtv/ivtv-driver.c     |    9 +--------
- drivers/media/video/ivtv/ivtv-i2c.c        |    7 +++++++
- include/media/cx25840.h                    |   11 +++++++++++
- 5 files changed, 34 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-index 8b6fb35..528bd00 100644
---- a/drivers/media/video/cx25840/cx25840-core.c
-+++ b/drivers/media/video/cx25840/cx25840-core.c
-@@ -915,11 +915,6 @@ static int cx25840_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
- 	switch (ctrl->id) {
--	case CX25840_CID_ENABLE_PVR150_WORKAROUND:
--		state->pvr150_workaround = ctrl->value;
--		set_input(client, state->vid_input, state->aud_input);
--		break;
--
- 	case V4L2_CID_BRIGHTNESS:
- 		if (ctrl->value < 0 || ctrl->value > 255) {
- 			v4l_err(client, "invalid brightness setting %d\n",
-@@ -982,9 +977,6 @@ static int cx25840_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
- 	switch (ctrl->id) {
--	case CX25840_CID_ENABLE_PVR150_WORKAROUND:
--		ctrl->value = state->pvr150_workaround;
--		break;
- 	case V4L2_CID_BRIGHTNESS:
- 		ctrl->value = (s8)cx25840_read(client, 0x414) + 128;
- 		break;
-@@ -1595,10 +1587,25 @@ static int cx25840_log_status(struct v4l2_subdev *sd)
- 	return 0;
- }
- 
-+static int cx25840_s_config(struct v4l2_subdev *sd, int irq, void *platform_data)
-+{
-+	struct cx25840_state *state = to_state(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
-+
-+	if (platform_data) {
-+		struct cx25840_platform_data *pdata = platform_data;
-+
-+		state->pvr150_workaround = pdata->pvr150_workaround;
-+		set_input(client, state->vid_input, state->aud_input);
-+	}
-+	return 0;
-+}
-+
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_subdev_core_ops cx25840_core_ops = {
- 	.log_status = cx25840_log_status,
-+	.s_config = cx25840_s_config,
- 	.g_chip_ident = cx25840_g_chip_ident,
- 	.g_ctrl = cx25840_g_ctrl,
- 	.s_ctrl = cx25840_s_ctrl,
-diff --git a/drivers/media/video/cx25840/cx25840-core.h b/drivers/media/video/cx25840/cx25840-core.h
-index 04393b9..32ab9d5 100644
---- a/drivers/media/video/cx25840/cx25840-core.h
-+++ b/drivers/media/video/cx25840/cx25840-core.h
-@@ -26,14 +26,6 @@
- #include <media/v4l2-chip-ident.h>
- #include <linux/i2c.h>
- 
--/* ENABLE_PVR150_WORKAROUND activates a workaround for a hardware bug that is
--   present in Hauppauge PVR-150 (and possibly PVR-500) cards that have
--   certain NTSC tuners (tveeprom tuner model numbers 85, 99 and 112). The
--   audio autodetect fails on some channels for these models and the workaround
--   is to select the audio standard explicitly. Many thanks to Hauppauge for
--   providing this information. */
--#define CX25840_CID_ENABLE_PVR150_WORKAROUND (V4L2_CID_PRIVATE_BASE+0)
--
- struct cx25840_state {
- 	struct i2c_client *c;
- 	struct v4l2_subdev sd;
-diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-index 1b79475..85aab0e 100644
---- a/drivers/media/video/ivtv/ivtv-driver.c
-+++ b/drivers/media/video/ivtv/ivtv-driver.c
-@@ -1253,15 +1253,8 @@ int ivtv_init_on_first_open(struct ivtv *itv)
- 	IVTV_DEBUG_INFO("Getting firmware version..\n");
- 	ivtv_firmware_versions(itv);
- 
--	if (itv->card->hw_all & IVTV_HW_CX25840) {
--		struct v4l2_control ctrl;
--
-+	if (itv->card->hw_all & IVTV_HW_CX25840)
- 		v4l2_subdev_call(itv->sd_video, core, load_fw);
--		/* CX25840_CID_ENABLE_PVR150_WORKAROUND */
--		ctrl.id = V4L2_CID_PRIVATE_BASE;
--		ctrl.value = itv->pvr150_workaround;
--		v4l2_subdev_call(itv->sd_video, core, s_ctrl, &ctrl);
--	}
- 
- 	vf.tuner = 0;
- 	vf.type = V4L2_TUNER_ANALOG_TV;
-diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
-index a5b92d1..d391bbd 100644
---- a/drivers/media/video/ivtv/ivtv-i2c.c
-+++ b/drivers/media/video/ivtv/ivtv-i2c.c
-@@ -63,6 +63,7 @@
- #include "ivtv-cards.h"
- #include "ivtv-gpio.h"
- #include "ivtv-i2c.h"
-+#include <media/cx25840.h>
- 
- /* i2c implementation for cx23415/6 chip, ivtv project.
-  * Author: Kevin Thayer (nufan_wfk at yahoo.com)
-@@ -292,6 +293,12 @@ int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
- 	if (hw == IVTV_HW_UPD64031A || hw == IVTV_HW_UPD6408X) {
- 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
- 				adap, mod, type, 0, I2C_ADDRS(hw_addrs[idx]));
-+	} else if (hw == IVTV_HW_CX25840) {
-+		struct cx25840_platform_data pdata;
-+
-+		pdata.pvr150_workaround = itv->pvr150_workaround;
-+		sd = v4l2_i2c_new_subdev_cfg(&itv->v4l2_dev,
-+				adap, mod, type, 0, &pdata, hw_addrs[idx], NULL);
- 	} else {
- 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
- 				adap, mod, type, hw_addrs[idx], NULL);
-diff --git a/include/media/cx25840.h b/include/media/cx25840.h
-index 0b0cb17..df28412 100644
---- a/include/media/cx25840.h
-+++ b/include/media/cx25840.h
-@@ -97,4 +97,15 @@ enum cx25840_audio_input {
- 	CX25840_AUDIO8,
- };
- 
-+/* pvr150_workaround activates a workaround for a hardware bug that is
-+   present in Hauppauge PVR-150 (and possibly PVR-500) cards that have
-+   certain NTSC tuners (tveeprom tuner model numbers 85, 99 and 112). The
-+   audio autodetect fails on some channels for these models and the workaround
-+   is to select the audio standard explicitly. Many thanks to Hauppauge for
-+   providing this information.
-+   This platform data only needs to be supplied by the ivtv driver. */
-+struct cx25840_platform_data {
-+	int pvr150_workaround;
-+};
-+
- #endif
--- 
-1.6.4.2
+> 
+> But I will not block this change. However, I do think it would be better to
+> create a video_ioctl2_bkl rather than add a video_ioctl2_unlocked. The current
+> video_ioctl2 function *is* already unlocked. So you are subtle changing the
+> behavior of video_ioctl2. Not a good idea IMHO. And yes, grepping for
+> video_ioctl2_bkl is also easy to do and makes it more obvious that the BKL is
+> used in drivers that call this.
+
+
+Totally agreed, will respin with this rename.
+
+Thanks.
 
