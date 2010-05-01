@@ -1,115 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2948 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755208Ab0EXTL0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 15:11:26 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4OJBL81071092
-	for <linux-media@vger.kernel.org>; Mon, 24 May 2010 21:11:25 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 24 May 2010 21:11:21 +0200 (CEST)
-Message-Id: <201005241911.o4OJBL81071092@smtp-vbr16.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1584 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751327Ab0EANLn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 09:11:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Doing a stable v4l-utils release
+Date: Sat, 1 May 2010 15:12:33 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <4BD5423B.4040200@redhat.com> <201004280822.03571.hverkuil@xs4all.nl> <201004300843.23675.hverkuil@xs4all.nl>
+In-Reply-To: <201004300843.23675.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005011512.33643.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Friday 30 April 2010 08:43:23 Hans Verkuil wrote:
+> On Wednesday 28 April 2010 08:22:03 Hans Verkuil wrote:
+> > On Tuesday 27 April 2010 10:08:06 Hans de Goede wrote:
+> > > Hi,
+> > > 
+> > > On 04/26/2010 09:55 AM, Hans Verkuil wrote:
+> > > > On Monday 26 April 2010 09:35:23 Hans de Goede wrote:
+> > > >> Hi all,
+> > > >>
+> > > >> Currently v4l-utils is at version 0.7.91, which as the version
+> > > >> suggests is meant as a beta release.
+> > > >>
+> > > >> As this release seems to be working well I would like to do
+> > > >> a v4l-utils-0.8.0 release soon. This is a headsup, to give
+> > > >> people a chance to notify me of any bugs they would like to
+> > > >> see fixed first / any patches they would like to add first.
+> > > >
+> > > > This is a good opportunity to mention that I would like to run checkpatch
+> > > > over the libs and clean them up.
+> > > >
+> > > > I also know that there is a bug in the control handling code w.r.t.
+> > > > V4L2_CTRL_FLAG_NEXT_CTRL. I have a patch, but I'd like to do the clean up
+> > > > first.
+> > > >
+> > > > If no one else has major patch series that they need to apply, then I can
+> > > > start working on this. The clean up is just purely whitespace changes to
+> > > > improve readability, no functionality will be touched.
+> > > >
+> > > 
+> > > I've no big changes planned on the short term, so from my pov go ahead.
+> > 
+> > As you noticed I have cleaned up the includes, libv4l1 and libv4l2. libv4lconvert
+> > is a lot more work, so I will do that bit by bit, hopefully this week.
+> 
+> I just finished doing the checkpatch conversions (phew!). This weekend I will
+> push the control bug fix and I also have a v4l2-ctl enhancement pending that
+> I will try to upstream today.
 
-Results of the daily build of v4l-dvb:
+I've finished with my changes, so as far as I am concerned you can prepare a
+new release.
 
-date:        Mon May 24 19:00:22 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14873:b576509ea6d2
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Regards,
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc7-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc7-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc7-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc7-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc7-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc7-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc7-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc7-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc7-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+	Hans
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
