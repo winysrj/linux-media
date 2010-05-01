@@ -1,62 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.tkos.co.il ([62.219.50.35]:55488 "EHLO tango.tkos.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752916Ab0EXNWD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 09:22:03 -0400
-From: Baruch Siach <baruch@tkos.co.il>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCH v2 0/3] Driver for the i.MX2x CMOS Sensor Interface
-Date: Mon, 24 May 2010 16:20:38 +0300
-Message-Id: <cover.1274706733.git.baruch@tkos.co.il>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:39680 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754018Ab0EATVj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 15:21:39 -0400
+Received: by vws19 with SMTP id 19so929575vws.19
+        for <linux-media@vger.kernel.org>; Sat, 01 May 2010 12:21:38 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sat, 1 May 2010 12:21:38 -0700
+Message-ID: <y2wa3ef07921005011221h4b71c791p7c906ab150875144@mail.gmail.com>
+Subject: av7110 crash when unloading.
+From: VDR User <user.vdr@gmail.com>
+To: "mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and
-platform code for the i.MX25 and i.MX27 chips. This driver is based on a 
-driver for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has 
-posted in linux-media last December[1]. I tested the mx2_camera driver on the 
-i.MX25 PDK. Sascha Hauer has tested a earlier version of this driver on an 
-i.MX27 based board. I included in this version some fixes from Sascha that 
-enable i.MX27 support.
+I just grabbed the latest hg tree and got the following when I tried
+to unload the drivers for my nexus-s:
 
-[1] https://patchwork.kernel.org/patch/67636/
+Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+test kernel: [  814.077154] Oops: 0000 [#1] SMP
 
-Changes v1 -> v2
-    Addressed the comments of Guennadi Liakhovetski except from the following:
+Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+test kernel: [  814.077156] last sysfs file:
+/sys/devices/virtual/vtconsole/vtcon0/uevent
 
-    1. The mclk_get_divisor implementation, since I don't know what this code 
-       is good for
+Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+test kernel: [  814.077193] Process rmmod (pid: 5099, ti=f6a54000
+task=f5311490 task.ti=f6a54000)
 
-    2. mx2_videobuf_release should not set pcdev->active on i.MX27, because 
-       mx27_camera_frame_done needs this pointer
+Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+test kernel: [  814.077300] CR2: 0000000000000000
 
-    3. In mx27_camera_emma_buf_init I don't know the meaning of those hard 
-       coded magic numbers
+Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+test kernel: [  814.077296] EIP: [<f98dfeaa>]
+v4l2_device_unregister+0x14/0x4f [videodev] SS:ESP 0068:f6a55e7c
 
-    Applied i.MX27 fixes from Sascha.
+Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+test kernel: [  814.077273] Code: 89 c3 8b 00 85 c0 74 0d 31 d2 e8 90
+91 8c c7 c7 03 00 00 00 00 5b c3 57 85 c0 56 89 c6 53 74 42 e8 da ff
+ff ff 8b 5e 04 83 c6 04 <8b> 3b eb 2f 89 d8 e8 fb fe ff ff f6 43 0c 01
+74 0c 8b 43 3c 85
 
-Baruch Siach (3):
-  mx2_camera: Add soc_camera support for i.MX25/i.MX27
-  mx27: add support for the CSI device
-  mx25: add support for the CSI device
+Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+test kernel: [  814.077195] Stack:
 
- arch/arm/mach-mx2/clock_imx27.c          |    2 +-
- arch/arm/mach-mx2/devices.c              |   31 +
- arch/arm/mach-mx2/devices.h              |    1 +
- arch/arm/mach-mx25/clock.c               |   14 +-
- arch/arm/mach-mx25/devices.c             |   22 +
- arch/arm/mach-mx25/devices.h             |    1 +
- arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
- arch/arm/plat-mxc/include/mach/mx25.h    |    2 +
- arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
- drivers/media/video/Kconfig              |   13 +
- drivers/media/video/Makefile             |    1 +
- drivers/media/video/mx2_camera.c         | 1471 ++++++++++++++++++++++++++++++
- 12 files changed, 1603 insertions(+), 5 deletions(-)
- create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
- create mode 100644 drivers/media/video/mx2_camera.c
+Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+test kernel: [  814.077211] Call Trace:
 
+The modules wouldn't unload and a reboot was needed to clear it.
