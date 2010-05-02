@@ -1,68 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:60261 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755035Ab0EZPGS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 11:06:18 -0400
-Received: by wwb13 with SMTP id 13so405515wwb.19
-        for <linux-media@vger.kernel.org>; Wed, 26 May 2010 08:06:16 -0700 (PDT)
-Date: Wed, 26 May 2010 16:58:10 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Beholder Intl. Ltd. Dmitry Belimov" <d.belimov@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch v4 1/2] video/saa7134: change dprintk() to i2cdprintk()
-Message-ID: <20100526145810.GN22515@bicker>
-References: <20100525091816.GA13034@bicker> <20100526144313.1d15222f@hyperion.delvare>
+Received: from mail.gmx.net ([213.165.64.20]:39559 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1758095Ab0EBT5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 May 2010 15:57:51 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: VDR User <user.vdr@gmail.com>
+Subject: Re: av7110 crash when unloading.
+Date: Sun, 2 May 2010 21:57:07 +0200
+Cc: "mailing list: linux-media" <linux-media@vger.kernel.org>
+References: <y2wa3ef07921005011221h4b71c791p7c906ab150875144@mail.gmail.com>
+In-Reply-To: <y2wa3ef07921005011221h4b71c791p7c906ab150875144@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
-In-Reply-To: <20100526144313.1d15222f@hyperion.delvare>
+Message-Id: <201005022157.08106@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The problem is that dprintk() dereferences "dev" which is null here.
-The i2cdprintk() uses "ir" so that's OK.
+Hi,
 
-Also Jean Delvare pointed out a typo in the comment so we may as well
-fix that.
+On Saturday 01 May 2010 21:21:38 VDR User wrote:
+> I just grabbed the latest hg tree and got the following when I tried
+> to unload the drivers for my nexus-s:
+> 
+> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> test kernel: [  814.077154] Oops: 0000 [#1] SMP
+> 
+> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> test kernel: [  814.077156] last sysfs file:
+> /sys/devices/virtual/vtconsole/vtcon0/uevent
+> 
+> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> test kernel: [  814.077193] Process rmmod (pid: 5099, ti=f6a54000
+> task=f5311490 task.ti=f6a54000)
+> 
+> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> test kernel: [  814.077300] CR2: 0000000000000000
+> 
+> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> test kernel: [  814.077296] EIP: [<f98dfeaa>]
+> v4l2_device_unregister+0x14/0x4f [videodev] SS:ESP 0068:f6a55e7c
+> 
+> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> test kernel: [  814.077273] Code: 89 c3 8b 00 85 c0 74 0d 31 d2 e8 90
+> 91 8c c7 c7 03 00 00 00 00 5b c3 57 85 c0 56 89 c6 53 74 42 e8 da ff
+> ff ff 8b 5e 04 83 c6 04 <8b> 3b eb 2f 89 d8 e8 fb fe ff ff f6 43 0c 01
+> 74 0c 8b 43 3c 85
+> 
+> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> test kernel: [  814.077195] Stack:
+> 
+> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> test kernel: [  814.077211] Call Trace:
+> 
+> The modules wouldn't unload and a reboot was needed to clear it.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Acked-by: Jean Delvare <khali@linux-fr.org>
----
-v2: Jean Delvare suggested that I use i2cdprintk() instead of modifying
-dprintk().
-v3: V2 had a bonus cleanup that I removed from v3
-v4: Fixed typo in the comment.
+See
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg16895.html
 
-diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-index e5565e2..7691bf2 100644
---- a/drivers/media/video/saa7134/saa7134-input.c
-+++ b/drivers/media/video/saa7134/saa7134-input.c
-@@ -141,8 +141,8 @@ static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 	struct saa7134_dev *dev = ir->c->adapter->algo_data;
- 
- 	if (dev == NULL) {
--		dprintk("get_key_flydvb_trio: "
--			 "gir->c->adapter->algo_data is NULL!\n");
-+		i2cdprintk("get_key_flydvb_trio: "
-+			   "ir->c->adapter->algo_data is NULL!\n");
- 		return -EIO;
- 	}
- 
-@@ -195,8 +195,8 @@ static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, u32 *ir_key,
- 	/* <dev> is needed to access GPIO. Used by the saa_readl macro. */
- 	struct saa7134_dev *dev = ir->c->adapter->algo_data;
- 	if (dev == NULL) {
--		dprintk("get_key_msi_tvanywhere_plus: "
--			"gir->c->adapter->algo_data is NULL!\n");
-+		i2cdprintk("get_key_msi_tvanywhere_plus: "
-+			   "ir->c->adapter->algo_data is NULL!\n");
- 		return -EIO;
- 	}
- 
+CU
+Oliver
 
-
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
