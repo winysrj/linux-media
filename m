@@ -1,77 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60725 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752208Ab0EXP0z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 11:26:55 -0400
-From: Martin Dauskardt <martin.dauskardt@gmx.de>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3218 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932200Ab0EBUPM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 16:15:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: Kernel oops with current hg (ir-sysfs.c ?)
-Date: Mon, 24 May 2010 17:26:52 +0200
+Subject: Re: av7110 crash when unloading.
+Date: Sun, 2 May 2010 22:16:14 +0200
+Cc: VDR User <user.vdr@gmail.com>, Oliver Endriss <o.endriss@gmx.de>
+References: <y2wa3ef07921005011221h4b71c791p7c906ab150875144@mail.gmail.com> <201005022157.08106@orion.escape-edv.de>
+In-Reply-To: <201005022157.08106@orion.escape-edv.de>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201005241726.52932.martin.dauskardt@gmx.de>
+Message-Id: <201005022216.14727.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I guess it is a similar problem like the one that was solved a few months ago with this patch:
-http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/14232
+On Sunday 02 May 2010 21:57:07 Oliver Endriss wrote:
+> Hi,
+> 
+> On Saturday 01 May 2010 21:21:38 VDR User wrote:
+> > I just grabbed the latest hg tree and got the following when I tried
+> > to unload the drivers for my nexus-s:
+> > 
+> > Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> > test kernel: [  814.077154] Oops: 0000 [#1] SMP
+> > 
+> > Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> > test kernel: [  814.077156] last sysfs file:
+> > /sys/devices/virtual/vtconsole/vtcon0/uevent
+> > 
+> > Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> > test kernel: [  814.077193] Process rmmod (pid: 5099, ti=f6a54000
+> > task=f5311490 task.ti=f6a54000)
+> > 
+> > Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> > test kernel: [  814.077300] CR2: 0000000000000000
+> > 
+> > Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> > test kernel: [  814.077296] EIP: [<f98dfeaa>]
+> > v4l2_device_unregister+0x14/0x4f [videodev] SS:ESP 0068:f6a55e7c
+> > 
+> > Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> > test kernel: [  814.077273] Code: 89 c3 8b 00 85 c0 74 0d 31 d2 e8 90
+> > 91 8c c7 c7 03 00 00 00 00 5b c3 57 85 c0 56 89 c6 53 74 42 e8 da ff
+> > ff ff 8b 5e 04 83 c6 04 <8b> 3b eb 2f 89 d8 e8 fb fe ff ff f6 43 0c 01
+> > 74 0c 8b 43 3c 85
+> > 
+> > Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> > test kernel: [  814.077195] Stack:
+> > 
+> > Message from syslogd@test at Sat May  1 12:19:23 2010 ...
+> > test kernel: [  814.077211] Call Trace:
+> > 
+> > The modules wouldn't unload and a reboot was needed to clear it.
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> See
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg16895.html
+> 
+> CU
+> Oliver
+> 
+> 
 
-I compiled the current v4l-dvb hg against the 2.6.32 Ubuntu 10.04 kernel
+The patch to fix this is in the git fixes tree for quite some time, but since
+it hasn't been upstreamed yet it is still not in the v4l-dvb git or hg trees.
+I've asked Mauro when he is going to do that, I can't do much more.
 
+For the time being you can apply the diff from fixes.git:
 
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.629408] DVB: registering new adapter (TT-Budget C-1501 PCI)
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.646949] tda9887 3-0043: i2c i/o error: rc == -5 (should be 4)
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.649823] tda9887 3-0043: i2c i/o error: rc == -5 (should be 4)
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.666028] adapter has MAC addr = 00:d0:5c:c6:5a:11
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692518] Registered IR keymap rc-tt-1500
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692545] BUG: unable to handle kernel NULL pointer dereference at (null)
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692554] IP: [<f825bd7e>] ir_register_class+0x3e/0x190 [ir_core]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692566] *pde = 00000000
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692571] Oops: 0000 [#1] SMP
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692575] last sysfs file: /sys/module/ir_core/initstate
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692580] Modules linked in: rc_tt_1500 tda10021 snd_hda_codec_realtek tuner_simple tuner_types tda9887 tda8290 tuner msp3400 snd_hda_intel$
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692659]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692663] Pid: 375, comm: modprobe Not tainted (2.6.32-22-generic #33-Ubuntu) M56S-S3
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692669] EIP: 0060:[<f825bd7e>] EFLAGS: 00010246 CPU: 0
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692677] EIP is at ir_register_class+0x3e/0x190 [ir_core]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692681] EAX: 00000000 EBX: f6375000 ECX: 00000000 EDX: 00000100
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692686] ESI: f4fa6000 EDI: 00000000 EBP: f61d5d78 ESP: f61d5d4c
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692691]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692697] Process modprobe (pid: 375, ti=f61d4000 task=f61b6680 task.ti=f61d4000)
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692704] Stack:
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692707]  00000246 f825ba47 c24054e0 f825ba47 001d5d64 00000128 f4fa6000 0000003f
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692717] <0> faee9068 00000027 f4fa6000 f61d5db0 f825bb7c 0000009f 00000000 f8ce32ef
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692728] <0> c0588f82 f825cc11 00000296 f637513c f6375120 f6375000 f6827000 f4fa6000
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692741] Call Trace:
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692750]  [<f825ba47>] ? __ir_input_register+0x167/0x350 [ir_core]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692759]  [<f825ba47>] ? __ir_input_register+0x167/0x350 [ir_core]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692769]  [<f825bb7c>] ? __ir_input_register+0x29c/0x350 [ir_core]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692779]  [<c0588f82>] ? printk+0x1d/0x23
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692789]  [<f8ce1153>] ? budget_ci_attach+0x193/0xd80 [budget_ci]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692800]  [<f81ffeac>] ? saa7146_init_one+0x7dc/0x860 [saa7146]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692811]  [<c01078d0>] ? dma_generic_alloc_coherent+0x0/0xc0
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692821]  [<c0363883>] ? local_pci_probe+0x13/0x20
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692827]  [<c0364688>] ? pci_device_probe+0x68/0x90
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692835]  [<c03e688d>] ? really_probe+0x4d/0x140
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692843]  [<c03ed19e>] ? pm_runtime_barrier+0x4e/0xc0
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692850]  [<c03e69bc>] ? driver_probe_device+0x3c/0x60
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692857]  [<c03e6a61>] ? __driver_attach+0x81/0x90
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692864]  [<c03e5ea3>] ? bus_for_each_dev+0x53/0x80
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692871]  [<c03e675e>] ? driver_attach+0x1e/0x20
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692877]  [<c03e69e0>] ? __driver_attach+0x0/0x90
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692884]  [<c03e6125>] ? bus_add_driver+0xd5/0x280
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692890]  [<c03645c0>] ? pci_device_remove+0x0/0x40
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692897]  [<c03e6d5a>] ? driver_register+0x6a/0x130
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692903]  [<c03648c5>] ? __pci_register_driver+0x45/0xb0
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692913]  [<f81fed63>] ? saa7146_register_extension+0x53/0x90 [saa7146]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692923]  [<f8ce700d>] ? budget_ci_init+0xd/0xf [budget_ci]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692929]  [<c0101131>] ? do_one_initcall+0x31/0x190
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692937]  [<f8ce7000>] ? budget_ci_init+0x0/0xf [budget_ci]
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692945]  [<c0182340>] ? sys_init_module+0xb0/0x210
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692951]  [<c01033ec>] ? syscall_call+0x7/0xb
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.692956] Code: 00 89 c6 8d 80 a0 07 00 00 e8 bf a7 18 c8 ba 00 01 00 00 89 c3 b8 0c d4 25 f8 e8 6e ec 0e c8 89 c7 85 ff 78 6f 8b 83 44 01 $
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.693003] EIP: [<f825bd7e>] ir_register_class+0x3e/0x190 [ir_core] SS:ESP 0068:f61d5d4c
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.693015] CR2: 0000000000000000
-May 24 13:30:22 ubuntuvdr1 kernel: [    5.693020] ---[ end trace 2c915ef882a2f862 ]---
+http://git.linuxtv.org/fixes.git?a=commitdiff_plain;h=40358c8b5380604ac2507be2fac0c9bbd3e02b73
+
+Save to e.g. fix.diff, go to the linux directory in your v4l-dvb tree and apply it.
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
