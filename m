@@ -1,36 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta3.srv.hcvlny.cv.net ([167.206.4.198]:35236 "EHLO
-	mta3.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932088Ab0EGTlD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 15:41:03 -0400
-Received: from MacBook-Pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta3.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0L22004VNEOCDZ40@mta3.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Fri, 07 May 2010 15:41:01 -0400 (EDT)
-Date: Fri, 07 May 2010 15:41:00 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Time to merge support for new HVR-2200?
-In-reply-to: <4BE44C77.1060401@gmail.com>
-To: RoboSK <ucet.na.diskusie@gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:41511 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755181Ab0EBUlw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 16:41:52 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 02/15] [RFC] v4l2-ctrls: reorder 'case' statements to match order in header.
+Date: Sun, 2 May 2010 22:42:26 +0200
 Cc: linux-media@vger.kernel.org
-Message-id: <4BE46CCC.5000305@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4BE407F9.8040409@barber-family.id.au>
- <4BE4185D.3010902@kernellabs.com> <4BE439EC.4090100@gmail.com>
- <4BE44877.2090907@kernellabs.com> <4BE44C77.1060401@gmail.com>
+References: <cover.1272267136.git.hverkuil@xs4all.nl> <5f14ea711d1d98ea7fbdfbbc27422e679a9a1f63.1272267137.git.hverkuil@xs4all.nl>
+In-Reply-To: <5f14ea711d1d98ea7fbdfbbc27422e679a9a1f63.1272267137.git.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005022242.26593.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 5/7/10 1:23 PM, RoboSK wrote:
-> -sorry, my bad (use reply and dont check target email...)
-> -i im from Europe/PAL system - it is supported ?
+Hi Hans,
 
-No.
+On Monday 26 April 2010 09:33:33 Hans Verkuil wrote:
+> To make it easier to determine whether all controls are added in
+> v4l2-ctrls.c the case statements inside the switch are re-ordered to match
+> the header.
+> 
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+This patch should be merged with the previous one.
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Regards,
 
+Laurent Pinchart
