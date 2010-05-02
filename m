@@ -1,51 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53132 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756305Ab0EJUCi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 May 2010 16:02:38 -0400
-Message-ID: <4BE86655.6070202@redhat.com>
-Date: Mon, 10 May 2010 17:02:29 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-out3.blueyonder.co.uk ([195.188.213.6]:56776 "EHLO
+	smtp-out3.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758751Ab0EBVYs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 May 2010 17:24:48 -0400
+Received: from [172.23.170.140] (helo=anti-virus02-07)
+	by smtp-out3.blueyonder.co.uk with smtp (Exim 4.52)
+	id 1O8ged-0006cL-7Y
+	for linux-media@vger.kernel.org; Sun, 02 May 2010 22:24:47 +0100
+Received: from [82.44.72.151] (helo=cpc1-nmal4-0-0-cust150.croy.cable.virginmedia.com)
+	by asmtp-out5.blueyonder.co.uk with esmtp (Exim 4.52)
+	id 1O8geZ-00061F-Lr
+	for linux-media@vger.kernel.org; Sun, 02 May 2010 22:24:43 +0100
+Date: Sun, 2 May 2010 22:24:44 +0100 (BST)
+From: John J Lee <jjl@pobox.com>
+To: linux-media@vger.kernel.org
+Subject: Re: saa7146 firmware upload time?
+In-Reply-To: <alpine.DEB.2.00.1005022118000.4041@alice>
+Message-ID: <alpine.DEB.2.00.1005022222540.4041@alice>
+References: <alpine.DEB.2.00.1005021904150.4041@alice> <201005022154.37226@orion.escape-edv.de> <alpine.DEB.2.00.1005022118000.4041@alice>
 MIME-Version: 1.0
-To: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [hg:v4l-dvb] Add FE_CAN_PSK_8 to allow apps to identify PSK_8
- capable DVB devices
-References: <E1OBKmg-0006RZ-4R@www.linuxtv.org> <4BE84649.3010507@tvdr.de>
-In-Reply-To: <4BE84649.3010507@tvdr.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Klaus Schmidinger wrote:
-> On 10.05.2010 06:40, Patch from Klaus Schmidinger wrote:
->> The patch number 14692 was added via Douglas Schilling Landgraf <dougsland@redhat.com>
->> to http://linuxtv.org/hg/v4l-dvb master development tree.
->>
->> Kernel patches in this development tree may be modified to be backward
->> compatible with older kernels. Compatibility modifications will be
->> removed before inclusion into the mainstream Kernel
->>
->> If anyone has any objections, please let us know by sending a message to:
->> 	Linux Media Mailing List <linux-media@vger.kernel.org>
-> 
-> This patch should not have been applied, as was decided in
-> the original thread.
+On Sun, 2 May 2010, John J Lee wrote:
 
-Douglas is synchronizing with git. As the revert patch is a separate patch,
-he'll probably apply it later, after finishing sync with -git.
+> On Sun, 2 May 2010, Oliver Endriss wrote:
+> [...]
+>> Obviously, the firmware is not loaded at modprobe time. It is loaded
+>> when an application opens the frontend for the first time.
+> [...]
+>
+> Thanks.
+>
+> Before the frontend can be opened, open(2) must be called on a v4l device 
+> file, right?  I don't appear to have such a device file (no /dev/video*, no 
+> /dev/dvb/adaptor*/video*).  I had assumed the missing device file was caused 
+> by the failure to load the firmware.  So it's still not clear to me how to 
+> trigger the firmware loading process again (though clearly something I did 
+> today triggered it once), or indeed whether that is the problem I should be 
+> trying to solve.
+>
+> Clues welcome
 
-> I'm still waiting for any response to my new patch, posted in
-> 
->   "[PATCH] Add FE_CAN_TURBO_FEC (was: Add FE_CAN_PSK_8 to allow apps to identify PSK_8 capable DVB devices)"
-> 
-> which replaces my original suggestion.
+OK, I still don't understand how it works, but I successfully triggered 
+the firmware loading process by running kaffeine.  Thanks for your help.
 
-Your new patch is already queued at Patchwork. In order to avoid the risk 
-of applying it earlier, I'm waiting for some more acks/comments before 
-applying it. If nothing happens, I'll queue it for 2.6.35, since, for me
-your new patch is ok.
 
-Cheers,
-Mauro
+John
+
