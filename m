@@ -1,71 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27925 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752189Ab0EDTuL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 May 2010 15:50:11 -0400
-Message-ID: <4BE07A6A.9000303@redhat.com>
-Date: Tue, 04 May 2010 16:50:02 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1468 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758420Ab0EBSMA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 14:12:00 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: em28xx & sliced VBI
+Date: Sun, 2 May 2010 20:13:03 +0200
+Cc: linux-media@vger.kernel.org
+References: <201005012312.14082.hverkuil@xs4all.nl> <k2w829197381005021025ra9b453bfv54900a16ae5fb580@mail.gmail.com> <y2l829197381005021049ze19f886cyedeeb79da4d87229@mail.gmail.com>
+In-Reply-To: <y2l829197381005021049ze19f886cyedeeb79da4d87229@mail.gmail.com>
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 calculating urb buffer
-References: <4BDB067E.4070501@arcor.de> <4BDB3017.9070101@arcor.de> <4BE03F8D.1050905@arcor.de> <4BE066B7.2050704@redhat.com> <4BE071C2.4050309@arcor.de>
-In-Reply-To: <4BE071C2.4050309@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201005022013.03216.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
-
->>> datagram from urb to videobuf
->>>
->>> urb           copy to     temp         copy to         1. videobuf
->>>                          buffer                        2. audiobuf
->>>                                                        3. vbi
->>> 184 Packets   ------->   184 * 3072    ---------->     4. etc.
->>> a 3072 bytes               bytes
->>>                184 *                   3072 *
->>>              3072 bytes              180 bytes
->>>                                 (184 bytes - 4 bytes
->>>                                     header )
->> In order to receive 184 packets with 3072 bytes each, the USB code will
->> try to allocate the next power-of-two memory block capable of receiving
->> such data block. As: 184 * 3072 = 565248, the kernel allocator will seek
->> for a continuous block of 1 MB, that can do DMA transfers (required by
->> ehci driver). On a typical machine, due to memory fragmentation,
->> in general, there aren't many of such blocks. So, this will increase the
->> probability of not having any such large block available, causing an
-> horrible
->> dump at kernel, plus a -ENOMEM on the driver, generally requiring a reboot
->> if you want to run the driver again.
->>
-> And direct copy from urb to videobuf/alsa/vbi in 184 Bytes segments.
+On Sunday 02 May 2010 19:49:33 Devin Heitmueller wrote:
+> On Sun, May 2, 2010 at 1:25 PM, Devin Heitmueller
+> <dheitmueller@kernellabs.com> wrote:
+> > On Sat, May 1, 2010 at 5:12 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >> Hi all,
+> >>
+> >> I played a bit with my HVR900 and tried the sliced VBI API. Unfortunately I
+> >> discovered that it is completely broken. Part of it is obvious: lots of bugs
+> >> and code that does not follow the spec, but I also wonder whether it ever
+> >> actually worked.
+> >>
+> >> Can anyone shed some light on this? And is anyone interested in fixing this
+> >> driver?
+> >>
+> >> I can give pointers and help with background info, but I do not have the time
+> >> to work on this myself.
+> >>
+> >> Regards,
+> >>
+> >>        Hans
+> >
+> > Hi Hans,
+> >
+> > I did the em28xx raw VBI support, and I can confirm that the sliced
+> > support is completely broken.  I just forgot to send the patch
+> > upstream which removes it from the set of v4l2 capabilities advertised
+> > for the device.
 > 
-> urb                      1. videobuf
->               copy to    2. audiobuf
->                          3. vbi
-> 184 Packets   ------->   4. etc.
-> a 3072 bytes   
->               180 Bytes (without headers)
+> Sorry, I forgot to answer the second half of the email.
+> 
+> We've got no plans to get the sliced VBI support working in em28xx.
+> Everybody who has asked KernelLabs to do the work has been perfectly
+> satisfied with the raw VBI support, so it just doesn't feel like there
+> is a benefit worthy of the effort required.  Also, as far as I can
+> tell, every Windows application I have seen which uses VBI against the
+> em28xx all do it in raw mode, so I don't even have a way of verifying
+> that the sliced VBI even works with the chip.
+> 
+> The time is better spent working on other things, although we should
+> definitely do a one line patch so that the driver doesn't claim to
+> support sliced mode.
 
-That's basically what that logic does. It preserves the header if you select
-TM6000 format (so, no checks for the start of the block, etc), or copies
-just the data, if you select YUY2 or UYUV.
+Why not just nuke everything related to sliced VBI? Just leave a comment
+saying that you should look at older versions if you want to resurrect sliced
+vbi. That's what version control systems are for.
 
-> or how can I copy 180 Bytes Data from 184 Bytes block with an
-> anligment of 184 urb pipe (184 * 3072 Bytes)?
+I hate code that doesn't do anything. It pollutes the source, it confuses the
+reader and it increases the size for no good reason. And people like me spent
+time flogging a dead horse :-(
 
-A 184 x 3072 URB pipe is a big problem. We used a large pipe in the past, and this
-won't work. For example, on a notebook I used to run some tests with 1 GB of
-ram after starting X and do anything (like opening a browser), the URB
-allocation used to fail, as there weren't any available 1MB segment at
-the DMA area. Even without starting X, after a few tests, it would eventually
-have fragmented the memory and the driver stops working.
+Sliced VBI really only makes sense in combination with compressed video
+streams. Or perhaps on SoCs where you don't want to process the raw VBI.
 
+Regards,
+
+	Hans
 
 -- 
-
-Cheers,
-Mauro
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
