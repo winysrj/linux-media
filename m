@@ -1,122 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lennier.cc.vt.edu ([198.82.162.213]:49869 "EHLO
-	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751084Ab0ETRv7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 May 2010 13:51:59 -0400
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Subject: Re: [PATCH] input: fix error at the default input_get_keycode call
-In-Reply-To: Your message of "Thu, 20 May 2010 01:55:50 -0300."
-             <4BF4C0D6.9030808@redhat.com>
-From: Valdis.Kletnieks@vt.edu
-References: <4BF4C0D6.9030808@redhat.com>
+Received: from lo.gmane.org ([80.91.229.12]:46467 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755580Ab0EBNZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 May 2010 09:25:08 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1O8ZAN-0000c9-Kq
+	for linux-media@vger.kernel.org; Sun, 02 May 2010 15:25:03 +0200
+Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 02 May 2010 15:25:03 +0200
+Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 02 May 2010 15:25:03 +0200
+To: linux-media@vger.kernel.org
+From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
+Subject: Re: Reponse from Geniatech Re: X8000A and KWorld ATSC 120
+Date: Sun, 2 May 2010 13:14:29 +0000 (UTC)
+Message-ID: <hrjtrk$d21$1@dough.gmane.org>
+References: <200904131742.17404.vanessaezekowitz@gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1274377906_3881P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Date: Thu, 20 May 2010 13:51:46 -0400
-Message-ID: <9427.1274377906@localhost>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---==_Exmh_1274377906_3881P
-Content-Type: text/plain; charset=us-ascii
+In the past year and a half, my personal life took turns for the crazier 
+and crazier. some time prior to that, I had near perfect support working 
+for all functions of this card, including IR, but it never made it into 
+mercurial due to a disagreement with Mauro about what I saw as 
+fundamental changes needed to the cx88 driver design. However, this 
+vendor support offer has my attention for a different reason: Having 
+successfully added support for the AVerMedia Volar A868R, I've been asked 
+to see what I can do about Geniatech's MyGica A680B stick. There is 
+already a wiki entry on it:
+http://www.linuxtv.org/wiki/index.php/Sabrent_TV-USBHD
+If what Fang offered for the X8000A he can provide for the A680B, the 
+longstanding issues could be resolved regarding this tree:
+http://linuxtv.org/hg/~mkrufky/teledongle
+Since it has been so long since the quoted message, I thought it best to 
+ask this list whether there was any further communication. Has there been?
 
-On Thu, 20 May 2010 01:55:50 -0300, Mauro Carvalho Chehab said:
-> [   76.376140] BUG: unable to handle kernel NULL pointer dereference at (null)
-> [   76.376670] IP: [<c138b6d0>] input_default_getkeycode_from_index+0x40/0x60
-> [   76.376670] *pde = 00000000
-> [   76.376670] Oops: 0002 [#1] SMP
-> [   76.376670] last sysfs file: /sys/devices/virtual/block/dm-5/range
-> [   76.376670] Modules linked in: ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables ipv6 dm_mirror dm_region_hash dm_log uinput snd_intel8x0 snd_ac97_codec ac97_bus snd_seq snd_seq_device snd_pcm snd_timer snd ppdev sg parport_pc soundcore k8temp snd_page_alloc forcedeth pcspkr hwmon parport i2c_nforce2 sd_mod crc_t10dif sr_mod cdrom pata_acpi ata_generic pata_amd sata_nv floppy nouveau ttm drm_kms_helper drm i2c_algo_bit i2c_core dm_mod [last unloaded: scsi_wait_scan]
-> [   76.376670]
-> [   76.376670] Pid: 6183, comm: getkeycodes Not tainted 2.6.34 #11 C51MCP51/
-> [   76.376670] EIP: 0060:[<c138b6d0>] EFLAGS: 00210046 CPU: 0
-> [   76.376670] EIP is at input_default_getkeycode_from_index+0x40/0x60
-> [   76.376670] EAX: 00000000 EBX: 00000000 ECX: 00000002 EDX: f53ebdc8
-> [   76.376670] ESI: f53ebdc8 EDI: f5daf794 EBP: f53ebdb8 ESP: f53ebdb4
-> [   76.376670]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
-> [   76.376670] Process getkeycodes (pid: 6183, ti=f53ea000 task=f53bd060 task.ti=f53ea000)
-> [   76.376670] Stack:
-> [   76.376670]  f5daf000 f53ebdec c138d233 f53ebe30 00200286 00000000 00000000 00000004
-> [   76.376670] <0> 00000000 00000000 00000000 f53ebe2c f5da0340 c16c12cc f53ebdf8 c12f4148
-> [   76.376670] <0> c12f4130 f53ebe24 c138d9f8 00000002 00000001 00000000 c138d980 c12f4130
-> [   76.376670] Call Trace:
-> [   76.376670]  [<c138d233>] ? input_get_keycode+0x73/0x90
+On Mon, 13 Apr 2009 17:42:17 -0500, Vanessa Ezekowitz wrote:
+
+> Hi all.  As a follow-up to the remote control support issue for the
+> Kworld ATSC 120, Geniatech sent me a very encouraging reply today.
 > 
-> input_default_getkeycode_from_index() returns the scancode at kt_entry.scancode
-> pointer. Fill it with the scancode address at the function call.
+> Anyone want to take Fang up on his offer?
 > 
-> Thanks-to: Vladis Kletnieks <Valdis.Kletnieks@vt.edu> for pointing the issue
 > 
-> Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ----------  Forwarded Message  ----------
 > 
-> diff --git a/drivers/input/input.c b/drivers/input/input.c
-> index 3b63fad..7851d8e 100644
-
-Still dies, but in input_set_keycode() instead...
-
-[   35.294528] BUG: unable to handle kernel NULL pointer dereference at (null)
-[   35.295005] IP: [<(null)>] (null)
-[   35.296935] PGD 11da3c067 PUD 11d4ad067 PMD 0 
-[   35.296935] Oops: 0010 [#1] PREEMPT SMP 
-[   35.299667] last sysfs file: /sys/devices/pci0000:00/0000:00:1a.7/usb1/idVendor
-[   35.300328] CPU 0 
-[   35.300328] Modules linked in:
-[   35.300328] 
-[   35.300328] Pid: 2481, comm: keymap Not tainted 2.6.34-mmotm0519 #1 0X564R/Latitude E6500                  
-[   35.300328] RIP: 0010:[<0000000000000000>]  [<(null)>] (null)
-[   35.300328] RSP: 0018:ffff88011d4d5cb0  EFLAGS: 00010046
-[   35.310163] RAX: 0000000000000000 RBX: ffff88011c03e000 RCX: 0000000000000081
-[   35.310163] RDX: ffff88011d4d5cc4 RSI: ffff88011d4d5cc8 RDI: ffff88011c03e000
-[   35.310163] RBP: ffff88011d4d5d28 R08: ffff88011e9b28e8 R09: 0000000000000001
-[   35.310163] R10: ffffffff81e0b160 R11: 0000000000000004 R12: 00000000000000a4
-[   35.310163] R13: ffff88011c03e830 R14: 0000000000000286 R15: ffff88011d4d5cc8
-[   35.310163] FS:  00007f4b86283700(0000) GS:ffff880002600000(0000) knlGS:0000000000000000
-[   35.319397] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-[   35.319397] CR2: 0000000000000000 CR3: 000000011d575000 CR4: 00000000000406f0
-[   35.319397] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-[   35.319397] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-[   35.319397] Process keymap (pid: 2481, threadinfo ffff88011d4d4000, task ffff88011e9b28c0)
-[   35.319397] Stack:
-[   35.319397]  ffffffff813bf3d1 ffff88011d4d5cf8 0000008100000246 00000081000000a4
-[   35.319397] <0> 0000000000000004 0000000000000000 ffff88011d4d5cc4 ffff88011cf11200
-[   35.319397] <0> ffff88011c179000 ffff88011d4d5d28 0000000000000081 00007fff9ee21fa0
-[   35.319397] Call Trace:
-[   35.319397]  [<ffffffff813bf3d1>] ? input_set_keycode+0xad/0x12c
-[   35.319397]  [<ffffffff813c231d>] evdev_do_ioctl+0x22b/0x79b
-[   35.337913]  [<ffffffff815a4b04>] ? __mutex_lock_common+0x564/0x580
-[   35.337913]  [<ffffffff813c28ca>] ? evdev_ioctl_handler+0x3d/0x80
-[   35.341507]  [<ffffffff813c28ca>] ? evdev_ioctl_handler+0x3d/0x80
-[   35.341507]  [<ffffffff813c28f0>] evdev_ioctl_handler+0x63/0x80
-[   35.344034]  [<ffffffff813c292a>] evdev_ioctl+0xb/0xd
-[   35.344034]  [<ffffffff810ea6cd>] vfs_ioctl+0x2d/0xa1
-[   35.344034]  [<ffffffff810eac4c>] do_vfs_ioctl+0x494/0x4cd
-[   35.344034]  [<ffffffff810eacdc>] sys_ioctl+0x57/0x95
-[   35.344034]  [<ffffffff8100266b>] system_call_fastpath+0x16/0x1b
-[   35.344034] Code:  Bad RIP value.
-[   35.344034] RIP  [<(null)>] (null)
-[   35.344034]  RSP <ffff88011d4d5cb0>
-[   35.344034] CR2: 0000000000000000
-[   35.357018] ---[ end trace 394fa5aa8a77b6f3 ]---
-
-
-
---==_Exmh_1274377906_3881P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFL9XaycC3lWbTT17ARApG+AKDezzGdQzYunyE0JYq/IBcUIFrNYACeM/r2
-uZBtdfk9sZx3AXfcWxWkZZ8=
-=diQj
------END PGP SIGNATURE-----
-
---==_Exmh_1274377906_3881P--
+> Subject: 答复: Technical request regarding the HDTV Thriller X8000A Date:
+> Monday 13 April 2009
+> From: "Fang" <Fjj@geniatech.com>
+> To: "'Vanessa Ezekowitz'" <vanessaezekowitz@gmail.com>
+> 
+> Dear Vanessa Ezekowitz:
+> 
+> 
+> Thanks for your inquiry.
+> 
+> My name is Fang, product manager of Geniatech.
+> 
+> 1st, we can provide you the remote decoder IC information, including I2C
+> address, r/w API, it is simple, read I2C address every 150ms, and you
+> can get the the key stroke decoding value.
+> 
+> 2nd, we have step products and both follow this protocol, so it is
+> useful for all our products.
+> 
+> 3rd, we'd like to support you directly from the Geniatech, that card is
+> designed by us.
+> 
+> Finnally,  I'd like to ask you if you can port more linux drivers if we
+> send you samples and tech informations for our other 2 ATSC products:
+> X8350 and X8550.
+> 
+> I will send you more detailed tech information to you about the remote
+> IC whatever your answer is.
+> 
+> Best Regards
+> Fang
+> 
+> -----邮件原件-----
+> 发件人: Vanessa Ezekowitz [mailto:vanessaezekowitz@gmail.com] 发送时间:
+> 2009年4月10日 5:36
+> 收件人: support@geniatech.com
+> 主题: Technical request regarding the HDTV Thriller X8000A
+> 
+> THIS IS NOT A USER SUPPORT OR DRIVER REQUEST - WE ALREADY HAVE DRIVERS.
+> 
+> THIS IS A PROGRAMMER'S REQUEST FOR TECHNICAL INFORMATION.
+> 
+> To whom it may concern,
+> 
+> Some time back, I wrote you asking about technical information regarding
+> the Thriller X8000A board.  I never received a reply, so I am writing
+> again.
+> 
+> I own a card that is a chip-for-chip, wire-for-wire clone of the
+> Thriller X8000A, the Kworld HD PCI 120 (also called the "ATSC 120" for
+> short) - it is programmatically indistinguishable from your card.  My
+> apologies in advance if I have mistaken which company first made this
+> particular card.
+> 
+> Anyway...  The manufacturer of my card is refusing to answer my
+> question, claiming that the data I request has been outright lost and
+> can't even be communicated between departments within the company.
+> 
+> So now, I turn to you, as the maker of a 100% compatible card.
+> 
+> We of the Linux community have successfully written open-source drivers
+> for most of the ATSC120/X8000A's  features, except for one:  we wish to
+> add support for this card's remote control unit.
+> 
+> The Linux Community, whom I am sure you are aware represents a very
+> large, rapidly growing market, cannot in good conscience recommend any
+> cards, Geniatech or otherwise, which lack complete programming
+> information.
+> 
+> QUESTION:
+> 
+> On my particular card, this appears to be a 20 pin SMD IC near the IR
+> sensor connector.  the manufacturer of my cloned card has deliberately
+> removed all the markings from the chip, save for a single green dot of
+> paint, and users who own your card have reported similar circumstances.
+> 
+> Is this mystery chip the remote decoder/receiver chip as I suspect?
+> 
+> What is the part number of this chip?
+> 
+> What I2C address does it occupy?
+> 
+> Where can I acquire a datasheet for it?
+> 
+> I await your reply.
+> 
+> --
+> "There are some things in life worth obsessing over.  Most things
+> aren't, and when you learn that, life improves."
+> http://starbase.globalpc.net/~vanessa/ Vanessa Ezekowitz
+> <vanessaezekowitz@gmail.com>
 
