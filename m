@@ -1,32 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.154]:21290 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751849Ab0E3Ihr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 04:37:47 -0400
-Received: by fg-out-1718.google.com with SMTP id l26so350769fgb.1
-        for <linux-media@vger.kernel.org>; Sun, 30 May 2010 01:37:46 -0700 (PDT)
-Date: Sun, 30 May 2010 10:37:42 +0200
-From: Davor Emard <davoremard@gmail.com>
-To: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-Cc: Another Sillyname <anothersname@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: TBS 6980 Dual Tuner PCI-e card.....not in Wiki at all?
-Message-ID: <20100530083723.GA9158@emard.lan>
-References: <AANLkTikyQt4CKLQ1JqjeiNZLMv9Fa9YzcV-BcROd1QWe@mail.gmail.com>
- <AANLkTik_Pqab77LY-XpBdeQ8rSUkP2k9AxyIvzRygbBE@mail.gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:39747 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758704Ab0EBU5x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 16:57:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [ANNOUNCEMENT] Media controller tree updated
+Date: Sun, 2 May 2010 22:58:24 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <201004292307.04385.laurent.pinchart@ideasonboard.com> <4BDB7EFA.1020802@redhat.com>
+In-Reply-To: <4BDB7EFA.1020802@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTik_Pqab77LY-XpBdeQ8rSUkP2k9AxyIvzRygbBE@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005022258.25293.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> hello, i can't comment on your questions about the Wiki, but i made
-> the driver for TBS 6980 and i can ensure you that the driver will be
-> released as open-source under GPL as soon as i have permission to do
-> that, but compared to other cards at least even at the moment you can
+Hi Mauro,
 
-Does this card need some firmware (and if it needs is it open or closed 
-source)
+On Saturday 01 May 2010 03:08:10 Mauro Carvalho Chehab wrote:
+> Hi Laurent,
+> 
+> Laurent Pinchart wrote:
+> > Hi everybody,
+> > 
+> > The next version of the media controller patches is available in git at
+> > 
+> > http://git.linuxtv.org/pinchartl/v4l-dvb-media.git
+> > 
+> > To avoid putting too much pressure on the linuxtv.org git server, please
+> > make sure you reference an existing mainline Linux git tree when cloning
+> > v4l-dvb- media (see the --reference option to git-clone).
+> 
+> I've made a small script that added the proper instructions to the existing
+> clones of the kernel tree. Please check if it is ok.
 
+Sounds good. Maybe we should also hint that people can clone the git tree 
+using the --reference argument, that saves lots of disk space.
+
+> The script is not automatic. When I have some time, I'll integrate it with
+> some tool to run it automatically after a new tree is added there, but,
+> for now, I need to run it after I notice that somebody created a new tree.
+> The script has a basic test to discover that the tree is based on Kernel
+> tree: it checks if a "v2.6.32" tag exist at the new tree (ok, I confess: I
+> was very lazy when I wrote the script... it works with the current trees,
+> but we need a more reliable way, if we want to run automatically).
+
+-- 
+Regards,
+
+Laurent Pinchart
