@@ -1,34 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail15.adl6.internode.on.net ([150.101.137.100]:43490 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751759Ab0EEFEI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 01:04:08 -0400
-Received: from Jeds-Mini.local (unverified [118.208.148.114])
-	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id 11524119-1927428
-	for <linux-media@vger.kernel.org>; Wed, 05 May 2010 14:34:03 +0930 (CST)
-Message-ID: <4BE0FC87.4010406@gmail.com>
-Date: Wed, 05 May 2010 15:05:11 +1000
-From: Jed <jedi.theone@gmail.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:61364 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754291Ab0EBF2N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 01:28:13 -0400
+Received: by pva4 with SMTP id 4so82799pva.19
+        for <linux-media@vger.kernel.org>; Sat, 01 May 2010 22:28:12 -0700 (PDT)
+Message-ID: <4BDD0D66.5070709@gmail.com>
+Date: Sun, 02 May 2010 15:28:06 +1000
+From: vincent.mcintyre@gmail.com
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Hauppauge HVR-4400
-References: <201005041400.10530.jan_moebius@web.de> <z2q829197381005040636vbd2d7254n4674dcc21cc751f4@mail.gmail.com> <4BE03311.4010702@gmail.com> <4BE03D6A.5060100@kernellabs.com>
-In-Reply-To: <4BE03D6A.5060100@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Randy Dunlap <rdunlap@xenotime.net>, linux-media@vger.kernel.org
+Subject: Re: [OT] preferred video apps?
+References: <20100430095721.b1da05af.rdunlap@xenotime.net> <4BDB7A5B.7070204@redhat.com>
+In-Reply-To: <4BDB7A5B.7070204@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On 5/4/10 10:45 AM, Jed wrote:
->> Oh wow I didn't know Hauppauge had released some new models above the
->> 2200.
->> http://www.hauppauge.co.uk/site/products/prods_hvr_internal.html
->> Is this 4400 exactly the same as the HVR-2200, aside from the
->> demodulator used for it's DVB-S/S2?
->> I hope so, that way work being done on the 2200 can flow onto this!
->> (cept for DVB-S/S2)
->
-> It's completely different.
+On 1/05/10 10:48 AM, Mauro Carvalho Chehab wrote:
 
-Bummer!!!  :(
-Why'd they have to go & use a completely different architecture, lame.
+> Please, _do_not_ reply privately ;)
+>
+
+I've found VLC useful for testing reception quality "by eye",
+though it's not obvious how to force usage of a particular tuner.
+I am pretty sure it can record.
+
+Also '{c,s,t}zap' ow w-zap are helpful for quick tests of basic 
+functionality like tuning, and with the signaltest.pl script
+( http://linuxtv.org/wiki/index.php/Testing_reception_quality)
+
+I use MythTV in 'production' but I find it a bit clumsy for testing with.
+
+Cheers
+Vince
+
