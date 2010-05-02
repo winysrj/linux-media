@@ -1,169 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:44119 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753290Ab0EZOzi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 10:55:38 -0400
-Date: Wed, 26 May 2010 09:55:37 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: "A. F. Cano" <afc@shibaya.lonestar.org>
-cc: linux-media@vger.kernel.org
-Subject: Re: Subject: Composite input from OnAir Creator - use as security
- camera
-In-Reply-To: <20100526004644.GA23817@shibaya.lonestar.org>
-Message-ID: <alpine.DEB.1.10.1005260952070.23087@cnc.isely.net>
-References: <20100526004644.GA23817@shibaya.lonestar.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from bombadil.infradead.org ([18.85.46.34]:49265 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752418Ab0EBXyi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 19:54:38 -0400
+Received: from 201-13-168-84.dial-up.telesp.net.br ([201.13.168.84] helo=[192.168.30.170])
+	by bombadil.infradead.org with esmtpsa (Exim 4.69 #1 (Red Hat Linux))
+	id 1O8izd-0003v9-JC
+	for linux-media@vger.kernel.org; Sun, 02 May 2010 23:54:37 +0000
+Message-ID: <4BDE10A8.4040500@infradead.org>
+Date: Sun, 02 May 2010 20:54:16 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: "linux-me >> Linux Media Mailing List" <linux-media@vger.kernel.org>
+Subject: [PATCH] tm6000: Don't copy outside the buffer
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
+BUG: unable to handle kernel paging request at 000000000100f700
+IP: [<ffffffffa007ee79>] tm6000_irq_callback+0x51e/0xac7 [tm6000]
+    
+(gdb) list * tm6000_irq_callback+0x51e
+0x2e79 is in tm6000_irq_callback (drivers/staging/tm6000/tm6000-video.c:363).
+358                                             dev->isoc_ctl.tmp_buf_len--;
+359                                     }
+360                                     if (dev->isoc_ctl.tmp_buf_len) {
+361                                             memcpy (&header,p,
+362                                                     dev->isoc_ctl.tmp_buf_l$
+363                                             memcpy (((u8 *)header)+
+364                                                     dev->isoc_ctl.tmp_buf,
+365                                                     ptr,
+366                                                     4-dev->isoc_ctl.tmp_buf$
+367                                             ptr+=4-dev->isoc_ctl.tmp_buf_le$
+    
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-The pvrusb2 driver does not currently support uncompressed video 
-capture.  Rather, the data arrives to the application as mpeg2.  There 
-are numerous ways to use this data.  You can make it work with mplayer 
-for example, but not when mplayer is in pure V4L mode.  Rather than 
-repeating it all here, check out the pvrusb2 web site which has a list 
-of various apps and how to make each one work (or why it won't work).  
-The relevant part for you should be here:
-
-http://www.isely.net/pvrusb2/usage.html#V4L
-
-  -Mike
-
-
-
-On Tue, 25 May 2010, A. F. Cano wrote:
-
-> 
-> Hello,
-> 
-> I would like to be able to capture video from a camera connected to the
-> composite video input of an OnAir Creator.  I have tried motion, mplayer,
-> kaffeine, mythtv, xawtv and none have worked so far.  Hopefully it's something
-> trivial that I'm doing wrong.  I am using an up to date Debian Lenny
-> distribution.
-> 
-> Months (or even 1+ years) ago, I gave the OnAir Creator a try and had issues
-> with having to hunt down the firmware file.  Since I don't get firmware error
-> messages, I presume this issue is no longer relevant, or is it?  My previous
-> experience was with Etch, Lenny was installed from scratch, so if the firmware
-> didn't get installed automatically, it isn't in place.
-> 
-> This is the kernel used:
-> 
-> Linux version 2.6.26-2-686 (Debian 2.6.26-21lenny4) (dannf@debian.org) (gcc version 4.1.3 20080704 (prerelease) (Debian 4.1.2-25)) #1 SMP Tue Mar 9 17:35:51 UTC 2010
-> 
-> It seems the problem is that an ioctl() call is failing.  Is this a case of
-> Lenny being too old or is there a more fundamental problem?  Do I need to send
-> something to the Creator to get it to start sending? or is this automatic when
-> the applications start?
-> 
-> It would be nice to use the Creator inputs (composite for now, but if I could
-> get it to work the S-video input would be even better) for digitizing old
-> analog video tapes, essentially making a video-capture device.
-> 
-> o Motion
-> 
-> "motion" would be the ideal application.  I have it properly configured and it
-> works with usb web cams, but the quality of the picture is horrible.  I have
-> an old NTSC video conferencing camera that has a much better picture, but
-> motion doesn't seem to be able to deal with the OnAir Creator:
-> 
-> 
-> [1] cap.driver: "pvrusb2"
-> [1] cap.card: "OnAir Creator Hybrid USB tuner"
-> [1] cap.bus_info: "usb 4-3 address 11"
-> [1] cap.capabilities=0x01070011
-> [1] - VIDEO_CAPTURE
-> [1] - VBI_CAPTURE
-> [1] - TUNER
-> [1] - AUDIO
-> [1] - READWRITE
-> [1] VIDIOC_S_FREQUENCY: Numerical result out of range
-> [1] Supported palettes:
-> [1] 0:
-> [1] Unable to find a compatible palette format.
-> [1] ioctl(VIDIOCGMBUF) - Error device does not support memory map
-> [1] V4L capturing using read is deprecated!
-> [1] Motion only supports mmap.
-> [1] Capture error calling vid_start
-> [1] Thread finishing...
-> 
-> Is there anything that can be done about this? or is "motion" a lost cause?
-> 
-> o Mplayer
-> 
-> $ mplayer -tv input=1:normid=16 tv://
-> MPlayer dev-SVN-r26940
-> CPU: Intel(R) Pentium(R) M processor 1400MHz (Family: 6, Model: 9, Stepping: 5)
-> CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
-> Compiled with runtime CPU detection.
-> Can't open joystick device /dev/input/js0: No such file or directory
-> Can't init input joystick
-> mplayer: could not connect to socket
-> mplayer: No such file or directory
-> Failed to open LIRC support. You will not be able to use your remote control.
-> 
-> Playing tv://.
-> TV file format detected.
-> Selected driver: v4l2
->  name: Video 4 Linux 2 input
->  author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
->  comment: first try, more to come ;-)
-> Selected device: OnAir Creator Hybrid USB tuner
->  Tuner cap:
->  Tuner rxs:
->  Capabilites:  video capture  VBI capture device  tuner  audio  read/write
->  supported norms: 0 = PAL-B/G; 1 = PAL-D/K; 2 = SECAM-B/G; 3 = SECAM-D/K; 4 = PAL-B; 5 = PAL-B1; 6 = PAL-G; 7 = PAL-H; 8 = PAL-I; 9 = PAL-D; 10 = PAL-D1; 11 = PAL-K; 12 = PAL-M; 13 = PAL-N; 14 = PAL-Nc; 15 = PAL-60; 16 = NTSC-M; 17 = NTSC-Mj; 18 = NTSC-443; 19 = NTSC-Mk; 20 = SECAM-B; 21 = SECAM-D; 22 = SECAM-G; 23 = SECAM-H; 24 = SECAM-K; 25 = SECAM-K1; 26 = SECAM-L; 27 = SECAM-LC;
->  inputs: 0 = television; 1 = composite; 2 = s-video;
->  Current input: 1
->  Current format: unknown (0x0)
-> v4l2: current audio mode is : MONO
-> v4l2: ioctl request buffers failed: Invalid argument
-> v4l2: 0 frames successfully processed, 0 frames dropped.
-> 
-> 
-> Exiting... (End of file)
-> 
-> So in this case, with the input=1 option, it seems that at least I'm getting to
-> the correct input, but overall it also fails.  Can mplayer be given other
-> options to make it work? or is this also a lost cause?  I have tried with all
-> the NTSC norms: same result.
-> 
-> o Kaffeine and MythTV
-> 
-> In those two apps, I can't find where to configure it to use the composite
-> input.  Plus, they are way too much for what I need, but if I could use
-> MythTV with zone minder as has been mentioned in the MythTV list, it would do
-> nicely.  Unfortunately, zone minder doesn't seem to be in Lenny.
-> 
-> Months (years?) ago, I did manage to get MythTV to work with analog signals
-> but the reception was horrible so I gave up.  Watching TV is not a high
-> priority and I never installed the amplified roof antenna.  I never figured
-> out how to select the composite or S-video inputs from within MythTV.
-> 
-> o xawtv
-> 
-> xawtv doesn't have a norm for NTSC (only PAL and SECAM) so even though I can
-> select the composite input:  no picture.  It also says:
-> 
-> v4l-conf had some trouble, trying to continue anyway
-> Warning: Cannot convert string "-*-ledfixed-medium-r-*--39-*-*-*-c-*-*-*" to type FontStruct
-> v4l2: read: rc=262144/size=442368
-> 
-> So,  what else can I try?  Any hints welcome.  Thanks.
-> 
-> A.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index 3317220..4444487 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -358,13 +358,13 @@ static int copy_streams(u8 *data, u8 *out_p, unsigned long len,
+ 					dev->isoc_ctl.tmp_buf_len--;
+ 				}
+ 				if (dev->isoc_ctl.tmp_buf_len) {
+-					memcpy (&header,p,
++					memcpy(&header, p,
+ 						dev->isoc_ctl.tmp_buf_len);
+-					memcpy (((u8 *)header)+
+-						dev->isoc_ctl.tmp_buf,
++					memcpy((u8 *)&header +
++						dev->isoc_ctl.tmp_buf_len,
+ 						ptr,
+-						4-dev->isoc_ctl.tmp_buf_len);
+-					ptr+=4-dev->isoc_ctl.tmp_buf_len;
++						4 - dev->isoc_ctl.tmp_buf_len);
++					ptr += 4 - dev->isoc_ctl.tmp_buf_len;
+ 					goto HEADER;
+ 				}
+ 			}
 
 -- 
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+Cheers,
+Mauro
