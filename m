@@ -1,101 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:32825 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755163Ab0ECAB4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 20:01:56 -0400
-Message-ID: <4BDE1267.2040508@infradead.org>
-Date: Sun, 02 May 2010 21:01:43 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from kroah.org ([198.145.64.141]:45516 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754919Ab0ECRYM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 May 2010 13:24:12 -0400
+Date: Mon, 3 May 2010 10:15:48 -0700
+From: Greg KH <greg@kroah.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Viral Mehta <Viral.Mehta@lntinfotech.com>,
+	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"robert.lukassen@tomtom.com" <robert.lukassen@tomtom.com>
+Subject: Re: [PATCH 1/2] USB gadget: video class function driver
+Message-ID: <20100503171548.GA11151@kroah.com>
+References: <1272826662-8279-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1272826662-8279-2-git-send-email-laurent.pinchart@ideasonboard.com>
+ <70376CA23424B34D86F1C7DE6B9973430254343AAE@VSHINMSMBX01.vshodc.lntinfotech.com>
+ <201005031430.00428.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, VDR User <user.vdr@gmail.com>,
-	Oliver Endriss <o.endriss@gmx.de>,
-	Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: av7110 crash when unloading.
-References: <y2wa3ef07921005011221h4b71c791p7c906ab150875144@mail.gmail.com> <201005022157.08106@orion.escape-edv.de> <201005022216.14727.hverkuil@xs4all.nl>
-In-Reply-To: <201005022216.14727.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201005031430.00428.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Sunday 02 May 2010 21:57:07 Oliver Endriss wrote:
->> Hi,
->>
->> On Saturday 01 May 2010 21:21:38 VDR User wrote:
->>> I just grabbed the latest hg tree and got the following when I tried
->>> to unload the drivers for my nexus-s:
->>>
->>> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
->>> test kernel: [  814.077154] Oops: 0000 [#1] SMP
->>>
->>> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
->>> test kernel: [  814.077156] last sysfs file:
->>> /sys/devices/virtual/vtconsole/vtcon0/uevent
->>>
->>> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
->>> test kernel: [  814.077193] Process rmmod (pid: 5099, ti=f6a54000
->>> task=f5311490 task.ti=f6a54000)
->>>
->>> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
->>> test kernel: [  814.077300] CR2: 0000000000000000
->>>
->>> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
->>> test kernel: [  814.077296] EIP: [<f98dfeaa>]
->>> v4l2_device_unregister+0x14/0x4f [videodev] SS:ESP 0068:f6a55e7c
->>>
->>> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
->>> test kernel: [  814.077273] Code: 89 c3 8b 00 85 c0 74 0d 31 d2 e8 90
->>> 91 8c c7 c7 03 00 00 00 00 5b c3 57 85 c0 56 89 c6 53 74 42 e8 da ff
->>> ff ff 8b 5e 04 83 c6 04 <8b> 3b eb 2f 89 d8 e8 fb fe ff ff f6 43 0c 01
->>> 74 0c 8b 43 3c 85
->>>
->>> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
->>> test kernel: [  814.077195] Stack:
->>>
->>> Message from syslogd@test at Sat May  1 12:19:23 2010 ...
->>> test kernel: [  814.077211] Call Trace:
->>>
->>> The modules wouldn't unload and a reboot was needed to clear it.
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> See
->> http://www.mail-archive.com/linux-media@vger.kernel.org/msg16895.html
->>
->> CU
->> Oliver
->>
->>
+On Mon, May 03, 2010 at 02:29:57PM +0200, Laurent Pinchart wrote:
+> Hi Viral,
 > 
-> The patch to fix this is in the git fixes tree for quite some time, but since
-> it hasn't been upstreamed yet it is still not in the v4l-dvb git or hg trees.
-> I've asked Mauro when he is going to do that, I can't do much more.
+> On Monday 03 May 2010 13:14:11 Viral Mehta wrote:
+> > Hi,
+> > 
+> > >This USB video class function driver implements a video capture device
+> > >from the host's point of view. It creates a V4L2 output device on the
+> > >gadget's side to transfer data from a userspace application over USB.
+> > >
+> > >The UVC-specific descriptors are passed by the gadget driver to the UVC
+> > >function driver, making them completely configurable without any
+> > >modification to the function's driver code.
+> > 
+> > I wanted to test this code. I git cloned[1] tree. It has v4l2-event.[c,h]
+> > and so I assume that now this tree has support for v4l2 event code.
+> > 
+> > But, while compilation, I am getting this error.
+> > [root@viral linux-next]# make uImage > /dev/null && make modules
+> >   CHK     include/linux/version.h
+> >   CHK     include/generated/utsrelease.h
+> > make[1]: `include/generated/mach-types.h' is up to date.
+> >   CALL    scripts/checksyscalls.sh
+> >   Building modules, stage 2.
+> >   MODPOST 5 modules
+> > ERROR: "v4l2_event_dequeue" [drivers/usb/gadget/g_webcam.ko] undefined!
+> > ERROR: "v4l2_event_init" [drivers/usb/gadget/g_webcam.ko] undefined!
+> > make[1]: *** [__modpost] Error 1
+> > make: *** [modules] Error 2
+> > 
+> > And by looking at the code, those symbols are not exported and thus the
+> > error is obvious. Can you please point me out where to take v4l2-event
+> > code? I tried to look for on linuxtv.org but was not able to locate the
+> > right code.
+> > 
+> > [1]git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+> 
+> There's a patch pending on the linux-media list to export those two functions. 
+> It has been acked by Sakari (the author of the V4L2 events patch set), but not 
+> committed by Mauro to his linux-next yet. That should be a matter of days.
 
-My intention is to finish merging patches and sending the pending stuff upstream 
-tomorrow. That's said, I'll need to adopt a different procedure on -git, on order 
-to better handle merges. With the current way, we would backport from fixes.git
-only with 2.6.35 stable. I'll probably opt to have some topic branches and commit 
-work into a topic branch, only merging at master after being upstream.
+Do you have a pointer to that patch?  I'll take it into my usb tree for
+now, to keep things building, and let Mauro send it to Linus for
+merging.
 
-With relation to -hg, Douglas is the maintainer. I think he is considering to
-backport also from fixes.git.
-> 
-> For the time being you can apply the diff from fixes.git:
-> 
-> http://git.linuxtv.org/fixes.git?a=commitdiff_plain;h=40358c8b5380604ac2507be2fac0c9bbd3e02b73
-> 
-> Save to e.g. fix.diff, go to the linux directory in your v4l-dvb tree and apply it.
-> 
-> Regards,
-> 
-> 	Hans
-> 
+thanks,
 
-
--- 
-
-Cheers,
-Mauro
+greg k-h
