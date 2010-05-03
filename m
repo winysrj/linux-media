@@ -1,54 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:35138 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932073Ab0EXXWk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 19:22:40 -0400
-Date: Mon, 24 May 2010 17:22:37 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-kernel@vger.kernel.org, Harald Welte <laforge@gnumonks.org>,
-	linux-fbdev@vger.kernel.org, JosephChan@via.com.tw,
-	ScottFang@viatech.com.cn,
-	Bruno =?ISO-8859-1?B?UHLpbW9udA==?= <bonbons@linux-vserver.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/5] Add the viafb video capture driver
-Message-ID: <20100524172237.7c17cd57@bike.lwn.net>
-In-Reply-To: <4BF924E3.5020702@redhat.com>
-References: <1273098884-21848-1-git-send-email-corbet@lwn.net>
-	<1273098884-21848-6-git-send-email-corbet@lwn.net>
-	<4BF924E3.5020702@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail192.messagelabs.com ([216.82.241.243]:38706 "EHLO
+	mail192.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757662Ab0ECLOU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 07:14:20 -0400
+From: Viral Mehta <Viral.Mehta@lntinfotech.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"robert.lukassen@tomtom.com" <robert.lukassen@tomtom.com>
+Date: Mon, 3 May 2010 16:44:11 +0530
+Subject: RE: [PATCH 1/2] USB gadget: video class function driver
+Message-ID: <70376CA23424B34D86F1C7DE6B9973430254343AAE@VSHINMSMBX01.vshodc.lntinfotech.com>
+References: <1272826662-8279-1-git-send-email-laurent.pinchart@ideasonboard.com>,<1272826662-8279-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1272826662-8279-2-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 23 May 2010 09:51:47 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Hi,
 
-> The driver is OK to my eyes. I just found 2 minor coding style issues.
-> it is ok to me if you want to sent it via your git tree.
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>This USB video class function driver implements a video capture device from the
+>host's point of view. It creates a V4L2 output device on the gadget's side to
+>transfer data from a userspace application over USB.
 
-Great, thanks for taking a look!
+>The UVC-specific descriptors are passed by the gadget driver to the UVC
+>function driver, making them completely configurable without any modification
+>to the function's driver code.
 
-All of the precursor stuff is in mainline now, so it can go via whatever
-path.  I'll just go ahead and request a pull in the near future unless
-somebody objects.
+I wanted to test this code. I git cloned[1] tree. It has v4l2-event.[c,h] and
+so I assume that now this tree has support for v4l2 event code.
 
-> > +	.sizeimage	= VGA_WIDTH*VGA_HEIGHT*2,
-> 
-> CodingStyle: please use spaces between values/operators. Not sure why, but
-> newer versions of checkpatch.pl don't complain anymore on some cases.
+But, while compilation, I am getting this error.
+[root@viral linux-next]# make uImage > /dev/null && make modules
+  CHK     include/linux/version.h
+  CHK     include/generated/utsrelease.h
+make[1]: `include/generated/mach-types.h' is up to date.
+  CALL    scripts/checksyscalls.sh
+  Building modules, stage 2.
+  MODPOST 5 modules
+ERROR: "v4l2_event_dequeue" [drivers/usb/gadget/g_webcam.ko] undefined!
+ERROR: "v4l2_event_init" [drivers/usb/gadget/g_webcam.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
 
-Interesting...for all of my programming life I've left out spaces around
-multiplicative operators - a way of showing that they bind more tightly
-than the additive variety.  I thought everybody else did that too.
-CodingStyle agrees with you, though; I'll append a patch fixing these up.
-Learn something every day...
+And by looking at the code, those symbols are not exported and thus the error is obvious.
+Can you please point me out where to take v4l2-event code? I tried to look for on linuxtv.org but was not able to locate the right code.
+
+[1]git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
 
 Thanks,
+Viral
 
-jon
+This Email may contain confidential or privileged information for the intended recipient (s) If you are not the intended recipient, please do not use or disseminate the information, notify the sender and delete it from your system.
+
+______________________________________________________________________
