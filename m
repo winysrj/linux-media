@@ -1,51 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:41471 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758051Ab0EFNFd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 09:05:33 -0400
-Received: by wyb35 with SMTP id 35so1139033wyb.19
-        for <linux-media@vger.kernel.org>; Thu, 06 May 2010 06:05:31 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:58952 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S933379Ab0ECQkd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 12:40:33 -0400
+Date: Mon, 3 May 2010 18:40:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sedji Gaouaou <sedji.gaouaou@atmel.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-input@vger.kernel.org
+Subject: Re: ATMEL camera interface
+In-Reply-To: <4BDEEE38.9070801@atmel.com>
+Message-ID: <Pine.LNX.4.64.1005031836140.4231@axis700.grange>
+References: <4BD9AA8A.7030306@atmel.com> <Pine.LNX.4.64.1004291824200.4666@axis700.grange>
+ <4BDED3A8.4090606@atmel.com> <Pine.LNX.4.64.1005031556570.4231@axis700.grange>
+ <4BDEDB06.9090909@atmel.com> <Pine.LNX.4.64.1005031622040.4231@axis700.grange>
+ <4BDEEE38.9070801@atmel.com>
 MIME-Version: 1.0
-In-Reply-To: <k2u83bcf6341005060547v983baea9g9617c45fd577f414@mail.gmail.com>
-References: <i2kef62033e1005060450n93f9fe12jc535886682e055a7@mail.gmail.com>
-	 <l2i83bcf6341005060533zd92299a9y7b8037f0a46ff5cb@mail.gmail.com>
-	 <w2zef62033e1005060544ja4331869gcbc2ccdf95d57318@mail.gmail.com>
-	 <k2u83bcf6341005060547v983baea9g9617c45fd577f414@mail.gmail.com>
-Date: Thu, 6 May 2010 16:05:31 +0300
-Message-ID: <p2jef62033e1005060605v3b02ea04rf60adb4bd2ca15b3@mail.gmail.com>
-Subject: Re: Avermedia AverTV Capture HD support
-From: Omer Uner GUCLU <omerunerguclu@gmail.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I need frame grabber or capture card which has 1080i support for one
-application.
-Can you give me advice which card(s) suitable for our application.
+On Mon, 3 May 2010, Sedji Gaouaou wrote:
 
-Thanks,
+> Well sorry to bother you again but I am looking at the mx1_camera.c file, and
+> I wonder where are implemented the queue and dqueue functions?
+> 
+> The atmel IP is using linked list for the buffers, and previously I was
+> managing it in the queue and dqueue functions.
+> I am not sure where I should take care of it now?
 
-Omer
+qbuf and dqbuf are implemented by soc-camera in soc_camera_qbuf() and 
+soc_camera_dqbuf() respectively, drivers only implement methods from 
+struct videobuf_queue_ops, e.g., a .buf_queue method, which for mx1_camera 
+is implemented by mx1_videobuf_queue().
 
-2010/5/6 Steven Toth <stoth@kernellabs.com>:
-> On Thu, May 6, 2010 at 8:44 AM, Omer Uner GUCLU <omerunerguclu@gmail.com> wrote:
->> Steven,
->>
->> I do not know this card is same with you. lspci output is like that.
->>
->> 02:00.0 Multimedia video controller: Device 1a0a:6200 (rev 01)
->
-> Don't remove the mailing list cc, I've added it back.
->
-> Unless you have the datasheet for the TM6200 PCIe bridge then this
-> cannot happen, last I checked it was not freely available. So, I do
-> not think this is possible.
->
+Thanks
+Guennadi
+
+> 
+> 
 > Regards,
->
-> --
-> Steven Toth - Kernel Labs
-> http://www.kernellabs.com
->
+> Sedji
+> 
+> Le 5/3/2010 4:26 PM, Guennadi Liakhovetski a écrit :
+> > On Mon, 3 May 2010, Sedji Gaouaou wrote:
+> > 
+> > > Well I need contiguous memory, so I guess I will have a look at
+> > > mx1_camera.c?
+> > > Is there another example?
+> > > 
+> > > What do you mean by videobuf implementation? As I said I just need a
+> > > contiguous memory.
+> > 
+> > I mean, whether you're gping to use videobuf-dma-contig.c or
+> > videobuf-dma-sg.c, respectively, whether you'll be calling
+> > videobuf_queue_dma_contig_init() or videobuf_queue_sg_init() in your
+> > driver.
+> > 
+> > Regards
+> > Guennadi
+> > ---
+> > Guennadi Liakhovetski, Ph.D.
+> > Freelance Open-Source Software Developer
+> > http://www.open-technology.de/
+> > 
+> 
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
