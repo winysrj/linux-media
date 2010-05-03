@@ -1,59 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63664 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751288Ab0E2Dxn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 May 2010 23:53:43 -0400
-Date: Sat, 29 May 2010 00:53:14 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Daniel Mack <daniel@caiaq.de>,
-	Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org, Wolfram Sang <w.sang@pengutronix.de>,
-	Jiri Slaby <jslaby@suse.cz>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] drivers/media/dvb/dvb-usb/dib0700: CodingStyle fixes
-Message-ID: <20100529005314.3cea43d8@pedra>
-In-Reply-To: <20100524160215.GN30801@buzzloop.caiaq.de>
-References: <AANLkTimSMLPf697B831bEyiSaeKgcOlKPmnu-0EXuqtX@mail.gmail.com>
-	<1274714585-20544-1-git-send-email-daniel@caiaq.de>
-	<20100524155624.GA3182@core.coreip.homeip.net>
-	<20100524160215.GN30801@buzzloop.caiaq.de>
-Mime-Version: 1.0
+Received: from a.mx.esa.t-systems.com ([81.7.202.133]:58463 "EHLO
+	a.mx.esa.t-systems.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751094Ab0ECIjI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 04:39:08 -0400
+Content-class: urn:content-classes:message
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
+Subject: RE: [RFC 0/2] UVC gadget driver
+Date: Mon, 3 May 2010 10:29:17 +0200
+Message-ID: <D6DB9C7EDECDA944B870F62B587008622C89AB@NL-EXC-06.intra.local>
+References: <1272495179-2652-1-git-send-email-laurent.pinchart@ideasonboard.com> <201004290914.04140.laurent.pinchart@ideasonboard.com> <20100429073210.GA9462@kroah.com> <201004290934.50743.laurent.pinchart@ideasonboard.com>
+From: "Robert Lukassen" <Robert.Lukassen@tomtom.com>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
+	"Greg KH" <greg@kroah.com>
+Cc: <linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 24 May 2010 18:02:15 +0200
-Daniel Mack <daniel@caiaq.de> escreveu:
-
-> On Mon, May 24, 2010 at 08:56:24AM -0700, Dmitry Torokhov wrote:
-> > On Mon, May 24, 2010 at 05:23:05PM +0200, Daniel Mack wrote:
-> > > Signed-off-by: Daniel Mack <daniel@caiaq.de>
-> > > Cc: Wolfram Sang <w.sang@pengutronix.de>
-> > > Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> > > Cc: Jiri Slaby <jslaby@suse.cz>
-> > > Cc: Dmitry Torokhov <dtor@mail.ru>
-> > > Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-> > > Cc: linux-media@vger.kernel.org
+ 
+> > > Both drivers act as "webcams". Robert's version exports the local 
+> > > frame buffer through USB, making the "webcam" capture what's 
+> > > displayed on the device. My version exposes a V4L2 interface to 
+> > > userspace, allowing an application on the device to send 
+> whatever it 
+> > > wants over USB (for instance frames captured from a 
+> sensor, making 
+> > > the device a real camera).
 > > 
-> > Not sure how I got on the list but chnages look good to me.
-> 
-> get_maintainer.pl :)
+> > Ah.  So your's has the advantage of being able to do what 
+> his does as 
+> > well, right?
 
-It did a very bad work in this case... It selected a random set of people,
-but it forgot to add the email of the low level driver... 
-This driver is maintained by Patrick (c/c). My name is also ok (as I am the
-subsystem maintainer), but instead of c/c me, you can just copy
-linux-media@vger.kernel.org, since I work directly with the patchwork
-queue associated with the public ML.
+Our driver has been developed with an explicit goal of being 'transparent' for user-land. When an application uses a double-buffered framebuffer device for rendering, ALSA for sound playback and the linux input framework for input, then it just works. We have in the past also used a V4L2 like API on the video function, but stepped away from it as the framebuffer usually is uncached, and reading from the framebuffer is slow. In the approach you suggest, you'll have to memcpy() from a mmapped framebuffer to the V4L2 buffer. In the kernel driver, you'll have a copy of the data from the V4L2 buffer to the payload buffers. In the driver we've posted, data is copied from the framebuffer using an ordinary memcpy(), but for specific devices we've replaced that with a DMA memory copy. In that situation, the CPU doesn't do any copying of data and impact of streaming out video to a host is very low.
 
-Patrick,
+Laurent's driver is more generic, our's has been tuned to low impact/high performance. I believe there is value in both approaches, but if you want to avoid to have two function implementations of the same device class it would be right to favour Laurent's generality over our tuning. 
 
-Could you please review this patch and another one sent by Daniel at the ML?
+Please let me know if you still want me to post a patch for f_vdc as a separate function implementation.
 
--- 
+Regards,
 
-Cheers,
-Mauro
+Robert Lukassen 
