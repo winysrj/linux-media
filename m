@@ -1,63 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out3.blueyonder.co.uk ([195.188.213.6]:36553 "EHLO
-	smtp-out3.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754847Ab0EBSNK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 May 2010 14:13:10 -0400
-Received: from [172.23.170.137] (helo=anti-virus01-08)
-	by smtp-out3.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1O8dfA-0006hS-R1
-	for linux-media@vger.kernel.org; Sun, 02 May 2010 19:13:08 +0100
-Received: from [82.44.72.151] (helo=cpc1-nmal4-0-0-cust150.croy.cable.virginmedia.com)
-	by asmtp-out6.blueyonder.co.uk with esmtp (Exim 4.52)
-	id 1O8dfA-0007j8-Cy
-	for linux-media@vger.kernel.org; Sun, 02 May 2010 19:13:08 +0100
-Date: Sun, 2 May 2010 19:13:08 +0100 (BST)
-From: John J Lee <jjl@pobox.com>
-To: linux-media@vger.kernel.org
-Subject: saa7146 firmware upload time?
-Message-ID: <alpine.DEB.2.00.1005021904150.4041@alice>
+Received: from mx1.redhat.com ([209.132.183.28]:39977 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752975Ab0ECHjg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 May 2010 03:39:36 -0400
+Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o437dZBK029087
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 3 May 2010 03:39:35 -0400
+Received: from [10.3.224.13] (vpn-224-13.phx2.redhat.com [10.3.224.13])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o437dW06000692
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 3 May 2010 03:39:34 -0400
+Message-ID: <4BDE7DB4.7030706@redhat.com>
+Date: Mon, 03 May 2010 04:39:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
+To: "linux-media >> Linux Media Mailing List"
+	<linux-media@vger.kernel.org>
+Subject: [PATCH] Fix colorspace on tm6010
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+The enclosed patch fixes the color format on tm6010. What happened is that the patch
+adding fourcc control on tm6010 had one small cut-and-paste trouble: it was
+changing the wrong register ;)
 
-My "WinTV NOVA-t" PCI card is recognized by the saa7146 driver (ubuntu 
-9.10 2.6.31-21-generic kernel), but I don't have a /dev/video0.  At some 
-point I noticed messages in syslog about missing firmware (below), and 
-rectified that by fetching the firmware and dropping it in /lib/firmware.
+I've fixed it. So, now, colors are working fine. I'll be applying it at my git. This
+way, the current git contains a tm6000 code that is not so bad.
 
-However, there's a big gap (over an hour and a half) between boot and the 
-time when the driver complains about the firmware:
+With this patch, analog video on tm6000/tm6010 are working again (but see the
+patch comments bellow). Yet, there are a large number of TODO items for this driver:
+- Fix the loss of some blocks when receiving the URB's;
+- Add a lock at tm6000_read_write_usb() to prevent two simultaneous access to the
+URB control transfers;
+- Properly add the locks at tm6000-video;
+- Add audio support;
+- Add IR support;
+- Do several cleanups;
+- I think that frame1/frame0 are inverted. This causes a funny effect at the image.
+  the fix is trivial, but require some tests.
+- My tm6010 devices sometimes insist on stop working. I need to turn them off, removing
+  from my machine and wait for a while for it to work again. I'm starting to think that
+  it is an overheat issue;
+- Sometimes, tm6010 doesn't read eeprom at the proper time (hardware bug). So, the device 
+  got miss-detected as a "generic" tm6000. This can be really bad if the tuner is the 
+  Low Power one, as it may result on loading the high power firmware, that could damage 
+  the device. Maybe we may read eeprom to double check, when the device is marked as "generic".
+- Coding Style fixes;
 
-May  2 16:00:28 alice kernel: [   58.447825] saa7146: register extension 'budget_ci dvb'.
-May  2 16:00:28 alice kernel: [   58.449357] budget_ci dvb 0000:05:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-May  2 16:00:28 alice kernel: [   58.449394] IRQ 17/: IRQF_DISABLED is not guaranteed on shared IRQs
-May  2 16:00:28 alice kernel: [   58.449412] saa7146: found saa7146 @ mem ffffc90011348c00 (revision 1, irq 17) (0x13c2,0x1011).
-May  2 16:00:28 alice kernel: [   58.449416] saa7146 (0): dma buffer size 192512
-May  2 16:00:28 alice kernel: [   58.449417] DVB: registering new adapter (TT-Budget/WinTV-NOVA-T        PCI)
-May  2 16:00:28 alice kernel: [   58.510969] adapter has MAC addr = 00:d0:5c:23:ed:cf
-May  2 16:00:28 alice kernel: [   58.511252] input: Budget-CI dvb ir receiver saa7146 (0) as /devices/pci0000:00/0000:00:1e.0/0000:05:01.0/input/input7
-May  2 16:00:28 alice kernel: [   58.587617] DVB: registering adapter 0 frontend 0 (Philips TDA10045H DVB-T)...
-[...]
-May  2 17:40:39 alice kernel: [ 6057.360792] tda1004x: found firmware revision 0 -- invalid
-May  2 17:40:39 alice kernel: [ 6057.360795] tda1004x: waiting for firmware upload (dvb-fe-tda10045.fw)...
-May  2 17:40:39 alice kernel: [ 6057.360800] budget_ci dvb 0000:05:01.0: firmware: requesting dvb-fe-tda10045.fw
-May  2 17:40:39 alice kernel: [ 6057.449458] tda1004x: no firmware upload (timeout or file not found?)
-May  2 17:40:39 alice kernel: [ 6057.449461] tda1004x: firmware upload failed
-May  2 17:40:39 alice firmware.sh[4365]: Cannot find  firmware file 'dvb-fe-tda10045.fw'
+I'll be committing a patch with the above TODO items at tm6000/README
+
+(Bee/Stefan/Dmitri, feel free to add more things at the todo - We need to write a README file
+
+The lack of locks still generate some OOPS'es, but I was not able of get any Panic. So,
+I'll likely add it at upstream drivers/staging at the next merge window.
+
+-- 
+
+Cheers,
+Mauro
 
 
-I don't know anything about the kernel but looking at the source seemed to 
-suggest the driver looks for the firmware at modprobe time, but rmmod 
-followed by modprobe doesn't give me any messages about firmware (nor does 
-a reboot).  What should I do to trigger this firmware upload process 
-again?
+commit c621ed883a26dc705c38ad698f6a19a6260f172f
+Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date:   Mon May 3 04:25:59 2010 -0300
 
-Thanks
+    V4L/DVB: Fix color format with tm6010
+    
+    The values for the fourcc format were correct, but applied to the
+    wrong register. With this change, video is now barely working again with
+    tm6000.
+    
+    While here, let's remove, for now, the memset. This way, people can
+    have some image when testing this device.
+    
+    Yet to be fixed: parts of the image frame are missed. As we don't clean
+    the buffers anymore, this is "recovered" by repeating the values from a
+    previous frame. The quality is bad, since the image pixels will contain
+    data from some previous frames, generating weird delay artifacts.
+    
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-
-John
-
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index 860553f..bfbc53b 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -156,10 +156,13 @@ int tm6000_get_reg32 (struct tm6000_core *dev, u8 req, u16 value, u16 index)
+ void tm6000_set_fourcc_format(struct tm6000_core *dev)
+ {
+ 	if (dev->dev_type == TM6010) {
++		int val;
++
++		val = tm6000_get_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, 0) & 0xfc;
+ 		if (dev->fourcc == V4L2_PIX_FMT_UYVY)
+-			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xd0);
++			tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, val);
+ 		else
+-			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0x90);
++			tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, val | 1);
+ 	} else {
+ 		if (dev->fourcc == V4L2_PIX_FMT_UYVY)
+ 			tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xd0);
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index 4444487..9554472 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -149,8 +149,8 @@ static inline void get_next_buf(struct tm6000_dmaqueue *dma_q,
+ 
+ 	/* Cleans up buffer - Usefull for testing for frame/URB loss */
+ 	outp = videobuf_to_vmalloc(&(*buf)->vb);
+-	if (outp)
+-		memset(outp, 0, (*buf)->vb.size);
++//	if (outp)
++//		memset(outp, 0, (*buf)->vb.size);
+ 
+ 	return;
+ }
