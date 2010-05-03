@@ -1,31 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f220.google.com ([209.85.219.220]:58863 "EHLO
-	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694Ab0EINo4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 09:44:56 -0400
-Received: by ewy20 with SMTP id 20so669867ewy.1
-        for <linux-media@vger.kernel.org>; Sun, 09 May 2010 06:44:55 -0700 (PDT)
+Received: from smtp.nokia.com ([192.100.105.134]:22181 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932822Ab0ECPma (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 11:42:30 -0400
+Message-ID: <4BDEEEDF.7050905@maxwell.research.nokia.com>
+Date: Mon, 03 May 2010 18:42:23 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <4BE5FED4.7050301@gmail.com>
-References: <4BE5FED4.7050301@gmail.com>
-Date: Sun, 9 May 2010 10:44:54 -0300
-Message-ID: <AANLkTindz4VAb0t-7HNhD45xo5axPtwekycHv3KPnSmq@mail.gmail.com>
-Subject: Re: compro s500 support
-From: Fernando Cassia <fcassia@gmail.com>
-To: Tarik AIT-ARYANE <tarik2a@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH 0/1] V4L: Event: debugging fixes
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, May 8, 2010 at 9:16 PM, Tarik AIT-ARYANE <tarik2a@gmail.com> wrote:
-> Hi,
-> I want to know if there is any support in linux of compro videomate s500
-> (dvbs by USB card).
+Hi,
 
-I'm a newcomer to this list, but I think it'd help if you post the
-CHIPSET used by such card, not the brand name and model.
+Laurent Pinchart found that on uni-processor kernels without spinlock
+debugging spin_is_locked() is always zero, which causes a bad WARN_ON()
+message to be shown. The following patch removes the WARN_ON() and
+replaces it with assert_spin_locked() which works correctly.
 
-It is the chipset what matters...
+Regards,
 
-FC
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
