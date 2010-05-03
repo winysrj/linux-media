@@ -1,88 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ogre.sisk.pl ([217.79.144.158]:44068 "EHLO ogre.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932188Ab0EEAWi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 May 2010 20:22:38 -0400
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-To: "Stefan Lippers-Hollmann" <s.L-H@gmx.de>
-Subject: Re: [Bug #15589] 2.6.34-rc1: Badness at fs/proc/generic.c:316
-Date: Wed, 5 May 2010 02:23:48 +0200
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kernel Testers List <kernel-testers@vger.kernel.org>,
-	Maciej Rutecki <maciej.rutecki@gmail.com>,
-	"Christian Kujau" <lists@nerdbynature.de>,
-	linux-media@vger.kernel.org
-References: <JzEGxUyyQHG.A.ZtH.YHJ4LB@chimera> <8VO9AsMlpMD.A.IFC.aKJ4LB@chimera> <201005050218.02620.s.L-H@gmx.de>
-In-Reply-To: <201005050218.02620.s.L-H@gmx.de>
+Received: from bld-mail15.adl6.internode.on.net ([150.101.137.100]:56980 "EHLO
+	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932433Ab0ECPin (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 11:38:43 -0400
+Message-ID: <4BDEEE35.6040308@gmail.com>
+Date: Tue, 04 May 2010 01:39:33 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005050223.48237.rjw@sisk.pl>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ideal DVB-C PCI/e card?
+References: <4BDE5AA1.1050000@gmail.com> <87pr1dbf1q.fsf@nemi.mork.no>
+In-Reply-To: <87pr1dbf1q.fsf@nemi.mork.no>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 05 May 2010, Stefan Lippers-Hollmann wrote:
-> Hi
-> 
-> On Wednesday 05 May 2010, Rafael J. Wysocki wrote:
-> > This message has been generated automatically as a part of a summary report
-> > of recent regressions.
-> > 
-> > The following bug entry is on the current list of known regressions
-> > from 2.6.33.  Please verify if it still should be listed and let the tracking team
-> > know (either way).
-> > 
-> > 
-> > Bug-Entry	: http://bugzilla.kernel.org/show_bug.cgi?id=15589
-> > Subject		: 2.6.34-rc1: Badness at fs/proc/generic.c:316
-> > Submitter	: Christian Kujau <lists@nerdbynature.de>
-> > Date		: 2010-03-13 23:53 (53 days old)
-> > Message-ID	: <alpine.DEB.2.01.1003131544340.5493@bogon.housecafe.de>
-> > References	: http://marc.info/?l=linux-kernel&m=126852442903680&w=2
-> 
-> Still valid for b2c2_flexcop_pci in 2.6.34-rc6-git2:
-> 
-> [    8.736930] Linux video capture interface: v2.00
-> [    8.809720] b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver chip loaded successfully
-> [    8.818680] flexcop-pci: will use the HW PID filter.
-> [    8.818685] flexcop-pci: card revision 2
-> [    8.818694] b2c2_flexcop_pci 0000:06:01.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
-> [    8.818794] ------------[ cut here ]------------
-> [    8.818799] WARNING: at /tmp/buildd/linux-sidux-2.6-2.6.34~rc6-git2/debian/build/source_amd64_none/fs/proc/generic.c:317 __xlate_proc_name+0xb5/0xd0()
-> [    8.818801] Hardware name: EP45-DS3
-> [    8.818802] name 'Technisat/B2C2 FlexCop II/IIb/III Digital TV PCI Driver'
-> [    8.818804] Modules linked in: b2c2_flexcop_pci(+) cx88xx b2c2_flexcop rfkill v4l2_common ir_common videodev drm snd_pcm snd_seq rtc_cmos snd_timer rtc_core snd_seq_device rtc_lib v4l1_compat tveeprom v4l2_compat_ioctl32 ir_core dvb_core snd videobuf_dma_sg cx24123 cx24113 videobuf_core s5h1420 tpm_tis led_class btcx_risc tpm i2c_i801 i2c_algo_bit tpm_bios i2c_core evdev intel_agp soundcore snd_page_alloc button processor ext4 mbcache jbd2 crc16 dm_mod sg sr_mod cdrom sd_mod usbhid hid uhci_hcd ahci firewire_ohci libata firewire_core crc_itu_t ehci_hcd r8169 mii scsi_mod thermal usbcore nls_base [last unloaded: scsi_wait_scan]
-> [    8.818832] Pid: 1064, comm: modprobe Not tainted 2.6.34-rc6-sidux-amd64 #1
-> [    8.818833] Call Trace:
-> [    8.818837]  [<ffffffff8104ba83>] ? warn_slowpath_common+0x73/0xb0
-> [    8.818839]  [<ffffffff8104bb20>] ? warn_slowpath_fmt+0x40/0x50
-> [    8.818842]  [<ffffffff8114f545>] ? __xlate_proc_name+0xb5/0xd0
-> [    8.818844]  [<ffffffff8114fb2e>] ? __proc_create+0x7e/0x150
-> [    8.818846]  [<ffffffff811504e7>] ? proc_mkdir_mode+0x27/0x60
-> [    8.818849]  [<ffffffff8109fb55>] ? register_handler_proc+0x115/0x130
-> [    8.818852]  [<ffffffff8109d4c1>] ? __setup_irq+0x1d1/0x330
-> [    8.818855]  [<ffffffffa03bc160>] ? flexcop_pci_isr+0x0/0x190 [b2c2_flexcop_pci]
-> [    8.818858]  [<ffffffff8109d735>] ? request_threaded_irq+0x115/0x1b0
-> [    8.818860]  [<ffffffffa03bc495>] ? flexcop_pci_probe+0x1a5/0x330 [b2c2_flexcop_pci]
-> [    8.818864]  [<ffffffff811ceef2>] ? local_pci_probe+0x12/0x20
-> [    8.818867]  [<ffffffff811d02ca>] ? pci_device_probe+0x10a/0x130
-> [    8.818870]  [<ffffffff8125cdda>] ? driver_sysfs_add+0x5a/0x80
-> [    8.818872]  [<ffffffff8125cf03>] ? driver_probe_device+0x93/0x190
-> [    8.818874]  [<ffffffff8125d093>] ? __driver_attach+0x93/0xa0
-> [    8.818876]  [<ffffffff8125d000>] ? __driver_attach+0x0/0xa0
-> [    8.818878]  [<ffffffff8125c638>] ? bus_for_each_dev+0x58/0x80
-> [    8.818880]  [<ffffffff8125be70>] ? bus_add_driver+0xb0/0x250
-> [    8.818882]  [<ffffffff8125d38a>] ? driver_register+0x6a/0x130
-> [    8.818884]  [<ffffffff811d056c>] ? __pci_register_driver+0x4c/0xc0
-> [    8.818887]  [<ffffffffa03bf000>] ? flexcop_pci_module_init+0x0/0x20 [b2c2_flexcop_pci]
-> [    8.818890]  [<ffffffff81002044>] ? do_one_initcall+0x34/0x1a0
-> [    8.818893]  [<ffffffff8107d15f>] ? sys_init_module+0xdf/0x260
-> [    8.818896]  [<ffffffff81009f42>] ? system_call_fastpath+0x16/0x1b
-> [    8.818897] ---[ end trace 46b5c98323696f39 ]---
-> [    8.822389] DVB: registering new adapter (FlexCop Digital TV device)
-> [    8.823874] b2c2-flexcop: MAC address = 00:d0:d7:0c:83:d6
+Excellent response, & thank-you for so much detail!
+I apologise for my anaemic response, but it is very late here now, 
+that's my excuse anyway! ;)
 
-Thanks for the update.
+Just curious, why did you pick VDR over MythTV?
+I would rather use the later + OSCam (maybe) if feasible.
 
-Rafael
+Thanks again for the excellent feedback, it's heartening to know there's 
+other videoguard2 users out there!
+
+Good-night.
+
+On 3/05/10 5:49 PM, Bjørn Mork wrote:
+> [answering this in private since any details about softcams etc usually
+> is unwanted on mailinglists]
+>
+> Jed<jedi.theone@gmail.com>  writes:
+>
+>> I was wondering if someone could recommend a decent DVB-C tuner card?
+>> Ideally it would be a dual DVB-C card, but I'm not sure they exist?!
+>
+> I've been looking for the same, but not been able to find one.  The
+> closest is the foilware from Netup, but it is probably going to be too
+> expensive when/if it is available anyway.
+>
+> Nor does there seem to be any DVB-C PCIe cards or USB sticks with Linux
+> support.  There are rumours about working external USB boxes.  I haven't
+> verified those, as I didn't really want any external box adding to the
+> cable mess...
+>
+>> I have a subscription to a PayTV provider here in Australia that uses
+>> an encryption scheme called NDS or Videoguard2.
+>> So I'll also need the right card reader and combo of software in order
+>> to decrypt and then capture.
+>
+> I'm doing much of the same here, also using NDS/Videoguard2.  Unless
+> I've missed something, this excludes using any (official) hardware CAM
+> so  you don't have to worry about CI slots :-)
+>
+> I am using two budget cards ("budget" is a must, as they are the cards
+> capable of delivering a full TS to the host):
+>
+> 1) TerraTec Cinergy C PCI:
+>
+> bjorn@canardo:~$ lspci -vvnns 5:0
+> 05:00.0 Multimedia controller [0480]: Twinhan Technology Co. Ltd Mantis DTV PCI Bridge Controller [Ver 1.0] [1822:4e35] (rev 01)
+>          Subsystem: TERRATEC Electronic GmbH Device [153b:1178]
+>          Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+>          Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium>TAbort-<TAbort+<MAbort->SERR-<PERR- INTx-
+>          Latency: 64 (2000ns min, 63750ns max)
+>          Interrupt: pin A routed to IRQ 16
+>          Region 0: Memory at fcfff000 (32-bit, prefetchable) [size=4K]
+>          Kernel driver in use: Mantis
+>          Kernel modules: mantis
+>
+> 2) Mystique CaBiX-C2 (available from www.dvbshop.net):
+>
+> bjorn@canardo:~$ lspci -vvnns 5:1
+> 05:01.0 Multimedia controller [0480]: Philips Semiconductors SAA7146 [1131:7146] (rev 01)
+>          Subsystem: KNC One Device [1894:0022]
+>          Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+>          Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium>TAbort-<TAbort-<MAbort->SERR-<PERR- INTx-
+>          Latency: 64 (3750ns min, 9500ns max)
+>          Interrupt: pin A routed to IRQ 17
+>          Region 0: Memory at feaffc00 (32-bit, non-prefetchable) [size=512]
+>          Kernel driver in use: budget_av
+>          Kernel modules: budget-av
+>
+>
+>
+> The TerraTec card is working very well, but requires the mantis driver
+> which entered linux in 2.6.33.  This means that there are few
+> distributions providing it at the moment, as most of them are going for
+> 2.6.32.
+>
+> The Mystique card also does it's job, but I have had a few problems with
+> the driver when some other part of the system is failing (in my case, a
+> SATA disk).  The driver seems to be very fragile wrt timeouts, and is
+> far too eager to fill the log with identical useless messages.  I'm
+> planning to fix this as soon as I get around to it, but...
+>
+> If I were to buy the cards a second time, then I think I would buy two
+> Terratec cards.
+>
+> For smartcard reader I am using a simple and cheap reader from OmniKey:
+>
+> bjorn@canardo:~$ lsusb -s 5:2
+> Bus 005 Device 002: ID 076b:3021 OmniKey AG CardMan 3121
+>
+>
+> I've also tested with another CCID USB reader, SCM SCR331, which also
+> worked just fine.  What you want to look for is a reader supported by
+> libccid ("apt-cache show libccid" in Debian/Ubuntu will show you the
+> list).  You may also want to check out which voltages the readers
+> support.  Modern cards tend to lower their Vcc all the time, and there
+> are a few stories of burnt cards (I assume that's because of running a
+> 3.3 V card in a reader only capable of providing 5 V).
+>
+>
+>> This stuff I can mostly work out for myself.....
+>> But if you have any knowledge or experience in that area, then I'd be
+>> most appreciative if you can share.
+>> As it definitely isn't for technical minnows!
+>>
+>> Oh and in case you're worried, doing this sort of thing is not -yet-
+>> illegal in Australia.
+>
+> That's the situation here in Norway as well, provided that you actually
+> pay for the subscription.   At least that's my interpretation of the
+> legal status :-)
+>
+> When I started this project, I briefly tried sasc-ng.  I did work OK but
+> I disliked the need to use the dvbloopback module.  Mostly a principle
+> wrt out-of-tree drivers.  But I would probably have continued to use it
+> if I hadn't discovered that VDR provided everything I needed (I
+> initially rejected it because I got the wrong impression that it
+> couldn't run on a headless box, which is what I do).  The VDR softcam
+> plugin eliminates the need for any in-kernel hacks.  It's all just
+> userspace.
+>
+> So now I am happily using VDR with vdr-sc.  I could not make the
+> videoguard2 smartcard driver for vdr-sc working (didn't try hard -
+> probably only a minor configuration problem on my side), but am instead
+> using vdr-sc as a cardclient against oscam.  I've built oscam with PCSC
+> support so that all card communication goes through pcscd.
+>
+> This setup works for me, but I'm still not 100% sure that card updates
+> are working.  There is something weird with the interface between vdr-sc
+> and oscam.  So there are certainly some bugs to sort out, both in vdr-sc
+> and in oscam.  But one of my main reasons for choosing these over other
+> options is the open source.  This does make it possible to fix bugs and
+> contribute.  And both packages do have active developers who respond to
+> the reports and suggestions they get.
+>
+> The list of mostly working features:
+>   - decrypting multiple channels simultaneously. Of course limited to the
+>     two frequecies which I can tune, but there doesn't seem to be any
+>     other limit on the number of channels I can use
+>   - both HD and SD decryption (also when using a subscription card from a
+>     SD only STB!)
+>   - automatic configuration of the smartcard/STB mating.  This is
+>     currently a bit flakey but work is on the way to improve it.  You
+>     can always work around it by configuring "BoxID" manually, so it's
+>     not a big problem anyway
+>
+> Hope this helps.   Looking forward to hearing how things go. The more
+> open source Videoguard2 users we get, the better :-)
+>
+>
+> Bjørn
+>
