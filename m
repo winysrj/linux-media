@@ -1,49 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail13.adl6.internode.on.net ([150.101.137.98]:58195 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751252Ab0ECFUM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 01:20:12 -0400
-Received: from Jeds-Mini.local (unverified [118.208.148.114])
-	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id 22954483-1927428
-	for <linux-media@vger.kernel.org>; Mon, 03 May 2010 14:50:09 +0930 (CST)
-Message-ID: <4BDE5D4A.4060003@gmail.com>
-Date: Mon, 03 May 2010 15:21:14 +1000
-From: Jed <jedi.theone@gmail.com>
+Received: from mail.atmel.fr ([81.80.104.162]:33720 "EHLO atmel-es2.atmel.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759033Ab0ECOHe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 May 2010 10:07:34 -0400
+Message-ID: <4BDED3A8.4090606@atmel.com>
+Date: Mon, 03 May 2010 15:46:16 +0200
+From: Sedji Gaouaou <sedji.gaouaou@atmel.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ideal DVB-C PCI/e card?
-References: <4BDE5AA1.1050000@gmail.com>
-In-Reply-To: <4BDE5AA1.1050000@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-input@vger.kernel.org
+Subject: Re: ATMEL camera interface
+References: <4BD9AA8A.7030306@atmel.com> <Pine.LNX.4.64.1004291824200.4666@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1004291824200.4666@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Oh and to clarify I am aware of this resource
-http://www.linuxtv.org/wiki/index.php/DVB-C_Devices
-Just curious to hear peoples "real world" experiences.
+Hi,
 
-On 3/05/10 3:09 PM, Jed wrote:
-> Hi All,
+I will try to write a soc driver(it seems easier ;)).
+
+Are the mx?_camera.c a good starting point?
+
+Regards,
+Sedji
+
+Le 4/29/2010 6:35 PM, Guennadi Liakhovetski a écrit :
+> Hi Sedji
 >
-> I was wondering if someone could recommend a decent DVB-C tuner card?
-> Ideally it would be a dual DVB-C card, but I'm not sure they exist?!
+> On Thu, 29 Apr 2010, Sedji Gaouaou wrote:
 >
-> I have a subscription to a PayTV provider here in Australia that uses an
-> encryption scheme called NDS or Videoguard2.
-> So I'll also need the right card reader and combo of software in order
-> to decrypt and then capture.
+>> Hi,
+>>
+>> I need to re-work my driver so I could commit it to the community.
+>> Is there a git tree that I can use?
 >
-> This stuff I can mostly work out for myself.....
-> But if you have any knowledge or experience in that area, then I'd be
-> most appreciative if you can share.
-> As it definitely isn't for technical minnows!
+> Nice to hear that! As far as soc-camera is concerned, the present APIs are
+> pretty stable. Just use the Linus' git tree, or, if you like, you can use
+> the v4l-dvb git tree at git://linuxtv.org/v4l-dvb.git. In fact, you don't
+> have to use the soc-camera API these days, you can just write a complete
+> v4l2-device driver, using the v4l2-subdev API to interface to video
+> clients (sensors, decoders, etc.) However, you can still write your driver
+> as an soc-camera host driver, which would make your task a bit easier at
+> the cost of some reduced flexibility, it's up to you to decide.
 >
-> Oh and in case you're worried, doing this sort of thing is not -yet-
-> illegal in Australia.
-> It may be soon though, thanks to the FTA our former Prime Minister
-> established with the U.S.
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 >
-> All the best,
-> Jed
->
+
+
