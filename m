@@ -1,69 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48839 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:33699 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755915Ab0EJLUL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 May 2010 07:20:11 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 10 May 2010 16:50:06 +0530
-Subject: RE: [PATCH 0/6] [RFC] tvp514x fixes
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E4048E4@dbde02.ent.ti.com>
-References: <cover.1273413060.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1273413060.git.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1759835Ab0ECXrR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 May 2010 19:47:17 -0400
+Message-ID: <4BDF6050.5090207@redhat.com>
+Date: Mon, 03 May 2010 20:46:24 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: sensoray-dev <linux-dev@sensoray.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: s2255drv: V4L2_MODE_HIGHQUALITY correction
+References: <tkrat.ee2f6ea3db309dab@sensoray.com>
+In-Reply-To: <tkrat.ee2f6ea3db309dab@sensoray.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+sensoray-dev wrote:
+> # HG changeset patch
+> # User Dean Anderson <linux-dev@sensoray.com>
+> # Date 1271371256 25200
+> # Node ID f12b3074bb02dbb9b9d5af3aa816bd53e6b61dd1
+> # Parent  bffdebcb994ce8c7e493524087f601f7f1134f09
+> s2255drv: fix for V4L2_MODE_HIGHQUALITY
+> 
+> From: Dean Anderson <linux-dev@sensoray.com>
+> 
+> V4L2 high quality mode not being saved
+> comments about experimental API removed
 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Sunday, May 09, 2010 7:27 PM
-> To: linux-media@vger.kernel.org
-> Cc: Hiremath, Vaibhav
-> Subject: [PATCH 0/6] [RFC] tvp514x fixes
-> 
-> Hi Vaibhav,
-> 
-> While working on the *_fmt to *_mbus_fmt video op conversion I noticed that
-> tvp514x is confusing the current select TV standard with the detected TV
-> standard leading to horrible side-effects where called TRY_FMT can actually
-> magically change the TV standard.
-> 
-> I fixed this and I also simplified the format handling in general. Basically
-> removing the format list table and realizing that since there is only one
-> supported format, you can just return that format directly.
-> 
-> This will also make the next step much easier where enum/try/s/g_fmt is
-> replaced by enum/try/s/g_mbus_fmt.
-> 
-> However, I have no way of testing this. Can you review this code and let
-> me know if it is OK?
-> 
-[Hiremath, Vaibhav] Sorry Hans for delayed response on this, actually today almost whole day I had to spend collecting docs for VISA application and stuff.
+Sorry, but it doesn't apply.
 
-Thanks for working on this and changing the driver, I will take a look at it (Also I will validate it here at my end) and update you on this.
-
-Thanks,
-Vaibhav
-
-> Regards,
 > 
-> 	Hans
+> Priority: normal
 > 
-> Hans Verkuil (6):
->   tvp514x: do NOT change the std as a side effect
->   tvp514x: make std_list const
->   tvp514x: there is only one supported format, so simplify the code
->   tvp514x: add missing newlines
->   tvp514x: remove obsolete fmt_list
->   tvp514x: simplify try/g/s_fmt handling
+> Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
 > 
->  drivers/media/video/tvp514x.c |  223 ++++++++------------------------------
-> ---
->  1 files changed, 40 insertions(+), 183 deletions(-)
+> diff -r bffdebcb994c -r f12b3074bb02 linux/drivers/media/video/s2255drv.c
+> --- a/linux/drivers/media/video/s2255drv.c	Thu Apr 15 08:48:31 2010 -0700
+> +++ b/linux/drivers/media/video/s2255drv.c	Thu Apr 15 15:40:56 2010 -0700
+> @@ -23,8 +23,6 @@
+>   *
+>   * -full size, color mode YUYV or YUV422P 1/2 frame rate: all 4 channels
+>   *  at once.
+> - *  (TODO: Incorporate videodev2 frame rate(FR) enumeration,
+> - *  which is currently experimental.)
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License as published by
+> @@ -127,7 +125,7 @@
+>  #define MASK_COLOR       0x000000ff
+>  #define MASK_JPG_QUALITY 0x0000ff00
+>  #define MASK_INPUT_TYPE  0x000f0000
+> -/* frame decimation. Not implemented by V4L yet(experimental in V4L) */
+> +/* frame decimation. */
+>  #define FDEC_1		1	/* capture every frame. default */
+>  #define FDEC_2		2	/* capture every 2nd frame */
+>  #define FDEC_3		3	/* capture every 3rd frame */
+> @@ -1662,6 +1660,7 @@
+>  	}
+>  	mode.fdec = fdec;
+>  	sp->parm.capture.timeperframe.denominator = def_dem;
+> +	stream->cap_parm = sp->parm.capture;
+>  	s2255_set_mode(channel, &mode);
+>  	dprintk(4, "%s capture mode, %d timeperframe %d/%d, fdec %d\n",
+>  		__func__,
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
+
+-- 
+
+Cheers,
+Mauro
