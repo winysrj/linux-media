@@ -1,69 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:38695 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758382Ab0EBT5u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 May 2010 15:57:50 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: John J Lee <jjl@pobox.com>
-Subject: Re: saa7146 firmware upload time?
-Date: Sun, 2 May 2010 21:54:36 +0200
-Cc: linux-media@vger.kernel.org
-References: <alpine.DEB.2.00.1005021904150.4041@alice>
-In-Reply-To: <alpine.DEB.2.00.1005021904150.4041@alice>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:58163 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757595Ab0ECLGy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 07:06:54 -0400
+Received: by gwj19 with SMTP id 19so1041585gwj.19
+        for <linux-media@vger.kernel.org>; Mon, 03 May 2010 04:06:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201005022154.37226@orion.escape-edv.de>
+In-Reply-To: <E1O8pN6-00064z-3C@www.linuxtv.org>
+References: <E1O8pN6-00064z-3C@www.linuxtv.org>
+Date: Mon, 3 May 2010 19:06:52 +0800
+Message-ID: <h2t6e8e83e21005030406jcd534b9dm1eaabbc68bf1bb1c@mail.gmail.com>
+Subject: Re: [git:v4l-dvb/master] V4L/DVB: tm6000: Fix a panic if buffer
+	become NULL
+From: Bee Hock Goh <beehock@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linuxtv-commits@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Mauro,
 
-On Sunday 02 May 2010 20:13:08 John J Lee wrote:
-> My "WinTV NOVA-t" PCI card is recognized by the saa7146 driver (ubuntu 
-> 9.10 2.6.31-21-generic kernel), but I don't have a /dev/video0.  At some 
-> point I noticed messages in syslog about missing firmware (below), and 
-> rectified that by fetching the firmware and dropping it in /lib/firmware.
-> 
-> However, there's a big gap (over an hour and a half) between boot and the 
-> time when the driver complains about the firmware:
-> 
-> May  2 16:00:28 alice kernel: [   58.447825] saa7146: register extension 'budget_ci dvb'.
-> May  2 16:00:28 alice kernel: [   58.449357] budget_ci dvb 0000:05:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
-> May  2 16:00:28 alice kernel: [   58.449394] IRQ 17/: IRQF_DISABLED is not guaranteed on shared IRQs
-> May  2 16:00:28 alice kernel: [   58.449412] saa7146: found saa7146 @ mem ffffc90011348c00 (revision 1, irq 17) (0x13c2,0x1011).
-> May  2 16:00:28 alice kernel: [   58.449416] saa7146 (0): dma buffer size 192512
-> May  2 16:00:28 alice kernel: [   58.449417] DVB: registering new adapter (TT-Budget/WinTV-NOVA-T        PCI)
-> May  2 16:00:28 alice kernel: [   58.510969] adapter has MAC addr = 00:d0:5c:23:ed:cf
-> May  2 16:00:28 alice kernel: [   58.511252] input: Budget-CI dvb ir receiver saa7146 (0) as /devices/pci0000:00/0000:00:1e.0/0000:05:01.0/input/input7
-> May  2 16:00:28 alice kernel: [   58.587617] DVB: registering adapter 0 frontend 0 (Philips TDA10045H DVB-T)...
-> [...]
-> May  2 17:40:39 alice kernel: [ 6057.360792] tda1004x: found firmware revision 0 -- invalid
-> May  2 17:40:39 alice kernel: [ 6057.360795] tda1004x: waiting for firmware upload (dvb-fe-tda10045.fw)...
-> May  2 17:40:39 alice kernel: [ 6057.360800] budget_ci dvb 0000:05:01.0: firmware: requesting dvb-fe-tda10045.fw
-> May  2 17:40:39 alice kernel: [ 6057.449458] tda1004x: no firmware upload (timeout or file not found?)
-> May  2 17:40:39 alice kernel: [ 6057.449461] tda1004x: firmware upload failed
-> May  2 17:40:39 alice firmware.sh[4365]: Cannot find  firmware file 'dvb-fe-tda10045.fw'
-> 
-> 
-> I don't know anything about the kernel but looking at the source seemed to 
-> suggest the driver looks for the firmware at modprobe time, but rmmod 
-> followed by modprobe doesn't give me any messages about firmware (nor does 
-> a reboot).  What should I do to trigger this firmware upload process 
-> again?
+I think this patch of yours nailed the issue. No more crash switching channels.
 
-Obviously, the firmware is not loaded at modprobe time. It is loaded
-when an application opens the frontend for the first time.
+I will need to let it run for a while to see if solve the one machine
+freeze that I encountered after running for more than 30 mins.
 
-CU
-Oliver
+thanks,
+ Hock.
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+On Mon, May 3, 2010 at 2:42 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the
+> http://git.linuxtv.org/v4l-dvb.git tree:
+>
+> Subject: V4L/DVB: tm6000: Fix a panic if buffer become NULL
+> Author:  Mauro Carvalho Chehab <mchehab@redhat.com>
+> Date:    Sun May 2 11:42:45 2010 -0300
+>
+> Changing a video standard takes a long time to happen on tm6000, since it
+> needs to load another firmware, and the i2c implementation on this device
+> is really slow. When the driver tries to change the video standard, a
+> kernel panic is produced:
+>
+> BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+> IP: [<ffffffffa0c7b48a>] tm6000_irq_callback+0x57f/0xac2 [tm6000]
+> ...
+> Kernel panic - not syncing: Fatal exception in interrupt
+>
+> By inspecting it with gdb:
+>
+> (gdb) list *tm6000_irq_callback+0x57f
+> 0x348a is in tm6000_irq_callback (drivers/staging/tm6000/tm6000-video.c:202).
+> 197             /* FIXME: move to tm6000-isoc */
+> 198             static int last_line = -2, start_line = -2, last_field = -2;
+> 199
+> 200             /* FIXME: this is the hardcoded window size
+> 201              */
+> 202             unsigned int linewidth = (*buf)->vb.width << 1;
+> 203
+> 204             if (!dev->isoc_ctl.cmd) {
+> 205                     c = (header >> 24) & 0xff;
+> 206
+>
+> Clearly, it was the trial to access *buf, at line 202 that caused the
+> Panic.
+>
+> As ioctl is serialized, While S_STD is handled,QBUF/DQBUF won't be called.
+> So, the driver will run out of the buffers, and *buf will become NULL.
+>
+> As, on tm6000, the same URB can contain more than one video buffer, it is
+> likely to hit a condition where no new buffer is available whily copying
+> the streams. The fix is to leave the URB copy loop, if there's no more buffers
+> are available.
+>
+> The same bug could also be produced by an application that is not fast enough
+> to request new video buffers.
+>
+> The same bug were reported by Bee Hock Goh <beehock@gmail.com>.
+>
+> Thanks-to: Bee Hock Goh <beehock@gmail.com> for reporting the bug
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+>  drivers/staging/tm6000/tm6000-video.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+>
+> ---
+>
+> http://git.linuxtv.org/v4l-dvb.git?a=commitdiff;h=41e3a700fab5f67011ede3e3ac04106b6a2ddea5
+>
+> diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+> index 96358b2..3317220 100644
+> --- a/drivers/staging/tm6000/tm6000-video.c
+> +++ b/drivers/staging/tm6000/tm6000-video.c
+> @@ -395,6 +395,8 @@ HEADER:
+>                                        jiffies);
+>                        return rc;
+>                }
+> +               if (!*buf)
+> +                       return 0;
+>        }
+>
+>        return 0;
+> @@ -528,7 +530,7 @@ static inline int tm6000_isoc_copy(struct urb *urb)
+>                                }
+>                        }
+>                        copied += len;
+> -                       if (copied>=size)
+> +                       if (copied >= size || !buf)
+>                                break;
+>  //             }
+>        }
+>
