@@ -1,57 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.atmel.fr ([81.80.104.162]:33720 "EHLO atmel-es2.atmel.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759033Ab0ECOHe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 May 2010 10:07:34 -0400
-Message-ID: <4BDED3A8.4090606@atmel.com>
-Date: Mon, 03 May 2010 15:46:16 +0200
-From: Sedji Gaouaou <sedji.gaouaou@atmel.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-input@vger.kernel.org
-Subject: Re: ATMEL camera interface
-References: <4BD9AA8A.7030306@atmel.com> <Pine.LNX.4.64.1004291824200.4666@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1004291824200.4666@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from smtp.nokia.com ([192.100.122.233]:28544 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932822Ab0ECPmz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 11:42:55 -0400
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH 1/1] V4L: Events: Replace bad WARN_ON() with assert_spin_locked()
+Date: Mon,  3 May 2010 18:42:46 +0300
+Message-Id: <1272901366-7127-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4BDEEEDF.7050905@maxwell.research.nokia.com>
+References: <4BDEEEDF.7050905@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+spin_is_locked() always returns zero when spinlock debugging is
+disabled on a single CPU machine. Replace WARN_ON() with
+assert_spin_locked().
 
-I will try to write a soc driver(it seems easier ;)).
+Thanks to Laurent Pinchart for spotting this!
 
-Are the mx?_camera.c a good starting point?
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-event.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Regards,
-Sedji
-
-Le 4/29/2010 6:35 PM, Guennadi Liakhovetski a écrit :
-> Hi Sedji
->
-> On Thu, 29 Apr 2010, Sedji Gaouaou wrote:
->
->> Hi,
->>
->> I need to re-work my driver so I could commit it to the community.
->> Is there a git tree that I can use?
->
-> Nice to hear that! As far as soc-camera is concerned, the present APIs are
-> pretty stable. Just use the Linus' git tree, or, if you like, you can use
-> the v4l-dvb git tree at git://linuxtv.org/v4l-dvb.git. In fact, you don't
-> have to use the soc-camera API these days, you can just write a complete
-> v4l2-device driver, using the v4l2-subdev API to interface to video
-> clients (sensors, decoders, etc.) However, you can still write your driver
-> as an soc-camera host driver, which would make your task a bit easier at
-> the cost of some reduced flexibility, it's up to you to decide.
->
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
-
+diff --git a/drivers/media/video/v4l2-event.c b/drivers/media/video/v4l2-event.c
+index 170e40f..91bb1c8 100644
+--- a/drivers/media/video/v4l2-event.c
++++ b/drivers/media/video/v4l2-event.c
+@@ -152,7 +152,7 @@ static struct v4l2_subscribed_event *v4l2_event_subscribed(
+ 	struct v4l2_events *events = fh->events;
+ 	struct v4l2_subscribed_event *sev;
+ 
+-	WARN_ON(!spin_is_locked(&fh->vdev->fh_lock));
++	assert_spin_locked(&fh->vdev->fh_lock);
+ 
+ 	list_for_each_entry(sev, &events->subscribed, list) {
+ 		if (sev->type == type)
+-- 
+1.5.6.5
 
