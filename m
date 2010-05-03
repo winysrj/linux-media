@@ -1,42 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f217.google.com ([209.85.217.217]:35728 "EHLO
-	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751503Ab0EPHK4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 May 2010 03:10:56 -0400
-Received: by gxk9 with SMTP id 9so2596162gxk.8
-        for <linux-media@vger.kernel.org>; Sun, 16 May 2010 00:10:55 -0700 (PDT)
+Received: from mail.atmel.fr ([81.80.104.162]:33813 "EHLO atmel-es2.atmel.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759033Ab0ECORs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 May 2010 10:17:48 -0400
+Message-ID: <4BDEDB06.9090909@atmel.com>
+Date: Mon, 03 May 2010 16:17:42 +0200
+From: Sedji Gaouaou <sedji.gaouaou@atmel.com>
 MIME-Version: 1.0
-From: Pshem Kowalczyk <pshem.k@gmail.com>
-Date: Sun, 16 May 2010 19:10:35 +1200
-Message-ID: <AANLkTik9j_Md07Ry17VXLY7-GKP6yKHi0YM0dFXX9GlX@mail.gmail.com>
-Subject: Hauppage Nova-500-td problems
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-input@vger.kernel.org
+Subject: Re: ATMEL camera interface
+References: <4BD9AA8A.7030306@atmel.com> <Pine.LNX.4.64.1004291824200.4666@axis700.grange> <4BDED3A8.4090606@atmel.com> <Pine.LNX.4.64.1005031556570.4231@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1005031556570.4231@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Well I need contiguous memory, so I guess I will have a look at 
+mx1_camera.c? Is there another example?
 
-I've recently bought Hauppage nova-500-td for my mythtv backend. The
-card works mostly fine, but every now and then it looks like it
-doesn't tune to the channel properly (I think) - video and sound
-remain garbled for prolonged periods of time (2-5 minutes), but
-ultimately recover. This usually happens when the other tuner on the
-card is tuned to the same mux. Signal quality I get is around 70% and
-about 2.5dB of signal to noise (as reported by mythtv), but when the
-issue occurs regardless of what the numbers show.
+What do you mean by videobuf implementation? As I said I just need a 
+contiguous memory.
 
-I'm not entirely sure if that's a hardware or software issue (have no
-windows based pc to try with), but I already got the the card replaced
-once, so if it's hardware it might be something else then the card
-itself. I know that some other people reported issues as well as
-suggested patches, but I haven't found anything conclusive. Currently
-I run the hg tip version of v4l-dvb with 2.6.32 kernel on gentoo.
+Le 5/3/2010 4:03 PM, Guennadi Liakhovetski a écrit :
+> On Mon, 3 May 2010, Sedji Gaouaou wrote:
+>
+>> Hi,
+>>
+>> I will try to write a soc driver(it seems easier ;)).
+>>
+>> Are the mx?_camera.c a good starting point?
+>
+> In principle - yes. But think about one pretty important distinction -
+> what videobuf implementation is your driver going to use? Are you going to
+> support scatter-gather or only contiguous buffers? If SG - the only such
+> example in the mainline is pxa_camera.c. If contiguous - feel free to use
+> any one of the rest. Further, mx3_camera uses the dmaengine API, others
+> don't. Hope, this will simplify your choice a bit;)
+>
+> Thanks
+> Guennadi
+>
+>> Regards,
+>> Sedji
+>>
+>> Le 4/29/2010 6:35 PM, Guennadi Liakhovetski a écrit :
+>>> Hi Sedji
+>>>
+>>> On Thu, 29 Apr 2010, Sedji Gaouaou wrote:
+>>>
+>>>> Hi,
+>>>>
+>>>> I need to re-work my driver so I could commit it to the community.
+>>>> Is there a git tree that I can use?
+>>>
+>>> Nice to hear that! As far as soc-camera is concerned, the present APIs are
+>>> pretty stable. Just use the Linus' git tree, or, if you like, you can use
+>>> the v4l-dvb git tree at git://linuxtv.org/v4l-dvb.git. In fact, you don't
+>>> have to use the soc-camera API these days, you can just write a complete
+>>> v4l2-device driver, using the v4l2-subdev API to interface to video
+>>> clients (sensors, decoders, etc.) However, you can still write your driver
+>>> as an soc-camera host driver, which would make your task a bit easier at
+>>> the cost of some reduced flexibility, it's up to you to decide.
+>>>
+>>> Thanks
+>>> Guennadi
+>>> ---
+>>> Guennadi Liakhovetski, Ph.D.
+>>> Freelance Open-Source Software Developer
+>>> http://www.open-technology.de/
+>>>
+>>
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+>
 
-I would like to know if anyone else experienced something similar
-issues, and probably the more important part -how can I help to
-troubleshoot and debug the problem?
 
-kind regards
-Pshem
