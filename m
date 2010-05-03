@@ -1,195 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8019 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932428Ab0EDS0P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 May 2010 14:26:15 -0400
-Message-ID: <4BE066B7.2050704@redhat.com>
-Date: Tue, 04 May 2010 15:25:59 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from bombadil.infradead.org ([18.85.46.34]:33908 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753771Ab0ECAIM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 20:08:12 -0400
+Message-ID: <4BDE13E7.1010409@infradead.org>
+Date: Sun, 02 May 2010 21:08:07 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 calculating urb buffer
-References: <4BDB067E.4070501@arcor.de> <4BDB3017.9070101@arcor.de> <4BE03F8D.1050905@arcor.de>
-In-Reply-To: <4BE03F8D.1050905@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
+To: Bee Hock Goh <beehock@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	stefan Ringel <stefan.ringel@arcor.de>
+Subject: Re: [PATCH] tm6000: Prevent Kernel Oops changing channel when stream
+ is 	still on.
+References: <u2s6e8e83e21005010151ie123c8e5o45e7d0a3bbc8aa64@mail.gmail.com>
+In-Reply-To: <u2s6e8e83e21005010151ie123c8e5o45e7d0a3bbc8aa64@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stefan,
+The two patches fixed the OOPS I was having.
 
-Stefan Ringel wrote:
-> Am 30.04.2010 21:31, schrieb Stefan Ringel:
->> Am 30.04.2010 18:34, schrieb Stefan Ringel:
->>   
->>> Hi Mauro,
->>>
->>> Today I'm writing directly to you, because it doesn't work the mailing
->>> list. I thought over the calculating urb buffer and I have follow idea:
->>>
->>> buffer = endpoint fifo size (3072 Bytes) * block size (184 Bytes)
->>>
->>> The actually calculating is a video frame size (image = width * hight *
->>> 2 Bytes/Pixel), so that this buffer has to begin and to end an
->>> uncomplete block. followed blocks are setting the logic to an err_mgs
->>> block, so that going to lost frames.
->>>
->>>   
->>>     
->> I forgot a log with old calculating.
->>
->>   
-> 
-> 
-> 
-> datagram from urb to videobuf
-> 
-> urb           copy to     temp         copy to         1. videobuf
->                          buffer                        2. audiobuf
->                                                        3. vbi
-> 184 Packets   ------->   184 * 3072    ---------->     4. etc.
-> a 3072 bytes               bytes
->                184 *                   3072 *
->              3072 bytes              180 bytes
->                                 (184 bytes - 4 bytes
->                                     header )
+The big problem I'm still suffering with HVR-900H is that tm6000 insists on dying:
 
-In order to receive 184 packets with 3072 bytes each, the USB code will
-try to allocate the next power-of-two memory block capable of receiving
-such data block. As: 184 * 3072 = 565248, the kernel allocator will seek
-for a continuous block of 1 MB, that can do DMA transfers (required by
-ehci driver). On a typical machine, due to memory fragmentation,
-in general, there aren't many of such blocks. So, this will increase the
-probability of not having any such large block available, causing an horrible
-dump at kernel, plus a -ENOMEM on the driver, generally requiring a reboot
-if you want to run the driver again.
+hub 1-0:1.0: port 8 disabled by hub (EMI?), re-enabling...
+usb 1-8: USB disconnect, address 5
+tm6000 tm6000_irq_callback :urb resubmit failed (error=-19)
+tm6000 tm6000_irq_callback :urb resubmit failed (error=-19)
+tm6000 tm6000_irq_callback :urb resubmit failed (error=-19)
+tm6000 tm6000_irq_callback :urb resubmit failed (error=-19)
+tm6000 tm6000_irq_callback :urb resubmit failed (error=-19)
+tm6000: disconnecting tm6000 #2
+xc2028 2-0061: destroying instance
 
->                                     
->
-> step 1
-> 
-> copy from urb to temp buffer
+As the chipset stops answering USB, a new, non-fatal bug hits:
 
-Why do you want to do triple buffering? This is a very bad idea.
-If you do it at the wrong way, by handling the copy at interrupt time, 
-you're eating more power (and batteries, on notebooks), and reducing 
-the machine speed. If you split it into two halves, you'll need a larger 
-buffer area, since kernel will eventually join a few consecutive workqueue tasks
-into one, to avoid damaging other kernel process. Also, it will risk loosing
-frames or introduce a high delay. 
+------------[ cut here ]------------
+WARNING: at lib/list_debug.c:48 list_del+0x30/0x87()
+Hardware name:  
+list_del corruption. prev->next should be ffff88003df65ec0, but was (null)
+Modules linked in: ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder ir_nec_decoder ir_core tm6000(C) v4l2_common videodev v4l1_compat v4l2_compat_ioctl32 videobuf_vmalloc videobuf_core autofs4 hidp rfcomm l2cap crc16 bluetooth iptable_filter ip_tables ip6t_REJECT xt_tcpudp ip6table_filter ip6_tables x_tables ipv6 powernow_k8 dm_multipath scsi_dh sbs sbshc battery acpi_memhotplug ac lp snd_intel8x0 snd_ac97_codec ac97_bus snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device i2c_algo_bit snd_pcm_oss snd_mixer_oss sg snd_pcm nvidia(P) ide_cd_mod snd_timer serio_raw parport_pc cdrom snd button parport floppy i2c_nforce2 k8temp soundcore snd_page_alloc pcspkr shpchp hwmon forcedeth i2c_core dm_snapshot dm_zero dm_mirror dm_region_hash dm_log dm_mod sata_nv libata sd_mod scsi_mod ext3 jbd uhci_hcd ohci_hcd ehci_hcd [last unloaded: tuner_xc2028]
+Pid: 12402, comm: mplayer Tainted: P        WC 2.6.33 #4
+Call Trace:
+ [<ffffffff81179c24>] ? list_del+0x30/0x87
+ [<ffffffff8103a43f>] ? warn_slowpath_common+0x77/0x8e
+ [<ffffffff8103a4b2>] ? warn_slowpath_fmt+0x51/0x59
+ [<ffffffff810c54a5>] ? free_block+0xdf/0xfe
+ [<ffffffff8102c9bc>] ? __wake_up_sync_key+0x3a/0x56
+ [<ffffffff81179c24>] ? list_del+0x30/0x87
+ [<ffffffffa015e9c8>] ? videobuf_queue_cancel+0x48/0xba [videobuf_core]
+ [<ffffffffa013e2b3>] ? videobuf_vm_close+0x80/0x14d [videobuf_vmalloc]
+ [<ffffffff810b23d1>] ? remove_vma+0x2c/0x72
+ [<ffffffff810b2522>] ? exit_mmap+0x10b/0x129
+ [<ffffffff8103813c>] ? mmput+0x34/0xa2
+ [<ffffffff8103c077>] ? exit_mm+0x109/0x114
+ [<ffffffff8103d2b0>] ? do_exit+0x1de/0x66e
+ [<ffffffff8103d7ad>] ? do_group_exit+0x6d/0x97
+ [<ffffffff8103d7e9>] ? sys_exit_group+0x12/0x16
+ [<ffffffff810028ab>] ? system_call_fastpath+0x16/0x1b
+---[ end trace fed27d3fe75cb89b ]---
+------------[ cut here ]------------
+WARNING: at lib/list_debug.c:51 list_del+0x5c/0x87()
+Hardware name:  
+list_del corruption. next->prev should be ffff88003df65bc0, but was (null)
+Modules linked in: ir_sony_decoder ir_jvc_decoder ir_rc6_decoder ir_rc5_decoder ir_nec_decoder ir_core tm6000(C) v4l2_common videodev v4l1_compat v4l2_compat_ioctl32 videobuf_vmalloc videobuf_core autofs4 hidp rfcomm l2cap crc16 bluetooth iptable_filter ip_tables ip6t_REJECT xt_tcpudp ip6table_filter ip6_tables x_tables ipv6 powernow_k8 dm_multipath scsi_dh sbs sbshc battery acpi_memhotplug ac lp snd_intel8x0 snd_ac97_codec ac97_bus snd_seq_dummy snd_seq_oss snd_seq_midi_event snd_seq snd_seq_device i2c_algo_bit snd_pcm_oss snd_mixer_oss sg snd_pcm nvidia(P) ide_cd_mod snd_timer serio_raw parport_pc cdrom snd button parport floppy i2c_nforce2 k8temp soundcore snd_page_alloc pcspkr shpchp hwmon forcedeth i2c_core dm_snapshot dm_zero dm_mirror dm_region_hash dm_log dm_mod sata_nv libata sd_mod scsi_mod ext3 jbd uhci_hcd ohci_hcd ehci_hcd [last unloaded: tuner_xc2028]
+Pid: 12402, comm: mplayer Tainted: P        WC 2.6.33 #4
+Call Trace:
+ [<ffffffff81179c50>] ? list_del+0x5c/0x87
+ [<ffffffff8103a43f>] ? warn_slowpath_common+0x77/0x8e
+ [<ffffffff8103a4b2>] ? warn_slowpath_fmt+0x51/0x59
+ [<ffffffff810c54a5>] ? free_block+0xdf/0xfe
+ [<ffffffff81035d58>] ? __wake_up+0x30/0x44
+ [<ffffffff81179c50>] ? list_del+0x5c/0x87
+ [<ffffffffa015e9c8>] ? videobuf_queue_cancel+0x48/0xba [videobuf_core]
+ [<ffffffffa013e2b3>] ? videobuf_vm_close+0x80/0x14d [videobuf_vmalloc]
+ [<ffffffff810b23d1>] ? remove_vma+0x2c/0x72
+ [<ffffffff810b2522>] ? exit_mmap+0x10b/0x129
+ [<ffffffff8103813c>] ? mmput+0x34/0xa2
+ [<ffffffff8103c077>] ? exit_mm+0x109/0x114
+ [<ffffffff8103d2b0>] ? do_exit+0x1de/0x66e
+ [<ffffffff8103d7ad>] ? do_group_exit+0x6d/0x97
+ [<ffffffff8103d7e9>] ? sys_exit_group+0x12/0x16
+ [<ffffffff810028ab>] ? system_call_fastpath+0x16/0x1b
+---[ end trace fed27d3fe75cb89c ]---
+usbcore: deregistering interface driver tm6000
 
-It is already bad enough to have a double buffering with those usb devices. 
-Just as an example, the last time I've measured em28xx driver performance, 
-after doing lots of optimization at the code, it were still consuming 
-about 30% of CPU time of the machine I used for test (a typical 
-mono-core Intel CPU). 
 
-I know that the code would be simpler if we use a temporary buffer,
-but this way, we save CPU time. Also, if we do triple buffering, you'll
-likely add some delay when syncing between audio and video, due to
-the workqueue time.
-
-So, in summary, what we need to do is to validate the code and simplify
-it to be faster. If you take a look at tm6000-video.c, you'll see that I've
-tried already some different approaches. The one that is currently working
-is the first approach I did. As the newer solutions didn't solve the loss
-of data, but introduced newer bugs, I did a rollback to the code. At the time
-I stopped working on tm6000, I was about to write a new (simpler) approach,
-but still avoiding the double buffering.
-
-> 
-> snip
-> ----
-> for (i = 0; i < urb->number_of_packets; i++) {
-> 	int status = urb->iso_frame_desc[i].status;
-> 	
-> 	if (status<0) {
-> 		print_err_status (dev,i,status);
-> 		continue;
-> 	}
-> 
-> 	len=urb->iso_frame_desc[i].actual_length;
-> 
-> 	memcpy (t_buf[i*len], urb->transfer_buffer[i*len], len);
-> 	copied += len;
-> 	if (copied >= size || !buf)
-> 		break;
-> 
-> }
-> 
-> if (!urb->iso_frame_desc[i].status) {
-> 	if ((buf->fmt->fourcc)==V4L2_PIX_FMT_TM6000) {
-> 		rc=copy_multiplexed(t_buf, outp, len, urb, &buf);
-
-copy_multiplexed() is about what you want: It just copies everything
-(except for the URB headers), into a buffer, allowing decoding the
-data on userspace. There's an userspace application that gets those
-data, at v4l-utils tree. With this approach, you may add a decoder
-at libv4l for TM6000 format, and let userspace to do the audio/video/TS
-decoding.
-
-> 		if (rc<=0)
-> 			return rc;
-> 	} else {
-> 		copy_streams(t_buf, outp, len, urb, &buf);
-> 	}
-> }
-> ---
-> snip
-> 
-> step 2
-> 
-> copy from temp buffer into videobuffer
-> 
-> snip
-> ---
-> 
-> for (i=0;i<3072;i++) {
-
-Doesn't work: nothing warrants that the device will start with a frame.
-
-> 	switch(cmd) {
-> 		case TM6000_URB_MSG_VIDEO:
-> 			/* Fills video buffer */
-> 			memcpy(&out_p[(line << 1 + field) * block * 180],
-> 				ptr[(i*184)+4], 180);
-> 			printk (KERN_INFO "cmd=%s, size=%d\n",
-> 			tm6000_msg_type[cmd],size);
-> 			break;
-> 		case TM6000_URB_MSG_PTS:
-> 			printk (KERN_INFO "cmd=%s, size=%d\n",
-> 			tm6000_msg_type[cmd],size);
-> 			break;
-> 		case TM6000_URB_MSG_AUDIO:
-> 			/* Need some code to process audio */
-> 			printk ("%ld: cmd=%s, size=%d\n", jiffies,
-> 			tm6000_msg_type[cmd],size);
-> 			break;
-> 		default:
-> 			dprintk (dev, V4L2_DEBUG_ISOC, "cmd=%s, size=%d\n",
-> 			printk (KERN_INFO "cmd=%s, size=%d\n",
-> 			tm6000_msg_type[cmd],size);
-> 		}
-> 	}
-> }
-> 
-> ---
-> snip
-> 
-> This is a schemata to copy in videobuf.
-> 
-> temp_buf = fifo size * block size
-> 
-> viodeobuf = hight * wight * 2
-> 
-> 
-> Questions
-> 
-> 1. Is it right if I copy the block without header to videobufer?
-> 2. Can I full the videobuffer have more temp_bufs?
-> 3. How are the actually data schema from urb to videobuffer?
-
+Cheers,
+Mauro
 
 -- 
 
