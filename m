@@ -1,59 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f183.google.com ([209.85.221.183]:50172 "EHLO
-	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753819Ab0EVQuX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 May 2010 12:50:23 -0400
-Received: by qyk13 with SMTP id 13so3300372qyk.1
-        for <linux-media@vger.kernel.org>; Sat, 22 May 2010 09:50:22 -0700 (PDT)
+Received: from mail-yx0-f171.google.com ([209.85.210.171]:60207 "EHLO
+	mail-yx0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751057Ab0ECQGo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 12:06:44 -0400
+Received: by yxe1 with SMTP id 1so346014yxe.33
+        for <linux-media@vger.kernel.org>; Mon, 03 May 2010 09:06:43 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimUOp1_CA24HQokWkrf4pqFdubzcZLEQdnF4jBA@mail.gmail.com>
-References: <AANLkTimUOp1_CA24HQokWkrf4pqFdubzcZLEQdnF4jBA@mail.gmail.com>
-Date: Sat, 22 May 2010 12:50:22 -0400
-Message-ID: <AANLkTilluns_macQBykIKu6aiAo1TOBhgHbV1aXnztSq@mail.gmail.com>
-Subject: Fwd: cx18 module not loading
-From: J McBride <mcbride747@gmail.com>
-To: linux-media@vger.kernel.org
+In-Reply-To: <4BDEEE35.6040308@gmail.com>
+References: <4BDE5AA1.1050000@gmail.com> <87pr1dbf1q.fsf@nemi.mork.no>
+	 <4BDEEE35.6040308@gmail.com>
+Date: Mon, 3 May 2010 18:06:41 +0200
+Message-ID: <q2kd9def9db1005030906o10588afcm6cb65ad26c1c04c8@mail.gmail.com>
+Subject: Re: ideal DVB-C PCI/e card?
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Jed <jedi.theone@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It was suggested at ivtv-users that this be reported to this list.
+On Mon, May 3, 2010 at 5:39 PM, Jed <jedi.theone@gmail.com> wrote:
+> Excellent response, & thank-you for so much detail!
+> I apologise for my anaemic response, but it is very late here now, that's my
+> excuse anyway! ;)
+>
+> Just curious, why did you pick VDR over MythTV?
+> I would rather use the later + OSCam (maybe) if feasible.
+>
+> Thanks again for the excellent feedback, it's heartening to know there's
+> other videoguard2 users out there!
+>
+> Good-night.
+>
+> On 3/05/10 5:49 PM, Bjørn Mork wrote:
+>>
+>> [answering this in private since any details about softcams etc usually
+>> is unwanted on mailinglists]
+>>
+>> Jed<jedi.theone@gmail.com>  writes:
+>>
+>>> I was wondering if someone could recommend a decent DVB-C tuner card?
+>>> Ideally it would be a dual DVB-C card, but I'm not sure they exist?!
+>>
+>> I've been looking for the same, but not been able to find one.  The
+>> closest is the foilware from Netup, but it is probably going to be too
+>> expensive when/if it is available anyway.
+>>
+>> Nor does there seem to be any DVB-C PCIe cards or USB sticks with Linux
+>> support.  There are rumours about working external USB boxes.  I haven't
+>> verified those, as I didn't really want any external box adding to the
+>> cable mess...
+>>
 
-Please let me know if I can provide some more information, or if there
-is something that will help my problem.
+There are a few DVB-C/T/(analogTV) USB devices, our USB Sticks are
+well supported and tested with Linux.
+http://support.sundtek.com/index.php/topic,7.0.html
+Aside of that we used to provide free USB Sticks to some opensource
+application developers
+as well (eg. easyVDR, tvheadend developers)
 
-Thanks,
-
-Jeff
-
-
----------- Forwarded message ----------
-From: J McBride <mcbride747@gmail.com>
-Date: Sat, May 22, 2010 at 11:17 AM
-Subject: cx18 module not loading
-To: ivtv-users@ivtvdriver.org
-
-
-I have attempted to get a Hauppauge HTV-1600 card working in
-SimpyMepis.  I have generally followed the steps in the following
-how-to guides:
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-and
-http://ivtvdriver.org/index.php/Howto:Debian
-
-I had to run "make config" and not configure the FireTV due to a
-compilation error, then all seemed to work well until the command:
-#modprobe cx18
-which resulted in the error:
-FATAL: Error inserting cx18
-(/lib/modules/2.6.32-1-mepis64-smp/kernel/drivers/media/video/cx18/cx18.ko):
-Unknown symbol in module, or unknown parameter (see dmesg)
-Then I did:
-dmesg |grep cx18
-cx18: Unknown symbol ir_codes_hauppauge_new_table
-So, I am at my limit here.  I cannot find any similar errors through
-google. Any suggestions on how I get this to work?
-Thanks,
-Jeff
+Markus
