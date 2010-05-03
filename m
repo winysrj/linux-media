@@ -1,47 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cain.gsoft.com.au ([203.31.81.10]:22117 "EHLO cain.gsoft.com.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751918Ab0EVDry convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 May 2010 23:47:54 -0400
-Subject: Re: DViCo Dual Fusion Express (cx23885) remote control issue
-Mime-Version: 1.0 (Apple Message framework v1078)
-Content-Type: text/plain; charset=us-ascii
-From: "Daniel O'Connor" <darius@dons.net.au>
-In-Reply-To: <4BD151AB.7070701@vorgon.com>
-Date: Sat, 22 May 2010 13:17:21 +0930
+Received: from perceval.irobotique.be ([92.243.18.41]:34972 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759026Ab0ECP4l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 11:56:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [PATCH 1/1] V4L: Events: Replace bad WARN_ON() with assert_spin_locked()
+Date: Mon, 3 May 2010 17:57:07 +0200
 Cc: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <8A1612AF-3E76-4CC8-8981-FADA2F7F50A5@dons.net.au>
-References: <201004151519.58012.darius@dons.net.au> <201004222241.28624.darius@dons.net.au> <4BD0984E.4070609@vorgon.com> <201004231000.07508.darius@dons.net.au> <4BD151AB.7070701@vorgon.com>
-To: "Timothy D. Lenz" <tlenz@vorgon.com>
+References: <4BDEEEDF.7050905@maxwell.research.nokia.com> <1272901366-7127-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1272901366-7127-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005031757.08090.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-On 23/04/2010, at 17:22, Timothy D. Lenz wrote:
->> I haven't found any problems with tuners not working although I don't
->> often fire them both up at once.
->> 
+On Monday 03 May 2010 17:42:46 Sakari Ailus wrote:
+> spin_is_locked() always returns zero when spinlock debugging is
+> disabled on a single CPU machine. Replace WARN_ON() with
+> assert_spin_locked().
 > 
-> [PATCH] FusionHDTV: Use quick reads for I2C IR device probing
+> Thanks to Laurent Pinchart for spotting this!
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-I finally found some time to look at this and found..
-https://patchwork.kernel.org/patch/86939/
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-However I don't see anything in /sys/bus/i2c/devices so I presume it's another issue :(
+> ---
+>  drivers/media/video/v4l2-event.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-event.c
+> b/drivers/media/video/v4l2-event.c index 170e40f..91bb1c8 100644
+> --- a/drivers/media/video/v4l2-event.c
+> +++ b/drivers/media/video/v4l2-event.c
+> @@ -152,7 +152,7 @@ static struct v4l2_subscribed_event
+> *v4l2_event_subscribed( struct v4l2_events *events = fh->events;
+>  	struct v4l2_subscribed_event *sev;
+> 
+> -	WARN_ON(!spin_is_locked(&fh->vdev->fh_lock));
+> +	assert_spin_locked(&fh->vdev->fh_lock);
+> 
+>  	list_for_each_entry(sev, &events->subscribed, list) {
+>  		if (sev->type == type)
 
+-- 
+Regards,
 
---
-Daniel O'Connor software and network engineer
-for Genesis Software - http://www.gsoft.com.au
-"The nice thing about standards is that there
-are so many of them to choose from."
-  -- Andrew Tanenbaum
-GPG Fingerprint - 5596 B766 97C0 0E94 4347 295E E593 DC20 7B3F CE8C
-
-
-
-
-
-
+Laurent Pinchart
