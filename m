@@ -1,42 +1,504 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail12.adl6.internode.on.net ([150.101.137.97]:59515 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754449Ab0EFPCi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 11:02:38 -0400
-Received: from Jeds-Mini.local (unverified [118.208.148.114])
-	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id 23359751-1927428
-	for <linux-media@vger.kernel.org>; Fri, 07 May 2010 00:32:35 +0930 (CST)
-Message-ID: <4BE2DA50.7050706@gmail.com>
-Date: Fri, 07 May 2010 01:03:44 +1000
-From: Jed <jedi.theone@gmail.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: this is a test mail
-References: <4BE2D770.4070907@gmail.com> <4BE2D8D0.7010007@gmail.com>
-In-Reply-To: <4BE2D8D0.7010007@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-bw0-f225.google.com ([209.85.218.225]:56673 "EHLO
+	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933589Ab0EDWup (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 18:50:45 -0400
+Received: by bwz25 with SMTP id 25so2539948bwz.28
+        for <linux-media@vger.kernel.org>; Tue, 04 May 2010 15:50:43 -0700 (PDT)
+Date: Wed, 5 May 2010 08:53:50 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Bee Hock Goh <beehock@gmail.com>
+Subject: [PATCH] Rework for support xc5000
+Message-ID: <20100505085350.1b4f023f@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/7J1.V48qLnDV1vsHDmiU=2N"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Anyone know why we're getting 2 emails every time one sends only to
-linux-media@vger.kernel.org ?
-It's a tincy bit irritating, not that I'm complaining  ;)
+--MP_/7J1.V48qLnDV1vsHDmiU=2N
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On 7/05/10 12:57 AM, Jed wrote:
-> Try sending via your ISP's SMTP host instead of Google's.
-> I had issues with this list until I made the switch.
->
-> On 7/05/10 12:51 AM, Ang Way Chuang wrote:
->> Please ignore this email. why can't i get my email through linux media
->> mailing list when i can receive it?
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
+Hi
+
+Set correct GPIO number for BEHOLD_WANDER/VOYAGER
+Add xc5000 callback function
+Small rework tm6000_cards_setup function
+Small rework tm6000_config_tuner, build mode_mask by config information
+Rework for support xc5000 silicon tuner
+Add some information messages for more better understand an errors.
+
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index f795a3e..17e3d4c 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -231,7 +231,9 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_remote   = 1,
+ 		},
+ 		.gpio = {
+-			.tuner_reset	= TM6000_GPIO_2,
++			.tuner_reset	= TM6010_GPIO_0,
++			.demod_reset	= TM6010_GPIO_1,
++			.power_led	= TM6010_GPIO_6,
+ 		},
+ 	},
+ 	[TM6010_BOARD_BEHOLD_VOYAGER] = {
+@@ -247,7 +249,8 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_remote   = 1,
+ 		},
+ 		.gpio = {
+-			.tuner_reset	= TM6000_GPIO_2,
++			.tuner_reset	= TM6010_GPIO_0,
++			.power_led	= TM6010_GPIO_6,
+ 		},
+ 	},
+ 	[TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
+@@ -320,6 +323,31 @@ struct usb_device_id tm6000_id_table [] = {
+ 	{ },
+ };
+ 
++/* Tuner callback to provide the proper gpio changes needed for xc5000 */
++int tm6000_xc5000_callback(void *ptr, int component, int command, int arg)
++{
++	int rc = 0;
++	struct tm6000_core *dev = ptr;
++
++	if (dev->tuner_type != TUNER_XC5000)
++		return 0;
++
++	switch (command) {
++	case XC5000_TUNER_RESET:
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++			       dev->gpio.tuner_reset, 0x01);
++		msleep(15);
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++			       dev->gpio.tuner_reset, 0x00);
++		msleep(15);
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++			       dev->gpio.tuner_reset, 0x01);
++		break;
++	}
++	return (rc);
++}
++
++
+ /* Tuner callback to provide the proper gpio changes needed for xc2028 */
+ 
+ int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+@@ -438,6 +466,21 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+ 		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_on, 0x00);
+ 		msleep(15);
+ 		break;
++	case TM6010_BOARD_BEHOLD_WANDER:
++		/* Power led on (blue) */
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.power_led, 0x01);
++		msleep(15);
++		/* Reset zarlink zl10353 */
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_reset, 0x00);
++		msleep(50);
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_reset, 0x01);
++		msleep(15);
++		break;
++	case TM6010_BOARD_BEHOLD_VOYAGER:
++		/* Power led on (blue) */
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.power_led, 0x01);
++		msleep(15);
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -449,42 +492,38 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+ 	 * If a device uses a different sequence or different GPIO pins for
+ 	 * reset, just add the code at the board-specific part
+ 	 */
+-	for (i = 0; i < 2; i++) {
+-		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+-					dev->gpio.tuner_reset, 0x00);
+-		if (rc < 0) {
+-			printk(KERN_ERR "Error %i doing GPIO1 reset\n", rc);
+-			return rc;
+-		}
+-
+-		msleep(10); /* Just to be conservative */
+-		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+-					dev->gpio.tuner_reset, 0x01);
+-		if (rc < 0) {
+-			printk(KERN_ERR "Error %i doing GPIO1 reset\n", rc);
+-			return rc;
+-		}
+ 
+-		msleep(10);
+-		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 0);
+-		if (rc < 0) {
+-			printk(KERN_ERR "Error %i doing GPIO4 reset\n", rc);
+-			return rc;
+-		}
++	if (dev->gpio.tuner_reset)
++	{
++		for (i = 0; i < 2; i++) {
++			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++						dev->gpio.tuner_reset, 0x00);
++			if (rc < 0) {
++				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
++				return rc;
++			}
+ 
+-		msleep(10);
+-		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 1);
+-		if (rc < 0) {
+-			printk(KERN_ERR "Error %i doing GPIO4 reset\n", rc);
+-			return rc;
+-		}
++			msleep(10); /* Just to be conservative */
++			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++						dev->gpio.tuner_reset, 0x01);
++			if (rc < 0) {
++				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
++				return rc;
++			}
++			msleep(10);
+ 
+-		if (!i) {
+-			rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
+-			if (rc >= 0)
+-				printk(KERN_DEBUG "board=0x%08x\n", rc);
++			if (!i) {
++				rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
++				if (rc >= 0)
++					printk(KERN_DEBUG "board=0x%08x\n", rc);
++			}
+ 		}
+ 	}
++	else
++	{
++		printk(KERN_ERR "Tuner reset is not configured\n");
++		return -1;
++	}
+ 
+ 	msleep(50);
+ 
+@@ -502,12 +541,30 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+ 	memset(&tun_setup, 0, sizeof(tun_setup));
+ 	tun_setup.type   = dev->tuner_type;
+ 	tun_setup.addr   = dev->tuner_addr;
+-	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
+-	tun_setup.tuner_callback = tm6000_tuner_callback;
++
++	tun_setup.mode_mask = 0;
++	if (dev->caps.has_tuner)
++		tun_setup.mode_mask |= (T_ANALOG_TV | T_RADIO);
++	if (dev->caps.has_dvb)
++		tun_setup.mode_mask |= T_DIGITAL_TV;
++
++	switch (dev->tuner_type)
++	{
++	case TUNER_XC2028:
++		tun_setup.tuner_callback = tm6000_tuner_callback;;
++		break;
++	case TUNER_XC5000:
++		tun_setup.tuner_callback = tm6000_xc5000_callback;
++		break;
++	}
++
+ 
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr, &tun_setup);
+ 
+-	if (dev->tuner_type == TUNER_XC2028) {
++	switch (dev->tuner_type)
++	{
++	case TUNER_XC2028:
++		{
+ 		struct v4l2_priv_tun_config  xc2028_cfg;
+ 		struct xc2028_ctrl           ctl;
+ 
+@@ -537,9 +594,31 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+ 		}
+ 
+ 		printk(KERN_INFO "Setting firmware parameters for xc2028\n");
+-
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config,
+ 				     &xc2028_cfg);
++
++		}
++		break;
++	case TUNER_XC5000:
++		{
++		struct v4l2_priv_tun_config  xc5000_cfg;
++		struct xc5000_config ctl = {
++			.i2c_address = dev->tuner_addr,
++			.if_khz      = 4570,
++			.radio_input = XC5000_RADIO_FM1,
++			};
++
++		xc5000_cfg.tuner = TUNER_XC5000;
++		xc5000_cfg.priv  = &ctl;
++
++
++		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config,
++				     &xc5000_cfg);
++		}
++		break;
++	default:
++		printk(KERN_INFO "Unknown tuner type. Tuner is not configured.\n");
++		break;
+ 	}
+ }
+ 
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index 7aeded8..325a2b1 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -216,6 +216,7 @@ struct tm6000_fh {
+ /* In tm6000-cards.c */
+ 
+ int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
++int tm6000_xc5000_callback (void *ptr, int component, int command, int arg);
+ int tm6000_cards_setup(struct tm6000_core *dev);
+ 
+ /* In tm6000-core.c */
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+
+With my best regards, Dmitry.
+--MP_/7J1.V48qLnDV1vsHDmiU=2N
+Content-Type: text/x-patch; name=tm6000.patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=tm6000.patch
+
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index f795a3e..17e3d4c 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -231,7 +231,9 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_remote   = 1,
+ 		},
+ 		.gpio = {
+-			.tuner_reset	= TM6000_GPIO_2,
++			.tuner_reset	= TM6010_GPIO_0,
++			.demod_reset	= TM6010_GPIO_1,
++			.power_led	= TM6010_GPIO_6,
+ 		},
+ 	},
+ 	[TM6010_BOARD_BEHOLD_VOYAGER] = {
+@@ -247,7 +249,8 @@ struct tm6000_board tm6000_boards[] = {
+ 			.has_remote   = 1,
+ 		},
+ 		.gpio = {
+-			.tuner_reset	= TM6000_GPIO_2,
++			.tuner_reset	= TM6010_GPIO_0,
++			.power_led	= TM6010_GPIO_6,
+ 		},
+ 	},
+ 	[TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
+@@ -320,6 +323,31 @@ struct usb_device_id tm6000_id_table [] = {
+ 	{ },
+ };
+ 
++/* Tuner callback to provide the proper gpio changes needed for xc5000 */
++int tm6000_xc5000_callback(void *ptr, int component, int command, int arg)
++{
++	int rc = 0;
++	struct tm6000_core *dev = ptr;
++
++	if (dev->tuner_type != TUNER_XC5000)
++		return 0;
++
++	switch (command) {
++	case XC5000_TUNER_RESET:
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++			       dev->gpio.tuner_reset, 0x01);
++		msleep(15);
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++			       dev->gpio.tuner_reset, 0x00);
++		msleep(15);
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++			       dev->gpio.tuner_reset, 0x01);
++		break;
++	}
++	return (rc);
++}
++
++
+ /* Tuner callback to provide the proper gpio changes needed for xc2028 */
+ 
+ int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+@@ -438,6 +466,21 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+ 		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_on, 0x00);
+ 		msleep(15);
+ 		break;
++	case TM6010_BOARD_BEHOLD_WANDER:
++		/* Power led on (blue) */
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.power_led, 0x01);
++		msleep(15);
++		/* Reset zarlink zl10353 */
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_reset, 0x00);
++		msleep(50);
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_reset, 0x01);
++		msleep(15);
++		break;
++	case TM6010_BOARD_BEHOLD_VOYAGER:
++		/* Power led on (blue) */
++		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.power_led, 0x01);
++		msleep(15);
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -449,42 +492,38 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+ 	 * If a device uses a different sequence or different GPIO pins for
+ 	 * reset, just add the code at the board-specific part
+ 	 */
+-	for (i = 0; i < 2; i++) {
+-		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+-					dev->gpio.tuner_reset, 0x00);
+-		if (rc < 0) {
+-			printk(KERN_ERR "Error %i doing GPIO1 reset\n", rc);
+-			return rc;
+-		}
+-
+-		msleep(10); /* Just to be conservative */
+-		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+-					dev->gpio.tuner_reset, 0x01);
+-		if (rc < 0) {
+-			printk(KERN_ERR "Error %i doing GPIO1 reset\n", rc);
+-			return rc;
+-		}
+ 
+-		msleep(10);
+-		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 0);
+-		if (rc < 0) {
+-			printk(KERN_ERR "Error %i doing GPIO4 reset\n", rc);
+-			return rc;
+-		}
++	if (dev->gpio.tuner_reset)
++	{
++		for (i = 0; i < 2; i++) {
++			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++						dev->gpio.tuner_reset, 0x00);
++			if (rc < 0) {
++				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
++				return rc;
++			}
+ 
+-		msleep(10);
+-		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 1);
+-		if (rc < 0) {
+-			printk(KERN_ERR "Error %i doing GPIO4 reset\n", rc);
+-			return rc;
+-		}
++			msleep(10); /* Just to be conservative */
++			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
++						dev->gpio.tuner_reset, 0x01);
++			if (rc < 0) {
++				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
++				return rc;
++			}
++			msleep(10);
+ 
+-		if (!i) {
+-			rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
+-			if (rc >= 0)
+-				printk(KERN_DEBUG "board=0x%08x\n", rc);
++			if (!i) {
++				rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
++				if (rc >= 0)
++					printk(KERN_DEBUG "board=0x%08x\n", rc);
++			}
+ 		}
+ 	}
++	else
++	{
++		printk(KERN_ERR "Tuner reset is not configured\n");
++		return -1;
++	}
+ 
+ 	msleep(50);
+ 
+@@ -502,12 +541,30 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+ 	memset(&tun_setup, 0, sizeof(tun_setup));
+ 	tun_setup.type   = dev->tuner_type;
+ 	tun_setup.addr   = dev->tuner_addr;
+-	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
+-	tun_setup.tuner_callback = tm6000_tuner_callback;
++
++	tun_setup.mode_mask = 0;
++	if (dev->caps.has_tuner)
++		tun_setup.mode_mask |= (T_ANALOG_TV | T_RADIO);
++	if (dev->caps.has_dvb)
++		tun_setup.mode_mask |= T_DIGITAL_TV;
++
++	switch (dev->tuner_type)
++	{
++	case TUNER_XC2028:
++		tun_setup.tuner_callback = tm6000_tuner_callback;;
++		break;
++	case TUNER_XC5000:
++		tun_setup.tuner_callback = tm6000_xc5000_callback;
++		break;
++	}
++
+ 
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr, &tun_setup);
+ 
+-	if (dev->tuner_type == TUNER_XC2028) {
++	switch (dev->tuner_type)
++	{
++	case TUNER_XC2028:
++		{
+ 		struct v4l2_priv_tun_config  xc2028_cfg;
+ 		struct xc2028_ctrl           ctl;
+ 
+@@ -537,9 +594,31 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+ 		}
+ 
+ 		printk(KERN_INFO "Setting firmware parameters for xc2028\n");
+-
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config,
+ 				     &xc2028_cfg);
++
++		}
++		break;
++	case TUNER_XC5000:
++		{
++		struct v4l2_priv_tun_config  xc5000_cfg;
++		struct xc5000_config ctl = {
++			.i2c_address = dev->tuner_addr,
++			.if_khz      = 4570,
++			.radio_input = XC5000_RADIO_FM1,
++			};
++
++		xc5000_cfg.tuner = TUNER_XC5000;
++		xc5000_cfg.priv  = &ctl;
++
++
++		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config,
++				     &xc5000_cfg);
++		}
++		break;
++	default:
++		printk(KERN_INFO "Unknown tuner type. Tuner is not configured.\n");
++		break;
+ 	}
+ }
+ 
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index 7aeded8..325a2b1 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -216,6 +216,7 @@ struct tm6000_fh {
+ /* In tm6000-cards.c */
+ 
+ int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
++int tm6000_xc5000_callback (void *ptr, int component, int command, int arg);
+ int tm6000_cards_setup(struct tm6000_core *dev);
+ 
+ /* In tm6000-core.c */
+
+Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
+
+--MP_/7J1.V48qLnDV1vsHDmiU=2N--
