@@ -1,81 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58459 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756176Ab0E2Dip (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 May 2010 23:38:45 -0400
-Date: Sat, 29 May 2010 00:38:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add 12 bit RAW Bayer Pattern pixel format support in
- V4L2
-Message-ID: <20100529003832.4a6041f8@pedra>
-In-Reply-To: <33AB447FBD802F4E932063B962385B351E895A6A@shsmsx501.ccr.corp.intel.com>
-References: <33AB447FBD802F4E932063B962385B351E895A6A@shsmsx501.ccr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:51502 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933313Ab0EDT6j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 May 2010 15:58:39 -0400
+Message-ID: <4BE07C54.6000804@arcor.de>
+Date: Tue, 04 May 2010 21:58:12 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 calculating urb buffer
+References: <4BDB067E.4070501@arcor.de> <4BDB3017.9070101@arcor.de> <4BE03F8D.1050905@arcor.de> <4BE066B7.2050704@redhat.com> <4BE071C2.4050309@arcor.de> <4BE07A6A.9000303@redhat.com>
+In-Reply-To: <4BE07A6A.9000303@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 18 May 2010 19:09:35 +0800
-"Zhang, Xiaolin" <xiaolin.zhang@intel.com> escreveu:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+ 
+Am 04.05.2010 21:50, schrieb Mauro Carvalho Chehab:
+> Stefan Ringel wrote:
+>
+>>>> datagram from urb to videobuf
+>>>>
+>>>> urb           copy to     temp         copy to         1. videobuf
+>>>>                          buffer                        2. audiobuf
+>>>>                                                        3. vbi
+>>>> 184 Packets   ------->   184 * 3072    ---------->     4. etc.
+>>>> a 3072 bytes               bytes
+>>>>                184 *                   3072 *
+>>>>              3072 bytes              180 bytes
+>>>>                                 (184 bytes - 4 bytes
+>>>>                                     header )
+>>> In order to receive 184 packets with 3072 bytes each, the USB code will
+>>> try to allocate the next power-of-two memory block capable of receiving
+>>> such data block. As: 184 * 3072 = 565248, the kernel allocator will seek
+>>> for a continuous block of 1 MB, that can do DMA transfers (required by
+>>> ehci driver). On a typical machine, due to memory fragmentation,
+>>> in general, there aren't many of such blocks. So, this will increase the
+>>> probability of not having any such large block available, causing an
+>> horrible
+>>> dump at kernel, plus a -ENOMEM on the driver, generally requiring a
+reboot
+>>> if you want to run the driver again.
+>>>
+>> And direct copy from urb to videobuf/alsa/vbi in 184 Bytes segments.
+>>
+>> urb                      1. videobuf
+>>               copy to    2. audiobuf
+>>                          3. vbi
+>> 184 Packets   ------->   4. etc.
+>> a 3072 bytes  
+>>               180 Bytes (without headers)
+>
+> That's basically what that logic does. It preserves the header if you
+select
+> TM6000 format (so, no checks for the start of the block, etc), or copies
+> just the data, if you select YUY2 or UYUV.
+>
+>> or how can I copy 180 Bytes Data from 184 Bytes block with an
+>> anligment of 184 urb pipe (184 * 3072 Bytes)?
+>
+> A 184 x 3072 URB pipe is a big problem. We used a large pipe in the
+past, and this
+> won't work. For example, on a notebook I used to run some tests with 1
+GB of
+> ram after starting X and do anything (like opening a browser), the URB
+> allocation used to fail, as there weren't any available 1MB segment at
+> the DMA area. Even without starting X, after a few tests, it would
+eventually
+> have fragmented the memory and the driver stops working.
+>
+>
+and 3072 * 46 = 141312 bytes and it can through 184 ! it's 1/4 smaller.
 
-> From 54079deb89764a9399c95098e4c3830c88d24a5c Mon Sep 17 00:00:00 2001
-> From: Xiaolin Zhang <xiaolin.zhang@intel.com>
-> Date: Tue, 18 May 2010 18:02:24 +0800
-> Subject: [PATCH] Add 12 bit RAW Bayer Pattern pixel format support.
-> 
-> Signed-off-by: Xiaolin Zhang <xiaolin.zhang@intel.com>
-> ---
->  Documentation/DocBook/v4l/videodev2.h.xml |   10 +++++++++-
->  include/linux/videodev2.h                 |    4 ++++
->  2 files changed, 13 insertions(+), 1 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
-> index 0683259..649ef9e 100644
-> --- a/Documentation/DocBook/v4l/videodev2.h.xml
-> +++ b/Documentation/DocBook/v4l/videodev2.h.xml
-> @@ -330,7 +330,15 @@ struct <link linkend="v4l2-pix-format">v4l2_pix_format</link> {
->  #define <link linkend="V4L2-PIX-FMT-SBGGR8">V4L2_PIX_FMT_SBGGR8</link>  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
->  #define <link linkend="V4L2-PIX-FMT-SGBRG8">V4L2_PIX_FMT_SGBRG8</link>  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
->  #define <link linkend="V4L2-PIX-FMT-SGRBG8">V4L2_PIX_FMT_SGRBG8</link>  v4l2_fourcc('G', 'R', 'B', 'G') /*  8  GRGR.. BGBG.. */
-> -#define <link linkend="V4L2-PIX-FMT-SGRBG10">V4L2_PIX_FMT_SGRBG10</link> v4l2_fourcc('B', 'A', '1', '0') /* 10bit raw bayer */
-> +#define <link linkend="V4L2-PIX-FMT-SGRBG8">V4L2_PIX_FMT_SRGGB8</link>  v4l2_fourcc('R', 'G', 'G', 'B') /*  8  RGRG.. GBGB.. */
-> +#define <link linkend="V4L2-PIX-FMT-SBGGR10">V4L2_PIX_FMT_SBGGR10</link>  v4l2_fourcc('B', 'G', '1', '0') /*  10  BGBG.. GRGR.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGBRG10">V4L2_PIX_FMT_SGBRG10</link>  v4l2_fourcc('G', 'B', '1', '0') /*  10  GBGB.. RGRG.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGRBG10">V4L2_PIX_FMT_SGRBG10</link>  v4l2_fourcc('B', 'A', '1', '0') /*  10  GRGR.. BGBG.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGRBG10">V4L2_PIX_FMT_SRGGB10</link>  v4l2_fourcc('R', 'G', '1', '0') /*  10  RGRG.. GBGB.. */
-> +#define <link linkend="V4L2-PIX-FMT-SBGGR12">V4L2_PIX_FMT_SBGGR12</link>  v4l2_fourcc('B', 'G', '1', '2') /*  12  BGBG.. GRGR.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGBRG12">V4L2_PIX_FMT_SGBRG12</link>  v4l2_fourcc('G', 'B', '1', '2') /*  12  GBGB.. RGRG.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGRBG12">V4L2_PIX_FMT_SGRBG12</link>  v4l2_fourcc('B', 'A', '1', '2') /*  12  GRGR.. BGBG.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGRBG12">V4L2_PIX_FMT_SRGGB12</link>  v4l2_fourcc('R', 'G', '1', '2') /*  12  RGRG.. GBGB.. */
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.12 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+ 
+iQEcBAEBAgAGBQJL4HxUAAoJEAWtPFjxMvFGAa8H/2tnr0u9YCHUlpcltAlKggcQ
+hXyZ3KiyBVe6K1cc/xEh1sMOscytJ4XS8ho9QHDh9AAObYq5J0zkXV5nBEJ2veIi
+a8fn9LgtsHLbgXhLxaToXgy3GY5HW/RANh0qhBqbPY1VRcvq8wmrKMO89qBr64NI
+5thzzTAV9emxc6mASIw2dksqF0IFIciDEKygbMcHNm1Y1n/b0VkBInnjpz06vUex
+yKaigZRPHtIG8xnNKzcKIURfJ18T8GvpYSTipvZkqMOP6Latah6fYc6WYilMSk3n
+opYXS6iPL7qZkh3nWDXNQQLC1FBKoitsYhgWlope6wabiBYTAwnCtg5LFKo11Jc=
+=khUE
+-----END PGP SIGNATURE-----
 
-It is not just add the new formats to videodev2.h.xml. You also need to add a description about
-how those new formats are, in clear text. Look for example /Documentation/DocBook/v4l/pixfmt-sbggr16.xml
-
-
->          /* 10bit raw bayer DPCM compressed to 8 bits */
->  #define <link linkend="V4L2-PIX-FMT-SGRBG10DPCM8">V4L2_PIX_FMT_SGRBG10DPCM8</link> v4l2_fourcc('B', 'D', '1', '0')
->          /*
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 3793d16..202092a 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -335,6 +335,10 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10  GBGB.. RGRG.. */
->  #define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10  GRGR.. BGBG.. */
->  #define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0') /* 10  RGRG.. GBGB.. */
-> +#define V4L2_PIX_FMT_SBGGR12 v4l2_fourcc('B', 'G', '1', '2') /* 12  BGBG.. GRGR.. */
-> +#define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
-> +#define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
-> +#define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
->  	/* 10bit raw bayer DPCM compressed to 8 bits */
->  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
->  	/*
-
-
--- 
-
-Cheers,
-Mauro
