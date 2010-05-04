@@ -1,32 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:33231 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752942Ab0ESKnn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 May 2010 06:43:43 -0400
-Received: by ewy8 with SMTP id 8so2564333ewy.28
-        for <linux-media@vger.kernel.org>; Wed, 19 May 2010 03:43:42 -0700 (PDT)
-MIME-Version: 1.0
-Date: Wed, 19 May 2010 12:43:42 +0200
-Message-ID: <AANLkTimd2wwGe_cHhDPiRZkzEsIrtn7AwaIWFfMBbgl5@mail.gmail.com>
-Subject: konicawc webcam driver
-From: Patryk Biela <patryk.biela@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Received: from rcsinet10.oracle.com ([148.87.113.121]:24180 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932784Ab0EDS1a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 14:27:30 -0400
+Date: Tue, 4 May 2010 11:26:06 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-media@vger.kernel.org
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for May 4 (media & IR)
+Message-Id: <20100504112606.56d1497d.randy.dunlap@oracle.com>
+In-Reply-To: <20100504162305.4a07a18a.sfr@canb.auug.org.au>
+References: <20100504162305.4a07a18a.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a problem with usb camera driver. It's konicawc. It was working
-in previous kernels 2.4 for sure and perhaps in 2.6. Now in the latest
-kernel it doesn't work.
-The file is /drivers/media/video/usbvideo/konicawc.c
-I couldn't find anyone in MAINTAINERS for this driver.
+On Tue, 4 May 2010 16:23:05 +1000 Stephen Rothwell wrote:
 
-The error message is "Lost sync on frames" the same as here
-https://lists.linux-foundation.org/pipermail/bugme-new/2004-August/010977.html
-There is a patch but it seems it's already applied in current source.
+> Hi all,
+> 
+> Changes since 20100503:
 
-If it could help.I can try older version to find out when this driver broke.
 
--- 
-Patryk Biela
+drivers/media/video/vivi.c:1144: error: implicit declaration of function 'kfree'
+drivers/media/video/vivi.c:1156: error: implicit declaration of function 'kzalloc'
+drivers/media/video/vivi.c:1156: warning: assignment makes pointer from integer without a cast
+
+drivers/media/video/mem2mem_testdev.c:862: error: implicit declaration of function 'kzalloc'
+drivers/media/video/mem2mem_testdev.c:862: warning: assignment makes pointer from integer without a cast
+drivers/media/video/mem2mem_testdev.c:874: error: implicit declaration of function 'kfree'
+drivers/media/video/mem2mem_testdev.c:944: warning: assignment makes pointer from integer without a cast
+
+drivers/media/IR/rc-map.c:51: error: implicit declaration of function 'msleep'
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
