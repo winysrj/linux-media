@@ -1,63 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:46461 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758090Ab0EYBtJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 21:49:09 -0400
-Received: by fg-out-1718.google.com with SMTP id d23so2093147fga.1
-        for <linux-media@vger.kernel.org>; Mon, 24 May 2010 18:49:08 -0700 (PDT)
-Date: Tue, 25 May 2010 11:49:39 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stefan Ringel <stefan.ringel@arcor.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Bee Hock Goh <beehock@gmail.com>
-Subject: Re: [PATCH] xc5000, rework xc_write_reg
-Message-ID: <20100525114939.067404eb@glory.loctelecom.ru>
-In-Reply-To: <AANLkTilL60q2PrBGagobWK99dV9OMKldxLiKZafn1oYb@mail.gmail.com>
-References: <20100518173011.5d9c7f2c@glory.loctelecom.ru>
-	<AANLkTilL60q2PrBGagobWK99dV9OMKldxLiKZafn1oYb@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail96.messagelabs.com ([216.82.254.19]:10325 "EHLO
+	mail96.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752314Ab0EDEdk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 00:33:40 -0400
+From: Viral Mehta <Viral.Mehta@lntinfotech.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Greg KH <greg@kroah.com>,
+	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"robert.lukassen@tomtom.com" <robert.lukassen@tomtom.com>
+Date: Tue, 4 May 2010 10:00:53 +0530
+Subject: RE: [PATCH 1/2] USB gadget: video class function driver
+Message-ID: <70376CA23424B34D86F1C7DE6B9973430254343AAF@VSHINMSMBX01.vshodc.lntinfotech.com>
+References: <1272826662-8279-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <201005031430.00428.laurent.pinchart@ideasonboard.com>
+ <20100503171548.GA11151@kroah.com>
+ <201005032318.02588.laurent.pinchart@ideasonboard.com>,<4BDF55F2.5080101@redhat.com>
+In-Reply-To: <4BDF55F2.5080101@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devin
+Hi,
+>>> Do you have a pointer to that patch?  I'll take it into my usb tree for
+>>> now, to keep things building, and let Mauro send it to Linus for
+>>> merging.
+>>
+>> Sure
+>>
+>> https://patchwork.kernel.org/patch/96373/
+>>
+>> But please note it requires the V4L2 events patch set from Mauro's linux-next
+>> tree.
 
-> On Tue, May 18, 2010 at 3:30 AM, Dmitri Belimov <d.belimov@gmail.com>
-> wrote:
-> > Hi
-> >
-> > Rework xc_write_reg function for correct read register of the
-> > xc5000. It is very useful for tm6000.
-> >
-> > Tested for tm6000 and for saa7134 works well.
-> 
-> Hi Dmitri,
-> 
-> I've put this on my list of patches to review.  My concern is that the
-> xc_wait logic is pretty nasty since it's related to timing of the bus
-> (it took several weeks as well as a dozen emails with the people at
-> Xceive), and hence I am loathed to change it since it took quite a bit
-> of time to test against all the different cards that use xc5000 (and
-> in some cases there were bugs exposed in various bridge's i2c
-> implementations).
-> 
-> That said, I think I actually did attempt to implement a patch
-> comparable to what you did here, but I backed it out for some reason.
-> I will need to review my trees and my notes to see what the rationale
-> was for doing such.
+>Btw, this patch is already on my linux-next tree.
 
-Ok. I can test your solution on our hardware.
-XC5000+SAA7134
-XC5000+TM6010
+Yes, it was added yesterday night IST. Now, it builds. Thanks.
 
-With my best regards, Dmitry.
+______________________________________________________________________
 
-> Devin
-> 
-> -- 
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
+This Email may contain confidential or privileged information for the intended recipient (s) If you are not the intended recipient, please do not use or disseminate the information, notify the sender and delete it from your system.
+
+______________________________________________________________________
