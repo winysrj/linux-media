@@ -1,45 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:60929 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755382Ab0EEGBi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 02:01:38 -0400
-Received: by fxm10 with SMTP id 10so3901101fxm.19
-        for <linux-media@vger.kernel.org>; Tue, 04 May 2010 23:01:37 -0700 (PDT)
-Date: Wed, 5 May 2010 08:01:30 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [patch -next 1/2] media/s2255drv: return if vdev not found
-Message-ID: <20100505060130.GG27064@bicker>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:60073 "EHLO
+	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759481Ab0EDP7q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 11:59:46 -0400
+Received: from MacBook-Pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta4.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0L1W00HNRJ1LURM0@mta4.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 04 May 2010 11:29:46 -0400 (EDT)
+Date: Tue, 04 May 2010 11:29:46 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Hauppauge HVR-4400
+In-reply-to: <4BE03311.4010702@gmail.com>
+To: Jed <jedi.theone@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-id: <4BE03D6A.5060100@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <201005041400.10530.jan_moebius@web.de>
+ <z2q829197381005040636vbd2d7254n4674dcc21cc751f4@mail.gmail.com>
+ <4BE03311.4010702@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The original code didn't handle the case where vdev was not found so I
-added a check for that.
+On 5/4/10 10:45 AM, Jed wrote:
+> Oh wow I didn't know Hauppauge had released some new models above the 2200.
+> http://www.hauppauge.co.uk/site/products/prods_hvr_internal.html
+> Is this 4400 exactly the same as the HVR-2200, aside from the
+> demodulator used for it's DVB-S/S2?
+> I hope so, that way work being done on the 2200 can flow onto this!
+> (cept for DVB-S/S2)
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+It's completely different.
 
-diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
-index ac9c40c..1f9a49e 100644
---- a/drivers/media/video/s2255drv.c
-+++ b/drivers/media/video/s2255drv.c
-@@ -1716,11 +1716,15 @@ static int s2255_open(struct file *file)
- 	dprintk(1, "s2255: open called (dev=%s)\n",
- 		video_device_node_name(vdev));
- 
--	for (i = 0; i < MAX_CHANNELS; i++)
-+	for (i = 0; i < MAX_CHANNELS; i++) {
- 		if (&dev->vdev[i] == vdev) {
- 			cur_channel = i;
- 			break;
- 		}
-+	}
-+	if (i == MAX_CHANNELS)
-+		return -ENODEV;
-+
- 	/*
- 	 * open lock necessary to prevent multiple instances
- 	 * of v4l-conf (or other programs) from simultaneously
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
+
