@@ -1,101 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:46757 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751816Ab0E2Q7D convert rfc822-to-8bit (ORCPT
+Received: from mail-in-14.arcor-online.net ([151.189.21.54]:38418 "EHLO
+	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932993Ab0EDTNe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 12:59:03 -0400
-Received: by vws11 with SMTP id 11so311626vws.19
-        for <linux-media@vger.kernel.org>; Sat, 29 May 2010 09:58:59 -0700 (PDT)
+	Tue, 4 May 2010 15:13:34 -0400
+Message-ID: <4BE071C2.4050309@arcor.de>
+Date: Tue, 04 May 2010 21:13:06 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-In-Reply-To: <1275136793.2260.18.camel@localhost>
-References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>
-	<1275136793.2260.18.camel@localhost>
-Date: Sat, 29 May 2010 12:58:55 -0400
-Message-ID: <AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>
-Subject: Re: ir-core multi-protocol decode and mceusb
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 calculating urb buffer
+References: <4BDB067E.4070501@arcor.de> <4BDB3017.9070101@arcor.de> <4BE03F8D.1050905@arcor.de> <4BE066B7.2050704@redhat.com>
+In-Reply-To: <4BE066B7.2050704@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, May 29, 2010 at 8:39 AM, Andy Walls <awalls@md.metrocast.net> wrote:
-> On Fri, 2010-05-28 at 00:47 -0400, Jarod Wilson wrote:
->> So I'm inching closer to a viable mceusb driver submission -- both a
->> first-gen and a third-gen transceiver are now working perfectly with
->> multiple different mce remotes. However, that's only when I make sure
->> the mceusb driver is loaded w/only the rc6 decoder loaded. When
->> ir-core comes up, it requests all decoders to load, starting with the
->> nec decoder, followed by the rc5 decoder, then the rc6 decoder and so
->> on (init_decoders() in ir-raw-event.c). When I call
->> ir_raw_event_handle, all decoders get run on the ir data buffer,
->> starting with nec. Well, the nec decoder doesn't like the rc6 data, so
->> it pukes. The RUN_DECODER macro break's out of the routine when that
->> happens, and the rc6 decoder never gets a chance to run. (Similarly,
->> if only ir-nec-decoder has been removed, the rc5 decoder pukes on the
->> rc6 data, same problem).
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+ 
+Am 04.05.2010 20:25, schrieb Mauro Carvalho Chehab:
+> Hi Stefan,
 >
-> Yes, if the system kernel is going to attempt to discriminate between
-> various input singals, it needs to let all its "correlators" run and
-> produce a "confidence" number from each.
+> Stefan Ringel wrote:
+>> Am 30.04.2010 21:31, schrieb Stefan Ringel:
+>>> Am 30.04.2010 18:34, schrieb Stefan Ringel:
+>>>  
+>>>> Hi Mauro,
+>>>>
+>>>> Today I'm writing directly to you, because it doesn't work the mailing
+>>>> list. I thought over the calculating urb buffer and I have follow idea:
+>>>>
+>>>> buffer = endpoint fifo size (3072 Bytes) * block size (184 Bytes)
+>>>>
+>>>> The actually calculating is a video frame size (image = width * hight *
+>>>> 2 Bytes/Pixel), so that this buffer has to begin and to end an
+>>>> uncomplete block. followed blocks are setting the logic to an err_mgs
+>>>> block, so that going to lost frames.
+>>>>
+>>>>  
+>>>>    
+>>> I forgot a log with old calculating.
+>>>
+>>>  
+>>
+>>
+>>
+>> datagram from urb to videobuf
+>>
+>> urb           copy to     temp         copy to         1. videobuf
+>>                          buffer                        2. audiobuf
+>>                                                        3. vbi
+>> 184 Packets   ------->   184 * 3072    ---------->     4. etc.
+>> a 3072 bytes               bytes
+>>                184 *                   3072 *
+>>              3072 bytes              180 bytes
+>>                                 (184 bytes - 4 bytes
+>>                                     header )
 >
-> Then ideally one would take the result with the highest confidence.
+> In order to receive 184 packets with 3072 bytes each, the USB code will
+> try to allocate the next power-of-two memory block capable of receiving
+> such data block. As: 184 * 3072 = 565248, the kernel allocator will seek
+> for a continuous block of 1 MB, that can do DMA transfers (required by
+> ehci driver). On a typical machine, due to memory fragmentation,
+> in general, there aren't many of such blocks. So, this will increase the
+> probability of not having any such large block available, causing an
+horrible
+> dump at kernel, plus a -ENOMEM on the driver, generally requiring a reboot
+> if you want to run the driver again.
 >
-> Right now it looks like all the confidence determinations are boolean (0
-> or -EINVAL) and there is no chance to deal with the case that two
-> different decoders validly decode something.  The first decoder that
-> declares a match "wins" and sends an event.
+And direct copy from urb to videobuf/alsa/vbi in 184 Bytes segments.
 
-Yeah, it does look that way. I wonder how likely it is that e.g. a
-valid RC6 signal would be decoded to something by say the NEC decoder,
-with a resulting value that matched an entry in the (RC6) keymap
-loaded for the remote... Certainly seems like something that *could*
-happen somehow, but probably unlikely? I dunno... We do have the
-option to disable all but the relevant protocol handler on a
-per-device basis though, if that's a problem. Hrm, the key tables also
-have a protocol tied to them, not sure if that's taken into account
-when doing matching... Still getting to know the code. :)
+urb                      1. videobuf
+              copy to    2. audiobuf
+                         3. vbi
+184 Packets   ------->   4. etc.
+a 3072 bytes   
+              180 Bytes (without headers)
 
->>  If I'm thinking clearly, rather than breaking
->> out of the loop in RUN_DECODER, we really ought to be issuing a
->> continue to go on to the next decoder, and possibly be accumulating
->> failures, though I don't know that _sumrc actually matters other than
->> "greater than zero" (i.e., at least one decoder was successfully able
->> to decode the signal). If I'm not thinking clearly, a pointer to what
->> I'm missing would be appreciated. :)
+
+or how can I copy 180 Bytes Data from 184 Bytes block with an
+anligment of 184 urb pipe (184 * 3072 Bytes)?
+
+
+>>                                    
+>>
+>> step 1
+>>
+>> copy from urb to temp buffer
 >
-> You will have to deal with the case that two or more decoders may match
-> and each sends an IR event.  (Unless the ir-core already deals with this
-> somehow...)
+> Why do you want to do triple buffering? This is a very bad idea.
+> If you do it at the wrong way, by handling the copy at interrupt time,
+> you're eating more power (and batteries, on notebooks), and reducing
+> the machine speed. If you split it into two halves, you'll need a larger
+> buffer area, since kernel will eventually join a few consecutive
+workqueue tasks
+> into one, to avoid damaging other kernel process. Also, it will risk
+loosing
+> frames or introduce a high delay.
+>
+> It is already bad enough to have a double buffering with those usb
+devices.
+> Just as an example, the last time I've measured em28xx driver performance,
+> after doing lots of optimization at the code, it were still consuming
+> about 30% of CPU time of the machine I used for test (a typical
+> mono-core Intel CPU).
+>
+> I know that the code would be simpler if we use a temporary buffer,
+> but this way, we save CPU time. Also, if we do triple buffering, you'll
+> likely add some delay when syncing between audio and video, due to
+> the workqueue time.
+>
+> So, in summary, what we need to do is to validate the code and simplify
+> it to be faster. If you take a look at tm6000-video.c, you'll see that I've
+> tried already some different approaches. The one that is currently working
+> is the first approach I did. As the newer solutions didn't solve the loss
+> of data, but introduced newer bugs, I did a rollback to the code. At
+the time
+> I stopped working on tm6000, I was about to write a new (simpler) approach,
+> but still avoiding the double buffering.
+>
+>>
+>> snip
+>> ----
+>> for (i = 0; i < urb->number_of_packets; i++) {
+>>     int status = urb->iso_frame_desc[i].status;
+>>    
+>>     if (status<0) {
+>>         print_err_status (dev,i,status);
+>>         continue;
+>>     }
+>>
+>>     len=urb->iso_frame_desc[i].actual_length;
+>>
+>>     memcpy (t_buf[i*len], urb->transfer_buffer[i*len], len);
+>>     copied += len;
+>>     if (copied >= size || !buf)
+>>         break;
+>>
+>> }
+>>
+>> if (!urb->iso_frame_desc[i].status) {
+>>     if ((buf->fmt->fourcc)==V4L2_PIX_FMT_TM6000) {
+>>         rc=copy_multiplexed(t_buf, outp, len, urb, &buf);
+>
+> copy_multiplexed() is about what you want: It just copies everything
+> (except for the URB headers), into a buffer, allowing decoding the
+> data on userspace. There's an userspace application that gets those
+> data, at v4l-utils tree. With this approach, you may add a decoder
+> at libv4l for TM6000 format, and let userspace to do the audio/video/TS
+> decoding.
+>
+>>         if (rc<=0)
+>>             return rc;
+>>     } else {
+>>         copy_streams(t_buf, outp, len, urb, &buf);
+>>     }
+>> }
+>> ---
+>> snip
+>>
+>> step 2
+>>
+>> copy from temp buffer into videobuffer
+>>
+>> snip
+>> ---
+>>
+>> for (i=0;i<3072;i++) {
+>
+> Doesn't work: nothing warrants that the device will start with a frame.
+>
+>>     switch(cmd) {
+>>         case TM6000_URB_MSG_VIDEO:
+>>             /* Fills video buffer */
+>>             memcpy(&out_p[(line << 1 + field) * block * 180],
+>>                 ptr[(i*184)+4], 180);
+>>             printk (KERN_INFO "cmd=%s, size=%d\n",
+>>             tm6000_msg_type[cmd],size);
+>>             break;
+>>         case TM6000_URB_MSG_PTS:
+>>             printk (KERN_INFO "cmd=%s, size=%d\n",
+>>             tm6000_msg_type[cmd],size);
+>>             break;
+>>         case TM6000_URB_MSG_AUDIO:
+>>             /* Need some code to process audio */
+>>             printk ("%ld: cmd=%s, size=%d\n", jiffies,
+>>             tm6000_msg_type[cmd],size);
+>>             break;
+>>         default:
+>>             dprintk (dev, V4L2_DEBUG_ISOC, "cmd=%s, size=%d\n",
+>>             printk (KERN_INFO "cmd=%s, size=%d\n",
+>>             tm6000_msg_type[cmd],size);
+>>         }
+>>     }
+>> }
+>>
+>> ---
+>> snip
+>>
+>> This is a schemata to copy in videobuf.
+>>
+>> temp_buf = fifo size * block size
+>>
+>> viodeobuf = hight * wight * 2
+>>
+>>
+>> Questions
+>>
+>> 1. Is it right if I copy the block without header to videobufer?
+>> 2. Can I full the videobuffer have more temp_bufs?
+>> 3. How are the actually data schema from urb to videobuffer?
+>
+>
 
-Well, its gotta decode correctly to a value, and then match a value in
-the loaded key table for an input event to get sent through. At least
-for the RC6 MCE remotes, I haven't seen any of the other decoders take
-the signal and interpret it as valid -- which ought to be by design,
-if you consider that people use several different remotes with varying
-ir signals with different devices all receiving them all the time
-without problems (usually). And if we're not already, we could likely
-add some logic to give higher precedence to values arrived at using
-the protocol decoder that matches the key table we've got loaded for a
-given device.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.12 (MingW32)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+ 
+iQEcBAEBAgAGBQJL4HHCAAoJEDX/lZlmjdJlnfwIAKTVHHCMCha0GH5qJUUkJPY2
+OJtHYpiJzYo8v/k4fT24vJpy/nT74i3ssrKk8sS7Y1yj+1HwPnuUBgny1hqS/O3B
+2D43eiFCN1riKnDkxIlTs+tbo3wvKOBOrY1rdRgOrC6FhAvFyQ5WS3PdraYt5oaQ
+5oAAI6QT3lCfyQ6LSLfuw64BAtohRZ1jNVp5rh5CBr0gWsfrQrQsset0F6w6o0O9
+Gj02w6HqMJJdZBKImMhgkbgY11jN9476JsyRoh2me1Hhf18kWt30Cjyccvfydo2U
+tdc5EelrAXseu8HmdBZlMgYrarWvL0AHXXH/hJfxzt7sW/d2Mw/XuSJD+BMh7rk=
+=Zx8V
+-----END PGP SIGNATURE-----
 
-In looking closer at what we're doing now with RUN_DECODER(), it seems
-only __ir_input_register() actually cares about the retval, and
-unfortunately, it seems to be checking for a ret < 0 to indicate
-failure, which isn't possible -- its _sumrc that gets returned, and
-its initialized to 0, then only ever adjusted if _rc >= 0, so we'll
-never see it as a failure in __ir_input_register().
-
-Given that bit of data, I'd say the patch I submitted yesterday isn't
-quite correct. I think RUN_DECODER should actually be adding _rc to
-_sumrc in all cases -- instead of an if/else on _rc < 0, just always
-do the _sumrc += _rc and return _sumrc, which will either be 0 or some
-negative value. I don't think we need to worry at all about the retval
-we get from the decode functions though -- either we get one or more
-decoded values to match against our key table or we don't...
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
