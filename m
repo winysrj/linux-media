@@ -1,96 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 25.mail-out.ovh.net ([91.121.27.228]:40399 "HELO
-	25.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754855Ab0EFMa1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 08:30:27 -0400
-Message-ID: <f8f6b7c78cd8469f838fc084573dbe8b.squirrel@webmail.ovh.net>
-Date: Thu, 6 May 2010 07:30:25 -0500 (GMT+5)
-Subject: [PATCH] dvb_frontend: fix typos in comments and one function
-From: "Guillaume Audirac" <guillaume.audirac@webag.fr>
-To: linux-media@vger.kernel.org
-Reply-To: guillaume.audirac@webag.fr
+Received: from mx1.redhat.com ([209.132.183.28]:27925 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752189Ab0EDTuL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 May 2010 15:50:11 -0400
+Message-ID: <4BE07A6A.9000303@redhat.com>
+Date: Tue, 04 May 2010 16:50:02 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 calculating urb buffer
+References: <4BDB067E.4070501@arcor.de> <4BDB3017.9070101@arcor.de> <4BE03F8D.1050905@arcor.de> <4BE066B7.2050704@redhat.com> <4BE071C2.4050309@arcor.de>
+In-Reply-To: <4BE071C2.4050309@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Stefan Ringel wrote:
 
-Trivial patch for typos.
+>>> datagram from urb to videobuf
+>>>
+>>> urb           copy to     temp         copy to         1. videobuf
+>>>                          buffer                        2. audiobuf
+>>>                                                        3. vbi
+>>> 184 Packets   ------->   184 * 3072    ---------->     4. etc.
+>>> a 3072 bytes               bytes
+>>>                184 *                   3072 *
+>>>              3072 bytes              180 bytes
+>>>                                 (184 bytes - 4 bytes
+>>>                                     header )
+>> In order to receive 184 packets with 3072 bytes each, the USB code will
+>> try to allocate the next power-of-two memory block capable of receiving
+>> such data block. As: 184 * 3072 = 565248, the kernel allocator will seek
+>> for a continuous block of 1 MB, that can do DMA transfers (required by
+>> ehci driver). On a typical machine, due to memory fragmentation,
+>> in general, there aren't many of such blocks. So, this will increase the
+>> probability of not having any such large block available, causing an
+> horrible
+>> dump at kernel, plus a -ENOMEM on the driver, generally requiring a reboot
+>> if you want to run the driver again.
+>>
+> And direct copy from urb to videobuf/alsa/vbi in 184 Bytes segments.
+> 
+> urb                      1. videobuf
+>               copy to    2. audiobuf
+>                          3. vbi
+> 184 Packets   ------->   4. etc.
+> a 3072 bytes   
+>               180 Bytes (without headers)
 
+That's basically what that logic does. It preserves the header if you select
+TM6000 format (so, no checks for the start of the block, etc), or copies
+just the data, if you select YUY2 or UYUV.
 
+> or how can I copy 180 Bytes Data from 184 Bytes block with an
+> anligment of 184 urb pipe (184 * 3072 Bytes)?
 
-
-
-Signed-off-by: Guillaume Audirac <guillaume.audirac@webag.fr>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c
-b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 55ea260..e12a0f9 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -460,7 +460,7 @@ static void dvb_frontend_swzigzag(struct dvb_frontend
-*fe)
- 	if ((fepriv->state & FESTATE_SEARCHING_FAST) || (fepriv->state &
-FESTATE_RETUNE)) {
- 		fepriv->delay = fepriv->min_delay;
-
--		/* peform a tune */
-+		/* perform a tune */
- 		retval = dvb_frontend_swzigzag_autotune(fe,
- 							fepriv->check_wrapped);
- 		if (retval < 0) {
-@@ -783,7 +783,7 @@ static int dvb_frontend_start(struct dvb_frontend *fe)
- 	return 0;
- }
-
--static void dvb_frontend_get_frequeny_limits(struct dvb_frontend *fe,
-+static void dvb_frontend_get_frequency_limits(struct dvb_frontend *fe,
- 					u32 *freq_min, u32 *freq_max)
- {
- 	*freq_min = max(fe->ops.info.frequency_min,
-fe->ops.tuner_ops.info.frequency_min);
-@@ -807,7 +807,7 @@ static int dvb_frontend_check_parameters(struct
-dvb_frontend *fe,
- 	u32 freq_max;
-
- 	/* range check: frequency */
--	dvb_frontend_get_frequeny_limits(fe, &freq_min, &freq_max);
-+	dvb_frontend_get_frequency_limits(fe, &freq_min, &freq_max);
- 	if ((freq_min && parms->frequency < freq_min) ||
- 	    (freq_max && parms->frequency > freq_max)) {
- 		printk(KERN_WARNING "DVB: adapter %i frontend %i frequency %u out of
-range (%u..%u)\n",
-@@ -1620,7 +1620,7 @@ static int dvb_frontend_ioctl_legacy(struct inode
-*inode, struct file *file,
- 	case FE_GET_INFO: {
- 		struct dvb_frontend_info* info = parg;
- 		memcpy(info, &fe->ops.info, sizeof(struct dvb_frontend_info));
--		dvb_frontend_get_frequeny_limits(fe, &info->frequency_min,
-&info->frequency_max);
-+		dvb_frontend_get_frequency_limits(fe, &info->frequency_min,
-&info->frequency_max);
-
- 		/* Force the CAN_INVERSION_AUTO bit on. If the frontend doesn't
- 		 * do it, it is done for it. */
-@@ -1719,7 +1719,7 @@ static int dvb_frontend_ioctl_legacy(struct inode
-*inode, struct file *file,
- 			 * (stv0299 for instance) take longer than 8msec to
- 			 * respond to a set_voltage command.  Those switches
- 			 * need custom routines to switch properly.  For all
--			 * other frontends, the following shoule work ok.
-+			 * other frontends, the following should work ok.
- 			 * Dish network legacy switches (as used by Dish500)
- 			 * are controlled by sending 9-bit command words
- 			 * spaced 8msec apart.
--- 
-1.6.3.3
+A 184 x 3072 URB pipe is a big problem. We used a large pipe in the past, and this
+won't work. For example, on a notebook I used to run some tests with 1 GB of
+ram after starting X and do anything (like opening a browser), the URB
+allocation used to fail, as there weren't any available 1MB segment at
+the DMA area. Even without starting X, after a few tests, it would eventually
+have fragmented the memory and the driver stops working.
 
 
 -- 
-Guillaume
 
+Cheers,
+Mauro
