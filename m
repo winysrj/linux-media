@@ -1,124 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2139 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576Ab0EaTMz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 15:12:55 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4VJCoJ2038583
-	for <linux-media@vger.kernel.org>; Mon, 31 May 2010 21:12:54 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 31 May 2010 21:12:50 +0200 (CEST)
-Message-Id: <201005311912.o4VJCoJ2038583@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mx1.redhat.com ([209.132.183.28]:23888 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932254Ab0EDOD3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 May 2010 10:03:29 -0400
+Date: Tue, 4 May 2010 10:03:18 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Dan Carpenter <error27@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] IR/imon: remove dead IMON_KEY_RELEASE_OFFSET
+Message-ID: <20100504140318.GA10813@redhat.com>
+References: <20100504122030.GX29093@bicker>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100504122030.GX29093@bicker>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+This hack was used when the imon driver was using internal key lookup
+routines, but became dead weight when the driver was converted to use
+ir-core's key lookup routines. These bits simply didn't get removed,
+drop 'em now.
 
-Results of the daily build of v4l-dvb:
+Pointed out by Dan Carpenter.
 
-date:        Mon May 31 19:00:28 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14875:304cfde05b3f
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/imon.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: ERRORS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: ERRORS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: ERRORS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: ERRORS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: ERRORS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: ERRORS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
+index 27743eb..bce8ef8 100644
+--- a/drivers/media/IR/imon.c
++++ b/drivers/media/IR/imon.c
+@@ -55,7 +55,6 @@
+ #define BIT_DURATION	250	/* each bit received is 250us */
+ 
+ #define IMON_CLOCK_ENABLE_PACKETS	2
+-#define IMON_KEY_RELEASE_OFFSET		1000
+ 
+ /*** P R O T O T Y P E S ***/
+ 
+@@ -1205,7 +1204,7 @@ static u32 imon_panel_key_lookup(u64 hw_code)
+ 		if (imon_panel_key_table[i].hw_code == (code | 0xffee))
+ 			break;
+ 
+-	keycode = imon_panel_key_table[i % IMON_KEY_RELEASE_OFFSET].keycode;
++	keycode = imon_panel_key_table[i].keycode;
+ 
+ 	return keycode;
+ }
 
-Detailed results are available here:
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
