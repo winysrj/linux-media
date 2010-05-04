@@ -1,38 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:42292 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751415Ab0EJQY1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 May 2010 12:24:27 -0400
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 1/2] tm6000: bugfix tuner callback
-Date: Mon, 10 May 2010 18:22:50 +0200
-Message-Id: <1273508571-16472-1-git-send-email-stefan.ringel@arcor.de>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:40323 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752383Ab0EDKC4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 06:02:56 -0400
+Received: by fxm10 with SMTP id 10so3019722fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 04 May 2010 03:02:55 -0700 (PDT)
+Date: Tue, 4 May 2010 12:02:43 +0200
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: akpm@linux-foundation.org, linux-media@vger.kernel.org,
+	dtor@mail.ru
+Subject: Re: [patch 10/11] ir-keytable: avoid double lock
+Message-ID: <20100504100243.GS29093@bicker>
+References: <201004272111.o3RLBQlk020008@imap1.linux-foundation.org> <4BDF5731.4040203@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4BDF5731.4040203@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+On Mon, May 03, 2010 at 08:07:29PM -0300, Mauro Carvalho Chehab wrote:
+> akpm@linux-foundation.org wrote:
+> > From: Dan Carpenter <error27@gmail.com>
+> > 
+> > It's possible that we wanted to resize to a smaller size but we didn't
+> > have enough memory to create the new table.  We need to test for that here
+> > so we don't try to lock twice and dead lock.  Also we free the "oldkeymap"
+> > on that path and that would be bad.
+> 
+> This patch doesn't apply anymore on my tree.
+> 
+> It probably conflicted with this one:
+> 
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-cards.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Yup.  It's no longer needed.  Looks good.
 
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index 6143e20..9f6160b 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -563,7 +563,7 @@ static void tm6000_config_tuner(struct tm6000_core *dev)
- 
- 	switch (dev->tuner_type) {
- 	case TUNER_XC2028:
--		tun_setup.tuner_callback = tm6000_tuner_callback;;
-+		tun_setup.tuner_callback = tm6000_tuner_callback;
- 		break;
- 	case TUNER_XC5000:
- 		tun_setup.tuner_callback = tm6000_xc5000_callback;
--- 
-1.7.0.3
+regards,
+dan carpenter
+
 
