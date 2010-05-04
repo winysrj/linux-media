@@ -1,90 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sh.osrg.net ([192.16.179.4]:44149 "EHLO sh.osrg.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755027Ab0ENBrI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 May 2010 21:47:08 -0400
-Date: Fri, 14 May 2010 10:46:34 +0900
-To: mchehab@redhat.com
-Cc: fujita.tomonori@lab.ntt.co.jp, pete@sensoray.com, gregkh@suse.de,
-	linux-media@vger.kernel.org, akpm@linux-foundation.org
-Subject: Re: [PATCH] Staging: saa7134-go7007: replace dma_sync_single with
- dma_sync_single_for_cpu
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <4BECA6FD.4000702@redhat.com>
-References: <1273789524.4502.51.camel@pete-desktop>
-	<20100514094117H.fujita.tomonori@lab.ntt.co.jp>
-	<4BECA6FD.4000702@redhat.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-Id: <20100514104710K.fujita.tomonori@lab.ntt.co.jp>
+Received: from mta-1.ms.rz.RWTH-Aachen.DE ([134.130.7.72]:43160 "EHLO
+	mta-1.ms.rz.rwth-aachen.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757873Ab0EDMaM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 May 2010 08:30:12 -0400
+MIME-version: 1.0
+Content-type: Text/Plain; charset=utf-8
+Received: from ironport-out-1.rz.rwth-aachen.de ([134.130.5.40])
+ by mta-1.ms.rz.RWTH-Aachen.de
+ (Sun Java(tm) System Messaging Server 6.3-7.04 (built Sep 26 2008))
+ with ESMTP id <0L1W009N89CBWD60@mta-1.ms.rz.RWTH-Aachen.de> for
+ linux-media@vger.kernel.org; Tue, 04 May 2010 14:00:11 +0200 (CEST)
+Received: from adenauer.localnet ([unknown] [137.226.115.15])
+ by relay-auth-1.ms.rz.rwth-aachen.de
+ (Sun Java(tm) System Messaging Server 7.0-3.01 64bit (built Dec  9 2008))
+ with ESMTPA id <0L1W005VM9CB8L60@relay-auth-1.ms.rz.rwth-aachen.de> for
+ linux-media@vger.kernel.org; Tue, 04 May 2010 14:00:11 +0200 (CEST)
+From: Jan =?utf-8?q?M=C3=B6bius?= <jan_moebius@web.de>
+To: linux-media@vger.kernel.org
+Subject: Hauppauge HVR-4400
+Date: Tue, 04 May 2010 14:00:10 +0200
+Content-transfer-encoding: 8BIT
+Message-id: <201005041400.10530.jan_moebius@web.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 13 May 2010 22:27:25 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Hi,
 
-> FUJITA Tomonori wrote:
-> > On Thu, 13 May 2010 15:25:24 -0700
-> > Pete Eberlein <pete@sensoray.com> wrote:
-> > 
-> >> Thanks, Tomonori.
-> >>
-> >> Does this need to get submitted to the linux-media tree as well, or will
-> >> this patch get pulled automatically from Linus' tree?
-> > 
-> > I think that patches for staging drivers are merged via Greg's staging
-> > tree.
-> 
-> In the specific case of staging drivers for go7007, tm6000 and cx25821, 
-> those patches are going via v4l-dvb git tree.
+im trying to get a Hauppauge HVR-4400 working on a Debian squeeze. It seems to 
+be unsopported yet. Is there any driver which i don't know about?
 
-I see, now I resend the patch to linux-media.
+If not i would really like to help getting it supported (information, 
+testing,...)
 
-For further information about the background:
+Some information i get from the card:
 
-http://marc.info/?t=127354052400002&r=1&w=2
+Hauppauge HVR-4400 ( should be some kind of 4000 but with a pci-express 
+interface )
 
-Thanks,
+04:00.0 Multimedia video controller [0400]: Conexant Systems, Inc. Hauppauge 
+Inc. HDPVR-1250 model 1196 [14f1:8880] (rev 04)
+        Subsystem: Hauppauge computer works Inc. Device [0070:c108]                                                         
+        Flags: fast devsel, IRQ 18                                                                                          
+        Memory at e2000000 (64-bit, non-prefetchable) [size=2M]                                                             
+        Capabilities: [40] Express Endpoint, MSI 00                                                                         
+        Capabilities: [80] Power Management version 3                                                                       
+        Capabilities: [90] Vital Product Data                                                                               
+        Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+                                                          
+        Capabilities: [100] Advanced Error Reporting                                                                        
+        Capabilities: [200] Virtual Channel 
+        
+The driver trying to access the card is cx23885 and it does not know the card 
+and therefore falls back to generic.
 
-=
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: [PATCH] Staging: saa7134-go7007: replace dma_sync_single with dma_sync_single_for_cpu
+If i force the driver to use the card HVR-1800 i get the following kernel log:
+( Maybe this info is not reliable?! )
 
-dma_sync_single() is deprecated and will be removed soon.
+CORE cx23885[0]: subsystem: 0070:c108, board: Hauppauge WinTV-HVR1800 
+[card=2,insmod option]
+tveeprom 2-0050: Hauppauge model 121019, rev B2F5, serial# 7157617
+tveeprom 2-0050: MAC address is 00:0d:fe:6d:37:71
+tveeprom 2-0050: tuner model is NXP 18271C2 (idx 155, type 54)
+tveeprom 2-0050: TV standards PAL(B/G) PAL(I) SECAM(L/L') PAL(D/D1/K) ATSC/DVB 
+Digital (eeprom 0xf4)
+tveeprom 2-0050: audio processor is CX23888 (idx 40)
+tveeprom 2-0050: decoder processor is CX23888 (idx 34)
+tveeprom 2-0050: has radio, has IR receiver, has no IR transmitter
+cx23885[0]: warning: unknown hauppauge model #121019
+cx23885[0]: hauppauge eeprom: model=121019
+cx25840 4-0044: cx23888 A/V decoder found @ 0x88 (cx23885[0])
+cx25840 4-0044: firmware: requesting v4l-cx23885-avcore-01.fw
+cx25840 4-0044: loaded v4l-cx23885-avcore-01.fw firmware (32522 bytes)
+tuner 3-0042: chip found @ 0x84 (cx23885[0])
+tda9887 3-0042: creating new instance
+tda9887 3-0042: tda988[5/6/7] found
+tda9887 3-0042: destroying instance
+tda8290: no gate control were provided!
+cx23885[0]/0: registered device video1 [v4l2]
+cx23885[0]: registered device video2 [mpeg]
+cx23885_dvb_register() allocating 1 frontend(s)
+cx23885[0]: cx23885 based dvb card
+cx23885[0]: frontend initialization failed
+cx23885_dvb_register() dvb_register failed err = -1
+cx23885_dev_setup() Failed to register dvb on VID_C
+cx23885_dev_checkrevision() Hardware revision = 0xd0
+cx23885[0]/0: found at 0000:04:00.0, rev: 4, irq: 18, latency: 0, mmio: 
+0xe2000000
+cx23885 0000:04:00.0: setting latency timer to 64
+IRQ 18/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
 
-No functional change since dma_sync_single is the wrapper of
-dma_sync_single_for_cpu.
-
-saa7134-go7007.c is commented out but anyway let's replace it.
-
-Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
----
- drivers/staging/go7007/saa7134-go7007.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/staging/go7007/saa7134-go7007.c b/drivers/staging/go7007/saa7134-go7007.c
-index b25d7d2..0d36ce7 100644
---- a/drivers/staging/go7007/saa7134-go7007.c
-+++ b/drivers/staging/go7007/saa7134-go7007.c
-@@ -242,13 +242,13 @@ static void saa7134_go7007_irq_ts_done(struct saa7134_dev *dev,
- 		printk(KERN_DEBUG "saa7134-go7007: irq: lost %ld\n",
- 				(status >> 16) & 0x0f);
- 	if (status & 0x100000) {
--		dma_sync_single(&dev->pci->dev,
--				saa->bottom_dma, PAGE_SIZE, DMA_FROM_DEVICE);
-+		dma_sync_single_for_cpu(&dev->pci->dev,
-+					saa->bottom_dma, PAGE_SIZE, DMA_FROM_DEVICE);
- 		go7007_parse_video_stream(go, saa->bottom, PAGE_SIZE);
- 		saa_writel(SAA7134_RS_BA2(5), cpu_to_le32(saa->bottom_dma));
- 	} else {
--		dma_sync_single(&dev->pci->dev,
--				saa->top_dma, PAGE_SIZE, DMA_FROM_DEVICE);
-+		dma_sync_single_for_cpu(&dev->pci->dev,
-+					saa->top_dma, PAGE_SIZE, DMA_FROM_DEVICE);
- 		go7007_parse_video_stream(go, saa->top, PAGE_SIZE);
- 		saa_writel(SAA7134_RS_BA1(5), cpu_to_le32(saa->top_dma));
- 	}
--- 
-1.6.5
-
+Best Regards,
+Jan Möbius
