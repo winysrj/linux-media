@@ -1,73 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 25.mail-out.ovh.net ([91.121.27.228]:40413 "HELO
-	25.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757821Ab0EFMHF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 08:07:05 -0400
-Message-ID: <274b73596d167cb0762196603a4e481d.squirrel@webmail.ovh.net>
-Date: Thu, 6 May 2010 07:07:04 -0500 (GMT+5)
-Subject: [PATCH] tda10048: clear the uncorrected packet registers when
-     saturated
-From: "Guillaume Audirac" <guillaume.audirac@webag.fr>
-To: linux-media@vger.kernel.org
-Reply-To: guillaume.audirac@webag.fr
+Received: from arroyo.ext.ti.com ([192.94.94.40]:44889 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751687Ab0EEEd4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 00:33:56 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Tony Lindgren <tony@atomide.com>
+CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 5 May 2010 10:03:50 +0530
+Subject: RE: [Resubmit: PATCH-V2] AM3517: Add VPFE Capture driver support
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E3517E6@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1268991469-2747-1-git-send-email-hvaibhav@ti.com>
+ <20100504231810.GS29604@atomide.com>
+In-Reply-To: <20100504231810.GS29604@atomide.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
 
+> -----Original Message-----
+> From: Tony Lindgren [mailto:tony@atomide.com]
+> Sent: Wednesday, May 05, 2010 4:48 AM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org
+> Subject: Re: [Resubmit: PATCH-V2] AM3517: Add VPFE Capture driver support
+> 
+> * hvaibhav@ti.com <hvaibhav@ti.com> [100319 02:34]:
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> > AM3517 and DM644x uses same CCDC IP, so reusing the driver
+> > for AM3517.
+> >
+> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > ---
+> >  arch/arm/mach-omap2/board-am3517evm.c |  160
+> +++++++++++++++++++++++++++++++++
+> >  1 files changed, 160 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
+> omap2/board-am3517evm.c
+> > index f04311f..d2d2ced 100644
+> > --- a/arch/arm/mach-omap2/board-am3517evm.c
+> > +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> > @@ -30,11 +30,164 @@
+> >
+> >  #include <plat/board.h>
+> >  #include <plat/common.h>
+> > +#include <plat/control.h>
+> >  #include <plat/usb.h>
+> >  #include <plat/display.h>
+> >
+> > +#include <media/tvp514x.h>
+> > +#include <media/ti-media/vpfe_capture.h>
+> > +
+> 
+> At least the mainline kernel does not seem to have media/ti-media/,
+> so I'm not taking this.
+> 
+> Looks like it should be safe to merge via linux-media from omap
+> point of view.
+[Hiremath, Vaibhav] Tony,
 
-Use the register CLUNC to reset the CPTU registers (LSB & MSB) when they
-saturate at 0xFFFF. Fixes as well a few register typos.
+This patch needs to rework, I will have to remove ti-media directory dependency since as of now we have decided not to include ti-media directory, instead we will use SoC name. 
 
-Signed-off-by: Guillaume Audirac <guillaume.audirac@webag.fr>
----
- drivers/media/dvb/frontends/tda10048.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+> 
+> Acked-by: Tony Lindgren <tony@atomide.com>
+[Hiremath, Vaibhav] Thanks for ack, I will resubmit it and ask Mauro to pull this.
 
-diff --git a/drivers/media/dvb/frontends/tda10048.c
-b/drivers/media/dvb/frontends/tda10048.c
-index 9a0ba30..93f6a75 100644
---- a/drivers/media/dvb/frontends/tda10048.c
-+++ b/drivers/media/dvb/frontends/tda10048.c
-@@ -50,8 +50,8 @@
- #define TDA10048_CONF_C4_1         0x1E
- #define TDA10048_CONF_C4_2         0x1F
- #define TDA10048_CODE_IN_RAM       0x20
--#define TDA10048_CHANNEL_INFO_1_R  0x22
--#define TDA10048_CHANNEL_INFO_2_R  0x23
-+#define TDA10048_CHANNEL_INFO1_R   0x22
-+#define TDA10048_CHANNEL_INFO2_R   0x23
- #define TDA10048_CHANNEL_INFO1     0x24
- #define TDA10048_CHANNEL_INFO2     0x25
- #define TDA10048_TIME_ERROR_R      0x26
-@@ -64,8 +64,8 @@
- #define TDA10048_IT_STAT           0x32
- #define TDA10048_DSP_AD_LSB        0x3C
- #define TDA10048_DSP_AD_MSB        0x3D
--#define TDA10048_DSP_REF_LSB       0x3E
--#define TDA10048_DSP_REF_MSB       0x3F
-+#define TDA10048_DSP_REG_LSB       0x3E
-+#define TDA10048_DSP_REG_MSB       0x3F
- #define TDA10048_CONF_TRISTATE1    0x44
- #define TDA10048_CONF_TRISTATE2    0x45
- #define TDA10048_CONF_POLARITY     0x46
-@@ -1033,6 +1033,9 @@ static int tda10048_read_ucblocks(struct
-dvb_frontend *fe, u32 *ucblocks)
-
- 	*ucblocks = tda10048_readreg(state, TDA10048_UNCOR_CPT_MSB) << 8 |
- 		tda10048_readreg(state, TDA10048_UNCOR_CPT_LSB);
-+	/* clear the uncorrected TS packets counter when saturated */
-+	if (*ucblocks == 0xFFFF)
-+		tda10048_writereg(state, TDA10048_UNCOR_CTRL, 0x80);
-
- 	return 0;
- }
--- 
-1.6.3.3
-
--- 
-Guillaume
+Thanks,
+Vaibhav
 
