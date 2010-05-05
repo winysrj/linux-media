@@ -1,146 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailhost-k7-m1.nerim-networks.com ([78.40.49.172]:60639 "EHLO
-	smtp-delay2.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758610Ab0EFPKN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 11:10:13 -0400
-Received: from mallaury.nerim.net (smtp-104-thursday.noc.nerim.net [62.4.17.104])
-	by smtp-delay2.nerim.net (Postfix) with ESMTP id 3AB0DB3F028
-	for <linux-media@vger.kernel.org>; Thu,  6 May 2010 17:01:54 +0200 (CEST)
-Received: from logiways.com (mail.logiways.com [194.79.150.130])
-	by mallaury.nerim.net (Postfix) with ESMTP id F0569A1080
-	for <linux-media@vger.kernel.org>; Thu,  6 May 2010 17:01:33 +0200 (CEST)
-Content-class: urn:content-classes:message
+Received: from mx1.redhat.com ([209.132.183.28]:60097 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752129Ab0EEGHr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 May 2010 02:07:47 -0400
+Message-ID: <4BE10B2C.9020508@redhat.com>
+Date: Wed, 05 May 2010 03:07:40 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Subject: cx88 pci_abort errors (Hauppauge WinTV Nova-HD-S2)
-Date: Thu, 6 May 2010 17:01:26 +0200
-Message-ID: <91E6C7608D34E145A3D9634F0ED7163E81D787@venus.logiways-france.fr>
-From: "Thierry LELEGARD" <tlelegard@logiways.com>
-To: <linux-media@vger.kernel.org>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 calculating urb buffer
+References: <4BDB067E.4070501@arcor.de> <4BDB3017.9070101@arcor.de> <4BE03F8D.1050905@arcor.de> <4BE066B7.2050704@redhat.com> <4BE071C2.4050309@arcor.de> <4BE07A6A.9000303@redhat.com> <4BE07C54.6000804@arcor.de>
+In-Reply-To: <4BE07C54.6000804@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-Does anyone experience pci_abort errors with the cx88 driver?
-Many thanks
--Thierry
+Stefan Ringel wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>  
+> Am 04.05.2010 21:50, schrieb Mauro Carvalho Chehab:
+>> Stefan Ringel wrote:
+>>
+>>>>> datagram from urb to videobuf
+>>>>>
+>>>>> urb           copy to     temp         copy to         1. videobuf
+>>>>>                          buffer                        2. audiobuf
+>>>>>                                                        3. vbi
+>>>>> 184 Packets   ------->   184 * 3072    ---------->     4. etc.
+>>>>> a 3072 bytes               bytes
+>>>>>                184 *                   3072 *
+>>>>>              3072 bytes              180 bytes
+>>>>>                                 (184 bytes - 4 bytes
+>>>>>                                     header )
+>>>> In order to receive 184 packets with 3072 bytes each, the USB code will
+>>>> try to allocate the next power-of-two memory block capable of receiving
+>>>> such data block. As: 184 * 3072 = 565248, the kernel allocator will seek
+>>>> for a continuous block of 1 MB, that can do DMA transfers (required by
+>>>> ehci driver). On a typical machine, due to memory fragmentation,
+>>>> in general, there aren't many of such blocks. So, this will increase the
+>>>> probability of not having any such large block available, causing an
+>>> horrible
+>>>> dump at kernel, plus a -ENOMEM on the driver, generally requiring a
+> reboot
+>>>> if you want to run the driver again.
+>>>>
+>>> And direct copy from urb to videobuf/alsa/vbi in 184 Bytes segments.
+>>>
+>>> urb                      1. videobuf
+>>>               copy to    2. audiobuf
+>>>                          3. vbi
+>>> 184 Packets   ------->   4. etc.
+>>> a 3072 bytes  
+>>>               180 Bytes (without headers)
+>> That's basically what that logic does. It preserves the header if you
+> select
+>> TM6000 format (so, no checks for the start of the block, etc), or copies
+>> just the data, if you select YUY2 or UYUV.
+>>
+>>> or how can I copy 180 Bytes Data from 184 Bytes block with an
+>>> anligment of 184 urb pipe (184 * 3072 Bytes)?
+>> A 184 x 3072 URB pipe is a big problem. We used a large pipe in the
+> past, and this
+>> won't work. For example, on a notebook I used to run some tests with 1
+> GB of
+>> ram after starting X and do anything (like opening a browser), the URB
+>> allocation used to fail, as there weren't any available 1MB segment at
+>> the DMA area. Even without starting X, after a few tests, it would
+> eventually
+>> have fragmented the memory and the driver stops working.
+>>
+>>
+> and 3072 * 46 = 141312 bytes and it can through 184 ! it's 1/4 smaller.
 
+It is a worthy trial to use this value for the number of packets. Yet, as
+someone might have run the device on windows before, it will still need
+to seek for the segment start.
 
-De : linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] De la part de Thierry LELEGARD
-Envoyé : mardi 4 mai 2010 16:48
-À : linux-dvb@linuxtv.org; linux-media@vger.kernel.org
-Objet : [linux-dvb] pci_abort errors with Hauppauge WinTV Nova-HD-S2 
-
-Hello,
-
-I recently added a Hauppauge WinTV Nova-HD-S2 into a Linux system.
-I experience frequent packet loss and pci_abort errors.
-
-Each time my application detects packet loss (continuity errors
-actually), I get the following messages in dmesg:
-
-cx88[0]: irq mpeg  [0x80000] pci_abort*
-cx88[0]/2-mpeg: general errors: 0x00080000
-
-Such problems occur every few seconds.
-
-I use firmware file dvb-fe-cx24116.fw version 1.26.90.0.
-
-Since the IRQ was shared with the nVidia card and a Dektec modulator,
-I swapped some PCI boards. The IRQ is still shared but with another
-Tuner I do not use when using the S2 tuner. After swapping the PCI
-boards, the errors occur less frequently but still happen.
-
-Assuming that the pci_abort was due to an interrupted DMA transfer, I
-tried to increase the PCI latency timer of the device to 248 but this
-did not change anything (setpci -s 05:05 latency_timer=f8).
-
-I use the tuner with a custom application which reads the complete
-Transport stream. This application had worked for years using DVB-T
-and DVB-S tuners. I tried to reduce the application read buffer
-input size and it did not change anything at all.
-
-Note that my application still uses the V3 API, not the S2API. But,
-using DVB-S transponders, it works (except the pci_abort errors).
-
-I disabled the serial port, the parallel port and the PS/2 ports in the
-BIOS. It did not change anything either.
-
-Does anyone have an idea, please?
-Thanks a lot in advance for any help.
--Thierry
-
-PS: some additional information:
-
-# lspci -v -s 05:05
-05:05.0 Multimedia video controller: Conexant Systems, Inc.
-CX23880/1/2/3 PCI Video and Audio Decoder (rev 05)
-        Subsystem: Hauppauge computer works Inc. Device 6906
-        Flags: bus master, medium devsel, latency 248, IRQ 17
-        Memory at f5000000 (32-bit, non-prefetchable) [size=16M]
-        Capabilities: [44] Vital Product Data
-        Capabilities: [4c] Power Management version 2
-        Kernel driver in use: cx8800
-        Kernel modules: cx8800
-
-05:05.1 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI
-Video and Audio Decoder [Audio Port] (rev 05)
-        Subsystem: Hauppauge computer works Inc. Device 6906
-        Flags: bus master, medium devsel, latency 248, IRQ 17
-        Memory at f6000000 (32-bit, non-prefetchable) [size=16M]
-        Capabilities: [4c] Power Management version 2
-        Kernel driver in use: cx88_audio
-        Kernel modules: cx88-alsa
-
-05:05.2 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI
-Video and Audio Decoder [MPEG Port] (rev 05)
-        Subsystem: Hauppauge computer works Inc. Device 6906
-        Flags: bus master, medium devsel, latency 248, IRQ 17
-        Memory at f7000000 (32-bit, non-prefetchable) [size=16M]
-        Capabilities: [4c] Power Management version 2
-        Kernel driver in use: cx88-mpeg driver manager
-        Kernel modules: cx8802
-
-05:05.4 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI
-Video and Audio Decoder [IR Port] (rev 05)
-        Subsystem: Hauppauge computer works Inc. Device 6906
-        Flags: bus master, medium devsel, latency 248, IRQ 10
-        Memory at f8000000 (32-bit, non-prefetchable) [size=16M]
-        Capabilities: [4c] Power Management version 2
-
-# cat /proc/interrupts
-            CPU0       CPU1
-   0:        296          4   IO-APIC-edge      timer
-   1:          1          2   IO-APIC-edge      i8042
-   8:          1          0   IO-APIC-edge      rtc0
-   9:          0          0   IO-APIC-fasteoi   acpi
-  16:        279     122104   IO-APIC-fasteoi   uhci_hcd:usb4,
-uhci_hcd:usb10, HDA Intel, Dta1xx, nvidia
-  17:       1863     507353   IO-APIC-fasteoi   uhci_hcd:usb5,
-uhci_hcd:usb8, uhci_hcd:usb11, cx88[0], cx88[0], cx88[0]
-  18:     130224       8533   IO-APIC-fasteoi   ehci_hcd:usb3,
-uhci_hcd:usb9
-  22:          0          0   IO-APIC-fasteoi   ehci_hcd:usb1,
-uhci_hcd:usb6
-  23:     170156        246   IO-APIC-fasteoi   ehci_hcd:usb2,
-uhci_hcd:usb7
-  28:      57235       4517   PCI-MSI-edge      ahci
-  29:         69      15965   PCI-MSI-edge      eth0
- NMI:          0          0   Non-maskable interrupts
- LOC:    2529023    2281329   Local timer interrupts
- SPU:          0          0   Spurious interrupts
- PMI:          0          0   Performance monitoring interrupts
- PND:          0          0   Performance pending work
- RES:      42023      29529   Rescheduling interrupts
- CAL:        123        994   Function call interrupts
- TLB:     150508     136321   TLB shootdowns
- TRM:          0          0   Thermal event interrupts
- THR:          0          0   Threshold APIC interrupts
- MCE:          0          0   Machine check exceptions
- MCP:         16         16   Machine check polls
- ERR:          1
- MIS:          0
-
-
+Cheers,
+Mauro
