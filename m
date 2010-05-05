@@ -1,267 +1,272 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:58664 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755912Ab0EXCfB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 May 2010 22:35:01 -0400
+Received: from mail-yw0-f198.google.com ([209.85.211.198]:48227 "EHLO
+	mail-yw0-f198.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757174Ab0EECQ2 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 22:16:28 -0400
+Received: by ywh36 with SMTP id 36so1997846ywh.4
+        for <linux-media@vger.kernel.org>; Tue, 04 May 2010 19:16:27 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1274266017-18660-1-git-send-email-daniel@caiaq.de>
-References: <20100519103448.GH5202@pengutronix.de>
-	 <1274266017-18660-1-git-send-email-daniel@caiaq.de>
-Date: Sun, 23 May 2010 22:34:59 -0400
-Message-ID: <AANLkTikffmoWofbIo2h6zw-VW5aKEH8T_b0vMfKdo3KJ@mail.gmail.com>
-Subject: Re: [PATCH] drivers/media/dvb/dvb-usb/dib0700: fix return values
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Daniel Mack <daniel@caiaq.de>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jiri Slaby <jslaby@suse.cz>, Dmitry Torokhov <dtor@mail.ru>,
-	linux-media@vger.kernel.org
+In-Reply-To: <20100505085350.1b4f023f@glory.loctelecom.ru>
+References: <20100505085350.1b4f023f@glory.loctelecom.ru>
+Date: Wed, 5 May 2010 10:16:27 +0800
+Message-ID: <y2t6e8e83e21005041916w8bca885fo44b27f858c9dea5b@mail.gmail.com>
+Subject: Re: [PATCH] Rework for support xc5000
+From: Bee Hock Goh <beehock@gmail.com>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 19, 2010 at 6:46 AM, Daniel Mack <daniel@caiaq.de> wrote:
-> Propagte correct error values instead of returning -1 which just means
-> -EPERM ("Permission denied")
+There does not seem to be any radio support in the tm6000 codes.
+
+tun_setup.mode_mask |= (T_ANALOG_TV | T_RADIO);
+
+Is the T_RADIO mode still required since this is a cleanup?
+
+On Wed, May 5, 2010 at 6:53 AM, Dmitri Belimov <d.belimov@gmail.com> wrote:
+> Hi
 >
-> While at it, also fix some coding style violations.
+> Set correct GPIO number for BEHOLD_WANDER/VOYAGER
+> Add xc5000 callback function
+> Small rework tm6000_cards_setup function
+> Small rework tm6000_config_tuner, build mode_mask by config information
+> Rework for support xc5000 silicon tuner
+> Add some information messages for more better understand an errors.
 >
-> Signed-off-by: Daniel Mack <daniel@caiaq.de>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Jiri Slaby <jslaby@suse.cz>
-> Cc: Dmitry Torokhov <dtor@mail.ru>
-> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-> Cc: linux-media@vger.kernel.org
-> ---
->  drivers/media/dvb/dvb-usb/dib0700_core.c |   82 +++++++++++++++--------------
->  1 files changed, 42 insertions(+), 40 deletions(-)
+> diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+> index f795a3e..17e3d4c 100644
+> --- a/drivers/staging/tm6000/tm6000-cards.c
+> +++ b/drivers/staging/tm6000/tm6000-cards.c
+> @@ -231,7 +231,9 @@ struct tm6000_board tm6000_boards[] = {
+>                        .has_remote   = 1,
+>                },
+>                .gpio = {
+> -                       .tuner_reset    = TM6000_GPIO_2,
+> +                       .tuner_reset    = TM6010_GPIO_0,
+> +                       .demod_reset    = TM6010_GPIO_1,
+> +                       .power_led      = TM6010_GPIO_6,
+>                },
+>        },
+>        [TM6010_BOARD_BEHOLD_VOYAGER] = {
+> @@ -247,7 +249,8 @@ struct tm6000_board tm6000_boards[] = {
+>                        .has_remote   = 1,
+>                },
+>                .gpio = {
+> -                       .tuner_reset    = TM6000_GPIO_2,
+> +                       .tuner_reset    = TM6010_GPIO_0,
+> +                       .power_led      = TM6010_GPIO_6,
+>                },
+>        },
+>        [TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
+> @@ -320,6 +323,31 @@ struct usb_device_id tm6000_id_table [] = {
+>        { },
+>  };
 >
-> diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
-> index 4f961d2..45aec3a 100644
-> --- a/drivers/media/dvb/dvb-usb/dib0700_core.c
-> +++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
-> @@ -53,7 +53,7 @@ static int dib0700_ctrl_wr(struct dvb_usb_device *d, u8 *tx, u8 txlen)
->        int status;
->
->        deb_data(">>> ");
-> -       debug_dump(tx,txlen,deb_data);
-> +       debug_dump(tx, txlen, deb_data);
->
->        status = usb_control_msg(d->udev, usb_sndctrlpipe(d->udev,0),
->                tx[0], USB_TYPE_VENDOR | USB_DIR_OUT, 0, 0, tx, txlen,
-> @@ -98,7 +98,7 @@ int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen
->                deb_info("ep 0 read error (status = %d)\n",status);
->
->        deb_data("<<< ");
-> -       debug_dump(rx,rxlen,deb_data);
-> +       debug_dump(rx, rxlen, deb_data);
->
->        return status; /* length in case of success */
->  }
-> @@ -106,28 +106,29 @@ int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen
->  int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_dir, u8 gpio_val)
->  {
->        u8 buf[3] = { REQUEST_SET_GPIO, gpio, ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6) };
-> -       return dib0700_ctrl_wr(d,buf,3);
-> +       return dib0700_ctrl_wr(d, buf, sizeof(buf));
->  }
->
->  static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
->  {
-> -    struct dib0700_state *st = d->priv;
-> -    u8 b[3];
-> -    int ret;
-> -
-> -    if (st->fw_version >= 0x10201) {
-> -       b[0] = REQUEST_SET_USB_XFER_LEN;
-> -       b[1] = (nb_ts_packets >> 8)&0xff;
-> -       b[2] = nb_ts_packets & 0xff;
-> -
-> -       deb_info("set the USB xfer len to %i Ts packet\n", nb_ts_packets);
-> -
-> -       ret = dib0700_ctrl_wr(d, b, 3);
-> -    } else {
-> -       deb_info("this firmware does not allow to change the USB xfer len\n");
-> -       ret = -EIO;
-> -    }
-> -    return ret;
-> +       struct dib0700_state *st = d->priv;
-> +       u8 b[3];
-> +       int ret;
+> +/* Tuner callback to provide the proper gpio changes needed for xc5000 */
+> +int tm6000_xc5000_callback(void *ptr, int component, int command, int arg)
+> +{
+> +       int rc = 0;
+> +       struct tm6000_core *dev = ptr;
 > +
-> +       if (st->fw_version >= 0x10201) {
-> +               b[0] = REQUEST_SET_USB_XFER_LEN;
-> +               b[1] = (nb_ts_packets >> 8) & 0xff;
-> +               b[2] = nb_ts_packets & 0xff;
+> +       if (dev->tuner_type != TUNER_XC5000)
+> +               return 0;
 > +
-> +               deb_info("set the USB xfer len to %i Ts packet\n", nb_ts_packets);
+> +       switch (command) {
+> +       case XC5000_TUNER_RESET:
+> +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> +                              dev->gpio.tuner_reset, 0x01);
+> +               msleep(15);
+> +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> +                              dev->gpio.tuner_reset, 0x00);
+> +               msleep(15);
+> +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> +                              dev->gpio.tuner_reset, 0x01);
+> +               break;
+> +       }
+> +       return (rc);
+> +}
 > +
-> +               ret = dib0700_ctrl_wr(d, b, 3);
-> +       } else {
-> +               deb_info("this firmware does not allow to change the USB xfer len\n");
-> +               ret = -EIO;
+> +
+>  /* Tuner callback to provide the proper gpio changes needed for xc2028 */
+>
+>  int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
+> @@ -438,6 +466,21 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+>                tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_on, 0x00);
+>                msleep(15);
+>                break;
+> +       case TM6010_BOARD_BEHOLD_WANDER:
+> +               /* Power led on (blue) */
+> +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.power_led, 0x01);
+> +               msleep(15);
+> +               /* Reset zarlink zl10353 */
+> +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_reset, 0x00);
+> +               msleep(50);
+> +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_reset, 0x01);
+> +               msleep(15);
+> +               break;
+> +       case TM6010_BOARD_BEHOLD_VOYAGER:
+> +               /* Power led on (blue) */
+> +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.power_led, 0x01);
+> +               msleep(15);
+> +               break;
+>        default:
+>                break;
+>        }
+> @@ -449,42 +492,38 @@ int tm6000_cards_setup(struct tm6000_core *dev)
+>         * If a device uses a different sequence or different GPIO pins for
+>         * reset, just add the code at the board-specific part
+>         */
+> -       for (i = 0; i < 2; i++) {
+> -               rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> -                                       dev->gpio.tuner_reset, 0x00);
+> -               if (rc < 0) {
+> -                       printk(KERN_ERR "Error %i doing GPIO1 reset\n", rc);
+> -                       return rc;
+> -               }
+> -
+> -               msleep(10); /* Just to be conservative */
+> -               rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> -                                       dev->gpio.tuner_reset, 0x01);
+> -               if (rc < 0) {
+> -                       printk(KERN_ERR "Error %i doing GPIO1 reset\n", rc);
+> -                       return rc;
+> -               }
+>
+> -               msleep(10);
+> -               rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 0);
+> -               if (rc < 0) {
+> -                       printk(KERN_ERR "Error %i doing GPIO4 reset\n", rc);
+> -                       return rc;
+> -               }
+> +       if (dev->gpio.tuner_reset)
+> +       {
+> +               for (i = 0; i < 2; i++) {
+> +                       rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> +                                               dev->gpio.tuner_reset, 0x00);
+> +                       if (rc < 0) {
+> +                               printk(KERN_ERR "Error %i doing tuner reset\n", rc);
+> +                               return rc;
+> +                       }
+>
+> -               msleep(10);
+> -               rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 1);
+> -               if (rc < 0) {
+> -                       printk(KERN_ERR "Error %i doing GPIO4 reset\n", rc);
+> -                       return rc;
+> -               }
+> +                       msleep(10); /* Just to be conservative */
+> +                       rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> +                                               dev->gpio.tuner_reset, 0x01);
+> +                       if (rc < 0) {
+> +                               printk(KERN_ERR "Error %i doing tuner reset\n", rc);
+> +                               return rc;
+> +                       }
+> +                       msleep(10);
+>
+> -               if (!i) {
+> -                       rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
+> -                       if (rc >= 0)
+> -                               printk(KERN_DEBUG "board=0x%08x\n", rc);
+> +                       if (!i) {
+> +                               rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
+> +                               if (rc >= 0)
+> +                                       printk(KERN_DEBUG "board=0x%08x\n", rc);
+> +                       }
+>                }
+>        }
+> +       else
+> +       {
+> +               printk(KERN_ERR "Tuner reset is not configured\n");
+> +               return -1;
+> +       }
+>
+>        msleep(50);
+>
+> @@ -502,12 +541,30 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+>        memset(&tun_setup, 0, sizeof(tun_setup));
+>        tun_setup.type   = dev->tuner_type;
+>        tun_setup.addr   = dev->tuner_addr;
+> -       tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
+> -       tun_setup.tuner_callback = tm6000_tuner_callback;
+> +
+> +       tun_setup.mode_mask = 0;
+> +       if (dev->caps.has_tuner)
+> +               tun_setup.mode_mask |= (T_ANALOG_TV | T_RADIO);
+> +       if (dev->caps.has_dvb)
+> +               tun_setup.mode_mask |= T_DIGITAL_TV;
+> +
+> +       switch (dev->tuner_type)
+> +       {
+> +       case TUNER_XC2028:
+> +               tun_setup.tuner_callback = tm6000_tuner_callback;;
+> +               break;
+> +       case TUNER_XC5000:
+> +               tun_setup.tuner_callback = tm6000_xc5000_callback;
+> +               break;
 > +       }
 > +
-> +       return ret;
+>
+>        v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr, &tun_setup);
+>
+> -       if (dev->tuner_type == TUNER_XC2028) {
+> +       switch (dev->tuner_type)
+> +       {
+> +       case TUNER_XC2028:
+> +               {
+>                struct v4l2_priv_tun_config  xc2028_cfg;
+>                struct xc2028_ctrl           ctl;
+>
+> @@ -537,9 +594,31 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
+>                }
+>
+>                printk(KERN_INFO "Setting firmware parameters for xc2028\n");
+> -
+>                v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config,
+>                                     &xc2028_cfg);
+> +
+> +               }
+> +               break;
+> +       case TUNER_XC5000:
+> +               {
+> +               struct v4l2_priv_tun_config  xc5000_cfg;
+> +               struct xc5000_config ctl = {
+> +                       .i2c_address = dev->tuner_addr,
+> +                       .if_khz      = 4570,
+> +                       .radio_input = XC5000_RADIO_FM1,
+> +                       };
+> +
+> +               xc5000_cfg.tuner = TUNER_XC5000;
+> +               xc5000_cfg.priv  = &ctl;
+> +
+> +
+> +               v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config,
+> +                                    &xc5000_cfg);
+> +               }
+> +               break;
+> +       default:
+> +               printk(KERN_INFO "Unknown tuner type. Tuner is not configured.\n");
+> +               break;
+>        }
 >  }
 >
->  /*
-> @@ -178,7 +179,8 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
->                        value = ((en_start << 7) | (en_stop << 6) |
->                                 (msg[i].len & 0x3F)) << 8 | i2c_dest;
->                        /* I2C ctrl + FE bus; */
-> -                       index = ((gen_mode<<6)&0xC0) | ((bus_mode<<4)&0x30);
-> +                       index = ((gen_mode << 6) & 0xC0) |
-> +                               ((bus_mode << 4) & 0x30);
+> diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+> index 7aeded8..325a2b1 100644
+> --- a/drivers/staging/tm6000/tm6000.h
+> +++ b/drivers/staging/tm6000/tm6000.h
+> @@ -216,6 +216,7 @@ struct tm6000_fh {
+>  /* In tm6000-cards.c */
 >
->                        result = usb_control_msg(d->udev,
->                                                 usb_rcvctrlpipe(d->udev, 0),
-> @@ -198,11 +200,12 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
->                } else {
->                        /* Write request */
->                        buf[0] = REQUEST_NEW_I2C_WRITE;
-> -                       buf[1] = (msg[i].addr << 1);
-> +                       buf[1] = msg[i].addr << 1;
->                        buf[2] = (en_start << 7) | (en_stop << 6) |
->                                (msg[i].len & 0x3F);
->                        /* I2C ctrl + FE bus; */
-> -                       buf[3] = ((gen_mode<<6)&0xC0) | ((bus_mode<<4)&0x30);
-> +                       buf[3] = ((gen_mode << 6) & 0xC0) |
-> +                                ((bus_mode << 4) & 0x30);
->                        /* The Actual i2c payload */
->                        memcpy(&buf[4], msg[i].buf, msg[i].len);
+>  int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
+> +int tm6000_xc5000_callback (void *ptr, int component, int command, int arg);
+>  int tm6000_cards_setup(struct tm6000_core *dev);
 >
-> @@ -240,7 +243,7 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+>  /* In tm6000-core.c */
 >
->        for (i = 0; i < num; i++) {
->                /* fill in the address */
-> -               buf[1] = (msg[i].addr << 1);
-> +               buf[1] = msg[i].addr << 1;
->                /* fill the buffer */
->                memcpy(&buf[2], msg[i].buf, msg[i].len);
+> Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
 >
-> @@ -368,7 +371,8 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
->        u8 buf[260];
 >
->        while ((ret = dvb_usb_get_hexline(fw, &hx, &pos)) > 0) {
-> -               deb_fwdata("writing to address 0x%08x (buffer: 0x%02x %02x)\n",hx.addr, hx.len, hx.chk);
-> +               deb_fwdata("writing to address 0x%08x (buffer: 0x%02x %02x)\n",
-> +                               hx.addr, hx.len, hx.chk);
->
->                buf[0] = hx.len;
->                buf[1] = (hx.addr >> 8) & 0xff;
-> @@ -408,16 +412,16 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
->                                  REQUEST_GET_VERSION,
->                                  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
->                                  b, sizeof(b), USB_CTRL_GET_TIMEOUT);
-> -       fw_version = (b[8] << 24)  | (b[9] << 16)  | (b[10] << 8) | b[11];
-> +       fw_version = (b[8] << 24) | (b[9] << 16) | (b[10] << 8) | b[11];
->
->        /* set the buffer size - DVB-USB is allocating URB buffers
->         * only after the firwmare download was successful */
->        for (i = 0; i < dib0700_device_count; i++) {
->                for (adap_num = 0; adap_num < dib0700_devices[i].num_adapters;
->                                adap_num++) {
-> -                       if (fw_version >= 0x10201)
-> +                       if (fw_version >= 0x10201) {
->                                dib0700_devices[i].adapter[adap_num].stream.u.bulk.buffersize = 188*nb_packet_buffer_size;
-> -                       else {
-> +                       } else {
->                                /* for fw version older than 1.20.1,
->                                 * the buffersize has to be n times 512 */
->                                dib0700_devices[i].adapter[adap_num].stream.u.bulk.buffersize = ((188*nb_packet_buffer_size+188/2)/512)*512;
-> @@ -453,7 +457,7 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
->        if (st->disable_streaming_master_mode == 1)
->                b[2] = 0x00;
->        else
-> -               b[2] = (0x01 << 4); /* Master mode */
-> +               b[2] = 0x01 << 4; /* Master mode */
->
->        b[3] = 0x00;
->
-> @@ -466,7 +470,7 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
->
->        b[2] |= st->channel_state;
->
-> -       deb_info("data for streaming: %x %x\n",b[1],b[2]);
-> +       deb_info("data for streaming: %x %x\n", b[1], b[2]);
->
->        return dib0700_ctrl_wr(adap->dev, b, 4);
->  }
-> @@ -631,7 +635,7 @@ resubmit:
->  int dib0700_rc_setup(struct dvb_usb_device *d)
->  {
->        struct dib0700_state *st = d->priv;
-> -       u8 rc_setup[3] = {REQUEST_SET_RC, dvb_usb_dib0700_ir_proto, 0};
-> +       u8 rc_setup[3] = { REQUEST_SET_RC, dvb_usb_dib0700_ir_proto, 0 };
->        struct urb *purb;
->        int ret;
->        int i;
-> @@ -640,10 +644,10 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
->                return 0;
->
->        /* Set the IR mode */
-> -       i = dib0700_ctrl_wr(d, rc_setup, 3);
-> -       if (i<0) {
-> +       i = dib0700_ctrl_wr(d, rc_setup, sizeof(rc_setup));
-> +       if (i < 0) {
->                err("ir protocol setup failed");
-> -               return -1;
-> +               return i;
->        }
->
->        if (st->fw_version < 0x10200)
-> @@ -653,14 +657,14 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
->        purb = usb_alloc_urb(0, GFP_KERNEL);
->        if (purb == NULL) {
->                err("rc usb alloc urb failed\n");
-> -               return -1;
-> +               return -ENOMEM;
->        }
->
->        purb->transfer_buffer = kzalloc(RC_MSG_SIZE_V1_20, GFP_KERNEL);
->        if (purb->transfer_buffer == NULL) {
->                err("rc kzalloc failed\n");
->                usb_free_urb(purb);
-> -               return -1;
-> +               return -ENOMEM;
->        }
->
->        purb->status = -EINPROGRESS;
-> @@ -669,12 +673,10 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
->                          dib0700_rc_urb_completion, d);
->
->        ret = usb_submit_urb(purb, GFP_ATOMIC);
-> -       if (ret != 0) {
-> +       if (ret)
->                err("rc submit urb failed\n");
-> -               return -1;
-> -       }
->
-> -       return 0;
-> +       return ret;
->  }
->
->  static int dib0700_probe(struct usb_interface *intf,
-> --
-> 1.7.1
-
-Hello Daniel,
-
-I am not against any of these changes in principle, but you should not
-be mixing functional changes with codingstyle fixes.  It results in a
-situation where as a reviewer I have to scrutinize every line *very*
-closely to determine whether it's an actual change or just a
-codingstyle fix.
-
-In other words, split this into two patches.
-
-Thanks,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> With my best regards, Dmitry.
