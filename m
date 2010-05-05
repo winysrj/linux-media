@@ -1,94 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:51786 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754939Ab0EWSbO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 May 2010 14:31:14 -0400
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, d.belimov@gmail.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 2/5] tm6000: add power led off
-Date: Sun, 23 May 2010 20:29:25 +0200
-Message-Id: <1274639366-2613-2-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1274639366-2613-1-git-send-email-stefan.ringel@arcor.de>
-References: <1274639366-2613-1-git-send-email-stefan.ringel@arcor.de>
+Received: from mx1.redhat.com ([209.132.183.28]:3314 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756807Ab0EEU5q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 May 2010 16:57:46 -0400
+Message-ID: <4BE1DBC2.3000300@redhat.com>
+Date: Wed, 05 May 2010 17:57:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Pawel Osciak <p.osciak@samsung.com>
+CC: linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH v1 1/1] V4L: Add sync before a hardware operation to videobuf.
+References: <1263914929-28211-1-git-send-email-p.osciak@samsung.com> <1263914929-28211-2-git-send-email-p.osciak@samsung.com>
+In-Reply-To: <1263914929-28211-2-git-send-email-p.osciak@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Pawel Osciak wrote:
+> Architectures with non-coherent CPU cache (e.g. ARM) may require a cache
+> flush or invalidation before starting a hardware operation if the data in
+> a video buffer being queued has been touched by the CPU.
+> 
+> This patch adds calls to sync before a hardware operation that are expected
+> to be interpreted and handled by each memory type-specific module.
+> 
+> Whether it is a sync before or after the operation can be determined from
+> the current buffer state: VIDEOBUF_DONE and VIDEOBUF_ERROR indicate a sync
+> called after an operation.
 
-- add power led off, if device is disconnected
+Hi Pawel,
+
+After analyzing this patch, maybe the better is to add a check for dma 
+coherency. So, instead of directly calling sync,the better is to check 
+if !dma_is_consistent(), to avoid adding a penalty on architectures
+where the cache is coherent.
+
+> 
+> diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+> index bb0a1c8..e56c67a 100644
+> --- a/drivers/media/video/videobuf-core.c
+> +++ b/drivers/media/video/videobuf-core.c
+> @@ -561,6 +561,8 @@ int videobuf_qbuf(struct videobuf_queue *q,
+>  		goto done;
+>  	}
+>  
+> +	CALL(q, sync, q, buf);
+> +
+>  	list_add_tail(&buf->stream, &q->stream);
+>  	if (q->streaming) {
+>  		spin_lock_irqsave(q->irqlock, flags);
+> @@ -761,6 +763,8 @@ static ssize_t videobuf_read_zerocopy(struct videobuf_queue *q,
+>  	if (0 != retval)
+>  		goto done;
+>  
+> +	CALL(q, sync, q, q->read_buf);
+> +
+>  	/* start capture & wait */
+>  	spin_lock_irqsave(q->irqlock, flags);
+>  	q->ops->buf_queue(q, q->read_buf);
+> @@ -826,6 +830,8 @@ ssize_t videobuf_read_one(struct videobuf_queue *q,
+>  			goto done;
+>  		}
+>  
+> +		CALL(q, sync, q, q->read_buf);
+> +
+>  		spin_lock_irqsave(q->irqlock, flags);
+>  		q->ops->buf_queue(q, q->read_buf);
+>  		spin_unlock_irqrestore(q->irqlock, flags);
+> @@ -893,6 +899,9 @@ static int __videobuf_read_start(struct videobuf_queue *q)
+>  		err = q->ops->buf_prepare(q, q->bufs[i], field);
+>  		if (err)
+>  			return err;
+> +
+> +		CALL(q, sync, q, q->read_buf);
+> +
+>  		list_add_tail(&q->bufs[i]->stream, &q->stream);
+>  	}
+>  	spin_lock_irqsave(q->irqlock, flags);
+> diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+> index fa78555..2b153f8 100644
+> --- a/drivers/media/video/videobuf-dma-sg.c
+> +++ b/drivers/media/video/videobuf-dma-sg.c
+> @@ -50,6 +50,9 @@ MODULE_LICENSE("GPL");
+>  #define dprintk(level, fmt, arg...)	if (debug >= level) \
+>  	printk(KERN_DEBUG "vbuf-sg: " fmt , ## arg)
+>  
+> +#define is_sync_after(vb) \
+> +	(vb->state == VIDEOBUF_DONE || vb->state == VIDEOBUF_ERROR)
+> +
+>  /* --------------------------------------------------------------------- */
+>  
+>  struct scatterlist*
+> @@ -516,6 +519,9 @@ static int __videobuf_sync(struct videobuf_queue *q,
+>  	BUG_ON(!mem);
+>  	MAGIC_CHECK(mem->magic,MAGIC_SG_MEM);
+>  
+> +	if (!is_sync_after(buf))
+> +		return 0;
+> +
+>  	return	videobuf_dma_sync(q,&mem->dma);
+>  }
+>  
 
 
-
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-cards.c |   19 +++++++++++++++++++
- drivers/staging/tm6000/tm6000-core.c  |   13 +++++++++++++
- 2 files changed, 32 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index 33b134b..553ebe4 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -925,6 +925,25 @@ static void tm6000_usb_disconnect(struct usb_interface *interface)
- 	}
- #endif
- 
-+	if (dev->gpio.power_led) {
-+		switch (dev->model) {
-+		case TM6010_BOARD_HAUPPAUGE_900H:
-+		case TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE:
-+		case TM6010_BOARD_TWINHAN_TU501:
-+			/* Power led off */
-+			tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				dev->gpio.power_led, 0x01);
-+			msleep(15);
-+			break;
-+		case TM6010_BOARD_BEHOLD_WANDER:
-+		case TM6010_BOARD_BEHOLD_VOYAGER:
-+			/* Power led off */
-+			tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+				dev->gpio.power_led, 0x00);
-+			msleep(15);
-+			break;
-+		}
-+	}
- 	tm6000_v4l2_unregister(dev);
- 
- 	tm6000_i2c_unregister(dev);
-diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-index 1259ae5..624c276 100644
---- a/drivers/staging/tm6000/tm6000-core.c
-+++ b/drivers/staging/tm6000/tm6000-core.c
-@@ -323,6 +323,12 @@ int tm6000_init_analog_mode (struct tm6000_core *dev)
- 	tm6000_set_standard (dev, &dev->norm);
- 	tm6000_set_audio_bitrate (dev,48000);
- 
-+	/* switch dvb led off */
-+	if (dev->gpio.dvb_led) {
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+			dev->gpio.dvb_led, 0x01);
-+	}
-+
- 	return 0;
- }
- 
-@@ -375,6 +381,13 @@ int tm6000_init_digital_mode (struct tm6000_core *dev)
- 		tm6000_set_reg (dev, REQ_04_EN_DISABLE_MCU_INT, 0x0020, 0x00);
- 		msleep(100);
- 	}
-+
-+	/* switch dvb led on */
-+	if (dev->gpio.dvb_led) {
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+			dev->gpio.dvb_led, 0x00);
-+	}
-+
- 	return 0;
- }
- 
 -- 
-1.7.0.3
 
+Cheers,
+Mauro
