@@ -1,42 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37342 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753067Ab0ESPtg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 May 2010 11:49:36 -0400
-Message-ID: <4BF40889.4090809@redhat.com>
-Date: Wed, 19 May 2010 12:49:29 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:39309 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751563Ab0EEHrP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 03:47:15 -0400
+Received: by gwj19 with SMTP id 19so2050409gwj.19
+        for <linux-media@vger.kernel.org>; Wed, 05 May 2010 00:47:13 -0700 (PDT)
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 video image
-References: <4BF40649.5090900@arcor.de>
-In-Reply-To: <4BF40649.5090900@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20100505172759.6da65251@glory.loctelecom.ru>
+References: <20100505145027.1571f12c@glory.loctelecom.ru>
+	 <u2y6e8e83e21005042244g2ba765c9ga1822df8093baae@mail.gmail.com>
+	 <20100505172759.6da65251@glory.loctelecom.ru>
+Date: Wed, 5 May 2010 15:47:13 +0800
+Message-ID: <n2l6e8e83e21005050047mdf62405dz48653d44b2a5eb81@mail.gmail.com>
+Subject: Re: tm6000
+From: Bee Hock Goh <beehock@gmail.com>
+To: Dmitri Belimov <d.belimov@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
-> Hi Mauro,
-> 
-> I have found what wrong is with video image. 
+If you do that you will get some decent looking video.
 
-Great!
-
-> You generate video buffer
-> in function tm6000_isoc_copy, but that is not right. I move that in
-> function copy_multiplexed and copy_streams. And that works without this
-> http://www.stefan.ringel.de/pub/tm6000_image_10_05_2010.jpg (The lines
-> with little left shift) . 
-
-Didn't work:
-
-404: Not Found - www.stefan.ringel.de
-
-> Now, I generate a patch.
-
-Ok. It would be great to have this issue finally fixed.
-
-Cheers,
-Mauro
+On Wed, May 5, 2010 at 3:27 PM, Dmitri Belimov <d.belimov@gmail.com> wrote:
+> On Wed, 5 May 2010 13:44:38 +0800
+> Bee Hock Goh <beehock@gmail.com> wrote:
+>
+>> Did you comment off the code in the get_next_buff that clear the
+>> previous frame data?
+>
+> No.
+>
+> Git tree + my last patch.
+>
+> With my best regards, Dmitry.
+>
+>> On Wed, May 5, 2010 at 12:50 PM, Dmitri Belimov <d.belimov@gmail.com>
+>> wrote:
+>> > Hi
+>> >
+>> > At this moment I can start mplayer and see green field with some
+>> > junk without crash. Info from mplayer - received 497 frames, drop
+>> > 69 incorrect frames.
+>> >
+>> > Compile without support DVB-T for our cards.
+>> >
+>> > Now try understand init process working drivers and diff with linux.
+>> >
+>> > P.S. Linux kernel is 2.6.33
+>> >
+>> > With my best regards, Dmitry.
+>> >
+>
