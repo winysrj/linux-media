@@ -1,77 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f185.google.com ([209.85.222.185]:42482 "EHLO
-	mail-pz0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753093Ab0EaTJW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 15:09:22 -0400
-Date: Mon, 31 May 2010 12:09:12 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: linux-i2c@vger.kernel.org, Jean Delvare <khali@linux-fr.org>,
-	George Joseph <george.joseph@fairview5.com>,
-	Riku Voipio <riku.voipio@iki.fi>,
-	Guillaume Ligneul <guillaume.ligneul@gmail.com>,
-	"Ben Dooks (embedded platforms)" <ben-linux@fluff.org>,
-	Alessandro Rubini <rubini@ipvvis.unipv.it>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Colin Leroy <colin@colino.net>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Liam Girdwood <lrg@slimlogic.co.uk>,
-	Paul Gortmaker <p_gortmaker@yahoo.com>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Greg Kroah-Hartman <gregkh@suse.de>, lm-sensors@lm-sensors.org,
-	linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
-	linuxppc-dev@ozlabs.org, linux-media@vger.kernel.org,
-	linux-mtd@lists.infradead.org, rtc-linux@googlegroups.com,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] drivers: remove all i2c_set_clientdata(client, NULL)
-Message-ID: <20100531190911.GC30712@core.coreip.homeip.net>
-References: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
+Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:48163
+	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756410Ab0EERhR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 13:37:17 -0400
+Received: from root by desource.dyndns.org with local (Exim 4.71)
+	(envelope-from <root@desource.dyndns.org>)
+	id 1O9i2Q-0005mW-DD
+	for linux-media@vger.kernel.org; Wed, 05 May 2010 13:05:34 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH/RFC 0/7] dsbr100: driver cleanup
+Date: Wed,  5 May 2010 13:05:23 -0400
+Message-Id: <1273079130-21999-1-git-send-email-david@identd.dyndns.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wolfram,
+This patch series addresses several issues in the dsbr100 driver.
+This series is based on the v4l-dvb master git branch and has been
+compile tested only. It should be tested before applying.
 
-On Mon, May 31, 2010 at 02:55:48PM +0200, Wolfram Sang wrote:
-> I2C-drivers can use the clientdata-pointer to point to private data. As I2C
-> devices are not really unregistered, but merely detached from their driver, it
-> used to be the drivers obligation to clear this pointer during remove() or a
-> failed probe(). As a couple of drivers forgot to do this, it was agreed that it
-> was cleaner if the i2c-core does this clearance when appropriate, as there is
-> no guarantee for the lifetime of the clientdata-pointer after remove() anyhow.
-> This feature was added to the core with commit
-> e4a7b9b04de15f6b63da5ccdd373ffa3057a3681 to fix the faulty drivers.
-> 
-> As there is no need anymore to clear the clientdata-pointer, remove all current
-> occurrences in the drivers to simplify the code and prevent confusion.
-> 
-> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> ---
-> 
-> Some more notes:
-> 
-> I waited for rc1 as I knew there were some drivers/patches coming along which
-> needed to be processed, too.
-> 
-> I'd suggest that this goes via the i2c-tree, so we get rid of all occurences at
-> once.
-> 
+The following patches are included in this series:
+   [PATCH/RFC 1/7] dsbr100: implement proper locking
+   [PATCH/RFC 2/7] dsbr100: fix potential use after free
+   [PATCH/RFC 3/7] dsbr100: only change frequency upon success
+   [PATCH/RFC 4/7] dsbr100: remove disconnected indicator
+   [PATCH/RFC 5/7] dsbr100: properly initialize the radio
+   [PATCH/RFC 6/7] dsbr100: cleanup usb probe routine
+   [PATCH/RFC 7/7] dsbr100: simplify access to radio device
 
-Frankly I'd prefer taking input stuff through my tree with the goal of
-.36 merge window just to minimize potential merge issues. This is a
-simple cleanup patch that has no dependencies, so there is little gain
-from doing it all in one go.
+Regards,
 
-Thanks.
-
--- 
-Dmitry
+David Ellingsworth
