@@ -1,115 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4507 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752584Ab0ENSio (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 May 2010 14:38:44 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4EIccDU057479
-	for <linux-media@vger.kernel.org>; Fri, 14 May 2010 20:38:43 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 14 May 2010 20:38:38 +0200 (CEST)
-Message-Id: <201005141838.o4EIccDU057479@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.gmx.net ([213.165.64.20]:39873 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1759829Ab0EEPU1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 May 2010 11:20:27 -0400
+From: Peter =?iso-8859-1?q?H=FCwe?= <PeterHuewe@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linuxppc-dev@ozlabs.org
+Subject: [PATCH] media/IR: Add missing include file to rc-map.c
+Date: Wed, 5 May 2010 17:20:21 +0200
+Cc: "David =?iso-8859-1?q?H=E4rdeman?=" <david@hardeman.nu>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-sh@vger.kernel.org, linux-mips@linux-mips.org,
+	linux-m68k@lists.linux-m68k.org
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005051720.22617.PeterHuewe@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+From: Peter Huewe <peterhuewe@gmx.de>
 
-Results of the daily build of v4l-dvb:
+This patch adds a missing include linux/delay.h to prevent
+build failures[1-5]
 
-date:        Fri May 14 19:00:20 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14851:16ade09022d9
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+---
+KernelVersion: linux-next-20100505
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc7-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc7-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc7-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc7-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc7-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc7-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc7-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc7-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc7-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+References:
+[1] http://kisskb.ellerman.id.au/kisskb/buildresult/2571452/
+[2] http://kisskb.ellerman.id.au/kisskb/buildresult/2571188/
+[3] http://kisskb.ellerman.id.au/kisskb/buildresult/2571479/
+[4] http://kisskb.ellerman.id.au/kisskb/buildresult/2571429/
+[5] http://kisskb.ellerman.id.au/kisskb/buildresult/2571432/
 
-Detailed results are available here:
+drivers/media/IR/rc-map.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+diff --git a/drivers/media/IR/rc-map.c b/drivers/media/IR/rc-map.c
+index caf6a27..46a8f15 100644
+--- a/drivers/media/IR/rc-map.c
++++ b/drivers/media/IR/rc-map.c
+@@ -14,6 +14,7 @@
+ 
+ #include <media/ir-core.h>
+ #include <linux/spinlock.h>
++#include <linux/delay.h>
+ 
+ /* Used to handle IR raw handler extensions */
+ static LIST_HEAD(rc_map_list);
+-- 
+1.6.4.4
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
