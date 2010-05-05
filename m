@@ -1,64 +1,268 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:59046 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752744Ab0EOVPc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 May 2010 17:15:32 -0400
-Date: Sat, 15 May 2010 23:15:27 +0200 (CEST)
-From: Julia Lawall <julia@diku.dk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [PATCH 8/37] drivers/media/video/zoran: Use kmemdup
-Message-ID: <Pine.LNX.4.64.1005152315100.21345@ask.diku.dk>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:48162
+	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755912Ab0EERhQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 13:37:16 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+To: linux-media@vger.kernel.org
+Cc: David Ellingsworth <david@identd.dyndns.org>
+Subject: [PATCH/RFC 1/7] dsbr100: implement proper locking
+Date: Wed,  5 May 2010 13:05:24 -0400
+Message-Id: <1273079130-21999-2-git-send-email-david@identd.dyndns.org>
+In-Reply-To: <1273079130-21999-1-git-send-email-david@identd.dyndns.org>
+References: <1273079130-21999-1-git-send-email-david@identd.dyndns.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
-
-Use kmemdup when some other buffer is immediately copied into the
-allocated region.
-
-A simplified version of the semantic patch that makes this change is as
-follows: (http://coccinelle.lip6.fr/)
-
-// <smpl>
-@@
-expression from,to,size,flag;
-statement S;
-@@
-
--  to = \(kmalloc\|kzalloc\)(size,flag);
-+  to = kmemdup(from,size,flag);
-   if (to==NULL || ...) S
--  memcpy(to, from, size);
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
 ---
- drivers/media/video/zoran/videocodec.c |    5 ++---
- 1 file changed, 2 insertions(+), 3 deletions(-)
+ drivers/media/radio/dsbr100.c |   77 +++++++++++++++++-----------------------
+ 1 files changed, 33 insertions(+), 44 deletions(-)
 
-diff -u -p a/drivers/media/video/zoran/videocodec.c b/drivers/media/video/zoran/videocodec.c
---- a/drivers/media/video/zoran/videocodec.c
-+++ b/drivers/media/video/zoran/videocodec.c
-@@ -107,15 +107,14 @@ videocodec_attach (struct videocodec_mas
- 			if (!try_module_get(h->codec->owner))
- 				return NULL;
+diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
+index ed9cd7a..673eda8 100644
+--- a/drivers/media/radio/dsbr100.c
++++ b/drivers/media/radio/dsbr100.c
+@@ -182,7 +182,7 @@ static int dsbr100_start(struct dsbr100_device *radio)
+ 	int retval;
+ 	int request;
  
--			codec =
--			    kmalloc(sizeof(struct videocodec), GFP_KERNEL);
-+			codec = kmemdup(h->codec, sizeof(struct videocodec),
-+					GFP_KERNEL);
- 			if (!codec) {
- 				dprintk(1,
- 					KERN_ERR
- 					"videocodec_attach: no mem\n");
- 				goto out_module_put;
- 			}
--			memcpy(codec, h->codec, sizeof(struct videocodec));
+-	mutex_lock(&radio->lock);
++	BUG_ON(!mutex_is_locked(&radio->lock));
  
- 			snprintf(codec->name, sizeof(codec->name),
- 				 "%s[%d]", codec->name, h->attached);
+ 	retval = usb_control_msg(radio->usbdev,
+ 		usb_rcvctrlpipe(radio->usbdev, 0),
+@@ -207,11 +207,9 @@ static int dsbr100_start(struct dsbr100_device *radio)
+ 	}
+ 
+ 	radio->status = STARTED;
+-	mutex_unlock(&radio->lock);
+ 	return (radio->transfer_buffer)[0];
+ 
+ usb_control_msg_failed:
+-	mutex_unlock(&radio->lock);
+ 	dev_err(&radio->usbdev->dev,
+ 		"%s - usb_control_msg returned %i, request %i\n",
+ 			__func__, retval, request);
+@@ -225,7 +223,7 @@ static int dsbr100_stop(struct dsbr100_device *radio)
+ 	int retval;
+ 	int request;
+ 
+-	mutex_lock(&radio->lock);
++	BUG_ON(!mutex_is_locked(&radio->lock));
+ 
+ 	retval = usb_control_msg(radio->usbdev,
+ 		usb_rcvctrlpipe(radio->usbdev, 0),
+@@ -250,11 +248,9 @@ static int dsbr100_stop(struct dsbr100_device *radio)
+ 	}
+ 
+ 	radio->status = STOPPED;
+-	mutex_unlock(&radio->lock);
+ 	return (radio->transfer_buffer)[0];
+ 
+ usb_control_msg_failed:
+-	mutex_unlock(&radio->lock);
+ 	dev_err(&radio->usbdev->dev,
+ 		"%s - usb_control_msg returned %i, request %i\n",
+ 			__func__, retval, request);
+@@ -269,7 +265,7 @@ static int dsbr100_setfreq(struct dsbr100_device *radio)
+ 	int request;
+ 	int freq = (radio->curfreq / 16 * 80) / 1000 + 856;
+ 
+-	mutex_lock(&radio->lock);
++	BUG_ON(!mutex_is_locked(&radio->lock));
+ 
+ 	retval = usb_control_msg(radio->usbdev,
+ 		usb_rcvctrlpipe(radio->usbdev, 0),
+@@ -306,12 +302,10 @@ static int dsbr100_setfreq(struct dsbr100_device *radio)
+ 	}
+ 
+ 	radio->stereo = !((radio->transfer_buffer)[0] & 0x01);
+-	mutex_unlock(&radio->lock);
+ 	return (radio->transfer_buffer)[0];
+ 
+ usb_control_msg_failed:
+ 	radio->stereo = -1;
+-	mutex_unlock(&radio->lock);
+ 	dev_err(&radio->usbdev->dev,
+ 		"%s - usb_control_msg returned %i, request %i\n",
+ 			__func__, retval, request);
+@@ -324,7 +318,7 @@ static void dsbr100_getstat(struct dsbr100_device *radio)
+ {
+ 	int retval;
+ 
+-	mutex_lock(&radio->lock);
++	BUG_ON(!mutex_is_locked(&radio->lock));
+ 
+ 	retval = usb_control_msg(radio->usbdev,
+ 		usb_rcvctrlpipe(radio->usbdev, 0),
+@@ -340,8 +334,6 @@ static void dsbr100_getstat(struct dsbr100_device *radio)
+ 	} else {
+ 		radio->stereo = !(radio->transfer_buffer[0] & 0x01);
+ 	}
+-
+-	mutex_unlock(&radio->lock);
+ }
+ 
+ /* USB subsystem interface begins here */
+@@ -385,10 +377,6 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ {
+ 	struct dsbr100_device *radio = video_drvdata(file);
+ 
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+ 	if (v->index > 0)
+ 		return -EINVAL;
+ 
+@@ -410,12 +398,6 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ static int vidioc_s_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
+-
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+ 	if (v->index > 0)
+ 		return -EINVAL;
+ 
+@@ -428,17 +410,12 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 	struct dsbr100_device *radio = video_drvdata(file);
+ 	int retval;
+ 
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+-	mutex_lock(&radio->lock);
+ 	radio->curfreq = f->frequency;
+-	mutex_unlock(&radio->lock);
+ 
+ 	retval = dsbr100_setfreq(radio);
+ 	if (retval < 0)
+ 		dev_warn(&radio->usbdev->dev, "Set frequency failed\n");
++
+ 	return 0;
+ }
+ 
+@@ -447,10 +424,6 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ {
+ 	struct dsbr100_device *radio = video_drvdata(file);
+ 
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+ 	f->type = V4L2_TUNER_RADIO;
+ 	f->frequency = radio->curfreq;
+ 	return 0;
+@@ -472,10 +445,6 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
+ {
+ 	struct dsbr100_device *radio = video_drvdata(file);
+ 
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		ctrl->value = radio->status;
+@@ -490,10 +459,6 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 	struct dsbr100_device *radio = video_drvdata(file);
+ 	int retval;
+ 
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		if (ctrl->value) {
+@@ -513,6 +478,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 		}
+ 		return 0;
+ 	}
++
+ 	return -EINVAL;
+ }
+ 
+@@ -548,12 +514,34 @@ static int vidioc_s_audio(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static long usb_dsbr100_ioctl(struct file *file, unsigned int cmd,
++				unsigned long arg)
++{
++	struct dsbr100_device *radio = video_drvdata(file);
++	long retval = 0;
++
++	mutex_lock(&radio->lock);
++
++	if (radio->removed) {
++		retval = -EIO;
++		goto unlock;
++	}
++
++	retval = video_ioctl2(file, cmd, arg);
++
++unlock:
++	mutex_unlock(&radio->lock);
++	return retval;
++}
++
+ /* Suspend device - stop device. */
+ static int usb_dsbr100_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+ 	struct dsbr100_device *radio = usb_get_intfdata(intf);
+ 	int retval;
+ 
++	mutex_lock(&radio->lock);
++
+ 	if (radio->status == STARTED) {
+ 		retval = dsbr100_stop(radio);
+ 		if (retval < 0)
+@@ -564,12 +552,10 @@ static int usb_dsbr100_suspend(struct usb_interface *intf, pm_message_t message)
+ 		 * we set status equal to STARTED.
+ 		 * On resume we will check status and run radio if needed.
+ 		 */
+-
+-		mutex_lock(&radio->lock);
+ 		radio->status = STARTED;
+-		mutex_unlock(&radio->lock);
+ 	}
+ 
++	mutex_unlock(&radio->lock);
+ 	dev_info(&intf->dev, "going into suspend..\n");
+ 
+ 	return 0;
+@@ -581,12 +567,15 @@ static int usb_dsbr100_resume(struct usb_interface *intf)
+ 	struct dsbr100_device *radio = usb_get_intfdata(intf);
+ 	int retval;
+ 
++	mutex_lock(&radio->lock);
++
+ 	if (radio->status == STARTED) {
+ 		retval = dsbr100_start(radio);
+ 		if (retval < 0)
+ 			dev_warn(&intf->dev, "dsbr100_start failed\n");
+ 	}
+ 
++	mutex_unlock(&radio->lock);
+ 	dev_info(&intf->dev, "coming out of suspend..\n");
+ 
+ 	return 0;
+@@ -605,7 +594,7 @@ static void usb_dsbr100_video_device_release(struct video_device *videodev)
+ /* File system interface */
+ static const struct v4l2_file_operations usb_dsbr100_fops = {
+ 	.owner		= THIS_MODULE,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= usb_dsbr100_ioctl,
+ };
+ 
+ static const struct v4l2_ioctl_ops usb_dsbr100_ioctl_ops = {
+-- 
+1.7.1
+
