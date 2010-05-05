@@ -1,40 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46081 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S932446Ab0ECO0K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 May 2010 10:26:10 -0400
-Date: Mon, 3 May 2010 16:26:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sedji Gaouaou <sedji.gaouaou@atmel.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-input@vger.kernel.org
-Subject: Re: ATMEL camera interface
-In-Reply-To: <4BDEDB06.9090909@atmel.com>
-Message-ID: <Pine.LNX.4.64.1005031622040.4231@axis700.grange>
-References: <4BD9AA8A.7030306@atmel.com> <Pine.LNX.4.64.1004291824200.4666@axis700.grange>
- <4BDED3A8.4090606@atmel.com> <Pine.LNX.4.64.1005031556570.4231@axis700.grange>
- <4BDEDB06.9090909@atmel.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:59082 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751213Ab0EEF7G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 01:59:06 -0400
+Received: by fxm10 with SMTP id 10so3900022fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 04 May 2010 22:59:04 -0700 (PDT)
+Date: Wed, 5 May 2010 07:58:57 +0200
+From: Dan Carpenter <error27@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [patch -next] media/mem2mem: dereferencing free memory
+Message-ID: <20100505055857.GD27064@bicker>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 3 May 2010, Sedji Gaouaou wrote:
+We dereferenced "ctx" on the error path.
 
-> Well I need contiguous memory, so I guess I will have a look at mx1_camera.c?
-> Is there another example?
-> 
-> What do you mean by videobuf implementation? As I said I just need a
-> contiguous memory.
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-I mean, whether you're gping to use videobuf-dma-contig.c or 
-videobuf-dma-sg.c, respectively, whether you'll be calling 
-videobuf_queue_dma_contig_init() or videobuf_queue_sg_init() in your 
-driver.
-
-Regards
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index baf211b..b161d26 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -871,8 +871,10 @@ static int m2mtest_open(struct file *file)
+ 
+ 	ctx->m2m_ctx = v4l2_m2m_ctx_init(ctx, dev->m2m_dev, queue_init);
+ 	if (IS_ERR(ctx->m2m_ctx)) {
++		int ret = PTR_ERR(ctx->m2m_ctx);
++
+ 		kfree(ctx);
+-		return PTR_ERR(ctx->m2m_ctx);
++		return ret;
+ 	}
+ 
+ 	atomic_inc(&dev->num_inst);
