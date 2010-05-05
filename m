@@ -1,52 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out3.blueyonder.co.uk ([195.188.213.6]:56776 "EHLO
-	smtp-out3.blueyonder.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758751Ab0EBVYs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 May 2010 17:24:48 -0400
-Received: from [172.23.170.140] (helo=anti-virus02-07)
-	by smtp-out3.blueyonder.co.uk with smtp (Exim 4.52)
-	id 1O8ged-0006cL-7Y
-	for linux-media@vger.kernel.org; Sun, 02 May 2010 22:24:47 +0100
-Received: from [82.44.72.151] (helo=cpc1-nmal4-0-0-cust150.croy.cable.virginmedia.com)
-	by asmtp-out5.blueyonder.co.uk with esmtp (Exim 4.52)
-	id 1O8geZ-00061F-Lr
-	for linux-media@vger.kernel.org; Sun, 02 May 2010 22:24:43 +0100
-Date: Sun, 2 May 2010 22:24:44 +0100 (BST)
-From: John J Lee <jjl@pobox.com>
-To: linux-media@vger.kernel.org
-Subject: Re: saa7146 firmware upload time?
-In-Reply-To: <alpine.DEB.2.00.1005022118000.4041@alice>
-Message-ID: <alpine.DEB.2.00.1005022222540.4041@alice>
-References: <alpine.DEB.2.00.1005021904150.4041@alice> <201005022154.37226@orion.escape-edv.de> <alpine.DEB.2.00.1005022118000.4041@alice>
+Received: from mx1.redhat.com ([209.132.183.28]:9873 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754029Ab0EEUQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 May 2010 16:16:59 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o45KGwIS023988
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 5 May 2010 16:16:58 -0400
+Received: from [10.11.9.8] (vpn-9-8.rdu.redhat.com [10.11.9.8])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o45KGtlU031715
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 5 May 2010 16:16:58 -0400
+Message-ID: <4BE1D237.9020007@redhat.com>
+Date: Wed, 05 May 2010 17:16:55 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] videobuf-vmalloc: remove __videobuf_sync()
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2 May 2010, John J Lee wrote:
+videobuf-core checks if .sync ops is defined before calling.
 
-> On Sun, 2 May 2010, Oliver Endriss wrote:
-> [...]
->> Obviously, the firmware is not loaded at modprobe time. It is loaded
->> when an application opens the frontend for the first time.
-> [...]
->
-> Thanks.
->
-> Before the frontend can be opened, open(2) must be called on a v4l device 
-> file, right?  I don't appear to have such a device file (no /dev/video*, no 
-> /dev/dvb/adaptor*/video*).  I had assumed the missing device file was caused 
-> by the failure to load the firmware.  So it's still not clear to me how to 
-> trigger the firmware loading process again (though clearly something I did 
-> today triggered it once), or indeed whether that is the problem I should be 
-> trying to solve.
->
-> Clues welcome
+So, we don't need a do-nothing function.
 
-OK, I still don't understand how it works, but I successfully triggered 
-the firmware loading process by running kaffeine.  Thanks for your help.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
+-- 
 
-John
-
+Cheers,
+Mauro
+diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
+index f8b5b56..583728f 100644
+--- a/drivers/media/video/videobuf-vmalloc.c
++++ b/drivers/media/video/videobuf-vmalloc.c
+@@ -229,12 +229,6 @@ static int __videobuf_iolock(struct videobuf_queue *q,
+ 	return 0;
+ }
+ 
+-static int __videobuf_sync(struct videobuf_queue *q,
+-			   struct videobuf_buffer *buf)
+-{
+-	return 0;
+-}
+-
+ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 				  struct videobuf_buffer *buf,
+ 				  struct vm_area_struct *vma)
+@@ -301,7 +295,6 @@ static struct videobuf_qtype_ops qops = {
+ 
+ 	.alloc        = __videobuf_alloc,
+ 	.iolock       = __videobuf_iolock,
+-	.sync         = __videobuf_sync,
+ 	.mmap_mapper  = __videobuf_mmap_mapper,
+ 	.vaddr        = videobuf_to_vmalloc,
+ };
