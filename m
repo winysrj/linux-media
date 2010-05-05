@@ -1,84 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:50490 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750722Ab0E2EAx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 00:00:53 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1OIDEB-00075f-DG
-	for linux-media@vger.kernel.org; Sat, 29 May 2010 06:00:51 +0200
-Received: from gimpelevich.san-francisco.ca.us ([66.218.54.163])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 29 May 2010 06:00:51 +0200
-Received: from daniel by gimpelevich.san-francisco.ca.us with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 29 May 2010 06:00:51 +0200
+Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:48159
+	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756043Ab0EERhM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 13:37:12 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
 To: linux-media@vger.kernel.org
-From: Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
-Subject: Re: [PATCH] Support for the Geniatech/Mygica A680B (05e1:0480)
-Date: Sat, 29 May 2010 04:00:38 +0000 (UTC)
-Message-ID: <htq3h6$uor$1@dough.gmane.org>
-References: <1273242667.6020.15.camel@chimera>
-	<20100526010851.6cd39798@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: David Ellingsworth <david@identd.dyndns.org>
+Subject: [PATCH/RFC 7/7] dsbr100: simplify access to radio device
+Date: Wed,  5 May 2010 13:05:30 -0400
+Message-Id: <1273079130-21999-8-git-send-email-david@identd.dyndns.org>
+In-Reply-To: <1273079130-21999-1-git-send-email-david@identd.dyndns.org>
+References: <1273079130-21999-1-git-send-email-david@identd.dyndns.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 26 May 2010 01:08:51 -0300, Mauro Carvalho Chehab wrote:
+This patch replaces calls to video_drvdata with
+references to struct file->private_data which is
+set during usb_dsbr100_open. This value is passed
+by video_ioctl2 via the *priv argument and is
+accessible via file->private_data otherwise.
 
-> It would be nice to have Michael ack, if you're using part of his code
-> on your patch.
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/dsbr100.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-Quite.
-
-> It is a very bad idea to use a counter in seconds, especially since your
-> expected delay is of one second. This means that you may way from 0 to 1
-> seconds. The better way would be to do something like:
-> 
-> #define LOCK_DELAY 500	/* time in miliseconds */ state-
->lock_time =
-> jiffies + msecs_to_jiffies(LOCK_DELAY);
-
-I considered doing something of this nature but thought it was not 
-important enough for the delay to be that exact to do anything special to 
-track it, but I think I do like your suggestion better than what I did.
-
-> Note that I've defined 500 ms, as it is the mean time between 0 and 1
-> seconds. I suspect that you may use a lower delay time, since 500 ms
-> seems a very long time to let the frontend lock.
-
-I was experimenting with different delays from 500 to 2000, and based on 
-what I saw, I don't think any delay below 750 would be useful, if not 
-1250.
-
-> I would also add a comment that this is a workaround, since we currently
-> don't know any way to read the signal lock (since the right procedure
-> would be to, instead, read some register value to be sure that the demod
-> has locked).
-
-I operated under the assumption that this demod is not equipped with any 
-mechanism to detect a lock as opposed to sync, and would therefore have 
-nothing to report. This assumption was not based on anything, and if it's 
-incorrect, then yes, this workaround is pointless.
-
-> Also, the better is to split the "flakiness" patch from the geniatech
-> board addition, as they are two different logical changes.
-
-There are a couple more logical changes, and I thought the board addition 
-too trivial without them to split off. The entire patch is pretty small; 
-is splitting it that important?
-
-> Wouldn't be better to add instead a "lock_delay" parameter, with the
-> lock delay time, in milliseconds? Of course, you need to validate if the
-> time is between an allowed range (for example, from -1 to 2000 ms).
-
-I had thought of doing that, but I put it in the per-board demod 
-configuration because I cannot test its effect on other boards, which may 
-need different delays, if any. However, since the ultimate purpose of 
-this parameter is to test which boards may or may not benefit from a 
-delay in their demod configuration, it may indeed be a better idea to 
-specify the delay in the parameter.
+diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
+index cd4eed7..64ba0c8 100644
+--- a/drivers/media/radio/dsbr100.c
++++ b/drivers/media/radio/dsbr100.c
+@@ -366,7 +366,7 @@ static void usb_dsbr100_disconnect(struct usb_interface *intf)
+ static int vidioc_querycap(struct file *file, void *priv,
+ 					struct v4l2_capability *v)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 
+ 	strlcpy(v->driver, "dsbr100", sizeof(v->driver));
+ 	strlcpy(v->card, "D-Link R-100 USB FM Radio", sizeof(v->card));
+@@ -379,7 +379,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ static int vidioc_g_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 
+ 	if (v->index > 0)
+ 		return -EINVAL;
+@@ -411,7 +411,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+ static int vidioc_s_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 	int retval = dsbr100_setfreq(radio, f->frequency);
+ 
+ 	if (retval < 0)
+@@ -423,7 +423,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ static int vidioc_g_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 
+ 	f->type = V4L2_TUNER_RADIO;
+ 	f->frequency = radio->curfreq;
+@@ -444,7 +444,7 @@ static int vidioc_queryctrl(struct file *file, void *priv,
+ static int vidioc_g_ctrl(struct file *file, void *priv,
+ 				struct v4l2_control *ctrl)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+@@ -457,7 +457,7 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
+ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 				struct v4l2_control *ctrl)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 	int retval;
+ 
+ 	switch (ctrl->id) {
+@@ -518,7 +518,7 @@ static int vidioc_s_audio(struct file *file, void *priv,
+ static long usb_dsbr100_ioctl(struct file *file, unsigned int cmd,
+ 				unsigned long arg)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = file->private_data;
+ 	long retval = 0;
+ 
+ 	mutex_lock(&radio->lock);
+@@ -557,6 +557,7 @@ static int usb_dsbr100_open(struct file *file)
+ 		radio->status |= INITIALIZED;
+ 	}
+ 
++	file->private_data = radio;
+ unlock:
+ 	mutex_unlock(&radio->lock);
+ 	return retval;
+-- 
+1.7.1
 
