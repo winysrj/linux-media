@@ -1,92 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:51502 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933313Ab0EDT6j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 May 2010 15:58:39 -0400
-Message-ID: <4BE07C54.6000804@arcor.de>
-Date: Tue, 04 May 2010 21:58:12 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Received: from 25.mail-out.ovh.net ([91.121.27.228]:52356 "HELO
+	25.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753742Ab0EELe7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 07:34:59 -0400
+Message-ID: <ab0e35f363ecb2b5daa9146745330ef6.squirrel@webmail.ovh.net>
+Date: Wed, 5 May 2010 06:34:57 -0500 (GMT+5)
+Subject: [PATCH] tda10048: fix the uncomplete function tda10048_read_ber
+From: "Guillaume Audirac" <guillaume.audirac@webag.fr>
+To: linux-media@vger.kernel.org
+Reply-To: guillaume.audirac@webag.fr
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 calculating urb buffer
-References: <4BDB067E.4070501@arcor.de> <4BDB3017.9070101@arcor.de> <4BE03F8D.1050905@arcor.de> <4BE066B7.2050704@redhat.com> <4BE071C2.4050309@arcor.de> <4BE07A6A.9000303@redhat.com>
-In-Reply-To: <4BE07A6A.9000303@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
- 
-Am 04.05.2010 21:50, schrieb Mauro Carvalho Chehab:
-> Stefan Ringel wrote:
->
->>>> datagram from urb to videobuf
->>>>
->>>> urb           copy to     temp         copy to         1. videobuf
->>>>                          buffer                        2. audiobuf
->>>>                                                        3. vbi
->>>> 184 Packets   ------->   184 * 3072    ---------->     4. etc.
->>>> a 3072 bytes               bytes
->>>>                184 *                   3072 *
->>>>              3072 bytes              180 bytes
->>>>                                 (184 bytes - 4 bytes
->>>>                                     header )
->>> In order to receive 184 packets with 3072 bytes each, the USB code will
->>> try to allocate the next power-of-two memory block capable of receiving
->>> such data block. As: 184 * 3072 = 565248, the kernel allocator will seek
->>> for a continuous block of 1 MB, that can do DMA transfers (required by
->>> ehci driver). On a typical machine, due to memory fragmentation,
->>> in general, there aren't many of such blocks. So, this will increase the
->>> probability of not having any such large block available, causing an
->> horrible
->>> dump at kernel, plus a -ENOMEM on the driver, generally requiring a
-reboot
->>> if you want to run the driver again.
->>>
->> And direct copy from urb to videobuf/alsa/vbi in 184 Bytes segments.
->>
->> urb                      1. videobuf
->>               copy to    2. audiobuf
->>                          3. vbi
->> 184 Packets   ------->   4. etc.
->> a 3072 bytes  
->>               180 Bytes (without headers)
->
-> That's basically what that logic does. It preserves the header if you
-select
-> TM6000 format (so, no checks for the start of the block, etc), or copies
-> just the data, if you select YUY2 or UYUV.
->
->> or how can I copy 180 Bytes Data from 184 Bytes block with an
->> anligment of 184 urb pipe (184 * 3072 Bytes)?
->
-> A 184 x 3072 URB pipe is a big problem. We used a large pipe in the
-past, and this
-> won't work. For example, on a notebook I used to run some tests with 1
-GB of
-> ram after starting X and do anything (like opening a browser), the URB
-> allocation used to fail, as there weren't any available 1MB segment at
-> the DMA area. Even without starting X, after a few tests, it would
-eventually
-> have fragmented the memory and the driver stops working.
->
->
-and 3072 * 46 = 141312 bytes and it can through 184 ! it's 1/4 smaller.
+Hello,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.12 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
- 
-iQEcBAEBAgAGBQJL4HxUAAoJEAWtPFjxMvFGAa8H/2tnr0u9YCHUlpcltAlKggcQ
-hXyZ3KiyBVe6K1cc/xEh1sMOscytJ4XS8ho9QHDh9AAObYq5J0zkXV5nBEJ2veIi
-a8fn9LgtsHLbgXhLxaToXgy3GY5HW/RANh0qhBqbPY1VRcvq8wmrKMO89qBr64NI
-5thzzTAV9emxc6mASIw2dksqF0IFIciDEKygbMcHNm1Y1n/b0VkBInnjpz06vUex
-yKaigZRPHtIG8xnNKzcKIURfJ18T8GvpYSTipvZkqMOP6Latah6fYc6WYilMSk3n
-opYXS6iPL7qZkh3nWDXNQQLC1FBKoitsYhgWlope6wabiBYTAwnCtg5LFKo11Jc=
-=khUE
------END PGP SIGNATURE-----
+
+Completes the bit-error-rate read function with the CBER register (before
+Viterbi decoder). The returned value is 1e8*actual_ber to be positive.
+Also includes some typo mistakes.
+
+Signed-off-by: Guillaume Audirac <guillaume.audirac@webag.fr>
+---
+ drivers/media/dvb/frontends/tda10048.c |   30 ++++++++++++++++++++++++------
+ 1 files changed, 24 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/tda10048.c
+b/drivers/media/dvb/frontends/tda10048.c
+index 4e2a7c8..9006107 100644
+--- a/drivers/media/dvb/frontends/tda10048.c
++++ b/drivers/media/dvb/frontends/tda10048.c
+@@ -25,6 +25,7 @@
+ #include <linux/string.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
++#include <linux/math64.h>
+ #include <asm/div64.h>
+ #include "dvb_frontend.h"
+ #include "dvb_math.h"
+@@ -112,7 +113,7 @@
+ #define TDA10048_FREE_REG_1        0xB2
+ #define TDA10048_FREE_REG_2        0xB3
+ #define TDA10048_CONF_C3_1         0xC0
+-#define TDA10048_CYBER_CTRL        0xC2
++#define TDA10048_CVBER_CTRL        0xC2
+ #define TDA10048_CBER_NMAX_LSB     0xC4
+ #define TDA10048_CBER_NMAX_MSB     0xC5
+ #define TDA10048_CBER_LSB          0xC6
+@@ -120,7 +121,7 @@
+ #define TDA10048_VBER_LSB          0xC8
+ #define TDA10048_VBER_MID          0xC9
+ #define TDA10048_VBER_MSB          0xCA
+-#define TDA10048_CYBER_LUT         0xCC
++#define TDA10048_CVBER_LUT         0xCC
+ #define TDA10048_UNCOR_CTRL        0xCD
+ #define TDA10048_UNCOR_CPT_LSB     0xCE
+ #define TDA10048_UNCOR_CPT_MSB     0xCF
+@@ -183,7 +184,7 @@ static struct init_tab {
+ 	{ TDA10048_AGC_IF_MAX, 0xff },
+ 	{ TDA10048_AGC_THRESHOLD_MSB, 0x00 },
+ 	{ TDA10048_AGC_THRESHOLD_LSB, 0x70 },
+-	{ TDA10048_CYBER_CTRL, 0x38 },
++	{ TDA10048_CVBER_CTRL, 0x38 },
+ 	{ TDA10048_AGC_GAINS, 0x12 },
+ 	{ TDA10048_CONF_XO, 0x00 },
+ 	{ TDA10048_CONF_TS1, 0x07 },
+@@ -765,6 +766,8 @@ static int tda10048_set_frontend(struct dvb_frontend *fe,
+
+ 	/* Enable demod TPS auto detection and begin acquisition */
+ 	tda10048_writereg(state, TDA10048_AUTO, 0x57);
++	/* trigger cber and vber acquisition */
++	tda10048_writereg(state, TDA10048_CVBER_CTRL, 0x3B);
+
+ 	return 0;
+ }
+@@ -830,12 +833,27 @@ static int tda10048_read_status(struct dvb_frontend
+*fe, fe_status_t *status)
+ static int tda10048_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+ 	struct tda10048_state *state = fe->demodulator_priv;
++	static u32 cber_current;
++	u32 cber_nmax;
++	u64 cber_tmp;
+
+ 	dprintk(1, "%s()\n", __func__);
+
+-	/* TODO: A reset may be required here */
+-	*ber = tda10048_readreg(state, TDA10048_CBER_MSB) << 8 |
+-		tda10048_readreg(state, TDA10048_CBER_LSB);
++	/* update cber on interrupt */
++	if (tda10048_readreg(state, TDA10048_SOFT_IT_C3) & 0x01) {
++		cber_tmp = tda10048_readreg(state, TDA10048_CBER_MSB) << 8 |
++			tda10048_readreg(state, TDA10048_CBER_LSB);
++		cber_nmax = tda10048_readreg(state, TDA10048_CBER_NMAX_MSB) << 8 |
++			tda10048_readreg(state, TDA10048_CBER_NMAX_LSB);
++		cber_tmp *= 100000000;
++		cber_tmp *= 2;
++		cber_tmp = div_u64(cber_tmp, (cber_nmax * 32) + 1);
++		cber_current = (u32)cber_tmp;
++		/* retrigger cber acquisition */
++		tda10048_writereg(state, TDA10048_CVBER_CTRL, 0x39);
++	}
++	/* actual cber is (*ber)/1e8 */
++	*ber = cber_current;
+
+ 	return 0;
+ }
+-- 
+1.6.3.3
+
+-- 
+Guillaume
 
