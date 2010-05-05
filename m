@@ -1,40 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:60126 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751342Ab0E3HHr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 03:07:47 -0400
-Received: by vws11 with SMTP id 11so839282vws.19
-        for <linux-media@vger.kernel.org>; Sun, 30 May 2010 00:07:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201005291909.36973.mike_booth76@iprimus.com.au>
-References: <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com>
-	<AANLkTinU8T0fWHHHS0azFK33Ec8yYLguiZxos9z7hOvP@mail.gmail.com>
-	<201005291909.36973.mike_booth76@iprimus.com.au>
-Date: Sun, 30 May 2010 00:07:46 -0700
-Message-ID: <AANLkTilbus32dL3I_gkY3PBjHuhptaWQpn6ptjBscANL@mail.gmail.com>
-Subject: Re: What ever happened to standardizing signal level?
-From: VDR User <user.vdr@gmail.com>
-To: Mike Booth <mike_booth76@iprimus.com.au>
-Cc: Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
-	"mailing list: linux-media" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from tex.lwn.net ([70.33.254.29]:50634 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754768Ab0EEWfH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 May 2010 18:35:07 -0400
+From: Jonathan Corbet <corbet@lwn.net>
+To: linux-kernel@vger.kernel.org
+Cc: Harald Welte <laforge@gnumonks.org>, linux-fbdev@vger.kernel.org,
+	JosephChan@via.com.tw, ScottFang@viatech.com.cn,
+	=?UTF-8?q?Bruno=20Pr=C3=A9mont?= <bonbons@linux-vserver.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 3/5] viafb: Eliminate some global.h references
+Date: Wed,  5 May 2010 16:34:42 -0600
+Message-Id: <1273098884-21848-4-git-send-email-corbet@lwn.net>
+In-Reply-To: <1273098884-21848-1-git-send-email-corbet@lwn.net>
+References: <1273098884-21848-1-git-send-email-corbet@lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, May 29, 2010 at 2:09 AM, Mike Booth <mike_booth76@iprimus.com.au> wrote:
-> i think someone is too concerned about being precisely accurate. So much so
-> that no-one can see the woods for the trees any more.
->
-> Its not important to me that accuracy is spot on. I only want to know that
-> when tuning the dish I'm getting \better or worse.
+The various subdev drivers (other than the framebuffer itself) no longer
+need this file.
 
-I tend to agree with this.  Ultimately what's important is not
-necessarily that the readings are 100% accurate, but rather simply put
-into some kind of universal scale that provides useful output to the
-user.  Many users were happy to see some activity addressing this
-issue and unfortunately it seems to have stalled out but I'm not sure
-why.  I honestly felt there was enough common ground being discussed
-that we'd have a solution by now.
+Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/video/via/via-gpio.c |    1 -
+ drivers/video/via/via_i2c.c  |    4 +++-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
-Regards.
+diff --git a/drivers/video/via/via-gpio.c b/drivers/video/via/via-gpio.c
+index 63cb7ac..67d699c 100644
+--- a/drivers/video/via/via-gpio.c
++++ b/drivers/video/via/via-gpio.c
+@@ -10,7 +10,6 @@
+ #include <linux/platform_device.h>
+ #include "via-core.h"
+ #include "via-gpio.h"
+-#include "global.h"
+ 
+ /*
+  * The ports we know about.  Note that the port-25 gpios are not
+diff --git a/drivers/video/via/via_i2c.c b/drivers/video/via/via_i2c.c
+index 84ec2d6..2291765 100644
+--- a/drivers/video/via/via_i2c.c
++++ b/drivers/video/via/via_i2c.c
+@@ -20,9 +20,11 @@
+  */
+ 
+ #include <linux/platform_device.h>
++#include <linux/delay.h>
++#include <linux/spinlock.h>
++#include <linux/module.h>
+ #include "via-core.h"
+ #include "via_i2c.h"
+-#include "global.h"
+ 
+ /*
+  * There can only be one set of these, so there's no point in having
+-- 
+1.7.0.1
+
