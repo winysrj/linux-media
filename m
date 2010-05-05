@@ -1,83 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:53711 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932339Ab0E0Pqp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 May 2010 11:46:45 -0400
-Message-ID: <4BFE937B.7000200@arcor.de>
-Date: Thu, 27 May 2010 17:44:59 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:64880 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752789Ab0EEGAE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 02:00:04 -0400
+Received: by fxm10 with SMTP id 10so3900400fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 04 May 2010 23:00:02 -0700 (PDT)
+Date: Wed, 5 May 2010 07:59:48 +0200
+From: Dan Carpenter <error27@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [patch] media/ov511: cleanup: remove unneeded null check
+Message-ID: <20100505055948.GE27064@bicker>
 MIME-Version: 1.0
-To: Luis Henrique Fagundes <lhfagundes@hacklab.com.br>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Bee Hock Goh <beehock@gmail.com>
-Subject: Re: [PATCH 3/4] tm6000: bugfix video image
-References: <AANLkTinXZL1jy8HF73WeWwCRjDIryevcag1yZUji5iy7@mail.gmail.com>
-In-Reply-To: <AANLkTinXZL1jy8HF73WeWwCRjDIryevcag1yZUji5iy7@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------050104080704040901000807"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050104080704040901000807
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+We dereference "ov" unconditionally throughout the function so there is
+no way it can be NULL here.  This code has been around for ages so if 
+it were possible for "ov" to be NULL someone would have complained.
 
-Am 27.05.2010 16:43, schrieb Luis Henrique Fagundes:
-> Hi Stefan,
->
-> Looks like your patch sent on May 19th doesn't compile. I might be
-> missing something, but I needed the attached patch to make it compile.
->
-> Luis
->   
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-@@ -452,7 +452,7 @@
- 	while (len>0) {
- 		cpysize=min(len,buf->vb.size-pos);
- 		//printk("Copying %d bytes (max=%lu) from %p to %p[%u]\n",cpysize,(*buf)->vb.size,ptr,out_p,pos);
--		memcpy(&out_p[pos], ptr, cpysize);
-+		memcpy(&outp[pos], ptr, cpysize);
- 		pos+=cpysize;
- 		ptr+=cpysize;
- 		len-=cpysize;
-@@ -464,8 +464,8 @@
- 			get_next_buf (dma_q, &buf);
- 			if (!buf)
- 				break;
--			out_p = videobuf_to_vmalloc(&(buf->vb));
--			if (!out_p)
-+			outp = videobuf_to_vmalloc(&(buf->vb));
-+			if (!outp)
- 				return rc;
- 			pos = 0;
- 		}
-
-
-I have overseen that, as I generate a patch. In my devel-tree I have outp.
-
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
-
---------------050104080704040901000807
-Content-Type: text/x-vcard; charset=utf-8;
- name="stefan_ringel.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="stefan_ringel.vcf"
-
-begin:vcard
-fn:Stefan Ringel
-n:Ringel;Stefan
-email;internet:stefan.ringel@arcor.de
-note:web: www.stefanringel.de
-x-mozilla-html:FALSE
-version:2.1
-end:vcard
-
-
---------------050104080704040901000807--
+diff --git a/drivers/media/video/ov511.c b/drivers/media/video/ov511.c
+index 6085d55..a109120 100644
+--- a/drivers/media/video/ov511.c
++++ b/drivers/media/video/ov511.c
+@@ -5940,7 +5940,7 @@ ov51x_disconnect(struct usb_interface *intf)
+ 	ov->dev = NULL;
+ 
+ 	/* Free the memory */
+-	if (ov && !ov->user) {
++	if (!ov->user) {
+ 		mutex_lock(&ov->cbuf_lock);
+ 		kfree(ov->cbuf);
+ 		ov->cbuf = NULL;
