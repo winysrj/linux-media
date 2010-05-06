@@ -1,86 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:38663 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755997Ab0E2TcW (ORCPT
+Received: from smarthost02.mail.zen.net.uk ([212.23.3.141]:55482 "EHLO
+	smarthost02.mail.zen.net.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752736Ab0EFTO4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 15:32:22 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: "Jean-Francois Moine" <moinejf@free.fr>
-Subject: Re: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
-Date: Sat, 29 May 2010 21:32:07 +0200
-Cc: linux-media@vger.kernel.org
-References: <201005291909.33593.linux@rainbow-software.org> <20100529202425.75b4ff56@tele>
-In-Reply-To: <20100529202425.75b4ff56@tele>
+	Thu, 6 May 2010 15:14:56 -0400
+Received: from [217.155.39.57] (helo=proxyplus.universe)
+	by smarthost02.mail.zen.net.uk with esmtp (Exim 4.63)
+	(envelope-from <paul@whitelands.org.uk>)
+	id 1OA6X9-0003KH-A0
+	for linux-media@vger.kernel.org; Thu, 06 May 2010 19:14:55 +0000
+Received: from 127.0.0.1 [127.0.0.1]
+	by Proxy+ with ESMTP
+	for <linux-media@vger.kernel.org>; Thu, 06 May 2010 20:14:47 +0100
+Message-ID: <4BE31526.6020602@whitelands.org.uk>
+Date: Thu, 06 May 2010 20:14:46 +0100
+From: Paul Shepherd <paul@whitelands.org.uk>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: linux-media@vger.kernel.org
+Subject: Fwd: Re: setting up a tevii s660
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201005292132.09705.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 29 May 2010 20:24:25 Jean-Francois Moine wrote:
-> On Sat, 29 May 2010 19:09:32 +0200
+
+On 06/05/2010 00:07, Tim Coote wrote:
+> Hullo
+> I've been struggling with this for a couple of days. I have checked
+> archives, but missed anything useful.
 >
-> Ondrej Zary <linux@rainbow-software.org> wrote:
-> > I got a MD80-clone camera based on SPCA1527A chip. It's webcam-like
-> > camera with battery and microSD slot and can record video on its own.
-> > It has two USB modes - mass storage (USB ID 04fc:0171) and webcam
-> > mode (USB ID 04fc:1528). This chip seems to be used in many other SD
-> > card cameras too.
-> >
-> > The webcam mode is not supported by gspca so I captured some data to
-> > (hopefully) make support in gspca possible. There seems to be 3
-> > interfaces:
+> I've got a tevii s660 (dvbs2 via usb). It works with some limitations on
+> windows xp (I cannot get HD signals decoded, but think that's a
+> limitation of the software that comes on the CD).
+
+I downloaded version from tevii.com and it worked for me on laptop
+running win 7.  Had problems with HD on an XP machine but I assumed it
+was because the video card was old/slow.
+
 >
-> Hello Ondrej,
+> I'm trying to get this working on Linux. I've tried VMs based on fedora
+> 12 and mythbuntu (VMWare Fusion on a MacBookPro, both based on kernel
+> 2.6.32), using the drivers from tevii's site
+> (www.tevii.com/support.asp). these drivers are slightly modified
+> versions of the v4l tip - but don't appear to be modified where I've not
+> yet managed to get the drivers working :-(. Mythbuntu seems to be
+> closest to working. Goodness knows how tevii tested the code, but it
+> doesn't seem to work as far as I can see. My issues could just be down
+> to using a VM.
+
+I tried on Ubuntu 9.10 but had problems which I documented here on 16
+april. Loading the firmware worked fine but there were problems with
+remote control messages being logged continually as well as stability
+problems. The card would tune (with scan) and worked with mythtv (for a
+day or so)
+
+> I believe that I need to load up the modules ds3000 and dvb-usb-dw2102,
+> + add a rule to /etc/udev/rules.d and a script to /etc/udev/scripts.
+
+I didn't touch rules.d
+
+> I think that I must be missing quite a lot of context, tho'. When I look
+> at the code in dw2102.c, which seems to support the s660, the bit that
+> downloads the firmware looks broken and if I add a default clause to the
+> switch that does the download, the s660's missed the download process.
+> This could be why when I do get anything out of the device it looks like
+> I'm just getting repeated bytes (the same value repeated, different
+> values at different times, sometimes nothing). I'm finding it
+> non-trivial working out the call sequences of the code or devising
+> repeatable tests.
+
+Had no problem with Ubuntu recognising the device and the correct .fw
+file being downloaded.
+
+There are various versions of dw2102.c from tevii, etc.  I think I tried
+all of them. I did change the timeout on RC messages (dw2102.c?) which
+helped but did not cure the problem.
+
+Also tried the s2-liplianin library as well which seemed promising but
+also did not cure the problem.
+
+> Can anyone kick me off on getting this working? I'd like to at least get
+> to the point where scandvb can tune the device. It does look like some
+> folk have had success in the past, but probably with totally different
+> codebase (there are posts that refer to the teviis660 module, which I
+> cannot find).
 >
-> I got your ms-win traces, thank you. The commands seem simple enough,
-> but I don't know yet the compression algorithm of the images. I will
-> have a look at this on next week. May you tell me if there are other
-> resolutions than 320x240 and, also, what are the webcam controls?
+> Any pointer gratefully accepted. I'll feed back any success if I can be
+> pointed at where to drop document it.
 
-The supported resolutions are:
-160x120
-176x144
-320x240
-352x288
-640x480
+I didn't have the knowledge (or time) to decide if the problem was in
+the firmware or the v4l drivers or perhaps some strange interaction with
+my dvb-t usb box.
 
-The Color Space/Compression reported by the driver is only one: RGB 24
-The driver also uses these files which may (or may not) be related to used 
-compression: iyuv_32.dll, msh263.drv, msyuv.dll, tsbyuv.dll
-In standalone mode, the camera records video in MJPEG format.
+Exchanged some emails with tevii guys who had posted here however they
+appear to take the view that if it works under windows then the device
+is fine and offer no other solution.
 
+In the end I bought a Nova S2 PCI card which works fine but would be
+interested in trying to get the S660 working.
 
-Controls:
-Banding Filter - 50Hz/60Hz - bandwidth 3/4/5/6/7 (default=50Hz, 3)
-Brightness - 0..255 (default=128)
-Contrast - 1..8 (default=1)
-Saturation - 0..8 (default=1)
-Sharpness - 0..255 (default=0)
-Hue - 0..360 (default=0)
+paul
 
-I added some more logs to 
-http://www.rainbow-software.org/linux_files/spca1528/
-
-different resolutions (with default control settings):
-usbsnoop-video-capture-160x120.log
-usbsnoop-video-capture-176x144.log
-usbsnoop-video-capture-352x288.log
-usbsnoop-video-capture-640x480.log
-
-160x120 with one control changed (other are at default values):
-usbsnoop-controls-brightness-226.log
-usbsnoop-controls-brightness-43.log
-usbsnoop-controls-contrast-5.log
-usbsnoop-controls-hue-91.log
-usbsnoop-controls-saturation-4.log
-usbsnoop-controls-sharpness-145.log
-
-opening controls window with no capture running:
-usbsnoop-open-controls.log
-
--- 
-Ondrej Zary
