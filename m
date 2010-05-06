@@ -1,108 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:41818
-	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757052Ab0E0Qku (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 May 2010 12:40:50 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
-To: linux-media@vger.kernel.org
-Cc: Markus Demleitner <msdemlei@tucana.harvard.edu>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Ellingsworth <david@identd.dyndns.org>
-Subject: [PATCH/RFC v2 8/8] dsbr100: simplify access to radio device
-Date: Thu, 27 May 2010 12:39:16 -0400
-Message-Id: <1274978356-25836-9-git-send-email-david@identd.dyndns.org>
-In-Reply-To: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
-References: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:65263 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496Ab0EFNQv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 09:16:51 -0400
+Received: by pva18 with SMTP id 18so1067123pva.19
+        for <linux-media@vger.kernel.org>; Thu, 06 May 2010 06:16:50 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <p2jef62033e1005060605v3b02ea04rf60adb4bd2ca15b3@mail.gmail.com>
+References: <i2kef62033e1005060450n93f9fe12jc535886682e055a7@mail.gmail.com>
+	 <l2i83bcf6341005060533zd92299a9y7b8037f0a46ff5cb@mail.gmail.com>
+	 <w2zef62033e1005060544ja4331869gcbc2ccdf95d57318@mail.gmail.com>
+	 <k2u83bcf6341005060547v983baea9g9617c45fd577f414@mail.gmail.com>
+	 <p2jef62033e1005060605v3b02ea04rf60adb4bd2ca15b3@mail.gmail.com>
+Date: Thu, 6 May 2010 09:16:50 -0400
+Message-ID: <h2o829197381005060616t4d5f8319g43791fea86b58c5d@mail.gmail.com>
+Subject: Re: Avermedia AverTV Capture HD support
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Omer Uner GUCLU <omerunerguclu@gmail.com>
+Cc: Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch replaces calls to video_drvdata with
-references to struct file->private_data which is
-set during usb_dsbr100_open. This value is passed
-by video_ioctl2 via the *priv argument and is
-accessible via file->private_data otherwise.
+On Thu, May 6, 2010 at 9:05 AM, Omer Uner GUCLU <omerunerguclu@gmail.com> wrote:
+> I need frame grabber or capture card which has 1080i support for one
+> application.
+> Can you give me advice which card(s) suitable for our application.
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/dsbr100.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
+The only device supported under Linux which can support HD capture is
+the Hauppauge HD-PVR.
 
-diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
-index 81e6aa5..a8c3d5a 100644
---- a/drivers/media/radio/dsbr100.c
-+++ b/drivers/media/radio/dsbr100.c
-@@ -366,7 +366,7 @@ static void usb_dsbr100_disconnect(struct usb_interface *intf)
- static int vidioc_querycap(struct file *file, void *priv,
- 					struct v4l2_capability *v)
- {
--	struct dsbr100_device *radio = video_drvdata(file);
-+	struct dsbr100_device *radio = priv;
- 
- 	strlcpy(v->driver, "dsbr100", sizeof(v->driver));
- 	strlcpy(v->card, "D-Link R-100 USB FM Radio", sizeof(v->card));
-@@ -379,7 +379,7 @@ static int vidioc_querycap(struct file *file, void *priv,
- static int vidioc_g_tuner(struct file *file, void *priv,
- 				struct v4l2_tuner *v)
- {
--	struct dsbr100_device *radio = video_drvdata(file);
-+	struct dsbr100_device *radio = priv;
- 
- 	if (v->index > 0)
- 		return -EINVAL;
-@@ -411,7 +411,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
- static int vidioc_s_frequency(struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
--	struct dsbr100_device *radio = video_drvdata(file);
-+	struct dsbr100_device *radio = priv;
- 	int retval = dsbr100_setfreq(radio, f->frequency);
- 
- 	if (retval < 0)
-@@ -423,7 +423,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- static int vidioc_g_frequency(struct file *file, void *priv,
- 				struct v4l2_frequency *f)
- {
--	struct dsbr100_device *radio = video_drvdata(file);
-+	struct dsbr100_device *radio = priv;
- 
- 	f->type = V4L2_TUNER_RADIO;
- 	f->frequency = radio->curfreq;
-@@ -444,7 +444,7 @@ static int vidioc_queryctrl(struct file *file, void *priv,
- static int vidioc_g_ctrl(struct file *file, void *priv,
- 				struct v4l2_control *ctrl)
- {
--	struct dsbr100_device *radio = video_drvdata(file);
-+	struct dsbr100_device *radio = priv;
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
-@@ -457,7 +457,7 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
- static int vidioc_s_ctrl(struct file *file, void *priv,
- 				struct v4l2_control *ctrl)
- {
--	struct dsbr100_device *radio = video_drvdata(file);
-+	struct dsbr100_device *radio = priv;
- 	int retval;
- 
- 	switch (ctrl->id) {
-@@ -518,7 +518,7 @@ static int vidioc_s_audio(struct file *file, void *priv,
- static long usb_dsbr100_ioctl(struct file *file, unsigned int cmd,
- 				unsigned long arg)
- {
--	struct dsbr100_device *radio = video_drvdata(file);
-+	struct dsbr100_device *radio = file->private_data;
- 	long retval = 0;
- 
- 	mutex_lock(&radio->lock);
-@@ -556,6 +556,7 @@ static int usb_dsbr100_open(struct file *file)
- 		radio->status |= INITIALIZED;
- 	}
- 
-+	file->private_data = radio;
- unlock:
- 	mutex_unlock(&radio->lock);
- 	return retval;
+Cheers,
+
+Devin
+
 -- 
-1.7.1
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
