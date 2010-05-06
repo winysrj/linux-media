@@ -1,56 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7409 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756280Ab0EJT4x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 May 2010 15:56:53 -0400
-Message-ID: <4BE86492.6090401@redhat.com>
-Date: Mon, 10 May 2010 16:54:58 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4999 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751151Ab0EFGi3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 02:38:29 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+Subject: Re: [PATCH v2 2/10] V4L2 patches for Intel Moorestown Camera Imaging Drivers - part 1
+Date: Thu, 6 May 2010 08:39:39 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Zhu, Daniel" <daniel.zhu@intel.com>,
+	"Yu, Jinlu" <jinlu.yu@intel.com>,
+	"Wang, Wen W" <wen.w.wang@intel.com>,
+	"Huang, Kai" <kai.huang@intel.com>,
+	"Hu, Gang A" <gang.a.hu@intel.com>,
+	"Ba, Zheng" <zheng.ba@intel.com>
+References: <33AB447FBD802F4E932063B962385B351D6D536E@shsmsx501.ccr.corp.intel.com> <201003290840.50223.hverkuil@xs4all.nl>
+In-Reply-To: <201003290840.50223.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
-CC: LMML <linux-media@vger.kernel.org>, awalls@md.metrocast.net,
-	moinejf@free.fr, g.liakhovetski@gmx.de, pboettcher@dibcom.fr,
-	awalls@radix.net, crope@iki.fi, davidtlwong@gmail.com,
-	liplianin@tut.by, isely@isely.net, tobias.lorenz@gmx.net,
-	hdegoede@redhat.com, abraham.manu@gmail.com,
-	u.kleine-koenig@pengutronix.de, stoth@kernellabs.com,
-	henrik@kurelid.se
-Subject: Re: Status of the patches under review (85 patches) and some misc
- notes about the devel procedures
-References: <20100507093916.2e2ef8e3@pedra> <201005080234.05889.herton@mandriva.com.br> <4BE5E89C.2090405@redhat.com> <201005101546.39596.herton@mandriva.com.br>
-In-Reply-To: <201005101546.39596.herton@mandriva.com.br>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005060839.39901.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Herton Ronaldo Krzesinski wrote:
-> Em Sáb 08 Mai 2010, às 19:41:32, Mauro Carvalho Chehab escreveu:
->> Herton Ronaldo Krzesinski wrote:
->>> Em Sex 07 Mai 2010, às 09:39:16, Mauro Carvalho Chehab escreveu:
->>>> 		== Patch(broken) - waiting for Herton Ronaldo Krzesinski <herton@mandriva.com.br> new submission == 
->>>>
->>>> Apr, 5 2010: saa7134: add support for Avermedia M733A                               http://patchwork.kernel.org/patch/90692
->>> Hi, I submitted now a new fixed version of the patch to mailing list, under
->>> title "[PATCH v2] saa7134: add support for Avermedia M733A"
->> OK, thanks!
->>
->>>> Mar,19 2010: saa7134: add support for one more remote control for Avermedia M135A   http://patchwork.kernel.org/patch/86989
->>> This was the addition of RM-K6 remote control to M135A too, I think we can drop
->>> this, since adding this to the kernel is deprecated now in favour of assigning
->>> keymaps in userspace (keytable tool from v4l-utils), right?
->> For now, I prefer to add the keytab there, since there are some scripts that syncs v4l-util
->> keytables with the kernel ones. If you prefer, you may the put RM-K6 table together
->> with the other M135A keytable. I intend to group the non-conflicting keytables soon,
->> and it makes kense to group both the original and the RM-K6 into the same table, in order to 
->> provide an easier hot-plug support for this device.
+On Monday 29 March 2010 08:40:50 Hans Verkuil wrote:
+> Hi Xiaolin,
 > 
-> Ok, I updated and tested a new patch now, and sent with title
-> "[PATCH] saa7134: add RM-K6 remote control support for Avermedia M135A"
+> On Sunday 28 March 2010 16:42:30 Zhang, Xiaolin wrote:
+> > From 1c18c41be33246e4b766d0e95e28a72dded87475 Mon Sep 17 00:00:00 2001
+> > From: Xiaolin Zhang <xiaolin.zhang@intel.com>
+> > Date: Sun, 28 Mar 2010 21:31:24 +0800
+> > Subject: [PATCH 2/10] This patch is second part of intel moorestown isp driver and c files collection which is v4l2 implementation.
+> > 
+> 
+> ....
+> 
+> > +struct videobuf_dma_contig_memory {
+> > +       u32 magic;
+> > +       void *vaddr;
+> > +       dma_addr_t dma_handle;
+> > +       unsigned long size;
+> > +       int is_userptr;
+> > +};
+> > +
+> > +#define MAGIC_DC_MEM 0x0733ac61
+> > +#define MAGIC_CHECK(is, should)                                                    \
+> > +       if (unlikely((is) != (should))) {                                   \
+> > +               pr_err("magic mismatch: %x expected %x\n", (is), (should)); \
+> > +               BUG();                                                      \
+> > +       }
+> 
+> I will do a more in-depth review in a few days. 
 
-Thanks!
+I realize that I never got round to this. You have to remind me if you don't
+see a follow-up within a week! These things tend to get buried otherwise.
+
+I will try to review this this weekend. Let me know if you prefer me to wait
+for the next patch series incorporating the comments already made by others.
+
+Regards,
+
+	Hans
+
+> However, I did notice that
+> you added your own dma_contig implementation. What were the reasons for doing
+> this? I've CC-ed Pawel since he will be interested in this as well.
+> 
+> Another question that came up is: what is 'marvin'? It's clearly a codename,
+> but a codename for what? This should be documented at the top of some source
+> or header. Apologies if it is already documented, I didn't read everything yet.
+> 
+> A final point I noticed: don't cast away a function result:
+> 
+> (void)ci_isp_set_bp_detection(NULL);
+> 
+> No need for (void). The gcc compiler won't warn about this unless the function
+> is annotated with __must_check__.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> 
 
 -- 
-
-Cheers,
-Mauro
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
