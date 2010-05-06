@@ -1,35 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:41511 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755181Ab0EBUlw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 16:41:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 02/15] [RFC] v4l2-ctrls: reorder 'case' statements to match order in header.
-Date: Sun, 2 May 2010 22:42:26 +0200
-Cc: linux-media@vger.kernel.org
-References: <cover.1272267136.git.hverkuil@xs4all.nl> <5f14ea711d1d98ea7fbdfbbc27422e679a9a1f63.1272267137.git.hverkuil@xs4all.nl>
-In-Reply-To: <5f14ea711d1d98ea7fbdfbbc27422e679a9a1f63.1272267137.git.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:58901 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751700Ab0EFSJq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 May 2010 14:09:46 -0400
+Message-ID: <4BE305DD.5020106@redhat.com>
+Date: Thu, 06 May 2010 15:09:33 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005022242.26593.laurent.pinchart@ideasonboard.com>
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: Jean-Francois Moine <moinejf@free.fr>,
+	Hans de Goede <hdegoede@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Problem with gspca and zc3xx
+References: <201001090015.31357.jareguero@telefonica.net> <201001121557.10312.jareguero@telefonica.net> <201001131450.44689.jareguero@telefonica.net> <201001141726.52062.jareguero@telefonica.net>
+In-Reply-To: <201001141726.52062.jareguero@telefonica.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Monday 26 April 2010 09:33:33 Hans Verkuil wrote:
-> To make it easier to determine whether all controls are added in
-> v4l2-ctrls.c the case statements inside the switch are re-ordered to match
-> the header.
+Jose Alberto Reguero wrote:
+> El Miércoles, 13 de Enero de 2010, Jose Alberto Reguero escribió:
+>> El Martes, 12 de Enero de 2010, Jose Alberto Reguero escribió:
+>>> El Martes, 12 de Enero de 2010, Jean-Francois Moine escribió:
+>>>> On Mon, 11 Jan 2010 15:49:55 +0100
+>>>>
+>>>> Jose Alberto Reguero <jareguero@telefonica.net> wrote:
+>>>>> I take another image with 640x480 and the bad bottom lines are 8. The
+>>>>> right side look right this time. The good sizes are:
+>>>>> 320x240->320x232
+>>>>> 640x480->640x472
+>>>> Hi Jose Alberto and Hans,
+>>>>
+>>>> Hans, I modified a bit your patch to handle the 2 resolutions (also,
+>>>> the problem with pas202b does not exist anymore). May you sign or ack
+>>>> it?
+>>>>
+>>>> Jose Alberto, the attached patch is to be applied to the last version
+>>>> of the gspca in my test repository at LinuxTv.org
+>>>> 	http://linuxtv.org/hg/~jfrancois/gspca
+>>>> May you try it?
+>>>>
+>>>> Regards.
+>>>  The patch works well.
+>>> There is another problem. When autogain is on(default), the image is bad.
+>>>  It is possible to put autogain off by default?
+>>>
+>>> Thanks.
+>>> Jose Alberto
+>> Autogain works well again. I can't reproduce the problem. Perhaps the debug
+>> messages. (Now I have debug off).
+>>
+>> Thanks.
+>> Jose Alberto
 > 
-> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> I found the problem. Autogain don't work well if brightness is de default 
+> value(128). if brightness is less(64) autogain work well. There is a problem 
+> when setting the brightness. It is safe to remove the brightness control?
+> Patch attached.
+> 
+> Jose Alberto
 
-This patch should be merged with the previous one.
+This patch doesn't apply anymore. I'm not sure if the issue were fixed upstream. If
+not, please re-base your patch against my git tree and send it again.
+
+patching file drivers/media/video/gspca/zc3xx.c
+Hunk #1 succeeded at 6086 with fuzz 1 (offset 45 lines).
+Hunk #2 FAILED at 6882.
+1 out of 2 hunks FAILED -- saving rejects to file drivers/media/video/gspca/zc3xx.c.rej
+>>> Patch patches/lmml_72895_problem_with_gspca_and_zc3xx.patch doesn't apply
 
 -- 
-Regards,
 
-Laurent Pinchart
+Cheers,
+Mauro
