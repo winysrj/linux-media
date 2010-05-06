@@ -1,46 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:5472 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751709Ab0ENMSX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 May 2010 08:18:23 -0400
-From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 14 May 2010 20:18:16 +0800
-Subject: [RFC] Add 12 bit RAW Bayer Pattern pixel format support in V4L2
-Message-ID: <33AB447FBD802F4E932063B962385B351E817016@shsmsx501.ccr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ew0-f220.google.com ([209.85.219.220]:56971 "EHLO
+	mail-ew0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752938Ab0EFPGy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 11:06:54 -0400
+Received: by ewy20 with SMTP id 20so18161ewy.1
+        for <linux-media@vger.kernel.org>; Thu, 06 May 2010 08:06:52 -0700 (PDT)
+Message-ID: <4BE2DB04.10008@gmail.com>
+Date: Thu, 06 May 2010 23:06:44 +0800
+From: Ang Way Chuang <wcang79@gmail.com>
 MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: this is a test mail
+References: <4BE2D770.4070907@gmail.com> <4BE2D8D0.7010007@gmail.com> <4BE2DA50.7050706@gmail.com>
+In-Reply-To: <4BE2DA50.7050706@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi linux-media,
+Oops, my bad. 
 
-Current V4l2 only support 8 bit and 10 bit RAW Bayer Patten pixel format and this is a RFC to add 12 bit RAW Bay pixel format support by 4 more pixel format definition in videodev2.h. 
-The 12 bit RAW Bayer Pattern pixel format is not a platform specific and is available in mainstream digital camera devices. It will be supported by the ISP on Intel Atom platform.
+Jed wrote:
+> Anyone know why we're getting 2 emails every time one sends only to
+> linux-media@vger.kernel.org ?
+> It's a tincy bit irritating, not that I'm complaining  ;)
+> 
+> On 7/05/10 12:57 AM, Jed wrote:
+>> Try sending via your ISP's SMTP host instead of Google's.
+>> I had issues with this list until I made the switch.
+>>
+>> On 7/05/10 12:51 AM, Ang Way Chuang wrote:
+>>> Please ignore this email. why can't i get my email through linux media
+>>> mailing list when i can receive it?
+>>> -- 
+>>> To unsubscribe from this list: send the line "unsubscribe 
+>>> linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-The current 8 bit/10 bit RAW Bayer Pattern pixel format definitions are listed as in below, 
-
-/* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
-#define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
-#define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
-#define V4L2_PIX_FMT_SGRBG8  v4l2_fourcc('G', 'R', 'B', 'G') /*  8  GRGR.. BGBG.. */
-#define V4L2_PIX_FMT_SRGGB8  v4l2_fourcc('R', 'G', 'G', 'B') /*  8  RGRG.. GBGB.. */
-#define V4L2_PIX_FMT_SBGGR10 v4l2_fourcc('B', 'G', '1', '0') /* 10  BGBG.. GRGR.. */
-#define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10  GBGB.. RGRG.. */
-#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10  GRGR.. BGBG.. */
-#define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0') /* 10  RGRG.. GBGB.. */
-
-I am proposing to add 4 more pixel format definition in similar with existing ones listed as in below, welcome any comment and suggestion. 
-
-#define V4L2_PIX_FMT_SBGGR12 v4l2_fourcc('B', 'G', '1', '2') /* 12  BGBG.. GRGR.. */
-#define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
-#define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
-#define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
-
-BRs
-
-BRs
-Xiaolin
