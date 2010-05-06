@@ -1,44 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:49542 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751241Ab0EaUYP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 16:24:15 -0400
-To: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Soc-camera and 2.6.33
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Mon, 31 May 2010 22:24:06 +0200
-Message-ID: <87fx17vmzd.fsf@free.fr>
+Received: from perceval.irobotique.be ([92.243.18.41]:34917 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752325Ab0EFVx4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 17:53:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 01/15] [RFC] v4l: Add new control handling framework
+Date: Thu, 6 May 2010 23:54:40 +0200
+Cc: linux-media@vger.kernel.org
+References: <cover.1272267136.git.hverkuil@xs4all.nl> <d3991cad71df246827f973da01d42bccc0bb9481.1272267137.git.hverkuil@xs4all.nl>
+In-Reply-To: <d3991cad71df246827f973da01d42bccc0bb9481.1272267137.git.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005062354.41866.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-I tried to upgrade from 2.6.30 to 2.6.33 and verify my board (ie. the mt9m111
-sensor with pxa_camera host).
+I don't think I should review the code in details before we agree on the 
+architecture (please correct me if I'm wrong). Two comments though.
 
-I'm a bit surprised it didn't work. I dig just a bit, and found that :
- - in soc_camera_init_i2c(), the following call fails
-	subdev = v4l2_i2c_new_subdev_board(&ici->v4l2_dev, adap,
-				icl->module_name, icl->board_info, NULL);
-   I have subdev = NULL.
+On Monday 26 April 2010 09:33:30 Hans Verkuil wrote:
 
- - as a result, I'm getting that kind of log :
-     camera 0-0: Probing 0-0
-     pxa27x-camera pxa27x-camera.0: Registered platform device at c3010900 data c03f0c24
-     pxa27x-camera pxa27x-camera.0: PXA Camera driver attached to camera 0
-     RJK: subdev=NULL, module=mt9m111
-     pxa27x-camera pxa27x-camera.0: PXA Camera driver detached from camera 0
-     camera: probe of 0-0 failed with error -12
+[snip]
 
- - if I try 2.6.34, I have no error report, and mt9m111 driver is not probed
-   either.
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> new file mode 100644
+> index 0000000..ea23f3d
+> --- /dev/null
+> +++ b/include/media/v4l2-ctrls.h
 
-Is there an explanation as to why I have this regression ? Is something to be
-done with the v4l2 migration ?
+[snip]
 
-Cheers.
+> +/* Fill in the control fields based on the control ID. This works for all
+> +   standard V4L2 controls.
+> +   For non-standard controls it will only fill in the given arguments
+> +   and name will be NULL.
+> +   This function will overwrite the contents of name, type and flags.
+> +   The contents of min, max, step and def may be modified depending on
+> +   the type.
+> +   Do not use in drivers! It is used internally for backwards
+> compatibility +   control handling only. Once all drivers are converted to
+> use the new +   control framework this function will no longer be
+> exported. */ +void v4l2_ctrl_fill(u32 id, const char **name, enum
+> v4l2_ctrl_type *type, +		    s32 *min, s32 *max, s32 *step, s32 *def, u32
+> *flags);
 
---
-Robert
+Using kerneldoc comments in the source file would provide a much better 
+documentation than a few lines of comment in the header.
+
+[snip]
+
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index 2dee938..cc9ed09 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -27,6 +27,7 @@
+>  struct v4l2_ioctl_callbacks;
+>  struct video_device;
+>  struct v4l2_device;
+> +struct v4l2_ctrl_handler;
+> 
+>  /* Flag to mark the video_device struct as registered.
+>     Drivers can clear this flag if they want to block all future
+> @@ -66,6 +67,9 @@ struct video_device
+>  	struct device *parent;		/* device parent */
+>  	struct v4l2_device *v4l2_dev;	/* v4l2_device parent */
+> 
+> +	/* Control handler associated with this device node. May be NULL. */
+
+Shouldn't we talk about a control*s* handler ? It handles more than one 
+control (would be a bit pointless otherwise :-)).
+
+-- 
+Regards,
+
+Laurent Pinchart
