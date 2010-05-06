@@ -1,86 +1,271 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:57748 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753472Ab0ECVRx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 17:17:53 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Greg KH <greg@kroah.com>
-Subject: Re: [PATCH 1/2] USB gadget: video class function driver
-Date: Mon, 3 May 2010 23:17:59 +0200
-Cc: Viral Mehta <Viral.Mehta@lntinfotech.com>,
-	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"robert.lukassen@tomtom.com" <robert.lukassen@tomtom.com>
-References: <1272826662-8279-1-git-send-email-laurent.pinchart@ideasonboard.com> <201005031430.00428.laurent.pinchart@ideasonboard.com> <20100503171548.GA11151@kroah.com>
-In-Reply-To: <20100503171548.GA11151@kroah.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005032318.02588.laurent.pinchart@ideasonboard.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:40377 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753554Ab0EFTAH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 15:00:07 -0400
+Received: by fxm10 with SMTP id 10so245951fxm.19
+        for <linux-media@vger.kernel.org>; Thu, 06 May 2010 12:00:05 -0700 (PDT)
+Subject: [PATCH] TechnoTrend TT-budget T-3000
+From: Vadim Catana <vadim.catana@gmail.com>
+Reply-To: vadim.catana@gmail.com
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary="=-NIshBXutmrypIBZUUQLC"
+Date: Thu, 06 May 2010 22:00:04 +0300
+Message-ID: <1273172404.2154.26.camel@xxx>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
 
-On Monday 03 May 2010 19:15:48 Greg KH wrote:
-> On Mon, May 03, 2010 at 02:29:57PM +0200, Laurent Pinchart wrote:
-> > On Monday 03 May 2010 13:14:11 Viral Mehta wrote:
-> > > Hi,
-> > > 
-> > > >This USB video class function driver implements a video capture device
-> > > >from the host's point of view. It creates a V4L2 output device on the
-> > > >gadget's side to transfer data from a userspace application over USB.
-> > > >
-> > > >The UVC-specific descriptors are passed by the gadget driver to the
-> > > >UVC function driver, making them completely configurable without any
-> > > >modification to the function's driver code.
-> > > 
-> > > I wanted to test this code. I git cloned[1] tree. It has
-> > > v4l2-event.[c,h] and so I assume that now this tree has support for
-> > > v4l2 event code.
-> > > 
-> > > But, while compilation, I am getting this error.
-> > > [root@viral linux-next]# make uImage > /dev/null && make modules
-> > > 
-> > >   CHK     include/linux/version.h
-> > >   CHK     include/generated/utsrelease.h
-> > > 
-> > > make[1]: `include/generated/mach-types.h' is up to date.
-> > > 
-> > >   CALL    scripts/checksyscalls.sh
-> > >   Building modules, stage 2.
-> > >   MODPOST 5 modules
-> > > 
-> > > ERROR: "v4l2_event_dequeue" [drivers/usb/gadget/g_webcam.ko] undefined!
-> > > ERROR: "v4l2_event_init" [drivers/usb/gadget/g_webcam.ko] undefined!
-> > > make[1]: *** [__modpost] Error 1
-> > > make: *** [modules] Error 2
-> > > 
-> > > And by looking at the code, those symbols are not exported and thus the
-> > > error is obvious. Can you please point me out where to take v4l2-event
-> > > code? I tried to look for on linuxtv.org but was not able to locate the
-> > > right code.
-> > > 
-> > > [1]git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
-> > 
-> > There's a patch pending on the linux-media list to export those two
-> > functions. It has been acked by Sakari (the author of the V4L2 events
-> > patch set), but not committed by Mauro to his linux-next yet. That
-> > should be a matter of days.
-> 
-> Do you have a pointer to that patch?  I'll take it into my usb tree for
-> now, to keep things building, and let Mauro send it to Linus for
-> merging.
+--=-NIshBXutmrypIBZUUQLC
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-Sure
+Hi,
 
-https://patchwork.kernel.org/patch/96373/
+This patch adds support for TechnoTrend TT-budget T-3000
+DVB-T card.
 
-But please note it requires the V4L2 events patch set from Mauro's linux-next 
-tree.
 
--- 
-Regards,
 
-Laurent Pinchart
+diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Apr 29
+23:31:06 2010 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu May 06
+21:33:14 2010 +0300
+@@ -5411,6 +5411,30 @@
+ 			.gpio = 0x01fc00,
+ 		} },
+ 	},
++	[SAA7134_BOARD_TECHNOTREND_BUDGET_T3000] = {
++		.name           = "TechoTrend TT-budget T-3000",
++		.tuner_type	= TUNER_PHILIPS_TD1316,
++		.audio_clock    = 0x00187de7,
++		.radio_type     = UNSET,
++		.tuner_addr	= 0x63,
++		.radio_addr	= ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.inputs = {{
++			.name   = name_tv,
++			.vmux   = 3,
++			.amux   = TV,
++			.tv     = 1,
++		}, {
++			.name   = name_comp1,
++			.vmux   = 0,
++			.amux   = LINE2,
++		}, {
++			.name   = name_svideo,
++			.vmux   = 8,
++			.amux   = LINE2,
++		} },
++	},
+ 
+ };
+ 
+@@ -6568,6 +6592,12 @@
+ 		.subdevice    = 0x6655,
+ 		.driver_data  = SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S,
+ 	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x13c2,
++		.subdevice    = 0x2804,
++		.driver_data  = SAA7134_BOARD_TECHNOTREND_BUDGET_T3000,
++	}, {
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -7277,6 +7307,7 @@
+ 	case SAA7134_BOARD_VIDEOMATE_DVBT_300:
+ 	case SAA7134_BOARD_ASUS_EUROPA2_HYBRID:
+ 	case SAA7134_BOARD_ASUS_EUROPA_HYBRID:
++	case SAA7134_BOARD_TECHNOTREND_BUDGET_T3000:
+ 	{
+ 
+ 		/* The Philips EUROPA based hybrid boards have the tuner
+diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu Apr 29
+23:31:06 2010 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu May 06
+21:33:14 2010 +0300
+@@ -482,6 +482,18 @@
+ 	.request_firmware = philips_tda1004x_request_firmware
+ };
+ 
++static struct tda1004x_config technotrend_budget_t3000_config = {
++	.demod_address = 0x8,
++	.invert        = 1,
++	.invert_oclk   = 0,
++	.xtal_freq     = TDA10046_XTAL_4M,
++	.agc_config    = TDA10046_AGC_DEFAULT,
++	.if_freq       = TDA10046_FREQ_3617,
++	.tuner_address = 0x63,
++	.request_firmware = philips_tda1004x_request_firmware
++};
++
++
+ /* ------------------------------------------------------------------
+  * tda 1004x based cards with philips silicon tuner
+  */
+@@ -1169,6 +1181,18 @@
+ 			fe0->dvb.frontend->ops.tuner_ops.set_params =
+philips_td1316_tuner_set_params;
+ 		}
+ 		break;
++	case SAA7134_BOARD_TECHNOTREND_BUDGET_T3000:
++		fe0->dvb.frontend = dvb_attach(tda10046_attach,
++					       &technotrend_budget_t3000_config,
++					       &dev->i2c_adap);
++		if (fe0->dvb.frontend) {
++			dev->original_demod_sleep = fe0->dvb.frontend->ops.sleep;
++			fe0->dvb.frontend->ops.sleep = philips_europa_demod_sleep;
++			fe0->dvb.frontend->ops.tuner_ops.init = philips_europa_tuner_init;
++			fe0->dvb.frontend->ops.tuner_ops.sleep = philips_europa_tuner_sleep;
++			fe0->dvb.frontend->ops.tuner_ops.set_params =
+philips_td1316_tuner_set_params;
++		}
++		break;
+ 	case SAA7134_BOARD_VIDEOMATE_DVBT_200:
+ 		fe0->dvb.frontend = dvb_attach(tda10046_attach,
+ 					       &philips_tu1216_61_config,
+diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Thu Apr 29 23:31:06
+2010 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Thu May 06 21:33:14
+2010 +0300
+@@ -302,6 +302,7 @@
+ #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
+ #define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
+ #define SAA7134_BOARD_HAWELL_HW_404M7		177
++#define SAA7134_BOARD_TECHNOTREND_BUDGET_T3000 178
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+
+
+
+Signed-off-by: Vadim Catana <vadim.catana@gmail.com>
+
+
+Best regards,
+Vadim Catana
+
+
+
+--=-NIshBXutmrypIBZUUQLC
+Content-Disposition: attachment; filename="T3000.patch"
+Content-Type: text/x-patch; name="T3000.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Apr 29 23:31:06 2010 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu May 06 21:33:14 2010 +0300
+@@ -5411,6 +5411,30 @@
+ 			.gpio = 0x01fc00,
+ 		} },
+ 	},
++	[SAA7134_BOARD_TECHNOTREND_BUDGET_T3000] = {
++		.name           = "TechoTrend TT-budget T-3000",
++		.tuner_type	= TUNER_PHILIPS_TD1316,
++		.audio_clock    = 0x00187de7,
++		.radio_type     = UNSET,
++		.tuner_addr	= 0x63,
++		.radio_addr	= ADDR_UNSET,
++		.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE,
++		.mpeg           = SAA7134_MPEG_DVB,
++		.inputs = {{
++			.name   = name_tv,
++			.vmux   = 3,
++			.amux   = TV,
++			.tv     = 1,
++		}, {
++			.name   = name_comp1,
++			.vmux   = 0,
++			.amux   = LINE2,
++		}, {
++			.name   = name_svideo,
++			.vmux   = 8,
++			.amux   = LINE2,
++		} },
++	},
+ 
+ };
+ 
+@@ -6568,6 +6592,12 @@
+ 		.subdevice    = 0x6655,
+ 		.driver_data  = SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S,
+ 	}, {
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x13c2,
++		.subdevice    = 0x2804,
++		.driver_data  = SAA7134_BOARD_TECHNOTREND_BUDGET_T3000,
++	}, {
+ 		/* --- boards without eeprom + subsystem ID --- */
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
+@@ -7277,6 +7307,7 @@
+ 	case SAA7134_BOARD_VIDEOMATE_DVBT_300:
+ 	case SAA7134_BOARD_ASUS_EUROPA2_HYBRID:
+ 	case SAA7134_BOARD_ASUS_EUROPA_HYBRID:
++	case SAA7134_BOARD_TECHNOTREND_BUDGET_T3000:
+ 	{
+ 
+ 		/* The Philips EUROPA based hybrid boards have the tuner
+diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134-dvb.c
+--- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu Apr 29 23:31:06 2010 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu May 06 21:33:14 2010 +0300
+@@ -482,6 +482,18 @@
+ 	.request_firmware = philips_tda1004x_request_firmware
+ };
+ 
++static struct tda1004x_config technotrend_budget_t3000_config = {
++	.demod_address = 0x8,
++	.invert        = 1,
++	.invert_oclk   = 0,
++	.xtal_freq     = TDA10046_XTAL_4M,
++	.agc_config    = TDA10046_AGC_DEFAULT,
++	.if_freq       = TDA10046_FREQ_3617,
++	.tuner_address = 0x63,
++	.request_firmware = philips_tda1004x_request_firmware
++};
++
++
+ /* ------------------------------------------------------------------
+  * tda 1004x based cards with philips silicon tuner
+  */
+@@ -1169,6 +1181,18 @@
+ 			fe0->dvb.frontend->ops.tuner_ops.set_params = philips_td1316_tuner_set_params;
+ 		}
+ 		break;
++	case SAA7134_BOARD_TECHNOTREND_BUDGET_T3000:
++		fe0->dvb.frontend = dvb_attach(tda10046_attach,
++					       &technotrend_budget_t3000_config,
++					       &dev->i2c_adap);
++		if (fe0->dvb.frontend) {
++			dev->original_demod_sleep = fe0->dvb.frontend->ops.sleep;
++			fe0->dvb.frontend->ops.sleep = philips_europa_demod_sleep;
++			fe0->dvb.frontend->ops.tuner_ops.init = philips_europa_tuner_init;
++			fe0->dvb.frontend->ops.tuner_ops.sleep = philips_europa_tuner_sleep;
++			fe0->dvb.frontend->ops.tuner_ops.set_params = philips_td1316_tuner_set_params;
++		}
++		break;
+ 	case SAA7134_BOARD_VIDEOMATE_DVBT_200:
+ 		fe0->dvb.frontend = dvb_attach(tda10046_attach,
+ 					       &philips_tu1216_61_config,
+diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h	Thu Apr 29 23:31:06 2010 -0300
++++ b/linux/drivers/media/video/saa7134/saa7134.h	Thu May 06 21:33:14 2010 +0300
+@@ -302,6 +302,7 @@
+ #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
+ #define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
+ #define SAA7134_BOARD_HAWELL_HW_404M7		177
++#define SAA7134_BOARD_TECHNOTREND_BUDGET_T3000 178
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+
+--=-NIshBXutmrypIBZUUQLC--
+
