@@ -1,79 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33699 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759835Ab0ECXrR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 May 2010 19:47:17 -0400
-Message-ID: <4BDF6050.5090207@redhat.com>
-Date: Mon, 03 May 2010 20:46:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:55940 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752352Ab0EGNQj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 09:16:39 -0400
+Received: by fxm10 with SMTP id 10so767560fxm.19
+        for <linux-media@vger.kernel.org>; Fri, 07 May 2010 06:16:38 -0700 (PDT)
 MIME-Version: 1.0
-To: sensoray-dev <linux-dev@sensoray.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: s2255drv: V4L2_MODE_HIGHQUALITY correction
-References: <tkrat.ee2f6ea3db309dab@sensoray.com>
-In-Reply-To: <tkrat.ee2f6ea3db309dab@sensoray.com>
+In-Reply-To: <20100507093916.2e2ef8e3@pedra>
+References: <20100507093916.2e2ef8e3@pedra>
+Date: Fri, 7 May 2010 17:16:35 +0400
+Message-ID: <x2y1a297b361005070616wae633984t7423c393e41e28f2@mail.gmail.com>
+Subject: Re: Status of the patches under review (85 patches) and some misc
+	notes about the devel procedures
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-sensoray-dev wrote:
-> # HG changeset patch
-> # User Dean Anderson <linux-dev@sensoray.com>
-> # Date 1271371256 25200
-> # Node ID f12b3074bb02dbb9b9d5af3aa816bd53e6b61dd1
-> # Parent  bffdebcb994ce8c7e493524087f601f7f1134f09
-> s2255drv: fix for V4L2_MODE_HIGHQUALITY
-> 
-> From: Dean Anderson <linux-dev@sensoray.com>
-> 
-> V4L2 high quality mode not being saved
-> comments about experimental API removed
+On Fri, May 7, 2010 at 4:39 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Hi,
+>
 
-Sorry, but it doesn't apply.
-
-> 
-> Priority: normal
-> 
-> Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
-> 
-> diff -r bffdebcb994c -r f12b3074bb02 linux/drivers/media/video/s2255drv.c
-> --- a/linux/drivers/media/video/s2255drv.c	Thu Apr 15 08:48:31 2010 -0700
-> +++ b/linux/drivers/media/video/s2255drv.c	Thu Apr 15 15:40:56 2010 -0700
-> @@ -23,8 +23,6 @@
->   *
->   * -full size, color mode YUYV or YUV422P 1/2 frame rate: all 4 channels
->   *  at once.
-> - *  (TODO: Incorporate videodev2 frame rate(FR) enumeration,
-> - *  which is currently experimental.)
->   *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License as published by
-> @@ -127,7 +125,7 @@
->  #define MASK_COLOR       0x000000ff
->  #define MASK_JPG_QUALITY 0x0000ff00
->  #define MASK_INPUT_TYPE  0x000f0000
-> -/* frame decimation. Not implemented by V4L yet(experimental in V4L) */
-> +/* frame decimation. */
->  #define FDEC_1		1	/* capture every frame. default */
->  #define FDEC_2		2	/* capture every 2nd frame */
->  #define FDEC_3		3	/* capture every 3rd frame */
-> @@ -1662,6 +1660,7 @@
->  	}
->  	mode.fdec = fdec;
->  	sp->parm.capture.timeperframe.denominator = def_dem;
-> +	stream->cap_parm = sp->parm.capture;
->  	s2255_set_mode(channel, &mode);
->  	dprintk(4, "%s capture mode, %d timeperframe %d/%d, fdec %d\n",
->  		__func__,
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> This is the summary of the patches that are currently under review.
+> Each patch is represented by its submission date, the subject (up to 70
+> chars) and the patchwork link (if submitted via email).
+>
+>
+> May, 2 2010: Add FE_CAN_TURBO_FEC (was: Add FE_CAN_PSK_8 to allow apps to identify  http://patchwork.kernel.org/patch/96341
 
 
--- 
 
-Cheers,
-Mauro
+Reviewed-by: Manu Abraham <manu@linuxtv.org>
+Acked-by: Manu Abraham <manu@linuxtv.org>
