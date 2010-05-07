@@ -1,64 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7959 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751514Ab0EHB0d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 May 2010 21:26:33 -0400
-Message-ID: <4BE4BDB5.60509@redhat.com>
-Date: Fri, 07 May 2010 22:26:13 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from bld-mail15.adl6.internode.on.net ([150.101.137.100]:37206 "EHLO
+	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754375Ab0EGIOe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 04:14:34 -0400
+Received: from Jeds-Mini.local (unverified [118.208.5.245])
+	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id 11852228-1927428
+	for <linux-media@vger.kernel.org>; Fri, 07 May 2010 17:44:31 +0930 (CST)
+Message-ID: <4BE3CC2D.7030801@hotmail.com>
+Date: Fri, 07 May 2010 18:15:41 +1000
+From: Jed <jedi_theone@hotmail.com>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	Guy Martin <gmsoft@tuxicoman.be>
-Subject: Re: Status of the patches under review (85 patches) and some misc
- 	notes about the devel procedures
-References: <20100507093916.2e2ef8e3@pedra> <x2w1a297b361005070610lda8d8d2ve90011bbfff320ee@mail.gmail.com>
-In-Reply-To: <x2w1a297b361005070610lda8d8d2ve90011bbfff320ee@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Hauppauge HVR-4400
+References: <201005041400.10530.jan_moebius@web.de> <z2q829197381005040636vbd2d7254n4674dcc21cc751f4@mail.gmail.com> <4BE03311.4010702@gmail.com> <4BE03D6A.5060100@kernellabs.com>
+In-Reply-To: <4BE03D6A.5060100@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Manu Abraham wrote:
-> On Fri, May 7, 2010 at 4:39 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Hi,
->>
-> 
->> This is the summary of the patches that are currently under review.
->> Each patch is represented by its submission date, the subject (up to 70
->> chars) and the patchwork link (if submitted via email).
->>
->> P.S.: This email is c/c to the developers that some review action is expected.
->>
->> May, 7 2010: [v2] stv6110x Fix kernel null pointer deref when plugging two TT s2-16 http://patchwork.kernel.org/patch/97612
-> 
-> 
-> How is this patch going to fix a NULL ptr dereference when more than 1
-> card is plugged in ? The patch doesn't seem to do what the patch title
-> implies. At least the patch title seems to be wrong. Maybe the patch
-> is supposed to check for a possible NULL ptr dereference when put to
-> sleep ?
+> On 5/4/10 10:45 AM, Jed wrote:
+>> Oh wow I didn't know Hauppauge had released some new models above the
+>> 2200.
+>> http://www.hauppauge.co.uk/site/products/prods_hvr_internal.html
+>> Is this 4400 exactly the same as the HVR-2200, aside from the
+>> demodulator used for it's DVB-S/S2?
+>> I hope so, that way work being done on the 2200 can flow onto this!
+>> (cept for DVB-S/S2)
+>
+> It's completely different.
 
-(c/c patch author, to be sure that he'll see your explanation request)
+Bummer!!!  :(
+Why'd they have to go & use a completely different architecture, lame.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-His original patch is at:
-	https://patchwork.kernel.org/patch/91929/
 
-The original description with the bug were much better than version 2.
-
->From his OOPS log and description, I suspect that he's facing some
-sort of race condition with the two cards. 
-
-This fix seems still valid (with an updated comment), as his dump
-proofed that there are some cases where fe->tuner_priv can be null, 
-generating an OOPS, but it seems that his patch is combating
-the effect, and not the cause.
-
-So, I am for adding his patch for now, and then work on a more complete
-approach for the two cards environment.
-
--- 
-
-Cheers,
-Mauro
