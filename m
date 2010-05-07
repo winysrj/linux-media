@@ -1,169 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-105-friday.noc.nerim.net ([62.4.17.105]:57576 "EHLO
-	mallaury.nerim.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756242Ab0EGJhr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 05:37:47 -0400
-Content-class: urn:content-classes:message
+Received: from smtp.alice.nl ([217.149.195.8]:48747 "EHLO smtp.alice.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752101Ab0EGQmV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 May 2010 12:42:21 -0400
+Message-ID: <4BE442D4.4070201@cobradevil.org>
+Date: Fri, 07 May 2010 18:41:56 +0200
+From: william <william@cobradevil.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Subject: RE: cx88 pci_abort errors (Hauppauge WinTV Nova-HD-S2)
-Date: Fri, 7 May 2010 11:37:37 +0200
-Message-ID: <91E6C7608D34E145A3D9634F0ED7163E887DB7@venus.logiways-france.fr>
-In-Reply-To: <4BE31163.90505@whitelands.org.uk>
-References: <91E6C7608D34E145A3D9634F0ED7163E81D787@venus.logiways-france.fr> <4BE31163.90505@whitelands.org.uk>
-From: "Thierry LELEGARD" <tlelegard@logiways.com>
-To: "Paul Shepherd" <paul@whitelands.org.uk>,
-	<linux-media@vger.kernel.org>
+To: Tim Coote <tim+vger.kernel.org@coote.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: setting up a tevii s660
+References: <E23F27D7-CF5B-4F6B-9656-EB63E7005BD0@coote.org>	<4BE313DB.3020405@cobradevil.org>	<AC7E72DC-BC2D-47FF-AC6C-1CCFA7BD9446@coote.org>	<4BE4081E.9010203@cobradevil.org> <FB1E5F8F-1339-46D4-9755-8B78DD020651@coote.org>
+In-Reply-To: <FB1E5F8F-1339-46D4-9755-8B78DD020651@coote.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 05/07/2010 04:33 PM, Tim Coote wrote:
+> Thanks, William. Really helpful.
+>
+> I think that the issue is down to the mt312 or the ds3000_readreg. 
+> Here's my /var/log/kern.log (I had some confusion over which log file 
+> to look at due to
+> distro variations), from the tevii 100315_Beta_linux_tevii_ds3000.rar 
+> code:
+>
+> May  7 07:04:25 ubuntu kernel: [ 1888.738744] usb 1-1: USB disconnect, 
+> address 5
+> May  7 07:04:25 ubuntu kernel: [ 1888.756834] dvb-usb: TeVii S660 USB 
+> successfully deinitialized and disconnected.
+> May  7 07:04:30 ubuntu kernel: [ 1893.648175] usb 1-1: new high speed 
+> USB device using ehci_hcd and address 6
+> May  7 07:04:30 ubuntu kernel: [ 1893.835482] usb 1-1: config 1 
+> interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 2
+> May  7 07:04:31 ubuntu kernel: [ 1893.844725] usb 1-1: configuration 
+> #1 chosen from 1 choice
+> May  7 07:04:31 ubuntu kernel: [ 1893.989017] dvb-usb: found a 'TeVii 
+> S660 USB' in cold state, will try to load a firmware
+> May  7 07:04:31 ubuntu kernel: [ 1893.989030] usb 1-1: firmware: 
+> requesting dvb-usb-teviis660.fw
+> May  7 07:04:31 ubuntu kernel: [ 1893.995703] dvb-usb: downloading 
+> firmware from file 'dvb-usb-teviis660.fw'
+> May  7 07:04:31 ubuntu kernel: [ 1893.995706] dw2102: start 
+> downloading DW210X firmware
+> May  7 07:04:31 ubuntu kernel: [ 1894.360084] dvb-usb: found a 'TeVii 
+> S660 USB' in warm state.
+> May  7 07:04:31 ubuntu kernel: [ 1894.361316] dvb-usb: will pass the 
+> complete MPEG2 transport stream to the software demuxer.
+> May  7 07:04:31 ubuntu kernel: [ 1894.362140] DVB: registering new 
+> adapter (TeVii S660 USB)
+> May  7 07:04:36 ubuntu kernel: [ 1899.484223] dvb-usb: MAC address: 
+> 70:70:70:70:70:70
+> May  7 07:04:36 ubuntu kernel: [ 1899.612725] mt312: R(126): 00
+> May  7 07:04:36 ubuntu kernel: [ 1899.612729] Only Zarlink 
+> VP310/MT312/ZL10313 are supported chips.
+> May  7 07:04:37 ubuntu kernel: [ 1899.844336] ds3000_attach
+> May  7 07:04:37 ubuntu kernel: [ 1899.864116] ds3000_readreg: read reg 
+> 0x00, value 0x70
+> May  7 07:04:37 ubuntu kernel: [ 1899.864119] Invalid probe, probably 
+> not a DS3000
+> May  7 07:04:37 ubuntu kernel: [ 1899.864208] dvb-usb: no frontend was 
+> attached by 'TeVii S660 USB'
+> May  7 07:04:37 ubuntu kernel: [ 1899.866721] dvb-usb: TeVii S660 USB 
+> successfully initialized and connected.
+>
+> Clearly, either I've still got the wrong code, my hardware's 
+> different, or I've got some other config difference. your logfile 
+> clearly shows that ds3000_readreg is getting the correct 0xe0 
+> response, whereas mine's come back with 0x70 and therefore doesn't try 
+> to attach the frontend...
+> here's the hashes taht I've got for the modules (from modinfo, I think 
+> that this should show whether we're using hte same sources):
+> ds3000: srcversion:     8BBEA04D5B5CDF6343234E5
+> dw2102: srcversion:     ADE91410D87CAB74AE3862C
+> mt312:  srcversion:     E4DBE51A55D359EB4157AA2
 
-The firmware version can be seen using dmesg the first time
-the tuner is actually used after power up. From dmesg:
+mine are:
+ds3000: srcversion:     C7DB14F51712A761A96E6C0
+dvb-usb-dw2102: srcversion:     FCBA4EFAEF1F6A88DC9F2DB
+mt312: srcversion:     01AA722165F2811847AD121
 
-cx24116_firmware_ondemand: Waiting for firmware upload (dvb-fe-cx24116.fw)...
-cx88-mpeg driver manager 0000:05:05.2: firmware: requesting dvb-fe-cx24116.fw
-cx24116_firmware_ondemand: Waiting for firmware upload(2)...
-cx24116_load_firmware: FW version 1.26.90.0
-cx24116_firmware_ondemand: Firmware upload complete
+md5sums from tevii source:
+ds3000.c fd28e654d57f0336640b6f13bed5102c
+dw2102.c 019a275475fe2fbf9a255c65d80ee7be
+mt312.c 222360df7838633b8b05e471b18678bd
 
-By removing or swapping cards on the PCI bus, I can see that
-the number of "cx88[0]: irq mpeg [0x80000] pci_abort" varies.
->From once every 10 seconds, at best, to once per second, at
-worst.
 
-The following message can be interesting:
-IRQ 17/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+With kind regards
 
-After some googling, I saw messages mentioning that this kind
-of message can be the symptom of unexpected behaviors. Could
-this explain the pci_abort ?
-
-Also, some messages suggest that a driver code should not
-request both IRQF_DISABLED and IRQF_SHARED. In the complete
-v4l-dvb source code, this combination is found only 20 times,
-in 12 drivers, including the cx88. 
-
-Could this be a problem in the driver ?
-
--Thierry
-
-> -----Message d'origine-----
-> De : Paul Shepherd [mailto:paul@whitelands.org.uk]
-> Envoyé : jeudi 6 mai 2010 20:59
-> À : linux-media@vger.kernel.org
-> Cc : Thierry LELEGARD
-> Objet : Re: cx88 pci_abort errors (Hauppauge WinTV Nova-HD-S2)
-> 
-> 
-> On 06/05/2010 16:01, Thierry LELEGARD wrote:
-> 
-> >
-> > I recently added a Hauppauge WinTV Nova-HD-S2 into a Linux system.
-> > I experience frequent packet loss and pci_abort errors.
-> >
-> > Each time my application detects packet loss (continuity errors
-> > actually), I get the following messages in dmesg:
-> >
-> > cx88[0]: irq mpeg  [0x80000] pci_abort*
-> > cx88[0]/2-mpeg: general errors: 0x00080000
-> >
-> > Such problems occur every few seconds.
-> >
-> > I use firmware file dvb-fe-cx24116.fw version 1.26.90.0.
-> >
-> > Since the IRQ was shared with the nVidia card and a Dektec modulator,
-> > I swapped some PCI boards. The IRQ is still shared but with another
-> > Tuner I do not use when using the S2 tuner. After swapping the PCI
-> > boards, the errors occur less frequently but still happen.
-> >
-> > Assuming that the pci_abort was due to an interrupted DMA transfer, I
-> > tried to increase the PCI latency timer of the device to 248 but this
-> > did not change anything (setpci -s 05:05 latency_timer=f8).
-> >
-> > I use the tuner with a custom application which reads the complete
-> > Transport stream. This application had worked for years using DVB-T
-> > and DVB-S tuners. I tried to reduce the application read buffer
-> > input size and it did not change anything at all.
-> >
-> > Note that my application still uses the V3 API, not the S2API. But,
-> > using DVB-S transponders, it works (except the pci_abort errors).
-> >
-> > I disabled the serial port, the parallel port and the PS/2 ports in the
-> > BIOS. It did not change anything either.
-> >
-> > Does anyone have an idea, please?
-> > Thanks a lot in advance for any help.
-> > -Thierry
-> 
-> I have the board working in a Ubuntu 9.10 system, log below shows no pci
-> errors:
-> 
-> > Apr 21 18:32:11 antec300 kernel: [   16.576416] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.7
-> loaded
-> > Apr 21 18:32:11 antec300 kernel: [   16.576711] cx88[0]: subsystem: 0070:6906, board: Hauppauge
-> WinTV-HVR4000(Lite) DVB-S/S2 [card=69,autodetected], frontend(s): 1
-> > Apr 21 18:32:11 antec300 kernel: [   16.576714] cx88[0]: TV tuner type -1, Radio tuner type -1
-> > Apr 21 18:32:11 antec300 kernel: [   16.583565] cx88/0: cx2388x v4l2 driver version 0.0.7 loaded
-> > Apr 21 18:32:11 antec300 kernel: [   16.586270] cx2388x alsa driver version 0.0.7 loaded
-> > Apr 21 18:32:11 antec300 kernel: [   16.605679] EXT4-fs (sda1): internal journal on sda1:8
-> > Apr 21 18:32:11 antec300 kernel: [   16.755834] EXT4-fs (sdc1): barriers enabled
-> > Apr 21 18:32:11 antec300 kernel: [   16.757791] kjournald2 starting: pid 956, dev sdc1:8, commit
-> interval 5 seconds
-> > Apr 21 18:32:11 antec300 kernel: [   16.763057] EXT4-fs (sdc1): internal journal on sdc1:8
-> > Apr 21 18:32:11 antec300 kernel: [   16.763061] EXT4-fs (sdc1): delayed allocation enabled
-> > Apr 21 18:32:11 antec300 kernel: [   16.763063] EXT4-fs: file extents enabled
-> > Apr 21 18:32:11 antec300 kernel: [   16.789147] EXT4-fs: mballoc enabled
-> > Apr 21 18:32:11 antec300 kernel: [   16.789163] EXT4-fs (sdc1): mounted filesystem with ordered data
-> mode
-> > Apr 21 18:32:11 antec300 kernel: [   16.795868] tveeprom 2-0050: Hauppauge model 69100, rev B4C3,
-> serial# 7084390
-> > Apr 21 18:32:11 antec300 kernel: [   16.795871] tveeprom 2-0050: MAC address is 00:0d:fe:6c:19:66
-> > Apr 21 18:32:11 antec300 kernel: [   16.795874] tveeprom 2-0050: tuner model is Conexant CX24118A
-> (idx 123, type 4)
-> > Apr 21 18:32:11 antec300 kernel: [   16.795876] tveeprom 2-0050: TV standards ATSC/DVB Digital
-> (eeprom 0x80)
-> > Apr 21 18:32:11 antec300 kernel: [   16.795878] tveeprom 2-0050: audio processor is None (idx 0)
-> > Apr 21 18:32:11 antec300 kernel: [   16.795880] tveeprom 2-0050: decoder processor is CX880 (idx 20)
-> > Apr 21 18:32:11 antec300 kernel: [   16.795882] tveeprom 2-0050: has no radio, has IR receiver, has
-> no IR transmitter
-> > Apr 21 18:32:11 antec300 kernel: [   16.795884] cx88[0]: hauppauge eeprom: model=69100
-> > Apr 21 18:32:11 antec300 kernel: [   16.798457] input: cx88 IR (Hauppauge WinTV-HVR400 as
-> /devices/pci0000:00/0000:00:1e.0/0000:06:02.2/input/input6
-> > Apr 21 18:32:11 antec300 kernel: [   16.798488] cx88[0]/2: cx2388x 8802 Driver Manager
-> > Apr 21 18:32:11 antec300 kernel: [   16.798500] cx88-mpeg driver manager 0000:06:02.2: PCI INT A ->
-> GSI 19 (level, low) -> IRQ 19
-> > Apr 21 18:32:11 antec300 kernel: [   16.798506] cx88[0]/2: found at 0000:06:02.2, rev: 5, irq: 19,
-> latency: 32, mmio: 0xf8000000
-> > Apr 21 18:32:11 antec300 kernel: [   16.798510] IRQ 19/cx88[0]: IRQF_DISABLED is not guaranteed on
-> shared IRQs
-> > Apr 21 18:32:11 antec300 kernel: [   16.799143] cx8800 0000:06:02.0: PCI INT A -> GSI 19 (level,
-> low) -> IRQ 19
-> > Apr 21 18:32:11 antec300 kernel: [   16.799151] cx88[0]/0: found at 0000:06:02.0, rev: 5, irq: 19,
-> latency: 32, mmio: 0xfa000000
-> > Apr 21 18:32:11 antec300 kernel: [   16.799158] IRQ 19/cx88[0]: IRQF_DISABLED is not guaranteed on
-> shared IRQs
-> > Apr 21 18:32:11 antec300 kernel: [   16.799193] cx88[0]/0: registered device video0 [v4l2]
-> > Apr 21 18:32:11 antec300 kernel: [   16.799210] cx88[0]/0: registered device vbi0
-> > Apr 21 18:32:11 antec300 kernel: [   16.802095] cx88_audio 0000:06:02.1: PCI INT A -> GSI 19 (level,
-> low) -> IRQ 19
-> > Apr 21 18:32:11 antec300 kernel: [   16.802102] IRQ 19/cx88[0]: IRQF_DISABLED is not guaranteed on
-> shared IRQs
-> > Apr 21 18:32:11 antec300 kernel: [   16.802122] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
-> > Apr 21 18:32:11 antec300 kernel: [   17.166889] cx88/2: cx2388x dvb driver version 0.0.7 loaded
-> > Apr 21 18:32:11 antec300 kernel: [   17.166893] cx88/2: registering cx8802 driver, type: dvb access:
-> shared
-> > Apr 21 18:32:11 antec300 kernel: [   17.166897] cx88[0]/2: subsystem: 0070:6906, board: Hauppauge
-> WinTV-HVR4000(Lite) DVB-S/S2 [card=69]
-> > Apr 21 18:32:11 antec300 kernel: [   17.166902] cx88[0]/2: cx2388x based DVB/ATSC card
-> > Apr 21 18:32:11 antec300 kernel: [   17.166905] cx8802_alloc_frontends() allocating 1 frontend(s)
-> 
-> Not sure which .fw file was loaded (it just worked).  If you would like
-> further info let me know.
-> 
-> paul
-> 
+William
+>
+> what did you do to get your mt312 correctly identified?
+>
+> On my wintel box, channel switching takes a couple of seconds, does 
+> yours take much longer?
+>
+> what's the real problem with leaving the rc polling on ? I know that 
+> you get log messages, but they're only messages. they can be turned 
+> off by commenting out the info lines (info ("query RC... ) and then 
+> make/sudo make install (just put // at the beginning of the lines in 
+> dw2102.c)
+>
+> On 7 May 2010, at 13:31, william wrote:
+>
+>> Hello Tim,
+>>
+>> On 05/07/2010 01:41 PM, Tim Coote wrote:
+>>> William
+>>> did you load your modules with debug=1, or something else, somehow? 
+>>> I thought that the code printing out ds3000_readreg required debug. 
+>>> or have you got different source code from the tevii driver on 
+>>> www.tevii.com/Support.asp?  (unless I know what you're using, I 
+>>> cannot tell what's relevant.)
+>> i tried this so probably yes
+>> /etc/modprobe.d/test.conf
+>> ##
+>> options mt312 debug=1
+>> options ds3000 debug=1
+>> options dvb-usb-dw2102 debug=1
+>> options dvb-usb disable_rc_polling=1
+>> options dvb-usb-dw2102 keymap=2 demod=2
+>> ##
+>>
+>> The tevii device should be supported by the linuxtv drivers:
+>>
+>> ############
+>> hg clone http://linuxtv.org/hg/v4l-dvb
+>> cd v4l-dvb
+>> make menuconfig disable/enable what you need
+>> make&&  make install
+>> poweroff
+>> remove power/usb cables
+>> replug the power to tevii device
+>> then connect the usb
+>> then poweron pc
+>>
+>> Then i get this in my log:
+>> modprobe dvb-usb-dw2102
+>> [  217.546580] dvb-usb: found a 'TeVii S660 USB' in cold state, will 
+>> try to load a firmware
+>> [  217.546595] usb 1-3: firmware: requesting dvb-usb-s630.fw
+>> [  217.630018] dvb-usb: downloading firmware from file 'dvb-usb-s630.fw'
+>> [  217.630030] dw2102: start downloading DW210X firmware
+>> [  217.748783] usb 1-3: USB disconnect, address 3
+>> [  217.850050] dvb-usb: found a 'TeVii S660 USB' in warm state.
+>> [  217.850161] dvb-usb: will pass the complete MPEG2 transport stream 
+>> to the software demuxer.
+>> [  217.850236] DVB: registering new adapter (TeVii S660 USB)
+>> [  228.090038] dvb-usb: MAC address: 00:00:00:00:00:00
+>> [  228.162540] mt312: R(126): 00
+>> [  228.162550] Only Zarlink VP310/MT312/ZL10313 are supported chips.
+>> [  228.507136] ds3000_attach
+>> [  228.542534] ds3000_readreg: read reg 0x00, value 0x00
+>> [  228.542541] Invalid probe, probably not a DS3000
+>> [  228.542808] dvb-usb: no frontend was attached by 'TeVii S660 USB'
+>> [  228.542861] dvb-usb: TeVii S660 USB successfully initialized and 
+>> connected.
+>> [  228.543000] usbcore: registered new interface driver dw2102
+>> [  228.543454] dvb-usb: TeVii S660 USB successfully deinitialized and 
+>> disconnected.
+>> [  228.820045] usb 1-3: new high speed USB device using ehci_hcd and 
+>> address 5
+>>
+>> ########
+>>
+>> using the tevii drivers i get this:
+>> doing the same make ; make install ; poweroff ....
+>> modprobe dvb-usb-dw2102
+>>
+>> [   80.354236] dvb-usb: found a 'TeVii S660 USB' in cold state, will 
+>> try to load a firmware
+>> [   80.354252] usb 1-3: firmware: requesting dvb-usb-teviis660.fw
+>> [   80.418598] dvb-usb: downloading firmware from file 
+>> 'dvb-usb-teviis660.fw'
+>> [   80.418609] dw2102: start downloading DW210X firmware
+>> [   80.436136] usb 1-3: USB disconnect, address 3
+>> [   80.545656] dvb-usb: found a 'TeVii S660 USB' in warm state.
+>> [   80.545780] dvb-usb: will pass the complete MPEG2 transport stream 
+>> to the software demuxer.
+>> [   80.545840] DVB: registering new adapter (TeVii S660 USB)
+>> [   90.810041] dvb-usb: MAC address: 00:00:00:00:00:00
+>> [   90.921279] mt312: R(126): 00
+>> [   90.921289] Only Zarlink VP310/MT312/ZL10313 are supported chips.
+>> [   91.243014] ds3000_attach
+>> [   91.283778] ds3000_readreg: read reg 0x00, value 0x00
+>> [   91.283785] Invalid probe, probably not a DS3000
+>> [   91.284052] dvb-usb: no frontend was attached by 'TeVii S660 USB'
+>> [   91.284105] dvb-usb: TeVii S660 USB successfully initialized and 
+>> connected.
+>> [   91.284209] usbcore: registered new interface driver dw2102
+>> [   91.284744] dvb-usb: TeVii S660 USB successfully deinitialized and 
+>> disconnected.
+>> [   91.560036] usb 1-3: new high speed USB device using ehci_hcd and 
+>> address 5
+>> [   91.710433] usb 1-3: config 1 interface 0 altsetting 0 bulk 
+>> endpoint 0x81 has invalid maxpacket 2
+>> [   91.712260] dvb-usb: found a 'TeVii S660 USB' in cold state, will 
+>> try to load a firmware
+>> [   91.712275] usb 1-3: firmware: requesting dvb-usb-teviis660.fw
+>> [   91.722989] dvb-usb: downloading firmware from file 
+>> 'dvb-usb-teviis660.fw'
+>> [   91.723001] dw2102: start downloading DW210X firmware
+>> [   91.840045] dvb-usb: found a 'TeVii S660 USB' in warm state.
+>> [   91.840180] dvb-usb: will pass the complete MPEG2 transport stream 
+>> to the software demuxer.
+>> [   91.840339] DVB: registering new adapter (TeVii S660 USB)
+>> [  102.080030] dvb-usb: MAC address: 00:18:bd:5c:54:7f
+>> [  102.120028] mt312: R(126): ff
+>> [  102.120038] Only Zarlink VP310/MT312/ZL10313 are supported chips.
+>> [  102.390448] ds3000_attach
+>> [  102.430027] ds3000_readreg: read reg 0x00, value 0xe0
+>> [  102.470026] ds3000_readreg: read reg 0x01, value 0xc0
+>> [  102.510026] ds3000_readreg: read reg 0x02, value 0x00
+>> [  102.510033] DS3000 chip version: 0.192 attached.
+>> [  102.510039] dw2102: Attached ds3000+ds2020!
+>> [  102.510041]
+>> [  102.510274] DVB: registering adapter 1 frontend 0 (Montage 
+>> Technology DS3000/TS2020)...
+>> [  102.510645] dvb-usb: TeVii S660 USB successfully initialized and 
+>> connected.
+>>
+>> #########
+>>
+>> now i have:
+>>
+>> root@backend:~# ls -al /dev/dvb/adapter1/
+>> total 0
+>> drwxr-xr-x 2 root root     120 2010-05-07 14:23 .
+>> drwxr-xr-x 4 root root      80 2010-05-07 14:23 ..
+>> crw-rw---- 1 root video 212, 4 2010-05-07 14:23 demux0
+>> crw-rw---- 1 root video 212, 5 2010-05-07 14:23 dvr0
+>> crw-rw---- 1 root video 212, 7 2010-05-07 14:23 frontend0
+>> crw-rw---- 1 root video 212, 6 2010-05-07 14:23 net0
+>>
+>>
+>> ###
+>>
+>> Now i can also make use off the device except that my system gets 
+>> slow and channel zapping takes ages.
+>> i disabled the debug message for the remote with the option 
+>> disable_rc_polling for dvb-usb.
+>>
+>> only then you cannot use the remote :)
+>>
+>> With kind regards
+>>
+>> William van de Velde
+>>
+>>
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
