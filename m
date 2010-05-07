@@ -1,60 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49319 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752596Ab0EGM6Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 May 2010 08:58:24 -0400
-Date: Fri, 7 May 2010 14:58:22 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from smtp2.tech.numericable.fr ([82.216.111.38]:52086 "EHLO
+	smtp2.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751499Ab0EGHFN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 03:05:13 -0400
+Date: Fri, 7 May 2010 09:05:15 +0200
+From: Guy Martin <gmsoft@tuxicoman.be>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: LMML <linux-media@vger.kernel.org>, awalls@md.metrocast.net,
-	moinejf@free.fr, pboettcher@dibcom.fr, awalls@radix.net,
-	crope@iki.fi, davidtlwong@gmail.com, liplianin@tut.by,
-	isely@isely.net, tobias.lorenz@gmx.net, hdegoede@redhat.com,
-	abraham.manu@gmail.com, u.kleine-koenig@pengutronix.de,
-	herton@mandriva.com.br, stoth@kernellabs.com, henrik@kurelid.se
-Subject: Re: Status of the patches under review (85 patches) and some misc
- notes about the devel procedures
-In-Reply-To: <20100507093916.2e2ef8e3@pedra>
-Message-ID: <Pine.LNX.4.64.1005071453090.4777@axis700.grange>
-References: <20100507093916.2e2ef8e3@pedra>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] stv6110x Fix kernel null pointer deref when plugging
+ two TT s2-1600
+Message-ID: <20100507090515.2fb971a7@zombie>
+In-Reply-To: <20100503230924.3f560423@pedra>
+References: <20100411231529.1538cf69@borg.bxl.tuxicoman.be>
+	<20100503230924.3f560423@pedra>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/h5nd.1tCdRmmR=cMVPXjv.f"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+--MP_/h5nd.1tCdRmmR=cMVPXjv.f
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Fri, 7 May 2010, Mauro Carvalho Chehab wrote:
 
-> May, 6 2010: [1/3] mx2_camera: Add soc_camera support for i.MX25/i.MX27             http://patchwork.kernel.org/patch/97345
-> May, 6 2010: [2/3] mx27: add support for the CSI device                             http://patchwork.kernel.org/patch/97352
-> May, 6 2010: [3/3] mx25: add support for the CSI device                             http://patchwork.kernel.org/patch/97353
+Hi Mauro,
 
-I'll be reviewing these
+> This fix seem to be at the wrong place. There's nothing on stv090x.c
+> that require a not null value for fe->tuner_priv.
 
-> 		== soc_camera patches - Waiting Guennadi <g.liakhovetski@gmx.de> submission/review == 
-> 
-> Feb, 2 2010: [2/3] soc-camera: mt9t112: modify delay time after initialize          http://patchwork.kernel.org/patch/76213
-> Feb, 2 2010: [3/3] soc-camera: mt9t112: The flag which control camera-init is remov http://patchwork.kernel.org/patch/76214
+Thanks for the review !
 
-These two are still on hold, I think, I'll have to ask the author if we 
-can drop them.
+> So, a better fix for your bug is to add a check for fe->tuner_priv
+> inside stv6110x_sleep().
 
-> Mar, 5 2010: [v2] V4L/DVB: mx1-camera: compile fix                                  http://patchwork.kernel.org/patch/83742
 
-An updated version of this one is already in your fixes tree:
+Fix initialization of the TT s2-1600 card when plugging two of them in
+the same box. Check for fe->tuner_priv to be set when
+stv6110x_sleep() is called.
 
-http://git.linuxtv.org/fixes.git?a=commit;h=f6c22d4cff27a4bbb76d899b58b79dd311b7603f
+Signed-off-by : Guy Martin <gmsoft@tuxicoman.be>
 
-> Apr,20 2010: pxa_camera: move fifo reset direct before dma start                    http://patchwork.kernel.org/patch/93619
 
-Ditto for this one:
+Regards,
+  Guy
 
-http://git.linuxtv.org/fixes.git?a=commit;h=80cef8eb49c9689664a31b8a21f83517042d9763
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+--MP_/h5nd.1tCdRmmR=cMVPXjv.f
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=stv6110x-sleep-null-deref.patch
+
+diff -r 4a8d6d981f07 linux/drivers/media/dvb/frontends/stv6110x.c
+--- a/linux/drivers/media/dvb/frontends/stv6110x.c	Wed May 05 11:58:44 2010 -0300
++++ b/linux/drivers/media/dvb/frontends/stv6110x.c	Fri May 07 08:51:18 2010 +0200
+@@ -302,7 +302,10 @@
+ 
+ static int stv6110x_sleep(struct dvb_frontend *fe)
+ {
+-	return stv6110x_set_mode(fe, TUNER_SLEEP);
++	if (fe->tuner_priv)
++		return stv6110x_set_mode(fe, TUNER_SLEEP);
++
++	return 0;
+ }
+ 
+ static int stv6110x_get_status(struct dvb_frontend *fe, u32 *status)
+diff -r 4a8d6d981f07 linux/drivers/media/dvb/ttpci/budget.c
+--- a/linux/drivers/media/dvb/ttpci/budget.c	Wed May 05 11:58:44 2010 -0300
++++ b/linux/drivers/media/dvb/ttpci/budget.c	Fri May 07 08:51:18 2010 +0200
+@@ -461,8 +461,8 @@
+ };
+ 
+ static struct isl6423_config tt1600_isl6423_config = {
+-	.current_max		= SEC_CURRENT_515m,
+-	.curlim			= SEC_CURRENT_LIM_ON,
++	.current_max		= SEC_CURRENT_800m,
++	.curlim			= SEC_CURRENT_LIM_OFF,
+ 	.mod_extern		= 1,
+ 	.addr			= 0x08,
+ };
+
+--MP_/h5nd.1tCdRmmR=cMVPXjv.f--
