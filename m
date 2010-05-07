@@ -1,251 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:46299 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753583Ab0EPKmA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 May 2010 06:42:00 -0400
-Received: by fxm6 with SMTP id 6so2827829fxm.19
-        for <linux-media@vger.kernel.org>; Sun, 16 May 2010 03:41:58 -0700 (PDT)
-Content-Type: multipart/mixed; boundary=----------mt6leC1DRk1vVXL1JBVUqc
-To: Emard <davoremard@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Compro Videomate T750F Vista digital+analog support
-References: <20100508160628.GA6050@z60m> <op.vceiu5q13xmt7q@crni>
- <AANLkTinMYcgG6Ac73Vgdx8NMYocW8Net6_-dMC3yEflQ@mail.gmail.com>
- <AANLkTikbpZ0LM5rK70abVuJS27j0lT7iZs12DrSKB9wI@mail.gmail.com>
- <op.vcfoxwnq3xmt7q@crni> <20100509173243.GA8227@z60m> <op.vcga9rw2ndeod6@crni>
- <20100509231535.GA6334@z60m> <op.vcsntos43xmt7q@crni>
-Date: Sun, 16 May 2010 12:41:57 +0200
-MIME-Version: 1.0
-From: =?iso-8859-2?B?U2FtdWVsIFJha2l0bmnoYW4=?=
-	<samuel.rakitnican@gmail.com>
-Message-ID: <op.vcsnz7y5ndeod6@crni>
-In-Reply-To: <op.vcsntos43xmt7q@crni>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1340 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755511Ab0EGS0y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 14:26:54 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o47IQqeD015317
+	for <linux-media@vger.kernel.org>; Fri, 7 May 2010 20:26:52 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 7 May 2010 20:26:52 +0200 (CEST)
+Message-Id: <201005071826.o47IQqeD015317@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-------------mt6leC1DRk1vVXL1JBVUqc
-Content-Type: text/plain; charset=iso-8859-2; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Sorry, here's the attachments.
+Results of the daily build of v4l-dvb:
 
+date:        Fri May  7 19:00:20 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14644:4a8d6d981f07
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 08b8618ac4dbcd05ec1886853b1d865798d26e1d
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-On Sun, 16 May 2010 12:38:03 +0200, semiRocket <semirocket@gmail.com>  
-wrote:
+linux-2.6.32.6-armv5: ERRORS
+linux-2.6.33-armv5: ERRORS
+linux-2.6.34-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: OK
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: ERRORS
+linux-2.6.33-m32r: ERRORS
+linux-2.6.34-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: ERRORS
+linux-2.6.34-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: ERRORS
+linux-2.6.34-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-> On Mon, 10 May 2010 01:15:35 +0200, Emard <davoremard@gmail.com> wrote:
->
->> HI
->>
->> This is even more cleanup from spaces into tabs
->> and replacing KEY_BACKSPACE with KEY_BACK
->> which I think is more appropriate for this remote.
->>
->> compro t750f patch v17
->>
->> About the remote - I noticed 2-10% of the keypresses
->> are not recognized, seems like it either looses packets
->> or saa7134 gpio should be scanned faster/better/more_reliable?
->> I think this may be the issue with other 7134 based
->> remotes too
->>
->> Best Regards, Emard
->>
->
-> Hi Davor,
->
->
-> Unfortunately it doesn't work for me. It can't load firmware like  
-> before, I've attached patch against recent hg tree I applied manually  
-> (without IR code part) and dmesg output.
->
-> In tvtime it shows black screen in PAL mode, if switch to SECAM, it's  
-> still black screen but with some random flickering occurring represented  
-> by horizontal red/green lines. No white/black dots noise present.
->
-> Thanks,
-> Samuel
--- 
-Lorem ipsum
-------------mt6leC1DRk1vVXL1JBVUqc
-Content-Disposition: attachment; filename=hg-20100516.diff
-Content-Type: application/octet-stream; name=hg-20100516.diff
-Content-Transfer-Encoding: Base64
+Detailed results are available here:
 
-ZGlmZiAtciAxNmFkZTA5MDIyZDkgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9z
-YWE3MTM0L3NhYTcxMzQtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlh
-L3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJkcy5jCUZyaSBNYXkgMTQgMDA6NTM6
-MTcgMjAxMCAtMDMwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3Nh
-YTcxMzQvc2FhNzEzNC1jYXJkcy5jCVNhdCBNYXkgMTUgMjM6MDQ6MjAgMjAxMCAr
-MDIwMApAQCAtNDkyMCwxMiArNDkyMCwxNCBAQAogCX0sCiAJW1NBQTcxMzRfQk9B
-UkRfVklERU9NQVRFX1Q3NTBdID0gewogCQkvKiBKb2huIE5ld2JpZ2luIDxqbkBp
-dC5zd2luLmVkdS5hdT4gKi8KKwkJLyogRW1hcmQgMjAxMC0wNS0wOSB2MTcgPGRh
-dm9yZW1hcmRAeHh4eHh4eHh4PiAqLwogCQkubmFtZSAgICAgICAgICAgPSAiQ29t
-cHJvIFZpZGVvTWF0ZSBUNzUwIiwKIAkJLmF1ZGlvX2Nsb2NrICAgID0gMHgwMDE4
-N2RlNywKIAkJLnR1bmVyX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAogCQkucmFk
-aW9fdHlwZSAgICAgPSBVTlNFVCwKLQkJLnR1bmVyX2FkZHIJPSBBRERSX1VOU0VU
-LAotCQkucmFkaW9fYWRkcgk9IEFERFJfVU5TRVQsCisJCS50dW5lcl9hZGRyCT0g
-MHg2MSwKKwkJLnJhZGlvX2FkZHIJPSBBRERSX1VOU0VULAorCQkubXBlZyAgICAg
-ICAgICAgPSBTQUE3MTM0X01QRUdfRFZCLAogCQkuaW5wdXRzID0ge3sKIAkJCS5u
-YW1lICAgPSBuYW1lX3R2LAogCQkJLnZtdXggICA9IDMsCkBAIC02NzUyLDYgKzY3
-NTQsMTEgQEAKIAkJCW1zbGVlcCgxMCk7CiAJCQlzYWE3MTM0X3NldF9ncGlvKGRl
-diwgMTgsIDEpOwogCQlicmVhazsKKwkJY2FzZSBTQUE3MTM0X0JPQVJEX1ZJREVP
-TUFURV9UNzUwOgorCQkJc2FhNzEzNF9zZXRfZ3BpbyhkZXYsIDIwLCAwKTsKKwkJ
-CW1zbGVlcCgxMCk7CisJCQlzYWE3MTM0X3NldF9ncGlvKGRldiwgMjAsIDEpOwor
-CQlicmVhazsKIAkJfQogCXJldHVybiAwOwogCX0KQEAgLTcxNzEsNyArNzE3OCwx
-NCBAQAogCQlzYWFfYW5kb3JsKFNBQTcxMzRfR1BJT19HUE1PREUwID4+IDIsICAg
-MHgwMDAwQzAwMCwgMHgwMDAwQzAwMCk7CiAJCXNhYV9hbmRvcmwoU0FBNzEzNF9H
-UElPX0dQU1RBVFVTMCA+PiAyLCAweDAwMDBDMDAwLCAweDAwMDBDMDAwKTsKIAkJ
-YnJlYWs7Ci0JfQorCWNhc2UgU0FBNzEzNF9CT0FSRF9WSURFT01BVEVfVDc1MDoK
-KwkJZGV2LT5oYXNfcmVtb3RlID0gU0FBNzEzNF9SRU1PVEVfR1BJTzsKKwkJc2Fh
-X2FuZG9ybChTQUE3MTM0X0dQSU9fR1BNT0RFMCA+PiAyLCAgIDB4MDAwMDgwMDAs
-IDB4MDAwMDgwMDApOworCQlzYWFfYW5kb3JsKFNBQTcxMzRfR1BJT19HUFNUQVRV
-UzAgPj4gMiwgMHgwMDAwODAwMCwgMHgwMDAwODAwMCk7CisJCWJyZWFrOworCisJ
-fQorCiAJcmV0dXJuIDA7CiB9CiAKQEAgLTc0MTIsNiArNzQyNiw3IEBACiAJY2Fz
-ZSBTQUE3MTM0X0JPQVJEX0FWRVJNRURJQV9TVVBFUl8wMDc6CiAJY2FzZSBTQUE3
-MTM0X0JPQVJEX1RXSU5IQU5fRFRWX0RWQl8zMDU2OgogCWNhc2UgU0FBNzEzNF9C
-T0FSRF9DUkVBVElYX0NUWDk1MzoKKwljYXNlIFNBQTcxMzRfQk9BUkRfVklERU9N
-QVRFX1Q3NTA6CiAJewogCQkvKiB0aGlzIGlzIGEgaHlicmlkIGJvYXJkLCBpbml0
-aWFsaXplIHRvIGFuYWxvZyBtb2RlCiAJCSAqIGFuZCBjb25maWd1cmUgZmlybXdh
-cmUgZWVwcm9tIGFkZHJlc3MKZGlmZiAtciAxNmFkZTA5MDIyZDkgbGludXgvZHJp
-dmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtZHZiLmMKLS0tIGEvbGlu
-dXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtZHZiLmMJRnJp
-IE1heSAxNCAwMDo1MzoxNyAyMDEwIC0wMzAwCisrKyBiL2xpbnV4L2RyaXZlcnMv
-bWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWR2Yi5jCVNhdCBNYXkgMTUgMjM6
-MDQ6MjAgMjAxMCArMDIwMApAQCAtNTUsNiArNTUsNyBAQAogI2luY2x1ZGUgInRk
-YTgyOTAuaCIKIAogI2luY2x1ZGUgInpsMTAzNTMuaCIKKyNpbmNsdWRlICJxdDEw
-MTAuaCIKIAogI2luY2x1ZGUgInpsMTAwMzYuaCIKICNpbmNsdWRlICJ6bDEwMDM5
-LmgiCkBAIC04ODYsNiArODg3LDE3IEBACiAJLmRpc2FibGVfaTJjX2dhdGVfY3Ry
-bCA9IDEsCiB9OwogCitzdGF0aWMgc3RydWN0IHpsMTAzNTNfY29uZmlnIHZpZGVv
-bWF0ZV90NzUwX3psMTAzNTNfY29uZmlnID0geworCS5kZW1vZF9hZGRyZXNzICA9
-IDB4MGYsCisJLm5vX3R1bmVyID0gMSwKKwkucGFyYWxsZWxfdHMgPSAxLAorfTsK
-Kworc3RhdGljIHN0cnVjdCBxdDEwMTBfY29uZmlnIHZpZGVvbWF0ZV90NzUwX3F0
-MTAxMF9jb25maWcgPSB7CisJLmkyY19hZGRyZXNzID0gMHg2MgorfTsKKworCiAv
-KiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT0KICAqIHRkYTEwMDg2IGJhc2VkIERWQi1TIGNh
-cmRzLCBoZWxwZXIgZnVuY3Rpb25zCiAgKi8KQEAgLTE1OTUsNiArMTYwNywyMiBA
-QAogCQkJCSAgICZkdHYxMDAwc190ZGExODI3MV9jb25maWcpOwogCQl9CiAJCWJy
-ZWFrOworCWNhc2UgU0FBNzEzNF9CT0FSRF9WSURFT01BVEVfVDc1MDoKKwkJcHJp
-bnRrKCJDb21wcm8gVmlkZW9NYXRlIFQ3NTAgRFZCIHNldHVwXG4iKTsKKwkJZmUw
-LT5kdmIuZnJvbnRlbmQgPSBkdmJfYXR0YWNoKHpsMTAzNTNfYXR0YWNoLAorCQkJ
-CQkJJnZpZGVvbWF0ZV90NzUwX3psMTAzNTNfY29uZmlnLAorCQkJCQkJJmRldi0+
-aTJjX2FkYXApOworCQlpZiAoZmUwLT5kdmIuZnJvbnRlbmQgIT0gTlVMTCkgewor
-CQkJLy8gaWYgdGhlcmUgaXMgYSBnYXRlIGZ1bmN0aW9uIHRoZW4gdGhlIGkyYyBi
-dXMgYnJlYWtzLi4uLi4hCisJCQlmZTAtPmR2Yi5mcm9udGVuZC0+b3BzLmkyY19n
-YXRlX2N0cmwgPSAwOworCQkJaWYgKGR2Yl9hdHRhY2gocXQxMDEwX2F0dGFjaCwK
-KwkJCQkJZmUwLT5kdmIuZnJvbnRlbmQsCisJCQkJCSZkZXYtPmkyY19hZGFwLAor
-CQkJCQkmdmlkZW9tYXRlX3Q3NTBfcXQxMDEwX2NvbmZpZykgPT0gTlVMTCkKKwkJ
-CQl3cHJpbnRrKCJlcnJvciBhdHRhY2hpbmcgUVQxMDEwXG4iKTsKKwkJfQorCQli
-cmVhazsKKwogCWRlZmF1bHQ6CiAJCXdwcmludGsoIkh1aD8gdW5rbm93biBEVkIg
-Y2FyZD9cbiIpOwogCQlicmVhazsK
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-------------mt6leC1DRk1vVXL1JBVUqc
-Content-Disposition: attachment; filename=dmesg
-Content-Type: application/octet-stream; name=dmesg
-Content-Transfer-Encoding: Base64
+Full logs are available here:
 
-TGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwCnNhYTcxMzAvMzQ6
-IHY0bDIgZHJpdmVyIHZlcnNpb24gMC4yLjE2IGxvYWRlZApzYWE3MTMzWzBdOiBm
-b3VuZCBhdCAwMDAwOjAwOjBiLjAsIHJldjogMjA5LCBpcnE6IDE5LCBsYXRlbmN5
-OiAzMiwgbW1pbzogMHhkZmZmYjgwMApzYWE3MTMzWzBdOiBzdWJzeXN0ZW06IDE4
-NWI6YzkwMCwgYm9hcmQ6IENvbXBybyBWaWRlb01hdGUgVDc1MCBbY2FyZD0xMzks
-YXV0b2RldGVjdGVkXQpzYWE3MTMzWzBdOiBib2FyZCBpbml0OiBncGlvIGlzIDk0
-YmYwMApzYWE3MTMzWzBdOiBPb3BzOiBJUiBjb25maWcgZXJyb3IgW2NhcmQ9MTM5
-XQpJUlEgMTkvc2FhNzEzM1swXTogSVJRRl9ESVNBQkxFRCBpcyBub3QgZ3VhcmFu
-dGVlZCBvbiBzaGFyZWQgSVJRcwpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDAwOiA1
-YiAxOCAwMCBjOSA1NCAyMCAxYyAwMCA0MyA0MyBhOSAxYyA1NSBkMiBiMiA5Mgpz
-YWE3MTMzWzBdOiBpMmMgZWVwcm9tIDEwOiAwMCBmZiA4NiAwZiBmZiAyMCBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9t
-IDIwOiAwMSA0MCAwMSAwMiAwMiAwMSAwMyAwMSAwOCBmZiAwMCA4NyBmZiBmZiBm
-ZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDMwOiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMg
-ZWVwcm9tIDQwOiBmZiBkNyAwMCBjNCA4NiAxZSAwNSBmZiAwMiBjMiBmZiAwMSBj
-NiBmZiAwNSBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDUwOiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBjYgpzYWE3MTMzWzBd
-OiBpMmMgZWVwcm9tIDYwOiAzNSBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDcwOiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3
-MTMzWzBdOiBpMmMgZWVwcm9tIDgwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDkw
-OiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGEwOiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVw
-cm9tIGIwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGMwOiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBp
-MmMgZWVwcm9tIGQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGUwOiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMz
-WzBdOiBpMmMgZWVwcm9tIGYwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
-ZiBmZiBmZiBmZiBmZiBmZiBmZgp0dW5lciAxLTAwNjE6IGNoaXAgZm91bmQgQCAw
-eGMyIChzYWE3MTMzWzBdKQp4YzIwMjggMS0wMDYxOiBjcmVhdGluZyBuZXcgaW5z
-dGFuY2UKeGMyMDI4IDEtMDA2MTogdHlwZSBzZXQgdG8gWENlaXZlIHhjMjAyOC94
-YzMwMjggdHVuZXIKc2FhNzEzNCAwMDAwOjAwOjBiLjA6IGZpcm13YXJlOiByZXF1
-ZXN0aW5nIHhjMzAyOC12MjcuZncKeGMyMDI4IDEtMDA2MTogTG9hZGluZyA4MCBm
-aXJtd2FyZSBpbWFnZXMgZnJvbSB4YzMwMjgtdjI3LmZ3LCB0eXBlOiB4YzIwMjgg
-ZmlybXdhcmUsIHZlciAyLjcKeGMyMDI4IDEtMDA2MTogTG9hZGluZyBmaXJtd2Fy
-ZSBmb3IgdHlwZT1CQVNFIEY4TUhaIE1UUyAoNyksIGlkIDAwMDAwMDAwMDAwMDAw
-MDAuCnhjMjAyOCAxLTAwNjE6IGkyYyBvdXRwdXQgZXJyb3I6IHJjID0gLTUgKHNo
-b3VsZCBiZSA2NCkKeGMyMDI4IDEtMDA2MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5k
-CnhjMjAyOCAxLTAwNjE6IEVycm9yIC0yMiB3aGlsZSBsb2FkaW5nIGJhc2UgZmly
-bXdhcmUKeGMyMDI4IDEtMDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1C
-QVNFIEY4TUhaIE1UUyAoNyksIGlkIDAwMDAwMDAwMDAwMDAwMDAuCnhjMjAyOCAx
-LTAwNjE6IGkyYyBvdXRwdXQgZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2NCkK
-eGMyMDI4IDEtMDA2MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAw
-NjE6IEVycm9yIC0yMiB3aGlsZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKeGMyMDI4
-IDEtMDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIEY4TUhaIE1U
-UyAoNyksIGlkIDAwMDAwMDAwMDAwMDAwMDAuCnhjMjAyOCAxLTAwNjE6IGkyYyBv
-dXRwdXQgZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2NCkKeGMyMDI4IDEtMDA2
-MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAwNjE6IEVycm9yIC0y
-MiB3aGlsZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKeGMyMDI4IDEtMDA2MTogTG9h
-ZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIEY4TUhaIE1UUyAoNyksIGlkIDAw
-MDAwMDAwMDAwMDAwMDAuCnhjMjAyOCAxLTAwNjE6IGkyYyBvdXRwdXQgZXJyb3I6
-IHJjID0gLTUgKHNob3VsZCBiZSA2NCkKeGMyMDI4IDEtMDA2MTogLTUgcmV0dXJu
-ZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAwNjE6IEVycm9yIC0yMiB3aGlsZSBsb2Fk
-aW5nIGJhc2UgZmlybXdhcmUKeGMyMDI4IDEtMDA2MTogRXJyb3Igb24gbGluZSAx
-MjAwOiAtNQpzYWE3MTMzWzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzAgW3Y0
-bDJdCnNhYTcxMzNbMF06IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTAKc2FhNzEzM1sw
-XTogcmVnaXN0ZXJlZCBkZXZpY2UgcmFkaW8wCnhjMjAyOCAxLTAwNjE6IExvYWRp
-bmcgZmlybXdhcmUgZm9yIHR5cGU9QkFTRSBGOE1IWiBNVFMgKDcpLCBpZCAwMDAw
-MDAwMDAwMDAwMDAwLgpkdmJfaW5pdCgpIGFsbG9jYXRpbmcgMSBmcm9udGVuZApD
-b21wcm8gVmlkZW9NYXRlIFQ3NTAgRFZCIHNldHVwCnhjMjAyOCAxLTAwNjE6IGky
-YyBvdXRwdXQgZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2NCkKeGMyMDI4IDEt
-MDA2MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAwNjE6IEVycm9y
-IC0yMiB3aGlsZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKUXVhbnRlayBRVDEwMTAg
-c3VjY2Vzc2Z1bGx5IGlkZW50aWZpZWQuCkRWQjogcmVnaXN0ZXJpbmcgbmV3IGFk
-YXB0ZXIgKHNhYTcxMzNbMF0pCkRWQjogcmVnaXN0ZXJpbmcgYWRhcHRlciAwIGZy
-b250ZW5kIDAgKFphcmxpbmsgWkwxMDM1MyBEVkItVCkuLi4Kc2FhNzEzNCBBTFNB
-IGRyaXZlciBmb3IgRE1BIHNvdW5kIGxvYWRlZApJUlEgMTkvc2FhNzEzM1swXTog
-SVJRRl9ESVNBQkxFRCBpcyBub3QgZ3VhcmFudGVlZCBvbiBzaGFyZWQgSVJRcwpz
-YWE3MTMzWzBdL2Fsc2E6IHNhYTcxMzNbMF0gYXQgMHhkZmZmYjgwMCBpcnEgMTkg
-cmVnaXN0ZXJlZCBhcyBjYXJkIC0xCnhjMjAyOCAxLTAwNjE6IExvYWRpbmcgZmly
-bXdhcmUgZm9yIHR5cGU9QkFTRSBGOE1IWiBNVFMgKDcpLCBpZCAwMDAwMDAwMDAw
-MDAwMDAwLgp4YzIwMjggMS0wMDYxOiBpMmMgb3V0cHV0IGVycm9yOiByYyA9IC01
-IChzaG91bGQgYmUgNjQpCnhjMjAyOCAxLTAwNjE6IC01IHJldHVybmVkIGZyb20g
-c2VuZAp4YzIwMjggMS0wMDYxOiBFcnJvciAtMjIgd2hpbGUgbG9hZGluZyBiYXNl
-IGZpcm13YXJlCnhjMjAyOCAxLTAwNjE6IEVycm9yIG9uIGxpbmUgMTIwMDogLTUK
-eGMyMDI4IDEtMDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIEY4
-TUhaIE1UUyAoNyksIGlkIDAwMDAwMDAwMDAwMDAwMDAuCnhjMjAyOCAxLTAwNjE6
-IGkyYyBvdXRwdXQgZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2NCkKeGMyMDI4
-IDEtMDA2MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAwNjE6IEVy
-cm9yIC0yMiB3aGlsZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKeGMyMDI4IDEtMDA2
-MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIEY4TUhaIE1UUyAoNyks
-IGlkIDAwMDAwMDAwMDAwMDAwMDAuCnhjMjAyOCAxLTAwNjE6IGkyYyBvdXRwdXQg
-ZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2NCkKeGMyMDI4IDEtMDA2MTogLTUg
-cmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAwNjE6IEVycm9yIC0yMiB3aGls
-ZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKeGMyMDI4IDEtMDA2MTogRXJyb3Igb24g
-bGluZSAxMjAwOiAtNQp4YzIwMjggMS0wMDYxOiBMb2FkaW5nIGZpcm13YXJlIGZv
-ciB0eXBlPUJBU0UgRk0gKDQwMSksIGlkIDAwMDAwMDAwMDAwMDAwMDAuCnhjMjAy
-OCAxLTAwNjE6IGkyYyBvdXRwdXQgZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2
-NCkKeGMyMDI4IDEtMDA2MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAx
-LTAwNjE6IEVycm9yIC0yMiB3aGlsZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKeGMy
-MDI4IDEtMDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIEZNICg0
-MDEpLCBpZCAwMDAwMDAwMDAwMDAwMDAwLgp4YzIwMjggMS0wMDYxOiBpMmMgb3V0
-cHV0IGVycm9yOiByYyA9IC01IChzaG91bGQgYmUgNjQpCnhjMjAyOCAxLTAwNjE6
-IC01IHJldHVybmVkIGZyb20gc2VuZAp4YzIwMjggMS0wMDYxOiBFcnJvciAtMjIg
-d2hpbGUgbG9hZGluZyBiYXNlIGZpcm13YXJlCnhjMjAyOCAxLTAwNjE6IEVycm9y
-IG9uIGxpbmUgMTIwMDogLTUK
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-------------mt6leC1DRk1vVXL1JBVUqc--
+The V4L-DVB specification from this daily build is here:
 
+http://www.xs4all.nl/~hverkuil/spec/media.html
