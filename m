@@ -1,76 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58901 "EHLO mx1.redhat.com"
+Received: from mga11.intel.com ([192.55.52.93]:31363 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751700Ab0EFSJq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 May 2010 14:09:46 -0400
-Message-ID: <4BE305DD.5020106@redhat.com>
-Date: Thu, 06 May 2010 15:09:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1754847Ab0EGSUo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 14:20:44 -0400
+From: "Wang, Wen W" <wen.w.wang@intel.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	"Huang, Kai" <kai.huang@intel.com>,
+	"Hu, Gang A" <gang.a.hu@intel.com>,
+	"Wang, Wen W" <wen.w.wang@intel.com>
+Date: Sat, 8 May 2010 02:20:38 +0800
+Subject: Linux V4L2 support dual stream video capture device
+Message-ID: <D5AB6E638E5A3E4B8F4406B113A5A19A1E55D29F@shsmsx501.ccr.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Jose Alberto Reguero <jareguero@telefonica.net>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Problem with gspca and zc3xx
-References: <201001090015.31357.jareguero@telefonica.net> <201001121557.10312.jareguero@telefonica.net> <201001131450.44689.jareguero@telefonica.net> <201001141726.52062.jareguero@telefonica.net>
-In-Reply-To: <201001141726.52062.jareguero@telefonica.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jose Alberto Reguero wrote:
-> El Miércoles, 13 de Enero de 2010, Jose Alberto Reguero escribió:
->> El Martes, 12 de Enero de 2010, Jose Alberto Reguero escribió:
->>> El Martes, 12 de Enero de 2010, Jean-Francois Moine escribió:
->>>> On Mon, 11 Jan 2010 15:49:55 +0100
->>>>
->>>> Jose Alberto Reguero <jareguero@telefonica.net> wrote:
->>>>> I take another image with 640x480 and the bad bottom lines are 8. The
->>>>> right side look right this time. The good sizes are:
->>>>> 320x240->320x232
->>>>> 640x480->640x472
->>>> Hi Jose Alberto and Hans,
->>>>
->>>> Hans, I modified a bit your patch to handle the 2 resolutions (also,
->>>> the problem with pas202b does not exist anymore). May you sign or ack
->>>> it?
->>>>
->>>> Jose Alberto, the attached patch is to be applied to the last version
->>>> of the gspca in my test repository at LinuxTv.org
->>>> 	http://linuxtv.org/hg/~jfrancois/gspca
->>>> May you try it?
->>>>
->>>> Regards.
->>>  The patch works well.
->>> There is another problem. When autogain is on(default), the image is bad.
->>>  It is possible to put autogain off by default?
->>>
->>> Thanks.
->>> Jose Alberto
->> Autogain works well again. I can't reproduce the problem. Perhaps the debug
->> messages. (Now I have debug off).
->>
->> Thanks.
->> Jose Alberto
-> 
-> I found the problem. Autogain don't work well if brightness is de default 
-> value(128). if brightness is less(64) autogain work well. There is a problem 
-> when setting the brightness. It is safe to remove the brightness control?
-> Patch attached.
-> 
-> Jose Alberto
 
-This patch doesn't apply anymore. I'm not sure if the issue were fixed upstream. If
-not, please re-base your patch against my git tree and send it again.
+Hi all,
 
-patching file drivers/media/video/gspca/zc3xx.c
-Hunk #1 succeeded at 6086 with fuzz 1 (offset 45 lines).
-Hunk #2 FAILED at 6882.
-1 out of 2 hunks FAILED -- saving rejects to file drivers/media/video/gspca/zc3xx.c.rej
->>> Patch patches/lmml_72895_problem_with_gspca_and_zc3xx.patch doesn't apply
+I'm wondering if V4L2 framework supports dual stream video capture device that transfer a preview stream and a regular stream (still capture or video capture) at the same time.
 
--- 
+We are developing a device driver with such capability. Our proposal to do this in V4L2 framework is to have two device nodes, one as primary node for still/video capture and one for preview. 
 
-Cheers,
-Mauro
+The primary still/video capture device node is used for device configuration which can be compatible with open sourced applications. This will ensure the normal V4L2 application can run without code modification. Device node for preview will only accept preview buffer related operations. Buffer synchronization for still/video capture and preview will be done internally in the driver.
+
+This is our initial idea about the dual stream support in V4L2. Your comments will be appreciated!
+
+Thanks
+Wen
