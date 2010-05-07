@@ -1,125 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from buzzloop.caiaq.de ([212.112.241.133]:42771 "EHLO
-	buzzloop.caiaq.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754274Ab0ESK0i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 May 2010 06:26:38 -0400
-From: Daniel Mack <daniel@caiaq.de>
-To: linux-kernel@vger.kernel.org
-Cc: Daniel Mack <daniel@caiaq.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jiri Slaby <jslaby@suse.cz>, Dmitry Torokhov <dtor@mail.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
+Received: from rcsinet10.oracle.com ([148.87.113.121]:51990 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757313Ab0EGSXr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 14:23:47 -0400
+Date: Fri, 7 May 2010 11:22:26 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
 	linux-media@vger.kernel.org
-Subject: [PATCH] drivers/media/dvb/dvb-usb/dib0700: fix return values
-Date: Wed, 19 May 2010 12:26:12 +0200
-Message-Id: <1274264772-19292-1-git-send-email-daniel@caiaq.de>
+Subject: [PATCH -next] media: vivi and mem2mem_testdev need slab.h to build
+Message-Id: <20100507112226.f90494a2.randy.dunlap@oracle.com>
+In-Reply-To: <20100507155520.75026a8b.sfr@canb.auug.org.au>
+References: <20100507155520.75026a8b.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Propagte correct error values instead of returning -1 which just means
--EPERM ("Permission denied")
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-While at it, also fix some coding style violations.
+Fix vivi and mem2mem_testdev build errors: need to #include <linux/slab.h>:
 
-Signed-off-by: Daniel Mack <daniel@caiaq.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jiri Slaby <jslaby@suse.cz>
-Cc: Dmitry Torokhov <dtor@mail.ru>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
+drivers/media/video/vivi.c:1144: error: implicit declaration of function 'kfree'
+drivers/media/video/vivi.c:1156: error: implicit declaration of function 'kzalloc'
+drivers/media/video/vivi.c:1156: warning: assignment makes pointer from integer without a cast
+drivers/media/video/mem2mem_testdev.c:862: error: implicit declaration of function 'kzalloc'
+drivers/media/video/mem2mem_testdev.c:862: warning: assignment makes pointer from integer without a cast
+drivers/media/video/mem2mem_testdev.c:874: error: implicit declaration of function 'kfree'
+drivers/media/video/mem2mem_testdev.c:944: warning: assignment makes pointer from integer without a cast
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 ---
- drivers/media/dvb/dvb-usb/dib0700_core.c |   47 ++++++++++++++---------------
- 1 files changed, 23 insertions(+), 24 deletions(-)
+ drivers/media/video/mem2mem_testdev.c |    1 +
+ drivers/media/video/vivi.c            |    1 +
+ 2 files changed, 2 insertions(+)
 
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
-index d5e2c23..c73da6b 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
-@@ -111,23 +111,24 @@ int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_
+--- linux-next-20100507.orig/drivers/media/video/vivi.c
++++ linux-next-20100507/drivers/media/video/vivi.c
+@@ -17,6 +17,7 @@
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+ #include <linux/sched.h>
++#include <linux/slab.h>
+ #include <linux/font.h>
+ #include <linux/version.h>
+ #include <linux/mutex.h>
+--- linux-next-20100507.orig/drivers/media/video/mem2mem_testdev.c
++++ linux-next-20100507/drivers/media/video/mem2mem_testdev.c
+@@ -22,6 +22,7 @@
+ #include <linux/version.h>
+ #include <linux/timer.h>
+ #include <linux/sched.h>
++#include <linux/slab.h>
  
- static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
- {
--    struct dib0700_state *st = d->priv;
--    u8 b[3];
--    int ret;
--
--    if (st->fw_version >= 0x10201) {
--	b[0] = REQUEST_SET_USB_XFER_LEN;
--	b[1] = (nb_ts_packets >> 8)&0xff;
--	b[2] = nb_ts_packets & 0xff;
--
--	deb_info("set the USB xfer len to %i Ts packet\n", nb_ts_packets);
--
--	ret = dib0700_ctrl_wr(d, b, 3);
--    } else {
--	deb_info("this firmware does not allow to change the USB xfer len\n");
--	ret = -EIO;
--    }
--    return ret;
-+	struct dib0700_state *st = d->priv;
-+	u8 b[3];
-+	int ret;
-+
-+	if (st->fw_version >= 0x10201) {
-+		b[0] = REQUEST_SET_USB_XFER_LEN;
-+		b[1] = (nb_ts_packets >> 8)&0xff;
-+		b[2] = nb_ts_packets & 0xff;
-+
-+		deb_info("set the USB xfer len to %i Ts packet\n", nb_ts_packets);
-+
-+		ret = dib0700_ctrl_wr(d, b, 3);
-+	} else {
-+		deb_info("this firmware does not allow to change the USB xfer len\n");
-+		ret = -EIO;
-+	}
-+
-+	return ret;
- }
- 
- /*
-@@ -642,7 +643,7 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
- 	i = dib0700_ctrl_wr(d, rc_setup, 3);
- 	if (i<0) {
- 		err("ir protocol setup failed");
--		return -1;
-+		return i;
- 	}
- 
- 	if (st->fw_version < 0x10200)
-@@ -652,7 +653,7 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
- 	purb = usb_alloc_urb(0, GFP_KERNEL);
- 	if (purb == NULL) {
- 		err("rc usb alloc urb failed\n");
--		return -1;
-+		return -ENOMEM;
- 	}
- 
- 	purb->transfer_buffer = usb_buffer_alloc(d->udev, RC_MSG_SIZE_V1_20,
-@@ -661,7 +662,7 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
- 	if (purb->transfer_buffer == NULL) {
- 		err("rc usb_buffer_alloc() failed\n");
- 		usb_free_urb(purb);
--		return -1;
-+		return -ENOMEM;
- 	}
- 
- 	purb->status = -EINPROGRESS;
-@@ -670,12 +671,10 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
- 			  dib0700_rc_urb_completion, d);
- 
- 	ret = usb_submit_urb(purb, GFP_ATOMIC);
--	if (ret != 0) {
-+	if (ret != 0)
- 		err("rc submit urb failed\n");
--		return -1;
--	}
- 
--	return 0;
-+	return ret;
- }
- 
- static int dib0700_probe(struct usb_interface *intf,
--- 
-1.7.1
-
+ #include <linux/platform_device.h>
+ #include <media/v4l2-mem2mem.h>
