@@ -1,60 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5395 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751200Ab0ETEz4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 May 2010 00:55:56 -0400
-Message-ID: <4BF4C0D6.9030808@redhat.com>
-Date: Thu, 20 May 2010 01:55:50 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-input@vger.kernel.org
-CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Vladis Kletnieks <Valdis.Kletnieks@vt.edu>
-Subject: [PATCH] input: fix error at the default input_get_keycode call
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:33764 "EHLO
+	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751772Ab0EGNky (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 09:40:54 -0400
+Received: from MacBook-Pro.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0L21006PQXZXWYS0@mta5.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Fri, 07 May 2010 09:40:48 -0400 (EDT)
+Date: Fri, 07 May 2010 09:40:45 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Time to merge support for new HVR-2200?
+In-reply-to: <4BE407F9.8040409@barber-family.id.au>
+To: Francis Barber <fedora@barber-family.id.au>
+Cc: linux-media@vger.kernel.org
+Message-id: <4BE4185D.3010902@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4BE407F9.8040409@barber-family.id.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[   76.376140] BUG: unable to handle kernel NULL pointer dereference at (null)
-[   76.376670] IP: [<c138b6d0>] input_default_getkeycode_from_index+0x40/0x60
-[   76.376670] *pde = 00000000
-[   76.376670] Oops: 0002 [#1] SMP
-[   76.376670] last sysfs file: /sys/devices/virtual/block/dm-5/range
-[   76.376670] Modules linked in: ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables ipv6 dm_mirror dm_region_hash dm_log uinput snd_intel8x0 snd_ac97_codec ac97_bus snd_seq snd_seq_device snd_pcm snd_timer snd ppdev sg parport_pc soundcore k8temp snd_page_alloc forcedeth pcspkr hwmon parport i2c_nforce2 sd_mod crc_t10dif sr_mod cdrom pata_acpi ata_generic pata_amd sata_nv floppy nouveau ttm drm_kms_helper drm i2c_algo_bit i2c_core dm_mod [last unloaded: scsi_wait_scan]
-[   76.376670]
-[   76.376670] Pid: 6183, comm: getkeycodes Not tainted 2.6.34 #11 C51MCP51/
-[   76.376670] EIP: 0060:[<c138b6d0>] EFLAGS: 00210046 CPU: 0
-[   76.376670] EIP is at input_default_getkeycode_from_index+0x40/0x60
-[   76.376670] EAX: 00000000 EBX: 00000000 ECX: 00000002 EDX: f53ebdc8
-[   76.376670] ESI: f53ebdc8 EDI: f5daf794 EBP: f53ebdb8 ESP: f53ebdb4
-[   76.376670]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
-[   76.376670] Process getkeycodes (pid: 6183, ti=f53ea000 task=f53bd060 task.ti=f53ea000)
-[   76.376670] Stack:
-[   76.376670]  f5daf000 f53ebdec c138d233 f53ebe30 00200286 00000000 00000000 00000004
-[   76.376670] <0> 00000000 00000000 00000000 f53ebe2c f5da0340 c16c12cc f53ebdf8 c12f4148
-[   76.376670] <0> c12f4130 f53ebe24 c138d9f8 00000002 00000001 00000000 c138d980 c12f4130
-[   76.376670] Call Trace:
-[   76.376670]  [<c138d233>] ? input_get_keycode+0x73/0x90
+On 5/7/10 8:30 AM, Francis Barber wrote:
+> Hello Steven,
+>
+> I was just what your plans are to submit the latest patches from
+> http://www.kernellabs.com/hg/saa7164-stable to the main linuxtv
+> repository?  It would be great to have these in the main kernel.
 
-input_default_getkeycode_from_index() returns the scancode at kt_entry.scancode
-pointer. Fill it with the scancode address at the function call.
+Hi Frank.
 
-Thanks-to: Vladis Kletnieks <Valdis.Kletnieks@vt.edu> for pointing the issue
+Yeah, I actually have a large number of patches for the HVR22xx and the CX2388x 
+sitting up on kernellabs.com
 
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I'm hoping to get these out for pull this weekend. Another dev is also working 
+on the TDA10048 fixes so the plan is to pull these into saa7164-dev, test using 
+a generator and (all being well) promote these into a unified tree.
 
-diff --git a/drivers/input/input.c b/drivers/input/input.c
-index 3b63fad..7851d8e 100644
---- a/drivers/input/input.c
-+++ b/drivers/input/input.c
-@@ -838,6 +838,7 @@ int input_get_keycode(struct input_dev *dev,
- 		memset(&kt_entry, 0, sizeof(kt_entry));
- 		kt_entry.len = 4;
- 		kt_entry.index = scancode;
-+		kt_entry.scancode = &scancode;
- 
- 		spin_lock_irqsave(&dev->event_lock, flags);
- 		retval = dev->getkeycodebig_from_index(dev, &kt_entry);
+Regards,
+
+- Steve
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
+
