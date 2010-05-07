@@ -1,63 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:47528 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754695Ab0E1TZi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 May 2010 15:25:38 -0400
-Date: Fri, 28 May 2010 21:25:33 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-cc: Alex Deucher <alexdeucher@gmail.com>,
-	Jaya Kumar <jayakumar.lkml@gmail.com>,
-	linux-fbdev@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Idea of a v4l -> fb interface driver
-In-Reply-To: <4C001643.2070802@gmx.de>
-Message-ID: <Pine.LNX.4.64.1005282124060.27251@axis700.grange>
-References: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>
- <AANLkTilnb20a4KO1NmK_y148HE_4b6ka14hUJY5o93QT@mail.gmail.com>
- <Pine.LNX.4.64.1005270809110.2293@axis700.grange>
- <AANLkTin_ia3Ym3z7FOu40voZkjCeMqSDZjuE_1aBjwOW@mail.gmail.com>
- <Pine.LNX.4.64.1005272216380.1703@axis700.grange>
- <AANLkTikTBFPxbl5p9kI65bHt2UJZ5j0DAxFwJ6rzD77L@mail.gmail.com>
- <4C001643.2070802@gmx.de>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:39187 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751329Ab0EGA0N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 20:26:13 -0400
+Received: by wyg36 with SMTP id 36so446203wyg.19
+        for <linux-media@vger.kernel.org>; Thu, 06 May 2010 17:26:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Fri, 7 May 2010 04:26:10 +0400
+Message-ID: <y2n2256c86e1005061726n72921cb9r28d81df677f7b5e8@mail.gmail.com>
+Subject: [em28xx] No sound in Leadtek WinFast TV USB II (not Deluxe)
+From: =?KOI8-R?B?98zBxMnNydIg/sXSztnbxdc=?= <volch5@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 28 May 2010, Florian Tobias Schandinat wrote:
+Hello.
 
-> Well hiding complexity is actually the job of an API. I don't see any need for
-> major changes in fbdev for complex display setups. In most cases as a
-> userspace application you really don't want to be bothered how many different
-> output devices you have and control each individually, you just want an area
-> to draw and to know/control what area the user is expected to see and that's
-> already provided in fbdev.
-> If the user wants the same content on multiple outputs just configure the
-> driver to do so.
-> If he wants different (independent) content on each output, just provide
-> multiple /dev/fbX devices. I admit that we could use a controlling interface
-> here that decides which user (application) might draw at a time to the
-> interface which they currently only do if they are the active VT.
-> If you want 2 or more outputs to be merged as one just configure this in the
-> driver.
-> The only thing that is impossible to do in fbdev is controlling 2 or more
-> independent display outputs that access the same buffer. But that's not an
-> issue I think.
-> The things above only could use a unification of how to set them up on module
-> load time (as only limited runtime changes are permited given that we must
-> always be able to support a mode that we once entered during runtime).
-> 
-> The thing that's really missing in fbdev is a way to allow hardware
-> acceleration for userspace.
+I try to plug  Leadtek WinFast TV USB II (LR6021 Rev. C) to my Ubuntu
+10.04 (2.6.32-22-generic #33-Ubuntu SMP Wed Apr 28 13:27:30 UTC 2010
+i686 GNU/Linux with all latest security and updates ). First I try
+card=8 - no results, then I try card=28 (because in Windows it seems
+like Leadtek WinFast TV USB II Deluxe) - TV works fine, tvtime scans
+all available channels, but no sound in any audio standards
+(/dev/mixer:line1 is ok with other sources). If I start tuner in
+Windows, make hard reset, boot Ubuntu and start tvtime then audio
+works fine at all channels while tuner is powered on. So I think
+em28xx doesn't execute some initializing sequence for turn on audio.
 
-How about a "simple" use-case, that I asked about in another my mail: how 
-do you inform fbdev users, if a (DVI) display has been disconnected and 
-another one with a different resolution has been connected?
+With latest version from http://linuxtv.org/hg/v4l-dvb my tuner works
+only if i change SAA7115_COMPOSITE4 to SAA7115_COMPOSITE2 in
+EM28XX_VMUX_TELEVISION section for Leadtek WinFast TV USB II Deluxe in
+em28xx-cards.c and only video too. /dev/radio detected but not work
+too.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Any tips, recommendations? I don't want use Windows to tuner init only :)
+
+The peace of dmesg when I don't set card:
+
+em28xx #0: found i2c device @ 0x30 [???]
+em28xx #0: found i2c device @ 0x3e [???]
+em28xx #0: found i2c device @ 0x4a [saa7113h]
+em28xx #0: found i2c device @ 0x86 [tda9887]
+em28xx #0: found i2c device @ 0xb0 [tda9874]
+em28xx #0: found i2c device @ 0xc2 [tuner (analog)]
+em28xx #0: Board i2c devicelist hash is 0x81bb00dc
+
+dmesg with "original" (srcversion: AC6C6B6C3CB530BED33DFD3) em28xx
+
+em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, class 0)
+em28xx #0: chip ID is em2820 (or em2710)
+em28xx #0: board has no eeprom
+em28xx #0: Identified as Leadtek Winfast USB II Deluxe (card=28)
+em28xx #0:
+em28xx #0: The support for this board weren't valid yet.
+em28xx #0: Please send a report of having this working
+em28xx #0: not to V4L mailing list (and/or to other addresses)
+saa7115 2-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
+tuner 2-0043: chip found @ 0x86 (em28xx #0)
+tda9887 2-0043: creating new instance
+tda9887 2-0043: tda988[5/6/7] found
+tuner 2-0061: chip found @ 0xc2 (em28xx #0)
+tuner-simple 2-0061: creating new instance
+tuner-simple 2-0061: type set to 38 (Philips PAL/SECAM multi (FM1216ME MK3))
+em28xx #0: Config register raw data: 0x00
+em28xx #0: v4l2 driver version 0.1.2
+em28xx #0: V4L2 video device registered as /dev/video0
+usbcore: registered new interface driver em28xx
+em28xx driver loaded
+
+dmesg with latest (srcversion: 7B6A05D4D518CB79FF69F9D) em28xx (with
+minor change sad above).
+
+em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, class 0)
+em28xx #0: chip ID is em2820 (or em2710)
+em28xx #0: board has no eeprom
+input: i2c IR (i2c IR (EM2820 Winfast  as /devices/virtual/irrcv/irrcv0/input7
+irrcv0: i2c IR (i2c IR (EM2820 Winfast  as /devices/virtual/irrcv/irrcv0
+ir-kbd-i2c: i2c IR (i2c IR (EM2820 Winfast  detected at
+i2c-2/2-001f/ir0 [em28xx #0]
+em28xx #0: Identified as Leadtek Winfast USB II Deluxe (card=28)
+em28xx #0:
+em28xx #0: The support for this board weren't valid yet.
+em28xx #0: Please send a report of having this working
+em28xx #0: not to V4L mailing list (and/or to other addresses)
+saa7115 2-0025: saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
+tvaudio 2-0058: found tda9874a.
+tvaudio 2-0058: tda9874h/a found @ 0xb0 (em28xx #0)
+tuner 2-0000: chip found @ 0x0 (em28xx #0)
+tuner 2-0043: chip found @ 0x86 (em28xx #0)
+tda9887 2-0043: creating new instance
+tda9887 2-0043: tda988[5/6/7] found
+tuner 2-0061: chip found @ 0xc2 (em28xx #0)
+tuner-simple 2-0000: unable to probe Alps TSBE1, proceeding anyway.
+tuner-simple 2-0000: creating new instance
+tuner-simple 2-0000: type set to 10 (Alps TSBE1)
+tuner-simple 2-0061: creating new instance
+tuner-simple 2-0061: type set to 38 (Philips PAL/SECAM multi (FM1216ME MK3))
+em28xx #0: Config register raw data: 0x00
+em28xx #0: v4l2 driver version 0.1.2
+em28xx #0: Registered radio device as radio0
+em28xx #0: V4L2 video device registered as video0
+usbcore: registered new interface driver em28xx
+em28xx driver loaded
