@@ -1,245 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:43075 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757218Ab0EKNfl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 May 2010 09:35:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:50238 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753036Ab0EGAKw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 20:10:52 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tyrex.lisa.loc (Postfix) with ESMTP id 78A41968D5C9
+	for <linux-media@vger.kernel.org>; Fri,  7 May 2010 02:10:48 +0200 (CEST)
+From: "Hans-Peter Jansen" <hpj@urpla.net>
 To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, hverkuil@xs4all.nl
-Subject: [PATCH 7/7] v4l: videobuf: Rename vmalloc fields to vaddr
-Date: Tue, 11 May 2010 15:36:34 +0200
-Message-Id: <1273584994-14211-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1273584994-14211-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1273584994-14211-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: dvb_ttpci: PES packet shortened; cx8800 and dvb_ttpci crashes on rmmod (2.6.34-rc6)
+Date: Fri, 7 May 2010 02:10:40 +0200
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005070210.40924.hpj@urpla.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The videobuf_dmabuf and videobuf_vmalloc_memory fields have a vmalloc
-field to store the kernel virtual address of vmalloc'ed buffers. Rename
-the field to vaddr.
+Hi, 
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/cx88/cx88-alsa.c       |    2 +-
- drivers/media/video/saa7134/saa7134-alsa.c |    2 +-
- drivers/media/video/videobuf-dma-sg.c      |   18 ++++++++--------
- drivers/media/video/videobuf-vmalloc.c     |   30 ++++++++++++++--------------
- drivers/staging/cx25821/cx25821-alsa.c     |    2 +-
- include/media/videobuf-dma-sg.h            |    2 +-
- include/media/videobuf-vmalloc.h           |    2 +-
- 7 files changed, 29 insertions(+), 29 deletions(-)
+on a crusade to get a setup with one FF Hauppauge WinTV Nexus-S + CAM and 
+two Hauppauge WinTV-HVR400 to behave well (again) with vdr (1.6.0 now), 
+finally I've been arrived at kernel 2.6.34-rc6 and still suffering.. :-(
 
-diff --git a/drivers/media/video/cx88/cx88-alsa.c b/drivers/media/video/cx88/cx88-alsa.c
-index ebeb9a6..771406f 100644
---- a/drivers/media/video/cx88/cx88-alsa.c
-+++ b/drivers/media/video/cx88/cx88-alsa.c
-@@ -425,7 +425,7 @@ static int snd_cx88_hw_params(struct snd_pcm_substream * substream,
- 	chip->buf = buf;
- 	chip->dma_risc = dma;
- 
--	substream->runtime->dma_area = chip->dma_risc->vmalloc;
-+	substream->runtime->dma_area = chip->dma_risc->vaddr;
- 	substream->runtime->dma_bytes = chip->dma_size;
- 	substream->runtime->dma_addr = 0;
- 	return 0;
-diff --git a/drivers/media/video/saa7134/saa7134-alsa.c b/drivers/media/video/saa7134/saa7134-alsa.c
-index 5bca2ab..68b7e8d 100644
---- a/drivers/media/video/saa7134/saa7134-alsa.c
-+++ b/drivers/media/video/saa7134/saa7134-alsa.c
-@@ -669,7 +669,7 @@ static int snd_card_saa7134_hw_params(struct snd_pcm_substream * substream,
- 	   byte, but it doesn't work. So I allocate the DMA using the
- 	   V4L functions, and force ALSA to use that as the DMA area */
- 
--	substream->runtime->dma_area = dev->dmasound.dma.vmalloc;
-+	substream->runtime->dma_area = dev->dmasound.dma.vaddr;
- 	substream->runtime->dma_bytes = dev->dmasound.bufsize;
- 	substream->runtime->dma_addr = 0;
- 
-diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
-index 2d64040..06f9a9c 100644
---- a/drivers/media/video/videobuf-dma-sg.c
-+++ b/drivers/media/video/videobuf-dma-sg.c
-@@ -211,17 +211,17 @@ int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
- 	dprintk(1, "init kernel [%d pages]\n", nr_pages);
- 
- 	dma->direction = direction;
--	dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
--	if (NULL == dma->vmalloc) {
-+	dma->vaddr = vmalloc_32(nr_pages << PAGE_SHIFT);
-+	if (NULL == dma->vaddr) {
- 		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
- 		return -ENOMEM;
- 	}
- 
- 	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
--				(unsigned long)dma->vmalloc,
-+				(unsigned long)dma->vaddr,
- 				nr_pages << PAGE_SHIFT);
- 
--	memset(dma->vmalloc, 0, nr_pages << PAGE_SHIFT);
-+	memset(dma->vaddr, 0, nr_pages << PAGE_SHIFT);
- 	dma->nr_pages = nr_pages;
- 
- 	return 0;
-@@ -254,8 +254,8 @@ int videobuf_dma_map(struct device *dev, struct videobuf_dmabuf *dma)
- 		dma->sglist = videobuf_pages_to_sg(dma->pages, dma->nr_pages,
- 						   dma->offset);
- 	}
--	if (dma->vmalloc) {
--		dma->sglist = videobuf_vmalloc_to_sg(dma->vmalloc,
-+	if (dma->vaddr) {
-+		dma->sglist = videobuf_vmalloc_to_sg(dma->vaddr,
- 						     dma->nr_pages);
- 	}
- 	if (dma->bus_addr) {
-@@ -319,8 +319,8 @@ int videobuf_dma_free(struct videobuf_dmabuf *dma)
- 		dma->pages = NULL;
- 	}
- 
--	vfree(dma->vmalloc);
--	dma->vmalloc = NULL;
-+	vfree(dma->vaddr);
-+	dma->vaddr = NULL;
- 
- 	if (dma->bus_addr)
- 		dma->bus_addr = 0;
-@@ -444,7 +444,7 @@ static void *__videobuf_to_vaddr(struct videobuf_buffer *buf)
- 
- 	MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
- 
--	return mem->dma.vmalloc;
-+	return mem->dma.vaddr;
- }
- 
- static int __videobuf_iolock(struct videobuf_queue *q,
-diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
-index f0d7cb8..ea08b5d 100644
---- a/drivers/media/video/videobuf-vmalloc.c
-+++ b/drivers/media/video/videobuf-vmalloc.c
-@@ -102,10 +102,10 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
- 				   called with IRQ's disabled
- 				 */
- 				dprintk(1, "%s: buf[%d] freeing (%p)\n",
--					__func__, i, mem->vmalloc);
-+					__func__, i, mem->vaddr);
- 
--				vfree(mem->vmalloc);
--				mem->vmalloc = NULL;
-+				vfree(mem->vaddr);
-+				mem->vaddr = NULL;
- 			}
- 
- 			q->bufs[i]->map   = NULL;
-@@ -170,7 +170,7 @@ static int __videobuf_iolock(struct videobuf_queue *q,
- 		dprintk(1, "%s memory method MMAP\n", __func__);
- 
- 		/* All handling should be done by __videobuf_mmap_mapper() */
--		if (!mem->vmalloc) {
-+		if (!mem->vaddr) {
- 			printk(KERN_ERR "memory is not alloced/mmapped.\n");
- 			return -EINVAL;
- 		}
-@@ -189,13 +189,13 @@ static int __videobuf_iolock(struct videobuf_queue *q,
- 		 * read() method.
- 		 */
- 
--		mem->vmalloc = vmalloc_user(pages);
--		if (!mem->vmalloc) {
-+		mem->vaddr = vmalloc_user(pages);
-+		if (!mem->vaddr) {
- 			printk(KERN_ERR "vmalloc (%d pages) failed\n", pages);
- 			return -ENOMEM;
- 		}
- 		dprintk(1, "vmalloc is at addr %p (%d pages)\n",
--			mem->vmalloc, pages);
-+			mem->vaddr, pages);
- 
- #if 0
- 		int rc;
-@@ -254,18 +254,18 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 	MAGIC_CHECK(mem->magic, MAGIC_VMAL_MEM);
- 
- 	pages = PAGE_ALIGN(vma->vm_end - vma->vm_start);
--	mem->vmalloc = vmalloc_user(pages);
--	if (!mem->vmalloc) {
-+	mem->vaddr = vmalloc_user(pages);
-+	if (!mem->vaddr) {
- 		printk(KERN_ERR "vmalloc (%d pages) failed\n", pages);
- 		goto error;
- 	}
--	dprintk(1, "vmalloc is at addr %p (%d pages)\n", mem->vmalloc, pages);
-+	dprintk(1, "vmalloc is at addr %p (%d pages)\n", mem->vaddr, pages);
- 
- 	/* Try to remap memory */
--	retval = remap_vmalloc_range(vma, mem->vmalloc, 0);
-+	retval = remap_vmalloc_range(vma, mem->vaddr, 0);
- 	if (retval < 0) {
- 		printk(KERN_ERR "mmap: remap failed with error %d. ", retval);
--		vfree(mem->vmalloc);
-+		vfree(mem->vaddr);
- 		goto error;
- 	}
- 
-@@ -317,7 +317,7 @@ void *videobuf_to_vmalloc(struct videobuf_buffer *buf)
- 	BUG_ON(!mem);
- 	MAGIC_CHECK(mem->magic, MAGIC_VMAL_MEM);
- 
--	return mem->vmalloc;
-+	return mem->vaddr;
- }
- EXPORT_SYMBOL_GPL(videobuf_to_vmalloc);
- 
-@@ -339,8 +339,8 @@ void videobuf_vmalloc_free(struct videobuf_buffer *buf)
- 
- 	MAGIC_CHECK(mem->magic, MAGIC_VMAL_MEM);
- 
--	vfree(mem->vmalloc);
--	mem->vmalloc = NULL;
-+	vfree(mem->addr);
-+	mem->vaddr = NULL;
- 
- 	return;
- }
-diff --git a/drivers/staging/cx25821/cx25821-alsa.c b/drivers/staging/cx25821/cx25821-alsa.c
-index 14fd3cb..1a7ed9b 100644
---- a/drivers/staging/cx25821/cx25821-alsa.c
-+++ b/drivers/staging/cx25821/cx25821-alsa.c
-@@ -491,7 +491,7 @@ static int snd_cx25821_hw_params(struct snd_pcm_substream *substream,
- 	chip->buf = buf;
- 	chip->dma_risc = dma;
- 
--	substream->runtime->dma_area = chip->dma_risc->vmalloc;
-+	substream->runtime->dma_area = chip->dma_risc->vaddr;
- 	substream->runtime->dma_bytes = chip->dma_size;
- 	substream->runtime->dma_addr = 0;
- 
-diff --git a/include/media/videobuf-dma-sg.h b/include/media/videobuf-dma-sg.h
-index 913860e..97e07f4 100644
---- a/include/media/videobuf-dma-sg.h
-+++ b/include/media/videobuf-dma-sg.h
-@@ -51,7 +51,7 @@ struct videobuf_dmabuf {
- 	struct page         **pages;
- 
- 	/* for kernel buffers */
--	void                *vmalloc;
-+	void                *vaddr;
- 
- 	/* for overlay buffers (pci-pci dma) */
- 	dma_addr_t          bus_addr;
-diff --git a/include/media/videobuf-vmalloc.h b/include/media/videobuf-vmalloc.h
-index 851eb1a..e19403c 100644
---- a/include/media/videobuf-vmalloc.h
-+++ b/include/media/videobuf-vmalloc.h
-@@ -22,7 +22,7 @@
- struct videobuf_vmalloc_memory {
- 	u32                 magic;
- 
--	void                *vmalloc;
-+	void                *vaddr;
- 
- 	/* remap_vmalloc_range seems to need to run
- 	 * after mmap() on some cases */
--- 
-1.6.4.4
+Accessing sky channels via CAM/AlphaCrypt could result in floods of 
+	PES packet shortened to xxxx bytes (expected: yyyy bytes)
+in vdr logs. Once this starts, the display is distorted from heavy pixel 
+junk, and nothing cures this issue other than rebooting. :-(... Is this 
+a known problem? Any idea on how to debug/fix such an problem?
 
+The "normal" course of actions in this case is: reloading modules, but 
+neither cx8800 nor dvb_ttpci do unload properly ATM:
+
+[  324.584972] cx8800 0000:07:02.0: PCI INT A disabled
+[  324.630743] cx8800 0000:07:01.0: PCI INT A disabled
+[  324.630838] BUG: unable to handle kernel paging request at 38352e34
+[  324.643415] IP: [<c036565e>] sysfs_remove_group+0x7e/0xd0
+[  324.654404] *pdpt = 0000000023528001 *pde = 0000000000000000 
+[  324.666116] Oops: 0000 [#1] SMP 
+[  324.672707] last sysfs file: /sys/devices/system/cpu/cpu7/cache/index2/shared_cpu_map
+[  324.688553] Modules linked in: ip6t_LOG ipt_MASQUERADE xt_pkttype xt_TCPMSS xt_tcpudp ipt_LOG xt_limit iptable_nat nf
+_nat nfsd autofs4 af_packet nfs lockd fscache nfs_acl auth_rpcgss sunrpc cpufreq_conservative cpufreq_userspace cpufreq_
+powersave acpi_cpufreq speedstep_lib ip6t_REJECT nf_conntrack_ipv6 ip6table_raw xt_NOTRACK ipt_REJECT xt_physdev xt_stat
+e iptable_raw iptable_filter ip6table_mangle nf_conntrack_netbios_ns nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 ip_ta
+bles ip6table_filter ip6_tables x_tables bridge stp llc fuse aufs loop dm_mod isl6421 cx24116 stv0299 ves1x93 tuner dvb_
+ttpci dvb_core snd_hda_intel saa7146_vv snd_hda_codec cx8800(-) cx88xx v4l2_common ir_common videodev i2c_algo_bit snd_h
+wdep saa7146 v4l1_compat tveeprom snd_pcm ir_core snd_timer videobuf_dma_sg snd tpm_tis iTCO_wdt i2c_i801 videobuf_core 
+tpm btcx_risc pcspkr button sr_mod tpm_bios cdrom iTCO_vendor_support pl2303 usbserial e1000e usbhid ttpci_eeprom soundc
+ore snd_page_alloc kvm_intel sg kvm ehci_hcd usbcore edd xfs exportfs fan thermal processor thermal_sys sd_mod ata_piix 
+libata arcmsr scsi_mod [last unloaded: cx88_alsa]
+[  324.890574] 
+[  324.893587] Pid: 7320, comm: modprobe Not tainted 2.6.34-rc6-4-pae #1 P7F-E/System Product Name
+[  324.911008] EIP: 0060:[<c036565e>] EFLAGS: 00010202 CPU: 4
+[  324.922133] EIP is at sysfs_remove_group+0x7e/0xd0
+[  324.931832] EAX: e6a50e08 EBX: 38352e34 ECX: e7e00000 EDX: 00000000
+[  324.944559] ESI: 00000000 EDI: e641285c EBP: e6a50e08 ESP: e2b9be70
+[  324.957181]  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+[  324.968084] Process modprobe (pid: 7320, ti=e2b9a000 task=e51b0270 task.ti=e2b9a000)
+[  324.983565] Stack:
+[  324.987715]  00000286 00000001 e64da9dc e6a50a00 00000286 e6412840 e6889000 00000000
+[  325.003149] <0> e6bb2800 f03ae932 e6412840 e6889000 f03ae044 00000000 faffffff e6c8f180
+[  325.019671] <0> e6bb2800 f04ba5e5 00000000 fa000000 f04b6dd9 01000000 00000000 faffffff
+[  325.036573] Call Trace:
+[  325.041554]  [<f03ae932>] ir_unregister_class+0x32/0x60 [ir_core]
+[  325.053888]  [<f03ae044>] ir_input_unregister+0x44/0x90 [ir_core]
+[  325.066202]  [<f04ba5e5>] cx88_ir_fini+0x25/0x50 [cx88xx]
+[  325.077213]  [<f04b6dd9>] cx88_core_put+0xb9/0x140 [cx88xx]
+[  325.088434]  [<f04f4156>] cx8800_finidev+0x7e/0x89 [cx8800]
+[  325.099765]  [<c041e6d6>] pci_device_remove+0x16/0x40
+[  325.110004]  [<c04b2eed>] __device_release_driver+0x6d/0xd0
+[  325.121232]  [<c04b2fcf>] driver_detach+0x7f/0x90
+[  325.130751]  [<c04b1f9a>] bus_remove_driver+0x7a/0x100
+[  325.141196]  [<c041e8de>] pci_unregister_driver+0x2e/0x80
+[  325.152163]  [<c0278fe9>] sys_delete_module+0x179/0x250
+[  325.162684]  [<c0202e4c>] sysenter_do_call+0x12/0x22
+[  325.172618]  [<ffffe424>] 0xffffe424
+[  325.179852] Code: f0 ff 0e 0f 94 c0 84 c0 75 0b 83 c4 14 5b 5e 5f 5d c3 8d 76 00 83 c4 14 89 f0 5b 5e 5f 5d e9 ca e6 
+ff ff 66 90 31 f6 85 db 74 a3 <8b> 03 85 c0 74 07 f0 ff 03 89 de eb 96 ba 9d 00 00 00 b8 e8 81 
+[  325.220532] EIP: [<c036565e>] sysfs_remove_group+0x7e/0xd0 SS:ESP 0068:e2b9be70
+[  325.235367] CR2: 0000000038352e34
+[  325.242044] ---[ end trace ad00d5df5a39e6b6 ]---
+
+This one I was able to work around by blacklisting ir_common and ir_core 
+(this is a server install anyway), but unloading dvb_ttpci results in:
+
+[   64.526813] cx24116_load_firmware: FW version 1.22.82.0
+[   64.526823] cx24116_firmware_ondemand: Firmware upload complete
+[  131.523444] cx88/2: unregistering cx8802 driver, type: dvb access: shared
+[  131.523451] cx88[0]/2: subsystem: 0070:6906, board: Hauppauge WinTV-HVR4000(Lite) DVB-S/S2 [card=69]
+[  131.524048] cx88[1]/2: subsystem: 0070:6906, board: Hauppauge WinTV-HVR4000(Lite) DVB-S/S2 [card=69]
+[  131.554953] cx88-mpeg driver manager 0000:07:02.2: PCI INT A disabled
+[  131.555024] cx88-mpeg driver manager 0000:07:01.2: PCI INT A disabled
+[  143.260583] cx88_audio 0000:07:02.1: PCI INT A disabled
+[  143.260670] cx88_audio 0000:07:01.1: PCI INT A disabled
+[  171.110862] cx8800 0000:07:02.0: PCI INT A disabled
+[  171.156445] cx8800 0000:07:01.0: PCI INT A disabled
+[  292.349178] saa7146: unregister extension 'dvb'.
+[  292.413289] BUG: unable to handle kernel NULL pointer dereference at (null)
+[  292.427349] IP: [<f042b426>] v4l2_device_unregister+0x16/0x50 [videodev]
+[  292.440898] *pdpt = 0000000021ee4001 *pde = 0000000000000000 
+[  292.452550] Oops: 0000 [#1] SMP 
+[  292.459114] last sysfs file: /sys/devices/system/cpu/cpu7/cache/index2/shared_cpu_map
+[  292.474774] Modules linked in: ip6t_LOG ipt_MASQUERADE xt_pkttype xt_TCPMSS xt_tcpudp ipt_LOG xt_limit iptable_nat 
+nf_nat nfsd autofs4 af_packet nfs lockd fscache nfs_acl auth_rpcgss sunrpc cpufreq_conservative cpufreq_userspace 
+cpufreq_powersave acpi_cpufreq ip6t_REJECT nf_conntrack_ipv6 speedstep_lib ip6table_raw xt_NOTRACK ipt_REJECT xt_physdev 
+xt_state iptable_raw iptable_filter ip6table_mangle nf_conntrack_netbios_ns nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 
+ip_tables ip6table_filter ip6_tables x_tables bridge stp llc fuse aufs loop dm_mod stv0299 dvb_ttpci(-) dvb_core button 
+saa7146_vv saa7146 ttpci_eeprom videodev v4l1_compat videobuf_dma_sg videobuf_core sr_mod cdrom pcspkr pl2303 iTCO_wdt 
+snd_hda_intel snd_hda_codec snd_hwdep snd_pcm snd_timer i2c_i801 e1000e usbserial iTCO_vendor_support snd soundcore 
+snd_page_alloc tpm_tis tpm tpm_bios kvm_intel sg kvm usbhid ehci_hcd usbcore edd xfs exportfs fan thermal processor 
+thermal_sys sd_mod ata_piix libata arcmsr scsi_mod [last unloaded: v4l2_common]
+[  292.497065] 
+[  292.497069] Pid: 7285, comm: modprobe Not tainted 2.6.34-rc6-4-pae #1 P7F-E/System Product Name
+[  292.497074] EIP: 0060:[<f042b426>] EFLAGS: 00010203 CPU: 4
+[  292.497081] EIP is at v4l2_device_unregister+0x16/0x50 [videodev]
+[  292.497084] EAX: 00000000 EBX: 00000000 ECX: e7e00000 EDX: 00000001
+[  292.497087] ESI: e683fd8c EDI: e683fd90 EBP: e683fd80 ESP: e1ed3e10
+[  292.497090]  DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
+[  292.497094] Process modprobe (pid: 7285, ti=e1ed2000 task=e695e230 task.ti=e1ed2000)
+[  292.497096] Stack:
+[  292.497098]  00000000 e683fd80 e7994480 f04a5b12 e683fd80 c04027ea e67c409c e683fd80
+[  292.497103] <0> f04a51ff c04b0166 e67c409c e683fd80 e67c4000 e683fd80 f15cc0b9 26562000
+[  292.497108] <0> 00000000 f15d8d06 00000000 c0232e8a 26562000 00000000 e6562000 e64c8000
+[  292.497114] Call Trace:
+[  292.497133]  [<f04a5b12>] saa7146_vv_release+0x32/0x120 [saa7146_vv]
+[  292.497145]  [<f15cc0b9>] av7110_exit_v4l+0x39/0x50 [dvb_ttpci]
+[  292.497161]  [<f15d8d06>] av7110_detach+0xae/0x1bf [dvb_ttpci]
+[  292.497181]  [<f0487485>] saa7146_remove_one+0xd5/0x230 [saa7146]
+[  292.497190]  [<c041e6d6>] pci_device_remove+0x16/0x40
+[  292.497198]  [<c04b2eed>] __device_release_driver+0x6d/0xd0
+[  292.497204]  [<c04b2fcf>] driver_detach+0x7f/0x90
+[  292.497211]  [<c04b1f9a>] bus_remove_driver+0x7a/0x100
+[  292.497216]  [<c041e8de>] pci_unregister_driver+0x2e/0x80
+[  292.497224]  [<f0486eb7>] saa7146_unregister_extension+0x27/0x60 [saa7146]
+[  292.497232]  [<c0278fe9>] sys_delete_module+0x179/0x250
+[  292.497240]  [<c0202e4c>] sysenter_do_call+0x12/0x22
+[  292.497249]  [<ffffe424>] 0xffffe424
+[  292.497250] Code: e8 40 7a 08 d0 c7 03 00 00 00 00 5b c3 90 8d b4 26 00 00 00 00 57 85 c0 56 89 c6 53 74 3a e8 d2 ff ff 
+ff 8b 5e 04 8d 7e 04 39 fb <8b> 03 74 29 89 c6 eb 06 66 90 89 f3 89 c6 89 d8 e8 75 fe ff ff 
+[  292.497277] EIP: [<f042b426>] v4l2_device_unregister+0x16/0x50 [videodev] SS:ESP 0068:e1ed3e10
+[  292.497286] CR2: 0000000000000000
+[  292.497312] ---[ end trace caa25a9113f98bec ]---
+
+
+Hmm, blacklisting saa7146_vv and friends wouldn't make much sense, I guess..
+
+BTW, the kernel is build on openSUSE build service:
+http://download.opensuse.org/repositories/home:/frispete:/kernel-head/openSUSE_11.1
+http://download.opensuse.org/repositories/home:/frispete:/kernel-head/openSUSE_11.2
+
+These crashes are from the 11.1/i586 version.
+
+Adding v4l-dvb-kmp-pae-hg20100429_2331 to the game reduces the tendency to 
+generate these "PES packet shortened" messages from vdr, but now Sport1 and
+Sport2 channels do these reliable with low distortions, but very disturbing
+never the less:
+
+May  7 02:03:47 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:48 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:48 tyrex vdr: [7968] PES packet shortened to 3102 bytes (expected: 3470 bytes)
+May  7 02:03:48 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:48 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:48 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:49 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:49 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:50 tyrex vdr: [7968] PES packet shortened to 3102 bytes (expected: 3470 bytes)
+May  7 02:03:50 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:50 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:50 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:50 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:51 tyrex vdr: [7968] PES packet shortened to 3312 bytes (expected: 3470 bytes)
+May  7 02:03:52 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:52 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:52 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:52 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:53 tyrex vdr: [7968] PES packet shortened to 3102 bytes (expected: 3470 bytes)
+May  7 02:03:53 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:53 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:54 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:55 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:55 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:56 tyrex vdr: [7968] PES packet shortened to 3102 bytes (expected: 3470 bytes)
+May  7 02:03:56 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:56 tyrex vdr: [7968] PES packet shortened to 3312 bytes (expected: 3470 bytes)
+May  7 02:03:56 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:56 tyrex vdr: [7968] PES packet shortened to 3102 bytes (expected: 3470 bytes)
+May  7 02:03:57 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:57 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:57 tyrex vdr: [7968] PES packet shortened to 3128 bytes (expected: 3470 bytes)
+May  7 02:03:57 tyrex vdr: [7968] PES packet shortened to 3102 bytes (expected: 3470 bytes)
+May  7 02:03:57 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+May  7 02:03:57 tyrex vdr: [7968] PES packet shortened to 3286 bytes (expected: 3470 bytes)
+
+My v4l-vdr hg builds for this kernel can be found here:
+http://download.opensuse.org/repositories/home:/frispete:/dvb/openSUSE_11.1_kernel-head
+
+This package needs a ton of #include <kernel/slab.h> for the current kernel. 
+You can find them included in the src rpm. Should I publish the combined 
+patch here?
+
+Pete
