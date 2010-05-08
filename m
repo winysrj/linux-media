@@ -1,155 +1,294 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:48146 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347Ab0EHQGd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 May 2010 12:06:33 -0400
-Received: by ey-out-2122.google.com with SMTP id d26so169004eyd.19
-        for <linux-media@vger.kernel.org>; Sat, 08 May 2010 09:06:31 -0700 (PDT)
-Received: from emard by z60m.lan with local (Exim 4.71)
-	(envelope-from <emard@z60m>)
-	id 1OAmXs-0001mP-NZ
-	for linux-media@vger.kernel.org; Sat, 08 May 2010 18:06:28 +0200
-Date: Sat, 8 May 2010 18:06:28 +0200
-From: Emard <davoremard@gmail.com>
+Received: from perninha.conectiva.com.br ([200.140.247.100]:45852 "EHLO
+	perninha.conectiva.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751178Ab0EHFXs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 May 2010 01:23:48 -0400
+From: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] Compro Videomate T750F Vista digital+analog support
-Message-ID: <20100508160628.GA6050@z60m>
+Subject: [PATCH v2] saa7134: add support for Avermedia M733A
+Date: Sat, 8 May 2010 02:23:37 -0300
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005080223.37534.herton@mandriva.com.br>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI
+This change adds support for Avermedia M733A. The original version for
+linux 2.6.31 was sent to me from Avermedia, original author is unknown.
+I ported it to current kernels, expanded and fixed key code handling for
+RM-K6 remote control, and added an additional pci id also supported.
 
-I've been fixing this driver a bit in order to unify dvb-t and
-loading of xc2028 firmware for analog tv and fm radio without 
-failure when cold booted directly to linux 
+Signed-off-by: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+---
+ Documentation/video4linux/CARDLIST.saa7134         |    5 +-
+ drivers/media/IR/keymaps/Makefile                  |    1 +
+ .../media/IR/keymaps/rc-avermedia-m733a-rm-k6.c    |   95 ++++++++++++++++++++
+ drivers/media/video/saa7134/saa7134-cards.c        |   57 ++++++++++++-
+ drivers/media/video/saa7134/saa7134-input.c        |    7 ++
+ drivers/media/video/saa7134/saa7134.h              |    1 +
+ include/media/rc-map.h                             |    1 +
+ 7 files changed, 164 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/media/IR/keymaps/rc-avermedia-m733a-rm-k6.c
 
-(some say that xc2028 would load if card is "prepared" by previously 
-boothing window$ but franky I was too bothered to go this far)
-
-So this is my v07 of the patch that even registers IR remote device
-(I copied the code for compro S350)
-but it recognizes remote IR keypresses but all keys are the same - 
-generate the same GPIO value thus having same keycode 0x3f so it's 
-not too useable right now if you want a remote with more than one 
-button.
-
-Can someone knowlegeable of saa7134 remotes review the code and suggest 
-some fix?
-
---- linux-2.6.33.3/drivers/media/video/saa7134/saa7134-cards.c.orig	2010-05-08 16:13:28.000000000 +0200
-+++ linux-2.6.33.3/drivers/media/video/saa7134/saa7134-cards.c	2010-05-08 16:46:19.000000000 +0200
-@@ -4885,8 +4885,9 @@ struct saa7134_board saa7134_boards[] =
- 		.audio_clock    = 0x00187de7,
- 		.tuner_type     = TUNER_XC2028,
- 		.radio_type     = UNSET,
--		.tuner_addr	= ADDR_UNSET,
-+		.tuner_addr	= 0x61,
- 		.radio_addr	= ADDR_UNSET,
-+		.mpeg           = SAA7134_MPEG_DVB,
- 		.inputs = {{
- 			.name   = name_tv,
- 			.vmux   = 3,
-@@ -6550,6 +6551,11 @@ static int saa7134_xc2028_callback(struc
- 			msleep(10);
- 			saa7134_set_gpio(dev, 18, 1);
+diff --git a/Documentation/video4linux/CARDLIST.saa7134 b/Documentation/video4linux/CARDLIST.saa7134
+index 070f257..1387a69 100644
+--- a/Documentation/video4linux/CARDLIST.saa7134
++++ b/Documentation/video4linux/CARDLIST.saa7134
+@@ -176,5 +176,6 @@
+ 175 -> Leadtek Winfast DTV1000S                 [107d:6655]
+ 176 -> Beholder BeholdTV 505 RDS                [0000:5051]
+ 177 -> Hawell HW-404M7
+-179 -> Beholder BeholdTV H7			[5ace:7190]
+-180 -> Beholder BeholdTV A7			[5ace:7090]
++178 -> Beholder BeholdTV H7                     [5ace:7190]
++179 -> Beholder BeholdTV A7                     [5ace:7090]
++180 -> Avermedia M733A                          [1461:4155,1461:4255]
+diff --git a/drivers/media/IR/keymaps/Makefile b/drivers/media/IR/keymaps/Makefile
+index ec25258..585f75c 100644
+--- a/drivers/media/IR/keymaps/Makefile
++++ b/drivers/media/IR/keymaps/Makefile
+@@ -7,6 +7,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-avermedia-cardbus.o \
+ 			rc-avermedia-dvbt.o \
+ 			rc-avermedia-m135a-rm-jx.o \
++			rc-avermedia-m733a-rm-k6.o \
+ 			rc-avertv-303.o \
+ 			rc-behold.o \
+ 			rc-behold-columbus.o \
+diff --git a/drivers/media/IR/keymaps/rc-avermedia-m733a-rm-k6.c b/drivers/media/IR/keymaps/rc-avermedia-m733a-rm-k6.c
+new file mode 100644
+index 0000000..cf8d457
+--- /dev/null
++++ b/drivers/media/IR/keymaps/rc-avermedia-m733a-rm-k6.c
+@@ -0,0 +1,95 @@
++/* avermedia-m733a-rm-k6.h - Keytable for avermedia_m733a_rm_k6 Remote Controller
++ *
++ * Copyright (c) 2010 by Herton Ronaldo Krzesinski <herton@mandriva.com.br>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <media/rc-map.h>
++
++/*
++ * Avermedia M733A with IR model RM-K6
++ * This is the stock remote controller used with Positivo machines with M733A
++ * Herton Ronaldo Krzesinski <herton@mandriva.com.br>
++ */
++
++static struct ir_scancode avermedia_m733a_rm_k6[] = {
++	{ 0x0401, KEY_POWER2 },
++	{ 0x0406, KEY_MUTE },
++	{ 0x0408, KEY_MODE },     /* TV/FM */
++
++	{ 0x0409, KEY_1 },
++	{ 0x040a, KEY_2 },
++	{ 0x040b, KEY_3 },
++	{ 0x040c, KEY_4 },
++	{ 0x040d, KEY_5 },
++	{ 0x040e, KEY_6 },
++	{ 0x040f, KEY_7 },
++	{ 0x0410, KEY_8 },
++	{ 0x0411, KEY_9 },
++	{ 0x044c, KEY_DOT },      /* '.' */
++	{ 0x0412, KEY_0 },
++	{ 0x0407, KEY_REFRESH },  /* Refresh/Reload */
++
++	{ 0x0413, KEY_AUDIO },
++	{ 0x0440, KEY_SCREEN },   /* Full Screen toggle */
++	{ 0x0441, KEY_HOME },
++	{ 0x0442, KEY_BACK },
++	{ 0x0447, KEY_UP },
++	{ 0x0448, KEY_DOWN },
++	{ 0x0449, KEY_LEFT },
++	{ 0x044a, KEY_RIGHT },
++	{ 0x044b, KEY_OK },
++	{ 0x0404, KEY_VOLUMEUP },
++	{ 0x0405, KEY_VOLUMEDOWN },
++	{ 0x0402, KEY_CHANNELUP },
++	{ 0x0403, KEY_CHANNELDOWN },
++
++	{ 0x0443, KEY_RED },
++	{ 0x0444, KEY_GREEN },
++	{ 0x0445, KEY_YELLOW },
++	{ 0x0446, KEY_BLUE },
++
++	{ 0x0414, KEY_TEXT },
++	{ 0x0415, KEY_EPG },
++	{ 0x041a, KEY_TV2 },      /* PIP */
++	{ 0x041b, KEY_MHP },      /* Snapshot */
++
++	{ 0x0417, KEY_RECORD },
++	{ 0x0416, KEY_PLAYPAUSE },
++	{ 0x0418, KEY_STOP },
++	{ 0x0419, KEY_PAUSE },
++
++	{ 0x041f, KEY_PREVIOUS },
++	{ 0x041c, KEY_REWIND },
++	{ 0x041d, KEY_FORWARD },
++	{ 0x041e, KEY_NEXT },
++};
++
++static struct rc_keymap avermedia_m733a_rm_k6_map = {
++	.map = {
++		.scan    = avermedia_m733a_rm_k6,
++		.size    = ARRAY_SIZE(avermedia_m733a_rm_k6),
++		.ir_type = IR_TYPE_NEC,
++		.name    = RC_MAP_AVERMEDIA_M733A_RM_K6,
++	}
++};
++
++static int __init init_rc_map_avermedia_m733a_rm_k6(void)
++{
++	return ir_register_map(&avermedia_m733a_rm_k6_map);
++}
++
++static void __exit exit_rc_map_avermedia_m733a_rm_k6(void)
++{
++	ir_unregister_map(&avermedia_m733a_rm_k6_map);
++}
++
++module_init(init_rc_map_avermedia_m733a_rm_k6)
++module_exit(exit_rc_map_avermedia_m733a_rm_k6)
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
+diff --git a/drivers/media/video/saa7134/saa7134-cards.c b/drivers/media/video/saa7134/saa7134-cards.c
+index 72700d4..6502166 100644
+--- a/drivers/media/video/saa7134/saa7134-cards.c
++++ b/drivers/media/video/saa7134/saa7134-cards.c
+@@ -3897,6 +3897,40 @@ struct saa7134_board saa7134_boards[] = {
+ 			.gpio = 0x01,
+ 		},
+ 	},
++	[SAA7134_BOARD_AVERMEDIA_M733A] = {
++		.name		= "Avermedia PCI M733A",
++		.audio_clock	= 0x00187de7,
++		.tuner_type	= TUNER_PHILIPS_TDA8290,
++		.radio_type	= UNSET,
++		.tuner_addr	= ADDR_UNSET,
++		.radio_addr	= ADDR_UNSET,
++		.tuner_config	= 0,
++		.gpiomask	= 0x020200000,
++		.inputs		= {{
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 3,
++			.amux = LINE1,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE1,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = TV,
++			.gpio = 0x00200000,
++		},
++		.mute = {
++			.name = name_mute,
++			.amux = TV,
++			.gpio = 0x01,
++		},
++	},
+ 	[SAA7134_BOARD_BEHOLD_401] = {
+ 		/*       Beholder Intl. Ltd. 2008      */
+ 		/*Dmitry Belimov <d.belimov@gmail.com> */
+@@ -5820,7 +5854,19 @@ struct pci_device_id saa7134_pci_tbl[] = {
+ 		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
+ 		.subdevice    = 0xf11d,
+ 		.driver_data  = SAA7134_BOARD_AVERMEDIA_M135A,
+-	}, {
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0x4155,
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_M733A,
++	},{
++		.vendor       = PCI_VENDOR_ID_PHILIPS,
++		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
++		.subvendor    = 0x1461, /* Avermedia Technologies Inc */
++		.subdevice    = 0x4255,
++		.driver_data  = SAA7134_BOARD_AVERMEDIA_M733A,
++	},{
+ 		.vendor       = PCI_VENDOR_ID_PHILIPS,
+ 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7130,
+ 		.subvendor    = PCI_VENDOR_ID_PHILIPS,
+@@ -6786,6 +6832,7 @@ static int saa7134_tda8290_callback(struct saa7134_dev *dev,
+ 	switch (dev->board) {
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1150:
+ 	case SAA7134_BOARD_HAUPPAUGE_HVR1120:
++	case SAA7134_BOARD_AVERMEDIA_M733A:
+ 		/* tda8290 + tda18271 */
+ 		ret = saa7134_tda8290_18271_callback(dev, command, arg);
  		break;
-+		case SAA7134_BOARD_VIDEOMATE_T750:
-+			saa7134_set_gpio(dev, 20, 0);
-+			msleep(10);
-+			saa7134_set_gpio(dev, 20, 1);
-+		break;
- 		}
- 	return 0;
- 	}
-@@ -6956,6 +6962,11 @@ int saa7134_board_init1(struct saa7134_d
- 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
- 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
+@@ -7087,6 +7134,14 @@ int saa7134_board_init1(struct saa7134_dev *dev)
+ 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0000C000, 0x0000C000);
+ 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0000C000, 0x0000C000);
  		break;
-+	case SAA7134_BOARD_VIDEOMATE_T750:
++	case SAA7134_BOARD_AVERMEDIA_M733A:
++		saa7134_set_gpio(dev, 1, 1);
++		msleep(10);
++		saa7134_set_gpio(dev, 1, 0);
++		msleep(10);
++		saa7134_set_gpio(dev, 1, 1);
 +		dev->has_remote = SAA7134_REMOTE_GPIO;
-+		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
-+		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
 +		break;
  	}
  	return 0;
  }
-@@ -7192,6 +7203,7 @@ int saa7134_board_init2(struct saa7134_d
- 	case SAA7134_BOARD_AVERMEDIA_SUPER_007:
- 	case SAA7134_BOARD_TWINHAN_DTV_DVB_3056:
- 	case SAA7134_BOARD_CREATIX_CTX953:
-+	case SAA7134_BOARD_VIDEOMATE_T750:
- 	{
- 		/* this is a hybrid board, initialize to analog mode
- 		 * and configure firmware eeprom address
---- linux-2.6.33.3/drivers/media/video/saa7134/saa7134-dvb.c.orig	2010-05-08 16:20:12.000000000 +0200
-+++ linux-2.6.33.3/drivers/media/video/saa7134/saa7134-dvb.c	2010-05-08 16:21:10.000000000 +0200
-@@ -55,6 +55,7 @@
- #include "tda8290.h"
- 
- #include "zl10353.h"
-+#include "qt1010.h"
- 
- #include "zl10036.h"
- #include "zl10039.h"
-@@ -886,6 +887,17 @@ static struct zl10353_config behold_x7_c
- 	.disable_i2c_gate_ctrl = 1,
- };
- 
-+static struct zl10353_config videomate_t750_zl10353_config = {
-+       .demod_address  = 0x0f,
-+       .no_tuner = 1,
-+       .parallel_ts = 1,
-+};
-+
-+static struct qt1010_config videomate_t750_qt1010_config = {
-+       .i2c_address = 0x62
-+};
-+
-+
- /* ==================================================================
-  * tda10086 based DVB-S cards, helper functions
-  */
-@@ -1556,6 +1568,26 @@ static int dvb_init(struct saa7134_dev *
- 					__func__);
- 
+diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
+index 28c230d..c44e235 100644
+--- a/drivers/media/video/saa7134/saa7134-input.c
++++ b/drivers/media/video/saa7134/saa7134-input.c
+@@ -662,6 +662,13 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+ 		mask_keycode = 0xffff;
+ 		raw_decode   = 1;
  		break;
-+        /*FIXME: What frontend does Videomate T750 use? */
-+        case SAA7134_BOARD_VIDEOMATE_T750:
-+                printk("Compro VideoMate T750 DVB setup\n");
-+                fe0->dvb.frontend = dvb_attach(zl10353_attach,
-+                                                &videomate_t750_zl10353_config,
-+                                                &dev->i2c_adap);
-+                if (fe0->dvb.frontend != NULL) {
-+                        printk("Attaching pll\n");
-+                        // if there is a gate function then the i2c bus breaks.....!
-+                        fe0->dvb.frontend->ops.i2c_gate_ctrl = 0;
-+ 
-+                        if (dvb_attach(qt1010_attach,
-+                                       fe0->dvb.frontend,
-+                                       &dev->i2c_adap,
-+                                       &videomate_t750_qt1010_config) == NULL)
-+                        {
-+                                wprintk("error attaching QT1010\n");
-+                        }
-+                }
-+                break;
- 	case SAA7134_BOARD_ZOLID_HYBRID_PCI:
- 		fe0->dvb.frontend = dvb_attach(tda10048_attach,
- 					       &zolid_tda10048_config,
---- linux-2.6.33.3/drivers/media/video/saa7134/saa7134-input.c.orig	2010-05-08 16:52:20.000000000 +0200
-+++ linux-2.6.33.3/drivers/media/video/saa7134/saa7134-input.c	2010-05-08 17:28:48.000000000 +0200
-@@ -671,6 +671,11 @@ int saa7134_input_init1(struct saa7134_d
- 		mask_keycode = 0x003f00;
- 		mask_keydown = 0x040000;
- 		break;
-+	case SAA7134_BOARD_VIDEOMATE_T750:
-+		ir_codes     = &ir_codes_videomate_s350_table;
-+		mask_keycode = 0x003f00;
-+		mask_keydown = 0x040000;
++	case SAA7134_BOARD_AVERMEDIA_M733A:
++		ir_codes     = RC_MAP_AVERMEDIA_M733A_RM_K6;
++		mask_keydown = 0x0040000;
++		mask_keyup   = 0x0040000;
++		mask_keycode = 0xffff;
++		raw_decode   = 1;
 +		break;
- 	case SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S:
- 		ir_codes     = &ir_codes_winfast_table;
- 		mask_keycode = 0x5f00;
+ 	case SAA7134_BOARD_AVERMEDIA_777:
+ 	case SAA7134_BOARD_AVERMEDIA_A16AR:
+ 		ir_codes     = RC_MAP_AVERMEDIA;
+diff --git a/drivers/media/video/saa7134/saa7134.h b/drivers/media/video/saa7134/saa7134.h
+index 3962534..756a1ca 100644
+--- a/drivers/media/video/saa7134/saa7134.h
++++ b/drivers/media/video/saa7134/saa7134.h
+@@ -303,6 +303,7 @@ struct saa7134_format {
+ #define SAA7134_BOARD_HAWELL_HW_404M7		177
+ #define SAA7134_BOARD_BEHOLD_H7             178
+ #define SAA7134_BOARD_BEHOLD_A7             179
++#define SAA7134_BOARD_AVERMEDIA_M733A       180
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 5833966..6f1f9f7 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -56,6 +56,7 @@ void rc_map_init(void);
+ #define RC_MAP_AVERMEDIA_CARDBUS         "rc-avermedia-cardbus"
+ #define RC_MAP_AVERMEDIA_DVBT            "rc-avermedia-dvbt"
+ #define RC_MAP_AVERMEDIA_M135A_RM_JX     "rc-avermedia-m135a-rm-jx"
++#define RC_MAP_AVERMEDIA_M733A_RM_K6     "rc-avermedia-m733a-rm-k6"
+ #define RC_MAP_AVERMEDIA                 "rc-avermedia"
+ #define RC_MAP_AVERTV_303                "rc-avertv-303"
+ #define RC_MAP_BEHOLD_COLUMBUS           "rc-behold-columbus"
+-- 
+1.7.1
