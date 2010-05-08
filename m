@@ -1,54 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1047 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295Ab0EIT1g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 15:27:36 -0400
-Received: from localhost (cm-84.208.87.21.getinternet.no [84.208.87.21])
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o49JRYjk090227
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 9 May 2010 21:27:35 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Message-Id: <e3dcff9743201d234aca7e3577c005bc4653bfdd.1273432986.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1273432986.git.hverkuil@xs4all.nl>
-References: <cover.1273432986.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 09 May 2010 21:29:10 +0200
-Subject: [PATCH 2/7] [RFC] v4l2-device: add v4l2_prio_state to v4l2_device.
-To: linux-media@vger.kernel.org
+Received: from mx1.redhat.com ([209.132.183.28]:48534 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755264Ab0EHBPe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 May 2010 21:15:34 -0400
+Message-ID: <4BE4BAB3.60506@redhat.com>
+Date: Fri, 07 May 2010 22:13:23 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: LMML <linux-media@vger.kernel.org>, awalls@md.metrocast.net,
+	moinejf@free.fr, pboettcher@dibcom.fr, awalls@radix.net,
+	crope@iki.fi, davidtlwong@gmail.com, liplianin@tut.by,
+	isely@isely.net, tobias.lorenz@gmx.net, hdegoede@redhat.com,
+	abraham.manu@gmail.com, u.kleine-koenig@pengutronix.de,
+	herton@mandriva.com.br, stoth@kernellabs.com, henrik@kurelid.se
+Subject: Re: Status of the patches under review (85 patches) and some misc
+ notes about the devel procedures
+References: <20100507093916.2e2ef8e3@pedra> <Pine.LNX.4.64.1005071453090.4777@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1005071453090.4777@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/v4l2-device.c |    1 +
- include/media/v4l2-device.h       |    2 ++
- 2 files changed, 3 insertions(+), 0 deletions(-)
+Guennadi Liakhovetski wrote:
+> Hi Mauro
+> 
+> On Fri, 7 May 2010, Mauro Carvalho Chehab wrote:
+> 
+>> May, 6 2010: [1/3] mx2_camera: Add soc_camera support for i.MX25/i.MX27             http://patchwork.kernel.org/patch/97345
+>> May, 6 2010: [2/3] mx27: add support for the CSI device                             http://patchwork.kernel.org/patch/97352
+>> May, 6 2010: [3/3] mx25: add support for the CSI device                             http://patchwork.kernel.org/patch/97353
+> 
+> I'll be reviewing these
+> 
+>> 		== soc_camera patches - Waiting Guennadi <g.liakhovetski@gmx.de> submission/review == 
+>>
+>> Feb, 2 2010: [2/3] soc-camera: mt9t112: modify delay time after initialize          http://patchwork.kernel.org/patch/76213
+>> Feb, 2 2010: [3/3] soc-camera: mt9t112: The flag which control camera-init is remov http://patchwork.kernel.org/patch/76214
+> 
+> These two are still on hold, I think, I'll have to ask the author if we 
+> can drop them.
+> 
+>> Mar, 5 2010: [v2] V4L/DVB: mx1-camera: compile fix                                  http://patchwork.kernel.org/patch/83742
+> 
+> An updated version of this one is already in your fixes tree:
+> 
+> http://git.linuxtv.org/fixes.git?a=commit;h=f6c22d4cff27a4bbb76d899b58b79dd311b7603f
+> 
+>> Apr,20 2010: pxa_camera: move fifo reset direct before dma start                    http://patchwork.kernel.org/patch/93619
+> 
+> Ditto for this one:
+> 
+> http://git.linuxtv.org/fixes.git?a=commit;h=80cef8eb49c9689664a31b8a21f83517042d9763
 
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 2386ae6..86ce0c9 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -34,6 +34,7 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- 
- 	INIT_LIST_HEAD(&v4l2_dev->subdevs);
- 	spin_lock_init(&v4l2_dev->lock);
-+	v4l2_prio_init(&v4l2_dev->prio);
- 	v4l2_dev->dev = dev;
- 	if (dev == NULL) {
- 		/* If dev == NULL, then name must be filled in by the caller */
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index b497e53..322c377 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -49,6 +49,8 @@ struct v4l2_device {
- 	spinlock_t lock;
- 	/* unique device name, by default the driver name + bus ID */
- 	char name[V4L2_DEVICE_NAME_SIZE];
-+	/* Device's priority state */
-+	struct v4l2_prio_state prio;
- 	/* notify callback called by some sub-devices. */
- 	void (*notify)(struct v4l2_subdev *sd,
- 			unsigned int notification, void *arg);
+
+Thanks for the input. I've updated patchwork accordingly.
+
 -- 
-1.6.4.2
 
+Cheers,
+Mauro
