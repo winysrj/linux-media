@@ -1,86 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-15.arcor-online.net ([151.189.21.55]:56199 "EHLO
-	mail-in-15.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757622Ab0EGSjW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 May 2010 14:39:22 -0400
-Message-ID: <4BE45DFB.5040705@arcor.de>
-Date: Fri, 07 May 2010 20:37:47 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Bee Hock Goh <beehock@gmail.com>
-CC: linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: Re: [PATCH] tm6000: bugfix image position
-References: <1273246144-6876-1-git-send-email-stefan.ringel@arcor.de>	 <4BE435C0.4010909@arcor.de> <o2t6e8e83e21005071117je7bca186pa921e964f49f9350@mail.gmail.com>
-In-Reply-To: <o2t6e8e83e21005071117je7bca186pa921e964f49f9350@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-qy0-f183.google.com ([209.85.221.183]:45621 "EHLO
+	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751728Ab0EHT1G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 May 2010 15:27:06 -0400
+Received: by qyk13 with SMTP id 13so3645848qyk.1
+        for <linux-media@vger.kernel.org>; Sat, 08 May 2010 12:27:05 -0700 (PDT)
+From: Mathieu Rene <mrene_lists@avgs.ca>
+Content-Type: multipart/mixed; boundary=Apple-Mail-5-834363683
+Subject: [PATCH] size_t/int mismatch on 64 bits 
+Date: Sat, 8 May 2010 15:27:03 -0400
+Message-Id: <448BD493-AE7B-4C7B-B112-14563C8B30D6@avgs.ca>
+To: linux-media@vger.kernel.org
+Mime-Version: 1.0 (Apple Message framework v1078)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 07.05.2010 20:17, schrieb Bee Hock Goh:
-> Stefan,
->
-> This fix the ugly green line on the top.
->
-> btw, do you notice that there seem to be black gap on the left and
-> right of the screen?
->   
-Have you seen my picture? I corrected that field inverted is, ergo line
-1 field 1 is line 0, line 1 field 0 is line 1, line 2 field 1 is line 2,
-line 2 field 0 is line 3 ... . I have not wrote from the black gap -
-that is video calibration! And what for ugly green  line, what I have is
-a green code and that is normal!
-> On Fri, May 7, 2010 at 11:46 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
->   
->> Am 07.05.2010 17:29, schrieb stefan.ringel@arcor.de:
->>     
->>> From: Stefan Ringel <stefan.ringel@arcor.de>
->>>
->>> bugfix incorrect image and line position in videobuffer
->>>
->>>
->>> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
->>> ---
->>>  drivers/staging/tm6000/tm6000-video.c |    4 ++--
->>>  1 files changed, 2 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
->>> index 9554472..f7248f0 100644
->>> --- a/drivers/staging/tm6000/tm6000-video.c
->>> +++ b/drivers/staging/tm6000/tm6000-video.c
->>> @@ -223,8 +223,8 @@ static int copy_packet(struct urb *urb, u32 header, u8 **ptr, u8 *endp,
->>>                        * It should, instead, check if the user selected
->>>                        * entrelaced or non-entrelaced mode
->>>                        */
->>> -                     pos= ((line<<1)+field)*linewidth +
->>> -                             block*TM6000_URB_MSG_LEN;
->>> +                     pos = ((line << 1) - field - 1) * linewidth +
->>> +                             block * TM6000_URB_MSG_LEN;
->>>
->>>                       /* Don't allow to write out of the buffer */
->>>                       if (pos+TM6000_URB_MSG_LEN > (*buf)->vb.size) {
->>>
->>>       
->>
->> http://www.stefanringel.de/pub/tm6000_image_07_05_2010.jpg
->>
->> --
->> Stefan Ringel <stefan.ringel@arcor.de>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>     
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+
+--Apple-Mail-5-834363683
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=us-ascii
+
+Hi all,
+
+sizeof(size_t) is 8 on 64 bits, therefore:
+
+struct atsc_event_info {
+        uint16_t id;
+        struct tm start;
+        struct tm end;
+        int title_pos;
+        int title_len;
+        int msg_pos;
+        int msg_len;
+};
+
+and: (size_t *)&curr_info->title_buf.buf_pos), was segfaulting. 
 
 
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
+--Apple-Mail-5-834363683
+Content-Disposition: attachment;
+	filename=atsc_epg.diff
+Content-Type: application/octet-stream;
+	name="atsc_epg.diff"
+Content-Transfer-Encoding: 7bit
 
+diff -r 5d49967c2184 util/atsc_epg/atsc_epg.c
+--- a/util/atsc_epg/atsc_epg.c  Sun May 02 10:31:40 2010 +0200
++++ b/util/atsc_epg/atsc_epg.c  Sat May 08 15:25:07 2010 -0400
+@@ -60,8 +60,8 @@
+ void (*old_handler)(int);
+ 
+ struct atsc_string_buffer {
+-       int buf_len;
+-       int buf_pos;
++       size_t buf_len;
++       size_t buf_pos;
+        char *string;
+ };
+ 
+@@ -71,8 +71,8 @@
+        struct tm end;
+        int title_pos;
+        int title_len;
+-       int msg_pos;
+-       int msg_len;
++       size_t msg_pos;
++       size_t msg_len;
+ };
+ 
+ struct atsc_eit_section_info {
+@@ -651,8 +651,8 @@
+                                e_info->title_pos = curr_info->title_buf.buf_pos;
+                                if(0 > atsc_text_segment_decode(seg,
+                                        (uint8_t **)&curr_info->title_buf.string,
+-                                       (size_t *)&curr_info->title_buf.buf_len,
+-                                       (size_t *)&curr_info->title_buf.buf_pos)) {
++                                       &curr_info->title_buf.buf_len,
++                                       &curr_info->title_buf.buf_pos)) {
+                                        fprintf(stderr, "%s(): error calling "
+                                                "atsc_text_segment_decode()\n",
+                                                __FUNCTION__);
+
+--Apple-Mail-5-834363683
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=us-ascii
+
+
+Mathieu Rene
+Avant-Garde Solutions Inc
+Office: + 1 (514) 664-1044 x100
+Cell: +1 (514) 664-1044 x200
+mrene@avgs.ca
+
+
+
+
+
+--Apple-Mail-5-834363683--
