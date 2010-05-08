@@ -1,108 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3609 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752214Ab0EGNNq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 May 2010 09:13:46 -0400
-Date: Fri, 7 May 2010 09:13:29 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-Cc: Dan Carpenter <error27@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] IR/imon: remove dead IMON_KEY_RELEASE_OFFSET
-Message-ID: <20100507131329.GA24239@redhat.com>
-References: <20100504122030.GX29093@bicker>
- <20100504140318.GA10813@redhat.com>
- <20100504160641.GZ29093@bicker>
- <20100504191705.GB10813@redhat.com>
- <4BE3FEE0.4000502@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4BE3FEE0.4000502@gmail.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1844 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751473Ab0EHS0y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 May 2010 14:26:54 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o48IQqOc042031
+	for <linux-media@vger.kernel.org>; Sat, 8 May 2010 20:26:53 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 8 May 2010 20:26:52 +0200 (CEST)
+Message-Id: <201005081826.o48IQqOc042031@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 07, 2010 at 08:52:00AM -0300, Mauro Carvalho Chehab wrote:
-> Jarod Wilson wrote:
-> > On Tue, May 04, 2010 at 06:06:41PM +0200, Dan Carpenter wrote:
-> >> On Tue, May 04, 2010 at 10:03:18AM -0400, Jarod Wilson wrote:
-> >>> @@ -1205,7 +1204,7 @@ static u32 imon_panel_key_lookup(u64 hw_code)
-> >>>  		if (imon_panel_key_table[i].hw_code == (code | 0xffee))
-> >>>  			break;
-> >>>  
-> >>> -	keycode = imon_panel_key_table[i % IMON_KEY_RELEASE_OFFSET].keycode;
-> >>> +	keycode = imon_panel_key_table[i].keycode;
-> >>>  
-> >>>  	return keycode;
-> >>>  }
-> >> There is still potentially a problem here because if we don't hit the 
-> >> break statement, then we're one past the end of the array.
-> > 
-> > D'oh. Okay, here's v2, should fix that buglet too.
-> > 
-> > This hack was used when the imon driver was using internal key lookup
-> > routines, but became dead weight when the driver was converted to use
-> > ir-core's key lookup routines. These bits simply didn't get removed,
-> > drop 'em now.
-> > 
-> > Pointed out by Dan Carpenter.
-> > 
-> > v2: fix possible attempt to access beyond end of key table array,
-> > also pointed out by Dan.
-> 
-> -ENOSOB
-> 
-> Please, add your SOB here ;)
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-D'oh.
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+date:        Sat May  8 19:00:17 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14644:4a8d6d981f07
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 08b8618ac4dbcd05ec1886853b1d865798d26e1d
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
+linux-2.6.32.6-armv5: ERRORS
+linux-2.6.33-armv5: ERRORS
+linux-2.6.34-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: OK
+linux-2.6.34-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: ERRORS
+linux-2.6.33-m32r: ERRORS
+linux-2.6.34-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: ERRORS
+linux-2.6.34-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: ERRORS
+linux-2.6.34-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc1-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-> > ---
-> >  drivers/media/IR/imon.c |   12 ++++++------
-> >  1 files changed, 6 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
-> > index 27743eb..efe219a 100644
-> > --- a/drivers/media/IR/imon.c
-> > +++ b/drivers/media/IR/imon.c
-> > @@ -55,7 +55,6 @@
-> >  #define BIT_DURATION	250	/* each bit received is 250us */
-> >  
-> >  #define IMON_CLOCK_ENABLE_PACKETS	2
-> > -#define IMON_KEY_RELEASE_OFFSET		1000
-> >  
-> >  /*** P R O T O T Y P E S ***/
-> >  
-> > @@ -1199,13 +1198,14 @@ static u32 imon_panel_key_lookup(u64 hw_code)
-> >  {
-> >  	int i;
-> >  	u64 code = be64_to_cpu(hw_code);
-> > -	u32 keycode;
-> > +	u32 keycode = KEY_RESERVED;
-> >  
-> > -	for (i = 0; i < ARRAY_SIZE(imon_panel_key_table); i++)
-> > -		if (imon_panel_key_table[i].hw_code == (code | 0xffee))
-> > +	for (i = 0; i < ARRAY_SIZE(imon_panel_key_table); i++) {
-> > +		if (imon_panel_key_table[i].hw_code == (code | 0xffee)) {
-> > +			keycode = imon_panel_key_table[i].keycode;
-> >  			break;
-> > -
-> > -	keycode = imon_panel_key_table[i % IMON_KEY_RELEASE_OFFSET].keycode;
-> > +		}
-> > +	}
-> >  
-> >  	return keycode;
-> >  }
-> > 
-> 
-> 
-> -- 
-> 
-> Cheers,
-> Mauro
+Detailed results are available here:
 
--- 
-Jarod Wilson
-jarod@redhat.com
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
