@@ -1,79 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:59563 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754305Ab0EWWCC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 May 2010 18:02:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH 00/15] [RFCv2] [RFC] New control handling framework
-Date: Mon, 24 May 2010 00:03:45 +0200
-Cc: linux-media@vger.kernel.org
-References: <cover.1274015084.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1274015084.git.hverkuil@xs4all.nl>
+Received: from mail-qy0-f183.google.com ([209.85.221.183]:56865 "EHLO
+	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751531Ab0EHVSc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 May 2010 17:18:32 -0400
+Received: by qyk13 with SMTP id 13so3749365qyk.1
+        for <linux-media@vger.kernel.org>; Sat, 08 May 2010 14:18:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005240003.46988.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <f8f6b7c78cd8469f838fc084573dbe8b.squirrel@webmail.ovh.net>
+References: <f8f6b7c78cd8469f838fc084573dbe8b.squirrel@webmail.ovh.net>
+Date: Sat, 8 May 2010 17:18:30 -0400
+Message-ID: <p2n83bcf6341005081418n5ca9fd49q44ad21dddb80301f@mail.gmail.com>
+Subject: Re: [PATCH] dvb_frontend: fix typos in comments and one function
+From: Steven Toth <stoth@kernellabs.com>
+To: guillaume.audirac@webag.fr
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This and your other two patches are in
+http://www.kernellabs.com/hg/~stoth/saa7164-dev
 
-Thanks for the update.
+They look good to me.
 
-On Sunday 16 May 2010 15:20:43 Hans Verkuil wrote:
-> This RFC patch series adds the control handling framework and implements
-> it in ivtv and all subdev drivers used by ivtv.
-> 
-> It is a bare-bones implementation, so no sysfs or debugfs enhancements.
-> 
-> It is the second version of this framework, incorporating comments from
-> Laurent.
-> 
-> Changes compared to the first version:
-> 
-> - Updated the documentation, hopefully making it easier to understand.
-> - v4l2_ctrl_new_custom now uses a new v4l2_ctrl_config struct instead of
->   a long argument list.
-> - v4l2_ctrl_g/s is now renamed to v4l2_ctrl_g/s_ctrl.
-> - The v4l2_ctrl.h header now uses kernel doc comments.
-> - Removed the 'strict validation' feature.
-> - Added a new .init op that allows you to initialize many of the v4l2_ctrl
->   fields on first use. Required by uvc.
-> - No longer needed to initialize ctrl_handler in struct video_device. It
->   will copy the ctrl_handler from struct v4l2_device if needed.
-> - Renamed the v4l2_sd_* helper functions to v4l2_subdev_*.
-> 
-> I decided *not* to rename the v4l2_ctrl struct. What does the struct
-> describe? A control. Period. So I really don't know what else to call it.
-> Every other name I can think of is contrived. It really encapsulates all
-> the data and info that describes a control and its state. Yes, it is close
-> to struct v4l2_control, but on the other hand any driver that uses this
-> framework will no longer use v4l2_control (or v4l2_ext_controls for that
-> matter). It will only use v4l2_ctrl. So I do not think there will be much
-> cause for confusion here.
+- Steve
 
-OK. It will still be a bit confusing, but renaming the structure might be 
-worse.
+On Thu, May 6, 2010 at 8:30 AM, Guillaume Audirac
+<guillaume.audirac@webag.fr> wrote:
+> Hello,
+>
+> Trivial patch for typos.
+>
+>
+>
+>
+>
+> Signed-off-by: Guillaume Audirac <guillaume.audirac@webag.fr>
+> ---
+>  drivers/media/dvb/dvb-core/dvb_frontend.c |   10 +++++-----
+>  1 files changed, 5 insertions(+), 5 deletions(-)
+>
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index 55ea260..e12a0f9 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -460,7 +460,7 @@ static void dvb_frontend_swzigzag(struct dvb_frontend
+> *fe)
+>        if ((fepriv->state & FESTATE_SEARCHING_FAST) || (fepriv->state &
+> FESTATE_RETUNE)) {
+>                fepriv->delay = fepriv->min_delay;
+>
+> -               /* peform a tune */
+> +               /* perform a tune */
+>                retval = dvb_frontend_swzigzag_autotune(fe,
+>                                                        fepriv->check_wrapped);
+>                if (retval < 0) {
+> @@ -783,7 +783,7 @@ static int dvb_frontend_start(struct dvb_frontend *fe)
+>        return 0;
+>  }
+>
+> -static void dvb_frontend_get_frequeny_limits(struct dvb_frontend *fe,
+> +static void dvb_frontend_get_frequency_limits(struct dvb_frontend *fe,
+>                                        u32 *freq_min, u32 *freq_max)
+>  {
+>        *freq_min = max(fe->ops.info.frequency_min,
+> fe->ops.tuner_ops.info.frequency_min);
+> @@ -807,7 +807,7 @@ static int dvb_frontend_check_parameters(struct
+> dvb_frontend *fe,
+>        u32 freq_max;
+>
+>        /* range check: frequency */
+> -       dvb_frontend_get_frequeny_limits(fe, &freq_min, &freq_max);
+> +       dvb_frontend_get_frequency_limits(fe, &freq_min, &freq_max);
+>        if ((freq_min && parms->frequency < freq_min) ||
+>            (freq_max && parms->frequency > freq_max)) {
+>                printk(KERN_WARNING "DVB: adapter %i frontend %i frequency %u out of
+> range (%u..%u)\n",
+> @@ -1620,7 +1620,7 @@ static int dvb_frontend_ioctl_legacy(struct inode
+> *inode, struct file *file,
+>        case FE_GET_INFO: {
+>                struct dvb_frontend_info* info = parg;
+>                memcpy(info, &fe->ops.info, sizeof(struct dvb_frontend_info));
+> -               dvb_frontend_get_frequeny_limits(fe, &info->frequency_min,
+> &info->frequency_max);
+> +               dvb_frontend_get_frequency_limits(fe, &info->frequency_min,
+> &info->frequency_max);
+>
+>                /* Force the CAN_INVERSION_AUTO bit on. If the frontend doesn't
+>                 * do it, it is done for it. */
+> @@ -1719,7 +1719,7 @@ static int dvb_frontend_ioctl_legacy(struct inode
+> *inode, struct file *file,
+>                         * (stv0299 for instance) take longer than 8msec to
+>                         * respond to a set_voltage command.  Those switches
+>                         * need custom routines to switch properly.  For all
+> -                        * other frontends, the following shoule work ok.
+> +                        * other frontends, the following should work ok.
+>                         * Dish network legacy switches (as used by Dish500)
+>                         * are controlled by sending 9-bit command words
+>                         * spaced 8msec apart.
+> --
+> 1.6.3.3
+>
+>
+> --
+> Guillaume
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-Should we decide on a naming policy for kernel vs. user structures in V4L2 for 
-new APIs ?
 
-> Anyway, comments are welcome.
-> 
-> Once this is in then we can start migrating all subdev drivers to this
-> framework, followed by all bridge drivers. Converted subdev drivers can
-> still be used by unconverted bridge drivers. Once all bridge drivers are
-> converted the subdev backwards compatibility code can be removed.
-> 
-> The same is true for the cx2341x module: both converted and unconverted
-> bridge drivers are supported. Once all bridge drivers that use this module
-> are converted the compat code can be removed from cx2341x (and that will
-> save about 1060 lines of hard to understand code).
 
 -- 
-Regards,
-
-Laurent Pinchart
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
