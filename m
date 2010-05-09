@@ -1,88 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail18.adl2.internode.on.net ([150.101.137.103]:48891 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756683Ab0EZPd0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 11:33:26 -0400
-Message-ID: <4BFD3F42.8070806@gmail.com>
-Date: Thu, 27 May 2010 01:33:22 +1000
-From: Jed <jedi.theone@gmail.com>
-MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ideal DVB-C PCI/e card? [linux-media]
-References: <4BF8D735.9070400@gmail.com>	<4BF9717D.9080209@s5r6.in-berlin.de>	<4BFA1F26.7070709@gmail.com>	<4BFC2691.1040203@s5r6.in-berlin.de>	<AANLkTikStvq6xhdS-e5skEy0LiTMSEBntIyBcb_AK7tc@mail.gmail.com>	<4BFCA843.2080203@gmail.com>	<4BFCAB05.4000104@gmail.com> <AANLkTilkwWVkHgUV2YBcpscsbeUt6GSCpudc0F7W-OSX@mail.gmail.com> <4BFCC741.8070204@gmail.com>
-In-Reply-To: <4BFCC741.8070204@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2528 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753147Ab0EINzr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 09:55:47 -0400
+Message-Id: <fd7b8109f9b34c40670cc8a3072e4917bb409eb3.1273413060.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1273413060.git.hverkuil@xs4all.nl>
+References: <cover.1273413060.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sun, 09 May 2010 15:57:18 +0200
+Subject: [PATCH 5/6] [RFC] tvp514x: remove obsolete fmt_list
+To: linux-media@vger.kernel.org
+Cc: hvaibhav@ti.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>>>>>>> If you need two receivers but can only spare up to one PCI or PCIe
->>>>>>>> slot,
->>>>>>>> why not use two USB or FireWire attached receivers?
->>>>>>>>
->>>>>>>> FireWire ones seem to be out of production now though and weren't
->>>>>>>> exactly on the cheap side. OTOH one can drive up to 3 DVB FireWire
->>>>>>>> receivers on a single FireWire bus; and for those who need even
->>>>>>>> more
->>>>>>>> there are dual link FireWire PCI and PCIe cards readily available.
->>>>>>>
->>>>>>> Thanks for offering your thoughts Stefan.
->>>>>>> Any specific recommendations?
->>>>>>>
->>>>>>> Ideally I want two or more dvb-c tuners in a pci/e form-factor.
->>>>>>>
->>>>>>> If there's FW or USB tuners that are mounted onto a PCI/e card, work
->>>>>>> well in Linux, & are relatively cheap, then I'd love to know!
->>>>>>
->>>>>> We have USB DVB-C/T hybrid devices which are supported with Linux.
->>>>>>
->>>>>> http://support.sundtek.com/index.php/topic,4.0.html (the driver is
->>>>>> mostly independent from
->>>>>> Linux Kernels).
->>>>>>
->>>>>> Aside of that we just made it work on a Dreambox 800 (300 Mhz MIPS as
->>>>>> well, and looking forward
->>>>>> to support other platforms as well).
->>>>>>
->>>>>> http://sundtek.com/shop/Digital-TV-Sticks/Sundtek-MediaTV-Digital-Home-DVB-CT.html
->>>>>>
->>>>>> Best Regards,
->>>>>> Markus
->>>>>
->>>>> Thanks but I'd prefer PCI/e form-factor...
->>>>> If there's something fw or usb-based x2,& squeezed into that
->>>>> form-factor, I'm very interested!
->>>>
->>>> I may only have room for 1x pci/e dvb-c card (hopefully one that has two
->>>> single fw tuners mounted).
->>>> So I may still look at USB based tuners like yours...
->>>
->>> There are also MiniPCIe USB DVB-C/T solutions available, although we
->>> have only seen single
->>> PCIe - MiniPCIe solutions yet (and those required an additional
->>> internal USB connection for the USB part)
->>> Another option might be a PCI/PCIe USB Bridge + USB DVB-C, we tested
->>> 3x USB DVB-C devices
->>> with a notebook at the same time (maybe 4 are possible, our test PC
->>> only had 3x USB Slots back then).
->>
->> Not sure what you mean, I don't suppose you could clarify?
->>
->> You mean I might be able to buy 2x mini-PCIe cards that can be mounted
->> onto a PCIe <-> USB bridge & then that card (bridge) will have two usb
->> cables that need to be connected to 2 USB headers on the motherboard?
->>
->> If yes, that'd be fairly pricey wouldn't it?
->
-> I'm only writing about the technical possibilities.
-> Personally I prefer the USB Dongles, since they are flexible. Once you
-> leave your
-> home you can just unplug the DVB-C tuner connect it to a
-> notebook/netbook and use
-> it for FM, analog TV or DVB-T.
->
-> Markus
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/tvp514x.c |   15 ---------------
+ 1 files changed, 0 insertions(+), 15 deletions(-)
 
-Oh, so you're not aware of anything like that, which is purchasable?
+diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
+index 4e22621..1c3417b 100644
+--- a/drivers/media/video/tvp514x.c
++++ b/drivers/media/video/tvp514x.c
+@@ -198,21 +198,6 @@ static struct tvp514x_reg tvp514x_reg_list_default[] = {
+ };
+ 
+ /**
+- * List of image formats supported by TVP5146/47 decoder
+- * Currently we are using 8 bit mode only, but can be
+- * extended to 10/20 bit mode.
+- */
+-static const struct v4l2_fmtdesc tvp514x_fmt_list[] = {
+-	{
+-	 .index = 0,
+-	 .type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-	 .flags = 0,
+-	 .description = "8-bit UYVY 4:2:2 Format",
+-	 .pixelformat = V4L2_PIX_FMT_UYVY,
+-	},
+-};
+-
+-/**
+  * Supported standards -
+  *
+  * Currently supports two standards only, need to add support for rest of the
+-- 
+1.6.4.2
+
