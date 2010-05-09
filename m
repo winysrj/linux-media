@@ -1,84 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:58381 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758219Ab0EXSE1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 14:04:27 -0400
-Date: Mon, 24 May 2010 20:04:23 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Dan Carpenter <error27@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Beholder Intl. Ltd. Dmitry Belimov" <d.belimov@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch v2] video/saa7134: change dprintk() to i2cdprintk()
-Message-ID: <20100524200423.537a2895@hyperion.delvare>
-In-Reply-To: <20100524155936.GZ22515@bicker>
-References: <20100522201535.GI22515@bicker>
-	<20100522225921.585b2d72@hyperion.delvare>
-	<20100524155936.GZ22515@bicker>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:40120 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750967Ab0EISqa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 14:46:30 -0400
+Received: by bwz19 with SMTP id 19so1391320bwz.21
+        for <linux-media@vger.kernel.org>; Sun, 09 May 2010 11:46:28 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Tim Coote <tim+vger.kernel.org@coote.org>
+Subject: Re: setting up a tevii s660
+Date: Sun, 9 May 2010 21:46:23 +0300
+Cc: linux-media@vger.kernel.org
+References: <E23F27D7-CF5B-4F6B-9656-EB63E7005BD0@coote.org>
+In-Reply-To: <E23F27D7-CF5B-4F6B-9656-EB63E7005BD0@coote.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201005092146.23620.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dan,
-
-On Mon, 24 May 2010 17:59:36 +0200, Dan Carpenter wrote:
-> The problem is that dprintk() dereferences "dev" which is null here.
-> The i2cdprintk() uses "ir" so that's OK.
-> 
-> Also removed a duplicated break statement.
-
-Mixing two unrelated fixes in the same patch is a bad idea. Here, the
-replacement of dprintk() with i2cdprintk() fixes a potential NULL
-pointer dereference, this might be worth backporting to stable kernel
-series. The double break, OTOH, can't cause any harm, it's a simple
-clean-up. So separate patches would be preferable.
-
-> 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> ---
-> v2: Jean Delvare suggested that I use i2cdprintk() instead of modifying
-> dprintk().
-> 
-> diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-> index e5565e2..7691bf2 100644
-> --- a/drivers/media/video/saa7134/saa7134-input.c
-> +++ b/drivers/media/video/saa7134/saa7134-input.c
-> @@ -141,8 +141,8 @@ static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
->  	struct saa7134_dev *dev = ir->c->adapter->algo_data;
->  
->  	if (dev == NULL) {
-> -		dprintk("get_key_flydvb_trio: "
-> -			 "gir->c->adapter->algo_data is NULL!\n");
-> +		i2cdprintk("get_key_flydvb_trio: "
-> +			   "gir->c->adapter->algo_data is NULL!\n");
->  		return -EIO;
->  	}
->  
-> @@ -195,8 +195,8 @@ static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, u32 *ir_key,
->  	/* <dev> is needed to access GPIO. Used by the saa_readl macro. */
->  	struct saa7134_dev *dev = ir->c->adapter->algo_data;
->  	if (dev == NULL) {
-> -		dprintk("get_key_msi_tvanywhere_plus: "
-> -			"gir->c->adapter->algo_data is NULL!\n");
-> +		i2cdprintk("get_key_msi_tvanywhere_plus: "
-> +			   "gir->c->adapter->algo_data is NULL!\n");
->  		return -EIO;
->  	}
->  
-> @@ -815,7 +815,6 @@ int saa7134_input_init1(struct saa7134_dev *dev)
->  		mask_keyup   = 0x020000;
->  		polling      = 50; /* ms */
->  		break;
-> -	break;
->  	}
->  	if (NULL == ir_codes) {
->  		printk("%s: Oops: IR config error [card=%d]\n",
-
-Acked-by: Jean Delvare <khali@linux-fr.org>
-
+On 6 мая 2010 02:07:38 Tim Coote wrote:
+> Hullo
+> I've been struggling with this for a couple of days. I have checked
+> archives, but missed anything useful.
+>
+> I've got a tevii s660 (dvbs2 via usb). It works with some limitations
+> on windows xp (I cannot get HD signals decoded, but think that's a
+> limitation of the software that comes on the CD).
+>
+> I'm trying to get this working on Linux. I've tried VMs based on
+> fedora 12 and mythbuntu (VMWare Fusion on a MacBookPro, both based on
+> kernel 2.6.32), using the drivers from tevii's site
+> (www.tevii.com/support.asp) . these drivers are slightly modified versions
+> of the v4l tip - but don't appear to be modified where I've not yet managed
+> to get the
+> drivers working :-(.  Mythbuntu seems to be closest to working.
+> Goodness knows how tevii tested the code, but it doesn't seem to work
+> as far as I can see.  My issues could just be down to using a VM.
+>
+> I believe that I need to load up the modules ds3000 and dvb-usb-
+> dw2102, + add a rule to /etc/udev/rules.d and a script to /etc/udev/
+> scripts.
+>
+> I think that I must be missing quite a lot of context, tho'. When I
+> look at the code in dw2102.c, which seems to support the s660, the bit
+> that downloads the firmware looks broken and if I add a default clause
+> to the switch that does the download, the s660's missed the download
+> process.  This could be why when I do get anything out of the device
+> it looks like I'm just getting repeated bytes (the same value
+> repeated, different values at different times, sometimes nothing).
+> I'm finding it non-trivial working out the call sequences of the code
+> or devising repeatable tests.
+>
+> Can anyone kick me off on getting this working? I'd like to at least
+> get to the point where scandvb can tune the device. It does look like
+> some folk have had success in the past, but probably with totally
+> different codebase (there are posts that refer to the teviis660
+> module, which I cannot find).
+>
+> Any pointer gratefully accepted. I'll feed back any success if I can
+> be pointed at where to drop document it.
+>
+> tia
+>
+> Tim
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi!
+Read this:
+http://forum.free-x.de/wbb/index.php?page=Thread&threadID=601&pageNo=6
+Useful to translate from Russian:
+http://babelfish.yahoo.com/translate_txt
+Best regards
 -- 
-Jean Delvare
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
