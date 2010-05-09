@@ -1,42 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:61953 "EHLO
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:49046 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754426Ab0EaBVX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 21:21:23 -0400
-Received: by fxm10 with SMTP id 10so2047672fxm.19
-        for <linux-media@vger.kernel.org>; Sun, 30 May 2010 18:21:22 -0700 (PDT)
-Date: Mon, 31 May 2010 03:21:18 +0200
-From: Davor Emard <davoremard@gmail.com>
-To: Samuel =?utf-8?Q?Rakitni=C4=8Dan?= <samuel.rakitnican@gmail.com>
-Cc: semiRocket <semirocket@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Compro Videomate T750F Vista digital+analog support
-Message-ID: <20100531012117.GA15601@emard.lan>
-References: <20100508160628.GA6050@z60m>
- <op.vceiu5q13xmt7q@crni>
- <AANLkTinMYcgG6Ac73Vgdx8NMYocW8Net6_-dMC3yEflQ@mail.gmail.com>
- <AANLkTikbpZ0LM5rK70abVuJS27j0lT7iZs12DrSKB9wI@mail.gmail.com>
- <op.vcfoxwnq3xmt7q@crni>
- <20100509173243.GA8227@z60m>
- <op.vcga9rw2ndeod6@crni>
- <20100509231535.GA6334@z60m>
- <op.vcsntos43xmt7q@crni>
- <op.vc551isrndeod6@crni>
+	with ESMTP id S1750899Ab0EITAY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 15:00:24 -0400
+Received: by fxm10 with SMTP id 10so1833459fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 09 May 2010 12:00:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <op.vc551isrndeod6@crni>
+In-Reply-To: <201005092134.45226.liplianin@me.by>
+References: <1273135577.16031.11.camel@plop>
+	 <201005092134.45226.liplianin@me.by>
+Date: Sun, 9 May 2010 23:00:22 +0400
+Message-ID: <AANLkTikKEnpDjTTUI8DhYFUPmwOyP0bOJ58ma-wWAPvF@mail.gmail.com>
+Subject: Re: stv090x vs stv0900
+From: Manu Abraham <abraham.manu@gmail.com>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: Pascal Terjan <pterjan@mandriva.com>,
+	"Igor M. Liplianin" <liplianin@netup.ru>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI!
+2010/5/9 Igor M. Liplianin <liplianin@me.by>:
+>> Also, are they both maintained ? I wrote a patch to add get_frontend to
+>> stv090x but stv0900 also does not have it and I don't know which one
+>> should get new code.
+>>
+>> And stv6110x seems to also handle stv6110 which also exists as a
+>> separate module...
+> In time when I commit stv0900(stv6110 as well) there wasn't any driver for stv0900/stv0903.
+> Now I'm wondering like you.
 
-Can you also try this GPIO settings? It's my try to use last summer's
-registers dump to setup gpio mask and value
 
-	case SAA7134_BOARD_VIDEOMATE_T750:
-		dev->has_remote = SAA7134_REMOTE_GPIO;
-		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x8082c000, 0x8082c000);
-		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x8082c000, 0x0080c000);
-		break;
+Quite strange indeed..
+
+http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030492.html
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg13353.html
