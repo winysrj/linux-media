@@ -1,139 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.tkos.co.il ([62.219.50.35]:49973 "EHLO tango.tkos.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758455Ab0EFONX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 May 2010 10:13:23 -0400
-From: Baruch Siach <baruch@tkos.co.il>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3749 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752939Ab0EIT1v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 15:27:51 -0400
+Received: from localhost (cm-84.208.87.21.getinternet.no [84.208.87.21])
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o49JRm1M090728
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 9 May 2010 21:27:49 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Message-Id: <ed5be5d1adeee5e641dc03fcb7a1ab92bc8ec3f5.1273432986.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1273432986.git.hverkuil@xs4all.nl>
+References: <cover.1273432986.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sun, 09 May 2010 21:29:24 +0200
+Subject: [PATCH 6/7] [RFC] ivtv: drop priority handling, use core framework for this.
 To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCH 3/3] mx25: add support for the CSI device
-Date: Thu,  6 May 2010 16:09:41 +0300
-Message-Id: <e2a1cd7e286c8fe799cbbd145b1eb8e7dcea90ee.1273150585.git.baruch@tkos.co.il>
-In-Reply-To: <cover.1273150585.git.baruch@tkos.co.il>
-References: <cover.1273150585.git.baruch@tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- arch/arm/mach-mx25/clock.c            |   14 ++++++++++++--
- arch/arm/mach-mx25/devices.c          |   22 ++++++++++++++++++++++
- arch/arm/mach-mx25/devices.h          |    1 +
- arch/arm/plat-mxc/include/mach/mx25.h |    2 ++
- 4 files changed, 37 insertions(+), 2 deletions(-)
+ drivers/media/video/ivtv/ivtv-driver.h  |    2 -
+ drivers/media/video/ivtv/ivtv-fileops.c |    2 -
+ drivers/media/video/ivtv/ivtv-ioctl.c   |   41 -------------------------------
+ 3 files changed, 0 insertions(+), 45 deletions(-)
 
-diff --git a/arch/arm/mach-mx25/clock.c b/arch/arm/mach-mx25/clock.c
-index 1550149..7a98d18 100644
---- a/arch/arm/mach-mx25/clock.c
-+++ b/arch/arm/mach-mx25/clock.c
-@@ -129,6 +129,11 @@ static unsigned long get_rate_lcdc(struct clk *clk)
- 	return get_rate_per(7);
+diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
+index 584c8e0..136214c 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.h
++++ b/drivers/media/video/ivtv/ivtv-driver.h
+@@ -379,7 +379,6 @@ struct ivtv_open_id {
+ 	u32 open_id;                    /* unique ID for this file descriptor */
+ 	int type;                       /* stream type */
+ 	int yuv_frames;                 /* 1: started OUT_UDMA_YUV output mode */
+-	enum v4l2_priority prio;        /* priority */
+ 	struct ivtv *itv;
+ };
+ 
+@@ -704,7 +703,6 @@ struct ivtv {
+ 
+ 	/* Miscellaneous */
+ 	u32 open_id;			/* incremented each time an open occurs, is >= 1 */
+-	struct v4l2_prio_state prio;    /* priority state */
+ 	int search_pack_header;         /* 1 if ivtv_copy_buf_to_user() is scanning for a pack header (0xba) */
+ 	int speed;                      /* current playback speed setting */
+ 	u8 speed_mute_audio;            /* 1 if audio should be muted when fast forward */
+diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
+index abf4109..083a586 100644
+--- a/drivers/media/video/ivtv/ivtv-fileops.c
++++ b/drivers/media/video/ivtv/ivtv-fileops.c
+@@ -853,7 +853,6 @@ int ivtv_v4l2_close(struct file *filp)
+ 
+ 	IVTV_DEBUG_FILE("close %s\n", s->name);
+ 
+-	v4l2_prio_close(&itv->prio, id->prio);
+ 	v4l2_fh_del(fh);
+ 	v4l2_fh_exit(fh);
+ 
+@@ -949,7 +948,6 @@ static int ivtv_serialized_open(struct ivtv_stream *s, struct file *filp)
+ 	}
+ 	item->itv = itv;
+ 	item->type = s->type;
+-	v4l2_prio_open(&itv->prio, &item->prio);
+ 
+ 	item->open_id = itv->open_id++;
+ 	filp->private_data = &item->fh;
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index fa9f0d9..c532b77 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -748,23 +748,6 @@ static int ivtv_s_register(struct file *file, void *fh, struct v4l2_dbg_register
  }
+ #endif
  
-+static unsigned long get_rate_csi(struct clk *clk)
-+{
-+	return get_rate_per(0);
-+}
-+
- static unsigned long get_rate_otg(struct clk *clk)
+-static int ivtv_g_priority(struct file *file, void *fh, enum v4l2_priority *p)
+-{
+-	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
+-
+-	*p = v4l2_prio_max(&itv->prio);
+-
+-	return 0;
+-}
+-
+-static int ivtv_s_priority(struct file *file, void *fh, enum v4l2_priority prio)
+-{
+-	struct ivtv_open_id *id = fh;
+-	struct ivtv *itv = id->itv;
+-
+-	return v4l2_prio_change(&itv->prio, &id->prio, prio);
+-}
+-
+ static int ivtv_querycap(struct file *file, void *fh, struct v4l2_capability *vcap)
  {
- 	return 48000000; /* FIXME */
-@@ -174,6 +179,8 @@ DEFINE_CLOCK(cspi3_clk,  0, CCM_CGCR1,  7, get_rate_ipg, NULL, NULL);
- DEFINE_CLOCK(fec_ahb_clk, 0, CCM_CGCR0, 23, NULL,	 NULL, NULL);
- DEFINE_CLOCK(lcdc_ahb_clk, 0, CCM_CGCR0, 24, NULL,	 NULL, NULL);
- DEFINE_CLOCK(lcdc_per_clk, 0, CCM_CGCR0,  7, NULL,	 NULL, &lcdc_ahb_clk);
-+DEFINE_CLOCK(csi_ahb_clk, 0, CCM_CGCR0, 18, get_rate_csi, NULL, NULL);
-+DEFINE_CLOCK(csi_per_clk, 0, CCM_CGCR0, 0, get_rate_csi, NULL, &csi_ahb_clk);
- DEFINE_CLOCK(uart1_clk,  0, CCM_CGCR2, 14, get_rate_uart, NULL, &uart_per_clk);
- DEFINE_CLOCK(uart2_clk,  0, CCM_CGCR2, 15, get_rate_uart, NULL, &uart_per_clk);
- DEFINE_CLOCK(uart3_clk,  0, CCM_CGCR2, 16, get_rate_uart, NULL, &uart_per_clk);
-@@ -191,6 +198,7 @@ DEFINE_CLOCK(i2c_clk,	 0, CCM_CGCR0,  6, get_rate_i2c, NULL, NULL);
- DEFINE_CLOCK(fec_clk,	 0, CCM_CGCR1, 15, get_rate_ipg, NULL, &fec_ahb_clk);
- DEFINE_CLOCK(dryice_clk, 0, CCM_CGCR1,  8, get_rate_ipg, NULL, NULL);
- DEFINE_CLOCK(lcdc_clk,	 0, CCM_CGCR1, 29, get_rate_lcdc, NULL, &lcdc_per_clk);
-+DEFINE_CLOCK(csi_clk,    0, CCM_CGCR1,  4, get_rate_csi, NULL,  &csi_per_clk);
+ 	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
+@@ -1833,30 +1816,8 @@ static long ivtv_serialized_ioctl(struct ivtv *itv, struct file *filp,
+ 		unsigned int cmd, unsigned long arg)
+ {
+ 	struct video_device *vfd = video_devdata(filp);
+-	struct ivtv_open_id *id = fh2id(filp->private_data);
+ 	long ret;
  
- #define _REGISTER_CLOCK(d, n, c)	\
- 	{				\
-@@ -225,6 +233,7 @@ static struct clk_lookup lookups[] = {
- 	_REGISTER_CLOCK("fec.0", NULL, fec_clk)
- 	_REGISTER_CLOCK("imxdi_rtc.0", NULL, dryice_clk)
- 	_REGISTER_CLOCK("imx-fb.0", NULL, lcdc_clk)
-+	_REGISTER_CLOCK("mx2-camera.0", NULL, csi_clk)
- };
+-	/* check priority */
+-	switch (cmd) {
+-	case VIDIOC_S_CTRL:
+-	case VIDIOC_S_STD:
+-	case VIDIOC_S_INPUT:
+-	case VIDIOC_S_OUTPUT:
+-	case VIDIOC_S_TUNER:
+-	case VIDIOC_S_FREQUENCY:
+-	case VIDIOC_S_FMT:
+-	case VIDIOC_S_CROP:
+-	case VIDIOC_S_AUDIO:
+-	case VIDIOC_S_AUDOUT:
+-	case VIDIOC_S_EXT_CTRLS:
+-	case VIDIOC_S_FBUF:
+-	case VIDIOC_S_PRIORITY:
+-	case VIDIOC_OVERLAY:
+-		ret = v4l2_prio_check(&itv->prio, id->prio);
+-		if (ret)
+-			return ret;
+-	}
+-
+ 	if (ivtv_debug & IVTV_DBGFLG_IOCTL)
+ 		vfd->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
+ 	ret = video_ioctl2(filp, cmd, arg);
+@@ -1881,8 +1842,6 @@ long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
  
- int __init mx25_clocks_init(void)
-@@ -239,8 +248,9 @@ int __init mx25_clocks_init(void)
- 	__raw_writel((0xf << 16) | (3 << 26), CRM_BASE + CCM_CGCR1);
- 	__raw_writel((1 << 5), CRM_BASE + CCM_CGCR2);
- 
--	/* Clock source for lcdc is upll */
--	__raw_writel(__raw_readl(CRM_BASE+0x64) | (1 << 7), CRM_BASE + 0x64);
-+	/* Clock source for lcdc and csi is upll */
-+	__raw_writel(__raw_readl(CRM_BASE+0x64) | (1 << 7) | (1 << 0),
-+			CRM_BASE + 0x64);
- 
- 	mxc_timer_init(&gpt_clk, MX25_IO_ADDRESS(MX25_GPT1_BASE_ADDR), 54);
- 
-diff --git a/arch/arm/mach-mx25/devices.c b/arch/arm/mach-mx25/devices.c
-index 3f4b8a0..bc6d189 100644
---- a/arch/arm/mach-mx25/devices.c
-+++ b/arch/arm/mach-mx25/devices.c
-@@ -500,3 +500,25 @@ struct platform_device mx25_fb_device = {
- 		.coherent_dma_mask = 0xFFFFFFFF,
- 	},
- };
-+
-+static struct resource mx25_csi_resources[] = {
-+	{
-+		.start	= MX25_CSI_BASE_ADDR,
-+		.end	= MX25_CSI_BASE_ADDR + 0xfff,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= MX25_INT_CSI,
-+		.flags	= IORESOURCE_IRQ
-+	},
-+};
-+
-+struct platform_device mx25_csi_device = {
-+	.name	= "mx2-camera",
-+	.id	= 0,
-+	.num_resources	= ARRAY_SIZE(mx25_csi_resources),
-+	.resource	= mx25_csi_resources,
-+	.dev		= {
-+		.coherent_dma_mask = 0xFFFFFFFF,
-+	},
-+};
-diff --git a/arch/arm/mach-mx25/devices.h b/arch/arm/mach-mx25/devices.h
-index 39560e1..1e80ac2 100644
---- a/arch/arm/mach-mx25/devices.h
-+++ b/arch/arm/mach-mx25/devices.h
-@@ -21,3 +21,4 @@ extern struct platform_device mx25_fec_device;
- extern struct platform_device mxc_nand_device;
- extern struct platform_device mx25_rtc_device;
- extern struct platform_device mx25_fb_device;
-+extern struct platform_device mx25_csi_device;
-diff --git a/arch/arm/plat-mxc/include/mach/mx25.h b/arch/arm/plat-mxc/include/mach/mx25.h
-index 4eb6e33..5e6a8b5 100644
---- a/arch/arm/plat-mxc/include/mach/mx25.h
-+++ b/arch/arm/plat-mxc/include/mach/mx25.h
-@@ -34,11 +34,13 @@
- #define MX25_NFC_BASE_ADDR		0xbb000000
- #define MX25_DRYICE_BASE_ADDR		0x53ffc000
- #define MX25_LCDC_BASE_ADDR		0x53fbc000
-+#define MX25_CSI_BASE_ADDR		0x53ff8000
- 
- #define MX25_INT_DRYICE	25
- #define MX25_INT_FEC	57
- #define MX25_INT_NANDFC	33
- #define MX25_INT_LCDC	39
-+#define MX25_INT_CSI	17
- 
- #if defined(IMX_NEEDS_DEPRECATED_SYMBOLS)
- #define UART1_BASE_ADDR			MX25_UART1_BASE_ADDR
+ static const struct v4l2_ioctl_ops ivtv_ioctl_ops = {
+ 	.vidioc_querycap    		    = ivtv_querycap,
+-	.vidioc_g_priority  		    = ivtv_g_priority,
+-	.vidioc_s_priority  		    = ivtv_s_priority,
+ 	.vidioc_s_audio     		    = ivtv_s_audio,
+ 	.vidioc_g_audio     		    = ivtv_g_audio,
+ 	.vidioc_enumaudio   		    = ivtv_enumaudio,
 -- 
-1.7.0
+1.6.4.2
 
