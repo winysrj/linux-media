@@ -1,323 +1,345 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4467 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757126Ab0E2Oo2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 10:44:28 -0400
-Message-Id: <b134d8a52d34806431c75b582b165017e56c6cf3.1275143672.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1275143672.git.hverkuil@xs4all.nl>
-References: <cover.1275143672.git.hverkuil@xs4all.nl>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2335 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751462Ab0EINjx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 09:39:53 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sat, 29 May 2010 16:46:18 +0200
-Subject: [PATCH 05/15] [RFCv4] saa7115: convert to the new control framework
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+To: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: RFC PATCH: v4l2-subdev.h: fix enum_mbus_fmt prototype
+Date: Sun, 9 May 2010 15:41:25 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005091541.25521.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/saa7115.c |  183 +++++++++++++++++++----------------------
- 1 files changed, 83 insertions(+), 100 deletions(-)
+Hi Guennadi,
 
-diff --git a/drivers/media/video/saa7115.c b/drivers/media/video/saa7115.c
-index 53b6fcd..a5924c2 100644
---- a/drivers/media/video/saa7115.c
-+++ b/drivers/media/video/saa7115.c
-@@ -45,6 +45,7 @@
- #include <linux/i2c.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-chip-ident.h>
- #include <media/v4l2-i2c-drv.h>
- #include <media/saa7115.h>
-@@ -65,16 +66,19 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
- 
- struct saa711x_state {
- 	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
-+
-+	struct {
-+		/* chroma gain control cluster */
-+		struct v4l2_ctrl *agc;
-+		struct v4l2_ctrl *gain;
-+	};
-+
- 	v4l2_std_id std;
- 	int input;
- 	int output;
- 	int enable;
- 	int radio;
--	int bright;
--	int contrast;
--	int hue;
--	int sat;
--	int chroma_agc;
- 	int width;
- 	int height;
- 	u32 ident;
-@@ -90,6 +94,11 @@ static inline struct saa711x_state *to_state(struct v4l2_subdev *sd)
- 	return container_of(sd, struct saa711x_state, sd);
+Can you review this patch?
+
+It's a simple and sensible change, but I also had to make a similar change
+in soc-camera so I'd like to you to take a look as well.
+
+Regards,
+
+	Hans
+
+enum_mbus_fmt received an index argument that was defined as an int instead
+of an unsigned int. This is now fixed. This had the knock-on effect that the
+index argument in the callback get_formats in soc_camera.h also had to be
+changed to unsigned.
+
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/video/ak881x.c               |    2 +-
+ drivers/media/video/mt9m001.c              |    4 ++--
+ drivers/media/video/mt9m111.c              |    4 ++--
+ drivers/media/video/mt9t031.c              |    2 +-
+ drivers/media/video/mt9t112.c              |    4 ++--
+ drivers/media/video/mt9v022.c              |    4 ++--
+ drivers/media/video/mx3_camera.c           |    4 ++--
+ drivers/media/video/ov772x.c               |    4 ++--
+ drivers/media/video/ov9640.c               |    4 ++--
+ drivers/media/video/pxa_camera.c           |    4 ++--
+ drivers/media/video/rj54n1cb0c.c           |    4 ++--
+ drivers/media/video/sh_mobile_ceu_camera.c |    4 ++--
+ drivers/media/video/soc_camera.c           |    3 ++-
+ drivers/media/video/soc_camera_platform.c  |    2 +-
+ drivers/media/video/tw9910.c               |    2 +-
+ include/media/soc_camera.h                 |    2 +-
+ include/media/v4l2-subdev.h                |    2 +-
+ 18 files changed, 48 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/media/video/ak881x.c b/drivers/media/video/ak881x.c
+index 35390d4..f2e71d1 100644
+--- a/drivers/media/video/ak881x.c
++++ b/drivers/media/video/ak881x.c
+@@ -141,7 +141,7 @@ static int ak881x_s_mbus_fmt(struct v4l2_subdev *sd,
+ 	return ak881x_try_g_mbus_fmt(sd, mf);
  }
  
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct saa711x_state, hdl)->sd;
-+}
-+
- /* ----------------------------------------------------------------------- */
+-static int ak881x_enum_mbus_fmt(struct v4l2_subdev *sd, int index,
++static int ak881x_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
+ 				enum v4l2_mbus_pixelcode *code)
+ {
+ 	if (index)
+diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
+index b62c0bd..c55d766 100644
+--- a/drivers/media/video/mt9m001.c
++++ b/drivers/media/video/mt9m001.c
+@@ -701,13 +701,13 @@ static struct v4l2_subdev_core_ops mt9m001_subdev_core_ops = {
+ #endif
+ };
  
- static inline int saa711x_write(struct v4l2_subdev *sd, u8 reg, u8 value)
-@@ -741,96 +750,53 @@ static int saa711x_s_clock_freq(struct v4l2_subdev *sd, u32 freq)
+-static int mt9m001_enum_fmt(struct v4l2_subdev *sd, int index,
++static int mt9m001_enum_fmt(struct v4l2_subdev *sd, unsigned index,
+ 			    enum v4l2_mbus_pixelcode *code)
+ {
+ 	struct i2c_client *client = sd->priv;
+ 	struct mt9m001 *mt9m001 = to_mt9m001(client);
+ 
+-	if ((unsigned int)index >= mt9m001->num_fmts)
++	if (index >= mt9m001->num_fmts)
+ 		return -EINVAL;
+ 
+ 	*code = mt9m001->fmts[index].code;
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index d35f536..78dbb5d 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -999,10 +999,10 @@ static struct v4l2_subdev_core_ops mt9m111_subdev_core_ops = {
+ #endif
+ };
+ 
+-static int mt9m111_enum_fmt(struct v4l2_subdev *sd, int index,
++static int mt9m111_enum_fmt(struct v4l2_subdev *sd, unsigned index,
+ 			    enum v4l2_mbus_pixelcode *code)
+ {
+-	if ((unsigned int)index >= ARRAY_SIZE(mt9m111_colour_fmts))
++	if (index >= ARRAY_SIZE(mt9m111_colour_fmts))
+ 		return -EINVAL;
+ 
+ 	*code = mt9m111_colour_fmts[index].code;
+diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+index 78b4e09..c1d12a0 100644
+--- a/drivers/media/video/mt9t031.c
++++ b/drivers/media/video/mt9t031.c
+@@ -798,7 +798,7 @@ static struct v4l2_subdev_core_ops mt9t031_subdev_core_ops = {
+ #endif
+ };
+ 
+-static int mt9t031_enum_fmt(struct v4l2_subdev *sd, int index,
++static int mt9t031_enum_fmt(struct v4l2_subdev *sd, unsigned index,
+ 			    enum v4l2_mbus_pixelcode *code)
+ {
+ 	if (index)
+diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
+index 7438f8d..802312e 100644
+--- a/drivers/media/video/mt9t112.c
++++ b/drivers/media/video/mt9t112.c
+@@ -1017,10 +1017,10 @@ static int mt9t112_try_fmt(struct v4l2_subdev *sd,
  	return 0;
  }
  
--static int saa711x_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int saa711x_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
+-static int mt9t112_enum_fmt(struct v4l2_subdev *sd, int index,
++static int mt9t112_enum_fmt(struct v4l2_subdev *sd, unsigned index,
+ 			   enum v4l2_mbus_pixelcode *code)
  {
-+	struct v4l2_subdev *sd = to_sd(ctrl);
- 	struct saa711x_state *state = to_state(sd);
--	u8 val;
+-	if ((unsigned int)index >= ARRAY_SIZE(mt9t112_cfmts))
++	if (index >= ARRAY_SIZE(mt9t112_cfmts))
+ 		return -EINVAL;
  
- 	switch (ctrl->id) {
--	case V4L2_CID_BRIGHTNESS:
--		if (ctrl->value < 0 || ctrl->value > 255) {
--			v4l2_err(sd, "invalid brightness setting %d\n", ctrl->value);
--			return -ERANGE;
--		}
--
--		state->bright = ctrl->value;
--		saa711x_write(sd, R_0A_LUMA_BRIGHT_CNTL, state->bright);
--		break;
--
--	case V4L2_CID_CONTRAST:
--		if (ctrl->value < 0 || ctrl->value > 127) {
--			v4l2_err(sd, "invalid contrast setting %d\n", ctrl->value);
--			return -ERANGE;
--		}
--
--		state->contrast = ctrl->value;
--		saa711x_write(sd, R_0B_LUMA_CONTRAST_CNTL, state->contrast);
--		break;
--
--	case V4L2_CID_SATURATION:
--		if (ctrl->value < 0 || ctrl->value > 127) {
--			v4l2_err(sd, "invalid saturation setting %d\n", ctrl->value);
--			return -ERANGE;
--		}
--
--		state->sat = ctrl->value;
--		saa711x_write(sd, R_0C_CHROMA_SAT_CNTL, state->sat);
--		break;
--
--	case V4L2_CID_HUE:
--		if (ctrl->value < -128 || ctrl->value > 127) {
--			v4l2_err(sd, "invalid hue setting %d\n", ctrl->value);
--			return -ERANGE;
--		}
--
--		state->hue = ctrl->value;
--		saa711x_write(sd, R_0D_CHROMA_HUE_CNTL, state->hue);
--		break;
- 	case V4L2_CID_CHROMA_AGC:
--		val = saa711x_read(sd, R_0F_CHROMA_GAIN_CNTL);
--		state->chroma_agc = ctrl->value;
--		if (ctrl->value)
--			val &= 0x7f;
--		else
--			val |= 0x80;
--		saa711x_write(sd, R_0F_CHROMA_GAIN_CNTL, val);
-+		/* chroma gain cluster */
-+		if (state->agc->cur.val)
-+			state->gain->cur.val =
-+				saa711x_read(sd, R_0F_CHROMA_GAIN_CNTL) & 0x7f;
- 		break;
--	case V4L2_CID_CHROMA_GAIN:
--		/* Chroma gain cannot be set when AGC is enabled */
--		if (state->chroma_agc == 1)
--			return -EINVAL;
--		saa711x_write(sd, R_0F_CHROMA_GAIN_CNTL, ctrl->value | 0x80);
--		break;
--	default:
--		return -EINVAL;
+ 	*code = mt9t112_cfmts[index].code;
+diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
+index e5bae4c..9699c38 100644
+--- a/drivers/media/video/mt9v022.c
++++ b/drivers/media/video/mt9v022.c
+@@ -838,13 +838,13 @@ static struct v4l2_subdev_core_ops mt9v022_subdev_core_ops = {
+ #endif
+ };
+ 
+-static int mt9v022_enum_fmt(struct v4l2_subdev *sd, int index,
++static int mt9v022_enum_fmt(struct v4l2_subdev *sd, unsigned index,
+ 			    enum v4l2_mbus_pixelcode *code)
+ {
+ 	struct i2c_client *client = sd->priv;
+ 	struct mt9v022 *mt9v022 = to_mt9v022(client);
+ 
+-	if ((unsigned int)index >= mt9v022->num_fmts)
++	if (index >= mt9v022->num_fmts)
+ 		return -EINVAL;
+ 
+ 	*code = mt9v022->fmts[index].code;
+diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+index d477e30..5b908fb 100644
+--- a/drivers/media/video/mx3_camera.c
++++ b/drivers/media/video/mx3_camera.c
+@@ -672,7 +672,7 @@ static bool mx3_camera_packing_supported(const struct soc_mbus_pixelfmt *fmt)
+ 		 fmt->packing == SOC_MBUS_PACKING_EXTEND16);
+ }
+ 
+-static int mx3_camera_get_formats(struct soc_camera_device *icd, int idx,
++static int mx3_camera_get_formats(struct soc_camera_device *icd, unsigned idx,
+ 				  struct soc_camera_format_xlate *xlate)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+@@ -689,7 +689,7 @@ static int mx3_camera_get_formats(struct soc_camera_device *icd, int idx,
+ 	fmt = soc_mbus_get_fmtdesc(code);
+ 	if (!fmt) {
+ 		dev_err(icd->dev.parent,
+-			"Invalid format code #%d: %d\n", idx, code);
++			"Invalid format code #%u: %d\n", idx, code);
+ 		return 0;
  	}
--
+ 
+diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
+index 7f8ece3..a235067 100644
+--- a/drivers/media/video/ov772x.c
++++ b/drivers/media/video/ov772x.c
+@@ -1092,10 +1092,10 @@ static struct v4l2_subdev_core_ops ov772x_subdev_core_ops = {
+ #endif
+ };
+ 
+-static int ov772x_enum_fmt(struct v4l2_subdev *sd, int index,
++static int ov772x_enum_fmt(struct v4l2_subdev *sd, unsigned index,
+ 			   enum v4l2_mbus_pixelcode *code)
+ {
+-	if ((unsigned int)index >= ARRAY_SIZE(ov772x_cfmts))
++	if (index >= ARRAY_SIZE(ov772x_cfmts))
+ 		return -EINVAL;
+ 
+ 	*code = ov772x_cfmts[index].code;
+diff --git a/drivers/media/video/ov9640.c b/drivers/media/video/ov9640.c
+index 36599a6..e36fa65 100644
+--- a/drivers/media/video/ov9640.c
++++ b/drivers/media/video/ov9640.c
+@@ -614,10 +614,10 @@ static int ov9640_try_fmt(struct v4l2_subdev *sd,
  	return 0;
  }
  
--static int saa711x_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int saa711x_s_ctrl(struct v4l2_ctrl *ctrl)
+-static int ov9640_enum_fmt(struct v4l2_subdev *sd, int index,
++static int ov9640_enum_fmt(struct v4l2_subdev *sd, unsigned index,
+ 			   enum v4l2_mbus_pixelcode *code)
  {
-+	struct v4l2_subdev *sd = to_sd(ctrl);
- 	struct saa711x_state *state = to_state(sd);
+-	if ((unsigned int)index >= ARRAY_SIZE(ov9640_codes))
++	if (index >= ARRAY_SIZE(ov9640_codes))
+ 		return -EINVAL;
  
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		ctrl->value = state->bright;
-+		saa711x_write(sd, R_0A_LUMA_BRIGHT_CNTL, ctrl->val);
- 		break;
-+
- 	case V4L2_CID_CONTRAST:
--		ctrl->value = state->contrast;
-+		saa711x_write(sd, R_0B_LUMA_CONTRAST_CNTL, ctrl->val);
- 		break;
-+
- 	case V4L2_CID_SATURATION:
--		ctrl->value = state->sat;
-+		saa711x_write(sd, R_0C_CHROMA_SAT_CNTL, ctrl->val);
- 		break;
-+
- 	case V4L2_CID_HUE:
--		ctrl->value = state->hue;
-+		saa711x_write(sd, R_0D_CHROMA_HUE_CNTL, ctrl->val);
- 		break;
-+
- 	case V4L2_CID_CHROMA_AGC:
--		ctrl->value = state->chroma_agc;
--		break;
--	case V4L2_CID_CHROMA_GAIN:
--		ctrl->value = saa711x_read(sd, R_0F_CHROMA_GAIN_CNTL) & 0x7f;
-+		/* chroma gain cluster */
-+		if (state->agc->val)
-+			saa711x_write(sd, R_0F_CHROMA_GAIN_CNTL, state->gain->val);
-+		else
-+			saa711x_write(sd, R_0F_CHROMA_GAIN_CNTL, state->gain->val | 0x80);
-+		v4l2_ctrl_activate(state->gain, !state->agc->val);
- 		break;
-+
- 	default:
+ 	*code = ov9640_codes[index];
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 520a35b..2d9eb57 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -1245,7 +1245,7 @@ static bool pxa_camera_packing_supported(const struct soc_mbus_pixelfmt *fmt)
+ 		 fmt->packing == SOC_MBUS_PACKING_EXTEND16);
+ }
+ 
+-static int pxa_camera_get_formats(struct soc_camera_device *icd, int idx,
++static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned idx,
+ 				  struct soc_camera_format_xlate *xlate)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+@@ -1262,7 +1262,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, int idx,
+ 
+ 	fmt = soc_mbus_get_fmtdesc(code);
+ 	if (!fmt) {
+-		dev_err(dev, "Invalid format code #%d: %d\n", idx, code);
++		dev_err(dev, "Invalid format code #%u: %d\n", idx, code);
+ 		return 0;
+ 	}
+ 
+diff --git a/drivers/media/video/rj54n1cb0c.c b/drivers/media/video/rj54n1cb0c.c
+index bbd9c11..a107574 100644
+--- a/drivers/media/video/rj54n1cb0c.c
++++ b/drivers/media/video/rj54n1cb0c.c
+@@ -481,10 +481,10 @@ static int reg_write_multiple(struct i2c_client *client,
+ 	return 0;
+ }
+ 
+-static int rj54n1_enum_fmt(struct v4l2_subdev *sd, int index,
++static int rj54n1_enum_fmt(struct v4l2_subdev *sd, unsigned index,
+ 			   enum v4l2_mbus_pixelcode *code)
+ {
+-	if ((unsigned int)index >= ARRAY_SIZE(rj54n1_colour_fmts))
++	if (index >= ARRAY_SIZE(rj54n1_colour_fmts))
+ 		return -EINVAL;
+ 
+ 	*code = rj54n1_colour_fmts[index].code;
+diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+index 1604034..a426470 100644
+--- a/drivers/media/video/sh_mobile_ceu_camera.c
++++ b/drivers/media/video/sh_mobile_ceu_camera.c
+@@ -877,7 +877,7 @@ static bool sh_mobile_ceu_packing_supported(const struct soc_mbus_pixelfmt *fmt)
+ 
+ static int client_g_rect(struct v4l2_subdev *sd, struct v4l2_rect *rect);
+ 
+-static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, int idx,
++static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned idx,
+ 				     struct soc_camera_format_xlate *xlate)
+ {
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+@@ -896,7 +896,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, int idx,
+ 	fmt = soc_mbus_get_fmtdesc(code);
+ 	if (!fmt) {
+ 		dev_err(icd->dev.parent,
+-			"Invalid format code #%d: %d\n", idx, code);
++			"Invalid format code #%u: %d\n", idx, code);
  		return -EINVAL;
  	}
-@@ -1229,25 +1195,6 @@ static int saa711x_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 	return 0;
- }
  
--static int saa711x_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
--{
--	switch (qc->id) {
--	case V4L2_CID_BRIGHTNESS:
--		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 128);
--	case V4L2_CID_CONTRAST:
--	case V4L2_CID_SATURATION:
--		return v4l2_ctrl_query_fill(qc, 0, 127, 1, 64);
--	case V4L2_CID_HUE:
--		return v4l2_ctrl_query_fill(qc, -128, 127, 1, 0);
--	case V4L2_CID_CHROMA_AGC:
--		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
--	case V4L2_CID_CHROMA_GAIN:
--		return v4l2_ctrl_query_fill(qc, 0, 127, 1, 48);
--	default:
--		return -EINVAL;
--	}
--}
--
- static int saa711x_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+index 95cb336..7e8d106 100644
+--- a/drivers/media/video/soc_camera.c
++++ b/drivers/media/video/soc_camera.c
+@@ -199,7 +199,8 @@ static int soc_camera_init_user_formats(struct soc_camera_device *icd)
  {
- 	struct saa711x_state *state = to_state(sd);
-@@ -1524,17 +1471,27 @@ static int saa711x_log_status(struct v4l2_subdev *sd)
- 		break;
- 	}
- 	v4l2_info(sd, "Width, Height:   %d, %d\n", state->width, state->height);
-+	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
- 	return 0;
- }
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+-	int i, fmts = 0, raw_fmts = 0, ret;
++	unsigned i, fmts = 0, raw_fmts = 0;
++	int ret;
+ 	enum v4l2_mbus_pixelcode code;
  
- /* ----------------------------------------------------------------------- */
+ 	while (!v4l2_subdev_call(sd, video, enum_mbus_fmt, raw_fmts, &code))
+diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
+index 10b003a..09e1d68 100644
+--- a/drivers/media/video/soc_camera_platform.c
++++ b/drivers/media/video/soc_camera_platform.c
+@@ -71,7 +71,7 @@ static int soc_camera_platform_try_fmt(struct v4l2_subdev *sd,
  
-+static const struct v4l2_ctrl_ops saa711x_ctrl_ops = {
-+	.s_ctrl = saa711x_s_ctrl,
-+	.g_volatile_ctrl = saa711x_g_volatile_ctrl,
-+};
-+
- static const struct v4l2_subdev_core_ops saa711x_core_ops = {
- 	.log_status = saa711x_log_status,
- 	.g_chip_ident = saa711x_g_chip_ident,
--	.g_ctrl = saa711x_g_ctrl,
--	.s_ctrl = saa711x_s_ctrl,
--	.queryctrl = saa711x_queryctrl,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
- 	.s_std = saa711x_s_std,
- 	.reset = saa711x_reset,
- 	.s_gpio = saa711x_s_gpio,
-@@ -1586,8 +1543,9 @@ static int saa711x_probe(struct i2c_client *client,
+ static struct v4l2_subdev_core_ops platform_subdev_core_ops;
+ 
+-static int soc_camera_platform_enum_fmt(struct v4l2_subdev *sd, int index,
++static int soc_camera_platform_enum_fmt(struct v4l2_subdev *sd, unsigned index,
+ 					enum v4l2_mbus_pixelcode *code)
  {
- 	struct saa711x_state *state;
- 	struct v4l2_subdev *sd;
--	int	i;
--	char	name[17];
-+	struct v4l2_ctrl_handler *hdl;
-+	int i;
-+	char name[17];
- 	char chip_id;
- 	int autodetect = !id || id->driver_data == 1;
+ 	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
+diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
+index 76be733..0e1cc08 100644
+--- a/drivers/media/video/tw9910.c
++++ b/drivers/media/video/tw9910.c
+@@ -903,7 +903,7 @@ static struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
+ #endif
+ };
  
-@@ -1626,15 +1584,38 @@ static int saa711x_probe(struct i2c_client *client,
- 		return -ENOMEM;
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &saa711x_ops);
-+
-+	hdl = &state->hdl;
-+	v4l2_ctrl_handler_init(hdl, 6);
-+	/* add in ascending ID order */
-+	v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
-+			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
-+			V4L2_CID_CONTRAST, 0, 127, 1, 64);
-+	v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
-+			V4L2_CID_SATURATION, 0, 127, 1, 64);
-+	v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
-+			V4L2_CID_HUE, -128, 127, 1, 0);
-+	state->agc = v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
-+			V4L2_CID_CHROMA_AGC, 0, 1, 1, 1);
-+	state->gain = v4l2_ctrl_new_std(hdl, &saa711x_ctrl_ops,
-+			V4L2_CID_CHROMA_GAIN, 0, 127, 1, 40);
-+	state->gain->is_volatile = 1;
-+	sd->ctrl_handler = hdl;
-+	if (hdl->error) {
-+		int err = hdl->error;
-+
-+		v4l2_ctrl_handler_free(hdl);
-+		kfree(state);
-+		return err;
-+	}
-+	state->agc->flags |= V4L2_CTRL_FLAG_UPDATE;
-+	v4l2_ctrl_cluster(2, &state->agc);
-+
- 	state->input = -1;
- 	state->output = SAA7115_IPORT_ON;
- 	state->enable = 1;
- 	state->radio = 0;
--	state->bright = 128;
--	state->contrast = 64;
--	state->hue = 0;
--	state->sat = 64;
--	state->chroma_agc = 1;
- 	switch (chip_id) {
- 	case '1':
- 		state->ident = V4L2_IDENT_SAA7111;
-@@ -1682,6 +1663,7 @@ static int saa711x_probe(struct i2c_client *client,
- 	if (state->ident > V4L2_IDENT_SAA7111A)
- 		saa711x_writeregs(sd, saa7115_init_misc);
- 	saa711x_set_v4lstd(sd, V4L2_STD_NTSC);
-+	v4l2_ctrl_handler_setup(hdl);
- 
- 	v4l2_dbg(1, debug, sd, "status: (1E) 0x%02x, (1F) 0x%02x\n",
- 		saa711x_read(sd, R_1E_STATUS_BYTE_1_VD_DEC),
-@@ -1696,6 +1678,7 @@ static int saa711x_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 
- 	v4l2_device_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(sd->ctrl_handler);
- 	kfree(to_state(sd));
- 	return 0;
- }
+-static int tw9910_enum_fmt(struct v4l2_subdev *sd, int index,
++static int tw9910_enum_fmt(struct v4l2_subdev *sd, unsigned index,
+ 			   enum v4l2_mbus_pixelcode *code)
+ {
+ 	if (index)
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index c9a5bbf..79b2e21 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -66,7 +66,7 @@ struct soc_camera_host_ops {
+ 	 * .get_formats() fail, .put_formats() will not be called at all, the
+ 	 * failing .get_formats() must then clean up internally.
+ 	 */
+-	int (*get_formats)(struct soc_camera_device *, int,
++	int (*get_formats)(struct soc_camera_device *, unsigned,
+ 			   struct soc_camera_format_xlate *);
+ 	void (*put_formats)(struct soc_camera_device *);
+ 	int (*cropcap)(struct soc_camera_device *, struct v4l2_cropcap *);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index a888893..a3b2e58 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -246,7 +246,7 @@ struct v4l2_subdev_video_ops {
+ 			struct v4l2_dv_timings *timings);
+ 	int (*g_dv_timings)(struct v4l2_subdev *sd,
+ 			struct v4l2_dv_timings *timings);
+-	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, int index,
++	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned index,
+ 			     enum v4l2_mbus_pixelcode *code);
+ 	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
+ 			  struct v4l2_mbus_framefmt *fmt);
 -- 
 1.6.4.2
 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
