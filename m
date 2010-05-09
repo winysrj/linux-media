@@ -1,44 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:38554 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753281Ab0EOQqD convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 May 2010 12:46:03 -0400
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <1273941831.2564.29.camel@localhost>
-References: <1273941831.2564.29.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Sat, 15 May 2010 17:45:58 +0100
-Message-ID: <1273941958.2564.32.camel@localhost>
-Mime-Version: 1.0
-Subject: [PATCH 3/4] V4L/DVB: dib0700: Select dib0090 frontend
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4115 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751722Ab0EIIan (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 04:30:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Confusing mediabus formats
+Date: Sun, 9 May 2010 10:32:07 +0200
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005091032.07893.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update the Kconfig selections to match the code.
+Hi Guennadi,
 
-Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
----
- drivers/media/dvb/dvb-usb/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+I'm preparing a patch series that replaces enum/g/try/s_fmt with
+enum/g/try/s/_mbus_fmt in all subdevs. While doing that I stumbled on a
+confusing definition of the YUV mediabus formats. Currently we have these:
 
-diff --git a/drivers/media/dvb/dvb-usb/Kconfig b/drivers/media/dvb/dvb-usb/Kconfig
-index cfcbf4f..73a6e9d 100644
---- a/drivers/media/dvb/dvb-usb/Kconfig
-+++ b/drivers/media/dvb/dvb-usb/Kconfig
-@@ -76,6 +76,7 @@ config DVB_USB_DIB0700
- 	select DVB_S5H1411 if !DVB_FE_CUSTOMISE
- 	select DVB_LGDT3305 if !DVB_FE_CUSTOMISE
- 	select DVB_TUNER_DIB0070 if !DVB_FE_CUSTOMISE
-+	select DVB_TUNER_DIB0090 if !DVB_FE_CUSTOMISE
- 	select MEDIA_TUNER_MT2060 if !MEDIA_TUNER_CUSTOMISE
- 	select MEDIA_TUNER_MT2266 if !MEDIA_TUNER_CUSTOMISE
- 	select MEDIA_TUNER_XC2028 if !MEDIA_TUNER_CUSTOMISE
+        V4L2_MBUS_FMT_YUYV8_2X8_LE,
+        V4L2_MBUS_FMT_YVYU8_2X8_LE,
+        V4L2_MBUS_FMT_YUYV8_2X8_BE,
+        V4L2_MBUS_FMT_YVYU8_2X8_BE,
+
+The meaning of "2X8" is defined as: 'one pixel is transferred in
+two 8-bit samples'.
+
+This is confusing since you cannot really say that a Y and U pair constitutes
+one pixel. And is it Y or U/V which constitutes the 'most-significant bits' in
+such a 16-bit number?
+
+In my particular case I have to translate a V4L2_PIX_FMT_UYVY to a suitable
+mediabus format. I think it would map to V4L2_MBUS_FMT_YUYV8_2X8_LE, but
+frankly I'm not sure.
+
+My suggestion is to rename these mediabus formats to:
+
+        V4L2_MBUS_FMT_YUYV8_1X8,
+        V4L2_MBUS_FMT_YVYU8_1X8,
+        V4L2_MBUS_FMT_UYVY8_1X8,
+        V4L2_MBUS_FMT_VYUY8_1X8,
+
+Here it is immediately clear what is going on. This scheme is also used with
+the Bayer formats, so it would be consistent with that as well.
+
+However, does V4L2_MBUS_FMT_YUYV8_2X8_LE map to V4L2_MBUS_FMT_YUYV8_1X8 or to
+V4L2_MBUS_FMT_UYVY8_1X8? I still don't know.
+
+What do you think?
+
+Regards,
+
+	Hans
+
 -- 
-1.7.1
-
-
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
