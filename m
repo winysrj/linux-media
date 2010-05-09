@@ -1,84 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:50613 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753955Ab0EEWfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 May 2010 18:35:06 -0400
-From: Jonathan Corbet <corbet@lwn.net>
-To: linux-kernel@vger.kernel.org
-Cc: Harald Welte <laforge@gnumonks.org>, linux-fbdev@vger.kernel.org,
-	JosephChan@via.com.tw, ScottFang@viatech.com.cn,
-	=?UTF-8?q?Bruno=20Pr=C3=A9mont?= <bonbons@linux-vserver.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:59747 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752502Ab0EITqY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 15:46:24 -0400
+Received: by fxm10 with SMTP id 10so1851822fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 09 May 2010 12:46:23 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1273431979.4779.786.camel@alkaloid.netup.ru>
+References: <1273135577.16031.11.camel@plop>
+	 <1273431979.4779.786.camel@alkaloid.netup.ru>
+Date: Sun, 9 May 2010 23:46:23 +0400
+Message-ID: <AANLkTimh8O8Y0Jqaskohqam47UNoG2Efoy3IEo3DZuqB@mail.gmail.com>
+Subject: Re: stv090x vs stv0900
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Abylai Ospan <aospan@netup.ru>
+Cc: Pascal Terjan <pterjan@mandriva.com>,
+	"Igor M. Liplianin" <liplianin@netup.ru>,
 	linux-media@vger.kernel.org
-Subject: [RFC] Third OLPC viafb patch series (camera driver)
-Date: Wed,  5 May 2010 16:34:39 -0600
-Message-Id: <1273098884-21848-1-git-send-email-corbet@lwn.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is, perhaps, the last set of viafb patches I'll send around before the
-merge window.  This series completes the task of adding the via-camera
-driver - in the correct spot, this time.  To that end, it has to reorganize
-the viafb header files a bit.
-
-V4L2 folks: only the final patch in this series really needs your
-attention.  Note that it has no hope of appying or working without a long
-series of predecessor patches; the full set, prior to this series, is
-currently in linux-next.  If the driver is acceptable to you, I'd prefer to
-merge it through my viafb tree to be sure all the prerequisites land in
-mainline at the right time.
-
-As usual, this series can be found at:
-
-	git://git.lwn.net/linux-2.6.git viafb-posted
-
-The camera driver has been cleaned up a bit since the last time around.
-But the main thing I had to do was to make some of the header files
-globally visible so I could put the camera driver with the rest of the V4L2
-crowd.  This will also let us move the core, i2c, and gpio drivers to
-drivers/mfd, should we want to in the future.
-
-There shouldn't be any functionality changes beyond the new driver.
-
-Comments?
-
-Thanks,
-
-jon
-
-Jonathan Corbet (5):
-      viafb: fold via_io.h into via-core.h
-      viafb: get rid of i2c debug cruft
-      viafb: Eliminate some global.h references
-      viafb: move some include files to include/linux
-      Add the viafb video capture driver
-
- b/drivers/media/video/Kconfig         |   10 
- b/drivers/media/video/Makefile        |    2 
- b/drivers/media/video/via-camera.c    | 1368 ++++++++++++++++++++++++++++++++++
- b/drivers/media/video/via-camera.h    |   93 ++
- b/drivers/video/via/accel.c           |    4 
- b/drivers/video/via/dvi.c             |    4 
- b/drivers/video/via/hw.c              |    3 
- b/drivers/video/via/hw.h              |    1 
- b/drivers/video/via/lcd.c             |    4 
- b/drivers/video/via/share.h           |   11 
- b/drivers/video/via/via-core.c        |   22 
- b/drivers/video/via/via-gpio.c        |    5 
- b/drivers/video/via/via_i2c.c         |   14 
- b/drivers/video/via/via_modesetting.c |    2 
- b/drivers/video/via/via_utility.c     |    1 
- b/drivers/video/via/viafbdev.c        |    4 
- b/drivers/video/via/viamode.c         |    1 
- b/drivers/video/via/vt1636.c          |    4 
- b/include/linux/via-core.h            |  221 +++++
- b/include/linux/via-gpio.h            |   14 
- b/include/linux/via_i2c.h             |   42 +
- b/include/media/v4l2-chip-ident.h     |    4 
- drivers/video/via/via-core.h          |  173 ----
- drivers/video/via/via-gpio.h          |   14 
- drivers/video/via/via_i2c.h           |   42 -
- drivers/video/via/via_io.h            |   67 -
- 26 files changed, 1798 insertions(+), 332 deletions(-)
+On Sun, May 9, 2010 at 11:06 PM, Abylai Ospan <aospan@netup.ru> wrote:
+> Hello,
+>
+> On Thu, 2010-05-06 at 10:46 +0200, Pascal Terjan wrote:
+>> Also, are they both maintained ? I wrote a patch to add get_frontend to
+>> stv090x but stv0900 also does not have it and I don't know which one
+>> should get new code.
+>
+> I have added get_frontend to stv0900 two months ago -
+> http://linuxtv.org/hg/v4l-dvb/rev/a3e28fbefdc3
+>
+> I'm trying to describe my point of view about two drivers for stv6110
+> +stv0900.
+>
+> History:
+> I have anounced our card on November 2008 -
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030439.html
+> As you can see I have mentioned that we developing code and will be
+> publish it under GPL. All people in ML received this message. This
+> should be prevent of duplicate work.
+> Also we have obtained permission (signed letter) from STM to publish
+> resulting code under GPL. We have send pull request at Feb 2009 -
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg02180.html
+>
+> (stv090x commit requested later - in May 2009 -
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg04978.html ).
+>
+>
+> Solution:
+> Ideally two drivers should be combined into one. stv0900 driver can be
+> used as starting point. We (NetUP Inc.) can initiaite this job. But we
+> need approval from Manu and all community who using stv090x. Manu what
+> do you think about this ?
 
 
+The STV090x driver supports both the STV0900 and STV0903 broadcast
+demodulators very well and in multiple configurations on couple of
+bridges (SAA7146, nGene, SAA7160, some USB bridges, some others also
+in the process) and is quite a generic one. Currently, the STV090x
+driver handles a lot of quirks which has been documented as well as
+undocumented by STM, basically being actively supported by STM
+themselves and by a few card vendors as well, other than for this
+community to a very great extend.
+
+Currently, since the driver has been fine tuned to this great extend
+and so many users of it, I have no plans of migrating to the STV0900
+driver, which was developed later on and tested to a much lesser
+extend, by developers and vendors alike. So, I am much less inclined
+to go the STV0900 way.
+
+At the behest of STM themselves, I have withheld from adding support
+for the AAB/AAC chips initially, due to the basic reasons that these
+advanced features are not really well tested in the field, due to the
+lack of that many users and the highly unlikely chance that the
+advanced stuff (ACM/VCM) is yet to be deployed for a home user
+segment. In the chance that there are more likely users for the
+advanced stuff, these can be added quite easily to the
+STV090x/STV6110x driver.
+
+Also, interesting point to be noted is that there are no users for
+ACM/VCM in the Linux userspace for the driver to be supported for
+"any" broadcast purposes. The only case in where the Advanced chips
+are being sold (that too at a higher price) is where card
+manufacturers who cannot commit themselves to that volume, not that it
+adds any value to the general user as it is, at the this time. Simply
+adding in code and making it unmaintainable makes no sense to me at
+least.
