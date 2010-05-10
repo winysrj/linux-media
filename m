@@ -1,200 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1161 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751060Ab0EPNTd (ORCPT
+Received: from mail-in-04.arcor-online.net ([151.189.21.44]:36449 "EHLO
+	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753102Ab0EJQYb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 May 2010 09:19:33 -0400
-Message-Id: <152cc3bfe55af1b902aec7fe4529f0f0468d8d05.1274015085.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1274015084.git.hverkuil@xs4all.nl>
-References: <cover.1274015084.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 16 May 2010 15:21:03 +0200
-Subject: [PATCH 04/15] [RFCv2] v4l2: hook up the new control framework into the core framework
+	Mon, 10 May 2010 12:24:31 -0400
+From: stefan.ringel@arcor.de
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Cc: mchehab@redhat.com, Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 2/2] tm6000: add extension
+Date: Mon, 10 May 2010 18:22:51 +0200
+Message-Id: <1273508571-16472-2-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1273508571-16472-1-git-send-email-stefan.ringel@arcor.de>
+References: <1273508571-16472-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the calls needed to automatically merge subdev controls into a bridge
-control handler.
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Hook up the control framework in __video_ioctl2 and video_register_device.
+add extension
+add module init over tm6000 extension
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 ---
- drivers/media/video/v4l2-dev.c    |    8 +++++-
- drivers/media/video/v4l2-device.c |    7 +++++
- drivers/media/video/v4l2-ioctl.c  |   46 ++++++++++++++++++++++++++----------
- 3 files changed, 46 insertions(+), 15 deletions(-)
+ drivers/staging/tm6000/tm6000-alsa.c  |   25 +++++++++-
+ drivers/staging/tm6000/tm6000-cards.c |    7 +++
+ drivers/staging/tm6000/tm6000-core.c  |   92 +++++++++++++++++++++++++++++++++
+ drivers/staging/tm6000/tm6000.h       |   23 ++++++++-
+ 4 files changed, 145 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 0ca7ec9..773ffe1 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -447,8 +447,12 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+diff --git a/drivers/staging/tm6000/tm6000-alsa.c b/drivers/staging/tm6000/tm6000-alsa.c
+index bc89f9d..ce081cd 100644
+--- a/drivers/staging/tm6000/tm6000-alsa.c
++++ b/drivers/staging/tm6000/tm6000-alsa.c
+@@ -410,5 +410,28 @@ error:
+ 	snd_card_free(card);
+ 	return rc;
+ }
+-EXPORT_SYMBOL_GPL(tm6000_audio_init);
  
- 	vdev->vfl_type = type;
- 	vdev->cdev = NULL;
--	if (vdev->v4l2_dev && vdev->v4l2_dev->dev)
--		vdev->parent = vdev->v4l2_dev->dev;
-+	if (vdev->v4l2_dev) {
-+		if (vdev->v4l2_dev->dev)
-+			vdev->parent = vdev->v4l2_dev->dev;
-+		if (vdev->ctrl_handler == NULL)
-+			vdev->ctrl_handler = vdev->v4l2_dev->ctrl_handler;
-+	}
- 
- 	/* Part 2: find a free minor, device node number and device index. */
- #ifdef CONFIG_VIDEO_FIXED_MINOR_RANGES
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 5a7dc4a..0b08f96 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -26,6 +26,7 @@
- #endif
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- 
- int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- {
-@@ -115,6 +116,8 @@ EXPORT_SYMBOL_GPL(v4l2_device_unregister);
- int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 						struct v4l2_subdev *sd)
- {
-+	int err;
++static int tm6000_audio_fini(struct tm6000_core *dev)
++{
++	return 0;
++}
 +
- 	/* Check for valid input */
- 	if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
- 		return -EINVAL;
-@@ -122,6 +125,10 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
- 	WARN_ON(sd->v4l2_dev != NULL);
- 	if (!try_module_get(sd->owner))
- 		return -ENODEV;
-+	/* This just returns 0 if either of the two args is NULL */
-+	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
-+	if (err)
-+		return err;
- 	sd->v4l2_dev = v4l2_dev;
- 	spin_lock(&v4l2_dev->lock);
- 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 0395b1c..94776c3 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -25,6 +25,7 @@
- #endif
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
- #include <media/v4l2-chip-ident.h>
-@@ -1258,9 +1259,12 @@ static long __video_do_ioctl(struct file *file,
- 	{
- 		struct v4l2_queryctrl *p = arg;
++struct tm6000_ops audio_ops = {
++	.id	= TM6000_AUDIO,
++	.name	= "TM6000 Audio Extension",
++	.init	= tm6000_audio_init,
++	.fini	= tm6000_audio_fini,
++};
++
++static int __init tm6000_alsa_register(void)
++{
++	return tm6000_register_extension(&audio_ops);
++}
++
++static void __exit tm6000_alsa_unregister(void)
++{
++	tm6000_unregister_extension(&audio_ops);
++}
++
++module_init(tm6000_alsa_register);
++module_exit(tm6000_alsa_unregister);
+diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
+index 9f6160b..33b134b 100644
+--- a/drivers/staging/tm6000/tm6000-cards.c
++++ b/drivers/staging/tm6000/tm6000-cards.c
+@@ -692,6 +692,10 @@ static int tm6000_init_dev(struct tm6000_core *dev)
+ 	if (rc < 0)
+ 		goto err;
  
--		if (!ops->vidioc_queryctrl)
-+		if (vfd->ctrl_handler)
-+			ret = v4l2_queryctrl(vfd->ctrl_handler, p);
-+		else if (ops->vidioc_queryctrl)
-+			ret = ops->vidioc_queryctrl(file, fh, p);
-+		else
- 			break;
--		ret = ops->vidioc_queryctrl(file, fh, p);
- 		if (!ret)
- 			dbgarg(cmd, "id=0x%x, type=%d, name=%s, min/max=%d/%d, "
- 					"step=%d, default=%d, flags=0x%08x\n",
-@@ -1275,7 +1279,9 @@ static long __video_do_ioctl(struct file *file,
- 	{
- 		struct v4l2_control *p = arg;
++	tm6000_add_into_devlist(dev);
++
++	tm6000_init_extension(dev);
++
+ 	if (dev->caps.has_dvb) {
+ 		dev->dvb = kzalloc(sizeof(*(dev->dvb)), GFP_KERNEL);
+ 		if (!dev->dvb) {
+@@ -931,6 +935,9 @@ static void tm6000_usb_disconnect(struct usb_interface *interface)
  
--		if (ops->vidioc_g_ctrl)
-+		if (vfd->ctrl_handler)
-+			ret = v4l2_g_ctrl(vfd->ctrl_handler, p);
-+		else if (ops->vidioc_g_ctrl)
- 			ret = ops->vidioc_g_ctrl(file, fh, p);
- 		else if (ops->vidioc_g_ext_ctrls) {
- 			struct v4l2_ext_controls ctrls;
-@@ -1305,11 +1311,16 @@ static long __video_do_ioctl(struct file *file,
- 		struct v4l2_ext_controls ctrls;
- 		struct v4l2_ext_control ctrl;
+ 	usb_put_dev(dev->udev);
  
--		if (!ops->vidioc_s_ctrl && !ops->vidioc_s_ext_ctrls)
-+		if (!vfd->ctrl_handler &&
-+			!ops->vidioc_s_ctrl && !ops->vidioc_s_ext_ctrls)
- 			break;
- 
- 		dbgarg(cmd, "id=0x%x, value=%d\n", p->id, p->value);
- 
-+		if (vfd->ctrl_handler) {
-+			ret = v4l2_s_ctrl(vfd->ctrl_handler, p);
-+			break;
++	tm6000_remove_from_devlist(dev);
++	tm6000_close_extension(dev);
++
+ 	mutex_unlock(&dev->lock);
+ 	kfree(dev);
+ }
+diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
+index bfbc53b..1259ae5 100644
+--- a/drivers/staging/tm6000/tm6000-core.c
++++ b/drivers/staging/tm6000/tm6000-core.c
+@@ -600,3 +600,95 @@ printk("Original value=%d\n",val);
+ 	return val;
+ }
+ EXPORT_SYMBOL_GPL(tm6000_set_audio_bitrate);
++
++static LIST_HEAD(tm6000_devlist);
++static DEFINE_MUTEX(tm6000_devlist_mutex);
++
++/*
++ * tm6000_realease_resource()
++ */
++
++void tm6000_remove_from_devlist(struct tm6000_core *dev)
++{
++	mutex_lock(&tm6000_devlist_mutex);
++	list_del(&dev->devlist);
++	mutex_unlock(&tm6000_devlist_mutex);
++};
++
++void tm6000_add_into_devlist(struct tm6000_core *dev)
++{
++	mutex_lock(&tm6000_devlist_mutex);
++	list_add_tail(&dev->devlist, &tm6000_devlist);
++	mutex_unlock(&tm6000_devlist_mutex);
++};
++
++/*
++ * Extension interface
++ */
++
++static LIST_HEAD(tm6000_extension_devlist);
++static DEFINE_MUTEX(tm6000_extension_devlist_lock);
++
++int tm6000_register_extension(struct tm6000_ops *ops)
++{
++	struct tm6000_core *dev = NULL;
++
++	mutex_lock(&tm6000_devlist_mutex);
++	mutex_lock(&tm6000_extension_devlist_lock);
++	list_add_tail(&ops->next, &tm6000_extension_devlist);
++	list_for_each_entry(dev, &tm6000_devlist, devlist) {
++		if (dev)
++			ops->init(dev);
++	}
++	printk(KERN_INFO "tm6000: Initialized (%s) extension\n", ops->name);
++	mutex_unlock(&tm6000_extension_devlist_lock);
++	mutex_unlock(&tm6000_devlist_mutex);
++	return 0;
++}
++EXPORT_SYMBOL(tm6000_register_extension);
++
++void tm6000_unregister_extension(struct tm6000_ops *ops)
++{
++	struct tm6000_core *dev = NULL;
++
++	mutex_lock(&tm6000_devlist_mutex);
++	list_for_each_entry(dev, &tm6000_devlist, devlist) {
++		if (dev)
++			ops->fini(dev);
++	}
++
++	mutex_lock(&tm6000_extension_devlist_lock);
++	printk(KERN_INFO "tm6000: Remove (%s) extension\n", ops->name);
++	list_del(&ops->next);
++	mutex_unlock(&tm6000_extension_devlist_lock);
++	mutex_unlock(&tm6000_devlist_mutex);
++}
++EXPORT_SYMBOL(tm6000_unregister_extension);
++
++void tm6000_init_extension(struct tm6000_core *dev)
++{
++	struct tm6000_ops *ops = NULL;
++
++	mutex_lock(&tm6000_extension_devlist_lock);
++	if (!list_empty(&tm6000_extension_devlist)) {
++		list_for_each_entry(ops, &tm6000_extension_devlist, next) {
++			if (ops->init)
++				ops->init(dev);
 +		}
- 		if (ops->vidioc_s_ctrl) {
- 			ret = ops->vidioc_s_ctrl(file, fh, p);
- 			break;
-@@ -1331,10 +1342,12 @@ static long __video_do_ioctl(struct file *file,
- 		struct v4l2_ext_controls *p = arg;
++	}
++	mutex_unlock(&tm6000_extension_devlist_lock);
++}
++
++void tm6000_close_extension(struct tm6000_core *dev)
++{
++	struct tm6000_ops *ops = NULL;
++
++	mutex_lock(&tm6000_extension_devlist_lock);
++	if (!list_empty(&tm6000_extension_devlist)) {
++		list_for_each_entry(ops, &tm6000_extension_devlist, next) {
++			if (ops->fini)
++				ops->fini(dev);
++		}
++	}
++	mutex_unlock(&tm6000_extension_devlist_lock);
++}
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index 6812d68..79ef72a 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -168,6 +168,10 @@ struct tm6000_core {
+ 	struct i2c_adapter		i2c_adap;
+ 	struct i2c_client		i2c_client;
  
- 		p->error_idx = p->count;
--		if (!ops->vidioc_g_ext_ctrls)
--			break;
--		if (check_ext_ctrls(p, 0))
-+		if (vfd->ctrl_handler)
-+			ret = v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
-+		else if (ops->vidioc_g_ext_ctrls && check_ext_ctrls(p, 0))
- 			ret = ops->vidioc_g_ext_ctrls(file, fh, p);
-+		else
-+			break;
- 		v4l_print_ext_ctrls(cmd, vfd, p, !ret);
- 		break;
- 	}
-@@ -1343,10 +1356,12 @@ static long __video_do_ioctl(struct file *file,
- 		struct v4l2_ext_controls *p = arg;
++
++	/* extension */
++	struct list_head		devlist;
++
+ 	/* video for linux */
+ 	int				users;
  
- 		p->error_idx = p->count;
--		if (!ops->vidioc_s_ext_ctrls)
-+		if (!vfd->ctrl_handler && !ops->vidioc_s_ext_ctrls)
- 			break;
- 		v4l_print_ext_ctrls(cmd, vfd, p, 1);
--		if (check_ext_ctrls(p, 0))
-+		if (vfd->ctrl_handler)
-+			ret = v4l2_s_ext_ctrls(vfd->ctrl_handler, p);
-+		else if (check_ext_ctrls(p, 0))
- 			ret = ops->vidioc_s_ext_ctrls(file, fh, p);
- 		break;
- 	}
-@@ -1355,10 +1370,12 @@ static long __video_do_ioctl(struct file *file,
- 		struct v4l2_ext_controls *p = arg;
+@@ -203,6 +207,16 @@ struct tm6000_core {
+ 	spinlock_t                   slock;
+ };
  
- 		p->error_idx = p->count;
--		if (!ops->vidioc_try_ext_ctrls)
-+		if (!vfd->ctrl_handler && !ops->vidioc_try_ext_ctrls)
- 			break;
- 		v4l_print_ext_ctrls(cmd, vfd, p, 1);
--		if (check_ext_ctrls(p, 0))
-+		if (vfd->ctrl_handler)
-+			ret = v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
-+		else if (check_ext_ctrls(p, 0))
- 			ret = ops->vidioc_try_ext_ctrls(file, fh, p);
- 		break;
- 	}
-@@ -1366,9 +1383,12 @@ static long __video_do_ioctl(struct file *file,
- 	{
- 		struct v4l2_querymenu *p = arg;
++#define TM6000_AUDIO 0x10
++
++struct tm6000_ops {
++	struct list_head	next;
++	char			*name;
++	int			id;
++	int (*init)(struct tm6000_core *);
++	int (*fini)(struct tm6000_core *);
++};
++
+ struct tm6000_fh {
+ 	struct tm6000_core           *dev;
  
--		if (!ops->vidioc_querymenu)
-+		if (vfd->ctrl_handler)
-+			ret = v4l2_querymenu(vfd->ctrl_handler, p);
-+		else if (ops->vidioc_querymenu)
-+			ret = ops->vidioc_querymenu(file, fh, p);
-+		else
- 			break;
--		ret = ops->vidioc_querymenu(file, fh, p);
- 		if (!ret)
- 			dbgarg(cmd, "id=0x%x, index=%d, name=%s\n",
- 				p->id, p->index, p->name);
+@@ -246,6 +260,13 @@ int tm6000_v4l2_unregister(struct tm6000_core *dev);
+ int tm6000_v4l2_exit(void);
+ void tm6000_set_fourcc_format(struct tm6000_core *dev);
+ 
++void tm6000_remove_from_devlist(struct tm6000_core *dev);
++void tm6000_add_into_devlist(struct tm6000_core *dev);
++int tm6000_register_extension(struct tm6000_ops *ops);
++void tm6000_unregister_extension(struct tm6000_ops *ops);
++void tm6000_init_extension(struct tm6000_core *dev);
++void tm6000_close_extension(struct tm6000_core *dev);
++
+ /* In tm6000-stds.c */
+ void tm6000_get_std_res(struct tm6000_core *dev);
+ int tm6000_set_standard (struct tm6000_core *dev, v4l2_std_id *norm);
+@@ -275,7 +296,7 @@ unsigned int tm6000_v4l2_poll(struct file *file,
+ int tm6000_queue_init(struct tm6000_core *dev);
+ 
+ /* In tm6000-alsa.c */
+-int tm6000_audio_init(struct tm6000_core *dev, int idx);
++/*int tm6000_audio_init(struct tm6000_core *dev, int idx);*/
+ 
+ 
+ /* Debug stuff */
 -- 
-1.6.4.2
+1.7.0.3
 
