@@ -1,45 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3039 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755677Ab0ECGl4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 02:41:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 02/15] [RFC] v4l2-ctrls: reorder 'case' statements to match order in header.
-Date: Mon, 3 May 2010 08:42:59 +0200
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:37419 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756643Ab0EJK4k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 May 2010 06:56:40 -0400
+Received: by bwz19 with SMTP id 19so1665434bwz.21
+        for <linux-media@vger.kernel.org>; Mon, 10 May 2010 03:56:38 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Tim Coote <tim+vger.kernel.org@coote.org>
+Subject: Re: setting up a tevii s660
+Date: Mon, 10 May 2010 13:56:43 +0300
 Cc: linux-media@vger.kernel.org
-References: <cover.1272267136.git.hverkuil@xs4all.nl> <5f14ea711d1d98ea7fbdfbbc27422e679a9a1f63.1272267137.git.hverkuil@xs4all.nl> <201005022242.26593.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201005022242.26593.laurent.pinchart@ideasonboard.com>
+References: <E23F27D7-CF5B-4F6B-9656-EB63E7005BD0@coote.org> <201005092146.23620.liplianin@me.by> <CF4FB529-8D84-48B6-98DC-BD20BB2A4F60@coote.org>
+In-Reply-To: <CF4FB529-8D84-48B6-98DC-BD20BB2A4F60@coote.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005030842.59931.hverkuil@xs4all.nl>
+  charset="koi8-r"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201005101356.44189.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 02 May 2010 22:42:26 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Monday 26 April 2010 09:33:33 Hans Verkuil wrote:
-> > To make it easier to determine whether all controls are added in
-> > v4l2-ctrls.c the case statements inside the switch are re-ordered to match
-> > the header.
-> > 
-> > Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-> 
-> This patch should be merged with the previous one.
+On 10 мая 2010 00:29:13 Tim Coote wrote:
+> Thanks, Igor. I was using that set of drivers (if I understood the
+> Babelfish translation.)
+>
+> My issue was that my hardware was broken (I was using a VMWare VM that
+> didn't emulate usb properly). It's always hard to work out what's
+> broken when you load up some new package and it doesn't work.  I'd
+> confirmed that the s660 worked from windows, but I had to build a
+> windows vm to demonstrate that it was VMWare that was broken.
+> Meanwhile, I kept stumbling across what seemed to be similar breakages
+> to what I was seeing.
+>
+> I don't know how feasible it would be, but when I used to write device
+> drivers, I'd pull together simple programs to test that the hardware
+> was working as I'd expect as I spent so much time debugging changing
+> hardware designs :-(
+>
+> I would say that the tevii drivers have both new code compared to the
+> tip of the driver that you manage, and also seem to be missing some
+> code.
+So called "TeVii drivers" is simply a snapshot from linuxtv, so OK, they are useable.
 
-I didn't do that in order to make the previous patch easier to review.
-That patch just moves this table unchanged from v4l2-common.c to v4l2-ctrl.c.
-Since the table doesn't change it is easy to verify that, well, no changes
-were made.
-
-I will keep this as a separate patch if you don't mind.
-
-Regards,
-
-	Hans
+>
+> thanks again for your help.  Now all I've got to do is get mythtv to
+> work...
+>
+> Tim
+>
+> On 9 May 2010, at 19:46, Igor M. Liplianin wrote:
+> > On 6 мая 2010 02:07:38 Tim Coote wrote:
+> >> [snip]
+> >
+> > Hi!
+> > Read this:
+> > http://forum.free-x.de/wbb/index.php?page=Thread&threadID=601&pageNo=6
+> > Useful to translate from Russian:
+> > http://babelfish.yahoo.com/translate_txt
+> > Best regards
+> > --
+> > Igor M. Liplianin
+> > Microsoft Windows Free Zone - Linux used for all Computing Tasks
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-
+> > media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Tim Coote
+> tim@coote.org
+> +44 (0)7866 479 760
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
