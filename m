@@ -1,62 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:62950 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750960Ab0E2EXZ convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55215 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752298Ab0EJG6V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 00:23:25 -0400
-Received: by fxm10 with SMTP id 10so1194536fxm.19
-        for <linux-media@vger.kernel.org>; Fri, 28 May 2010 21:23:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTikyQt4CKLQ1JqjeiNZLMv9Fa9YzcV-BcROd1QWe@mail.gmail.com>
-References: <AANLkTikyQt4CKLQ1JqjeiNZLMv9Fa9YzcV-BcROd1QWe@mail.gmail.com>
-Date: Sat, 29 May 2010 07:23:22 +0300
-Message-ID: <AANLkTik_Pqab77LY-XpBdeQ8rSUkP2k9AxyIvzRygbBE@mail.gmail.com>
-Subject: Re: TBS 6980 Dual Tuner PCI-e card.....not in Wiki at all?
-From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-To: Another Sillyname <anothersname@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 10 May 2010 02:58:21 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L2600JL3ZD67K@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 May 2010 07:58:18 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L2600GHHZD6EC@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 May 2010 07:58:18 +0100 (BST)
+Date: Mon, 10 May 2010 08:57:49 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: Status of the patches under review (85 patches) and some misc
+ notes about the devel procedures
+In-reply-to: <20100507093916.2e2ef8e3@pedra>
+To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'LMML' <linux-media@vger.kernel.org>
+Message-id: <001101caf00e$1a55cf00$4f016d00$%osciak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <20100507093916.2e2ef8e3@pedra>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hello, i can't comment on your questions about the Wiki, but i made
-the driver for TBS 6980 and i can ensure you that the driver will be
-released as open-source under GPL as soon as i have permission to do
-that, but compared to other cards at least even at the moment you can
-use the card in Linux and it's very easy to add support for it using
-the binary modules even to the latest V4L code from repository and so
-those "blobs" are actually not so big limitation.
+>From: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-also, you are very wrong about the price - as far as i know retails
-price is less than 200 USD, for example TBS online shop gives a price
-of 158.99 USD:
+>		== New or updated patches starting from May, 5 or newer - not handled yet ==
+>
+>May, 5 2010: [-next] media/mem2mem: dereferencing free memory
+http://patchwork.kernel.org/patch/96984
 
-http://www.buydvb.net/pcie-dvbs2-dual-tuner-tv-card_p11.html
+This one is obvious, but might as well:
 
-and i believe the dual DVB-S2 card with price of 1000 USD that you're
-talking about is the NetUP one and not the TurboSight TBS 6980 dual
-DVB-S2 card.
+Reviewed-by: Pawel Osciak <p.osciak@samsung.com>
+Acked-by: Pawel Osciak <p.osciak@samsung.com>
 
---konstantin
 
-On Sat, May 29, 2010 at 5:16 AM, Another Sillyname
-<anothersname@googlemail.com> wrote:
-> Guys
->
-> The TBS 6920 PCI-e card is in the Wiki and is a supported card.
->
-> The TBS 6980 dual tuner PCI-e card is not in the Wiki at all, is there
-> a reason for this given they have released a non GPL blob at least?
->
-> Also is there a reason that an indicative price for supported cards is
-> not shown in the wiki?  It would save a load of time rather then
-> having to search on each card only to find out it's ridiculously
-> priced at $1000.
->
-> Thanks
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
+
