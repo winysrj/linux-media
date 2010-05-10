@@ -1,315 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f225.google.com ([209.85.218.225]:37197 "EHLO
-	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752883Ab0EEH2H convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 03:28:07 -0400
-Received: by bwz25 with SMTP id 25so2723340bwz.28
-        for <linux-media@vger.kernel.org>; Wed, 05 May 2010 00:28:06 -0700 (PDT)
-Date: Wed, 5 May 2010 17:31:14 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Bee Hock Goh <beehock@gmail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stefan Ringel <stefan.ringel@arcor.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] Rework for support xc5000
-Message-ID: <20100505173114.35c61cf2@glory.loctelecom.ru>
-In-Reply-To: <y2t6e8e83e21005041916w8bca885fo44b27f858c9dea5b@mail.gmail.com>
-References: <20100505085350.1b4f023f@glory.loctelecom.ru>
-	<y2t6e8e83e21005041916w8bca885fo44b27f858c9dea5b@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:39461 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753900Ab0EJP4F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 May 2010 11:56:05 -0400
+Date: Mon, 10 May 2010 17:55:49 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 2/3] ARM: S5PC100: Add FIMC driver platform helpers
+In-reply-to: <1273506950-25920-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, ben-linux@fluff.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1273506950-25920-3-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1273506950-25920-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 5 May 2010 10:16:27 +0800
-Bee Hock Goh <beehock@gmail.com> wrote:
+    Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+    Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+    Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ arch/arm/mach-s5pc100/Kconfig            |   21 +++++++++++++++++++++
+ arch/arm/mach-s5pc100/Makefile           |    4 ++++
+ arch/arm/mach-s5pc100/include/mach/map.h |    8 ++++++++
+ arch/arm/mach-s5pc100/mach-smdkc100.c    |    9 +++++++++
+ arch/arm/mach-s5pc100/setup-fimc0.c      |   27 +++++++++++++++++++++++++++
+ arch/arm/mach-s5pc100/setup-fimc1.c      |   27 +++++++++++++++++++++++++++
+ arch/arm/mach-s5pc100/setup-fimc2.c      |   27 +++++++++++++++++++++++++++
+ 7 files changed, 123 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-s5pc100/setup-fimc0.c
+ create mode 100644 arch/arm/mach-s5pc100/setup-fimc1.c
+ create mode 100644 arch/arm/mach-s5pc100/setup-fimc2.c
 
-> There does not seem to be any radio support in the tm6000 codes.
-> 
-> tun_setup.mode_mask |= (T_ANALOG_TV | T_RADIO);
-> 
-> Is the T_RADIO mode still required since this is a cleanup?
+diff --git a/arch/arm/mach-s5pc100/Kconfig b/arch/arm/mach-s5pc100/Kconfig
+index 092925b..c6f8adf 100644
+--- a/arch/arm/mach-s5pc100/Kconfig
++++ b/arch/arm/mach-s5pc100/Kconfig
+@@ -36,6 +36,21 @@ config S5PC100_SETUP_SDHCI_GPIO
+ 	help
+ 	  Common setup code for SDHCI gpio.
+ 
++config S5PC100_SETUP_FIMC0
++	bool
++	help
++	  Setup code for FIMC controller 0
++
++config S5PC100_SETUP_FIMC1
++	bool
++	help
++	  Setup code for FIMC controller 1
++
++config S5PC100_SETUP_FIMC2
++	bool
++	help
++	  Setup code for FIMC controller 2
++
+ config MACH_SMDKC100
+ 	bool "SMDKC100"
+ 	select CPU_S5PC100
+@@ -48,6 +63,12 @@ config MACH_SMDKC100
+ 	select S3C_DEV_HSMMC
+ 	select S3C_DEV_HSMMC1
+ 	select S3C_DEV_HSMMC2
++	select S5P_DEV_FIMC0
++	select S5PC100_SETUP_FIMC0
++	select S5P_DEV_FIMC1
++	select S5PC100_SETUP_FIMC1
++	select S5P_DEV_FIMC2
++	select S5PC100_SETUP_FIMC2
+ 	help
+ 	  Machine support for the Samsung SMDKC100
+ 
+diff --git a/arch/arm/mach-s5pc100/Makefile b/arch/arm/mach-s5pc100/Makefile
+index 7a7de14..db17a0d 100644
+--- a/arch/arm/mach-s5pc100/Makefile
++++ b/arch/arm/mach-s5pc100/Makefile
+@@ -21,6 +21,10 @@ obj-$(CONFIG_S5PC100_SETUP_I2C1) += setup-i2c1.o
+ obj-$(CONFIG_S5PC100_SETUP_SDHCI)       += setup-sdhci.o
+ obj-$(CONFIG_S5PC100_SETUP_SDHCI_GPIO)	+= setup-sdhci-gpio.o
+ 
++obj-$(CONFIG_S5PC100_SETUP_FIMC0)	+= setup-fimc0.o
++obj-$(CONFIG_S5PC100_SETUP_FIMC1)	+= setup-fimc1.o
++obj-$(CONFIG_S5PC100_SETUP_FIMC2)	+= setup-fimc2.o
++
+ # machine support
+ 
+ obj-$(CONFIG_MACH_SMDKC100)	+= mach-smdkc100.o
+diff --git a/arch/arm/mach-s5pc100/include/mach/map.h b/arch/arm/mach-s5pc100/include/mach/map.h
+index 9e49dcc..40452cc 100644
+--- a/arch/arm/mach-s5pc100/include/mach/map.h
++++ b/arch/arm/mach-s5pc100/include/mach/map.h
+@@ -68,6 +68,11 @@
+ 
+ #define S5P_PA_SDRAM		S5PC100_PA_SDRAM
+ 
++/* FIMC */
++#define S5PC100_PA_FIMC0	(0xEE200000)
++#define S5PC100_PA_FIMC1	(0xEE300000)
++#define S5PC100_PA_FIMC2	(0xEE400000)
++
+ /* compatibiltiy defines. */
+ #define S3C_PA_UART		S5PC100_PA_UART
+ #define S3C_PA_IIC		S5PC100_PA_IIC0
+@@ -79,5 +84,8 @@
+ #define S3C_PA_HSMMC0		S5PC100_PA_HSMMC0
+ #define S3C_PA_HSMMC1		S5PC100_PA_HSMMC1
+ #define S3C_PA_HSMMC2		S5PC100_PA_HSMMC2
++#define S5P_PA_FIMC0		S5PC100_PA_FIMC0
++#define S5P_PA_FIMC1		S5PC100_PA_FIMC1
++#define S5P_PA_FIMC2		S5PC100_PA_FIMC2
+ 
+ #endif /* __ASM_ARCH_MAP_H */
+diff --git a/arch/arm/mach-s5pc100/mach-smdkc100.c b/arch/arm/mach-s5pc100/mach-smdkc100.c
+index 1668dba..a7fdabc 100644
+--- a/arch/arm/mach-s5pc100/mach-smdkc100.c
++++ b/arch/arm/mach-s5pc100/mach-smdkc100.c
+@@ -41,6 +41,7 @@
+ #include <plat/s5pc100.h>
+ #include <plat/fb.h>
+ #include <plat/iic.h>
++#include <plat/fimc.h>
+ 
+ #define UCON (S3C2410_UCON_DEFAULT | S3C2410_UCON_UCLK)
+ #define ULCON (S3C2410_LCON_CS8 | S3C2410_LCON_PNONE | S3C2410_LCON_STOPB)
+@@ -147,6 +148,9 @@ static struct platform_device *smdkc100_devices[] __initdata = {
+ 	&s3c_device_hsmmc1,
+ 	&s3c_device_hsmmc2,
+ 	&s3c_device_onenand,
++	&s5p_device_fimc0,
++	&s5p_device_fimc1,
++	&s5p_device_fimc2,
+ };
+ 
+ static void __init smdkc100_map_io(void)
+@@ -166,6 +170,11 @@ static void __init smdkc100_machine_init(void)
+ 
+ 	s3c_fb_set_platdata(&smdkc100_lcd_pdata);
+ 
++	/* FIMC */
++	s5p_fimc0_set_platdata(NULL);
++	s5p_fimc1_set_platdata(NULL);
++	s5p_fimc2_set_platdata(NULL);
++
+ 	/* LCD init */
+ 	gpio_request(S5PC100_GPD(0), "GPD");
+ 	gpio_request(S5PC100_GPH0(6), "GPH0");
+diff --git a/arch/arm/mach-s5pc100/setup-fimc0.c b/arch/arm/mach-s5pc100/setup-fimc0.c
+new file mode 100644
+index 0000000..00693d2
+--- /dev/null
++++ b/arch/arm/mach-s5pc100/setup-fimc0.c
+@@ -0,0 +1,27 @@
++/* linux/arch/arm/mach-s5pc100/setup-fimc0.c
++ *
++ * Copyright (c) 2010 Samsung Electronics
++ *
++ * S5PC100 - setup and capabilities definitions for S5P FIMC device 0
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <plat/fimc.h>
++
++struct s5p_platform_fimc s5p_fimc0_default_data __initdata = {
++	.srclk_name	= "dout_mpll",
++	.clockrate	= 133000000,
++	.capability	= S5P_FIMC_IN_ROT | S5P_FIMC_OUT_ROT,
++	/* scaler input pixel size constraints */
++	.scaler_en_w	= 3264,
++	.scaler_dis_w	= 8192,
++	/* input rotator limits for (input) image pixel size */
++	.in_rot_en_h	= 1280,
++	.in_rot_dis_w	= 8192,
++	/* output rotator limits for (output) image pixel size */
++	.out_rot_en_w	= 1280,
++	.out_rot_dis_w	= 3264
++};
+diff --git a/arch/arm/mach-s5pc100/setup-fimc1.c b/arch/arm/mach-s5pc100/setup-fimc1.c
+new file mode 100644
+index 0000000..5a9cecb
+--- /dev/null
++++ b/arch/arm/mach-s5pc100/setup-fimc1.c
+@@ -0,0 +1,27 @@
++/* linux/arch/arm/mach-s5pc100/setup-fimc1.c
++ *
++ * Copyright (c) 2010 Samsung Electronics
++ *
++ * S5PC100 - setup and capabilities definitions for S5P FIMC device 1
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <plat/fimc.h>
++
++struct s5p_platform_fimc s5p_fimc1_default_data __initdata = {
++	.srclk_name	= "dout_mpll",
++	.clockrate	= 133000000,
++	.capability	= S5P_FIMC_IN_ROT | S5P_FIMC_OUT_ROT,
++	/* scaler input pixel size constraints */
++	.scaler_en_w	= 1280,
++	.scaler_dis_w	= 8192,
++	/* input rotator limits for (input) image pixel size */
++	.in_rot_en_h	= 768,
++	.in_rot_dis_w	= 8192,
++	/* output rotator limits for (output) image pixel size */
++	.out_rot_en_w	= 768,
++	.out_rot_dis_w	= 1280
++};
+diff --git a/arch/arm/mach-s5pc100/setup-fimc2.c b/arch/arm/mach-s5pc100/setup-fimc2.c
+new file mode 100644
+index 0000000..9fa6c7f
+--- /dev/null
++++ b/arch/arm/mach-s5pc100/setup-fimc2.c
+@@ -0,0 +1,27 @@
++/* linux/arch/arm/mach-s5pc100/setup-fimc2.c
++ *
++ * Copyright (c) 2010 Samsung Electronics
++ *
++ * S5PC100 - setup and capabilities definitions for S5P FIMC device 2
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <plat/fimc.h>
++
++struct s5p_platform_fimc s5p_fimc2_default_data __initdata = {
++	.srclk_name	= "dout_mpll",
++	.clockrate	= 133000000,
++	.capability	= 0,
++	/* scaler input pixel size constraints */
++	.scaler_en_w	= 1440,
++	.scaler_dis_w	= 8192,
++	/* input rotator limits for (input) image pixel size */
++	.in_rot_en_h	= 0,
++	.in_rot_dis_w	= 1440,
++	/* output rotator limits for (output) image pixel size */
++	.out_rot_en_w	= 0,
++	.out_rot_dis_w	= 1440
++};
+-- 
+1.7.0.4
 
-Now radio may be not work. But we want write complete driver.
-
-This for set T_RADIO
-
-Cleanup is tun_setup.mode_mask &= ~(T_RADIO)
-
-With my best regards, Dmitry.
-
-> On Wed, May 5, 2010 at 6:53 AM, Dmitri Belimov <d.belimov@gmail.com>
-> wrote:
-> > Hi
-> >
-> > Set correct GPIO number for BEHOLD_WANDER/VOYAGER
-> > Add xc5000 callback function
-> > Small rework tm6000_cards_setup function
-> > Small rework tm6000_config_tuner, build mode_mask by config
-> > information Rework for support xc5000 silicon tuner
-> > Add some information messages for more better understand an errors.
-> >
-> > diff --git a/drivers/staging/tm6000/tm6000-cards.c
-> > b/drivers/staging/tm6000/tm6000-cards.c index f795a3e..17e3d4c
-> > 100644 --- a/drivers/staging/tm6000/tm6000-cards.c
-> > +++ b/drivers/staging/tm6000/tm6000-cards.c
-> > @@ -231,7 +231,9 @@ struct tm6000_board tm6000_boards[] = {
-> >                        .has_remote   = 1,
-> >                },
-> >                .gpio = {
-> > -                       .tuner_reset    = TM6000_GPIO_2,
-> > +                       .tuner_reset    = TM6010_GPIO_0,
-> > +                       .demod_reset    = TM6010_GPIO_1,
-> > +                       .power_led      = TM6010_GPIO_6,
-> >                },
-> >        },
-> >        [TM6010_BOARD_BEHOLD_VOYAGER] = {
-> > @@ -247,7 +249,8 @@ struct tm6000_board tm6000_boards[] = {
-> >                        .has_remote   = 1,
-> >                },
-> >                .gpio = {
-> > -                       .tuner_reset    = TM6000_GPIO_2,
-> > +                       .tuner_reset    = TM6010_GPIO_0,
-> > +                       .power_led      = TM6010_GPIO_6,
-> >                },
-> >        },
-> >        [TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
-> > @@ -320,6 +323,31 @@ struct usb_device_id tm6000_id_table [] = {
-> >        { },
-> >  };
-> >
-> > +/* Tuner callback to provide the proper gpio changes needed for
-> > xc5000 */ +int tm6000_xc5000_callback(void *ptr, int component, int
-> > command, int arg) +{
-> > +       int rc = 0;
-> > +       struct tm6000_core *dev = ptr;
-> > +
-> > +       if (dev->tuner_type != TUNER_XC5000)
-> > +               return 0;
-> > +
-> > +       switch (command) {
-> > +       case XC5000_TUNER_RESET:
-> > +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > +                              dev->gpio.tuner_reset, 0x01);
-> > +               msleep(15);
-> > +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > +                              dev->gpio.tuner_reset, 0x00);
-> > +               msleep(15);
-> > +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > +                              dev->gpio.tuner_reset, 0x01);
-> > +               break;
-> > +       }
-> > +       return (rc);
-> > +}
-> > +
-> > +
-> >  /* Tuner callback to provide the proper gpio changes needed for
-> > xc2028 */
-> >
-> >  int tm6000_tuner_callback(void *ptr, int component, int command,
-> > int arg) @@ -438,6 +466,21 @@ int tm6000_cards_setup(struct
-> > tm6000_core *dev) tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > dev->gpio.demod_on, 0x00); msleep(15);
-> >                break;
-> > +       case TM6010_BOARD_BEHOLD_WANDER:
-> > +               /* Power led on (blue) */
-> > +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > dev->gpio.power_led, 0x01);
-> > +               msleep(15);
-> > +               /* Reset zarlink zl10353 */
-> > +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > dev->gpio.demod_reset, 0x00);
-> > +               msleep(50);
-> > +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > dev->gpio.demod_reset, 0x01);
-> > +               msleep(15);
-> > +               break;
-> > +       case TM6010_BOARD_BEHOLD_VOYAGER:
-> > +               /* Power led on (blue) */
-> > +               tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > dev->gpio.power_led, 0x01);
-> > +               msleep(15);
-> > +               break;
-> >        default:
-> >                break;
-> >        }
-> > @@ -449,42 +492,38 @@ int tm6000_cards_setup(struct tm6000_core
-> > *dev)
-> >         * If a device uses a different sequence or different GPIO
-> > pins for
-> >         * reset, just add the code at the board-specific part
-> >         */
-> > -       for (i = 0; i < 2; i++) {
-> > -               rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > -                                       dev->gpio.tuner_reset,
-> > 0x00);
-> > -               if (rc < 0) {
-> > -                       printk(KERN_ERR "Error %i doing GPIO1
-> > reset\n", rc);
-> > -                       return rc;
-> > -               }
-> > -
-> > -               msleep(10); /* Just to be conservative */
-> > -               rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > -                                       dev->gpio.tuner_reset,
-> > 0x01);
-> > -               if (rc < 0) {
-> > -                       printk(KERN_ERR "Error %i doing GPIO1
-> > reset\n", rc);
-> > -                       return rc;
-> > -               }
-> >
-> > -               msleep(10);
-> > -               rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > TM6000_GPIO_4, 0);
-> > -               if (rc < 0) {
-> > -                       printk(KERN_ERR "Error %i doing GPIO4
-> > reset\n", rc);
-> > -                       return rc;
-> > -               }
-> > +       if (dev->gpio.tuner_reset)
-> > +       {
-> > +               for (i = 0; i < 2; i++) {
-> > +                       rc = tm6000_set_reg(dev,
-> > REQ_03_SET_GET_MCU_PIN,
-> > +
-> > dev->gpio.tuner_reset, 0x00);
-> > +                       if (rc < 0) {
-> > +                               printk(KERN_ERR "Error %i doing
-> > tuner reset\n", rc);
-> > +                               return rc;
-> > +                       }
-> >
-> > -               msleep(10);
-> > -               rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> > TM6000_GPIO_4, 1);
-> > -               if (rc < 0) {
-> > -                       printk(KERN_ERR "Error %i doing GPIO4
-> > reset\n", rc);
-> > -                       return rc;
-> > -               }
-> > +                       msleep(10); /* Just to be conservative */
-> > +                       rc = tm6000_set_reg(dev,
-> > REQ_03_SET_GET_MCU_PIN,
-> > +
-> > dev->gpio.tuner_reset, 0x01);
-> > +                       if (rc < 0) {
-> > +                               printk(KERN_ERR "Error %i doing
-> > tuner reset\n", rc);
-> > +                               return rc;
-> > +                       }
-> > +                       msleep(10);
-> >
-> > -               if (!i) {
-> > -                       rc = tm6000_get_reg32(dev,
-> > REQ_40_GET_VERSION, 0, 0);
-> > -                       if (rc >= 0)
-> > -                               printk(KERN_DEBUG "board=0x%08x\n",
-> > rc);
-> > +                       if (!i) {
-> > +                               rc = tm6000_get_reg32(dev,
-> > REQ_40_GET_VERSION, 0, 0);
-> > +                               if (rc >= 0)
-> > +                                       printk(KERN_DEBUG
-> > "board=0x%08x\n", rc);
-> > +                       }
-> >                }
-> >        }
-> > +       else
-> > +       {
-> > +               printk(KERN_ERR "Tuner reset is not configured\n");
-> > +               return -1;
-> > +       }
-> >
-> >        msleep(50);
-> >
-> > @@ -502,12 +541,30 @@ static void tm6000_config_tuner (struct
-> > tm6000_core *dev) memset(&tun_setup, 0, sizeof(tun_setup));
-> >        tun_setup.type   = dev->tuner_type;
-> >        tun_setup.addr   = dev->tuner_addr;
-> > -       tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
-> > -       tun_setup.tuner_callback = tm6000_tuner_callback;
-> > +
-> > +       tun_setup.mode_mask = 0;
-> > +       if (dev->caps.has_tuner)
-> > +               tun_setup.mode_mask |= (T_ANALOG_TV | T_RADIO);
-> > +       if (dev->caps.has_dvb)
-> > +               tun_setup.mode_mask |= T_DIGITAL_TV;
-> > +
-> > +       switch (dev->tuner_type)
-> > +       {
-> > +       case TUNER_XC2028:
-> > +               tun_setup.tuner_callback = tm6000_tuner_callback;;
-> > +               break;
-> > +       case TUNER_XC5000:
-> > +               tun_setup.tuner_callback = tm6000_xc5000_callback;
-> > +               break;
-> > +       }
-> > +
-> >
-> >        v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr,
-> > &tun_setup);
-> >
-> > -       if (dev->tuner_type == TUNER_XC2028) {
-> > +       switch (dev->tuner_type)
-> > +       {
-> > +       case TUNER_XC2028:
-> > +               {
-> >                struct v4l2_priv_tun_config  xc2028_cfg;
-> >                struct xc2028_ctrl           ctl;
-> >
-> > @@ -537,9 +594,31 @@ static void tm6000_config_tuner (struct
-> > tm6000_core *dev) }
-> >
-> >                printk(KERN_INFO "Setting firmware parameters for
-> > xc2028\n"); -
-> >                v4l2_device_call_all(&dev->v4l2_dev, 0, tuner,
-> > s_config, &xc2028_cfg);
-> > +
-> > +               }
-> > +               break;
-> > +       case TUNER_XC5000:
-> > +               {
-> > +               struct v4l2_priv_tun_config  xc5000_cfg;
-> > +               struct xc5000_config ctl = {
-> > +                       .i2c_address = dev->tuner_addr,
-> > +                       .if_khz      = 4570,
-> > +                       .radio_input = XC5000_RADIO_FM1,
-> > +                       };
-> > +
-> > +               xc5000_cfg.tuner = TUNER_XC5000;
-> > +               xc5000_cfg.priv  = &ctl;
-> > +
-> > +
-> > +               v4l2_device_call_all(&dev->v4l2_dev, 0, tuner,
-> > s_config,
-> > +                                    &xc5000_cfg);
-> > +               }
-> > +               break;
-> > +       default:
-> > +               printk(KERN_INFO "Unknown tuner type. Tuner is not
-> > configured.\n");
-> > +               break;
-> >        }
-> >  }
-> >
-> > diff --git a/drivers/staging/tm6000/tm6000.h
-> > b/drivers/staging/tm6000/tm6000.h index 7aeded8..325a2b1 100644
-> > --- a/drivers/staging/tm6000/tm6000.h
-> > +++ b/drivers/staging/tm6000/tm6000.h
-> > @@ -216,6 +216,7 @@ struct tm6000_fh {
-> >  /* In tm6000-cards.c */
-> >
-> >  int tm6000_tuner_callback (void *ptr, int component, int command,
-> > int arg); +int tm6000_xc5000_callback (void *ptr, int component,
-> > int command, int arg); int tm6000_cards_setup(struct tm6000_core
-> > *dev);
-> >
-> >  /* In tm6000-core.c */
-> >
-> > Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov
-> > <d.belimov@gmail.com>
-> >
-> >
-> > With my best regards, Dmitry.
