@@ -1,138 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3749 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752939Ab0EIT1v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 15:27:51 -0400
-Received: from localhost (cm-84.208.87.21.getinternet.no [84.208.87.21])
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o49JRm1M090728
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 9 May 2010 21:27:49 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Message-Id: <ed5be5d1adeee5e641dc03fcb7a1ab92bc8ec3f5.1273432986.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1273432986.git.hverkuil@xs4all.nl>
-References: <cover.1273432986.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 09 May 2010 21:29:24 +0200
-Subject: [PATCH 6/7] [RFC] ivtv: drop priority handling, use core framework for this.
-To: linux-media@vger.kernel.org
+Received: from mail.gmx.net ([213.165.64.20]:38538 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756879Ab0EJUu7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 May 2010 16:50:59 -0400
+Date: Mon, 10 May 2010 22:45:34 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Confusing mediabus formats
+In-Reply-To: <201005091032.07893.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1005102154490.15250@axis700.grange>
+References: <201005091032.07893.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+(added Laurent to CC as he once asked me about these on IRC too)
+
+On Sun, 9 May 2010, Hans Verkuil wrote:
+
+> Hi Guennadi,
+> 
+> I'm preparing a patch series that replaces enum/g/try/s_fmt with
+> enum/g/try/s/_mbus_fmt in all subdevs. While doing that I stumbled on a
+> confusing definition of the YUV mediabus formats. Currently we have these:
+> 
+>         V4L2_MBUS_FMT_YUYV8_2X8_LE,
+>         V4L2_MBUS_FMT_YVYU8_2X8_LE,
+>         V4L2_MBUS_FMT_YUYV8_2X8_BE,
+>         V4L2_MBUS_FMT_YVYU8_2X8_BE,
+> 
+> The meaning of "2X8" is defined as: 'one pixel is transferred in
+> two 8-bit samples'.
+> 
+> This is confusing since you cannot really say that a Y and U pair constitutes
+> one pixel. And is it Y or U/V which constitutes the 'most-significant bits' in
+> such a 16-bit number?
+
+To recap, as we discussed it earlier this notation was one of your 
+suggestions:
+
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/12830/focus=13394
+
+Yes, I certainly agree, that LE and BE notations are not necessarily very 
+logical here, as you say, they don't make much sense in the YUV case. But 
+they do, e.g., in RGB565 case, as we discussed this with Laurent on IRC. 
+Basically, the information we want to include in the name is:
+
+pixel format family (YUYV8)
+number of samples, that constitute one "pixel" (*) and bits per sample
+order of samples in "pixel"
+
+(*) "pixel" is not necessarily a "complete pixel," i.e., might not carry 
+all colours in it. E.g., in YUYV "pixel" refers to any of the YU and YV 
+pairs. In other words, this is just = frame size * 8 / number of pixels / 
+bits-per-sample.
+
+> In my particular case I have to translate a V4L2_PIX_FMT_UYVY to a suitable
+> mediabus format. I think it would map to V4L2_MBUS_FMT_YUYV8_2X8_LE, but
+> frankly I'm not sure.
+> 
+> My suggestion is to rename these mediabus formats to:
+> 
+>         V4L2_MBUS_FMT_YUYV8_1X8,
+>         V4L2_MBUS_FMT_YVYU8_1X8,
+>         V4L2_MBUS_FMT_UYVY8_1X8,
+>         V4L2_MBUS_FMT_VYUY8_1X8,
+
+
+But what do you do with, e.g., RGB565? Y>ou have to differentiate between
+
+rrrrrggggggbbbbb
+bbbbbggggggrrrrr
+gggrrrrrbbbbbggg
+gggbbbbbrrrrrggg
+
+with the current notation they are
+
+RGB565_2X8_BE
+BGR565_2X8_BE
+BGR565_2X8_LE
+RGB565_2X8_LE
+
+and how would you call them? And what do you do with Y10_2X8_LE and _BE 
+(padding omitted for simplicity)?
+
+Also, Laurent has suggested
+
+	V4L2_MBUS_FMT_YUYV8_2X8,
+	V4L2_MBUS_FMT_YVYU8_2X8,
+	V4L2_MBUS_FMT_UYVY8_2X8,
+	V4L2_MBUS_FMT_VYUY8_2X8,
+
+and I like that better, than "1X8," but still it doesn't resolve my above 
+doubts.
+
+Ideas? Suggestions?
+
+> Here it is immediately clear what is going on. This scheme is also used with
+> the Bayer formats, so it would be consistent with that as well.
+> 
+> However, does V4L2_MBUS_FMT_YUYV8_2X8_LE map to V4L2_MBUS_FMT_YUYV8_1X8 or to
+> V4L2_MBUS_FMT_UYVY8_1X8? I still don't know.
+> 
+> What do you think?
+
+Thanks
+Guennadi
 ---
- drivers/media/video/ivtv/ivtv-driver.h  |    2 -
- drivers/media/video/ivtv/ivtv-fileops.c |    2 -
- drivers/media/video/ivtv/ivtv-ioctl.c   |   41 -------------------------------
- 3 files changed, 0 insertions(+), 45 deletions(-)
-
-diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
-index 584c8e0..136214c 100644
---- a/drivers/media/video/ivtv/ivtv-driver.h
-+++ b/drivers/media/video/ivtv/ivtv-driver.h
-@@ -379,7 +379,6 @@ struct ivtv_open_id {
- 	u32 open_id;                    /* unique ID for this file descriptor */
- 	int type;                       /* stream type */
- 	int yuv_frames;                 /* 1: started OUT_UDMA_YUV output mode */
--	enum v4l2_priority prio;        /* priority */
- 	struct ivtv *itv;
- };
- 
-@@ -704,7 +703,6 @@ struct ivtv {
- 
- 	/* Miscellaneous */
- 	u32 open_id;			/* incremented each time an open occurs, is >= 1 */
--	struct v4l2_prio_state prio;    /* priority state */
- 	int search_pack_header;         /* 1 if ivtv_copy_buf_to_user() is scanning for a pack header (0xba) */
- 	int speed;                      /* current playback speed setting */
- 	u8 speed_mute_audio;            /* 1 if audio should be muted when fast forward */
-diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
-index abf4109..083a586 100644
---- a/drivers/media/video/ivtv/ivtv-fileops.c
-+++ b/drivers/media/video/ivtv/ivtv-fileops.c
-@@ -853,7 +853,6 @@ int ivtv_v4l2_close(struct file *filp)
- 
- 	IVTV_DEBUG_FILE("close %s\n", s->name);
- 
--	v4l2_prio_close(&itv->prio, id->prio);
- 	v4l2_fh_del(fh);
- 	v4l2_fh_exit(fh);
- 
-@@ -949,7 +948,6 @@ static int ivtv_serialized_open(struct ivtv_stream *s, struct file *filp)
- 	}
- 	item->itv = itv;
- 	item->type = s->type;
--	v4l2_prio_open(&itv->prio, &item->prio);
- 
- 	item->open_id = itv->open_id++;
- 	filp->private_data = &item->fh;
-diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-index fa9f0d9..c532b77 100644
---- a/drivers/media/video/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-@@ -748,23 +748,6 @@ static int ivtv_s_register(struct file *file, void *fh, struct v4l2_dbg_register
- }
- #endif
- 
--static int ivtv_g_priority(struct file *file, void *fh, enum v4l2_priority *p)
--{
--	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
--
--	*p = v4l2_prio_max(&itv->prio);
--
--	return 0;
--}
--
--static int ivtv_s_priority(struct file *file, void *fh, enum v4l2_priority prio)
--{
--	struct ivtv_open_id *id = fh;
--	struct ivtv *itv = id->itv;
--
--	return v4l2_prio_change(&itv->prio, &id->prio, prio);
--}
--
- static int ivtv_querycap(struct file *file, void *fh, struct v4l2_capability *vcap)
- {
- 	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
-@@ -1833,30 +1816,8 @@ static long ivtv_serialized_ioctl(struct ivtv *itv, struct file *filp,
- 		unsigned int cmd, unsigned long arg)
- {
- 	struct video_device *vfd = video_devdata(filp);
--	struct ivtv_open_id *id = fh2id(filp->private_data);
- 	long ret;
- 
--	/* check priority */
--	switch (cmd) {
--	case VIDIOC_S_CTRL:
--	case VIDIOC_S_STD:
--	case VIDIOC_S_INPUT:
--	case VIDIOC_S_OUTPUT:
--	case VIDIOC_S_TUNER:
--	case VIDIOC_S_FREQUENCY:
--	case VIDIOC_S_FMT:
--	case VIDIOC_S_CROP:
--	case VIDIOC_S_AUDIO:
--	case VIDIOC_S_AUDOUT:
--	case VIDIOC_S_EXT_CTRLS:
--	case VIDIOC_S_FBUF:
--	case VIDIOC_S_PRIORITY:
--	case VIDIOC_OVERLAY:
--		ret = v4l2_prio_check(&itv->prio, id->prio);
--		if (ret)
--			return ret;
--	}
--
- 	if (ivtv_debug & IVTV_DBGFLG_IOCTL)
- 		vfd->debug = V4L2_DEBUG_IOCTL | V4L2_DEBUG_IOCTL_ARG;
- 	ret = video_ioctl2(filp, cmd, arg);
-@@ -1881,8 +1842,6 @@ long ivtv_v4l2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 
- static const struct v4l2_ioctl_ops ivtv_ioctl_ops = {
- 	.vidioc_querycap    		    = ivtv_querycap,
--	.vidioc_g_priority  		    = ivtv_g_priority,
--	.vidioc_s_priority  		    = ivtv_s_priority,
- 	.vidioc_s_audio     		    = ivtv_s_audio,
- 	.vidioc_g_audio     		    = ivtv_g_audio,
- 	.vidioc_enumaudio   		    = ivtv_enumaudio,
--- 
-1.6.4.2
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
