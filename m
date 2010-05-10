@@ -1,17 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2381 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757232Ab0EATj0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 15:39:26 -0400
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4083 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750824Ab0EJSmv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 May 2010 14:42:51 -0400
 Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o41JdG37078213
-	for <linux-media@vger.kernel.org>; Sat, 1 May 2010 21:39:25 +0200 (CEST)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4AIgdem017074
+	for <linux-media@vger.kernel.org>; Mon, 10 May 2010 20:42:50 +0200 (CEST)
 	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 1 May 2010 21:39:16 +0200 (CEST)
-Message-Id: <201005011939.o41JdG37078213@smtp-vbr13.xs4all.nl>
+Date: Mon, 10 May 2010 20:42:39 +0200 (CEST)
+Message-Id: <201005101842.o4AIgdem017074@smtp-vbr1.xs4all.nl>
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -20,60 +21,60 @@ the kernels and architectures in the list below.
 
 Results of the daily build of v4l-dvb:
 
-date:        Sat May  1 19:00:19 CEST 2010
+date:        Mon May 10 19:00:21 CEST 2010
 path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14619:ee9826bc7106
+changeset:   14707:82a84ed1d76b
 git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: d3be2fab3a10b6c798a5f9970146d166d3345c37
+git media-master: 08b8618ac4dbcd05ec1886853b1d865798d26e1d
 gcc version:      i686-linux-gcc (GCC) 4.4.3
 host hardware:    x86_64
 host os:          2.6.32.5
 
-linux-2.6.32.6-armv5: OK
+linux-2.6.32.6-armv5: ERRORS
 linux-2.6.33-armv5: OK
 linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.32.6-armv5-davinci: ERRORS
 linux-2.6.33-armv5-davinci: OK
 linux-2.6.34-rc1-armv5-davinci: OK
-linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.32.6-armv5-ixp: ERRORS
 linux-2.6.33-armv5-ixp: OK
 linux-2.6.34-rc1-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.32.6-armv5-omap2: ERRORS
 linux-2.6.33-armv5-omap2: OK
 linux-2.6.34-rc1-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
 linux-2.6.33-i686: OK
 linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
+linux-2.6.32.6-m32r: ERRORS
 linux-2.6.33-m32r: OK
 linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: OK
+linux-2.6.32.6-mips: ERRORS
 linux-2.6.33-mips: OK
 linux-2.6.34-rc1-mips: OK
-linux-2.6.32.6-powerpc64: OK
+linux-2.6.32.6-powerpc64: ERRORS
 linux-2.6.33-powerpc64: OK
 linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: OK
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
 linux-2.6.33-x86_64: OK
 linux-2.6.34-rc1-x86_64: WARNINGS
 linux-git-armv5: WARNINGS
@@ -88,26 +89,26 @@ linux-git-x86_64: WARNINGS
 spec: ERRORS
 spec-git: OK
 sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
 The V4L-DVB specification from this daily build is here:
 
