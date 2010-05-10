@@ -1,80 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:34199 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755101Ab0E3WDY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 18:03:24 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
-Date: Mon, 31 May 2010 00:03:10 +0200
-Cc: "Jean-Francois Moine" <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-References: <201005291909.33593.linux@rainbow-software.org> <201005302328.56690.linux@rainbow-software.org> <1275256691.4863.19.camel@localhost>
-In-Reply-To: <1275256691.4863.19.camel@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:7409 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756280Ab0EJT4x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 May 2010 15:56:53 -0400
+Message-ID: <4BE86492.6090401@redhat.com>
+Date: Mon, 10 May 2010 16:54:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201005310003.12761.linux@rainbow-software.org>
+To: Herton Ronaldo Krzesinski <herton@mandriva.com.br>
+CC: LMML <linux-media@vger.kernel.org>, awalls@md.metrocast.net,
+	moinejf@free.fr, g.liakhovetski@gmx.de, pboettcher@dibcom.fr,
+	awalls@radix.net, crope@iki.fi, davidtlwong@gmail.com,
+	liplianin@tut.by, isely@isely.net, tobias.lorenz@gmx.net,
+	hdegoede@redhat.com, abraham.manu@gmail.com,
+	u.kleine-koenig@pengutronix.de, stoth@kernellabs.com,
+	henrik@kurelid.se
+Subject: Re: Status of the patches under review (85 patches) and some misc
+ notes about the devel procedures
+References: <20100507093916.2e2ef8e3@pedra> <201005080234.05889.herton@mandriva.com.br> <4BE5E89C.2090405@redhat.com> <201005101546.39596.herton@mandriva.com.br>
+In-Reply-To: <201005101546.39596.herton@mandriva.com.br>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 30 May 2010 23:58:11 Andy Walls wrote:
-> On Sun, 2010-05-30 at 23:28 +0200, Ondrej Zary wrote:
-> > On Sunday 30 May 2010 21:26:14 Andy Walls wrote:
-> > > On Sun, 2010-05-30 at 19:55 +0200, Ondrej Zary wrote:
-> > > > On Sunday 30 May 2010 13:34:55 Jean-Francois Moine wrote:
-> > >
-> > > SP54 is Sunplus' ( http://www.sunplus.com.tw/ ) FourCC code for a
-> > > version of MJPEG with the headers removed according to
-> > >
-> > > 	http://www.fourcc.org/
-> > >
-> > > > Maybe we can dump some data, create AVI file from that and try to
-> > > > decode the file using that codec.
-> > >
-> > > FourCC.org points to this page:
-> > >
-> > > 	http://libland.fr.st/download.html
-> > >
-> > > which points to a utility to conver the data back into an MJPEG:
-> > >
-> > > 	http://mxhaard.free.fr/spca50x/Download/sp54convert.tar.gz
-> > >
-> > >
-> > > I have no idea if any of the above is true, 'cause I read it on the
-> > > Internet. ;)
-> >
-> > Modified that utility to work on raw video frame extracted from usbsnoop
-> > file. The bad news is that the resulting jpeg file is not readable.
-> >
-> > I also deleted the sp5x_32.dll file and the camera still works...
->
-> I would try extracting a JPEG header from one of the files captured by
-> the camera in stand alone mode (either a JPEG still or MJPEG file), and
-> put that header together with the image data from the USB capture.  It
-> may not look perfect, but hopefully you will get something you
-> recognize.
+Herton Ronaldo Krzesinski wrote:
+> Em Sáb 08 Mai 2010, às 19:41:32, Mauro Carvalho Chehab escreveu:
+>> Herton Ronaldo Krzesinski wrote:
+>>> Em Sex 07 Mai 2010, às 09:39:16, Mauro Carvalho Chehab escreveu:
+>>>> 		== Patch(broken) - waiting for Herton Ronaldo Krzesinski <herton@mandriva.com.br> new submission == 
+>>>>
+>>>> Apr, 5 2010: saa7134: add support for Avermedia M733A                               http://patchwork.kernel.org/patch/90692
+>>> Hi, I submitted now a new fixed version of the patch to mailing list, under
+>>> title "[PATCH v2] saa7134: add support for Avermedia M733A"
+>> OK, thanks!
+>>
+>>>> Mar,19 2010: saa7134: add support for one more remote control for Avermedia M135A   http://patchwork.kernel.org/patch/86989
+>>> This was the addition of RM-K6 remote control to M135A too, I think we can drop
+>>> this, since adding this to the kernel is deprecated now in favour of assigning
+>>> keymaps in userspace (keytable tool from v4l-utils), right?
+>> For now, I prefer to add the keytab there, since there are some scripts that syncs v4l-util
+>> keytables with the kernel ones. If you prefer, you may the put RM-K6 table together
+>> with the other M135A keytable. I intend to group the non-conflicting keytables soon,
+>> and it makes kense to group both the original and the RM-K6 into the same table, in order to 
+>> provide an easier hot-plug support for this device.
+> 
+> Ok, I updated and tested a new patch now, and sent with title
+> "[PATCH] saa7134: add RM-K6 remote control support for Avermedia M135A"
 
-Just thought about the same thing so I uploaded a video file: 
-http://www.rainbow-software.org/linux_files/spca1528/sunp0003.avi
-
-> Attached was Theodore's first attempt of such a procedure with a header
-> extracted from a standalone image file from my Jeilin based camera and
-> USB snoop data from the same camera.  It wasn't perfect, but it was
-> recognizable.
-
-Thanks, I'll try that tomorrow.
-
-> I did look at the image data file Jean-Francois provided from your
-> usbsnoop logs.  To my eye the data looks like it is Huffman coded
-> (indicating JPEG).  Maybe I'm just seeing what I want to see.
->
->
-> Regards,
-> Andy
+Thanks!
 
 -- 
-Ondrej Zary
+
+Cheers,
+Mauro
