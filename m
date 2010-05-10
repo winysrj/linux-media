@@ -1,53 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:36898 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751330Ab0E3RVh (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:18486 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754434Ab0EJM6f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 13:21:37 -0400
-Message-ID: <6215884.1275240095758.JavaMail.ngmail@webmail14.arcor-online.net>
-Date: Sun, 30 May 2010 19:21:35 +0200 (CEST)
-From: hermann-pitton@arcor.de
-To: user.vdr@gmail.com, hermann-pitton@arcor.de
-Subject: Re: What ever happened to standardizing signal level?
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <AANLkTilIrG5cwlLv_iAI7E7XX5117qh4AHof80pRRYSs@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-References: <AANLkTilIrG5cwlLv_iAI7E7XX5117qh4AHof80pRRYSs@mail.gmail.com> <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com>
-	<1275198741.3213.50.camel@pc07.localdom.local>
+	Mon, 10 May 2010 08:58:35 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Received: from eu_spt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L27006YBG1LZH90@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 May 2010 13:58:33 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L270089SG1KPJ@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 May 2010 13:58:33 +0100 (BST)
+Date: Mon, 10 May 2010 14:58:03 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: Status of the patches under review (85 patches) and some misc
+ notes about the devel procedures
+In-reply-to: <20100507093916.2e2ef8e3@pedra>
+To: 'LMML' <linux-media@vger.kernel.org>
+Cc: =?UTF-8?B?J+uwleqyveuvvCc=?= <kyungmin.park@samsung.com>
+Message-id: <001d01caf040$6d3fee80$47bfcb80$%osciak@samsung.com>
+Content-language: pl
+References: <20100507093916.2e2ef8e3@pedra>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- 
+Hi,
+
+>Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>		== Videobuf patches - Need more tests before committing it - Volunteers? ==
+>
+>Apr,21 2010: [v1, 1/2] v4l: videobuf: Add support for out-of-order buffer dequeuing
+> http://patchwork.kernel.org/patch/93901
+>Apr,21 2010: [v1, 2/2] v4l: vivi: adapt to out-of-order buffer dequeuing in
+>videobu http://patchwork.kernel.org/patch/93903
+>
+
+it'd be great if there was a driver/device that would be benefiting from this,
+i.e. that may want to:
+- return buffers in a different order than queued,
+- process them in parallel,
+- process them in a different order,
+
+or anybody interested in those features. Is anybody aware of any such devices
+in the V4L tree?
+
+This is also the first step to simplifying videobuf and making it lighter by
+removing superficial (to my best knowledge) waitqueues in every videobuf_buffer
+structure, as discussed at the Oslo meeting.
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
 
------ Original Nachricht ----
-Von:     VDR User <user.vdr@gmail.com>
-An:      hermann pitton <hermann-pitton@arcor.de>
-Datum:   30.05.2010 09:01
-Betreff: Re: What ever happened to standardizing signal level?
 
-> On Sat, May 29, 2010 at 10:52 PM, hermann pitton
-> <hermann-pitton@arcor.de> wrote:
-> >
-> ...troll spam removed...
-> >
-> 
-> Hermann, you're a known troll with clearly nothing to contribute to
-> this thread therefore you're comments are unwelcome.  
-
-On requests without success
-
-http://linuxtv.org/pipermail/linux-dvb/2009-August/032299.html
-
-you are well known for being in good company soon.
-
-http://linuxtv.org/pipermail/linux-dvb/2008-December/030704.html
-
-I wonder, if this will ever change, but hope so.
-
-Hermann
-
-
-Und was machen Sie heute abend? Alles Events Ihrer Gegend auf einen Blick im Arcor.de-Veranstaltungskalender: http://www.arcor.de/rd/footer.events
