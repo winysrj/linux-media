@@ -1,45 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:41420 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755552Ab0ECR2J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 May 2010 13:28:09 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1O8zR9-0005qG-1J
-	for linux-media@vger.kernel.org; Mon, 03 May 2010 19:28:07 +0200
-Received: from nemi.mork.no ([148.122.252.4])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 03 May 2010 19:28:07 +0200
-Received: from bjorn by nemi.mork.no with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Mon, 03 May 2010 19:28:07 +0200
-To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: ideal DVB-C PCI/e card?
-Date: Mon, 03 May 2010 19:27:57 +0200
-Message-ID: <87k4rkao9u.fsf@nemi.mork.no>
-References: <4BDE5AA1.1050000@gmail.com> <87pr1dbf1q.fsf@nemi.mork.no>
-	<4BDEEE35.6040308@gmail.com>
-	<q2kd9def9db1005030906o10588afcm6cb65ad26c1c04c8@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:39461 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753646Ab0EJP4H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 May 2010 11:56:07 -0400
+Date: Mon, 10 May 2010 17:55:47 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH/RFC v2 0/3] [ARM] Add Samsung S5P camera interface driver
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, ben-linux@fluff.org
+Message-id: <1273506950-25920-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Markus Rechberger <mrechberger@gmail.com> writes:
+Hello,
 
-> There are a few DVB-C/T/(analogTV) USB devices, our USB Sticks are
-> well supported and tested with Linux.
+This is a second version of my patch series adding v4l2 driver 
+of the camera interface (FIMC) contained in the Samsung S5PC100 and S5PV210 SoCs.
 
-Sorry, I wasn't precise enough.  You are correct.  There are USB DVB-C
-sticks with Linux support.
+The changes comparing to previous version:
 
-The thing is that my requirements aren't really Linux support, but *open
-source* support.  I should be more careful saying so.  Sorry for the
-confusion.
+- removed null power management ops
+- multiple minor coding style corrections
+- corrected clock handling (missing clk_put)
+- pruned included headers list 
+- removed changes for arch/arm/mach-s5pv210/mach-aquila.c
+
+The following patches implement memory to memory mode and require v4l2-mem2mem framework,
+which has already been merged into the v4l tree. 
+This driver was tested on SMDKC100 system and our custom board based on Samsung S5PV210 SOC.
+
+I'm open to any comments and suggestions.
 
 
-Bjørn
+This series contains:
+[PATCH v2 1/3] ARM: Samsung S5P: Add FIMC driver register definition and platform helpers
+[PATCH v2 2/3] ARM: S5PC100: Add FIMC driver platform helpers
+[PATCH v2 3/3] ARM: Samsung S5P: Add Camera Interface (video postprocessor) driver
+
+
+Best regards,
+--
+Sylwester Nawrocki
+Samsung Poland R&D Center,
+Linux Platform Group
 
