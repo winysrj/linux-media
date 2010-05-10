@@ -1,97 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12218 "EHLO mx1.redhat.com"
+Received: from ryu.zarb.org ([212.85.158.22]:55109 "EHLO ryu.zarb.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753436Ab0EaWbl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 18:31:41 -0400
-Message-ID: <4C0438CE.4090801@redhat.com>
-Date: Mon, 31 May 2010 19:31:42 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
-Subject: Re: ir-core multi-protocol decode and mceusb
-References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>	 <1275136793.2260.18.camel@localhost>	 <AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>	 <1275163295.17477.143.camel@localhost>	 <AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>	 <4C02700A.9040807@redhat.com>	 <AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>	 <AANLkTik_-6Z12G8rz0xkjbLkpWvfRHorGtD_LbsPr_11@mail.gmail.com>	 <1275308142.2227.16.camel@localhost>  <4C0408A9.4040904@redhat.com>	 <1275334699.2261.45.camel@localhost>  <4C042310.4090603@redhat.com> <1275342342.2260.37.camel@localhost>
-In-Reply-To: <1275342342.2260.37.camel@localhost>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1753124Ab0EJLoV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 May 2010 07:44:21 -0400
+Subject: Re: stv090x vs stv0900
+From: Pascal Terjan <pterjan@mandriva.com>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: Manu Abraham <abraham.manu@gmail.com>,
+	"Igor M. Liplianin" <liplianin@netup.ru>,
+	linux-media@vger.kernel.org
+In-Reply-To: <201005092134.45226.liplianin@me.by>
+References: <1273135577.16031.11.camel@plop>
+	 <201005092134.45226.liplianin@me.by>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 10 May 2010 13:44:08 +0200
+Message-ID: <1273491848.14370.22.camel@plop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 31-05-2010 18:45, Andy Walls escreveu:
-> On Mon, 2010-05-31 at 17:58 -0300, Mauro Carvalho Chehab wrote:
+Le dimanche 09 mai 2010 à 21:34 +0300, Igor M. Liplianin a écrit :
+> On 6 мая 2010 11:46:17 Pascal Terjan wrote:
+> > Hi,
+> >
+> > I was adding support for a non working version of DVBWorld HD 2104
+> >
+> > It is listed on
+> > http://www.linuxtv.org/wiki/index.php/DVBWorld_HD_2104_FTA_USB_Box as :
+> >
+> > =====
+> > for new solution : 2104B (Sharp0169 Tuner)
+> >
+> >       * STV6110A tuner
+> >       * ST0903 demod
+> >       * Cyrix CY7C68013A USB controller
+> > =====
+> >
+> > The 2104A is supposed to be working and also have ST0903 but uses
+> > stv0900, so I tried using it too but did not manage to get it working.
+> But it working. I have the device and test it succesfully.
 
->> I may be wrong (since we didn't write any TX support), but I think that a
->> rc_set_tx_parameters() wouldn't be necessary, as I don't see why the driver will
->> change the parameters after registering, and without any userspace request.
-> 
-> Yes, my intent was to handle a user space request to change the
-> transmitter setup parameters to handle the protocol.
-> 
-> I also don't want to worry about having to code in kernel parameter
-> tables for any bizzare protocol userspace may know about.
+OK, but the B does not here while it seems to work with stv090x
 
-Makes sense.
-> 
-> 
->> If we consider that some userspace sysfs nodes will allow changing some parameters,
->> then the better is to have a callback function call, passed via the registering function,
->> that will allow calling a function inside the driver to change the TX parameters.
->>
->> For example, something like:
->>
->> struct rc_tx_props {
->> ...
->> 	int	(*change_protocol)(...);
->> ...
->> };
->>
->>
->> rc_register_tx(..., struct rc_tx_props *props)
-> 
-> A callback is likely needed.  I'm not sure I would have chosen the name
-> change_protocol(), because transmitter parameters can be common between
-> protocols (at least RC-5 and RC-6 can be supported with one set of
-> parameters), or not match any existing in-kernel protocol.  As long as
-> it is flexible enough to change individual transmitter parameters
-> (modulated/baseband, carrier freq, duty cycle, etc.) it will be fine.
+All I get in log with femon is
 
-I just used this name as an example, as the same name exists on RX.
+stv0900_read_status: <7>DEMOD LOCK FAIL
+<6>stv0900_get_rf_level
+<6>stv0900_get_rf_level: RFLevel = -100
+<6>stv0900_carr_get_quality
 
-Depending on how we code the userspace API, we may use just one set_parameters
-function, or a set of per-attribute changes.
+And with scandvb :
 
-In other words, if we implement severa sysfs nodes to change several parameters,
-maybe it makes sense to have several callbacks. Another alternative would be
-to have a "commit" sysfs node to apply a set of parameters at once. 
+stv0900_read_status: <7>DEMOD LOCK FAIL
+stv0900_read_status: <7>DEMOD LOCK FAIL
+stv0900_read_status: <7>DEMOD LOCK FAIL
+stv0900_read_status: <7>DEMOD LOCK FAIL
+<6>stv0900_search: <7>stv0900_set_tuner: Frequency=1939000
+stv0900_set_tuner: Bandwidth=72000000
+<6>stv0900_activate_s2_modcode
+<6>Search Fail
+stv0900_read_status: <7>DEMOD LOCK FAIL
 
-> Currently LIRC userspace changes Tx parameters using an ioctl().  It
-> asks the hardware to change transmitter parameters, because the current
-> model is that the transmitters don't need to know about protocols. (LIRC
-> userspace knows the parameters of the protocol it wants to use, so the
-> driver's don't have too).
-> 
-> 
-> I notice IR Rx also has a change_protocol() callback that is not
-> currently in use.  
+> So modprobe dvb-usb-dw2102 demod=2 brings DVBWorld 2104A to you on golden plate.
 
-It is used only by em28xx, where the hardware decoder can work either with
-RC-5 or NEC (newer chips also support RC-6, but this is currently not
-implemented).
-
-> If sending raw pulses to userspace, it would be also
-> nice to expose that callback so userspace could set the receiver
-> parameters.
-
-Raw pulse transmission is probably the easiest case. Probably, there's nothing
-or a very few things that might need adjustments.
-
-> 
-> 
-> Regards,
-> Andy
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yes but this one is 2104B
 
