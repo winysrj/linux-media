@@ -1,82 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55174 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751852Ab0ESQop (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 May 2010 12:44:45 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4JGijOm026362
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:45 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4JGii9S005463
-	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500 (CDT)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4JGiiUa013208
-	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500 (CDT)
-From: <asheeshb@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: Asheesh Bhardwaj <asheeshb@ti.com>
-Subject: [PATCH 7/7] Support upto 1080p resolution for MMAP buffers DM365 capture
-Date: Wed, 19 May 2010 11:44:38 -0500
-Message-ID: <1274287478-14661-8-git-send-email-asheeshb@ti.com>
-In-Reply-To: <1274287478-14661-7-git-send-email-asheeshb@ti.com>
-References: <1274287478-14661-1-git-send-email-asheeshb@ti.com>
- <1274287478-14661-2-git-send-email-asheeshb@ti.com>
- <1274287478-14661-3-git-send-email-asheeshb@ti.com>
- <1274287478-14661-4-git-send-email-asheeshb@ti.com>
- <1274287478-14661-5-git-send-email-asheeshb@ti.com>
- <1274287478-14661-6-git-send-email-asheeshb@ti.com>
- <1274287478-14661-7-git-send-email-asheeshb@ti.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:47578 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750789Ab0EKERH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 May 2010 00:17:07 -0400
+Received: by gyg13 with SMTP id 13so2466159gyg.19
+        for <linux-media@vger.kernel.org>; Mon, 10 May 2010 21:17:05 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <4BE84649.3010507@tvdr.de>
+References: <E1OBKmg-0006RZ-4R@www.linuxtv.org> <4BE84649.3010507@tvdr.de>
+Date: Tue, 11 May 2010 01:17:05 -0300
+Message-ID: <s2m68cac7521005102117x79cab3e7uda079b6a0c98d8e2@mail.gmail.com>
+Subject: Re: [hg:v4l-dvb] Add FE_CAN_PSK_8 to allow apps to identify PSK_8
+	capable DVB devices
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Asheesh Bhardwaj <asheeshb@ti.com>
+Hello Klaus,
 
----
- drivers/media/video/davinci/vpfe_capture.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+On Mon, May 10, 2010 at 2:45 PM, Klaus Schmidinger
+<Klaus.Schmidinger@tvdr.de> wrote:
+> On 10.05.2010 06:40, Patch from Klaus Schmidinger wrote:
+>> The patch number 14692 was added via Douglas Schilling Landgraf <dougsland@redhat.com>
+>> to http://linuxtv.org/hg/v4l-dvb master development tree.
+>>
+>> Kernel patches in this development tree may be modified to be backward
+>> compatible with older kernels. Compatibility modifications will be
+>> removed before inclusion into the mainstream Kernel
+>>
+>> If anyone has any objections, please let us know by sending a message to:
+>>       Linux Media Mailing List <linux-media@vger.kernel.org>
+>
+> This patch should not have been applied, as was decided in
+> the original thread.
 
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index c6eadba..f7f4041 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -80,12 +80,13 @@
- 
- #include "ccdc_hw_device.h"
- 
-+#define HD_IMAGE_SIZE		(1920 * 1080 * 2)
- #define PAL_IMAGE_SIZE		(720 * 576 * 2)
- #define SECOND_IMAGE_SIZE_MAX	(640 * 480 * 2)
- 
- static int debug;
- static u32 numbuffers = 3;
--static u32 bufsize = PAL_IMAGE_SIZE + SECOND_IMAGE_SIZE_MAX;
-+static u32 bufsize = HD_IMAGE_SIZE + SECOND_IMAGE_SIZE_MAX;
- static int interface;
- static u32 cont_bufoffset = 0;
- static u32 cont_bufsize = 0;
-@@ -109,7 +110,7 @@ module_param(cont_bufsize, uint, S_IRUGO);
-  */
- MODULE_PARM_DESC(interface, "interface 0-1 (default:0)");
- MODULE_PARM_DESC(numbuffers, "buffer count (default:3)");
--MODULE_PARM_DESC(bufsize, "buffer size in bytes, (default:1443840 bytes)");
-+MODULE_PARM_DESC(bufsize, "buffer size in bytes, (default:4147200 bytes)");
- MODULE_PARM_DESC(debug, "Debug level 0-1");
- MODULE_PARM_DESC(cont_bufoffset,"Capture buffer offset(default 0)");
- MODULE_PARM_DESC(cont_bufsize,"Capture buffer size(default 0)");
-@@ -141,8 +142,8 @@ struct ccdc_config {
- static struct vpfe_config_params config_params = {
- 	.min_numbuffers = 3,
- 	.numbuffers = 3,
--	.min_bufsize = 720 * 480 * 2,
--	.device_bufsize = 720 * 576 * 2,
-+	.min_bufsize = 1280 * 720 * 2,
-+	.device_bufsize = 1920* 1080 * 2,
- };
- 
- /* ccdc device registered */
--- 
-1.6.3.3
+The patch was reverted yesterday during the hg - git sync.
+http://linuxtv.org/hg/v4l-dvb/rev/9b6b81d5efbd
 
+Thanks
+Douglas
