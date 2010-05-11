@@ -1,20 +1,27 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.6])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o4UH5JOY008611
-	for <video4linux-list@redhat.com>; Sun, 30 May 2010 13:05:19 -0400
-Received: from k2smtpout01-01.prod.mesa1.secureserver.net
-	(k2smtpout01-01.prod.mesa1.secureserver.net [64.202.189.88])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o4UH5A95017798
-	for <video4linux-list@redhat.com>; Sun, 30 May 2010 13:05:10 -0400
-Message-ID: <20100530103828.94103kduabadb5a8@www.nautae.eti.br>
-Date: Sun, 30 May 2010 10:38:28 -0600
-From: alexander@nautae.eti.br
+Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.10])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o4BG5mXT031731
+	for <video4linux-list@redhat.com>; Tue, 11 May 2010 12:05:48 -0400
+Received: from helios.bmat.com (helios.bmat.com [88.198.35.112])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4BG5ZM7015417
+	for <video4linux-list@redhat.com>; Tue, 11 May 2010 12:05:35 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by helios.bmat.com (Postfix) with ESMTP id 681F66C009
+	for <video4linux-list@redhat.com>;
+	Tue, 11 May 2010 18:05:34 +0200 (CEST)
+Received: from helios.bmat.com ([127.0.0.1])
+	by localhost (helios.bmat.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Qr2pdJHHgt7e for <video4linux-list@redhat.com>;
+	Tue, 11 May 2010 18:05:34 +0200 (CEST)
 To: video4linux-list@redhat.com
-Subject: Braziliam World Cup on Cable Tv - II
-MIME-Version: 1.0
-Content-Disposition: inline
+In-Reply-To: <mailman.16.1273593621.31945.video4linux-list@redhat.com>
+References: <mailman.16.1273593621.31945.video4linux-list@redhat.com>
+From: lfabig@bmat.com
+Subject: Lars Fabig is no longer employee of BMAT.
+Message-Id: <20100511160534.3B49F6C008@helios.bmat.com>
+Date: Tue, 11 May 2010 18:05:34 +0200 (CEST)
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,26 +29,18 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"; DelSp="Yes"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi again,
+Lars Fabig is no longer employee of BMAT. 
 
-being more precise, what about the following devices:
+In order to get back to you, please send an email to Pedro Cano (pedro at bmat.com), CTO of BMAT. 
 
-http://produto.mercadolivre.com.br/MLB-140806133-pinnacle-pctv-pro-usb-20-excelente-controle-remoto-_JM
-
-http://produto.mercadolivre.com.br/MLB-143279520-pra-vender-logo-pixelview-ext-usb-playtv-405-frete-gratis-_JM
-
-[]s
-Alexander
-Brazil
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
+Thank you
 
 --
 video4linux-list mailing list
