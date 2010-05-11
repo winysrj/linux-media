@@ -1,61 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:50628 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754719Ab0EEWfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 May 2010 18:35:06 -0400
-From: Jonathan Corbet <corbet@lwn.net>
-To: linux-kernel@vger.kernel.org
-Cc: Harald Welte <laforge@gnumonks.org>, linux-fbdev@vger.kernel.org,
-	JosephChan@via.com.tw, ScottFang@viatech.com.cn,
-	=?UTF-8?q?Bruno=20Pr=C3=A9mont?= <bonbons@linux-vserver.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 2/5] viafb: get rid of i2c debug cruft
-Date: Wed,  5 May 2010 16:34:41 -0600
-Message-Id: <1273098884-21848-3-git-send-email-corbet@lwn.net>
-In-Reply-To: <1273098884-21848-1-git-send-email-corbet@lwn.net>
-References: <1273098884-21848-1-git-send-email-corbet@lwn.net>
+Received: from perceval.irobotique.be ([92.243.18.41]:43079 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757211Ab0EKNfk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 May 2010 09:35:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: p.osciak@samsung.com, hverkuil@xs4all.nl
+Subject: [PATCH 6/7] v4l: videobuf: Remove videobuf_mapping start and end fields
+Date: Tue, 11 May 2010 15:36:33 +0200
+Message-Id: <1273584994-14211-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1273584994-14211-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1273584994-14211-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's ugly and adds a global.h dependency.
+The fields are assigned but never used, remove them.
 
-Signed-off-by: Jonathan Corbet <corbet@lwn.net>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/video/via/via_i2c.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ drivers/media/video/videobuf-dma-contig.c |    2 --
+ drivers/media/video/videobuf-dma-sg.c     |    2 --
+ drivers/media/video/videobuf-vmalloc.c    |    2 --
+ include/media/videobuf-core.h             |    2 --
+ 4 files changed, 0 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/video/via/via_i2c.c b/drivers/video/via/via_i2c.c
-index febc1dd..84ec2d6 100644
---- a/drivers/video/via/via_i2c.c
-+++ b/drivers/video/via/via_i2c.c
-@@ -52,7 +52,7 @@ static void via_i2c_setscl(void *data, int state)
- 		val |= 0x80;
- 		break;
- 	default:
--		DEBUG_MSG("viafb_i2c: specify wrong i2c type.\n");
-+		printk(KERN_ERR "viafb_i2c: specify wrong i2c type.\n");
+diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
+index d87ed21..c5d2552 100644
+--- a/drivers/media/video/videobuf-dma-contig.c
++++ b/drivers/media/video/videobuf-dma-contig.c
+@@ -279,8 +279,6 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 		return -ENOMEM;
+ 
+ 	buf->map = map;
+-	map->start = vma->vm_start;
+-	map->end = vma->vm_end;
+ 	map->q = q;
+ 
+ 	buf->baddr = vma->vm_start;
+diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+index 8924e51..2d64040 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -608,8 +608,6 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
  	}
- 	via_write_reg(adap_data->io_port, adap_data->ioport_index, val);
- 	spin_unlock_irqrestore(&i2c_vdev->reg_lock, flags);
-@@ -104,7 +104,7 @@ static void via_i2c_setsda(void *data, int state)
- 		val |= 0x40;
- 		break;
- 	default:
--		DEBUG_MSG("viafb_i2c: specify wrong i2c type.\n");
-+		printk(KERN_ERR "viafb_i2c: specify wrong i2c type.\n");
- 	}
- 	via_write_reg(adap_data->io_port, adap_data->ioport_index, val);
- 	spin_unlock_irqrestore(&i2c_vdev->reg_lock, flags);
-@@ -175,8 +175,6 @@ static int create_i2c_bus(struct i2c_adapter *adapter,
- 			  struct via_port_cfg *adap_cfg,
- 			  struct pci_dev *pdev)
- {
--	DEBUG_MSG(KERN_DEBUG "viafb: creating bus adap=0x%p, algo_bit_data=0x%p, adap_cfg=0x%p\n", adapter, algo, adap_cfg);
--
- 	algo->setsda = via_i2c_setsda;
- 	algo->setscl = via_i2c_setscl;
- 	algo->getsda = via_i2c_getsda;
+ 
+ 	map->count    = 1;
+-	map->start    = vma->vm_start;
+-	map->end      = vma->vm_end;
+ 	map->q        = q;
+ 	vma->vm_ops   = &videobuf_vm_ops;
+ 	vma->vm_flags |= VM_DONTEXPAND | VM_RESERVED;
+diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
+index cf5be6b..f0d7cb8 100644
+--- a/drivers/media/video/videobuf-vmalloc.c
++++ b/drivers/media/video/videobuf-vmalloc.c
+@@ -245,8 +245,6 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 		return -ENOMEM;
+ 
+ 	buf->map = map;
+-	map->start = vma->vm_start;
+-	map->end   = vma->vm_end;
+ 	map->q     = q;
+ 
+ 	buf->baddr = vma->vm_start;
+diff --git a/include/media/videobuf-core.h b/include/media/videobuf-core.h
+index a157cd1..f2c41ce 100644
+--- a/include/media/videobuf-core.h
++++ b/include/media/videobuf-core.h
+@@ -54,8 +54,6 @@ struct videobuf_queue;
+ 
+ struct videobuf_mapping {
+ 	unsigned int count;
+-	unsigned long start;
+-	unsigned long end;
+ 	struct videobuf_queue *q;
+ };
+ 
 -- 
-1.7.0.1
+1.6.4.4
 
