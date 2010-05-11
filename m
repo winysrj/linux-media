@@ -1,37 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:39657 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752058Ab0EDLid (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 07:38:33 -0400
-Received: by fxm10 with SMTP id 10so3101534fxm.19
-        for <linux-media@vger.kernel.org>; Tue, 04 May 2010 04:38:32 -0700 (PDT)
-Date: Tue, 4 May 2010 13:38:26 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
-Subject: [patch -next 2/3] media/IR/imon: testing the wrong variable
-Message-ID: <20100504113825.GV29093@bicker>
+Received: from mail.gmx.net ([213.165.64.20]:41235 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S933330Ab0EKHH2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 May 2010 03:07:28 -0400
+Date: Tue, 11 May 2010 09:07:25 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Confusing mediabus formats
+In-Reply-To: <Pine.LNX.4.64.1005102154490.15250@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1005110842240.5923@axis700.grange>
+References: <201005091032.07893.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1005102154490.15250@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There is a typo here.  We meant to test "ir" instead of "props".  The
-"props" variable was tested earlier.
+On Mon, 10 May 2010, Guennadi Liakhovetski wrote:
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+> (added Laurent to CC as he once asked me about these on IRC too)
+> 
+> On Sun, 9 May 2010, Hans Verkuil wrote:
+> 
+> > Hi Guennadi,
+> > 
+> > I'm preparing a patch series that replaces enum/g/try/s_fmt with
+> > enum/g/try/s/_mbus_fmt in all subdevs. While doing that I stumbled on a
+> > confusing definition of the YUV mediabus formats. Currently we have these:
+> > 
+> >         V4L2_MBUS_FMT_YUYV8_2X8_LE,
+> >         V4L2_MBUS_FMT_YVYU8_2X8_LE,
+> >         V4L2_MBUS_FMT_YUYV8_2X8_BE,
+> >         V4L2_MBUS_FMT_YVYU8_2X8_BE,
+> > 
+> > The meaning of "2X8" is defined as: 'one pixel is transferred in
+> > two 8-bit samples'.
+> > 
+> > This is confusing since you cannot really say that a Y and U pair constitutes
+> > one pixel. And is it Y or U/V which constitutes the 'most-significant bits' in
+> > such a 16-bit number?
+> 
+> To recap, as we discussed it earlier this notation was one of your 
+> suggestions:
+> 
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/12830/focus=13394
+> 
+> Yes, I certainly agree, that LE and BE notations are not necessarily very 
+> logical here, as you say, they don't make much sense in the YUV case. But 
+> they do, e.g., in RGB565 case, as we discussed this with Laurent on IRC. 
+> Basically, the information we want to include in the name is:
+> 
+> pixel format family (YUYV8)
+> number of samples, that constitute one "pixel" (*) and bits per sample
+> order of samples in "pixel"
 
-diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
-index b65c31a..f2066d0 100644
---- a/drivers/media/IR/imon.c
-+++ b/drivers/media/IR/imon.c
-@@ -1672,7 +1672,7 @@ static struct input_dev *imon_init_idev(struct imon_context *ictx)
- 	}
- 
- 	ir = kzalloc(sizeof(struct ir_input_dev), GFP_KERNEL);
--	if (!props) {
-+	if (!ir) {
- 		dev_err(ictx->dev, "remote ir input dev allocation failed\n");
- 		goto ir_dev_alloc_failed;
- 	}
+Now that I think about it a bit more, it looks like we only have to 
+distinguish between two cases: consecutive storage order of samples in 
+memory (sample0 to address0, sample1 to address1, etc.) or reverse order. 
+This is relatively easy to formulate, when samples span across bytes, but 
+not so easy, when they get packed into one byte. E.g., for a 4-bit 
+interface, do we have to specify two ordering parameters: nibbles in bytes 
+and bytes in memory? Any name propositions for these ordering variants?
+
+Thanks
+Guennadi
+
+> (*) "pixel" is not necessarily a "complete pixel," i.e., might not carry 
+> all colours in it. E.g., in YUYV "pixel" refers to any of the YU and YV 
+> pairs. In other words, this is just = frame size * 8 / number of pixels / 
+> bits-per-sample.
+> 
+> > In my particular case I have to translate a V4L2_PIX_FMT_UYVY to a suitable
+> > mediabus format. I think it would map to V4L2_MBUS_FMT_YUYV8_2X8_LE, but
+> > frankly I'm not sure.
+> > 
+> > My suggestion is to rename these mediabus formats to:
+> > 
+> >         V4L2_MBUS_FMT_YUYV8_1X8,
+> >         V4L2_MBUS_FMT_YVYU8_1X8,
+> >         V4L2_MBUS_FMT_UYVY8_1X8,
+> >         V4L2_MBUS_FMT_VYUY8_1X8,
+> 
+> 
+> But what do you do with, e.g., RGB565? Y>ou have to differentiate between
+> 
+> rrrrrggggggbbbbb
+> bbbbbggggggrrrrr
+> gggrrrrrbbbbbggg
+> gggbbbbbrrrrrggg
+> 
+> with the current notation they are
+> 
+> RGB565_2X8_BE
+> BGR565_2X8_BE
+> BGR565_2X8_LE
+> RGB565_2X8_LE
+> 
+> and how would you call them? And what do you do with Y10_2X8_LE and _BE 
+> (padding omitted for simplicity)?
+> 
+> Also, Laurent has suggested
+> 
+> 	V4L2_MBUS_FMT_YUYV8_2X8,
+> 	V4L2_MBUS_FMT_YVYU8_2X8,
+> 	V4L2_MBUS_FMT_UYVY8_2X8,
+> 	V4L2_MBUS_FMT_VYUY8_2X8,
+> 
+> and I like that better, than "1X8," but still it doesn't resolve my above 
+> doubts.
+> 
+> Ideas? Suggestions?
+> 
+> > Here it is immediately clear what is going on. This scheme is also used with
+> > the Bayer formats, so it would be consistent with that as well.
+> > 
+> > However, does V4L2_MBUS_FMT_YUYV8_2X8_LE map to V4L2_MBUS_FMT_YUYV8_1X8 or to
+> > V4L2_MBUS_FMT_UYVY8_1X8? I still don't know.
+> > 
+> > What do you think?
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
