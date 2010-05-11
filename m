@@ -1,15 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:31127 "EHLO mga03.intel.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:58829 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756055Ab0ERJXk convert rfc822-to-8bit (ORCPT
+	id S1751640Ab0EKJdc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 May 2010 05:23:40 -0400
-From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 18 May 2010 17:21:45 +0800
-Subject: [PATCH v3 0/8] V4L2 subdev patchset for Intel Moorestown Camera
- Imaging Subsystem
-Message-ID: <33AB447FBD802F4E932063B962385B351E89572B@shsmsx501.ccr.corp.intel.com>
+	Tue, 11 May 2010 05:33:32 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 11 May 2010 15:03:28 +0530
+Subject: RE: [PATCH 2/6] [RFC] tvp514x: make std_list const
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E404BD6@dbde02.ent.ti.com>
+References: <cover.1273413060.git.hverkuil@xs4all.nl>
+ <d64f7ef97d6dea1b87619f32c60da7cf8cdaf557.1273413060.git.hverkuil@xs4all.nl>
+In-Reply-To: <d64f7ef97d6dea1b87619f32c60da7cf8cdaf557.1273413060.git.hverkuil@xs4all.nl>
 Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -17,29 +20,53 @@ MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi linux-media, 
 
-Here is the third version of V4L2 camera sensors and ISP driver patchset for Intel Moorestown camera imaging subsystem to address community feedback, especially from Hans. 
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Sunday, May 09, 2010 7:27 PM
+> To: linux-media@vger.kernel.org
+> Cc: Hiremath, Vaibhav
+> Subject: [PATCH 2/6] [RFC] tvp514x: make std_list const
+> 
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> ---
+>  drivers/media/video/tvp514x.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
+> index 1ca1247..9d8d5c8 100644
+> --- a/drivers/media/video/tvp514x.c
+> +++ b/drivers/media/video/tvp514x.c
+> @@ -110,7 +110,7 @@ struct tvp514x_decoder {
+> 
+>  	enum tvp514x_std current_std;
+>  	int num_stds;
+> -	struct tvp514x_std_info *std_list;
+> +	const struct tvp514x_std_info *std_list;
+>  	/* Input and Output Routing parameters */
+>  	u32 input;
+>  	u32 output;
+> @@ -222,7 +222,7 @@ static const struct v4l2_fmtdesc tvp514x_fmt_list[] = {
+>   * Currently supports two standards only, need to add support for rest of
+> the
+>   * modes, like SECAM, etc...
+>   */
+> -static struct tvp514x_std_info tvp514x_std_list[] = {
+> +static const struct tvp514x_std_info tvp514x_std_list[] = {
+>  	/* Standard: STD_NTSC_MJ */
+>  	[STD_NTSC_MJ] = {
+>  	 .width = NTSC_NUM_ACTIVE_PIXELS,
+[Hiremath, Vaibhav] 
 
-Beginning from this version, I am going to split the whole camera driver into two parts: one is dedicated for v4l2 subdev patchset including 4 different cameras, 1 flash led, 2 VCM lens driver and another one is dedicated for v4l2 ISP patchset including only ISP driver with different logical component. Since it is a complicated one subsystem and after this split, it is more clear without logical dependency and would be a convenient for community review. 
+Reviewed-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Tested-by: Vaibhav Hiremath <hvaibhav@ti.com>
+Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
 
-At this point, I only submit the v4l2 subdev patchset and the ISP patchset will be submitted later. 
 
-In this set of v4l2 subdev driver patches, I will submit the following 8 patches to add 4 different cameras, 1 flash led, 2 VCM lens driver support to the Linux v4l2 subsystem:
 
-1. a common sensor v4l2-subdev private structures and resolution definition. 
-2. OVT 2MP camera (ov2650) sensor subdev driver.
-3. OVT 5MP camera (ov5630) sensor subdev driver.
-4. OVT 1.3MP camera (ov9665) sensor subdev driver.
-5. Samsung 5MP camera (s5k4e1) sensor driver.
-6. Analog Device (AD5820) VCM/lens subdev driver.
-7. Renesas (R2A30419BX) VCMlens subdev driver
-8. National Semiconductor LM3552 flash led subdev driver
+Thanks,
+Vaibhav
 
-Please review them and comments are welcome as always. 
-
-Regards,
-
-Xiaolin
-Xiaolin.zhang@intel.com
+> --
+> 1.6.4.2
 
