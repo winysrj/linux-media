@@ -1,72 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nat-warsl417-01.aon.at ([195.3.96.119]:48054 "EHLO email.aon.at"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752897Ab0ERHdA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 May 2010 03:33:00 -0400
-Received: from unknown (HELO email.aon.at) ([172.18.1.197])
-          (envelope-sender <linux-media-maillinglist@mrq1.org>)
-          by fallback43.highway.telekom.at (qmail-ldap-1.03) with SMTP
-          for <linux-media@vger.kernel.org>; 18 May 2010 07:26:19 -0000
-Received: from 80-123-47-89.adsl.highway.telekom.at (HELO mrq1.org) ([80.123.47.89])
-          (envelope-sender <linux-media-maillinglist@mrq1.org>)
-          by smarthub98.highway.telekom.at (qmail-ldap-1.03) with SMTP
-          for <linux-media@vger.kernel.org>; 18 May 2010 07:26:17 -0000
-Date: Tue, 18 May 2010 09:26:17 +0200
-From: Hermann Gausterer <linux-media-maillinglist@mrq1.org>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2993 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753907Ab0ELSPd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 May 2010 14:15:33 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4CIFVjq057098
+	for <linux-media@vger.kernel.org>; Wed, 12 May 2010 20:15:32 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 12 May 2010 20:15:31 +0200 (CEST)
+Message-Id: <201005121815.o4CIFVjq057098@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hermann Gausterer <linux-media-maillinglist@mrq1.org>
-Subject: [RESEND][PATCH] Technotrend S2-3200 ships with a TT 1500 remote
-Message-ID: <20100518072617.GA4375@mrq1.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="YiEDa0DAkWCtVeE4"
-Content-Disposition: inline
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
---YiEDa0DAkWCtVeE4
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Results of the daily build of v4l-dvb:
 
-The Technotrend Budget S2-3200 ships with the
-Technotrend 1500 bundled remote which is already supported.
-Just add the right Subsystem Device ID.
+date:        Wed May 12 19:00:27 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14787:8c2b24dbe205
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Signed-off-by: Hermann Gausterer <git-kernel-2010@mrq1.org>
----
- drivers/media/dvb/ttpci/budget-ci.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+linux-2.6.32.6-armv5: ERRORS
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc7-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc7-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc7-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc7-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: OK
+linux-2.6.34-rc7-i686: ERRORS
+linux-2.6.32.6-m32r: ERRORS
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc7-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: OK
+linux-2.6.34-rc7-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc7-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc7-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-diff --git a/drivers/media/dvb/ttpci/budget-ci.c b/drivers/media/dvb/ttpci/=
-budget-ci.c
-index b5c6813..4526d66 100644
---- a/drivers/media/dvb/ttpci/budget-ci.c
-+++ b/drivers/media/dvb/ttpci/budget-ci.c
-@@ -234,6 +234,7 @@ static int msp430_ir_init(struct budget_ci *budget_ci)
- 		break;
- 	case 0x1010:
- 	case 0x1017:
-+	case 0x1019:
- 	case 0x101a:
- 		/* for the Technotrend 1500 bundled remote */
- 		ir_input_init(input_dev, &budget_ci->ir.state,
---=20
-1.6.0.4
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
---YiEDa0DAkWCtVeE4
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Full logs are available here:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-iD8DBQFL8kEZAdCXZ1Xu7u4RAninAKCNSOa9/16hMQq8sH9NpVe1AXrwYACeMv7k
-nUJHhF5pf3G1ZwQrjlg05W4=
-=8rQ2
------END PGP SIGNATURE-----
+The V4L-DVB specification from this daily build is here:
 
---YiEDa0DAkWCtVeE4--
+http://www.xs4all.nl/~hverkuil/spec/media.html
