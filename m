@@ -1,1681 +1,1804 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62063 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754292Ab0EWMwM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 May 2010 08:52:12 -0400
-Message-ID: <4BF924E3.5020702@redhat.com>
-Date: Sun, 23 May 2010 09:51:47 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:50637 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755883Ab0ELTCU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 May 2010 15:02:20 -0400
+Date: Wed, 12 May 2010 21:02:29 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Baruch Siach <baruch@tkos.co.il>
+cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 1/3] mx2_camera: Add soc_camera support for i.MX25/i.MX27
+In-Reply-To: <a029bab8fcb3273df4a1d98f779f110b127742bd.1273150585.git.baruch@tkos.co.il>
+Message-ID: <Pine.LNX.4.64.1005090045230.10524@axis700.grange>
+References: <cover.1273150585.git.baruch@tkos.co.il>
+ <a029bab8fcb3273df4a1d98f779f110b127742bd.1273150585.git.baruch@tkos.co.il>
 MIME-Version: 1.0
-To: Jonathan Corbet <corbet@lwn.net>
-CC: linux-kernel@vger.kernel.org, Harald Welte <laforge@gnumonks.org>,
-	linux-fbdev@vger.kernel.org, JosephChan@via.com.tw,
-	ScottFang@viatech.com.cn,
-	=?ISO-8859-1?Q?Bruno_Pr=E9mont?= <bonbons@linux-vserver.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/5] Add the viafb video capture driver
-References: <1273098884-21848-1-git-send-email-corbet@lwn.net> <1273098884-21848-6-git-send-email-corbet@lwn.net>
-In-Reply-To: <1273098884-21848-6-git-send-email-corbet@lwn.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jon,
+Hi Baruch
 
-Jonathan Corbet wrote:
-> Add a driver for the video capture port on VIA integrated chipsets.  This
-> version has a remaining OLPCism or two and expects to be talking to an
-> ov7670; those can be improved as the need arises.
+Thanks for eventually mainlining this driver! A couple of comments below. 
+Sascha, would be great, if you could get it tested on imx27 with and 
+without emma. BTW, if you say, that you use emma to avoid using the 
+standard DMA controller, why would anyone want not to use emma? Resource 
+conflict? There is also a question for you down in the comments, please, 
+skim over.
+
+On Thu, 6 May 2010, Baruch Siach wrote:
+
+> This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
+> Carvalho de Assis modified the original driver to get it working on more recent
+> kernels. I modified it further to add support for i.MX25. This driver has only
+> been tested on the i.MX25 platform.
 > 
-> This work was supported by the One Laptop Per Child project.
-> 
-> Signed-off-by: Jonathan Corbet <corbet@lwn.net>
-
-The driver is OK to my eyes. I just found 2 minor coding style issues.
-it is ok to me if you want to sent it via your git tree.
-
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-
-PS.: sorry for not reviewing it earlier... I was a little busy during this
-cycle, and I had some travels that delayed my tasks even further, causing
--ETOMANYPATCHES on my queue.
-
+> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
 > ---
->  drivers/media/video/Kconfig      |   10 +
->  drivers/media/video/Makefile     |    2 +
->  drivers/media/video/via-camera.c | 1368 ++++++++++++++++++++++++++++++++++++++
->  drivers/media/video/via-camera.h |   93 +++
->  drivers/video/via/accel.c        |    2 +-
->  drivers/video/via/via-core.c     |   16 +-
->  include/linux/via-core.h         |    4 +-
->  include/media/v4l2-chip-ident.h  |    4 +
->  8 files changed, 1495 insertions(+), 4 deletions(-)
->  create mode 100644 drivers/media/video/via-camera.c
->  create mode 100644 drivers/media/video/via-camera.h
+>  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
+>  arch/arm/plat-mxc/include/mach/mx2_cam.h |   41 +
+>  drivers/media/video/Kconfig              |   14 +
+>  drivers/media/video/Makefile             |    1 +
+>  drivers/media/video/mx2_camera.c         | 1396 ++++++++++++++++++++++++++++++
+>  5 files changed, 1454 insertions(+), 2 deletions(-)
+>  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
+>  create mode 100644 drivers/media/video/mx2_camera.c
 > 
+> diff --git a/arch/arm/plat-mxc/include/mach/memory.h b/arch/arm/plat-mxc/include/mach/memory.h
+> index c4b40c3..5803836 100644
+> --- a/arch/arm/plat-mxc/include/mach/memory.h
+> +++ b/arch/arm/plat-mxc/include/mach/memory.h
+> @@ -44,12 +44,12 @@
+>   */
+>  #define CONSISTENT_DMA_SIZE SZ_8M
+>  
+> -#elif defined(CONFIG_MX1_VIDEO)
+> +#elif defined(CONFIG_MX1_VIDEO) || defined(CONFIG_MX2_VIDEO)
+>  /*
+>   * Increase size of DMA-consistent memory region.
+>   * This is required for i.MX camera driver to capture at least four VGA frames.
+>   */
+>  #define CONSISTENT_DMA_SIZE SZ_4M
+> -#endif /* CONFIG_MX1_VIDEO */
+> +#endif /* CONFIG_MX1_VIDEO || CONFIG_MX2_VIDEO */
+>  
+>  #endif /* __ASM_ARCH_MXC_MEMORY_H__ */
+> diff --git a/arch/arm/plat-mxc/include/mach/mx2_cam.h b/arch/arm/plat-mxc/include/mach/mx2_cam.h
+> new file mode 100644
+> index 0000000..01b3bdc
+> --- /dev/null
+> +++ b/arch/arm/plat-mxc/include/mach/mx2_cam.h
+> @@ -0,0 +1,41 @@
+> +/*
+> +    mx2-cam.h - i.MX27/i.MX25 camera driver header file
+> +
+> +    Copyright (C) 2003, Intel Corporation
+> +    Copyright (C) 2008, Sascha Hauer <s.hauer@pengutronix.de>
+> +    Copyright (C) 2010, Baruch Siach <baruch@tkos.co.il>
+> +
+> +    This program is free software; you can redistribute it and/or modify
+> +    it under the terms of the GNU General Public License as published by
+> +    the Free Software Foundation; either version 2 of the License, or
+> +    (at your option) any later version.
+> +
+> +    This program is distributed in the hope that it will be useful,
+> +    but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +    GNU General Public License for more details.
+> +
+> +    You should have received a copy of the GNU General Public License
+> +    along with this program; if not, write to the Free Software
+> +    Foundation, Inc., 51 Franklin St - Fifth Floor, Boston, MA 02110-1301 USA.
+> +*/
+
+Please, follow the kernel multiline comment style:
+
+/*
+ * this is a
+ * multiline comment
+ */
+
+> +
+> +#ifndef __MACH_MX2_CAM_H_
+> +#define __MACH_MX2_CAM_H_
+> +
+> +#define MX2_CAMERA_SWAP16		(1 << 0)
+> +#define MX2_CAMERA_EXT_VSYNC		(1 << 1)
+> +#define MX2_CAMERA_CCIR			(1 << 2)
+> +#define MX2_CAMERA_CCIR_INTERLACE	(1 << 3)
+> +#define MX2_CAMERA_HSYNC_HIGH		(1 << 4)
+> +#define MX2_CAMERA_GATED_CLOCK		(1 << 5)
+> +#define MX2_CAMERA_INV_DATA		(1 << 6)
+> +#define MX2_CAMERA_PCLK_SAMPLE_RISING	(1 << 7)
+> +#define MX2_CAMERA_PACK_DIR_MSB		(1 << 8)
+> +
+> +struct mx2_camera_platform_data {
+> +	unsigned long flags;
+> +	unsigned long clk;
+> +};
+
+Since this is an exported API, please, document this struct, at least 
+"unsigned long clk" is not self-explanatory, IMHO.
+
+> +
+> +#endif /* __MACH_MX2_CAM_H_ */
 > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index f8fc865..198636b 100644
+> index f8fc865..4e230b8 100644
 > --- a/drivers/media/video/Kconfig
 > +++ b/drivers/media/video/Kconfig
-> @@ -833,6 +833,16 @@ config VIDEO_CAFE_CCIC
->  	  CMOS camera controller.  This is the controller found on first-
->  	  generation OLPC systems.
+> @@ -949,6 +949,20 @@ config VIDEO_OMAP2
+>  	---help---
+>  	  This is a v4l2 driver for the TI OMAP2 camera capture interface
 >  
-> +config VIDEO_VIA_CAMERA
-> +	tristate "VIAFB camera controller support"
-> +	depends on FB_VIA
-> +	select VIDEOBUF_DMA_SG
-> +	select VIDEO_OV7670
-> +	help
-> +	   Driver support for the integrated camera controller in VIA
-> +	   Chrome9 chipsets.  Currently only tested on OLPC xo-1.5 systems
-> +	   with ov7670 sensors.
+> +config MX2_VIDEO
+> +        bool
 > +
->  config SOC_CAMERA
->  	tristate "SoC camera support"
->  	depends on VIDEO_V4L2 && HAS_DMA && I2C
+> +config VIDEO_MX2
+> +	tristate "i.MX27/i.MX25 Camera Sensor Interface driver"
+> +	depends on VIDEO_DEV && (MACH_MX27 || ARCH_MX25)
+> +	select SOC_CAMERA
+
+Please follow other drivers and add SOC_CAMERA to "depends on"
+
+> +	select VIDEOBUF_DMA_CONTIG
+> +	select MX2_VIDEO
+> +	---help---
+> +	  This is a v4l2 driver for the i.MX27 and the i.MX25 Camera Sensor
+> +	  Interface
+> +
+> +
+>  #
+>  # USB Multimedia device configuration
+>  #
 > diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index b88b617..089bb24 100644
+> index b88b617..177af1a 100644
 > --- a/drivers/media/video/Makefile
 > +++ b/drivers/media/video/Makefile
-> @@ -123,6 +123,8 @@ obj-$(CONFIG_VIDEO_CX2341X) += cx2341x.o
->  
->  obj-$(CONFIG_VIDEO_CAFE_CCIC) += cafe_ccic.o
->  
-> +obj-$(CONFIG_VIDEO_VIA_CAMERA) += via-camera.o
-> +
->  obj-$(CONFIG_USB_DABUSB)        += dabusb.o
->  obj-$(CONFIG_USB_OV511)         += ov511.o
->  obj-$(CONFIG_USB_SE401)         += se401.o
-> diff --git a/drivers/media/video/via-camera.c b/drivers/media/video/via-camera.c
+> @@ -156,6 +156,7 @@ obj-$(CONFIG_SOC_CAMERA)		+= soc_camera.o soc_mediabus.o
+>  obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
+>  # soc-camera host drivers have to be linked after camera drivers
+>  obj-$(CONFIG_VIDEO_MX1)			+= mx1_camera.o
+> +obj-$(CONFIG_VIDEO_MX2)			+= mx2_camera.o
+>  obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
+>  obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
+>  obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
 > new file mode 100644
-> index 0000000..7b1ff0c
+> index 0000000..5d6fb08
 > --- /dev/null
-> +++ b/drivers/media/video/via-camera.c
-> @@ -0,0 +1,1368 @@
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -0,0 +1,1396 @@
 > +/*
-> + * Driver for the VIA Chrome integrated camera controller.
+> + * V4L2 Driver for i.MX27/i.MX25 camera host
 > + *
-> + * Copyright 2009,2010 Jonathan Corbet <corbet@lwn.net>
-> + * Distributable under the terms of the GNU General Public License, version 2
+> + * Copyright (C) 2008, Sascha Hauer, Pengutronix
+
+Baruch, depending on how you estimate your effort on porting Sascha's 
+driver, you might want to add your copyright here too.
+
 > + *
-> + * This work was supported by the One Laptop Per Child project
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
 > + */
-> +#include <linux/kernel.h>
+> +
+> +#include <linux/init.h>
 > +#include <linux/module.h>
-> +#include <linux/device.h>
-> +#include <linux/list.h>
-> +#include <linux/pci.h>
-> +#include <linux/gpio.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/pci.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/videodev2.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-chip-ident.h>
-> +#include <media/videobuf-dma-sg.h>
-> +#include <linux/device.h>
+> +#include <linux/io.h>
 > +#include <linux/delay.h>
+> +#include <linux/slab.h>
 > +#include <linux/dma-mapping.h>
-> +#include <linux/pm_qos_params.h>
-> +#include <linux/via-core.h>
-> +#include <linux/via-gpio.h>
-> +#include <linux/via_i2c.h>
+> +#include <linux/errno.h>
+> +#include <linux/fs.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/kernel.h>
+> +#include <linux/mm.h>
+> +#include <linux/moduleparam.h>
+> +#include <linux/time.h>
+> +#include <linux/version.h>
+> +#include <linux/device.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/mutex.h>
+> +#include <linux/clk.h>
 > +
-> +#include "via-camera.h"
+> +#include <media/v4l2-common.h>
+> +#include <media/v4l2-dev.h>
+> +#include <media/videobuf-dma-contig.h>
+> +#include <media/soc_camera.h>
+> +#include <media/soc_mediabus.h>
 > +
-> +MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
-> +MODULE_DESCRIPTION("VIA framebuffer-based camera controller driver");
-> +MODULE_LICENSE("GPL");
+> +#include <linux/videodev2.h>
 > +
-> +static int flip_image;
-> +module_param(flip_image, bool, 0444);
-> +MODULE_PARM_DESC(flip_image,
-> +		"If set, the sensor will be instructed to flip the image "
-> +		"vertically.");
+> +#include <mach/mx2_cam.h>
+> +#include <asm/dma.h>
+
+This is duplicated below, please, remove this copy.
+
+> +#include <mach/dma-mx1-mx2.h>
+> +#include <mach/hardware.h>
 > +
-> +#ifdef CONFIG_OLPC_XO_1_5
-> +static int override_serial;
-> +module_param(override_serial, bool, 0444);
-> +MODULE_PARM_DESC(override_serial,
-> +		"The camera driver will normally refuse to load if "
-> +		"the XO 1.5 serial port is enabled.  Set this option "
-> +		"to force the issue.");
-> +#endif
+> +#include <asm/dma.h>
 > +
-> +/*
-> + * Basic window sizes.
-> + */
-> +#define VGA_WIDTH	640
-> +#define VGA_HEIGHT	480
-> +#define QCIF_WIDTH	176
-> +#define	QCIF_HEIGHT	144
+> +#define MX2_CAM_DRV_NAME "mx2-camera"
+> +#define MX2_CAM_VERSION_CODE KERNEL_VERSION(0, 0, 5) /* FIXME: Whats this? */
+
+Well, I think, you can remove this "FIXME"... This is just some arbitrary 
+driver version, that noone ever remembers to update;) or am I wrong?
+
+> +#define MX2_CAM_DRIVER_DESCRIPTION "i.MX2x_Camera"
 > +
-> +/*
-> + * The structure describing our camera.
-> + */
-> +enum viacam_opstate { S_IDLE = 0, S_RUNNING = 1 };
+> +/* reset values */
+> +#define CSICR1_RESET_VAL	0x40000800
+> +#define CSICR2_RESET_VAL	0x0
+> +#define CSICR3_RESET_VAL	0x0
 > +
-> +static struct via_camera {
-> +	struct v4l2_device v4l2_dev;
-> +	struct video_device vdev;
-> +	struct v4l2_subdev *sensor;
-> +	struct platform_device *platdev;
-> +	struct viafb_dev *viadev;
-> +	struct mutex lock;
-> +	enum viacam_opstate opstate;
-> +	unsigned long flags;
-> +	/*
-> +	 * GPIO info for power/reset management
-> +	 */
-> +	int power_gpio;
-> +	int reset_gpio;
-> +	/*
-> +	 * I/O memory stuff.
-> +	 */
-> +	void __iomem *mmio;	/* Where the registers live */
-> +	void __iomem *fbmem;	/* Frame buffer memory */
-> +	u32 fb_offset;		/* Reserved memory offset (FB) */
-> +	/*
-> +	 * Capture buffers and related.	 The controller supports
-> +	 * up to three, so that's what we have here.  These buffers
-> +	 * live in frame buffer memory, so we don't call them "DMA".
-> +	 */
-> +	unsigned int cb_offsets[3];	/* offsets into fb mem */
-> +	u8 *cb_addrs[3];		/* Kernel-space addresses */
-> +	int n_cap_bufs;			/* How many are we using? */
-> +	int next_buf;
-> +	struct videobuf_queue vb_queue;
-> +	struct list_head buffer_queue;	/* prot. by reg_lock */
-> +	/*
-> +	 * User tracking.
-> +	 */
-> +	int users;
-> +	struct file *owner;
-> +	/*
-> +	 * Video format information.  sensor_format is kept in a form
-> +	 * that we can use to pass to the sensor.  We always run the
-> +	 * sensor in VGA resolution, though, and let the controller
-> +	 * downscale things if need be.	 So we keep the "real*
-> +	 * dimensions separately.
-> +	 */
-> +	struct v4l2_pix_format sensor_format;
-> +	struct v4l2_pix_format user_format;
-> +} via_cam_info;
+> +/* csi control reg 1 */
+> +#define CSICR1_SWAP16_EN	(1 << 31)
+> +#define CSICR1_EXT_VSYNC	(1 << 30)
+> +#define CSICR1_EOF_INTEN	(1 << 29)
+> +#define CSICR1_PRP_IF_EN	(1 << 28)
+> +#define CSICR1_CCIR_MODE	(1 << 27)
+> +#define CSICR1_COF_INTEN	(1 << 26)
+> +#define CSICR1_SF_OR_INTEN	(1 << 25)
+> +#define CSICR1_RF_OR_INTEN	(1 << 24)
+> +#define CSICR1_STATFF_LEVEL	(3 << 22)
+> +#define CSICR1_STATFF_INTEN	(1 << 21)
+> +#define CSICR1_RXFF_LEVEL(l)	(((l) & 3) << 19)	/* MX27 */
+> +#define CSICR1_FB2_DMA_INTEN	(1 << 20)		/* MX25 */
+> +#define CSICR1_FB1_DMA_INTEN	(1 << 19)		/* MX25 */
+> +#define CSICR1_RXFF_INTEN	(1 << 18)
+> +#define CSICR1_SOF_POL		(1 << 17)
+> +#define CSICR1_SOF_INTEN	(1 << 16)
+> +#define CSICR1_MCLKDIV(d)	(((d) & 0xF) << 12)
+> +#define CSICR1_HSYNC_POL	(1 << 11)
+> +#define CSICR1_CCIR_EN		(1 << 10)
+> +#define CSICR1_MCLKEN		(1 << 9)
+> +#define CSICR1_FCC		(1 << 8)
+> +#define CSICR1_PACK_DIR		(1 << 7)
+> +#define CSICR1_CLR_STATFIFO	(1 << 6)
+> +#define CSICR1_CLR_RXFIFO	(1 << 5)
+> +#define CSICR1_GCLK_MODE	(1 << 4)
+> +#define CSICR1_INV_DATA		(1 << 3)
+> +#define CSICR1_INV_PCLK		(1 << 2)
+> +#define CSICR1_REDGE		(1 << 1)
 > +
-> +/*
-> + * Flag values, manipulated with bitops
-> + */
-> +#define CF_DMA_ACTIVE	 0	/* A frame is incoming */
-> +#define CF_CONFIG_NEEDED 1	/* Must configure hardware */
+> +#define SHIFT_STATFF_LEVEL	22
+> +#define SHIFT_RXFF_LEVEL	19
+> +#define SHIFT_MCLKDIV		12
 > +
+> +/* control reg 3 */
+> +#define CSICR3_FRMCNT		(0xFFFF << 16)
+> +#define CSICR3_FRMCNT_RST	(1 << 15)
+> +#define CSICR3_DMA_REFLASH_RFF	(1 << 14)
+> +#define CSICR3_DMA_REFLASH_SFF	(1 << 13)
+> +#define CSICR3_DMA_REQ_EN_RFF	(1 << 12)
+> +#define CSICR3_DMA_REQ_EN_SFF	(1 << 11)
+> +#define CSICR3_RXFF_LEVEL(l)	(((l) & 7) << 4)	/* MX25 */
+> +#define CSICR3_CSI_SUP		(1 << 3)
+> +#define CSICR3_ZERO_PACK_EN	(1 << 2)
+> +#define CSICR3_ECC_INT_EN	(1 << 1)
+> +#define CSICR3_ECC_AUTO_EN	(1 << 0)
 > +
-> +/*
-> + * Nasty ugly v4l2 boilerplate.
-> + */
-> +#define sensor_call(cam, optype, func, args...) \
-> +	v4l2_subdev_call(cam->sensor, optype, func, ##args)
+> +#define SHIFT_FRMCNT		16
 > +
-> +/*
-> + * Debugging and related.
-> + */
-> +#define cam_err(cam, fmt, arg...) \
-> +	dev_err(&(cam)->platdev->dev, fmt, ##arg);
-> +#define cam_warn(cam, fmt, arg...) \
-> +	dev_warn(&(cam)->platdev->dev, fmt, ##arg);
-> +#define cam_dbg(cam, fmt, arg...) \
-> +	dev_dbg(&(cam)->platdev->dev, fmt, ##arg);
+> +/* csi status reg */
+> +#define CSISR_SFF_OR_INT	(1 << 25)
+> +#define CSISR_RFF_OR_INT	(1 << 24)
+> +#define CSISR_STATFF_INT	(1 << 21)
+> +#define CSISR_DMA_TSF_FB2_INT	(1 << 20)	/* MX25 */
+> +#define CSISR_DMA_TSF_FB1_INT	(1 << 19)	/* MX25 */
+> +#define CSISR_RXFF_INT		(1 << 18)
+> +#define CSISR_EOF_INT		(1 << 17)
+> +#define CSISR_SOF_INT		(1 << 16)
+> +#define CSISR_F2_INT		(1 << 15)
+> +#define CSISR_F1_INT		(1 << 14)
+> +#define CSISR_COF_INT		(1 << 13)
+> +#define CSISR_ECC_INT		(1 << 1)
+> +#define CSISR_DRDY		(1 << 0)
 > +
+> +#define CSICR1			0x00
+> +#define CSICR2			0x04
+> +#define CSISR			(cpu_is_mx27() ? 0x08 : 0x18)
+> +#define CSISTATFIFO		0x0c
+> +#define CSIRFIFO		0x10
+> +#define CSIRXCNT		0x14
+> +#define CSICR3			(cpu_is_mx27() ? 0x1C : 0x08)
+> +#define CSIDMASA_STATFIFO	0x20
+> +#define CSIDMATA_STATFIFO	0x24
+> +#define CSIDMASA_FB1		0x28
+> +#define CSIDMASA_FB2		0x2c
+> +#define CSIFBUF_PARA		0x30
+> +#define CSIIMAG_PARA		0x34
 > +
-> +/*--------------------------------------------------------------------------*/
-> +/*
-> + * Sensor power/reset management.  This piece is OLPC-specific for
-> + * sure; other configurations will have things connected differently.
-> + */
-> +static int via_sensor_power_setup(struct via_camera *cam)
+> +/* EMMA PrP */
+> +#define PRP_CNTL			0x00
+> +#define PRP_INTR_CNTL			0x04
+> +#define PRP_INTRSTATUS			0x08
+> +#define PRP_SOURCE_Y_PTR		0x0c
+> +#define PRP_SOURCE_CB_PTR		0x10
+> +#define PRP_SOURCE_CR_PTR		0x14
+> +#define PRP_DEST_RGB1_PTR		0x18
+> +#define PRP_DEST_RGB2_PTR		0x1c
+> +#define PRP_DEST_Y_PTR			0x20
+> +#define PRP_DEST_CB_PTR			0x24
+> +#define PRP_DEST_CR_PTR			0x28
+> +#define PRP_SRC_FRAME_SIZE		0x2c
+> +#define PRP_DEST_CH1_LINE_STRIDE	0x30
+> +#define PRP_SRC_PIXEL_FORMAT_CNTL	0x34
+> +#define PRP_CH1_PIXEL_FORMAT_CNTL	0x38
+> +#define PRP_CH1_OUT_IMAGE_SIZE		0x3c
+> +#define PRP_CH2_OUT_IMAGE_SIZE		0x40
+> +#define PRP_SRC_LINE_STRIDE		0x44
+> +#define PRP_CSC_COEF_012		0x48
+> +#define PRP_CSC_COEF_345		0x4c
+> +#define PRP_CSC_COEF_678		0x50
+> +#define PRP_CH1_RZ_HORI_COEF1		0x54
+> +#define PRP_CH1_RZ_HORI_COEF2		0x58
+> +#define PRP_CH1_RZ_HORI_VALID		0x5c
+> +#define PRP_CH1_RZ_VERT_COEF1		0x60
+> +#define PRP_CH1_RZ_VERT_COEF2		0x64
+> +#define PRP_CH1_RZ_VERT_VALID		0x68
+> +#define PRP_CH2_RZ_HORI_COEF1		0x6c
+> +#define PRP_CH2_RZ_HORI_COEF2		0x70
+> +#define PRP_CH2_RZ_HORI_VALID		0x74
+> +#define PRP_CH2_RZ_VERT_COEF1		0x78
+> +#define PRP_CH2_RZ_VERT_COEF2		0x7c
+> +#define PRP_CH2_RZ_VERT_VALID		0x80
+> +
+> +#define PRP_CNTL_CH1EN		(1 << 0)
+> +#define PRP_CNTL_CH2EN		(1 << 1)
+> +#define PRP_CNTL_CSIEN		(1 << 2)
+> +#define PRP_CNTL_DATA_IN_YUV420	(0 << 3)
+> +#define PRP_CNTL_DATA_IN_YUV422	(1 << 3)
+> +#define PRP_CNTL_DATA_IN_RGB16	(2 << 3)
+> +#define PRP_CNTL_DATA_IN_RGB32	(3 << 3)
+> +#define PRP_CNTL_CH1_OUT_RGB8	(0 << 5)
+> +#define PRP_CNTL_CH1_OUT_RGB16	(1 << 5)
+> +#define PRP_CNTL_CH1_OUT_RGB32	(2 << 5)
+> +#define PRP_CNTL_CH1_OUT_YUV422	(3 << 5)
+> +#define PRP_CNTL_CH2_OUT_YUV420	(0 << 7)
+> +#define PRP_CNTL_CH2_OUT_YUV422 (1 << 7)
+> +#define PRP_CNTL_CH2_OUT_YUV444	(2 << 7)
+> +#define PRP_CNTL_CH1_LEN	(1 << 9)
+> +#define PRP_CNTL_CH2_LEN	(1 << 10)
+> +#define PRP_CNTL_SKIP_FRAME	(1 << 11)
+> +#define PRP_CNTL_SWRST		(1 << 12)
+> +#define PRP_CNTL_CLKEN		(1 << 13)
+> +#define PRP_CNTL_WEN		(1 << 14)
+> +#define PRP_CNTL_CH1BYP		(1 << 15)
+> +#define PRP_CNTL_IN_TSKIP(x)	((x) << 16)
+> +#define PRP_CNTL_CH1_TSKIP(x)	((x) << 19)
+> +#define PRP_CNTL_CH2_TSKIP(x)	((x) << 22)
+> +#define PRP_CNTL_INPUT_FIFO_LEVEL(x)	((x) << 25)
+> +#define PRP_CNTL_RZ_FIFO_LEVEL(x)	((x) << 27)
+> +#define PRP_CNTL_CH2B1EN	(1 << 29)
+> +#define PRP_CNTL_CH2B2EN	(1 << 30)
+> +#define PRP_CNTL_CH2FEN		(1 << 31)
+> +
+> +/* IRQ Enable and status register */
+> +#define PRP_INTR_RDERR		(1 << 0)
+> +#define PRP_INTR_CH1WERR	(1 << 1)
+> +#define PRP_INTR_CH2WERR	(1 << 2)
+> +#define PRP_INTR_CH1FC		(1 << 3)
+> +#define PRP_INTR_CH2FC		(1 << 5)
+> +#define PRP_INTR_LBOVF		(1 << 7)
+> +#define PRP_INTR_CH2OVF		(1 << 8)
+> +
+> +#define mx27_camera_emma(pcdev)	(cpu_is_mx27() && pcdev->use_emma)
+> +
+> +#define MAX_VIDEO_MEM	16
+> +
+> +struct mx2_camera_dev {
+> +	struct device		*dev;
+> +	struct soc_camera_host	soc_host;
+> +	struct soc_camera_device *icd;
+> +	struct clk		*clk_csi, *clk_emma;
+> +
+> +	unsigned int		irq_csi, irq_emma;
+> +	void __iomem		*base_csi, *base_emma;
+> +
+> +	struct mx2_camera_platform_data *pdata;
+> +	struct resource		*res_csi, *res_emma;
+> +	unsigned long		platform_flags;
+> +
+> +	struct list_head	capture;
+> +	struct list_head	active_bufs;
+> +
+> +	spinlock_t		lock;
+> +
+> +	int			dma;
+> +	struct mx2_buffer	*active;
+> +	struct mx2_buffer	*fb1_active;
+> +	struct mx2_buffer	*fb2_active;
+> +
+> +	int			use_emma;
+> +
+> +	unsigned int		csicr1;
+
+This is a hardware register, u32 (also see comment below).
+
+> +
+> +	void __iomem		*discard_buffer;
+> +	dma_addr_t		discard_buffer_dma;
+> +	size_t			discard_size;
+> +};
+> +
+> +/* buffer for one video frame */
+> +struct mx2_buffer {
+> +	/* common v4l buffer stuff -- must be first */
+> +	struct videobuf_buffer		vb;
+> +
+> +	enum v4l2_mbus_pixelcode	code;
+> +
+> +	int bufnum;
+> +};
+> +
+> +static int mclk_get_divisor(struct mx2_camera_dev *pcdev)
 > +{
-> +	int ret;
+> +	dev_info(pcdev->dev, "%s not implemented. Running at max speed\n",
+> +			__func__);
+
+Hm, why is this unimplemented?
+
 > +
-> +	cam->power_gpio = viafb_gpio_lookup("VGPIO3");
-> +	cam->reset_gpio = viafb_gpio_lookup("VGPIO2");
-> +	if (cam->power_gpio < 0 || cam->reset_gpio < 0) {
-> +		dev_err(&cam->platdev->dev, "Unable to find GPIO lines\n");
-> +		return -EINVAL;
-> +	}
-> +	ret = gpio_request(cam->power_gpio, "viafb-camera");
-> +	if (ret) {
-> +		dev_err(&cam->platdev->dev, "Unable to request power GPIO\n");
-> +		return ret;
-> +	}
-> +	ret = gpio_request(cam->reset_gpio, "viafb-camera");
-> +	if (ret) {
-> +		dev_err(&cam->platdev->dev, "Unable to request reset GPIO\n");
-> +		gpio_free(cam->power_gpio);
-> +		return ret;
-> +	}
-> +	gpio_direction_output(cam->power_gpio, 0);
-> +	gpio_direction_output(cam->reset_gpio, 0);
+> +#if 0
+> +	unsigned int mclk = pcdev->pdata->clk_csi;
+> +	unsigned int pclk = clk_get_rate(pcdev->clk_csi);
+> +	int i;
+> +
+> +	dev_dbg(pcdev->dev, "%s: %ld %ld\n", __func__, mclk, pclk);
+> +
+> +	for (i = 0; i < 0xf; i++)
+> +		if ((i + 1) * 2 * mclk <= pclk)
+> +			break;
+
+This doesn't look right. You increment the counter i, and terminate the
+loop as soon as "(i + 1) * 2 * mclk <= pclk". Obviously, if 2 * mclk <= pclk,
+this will terminate immediately, otherwise it will run until the end and
+return 0xf without satisfying the condition. What exactly are you trying to
+achieve? Find the _largest_ i, such that "(i + 1) * 2 * mclk <= pclk"? Then
+why not just do "i = pclk / 2 / mclk - 1"?
+
+> +	return i;
+> +#endif
 > +	return 0;
 > +}
 > +
-> +/*
-> + * Power up the sensor and perform the reset dance.
-> + */
-> +static void via_sensor_power_up(struct via_camera *cam)
+> +static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
 > +{
-> +	gpio_set_value(cam->power_gpio, 1);
-> +	gpio_set_value(cam->reset_gpio, 0);
-> +	msleep(20);  /* Probably excessive */
-> +	gpio_set_value(cam->reset_gpio, 1);
-> +	msleep(20);
+> +	clk_disable(pcdev->clk_csi);
+> +	writel(0, pcdev->base_csi + CSICR1);
+> +	if (mx27_camera_emma(pcdev))
+> +		writel(0, pcdev->base_emma + PRP_CNTL);
 > +}
 > +
-> +static void via_sensor_power_down(struct via_camera *cam)
+> +/* The following two functions absolutely depend on the fact, that
+> + * there can be only one camera on mx2 camera sensor interface */
+
+Multiline comment
+
+> +static int mx2_camera_add_device(struct soc_camera_device *icd)
 > +{
-> +	gpio_set_value(cam->power_gpio, 0);
-> +	gpio_set_value(cam->reset_gpio, 0);
-> +}
-> +
-> +
-> +static void via_sensor_power_release(struct via_camera *cam)
-> +{
-> +	via_sensor_power_down(cam);
-> +	gpio_free(cam->power_gpio);
-> +	gpio_free(cam->reset_gpio);
-> +}
-> +
-> +/* --------------------------------------------------------------------------*/
-> +/* Sensor ops */
-> +
-> +/*
-> + * Manage the ov7670 "flip" bit, which needs special help.
-> + */
-> +static int viacam_set_flip(struct via_camera *cam)
-> +{
-> +	struct v4l2_control ctrl;
-> +
-> +	memset(&ctrl, 0, sizeof(ctrl));
-> +	ctrl.id = V4L2_CID_VFLIP;
-> +	ctrl.value = flip_image;
-> +	return sensor_call(cam, core, s_ctrl, &ctrl);
-> +}
-> +
-> +/*
-> + * Configure the sensor.  It's up to the caller to ensure
-> + * that the camera is in the correct operating state.
-> + */
-> +static int viacam_configure_sensor(struct via_camera *cam)
-> +{
-> +	struct v4l2_format fmt;
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	struct mx2_camera_dev *pcdev = ici->priv;
 > +	int ret;
+> +	u32 csicr1;
 > +
-> +	fmt.fmt.pix = cam->sensor_format;
-> +	ret = sensor_call(cam, core, init, 0);
-> +	if (ret == 0)
-> +		ret = sensor_call(cam, video, s_fmt, &fmt);
-> +	/*
-> +	 * OV7670 does weird things if flip is set *before* format...
-> +	 */
-> +	if (ret == 0)
-> +		ret = viacam_set_flip(cam);
-> +	return ret;
+> +	if (pcdev->icd)
+> +		return -EBUSY;
+> +
+> +	ret = clk_enable(pcdev->clk_csi);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	csicr1 = CSICR1_MCLKDIV(mclk_get_divisor(pcdev)) |
+> +			CSICR1_MCLKEN;
+> +
+> +	if (mx27_camera_emma(pcdev)) {
+> +		csicr1 |= CSICR1_PRP_IF_EN | CSICR1_FCC |
+> +			CSICR1_RXFF_LEVEL(0);
+> +	} else if (cpu_is_mx27())
+> +		csicr1 |= CSICR1_SOF_INTEN | CSICR1_RXFF_LEVEL(2);
+> +
+> +	pcdev->csicr1 = csicr1;
+> +	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+> +
+> +	pcdev->icd = icd;
+> +
+> +	dev_info(icd->dev.parent, "Camera driver attached to camera %d\n",
+> +		 icd->devnum);
+> +
+> +	return 0;
 > +}
 > +
-> +
-> +
-> +/* --------------------------------------------------------------------------*/
-> +/*
-> + * Some simple register accessors; they assume that the lock is held.
-> + *
-> + * Should we want to support the second capture engine, we could
-> + * hide the register difference by adding 0x1000 to registers in the
-> + * 0x300-350 range.
-> + */
-> +static inline void viacam_write_reg(struct via_camera *cam,
-> +		int reg, int value)
+> +static void mx2_camera_remove_device(struct soc_camera_device *icd)
 > +{
-> +	iowrite32(value, cam->mmio + reg);
-> +}
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	struct mx2_camera_dev *pcdev = ici->priv;
 > +
-> +static inline int viacam_read_reg(struct via_camera *cam, int reg)
-> +{
-> +	return ioread32(cam->mmio + reg);
-> +}
+> +	BUG_ON(icd != pcdev->icd);
 > +
-> +static inline void viacam_write_reg_mask(struct via_camera *cam,
-> +		int reg, int value, int mask)
-> +{
-> +	int tmp = viacam_read_reg(cam, reg);
+> +	dev_info(icd->dev.parent, "Camera driver detached from camera %d\n",
+> +		 icd->devnum);
 > +
-> +	tmp = (tmp & ~mask) | (value & mask);
-> +	viacam_write_reg(cam, reg, tmp);
-> +}
+> +	mx2_camera_deactivate(pcdev);
 > +
-> +
-> +/* --------------------------------------------------------------------------*/
-> +/* Interrupt management and handling */
-> +
-> +static irqreturn_t viacam_quick_irq(int irq, void *data)
-> +{
-> +	struct via_camera *cam = data;
-> +	irqreturn_t ret = IRQ_NONE;
-> +	int icv;
-> +
-> +	/*
-> +	 * All we do here is to clear the interrupts and tell
-> +	 * the handler thread to wake up.
-> +	 */
-> +	spin_lock(&cam->viadev->reg_lock);
-> +	icv = viacam_read_reg(cam, VCR_INTCTRL);
-> +	if (icv & VCR_IC_EAV) {
-> +		icv |= VCR_IC_EAV|VCR_IC_EVBI|VCR_IC_FFULL;
-> +		viacam_write_reg(cam, VCR_INTCTRL, icv);
-> +		ret = IRQ_WAKE_THREAD;
+> +	if (pcdev->discard_buffer) {
+> +		dma_free_coherent(NULL, pcdev->discard_size,
+> +				pcdev->discard_buffer,
+> +				pcdev->discard_buffer_dma);
+
+use ici->v4l2_dev.dev for device?
+
 > +	}
-> +	spin_unlock(&cam->viadev->reg_lock);
-> +	return ret;
+> +	pcdev->discard_buffer = 0;
+
+discard_buffer is a pointer, so, " = NULL".
+
+> +
+> +	pcdev->icd = NULL;
 > +}
 > +
-> +/*
-> + * Find the next videobuf buffer which has somebody waiting on it.
-> + */
-> +static struct videobuf_buffer *viacam_next_buffer(struct via_camera *cam)
+> +static void mx27_camera_dma_enable(struct mx2_camera_dev *pcdev)
 > +{
-> +	unsigned long flags;
-> +	struct videobuf_buffer *buf = NULL;
+> +	u32 tmp;
 > +
-> +	spin_lock_irqsave(&cam->viadev->reg_lock, flags);
-> +	if (cam->opstate != S_RUNNING)
-> +		goto out;
-> +	if (list_empty(&cam->buffer_queue))
-> +		goto out;
-> +	buf = list_entry(cam->buffer_queue.next, struct videobuf_buffer, queue);
-> +	if (!waitqueue_active(&buf->done)) {/* Nobody waiting */
-> +		buf = NULL;
-> +		goto out;
+> +	imx_dma_enable(pcdev->dma);
+> +
+> +	tmp = readl(pcdev->base_csi + CSICR1);
+> +	tmp |= CSICR1_RF_OR_INTEN;
+> +	writel(tmp, pcdev->base_csi + CSICR1);
+> +}
+> +
+> +static irqreturn_t mx27_camera_irq(int irq_csi, void *data)
+> +{
+> +	struct mx2_camera_dev *pcdev = data;
+> +	u32 status = readl(pcdev->base_csi + CSISR);
+> +
+> +	if (status & CSISR_SOF_INT && pcdev->active) {
+> +		u32 tmp;
+> +
+> +		tmp = readl(pcdev->base_csi + CSICR1);
+> +		tmp |= CSICR1_CLR_RXFIFO;
+> +		writel(tmp, pcdev->base_csi + CSICR1);
+
+To me this always looks like that extra assignment to "tmp" must have some 
+meaning, whereas it doesn't. So, I find something like
+
++		tmp = readl(pcdev->base_csi + CSICR1) |
++			CSICR1_CLR_RXFIFO;
++		writel(tmp, pcdev->base_csi + CSICR1);
+
+or
+
++		tmp = readl(pcdev->base_csi + CSICR1);
++		writel(tmp | CSICR1_CLR_RXFIFO, pcdev->base_csi + CSICR1);
+
+nicer.
+
+> +		mx27_camera_dma_enable(pcdev);
 > +	}
-> +	list_del(&buf->queue);
-> +	buf->state = VIDEOBUF_ACTIVE;
-> +out:
-> +	spin_unlock_irqrestore(&cam->viadev->reg_lock, flags);
-> +	return buf;
-> +}
 > +
-> +/*
-> + * The threaded IRQ handler.
-> + */
-> +static irqreturn_t viacam_irq(int irq, void *data)
-> +{
-> +	int bufn;
-> +	struct videobuf_buffer *vb;
-> +	struct via_camera *cam = data;
-> +	struct videobuf_dmabuf *vdma;
+> +	writel(CSISR_SOF_INT | CSISR_RFF_OR_INT, pcdev->base_csi + CSISR);
 > +
-> +	/*
-> +	 * If there is no place to put the data frame, don't bother
-> +	 * with anything else.
-> +	 */
-> +	vb = viacam_next_buffer(cam);
-> +	if (vb == NULL)
-> +		goto done;
-> +	/*
-> +	 * Figure out which buffer we just completed.
-> +	 */
-> +	bufn = (viacam_read_reg(cam, VCR_INTCTRL) & VCR_IC_ACTBUF) >> 3;
-> +	bufn -= 1;
-> +	if (bufn < 0)
-> +		bufn = cam->n_cap_bufs - 1;
-> +	/*
-> +	 * Copy over the data and let any waiters know.
-> +	 */
-> +	vdma = videobuf_to_dma(vb);
-> +	viafb_dma_copy_out_sg(cam->cb_offsets[bufn], vdma->sglist, vdma->sglen);
-> +	vb->state = VIDEOBUF_DONE;
-> +	vb->size = cam->user_format.sizeimage;
-> +	wake_up(&vb->done);
-> +done:
 > +	return IRQ_HANDLED;
 > +}
 > +
-> +
-> +/*
-> + * These functions must mess around with the general interrupt
-> + * control register, which is relevant to much more than just the
-> + * camera.  Nothing else uses interrupts, though, as of this writing.
-> + * Should that situation change, we'll have to improve support at
-> + * the via-core level.
-> + */
-> +static void viacam_int_enable(struct via_camera *cam)
+> +static void mx25_camera_frame_done(struct mx2_camera_dev *pcdev, int fb,
+> +		int state)
 > +{
-> +	viacam_write_reg(cam, VCR_INTCTRL,
-> +			VCR_IC_INTEN|VCR_IC_EAV|VCR_IC_EVBI|VCR_IC_FFULL);
-> +	viafb_irq_enable(VDE_I_C0AVEN);
-> +}
-> +
-> +static void viacam_int_disable(struct via_camera *cam)
-> +{
-> +	viafb_irq_disable(VDE_I_C0AVEN);
-> +	viacam_write_reg(cam, VCR_INTCTRL, 0);
-> +}
-> +
-> +
-> +
-> +/* --------------------------------------------------------------------------*/
-> +/* Controller operations */
-> +
-> +/*
-> + * Set up our capture buffers in framebuffer memory.
-> + */
-> +static int viacam_ctlr_cbufs(struct via_camera *cam)
-> +{
-> +	int nbuf = cam->viadev->camera_fbmem_size/cam->sensor_format.sizeimage;
-> +	int i;
-> +	unsigned int offset;
-> +
-> +	/*
-> +	 * See how many buffers we can work with.
-> +	 */
-> +	if (nbuf >= 3) {
-> +		cam->n_cap_bufs = 3;
-> +		viacam_write_reg_mask(cam, VCR_CAPINTC, VCR_CI_3BUFS,
-> +				VCR_CI_3BUFS);
-> +	} else if (nbuf == 2) {
-> +		cam->n_cap_bufs = 2;
-> +		viacam_write_reg_mask(cam, VCR_CAPINTC, 0, VCR_CI_3BUFS);
-> +	} else {
-> +		cam_warn(cam, "Insufficient frame buffer memory\n");
-> +		return -ENOMEM;
-> +	}
-> +	/*
-> +	 * Set them up.
-> +	 */
-> +	offset = cam->fb_offset;
-> +	for (i = 0; i < cam->n_cap_bufs; i++) {
-> +		cam->cb_offsets[i] = offset;
-> +		cam->cb_addrs[i] = cam->fbmem + offset;
-> +		viacam_write_reg(cam, VCR_VBUF1 + i*4, offset & VCR_VBUF_MASK);
-> +		offset += cam->sensor_format.sizeimage;
-> +	}
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Set the scaling register for downscaling the image.
-> + *
-> + * This register works like this...  Vertical scaling is enabled
-> + * by bit 26; if that bit is set, downscaling is controlled by the
-> + * value in bits 16:25.	 Those bits are divided by 1024 to get
-> + * the scaling factor; setting just bit 25 thus cuts the height
-> + * in half.
-> + *
-> + * Horizontal scaling works about the same, but it's enabled by
-> + * bit 11, with bits 0:10 giving the numerator of a fraction
-> + * (over 2048) for the scaling value.
-> + *
-> + * This function is naive in that, if the user departs from
-> + * the 3x4 VGA scaling factor, the image will distort.	We
-> + * could work around that if it really seemed important.
-> + */
-> +static void viacam_set_scale(struct via_camera *cam)
-> +{
-> +	unsigned int avscale;
-> +	int sf;
-> +
-> +	if (cam->user_format.width == VGA_WIDTH)
-> +		avscale = 0;
-> +	else {
-> +		sf = (cam->user_format.width*2048)/VGA_WIDTH;
-> +		avscale = VCR_AVS_HEN | sf;
-> +	}
-> +	if (cam->user_format.height < VGA_HEIGHT) {
-> +		sf = (1024*cam->user_format.height)/VGA_HEIGHT;
-> +		avscale |= VCR_AVS_VEN | (sf << 16);
-> +	}
-> +	viacam_write_reg(cam, VCR_AVSCALE, avscale);
-> +}
-> +
-> +
-> +/*
-> + * Configure image-related information into the capture engine.
-> + */
-> +static void viacam_ctlr_image(struct via_camera *cam)
-> +{
-> +	int cicreg;
-> +
-> +	/*
-> +	 * Disable clock before messing with stuff - from the via
-> +	 * sample driver.
-> +	 */
-> +	viacam_write_reg(cam, VCR_CAPINTC, ~VCR_CI_ENABLE);
-> +	viacam_write_reg(cam, VCR_CAPINTC, ~(VCR_CI_ENABLE|VCR_CI_CLKEN));
-> +	/*
-> +	 * Disable a bunch of stuff.
-> +	 */
-> +	viacam_write_reg(cam, VCR_HORRANGE, 0x06200120);
-> +	viacam_write_reg(cam, VCR_VERTRANGE, 0x01de0000);
-> +	viacam_set_scale(cam);
-> +	/*
-> +	 * Image size info.
-> +	 */
-> +	viacam_write_reg(cam, VCR_MAXDATA,
-> +			(cam->sensor_format.height << 16) |
-> +			(cam->sensor_format.bytesperline >> 3));
-> +	viacam_write_reg(cam, VCR_MAXVBI, 0);
-> +	viacam_write_reg(cam, VCR_VSTRIDE,
-> +			cam->user_format.bytesperline & VCR_VS_STRIDE);
-> +	/*
-> +	 * Set up the capture interface control register,
-> +	 * everything but the "go" bit.
-> +	 *
-> +	 * The FIFO threshold is a bit of a magic number; 8 is what
-> +	 * VIA's sample code uses.
-> +	 */
-> +	cicreg = VCR_CI_CLKEN |
-> +		0x08000000 |		/* FIFO threshold */
-> +		VCR_CI_FLDINV |		/* OLPC-specific? */
-> +		VCR_CI_VREFINV |	/* OLPC-specific? */
-> +		VCR_CI_DIBOTH |		/* Capture both fields */
-> +		VCR_CI_CCIR601_8;
-> +	if (cam->n_cap_bufs == 3)
-> +		cicreg |= VCR_CI_3BUFS;
-> +	/*
-> +	 * YUV formats need different byte swapping than RGB.
-> +	 */
-> +	if (cam->user_format.pixelformat == V4L2_PIX_FMT_YUYV)
-> +		cicreg |= VCR_CI_YUYV;
-> +	else
-> +		cicreg |= VCR_CI_UYVY;
-> +	viacam_write_reg(cam, VCR_CAPINTC, cicreg);
-> +}
-> +
-> +
-> +static int viacam_config_controller(struct via_camera *cam)
-> +{
-> +	int ret;
+> +	struct videobuf_buffer *vb;
+> +	struct mx2_buffer *buf;
+> +	struct mx2_buffer **fb_active = fb == 1 ? &pcdev->fb1_active :
+> +		&pcdev->fb2_active;
+> +	u32 fb_reg = fb == 1 ? CSIDMASA_FB1 : CSIDMASA_FB2;
 > +	unsigned long flags;
 > +
-> +	spin_lock_irqsave(&cam->viadev->reg_lock, flags);
-> +	ret = viacam_ctlr_cbufs(cam);
-> +	if (!ret)
-> +		viacam_ctlr_image(cam);
-> +	spin_unlock_irqrestore(&cam->viadev->reg_lock, flags);
-> +	clear_bit(CF_CONFIG_NEEDED, &cam->flags);
-> +	return ret;
+> +	spin_lock_irqsave(&pcdev->lock, flags);
+> +
+> +	if ((*fb_active) == NULL)
+
+Superfluous parenthesis. Maybe even just
+
++	if (!*fb_active)
+
+> +		goto out;
+> +	vb = &(*fb_active)->vb;
+> +	dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+> +		vb, vb->baddr, vb->bsize);
+> +
+> +	vb->state = state;
+> +	do_gettimeofday(&vb->ts);
+> +	vb->field_count++;
+> +
+> +	wake_up(&vb->done);
+> +
+> +	if (list_empty(&pcdev->capture)) {
+> +		buf = NULL;
+> +		writel(0, pcdev->base_csi + fb_reg);
+> +	} else {
+> +		buf = list_entry(pcdev->capture.next, struct mx2_buffer,
+> +				vb.queue);
+> +		vb = &buf->vb;
+> +		list_del(&vb->queue);
+> +		vb->state = VIDEOBUF_ACTIVE;
+> +		writel(videobuf_to_dma_contig(vb), pcdev->base_csi + fb_reg);
+> +	}
+> +
+> +	*fb_active = buf;
+> +
+> +out:
+> +	spin_unlock_irqrestore(&pcdev->lock, flags);
+> +}
+> +
+> +static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
+> +{
+> +	struct mx2_camera_dev *pcdev = data;
+> +	u32 status = readl(pcdev->base_csi + CSISR);
+> +
+> +	if (status & CSISR_DMA_TSF_FB1_INT)
+> +		mx25_camera_frame_done(pcdev, 1, VIDEOBUF_DONE);
+> +	else if (status & CSISR_DMA_TSF_FB2_INT)
+> +		mx25_camera_frame_done(pcdev, 2, VIDEOBUF_DONE);
+> +
+> +	/* FIXME: handle CSISR_RFF_OR_INT */
+> +
+> +	writel(status, pcdev->base_csi + CSISR);
+> +
+> +	return IRQ_HANDLED;
 > +}
 > +
 > +/*
-> + * Make it start grabbing data.
+> + *  Videobuf operations
 > + */
-> +static void viacam_start_engine(struct via_camera *cam)
+> +static int mx2_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
+> +			      unsigned int *size)
 > +{
-> +	spin_lock_irq(&cam->viadev->reg_lock);
-> +	cam->next_buf = 0;
-> +	viacam_write_reg_mask(cam, VCR_CAPINTC, VCR_CI_ENABLE, VCR_CI_ENABLE);
-> +	viacam_int_enable(cam);
-> +	(void) viacam_read_reg(cam, VCR_CAPINTC); /* Force post */
-> +	cam->opstate = S_RUNNING;
-> +	spin_unlock_irq(&cam->viadev->reg_lock);
-> +}
+> +	struct soc_camera_device *icd = vq->priv_data;
+> +	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
+> +			icd->current_fmt->host_fmt);
 > +
+> +	dev_dbg(&icd->dev, "count=%d, size=%d\n", *count, *size);
 > +
-> +static void viacam_stop_engine(struct via_camera *cam)
-> +{
-> +	spin_lock_irq(&cam->viadev->reg_lock);
-> +	viacam_int_disable(cam);
-> +	viacam_write_reg_mask(cam, VCR_CAPINTC, 0, VCR_CI_ENABLE);
-> +	(void) viacam_read_reg(cam, VCR_CAPINTC); /* Force post */
-> +	cam->opstate = S_IDLE;
-> +	spin_unlock_irq(&cam->viadev->reg_lock);
-> +}
+> +	if (bytes_per_line < 0)
+> +		return bytes_per_line;
 > +
+> +	*size = bytes_per_line * icd->user_height;
 > +
-> +/* --------------------------------------------------------------------------*/
-> +/* Videobuf callback ops */
+> +	if (0 == *count)
+> +		*count = 32;
+> +	while (*size * *count > MAX_VIDEO_MEM * 1024 * 1024)
+> +		(*count)--;
+
+Have a look at this:
+
+http://git.linuxtv.org/v4l-dvb.git?a=commitdiff;h=f7a6936428c11b8bd33e7c438236142fd20cbf8b
+
 > +
-> +/*
-> + * buffer_setup.  The purpose of this one would appear to be to tell
-> + * videobuf how big a single image is.	It's also evidently up to us
-> + * to put some sort of limit on the maximum number of buffers allowed.
-> + */
-> +static int viacam_vb_buf_setup(struct videobuf_queue *q,
-> +		unsigned int *count, unsigned int *size)
-> +{
-> +	struct via_camera *cam = q->priv_data;
-> +
-> +	*size = cam->user_format.sizeimage;
-> +	if (*count == 0 || *count > 6)	/* Arbitrary number */
-> +		*count = 6;
 > +	return 0;
 > +}
 > +
-> +/*
-> + * Prepare a buffer.
-> + */
-> +static int viacam_vb_buf_prepare(struct videobuf_queue *q,
+> +static void free_buffer(struct videobuf_queue *vq, struct mx2_buffer *buf)
+> +{
+> +	struct soc_camera_device *icd = vq->priv_data;
+> +
+> +	BUG_ON(in_interrupt());
+
+Is there a need for this? I see this being copy-pasted across multiple 
+drivers, but maybe it's time to stop?:)
+
+> +
+> +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+> +		&buf->vb, buf->vb.baddr, buf->vb.bsize);
+
+You reference buf->vb 6 times in this function, so, maybr it's time for an 
+own variable
+
+	struct videobuf_buffer *vb = &buf->vb;
+
+?
+
+> +
+> +	/* This waits until this buffer is out of danger, i.e., until it is no
+> +	 * longer in STATE_QUEUED or STATE_ACTIVE */
+
+multiline comment style
+
+> +	videobuf_waiton(&buf->vb, 0, 0);
+> +
+> +	videobuf_dma_contig_free(vq, &buf->vb);
+> +	dev_dbg(&icd->dev, "%s freed\n", __func__);
+> +
+> +	buf->vb.state = VIDEOBUF_NEEDS_INIT;
+> +}
+> +
+> +static int mx2_videobuf_prepare(struct videobuf_queue *vq,
 > +		struct videobuf_buffer *vb, enum v4l2_field field)
 > +{
-> +	struct via_camera *cam = q->priv_data;
-> +
-> +	vb->size = cam->user_format.sizeimage;
-> +	vb->width = cam->user_format.width; /* bytesperline???? */
-> +	vb->height = cam->user_format.height;
-> +	vb->field = field;
-> +	if (vb->state == VIDEOBUF_NEEDS_INIT) {
-> +		int ret = videobuf_iolock(q, vb, NULL);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +	vb->state = VIDEOBUF_PREPARED;
-> +	return 0;
-> +}
-> +
-> +/*
-> + * We've got a buffer to put data into.
-> + *
-> + * FIXME: check for a running engine and valid buffers?
-> + */
-> +static void viacam_vb_buf_queue(struct videobuf_queue *q,
-> +		struct videobuf_buffer *vb)
-> +{
-> +	struct via_camera *cam = q->priv_data;
-> +
-> +	/*
-> +	 * Note that videobuf holds the lock when it calls
-> +	 * us, so we need not (indeed, cannot) take it here.
-> +	 */
-> +	vb->state = VIDEOBUF_QUEUED;
-> +	list_add_tail(&vb->queue, &cam->buffer_queue);
-> +}
-> +
-> +/*
-> + * Free a buffer.
-> + */
-> +static void viacam_vb_buf_release(struct videobuf_queue *q,
-> +		struct videobuf_buffer *vb)
-> +{
-> +	videobuf_dma_unmap(q, videobuf_to_dma(vb));
-> +	videobuf_dma_free(videobuf_to_dma(vb));
-> +	vb->state = VIDEOBUF_NEEDS_INIT;
-> +}
-> +
-> +static const struct videobuf_queue_ops viacam_vb_ops = {
-> +	.buf_setup	= viacam_vb_buf_setup,
-> +	.buf_prepare	= viacam_vb_buf_prepare,
-> +	.buf_queue	= viacam_vb_buf_queue,
-> +	.buf_release	= viacam_vb_buf_release,
-> +};
-> +
-> +/* --------------------------------------------------------------------------*/
-> +/* File operations */
-> +
-> +static int viacam_open(struct file *filp)
-> +{
-> +	struct via_camera *cam = video_drvdata(filp);
-> +
-> +	filp->private_data = cam;
-> +	/*
-> +	 * Note the new user.  If this is the first one, we'll also
-> +	 * need to power up the sensor.
-> +	 */
-> +	mutex_lock(&cam->lock);
-> +	if (cam->users == 0) {
-> +		int ret = viafb_request_dma();
-> +
-> +		if (ret) {
-> +			mutex_unlock(&cam->lock);
-> +			return ret;
-> +		}
-> +		via_sensor_power_up(cam);
-> +		set_bit(CF_CONFIG_NEEDED, &cam->flags);
-> +		/*
-> +		 * Hook into videobuf.	Evidently this cannot fail.
-> +		 */
-> +		videobuf_queue_sg_init(&cam->vb_queue, &viacam_vb_ops,
-> +				&cam->platdev->dev, &cam->viadev->reg_lock,
-> +				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
-> +				sizeof(struct videobuf_buffer), cam);
-> +	}
-> +	(cam->users)++;
-> +	mutex_unlock(&cam->lock);
-> +	return 0;
-> +}
-> +
-> +static int viacam_release(struct file *filp)
-> +{
-> +	struct via_camera *cam = video_drvdata(filp);
-> +
-> +	mutex_lock(&cam->lock);
-> +	(cam->users)--;
-> +	/*
-> +	 * If the "owner" is closing, shut down any ongoing
-> +	 * operations.
-> +	 */
-> +	if (filp == cam->owner) {
-> +		videobuf_stop(&cam->vb_queue);
-> +		if (cam->opstate != S_IDLE)
-> +			viacam_stop_engine(cam);
-> +		cam->owner = NULL;
-> +	}
-> +	/*
-> +	 * Last one out needs to turn out the lights.
-> +	 */
-> +	if (cam->users == 0) {
-> +		videobuf_mmap_free(&cam->vb_queue);
-> +		via_sensor_power_down(cam);
-> +		viafb_release_dma();
-> +	}
-> +	mutex_unlock(&cam->lock);
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Read a frame from the device.
-> + */
-> +static ssize_t viacam_read(struct file *filp, char __user *buffer,
-> +		size_t len, loff_t *pos)
-> +{
-> +	struct via_camera *cam = video_drvdata(filp);
-> +	int ret;
-> +
-> +	mutex_lock(&cam->lock);
-> +	/*
-> +	 * Enforce the V4l2 "only one owner gets to read data" rule.
-> +	 */
-> +	if (cam->owner && cam->owner != filp) {
-> +		ret = -EBUSY;
-> +		goto out_unlock;
-> +	}
-> +	cam->owner = filp;
-> +	/*
-> +	 * Do we need to configure the hardware?
-> +	 */
-> +	if (test_bit(CF_CONFIG_NEEDED, &cam->flags)) {
-> +		ret = viacam_configure_sensor(cam);
-> +		if (!ret)
-> +			ret = viacam_config_controller(cam);
-> +		if (ret)
-> +			goto out_unlock;
-> +	}
-> +	/*
-> +	 * Fire up the capture engine, then have videobuf do
-> +	 * the heavy lifting.  Someday it would be good to avoid
-> +	 * stopping and restarting the engine each time.
-> +	 */
-> +	INIT_LIST_HEAD(&cam->buffer_queue);
-> +	viacam_start_engine(cam);
-> +	ret = videobuf_read_stream(&cam->vb_queue, buffer, len, pos, 0,
-> +			filp->f_flags & O_NONBLOCK);
-> +	viacam_stop_engine(cam);
-> +	/* videobuf_stop() ?? */
-> +
-> +out_unlock:
-> +	mutex_unlock(&cam->lock);
-> +	return ret;
-> +}
-> +
-> +
-> +static unsigned int viacam_poll(struct file *filp, struct poll_table_struct *pt)
-> +{
-> +	struct via_camera *cam = video_drvdata(filp);
-> +
-> +	return videobuf_poll_stream(filp, &cam->vb_queue, pt);
-> +}
-> +
-> +
-> +static int viacam_mmap(struct file *filp, struct vm_area_struct *vma)
-> +{
-> +	struct via_camera *cam = video_drvdata(filp);
-> +
-> +	return videobuf_mmap_mapper(&cam->vb_queue, vma);
-> +}
-> +
-> +
-> +
-> +static const struct v4l2_file_operations viacam_fops = {
-> +	.owner		= THIS_MODULE,
-> +	.open		= viacam_open,
-> +	.release	= viacam_release,
-> +	.read		= viacam_read,
-> +	.poll		= viacam_poll,
-> +	.mmap		= viacam_mmap,
-> +	.ioctl		= video_ioctl2,
-> +};
-> +
-> +/*----------------------------------------------------------------------------*/
-> +/*
-> + * The long list of v4l2 ioctl ops
-> + */
-> +
-> +static int viacam_g_chip_ident(struct file *file, void *priv,
-> +		struct v4l2_dbg_chip_ident *ident)
-> +{
-> +	struct via_camera *cam = priv;
-> +
-> +	ident->ident = V4L2_IDENT_NONE;
-> +	ident->revision = 0;
-> +	if (v4l2_chip_match_host(&ident->match)) {
-> +		ident->ident = V4L2_IDENT_VIA_VX855;
-> +		return 0;
-> +	}
-> +	return sensor_call(cam, core, g_chip_ident, ident);
-> +}
-> +
-> +/*
-> + * Control ops are passed through to the sensor.
-> + */
-> +static int viacam_queryctrl(struct file *filp, void *priv,
-> +		struct v4l2_queryctrl *qc)
-> +{
-> +	struct via_camera *cam = priv;
-> +	int ret;
-> +
-> +	mutex_lock(&cam->lock);
-> +	ret = sensor_call(cam, core, queryctrl, qc);
-> +	mutex_unlock(&cam->lock);
-> +	return ret;
-> +}
-> +
-> +
-> +static int viacam_g_ctrl(struct file *filp, void *priv,
-> +		struct v4l2_control *ctrl)
-> +{
-> +	struct via_camera *cam = priv;
-> +	int ret;
-> +
-> +	mutex_lock(&cam->lock);
-> +	ret = sensor_call(cam, core, g_ctrl, ctrl);
-> +	mutex_unlock(&cam->lock);
-> +	return ret;
-> +}
-> +
-> +
-> +static int viacam_s_ctrl(struct file *filp, void *priv,
-> +		struct v4l2_control *ctrl)
-> +{
-> +	struct via_camera *cam = priv;
-> +	int ret;
-> +
-> +	mutex_lock(&cam->lock);
-> +	ret = sensor_call(cam, core, s_ctrl, ctrl);
-> +	mutex_unlock(&cam->lock);
-> +	return ret;
-> +}
-> +
-> +/*
-> + * Only one input.
-> + */
-> +static int viacam_enum_input(struct file *filp, void *priv,
-> +		struct v4l2_input *input)
-> +{
-> +	if (input->index != 0)
-> +		return -EINVAL;
-> +
-> +	input->type = V4L2_INPUT_TYPE_CAMERA;
-> +	input->std = V4L2_STD_ALL; /* Not sure what should go here */
-> +	strcpy(input->name, "Camera");
-> +	return 0;
-> +}
-> +
-> +static int viacam_g_input(struct file *filp, void *priv, unsigned int *i)
-> +{
-> +	*i = 0;
-> +	return 0;
-> +}
-> +
-> +static int viacam_s_input(struct file *filp, void *priv, unsigned int i)
-> +{
-> +	if (i != 0)
-> +		return -EINVAL;
-> +	return 0;
-> +}
-> +
-> +static int viacam_s_std(struct file *filp, void *priv, v4l2_std_id *std)
-> +{
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Video format stuff.	Here is our default format until
-> + * user space messes with things.
-> + */
-> +static struct v4l2_pix_format viacam_def_pix_format = {
-> +	.width		= VGA_WIDTH,
-> +	.height		= VGA_HEIGHT,
-> +	.pixelformat	= V4L2_PIX_FMT_YUYV,
-> +	.field		= V4L2_FIELD_NONE,
-> +	.bytesperline	= VGA_WIDTH*2,
-> +	.sizeimage	= VGA_WIDTH*VGA_HEIGHT*2,
-
-CodingStyle: please use spaces between values/operators. Not sure why, but
-newer versions of checkpatch.pl don't complain anymore on some cases.
-
-> +};
-> +
-> +static int viacam_enum_fmt_vid_cap(struct file *filp, void *priv,
-> +		struct v4l2_fmtdesc *fmt)
-> +{
-> +	struct via_camera *cam = priv;
-> +	int ret;
-> +
-> +	mutex_lock(&cam->lock);
-> +	ret = sensor_call(cam, video, enum_fmt, fmt);
-> +	mutex_unlock(&cam->lock);
-> +	return ret;
-> +}
-> +
-> +/*
-> + * Figure out proper image dimensions, but always force the
-> + * sensor to VGA.
-> + */
-> +static void viacam_fmt_pre(struct v4l2_pix_format *userfmt,
-> +		struct v4l2_pix_format *sensorfmt)
-> +{
-> +	*sensorfmt = *userfmt;
-> +	if (userfmt->width < QCIF_WIDTH || userfmt->height < QCIF_HEIGHT) {
-> +		userfmt->width = QCIF_WIDTH;
-> +		userfmt->height = QCIF_HEIGHT;
-> +	}
-> +	if (userfmt->width > VGA_WIDTH || userfmt->height > VGA_HEIGHT) {
-> +		userfmt->width = VGA_WIDTH;
-> +		userfmt->height = VGA_HEIGHT;
-> +	}
-> +	sensorfmt->width = VGA_WIDTH;
-> +	sensorfmt->height = VGA_HEIGHT;
-> +}
-> +
-> +static void viacam_fmt_post(struct v4l2_pix_format *userfmt,
-> +		struct v4l2_pix_format *sensorfmt)
-> +{
-> +	userfmt->pixelformat = sensorfmt->pixelformat;
-> +	userfmt->field = sensorfmt->field;
-> +	userfmt->bytesperline = 2*userfmt->width;
-
-CodingStyle: please use spaces between values/operators. Not sure why, but
-newer versions of checkpatch.pl don't complain anymore on some cases.
-
-> +	userfmt->sizeimage = userfmt->bytesperline*userfmt->height;
-> +}
-> +
-> +static int viacam_try_fmt_vid_cap(struct file *filp, void *priv,
-> +		struct v4l2_format *fmt)
-> +{
-> +	struct via_camera *cam = priv;
-> +	int ret;
-> +	struct v4l2_format sfmt;
-> +
-> +	viacam_fmt_pre(&fmt->fmt.pix, &sfmt.fmt.pix);
-> +	mutex_lock(&cam->lock);
-> +	ret = sensor_call(cam, video, try_fmt, &sfmt);
-> +	mutex_unlock(&cam->lock);
-> +	viacam_fmt_post(&fmt->fmt.pix, &sfmt.fmt.pix);
-> +	return ret;
-> +}
-> +
-> +static int viacam_g_fmt_vid_cap(struct file *filp, void *priv,
-> +		struct v4l2_format *fmt)
-> +{
-> +	struct via_camera *cam = priv;
-> +
-> +	fmt->fmt.pix = cam->user_format;
-> +	return 0;
-> +}
-> +
-> +static int viacam_s_fmt_vid_cap(struct file *filp, void *priv,
-> +		struct v4l2_format *fmt)
-> +{
-> +	struct via_camera *cam = priv;
-> +	int ret;
-> +	struct v4l2_format sfmt;
-> +
-> +	/*
-> +	 * Camera must be idle or we can't mess with the
-> +	 * video setup.
-> +	 */
-> +	if (cam->opstate != S_IDLE)
-> +		return -EBUSY;
-> +	/*
-> +	 * Let the sensor code look over and tweak the
-> +	 * requested formatting.
-> +	 */
-> +	mutex_lock(&cam->lock);
-> +	viacam_fmt_pre(&fmt->fmt.pix, &sfmt.fmt.pix);
-> +	ret = sensor_call(cam, video, try_fmt, &sfmt);
-> +	if (ret)
-> +		goto out;
-> +	viacam_fmt_post(&fmt->fmt.pix, &sfmt.fmt.pix);
-> +	/*
-> +	 * OK, let's commit to the new format.
-> +	 */
-> +	cam->user_format = fmt->fmt.pix;
-> +	cam->sensor_format = sfmt.fmt.pix;
-> +	ret = viacam_configure_sensor(cam);
-> +	if (!ret)
-> +		ret = viacam_config_controller(cam);
-> +out:
-> +	mutex_unlock(&cam->lock);
-> +	return ret;
-> +}
-> +
-> +static int viacam_querycap(struct file *filp, void *priv,
-> +		struct v4l2_capability *cap)
-> +{
-> +	strcpy(cap->driver, "via-camera");
-> +	strcpy(cap->card, "via-camera");
-> +	cap->version = 1;
-> +	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE |
-> +		V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
-> +	return 0;
-> +}
-> +
-> +/*
-> + * Streaming operations - pure videobuf stuff.
-> + */
-> +static int viacam_reqbufs(struct file *filp, void *priv,
-> +		struct v4l2_requestbuffers *rb)
-> +{
-> +	struct via_camera *cam = priv;
-> +
-> +	return videobuf_reqbufs(&cam->vb_queue, rb);
-> +}
-> +
-> +static int viacam_querybuf(struct file *filp, void *priv,
-> +		struct v4l2_buffer *buf)
-> +{
-> +	struct via_camera *cam = priv;
-> +
-> +	return videobuf_querybuf(&cam->vb_queue, buf);
-> +}
-> +
-> +static int viacam_qbuf(struct file *filp, void *priv, struct v4l2_buffer *buf)
-> +{
-> +	struct via_camera *cam = priv;
-> +
-> +	return videobuf_qbuf(&cam->vb_queue, buf);
-> +}
-> +
-> +static int viacam_dqbuf(struct file *filp, void *priv, struct v4l2_buffer *buf)
-> +{
-> +	struct via_camera *cam = priv;
-> +
-> +	return videobuf_dqbuf(&cam->vb_queue, buf, filp->f_flags & O_NONBLOCK);
-> +}
-> +
-> +static int viacam_streamon(struct file *filp, void *priv, enum v4l2_buf_type t)
-> +{
-> +	struct via_camera *cam = priv;
+> +	struct soc_camera_device *icd = vq->priv_data;
+> +	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
+> +	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
+> +			icd->current_fmt->host_fmt);
 > +	int ret = 0;
 > +
-> +	if (t != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +	if (cam->opstate != S_IDLE)
-> +		return -EBUSY;
-> +	/*
-> +	 * Enforce the V4l2 "only one owner gets to read data" rule.
-> +	 */
+> +#ifdef DEBUG
+> +	/* This can be useful if you want to see if we actually fill
+> +	 * the buffer with something */
 
-This is not really a V4L2 rule, but a hardware limitation. On most devices,
-only one stream can be produced. 
+comment style
 
-> +	if (cam->owner && cam->owner != filp)
-> +		return -EBUSY;
-> +	cam->owner = filp;
-> +	/*
-> +	 * Configure things if need be.
-> +	 */
-> +	if (test_bit(CF_CONFIG_NEEDED, &cam->flags)) {
-> +		mutex_lock(&cam->lock);
-> +		ret = viacam_configure_sensor(cam);
-> +		if (!ret)
-> +			ret = viacam_config_controller(cam);
-> +		mutex_unlock(&cam->lock);
-> +	}
-> +	/*
-> +	 * If the CPU goes into C3, the DMA transfer gets corrupted and
-> +	 * users start filing unsightly bug reports.  Put in a "latency"
-> +	 * requirement which will keep the CPU out of the deeper sleep
-> +	 * states.
-> +	 */
-> +	pm_qos_add_requirement(PM_QOS_CPU_DMA_LATENCY, "viafb-dma", 50);
-> +	/*
-> +	 * Fire things up.
-> +	 */
-> +	if (!ret) {
-> +		INIT_LIST_HEAD(&cam->buffer_queue);
-> +		ret = videobuf_streamon(&cam->vb_queue);
-> +		if (!ret)
-> +			viacam_start_engine(cam);
-> +	}
-> +	return ret;
-> +}
-> +
-> +static int viacam_streamoff(struct file *filp, void *priv, enum v4l2_buf_type t)
-> +{
-> +	struct via_camera *cam = priv;
-> +	int ret;
-> +
-> +	if (t != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> +		return -EINVAL;
-> +	pm_qos_remove_requirement(PM_QOS_CPU_DMA_LATENCY, "viafb-dma");
-> +	viacam_stop_engine(cam);
-> +	/*
-> +	 * Videobuf will recycle all of the outstanding buffers, but
-> +	 * we should be sure we don't retain any references to
-> +	 * any of them.
-> +	 */
-> +	ret = videobuf_streamoff(&cam->vb_queue);
-> +	INIT_LIST_HEAD(&cam->buffer_queue);
-> +	return ret;
-> +}
-> +
-> +#ifdef CONFIG_VIDEO_V4L1_COMPAT
-> +static int viacam_vidiocgmbuf(struct file *filp, void *priv,
-> +		struct video_mbuf *mbuf)
-> +{
-> +	struct via_camera *cam = priv;
-> +
-> +	return videobuf_cgmbuf(&cam->vb_queue, mbuf, 6);
-> +}
+> +	memset((void *)vb->baddr, 0xaa, vb->bsize);
 > +#endif
+
+Move this DEBUG block below bytes_per_line check?
+
 > +
-> +/* G/S_PARM */
+> +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+> +		vb, vb->baddr, vb->bsize);
 > +
-> +static int viacam_g_parm(struct file *filp, void *priv,
-> +		struct v4l2_streamparm *parm)
-> +{
-> +	struct via_camera *cam = priv;
-> +	int ret;
+> +	if (bytes_per_line < 0)
+> +		return bytes_per_line;
 > +
-> +	mutex_lock(&cam->lock);
-> +	ret = sensor_call(cam, video, g_parm, parm);
-> +	mutex_unlock(&cam->lock);
-> +	parm->parm.capture.readbuffers = cam->n_cap_bufs;
-> +	return ret;
-> +}
+> +	if (buf->code	!= icd->current_fmt->code ||
+> +	    vb->width	!= icd->user_width ||
+> +	    vb->height	!= icd->user_height ||
+> +	    vb->field	!= field) {
+> +		buf->code	= icd->current_fmt->code;
+> +		vb->width	= icd->user_width;
+> +		vb->height	= icd->user_height;
+> +		vb->field	= field;
+> +		vb->state	= VIDEOBUF_NEEDS_INIT;
+> +	}
 > +
-> +static int viacam_s_parm(struct file *filp, void *priv,
-> +		struct v4l2_streamparm *parm)
-> +{
-> +	struct via_camera *cam = priv;
-> +	int ret;
+> +	vb->size = bytes_per_line * vb->height;
+> +	if (vb->baddr && vb->bsize < vb->size) {
+> +		ret = -EINVAL;
+> +		goto out;
+> +	}
 > +
-> +	mutex_lock(&cam->lock);
-> +	ret = sensor_call(cam, video, s_parm, parm);
-> +	mutex_unlock(&cam->lock);
-> +	parm->parm.capture.readbuffers = cam->n_cap_bufs;
-> +	return ret;
-> +}
+> +	if (vb->state == VIDEOBUF_NEEDS_INIT) {
+> +		ret = videobuf_iolock(vq, vb, NULL);
+> +		if (ret)
+> +			goto fail;
 > +
-> +static int viacam_enum_framesizes(struct file *filp, void *priv,
-> +		struct v4l2_frmsizeenum *sizes)
-> +{
-> +	if (sizes->index != 0)
-> +		return -EINVAL;
-> +	sizes->type = V4L2_FRMSIZE_TYPE_CONTINUOUS;
-> +	sizes->stepwise.min_width = QCIF_WIDTH;
-> +	sizes->stepwise.min_height = QCIF_HEIGHT;
-> +	sizes->stepwise.max_width = VGA_WIDTH;
-> +	sizes->stepwise.max_height = VGA_HEIGHT;
-> +	sizes->stepwise.step_width = sizes->stepwise.step_height = 1;
+> +		vb->state = VIDEOBUF_PREPARED;
+> +	}
+> +
 > +	return 0;
-> +}
 > +
-> +static int viacam_enum_frameintervals(struct file *filp, void *priv,
-> +		struct v4l2_frmivalenum *interval)
-> +{
-> +	struct via_camera *cam = priv;
-> +	int ret;
-> +
-> +	mutex_lock(&cam->lock);
-> +	ret = sensor_call(cam, video, enum_frameintervals, interval);
-> +	mutex_unlock(&cam->lock);
+> +fail:
+> +	free_buffer(vq, buf);
+> +out:
 > +	return ret;
 > +}
 > +
-> +
-> +
-> +static const struct v4l2_ioctl_ops viacam_ioctl_ops = {
-> +	.vidioc_g_chip_ident	= viacam_g_chip_ident,
-> +	.vidioc_queryctrl	= viacam_queryctrl,
-> +	.vidioc_g_ctrl		= viacam_g_ctrl,
-> +	.vidioc_s_ctrl		= viacam_s_ctrl,
-> +	.vidioc_enum_input	= viacam_enum_input,
-> +	.vidioc_g_input		= viacam_g_input,
-> +	.vidioc_s_input		= viacam_s_input,
-> +	.vidioc_s_std		= viacam_s_std,
-> +	.vidioc_enum_fmt_vid_cap = viacam_enum_fmt_vid_cap,
-> +	.vidioc_try_fmt_vid_cap = viacam_try_fmt_vid_cap,
-> +	.vidioc_g_fmt_vid_cap	= viacam_g_fmt_vid_cap,
-> +	.vidioc_s_fmt_vid_cap	= viacam_s_fmt_vid_cap,
-> +	.vidioc_querycap	= viacam_querycap,
-> +	.vidioc_reqbufs		= viacam_reqbufs,
-> +	.vidioc_querybuf	= viacam_querybuf,
-> +	.vidioc_qbuf		= viacam_qbuf,
-> +	.vidioc_dqbuf		= viacam_dqbuf,
-> +	.vidioc_streamon	= viacam_streamon,
-> +	.vidioc_streamoff	= viacam_streamoff,
-> +	.vidioc_g_parm		= viacam_g_parm,
-> +	.vidioc_s_parm		= viacam_s_parm,
-> +	.vidioc_enum_framesizes = viacam_enum_framesizes,
-> +	.vidioc_enum_frameintervals = viacam_enum_frameintervals,
-> +#ifdef CONFIG_VIDEO_V4L1_COMPAT
-> +	.vidiocgmbuf		= viacam_vidiocgmbuf,
-> +#endif
-> +};
-> +
-> +/*----------------------------------------------------------------------------*/
-> +
-> +/*
-> + * Power management.
-> + */
-> +
-> +/*
-> + * Setup stuff.
-> + */
-> +
-> +static struct video_device viacam_v4l_template = {
-> +	.name		= "via-camera",
-> +	.minor		= -1,
-> +	.tvnorms	= V4L2_STD_NTSC_M,
-> +	.current_norm	= V4L2_STD_NTSC_M,
-> +	.fops		= &viacam_fops,
-> +	.ioctl_ops	= &viacam_ioctl_ops,
-> +	.release	= video_device_release_empty, /* Check this */
-> +};
-> +
-> +
-> +static __devinit int viacam_probe(struct platform_device *pdev)
+> +static void mx2_videobuf_queue(struct videobuf_queue *vq,
+> +			       struct videobuf_buffer *vb)
 > +{
+> +	struct soc_camera_device *icd = vq->priv_data;
+> +	struct soc_camera_host *ici =
+> +		to_soc_camera_host(icd->dev.parent);
+> +	struct mx2_camera_dev *pcdev = ici->priv;
+> +	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
+> +	unsigned long flags;
 > +	int ret;
-> +	struct i2c_adapter *sensor_adapter;
-> +	struct viafb_dev *viadev = pdev->dev.platform_data;
 > +
-> +	/*
-> +	 * Note that there are actually two capture channels on
-> +	 * the device.	We only deal with one for now.	That
-> +	 * is encoded here; nothing else assumes it's dealing with
-> +	 * a unique capture device.
-> +	 */
-> +	struct via_camera *cam = &via_cam_info;
+> +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+> +		vb, vb->baddr, vb->bsize);
 > +
-> +	/*
-> +	 * Ensure that frame buffer memory has been set aside for
-> +	 * this purpose.  As an arbitrary limit, refuse to work
-> +	 * with less than two frames of VGA 16-bit data.
-> +	 *
-> +	 * If we ever support the second port, we'll need to set
-> +	 * aside more memory.
-> +	 */
-> +	if (viadev->camera_fbmem_size < (VGA_HEIGHT*VGA_WIDTH*4)) {
-> +		printk(KERN_ERR "viacam: insufficient FB memory reserved\n");
-> +		return -ENOMEM;
+> +	spin_lock_irqsave(&pcdev->lock, flags);
+> +
+> +	vb->state = VIDEOBUF_QUEUED;
+> +	list_add_tail(&vb->queue, &pcdev->capture);
+> +
+> +	if (mx27_camera_emma(pcdev))
+> +		goto out;
+> +	else if (cpu_is_mx27()) {
+> +		vb->state = VIDEOBUF_ACTIVE;
+
+You could put this below the "if" to avoid setting state twice in case of 
+an error.
+
+> +
+> +		if (!pcdev->active) {
+> +			ret = imx_dma_setup_single(pcdev->dma,
+> +					videobuf_to_dma_contig(vb), vb->size,
+> +					(u32)pcdev->base_csi + 0x10,
+> +					DMA_MODE_READ);
+> +			if (ret) {
+> +				vb->state = VIDEOBUF_ERROR;
+> +				wake_up(&vb->done);
+> +				goto out;
+> +			}
+> +
+> +			pcdev->active = buf;
+> +		}
+> +	} else { /* cpu_is_mx25() */
+> +		u32 csicr3, dma_inten = 0;
+> +
+> +		if (pcdev->fb1_active == NULL) {
+
+I find consistent coding nicer. Just a few lines above you test a pointer 
+as "if (!x)", and here it's already "if (x == NULL)", please, select one 
+style and follow it across the driver.
+
+> +			writel(videobuf_to_dma_contig(vb),
+> +					pcdev->base_csi + CSIDMASA_FB1);
+> +			pcdev->fb1_active = buf;
+> +			dma_inten |= CSICR1_FB1_DMA_INTEN;
+
+No need for "|", just a "=" would do.
+
+> +		} else if (pcdev->fb2_active == NULL) {
+> +			writel(videobuf_to_dma_contig(vb),
+> +					pcdev->base_csi + CSIDMASA_FB2);
+> +			pcdev->fb2_active = buf;
+> +			dma_inten |= CSICR1_FB2_DMA_INTEN;
+
+ditto
+
+> +		}
+> +
+> +		if (dma_inten) {
+> +			list_del(&vb->queue);
+> +			vb->state = VIDEOBUF_ACTIVE;
+> +
+> +			csicr3 = readl(pcdev->base_csi + CSICR3);
+> +
+> +			/* Reflash DMA */
+> +			writel(csicr3 | CSICR3_DMA_REFLASH_RFF,
+> +					pcdev->base_csi + CSICR3);
+> +
+> +			/* clear & enable interrupts */
+> +			writel(dma_inten, pcdev->base_csi + CSISR);
+> +			pcdev->csicr1 |= dma_inten;
+> +			writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+> +
+> +			/* enable DMA */
+> +			csicr3 |= CSICR3_DMA_REQ_EN_RFF | CSICR3_RXFF_LEVEL(1);
+> +			writel(csicr3, pcdev->base_csi + CSICR3);
+> +		}
 > +	}
-> +	if (viadev->engine_mmio == NULL) {
-> +		printk(KERN_ERR "viacam: No I/O memory, so no pictures\n");
-> +		return -ENOMEM;
+> +
+> +out:
+> +	spin_unlock_irqrestore(&pcdev->lock, flags);
+> +}
+> +
+> +static void mx2_videobuf_release(struct videobuf_queue *vq,
+> +				 struct videobuf_buffer *vb)
+> +{
+> +	struct soc_camera_device *icd = vq->priv_data;
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	struct mx2_camera_dev *pcdev = ici->priv;
+> +	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
+> +	unsigned long flags;
+> +
+> +#ifdef DEBUG
+> +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+> +		vb, vb->baddr, vb->bsize);
+> +
+> +	switch (vb->state) {
+> +	case VIDEOBUF_ACTIVE:
+> +		dev_info(&icd->dev, "%s (active)\n", __func__);
+> +		break;
+> +	case VIDEOBUF_QUEUED:
+> +		dev_info(&icd->dev, "%s (queued)\n", __func__);
+> +		break;
+> +	case VIDEOBUF_PREPARED:
+> +		dev_info(&icd->dev, "%s (prepared)\n", __func__);
+> +		break;
+> +	default:
+> +		dev_info(&icd->dev, "%s (unknown) %d\n", __func__,
+> +				vb->state);
+> +		break;
 > +	}
-> +	/*
-> +	 * Basic structure initialization.
+> +#endif
+> +
+> +	spin_lock_irqsave(&pcdev->lock, flags);
+> +	if (vb->state == VIDEOBUF_QUEUED)
+> +		list_del(&vb->queue);
+> +	else if (pcdev->fb1_active == buf)
+> +		pcdev->fb1_active = NULL;
+> +	else if (pcdev->fb2_active == buf)
+> +		pcdev->fb2_active = NULL;
+> +	else
+> +		goto done;
+
+Don't you also have to check for pcdev->active for i.mx27?
+
+> +
+> +	vb->state = VIDEOBUF_ERROR;
+> +
+> +done:
+> +	spin_unlock_irqrestore(&pcdev->lock, flags);
+> +	free_buffer(vq, buf);
+> +}
+> +
+> +static struct videobuf_queue_ops mx2_videobuf_ops = {
+> +	.buf_setup      = mx2_videobuf_setup,
+> +	.buf_prepare    = mx2_videobuf_prepare,
+> +	.buf_queue      = mx2_videobuf_queue,
+> +	.buf_release    = mx2_videobuf_release,
+> +};
+> +
+> +static void mx2_camera_init_videobuf(struct videobuf_queue *q,
+> +			      struct soc_camera_device *icd)
+> +{
+> +	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
+> +	struct mx2_camera_dev *pcdev = ici->priv;
+> +
+> +	videobuf_queue_dma_contig_init(q, &mx2_videobuf_ops, pcdev->dev,
+> +			&pcdev->lock, V4L2_BUF_TYPE_VIDEO_CAPTURE,
+> +			V4L2_FIELD_NONE, sizeof(struct mx2_buffer), icd);
+> +}
+> +
+> +#define MX2_BUS_FLAGS	(SOCAM_DATAWIDTH_8 | \
+> +			SOCAM_MASTER | \
+> +			SOCAM_VSYNC_ACTIVE_HIGH | \
+> +			SOCAM_VSYNC_ACTIVE_LOW | \
+> +			SOCAM_HSYNC_ACTIVE_HIGH | \
+> +			SOCAM_HSYNC_ACTIVE_LOW | \
+> +			SOCAM_PCLK_SAMPLE_RISING | \
+> +			SOCAM_PCLK_SAMPLE_FALLING | \
+> +			SOCAM_DATA_ACTIVE_HIGH | \
+> +			SOCAM_DATA_ACTIVE_LOW)
+> +
+> +
+
+Well, you normally do one blank line everywhere, don't you? Then this one 
+should better go too.
+
+> +static int mx27_camera_emma_prp_reset(struct mx2_camera_dev *pcdev)
+> +{
+> +	unsigned int cntl;
+
+I find it better to use fixed-length variables for hardware registers, 
+i.e., u32 in this case. Possibly, this is not the only location.
+
+> +
+> +	cntl = readl(pcdev->base_emma + PRP_CNTL);
+> +	writel(PRP_CNTL_SWRST, pcdev->base_emma + PRP_CNTL);
+> +	while (readl(pcdev->base_emma + PRP_CNTL) & PRP_CNTL_SWRST)
+> +		barrier();
+> +
+> +	return 0;
+
+The function returns an int and it's checked, but it always returns 0. 
+Whereas it'd be better to count-limit the loop and return something like 
+-ETIMEDOUT if counter runs out.
+
+> +}
+> +
+> +static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+> +		int bytesperline)
+> +{
+> +	struct soc_camera_host *ici =
+> +		to_soc_camera_host(icd->dev.parent);
+> +	struct mx2_camera_dev *pcdev = ici->priv;
+> +
+> +	writel(pcdev->discard_buffer_dma,
+> +			pcdev->base_emma + PRP_DEST_RGB1_PTR);
+> +	writel(pcdev->discard_buffer_dma,
+> +			pcdev->base_emma + PRP_DEST_RGB2_PTR);
+> +
+> +	/* We only use the EMMA engine to get rid of the f**king
+
+maybe you can select a more technical and less emotional comment;)
+
+> +	 * DMA Engine. No color space consversion at the moment.
+> +	 * We adjust incoming and outgoing pixelformat to rgb16
+> +	 * and adjust the bytesperline accordingly.
 > +	 */
-> +	cam->platdev = pdev;
-> +	cam->viadev = viadev;
-> +	cam->users = 0;
-> +	cam->owner = NULL;
-> +	cam->opstate = S_IDLE;
-> +	cam->user_format = cam->sensor_format = viacam_def_pix_format;
-> +	mutex_init(&cam->lock);
-> +	INIT_LIST_HEAD(&cam->buffer_queue);
-> +	cam->mmio = viadev->engine_mmio;
-> +	cam->fbmem = viadev->fbmem;
-> +	cam->fb_offset = viadev->camera_fbmem_offset;
-> +	cam->flags = 1 << CF_CONFIG_NEEDED;
-> +	/*
-> +	 * Tell V4L that we exist.
-> +	 */
-> +	ret = v4l2_device_register(&pdev->dev, &cam->v4l2_dev);
-> +	if (ret) {
-> +		dev_err(&pdev->dev, "Unable to register v4l2 device\n");
+
+comment-style
+
+> +	writel(PRP_CNTL_CH1EN |
+> +			PRP_CNTL_CSIEN |
+> +			PRP_CNTL_DATA_IN_RGB16 |
+> +			PRP_CNTL_CH1_OUT_RGB16 |
+> +			PRP_CNTL_CH1_LEN |
+> +			PRP_CNTL_CH1BYP |
+> +			PRP_CNTL_CH1_TSKIP(0) |
+> +			PRP_CNTL_IN_TSKIP(0),
+> +			pcdev->base_emma + PRP_CNTL);
+> +
+> +	writel(((bytesperline >> 1) << 16) | icd->user_height,
+> +			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+> +	writel(((bytesperline >> 1) << 16) | icd->user_height,
+> +			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
+> +	writel(bytesperline,
+> +			pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
+> +	writel(0x2ca00565,
+> +			pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
+> +	writel(0x2ca00565,
+> +			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
+
+I don't mind using hard-coded numbers, but please, add a comment, 
+explaining.
+
+> +
+> +	/* Enable interrupts */
+> +	writel(PRP_INTR_RDERR |
+> +			PRP_INTR_CH1WERR |
+> +			PRP_INTR_CH2WERR |
+> +			PRP_INTR_CH1FC |
+> +			PRP_INTR_CH2FC |
+> +			PRP_INTR_LBOVF |
+> +			PRP_INTR_CH2OVF
+> +			, pcdev->base_emma + PRP_INTR_CNTL);
+
+misplaced comma
+
+> +}
+> +
+> +static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
+> +		__u32 pixfmt)
+> +{
+> +	struct soc_camera_host *ici =
+> +		to_soc_camera_host(icd->dev.parent);
+> +	struct mx2_camera_dev *pcdev = ici->priv;
+> +	unsigned long camera_flags, common_flags;
+> +	int ret = 0;
+> +	int bytesperline;
+> +	u32 csicr1 = pcdev->csicr1;
+> +
+> +	camera_flags = icd->ops->query_bus_param(icd);
+> +
+> +	common_flags = soc_camera_bus_param_compatible(camera_flags,
+> +				MX2_BUS_FLAGS);
+> +	if (!common_flags)
+> +		return -EINVAL;
+> +
+> +	if ((common_flags & SOCAM_HSYNC_ACTIVE_HIGH) &&
+> +	    (common_flags & SOCAM_HSYNC_ACTIVE_LOW)) {
+> +		if (pcdev->platform_flags & MX2_CAMERA_HSYNC_HIGH)
+> +			common_flags &= ~SOCAM_HSYNC_ACTIVE_LOW;
+> +		else
+> +			common_flags &= ~SOCAM_HSYNC_ACTIVE_HIGH;
+> +	}
+> +
+> +	if ((common_flags & SOCAM_PCLK_SAMPLE_RISING) &&
+> +	    (common_flags & SOCAM_PCLK_SAMPLE_FALLING)) {
+> +		if (pcdev->platform_flags & MX2_CAMERA_PCLK_SAMPLE_RISING)
+> +			common_flags &= ~SOCAM_PCLK_SAMPLE_FALLING;
+> +		else
+> +			common_flags &= ~SOCAM_PCLK_SAMPLE_RISING;
+> +	}
+> +
+> +	ret = icd->ops->set_bus_param(icd, common_flags);
+> +	if (ret < 0)
 > +		return ret;
-> +	}
-> +	/*
-> +	 * Convince the system that we can do DMA.
-> +	 */
-> +	pdev->dev.dma_mask = &viadev->pdev->dma_mask;
-> +	dma_set_mask(&pdev->dev, 0xffffffff);
-> +	/*
-> +	 * Fire up the capture port.  The write to 0x78 looks purely
-> +	 * OLPCish; any system will need to tweak 0x1e.
-> +	 */
-> +	via_write_reg_mask(VIASR, 0x78, 0, 0x80);
-> +	via_write_reg_mask(VIASR, 0x1e, 0xc0, 0xc0);
-> +	/*
-> +	 * Get the sensor powered up.
-> +	 */
-> +	ret = via_sensor_power_setup(cam);
-> +	if (ret)
-> +		goto out_unregister;
-> +	via_sensor_power_up(cam);
 > +
-> +	/*
-> +	 * See if we can't find it on the bus.	The VIA_PORT_31 assumption
-> +	 * is OLPC-specific.  0x42 assumption is ov7670-specific.
-> +	 */
-> +	sensor_adapter = viafb_find_i2c_adapter(VIA_PORT_31);
-> +	cam->sensor = v4l2_i2c_new_subdev(&cam->v4l2_dev, sensor_adapter,
-> +			"ov7670", "ov7670", 0x42 >> 1, NULL);
-> +	if (cam->sensor == NULL) {
-> +		dev_err(&pdev->dev, "Unable to find the sensor!\n");
-> +		ret = -ENODEV;
-> +		goto out_power_down;
-> +	}
-> +	/*
-> +	 * Get the IRQ.
-> +	 */
-> +	viacam_int_disable(cam);
-> +	ret = request_threaded_irq(viadev->pdev->irq, viacam_quick_irq,
-> +			viacam_irq, IRQF_SHARED, "via-camera", cam);
-> +	if (ret)
-> +		goto out_power_down;
-> +	/*
-> +	 * Tell V4l2 that we exist.
-> +	 */
-> +	cam->vdev = viacam_v4l_template;
-> +	cam->vdev.v4l2_dev = &cam->v4l2_dev;
-> +	ret = video_register_device(&cam->vdev, VFL_TYPE_GRABBER, -1);
-> +	if (ret)
-> +		goto out_irq;
-> +	video_set_drvdata(&cam->vdev, cam);
+> +	if (common_flags & SOCAM_PCLK_SAMPLE_FALLING)
+> +		csicr1 |= CSICR1_INV_PCLK;
+> +	if (common_flags & SOCAM_VSYNC_ACTIVE_HIGH)
+> +		csicr1 |= CSICR1_SOF_POL;
+> +	if (common_flags & SOCAM_HSYNC_ACTIVE_HIGH)
+> +		csicr1 |= CSICR1_HSYNC_POL;
+> +	if (pcdev->platform_flags & MX2_CAMERA_SWAP16)
+> +		csicr1 |= CSICR1_SWAP16_EN;
+> +	if (pcdev->platform_flags & MX2_CAMERA_EXT_VSYNC)
+> +		csicr1 |= CSICR1_EXT_VSYNC;
+> +	if (pcdev->platform_flags & MX2_CAMERA_CCIR)
+> +		csicr1 |= CSICR1_CCIR_EN;
+> +	if (pcdev->platform_flags & MX2_CAMERA_CCIR_INTERLACE)
+> +		csicr1 |= CSICR1_CCIR_MODE;
+> +	if (pcdev->platform_flags & MX2_CAMERA_GATED_CLOCK)
+> +		csicr1 |= CSICR1_GCLK_MODE;
+> +	if (pcdev->platform_flags & MX2_CAMERA_INV_DATA)
+> +		csicr1 |= CSICR1_INV_DATA;
+> +	if (pcdev->platform_flags & MX2_CAMERA_PACK_DIR_MSB)
+> +		csicr1 |= CSICR1_PACK_DIR;
 > +
-> +	/* Power the sensor down until somebody opens the device */
-> +	via_sensor_power_down(cam);
+> +	pcdev->csicr1 = csicr1;
+> +
+> +	bytesperline = soc_mbus_bytes_per_line(icd->user_width,
+> +			icd->current_fmt->host_fmt);
+> +	if (bytesperline < 0)
+> +		return bytesperline;
+> +
+> +	if (mx27_camera_emma(pcdev)) {
+> +		if (mx27_camera_emma_prp_reset(pcdev))
+> +			return -ENODEV;
+> +
+> +		if (pcdev->discard_buffer)
+> +			dma_free_coherent(NULL, pcdev->discard_size,
+> +				pcdev->discard_buffer,
+> +				pcdev->discard_buffer_dma);
+
+ici->v4l2_dev.dev and below
+
+> +
+> +		/* I didn't manage to properly enable/disable the prp
+> +		 * on a per frame basis during running transfers,
+> +		 * thus we allocate a buffer here and use it to
+> +		 * discard frames when no buffer is available.
+> +		 * Feel free to work on this ;)
+> +		 */
+
+comment style
+
+> +		pcdev->discard_size = icd->user_height * bytesperline;
+> +		pcdev->discard_buffer = dma_alloc_coherent(NULL,
+> +				pcdev->discard_size, &pcdev->discard_buffer_dma,
+> +				GFP_KERNEL);
+> +		if (!pcdev->discard_buffer)
+> +			return -ENOMEM;
+> +
+> +		mx27_camera_emma_buf_init(icd, bytesperline);
+> +	} else if (cpu_is_mx25()) {
+> +		writel((bytesperline * icd->user_height) >> 2,
+> +				pcdev->base_csi + CSIRXCNT);
+> +		writel((bytesperline << 16) | icd->user_height,
+> +				pcdev->base_csi + CSIIMAG_PARA);
+> +	}
+> +
+> +	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+> +
 > +	return 0;
+> +}
 > +
-> +out_irq:
-> +	free_irq(viadev->pdev->irq, cam);
-> +out_power_down:
-> +	via_sensor_power_release(cam);
-> +out_unregister:
-> +	v4l2_device_unregister(&cam->v4l2_dev);
+> +static int mx2_camera_set_crop(struct soc_camera_device *icd,
+> +				struct v4l2_crop *a)
+> +{
+> +	struct v4l2_rect *rect = &a->c;
+> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> +	struct v4l2_format f = {.type = V4L2_BUF_TYPE_VIDEO_CAPTURE};
+> +	struct v4l2_pix_format *pix = &f.fmt.pix;
+> +	int ret;
+> +
+> +	soc_camera_limit_side(&rect->left, &rect->width, 0, 2, 4096);
+> +	soc_camera_limit_side(&rect->top, &rect->height, 0, 2, 4096);
+> +
+> +	ret = v4l2_subdev_call(sd, video, s_crop, a);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	/* The capture device might have changed its output  */
+> +	ret = v4l2_subdev_call(sd, video, g_fmt, &f);
+
+Have you tested cropping?;) You should be using g_mbus_fmt here and a 
+different (fourth) format parameter, of course, too. Since you're 
+supporting a changed output geometry, you should also verify, that the new 
+geometry is still acceptable for you and adjust your configuration.
+
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	dev_dbg(icd->dev.parent, "Sensor cropped %dx%d\n",
+> +		pix->width, pix->height);
+> +
+> +	icd->user_width = pix->width;
+> +	icd->user_height = pix->height;
+> +
 > +	return ret;
 > +}
 > +
-> +static __devexit int viacam_remove(struct platform_device *pdev)
+> +static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+> +			       struct v4l2_format *f)
 > +{
-> +	struct via_camera *cam = &via_cam_info;
-> +	struct viafb_dev *viadev = pdev->dev.platform_data;
+> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> +	const struct soc_camera_format_xlate *xlate;
+> +	struct v4l2_pix_format *pix = &f->fmt.pix;
+> +	struct v4l2_mbus_framefmt mf;
+> +	int ret;
 > +
-> +	video_unregister_device(&cam->vdev);
-> +	v4l2_device_unregister(&cam->v4l2_dev);
-> +	free_irq(viadev->pdev->irq, cam);
-> +	via_sensor_power_release(cam);
+> +	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
+> +	if (!xlate) {
+> +		dev_warn(icd->dev.parent, "Format %x not found\n",
+> +				pix->pixelformat);
+> +		return -EINVAL;
+> +	}
+> +
+> +	mf.width	= pix->width;
+> +	mf.height	= pix->height;
+> +	mf.field	= pix->field;
+> +	mf.colorspace	= pix->colorspace;
+> +	mf.code		= xlate->code;
+> +
+> +	ret = v4l2_subdev_call(sd, video, s_mbus_fmt, &mf);
+> +	if (ret < 0 && ret != -ENOIOCTLCMD)
+> +		return ret;
+> +
+> +	if (mf.code != xlate->code)
+> +		return -EINVAL;
+> +
+> +	pix->width		= mf.width;
+> +	pix->height		= mf.height;
+> +	pix->field		= mf.field;
+> +	pix->colorspace		= mf.colorspace;
+> +	icd->current_fmt	= xlate;
+> +
 > +	return 0;
 > +}
 > +
+> +static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+> +				  struct v4l2_format *f)
+> +{
+> +	return 0;
+
+Oops, no, no good. Please, add relevant checks and parameter adjustments.
+
+> +}
 > +
-> +static struct platform_driver viacam_driver = {
-> +	.driver = {
-> +		.name = "viafb-camera",
+> +static int mx2_camera_querycap(struct soc_camera_host *ici,
+> +			       struct v4l2_capability *cap)
+> +{
+> +	/* cap->name is set by the friendly caller:-> */
+> +	strlcpy(cap->card, MX2_CAM_DRIVER_DESCRIPTION, sizeof(cap->card));
+> +	cap->version = MX2_CAM_VERSION_CODE;
+> +	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
+> +
+> +	return 0;
+> +}
+> +
+> +static int mx2_camera_reqbufs(struct soc_camera_file *icf,
+> +			      struct v4l2_requestbuffers *p)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < p->count; i++) {
+> +		struct mx2_buffer *buf = container_of(icf->vb_vidq.bufs[i],
+> +						      struct mx2_buffer, vb);
+> +		INIT_LIST_HEAD(&buf->vb.queue);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static void mx27_camera_frame_done(struct mx2_camera_dev *pcdev, int state)
+> +{
+> +	struct videobuf_buffer *vb;
+> +	struct mx2_buffer *buf;
+> +	int ret;
+> +
+> +	if (!pcdev->active) {
+> +		dev_err(pcdev->dev, "%s called with no active buffer!\n",
+> +				__func__);
+> +		return;
+> +	}
+> +
+> +	vb = &pcdev->active->vb;
+> +	buf = container_of(vb, struct mx2_buffer, vb);
+> +	WARN_ON(list_empty(&vb->queue));
+> +	dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+> +		vb, vb->baddr, vb->bsize);
+> +
+> +	/* _init is used to debug races, see comment in pxa_camera_reqbufs() */
+> +	list_del_init(&vb->queue);
+> +	vb->state = state;
+> +	do_gettimeofday(&vb->ts);
+> +	vb->field_count++;
+> +
+> +	wake_up(&vb->done);
+> +
+> +	if (list_empty(&pcdev->capture)) {
+> +		pcdev->active = NULL;
+> +		return;
+> +	}
+> +
+> +	pcdev->active = list_entry(pcdev->capture.next,
+> +			struct mx2_buffer, vb.queue);
+> +
+> +	vb = &pcdev->active->vb;
+> +	vb->state = VIDEOBUF_ACTIVE;
+> +
+> +	ret = imx_dma_setup_single(pcdev->dma, videobuf_to_dma_contig(vb),
+> +			vb->size, (u32)pcdev->base_csi + 0x10, DMA_MODE_READ);
+> +	if (ret) {
+> +		vb->state = VIDEOBUF_ERROR;
+> +		wake_up(&vb->done);
+
+I think, in this case you don't want pcdev->active to be set.
+
+> +		return;
+
+superfluous "return."
+
+> +	}
+> +}
+> +
+> +static void mx27_camera_dma_err_callback(int channel, void *data, int err)
+> +{
+> +	struct mx2_camera_dev *pcdev = data;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&pcdev->lock, flags);
+> +
+> +	mx27_camera_frame_done(pcdev, VIDEOBUF_ERROR);
+
+I think, it would be better to take and release the spinlock inside the 
+frame_done function, similar to mx25. This would improve consistency and 
+reduce the number of spinlock manipulating locations (here and below) by 
+one.
+
+> +
+> +	spin_unlock_irqrestore(&pcdev->lock, flags);
+> +}
+> +
+> +static void mx27_camera_dma_callback(int channel, void *data)
+> +{
+> +	struct mx2_camera_dev *pcdev = data;
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&pcdev->lock, flags);
+> +
+> +	mx27_camera_frame_done(pcdev, VIDEOBUF_DONE);
+> +
+> +	spin_unlock_irqrestore(&pcdev->lock, flags);
+> +}
+> +
+> +#define DMA_REQ_CSI_RX          31 /* FIXME: Add this to a resource */
+> +
+> +static int mx27_camera_dma_init(struct platform_device *pdev,
+> +		struct mx2_camera_dev *pcdev)
+
+This is only called from mx2_camera_probe(), so, you can make this one 
+"__devinit" too.
+
+> +{
+> +	int err;
+> +
+> +	pcdev->dma = imx_dma_request_by_prio("CSI RX DMA", DMA_PRIO_HIGH);
+> +	if (pcdev->dma < 0) {
+> +		dev_err(&pdev->dev, "%s failed to request DMA channel\n",
+> +				__func__);
+> +		return pcdev->dma;
+> +	}
+> +
+> +	err = imx_dma_setup_handlers(pcdev->dma, mx27_camera_dma_callback,
+> +					mx27_camera_dma_err_callback, pcdev);
+> +	if (err != 0) {
+> +		dev_err(&pdev->dev, "%s failed to set DMA callback\n",
+> +				__func__);
+> +		imx_dma_free(pcdev->dma);
+> +		return err;
+> +	}
+> +
+> +	imx_dma_config_channel(pcdev->dma,
+> +			IMX_DMA_MEMSIZE_32 | IMX_DMA_TYPE_FIFO,
+> +			IMX_DMA_MEMSIZE_32 | IMX_DMA_TYPE_LINEAR,
+> +			DMA_REQ_CSI_RX, 1);
+
+Ok, looking at the function implementation, it cannot really fail in your 
+case - on i.mx27, but it'd be better to either check for the return code 
+in any case - e.g., in case the function changes, or at least add a 
+comment.
+
+> +
+> +	imx_dma_config_burstlen(pcdev->dma, 64);
+> +
+> +	return 0;
+> +}
+> +
+> +static unsigned int mx2_camera_poll(struct file *file, poll_table *pt)
+> +{
+> +	struct soc_camera_file *icf = file->private_data;
+> +	struct mx2_buffer *buf;
+> +
+> +	buf = list_entry(icf->vb_vidq.stream.next, struct mx2_buffer,
+> +			 vb.stream);
+> +
+> +	poll_wait(file, &buf->vb.done, pt);
+> +
+> +	if (buf->vb.state == VIDEOBUF_DONE ||
+> +	    buf->vb.state == VIDEOBUF_ERROR)
+> +		return POLLIN | POLLRDNORM;
+
+Any specific reason not to use videobuf_poll_stream() (see mx3_camera.c)? 
+Apart from copy-pasting from other soc-camera drivers;)
+
+> +
+> +	return 0;
+> +}
+> +
+> +static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
+> +	.owner		= THIS_MODULE,
+> +	.add		= mx2_camera_add_device,
+> +	.remove		= mx2_camera_remove_device,
+> +	.set_fmt	= mx2_camera_set_fmt,
+> +	.set_crop	= mx2_camera_set_crop,
+> +	.try_fmt	= mx2_camera_try_fmt,
+> +	.init_videobuf	= mx2_camera_init_videobuf,
+> +	.reqbufs	= mx2_camera_reqbufs,
+> +	.poll		= mx2_camera_poll,
+> +	.querycap	= mx2_camera_querycap,
+> +	.set_bus_param	= mx2_camera_set_bus_param,
+> +};
+> +
+> +static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+> +		int bufnum, int state)
+> +{
+> +	struct mx2_buffer *buf;
+> +	struct videobuf_buffer *vb;
+> +	unsigned long phys;
+> +
+> +	if (!list_empty(&pcdev->active_bufs)) {
+> +		buf = list_entry(pcdev->active_bufs.next,
+> +			struct mx2_buffer, vb.queue);
+> +
+> +		if (buf->bufnum == bufnum) {
+
+Hmmm... In the ISR below bits for both channels are tested in the status 
+non-exclusively, and this function is called first for channel 1, then for 
+channel 2. This means, the ISR is prepared for the (unlikely) case, that 
+both bits are set, if we missed one interrupt. Now think what happens, if 
+you're expecting completion on channel 2, then you leave channel 1 
+unprocessed... This is not very trivial to fix without testing, but I 
+think, there is a relatively easy fix - see below.
+
+After you've done that proposed change, I'd suggest to change this "if" to 
+a "BUG_ON(buf->bufnum != bufnum)", so that the first person that uses this 
+driver with eMMA sees immediately, if our fix was wrong;)
+
+> +			vb = &buf->vb;
+> +#ifdef DEBUG
+> +			phys = videobuf_to_dma_contig(vb);
+> +			if (readl(pcdev->base_emma + PRP_DEST_RGB1_PTR +
+> +						4 * bufnum) != phys) {
+> +				dev_err(pcdev->dev, "%p != %p\n", phys,
+> +						readl(pcdev->base_emma +
+> +						PRP_DEST_RGB1_PTR +
+> +						4 * bufnum));
+> +			}
+> +#endif
+> +			dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%08lx %d\n",
+> +					__func__, vb, vb->baddr, vb->bsize);
+> +
+> +			list_del(&vb->queue);
+> +			vb->state = state;
+> +			do_gettimeofday(&vb->ts);
+> +			vb->field_count++;
+> +
+> +			wake_up(&vb->done);
+> +		}
+> +	}
+> +
+> +	if (list_empty(&pcdev->capture)) {
+> +		writel(pcdev->discard_buffer_dma, pcdev->base_emma +
+> +				PRP_DEST_RGB1_PTR + 4 * bufnum);
+> +		return;
+> +	}
+> +
+> +	buf = list_entry(pcdev->capture.next,
+> +			struct mx2_buffer, vb.queue);
+> +
+> +	buf->bufnum = bufnum;
+> +
+> +	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
+> +
+> +	vb = &buf->vb;
+> +	vb->state = VIDEOBUF_ACTIVE;
+> +
+> +	phys = videobuf_to_dma_contig(vb);
+> +	writel(phys, pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum);
+> +}
+> +
+> +static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+> +{
+> +	struct mx2_camera_dev *pcdev = data;
+> +	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
+> +
+> +	if (status & (1 << 6))
+> +		mx27_camera_frame_done_emma(pcdev, 0, VIDEOBUF_DONE);
+> +	if (status & (1 << 5))
+> +		mx27_camera_frame_done_emma(pcdev, 1, VIDEOBUF_DONE);
+
+So, the proposed fix is the following: look which channel is expected to 
+complete and call mx27_camera_frame_done_emma() for it first. Only then 
+check the other channel.
+
+> +	if (status & (1 << 7)) {
+> +		uint32_t cntl;
+
+grrrr.... consistency - use u32.
+
+> +		cntl = readl(pcdev->base_emma + PRP_CNTL);
+> +		writel(cntl & ~PRP_CNTL_CH1EN, pcdev->base_emma + PRP_CNTL);
+> +		writel(cntl, pcdev->base_emma + PRP_CNTL);
+
+Hm, this doesn't look right to me. Why disable hard-coded channel 1? 
+cannot the line buffer overflow on channel 2? Sascha?
+
+> +	}
+> +
+> +	writel(status, pcdev->base_emma + PRP_INTRSTATUS);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static int mx27_camera_emma_init(struct mx2_camera_dev *pcdev)
+
+This is only called from mx2_camera_probe(), so, you can make this one 
+"__devinit" too.
+
+> +{
+> +	struct resource *res_emma = pcdev->res_emma;
+> +	int err = 0;
+> +
+> +	if (!request_mem_region(res_emma->start, resource_size(res_emma),
+> +				MX2_CAM_DRV_NAME)) {
+> +		err = -EBUSY;
+> +		goto out;
+> +	}
+> +
+> +	pcdev->base_emma = ioremap(res_emma->start, resource_size(res_emma));
+> +	if (!pcdev->base_emma) {
+> +		err = -ENOMEM;
+> +		goto exit_release;
+> +	}
+> +
+> +	err = request_irq(pcdev->irq_emma, mx27_camera_emma_irq, 0,
+> +			MX2_CAM_DRV_NAME, pcdev);
+> +	if (err) {
+> +		dev_err(pcdev->dev, "Camera EMMA interrupt register failed \n");
+> +		goto exit_iounmap;
+> +	}
+> +
+> +	pcdev->clk_emma = clk_get(NULL, "emma");
+> +	if (IS_ERR(pcdev->clk_emma)) {
+> +		err = PTR_ERR(pcdev->clk_emma);
+> +		goto exit_free_irq;
+> +	}
+> +
+> +	clk_enable(pcdev->clk_emma);
+> +
+> +	err = mx27_camera_emma_prp_reset(pcdev);
+> +	if (err)
+> +		goto exit_clk_emma_put;
+> +
+> +	return err;
+> +
+> +exit_clk_emma_put:
+> +	clk_disable(pcdev->clk_emma);
+> +	clk_put(pcdev->clk_emma);
+> +exit_free_irq:
+> +	free_irq(pcdev->irq_emma, pcdev);
+> +exit_iounmap:
+> +	iounmap(pcdev->base_emma);
+> +exit_release:
+> +	release_mem_region(res_emma->start, resource_size(res_emma));
+> +out:
+> +	return err;
+> +}
+> +
+> +static int mx2_camera_probe(struct platform_device *pdev)
+
+You use "__devexit" for mx2_camera_remove() below, so, you should 
+"__devinit" here then too.
+
+> +{
+> +	struct mx2_camera_dev *pcdev;
+> +	struct resource *res_csi, *res_emma;
+> +	void __iomem *base_csi;
+> +	unsigned int irq_csi, irq_emma;
+> +	irq_handler_t mx2_cam_irq_handler = cpu_is_mx25() ? mx25_camera_irq
+> +		: mx27_camera_irq;
+> +	int err = 0;
+> +
+> +	dev_info(&pdev->dev, "initialising\n");
+
+This is not very informative...
+
+> +
+> +	res_csi = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +	irq_csi = platform_get_irq(pdev, 0);
+> +	if (!res_csi || !irq_csi) {
+
+Wrong error condition: platform_get_irq() returns a negative error code on 
+failure
+
+> +		dev_err(&pdev->dev, "Missing platform resources data\n");
+> +		err = -ENODEV;
+> +		goto exit;
+> +	}
+> +
+> +	pcdev = kzalloc(sizeof(*pcdev), GFP_KERNEL);
+> +	if (!pcdev) {
+> +		dev_err(&pdev->dev, "Could not allocate pcdev\n");
+> +		err = -ENOMEM;
+> +		goto exit;
+> +	}
+> +
+> +	pcdev->clk_csi = clk_get(&pdev->dev, NULL);
+> +	if (IS_ERR(pcdev->clk_csi)) {
+> +		err = PTR_ERR(pcdev->clk_csi);
+> +		goto exit_kfree;
+> +	}
+> +
+> +	dev_info(&pdev->dev, "Camera clock frequency: %ld\n",
+> +			clk_get_rate(pcdev->clk_csi));
+
+nor is this. If you really want to see a kernel message on probe, try to 
+come up with something optimistically-informative:)
+
+> +
+> +	/* Initialize DMA */
+> +	if (cpu_is_mx27()) {
+> +		err = mx27_camera_dma_init(pdev, pcdev);
+> +		if (err)
+> +			goto exit_clk_put;
+> +	}
+> +
+> +	pcdev->res_csi = res_csi;
+> +	pcdev->pdata = pdev->dev.platform_data;
+> +	if (pcdev->pdata) {
+> +		long rate;
+> +
+> +		pcdev->platform_flags = pcdev->pdata->flags;
+> +
+> +		rate = clk_round_rate(pcdev->clk_csi, pcdev->pdata->clk * 2);
+> +		clk_set_rate(pcdev->clk_csi, rate);
+
+At least check, that rate is positive, before calling set_rate. And if you 
+indeed want to continue with these two calls failing, maybe at least issue 
+a warning "failed to program frequency %u, continuing with current 
+frequency %u" or something similar.
+
+> +	}
+> +
+> +	INIT_LIST_HEAD(&pcdev->capture);
+> +	INIT_LIST_HEAD(&pcdev->active_bufs);
+> +	spin_lock_init(&pcdev->lock);
+> +
+> +	/*
+> +	 * Request the regions.
+> +	 */
+> +	if (!request_mem_region(res_csi->start, resource_size(res_csi),
+> +				MX2_CAM_DRV_NAME)) {
+> +		err = -EBUSY;
+> +		goto exit_dma_free;
+> +	}
+> +
+> +	base_csi = ioremap(res_csi->start, resource_size(res_csi));
+> +	if (!base_csi) {
+> +		err = -ENOMEM;
+> +		goto exit_release;
+> +	}
+> +	pcdev->irq_csi = irq_csi;
+> +	pcdev->base_csi = base_csi;
+> +	pcdev->dev = &pdev->dev;
+> +
+> +	err = request_irq(pcdev->irq_csi, mx2_cam_irq_handler, 0,
+> +			MX2_CAM_DRV_NAME, pcdev);
+> +	if (err) {
+> +		dev_err(pcdev->dev, "Camera interrupt register failed \n");
+> +		goto exit_iounmap;
+> +	}
+> +
+> +	if (cpu_is_mx27()) {
+> +		/* EMMA support */
+> +		res_emma = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+> +		irq_emma = platform_get_irq(pdev, 1);
+> +
+> +		if (res_emma && irq_emma) {
+
+Same here, check for "(int)irq_emma >= 0"
+
+> +			dev_info(&pdev->dev, "Using EMMA\n");
+> +			pcdev->use_emma = 1;
+> +			pcdev->res_emma = res_emma;
+> +			pcdev->irq_emma = irq_emma;
+> +			if (mx27_camera_emma_init(pcdev))
+> +				goto exit_free_irq;
+> +		}
+> +	}
+> +
+> +	pcdev->soc_host.drv_name	= MX2_CAM_DRV_NAME,
+> +	pcdev->soc_host.ops		= &mx2_soc_camera_host_ops,
+> +	pcdev->soc_host.priv		= pcdev;
+> +	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
+> +	pcdev->soc_host.nr		= pdev->id;
+> +	err = soc_camera_host_register(&pcdev->soc_host);
+> +	if (err)
+> +		goto exit_free_emma;
+> +
+> +	return 0;
+> +
+> +exit_free_emma:
+> +	if (mx27_camera_emma(pcdev)) {
+> +		free_irq(pcdev->irq_emma, pcdev);
+> +		clk_disable(pcdev->clk_emma);
+> +		clk_put(pcdev->clk_emma);
+> +		iounmap(pcdev->base_emma);
+> +		release_mem_region(res_emma->start, resource_size(res_emma));
+> +	}
+> +exit_free_irq:
+> +	free_irq(pcdev->irq_csi, pcdev);
+> +exit_iounmap:
+> +	iounmap(base_csi);
+> +exit_release:
+> +	release_mem_region(res_csi->start, resource_size(res_csi));
+> +exit_dma_free:
+> +	if (cpu_is_mx27())
+> +		imx_dma_free(pcdev->dma);
+> +exit_clk_put:
+> +	clk_put(pcdev->clk_csi);
+> +exit_kfree:
+> +	kfree(pcdev);
+> +exit:
+> +	return err;
+> +}
+> +
+> +static int __devexit mx2_camera_remove(struct platform_device *pdev)
+> +{
+> +	struct soc_camera_host *soc_host = to_soc_camera_host(&pdev->dev);
+> +	struct mx2_camera_dev *pcdev = container_of(soc_host,
+> +			struct mx2_camera_dev, soc_host);
+> +	struct resource *res;
+> +
+> +	clk_put(pcdev->clk_csi);
+> +	if (cpu_is_mx27())
+> +		imx_dma_free(pcdev->dma);
+> +	free_irq(pcdev->irq_csi, pcdev);
+> +	if (mx27_camera_emma(pcdev))
+> +		free_irq(pcdev->irq_emma, pcdev);
+> +
+> +	soc_camera_host_unregister(&pcdev->soc_host);
+> +
+> +	iounmap(pcdev->base_csi);
+> +
+> +	if (mx27_camera_emma(pcdev)) {
+> +		clk_disable(pcdev->clk_emma);
+> +		clk_put(pcdev->clk_emma);
+> +		iounmap(pcdev->base_emma);
+> +		res = pcdev->res_emma;
+> +		release_mem_region(res->start, resource_size(res));
+> +	}
+> +
+> +	res = pcdev->res_csi;
+> +	release_mem_region(res->start, resource_size(res));
+> +
+> +	kfree(pcdev);
+> +
+> +	dev_info(&pdev->dev, "MX2 Camera driver unloaded\n");
+> +
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver mx2_camera_driver = {
+> +	.driver 	= {
+> +		.name	= MX2_CAM_DRV_NAME,
 > +	},
-> +	.probe = viacam_probe,
-> +	.remove = viacam_remove,
+> +	.probe		= mx2_camera_probe,
+> +	.remove		= __exit_p(mx2_camera_remove),
+
+"__devexit_p"
+
 > +};
 > +
 > +
-> +#ifdef CONFIG_OLPC_XO_1_5
-> +/*
-> + * The OLPC folks put the serial port on the same pin as
-> + * the camera.	They also get grumpy if we break the
-> + * serial port and keep them from using it.  So we have
-> + * to check the serial enable bit and not step on it.
-> + */
-> +#define VIACAM_SERIAL_DEVFN 0x88
-> +#define VIACAM_SERIAL_CREG 0x46
-> +#define VIACAM_SERIAL_BIT 0x40
-> +
-> +static __devinit int viacam_check_serial_port(void)
-> +{
-> +	struct pci_bus *pbus = pci_find_bus(0, 0);
-> +	u8 cbyte;
-> +
-> +	pci_bus_read_config_byte(pbus, VIACAM_SERIAL_DEVFN,
-> +			VIACAM_SERIAL_CREG, &cbyte);
-> +	if ((cbyte & VIACAM_SERIAL_BIT) == 0)
-> +		return 0; /* Not enabled */
-> +	if (override_serial == 0) {
-> +		printk(KERN_NOTICE "Via camera: serial port is enabled, " \
-> +				"refusing to load.\n");
-> +		printk(KERN_NOTICE "Specify override_serial=1 to force " \
-> +				"module loading.\n");
-> +		return -EBUSY;
-> +	}
-> +	printk(KERN_NOTICE "Via camera: overriding serial port\n");
-> +	pci_bus_write_config_byte(pbus, VIACAM_SERIAL_DEVFN,
-> +			VIACAM_SERIAL_CREG, cbyte & ~VIACAM_SERIAL_BIT);
-> +	return 0;
-> +}
-> +#endif
-> +
-> +
-> +
-> +
-> +static int viacam_init(void)
-> +{
-> +#ifdef CONFIG_OLPC_XO_1_5
-> +	if (viacam_check_serial_port())
-> +		return -EBUSY;
-> +#endif
-> +	return platform_driver_register(&viacam_driver);
-> +}
-> +module_init(viacam_init);
-> +
-> +static void viacam_exit(void)
-> +{
-> +	platform_driver_unregister(&viacam_driver);
-> +}
-> +module_exit(viacam_exit);
-> diff --git a/drivers/media/video/via-camera.h b/drivers/media/video/via-camera.h
-> new file mode 100644
-> index 0000000..b12a4b3
-> --- /dev/null
-> +++ b/drivers/media/video/via-camera.h
-> @@ -0,0 +1,93 @@
-> +/*
-> + * VIA Camera register definitions.
-> + */
-> +#define VCR_INTCTRL	0x300	/* Capture interrupt control */
-> +#define   VCR_IC_EAV	  0x0001   /* End of active video status */
-> +#define	  VCR_IC_EVBI	  0x0002   /* End of VBI status */
-> +#define   VCR_IC_FBOTFLD  0x0004   /* "flipping" Bottom field is active */
-> +#define   VCR_IC_ACTBUF	  0x0018   /* Active video buffer  */
-> +#define   VCR_IC_VSYNC	  0x0020   /* 0 = VB, 1 = active video */
-> +#define   VCR_IC_BOTFLD	  0x0040   /* Bottom field is active */
-> +#define   VCR_IC_FFULL	  0x0080   /* FIFO full */
-> +#define   VCR_IC_INTEN	  0x0100   /* End of active video int. enable */
-> +#define   VCR_IC_VBIINT	  0x0200   /* End of VBI int enable */
-> +#define   VCR_IC_VBIBUF	  0x0400   /* Current VBI buffer */
-> +
-> +#define VCR_TSC		0x308	/* Transport stream control */
-> +#define VCR_TSC_ENABLE    0x000001   /* Transport stream input enable */
-> +#define VCR_TSC_DROPERR   0x000002   /* Drop error packets */
-> +#define VCR_TSC_METHOD    0x00000c   /* DMA method (non-functional) */
-> +#define VCR_TSC_COUNT     0x07fff0   /* KByte or packet count */
-> +#define VCR_TSC_CBMODE	  0x080000   /* Change buffer by byte count */
-> +#define VCR_TSC_PSSIG	  0x100000   /* Packet starting signal disable */
-> +#define VCR_TSC_BE	  0x200000   /* MSB first (serial mode) */
-> +#define VCR_TSC_SERIAL	  0x400000   /* Serial input (0 = parallel) */
-> +
-> +#define VCR_CAPINTC	0x310	/* Capture interface control */
-> +#define   VCR_CI_ENABLE   0x00000001  /* Capture enable */
-> +#define   VCR_CI_BSS	  0x00000002  /* WTF "bit stream selection" */
-> +#define   VCR_CI_3BUFS	  0x00000004  /* 1 = 3 buffers, 0 = 2 buffers */
-> +#define   VCR_CI_VIPEN	  0x00000008  /* VIP enable */
-> +#define   VCR_CI_CCIR601_8  0	        /* CCIR601 input stream, 8 bit */
-> +#define   VCR_CI_CCIR656_8  0x00000010  /* ... CCIR656, 8 bit */
-> +#define   VCR_CI_CCIR601_16 0x00000020  /* ... CCIR601, 16 bit */
-> +#define   VCR_CI_CCIR656_16 0x00000030  /* ... CCIR656, 16 bit */
-> +#define   VCR_CI_HDMODE   0x00000040  /* CCIR656-16 hdr decode mode; 1=16b */
-> +#define   VCR_CI_BSWAP    0x00000080  /* Swap bytes (16-bit) */
-> +#define   VCR_CI_YUYV	  0	      /* Byte order 0123 */
-> +#define   VCR_CI_UYVY	  0x00000100  /* Byte order 1032 */
-> +#define   VCR_CI_YVYU	  0x00000200  /* Byte order 0321 */
-> +#define   VCR_CI_VYUY	  0x00000300  /* Byte order 3012 */
-> +#define   VCR_CI_VIPTYPE  0x00000400  /* VIP type */
-> +#define   VCR_CI_IFSEN    0x00000800  /* Input field signal enable */
-> +#define   VCR_CI_DIODD	  0	      /* De-interlace odd, 30fps */
-> +#define   VCR_CI_DIEVEN   0x00001000  /*    ...even field, 30fps */
-> +#define   VCR_CI_DIBOTH   0x00002000  /*    ...both fields, 60fps */
-> +#define   VCR_CI_DIBOTH30 0x00003000  /*    ...both fields, 30fps interlace */
-> +#define   VCR_CI_CONVTYPE 0x00004000  /* 4:2:2 to 4:4:4; 1 = interpolate */
-> +#define   VCR_CI_CFC	  0x00008000  /* Capture flipping control */
-> +#define   VCR_CI_FILTER   0x00070000  /* Horiz filter mode select
-> +					 000 = none
-> +					 001 = 2 tap
-> +					 010 = 3 tap
-> +					 011 = 4 tap
-> +					 100 = 5 tap */
-> +#define   VCR_CI_CLKINV   0x00080000  /* Input CLK inverted */
-> +#define   VCR_CI_VREFINV  0x00100000  /* VREF inverted */
-> +#define   VCR_CI_HREFINV  0x00200000  /* HREF inverted */
-> +#define   VCR_CI_FLDINV   0x00400000  /* Field inverted */
-> +#define   VCR_CI_CLKPIN	  0x00800000  /* Capture clock pin */
-> +#define   VCR_CI_THRESH   0x0f000000  /* Capture fifo threshold */
-> +#define   VCR_CI_HRLE     0x10000000  /* Positive edge of HREF */
-> +#define   VCR_CI_VRLE     0x20000000  /* Positive edge of VREF */
-> +#define   VCR_CI_OFLDINV  0x40000000  /* Field output inverted */
-> +#define   VCR_CI_CLKEN    0x80000000  /* Capture clock enable */
-> +
-> +#define VCR_HORRANGE	0x314	/* Active video horizontal range */
-> +#define VCR_VERTRANGE	0x318	/* Active video vertical range */
-> +#define VCR_AVSCALE	0x31c	/* Active video scaling control */
-> +#define   VCR_AVS_HEN	  0x00000800   /* Horizontal scale enable */
-> +#define   VCR_AVS_VEN	  0x04000000   /* Vertical enable */
-> +#define VCR_VBIHOR	0x320	/* VBI Data horizontal range */
-> +#define VCR_VBIVERT	0x324	/* VBI data vertical range */
-> +#define VCR_VBIBUF1	0x328	/* First VBI buffer */
-> +#define VCR_VBISTRIDE	0x32c	/* VBI stride */
-> +#define VCR_ANCDATACNT	0x330	/* Ancillary data count setting */
-> +#define VCR_MAXDATA	0x334	/* Active data count of active video */
-> +#define VCR_MAXVBI	0x338	/* Maximum data count of VBI */
-> +#define VCR_CAPDATA	0x33c	/* Capture data count */
-> +#define VCR_VBUF1	0x340	/* First video buffer */
-> +#define VCR_VBUF2	0x344	/* Second video buffer */
-> +#define VCR_VBUF3	0x348	/* Third video buffer */
-> +#define VCR_VBUF_MASK	0x1ffffff0	/* Bits 28:4 */
-> +#define VCR_VBIBUF2	0x34c	/* Second VBI buffer */
-> +#define VCR_VSTRIDE	0x350	/* Stride of video + coring control */
-> +#define   VCR_VS_STRIDE_SHIFT 4
-> +#define   VCR_VS_STRIDE   0x00001ff0  /* Stride (8-byte units) */
-> +#define   VCR_VS_CCD	  0x007f0000  /* Coring compare data */
-> +#define   VCR_VS_COREEN   0x00800000  /* Coring enable */
-> +#define VCR_TS0ERR	0x354	/* TS buffer 0 error indicator */
-> +#define VCR_TS1ERR	0x358	/* TS buffer 0 error indicator */
-> +#define VCR_TS2ERR	0x35c	/* TS buffer 0 error indicator */
-> +
-> +/* Add 0x1000 for the second capture engine registers */
-> diff --git a/drivers/video/via/accel.c b/drivers/video/via/accel.c
-> index e44893e..04bec05 100644
-> --- a/drivers/video/via/accel.c
-> +++ b/drivers/video/via/accel.c
-> @@ -370,7 +370,7 @@ int viafb_init_engine(struct fb_info *info)
->  	viapar->shared->vq_vram_addr = viapar->fbmem_free;
->  	viapar->fbmem_used += VQ_SIZE;
->  
-> -#if defined(CONFIG_FB_VIA_CAMERA) || defined(CONFIG_FB_VIA_CAMERA_MODULE)
-> +#if defined(CONFIG_VIDEO_VIA_CAMERA) || defined(CONFIG_VIDEO_VIA_CAMERA_MODULE)
->  	/*
->  	 * Set aside a chunk of framebuffer memory for the camera
->  	 * driver.  Someday this driver probably needs a proper allocator
-> diff --git a/drivers/video/via/via-core.c b/drivers/video/via/via-core.c
-> index 15fcaab..ce13fc9 100644
-> --- a/drivers/video/via/via-core.c
-> +++ b/drivers/video/via/via-core.c
-> @@ -95,6 +95,13 @@ EXPORT_SYMBOL_GPL(viafb_irq_disable);
->  
->  /* ---------------------------------------------------------------------- */
->  /*
-> + * Currently, the camera driver is the only user of the DMA code, so we
-> + * only compile it in if the camera driver is being built.  Chances are,
-> + * most viafb systems will not need to have this extra code for a while.
-> + * As soon as another user comes long, the ifdef can be removed.
-> + */
-> +#if defined(CONFIG_VIDEO_VIA_CAMERA) || defined(CONFIG_VIDEO_VIA_CAMERA_MODULE)
-> +/*
->   * Access to the DMA engine.  This currently provides what the camera
->   * driver needs (i.e. outgoing only) but is easily expandable if need
->   * be.
-> @@ -322,7 +329,7 @@ int viafb_dma_copy_out_sg(unsigned int offset, struct scatterlist *sg, int nsg)
->  	return 0;
->  }
->  EXPORT_SYMBOL_GPL(viafb_dma_copy_out_sg);
-> -
-> +#endif /* CONFIG_VIDEO_VIA_CAMERA */
->  
->  /* ---------------------------------------------------------------------- */
->  /*
-> @@ -507,7 +514,12 @@ static struct viafb_subdev_info {
->  	},
->  	{
->  		.name = "viafb-i2c",
-> -	}
-> +	},
-> +#if defined(CONFIG_VIDEO_VIA_CAMERA) || defined(CONFIG_VIDEO_VIA_CAMERA_MODULE)
-> +	{
-> +		.name = "viafb-camera",
-> +	},
-> +#endif
->  };
->  #define N_SUBDEVS ARRAY_SIZE(viafb_subdevs)
->  
-> diff --git a/include/linux/via-core.h b/include/linux/via-core.h
-> index 7ffb521..38bffd8 100644
-> --- a/include/linux/via-core.h
-> +++ b/include/linux/via-core.h
-> @@ -81,7 +81,7 @@ struct viafb_dev {
->  	unsigned long fbmem_start;
->  	long fbmem_len;
->  	void __iomem *fbmem;
-> -#if defined(CONFIG_FB_VIA_CAMERA) || defined(CONFIG_FB_VIA_CAMERA_MODULE)
-> +#if defined(CONFIG_VIDEO_VIA_CAMERA) || defined(CONFIG_VIDEO_VIA_CAMERA_MODULE)
->  	long camera_fbmem_offset;
->  	long camera_fbmem_size;
->  #endif
-> @@ -138,6 +138,7 @@ void viafb_irq_disable(u32 mask);
->  #define   VDE_I_LVDSSIEN  0x40000000  /* LVDS Sense enable */
->  #define   VDE_I_ENABLE	  0x80000000  /* Global interrupt enable */
->  
-> +#if defined(CONFIG_VIDEO_VIA_CAMERA) || defined(CONFIG_VIDEO_VIA_CAMERA_MODULE)
->  /*
->   * DMA management.
->   */
-> @@ -172,6 +173,7 @@ int viafb_dma_copy_out_sg(unsigned int offset, struct scatterlist *sg, int nsg);
->   */
->  #define VGA_WIDTH	640
->  #define VGA_HEIGHT	480
-> +#endif /* CONFIG_VIDEO_VIA_CAMERA */
->  
->  /*
->   * Indexed port operations.  Note that these are all multi-op
-> diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-> index 56abf21..d1c4bd3 100644
-> --- a/include/media/v4l2-chip-ident.h
-> +++ b/include/media/v4l2-chip-ident.h
-> @@ -107,6 +107,10 @@ enum {
->  	V4L2_IDENT_VPX3216B = 3216,
->  	V4L2_IDENT_VPX3220A = 3220,
->  
-> +	/* VX855 just ident 3409 */
-> +	/* Other via devs could use 3314, 3324, 3327, 3336, 3364, 3353 */
-> +	V4L2_IDENT_VIA_VX855 = 3409,
-> +
->  	/* module tvp5150 */
->  	V4L2_IDENT_TVP5150 = 5150,
->  
+> +static int __devinit mx2_camera_init(void)
 
+No, this should be "__init"
 
--- 
+> +{
+> +	return platform_driver_register(&mx2_camera_driver);
 
-Cheers,
-Mauro
+Since this hardware is not hot-pluggable, you might want to just use 
+platform_driver_probe().
+
+> +}
+> +
+> +static void __exit mx2_camera_exit(void)
+> +{
+> +	return platform_driver_unregister(&mx2_camera_driver);
+> +}
+> +
+> +module_init(mx2_camera_init);
+> +module_exit(mx2_camera_exit);
+> +
+> +MODULE_DESCRIPTION("i.MX27/i.MX25 SoC Camera Host driver");
+> +MODULE_AUTHOR("Sascha Hauer <sha@pengutronix.de>");
+> +MODULE_LICENSE("GPL");
+> -- 
+> 1.7.0
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
