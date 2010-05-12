@@ -1,258 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy2-pub.bluehost.com ([67.222.39.60]:52815 "HELO
-	oproxy2-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754153Ab0EVLta convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 May 2010 07:49:30 -0400
-Received: from 174.14.54.77.rev.vodafone.pt ([77.54.14.174] helo=[10.0.0.238])
-	by box472.bluehost.com with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <seabra@ptolom.eu>)
-	id 1OFn6O-0006Bx-94
-	for linux-media@vger.kernel.org; Sat, 22 May 2010 05:42:50 -0600
-Subject: Re: Afatech 9035 + NXP 18291 = GT-U7200
-From: =?ISO-8859-1?Q?Jo=E3o?= Seabra <seabra@ptolom.eu>
-To: linux-media@vger.kernel.org
-In-Reply-To: <1273964670.1693.15.camel@nomad>
-References: <1273964670.1693.15.camel@nomad>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 22 May 2010 12:42:38 +0100
-Message-ID: <1274528558.1608.0.camel@nomad>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:42251 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755647Ab0ELWaD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 12 May 2010 18:30:03 -0400
+Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4CMU3ww025422
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 12 May 2010 18:30:03 -0400
+Date: Wed, 12 May 2010 18:30:02 -0400
+From: Prarit Bhargava <prarit@redhat.com>
+To: linux-media@vger.kernel.org, mchehab@infradead.org
+Cc: Prarit Bhargava <prarit@redhat.com>
+Message-Id: <20100512222723.21740.15729.sendpatchset@prarit.bos.redhat.com>
+Subject: [PATCH] Add notification to cxusb_dualdig4_rev2_frontend_attach() error handling
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Anyone? :-)
+Add a notification to the dib7000p_i2c_enumeration() failure path in
+cxusb_dualdig4_rev2_frontend_attach().
 
-Thanks
+Signed-off-by: Prarit Bhargava <prarit@redhat.com>
 
-On Sun, 2010-05-16 at 00:04 +0100, João Seabra wrote:
-> Good evening,
-> 
-> I have a gigabyte gt-u7200 but since it's new i believe there aren't any
-> drivers available
-> On the webpage
-> http://www.gigabyte.com.tw/Products/TVCard/Products_Spec.aspx?ClassValue=TV+Card&ProductID=2875&ProductName=GT-U7200 says it has a NXP18291 tuner and the decoder chip is Afatech 9035.
-> All i found related to Afatech 9035 was this post from December 2008:
-> http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030923.html and
-> the feature request in ubuntu :
-> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/519544
-> 
-> I tried to compile the 9035 driver but it has no instructions and fails.
-> 
-> Could someone give me some details if its simple/possible to have a
-> driver for this usb pen?
-> 
-> Kind Regards,
->  João Seabra
-> 
-> dmesg output:
-> [  115.175224] usbcore: registered new interface driver usbhid
-> [  115.175227] usbhid: v2.6:USB HID core driver
-> [ 1967.463143] usb 2-1: USB disconnect, address 2
-> [ 6654.750267] usb 2-1: new high speed USB device using ehci_hcd and
-> address 3
-> [ 6654.907301] usb 2-1: configuration #1 chosen from 1 choice
-> [ 6654.914557] input: GIGABYTE Technologies Inc. U7200 USB TV Device
-> as /devices/pci0000:00/0000:00:1d.7/usb2/2-1/2-1:1.1/input/input11
-> [ 6654.914771] generic-usb 0003:1044:7005.0002: input,hidraw0: USB HID
-> v1.01 Keyboard [GIGABYTE Technologies Inc. U7200 USB TV Device] on
-> usb-0000:00:1d.7-1/input1
-> 
-> lsusb -v:
-> Bus 002 Device 003: ID 1044:7005 Chu Yuen Enterprise Co., Ltd 
-> Device Descriptor:
->   bLength                18
->   bDescriptorType         1
->   bcdUSB               2.00
->   bDeviceClass            0 (Defined at Interface level)
->   bDeviceSubClass         0 
->   bDeviceProtocol         0 
->   bMaxPacketSize0        64
->   idVendor           0x1044 Chu Yuen Enterprise Co., Ltd
->   idProduct          0x7005 
->   bcdDevice            2.00
->   iManufacturer           1 GIGABYTE Technologies Inc.
->   iProduct                2 U7200 USB TV Device
->   iSerial                 3 AF0102020700001
->   bNumConfigurations      1
->   Configuration Descriptor:
->     bLength                 9
->     bDescriptorType         2
->     wTotalLength          122
->     bNumInterfaces          2
->     bConfigurationValue     1
->     iConfiguration          0 
->     bmAttributes         0x80
->       (Bus Powered)
->     MaxPower              500mA
->     Interface Descriptor:
->       bLength                 9
->       bDescriptorType         4
->       bInterfaceNumber        0
->       bAlternateSetting       0
->       bNumEndpoints           5
->       bInterfaceClass       255 Vendor Specific Class
->       bInterfaceSubClass      0 
->       bInterfaceProtocol      0 
->       iInterface              0 
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x81  EP 1 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x02  EP 2 OUT
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x84  EP 4 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->        bEndpointAddress     0x85  EP 5 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x86  EP 6 IN
->         bmAttributes            1
->           Transfer Type            Isochronous
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0000  1x 0 bytes
->         bInterval               1
->     Interface Descriptor:
->       bLength                 9
->       bDescriptorType         4
->       bInterfaceNumber        0
->       bAlternateSetting       1
->       bNumEndpoints           5
->      bInterfaceClass       255 Vendor Specific Class
->       bInterfaceSubClass      0 
->       bInterfaceProtocol      0 
->       iInterface              0 
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x81  EP 1 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x02  EP 2 OUT
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->        bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x84  EP 4 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x85  EP 5 IN
->         bmAttributes            2
->           Transfer Type            Bulk
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0200  1x 512 bytes
->         bInterval               0
->       Endpoint Descriptor:
->         bLength                 7
->        bDescriptorType         5
->         bEndpointAddress     0x86  EP 6 IN
->         bmAttributes            1
->           Transfer Type            Isochronous
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x1400  3x 1024 bytes
->         bInterval               1
->     Interface Descriptor:
->       bLength                 9
->       bDescriptorType         4
->       bInterfaceNumber        1
->       bAlternateSetting       0
->       bNumEndpoints           1
->       bInterfaceClass         3 Human Interface Device
->       bInterfaceSubClass      0 No Subclass
->       bInterfaceProtocol      1 Keyboard
->       iInterface              0 
->         HID Device Descriptor:
->           bLength                 9
->           bDescriptorType        33
->           bcdHID               1.01
->           bCountryCode            0 Not supported
->           bNumDescriptors         1
->           bDescriptorType        34 Report
->           wDescriptorLength      65
->          Report Descriptors: 
->            ** UNAVAILABLE **
->       Endpoint Descriptor:
->         bLength                 7
->         bDescriptorType         5
->         bEndpointAddress     0x83  EP 3 IN
->         bmAttributes            3
->           Transfer Type            Interrupt
->           Synch Type               None
->           Usage Type               Data
->         wMaxPacketSize     0x0040  1x 64 bytes
->         bInterval              16
-> Device Qualifier (for other device speed):
->   bLength                10
->   bDescriptorType         6
->   bcdUSB               2.00
->   bDeviceClass            0 (Defined at Interface level)
->   bDeviceSubClass         0 
->   bDeviceProtocol         0 
->   bMaxPacketSize0        64
->  bNumConfigurations      1
-> Device Status:     0x0000
->   (Bus Powered)
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+diff --git a/drivers/media/dvb/dvb-usb/cxusb.c b/drivers/media/dvb/dvb-usb/cxusb.c
+index 320ce88..8965601 100644
+--- a/drivers/media/dvb/dvb-usb/cxusb.c
++++ b/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -1025,8 +1025,10 @@ static int cxusb_dualdig4_rev2_frontend_attach(struct dvb_usb_adapter *adap)
+ 	cxusb_bluebird_gpio_pulse(adap->dev, 0x02, 1);
+ 
+ 	if (dib7000p_i2c_enumeration(&adap->dev->i2c_adap, 1, 18,
+-				 &cxusb_dualdig4_rev2_config) < 0)
++				     &cxusb_dualdig4_rev2_config) < 0) {
++		printk(KERN_WARNING "Unable to enumerate dib7000p\n");
+ 		return -ENODEV;
++	}
+ 
+ 	adap->fe = dvb_attach(dib7000p_attach, &adap->dev->i2c_adap, 0x80,
+ 			      &cxusb_dualdig4_rev2_config);
