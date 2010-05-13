@@ -1,22 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.7])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o4C2UNmH020893
-	for <video4linux-list@redhat.com>; Tue, 11 May 2010 22:30:24 -0400
-Received: from twhqfe02.corpnet.xgitech.com (smtp2.xgitech.com [61.66.19.134])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4C2UBW6018343
-	for <video4linux-list@redhat.com>; Tue, 11 May 2010 22:30:12 -0400
-Content-class: urn:content-classes:message
+Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.10])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o4DMq6Rp013405
+	for <video4linux-list@redhat.com>; Thu, 13 May 2010 18:52:06 -0400
+Received: from mail-gw0-f46.google.com (mail-gw0-f46.google.com [74.125.83.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4DMptEb008102
+	for <video4linux-list@redhat.com>; Thu, 13 May 2010 18:51:56 -0400
+Received: by gwj19 with SMTP id 19so915803gwj.33
+	for <video4linux-list@redhat.com>; Thu, 13 May 2010 15:51:55 -0700 (PDT)
 MIME-Version: 1.0
-Subject: RE: RGB format
-Date: Wed, 12 May 2010 10:27:25 +0800
-Message-ID: <7BDE3DB56E0B0144A1265CABF7785E6393FA75@MAIL03.corpnet.xgitech.com>
-In-Reply-To: <AANLkTilJzGA8V6R1nSzViJXmHlgG1wRlT_brGX1BbpO_@mail.gmail.com>
-References: <AANLkTimPNHc9fRnW_MI7Tmaq78oYoMVW_7vBgdU4T9Um@mail.gmail.com>
-	<AANLkTilJzGA8V6R1nSzViJXmHlgG1wRlT_brGX1BbpO_@mail.gmail.com>
-From: "Yi-Lin Shieh" <yilin_shieh@xgitech.com>
-Cc: "video4linux-list" <video4linux-list@redhat.com>
+From: Alexjan Carraturo <axjslack@gmail.com>
+Date: Fri, 14 May 2010 00:51:34 +0200
+Message-ID: <AANLkTilbPB2DeJhah0XzSMYEOpXUTzt-v4-h9JsV1BP2@mail.gmail.com>
+Subject: Pinnacle PCTV DVB-T 70e
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -30,47 +28,50 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Carlos,
+Hello everyone,
 
-You can fill digit '0' to RGB565's lower bit to become RGB 888.
+My name Alexjan Carraturo and am new to this list, and I apologize if
+my first request for assistance infringe some custom.
 
-R4R3R2R1R0G5G4G3G2G1G0B4B3B2B1B0 -> 
-R4R3R2R1R0 0 0 0 G5G4G3G2G1G0 0 0 B4B3B2B1B0 0 0 0
+Long time I try to run a particular type of device DVB-T, and sometimes I did.
 
-Regards,
-Yi-Lin
+The device in question is a Usbstick Pinnacle PCTV DVB-T (70th); is
+USB, running lsusb we have this
 
------Original Message-----
-From: video4linux-list-bounces@redhat.com
-[mailto:video4linux-list-bounces@redhat.com] On Behalf Of Vinay Verma
-Sent: Tuesday, May 11, 2010 5:06 PM
-To: Carlos Lavin
-Cc: video4linux-list
-Subject: Re: RGB format
+eb1a:2870 eMPIA Technology, Inc. Pinnacle PCTV Stick
 
-Hi Carlos,
+As I said before, once I managed to get it working with both Fedora
+and Slackware (the Linux distributions that I use routinely).
 
-One simple way is to apply simple algebra (unitary method) and to make
-out-of-5/6/5 to out-of-8/8/8.
-Regards,
-Vinay
-On Tue, May 11, 2010 at 12:36 PM, Carlos Lavin <
-carlos.lavin@vista-silicon.com> wrote:
+Did not work with the drivers on the kernel (em28xx, em28xx-dvb); the
+"traditional driver" try to recognize the device, but doesn't work.
 
-> hello, I need convert RGB565 to RGB888, but I know how I do it. Can
-anybody
-> help me??
-> --
-> video4linux-list mailing list
-> Unsubscribe
-mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
---
-video4linux-list mailing list
-Unsubscribe
-mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+The device works only (and very well) with a version made by some
+individuals, called em28xx-new. There is a version of these drivers,
+compile manually, but it works only until kernel 2.6.31 (
+http://launchpadlibrarian.net/35049921/em28xx-new.tar.gz )
+
+Searching the internet I saw that many users are trying to work this
+board (very common).
+
+Is there a way to incorporate the changes mentioned in the official driver?
+Or, you can suggest how they might be modified drivers indicated to
+work with recent kernels (2.6.32, and soon 2.6.33 or later)?
+
+Thank yuo
+
+Alex.
+-- 
+########################################
+Alexjan Carraturo
+admin of
+Free Software Users Group Italia
+http://www.fsugitalia.org
+Fedora Ambassador: Axjslack
+openSUSE Ambassador: Axjslack
+Free Software Foundation Europe Fellow 1623
+Software Freedom International board member
+########################################
 
 --
 video4linux-list mailing list
