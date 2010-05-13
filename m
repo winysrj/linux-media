@@ -1,104 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f183.google.com ([209.85.221.183]:53137 "EHLO
-	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751936Ab0EZS25 convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2819 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751506Ab0EMSPh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 14:28:57 -0400
-MIME-Version: 1.0
-In-Reply-To: <AANLkTikE3bYGaQDthmOIZRSFEPteJqpzL3g1AiQJpUxh@mail.gmail.com>
-References: <20100401145632.5631756f@pedra>
-	<t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
-	<20100402102011.GA6947@hardeman.nu>
-	<p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>
-	<20100407093205.GB3029@hardeman.nu>
-	<z2hbe3a4a1004231040uce51091fnf24b97de215e3ef1@mail.gmail.com>
-	<20100424051206.GA3101@hardeman.nu>
-	<h2hbe3a4a1004272132y46e90a8ak862f20620053b1cc@mail.gmail.com>
-	<AANLkTikE3bYGaQDthmOIZRSFEPteJqpzL3g1AiQJpUxh@mail.gmail.com>
-Date: Wed, 26 May 2010 14:28:52 -0400
-Message-ID: <AANLkTin4KkvVZPUVHmURgSUPaGW8N-7xDVPfAlV7ZKtv@mail.gmail.com>
-Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
-	and decoder plugins
-From: Jarod Wilson <jarod@wilsonet.com>
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-input@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 13 May 2010 14:15:37 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4DIFaKY074023
+	for <linux-media@vger.kernel.org>; Thu, 13 May 2010 20:15:36 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 13 May 2010 20:15:36 +0200 (CEST)
+Message-Id: <201005131815.o4DIFaKY074023@smtp-vbr18.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 25, 2010 at 5:05 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
-> On Wed, Apr 28, 2010 at 12:32 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
->> On Sat, Apr 24, 2010 at 1:12 AM, David Härdeman <david@hardeman.nu> wrote:
->>> On Fri, Apr 23, 2010 at 01:40:34PM -0400, Jarod Wilson wrote:
->>>> So now that I'm more or less done with porting the imon driver, I
->>>> think I'm ready to start tackling the mceusb driver. But I'm debating
->>>> on what approach to take with respect to lirc support. It sort of
->>>> feels like we should have lirc_dev ported as an ir "decoder"
->>>> driver/plugin before starting to port mceusb to ir-core, so that we
->>>> can maintain lirc compat and transmit support. Alternatively, I could
->>>> port mceusb without lirc support for now, leaving it to only use
->>>> in-kernel decoding and have no transmit support for the moment, then
->>>> re-add lirc support. I'm thinking that porting lirc_dev as, say,
->>>> ir-lirc-decoder first is probably the way to go though. Anyone else
->>>> want to share their thoughts on this?
->>>
->>> I think it would make sense to start with a mce driver without the TX
->>> and lirc bits first. Adding lirc rx support can be done as a separate
->>> "raw" decoder later (so its scope is outside the mce driver anyway) and
->>> TX support is not implemented in ir-core yet and we haven't had any
->>> discussion yet on which form it should take.
->>
->> So after looking at folks feedback, I did settle on starting the
->> mceusb port first, my logic going more or less like this... Having a
->> well-supported general-purpose IR receiver functional is a Good Thing
->> for people wanting to work on protocol support (i.e., so they have a
->> way to actually test protocol support). Having an
->> already-ir-core-ified driver to test out an ir-lirc-decoder (lirc_dev
->> port) would also be rather helpful. So rather than trying to port
->> lirc_dev before there's anything that can actually make use of it,
->> give myself something to work with. I'm kind of thinking that
->> ir-lirc-decoder might actually be ir-lirc-codec, able to do xmit as
->> well, maintaining full compat with lirc userspace, and then we'd have
->> a separate input subsystem based xmit method at some point, which
->> might be the "preferred/blessed" route. This means ripping a bunch of
->> code out of lirc_mceusb.c only to put it back in later, but that's not
->> terribly painful. I've already got as far as having an mceusb.c that
->> has no lirc dependency, which builds, but doesn't actually do anything
->> useful yet (not wired up to ir-core). Should be able to get something
->> functional RSN, I hope...
->
-> Got sidetracked for a few weeks, but I'm probably 95% of the way there
-> as of this afternoon. Something isn't quite right with how I'm
-> processing and handing off the raw IR data right now though, best as I
-> can tell. Its also possible my first-gen mce device is throwing things
-> for a loop, so I need to see if maybe things Just Work with a newer
-> gen device so I know if its device-specific, or if something is still
-> generally wrong. I did crib the simplified mce data processing routine
-> from Jon's code, but the original lirc_mceusb.c has some changes
-> specific to the first-gen mce device that were made to properly
-> support it quite some time after Jon's port, so I may also try w/the
-> uglier/more complex routine I know has been working on this device...
->
-> David, you mentioned having something based on Jon's earlier port that
-> was more or less working. I'd be curious to get a look at that if
-> you're willing to drop me a copy, see if I've missed something
-> blindingly stupid. :)
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I was missing something blindingly stupid. Was accumulating duration
-values in ms instead of us. Now alternating presses of the OK button
-on the stock MCE remote get this:
+Results of the daily build of v4l-dvb:
 
-ir_rc6_decode: RC6(6A) scancode 0x800f0422 (toggle: 1)
-ir_rc6_decode: RC6(6A) scancode 0x800f0422 (toggle: 0)
+date:        Thu May 13 19:00:21 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14849:9b63860cd18a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-This is with Jon's IR handling routine and a recent MCE device, still
-need to go back and see how the older one behaves, but within the next
-few days, I should have a patch worthy of submission.
+linux-2.6.32.6-armv5: ERRORS
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc7-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc7-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc7-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc7-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: OK
+linux-2.6.34-rc7-i686: ERRORS
+linux-2.6.32.6-m32r: ERRORS
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc7-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: OK
+linux-2.6.34-rc7-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc7-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc7-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
