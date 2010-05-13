@@ -1,40 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail15.adl6.internode.on.net ([150.101.137.100]:37206 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754375Ab0EGIOe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 04:14:34 -0400
-Received: from Jeds-Mini.local (unverified [118.208.5.245])
-	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id 11852228-1927428
-	for <linux-media@vger.kernel.org>; Fri, 07 May 2010 17:44:31 +0930 (CST)
-Message-ID: <4BE3CC2D.7030801@hotmail.com>
-Date: Fri, 07 May 2010 18:15:41 +1000
-From: Jed <jedi_theone@hotmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:45976 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750731Ab0EMV2o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 May 2010 17:28:44 -0400
+Message-ID: <4BEC6F03.4000403@iki.fi>
+Date: Fri, 14 May 2010 00:28:35 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Hauppauge HVR-4400
-References: <201005041400.10530.jan_moebius@web.de> <z2q829197381005040636vbd2d7254n4674dcc21cc751f4@mail.gmail.com> <4BE03311.4010702@gmail.com> <4BE03D6A.5060100@kernellabs.com>
-In-Reply-To: <4BE03D6A.5060100@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: matthieu castet <castet.matthieu@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] af9015 : more robust eeprom parsing
+References: <4BA5FFA5.7030800@free.fr>
+In-Reply-To: <4BA5FFA5.7030800@free.fr>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On 5/4/10 10:45 AM, Jed wrote:
->> Oh wow I didn't know Hauppauge had released some new models above the
->> 2200.
->> http://www.hauppauge.co.uk/site/products/prods_hvr_internal.html
->> Is this 4400 exactly the same as the HVR-2200, aside from the
->> demodulator used for it's DVB-S/S2?
->> I hope so, that way work being done on the 2200 can flow onto this!
->> (cept for DVB-S/S2)
+Terve!
+And sorry I have been "out of the office" for few months... Now I am 
+back and I think I have again time for this project...
+
+On 03/21/2010 01:14 PM, matthieu castet wrote:
+> the af9015 eeprom parsing accept 0x38 as 2nd demodulator. But this is
+> impossible because the
+> first one is already hardcoded to 0x38.
+> This remove a special case for AverMedia AVerTV Volar Black HD.
+
+I don't like this. It adds one more rather unnecessary if(). Of course 
+we can validity check many kind of values from eeprom but I think it is 
+not rather wise. Just trust eeprom and if there is device which does 
+have garbage content in eeprom then add special case for that broken 
+device. Currently AverMedia AVerTV Volar Black HD (A850) is only device 
+I know which does have bad eeprom content.
+
+> Also in af9015_copy_firmware don't hardcode the 2nd demodulator address
+> to 0x3a.
+
+This one looks good.
+
 >
-> It's completely different.
+>
+> Signed-off-by: Matthieu CASTET <castet.matthieu@free.fr>
 
-Bummer!!!  :(
-Why'd they have to go & use a completely different architecture, lame.
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+regards
+Antti
+-- 
+http://palosaari.fi/
