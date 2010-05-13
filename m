@@ -1,354 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:49183 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750842Ab0E1Oxk (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:60020 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932126Ab0EMTBQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 May 2010 10:53:40 -0400
-Message-ID: <4BFFD887.1060104@arcor.de>
-Date: Fri, 28 May 2010 16:51:51 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Thu, 13 May 2010 15:01:16 -0400
+Received: by pwi10 with SMTP id 10so193705pwi.19
+        for <linux-media@vger.kernel.org>; Thu, 13 May 2010 12:01:15 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4BEC483E.2010006@redhat.com>
+References: <4BEC483E.2010006@redhat.com>
+Date: Thu, 13 May 2010 16:01:15 -0300
+Message-ID: <o2m68cac7521005131201g10d18783yb89991e67429cebc@mail.gmail.com>
+Subject: Re: [PATCH -hg] Build fix for mercurial tree
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 5/5] tm6000: rewrite copy_streams
-References: <1274639505-2674-1-git-send-email-stefan.ringel@arcor.de>	<1274639505-2674-2-git-send-email-stefan.ringel@arcor.de> <20100527182313.70ccc509@pedra>
-In-Reply-To: <20100527182313.70ccc509@pedra>
-Content-Type: multipart/mixed;
- boundary="------------070306010009060208060803"
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070306010009060208060803
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Am 27.05.2010 23:23, schrieb Mauro Carvalho Chehab:
-> Em Sun, 23 May 2010 20:31:45 +0200
-> stefan.ringel@arcor.de escreveu:
+On Thu, May 13, 2010 at 3:43 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Fix backport tree compilations with kernels older than 2.6.33.
 >
->   
->> From: Stefan Ringel <stefan.ringel@arcor.de>
->>
->> fusion function copy streams and copy_packets to new function copy_streams.
->>
->> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
->> ---
->>  drivers/staging/tm6000/tm6000-usb-isoc.h |    5 +-
->>  drivers/staging/tm6000/tm6000-video.c    |  337 +++++++++++-------------------
->>  2 files changed, 127 insertions(+), 215 deletions(-)
->>
->> diff --git a/drivers/staging/tm6000/tm6000-usb-isoc.h b/drivers/staging/tm6000/tm6000-usb-isoc.h
->> index 5a5049a..138716a 100644
->> --- a/drivers/staging/tm6000/tm6000-usb-isoc.h
->> +++ b/drivers/staging/tm6000/tm6000-usb-isoc.h
->> @@ -39,7 +39,7 @@ struct usb_isoc_ctl {
->>  	int				pos, size, pktsize;
->>  
->>  		/* Last field: ODD or EVEN? */
->> -	int				field;
->> +	int				vfield;
->>  
->>  		/* Stores incomplete commands */
->>  	u32				tmp_buf;
->> @@ -47,7 +47,4 @@ struct usb_isoc_ctl {
->>  
->>  		/* Stores already requested buffers */
->>  	struct tm6000_buffer    	*buf;
->> -
->> -		/* Stores the number of received fields */
->> -	int				nfields;
->>  };
->> diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
->> index 2a61cc3..31c574f 100644
->> --- a/drivers/staging/tm6000/tm6000-video.c
->> +++ b/drivers/staging/tm6000/tm6000-video.c
->> @@ -186,234 +186,153 @@ const char *tm6000_msg_type[] = {
->>  /*
->>   * Identify the tm5600/6000 buffer header type and properly handles
->>   */
->> -static int copy_packet(struct urb *urb, u32 header, u8 **ptr, u8 *endp,
->> -			u8 *out_p, struct tm6000_buffer **buf)
->> -{
->> -	struct tm6000_dmaqueue  *dma_q = urb->context;
->> -	struct tm6000_core *dev = container_of(dma_q, struct tm6000_core, vidq);
->> -	u8 c;
->> -	unsigned int cmd, cpysize, pktsize, size, field, block, line, pos = 0;
->> -	int rc = 0;
->> -	/* FIXME: move to tm6000-isoc */
->> -	static int last_line = -2, start_line = -2, last_field = -2;
->> -
->> -	/* FIXME: this is the hardcoded window size
->> -	 */
->> -	unsigned int linewidth = (*buf)->vb.width << 1;
->> -
->> -	if (!dev->isoc_ctl.cmd) {
->> -		c = (header >> 24) & 0xff;
->> -
->> -		/* split the header fields */
->> -		size  = ((header & 0x7e) << 1);
->> -
->> -		if (size > 0)
->> -			size -= 4;
->> -
->> -		block = (header >> 7) & 0xf;
->> -		field = (header >> 11) & 0x1;
->> -		line  = (header >> 12) & 0x1ff;
->> -		cmd   = (header >> 21) & 0x7;
->> -
->> -		/* Validates header fields */
->> -		if(size > TM6000_URB_MSG_LEN)
->> -			size = TM6000_URB_MSG_LEN;
->> -
->> -		if (cmd == TM6000_URB_MSG_VIDEO) {
->> -			if ((block+1)*TM6000_URB_MSG_LEN>linewidth)
->> -				cmd = TM6000_URB_MSG_ERR;
->> -
->> -			/* FIXME: Mounts the image as field0+field1
->> -			 * It should, instead, check if the user selected
->> -			 * entrelaced or non-entrelaced mode
->> -			 */
->> -			pos= ((line<<1)+field)*linewidth +
->> -				block*TM6000_URB_MSG_LEN;
->> -
->> -			/* Don't allow to write out of the buffer */
->> -			if (pos+TM6000_URB_MSG_LEN > (*buf)->vb.size) {
->> -				dprintk(dev, V4L2_DEBUG_ISOC,
->> -					"ERR: size=%d, num=%d, line=%d, "
->> -					"field=%d\n",
->> -					size, block, line, field);
->> -
->> -				cmd = TM6000_URB_MSG_ERR;
->> -			}
->> -		} else {
->> -			pos=0;
->> -		}
->> -
->> -		/* Prints debug info */
->> -		dprintk(dev, V4L2_DEBUG_ISOC, "size=%d, num=%d, "
->> -				" line=%d, field=%d\n",
->> -				size, block, line, field);
->> -
->> -		if ((last_line!=line)&&(last_line+1!=line) &&
->> -		    (cmd != TM6000_URB_MSG_ERR) )  {
->> -			if (cmd != TM6000_URB_MSG_VIDEO)  {
->> -				dprintk(dev, V4L2_DEBUG_ISOC,  "cmd=%d, "
->> -					"size=%d, num=%d, line=%d, field=%d\n",
->> -					cmd, size, block, line, field);
->> -			}
->> -			if (start_line<0)
->> -				start_line=last_line;
->> -			/* Prints debug info */
->> -			dprintk(dev, V4L2_DEBUG_ISOC, "lines= %d-%d, "
->> -					"field=%d\n",
->> -					start_line, last_line, field);
->> -
->> -			if ((start_line<6 && last_line>200) &&
->> -				(last_field != field) ) {
->> -
->> -				dev->isoc_ctl.nfields++;
->> -				if (dev->isoc_ctl.nfields>=2) {
->> -					dev->isoc_ctl.nfields=0;
->> -
->> -					/* Announces that a new buffer were filled */
->> -					buffer_filled (dev, dma_q, *buf);
->> -					dprintk(dev, V4L2_DEBUG_ISOC,
->> -							"new buffer filled\n");
->> -					get_next_buf (dma_q, buf);
->> -					if (!*buf)
->> -						return rc;
->> -					out_p = videobuf_to_vmalloc(&((*buf)->vb));
->> -					if (!out_p)
->> -						return rc;
->> -
->> -					pos = dev->isoc_ctl.pos = 0;
->> -				}
->> -			}
->> -
->> -			start_line=line;
->> -			last_field=field;
->> -		}
->> -		if (cmd == TM6000_URB_MSG_VIDEO)
->> -			last_line = line;
->> -
->> -		pktsize = TM6000_URB_MSG_LEN;
->> -	} else {
->> -		/* Continue the last copy */
->> -		cmd = dev->isoc_ctl.cmd;
->> -		size= dev->isoc_ctl.size;
->> -		pos = dev->isoc_ctl.pos;
->> -		pktsize = dev->isoc_ctl.pktsize;
->> -	}
->> -
->> -	cpysize = (endp-(*ptr) > size) ? size : endp - *ptr;
->> -
->> -	if (cpysize) {
->> -		/* handles each different URB message */
->> -		switch(cmd) {
->> -		case TM6000_URB_MSG_VIDEO:
->> -			/* Fills video buffer */
->> -			memcpy(&out_p[pos], *ptr, cpysize);
->> -			break;
->> -		case TM6000_URB_MSG_PTS:
->> -			break;
->> -		case TM6000_URB_MSG_AUDIO:
->> -			/* Need some code to process audio */
->> -			printk ("%ld: cmd=%s, size=%d\n", jiffies,
->> -				tm6000_msg_type[cmd],size);
->> -			break;
->> -		case TM6000_URB_MSG_VBI:
->> -			break;
->> -		default:
->> -			dprintk (dev, V4L2_DEBUG_ISOC, "cmd=%s, size=%d\n",
->> -						tm6000_msg_type[cmd],size);
->> -		}
->> -	}
->> -	if (cpysize<size) {
->> -		/* End of URB packet, but cmd processing is not
->> -		 * complete. Preserve the state for a next packet
->> -		 */
->> -		dev->isoc_ctl.pos = pos+cpysize;
->> -		dev->isoc_ctl.size= size-cpysize;
->> -		dev->isoc_ctl.cmd = cmd;
->> -		dev->isoc_ctl.pktsize = pktsize-cpysize;
->> -		(*ptr)+=cpysize;
->> -	} else {
->> -		dev->isoc_ctl.cmd = 0;
->> -		(*ptr)+=pktsize;
->> -	}
->> -
->> -	return rc;
->> -}
->> -
->>  static int copy_streams(u8 *data, unsigned long len,
->>  			struct urb *urb)
->>  {
->>  	struct tm6000_dmaqueue  *dma_q = urb->context;
->>  	struct tm6000_core *dev= container_of(dma_q,struct tm6000_core,vidq);
->> -	u8 *ptr=data, *endp=data+len;
->> +	u8 *ptr=data, *endp=data+len, c;
->>  	unsigned long header=0;
->>  	int rc=0;
->> -	struct tm6000_buffer *buf;
->> -	char *outp = NULL;
->> -
->> -	get_next_buf(dma_q, &buf);
->> -	if (buf)
->> -		outp = videobuf_to_vmalloc(&buf->vb);
->> +	unsigned int cmd, cpysize, pktsize, size, field, block, line, pos = 0;
->> +	struct tm6000_buffer *vbuf;
->> +	char *voutp = NULL;
->> +	unsigned int linewidth;
->>  
->> -	if (!outp)
->> +	/* get video buffer */
->> +	get_next_buf (dma_q, &vbuf);
->> +	if (!vbuf)
->> +		return rc;
->> +	voutp = videobuf_to_vmalloc(&vbuf->vb);
->> +	if (!voutp)
->>  		return 0;
->>  
->> -	for (ptr=data; ptr<endp;) {
->> +	for (ptr = data; ptr < endp;) {
->>  		if (!dev->isoc_ctl.cmd) {
->> -			u8 *p=(u8 *)&dev->isoc_ctl.tmp_buf;
->> -			/* FIXME: This seems very complex
->> -			 * It just recovers up to 3 bytes of the header that
->> -			 * might be at the previous packet
->> -			 */
->> -			if (dev->isoc_ctl.tmp_buf_len) {
->> -				while (dev->isoc_ctl.tmp_buf_len) {
->> -					if ( *(ptr+3-dev->isoc_ctl.tmp_buf_len) == 0x47) {
->> -						break;
->> -					}
->> -					p++;
->> -					dev->isoc_ctl.tmp_buf_len--;
->> -				}
->> -				if (dev->isoc_ctl.tmp_buf_len) {
->> -					memcpy(&header, p,
->> -						dev->isoc_ctl.tmp_buf_len);
->> -					memcpy((u8 *)&header +
->> +			/* Header */
->> +			if (dev->isoc_ctl.tmp_buf_len > 0) {
->> +				/* from last urb or packet */
->> +				header = dev->isoc_ctl.tmp_buf;
->> +				if (4 - dev->isoc_ctl.tmp_buf_len > 0)
->> +					memcpy ((u8 *)&header +
->>  						dev->isoc_ctl.tmp_buf_len,
->>  						ptr,
->>  						4 - dev->isoc_ctl.tmp_buf_len);
->>  					ptr += 4 - dev->isoc_ctl.tmp_buf_len;
->> -					goto HEADER;
->>  				}
->> +				dev->isoc_ctl.tmp_buf_len = 0;
->> +			} else {
->> +				if (ptr + 3 >= endp) {
->> +					/* have incomplete header */
->> +					dev->isoc_ctl.tmp_buf_len = endp - ptr;
->> +					memcpy (&dev->isoc_ctl.tmp_buf, ptr,
->> +						dev->isoc_ctl.tmp_buf_len);
->> +					return rc;
->> +				}
->> +				/* Seek for sync */
->> +				for (; ptr < endp - 3; ptr++) {
->> +					if (ptr < endp - 187) {
->> +						if (*(ptr + 3) == 0x47 &&
->> +							(*(ptr + 187) == 0x47)
->> +							break;
->>     
-> Hmm... are you sure you need to do this? Just checking for the current sync seems
-> to be enough, except if the URB is corrupted. In the latter case, it would be better
-> to do the opposite: test for the sync at either ptr or ptr + 187:
+> Compile tested only, with 2.6.32.4 kernel.
 >
-> 		if (*(ptr + 3) == 0x47 || (*(ptr + 187) == 0x47)
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 >
->   
-Mauro that doesn't work. It lost any blocks.
-> I don't like the above neither, but this device requires so many workarounds to work
-> with a bad hardware/firmware that one more hack wouldn't hurt, but, if this is really
-> needed, a proper comment explaining the reason for the hack should be added.
+> diff --git a/linux/drivers/media/IR/ir-core-priv.h b/linux/drivers/media/IR/ir-core-priv.h
+> --- a/linux/drivers/media/IR/ir-core-priv.h
+> +++ b/linux/drivers/media/IR/ir-core-priv.h
+> @@ -28,7 +28,11 @@ struct ir_raw_handler {
 >
->   
->> +					} else {
->> +						if (*(ptr + 3) == 0x47)
->> +							break;
->> +					}
->> +					if (ptr + 3 >= endp)
->> +						return rc;
->>     
-> Huh? This test look strange: if ptr + 3 >= endp, the loop would be end before
-> calling this code. So, it seems to be a dead code.
+>  struct ir_raw_event_ctrl {
+>        struct work_struct              rx_work;        /* for the rx decoding workqueue */
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
+> +       struct kfifo                    *kfifo;         /* fifo for the pulse/space durations */
+> +#else
+>        struct kfifo                    kfifo;          /* fifo for the pulse/space durations */
+> +#endif
+>        ktime_t                         last_event;     /* when last event occurred */
+>        enum raw_event_type             last_type;      /* last event type */
+>        struct input_dev                *input_dev;     /* pointer to the parent input_dev */
+> diff --git a/linux/drivers/media/IR/ir-raw-event.c b/linux/drivers/media/IR/ir-raw-event.c
+> --- a/linux/drivers/media/IR/ir-raw-event.c
+> +++ b/linux/drivers/media/IR/ir-raw-event.c
+> @@ -61,8 +61,13 @@ static void ir_raw_event_work(struct wor
+>        struct ir_raw_event_ctrl *raw =
+>                container_of(work, struct ir_raw_event_ctrl, rx_work);
 >
->   
->> +				}
->> +				/* Get message header */
->> +				header = *(unsigned long *)ptr;
->> +				ptr += 4;
->>  			}
->>     
->   
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
+> +       while (kfifo_get(raw->kfifo, (void *)&ev, sizeof(ev)) == sizeof(ev))
+> +               RUN_DECODER(decode, raw->input_dev, ev);
+> +#else
+>        while (kfifo_out(&raw->kfifo, &ev, sizeof(ev)) == sizeof(ev))
+>                RUN_DECODER(decode, raw->input_dev, ev);
+> +#endif
+>  }
+>
+>  int ir_raw_event_register(struct input_dev *input_dev)
+> @@ -77,8 +82,15 @@ int ir_raw_event_register(struct input_d
+>        ir->raw->input_dev = input_dev;
+>        INIT_WORK(&ir->raw->rx_work, ir_raw_event_work);
+>
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
+> +       ir->raw->kfifo = kfifo_alloc(sizeof(s64) * MAX_IR_EVENT_SIZE,
+> +                                    GFP_KERNEL, NULL);
+> +       if (ir->raw->kfifo == NULL)
+> +               rc = -ENOMEM;
+> +#else
+>        rc = kfifo_alloc(&ir->raw->kfifo, sizeof(s64) * MAX_IR_EVENT_SIZE,
+>                         GFP_KERNEL);
+> +#endif
+>        if (rc < 0) {
+>                kfree(ir->raw);
+>                ir->raw = NULL;
+> @@ -87,7 +99,11 @@ int ir_raw_event_register(struct input_d
+>
+>        rc = RUN_DECODER(raw_register, input_dev);
+>        if (rc < 0) {
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
+> +               kfifo_free(ir->raw->kfifo);
+> +#else
+>                kfifo_free(&ir->raw->kfifo);
+> +#endif
+>                kfree(ir->raw);
+>                ir->raw = NULL;
+>                return rc;
+> @@ -106,7 +122,11 @@ void ir_raw_event_unregister(struct inpu
+>        cancel_work_sync(&ir->raw->rx_work);
+>        RUN_DECODER(raw_unregister, input_dev);
+>
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
+> +       kfifo_free(ir->raw->kfifo);
+> +#else
+>        kfifo_free(&ir->raw->kfifo);
+> +#endif
+>        kfree(ir->raw);
+>        ir->raw = NULL;
+>  }
+> @@ -128,8 +148,13 @@ int ir_raw_event_store(struct input_dev
+>        if (!ir->raw)
+>                return -EINVAL;
+>
+> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 33)
+> +       if (kfifo_put(ir->raw->kfifo, (void *)ev, sizeof(*ev)) != sizeof(*ev))
+> +               return -ENOMEM;
+> +#else
+>        if (kfifo_in(&ir->raw->kfifo, ev, sizeof(*ev)) != sizeof(*ev))
+>                return -ENOMEM;
+> +#endif
+>
+>        return 0;
+>  }
+>
+>
 
+Applied, thanks.
 
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
-
---------------070306010009060208060803
-Content-Type: text/x-vcard; charset=utf-8;
- name="stefan_ringel.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="stefan_ringel.vcf"
-
-begin:vcard
-fn:Stefan Ringel
-n:Ringel;Stefan
-email;internet:stefan.ringel@arcor.de
-note:web: www.stefanringel.de
-x-mozilla-html:FALSE
-version:2.1
-end:vcard
-
-
---------------070306010009060208060803--
+Cheers
+Douglas
