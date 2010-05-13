@@ -1,78 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:37419 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756643Ab0EJK4k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 May 2010 06:56:40 -0400
-Received: by bwz19 with SMTP id 19so1665434bwz.21
-        for <linux-media@vger.kernel.org>; Mon, 10 May 2010 03:56:38 -0700 (PDT)
-From: "Igor M. Liplianin" <liplianin@me.by>
-To: Tim Coote <tim+vger.kernel.org@coote.org>
-Subject: Re: setting up a tevii s660
-Date: Mon, 10 May 2010 13:56:43 +0300
-Cc: linux-media@vger.kernel.org
-References: <E23F27D7-CF5B-4F6B-9656-EB63E7005BD0@coote.org> <201005092146.23620.liplianin@me.by> <CF4FB529-8D84-48B6-98DC-BD20BB2A4F60@coote.org>
-In-Reply-To: <CF4FB529-8D84-48B6-98DC-BD20BB2A4F60@coote.org>
+Received: from tango.tkos.co.il ([62.219.50.35]:45411 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751310Ab0EMFWM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 May 2010 01:22:12 -0400
+Date: Thu, 13 May 2010 08:21:05 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 1/3] mx2_camera: Add soc_camera support for
+ i.MX25/i.MX27
+Message-ID: <20100513052105.GA18678@jasper.tkos.co.il>
+References: <cover.1273150585.git.baruch@tkos.co.il>
+ <a029bab8fcb3273df4a1d98f779f110b127742bd.1273150585.git.baruch@tkos.co.il>
+ <Pine.LNX.4.64.1005090045230.10524@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="koi8-r"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Message-Id: <201005101356.44189.liplianin@me.by>
+In-Reply-To: <Pine.LNX.4.64.1005090045230.10524@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10 мая 2010 00:29:13 Tim Coote wrote:
-> Thanks, Igor. I was using that set of drivers (if I understood the
-> Babelfish translation.)
->
-> My issue was that my hardware was broken (I was using a VMWare VM that
-> didn't emulate usb properly). It's always hard to work out what's
-> broken when you load up some new package and it doesn't work.  I'd
-> confirmed that the s660 worked from windows, but I had to build a
-> windows vm to demonstrate that it was VMWare that was broken.
-> Meanwhile, I kept stumbling across what seemed to be similar breakages
-> to what I was seeing.
->
-> I don't know how feasible it would be, but when I used to write device
-> drivers, I'd pull together simple programs to test that the hardware
-> was working as I'd expect as I spent so much time debugging changing
-> hardware designs :-(
->
-> I would say that the tevii drivers have both new code compared to the
-> tip of the driver that you manage, and also seem to be missing some
-> code.
-So called "TeVii drivers" is simply a snapshot from linuxtv, so OK, they are useable.
+Hi Guennadi,
+On Wed, May 12, 2010 at 09:02:29PM +0200, Guennadi Liakhovetski wrote:
+> Thanks for eventually mainlining this driver! A couple of comments below.  
+> Sascha, would be great, if you could get it tested on imx27 with and without 
+> emma. BTW, if you say, that you use emma to avoid using the standard DMA 
+> controller, why would anyone want not to use emma? Resource conflict? There 
+> is also a question for you down in the comments, please, skim over.
 
->
-> thanks again for your help.  Now all I've got to do is get mythtv to
-> work...
->
-> Tim
->
-> On 9 May 2010, at 19:46, Igor M. Liplianin wrote:
-> > On 6 мая 2010 02:07:38 Tim Coote wrote:
-> >> [snip]
-> >
-> > Hi!
-> > Read this:
-> > http://forum.free-x.de/wbb/index.php?page=Thread&threadID=601&pageNo=6
-> > Useful to translate from Russian:
-> > http://babelfish.yahoo.com/translate_txt
-> > Best regards
-> > --
-> > Igor M. Liplianin
-> > Microsoft Windows Free Zone - Linux used for all Computing Tasks
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-
-> > media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-> Tim Coote
-> tim@coote.org
-> +44 (0)7866 479 760
+Thank you very much for your detailed review and informative comments. I'll 
+fix the problems that you've found, and post up updated patch after getting 
+Sascha comments on the mx27 specific code.
+
+baruch
+
+> On Thu, 6 May 2010, Baruch Siach wrote:
+> 
+> > This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
+> > Carvalho de Assis modified the original driver to get it working on more recent
+> > kernels. I modified it further to add support for i.MX25. This driver has only
+> > been tested on the i.MX25 platform.
+> > 
+> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> > ---
 
 -- 
-Igor M. Liplianin
-Microsoft Windows Free Zone - Linux used for all Computing Tasks
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
