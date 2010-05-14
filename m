@@ -1,95 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:57508 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754588Ab0EGLwH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 07:52:07 -0400
-Received: by vws18 with SMTP id 18so628336vws.19
-        for <linux-media@vger.kernel.org>; Fri, 07 May 2010 04:52:06 -0700 (PDT)
-Message-ID: <4BE3FEE0.4000502@gmail.com>
-Date: Fri, 07 May 2010 08:52:00 -0300
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58796 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757623Ab0ENHY6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 May 2010 03:24:58 -0400
+Message-ID: <4BECFB17.1040500@redhat.com>
+Date: Fri, 14 May 2010 09:26:15 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: Dan Carpenter <error27@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] IR/imon: remove dead IMON_KEY_RELEASE_OFFSET
-References: <20100504122030.GX29093@bicker> <20100504140318.GA10813@redhat.com> <20100504160641.GZ29093@bicker> <20100504191705.GB10813@redhat.com>
-In-Reply-To: <20100504191705.GB10813@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Frank Schaefer <fschaefer.oss@googlemail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: gspca-sonixj: ioctl VIDIOC_DQBUF blocks for 3s and retuns EIO
+References: <4BEC21B9.4010605@googlemail.com> <20100514080049.1cf7c726@tele>
+In-Reply-To: <20100514080049.1cf7c726@tele>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jarod Wilson wrote:
-> On Tue, May 04, 2010 at 06:06:41PM +0200, Dan Carpenter wrote:
->> On Tue, May 04, 2010 at 10:03:18AM -0400, Jarod Wilson wrote:
->>> @@ -1205,7 +1204,7 @@ static u32 imon_panel_key_lookup(u64 hw_code)
->>>  		if (imon_panel_key_table[i].hw_code == (code | 0xffee))
->>>  			break;
->>>  
->>> -	keycode = imon_panel_key_table[i % IMON_KEY_RELEASE_OFFSET].keycode;
->>> +	keycode = imon_panel_key_table[i].keycode;
->>>  
->>>  	return keycode;
->>>  }
->> There is still potentially a problem here because if we don't hit the 
->> break statement, then we're one past the end of the array.
-> 
-> D'oh. Okay, here's v2, should fix that buglet too.
-> 
-> This hack was used when the imon driver was using internal key lookup
-> routines, but became dead weight when the driver was converted to use
-> ir-core's key lookup routines. These bits simply didn't get removed,
-> drop 'em now.
-> 
-> Pointed out by Dan Carpenter.
-> 
-> v2: fix possible attempt to access beyond end of key table array,
-> also pointed out by Dan.
+Hi,
 
--ENOSOB
+On 05/14/2010 08:00 AM, Jean-Francois Moine wrote:
+> On Thu, 13 May 2010 17:58:49 +0200
+> Frank Schaefer<fschaefer.oss@googlemail.com>  wrote:
+>
+>> I'm not sure if I'm hitting a bug or this is the expected driver
+>> behavior: With a Microsoft LifeCam VX-3000 (045e:00f5) and
+>> gspca-sonixj, ioctl VIDIOC_DQBUF intermittently blocks for exactly 3
+>> seconds and then returns EIO.
+>> I noticed that it strongly depends on the captured scenery: when it's
+>> changing much, everything is fine.
+>> But when for example capturing the wall under constant (lower) light
+>> conditions, I'm getting this error nearly permanently.
+>>
+>> It's a JPEG-device, so I guess the device stops sending data if the
+>> picture doesn't change and that's how it should be.
+>> But is the long blocking + EIO the way drivers should handle this
+>> situtation ?
+>
+> Hello Frank,
+>
+> You are right, this is a bug. I did not know that a webcam could suspend
+> streaming when the image did not change. I will remove the timeout.
+>
 
-Please, add your SOB here ;)
-> 
-> ---
->  drivers/media/IR/imon.c |   12 ++++++------
->  1 files changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
-> index 27743eb..efe219a 100644
-> --- a/drivers/media/IR/imon.c
-> +++ b/drivers/media/IR/imon.c
-> @@ -55,7 +55,6 @@
->  #define BIT_DURATION	250	/* each bit received is 250us */
->  
->  #define IMON_CLOCK_ENABLE_PACKETS	2
-> -#define IMON_KEY_RELEASE_OFFSET		1000
->  
->  /*** P R O T O T Y P E S ***/
->  
-> @@ -1199,13 +1198,14 @@ static u32 imon_panel_key_lookup(u64 hw_code)
->  {
->  	int i;
->  	u64 code = be64_to_cpu(hw_code);
-> -	u32 keycode;
-> +	u32 keycode = KEY_RESERVED;
->  
-> -	for (i = 0; i < ARRAY_SIZE(imon_panel_key_table); i++)
-> -		if (imon_panel_key_table[i].hw_code == (code | 0xffee))
-> +	for (i = 0; i < ARRAY_SIZE(imon_panel_key_table); i++) {
-> +		if (imon_panel_key_table[i].hw_code == (code | 0xffee)) {
-> +			keycode = imon_panel_key_table[i].keycode;
->  			break;
-> -
-> -	keycode = imon_panel_key_table[i % IMON_KEY_RELEASE_OFFSET].keycode;
-> +		}
-> +	}
->  
->  	return keycode;
->  }
-> 
+The way jpeg works mandates that for each block some data still needs to
+be generated even if it is a solid color, moreover as these cams do jpeg
+not mpeg, there is no delta towards the previous frame. So the cam should
+not stop streaming if it doe timing out and returning -EIO is appropriate.
 
+Thus we should not remove the DQBUF timeout IMHO.
 
--- 
+Regards,
 
-Cheers,
-Mauro
+Hans
