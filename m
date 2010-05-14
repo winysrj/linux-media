@@ -1,158 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-06.arcor-online.net ([151.189.21.46]:49635 "EHLO
-	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933068Ab0EDPk2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 May 2010 11:40:28 -0400
-Message-ID: <4BE03F8D.1050905@arcor.de>
-Date: Tue, 04 May 2010 17:38:53 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 calculating urb buffer
-References: <4BDB067E.4070501@arcor.de> <4BDB3017.9070101@arcor.de>
-In-Reply-To: <4BDB3017.9070101@arcor.de>
-Content-Type: multipart/mixed;
- boundary="------------030209060503070904090007"
+Received: from sh.osrg.net ([192.16.179.4]:33229 "EHLO sh.osrg.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752867Ab0ENAkm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 May 2010 20:40:42 -0400
+Date: Fri, 14 May 2010 09:40:24 +0900
+To: pete@sensoray.com, gregkh@suse.de
+Cc: fujita.tomonori@lab.ntt.co.jp, linux-media@vger.kernel.org,
+	akpm@linux-foundation.org
+Subject: Re: [PATCH] Staging: saa7134-go7007: replace dma_sync_single with
+ dma_sync_single_for_cpu
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <1273789524.4502.51.camel@pete-desktop>
+References: <20100513124613U.fujita.tomonori@lab.ntt.co.jp>
+	<1273789524.4502.51.camel@pete-desktop>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-Id: <20100514094117H.fujita.tomonori@lab.ntt.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------030209060503070904090007
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+On Thu, 13 May 2010 15:25:24 -0700
+Pete Eberlein <pete@sensoray.com> wrote:
 
-Am 30.04.2010 21:31, schrieb Stefan Ringel:
-> Am 30.04.2010 18:34, schrieb Stefan Ringel:
->   
->> Hi Mauro,
->>
->> Today I'm writing directly to you, because it doesn't work the mailing
->> list. I thought over the calculating urb buffer and I have follow idea:
->>
->> buffer = endpoint fifo size (3072 Bytes) * block size (184 Bytes)
->>
->> The actually calculating is a video frame size (image = width * hight *
->> 2 Bytes/Pixel), so that this buffer has to begin and to end an
->> uncomplete block. followed blocks are setting the logic to an err_mgs
->> block, so that going to lost frames.
->>
->>   
->>     
-> I forgot a log with old calculating.
->
->   
+> Thanks, Tomonori.
+> 
+> Does this need to get submitted to the linux-media tree as well, or will
+> this patch get pulled automatically from Linus' tree?
+
+I think that patches for staging drivers are merged via Greg's staging
+tree.
 
 
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
-
---------------030209060503070904090007
-Content-Type: text/plain;
- name="datagram_urb_to_videobuf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="datagram_urb_to_videobuf"
-
-tm6000
-
-datagram from urb to videobuf
-
-urb           copy to     temp         copy to         1. videobuf
-                         buffer                        2. audiobuf
-                                                       3. vbi
-184 Packets   ------->   184 * 3072    ---------->     4. etc.
-a 3072 bytes               bytes
-               184 *                   3072 *
-             3072 bytes              180 bytes
-                                (184 bytes - 4 bytes
-                                    header )
-                                    
-                                    
-step 1
-
-copy from urb to temp buffer
-
-snip
-----
-for (i = 0; i < urb->number_of_packets; i++) {
-	int status = urb->iso_frame_desc[i].status;
-	
-	if (status<0) {
-		print_err_status (dev,i,status);
-		continue;
-	}
-
-	len=urb->iso_frame_desc[i].actual_length;
-
-	memcpy (t_buf[i*len], urb->transfer_buffer[i*len], len);
-	copied += len;
-	if (copied >= size || !buf)
-		break;
-
-}
-
-if (!urb->iso_frame_desc[i].status) {
-	if ((buf->fmt->fourcc)==V4L2_PIX_FMT_TM6000) {
-		rc=copy_multiplexed(t_buf, outp, len, urb, &buf);
-		if (rc<=0)
-			return rc;
-	} else {
-		copy_streams(t_buf, outp, len, urb, &buf);
-	}
-}
----
-snip
-
-step 2
-
-copy from temp buffer into videobuffer
-
-snip
----
-
-for (i=0;i<3072;i++) {
-	switch(cmd) {
-		case TM6000_URB_MSG_VIDEO:
-			/* Fills video buffer */
-			memcpy(&out_p[(line << 1 + field) * block * 180],
-				ptr[(i*184)+4], 180);
-			printk (KERN_INFO "cmd=%s, size=%d\n",
-			tm6000_msg_type[cmd],size);
-			break;
-		case TM6000_URB_MSG_PTS:
-			printk (KERN_INFO "cmd=%s, size=%d\n",
-			tm6000_msg_type[cmd],size);
-			break;
-		case TM6000_URB_MSG_AUDIO:
-			/* Need some code to process audio */
-			printk ("%ld: cmd=%s, size=%d\n", jiffies,
-			tm6000_msg_type[cmd],size);
-			break;
-		default:
-			dprintk (dev, V4L2_DEBUG_ISOC, "cmd=%s, size=%d\n",
-			printk (KERN_INFO "cmd=%s, size=%d\n",
-			tm6000_msg_type[cmd],size);
-		}
-	}
-}
-
----
-snip
-
-This is a schemata to copy in videobuf.
-
-temp_buf = fifo size * block size
-
-viodeobuf = hight * wight * 2
-
-
-Questions
-
-1. Is it right if I copy the block without header to videobufer?
-2. Can I full the videobuffer have more temp_bufs?
-3. How are the actually data schema from urb to videobuffer?
-
---------------030209060503070904090007--
+> Thanks,
+> Pete Eberlein
+> 
+> On Thu, 2010-05-13 at 12:45 +0900, FUJITA Tomonori wrote:
+> > dma_sync_single() is deprecated and will be removed soon.
+> > 
+> > No functional change since dma_sync_single is the wrapper of
+> > dma_sync_single_for_cpu.
+> > 
+> > saa7134-go7007.c is commented out but anyway let's replace it.
+> > 
+> > Signed-off-by: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+> > ---
+> >  drivers/staging/go7007/saa7134-go7007.c |    8 ++++----
+> >  1 files changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/staging/go7007/saa7134-go7007.c b/drivers/staging/go7007/saa7134-go7007.c
+> > index b25d7d2..0d36ce7 100644
+> > --- a/drivers/staging/go7007/saa7134-go7007.c
+> > +++ b/drivers/staging/go7007/saa7134-go7007.c
+> > @@ -242,13 +242,13 @@ static void saa7134_go7007_irq_ts_done(struct saa7134_dev *dev,
+> >  		printk(KERN_DEBUG "saa7134-go7007: irq: lost %ld\n",
+> >  				(status >> 16) & 0x0f);
+> >  	if (status & 0x100000) {
+> > -		dma_sync_single(&dev->pci->dev,
+> > -				saa->bottom_dma, PAGE_SIZE, DMA_FROM_DEVICE);
+> > +		dma_sync_single_for_cpu(&dev->pci->dev,
+> > +					saa->bottom_dma, PAGE_SIZE, DMA_FROM_DEVICE);
+> >  		go7007_parse_video_stream(go, saa->bottom, PAGE_SIZE);
+> >  		saa_writel(SAA7134_RS_BA2(5), cpu_to_le32(saa->bottom_dma));
+> >  	} else {
+> > -		dma_sync_single(&dev->pci->dev,
+> > -				saa->top_dma, PAGE_SIZE, DMA_FROM_DEVICE);
+> > +		dma_sync_single_for_cpu(&dev->pci->dev,
+> > +					saa->top_dma, PAGE_SIZE, DMA_FROM_DEVICE);
+> >  		go7007_parse_video_stream(go, saa->top, PAGE_SIZE);
+> >  		saa_writel(SAA7134_RS_BA1(5), cpu_to_le32(saa->top_dma));
+> >  	}
+> 
+> 
+> 
+> 
