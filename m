@@ -1,92 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16660 "EHLO mx1.redhat.com"
+Received: from mga09.intel.com ([134.134.136.24]:5472 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752372Ab0EFMip (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 May 2010 08:38:45 -0400
-Message-ID: <4BE2B84C.1060607@redhat.com>
-Date: Thu, 06 May 2010 09:38:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751709Ab0ENMSX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 May 2010 08:18:23 -0400
+From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 14 May 2010 20:18:16 +0800
+Subject: [RFC] Add 12 bit RAW Bayer Pattern pixel format support in V4L2
+Message-ID: <33AB447FBD802F4E932063B962385B351E817016@shsmsx501.ccr.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "Aguirre, Sergio" <saaguirre@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [videobuf] Query: Condition bytesize limit in videobuf_reqbufs
- -> buf_setup() call?
-References: <A24693684029E5489D1D202277BE894455257D13@dlee02.ent.ti.com> <4BE1FE22.8000909@redhat.com> <A24693684029E5489D1D202277BE894455257ED2@dlee02.ent.ti.com> <201005061009.08474.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201005061009.08474.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi Sergio,
-> 
-> On Thursday 06 May 2010 01:29:54 Aguirre, Sergio wrote:
->>> -----Original Message-----
->>> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
->>> Sent: Wednesday, May 05, 2010 6:24 PM
->>> To: Aguirre, Sergio
->>> Cc: linux-media@vger.kernel.org
->>> Subject: Re: [videobuf] Query: Condition bytesize limit in
->>> videobuf_reqbufs -> buf_setup() call?
->>>
->>> Aguirre, Sergio wrote:
->>>> Hi all,
->>>>
->>>> While working on an old port of the omap3 camera-isp driver,
->>>> I have faced some problem.
->>>>
->>>> Basically, when calling VIDIOC_REQBUFS with a certain buffer
->>>>
->>>> Count, we had a software limit for total size, calculated depending on:
->>>>   Total bytesize = bytesperline x height x count
->>>>
->>>> So, we had an arbitrary limit to, say 32 MB, which was generic.
->>>>
->>>> Now, we want to condition it ONLY when MMAP buffers will be used.
->>>> Meaning, we don't want to keep that policy when the kernel is not
->>>> allocating the space
->>>>
->>>> But the thing is that, according to videobuf documentation, buf_setup
->>>> is the one who should put a RAM usage limit. BUT the memory type
->>>> passed to reqbufs is not propagated to buf_setup, therefore forcing me
->>>> to go to a non-standard memory limitation in my reqbufs callback
->>>> function, instead of doing it properly inside buf_setup.
->>>>
->>>> Is this scenario a good consideration to change buf_setup API, and
->>>> propagate buffers memory type aswell?
->>> I don't see any problem on propagating the memory type to buffer_setup,
->>> if this is really needed. Yet, I can't see why you would restrict the
->>> buffer size to 32 MB on one case, and not restrict the size at all with
->>> non-MMAP types.
->> Ok, my reason for doing that is because I thought that there should be a
->> memory limit in whichever place you're doing the buffer allocations.
->>
->> MMAP is allocating buffers in kernel, so kernel should provide a memory
->> restriction, if applies.
->>
->> USERPTR is allocating buffers in userspace, so userspace should provide a
->> memory restriction, if applies.
-> 
-> I agree with the intend here, but not with the current implementation which 
-> has a hardcoded arbitrary limit. Do you think it would be possible to compute 
-> a meaningful default limit in the V4L2 core, with a way for userspace to 
-> modify it (with root privileges of course) ?
-> 
-On almost all drivers, the limit is not arbitrary. It is a reasonable number
-of buffers (like 16 buffers). A limit in terms of the number of buffers is
-meaningful for V4L2 API, and also, has a "physical meaning": considering that
-almost all drivers that use videobuf can do at maximum 30 fps, 16 buffers mean 
-that the maximum delay that the driver will apply to the stream is 533 ms.
+Hi linux-media,
 
-Some drivers even provide a modprobe parameter to allow changing this limit
-(for example, bttv allows changing it up to 32 buffers), but only during
-module load time. I can't foresee any use case where this maximum limit 
-would need to be dynamically adjusted. Root can always change it by removing 
-and re-inserting the module with a new maximum size.
+Current V4l2 only support 8 bit and 10 bit RAW Bayer Patten pixel format and this is a RFC to add 12 bit RAW Bay pixel format support by 4 more pixel format definition in videodev2.h. 
+The 12 bit RAW Bayer Pattern pixel format is not a platform specific and is available in mainstream digital camera devices. It will be supported by the ISP on Intel Atom platform.
 
--- 
+The current 8 bit/10 bit RAW Bayer Pattern pixel format definitions are listed as in below, 
 
-Cheers,
-Mauro
+/* Bayer formats - see http://www.siliconimaging.com/RGB%20Bayer.htm */
+#define V4L2_PIX_FMT_SBGGR8  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
+#define V4L2_PIX_FMT_SGBRG8  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
+#define V4L2_PIX_FMT_SGRBG8  v4l2_fourcc('G', 'R', 'B', 'G') /*  8  GRGR.. BGBG.. */
+#define V4L2_PIX_FMT_SRGGB8  v4l2_fourcc('R', 'G', 'G', 'B') /*  8  RGRG.. GBGB.. */
+#define V4L2_PIX_FMT_SBGGR10 v4l2_fourcc('B', 'G', '1', '0') /* 10  BGBG.. GRGR.. */
+#define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10  GBGB.. RGRG.. */
+#define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10  GRGR.. BGBG.. */
+#define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0') /* 10  RGRG.. GBGB.. */
+
+I am proposing to add 4 more pixel format definition in similar with existing ones listed as in below, welcome any comment and suggestion. 
+
+#define V4L2_PIX_FMT_SBGGR12 v4l2_fourcc('B', 'G', '1', '2') /* 12  BGBG.. GRGR.. */
+#define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
+#define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+#define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
+
+BRs
+
+BRs
+Xiaolin
