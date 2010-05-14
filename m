@@ -1,93 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41017 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751732Ab0EZJLC (ORCPT
+Received: from impaqm1.telefonica.net ([213.4.138.1]:44440 "EHLO
+	IMPaqm1.telefonica.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752638Ab0ENAud convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 05:11:02 -0400
-Date: Wed, 26 May 2010 11:10:45 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: linux-arm-kernel@lists.infradead.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/3] mx2_camera: Add soc_camera support for
-	i.MX25/i.MX27
-Message-ID: <20100526091044.GO17272@pengutronix.de>
-References: <cover.1274706733.git.baruch@tkos.co.il> <4c15903511a5c4e6997b190d321b6fdf15bb6579.1274706733.git.baruch@tkos.co.il> <20100525131624.GM17272@pengutronix.de> <20100525132049.GE27702@jasper.tkos.co.il>
+	Thu, 13 May 2010 20:50:33 -0400
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: AF9015 suspend problem
+Date: Fri, 14 May 2010 02:50:30 +0200
+Cc: linux-media@vger.kernel.org
+References: <201005021739.18393.jareguero@telefonica.net> <4BEC70FB.5030002@iki.fi>
+In-Reply-To: <4BEC70FB.5030002@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100525132049.GE27702@jasper.tkos.co.il>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201005140250.30481.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 25, 2010 at 04:20:49PM +0300, Baruch Siach wrote:
-> Hi Sascha,
+El Jueves, 13 de Mayo de 2010, Antti Palosaari escribió:
+> Terve!
 > 
-> On Tue, May 25, 2010 at 03:16:24PM +0200, Sascha Hauer wrote:
-> > On Mon, May 24, 2010 at 04:20:39PM +0300, Baruch Siach wrote:
-> > > This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
-> > > Carvalho de Assis modified the original driver to get it working on more recent
-> > > kernels. I modified it further to add support for i.MX25. This driver has been
-> > > tested on i.MX25 and i.MX27 based platforms.
-> > > 
-> > > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> > > ---
-> > >  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
-> > >  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
-> > >  drivers/media/video/Kconfig              |   13 +
-> > >  drivers/media/video/Makefile             |    1 +
-> > >  drivers/media/video/mx2_camera.c         | 1471 ++++++++++++++++++++++++++++++
-> > >  5 files changed, 1533 insertions(+), 2 deletions(-)
-> > >  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
-> > >  create mode 100644 drivers/media/video/mx2_camera.c
-> > > 
-> > 
-> > [snip]
-> > 
-> > > +
-> > > +static int mclk_get_divisor(struct mx2_camera_dev *pcdev)
-> > > +{
-> > > +	dev_info(pcdev->dev, "%s not implemented. Running at max speed\n",
-> > > +			__func__);
-> > > +
-> > > +#if 0
-> > > +	unsigned int mclk = pcdev->pdata->clk_csi;
-> > > +	unsigned int pclk = clk_get_rate(pcdev->clk_csi);
-> > > +	int i;
-> > > +
-> > > +	dev_dbg(pcdev->dev, "%s: %ld %ld\n", __func__, mclk, pclk);
-> > > +
-> > > +	for (i = 0; i < 0xf; i++)
-> > > +		if ((i + 1) * 2 * mclk <= pclk)
-> > > +			break;
-> > > +	return i;
-> > > +#endif
-> > > +	return 0;
-> > > +}
-> > 
-> > This function, if implemented properly, can be used to add an additional
-> > divider for the sensors master clock. On i.MX27 we can adjust the master
-> > clock using the clk_set_rate below which is sufficient, so you can
-> > remove this function completely.
+> On 05/02/2010 06:39 PM, Jose Alberto Reguero wrote:
+> > When I have a af9015 DVB-T stick plugged I can not recover from pc
+> > suspend. I must unplug the stick to suspend work. Even if I remove the
+> > modules I cannot recover from suspend.
+> > Any idea why this happen?
 > 
-> Very good. I'll do this in the next version of this driver.
+> Did you asked this 7 months ago from me?
+> I did some tests (http://linuxtv.org/hg/~anttip/suspend/) and looks like
+> it is firmware loader problem (fw loader misses something or like
+> that...). No one answered when I asked that from ML, but few weeks ago I
+> saw some discussion. Look ML archives.
 > 
-> I guess I can also remove the mclk_get_divisor call at mx2_camera_add_device 
-> and just leave:
-> 
-> csicr1 = CSICR1_MCLKEN;
-> 
-> Right?
+> regards
+> Antti
 
-Yes.
+I think that is another problem. If I blacklist the af9015 driver and have the 
+stick plugged in, the suspend don't finish, and the system can't resume. If I 
+unplugg the stick the suspend feature work well.
 
-Sascha
-
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Jose Alberto
