@@ -1,70 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:64647 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751396Ab0EJL7a convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 May 2010 07:59:30 -0400
-Received: by gwj19 with SMTP id 19so1851554gwj.19
-        for <linux-media@vger.kernel.org>; Mon, 10 May 2010 04:59:27 -0700 (PDT)
-From: "Leszek Koltunski" <leszek@koltunski.pl>
-Reply-to: "Leszek Koltunski" <leszek@koltunski.pl>
-To: linux-media@vger.kernel.org
-Subject: RE: [linux-dvb] S-1500 + CI
-Date: Mon, 10 May 2010 19:58:19 +0800
-Message-ID: <lM48qsVXYzD2.vb8CNMcG@smtp.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:42358 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753861Ab0ENMSD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 May 2010 08:18:03 -0400
+Message-ID: <4BED3F73.3010708@iki.fi>
+Date: Fri, 14 May 2010 15:17:55 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Language: i-default
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Jose Alberto Reguero <jareguero@telefonica.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: AF9015 suspend problem
+References: <201005021739.18393.jareguero@telefonica.net> <4BEC70FB.5030002@iki.fi> <201005140250.30481.jareguero@telefonica.net>
+In-Reply-To: <201005140250.30481.jareguero@telefonica.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-6 channels with SMIT? You are lucky, the most I have ever gotten is 5 ( actually 11 pids ).
+On 05/14/2010 03:50 AM, Jose Alberto Reguero wrote:
+> El Jueves, 13 de Mayo de 2010, Antti Palosaari escribió:
+>> Terve!
+>>
+>> On 05/02/2010 06:39 PM, Jose Alberto Reguero wrote:
+>>> When I have a af9015 DVB-T stick plugged I can not recover from pc
+>>> suspend. I must unplug the stick to suspend work. Even if I remove the
+>>> modules I cannot recover from suspend.
+>>> Any idea why this happen?
+>>
+>> Did you asked this 7 months ago from me?
+>> I did some tests (http://linuxtv.org/hg/~anttip/suspend/) and looks like
+>> it is firmware loader problem (fw loader misses something or like
+>> that...). No one answered when I asked that from ML, but few weeks ago I
+>> saw some discussion. Look ML archives.
+>>
+>> regards
+>> Antti
+>
+> I think that is another problem. If I blacklist the af9015 driver and have the
+> stick plugged in, the suspend don't finish, and the system can't resume. If I
+> unplugg the stick the suspend feature work well.
 
-Aston claims they can do 12 services (24 pids) the most I have ever gotten out of them is 17 pids (actually 16 pids working well and one more glitching pid)
+Look these and check if it is same problem:
 
-I have also tested PowerCAM - same story, can actually do about 2/3 of what they claim.
+DVB USB resume from suspend crash
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg09974.html
 
--original message-
-Subject: [linux-dvb] S-1500 + CI
-From: Ahmad Issa <issa.leb@gmail.com>
-Date: 10/05/2010 17:24
+Re: tuner XC5000 race condition??
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg18012.html
 
-I have S-1500 + CI installed at openSuse PC , used with SMIT Pro CAM thats
-suppose to descramble 8 channels at same time. I am not able to get more
-than 6 channels. Smit claimed that is a limitation of the CI, I also tried
-OneCam Infinite (8 channels too), same results.
+Bug 15294 -  Oops due to an apparent race between udev and a timeout in 
+firmware_class.c
+https://bugzilla.kernel.org/show_bug.cgi?id=15294
 
+I haven't examined those yet, but I think they could be coming from same 
+issue.
 
-
-I have contact technoTrend and below is their reply:
-
-
-
-*it's not a limitation of the CI, as it's a "silly device", just parsing the
-stream over CAM. Maybe it's a limitation in Linux drivers, which we don't
-support, due to open source. Maybe you get in touch with the Linux community
-first ...*
-
-
-
-
-
-Any Body can help?
-
-
-
-Thanks
-
-
-
-
-
-aissa
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-
+br,
+Antti
+-- 
+http://palosaari.fi/
