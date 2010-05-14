@@ -1,38 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx4.wp.pl ([212.77.101.8]:42139 "EHLO mx4.wp.pl"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:51280 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751831Ab0EUMov (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 May 2010 08:44:51 -0400
-Received: from static-ip-77-89-72-69.promax.media.pl (HELO belafonte2.lan) (p4trykx@[77.89.72.69])
-          (envelope-sender <p4trykx@wp.pl>)
-          by smtp.wp.pl (WP-SMTPD) with AES128-SHA encrypted SMTP
-          for <linux-media@vger.kernel.org>; 21 May 2010 14:38:00 +0200
-Content-Type: text/plain; charset=iso-8859-2; format=flowed; delsp=yes
-Subject: bug in konicawc webcam driver
-Date: Fri, 21 May 2010 14:37:48 +0200
-To: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-From: Patryk <p4trykx@wp.pl>
-Message-ID: <op.vc12pam6d4yz1b@belafonte2.lan>
+	id S1752238Ab0ENGAH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 May 2010 02:00:07 -0400
+Date: Fri, 14 May 2010 08:00:49 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Frank Schaefer <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: gspca-sonixj: ioctl VIDIOC_DQBUF blocks for 3s and retuns EIO
+Message-ID: <20100514080049.1cf7c726@tele>
+In-Reply-To: <4BEC21B9.4010605@googlemail.com>
+References: <4BEC21B9.4010605@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Thu, 13 May 2010 17:58:49 +0200
+Frank Schaefer <fschaefer.oss@googlemail.com> wrote:
 
-I have a problem with usb camera driver. It's konicawc. It was working
-in previous kernels 2.4 for sure (I have an old installation of Slackware  
-2.4.26)
-and perhaps in 2.6. Now in the latest kernel it doesn't work.
-The file is /drivers/media/video/usbvideo/konicawc.c
-I couldn't find anyone in MAINTAINERS for this driver and also
-can't google how to fix this bug.
+> I'm not sure if I'm hitting a bug or this is the expected driver
+> behavior: With a Microsoft LifeCam VX-3000 (045e:00f5) and
+> gspca-sonixj, ioctl VIDIOC_DQBUF intermittently blocks for exactly 3
+> seconds and then returns EIO.
+> I noticed that it strongly depends on the captured scenery: when it's
+> changing much, everything is fine.
+> But when for example capturing the wall under constant (lower) light
+> conditions, I'm getting this error nearly permanently.
+> 
+> It's a JPEG-device, so I guess the device stops sending data if the
+> picture doesn't change and that's how it should be.
+> But is the long blocking + EIO the way drivers should handle this
+> situtation ?
 
-The error message is "Lost sync on frames" the same as here
-https://lists.linux-foundation.org/pipermail/bugme-new/2004-August/010977.html
-There is a patch but it seems it's already applied in current source.
+Hello Frank,
 
-If it could help.I can try older version of 2.6 to find out when this  
-driver broke.
+You are right, this is a bug. I did not know that a webcam could suspend
+streaming when the image did not change. I will remove the timeout.
+
+Thanks.
 
 -- 
-Patryk
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
