@@ -1,118 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1546 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756516Ab0E2OoH (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4387 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752263Ab0EOSip (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 10:44:07 -0400
-Message-Id: <26377cc0d504521ece3b111070bd653ed270950f.1275143672.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1275143672.git.hverkuil@xs4all.nl>
-References: <cover.1275143672.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sat, 29 May 2010 16:45:56 +0200
-Subject: [PATCH 02/15] [RFCv4] v4l2-ctrls: reorder 'case' statements to match order in header.
+	Sat, 15 May 2010 14:38:45 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4FIchvt019632
+	for <linux-media@vger.kernel.org>; Sat, 15 May 2010 20:38:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 15 May 2010 20:38:43 +0200 (CEST)
+Message-Id: <201005151838.o4FIchvt019632@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To make it easier to determine whether all controls are added in v4l2-ctrls.c
-the case statements inside the switch are re-ordered to match the header.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/v4l2-ctrls.c |   30 +++++++++++++++++-------------
- 1 files changed, 17 insertions(+), 13 deletions(-)
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index e565066..477216b 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -266,6 +266,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- {
- 	switch (id) {
- 	/* USER controls */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_USER_CLASS: 		return "User Controls";
- 	case V4L2_CID_BRIGHTNESS: 		return "Brightness";
- 	case V4L2_CID_CONTRAST: 		return "Contrast";
-@@ -296,28 +297,37 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_SHARPNESS:		return "Sharpness";
- 	case V4L2_CID_BACKLIGHT_COMPENSATION:	return "Backlight Compensation";
- 	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
--	case V4L2_CID_CHROMA_GAIN:		return "Chroma Gain";
- 	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
- 	case V4L2_CID_COLORFX:			return "Color Effects";
- 	case V4L2_CID_AUTOBRIGHTNESS:		return "Brightness, Automatic";
- 	case V4L2_CID_BAND_STOP_FILTER:		return "Band-Stop Filter";
- 	case V4L2_CID_ROTATE:			return "Rotate";
- 	case V4L2_CID_BG_COLOR:			return "Background Color";
-+	case V4L2_CID_CHROMA_GAIN:		return "Chroma Gain";
- 
- 	/* MPEG controls */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
-+	case V4L2_CID_MPEG_STREAM_TYPE: 	return "Stream Type";
-+	case V4L2_CID_MPEG_STREAM_PID_PMT: 	return "Stream PMT Program ID";
-+	case V4L2_CID_MPEG_STREAM_PID_AUDIO: 	return "Stream Audio Program ID";
-+	case V4L2_CID_MPEG_STREAM_PID_VIDEO: 	return "Stream Video Program ID";
-+	case V4L2_CID_MPEG_STREAM_PID_PCR: 	return "Stream PCR Program ID";
-+	case V4L2_CID_MPEG_STREAM_PES_ID_AUDIO: return "Stream PES Audio ID";
-+	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
-+	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ: return "Audio Sampling Frequency";
- 	case V4L2_CID_MPEG_AUDIO_ENCODING: 	return "Audio Encoding";
- 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE: 	return "Audio Layer I Bitrate";
- 	case V4L2_CID_MPEG_AUDIO_L2_BITRATE: 	return "Audio Layer II Bitrate";
- 	case V4L2_CID_MPEG_AUDIO_L3_BITRATE: 	return "Audio Layer III Bitrate";
--	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE: 	return "Audio AAC Bitrate";
--	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE: 	return "Audio AC-3 Bitrate";
- 	case V4L2_CID_MPEG_AUDIO_MODE: 		return "Audio Stereo Mode";
- 	case V4L2_CID_MPEG_AUDIO_MODE_EXTENSION: return "Audio Stereo Mode Extension";
- 	case V4L2_CID_MPEG_AUDIO_EMPHASIS: 	return "Audio Emphasis";
- 	case V4L2_CID_MPEG_AUDIO_CRC: 		return "Audio CRC";
- 	case V4L2_CID_MPEG_AUDIO_MUTE: 		return "Audio Mute";
-+	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE: 	return "Audio AAC Bitrate";
-+	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE: 	return "Audio AC-3 Bitrate";
- 	case V4L2_CID_MPEG_VIDEO_ENCODING: 	return "Video Encoding";
- 	case V4L2_CID_MPEG_VIDEO_ASPECT: 	return "Video Aspect";
- 	case V4L2_CID_MPEG_VIDEO_B_FRAMES: 	return "Video B Frames";
-@@ -330,16 +340,9 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_TEMPORAL_DECIMATION: return "Video Temporal Decimation";
- 	case V4L2_CID_MPEG_VIDEO_MUTE: 		return "Video Mute";
- 	case V4L2_CID_MPEG_VIDEO_MUTE_YUV:	return "Video Mute YUV";
--	case V4L2_CID_MPEG_STREAM_TYPE: 	return "Stream Type";
--	case V4L2_CID_MPEG_STREAM_PID_PMT: 	return "Stream PMT Program ID";
--	case V4L2_CID_MPEG_STREAM_PID_AUDIO: 	return "Stream Audio Program ID";
--	case V4L2_CID_MPEG_STREAM_PID_VIDEO: 	return "Stream Video Program ID";
--	case V4L2_CID_MPEG_STREAM_PID_PCR: 	return "Stream PCR Program ID";
--	case V4L2_CID_MPEG_STREAM_PES_ID_AUDIO: return "Stream PES Audio ID";
--	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
--	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
- 
- 	/* CAMERA controls */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
- 	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
- 	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
-@@ -353,14 +356,15 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FOCUS_ABSOLUTE:		return "Focus, Absolute";
- 	case V4L2_CID_FOCUS_RELATIVE:		return "Focus, Relative";
- 	case V4L2_CID_FOCUS_AUTO:		return "Focus, Automatic";
--	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
--	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
- 	case V4L2_CID_ZOOM_ABSOLUTE:		return "Zoom, Absolute";
- 	case V4L2_CID_ZOOM_RELATIVE:		return "Zoom, Relative";
- 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
- 	case V4L2_CID_PRIVACY:			return "Privacy";
-+	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
-+	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
- 
- 	/* FM Radio Modulator control */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
- 	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
- 	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
--- 
-1.6.4.2
+date:        Sat May 15 19:00:18 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14851:16ade09022d9
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc7-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc7-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc7-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc7-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc7-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc7-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc7-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc7-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc7-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
