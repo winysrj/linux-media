@@ -1,82 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:43079 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757211Ab0EKNfk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 May 2010 09:35:40 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, hverkuil@xs4all.nl
-Subject: [PATCH 6/7] v4l: videobuf: Remove videobuf_mapping start and end fields
-Date: Tue, 11 May 2010 15:36:33 +0200
-Message-Id: <1273584994-14211-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1273584994-14211-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1273584994-14211-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mgw1.diku.dk ([130.225.96.91]:44228 "EHLO mgw1.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753446Ab0EOJq7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 May 2010 05:46:59 -0400
+Date: Sat, 15 May 2010 11:46:54 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 4/4] drivers/media/video: Eliminate use after free
+Message-ID: <Pine.LNX.4.64.1005151146370.15566@ask.diku.dk>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The fields are assigned but never used, remove them.
+From: Julia Lawall <julia@diku.dk>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+The error value is saved in a new local variable err before freeing the
+containing structure.
+
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
+
+// <smpl>
+@free@
+expression E;
+position p;
+@@
+kfree@p(E)
+
+@@
+expression free.E, subE<=free.E, E1;
+position free.p;
+@@
+
+  kfree@p(E)
+  ...
+(
+  subE = E1
+|
+* E
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
 ---
- drivers/media/video/videobuf-dma-contig.c |    2 --
- drivers/media/video/videobuf-dma-sg.c     |    2 --
- drivers/media/video/videobuf-vmalloc.c    |    2 --
- include/media/videobuf-core.h             |    2 --
- 4 files changed, 0 insertions(+), 8 deletions(-)
+ drivers/media/video/mem2mem_testdev.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/video/videobuf-dma-contig.c b/drivers/media/video/videobuf-dma-contig.c
-index d87ed21..c5d2552 100644
---- a/drivers/media/video/videobuf-dma-contig.c
-+++ b/drivers/media/video/videobuf-dma-contig.c
-@@ -279,8 +279,6 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 		return -ENOMEM;
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index baf211b..fb73f34 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -858,6 +858,7 @@ static int m2mtest_open(struct file *file)
+ {
+ 	struct m2mtest_dev *dev = video_drvdata(file);
+ 	struct m2mtest_ctx *ctx = NULL;
++	int err;
  
- 	buf->map = map;
--	map->start = vma->vm_start;
--	map->end = vma->vm_end;
- 	map->q = q;
+ 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+ 	if (!ctx)
+@@ -871,8 +872,9 @@ static int m2mtest_open(struct file *file)
  
- 	buf->baddr = vma->vm_start;
-diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
-index 8924e51..2d64040 100644
---- a/drivers/media/video/videobuf-dma-sg.c
-+++ b/drivers/media/video/videobuf-dma-sg.c
-@@ -608,8 +608,6 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 	ctx->m2m_ctx = v4l2_m2m_ctx_init(ctx, dev->m2m_dev, queue_init);
+ 	if (IS_ERR(ctx->m2m_ctx)) {
++		err = PTR_ERR(ctx->m2m_ctx);
+ 		kfree(ctx);
+-		return PTR_ERR(ctx->m2m_ctx);
++		return err;
  	}
  
- 	map->count    = 1;
--	map->start    = vma->vm_start;
--	map->end      = vma->vm_end;
- 	map->q        = q;
- 	vma->vm_ops   = &videobuf_vm_ops;
- 	vma->vm_flags |= VM_DONTEXPAND | VM_RESERVED;
-diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
-index cf5be6b..f0d7cb8 100644
---- a/drivers/media/video/videobuf-vmalloc.c
-+++ b/drivers/media/video/videobuf-vmalloc.c
-@@ -245,8 +245,6 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 		return -ENOMEM;
- 
- 	buf->map = map;
--	map->start = vma->vm_start;
--	map->end   = vma->vm_end;
- 	map->q     = q;
- 
- 	buf->baddr = vma->vm_start;
-diff --git a/include/media/videobuf-core.h b/include/media/videobuf-core.h
-index a157cd1..f2c41ce 100644
---- a/include/media/videobuf-core.h
-+++ b/include/media/videobuf-core.h
-@@ -54,8 +54,6 @@ struct videobuf_queue;
- 
- struct videobuf_mapping {
- 	unsigned int count;
--	unsigned long start;
--	unsigned long end;
- 	struct videobuf_queue *q;
- };
- 
--- 
-1.6.4.4
-
+ 	atomic_inc(&dev->num_inst);
