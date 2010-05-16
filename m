@@ -1,66 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.115.56]:54257 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753307Ab0ESPFd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 May 2010 11:05:33 -0400
-Received: from ::ffff:70.89.177.214 ([70.89.177.214]) by xenotime.net for <linux-media@vger.kernel.org>; Wed, 19 May 2010 08:05:28 -0700
-Message-ID: <4BF3FE3B.9090509@xenotime.net>
-Date: Wed, 19 May 2010 08:05:31 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-MIME-Version: 1.0
-To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 0/10] V4L2 ISP driver patchset for Intel Moorestown
- Camera Imaging Subsystem
-References: <33AB447FBD802F4E932063B962385B351E895D82@shsmsx501.ccr.corp.intel.com>
-In-Reply-To: <33AB447FBD802F4E932063B962385B351E895D82@shsmsx501.ccr.corp.intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2835 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752403Ab0EPNUM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 May 2010 09:20:12 -0400
+Message-Id: <4b2c3f76171e1c71af0b203745099126b4128dfa.1274015085.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1274015084.git.hverkuil@xs4all.nl>
+References: <cover.1274015084.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sun, 16 May 2010 15:21:46 +0200
+Subject: [PATCH 11/15] [RFCv2] wm8775: convert to the new control framework
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Zhang, Xiaolin wrote:
-> Hi linux-media, 
-> 
-> Here is the third version of V4L2 ISP driver patchset for Intel Moorestown camera imaging subsystem to address community feedback, especially from Hans. 
-> 
-> Beginning from this version, I am going to split the whole camera driver into two parts: one is dedicated for v4l2 subdev patchset including 4 different cameras, 1 flash led, 2 VCM lens driver and another one is dedicated for v4l2 ISP patchset including only ISP driver with different logical component. Since it is a complicated one subsystem and after this split, it is more clear without logical dependency and would be a convenient for community review. 
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/wm8775.c |   79 ++++++++++++++++++++++++++---------------
+ 1 files changed, 50 insertions(+), 29 deletions(-)
 
-Please break lines around column 70 to 72.
-
-> In this set of V4L2 ISP driver patches, I will submit the following 10 patches to add intel atom ISP support to the Linux v4l2 subsystem:
-> 
-> 1. control ISP data path setting 
-> 2. control ISP functional block setting
-> 3. 3A statistics block setting.
-> 4. JPEG encoder block setting
-> 5. memory interface and register spec.
-> 6. specific sensor interface setting
-> 7. v4l2 ISP driver implementation.
-> 8. isp/sensor data structure declaration.
-> 9. private ioctl information.
-> 10. build system change.
-> 
-> Please review them and comments are welcome as always. 
-
-Please see Documentation/SubmittingPatches, section 15:
-The canonical patch format, especially the Subject: line part,
-which says:
-
-The "subsystem" in the email's Subject should identify which
-area or subsystem of the kernel is being patched.
-
-The "summary phrase" in the email's Subject should concisely
-describe the patch which that email contains.  The "summary
-phrase" should not be a filename.  Do not use the same "summary
-phrase" for every patch in a whole patch series (where a "patch
-series" is an ordered sequence of multiple, related patches).
-
-
-Basically your 10 items above should be in the subject line of
-the 10 patches:
-
-Subject: [PATCH 1/10] v4l ISP: control ISP data path setting
-
-etc.
+diff --git a/drivers/media/video/wm8775.c b/drivers/media/video/wm8775.c
+index f1f261a..09a9663 100644
+--- a/drivers/media/video/wm8775.c
++++ b/drivers/media/video/wm8775.c
+@@ -34,6 +34,7 @@
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-chip-ident.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-i2c-drv.h>
+ 
+ MODULE_DESCRIPTION("wm8775 driver");
+@@ -52,8 +53,9 @@ enum {
+ 
+ struct wm8775_state {
+ 	struct v4l2_subdev sd;
++	struct v4l2_ctrl_handler hdl;
++	struct v4l2_ctrl *mute;
+ 	u8 input;		/* Last selected input (0-0xf) */
+-	u8 muted;
+ };
+ 
+ static inline struct wm8775_state *to_state(struct v4l2_subdev *sd)
+@@ -61,6 +63,11 @@ static inline struct wm8775_state *to_state(struct v4l2_subdev *sd)
+ 	return container_of(sd, struct wm8775_state, sd);
+ }
+ 
++static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
++{
++	return &container_of(ctrl->handler, struct wm8775_state, hdl)->sd;
++}
++
+ static int wm8775_write(struct v4l2_subdev *sd, int reg, u16 val)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -94,7 +101,7 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 	}
+ 	state->input = input;
+-	if (state->muted)
++	if (!v4l2_ctrl_g_ctrl(state->mute))
+ 		return 0;
+ 	wm8775_write(sd, R21, 0x0c0);
+ 	wm8775_write(sd, R14, 0x1d4);
+@@ -103,29 +110,21 @@ static int wm8775_s_routing(struct v4l2_subdev *sd,
+ 	return 0;
+ }
+ 
+-static int wm8775_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int wm8775_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
++	struct v4l2_subdev *sd = to_sd(ctrl);
+ 	struct wm8775_state *state = to_state(sd);
+ 
+-	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
+-		return -EINVAL;
+-	ctrl->value = state->muted;
+-	return 0;
+-}
+-
+-static int wm8775_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+-	struct wm8775_state *state = to_state(sd);
+-
+-	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
+-		return -EINVAL;
+-	state->muted = ctrl->value;
+-	wm8775_write(sd, R21, 0x0c0);
+-	wm8775_write(sd, R14, 0x1d4);
+-	wm8775_write(sd, R15, 0x1d4);
+-	if (!state->muted)
+-		wm8775_write(sd, R21, 0x100 + state->input);
+-	return 0;
++	switch (ctrl->id) {
++	case V4L2_CID_AUDIO_MUTE:
++		wm8775_write(sd, R21, 0x0c0);
++		wm8775_write(sd, R14, 0x1d4);
++		wm8775_write(sd, R15, 0x1d4);
++		if (!ctrl->val)
++			wm8775_write(sd, R21, 0x100 + state->input);
++		return 0;
++	}
++	return -EINVAL;
+ }
+ 
+ static int wm8775_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
+@@ -139,8 +138,8 @@ static int wm8775_log_status(struct v4l2_subdev *sd)
+ {
+ 	struct wm8775_state *state = to_state(sd);
+ 
+-	v4l2_info(sd, "Input: %d%s\n", state->input,
+-			state->muted ? " (muted)" : "");
++	v4l2_info(sd, "Input: %d\n", state->input);
++	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
+ 	return 0;
+ }
+ 
+@@ -161,11 +160,20 @@ static int wm8775_s_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *fre
+ 
+ /* ----------------------------------------------------------------------- */
+ 
++static const struct v4l2_ctrl_ops wm8775_ctrl_ops = {
++	.s_ctrl = wm8775_s_ctrl,
++};
++
+ static const struct v4l2_subdev_core_ops wm8775_core_ops = {
+ 	.log_status = wm8775_log_status,
+ 	.g_chip_ident = wm8775_g_chip_ident,
+-	.g_ctrl = wm8775_g_ctrl,
+-	.s_ctrl = wm8775_s_ctrl,
++	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
++	.g_ctrl = v4l2_subdev_g_ctrl,
++	.s_ctrl = v4l2_subdev_s_ctrl,
++	.queryctrl = v4l2_subdev_queryctrl,
++	.querymenu = v4l2_subdev_querymenu,
+ };
+ 
+ static const struct v4l2_subdev_tuner_ops wm8775_tuner_ops = {
+@@ -204,13 +212,24 @@ static int wm8775_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+ 
+-	state = kmalloc(sizeof(struct wm8775_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct wm8775_state), GFP_KERNEL);
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &wm8775_ops);
+ 	state->input = 2;
+-	state->muted = 0;
++
++	v4l2_ctrl_handler_init(&state->hdl, 1);
++	state->mute = v4l2_ctrl_new_std(&state->hdl, &wm8775_ctrl_ops,
++			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
++	sd->ctrl_handler = &state->hdl;
++	if (state->hdl.error) {
++		int err = state->hdl.error;
++
++		v4l2_ctrl_handler_free(&state->hdl);
++		kfree(state);
++		return err;
++	}
+ 
+ 	/* Initialize wm8775 */
+ 
+@@ -247,9 +266,11 @@ static int wm8775_probe(struct i2c_client *client,
+ static int wm8775_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct wm8775_state *state = to_state(sd);
+ 
+ 	v4l2_device_unregister_subdev(sd);
+-	kfree(to_state(sd));
++	v4l2_ctrl_handler_free(&state->hdl);
++	kfree(state);
+ 	return 0;
+ }
+ 
+-- 
+1.6.4.2
 
