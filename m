@@ -1,190 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3519 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753147Ab0EINzu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 09:55:50 -0400
-Message-Id: <a62f14806c8cef3e95bb11ee18f8ce20b79db580.1273413060.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1273413060.git.hverkuil@xs4all.nl>
-References: <cover.1273413060.git.hverkuil@xs4all.nl>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2218 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753087Ab0EPNTN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 May 2010 09:19:13 -0400
+Message-Id: <cover.1274015084.git.hverkuil@xs4all.nl>
 From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 09 May 2010 15:57:20 +0200
-Subject: [PATCH 6/6] [RFC] tvp514x: simplify try/g/s_fmt handling
+Date: Sun, 16 May 2010 15:20:43 +0200
+Subject: [PATCH 00/15] [RFCv2] [RFC] New control handling framework
 To: linux-media@vger.kernel.org
-Cc: hvaibhav@ti.com
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since there is only one possible format just have all three calls
-do the same.
+This RFC patch series adds the control handling framework and implements
+it in ivtv and all subdev drivers used by ivtv.
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/tvp514x.c |   98 ++++-------------------------------------
- 1 files changed, 9 insertions(+), 89 deletions(-)
+It is a bare-bones implementation, so no sysfs or debugfs enhancements.
 
-diff --git a/drivers/media/video/tvp514x.c b/drivers/media/video/tvp514x.c
-index 1c3417b..b0465d2 100644
---- a/drivers/media/video/tvp514x.c
-+++ b/drivers/media/video/tvp514x.c
-@@ -87,7 +87,6 @@ static int tvp514x_s_stream(struct v4l2_subdev *sd, int enable);
-  * @pdata: Board specific
-  * @ver: Chip version
-  * @streaming: TVP5146/47 decoder streaming - enabled or disabled.
-- * @pix: Current pixel format
-  * @current_std: Current standard
-  * @num_stds: Number of standards
-  * @std_list: Standards list
-@@ -102,8 +101,6 @@ struct tvp514x_decoder {
- 	int ver;
- 	int streaming;
- 
--	struct v4l2_pix_format pix;
--
- 	enum tvp514x_std current_std;
- 	int num_stds;
- 	const struct tvp514x_std_info *std_list;
-@@ -956,16 +953,15 @@ tvp514x_enum_fmt_cap(struct v4l2_subdev *sd, struct v4l2_fmtdesc *fmt)
- }
- 
- /**
-- * tvp514x_try_fmt_cap() - V4L2 decoder interface handler for try_fmt
-+ * tvp514x_fmt_cap() - V4L2 decoder interface handler for try/s/g_fmt
-  * @sd: pointer to standard V4L2 sub-device structure
-  * @f: pointer to standard V4L2 VIDIOC_TRY_FMT ioctl structure
-  *
-- * Implement the VIDIOC_TRY_FMT ioctl for the CAPTURE buffer type. This
-- * ioctl is used to negotiate the image capture size and pixel format
-- * without actually making it take effect.
-+ * Implement the VIDIOC_TRY/S/G_FMT ioctl for the CAPTURE buffer type. This
-+ * ioctl is used to negotiate the image capture size and pixel format.
-  */
- static int
--tvp514x_try_fmt_cap(struct v4l2_subdev *sd, struct v4l2_format *f)
-+tvp514x_fmt_cap(struct v4l2_subdev *sd, struct v4l2_format *f)
- {
- 	struct tvp514x_decoder *decoder = to_decoder(sd);
- 	struct v4l2_pix_format *pix;
-@@ -975,8 +971,7 @@ tvp514x_try_fmt_cap(struct v4l2_subdev *sd, struct v4l2_format *f)
- 		return -EINVAL;
- 
- 	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		/* only capture is supported */
--		f->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+		return -EINVAL;
- 
- 	pix = &f->fmt.pix;
- 
-@@ -992,7 +987,7 @@ tvp514x_try_fmt_cap(struct v4l2_subdev *sd, struct v4l2_format *f)
- 	pix->colorspace = V4L2_COLORSPACE_SMPTE170M;
- 	pix->priv = 0;
- 
--	v4l2_dbg(1, debug, sd, "Try FMT: bytesperline - %d"
-+	v4l2_dbg(1, debug, sd, "FMT: bytesperline - %d"
- 			"Width - %d, Height - %d\n",
- 			pix->bytesperline,
- 			pix->width, pix->height);
-@@ -1000,68 +995,6 @@ tvp514x_try_fmt_cap(struct v4l2_subdev *sd, struct v4l2_format *f)
- }
- 
- /**
-- * tvp514x_s_fmt_cap() - V4L2 decoder interface handler for s_fmt
-- * @sd: pointer to standard V4L2 sub-device structure
-- * @f: pointer to standard V4L2 VIDIOC_S_FMT ioctl structure
-- *
-- * If the requested format is supported, configures the HW to use that
-- * format, returns error code if format not supported or HW can't be
-- * correctly configured.
-- */
--static int
--tvp514x_s_fmt_cap(struct v4l2_subdev *sd, struct v4l2_format *f)
--{
--	struct tvp514x_decoder *decoder = to_decoder(sd);
--	struct v4l2_pix_format *pix;
--	int rval;
--
--	if (f == NULL)
--		return -EINVAL;
--
--	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		/* only capture is supported */
--		return -EINVAL;
--
--	pix = &f->fmt.pix;
--	rval = tvp514x_try_fmt_cap(sd, f);
--	if (rval)
--		return rval;
--
--		decoder->pix = *pix;
--
--	return rval;
--}
--
--/**
-- * tvp514x_g_fmt_cap() - V4L2 decoder interface handler for tvp514x_g_fmt_cap
-- * @sd: pointer to standard V4L2 sub-device structure
-- * @f: pointer to standard V4L2 v4l2_format structure
-- *
-- * Returns the decoder's current pixel format in the v4l2_format
-- * parameter.
-- */
--static int
--tvp514x_g_fmt_cap(struct v4l2_subdev *sd, struct v4l2_format *f)
--{
--	struct tvp514x_decoder *decoder = to_decoder(sd);
--
--	if (f == NULL)
--		return -EINVAL;
--
--	if (f->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		/* only capture is supported */
--		return -EINVAL;
--
--	f->fmt.pix = decoder->pix;
--
--	v4l2_dbg(1, debug, sd, "Current FMT: bytesperline - %d"
--			"Width - %d, Height - %d\n",
--			decoder->pix.bytesperline,
--			decoder->pix.width, decoder->pix.height);
--	return 0;
--}
--
--/**
-  * tvp514x_g_parm() - V4L2 decoder interface handler for g_parm
-  * @sd: pointer to standard V4L2 sub-device structure
-  * @a: pointer to standard V4L2 VIDIOC_G_PARM ioctl structure
-@@ -1198,9 +1131,9 @@ static const struct v4l2_subdev_video_ops tvp514x_video_ops = {
- 	.s_routing = tvp514x_s_routing,
- 	.querystd = tvp514x_querystd,
- 	.enum_fmt = tvp514x_enum_fmt_cap,
--	.g_fmt = tvp514x_g_fmt_cap,
--	.try_fmt = tvp514x_try_fmt_cap,
--	.s_fmt = tvp514x_s_fmt_cap,
-+	.g_fmt = tvp514x_fmt_cap,
-+	.try_fmt = tvp514x_fmt_cap,
-+	.s_fmt = tvp514x_fmt_cap,
- 	.g_parm = tvp514x_g_parm,
- 	.s_parm = tvp514x_s_parm,
- 	.s_stream = tvp514x_s_stream,
-@@ -1213,19 +1146,6 @@ static const struct v4l2_subdev_ops tvp514x_ops = {
- 
- static struct tvp514x_decoder tvp514x_dev = {
- 	.streaming = 0,
--
--	.pix = {
--		/* Default to NTSC 8-bit YUV 422 */
--		.width = NTSC_NUM_ACTIVE_PIXELS,
--		.height = NTSC_NUM_ACTIVE_LINES,
--		.pixelformat = V4L2_PIX_FMT_UYVY,
--		.field = V4L2_FIELD_INTERLACED,
--		.bytesperline = NTSC_NUM_ACTIVE_PIXELS * 2,
--		.sizeimage =
--		NTSC_NUM_ACTIVE_PIXELS * 2 * NTSC_NUM_ACTIVE_LINES,
--		.colorspace = V4L2_COLORSPACE_SMPTE170M,
--		},
--
- 	.current_std = STD_NTSC_MJ,
- 	.std_list = tvp514x_std_list,
- 	.num_stds = ARRAY_SIZE(tvp514x_std_list),
--- 
-1.6.4.2
+It is the second version of this framework, incorporating comments from
+Laurent.
+
+Changes compared to the first version:
+
+- Updated the documentation, hopefully making it easier to understand.
+- v4l2_ctrl_new_custom now uses a new v4l2_ctrl_config struct instead of
+  a long argument list.
+- v4l2_ctrl_g/s is now renamed to v4l2_ctrl_g/s_ctrl.
+- The v4l2_ctrl.h header now uses kernel doc comments.
+- Removed the 'strict validation' feature.
+- Added a new .init op that allows you to initialize many of the v4l2_ctrl
+  fields on first use. Required by uvc.
+- No longer needed to initialize ctrl_handler in struct video_device. It
+  will copy the ctrl_handler from struct v4l2_device if needed.
+- Renamed the v4l2_sd_* helper functions to v4l2_subdev_*.
+
+I decided *not* to rename the v4l2_ctrl struct. What does the struct describe?
+A control. Period. So I really don't know what else to call it. Every other
+name I can think of is contrived. It really encapsulates all the data and info
+that describes a control and its state. Yes, it is close to struct v4l2_control,
+but on the other hand any driver that uses this framework will no longer use
+v4l2_control (or v4l2_ext_controls for that matter). It will only use v4l2_ctrl.
+So I do not think there will be much cause for confusion here.
+
+Anyway, comments are welcome.
+
+Once this is in then we can start migrating all subdev drivers to this
+framework, followed by all bridge drivers. Converted subdev drivers can
+still be used by unconverted bridge drivers. Once all bridge drivers are
+converted the subdev backwards compatibility code can be removed.
+
+The same is true for the cx2341x module: both converted and unconverted
+bridge drivers are supported. Once all bridge drivers that use this module
+are converted the compat code can be removed from cx2341x (and that will
+save about 1060 lines of hard to understand code).
+
+Regards,
+
+        Hans
+
+Hans Verkuil (15):
+  v4l2: Add new control handling framework
+  v4l2-ctrls: reorder 'case' statements to match order in header.
+  Documentation: add v4l2-controls.txt documenting the new controls
+    API.
+  v4l2: hook up the new control framework into the core framework
+  saa7115: convert to the new control framework
+  msp3400: convert to the new control framework
+  saa717x: convert to the new control framework
+  cx25840/ivtv: replace ugly priv control with s_config
+  cx25840: convert to the new control framework
+  cx2341x: convert to the control framework
+  wm8775: convert to the new control framework
+  cs53l32a: convert to new control framework.
+  wm8739: convert to the new control framework
+  ivtv: convert gpio subdev to new control framework.
+  ivtv: convert to the new control framework
+
+ Documentation/video4linux/v4l2-controls.txt |  600 +++++++++
+ drivers/media/video/Makefile                |    2 +-
+ drivers/media/video/cs53l32a.c              |  107 +-
+ drivers/media/video/cx2341x.c               |  734 +++++++++--
+ drivers/media/video/cx25840/cx25840-audio.c |  144 +--
+ drivers/media/video/cx25840/cx25840-core.c  |  201 ++--
+ drivers/media/video/cx25840/cx25840-core.h  |   23 +-
+ drivers/media/video/ivtv/ivtv-controls.c    |  275 +----
+ drivers/media/video/ivtv/ivtv-controls.h    |    6 +-
+ drivers/media/video/ivtv/ivtv-driver.c      |   26 +-
+ drivers/media/video/ivtv/ivtv-driver.h      |    4 +-
+ drivers/media/video/ivtv/ivtv-fileops.c     |   23 +-
+ drivers/media/video/ivtv/ivtv-firmware.c    |    6 +-
+ drivers/media/video/ivtv/ivtv-gpio.c        |   77 +-
+ drivers/media/video/ivtv/ivtv-i2c.c         |    7 +
+ drivers/media/video/ivtv/ivtv-ioctl.c       |   31 +-
+ drivers/media/video/ivtv/ivtv-streams.c     |   20 +-
+ drivers/media/video/msp3400-driver.c        |  248 ++---
+ drivers/media/video/msp3400-driver.h        |   16 +-
+ drivers/media/video/msp3400-kthreads.c      |   16 +-
+ drivers/media/video/saa7115.c               |  180 ++--
+ drivers/media/video/saa717x.c               |  323 ++----
+ drivers/media/video/v4l2-common.c           |  479 +-------
+ drivers/media/video/v4l2-ctrls.c            | 1844 +++++++++++++++++++++++++++
+ drivers/media/video/v4l2-dev.c              |    8 +-
+ drivers/media/video/v4l2-device.c           |    7 +
+ drivers/media/video/v4l2-ioctl.c            |   46 +-
+ drivers/media/video/wm8739.c                |  176 +--
+ drivers/media/video/wm8775.c                |   79 +-
+ include/media/cx2341x.h                     |   81 ++
+ include/media/cx25840.h                     |   11 +
+ include/media/v4l2-ctrls.h                  |  448 +++++++
+ include/media/v4l2-dev.h                    |    4 +
+ include/media/v4l2-device.h                 |    4 +
+ include/media/v4l2-subdev.h                 |    3 +
+ 35 files changed, 4351 insertions(+), 1908 deletions(-)
+ create mode 100644 Documentation/video4linux/v4l2-controls.txt
+ create mode 100644 drivers/media/video/v4l2-ctrls.c
+ create mode 100644 include/media/v4l2-ctrls.h
 
