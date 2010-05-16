@@ -1,37 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:45013 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752883Ab0EEH1s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 03:27:48 -0400
-Received: by fxm10 with SMTP id 10so3943607fxm.19
-        for <linux-media@vger.kernel.org>; Wed, 05 May 2010 00:27:47 -0700 (PDT)
-Date: Wed, 5 May 2010 09:27:38 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@suse.de>, linux-media@vger.kernel.org
-Subject: -next: staging/cx25821: please revert 7a02f549fcc
-Message-ID: <20100505072738.GH27064@bicker>
+Received: from mail-gx0-f217.google.com ([209.85.217.217]:35728 "EHLO
+	mail-gx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751503Ab0EPHK4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 May 2010 03:10:56 -0400
+Received: by gxk9 with SMTP id 9so2596162gxk.8
+        for <linux-media@vger.kernel.org>; Sun, 16 May 2010 00:10:55 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+From: Pshem Kowalczyk <pshem.k@gmail.com>
+Date: Sun, 16 May 2010 19:10:35 +1200
+Message-ID: <AANLkTik9j_Md07Ry17VXLY7-GKP6yKHi0YM0dFXX9GlX@mail.gmail.com>
+Subject: Hauppage Nova-500-td problems
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This was my patch:  "cx25821: fix double unlock in medusa_video_init()"
+Hi,
 
-It accidentally got merged two times.  The version from the staging tree
-is not correct.  Please can you revert it:
-7a02f549fcc30fe6be0c0024beae9a3db22e1af6 "Staging: cx25821: fix double
-unlock in medusa_video_init()"
+I've recently bought Hauppage nova-500-td for my mythtv backend. The
+card works mostly fine, but every now and then it looks like it
+doesn't tune to the channel properly (I think) - video and sound
+remain garbled for prolonged periods of time (2-5 minutes), but
+ultimately recover. This usually happens when the other tuner on the
+card is tuned to the same mux. Signal quality I get is around 70% and
+about 2.5dB of signal to noise (as reported by mythtv), but when the
+issue occurs regardless of what the numbers show.
 
-I guess this is going through the V4L/DVB so it needs to be reverted
-there as well as in the -staging tree.
+I'm not entirely sure if that's a hardware or software issue (have no
+windows based pc to try with), but I already got the the card replaced
+once, so if it's hardware it might be something else then the card
+itself. I know that some other people reported issues as well as
+suggested patches, but I haven't found anything conclusive. Currently
+I run the hg tip version of v4l-dvb with 2.6.32 kernel on gentoo.
 
-Sorry for the inconvenience.
+I would like to know if anyone else experienced something similar
+issues, and probably the more important part -how can I help to
+troubleshoot and debug the problem?
 
-regards,
-dan carpenter
-
-PS. The correct version is:  423f5c0d016 "V4L/DVB (13955): cx25821: fix 
-double unlock in medusa_video_init()".  That one is needed and fixes a bug
-
+kind regards
+Pshem
