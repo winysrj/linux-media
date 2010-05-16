@@ -1,126 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:58389 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757139Ab0EBR0e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 13:26:34 -0400
-Received: by vws19 with SMTP id 19so1236886vws.19
-        for <linux-media@vger.kernel.org>; Sun, 02 May 2010 10:26:33 -0700 (PDT)
-Message-ID: <4BDDB5C3.6020306@gmail.com>
-Date: Sun, 02 May 2010 14:26:27 -0300
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
-MIME-Version: 1.0
-To: Bee Hock Goh <beehock@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] tm6000: Prevent Kernel Oops changing channel when stream
- is 	still on.
-References: <u2s6e8e83e21005010151ie123c8e5o45e7d0a3bbc8aa64@mail.gmail.com> <4BDD8F65.80602@redhat.com>
-In-Reply-To: <4BDD8F65.80602@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4701 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754352Ab0EPNTR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 May 2010 09:19:17 -0400
+Message-Id: <a68680ffd1a15f5a71dd83ac82e5e641102263f1.1274015085.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1274015084.git.hverkuil@xs4all.nl>
+References: <cover.1274015084.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sun, 16 May 2010 15:20:54 +0200
+Subject: [PATCH 02/15] [RFCv2] v4l2-ctrls: reorder 'case' statements to match order in header.
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab wrote:
-> Hi Bee,
-> 
-> Bee Hock Goh wrote:
->> do a streamoff before setting standard to prevent kernel oops by
->> irq_callback if changing of channel is done while streaming is still
->> on-going.
-> 
-> This doesn't seem to be the right thing to do. The problem here is that
-> changing a video standard takes a long time to happen. As calling an
-> ioctl is protected by KBL, QBUF/DQBUF won't be called, so, the driver
-> will run out of the buffers, and *buf will become null. This can eventually
-> happen during copy_streams().
-> 
-> ---
-> 
-> tm6000: Fix a panic if buffer become NULL
-> 
-> Changing a video standard takes a long time to happen on tm6000, since it
-> needs to load another firmware, and the i2c implementation on this device
-> is really slow. As calling an ioctl is protected by KBL, QBUF/DQBUF won't 
-> be called, so, the driver will run out of the buffers, and *buf will become 
-> NULL. This can eventually happen during copy_streams(). The fix is to leave
-> the URB copy loop, if there's no more buffers available.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/linux/drivers/staging/tm6000/tm6000-video.c b/linux/drivers/staging/tm6000/tm6000-video.c
+To make it easier to determine whether all controls are added in v4l2-ctrls.c
+the case statements inside the switch are re-ordered to match the header.
 
-Sorry, I sent the wrong one. That's the proper fix. I've also improved
-the comments to better express what's happening.
-
-Tested here with HVR-900H and the Panic disappeared.
-
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
+ drivers/media/video/v4l2-ctrls.c |   30 +++++++++++++++++-------------
+ 1 files changed, 17 insertions(+), 13 deletions(-)
 
-tm6000: Fix a panic if buffer become NULL
-
-Changing a video standard takes a long time to happen on tm6000, since it
-needs to load another firmware, and the i2c implementation on this device
-is really slow. When the driver tries to change the video standard, a
-kernel panic is produced:
-
-BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
-IP: [<ffffffffa0c7b48a>] tm6000_irq_callback+0x57f/0xac2 [tm6000]
-...
-Kernel panic - not syncing: Fatal exception in interrupt
-
-By inspecting it with gdb:
-
-(gdb) list *tm6000_irq_callback+0x57f
-0x348a is in tm6000_irq_callback (drivers/staging/tm6000/tm6000-video.c:202).
-197             /* FIXME: move to tm6000-isoc */
-198             static int last_line = -2, start_line = -2, last_field = -2;
-199
-200             /* FIXME: this is the hardcoded window size
-201              */
-202             unsigned int linewidth = (*buf)->vb.width << 1;
-203
-204             if (!dev->isoc_ctl.cmd) {
-205                     c = (header >> 24) & 0xff;
-206
-
-Clearly, it was the trial to access *buf, at line 202 that caused the
-Panic.
-
-As ioctl is serialized, While S_STD is handled,QBUF/DQBUF won't be called.
-So, the driver will run out of the buffers, and *buf will become NULL. 
-
-As, on tm6000, the same URB can contain more than one video buffer, it is
-likely to hit a condition where no new buffer is available whily copying
-the streams. The fix is to leave the URB copy loop, if there's no more buffers 
-are available.
-
-The same bug could also be produced by an application that is not fast enough
-to request new video buffers.
-
-The same bug were reported by Bee Hock Goh <beehock@gmail.com>.
-
-Thanks-to: Bee Hock Goh <beehock@gmail.com> for reporting the bug
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-Index: work.x86-64/drivers/staging/tm6000/tm6000-video.c
-===================================================================
---- work.x86-64.orig/drivers/staging/tm6000/tm6000-video.c
-+++ work.x86-64/drivers/staging/tm6000/tm6000-video.c
-@@ -395,6 +395,8 @@ HEADER:
- 					jiffies);
- 			return rc;
- 		}
-+		if (!*buf)
-+			return 0;
- 	}
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 6c97ff0..21bf740 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -266,6 +266,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ {
+ 	switch (id) {
+ 	/* USER controls */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
+ 	case V4L2_CID_USER_CLASS: 		return "User Controls";
+ 	case V4L2_CID_BRIGHTNESS: 		return "Brightness";
+ 	case V4L2_CID_CONTRAST: 		return "Contrast";
+@@ -296,28 +297,37 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_SHARPNESS:		return "Sharpness";
+ 	case V4L2_CID_BACKLIGHT_COMPENSATION:	return "Backlight Compensation";
+ 	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
+-	case V4L2_CID_CHROMA_GAIN:		return "Chroma Gain";
+ 	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
+ 	case V4L2_CID_COLORFX:			return "Color Effects";
+ 	case V4L2_CID_AUTOBRIGHTNESS:		return "Brightness, Automatic";
+ 	case V4L2_CID_BAND_STOP_FILTER:		return "Band-Stop Filter";
+ 	case V4L2_CID_ROTATE:			return "Rotate";
+ 	case V4L2_CID_BG_COLOR:			return "Background Color";
++	case V4L2_CID_CHROMA_GAIN:		return "Chroma Gain";
  
- 	return 0;
-@@ -528,7 +530,7 @@ static inline int tm6000_isoc_copy(struc
- 				}
- 			}
- 			copied += len;
--			if (copied>=size)
-+			if (copied >= size || !buf)
- 				break;
- //		}
- 	}
+ 	/* MPEG controls */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
+ 	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
++	case V4L2_CID_MPEG_STREAM_TYPE: 	return "Stream Type";
++	case V4L2_CID_MPEG_STREAM_PID_PMT: 	return "Stream PMT Program ID";
++	case V4L2_CID_MPEG_STREAM_PID_AUDIO: 	return "Stream Audio Program ID";
++	case V4L2_CID_MPEG_STREAM_PID_VIDEO: 	return "Stream Video Program ID";
++	case V4L2_CID_MPEG_STREAM_PID_PCR: 	return "Stream PCR Program ID";
++	case V4L2_CID_MPEG_STREAM_PES_ID_AUDIO: return "Stream PES Audio ID";
++	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
++	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ: return "Audio Sampling Frequency";
+ 	case V4L2_CID_MPEG_AUDIO_ENCODING: 	return "Audio Encoding";
+ 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE: 	return "Audio Layer I Bitrate";
+ 	case V4L2_CID_MPEG_AUDIO_L2_BITRATE: 	return "Audio Layer II Bitrate";
+ 	case V4L2_CID_MPEG_AUDIO_L3_BITRATE: 	return "Audio Layer III Bitrate";
+-	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE: 	return "Audio AAC Bitrate";
+-	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE: 	return "Audio AC-3 Bitrate";
+ 	case V4L2_CID_MPEG_AUDIO_MODE: 		return "Audio Stereo Mode";
+ 	case V4L2_CID_MPEG_AUDIO_MODE_EXTENSION: return "Audio Stereo Mode Extension";
+ 	case V4L2_CID_MPEG_AUDIO_EMPHASIS: 	return "Audio Emphasis";
+ 	case V4L2_CID_MPEG_AUDIO_CRC: 		return "Audio CRC";
+ 	case V4L2_CID_MPEG_AUDIO_MUTE: 		return "Audio Mute";
++	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE: 	return "Audio AAC Bitrate";
++	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE: 	return "Audio AC-3 Bitrate";
+ 	case V4L2_CID_MPEG_VIDEO_ENCODING: 	return "Video Encoding";
+ 	case V4L2_CID_MPEG_VIDEO_ASPECT: 	return "Video Aspect";
+ 	case V4L2_CID_MPEG_VIDEO_B_FRAMES: 	return "Video B Frames";
+@@ -330,16 +340,9 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_TEMPORAL_DECIMATION: return "Video Temporal Decimation";
+ 	case V4L2_CID_MPEG_VIDEO_MUTE: 		return "Video Mute";
+ 	case V4L2_CID_MPEG_VIDEO_MUTE_YUV:	return "Video Mute YUV";
+-	case V4L2_CID_MPEG_STREAM_TYPE: 	return "Stream Type";
+-	case V4L2_CID_MPEG_STREAM_PID_PMT: 	return "Stream PMT Program ID";
+-	case V4L2_CID_MPEG_STREAM_PID_AUDIO: 	return "Stream Audio Program ID";
+-	case V4L2_CID_MPEG_STREAM_PID_VIDEO: 	return "Stream Video Program ID";
+-	case V4L2_CID_MPEG_STREAM_PID_PCR: 	return "Stream PCR Program ID";
+-	case V4L2_CID_MPEG_STREAM_PES_ID_AUDIO: return "Stream PES Audio ID";
+-	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
+-	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
+ 
+ 	/* CAMERA controls */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
+ 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+ 	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
+ 	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
+@@ -353,14 +356,15 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FOCUS_ABSOLUTE:		return "Focus, Absolute";
+ 	case V4L2_CID_FOCUS_RELATIVE:		return "Focus, Relative";
+ 	case V4L2_CID_FOCUS_AUTO:		return "Focus, Automatic";
+-	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
+-	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+ 	case V4L2_CID_ZOOM_ABSOLUTE:		return "Zoom, Absolute";
+ 	case V4L2_CID_ZOOM_RELATIVE:		return "Zoom, Relative";
+ 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
++	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
++	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+ 
+ 	/* FM Radio Modulator control */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
+ 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
+ 	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
+ 	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
+-- 
+1.6.4.2
+
