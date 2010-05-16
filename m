@@ -1,540 +1,633 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:29442 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755285Ab0ERJWN convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1953 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754462Ab0EPNTY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 May 2010 05:22:13 -0400
-From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Tue, 18 May 2010 17:22:04 +0800
-Subject: [PATCH v3 1/8] V4L2 subdev patchset for Intel Moorestown Camera
- Imaging Subsystem
-Message-ID: <33AB447FBD802F4E932063B962385B351E89572D@shsmsx501.ccr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sun, 16 May 2010 09:19:24 -0400
+Message-Id: <c4116a8d705331ab8086902841bea31d4aa50a1f.1274015085.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1274015084.git.hverkuil@xs4all.nl>
+References: <cover.1274015084.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sun, 16 May 2010 15:20:57 +0200
+Subject: [PATCH 03/15] [RFCv2] Documentation: add v4l2-controls.txt documenting the new controls API.
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 50009eae70b1e69f053cd567375d2394fd926203 Mon Sep 17 00:00:00 2001
-From: Xiaolin Zhang <xiaolin.zhang@intel.com>
-Date: Tue, 18 May 2010 15:20:59 +0800
-Subject: [PATCH 1/8] the common sensor v4l2-subdev private structures and resolutions definition
- ued in ov2650, ov5630, ov9665, s5k4e1 v4l2-subdev sensor drivers.
-
-Signed-off-by: Xiaolin Zhang <xiaolin.zhang@intel.com>
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/Kconfig              |   75 ++++++
- drivers/media/video/Makefile             |    9 +
- drivers/media/video/mrst_sensor_common.h |  378 ++++++++++++++++++++++++++++++
- 3 files changed, 462 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/mrst_sensor_common.h
+ Documentation/video4linux/v4l2-controls.txt |  600 +++++++++++++++++++++++++++
+ 1 files changed, 600 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/v4l2-controls.txt
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 9644cf7..d23adcc 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -332,6 +332,79 @@ config VIDEO_TCM825X
-          This is a driver for the Toshiba TCM825x VGA camera sensor.
-          It is used for example in Nokia N800.
-
-+config VIDEO_OV2650
-+        tristate "OmniVision OV2650 SoC Sensor support"
-+        depends on I2C && VIDEO_V4L2
-+
-+        ---help---
-+          This is a Video4Linux2 sensor-level driver for the OmniVision
-+          OV2650 2MP camera. It currently only works with the Intel Atom
-+          (Moorestown) platform.
-+
-+config VIDEO_OV9665
-+       tristate "OmniVision OV9665 SoC Sensor support"
-+       depends on I2C && VIDEO_V4L2
-+
-+       ---help---
-+         This is a Video4Linux2 sensor-level driver for the OmniVision
-+        OV9665 1.3MP camera. It currently only works with the Intel Atom
-+        (Moorestown) platform.
-+
-+config VIDEO_OV5630
-+       tristate "OmniVision OV5630 RAW Sensor support"
-+       depends on I2C && VIDEO_V4L2
-+
-+       ---help---
-+         This is a Video4Linux2 sensor-level driver for the OmniVision
-+        OV5630 5MP camera. It currently only works with the Intel Atom
-+        (Moorestown) platform.
-+
-+config VIDEO_S5K4E1
-+       tristate "Samsung s5k4e1 RAW Sensor support"
-+       depends on I2C && VIDEO_V4L2
-+
-+       ---help---
-+       This is a Video4Linux2 sensor-level driver for the Samsung
-+       s5k4e1 5MP camera. It currently only works with Intel Atom
-+       (Moorestown) platform.
-+
-+config VIDEO_OV5630_MOTOR
-+       tristate "Analog Devices AD5820 VCM (OVT OV5630) support"
-+       depends on I2C && VIDEO_V4L2 && VIDEO_OV5630
-+       default y
-+       ---help---
-+         This is a video4linux2 driver for the Analog Devices AD5820
-+         VCM Driver integrated into OVT OV5630 camera module
-+          which is curretly supported on Intel Atom
-+         (Moorestown)CMOS camera controller.
-+
-+         To compile this driver as a module, choose M here: the
-+         module will be called ov5630_motor.ko.
-+
-+config VIDEO_S5K4E1_MOTOR
-+       tristate "Renesas VCM driver (KMOT IX51A) support"
-+       depends on I2C && VIDEO_V4L2 && VIDEO_S5K4E1
-+       default y
-+       ---help---
-+         This is a video4linux2 driver for the Renesas VCM driver R2A30419BX
-+         which is located in KMOT IX51A camera module which is curretly
-+         supported on Intel Atom (Moorestown)CMOS camera controller.
-+
-+         To compile this driver as a module, choose M here: the
-+         module will be called s5k4e1_motor.ko.
-+
-+config VIDEO_MRSTFLASH
-+       tristate "National Semiconductor LM3553 Flash LED Driver support"
-+       depends on I2C && VIDEO_V4L2
-+       default y
-+       ---help---
-+         This is a video4linux2 driver for the National Semiconductor LM3553
-+         1.2A Dual Flas LED Driver which is curretly supported on Intel Atom
-+         (Moorestown)CMOS camera controller.
-+
-+         To compile this driver as a module, choose M here: the
-+         module will be called lm3553.ko
-+
- config VIDEO_SAA7110
-        tristate "Philips SAA7110 video decoder"
-        depends on VIDEO_V4L2 && I2C
-@@ -833,6 +906,8 @@ config VIDEO_CAFE_CCIC
-          CMOS camera controller.  This is the controller found on first-
-          generation OLPC systems.
-
-+source "drivers/media/video/mrstisp/Kconfig"
-+
- config SOC_CAMERA
-        tristate "SoC camera support"
-        depends on VIDEO_V4L2 && HAS_DMA && I2C
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index c51c386..d7eca01 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -70,6 +70,13 @@ obj-$(CONFIG_VIDEO_UPD64031A) += upd64031a.o
- obj-$(CONFIG_VIDEO_UPD64083) += upd64083.o
- obj-$(CONFIG_VIDEO_OV7670)     += ov7670.o
- obj-$(CONFIG_VIDEO_TCM825X) += tcm825x.o
-+obj-$(CONFIG_VIDEO_OV2650) += ov2650.o
-+obj-$(CONFIG_VIDEO_OV9665) += ov9665.o
-+obj-$(CONFIG_VIDEO_OV5630) += ov5630.o
-+obj-$(CONFIG_VIDEO_S5K4E1) += ovs5k4e1.o
-+obj-$(CONFIG_VIDEO_MRSTFLASH) += mrstflash.o
-+obj-$(CONFIG_VIDEO_OV5630_MOTOR) += ov5630_motor.o
-+obj-$(CONFIG_VIDEO_S5K4E1_MOTOR) += s5k4e1_motor.o
- obj-$(CONFIG_VIDEO_TVEEPROM) += tveeprom.o
- obj-$(CONFIG_VIDEO_MT9V011) += mt9v011.o
-
-@@ -123,6 +130,8 @@ obj-$(CONFIG_VIDEO_CX2341X) += cx2341x.o
-
- obj-$(CONFIG_VIDEO_CAFE_CCIC) += cafe_ccic.o
-
-+obj-$(CONFIG_VIDEO_MRSTISP) += mrstisp/
-+
- obj-$(CONFIG_USB_DABUSB)        += dabusb.o
- obj-$(CONFIG_USB_OV511)         += ov511.o
- obj-$(CONFIG_USB_SE401)         += se401.o
-diff --git a/drivers/media/video/mrst_sensor_common.h b/drivers/media/video/mrst_sensor_common.h
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
 new file mode 100644
-index 0000000..955e67f
+index 0000000..44246b2
 --- /dev/null
-+++ b/drivers/media/video/mrst_sensor_common.h
-@@ -0,0 +1,378 @@
-+/*
-+ * Support for Moorestown Langwell Camera Imaging ISP subsystem.
-+ *
-+ * Copyright (c) 2009 Intel Corporation. All Rights Reserved.
-+ *
-+ * Copyright (c) Silicon Image 2008  www.siliconimage.com
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ * 02110-1301, USA.
-+ *
-+ *
-+ * Xiaolin Zhang <xiaolin.zhang@intel.com>
-+ */
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -0,0 +1,600 @@
++Introduction
++============
 +
-+#ifndef _SENSOR_FMT_COMMON_H
-+#define _SENSOR_FMT_COMMON_H
-+#include <media/v4l2-subdev.h>
++The V4L2 control API seems simple enough, but quickly becomes very hard to
++implement correctly in drivers. But much of the code needed to handle controls
++is actually not driver specific and can be moved to the V4L core framework.
 +
-+/*
-+ * sensor capabilities struct: a struct member may have 0, 1 or several bits
-+ * set according to the capabilities of the sensor. All struct members must be
-+ * unsigned int and no padding is allowed. Thus, access to the fields is also
-+ * possible by means of a field of unsigned int values. Indicees for the
-+ * field-like access are given below.
-+ */
-+struct ci_sensor_caps {
-+       unsigned int bus_width;
-+       unsigned int mode;
-+       unsigned int field_inv;
-+       unsigned int field_sel;
-+       unsigned int ycseq;
-+       unsigned int conv422;
-+       unsigned int bpat;
-+       unsigned int hpol;
-+       unsigned int vpol;
-+       unsigned int edge;
-+       unsigned int bls;
-+       unsigned int gamma;
-+       unsigned int cconv;
-+       unsigned int res;
-+       unsigned int dwn_sz;
-+       unsigned int blc;
-+       unsigned int agc;
-+       unsigned int awb;
-+       unsigned int aec;
-+       unsigned int cie_profile;
-+       unsigned int flicker_freq;
-+       unsigned int smia_mode;
-+       unsigned int mipi_mode;
-+       unsigned int type;
-+       char name[32];
++After all, the only part that a driver developer is interested in is:
 +
-+       struct v4l2_subdev sd;
-+};
++1) How do I add a control?
++2) How do I set the control's value? (i.e. s_ctrl)
 +
-+#define ci_sensor_config       ci_sensor_caps
++And occasionally:
 +
-+#define SENSOR_BPAT_RGRGGBGB       0x00000001
-+#define SENSOR_BPAT_GRGRBGBG       0x00000002
-+#define SENSOR_BPAT_GBGBRGRG       0x00000004
-+#define SENSOR_BPAT_BGBGGRGR       0x00000008
++3) How do I get the control's value? (i.e. g_volatile_ctrl)
++4) How do I validate the user's proposed control value? (i.e. try_ctrl)
 +
-+#define SENSOR_BLC_AUTO            0x00000001
-+#define SENSOR_BLC_OFF             0x00000002
++All the rest is something that can be done centrally.
 +
-+#define SENSOR_AGC_AUTO            0x00000001
-+#define SENSOR_AGC_OFF             0x00000002
++The control framework was created in order to implement all the rules of the
++V4L2 specification with respect to controls in a central place. And to make
++life as easy as possible for the driver developer.
 +
-+#define SENSOR_AWB_AUTO            0x00000001
-+#define SENSOR_AWB_OFF             0x00000002
++Note that the control framework relies on the presence of a struct v4l2_device
++for bridge drivers and struct v4l2_subdev for sub-device drivers.
 +
-+#define SENSOR_AEC_AUTO            0x00000001
-+#define SENSOR_AEC_OFF             0x00000002
 +
-+/* turns on/off additional black lines at frame start */
-+#define SENSOR_BLS_OFF             0x00000001
-+#define SENSOR_BLS_TWO_LINES       0x00000002
-+#define SENSOR_BLS_FOUR_LINES      0x00000004
++Objects in the framework
++========================
 +
-+/* turns on/off gamma correction in the sensor ISP */
-+#define SENSOR_GAMMA_ON            0x00000001
-+#define SENSOR_GAMMA_OFF           0x00000002
++There are two main objects:
 +
-+/* 88x72 */
-+#define SENSOR_RES_QQCIF           0x00000001
-+/* 160x120 */
-+#define SENSOR_RES_QQVGA           0x00000002
-+/* 176x144 */
-+#define SENSOR_RES_QCIF            0x00000004
-+/* 320x240 */
-+#define SENSOR_RES_QVGA            0x00000008
-+/* 352x288 */
-+#define SENSOR_RES_CIF             0x00000010
-+/* 640x480 */
-+#define SENSOR_RES_VGA             0x00000020
-+/* 800x600 */
-+#define SENSOR_RES_SVGA            0x00000040
-+/* 1024x768 */
-+#define SENSOR_RES_XGA             0x00000080
-+/* 1280x960 max. resolution of OV9640 (QuadVGA) */
-+#define SENSOR_RES_XGA_PLUS        0x00000100
-+/* 1280x1024 */
-+#define SENSOR_RES_SXGA            0x00000200
-+/* 1600x1200 */
-+#define SENSOR_RES_UXGA            0x00000400
-+/* 2048x1536 */
-+#define SENSOR_RES_QXGA            0x00000800
-+#define SENSOR_RES_QXGA_PLUS       0x00001000
-+#define SENSOR_RES_RAWMAX          0x00002000
-+/* 4080x1024 */
-+#define SENSOR_RES_YUV_HMAX        0x00004000
-+/* 1024x4080 */
-+#define SENSOR_RES_YUV_VMAX        0x00008000
-+/* 720x480 */
-+#define SENSOR_RES_L_AFM           0x00020000
-+/* 128x96 */
-+#define SENSOR_RES_M_AFM           0x00040000
-+/* 64x32 */
-+#define SENSOR_RES_S_AFM           0x00080000
-+/* 352x240 */
-+#define SENSOR_RES_BP1             0x00100000
-+/* 2586x2048, quadruple SXGA, 5,3 Mpix */
-+#define SENSOR_RES_QSXGA           0x00200000
-+/* 2600x2048, max. resolution of M5, 5,32 Mpix */
-+#define SENSOR_RES_QSXGA_PLUS      0x00400000
-+/* 2600x1950 */
-+#define SENSOR_RES_QSXGA_PLUS2     0x00800000
-+/* 2686x2048,  5.30M */
-+#define SENSOR_RES_QSXGA_PLUS3     0x01000000
-+/* 3200x2048,  6.56M */
-+#define SENSOR_RES_WQSXGA          0x02000000
-+/* 3200x2400,  7.68M */
-+#define SENSOR_RES_QUXGA           0x04000000
-+/* 3840x2400,  9.22M */
-+#define SENSOR_RES_WQUXGA          0x08000000
-+/* 4096x3072, 12.59M */
-+#define SENSOR_RES_HXGA            0x10000000
-+#define SENSOR_RES_1080P                  0x20000000
-+/* 1280x720 */
-+#define SENSOR_RES_720P        0x40000000
++The v4l2_ctrl object describes the control properties and keeps track of the
++control's value (both the current value and the proposed new value).
 +
-+/* FIXME 1304x980*/
-+#define SENSOR_RES_VGA_PLUS    0x80000000
-+#define VGA_PLUS_SIZE_H                (1304)
-+#define VGA_PLUS_SIZE_V                (980)
-+#define QSXGA_PLUS4_SIZE_H     (2592)
-+#define QSXGA_PLUS4_SIZE_V     (1944)
-+#define RES_1080P_SIZE_H       (1920)
-+#define RES_1080P_SIZE_V       (1080)
-+#define RES_720P_SIZE_H        (1280)
-+#define RES_720P_SIZE_V        (720)
-+#define QQCIF_SIZE_H              (88)
-+#define QQCIF_SIZE_V              (72)
-+#define QQVGA_SIZE_H             (160)
-+#define QQVGA_SIZE_V             (120)
-+#define QCIF_SIZE_H              (176)
-+#define QCIF_SIZE_V              (144)
-+#define QVGA_SIZE_H              (320)
-+#define QVGA_SIZE_V              (240)
-+#define CIF_SIZE_H               (352)
-+#define CIF_SIZE_V               (288)
-+#define VGA_SIZE_H               (640)
-+#define VGA_SIZE_V               (480)
-+#define SVGA_SIZE_H              (800)
-+#define SVGA_SIZE_V              (600)
-+#define XGA_SIZE_H              (1024)
-+#define XGA_SIZE_V               (768)
-+#define XGA_PLUS_SIZE_H         (1280)
-+#define XGA_PLUS_SIZE_V          (960)
-+#define SXGA_SIZE_H             (1280)
-+#define SXGA_SIZE_V             (1024)
-+#define QSVGA_SIZE_H            (1600)
-+#define QSVGA_SIZE_V            (1200)
-+#define UXGA_SIZE_H             (1600)
-+#define UXGA_SIZE_V             (1200)
-+#define QXGA_SIZE_H             (2048)
-+#define QXGA_SIZE_V             (1536)
-+#define QXGA_PLUS_SIZE_H        (2592)
-+#define QXGA_PLUS_SIZE_V        (1944)
-+#define RAWMAX_SIZE_H           (4096)
-+#define RAWMAX_SIZE_V           (2048)
-+#define YUV_HMAX_SIZE_H         (4080)
-+#define YUV_HMAX_SIZE_V         (1024)
-+#define YUV_VMAX_SIZE_H         (1024)
-+#define YUV_VMAX_SIZE_V         (4080)
-+#define BP1_SIZE_H               (352)
-+#define BP1_SIZE_V               (240)
-+#define L_AFM_SIZE_H             (720)
-+#define L_AFM_SIZE_V             (480)
-+#define M_AFM_SIZE_H             (128)
-+#define M_AFM_SIZE_V              (96)
-+#define S_AFM_SIZE_H              (64)
-+#define S_AFM_SIZE_V              (32)
-+#define QSXGA_SIZE_H            (2560)
-+#define QSXGA_SIZE_V            (2048)
-+#define QSXGA_MINUS_SIZE_V      (1920)
-+#define QSXGA_PLUS_SIZE_H       (2600)
-+#define QSXGA_PLUS_SIZE_V       (2048)
-+#define QSXGA_PLUS2_SIZE_H      (2600)
-+#define QSXGA_PLUS2_SIZE_V      (1950)
-+#define QUXGA_SIZE_H            (3200)
-+#define QUXGA_SIZE_V            (2400)
-+#define SIZE_H_2500             (2500)
-+#define QSXGA_PLUS3_SIZE_H      (2686)
-+#define QSXGA_PLUS3_SIZE_V      (2048)
-+#define QSXGA_PLUS4_SIZE_V      (1944)
-+#define WQSXGA_SIZE_H           (3200)
-+#define WQSXGA_SIZE_V           (2048)
-+#define WQUXGA_SIZE_H           (3200)
-+#define WQUXGA_SIZE_V           (2400)
-+#define HXGA_SIZE_H             (4096)
-+#define HXGA_SIZE_V             (3072)
++v4l2_ctrl_handler is the object that keeps track of controls. It maintains a
++list of v4l2_ctrl objects that it owns and another list of references to
++controls, possibly to controls owned by other handlers.
 +
-+static inline int ci_sensor_res2size(unsigned int res, unsigned short *h_size,
-+                      unsigned short *v_size)
-+{
-+       unsigned short hsize;
-+       unsigned short vsize;
-+       int err = 0;
 +
-+       switch (res) {
-+       case SENSOR_RES_QQCIF:
-+               hsize = QQCIF_SIZE_H;
-+               vsize = QQCIF_SIZE_V;
-+               break;
-+       case SENSOR_RES_QQVGA:
-+               hsize = QQVGA_SIZE_H;
-+               vsize = QQVGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_QCIF:
-+               hsize = QCIF_SIZE_H;
-+               vsize = QCIF_SIZE_V;
-+               break;
-+       case SENSOR_RES_QVGA:
-+               hsize = QVGA_SIZE_H;
-+               vsize = QVGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_CIF:
-+               hsize = CIF_SIZE_H;
-+               vsize = CIF_SIZE_V;
-+               break;
-+       case SENSOR_RES_VGA:
-+               hsize = VGA_SIZE_H;
-+               vsize = VGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_SVGA:
-+               hsize = SVGA_SIZE_H;
-+               vsize = SVGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_XGA:
-+               hsize = XGA_SIZE_H;
-+               vsize = XGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_XGA_PLUS:
-+               hsize = XGA_PLUS_SIZE_H;
-+               vsize = XGA_PLUS_SIZE_V;
-+               break;
-+       case SENSOR_RES_SXGA:
-+               hsize = SXGA_SIZE_H;
-+               vsize = SXGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_UXGA:
-+               hsize = UXGA_SIZE_H;
-+               vsize = UXGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_QXGA:
-+               hsize = QXGA_SIZE_H;
-+               vsize = QXGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_QSXGA:
-+               hsize = QSXGA_SIZE_H;
-+               vsize = QSXGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_QSXGA_PLUS:
-+               hsize = QSXGA_PLUS_SIZE_H;
-+               vsize = QSXGA_PLUS_SIZE_V;
-+               break;
-+       case SENSOR_RES_QSXGA_PLUS2:
-+               hsize = QSXGA_PLUS2_SIZE_H;
-+               vsize = QSXGA_PLUS2_SIZE_V;
-+               break;
-+       case SENSOR_RES_QSXGA_PLUS3:
-+               hsize = QSXGA_PLUS3_SIZE_H;
-+               vsize = QSXGA_PLUS3_SIZE_V;
-+               break;
-+       case SENSOR_RES_WQSXGA:
-+               hsize = WQSXGA_SIZE_H;
-+               vsize = WQSXGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_QUXGA:
-+               hsize = QUXGA_SIZE_H;
-+               vsize = QUXGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_WQUXGA:
-+               hsize = WQUXGA_SIZE_H;
-+               vsize = WQUXGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_HXGA:
-+               hsize = HXGA_SIZE_H;
-+               vsize = HXGA_SIZE_V;
-+               break;
-+       case SENSOR_RES_RAWMAX:
-+               hsize = RAWMAX_SIZE_H;
-+               vsize = RAWMAX_SIZE_V;
-+               break;
-+       case SENSOR_RES_YUV_HMAX:
-+               hsize = YUV_HMAX_SIZE_H;
-+               vsize = YUV_HMAX_SIZE_V;
-+               break;
-+       case SENSOR_RES_YUV_VMAX:
-+               hsize = YUV_VMAX_SIZE_H;
-+               vsize = YUV_VMAX_SIZE_V;
-+               break;
-+       case SENSOR_RES_BP1:
-+               hsize = BP1_SIZE_H;
-+               vsize = BP1_SIZE_V;
-+               break;
-+       case SENSOR_RES_L_AFM:
-+               hsize = L_AFM_SIZE_H;
-+               vsize = L_AFM_SIZE_V;
-+               break;
-+       case SENSOR_RES_M_AFM:
-+               hsize = M_AFM_SIZE_H;
-+               vsize = M_AFM_SIZE_V;
-+               break;
-+       case SENSOR_RES_S_AFM:
-+               hsize = S_AFM_SIZE_H;
-+               vsize = S_AFM_SIZE_V;
-+               break;
++Basic usage for bridge and sub-device drivers
++=============================================
 +
-+       case SENSOR_RES_QXGA_PLUS:
-+               hsize = QXGA_PLUS_SIZE_H;
-+               vsize = QXGA_PLUS_SIZE_V;
-+               break;
++1) Prepare the driver:
 +
-+       case SENSOR_RES_1080P:
-+               hsize = RES_1080P_SIZE_H;
-+               vsize = 1080;
-+               break;
++1.1) Add the handler to your driver's top-level struct:
 +
-+       case SENSOR_RES_720P:
-+               hsize = RES_720P_SIZE_H;
-+               vsize = RES_720P_SIZE_V;
-+               break;
++	struct foo_dev {
++		...
++		struct v4l2_ctrl_handler ctrl_handler;
++		...
++	};
 +
-+       case SENSOR_RES_VGA_PLUS:
-+               hsize = VGA_PLUS_SIZE_H;
-+               vsize = VGA_PLUS_SIZE_V;
-+               break;
++	struct foo_dev *foo;
 +
-+       default:
-+               hsize = 0;
-+               vsize = 0;
-+               err = -1;
-+               printk(KERN_ERR "ci_sensor_res2size: Resolution 0x%08x"
-+                      "unknown\n", res);
-+               break;
-+       }
++1.2) Initialize the handler:
 +
-+       if (h_size != NULL)
-+               *h_size = hsize;
-+       if (v_size != NULL)
-+               *v_size = vsize;
++	v4l2_ctrl_handler_init(&foo->ctrl_handler, nr_of_controls);
 +
-+       return err;
-+}
-+#endif
---
-1.6.3.2
++  The second argument is a hint telling the function how many controls this
++  handler is expected to handle. It will allocate a hashtable based on this
++  information. It is a hint only.
++
++1.3) Hook the control handler into the driver:
++
++1.3.1) For bridge drivers do this:
++
++	foo->v4l2_dev.ctrl_handler = &foo->ctrl_handler;
++
++  Where foo->v4l2_dev is of type struct v4l2_device.
++
++  Finally, remove all control functions from your v4l2_ioctl_ops:
++  vidioc_queryctrl, vidioc_querymenu, vidioc_g_ctrl, vidioc_s_ctrl,
++  vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
++  Those are now no longer needed.
++
++1.3.2) For sub-device drivers do this:
++
++	foo->sd.ctrl_handler = &foo->ctrl_handler;
++
++  Where foo->sd is of type struct v4l2_subdev.
++
++  And set all core control ops in your struct v4l2_subdev_core_ops to these
++  helpers:
++
++	.queryctrl = v4l2_subdev_queryctrl,
++	.querymenu = v4l2_subdev_querymenu,
++	.g_ctrl = v4l2_subdev_g_ctrl,
++	.s_ctrl = v4l2_subdev_s_ctrl,
++	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
++
++  Note: this is a temporary solution only. Once everything is converted to
++  the control framework these helpers will no longer be needed.
++
++1.4) Clean up the handler at the end:
++
++	v4l2_ctrl_handler_free(&foo->ctrl_handler);
++
++
++2) Add controls:
++
++Typically done right after the v4l2_ctrl_handler_init:
++
++	v4l2_ctrl_handler_init(&foo->ctrl_handler, nr_of_controls);
++	v4l2_ctrl_new_std(&foo->ctrl_handler, &foo_ctrl_ops,
++			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
++	v4l2_ctrl_new_std(&foo->ctrl_handler, &foo_ctrl_ops,
++			V4L2_CID_CONTRAST, 0, 255, 1, 128);
++	...
++	if (foo->ctrl_handler.error) {
++		int err = foo->ctrl_handler.error;
++
++		v4l2_ctrl_handler_free(&foo->ctrl_handler);
++		return err;
++	}
++
++The v4l2_ctrl_new_std function returns the v4l2_ctrl pointer to the new
++control, but if you do not need to access the pointer outside the control ops,
++then there is no need to store it.
++
++The v4l2_ctrl_new_std function will fill in most fields based on the control
++ID except for the min, max, step and default values. These are passed in the
++last four arguments. These values are driver specific while control attributes
++like type, name, flags are all global. The control's current value will be set
++to the default value.
++
++Note that if something fails, the function will return NULL or an error and
++set ctrl_handler->error to the error code. If ctrl_handler->error was already
++set, then it will just return and do nothing. This is also true for
++v4l2_ctrl_handler_init if it cannot allocate the internal data structure.
++
++This makes it easy to init the handler and just add all controls and only check
++the error code at the end. Saves a lot of repetitive error checking.
++
++It is recommended to add controls in ascending control ID order: it will be
++a bit faster that way.
++
++3) Optionally force initial control setup:
++
++	v4l2_ctrl_handler_setup(&foo->ctrl_handler);
++
++This will call s_ctrl for all controls unconditionally. Effectively this
++initializes the hardware to the default control values. It is recommended
++that you do this.
++
++4) Finally: implement the v4l2_ctrl_ops
++
++	static const struct v4l2_ctrl_ops foo_ctrl_ops = {
++		.s_ctrl = foo_s_ctrl,
++	};
++
++Usually all you need is s_ctrl:
++
++	static int foo_s_ctrl(struct v4l2_ctrl *ctrl)
++	{
++		struct foo *state = container_of(ctrl->handler, struct foo, ctrl_handler);
++
++		switch (ctrl->id) {
++		case V4L2_CID_BRIGHTNESS:
++			write_reg(0x123, ctrl->val);
++			break;
++		case V4L2_CID_CONTRAST:
++			write_reg(0x456, ctrl->val);
++			break;
++		}
++		return 0;
++	}
++
++The control ops are called with the v4l2_ctrl pointer as argument.
++The new control value has already been validated, so all you need to do is
++to actually update the hardware registers.
++
++You're done! And this is sufficient for most of the drivers we have. No need
++to do any validation of control values, or implement QUERYCTRL/QUERYMENU. And
++G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
++
++
++==============================================================================
++
++The remainder of this document deals with more advanced topics and scenarios.
++In practice the basic usage as described above is sufficient for most drivers.
++
++===============================================================================
++
++
++Inheriting Controls
++===================
++
++When a sub-device is registered with a bridge driver by calling
++v4l2_device_register_subdev() and the ctrl_handler fields of both v4l2_subdev
++and v4l2_device are set, then the controls of the subdev will become
++automatically available in the bridge driver as well. If the subdev driver
++contains controls that already exist in the bridge driver, then those will be
++skipped (so a bridge driver can always override a subdev control).
++
++What happens here is that v4l2_device_register_subdev() calls
++v4l2_ctrl_add_handler() adding the controls of the subdev to the controls
++of v4l2_device.
++
++
++Accessing Control Values
++========================
++
++The v4l2_ctrl struct contains these two unions:
++
++	/* The current control value. */
++	union {
++		s32 val;
++		s64 val64;
++		char *string;
++	} cur;
++
++	/* The new control value. */
++	union {
++		s32 val;
++		s64 val64;
++		char *string;
++	};
++
++Within the control ops you can freely use these. The val and val64 speak for
++themselves. The string pointers point to character buffers of length
++ctrl->maximum + 1, and are always 0-terminated.
++
++In most cases 'cur' contains the current cached control value. When you create
++a new control this value is made identical to the default value. After calling
++v4l2_ctrl_handler_setup() this value is passed to the hardware. It is generally
++a good idea to call this function.
++
++Whenever a new value is set that new value is automatically cached. This means
++that most drivers do not need to implement the g_volatile_ctrl() op. The
++exception is for controls that return a volatile register such as a signal
++strength read-out that changes continuously. In that case you will need to
++implement g_volatile_ctrl like this:
++
++	ctrl->cur.val = read_reg(0x123);
++
++The 'new value' union is not relevant in g_volatile_ctrl. In general controls
++that need to implement g_volatile_ctrl are read-only controls.
++
++For try/s_ctrl the new values (i.e. as passed by the user) are filled in and
++you can modify them in try_ctrl or set them in s_ctrl. The 'cur' union
++contains the current value, which you can use (but not change!) as well.
++
++If s_ctrl returns 0 (OK), then the control framework will copy the new final
++values to the 'cur' union.
++
++While in g_volatile/s/try_ctrl you can access the value of all controls owned
++by the same handler since the handler's lock is held. Do not attempt to access
++the value of controls owned by other handlers, though.
++
++Elsewhere in the driver you have to be more careful. You cannot just refer
++to the current control values without locking. There are two simple helper
++functions defined that will get or set a single control value safely from
++within the driver:
++
++	s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
++	int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
++
++These functions go through the control framework just as VIDIOC_G/S_CTRL ioctls
++do. Don't use these inside the control ops g_volatile/s/try_ctrl, though, that
++will fail since these helpers lock the handler.
++
++You can also take the handler lock yourself:
++
++	mutex_lock(&state->ctrl_handler.lock);
++	printk(KERN_INFO "String value is '%s'\n", ctrl1->cur.string);
++	printk(KERN_INFO "Integer value is '%s'\n", ctrl2->cur.val);
++	mutex_unlock(&state->ctrl_handler.lock);
++
++
++Menu Controls
++=============
++
++Menu controls use the 'step' value differently compared to other control
++types. The v4l2_ctrl struct contains this union:
++
++	union {
++		u32 step;
++		u32 menu_skip_mask;
++	};
++
++For menu controls menu_skip_mask is used. What it does is that it allows you
++to easily exclude certain menu items. This is used in the VIDIOC_QUERYMENU
++implementation where you can return -EINVAL if a certain menu item is not
++present. Note that VIDIOC_QUERYCTRL always returns a step value of 1 for
++menu controls.
++
++A good example is the MPEG Audio Layer II Bitrate menu control where the
++menu is a list of standardized possible bitrates. But in practice hardware
++implementations will only support a subset of those. By setting the skip
++mask you can tell the framework which menu items should be skipped. Setting
++it to 0 means that all menu items are supported.
++
++So when using v4l2_ctrl_new_std or v4l2_ctrl_new_custom (see below) you need
++to remember that 'step' means 'skip mask' for menu controls. If you put in '1'
++by mistake, then the first menu item will be skipped.
++
++The v4l2_ctrl_new_std_menu function can be used to add menu controls more
++easily: it will calculate the min and max values automatically based on the
++size of the menu, and it has a proper 'mask' argument instead of 'step'.
++
++
++Custom Controls
++===============
++
++Driver specific controls can be created using v4l2_ctrl_new_custom():
++
++	static const struct v4l2_ctrl_config ctrl_filter = {
++		.ops = &ctrl_custom_ops,
++		.id = V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER,
++		.name = "Spatial Filter",
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.flags = V4L2_CTRL_FLAG_SLIDER,
++		.max = 15,
++		.step = 1,
++	};
++
++	ctrl = v4l2_ctrl_new_custom(&foo->ctrl_handler, &ctrl_filter, NULL);
++
++The last argument is the priv pointer which can be set to driver-specific
++private data.
++
++
++Active and Grabbed Controls
++===========================
++
++If you get more complex relationships between controls, then you may have to
++activate and deactivate controls. For example, if the Chroma AGC control is
++on, then the Chroma Gain control is inactive. That is, you may set it, but
++the value will not be used by the hardware as long as the automatic gain
++control is on. Typically user interfaces can disable such input fields.
++
++You can set the 'active' status using v4l2_ctrl_activate(). By default all
++controls are active. Note that the framework does not check for this flag.
++It is meant purely for GUIs. The function is typically called from within
++s_ctrl.
++
++The other flag is the grabbed flag. A grabbed control means that you cannot
++change it because it is in use by some resource. Typical examples are MPEG
++bitrate controls that cannot be changed while capturing is in progress.
++
++If a control is set to 'grabbed' using v4l2_ctrl_grab(), then the framework
++will return -EBUSY if an attempt is made to set this control.
++
++Since this flag is used by the framework the v4l2_ctrl_grab function will
++take the control handler's lock. So it cannot be called from within the
++control ops. Instead this is typically called from the driver when it
++starts streaming.
++
++
++Control Clusters
++================
++
++By default all controls are independent from the others. But in more
++complex scenarios you can get dependencies from one control to another.
++In that case you need to 'cluster' them:
++
++	struct foo {
++		struct v4l2_ctrl_handler ctrl_handler;
++#define AUDIO_CL_VOLUME (0)
++#define AUDIO_CL_MUTE   (1)
++		struct v4l2_ctrl *audio_cluster[2];
++		...
++	};
++
++	state->audio_cluster[AUDIO_CL_VOLUME] =
++		v4l2_ctrl_new_std(&state->ctrl_handler, ...);
++	state->audio_cluster[AUDIO_CL_MUTE] =
++		v4l2_ctrl_new_std(&state->ctrl_handler, ...);
++	v4l2_ctrl_cluster(ARRAY_SIZE(state->audio_cluster), state->audio_cluster);
++
++From now on whenever one or more of the controls belonging to the same
++cluster is set (or 'gotten', or 'tried'), only the control ops of the first
++control ('volume' in this example) is called. You effectively create a new
++composite control. Similar to how a 'struct' works in C.
++
++So when s_ctrl is called with V4L2_CID_AUDIO_VOLUME as argument, you should set
++all two controls belonging to the audio_cluster:
++
++	static int foo_s_ctrl(struct v4l2_ctrl *ctrl)
++	{
++		struct foo *state = container_of(ctrl->handler, struct foo, ctrl_handler);
++
++		switch (ctrl->id) {
++		case V4L2_CID_AUDIO_VOLUME: {
++			struct v4l2_ctrl *mute = ctrl->cluster[AUDIO_CL_MUTE];
++
++			write_reg(0x123, mute->val ? 0 : ctrl->val);
++			break;
++		}
++		case V4L2_CID_CONTRAST:
++			write_reg(0x456, ctrl->val);
++			break;
++		}
++		return 0;
++	}
++
++In the example above the following are equivalent for the VOLUME case:
++
++	ctrl == ctrl->cluster[AUDIO_CL_VOLUME] == state->audio_cluster[AUDIO_CL_VOLUME]
++	ctrl->cluster[AUDIO_CL_MUTE] == state->audio_cluster[AUDIO_CL_MUTE]
++
++Note that controls in a cluster may be NULL. For example, if for some
++reason mute was never added (because the hardware doesn't support that
++particular feature), then mute will be NULL. So in that case we have a
++cluster of 2 controls, of which only 1 is actually instantiated. The
++only restriction is that the first control of the cluster must always be
++present, since that is the 'master' control of the cluster. The master
++control is the one that identifies the cluster and that provides the
++pointer to the v4l2_ctrl_ops struct that is used for that cluster.
++
++
++VIDIOC_LOG_STATUS Support
++=========================
++
++This ioctl allow you to dump the current status of a driver to the kernel log.
++The v4l2_ctrl_handler_log_status(ctrl_handler, prefix) can be used to dump the
++value of the controls owned by the given handler to the log. You can supply a
++prefix as well. If the prefix didn't end with a space, then ': ' will be added
++for you.
++
++
++Different Handlers for Different Video Nodes
++============================================
++
++Usually the bridge driver has just one control handler that is global for
++all video nodes. But you can also specify different control handlers for
++different video nodes. You can do that by manually setting the ctrl_handler
++field of struct video_device.
++
++That is no problem if there are no subdevs involved but if there are, then
++you need to block the automatic merging of subdev controls to the global
++control handler. You do that by simply setting the ctrl_handler field in
++struct v4l2_device to NULL. Now v4l2_device_register_subdev() will no longer
++merge subdev controls.
++
++After each subdev was added, you will then have to call v4l2_ctrl_add_handler
++manually to add the subdev's control handler (sd->ctrl_handler) to the desired
++control handler. This control handler may be specific to the video_device or
++for a subset of video_device's. For example: the radio device nodes only have
++audio controls, while the video and vbi device nodes share the same control
++handler for the audio and video controls.
++
++If you want to have one handler (e.g. for a radio device node) have a subset
++of another handler (e.g. for a video device node), then you should first add
++the controls to the first handler, add the other controls to the second
++handler and finally add the first handler to the second. For example:
++
++	v4l2_ctrl_new_std(&radio_ctrl_handler, &radio_ops, V4L2_CID_AUDIO_VOLUME, ...);
++	v4l2_ctrl_new_std(&radio_ctrl_handler, &radio_ops, V4L2_CID_AUDIO_MUTE, ...);
++	v4l2_ctrl_new_std(&video_ctrl_handler, &video_ops, V4L2_CID_BRIGHTNESS, ...);
++	v4l2_ctrl_new_std(&video_ctrl_handler, &video_ops, V4L2_CID_CONTRAST, ...);
++	v4l2_ctrl_add_handler(&video_ctrl_handler, &radio_ctrl_handler);
++
++Or you can add specific controls to a handler:
++
++	volume = v4l2_ctrl_new_std(&video_ctrl_handler, &ops, V4L2_CID_AUDIO_VOLUME, ...);
++	v4l2_ctrl_new_std(&video_ctrl_handler, &ops, V4L2_CID_BRIGHTNESS, ...);
++	v4l2_ctrl_new_std(&video_ctrl_handler, &ops, V4L2_CID_CONTRAST, ...);
++	v4l2_ctrl_add_ctrl(&radio_ctrl_handler, volume);
++
++What you should not do is make two identical controls for two handlers.
++For example:
++
++	v4l2_ctrl_new_std(&radio_ctrl_handler, &radio_ops, V4L2_CID_AUDIO_MUTE, ...);
++	v4l2_ctrl_new_std(&video_ctrl_handler, &video_ops, V4L2_CID_AUDIO_MUTE, ...);
++
++This would be bad since muting the radio would not change the video mute
++control. The rule is to have one control for each hardware 'knob' that you
++can twiddle.
++
++
++Finding Controls
++================
++
++Normally you have created the controls yourself and you can store the struct
++v4l2_ctrl pointer into your own struct.
++
++But sometimes you need to find a control from another handler that you do
++not own. For example, if you have to find a volume control from a subdev.
++
++You can do that by calling v4l2_ctrl_find:
++
++	struct v4l2_ctrl *volume;
++
++	volume = v4l2_ctrl_find(sd->ctrl_handler, V4L2_CID_AUDIO_VOLUME);
++
++Since v4l2_ctrl_find will lock the handler you have to be careful where you
++use it. For example, this is not a good idea:
++
++	struct v4l2_ctrl_handler ctrl_handler;
++
++	v4l2_ctrl_new_std(&ctrl_handler, &video_ops, V4L2_CID_BRIGHTNESS, ...);
++	v4l2_ctrl_new_std(&ctrl_handler, &video_ops, V4L2_CID_CONTRAST, ...);
++
++...and in video_ops.s_ctrl:
++
++	case V4L2_CID_BRIGHTNESS:
++		contrast = v4l2_find_ctrl(&ctrl_handler, V4L2_CID_CONTRAST);
++		...
++
++When s_ctrl is called by the framework the ctrl_handler.lock is already taken, so
++attempting to find another control from the same handler will deadlock.
++
++It is recommended not to use this function from inside the control ops.
++
++
++Inheriting Controls
++===================
++
++When one control handler is added to another using v4l2_ctrl_add_handler, then
++by default all controls from one are merged to the other. But a subdev might
++have low-level controls that make sense for some advanced embedded system, but
++not when it is used in consumer-level hardware. In that case you want to keep
++those low-level controls local to the subdev. You can do this by simply
++setting the 'is_private' flag of the control to 1:
++
++	ctrl = v4l2_ctrl_new_custom(&sd->ctrl_handler, ...);
++	if (ctrl)
++		ctrl->is_private = 1;
++
++These controls will now be skipped when v4l2_ctrl_add_handler is called.
++
++
++V4L2_CTRL_TYPE_CTRL_CLASS Controls
++==================================
++
++Controls of this type can be used by GUIs to get the name of the control class.
++A fully featured GUI can make a dialog with multiple tabs with each tab
++containing the controls belonging to a particular control class. The name of
++each tab can be found by querying a special control with ID <control class | 1>.
++
++Drivers do not have to care about this. The framework will automatically add
++a control of this type whenever the first control belonging to a new control
++class is added.
++
++
++Initializing Controls
++=====================
++
++Usually controls are initialized when you call one of the v4l2_ctrl_new_*()
++functions. But sometimes you do not know all the details of the control's
++boundaries and possibly even type at this stage. Or obtaining those details
++may require expensive hardware accesses.
++
++In that case you can specify a .init op in struct v4l2_ctrl_ops. This op
++returns a void, so it may not fail. Should the init run into problems, then
++it should disable the control by setting V4L2_CTRL_FLAG_DISABLED.
++
++The init op can be used to setup the type and boundaries of the control on
++first use. Any controls with a .init op will be skipped by
++v4l2_ctrl_handler_setup().
++
++
++Differences from the Spec
++=========================
++
++There are a few places where the framework acts slightly differently from the
++V4L2 Specification. Those differences are described in this section. We will
++have to see whether we need to adjust the spec or not.
++
++1) It is no longer required to have all controls contained in a
++v4l2_ext_control array be from the same control class. The framework will be
++able to handle any type of control in the array. You need to set ctrl_class
++to 0 in order to enable this. If ctrl_class is non-zero, then it will still
++check that all controls belong to that control class.
++
++If you set ctrl_class to 0 and count to 0, then it will only return an error
++if there are no controls at all.
++
++2) Clarified the way error_idx works. For get and set it will be equal to
++count if nothing was done yet. If it is less than count then only the controls
++up to error_idx-1 were successfully applied.
++
++3) When attempting to read a button control the framework will return -EACCES
++instead of -EINVAL as stated in the spec. It seems to make more sense since
++button controls are write-only controls.
++
++4) Attempting to write to a read-only control will return -EACCES instead of
++-EINVAL as the spec says.
++
++5) The spec does not mention what should happen when you try to set/get a
++control class controls. ivtv currently returns -EINVAL (indicating that the
++control ID does not exist) while the framework will return -EACCES, which
++makes more sense.
++
++
++Proposals for Extensions
++========================
++
++Some ideas for future extensions to the spec:
++
++1) Add a V4L2_CTRL_FLAG_HEX to have values shown as hexadecimal instead of
++decimal. Useful for e.g. video_mute_yuv.
++
++2) It is possible to mark in the controls array which controls have been
++successfully written and which failed by for example adding a bit to the
++control ID. Not sure if it is worth the effort, though.
+-- 
+1.6.4.2
 
