@@ -1,223 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4645 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643Ab0EWLfk (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:46299 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753583Ab0EPKmA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 May 2010 07:35:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Paulo Assis <pj.assis@gmail.com>
-Subject: Re: [RFC] V4L2 Controls State Store/Restore File Format
-Date: Sun, 23 May 2010 13:37:20 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <AANLkTikMhseqvpIJHnmEUhouqvdYRaaUvE4jUFiAwgrH@mail.gmail.com> <4BF540A0.4060904@redhat.com> <AANLkTimRx42RQbHpyCRaAEHnsbW7yZCcuom_SQX2v-S7@mail.gmail.com>
-In-Reply-To: <AANLkTimRx42RQbHpyCRaAEHnsbW7yZCcuom_SQX2v-S7@mail.gmail.com>
+	Sun, 16 May 2010 06:42:00 -0400
+Received: by fxm6 with SMTP id 6so2827829fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 16 May 2010 03:41:58 -0700 (PDT)
+Content-Type: multipart/mixed; boundary=----------mt6leC1DRk1vVXL1JBVUqc
+To: Emard <davoremard@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Compro Videomate T750F Vista digital+analog support
+References: <20100508160628.GA6050@z60m> <op.vceiu5q13xmt7q@crni>
+ <AANLkTinMYcgG6Ac73Vgdx8NMYocW8Net6_-dMC3yEflQ@mail.gmail.com>
+ <AANLkTikbpZ0LM5rK70abVuJS27j0lT7iZs12DrSKB9wI@mail.gmail.com>
+ <op.vcfoxwnq3xmt7q@crni> <20100509173243.GA8227@z60m> <op.vcga9rw2ndeod6@crni>
+ <20100509231535.GA6334@z60m> <op.vcsntos43xmt7q@crni>
+Date: Sun, 16 May 2010 12:41:57 +0200
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005231337.20698.hverkuil@xs4all.nl>
+From: =?iso-8859-2?B?U2FtdWVsIFJha2l0bmnoYW4=?=
+	<samuel.rakitnican@gmail.com>
+Message-ID: <op.vcsnz7y5ndeod6@crni>
+In-Reply-To: <op.vcsntos43xmt7q@crni>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 20 May 2010 16:42:01 Paulo Assis wrote:
-> Hi all,
-> 
-> Below is a proposal for the file format to use when storing/restoring
-> v4l2 controls state.
-> 
-> I've some doubts concerning atomically set controls and string
-> controls (see below)
-> that may be inducing me on error.
-> The format is intended to be generic enough to support any control
-> class so I hope
-> to receive comments for any special cases that I might have missed or
-> overlooked.
-> Don't worry about bashing on the proposal to hard I have a hard skin :-D
-> 
-> Regards,
-> Paulo
-> 
-> ---------- Forwarded message ----------
-> From: Hans de Goede <hdegoede@redhat.com>
-> Date: 2010/5/20
-> Subject: Re: [RFC] V4L2 Controls State Store/Restore File Format
-> To: Paulo Assis <pj.assis@gmail.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-> Martin_Rubli@logitech.com
-> 
-> 
-> Hi Paulo,
-> 
-> Clearly you've though quite a bit about this I had not realized
-> this would be this complex (with ordering issues etc.).
-> 
-> This looks like a good proposal to start with to me, I think it
-> would be good to further discuss this on the linux-media list,
-> where other v4l devs can read it and chime in.
-> 
-> Regards,
-> 
-> Hans
-> 
-> 
-> On 05/20/2010 03:11 PM, Paulo Assis wrote:
-> >
-> > Hans,
-> > Below is the RFC with my proposed control state file format for
-> > store/restore functionality.
-> > I have several doubts, mostly regarding controls that must be set
-> > atomically with the extended control API.
-> > The main question is:
-> > How does an application know that a group of controls must be set atomically ?
-> > Is this reported by the driver or is it something that the application
-> > must know.
-> >
-> > Also for string controls, I've only seen two implementations on RDS
-> > controls, so I've set these with low precedence/priority order
-> > compared with other control types.
-> >
-> > Awaiting comments, bash it all you want :-)
-> >
-> > Regards,
-> > Paulo
-> > ______________________
-> >
-> > [RFC] V4L2 Controls State Store/Restore File Format
-> >
-> > VERSION
-> >
-> > 0.0.1
-> >
-> > ABSTRACT
-> >
-> > This document proposes a standard for the file format used by v4l2
-> > applications to store/restore the controls state.
-> > This unified file format allows sharing control profiles between
-> > applications, making it much easier on both developers and users.
-> >
-> > INTRODUCTION
-> >
-> > V4l2 controls can be divided by classes and types.
-> > Controls in different classes are not dependent between themselves, on
-> > the other end if two controls belong to the same class they may or may
-> > not be dependent.
-> > A good example are automatic controls and their absolute counterparts,
-> > e.g.: V4L2_CID_AUTOGAIN and V4L2_CID_GAIN.
-> > Controls must be set following the dependency order, automatic
-> > controls must be set first or else setting the absolute value may
-> > fail, when that was not the intended behavior (auto disabled).
-> > After a quick analyses of the v4l2 controls, we are left to conclude
-> > that auto controls are in most cases of the
-> > boolean type, with some exceptions like V4L2_CID_EXPOSURE_AUTO, that
-> > is of the menu type.
-> > So ordering control priority by control type seems logical and it can
-> > be done in the following order:
-> >
-> > 1-V4L2_CTRL_TYPE_BOOLEAN
-> > 2-V4L2_CTRL_TYPE_MENU
-> > 3-V4L2_CTRL_TYPE_INTEGER
-> > 4-V4L2_CTRL_TYPE_INTEGER64
-> > 5-V4L2_CTRL_TYPE_STRING
+------------mt6leC1DRk1vVXL1JBVUqc
+Content-Type: text/plain; charset=iso-8859-2; format=flowed; delsp=yes
+Content-Transfer-Encoding: 7bit
 
-I'm not sure whether the ordering is needed, it sounds more like a driver bug
-that you are trying to work around.
+Sorry, here's the attachments.
 
-When you retrieve the state of controls, then the value of the controls must be
-valid. So you should be able to set it later. There are some dependencies,
-for example selecting a particular MPEG video encoding might deactivate some
-controls and activate others. But the INACTIVE flag should be used to mark that,
-never the DISABLED flag. And you can still set inactive controls.
 
-For controls not belonging to the user class I would store and restore them
-all using G/S_EXT_CTRLS. So for each class just get all controls that are both
-readable and writable and not disabled, then get or set them in one call.
+On Sun, 16 May 2010 12:38:03 +0200, semiRocket <semirocket@gmail.com>  
+wrote:
 
-For the user class controls you can do the same, but if that fails, then you
-have to fallback to G/S_CTRL on a per-control basis.
-
-The main problem at the moment is that control handling stinks. Which is why
-I am working on a new control framework that will handle everything in the
-v4l core greatly simplifying drivers and providing a unified and consistent
-interface towards applications.
-
-Regards,
-
-	Hans
-
-> >
-> > Button controls are stateless so they can't be stored and thus are out
-> > of the scope of this document.
-> > Relative controls are also in effect stateless, since they will always
-> > depend on their current state and thus can't be stored.
-> >
-> > There are also groups of controls that must be set atomically, so
-> > these need to be grouped together and properly identified when loading
-> > the controls state from a file.
-> >
-> > The proposed file format takes all of this into account and tries to
-> > make implementation of both store and restore functionality as easy as
-> > possible.
-> >
-> > FILE FORMAT
-> >
-> > The proposed file format is a regular text file with lines terminating
-> > with the newline character '\n'.
-> > Comments can be inserted by adding '#' at the beginning of the line,
-> > and can safely be ignored when parsing the file.
-> >
-> > FILE EXTENSION
-> >
-> > Although not much relevant, the file extension makes it easy to
-> > visually identify the file type and  also for applications to list
-> > relevant files, so we propose that v4l2 control state files be
-> > terminated by the suffix: ".v4l"
-> >
-> > FILE HEADER
-> >
-> > The file must always start with a commented line containing the file
-> > type identification and the version of this document on which it is
-> > based:
-> >
-> > #V4L2/CTRL/0.0.1
-> >
-> > Additionally it may contain extra information like the application
-> > name that generated the file and for usb devices the vid and pid of
-> > the device to whom the controls relate in hexadecimal notation:
-> >
-> > APP_NAME{"application name"}
-> > VID{0x00}
-> > PID{0x00}
-> >
-> > CONTROLS DATA
-> >
-> > The controls related data must be ordered by control type and for each
-> > type the ordering must be done by control ID. Ordering by control ID
-> > will also group the controls by class.
-> > The exception to the above rule are controls that need to be set
-> > atomically, these must be grouped together independent of their type.
-> >
-> > Each control must have is data set in a single line:
-> > ID{0x0000};CHK{min:max:step:def};EXT{[0|>0}=VAL{value}
-> >
-> > The ID key is the control v4l2 id in hex notation.
-> > The CHK key is used to match the control stored in file to the one we
-> > are trying to set on the device.
-> > Controls on different devices may have identical ID's but is unlikely
-> > that the correspondent values remain the same. All values are in
-> > decimal notation and correspond to the controls reported values.
-> > EXT indicates if the control must be set atomically, if it is set to a
-> > value higher than zero, then the next controls must be searched for
-> > identical EXT values,  all of them shall then be grouped and set using
-> > the extension control mechanism, VIDIOC_S_EXT_CTRLS.
-> > Controls with a EXT value of 0 can be set individually with a regular
-> > VIDIOC_S_CTRL.
-> > The VAL key contains the control state in decimal form.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
+> On Mon, 10 May 2010 01:15:35 +0200, Emard <davoremard@gmail.com> wrote:
+>
+>> HI
+>>
+>> This is even more cleanup from spaces into tabs
+>> and replacing KEY_BACKSPACE with KEY_BACK
+>> which I think is more appropriate for this remote.
+>>
+>> compro t750f patch v17
+>>
+>> About the remote - I noticed 2-10% of the keypresses
+>> are not recognized, seems like it either looses packets
+>> or saa7134 gpio should be scanned faster/better/more_reliable?
+>> I think this may be the issue with other 7134 based
+>> remotes too
+>>
+>> Best Regards, Emard
+>>
+>
+> Hi Davor,
+>
+>
+> Unfortunately it doesn't work for me. It can't load firmware like  
+> before, I've attached patch against recent hg tree I applied manually  
+> (without IR code part) and dmesg output.
+>
+> In tvtime it shows black screen in PAL mode, if switch to SECAM, it's  
+> still black screen but with some random flickering occurring represented  
+> by horizontal red/green lines. No white/black dots noise present.
+>
+> Thanks,
+> Samuel
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Lorem ipsum
+------------mt6leC1DRk1vVXL1JBVUqc
+Content-Disposition: attachment; filename=hg-20100516.diff
+Content-Type: application/octet-stream; name=hg-20100516.diff
+Content-Transfer-Encoding: Base64
+
+ZGlmZiAtciAxNmFkZTA5MDIyZDkgbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9z
+YWE3MTM0L3NhYTcxMzQtY2FyZHMuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlh
+L3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jYXJkcy5jCUZyaSBNYXkgMTQgMDA6NTM6
+MTcgMjAxMCAtMDMwMAorKysgYi9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL3Nh
+YTcxMzQvc2FhNzEzNC1jYXJkcy5jCVNhdCBNYXkgMTUgMjM6MDQ6MjAgMjAxMCAr
+MDIwMApAQCAtNDkyMCwxMiArNDkyMCwxNCBAQAogCX0sCiAJW1NBQTcxMzRfQk9B
+UkRfVklERU9NQVRFX1Q3NTBdID0gewogCQkvKiBKb2huIE5ld2JpZ2luIDxqbkBp
+dC5zd2luLmVkdS5hdT4gKi8KKwkJLyogRW1hcmQgMjAxMC0wNS0wOSB2MTcgPGRh
+dm9yZW1hcmRAeHh4eHh4eHh4PiAqLwogCQkubmFtZSAgICAgICAgICAgPSAiQ29t
+cHJvIFZpZGVvTWF0ZSBUNzUwIiwKIAkJLmF1ZGlvX2Nsb2NrICAgID0gMHgwMDE4
+N2RlNywKIAkJLnR1bmVyX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAogCQkucmFk
+aW9fdHlwZSAgICAgPSBVTlNFVCwKLQkJLnR1bmVyX2FkZHIJPSBBRERSX1VOU0VU
+LAotCQkucmFkaW9fYWRkcgk9IEFERFJfVU5TRVQsCisJCS50dW5lcl9hZGRyCT0g
+MHg2MSwKKwkJLnJhZGlvX2FkZHIJPSBBRERSX1VOU0VULAorCQkubXBlZyAgICAg
+ICAgICAgPSBTQUE3MTM0X01QRUdfRFZCLAogCQkuaW5wdXRzID0ge3sKIAkJCS5u
+YW1lICAgPSBuYW1lX3R2LAogCQkJLnZtdXggICA9IDMsCkBAIC02NzUyLDYgKzY3
+NTQsMTEgQEAKIAkJCW1zbGVlcCgxMCk7CiAJCQlzYWE3MTM0X3NldF9ncGlvKGRl
+diwgMTgsIDEpOwogCQlicmVhazsKKwkJY2FzZSBTQUE3MTM0X0JPQVJEX1ZJREVP
+TUFURV9UNzUwOgorCQkJc2FhNzEzNF9zZXRfZ3BpbyhkZXYsIDIwLCAwKTsKKwkJ
+CW1zbGVlcCgxMCk7CisJCQlzYWE3MTM0X3NldF9ncGlvKGRldiwgMjAsIDEpOwor
+CQlicmVhazsKIAkJfQogCXJldHVybiAwOwogCX0KQEAgLTcxNzEsNyArNzE3OCwx
+NCBAQAogCQlzYWFfYW5kb3JsKFNBQTcxMzRfR1BJT19HUE1PREUwID4+IDIsICAg
+MHgwMDAwQzAwMCwgMHgwMDAwQzAwMCk7CiAJCXNhYV9hbmRvcmwoU0FBNzEzNF9H
+UElPX0dQU1RBVFVTMCA+PiAyLCAweDAwMDBDMDAwLCAweDAwMDBDMDAwKTsKIAkJ
+YnJlYWs7Ci0JfQorCWNhc2UgU0FBNzEzNF9CT0FSRF9WSURFT01BVEVfVDc1MDoK
+KwkJZGV2LT5oYXNfcmVtb3RlID0gU0FBNzEzNF9SRU1PVEVfR1BJTzsKKwkJc2Fh
+X2FuZG9ybChTQUE3MTM0X0dQSU9fR1BNT0RFMCA+PiAyLCAgIDB4MDAwMDgwMDAs
+IDB4MDAwMDgwMDApOworCQlzYWFfYW5kb3JsKFNBQTcxMzRfR1BJT19HUFNUQVRV
+UzAgPj4gMiwgMHgwMDAwODAwMCwgMHgwMDAwODAwMCk7CisJCWJyZWFrOworCisJ
+fQorCiAJcmV0dXJuIDA7CiB9CiAKQEAgLTc0MTIsNiArNzQyNiw3IEBACiAJY2Fz
+ZSBTQUE3MTM0X0JPQVJEX0FWRVJNRURJQV9TVVBFUl8wMDc6CiAJY2FzZSBTQUE3
+MTM0X0JPQVJEX1RXSU5IQU5fRFRWX0RWQl8zMDU2OgogCWNhc2UgU0FBNzEzNF9C
+T0FSRF9DUkVBVElYX0NUWDk1MzoKKwljYXNlIFNBQTcxMzRfQk9BUkRfVklERU9N
+QVRFX1Q3NTA6CiAJewogCQkvKiB0aGlzIGlzIGEgaHlicmlkIGJvYXJkLCBpbml0
+aWFsaXplIHRvIGFuYWxvZyBtb2RlCiAJCSAqIGFuZCBjb25maWd1cmUgZmlybXdh
+cmUgZWVwcm9tIGFkZHJlc3MKZGlmZiAtciAxNmFkZTA5MDIyZDkgbGludXgvZHJp
+dmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtZHZiLmMKLS0tIGEvbGlu
+dXgvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtZHZiLmMJRnJp
+IE1heSAxNCAwMDo1MzoxNyAyMDEwIC0wMzAwCisrKyBiL2xpbnV4L2RyaXZlcnMv
+bWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWR2Yi5jCVNhdCBNYXkgMTUgMjM6
+MDQ6MjAgMjAxMCArMDIwMApAQCAtNTUsNiArNTUsNyBAQAogI2luY2x1ZGUgInRk
+YTgyOTAuaCIKIAogI2luY2x1ZGUgInpsMTAzNTMuaCIKKyNpbmNsdWRlICJxdDEw
+MTAuaCIKIAogI2luY2x1ZGUgInpsMTAwMzYuaCIKICNpbmNsdWRlICJ6bDEwMDM5
+LmgiCkBAIC04ODYsNiArODg3LDE3IEBACiAJLmRpc2FibGVfaTJjX2dhdGVfY3Ry
+bCA9IDEsCiB9OwogCitzdGF0aWMgc3RydWN0IHpsMTAzNTNfY29uZmlnIHZpZGVv
+bWF0ZV90NzUwX3psMTAzNTNfY29uZmlnID0geworCS5kZW1vZF9hZGRyZXNzICA9
+IDB4MGYsCisJLm5vX3R1bmVyID0gMSwKKwkucGFyYWxsZWxfdHMgPSAxLAorfTsK
+Kworc3RhdGljIHN0cnVjdCBxdDEwMTBfY29uZmlnIHZpZGVvbWF0ZV90NzUwX3F0
+MTAxMF9jb25maWcgPSB7CisJLmkyY19hZGRyZXNzID0gMHg2MgorfTsKKworCiAv
+KiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT0KICAqIHRkYTEwMDg2IGJhc2VkIERWQi1TIGNh
+cmRzLCBoZWxwZXIgZnVuY3Rpb25zCiAgKi8KQEAgLTE1OTUsNiArMTYwNywyMiBA
+QAogCQkJCSAgICZkdHYxMDAwc190ZGExODI3MV9jb25maWcpOwogCQl9CiAJCWJy
+ZWFrOworCWNhc2UgU0FBNzEzNF9CT0FSRF9WSURFT01BVEVfVDc1MDoKKwkJcHJp
+bnRrKCJDb21wcm8gVmlkZW9NYXRlIFQ3NTAgRFZCIHNldHVwXG4iKTsKKwkJZmUw
+LT5kdmIuZnJvbnRlbmQgPSBkdmJfYXR0YWNoKHpsMTAzNTNfYXR0YWNoLAorCQkJ
+CQkJJnZpZGVvbWF0ZV90NzUwX3psMTAzNTNfY29uZmlnLAorCQkJCQkJJmRldi0+
+aTJjX2FkYXApOworCQlpZiAoZmUwLT5kdmIuZnJvbnRlbmQgIT0gTlVMTCkgewor
+CQkJLy8gaWYgdGhlcmUgaXMgYSBnYXRlIGZ1bmN0aW9uIHRoZW4gdGhlIGkyYyBi
+dXMgYnJlYWtzLi4uLi4hCisJCQlmZTAtPmR2Yi5mcm9udGVuZC0+b3BzLmkyY19n
+YXRlX2N0cmwgPSAwOworCQkJaWYgKGR2Yl9hdHRhY2gocXQxMDEwX2F0dGFjaCwK
+KwkJCQkJZmUwLT5kdmIuZnJvbnRlbmQsCisJCQkJCSZkZXYtPmkyY19hZGFwLAor
+CQkJCQkmdmlkZW9tYXRlX3Q3NTBfcXQxMDEwX2NvbmZpZykgPT0gTlVMTCkKKwkJ
+CQl3cHJpbnRrKCJlcnJvciBhdHRhY2hpbmcgUVQxMDEwXG4iKTsKKwkJfQorCQli
+cmVhazsKKwogCWRlZmF1bHQ6CiAJCXdwcmludGsoIkh1aD8gdW5rbm93biBEVkIg
+Y2FyZD9cbiIpOwogCQlicmVhazsK
+
+------------mt6leC1DRk1vVXL1JBVUqc
+Content-Disposition: attachment; filename=dmesg
+Content-Type: application/octet-stream; name=dmesg
+Content-Transfer-Encoding: Base64
+
+TGludXggdmlkZW8gY2FwdHVyZSBpbnRlcmZhY2U6IHYyLjAwCnNhYTcxMzAvMzQ6
+IHY0bDIgZHJpdmVyIHZlcnNpb24gMC4yLjE2IGxvYWRlZApzYWE3MTMzWzBdOiBm
+b3VuZCBhdCAwMDAwOjAwOjBiLjAsIHJldjogMjA5LCBpcnE6IDE5LCBsYXRlbmN5
+OiAzMiwgbW1pbzogMHhkZmZmYjgwMApzYWE3MTMzWzBdOiBzdWJzeXN0ZW06IDE4
+NWI6YzkwMCwgYm9hcmQ6IENvbXBybyBWaWRlb01hdGUgVDc1MCBbY2FyZD0xMzks
+YXV0b2RldGVjdGVkXQpzYWE3MTMzWzBdOiBib2FyZCBpbml0OiBncGlvIGlzIDk0
+YmYwMApzYWE3MTMzWzBdOiBPb3BzOiBJUiBjb25maWcgZXJyb3IgW2NhcmQ9MTM5
+XQpJUlEgMTkvc2FhNzEzM1swXTogSVJRRl9ESVNBQkxFRCBpcyBub3QgZ3VhcmFu
+dGVlZCBvbiBzaGFyZWQgSVJRcwpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDAwOiA1
+YiAxOCAwMCBjOSA1NCAyMCAxYyAwMCA0MyA0MyBhOSAxYyA1NSBkMiBiMiA5Mgpz
+YWE3MTMzWzBdOiBpMmMgZWVwcm9tIDEwOiAwMCBmZiA4NiAwZiBmZiAyMCBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9t
+IDIwOiAwMSA0MCAwMSAwMiAwMiAwMSAwMyAwMSAwOCBmZiAwMCA4NyBmZiBmZiBm
+ZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDMwOiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMg
+ZWVwcm9tIDQwOiBmZiBkNyAwMCBjNCA4NiAxZSAwNSBmZiAwMiBjMiBmZiAwMSBj
+NiBmZiAwNSBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDUwOiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBjYgpzYWE3MTMzWzBd
+OiBpMmMgZWVwcm9tIDYwOiAzNSBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDcwOiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3
+MTMzWzBdOiBpMmMgZWVwcm9tIDgwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIDkw
+OiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGEwOiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVw
+cm9tIGIwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGMwOiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBp
+MmMgZWVwcm9tIGQwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZgpzYWE3MTMzWzBdOiBpMmMgZWVwcm9tIGUwOiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZgpzYWE3MTMz
+WzBdOiBpMmMgZWVwcm9tIGYwOiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBmZiBm
+ZiBmZiBmZiBmZiBmZiBmZiBmZgp0dW5lciAxLTAwNjE6IGNoaXAgZm91bmQgQCAw
+eGMyIChzYWE3MTMzWzBdKQp4YzIwMjggMS0wMDYxOiBjcmVhdGluZyBuZXcgaW5z
+dGFuY2UKeGMyMDI4IDEtMDA2MTogdHlwZSBzZXQgdG8gWENlaXZlIHhjMjAyOC94
+YzMwMjggdHVuZXIKc2FhNzEzNCAwMDAwOjAwOjBiLjA6IGZpcm13YXJlOiByZXF1
+ZXN0aW5nIHhjMzAyOC12MjcuZncKeGMyMDI4IDEtMDA2MTogTG9hZGluZyA4MCBm
+aXJtd2FyZSBpbWFnZXMgZnJvbSB4YzMwMjgtdjI3LmZ3LCB0eXBlOiB4YzIwMjgg
+ZmlybXdhcmUsIHZlciAyLjcKeGMyMDI4IDEtMDA2MTogTG9hZGluZyBmaXJtd2Fy
+ZSBmb3IgdHlwZT1CQVNFIEY4TUhaIE1UUyAoNyksIGlkIDAwMDAwMDAwMDAwMDAw
+MDAuCnhjMjAyOCAxLTAwNjE6IGkyYyBvdXRwdXQgZXJyb3I6IHJjID0gLTUgKHNo
+b3VsZCBiZSA2NCkKeGMyMDI4IDEtMDA2MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5k
+CnhjMjAyOCAxLTAwNjE6IEVycm9yIC0yMiB3aGlsZSBsb2FkaW5nIGJhc2UgZmly
+bXdhcmUKeGMyMDI4IDEtMDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1C
+QVNFIEY4TUhaIE1UUyAoNyksIGlkIDAwMDAwMDAwMDAwMDAwMDAuCnhjMjAyOCAx
+LTAwNjE6IGkyYyBvdXRwdXQgZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2NCkK
+eGMyMDI4IDEtMDA2MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAw
+NjE6IEVycm9yIC0yMiB3aGlsZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKeGMyMDI4
+IDEtMDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIEY4TUhaIE1U
+UyAoNyksIGlkIDAwMDAwMDAwMDAwMDAwMDAuCnhjMjAyOCAxLTAwNjE6IGkyYyBv
+dXRwdXQgZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2NCkKeGMyMDI4IDEtMDA2
+MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAwNjE6IEVycm9yIC0y
+MiB3aGlsZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKeGMyMDI4IDEtMDA2MTogTG9h
+ZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIEY4TUhaIE1UUyAoNyksIGlkIDAw
+MDAwMDAwMDAwMDAwMDAuCnhjMjAyOCAxLTAwNjE6IGkyYyBvdXRwdXQgZXJyb3I6
+IHJjID0gLTUgKHNob3VsZCBiZSA2NCkKeGMyMDI4IDEtMDA2MTogLTUgcmV0dXJu
+ZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAwNjE6IEVycm9yIC0yMiB3aGlsZSBsb2Fk
+aW5nIGJhc2UgZmlybXdhcmUKeGMyMDI4IDEtMDA2MTogRXJyb3Igb24gbGluZSAx
+MjAwOiAtNQpzYWE3MTMzWzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzAgW3Y0
+bDJdCnNhYTcxMzNbMF06IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTAKc2FhNzEzM1sw
+XTogcmVnaXN0ZXJlZCBkZXZpY2UgcmFkaW8wCnhjMjAyOCAxLTAwNjE6IExvYWRp
+bmcgZmlybXdhcmUgZm9yIHR5cGU9QkFTRSBGOE1IWiBNVFMgKDcpLCBpZCAwMDAw
+MDAwMDAwMDAwMDAwLgpkdmJfaW5pdCgpIGFsbG9jYXRpbmcgMSBmcm9udGVuZApD
+b21wcm8gVmlkZW9NYXRlIFQ3NTAgRFZCIHNldHVwCnhjMjAyOCAxLTAwNjE6IGky
+YyBvdXRwdXQgZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2NCkKeGMyMDI4IDEt
+MDA2MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAwNjE6IEVycm9y
+IC0yMiB3aGlsZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKUXVhbnRlayBRVDEwMTAg
+c3VjY2Vzc2Z1bGx5IGlkZW50aWZpZWQuCkRWQjogcmVnaXN0ZXJpbmcgbmV3IGFk
+YXB0ZXIgKHNhYTcxMzNbMF0pCkRWQjogcmVnaXN0ZXJpbmcgYWRhcHRlciAwIGZy
+b250ZW5kIDAgKFphcmxpbmsgWkwxMDM1MyBEVkItVCkuLi4Kc2FhNzEzNCBBTFNB
+IGRyaXZlciBmb3IgRE1BIHNvdW5kIGxvYWRlZApJUlEgMTkvc2FhNzEzM1swXTog
+SVJRRl9ESVNBQkxFRCBpcyBub3QgZ3VhcmFudGVlZCBvbiBzaGFyZWQgSVJRcwpz
+YWE3MTMzWzBdL2Fsc2E6IHNhYTcxMzNbMF0gYXQgMHhkZmZmYjgwMCBpcnEgMTkg
+cmVnaXN0ZXJlZCBhcyBjYXJkIC0xCnhjMjAyOCAxLTAwNjE6IExvYWRpbmcgZmly
+bXdhcmUgZm9yIHR5cGU9QkFTRSBGOE1IWiBNVFMgKDcpLCBpZCAwMDAwMDAwMDAw
+MDAwMDAwLgp4YzIwMjggMS0wMDYxOiBpMmMgb3V0cHV0IGVycm9yOiByYyA9IC01
+IChzaG91bGQgYmUgNjQpCnhjMjAyOCAxLTAwNjE6IC01IHJldHVybmVkIGZyb20g
+c2VuZAp4YzIwMjggMS0wMDYxOiBFcnJvciAtMjIgd2hpbGUgbG9hZGluZyBiYXNl
+IGZpcm13YXJlCnhjMjAyOCAxLTAwNjE6IEVycm9yIG9uIGxpbmUgMTIwMDogLTUK
+eGMyMDI4IDEtMDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIEY4
+TUhaIE1UUyAoNyksIGlkIDAwMDAwMDAwMDAwMDAwMDAuCnhjMjAyOCAxLTAwNjE6
+IGkyYyBvdXRwdXQgZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2NCkKeGMyMDI4
+IDEtMDA2MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAwNjE6IEVy
+cm9yIC0yMiB3aGlsZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKeGMyMDI4IDEtMDA2
+MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIEY4TUhaIE1UUyAoNyks
+IGlkIDAwMDAwMDAwMDAwMDAwMDAuCnhjMjAyOCAxLTAwNjE6IGkyYyBvdXRwdXQg
+ZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2NCkKeGMyMDI4IDEtMDA2MTogLTUg
+cmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAxLTAwNjE6IEVycm9yIC0yMiB3aGls
+ZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKeGMyMDI4IDEtMDA2MTogRXJyb3Igb24g
+bGluZSAxMjAwOiAtNQp4YzIwMjggMS0wMDYxOiBMb2FkaW5nIGZpcm13YXJlIGZv
+ciB0eXBlPUJBU0UgRk0gKDQwMSksIGlkIDAwMDAwMDAwMDAwMDAwMDAuCnhjMjAy
+OCAxLTAwNjE6IGkyYyBvdXRwdXQgZXJyb3I6IHJjID0gLTUgKHNob3VsZCBiZSA2
+NCkKeGMyMDI4IDEtMDA2MTogLTUgcmV0dXJuZWQgZnJvbSBzZW5kCnhjMjAyOCAx
+LTAwNjE6IEVycm9yIC0yMiB3aGlsZSBsb2FkaW5nIGJhc2UgZmlybXdhcmUKeGMy
+MDI4IDEtMDA2MTogTG9hZGluZyBmaXJtd2FyZSBmb3IgdHlwZT1CQVNFIEZNICg0
+MDEpLCBpZCAwMDAwMDAwMDAwMDAwMDAwLgp4YzIwMjggMS0wMDYxOiBpMmMgb3V0
+cHV0IGVycm9yOiByYyA9IC01IChzaG91bGQgYmUgNjQpCnhjMjAyOCAxLTAwNjE6
+IC01IHJldHVybmVkIGZyb20gc2VuZAp4YzIwMjggMS0wMDYxOiBFcnJvciAtMjIg
+d2hpbGUgbG9hZGluZyBiYXNlIGZpcm13YXJlCnhjMjAyOCAxLTAwNjE6IEVycm9y
+IG9uIGxpbmUgMTIwMDogLTUK
+
+------------mt6leC1DRk1vVXL1JBVUqc--
+
