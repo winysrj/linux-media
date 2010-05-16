@@ -1,61 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52444 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:45789 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758634Ab0EUSdV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 May 2010 14:33:21 -0400
-Date: Fri, 21 May 2010 20:33:40 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Baruch Siach <baruch@tkos.co.il>
-cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 0/3] Driver for the i.MX2x CMOS Sensor Interface
-In-Reply-To: <20100521072737.GA6967@tarshish>
-Message-ID: <Pine.LNX.4.64.1005212023400.8450@axis700.grange>
-References: <cover.1273150585.git.baruch@tkos.co.il> <20100521072045.GD17272@pengutronix.de>
- <20100521072737.GA6967@tarshish>
+	id S1750830Ab0EPE7w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 May 2010 00:59:52 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: hermann pitton <hermann-pitton@arcor.de>
+Subject: Re: av7110 and budget_av are broken!
+Date: Sun, 16 May 2010 06:21:48 +0200
+Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media@vger.kernel.org,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	e9hack <e9hack@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <ee20bb7da9d2708352bb7236108294d5.squirrel@webmail.xs4all.nl> <AANLkTimRAmxOL_eilVew3E9cabznR0_H2QZsvAXWM-bk@mail.gmail.com> <1273974828.3200.12.camel@pc07.localdom.local>
+In-Reply-To: <1273974828.3200.12.camel@pc07.localdom.local>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201005160622.00278@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 21 May 2010, Baruch Siach wrote:
-
-> Hi Sascha,
+On Sunday 16 May 2010 03:53:48 hermann pitton wrote:
 > 
-> On Fri, May 21, 2010 at 09:20:45AM +0200, Sascha Hauer wrote:
-> > On Thu, May 06, 2010 at 04:09:38PM +0300, Baruch Siach wrote:
-> > > This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and 
-> > > platform code for the i.MX25 and i.MX27 chips. This driver is based on a driver 
-> > > for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has posted in 
-> > > linux-media last December[1]. Since all I have is a i.MX25 PDK paltform I can't 
-> > > test the mx27 specific code. Testers and comment are welcome.
-> > > 
-> > > [1] https://patchwork.kernel.org/patch/67636/
-> > > 
-> > > Baruch Siach (3):
-> > >   mx2_camera: Add soc_camera support for i.MX25/i.MX27
-> > >   mx27: add support for the CSI device
-> > >   mx25: add support for the CSI device
+> Am Samstag, den 15.05.2010, 22:33 -0300 schrieb Douglas Schilling
+> Landgraf:
+> > Hello Oliver,
 > > 
-> > With the two additions I sent I can confirm this working on i.MX27, so
-> > no need to remove the related code.
+> > On Sat, May 15, 2010 at 8:06 PM, Oliver Endriss <o.endriss@gmx.de> wrote:
+> > > On Wednesday 21 April 2010 11:44:16 Oliver Endriss wrote:
+> > >> On Wednesday 21 April 2010 08:37:39 Hans Verkuil wrote:
+> > >> > > Am 22.3.2010 20:34, schrieb e9hack:
+> > >> > >> Am 20.3.2010 22:37, schrieb Hans Verkuil:
+> > >> > >>> On Saturday 20 March 2010 17:03:01 e9hack wrote:
+> > >> > >>> OK, I know that. But does the patch I mailed you last time fix this
+> > >> > >>> problem
+> > >> > >>> without causing new ones? If so, then I'll post that patch to the list.
+> > >> > >>
+> > >> > >> With your last patch, I've no problems. I'm using a a TT-C2300 and a
+> > >> > >> Budget card. If my
+> > >> > >> VDR does start, currently I've no chance to determine which module is
+> > >> > >> load first, but it
+> > >> > >> works. If I unload all modules and load it again, I've no problem. In
+> > >> > >> this case, the
+> > >> > >> modules for the budget card is load first and the modules for the FF
+> > >> > >> loads as second one.
+> > >> > >
+> > >> > > Ping!!!!!!
+> > >> >
+> > >> > It's merged in Mauro's fixes tree, but I don't think those pending patches
+> > >> > have been pushed upstream yet. Mauro, can you verify this? They should be
+> > >> > pushed to 2.6.34!
+> > >>
+> > >> What about the HG driver?
+> > >> The v4l-dvb HG repository is broken for 7 weeks...
+> > >
+> > > Hi guys,
+> > >
+> > > we have May 16th, and the HG driver is broken for 10 weeks now!
+> > >
+> > > History:
+> > > - The changeset which caused the mess was applied on March 2nd:
+> > >  http://linuxtv.org/hg/v4l-dvb/rev/2eda2bcc8d6f
+> > >
+> > > - A fix is waiting at fixes.git since March 24th:
+> > >  http://git.linuxtv.org/fixes.git?a=commitdiff_plain;h=40358c8b5380604ac2507be2fac0c9bbd3e02b73
+> > >
+> > > Are there any plans to bring v4ldvb HG to an usable state?
+> > 
+> > Yes, Now I will collect patches from devel and fixes tree. At least
+> > until we achieve a better approach on it.
+> > Sorry the delay.
+> > 
+> > Sounds good? Any other suggestion?
+> > 
+> > Let me work on it.
+> > 
+> > Cheers
+> > Douglas
 > 
-> Thanks. I'll add your patches to my queue and resend the series next week.
+> 
+> Hi, Douglas and Oliver,
+> 
+> just as a small comment.
+> 
+> I have not been on latest rc1 and such rcs close to a release for some
+> time.
+>
+> But I was for a long time and v4l-dvb can't be a substitute for such.
 
-Firstly, Sascha, unfortunately, you've forgotten to CC the maintainer, 
-that will have to deal with these patches.
+Sorry, I do not want to cope with experimental kernels and their bugs on
+my systems. I need a stable and reliable platform, so that I can
+concentrate on 'my' bugs.
 
-Secondly, I don't think that's a good idea to submit mx27 fixes as 
-incremental patches. I'd prefer to have them rolled into the actual driver 
-submission patches, where Sascha would just add his Sob / acked-by / 
-tested-by / whatever... Or you can first submit an mx25-only driver and 
-let Sascha add mx27 to it, in which case this would be a functionality 
-extension, but not a fix of a broken driver.
+Usually I update the kernel every 3..4 releases (which causes enough
+trouble due to changed features, interfaces etc).
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> Despite of getting more users for testing, on _that_ front does not
+> happen such much currently, keeping v4l-dvb is mostly a service for
+> developers this time.
+> 
+> So, contributing on the backports and helping Douglas with such is
+> really welcome.
+
+I confess that I do not know much about the tree handling procedures of
+the kernel. Imho it sounds crazy to have separate 'fixes' and
+'development' trees.
+
+A developer's tree (no matter whether HG or GIT) must also include the
+fixes, otherwise it is unusable. You cannot wait until applied fixes
+flow back from the kernel.
+
+Btw, the v4ldvb HG repositories contain tons of disabled code (marked
+'#if 0'), which was stripped for submission to the kernel.
+Even if we would switch to GIT completely, we need a separate GIT
+repository which would hold the original code.
+
+CU
+Oliver
+
+-- 
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
