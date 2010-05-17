@@ -1,271 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:40377 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753554Ab0EFTAH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 15:00:07 -0400
-Received: by fxm10 with SMTP id 10so245951fxm.19
-        for <linux-media@vger.kernel.org>; Thu, 06 May 2010 12:00:05 -0700 (PDT)
-Subject: [PATCH] TechnoTrend TT-budget T-3000
-From: Vadim Catana <vadim.catana@gmail.com>
-Reply-To: vadim.catana@gmail.com
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary="=-NIshBXutmrypIBZUUQLC"
-Date: Thu, 06 May 2010 22:00:04 +0300
-Message-ID: <1273172404.2154.26.camel@xxx>
-Mime-Version: 1.0
+Received: from impaqm4.telefonica.net ([213.4.138.4]:56130 "EHLO
+	IMPaqm4.telefonica.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755521Ab0EQTcb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 May 2010 15:32:31 -0400
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: AF9015 suspend problem
+Date: Mon, 17 May 2010 21:32:23 +0200
+Cc: linux-media@vger.kernel.org
+References: <201005021739.18393.jareguero@telefonica.net> <201005140250.30481.jareguero@telefonica.net> <4BED3F73.3010708@iki.fi>
+In-Reply-To: <4BED3F73.3010708@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201005172132.23964.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+El Viernes, 14 de Mayo de 2010, Antti Palosaari escribió:
+> On 05/14/2010 03:50 AM, Jose Alberto Reguero wrote:
+> > El Jueves, 13 de Mayo de 2010, Antti Palosaari escribió:
+> >> Terve!
+> >> 
+> >> On 05/02/2010 06:39 PM, Jose Alberto Reguero wrote:
+> >>> When I have a af9015 DVB-T stick plugged I can not recover from pc
+> >>> suspend. I must unplug the stick to suspend work. Even if I remove the
+> >>> modules I cannot recover from suspend.
+> >>> Any idea why this happen?
+> >> 
+> >> Did you asked this 7 months ago from me?
+> >> I did some tests (http://linuxtv.org/hg/~anttip/suspend/) and looks like
+> >> it is firmware loader problem (fw loader misses something or like
+> >> that...). No one answered when I asked that from ML, but few weeks ago I
+> >> saw some discussion. Look ML archives.
+> >> 
+> >> regards
+> >> Antti
+> > 
+> > I think that is another problem. If I blacklist the af9015 driver and
+> > have the stick plugged in, the suspend don't finish, and the system
+> > can't resume. If I unplugg the stick the suspend feature work well.
+> 
+> Look these and check if it is same problem:
+> 
+> DVB USB resume from suspend crash
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg09974.html
+> 
+> Re: tuner XC5000 race condition??
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg18012.html
+> 
+> Bug 15294 -  Oops due to an apparent race between udev and a timeout in
+> firmware_class.c
+> https://bugzilla.kernel.org/show_bug.cgi?id=15294
+> 
+> I haven't examined those yet, but I think they could be coming from same
+> issue.
+> 
+> br,
+> Antti
 
---=-NIshBXutmrypIBZUUQLC
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+I found my problem. Was a quirk that I have in the kernel parameters:
+usbhid.quirks=0x07ca:0xa815:0x04
+Without the quirk, the system go to sleep an can wake, although only the first 
+time. The second time the system don't sleep. Perhaps I have some wrong in my 
+scripts.
 
-Hi,
-
-This patch adds support for TechnoTrend TT-budget T-3000
-DVB-T card.
-
-
-
-diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Apr 29
-23:31:06 2010 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu May 06
-21:33:14 2010 +0300
-@@ -5411,6 +5411,30 @@
- 			.gpio = 0x01fc00,
- 		} },
- 	},
-+	[SAA7134_BOARD_TECHNOTREND_BUDGET_T3000] = {
-+		.name           = "TechoTrend TT-budget T-3000",
-+		.tuner_type	= TUNER_PHILIPS_TD1316,
-+		.audio_clock    = 0x00187de7,
-+		.radio_type     = UNSET,
-+		.tuner_addr	= 0x63,
-+		.radio_addr	= ADDR_UNSET,
-+		.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE,
-+		.mpeg           = SAA7134_MPEG_DVB,
-+		.inputs = {{
-+			.name   = name_tv,
-+			.vmux   = 3,
-+			.amux   = TV,
-+			.tv     = 1,
-+		}, {
-+			.name   = name_comp1,
-+			.vmux   = 0,
-+			.amux   = LINE2,
-+		}, {
-+			.name   = name_svideo,
-+			.vmux   = 8,
-+			.amux   = LINE2,
-+		} },
-+	},
- 
- };
- 
-@@ -6568,6 +6592,12 @@
- 		.subdevice    = 0x6655,
- 		.driver_data  = SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S,
- 	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x13c2,
-+		.subdevice    = 0x2804,
-+		.driver_data  = SAA7134_BOARD_TECHNOTREND_BUDGET_T3000,
-+	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-@@ -7277,6 +7307,7 @@
- 	case SAA7134_BOARD_VIDEOMATE_DVBT_300:
- 	case SAA7134_BOARD_ASUS_EUROPA2_HYBRID:
- 	case SAA7134_BOARD_ASUS_EUROPA_HYBRID:
-+	case SAA7134_BOARD_TECHNOTREND_BUDGET_T3000:
- 	{
- 
- 		/* The Philips EUROPA based hybrid boards have the tuner
-diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134-dvb.c
---- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu Apr 29
-23:31:06 2010 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu May 06
-21:33:14 2010 +0300
-@@ -482,6 +482,18 @@
- 	.request_firmware = philips_tda1004x_request_firmware
- };
- 
-+static struct tda1004x_config technotrend_budget_t3000_config = {
-+	.demod_address = 0x8,
-+	.invert        = 1,
-+	.invert_oclk   = 0,
-+	.xtal_freq     = TDA10046_XTAL_4M,
-+	.agc_config    = TDA10046_AGC_DEFAULT,
-+	.if_freq       = TDA10046_FREQ_3617,
-+	.tuner_address = 0x63,
-+	.request_firmware = philips_tda1004x_request_firmware
-+};
-+
-+
- /* ------------------------------------------------------------------
-  * tda 1004x based cards with philips silicon tuner
-  */
-@@ -1169,6 +1181,18 @@
- 			fe0->dvb.frontend->ops.tuner_ops.set_params =
-philips_td1316_tuner_set_params;
- 		}
- 		break;
-+	case SAA7134_BOARD_TECHNOTREND_BUDGET_T3000:
-+		fe0->dvb.frontend = dvb_attach(tda10046_attach,
-+					       &technotrend_budget_t3000_config,
-+					       &dev->i2c_adap);
-+		if (fe0->dvb.frontend) {
-+			dev->original_demod_sleep = fe0->dvb.frontend->ops.sleep;
-+			fe0->dvb.frontend->ops.sleep = philips_europa_demod_sleep;
-+			fe0->dvb.frontend->ops.tuner_ops.init = philips_europa_tuner_init;
-+			fe0->dvb.frontend->ops.tuner_ops.sleep = philips_europa_tuner_sleep;
-+			fe0->dvb.frontend->ops.tuner_ops.set_params =
-philips_td1316_tuner_set_params;
-+		}
-+		break;
- 	case SAA7134_BOARD_VIDEOMATE_DVBT_200:
- 		fe0->dvb.frontend = dvb_attach(tda10046_attach,
- 					       &philips_tu1216_61_config,
-diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Thu Apr 29 23:31:06
-2010 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Thu May 06 21:33:14
-2010 +0300
-@@ -302,6 +302,7 @@
- #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
- #define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
- #define SAA7134_BOARD_HAWELL_HW_404M7		177
-+#define SAA7134_BOARD_TECHNOTREND_BUDGET_T3000 178
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
-
-
-
-Signed-off-by: Vadim Catana <vadim.catana@gmail.com>
-
-
-Best regards,
-Vadim Catana
-
-
-
---=-NIshBXutmrypIBZUUQLC
-Content-Disposition: attachment; filename="T3000.patch"
-Content-Type: text/x-patch; name="T3000.patch"; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-
-diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134-cards.c
---- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu Apr 29 23:31:06 2010 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Thu May 06 21:33:14 2010 +0300
-@@ -5411,6 +5411,30 @@
- 			.gpio = 0x01fc00,
- 		} },
- 	},
-+	[SAA7134_BOARD_TECHNOTREND_BUDGET_T3000] = {
-+		.name           = "TechoTrend TT-budget T-3000",
-+		.tuner_type	= TUNER_PHILIPS_TD1316,
-+		.audio_clock    = 0x00187de7,
-+		.radio_type     = UNSET,
-+		.tuner_addr	= 0x63,
-+		.radio_addr	= ADDR_UNSET,
-+		.tda9887_conf   = TDA9887_PRESENT | TDA9887_PORT1_ACTIVE,
-+		.mpeg           = SAA7134_MPEG_DVB,
-+		.inputs = {{
-+			.name   = name_tv,
-+			.vmux   = 3,
-+			.amux   = TV,
-+			.tv     = 1,
-+		}, {
-+			.name   = name_comp1,
-+			.vmux   = 0,
-+			.amux   = LINE2,
-+		}, {
-+			.name   = name_svideo,
-+			.vmux   = 8,
-+			.amux   = LINE2,
-+		} },
-+	},
- 
- };
- 
-@@ -6568,6 +6592,12 @@
- 		.subdevice    = 0x6655,
- 		.driver_data  = SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S,
- 	}, {
-+		.vendor       = PCI_VENDOR_ID_PHILIPS,
-+		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-+		.subvendor    = 0x13c2,
-+		.subdevice    = 0x2804,
-+		.driver_data  = SAA7134_BOARD_TECHNOTREND_BUDGET_T3000,
-+	}, {
- 		/* --- boards without eeprom + subsystem ID --- */
- 		.vendor       = PCI_VENDOR_ID_PHILIPS,
- 		.device       = PCI_DEVICE_ID_PHILIPS_SAA7134,
-@@ -7277,6 +7307,7 @@
- 	case SAA7134_BOARD_VIDEOMATE_DVBT_300:
- 	case SAA7134_BOARD_ASUS_EUROPA2_HYBRID:
- 	case SAA7134_BOARD_ASUS_EUROPA_HYBRID:
-+	case SAA7134_BOARD_TECHNOTREND_BUDGET_T3000:
- 	{
- 
- 		/* The Philips EUROPA based hybrid boards have the tuner
-diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134-dvb.c
---- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu Apr 29 23:31:06 2010 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Thu May 06 21:33:14 2010 +0300
-@@ -482,6 +482,18 @@
- 	.request_firmware = philips_tda1004x_request_firmware
- };
- 
-+static struct tda1004x_config technotrend_budget_t3000_config = {
-+	.demod_address = 0x8,
-+	.invert        = 1,
-+	.invert_oclk   = 0,
-+	.xtal_freq     = TDA10046_XTAL_4M,
-+	.agc_config    = TDA10046_AGC_DEFAULT,
-+	.if_freq       = TDA10046_FREQ_3617,
-+	.tuner_address = 0x63,
-+	.request_firmware = philips_tda1004x_request_firmware
-+};
-+
-+
- /* ------------------------------------------------------------------
-  * tda 1004x based cards with philips silicon tuner
-  */
-@@ -1169,6 +1181,18 @@
- 			fe0->dvb.frontend->ops.tuner_ops.set_params = philips_td1316_tuner_set_params;
- 		}
- 		break;
-+	case SAA7134_BOARD_TECHNOTREND_BUDGET_T3000:
-+		fe0->dvb.frontend = dvb_attach(tda10046_attach,
-+					       &technotrend_budget_t3000_config,
-+					       &dev->i2c_adap);
-+		if (fe0->dvb.frontend) {
-+			dev->original_demod_sleep = fe0->dvb.frontend->ops.sleep;
-+			fe0->dvb.frontend->ops.sleep = philips_europa_demod_sleep;
-+			fe0->dvb.frontend->ops.tuner_ops.init = philips_europa_tuner_init;
-+			fe0->dvb.frontend->ops.tuner_ops.sleep = philips_europa_tuner_sleep;
-+			fe0->dvb.frontend->ops.tuner_ops.set_params = philips_td1316_tuner_set_params;
-+		}
-+		break;
- 	case SAA7134_BOARD_VIDEOMATE_DVBT_200:
- 		fe0->dvb.frontend = dvb_attach(tda10046_attach,
- 					       &philips_tu1216_61_config,
-diff -r ee9826bc7106 linux/drivers/media/video/saa7134/saa7134.h
---- a/linux/drivers/media/video/saa7134/saa7134.h	Thu Apr 29 23:31:06 2010 -0300
-+++ b/linux/drivers/media/video/saa7134/saa7134.h	Thu May 06 21:33:14 2010 +0300
-@@ -302,6 +302,7 @@
- #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
- #define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
- #define SAA7134_BOARD_HAWELL_HW_404M7		177
-+#define SAA7134_BOARD_TECHNOTREND_BUDGET_T3000 178
- 
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
-
---=-NIshBXutmrypIBZUUQLC--
+Jose Alberto
 
