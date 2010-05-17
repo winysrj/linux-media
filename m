@@ -1,155 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:38499 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753062Ab0EUHSD (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4292 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754606Ab0EQSir (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 May 2010 03:18:03 -0400
-Date: Fri, 21 May 2010 09:17:53 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH 2/3] mx27: add support for the CSI device
-Message-ID: <20100521071753.GB17272@pengutronix.de>
-References: <cover.1273150585.git.baruch@tkos.co.il> <2df2fdd7809e836bac3ff4cd2d77aa976e6ca760.1273150585.git.baruch@tkos.co.il>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2df2fdd7809e836bac3ff4cd2d77aa976e6ca760.1273150585.git.baruch@tkos.co.il>
+	Mon, 17 May 2010 14:38:47 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4HIcjTP045215
+	for <linux-media@vger.kernel.org>; Mon, 17 May 2010 20:38:45 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 17 May 2010 20:38:45 +0200 (CEST)
+Message-Id: <201005171838.o4HIcjTP045215@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 06, 2010 at 04:09:40PM +0300, Baruch Siach wrote:
-> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> ---
->  arch/arm/mach-mx2/clock_imx27.c |    2 +-
->  arch/arm/mach-mx2/devices.c     |   31 +++++++++++++++++++++++++++++++
->  arch/arm/mach-mx2/devices.h     |    1 +
->  3 files changed, 33 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-mx2/clock_imx27.c b/arch/arm/mach-mx2/clock_imx27.c
-> index 0f0823c..5a1aa15 100644
-> --- a/arch/arm/mach-mx2/clock_imx27.c
-> +++ b/arch/arm/mach-mx2/clock_imx27.c
-> @@ -644,7 +644,7 @@ static struct clk_lookup lookups[] = {
->  	_REGISTER_CLOCK("spi_imx.1", NULL, cspi2_clk)
->  	_REGISTER_CLOCK("spi_imx.2", NULL, cspi3_clk)
->  	_REGISTER_CLOCK("imx-fb.0", NULL, lcdc_clk)
-> -	_REGISTER_CLOCK(NULL, "csi", csi_clk)
-> +	_REGISTER_CLOCK("mx2-camera.0", NULL, csi_clk)
->  	_REGISTER_CLOCK("fsl-usb2-udc", "usb", usb_clk)
->  	_REGISTER_CLOCK("fsl-usb2-udc", "usb_ahb", usb_clk1)
->  	_REGISTER_CLOCK("mxc-ehci.0", "usb", usb_clk)
-> diff --git a/arch/arm/mach-mx2/devices.c b/arch/arm/mach-mx2/devices.c
-> index b91e412..de501ac 100644
-> --- a/arch/arm/mach-mx2/devices.c
-> +++ b/arch/arm/mach-mx2/devices.c
-> @@ -40,6 +40,37 @@
->  
->  #include "devices.h"
->  
-> +#ifdef CONFIG_MACH_MX27
-> +static struct resource mx27_camera_resources[] = {
-> +	{
-> +	       .start = CSI_BASE_ADDR,
-> +	       .end = CSI_BASE_ADDR + 0x1f,
-> +	       .flags = IORESOURCE_MEM,
-> +	}, {
-> +	       .start = EMMA_PRP_BASE_ADDR,
-> +	       .end = EMMA_PRP_BASE_ADDR + 0x1f,
-> +	       .flags = IORESOURCE_MEM,
-> +	}, {
-> +	       .start = MXC_INT_CSI,
-> +	       .end = MXC_INT_CSI,
-> +	       .flags = IORESOURCE_IRQ,
-> +	},{
-> +	       .start = MXC_INT_EMMAPRP,
-> +	       .end = MXC_INT_EMMAPRP,
-> +	       .flags = IORESOURCE_IRQ,
-> +	},
-> +};
-> +struct platform_device mx27_camera_device = {
-> +	.name = "mx2-camera",
-> +	.id = 0,
-> +	.num_resources = ARRAY_SIZE(mx27_camera_resources),
-> +	.resource = mx27_camera_resources,
-> +	.dev = {
-> +		.coherent_dma_mask = 0xffffffff,
-> +	},
-> +};
-> +#endif
-> +
->  /*
->   * SPI master controller
->   *
-> diff --git a/arch/arm/mach-mx2/devices.h b/arch/arm/mach-mx2/devices.h
-> index 84ed513..8bdf018 100644
-> --- a/arch/arm/mach-mx2/devices.h
-> +++ b/arch/arm/mach-mx2/devices.h
-> @@ -29,6 +29,7 @@ extern struct platform_device mxc_i2c_device1;
->  extern struct platform_device mxc_sdhc_device0;
->  extern struct platform_device mxc_sdhc_device1;
->  extern struct platform_device mxc_otg_udc_device;
-> +extern struct platform_device mx27_camera_device;
->  extern struct platform_device mxc_otg_host;
->  extern struct platform_device mxc_usbh1;
->  extern struct platform_device mxc_usbh2;
-> -- 
-> 1.7.0
-> 
->
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Please amend the following to this patch to make it compile on i.MX27:
- 
->From f1dc7e4c35ea0847e5527d9db50b6343c655de8c Mon Sep 17 00:00:00 2001
-From: Sascha Hauer <s.hauer@pengutronix.de>
-Date: Thu, 20 May 2010 13:36:11 +0200
-Subject: [PATCH 1/2] mx27 devices: Fix CSI/EMMA base addresses
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
----
- arch/arm/mach-mx2/devices.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+date:        Mon May 17 19:00:21 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14859:8f5129efe974
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-diff --git a/arch/arm/mach-mx2/devices.c b/arch/arm/mach-mx2/devices.c
-index de501ac..6a49c79 100644
---- a/arch/arm/mach-mx2/devices.c
-+++ b/arch/arm/mach-mx2/devices.c
-@@ -43,20 +43,20 @@
- #ifdef CONFIG_MACH_MX27
- static struct resource mx27_camera_resources[] = {
- 	{
--	       .start = CSI_BASE_ADDR,
--	       .end = CSI_BASE_ADDR + 0x1f,
-+	       .start = MX27_CSI_BASE_ADDR,
-+	       .end = MX27_CSI_BASE_ADDR + 0x1f,
- 	       .flags = IORESOURCE_MEM,
- 	}, {
--	       .start = EMMA_PRP_BASE_ADDR,
--	       .end = EMMA_PRP_BASE_ADDR + 0x1f,
-+	       .start = MX27_EMMA_PRP_BASE_ADDR,
-+	       .end = MX27_EMMA_PRP_BASE_ADDR + 0x1f,
- 	       .flags = IORESOURCE_MEM,
- 	}, {
--	       .start = MXC_INT_CSI,
--	       .end = MXC_INT_CSI,
-+	       .start = MX27_INT_CSI,
-+	       .end = MX27_INT_CSI,
- 	       .flags = IORESOURCE_IRQ,
- 	},{
--	       .start = MXC_INT_EMMAPRP,
--	       .end = MXC_INT_EMMAPRP,
-+	       .start = MX27_INT_EMMAPRP,
-+	       .end = MX27_INT_EMMAPRP,
- 	       .flags = IORESOURCE_IRQ,
- 	},
- };
--- 
-1.7.0
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc7-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc7-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc7-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc7-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc7-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc7-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc7-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc7-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc7-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
+Detailed results are available here:
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
