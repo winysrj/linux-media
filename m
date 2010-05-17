@@ -1,86 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tmr.com ([64.65.253.246]:43194 "EHLO partygirl.tmr.com"
+Received: from tango.tkos.co.il ([62.219.50.35]:60204 "EHLO tango.tkos.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752183Ab0E2NLt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 09:11:49 -0400
-Message-ID: <4C011267.2040103@tmr.com>
-Date: Sat, 29 May 2010 09:11:03 -0400
-From: Bill Davidsen <davidsen@tmr.com>
+	id S1750896Ab0EQN7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 May 2010 09:59:09 -0400
+Date: Mon, 17 May 2010 16:58:00 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 1/3] mx2_camera: Add soc_camera support for
+ i.MX25/i.MX27
+Message-ID: <20100517135800.GB30927@jasper.tkos.co.il>
+References: <cover.1273150585.git.baruch@tkos.co.il>
+ <a029bab8fcb3273df4a1d98f779f110b127742bd.1273150585.git.baruch@tkos.co.il>
+ <Pine.LNX.4.64.1005090045230.10524@axis700.grange>
+ <20100517072720.GD31199@pengutronix.de>
 MIME-Version: 1.0
-To: Andrew Morton <akpm@linux-foundation.org>
-CC: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	bugzilla-daemon@bugzilla.kernel.org,
-	bugme-daemon@bugzilla.kernel.org
-Subject: Re: [Bugme-new] [Bug 16050] New: The ibmcam driver is not working
-References: <bug-16050-10286@https.bugzilla.kernel.org/> <20100528154635.129b621b.akpm@linux-foundation.org>
-In-Reply-To: <20100528154635.129b621b.akpm@linux-foundation.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100517072720.GD31199@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrew Morton wrote:
-> (switched to email.  Please respond via emailed reply-to-all, not via the
-> bugzilla web interface).
->
-> On Tue, 25 May 2010 23:02:23 GMT
-> bugzilla-daemon@bugzilla.kernel.org wrote:
->
->   
->> https://bugzilla.kernel.org/show_bug.cgi?id=16050
->>
->>                URL: https://bugzilla.redhat.com/show_bug.cgi?id=588900
->>            Summary: The ibmcam driver is not working
->>            Product: Drivers
->>            Version: 2.5
->>     Kernel Version: 2.6.34
->>           Platform: All
->>         OS/Version: Linux
->>               Tree: Mainline
->>             Status: NEW
->>           Severity: normal
->>           Priority: P1
->>          Component: USB
->>         AssignedTo: greg@kroah.com
->>         ReportedBy: davidsen@tmr.com
->>         Regression: Yes
->>
->>
->> This driver has been working, and around the 1st of May I updated my Fedora
->> kernel (FC13-RC) to current. The camera stopped working, so I built the latest
->> 2.6.34-rc version and verified the problem. When 2.6.34 final released I
->> repeated the test and the driver is still not working.
->>
->> Originally reported against Fedora (not going to be fixed in FC13) the
->> information in the Fedora report may be enough to identify the problem. I can
->> do a bit of test almost any day, but the cams are on a video monitoring system,
->> so I'm not able to do long bisects and such.
->>
->>     
->
-> It's a 2.6.33 -> 2.6.34 regression, I think.  I don't know whether it's
-> a v4l problem or a USB one..
->
->   
-I noted this problem in Fedora kernels:
+Hi Sascha,
 
-2.6.33.2-41.fc13.x86_64 - worked
-2.6.33.2-57.fc13.x86_64 - fails
+Thanks for your comments.
 
-The first was on my video server 4/21 when I left for a trip to the midwest,
-and worked perfectly with the "motion" app for the entire ten days. When I
-installed the current update on 5/2 or so it stopped working. I did go back
-and boot the older kernel and it still works, not some bizarre hardware thing.
+On Mon, May 17, 2010 at 09:27:20AM +0200, Sascha Hauer wrote:
+> On Wed, May 12, 2010 at 09:02:29PM +0200, Guennadi Liakhovetski wrote:
+> > Hi Baruch
+> > 
+> > Thanks for eventually mainlining this driver! A couple of comments below. 
+> > Sascha, would be great, if you could get it tested on imx27 with and 
+> > without emma.
+> 
+> I will see what I can do. Testing and probably breathing life into a
+> camera driver usually takes me two days given that the platform support
+> is very outdated. I hope our customer is interested in this, then it
+> would be possible to test it.
+> 
+> > BTW, if you say, that you use emma to avoid using the 
+> > standard DMA controller, why would anyone want not to use emma? Resource 
+> > conflict? There is also a question for you down in the comments, please, 
+> > skim over.
+> 
+> I originally did not know how all the components should work together.
+> Now I think it's the right way to use the EMMA to be able to scale
+> images and to do colour conversions (which does not work with our Bayer
+> format cameras, so I cannot test it).
 
-After boot I have /dev/video0 as the ibmcam, but after first attempted use
-the device is gone. Since it worked in older kernels I rebooted and tried
-running it in an older VM (fc9) using USB passthru to KVM. That also didn't
-work. Does that tell anyone more than it tells me?
+So can I remove the non EMMA code from this driver? This will simplify the 
+code quite a bit.
 
+[snip]
 
+> > > +static int mclk_get_divisor(struct mx2_camera_dev *pcdev)
+> > > +{
+> > > +	dev_info(pcdev->dev, "%s not implemented. Running at max speed\n",
+> > > +			__func__);
+> > 
+> > Hm, why is this unimplemented?
+> > 
+> > > +
+> > > +#if 0
+> > > +	unsigned int mclk = pcdev->pdata->clk_csi;
+> > > +	unsigned int pclk = clk_get_rate(pcdev->clk_csi);
+> > > +	int i;
+> > > +
+> > > +	dev_dbg(pcdev->dev, "%s: %ld %ld\n", __func__, mclk, pclk);
+> > > +
+> > > +	for (i = 0; i < 0xf; i++)
+> > > +		if ((i + 1) * 2 * mclk <= pclk)
+> > > +			break;
+> > 
+> > This doesn't look right. You increment the counter i, and terminate the
+> > loop as soon as "(i + 1) * 2 * mclk <= pclk". Obviously, if 2 * mclk <= pclk,
+> > this will terminate immediately, otherwise it will run until the end and
+> > return 0xf without satisfying the condition. What exactly are you trying to
+> > achieve? Find the _largest_ i, such that "(i + 1) * 2 * mclk <= pclk"? Then
+> > why not just do "i = pclk / 2 / mclk - 1"?
+> > 
+> > > +	return i;
+> > > +#endif
+> > > +	return 0;
+> > > +}
+
+Can you shed some light on this?
+
+Thanks,
+baruch
 
 -- 
-Bill Davidsen <davidsen@tmr.com>
-  "We can't solve today's problems by using the same thinking we
-   used in creating them." - Einstein
-
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
