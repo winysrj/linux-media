@@ -1,36 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:55544 "EHLO
-	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752437Ab0EVHqh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 May 2010 03:46:37 -0400
-Date: Sat, 22 May 2010 16:46:32 +0900
-From: Paul Mundt <lethal@linux-sh.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
-Subject: Re: [PATCH] SH: add Video Output Unit and AK8813 video encoder support on ecovec
-Message-ID: <20100522074632.GC17814@linux-sh.org>
-References: <Pine.LNX.4.64.1004211039220.5292@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:60518 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752552Ab0ERSKs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 May 2010 14:10:48 -0400
+Message-ID: <4BF2D81B.5050804@redhat.com>
+Date: Tue, 18 May 2010 15:10:35 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1004211039220.5292@axis700.grange>
+To: Alexjan Carraturo <axjslack@gmail.com>
+CC: CityK <cityk@rogers.com>, video4linux-list@redhat.com,
+	Linux-media <linux-media@vger.kernel.org>
+Subject: Re: Pinnacle PCTV DVB-T 70e
+References: <AANLkTilbPB2DeJhah0XzSMYEOpXUTzt-v4-h9JsV1BP2@mail.gmail.com> 	<4BEEC5E5.9020805@rogers.com> <AANLkTilJ24ok_LzX_m3QvXz8tio0DIfarYp5Dj0hUc5o@mail.gmail.com>
+In-Reply-To: <AANLkTilJ24ok_LzX_m3QvXz8tio0DIfarYp5Dj0hUc5o@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 21, 2010 at 10:45:25AM +0200, Guennadi Liakhovetski wrote:
-> Ecovec uses the AK8813 video envoder similarly to the ms7724se platform with
-> the only difference, that on ecovec GPIOs are used for resetting and powering
-> up and down the chip.
+Alexjan Carraturo wrote:
+
+> Why not? Because nobody can cure this entry? Or why the driver is not
+> compatible with the version in the kernel now?
+
+For someone to add support to a device, it needs to have that device (or
+a similar one), and to be able to get access to the datasheets or to use
+some reverse engineering technique. One important information is what
+are the chips inside the device.
+
+>> You can, however, look to see if you can add support for your device to
+>> the existing v4l-dvb kernel driver. There are several developers that
+>> are knowledgeable of the em28xx driver, and whom may be able to help you
+>> in that regard, but you will have to gain there attention first.
+>>
+>>
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
+> I'm sorry, but even knowing a bit 'of the C programming language, I
+> have never written a driver, I'm not able, and I honestly do not even
+> capable.
 > 
-> This patch extends the SuperH VOU / AK881x patch series: 
-> http://thread.gmane.org/gmane.linux.ports.sh.devel/7751/focus=7753
+> You tell me to add support to the current driver, but I have no idea
+> how to do. It is also good to clarify that the driver on the kernel
+> vanulla charge in the presence of this card, but simply does not work,
+> and does not create deivce (/dev/dvb/).
+
+Take a look at linuxtv WIKI pages. It explains several useful things
+on how to add support to a new device.
+
+> So knowing that I'm not able to write the driver, I would say that
+> this device is definitely dead and buried ... in this case would be at
+> least that was not loaded em28xx module (the one in the kernel),
+> avoiding giving the illusion that the driver functions.
 > 
->  arch/sh/boards/mach-ecovec24/setup.c |   78 ++++++++++++++++++++++++++++++++++
->  1 files changed, 78 insertions(+), 0 deletions(-)
-> 
-Applied, thanks.
+> I do not know if you can, but should be added, if any, in a sort of blacklist.
+
+The USB ID used by your device is generic: all devices with em2870 without
+eeprom will inform the same code (and even some with eeprom, but where
+the vendor didn't care to write their own ID there).
+
+What are the components used on your device?
+
+
+-- 
+
+Cheers,
+Mauro
