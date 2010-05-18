@@ -1,299 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:44978 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756544Ab0ELWVw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 May 2010 18:21:52 -0400
-Received: by fxm4 with SMTP id 4so139766fxm.19
-        for <linux-media@vger.kernel.org>; Wed, 12 May 2010 15:21:51 -0700 (PDT)
-Message-ID: <4BEB29B2.9080501@gmail.com>
-Date: Thu, 13 May 2010 00:20:34 +0200
-From: Daniel Borkmann <danborkmann@googlemail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:2779 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756552Ab0ERLOL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 May 2010 07:14:11 -0400
+Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4IBEBl4020418
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 18 May 2010 07:14:11 -0400
+Message-ID: <4BF27601.8010207@redhat.com>
+Date: Tue, 18 May 2010 16:42:01 +0530
+From: Huzaifa Sidhpurwala <huzaifas@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: daniel@netyack.org
-Subject: Bug in AMDs V4L2 driver lxv4l2?
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig393BD9F7A93387030D6ACE3C"
+To: Hans de Goede <hdegoede@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: [Patch] Moving v4l1 ioctls from kernel to libv4l1
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig393BD9F7A93387030D6ACE3C
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi All,
+I have been working with Hans for moving the v4l1 ioctls from the kernel
+to libv4l1.
+It would be best to work on one ioctl at a time.
+The enclosed patch attempts to implement VIDIOCGCAP in the libv4l1.
 
-Hi everyone,
-
-I am using an AMD Geode webcam with a V4L driver (lxv4l2). For the usersp=
-ace I've implemented a V4L
-binding with memory mapping of the frames. After sucessfull receiving fra=
-mes it lasts about two or
-three minutes and then either the timestamp of the frame is not changing =
-anymore or a kernel oops
-happens. I am not quite sure whether this is caused by my userspace test =
-program ("fw_singapore")
-or whether this is a bug within AMDs driver code ...
-
-Thanks for help.
-Cheers,
-                Daniel
-
-Here the causing driver function within AMDs lx.c (and below the dmesg ou=
-tput):
-
-Nevertheless, I noticed that this function is also a potential deadlock c=
-andidate since
-"spin_lock_irqsave(&io->lock, flags);" is called an the "else return 0;" =
-does not release the lock.
-
-
-/** lx_capt_resume2 - queue capture buffers to vip */
-int
-lx_capt_resume2(VidDevice *dp,io_queue *io)
-{
-   io_buf *op, *ep;
-   int eidx, oidx, vip_buffers;
-   int task =3D dp->capt_vip_task;
-   int task_buffers =3D vip_task_data[task].task_buffers;
-   VIPINPUTBUFFER *vip_inpbfr =3D &dp->vip_inpbfr;
-
-   unsigned long flags;
-   struct list_head *lp;
-   io_buf *bp1;
-
-   dp->capt_stalled =3D 1;
-   task =3D dp->capt_vip_task;
-   task_buffers =3D vip_task_data[task].task_buffers;
-
-   if( dp->capt_addr_is_set =3D=3D 0 ) {
-      op =3D dp->capt_toggle =3D=3D capt_toggle_odd ? dp->capt_elch : dp-=
->capt_onxt;
-      if( op =3D=3D NULL ) {
-         if( list_empty(&io->rd_qbuf) !=3D 0 )
-         {
-           // there are no more buffers into the input list for grabbing =
-images,
-           // so requeue first output buffer into input list
-
-	   spin_lock_irqsave(&io->lock, flags);
-
-           lp =3D &io->rd_dqbuf;
-	   if( ! list_empty(lp) ) {
-	      bp1 =3D list_entry(lp->next,io_buf,bfrq);	// get the struct for th=
-is entry / list_entry ( ptr, type, member) &struct list_head pointer/ typ=
-e of the struct this is embedded in/
-name of the list_struct within the struct.
-	      list_del_init(&bp1->bfrq);		//deletes entry from list and reinitia=
-lize it
-	   }
-           else return 0;
-
-           lp =3D &io->rd_qbuf;
-	   list_move_tail(&bp1->bfrq,lp);
-
-	   bp1->sequence =3D io->sequence++;
-	   bp1->flags &=3D ~V4L2_BUF_FLAG_DONE;
-	   bp1->flags |=3D V4L2_BUF_FLAG_QUEUED;
-
-	   if( dp->capt_stalled !=3D 0 )
-	   {
-	      DMSG(3,"------------ v4l_qbfr : capt !=3D 0 && dp->capt_stalled !=3D=
- 0\n");
-	      //v4l_capt_unstall(dp);
-	   }
-
-	   spin_unlock_irqrestore(&io->lock,flags);
-           //return 0;
-         }
-
-         op =3D list_entry(io->rd_qbuf.next,io_buf,bfrq);
-         list_del_init(&op->bfrq);
-      }
-      if( dp->capt_toggle =3D=3D capt_toggle_both ||
-          dp->capt_toggle =3D=3D capt_toggle_odd ) {
-         if( (ep=3Ddp->capt_enxt) =3D=3D NULL ) {
-            if( list_empty(&io->rd_qbuf) !=3D 0 ) {
-               list_add(&op->bfrq,&io->rd_qbuf);
-               return 0;
-            }
-            ep =3D list_entry(io->rd_qbuf.next,io_buf,bfrq);
-            list_del_init(&ep->bfrq);
-         }
-      }
-      else
-      {
-         ep =3D op;
-      }
-      dp->capt_onxt =3D op;  oidx =3D op->index;
-      dp->capt_enxt =3D ep;  eidx =3D ep->index;
-   }
-   else
-   {
-      oidx =3D eidx =3D 0;
-   }
-
-   if( oidx !=3D eidx ) {
-      vip_inpbfr->current_buffer =3D eidx;
-      vip_buffers =3D vip_task_data[task].vip_even_buffers;
-      vip_toggle_video_offsets(vip_buffers,vip_inpbfr);
-      vip_inpbfr->current_buffer =3D oidx;
-      vip_buffers =3D vip_task_data[task].vip_odd_buffers;
-      vip_toggle_video_offsets(vip_buffers,vip_inpbfr);
-   }
-   else {
-      vip_inpbfr->current_buffer =3D oidx;
-      vip_buffers =3D vip_task_data[task].vip_buffers;
-      vip_toggle_video_offsets(vip_buffers,vip_inpbfr);
-   }
-   dp->capt_stalled =3D 0;
-
-   ++dp->capt_sequence;
-   ++dp->capt_jiffy_sequence;
-
-   return 1;
-}
-
-
-dmesg and uname:
-
-
-nao@purzel [1] [~]$ uname -a
-Linux purzel 2.6.29.6-rt24-aldebaran-rt #1 PREEMPT RT Fri Feb 12 17:51:46=
- CET 2010 i586 GNU/Linux
-
-[   17.877211] AMD Linux LX video2linux/2 driver 3.2.0100
-[   17.893218] Found Geode LX VIP at IRQ 11
-[   17.910414] OmniVision ov7670 sensor driver, at your service (v 2.00)
-[   17.939093] ov7670/1: driver attached: adapter id: 10002
-[   17.955545] Trying to detect OmniVision 7670/7672 I2C adapters
-[   19.847126] ov7670_init returned 0
-[   19.847139] Phase 1
-[   19.849429] Phase 2
-[   19.849440] Phase 3
-[   19.851728] Phase 4
-[   19.851739] Phase 5
-[   19.854054] Phase 6
-[   19.854064] Phase 7
-[   19.856357] Phase 8
-[   19.856367] Phase 9
-[   19.856377] OmniVision 7670/7671 I2C Found
-[   19.868799] ov7670/1: driver attached: adapter id: 0
-[   20.324975] eth0: link up, 100Mbps, full-duplex, lpa 0x45E1
-[   22.963201] spurious 8259A interrupt: IRQ7.
-[   74.863542] warning: `vsftpd' uses 32-bit capabilities (legacy support=
- in use)
-[  565.626822] BUG: unable to handle kernel paging request at 0519e544
-[  565.627024] IP: [<cf4bc988>] vip_toggle_video_offsets+0x29/0x106 [cima=
-rron]
-[  565.627024] *pde =3D 00000000
-[  565.627024] Oops: 0000 [#1] PREEMPT
-[  565.627024] last sysfs file: /sys/class/i2c-adapter/i2c-1/1-004c/temp1=
-_input
-[  565.627024] Modules linked in: lxv4l2 cimarron zd1211rw ftdi_sio usbse=
-rial lm90 scx200_acb i2c_serial
-[  565.627024]
-[  565.627024] Pid: 1557, comm: IRQ-11 Not tainted (2.6.29.6-rt24-aldebar=
-an-rt #1) AMD "CM-iGLX" Geode LX/CS5536
-[  565.627024] EIP: 0060:[<cf4bc988>] EFLAGS: 00010246 CPU: 0
-[  565.627024] EIP is at vip_toggle_video_offsets+0x29/0x106 [cimarron]
-[  565.627024] EAX: 00000000 EBX: cdb86e24 ECX: cf428000 EDX: ce382c88
-[  565.627024] ESI: cdb86e2c EDI: cdb86e24 EBP: ce382c88 ESP: ce359f28
-[  565.627024]  DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068 preempt:0000=
-0001
-[  565.627024] Process IRQ-11 (pid: 1557, ti=3Dce359000 task=3Dce0617f0 t=
-ask.ti=3Dce359000)
-[  565.627024] Stack:
-[  565.627024]  cdb86e1c ce38281c cf43d926 cdb86e04 00000000 00000000 ce3=
-82800 00000001
-[  565.627024]  00000000 cf43ebe0 00075a8d 00040d9a 00000001 00000000 000=
-00000 00000001
-[  565.627024]  ce38281c cdb86e00 00dc9c86 c0393f64 cda15b20 0000000b 000=
-00000 c013e758
-[  565.627024] Call Trace:
-[  565.627024]  [<cf43d926>] ? lx_capt_resume2+0x199/0x1bd [lxv4l2]
-[  565.627024]  [<cf43ebe0>] ? lx_interrupt+0x67d/0x785 [lxv4l2]
-[  565.627024]  [<c013e758>] ? handle_IRQ_event+0x83/0x13f
-[  565.627024]  [<c013e9e8>] ? thread_simple_irq+0x3a/0x72
-[  565.627024]  [<c013eac2>] ? do_irqd+0xa2/0x24d
-[  565.627024]  [<c013ea20>] ? do_irqd+0x0/0x24d
-[  565.627024]  [<c012c5b9>] ? kthread+0x36/0x5a
-[  565.627024]  [<c012c583>] ? kthread+0x0/0x5a
-[  565.627024]  [<c0102fb3>] ? kernel_thread_helper+0x7/0x10
-[  565.627024] Code: 5f c3 56 53 89 c1 8b 9a e4 00 00 00 85 c0 75 33 f6 0=
-2 02 8b 0d 60 13 4d cf 8d 73 08 74 0d 8b 44 9a 04 89 41 1c 8b 54 b2 0c eb=
- 0b <8b> 44 b2 0c 89 41 1c 8b 54
-9a 04 a1 60 13 4d cf 89 50 18 e9 c0
-[  565.627024] EIP: [<cf4bc988>] vip_toggle_video_offsets+0x29/0x106 [cim=
-arron] SS:ESP 0068:ce359f28
-[  565.627024] CR2: 000000000519e544
-[  566.207813] ---[ end trace d33f57cfaa8188ac ]---
-[  566.230208] BUG: unable to handle kernel paging request at 0519e544
-[  566.231021] IP: [<cf4bc988>] vip_toggle_video_offsets+0x29/0x106 [cima=
-rron]
-[  566.231021] *pde =3D 00000000
-[  566.231021] Oops: 0000 [#2] PREEMPT
-[  566.231021] last sysfs file: /sys/class/i2c-adapter/i2c-1/1-004c/temp1=
-_input
-[  566.231021] Modules linked in: lxv4l2 cimarron zd1211rw ftdi_sio usbse=
-rial lm90 scx200_acb i2c_serial
-[  566.231021]
-[  566.231021] Pid: 1751, comm: fw_singapore Tainted: G      D    (2.6.29=
-=2E6-rt24-aldebaran-rt #1) AMD "CM-iGLX" Geode LX/CS5536
-[  566.231021] EIP: 0060:[<cf4bc988>] EFLAGS: 00010246 CPU: 0
-[  566.231021] EIP is at vip_toggle_video_offsets+0x29/0x106 [cimarron]
-[  566.231021] EAX: 00000000 EBX: cdb86e24 ECX: cf428000 EDX: ce382c88
-[  566.231021] ESI: cdb86e2c EDI: cdb86e24 EBP: ce382c88 ESP: ce2dee44
-[  566.231021]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068 preempt:0000=
-0001
-[  566.231021] Process fw_singapore (pid: 1751, ti=3Dce2de000 task=3Dcd8a=
-a030 task.ti=3Dce2de000)
-[  566.231021] Stack:
-[  566.231021]  cdb86e1c ce38281c cf43d76a 00000000 cdb86e58 cdb86e00 cdb=
-86e1c ce38281c
-[  566.231021]  cf4375be 00000001 cdb86e04 cdb86e00 00000001 bfeae7b0 c04=
-4560f cf43c393
-[  566.231021]  00000001 ce2def50 ce2def4c 00000000 cddef740 ce2deea8 000=
-0000d c0275b89
-[  566.231021] Call Trace:
-[  566.231021]  [<cf43d76a>] ? lx_capt_resume+0x108/0x12b [lxv4l2]
-[  566.231021]  [<cf4375be>] ? v4l_qbfr+0x72/0x88 [lxv4l2]
-[  566.231021]  [<cf43c393>] ? vid_ioctl+0x35c4/0x3d65 [lxv4l2]
-[  566.231021]  [<c0275b89>] ? sys_recvfrom+0xb1/0x113
-[  566.231021]  [<c0275bd9>] ? sys_recvfrom+0x101/0x113
-[  566.231021]  [<c014b731>] ? perf_swcounter_event+0xc4/0xeb
-[  566.231021]  [<cf438dcf>] ? vid_ioctl+0x0/0x3d65 [lxv4l2]
-[  566.231021]  [<c021cedb>] ? v4l2_ioctl+0x31/0x34
-[  566.231021]  [<c01709d8>] ? vfs_ioctl+0x47/0x5d
-[  566.231021]  [<c0170f01>] ? do_vfs_ioctl+0x43f/0x47f
-[  566.231021]  [<c0275c04>] ? sys_recv+0x19/0x1d
-[  566.231021]  [<c0276003>] ? sys_socketcall+0xf2/0x18c
-[  566.231021]  [<c0170f6d>] ? sys_ioctl+0x2c/0x42
-[  566.231021]  [<c0102851>] ? syscall_call+0x7/0xb
-[  566.231021] Code: 5f c3 56 53 89 c1 8b 9a e4 00 00 00 85 c0 75 33 f6 0=
-2 02 8b 0d 60 13 4d cf 8d 73 08 74 0d 8b 44 9a 04 89 41 1c 8b 54 b2 0c eb=
- 0b <8b> 44 b2 0c 89 41 1c 8b 54
-9a 04 a1 60 13 4d cf 89 50 18 e9 c0
-[  566.231021] EIP: [<cf4bc988>] vip_toggle_video_offsets+0x29/0x106 [cim=
-arron] SS:ESP 0068:ce2dee44
-[  566.231021] CR2: 000000000519e544
-[  566.894334] ---[ end trace d33f57cfaa8188ad ]---
+Note: Hans is working with Bill, asking for permission to re-use the
+v4l1-compat.c code under the LGPL
 
 
 
---------------enig393BD9F7A93387030D6ACE3C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
+index eae3b43..8571651 100644
+--- a/lib/libv4l1/libv4l1.c
++++ b/lib/libv4l1/libv4l1.c
+@@ -61,6 +61,10 @@
+ #define V4L1_PIX_FMT_TOUCHED    0x04
+ #define V4L1_PIX_SIZE_TOUCHED   0x08
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
++#ifndef min
++	#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
++#endif
++
+ static pthread_mutex_t v4l1_open_mutex = PTHREAD_MUTEX_INITIALIZER;
+ static struct v4l1_dev_info devices[V4L1_MAX_DEVICES] = {
+ 	{ .fd = -1 },
+@@ -130,6 +134,45 @@ static unsigned int pixelformat_to_palette(unsigned
+int pixelformat)
+ 	return 0;
+ }
 
-iEYEARECAAYFAkvrKbIACgkQ5AxJm1m3CC+71gCeMoCF0bGHOx7jRWouzMz5n01U
-rM8AmwZc4tDDkV+4EgpDMfHy5BQbqhSL
-=+GKz
------END PGP SIGNATURE-----
++static int count_inputs(int fd)
++{
++	struct v4l2_input input2;
++	int i;
++	for (i = 0;; i++) {
++		memset(&input2, 0, sizeof(input2));
++		input2.index = i;
++		if (0 != SYS_IOCTL(fd, VIDIOC_ENUMINPUT, &input2))
++			break;
++		}
++	return i;
++}
++
++static int check_size(int fd,int *maxw,int *maxh)
++{
++	struct v4l2_fmtdesc desc2;
++	struct v4l2_format fmt2;
++
++	memset(&desc2, 0, sizeof(desc2));
++	memset(&fmt2, 0, sizeof(fmt2));
++
++	desc2.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	if (0 != SYS_IOCTL(fd, VIDIOC_ENUM_FMT, &desc2))
++		goto done;
++
++	fmt2.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	fmt2.fmt.pix.width = 10000;
++	fmt2.fmt.pix.height = 10000;
++	fmt2.fmt.pix.pixelformat = desc2.pixelformat;
++	if (0 != SYS_IOCTL(fd, VIDIOC_TRY_FMT, &fmt2))
++		goto done;
++
++	*maxw = fmt2.fmt.pix.width;
++	*maxh = fmt2.fmt.pix.height;
++
++	done:
++	return 0;
++}
++
+ static int v4l1_set_format(int index, unsigned int width,
+ 		unsigned int height, int v4l1_pal, int width_height_may_differ)
+ {
+@@ -492,7 +535,54 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
+ 	case VIDIOCGCAP: {
+ 		struct video_capability *cap = arg;
 
---------------enig393BD9F7A93387030D6ACE3C--
+-		result = SYS_IOCTL(fd, request, arg);
++		long err;
++		struct v4l2_framebuffer fbuf;
++		struct v4l2_capability *cap2;
++
++		cap2 = malloc (sizeof(*cap2));
++		if (!cap2) {
++			return -ENOMEM;
++		}
++
++		memset(cap,0,sizeof(*cap));
++		memset(&fbuf, 0, sizeof(fbuf));
++
++		err = SYS_IOCTL(fd, VIDIOC_QUERYCAP,cap2);
++		if (err < 0)
++			goto done;
++
++		if (cap2->capabilities & V4L2_CAP_VIDEO_OVERLAY) {
++			err = SYS_IOCTL(fd, VIDIOC_G_FBUF, &fbuf);
++			if (err < 0) {
++				memset(&fbuf, 0, sizeof(fbuf));
++			}
++			err = 0;
++		}
++		
++		memcpy(cap->name,  cap2->card,
+min(sizeof(cap->name),sizeof(cap2->card)) );
++		
++		cap->name[sizeof(cap->name) -1 ] = 0;
++	
++		if (cap2->capabilities & V4L2_CAP_VIDEO_CAPTURE)
++			cap->type |= VID_TYPE_CAPTURE;
++		if (cap2->capabilities & V4L2_CAP_TUNER)
++			cap->type |= VID_TYPE_TUNER;
++		if (cap2->capabilities & V4L2_CAP_VBI_CAPTURE)
++			cap->type |= VID_TYPE_TELETEXT;
++		if (cap2->capabilities & V4L2_CAP_VIDEO_OVERLAY)
++			cap->type |= VID_TYPE_OVERLAY;
++		if (fbuf.capability & V4L2_FBUF_CAP_LIST_CLIPPING)
++			cap->type |= VID_TYPE_CLIPPING;
++
++		cap->channels = count_inputs(fd);
++
++		check_size(fd,
++			&cap->maxwidth, &cap->maxheight);
++					
++		
++	/*	result = SYS_IOCTL(fd, request, arg);*/
++
++
+
+ 		/* override kernel v4l1 compat min / max size with our own more
+ 		   accurate values */
+@@ -500,7 +590,10 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
+ 		cap->minheight = devices[index].min_height;
+ 		cap->maxwidth  = devices[index].max_width;
+ 		cap->maxheight = devices[index].max_height;
+-		break;
++
++		done:
++			free(cap2);
++			break;
+ 	}
+
+ 	case VIDIOCSPICT: {
+
+-- 
+Regards,
+Huzaifa Sidhpurwala, RHCE, CCNA (IRC: huzaifas)
+IT Desktop R&D Lead.
+Global Help Desk, Pune (India)
+Phone: +91 20 4005 7322 (UTC +5.5)
+
+GnuPG Fingerprint:
+3A0F DAFB 9279 02ED 273B FFE9 CC70 DCF2 DA5B DAE5
