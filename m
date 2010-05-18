@@ -1,158 +1,490 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:38077 "EHLO bear.ext.ti.com"
+Received: from mga14.intel.com ([143.182.124.37]:25114 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754044Ab0ESQoo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 May 2010 12:44:44 -0400
-Received: from dlep35.itg.ti.com ([157.170.170.118])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4JGiiLj006951
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep35.itg.ti.com (8.13.7/8.13.7) with ESMTP id o4JGiiBx020016
-	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500 (CDT)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4JGihG8013188
-	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500 (CDT)
-From: <asheeshb@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: Asheesh Bhardwaj <asheeshb@ti.com>
-Subject: [PATCH 3/7] Patch for capture driver MMAP buffer allocation.
-Date: Wed, 19 May 2010 11:44:34 -0500
-Message-ID: <1274287478-14661-4-git-send-email-asheeshb@ti.com>
-In-Reply-To: <1274287478-14661-3-git-send-email-asheeshb@ti.com>
-References: <1274287478-14661-1-git-send-email-asheeshb@ti.com>
- <1274287478-14661-2-git-send-email-asheeshb@ti.com>
- <1274287478-14661-3-git-send-email-asheeshb@ti.com>
+	id S1754842Ab0ERJXt convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 May 2010 05:23:49 -0400
+From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 18 May 2010 17:23:34 +0800
+Subject: [PATCH v3 6/8] V4L2 subdev patchset for Intel Moorestown Camera
+ Imaging Subsystem
+Message-ID: <33AB447FBD802F4E932063B962385B351E895733@shsmsx501.ccr.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Asheesh Bhardwaj <asheeshb@ti.com>
+>From 46bf8433c86a7450604a981981c8ce487130dce0 Mon Sep 17 00:00:00 2001
+From: Xiaolin Zhang <xiaolin.zhang@intel.com>
+Date: Tue, 18 May 2010 15:25:50 +0800
+Subject: [PATCH 6/8] This patch is to add AD5820 VCM (for ov5630)driver support
+ which is based on the video4linux2 sub-dev driver framework.
 
-The user can specify the size of the buffers with an offset from the kernel
-images.
+Signed-off-by: Xiaolin Zhang <xiaolin.zhang@intel.com>
 ---
- drivers/media/video/davinci/vpif_capture.c |   56 +++++++++++++++++++++++++++-
- drivers/media/video/davinci/vpif_capture.h |    2 +
- 2 files changed, 57 insertions(+), 1 deletions(-)
+ drivers/media/video/ov5630_motor.c |  365 ++++++++++++++++++++++++++++++++++++
+ drivers/media/video/ov5630_motor.h |   77 ++++++++
+ 2 files changed, 442 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/ov5630_motor.c
+ create mode 100644 drivers/media/video/ov5630_motor.h
 
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index b4b5905..9ba015d 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -53,18 +53,24 @@ static u32 ch0_numbuffers = 3;
- static u32 ch1_numbuffers = 3;
- static u32 ch0_bufsize = 1920 * 1080 * 2;
- static u32 ch1_bufsize = 720 * 576 * 2;
-+static u32 cont_bufoffset = 0;
-+static u32 cont_bufsize = 0;
- 
- module_param(debug, int, 0644);
- module_param(ch0_numbuffers, uint, S_IRUGO);
- module_param(ch1_numbuffers, uint, S_IRUGO);
- module_param(ch0_bufsize, uint, S_IRUGO);
- module_param(ch1_bufsize, uint, S_IRUGO);
-+module_param(cont_bufoffset, uint, S_IRUGO);
-+module_param(cont_bufsize, uint, S_IRUGO);
- 
- MODULE_PARM_DESC(debug, "Debug level 0-1");
- MODULE_PARM_DESC(ch2_numbuffers, "Channel0 buffer count (default:3)");
- MODULE_PARM_DESC(ch3_numbuffers, "Channel1 buffer count (default:3)");
- MODULE_PARM_DESC(ch2_bufsize, "Channel0 buffer size (default:1920 x 1080 x 2)");
- MODULE_PARM_DESC(ch3_bufsize, "Channel1 buffer size (default:720 x 576 x 2)");
-+MODULE_PARM_DESC(cont_bufoffset,"Capture buffer offset(default 0)");
-+MODULE_PARM_DESC(cont_bufsize,"Capture buffer size(default 0)");
- 
- static struct vpif_config_params config_params = {
- 	.min_numbuffers = 3,
-@@ -187,10 +193,27 @@ static int vpif_buffer_setup(struct videobuf_queue *q, unsigned int *count,
- 
- 	/* Calculate the size of the buffer */
- 	*size = config_params.channel_bufsize[ch->channel_id];
-+        
-+        /*Checking if the buffer size exceeds the available buffer*/
-+        /*ycmux_mode = 0 means 1 channel mode HD and ycmuxmode = 1 means 2 channels mode SD */
-+        if (ch->vpifparams.std_info.ycmux_mode == 0) {
-+            if (config_params.video_limit[ch->channel_id]) {
-+		while (*size * *count > (config_params.video_limit[0] 
-+                         + config_params.video_limit[1]))
-+			(*count)--;
-+            }
-+        }
-+        else {
-+             if (config_params.video_limit[ch->channel_id]) {
-+		while (*size * *count > config_params.video_limit[ch->channel_id])
-+			(*count)--;
-+            }
-+        }
- 
- 	if (*count < config_params.min_numbuffers)
- 		*count = config_params.min_numbuffers;
--	return 0;
-+	
-+        return 0;
- }
- 
- /**
-@@ -1892,6 +1915,8 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	struct video_device *vfd;
- 	struct resource *res;
- 	int subdev_count;
-+        unsigned long phys_end_kernel;
-+        size_t size;
- 
- 	vpif_dev = &pdev->dev;
- 
-@@ -1941,6 +1966,35 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		/* Set video_dev to the video device */
- 		ch->video_dev = vfd;
- 	}
-+       
-+        /* Initialising the memory from the bootargs for contiguous memory buffers and avoid defragmentation */
-+        if(cont_bufsize) {
-+            /* attempt to determine the end of Linux kernel memory */
-+            phys_end_kernel = virt_to_phys((void *)PAGE_OFFSET) +
-+                   (num_physpages << PAGE_SHIFT);
-+            size = cont_bufsize;
-+            phys_end_kernel += cont_bufoffset; 
-+            err = dma_declare_coherent_memory(&pdev->dev, phys_end_kernel,
-+		  phys_end_kernel,
-+		  size,
-+		  DMA_MEMORY_MAP |
-+         	  DMA_MEMORY_EXCLUSIVE);
-+	if (!err) {
-+		dev_err(&pdev->dev, "Unable to declare MMAP memory.\n");
-+		err = -ENOMEM;
-+		goto probe_out;
-+         } 
-+        
-+        /*The resources are divided into two equal memory and when we have HD output we can add them together*/	
-+         for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
-+		   ch = vpif_obj.dev[j];
-+		   ch->channel_id = j;
-+        	   config_params.video_limit[ch->channel_id] = 0; /* only enabled if second resource exists */
-+                   if(cont_bufsize) {
-+                          config_params.video_limit[ch->channel_id] = size/2;
-+                    }
-+            }
-+        }
- 
- 	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
- 		ch = vpif_obj.dev[j];
-diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
-index 4e12ec8..b526887 100644
---- a/drivers/media/video/davinci/vpif_capture.h
-+++ b/drivers/media/video/davinci/vpif_capture.h
-@@ -155,6 +155,8 @@ struct vpif_config_params {
- 	u32 channel_bufsize[VPIF_CAPTURE_NUM_CHANNELS];
- 	u8 default_device[VPIF_CAPTURE_NUM_CHANNELS];
- 	u8 max_device_type;
-+        /* Used for limiting the video buffers when we allocate memory*/
-+        u32 video_limit[VPIF_CAPTURE_NUM_CHANNELS];
- };
- /* Struct which keeps track of the line numbers for the sliced vbi service */
- struct vpif_service_line {
+diff --git a/drivers/media/video/ov5630_motor.c b/drivers/media/video/ov5630_motor.c
+new file mode 100644
+index 0000000..dfac612
+--- /dev/null
++++ b/drivers/media/video/ov5630_motor.c
+@@ -0,0 +1,365 @@
++/*
++ * Support for Moorestown Langwell Camera Imaging ISP subsystem.
++ *
++ * Copyright (c) 2009 Intel Corporation. All Rights Reserved.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++ * 02110-1301, USA.
++ *
++ *
++ * Xiaolin Zhang <xiaolin.zhang@intel.com>
++ */
++
++#include <linux/i2c.h>
++#include <linux/delay.h>
++#include <linux/slab.h>
++#include <media/v4l2-device.h>
++
++#include "ov5630_motor.h"
++
++static int mrstov5630_motor_debug;
++module_param(mrstov5630_motor_debug, int, 0644);
++MODULE_PARM_DESC(mrstov5630_motor_debug, "Debug level (0-1)");
++
++#define dprintk(level, fmt, arg...) do {			\
++	if (mrstov5630_motor_debug >= level) 				\
++		printk(KERN_DEBUG "mrstisp@%s: " fmt "\n", \
++		       __func__, ## arg); } \
++	while (0)
++
++#define eprintk(fmt, arg...)	\
++	printk(KERN_ERR "mrstisp@%s: line %d: " fmt "\n",	\
++	       __func__, __LINE__, ## arg);
++
++static inline struct ov5630_motor *to_motor_config(struct v4l2_subdev *sd)
++{
++	return container_of(sd, struct ov5630_motor, sd);
++}
++
++static int motor_read(struct i2c_client *c, u16 *reg)
++{
++	int ret;
++	struct i2c_msg msg;
++	u8 msgbuf[2];
++
++	msgbuf[0] = 0;
++	msgbuf[1] = 0;
++
++	memset(&msg, 0, sizeof(msg));
++	msg.addr = c->addr;
++	msg.buf = msgbuf;
++	msg.len = 2;
++	msg.flags = I2C_M_RD;
++
++	ret = i2c_transfer(c->adapter, &msg, 1);
++	*reg = (msgbuf[0] << 8 | msgbuf[1]);
++
++	ret = (ret == 1) ? 0 : -1;
++	return ret;
++}
++
++static int motor_write(struct i2c_client *c, u16 reg)
++{
++	int ret;
++	struct i2c_msg msg;
++	u8 msgbuf[2];
++
++	memset(&msg, 0, sizeof(msg));
++	msgbuf[0] = reg >> 8;
++	msgbuf[1] = reg;
++
++	msg.addr = c->addr;
++	msg.flags = 0;
++	msg.buf = msgbuf;
++	msg.len = 2;
++
++	ret = i2c_transfer(c->adapter, &msg, 1);
++	ret = (ret == 1) ? 0 : -1;
++	return ret;
++}
++
++static int ov5630_motor_goto_position(struct i2c_client *c,
++				      unsigned short code,
++				      struct ov5630_motor *config)
++{
++	int max_code, min_code;
++	u8 cmdh, cmdl;
++	u16 cmd, val = 0;
++
++	max_code = config->macro_code;
++	min_code = config->infin_code;
++
++	if (code > max_code)
++		code = max_code;
++	if (code < min_code)
++		code = min_code;
++
++	cmdh = (MOTOR_DAC_CODE_H(code));
++	cmdl = (MOTOR_DAC_CODE_L(code) | MOTOR_DAC_CTRL_MODE_2(SUB_MODE_4));
++	cmd = cmdh << 8 | cmdl;
++
++	motor_write(c, cmd);
++	msleep(8);
++	motor_read(c, &val);
++
++	return (cmd == val ? 0 : -1);
++}
++
++int ov5630_motor_init(struct i2c_client *client, struct ov5630_motor *config)
++{
++	int ret;
++	int infin_cur, macro_cur;
++
++	infin_cur = max(MOTOR_INFIN_CUR, MOTOR_DAC_MIN_CUR);
++	macro_cur = min(MOTOR_MACRO_CUR, MOTOR_DAC_MAX_CUR);
++
++	config->infin_cur = infin_cur;
++	config->macro_cur = macro_cur;
++	config->infin_code = (int)((infin_cur * MOTOR_DAC_MAX_CODE)
++				   / MOTOR_DAC_MAX_CUR);
++	config->macro_code = (int)((macro_cur * MOTOR_DAC_MAX_CODE)
++				   / MOTOR_DAC_MAX_CUR);
++
++	config->max_step = ((config->macro_code - config->infin_code)
++			    >> MOTOR_STEP_SHIFT) + 1;
++	ret = ov5630_motor_goto_position(client, config->infin_code, config);
++	if (!ret)
++		config->cur_code = config->infin_code;
++	else
++		printk(KERN_ERR "Error while initializing motor\n");
++
++	return ret;
++}
++
++int ov5630_motor_set_focus(struct i2c_client *c, int step,
++			   struct ov5630_motor *config)
++{
++	int s_code, ret;
++	int max_step = config->max_step;
++	unsigned int val = step;
++
++	dprintk(1, "setting setp %d", step);
++	if (val > max_step)
++		val = max_step;
++
++	s_code = (val << MOTOR_STEP_SHIFT);
++	s_code += config->infin_code;
++
++	ret = ov5630_motor_goto_position(c, s_code, config);
++	if (!ret)
++		config->cur_code = s_code;
++
++	return ret;
++}
++
++static int ov5630_motor_s_ctrl(struct v4l2_subdev *sd,
++			       struct v4l2_control *ctrl)
++{
++	int ret = -EINVAL;
++	struct i2c_client *c = v4l2_get_subdevdata(sd);
++	struct ov5630_motor *config = to_motor_config(sd);
++	if (!sd || !ctrl)
++		return ret;
++
++	switch (ctrl->id) {
++	case V4L2_CID_FOCUS_ABSOLUTE:
++		ret = ov5630_motor_set_focus(c, ctrl->value, config);
++		if (ret) {
++			eprintk("error call ov5630_motor_set_focue");
++			return ret;
++		}
++		break;
++	default:
++		dprintk(1, "not supported ctrl id");
++		break;
++	}
++	return ret;
++}
++
++int ov5630_motor_get_focus(struct i2c_client *c, unsigned int *step,
++			   struct ov5630_motor *config)
++{
++	int ret_step;
++
++	ret_step = ((config->cur_code - config->infin_code)
++		    >> MOTOR_STEP_SHIFT);
++
++	if (ret_step <= config->max_step)
++		*step = ret_step;
++	else
++		*step = config->max_step;
++
++	return 0;
++}
++
++static int ov5630_motor_g_ctrl(struct v4l2_subdev *sd,
++			       struct v4l2_control *ctrl)
++{
++	int ret = -EINVAL;
++	struct i2c_client *c = v4l2_get_subdevdata(sd);
++	struct ov5630_motor *config = to_motor_config(sd);
++	if (!sd || !ctrl)
++		return ret;
++
++	switch (ctrl->id) {
++	case V4L2_CID_FOCUS_ABSOLUTE:
++		ret = ov5630_motor_get_focus(c, &ctrl->value, config);
++		if (ret) {
++			eprintk("error call ov5630_motor_get_focue");
++			return ret;
++		}
++		break;
++	default:
++		dprintk(1, "not supported ctrl id");
++		break;
++	}
++	return ret;
++}
++
++static int ov5630_motor_queryctrl(struct v4l2_subdev *sd,
++			    struct v4l2_queryctrl *qc)
++{
++	int ret = -EINVAL;
++	struct ov5630_motor *config;
++	if (!sd)
++		return -ENODEV;
++	if (!qc)
++		return ret;
++	config = to_motor_config(sd);
++
++	switch (qc->id) {
++	case V4L2_CID_FOCUS_ABSOLUTE:
++		ret = v4l2_ctrl_query_fill(qc, 0, config->max_step,
++				 config->max_step, config->cur_code);
++		break;
++	default:
++		dprintk(1, "not supported queryctrl id");
++		break;
++	}
++	return ret;
++}
++
++static const struct v4l2_subdev_core_ops ov5630_motor_core_ops = {
++	.g_ctrl = ov5630_motor_g_ctrl,
++	.s_ctrl = ov5630_motor_s_ctrl,
++	.queryctrl = ov5630_motor_queryctrl,
++};
++
++static const struct v4l2_subdev_ops ov5630_motor_ops = {
++	.core = &ov5630_motor_core_ops,
++};
++
++static int ov5630_motor_detect(struct i2c_client *client)
++{
++	struct i2c_adapter *adapter = client->adapter;
++	int adap_id = i2c_adapter_id(adapter);
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_I2C)) {
++		eprintk("error i2c check func");
++		return -ENODEV;
++	}
++
++	if (adap_id != 1) {
++		eprintk("adap_id != 1");
++		return -ENODEV;
++	}
++
++	ssleep(1);
++
++	return 0;
++}
++
++static int ov5630_motor_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	struct ov5630_motor *info;
++	struct v4l2_subdev *sd;
++	int ret = -1;
++
++	v4l_info(client, "chip found @ 0x%x (%s)\n",
++		 client->addr << 1, client->adapter->name);
++
++	info = kzalloc(sizeof(struct ov5630_motor), GFP_KERNEL);
++	if (!info) {
++		eprintk("fail to malloc for ci_motor");
++		ret = -ENOMEM;
++		goto out;
++	}
++
++	ret = ov5630_motor_detect(client);
++	if (ret) {
++		eprintk("error ov5630_motor_detect");
++		goto out_free;
++	}
++
++	sd = &info->sd;
++	v4l2_i2c_subdev_init(sd, client, &ov5630_motor_ops);
++
++	ret = ov5630_motor_init(client, info);
++	if (ret) {
++		eprintk("error calling ov5630_motor_init");
++		goto out_free;
++	}
++
++	ret = 0;
++	goto out;
++
++out_free:
++	kfree(info);
++out:
++	return ret;
++}
++
++static int ov5630_motor_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++
++	v4l2_device_unregister_subdev(sd);
++	kfree(to_motor_config(sd));
++
++	return 0;
++}
++
++static const struct i2c_device_id ov5630_motor_id[] = {
++	{"ov5630_motor", 0},
++	{}
++};
++
++MODULE_DEVICE_TABLE(i2c, ov5630_motor_id);
++
++static struct i2c_driver ov5630_motor_i2c_driver = {
++	.driver = {
++		.name = "ov5630_motor",
++	},
++	.probe = ov5630_motor_probe,
++	.remove = ov5630_motor_remove,
++	.id_table = ov5630_motor_id,
++};
++
++static int __init ov5630_motor_drv_init(void)
++{
++	return i2c_add_driver(&ov5630_motor_i2c_driver);
++}
++
++static void __exit ov5630_motor_drv_cleanup(void)
++{
++	i2c_del_driver(&ov5630_motor_i2c_driver);
++}
++
++module_init(ov5630_motor_drv_init);
++module_exit(ov5630_motor_drv_cleanup);
++
++MODULE_AUTHOR("Xiaolin Zhang <xiaolin.zhang@intel.com>");
++MODULE_DESCRIPTION("A low-level driver for OmniVision 5630 sensors");
++MODULE_LICENSE("GPL");
+diff --git a/drivers/media/video/ov5630_motor.h b/drivers/media/video/ov5630_motor.h
+new file mode 100644
+index 0000000..44dd799
+--- /dev/null
++++ b/drivers/media/video/ov5630_motor.h
+@@ -0,0 +1,77 @@
++/*
++ * Support for Moorestown Langwell Camera Imaging ISP subsystem.
++ *
++ * Copyright (c) 2009 Intel Corporation. All Rights Reserved.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++ * 02110-1301, USA.
++ *
++ *
++ * Xiaolin Zhang <xiaolin.zhang@intel.com>
++ */
++
++#include <media/v4l2-subdev.h>
++#include <linux/kernel.h>
++
++/* VCM start current (mA) */
++#define MOTOR_INFIN_CUR		15
++
++/* VCM max current for Macro (mA) */
++#define MOTOR_MACRO_CUR		90
++
++/* DAC output max current (mA) */
++#define MOTOR_DAC_MAX_CUR	100
++
++/* DAC output min current (mA) */
++#define MOTOR_DAC_MIN_CUR	3
++
++#define MOTOR_DAC_BIT_RES	10
++#define MOTOR_DAC_MAX_CODE	((1 << MOTOR_DAC_BIT_RES) - 1)
++
++#define MOTOR_STEP_SHIFT	4
++
++
++/* DAC register related define */
++#define MOTOR_POWER_DOWN	(1 << 7)
++#define		PD_ENABLE	(1 << 7)
++#define		PD_DISABLE	(0)
++
++#define MOTOR_DAC_CODE_H(x)	((x >> 4) & 0x3f)
++#define MOTOR_DAC_CODE_L(x)	((x << 4) & 0xf0)
++
++#define MOTOR_DAC_CTRL_MODE_0	0x00
++#define MOTOR_DAC_CTRL_MODE_1(x)	(x & 0x07)
++#define MOTOR_DAC_CTRL_MODE_2(x)	((x & 0x07) | 0x08)
++
++#define SUB_MODE_1	0x01
++#define SUB_MODE_2	0x02
++#define SUB_MODE_3	0x03
++#define SUB_MODE_4	0x04
++#define SUB_MODE_5	0x05
++#define SUB_MODE_6	0x06
++#define SUB_MODE_7	0x07
++
++#define OV5630_MOTOR_ADDR	(0x18 >> 1)
++#define POWER_EN_PIN	7
++#define GPIO_AF_PD	95
++
++struct ov5630_motor{
++	unsigned int infin_cur;
++	unsigned int infin_code;
++	unsigned int macro_cur;
++	unsigned int macro_code;
++	unsigned int max_step;
++	unsigned int cur_code;
++	struct v4l2_subdev sd;
++};
 -- 
-1.6.3.3
+1.6.3.2
 
