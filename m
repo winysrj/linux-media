@@ -1,23 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1OF3v9-0003Jm-Rf
-	for linux-dvb@linuxtv.org; Thu, 20 May 2010 13:28:13 +0200
-Received: from mail-ew0-f215.google.com ([209.85.219.215])
+	(envelope-from <matpic@free.fr>) id 1OEMWp-0000nZ-7w
+	for linux-dvb@linuxtv.org; Tue, 18 May 2010 15:08:12 +0200
+Received: from smtp2-g21.free.fr ([212.27.42.2])
 	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1OF3v8-0000mo-Ci; Thu, 20 May 2010 13:28:11 +0200
-Received: by ewy7 with SMTP id 7so1779893ewy.11
-	for <linux-dvb@linuxtv.org>; Thu, 20 May 2010 04:28:09 -0700 (PDT)
-Date: Thu, 20 May 2010 13:27:48 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: Damien Bally <biribi@free.fr>
-In-Reply-To: <4BF432E7.2000203@free.fr>
-Message-ID: <alpine.DEB.2.01.1005201256140.29367@ureoreg>
-References: <4BF290A2.1020904@free.fr> <4BF432E7.2000203@free.fr>
+	id 1OEMWk-0004zH-BJ; Tue, 18 May 2010 15:08:10 +0200
+Received: from smtp2-g21.free.fr (localhost [127.0.0.1])
+	by smtp2-g21.free.fr (Postfix) with ESMTP id D3B734B0089
+	for <linux-dvb@linuxtv.org>; Tue, 18 May 2010 15:08:00 +0200 (CEST)
+Received: from [192.168.1.252] (bog44-1-82-231-133-211.fbx.proxad.net
+	[82.231.133.211]) by smtp2-g21.free.fr (Postfix) with ESMTP
+	for <linux-dvb@linuxtv.org>; Tue, 18 May 2010 15:07:59 +0200 (CEST)
+Message-ID: <4BF290A2.1020904@free.fr>
+Date: Tue, 18 May 2010 15:05:38 +0200
+From: matpic <matpic@free.fr>
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] new DVB-T initial tuning for fr-nantes
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] new DVB-T initial tuning for fr-nantes
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -26,103 +27,106 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: multipart/mixed; boundary="===============0049317757=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-T24gxZtybyAoxZtyb2RhKSAxOS5tYWogKG1haikgMjAxMCwgMjA6NTA6MDAsIERhbWllbiBCYWxs
-eSB3cm90ZToKCj4gVGhlcmUncyBhbHNvIGEgbmV3IHRyYW5zcG9uZGVyIGNhbGxlZCBMOCB0b2Rh
-eSBvbiBjaGFubmVsIDU2IChRQU0xNikgZm9yCj4gbG9jYWwgVFYsIHNvIHRoZSBmci1OYW50ZXMg
-c2hvdWxkIGxvb2sgbGlrZSB0aGlzIDoKPiAKPiAjIE5hbnRlcyAtIEZyYW5jZQo+ICMgVCBmcmVx
-IGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhp
-ZXJhcmNoeQoKPiBUIDc1NDAwMDAwMCA4TUh6IEFVVE8gTk9ORSBRQU0xNiA4ayBBVVRPIE5PTkUK
-Ck9uZSB0aGluZyB0aGF0IHdvdWxkIGJlIGdvb2QgdG8gZG8gLS0gZm9yIHNvbWVvbmUgd2hvIGlz
-IGluIHRoZQphcmVhIHNlcnZlZCBieSBhIHRyYW5zbWl0dGVyIC0tIHJhdGhlciB0aGFuIHVzZSDC
-q0FVVE/CuyBmb3IgdGhlCkZFQyBhbmQgR3VhcmQgSW50ZXJ2YWwgdmFsdWVzIGFib3ZlLCB3b3Vs
-ZCBiZSB0byBwZXJmb3JtIGEgTklUCnNjYW4gb24gdGhlIGFwcHJvcHJpYXRlIGZyZXF1ZW5jaWVz
-LgoKVGhpcyBzaG91bGQgZ2l2ZSBhcyBhIHJlc3VsdCB0aGUgYWN0dWFsIHRyYW5zbWl0dGVyIGZy
-ZXF1ZW5jeQphbmQgb3RoZXIgcGFyYW1ldGVycyBpbiB1c2UsIGFuZCBwZXJoYXBzIHJlbGF0ZWQg
-b25lcyBmcm9tIG90aGVyCnNpdGVzLgoKVGhlc2UgdmFsdWVzIGFyZSBjb25maWd1cmVkIGJ5IHRo
-ZSBicm9hZGNhc3RlciBhbmQgYXJlIHRoZXJlZm9yZQpub3QgZ3VhcmFudGVlZCB0byBiZSAxMDAl
-IGFjY3VyYXRlLCBidXQgaXQgaXMgbW9yZSBsaWtlbHkgdGhhdAp0aGV5IGtub3cgdGhlIHZhbHVl
-cyB0aGV5IGFyZSB1c2luZyAtLSB0aGVzZSB2YWx1ZXMgY2FuIGJlIHVzZWQKdG8gbG9jYXRlIG90
-aGVyIHRyYW5zbWl0dGVyIGZyZXF1ZW5jaWVzLCBhcyBpcyB0aGUgd2VsbC1rbm93bgpjYXNlIGZv
-ciBEVkItUyBzYXRlbGxpdGUgTklUIHRhYmxlcy4KCkknbGwgZ2l2ZSBhbiBleGFtcGxlIHVzaW5n
-IG9uZSBzYXRlbGxpdGUgdHJhbnNwb25kZXIsIGJlY2F1c2UgdGhpcwptYWNoaW5lIEkgYW0gdXNp
-bmcgZG9lcyBub3QgcHJlc2VudGx5IGhhdmUgYSBEVkItVCAoVE5UKSByZWNlaXZlcgphdHRhY2hl
-ZCB0aGF0IHdvcmtzLi4uCgpiZWVyQGhlcmJlcnQ6L3RtcC9udHAtZGV2LTQuMi41cDE4My9udHBk
-YXRlJCAvaG9tZS9iZWVyL2Jpbi9kdmJzdHJlYW0gICAtcyAyNzUwMCAgLXAgdiAgLWYgMTI1MjUg
-IC1JIDIgIC1EIDQgICAtbiAyIC1vOi90bXAvTklULnRzICAgMTYKCihzbWFsbCBmaWxlIGlzIHdy
-aXR0ZW4gd2l0aCBOSVQgZGF0YSkKCmJlZXJAaGVyYmVydDovdG1wL250cC1kZXYtNC4yLjVwMTgz
-L250cGRhdGUkIGR2YnNub29wIC1zIHRzIC10c3N1YmRlY29kZSAtaWYgL3RtcC9OSVQudHMgICAg
-fCBsZXNzCgpIZXJlIHRoZSBkYXRhIEkgc2VlIGlzIHNwZWNpZmljIHRvIHRoaXMgc2F0ZWxsaXRl
-LCBidXQgeW91IHNob3VsZApzZWUgc2ltaWxhciBkYXRhIGZvciB0aGUgcGFydGljdWxhciB0ZXJy
-ZXN0cmlhbCBjaGFubmVsIHlvdSB0dW5lCmluIHlvdXIgY2FzZS4uLgoKICAgICAgICAgICAgICAg
-ICAgRnJlcXVlbmN5OiAxOTIxMTUyMCAoPSAgMTIuNTI1MDAgR0h6KQogICAgICAgICAgICAgICAg
-ICBPcmJpdGFsX3Bvc2l0aW9uOiA1NjUgKD0gIDIzLjUpCiAgICAgICAgICAgICAgICAgIFdlc3Rf
-RWFzdF9mbGFnOiAxICgweDAxKSAgWz0gRUFTVF0KICAgICAgICAgICAgICAgICAgUG9sYXJpc2F0
-aW9uOiAxICgweDAxKSAgWz0gbGluZWFyIC0gdmVydGljYWxdCiAgICAgICAgICAgICAgICAgIEtp
-bmQ6IDAgKDB4MDApICBbPSBEVkItU10KICAgICAgICAgICAgICAgICAgZml4ZWQgKCcwMCcpOiAw
-ICgweDAwKQogICAgICAgICAgICAgICAgICBNb2R1bGF0aW9uX3R5cGU6IDEgKDB4MDEpICBbPSBR
-UFNLXQogICAgICAgICAgICAgICAgICBTeW1ib2xfcmF0ZTogMjU3NjM4NCAoPSAgMjcuNTAwMCkK
-ICAgICAgICAgICAgICAgICAgRkVDX2lubmVyOiAzICgweDAzKSAgWz0gMy80IGNvbnYuIGNvZGUg
-cmF0ZV0KCmFuZAogICAgICAgICAgICAgICAgICBGcmVxdWVuY3k6IDE5MjI3OTA0ICg9ICAxMi41
-NjUwMCBHSHopCiAgICAgICAgICAgICAgICAgIE9yYml0YWxfcG9zaXRpb246IDU2NSAoPSAgMjMu
-NSkKICAgICAgICAgICAgICAgICAgV2VzdF9FYXN0X2ZsYWc6IDEgKDB4MDEpICBbPSBFQVNUXQog
-ICAgICAgICAgICAgICAgICBQb2xhcmlzYXRpb246IDAgKDB4MDApICBbPSBsaW5lYXIgLSBob3Jp
-em9udGFsXQogICAgICAgICAgICAgICAgICBLaW5kOiAwICgweDAwKSAgWz0gRFZCLVNdCiAgICAg
-ICAgICAgICAgICAgIGZpeGVkICgnMDAnKTogMCAoMHgwMCkKICAgICAgICAgICAgICAgICAgTW9k
-dWxhdGlvbl90eXBlOiAxICgweDAxKSAgWz0gUVBTS10KICAgICAgICAgICAgICAgICAgU3ltYm9s
-X3JhdGU6IDI1NzYzODQgKD0gIDI3LjUwMDApCiAgICAgICAgICAgICAgICAgIEZFQ19pbm5lcjog
-MiAoMHgwMikgIFs9IDIvMyBjb252LiBjb2RlIHJhdGVdCgphbmQKICAgICAgICAgICAgICAgICAg
-RnJlcXVlbmN5OiAxODMyMzIwMCAoPSAgMTEuNzk3MDAgR0h6KQogICAgICAgICAgICAgICAgICBP
-cmJpdGFsX3Bvc2l0aW9uOiA1NjUgKD0gIDIzLjUpCiAgICAgICAgICAgICAgICAgIFdlc3RfRWFz
-dF9mbGFnOiAxICgweDAxKSAgWz0gRUFTVF0KICAgICAgICAgICAgICAgICAgUG9sYXJpc2F0aW9u
-OiAwICgweDAwKSAgWz0gbGluZWFyIC0gaG9yaXpvbnRhbF0KICAgICAgICAgICAgICAgICAgS2lu
-ZDogMCAoMHgwMCkgIFs9IERWQi1TXQogICAgICAgICAgICAgICAgICBmaXhlZCAoJzAwJyk6IDAg
-KDB4MDApCiAgICAgICAgICAgICAgICAgIE1vZHVsYXRpb25fdHlwZTogMSAoMHgwMSkgIFs9IFFQ
-U0tdCiAgICAgICAgICAgICAgICAgIFN5bWJvbF9yYXRlOiAyNTc2Mzg0ICg9ICAyNy41MDAwKQog
-ICAgICAgICAgICAgICAgICBGRUNfaW5uZXI6IDMgKDB4MDMpICBbPSAzLzQgY29udi4gY29kZSBy
-YXRlXQoKYW5kCiAgICAgICAgICAgICAgICAgIEZyZXF1ZW5jeTogMTgzNzIwOTYgKD0gIDExLjg1
-NjAwIEdIeikKICAgICAgICAgICAgICAgICAgT3JiaXRhbF9wb3NpdGlvbjogNTY1ICg9ICAyMy41
-KQogICAgICAgICAgICAgICAgICBXZXN0X0Vhc3RfZmxhZzogMSAoMHgwMSkgIFs9IEVBU1RdCiAg
-ICAgICAgICAgICAgICAgIFBvbGFyaXNhdGlvbjogMCAoMHgwMCkgIFs9IGxpbmVhciAtIGhvcml6
-b250YWxdCiAgICAgICAgICAgICAgICAgIEtpbmQ6IDAgKDB4MDApICBbPSBEVkItU10KICAgICAg
-ICAgICAgICAgICAgZml4ZWQgKCcwMCcpOiAwICgweDAwKQogICAgICAgICAgICAgICAgICBNb2R1
-bGF0aW9uX3R5cGU6IDEgKDB4MDEpICBbPSBRUFNLXQogICAgICAgICAgICAgICAgICBTeW1ib2xf
-cmF0ZTogMjU3NjM4NCAoPSAgMjcuNTAwMCkKICAgICAgICAgICAgICAgICAgRkVDX2lubmVyOiA0
-ICgweDA0KSAgWz0gNS82IGNvbnYuIGNvZGUgcmF0ZV0KCmFuZCBzb21lIG1vcmUgdHJhbnNwb25k
-ZXJzIHVzZWQgYnkgdGhpcyBwcm92aWRlciAoQ1MgTGluaykuCgoKSSBrbm93IHRoYXQgYXQgbGVh
-c3Qgb25lIG9mIG15IERWQi1UIHJlY2VpdmVycyB3aWxsIHR1bmUgaW50bwp0aGUgc2VydmljZXMg
-b24gYSBwYXJ0aWN1bGFyIGNoYW5uZWwgZXZlbiB3aGVuIEkgZmVlZCBpdCB0aGUKd3JvbmcgdmFs
-dWVzLCBidXQgYXBwYXJlbnRseSBub3QgYWxsIGRldmljZXMgYXJlIGNhcGFibGUgb2YKdGhpcy4K
-CkluIHRoZSBldmVudCBhIHBhcnRpY3VsYXIgcmVjZWl2ZXIgcmVxdWlyZXMgwqtBVVRPwrsgYW5k
-IHdpbGwKbm90IHdvcmsgZXZlbiB3aXRoIHRoZSBpZGVhbGx5LWNvcnJlY3QgdmFsdWVzIGFzIGdp
-dmVuIGZyb20KUElEIDE2LCB0aGVuIHRoaXMgc2hvdWxkIHByb2JhYmx5IGJlIGJyb3VnaHQgdG8g
-dGhlIGF0dGVudGlvbgpvZiBhIHJlc3BvbnNpYmxlIGRldmVsb3BlciB0byBiZSBmaXhlZCwgcmF0
-aGVyIHRoYW4gYXZvaWRpbmcKdGhlIGluY2x1c2lvbiBvZiB0aGUgd3JvbmcgdmFsdWVzIGluIHRo
-ZSBmcmVxdWVuY3kgbGlzdHMuClNpbWlsYXJseSBhIDE2N2tIeiBmcmVxdWVuY3kgb2Zmc2V0IHdo
-ZW4gc3VjaCBpcyBub3QgdXNlZApieSB0aGUgYWN0dWFsIHRyYW5zbWl0dGVyLgoKQWZ0ZXIgYWxs
-LCB0aGUgcHJvcGVyIDEvMzIgKGlmIGNvcnJlY3QpIEd1YXJkIEludGVydmFsIHZhbHVlCndpbGwg
-dGVsbCBtZSB0aGF0IHVzZSBpcyBtYWRlIG9mIGEgTUZOLCB3aGlsZSAxLzQgdGVsbHMgbWUKdGhh
-dCB0aGVyZSBtYXkgYmUgYSBsYXJnZSBhcmVhIGNvdmVyZWQgYnkgbXVsdGlwbGUgdHJhbnNtaXR0
-ZXIKc2l0ZXMgb24gdGhlIHNhbWUgZnJlcXVlbmN5LiAgT3IgaW4gdGhlIGNhc2Ugb2YgUGFyaXMs
-IDEvOAp0ZWxscyBtZSB0aGVyZSBpcyBhIHNtYWxsZXIgU0ZOIGNvbmZpZ3VyYXRpb24uCgpBbHNv
-LCB0aGUgRkVDIHJhdGUgdG9nZXRoZXIgd2l0aCB0aGUgbW9kdWxhdGlvbiAxNi82NC1RQU0Kd2ls
-bCB0ZWxsIG1lIGhvdyBtdWNoIHRoZSBleHBlY3RlZCBjb21iaW5lZCBkYXRhIHJhdGUgYXZhaWxh
-YmxlCmZvciBhbGwgc2VydmljZXMgd2lsbCBiZSwgYXMgd2VsbCBhcyBob3cgZmFyIHJlbW92ZWQg
-ZnJvbSB0aGUKdHJhbnNtaXR0ZXIgb25lIGNhbiByZWNlaXZlIGEgc2lnbmFsIGF0IGEgZ2l2ZW4g
-dHJhbnNtaXR0ZXIKcG93ZXIsIGFuZCB3aGF0IHNvcnQgb2YgYW50ZW5uYSBlZmZvcnQgd2lsbCBi
-ZSBuZWNlc3NhcnkgZm9yIGEgCnN0cm9uZyBjbGVhbiBzaWduYWwgdG93YXJkcyB0aGUgZnJpbmdl
-cyBvZiByZWNlcHRpb24uCgpQZXJoYXBzIG5vdCB2ZXJ5IGltcG9ydGFudCBmb3IgYSBub3JtYWwg
-dXNlciwgYnV0IGdvb2QgdGhpbmdzCnRvIGtub3cgd2hlbiB0cm91Ymxlc2hvb3Rpbmcgb3IgcHJv
-dmlkaW5nIHJlY29tbWVuZGF0aW9ucyBmb3IKcmVjZXB0aW9uLCBmcm9tIGFmYXIgLS0gdGhlIGZh
-Y3QgdGhhdCBJIGNvdWxkIHJlY2VpdmUgdGhlCmFuYWxvZ3VlIHNjcmFtYmxlZCBDYW5hbCsgaXMg
-bm8gZ3VhcmFudGVlIEkgY2FuIG5vdyByZWNlaXZlCmFueSBvZiB0aGUgcHJlc2VudCBUTlQgc2Vy
-dmljZXMgKEkgY2FuJ3QpLgoKCm1lcmNpCmJhcnJ5IGJvdXdzbWEKCl9fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiB1c2VycyBtYWlsaW5nIGxp
-c3QKRm9yIFY0TC9EVkIgZGV2ZWxvcG1lbnQsIHBsZWFzZSB1c2UgaW5zdGVhZCBsaW51eC1tZWRp
-YUB2Z2VyLmtlcm5lbC5vcmcKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0
-di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+This is a multi-part message in MIME format.
+--===============0049317757==
+Content-Type: multipart/alternative;
+ boundary="------------090407080300020106030609"
+
+This is a multi-part message in MIME format.
+--------------090407080300020106030609
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+hello
+As from today (18/05/2010) there is new frequency since analogic signal
+is stopped and is now only numeric.
+
+
+guard-interval has to be set to AUTO or scan find anything
+ (1/32, 1/16, 1/8 ,1/4 doesn't work)
+
+
+# Nantes - France
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+T 538000000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+T 490000000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+T 546000000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+T 658000000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+T 682000000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+T 738000000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+#same frequency + offset 167000000 for some hardware DVB-T tuner
+T 538167000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+T 546167000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+T 658167000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+T 682167000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+T 738167000 8MHz 2/3 NONE QAM64 8k AUTO NONE
+
+
+
+
+
+
+--------------090407080300020106030609
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
+<body text="#000000" bgcolor="#ffffff">
+hello<br>
+As from today (18/05/2010) there is new frequency since analogic signal
+is stopped and is now only numeric.<br>
+<br>
+<br>
+guard-interval has to be set to AUTO or scan find anything<br>
+&nbsp;(1/32, 1/16, 1/8 ,1/4 doesn't work)<br>
+<br>
+<br>
+# Nantes - France<br>
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy<br>
+T 538000000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+T 490000000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+T 546000000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+T 658000000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+T 682000000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+T 738000000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+#same frequency + offset 167000000 for some hardware DVB-T tuner<br>
+T 538167000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+T 546167000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+T 658167000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+T 682167000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+T 738167000 8MHz 2/3 NONE QAM64 8k AUTO NONE<br>
+<br>
+<br>
+<pre><big><big>
+
+</big></big></pre>
+<br>
+</body>
+</html>
+
+--------------090407080300020106030609--
+
+
+--===============0049317757==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============0049317757==--
