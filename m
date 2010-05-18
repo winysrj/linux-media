@@ -1,62 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.153]:37296 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751041Ab0ESN0K convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:63792 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756206Ab0ERMuZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 May 2010 09:26:10 -0400
-Received: by fg-out-1718.google.com with SMTP id 22so1595341fge.1
-        for <linux-media@vger.kernel.org>; Wed, 19 May 2010 06:26:08 -0700 (PDT)
+	Tue, 18 May 2010 08:50:25 -0400
+Date: Tue, 18 May 2010 15:55:27 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH] si4713: Fix oops when si4713_platform_data is marked
+ as __initdata
+Message-ID: <20100518125527.GB4265@besouro.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1274029466-17456-1-git-send-email-jhnikula@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.01.1005181606440.29367@ureoreg>
-References: <4BF290A2.1020904@free.fr>
-	 <alpine.DEB.2.01.1005181606440.29367@ureoreg>
-Date: Wed, 19 May 2010 15:21:04 +0200
-Message-ID: <AANLkTik5wlOKoeXBQvMBF3bJ1exvTwenU5KE58seUzHz@mail.gmail.com>
-Subject: Re: [linux-dvb] new DVB-T initial tuning for fr-nantes
-From: Christoph Pfister <christophpfister@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: matpic <matpic@free.fr>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1274029466-17456-1-git-send-email-jhnikula@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hello,
 
-2010/5/18 BOUWSMA Barry <freebeer.bouwsma@gmail.com>:
-> On wto (wtorek) 18.maj (maj) 2010, 15:05:00, matpic wrote:
->
-> Salut!
->
->> hello
->> As from today (18/05/2010) there is new frequency since analogic signal
->> is stopped and is now only numeric.
->> guard-interval has to be set to AUTO or scan find anything
->>  (1/32, 1/16, 1/8 ,1/4 doesn't work)
+On Sun, May 16, 2010 at 07:04:26PM +0200, Jarkko Nikula wrote:
+> This driver can cause an oops if si4713_platform_data holding pointer to
+> set_power function is marked as __initdata and when trying to power up the
+> chip after booting e.g. with 'v4l2-ctl -d /dev/radio0 --set-ctrl=mute=0'.
+> 
+> This happens because the sdev->platform_data doesn't point to valid data
+> anymore after kernel is initialized.
+> 
+> Fix this by taking local copy of si4713_platform_data->set_power. Add also
+> NULL check for this function pointer.
 
-Strange. Maybe a different parameter is wrong? (AUTO for one parameter
-may cause that other parameters are implicitly set to AUTO as well).
+I'm probably fine with this patch, and the driver must check for the pointer
+before using it, indeed.
 
-> I do not have the CSA data at hand, but I understand that
-> presently use is made of single transmitter sites, in a MFN
-> (Multi-Frequency Network) and thus a guard interval of 1/32 should
-> be correct.
->
-> (I understand though that some filler transmitters may be in
-> planning so that a small SFN may be put in service, but I am
-> not clear as to these details...  I must research this.)
+But, I'm a bit skeptic about marking its platform data as __initdata. Would it make sense?
+What happens if driver is built as module and loaded / unload / loaded again?
 
-Ok, I've committed it with 1/32 (for now) :-)
+Maybe the initdata flag does not apply in this case. Not sure (and not tested the above case).
 
->> #same frequency + offset 167000000 for some hardware DVB-T tuner
-<snip>
+BR,
 
-answered by hftom.
-
-> Merci, for reporting this change!
->
-> barry bouwsma
-
-Thanks,
-
-Christoph
+> 
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
+> ---
+>  drivers/media/radio/si4713-i2c.c |   15 +++++++++------
+>  drivers/media/radio/si4713-i2c.h |    2 +-
+>  2 files changed, 10 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/radio/si4713-i2c.c b/drivers/media/radio/si4713-i2c.c
+> index ab63dd5..cf9858d 100644
+> --- a/drivers/media/radio/si4713-i2c.c
+> +++ b/drivers/media/radio/si4713-i2c.c
+> @@ -369,7 +369,8 @@ static int si4713_powerup(struct si4713_device *sdev)
+>  	if (sdev->power_state)
+>  		return 0;
+>  
+> -	sdev->platform_data->set_power(1);
+> +	if (sdev->set_power)
+> +		sdev->set_power(1);
+>  	err = si4713_send_command(sdev, SI4713_CMD_POWER_UP,
+>  					args, ARRAY_SIZE(args),
+>  					resp, ARRAY_SIZE(resp),
+> @@ -383,8 +384,8 @@ static int si4713_powerup(struct si4713_device *sdev)
+>  
+>  		err = si4713_write_property(sdev, SI4713_GPO_IEN,
+>  						SI4713_STC_INT | SI4713_CTS);
+> -	} else {
+> -		sdev->platform_data->set_power(0);
+> +	} else if (sdev->set_power) {
+> +		sdev->set_power(0);
+>  	}
+>  
+>  	return err;
+> @@ -411,7 +412,8 @@ static int si4713_powerdown(struct si4713_device *sdev)
+>  		v4l2_dbg(1, debug, &sdev->sd, "Power down response: 0x%02x\n",
+>  				resp[0]);
+>  		v4l2_dbg(1, debug, &sdev->sd, "Device in reset mode\n");
+> -		sdev->platform_data->set_power(0);
+> +		if (sdev->set_power)
+> +			sdev->set_power(0);
+>  		sdev->power_state = POWER_OFF;
+>  	}
+>  
+> @@ -1959,6 +1961,7 @@ static int si4713_probe(struct i2c_client *client,
+>  					const struct i2c_device_id *id)
+>  {
+>  	struct si4713_device *sdev;
+> +	struct si4713_platform_data *pdata = client->dev.platform_data;
+>  	int rval;
+>  
+>  	sdev = kzalloc(sizeof *sdev, GFP_KERNEL);
+> @@ -1968,12 +1971,12 @@ static int si4713_probe(struct i2c_client *client,
+>  		goto exit;
+>  	}
+>  
+> -	sdev->platform_data = client->dev.platform_data;
+> -	if (!sdev->platform_data) {
+> +	if (!pdata) {
+>  		v4l2_err(&sdev->sd, "No platform data registered.\n");
+>  		rval = -ENODEV;
+>  		goto free_sdev;
+>  	}
+> +	sdev->set_power = pdata->set_power;
+>  
+>  	v4l2_i2c_subdev_init(&sdev->sd, client, &si4713_subdev_ops);
+>  
+> diff --git a/drivers/media/radio/si4713-i2c.h b/drivers/media/radio/si4713-i2c.h
+> index faf8cff..d1af889 100644
+> --- a/drivers/media/radio/si4713-i2c.h
+> +++ b/drivers/media/radio/si4713-i2c.h
+> @@ -220,7 +220,7 @@ struct si4713_device {
+>  	/* private data structures */
+>  	struct mutex mutex;
+>  	struct completion work;
+> -	struct si4713_platform_data *platform_data;
+> +	int (*set_power)(int power);
+>  	struct rds_info rds_info;
+>  	struct limiter_info limiter_info;
+>  	struct pilot_info pilot_info;
+> -- 
+> 1.7.1
