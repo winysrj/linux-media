@@ -1,78 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62688 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756336Ab0EBOmu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 May 2010 10:42:50 -0400
-Message-ID: <4BDD8F65.80602@redhat.com>
-Date: Sun, 02 May 2010 11:42:45 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from web27803.mail.ukl.yahoo.com ([217.146.182.8]:40250 "HELO
+	web27803.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751964Ab0ERLLo convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 May 2010 07:11:44 -0400
+Message-ID: <130535.72294.qm@web27803.mail.ukl.yahoo.com>
+Date: Tue, 18 May 2010 11:11:41 +0000 (GMT)
+From: marc balta <marc_balta@yahoo.de>
+Subject: Re: Stuck Digittrade DVB-T stick (dvb_usb_af9015)
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Bee Hock Goh <beehock@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] tm6000: Prevent Kernel Oops changing channel when stream
- is 	still on.
-References: <u2s6e8e83e21005010151ie123c8e5o45e7d0a3bbc8aa64@mail.gmail.com>
-In-Reply-To: <u2s6e8e83e21005010151ie123c8e5o45e7d0a3bbc8aa64@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bee,
+Hi,
 
-Bee Hock Goh wrote:
-> do a streamoff before setting standard to prevent kernel oops by
-> irq_callback if changing of channel is done while streaming is still
-> on-going.
+ok forget this time it took a little bit longer: The same problem occured again with the symptoms i explaines previously: Including a very unresponsive system (keyboard press takes 2 seconds for being recognized by the system).
+
+--- marc balta <marc_balta@yahoo.de> schrieb am Mo, 17.5.2010:
+
+> Von: marc balta <marc_balta@yahoo.de>
+> Betreff: Re: Stuck Digittrade DVB-T stick (dvb_usb_af9015)
+> An: "Antti Palosaari" <crope@iki.fi>
+> CC: linux-media@vger.kernel.org
+> Datum: Montag, 17. Mai, 2010 16:18 Uhr
+> hi,
+> 
+> After the past days there has been no device crash anymore
+> but another problem:
+> 
+> it seems after some time running the device (some hours)
+> tuning takes longer and longer until it isnt  possible
+> at all anymore to tune to some channels, although signal
+> strength is sufficient: rmmoding and modprobing the driver
+> (dvb_usb_af9015) solves the problem and tuning is fast on
+> the same channel again.
 > 
 > 
-> Signed-off-by: Bee Hock Goh <beehock@gmail.com>
 > 
-> diff --git a/drivers/staging/tm6000/tm6000-video.c
-> b/drivers/staging/tm6000/tm6000-video.c
-> index c53de47..32f625d 100644
-> --- a/drivers/staging/tm6000/tm6000-video.c
-> +++ b/drivers/staging/tm6000/tm6000-video.c
+> Greetings,
+> Marc
 > 
-> @@ -1081,8 +1086,8 @@ static int vidioc_s_std (struct file *file, void
-> *priv, v4l2_std_id *norm)
->  	struct tm6000_fh   *fh=priv;
->  	struct tm6000_core *dev = fh->dev;
+> --- Antti Palosaari <crope@iki.fi>
+> schrieb am Fr, 14.5.2010:
 > 
-> +	vidioc_streamoff(file, priv, V4L2_BUF_TYPE_VIDEO_CAPTURE);
->  	rc=tm6000_set_standard (dev, norm);
-> -
->  	fh->width  = dev->width;
->  	fh->height = dev->height;
+> > Von: Antti Palosaari <crope@iki.fi>
+> > Betreff: Re: Stuck Digittrade DVB-T stick
+> (dvb_usb_af9015)
+> > An: "marc balta" <marc_balta@yahoo.de>
+> > CC: linux-media@vger.kernel.org
+> > Datum: Freitag, 14. Mai, 2010 19:16 Uhr
+> > Terve
+> > 
+> > On 05/14/2010 02:17 PM, marc balta wrote:
+> > > would be nice because it is happening rather
+> often :
+> > Every second or third day. Is there a way to reinit
+> the
+> > device with a script wihtout restarting my server and
+> > without influencing other usb devices. If yes I could
+> reinit
+> > the device say two minutes before every recording
+> starts
+> > using a hook. This would solve my problems.
+> > 
+> > I just added support for new firmware 5.1.0.0. Please
+> test
+> > if it helps.
+> > http://linuxtv.org/hg/~anttip/af9015/
+> > http://palosaari.fi/linux/v4l-dvb/firmware/af9015/5.1.0.0/
+> > 
+> > regards
+> > Antti
+> > -- http://palosaari.fi/
+> > 
+> 
+> 
+> 
 
-This doesn't seem to be the right thing to do. The problem here is that
-changing a video standard takes a long time to happen. As calling an
-ioctl is protected by KBL, QBUF/DQBUF won't be called, so, the driver
-will run out of the buffers, and *buf will become null. This can eventually
-happen during copy_streams().
 
----
-
-tm6000: Fix a panic if buffer become NULL
-
-Changing a video standard takes a long time to happen on tm6000, since it
-needs to load another firmware, and the i2c implementation on this device
-is really slow. As calling an ioctl is protected by KBL, QBUF/DQBUF won't 
-be called, so, the driver will run out of the buffers, and *buf will become 
-NULL. This can eventually happen during copy_streams(). The fix is to leave
-the URB copy loop, if there's no more buffers available.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/linux/drivers/staging/tm6000/tm6000-video.c b/linux/drivers/staging/tm6000/tm6000-video.c
---- a/linux/drivers/staging/tm6000/tm6000-video.c
-+++ b/linux/drivers/staging/tm6000/tm6000-video.c
-@@ -539,7 +539,7 @@ static inline int tm6000_isoc_copy(struc
- 				}
- 			}
- 			copied += len;
--			if (copied>=size)
-+			if (copied >= size || !buf)
- 				break;
- //		}
- 	}
