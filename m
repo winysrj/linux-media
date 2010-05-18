@@ -1,19 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <guzowskip@linuxmail.org>) id 1OBo0Z-0007SC-T7
-	for linux-dvb@linuxtv.org; Tue, 11 May 2010 13:52:21 +0200
-Received: from imr-da05.mx.aol.com ([205.188.105.147])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with esmtp
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1OENkF-0002ZH-Bi
+	for linux-dvb@linuxtv.org; Tue, 18 May 2010 16:26:07 +0200
+Received: from ey-out-2122.google.com ([74.125.78.24])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1OBo0Z-0006tx-3V; Tue, 11 May 2010 13:52:19 +0200
-To: linux-dvb@linuxtv.org
-Date: Tue, 11 May 2010 07:52:02 -0400
+	id 1OENkC-0001Gb-0W; Tue, 18 May 2010 16:26:06 +0200
+Received: by ey-out-2122.google.com with SMTP id d26so501071eyd.39
+	for <linux-dvb@linuxtv.org>; Tue, 18 May 2010 07:26:02 -0700 (PDT)
+Date: Tue, 18 May 2010 16:25:56 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: matpic <matpic@free.fr>
+In-Reply-To: <4BF290A2.1020904@free.fr>
+Message-ID: <alpine.DEB.2.01.1005181606440.29367@ureoreg>
+References: <4BF290A2.1020904@free.fr>
 MIME-Version: 1.0
-From: guzowskip@linuxmail.org
-Message-Id: <8CCBF1780E047D6-E2C-4C06@web-mmc-d07.sysops.aol.com>
-Cc: devin.heitmueller@kernellabs.com
-Subject: [linux-dvb] Pinnacle HDTV Pro stick and Ubuntu 10.04
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] new DVB-T initial tuning for fr-nantes
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,88 +26,59 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0751532178=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
+On wto (wtorek) 18.maj (maj) 2010, 15:05:00, matpic wrote:
 
---===============0751532178==
-Content-Type: multipart/alternative;
- boundary="--------MB_8CCBF1780E50A98_E2C_9B37_web-mmc-d07.sysops.aol.com"
+Salut!
 
+> hello
+> As from today (18/05/2010) there is new frequency since analogic signal
+> is stopped and is now only numeric.
+> guard-interval has to be set to AUTO or scan find anything
+>  (1/32, 1/16, 1/8 ,1/4 doesn't work)
 
-----------MB_8CCBF1780E50A98_E2C_9B37_web-mmc-d07.sysops.aol.com
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="us-ascii"
+I do not have the CSA data at hand, but I understand that
+presently use is made of single transmitter sites, in a MFN
+(Multi-Frequency Network) and thus a guard interval of 1/32 should
+be correct.
 
-
- Greetings to all,
-
-The members of this forum, particularly Devin Heitmueller, were a great de=
-al of help to me previously with this piece of hardware.  I have been happ=
-ily watching analog TV channel 3 fed from my cable company's set top box=
- using mPlayer called from the command line.  Now with Ubuntu 10.04 it no=
- longer works even with the same firmware installed as before.  I think I=
- read somewhere that analog is no longer supported.  I would be happy, mak=
-e that even happier, if I could get the thing to tune anything directly fr=
-om the digital signal my cable company (Brighthouse Networks) provides on=
- it's cable.  I have tried scanning with all the parameters available in=
- Kaffeine but no luck.
-
-Can anyone give me any further hints for how to proceed?  Thanks in advanc=
-e.
-
-Paul in NW Florida
-
-=20
+(I understand though that some filler transmitters may be in
+planning so that a small SFN may be put in service, but I am
+not clear as to these details...  I must research this.)
 
 
+> #same frequency + offset 167000000 for some hardware DVB-T tuner
 
-----------MB_8CCBF1780E50A98_E2C_9B37_web-mmc-d07.sysops.aol.com
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/html; charset="us-ascii"
+It was my understanding that the different offsets above or
+below the nominal centre frequency is a result of mixed digital
+and legacy analogue services co-broadcasting, in order to avoid
+interference with adjacent channels.
 
-<font color=3D'black' size=3D'2' face=3D'arial'>
-<div> <font size=3D"2"><font face=3D"Arial, Helvetica, sans-serif">Greetin=
-gs to all,<br>
-<br>
-The members of this forum, particularly Devin Heitmueller, were a great de=
-al of help to me previously with this piece of hardware.&nbsp; I have been=
- happily watching analog TV channel 3 fed from my cable company's set top=
- box using mPlayer called from the command line.&nbsp; Now with Ubuntu 10.=
-04 it no longer works even with the same firmware installed as before.&nbs=
-p; I think I read somewhere that analog is no longer supported.&nbsp; I wo=
-uld be happy, make that even happier, if I could get the thing to tune any=
-thing directly from the digital signal my cable company (Brighthouse Netwo=
-rks) provides on it's cable.&nbsp; I have tried scanning with all the para=
-meters available in Kaffeine but no luck.<br>
-<br>
-Can anyone give me any further hints for how to proceed?&nbsp; Thanks in=
- advance.<br>
-<br>
-Paul in NW Florida<br>
-</font></font></div>
+So I am wondering whether, in the absence of local analogue
+services, this offset is no longer employed?
 
-<div> <br>
-</div>
+I am afraid that I am not following the conversion to TNT so
+closely to know if a whole geographic region, in this case the
+Loire, is having the remaining analogue services shut down all
+at once, or if it is being done on a site-by-site basis, with
+the potential for interference to a more remote but still
+operational analogue transmitter.
 
-<div style=3D"clear: both;"></div>
-</font>
-
-----------MB_8CCBF1780E50A98_E2C_9B37_web-mmc-d07.sysops.aol.com--
+In any case, all but one of the new frequencies appear to be
+very different from the ones previously used before today.
 
 
---===============0751532178==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+Merci, for reporting this change!
+
+barry bouwsma
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0751532178==--
