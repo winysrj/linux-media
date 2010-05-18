@@ -1,33 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:48163
-	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756410Ab0EERhR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 13:37:17 -0400
-Received: from root by desource.dyndns.org with local (Exim 4.71)
-	(envelope-from <root@desource.dyndns.org>)
-	id 1O9i2Q-0005mW-DD
-	for linux-media@vger.kernel.org; Wed, 05 May 2010 13:05:34 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH/RFC 0/7] dsbr100: driver cleanup
-Date: Wed,  5 May 2010 13:05:23 -0400
-Message-Id: <1273079130-21999-1-git-send-email-david@identd.dyndns.org>
+Received: from fg-out-1718.google.com ([72.14.220.159]:37776 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755685Ab0ERHfI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 May 2010 03:35:08 -0400
+Received: by fg-out-1718.google.com with SMTP id 22so922278fge.1
+        for <linux-media@vger.kernel.org>; Tue, 18 May 2010 00:35:07 -0700 (PDT)
+Date: Tue, 18 May 2010 17:35:26 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Bee Hock Goh <beehock@gmail.com>
+Subject: tm6000
+Message-ID: <20100518173526.1f561317@glory.loctelecom.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series addresses several issues in the dsbr100 driver.
-This series is based on the v4l-dvb master git branch and has been
-compile tested only. It should be tested before applying.
+Hi 
 
-The following patches are included in this series:
-   [PATCH/RFC 1/7] dsbr100: implement proper locking
-   [PATCH/RFC 2/7] dsbr100: fix potential use after free
-   [PATCH/RFC 3/7] dsbr100: only change frequency upon success
-   [PATCH/RFC 4/7] dsbr100: remove disconnected indicator
-   [PATCH/RFC 5/7] dsbr100: properly initialize the radio
-   [PATCH/RFC 6/7] dsbr100: cleanup usb probe routine
-   [PATCH/RFC 7/7] dsbr100: simplify access to radio device
+tm6000 progress bar :-)
 
-Regards,
+At this moment I can watch TV with mplayer without sound.
+Our card based on the xc5000 and tm6010
+It is possible with my last patch for xc5000 tuner.
 
-David Ellingsworth
+Next task is a sound, check init process and stds settings.
+
+P.S. Compile without support DVB-T frontend for our cards. Linux kernel is 2.6.33
+
+With my best regards, Dmitry.
