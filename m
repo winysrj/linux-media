@@ -1,90 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:54096 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755845Ab0EaDqH (ORCPT
+Received: from mga14.intel.com ([143.182.124.37]:8493 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756712Ab0ERJZK convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 23:46:07 -0400
-Date: Sun, 30 May 2010 22:15:52 -0500 (CDT)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Andy Walls <awalls@md.metrocast.net>
-cc: Jean-Francois Moine <moinejf@free.fr>,
-	Ondrej Zary <linux@rainbow-software.org>,
-	linux-media@vger.kernel.org
-Subject: Re: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
-In-Reply-To: <1275273390.4863.30.camel@localhost>
-Message-ID: <alpine.LNX.2.00.1005302209500.14957@banach.math.auburn.edu>
-References: <201005291909.33593.linux@rainbow-software.org>  <201005292132.09705.linux@rainbow-software.org>  <20100530133455.489c4f46@tele>  <201005301955.24442.linux@rainbow-software.org>  <20100530201343.223a10bd@tele>
- <1275273390.4863.30.camel@localhost>
+	Tue, 18 May 2010 05:25:10 -0400
+From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Tue, 18 May 2010 17:23:56 +0800
+Subject: [PATCH v3 8/8] V4L2 subdev patchset for Intel Moorestown Camera
+ Imaging Subsystem
+Message-ID: <33AB447FBD802F4E932063B962385B351E895735@shsmsx501.ccr.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+>From fb60254ff50703b8b8301d6708371be011f1050e Mon Sep 17 00:00:00 2001
+From: Xiaolin Zhang <xiaolin.zhang@intel.com>
+Date: Tue, 18 May 2010 15:27:48 +0800
+Subject: [PATCH 8/8] This patch is to add National Semiconductor LM3553 flash LED driver support
+ which is based on the video4linux2 sub-dev driver framework.
 
+Signed-off-by: Xiaolin Zhang <xiaolin.zhang@intel.com>
+---
+ drivers/media/video/mrstflash.c |  151 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 151 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/mrstflash.c
 
-On Sun, 30 May 2010, Andy Walls wrote:
+diff --git a/drivers/media/video/mrstflash.c b/drivers/media/video/mrstflash.c
+new file mode 100644
+index 0000000..927939b
+--- /dev/null
++++ b/drivers/media/video/mrstflash.c
+@@ -0,0 +1,151 @@
++/*
++ * Support for Moorestown Langwell Camera Imaging camera flash.
++ *
++ * Copyright (c) 2009 Intel Corporation. All Rights Reserved.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License version
++ * 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++ * 02110-1301, USA.
++ *
++ *
++ * Xiaolin Zhang <xiaolin.zhang@intel.com>
++ */
++
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/videodev2.h>
++#include <linux/slab.h>
++#include <media/v4l2-device.h>
++
++static int debug;
++module_param(debug, bool, 0644);
++MODULE_PARM_DESC(debug, "Debug level (0-1)");
++
++MODULE_AUTHOR("Xiaolin Zhang <xiaolin.zhang@intel.com>");
++MODULE_DESCRIPTION("A low-level driver for mrst flash");
++MODULE_LICENSE("GPL");
++
++static int flash_g_chip_ident(struct v4l2_subdev *sd,
++		struct v4l2_dbg_chip_ident *chip)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	#define V4L2_IDENT_MRST_FLASH 8248
++	return v4l2_chip_ident_i2c_client(client, chip,
++					  V4L2_IDENT_MRST_FLASH, 0);
++}
++
++static const struct v4l2_subdev_core_ops flash_core_ops = {
++	.g_chip_ident = flash_g_chip_ident,
++};
++static const struct v4l2_subdev_ops flash_ops = {
++	.core = &flash_core_ops,
++};
++
++static int flash_detect(struct i2c_client *client)
++{
++	struct i2c_adapter *adapter = client->adapter;
++	u8 pid;
++
++	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		return -ENODEV;
++
++	if (adapter->nr != 0)
++		return -ENODEV;
++
++	pid = i2c_smbus_read_byte_data(client, 0x10);
++	if (pid == 0x18) {
++		printk(KERN_ERR "camera flash device found\n");
++		v4l_dbg(1, debug, client, "found camera flash device");
++	} else {
++		printk(KERN_ERR "no camera flash device found\n");
++		return -ENODEV;
++	}
++
++	return 0;
++}
++
++static int flash_probe(struct i2c_client *client,
++			const struct i2c_device_id *id)
++{
++	u8 pid, ver;
++	int ret = -1;
++	struct v4l2_subdev *sd;
++
++	v4l_info(client, "chip found @ 0x%x (%s)\n",
++			client->addr << 1, client->adapter->name);
++
++	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
++	ret = flash_detect(client);
++	if (ret)
++		return -ENODEV;
++
++	v4l2_i2c_subdev_init(sd, client, &flash_ops);
++
++	ver = i2c_smbus_read_byte_data(client, 0x50);
++	v4l_dbg(1, debug, client, "detect:CST from device is 0x%x", ver);
++	pid = i2c_smbus_read_byte_data(client, 0x20);
++	v4l_dbg(1, debug, client, "detect:MFPC from device is 0x%x", pid);
++	pid = i2c_smbus_read_byte_data(client, 0xA0);
++	v4l_dbg(1, debug, client, "detect:TCC from device is 0x%x", pid);
++	pid = i2c_smbus_read_byte_data(client, 0xB0);
++	v4l_dbg(1, debug, client, "detect:FCC from device is 0x%x", pid);
++	pid = i2c_smbus_read_byte_data(client, 0xC0);
++	v4l_dbg(1, debug, client, "detect:FDC from device is 0x%x", pid);
++	i2c_smbus_write_byte_data(client, 0xc0, 0xff); /*set FST to 1000us*/
++	pid = i2c_smbus_read_byte_data(client, 0xc0);
++	v4l_dbg(1, debug, client, "FDC from device is 0x%x", pid);
++
++	v4l_dbg(1, debug, client,
++		"successfully load camera flash device driver");
++	return 0;
++}
++
++static int flash_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++
++	v4l2_device_unregister_subdev(sd);
++	kfree(sd);
++
++	return 0;
++}
++
++static const struct i2c_device_id flash_id[] = {
++	{"mrst_camera_flash", 0},
++	{}
++};
++
++MODULE_DEVICE_TABLE(i2c, flash_id);
++
++static struct i2c_driver flash_i2c_driver = {
++	.driver = {
++		.name = "mrst_camera_flash",
++	},
++	.probe = flash_probe,
++	.remove = flash_remove,
++	.id_table = flash_id,
++};
++
++static int __init flash_drv_init(void)
++{
++	return i2c_add_driver(&flash_i2c_driver);
++}
++
++static void __exit flash_drv_cleanup(void)
++{
++	i2c_del_driver(&flash_i2c_driver);
++}
++
++module_init(flash_drv_init);
++module_exit(flash_drv_cleanup);
+-- 
+1.6.3.2
 
-> On Sun, 2010-05-30 at 20:13 +0200, Jean-Francois Moine wrote:
-> > On Sun, 30 May 2010 19:55:22 +0200
-> > Ondrej Zary <linux@rainbow-software.org> wrote:
-> > 
-> > > That's bad...
-> > > 
-> > > The driver contains file sp5x_32.dll which is registered in
-> > > system.ini file as [drivers32]
-> > > VIDC.SP54=SP5X_32.DLL
-> > > 
-> > > Seems that the codec is called SP54 - hope that it's used to
-> > > decompress the data.
-> > > 
-> > > > All I can do is to code the driver and let you or anyone find the
-> > > > decompression function...
-> > > 
-> > > Maybe we can dump some data, create AVI file from that and try to
-> > > decode the file using that codec.
-> > 
-> > It is easy to get images from the usbsnoop files. I join an image
-> > extracted from your file usbsnoop-video-capture-640x480.log. If you
-> > want more images, they are in IsoPackets. The first 2 bytes of each isoc
-> > packet mean:
-> > - '02 80' or '02 81': first of intermediate part of the image ('0' or
-> >   '1' is the image sequence number)
-> > - '02 82' or '02 83': last part of the image
-> > 
-> > Someone had an idea to try and guess the compression algorithm: do
-> > usbsnoop's with full black and full white images. But this idea did not
-> > work with the other webcam: the images were quite the same!
-> 
-> I have attached an image I constructed from the image data file you
-> provided, the MJPEG headers in the AVI file Ondrej provided, and the
-> Huffman table in the jpeg.h file in the gspca driver.
-> 
-> If you zoom in, there is an small pattern in the top left portion of the
-> scan.
-> 
-> I doesn't look quite like an whole image, but it does look like the
-> start of one.
-> 
-> Regards,
-> Andy
-
-Downloaded it. And, hmmm. Here are the error messages on trying to look at 
-the output:
-
-kilgota@khayyam:~$ display test1.jpg
-display: Corrupt JPEG data: premature end of data segment `test1.jpg' @ 
-warning/jpeg.c/EmitMessage/228.
-display: Unsupported marker type 0x3a `test1.jpg' @ 
-error/jpeg.c/EmitMessage/233.
-kilgota@khayyam:~$ 
-
-Quite possibly it _is_ going down "strips" or such. That is what the 
-JL2005C cameras are doing. Each vertical strip of 16 bytes from the 
-picture is in fact a separate JPEG image, and needs to be separately 
-processed, and then the results glued together into an image. This is even 
-seen in the raw data, once one is so wise that it is all figured out. The 
-data for each strip ends with FF D9. So one suggestion here would be to 
-see how many times the FF D9 is coming up in the data. There may be a 
-pattern to that.
-
-Theodore Kilgore
