@@ -1,81 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45702 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756228Ab0EYOwP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 May 2010 10:52:15 -0400
-Date: Tue, 25 May 2010 16:52:31 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51595 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751394Ab0ESIzo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 May 2010 04:55:44 -0400
+Date: Wed, 19 May 2010 10:55:35 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
 To: Baruch Siach <baruch@tkos.co.il>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2 0/3] Driver for the i.MX2x CMOS Sensor Interface
-In-Reply-To: <cover.1274706733.git.baruch@tkos.co.il>
-Message-ID: <Pine.LNX.4.64.1005241757380.2611@axis700.grange>
-References: <cover.1274706733.git.baruch@tkos.co.il>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 1/3] mx2_camera: Add soc_camera support for
+	i.MX25/i.MX27
+Message-ID: <20100519085534.GI31199@pengutronix.de>
+References: <cover.1273150585.git.baruch@tkos.co.il> <a029bab8fcb3273df4a1d98f779f110b127742bd.1273150585.git.baruch@tkos.co.il> <Pine.LNX.4.64.1005090045230.10524@axis700.grange> <20100517072720.GD31199@pengutronix.de> <20100517135800.GB30927@jasper.tkos.co.il>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100517135800.GB30927@jasper.tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 24 May 2010, Baruch Siach wrote:
-
-> This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and
-> platform code for the i.MX25 and i.MX27 chips. This driver is based on a 
-> driver for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has 
-> posted in linux-media last December[1]. I tested the mx2_camera driver on the 
-> i.MX25 PDK. Sascha Hauer has tested a earlier version of this driver on an 
-> i.MX27 based board. I included in this version some fixes from Sascha that 
-> enable i.MX27 support.
+On Mon, May 17, 2010 at 04:58:00PM +0300, Baruch Siach wrote:
+> Hi Sascha,
 > 
-> [1] https://patchwork.kernel.org/patch/67636/
+> Thanks for your comments.
 > 
-> Changes v1 -> v2
->     Addressed the comments of Guennadi Liakhovetski except from the following:
+> On Mon, May 17, 2010 at 09:27:20AM +0200, Sascha Hauer wrote:
+> > On Wed, May 12, 2010 at 09:02:29PM +0200, Guennadi Liakhovetski wrote:
+> > > Hi Baruch
+> > > 
+> > > Thanks for eventually mainlining this driver! A couple of comments below. 
+> > > Sascha, would be great, if you could get it tested on imx27 with and 
+> > > without emma.
+> > 
+> > I will see what I can do. Testing and probably breathing life into a
+> > camera driver usually takes me two days given that the platform support
+> > is very outdated. I hope our customer is interested in this, then it
+> > would be possible to test it.
+> > 
+> > > BTW, if you say, that you use emma to avoid using the 
+> > > standard DMA controller, why would anyone want not to use emma? Resource 
+> > > conflict? There is also a question for you down in the comments, please, 
+> > > skim over.
+> > 
+> > I originally did not know how all the components should work together.
+> > Now I think it's the right way to use the EMMA to be able to scale
+> > images and to do colour conversions (which does not work with our Bayer
+> > format cameras, so I cannot test it).
 > 
->     1. The mclk_get_divisor implementation, since I don't know what this code 
->        is good for
+> So can I remove the non EMMA code from this driver? This will simplify the 
+> code quite a bit.
 
-AFAIU, it should select a divisor to provide the user-requested frequency. 
-But now we know, that it can go.
+Please don't. I had a talk with our customer and it seems I can put some
+effort into the i.MX27 part. That's good news because I also want this
+driver mainline.
 
->     2. mx2_videobuf_release should not set pcdev->active on i.MX27, because 
->        mx27_camera_frame_done needs this pointer
+Sascha
 
-Right, that's what you have locking for. Either the ISR comes first and 
-uses the pointer, or you take the spinlock and stop IRQs, while 
-deactivating the hardware and clearing the pointer. So that after you 
-release the lock you're sure no more interrupts can come.
 
->     3. In mx27_camera_emma_buf_init I don't know the meaning of those hard 
->        coded magic numbers
-> 
->     Applied i.MX27 fixes from Sascha.
-> 
-> Baruch Siach (3):
->   mx2_camera: Add soc_camera support for i.MX25/i.MX27
->   mx27: add support for the CSI device
->   mx25: add support for the CSI device
-> 
->  arch/arm/mach-mx2/clock_imx27.c          |    2 +-
->  arch/arm/mach-mx2/devices.c              |   31 +
->  arch/arm/mach-mx2/devices.h              |    1 +
->  arch/arm/mach-mx25/clock.c               |   14 +-
->  arch/arm/mach-mx25/devices.c             |   22 +
->  arch/arm/mach-mx25/devices.h             |    1 +
->  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
->  arch/arm/plat-mxc/include/mach/mx25.h    |    2 +
->  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
->  drivers/media/video/Kconfig              |   13 +
->  drivers/media/video/Makefile             |    1 +
->  drivers/media/video/mx2_camera.c         | 1471 ++++++++++++++++++++++++++++++
->  12 files changed, 1603 insertions(+), 5 deletions(-)
->  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
->  create mode 100644 drivers/media/video/mx2_camera.c
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
