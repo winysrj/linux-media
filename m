@@ -1,188 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:64949 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751495Ab0ETOmD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 May 2010 10:42:03 -0400
-Received: by wwi18 with SMTP id 18so164987wwi.19
-        for <linux-media@vger.kernel.org>; Thu, 20 May 2010 07:42:01 -0700 (PDT)
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55173 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754047Ab0ESQop (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 May 2010 12:44:45 -0400
+Received: from dlep33.itg.ti.com ([157.170.170.112])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4JGiitW026356
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep33.itg.ti.com (8.13.7/8.13.7) with ESMTP id o4JGii6S024954
+	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4JGii42013198
+	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500 (CDT)
+From: <asheeshb@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: Asheesh Bhardwaj <asheeshb@ti.com>
+Subject: [PATCH 5/7] DM365 MMAP buffer allocation for display driver
+Date: Wed, 19 May 2010 11:44:36 -0500
+Message-ID: <1274287478-14661-6-git-send-email-asheeshb@ti.com>
+In-Reply-To: <1274287478-14661-5-git-send-email-asheeshb@ti.com>
+References: <1274287478-14661-1-git-send-email-asheeshb@ti.com>
+ <1274287478-14661-2-git-send-email-asheeshb@ti.com>
+ <1274287478-14661-3-git-send-email-asheeshb@ti.com>
+ <1274287478-14661-4-git-send-email-asheeshb@ti.com>
+ <1274287478-14661-5-git-send-email-asheeshb@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4BF540A0.4060904@redhat.com>
-References: <AANLkTikMhseqvpIJHnmEUhouqvdYRaaUvE4jUFiAwgrH@mail.gmail.com>
-	 <4BF540A0.4060904@redhat.com>
-Date: Thu, 20 May 2010 15:42:01 +0100
-Message-ID: <AANLkTimRx42RQbHpyCRaAEHnsbW7yZCcuom_SQX2v-S7@mail.gmail.com>
-Subject: [RFC] V4L2 Controls State Store/Restore File Format
-From: Paulo Assis <pj.assis@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Asheesh Bhardwaj <asheeshb@ti.com>
 
-Below is a proposal for the file format to use when storing/restoring
-v4l2 controls state.
+---
+ drivers/media/video/davinci/davinci_display.c |   79 ++++++++++++++++++++++++-
+ include/media/davinci/davinci_display.h       |    1 +
+ 2 files changed, 77 insertions(+), 3 deletions(-)
 
-I've some doubts concerning atomically set controls and string
-controls (see below)
-that may be inducing me on error.
-The format is intended to be generic enough to support any control
-class so I hope
-to receive comments for any special cases that I might have missed or
-overlooked.
-Don't worry about bashing on the proposal to hard I have a hard skin :-D
+diff --git a/drivers/media/video/davinci/davinci_display.c b/drivers/media/video/davinci/davinci_display.c
+index 4c4efef..8eb98c4 100644
+--- a/drivers/media/video/davinci/davinci_display.c
++++ b/drivers/media/video/davinci/davinci_display.c
+@@ -45,11 +45,15 @@
+ 
+ static u32 video2_numbuffers = 3;
+ static u32 video3_numbuffers = 3;
++static u32 cont2_bufoffset = 0;
++static u32 cont2_bufsize = 0;
++static u32 cont3_bufoffset = 0;
++static u32 cont3_bufsize = 0;
+ 
+ #define DAVINCI_DISPLAY_HD_BUF_SIZE (1280*720*2)
+ #define DAVINCI_DISPLAY_SD_BUF_SIZE (720*576*2)
+ 
+-static u32 video2_bufsize = DAVINCI_DISPLAY_SD_BUF_SIZE;
++static u32 video2_bufsize = DAVINCI_DISPLAY_HD_BUF_SIZE;
+ static u32 video3_bufsize = DAVINCI_DISPLAY_SD_BUF_SIZE;
+ 
+ module_param(video2_numbuffers, uint, S_IRUGO);
+@@ -57,15 +61,24 @@ module_param(video3_numbuffers, uint, S_IRUGO);
+ 
+ module_param(video2_bufsize, uint, S_IRUGO);
+ module_param(video3_bufsize, uint, S_IRUGO);
++module_param(cont2_bufoffset, uint, S_IRUGO);
++module_param(cont2_bufsize, uint, S_IRUGO);
++module_param(cont3_bufoffset, uint, S_IRUGO);
++module_param(cont3_bufsize, uint, S_IRUGO);
++
++MODULE_PARM_DESC(cont2_bufoffset,"Display offset(default 0)");
++MODULE_PARM_DESC(cont2_bufsize,"Display buffer size(default 0)");
++MODULE_PARM_DESC(cont3_bufoffset,"Display offset(default 0)");
++MODULE_PARM_DESC(cont3_bufsize,"Display buffer size(default 0)");
+ 
+ #define DAVINCI_DEFAULT_NUM_BUFS 3
+ static struct buf_config_params display_buf_config_params = {
+ 	.min_numbuffers = DAVINCI_DEFAULT_NUM_BUFS,
+ 	.numbuffers[0] = DAVINCI_DEFAULT_NUM_BUFS,
+ 	.numbuffers[1] = DAVINCI_DEFAULT_NUM_BUFS,
+-	.min_bufsize[0] = DAVINCI_DISPLAY_SD_BUF_SIZE,
++	.min_bufsize[0] = DAVINCI_DISPLAY_HD_BUF_SIZE,
+ 	.min_bufsize[1] = DAVINCI_DISPLAY_SD_BUF_SIZE,
+-	.layer_bufsize[0] = DAVINCI_DISPLAY_SD_BUF_SIZE,
++	.layer_bufsize[0] = DAVINCI_DISPLAY_HD_BUF_SIZE,
+ 	.layer_bufsize[1] = DAVINCI_DISPLAY_SD_BUF_SIZE,
+ };
+ 
+@@ -167,10 +180,17 @@ static int davinci_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+ 		if (*size > buf_size)
+ 			*size = buf_size;
+ 
++        /*Checking if the buffer size exceeds the available buffer*/
++	if (display_buf_config_params.video_limit[layer->device_id]) {
++		while (*size * *count > ( display_buf_config_params.video_limit[layer->device_id]))
++			(*count)--;
++        }
++      
+ 	/* Store number of buffers allocated in numbuffer member */
+ 	if (*count < display_buf_config_params.min_numbuffers)
+ 		*count = layer->numbuffers = display_buf_config_params.numbuffers[layer->device_id];
+ 	dev_dbg(davinci_display_dev, "</davinci_buffer_setup>\n");
++
+ 	return 0;
+ }
+ 
+@@ -1577,6 +1597,8 @@ static __init int davinci_probe(struct device *device)
+ 	struct video_device *vbd = NULL;
+ 	struct display_obj *layer = NULL;
+ 	struct platform_device *pdev;
++	unsigned long phys_end_kernel;
++	size_t size;
+ 
+ 	davinci_display_dev = device;
+ 
+@@ -1588,6 +1610,51 @@ static __init int davinci_probe(struct device *device)
+ 		dev_err(davinci_display_dev, "probed for an unknown device\n");
+ 		return -ENODEV;
+ 	}
++
++       /* Initialising the memory from the input arguments file for contiguous memory buffers and avoid defragmentation */
++       
++	if(cont2_bufsize) {
++		/* attempt to determine the end of Linux kernel memory */
++		phys_end_kernel = virt_to_phys((void *)PAGE_OFFSET) +
++			(num_physpages << PAGE_SHIFT);
++		phys_end_kernel += cont2_bufoffset; 
++		size = cont2_bufsize;
++                       
++		err = dma_declare_coherent_memory(&pdev->dev, phys_end_kernel,
++			phys_end_kernel,
++			size,
++			DMA_MEMORY_MAP |
++			DMA_MEMORY_EXCLUSIVE);
++
++		if (!err) {
++			dev_err(&pdev->dev, "Unable to declare MMAP memory.\n");
++			err = -ENOMEM;
++			goto probe_out;
++		display_buf_config_params.video_limit[DAVINCI_DISPLAY_DEVICE_0] = size;
++		}
++	} 
++	
++	if(cont3_bufsize) {
++	    /* attempt to determine the end of Linux kernel memory */
++		phys_end_kernel = virt_to_phys((void *)PAGE_OFFSET) +
++			(num_physpages << PAGE_SHIFT);
++			phys_end_kernel += cont3_bufoffset; 
++			size = cont3_bufsize;
++                       
++		err = dma_declare_coherent_memory(&pdev->dev, phys_end_kernel,
++			phys_end_kernel,
++			size,
++			DMA_MEMORY_MAP |
++			DMA_MEMORY_EXCLUSIVE);
++
++		if (!err) {
++			dev_err(&pdev->dev, "Unable to declare MMAP memory.\n");
++			err = -ENOMEM;
++			goto probe_out;
++		display_buf_config_params.video_limit[DAVINCI_DISPLAY_DEVICE_1] = size;
++		} 
++	}
++
+ 	for (i = 0; i < DAVINCI_DISPLAY_MAX_DEVICES; i++) {
+ 		/* Get the pointer to the layer object */
+ 		layer = davinci_dm.dev[i];
+@@ -1743,6 +1810,12 @@ static __init int davinci_display_init(void)
+ 	display_buf_config_params.numbuffers[DAVINCI_DISPLAY_DEVICE_1] =
+ 		video3_numbuffers;
+ 
++	/*set size of buffers, they could come from bootargs*/
++	display_buf_config_params.layer_bufsize[DAVINCI_DISPLAY_DEVICE_0] =
++		video2_bufsize;
++	display_buf_config_params.layer_bufsize[DAVINCI_DISPLAY_DEVICE_1] =
++		video3_bufsize;
++   
+ 	if (cpu_is_davinci_dm355()) {
+ 		strcpy(davinci_display_videocap.card, DM355_EVM_CARD);
+ 	} else if (cpu_is_davinci_dm365())
+diff --git a/include/media/davinci/davinci_display.h b/include/media/davinci/davinci_display.h
+index 8524328..d62b849 100644
+--- a/include/media/davinci/davinci_display.h
++++ b/include/media/davinci/davinci_display.h
+@@ -171,6 +171,7 @@ struct buf_config_params {
+ 	u8 numbuffers[DAVINCI_DISPLAY_MAX_DEVICES];
+ 	u32 min_bufsize[DAVINCI_DISPLAY_MAX_DEVICES];
+ 	u32 layer_bufsize[DAVINCI_DISPLAY_MAX_DEVICES];
++	u32 video_limit[DAVINCI_DISPLAY_MAX_DEVICES];
+ };
+ 
+ #endif				/* End of __KERNEL__ */
+-- 
+1.6.3.3
 
-Regards,
-Paulo
-
----------- Forwarded message ----------
-From: Hans de Goede <hdegoede@redhat.com>
-Date: 2010/5/20
-Subject: Re: [RFC] V4L2 Controls State Store/Restore File Format
-To: Paulo Assis <pj.assis@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-Martin_Rubli@logitech.com
-
-
-Hi Paulo,
-
-Clearly you've though quite a bit about this I had not realized
-this would be this complex (with ordering issues etc.).
-
-This looks like a good proposal to start with to me, I think it
-would be good to further discuss this on the linux-media list,
-where other v4l devs can read it and chime in.
-
-Regards,
-
-Hans
-
-
-On 05/20/2010 03:11 PM, Paulo Assis wrote:
->
-> Hans,
-> Below is the RFC with my proposed control state file format for
-> store/restore functionality.
-> I have several doubts, mostly regarding controls that must be set
-> atomically with the extended control API.
-> The main question is:
-> How does an application know that a group of controls must be set atomically ?
-> Is this reported by the driver or is it something that the application
-> must know.
->
-> Also for string controls, I've only seen two implementations on RDS
-> controls, so I've set these with low precedence/priority order
-> compared with other control types.
->
-> Awaiting comments, bash it all you want :-)
->
-> Regards,
-> Paulo
-> ______________________
->
-> [RFC] V4L2 Controls State Store/Restore File Format
->
-> VERSION
->
-> 0.0.1
->
-> ABSTRACT
->
-> This document proposes a standard for the file format used by v4l2
-> applications to store/restore the controls state.
-> This unified file format allows sharing control profiles between
-> applications, making it much easier on both developers and users.
->
-> INTRODUCTION
->
-> V4l2 controls can be divided by classes and types.
-> Controls in different classes are not dependent between themselves, on
-> the other end if two controls belong to the same class they may or may
-> not be dependent.
-> A good example are automatic controls and their absolute counterparts,
-> e.g.: V4L2_CID_AUTOGAIN and V4L2_CID_GAIN.
-> Controls must be set following the dependency order, automatic
-> controls must be set first or else setting the absolute value may
-> fail, when that was not the intended behavior (auto disabled).
-> After a quick analyses of the v4l2 controls, we are left to conclude
-> that auto controls are in most cases of the
-> boolean type, with some exceptions like V4L2_CID_EXPOSURE_AUTO, that
-> is of the menu type.
-> So ordering control priority by control type seems logical and it can
-> be done in the following order:
->
-> 1-V4L2_CTRL_TYPE_BOOLEAN
-> 2-V4L2_CTRL_TYPE_MENU
-> 3-V4L2_CTRL_TYPE_INTEGER
-> 4-V4L2_CTRL_TYPE_INTEGER64
-> 5-V4L2_CTRL_TYPE_STRING
->
-> Button controls are stateless so they can't be stored and thus are out
-> of the scope of this document.
-> Relative controls are also in effect stateless, since they will always
-> depend on their current state and thus can't be stored.
->
-> There are also groups of controls that must be set atomically, so
-> these need to be grouped together and properly identified when loading
-> the controls state from a file.
->
-> The proposed file format takes all of this into account and tries to
-> make implementation of both store and restore functionality as easy as
-> possible.
->
-> FILE FORMAT
->
-> The proposed file format is a regular text file with lines terminating
-> with the newline character '\n'.
-> Comments can be inserted by adding '#' at the beginning of the line,
-> and can safely be ignored when parsing the file.
->
-> FILE EXTENSION
->
-> Although not much relevant, the file extension makes it easy to
-> visually identify the file type and  also for applications to list
-> relevant files, so we propose that v4l2 control state files be
-> terminated by the suffix: ".v4l"
->
-> FILE HEADER
->
-> The file must always start with a commented line containing the file
-> type identification and the version of this document on which it is
-> based:
->
-> #V4L2/CTRL/0.0.1
->
-> Additionally it may contain extra information like the application
-> name that generated the file and for usb devices the vid and pid of
-> the device to whom the controls relate in hexadecimal notation:
->
-> APP_NAME{"application name"}
-> VID{0x00}
-> PID{0x00}
->
-> CONTROLS DATA
->
-> The controls related data must be ordered by control type and for each
-> type the ordering must be done by control ID. Ordering by control ID
-> will also group the controls by class.
-> The exception to the above rule are controls that need to be set
-> atomically, these must be grouped together independent of their type.
->
-> Each control must have is data set in a single line:
-> ID{0x0000};CHK{min:max:step:def};EXT{[0|>0}=VAL{value}
->
-> The ID key is the control v4l2 id in hex notation.
-> The CHK key is used to match the control stored in file to the one we
-> are trying to set on the device.
-> Controls on different devices may have identical ID's but is unlikely
-> that the correspondent values remain the same. All values are in
-> decimal notation and correspond to the controls reported values.
-> EXT indicates if the control must be set atomically, if it is set to a
-> value higher than zero, then the next controls must be searched for
-> identical EXT values,  all of them shall then be grouped and set using
-> the extension control mechanism, VIDIOC_S_EXT_CTRLS.
-> Controls with a EXT value of 0 can be set individually with a regular
-> VIDIOC_S_CTRL.
-> The VAL key contains the control state in decimal form.
