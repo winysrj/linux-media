@@ -1,56 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58796 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757623Ab0ENHY6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 May 2010 03:24:58 -0400
-Message-ID: <4BECFB17.1040500@redhat.com>
-Date: Fri, 14 May 2010 09:26:15 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Frank Schaefer <fschaefer.oss@googlemail.com>,
+Received: from buzzloop.caiaq.de ([212.112.241.133]:42771 "EHLO
+	buzzloop.caiaq.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754274Ab0ESK0i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 May 2010 06:26:38 -0400
+From: Daniel Mack <daniel@caiaq.de>
+To: linux-kernel@vger.kernel.org
+Cc: Daniel Mack <daniel@caiaq.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jiri Slaby <jslaby@suse.cz>, Dmitry Torokhov <dtor@mail.ru>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
 	linux-media@vger.kernel.org
-Subject: Re: gspca-sonixj: ioctl VIDIOC_DQBUF blocks for 3s and retuns EIO
-References: <4BEC21B9.4010605@googlemail.com> <20100514080049.1cf7c726@tele>
-In-Reply-To: <20100514080049.1cf7c726@tele>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] drivers/media/dvb/dvb-usb/dib0700: fix return values
+Date: Wed, 19 May 2010 12:26:12 +0200
+Message-Id: <1274264772-19292-1-git-send-email-daniel@caiaq.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Propagte correct error values instead of returning -1 which just means
+-EPERM ("Permission denied")
 
-On 05/14/2010 08:00 AM, Jean-Francois Moine wrote:
-> On Thu, 13 May 2010 17:58:49 +0200
-> Frank Schaefer<fschaefer.oss@googlemail.com>  wrote:
->
->> I'm not sure if I'm hitting a bug or this is the expected driver
->> behavior: With a Microsoft LifeCam VX-3000 (045e:00f5) and
->> gspca-sonixj, ioctl VIDIOC_DQBUF intermittently blocks for exactly 3
->> seconds and then returns EIO.
->> I noticed that it strongly depends on the captured scenery: when it's
->> changing much, everything is fine.
->> But when for example capturing the wall under constant (lower) light
->> conditions, I'm getting this error nearly permanently.
->>
->> It's a JPEG-device, so I guess the device stops sending data if the
->> picture doesn't change and that's how it should be.
->> But is the long blocking + EIO the way drivers should handle this
->> situtation ?
->
-> Hello Frank,
->
-> You are right, this is a bug. I did not know that a webcam could suspend
-> streaming when the image did not change. I will remove the timeout.
->
+While at it, also fix some coding style violations.
 
-The way jpeg works mandates that for each block some data still needs to
-be generated even if it is a solid color, moreover as these cams do jpeg
-not mpeg, there is no delta towards the previous frame. So the cam should
-not stop streaming if it doe timing out and returning -EIO is appropriate.
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/dvb/dvb-usb/dib0700_core.c |   47 ++++++++++++++---------------
+ 1 files changed, 23 insertions(+), 24 deletions(-)
 
-Thus we should not remove the DQBUF timeout IMHO.
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+index d5e2c23..c73da6b 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_core.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+@@ -111,23 +111,24 @@ int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_
+ 
+ static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
+ {
+-    struct dib0700_state *st = d->priv;
+-    u8 b[3];
+-    int ret;
+-
+-    if (st->fw_version >= 0x10201) {
+-	b[0] = REQUEST_SET_USB_XFER_LEN;
+-	b[1] = (nb_ts_packets >> 8)&0xff;
+-	b[2] = nb_ts_packets & 0xff;
+-
+-	deb_info("set the USB xfer len to %i Ts packet\n", nb_ts_packets);
+-
+-	ret = dib0700_ctrl_wr(d, b, 3);
+-    } else {
+-	deb_info("this firmware does not allow to change the USB xfer len\n");
+-	ret = -EIO;
+-    }
+-    return ret;
++	struct dib0700_state *st = d->priv;
++	u8 b[3];
++	int ret;
++
++	if (st->fw_version >= 0x10201) {
++		b[0] = REQUEST_SET_USB_XFER_LEN;
++		b[1] = (nb_ts_packets >> 8)&0xff;
++		b[2] = nb_ts_packets & 0xff;
++
++		deb_info("set the USB xfer len to %i Ts packet\n", nb_ts_packets);
++
++		ret = dib0700_ctrl_wr(d, b, 3);
++	} else {
++		deb_info("this firmware does not allow to change the USB xfer len\n");
++		ret = -EIO;
++	}
++
++	return ret;
+ }
+ 
+ /*
+@@ -642,7 +643,7 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
+ 	i = dib0700_ctrl_wr(d, rc_setup, 3);
+ 	if (i<0) {
+ 		err("ir protocol setup failed");
+-		return -1;
++		return i;
+ 	}
+ 
+ 	if (st->fw_version < 0x10200)
+@@ -652,7 +653,7 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
+ 	purb = usb_alloc_urb(0, GFP_KERNEL);
+ 	if (purb == NULL) {
+ 		err("rc usb alloc urb failed\n");
+-		return -1;
++		return -ENOMEM;
+ 	}
+ 
+ 	purb->transfer_buffer = usb_buffer_alloc(d->udev, RC_MSG_SIZE_V1_20,
+@@ -661,7 +662,7 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
+ 	if (purb->transfer_buffer == NULL) {
+ 		err("rc usb_buffer_alloc() failed\n");
+ 		usb_free_urb(purb);
+-		return -1;
++		return -ENOMEM;
+ 	}
+ 
+ 	purb->status = -EINPROGRESS;
+@@ -670,12 +671,10 @@ int dib0700_rc_setup(struct dvb_usb_device *d)
+ 			  dib0700_rc_urb_completion, d);
+ 
+ 	ret = usb_submit_urb(purb, GFP_ATOMIC);
+-	if (ret != 0) {
++	if (ret != 0)
+ 		err("rc submit urb failed\n");
+-		return -1;
+-	}
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static int dib0700_probe(struct usb_interface *intf,
+-- 
+1.7.1
 
-Regards,
-
-Hans
