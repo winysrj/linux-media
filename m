@@ -1,135 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:34031 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750744Ab0ECINr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 04:13:47 -0400
-Received: by gyg13 with SMTP id 13so1004676gyg.19
-        for <linux-media@vger.kernel.org>; Mon, 03 May 2010 01:13:47 -0700 (PDT)
+Received: from bear.ext.ti.com ([192.94.94.41]:34302 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753855Ab0ESP5f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 May 2010 11:57:35 -0400
+From: <asheeshb@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: Asheesh Bhardwaj <asheesh@lab1.dmlab>
+Subject: [PATCH 3/7] Patch for capture driver MMAP buffer allocation. The user can specify the size of the buffers with an offset from the kernel images
+Date: Wed, 19 May 2010 10:56:47 -0500
+Message-ID: <1274284611-13432-3-git-send-email-asheeshb@ti.com>
+In-Reply-To: <1274284611-13432-2-git-send-email-asheeshb@ti.com>
+References: <1274284611-13432-1-git-send-email-asheeshb@ti.com>
+ <1274284611-13432-2-git-send-email-asheeshb@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4BDE7DB4.7030706@redhat.com>
-References: <4BDE7DB4.7030706@redhat.com>
-Date: Mon, 3 May 2010 16:13:46 +0800
-Message-ID: <k2y6e8e83e21005030113v64aea6c0q87754a5d8f04d2d4@mail.gmail.com>
-Subject: Re: [PATCH] Fix colorspace on tm6010
-From: Bee Hock Goh <beehock@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: "linux-media >> Linux Media Mailing List"
-	<linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-lot of good changes to tm6000. Unfortunately, I am not able to test
-any of this at the moment. Git not working for me anymore as 2.6.33
-insist to freeze my machine on boot.
+From: Asheesh Bhardwaj <asheesh@lab1.dmlab>
 
-Reverting to hg does not work as well after my upgrade to lucid. :)
+---
+ drivers/media/video/davinci/vpif_capture.c |   56 +++++++++++++++++++++++++++-
+ drivers/media/video/davinci/vpif_capture.h |    2 +
+ 2 files changed, 57 insertions(+), 1 deletions(-)
 
-Apparently, its now complain about invalid module format.
+diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+index b4b5905..9ba015d 100644
+--- a/drivers/media/video/davinci/vpif_capture.c
++++ b/drivers/media/video/davinci/vpif_capture.c
+@@ -53,18 +53,24 @@ static u32 ch0_numbuffers = 3;
+ static u32 ch1_numbuffers = 3;
+ static u32 ch0_bufsize = 1920 * 1080 * 2;
+ static u32 ch1_bufsize = 720 * 576 * 2;
++static u32 cont_bufoffset = 0;
++static u32 cont_bufsize = 0;
+ 
+ module_param(debug, int, 0644);
+ module_param(ch0_numbuffers, uint, S_IRUGO);
+ module_param(ch1_numbuffers, uint, S_IRUGO);
+ module_param(ch0_bufsize, uint, S_IRUGO);
+ module_param(ch1_bufsize, uint, S_IRUGO);
++module_param(cont_bufoffset, uint, S_IRUGO);
++module_param(cont_bufsize, uint, S_IRUGO);
+ 
+ MODULE_PARM_DESC(debug, "Debug level 0-1");
+ MODULE_PARM_DESC(ch2_numbuffers, "Channel0 buffer count (default:3)");
+ MODULE_PARM_DESC(ch3_numbuffers, "Channel1 buffer count (default:3)");
+ MODULE_PARM_DESC(ch2_bufsize, "Channel0 buffer size (default:1920 x 1080 x 2)");
+ MODULE_PARM_DESC(ch3_bufsize, "Channel1 buffer size (default:720 x 576 x 2)");
++MODULE_PARM_DESC(cont_bufoffset,"Capture buffer offset(default 0)");
++MODULE_PARM_DESC(cont_bufsize,"Capture buffer size(default 0)");
+ 
+ static struct vpif_config_params config_params = {
+ 	.min_numbuffers = 3,
+@@ -187,10 +193,27 @@ static int vpif_buffer_setup(struct videobuf_queue *q, unsigned int *count,
+ 
+ 	/* Calculate the size of the buffer */
+ 	*size = config_params.channel_bufsize[ch->channel_id];
++        
++        /*Checking if the buffer size exceeds the available buffer*/
++        /*ycmux_mode = 0 means 1 channel mode HD and ycmuxmode = 1 means 2 channels mode SD */
++        if (ch->vpifparams.std_info.ycmux_mode == 0) {
++            if (config_params.video_limit[ch->channel_id]) {
++		while (*size * *count > (config_params.video_limit[0] 
++                         + config_params.video_limit[1]))
++			(*count)--;
++            }
++        }
++        else {
++             if (config_params.video_limit[ch->channel_id]) {
++		while (*size * *count > config_params.video_limit[ch->channel_id])
++			(*count)--;
++            }
++        }
+ 
+ 	if (*count < config_params.min_numbuffers)
+ 		*count = config_params.min_numbuffers;
+-	return 0;
++	
++        return 0;
+ }
+ 
+ /**
+@@ -1892,6 +1915,8 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 	struct video_device *vfd;
+ 	struct resource *res;
+ 	int subdev_count;
++        unsigned long phys_end_kernel;
++        size_t size;
+ 
+ 	vpif_dev = &pdev->dev;
+ 
+@@ -1941,6 +1966,35 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		/* Set video_dev to the video device */
+ 		ch->video_dev = vfd;
+ 	}
++       
++        /* Initialising the memory from the bootargs for contiguous memory buffers and avoid defragmentation */
++        if(cont_bufsize) {
++            /* attempt to determine the end of Linux kernel memory */
++            phys_end_kernel = virt_to_phys((void *)PAGE_OFFSET) +
++                   (num_physpages << PAGE_SHIFT);
++            size = cont_bufsize;
++            phys_end_kernel += cont_bufoffset; 
++            err = dma_declare_coherent_memory(&pdev->dev, phys_end_kernel,
++		  phys_end_kernel,
++		  size,
++		  DMA_MEMORY_MAP |
++         	  DMA_MEMORY_EXCLUSIVE);
++	if (!err) {
++		dev_err(&pdev->dev, "Unable to declare MMAP memory.\n");
++		err = -ENOMEM;
++		goto probe_out;
++         } 
++        
++        /*The resources are divided into two equal memory and when we have HD output we can add them together*/	
++         for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
++		   ch = vpif_obj.dev[j];
++		   ch->channel_id = j;
++        	   config_params.video_limit[ch->channel_id] = 0; /* only enabled if second resource exists */
++                   if(cont_bufsize) {
++                          config_params.video_limit[ch->channel_id] = size/2;
++                    }
++            }
++        }
+ 
+ 	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
+ 		ch = vpif_obj.dev[j];
+diff --git a/drivers/media/video/davinci/vpif_capture.h b/drivers/media/video/davinci/vpif_capture.h
+index 4e12ec8..b526887 100644
+--- a/drivers/media/video/davinci/vpif_capture.h
++++ b/drivers/media/video/davinci/vpif_capture.h
+@@ -155,6 +155,8 @@ struct vpif_config_params {
+ 	u32 channel_bufsize[VPIF_CAPTURE_NUM_CHANNELS];
+ 	u8 default_device[VPIF_CAPTURE_NUM_CHANNELS];
+ 	u8 max_device_type;
++        /* Used for limiting the video buffers when we allocate memory*/
++        u32 video_limit[VPIF_CAPTURE_NUM_CHANNELS];
+ };
+ /* Struct which keeps track of the line numbers for the sliced vbi service */
+ struct vpif_service_line {
+-- 
+1.6.3.3
 
-if everything work out again, I would like to try and get the audio working.
-
-
-On Mon, May 3, 2010 at 3:39 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> The enclosed patch fixes the color format on tm6010. What happened is that the patch
-> adding fourcc control on tm6010 had one small cut-and-paste trouble: it was
-> changing the wrong register ;)
->
-> I've fixed it. So, now, colors are working fine. I'll be applying it at my git. This
-> way, the current git contains a tm6000 code that is not so bad.
->
-> With this patch, analog video on tm6000/tm6010 are working again (but see the
-> patch comments bellow). Yet, there are a large number of TODO items for this driver:
-> - Fix the loss of some blocks when receiving the URB's;
-> - Add a lock at tm6000_read_write_usb() to prevent two simultaneous access to the
-> URB control transfers;
-> - Properly add the locks at tm6000-video;
-> - Add audio support;
-> - Add IR support;
-> - Do several cleanups;
-> - I think that frame1/frame0 are inverted. This causes a funny effect at the image.
->  the fix is trivial, but require some tests.
-> - My tm6010 devices sometimes insist on stop working. I need to turn them off, removing
->  from my machine and wait for a while for it to work again. I'm starting to think that
->  it is an overheat issue;
-> - Sometimes, tm6010 doesn't read eeprom at the proper time (hardware bug). So, the device
->  got miss-detected as a "generic" tm6000. This can be really bad if the tuner is the
->  Low Power one, as it may result on loading the high power firmware, that could damage
->  the device. Maybe we may read eeprom to double check, when the device is marked as "generic".
-> - Coding Style fixes;
->
-> I'll be committing a patch with the above TODO items at tm6000/README
->
-> (Bee/Stefan/Dmitri, feel free to add more things at the todo - We need to write a README file
->
-> The lack of locks still generate some OOPS'es, but I was not able of get any Panic. So,
-> I'll likely add it at upstream drivers/staging at the next merge window.
->
-> --
->
-> Cheers,
-> Mauro
->
->
-> commit c621ed883a26dc705c38ad698f6a19a6260f172f
-> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:   Mon May 3 04:25:59 2010 -0300
->
->    V4L/DVB: Fix color format with tm6010
->
->    The values for the fourcc format were correct, but applied to the
->    wrong register. With this change, video is now barely working again with
->    tm6000.
->
->    While here, let's remove, for now, the memset. This way, people can
->    have some image when testing this device.
->
->    Yet to be fixed: parts of the image frame are missed. As we don't clean
->    the buffers anymore, this is "recovered" by repeating the values from a
->    previous frame. The quality is bad, since the image pixels will contain
->    data from some previous frames, generating weird delay artifacts.
->
->    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->
-> diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-> index 860553f..bfbc53b 100644
-> --- a/drivers/staging/tm6000/tm6000-core.c
-> +++ b/drivers/staging/tm6000/tm6000-core.c
-> @@ -156,10 +156,13 @@ int tm6000_get_reg32 (struct tm6000_core *dev, u8 req, u16 value, u16 index)
->  void tm6000_set_fourcc_format(struct tm6000_core *dev)
->  {
->        if (dev->dev_type == TM6010) {
-> +               int val;
-> +
-> +               val = tm6000_get_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, 0) & 0xfc;
->                if (dev->fourcc == V4L2_PIX_FMT_UYVY)
-> -                       tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xd0);
-> +                       tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, val);
->                else
-> -                       tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0x90);
-> +                       tm6000_set_reg(dev, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, val | 1);
->        } else {
->                if (dev->fourcc == V4L2_PIX_FMT_UYVY)
->                        tm6000_set_reg(dev, TM6010_REQ07_RC1_TRESHOLD, 0xd0);
-> diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
-> index 4444487..9554472 100644
-> --- a/drivers/staging/tm6000/tm6000-video.c
-> +++ b/drivers/staging/tm6000/tm6000-video.c
-> @@ -149,8 +149,8 @@ static inline void get_next_buf(struct tm6000_dmaqueue *dma_q,
->
->        /* Cleans up buffer - Usefull for testing for frame/URB loss */
->        outp = videobuf_to_vmalloc(&(*buf)->vb);
-> -       if (outp)
-> -               memset(outp, 0, (*buf)->vb.size);
-> +//     if (outp)
-> +//             memset(outp, 0, (*buf)->vb.size);
->
->        return;
->  }
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
