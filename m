@@ -1,38 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:52460 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1757189Ab0EKSm2 convert rfc822-to-8bit (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:34662 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752391Ab0ESQgC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 May 2010 14:42:28 -0400
-From: Peter =?iso-8859-1?q?H=FCwe?= <PeterHuewe@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] media/IR: Add missing include file to rc-map.c
-Date: Tue, 11 May 2010 20:42:14 +0200
-Cc: linuxppc-dev@ozlabs.org,
-	"David =?iso-8859-1?q?H=E4rdeman?=" <david@hardeman.nu>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-sh@vger.kernel.org, linux-mips@linux-mips.org,
-	linux-m68k@lists.linux-m68k.org
-References: <201005051720.22617.PeterHuewe@gmx.de>
-In-Reply-To: <201005051720.22617.PeterHuewe@gmx.de>
+	Wed, 19 May 2010 12:36:02 -0400
+Message-ID: <4BF4130C.6030304@arcor.de>
+Date: Wed, 19 May 2010 18:34:20 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201005112042.14889.PeterHuewe@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 video image
+References: <4BF40649.5090900@arcor.de> <4BF40889.4090809@redhat.com> <4BF40DDC.1010604@arcor.de>
+In-Reply-To: <4BF40DDC.1010604@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch 05 Mai 2010 17:20:21 schrieb Peter Hüwe:
-> From: Peter Huewe <peterhuewe@gmx.de>
-> 
-> This patch adds a missing include linux/delay.h to prevent
-> build failures[1-5]
-> 
-> Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-> ---
-Any updates on this patch?
-Issue still exists with today's linux-next tree
+Mauro, I will little rewrite the function copy_streams and copy_packets,
+I mean fusion these two function to one (copy_streams) and I have tested
+both of them with shorter code -> works.
 
-Thanks,
-Peter
+Stefan Ringel
+
+
+Am 19.05.2010 18:12, schrieb Stefan Ringel:
+> Am 19.05.2010 17:49, schrieb Mauro Carvalho Chehab:
+>   
+>> Stefan Ringel wrote:
+>>   
+>>     
+>>> Hi Mauro,
+>>>
+>>> I have found what wrong is with video image. 
+>>>     
+>>>       
+>> Great!
+>>
+>>   
+>>     
+>>> You generate video buffer
+>>> in function tm6000_isoc_copy, but that is not right. I move that in
+>>> function copy_multiplexed and copy_streams. And that works without this
+>>> http://www.stefan.ringel.de/pub/tm6000_image_10_05_2010.jpg (The lines
+>>> with little left shift) . 
+>>>     
+>>>       
+>> Didn't work:
+>>
+>> 404: Not Found - www.stefan.ringel.de
+>>
+>>   
+>>     
+> Sorry. A point  to much.
+>
+> http://www.stefanringel.de/pub/tm6000_image_10_05_2010.jpg
+>
+>   
+>>> Now, I generate a patch.
+>>>     
+>>>       
+>> Ok. It would be great to have this issue finally fixed.
+>>
+>> Cheers,
+>> Mauro
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>   
+>>     
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
+
