@@ -1,95 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.tkos.co.il ([62.219.50.35]:49973 "EHLO tango.tkos.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752777Ab0EFONW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 May 2010 10:13:22 -0400
-From: Baruch Siach <baruch@tkos.co.il>
+Received: from mail-in-18.arcor-online.net ([151.189.21.58]:42945 "EHLO
+	mail-in-18.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751890Ab0ESXdA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 May 2010 19:33:00 -0400
+Subject: Re: [linux-dvb] Leadtek DVT1000S W/ Phillips saa7134
+From: hermann pitton <hermann-pitton@arcor.de>
 To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCH 2/3] mx27: add support for the CSI device
-Date: Thu,  6 May 2010 16:09:40 +0300
-Message-Id: <2df2fdd7809e836bac3ff4cd2d77aa976e6ca760.1273150585.git.baruch@tkos.co.il>
-In-Reply-To: <cover.1273150585.git.baruch@tkos.co.il>
-References: <cover.1273150585.git.baruch@tkos.co.il>
+Cc: linux-dvb@linuxtv.org
+In-Reply-To: <4BF583EB.7080505@starnewsgroup.com.au>
+References: <4BF583EB.7080505@starnewsgroup.com.au>
+Content-Type: text/plain
+Date: Thu, 20 May 2010 01:28:15 +0200
+Message-Id: <1274311695.5829.6.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
----
- arch/arm/mach-mx2/clock_imx27.c |    2 +-
- arch/arm/mach-mx2/devices.c     |   31 +++++++++++++++++++++++++++++++
- arch/arm/mach-mx2/devices.h     |    1 +
- 3 files changed, 33 insertions(+), 1 deletions(-)
+Hi Nathan,
 
-diff --git a/arch/arm/mach-mx2/clock_imx27.c b/arch/arm/mach-mx2/clock_imx27.c
-index 0f0823c..5a1aa15 100644
---- a/arch/arm/mach-mx2/clock_imx27.c
-+++ b/arch/arm/mach-mx2/clock_imx27.c
-@@ -644,7 +644,7 @@ static struct clk_lookup lookups[] = {
- 	_REGISTER_CLOCK("spi_imx.1", NULL, cspi2_clk)
- 	_REGISTER_CLOCK("spi_imx.2", NULL, cspi3_clk)
- 	_REGISTER_CLOCK("imx-fb.0", NULL, lcdc_clk)
--	_REGISTER_CLOCK(NULL, "csi", csi_clk)
-+	_REGISTER_CLOCK("mx2-camera.0", NULL, csi_clk)
- 	_REGISTER_CLOCK("fsl-usb2-udc", "usb", usb_clk)
- 	_REGISTER_CLOCK("fsl-usb2-udc", "usb_ahb", usb_clk1)
- 	_REGISTER_CLOCK("mxc-ehci.0", "usb", usb_clk)
-diff --git a/arch/arm/mach-mx2/devices.c b/arch/arm/mach-mx2/devices.c
-index b91e412..de501ac 100644
---- a/arch/arm/mach-mx2/devices.c
-+++ b/arch/arm/mach-mx2/devices.c
-@@ -40,6 +40,37 @@
- 
- #include "devices.h"
- 
-+#ifdef CONFIG_MACH_MX27
-+static struct resource mx27_camera_resources[] = {
-+	{
-+	       .start = CSI_BASE_ADDR,
-+	       .end = CSI_BASE_ADDR + 0x1f,
-+	       .flags = IORESOURCE_MEM,
-+	}, {
-+	       .start = EMMA_PRP_BASE_ADDR,
-+	       .end = EMMA_PRP_BASE_ADDR + 0x1f,
-+	       .flags = IORESOURCE_MEM,
-+	}, {
-+	       .start = MXC_INT_CSI,
-+	       .end = MXC_INT_CSI,
-+	       .flags = IORESOURCE_IRQ,
-+	},{
-+	       .start = MXC_INT_EMMAPRP,
-+	       .end = MXC_INT_EMMAPRP,
-+	       .flags = IORESOURCE_IRQ,
-+	},
-+};
-+struct platform_device mx27_camera_device = {
-+	.name = "mx2-camera",
-+	.id = 0,
-+	.num_resources = ARRAY_SIZE(mx27_camera_resources),
-+	.resource = mx27_camera_resources,
-+	.dev = {
-+		.coherent_dma_mask = 0xffffffff,
-+	},
-+};
-+#endif
-+
- /*
-  * SPI master controller
-  *
-diff --git a/arch/arm/mach-mx2/devices.h b/arch/arm/mach-mx2/devices.h
-index 84ed513..8bdf018 100644
---- a/arch/arm/mach-mx2/devices.h
-+++ b/arch/arm/mach-mx2/devices.h
-@@ -29,6 +29,7 @@ extern struct platform_device mxc_i2c_device1;
- extern struct platform_device mxc_sdhc_device0;
- extern struct platform_device mxc_sdhc_device1;
- extern struct platform_device mxc_otg_udc_device;
-+extern struct platform_device mx27_camera_device;
- extern struct platform_device mxc_otg_host;
- extern struct platform_device mxc_usbh1;
- extern struct platform_device mxc_usbh2;
--- 
-1.7.0
+Am Freitag, den 21.05.2010, 04:48 +1000 schrieb Nathan Metcalf:
+> Hey Guys,
+> I hope this is the correct place, I am trying to get a LEADTEK DVT1000S HD Tuner card working in Ubuntu (Latest)
+> When I load the saa7134_dvb kernel module, there are no errors, but /dev/dvb is not created.
+> 
+> I have tried enabling the debug=1 option when loading the module, but don't get any more useful information.
+> 
+> Can someone please assist me? Or direct me to the correct place?
+> 
+> Regards,
+> Nathan Metcalf
+> 
+
+there was some buglet previously, but the card is else supported since
+Nov. 01 2009 on mercurial v4l-dvb and later kernels.
+
+http://linuxtv.org/hg/v4l-dvb/rev/855ee0444e61b8dfe98f495026c4e75c461ce9dd
+
+Support for the remote was also added.
+
+Cheers,
+Hermann
+
 
