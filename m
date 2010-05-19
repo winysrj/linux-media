@@ -1,53 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:65226 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750824Ab0EaU5y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 16:57:54 -0400
-Date: Mon, 31 May 2010 22:57:50 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Wolfram Sang <w.sang@pengutronix.de>, linux-i2c@vger.kernel.org,
-	George Joseph <george.joseph@fairview5.com>,
-	Riku Voipio <riku.voipio@iki.fi>,
-	Guillaume Ligneul <guillaume.ligneul@gmail.com>,
-	"Ben Dooks (embedded platforms)" <ben-linux@fluff.org>,
-	Alessandro Rubini <rubini@ipvvis.unipv.it>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Colin Leroy <colin@colino.net>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+Received: from perceval.irobotique.be ([92.243.18.41]:58034 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751359Ab0ESWHn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 May 2010 18:07:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Julia Lawall <julia@diku.dk>
+Subject: Re: [PATCH 16/37] drivers/media/video/uvc: Use kmemdup
+Date: Thu, 20 May 2010 00:09:18 +0200
+Cc: Laurent Pinchart <laurent.pinchart@skynet.be>,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Liam Girdwood <lrg@slimlogic.co.uk>,
-	Paul Gortmaker <p_gortmaker@yahoo.com>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Greg Kroah-Hartman <gregkh@suse.de>, lm-sensors@lm-sensors.org,
-	linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
-	linuxppc-dev@ozlabs.org, linux-media@vger.kernel.org,
-	linux-mtd@lists.infradead.org, rtc-linux@googlegroups.com,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] drivers: remove all i2c_set_clientdata(client, NULL)
-Message-ID: <20100531225750.0dc18950@hyperion.delvare>
-In-Reply-To: <20100531190911.GC30712@core.coreip.homeip.net>
-References: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
-	<20100531190911.GC30712@core.coreip.homeip.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+References: <Pine.LNX.4.64.1005152317410.21345@ask.diku.dk>
+In-Reply-To: <Pine.LNX.4.64.1005152317410.21345@ask.diku.dk>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201005200009.19916.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dmitry,
+Hi Julia,
 
-On Mon, 31 May 2010 12:09:12 -0700, Dmitry Torokhov wrote:
-> Frankly I'd prefer taking input stuff through my tree with the goal of
-> .36 merge window just to minimize potential merge issues. This is a
-> simple cleanup patch that has no dependencies, so there is little gain
-> from doing it all in one go.
+Thanks for the patch.
 
-If I take the patch in my i2c tree, the aim is to merge it upstream
-immediately, so merge issues won't exist.
+On Saturday 15 May 2010 23:17:59 Julia Lawall wrote:
+> From: Julia Lawall <julia@diku.dk>
+> 
+> Use kmemdup when some other buffer is immediately copied into the
+> allocated region.
+> 
+> A simplified version of the semantic patch that makes this change is as
+> follows: (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @@
+> expression from,to,size,flag;
+> statement S;
+> @@
+> 
+> -  to = \(kmalloc\|kzalloc\)(size,flag);
+> +  to = kmemdup(from,size,flag);
+>    if (to==NULL || ...) S
+> -  memcpy(to, from, size);
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <julia@diku.dk>
+> 
+> ---
+>  drivers/media/video/uvc/uvc_driver.c |    5 ++---
+>  1 file changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff -u -p a/drivers/media/video/uvc/uvc_driver.c
+> b/drivers/media/video/uvc/uvc_driver.c ---
+> a/drivers/media/video/uvc/uvc_driver.c
+> +++ b/drivers/media/video/uvc/uvc_driver.c
+> @@ -637,14 +637,13 @@ static int uvc_parse_streaming(struct uv
+>  	}
+>  	streaming->header.bControlSize = n;
+> 
+> -	streaming->header.bmaControls = kmalloc(p*n, GFP_KERNEL);
+> +	streaming->header.bmaControls = kmemdup(&buffer[size], p * n,
+
+I'm puzzled, how did the above semantic patch transform 'p*n' into 'p * n' ? 
+As a side note, keeping 'p*n' would have allowed the statement to fit in one 
+line :-)
+
+> +						GFP_KERNEL);
+>  	if (streaming->header.bmaControls == NULL) {
+>  		ret = -ENOMEM;
+>  		goto error;
+>  	}
+> 
+> -	memcpy(streaming->header.bmaControls, &buffer[size], p*n);
+> -
+>  	buflen -= buffer[0];
+>  	buffer += buffer[0];
 
 -- 
-Jean Delvare
+Regards,
+
+Laurent Pinchart
