@@ -1,59 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web27805.mail.ukl.yahoo.com ([217.146.182.10]:47708 "HELO
-	web27805.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757120Ab0ENSUM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 May 2010 14:20:12 -0400
-Message-ID: <399556.40549.qm@web27805.mail.ukl.yahoo.com>
-Date: Fri, 14 May 2010 18:20:09 +0000 (GMT)
-From: marc balta <marc_balta@yahoo.de>
-Subject: Re: Stuck Digittrade DVB-T stick (dvb_usb_af9015)
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4BED857A.9050203@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Received: from mga03.intel.com ([143.182.124.21]:1746 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752480Ab0ESDTL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 May 2010 23:19:11 -0400
+From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 19 May 2010 11:18:47 +0800
+Subject: [PATCH v3 10/10] V4L2 ISP driver patchset for Intel Moorestown
+ Camera Imaging Subsystem
+Message-ID: <33AB447FBD802F4E932063B962385B351E895DAC@shsmsx501.ccr.corp.intel.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thx for responding so fast. Ok I have updated:
+>From e81476bafd59afd7cc3474f7003e331fc4303e96 Mon Sep 17 00:00:00 2001
+From: Xiaolin Zhang <xiaolin.zhang@intel.com>
+Date: Tue, 18 May 2010 15:53:41 +0800
+Subject: [PATCH 10/10] This patch is a part of v4l2 ISP patchset for Intel Moorestown camera imaging
+ subsystem support which contain the chagne in the build system.
 
-May 14 20:11:57 debian kernel: af9013: firmware version:5.1.0
-May 14 20:11:57 debian kernel: DVB: registering adapter 0 frontend 0 (Afatech AF9013 DVB-T)...
-May 14 20:11:57 debian kernel: MT2060: successfully identified (IF1 = 1220)
+Signed-off-by: Xiaolin Zhang <xiaolin.zhang@intel.com>
+---
+ drivers/media/video/mrstisp/Kconfig  |   24 ++++++++++++++++++++++++
+ drivers/media/video/mrstisp/Makefile |    6 ++++++
+ 2 files changed, 30 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/mrstisp/Kconfig
+ create mode 100644 drivers/media/video/mrstisp/Makefile
 
-Now lets wait 3 days ...
-
-Greetings,
-Marc
-
-
---- Antti Palosaari <crope@iki.fi> schrieb am Fr, 14.5.2010:
-
-> Von: Antti Palosaari <crope@iki.fi>
-> Betreff: Re: Stuck Digittrade DVB-T stick (dvb_usb_af9015)
-> An: "marc balta" <marc_balta@yahoo.de>
-> CC: linux-media@vger.kernel.org
-> Datum: Freitag, 14. Mai, 2010 19:16 Uhr
-> Terve
-> 
-> On 05/14/2010 02:17 PM, marc balta wrote:
-> > would be nice because it is happening rather often :
-> Every second or third day. Is there a way to reinit the
-> device with a script wihtout restarting my server and
-> without influencing other usb devices. If yes I could reinit
-> the device say two minutes before every recording starts
-> using a hook. This would solve my problems.
-> 
-> I just added support for new firmware 5.1.0.0. Please test
-> if it helps.
-> http://linuxtv.org/hg/~anttip/af9015/
-> http://palosaari.fi/linux/v4l-dvb/firmware/af9015/5.1.0.0/
-> 
-> regards
-> Antti
-> -- http://palosaari.fi/
-> 
-
+diff --git a/drivers/media/video/mrstisp/Kconfig b/drivers/media/video/mrstisp/Kconfig
+new file mode 100644
+index 0000000..64f257c
+--- /dev/null
++++ b/drivers/media/video/mrstisp/Kconfig
+@@ -0,0 +1,24 @@
++config VIDEO_MRSTCI
++	tristate "Intel Moorestown CMOS Camera Controller support"
++	depends on PCI && I2C && VIDEO_V4L2
++	select VIDEOBUF_DMA_CONTIG
++	select VIDEO_OV2650
++	select VIDEO_OV5630
++	select VIDEO_OV9665
++	select VIDEO_S5K4E1
++	select VIDEO_OV5630_MOTOR
++	select VIDEO_S5K4E1_MOTOR
++	default y
++	---help---
++	  This is a video4linux2 driver for the Intel Atom (Moorestown)
++	  CMOS camera controller.
++
++config VIDEO_MRSTISP
++	tristate "Intel Moorestown ISP Controller support"
++	depends on VIDEO_MRSTCI
++	default y
++	---help---
++	  This is a video4linux2 driver for the Intel Atom (Moorestown)
++	  CMOS camera controller.
++	  To compile this driver as a module, choose M here: the
++	  module will be called mrstisp.ko.
+diff --git a/drivers/media/video/mrstisp/Makefile b/drivers/media/video/mrstisp/Makefile
+new file mode 100644
+index 0000000..1511922
+--- /dev/null
++++ b/drivers/media/video/mrstisp/Makefile
+@@ -0,0 +1,6 @@
++mrstisp-objs	:= mrstisp_main.o mrstisp_hw.o mrstisp_isp.o	\
++                mrstisp_dp.o mrstisp_mif.o mrstisp_jpe.o	\
++		__mrstisp_private_ioctl.o
++
++obj-$(CONFIG_VIDEO_MRSTISP)	 	 += mrstisp.o
++EXTRA_CFLAGS	+=	 -I$(src)/include
+-- 
+1.6.3.2
 
