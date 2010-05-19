@@ -1,67 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1584 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751327Ab0EANLn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 09:11:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Doing a stable v4l-utils release
-Date: Sat, 1 May 2010 15:12:33 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4BD5423B.4040200@redhat.com> <201004280822.03571.hverkuil@xs4all.nl> <201004300843.23675.hverkuil@xs4all.nl>
-In-Reply-To: <201004300843.23675.hverkuil@xs4all.nl>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:55172 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754046Ab0ESQop (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 May 2010 12:44:45 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4JGiiaY026357
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4JGiikd005458
+	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4JGiimx013202
+	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500 (CDT)
+From: <asheeshb@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: Asheesh Bhardwaj <asheeshb@ti.com>
+Subject: [PATCH 6/7] DM365 capture MMAP buffer allocation
+Date: Wed, 19 May 2010 11:44:37 -0500
+Message-ID: <1274287478-14661-7-git-send-email-asheeshb@ti.com>
+In-Reply-To: <1274287478-14661-6-git-send-email-asheeshb@ti.com>
+References: <1274287478-14661-1-git-send-email-asheeshb@ti.com>
+ <1274287478-14661-2-git-send-email-asheeshb@ti.com>
+ <1274287478-14661-3-git-send-email-asheeshb@ti.com>
+ <1274287478-14661-4-git-send-email-asheeshb@ti.com>
+ <1274287478-14661-5-git-send-email-asheeshb@ti.com>
+ <1274287478-14661-6-git-send-email-asheeshb@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005011512.33643.hverkuil@xs4all.nl>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 30 April 2010 08:43:23 Hans Verkuil wrote:
-> On Wednesday 28 April 2010 08:22:03 Hans Verkuil wrote:
-> > On Tuesday 27 April 2010 10:08:06 Hans de Goede wrote:
-> > > Hi,
-> > > 
-> > > On 04/26/2010 09:55 AM, Hans Verkuil wrote:
-> > > > On Monday 26 April 2010 09:35:23 Hans de Goede wrote:
-> > > >> Hi all,
-> > > >>
-> > > >> Currently v4l-utils is at version 0.7.91, which as the version
-> > > >> suggests is meant as a beta release.
-> > > >>
-> > > >> As this release seems to be working well I would like to do
-> > > >> a v4l-utils-0.8.0 release soon. This is a headsup, to give
-> > > >> people a chance to notify me of any bugs they would like to
-> > > >> see fixed first / any patches they would like to add first.
-> > > >
-> > > > This is a good opportunity to mention that I would like to run checkpatch
-> > > > over the libs and clean them up.
-> > > >
-> > > > I also know that there is a bug in the control handling code w.r.t.
-> > > > V4L2_CTRL_FLAG_NEXT_CTRL. I have a patch, but I'd like to do the clean up
-> > > > first.
-> > > >
-> > > > If no one else has major patch series that they need to apply, then I can
-> > > > start working on this. The clean up is just purely whitespace changes to
-> > > > improve readability, no functionality will be touched.
-> > > >
-> > > 
-> > > I've no big changes planned on the short term, so from my pov go ahead.
-> > 
-> > As you noticed I have cleaned up the includes, libv4l1 and libv4l2. libv4lconvert
-> > is a lot more work, so I will do that bit by bit, hopefully this week.
-> 
-> I just finished doing the checkpatch conversions (phew!). This weekend I will
-> push the control bug fix and I also have a v4l2-ctl enhancement pending that
-> I will try to upstream today.
+From: Asheesh Bhardwaj <asheeshb@ti.com>
 
-I've finished with my changes, so as far as I am concerned you can prepare a
-new release.
+---
+ drivers/media/video/davinci/vpfe_capture.c |   39 +++++++++++++++++++++++++---
+ include/media/davinci/vpfe_capture.h       |    1 +
+ 2 files changed, 36 insertions(+), 4 deletions(-)
 
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
+index b26b9d5..c6eadba 100644
+--- a/drivers/media/video/davinci/vpfe_capture.c
++++ b/drivers/media/video/davinci/vpfe_capture.c
+@@ -87,11 +87,15 @@ static int debug;
+ static u32 numbuffers = 3;
+ static u32 bufsize = PAL_IMAGE_SIZE + SECOND_IMAGE_SIZE_MAX;
+ static int interface;
++static u32 cont_bufoffset = 0;
++static u32 cont_bufsize = 0;
+ 
+ module_param(interface, bool, S_IRUGO);
+ module_param(numbuffers, uint, S_IRUGO);
+ module_param(bufsize, uint, S_IRUGO);
+ module_param(debug, bool, 0644);
++module_param(cont_bufoffset, uint, S_IRUGO);
++module_param(cont_bufsize, uint, S_IRUGO);
+ 
+ /**
+  * VPFE capture can be used for capturing video such as from TVP5146 or TVP7002
+@@ -107,6 +111,8 @@ MODULE_PARM_DESC(interface, "interface 0-1 (default:0)");
+ MODULE_PARM_DESC(numbuffers, "buffer count (default:3)");
+ MODULE_PARM_DESC(bufsize, "buffer size in bytes, (default:1443840 bytes)");
+ MODULE_PARM_DESC(debug, "Debug level 0-1");
++MODULE_PARM_DESC(cont_bufoffset,"Capture buffer offset(default 0)");
++MODULE_PARM_DESC(cont_bufsize,"Capture buffer size(default 0)");
+ 
+ MODULE_DESCRIPTION("VPFE Video for Linux Capture Driver");
+ MODULE_LICENSE("GPL");
+@@ -1828,10 +1834,14 @@ static int vpfe_videobuf_setup(struct videobuf_queue *vq,
+ 			*size = config_params.device_bufsize;
+ 	}
+ 
+-	if (*count < config_params.min_numbuffers)
+-		*count = config_params.min_numbuffers;
++	if ( config_params.video_limit) {
++		while (*size * *count > config_params.video_limit)
++			(*count)--;
++	}
+ 
+-	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
++ 	if (*count < config_params.min_numbuffers)
++		*count = config_params.min_numbuffers;
++        v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
+ 		"count=%d, size=%d\n", *count, *size);
+ 	return 0;
+ }
+@@ -2608,8 +2618,10 @@ static __init int vpfe_probe(struct platform_device *pdev)
+ 	struct vpfe_device *vpfe_dev;
+ 	struct i2c_adapter *i2c_adap;
+ 	struct video_device *vfd;
+-	int ret = -ENOMEM, i, j;
++	int ret = -ENOMEM, i, j, err;
+ 	int num_subdevs = 0;
++	unsigned long phys_end_kernel;
++	size_t size;
+ 
+ 	/* Get the pointer to the device object */
+ 	vpfe_dev = vpfe_initialize();
+@@ -2622,6 +2634,25 @@ static __init int vpfe_probe(struct platform_device *pdev)
+ 
+ 	vpfe_dev->pdev = &pdev->dev;
+ 
++        if(cont_bufsize) {
++            /* attempt to determine the end of Linux kernel memory */
++            phys_end_kernel = virt_to_phys((void *)PAGE_OFFSET) +
++                   (num_physpages << PAGE_SHIFT);
++            size = cont_bufsize;
++            phys_end_kernel += cont_bufoffset; 
++            err = dma_declare_coherent_memory(&pdev->dev, phys_end_kernel,
++		  phys_end_kernel,
++		  size,
++		  DMA_MEMORY_MAP |
++         	  DMA_MEMORY_EXCLUSIVE);
++		if (!err) {
++			dev_err(&pdev->dev, "Unable to declare MMAP memory.\n");
++			ret = -ENOENT;
++		        goto probe_free_dev_mem;
++         	}
++            config_params.video_limit = size;
++        }  
++
+ 	if (NULL == pdev->dev.platform_data) {
+ 		v4l2_err(pdev->dev.driver, "Unable to get vpfe config\n");
+ 		ret = -ENOENT;
+diff --git a/include/media/davinci/vpfe_capture.h b/include/media/davinci/vpfe_capture.h
+index bd0f13a..785157c 100644
+--- a/include/media/davinci/vpfe_capture.h
++++ b/include/media/davinci/vpfe_capture.h
+@@ -228,6 +228,7 @@ struct vpfe_config_params {
+ 	u8 numbuffers;
+ 	u32 min_bufsize;
+ 	u32 device_bufsize;
++	u32 video_limit;
+ };
+ 
+ #endif				/* End of __KERNEL__ */
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+1.6.3.3
+
