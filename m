@@ -1,43 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:36674 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754694Ab0E1KHw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 May 2010 06:07:52 -0400
-Date: Fri, 28 May 2010 12:07:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Rob Clark <rob@ti.com>
-cc: linux-fbdev@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Idea of a v4l -> fb interface driver
-In-Reply-To: <4BFED8B0.8010504@ti.com>
-Message-ID: <Pine.LNX.4.64.1005280851000.32352@axis700.grange>
-References: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>
- <AANLkTilnb20a4KO1NmK_y148HE_4b6ka14hUJY5o93QT@mail.gmail.com>
- <Pine.LNX.4.64.1005270809110.2293@axis700.grange> <4BFED8B0.8010504@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37342 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753067Ab0ESPtg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 May 2010 11:49:36 -0400
+Message-ID: <4BF40889.4090809@redhat.com>
+Date: Wed, 19 May 2010 12:49:29 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 video image
+References: <4BF40649.5090900@arcor.de>
+In-Reply-To: <4BF40649.5090900@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(re-adding lists to CC)
-
-On Thu, 27 May 2010, Rob Clark wrote:
-
-> Hi Guennadi,
+Stefan Ringel wrote:
+> Hi Mauro,
 > 
-> Sounds like an interesting idea... but how about the inverse?  A v4l2
-> interface on top of fbdev.  If v4l2 was more widely available as an output
-> device, perhaps more userspace software would utilize it.
+> I have found what wrong is with video image. 
 
-Don't see any advantage in doing this apart from "attracting user-space 
-developers to develop for v4l2 output interface," which doesn't seem like 
-a worthy goal in itself. Whereas with my translation you get access to 
-existing user-space applications and to a powerful in-kernel API, and 
-achieve a better interoperability with video-input streams.
+Great!
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+> You generate video buffer
+> in function tm6000_isoc_copy, but that is not right. I move that in
+> function copy_multiplexed and copy_streams. And that works without this
+> http://www.stefan.ringel.de/pub/tm6000_image_10_05_2010.jpg (The lines
+> with little left shift) . 
+
+Didn't work:
+
+404: Not Found - www.stefan.ringel.de
+
+> Now, I generate a patch.
+
+Ok. It would be great to have this issue finally fixed.
+
+Cheers,
+Mauro
