@@ -1,85 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:43064 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751099Ab0E3LPw convert rfc822-to-8bit (ORCPT
+Received: from 2advanced.blue.kundencontroller.de ([85.31.186.149]:49108 "EHLO
+	mail.2advanced.at" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932093Ab0ETVTQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 07:15:52 -0400
+	Thu, 20 May 2010 17:19:16 -0400
+Received: from framePC (chello062178116054.8.12.vie.surfer.at [62.178.116.54])
+	by mail.2advanced.at (Postfix) with ESMTPSA id 90B318348E7
+	for <linux-media@vger.kernel.org>; Thu, 20 May 2010 23:19:14 +0200 (CEST)
+From: "Rene Kremser // Event Solutions OG" <rene@event-solutions.at>
+To: <linux-media@vger.kernel.org>
+Subject: Loosing connection on hauppauge hdvpr (fixed firmware)
+Date: Thu, 20 May 2010 23:18:57 +0200
+Message-ID: <006a01caf862$0f763910$2e62ab30$@at>
 MIME-Version: 1.0
-In-Reply-To: <20100528200604.GA10135@sci.fi>
-References: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>
-	<AANLkTilnb20a4KO1NmK_y148HE_4b6ka14hUJY5o93QT@mail.gmail.com>
-	<Pine.LNX.4.64.1005270809110.2293@axis700.grange>
-	<AANLkTin_ia3Ym3z7FOu40voZkjCeMqSDZjuE_1aBjwOW@mail.gmail.com>
-	<Pine.LNX.4.64.1005272216380.1703@axis700.grange>
-	<AANLkTikTBFPxbl5p9kI65bHt2UJZ5j0DAxFwJ6rzD77L@mail.gmail.com>
-	<4C001643.2070802@gmx.de>
-	<AANLkTimHM66vREdBf60D1jrgvFLDOjf3f3KcHjy6cYSR@mail.gmail.com>
-	<20100528200604.GA10135@sci.fi>
-Date: Sun, 30 May 2010 21:15:50 +1000
-Message-ID: <AANLkTilxszYcsfGp5GqY3hf02NMfN-eSy449oaGSykkW@mail.gmail.com>
-Subject: Re: Idea of a v4l -> fb interface driver
-From: Dave Airlie <airlied@gmail.com>
-To: =?ISO-8859-1?Q?Ville_Syrj=E4l=E4?= <syrjala@sci.fi>
-Cc: Alex Deucher <alexdeucher@gmail.com>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jaya Kumar <jayakumar.lkml@gmail.com>,
-	linux-fbdev@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: de
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, May 29, 2010 at 6:06 AM, Ville Syrjälä <syrjala@sci.fi> wrote:
-> On Fri, May 28, 2010 at 03:41:46PM -0400, Alex Deucher wrote:
->> On Fri, May 28, 2010 at 3:15 PM, Florian Tobias Schandinat
->> > If he wants different (independent) content on each output, just provide
->> > multiple /dev/fbX devices. I admit that we could use a controlling interface
->> > here that decides which user (application) might draw at a time to the
->> > interface which they currently only do if they are the active VT.
->> > If you want 2 or more outputs to be merged as one just configure this in the
->> > driver.
->> > The only thing that is impossible to do in fbdev is controlling 2 or more
->> > independent display outputs that access the same buffer. But that's not an
->> > issue I think.
->> > The things above only could use a unification of how to set them up on
->> > module load time (as only limited runtime changes are permited given that we
->> > must always be able to support a mode that we once entered during runtime).
->> >
->>
->> What about changing outputs on the fly (turn off VGA, turn on DVI,
->> switch between multi-head and single-head, etc) or encoders shared
->> between multiple connectors (think a single dac shared between a VGA
->> and a TV port); how do you expose them easily as separate fbdevs?
->> Lots of stuff is doable with fbdev, but it's nicer with kms.
->
-> But actually getting your data onto the screen is a lot easier with
-> fbdev. There's no standard API in drm to actually allocate the
-> framebuffer and manipulate it. You always need a user space driver
-> to go along with the kernel bits.
->
-> I'm not saying fbdev is better than drm/kms but at least it can be
-> used to write simple applications that work across different
-> hardware. Perhaps that's something that should be addressed in the
-> drm API.
->
+Hello,
+I got a problem with my Hauppauge hdpvr device:
 
-http://www.mail-archive.com/dri-devel@lists.sourceforge.net/msg48461.html
+After getting an involuntary firmware update of my cable-tv box (UPC
+Austria), the hdvpr device looses connection when a commercial appears or
+when the channel will be changed. They have installed a commercial-marker or
+other stupid thing.
 
-I started writing a "dumb" API for KMS, it got stuck on whether to
-expose cursors or not, I must dig out the branch.
+The hdpvr-configuration is YPbPr-analog-input and
+S/PDIF/toslink-digital-input.
 
-It basically was a create + map API. I'll see if I can get it finished off.
+I am using the HD Fury 2-device to get the HDMI-source from the cable box.
+This might be the problem device and the Fury maybe cut off the connection
+for short time - but it isn't visible by me. Anyway, the firmware should be
+able to CATCH such connection-abort-problems?
 
-The main reason we avoided a fully generic interface is there isn't
-really a generic way to abstract acceleration on a modern GPU, and
-buffer allocation on most modern GPUs doesn't want a linear simple
-buffer. We felt doing a compromised generic interface would lead
-people down the wrong path into believing they could easily move from
-the "dumb" interface to a real accelerated one.
+Plugging the HDMI-source to the TV directly will not show any problems.
 
-There is a userspace library called libkms that abstracts this stuff,
-but I'd like to just have the kernel do it.
+There are no information in the log (hdpvr debug setting is highest: 7)
 
-Dave.
+There is another phenomenon with the digital sound: Plugging the toslink
+cable from tv-box to the hdpvr device will interrupt the sound for 1-2
+seconds after 5 seconds repeatedly.
+
+I'dont know if this problem is part of the kernel module but it would be
+nice if this could be fixed.
+
+I'm available for some testing and try-out-sessions to find out more..
+
+Best Rene
+
