@@ -1,68 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:56869 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751401Ab0EFKED convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 06:04:03 -0400
-Received: by fxm10 with SMTP id 10so4964476fxm.19
-        for <linux-media@vger.kernel.org>; Thu, 06 May 2010 03:04:02 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:5395 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751200Ab0ETEz4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 May 2010 00:55:56 -0400
+Message-ID: <4BF4C0D6.9030808@redhat.com>
+Date: Thu, 20 May 2010 01:55:50 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1273135577.16031.11.camel@plop>
-References: <1273135577.16031.11.camel@plop>
-Date: Thu, 6 May 2010 12:04:01 +0200
-Message-ID: <q2u846899811005060304m7538cb13ic3074f290a1a3517@mail.gmail.com>
-Subject: Re: stv090x vs stv0900
-From: HoP <jpetrous@gmail.com>
-To: Pascal Terjan <pterjan@mandriva.com>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	"Igor M. Liplianin" <liplianin@netup.ru>,
-	linux-media@vger.kernel.org
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-input@vger.kernel.org
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Vladis Kletnieks <Valdis.Kletnieks@vt.edu>
+Subject: [PATCH] input: fix error at the default input_get_keycode call
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Pascal,
+[   76.376140] BUG: unable to handle kernel NULL pointer dereference at (null)
+[   76.376670] IP: [<c138b6d0>] input_default_getkeycode_from_index+0x40/0x60
+[   76.376670] *pde = 00000000
+[   76.376670] Oops: 0002 [#1] SMP
+[   76.376670] last sysfs file: /sys/devices/virtual/block/dm-5/range
+[   76.376670] Modules linked in: ip6t_REJECT nf_conntrack_ipv6 ip6table_filter ip6_tables ipv6 dm_mirror dm_region_hash dm_log uinput snd_intel8x0 snd_ac97_codec ac97_bus snd_seq snd_seq_device snd_pcm snd_timer snd ppdev sg parport_pc soundcore k8temp snd_page_alloc forcedeth pcspkr hwmon parport i2c_nforce2 sd_mod crc_t10dif sr_mod cdrom pata_acpi ata_generic pata_amd sata_nv floppy nouveau ttm drm_kms_helper drm i2c_algo_bit i2c_core dm_mod [last unloaded: scsi_wait_scan]
+[   76.376670]
+[   76.376670] Pid: 6183, comm: getkeycodes Not tainted 2.6.34 #11 C51MCP51/
+[   76.376670] EIP: 0060:[<c138b6d0>] EFLAGS: 00210046 CPU: 0
+[   76.376670] EIP is at input_default_getkeycode_from_index+0x40/0x60
+[   76.376670] EAX: 00000000 EBX: 00000000 ECX: 00000002 EDX: f53ebdc8
+[   76.376670] ESI: f53ebdc8 EDI: f5daf794 EBP: f53ebdb8 ESP: f53ebdb4
+[   76.376670]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
+[   76.376670] Process getkeycodes (pid: 6183, ti=f53ea000 task=f53bd060 task.ti=f53ea000)
+[   76.376670] Stack:
+[   76.376670]  f5daf000 f53ebdec c138d233 f53ebe30 00200286 00000000 00000000 00000004
+[   76.376670] <0> 00000000 00000000 00000000 f53ebe2c f5da0340 c16c12cc f53ebdf8 c12f4148
+[   76.376670] <0> c12f4130 f53ebe24 c138d9f8 00000002 00000001 00000000 c138d980 c12f4130
+[   76.376670] Call Trace:
+[   76.376670]  [<c138d233>] ? input_get_keycode+0x73/0x90
 
-> I was adding support for a non working version of DVBWorld HD 2104
->
-> It is listed on
-> http://www.linuxtv.org/wiki/index.php/DVBWorld_HD_2104_FTA_USB_Box as :
->
-> =====
-> for new solution : 2104B (Sharp0169 Tuner)
->
->      * STV6110A tuner
->      * ST0903 demod
->      * Cyrix CY7C68013A USB controller
-> =====
->
-> The 2104A is supposed to be working and also have ST0903 but uses
-> stv0900, so I tried using it too but did not manage to get it working.
->
-> I now have some working code by using stv090x + stv6110x (copied config
-> from budget) but I am wondering why do we have 2 drivers for stv0900,
-> and is stv0900 supposed to handle stv0903 devices or is either the code
-> or the wki wrong about 2104A?
->
-> Also, are they both maintained ? I wrote a patch to add get_frontend to
-> stv090x but stv0900 also does not have it and I don't know which one
-> should get new code.
->
-> And stv6110x seems to also handle stv6110 which also exists as a
-> separate module...
+input_default_getkeycode_from_index() returns the scancode at kt_entry.scancode
+pointer. Fill it with the scancode address at the function call.
 
-Hehe, you are not only one who is fooled by current situation
-regarding demods stv0900/stv0903 and plls stv6110.
+Thanks-to: Vladis Kletnieks <Valdis.Kletnieks@vt.edu> for pointing the issue
 
-Current status-quo is not good. Same question is asked here
-again and again. Interesting that it is against usual rule
-having only one driver for every chip in kernel, but this time that
-rather strong rule was not applied. Dunno why.
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-May be someone from "knowings" can answer that on wiki?
-
-/Honza
-
-PS: FYI I'm also using BOTH variants in 2 projects. For me
-both look very similar and work w/o probs. So I can't tell you
-which is better :)
+diff --git a/drivers/input/input.c b/drivers/input/input.c
+index 3b63fad..7851d8e 100644
+--- a/drivers/input/input.c
++++ b/drivers/input/input.c
+@@ -838,6 +838,7 @@ int input_get_keycode(struct input_dev *dev,
+ 		memset(&kt_entry, 0, sizeof(kt_entry));
+ 		kt_entry.len = 4;
+ 		kt_entry.index = scancode;
++		kt_entry.scancode = &scancode;
+ 
+ 		spin_lock_irqsave(&dev->event_lock, flags);
+ 		retval = dev->getkeycodebig_from_index(dev, &kt_entry);
