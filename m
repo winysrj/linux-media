@@ -1,34 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp104.rog.mail.re2.yahoo.com ([206.190.36.82]:46664 "HELO
-	smtp104.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751103Ab0EOPqX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 May 2010 11:46:23 -0400
-Message-ID: <4BEEC1C4.5040809@rogers.com>
-Date: Sat, 15 May 2010 11:46:12 -0400
-From: CityK <cityk@rogers.com>
-MIME-Version: 1.0
-To: Cliffe <cliffe@ii.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: No video0, /dev/dvb/adapter0 present
-References: <4BEE6B30.30303@ii.net>
-In-Reply-To: <4BEE6B30.30303@ii.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.zhaw.ch ([160.85.104.50]:41441 "EHLO mx1.zhaw.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752000Ab0ETIg3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 May 2010 04:36:29 -0400
+From: Tobias Klauser <tklauser@distanz.ch>
+To: mchehab@infradead.org, linux-media@vger.kernel.org
+Cc: kernel-janitors@vger.kernel.org,
+	Tobias Klauser <tklauser@distanz.ch>
+Subject: [PATCH 06/11] V4L/DVB: omap_vout: Storage class should be before const qualifier
+Date: Thu, 20 May 2010 10:36:28 +0200
+Message-Id: <1274344588-9034-1-git-send-email-tklauser@distanz.ch>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cliffe,
+The C99 specification states in section 6.11.5:
 
-Your card does not support analogue, hence there will be no /dev/videoN
-node created.  You are most likely attempting to use analogue tv viewing
-applications (i.e. xawtv v3.9x, tvtime, ...). Use applications for
-digital tv instead (i.e. kaffiene....).
+The placement of a storage-class specifier other than at the beginning
+of the declaration specifiers in a declaration is an obsolescent
+feature.
 
-If you go back over the "How to Obtain, Build and Install V4L-DVB Device
-Drivers" article, you will find links to two other articles
+Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
+---
+ drivers/media/video/omap/omap_vout.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-http://www.linuxtv.org/wiki/index.php/What_is_V4L_or_DVB%3F
-http://www.linuxtv.org/wiki/index.php/Device_nodes_and_character_devices
+diff --git a/drivers/media/video/omap/omap_vout.c b/drivers/media/video/omap/omap_vout.c
+index 4c0ab49..d6a2ae1 100644
+--- a/drivers/media/video/omap/omap_vout.c
++++ b/drivers/media/video/omap/omap_vout.c
+@@ -128,7 +128,7 @@ module_param(debug, bool, S_IRUGO);
+ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+ 
+ /* list of image formats supported by OMAP2 video pipelines */
+-const static struct v4l2_fmtdesc omap_formats[] = {
++static const struct v4l2_fmtdesc omap_formats[] = {
+ 	{
+ 		/* Note:  V4L2 defines RGB565 as:
+ 		 *
+-- 
+1.6.3.3
 
-which should provide you with fuller details.
