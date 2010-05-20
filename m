@@ -1,21 +1,24 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <noreply@netlogmail.com>) id 1OAseL-00059b-Cf
-	for linux-dvb@linuxtv.org; Sun, 09 May 2010 00:37:34 +0200
-Received: from mx03-1.netlogmail.com ([193.164.158.78])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with esmtp
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1OF3v9-0003Jm-Rf
+	for linux-dvb@linuxtv.org; Thu, 20 May 2010 13:28:13 +0200
+Received: from mail-ew0-f215.google.com ([209.85.219.215])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1OAseK-0007gN-5m; Sun, 09 May 2010 00:37:33 +0200
-Received: from web (192.168.3.40) by mx03-1.netlogmail.com id hsnjqo0qjegs for
-	<linux-dvb@linuxtv.org>;
-	Sat, 8 May 2010 22:37:26 +0000 (envelope-from <noreply@netlogmail.com>)
-From: Ismo Kuhmonen <noreply@netlogmail.com>
-To: <linux-dvb@linuxtv.org>
-Date: Sat, 08 May 2010 22:37:26 +0000
+	id 1OF3v8-0000mo-Ci; Thu, 20 May 2010 13:28:11 +0200
+Received: by ewy7 with SMTP id 7so1779893ewy.11
+	for <linux-dvb@linuxtv.org>; Thu, 20 May 2010 04:28:09 -0700 (PDT)
+Date: Thu, 20 May 2010 13:27:48 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: Damien Bally <biribi@free.fr>
+In-Reply-To: <4BF432E7.2000203@free.fr>
+Message-ID: <alpine.DEB.2.01.1005201256140.29367@ureoreg>
+References: <4BF290A2.1020904@free.fr> <4BF432E7.2000203@free.fr>
 MIME-Version: 1.0
-Subject: [linux-dvb] Vieraile Netlog profiilissani
-Reply-To: linux-media@vger.kernel.org, Ismo Kuhmonen <ismokuh@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] new DVB-T initial tuning for fr-nantes
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,225 +26,103 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============2003443886=="
-Mime-version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: linux-dvb-bounces@linuxtv.org
-Message-Id: <E1OAseO-00059g-Ks@www.linuxtv.org>
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-This is a multi-part message in MIME format.
-
---===============2003443886==
-Content-Type: multipart/alternative; boundary="netlog_660692e6e365746c66f672e9636f6d212cd48e"
-
-This is a multi-part message in MIME format.
-
---netlog_660692e6e365746c66f672e9636f6d212cd48e
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-Vieraile Netlog profiilissaniHei,
-
-Olen luonut Netlog-profiilin, jossa on kuviani, videoita, blogeja ja tapahtumia. Haluaisin lisätä sinut ystäväksi, jotta pääsisit näkemään sivuni. Ensin sinun tulee rekisteröityä Netlogiin! Kun kirjaudut sisään, pääset luomaan myös oman profiilisi.
-
-Tsekkaa:
-
-http://fi.netlog.com/mailurl/-bT0xMDE3NzY1MSZsPTEmZ209NjI4Nj
-QwMTEmdT0lMkZyZWdpc3RlciUyRmlkJTNENzA1ODEyNTA2JTI2aSUzRHQ5MQ
-__
-
-Terveisin,
-
-___
-Klikkaa tästä jos et halua enää saada sähköposteja Netlogista.
-If you no longer want to receive these e-mails from Netlog, click here.
-http://fi.netlog.com/nomails/e=linux-dvb@linuxtv.org&c=08145662&t=12&s=0&v=2&id=705812506&i=h999&
-Netlog NV/SA. E. Braunplein 18 B-9000 Gent Belgium BE0859635972. abuse-fi@netlog.com
-
---netlog_660692e6e365746c66f672e9636f6d212cd48e
-Content-Type: text/html; charset=utf-8
-Content-Transfer-Encoding: 7bit
-
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
-<html>
-  <head>
- <title>Vieraile Netlog profiilissani</title>
- </head>
-  <body link="#6699cc" vlink="#6699cc" color"#ccc" style="color:#ccc;">
- <!-- (fi, ltr) -->
-  
- <table id="netlogMail" width="620" border="0" cellspacing="0" cellpadding="0" bgcolor="#2b2b2b" color="#ccc" style="font-family:Arial,sans-serif; font-size:16px; color:#ccc;">
- <tr style="vertical-align:top" height="65">
- <td width="195" height="65" bgcolor="#202020">
- <a href="http://fi.netlog.com/mailurl/-bT0xMDE3NzY1MSZsPTMmZ209NjI4NjQwMTEmdT1odHRwJTNBJTJGJTJGZmkubmV0bG9nLmNvbQ__" ><img src="http://v.netlogstatic.com/v5.00/3043//s/i/mail2/header-logo.gif" alt="Netlog" width="195" height="60" border="0" /></a>
- </td>
- <td width="200" height="65" align="right" valign="middle" style="background:#202020; padding-right:10px; font-size:11px; line-height:12px; color:#666;">
-  </td>
- <td width="138" height="65" align="right" valign="middle" style="background:#202020; font-size:11px; line-height:12px; color:#fff;">
-  </td>
- <td width="100" height="65" rowspan="2"><img src="http://v.netlogstatic.com/v5.00/3043//s/i/mail2/header-stamp.gif" width="100" height="87" /></td>
- </tr>
-  <tr>
- <td colspan="3" height="50px">
- <table id="netlogMailTitle" width="520" border="0" cellspacing="0" cellpadding="0">
- <tr>
- <td width="20"></td>
- <td>
- <h2 style="font-size:16px; color:#ccc; font-weight:normal; margin:0;">
-  Vieraile Netlog profiilissani  </h2>
- </td>
- <td width="20"></td>
- </tr>
- </table> <!-- END #netlogMailTitle -->
- </td>
- </tr>
-  <tr>
- <td colspan="4"><table class="twoColumn" width="620" border="0" cellspacing="0" cellpadding="0" style="font-size:12px; color:#666;">
-<tr>
-<td width="20"></td>
-<td valign="top" style="font-size:11px; color:#888;">
-<a href="http://fi.netlog.com/mailurl/-bT0xMDE3NzY1MSZsPTQmZ209NjI4NjQwMTEmdT0lMkZyZWdpc3RlciUyRmlkJTNENzA1ODEyNTA2JTI2aSUzRGg5MTA_">
-<img alt="ismokuhmonen" title="ismokuhmonen" src="http://fi.netlog.com/mainphoto/ismokuhmonen" width="80" height="60" border="5" style="border-color:#fff;">
-</a>
-<p>
-<span style="color:#fff">Ismo</span><br /><span style="color:#fff;">mies - 49</span><br />
-</p>
-<hr color="#000" style="border:0; background:#333; height:1px" />
-<table class="userActions" width="90">
-<tr>
-<td width="15px;">
-<img src="http://v.netlogstatic.com/v5.00/3043//s/i/mail2/arrow.gif" style="border:0; vertical-align:middle;" />
-</td>
-<td width="75">
-<a href="http://fi.netlog.com/mailurl/-bT0xMDE3NzY1MSZsPTUmZ209NjI4NjQwMTEmdT0lMkZyZWdpc3RlciUyRmlkJTNENzA1ODEyNTA2JTI2aSUzRGg5MTElMjZsJTNEZw__" style="padding:5px 5px 5px 0; color:#fff; text-decoration:none; display:block; line-height:15px; font-size:10px;">
-Vieraskirja
-</a>
-</td>
-</tr>
-<tr>
-<td width="15px;">
-<img src="http://v.netlogstatic.com/v5.00/3043//s/i/mail2/arrow.gif" style="border:0; vertical-align:middle;" />
-</td>
-<td width="75">
-<a href="http://fi.netlog.com/mailurl/-bT0xMDE3NzY1MSZsPTYmZ209NjI4NjQwMTEmdT0lMkZyZWdpc3RlciUyRmlkJTNENzA1ODEyNTA2JTI2aSUzRGg5MTI_" style="padding:5px 5px 5px 0; color:#fff; text-decoration:none; display:block; line-height:15px; font-size:10px;">
-Profile
-</a>
-</td>
-</tr>
-</table>
-</td>
-<td width="10"></td>
-<td width="480" style="vertical-align:top;"><div class="message" style="background-color:#e6eef9; color:#435260; padding:20px;">
- <p>Hey!</p>
- <p>
- Olen luonut Netlog-profiilin, jossa on kuviani, videoita, blogeja ja tapahtumia.
- </p>
- <p>
-  <a style="background:#A70E13; padding:6px 12px; font-size:16px; color:#fff; text-decoration:none;" href="http://fi.netlog.com/mailurl/-bT0xMDE3NzY1MSZsPTcmZ209NjI4NjQwMTEmdT0lMkZyZWdpc3RlciUyRmlkJTNENzA1ODEyNTA2JTI2aSUzRGg5Mg__">
-  Tsekkaa
- </a> 
- </p>
- <p>
- Terveisin,<br />
- Ismo </p>
-</div>
-<table id="netlogMailControls" width="100%" border="0" cellspacing="0" cellpadding="0">
- <tr>
- <td height="10"></td>
- </tr>
- <tr>
- <td align="right" valign="middle" style="font-size:11px; line-height:12px; color:#fff;">
-       </td>
- </tr>
-</table> <!-- end #netlogMailControls -->
-</td>
-<td width="20"></td>
-</tr>
-</table> <!-- end .twoColumn -->
-<table class="oneColumn" width="620" border="0" cellspacing="0" cellpadding="0" style="font-size:12px; color:#666;">
-<tr>
-<td width="20"></td>
-<td width="480">
-<h3 style="font-size:14px; color:#ddd; font-weight:normal; margin:10px 0;">Joitakin jäsenen Ismo kuvista</h3>
-<table class="netlogMailpeopleList" width="480" border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td>
-<h3 style="font-size:14px; color:#ddd; font-weight:normal; margin:10px 0;">Jäseniä, jotka saatat tuntea</h3>
-</td>
-</tr>
-<tr>
-<td>
-<table class="avatarList" border="0" cellspacing="0" cellpadding="0">
-<tr>
-<td width="80">
-<a href="http://fi.netlog.com/mailurl/-bT0xMDE3NzY1MSZsPTgmZ209NjI4NjQwMTEmdT0lMkZyZWdpc3RlciUyRmlkJTNENzA1ODEyNTA2JTI2aSUzRGg5MjElMjZmJTNEdXNlcmlk">
-<img alt="Junaka" title="Junaka" style="border:4px solid #fff;" src="http://fi.netlogstatic.com/p/tt/001/661/1661798.jpg" width="80" height="60" />
-</a>
-</td>
-<td width="5"></td><td width="80">
-<a href="http://fi.netlog.com/mailurl/-bT0xMDE3NzY1MSZsPTkmZ209NjI4NjQwMTEmdT0lMkZyZWdpc3RlciUyRmlkJTNENzA1ODEyNTA2JTI2aSUzRGg5MjElMjZmJTNEdXNlcmlk">
-<img alt="jarzan" title="jarzan" style="border:4px solid #fff;" src="http://v.netlogstatic.com/v4.00/2540//s/i/misc/thumb/thumb_male.jpg" width="80" height="60" />
-</a>
-</td>
-</tr>
-</table>
-<hr color="#000" style="border:0; background:#333; height:1px" />
-</td>
-</tr>
-</table>
-</td>
-<td width="20"></td>
-</tr>
-</table> <!-- end .oneColumn -->
-</td>
- </tr>
- <tr>
- <td colspan="4" height="20"></td>
- </tr>
- <tr>
- <td colspan="4">
- <table id="netlogMailFooter" width="620" border="0" cellspacing="0" cellpadding="0" bgcolor="#181818">
- <tr>
- <td colspan="3" height="10"></td>
- </tr>
- <tr>
- <td width="20"></td>
- <td style="font-size:11px; line-height:12px; color:#666;">
- <p>
-  Jos et enää halua vastaanottaa näitä sähköposteja Netlogista, <a style="color:#6699cc;" href="http://fi.netlog.com/nomails/e=linux-dvb@linuxtv.org&c=08145662&t=12&s=0&v=2&id=705812506&i=h999&">klikkaa tästä</a>. <br />If you no longer want to receive these e-mails from Netlog, <a style="color:#6699cc;" href="http://fi.netlog.com/nomails/e=linux-dvb@linuxtv.org&c=08145662&t=12&s=0&v=2&id=705812506&i=h999&">click here</a>. </p>
- <p style="font-size:10px; color:#444;"><b>Netlog</b> NV/SA. E. Braunplein 18 B-9000 Gent Belgium BE0859635972. <a href="mailto:abuse-fi@netlog.com" style="text-decoration: none; color: #666;">abuse-fi@netlog.com</a></p>
- </td>
- <td width="20"></td>
- </tr>
- <tr>
- <td colspan="3" height="20"></td>
- </tr>
-  
- </table> <!-- END #netlogMailFooter -->
- </td>
- </tr>
- </table> 
- <!-- END #netlogMail -->
-  
- <img src="http://fi.netlog.com/mailimage/mailid=10177651&nmid=62864011&header.gif" alt="" />
- </body>
-</html>
-
---netlog_660692e6e365746c66f672e9636f6d212cd48e--
-
-
-
-
---===============2003443886==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============2003443886==--
+T24gxZtybyAoxZtyb2RhKSAxOS5tYWogKG1haikgMjAxMCwgMjA6NTA6MDAsIERhbWllbiBCYWxs
+eSB3cm90ZToKCj4gVGhlcmUncyBhbHNvIGEgbmV3IHRyYW5zcG9uZGVyIGNhbGxlZCBMOCB0b2Rh
+eSBvbiBjaGFubmVsIDU2IChRQU0xNikgZm9yCj4gbG9jYWwgVFYsIHNvIHRoZSBmci1OYW50ZXMg
+c2hvdWxkIGxvb2sgbGlrZSB0aGlzIDoKPiAKPiAjIE5hbnRlcyAtIEZyYW5jZQo+ICMgVCBmcmVx
+IGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhp
+ZXJhcmNoeQoKPiBUIDc1NDAwMDAwMCA4TUh6IEFVVE8gTk9ORSBRQU0xNiA4ayBBVVRPIE5PTkUK
+Ck9uZSB0aGluZyB0aGF0IHdvdWxkIGJlIGdvb2QgdG8gZG8gLS0gZm9yIHNvbWVvbmUgd2hvIGlz
+IGluIHRoZQphcmVhIHNlcnZlZCBieSBhIHRyYW5zbWl0dGVyIC0tIHJhdGhlciB0aGFuIHVzZSDC
+q0FVVE/CuyBmb3IgdGhlCkZFQyBhbmQgR3VhcmQgSW50ZXJ2YWwgdmFsdWVzIGFib3ZlLCB3b3Vs
+ZCBiZSB0byBwZXJmb3JtIGEgTklUCnNjYW4gb24gdGhlIGFwcHJvcHJpYXRlIGZyZXF1ZW5jaWVz
+LgoKVGhpcyBzaG91bGQgZ2l2ZSBhcyBhIHJlc3VsdCB0aGUgYWN0dWFsIHRyYW5zbWl0dGVyIGZy
+ZXF1ZW5jeQphbmQgb3RoZXIgcGFyYW1ldGVycyBpbiB1c2UsIGFuZCBwZXJoYXBzIHJlbGF0ZWQg
+b25lcyBmcm9tIG90aGVyCnNpdGVzLgoKVGhlc2UgdmFsdWVzIGFyZSBjb25maWd1cmVkIGJ5IHRo
+ZSBicm9hZGNhc3RlciBhbmQgYXJlIHRoZXJlZm9yZQpub3QgZ3VhcmFudGVlZCB0byBiZSAxMDAl
+IGFjY3VyYXRlLCBidXQgaXQgaXMgbW9yZSBsaWtlbHkgdGhhdAp0aGV5IGtub3cgdGhlIHZhbHVl
+cyB0aGV5IGFyZSB1c2luZyAtLSB0aGVzZSB2YWx1ZXMgY2FuIGJlIHVzZWQKdG8gbG9jYXRlIG90
+aGVyIHRyYW5zbWl0dGVyIGZyZXF1ZW5jaWVzLCBhcyBpcyB0aGUgd2VsbC1rbm93bgpjYXNlIGZv
+ciBEVkItUyBzYXRlbGxpdGUgTklUIHRhYmxlcy4KCkknbGwgZ2l2ZSBhbiBleGFtcGxlIHVzaW5n
+IG9uZSBzYXRlbGxpdGUgdHJhbnNwb25kZXIsIGJlY2F1c2UgdGhpcwptYWNoaW5lIEkgYW0gdXNp
+bmcgZG9lcyBub3QgcHJlc2VudGx5IGhhdmUgYSBEVkItVCAoVE5UKSByZWNlaXZlcgphdHRhY2hl
+ZCB0aGF0IHdvcmtzLi4uCgpiZWVyQGhlcmJlcnQ6L3RtcC9udHAtZGV2LTQuMi41cDE4My9udHBk
+YXRlJCAvaG9tZS9iZWVyL2Jpbi9kdmJzdHJlYW0gICAtcyAyNzUwMCAgLXAgdiAgLWYgMTI1MjUg
+IC1JIDIgIC1EIDQgICAtbiAyIC1vOi90bXAvTklULnRzICAgMTYKCihzbWFsbCBmaWxlIGlzIHdy
+aXR0ZW4gd2l0aCBOSVQgZGF0YSkKCmJlZXJAaGVyYmVydDovdG1wL250cC1kZXYtNC4yLjVwMTgz
+L250cGRhdGUkIGR2YnNub29wIC1zIHRzIC10c3N1YmRlY29kZSAtaWYgL3RtcC9OSVQudHMgICAg
+fCBsZXNzCgpIZXJlIHRoZSBkYXRhIEkgc2VlIGlzIHNwZWNpZmljIHRvIHRoaXMgc2F0ZWxsaXRl
+LCBidXQgeW91IHNob3VsZApzZWUgc2ltaWxhciBkYXRhIGZvciB0aGUgcGFydGljdWxhciB0ZXJy
+ZXN0cmlhbCBjaGFubmVsIHlvdSB0dW5lCmluIHlvdXIgY2FzZS4uLgoKICAgICAgICAgICAgICAg
+ICAgRnJlcXVlbmN5OiAxOTIxMTUyMCAoPSAgMTIuNTI1MDAgR0h6KQogICAgICAgICAgICAgICAg
+ICBPcmJpdGFsX3Bvc2l0aW9uOiA1NjUgKD0gIDIzLjUpCiAgICAgICAgICAgICAgICAgIFdlc3Rf
+RWFzdF9mbGFnOiAxICgweDAxKSAgWz0gRUFTVF0KICAgICAgICAgICAgICAgICAgUG9sYXJpc2F0
+aW9uOiAxICgweDAxKSAgWz0gbGluZWFyIC0gdmVydGljYWxdCiAgICAgICAgICAgICAgICAgIEtp
+bmQ6IDAgKDB4MDApICBbPSBEVkItU10KICAgICAgICAgICAgICAgICAgZml4ZWQgKCcwMCcpOiAw
+ICgweDAwKQogICAgICAgICAgICAgICAgICBNb2R1bGF0aW9uX3R5cGU6IDEgKDB4MDEpICBbPSBR
+UFNLXQogICAgICAgICAgICAgICAgICBTeW1ib2xfcmF0ZTogMjU3NjM4NCAoPSAgMjcuNTAwMCkK
+ICAgICAgICAgICAgICAgICAgRkVDX2lubmVyOiAzICgweDAzKSAgWz0gMy80IGNvbnYuIGNvZGUg
+cmF0ZV0KCmFuZAogICAgICAgICAgICAgICAgICBGcmVxdWVuY3k6IDE5MjI3OTA0ICg9ICAxMi41
+NjUwMCBHSHopCiAgICAgICAgICAgICAgICAgIE9yYml0YWxfcG9zaXRpb246IDU2NSAoPSAgMjMu
+NSkKICAgICAgICAgICAgICAgICAgV2VzdF9FYXN0X2ZsYWc6IDEgKDB4MDEpICBbPSBFQVNUXQog
+ICAgICAgICAgICAgICAgICBQb2xhcmlzYXRpb246IDAgKDB4MDApICBbPSBsaW5lYXIgLSBob3Jp
+em9udGFsXQogICAgICAgICAgICAgICAgICBLaW5kOiAwICgweDAwKSAgWz0gRFZCLVNdCiAgICAg
+ICAgICAgICAgICAgIGZpeGVkICgnMDAnKTogMCAoMHgwMCkKICAgICAgICAgICAgICAgICAgTW9k
+dWxhdGlvbl90eXBlOiAxICgweDAxKSAgWz0gUVBTS10KICAgICAgICAgICAgICAgICAgU3ltYm9s
+X3JhdGU6IDI1NzYzODQgKD0gIDI3LjUwMDApCiAgICAgICAgICAgICAgICAgIEZFQ19pbm5lcjog
+MiAoMHgwMikgIFs9IDIvMyBjb252LiBjb2RlIHJhdGVdCgphbmQKICAgICAgICAgICAgICAgICAg
+RnJlcXVlbmN5OiAxODMyMzIwMCAoPSAgMTEuNzk3MDAgR0h6KQogICAgICAgICAgICAgICAgICBP
+cmJpdGFsX3Bvc2l0aW9uOiA1NjUgKD0gIDIzLjUpCiAgICAgICAgICAgICAgICAgIFdlc3RfRWFz
+dF9mbGFnOiAxICgweDAxKSAgWz0gRUFTVF0KICAgICAgICAgICAgICAgICAgUG9sYXJpc2F0aW9u
+OiAwICgweDAwKSAgWz0gbGluZWFyIC0gaG9yaXpvbnRhbF0KICAgICAgICAgICAgICAgICAgS2lu
+ZDogMCAoMHgwMCkgIFs9IERWQi1TXQogICAgICAgICAgICAgICAgICBmaXhlZCAoJzAwJyk6IDAg
+KDB4MDApCiAgICAgICAgICAgICAgICAgIE1vZHVsYXRpb25fdHlwZTogMSAoMHgwMSkgIFs9IFFQ
+U0tdCiAgICAgICAgICAgICAgICAgIFN5bWJvbF9yYXRlOiAyNTc2Mzg0ICg9ICAyNy41MDAwKQog
+ICAgICAgICAgICAgICAgICBGRUNfaW5uZXI6IDMgKDB4MDMpICBbPSAzLzQgY29udi4gY29kZSBy
+YXRlXQoKYW5kCiAgICAgICAgICAgICAgICAgIEZyZXF1ZW5jeTogMTgzNzIwOTYgKD0gIDExLjg1
+NjAwIEdIeikKICAgICAgICAgICAgICAgICAgT3JiaXRhbF9wb3NpdGlvbjogNTY1ICg9ICAyMy41
+KQogICAgICAgICAgICAgICAgICBXZXN0X0Vhc3RfZmxhZzogMSAoMHgwMSkgIFs9IEVBU1RdCiAg
+ICAgICAgICAgICAgICAgIFBvbGFyaXNhdGlvbjogMCAoMHgwMCkgIFs9IGxpbmVhciAtIGhvcml6
+b250YWxdCiAgICAgICAgICAgICAgICAgIEtpbmQ6IDAgKDB4MDApICBbPSBEVkItU10KICAgICAg
+ICAgICAgICAgICAgZml4ZWQgKCcwMCcpOiAwICgweDAwKQogICAgICAgICAgICAgICAgICBNb2R1
+bGF0aW9uX3R5cGU6IDEgKDB4MDEpICBbPSBRUFNLXQogICAgICAgICAgICAgICAgICBTeW1ib2xf
+cmF0ZTogMjU3NjM4NCAoPSAgMjcuNTAwMCkKICAgICAgICAgICAgICAgICAgRkVDX2lubmVyOiA0
+ICgweDA0KSAgWz0gNS82IGNvbnYuIGNvZGUgcmF0ZV0KCmFuZCBzb21lIG1vcmUgdHJhbnNwb25k
+ZXJzIHVzZWQgYnkgdGhpcyBwcm92aWRlciAoQ1MgTGluaykuCgoKSSBrbm93IHRoYXQgYXQgbGVh
+c3Qgb25lIG9mIG15IERWQi1UIHJlY2VpdmVycyB3aWxsIHR1bmUgaW50bwp0aGUgc2VydmljZXMg
+b24gYSBwYXJ0aWN1bGFyIGNoYW5uZWwgZXZlbiB3aGVuIEkgZmVlZCBpdCB0aGUKd3JvbmcgdmFs
+dWVzLCBidXQgYXBwYXJlbnRseSBub3QgYWxsIGRldmljZXMgYXJlIGNhcGFibGUgb2YKdGhpcy4K
+CkluIHRoZSBldmVudCBhIHBhcnRpY3VsYXIgcmVjZWl2ZXIgcmVxdWlyZXMgwqtBVVRPwrsgYW5k
+IHdpbGwKbm90IHdvcmsgZXZlbiB3aXRoIHRoZSBpZGVhbGx5LWNvcnJlY3QgdmFsdWVzIGFzIGdp
+dmVuIGZyb20KUElEIDE2LCB0aGVuIHRoaXMgc2hvdWxkIHByb2JhYmx5IGJlIGJyb3VnaHQgdG8g
+dGhlIGF0dGVudGlvbgpvZiBhIHJlc3BvbnNpYmxlIGRldmVsb3BlciB0byBiZSBmaXhlZCwgcmF0
+aGVyIHRoYW4gYXZvaWRpbmcKdGhlIGluY2x1c2lvbiBvZiB0aGUgd3JvbmcgdmFsdWVzIGluIHRo
+ZSBmcmVxdWVuY3kgbGlzdHMuClNpbWlsYXJseSBhIDE2N2tIeiBmcmVxdWVuY3kgb2Zmc2V0IHdo
+ZW4gc3VjaCBpcyBub3QgdXNlZApieSB0aGUgYWN0dWFsIHRyYW5zbWl0dGVyLgoKQWZ0ZXIgYWxs
+LCB0aGUgcHJvcGVyIDEvMzIgKGlmIGNvcnJlY3QpIEd1YXJkIEludGVydmFsIHZhbHVlCndpbGwg
+dGVsbCBtZSB0aGF0IHVzZSBpcyBtYWRlIG9mIGEgTUZOLCB3aGlsZSAxLzQgdGVsbHMgbWUKdGhh
+dCB0aGVyZSBtYXkgYmUgYSBsYXJnZSBhcmVhIGNvdmVyZWQgYnkgbXVsdGlwbGUgdHJhbnNtaXR0
+ZXIKc2l0ZXMgb24gdGhlIHNhbWUgZnJlcXVlbmN5LiAgT3IgaW4gdGhlIGNhc2Ugb2YgUGFyaXMs
+IDEvOAp0ZWxscyBtZSB0aGVyZSBpcyBhIHNtYWxsZXIgU0ZOIGNvbmZpZ3VyYXRpb24uCgpBbHNv
+LCB0aGUgRkVDIHJhdGUgdG9nZXRoZXIgd2l0aCB0aGUgbW9kdWxhdGlvbiAxNi82NC1RQU0Kd2ls
+bCB0ZWxsIG1lIGhvdyBtdWNoIHRoZSBleHBlY3RlZCBjb21iaW5lZCBkYXRhIHJhdGUgYXZhaWxh
+YmxlCmZvciBhbGwgc2VydmljZXMgd2lsbCBiZSwgYXMgd2VsbCBhcyBob3cgZmFyIHJlbW92ZWQg
+ZnJvbSB0aGUKdHJhbnNtaXR0ZXIgb25lIGNhbiByZWNlaXZlIGEgc2lnbmFsIGF0IGEgZ2l2ZW4g
+dHJhbnNtaXR0ZXIKcG93ZXIsIGFuZCB3aGF0IHNvcnQgb2YgYW50ZW5uYSBlZmZvcnQgd2lsbCBi
+ZSBuZWNlc3NhcnkgZm9yIGEgCnN0cm9uZyBjbGVhbiBzaWduYWwgdG93YXJkcyB0aGUgZnJpbmdl
+cyBvZiByZWNlcHRpb24uCgpQZXJoYXBzIG5vdCB2ZXJ5IGltcG9ydGFudCBmb3IgYSBub3JtYWwg
+dXNlciwgYnV0IGdvb2QgdGhpbmdzCnRvIGtub3cgd2hlbiB0cm91Ymxlc2hvb3Rpbmcgb3IgcHJv
+dmlkaW5nIHJlY29tbWVuZGF0aW9ucyBmb3IKcmVjZXB0aW9uLCBmcm9tIGFmYXIgLS0gdGhlIGZh
+Y3QgdGhhdCBJIGNvdWxkIHJlY2VpdmUgdGhlCmFuYWxvZ3VlIHNjcmFtYmxlZCBDYW5hbCsgaXMg
+bm8gZ3VhcmFudGVlIEkgY2FuIG5vdyByZWNlaXZlCmFueSBvZiB0aGUgcHJlc2VudCBUTlQgc2Vy
+dmljZXMgKEkgY2FuJ3QpLgoKCm1lcmNpCmJhcnJ5IGJvdXdzbWEKCl9fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiB1c2VycyBtYWlsaW5nIGxp
+c3QKRm9yIFY0TC9EVkIgZGV2ZWxvcG1lbnQsIHBsZWFzZSB1c2UgaW5zdGVhZCBsaW51eC1tZWRp
+YUB2Z2VyLmtlcm5lbC5vcmcKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0
+di5vcmcvY2dpLWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
