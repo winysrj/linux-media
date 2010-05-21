@@ -1,70 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:36662 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932527Ab0E0JxU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 May 2010 05:53:20 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=utf-8
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L32005EDOSU9970@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 27 May 2010 10:53:18 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L3200JD0OSTM4@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 27 May 2010 10:53:18 +0100 (BST)
-Date: Thu, 27 May 2010 11:52:35 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: Tentative agenda for Helsinki mini-summit
-In-reply-to: <Pine.LNX.4.64.1005231929091.3571@axis700.grange>
-To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
-	"'Zhong, Jeff'" <hzhong@quicinc.com>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	"'Zhang, Xiaolin'" <xiaolin.zhang@intel.com>,
-	'Sergio Rodriguez' <saaguirre@ti.com>,
-	'Vaibhav Hiremath' <hvaibhav@ti.com>,
-	'Hans de Goede' <hdegoede@redhat.com>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Kamil Debski' <k.debski@samsung.com>
-Message-id: <005201cafd82$557b24f0$00716ed0$%osciak@samsung.com>
-Content-language: pl
-References: <201005231236.49048.hverkuil@xs4all.nl>
- <Pine.LNX.4.64.1005231929091.3571@axis700.grange>
+Received: from tango.tkos.co.il ([62.219.50.35]:36902 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753217Ab0EUH2J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 May 2010 03:28:09 -0400
+Date: Fri, 21 May 2010 10:27:37 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 0/3] Driver for the i.MX2x CMOS Sensor Interface
+Message-ID: <20100521072737.GA6967@tarshish>
+References: <cover.1273150585.git.baruch@tkos.co.il>
+ <20100521072045.GD17272@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100521072045.GD17272@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sascha,
 
->Guennadi Liakhovetski wrote:
->
->No idea whether this is a worthy and suitable topic for this meeting, but:
->
->V4L(2) video output vs. framebuffer.
->
->How about a v4l2-output - fbdev translation layer? You write a v4l2-output
->driver and get a framebuffer device free of charge... TBH, I haven't given
->this too much of a thought, but so far I don't see anything that would
->make this impossible in principle. The video buffer management is quite
->different between the two systems, but maybe we can teach video-output
->drivers to work with just one buffer too? Anyway, feel free to tell me why
->this is an absolutely impossible / impractical idea;)
+On Fri, May 21, 2010 at 09:20:45AM +0200, Sascha Hauer wrote:
+> On Thu, May 06, 2010 at 04:09:38PM +0300, Baruch Siach wrote:
+> > This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and 
+> > platform code for the i.MX25 and i.MX27 chips. This driver is based on a driver 
+> > for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has posted in 
+> > linux-media last December[1]. Since all I have is a i.MX25 PDK paltform I can't 
+> > test the mx27 specific code. Testers and comment are welcome.
+> > 
+> > [1] https://patchwork.kernel.org/patch/67636/
+> > 
+> > Baruch Siach (3):
+> >   mx2_camera: Add soc_camera support for i.MX25/i.MX27
+> >   mx27: add support for the CSI device
+> >   mx25: add support for the CSI device
+> 
+> With the two additions I sent I can confirm this working on i.MX27, so
+> no need to remove the related code.
 
-We also use v4l2-outputs for our display interfaces and for that we have
-v4l2-subdevices in a framebuffer driver. Although we have had no need for
-such a translation layer per se up to now, the idea seems interesting.
+Thanks. I'll add your patches to my queue and resend the series next week.
 
-I would definitely be interested in a general discussion about framebuffer
-driver - v4l2 output device interoperability though and can share our
-experience in this field.
+baruch
 
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
-
+-- 
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
