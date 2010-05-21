@@ -1,129 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2575 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751628Ab0EAJWP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 05:22:15 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: Re: [PATCH 0/3] TI WL1273 FM Radio Driver v2.
-Date: Sat, 1 May 2010 11:23:18 +0200
-Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com
-References: <1272632388-16048-1-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1272632388-16048-1-git-send-email-matti.j.aaltonen@nokia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:63690 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755873Ab0EURzO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 May 2010 13:55:14 -0400
+Date: Fri, 21 May 2010 13:54:56 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Ang Way Chuang <wcang79@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: dvb-core: Fix ULE decapsulation bug when less than 4 bytes of
+ ULE SNDU is packed into the remaining bytes of a MPEG2-TS frame
+Message-ID: <20100521175456.GL22862@redhat.com>
+References: <4BE2D7A6.30201@gmail.com>
+ <20100520192213.GA19133@redhat.com>
+ <4BF600B2.1080305@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005011123.18211.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4BF600B2.1080305@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 30 April 2010 14:59:45 Matti J. Aaltonen wrote:
-> Hello.
+On Fri, May 21, 2010 at 11:40:34AM +0800, Ang Way Chuang wrote:
+> Hi Jarod,
+>    Thanks for the review. My answers are inlined.
 > 
-> I've implemented most of the changes proposed on the previous review round. 
-> There are some things to be done in the RDS handling...
+> Jarod Wilson wrote:
+> >On Thu, May 06, 2010 at 02:52:22PM -0000, Ang Way Chuang wrote:
+> >>ULE (Unidirectional Lightweight Encapsulation RFC 4326)
+> >>decapsulation code has a bug that incorrectly treats ULE SNDU
+> >>packed into the remaining 2 or 3 bytes of a MPEG2-TS frame as
+> >>having invalid pointer field on the subsequent MPEG2-TS frame.
+> >>
+> >>This patch was generated and tested against v2.6.34-rc6. I
+> >>suspect that this bug was introduced in kernel version 2.6.15,
+> >>but had not verified it.
+> >>
+> >>Care has been taken not to introduce more bug by fixing this bug, but
+> >>please scrutinize the code because I always produces buggy code.
+...
+> >>@@ -534,6 +535,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+> >>				from_where += 2;
+> >>			}
+> >>
+> >>+			priv->ule_sndu_remain = priv->ule_sndu_len + 2;
+> >>			/*
+> >>			 * State of current TS:
+> >>			 *   ts_remain (remaining bytes in the current TS cell)
+> >
+> >Is this *always* true? Your description says "...the remaining 2 or 3
+> >bytes", indicating this could sometimes need to be +3. Is +0 also a
+> >possibility?
+> >
 > 
-> I've left the region handling as it was because neither of the chip's
-> regions cover the complete range. Japan is from 76 - 90MHz and
-> Europe/US is 87.5 to 108 MHz.
+> Not sure whether I understand your question correctly. Here is my
+> attempt to answer your question. The encapsulation format always
+> mandate that at least of 2 bytes of ULE SNDU (the LENGTH field) must
+> be present within a MPEG2-TS frame. So, if only 1 byte of the ULE
+> SNDU get packed into the remaining MPEG2-TS frame, then it is
+> invalid. Of course, there is no issue regarding 0 byte as that would
+> be the case of filling MPEG2-TS frame up to its boundary. New ULE
+> SNDU will have to packed into the next MPEG2-TS frame in that case.
 > 
-> Some of the private IOCTL were not necessary because corresponding standardized
-> controls already exist. And for setting the audio mode to digital or analog
-> I created an ALSA control because that's an audio thing anyway. 
+> Now the problem with existing code is the interpretation of
+> remainder length when 2 or 3 bytes of ULE SNDU are packed into the
+> remainder of MPEG2-TS frame. In the 2 bytes case, only the LENGTH
+> field is available while in the case 3 bytes, only the 1st octet of
+> the 2-octets TYPE field and the LENGTH field are available. The
+> ule_sndu_remain should carry the value of length of ULE SNDU
+> following the the TYPE field. Technically, this would mean that
+> remainder byte of ULE SNDU that need to be received is going to be:
 > 
-> A couple of private IOCTLs are still there: 
+> Value(LENGTH) + 2 (We owe 2 bytes of TYPE field here) if only 2
+> bytes of ULE SNDU is packed (as in the case of case 0: at line 550).
+> This is addressed by adding the priv->ule_sndu_remain =
+> priv->ule_sndu_len + 2;
 > 
-> 1. WL1273_CID_FM_REGION for setting the region. This may not be a good
-> candidate for standardization as the region control shouldn't exist 
-> in the kernel in general...
-
-Is this region relevant for receive, transmit or both?
- 
-> 2. WL1273_CID_FM_SEEK_SPACING: defines what resolution is used when scanning 
-> automatically for stations (50KHz, 100KHz or 200KHz). This could be
-> useful in genaral. Could this be a field in the v4l2_hw_freq_seek struct?
-
-I think this belongs in v4l2_hw_freq_seek.
-
-> 3. WL1273_CID_FM_RDS_CTRL for turning on and off the RDS reception / 
-> transmission. To me this seems like a useful standard control...
-
-This already exists. You can enable/disable RDS by setting the V4L2_TUNER_SUB_RDS
-subchannel bit when calling S_TUNER or S_MODULATOR.
-
-> 4. WL1273_CID_SEARCH_LVL for setting the threshold level when detecting radio
-> channels when doing automatic scan. This could be useful for fine tuning
-> because automatic  scanning seems to be kind of problematic... This could also
-> be a field in the v4l2_hw_freq_seek struct?
-
-This too seems reasonable to add to v4l2_hw_freq_seek. Although what sort of
-unit this level would have might be tricky. What is the unit for your hardware?
- 
-> 5. WL1273_CID_FM_RADIO_MODE: Now the radio has the following modes: off, 
-> suspend, rx and tx. It probably would be better to separate the powering 
-> state (off, on, suspend) from the FM radio state (rx, tx)... 
+> Value(LENGTH) + 1 (We owe 1 byte of TYPE field here) if 3 bytes of
+> ULE SNDU is packed (as in the case of case 1: at 545). This is
+> addressed by adding priv->ule_sndu_remain--;
 > 
-> Could the VIDIOC_S_MODULATOR and VIDIOC_S_TUNER IOCTLs be used for setting the
-> TX/RX mode?
-
-Not entirely sure what you want to achieve here. I gather that the radio is
-either receiving, transmitting or off? So it can't receive and transmit at the
-same time, right?
-
-I would expect in that case that calling S_TUNER or S_MODULATOR would switch it
-to either receive or transmit mode. S_HW_FREQ_SEEK would of course also switch
-it to receive mode.
-
-There isn't anything to turn off the radio at the moment. Perhaps you can just
-automatically turn it off if nobody has the radio device or alsa device open?
- 
-> Now there already exits a class for fm transmitters: V4L2_CTRL_CLASS_FM_TX.
-> Should a corresponding class be created for FM tuners?
-
-I'm not sure that we need any. I think the only control that we need is to set
-the region, and I think that is more appropriate as a private (?) user control
-since it is definitely something that users should be easily able to change.
-
-This probably should be discussed a bit more.
-
-Regards,
-
-	Hans
-
+> If complete ULE header (>= 4 bytes) is available:
+> priv->ule_sndu_remain = priv->ule_sndu_len; at line 582 takes care
+> of the rest and it works just fine in the existing code.
 > 
-> B.R.
-> Matti A.
+> Due to the wrong interpretation of remaining length of ULE SNDU when
+> 2 or 3 bytes of ULE SNDU are packed into a MPEG2-TS frame, the
+> subsequent checking of payload pointer (line 455) always fails
+> leading to unnecessary packet drops.
 > 
-> Matti J. Aaltonen (3):
->   MFD: WL1273 FM Radio: MFD driver for the FM radio.
->   WL1273 FM Radio: Digital audio codec.
->   V4L2: WL1273 FM Radio: Controls for the FM radio.
-> 
->  drivers/media/radio/Kconfig        |   15 +
->  drivers/media/radio/Makefile       |    1 +
->  drivers/media/radio/radio-wl1273.c | 1849 ++++++++++++++++++++++++++++++++++++
->  drivers/mfd/Kconfig                |    6 +
->  drivers/mfd/Makefile               |    2 +
->  drivers/mfd/wl1273-core.c          |  609 ++++++++++++
->  include/linux/mfd/wl1273-core.h    |  323 +++++++
->  sound/soc/codecs/Kconfig           |    6 +
->  sound/soc/codecs/Makefile          |    2 +
->  sound/soc/codecs/wl1273.c          |  587 ++++++++++++
->  sound/soc/codecs/wl1273.h          |   40 +
->  11 files changed, 3440 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/radio/radio-wl1273.c
->  create mode 100644 drivers/mfd/wl1273-core.c
->  create mode 100644 include/linux/mfd/wl1273-core.h
->  create mode 100644 sound/soc/codecs/wl1273.c
->  create mode 100644 sound/soc/codecs/wl1273.h
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+> Looking back at the fix after a few months, I had trouble
+> understanding how these few lines fixed the problem at first glance.
+
+Yeah, my question was whether or not the +2 would account for both the +2
+bytes and +3 bytes situations, and it seems that's handled appropriately
+by the ts_remain switch. Thank you for the detailed explanation.
+
+If you'd alter that nested check for freeing the skb and give it a quick
+test, I'm happy to throw an acked-by or reviewed-by on a followup
+submission.
+
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Jarod Wilson
+jarod@redhat.com
+
