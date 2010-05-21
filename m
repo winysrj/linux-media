@@ -1,116 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25491 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932910Ab0E0Vmc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 May 2010 17:42:32 -0400
-Date: Thu, 27 May 2010 18:42:10 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Guy Martin <gmsoft@tuxicoman.be>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Status of the patches under review (85 patches) and some misc
- notes about the devel procedures
-Message-ID: <20100527184210.3471b7da@pedra>
-In-Reply-To: <20100527160548.0f4ae0ab@zombie>
-References: <20100507093916.2e2ef8e3@pedra>
-	<x2w1a297b361005070610lda8d8d2ve90011bbfff320ee@mail.gmail.com>
-	<4BE4BDB5.60509@redhat.com>
-	<20100527160548.0f4ae0ab@zombie>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:38499 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753062Ab0EUHSD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 May 2010 03:18:03 -0400
+Date: Fri, 21 May 2010 09:17:53 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Baruch Siach <baruch@tkos.co.il>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 2/3] mx27: add support for the CSI device
+Message-ID: <20100521071753.GB17272@pengutronix.de>
+References: <cover.1273150585.git.baruch@tkos.co.il> <2df2fdd7809e836bac3ff4cd2d77aa976e6ca760.1273150585.git.baruch@tkos.co.il>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2df2fdd7809e836bac3ff4cd2d77aa976e6ca760.1273150585.git.baruch@tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 27 May 2010 16:05:48 +0200
-Guy Martin <gmsoft@tuxicoman.be> escreveu:
+On Thu, May 06, 2010 at 04:09:40PM +0300, Baruch Siach wrote:
+> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> ---
+>  arch/arm/mach-mx2/clock_imx27.c |    2 +-
+>  arch/arm/mach-mx2/devices.c     |   31 +++++++++++++++++++++++++++++++
+>  arch/arm/mach-mx2/devices.h     |    1 +
+>  3 files changed, 33 insertions(+), 1 deletions(-)
+> 
+> diff --git a/arch/arm/mach-mx2/clock_imx27.c b/arch/arm/mach-mx2/clock_imx27.c
+> index 0f0823c..5a1aa15 100644
+> --- a/arch/arm/mach-mx2/clock_imx27.c
+> +++ b/arch/arm/mach-mx2/clock_imx27.c
+> @@ -644,7 +644,7 @@ static struct clk_lookup lookups[] = {
+>  	_REGISTER_CLOCK("spi_imx.1", NULL, cspi2_clk)
+>  	_REGISTER_CLOCK("spi_imx.2", NULL, cspi3_clk)
+>  	_REGISTER_CLOCK("imx-fb.0", NULL, lcdc_clk)
+> -	_REGISTER_CLOCK(NULL, "csi", csi_clk)
+> +	_REGISTER_CLOCK("mx2-camera.0", NULL, csi_clk)
+>  	_REGISTER_CLOCK("fsl-usb2-udc", "usb", usb_clk)
+>  	_REGISTER_CLOCK("fsl-usb2-udc", "usb_ahb", usb_clk1)
+>  	_REGISTER_CLOCK("mxc-ehci.0", "usb", usb_clk)
+> diff --git a/arch/arm/mach-mx2/devices.c b/arch/arm/mach-mx2/devices.c
+> index b91e412..de501ac 100644
+> --- a/arch/arm/mach-mx2/devices.c
+> +++ b/arch/arm/mach-mx2/devices.c
+> @@ -40,6 +40,37 @@
+>  
+>  #include "devices.h"
+>  
+> +#ifdef CONFIG_MACH_MX27
+> +static struct resource mx27_camera_resources[] = {
+> +	{
+> +	       .start = CSI_BASE_ADDR,
+> +	       .end = CSI_BASE_ADDR + 0x1f,
+> +	       .flags = IORESOURCE_MEM,
+> +	}, {
+> +	       .start = EMMA_PRP_BASE_ADDR,
+> +	       .end = EMMA_PRP_BASE_ADDR + 0x1f,
+> +	       .flags = IORESOURCE_MEM,
+> +	}, {
+> +	       .start = MXC_INT_CSI,
+> +	       .end = MXC_INT_CSI,
+> +	       .flags = IORESOURCE_IRQ,
+> +	},{
+> +	       .start = MXC_INT_EMMAPRP,
+> +	       .end = MXC_INT_EMMAPRP,
+> +	       .flags = IORESOURCE_IRQ,
+> +	},
+> +};
+> +struct platform_device mx27_camera_device = {
+> +	.name = "mx2-camera",
+> +	.id = 0,
+> +	.num_resources = ARRAY_SIZE(mx27_camera_resources),
+> +	.resource = mx27_camera_resources,
+> +	.dev = {
+> +		.coherent_dma_mask = 0xffffffff,
+> +	},
+> +};
+> +#endif
+> +
+>  /*
+>   * SPI master controller
+>   *
+> diff --git a/arch/arm/mach-mx2/devices.h b/arch/arm/mach-mx2/devices.h
+> index 84ed513..8bdf018 100644
+> --- a/arch/arm/mach-mx2/devices.h
+> +++ b/arch/arm/mach-mx2/devices.h
+> @@ -29,6 +29,7 @@ extern struct platform_device mxc_i2c_device1;
+>  extern struct platform_device mxc_sdhc_device0;
+>  extern struct platform_device mxc_sdhc_device1;
+>  extern struct platform_device mxc_otg_udc_device;
+> +extern struct platform_device mx27_camera_device;
+>  extern struct platform_device mxc_otg_host;
+>  extern struct platform_device mxc_usbh1;
+>  extern struct platform_device mxc_usbh2;
+> -- 
+> 1.7.0
+> 
+>
 
-> 
-> Hi Mauro,
-> 
-> 
-> Sorry for the delay, I was abroad.
-> Let me detail the issue a bit more.
-> 
-> In budget.c, the the frontend is attached this way :
-> 
-> budget->dvb_frontend = dvb_attach(stv090x_attach,
-> &tt1600_stv090x_config, &budget->i2c_adap, STV090x_DEMODULATOR_0);
-> 
-> This means that the tt1600_stv090x_config structure will be common for
-> all the cards.
-> 
-> Then the tuner is attached to the frontend :
-> 
-> ctl = dvb_attach(stv6110x_attach, budget->dvb_frontend,
-> &tt1600_stv6110x_config, &budget->i2c_adap);
-> 
-> Once the tuner is attached, the ops are copied to the config :
-> tt1600_stv090x_config.tuner_sleep         = ctl->tuner_sleep;
-> 
-> This results in the ops being set for subsequently attached cards while
-> fe->tuner_priv is NULL.
-> 
-> This is why a check for tuner_priv being set is mandatory when calling
-> tuner_sleep(). However as pointed out, it may not be the best fix.
+Please amend the following to this patch to make it compile on i.MX27:
+ 
+>From f1dc7e4c35ea0847e5527d9db50b6343c655de8c Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Thu, 20 May 2010 13:36:11 +0200
+Subject: [PATCH 1/2] mx27 devices: Fix CSI/EMMA base addresses
 
-Ok. I'll commit it for now, as it is a simple patch and can be easily be applied
-at stable. The proper patch would be to avoid calling the function at the
-second board with tuner_priv = NULL.
-> 
-> Regards,
->   Guy
-> 
-> 
-> 
-> On Fri, 07 May 2010 22:26:13 -0300
-> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> 
-> > Manu Abraham wrote:
-> > > On Fri, May 7, 2010 at 4:39 PM, Mauro Carvalho Chehab
-> > > <mchehab@redhat.com> wrote:
-> > >> Hi,
-> > >>
-> > > 
-> > >> This is the summary of the patches that are currently under review.
-> > >> Each patch is represented by its submission date, the subject (up
-> > >> to 70 chars) and the patchwork link (if submitted via email).
-> > >>
-> > >> P.S.: This email is c/c to the developers that some review action
-> > >> is expected.
-> > >>
-> > >> May, 7 2010: [v2] stv6110x Fix kernel null pointer deref when
-> > >> plugging two TT s2-16 http://patchwork.kernel.org/patch/97612
-> > > 
-> > > 
-> > > How is this patch going to fix a NULL ptr dereference when more
-> > > than 1 card is plugged in ? The patch doesn't seem to do what the
-> > > patch title implies. At least the patch title seems to be wrong.
-> > > Maybe the patch is supposed to check for a possible NULL ptr
-> > > dereference when put to sleep ?
-> > 
-> > (c/c patch author, to be sure that he'll see your explanation request)
-> > 
-> > His original patch is at:
-> > 	https://patchwork.kernel.org/patch/91929/
-> > 
-> > The original description with the bug were much better than version 2.
-> > 
-> > From his OOPS log and description, I suspect that he's facing some
-> > sort of race condition with the two cards. 
-> > 
-> > This fix seems still valid (with an updated comment), as his dump
-> > proofed that there are some cases where fe->tuner_priv can be null, 
-> > generating an OOPS, but it seems that his patch is combating
-> > the effect, and not the cause.
-> > 
-> > So, I am for adding his patch for now, and then work on a more
-> > complete approach for the two cards environment.
-> > 
-> 
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ arch/arm/mach-mx2/devices.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/arch/arm/mach-mx2/devices.c b/arch/arm/mach-mx2/devices.c
+index de501ac..6a49c79 100644
+--- a/arch/arm/mach-mx2/devices.c
++++ b/arch/arm/mach-mx2/devices.c
+@@ -43,20 +43,20 @@
+ #ifdef CONFIG_MACH_MX27
+ static struct resource mx27_camera_resources[] = {
+ 	{
+-	       .start = CSI_BASE_ADDR,
+-	       .end = CSI_BASE_ADDR + 0x1f,
++	       .start = MX27_CSI_BASE_ADDR,
++	       .end = MX27_CSI_BASE_ADDR + 0x1f,
+ 	       .flags = IORESOURCE_MEM,
+ 	}, {
+-	       .start = EMMA_PRP_BASE_ADDR,
+-	       .end = EMMA_PRP_BASE_ADDR + 0x1f,
++	       .start = MX27_EMMA_PRP_BASE_ADDR,
++	       .end = MX27_EMMA_PRP_BASE_ADDR + 0x1f,
+ 	       .flags = IORESOURCE_MEM,
+ 	}, {
+-	       .start = MXC_INT_CSI,
+-	       .end = MXC_INT_CSI,
++	       .start = MX27_INT_CSI,
++	       .end = MX27_INT_CSI,
+ 	       .flags = IORESOURCE_IRQ,
+ 	},{
+-	       .start = MXC_INT_EMMAPRP,
+-	       .end = MXC_INT_EMMAPRP,
++	       .start = MX27_INT_EMMAPRP,
++	       .end = MX27_INT_EMMAPRP,
+ 	       .flags = IORESOURCE_IRQ,
+ 	},
+ };
+-- 
+1.7.0
 
 
 -- 
-
-Cheers,
-Mauro
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
