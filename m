@@ -1,259 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4906 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295Ab0EIT1e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 15:27:34 -0400
-Received: from localhost (cm-84.208.87.21.getinternet.no [84.208.87.21])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o49JRWUH037432
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 9 May 2010 21:27:33 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Message-Id: <995b321ab2b5df48dd204bd1915bc79e19a118e2.1273432986.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1273432986.git.hverkuil@xs4all.nl>
-References: <cover.1273432986.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 09 May 2010 21:29:07 +0200
-Subject: [PATCH 1/7] [RFC] v4l2_prio: move from v4l2-common to v4l2-device.
-To: linux-media@vger.kernel.org
+Received: from ns01.unsolicited.net ([69.10.132.115]:3463 "EHLO
+	ns01.unsolicited.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934253Ab0EUSlf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 May 2010 14:41:35 -0400
+Message-ID: <4BF6CF82.1080704@unsolicited.net>
+Date: Fri, 21 May 2010 19:22:58 +0100
+From: David <david@unsolicited.net>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Warning when loading technisat driver (2.6.34)
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We are going to move priority handling into the v4l2 core. As a consequence
-the v4l2_prio helper functions need to be moved into the core videodev
-module as well to prevent circular dependencies.
+I've just upgraded my media box, and get the following warning on
+startup. All seems well otherwise, so this is a FYI
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/cpia2/cpia2.h          |    1 +
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c |    1 +
- drivers/media/video/v4l2-common.c          |   59 ---------------------------
- drivers/media/video/v4l2-device.c          |   61 ++++++++++++++++++++++++++++
- include/media/v4l2-common.h                |   15 -------
- include/media/v4l2-device.h                |   15 +++++++
- 6 files changed, 78 insertions(+), 74 deletions(-)
+Cheers
 
-diff --git a/drivers/media/video/cpia2/cpia2.h b/drivers/media/video/cpia2/cpia2.h
-index 8d2dfc1..4e2f623 100644
---- a/drivers/media/video/cpia2/cpia2.h
-+++ b/drivers/media/video/cpia2/cpia2.h
-@@ -33,6 +33,7 @@
- 
- #include <linux/version.h>
- #include <linux/videodev.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <linux/usb.h>
- #include <linux/poll.h>
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-index 338bcc6..9b521f2 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-v4l2.c
-@@ -29,6 +29,7 @@
- #include "pvrusb2-ioread.h"
- #include <linux/videodev2.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 4e53b0b..b53c497 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -81,65 +81,6 @@ MODULE_LICENSE("GPL");
-  */
- 
- 
--/* ----------------------------------------------------------------- */
--/* priority handling                                                 */
--
--#define V4L2_PRIO_VALID(val) (val == V4L2_PRIORITY_BACKGROUND   || \
--			      val == V4L2_PRIORITY_INTERACTIVE  || \
--			      val == V4L2_PRIORITY_RECORD)
--
--void v4l2_prio_init(struct v4l2_prio_state *global)
--{
--	memset(global, 0, sizeof(*global));
--}
--EXPORT_SYMBOL(v4l2_prio_init);
--
--int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
--		     enum v4l2_priority new)
--{
--	if (!V4L2_PRIO_VALID(new))
--		return -EINVAL;
--	if (*local == new)
--		return 0;
--
--	atomic_inc(&global->prios[new]);
--	if (V4L2_PRIO_VALID(*local))
--		atomic_dec(&global->prios[*local]);
--	*local = new;
--	return 0;
--}
--EXPORT_SYMBOL(v4l2_prio_change);
--
--void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local)
--{
--	v4l2_prio_change(global, local, V4L2_PRIORITY_DEFAULT);
--}
--EXPORT_SYMBOL(v4l2_prio_open);
--
--void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local)
--{
--	if (V4L2_PRIO_VALID(local))
--		atomic_dec(&global->prios[local]);
--}
--EXPORT_SYMBOL(v4l2_prio_close);
--
--enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global)
--{
--	if (atomic_read(&global->prios[V4L2_PRIORITY_RECORD]) > 0)
--		return V4L2_PRIORITY_RECORD;
--	if (atomic_read(&global->prios[V4L2_PRIORITY_INTERACTIVE]) > 0)
--		return V4L2_PRIORITY_INTERACTIVE;
--	if (atomic_read(&global->prios[V4L2_PRIORITY_BACKGROUND]) > 0)
--		return V4L2_PRIORITY_BACKGROUND;
--	return V4L2_PRIORITY_UNSET;
--}
--EXPORT_SYMBOL(v4l2_prio_max);
--
--int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local)
--{
--	return (local < v4l2_prio_max(global)) ? -EBUSY : 0;
--}
--EXPORT_SYMBOL(v4l2_prio_check);
- 
- /* ----------------------------------------------------------------- */
- 
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index 5a7dc4a..2386ae6 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -142,3 +142,64 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 	module_put(sd->owner);
- }
- EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
-+
-+/* ----------------------------------------------------------------- */
-+
-+/* priority handling helper functions */
-+
-+#define V4L2_PRIO_VALID(val) (val == V4L2_PRIORITY_BACKGROUND   || \
-+			      val == V4L2_PRIORITY_INTERACTIVE  || \
-+			      val == V4L2_PRIORITY_RECORD)
-+
-+void v4l2_prio_init(struct v4l2_prio_state *global)
-+{
-+	memset(global, 0, sizeof(*global));
-+}
-+EXPORT_SYMBOL(v4l2_prio_init);
-+
-+int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
-+		     enum v4l2_priority new)
-+{
-+	if (!V4L2_PRIO_VALID(new))
-+		return -EINVAL;
-+	if (*local == new)
-+		return 0;
-+
-+	atomic_inc(&global->prios[new]);
-+	if (V4L2_PRIO_VALID(*local))
-+		atomic_dec(&global->prios[*local]);
-+	*local = new;
-+	return 0;
-+}
-+EXPORT_SYMBOL(v4l2_prio_change);
-+
-+void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local)
-+{
-+	v4l2_prio_change(global, local, V4L2_PRIORITY_DEFAULT);
-+}
-+EXPORT_SYMBOL(v4l2_prio_open);
-+
-+void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local)
-+{
-+	if (V4L2_PRIO_VALID(local))
-+		atomic_dec(&global->prios[local]);
-+}
-+EXPORT_SYMBOL(v4l2_prio_close);
-+
-+enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global)
-+{
-+	if (atomic_read(&global->prios[V4L2_PRIORITY_RECORD]) > 0)
-+		return V4L2_PRIORITY_RECORD;
-+	if (atomic_read(&global->prios[V4L2_PRIORITY_INTERACTIVE]) > 0)
-+		return V4L2_PRIORITY_INTERACTIVE;
-+	if (atomic_read(&global->prios[V4L2_PRIORITY_BACKGROUND]) > 0)
-+		return V4L2_PRIORITY_BACKGROUND;
-+	return V4L2_PRIORITY_UNSET;
-+}
-+EXPORT_SYMBOL(v4l2_prio_max);
-+
-+int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local)
-+{
-+	return (local < v4l2_prio_max(global)) ? -EBUSY : 0;
-+}
-+EXPORT_SYMBOL(v4l2_prio_check);
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 98b3264..e086917 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -80,21 +80,6 @@
- 
- /* ------------------------------------------------------------------------- */
- 
--/* Priority helper functions */
--
--struct v4l2_prio_state {
--	atomic_t prios[4];
--};
--void v4l2_prio_init(struct v4l2_prio_state *global);
--int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
--		     enum v4l2_priority new);
--void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local);
--void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local);
--enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global);
--int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local);
--
--/* ------------------------------------------------------------------------- */
--
- /* Control helper functions */
- 
- int v4l2_ctrl_check(struct v4l2_ext_control *ctrl, struct v4l2_queryctrl *qctrl,
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index 5d5d550..b497e53 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -23,6 +23,11 @@
- 
- #include <media/v4l2-subdev.h>
- 
-+/* struct to keep track of the access priority state */
-+struct v4l2_prio_state {
-+	atomic_t prios[4];
-+};
-+
- /* Each instance of a V4L2 device should create the v4l2_device struct,
-    either stand-alone or embedded in a larger struct.
- 
-@@ -49,6 +54,16 @@ struct v4l2_device {
- 			unsigned int notification, void *arg);
- };
- 
-+/* Priority helper functions */
-+
-+void v4l2_prio_init(struct v4l2_prio_state *global);
-+int v4l2_prio_change(struct v4l2_prio_state *global, enum v4l2_priority *local,
-+		     enum v4l2_priority new);
-+void v4l2_prio_open(struct v4l2_prio_state *global, enum v4l2_priority *local);
-+void v4l2_prio_close(struct v4l2_prio_state *global, enum v4l2_priority local);
-+enum v4l2_priority v4l2_prio_max(struct v4l2_prio_state *global);
-+int v4l2_prio_check(struct v4l2_prio_state *global, enum v4l2_priority local);
-+
- /* Initialize v4l2_dev and make dev->driver_data point to v4l2_dev.
-    dev may be NULL in rare cases (ISA devices). In that case you
-    must fill in the v4l2_dev->name field before calling this function. */
--- 
-1.6.4.2
+
+May 21 19:05:54 server kernel: [    7.950291] ------------[ cut here
+]------------
+May 21 19:05:54 server kernel: [    7.950296] WARNING: at
+fs/proc/generic.c:317 __xlate_proc_name+0xa5/0xd0()
+May 21 19:05:54 server kernel: [    7.950298] Hardware name: System
+Product Name
+May 21 19:05:54 server kernel: [    7.950299] name 'Technisat/B2C2
+FlexCop II/IIb/III Digital TV PCI Driver'
+May 21 19:05:54 server kernel: [    7.950300] Modules linked in:
+b2c2_flexcop_pci(+) snd_hda_codec dvb_usb snd_pcm pl2303 ppdev crc_ccitt
+tulip b2c2_flexcop snd_timer snd soundcore r8169 ohci1394 parport_pc
+dvb_core shpchp mii i2c_piix4 ieee1394 parport cx24123 cx24113 s5h1420
+k10temp snd_page_alloc pcspkr isdn
+May 21 19:05:54 server kernel: [    7.950311] Pid: 942, comm: modprobe
+Not tainted 2.6.34 #1
+May 21 19:05:54 server kernel: [    7.950312] Call Trace:
+May 21 19:05:54 server kernel: [    7.950316]  [<ffffffff81166865>] ?
+__xlate_proc_name+0xa5/0xd0
+May 21 19:05:54 server kernel: [    7.950319]  [<ffffffff81048678>]
+warn_slowpath_common+0x78/0xd0
+May 21 19:05:54 server kernel: [    7.950322]  [<ffffffff81048754>]
+warn_slowpath_fmt+0x64/0x70
+May 21 19:05:54 server kernel: [    7.950325]  [<ffffffff81263a79>] ?
+snprintf+0x59/0x60
+May 21 19:05:54 server kernel: [    7.950327]  [<ffffffff81166865>]
+__xlate_proc_name+0xa5/0xd0
+May 21 19:05:54 server kernel: [    7.950329]  [<ffffffff81166e24>]
+__proc_create+0x74/0x150
+May 21 19:05:54 server kernel: [    7.950331]  [<ffffffff81167739>]
+proc_mkdir_mode+0x29/0x60
+May 21 19:05:54 server kernel: [    7.950333]  [<ffffffff81167781>]
+proc_mkdir+0x11/0x20
+May 21 19:05:54 server kernel: [    7.950336]  [<ffffffff810a7914>]
+register_handler_proc+0xf4/0x120
+May 21 19:05:54 server kernel: [    7.950338]  [<ffffffff810a53c9>]
+__setup_irq+0x1d9/0x350
+May 21 19:05:54 server kernel: [    7.950341]  [<ffffffffa01bb190>] ?
+flexcop_pci_isr+0x0/0x190 [b2c2_flexcop_pci]
+May 21 19:05:54 server kernel: [    7.950343]  [<ffffffff810a56cb>]
+request_threaded_irq+0x18b/0x210
+May 21 19:05:54 server kernel: [    7.950347]  [<ffffffffa01bb4ae>]
+flexcop_pci_probe+0x18e/0x360 [b2c2_flexcop_pci]
+May 21 19:05:54 server kernel: [    7.950349]  [<ffffffff812776c2>]
+local_pci_probe+0x12/0x20
+May 21 19:05:54 server kernel: [    7.950351]  [<ffffffff81278790>]
+pci_device_probe+0x80/0xa0
+May 21 19:05:54 server kernel: [    7.950354]  [<ffffffff81305b93>] ?
+driver_sysfs_add+0x63/0x90
+May 21 19:05:54 server kernel: [    7.950356]  [<ffffffff81305cd2>]
+driver_probe_device+0x92/0x1a0
+May 21 19:05:54 server kernel: [    7.950359]  [<ffffffff81305e73>]
+__driver_attach+0x93/0xa0
+May 21 19:05:54 server kernel: [    7.950361]  [<ffffffff81305de0>] ?
+__driver_attach+0x0/0xa0
+May 21 19:05:54 server kernel: [    7.950363]  [<ffffffff81305403>]
+bus_for_each_dev+0x63/0x90
+May 21 19:05:54 server kernel: [    7.950365]  [<ffffffff81305b2c>]
+driver_attach+0x1c/0x20
+May 21 19:05:54 server kernel: [    7.950367]  [<ffffffff81304c15>]
+bus_add_driver+0x1a5/0x2e0
+May 21 19:05:54 server kernel: [    7.950369]  [<ffffffffa01bf000>] ?
+flexcop_pci_module_init+0x0/0x20 [b2c2_flexcop_pci]
+May 21 19:05:54 server kernel: [    7.950371]  [<ffffffff81306179>]
+driver_register+0x79/0x160
+May 21 19:05:54 server kernel: [    7.950374]  [<ffffffffa01bf000>] ?
+flexcop_pci_module_init+0x0/0x20 [b2c2_flexcop_pci]
+May 21 19:05:54 server kernel: [    7.950376]  [<ffffffff81278a2a>]
+__pci_register_driver+0x5a/0xe0
+May 21 19:05:54 server kernel: [    7.950378]  [<ffffffffa01bf000>] ?
+flexcop_pci_module_init+0x0/0x20 [b2c2_flexcop_pci]
+May 21 19:05:54 server kernel: [    7.950381]  [<ffffffffa01bf01e>]
+flexcop_pci_module_init+0x1e/0x20 [b2c2_flexcop_pci]
+May 21 19:05:54 server kernel: [    7.950383]  [<ffffffff810001d8>]
+do_one_initcall+0x38/0x190
+May 21 19:05:54 server kernel: [    7.950386]  [<ffffffff8108130d>]
+sys_init_module+0xdd/0x260
+May 21 19:05:54 server kernel: [    7.950388]  [<ffffffff81002e2b>]
+system_call_fastpath+0x16/0x1b
+May 21 19:05:54 server kernel: [    7.950389] ---[ end trace
+da2237741ef2a8c0 ]---
 
