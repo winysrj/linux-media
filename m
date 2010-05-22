@@ -1,131 +1,258 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45789 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750830Ab0EPE7w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 May 2010 00:59:52 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: hermann pitton <hermann-pitton@arcor.de>
-Subject: Re: av7110 and budget_av are broken!
-Date: Sun, 16 May 2010 06:21:48 +0200
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	e9hack <e9hack@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <ee20bb7da9d2708352bb7236108294d5.squirrel@webmail.xs4all.nl> <AANLkTimRAmxOL_eilVew3E9cabznR0_H2QZsvAXWM-bk@mail.gmail.com> <1273974828.3200.12.camel@pc07.localdom.local>
-In-Reply-To: <1273974828.3200.12.camel@pc07.localdom.local>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201005160622.00278@orion.escape-edv.de>
+Received: from oproxy2-pub.bluehost.com ([67.222.39.60]:52815 "HELO
+	oproxy2-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754153Ab0EVLta convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 May 2010 07:49:30 -0400
+Received: from 174.14.54.77.rev.vodafone.pt ([77.54.14.174] helo=[10.0.0.238])
+	by box472.bluehost.com with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <seabra@ptolom.eu>)
+	id 1OFn6O-0006Bx-94
+	for linux-media@vger.kernel.org; Sat, 22 May 2010 05:42:50 -0600
+Subject: Re: Afatech 9035 + NXP 18291 = GT-U7200
+From: =?ISO-8859-1?Q?Jo=E3o?= Seabra <seabra@ptolom.eu>
+To: linux-media@vger.kernel.org
+In-Reply-To: <1273964670.1693.15.camel@nomad>
+References: <1273964670.1693.15.camel@nomad>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 22 May 2010 12:42:38 +0100
+Message-ID: <1274528558.1608.0.camel@nomad>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 16 May 2010 03:53:48 hermann pitton wrote:
+Anyone? :-)
+
+Thanks
+
+On Sun, 2010-05-16 at 00:04 +0100, João Seabra wrote:
+> Good evening,
 > 
-> Am Samstag, den 15.05.2010, 22:33 -0300 schrieb Douglas Schilling
-> Landgraf:
-> > Hello Oliver,
-> > 
-> > On Sat, May 15, 2010 at 8:06 PM, Oliver Endriss <o.endriss@gmx.de> wrote:
-> > > On Wednesday 21 April 2010 11:44:16 Oliver Endriss wrote:
-> > >> On Wednesday 21 April 2010 08:37:39 Hans Verkuil wrote:
-> > >> > > Am 22.3.2010 20:34, schrieb e9hack:
-> > >> > >> Am 20.3.2010 22:37, schrieb Hans Verkuil:
-> > >> > >>> On Saturday 20 March 2010 17:03:01 e9hack wrote:
-> > >> > >>> OK, I know that. But does the patch I mailed you last time fix this
-> > >> > >>> problem
-> > >> > >>> without causing new ones? If so, then I'll post that patch to the list.
-> > >> > >>
-> > >> > >> With your last patch, I've no problems. I'm using a a TT-C2300 and a
-> > >> > >> Budget card. If my
-> > >> > >> VDR does start, currently I've no chance to determine which module is
-> > >> > >> load first, but it
-> > >> > >> works. If I unload all modules and load it again, I've no problem. In
-> > >> > >> this case, the
-> > >> > >> modules for the budget card is load first and the modules for the FF
-> > >> > >> loads as second one.
-> > >> > >
-> > >> > > Ping!!!!!!
-> > >> >
-> > >> > It's merged in Mauro's fixes tree, but I don't think those pending patches
-> > >> > have been pushed upstream yet. Mauro, can you verify this? They should be
-> > >> > pushed to 2.6.34!
-> > >>
-> > >> What about the HG driver?
-> > >> The v4l-dvb HG repository is broken for 7 weeks...
-> > >
-> > > Hi guys,
-> > >
-> > > we have May 16th, and the HG driver is broken for 10 weeks now!
-> > >
-> > > History:
-> > > - The changeset which caused the mess was applied on March 2nd:
-> > >  http://linuxtv.org/hg/v4l-dvb/rev/2eda2bcc8d6f
-> > >
-> > > - A fix is waiting at fixes.git since March 24th:
-> > >  http://git.linuxtv.org/fixes.git?a=commitdiff_plain;h=40358c8b5380604ac2507be2fac0c9bbd3e02b73
-> > >
-> > > Are there any plans to bring v4ldvb HG to an usable state?
-> > 
-> > Yes, Now I will collect patches from devel and fixes tree. At least
-> > until we achieve a better approach on it.
-> > Sorry the delay.
-> > 
-> > Sounds good? Any other suggestion?
-> > 
-> > Let me work on it.
-> > 
-> > Cheers
-> > Douglas
+> I have a gigabyte gt-u7200 but since it's new i believe there aren't any
+> drivers available
+> On the webpage
+> http://www.gigabyte.com.tw/Products/TVCard/Products_Spec.aspx?ClassValue=TV+Card&ProductID=2875&ProductName=GT-U7200 says it has a NXP18291 tuner and the decoder chip is Afatech 9035.
+> All i found related to Afatech 9035 was this post from December 2008:
+> http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030923.html and
+> the feature request in ubuntu :
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/519544
+> 
+> I tried to compile the 9035 driver but it has no instructions and fails.
+> 
+> Could someone give me some details if its simple/possible to have a
+> driver for this usb pen?
+> 
+> Kind Regards,
+>  João Seabra
+> 
+> dmesg output:
+> [  115.175224] usbcore: registered new interface driver usbhid
+> [  115.175227] usbhid: v2.6:USB HID core driver
+> [ 1967.463143] usb 2-1: USB disconnect, address 2
+> [ 6654.750267] usb 2-1: new high speed USB device using ehci_hcd and
+> address 3
+> [ 6654.907301] usb 2-1: configuration #1 chosen from 1 choice
+> [ 6654.914557] input: GIGABYTE Technologies Inc. U7200 USB TV Device
+> as /devices/pci0000:00/0000:00:1d.7/usb2/2-1/2-1:1.1/input/input11
+> [ 6654.914771] generic-usb 0003:1044:7005.0002: input,hidraw0: USB HID
+> v1.01 Keyboard [GIGABYTE Technologies Inc. U7200 USB TV Device] on
+> usb-0000:00:1d.7-1/input1
+> 
+> lsusb -v:
+> Bus 002 Device 003: ID 1044:7005 Chu Yuen Enterprise Co., Ltd 
+> Device Descriptor:
+>   bLength                18
+>   bDescriptorType         1
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0 
+>   bDeviceProtocol         0 
+>   bMaxPacketSize0        64
+>   idVendor           0x1044 Chu Yuen Enterprise Co., Ltd
+>   idProduct          0x7005 
+>   bcdDevice            2.00
+>   iManufacturer           1 GIGABYTE Technologies Inc.
+>   iProduct                2 U7200 USB TV Device
+>   iSerial                 3 AF0102020700001
+>   bNumConfigurations      1
+>   Configuration Descriptor:
+>     bLength                 9
+>     bDescriptorType         2
+>     wTotalLength          122
+>     bNumInterfaces          2
+>     bConfigurationValue     1
+>     iConfiguration          0 
+>     bmAttributes         0x80
+>       (Bus Powered)
+>     MaxPower              500mA
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       0
+>       bNumEndpoints           5
+>       bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol      0 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x02  EP 2 OUT
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>        bEndpointAddress     0x85  EP 5 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x86  EP 6 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0000  1x 0 bytes
+>         bInterval               1
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        0
+>       bAlternateSetting       1
+>       bNumEndpoints           5
+>      bInterfaceClass       255 Vendor Specific Class
+>       bInterfaceSubClass      0 
+>       bInterfaceProtocol      0 
+>       iInterface              0 
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x81  EP 1 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x02  EP 2 OUT
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>        bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x84  EP 4 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x85  EP 5 IN
+>         bmAttributes            2
+>           Transfer Type            Bulk
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0200  1x 512 bytes
+>         bInterval               0
+>       Endpoint Descriptor:
+>         bLength                 7
+>        bDescriptorType         5
+>         bEndpointAddress     0x86  EP 6 IN
+>         bmAttributes            1
+>           Transfer Type            Isochronous
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x1400  3x 1024 bytes
+>         bInterval               1
+>     Interface Descriptor:
+>       bLength                 9
+>       bDescriptorType         4
+>       bInterfaceNumber        1
+>       bAlternateSetting       0
+>       bNumEndpoints           1
+>       bInterfaceClass         3 Human Interface Device
+>       bInterfaceSubClass      0 No Subclass
+>       bInterfaceProtocol      1 Keyboard
+>       iInterface              0 
+>         HID Device Descriptor:
+>           bLength                 9
+>           bDescriptorType        33
+>           bcdHID               1.01
+>           bCountryCode            0 Not supported
+>           bNumDescriptors         1
+>           bDescriptorType        34 Report
+>           wDescriptorLength      65
+>          Report Descriptors: 
+>            ** UNAVAILABLE **
+>       Endpoint Descriptor:
+>         bLength                 7
+>         bDescriptorType         5
+>         bEndpointAddress     0x83  EP 3 IN
+>         bmAttributes            3
+>           Transfer Type            Interrupt
+>           Synch Type               None
+>           Usage Type               Data
+>         wMaxPacketSize     0x0040  1x 64 bytes
+>         bInterval              16
+> Device Qualifier (for other device speed):
+>   bLength                10
+>   bDescriptorType         6
+>   bcdUSB               2.00
+>   bDeviceClass            0 (Defined at Interface level)
+>   bDeviceSubClass         0 
+>   bDeviceProtocol         0 
+>   bMaxPacketSize0        64
+>  bNumConfigurations      1
+> Device Status:     0x0000
+>   (Bus Powered)
 > 
 > 
-> Hi, Douglas and Oliver,
-> 
-> just as a small comment.
-> 
-> I have not been on latest rc1 and such rcs close to a release for some
-> time.
->
-> But I was for a long time and v4l-dvb can't be a substitute for such.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Sorry, I do not want to cope with experimental kernels and their bugs on
-my systems. I need a stable and reliable platform, so that I can
-concentrate on 'my' bugs.
 
-Usually I update the kernel every 3..4 releases (which causes enough
-trouble due to changed features, interfaces etc).
-
-> Despite of getting more users for testing, on _that_ front does not
-> happen such much currently, keeping v4l-dvb is mostly a service for
-> developers this time.
-> 
-> So, contributing on the backports and helping Douglas with such is
-> really welcome.
-
-I confess that I do not know much about the tree handling procedures of
-the kernel. Imho it sounds crazy to have separate 'fixes' and
-'development' trees.
-
-A developer's tree (no matter whether HG or GIT) must also include the
-fixes, otherwise it is unusable. You cannot wait until applied fixes
-flow back from the kernel.
-
-Btw, the v4ldvb HG repositories contain tons of disabled code (marked
-'#if 0'), which was stripped for submission to the kernel.
-Even if we would switch to GIT completely, we need a separate GIT
-repository which would hold the original code.
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
