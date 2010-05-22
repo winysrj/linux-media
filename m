@@ -1,54 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36699 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756077Ab0EXLZG (ORCPT
+Received: from 124x34x33x190.ap124.ftth.ucom.ne.jp ([124.34.33.190]:55544 "EHLO
+	master.linux-sh.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752437Ab0EVHqh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 07:25:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Tentative agenda for Helsinki mini-summit
-Date: Mon, 24 May 2010 13:24:55 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	"Zhong, Jeff" <hzhong@quicinc.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	Sergio Rodriguez <saaguirre@ti.com>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans de Goede <hdegoede@redhat.com>
-References: <201005231236.49048.hverkuil@xs4all.nl> <4BF91DDA.7050309@redhat.com>
-In-Reply-To: <4BF91DDA.7050309@redhat.com>
+	Sat, 22 May 2010 03:46:37 -0400
+Date: Sat, 22 May 2010 16:46:32 +0900
+From: Paul Mundt <lethal@linux-sh.org>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
+Subject: Re: [PATCH] SH: add Video Output Unit and AK8813 video encoder support on ecovec
+Message-ID: <20100522074632.GC17814@linux-sh.org>
+References: <Pine.LNX.4.64.1004211039220.5292@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005241324.56472.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1004211039220.5292@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Sunday 23 May 2010 14:21:46 Mauro Carvalho Chehab wrote:
-> Hans Verkuil wrote:
-
-[snip]
-
-> > Comments? Topics I missed?
+On Wed, Apr 21, 2010 at 10:45:25AM +0200, Guennadi Liakhovetski wrote:
+> Ecovec uses the AK8813 video envoder similarly to the ms7724se platform with
+> the only difference, that on ecovec GPIOs are used for resetting and powering
+> up and down the chip.
 > 
-> I'd like to add another topic: Remote Controllers. I propose to do a short
-> presentation on this theme, showing how the new RC subsystem was conceived
-> and discussing a little bit about possible evolutions of it. One of the
-> things I'm interested on getting feedback is about how Linux embedded
-> devices are currently handing IR. All Linux TV sets, set top boxes and
-> other device types have IR, but I've seen no contributions from embedded
-> developers at RC code. So, after a short presentation, I think we should
-> reserve some time for discussions.
-
-I have no experience at all with IR in V4L2, and I think that's true for the 
-other developers at Nokia. Will there be someone at the mini-summit who has 
-experience or is interested in the topic ?
-
--- 
-Regards,
-
-Laurent Pinchart
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> This patch extends the SuperH VOU / AK881x patch series: 
+> http://thread.gmane.org/gmane.linux.ports.sh.devel/7751/focus=7753
+> 
+>  arch/sh/boards/mach-ecovec24/setup.c |   78 ++++++++++++++++++++++++++++++++++
+>  1 files changed, 78 insertions(+), 0 deletions(-)
+> 
+Applied, thanks.
