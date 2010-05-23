@@ -1,80 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:59196 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753370Ab0EPBdO convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4901 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754307Ab0EWMlk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 May 2010 21:33:14 -0400
-Received: by vws9 with SMTP id 9so1012626vws.19
-        for <linux-media@vger.kernel.org>; Sat, 15 May 2010 18:33:12 -0700 (PDT)
+	Sun, 23 May 2010 08:41:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
+Subject: Re: [PATCH v3 8/8] V4L2 subdev patchset for Intel Moorestown Camera Imaging Subsystem
+Date: Sun, 23 May 2010 14:43:21 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <33AB447FBD802F4E932063B962385B351E895735@shsmsx501.ccr.corp.intel.com>
+In-Reply-To: <33AB447FBD802F4E932063B962385B351E895735@shsmsx501.ccr.corp.intel.com>
 MIME-Version: 1.0
-In-Reply-To: <201005160106.56028@orion.escape-edv.de>
-References: <ee20bb7da9d2708352bb7236108294d5.squirrel@webmail.xs4all.nl>
-	 <201004211144.19591@orion.escape-edv.de>
-	 <201005160106.56028@orion.escape-edv.de>
-Date: Sat, 15 May 2010 22:33:12 -0300
-Message-ID: <AANLkTimRAmxOL_eilVew3E9cabznR0_H2QZsvAXWM-bk@mail.gmail.com>
-Subject: Re: av7110 and budget_av are broken!
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	e9hack <e9hack@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005231443.21136.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Oliver,
+On Tuesday 18 May 2010 11:23:56 Zhang, Xiaolin wrote:
+> From fb60254ff50703b8b8301d6708371be011f1050e Mon Sep 17 00:00:00 2001
+> From: Xiaolin Zhang <xiaolin.zhang@intel.com>
+> Date: Tue, 18 May 2010 15:27:48 +0800
+> Subject: [PATCH 8/8] This patch is to add National Semiconductor LM3553 flash LED driver support
+>  which is based on the video4linux2 sub-dev driver framework.
+> 
+> Signed-off-by: Xiaolin Zhang <xiaolin.zhang@intel.com>
 
-On Sat, May 15, 2010 at 8:06 PM, Oliver Endriss <o.endriss@gmx.de> wrote:
-> On Wednesday 21 April 2010 11:44:16 Oliver Endriss wrote:
->> On Wednesday 21 April 2010 08:37:39 Hans Verkuil wrote:
->> > > Am 22.3.2010 20:34, schrieb e9hack:
->> > >> Am 20.3.2010 22:37, schrieb Hans Verkuil:
->> > >>> On Saturday 20 March 2010 17:03:01 e9hack wrote:
->> > >>> OK, I know that. But does the patch I mailed you last time fix this
->> > >>> problem
->> > >>> without causing new ones? If so, then I'll post that patch to the list.
->> > >>
->> > >> With your last patch, I've no problems. I'm using a a TT-C2300 and a
->> > >> Budget card. If my
->> > >> VDR does start, currently I've no chance to determine which module is
->> > >> load first, but it
->> > >> works. If I unload all modules and load it again, I've no problem. In
->> > >> this case, the
->> > >> modules for the budget card is load first and the modules for the FF
->> > >> loads as second one.
->> > >
->> > > Ping!!!!!!
->> >
->> > It's merged in Mauro's fixes tree, but I don't think those pending patches
->> > have been pushed upstream yet. Mauro, can you verify this? They should be
->> > pushed to 2.6.34!
->>
->> What about the HG driver?
->> The v4l-dvb HG repository is broken for 7 weeks...
->
-> Hi guys,
->
-> we have May 16th, and the HG driver is broken for 10 weeks now!
->
-> History:
-> - The changeset which caused the mess was applied on March 2nd:
->  http://linuxtv.org/hg/v4l-dvb/rev/2eda2bcc8d6f
->
-> - A fix is waiting at fixes.git since March 24th:
->  http://git.linuxtv.org/fixes.git?a=commitdiff_plain;h=40358c8b5380604ac2507be2fac0c9bbd3e02b73
->
-> Are there any plans to bring v4ldvb HG to an usable state?
+Hmm, this driver doesn't seem to do anything. How is the flash supposed to work?
 
-Yes, Now I will collect patches from devel and fixes tree. At least
-until we achieve a better approach on it.
-Sorry the delay.
+Regards,
 
-Sounds good? Any other suggestion?
+	Hans
 
-Let me work on it.
+> ---
+>  drivers/media/video/mrstflash.c |  151 +++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 151 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/media/video/mrstflash.c
+> 
+> diff --git a/drivers/media/video/mrstflash.c b/drivers/media/video/mrstflash.c
+> new file mode 100644
+> index 0000000..927939b
+> --- /dev/null
+> +++ b/drivers/media/video/mrstflash.c
+> @@ -0,0 +1,151 @@
+> +/*
+> + * Support for Moorestown Langwell Camera Imaging camera flash.
+> + *
+> + * Copyright (c) 2009 Intel Corporation. All Rights Reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or
+> + * modify it under the terms of the GNU General Public License version
+> + * 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+> + * 02110-1301, USA.
+> + *
+> + *
+> + * Xiaolin Zhang <xiaolin.zhang@intel.com>
+> + */
+> +
+> +#include <linux/delay.h>
+> +#include <linux/i2c.h>
+> +#include <linux/videodev2.h>
+> +#include <linux/slab.h>
+> +#include <media/v4l2-device.h>
+> +
+> +static int debug;
+> +module_param(debug, bool, 0644);
+> +MODULE_PARM_DESC(debug, "Debug level (0-1)");
+> +
+> +MODULE_AUTHOR("Xiaolin Zhang <xiaolin.zhang@intel.com>");
+> +MODULE_DESCRIPTION("A low-level driver for mrst flash");
+> +MODULE_LICENSE("GPL");
+> +
+> +static int flash_g_chip_ident(struct v4l2_subdev *sd,
+> +		struct v4l2_dbg_chip_ident *chip)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	#define V4L2_IDENT_MRST_FLASH 8248
+> +	return v4l2_chip_ident_i2c_client(client, chip,
+> +					  V4L2_IDENT_MRST_FLASH, 0);
+> +}
+> +
+> +static const struct v4l2_subdev_core_ops flash_core_ops = {
+> +	.g_chip_ident = flash_g_chip_ident,
+> +};
+> +static const struct v4l2_subdev_ops flash_ops = {
+> +	.core = &flash_core_ops,
+> +};
+> +
+> +static int flash_detect(struct i2c_client *client)
+> +{
+> +	struct i2c_adapter *adapter = client->adapter;
+> +	u8 pid;
+> +
+> +	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> +		return -ENODEV;
+> +
+> +	if (adapter->nr != 0)
+> +		return -ENODEV;
+> +
+> +	pid = i2c_smbus_read_byte_data(client, 0x10);
+> +	if (pid == 0x18) {
+> +		printk(KERN_ERR "camera flash device found\n");
+> +		v4l_dbg(1, debug, client, "found camera flash device");
+> +	} else {
+> +		printk(KERN_ERR "no camera flash device found\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int flash_probe(struct i2c_client *client,
+> +			const struct i2c_device_id *id)
+> +{
+> +	u8 pid, ver;
+> +	int ret = -1;
+> +	struct v4l2_subdev *sd;
+> +
+> +	v4l_info(client, "chip found @ 0x%x (%s)\n",
+> +			client->addr << 1, client->adapter->name);
+> +
+> +	sd = kzalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
+> +	ret = flash_detect(client);
+> +	if (ret)
+> +		return -ENODEV;
+> +
+> +	v4l2_i2c_subdev_init(sd, client, &flash_ops);
+> +
+> +	ver = i2c_smbus_read_byte_data(client, 0x50);
+> +	v4l_dbg(1, debug, client, "detect:CST from device is 0x%x", ver);
+> +	pid = i2c_smbus_read_byte_data(client, 0x20);
+> +	v4l_dbg(1, debug, client, "detect:MFPC from device is 0x%x", pid);
+> +	pid = i2c_smbus_read_byte_data(client, 0xA0);
+> +	v4l_dbg(1, debug, client, "detect:TCC from device is 0x%x", pid);
+> +	pid = i2c_smbus_read_byte_data(client, 0xB0);
+> +	v4l_dbg(1, debug, client, "detect:FCC from device is 0x%x", pid);
+> +	pid = i2c_smbus_read_byte_data(client, 0xC0);
+> +	v4l_dbg(1, debug, client, "detect:FDC from device is 0x%x", pid);
+> +	i2c_smbus_write_byte_data(client, 0xc0, 0xff); /*set FST to 1000us*/
+> +	pid = i2c_smbus_read_byte_data(client, 0xc0);
+> +	v4l_dbg(1, debug, client, "FDC from device is 0x%x", pid);
+> +
+> +	v4l_dbg(1, debug, client,
+> +		"successfully load camera flash device driver");
+> +	return 0;
+> +}
+> +
+> +static int flash_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +
+> +	v4l2_device_unregister_subdev(sd);
+> +	kfree(sd);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id flash_id[] = {
+> +	{"mrst_camera_flash", 0},
+> +	{}
+> +};
+> +
+> +MODULE_DEVICE_TABLE(i2c, flash_id);
+> +
+> +static struct i2c_driver flash_i2c_driver = {
+> +	.driver = {
+> +		.name = "mrst_camera_flash",
+> +	},
+> +	.probe = flash_probe,
+> +	.remove = flash_remove,
+> +	.id_table = flash_id,
+> +};
+> +
+> +static int __init flash_drv_init(void)
+> +{
+> +	return i2c_add_driver(&flash_i2c_driver);
+> +}
+> +
+> +static void __exit flash_drv_cleanup(void)
+> +{
+> +	i2c_del_driver(&flash_i2c_driver);
+> +}
+> +
+> +module_init(flash_drv_init);
+> +module_exit(flash_drv_cleanup);
+> 
 
-Cheers
-Douglas
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
