@@ -1,61 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4787 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757031Ab0EXNmS (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:35498 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753789Ab0EWTSz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 09:42:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 03/15] [RFCv2] Documentation: add v4l2-controls.txt documenting the new controls API.
-Date: Mon, 24 May 2010 15:43:53 +0200
-Cc: linux-media@vger.kernel.org
-References: <cover.1274015084.git.hverkuil@xs4all.nl> <201005240117.35431.laurent.pinchart@ideasonboard.com> <201005241144.16825.hverkuil@xs4all.nl>
-In-Reply-To: <201005241144.16825.hverkuil@xs4all.nl>
+	Sun, 23 May 2010 15:18:55 -0400
+Received: by bwz7 with SMTP id 7so664345bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 23 May 2010 12:18:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005241543.53647.hverkuil@xs4all.nl>
+In-Reply-To: <91E6C7608D34E145A3D9634F0ED7163E88873A@venus.logiways-france.fr>
+References: <4BF290A2.1020904@free.fr> <4BF432E7.2000203@free.fr>
+	 <alpine.DEB.2.01.1005201256140.29367@ureoreg>
+	 <91E6C7608D34E145A3D9634F0ED7163E88873A@venus.logiways-france.fr>
+Date: Sun, 23 May 2010 21:18:53 +0200
+Message-ID: <AANLkTilgvpszr2yeDOnUS5MiJNSDpf42kVdBkn9kCOmh@mail.gmail.com>
+Subject: Re: [linux-dvb] new DVB-T initial tuning for fr-nantes
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Thierry LELEGARD <tlelegard@logiways.com>
+Cc: linux-media@vger.kernel.org, Damien Bally <biribi@free.fr>,
+	BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 24 May 2010 11:44:16 Hans Verkuil wrote:
-> Hi Laurent,
-> 
-> Thanks for your review! As always, it was very useful.
+2010/5/20 Thierry LELEGARD <tlelegard@logiways.com>:
+>> One thing that would be good to do -- for someone who is in the
+>> area served by a transmitter -- rather than use «AUTO» for the
+>> FEC and Guard Interval values above, would be to perform a NIT
+>> scan on the appropriate frequencies.
 
-I've incorporated most points in my ctrlfw3 branch:
+You can also try to query the actual parameters from the frontend (but
+that's again a different story).
 
-http://git.linuxtv.org/hverkuil/v4l-dvb.git?a=shortlog;h=refs/heads/ctrlfw3
+<snip>
+> I think that in such a moving environment, the "AUTO" choice is
+> definitely better.
 
-Main changes:
+I still dislike "AUTO" in the dvb-apps repo, but I don't want to
+invest more time in these things (you should be using autoscan
+anyway).
 
-- Replaced 'bridge driver' by 'V4L2 driver'.
-- Added is_volatile and is_uninitialized flags (to control whether g_volatile_ctrl or
-  init should be called).
-- Added is_volatile, is_uninitialized and is_private flags to v4l2_ctrl_config.
-- If the name field in struct v4l2_ctrl_config is NULL, then assume it is a standard
-  control and fill in the defaults accordingly.
+> -Thierry
 
-These two changes together make it possible to make an array of struct v4l2_ctrl_config
-to create all controls. Perhaps v4l2_ctrl_new_custom should be renamed to v4l2_ctrl_new?
+Thanks (committed Damien's version),
 
-- v4l2_ctrl_new_std_menu now has a 'max' argument.
-- v4l2_ctrl_new_std can no longer be used to create a standard menu control.
-  This should prevent confusion regarding step and skip_mask.
-- v4l2_ctrl_active and v4l2_ctrl_grab set the flag atomically, so can be called
-  from anywhere.
-
-I did not yet change anything regarding the init return type. I'm really not
-sure what userspace is supposed to do here. If you fail initializing a control,
-does that mean that -EIO should be returned? The only way this can fail is if
-there is a hardware problem, right?
-
-Can you give some background info on how this is currently handled in uvc?
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Christoph
