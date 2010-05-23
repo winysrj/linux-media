@@ -1,245 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy1-pub.bluehost.com ([66.147.249.253]:55938 "HELO
-	outbound-mail-359.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751307Ab0EOXEn convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 May 2010 19:04:43 -0400
-Received: from 226.21.108.93.rev.vodafone.pt ([93.108.21.226] helo=[10.0.0.238])
-	by box472.bluehost.com with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <seabra@ptolom.eu>)
-	id 1ODQPP-00060w-MA
-	for linux-media@vger.kernel.org; Sat, 15 May 2010 17:04:41 -0600
-Subject: Afatech 9035 + NXP 18291 = GT-U7200
-From: =?ISO-8859-1?Q?Jo=E3o?= Seabra <seabra@ptolom.eu>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 16 May 2010 00:04:30 +0100
-Message-ID: <1273964670.1693.15.camel@nomad>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.irobotique.be ([92.243.18.41]:59563 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754305Ab0EWWCC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 May 2010 18:02:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 00/15] [RFCv2] [RFC] New control handling framework
+Date: Mon, 24 May 2010 00:03:45 +0200
+Cc: linux-media@vger.kernel.org
+References: <cover.1274015084.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1274015084.git.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005240003.46988.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Good evening,
+Hi Hans,
 
-I have a gigabyte gt-u7200 but since it's new i believe there aren't any
-drivers available
-On the webpage
-http://www.gigabyte.com.tw/Products/TVCard/Products_Spec.aspx?ClassValue=TV+Card&ProductID=2875&ProductName=GT-U7200 says it has a NXP18291 tuner and the decoder chip is Afatech 9035.
-All i found related to Afatech 9035 was this post from December 2008:
-http://www.linuxtv.org/pipermail/linux-dvb/2008-December/030923.html and
-the feature request in ubuntu :
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/519544
+Thanks for the update.
 
-I tried to compile the 9035 driver but it has no instructions and fails.
+On Sunday 16 May 2010 15:20:43 Hans Verkuil wrote:
+> This RFC patch series adds the control handling framework and implements
+> it in ivtv and all subdev drivers used by ivtv.
+> 
+> It is a bare-bones implementation, so no sysfs or debugfs enhancements.
+> 
+> It is the second version of this framework, incorporating comments from
+> Laurent.
+> 
+> Changes compared to the first version:
+> 
+> - Updated the documentation, hopefully making it easier to understand.
+> - v4l2_ctrl_new_custom now uses a new v4l2_ctrl_config struct instead of
+>   a long argument list.
+> - v4l2_ctrl_g/s is now renamed to v4l2_ctrl_g/s_ctrl.
+> - The v4l2_ctrl.h header now uses kernel doc comments.
+> - Removed the 'strict validation' feature.
+> - Added a new .init op that allows you to initialize many of the v4l2_ctrl
+>   fields on first use. Required by uvc.
+> - No longer needed to initialize ctrl_handler in struct video_device. It
+>   will copy the ctrl_handler from struct v4l2_device if needed.
+> - Renamed the v4l2_sd_* helper functions to v4l2_subdev_*.
+> 
+> I decided *not* to rename the v4l2_ctrl struct. What does the struct
+> describe? A control. Period. So I really don't know what else to call it.
+> Every other name I can think of is contrived. It really encapsulates all
+> the data and info that describes a control and its state. Yes, it is close
+> to struct v4l2_control, but on the other hand any driver that uses this
+> framework will no longer use v4l2_control (or v4l2_ext_controls for that
+> matter). It will only use v4l2_ctrl. So I do not think there will be much
+> cause for confusion here.
 
-Could someone give me some details if its simple/possible to have a
-driver for this usb pen?
+OK. It will still be a bit confusing, but renaming the structure might be 
+worse.
 
-Kind Regards,
- João Seabra
+Should we decide on a naming policy for kernel vs. user structures in V4L2 for 
+new APIs ?
 
-dmesg output:
-[  115.175224] usbcore: registered new interface driver usbhid
-[  115.175227] usbhid: v2.6:USB HID core driver
-[ 1967.463143] usb 2-1: USB disconnect, address 2
-[ 6654.750267] usb 2-1: new high speed USB device using ehci_hcd and
-address 3
-[ 6654.907301] usb 2-1: configuration #1 chosen from 1 choice
-[ 6654.914557] input: GIGABYTE Technologies Inc. U7200 USB TV Device
-as /devices/pci0000:00/0000:00:1d.7/usb2/2-1/2-1:1.1/input/input11
-[ 6654.914771] generic-usb 0003:1044:7005.0002: input,hidraw0: USB HID
-v1.01 Keyboard [GIGABYTE Technologies Inc. U7200 USB TV Device] on
-usb-0000:00:1d.7-1/input1
+> Anyway, comments are welcome.
+> 
+> Once this is in then we can start migrating all subdev drivers to this
+> framework, followed by all bridge drivers. Converted subdev drivers can
+> still be used by unconverted bridge drivers. Once all bridge drivers are
+> converted the subdev backwards compatibility code can be removed.
+> 
+> The same is true for the cx2341x module: both converted and unconverted
+> bridge drivers are supported. Once all bridge drivers that use this module
+> are converted the compat code can be removed from cx2341x (and that will
+> save about 1060 lines of hard to understand code).
 
-lsusb -v:
-Bus 002 Device 003: ID 1044:7005 Chu Yuen Enterprise Co., Ltd 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x1044 Chu Yuen Enterprise Co., Ltd
-  idProduct          0x7005 
-  bcdDevice            2.00
-  iManufacturer           1 GIGABYTE Technologies Inc.
-  iProduct                2 U7200 USB TV Device
-  iSerial                 3 AF0102020700001
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          122
-    bNumInterfaces          2
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           5
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-       bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x86  EP 6 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       1
-      bNumEndpoints           5
-     bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x02  EP 2 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-       bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x85  EP 5 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-       bDescriptorType         5
-        bEndpointAddress     0x86  EP 6 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass         3 Human Interface Device
-      bInterfaceSubClass      0 No Subclass
-      bInterfaceProtocol      1 Keyboard
-      iInterface              0 
-        HID Device Descriptor:
-          bLength                 9
-          bDescriptorType        33
-          bcdHID               1.01
-          bCountryCode            0 Not supported
-          bNumDescriptors         1
-          bDescriptorType        34 Report
-          wDescriptorLength      65
-         Report Descriptors: 
-           ** UNAVAILABLE **
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0040  1x 64 bytes
-        bInterval              16
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
- bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+-- 
+Regards,
 
-
+Laurent Pinchart
