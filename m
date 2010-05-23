@@ -1,39 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:37253 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757684Ab0EDMbY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 08:31:24 -0400
-Date: Tue, 4 May 2010 14:31:13 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch -next 1/2] media/az6027: handle -EIO failure
-Message-ID: <20100504123113.GY29093@bicker>
+Received: from mx1.redhat.com ([209.132.183.28]:23526 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753260Ab0EWSfc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 May 2010 14:35:32 -0400
+Message-ID: <4BF9756E.2020507@redhat.com>
+Date: Sun, 23 May 2010 15:35:26 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Andy Walls <awalls@md.metrocast.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: Q: Setting up a GIT repository on linuxtv.org
+References: <1274635044.2275.11.camel@localhost>
+In-Reply-To: <1274635044.2275.11.camel@localhost>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the az6027_usb_in_op() returns a negative errno ret is -EIO and in
-that case the value of b[0] may be undefined.  The original code
-assigned 0 to ret, but since it's already 0 now we can skip that.
+Andy Walls wrote:
+> Hi,
+> 
+> I'm a GIT idiot, so I need a little help on getting a properly setup
+> repo at linuxtv.org.  Can someone tell me if this is the right
+> procedure:
+> 
+> $ ssh -t awalls@linuxtv.org git-menu
+>         (clone linux-2.6.git naming it v4l-dvb  <-- Is this right?)
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Whatever name you choose. v4l-dvb is just a suggestion. 
 
-diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
-index baaa301..6681ac1 100644
---- a/drivers/media/dvb/dvb-usb/az6027.c
-+++ b/drivers/media/dvb/dvb-usb/az6027.c
-@@ -701,10 +701,7 @@ static int az6027_ci_poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int o
- 	} else
- 		ret = 0;
- 
--	if (b[0] == 0) {
--		ret = 0;
--
--	} else if (b[0] == 1) {
-+	if (!ret && b[0] == 1) {
- 		ret = DVB_CA_EN50221_POLL_CAM_PRESENT |
- 		      DVB_CA_EN50221_POLL_CAM_READY;
- 	}
+> $ git clone \
+> 	git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git \
+>         v4l-dvb
+> $ cd v4l-dvb
+> $ git remote add linuxtv http://linuxtv.org/git/v4l-dvb.git
+> $ git remote add awalls ssh://linuxtv.org/git/awalls/v4l-dvb.git
+> $ git remote update
+> 
+> and then what? 
+
+See at wiki:
+	http://www.linuxtv.org/wiki/index.php/Maintaining_Git_trees
+	http://www.linuxtv.org/wiki/index.php/Using_a_git_driver_development_tree
+
+> Something like
+> 
+> $ git checkout -b cxfoo linuxtv/master   
+
+Something like that. You need to create a working branch, based on one of the
+remote branches, and work on it.
+
+The last changes are currently at devel/for_v2.6.34 (with some patches that will
+go soon to upstream). So, in order to work against them, you would need to use,
+instead:
+
+	$ git checkout -b cxfoo linuxtv/devel/for_v2.6.34
+
+> 
+> to develop changes for some Conexant chips for example???
+> 
+> 
+> Thanks,
+> Andy
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+
+Cheers,
+Mauro
