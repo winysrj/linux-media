@@ -1,65 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28391 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:59548 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758083Ab0EYBC2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 21:02:28 -0400
-Message-ID: <4BFB218F.6030800@redhat.com>
-Date: Mon, 24 May 2010 22:02:07 -0300
+	id S1753929Ab0EWMWS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 May 2010 08:22:18 -0400
+Message-ID: <4BF91DDA.7050309@redhat.com>
+Date: Sun, 23 May 2010 09:21:46 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Jonathan Corbet <corbet@lwn.net>
-CC: linux-kernel@vger.kernel.org, Harald Welte <laforge@gnumonks.org>,
-	linux-fbdev@vger.kernel.org, JosephChan@via.com.tw,
-	ScottFang@viatech.com.cn,
-	=?ISO-8859-1?Q?Bruno_Pr=E9mont?= <bonbons@linux-vserver.org>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/5] Add the viafb video capture driver
-References: <1273098884-21848-1-git-send-email-corbet@lwn.net>	<1273098884-21848-6-git-send-email-corbet@lwn.net>	<4BF924E3.5020702@redhat.com> <20100524172237.7c17cd57@bike.lwn.net>
-In-Reply-To: <20100524172237.7c17cd57@bike.lwn.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, "Zhong, Jeff" <hzhong@quicinc.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	Sergio Rodriguez <saaguirre@ti.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Tentative agenda for Helsinki mini-summit
+References: <201005231236.49048.hverkuil@xs4all.nl>
+In-Reply-To: <201005231236.49048.hverkuil@xs4all.nl>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jonathan Corbet wrote:
-> On Sun, 23 May 2010 09:51:47 -0300
-> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+Hans Verkuil wrote:
+> Hi all,
 > 
->> The driver is OK to my eyes. I just found 2 minor coding style issues.
->> it is ok to me if you want to sent it via your git tree.
->>
->> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> This is a tentative agenda for the Helsinki mini-summit on June 14-16.
 > 
-> Great, thanks for taking a look!
+> Please reply to this thread if you have comments or want to add topics.
 > 
-> All of the precursor stuff is in mainline now, so it can go via whatever
-> path.  I'll just go ahead and request a pull in the near future unless
-> somebody objects.
-
-OK.
-
->>> +	.sizeimage	= VGA_WIDTH*VGA_HEIGHT*2,
->> CodingStyle: please use spaces between values/operators. Not sure why, but
->> newer versions of checkpatch.pl don't complain anymore on some cases.
+> The overall layout of the summit is to use the first day to go through all
+> topics and either come to a conclusion quickly for the 'simple' topics, or
+> discuss enough so that everyone understands the problem for the more complex
+> issues.
 > 
-> Interesting...for all of my programming life I've left out spaces around
-> multiplicative operators - a way of showing that they bind more tightly
-> than the additive variety.  I thought everybody else did that too.
-> CodingStyle agrees with you, though; I'll append a patch fixing these up.
+> The second day will be used for in-depth discussions on those complex topics
+> and on the third day we will go through all topics again and translate the
+> discussions into something concrete like a time-line, action items, etc.
+> 
+> We have a lot to discuss, so we may have to split the second day into two
+> 'tracks', each discussing different topics. I hope it is not needed, but I
+> fear we may have no choice. If we do split up, then one track will touch on
+> the videobuf-related topics and the other on the remaining topics.
+> 
+> The first day will also feature a few short presentations on various topics.
+> Presentations shouldn't be longer than, say, 10 minutes. These presentations
+> are meant to get everyone up to speed quickly.
+> 
+> After each topic I've put the names of the main developers active in that area.
+> If you see your name, then make sure you know the status of that topic so you
+> can explain it to everyone else. If I think it warrants a presentation, then I
+> will mention that. Of course, if you disagree, or want/don't want to do a
+> presentation then just say so. It's a tentative agenda only.
+> 
+> The topics below are in no particular order except for the first one. I am
+> very pleased that Qualcomm has joined this project so I think it would be
+> nice to start the meeting off with a presentation on their HW architecture.
+> 
+> 1) Presentation on the Qualcomm video hw architecture. Most of us have no
+>    experience with Qualcomm hardware, so I've asked Jeff Zhong to give a short
+>    overview of their video hardware.
+> 
+> 2) Removal of V4L1: status of driver conversion in the kernel, status of
+>    moving v4l1->v4l2 conversion into libv4l1. What needs to be done, when
+>    will it be done and who will do it. Driver conversion: Hans Verkuil,
+>    libv4l1 conversion: Hans de Goede.
+> 
+> 3) videobuf/videobuf2: what are the shortcomings, what are the requirements for
+>    a 'proper' videobuf implementation, can the existing videobuf be fixed or do
+>    we need a videobuf2. If the latter, what would be needed to convert existing
+>    drivers over to a videobuf2. Laurent Pinchart and Pawel Osciak. This I'm sure
+>    requires a presentation.
+> 
+> 4) Multi-planar support. Pawel Osciak.
+> 
+> 5) Media Controller Roadmap. Laurent Pinchart. This probably warrants a short
+>    presentation.
+> 
+> 6) TO DO list regarding V4L2 core framework including the new control framework.
+>    Hans Verkuil. Will be a presentation.
+> 
+> 7) Status of the Texas Instruments drivers: omapX (Hiremath Vaibhav) and DMxxxx
+>    (Sergio Aguirre). Probably should be a short presentation.
+> 
+> 8) soc-camera status. Particularly with regards to the remaining soc-camera
+>    dependencies in sensor drivers. Guennadi Liakhovetski.
+> 
+> 9) Driver compliance. We need a framework for V4L2 driver compliance. Hans
+>    Verkuil.
+> 
+> 10) Discuss list of 'reference' programs to test against. Mauro?
 
-We all have some sort of different CodingStyle that were inherited from previous
-programming practices... I used to just not add any space at all at expressions, 
-as C is a compact language, and I was a bit lazy ;)
+I'm ok with the theme. I don't think we need a presentation for it, but to open a
+round table to discuss the reference applications that will be considered when
+testing media drivers.
 
-Yet, when reviewing lots of code, those spaces help to read a code quicker
-than without. Not sure why, but my guess is that the brain can do a faster
-parsing when the words are separated from operators. Or maybe it is just because
-it is easier to parse patches when everybody uses the same Coding Style.
+> 11) Adopting old V4L1 programs and converting to V4L2. Hans de Goede?
+> 
+> 12) Status of intel drivers. Xiaolin Zhang.
 
-> Learn something every day...
+> It is my understanding that we will also have X11 and gstreamer experts on hand.
+> Topics relating to that are welcome.
+> 
+> During the memory handling brainstorming session earlier this year we also
+> touched on creating some sort of a generic buffer model allowing for easy
+> exchange between v4l buffers, framebuffers, texture buffers, etc. It is my
+> opinion that we should not discuss this in Helsinki. The list of topics is
+> already quite long and I think it is too early to start working on that. We
+> probably need another brainstorming session first in order to come up with
+> a reasonable proposal.
+> 
+> Comments? Topics I missed?
+> 
 
-Very true ;)
+I'd like to add another topic: Remote Controllers. I propose to do a short presentation
+on this theme, showing how the new RC subsystem was conceived and discussing a little bit
+about possible evolutions of it. One of the things I'm interested on getting feedback is
+about how Linux embedded devices are currently handing IR. All Linux TV sets, set top boxes
+and other device types have IR, but I've seen no contributions from embedded developers at 
+RC code. So, after a short presentation, I think we should reserve some time for discussions.
+
+> Regards,
+> 
+> 	Hans
+> 
+
 
 -- 
 
