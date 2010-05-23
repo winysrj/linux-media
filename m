@@ -1,118 +1,441 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4701 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754352Ab0EPNTR (ORCPT
+Received: from mail-in-17.arcor-online.net ([151.189.21.57]:54530 "EHLO
+	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755099Ab0EWSdb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 May 2010 09:19:17 -0400
-Message-Id: <a68680ffd1a15f5a71dd83ac82e5e641102263f1.1274015085.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1274015084.git.hverkuil@xs4all.nl>
-References: <cover.1274015084.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 16 May 2010 15:20:54 +0200
-Subject: [PATCH 02/15] [RFCv2] v4l2-ctrls: reorder 'case' statements to match order in header.
+	Sun, 23 May 2010 14:33:31 -0400
+From: stefan.ringel@arcor.de
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 5/5] tm6000: rewrite copy_streams
+Date: Sun, 23 May 2010 20:31:45 +0200
+Message-Id: <1274639505-2674-2-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1274639505-2674-1-git-send-email-stefan.ringel@arcor.de>
+References: <1274639505-2674-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To make it easier to determine whether all controls are added in v4l2-ctrls.c
-the case statements inside the switch are re-ordered to match the header.
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+fusion function copy streams and copy_packets to new function copy_streams.
+
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
 ---
- drivers/media/video/v4l2-ctrls.c |   30 +++++++++++++++++-------------
- 1 files changed, 17 insertions(+), 13 deletions(-)
+ drivers/staging/tm6000/tm6000-usb-isoc.h |    5 +-
+ drivers/staging/tm6000/tm6000-video.c    |  337 +++++++++++-------------------
+ 2 files changed, 127 insertions(+), 215 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 6c97ff0..21bf740 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -266,6 +266,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+diff --git a/drivers/staging/tm6000/tm6000-usb-isoc.h b/drivers/staging/tm6000/tm6000-usb-isoc.h
+index 5a5049a..138716a 100644
+--- a/drivers/staging/tm6000/tm6000-usb-isoc.h
++++ b/drivers/staging/tm6000/tm6000-usb-isoc.h
+@@ -39,7 +39,7 @@ struct usb_isoc_ctl {
+ 	int				pos, size, pktsize;
+ 
+ 		/* Last field: ODD or EVEN? */
+-	int				field;
++	int				vfield;
+ 
+ 		/* Stores incomplete commands */
+ 	u32				tmp_buf;
+@@ -47,7 +47,4 @@ struct usb_isoc_ctl {
+ 
+ 		/* Stores already requested buffers */
+ 	struct tm6000_buffer    	*buf;
+-
+-		/* Stores the number of received fields */
+-	int				nfields;
+ };
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index 2a61cc3..31c574f 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -186,234 +186,153 @@ const char *tm6000_msg_type[] = {
+ /*
+  * Identify the tm5600/6000 buffer header type and properly handles
+  */
+-static int copy_packet(struct urb *urb, u32 header, u8 **ptr, u8 *endp,
+-			u8 *out_p, struct tm6000_buffer **buf)
+-{
+-	struct tm6000_dmaqueue  *dma_q = urb->context;
+-	struct tm6000_core *dev = container_of(dma_q, struct tm6000_core, vidq);
+-	u8 c;
+-	unsigned int cmd, cpysize, pktsize, size, field, block, line, pos = 0;
+-	int rc = 0;
+-	/* FIXME: move to tm6000-isoc */
+-	static int last_line = -2, start_line = -2, last_field = -2;
+-
+-	/* FIXME: this is the hardcoded window size
+-	 */
+-	unsigned int linewidth = (*buf)->vb.width << 1;
+-
+-	if (!dev->isoc_ctl.cmd) {
+-		c = (header >> 24) & 0xff;
+-
+-		/* split the header fields */
+-		size  = ((header & 0x7e) << 1);
+-
+-		if (size > 0)
+-			size -= 4;
+-
+-		block = (header >> 7) & 0xf;
+-		field = (header >> 11) & 0x1;
+-		line  = (header >> 12) & 0x1ff;
+-		cmd   = (header >> 21) & 0x7;
+-
+-		/* Validates header fields */
+-		if(size > TM6000_URB_MSG_LEN)
+-			size = TM6000_URB_MSG_LEN;
+-
+-		if (cmd == TM6000_URB_MSG_VIDEO) {
+-			if ((block+1)*TM6000_URB_MSG_LEN>linewidth)
+-				cmd = TM6000_URB_MSG_ERR;
+-
+-			/* FIXME: Mounts the image as field0+field1
+-			 * It should, instead, check if the user selected
+-			 * entrelaced or non-entrelaced mode
+-			 */
+-			pos= ((line<<1)+field)*linewidth +
+-				block*TM6000_URB_MSG_LEN;
+-
+-			/* Don't allow to write out of the buffer */
+-			if (pos+TM6000_URB_MSG_LEN > (*buf)->vb.size) {
+-				dprintk(dev, V4L2_DEBUG_ISOC,
+-					"ERR: size=%d, num=%d, line=%d, "
+-					"field=%d\n",
+-					size, block, line, field);
+-
+-				cmd = TM6000_URB_MSG_ERR;
+-			}
+-		} else {
+-			pos=0;
+-		}
+-
+-		/* Prints debug info */
+-		dprintk(dev, V4L2_DEBUG_ISOC, "size=%d, num=%d, "
+-				" line=%d, field=%d\n",
+-				size, block, line, field);
+-
+-		if ((last_line!=line)&&(last_line+1!=line) &&
+-		    (cmd != TM6000_URB_MSG_ERR) )  {
+-			if (cmd != TM6000_URB_MSG_VIDEO)  {
+-				dprintk(dev, V4L2_DEBUG_ISOC,  "cmd=%d, "
+-					"size=%d, num=%d, line=%d, field=%d\n",
+-					cmd, size, block, line, field);
+-			}
+-			if (start_line<0)
+-				start_line=last_line;
+-			/* Prints debug info */
+-			dprintk(dev, V4L2_DEBUG_ISOC, "lines= %d-%d, "
+-					"field=%d\n",
+-					start_line, last_line, field);
+-
+-			if ((start_line<6 && last_line>200) &&
+-				(last_field != field) ) {
+-
+-				dev->isoc_ctl.nfields++;
+-				if (dev->isoc_ctl.nfields>=2) {
+-					dev->isoc_ctl.nfields=0;
+-
+-					/* Announces that a new buffer were filled */
+-					buffer_filled (dev, dma_q, *buf);
+-					dprintk(dev, V4L2_DEBUG_ISOC,
+-							"new buffer filled\n");
+-					get_next_buf (dma_q, buf);
+-					if (!*buf)
+-						return rc;
+-					out_p = videobuf_to_vmalloc(&((*buf)->vb));
+-					if (!out_p)
+-						return rc;
+-
+-					pos = dev->isoc_ctl.pos = 0;
+-				}
+-			}
+-
+-			start_line=line;
+-			last_field=field;
+-		}
+-		if (cmd == TM6000_URB_MSG_VIDEO)
+-			last_line = line;
+-
+-		pktsize = TM6000_URB_MSG_LEN;
+-	} else {
+-		/* Continue the last copy */
+-		cmd = dev->isoc_ctl.cmd;
+-		size= dev->isoc_ctl.size;
+-		pos = dev->isoc_ctl.pos;
+-		pktsize = dev->isoc_ctl.pktsize;
+-	}
+-
+-	cpysize = (endp-(*ptr) > size) ? size : endp - *ptr;
+-
+-	if (cpysize) {
+-		/* handles each different URB message */
+-		switch(cmd) {
+-		case TM6000_URB_MSG_VIDEO:
+-			/* Fills video buffer */
+-			memcpy(&out_p[pos], *ptr, cpysize);
+-			break;
+-		case TM6000_URB_MSG_PTS:
+-			break;
+-		case TM6000_URB_MSG_AUDIO:
+-			/* Need some code to process audio */
+-			printk ("%ld: cmd=%s, size=%d\n", jiffies,
+-				tm6000_msg_type[cmd],size);
+-			break;
+-		case TM6000_URB_MSG_VBI:
+-			break;
+-		default:
+-			dprintk (dev, V4L2_DEBUG_ISOC, "cmd=%s, size=%d\n",
+-						tm6000_msg_type[cmd],size);
+-		}
+-	}
+-	if (cpysize<size) {
+-		/* End of URB packet, but cmd processing is not
+-		 * complete. Preserve the state for a next packet
+-		 */
+-		dev->isoc_ctl.pos = pos+cpysize;
+-		dev->isoc_ctl.size= size-cpysize;
+-		dev->isoc_ctl.cmd = cmd;
+-		dev->isoc_ctl.pktsize = pktsize-cpysize;
+-		(*ptr)+=cpysize;
+-	} else {
+-		dev->isoc_ctl.cmd = 0;
+-		(*ptr)+=pktsize;
+-	}
+-
+-	return rc;
+-}
+-
+ static int copy_streams(u8 *data, unsigned long len,
+ 			struct urb *urb)
  {
- 	switch (id) {
- 	/* USER controls */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_USER_CLASS: 		return "User Controls";
- 	case V4L2_CID_BRIGHTNESS: 		return "Brightness";
- 	case V4L2_CID_CONTRAST: 		return "Contrast";
-@@ -296,28 +297,37 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_SHARPNESS:		return "Sharpness";
- 	case V4L2_CID_BACKLIGHT_COMPENSATION:	return "Backlight Compensation";
- 	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
--	case V4L2_CID_CHROMA_GAIN:		return "Chroma Gain";
- 	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
- 	case V4L2_CID_COLORFX:			return "Color Effects";
- 	case V4L2_CID_AUTOBRIGHTNESS:		return "Brightness, Automatic";
- 	case V4L2_CID_BAND_STOP_FILTER:		return "Band-Stop Filter";
- 	case V4L2_CID_ROTATE:			return "Rotate";
- 	case V4L2_CID_BG_COLOR:			return "Background Color";
-+	case V4L2_CID_CHROMA_GAIN:		return "Chroma Gain";
+ 	struct tm6000_dmaqueue  *dma_q = urb->context;
+ 	struct tm6000_core *dev= container_of(dma_q,struct tm6000_core,vidq);
+-	u8 *ptr=data, *endp=data+len;
++	u8 *ptr=data, *endp=data+len, c;
+ 	unsigned long header=0;
+ 	int rc=0;
+-	struct tm6000_buffer *buf;
+-	char *outp = NULL;
+-
+-	get_next_buf(dma_q, &buf);
+-	if (buf)
+-		outp = videobuf_to_vmalloc(&buf->vb);
++	unsigned int cmd, cpysize, pktsize, size, field, block, line, pos = 0;
++	struct tm6000_buffer *vbuf;
++	char *voutp = NULL;
++	unsigned int linewidth;
  
- 	/* MPEG controls */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
-+	case V4L2_CID_MPEG_STREAM_TYPE: 	return "Stream Type";
-+	case V4L2_CID_MPEG_STREAM_PID_PMT: 	return "Stream PMT Program ID";
-+	case V4L2_CID_MPEG_STREAM_PID_AUDIO: 	return "Stream Audio Program ID";
-+	case V4L2_CID_MPEG_STREAM_PID_VIDEO: 	return "Stream Video Program ID";
-+	case V4L2_CID_MPEG_STREAM_PID_PCR: 	return "Stream PCR Program ID";
-+	case V4L2_CID_MPEG_STREAM_PES_ID_AUDIO: return "Stream PES Audio ID";
-+	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
-+	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ: return "Audio Sampling Frequency";
- 	case V4L2_CID_MPEG_AUDIO_ENCODING: 	return "Audio Encoding";
- 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE: 	return "Audio Layer I Bitrate";
- 	case V4L2_CID_MPEG_AUDIO_L2_BITRATE: 	return "Audio Layer II Bitrate";
- 	case V4L2_CID_MPEG_AUDIO_L3_BITRATE: 	return "Audio Layer III Bitrate";
--	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE: 	return "Audio AAC Bitrate";
--	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE: 	return "Audio AC-3 Bitrate";
- 	case V4L2_CID_MPEG_AUDIO_MODE: 		return "Audio Stereo Mode";
- 	case V4L2_CID_MPEG_AUDIO_MODE_EXTENSION: return "Audio Stereo Mode Extension";
- 	case V4L2_CID_MPEG_AUDIO_EMPHASIS: 	return "Audio Emphasis";
- 	case V4L2_CID_MPEG_AUDIO_CRC: 		return "Audio CRC";
- 	case V4L2_CID_MPEG_AUDIO_MUTE: 		return "Audio Mute";
-+	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE: 	return "Audio AAC Bitrate";
-+	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE: 	return "Audio AC-3 Bitrate";
- 	case V4L2_CID_MPEG_VIDEO_ENCODING: 	return "Video Encoding";
- 	case V4L2_CID_MPEG_VIDEO_ASPECT: 	return "Video Aspect";
- 	case V4L2_CID_MPEG_VIDEO_B_FRAMES: 	return "Video B Frames";
-@@ -330,16 +340,9 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_TEMPORAL_DECIMATION: return "Video Temporal Decimation";
- 	case V4L2_CID_MPEG_VIDEO_MUTE: 		return "Video Mute";
- 	case V4L2_CID_MPEG_VIDEO_MUTE_YUV:	return "Video Mute YUV";
--	case V4L2_CID_MPEG_STREAM_TYPE: 	return "Stream Type";
--	case V4L2_CID_MPEG_STREAM_PID_PMT: 	return "Stream PMT Program ID";
--	case V4L2_CID_MPEG_STREAM_PID_AUDIO: 	return "Stream Audio Program ID";
--	case V4L2_CID_MPEG_STREAM_PID_VIDEO: 	return "Stream Video Program ID";
--	case V4L2_CID_MPEG_STREAM_PID_PCR: 	return "Stream PCR Program ID";
--	case V4L2_CID_MPEG_STREAM_PES_ID_AUDIO: return "Stream PES Audio ID";
--	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
--	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
+-	if (!outp)
++	/* get video buffer */
++	get_next_buf (dma_q, &vbuf);
++	if (!vbuf)
++		return rc;
++	voutp = videobuf_to_vmalloc(&vbuf->vb);
++	if (!voutp)
+ 		return 0;
  
- 	/* CAMERA controls */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
- 	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
- 	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
-@@ -353,14 +356,15 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FOCUS_ABSOLUTE:		return "Focus, Absolute";
- 	case V4L2_CID_FOCUS_RELATIVE:		return "Focus, Relative";
- 	case V4L2_CID_FOCUS_AUTO:		return "Focus, Automatic";
--	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
--	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
- 	case V4L2_CID_ZOOM_ABSOLUTE:		return "Zoom, Absolute";
- 	case V4L2_CID_ZOOM_RELATIVE:		return "Zoom, Relative";
- 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
- 	case V4L2_CID_PRIVACY:			return "Privacy";
-+	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
-+	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+-	for (ptr=data; ptr<endp;) {
++	for (ptr = data; ptr < endp;) {
+ 		if (!dev->isoc_ctl.cmd) {
+-			u8 *p=(u8 *)&dev->isoc_ctl.tmp_buf;
+-			/* FIXME: This seems very complex
+-			 * It just recovers up to 3 bytes of the header that
+-			 * might be at the previous packet
+-			 */
+-			if (dev->isoc_ctl.tmp_buf_len) {
+-				while (dev->isoc_ctl.tmp_buf_len) {
+-					if ( *(ptr+3-dev->isoc_ctl.tmp_buf_len) == 0x47) {
+-						break;
+-					}
+-					p++;
+-					dev->isoc_ctl.tmp_buf_len--;
+-				}
+-				if (dev->isoc_ctl.tmp_buf_len) {
+-					memcpy(&header, p,
+-						dev->isoc_ctl.tmp_buf_len);
+-					memcpy((u8 *)&header +
++			/* Header */
++			if (dev->isoc_ctl.tmp_buf_len > 0) {
++				/* from last urb or packet */
++				header = dev->isoc_ctl.tmp_buf;
++				if (4 - dev->isoc_ctl.tmp_buf_len > 0)
++					memcpy ((u8 *)&header +
+ 						dev->isoc_ctl.tmp_buf_len,
+ 						ptr,
+ 						4 - dev->isoc_ctl.tmp_buf_len);
+ 					ptr += 4 - dev->isoc_ctl.tmp_buf_len;
+-					goto HEADER;
+ 				}
++				dev->isoc_ctl.tmp_buf_len = 0;
++			} else {
++				if (ptr + 3 >= endp) {
++					/* have incomplete header */
++					dev->isoc_ctl.tmp_buf_len = endp - ptr;
++					memcpy (&dev->isoc_ctl.tmp_buf, ptr,
++						dev->isoc_ctl.tmp_buf_len);
++					return rc;
++				}
++				/* Seek for sync */
++				for (; ptr < endp - 3; ptr++) {
++					if (ptr < endp - 187) {
++						if (*(ptr + 3) == 0x47 &&
++							(*(ptr + 187) == 0x47)
++							break;
++					} else {
++						if (*(ptr + 3) == 0x47)
++							break;
++					}
++					if (ptr + 3 >= endp)
++						return rc;
++				}
++				/* Get message header */
++				header = *(unsigned long *)ptr;
++				ptr += 4;
+ 			}
+-			/* Seek for sync */
+-			for (;ptr<endp-3;ptr++) {
+-				if (*(ptr+3)==0x47)
+-					break;
++			/* split the header fields */
++			c = (header >> 24) & 0xff;
++			size = ((header & 0x7e) << 1);
++			if (size > 0)
++				size -= 4;
++			block = (header >> 7) & 0xf;
++			field = (header >> 11) & 0x1;
++			line  = (header >> 12) & 0x1ff;
++			cmd   = (header >> 21) & 0x7;
++			/* Validates haeder fields */
++			if (size > TM6000_URB_MSG_LEN)
++				size = TM6000_URB_MSG_LEN;
++			pktsize = TM6000_URB_MSG_LEN;
++			/* calculate position in buffer 
++			 * and change the buffer
++			 */
++			switch (cmd) {
++			case TM6000_URB_MSG_VIDEO:
++				if ((dev->isoc_ctl.vfield != field) && 
++					(field == 1) {
++					/* Announces that a new buffer 
++					 * were filled 
++					 */
++					buffer_filled (dev, dma_q, vbuf);
++					dprintk (dev, V4L2_DEBUG_ISOC,
++							"new buffer filled\n");
++					get_next_buf (dma_q, &vbuf);
++					if (!vbuf)
++						return rc;
++					voutp = videobuf_to_vmalloc (&vbuf->vb);
++					if (!voutp)
++						return rc;
++				}
++				linewidth = vbuf->vb.width << 1;
++				pos = ((line << 1) - field - 1) * linewidth +
++					block * TM6000_URB_MSG_LEN;
++				/* Don't allow to write out of the buffer */
++				if (pos + size > vbuf->vb.size)
++					cmd = TM6000_URB_MSG_ERR;
++				dev->isoc_ctl.vfield = field;
++				break;
++			case TM6000_URB_MSG_AUDIO:
++			case TM6000_URB_MSG_VBI:
++			case TM6000_URB_MSG_PTS:
++				break;
+ 			}
+-
+-			if (ptr+3>=endp) {
+-				dev->isoc_ctl.tmp_buf_len=endp-ptr;
+-				memcpy (&dev->isoc_ctl.tmp_buf,ptr,
+-					dev->isoc_ctl.tmp_buf_len);
+-				dev->isoc_ctl.cmd=0;
+-				return rc;
++		} else {
++			/* Continue the last copy */
++			cmd = dev->isoc_ctl.cmd;
++			size = dev->isoc_ctl.size;
++			pos = dev->isoc_ctl.pos;
++			pktsize = dev->isoc_ctl-pktsize;
++		}
++		cpysize = (endp - ptr > size) ? size : endp - ptr;
++		if (cpysize) {
++			/* copy data in different buffers */
++			switch (cmd) {
++			case TM6000_URB_MSG_VIDEO:
++				/* Fills video buffer */
++				if (vbuf)
++					memcpy (&voutp[pos], ptr, cpysize);
++				break;
++			case TM6000_URB_MSG_AUDIO:
++				/* Need some code to copy audio buffer */
++				break;
++			case TM6000_URB_MSG_VBI:
++				/* Need some code to copy vbi buffer */
++				break;
++			case TM6000_URB_MSG_PTS:
++				/* Need some code to copy pts */
++				break;
+ 			}
+-
+-			/* Get message header */
+-			header=*(unsigned long *)ptr;
+-			ptr+=4;
+ 		}
+-HEADER:
+-		/* Copy or continue last copy */
+-		rc=copy_packet(urb,header,&ptr,endp,outp,&buf);
+-		if (rc<0) {
+-			buf=NULL;
+-			printk(KERN_ERR "tm6000: buffer underrun at %ld\n",
+-					jiffies);
+-			return rc;
++		if (cpysize < size) {
++			/* End of URB packet, but cmd processing is not
++			 * complete. Preserve the state for a next packet
++			 */
++			dev->isoc_ctl.pos = pos + cpysize;
++			dev->isoc_ctl.size = size - cpysize;
++			dev->isoc_ctl.cmd = cmd;
++			dev->isoc_ctl.pktsize = pktsize - cpysize;
++			ptr += cpysize;
++		} else {
++			dev->isoc_ctl.cmd = 0;
++			ptr += pktsize;
+ 		}
+-		if (!*buf)
+-			return 0;
+ 	}
+-
+ 	return 0;
+ }
+ /*
+@@ -510,7 +429,6 @@ static inline int tm6000_isoc_copy(struct urb *urb)
+ {
+ 	struct tm6000_dmaqueue  *dma_q = urb->context;
+ 	struct tm6000_core *dev= container_of(dma_q,struct tm6000_core,vidq);
+-	struct tm6000_buffer *buf;
+ 	int i, len=0, rc=1, status;
+ 	char *p;
  
- 	/* FM Radio Modulator control */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
- 	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
- 	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
+@@ -585,7 +503,6 @@ static void tm6000_uninit_isoc(struct tm6000_core *dev)
+ 	struct urb *urb;
+ 	int i;
+ 
+-	dev->isoc_ctl.nfields = -1;
+ 	dev->isoc_ctl.buf = NULL;
+ 	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
+ 		urb=dev->isoc_ctl.urb[i];
+@@ -610,8 +527,6 @@ static void tm6000_uninit_isoc(struct tm6000_core *dev)
+ 	dev->isoc_ctl.urb=NULL;
+ 	dev->isoc_ctl.transfer_buffer=NULL;
+ 	dev->isoc_ctl.num_bufs = 0;
+-
+-	dev->isoc_ctl.num_bufs=0;
+ }
+ 
+ /*
 -- 
-1.6.4.2
+1.7.0.3
 
