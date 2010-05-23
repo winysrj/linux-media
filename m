@@ -1,24 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.6])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o4B962Y5020042
-	for <video4linux-list@redhat.com>; Tue, 11 May 2010 05:06:02 -0400
-Received: from mail-px0-f174.google.com (mail-px0-f174.google.com
-	[209.85.212.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4B95qDx009110
-	for <video4linux-list@redhat.com>; Tue, 11 May 2010 05:05:52 -0400
-Received: by pxi5 with SMTP id 5so2138290pxi.33
-	for <video4linux-list@redhat.com>; Tue, 11 May 2010 02:05:52 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.14])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o4NGDvQm025610
+	for <video4linux-list@redhat.com>; Sun, 23 May 2010 12:13:58 -0400
+Received: from web120002.mail.ne1.yahoo.com (web120002.mail.ne1.yahoo.com
+	[98.138.85.129])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o4NGDktQ018208
+	for <video4linux-list@redhat.com>; Sun, 23 May 2010 12:13:47 -0400
+Message-ID: <200536.29904.qm@web120002.mail.ne1.yahoo.com>
+Date: Sun, 23 May 2010 09:13:46 -0700 (PDT)
+From: Miguelangel Fraga-Aguilar <mfragaa@yahoo.com>
+Subject: Encore ENLTV-FM ver 5.2
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimPNHc9fRnW_MI7Tmaq78oYoMVW_7vBgdU4T9Um@mail.gmail.com>
-References: <AANLkTimPNHc9fRnW_MI7Tmaq78oYoMVW_7vBgdU4T9Um@mail.gmail.com>
-Date: Tue, 11 May 2010 14:35:52 +0530
-Message-ID: <AANLkTilJzGA8V6R1nSzViJXmHlgG1wRlT_brGX1BbpO_@mail.gmail.com>
-Subject: Re: RGB format
-From: Vinay Verma <vinayverma@gmail.com>
-To: Carlos Lavin <carlos.lavin@vista-silicon.com>
-Cc: video4linux-list <video4linux-list@redhat.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,29 +21,61 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi Carlos,
-
-One simple way is to apply simple algebra (unitary method) and to make
-out-of-5/6/5 to out-of-8/8/8.
-Regards,
-Vinay
-On Tue, May 11, 2010 at 12:36 PM, Carlos Lavin <
-carlos.lavin@vista-silicon.com> wrote:
-
-> hello, I need convert RGB565 to RGB888, but I know how I do it. Can anybody
-> help me??
-> --
-> video4linux-list mailing list
-> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-> https://www.redhat.com/mailman/listinfo/video4linux-list
->
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+SGVsbG8KCkkgaGF2ZSBhbiBFTkxUVi1GTSB2ZXIgNS4yLCBiYXNlZCBvbiBhIFNBQTcxMzAuIFZl
+cnNpb24gNS4zIG9mIHRoaXMgY2FyZCBpcyBzdXBwb3J0ZWQuIEkgZG9uJ3Qga25vdyB0aGUgZGlm
+ZmVyZW5jZXMgYmV0d2VlbiB0aGUgdHdvIHZlcnNpb24sIGJ1dCB0aGUgd2luZG93cyBkcml2ZXIg
+Zm9yIHZlciA1LjMgZG9lc24ndCB3b3JrIHdpdGggdGhpcyBjYXJkLiAKCkhlcmUgaXMgdGhlIGRt
+ZXNnIG91dHB1dC4gCgpbICAgIDYuMDI5Njk0XSBzYWE3MTMwLzM0OiB2NGwyIGRyaXZlciB2ZXJz
+aW9uIDAuMi4xNSBsb2FkZWQKWyAgICA2LjAyOTc0Nl0gc2FhNzEzNCAwMDAwOjA0OjA0LjA6IFBD
+SSBJTlQgQSAtPiBHU0kgMTggKGxldmVsLCBsb3cpIC0+IElSUSAxOApbICAgIDYuMDI5NzUzXSBz
+YWE3MTMwWzBdOiBmb3VuZCBhdCAwMDAwOjA0OjA0LjAsIHJldjogMSwgaXJxOiAxOCwgbGF0ZW5j
+eTogMzIsIG1taW86IDB4ZTAwMDEwMDAKWyAgICA2LjAyOTc2OV0gc2FhNzEzMFswXTogc3Vic3lz
+dGVtOiAxYTdmOjIwMDQsIGJvYXJkOiBVTktOT1dOL0dFTkVSSUMgW2NhcmQ9MCxhdXRvZGV0ZWN0
+ZWRdClsgICAgNi4wMjk3OTVdIHNhYTcxMzBbMF06IGJvYXJkIGluaXQ6IGdwaW8gaXMgNTcxZmYK
+WyAgICA2LjAyOTgwMF0gSVJRIDE4L3NhYTcxMzBbMF06IElSUUZfRElTQUJMRUQgaXMgbm90IGd1
+YXJhbnRlZWQgb24gc2hhcmVkIElSUXMKWyAgICA2LjE4MDA3NF0gc2FhNzEzMFswXTogaTJjIGVl
+cHJvbSAwMDogN2YgMWEgMDQgMjAgNTQgMjAgMWMgMDAgNDMgNDMgYTkgMWMgNTUgZDIgYjIgOTIK
+WyAgICA2LjE4MDA5Nl0gc2FhNzEzMFswXTogaTJjIGVlcHJvbSAxMDogMDAgZGYgODYgMGYgZmYg
+MjAgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgICA2LjE4MDExNV0gc2FhNzEzMFsw
+XTogaTJjIGVlcHJvbSAyMDogMDEgNDAgMDEgMDIgMDIgZmYgMDEgMDMgMDggZmYgMDAgOGYgZmYg
+ZmYgZmYgZmYKWyAgICA2LjE4MDEzNF0gc2FhNzEzMFswXTogaTJjIGVlcHJvbSAzMDogZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgICA2LjE4MDE1M10g
+c2FhNzEzMFswXTogaTJjIGVlcHJvbSA0MDogZmYgODcgMDAgYzIgOTYgMTAgMDMgMzIgMTUgMDgg
+ZmYgZmYgZmYgZmYgZmYgZmYKWyAgICA2LjE4MDE3Ml0gc2FhNzEzMFswXTogaTJjIGVlcHJvbSA1
+MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgNDEgODQgZmYgMzEgMzAgNGQgNGYgNGYgNGUKWyAgICA2
+LjE4MDE5MV0gc2FhNzEzMFswXTogaTJjIGVlcHJvbSA2MDogNTMgNTAgNDQgNDEgMzEgMzAgMzAg
+ZmYgNDEgZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgICA2LjE4MDIwOV0gc2FhNzEzMFswXTogaTJj
+IGVlcHJvbSA3MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYKWyAgICA2LjE4MDIyOF0gc2FhNzEzMFswXTogaTJjIGVlcHJvbSA4MDogZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgICA2LjE4MDI0N10gc2FhNzEz
+MFswXTogaTJjIGVlcHJvbSA5MDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYKWyAgICA2LjE4MDI2Nl0gc2FhNzEzMFswXTogaTJjIGVlcHJvbSBhMDogZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgICA2LjE4MDI4
+NV0gc2FhNzEzMFswXTogaTJjIGVlcHJvbSBiMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgICA2LjE4MDMwNF0gc2FhNzEzMFswXTogaTJjIGVlcHJv
+bSBjMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAg
+ICA2LjE4MDMyM10gc2FhNzEzMFswXTogaTJjIGVlcHJvbSBkMDogZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgICA2LjE4MDM0MV0gc2FhNzEzMFswXTog
+aTJjIGVlcHJvbSBlMDogZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYg
+ZmYgZmYKWyAgICA2LjE4MDM2N10gc2FhNzEzMFswXTogaTJjIGVlcHJvbSBmMDogZmYgZmYgZmYg
+ZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYgZmYKWyAgICA2LjE4MDM4MF0gaTJj
+IGkyYy0xOiBJbnZhbGlkIDctYml0IGFkZHJlc3MgMHg3YQpbICAgIDYuMTgxMDEzXSBzYWE3MTMw
+WzBdOiByZWdpc3RlcmVkIGRldmljZSB2aWRlbzAgW3Y0bDJdClsgICAgNi4xODEwODFdIHNhYTcx
+MzBbMF06IHJlZ2lzdGVyZWQgZGV2aWNlIHZiaTAKWyAgICA2Ljc0ODE2MF0gc2FhNzEzNCBBTFNB
+IGRyaXZlciBmb3IgRE1BIHNvdW5kIGxvYWRlZApbICAgIDYuNzQ4MTY0XSBzYWE3MTMwWzBdL2Fs
+c2E6IFVOS05PV04vR0VORVJJQyBkb2Vzbid0IHN1cHBvcnQgZGlnaXRhbCBhdWRpbwpbICAgIDcu
+MDE2OTk4XSAgIGFsbG9jIGlycV9kZXNjIGZvciAyMiBvbiBub2RlIC0xClsgICAgNy4wMTcwMDJd
+ICAgYWxsb2Mga3N0YXRfaXJxcyBvbiBub2RlIC0xCgoKSSdtIG5ldyB0byBMaW51eCB2aWRlbywg
+YnV0IEkgaG9wZSBpdCB3b3VsZCBiZSB1c2VmdWwgdG8gYWRkIHN1cHBvcnQgZm9yIHRoaXMgY2Fy
+ZC4gSWYgdGhlcmUgaXMgYW55dGhpbmcgZWxzZSBJIGNhbiBkbyB0byBoZWxwIHNvbWVvbmUgd2l0
+aCBtb3JlIGV4cGVydGlzZSBzdXBwb3J0IHRoaXMgY2FyZCwgSSfEumwgYmUgZ2xhZCB0byBwcm92
+aWRlIGhpbSB3aXRoIGFueSBpbmZvLgoKQ2hlZXJzCgpNaWd1ZWwgRnJhZ2EKCgogICAgICAKCi0t
+CnZpZGVvNGxpbnV4LWxpc3QgbWFpbGluZyBsaXN0ClVuc3Vic2NyaWJlIG1haWx0bzp2aWRlbzRs
+aW51eC1saXN0LXJlcXVlc3RAcmVkaGF0LmNvbT9zdWJqZWN0PXVuc3Vic2NyaWJlCmh0dHBzOi8v
+d3d3LnJlZGhhdC5jb20vbWFpbG1hbi9saXN0aW5mby92aWRlbzRsaW51eC1saXN0
