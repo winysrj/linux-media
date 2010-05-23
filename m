@@ -1,173 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2779 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756552Ab0ERLOL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 May 2010 07:14:11 -0400
-Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4IBEBl4020418
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 18 May 2010 07:14:11 -0400
-Message-ID: <4BF27601.8010207@redhat.com>
-Date: Tue, 18 May 2010 16:42:01 +0530
-From: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:64318 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753766Ab0EWTNG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 May 2010 15:13:06 -0400
+Received: by wwe15 with SMTP id 15so52192wwe.19
+        for <linux-media@vger.kernel.org>; Sun, 23 May 2010 12:13:03 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: [Patch] Moving v4l1 ioctls from kernel to libv4l1
+In-Reply-To: <201005231608.58277.hverkuil@xs4all.nl>
+References: <AANLkTikMhseqvpIJHnmEUhouqvdYRaaUvE4jUFiAwgrH@mail.gmail.com>
+	 <201005231337.20698.hverkuil@xs4all.nl>
+	 <AANLkTikUvIIH9g0oJCHJU0HA-hqAXbWzaELoQZKiKE6U@mail.gmail.com>
+	 <201005231608.58277.hverkuil@xs4all.nl>
+Date: Sun, 23 May 2010 20:13:00 +0100
+Message-ID: <AANLkTikABPCpdxMdtv3Ee6qcnqaAQRc--x_nr40_WNHD@mail.gmail.com>
+Subject: Re: [RFC] V4L2 Controls State Store/Restore File Format
+From: Paulo Assis <pj.assis@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
-I have been working with Hans for moving the v4l1 ioctls from the kernel
-to libv4l1.
-It would be best to work on one ioctl at a time.
-The enclosed patch attempts to implement VIDIOCGCAP in the libv4l1.
+Hi,
 
-Note: Hans is working with Bill, asking for permission to re-use the
-v4l1-compat.c code under the LGPL
+2010/5/23 Hans Verkuil <hverkuil@xs4all.nl>:
+> On Sunday 23 May 2010 15:40:26 Paulo Assis wrote:
+>> Hans,
+>>
+>> 2010/5/23 Hans Verkuil <hverkuil@xs4all.nl>:
+>> > On Thursday 20 May 2010 16:42:01 Paulo Assis wrote:
+>> >> Hi all,
+>> >>
+>> >> Below is a proposal for the file format to use when storing/restoring
+>> >> v4l2 controls state.
+>> >>
+>> >> I've some doubts concerning atomically set controls and string
+>> >> controls (see below)
+>> >> that may be inducing me on error.
+>> >> The format is intended to be generic enough to support any control
+>> >> class so I hope
+>> >> to receive comments for any special cases that I might have missed or
+>> >> overlooked.
+>> >> Don't worry about bashing on the proposal to hard I have a hard skin :-D
+>> >>
+>> >> Regards,
+>> >> Paulo
+>> >>
+>> >> ---------- Forwarded message ----------
+>> >> From: Hans de Goede <hdegoede@redhat.com>
+>> >> Date: 2010/5/20
+>> >> Subject: Re: [RFC] V4L2 Controls State Store/Restore File Format
+>> >> To: Paulo Assis <pj.assis@gmail.com>
+>> >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+>> >> Martin_Rubli@logitech.com
+>> >>
+>> >>
+>> >> Hi Paulo,
+>> >>
+>> >> Clearly you've though quite a bit about this I had not realized
+>> >> this would be this complex (with ordering issues etc.).
+>> >>
+>> >> This looks like a good proposal to start with to me, I think it
+>> >> would be good to further discuss this on the linux-media list,
+>> >> where other v4l devs can read it and chime in.
+>> >>
+>> >> Regards,
+>> >>
+>> >> Hans
+>> >>
+>> >>
+>> >> On 05/20/2010 03:11 PM, Paulo Assis wrote:
+>> >> >
+>> >> > Hans,
+>> >> > Below is the RFC with my proposed control state file format for
+>> >> > store/restore functionality.
+>> >> > I have several doubts, mostly regarding controls that must be set
+>> >> > atomically with the extended control API.
+>> >> > The main question is:
+>> >> > How does an application know that a group of controls must be set atomically ?
+>> >> > Is this reported by the driver or is it something that the application
+>> >> > must know.
+>> >> >
+>> >> > Also for string controls, I've only seen two implementations on RDS
+>> >> > controls, so I've set these with low precedence/priority order
+>> >> > compared with other control types.
+>> >> >
+>> >> > Awaiting comments, bash it all you want :-)
+>> >> >
+>> >> > Regards,
+>> >> > Paulo
+>> >> > ______________________
+>> >> >
+>> >> > [RFC] V4L2 Controls State Store/Restore File Format
+>> >> >
+>> >> > VERSION
+>> >> >
+>> >> > 0.0.1
+>> >> >
+>> >> > ABSTRACT
+>> >> >
+>> >> > This document proposes a standard for the file format used by v4l2
+>> >> > applications to store/restore the controls state.
+>> >> > This unified file format allows sharing control profiles between
+>> >> > applications, making it much easier on both developers and users.
+>> >> >
+>> >> > INTRODUCTION
+>> >> >
+>> >> > V4l2 controls can be divided by classes and types.
+>> >> > Controls in different classes are not dependent between themselves, on
+>> >> > the other end if two controls belong to the same class they may or may
+>> >> > not be dependent.
+>> >> > A good example are automatic controls and their absolute counterparts,
+>> >> > e.g.: V4L2_CID_AUTOGAIN and V4L2_CID_GAIN.
+>> >> > Controls must be set following the dependency order, automatic
+>> >> > controls must be set first or else setting the absolute value may
+>> >> > fail, when that was not the intended behavior (auto disabled).
+>> >> > After a quick analyses of the v4l2 controls, we are left to conclude
+>> >> > that auto controls are in most cases of the
+>> >> > boolean type, with some exceptions like V4L2_CID_EXPOSURE_AUTO, that
+>> >> > is of the menu type.
+>> >> > So ordering control priority by control type seems logical and it can
+>> >> > be done in the following order:
+>> >> >
+>> >> > 1-V4L2_CTRL_TYPE_BOOLEAN
+>> >> > 2-V4L2_CTRL_TYPE_MENU
+>> >> > 3-V4L2_CTRL_TYPE_INTEGER
+>> >> > 4-V4L2_CTRL_TYPE_INTEGER64
+>> >> > 5-V4L2_CTRL_TYPE_STRING
+>> >
+>> > I'm not sure whether the ordering is needed, it sounds more like a driver bug
+>> > that you are trying to work around.
+>> >
+>> > When you retrieve the state of controls, then the value of the controls must be
+>> > valid. So you should be able to set it later. There are some dependencies,
+>> > for example selecting a particular MPEG video encoding might deactivate some
+>> > controls and activate others. But the INACTIVE flag should be used to mark that,
+>> > never the DISABLED flag. And you can still set inactive controls.
+>> >
+>>
+>> How would this work for controls like "Exposure, Auto" ?
+>> In the cameras I've tested if we don't set it to manual first, changing
+>> "Exposure (Absolute)" fails. Maybe it's a uvcvideo a bug, I'm not sure.
+>> The same for "White Balance Temperature, Auto" and
+>> "White Balance Temperature".  They all return a EIO error.
+>
+> That's definitely wrong. Either they should set the INACTIVE flag and just
+> accept the new value (possibly storing it internally), or they should set
+> the READONLY flag and return -EACCES or -EINVAL. The spec says -EINVAL but we
+> want to change that to -EACCES. -EIO should only be used for failing hardware.
+> I.e. i2c errors or something like that.
+>
+> But as I said there is a wild variety of ways in which drivers handle controls.
+> It's why I'm working on the control framework and why I want to get that in
+> asap.
+>
+
+Still I'm guessing this won't be fully available in drivers before 2.6.36/37.
+And applications would still need to support older kernel versions, so
+in the end
+ordering the controls would work for both the new control framework and older
+kernels (with "buggy" drivers).
 
 
+>>
+>> > For controls not belonging to the user class I would store and restore them
+>> > all using G/S_EXT_CTRLS. So for each class just get all controls that are both
+>> > readable and writable and not disabled, then get or set them in one call.
+>> >
+>> I'll have to test at least camera class controls and see if this works.
+>>
+>> > For the user class controls you can do the same, but if that fails, then you
+>> > have to fallback to G/S_CTRL on a per-control basis.
+>> >
+>> I'll test this to!
+>
+> Note that all or almost all drivers will currently fail when you try to use
+> G/S_EXT_CTRLS with user class controls. But the new framework will handle this
+> just fine.
+>
 
-diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
-index eae3b43..8571651 100644
---- a/lib/libv4l1/libv4l1.c
-+++ b/lib/libv4l1/libv4l1.c
-@@ -61,6 +61,10 @@
- #define V4L1_PIX_FMT_TOUCHED    0x04
- #define V4L1_PIX_SIZE_TOUCHED   0x08
+Like I said before ordering the controls would still work for both cases.
+But probably ordering first by control class and then by type is a better idea,
+As it allows the use of TRY/S_EXT_CTRLS first, although from what I could
+read from the framework proposal, the requirement that all controls belong to
+the same Class will no longer apply.
 
-+#ifndef min
-+	#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
-+#endif
-+
- static pthread_mutex_t v4l1_open_mutex = PTHREAD_MUTEX_INITIALIZER;
- static struct v4l1_dev_info devices[V4L1_MAX_DEVICES] = {
- 	{ .fd = -1 },
-@@ -130,6 +134,45 @@ static unsigned int pixelformat_to_palette(unsigned
-int pixelformat)
- 	return 0;
- }
-
-+static int count_inputs(int fd)
-+{
-+	struct v4l2_input input2;
-+	int i;
-+	for (i = 0;; i++) {
-+		memset(&input2, 0, sizeof(input2));
-+		input2.index = i;
-+		if (0 != SYS_IOCTL(fd, VIDIOC_ENUMINPUT, &input2))
-+			break;
-+		}
-+	return i;
-+}
-+
-+static int check_size(int fd,int *maxw,int *maxh)
-+{
-+	struct v4l2_fmtdesc desc2;
-+	struct v4l2_format fmt2;
-+
-+	memset(&desc2, 0, sizeof(desc2));
-+	memset(&fmt2, 0, sizeof(fmt2));
-+
-+	desc2.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	if (0 != SYS_IOCTL(fd, VIDIOC_ENUM_FMT, &desc2))
-+		goto done;
-+
-+	fmt2.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	fmt2.fmt.pix.width = 10000;
-+	fmt2.fmt.pix.height = 10000;
-+	fmt2.fmt.pix.pixelformat = desc2.pixelformat;
-+	if (0 != SYS_IOCTL(fd, VIDIOC_TRY_FMT, &fmt2))
-+		goto done;
-+
-+	*maxw = fmt2.fmt.pix.width;
-+	*maxh = fmt2.fmt.pix.height;
-+
-+	done:
-+	return 0;
-+}
-+
- static int v4l1_set_format(int index, unsigned int width,
- 		unsigned int height, int v4l1_pal, int width_height_may_differ)
- {
-@@ -492,7 +535,54 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
- 	case VIDIOCGCAP: {
- 		struct video_capability *cap = arg;
-
--		result = SYS_IOCTL(fd, request, arg);
-+		long err;
-+		struct v4l2_framebuffer fbuf;
-+		struct v4l2_capability *cap2;
-+
-+		cap2 = malloc (sizeof(*cap2));
-+		if (!cap2) {
-+			return -ENOMEM;
-+		}
-+
-+		memset(cap,0,sizeof(*cap));
-+		memset(&fbuf, 0, sizeof(fbuf));
-+
-+		err = SYS_IOCTL(fd, VIDIOC_QUERYCAP,cap2);
-+		if (err < 0)
-+			goto done;
-+
-+		if (cap2->capabilities & V4L2_CAP_VIDEO_OVERLAY) {
-+			err = SYS_IOCTL(fd, VIDIOC_G_FBUF, &fbuf);
-+			if (err < 0) {
-+				memset(&fbuf, 0, sizeof(fbuf));
-+			}
-+			err = 0;
-+		}
-+		
-+		memcpy(cap->name,  cap2->card,
-min(sizeof(cap->name),sizeof(cap2->card)) );
-+		
-+		cap->name[sizeof(cap->name) -1 ] = 0;
-+	
-+		if (cap2->capabilities & V4L2_CAP_VIDEO_CAPTURE)
-+			cap->type |= VID_TYPE_CAPTURE;
-+		if (cap2->capabilities & V4L2_CAP_TUNER)
-+			cap->type |= VID_TYPE_TUNER;
-+		if (cap2->capabilities & V4L2_CAP_VBI_CAPTURE)
-+			cap->type |= VID_TYPE_TELETEXT;
-+		if (cap2->capabilities & V4L2_CAP_VIDEO_OVERLAY)
-+			cap->type |= VID_TYPE_OVERLAY;
-+		if (fbuf.capability & V4L2_FBUF_CAP_LIST_CLIPPING)
-+			cap->type |= VID_TYPE_CLIPPING;
-+
-+		cap->channels = count_inputs(fd);
-+
-+		check_size(fd,
-+			&cap->maxwidth, &cap->maxheight);
-+					
-+		
-+	/*	result = SYS_IOCTL(fd, request, arg);*/
-+
-+
-
- 		/* override kernel v4l1 compat min / max size with our own more
- 		   accurate values */
-@@ -500,7 +590,10 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
- 		cap->minheight = devices[index].min_height;
- 		cap->maxwidth  = devices[index].max_width;
- 		cap->maxheight = devices[index].max_height;
--		break;
-+
-+		done:
-+			free(cap2);
-+			break;
- 	}
-
- 	case VIDIOCSPICT: {
-
--- 
 Regards,
-Huzaifa Sidhpurwala, RHCE, CCNA (IRC: huzaifas)
-IT Desktop R&D Lead.
-Global Help Desk, Pune (India)
-Phone: +91 20 4005 7322 (UTC +5.5)
+Paulo
 
-GnuPG Fingerprint:
-3A0F DAFB 9279 02ED 273B FFE9 CC70 DCF2 DA5B DAE5
+>>
+>>
+>> > The main problem at the moment is that control handling stinks. Which is why
+>> > I am working on a new control framework that will handle everything in the
+>> > v4l core greatly simplifying drivers and providing a unified and consistent
+>> > interface towards applications.
+>> >
+>>
+>> Will this bring any changes to the API, or is just at the core level ?
+>
+> There will be a few small changes to the API with respect to error codes.
+>
+> The latest patch series is here:
+>
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/19318
+>
+> Look at patch 3/15, section 'Differences from the Spec' (almost at the end
+> of the patch).
+>
+> But most drivers that switch to this framework will probably behave differently
+> since most drivers behave inconsistently when it comes to corner cases. Such
+> as the EIO error code in your example.
+>
+> Regards,
+>
+>        Hans
+>
+> --
+> Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+>
