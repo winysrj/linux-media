@@ -1,336 +1,862 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41580 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755857Ab0ELX2u (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:55721 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755586Ab0EWXPu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 May 2010 19:28:50 -0400
-Received: by fxm4 with SMTP id 4so182960fxm.19
-        for <linux-media@vger.kernel.org>; Wed, 12 May 2010 16:28:48 -0700 (PDT)
-Message-ID: <4BEB3963.1060805@gmail.com>
-Date: Thu, 13 May 2010 01:27:31 +0200
-From: Daniel Borkmann <danborkmann@googlemail.com>
+	Sun, 23 May 2010 19:15:50 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 03/15] [RFCv2] Documentation: add v4l2-controls.txt documenting the new controls API.
+Date: Mon, 24 May 2010 01:17:34 +0200
+Cc: linux-media@vger.kernel.org
+References: <cover.1274015084.git.hverkuil@xs4all.nl> <c4116a8d705331ab8086902841bea31d4aa50a1f.1274015085.git.hverkuil@xs4all.nl>
+In-Reply-To: <c4116a8d705331ab8086902841bea31d4aa50a1f.1274015085.git.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, daniel@netyack.org
-Subject: Re: Bug in AMDs V4L2 driver lxv4l2?
-References: <4BEB29B2.9080501@gmail.com> <4BEB3666.7070806@redhat.com>
-In-Reply-To: <4BEB3666.7070806@redhat.com>
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig5A0B71B54275135D8F9613B8"
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005240117.35431.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig5A0B71B54275135D8F9613B8
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Hans,
 
-Mauro Carvalho Chehab wrote:
-> Daniel Borkmann wrote:
->> Hi everyone,
->>
->> I am using an AMD Geode webcam with a V4L driver (lxv4l2). For the use=
-rspace I've implemented a V4L
->> binding with memory mapping of the frames. After sucessfull receiving =
-frames it lasts about two or
->> three minutes and then either the timestamp of the frame is not changi=
-ng anymore or a kernel oops
->> happens. I am not quite sure whether this is caused by my userspace te=
-st program ("fw_singapore")
->> or whether this is a bug within AMDs driver code ...
->=20
-> If you're getting an OOPS, for sure there's a bug at the driver. That's=
- said, unfortunately, we
-> can't help you on it, since AMD has never submitted this driver for our=
- review.
+Thanks for the second RFC version. I've finally had time to review it. Many 
+issues from the first version have been fixed, but there are some left (or at 
+least topics that are still open for discussion). Here are my comments.
 
-Okay, but for now this helps. I'm currently debugging this whole mess, si=
-nce (as far as I've seen)
-they have their own HAL-like mechanism called cimarron that also provides=
- the vip_toggle_video_offsets
-function that is causing the Oops and on my first view they do not even c=
-heck the buffer pointer
-against NULL, so it could be possible that some deprecated structs point =
-somewhere in the space which
-causes a bad paging request. If I rememer correctly, they didn't get into=
- the mainline because of
-cimarron ...
+On Sunday 16 May 2010 15:20:57 Hans Verkuil wrote:
+> Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+> Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  Documentation/video4linux/v4l2-controls.txt |  600
+> +++++++++++++++++++++++++++ 1 files changed, 600 insertions(+), 0
+> deletions(-)
+>  create mode 100644 Documentation/video4linux/v4l2-controls.txt
+> 
+> diff --git a/Documentation/video4linux/v4l2-controls.txt
+> b/Documentation/video4linux/v4l2-controls.txt new file mode 100644
+> index 0000000..44246b2
+> --- /dev/null
+> +++ b/Documentation/video4linux/v4l2-controls.txt
+> @@ -0,0 +1,600 @@
+> +Introduction
+> +============
+> +
+> +The V4L2 control API seems simple enough, but quickly becomes very hard to
+> +implement correctly in drivers. But much of the code needed to handle
+> controls
+> +is actually not driver specific and can be moved to the V4L core framework.
+> +
+> +After all, the only part that a driver developer is interested in is:
+> +
+> +1) How do I add a control?
+> +2) How do I set the control's value? (i.e. s_ctrl)
+> +
+> +And occasionally:
+> +
+> +3) How do I get the control's value? (i.e. g_volatile_ctrl)
+> +4) How do I validate the user's proposed control value? (i.e. try_ctrl)
+> +
+> +All the rest is something that can be done centrally.
+> +
+> +The control framework was created in order to implement all the rules of
+> the
+> +V4L2 specification with respect to controls in a central place. And to make
+> +life as easy as possible for the driver developer.
+> +
+> +Note that the control framework relies on the presence of a struct
+> v4l2_device
+> +for bridge drivers and struct v4l2_subdev for sub-device drivers.
 
-Thanks!
-                Daniel
+Didn't we agree on replacing the name bridge by something else ? "bridges" are 
+a subset of the V4L2 devices.
 
->> Thanks for help.
->> Cheers,
->>                 Daniel
->>
->> Here the causing driver function within AMDs lx.c (and below the dmesg=
- output):
->>
->> Nevertheless, I noticed that this function is also a potential deadloc=
-k candidate since
->> "spin_lock_irqsave(&io->lock, flags);" is called an the "else return 0=
-;" does not release the lock.
->>
->>
->> /** lx_capt_resume2 - queue capture buffers to vip */
->> int
->> lx_capt_resume2(VidDevice *dp,io_queue *io)
->> {
->>    io_buf *op, *ep;
->>    int eidx, oidx, vip_buffers;
->>    int task =3D dp->capt_vip_task;
->>    int task_buffers =3D vip_task_data[task].task_buffers;
->>    VIPINPUTBUFFER *vip_inpbfr =3D &dp->vip_inpbfr;
->>
->>    unsigned long flags;
->>    struct list_head *lp;
->>    io_buf *bp1;
->>
->>    dp->capt_stalled =3D 1;
->>    task =3D dp->capt_vip_task;
->>    task_buffers =3D vip_task_data[task].task_buffers;
->>
->>    if( dp->capt_addr_is_set =3D=3D 0 ) {
->>       op =3D dp->capt_toggle =3D=3D capt_toggle_odd ? dp->capt_elch : =
-dp->capt_onxt;
->>       if( op =3D=3D NULL ) {
->>          if( list_empty(&io->rd_qbuf) !=3D 0 )
->>          {
->>            // there are no more buffers into the input list for grabbi=
-ng images,
->>            // so requeue first output buffer into input list
->>
->> 	   spin_lock_irqsave(&io->lock, flags);
->>
->>            lp =3D &io->rd_dqbuf;
->> 	   if( ! list_empty(lp) ) {
->> 	      bp1 =3D list_entry(lp->next,io_buf,bfrq);	// get the struct for=
- this entry / list_entry ( ptr, type, member) &struct list_head pointer/ =
-type of the struct this is embedded in/
->> name of the list_struct within the struct.
->> 	      list_del_init(&bp1->bfrq);		//deletes entry from list and reini=
-tialize it
->> 	   }
->>            else return 0;
->>
->>            lp =3D &io->rd_qbuf;
->> 	   list_move_tail(&bp1->bfrq,lp);
->>
->> 	   bp1->sequence =3D io->sequence++;
->> 	   bp1->flags &=3D ~V4L2_BUF_FLAG_DONE;
->> 	   bp1->flags |=3D V4L2_BUF_FLAG_QUEUED;
->>
->> 	   if( dp->capt_stalled !=3D 0 )
->> 	   {
->> 	      DMSG(3,"------------ v4l_qbfr : capt !=3D 0 && dp->capt_stalled=
- !=3D 0\n");
->> 	      //v4l_capt_unstall(dp);
->> 	   }
->>
->> 	   spin_unlock_irqrestore(&io->lock,flags);
->>            //return 0;
->>          }
->>
->>          op =3D list_entry(io->rd_qbuf.next,io_buf,bfrq);
->>          list_del_init(&op->bfrq);
->>       }
->>       if( dp->capt_toggle =3D=3D capt_toggle_both ||
->>           dp->capt_toggle =3D=3D capt_toggle_odd ) {
->>          if( (ep=3Ddp->capt_enxt) =3D=3D NULL ) {
->>             if( list_empty(&io->rd_qbuf) !=3D 0 ) {
->>                list_add(&op->bfrq,&io->rd_qbuf);
->>                return 0;
->>             }
->>             ep =3D list_entry(io->rd_qbuf.next,io_buf,bfrq);
->>             list_del_init(&ep->bfrq);
->>          }
->>       }
->>       else
->>       {
->>          ep =3D op;
->>       }
->>       dp->capt_onxt =3D op;  oidx =3D op->index;
->>       dp->capt_enxt =3D ep;  eidx =3D ep->index;
->>    }
->>    else
->>    {
->>       oidx =3D eidx =3D 0;
->>    }
->>
->>    if( oidx !=3D eidx ) {
->>       vip_inpbfr->current_buffer =3D eidx;
->>       vip_buffers =3D vip_task_data[task].vip_even_buffers;
->>       vip_toggle_video_offsets(vip_buffers,vip_inpbfr);
->>       vip_inpbfr->current_buffer =3D oidx;
->>       vip_buffers =3D vip_task_data[task].vip_odd_buffers;
->>       vip_toggle_video_offsets(vip_buffers,vip_inpbfr);
->>    }
->>    else {
->>       vip_inpbfr->current_buffer =3D oidx;
->>       vip_buffers =3D vip_task_data[task].vip_buffers;
->>       vip_toggle_video_offsets(vip_buffers,vip_inpbfr);
->>    }
->>    dp->capt_stalled =3D 0;
->>
->>    ++dp->capt_sequence;
->>    ++dp->capt_jiffy_sequence;
->>
->>    return 1;
->> }
->>
->>
->> dmesg and uname:
->>
->>
->> nao@purzel [1] [~]$ uname -a
->> Linux purzel 2.6.29.6-rt24-aldebaran-rt #1 PREEMPT RT Fri Feb 12 17:51=
-:46 CET 2010 i586 GNU/Linux
->>
->> [   17.877211] AMD Linux LX video2linux/2 driver 3.2.0100
->> [   17.893218] Found Geode LX VIP at IRQ 11
->> [   17.910414] OmniVision ov7670 sensor driver, at your service (v 2.0=
-0)
->> [   17.939093] ov7670/1: driver attached: adapter id: 10002
->> [   17.955545] Trying to detect OmniVision 7670/7672 I2C adapters
->> [   19.847126] ov7670_init returned 0
->> [   19.847139] Phase 1
->> [   19.849429] Phase 2
->> [   19.849440] Phase 3
->> [   19.851728] Phase 4
->> [   19.851739] Phase 5
->> [   19.854054] Phase 6
->> [   19.854064] Phase 7
->> [   19.856357] Phase 8
->> [   19.856367] Phase 9
->> [   19.856377] OmniVision 7670/7671 I2C Found
->> [   19.868799] ov7670/1: driver attached: adapter id: 0
->> [   20.324975] eth0: link up, 100Mbps, full-duplex, lpa 0x45E1
->> [   22.963201] spurious 8259A interrupt: IRQ7.
->> [   74.863542] warning: `vsftpd' uses 32-bit capabilities (legacy supp=
-ort in use)
->> [  565.626822] BUG: unable to handle kernel paging request at 0519e544=
+> +Objects in the framework
+> +========================
+> +
+> +There are two main objects:
+> +
+> +The v4l2_ctrl object describes the control properties and keeps track of
+> the
+> +control's value (both the current value and the proposed new value).
+> +
+> +v4l2_ctrl_handler is the object that keeps track of controls. It maintains
+> a
+> +list of v4l2_ctrl objects that it owns and another list of references to
+> +controls, possibly to controls owned by other handlers.
+> +
+> +
+> +Basic usage for bridge and sub-device drivers
+> +=============================================
+> +
+> +1) Prepare the driver:
+> +
+> +1.1) Add the handler to your driver's top-level struct:
+> +
+> +	struct foo_dev {
+> +		...
+> +		struct v4l2_ctrl_handler ctrl_handler;
+> +		...
+> +	};
+> +
+> +	struct foo_dev *foo;
+> +
+> +1.2) Initialize the handler:
+> +
+> +	v4l2_ctrl_handler_init(&foo->ctrl_handler, nr_of_controls);
+> +
+> +  The second argument is a hint telling the function how many controls
+> this
+> +  handler is expected to handle. It will allocate a hashtable based on this
+> +  information. It is a hint only.
+> +
+> +1.3) Hook the control handler into the driver:
+> +
+> +1.3.1) For bridge drivers do this:
+> +
+> +	foo->v4l2_dev.ctrl_handler = &foo->ctrl_handler;
+> +
+> +  Where foo->v4l2_dev is of type struct v4l2_device.
 
->> [  565.627024] IP: [<cf4bc988>] vip_toggle_video_offsets+0x29/0x106 [c=
-imarron]
->> [  565.627024] *pde =3D 00000000
->> [  565.627024] Oops: 0000 [#1] PREEMPT
->> [  565.627024] last sysfs file: /sys/class/i2c-adapter/i2c-1/1-004c/te=
-mp1_input
->> [  565.627024] Modules linked in: lxv4l2 cimarron zd1211rw ftdi_sio us=
-bserial lm90 scx200_acb i2c_serial
->> [  565.627024]
->> [  565.627024] Pid: 1557, comm: IRQ-11 Not tainted (2.6.29.6-rt24-alde=
-baran-rt #1) AMD "CM-iGLX" Geode LX/CS5536
->> [  565.627024] EIP: 0060:[<cf4bc988>] EFLAGS: 00010246 CPU: 0
->> [  565.627024] EIP is at vip_toggle_video_offsets+0x29/0x106 [cimarron=
-]
->> [  565.627024] EAX: 00000000 EBX: cdb86e24 ECX: cf428000 EDX: ce382c88=
+Please add struct v4l2_device v4l2_dev in the foo_dev structure above.
 
->> [  565.627024] ESI: cdb86e2c EDI: cdb86e24 EBP: ce382c88 ESP: ce359f28=
+> +  Finally, remove all control functions from your v4l2_ioctl_ops:
+> +  vidioc_queryctrl, vidioc_querymenu, vidioc_g_ctrl, vidioc_s_ctrl,
+> +  vidioc_g_ext_ctrls, vidioc_try_ext_ctrls and vidioc_s_ext_ctrls.
+> +  Those are now no longer needed.
+> +
+> +1.3.2) For sub-device drivers do this:
+> +
+> +	foo->sd.ctrl_handler = &foo->ctrl_handler;
+> +
+> +  Where foo->sd is of type struct v4l2_subdev.
+> +
+> +  And set all core control ops in your struct v4l2_subdev_core_ops to
+> these
+> +  helpers:
+> +
+> +	.queryctrl = v4l2_subdev_queryctrl,
+> +	.querymenu = v4l2_subdev_querymenu,
+> +	.g_ctrl = v4l2_subdev_g_ctrl,
+> +	.s_ctrl = v4l2_subdev_s_ctrl,
+> +	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+> +	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+> +	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+> +
+> +  Note: this is a temporary solution only. Once everything is converted to
+> +  the control framework these helpers will no longer be needed.
 
->> [  565.627024]  DS: 007b ES: 007b FS: 0000 GS: 0000 SS: 0068 preempt:0=
-0000001
->> [  565.627024] Process IRQ-11 (pid: 1557, ti=3Dce359000 task=3Dce0617f=
-0 task.ti=3Dce359000)
->> [  565.627024] Stack:
->> [  565.627024]  cdb86e1c ce38281c cf43d926 cdb86e04 00000000 00000000 =
-ce382800 00000001
->> [  565.627024]  00000000 cf43ebe0 00075a8d 00040d9a 00000001 00000000 =
-00000000 00000001
->> [  565.627024]  ce38281c cdb86e00 00dc9c86 c0393f64 cda15b20 0000000b =
-00000000 c013e758
->> [  565.627024] Call Trace:
->> [  565.627024]  [<cf43d926>] ? lx_capt_resume2+0x199/0x1bd [lxv4l2]
->> [  565.627024]  [<cf43ebe0>] ? lx_interrupt+0x67d/0x785 [lxv4l2]
->> [  565.627024]  [<c013e758>] ? handle_IRQ_event+0x83/0x13f
->> [  565.627024]  [<c013e9e8>] ? thread_simple_irq+0x3a/0x72
->> [  565.627024]  [<c013eac2>] ? do_irqd+0xa2/0x24d
->> [  565.627024]  [<c013ea20>] ? do_irqd+0x0/0x24d
->> [  565.627024]  [<c012c5b9>] ? kthread+0x36/0x5a
->> [  565.627024]  [<c012c583>] ? kthread+0x0/0x5a
->> [  565.627024]  [<c0102fb3>] ? kernel_thread_helper+0x7/0x10
->> [  565.627024] Code: 5f c3 56 53 89 c1 8b 9a e4 00 00 00 85 c0 75 33 f=
-6 02 02 8b 0d 60 13 4d cf 8d 73 08 74 0d 8b 44 9a 04 89 41 1c 8b 54 b2 0c=
- eb 0b <8b> 44 b2 0c 89 41 1c 8b 54
->> 9a 04 a1 60 13 4d cf 89 50 18 e9 c0
->> [  565.627024] EIP: [<cf4bc988>] vip_toggle_video_offsets+0x29/0x106 [=
-cimarron] SS:ESP 0068:ce359f28
->> [  565.627024] CR2: 000000000519e544
->> [  566.207813] ---[ end trace d33f57cfaa8188ac ]---
->> [  566.230208] BUG: unable to handle kernel paging request at 0519e544=
+If I understand things properly, those operations are still needed to allow 
+"legacy" V4L2 device drivers to use converted subdevices. I would then phrase 
+it a bit differently:
 
->> [  566.231021] IP: [<cf4bc988>] vip_toggle_video_offsets+0x29/0x106 [c=
-imarron]
->> [  566.231021] *pde =3D 00000000
->> [  566.231021] Oops: 0000 [#2] PREEMPT
->> [  566.231021] last sysfs file: /sys/class/i2c-adapter/i2c-1/1-004c/te=
-mp1_input
->> [  566.231021] Modules linked in: lxv4l2 cimarron zd1211rw ftdi_sio us=
-bserial lm90 scx200_acb i2c_serial
->> [  566.231021]
->> [  566.231021] Pid: 1751, comm: fw_singapore Tainted: G      D    (2.6=
-=2E29.6-rt24-aldebaran-rt #1) AMD "CM-iGLX" Geode LX/CS5536
->> [  566.231021] EIP: 0060:[<cf4bc988>] EFLAGS: 00010246 CPU: 0
->> [  566.231021] EIP is at vip_toggle_video_offsets+0x29/0x106 [cimarron=
-]
->> [  566.231021] EAX: 00000000 EBX: cdb86e24 ECX: cf428000 EDX: ce382c88=
+"Note: this is a temporary solution only. Once all devices using the subdev 
+are converted to the control framework these helpers will no longer be 
+needed."
 
->> [  566.231021] ESI: cdb86e2c EDI: cdb86e24 EBP: ce382c88 ESP: ce2dee44=
+This will make it clear that subdev drivers can be cleaned up of those 
+backward-compatibility helpers as soon all device drivers using the subdevs 
+are converted, and not when all device drivers are converted.
 
->> [  566.231021]  DS: 007b ES: 007b FS: 0000 GS: 0033 SS: 0068 preempt:0=
-0000001
->> [  566.231021] Process fw_singapore (pid: 1751, ti=3Dce2de000 task=3Dc=
-d8aa030 task.ti=3Dce2de000)
->> [  566.231021] Stack:
->> [  566.231021]  cdb86e1c ce38281c cf43d76a 00000000 cdb86e58 cdb86e00 =
-cdb86e1c ce38281c
->> [  566.231021]  cf4375be 00000001 cdb86e04 cdb86e00 00000001 bfeae7b0 =
-c044560f cf43c393
->> [  566.231021]  00000001 ce2def50 ce2def4c 00000000 cddef740 ce2deea8 =
-0000000d c0275b89
->> [  566.231021] Call Trace:
->> [  566.231021]  [<cf43d76a>] ? lx_capt_resume+0x108/0x12b [lxv4l2]
->> [  566.231021]  [<cf4375be>] ? v4l_qbfr+0x72/0x88 [lxv4l2]
->> [  566.231021]  [<cf43c393>] ? vid_ioctl+0x35c4/0x3d65 [lxv4l2]
->> [  566.231021]  [<c0275b89>] ? sys_recvfrom+0xb1/0x113
->> [  566.231021]  [<c0275bd9>] ? sys_recvfrom+0x101/0x113
->> [  566.231021]  [<c014b731>] ? perf_swcounter_event+0xc4/0xeb
->> [  566.231021]  [<cf438dcf>] ? vid_ioctl+0x0/0x3d65 [lxv4l2]
->> [  566.231021]  [<c021cedb>] ? v4l2_ioctl+0x31/0x34
->> [  566.231021]  [<c01709d8>] ? vfs_ioctl+0x47/0x5d
->> [  566.231021]  [<c0170f01>] ? do_vfs_ioctl+0x43f/0x47f
->> [  566.231021]  [<c0275c04>] ? sys_recv+0x19/0x1d
->> [  566.231021]  [<c0276003>] ? sys_socketcall+0xf2/0x18c
->> [  566.231021]  [<c0170f6d>] ? sys_ioctl+0x2c/0x42
->> [  566.231021]  [<c0102851>] ? syscall_call+0x7/0xb
->> [  566.231021] Code: 5f c3 56 53 89 c1 8b 9a e4 00 00 00 85 c0 75 33 f=
-6 02 02 8b 0d 60 13 4d cf 8d 73 08 74 0d 8b 44 9a 04 89 41 1c 8b 54 b2 0c=
- eb 0b <8b> 44 b2 0c 89 41 1c 8b 54
->> 9a 04 a1 60 13 4d cf 89 50 18 e9 c0
->> [  566.231021] EIP: [<cf4bc988>] vip_toggle_video_offsets+0x29/0x106 [=
-cimarron] SS:ESP 0068:ce2dee44
->> [  566.231021] CR2: 000000000519e544
->> [  566.894334] ---[ end trace d33f57cfaa8188ad ]---
->>
->>
->=20
->=20
+1.3.1 is for bridge drivers. 1.3.2 is for subdev drivers. What about drivers 
+with no subdevs and bridge (just a "simple" device such as a webcam) ?
 
+> +1.4) Clean up the handler at the end:
+> +
+> +	v4l2_ctrl_handler_free(&foo->ctrl_handler);
+> +
+> +
+> +2) Add controls:
+> +
+> +Typically done right after the v4l2_ctrl_handler_init:
+> +
+> +	v4l2_ctrl_handler_init(&foo->ctrl_handler, nr_of_controls);
+> +	v4l2_ctrl_new_std(&foo->ctrl_handler, &foo_ctrl_ops,
+> +			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
 
+Adding the function prototype to the documentation is still a good idea :-)
 
---------------enig5A0B71B54275135D8F9613B8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
+> +	v4l2_ctrl_new_std(&foo->ctrl_handler, &foo_ctrl_ops,
+> +			V4L2_CID_CONTRAST, 0, 255, 1, 128);
+> +	...
+> +	if (foo->ctrl_handler.error) {
+> +		int err = foo->ctrl_handler.error;
+> +
+> +		v4l2_ctrl_handler_free(&foo->ctrl_handler);
+> +		return err;
+> +	}
+> +
+> +The v4l2_ctrl_new_std function returns the v4l2_ctrl pointer to the new
+> +control, but if you do not need to access the pointer outside the control
+> ops,
+> +then there is no need to store it.
+> +
+> +The v4l2_ctrl_new_std function will fill in most fields based on the
+> control
+> +ID except for the min, max, step and default values. These are passed in
+> the
+> +last four arguments. These values are driver specific while control
+> attributes
+> +like type, name, flags are all global. The control's current value will be
+> set
+> +to the default value.
+> +
+> +Note that if something fails, the function will return NULL or an error
+> and
+> +set ctrl_handler->error to the error code. If ctrl_handler->error was
+> already
+> +set, then it will just return and do nothing. This is also true for
+> +v4l2_ctrl_handler_init if it cannot allocate the internal data structure.
+> +
+> +This makes it easy to init the handler and just add all controls and only
+> check
+> +the error code at the end. Saves a lot of repetitive error checking.
+> +
+> +It is recommended to add controls in ascending control ID order: it will
+> be
+> +a bit faster that way.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+You will find me a bit annoying, but if standard controls could be initialized 
+using structures, we could pass a pointer to an array to a single control add 
+function :-) There would be less code in drivers, and they would be easier to 
+read.
 
-iEYEARECAAYFAkvrOWMACgkQ5AxJm1m3CC8D1ACcDyVDBAS5N34XRDPeTIAsKnFV
-dGcAn0pE7e2HgvQVTGiRQmECXKxdC5EE
-=hmH9
------END PGP SIGNATURE-----
+> +3) Optionally force initial control setup:
+> +
+> +	v4l2_ctrl_handler_setup(&foo->ctrl_handler);
+> +
+> +This will call s_ctrl for all controls unconditionally. Effectively this
+> +initializes the hardware to the default control values. It is recommended
+> +that you do this.
 
---------------enig5A0B71B54275135D8F9613B8--
+Copying my comments from the previous review, I think they got lost somewhere 
+(or I have lost your answer to them).
+
+What should be recommended, calling v4l2_ctrl_handler_setup, or initializing 
+the framework with the current value ?
+
+Thinking some more about this, it can be a problem for UVC devices, much like 
+querying the min/max/step/default values is. Some devices just crash if you 
+send too many requests too fast. I would like to get a g_ctrl call the first 
+time the current value needs to be read, and then have the framework cache 
+that value.
+
+By the way (still more thinking :-)), does the framework handle a value cache 
+that can be configured per control ? Some controls are volatile and need to be 
+read from the driver every time, some others can be cached. How is that 
+handled ?
+
+Last thought: does the framework query the driver for the current control 
+values when setting a control in a cluster ? If two clustered controls are 
+stored in a single hardware "register", and one of them needs to be modified, 
+a read-update-write operation needs to be performed. The update part will be 
+done by the framework, the write part by the driver, but what about the read 
+part ?
+
+> +4) Finally: implement the v4l2_ctrl_ops
+> +
+> +	static const struct v4l2_ctrl_ops foo_ctrl_ops = {
+> +		.s_ctrl = foo_s_ctrl,
+> +	};
+> +
+> +Usually all you need is s_ctrl:
+> +
+> +	static int foo_s_ctrl(struct v4l2_ctrl *ctrl)
+> +	{
+> +		struct foo *state = container_of(ctrl->handler, struct foo,
+> ctrl_handler); +
+> +		switch (ctrl->id) {
+> +		case V4L2_CID_BRIGHTNESS:
+> +			write_reg(0x123, ctrl->val);
+> +			break;
+> +		case V4L2_CID_CONTRAST:
+> +			write_reg(0x456, ctrl->val);
+> +			break;
+> +		}
+> +		return 0;
+> +	}
+> +
+> +The control ops are called with the v4l2_ctrl pointer as argument.
+> +The new control value has already been validated, so all you need to do is
+> +to actually update the hardware registers.
+> +
+> +You're done! And this is sufficient for most of the drivers we have. No
+> need
+> +to do any validation of control values, or implement QUERYCTRL/QUERYMENU.
+> And
+> +G/S_CTRL as well as G/TRY/S_EXT_CTRLS are automatically supported.
+> +
+> +
+> +==========================================================================
+> ====
+> +
+> +The remainder of this document deals with more advanced topics and
+> scenarios.
+> +In practice the basic usage as described above is sufficient for most
+> drivers.
+> +
+> +==========================================================================
+> =====
+> +
+> +
+> +Inheriting Controls
+> +===================
+> +
+> +When a sub-device is registered with a bridge driver by calling
+> +v4l2_device_register_subdev() and the ctrl_handler fields of both
+> v4l2_subdev
+> +and v4l2_device are set, then the controls of the subdev will become
+> +automatically available in the bridge driver as well. If the subdev driver
+> +contains controls that already exist in the bridge driver, then those will
+> be
+> +skipped (so a bridge driver can always override a subdev control).
+> +
+> +What happens here is that v4l2_device_register_subdev() calls
+> +v4l2_ctrl_add_handler() adding the controls of the subdev to the controls
+> +of v4l2_device.
+> +
+> +
+> +Accessing Control Values
+> +========================
+> +
+> +The v4l2_ctrl struct contains these two unions:
+> +
+> +	/* The current control value. */
+> +	union {
+> +		s32 val;
+> +		s64 val64;
+> +		char *string;
+> +	} cur;
+> +
+> +	/* The new control value. */
+> +	union {
+> +		s32 val;
+> +		s64 val64;
+> +		char *string;
+> +	};
+> +
+> +Within the control ops you can freely use these. The val and val64 speak
+> for
+> +themselves. The string pointers point to character buffers of length
+> +ctrl->maximum + 1, and are always 0-terminated.
+
+Does the string controls spec require the maximum length to be fixed, or can 
+it vary ?
+
+> +In most cases 'cur' contains the current cached control value. When you
+> create
+> +a new control this value is made identical to the default value. After
+> calling
+> +v4l2_ctrl_handler_setup() this value is passed to the hardware. It is
+> generally
+> +a good idea to call this function.
+> +
+> +Whenever a new value is set that new value is automatically cached. This
+> means
+> +that most drivers do not need to implement the g_volatile_ctrl() op. The
+> +exception is for controls that return a volatile register such as a signal
+> +strength read-out that changes continuously. In that case you will need to
+> +implement g_volatile_ctrl like this:
+> +
+> +	ctrl->cur.val = read_reg(0x123);
+
+Do we really need to call the operation g_volatile_ctrl ? I was OK with 
+g_ctrl.
+
+If some controls are volatile and others are not, you said that the operation 
+can ignore non-volatile controls. How does it do so ? By just returning 
+success ? It might be worth mentioning it in the doc.
+
+Another comment from my previous review for which I haven't seen an answer:
+
+Instead of calling g_ctrl for all drivers, have it go through a big switch and 
+do nothing, wouldn't it be better to add a volatile flag to the v4l2_ctrl 
+structure ? g_ctrl calls would be skipped for non-volatile controls (except on 
+the first read of course).
+
+> +The 'new value' union is not relevant in g_volatile_ctrl. In general
+> controls
+> +that need to implement g_volatile_ctrl are read-only controls.
+> +
+> +For try/s_ctrl the new values (i.e. as passed by the user) are filled in
+> and
+> +you can modify them in try_ctrl or set them in s_ctrl. The 'cur' union
+> +contains the current value, which you can use (but not change!) as well.
+> +
+> +If s_ctrl returns 0 (OK), then the control framework will copy the new
+> final
+> +values to the 'cur' union.
+
+Instead of playing with cur and new, wouldn't it be less confusing to pass a 
+pointer to the new value as an argument to s_ctrl (and a pointer to the 
+current value as an argument to g_ctrl) ?
+
+> +While in g_volatile/s/try_ctrl you can access the value of all controls
+> owned
+> +by the same handler since the handler's lock is held. Do not attempt to
+> access 
+> +the value of controls owned by other handlers, though.
+
+Can we access all fields of other controls in s_ctrl, or just the value ? More 
+specifically, can s_ctrl on an auto control modify the enabled flag on the 
+associated manual control ?
+
+> +Elsewhere in the driver you have to be more careful. You cannot just refer
+> +to the current control values without locking. There are two simple helper
+> +functions defined that will get or set a single control value safely from
+> +within the driver:
+> +
+> +	s32 v4l2_ctrl_g_ctrl(struct v4l2_ctrl *ctrl);
+> +	int v4l2_ctrl_s_ctrl(struct v4l2_ctrl *ctrl, s32 val);
+> +
+> +These functions go through the control framework just as VIDIOC_G/S_CTRL
+> ioctls
+> +do. Don't use these inside the control ops g_volatile/s/try_ctrl, though,
+> that
+> +will fail since these helpers lock the handler.
+
+This sounds a bit confusing. Would it be possible to avoid taking the lock in 
+v4l2_ctrl_g/s_ctrl if the control belongs to the same handler as the one being 
+accessed in g/s/try_ctrl ? Just throwing an idea, not sure if it's a good one, 
+but I'm pretty sure it will be confusing to have to access controls directly 
+and use the helper functions in drivers depending on which control you access 
+and in which context.
+
+> +You can also take the handler lock yourself:
+> +
+> +	mutex_lock(&state->ctrl_handler.lock);
+> +	printk(KERN_INFO "String value is '%s'\n", ctrl1->cur.string);
+> +	printk(KERN_INFO "Integer value is '%s'\n", ctrl2->cur.val);
+> +	mutex_unlock(&state->ctrl_handler.lock);
+> +
+> +
+> +Menu Controls
+> +=============
+> +
+> +Menu controls use the 'step' value differently compared to other control
+> +types. The v4l2_ctrl struct contains this union:
+> +
+> +	union {
+> +		u32 step;
+> +		u32 menu_skip_mask;
+> +	};
+> +
+> +For menu controls menu_skip_mask is used. What it does is that it allows
+> you
+> +to easily exclude certain menu items. This is used in the VIDIOC_QUERYMENU
+> +implementation where you can return -EINVAL if a certain menu item is not
+> +present. Note that VIDIOC_QUERYCTRL always returns a step value of 1 for
+> +menu controls.
+> +
+> +A good example is the MPEG Audio Layer II Bitrate menu control where the
+> +menu is a list of standardized possible bitrates. But in practice hardware
+> +implementations will only support a subset of those. By setting the skip
+> +mask you can tell the framework which menu items should be skipped.
+> Setting
+> +it to 0 means that all menu items are supported.
+> +
+> +So when using v4l2_ctrl_new_std or v4l2_ctrl_new_custom (see below) you
+> need
+> +to remember that 'step' means 'skip mask' for menu controls. If you put in
+> '1'
+> +by mistake, then the first menu item will be skipped.
+
+What about renaming the argument to step_or_skip_mask then ? Or make it two 
+arguments ?
+
+The comment doesn't seem to apply to v4l2_ctrl_new_custom anymore, as you have 
+two different fields there.
+
+> +The v4l2_ctrl_new_std_menu function can be used to add menu controls more
+> +easily: it will calculate the min and max values automatically based on
+> the
+> +size of the menu, and it has a proper 'mask' argument instead of 'step'.
+> +
+> +
+> +Custom Controls
+> +===============
+> +
+> +Driver specific controls can be created using v4l2_ctrl_new_custom():
+> +
+> +	static const struct v4l2_ctrl_config ctrl_filter = {
+> +		.ops = &ctrl_custom_ops,
+> +		.id = V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER,
+> +		.name = "Spatial Filter",
+> +		.type = V4L2_CTRL_TYPE_INTEGER,
+> +		.flags = V4L2_CTRL_FLAG_SLIDER,
+> +		.max = 15,
+> +		.step = 1,
+> +	};
+> +
+> +	ctrl = v4l2_ctrl_new_custom(&foo->ctrl_handler, &ctrl_filter, NULL);
+> +
+> +The last argument is the priv pointer which can be set to driver-specific
+> +private data.
+
+If I add a standard control using v4l2_ctrl_new_custom, will it fill the name, 
+type, ... fields for me ?
+
+> +Active and Grabbed Controls
+> +===========================
+> +
+> +If you get more complex relationships between controls, then you may have
+> to
+> +activate and deactivate controls. For example, if the Chroma AGC control is
+> +on, then the Chroma Gain control is inactive. That is, you may set it, but
+> +the value will not be used by the hardware as long as the automatic gain
+> +control is on. Typically user interfaces can disable such input fields.
+> +
+> +You can set the 'active' status using v4l2_ctrl_activate(). By default all
+> +controls are active. Note that the framework does not check for this flag.
+> +It is meant purely for GUIs. The function is typically called from within
+> +s_ctrl.
+
+Shouldn't you mention that the driver needs to take the handler lock if it 
+wants to (de)activate a control belonging to another handler, or if it wants 
+to do it outside the s_ctrl callback ?
+
+> +The other flag is the grabbed flag. A grabbed control means that you
+> cannot
+> +change it because it is in use by some resource. Typical examples are MPEG
+> +bitrate controls that cannot be changed while capturing is in progress.
+> +
+> +If a control is set to 'grabbed' using v4l2_ctrl_grab(), then the
+> framework
+> +will return -EBUSY if an attempt is made to set this control.
+> +
+> +Since this flag is used by the framework the v4l2_ctrl_grab function will
+> +take the control handler's lock. So it cannot be called from within the
+> +control ops. Instead this is typically called from the driver when it
+> +starts streaming.
+
+This makes v4l2_ctrl_activate and v4l2_ctrl_grab behave differently. It might 
+be confusing.
+
+> +Control Clusters
+> +================
+> +
+> +By default all controls are independent from the others. But in more
+> +complex scenarios you can get dependencies from one control to another.
+> +In that case you need to 'cluster' them:
+> +
+> +	struct foo {
+> +		struct v4l2_ctrl_handler ctrl_handler;
+> +#define AUDIO_CL_VOLUME (0)
+> +#define AUDIO_CL_MUTE   (1)
+> +		struct v4l2_ctrl *audio_cluster[2];
+> +		...
+> +	};
+> +
+> +	state->audio_cluster[AUDIO_CL_VOLUME] =
+> +		v4l2_ctrl_new_std(&state->ctrl_handler, ...);
+> +	state->audio_cluster[AUDIO_CL_MUTE] =
+> +		v4l2_ctrl_new_std(&state->ctrl_handler, ...);
+> +	v4l2_ctrl_cluster(ARRAY_SIZE(state->audio_cluster), state->audio_cluster);
+> +
+> +From now on whenever one or more of the controls belonging to the same
+> +cluster is set (or 'gotten', or 'tried'), only the control ops of the
+> first
+> +control ('volume' in this example) is called. You effectively create a new
+> +composite control. Similar to how a 'struct' works in C.
+> +
+> +So when s_ctrl is called with V4L2_CID_AUDIO_VOLUME as argument, you should
+> set
+> +all two controls belonging to the audio_cluster:
+> +
+> +	static int foo_s_ctrl(struct v4l2_ctrl *ctrl)
+> +	{
+> +		struct foo *state = container_of(ctrl->handler, struct foo,
+> ctrl_handler); +
+> +		switch (ctrl->id) {
+> +		case V4L2_CID_AUDIO_VOLUME: {
+> +			struct v4l2_ctrl *mute = ctrl->cluster[AUDIO_CL_MUTE];
+> +
+> +			write_reg(0x123, mute->val ? 0 : ctrl->val);
+> +			break;
+> +		}
+> +		case V4L2_CID_CONTRAST:
+> +			write_reg(0x456, ctrl->val);
+> +			break;
+> +		}
+> +		return 0;
+> +	}
+> +
+> +In the example above the following are equivalent for the VOLUME case:
+> +
+> +	ctrl == ctrl->cluster[AUDIO_CL_VOLUME] ==
+> state->audio_cluster[AUDIO_CL_VOLUME]
+> +	ctrl->cluster[AUDIO_CL_MUTE] == state->audio_cluster[AUDIO_CL_MUTE]
+> +
+> +Note that controls in a cluster may be NULL. For example, if for some
+> +reason mute was never added (because the hardware doesn't support that
+> +particular feature), then mute will be NULL.
+
+The driver needs to set state->audio_cluster[AUDIO_CL_MUTE] to NULL 
+explicitly, right ? In that case I think you should mention it.
+
+> So in that case we have a
+> +cluster of 2 controls, of which only 1 is actually instantiated. The
+> +only restriction is that the first control of the cluster must always be
+> +present, since that is the 'master' control of the cluster. The master
+> +control is the one that identifies the cluster and that provides the
+> +pointer to the v4l2_ctrl_ops struct that is used for that cluster.
+> +
+> +
+> +VIDIOC_LOG_STATUS Support
+> +=========================
+> +
+> +This ioctl allow you to dump the current status of a driver to the kernel
+> log.
+> +The v4l2_ctrl_handler_log_status(ctrl_handler, prefix) can be used to dump
+> the
+> +value of the controls owned by the given handler to the log. You can supply
+> a
+> +prefix as well. If the prefix didn't end with a space, then ': ' will be
+> added
+> +for you.
+> +
+> +
+> +Different Handlers for Different Video Nodes
+> +============================================
+> +
+> +Usually the bridge driver has just one control handler that is global for
+> +all video nodes. But you can also specify different control handlers for
+> +different video nodes. You can do that by manually setting the ctrl_handler
+> +field of struct video_device.
+> +
+> +That is no problem if there are no subdevs involved but if there are, then
+> +you need to block the automatic merging of subdev controls to the global
+> +control handler. You do that by simply setting the ctrl_handler field in
+> +struct v4l2_device to NULL. Now v4l2_device_register_subdev() will no
+> longer
+> +merge subdev controls.
+> +
+> +After each subdev was added, you will then have to call
+> v4l2_ctrl_add_handler
+> +manually to add the subdev's control handler (sd->ctrl_handler) to the
+> desired
+> +control handler. This control handler may be specific to the video_device
+> or
+> +for a subset of video_device's. For example: the radio device nodes only
+> have
+> +audio controls, while the video and vbi device nodes share the same control
+> +handler for the audio and video controls.
+> +
+> +If you want to have one handler (e.g. for a radio device node) have a
+> subset
+> +of another handler (e.g. for a video device node), then you should first
+> add
+> +the controls to the first handler, add the other controls to the second
+> +handler and finally add the first handler to the second. For example:
+> +
+> +	v4l2_ctrl_new_std(&radio_ctrl_handler, &radio_ops, V4L2_CID_AUDIO_VOLUME,
+> ...);
+> +	v4l2_ctrl_new_std(&radio_ctrl_handler, &radio_ops, V4L2_CID_AUDIO_MUTE,
+> ...);
+> +	v4l2_ctrl_new_std(&video_ctrl_handler, &video_ops, V4L2_CID_BRIGHTNESS,
+> ...);
+> +	v4l2_ctrl_new_std(&video_ctrl_handler, &video_ops, V4L2_CID_CONTRAST,
+> ...);
+> +	v4l2_ctrl_add_handler(&video_ctrl_handler, &radio_ctrl_handler);
+> +
+> +Or you can add specific controls to a handler:
+> +
+> +	volume = v4l2_ctrl_new_std(&video_ctrl_handler, &ops,
+> V4L2_CID_AUDIO_VOLUME, ...);
+> +	v4l2_ctrl_new_std(&video_ctrl_handler, &ops, V4L2_CID_BRIGHTNESS, ...);
+> +	v4l2_ctrl_new_std(&video_ctrl_handler, &ops, V4L2_CID_CONTRAST, ...);
+> +	v4l2_ctrl_add_ctrl(&radio_ctrl_handler, volume);
+> +
+> +What you should not do is make two identical controls for two handlers.
+> +For example:
+> +
+> +	v4l2_ctrl_new_std(&radio_ctrl_handler, &radio_ops, V4L2_CID_AUDIO_MUTE,
+> ...);
+> +	v4l2_ctrl_new_std(&video_ctrl_handler, &video_ops, V4L2_CID_AUDIO_MUTE,
+> ...); +
+> +This would be bad since muting the radio would not change the video mute
+> +control. The rule is to have one control for each hardware 'knob' that you
+> +can twiddle.
+> +
+> +
+> +Finding Controls
+> +================
+> +
+> +Normally you have created the controls yourself and you can store the
+> struct
+> +v4l2_ctrl pointer into your own struct.
+> +
+> +But sometimes you need to find a control from another handler that you do
+> +not own. For example, if you have to find a volume control from a subdev.
+> +
+> +You can do that by calling v4l2_ctrl_find:
+> +
+> +	struct v4l2_ctrl *volume;
+> +
+> +	volume = v4l2_ctrl_find(sd->ctrl_handler, V4L2_CID_AUDIO_VOLUME);
+> +
+> +Since v4l2_ctrl_find will lock the handler you have to be careful where
+> you
+> +use it. For example, this is not a good idea:
+> +
+> +	struct v4l2_ctrl_handler ctrl_handler;
+> +
+> +	v4l2_ctrl_new_std(&ctrl_handler, &video_ops, V4L2_CID_BRIGHTNESS, ...);
+> +	v4l2_ctrl_new_std(&ctrl_handler, &video_ops, V4L2_CID_CONTRAST, ...);
+> +
+> +...and in video_ops.s_ctrl:
+> +
+> +	case V4L2_CID_BRIGHTNESS:
+> +		contrast = v4l2_find_ctrl(&ctrl_handler, V4L2_CID_CONTRAST);
+> +		...
+> +
+> +When s_ctrl is called by the framework the ctrl_handler.lock is already
+> taken, so
+> +attempting to find another control from the same handler will deadlock.
+> +
+> +It is recommended not to use this function from inside the control ops.
+
+Doesn't that call for an unlocked version of the find function ?
+
+> +Inheriting Controls
+> +===================
+> +
+> +When one control handler is added to another using v4l2_ctrl_add_handler,
+> then
+> +by default all controls from one are merged to the other. But a subdev
+> might
+> +have low-level controls that make sense for some advanced embedded system,
+> but
+> +not when it is used in consumer-level hardware. In that case you want to
+> keep
+> +those low-level controls local to the subdev. You can do this by simply
+> +setting the 'is_private' flag of the control to 1:
+> +
+> +	ctrl = v4l2_ctrl_new_custom(&sd->ctrl_handler, ...);
+> +	if (ctrl)
+> +		ctrl->is_private = 1;
+> +
+> +These controls will now be skipped when v4l2_ctrl_add_handler is called.
+
+One more unresolved comment from the previous review:
+
+> > Wouldn't it make more sense to pass that as an argument to
+> > v4l2_ctrl_new_custom ?
+> 
+> As I said earlier, I tried to avoid creating zillions of very similar
+> functions, or functions with very long arg lists. For now at least private
+> controls are not used at all.
+> 
+> It is usually easier for the driver to write a few special static inlines
+> that do exactly what the driver needs. Of course, if many drivers need to
+> do the same thing, then such inlines should be moved to the core header.
+
+"Maybe this feature won't be used" sounds more like a reason to remove it than 
+to implement it badly and leave it to be fixed later :-)
+
+The control framework is a big change to the V4L2 framework, we should take 
+great care to get it as good as possible on the first try.
+
+> +V4L2_CTRL_TYPE_CTRL_CLASS Controls
+> +==================================
+> +
+> +Controls of this type can be used by GUIs to get the name of the control
+> class.
+> +A fully featured GUI can make a dialog with multiple tabs with each tab
+> +containing the controls belonging to a particular control class. The name
+> of
+> +each tab can be found by querying a special control with ID <control class
+> | 1>.
+> +
+> +Drivers do not have to care about this. The framework will automatically
+> add 
+> +a control of this type whenever the first control belonging to a new
+> control
+> +class is added.
+> +
+> +
+> +Initializing Controls
+> +=====================
+> +
+> +Usually controls are initialized when you call one of the
+> v4l2_ctrl_new_*()
+> +functions. But sometimes you do not know all the details of the control's
+> +boundaries and possibly even type at this stage. Or obtaining those details
+> +may require expensive hardware accesses.
+> +
+> +In that case you can specify a .init op in struct v4l2_ctrl_ops. This op
+> +returns a void, so it may not fail. Should the init run into problems,
+> then
+> +it should disable the control by setting V4L2_CTRL_FLAG_DISABLED.
+
+If it can fail, why does it return void ? The operation will fail from times 
+to times with buggy UVC devices. It's better to return an error to userspace 
+rather than silently disabling the control. I can already see support e-mails 
+asking why a control suddenly becomes disabled.
+
+> +The init op can be used to setup the type and boundaries of the control on
+> +first use. Any controls with a .init op will be skipped by
+> +v4l2_ctrl_handler_setup().
+> +
+> +
+> +Differences from the Spec
+> +=========================
+> +
+> +There are a few places where the framework acts slightly differently from
+> the
+> +V4L2 Specification. Those differences are described in this section. We
+> will
+> +have to see whether we need to adjust the spec or not.
+> +
+> +1) It is no longer required to have all controls contained in a
+> +v4l2_ext_control array be from the same control class. The framework will
+> be
+> +able to handle any type of control in the array. You need to set ctrl_class
+> +to 0 in order to enable this. If ctrl_class is non-zero, then it will still
+> +check that all controls belong to that control class.
+> +
+> +If you set ctrl_class to 0 and count to 0, then it will only return an
+> error
+> +if there are no controls at all.
+> +
+> +2) Clarified the way error_idx works. For get and set it will be equal to
+> +count if nothing was done yet. If it is less than count then only the
+> controls
+> +up to error_idx-1 were successfully applied.
+> +
+> +3) When attempting to read a button control the framework will return
+> -EACCES
+> +instead of -EINVAL as stated in the spec. It seems to make more sense since
+> +button controls are write-only controls.
+
+What about non-button write-only controls, are they handled the same way ?
+
+> +4) Attempting to write to a read-only control will return -EACCES instead
+> of
+> +-EINVAL as the spec says.
+> +
+> +5) The spec does not mention what should happen when you try to set/get a
+> +control class controls. ivtv currently returns -EINVAL (indicating that the
+> +control ID does not exist) while the framework will return -EACCES, which
+> +makes more sense.
+> +
+> +
+> +Proposals for Extensions
+> +========================
+> +
+> +Some ideas for future extensions to the spec:
+> +
+> +1) Add a V4L2_CTRL_FLAG_HEX to have values shown as hexadecimal instead of
+> +decimal. Useful for e.g. video_mute_yuv.
+
+Shown where ?
+
+> +2) It is possible to mark in the controls array which controls have been
+> +successfully written and which failed by for example adding a bit to the
+> +control ID. Not sure if it is worth the effort, though.
+
+-- 
+Regards,
+
+Laurent Pinchart
