@@ -1,114 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1452 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759779Ab0EDTjO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 15:39:14 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o44Jd5FG070930
-	for <linux-media@vger.kernel.org>; Tue, 4 May 2010 21:39:06 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 4 May 2010 21:39:05 +0200 (CEST)
-Message-Id: <201005041939.o44Jd5FG070930@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-in-18.arcor-online.net ([151.189.21.58]:44249 "EHLO
+	mail-in-18.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754997Ab0EWSda (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 23 May 2010 14:33:30 -0400
+From: stefan.ringel@arcor.de
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 4/5] tm6000: add frontend tuner xc5000
+Date: Sun, 23 May 2010 20:31:44 +0200
+Message-Id: <1274639505-2674-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-dvb.c |   66 ++++++++++++++++++++++++----------
+ 1 files changed, 46 insertions(+), 20 deletions(-)
 
-date:        Tue May  4 19:00:22 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14619:ee9826bc7106
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: f8c360992a49582bbe12dfaa8d513cff5eea676e
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+diff --git a/drivers/staging/tm6000/tm6000-dvb.c b/drivers/staging/tm6000/tm6000-dvb.c
+index e6a802e..b504a90 100644
+--- a/drivers/staging/tm6000/tm6000-dvb.c
++++ b/drivers/staging/tm6000/tm6000-dvb.c
+@@ -257,27 +257,53 @@ int tm6000_dvb_register(struct tm6000_core *dev)
+ 	dvb->adapter.priv = dev;
+ 
+ 	if (dvb->frontend) {
+-		struct xc2028_config cfg = {
+-			.i2c_adap = &dev->i2c_adap,
+-			.i2c_addr = dev->tuner_addr,
+-		};
+-
+-		dvb->frontend->callback = tm6000_tuner_callback;
+-		ret = dvb_register_frontend(&dvb->adapter, dvb->frontend);
+-		if (ret < 0) {
+-			printk(KERN_ERR
+-				"tm6000: couldn't register frontend\n");
+-			goto adapter_err;
++		switch (dev->tuner_type) {
++		case TUNER_XC2028:
++			struct xc2028_config cfg = {
++				.i2c_adap = &dev->i2c_adap,
++				.i2c_addr = dev->tuner_addr,
++			};
++
++			dvb->frontend->callback = tm6000_tuner_callback;
++			ret = dvb_register_frontend(&dvb->adapter, dvb->frontend);
++			if (ret < 0) {
++				printk(KERN_ERR
++					"tm6000: couldn't register frontend\n");
++				goto adapter_err;
++			}
++
++			if (!dvb_attach(xc2028_attach, dvb->frontend, &cfg)) {
++				printk(KERN_ERR "tm6000: couldn't register "
++						"frontend (xc3028)\n");
++				ret = -EINVAL;
++				goto frontend_err;
++			}
++			printk(KERN_INFO "tm6000: XC2028/3028 asked to be "
++					 "attached to frontend!\n");
++			break;
++		case TUNER_XC5000:
++			struct xc5000_config cfg = {
++				.i2c_address = dev->tuner_addr,
++			};
++
++			dvb->frontend->callback = tm6000_xc5000_callback;
++			ret = dvb_register_frontend(&dvb->adapter, dvb->frontend);
++			if (ret < 0) {
++				printk(KERN_ERR
++					"tm6000: couldn't register frontend\n");
++				goto adapter_err;
++			}
++
++			if (!dvb_attach(xc5000_attach, dvb->frontend, &dev->i2c_adap, &cfg)) {
++				printk(KERN_ERR "tm6000: couldn't register "
++						"frontend (xc5000)\n");
++				ret = -EINVAL;
++				goto frontend_err;
++			}
++			printk(KERN_INFO "tm6000: XC5000 asked to be "
++					 "attached to frontend!\n");
++			break;
+ 		}
+-
+-		if (!dvb_attach(xc2028_attach, dvb->frontend, &cfg)) {
+-			printk(KERN_ERR "tm6000: couldn't register "
+-					"frontend (xc3028)\n");
+-			ret = -EINVAL;
+-			goto frontend_err;
+-		}
+-		printk(KERN_INFO "tm6000: XC2028/3028 asked to be "
+-				 "attached to frontend!\n");
+ 	} else {
+ 		printk(KERN_ERR "tm6000: no frontend found\n");
+ 	}
+-- 
+1.7.0.3
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc1-armv5-davinci: OK
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc1-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc1-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc1-mips: OK
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: OK
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
