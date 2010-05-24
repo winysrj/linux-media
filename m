@@ -1,52 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42846 "EHLO mx1.redhat.com"
+Received: from tango.tkos.co.il ([62.219.50.35]:55485 "EHLO tango.tkos.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752831Ab0EMSVn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 May 2010 14:21:43 -0400
-Message-ID: <4BEC432D.5010501@redhat.com>
-Date: Thu, 13 May 2010 15:21:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-CC: Sander Pientka <cumulus0007@gmail.com>,
-	linux-media@vger.kernel.org, Douglas Landgraf <dougsland@gmail.com>
-Subject: Re: Mercurial x git tree sync - was: Re: Remote control at Zolid
- Hybrid TV Tuner
-References: <db09c9681002161116k52278916ob68884ddc989044@mail.gmail.com>	 <1266375385.3176.5.camel@pc07.localdom.local>	 <db09c9681002170838tdb15cbbu67cd45a518c11b4b@mail.gmail.com>	 <1266445236.7202.17.camel@pc07.localdom.local>	 <AANLkTin6b9JT1j0iNBmrp0UIhN9Z2Y-V6xdrEy7g5NQb@mail.gmail.com>	 <4BEAFA76.5070809@redhat.com>	 <1273721312.10695.12.camel@pc07.localdom.local>	 <4BEB84F5.5030506@redhat.com>	 <1273736253.3197.71.camel@pc07.localdom.local>	 <4BEBF165.4070603@redhat.com> <1273772767.3195.21.camel@pc07.localdom.local>
-In-Reply-To: <1273772767.3195.21.camel@pc07.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1752834Ab0EXNWD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 09:22:03 -0400
+From: Baruch Siach <baruch@tkos.co.il>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCH v2 2/3] mx27: add support for the CSI device
+Date: Mon, 24 May 2010 16:20:40 +0300
+Message-Id: <009e44968586b0d010a8a56227e4cae12f9f6703.1274706733.git.baruch@tkos.co.il>
+In-Reply-To: <cover.1274706733.git.baruch@tkos.co.il>
+References: <cover.1274706733.git.baruch@tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hermann pitton wrote:
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+---
+ arch/arm/mach-mx2/clock_imx27.c |    2 +-
+ arch/arm/mach-mx2/devices.c     |   31 +++++++++++++++++++++++++++++++
+ arch/arm/mach-mx2/devices.h     |    1 +
+ 3 files changed, 33 insertions(+), 1 deletions(-)
 
->> My view is that the backport tree is very useful to have a broader number
->> of people testing V4L/DVB code, as it can be applied against legacy kernels.
->> Of course, for this to work, people should quickly fix broken backports
->> (that means that not only Douglas should work on it, but other developers
->> are welcomed to contribute with backport fixes).
-> 
-> For now, if not using git, Sander needs a 2.6.33 with recent v4l-dvb
-> then to provide relevant debug output and eventually patches.
-
-Until Douglas or someone fix the breakages with older kernels, yes.
-
-> He has to
-> check if his distribution has the minimal requirements for that one too.
-
-In thesis, yes, but, unless he is running a really old distribution 
-(those that come with kernels lower than 2.6.16), it should be ok to 
-run 2.6.33 on it, provided that properly compiled with the minimum
-requirements needed by the distro. Generally, "make oldconfig" do a
-good job of enabling the needed bits, but sometimes, manual adjustments
-at compilation parameters might be needed.
-
-Well, if the distro is older than 2.6.16, it won't be capable of running 
-from -hg anyway (as the minimum supported kernel is 2.6.16). So, I don't 
-think that this would be a problem, in practice.
-
+diff --git a/arch/arm/mach-mx2/clock_imx27.c b/arch/arm/mach-mx2/clock_imx27.c
+index 0f0823c..5a1aa15 100644
+--- a/arch/arm/mach-mx2/clock_imx27.c
++++ b/arch/arm/mach-mx2/clock_imx27.c
+@@ -644,7 +644,7 @@ static struct clk_lookup lookups[] = {
+ 	_REGISTER_CLOCK("spi_imx.1", NULL, cspi2_clk)
+ 	_REGISTER_CLOCK("spi_imx.2", NULL, cspi3_clk)
+ 	_REGISTER_CLOCK("imx-fb.0", NULL, lcdc_clk)
+-	_REGISTER_CLOCK(NULL, "csi", csi_clk)
++	_REGISTER_CLOCK("mx2-camera.0", NULL, csi_clk)
+ 	_REGISTER_CLOCK("fsl-usb2-udc", "usb", usb_clk)
+ 	_REGISTER_CLOCK("fsl-usb2-udc", "usb_ahb", usb_clk1)
+ 	_REGISTER_CLOCK("mxc-ehci.0", "usb", usb_clk)
+diff --git a/arch/arm/mach-mx2/devices.c b/arch/arm/mach-mx2/devices.c
+index b91e412..6a49c79 100644
+--- a/arch/arm/mach-mx2/devices.c
++++ b/arch/arm/mach-mx2/devices.c
+@@ -40,6 +40,37 @@
+ 
+ #include "devices.h"
+ 
++#ifdef CONFIG_MACH_MX27
++static struct resource mx27_camera_resources[] = {
++	{
++	       .start = MX27_CSI_BASE_ADDR,
++	       .end = MX27_CSI_BASE_ADDR + 0x1f,
++	       .flags = IORESOURCE_MEM,
++	}, {
++	       .start = MX27_EMMA_PRP_BASE_ADDR,
++	       .end = MX27_EMMA_PRP_BASE_ADDR + 0x1f,
++	       .flags = IORESOURCE_MEM,
++	}, {
++	       .start = MX27_INT_CSI,
++	       .end = MX27_INT_CSI,
++	       .flags = IORESOURCE_IRQ,
++	},{
++	       .start = MX27_INT_EMMAPRP,
++	       .end = MX27_INT_EMMAPRP,
++	       .flags = IORESOURCE_IRQ,
++	},
++};
++struct platform_device mx27_camera_device = {
++	.name = "mx2-camera",
++	.id = 0,
++	.num_resources = ARRAY_SIZE(mx27_camera_resources),
++	.resource = mx27_camera_resources,
++	.dev = {
++		.coherent_dma_mask = 0xffffffff,
++	},
++};
++#endif
++
+ /*
+  * SPI master controller
+  *
+diff --git a/arch/arm/mach-mx2/devices.h b/arch/arm/mach-mx2/devices.h
+index 84ed513..8bdf018 100644
+--- a/arch/arm/mach-mx2/devices.h
++++ b/arch/arm/mach-mx2/devices.h
+@@ -29,6 +29,7 @@ extern struct platform_device mxc_i2c_device1;
+ extern struct platform_device mxc_sdhc_device0;
+ extern struct platform_device mxc_sdhc_device1;
+ extern struct platform_device mxc_otg_udc_device;
++extern struct platform_device mx27_camera_device;
+ extern struct platform_device mxc_otg_host;
+ extern struct platform_device mxc_usbh1;
+ extern struct platform_device mxc_usbh2;
 -- 
+1.7.1
 
-Cheers,
-Mauro
