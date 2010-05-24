@@ -1,220 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45079 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752034Ab0EMEuJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 May 2010 00:50:09 -0400
-Message-ID: <4BEB84F5.5030506@redhat.com>
-Date: Thu, 13 May 2010 01:49:57 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>
-CC: Sander Pientka <cumulus0007@gmail.com>,
-	linux-media@vger.kernel.org, Douglas Landgraf <dougsland@gmail.com>
-Subject: Mercurial x git tree sync - was: Re: Remote control at Zolid Hybrid
- TV Tuner
-References: <db09c9681002161116k52278916ob68884ddc989044@mail.gmail.com>	 <1266375385.3176.5.camel@pc07.localdom.local>	 <db09c9681002170838tdb15cbbu67cd45a518c11b4b@mail.gmail.com>	 <1266445236.7202.17.camel@pc07.localdom.local>	 <AANLkTin6b9JT1j0iNBmrp0UIhN9Z2Y-V6xdrEy7g5NQb@mail.gmail.com>	 <4BEAFA76.5070809@redhat.com> <1273721312.10695.12.camel@pc07.localdom.local>
-In-Reply-To: <1273721312.10695.12.camel@pc07.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from buzzloop.caiaq.de ([212.112.241.133]:53483 "EHLO
+	buzzloop.caiaq.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756077Ab0EXK55 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 06:57:57 -0400
+From: Daniel Mack <daniel@caiaq.de>
+To: linux-kernel@vger.kernel.org
+Cc: Daniel Mack <daniel@caiaq.de>,
+	Wolfram Sang <w.sang@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jiri Slaby <jslaby@suse.cz>, Dmitry Torokhov <dtor@mail.ru>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 2/2] drivers/media/dvb/dvb-usb/dib0700: CodingStyle fixes
+Date: Mon, 24 May 2010 12:57:15 +0200
+Message-Id: <1274698635-19512-2-git-send-email-daniel@caiaq.de>
+In-Reply-To: <AANLkTikffmoWofbIo2h6zw-VW5aKEH8T_b0vMfKdo3KJ@mail.gmail.com>
+References: <AANLkTikffmoWofbIo2h6zw-VW5aKEH8T_b0vMfKdo3KJ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hermann pitton wrote:
-> Am Mittwoch, den 12.05.2010, 15:59 -0300 schrieb Mauro Carvalho Chehab:
->> Sander Pientka wrote:
->>> Hi Hermann,
->>>
->>> I am going to revive this old thread, I completely forgot about it and
->>> I still want to solve this problem.
->>>
->>> Yes, with the IR transmitter not plugged in, the gpio is reported as
->>> 00000 by dmesg.
->>>
->>> I am aware there is a picture of the backside missing on the wiki, I
->>> will try to make one a.s.a.p.
->>>
->>> NEC IR support seems to be built-in already: drivers/media/IR/ir-nec-decoder.c.
->>>
->>> Besides, dmesg outputs a section of error messages I don't understand:
->>>
->>> [ 1585.548221] tda18271_write_regs: ERROR: idx = 0x5, len = 1,
->>> i2c_transfer returned: -5
->>> [ 1585.548229] tda18271_toggle_output: error -5 on line 47
->>> [ 1585.720118] tda18271_write_regs: ERROR: idx = 0x5, len = 1,
->>> i2c_transfer returned: -5
->>> [ 1585.720129] tda18271_init: error -5 on line 826
->>> [ 1585.720136] tda18271_tune: error -5 on line 904
->>> [ 1585.720141] tda18271_set_analog_params: error -5 on line 1041
->>> [ 1586.381026] tda18271_write_regs: ERROR: idx = 0x6, len = 1,
->>> i2c_transfer returned: -5
->>> [ 1586.500589] tda18271_write_regs: ERROR: idx = 0x1d, len = 1,
->>> i2c_transfer returned: -5
->>> [ 1586.629447] tda18271_write_regs: ERROR: idx = 0x10, len = 1,
->>> i2c_transfer returned: -5
->>> [ 1586.629458] tda18271_channel_configuration: error -5 on line 160
->>> [ 1586.629465] tda18271_set_analog_params: error -5 on line 1041
->>>
->>>
->>> Do you have any idea about the origin of these errors? Do you think
->>> they affect the IR functionality?
->> The above errors won't change anything at IR side. For IR, the better approach
->> is to start using raw_decode mode. I've enabled it only for Avermedia M135A, 
->> since this is the board I'm using at the IR refactoring tests, but the same approach
->> should work fine for any other saa7134 board that uses GPIO18 or GPIO16. For GPIO18,
->> all you need is to use something like:
->>
->>         case SAA7134_BOARD_AVERMEDIA_M135A:
->>                 ir_codes     = RC_MAP_AVERMEDIA_M135A_RM_JX;
->>                 mask_keydown = 0x0040000;
->>                 mask_keyup   = 0x0040000;
->>                 mask_keycode = 0xffff;
->>                 raw_decode   = 1;
->>                 break;
->>
->> (Of course, replacing the board name by your board name (SAA7134_BOARD_ZOLID_HYBRID_PCI?),
->> and pointing to the proper ir_codes table. You'll likely need to write one table for
->> the IR that were shipped with your board.
->>
->> To do that, you'll need to enable debug at ir_core (modprobe ir_core debug=1), and type every
->> key on your keyboard, associating the scancode number with a key name. See http://www.linuxtv.org/wiki/index.php/Remote_Controllers for a reference of the most comon keycodes.
->>
->> For example, pressing the power button of an IR I have here (for Leadtek PVR3000), it
->> gives this info at the dmesg log:
->> ir_nec_decode: NEC scancode 0x0300
->>
->> All I need to do is to write a new keymap:
->>
->> add a new media/rc-map.h
->>
->>
->>  as, for example:
->> 	drivers/media/IR/keymaps/rc-leadtek_pvr3000.c
->> (copying one of the existing keymaps) and add:
->>
->> static struct ir_scancode leadtek_winfast_pvr3000_dlx[] = {
->> 	{ 0x300, KEY_POWER2 },
->>
->> for every key that it is there. Then, add the new file at drivers/media/IR/keymaps/Makefile.
->>
->> I've tried to summarize the above patches on a change I just did at the wiki page. Feel 
->> free to improve it, if needed.
->>
->> Cheers,
->> Mauro
-> 
-> Hi Mauro,
-> 
-> what I did try to point to, with some sarcasm involved, is that I can't
-> advice any v4l-dvb as reference anymore.
-> 
-> To start to look such up, with all patches involved, per user, who
-> likely does not know himself on what he exactly is, find the last
-> building kernel for him then, guess on pending pull requests that time,
-> and so on, is not making any sense for me.
-> 
-> Should we not state, that is nothing against Douglas at all or Hans with
-> his build reports, please be on latest .rc and git to test anything we
-> have around?
-> 
-> We are out of sync else.
+Signed-off-by: Daniel Mack <daniel@caiaq.de>
+Cc: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jiri Slaby <jslaby@suse.cz>
+Cc: Dmitry Torokhov <dtor@mail.ru>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/dvb/dvb-usb/dib0700_core.c |   66 ++++++++++++++++--------------
+ 1 files changed, 35 insertions(+), 31 deletions(-)
 
-Hermann,
-
-Sorry, but, sometimes, it is very hard to understand your English. I'm suspecting
-that you're referring to the sync between hg and git.
-
-Short answer:
-============
-
- - AFAIK, Douglas finished syncing the trees at the night of May, 12.
-
- - Developers primary reference tree:
-	http://git.linuxtv.org/v4l-dvb.git
-
- - Backport tree:
-	http://linuxtv.org/hg/v4l-dvb
-
-   As the backport is manual, some delay is expected at the backport tree. Also,
-backports are made at the best efforts basis. So, nobody can warrant that the
-drivers will behave correctly with an old kernel. Also, eventually, the backport tree
-can break when compiled with an older kernel.
-
-   Developers are encouraged to use git for development, but patches and pull
-requests against the backport tree are accepted.
-
-Long answer:
-===========
-
-As I have about 100 pending patches at Patchwork, plus 4 or 5 pull requests not
-handled yet, mercurial tree will be soon out of sync. I'll try to merge most of the
-pending stuff during this weekend.
-
-The main developers reference is -git. We merge all patches there. 
-So, new stuff arrives there before being backported.
-
-That's said, we should be using git since 2.6.12, together with the kernel 
-community. By not using it, our merge process became very complex
-and it weren't scaling anymore. It is also impossible to merge the current
-embedded patches with -hg, since we would need to keep several arch trees
-inside hg, properly synchronized, which would make -hg tree very big
-and full of hacks.
-
-Due to our late adoption of git on our development trees, we're still
-needing to adjust the process. I'll likely need to do some improvements for
-the next kernel cycle, since I'm still suffering some merge issues upstream,
-that will likely affect developers if I don't adjust the procedures.
-
-The solution will likely be merging at git inside separate branches for separate
-topics.
-
-I'm trying to keep one branch (currently, master) with the latest final kernel 
-version. For example, if you use it right now, it is the vanilla 2.6.33 kernel, 
-plus v4l-dvb new stuff. This allows not only developers to use, but also advanced
-users that know how to compile a kernel (that's not that hard: in general,
-"make oldconfig && make" is enough, if the distro kernel is not very old).
-
-Unfortunately, I don't have any time anymore to maintain the backport tree. We've
-broke our record in terms of number of patches per release at -rc6: almost 
-800 patches for linux next, on a shorter kernel development cycle. So, we had about
-19 patches committed by day, 7 days by week, plus the ones that needed to be 
-re-designed, due to some troubles, plus all architectural discussions we're having
-about videobuf, events interface, mem2mem, etc.
-
-I suspect that part of growth on the number of patches is due to the usage of git, as
-I'm seeing more upstream kernel hackers sending patches to drivers/media lately.
-
-So, Douglas assumed the maintainership of the hg tree. As all upstream patches
-need to be backported, he's likely having a high demand bandwidth, because of the high 
-number of patches.
-
-As far as I know (Douglas, please correct me if I'm wrong), he started by
-applying patches, testing against a selected number of legacy kernels and publish
-after the tests. Also, he needs to identify the origin of a patch before applying
-on his tree, to avoid breaking developers tree based on mercurial to require rebasing
-after his merge. Life would probably be easier for him if everybody would be generating
-patches against git when submitting upstream.
-
-As people complained about the high delay, he decided just a few days ago 
-to just sync the tree, and then adding backport patches with the help of the 
-community. Of course, this means that the current -hg tree will compile only 
-against 2.6.33, until someone backports the tree to the earlier kernels.
-
-I suspect that people will also complain about that. Not sure what strategy would
-be the better.
-
-The fact is that, even with -hg, when we were close to the next merge window, the
-number of patches tend to increase (as everybody tries to send their code for the
-next merge window), and the need for backport increases, as other maintainers are
-always improving the kernel ABI's. So, during a period of up to 4 weeks (one or 
-two weeks before and the two weeks of the merge window), it would almost certain
-that backport support would be broken.
-
-Anyway, it is up to Douglas to define what would be the better way to maintain the
-backport tree, as he is the one that is feeling all the pain of backporting
-stuff, of course listening to the community feedback. It would be nice if
-people could also help him by sending backport patches were needed.
-
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+index d2dabac..45aec3a 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_core.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+@@ -53,7 +53,7 @@ static int dib0700_ctrl_wr(struct dvb_usb_device *d, u8 *tx, u8 txlen)
+ 	int status;
+ 
+ 	deb_data(">>> ");
+-	debug_dump(tx,txlen,deb_data);
++	debug_dump(tx, txlen, deb_data);
+ 
+ 	status = usb_control_msg(d->udev, usb_sndctrlpipe(d->udev,0),
+ 		tx[0], USB_TYPE_VENDOR | USB_DIR_OUT, 0, 0, tx, txlen,
+@@ -98,7 +98,7 @@ int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen
+ 		deb_info("ep 0 read error (status = %d)\n",status);
+ 
+ 	deb_data("<<< ");
+-	debug_dump(rx,rxlen,deb_data);
++	debug_dump(rx, rxlen, deb_data);
+ 
+ 	return status; /* length in case of success */
+ }
+@@ -106,28 +106,29 @@ int dib0700_ctrl_rd(struct dvb_usb_device *d, u8 *tx, u8 txlen, u8 *rx, u8 rxlen
+ int dib0700_set_gpio(struct dvb_usb_device *d, enum dib07x0_gpios gpio, u8 gpio_dir, u8 gpio_val)
+ {
+ 	u8 buf[3] = { REQUEST_SET_GPIO, gpio, ((gpio_dir & 0x01) << 7) | ((gpio_val & 0x01) << 6) };
+-	return dib0700_ctrl_wr(d,buf,3);
++	return dib0700_ctrl_wr(d, buf, sizeof(buf));
+ }
+ 
+ static int dib0700_set_usb_xfer_len(struct dvb_usb_device *d, u16 nb_ts_packets)
+ {
+-    struct dib0700_state *st = d->priv;
+-    u8 b[3];
+-    int ret;
+-
+-    if (st->fw_version >= 0x10201) {
+-	b[0] = REQUEST_SET_USB_XFER_LEN;
+-	b[1] = (nb_ts_packets >> 8)&0xff;
+-	b[2] = nb_ts_packets & 0xff;
+-
+-	deb_info("set the USB xfer len to %i Ts packet\n", nb_ts_packets);
+-
+-	ret = dib0700_ctrl_wr(d, b, 3);
+-    } else {
+-	deb_info("this firmware does not allow to change the USB xfer len\n");
+-	ret = -EIO;
+-    }
+-    return ret;
++	struct dib0700_state *st = d->priv;
++	u8 b[3];
++	int ret;
++
++	if (st->fw_version >= 0x10201) {
++		b[0] = REQUEST_SET_USB_XFER_LEN;
++		b[1] = (nb_ts_packets >> 8) & 0xff;
++		b[2] = nb_ts_packets & 0xff;
++
++		deb_info("set the USB xfer len to %i Ts packet\n", nb_ts_packets);
++
++		ret = dib0700_ctrl_wr(d, b, 3);
++	} else {
++		deb_info("this firmware does not allow to change the USB xfer len\n");
++		ret = -EIO;
++	}
++
++	return ret;
+ }
+ 
+ /*
+@@ -178,7 +179,8 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+ 			value = ((en_start << 7) | (en_stop << 6) |
+ 				 (msg[i].len & 0x3F)) << 8 | i2c_dest;
+ 			/* I2C ctrl + FE bus; */
+-			index = ((gen_mode<<6)&0xC0) | ((bus_mode<<4)&0x30);
++			index = ((gen_mode << 6) & 0xC0) |
++				((bus_mode << 4) & 0x30);
+ 
+ 			result = usb_control_msg(d->udev,
+ 						 usb_rcvctrlpipe(d->udev, 0),
+@@ -198,11 +200,12 @@ static int dib0700_i2c_xfer_new(struct i2c_adapter *adap, struct i2c_msg *msg,
+ 		} else {
+ 			/* Write request */
+ 			buf[0] = REQUEST_NEW_I2C_WRITE;
+-			buf[1] = (msg[i].addr << 1);
++			buf[1] = msg[i].addr << 1;
+ 			buf[2] = (en_start << 7) | (en_stop << 6) |
+ 				(msg[i].len & 0x3F);
+ 			/* I2C ctrl + FE bus; */
+-			buf[3] = ((gen_mode<<6)&0xC0) | ((bus_mode<<4)&0x30);
++			buf[3] = ((gen_mode << 6) & 0xC0) |
++				 ((bus_mode << 4) & 0x30);
+ 			/* The Actual i2c payload */
+ 			memcpy(&buf[4], msg[i].buf, msg[i].len);
+ 
+@@ -240,7 +243,7 @@ static int dib0700_i2c_xfer_legacy(struct i2c_adapter *adap,
+ 
+ 	for (i = 0; i < num; i++) {
+ 		/* fill in the address */
+-		buf[1] = (msg[i].addr << 1);
++		buf[1] = msg[i].addr << 1;
+ 		/* fill the buffer */
+ 		memcpy(&buf[2], msg[i].buf, msg[i].len);
+ 
+@@ -368,7 +371,8 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
+ 	u8 buf[260];
+ 
+ 	while ((ret = dvb_usb_get_hexline(fw, &hx, &pos)) > 0) {
+-		deb_fwdata("writing to address 0x%08x (buffer: 0x%02x %02x)\n",hx.addr, hx.len, hx.chk);
++		deb_fwdata("writing to address 0x%08x (buffer: 0x%02x %02x)\n",
++				hx.addr, hx.len, hx.chk);
+ 
+ 		buf[0] = hx.len;
+ 		buf[1] = (hx.addr >> 8) & 0xff;
+@@ -408,16 +412,16 @@ int dib0700_download_firmware(struct usb_device *udev, const struct firmware *fw
+ 				  REQUEST_GET_VERSION,
+ 				  USB_TYPE_VENDOR | USB_DIR_IN, 0, 0,
+ 				  b, sizeof(b), USB_CTRL_GET_TIMEOUT);
+-	fw_version = (b[8] << 24)  | (b[9] << 16)  | (b[10] << 8) | b[11];
++	fw_version = (b[8] << 24) | (b[9] << 16) | (b[10] << 8) | b[11];
+ 
+ 	/* set the buffer size - DVB-USB is allocating URB buffers
+ 	 * only after the firwmare download was successful */
+ 	for (i = 0; i < dib0700_device_count; i++) {
+ 		for (adap_num = 0; adap_num < dib0700_devices[i].num_adapters;
+ 				adap_num++) {
+-			if (fw_version >= 0x10201)
++			if (fw_version >= 0x10201) {
+ 				dib0700_devices[i].adapter[adap_num].stream.u.bulk.buffersize = 188*nb_packet_buffer_size;
+-			else {
++			} else {
+ 				/* for fw version older than 1.20.1,
+ 				 * the buffersize has to be n times 512 */
+ 				dib0700_devices[i].adapter[adap_num].stream.u.bulk.buffersize = ((188*nb_packet_buffer_size+188/2)/512)*512;
+@@ -453,7 +457,7 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 	if (st->disable_streaming_master_mode == 1)
+ 		b[2] = 0x00;
+ 	else
+-		b[2] = (0x01 << 4); /* Master mode */
++		b[2] = 0x01 << 4; /* Master mode */
+ 
+ 	b[3] = 0x00;
+ 
+@@ -466,7 +470,7 @@ int dib0700_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
+ 
+ 	b[2] |= st->channel_state;
+ 
+-	deb_info("data for streaming: %x %x\n",b[1],b[2]);
++	deb_info("data for streaming: %x %x\n", b[1], b[2]);
+ 
+ 	return dib0700_ctrl_wr(adap->dev, b, 4);
+ }
+@@ -631,7 +635,7 @@ resubmit:
+ int dib0700_rc_setup(struct dvb_usb_device *d)
+ {
+ 	struct dib0700_state *st = d->priv;
+-	u8 rc_setup[3] = {REQUEST_SET_RC, dvb_usb_dib0700_ir_proto, 0};
++	u8 rc_setup[3] = { REQUEST_SET_RC, dvb_usb_dib0700_ir_proto, 0 };
+ 	struct urb *purb;
+ 	int ret;
+ 	int i;
 -- 
+1.7.1
 
-Cheers,
-Mauro
