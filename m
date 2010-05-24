@@ -1,99 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4998 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360Ab0EAJyj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 05:54:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 0/5] Pushdown bkl from v4l ioctls
-Date: Sat, 1 May 2010 11:55:37 +0200
-Cc: Frederic Weisbecker <fweisbec@gmail.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>, John Kacur <jkacur@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Jan Blunck <jblunck@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg KH <gregkh@suse.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org> <201004290844.29347.hverkuil@xs4all.nl> <201004290910.43412.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201004290910.43412.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005011155.37057.hverkuil@xs4all.nl>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:39202 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755493Ab0EXHJe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 03:09:34 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L2W00653X7VOE@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 May 2010 08:09:31 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L2W006VFX7VAV@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 May 2010 08:09:31 +0100 (BST)
+Date: Mon, 24 May 2010 09:08:51 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: Setting up a GIT repository on linuxtv.org
+In-reply-to: <1274635044.2275.11.camel@localhost>
+To: 'Andy Walls' <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Message-id: <001001cafb0f$f6d95580$e48c0080$%osciak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1274635044.2275.11.camel@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 29 April 2010 09:10:42 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Thursday 29 April 2010 08:44:29 Hans Verkuil wrote:
-> > On Thursday 29 April 2010 05:42:39 Frederic Weisbecker wrote:
-> > > Hi,
-> > > 
-> > > Linus suggested to rename struct v4l2_file_operations::ioctl
-> > > into bkl_ioctl to eventually get something greppable and make
-> > > its background explicit.
-> > > 
-> > > While at it I thought it could be a good idea to just pushdown
-> > > the bkl to every v4l drivers that have an .ioctl, so that we
-> > > actually remove struct v4l2_file_operations::ioctl for good.
-> > > 
-> > > It passed make allyesconfig on sparc.
-> > > Please tell me what you think.
-> > 
-> > I much prefer to keep the bkl inside the v4l2 core. One reason is that I
-> > think that we can replace the bkl in the core with a mutex. Still not
-> > ideal of course, so the next step will be to implement proper locking in
-> > each driver. For this some additional v4l infrastructure work needs to be
-> > done. I couldn't proceed with that until the v4l events API patches went
-> > in, and that happened yesterday.
-> > 
-> > So from my point of view the timeline is this:
-> > 
-> > 1) I do the infrastructure work this weekend. This will make it much easier
-> > to convert drivers to do proper locking. And it will also simplify
-> > v4l2_priority handling, so I'm killing two birds with one stone :-)
-> > 
-> > 2) Wait until Arnd's patch gets merged that pushes the bkl down to
-> > v4l2-dev.c
-> > 
-> > 3) Investigate what needs to be done to replace the bkl with a v4l2-dev.c
-> > global mutex. Those drivers that call the bkl themselves should probably be
-> > converted to do proper locking, but there are only about 14 drivers that do
-> > this. The other 60 or so drivers should work fine if a v4l2-dev global lock
-> > is used. At this point the bkl is effectively removed from the v4l
-> > subsystem.
-> > 
-> > 4) Work on the remaining 60 drivers to do proper locking and get rid of the
-> > v4l2-dev global lock. This is probably less work than it sounds.
-> > 
-> > Since your patch moves everything down to the driver level it will actually
-> > make this work harder rather than easier. And it touches almost all drivers
-> > as well.
-> 
-> Every driver will need to be carefully checked to make sure the BKL can be 
-> replaced by a v4l2-dev global mutex. Why would it be more difficult to do so 
-> if the BKL is pushed down to the drivers ?
+>Andy Walls wrote:
+>Hi,
+>
+>I'm a GIT idiot, so I need a little help on getting a properly setup
+>repo at linuxtv.org.  Can someone tell me if this is the right
+>procedure:
+>
+>$ ssh -t awalls@linuxtv.org git-menu
+>        (clone linux-2.6.git naming it v4l-dvb  <-- Is this right?)
+>$ git clone \
+>	git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git \
+>        v4l-dvb
 
-The main reason is really that pushing the bkl into the v4l core makes it
-easier to review. I noticed for example that this patch series forgot to change
-the video_ioctl2 call in ivtv-ioctl.c to video_ioctl2_unlocked. And there may
-be other places as well that were missed. Having so many drivers changed also
-means a lot of careful reviewing.
+If I understand correctly, you won't be working on that repository directly
+(i.e. no working directory on the linuxtv server, only push/fetch(pull), and
+the actual work on your local machine), you should make it a bare repository
+by passing a --bare option to clone. 
 
-But I will not block this change. However, I do think it would be better to
-create a video_ioctl2_bkl rather than add a video_ioctl2_unlocked. The current
-video_ioctl2 function *is* already unlocked. So you are subtle changing the
-behavior of video_ioctl2. Not a good idea IMHO. And yes, grepping for
-video_ioctl2_bkl is also easy to do and makes it more obvious that the BKL is
-used in drivers that call this.
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
-Regards,
 
-	Hans
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
+
