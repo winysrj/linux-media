@@ -1,66 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:36393 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752750Ab0E1WBK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 May 2010 18:01:10 -0400
-Message-ID: <4C003CB9.1090700@arcor.de>
-Date: Fri, 28 May 2010 23:59:21 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] tm6000: rewrite copy_streams
-References: <1275069820-23980-1-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1275069820-23980-1-git-send-email-stefan.ringel@arcor.de>
-Content-Type: multipart/mixed;
- boundary="------------050404040100050803000106"
+Received: from tango.tkos.co.il ([62.219.50.35]:55488 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752916Ab0EXNWD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 09:22:03 -0400
+From: Baruch Siach <baruch@tkos.co.il>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCH v2 0/3] Driver for the i.MX2x CMOS Sensor Interface
+Date: Mon, 24 May 2010 16:20:38 +0300
+Message-Id: <cover.1274706733.git.baruch@tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050404040100050803000106
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and
+platform code for the i.MX25 and i.MX27 chips. This driver is based on a 
+driver for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has 
+posted in linux-media last December[1]. I tested the mx2_camera driver on the 
+i.MX25 PDK. Sascha Hauer has tested a earlier version of this driver on an 
+i.MX27 based board. I included in this version some fixes from Sascha that 
+enable i.MX27 support.
 
-Am 28.05.2010 20:03, schrieb stefan.ringel@arcor.de:
-> From: Stefan Ringel <stefan.ringel@arcor.de>
->
-> fusion function copy streams and copy_packets to new function copy_streams.
->
-> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
-> ---
->  drivers/staging/tm6000/tm6000-usb-isoc.h |    5 +-
->  drivers/staging/tm6000/tm6000-video.c    |  329 +++++++++++-------------------
->  2 files changed, 119 insertions(+), 215 deletions(-)
->
-> diff --git a/drivers/staging/tm6000/tm6000-usb-isoc.h b/drivers/staging/tm6000/tm6000-usb-isoc.h
-> -- snipp
->   
-Mauro can you superseded the patch from 28.05.2010 , 18:03 h
+[1] https://patchwork.kernel.org/patch/67636/
 
-thanks
-Stefan Ringel
+Changes v1 -> v2
+    Addressed the comments of Guennadi Liakhovetski except from the following:
 
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
+    1. The mclk_get_divisor implementation, since I don't know what this code 
+       is good for
 
+    2. mx2_videobuf_release should not set pcdev->active on i.MX27, because 
+       mx27_camera_frame_done needs this pointer
 
---------------050404040100050803000106
-Content-Type: text/x-vcard; charset=utf-8;
- name="stefan_ringel.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="stefan_ringel.vcf"
+    3. In mx27_camera_emma_buf_init I don't know the meaning of those hard 
+       coded magic numbers
 
-begin:vcard
-fn:Stefan Ringel
-n:Ringel;Stefan
-email;internet:stefan.ringel@arcor.de
-note:web: www.stefanringel.de
-x-mozilla-html:FALSE
-version:2.1
-end:vcard
+    Applied i.MX27 fixes from Sascha.
 
+Baruch Siach (3):
+  mx2_camera: Add soc_camera support for i.MX25/i.MX27
+  mx27: add support for the CSI device
+  mx25: add support for the CSI device
 
---------------050404040100050803000106--
+ arch/arm/mach-mx2/clock_imx27.c          |    2 +-
+ arch/arm/mach-mx2/devices.c              |   31 +
+ arch/arm/mach-mx2/devices.h              |    1 +
+ arch/arm/mach-mx25/clock.c               |   14 +-
+ arch/arm/mach-mx25/devices.c             |   22 +
+ arch/arm/mach-mx25/devices.h             |    1 +
+ arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
+ arch/arm/plat-mxc/include/mach/mx25.h    |    2 +
+ arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
+ drivers/media/video/Kconfig              |   13 +
+ drivers/media/video/Makefile             |    1 +
+ drivers/media/video/mx2_camera.c         | 1471 ++++++++++++++++++++++++++++++
+ 12 files changed, 1603 insertions(+), 5 deletions(-)
+ create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
+ create mode 100644 drivers/media/video/mx2_camera.c
+
