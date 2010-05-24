@@ -1,239 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42270 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754776Ab0EZUyK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 16:54:10 -0400
-Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4QKs9h0014812
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 26 May 2010 16:54:09 -0400
-Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [10.16.43.238])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o4QKs8Ji017054
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 26 May 2010 16:54:09 -0400
-Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [127.0.0.1])
-	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.3) with ESMTP id o4QKs8ZI005300
-	for <linux-media@vger.kernel.org>; Wed, 26 May 2010 16:54:08 -0400
-Received: (from jarod@localhost)
-	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.4/Submit) id o4QKs7Bi005298
-	for linux-media@vger.kernel.org; Wed, 26 May 2010 16:54:07 -0400
-Date: Wed, 26 May 2010 16:54:07 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:60725 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752208Ab0EXP0z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 11:26:55 -0400
+From: Martin Dauskardt <martin.dauskardt@gmx.de>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] IR/imon: clean up usage of bools
-Message-ID: <20100526205407.GA5255@redhat.com>
+Subject: Kernel oops with current hg (ir-sysfs.c ?)
+Date: Mon, 24 May 2010 17:26:52 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005241726.52932.martin.dauskardt@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was a mix of 0/1 and false/true. Pick one convention and stick
-with it (I picked false/true).
+I guess it is a similar problem like the one that was solved a few months ago with this patch:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/14232
 
-I sent this once before, but it seems to have lost its way somehow, so
-apologies if this is a duplicate...
+I compiled the current v4l-dvb hg against the 2.6.32 Ubuntu 10.04 kernel
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/imon.c |   48 +++++++++++++++++++++++-----------------------
- 1 files changed, 24 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
-index 5e20456..2bae9ba 100644
---- a/drivers/media/IR/imon.c
-+++ b/drivers/media/IR/imon.c
-@@ -385,7 +385,7 @@ static int display_open(struct inode *inode, struct file *file)
- 		err("%s: display port is already open", __func__);
- 		retval = -EBUSY;
- 	} else {
--		ictx->display_isopen = 1;
-+		ictx->display_isopen = true;
- 		file->private_data = ictx;
- 		dev_dbg(ictx->dev, "display port opened\n");
- 	}
-@@ -422,7 +422,7 @@ static int display_close(struct inode *inode, struct file *file)
- 		err("%s: display is not open", __func__);
- 		retval = -EIO;
- 	} else {
--		ictx->display_isopen = 0;
-+		ictx->display_isopen = false;
- 		dev_dbg(ictx->dev, "display port closed\n");
- 		if (!ictx->dev_present_intf0) {
- 			/*
-@@ -491,12 +491,12 @@ static int send_packet(struct imon_context *ictx)
- 	}
- 
- 	init_completion(&ictx->tx.finished);
--	ictx->tx.busy = 1;
-+	ictx->tx.busy = true;
- 	smp_rmb(); /* ensure later readers know we're busy */
- 
- 	retval = usb_submit_urb(ictx->tx_urb, GFP_KERNEL);
- 	if (retval) {
--		ictx->tx.busy = 0;
-+		ictx->tx.busy = false;
- 		smp_rmb(); /* ensure later readers know we're not busy */
- 		err("%s: error submitting urb(%d)", __func__, retval);
- 	} else {
-@@ -682,7 +682,7 @@ static ssize_t store_associate_remote(struct device *d,
- 		return -ENODEV;
- 
- 	mutex_lock(&ictx->lock);
--	ictx->rf_isassociating = 1;
-+	ictx->rf_isassociating = true;
- 	send_associate_24g(ictx);
- 	mutex_unlock(&ictx->lock);
- 
-@@ -950,7 +950,7 @@ static void usb_tx_callback(struct urb *urb)
- 	ictx->tx.status = urb->status;
- 
- 	/* notify waiters that write has finished */
--	ictx->tx.busy = 0;
-+	ictx->tx.busy = false;
- 	smp_rmb(); /* ensure later readers know we're not busy */
- 	complete(&ictx->tx.finished);
- }
-@@ -1215,7 +1215,7 @@ static bool imon_mouse_event(struct imon_context *ictx,
- {
- 	char rel_x = 0x00, rel_y = 0x00;
- 	u8 right_shift = 1;
--	bool mouse_input = 1;
-+	bool mouse_input = true;
- 	int dir = 0;
- 
- 	/* newer iMON device PAD or mouse button */
-@@ -1246,7 +1246,7 @@ static bool imon_mouse_event(struct imon_context *ictx,
- 	} else if (ictx->kc == KEY_CHANNELDOWN && (buf[2] & 0x40) != 0x40) {
- 		dir = -1;
- 	} else
--		mouse_input = 0;
-+		mouse_input = false;
- 
- 	if (mouse_input) {
- 		dev_dbg(ictx->dev, "sending mouse data via input subsystem\n");
-@@ -1450,7 +1450,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
- 	unsigned char *buf = urb->transfer_buffer;
- 	struct device *dev = ictx->dev;
- 	u32 kc;
--	bool norelease = 0;
-+	bool norelease = false;
- 	int i;
- 	u64 temp_key;
- 	u64 panel_key = 0;
-@@ -1517,7 +1517,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
- 	     !(buf[1] & 0x1 || buf[1] >> 2 & 0x1))) {
- 		len = 8;
- 		imon_pad_to_keys(ictx, buf);
--		norelease = 1;
-+		norelease = true;
- 	}
- 
- 	if (debug) {
-@@ -1580,7 +1580,7 @@ not_input_data:
- 	    (buf[6] == 0x5E && buf[7] == 0xDF))) {	/* DT */
- 		dev_warn(dev, "%s: remote associated refid=%02X\n",
- 			 __func__, buf[1]);
--		ictx->rf_isassociating = 0;
-+		ictx->rf_isassociating = false;
- 	}
- }
- 
-@@ -1790,9 +1790,9 @@ static bool imon_find_endpoints(struct imon_context *ictx,
- 	int ifnum = iface_desc->desc.bInterfaceNumber;
- 	int num_endpts = iface_desc->desc.bNumEndpoints;
- 	int i, ep_dir, ep_type;
--	bool ir_ep_found = 0;
--	bool display_ep_found = 0;
--	bool tx_control = 0;
-+	bool ir_ep_found = false;
-+	bool display_ep_found = false;
-+	bool tx_control = false;
- 
- 	/*
- 	 * Scan the endpoint list and set:
-@@ -1808,13 +1808,13 @@ static bool imon_find_endpoints(struct imon_context *ictx,
- 		    ep_type == USB_ENDPOINT_XFER_INT) {
- 
- 			rx_endpoint = ep;
--			ir_ep_found = 1;
-+			ir_ep_found = true;
- 			dev_dbg(ictx->dev, "%s: found IR endpoint\n", __func__);
- 
- 		} else if (!display_ep_found && ep_dir == USB_DIR_OUT &&
- 			   ep_type == USB_ENDPOINT_XFER_INT) {
- 			tx_endpoint = ep;
--			display_ep_found = 1;
-+			display_ep_found = true;
- 			dev_dbg(ictx->dev, "%s: found display endpoint\n", __func__);
- 		}
- 	}
-@@ -1835,8 +1835,8 @@ static bool imon_find_endpoints(struct imon_context *ictx,
- 	 * newer iMON devices that use control urb instead of interrupt
- 	 */
- 	if (!display_ep_found) {
--		tx_control = 1;
--		display_ep_found = 1;
-+		tx_control = true;
-+		display_ep_found = true;
- 		dev_dbg(ictx->dev, "%s: device uses control endpoint, not "
- 			"interface OUT endpoint\n", __func__);
- 	}
-@@ -1847,7 +1847,7 @@ static bool imon_find_endpoints(struct imon_context *ictx,
- 	 * and without... :\
- 	 */
- 	if (ictx->display_type == IMON_DISPLAY_TYPE_NONE) {
--		display_ep_found = 0;
-+		display_ep_found = false;
- 		dev_dbg(ictx->dev, "%s: device has no display\n", __func__);
- 	}
- 
-@@ -1856,7 +1856,7 @@ static bool imon_find_endpoints(struct imon_context *ictx,
- 	 * that refers to e.g. /dev/lcd0 (a character device LCD or VFD).
- 	 */
- 	if (ictx->display_type == IMON_DISPLAY_TYPE_VGA) {
--		display_ep_found = 0;
-+		display_ep_found = false;
- 		dev_dbg(ictx->dev, "%s: iMON Touch device found\n", __func__);
- 	}
- 
-@@ -1905,7 +1905,7 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
- 
- 	ictx->dev = dev;
- 	ictx->usbdev_intf0 = usb_get_dev(interface_to_usbdev(intf));
--	ictx->dev_present_intf0 = 1;
-+	ictx->dev_present_intf0 = true;
- 	ictx->rx_urb_intf0 = rx_urb;
- 	ictx->tx_urb = tx_urb;
- 
-@@ -1979,7 +1979,7 @@ static struct imon_context *imon_init_intf1(struct usb_interface *intf,
- 	}
- 
- 	ictx->usbdev_intf1 = usb_get_dev(interface_to_usbdev(intf));
--	ictx->dev_present_intf1 = 1;
-+	ictx->dev_present_intf1 = true;
- 	ictx->rx_urb_intf1 = rx_urb;
- 
- 	ret = -ENODEV;
-@@ -2297,7 +2297,7 @@ static void __devexit imon_disconnect(struct usb_interface *interface)
- 	}
- 
- 	if (ifnum == 0) {
--		ictx->dev_present_intf0 = 0;
-+		ictx->dev_present_intf0 = false;
- 		usb_kill_urb(ictx->rx_urb_intf0);
- 		input_unregister_device(ictx->idev);
- 		if (ictx->display_supported) {
-@@ -2307,7 +2307,7 @@ static void __devexit imon_disconnect(struct usb_interface *interface)
- 				usb_deregister_dev(interface, &imon_vfd_class);
- 		}
- 	} else {
--		ictx->dev_present_intf1 = 0;
-+		ictx->dev_present_intf1 = false;
- 		usb_kill_urb(ictx->rx_urb_intf1);
- 		if (ictx->display_type == IMON_DISPLAY_TYPE_VGA)
- 			input_unregister_device(ictx->touch);
--- 
-Jarod Wilson
-jarod@redhat.com
-
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.629408] DVB: registering new adapter (TT-Budget C-1501 PCI)
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.646949] tda9887 3-0043: i2c i/o error: rc == -5 (should be 4)
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.649823] tda9887 3-0043: i2c i/o error: rc == -5 (should be 4)
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.666028] adapter has MAC addr = 00:d0:5c:c6:5a:11
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692518] Registered IR keymap rc-tt-1500
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692545] BUG: unable to handle kernel NULL pointer dereference at (null)
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692554] IP: [<f825bd7e>] ir_register_class+0x3e/0x190 [ir_core]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692566] *pde = 00000000
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692571] Oops: 0000 [#1] SMP
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692575] last sysfs file: /sys/module/ir_core/initstate
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692580] Modules linked in: rc_tt_1500 tda10021 snd_hda_codec_realtek tuner_simple tuner_types tda9887 tda8290 tuner msp3400 snd_hda_intel$
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692659]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692663] Pid: 375, comm: modprobe Not tainted (2.6.32-22-generic #33-Ubuntu) M56S-S3
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692669] EIP: 0060:[<f825bd7e>] EFLAGS: 00010246 CPU: 0
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692677] EIP is at ir_register_class+0x3e/0x190 [ir_core]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692681] EAX: 00000000 EBX: f6375000 ECX: 00000000 EDX: 00000100
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692686] ESI: f4fa6000 EDI: 00000000 EBP: f61d5d78 ESP: f61d5d4c
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692691]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692697] Process modprobe (pid: 375, ti=f61d4000 task=f61b6680 task.ti=f61d4000)
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692704] Stack:
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692707]  00000246 f825ba47 c24054e0 f825ba47 001d5d64 00000128 f4fa6000 0000003f
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692717] <0> faee9068 00000027 f4fa6000 f61d5db0 f825bb7c 0000009f 00000000 f8ce32ef
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692728] <0> c0588f82 f825cc11 00000296 f637513c f6375120 f6375000 f6827000 f4fa6000
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692741] Call Trace:
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692750]  [<f825ba47>] ? __ir_input_register+0x167/0x350 [ir_core]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692759]  [<f825ba47>] ? __ir_input_register+0x167/0x350 [ir_core]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692769]  [<f825bb7c>] ? __ir_input_register+0x29c/0x350 [ir_core]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692779]  [<c0588f82>] ? printk+0x1d/0x23
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692789]  [<f8ce1153>] ? budget_ci_attach+0x193/0xd80 [budget_ci]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692800]  [<f81ffeac>] ? saa7146_init_one+0x7dc/0x860 [saa7146]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692811]  [<c01078d0>] ? dma_generic_alloc_coherent+0x0/0xc0
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692821]  [<c0363883>] ? local_pci_probe+0x13/0x20
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692827]  [<c0364688>] ? pci_device_probe+0x68/0x90
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692835]  [<c03e688d>] ? really_probe+0x4d/0x140
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692843]  [<c03ed19e>] ? pm_runtime_barrier+0x4e/0xc0
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692850]  [<c03e69bc>] ? driver_probe_device+0x3c/0x60
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692857]  [<c03e6a61>] ? __driver_attach+0x81/0x90
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692864]  [<c03e5ea3>] ? bus_for_each_dev+0x53/0x80
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692871]  [<c03e675e>] ? driver_attach+0x1e/0x20
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692877]  [<c03e69e0>] ? __driver_attach+0x0/0x90
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692884]  [<c03e6125>] ? bus_add_driver+0xd5/0x280
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692890]  [<c03645c0>] ? pci_device_remove+0x0/0x40
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692897]  [<c03e6d5a>] ? driver_register+0x6a/0x130
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692903]  [<c03648c5>] ? __pci_register_driver+0x45/0xb0
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692913]  [<f81fed63>] ? saa7146_register_extension+0x53/0x90 [saa7146]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692923]  [<f8ce700d>] ? budget_ci_init+0xd/0xf [budget_ci]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692929]  [<c0101131>] ? do_one_initcall+0x31/0x190
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692937]  [<f8ce7000>] ? budget_ci_init+0x0/0xf [budget_ci]
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692945]  [<c0182340>] ? sys_init_module+0xb0/0x210
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692951]  [<c01033ec>] ? syscall_call+0x7/0xb
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.692956] Code: 00 89 c6 8d 80 a0 07 00 00 e8 bf a7 18 c8 ba 00 01 00 00 89 c3 b8 0c d4 25 f8 e8 6e ec 0e c8 89 c7 85 ff 78 6f 8b 83 44 01 $
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.693003] EIP: [<f825bd7e>] ir_register_class+0x3e/0x190 [ir_core] SS:ESP 0068:f61d5d4c
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.693015] CR2: 0000000000000000
+May 24 13:30:22 ubuntuvdr1 kernel: [    5.693020] ---[ end trace 2c915ef882a2f862 ]---
