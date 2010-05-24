@@ -1,74 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from utm.netup.ru ([193.203.36.250]:52604 "EHLO utm.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752559Ab0EIT31 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 9 May 2010 15:29:27 -0400
-Subject: Re: stv090x vs stv0900
-From: Abylai Ospan <aospan@netup.ru>
-To: Pascal Terjan <pterjan@mandriva.com>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	"Igor M. Liplianin" <liplianin@netup.ru>,
-	linux-media@vger.kernel.org
-In-Reply-To: <1273135577.16031.11.camel@plop>
-References: <1273135577.16031.11.camel@plop>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 09 May 2010 23:06:19 +0400
-Message-ID: <1273431979.4779.786.camel@alkaloid.netup.ru>
-Mime-Version: 1.0
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4787 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757031Ab0EXNmS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 09:42:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 03/15] [RFCv2] Documentation: add v4l2-controls.txt documenting the new controls API.
+Date: Mon, 24 May 2010 15:43:53 +0200
+Cc: linux-media@vger.kernel.org
+References: <cover.1274015084.git.hverkuil@xs4all.nl> <201005240117.35431.laurent.pinchart@ideasonboard.com> <201005241144.16825.hverkuil@xs4all.nl>
+In-Reply-To: <201005241144.16825.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201005241543.53647.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Monday 24 May 2010 11:44:16 Hans Verkuil wrote:
+> Hi Laurent,
+> 
+> Thanks for your review! As always, it was very useful.
 
-On Thu, 2010-05-06 at 10:46 +0200, Pascal Terjan wrote:
-> Also, are they both maintained ? I wrote a patch to add get_frontend to
-> stv090x but stv0900 also does not have it and I don't know which one
-> should get new code.
+I've incorporated most points in my ctrlfw3 branch:
 
-I have added get_frontend to stv0900 two months ago -
-http://linuxtv.org/hg/v4l-dvb/rev/a3e28fbefdc3
+http://git.linuxtv.org/hverkuil/v4l-dvb.git?a=shortlog;h=refs/heads/ctrlfw3
 
-I'm trying to describe my point of view about two drivers for stv6110
-+stv0900. 
+Main changes:
 
-History:
-I have anounced our card on November 2008 -
-http://www.linuxtv.org/pipermail/linux-dvb/2008-November/030439.html
-As you can see I have mentioned that we developing code and will be
-publish it under GPL. All people in ML received this message. This
-should be prevent of duplicate work.
-Also we have obtained permission (signed letter) from STM to publish
-resulting code under GPL. We have send pull request at Feb 2009 -
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg02180.html
+- Replaced 'bridge driver' by 'V4L2 driver'.
+- Added is_volatile and is_uninitialized flags (to control whether g_volatile_ctrl or
+  init should be called).
+- Added is_volatile, is_uninitialized and is_private flags to v4l2_ctrl_config.
+- If the name field in struct v4l2_ctrl_config is NULL, then assume it is a standard
+  control and fill in the defaults accordingly.
 
-(stv090x commit requested later - in May 2009 -
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg04978.html ).
+These two changes together make it possible to make an array of struct v4l2_ctrl_config
+to create all controls. Perhaps v4l2_ctrl_new_custom should be renamed to v4l2_ctrl_new?
 
+- v4l2_ctrl_new_std_menu now has a 'max' argument.
+- v4l2_ctrl_new_std can no longer be used to create a standard menu control.
+  This should prevent confusion regarding step and skip_mask.
+- v4l2_ctrl_active and v4l2_ctrl_grab set the flag atomically, so can be called
+  from anywhere.
 
-Solution:
-Ideally two drivers should be combined into one. stv0900 driver can be
-used as starting point. We (NetUP Inc.) can initiaite this job. But we
-need approval from Manu and all community who using stv090x. Manu what
-do you think about this ? 
-This is not trivial because some "features" may be broken when combining
-this two code.
+I did not yet change anything regarding the init return type. I'm really not
+sure what userspace is supposed to do here. If you fail initializing a control,
+does that mean that -EIO should be returned? The only way this can fail is if
+there is a hardware problem, right?
+
+Can you give some background info on how this is currently handled in uvc?
+
+Regards,
+
+	Hans
 
 -- 
-Abylai Ospan <aospan@netup.ru>
-NetUP Inc.
-
-P.S.
->From our side we have strong experience in STV6110+STV0900 IC's. Our
-engeneers designed "NetUP Dual DVB-S2 CI" card  from "scratch". We know
-many nuances about this IC's. For example, we have tested 16APSK/32APSK
--
-http://linuxtv.org/wiki/index.php/STMicroelectronics_STV0900A_16APSK_32APSK
-
-Also we developing new version of our "NetUP Dual DVB-S2 CI" based on
-FPGA (like our Dual DVB-T/C CI card -
-http://linuxtv.org/wiki/index.php/NetUP_Dual_DVB_T_C_CI_RF ). This new
-version of card can proceed high bitrates from STV0900 (120Mbps and
-higher ). Also this card can receive raw frames from STV0900 ( not only
-TS ) for extra functionality ( GSE ).
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
