@@ -1,91 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:50542 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:39330 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756154Ab0EDGnr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 May 2010 02:43:47 -0400
-Date: Tue, 4 May 2010 08:43:48 +0200 (CEST)
+	id S1753126Ab0EXNeS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 09:34:18 -0400
+Date: Mon, 24 May 2010 15:34:32 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Charles D. Krebs" <ckrebs@therealtimegroup.com>
+To: Baruch Siach <baruch@tkos.co.il>
 cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>
-Subject: Re: CEU / Camera Driver Question
-In-Reply-To: <F528C77ECD244EC8ADEEE5DEF504EB88@RSI45>
-Message-ID: <Pine.LNX.4.64.1005040811010.4925@axis700.grange>
-References: <C5F5A45C8EB6446BA837800AC37D53A2@RSI45>
- <h2laec7e5c31004071719m4a6551c7w8afdca6bdcf49eae@mail.gmail.com>
- <Pine.LNX.4.64.1004080814370.4621@axis700.grange> <7554DA9455F6445CB94B84859EEDCE57@RSI45>
- <Pine.LNX.4.64.1004140827550.6386@axis700.grange> <F528C77ECD244EC8ADEEE5DEF504EB88@RSI45>
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2 0/3] Driver for the i.MX2x CMOS Sensor Interface
+In-Reply-To: <cover.1274706733.git.baruch@tkos.co.il>
+Message-ID: <Pine.LNX.4.64.1005241528410.2611@axis700.grange>
+References: <cover.1274706733.git.baruch@tkos.co.il>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Charles
+Hi Baruch
 
-On Mon, 3 May 2010, Charles D. Krebs wrote:
+On Mon, 24 May 2010, Baruch Siach wrote:
 
-> Guennadi,
+> This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and
+> platform code for the i.MX25 and i.MX27 chips. This driver is based on a 
+> driver for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has 
+> posted in linux-media last December[1]. I tested the mx2_camera driver on the 
+> i.MX25 PDK. Sascha Hauer has tested a earlier version of this driver on an 
+> i.MX27 based board. I included in this version some fixes from Sascha that 
+> enable i.MX27 support.
 > 
-> As per your recommendation I reviewed the "soc_camera_platform" driver, and
-> have chosen to implement the new camera by simply modifying it.
-> 
-> Sure enough, I can boot up and properly register a device under /dev/video0.
-> 
-> The camera provides 8-bit Grayscale data corresponding to pixel format
-> V4L2_PIX_FMT_GREY.  I can't seem to find any example of a device driver that
-> uses this format, so I've been taking my best guess as how to setup
-> "soc_camera_platform_info".  So far I have:
-> 
-> static struct soc_camera_platform_info mycam_camera_info = {
-> 	.format_name = "GREY",
-> 	.format_depth = 8,
-> 	.format = {
-> 		.code = V4L2_MBUS_FMT_YUYV8_2X8_BE,
+> [1] https://patchwork.kernel.org/patch/67636/
 
-No, you should be using V4L2_MBUS_FMT_GREY8_1X8 for grey.
-
-> 		.colorspace = V4L2_COLORSPACE_JPEG,
-> 		.field = V4L2_FIELD_NONE,
-> 		.width = 320,
-> 		.height = 240,
-> 	},
-> 	.bus_param = SOCAM_PCLK_SAMPLE_RISING | SOCAM_HSYNC_ACTIVE_HIGH |
-> 	SOCAM_VSYNC_ACTIVE_HIGH | SOCAM_MASTER | SOCAM_DATAWIDTH_8 |
-> 	SOCAM_DATA_ACTIVE_HIGH,
-> };
-> 
-> It looks like I'll need to modify "soc_camera_platform" it in a way to at
-> least add a "fourcc" field that can be interpreted by the ceu driver for the
-> "sh_mobile_ceu_set_bus_param" call to setup the hardware correctly.
-
-No, subdevice drivers, using the mediabus API, know nothing about fourcc 
-codes, that belongs to the user side of the pixel format handling API. The 
-path, e.g., for the VIDIOC_S_FMT ioctl() is
-
-soc_camera.c::soc_camera_s_fmt_vid_cap(V4L2_PIX_FMT_GREY)
-sh_mobile_ceu_camera.c::sh_mobile_ceu_set_fmt(V4L2_PIX_FMT_GREY)
-
-the latter will try to call the .s_mbus_fmt() method from 
-soc_camera_platform.c and will fail, because that got lost during the 
-v4l2-subdev conversion, which is a bug and has to be fixed, patch welcome.
-
-> But regardless of how I set this structure up, I don't see any direct support
-> for a Grayscale mode data capture in the ceu driver.  For example,
-> "sh_mobile_ceu_set_bus_param" does not contain V4L2_PIX_FMT_GREY in its list
-> of fourcc formats.  Yet based on the 7724 hardware manual, and from the
-> information I have received from Renesas, I'm not seeing any reason why this
-> format should not be supported.
-> 
-> Is grayscale somehow supported under the current CEU driver?
-
-Sure, that's what the pass-through mode with a standard soc-mbus format 
-conversion is for (see soc_mbus_get_fmtdesc()).
-
-> Any suggestions on how I might go about implementing support?  I'm having
-> trouble seeing the dataflow through the driver at the moment...
+Thanks for the patches! I'll have a look at them in the next couple of 
+days. I presume, you do not expect this driver to make it into 2.6.35? rc1 
+is expected any time now, so, we'll take our time and prepare it for 
+2.6.36, right?
 
 Thanks
 Guennadi
+
+> 
+> Changes v1 -> v2
+>     Addressed the comments of Guennadi Liakhovetski except from the following:
+> 
+>     1. The mclk_get_divisor implementation, since I don't know what this code 
+>        is good for
+> 
+>     2. mx2_videobuf_release should not set pcdev->active on i.MX27, because 
+>        mx27_camera_frame_done needs this pointer
+> 
+>     3. In mx27_camera_emma_buf_init I don't know the meaning of those hard 
+>        coded magic numbers
+> 
+>     Applied i.MX27 fixes from Sascha.
+> 
+> Baruch Siach (3):
+>   mx2_camera: Add soc_camera support for i.MX25/i.MX27
+>   mx27: add support for the CSI device
+>   mx25: add support for the CSI device
+> 
+>  arch/arm/mach-mx2/clock_imx27.c          |    2 +-
+>  arch/arm/mach-mx2/devices.c              |   31 +
+>  arch/arm/mach-mx2/devices.h              |    1 +
+>  arch/arm/mach-mx25/clock.c               |   14 +-
+>  arch/arm/mach-mx25/devices.c             |   22 +
+>  arch/arm/mach-mx25/devices.h             |    1 +
+>  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
+>  arch/arm/plat-mxc/include/mach/mx25.h    |    2 +
+>  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
+>  drivers/media/video/Kconfig              |   13 +
+>  drivers/media/video/Makefile             |    1 +
+>  drivers/media/video/mx2_camera.c         | 1471 ++++++++++++++++++++++++++++++
+>  12 files changed, 1603 insertions(+), 5 deletions(-)
+>  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
+>  create mode 100644 drivers/media/video/mx2_camera.c
+> 
+
 ---
 Guennadi Liakhovetski, Ph.D.
 Freelance Open-Source Software Developer
