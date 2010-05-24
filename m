@@ -1,115 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3163 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753598Ab0EWTMJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 May 2010 15:12:09 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4NJC77E055490
-	for <linux-media@vger.kernel.org>; Sun, 23 May 2010 21:12:08 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 23 May 2010 21:12:07 +0200 (CEST)
-Message-Id: <201005231912.o4NJC77E055490@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from tex.lwn.net ([70.33.254.29]:35138 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932073Ab0EXXWk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 19:22:40 -0400
+Date: Mon, 24 May 2010 17:22:37 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-kernel@vger.kernel.org, Harald Welte <laforge@gnumonks.org>,
+	linux-fbdev@vger.kernel.org, JosephChan@via.com.tw,
+	ScottFang@viatech.com.cn,
+	Bruno =?ISO-8859-1?B?UHLpbW9udA==?= <bonbons@linux-vserver.org>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/5] Add the viafb video capture driver
+Message-ID: <20100524172237.7c17cd57@bike.lwn.net>
+In-Reply-To: <4BF924E3.5020702@redhat.com>
+References: <1273098884-21848-1-git-send-email-corbet@lwn.net>
+	<1273098884-21848-6-git-send-email-corbet@lwn.net>
+	<4BF924E3.5020702@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sun, 23 May 2010 09:51:47 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-Results of the daily build of v4l-dvb:
+> The driver is OK to my eyes. I just found 2 minor coding style issues.
+> it is ok to me if you want to sent it via your git tree.
+> 
+> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-date:        Sun May 23 19:01:04 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14873:b576509ea6d2
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Great, thanks for taking a look!
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc7-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc7-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc7-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc7-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc7-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc7-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc7-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc7-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc7-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+All of the precursor stuff is in mainline now, so it can go via whatever
+path.  I'll just go ahead and request a pull in the near future unless
+somebody objects.
 
-Detailed results are available here:
+> > +	.sizeimage	= VGA_WIDTH*VGA_HEIGHT*2,
+> 
+> CodingStyle: please use spaces between values/operators. Not sure why, but
+> newer versions of checkpatch.pl don't complain anymore on some cases.
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Interesting...for all of my programming life I've left out spaces around
+multiplicative operators - a way of showing that they bind more tightly
+than the additive variety.  I thought everybody else did that too.
+CodingStyle agrees with you, though; I'll append a patch fixing these up.
+Learn something every day...
 
-Full logs are available here:
+Thanks,
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+jon
