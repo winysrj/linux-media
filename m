@@ -1,88 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:50867 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755434Ab0E0Msk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 May 2010 08:48:40 -0400
-Date: Thu, 27 May 2010 14:48:54 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Jaya Kumar <jayakumar.lkml@gmail.com>
-cc: linux-fbdev@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Idea of a v4l -> fb interface driver
-In-Reply-To: <AANLkTik0DHDhmr78xOG2cTUgrTWZKzYDwBl27TXHgcGp@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1005271338370.2293@axis700.grange>
-References: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>
- <AANLkTilnb20a4KO1NmK_y148HE_4b6ka14hUJY5o93QT@mail.gmail.com>
- <Pine.LNX.4.64.1005270809110.2293@axis700.grange>
- <AANLkTik0DHDhmr78xOG2cTUgrTWZKzYDwBl27TXHgcGp@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2948 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755208Ab0EXTL0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 15:11:26 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4OJBL81071092
+	for <linux-media@vger.kernel.org>; Mon, 24 May 2010 21:11:25 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 24 May 2010 21:11:21 +0200 (CEST)
+Message-Id: <201005241911.o4OJBL81071092@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 27 May 2010, Jaya Kumar wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> You've raised the MIPI-DSI issue. It is a good area to focus the
-> discussion on for fbdev minded people and one that needs to be
-> resolved soon so that we don't get dozens of host controller specific
-> mipi display panel drivers. I had seen that omap2 fbdev has a portion
-> of the MIPI-DSI command set exposed to their various display panel
-> drivers which then hands off these commands to the omap specific
-> lcd_mipid.c which uses spi. I see you've also implemented a similar
-> concept in sh-mobile. When I saw the multiple display panel drivers
-> showing up in omap, I raised a concern with Tomi and I think there was
-> an intent to try to improve the abstraction. I'm not sure how far that
-> has progressed. Are you saying v4l would help us in that area? I'm not
-> yet able to follow the details of how using v4l would help address the
-> need for mipi-dsi abstraction. Could you elaborate on that?
+Results of the daily build of v4l-dvb:
 
-Well, I thought about an abstract driver for MIPI DSI... But, there is not 
-really much there, that you can abstract. I've created a generic 
-mipi_display.h header, that contains defines for display related (DSI, 
-DCS) commands and transaction types. Once this header is in the mainline, 
-we plan to convert OMAP drivers to it too. To talk to MIPI displays you 
-need a capability to send and receive generic short and long telegrams, 
-so, providing higher level functions like get_display_id() or 
-soft_reset(), probably, wouldn't make sense. What you do need a proper API 
-for is, when you start supporting proprietary display-specific commands 
-and want to reuse those display drivers with different MIPI DSI hosts. For 
-that we will want a generic API like .send_short_command(), 
-.send_short_command_param(), etc.
+date:        Mon May 24 19:00:22 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14873:b576509ea6d2
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-As for using v4l2 for MIPI displays - well, I am not sure it makes sense 
-at all. This could make sense if, e.g., you were writing a driver for a 
-graphics controller, capable to talk to various PHYs over a fixed bus 
-(which is actually also the case with the sh-mobile LCDC), then you could 
-design it, using V4L2, in the following way:
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc7-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc7-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc7-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc7-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc7-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc7-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc7-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc7-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc7-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-/dev/videoX                /dev/fbX
-   |                           |
-   |   /- - fbdev translate - -/
-   v   v
-v4l2 output device driver
-       |
-       v
-   v4l2-subdev API
-    |    ...    |
-    v           v
-MIPI PHY ...  parallel PHY
- driver  ...    driver
-    |
-    v
- MIPI bus
-abstraction
-    |
-    v
-MIPI display
-  driver
+Detailed results are available here:
 
-So, you would use the v4l2-subdev API to abstract various PHY drivers. The 
-/dev/fbX link above would, certainly, only exist if we implement the 
-v4l2-output - fbdev translation driver.
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
