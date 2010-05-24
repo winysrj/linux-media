@@ -1,43 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail16.adl2.internode.on.net ([150.101.137.101]:47836 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755808Ab0EXGjh (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:60497 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752332Ab0EXP4c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 02:39:37 -0400
-Message-ID: <4BFA1F26.7070709@gmail.com>
-Date: Mon, 24 May 2010 16:39:34 +1000
-From: Jed <jedi.theone@gmail.com>
+	Mon, 24 May 2010 11:56:32 -0400
+Date: Mon, 24 May 2010 08:56:24 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Daniel Mack <daniel@caiaq.de>
+Cc: linux-kernel@vger.kernel.org, Wolfram Sang <w.sang@pengutronix.de>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jiri Slaby <jslaby@suse.cz>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] drivers/media/dvb/dvb-usb/dib0700: CodingStyle fixes
+Message-ID: <20100524155624.GA3182@core.coreip.homeip.net>
+References: <AANLkTimSMLPf697B831bEyiSaeKgcOlKPmnu-0EXuqtX@mail.gmail.com>
+ <1274714585-20544-1-git-send-email-daniel@caiaq.de>
 MIME-Version: 1.0
-To: Stefan Richter <stefanr@s5r6.in-berlin.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ideal DVB-C PCI/e card? [linux-media]
-References: <4BF8D735.9070400@gmail.com> <4BF9717D.9080209@s5r6.in-berlin.de>
-In-Reply-To: <4BF9717D.9080209@s5r6.in-berlin.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1274714585-20544-1-git-send-email-daniel@caiaq.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for offering your thoughts Stefan.
-Any specific recommendations?
+On Mon, May 24, 2010 at 05:23:05PM +0200, Daniel Mack wrote:
+> Signed-off-by: Daniel Mack <daniel@caiaq.de>
+> Cc: Wolfram Sang <w.sang@pengutronix.de>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Jiri Slaby <jslaby@suse.cz>
+> Cc: Dmitry Torokhov <dtor@mail.ru>
+> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+> Cc: linux-media@vger.kernel.org
 
-Ideally I want two or more dvb-c tuners in a pci/e form-factor.
+Not sure how I got on the list but chnages look good to me.
 
-If there's FW or USB tuners that are mounted onto a PCI/e card, work 
-well in Linux, & are relatively cheap, then I'd love to know!
+Thanks.
 
-Thanks,
-Jed
-
-On 24/05/10 4:18 AM, Stefan Richter wrote:
-> Jed wrote:
->> Ideally it'd be dual DVB-C, the only one I've found is more than dual
->> DVB-C&  is far too expensive.
->
-> If you need two receivers but can only spare up to one PCI or PCIe slot,
-> why not use two USB or FireWire attached receivers?
->
-> FireWire ones seem to be out of production now though and weren't
-> exactly on the cheap side.  OTOH one can drive up to 3 DVB FireWire
-> receivers on a single FireWire bus; and for those who need even more
-> there are dual link FireWire PCI and PCIe cards readily available.
+-- 
+Dmitry
