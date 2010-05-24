@@ -1,181 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1892 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757388Ab0E2OpJ (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37043 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756788Ab0EXLMv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 10:45:09 -0400
-Message-Id: <951184c67d0a8fde437d67d748e180e4c18bcd02.1275143672.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1275143672.git.hverkuil@xs4all.nl>
-References: <cover.1275143672.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sat, 29 May 2010 16:47:00 +0200
-Subject: [PATCH 14/15] [RFCv4] ivtv: convert gpio subdev to new control framework.
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+	Mon, 24 May 2010 07:12:51 -0400
+Date: Mon, 24 May 2010 13:12:45 +0200
+From: Wolfram Sang <w.sang@pengutronix.de>
+To: Daniel Mack <daniel@caiaq.de>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jiri Slaby <jslaby@suse.cz>, Dmitry Torokhov <dtor@mail.ru>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] drivers/media/dvb/dvb-usb/dib0700: CodingStyle
+	fixes
+Message-ID: <20100524111245.GA16756@pengutronix.de>
+References: <AANLkTikffmoWofbIo2h6zw-VW5aKEH8T_b0vMfKdo3KJ@mail.gmail.com> <1274698635-19512-2-git-send-email-daniel@caiaq.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="d6Gm4EdcadzBjdND"
+Content-Disposition: inline
+In-Reply-To: <1274698635-19512-2-git-send-email-daniel@caiaq.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/ivtv/ivtv-driver.c |    1 +
- drivers/media/video/ivtv/ivtv-driver.h |    1 +
- drivers/media/video/ivtv/ivtv-gpio.c   |   77 +++++++++++++++-----------------
- 3 files changed, 38 insertions(+), 41 deletions(-)
 
-diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-index 85aab0e..1232d92 100644
---- a/drivers/media/video/ivtv/ivtv-driver.c
-+++ b/drivers/media/video/ivtv/ivtv-driver.c
-@@ -1370,6 +1370,7 @@ static void ivtv_remove(struct pci_dev *pdev)
- 	printk(KERN_INFO "ivtv: Removed %s\n", itv->card_name);
- 
- 	v4l2_device_unregister(&itv->v4l2_dev);
-+	v4l2_ctrl_handler_free(&itv->hdl_gpio);
- 	kfree(itv);
- }
- 
-diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
-index 584c8e0..ba6c2fc 100644
---- a/drivers/media/video/ivtv/ivtv-driver.h
-+++ b/drivers/media/video/ivtv/ivtv-driver.h
-@@ -629,6 +629,7 @@ struct ivtv {
- 
- 	struct v4l2_device v4l2_dev;
- 	struct v4l2_subdev sd_gpio;	/* GPIO sub-device */
-+	struct v4l2_ctrl_handler hdl_gpio;
- 	u16 instance;
- 
- 	/* High-level state info */
-diff --git a/drivers/media/video/ivtv/ivtv-gpio.c b/drivers/media/video/ivtv/ivtv-gpio.c
-index aede061..8f0d077 100644
---- a/drivers/media/video/ivtv/ivtv-gpio.c
-+++ b/drivers/media/video/ivtv/ivtv-gpio.c
-@@ -24,6 +24,7 @@
- #include "ivtv-gpio.h"
- #include "tuner-xc2028.h"
- #include <media/tuner.h>
-+#include <media/v4l2-ctrls.h>
- 
- /*
-  * GPIO assignment of Yuan MPG600/MPG160
-@@ -149,16 +150,10 @@ static inline struct ivtv *sd_to_ivtv(struct v4l2_subdev *sd)
- 	return container_of(sd, struct ivtv, sd_gpio);
- }
- 
--static struct v4l2_queryctrl gpio_ctrl_mute = {
--	.id            = V4L2_CID_AUDIO_MUTE,
--	.type          = V4L2_CTRL_TYPE_BOOLEAN,
--	.name          = "Mute",
--	.minimum       = 0,
--	.maximum       = 1,
--	.step          = 1,
--	.default_value = 1,
--	.flags         = 0,
--};
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct ivtv, hdl_gpio)->sd_gpio;
-+}
- 
- static int subdev_s_clock_freq(struct v4l2_subdev *sd, u32 freq)
- {
-@@ -262,40 +257,24 @@ static int subdev_s_audio_routing(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int subdev_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int subdev_s_ctrl(struct v4l2_ctrl *ctrl)
- {
-+	struct v4l2_subdev *sd = to_sd(ctrl);
- 	struct ivtv *itv = sd_to_ivtv(sd);
- 	u16 mask, data;
- 
--	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
--		return -EINVAL;
--	mask = itv->card->gpio_audio_mute.mask;
--	data = itv->card->gpio_audio_mute.mute;
--	ctrl->value = (read_reg(IVTV_REG_GPIO_OUT) & mask) == data;
--	return 0;
--}
--
--static int subdev_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct ivtv *itv = sd_to_ivtv(sd);
--	u16 mask, data;
--
--	if (ctrl->id != V4L2_CID_AUDIO_MUTE)
--		return -EINVAL;
--	mask = itv->card->gpio_audio_mute.mask;
--	data = ctrl->value ? itv->card->gpio_audio_mute.mute : 0;
--	if (mask)
--		write_reg((read_reg(IVTV_REG_GPIO_OUT) & ~mask) | (data & mask), IVTV_REG_GPIO_OUT);
--	return 0;
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		mask = itv->card->gpio_audio_mute.mask;
-+		data = ctrl->val ? itv->card->gpio_audio_mute.mute : 0;
-+		if (mask)
-+			write_reg((read_reg(IVTV_REG_GPIO_OUT) & ~mask) |
-+					(data & mask), IVTV_REG_GPIO_OUT);
-+		return 0;
-+	}
-+	return -EINVAL;
- }
- 
--static int subdev_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
--{
--	if (qc->id != V4L2_CID_AUDIO_MUTE)
--		return -EINVAL;
--	*qc = gpio_ctrl_mute;
--	return 0;
--}
- 
- static int subdev_log_status(struct v4l2_subdev *sd)
- {
-@@ -304,6 +283,7 @@ static int subdev_log_status(struct v4l2_subdev *sd)
- 	IVTV_INFO("GPIO status: DIR=0x%04x OUT=0x%04x IN=0x%04x\n",
- 			read_reg(IVTV_REG_GPIO_DIR), read_reg(IVTV_REG_GPIO_OUT),
- 			read_reg(IVTV_REG_GPIO_IN));
-+	v4l2_ctrl_handler_log_status(&itv->hdl_gpio, sd->name);
- 	return 0;
- }
- 
-@@ -327,11 +307,19 @@ static int subdev_s_video_routing(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
-+static const struct v4l2_ctrl_ops gpio_ctrl_ops = {
-+	.s_ctrl = subdev_s_ctrl,
-+};
-+
- static const struct v4l2_subdev_core_ops subdev_core_ops = {
- 	.log_status = subdev_log_status,
--	.g_ctrl = subdev_g_ctrl,
--	.s_ctrl = subdev_s_ctrl,
--	.queryctrl = subdev_queryctrl,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
- };
- 
- static const struct v4l2_subdev_tuner_ops subdev_tuner_ops = {
-@@ -375,5 +363,12 @@ int ivtv_gpio_init(struct ivtv *itv)
- 	v4l2_subdev_init(&itv->sd_gpio, &subdev_ops);
- 	snprintf(itv->sd_gpio.name, sizeof(itv->sd_gpio.name), "%s-gpio", itv->v4l2_dev.name);
- 	itv->sd_gpio.grp_id = IVTV_HW_GPIO;
-+	v4l2_ctrl_handler_init(&itv->hdl_gpio, 1);
-+	v4l2_ctrl_new_std(&itv->hdl_gpio, &gpio_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-+	if (itv->hdl_gpio.error)
-+		return itv->hdl_gpio.error;
-+	itv->sd_gpio.ctrl_handler = &itv->hdl_gpio;
-+	v4l2_ctrl_handler_setup(&itv->hdl_gpio);
- 	return v4l2_device_register_subdev(&itv->v4l2_dev, &itv->sd_gpio);
- }
--- 
-1.6.4.2
+--d6Gm4EdcadzBjdND
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
+On Mon, May 24, 2010 at 12:57:15PM +0200, Daniel Mack wrote:
+> Signed-off-by: Daniel Mack <daniel@caiaq.de>
+> Cc: Wolfram Sang <w.sang@pengutronix.de>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Jiri Slaby <jslaby@suse.cz>
+> Cc: Dmitry Torokhov <dtor@mail.ru>
+> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+> Cc: linux-media@vger.kernel.org
+
+Looks correct to me and definately more readable:
+
+Acked-by: Wolfram Sang <w.sang@pengutronix.de>
+
+--=20
+Pengutronix e.K.                           | Wolfram Sang                |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+
+--d6Gm4EdcadzBjdND
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkv6Xy0ACgkQD27XaX1/VRtHSACgmh6hyJp5JEIbxoulnxnRsB8u
+D0EAn2T8qEk/ZT26JaGZE4R7+NtksaWp
+=kYUk
+-----END PGP SIGNATURE-----
+
+--d6Gm4EdcadzBjdND--
