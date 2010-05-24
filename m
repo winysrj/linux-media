@@ -1,210 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:43075 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756960Ab0EKNfi (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:32231 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755361Ab0EXMVs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 May 2010 09:35:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, hverkuil@xs4all.nl
-Subject: [PATCH 4/7] v4l: Remove videobuf_sg_alloc abuse
-Date: Tue, 11 May 2010 15:36:31 +0200
-Message-Id: <1273584994-14211-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1273584994-14211-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1273584994-14211-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 24 May 2010 08:21:48 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v3 0/4] WL1273 FM Radio Driver
+Date: Mon, 24 May 2010 15:21:39 +0300
+Message-Id: <1274703703-11670-1-git-send-email-matti.j.aaltonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cx88 and cx25821 drivers abuse videobuf_buffer to handle audio data.
-Remove the abuse by creating private audio buffer structures with a
-videobuf_dmabuf field.
+Hello again.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/cx88/cx88-alsa.c   |   29 ++++++++++++++---------------
- drivers/staging/cx25821/cx25821-alsa.c |   29 ++++++++++++++---------------
- 2 files changed, 28 insertions(+), 30 deletions(-)
+And thanks for the comments.
 
-diff --git a/drivers/media/video/cx88/cx88-alsa.c b/drivers/media/video/cx88/cx88-alsa.c
-index 5ddd45d..ebeb9a6 100644
---- a/drivers/media/video/cx88/cx88-alsa.c
-+++ b/drivers/media/video/cx88/cx88-alsa.c
-@@ -53,6 +53,12 @@
- 	Data type declarations - Can be moded to a header file later
-  ****************************************************************************/
+It the first patch I'm kind of suggesting a couple of additions to the
+general interface: signal level stuff in the hw seek struct and then a 
+function / IOCTL for asking for minimum and maximum for the level.
+
+There are many changes I'll follow by commenting to Hans's comments:
+
+>> 1. WL1273_CID_FM_REGION for setting the region. This may not be a good
+>> candidate for standardization as the region control shouldn't exist 
+>> in the kernel in general...
+>
+>Is this region relevant for receive, transmit or both?
+
+Region is relevant for receiving only. Now I've changes the naming to "band"
+because TI uses that in their latest document version.
+
+>> 2. WL1273_CID_FM_SEEK_SPACING: defines what resolution is used when scanning 
+>> automatically for stations (50KHz, 100KHz or 200KHz). This could be
+>> useful in general. Could this be a field in the v4l2_hw_freq_seek struct?
+>
+>I think this belongs in v4l2_hw_freq_seek.
+
+I've added spacing to the hw seek struct.
+
+>> 3. WL1273_CID_FM_RDS_CTRL for turning on and off the RDS reception / 
+>> transmission. To me this seems like a useful standard control...
+>
+>This already exists. You can enable/disable RDS by setting the 
+> V4L2_TUNER_SUB_RDS subchannel bit when calling S_TUNER or S_MODULATOR.
+
+I did this.
+
+>> 4. WL1273_CID_SEARCH_LVL for setting the threshold level when detecting radio
+>> channels when doing automatic scan. This could be useful for fine tuning
+>> because automatic  scanning seems to be kind of problematic... This could 
+>> also be a field in the v4l2_hw_freq_seek struct?
+>
+>This too seems reasonable to add to v4l2_hw_freq_seek. Although what sort of
+>unit this level would have might be tricky. What is the unit for your hardware?
+
+I've added this as well. The unit is some kind of dB value: "8 bit signed
+number in 2âs complement format Each LSB = 1.5051 dBuV". I also added min
+and max values for the level.
+
+
+>> Could the VIDIOC_S_MODULATOR and VIDIOC_S_TUNER IOCTLs be used for setting
+>> the TX/RX mode?
+>
+>Not entirely sure what you want to achieve here. I gather that the radio is
+>either receiving, transmitting or off? So it can't receive and transmit at the
+>same time, right?
+
+Yes the radio can only transmit or receive at a time. And the states are:
+On (RX or TX), Off and Suspended. In the suspended mode that firmware patch
+is kept in the memory and it doesn't need to get uploaded again when operation
+resumes.
+
+> would expect in that case that calling S_TUNER or S_MODULATOR would switch it
+> to either receive or transmit mode. S_HW_FREQ_SEEK would of course also switch
+> it to receive mode.
+
+I added this...
+
+> There isn't anything to turn off the radio at the moment. Perhaps you can just
+> automatically turn it off if nobody has the radio device or alsa device open?
+
+Yes that can be done. Also volume control could be used. But also there's
+nothing to put the radio to stand-by (suspension).
  
-+struct cx88_audio_buffer {
-+	unsigned int               bpl;
-+	struct btcx_riscmem        risc;
-+	struct videobuf_dmabuf     dma;
-+};
-+
- struct cx88_audio_dev {
- 	struct cx88_core           *core;
- 	struct cx88_dmaqueue       q;
-@@ -74,7 +80,7 @@ struct cx88_audio_dev {
- 
- 	struct videobuf_dmabuf     *dma_risc;
- 
--	struct cx88_buffer	   *buf;
-+	struct cx88_audio_buffer   *buf;
- 
- 	struct snd_pcm_substream   *substream;
- };
-@@ -122,7 +128,7 @@ MODULE_PARM_DESC(debug,"enable debug messages");
- 
- static int _cx88_start_audio_dma(snd_cx88_card_t *chip)
- {
--	struct cx88_buffer   *buf = chip->buf;
-+	struct cx88_audio_buffer *buf = chip->buf;
- 	struct cx88_core *core=chip->core;
- 	struct sram_channel *audio_ch = &cx88_sram_channels[SRAM_CH25];
- 
-@@ -375,7 +381,7 @@ static int snd_cx88_hw_params(struct snd_pcm_substream * substream,
- 	snd_cx88_card_t *chip = snd_pcm_substream_chip(substream);
- 	struct videobuf_dmabuf *dma;
- 
--	struct cx88_buffer *buf;
-+	struct cx88_audio_buffer *buf;
- 	int ret;
- 
- 	if (substream->runtime->dma_area) {
-@@ -390,21 +396,16 @@ static int snd_cx88_hw_params(struct snd_pcm_substream * substream,
- 	BUG_ON(!chip->dma_size);
- 	BUG_ON(chip->num_periods & (chip->num_periods-1));
- 
--	buf = videobuf_sg_alloc(sizeof(*buf));
-+	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
- 	if (NULL == buf)
- 		return -ENOMEM;
- 
--	buf->vb.memory = V4L2_MEMORY_MMAP;
--	buf->vb.field  = V4L2_FIELD_NONE;
--	buf->vb.width  = chip->period_size;
--	buf->bpl       = chip->period_size;
--	buf->vb.height = chip->num_periods;
--	buf->vb.size   = chip->dma_size;
-+	buf->bpl = chip->period_size;
- 
--	dma = videobuf_to_dma(&buf->vb);
-+	dma = &buf->dma;
- 	videobuf_dma_init(dma);
- 	ret = videobuf_dma_init_kernel(dma, PCI_DMA_FROMDEVICE,
--			(PAGE_ALIGN(buf->vb.size) >> PAGE_SHIFT));
-+			(PAGE_ALIGN(chip->dma_size) >> PAGE_SHIFT));
- 	if (ret < 0)
- 		goto error;
- 
-@@ -413,7 +414,7 @@ static int snd_cx88_hw_params(struct snd_pcm_substream * substream,
- 		goto error;
- 
- 	ret = cx88_risc_databuffer(chip->pci, &buf->risc, dma->sglist,
--				   buf->vb.width, buf->vb.height, 1);
-+				   chip->period_size, chip->num_periods, 1);
- 	if (ret < 0)
- 		goto error;
- 
-@@ -421,8 +422,6 @@ static int snd_cx88_hw_params(struct snd_pcm_substream * substream,
- 	buf->risc.jmp[0] = cpu_to_le32(RISC_JUMP|RISC_IRQ1|RISC_CNT_INC);
- 	buf->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
- 
--	buf->vb.state = VIDEOBUF_PREPARED;
--
- 	chip->buf = buf;
- 	chip->dma_risc = dma;
- 
-diff --git a/drivers/staging/cx25821/cx25821-alsa.c b/drivers/staging/cx25821/cx25821-alsa.c
-index f3407fd..14fd3cb 100644
---- a/drivers/staging/cx25821/cx25821-alsa.c
-+++ b/drivers/staging/cx25821/cx25821-alsa.c
-@@ -54,6 +54,12 @@
- static struct snd_card *snd_cx25821_cards[SNDRV_CARDS];
- static int devno;
- 
-+struct cx25821_audio_buffer {
-+	unsigned int bpl;
-+	struct btcx_riscmem risc;
-+	struct videobuf_dmabuf dma;
-+};
-+
- struct cx25821_audio_dev {
- 	struct cx25821_dev *dev;
- 	struct cx25821_dmaqueue q;
-@@ -76,7 +82,7 @@ struct cx25821_audio_dev {
- 
- 	struct videobuf_dmabuf *dma_risc;
- 
--	struct cx25821_buffer *buf;
-+	struct cx25821_audio_buffer *buf;
- 
- 	struct snd_pcm_substream *substream;
- };
-@@ -135,7 +141,7 @@ MODULE_PARM_DESC(debug, "enable debug messages");
- 
- static int _cx25821_start_audio_dma(struct cx25821_audio_dev *chip)
- {
--	struct cx25821_buffer *buf = chip->buf;
-+	struct cx25821_audio_buffer *buf = chip->buf;
- 	struct cx25821_dev *dev = chip->dev;
- 	struct sram_channel *audio_ch =
- 	    &cx25821_sram_channels[AUDIO_SRAM_CHANNEL];
-@@ -431,7 +437,7 @@ static int snd_cx25821_hw_params(struct snd_pcm_substream *substream,
- 	struct cx25821_audio_dev *chip = snd_pcm_substream_chip(substream);
- 	struct videobuf_dmabuf *dma;
- 
--	struct cx25821_buffer *buf;
-+	struct cx25821_audio_buffer *buf;
- 	int ret;
- 
- 	if (substream->runtime->dma_area) {
-@@ -446,25 +452,19 @@ static int snd_cx25821_hw_params(struct snd_pcm_substream *substream,
- 	BUG_ON(!chip->dma_size);
- 	BUG_ON(chip->num_periods & (chip->num_periods - 1));
- 
--	buf = videobuf_sg_alloc(sizeof(*buf));
-+	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
- 	if (NULL == buf)
- 		return -ENOMEM;
- 
- 	if (chip->period_size > AUDIO_LINE_SIZE)
- 		chip->period_size = AUDIO_LINE_SIZE;
- 
--	buf->vb.memory = V4L2_MEMORY_MMAP;
--	buf->vb.field = V4L2_FIELD_NONE;
--	buf->vb.width = chip->period_size;
- 	buf->bpl = chip->period_size;
--	buf->vb.height = chip->num_periods;
--	buf->vb.size = chip->dma_size;
- 
--	dma = videobuf_to_dma(&buf->vb);
-+	dma = &buf->dma;
- 	videobuf_dma_init(dma);
--
- 	ret = videobuf_dma_init_kernel(dma, PCI_DMA_FROMDEVICE,
--				       (PAGE_ALIGN(buf->vb.size) >>
-+				       (PAGE_ALIGN(chip->dma_size) >>
- 					PAGE_SHIFT));
- 	if (ret < 0)
- 		goto error;
-@@ -475,7 +475,8 @@ static int snd_cx25821_hw_params(struct snd_pcm_substream *substream,
- 
- 	ret =
- 	    cx25821_risc_databuffer_audio(chip->pci, &buf->risc, dma->sglist,
--					  buf->vb.width, buf->vb.height, 1);
-+					  chip->period_size, chip->num_periods,
-+					  1);
- 	if (ret < 0) {
- 		printk(KERN_INFO
- 			"DEBUG: ERROR after cx25821_risc_databuffer_audio()\n");
-@@ -487,8 +488,6 @@ static int snd_cx25821_hw_params(struct snd_pcm_substream *substream,
- 	buf->risc.jmp[1] = cpu_to_le32(buf->risc.dma);
- 	buf->risc.jmp[2] = cpu_to_le32(0);	/* bits 63-32 */
- 
--	buf->vb.state = VIDEOBUF_PREPARED;
--
- 	chip->buf = buf;
- 	chip->dma_risc = dma;
- 
--- 
-1.6.4.4
+>> Now there already exits a class for fm transmitters: V4L2_CTRL_CLASS_FM_TX.
+>> Should a corresponding class be created for FM tuners?
+>
+>I'm not sure that we need any. I think the only control that we need is to set
+>the region, and I think that is more appropriate as a private (?) user control
+>since it is definitely something that users should be easily able to change.
+
+OK, that's fine by me
+
+>This probably should be discussed a bit more.
+
+Ok.
+
+There's also two "new" things. The chip supports in addition to the normal
+HW seek a HW block seek, which finds all receivable channels at once. And
+then there's  a RSSI block scan that be used in both RX and TX modes to find
+transmitting radio stations. Should we try to get these also into the
+general interface?
+
+Cheers,
+Matti
+
+
+Matti J. Aaltonen (4):
+  V4L2: Add features to the interface.
+  MFD: WL1273 FM Radio: MFD driver for the FM radio.
+  ASoC: WL1273 FM Radio Digital audio codec.
+  V4L2: WL1273 FM Radio: Controls for the FM radio.
+
+ drivers/media/radio/Kconfig        |   15 +
+ drivers/media/radio/Makefile       |    1 +
+ drivers/media/radio/radio-wl1273.c | 1876 ++++++++++++++++++++++++++++++++++++
+ drivers/mfd/Kconfig                |    6 +
+ drivers/mfd/Makefile               |    2 +
+ drivers/mfd/wl1273-core.c          |  606 ++++++++++++
+ include/linux/mfd/wl1273-core.h    |  326 +++++++
+ include/linux/videodev2.h          |    6 +-
+ include/media/v4l2-ioctl.h         |    2 +
+ sound/soc/codecs/Kconfig           |    6 +
+ sound/soc/codecs/Makefile          |    2 +
+ sound/soc/codecs/wl1273.c          |  588 +++++++++++
+ sound/soc/codecs/wl1273.h          |   40 +
+ 13 files changed, 3475 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/radio/radio-wl1273.c
+ create mode 100644 drivers/mfd/wl1273-core.c
+ create mode 100644 include/linux/mfd/wl1273-core.h
+ create mode 100644 sound/soc/codecs/wl1273.c
+ create mode 100644 sound/soc/codecs/wl1273.h
 
