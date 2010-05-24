@@ -1,179 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:56685 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137Ab0EDMOl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 08:14:41 -0400
-Date: Tue, 4 May 2010 14:14:29 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Adams.xu@azwave.com.cn, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch -next 1/2] media/az6027: doing dma on the stack
-Message-ID: <20100504121429.GW29093@bicker>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from poutre.nerim.net ([62.4.16.124]:58381 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758219Ab0EXSE1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 14:04:27 -0400
+Date: Mon, 24 May 2010 20:04:23 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Dan Carpenter <error27@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Beholder Intl. Ltd. Dmitry Belimov" <d.belimov@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch v2] video/saa7134: change dprintk() to i2cdprintk()
+Message-ID: <20100524200423.537a2895@hyperion.delvare>
+In-Reply-To: <20100524155936.GZ22515@bicker>
+References: <20100522201535.GI22515@bicker>
+	<20100522225921.585b2d72@hyperion.delvare>
+	<20100524155936.GZ22515@bicker>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I changed the dma buffers to use allocated memory instead of stack
-memory.
+Hi Dan,
 
-The reason for this is documented in Documentation/DMA-API-HOWTO.txt
-under the section:  "What memory is DMA'able?"  That document was only
-added a couple weeks ago and there are still lots of modules which
-haven't been corrected yet.  Btw. Smatch includes a pretty good test to
-find places which use stack memory as a dma buffer.  That's how I found
-these.  (http://smatch.sf.net).
+On Mon, 24 May 2010 17:59:36 +0200, Dan Carpenter wrote:
+> The problem is that dprintk() dereferences "dev" which is null here.
+> The i2cdprintk() uses "ir" so that's OK.
+> 
+> Also removed a duplicated break statement.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Mixing two unrelated fixes in the same patch is a bad idea. Here, the
+replacement of dprintk() with i2cdprintk() fixes a potential NULL
+pointer dereference, this might be worth backporting to stable kernel
+series. The double break, OTOH, can't cause any harm, it's a simple
+clean-up. So separate patches would be preferable.
 
-diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
-index 8934788..baaa301 100644
---- a/drivers/media/dvb/dvb-usb/az6027.c
-+++ b/drivers/media/dvb/dvb-usb/az6027.c
-@@ -417,11 +417,15 @@ static int az6027_ci_read_attribute_mem(struct dvb_ca_en50221 *ca,
- 	u16 value;
- 	u16 index;
- 	int blen;
--	u8 b[12];
-+	u8 *b;
- 
- 	if (slot != 0)
- 		return -EINVAL;
- 
-+	b = kmalloc(12, GFP_KERNEL);
-+	if (!b)
-+		return -ENOMEM;
-+
- 	mutex_lock(&state->ca_mutex);
- 
- 	req = 0xC1;
-@@ -438,6 +442,7 @@ static int az6027_ci_read_attribute_mem(struct dvb_ca_en50221 *ca,
- 	}
- 
- 	mutex_unlock(&state->ca_mutex);
-+	kfree(b);
- 	return ret;
- }
- 
-@@ -485,11 +490,15 @@ static int az6027_ci_read_cam_control(struct dvb_ca_en50221 *ca,
- 	u16 value;
- 	u16 index;
- 	int blen;
--	u8 b[12];
-+	u8 *b;
- 
- 	if (slot != 0)
- 		return -EINVAL;
- 
-+	b = kmalloc(12, GFP_KERNEL);
-+	if (!b)
-+		return -ENOMEM;
-+
- 	mutex_lock(&state->ca_mutex);
- 
- 	req = 0xC3;
-@@ -510,6 +519,7 @@ static int az6027_ci_read_cam_control(struct dvb_ca_en50221 *ca,
- 	}
- 
- 	mutex_unlock(&state->ca_mutex);
-+	kfree(b);
- 	return ret;
- }
- 
-@@ -556,7 +566,11 @@ static int CI_CamReady(struct dvb_ca_en50221 *ca, int slot)
- 	u16 value;
- 	u16 index;
- 	int blen;
--	u8 b[12];
-+	u8 *b;
-+
-+	b = kmalloc(12, GFP_KERNEL);
-+	if (!b)
-+		return -ENOMEM;
- 
- 	req = 0xC8;
- 	value = 0;
-@@ -570,6 +584,7 @@ static int CI_CamReady(struct dvb_ca_en50221 *ca, int slot)
- 	} else{
- 		ret = b[0];
- 	}
-+	kfree(b);
- 	return ret;
- }
- 
-@@ -667,8 +682,11 @@ static int az6027_ci_poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int o
- 	u16 value;
- 	u16 index;
- 	int blen;
--	u8 b[12];
-+	u8 *b;
- 
-+	b = kmalloc(12, GFP_KERNEL);
-+	if (!b)
-+		return -ENOMEM;
- 	mutex_lock(&state->ca_mutex);
- 
- 	req = 0xC5;
-@@ -692,6 +710,7 @@ static int az6027_ci_poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int o
- 	}
- 
- 	mutex_unlock(&state->ca_mutex);
-+	kfree(b);
- 	return ret;
- }
- 
-@@ -943,10 +962,16 @@ static int az6027_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int n
- 	u16 value;
- 	int length;
- 	u8 req;
--	u8 data[256];
-+	u8 *data;
-+
-+	data = kmalloc(256, GFP_KERNEL);
-+	if (!data)
-+		return -ENOMEM;
- 
--	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
-+	if (mutex_lock_interruptible(&d->i2c_mutex) < 0) {
-+		kfree(data);
- 		return -EAGAIN;
-+	}
- 
- 	if (num > 2)
- 		warn("more than 2 i2c messages at a time is not handled yet. TODO.");
-@@ -1016,6 +1041,7 @@ static int az6027_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[], int n
- 		}
- 	}
- 	mutex_unlock(&d->i2c_mutex);
-+	kfree(data);
- 
- 	return i;
- }
-@@ -1036,8 +1062,14 @@ int az6027_identify_state(struct usb_device *udev,
- 			  struct dvb_usb_device_description **desc,
- 			  int *cold)
- {
--	u8 b[16];
--	s16 ret = usb_control_msg(udev,
-+	u8 *b;
-+	s16 ret;
-+
-+	b = kmalloc(16, GFP_KERNEL);
-+	if (!b)
-+		return -ENOMEM;
-+
-+	ret = usb_control_msg(udev,
- 				  usb_rcvctrlpipe(udev, 0),
- 				  0xb7,
- 				  USB_TYPE_VENDOR | USB_DIR_IN,
-@@ -1048,7 +1080,7 @@ int az6027_identify_state(struct usb_device *udev,
- 				  USB_CTRL_GET_TIMEOUT);
- 
- 	*cold = ret <= 0;
--
-+	kfree(b);
- 	deb_info("cold: %d\n", *cold);
- 	return 0;
- }
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> ---
+> v2: Jean Delvare suggested that I use i2cdprintk() instead of modifying
+> dprintk().
+> 
+> diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
+> index e5565e2..7691bf2 100644
+> --- a/drivers/media/video/saa7134/saa7134-input.c
+> +++ b/drivers/media/video/saa7134/saa7134-input.c
+> @@ -141,8 +141,8 @@ static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+>  	struct saa7134_dev *dev = ir->c->adapter->algo_data;
+>  
+>  	if (dev == NULL) {
+> -		dprintk("get_key_flydvb_trio: "
+> -			 "gir->c->adapter->algo_data is NULL!\n");
+> +		i2cdprintk("get_key_flydvb_trio: "
+> +			   "gir->c->adapter->algo_data is NULL!\n");
+>  		return -EIO;
+>  	}
+>  
+> @@ -195,8 +195,8 @@ static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, u32 *ir_key,
+>  	/* <dev> is needed to access GPIO. Used by the saa_readl macro. */
+>  	struct saa7134_dev *dev = ir->c->adapter->algo_data;
+>  	if (dev == NULL) {
+> -		dprintk("get_key_msi_tvanywhere_plus: "
+> -			"gir->c->adapter->algo_data is NULL!\n");
+> +		i2cdprintk("get_key_msi_tvanywhere_plus: "
+> +			   "gir->c->adapter->algo_data is NULL!\n");
+>  		return -EIO;
+>  	}
+>  
+> @@ -815,7 +815,6 @@ int saa7134_input_init1(struct saa7134_dev *dev)
+>  		mask_keyup   = 0x020000;
+>  		polling      = 50; /* ms */
+>  		break;
+> -	break;
+>  	}
+>  	if (NULL == ir_codes) {
+>  		printk("%s: Oops: IR config error [card=%d]\n",
+
+Acked-by: Jean Delvare <khali@linux-fr.org>
+
+-- 
+Jean Delvare
