@@ -1,78 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:30182 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754742Ab0EVPfF (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:40604 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756202Ab0EXHcI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 May 2010 11:35:05 -0400
-Subject: Re: VIDIOC_G_STD, VIDIOC_S_STD, VIDIO_C_ENUMSTD for outputs
-From: Andy Walls <awalls@md.metrocast.net>
-To: Andre Draszik <v4l2@andred.net>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <AANLkTineD8GCtG1OD4WQahW7zS23IxQDx7XmnAsrVSqs@mail.gmail.com>
-References: <AANLkTineD8GCtG1OD4WQahW7zS23IxQDx7XmnAsrVSqs@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 22 May 2010 11:35:06 -0400
-Message-ID: <1274542506.2255.55.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 24 May 2010 03:32:08 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L2W001JLY9FRI@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 May 2010 08:32:03 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L2W001XBY9ER1@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 24 May 2010 08:32:03 +0100 (BST)
+Date: Mon, 24 May 2010 09:31:22 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: Setting up a GIT repository on linuxtv.org
+In-reply-to: <201005240925.57725.laurent.pinchart@ideasonboard.com>
+To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Cc: 'Andy Walls' <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Message-id: <001101cafb13$1c1b9300$5452b900$%osciak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1274635044.2275.11.camel@localhost>
+ <001001cafb0f$f6d95580$e48c0080$%osciak@samsung.com>
+ <201005240925.57725.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-05-22 at 15:06 +0100, Andre Draszik wrote:
-> Hi,
-> 
-> As per the spec, the above ioctl codes are defined for inputs only -
-> it would be useful if there were similar codes for outputs.
-> 
-> I therefore propose to add the following:
-> 
-> VIDIOC_G_OUTPUT_STD
-> VIDIOC_S_OUTPUT_STD
-> VIDIOC_ENUM_OUTPUT_STD
-> 
-> which would behave similar to the above, but for output devices.
-> 
-> Thoughts?
+Hi Laurent,
 
-Currently the ivtv driver, for the PVR-350's output, uses VIDIOC_S_STD.
+>Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+>On Monday 24 May 2010 09:08:51 Pawel Osciak wrote:
+>> >Andy Walls wrote:
+>> >Hi,
+>> >
+>> >I'm a GIT idiot, so I need a little help on getting a properly setup
+>> >repo at linuxtv.org.  Can someone tell me if this is the right
+>> >procedure:
+>> >
+>> >$ ssh -t awalls@linuxtv.org git-menu
+>> >
+>> >        (clone linux-2.6.git naming it v4l-dvb  <-- Is this right?)
+>> >
+>> >$ git clone \
+>> >
+>> >	git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git \
+>> >
+>> >        v4l-dvb
+>>
+>> If I understand correctly, you won't be working on that repository directly
+>> (i.e. no working directory on the linuxtv server, only push/fetch(pull),
+>> and the actual work on your local machine), you should make it a bare
+>> repository by passing a --bare option to clone.
+>
+>There's a slight misunderstanding here. The ssh command runs the git-menu
+>application on the server. It doesn't open an interactive shell. The git
+>clone
+>command is then run locally, where a working directory is needed.
 
->From what I see:
+Ah, I though the clone was executed remotely as well. Please ignore my post
+then and thanks to Laurent for noticing :)
 
-ivtv/ioctl.c
-zoran/zoran_driver.c
-davinci/vpif_display.c
-
-all use VIDIOC_S_STD for setting the output standard.
-
-Note that the v4l2_subdev video_ops have a "s_std_output" method which
-is what you can grep for in the code to verify for yourself.
-
-
-Some thoughts:
-
-1. to me it appears that the ivtv driver looks like it ties the output
-standard to the input standard currently (probably due to some firmware
-limitation).  This need not be the case in general.
-
-2. currently the ivtv driver uses sepearte device nodes for input device
-and an output device.  If bridge drivers maintain that paradigm, then
-separate ioctl()s for S_STD, G_STD, and ENUMSTD are likely not needed.
-
-3. ENUMSTD is currently handled by the v4l2 core in v4l2-ioctl.c with no
-hook for bridge drivers.  The bridge drivers were all getting it wrong
-in some way or another for enumerating stanadrds on the input.
-
-4. What's the harm in letting S_STD fail for an unsupported standard on
-an output?  An application usually doesn't have much choice but to fail,
-if the hardware doesn't support the user's desired standard.
-ENUMSTD_OUTPUT for outputs seems superfulous.  If you had an
-ENUM_STD_OUTPUT ioctl() to call, an application will either find the
-desired standard in the list and know S_STD should succeed, or it won't
-an will assume S_STD will fail.  From an application writing
-perspective, it seems like less work for the application to just detect
-when S_STD fails.
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
 
-Regards,
-Andy
+ 
+
 
