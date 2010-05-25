@@ -1,51 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpi3.ngi.it ([88.149.128.33]:50588 "EHLO smtpi3.ngi.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750902Ab0EHNkB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 May 2010 09:40:01 -0400
-Received: from [127.0.0.1] (81-174-56-138.static.ngi.it [81.174.56.138])
-	by smtpi3.ngi.it (Postfix) with ESMTP id DBC813182A3
-	for <linux-media@vger.kernel.org>; Sat,  8 May 2010 15:31:47 +0200 (CEST)
-Message-ID: <4BE567C3.6090603@robertoragusa.it>
-Date: Sat, 08 May 2010 15:31:47 +0200
-From: Roberto Ragusa <mail@robertoragusa.it>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50875 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756267Ab0EYGiP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 May 2010 02:38:15 -0400
+Date: Tue, 25 May 2010 08:38:05 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Baruch Siach <baruch@tkos.co.il>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2 0/3] Driver for the i.MX2x CMOS Sensor Interface
+Message-ID: <20100525063805.GE17272@pengutronix.de>
+References: <cover.1274706733.git.baruch@tkos.co.il>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: em28xx build failure (backport tree)
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1274706733.git.baruch@tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, May 24, 2010 at 04:20:38PM +0300, Baruch Siach wrote:
+> This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and
+> platform code for the i.MX25 and i.MX27 chips. This driver is based on a 
+> driver for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has 
+> posted in linux-media last December[1]. I tested the mx2_camera driver on the 
+> i.MX25 PDK. Sascha Hauer has tested a earlier version of this driver on an 
+> i.MX27 based board. I included in this version some fixes from Sascha that 
+> enable i.MX27 support.
+> 
+> [1] https://patchwork.kernel.org/patch/67636/
+> 
+> Changes v1 -> v2
+>     Addressed the comments of Guennadi Liakhovetski except from the following:
+> 
+>     1. The mclk_get_divisor implementation, since I don't know what this code 
+>        is good for
 
-I'm getting build errors on this tree
+I'll have a look at this soon.
 
-  http://linuxtv.org/hg/v4l-dvb/archive/tip.tar.bz2
-
-The make command fails with the output pasted below (I didn't
-touch any config).
-As a bizarre coincidence, the em28xx IR support (for Pinnacle PCTV USB2)
-is _exactly_ what I'm interested to have working, as I had no
-luck with my kernel (official Fedora 2.6.29 based).
-
-Thank you for any help.
-
-  CC [M]  /somewhere/v4l-dvb-4a8d6d981f07/v4l/em28xx-cards.o
-/somewhere/v4l-dvb-4a8d6d981f07/v4l/em28xx-cards.c: In function 'em28xx_set_ir':
-/somewhere/v4l-dvb-4a8d6d981f07/v4l/em28xx-cards.c:2410: error: 'ir_codes_em_terratec_table' undeclared (first use in this function)
-/somewhere/v4l-dvb-4a8d6d981f07/v4l/em28xx-cards.c:2410: error: (Each undeclared identifier is reported only once
-/somewhere/v4l-dvb-4a8d6d981f07/v4l/em28xx-cards.c:2410: error: for each function it appears in.)
-/somewhere/v4l-dvb-4a8d6d981f07/v4l/em28xx-cards.c:2422: error: 'ir_codes_pinnacle_grey_table' undeclared (first use in this function)
-/somewhere/v4l-dvb-4a8d6d981f07/v4l/em28xx-cards.c:2434: error: 'ir_codes_rc5_hauppauge_new_table' undeclared (first use in this function)
-/somewhere/v4l-dvb-4a8d6d981f07/v4l/em28xx-cards.c:2445: error: 'ir_codes_winfast_usbii_deluxe_table' undeclared (first use in this function)
-make[3]: *** [/somewhere/v4l-dvb-4a8d6d981f07/v4l/em28xx-cards.o] Error 1
-make[2]: *** [_module_/somewhere/v4l-dvb-4a8d6d981f07/v4l] Error 2
-make[2]: Leaving directory `/usr/src/kernels/2.6.29.4-75.fc10.i686.PAE'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/somewhere/v4l-dvb-4a8d6d981f07/v4l'
-make: *** [all] Error 2
+Sascha
 
 
 -- 
-   Roberto Ragusa    mail at robertoragusa.it
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
