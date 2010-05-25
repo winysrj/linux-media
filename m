@@ -1,94 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:36882 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751254Ab0E0FSW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 May 2010 01:18:22 -0400
-Date: Thu, 27 May 2010 00:18:21 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Julia Lawall <julia@diku.dk>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	kernel-janitors@vger.kernel.org,
-	Mike Isely at pobox <isely@pobox.com>
-Subject: Re: [PATCH 5/17] drivers/media/video/pvrusb2: Add missing
- mutex_unlock
-In-Reply-To: <Pine.LNX.4.64.1005261755110.23743@ask.diku.dk>
-Message-ID: <alpine.DEB.1.10.1005270013020.19542@ivanova.isely.net>
-References: <Pine.LNX.4.64.1005261755110.23743@ask.diku.dk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:39916 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754888Ab0EYWkd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 May 2010 18:40:33 -0400
+Received: by vws9 with SMTP id 9so3819668vws.19
+        for <linux-media@vger.kernel.org>; Tue, 25 May 2010 15:40:32 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4BFC4858.8060403@helmutauer.de>
+References: <4BFC4858.8060403@helmutauer.de>
+Date: Tue, 25 May 2010 15:40:31 -0700
+Message-ID: <AANLkTikaSnLsi4D7krqR1tSBd0adkHHlmzoiqdc38Znx@mail.gmail.com>
+Subject: Re: v4l-dvb does not compile with kernel 2.6.34
+From: VDR User <user.vdr@gmail.com>
+To: Helmut Auer <vdr@helmutauer.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, May 25, 2010 at 2:59 PM, Helmut Auer <vdr@helmutauer.de> wrote:
+> Hello
+>
+> I just wanted to compile v4l-dvb for my Gen2VDR Ditribution with kernel 2.6.34, but it fails
+> because many modules are missing:
+>
+> #include <linux/slab.h>
+>
+> and are getting errors like:
+>
+> /tmp/portage/media-tv/v4l-dvb-hg-0.1-r3/work/v4l-dvb/v4l/tuner-xc2028.c: In function
+> 'free_firmware':
+> /tmp/portage/media-tv/v4l-dvb-hg-0.1-r3/work/v4l-dvb/v4l/tuner-xc2028.c:252: error: implicit
+> declaration of function 'kfree'
+> /tmp/portage/media-tv/v4l-dvb-hg-0.1-r3/work/v4l-dvb/v4l/tuner-xc2028.c: In function
+> 'load_all_firmwares':
+> /tmp/portage/media-tv/v4l-dvb-hg-0.1-r3/work/v4l-dvb/v4l/tuner-xc2028.c:314: error: implicit
+> declaration of function
+>
+> Am I missing something or is v4l-dvb broken ?
 
-I looked through my revision history and that bug has been there in the 
-driver source since at least May 2005, long before it was ever merged 
-into the kernel.  Wow, what a great catch.  Thanks!
-
-Acked-By: Mike Isely <isely@pobox.com>
-
-  -Mike
-
-
-On Wed, 26 May 2010, Julia Lawall wrote:
-
-> From: Julia Lawall <julia@diku.dk>
-> 
-> Add a mutex_unlock missing on the error path.  In the other functions in
-> the same file the locks and unlocks of this mutex appear to be balanced,
-> so it would seem that the same should hold in this case.
-> 
-> The semantic match that finds this problem is as follows:
-> (http://coccinelle.lip6.fr/)
-> 
-> // <smpl>
-> @@
-> expression E1;
-> @@
-> 
-> * mutex_lock(E1,...);
->   <+... when != E1
->   if (...) {
->     ... when != E1
-> *   return ...;
->   }
->   ...+>
-> * mutex_unlock(E1,...);
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <julia@diku.dk>
-> 
-> ---
->  drivers/media/video/pvrusb2/pvrusb2-ioread.c |    5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/video/pvrusb2/pvrusb2-ioread.c b/drivers/media/video/pvrusb2/pvrusb2-ioread.c
-> index b482478..bba6115 100644
-> --- a/drivers/media/video/pvrusb2/pvrusb2-ioread.c
-> +++ b/drivers/media/video/pvrusb2/pvrusb2-ioread.c
-> @@ -223,7 +223,10 @@ int pvr2_ioread_setup(struct pvr2_ioread *cp,struct pvr2_stream *sp)
->  				   " pvr2_ioread_setup (setup) id=%p",cp);
->  			pvr2_stream_kill(sp);
->  			ret = pvr2_stream_set_buffer_count(sp,BUFFER_COUNT);
-> -			if (ret < 0) return ret;
-> +			if (ret < 0) {
-> +				mutex_unlock(&cp->mutex);
-> +				return ret;
-> +			}
->  			for (idx = 0; idx < BUFFER_COUNT; idx++) {
->  				bp = pvr2_stream_get_buffer(sp,idx);
->  				pvr2_buffer_set_buffer(bp,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-
--- 
-
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+It's broken but at least you know the reason and how to manually fix it.
