@@ -1,119 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2218 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087Ab0EPNTN (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:38633 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755895Ab0EYXop (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 May 2010 09:19:13 -0400
-Message-Id: <cover.1274015084.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 16 May 2010 15:20:43 +0200
-Subject: [PATCH 00/15] [RFCv2] [RFC] New control handling framework
+	Tue, 25 May 2010 19:44:45 -0400
+Received: by wyb29 with SMTP id 29so2823511wyb.19
+        for <linux-media@vger.kernel.org>; Tue, 25 May 2010 16:44:44 -0700 (PDT)
+MIME-Version: 1.0
+Reply-To: h.ordiales@gmail.com
+In-Reply-To: <AANLkTinD-7F0fHvKR3D89B3_IXHWgpHkFwYr0ud93EIJ@mail.gmail.com>
+References: <AANLkTinD-7F0fHvKR3D89B3_IXHWgpHkFwYr0ud93EIJ@mail.gmail.com>
+From: =?ISO-8859-1?Q?Hern=E1n_Ordiales?= <h.ordiales@gmail.com>
+Date: Tue, 25 May 2010 20:44:28 -0300
+Message-ID: <AANLkTinyVoBwSQQbmJrItuZoJzhkrc1yr-Uflc8o2Lex@mail.gmail.com>
+Subject: [PATCH] Adding support to the Geniatech/MyGica SBTVD Stick S870
+	remote control
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Content-Type: multipart/mixed; boundary=0016363ba32ae72937048773bda7
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This RFC patch series adds the control handling framework and implements
-it in ivtv and all subdev drivers used by ivtv.
+--0016363ba32ae72937048773bda7
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-It is a bare-bones implementation, so no sysfs or debugfs enhancements.
+Hi, i'm sending as attachment a patch against
+http://linuxtv.org/hg/v4l-dvb (i hope this is ok) with some changes to
+the the dib0700 module to add support for this remote control. I added
+the key codes and a new case on parsing ir data
+(dvb_usb_dib0700_ir_proto=3D1).
 
-It is the second version of this framework, incorporating comments from
-Laurent.
+Cheers
+--
+Hern=E1n
+http://h.ordia.com.ar
+GnuPG: 0xEE8A3FE9
 
-Changes compared to the first version:
+--0016363ba32ae72937048773bda7
+Content-Type: text/x-patch; charset=US-ASCII; name="geniatech-rc.patch"
+Content-Disposition: attachment; filename="geniatech-rc.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g9ncit8p0
 
-- Updated the documentation, hopefully making it easier to understand.
-- v4l2_ctrl_new_custom now uses a new v4l2_ctrl_config struct instead of
-  a long argument list.
-- v4l2_ctrl_g/s is now renamed to v4l2_ctrl_g/s_ctrl.
-- The v4l2_ctrl.h header now uses kernel doc comments.
-- Removed the 'strict validation' feature.
-- Added a new .init op that allows you to initialize many of the v4l2_ctrl
-  fields on first use. Required by uvc.
-- No longer needed to initialize ctrl_handler in struct video_device. It
-  will copy the ctrl_handler from struct v4l2_device if needed.
-- Renamed the v4l2_sd_* helper functions to v4l2_subdev_*.
-
-I decided *not* to rename the v4l2_ctrl struct. What does the struct describe?
-A control. Period. So I really don't know what else to call it. Every other
-name I can think of is contrived. It really encapsulates all the data and info
-that describes a control and its state. Yes, it is close to struct v4l2_control,
-but on the other hand any driver that uses this framework will no longer use
-v4l2_control (or v4l2_ext_controls for that matter). It will only use v4l2_ctrl.
-So I do not think there will be much cause for confusion here.
-
-Anyway, comments are welcome.
-
-Once this is in then we can start migrating all subdev drivers to this
-framework, followed by all bridge drivers. Converted subdev drivers can
-still be used by unconverted bridge drivers. Once all bridge drivers are
-converted the subdev backwards compatibility code can be removed.
-
-The same is true for the cx2341x module: both converted and unconverted
-bridge drivers are supported. Once all bridge drivers that use this module
-are converted the compat code can be removed from cx2341x (and that will
-save about 1060 lines of hard to understand code).
-
-Regards,
-
-        Hans
-
-Hans Verkuil (15):
-  v4l2: Add new control handling framework
-  v4l2-ctrls: reorder 'case' statements to match order in header.
-  Documentation: add v4l2-controls.txt documenting the new controls
-    API.
-  v4l2: hook up the new control framework into the core framework
-  saa7115: convert to the new control framework
-  msp3400: convert to the new control framework
-  saa717x: convert to the new control framework
-  cx25840/ivtv: replace ugly priv control with s_config
-  cx25840: convert to the new control framework
-  cx2341x: convert to the control framework
-  wm8775: convert to the new control framework
-  cs53l32a: convert to new control framework.
-  wm8739: convert to the new control framework
-  ivtv: convert gpio subdev to new control framework.
-  ivtv: convert to the new control framework
-
- Documentation/video4linux/v4l2-controls.txt |  600 +++++++++
- drivers/media/video/Makefile                |    2 +-
- drivers/media/video/cs53l32a.c              |  107 +-
- drivers/media/video/cx2341x.c               |  734 +++++++++--
- drivers/media/video/cx25840/cx25840-audio.c |  144 +--
- drivers/media/video/cx25840/cx25840-core.c  |  201 ++--
- drivers/media/video/cx25840/cx25840-core.h  |   23 +-
- drivers/media/video/ivtv/ivtv-controls.c    |  275 +----
- drivers/media/video/ivtv/ivtv-controls.h    |    6 +-
- drivers/media/video/ivtv/ivtv-driver.c      |   26 +-
- drivers/media/video/ivtv/ivtv-driver.h      |    4 +-
- drivers/media/video/ivtv/ivtv-fileops.c     |   23 +-
- drivers/media/video/ivtv/ivtv-firmware.c    |    6 +-
- drivers/media/video/ivtv/ivtv-gpio.c        |   77 +-
- drivers/media/video/ivtv/ivtv-i2c.c         |    7 +
- drivers/media/video/ivtv/ivtv-ioctl.c       |   31 +-
- drivers/media/video/ivtv/ivtv-streams.c     |   20 +-
- drivers/media/video/msp3400-driver.c        |  248 ++---
- drivers/media/video/msp3400-driver.h        |   16 +-
- drivers/media/video/msp3400-kthreads.c      |   16 +-
- drivers/media/video/saa7115.c               |  180 ++--
- drivers/media/video/saa717x.c               |  323 ++----
- drivers/media/video/v4l2-common.c           |  479 +-------
- drivers/media/video/v4l2-ctrls.c            | 1844 +++++++++++++++++++++++++++
- drivers/media/video/v4l2-dev.c              |    8 +-
- drivers/media/video/v4l2-device.c           |    7 +
- drivers/media/video/v4l2-ioctl.c            |   46 +-
- drivers/media/video/wm8739.c                |  176 +--
- drivers/media/video/wm8775.c                |   79 +-
- include/media/cx2341x.h                     |   81 ++
- include/media/cx25840.h                     |   11 +
- include/media/v4l2-ctrls.h                  |  448 +++++++
- include/media/v4l2-dev.h                    |    4 +
- include/media/v4l2-device.h                 |    4 +
- include/media/v4l2-subdev.h                 |    3 +
- 35 files changed, 4351 insertions(+), 1908 deletions(-)
- create mode 100644 Documentation/video4linux/v4l2-controls.txt
- create mode 100644 drivers/media/video/v4l2-ctrls.c
- create mode 100644 include/media/v4l2-ctrls.h
-
+ZGlmZiAtciBiNTc2NTA5ZWE2ZDIgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIw
+NzAwX2NvcmUuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBf
+Y29yZS5jCVdlZCBNYXkgMTkgMTk6MzQ6MzMgMjAxMCAtMDMwMAorKysgYi9saW51eC9kcml2ZXJz
+L21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfY29yZS5jCVdlZCBNYXkgMjYgMTk6MzE6MjQgMjAx
+MCAtMDMwMApAQCAtNTUwLDYgKzU1MCwxNiBAQAogCQkJcG9sbF9yZXBseS5kYXRhX3N0YXRlID0g
+MjsKIAkJCWJyZWFrOwogCQl9CisKKwkJYnJlYWs7CisJY2FzZSAxOgorCQkvKiBHZW5pYXRlY2gv
+TXlHaWNhIHJlbW90ZSBwcm90b2NvbCAqLworCQlwb2xsX3JlcGx5LnJlcG9ydF9pZCAgPSBidWZb
+MF07CisJCXBvbGxfcmVwbHkuZGF0YV9zdGF0ZSA9IGJ1ZlsxXTsKKwkJcG9sbF9yZXBseS5zeXN0
+ZW0gICAgID0gKGJ1Zls0XSA8PCA4KSB8IGJ1Zls0XTsKKwkJcG9sbF9yZXBseS5kYXRhICAgICAg
+ID0gYnVmWzVdOworCQlwb2xsX3JlcGx5Lm5vdF9kYXRhICAgPSBidWZbNF07IC8qIGludGVncml0
+eSBjaGVjayAqLworCQkKIAkJYnJlYWs7CiAJZGVmYXVsdDoKIAkJLyogUkM1IFByb3RvY29sICov
+CmRpZmYgLXIgYjU3NjUwOWVhNmQyIGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGli
+MDcwMF9kZXZpY2VzLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIw
+NzAwX2RldmljZXMuYwlXZWQgTWF5IDE5IDE5OjM0OjMzIDIwMTAgLTAzMDAKKysrIGIvbGludXgv
+ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIwNzAwX2RldmljZXMuYwlXZWQgTWF5IDI2IDE5
+OjMxOjI0IDIwMTAgLTAzMDAKQEAgLTgzMSw2ICs4MzEsNDYgQEAKIAl7IDB4NDU0MCwgS0VZX1JF
+Q09SRCB9LCAvKiBGb250ICdTaXplJyBmb3IgVGVsZXRleHQgKi8KIAl7IDB4NDU0MSwgS0VZX1ND
+UkVFTiB9LCAvKiAgRnVsbCBzY3JlZW4gdG9nZ2xlLCAnSG9sZCcgZm9yIFRlbGV0ZXh0ICovCiAJ
+eyAweDQ1NDIsIEtFWV9TRUxFQ1QgfSwgLyogU2VsZWN0IHZpZGVvIGlucHV0LCAnU2VsZWN0JyBm
+b3IgVGVsZXRleHQgKi8KKworCisJLyogS2V5IGNvZGVzIGZvciB0aGUgR2VuaWF0ZWNoL015R2lj
+YSBTQlRWRCBTdGljayBTODcwIHJlbW90ZQorCSAgIHNldCBkdmJfdXNiX2RpYjA3MDBfaXJfcHJv
+dG89MSAqLworCXsgMHgzOGM3LCBLRVlfVFYgfSwgLyogVFYvQVYgKi8KKwl7IDB4MGNmMywgS0VZ
+X1BPV0VSIH0sCisJeyAweDBhZjUsIEtFWV9NVVRFIH0sCisJeyAweDJiZDQsIEtFWV9WT0xVTUVV
+UCB9LAorCXsgMHgyY2QzLCBLRVlfVk9MVU1FRE9XTiB9LAorCXsgMHgxMmVkLCBLRVlfQ0hBTk5F
+TFVQIH0sCisJeyAweDEzZWMsIEtFWV9DSEFOTkVMRE9XTiB9LAorCXsgMHgwMWZlLCBLRVlfMSB9
+LAorCXsgMHgwMmZkLCBLRVlfMiB9LAorCXsgMHgwM2ZjLCBLRVlfMyB9LAorCXsgMHgwNGZiLCBL
+RVlfNCB9LAorCXsgMHgwNWZhLCBLRVlfNSB9LAorCXsgMHgwNmY5LCBLRVlfNiB9LAorCXsgMHgw
+N2Y4LCBLRVlfNyB9LAorCXsgMHgwOGY3LCBLRVlfOCB9LAorCXsgMHgwOWY2LCBLRVlfOSB9LAor
+CXsgMHgwMGZmLCBLRVlfMCB9LAorCXsgMHgxNmU5LCBLRVlfUEFVU0UgfSwKKwl7IDB4MTdlOCwg
+S0VZX1BMQVkgfSwKKwl7IDB4MGJmNCwgS0VZX1NUT1AgfSwKKwl7IDB4MjZkOSwgS0VZX1JFV0lO
+RCB9LAorCXsgMHgyN2Q4LCBLRVlfRkFTVEZPUldBUkQgfSwKKwl7IDB4MjlkNiwgS0VZX0VTQyB9
+LAorCXsgMHgxZmUwLCBLRVlfUkVDT1JEIH0sCisJeyAweDIwZGYsIEtFWV9VUCB9LAorCXsgMHgy
+MWRlLCBLRVlfRE9XTiB9LAorCXsgMHgxMWVlLCBLRVlfTEVGVCB9LAorCXsgMHgxMGVmLCBLRVlf
+UklHSFQgfSwKKwl7IDB4MGRmMiwgS0VZX09LIH0sCisJeyAweDFlZTEsIEtFWV9QTEFZUEFVU0Ug
+fSwgLyogVGltZXNoaWZ0ICovCisJeyAweDBlZjEsIEtFWV9DQU1FUkEgfSwgLyogU25hcHNob3Qg
+Ki8KKwl7IDB4MjVkYSwgS0VZX0VQRyB9LCAvKiBJbmZvIEtFWV9JTkZPICovCisJeyAweDJkZDIs
+IEtFWV9NRU5VIH0sIC8qIERWRCBNZW51ICovCisJeyAweDBmZjAsIEtFWV9TQ1JFRU4gfSwgLyog
+RnVsbCBzY3JlZW4gdG9nZ2xlICovCisJeyAweDE0ZWIsIEtFWV9TSFVGRkxFIH0sCisKIH07CiAK
+IC8qIFNUSzc3MDBQOiBIYXVwcGF1Z2UgTm92YS1UIFN0aWNrLCBBVmVyTWVkaWEgVm9sYXIgKi8K
+--0016363ba32ae72937048773bda7--
