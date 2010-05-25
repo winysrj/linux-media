@@ -1,67 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:49265 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752418Ab0EBXyi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 May 2010 19:54:38 -0400
-Received: from 201-13-168-84.dial-up.telesp.net.br ([201.13.168.84] helo=[192.168.30.170])
-	by bombadil.infradead.org with esmtpsa (Exim 4.69 #1 (Red Hat Linux))
-	id 1O8izd-0003v9-JC
-	for linux-media@vger.kernel.org; Sun, 02 May 2010 23:54:37 +0000
-Message-ID: <4BDE10A8.4040500@infradead.org>
-Date: Sun, 02 May 2010 20:54:16 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58955 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754130Ab0EYHUG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 May 2010 03:20:06 -0400
+Date: Tue, 25 May 2010 09:20:04 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Baruch Siach <baruch@tkos.co.il>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 0/3] Driver for the i.MX2x CMOS Sensor Interface
+Message-ID: <20100525072004.GI17272@pengutronix.de>
+References: <cover.1273150585.git.baruch@tkos.co.il> <20100521072045.GD17272@pengutronix.de> <20100521072737.GA6967@tarshish> <Pine.LNX.4.64.1005212023400.8450@axis700.grange>
 MIME-Version: 1.0
-To: "linux-me >> Linux Media Mailing List" <linux-media@vger.kernel.org>
-Subject: [PATCH] tm6000: Don't copy outside the buffer
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1005212023400.8450@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-tm6000 tm6000_irq_callback :urb resubmit failed (error=-1)
-BUG: unable to handle kernel paging request at 000000000100f700
-IP: [<ffffffffa007ee79>] tm6000_irq_callback+0x51e/0xac7 [tm6000]
-    
-(gdb) list * tm6000_irq_callback+0x51e
-0x2e79 is in tm6000_irq_callback (drivers/staging/tm6000/tm6000-video.c:363).
-358                                             dev->isoc_ctl.tmp_buf_len--;
-359                                     }
-360                                     if (dev->isoc_ctl.tmp_buf_len) {
-361                                             memcpy (&header,p,
-362                                                     dev->isoc_ctl.tmp_buf_l$
-363                                             memcpy (((u8 *)header)+
-364                                                     dev->isoc_ctl.tmp_buf,
-365                                                     ptr,
-366                                                     4-dev->isoc_ctl.tmp_buf$
-367                                             ptr+=4-dev->isoc_ctl.tmp_buf_le$
-    
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On Fri, May 21, 2010 at 08:33:40PM +0200, Guennadi Liakhovetski wrote:
+> On Fri, 21 May 2010, Baruch Siach wrote:
+> 
+> > Hi Sascha,
+> > 
+> > On Fri, May 21, 2010 at 09:20:45AM +0200, Sascha Hauer wrote:
+> > > On Thu, May 06, 2010 at 04:09:38PM +0300, Baruch Siach wrote:
+> > > > This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and 
+> > > > platform code for the i.MX25 and i.MX27 chips. This driver is based on a driver 
+> > > > for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has posted in 
+> > > > linux-media last December[1]. Since all I have is a i.MX25 PDK paltform I can't 
+> > > > test the mx27 specific code. Testers and comment are welcome.
+> > > > 
+> > > > [1] https://patchwork.kernel.org/patch/67636/
+> > > > 
+> > > > Baruch Siach (3):
+> > > >   mx2_camera: Add soc_camera support for i.MX25/i.MX27
+> > > >   mx27: add support for the CSI device
+> > > >   mx25: add support for the CSI device
+> > > 
+> > > With the two additions I sent I can confirm this working on i.MX27, so
+> > > no need to remove the related code.
+> > 
+> > Thanks. I'll add your patches to my queue and resend the series next week.
+> 
+> Firstly, Sascha, unfortunately, you've forgotten to CC the maintainer, 
+> that will have to deal with these patches.
+> 
+> Secondly, I don't think that's a good idea to submit mx27 fixes as 
+> incremental patches. I'd prefer to have them rolled into the actual driver 
+> submission patches, where Sascha would just add his Sob / acked-by / 
+> tested-by / whatever... Or you can first submit an mx25-only driver and 
+> let Sascha add mx27 to it, in which case this would be a functionality 
+> extension, but not a fix of a broken driver.
 
-diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
-index 3317220..4444487 100644
---- a/drivers/staging/tm6000/tm6000-video.c
-+++ b/drivers/staging/tm6000/tm6000-video.c
-@@ -358,13 +358,13 @@ static int copy_streams(u8 *data, u8 *out_p, unsigned long len,
- 					dev->isoc_ctl.tmp_buf_len--;
- 				}
- 				if (dev->isoc_ctl.tmp_buf_len) {
--					memcpy (&header,p,
-+					memcpy(&header, p,
- 						dev->isoc_ctl.tmp_buf_len);
--					memcpy (((u8 *)header)+
--						dev->isoc_ctl.tmp_buf,
-+					memcpy((u8 *)&header +
-+						dev->isoc_ctl.tmp_buf_len,
- 						ptr,
--						4-dev->isoc_ctl.tmp_buf_len);
--					ptr+=4-dev->isoc_ctl.tmp_buf_len;
-+						4 - dev->isoc_ctl.tmp_buf_len);
-+					ptr += 4 - dev->isoc_ctl.tmp_buf_len;
- 					goto HEADER;
- 				}
- 			}
+My intention with these fixes was that Baruch integrates them into his
+patch (which he did).
+
+Sascha
+
 
 -- 
-
-Cheers,
-Mauro
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
