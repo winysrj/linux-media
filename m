@@ -1,100 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:48670 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752238Ab0EFNCi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 09:02:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [videobuf] Query: Condition bytesize limit in videobuf_reqbufs -> buf_setup() call?
-Date: Thu, 6 May 2010 15:03:16 +0200
-Cc: "Aguirre, Sergio" <saaguirre@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <A24693684029E5489D1D202277BE894455257D13@dlee02.ent.ti.com> <201005061009.08474.laurent.pinchart@ideasonboard.com> <4BE2B84C.1060607@redhat.com>
-In-Reply-To: <4BE2B84C.1060607@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005061503.17806.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54942 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756609Ab0EYKIu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 May 2010 06:08:50 -0400
+Received: from int-mx05.intmail.prod.int.phx2.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.18])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4PA8ocX030856
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 25 May 2010 06:08:50 -0400
+From: huzaifas@redhat.com
+To: linux-media@vger.kernel.org
+Cc: hdegoede@redhat.com, Huzaifa Sidhpurwala <huzaifas@redhat.com>
+Subject: [PATCH] libv4l1: move v4l1 ioctls from kernel to libv4l1:VIDIOCGCHAN
+Date: Tue, 25 May 2010 15:36:39 +0530
+Message-Id: <1274781999-19738-1-git-send-email-huzaifas@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Huzaifa Sidhpurwala <huzaifas@redhat.com>
 
-On Thursday 06 May 2010 14:38:36 Mauro Carvalho Chehab wrote:
-> Laurent Pinchart wrote:
-> > On Thursday 06 May 2010 01:29:54 Aguirre, Sergio wrote:
-> >>> -----Original Message-----
-> >>> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
-> >>> Sent: Wednesday, May 05, 2010 6:24 PM
-> >>> To: Aguirre, Sergio
-> >>> Cc: linux-media@vger.kernel.org
-> >>> Subject: Re: [videobuf] Query: Condition bytesize limit in
-> >>> videobuf_reqbufs -> buf_setup() call?
-> >>> 
-> >>> Aguirre, Sergio wrote:
-> >>>> Hi all,
-> >>>> 
-> >>>> While working on an old port of the omap3 camera-isp driver,
-> >>>> I have faced some problem.
-> >>>> 
-> >>>> Basically, when calling VIDIOC_REQBUFS with a certain buffer
-> >>>> 
-> >>>> Count, we had a software limit for total size, calculated depending on:
-> >>>>   Total bytesize = bytesperline x height x count
-> >>>> 
-> >>>> So, we had an arbitrary limit to, say 32 MB, which was generic.
-> >>>> 
-> >>>> Now, we want to condition it ONLY when MMAP buffers will be used.
-> >>>> Meaning, we don't want to keep that policy when the kernel is not
-> >>>> allocating the space
-> >>>> 
-> >>>> But the thing is that, according to videobuf documentation, buf_setup
-> >>>> is the one who should put a RAM usage limit. BUT the memory type
-> >>>> passed to reqbufs is not propagated to buf_setup, therefore forcing me
-> >>>> to go to a non-standard memory limitation in my reqbufs callback
-> >>>> function, instead of doing it properly inside buf_setup.
-> >>>> 
-> >>>> Is this scenario a good consideration to change buf_setup API, and
-> >>>> propagate buffers memory type aswell?
-> >>> 
-> >>> I don't see any problem on propagating the memory type to buffer_setup,
-> >>> if this is really needed. Yet, I can't see why you would restrict the
-> >>> buffer size to 32 MB on one case, and not restrict the size at all with
-> >>> non-MMAP types.
-> >> 
-> >> Ok, my reason for doing that is because I thought that there should be a
-> >> memory limit in whichever place you're doing the buffer allocations.
-> >> 
-> >> MMAP is allocating buffers in kernel, so kernel should provide a memory
-> >> restriction, if applies.
-> >> 
-> >> USERPTR is allocating buffers in userspace, so userspace should provide
-> >> a memory restriction, if applies.
-> > 
-> > I agree with the intend here, but not with the current implementation
-> > which has a hardcoded arbitrary limit. Do you think it would be possible
-> > to compute a meaningful default limit in the V4L2 core, with a way for
-> > userspace to modify it (with root privileges of course) ?
-> 
-> On almost all drivers, the limit is not arbitrary. It is a reasonable
-> number of buffers (like 16 buffers). A limit in terms of the number of
-> buffers is meaningful for V4L2 API, and also, has a "physical meaning":
-> considering that almost all drivers that use videobuf can do at maximum 30
-> fps, 16 buffers mean that the maximum delay that the driver will apply to
-> the stream is 533 ms.
-> 
-> Some drivers even provide a modprobe parameter to allow changing this limit
-> (for example, bttv allows changing it up to 32 buffers), but only during
-> module load time. I can't foresee any use case where this maximum limit
-> would need to be dynamically adjusted. Root can always change it by
-> removing and re-inserting the module with a new maximum size.
+move VIDIOCGCHAN to libv4l1
 
-I wasn't talking about the limit on the number of buffers, but on the amount 
-of memory. That's what Sergio was mentioning, and that's what is done in the 
-OMAP3 ISP driver.
+Signed-off-by: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+---
+ lib/libv4l1/libv4l1.c |   39 ++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 38 insertions(+), 1 deletions(-)
 
+diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
+index 9bfddd3..f64025a 100644
+--- a/lib/libv4l1/libv4l1.c
++++ b/lib/libv4l1/libv4l1.c
+@@ -624,7 +624,44 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
+ 
+ 		if ((devices[index].flags & V4L1_SUPPORTS_ENUMINPUT) &&
+ 				(devices[index].flags & V4L1_SUPPORTS_ENUMSTD)) {
+-			result = SYS_IOCTL(fd, request, arg);
++
++			v4l2_std_id sid;
++
++			input2.index = chan->channel;
++			result = SYS_IOCTL(fd, VIDIOC_ENUMINPUT, &input2);
++			if (result < 0)
++				break;
++
++			chan->channel = input2.index;
++			memcpy(chan->name, input2.name,
++				min(sizeof(chan->name), sizeof(input2.name)));
++
++			chan->name[sizeof(chan->name) - 1] = 0;
++			chan->tuners =
++				(input2.type == V4L2_INPUT_TYPE_TUNER) ? 1 : 0;
++
++			chan->flags = (chan->tuners) ? VIDEO_VC_TUNER : 0;
++			switch (input2.type) {
++			case V4L2_INPUT_TYPE_TUNER:
++				chan->type = VIDEO_TYPE_TV;
++				break;
++			default:
++			case V4L2_INPUT_TYPE_CAMERA:
++				chan->type = VIDEO_TYPE_CAMERA;
++				break;
++			}
++			chan->norm = 0;
++			if (SYS_IOCTL(fd, VIDIOC_G_STD, &sid) == 0) {
++				if (sid & V4L2_STD_PAL)
++					chan->norm = VIDEO_MODE_PAL;
++				if (sid & V4L2_STD_NTSC)
++					chan->norm = VIDEO_MODE_NTSC;
++				if (sid & V4L2_STD_SECAM)
++					chan->norm = VIDEO_MODE_SECAM;
++				if (sid == V4L2_STD_ALL)
++					chan->norm = VIDEO_MODE_AUTO;
++			}
++
+ 			break;
+ 		}
+ 
 -- 
-Regards,
+1.6.6
 
-Laurent Pinchart
