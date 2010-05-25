@@ -1,258 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.alice.nl ([217.149.195.8]:48747 "EHLO smtp.alice.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752101Ab0EGQmV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 May 2010 12:42:21 -0400
-Message-ID: <4BE442D4.4070201@cobradevil.org>
-Date: Fri, 07 May 2010 18:41:56 +0200
-From: william <william@cobradevil.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:55372 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752611Ab0EYVFT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 May 2010 17:05:19 -0400
 MIME-Version: 1.0
-To: Tim Coote <tim+vger.kernel.org@coote.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: setting up a tevii s660
-References: <E23F27D7-CF5B-4F6B-9656-EB63E7005BD0@coote.org>	<4BE313DB.3020405@cobradevil.org>	<AC7E72DC-BC2D-47FF-AC6C-1CCFA7BD9446@coote.org>	<4BE4081E.9010203@cobradevil.org> <FB1E5F8F-1339-46D4-9755-8B78DD020651@coote.org>
-In-Reply-To: <FB1E5F8F-1339-46D4-9755-8B78DD020651@coote.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <h2hbe3a4a1004272132y46e90a8ak862f20620053b1cc@mail.gmail.com>
+References: <20100401145632.5631756f@pedra>
+	 <t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
+	 <20100402102011.GA6947@hardeman.nu>
+	 <p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>
+	 <20100407093205.GB3029@hardeman.nu>
+	 <z2hbe3a4a1004231040uce51091fnf24b97de215e3ef1@mail.gmail.com>
+	 <20100424051206.GA3101@hardeman.nu>
+	 <h2hbe3a4a1004272132y46e90a8ak862f20620053b1cc@mail.gmail.com>
+Date: Tue, 25 May 2010 17:05:17 -0400
+Message-ID: <AANLkTikE3bYGaQDthmOIZRSFEPteJqpzL3g1AiQJpUxh@mail.gmail.com>
+Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
+	and decoder plugins
+From: Jarod Wilson <jarod@wilsonet.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: Jon Smirl <jonsmirl@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/07/2010 04:33 PM, Tim Coote wrote:
-> Thanks, William. Really helpful.
+On Wed, Apr 28, 2010 at 12:32 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> On Sat, Apr 24, 2010 at 1:12 AM, David Härdeman <david@hardeman.nu> wrote:
+>> On Fri, Apr 23, 2010 at 01:40:34PM -0400, Jarod Wilson wrote:
+>>> So now that I'm more or less done with porting the imon driver, I
+>>> think I'm ready to start tackling the mceusb driver. But I'm debating
+>>> on what approach to take with respect to lirc support. It sort of
+>>> feels like we should have lirc_dev ported as an ir "decoder"
+>>> driver/plugin before starting to port mceusb to ir-core, so that we
+>>> can maintain lirc compat and transmit support. Alternatively, I could
+>>> port mceusb without lirc support for now, leaving it to only use
+>>> in-kernel decoding and have no transmit support for the moment, then
+>>> re-add lirc support. I'm thinking that porting lirc_dev as, say,
+>>> ir-lirc-decoder first is probably the way to go though. Anyone else
+>>> want to share their thoughts on this?
+>>
+>> I think it would make sense to start with a mce driver without the TX
+>> and lirc bits first. Adding lirc rx support can be done as a separate
+>> "raw" decoder later (so its scope is outside the mce driver anyway) and
+>> TX support is not implemented in ir-core yet and we haven't had any
+>> discussion yet on which form it should take.
 >
-> I think that the issue is down to the mt312 or the ds3000_readreg. 
-> Here's my /var/log/kern.log (I had some confusion over which log file 
-> to look at due to
-> distro variations), from the tevii 100315_Beta_linux_tevii_ds3000.rar 
-> code:
->
-> May  7 07:04:25 ubuntu kernel: [ 1888.738744] usb 1-1: USB disconnect, 
-> address 5
-> May  7 07:04:25 ubuntu kernel: [ 1888.756834] dvb-usb: TeVii S660 USB 
-> successfully deinitialized and disconnected.
-> May  7 07:04:30 ubuntu kernel: [ 1893.648175] usb 1-1: new high speed 
-> USB device using ehci_hcd and address 6
-> May  7 07:04:30 ubuntu kernel: [ 1893.835482] usb 1-1: config 1 
-> interface 0 altsetting 0 bulk endpoint 0x81 has invalid maxpacket 2
-> May  7 07:04:31 ubuntu kernel: [ 1893.844725] usb 1-1: configuration 
-> #1 chosen from 1 choice
-> May  7 07:04:31 ubuntu kernel: [ 1893.989017] dvb-usb: found a 'TeVii 
-> S660 USB' in cold state, will try to load a firmware
-> May  7 07:04:31 ubuntu kernel: [ 1893.989030] usb 1-1: firmware: 
-> requesting dvb-usb-teviis660.fw
-> May  7 07:04:31 ubuntu kernel: [ 1893.995703] dvb-usb: downloading 
-> firmware from file 'dvb-usb-teviis660.fw'
-> May  7 07:04:31 ubuntu kernel: [ 1893.995706] dw2102: start 
-> downloading DW210X firmware
-> May  7 07:04:31 ubuntu kernel: [ 1894.360084] dvb-usb: found a 'TeVii 
-> S660 USB' in warm state.
-> May  7 07:04:31 ubuntu kernel: [ 1894.361316] dvb-usb: will pass the 
-> complete MPEG2 transport stream to the software demuxer.
-> May  7 07:04:31 ubuntu kernel: [ 1894.362140] DVB: registering new 
-> adapter (TeVii S660 USB)
-> May  7 07:04:36 ubuntu kernel: [ 1899.484223] dvb-usb: MAC address: 
-> 70:70:70:70:70:70
-> May  7 07:04:36 ubuntu kernel: [ 1899.612725] mt312: R(126): 00
-> May  7 07:04:36 ubuntu kernel: [ 1899.612729] Only Zarlink 
-> VP310/MT312/ZL10313 are supported chips.
-> May  7 07:04:37 ubuntu kernel: [ 1899.844336] ds3000_attach
-> May  7 07:04:37 ubuntu kernel: [ 1899.864116] ds3000_readreg: read reg 
-> 0x00, value 0x70
-> May  7 07:04:37 ubuntu kernel: [ 1899.864119] Invalid probe, probably 
-> not a DS3000
-> May  7 07:04:37 ubuntu kernel: [ 1899.864208] dvb-usb: no frontend was 
-> attached by 'TeVii S660 USB'
-> May  7 07:04:37 ubuntu kernel: [ 1899.866721] dvb-usb: TeVii S660 USB 
-> successfully initialized and connected.
->
-> Clearly, either I've still got the wrong code, my hardware's 
-> different, or I've got some other config difference. your logfile 
-> clearly shows that ds3000_readreg is getting the correct 0xe0 
-> response, whereas mine's come back with 0x70 and therefore doesn't try 
-> to attach the frontend...
-> here's the hashes taht I've got for the modules (from modinfo, I think 
-> that this should show whether we're using hte same sources):
-> ds3000: srcversion:     8BBEA04D5B5CDF6343234E5
-> dw2102: srcversion:     ADE91410D87CAB74AE3862C
-> mt312:  srcversion:     E4DBE51A55D359EB4157AA2
+> So after looking at folks feedback, I did settle on starting the
+> mceusb port first, my logic going more or less like this... Having a
+> well-supported general-purpose IR receiver functional is a Good Thing
+> for people wanting to work on protocol support (i.e., so they have a
+> way to actually test protocol support). Having an
+> already-ir-core-ified driver to test out an ir-lirc-decoder (lirc_dev
+> port) would also be rather helpful. So rather than trying to port
+> lirc_dev before there's anything that can actually make use of it,
+> give myself something to work with. I'm kind of thinking that
+> ir-lirc-decoder might actually be ir-lirc-codec, able to do xmit as
+> well, maintaining full compat with lirc userspace, and then we'd have
+> a separate input subsystem based xmit method at some point, which
+> might be the "preferred/blessed" route. This means ripping a bunch of
+> code out of lirc_mceusb.c only to put it back in later, but that's not
+> terribly painful. I've already got as far as having an mceusb.c that
+> has no lirc dependency, which builds, but doesn't actually do anything
+> useful yet (not wired up to ir-core). Should be able to get something
+> functional RSN, I hope...
 
-mine are:
-ds3000: srcversion:     C7DB14F51712A761A96E6C0
-dvb-usb-dw2102: srcversion:     FCBA4EFAEF1F6A88DC9F2DB
-mt312: srcversion:     01AA722165F2811847AD121
+Got sidetracked for a few weeks, but I'm probably 95% of the way there
+as of this afternoon. Something isn't quite right with how I'm
+processing and handing off the raw IR data right now though, best as I
+can tell. Its also possible my first-gen mce device is throwing things
+for a loop, so I need to see if maybe things Just Work with a newer
+gen device so I know if its device-specific, or if something is still
+generally wrong. I did crib the simplified mce data processing routine
+from Jon's code, but the original lirc_mceusb.c has some changes
+specific to the first-gen mce device that were made to properly
+support it quite some time after Jon's port, so I may also try w/the
+uglier/more complex routine I know has been working on this device...
 
-md5sums from tevii source:
-ds3000.c fd28e654d57f0336640b6f13bed5102c
-dw2102.c 019a275475fe2fbf9a255c65d80ee7be
-mt312.c 222360df7838633b8b05e471b18678bd
+David, you mentioned having something based on Jon's earlier port that
+was more or less working. I'd be curious to get a look at that if
+you're willing to drop me a copy, see if I've missed something
+blindingly stupid. :)
 
+What I get right now when I press a key:
+...
+ir_rc6_decode: RC6 decode failed at state 0 (0us space)
+ir_rc6_decode: RC6 decode failed at state 0 (0us pulse)
+ir_rc6_decode: RC6 decode failed at state 0 (0us pulse)
+ir_rc6_decode: RC6 decode failed at state 0 (0us space)
+ir_rc6_decode: RC6 decode failed at state 0 (1us pulse)
+ir_rc6_decode: RC6 decode failed at state 0 (0us space)
+ir_rc6_decode: RC6 decode failed at state 0 (0us pulse)
+ir_rc6_decode: RC6 decode failed at state 0 (0us pulse)
+ir_rc6_decode: RC6 decode failed at state 0 (0us space)
+ir_rc6_decode: RC6 decode failed at state 0 (1us pulse)
 
-With kind regards
+Always fails at state 0, varying us values from 0 to 100, but mostly 0 and 1.
 
-William
->
-> what did you do to get your mt312 correctly identified?
->
-> On my wintel box, channel switching takes a couple of seconds, does 
-> yours take much longer?
->
-> what's the real problem with leaving the rc polling on ? I know that 
-> you get log messages, but they're only messages. they can be turned 
-> off by commenting out the info lines (info ("query RC... ) and then 
-> make/sudo make install (just put // at the beginning of the lines in 
-> dw2102.c)
->
-> On 7 May 2010, at 13:31, william wrote:
->
->> Hello Tim,
->>
->> On 05/07/2010 01:41 PM, Tim Coote wrote:
->>> William
->>> did you load your modules with debug=1, or something else, somehow? 
->>> I thought that the code printing out ds3000_readreg required debug. 
->>> or have you got different source code from the tevii driver on 
->>> www.tevii.com/Support.asp?  (unless I know what you're using, I 
->>> cannot tell what's relevant.)
->> i tried this so probably yes
->> /etc/modprobe.d/test.conf
->> ##
->> options mt312 debug=1
->> options ds3000 debug=1
->> options dvb-usb-dw2102 debug=1
->> options dvb-usb disable_rc_polling=1
->> options dvb-usb-dw2102 keymap=2 demod=2
->> ##
->>
->> The tevii device should be supported by the linuxtv drivers:
->>
->> ############
->> hg clone http://linuxtv.org/hg/v4l-dvb
->> cd v4l-dvb
->> make menuconfig disable/enable what you need
->> make&&  make install
->> poweroff
->> remove power/usb cables
->> replug the power to tevii device
->> then connect the usb
->> then poweron pc
->>
->> Then i get this in my log:
->> modprobe dvb-usb-dw2102
->> [  217.546580] dvb-usb: found a 'TeVii S660 USB' in cold state, will 
->> try to load a firmware
->> [  217.546595] usb 1-3: firmware: requesting dvb-usb-s630.fw
->> [  217.630018] dvb-usb: downloading firmware from file 'dvb-usb-s630.fw'
->> [  217.630030] dw2102: start downloading DW210X firmware
->> [  217.748783] usb 1-3: USB disconnect, address 3
->> [  217.850050] dvb-usb: found a 'TeVii S660 USB' in warm state.
->> [  217.850161] dvb-usb: will pass the complete MPEG2 transport stream 
->> to the software demuxer.
->> [  217.850236] DVB: registering new adapter (TeVii S660 USB)
->> [  228.090038] dvb-usb: MAC address: 00:00:00:00:00:00
->> [  228.162540] mt312: R(126): 00
->> [  228.162550] Only Zarlink VP310/MT312/ZL10313 are supported chips.
->> [  228.507136] ds3000_attach
->> [  228.542534] ds3000_readreg: read reg 0x00, value 0x00
->> [  228.542541] Invalid probe, probably not a DS3000
->> [  228.542808] dvb-usb: no frontend was attached by 'TeVii S660 USB'
->> [  228.542861] dvb-usb: TeVii S660 USB successfully initialized and 
->> connected.
->> [  228.543000] usbcore: registered new interface driver dw2102
->> [  228.543454] dvb-usb: TeVii S660 USB successfully deinitialized and 
->> disconnected.
->> [  228.820045] usb 1-3: new high speed USB device using ehci_hcd and 
->> address 5
->>
->> ########
->>
->> using the tevii drivers i get this:
->> doing the same make ; make install ; poweroff ....
->> modprobe dvb-usb-dw2102
->>
->> [   80.354236] dvb-usb: found a 'TeVii S660 USB' in cold state, will 
->> try to load a firmware
->> [   80.354252] usb 1-3: firmware: requesting dvb-usb-teviis660.fw
->> [   80.418598] dvb-usb: downloading firmware from file 
->> 'dvb-usb-teviis660.fw'
->> [   80.418609] dw2102: start downloading DW210X firmware
->> [   80.436136] usb 1-3: USB disconnect, address 3
->> [   80.545656] dvb-usb: found a 'TeVii S660 USB' in warm state.
->> [   80.545780] dvb-usb: will pass the complete MPEG2 transport stream 
->> to the software demuxer.
->> [   80.545840] DVB: registering new adapter (TeVii S660 USB)
->> [   90.810041] dvb-usb: MAC address: 00:00:00:00:00:00
->> [   90.921279] mt312: R(126): 00
->> [   90.921289] Only Zarlink VP310/MT312/ZL10313 are supported chips.
->> [   91.243014] ds3000_attach
->> [   91.283778] ds3000_readreg: read reg 0x00, value 0x00
->> [   91.283785] Invalid probe, probably not a DS3000
->> [   91.284052] dvb-usb: no frontend was attached by 'TeVii S660 USB'
->> [   91.284105] dvb-usb: TeVii S660 USB successfully initialized and 
->> connected.
->> [   91.284209] usbcore: registered new interface driver dw2102
->> [   91.284744] dvb-usb: TeVii S660 USB successfully deinitialized and 
->> disconnected.
->> [   91.560036] usb 1-3: new high speed USB device using ehci_hcd and 
->> address 5
->> [   91.710433] usb 1-3: config 1 interface 0 altsetting 0 bulk 
->> endpoint 0x81 has invalid maxpacket 2
->> [   91.712260] dvb-usb: found a 'TeVii S660 USB' in cold state, will 
->> try to load a firmware
->> [   91.712275] usb 1-3: firmware: requesting dvb-usb-teviis660.fw
->> [   91.722989] dvb-usb: downloading firmware from file 
->> 'dvb-usb-teviis660.fw'
->> [   91.723001] dw2102: start downloading DW210X firmware
->> [   91.840045] dvb-usb: found a 'TeVii S660 USB' in warm state.
->> [   91.840180] dvb-usb: will pass the complete MPEG2 transport stream 
->> to the software demuxer.
->> [   91.840339] DVB: registering new adapter (TeVii S660 USB)
->> [  102.080030] dvb-usb: MAC address: 00:18:bd:5c:54:7f
->> [  102.120028] mt312: R(126): ff
->> [  102.120038] Only Zarlink VP310/MT312/ZL10313 are supported chips.
->> [  102.390448] ds3000_attach
->> [  102.430027] ds3000_readreg: read reg 0x00, value 0xe0
->> [  102.470026] ds3000_readreg: read reg 0x01, value 0xc0
->> [  102.510026] ds3000_readreg: read reg 0x02, value 0x00
->> [  102.510033] DS3000 chip version: 0.192 attached.
->> [  102.510039] dw2102: Attached ds3000+ds2020!
->> [  102.510041]
->> [  102.510274] DVB: registering adapter 1 frontend 0 (Montage 
->> Technology DS3000/TS2020)...
->> [  102.510645] dvb-usb: TeVii S660 USB successfully initialized and 
->> connected.
->>
->> #########
->>
->> now i have:
->>
->> root@backend:~# ls -al /dev/dvb/adapter1/
->> total 0
->> drwxr-xr-x 2 root root     120 2010-05-07 14:23 .
->> drwxr-xr-x 4 root root      80 2010-05-07 14:23 ..
->> crw-rw---- 1 root video 212, 4 2010-05-07 14:23 demux0
->> crw-rw---- 1 root video 212, 5 2010-05-07 14:23 dvr0
->> crw-rw---- 1 root video 212, 7 2010-05-07 14:23 frontend0
->> crw-rw---- 1 root video 212, 6 2010-05-07 14:23 net0
->>
->>
->> ###
->>
->> Now i can also make use off the device except that my system gets 
->> slow and channel zapping takes ages.
->> i disabled the debug message for the remote with the option 
->> disable_rc_polling for dvb-usb.
->>
->> only then you cannot use the remote :)
->>
->> With kind regards
->>
->> William van de Velde
->>
->>
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+-- 
+Jarod Wilson
+jarod@wilsonet.com
