@@ -1,109 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4887 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755472Ab0EZVAK (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:55705 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758769Ab0EYTfu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 17:00:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <p.osciak@samsung.com>
-Subject: Re: Tentative agenda for Helsinki mini-summit
-Date: Wed, 26 May 2010 23:01:50 +0200
-Cc: linux-media@vger.kernel.org, "'Zhong, Jeff'" <hzhong@quicinc.com>,
-	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	"'Zhang, Xiaolin'" <xiaolin.zhang@intel.com>,
-	"'Sergio Rodriguez'" <saaguirre@ti.com>,
-	"'Vaibhav Hiremath'" <hvaibhav@ti.com>,
-	"'Guennadi Liakhovetski'" <g.liakhovetski@gmx.de>,
-	"'Hans de Goede'" <hdegoede@redhat.com>,
-	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
-	"'Kamil Debski'" <k.debski@samsung.com>
-References: <201005231236.49048.hverkuil@xs4all.nl> <002201cafcea$93b06c00$bb114400$%osciak@samsung.com>
-In-Reply-To: <002201cafcea$93b06c00$bb114400$%osciak@samsung.com>
+	Tue, 25 May 2010 15:35:50 -0400
+Message-ID: <4BFC2691.1040203@s5r6.in-berlin.de>
+Date: Tue, 25 May 2010 21:35:45 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Jed <jedi.theone@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ideal DVB-C PCI/e card? [linux-media]
+References: <4BF8D735.9070400@gmail.com> <4BF9717D.9080209@s5r6.in-berlin.de> <4BFA1F26.7070709@gmail.com>
+In-Reply-To: <4BFA1F26.7070709@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201005262301.50517.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 26 May 2010 17:46:16 Pawel Osciak wrote:
-> Hi Hans,
+Jed wrote:
+> On 24/05/10 4:18 AM, Stefan Richter wrote:
+>> Jed wrote:
+>>> Ideally it'd be dual DVB-C, the only one I've found is more than dual
+>>> DVB-C&  is far too expensive.
+>>
+>> If you need two receivers but can only spare up to one PCI or PCIe slot,
+>> why not use two USB or FireWire attached receivers?
+>>
+>> FireWire ones seem to be out of production now though and weren't
+>> exactly on the cheap side.  OTOH one can drive up to 3 DVB FireWire
+>> receivers on a single FireWire bus; and for those who need even more
+>> there are dual link FireWire PCI and PCIe cards readily available.
 > 
-> thank you for your work on this!
-> 
-> >Hans Verkuil wrote:
-> 
-> >3) videobuf/videobuf2: what are the shortcomings, what are the requirements
-> >for a 'proper' videobuf implementation, can the existing videobuf be fixed or
-> >do we need a videobuf2. If the latter, what would be needed to convert
-> >existing drivers over to a videobuf2. Laurent Pinchart and Pawel Osciak. This I'm
-> >sure requires a presentation.
-> 
-> As Laurent volunteered to prepare the "videobuf problems" presentation, I will
-> hopefully make it before the summit with an initial (general) design for the new
-> videobuf2 - requirements, API, things like that. So I'm thinking about a short
-> presentation on this. What do you think?
+> Thanks for offering your thoughts Stefan.
+> Any specific recommendations?
+>
+> Ideally I want two or more dvb-c tuners in a pci/e form-factor.
+>
+> If there's FW or USB tuners that are mounted onto a PCI/e card, work
+> well in Linux, & are relatively cheap, then I'd love to know!
 
-Yes please!
+I don't have an overview over USB tuners.
 
-> >4) Multi-planar support. Pawel Osciak.
-> 
-> Yes. Will provide a short status update. Is a presentation of the whole concept
-> required? If so, I can conduct one as well.
+FireWire tuners are (or rather were) available as external boxes as well
+as cards that could be mounted either in a PCI(e) slot --- but still had
+to be connected to an internal or external FireWire port then --- or in
+a floppy disk bay.  One tuner took up one slot or one bay.  Slot for CAM
+included.
 
-A presentation for this is not necessary, I think.
- 
-> >9) Driver compliance. We need a framework for V4L2 driver compliance. Hans
-> >   Verkuil.
-> 
-> I am very interested in this!
-> 
-> >10) Discuss list of 'reference' programs to test against. Mauro?
-> >
-> 
-> Ditto.
-> 
-> >During the memory handling brainstorming session earlier this year we also
-> >touched on creating some sort of a generic buffer model allowing for easy
-> >exchange between v4l buffers, framebuffers, texture buffers, etc. It is my
-> >opinion that we should not discuss this in Helsinki. The list of topics is
-> >already quite long and I think it is too early to start working on that. We
-> >probably need another brainstorming session first in order to come up with
-> >a reasonable proposal.
-> 
-> I agree.
-> 
-> >Comments? Topics I missed?
-> 
-> It would be great to touch on the following subjects if we find some time
-> (and if people would be interested, I had little feedback on the list):
-> 
-> 1) Custom/pluggable allocators
-> As most of us are aware there are important problems with memory allocation
-> in videobuf that most of us have already faced.
-> For those unfamiliar with the topic, please see my recent RFC:
-> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/19581
-> 
-> I'd like to provide a design of an API:
-> * for videobuf that would allow drivers to plug-in their own memory allocation
->   routines,
-> * future-proof enough to be usable with videobuf2 as well.
-> 
-> Hoping for a (short-ish) discussion on that.
-> 
-> 2) Out-of-order buffer dequeuing and per-buffer wait queues in videobuf. See:
-> RFC: http://www.mail-archive.com/linux-media@vger.kernel.org/msg17319.html
-> Patches: http://www.mail-archive.com/linux-media@vger.kernel.org/msg17886.html
-> 
-> 
-> Please let me know what you think. Thanks!
+As I said, the FireWire tuners were _not_ cheap, compared to average USB
+tuners or PCI tuners.  Maybe used one can be found to a somewhat better
+price.  FireWire DVB tuners that were sold in the past by different
+vendors were similar in hardware AFAIK, but only ones from Digital
+Everywhere (called FireDTV and FloppyDTV) are supported under Linux
+because DE supplied initial driver code and firmware information.
 
-These two items should probably be folded into the videobuf presentations.
-
-Regards,
-
-	Hans
-
+If you go for USB tuners, then I guess that you will also have to use
+either external devices /or/ drive-bay mounted devices /or/ two PCI(e)
+slots, since you wrote that you need CAMs --- and I doubt that there is
+a cheap off-the-shelf solution that crams two CAM slots into a single
+PCI slot or shares a CAM between tuners...  But as I said, I don't have
+an overview.
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Stefan Richter
+-=====-==-=- -=-= ==--=
+http://arcgraph.de/sr/
