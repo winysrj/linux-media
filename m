@@ -1,35 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 25.mail-out.ovh.net ([91.121.27.228]:42900 "HELO
-	25.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751743Ab0ECI6S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 04:58:18 -0400
-Message-ID: <10683c6d21eb608c93a46b06b23ef73f.squirrel@webmail.ovh.net>
-Date: Mon, 3 May 2010 03:51:36 -0500 (GMT+5)
-Subject: Philips/NXP channel decoders
-From: "Guillaume Audirac" <guillaume.audirac@webag.fr>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4228 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755315Ab0EYTLt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 May 2010 15:11:49 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4PJBhCt018685
+	for <linux-media@vger.kernel.org>; Tue, 25 May 2010 21:11:48 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 25 May 2010 21:11:43 +0200 (CEST)
+Message-Id: <201005251911.o4PJBhCt018685@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Reply-To: guillaume.audirac@webag.fr
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I am new on this list and I would like to help with my support. I know
-rather well the Philips/NXP channel demodulators/decoders (TDA10023/24,
-TDA10046/A, TDA10048) as I've had to support them for a while.
+Results of the daily build of v4l-dvb:
 
-I am starting first in diving into the tda10048 driver (DVB-T) to become
-familiar with the API. In case you know some existing issues, please
-report them to me, I would be glad to investigate and help.
+date:        Tue May 25 19:00:22 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14873:b576509ea6d2
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Last but not least, I don't have any hardware yet, is it blocking to
-eventually send patches ?
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-rc7-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-rc7-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-rc7-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-rc7-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-rc7-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-rc7-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-rc7-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-rc7-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-rc7-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Thanks.
-Regards.
--- 
-Guillaume
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
