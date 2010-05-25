@@ -1,271 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:41829
-	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757486Ab0E0Qkv (ORCPT
+Received: from mail-ew0-f216.google.com ([209.85.219.216]:59868 "EHLO
+	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751024Ab0EYRmb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 May 2010 12:40:51 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
+	Tue, 25 May 2010 13:42:31 -0400
+Received: by ewy8 with SMTP id 8so615533ewy.28
+        for <linux-media@vger.kernel.org>; Tue, 25 May 2010 10:42:29 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 25 May 2010 20:42:29 +0300
+Message-ID: <AANLkTimxiByXV9LI5uXbykT9NRoxo_AfdUDpA3XHy7w4@mail.gmail.com>
+Subject: [PATCH for 2.6.34] saa7134: add support for Compro VideoMate M1F
+From: Pavel Osnova <pvosnova@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Markus Demleitner <msdemlei@tucana.harvard.edu>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	David Ellingsworth <david@identd.dyndns.org>
-Subject: [PATCH/RFC v2 1/8] dsbr100: implement proper locking
-Date: Thu, 27 May 2010 12:39:09 -0400
-Message-Id: <1274978356-25836-2-git-send-email-david@identd.dyndns.org>
-In-Reply-To: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
-References: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/dsbr100.c |   77 +++++++++++++++++-----------------------
- 1 files changed, 33 insertions(+), 44 deletions(-)
+This patch add support for Compro VideoMate M1F analog TV tuner.
 
-diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
-index ed9cd7a..673eda8 100644
---- a/drivers/media/radio/dsbr100.c
-+++ b/drivers/media/radio/dsbr100.c
-@@ -182,7 +182,7 @@ static int dsbr100_start(struct dsbr100_device *radio)
- 	int retval;
- 	int request;
- 
--	mutex_lock(&radio->lock);
-+	BUG_ON(!mutex_is_locked(&radio->lock));
- 
- 	retval = usb_control_msg(radio->usbdev,
- 		usb_rcvctrlpipe(radio->usbdev, 0),
-@@ -207,11 +207,9 @@ static int dsbr100_start(struct dsbr100_device *radio)
- 	}
- 
- 	radio->status = STARTED;
--	mutex_unlock(&radio->lock);
- 	return (radio->transfer_buffer)[0];
- 
- usb_control_msg_failed:
--	mutex_unlock(&radio->lock);
- 	dev_err(&radio->usbdev->dev,
- 		"%s - usb_control_msg returned %i, request %i\n",
- 			__func__, retval, request);
-@@ -225,7 +223,7 @@ static int dsbr100_stop(struct dsbr100_device *radio)
- 	int retval;
- 	int request;
- 
--	mutex_lock(&radio->lock);
-+	BUG_ON(!mutex_is_locked(&radio->lock));
- 
- 	retval = usb_control_msg(radio->usbdev,
- 		usb_rcvctrlpipe(radio->usbdev, 0),
-@@ -250,11 +248,9 @@ static int dsbr100_stop(struct dsbr100_device *radio)
- 	}
- 
- 	radio->status = STOPPED;
--	mutex_unlock(&radio->lock);
- 	return (radio->transfer_buffer)[0];
- 
- usb_control_msg_failed:
--	mutex_unlock(&radio->lock);
- 	dev_err(&radio->usbdev->dev,
- 		"%s - usb_control_msg returned %i, request %i\n",
- 			__func__, retval, request);
-@@ -269,7 +265,7 @@ static int dsbr100_setfreq(struct dsbr100_device *radio)
- 	int request;
- 	int freq = (radio->curfreq / 16 * 80) / 1000 + 856;
- 
--	mutex_lock(&radio->lock);
-+	BUG_ON(!mutex_is_locked(&radio->lock));
- 
- 	retval = usb_control_msg(radio->usbdev,
- 		usb_rcvctrlpipe(radio->usbdev, 0),
-@@ -306,12 +302,10 @@ static int dsbr100_setfreq(struct dsbr100_device *radio)
- 	}
- 
- 	radio->stereo = !((radio->transfer_buffer)[0] & 0x01);
--	mutex_unlock(&radio->lock);
- 	return (radio->transfer_buffer)[0];
- 
- usb_control_msg_failed:
- 	radio->stereo = -1;
--	mutex_unlock(&radio->lock);
- 	dev_err(&radio->usbdev->dev,
- 		"%s - usb_control_msg returned %i, request %i\n",
- 			__func__, retval, request);
-@@ -324,7 +318,7 @@ static void dsbr100_getstat(struct dsbr100_device *radio)
- {
- 	int retval;
- 
--	mutex_lock(&radio->lock);
-+	BUG_ON(!mutex_is_locked(&radio->lock));
- 
- 	retval = usb_control_msg(radio->usbdev,
- 		usb_rcvctrlpipe(radio->usbdev, 0),
-@@ -340,8 +334,6 @@ static void dsbr100_getstat(struct dsbr100_device *radio)
- 	} else {
- 		radio->stereo = !(radio->transfer_buffer[0] & 0x01);
- 	}
--
--	mutex_unlock(&radio->lock);
- }
- 
- /* USB subsystem interface begins here */
-@@ -385,10 +377,6 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- {
- 	struct dsbr100_device *radio = video_drvdata(file);
- 
--	/* safety check */
--	if (radio->removed)
--		return -EIO;
--
- 	if (v->index > 0)
- 		return -EINVAL;
- 
-@@ -410,12 +398,6 @@ static int vidioc_g_tuner(struct file *file, void *priv,
- static int vidioc_s_tuner(struct file *file, void *priv,
- 				struct v4l2_tuner *v)
- {
--	struct dsbr100_device *radio = video_drvdata(file);
--
--	/* safety check */
--	if (radio->removed)
--		return -EIO;
--
- 	if (v->index > 0)
- 		return -EINVAL;
- 
-@@ -428,17 +410,12 @@ static int vidioc_s_frequency(struct file *file, void *priv,
- 	struct dsbr100_device *radio = video_drvdata(file);
- 	int retval;
- 
--	/* safety check */
--	if (radio->removed)
--		return -EIO;
--
--	mutex_lock(&radio->lock);
- 	radio->curfreq = f->frequency;
--	mutex_unlock(&radio->lock);
- 
- 	retval = dsbr100_setfreq(radio);
- 	if (retval < 0)
- 		dev_warn(&radio->usbdev->dev, "Set frequency failed\n");
-+
- 	return 0;
- }
- 
-@@ -447,10 +424,6 @@ static int vidioc_g_frequency(struct file *file, void *priv,
- {
- 	struct dsbr100_device *radio = video_drvdata(file);
- 
--	/* safety check */
--	if (radio->removed)
--		return -EIO;
--
- 	f->type = V4L2_TUNER_RADIO;
- 	f->frequency = radio->curfreq;
- 	return 0;
-@@ -472,10 +445,6 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
- {
- 	struct dsbr100_device *radio = video_drvdata(file);
- 
--	/* safety check */
--	if (radio->removed)
--		return -EIO;
--
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
- 		ctrl->value = radio->status;
-@@ -490,10 +459,6 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
- 	struct dsbr100_device *radio = video_drvdata(file);
- 	int retval;
- 
--	/* safety check */
--	if (radio->removed)
--		return -EIO;
--
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
- 		if (ctrl->value) {
-@@ -513,6 +478,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
- 		}
- 		return 0;
- 	}
-+
- 	return -EINVAL;
- }
- 
-@@ -548,12 +514,34 @@ static int vidioc_s_audio(struct file *file, void *priv,
- 	return 0;
- }
- 
-+static long usb_dsbr100_ioctl(struct file *file, unsigned int cmd,
-+				unsigned long arg)
-+{
-+	struct dsbr100_device *radio = video_drvdata(file);
-+	long retval = 0;
-+
-+	mutex_lock(&radio->lock);
-+
-+	if (radio->removed) {
-+		retval = -EIO;
-+		goto unlock;
-+	}
-+
-+	retval = video_ioctl2(file, cmd, arg);
-+
-+unlock:
-+	mutex_unlock(&radio->lock);
-+	return retval;
-+}
-+
- /* Suspend device - stop device. */
- static int usb_dsbr100_suspend(struct usb_interface *intf, pm_message_t message)
- {
- 	struct dsbr100_device *radio = usb_get_intfdata(intf);
- 	int retval;
- 
-+	mutex_lock(&radio->lock);
-+
- 	if (radio->status == STARTED) {
- 		retval = dsbr100_stop(radio);
- 		if (retval < 0)
-@@ -564,12 +552,10 @@ static int usb_dsbr100_suspend(struct usb_interface *intf, pm_message_t message)
- 		 * we set status equal to STARTED.
- 		 * On resume we will check status and run radio if needed.
- 		 */
--
--		mutex_lock(&radio->lock);
- 		radio->status = STARTED;
--		mutex_unlock(&radio->lock);
- 	}
- 
-+	mutex_unlock(&radio->lock);
- 	dev_info(&intf->dev, "going into suspend..\n");
- 
- 	return 0;
-@@ -581,12 +567,15 @@ static int usb_dsbr100_resume(struct usb_interface *intf)
- 	struct dsbr100_device *radio = usb_get_intfdata(intf);
- 	int retval;
- 
-+	mutex_lock(&radio->lock);
-+
- 	if (radio->status == STARTED) {
- 		retval = dsbr100_start(radio);
- 		if (retval < 0)
- 			dev_warn(&intf->dev, "dsbr100_start failed\n");
- 	}
- 
-+	mutex_unlock(&radio->lock);
- 	dev_info(&intf->dev, "coming out of suspend..\n");
- 
- 	return 0;
-@@ -605,7 +594,7 @@ static void usb_dsbr100_video_device_release(struct video_device *videodev)
- /* File system interface */
- static const struct v4l2_file_operations usb_dsbr100_fops = {
- 	.owner		= THIS_MODULE,
--	.ioctl		= video_ioctl2,
-+	.unlocked_ioctl	= usb_dsbr100_ioctl,
+
+diff -urN linux-2.6.34/Documentation/video4linux/CARDLIST.saa7134
+linux-2.6.34patched orig/Documentation/video4linux/CARDLIST.saa7134
+--- linux-2.6.34/Documentation/video4linux/CARDLIST.saa7134
+2010-05-17 00:17:36.000000000 +0300
++++ linux-2.6.34patched
+orig/Documentation/video4linux/CARDLIST.saa7134    2010-05-24
+13:33:01.915467949 +0300
+@@ -175,3 +175,4 @@
+ 174 -> Asus Europa Hybrid OEM                   [1043:4847]
+ 175 -> Leadtek Winfast DTV1000S                 [107d:6655]
+ 176 -> Beholder BeholdTV 505 RDS                [0000:5051]
++177 -> Compro VideoMate M1F               [185b:c900]
+diff -urN linux-2.6.34/drivers/media/IR/ir-keymaps.c
+linux-2.6.34patched orig/drivers/media/IR/ir-keymaps.c
+--- linux-2.6.34/drivers/media/IR/ir-keymaps.c    2010-05-17
+00:17:36.000000000 +0300
++++ linux-2.6.34patched orig/drivers/media/IR/ir-keymaps.c
+2010-05-24 13:37:59.872106122 +0300
+@@ -3492,3 +3492,65 @@
+     .ir_type = IR_TYPE_NEC,
  };
- 
- static const struct v4l2_ioctl_ops usb_dsbr100_ioctl_ops = {
--- 
-1.7.1
+ EXPORT_SYMBOL_GPL(ir_codes_kworld_315u_table);
++
++/* Compro VideoMate M1F
++ * Pavel Osnova <pvosnova@gmail.com>
++ */
++static struct ir_scancode ir_codes_videomate_m1f[] = {
++    { 0x01, KEY_POWER },
++    { 0x31, KEY_TUNER },
++    { 0x33, KEY_VIDEO },
++    { 0x2f, KEY_RADIO },
++    { 0x30, KEY_CAMERA },
++    { 0x2d, KEY_NEW }, /* TV record button */
++    { 0x17, KEY_CYCLEWINDOWS },
++    { 0x2c, KEY_ANGLE },
++    { 0x2b, KEY_LANGUAGE },
++    { 0x32, KEY_SEARCH }, /* '...' button */
++    { 0x11, KEY_UP },
++    { 0x13, KEY_LEFT },
++    { 0x15, KEY_OK },
++    { 0x14, KEY_RIGHT },
++    { 0x12, KEY_DOWN },
++    { 0x16, KEY_BACKSPACE },
++    { 0x02, KEY_ZOOM }, /* WIN key */
++    { 0x04, KEY_INFO },
++    { 0x05, KEY_VOLUMEUP },
++    { 0x03, KEY_MUTE },
++    { 0x07, KEY_CHANNELUP },
++    { 0x06, KEY_VOLUMEDOWN },
++    { 0x08, KEY_CHANNELDOWN },
++    { 0x0c, KEY_RECORD },
++    { 0x0e, KEY_STOP },
++    { 0x0a, KEY_BACK },
++    { 0x0b, KEY_PLAY },
++    { 0x09, KEY_FORWARD },
++    { 0x10, KEY_PREVIOUS },
++    { 0x0d, KEY_PAUSE },
++    { 0x0f, KEY_NEXT },
++    { 0x1e, KEY_1 },
++    { 0x1f, KEY_2 },
++    { 0x20, KEY_3 },
++    { 0x21, KEY_4 },
++    { 0x22, KEY_5 },
++    { 0x23, KEY_6 },
++    { 0x24, KEY_7 },
++    { 0x25, KEY_8 },
++    { 0x26, KEY_9 },
++    { 0x2a, KEY_NUMERIC_STAR }, /* * key */
++    { 0x1d, KEY_0 },
++    { 0x29, KEY_SUBTITLE }, /* # key */
++    { 0x27, KEY_CLEAR },
++    { 0x34, KEY_SCREEN },
++    { 0x28, KEY_ENTER },
++    { 0x19, KEY_RED },
++    { 0x1a, KEY_GREEN },
++    { 0x1b, KEY_YELLOW },
++    { 0x1c, KEY_BLUE },
++    { 0x18, KEY_TEXT },
++};
++struct ir_scancode_table ir_codes_videomate_m1f_table = {
++    .scan = ir_codes_videomate_m1f,
++    .size = ARRAY_SIZE(ir_codes_videomate_m1f),
++};
++EXPORT_SYMBOL_GPL(ir_codes_videomate_m1f_table);
+diff -urN linux-2.6.34/drivers/media/video/saa7134/saa7134-cards.c
+linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134-cards.c
+--- linux-2.6.34/drivers/media/video/saa7134/saa7134-cards.c
+2010-05-17 00:17:36.000000000 +0300
++++ linux-2.6.34patched
+orig/drivers/media/video/saa7134/saa7134-cards.c    2010-05-24
+13:44:41.618731443 +0300
+@@ -5355,7 +5355,39 @@
+             .amux = LINE2,
+         },
+     },
+-
++    [SAA7134_BOARD_VIDEOMATE_M1F] = {
++                .name           = "Compro VideoMate M1F",
++                .audio_clock    = 0x00187de7,
++                .tuner_type     = TUNER_LG_PAL_NEW_TAPC,
++                .radio_type     = TUNER_TEA5767,
++                .tuner_addr     = ADDR_UNSET,
++                .radio_addr     = 0x60,
++                .tda9887_conf   = TDA9887_PRESENT,
++                .inputs         = {{
++                        .name = name_tv,
++                        .vmux = 1,
++                        .amux = TV,
++                        .tv   = 1,
++                },{
++                        .name = name_comp1,
++                        .vmux = 3,
++                        .amux = LINE2,
++                },{
++                        .name = name_svideo,
++                        .vmux = 8,
++                        .amux = LINE1,
++                }},
++                .radio = {
++                        .name = name_radio,
++                        .amux = LINE2,
++                        .gpio = 0x80000,
++                },
++                .mute = {
++                        .name = name_mute,
++                        .amux = LINE2,
++                        .gpio = 0x40000,
++                },
++        },
+ };
 
+ const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
+@@ -6803,6 +6835,7 @@
+     case SAA7134_BOARD_VIDEOMATE_TV_PVR:
+     case SAA7134_BOARD_VIDEOMATE_GOLD_PLUS:
+     case SAA7134_BOARD_VIDEOMATE_TV_GOLD_PLUSII:
++    case SAA7134_BOARD_VIDEOMATE_M1F:
+     case SAA7134_BOARD_VIDEOMATE_DVBT_300:
+     case SAA7134_BOARD_VIDEOMATE_DVBT_200:
+     case SAA7134_BOARD_VIDEOMATE_DVBT_200A:
+diff -urN linux-2.6.34/drivers/media/video/saa7134/saa7134.h
+linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134.h
+--- linux-2.6.34/drivers/media/video/saa7134/saa7134.h    2010-05-17
+00:17:36.000000000 +0300
++++ linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134.h
+2010-05-24 13:42:13.798747367 +0300
+@@ -300,6 +300,7 @@
+ #define SAA7134_BOARD_ASUS_EUROPA_HYBRID    174
+ #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
+ #define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
++#define SAA7134_BOARD_VIDEOMATE_M1F    177
+
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+diff -urN linux-2.6.34/drivers/media/video/saa7134/saa7134-input.c
+linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134-input.c
+--- linux-2.6.34/drivers/media/video/saa7134/saa7134-input.c
+2010-05-17 00:17:36.000000000 +0300
++++ linux-2.6.34patched
+orig/drivers/media/video/saa7134/saa7134-input.c    2010-05-24
+13:45:33.755392801 +0300
+@@ -679,6 +679,11 @@
+         mask_keyup   = 0x020000;
+         polling      = 50; /* ms */
+         break;
++    case SAA7134_BOARD_VIDEOMATE_M1F:
++        ir_codes     = &ir_codes_videomate_m1f_table;
++        mask_keycode = 0x0ff00;
++        mask_keyup   = 0x040000;
++        break;
+     break;
+     }
+     if (NULL == ir_codes) {
+diff -urN linux-2.6.34/include/media/ir-common.h linux-2.6.34patched
+orig/include/media/ir-common.h
+--- linux-2.6.34/include/media/ir-common.h    2010-05-17
+00:17:36.000000000 +0300
++++ linux-2.6.34patched orig/include/media/ir-common.h    2010-05-24
+13:49:29.845368218 +0300
+@@ -164,4 +164,5 @@
+ extern struct ir_scancode_table ir_codes_nec_terratec_cinergy_xs_table;
+ extern struct ir_scancode_table ir_codes_winfast_usbii_deluxe_table;
+ extern struct ir_scancode_table ir_codes_kworld_315u_table;
++extern struct ir_scancode_table ir_codes_videomate_m1f_table;
+ #endif
