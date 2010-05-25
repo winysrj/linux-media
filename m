@@ -1,68 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3061 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755428Ab0E0HIh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 May 2010 03:08:37 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4R78bHN005345
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 27 May 2010 03:08:37 -0400
-From: huzaifas@redhat.com
-To: linux-media@vger.kernel.org
-Cc: hdegoede@redhat.com, Huzaifa Sidhpurwala <huzaifas@redhat.com>
-Subject: [PATCH] move v4l1 ioctls from kernel to libv4l1: VIDIOCSCHAN move VIDIOCSCHAN to libv4l1 Signed-off-by: Huzaifa Sidhpurwala <huzaifas@redhat.com>
-Date: Thu, 27 May 2010 12:36:33 +0530
-Message-Id: <1274943993-28246-1-git-send-email-huzaifas@redhat.com>
+Received: from fg-out-1718.google.com ([72.14.220.157]:46461 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758090Ab0EYBtJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 May 2010 21:49:09 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so2093147fga.1
+        for <linux-media@vger.kernel.org>; Mon, 24 May 2010 18:49:08 -0700 (PDT)
+Date: Tue, 25 May 2010 11:49:39 +1000
+From: Dmitri Belimov <d.belimov@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Bee Hock Goh <beehock@gmail.com>
+Subject: Re: [PATCH] xc5000, rework xc_write_reg
+Message-ID: <20100525114939.067404eb@glory.loctelecom.ru>
+In-Reply-To: <AANLkTilL60q2PrBGagobWK99dV9OMKldxLiKZafn1oYb@mail.gmail.com>
+References: <20100518173011.5d9c7f2c@glory.loctelecom.ru>
+	<AANLkTilL60q2PrBGagobWK99dV9OMKldxLiKZafn1oYb@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+Hi Devin
 
----
- lib/libv4l1/libv4l1.c |   30 +++++++++++++++++++++++++++++-
- 1 files changed, 29 insertions(+), 1 deletions(-)
+> On Tue, May 18, 2010 at 3:30 AM, Dmitri Belimov <d.belimov@gmail.com>
+> wrote:
+> > Hi
+> >
+> > Rework xc_write_reg function for correct read register of the
+> > xc5000. It is very useful for tm6000.
+> >
+> > Tested for tm6000 and for saa7134 works well.
+> 
+> Hi Dmitri,
+> 
+> I've put this on my list of patches to review.  My concern is that the
+> xc_wait logic is pretty nasty since it's related to timing of the bus
+> (it took several weeks as well as a dozen emails with the people at
+> Xceive), and hence I am loathed to change it since it took quite a bit
+> of time to test against all the different cards that use xc5000 (and
+> in some cases there were bugs exposed in various bridge's i2c
+> implementations).
+> 
+> That said, I think I actually did attempt to implement a patch
+> comparable to what you did here, but I backed it out for some reason.
+> I will need to review my trees and my notes to see what the rationale
+> was for doing such.
 
-diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
-index f64025a..4a65222 100644
---- a/lib/libv4l1/libv4l1.c
-+++ b/lib/libv4l1/libv4l1.c
-@@ -702,7 +702,35 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
- 		struct video_channel *chan = arg;
- 		if ((devices[index].flags & V4L1_SUPPORTS_ENUMINPUT) &&
- 				(devices[index].flags & V4L1_SUPPORTS_ENUMSTD)) {
--			result = SYS_IOCTL(fd, request, arg);
-+
-+			v4l2_std_id sid = 0;
-+			struct v4l2_input input2;
-+
-+			result = SYS_IOCTL(fd, VIDIOC_ENUMINPUT, &input2);
-+			if (result < 0)
-+				break;
-+
-+			switch (chan->norm) {
-+			case VIDEO_MODE_PAL:
-+				sid = V4L2_STD_PAL;
-+				break;
-+			case VIDEO_MODE_NTSC:
-+				sid = V4L2_STD_NTSC;
-+				break;
-+			case VIDEO_MODE_SECAM:
-+				sid = V4L2_STD_SECAM;
-+				break;
-+			case VIDEO_MODE_AUTO:
-+				sid = V4L2_STD_ALL;
-+				break;
-+			}
-+			
-+			if (0 != sid) {
-+				result = SYS_IOCTLdrv(fd, VIDIOC_S_STD, &sid);
-+				if (result < 0)
-+					break;
-+			}
-+			
- 			break;
- 		}
- 		/* In case of no ENUMSTD support, ignore the norm member of the
--- 
-1.6.6.1
+Ok. I can test your solution on our hardware.
+XC5000+SAA7134
+XC5000+TM6010
 
+With my best regards, Dmitry.
+
+> Devin
+> 
+> -- 
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
