@@ -1,78 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:1746 "EHLO mga03.intel.com"
+Received: from tango.tkos.co.il ([62.219.50.35]:45220 "EHLO tango.tkos.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752480Ab0ESDTL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 May 2010 23:19:11 -0400
-From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 19 May 2010 11:18:47 +0800
-Subject: [PATCH v3 10/10] V4L2 ISP driver patchset for Intel Moorestown
- Camera Imaging Subsystem
-Message-ID: <33AB447FBD802F4E932063B962385B351E895DAC@shsmsx501.ccr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1755460Ab0EYNVw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 May 2010 09:21:52 -0400
+Date: Tue, 25 May 2010 16:20:49 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v2 1/3] mx2_camera: Add soc_camera support for
+ i.MX25/i.MX27
+Message-ID: <20100525132049.GE27702@jasper.tkos.co.il>
+References: <cover.1274706733.git.baruch@tkos.co.il>
+ <4c15903511a5c4e6997b190d321b6fdf15bb6579.1274706733.git.baruch@tkos.co.il>
+ <20100525131624.GM17272@pengutronix.de>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100525131624.GM17272@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From e81476bafd59afd7cc3474f7003e331fc4303e96 Mon Sep 17 00:00:00 2001
-From: Xiaolin Zhang <xiaolin.zhang@intel.com>
-Date: Tue, 18 May 2010 15:53:41 +0800
-Subject: [PATCH 10/10] This patch is a part of v4l2 ISP patchset for Intel Moorestown camera imaging
- subsystem support which contain the chagne in the build system.
+Hi Sascha,
 
-Signed-off-by: Xiaolin Zhang <xiaolin.zhang@intel.com>
----
- drivers/media/video/mrstisp/Kconfig  |   24 ++++++++++++++++++++++++
- drivers/media/video/mrstisp/Makefile |    6 ++++++
- 2 files changed, 30 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/mrstisp/Kconfig
- create mode 100644 drivers/media/video/mrstisp/Makefile
+On Tue, May 25, 2010 at 03:16:24PM +0200, Sascha Hauer wrote:
+> On Mon, May 24, 2010 at 04:20:39PM +0300, Baruch Siach wrote:
+> > This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
+> > Carvalho de Assis modified the original driver to get it working on more recent
+> > kernels. I modified it further to add support for i.MX25. This driver has been
+> > tested on i.MX25 and i.MX27 based platforms.
+> > 
+> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> > ---
+> >  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
+> >  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
+> >  drivers/media/video/Kconfig              |   13 +
+> >  drivers/media/video/Makefile             |    1 +
+> >  drivers/media/video/mx2_camera.c         | 1471 ++++++++++++++++++++++++++++++
+> >  5 files changed, 1533 insertions(+), 2 deletions(-)
+> >  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
+> >  create mode 100644 drivers/media/video/mx2_camera.c
+> > 
+> 
+> [snip]
+> 
+> > +
+> > +static int mclk_get_divisor(struct mx2_camera_dev *pcdev)
+> > +{
+> > +	dev_info(pcdev->dev, "%s not implemented. Running at max speed\n",
+> > +			__func__);
+> > +
+> > +#if 0
+> > +	unsigned int mclk = pcdev->pdata->clk_csi;
+> > +	unsigned int pclk = clk_get_rate(pcdev->clk_csi);
+> > +	int i;
+> > +
+> > +	dev_dbg(pcdev->dev, "%s: %ld %ld\n", __func__, mclk, pclk);
+> > +
+> > +	for (i = 0; i < 0xf; i++)
+> > +		if ((i + 1) * 2 * mclk <= pclk)
+> > +			break;
+> > +	return i;
+> > +#endif
+> > +	return 0;
+> > +}
+> 
+> This function, if implemented properly, can be used to add an additional
+> divider for the sensors master clock. On i.MX27 we can adjust the master
+> clock using the clk_set_rate below which is sufficient, so you can
+> remove this function completely.
 
-diff --git a/drivers/media/video/mrstisp/Kconfig b/drivers/media/video/mrstisp/Kconfig
-new file mode 100644
-index 0000000..64f257c
---- /dev/null
-+++ b/drivers/media/video/mrstisp/Kconfig
-@@ -0,0 +1,24 @@
-+config VIDEO_MRSTCI
-+	tristate "Intel Moorestown CMOS Camera Controller support"
-+	depends on PCI && I2C && VIDEO_V4L2
-+	select VIDEOBUF_DMA_CONTIG
-+	select VIDEO_OV2650
-+	select VIDEO_OV5630
-+	select VIDEO_OV9665
-+	select VIDEO_S5K4E1
-+	select VIDEO_OV5630_MOTOR
-+	select VIDEO_S5K4E1_MOTOR
-+	default y
-+	---help---
-+	  This is a video4linux2 driver for the Intel Atom (Moorestown)
-+	  CMOS camera controller.
-+
-+config VIDEO_MRSTISP
-+	tristate "Intel Moorestown ISP Controller support"
-+	depends on VIDEO_MRSTCI
-+	default y
-+	---help---
-+	  This is a video4linux2 driver for the Intel Atom (Moorestown)
-+	  CMOS camera controller.
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called mrstisp.ko.
-diff --git a/drivers/media/video/mrstisp/Makefile b/drivers/media/video/mrstisp/Makefile
-new file mode 100644
-index 0000000..1511922
---- /dev/null
-+++ b/drivers/media/video/mrstisp/Makefile
-@@ -0,0 +1,6 @@
-+mrstisp-objs	:= mrstisp_main.o mrstisp_hw.o mrstisp_isp.o	\
-+                mrstisp_dp.o mrstisp_mif.o mrstisp_jpe.o	\
-+		__mrstisp_private_ioctl.o
-+
-+obj-$(CONFIG_VIDEO_MRSTISP)	 	 += mrstisp.o
-+EXTRA_CFLAGS	+=	 -I$(src)/include
+Very good. I'll do this in the next version of this driver.
+
+I guess I can also remove the mclk_get_divisor call at mx2_camera_add_device 
+and just leave:
+
+csicr1 = CSICR1_MCLKEN;
+
+Right?
+
+baruch
+
 -- 
-1.6.3.2
-
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
