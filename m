@@ -1,24 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <freebeer.bouwsma@gmail.com>) id 1OENkF-0002ZH-Bi
-	for linux-dvb@linuxtv.org; Tue, 18 May 2010 16:26:07 +0200
-Received: from ey-out-2122.google.com ([74.125.78.24])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
+	(envelope-from <h@ordia.com.ar>) id 1OH3YK-0003FK-CA
+	for linux-dvb@linuxtv.org; Wed, 26 May 2010 01:28:53 +0200
+Received: from mail-ww0-f54.google.com ([74.125.82.54])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1OENkC-0001Gb-0W; Tue, 18 May 2010 16:26:06 +0200
-Received: by ey-out-2122.google.com with SMTP id d26so501071eyd.39
-	for <linux-dvb@linuxtv.org>; Tue, 18 May 2010 07:26:02 -0700 (PDT)
-Date: Tue, 18 May 2010 16:25:56 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: matpic <matpic@free.fr>
-In-Reply-To: <4BF290A2.1020904@free.fr>
-Message-ID: <alpine.DEB.2.01.1005181606440.29367@ureoreg>
-References: <4BF290A2.1020904@free.fr>
+	id 1OH3YJ-0003JS-Bp; Wed, 26 May 2010 01:28:51 +0200
+Received: by wwe15 with SMTP id 15so234540wwe.41
+	for <linux-dvb@linuxtv.org>; Tue, 25 May 2010 16:28:50 -0700 (PDT)
 MIME-Version: 1.0
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] new DVB-T initial tuning for fr-nantes
-Reply-To: linux-media@vger.kernel.org
+From: =?ISO-8859-1?Q?Hern=E1n_Ordiales?= <h.ordiales@gmail.com>
+Date: Tue, 25 May 2010 20:28:35 -0300
+Message-ID: <AANLkTinD-7F0fHvKR3D89B3_IXHWgpHkFwYr0ud93EIJ@mail.gmail.com>
+To: linux-dvb@linuxtv.org
+Content-Type: multipart/mixed; boundary=0016e6d7df9f0f6d1c0487738587
+Subject: [linux-dvb] [PATCH] Adding support to the Geniatech/MyGica SBTVD
+	Stick S870 remote control
+Reply-To: linux-media@vger.kernel.org, h.ordiales@gmail.com
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -26,59 +25,80 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-On wto (wtorek) 18.maj (maj) 2010, 15:05:00, matpic wrote:
+--0016e6d7df9f0f6d1c0487738587
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-Salut!
+Hi, i'm sending as attachment a patch against
+http://linuxtv.org/hg/v4l-dvb (i hope this is ok) with some changes to
+the the dib0700 module to add support for this remote control. I added
+the key codes and a new case on parsing ir data
+(dvb_usb_dib0700_ir_proto=3D1).
 
-> hello
-> As from today (18/05/2010) there is new frequency since analogic signal
-> is stopped and is now only numeric.
-> guard-interval has to be set to AUTO or scan find anything
->  (1/32, 1/16, 1/8 ,1/4 doesn't work)
+Cheers
+--=20
+Hern=E1n
+http://h.ordia.com.ar
+GnuPG: 0xEE8A3FE9
 
-I do not have the CSA data at hand, but I understand that
-presently use is made of single transmitter sites, in a MFN
-(Multi-Frequency Network) and thus a guard interval of 1/32 should
-be correct.
+--0016e6d7df9f0f6d1c0487738587
+Content-Type: text/x-patch; charset=US-ASCII; name="geniatech-rc.patch"
+Content-Disposition: attachment; filename="geniatech-rc.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g9ncit8p0
 
-(I understand though that some filler transmitters may be in
-planning so that a small SFN may be put in service, but I am
-not clear as to these details...  I must research this.)
-
-
-> #same frequency + offset 167000000 for some hardware DVB-T tuner
-
-It was my understanding that the different offsets above or
-below the nominal centre frequency is a result of mixed digital
-and legacy analogue services co-broadcasting, in order to avoid
-interference with adjacent channels.
-
-So I am wondering whether, in the absence of local analogue
-services, this offset is no longer employed?
-
-I am afraid that I am not following the conversion to TNT so
-closely to know if a whole geographic region, in this case the
-Loire, is having the remaining analogue services shut down all
-at once, or if it is being done on a site-by-site basis, with
-the potential for interference to a more remote but still
-operational analogue transmitter.
-
-In any case, all but one of the new frequencies appear to be
-very different from the ones previously used before today.
-
-
-Merci, for reporting this change!
-
-barry bouwsma
+ZGlmZiAtciBiNTc2NTA5ZWE2ZDIgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIw
+NzAwX2NvcmUuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBf
+Y29yZS5jCVdlZCBNYXkgMTkgMTk6MzQ6MzMgMjAxMCAtMDMwMAorKysgYi9saW51eC9kcml2ZXJz
+L21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfY29yZS5jCVdlZCBNYXkgMjYgMTk6MzE6MjQgMjAx
+MCAtMDMwMApAQCAtNTUwLDYgKzU1MCwxNiBAQAogCQkJcG9sbF9yZXBseS5kYXRhX3N0YXRlID0g
+MjsKIAkJCWJyZWFrOwogCQl9CisKKwkJYnJlYWs7CisJY2FzZSAxOgorCQkvKiBHZW5pYXRlY2gv
+TXlHaWNhIHJlbW90ZSBwcm90b2NvbCAqLworCQlwb2xsX3JlcGx5LnJlcG9ydF9pZCAgPSBidWZb
+MF07CisJCXBvbGxfcmVwbHkuZGF0YV9zdGF0ZSA9IGJ1ZlsxXTsKKwkJcG9sbF9yZXBseS5zeXN0
+ZW0gICAgID0gKGJ1Zls0XSA8PCA4KSB8IGJ1Zls0XTsKKwkJcG9sbF9yZXBseS5kYXRhICAgICAg
+ID0gYnVmWzVdOworCQlwb2xsX3JlcGx5Lm5vdF9kYXRhICAgPSBidWZbNF07IC8qIGludGVncml0
+eSBjaGVjayAqLworCQkKIAkJYnJlYWs7CiAJZGVmYXVsdDoKIAkJLyogUkM1IFByb3RvY29sICov
+CmRpZmYgLXIgYjU3NjUwOWVhNmQyIGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGli
+MDcwMF9kZXZpY2VzLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIw
+NzAwX2RldmljZXMuYwlXZWQgTWF5IDE5IDE5OjM0OjMzIDIwMTAgLTAzMDAKKysrIGIvbGludXgv
+ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIwNzAwX2RldmljZXMuYwlXZWQgTWF5IDI2IDE5
+OjMxOjI0IDIwMTAgLTAzMDAKQEAgLTgzMSw2ICs4MzEsNDYgQEAKIAl7IDB4NDU0MCwgS0VZX1JF
+Q09SRCB9LCAvKiBGb250ICdTaXplJyBmb3IgVGVsZXRleHQgKi8KIAl7IDB4NDU0MSwgS0VZX1ND
+UkVFTiB9LCAvKiAgRnVsbCBzY3JlZW4gdG9nZ2xlLCAnSG9sZCcgZm9yIFRlbGV0ZXh0ICovCiAJ
+eyAweDQ1NDIsIEtFWV9TRUxFQ1QgfSwgLyogU2VsZWN0IHZpZGVvIGlucHV0LCAnU2VsZWN0JyBm
+b3IgVGVsZXRleHQgKi8KKworCisJLyogS2V5IGNvZGVzIGZvciB0aGUgR2VuaWF0ZWNoL015R2lj
+YSBTQlRWRCBTdGljayBTODcwIHJlbW90ZQorCSAgIHNldCBkdmJfdXNiX2RpYjA3MDBfaXJfcHJv
+dG89MSAqLworCXsgMHgzOGM3LCBLRVlfVFYgfSwgLyogVFYvQVYgKi8KKwl7IDB4MGNmMywgS0VZ
+X1BPV0VSIH0sCisJeyAweDBhZjUsIEtFWV9NVVRFIH0sCisJeyAweDJiZDQsIEtFWV9WT0xVTUVV
+UCB9LAorCXsgMHgyY2QzLCBLRVlfVk9MVU1FRE9XTiB9LAorCXsgMHgxMmVkLCBLRVlfQ0hBTk5F
+TFVQIH0sCisJeyAweDEzZWMsIEtFWV9DSEFOTkVMRE9XTiB9LAorCXsgMHgwMWZlLCBLRVlfMSB9
+LAorCXsgMHgwMmZkLCBLRVlfMiB9LAorCXsgMHgwM2ZjLCBLRVlfMyB9LAorCXsgMHgwNGZiLCBL
+RVlfNCB9LAorCXsgMHgwNWZhLCBLRVlfNSB9LAorCXsgMHgwNmY5LCBLRVlfNiB9LAorCXsgMHgw
+N2Y4LCBLRVlfNyB9LAorCXsgMHgwOGY3LCBLRVlfOCB9LAorCXsgMHgwOWY2LCBLRVlfOSB9LAor
+CXsgMHgwMGZmLCBLRVlfMCB9LAorCXsgMHgxNmU5LCBLRVlfUEFVU0UgfSwKKwl7IDB4MTdlOCwg
+S0VZX1BMQVkgfSwKKwl7IDB4MGJmNCwgS0VZX1NUT1AgfSwKKwl7IDB4MjZkOSwgS0VZX1JFV0lO
+RCB9LAorCXsgMHgyN2Q4LCBLRVlfRkFTVEZPUldBUkQgfSwKKwl7IDB4MjlkNiwgS0VZX0VTQyB9
+LAorCXsgMHgxZmUwLCBLRVlfUkVDT1JEIH0sCisJeyAweDIwZGYsIEtFWV9VUCB9LAorCXsgMHgy
+MWRlLCBLRVlfRE9XTiB9LAorCXsgMHgxMWVlLCBLRVlfTEVGVCB9LAorCXsgMHgxMGVmLCBLRVlf
+UklHSFQgfSwKKwl7IDB4MGRmMiwgS0VZX09LIH0sCisJeyAweDFlZTEsIEtFWV9QTEFZUEFVU0Ug
+fSwgLyogVGltZXNoaWZ0ICovCisJeyAweDBlZjEsIEtFWV9DQU1FUkEgfSwgLyogU25hcHNob3Qg
+Ki8KKwl7IDB4MjVkYSwgS0VZX0VQRyB9LCAvKiBJbmZvIEtFWV9JTkZPICovCisJeyAweDJkZDIs
+IEtFWV9NRU5VIH0sIC8qIERWRCBNZW51ICovCisJeyAweDBmZjAsIEtFWV9TQ1JFRU4gfSwgLyog
+RnVsbCBzY3JlZW4gdG9nZ2xlICovCisJeyAweDE0ZWIsIEtFWV9TSFVGRkxFIH0sCisKIH07CiAK
+IC8qIFNUSzc3MDBQOiBIYXVwcGF1Z2UgTm92YS1UIFN0aWNrLCBBVmVyTWVkaWEgVm9sYXIgKi8K
+--0016e6d7df9f0f6d1c0487738587
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--0016e6d7df9f0f6d1c0487738587--
