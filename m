@@ -1,65 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:43653 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754222Ab0E0PIt (ORCPT
+Received: from dd16922.kasserver.com ([85.13.137.202]:48871 "EHLO
+	dd16922.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755184Ab0EZUY1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 May 2010 11:08:49 -0400
-Message-ID: <4BFE8A96.9000000@arcor.de>
-Date: Thu, 27 May 2010 17:07:02 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Wed, 26 May 2010 16:24:27 -0400
+Received: from [127.0.0.1] (p50817871.dip.t-dialin.net [80.129.120.113])
+	by dd16922.kasserver.com (Postfix) with ESMTPA id D3A4510FC102
+	for <linux-media@vger.kernel.org>; Wed, 26 May 2010 22:24:25 +0200 (CEST)
+Message-ID: <4BFD8388.9060904@helmutauer.de>
+Date: Wed, 26 May 2010 22:24:40 +0200
+From: Helmut Auer <vdr@helmutauer.de>
 MIME-Version: 1.0
-To: Luis Henrique Fagundes <lhfagundes@hacklab.com.br>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Dmitri Belimov <d.belimov@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Bee Hock Goh <beehock@gmail.com>
-Subject: Re: [PATCH 3/4] tm6000: bugfix video image
-References: <AANLkTinXZL1jy8HF73WeWwCRjDIryevcag1yZUji5iy7@mail.gmail.com>
-In-Reply-To: <AANLkTinXZL1jy8HF73WeWwCRjDIryevcag1yZUji5iy7@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------090800080408040800070807"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4l-dvb does not compile with kernel 2.6.34
+References: <4BFC4858.8060403@helmutauer.de>
+In-Reply-To: <4BFC4858.8060403@helmutauer.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090800080408040800070807
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Am 25.05.2010 23:59, schrieb Helmut Auer:
+> Hello
+> 
+> I just wanted to compile v4l-dvb for my Gen2VDR Ditribution with kernel 2.6.34, but it fails
+> because many modules are missing:
+> 
+> #include <linux/slab.h>
+> 
+> and are getting errors like:
+> 
+> /tmp/portage/media-tv/v4l-dvb-hg-0.1-r3/work/v4l-dvb/v4l/tuner-xc2028.c: In function
+> 'free_firmware':
+> /tmp/portage/media-tv/v4l-dvb-hg-0.1-r3/work/v4l-dvb/v4l/tuner-xc2028.c:252: error: implicit
+> declaration of function 'kfree'
+> /tmp/portage/media-tv/v4l-dvb-hg-0.1-r3/work/v4l-dvb/v4l/tuner-xc2028.c: In function
+> 'load_all_firmwares':
+> /tmp/portage/media-tv/v4l-dvb-hg-0.1-r3/work/v4l-dvb/v4l/tuner-xc2028.c:314: error: implicit
+> declaration of function
+> 
+> Am I missing something or is v4l-dvb broken ?
+> 
+An easy patch for this problem is:
 
-Am 27.05.2010 16:43, schrieb Luis Henrique Fagundes:
-> Hi Stefan,
->
-> Looks like your patch sent on May 19th doesn't compile. I might be
-> missing something, but I needed the attached patch to make it compile.
->
-> Luis
->   
+--- v4l/compat.h.org    2010-05-26 22:22:31.000000000 +0200
++++ v4l/compat.h        2010-05-26 22:22:43.000000000 +0200
+@@ -28,6 +28,10 @@
+ #include <linux/i2c-dev.h>
+ #endif
 
-That is bugfix in later patch ([5/5] tm6000:rewrite copy_streams
-https://patchwork.kernel.org/patch/101759/ from 23.05.2010)
-
-
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 33)
++#include <linux/slab.h>
++#endif
++
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 26)
+ #ifdef CONFIG_PROC_FS
+ #include <linux/module.h>
 
 
 -- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
-
---------------090800080408040800070807
-Content-Type: text/x-vcard; charset=utf-8;
- name="stefan_ringel.vcf"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="stefan_ringel.vcf"
-
-begin:vcard
-fn:Stefan Ringel
-n:Ringel;Stefan
-email;internet:stefan.ringel@arcor.de
-note:web: www.stefanringel.de
-x-mozilla-html:FALSE
-version:2.1
-end:vcard
-
-
---------------090800080408040800070807--
+Helmut Auer, helmut@helmutauer.de
