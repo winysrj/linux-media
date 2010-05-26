@@ -1,490 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1159 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757126Ab0E2Ook (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 10:44:40 -0400
-Message-Id: <6d1ef386fd962267c95354e8c88ca8bc613de369.1275143672.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1275143672.git.hverkuil@xs4all.nl>
-References: <cover.1275143672.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sat, 29 May 2010 16:46:30 +0200
-Subject: [PATCH 07/15] [RFCv4] saa717x: convert to the new control framework
+Received: from mx1.redhat.com ([209.132.183.28]:42270 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754776Ab0EZUyK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 May 2010 16:54:10 -0400
+Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4QKs9h0014812
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 26 May 2010 16:54:09 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [10.16.43.238])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o4QKs8Ji017054
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 26 May 2010 16:54:09 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [127.0.0.1])
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.3) with ESMTP id o4QKs8ZI005300
+	for <linux-media@vger.kernel.org>; Wed, 26 May 2010 16:54:08 -0400
+Received: (from jarod@localhost)
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.4/Submit) id o4QKs7Bi005298
+	for linux-media@vger.kernel.org; Wed, 26 May 2010 16:54:07 -0400
+Date: Wed, 26 May 2010 16:54:07 -0400
+From: Jarod Wilson <jarod@redhat.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH] IR/imon: clean up usage of bools
+Message-ID: <20100526205407.GA5255@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/video/saa717x.c |  323 ++++++++++------------------------------
- 1 files changed, 81 insertions(+), 242 deletions(-)
+There was a mix of 0/1 and false/true. Pick one convention and stick
+with it (I picked false/true).
 
-diff --git a/drivers/media/video/saa717x.c b/drivers/media/video/saa717x.c
-index 6818df5..d551411 100644
---- a/drivers/media/video/saa717x.c
-+++ b/drivers/media/video/saa717x.c
-@@ -37,6 +37,7 @@
- #include <linux/videodev2.h>
- #include <linux/i2c.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-i2c-drv.h>
- 
- MODULE_DESCRIPTION("Philips SAA717x audio/video decoder driver");
-@@ -54,14 +55,11 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
- 
- struct saa717x_state {
- 	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
- 	v4l2_std_id std;
- 	int input;
- 	int enable;
- 	int radio;
--	int bright;
--	int contrast;
--	int hue;
--	int sat;
- 	int playback;
- 	int audio;
- 	int tuner_audio_mode;
-@@ -80,6 +78,11 @@ static inline struct saa717x_state *to_state(struct v4l2_subdev *sd)
- 	return container_of(sd, struct saa717x_state, sd);
- }
- 
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct saa717x_state, hdl)->sd;
-+}
-+
- /* ----------------------------------------------------------------------- */
- 
- /* for audio mode */
-@@ -773,29 +776,6 @@ static void set_audio_mode(struct v4l2_subdev *sd, int audio_mode)
- 	saa717x_write(sd, 0x470, reg_set_audio_template[audio_mode][1]);
- }
- 
--/* write regs to video output level (bright,contrast,hue,sat) */
--static void set_video_output_level_regs(struct v4l2_subdev *sd,
--		struct saa717x_state *decoder)
--{
--	/* brightness ffh (bright) - 80h (ITU level) - 00h (dark) */
--	saa717x_write(sd, 0x10a, decoder->bright);
--
--	/* contrast 7fh (max: 1.984) - 44h (ITU) - 40h (1.0) -
--	   0h (luminance off) 40: i2c dump
--	   c0h (-1.0 inverse chrominance)
--	   80h (-2.0 inverse chrominance) */
--	saa717x_write(sd, 0x10b, decoder->contrast);
--
--	/* saturation? 7fh(max)-40h(ITU)-0h(color off)
--	   c0h (-1.0 inverse chrominance)
--	   80h (-2.0 inverse chrominance) */
--	saa717x_write(sd, 0x10c, decoder->sat);
--
--	/* color hue (phase) control
--	   7fh (+178.6) - 0h (0 normal) - 80h (-180.0) */
--	saa717x_write(sd, 0x10d, decoder->hue);
--}
--
- /* write regs to set audio volume, bass and treble */
- static int set_audio_regs(struct v4l2_subdev *sd,
- 		struct saa717x_state *decoder)
-@@ -828,9 +808,9 @@ static int set_audio_regs(struct v4l2_subdev *sd,
- 
- 	saa717x_write(sd, 0x480, val);
- 
--	/* bass and treble; go to another function */
- 	/* set bass and treble */
--	val = decoder->audio_main_bass | (decoder->audio_main_treble << 8);
-+	val = decoder->audio_main_bass & 0x1f;
-+	val |= (decoder->audio_main_treble & 0x1f) << 5;
- 	saa717x_write(sd, 0x488, val);
- 	return 0;
- }
-@@ -892,218 +872,55 @@ static void set_v_scale(struct v4l2_subdev *sd, int task, int yscale)
- 	saa717x_write(sd, 0x71 + task_shift, yscale >> 8);
- }
- 
--static int saa717x_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct saa717x_state *state = to_state(sd);
--
--	switch (ctrl->id) {
--	case V4L2_CID_BRIGHTNESS:
--		if (ctrl->value < 0 || ctrl->value > 255) {
--			v4l2_err(sd, "invalid brightness setting %d\n", ctrl->value);
--			return -ERANGE;
--		}
--
--		state->bright = ctrl->value;
--		v4l2_dbg(1, debug, sd, "bright:%d\n", state->bright);
--		saa717x_write(sd, 0x10a, state->bright);
--		break;
--
--	case V4L2_CID_CONTRAST:
--		if (ctrl->value < 0 || ctrl->value > 127) {
--			v4l2_err(sd, "invalid contrast setting %d\n", ctrl->value);
--			return -ERANGE;
--		}
--
--		state->contrast = ctrl->value;
--		v4l2_dbg(1, debug, sd, "contrast:%d\n", state->contrast);
--		saa717x_write(sd, 0x10b, state->contrast);
--		break;
--
--	case V4L2_CID_SATURATION:
--		if (ctrl->value < 0 || ctrl->value > 127) {
--			v4l2_err(sd, "invalid saturation setting %d\n", ctrl->value);
--			return -ERANGE;
--		}
--
--		state->sat = ctrl->value;
--		v4l2_dbg(1, debug, sd, "sat:%d\n", state->sat);
--		saa717x_write(sd, 0x10c, state->sat);
--		break;
--
--	case V4L2_CID_HUE:
--		if (ctrl->value < -128 || ctrl->value > 127) {
--			v4l2_err(sd, "invalid hue setting %d\n", ctrl->value);
--			return -ERANGE;
--		}
--
--		state->hue = ctrl->value;
--		v4l2_dbg(1, debug, sd, "hue:%d\n", state->hue);
--		saa717x_write(sd, 0x10d, state->hue);
--		break;
--
--	case V4L2_CID_AUDIO_MUTE:
--		state->audio_main_mute = ctrl->value;
--		set_audio_regs(sd, state);
--		break;
--
--	case V4L2_CID_AUDIO_VOLUME:
--		state->audio_main_volume = ctrl->value;
--		set_audio_regs(sd, state);
--		break;
--
--	case V4L2_CID_AUDIO_BALANCE:
--		state->audio_main_balance = ctrl->value;
--		set_audio_regs(sd, state);
--		break;
--
--	case V4L2_CID_AUDIO_TREBLE:
--		state->audio_main_treble = ctrl->value;
--		set_audio_regs(sd, state);
--		break;
--
--	case V4L2_CID_AUDIO_BASS:
--		state->audio_main_bass = ctrl->value;
--		set_audio_regs(sd, state);
--		break;
--
--	default:
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
--static int saa717x_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int saa717x_s_ctrl(struct v4l2_ctrl *ctrl)
- {
-+	struct v4l2_subdev *sd = to_sd(ctrl);
- 	struct saa717x_state *state = to_state(sd);
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		ctrl->value = state->bright;
--		break;
-+		saa717x_write(sd, 0x10a, ctrl->val);
-+		return 0;
- 
- 	case V4L2_CID_CONTRAST:
--		ctrl->value = state->contrast;
--		break;
-+		saa717x_write(sd, 0x10b, ctrl->val);
-+		return 0;
- 
- 	case V4L2_CID_SATURATION:
--		ctrl->value = state->sat;
--		break;
-+		saa717x_write(sd, 0x10c, ctrl->val);
-+		return 0;
- 
- 	case V4L2_CID_HUE:
--		ctrl->value = state->hue;
--		break;
-+		saa717x_write(sd, 0x10d, ctrl->val);
-+		return 0;
- 
- 	case V4L2_CID_AUDIO_MUTE:
--		ctrl->value = state->audio_main_mute;
-+		state->audio_main_mute = ctrl->val;
- 		break;
- 
- 	case V4L2_CID_AUDIO_VOLUME:
--		ctrl->value = state->audio_main_volume;
-+		state->audio_main_volume = ctrl->val;
- 		break;
- 
- 	case V4L2_CID_AUDIO_BALANCE:
--		ctrl->value = state->audio_main_balance;
-+		state->audio_main_balance = ctrl->val;
- 		break;
- 
- 	case V4L2_CID_AUDIO_TREBLE:
--		ctrl->value = state->audio_main_treble;
-+		state->audio_main_treble = ctrl->val;
- 		break;
- 
- 	case V4L2_CID_AUDIO_BASS:
--		ctrl->value = state->audio_main_bass;
-+		state->audio_main_bass = ctrl->val;
- 		break;
- 
- 	default:
--		return -EINVAL;
-+		return 0;
+I sent this once before, but it seems to have lost its way somehow, so
+apologies if this is a duplicate...
+
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/imon.c |   48 +++++++++++++++++++++++-----------------------
+ 1 files changed, 24 insertions(+), 24 deletions(-)
+
+diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
+index 5e20456..2bae9ba 100644
+--- a/drivers/media/IR/imon.c
++++ b/drivers/media/IR/imon.c
+@@ -385,7 +385,7 @@ static int display_open(struct inode *inode, struct file *file)
+ 		err("%s: display port is already open", __func__);
+ 		retval = -EBUSY;
+ 	} else {
+-		ictx->display_isopen = 1;
++		ictx->display_isopen = true;
+ 		file->private_data = ictx;
+ 		dev_dbg(ictx->dev, "display port opened\n");
  	}
--
-+	set_audio_regs(sd, state);
- 	return 0;
- }
+@@ -422,7 +422,7 @@ static int display_close(struct inode *inode, struct file *file)
+ 		err("%s: display is not open", __func__);
+ 		retval = -EIO;
+ 	} else {
+-		ictx->display_isopen = 0;
++		ictx->display_isopen = false;
+ 		dev_dbg(ictx->dev, "display port closed\n");
+ 		if (!ictx->dev_present_intf0) {
+ 			/*
+@@ -491,12 +491,12 @@ static int send_packet(struct imon_context *ictx)
+ 	}
  
--static struct v4l2_queryctrl saa717x_qctrl[] = {
--	{
--		.id            = V4L2_CID_BRIGHTNESS,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Brightness",
--		.minimum       = 0,
--		.maximum       = 255,
--		.step          = 1,
--		.default_value = 128,
--		.flags         = 0,
--	}, {
--		.id            = V4L2_CID_CONTRAST,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Contrast",
--		.minimum       = 0,
--		.maximum       = 255,
--		.step          = 1,
--		.default_value = 64,
--		.flags         = 0,
--	}, {
--		.id            = V4L2_CID_SATURATION,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Saturation",
--		.minimum       = 0,
--		.maximum       = 255,
--		.step          = 1,
--		.default_value = 64,
--		.flags         = 0,
--	}, {
--		.id            = V4L2_CID_HUE,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Hue",
--		.minimum       = -128,
--		.maximum       = 127,
--		.step          = 1,
--		.default_value = 0,
--		.flags 	       = 0,
--	}, {
--		.id            = V4L2_CID_AUDIO_VOLUME,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Volume",
--		.minimum       = 0,
--		.maximum       = 65535,
--		.step          = 65535 / 100,
--		.default_value = 58880,
--		.flags         = 0,
--	}, {
--		.id            = V4L2_CID_AUDIO_BALANCE,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Balance",
--		.minimum       = 0,
--		.maximum       = 65535,
--		.step          = 65535 / 100,
--		.default_value = 32768,
--		.flags         = 0,
--	}, {
--		.id            = V4L2_CID_AUDIO_MUTE,
--		.type          = V4L2_CTRL_TYPE_BOOLEAN,
--		.name          = "Mute",
--		.minimum       = 0,
--		.maximum       = 1,
--		.step          = 1,
--		.default_value = 1,
--		.flags         = 0,
--	}, {
--		.id            = V4L2_CID_AUDIO_BASS,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Bass",
--		.minimum       = 0,
--		.maximum       = 65535,
--		.step          = 65535 / 100,
--		.default_value = 32768,
--	}, {
--		.id            = V4L2_CID_AUDIO_TREBLE,
--		.type          = V4L2_CTRL_TYPE_INTEGER,
--		.name          = "Treble",
--		.minimum       = 0,
--		.maximum       = 65535,
--		.step          = 65535 / 100,
--		.default_value = 32768,
--	},
--};
--
- static int saa717x_s_video_routing(struct v4l2_subdev *sd,
- 				   u32 input, u32 output, u32 config)
+ 	init_completion(&ictx->tx.finished);
+-	ictx->tx.busy = 1;
++	ictx->tx.busy = true;
+ 	smp_rmb(); /* ensure later readers know we're busy */
+ 
+ 	retval = usb_submit_urb(ictx->tx_urb, GFP_KERNEL);
+ 	if (retval) {
+-		ictx->tx.busy = 0;
++		ictx->tx.busy = false;
+ 		smp_rmb(); /* ensure later readers know we're not busy */
+ 		err("%s: error submitting urb(%d)", __func__, retval);
+ 	} else {
+@@ -682,7 +682,7 @@ static ssize_t store_associate_remote(struct device *d,
+ 		return -ENODEV;
+ 
+ 	mutex_lock(&ictx->lock);
+-	ictx->rf_isassociating = 1;
++	ictx->rf_isassociating = true;
+ 	send_associate_24g(ictx);
+ 	mutex_unlock(&ictx->lock);
+ 
+@@ -950,7 +950,7 @@ static void usb_tx_callback(struct urb *urb)
+ 	ictx->tx.status = urb->status;
+ 
+ 	/* notify waiters that write has finished */
+-	ictx->tx.busy = 0;
++	ictx->tx.busy = false;
+ 	smp_rmb(); /* ensure later readers know we're not busy */
+ 	complete(&ictx->tx.finished);
+ }
+@@ -1215,7 +1215,7 @@ static bool imon_mouse_event(struct imon_context *ictx,
  {
-@@ -1157,18 +974,6 @@ static int saa717x_s_video_routing(struct v4l2_subdev *sd,
- 	return 0;
+ 	char rel_x = 0x00, rel_y = 0x00;
+ 	u8 right_shift = 1;
+-	bool mouse_input = 1;
++	bool mouse_input = true;
+ 	int dir = 0;
+ 
+ 	/* newer iMON device PAD or mouse button */
+@@ -1246,7 +1246,7 @@ static bool imon_mouse_event(struct imon_context *ictx,
+ 	} else if (ictx->kc == KEY_CHANNELDOWN && (buf[2] & 0x40) != 0x40) {
+ 		dir = -1;
+ 	} else
+-		mouse_input = 0;
++		mouse_input = false;
+ 
+ 	if (mouse_input) {
+ 		dev_dbg(ictx->dev, "sending mouse data via input subsystem\n");
+@@ -1450,7 +1450,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 	unsigned char *buf = urb->transfer_buffer;
+ 	struct device *dev = ictx->dev;
+ 	u32 kc;
+-	bool norelease = 0;
++	bool norelease = false;
+ 	int i;
+ 	u64 temp_key;
+ 	u64 panel_key = 0;
+@@ -1517,7 +1517,7 @@ static void imon_incoming_packet(struct imon_context *ictx,
+ 	     !(buf[1] & 0x1 || buf[1] >> 2 & 0x1))) {
+ 		len = 8;
+ 		imon_pad_to_keys(ictx, buf);
+-		norelease = 1;
++		norelease = true;
+ 	}
+ 
+ 	if (debug) {
+@@ -1580,7 +1580,7 @@ not_input_data:
+ 	    (buf[6] == 0x5E && buf[7] == 0xDF))) {	/* DT */
+ 		dev_warn(dev, "%s: remote associated refid=%02X\n",
+ 			 __func__, buf[1]);
+-		ictx->rf_isassociating = 0;
++		ictx->rf_isassociating = false;
+ 	}
  }
  
--static int saa717x_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(saa717x_qctrl); i++)
--		if (qc->id && qc->id == saa717x_qctrl[i].id) {
--			memcpy(qc, &saa717x_qctrl[i], sizeof(*qc));
--			return 0;
--		}
--	return -EINVAL;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int saa717x_g_register(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg)
- {
-@@ -1381,17 +1186,34 @@ static int saa717x_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 	return 0;
- }
+@@ -1790,9 +1790,9 @@ static bool imon_find_endpoints(struct imon_context *ictx,
+ 	int ifnum = iface_desc->desc.bInterfaceNumber;
+ 	int num_endpts = iface_desc->desc.bNumEndpoints;
+ 	int i, ep_dir, ep_type;
+-	bool ir_ep_found = 0;
+-	bool display_ep_found = 0;
+-	bool tx_control = 0;
++	bool ir_ep_found = false;
++	bool display_ep_found = false;
++	bool tx_control = false;
  
-+static int saa717x_log_status(struct v4l2_subdev *sd)
-+{
-+	struct saa717x_state *state = to_state(sd);
-+
-+	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
-+	return 0;
-+}
-+
- /* ----------------------------------------------------------------------- */
+ 	/*
+ 	 * Scan the endpoint list and set:
+@@ -1808,13 +1808,13 @@ static bool imon_find_endpoints(struct imon_context *ictx,
+ 		    ep_type == USB_ENDPOINT_XFER_INT) {
  
-+static const struct v4l2_ctrl_ops saa717x_ctrl_ops = {
-+	.s_ctrl = saa717x_s_ctrl,
-+};
-+
- static const struct v4l2_subdev_core_ops saa717x_core_ops = {
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register = saa717x_g_register,
- 	.s_register = saa717x_s_register,
- #endif
--	.queryctrl = saa717x_queryctrl,
--	.g_ctrl = saa717x_g_ctrl,
--	.s_ctrl = saa717x_s_ctrl,
- 	.s_std = saa717x_s_std,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
-+	.log_status = saa717x_log_status,
- };
+ 			rx_endpoint = ep;
+-			ir_ep_found = 1;
++			ir_ep_found = true;
+ 			dev_dbg(ictx->dev, "%s: found IR endpoint\n", __func__);
  
- static const struct v4l2_subdev_tuner_ops saa717x_tuner_ops = {
-@@ -1427,6 +1249,7 @@ static int saa717x_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *did)
- {
- 	struct saa717x_state *decoder;
-+	struct v4l2_ctrl_handler *hdl;
- 	struct v4l2_subdev *sd;
- 	u8 id = 0;
- 	char *p = "";
-@@ -1462,16 +1285,41 @@ static int saa717x_probe(struct i2c_client *client,
- 		p = "saa7171";
- 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", p,
- 			client->addr << 1, client->adapter->name);
-+
-+	hdl = &decoder->hdl;
-+	v4l2_ctrl_handler_init(hdl, 9);
-+	/* add in ascending ID order */
-+	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-+			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-+			V4L2_CID_CONTRAST, 0, 255, 1, 68);
-+	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-+			V4L2_CID_SATURATION, 0, 255, 1, 64);
-+	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-+			V4L2_CID_HUE, -128, 127, 1, 0);
-+	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, 0, 65535, 65535 / 100, 42000);
-+	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-+			V4L2_CID_AUDIO_BALANCE, 0, 65535, 65535 / 100, 32768);
-+	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-+			V4L2_CID_AUDIO_BASS, -16, 15, 1, 0);
-+	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-+			V4L2_CID_AUDIO_TREBLE, -16, 15, 1, 0);
-+	v4l2_ctrl_new_std(hdl, &saa717x_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-+	sd->ctrl_handler = hdl;
-+	if (hdl->error) {
-+		int err = hdl->error;
-+
-+		v4l2_ctrl_handler_free(hdl);
-+		kfree(decoder);
-+		return err;
-+	}
-+
- 	decoder->std = V4L2_STD_NTSC;
- 	decoder->input = -1;
- 	decoder->enable = 1;
+ 		} else if (!display_ep_found && ep_dir == USB_DIR_OUT &&
+ 			   ep_type == USB_ENDPOINT_XFER_INT) {
+ 			tx_endpoint = ep;
+-			display_ep_found = 1;
++			display_ep_found = true;
+ 			dev_dbg(ictx->dev, "%s: found display endpoint\n", __func__);
+ 		}
+ 	}
+@@ -1835,8 +1835,8 @@ static bool imon_find_endpoints(struct imon_context *ictx,
+ 	 * newer iMON devices that use control urb instead of interrupt
+ 	 */
+ 	if (!display_ep_found) {
+-		tx_control = 1;
+-		display_ep_found = 1;
++		tx_control = true;
++		display_ep_found = true;
+ 		dev_dbg(ictx->dev, "%s: device uses control endpoint, not "
+ 			"interface OUT endpoint\n", __func__);
+ 	}
+@@ -1847,7 +1847,7 @@ static bool imon_find_endpoints(struct imon_context *ictx,
+ 	 * and without... :\
+ 	 */
+ 	if (ictx->display_type == IMON_DISPLAY_TYPE_NONE) {
+-		display_ep_found = 0;
++		display_ep_found = false;
+ 		dev_dbg(ictx->dev, "%s: device has no display\n", __func__);
+ 	}
  
--	/* tune these parameters */
--	decoder->bright = 0x80;
--	decoder->contrast = 0x44;
--	decoder->sat = 0x40;
--	decoder->hue = 0x00;
--
- 	/* FIXME!! */
- 	decoder->playback = 0;	/* initially capture mode used */
- 	decoder->audio = 1; /* DECODER_AUDIO_48_KHZ */
-@@ -1482,23 +1330,13 @@ static int saa717x_probe(struct i2c_client *client,
- 	/* set volume, bass and treble */
- 	decoder->audio_main_vol_l = 6;
- 	decoder->audio_main_vol_r = 6;
--	decoder->audio_main_bass = 0;
--	decoder->audio_main_treble = 0;
--	decoder->audio_main_mute = 0;
--	decoder->audio_main_balance = 32768;
--	/* normalize (24 to -40 (not -84) -> 65535 to 0) */
--	decoder->audio_main_volume =
--		(decoder->audio_main_vol_r + 41) * 65535 / (24 - (-40));
+@@ -1856,7 +1856,7 @@ static bool imon_find_endpoints(struct imon_context *ictx,
+ 	 * that refers to e.g. /dev/lcd0 (a character device LCD or VFD).
+ 	 */
+ 	if (ictx->display_type == IMON_DISPLAY_TYPE_VGA) {
+-		display_ep_found = 0;
++		display_ep_found = false;
+ 		dev_dbg(ictx->dev, "%s: iMON Touch device found\n", __func__);
+ 	}
  
- 	v4l2_dbg(1, debug, sd, "writing init values\n");
+@@ -1905,7 +1905,7 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
  
- 	/* FIXME!! */
- 	saa717x_write_regs(sd, reg_init_initialize);
--	set_video_output_level_regs(sd, decoder);
--	/* set bass,treble to 0db 20041101 K.Ohta */
--	decoder->audio_main_bass = 0;
--	decoder->audio_main_treble = 0;
--	set_audio_regs(sd, decoder);
-+
-+	v4l2_ctrl_handler_setup(hdl);
+ 	ictx->dev = dev;
+ 	ictx->usbdev_intf0 = usb_get_dev(interface_to_usbdev(intf));
+-	ictx->dev_present_intf0 = 1;
++	ictx->dev_present_intf0 = true;
+ 	ictx->rx_urb_intf0 = rx_urb;
+ 	ictx->tx_urb = tx_urb;
  
- 	set_current_state(TASK_INTERRUPTIBLE);
- 	schedule_timeout(2*HZ);
-@@ -1510,6 +1348,7 @@ static int saa717x_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+@@ -1979,7 +1979,7 @@ static struct imon_context *imon_init_intf1(struct usb_interface *intf,
+ 	}
  
- 	v4l2_device_unregister_subdev(sd);
-+	v4l2_ctrl_handler_free(sd->ctrl_handler);
- 	kfree(to_state(sd));
- 	return 0;
- }
+ 	ictx->usbdev_intf1 = usb_get_dev(interface_to_usbdev(intf));
+-	ictx->dev_present_intf1 = 1;
++	ictx->dev_present_intf1 = true;
+ 	ictx->rx_urb_intf1 = rx_urb;
+ 
+ 	ret = -ENODEV;
+@@ -2297,7 +2297,7 @@ static void __devexit imon_disconnect(struct usb_interface *interface)
+ 	}
+ 
+ 	if (ifnum == 0) {
+-		ictx->dev_present_intf0 = 0;
++		ictx->dev_present_intf0 = false;
+ 		usb_kill_urb(ictx->rx_urb_intf0);
+ 		input_unregister_device(ictx->idev);
+ 		if (ictx->display_supported) {
+@@ -2307,7 +2307,7 @@ static void __devexit imon_disconnect(struct usb_interface *interface)
+ 				usb_deregister_dev(interface, &imon_vfd_class);
+ 		}
+ 	} else {
+-		ictx->dev_present_intf1 = 0;
++		ictx->dev_present_intf1 = false;
+ 		usb_kill_urb(ictx->rx_urb_intf1);
+ 		if (ictx->display_type == IMON_DISPLAY_TYPE_VGA)
+ 			input_unregister_device(ictx->touch);
 -- 
-1.6.4.2
+Jarod Wilson
+jarod@redhat.com
 
