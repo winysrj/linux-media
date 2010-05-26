@@ -1,63 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:39020 "EHLO mga01.intel.com"
+Received: from newsmtp5.atmel.com ([204.2.163.5]:1518 "EHLO sjogate2.atmel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933204Ab0ECQY5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 May 2010 12:24:57 -0400
-Date: Mon, 3 May 2010 09:24:55 -0700
-From: Sarah Sharp <sarah.a.sharp@intel.com>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	linux-kernel@vger.kernel.org, Andiry Xu <andiry.xu@amd.com>
-Subject: [PATCH] gspca: Try a less bandwidth-intensive alt setting.
-Message-ID: <20100503162427.GA5132@xanatos>
+	id S1754922Ab0EZOxF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 May 2010 10:53:05 -0400
+Message-ID: <4BFD1C5F.5060403@atmel.com>
+Date: Wed, 26 May 2010 15:04:31 +0200
+From: Sedji Gaouaou <sedji.gaouaou@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-input@vger.kernel.org
+Subject: Re: ATMEL camera interface
+References: <4BD9AA8A.7030306@atmel.com> <Pine.LNX.4.64.1004291824200.4666@axis700.grange> <4BDED3A8.4090606@atmel.com> <Pine.LNX.4.64.1005031556570.4231@axis700.grange> <4BDEDB06.9090909@atmel.com> <Pine.LNX.4.64.1005031622040.4231@axis700.grange> <4BDEEE38.9070801@atmel.com> <Pine.LNX.4.64.1005031836140.4231@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1005031836140.4231@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Under OHCI, UHCI, and EHCI, if an alternate interface setting took too
-much of the bus bandwidth, then submit_urb() would fail.  The xHCI host
-controller does bandwidth checking when the alternate interface setting is
-installed, so usb_set_interface() can fail.  If it does, try the next
-alternate interface setting.
+Hi,
 
-Signed-off-by: Sarah Sharp <sarah.a.sharp@linux.intel.com>
-Tested-by:  Andiry Xu <andiry.xu@amd.com>
----
- drivers/media/video/gspca/gspca.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+So I have decided to go with the v4l2-subdev API.
+I have taken the omapxxcam and vivi.c as exemple, but I have some 
+questions...
+I still don't understand how to register a v4l2 device. I tried to copy 
+the method from vivi.c using v4l2_device_register but it is not working?
+If I just use video_regiter_device, then it is trying to use the default 
+ioctl and open/close functions from v4l2(v4l2_open) instead of the one I 
+hae in my driver...
+What am I doing wrong?
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 222af47..6de3117 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -643,6 +643,7 @@ static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
- 	xfer = gspca_dev->cam.bulk ? USB_ENDPOINT_XFER_BULK
- 				   : USB_ENDPOINT_XFER_ISOC;
- 	i = gspca_dev->alt;			/* previous alt setting */
-+find_alt:
- 	if (gspca_dev->cam.reverse_alts) {
- 		while (++i < gspca_dev->nbalt) {
- 			ep = alt_xfer(&intf->altsetting[i], xfer);
-@@ -666,10 +667,11 @@ static struct usb_host_endpoint *get_ep(struct gspca_dev *gspca_dev)
- 	if (gspca_dev->nbalt > 1) {
- 		gspca_input_destroy_urb(gspca_dev);
- 		ret = usb_set_interface(gspca_dev->dev, gspca_dev->iface, i);
--		if (ret < 0) {
--			err("set alt %d err %d", i, ret);
--			ep = NULL;
--		}
-+		/* xHCI hosts will reject set interface requests
-+		 * if they take too much bandwidth, so try again.
-+		 */
-+		if (ret < 0)
-+			goto find_alt;
- 		gspca_input_create_urb(gspca_dev);
- 	}
- 	return ep;
--- 
-1.6.3.3
+BR,
+Sedji
+
+Le 5/3/2010 6:40 PM, Guennadi Liakhovetski a écrit :
+> On Mon, 3 May 2010, Sedji Gaouaou wrote:
+>
+>> Well sorry to bother you again but I am looking at the mx1_camera.c file, and
+>> I wonder where are implemented the queue and dqueue functions?
+>>
+>> The atmel IP is using linked list for the buffers, and previously I was
+>> managing it in the queue and dqueue functions.
+>> I am not sure where I should take care of it now?
+>
+> qbuf and dqbuf are implemented by soc-camera in soc_camera_qbuf() and
+> soc_camera_dqbuf() respectively, drivers only implement methods from
+> struct videobuf_queue_ops, e.g., a .buf_queue method, which for mx1_camera
+> is implemented by mx1_videobuf_queue().
+>
+> Thanks
+> Guennadi
+>
+>>
+>>
+>> Regards,
+>> Sedji
+>>
+>> Le 5/3/2010 4:26 PM, Guennadi Liakhovetski a écrit :
+>>> On Mon, 3 May 2010, Sedji Gaouaou wrote:
+>>>
+>>>> Well I need contiguous memory, so I guess I will have a look at
+>>>> mx1_camera.c?
+>>>> Is there another example?
+>>>>
+>>>> What do you mean by videobuf implementation? As I said I just need a
+>>>> contiguous memory.
+>>>
+>>> I mean, whether you're gping to use videobuf-dma-contig.c or
+>>> videobuf-dma-sg.c, respectively, whether you'll be calling
+>>> videobuf_queue_dma_contig_init() or videobuf_queue_sg_init() in your
+>>> driver.
+>>>
+>>> Regards
+>>> Guennadi
+>>> ---
+>>> Guennadi Liakhovetski, Ph.D.
+>>> Freelance Open-Source Software Developer
+>>> http://www.open-technology.de/
+>>>
+>>
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+>
+
 
