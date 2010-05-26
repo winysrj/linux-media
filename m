@@ -1,114 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2753 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752953Ab0ECTjN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 15:39:13 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o43JdB3L033642
-	for <linux-media@vger.kernel.org>; Mon, 3 May 2010 21:39:11 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 3 May 2010 21:39:11 +0200 (CEST)
-Message-Id: <201005031939.o43JdB3L033642@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from poutre.nerim.net ([62.4.16.124]:59103 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754228Ab0EZNFS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 May 2010 09:05:18 -0400
+Date: Wed, 26 May 2010 15:05:11 +0200
+From: Jean Delvare <khali@linux-fr.org>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: WARNINGS
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH RESEND] FusionHDTV: Use quick reads for I2C IR device
+ probing
+Message-ID: <20100526150511.3e2560ed@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+IR support on FusionHDTV cards is broken since kernel 2.6.31. One side
+effect of the switch to the standard binding model for IR I2C devices
+was to let i2c-core do the probing instead of the ir-kbd-i2c driver.
+There is a slight difference between the two probe methods: i2c-core
+uses 0-byte writes, while the ir-kbd-i2c was using 0-byte reads. As
+some IR I2C devices only support reads, the new probe method fails to
+detect them.
 
-Results of the daily build of v4l-dvb:
+For now, revert to letting the driver do the probe, using 0-byte
+reads. In the future, i2c-core will be extended to let callers of
+i2c_new_probed_device() provide a custom probing function.
 
-date:        Mon May  3 19:00:18 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14619:ee9826bc7106
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 7c0f523156a70abbcdfed27b6470420a2846dfee
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Tested-by: "Timothy D. Lenz" <tlenz@vorgon.com>
+---
+This fix applies to kernels 2.6.31 to 2.6.34. Should be sent to Linus
+quickly. I had already sent on March 29th, but apparently it was
+overlooked. I have further i2c patches which depend on this one, so
+please process it quickly, otherwise I'll have to push it myself.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc1-armv5: OK
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc1-armv5-davinci: OK
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc1-armv5-ixp: OK
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc1-armv5-omap2: OK
-linux-2.6.22.19-i686: WARNINGS
-linux-2.6.23.17-i686: WARNINGS
-linux-2.6.24.7-i686: OK
-linux-2.6.25.20-i686: OK
-linux-2.6.26.8-i686: OK
-linux-2.6.27.44-i686: OK
-linux-2.6.28.10-i686: OK
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: OK
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc1-m32r: OK
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc1-mips: OK
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: WARNINGS
-linux-2.6.23.17-x86_64: WARNINGS
-linux-2.6.24.7-x86_64: OK
-linux-2.6.25.20-x86_64: OK
-linux-2.6.26.8-x86_64: OK
-linux-2.6.27.44-x86_64: OK
-linux-2.6.28.10-x86_64: OK
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: OK
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: WARNINGS
-linux-2.6.17.14-i686: WARNINGS
-linux-2.6.18.8-i686: WARNINGS
-linux-2.6.19.7-i686: WARNINGS
-linux-2.6.20.21-i686: WARNINGS
-linux-2.6.21.7-i686: WARNINGS
-linux-2.6.16.62-x86_64: WARNINGS
-linux-2.6.17.14-x86_64: WARNINGS
-linux-2.6.18.8-x86_64: WARNINGS
-linux-2.6.19.7-x86_64: WARNINGS
-linux-2.6.20.21-x86_64: WARNINGS
-linux-2.6.21.7-x86_64: WARNINGS
+ drivers/media/video/cx23885/cx23885-i2c.c |   12 +++++++++++-
+ drivers/media/video/cx88/cx88-i2c.c       |   16 +++++++++++++++-
+ 2 files changed, 26 insertions(+), 2 deletions(-)
 
-Detailed results are available here:
+--- linux-2.6.34-rc1.orig/drivers/media/video/cx23885/cx23885-i2c.c	2010-02-25 09:10:33.000000000 +0100
++++ linux-2.6.34-rc1/drivers/media/video/cx23885/cx23885-i2c.c	2010-03-18 13:33:05.000000000 +0100
+@@ -365,7 +365,17 @@ int cx23885_i2c_register(struct cx23885_
+ 
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+ 		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
+-		i2c_new_probed_device(&bus->i2c_adap, &info, addr_list);
++		/*
++		 * We can't call i2c_new_probed_device() because it uses
++		 * quick writes for probing and the IR receiver device only
++		 * replies to reads.
++		 */
++		if (i2c_smbus_xfer(&bus->i2c_adap, addr_list[0], 0,
++				   I2C_SMBUS_READ, 0, I2C_SMBUS_QUICK,
++				   NULL) >= 0) {
++			info.addr = addr_list[0];
++			i2c_new_device(&bus->i2c_adap, &info);
++		}
+ 	}
+ 
+ 	return bus->i2c_rc;
+--- linux-2.6.34-rc1.orig/drivers/media/video/cx88/cx88-i2c.c	2010-02-25 09:08:40.000000000 +0100
++++ linux-2.6.34-rc1/drivers/media/video/cx88/cx88-i2c.c	2010-03-18 13:33:05.000000000 +0100
+@@ -188,10 +188,24 @@ int cx88_i2c_init(struct cx88_core *core
+ 			0x18, 0x6b, 0x71,
+ 			I2C_CLIENT_END
+ 		};
++		const unsigned short *addrp;
+ 
+ 		memset(&info, 0, sizeof(struct i2c_board_info));
+ 		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
+-		i2c_new_probed_device(&core->i2c_adap, &info, addr_list);
++		/*
++		 * We can't call i2c_new_probed_device() because it uses
++		 * quick writes for probing and at least some R receiver
++		 * devices only reply to reads.
++		 */
++		for (addrp = addr_list; *addrp != I2C_CLIENT_END; addrp++) {
++			if (i2c_smbus_xfer(&core->i2c_adap, *addrp, 0,
++					   I2C_SMBUS_READ, 0,
++					   I2C_SMBUS_QUICK, NULL) >= 0) {
++				info.addr = *addrp;
++				i2c_new_device(&core->i2c_adap, &info);
++				break;
++			}
++		}
+ 	}
+ 	return core->i2c_rc;
+ }
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Jean Delvare
