@@ -1,264 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:27683 "EHLO mga14.intel.com"
+Received: from killer.cirr.com ([192.67.63.5]:52908 "EHLO killer.cirr.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751428Ab0E0IiR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 May 2010 04:38:17 -0400
-From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>
-Date: Thu, 27 May 2010 16:37:32 +0800
-Subject: RE: [RFC] Memory allocation requirements, videobuf integration,
- pluggable allocators
-Message-ID: <33AB447FBD802F4E932063B962385B351E9975EE@shsmsx501.ccr.corp.intel.com>
-References: <003501cafc06$894f0120$9bed0360$%osciak@samsung.com>
- <19F8576C6E063C45BE387C64729E7394044E616AD4@dbde02.ent.ti.com>
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E616AD4@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1754155Ab0EZA6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 May 2010 20:58:16 -0400
+Received: from afc by tashi.lonestar.org with local (Exim 4.69)
+	(envelope-from <afc@shibaya.lonestar.org>)
+	id 1OH4lg-0006IK-QH
+	for linux-media@vger.kernel.org; Tue, 25 May 2010 20:46:44 -0400
+Date: Tue, 25 May 2010 20:46:44 -0400
+From: "A. F. Cano" <afc@shibaya.lonestar.org>
+To: linux-media@vger.kernel.org
+Subject: Subject: Composite input from OnAir Creator - use as security
+	camera
+Message-ID: <20100526004644.GA23817@shibaya.lonestar.org>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Looking forward to the proposal. Indeed,  Intel Moorestown is suffered from the videobuf framework limitation. 
 
-Xiaolin
+Hello,
 
------Original Message-----
-From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
-Sent: Wednesday, May 26, 2010 1:06 PM
-To: Pawel Osciak; linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com; 'Marek Szyprowski'
-Subject: RE: [RFC] Memory allocation requirements, videobuf integration, pluggable allocators
+I would like to be able to capture video from a camera connected to the
+composite video input of an OnAir Creator.  I have tried motion, mplayer,
+kaffeine, mythtv, xawtv and none have worked so far.  Hopefully it's something
+trivial that I'm doing wrong.  I am using an up to date Debian Lenny
+distribution.
 
+Months (or even 1+ years) ago, I gave the OnAir Creator a try and had issues
+with having to hunt down the firmware file.  Since I don't get firmware error
+messages, I presume this issue is no longer relevant, or is it?  My previous
+experience was with Etch, Lenny was installed from scratch, so if the firmware
+didn't get installed automatically, it isn't in place.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Pawel Osciak
-> Sent: Tuesday, May 25, 2010 6:04 PM
-> To: linux-media@vger.kernel.org
-> Cc: kyungmin.park@samsung.com; 'Marek Szyprowski'
-> Subject: [RFC] Memory allocation requirements, videobuf integration,
-> pluggable allocators
-> 
-> Hello,
-> 
-> this RFC concerns video buffer allocation in videobuf, as well as in V4L in
-> general.
-> 
-> Its main purpose is to discuss issues, gather comments and specific
-> requirements, proposals and ideas for allocation mechanisms from
-> interested parties.
-> 
-[Hiremath, Vaibhav] Thanks Pawel for summarizing VideoBuf need into RFC.
+This is the kernel used:
 
-> Background
-> ======================
-> V4L drivers use memory buffers for storing video/media data, such as video
-> frames. There are many different ways to acquire such memory and devices may
-> have special requirements for it. Further handling of it also differs
-> between
-> drivers.
-> 
-> Typical ways of acquiring memory for media devices include:
-> - allocating a number of non-contiguous pages (e.g. alloc_page)
-> - acquiring a number of physically contiguous pages:
->   * bootmem allocation
->   * other custom solutions?
-> - allocating virtually contiguous memory (vmalloc)
-> - device-specific/private/on-board memory
-> - others?
-> 
-> The above examples are quite standard, but just to give you an idea of more
-> exotic cases:
-> - allocation of memory from specific memory banks
-> - allocation of buffers in a particular arrangement
-> - allocation with specific CPU flags, etc.
-> 
-> If the above sounds too unrealistic/too abstract to you: these are the
-> actual
-> requirements for our (Samsung) devices.
-> 
-> Furthermore, there might be some additional considerations:
-> - VM_PFNMAP memory - may need additional refcounting
-> - how to handle problems with remapping memory with different flags
-> - others?
-> 
-[Hiremath, Vaibhav] We do have similar requirement for OMAP devices.
+Linux version 2.6.26-2-686 (Debian 2.6.26-21lenny4) (dannf@debian.org) (gcc version 4.1.3 20080704 (prerelease) (Debian 4.1.2-25)) #1 SMP Tue Mar 9 17:35:51 UTC 2010
 
-> Of course, freeing can also be handled in a plethora of ways.
-> 
-> Moreover, related to the above are specific operations that may have to be
-> performed, such as syncing caches, page pinning, etc.
-> 
-> 
-> Motivation
-> ======================
-> Videobuf framework memory-type code (videobuf-vmalloc, videobuf-dma-sg,
-> videobuf-dma-contig) has been created to help developers in some of the
-> above-mentioned case. Unfortunately, I see the following main, inherent
-> problems with it:
-> 
-> - memory allocation is performed in videobuf code in a fixed way. There is
->   no way for drivers to override this; e.g., dma_alloc_coherent is used for
->   dma-contig memory,
-> 
-> - it is performed during mmap (dma-contig, vmalloc) or even on VM fault
->   sometimes (dma-sg); this does not conform to the V4L2 API, which states
->   that allocation should be done on REQBUFS call,
-> 
-> - freeing is not centralized (it is also performed on STREAMOFF, which is
->   really bad, but this is a topic for a separate RFC)
-> 
-> This prevents driver developers from using videobuf, sometimes they just use
-> parts of it, add custom/incompatible modifications, or are, as a matter of
-> fact,
-> "forced" to duplicate parts of its code. Some drivers are dependent on
-> boot-time allocation mechanisms. Examples include (apologies to the authors
-> if I am mistaken here):
-> 
-> - Intel Moorestown
-> - OMAP
-[Hiremath, Vaibhav] Let me explain V4L2 Display allocation schema here,
+It seems the problem is that an ioctl() call is failing.  Is this a case of
+Lenny being too old or is there a more fundamental problem?  Do I need to send
+something to the Creator to get it to start sending? or is this automatic when
+the applications start?
 
-We have defined module parameters, to specify buffer size and number of buffers which user can configure through boot argument or during module insert time.
+It would be nice to use the Creator inputs (composite for now, but if I could
+get it to work the S-video input would be even better) for digitizing old
+analog video tapes, essentially making a video-capture device.
 
-Driver always keep this specified number of buffers until removed from system. That means we are not freeing memory (allocated during boot time) neither in streamoff nor in close API.
+o Motion
 
-Since driver manages buffer allocation we are not using video-buf mmap_mapper function here, we have our own mmap_mapper function.
-
-> - multimedia devices in Samsung SoCs- drivers are not yet posted for the
-> sole
->   reason that we need a bootmem-based allocator mechanism, which is hard to
-> have
->   accepted. Custom allocators in kernel for every platform/device are not
->   received well, for good reasons.
-> - others?
-> 
-> From various discussions I believe that there are more parties interested in
-> having custom memory allocation mechanisms. Moreover, the current situation
-> in
-> videobuf calls for fixing (e.g. allocation should be performed on REQBUFS).
-> 
-> 
-> 
-> A request for requirements, ideas and comments
-> ================================================
-> We would like to change this situation. Before proposing anything, we would
-> like
-> to first gather:
-> 
-> - device-specific requirements and, possibly, peculiarities,
-> - more general ideas and requirements for a generic allocator framework
->   for media devices,
-> - a list of devices that would benefit from this,
-[Hiremath, Vaibhav] You can safely consider/add following TI devices,
-
-OMAP2/3/4 (OMAP3/OAMP4) series of devices
-Davinci series of devices
-AM/DM37x series of devices 
-Some future devices in this segment...
-
-> - a list of drivers that do not use videobuf because of problems with
-> adapting
->   to its memory allocation scheme.
-[Hiremath, Vaibhav] As I mentioned we do use Video-Buf partially.
-> 
-> They do not have to be videobuf-specific, although we would like to
-> integrate
-> the resulting solution with either the current videobuf, or its future
-> rework.
-> 
-> To clarify, I am mainly trying to gather requirements for videobuf or
-> similar
-> frameworks to introduce a generic interface for plugging-in custom memory
-> allocation mechanisms, not really trying to implement a solving-world-hunger
-> memory allocator.
-> 
-> There is also the topic of a video buffer pool, discussed last year. How it
-> relates to this topic and its integration (in any form) with videobuf could
-> also be of interest here.
-> 
-> 
-> I will be grateful for any comments, thoughts or ideas. Thank you!
-> 
-> 
-> =========================
-> 
-> Below is a (hopefully complete) list of required features for Samsung
-> multimedia
-> devices, related to memory allocation:
-> 
-> - physically contiguous memory buffers of different sizes (up to several
->   megabytes)
-> - memory allocation from particular memory banks (ranges of physical
-> addresses)
-> - partitioning areas of memory into custom zones and an ability to allocate
-> from
->   a chosen zone
-> - an ability to share memory buffers across different devices in a pipeline
-> - automatic video buffer allocation from videobuf is the main use case, but
->   direct access to the memory allocator from drivers (for temporary buffers,
->   firmware etc.) is also required
-> - ability to pre-configure allocator behavior by drivers
-> 
-[Hiremath, Vaibhav] If you have anything in mind readily available on this, then I would suggest you to propose here in this forum for discussion.
-
-Below are some suggestions or my opinions -
--------------------------------
-
-1) Irrespective of this RFC, I think we should change the Video-Buf behavior where buffer allocation must happen in VIDIOC_REQBUF and not in MMAP.
-
-2) It would be really nice if Video-Buf checks whether buffer is allocated by driver or not before allocating it, providing flexibility to driver to handle buffer allocation on his own.
-
-3) I am thinking of thin layer which takes boot time argument specifying total buffer size for Video-Buf layer which is taken away from Linux kernel. Allocation will happen in VIDIOC_REQBUF and will be released either in streamoff/close API.
-
-videobuf_size=40M
-
-Video-buf layer will take away 40M from Linux kernel during boot time itself, then Video-buf layer manages/uses this pool for memory allocation.
-
-Note: There are other issues which still need to be discussed as mentioned by Pawel in RFC like, cache, multiple drivers request with different sizes and stuff which defines complexity of this thin layer.
-
--------------------------------
+"motion" would be the ideal application.  I have it properly configured and it
+works with usb web cams, but the quality of the picture is horrible.  I have
+an old NTSC video conferencing camera that has a much better picture, but
+motion doesn't seem to be able to deal with the OnAir Creator:
 
 
-Atleast from OMAP2/3 Display driver point of view, points 1 & 2 are important and will help driver to use completely standard Video-Buf API's.
+[1] cap.driver: "pvrusb2"
+[1] cap.card: "OnAir Creator Hybrid USB tuner"
+[1] cap.bus_info: "usb 4-3 address 11"
+[1] cap.capabilities=0x01070011
+[1] - VIDEO_CAPTURE
+[1] - VBI_CAPTURE
+[1] - TUNER
+[1] - AUDIO
+[1] - READWRITE
+[1] VIDIOC_S_FREQUENCY: Numerical result out of range
+[1] Supported palettes:
+[1] 0:
+[1] Unable to find a compatible palette format.
+[1] ioctl(VIDIOCGMBUF) - Error device does not support memory map
+[1] V4L capturing using read is deprecated!
+[1] Motion only supports mmap.
+[1] Capture error calling vid_start
+[1] Thread finishing...
+
+Is there anything that can be done about this? or is "motion" a lost cause?
+
+o Mplayer
+
+$ mplayer -tv input=1:normid=16 tv://
+MPlayer dev-SVN-r26940
+CPU: Intel(R) Pentium(R) M processor 1400MHz (Family: 6, Model: 9, Stepping: 5)
+CPUflags:  MMX: 1 MMX2: 1 3DNow: 0 3DNow2: 0 SSE: 1 SSE2: 1
+Compiled with runtime CPU detection.
+Can't open joystick device /dev/input/js0: No such file or directory
+Can't init input joystick
+mplayer: could not connect to socket
+mplayer: No such file or directory
+Failed to open LIRC support. You will not be able to use your remote control.
+
+Playing tv://.
+TV file format detected.
+Selected driver: v4l2
+ name: Video 4 Linux 2 input
+ author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
+ comment: first try, more to come ;-)
+Selected device: OnAir Creator Hybrid USB tuner
+ Tuner cap:
+ Tuner rxs:
+ Capabilites:  video capture  VBI capture device  tuner  audio  read/write
+ supported norms: 0 = PAL-B/G; 1 = PAL-D/K; 2 = SECAM-B/G; 3 = SECAM-D/K; 4 = PAL-B; 5 = PAL-B1; 6 = PAL-G; 7 = PAL-H; 8 = PAL-I; 9 = PAL-D; 10 = PAL-D1; 11 = PAL-K; 12 = PAL-M; 13 = PAL-N; 14 = PAL-Nc; 15 = PAL-60; 16 = NTSC-M; 17 = NTSC-Mj; 18 = NTSC-443; 19 = NTSC-Mk; 20 = SECAM-B; 21 = SECAM-D; 22 = SECAM-G; 23 = SECAM-H; 24 = SECAM-K; 25 = SECAM-K1; 26 = SECAM-L; 27 = SECAM-LC;
+ inputs: 0 = television; 1 = composite; 2 = s-video;
+ Current input: 1
+ Current format: unknown (0x0)
+v4l2: current audio mode is : MONO
+v4l2: ioctl request buffers failed: Invalid argument
+v4l2: 0 frames successfully processed, 0 frames dropped.
 
 
-Thanks,
-Vaibhav
+Exiting... (End of file)
 
-> Some nice-to-have features:
-> 
-> - pluggable memory allocation strategies
-> - cacheable/non-cacheable buffers
-> - CPU cache synchronization for non-coherent areas
-> - support for VM_PFNMAP memory, such as framebuffer memory, etc.
-> (alternative
->   methods of reference counting required)
-> - shared memory (shmem) support, zero-copy X server interoperability
-> - support for contiguous memory allocated by userspace, including contiguity
->   checks and (maybe) bounce buffers
-> - usage/fragmentation statistics
-> 
-> Best regards
-> --
-> Pawel Osciak
-> Linux Platform Group
-> Samsung Poland R&D Center
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So in this case, with the input=1 option, it seems that at least I'm getting to
+the correct input, but overall it also fails.  Can mplayer be given other
+options to make it work? or is this also a lost cause?  I have tried with all
+the NTSC norms: same result.
+
+o Kaffeine and MythTV
+
+In those two apps, I can't find where to configure it to use the composite
+input.  Plus, they are way too much for what I need, but if I could use
+MythTV with zone minder as has been mentioned in the MythTV list, it would do
+nicely.  Unfortunately, zone minder doesn't seem to be in Lenny.
+
+Months (years?) ago, I did manage to get MythTV to work with analog signals
+but the reception was horrible so I gave up.  Watching TV is not a high
+priority and I never installed the amplified roof antenna.  I never figured
+out how to select the composite or S-video inputs from within MythTV.
+
+o xawtv
+
+xawtv doesn't have a norm for NTSC (only PAL and SECAM) so even though I can
+select the composite input:  no picture.  It also says:
+
+v4l-conf had some trouble, trying to continue anyway
+Warning: Cannot convert string "-*-ledfixed-medium-r-*--39-*-*-*-c-*-*-*" to type FontStruct
+v4l2: read: rc=262144/size=442368
+
+So,  what else can I try?  Any hints welcome.  Thanks.
+
+A.
+
