@@ -1,145 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2510 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838Ab0EZVAq (ORCPT
+Received: from mail-qy0-f183.google.com ([209.85.221.183]:53137 "EHLO
+	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751936Ab0EZS25 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 17:00:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Tentative agenda for Helsinki mini-summit
-Date: Wed, 26 May 2010 23:02:33 +0200
-Cc: linux-media@vger.kernel.org, "Zhong, Jeff" <hzhong@quicinc.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	Sergio Rodriguez <saaguirre@ti.com>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <201005231236.49048.hverkuil@xs4all.nl> <4BFD42AD.4090701@redhat.com>
-In-Reply-To: <4BFD42AD.4090701@redhat.com>
+	Wed, 26 May 2010 14:28:57 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005262302.33508.hverkuil@xs4all.nl>
+In-Reply-To: <AANLkTikE3bYGaQDthmOIZRSFEPteJqpzL3g1AiQJpUxh@mail.gmail.com>
+References: <20100401145632.5631756f@pedra>
+	<t2z9e4733911004011844pd155bbe8g13e4cbcc1a5bf1f6@mail.gmail.com>
+	<20100402102011.GA6947@hardeman.nu>
+	<p2ube3a4a1004051349y11e3004bk1c71e3ab38d3f669@mail.gmail.com>
+	<20100407093205.GB3029@hardeman.nu>
+	<z2hbe3a4a1004231040uce51091fnf24b97de215e3ef1@mail.gmail.com>
+	<20100424051206.GA3101@hardeman.nu>
+	<h2hbe3a4a1004272132y46e90a8ak862f20620053b1cc@mail.gmail.com>
+	<AANLkTikE3bYGaQDthmOIZRSFEPteJqpzL3g1AiQJpUxh@mail.gmail.com>
+Date: Wed, 26 May 2010 14:28:52 -0400
+Message-ID: <AANLkTin4KkvVZPUVHmURgSUPaGW8N-7xDVPfAlV7ZKtv@mail.gmail.com>
+Subject: Re: [PATCH 00/15] ir-core: Several improvements to allow adding LIRC
+	and decoder plugins
+From: Jarod Wilson <jarod@wilsonet.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: Jon Smirl <jonsmirl@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-input@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 26 May 2010 17:47:57 Hans de Goede wrote:
-> Hi,
-> 
-> I would like to add my "RFC: a processing plugin API for libv4l" to the
-> schedule, see the mail I just send. This actually is one of the main
-> reasons for me to come to the summit.
+On Tue, May 25, 2010 at 5:05 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> On Wed, Apr 28, 2010 at 12:32 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
+>> On Sat, Apr 24, 2010 at 1:12 AM, David Härdeman <david@hardeman.nu> wrote:
+>>> On Fri, Apr 23, 2010 at 01:40:34PM -0400, Jarod Wilson wrote:
+>>>> So now that I'm more or less done with porting the imon driver, I
+>>>> think I'm ready to start tackling the mceusb driver. But I'm debating
+>>>> on what approach to take with respect to lirc support. It sort of
+>>>> feels like we should have lirc_dev ported as an ir "decoder"
+>>>> driver/plugin before starting to port mceusb to ir-core, so that we
+>>>> can maintain lirc compat and transmit support. Alternatively, I could
+>>>> port mceusb without lirc support for now, leaving it to only use
+>>>> in-kernel decoding and have no transmit support for the moment, then
+>>>> re-add lirc support. I'm thinking that porting lirc_dev as, say,
+>>>> ir-lirc-decoder first is probably the way to go though. Anyone else
+>>>> want to share their thoughts on this?
+>>>
+>>> I think it would make sense to start with a mce driver without the TX
+>>> and lirc bits first. Adding lirc rx support can be done as a separate
+>>> "raw" decoder later (so its scope is outside the mce driver anyway) and
+>>> TX support is not implemented in ir-core yet and we haven't had any
+>>> discussion yet on which form it should take.
+>>
+>> So after looking at folks feedback, I did settle on starting the
+>> mceusb port first, my logic going more or less like this... Having a
+>> well-supported general-purpose IR receiver functional is a Good Thing
+>> for people wanting to work on protocol support (i.e., so they have a
+>> way to actually test protocol support). Having an
+>> already-ir-core-ified driver to test out an ir-lirc-decoder (lirc_dev
+>> port) would also be rather helpful. So rather than trying to port
+>> lirc_dev before there's anything that can actually make use of it,
+>> give myself something to work with. I'm kind of thinking that
+>> ir-lirc-decoder might actually be ir-lirc-codec, able to do xmit as
+>> well, maintaining full compat with lirc userspace, and then we'd have
+>> a separate input subsystem based xmit method at some point, which
+>> might be the "preferred/blessed" route. This means ripping a bunch of
+>> code out of lirc_mceusb.c only to put it back in later, but that's not
+>> terribly painful. I've already got as far as having an mceusb.c that
+>> has no lirc dependency, which builds, but doesn't actually do anything
+>> useful yet (not wired up to ir-core). Should be able to get something
+>> functional RSN, I hope...
+>
+> Got sidetracked for a few weeks, but I'm probably 95% of the way there
+> as of this afternoon. Something isn't quite right with how I'm
+> processing and handing off the raw IR data right now though, best as I
+> can tell. Its also possible my first-gen mce device is throwing things
+> for a loop, so I need to see if maybe things Just Work with a newer
+> gen device so I know if its device-specific, or if something is still
+> generally wrong. I did crib the simplified mce data processing routine
+> from Jon's code, but the original lirc_mceusb.c has some changes
+> specific to the first-gen mce device that were made to properly
+> support it quite some time after Jon's port, so I may also try w/the
+> uglier/more complex routine I know has been working on this device...
+>
+> David, you mentioned having something based on Jon's earlier port that
+> was more or less working. I'd be curious to get a look at that if
+> you're willing to drop me a copy, see if I've missed something
+> blindingly stupid. :)
 
-OK, I'll add it. I'll post an update topic list this weekend.
+I was missing something blindingly stupid. Was accumulating duration
+values in ms instead of us. Now alternating presses of the OK button
+on the stock MCE remote get this:
 
-Regards,
+ir_rc6_decode: RC6(6A) scancode 0x800f0422 (toggle: 1)
+ir_rc6_decode: RC6(6A) scancode 0x800f0422 (toggle: 0)
 
-	Hans
-
-> Thanks & Regards,
-> 
-> Hans
-> 
-> 
-> On 05/23/2010 12:36 PM, Hans Verkuil wrote:
-> > Hi all,
-> >
-> > This is a tentative agenda for the Helsinki mini-summit on June 14-16.
-> >
-> > Please reply to this thread if you have comments or want to add topics.
-> >
-> > The overall layout of the summit is to use the first day to go through all
-> > topics and either come to a conclusion quickly for the 'simple' topics, or
-> > discuss enough so that everyone understands the problem for the more complex
-> > issues.
-> >
-> > The second day will be used for in-depth discussions on those complex topics
-> > and on the third day we will go through all topics again and translate the
-> > discussions into something concrete like a time-line, action items, etc.
-> >
-> > We have a lot to discuss, so we may have to split the second day into two
-> > 'tracks', each discussing different topics. I hope it is not needed, but I
-> > fear we may have no choice. If we do split up, then one track will touch on
-> > the videobuf-related topics and the other on the remaining topics.
-> >
-> > The first day will also feature a few short presentations on various topics.
-> > Presentations shouldn't be longer than, say, 10 minutes. These presentations
-> > are meant to get everyone up to speed quickly.
-> >
-> > After each topic I've put the names of the main developers active in that area.
-> > If you see your name, then make sure you know the status of that topic so you
-> > can explain it to everyone else. If I think it warrants a presentation, then I
-> > will mention that. Of course, if you disagree, or want/don't want to do a
-> > presentation then just say so. It's a tentative agenda only.
-> >
-> > The topics below are in no particular order except for the first one. I am
-> > very pleased that Qualcomm has joined this project so I think it would be
-> > nice to start the meeting off with a presentation on their HW architecture.
-> >
-> > 1) Presentation on the Qualcomm video hw architecture. Most of us have no
-> >     experience with Qualcomm hardware, so I've asked Jeff Zhong to give a short
-> >     overview of their video hardware.
-> >
-> > 2) Removal of V4L1: status of driver conversion in the kernel, status of
-> >     moving v4l1->v4l2 conversion into libv4l1. What needs to be done, when
-> >     will it be done and who will do it. Driver conversion: Hans Verkuil,
-> >     libv4l1 conversion: Hans de Goede.
-> >
-> > 3) videobuf/videobuf2: what are the shortcomings, what are the requirements for
-> >     a 'proper' videobuf implementation, can the existing videobuf be fixed or do
-> >     we need a videobuf2. If the latter, what would be needed to convert existing
-> >     drivers over to a videobuf2. Laurent Pinchart and Pawel Osciak. This I'm sure
-> >     requires a presentation.
-> >
-> > 4) Multi-planar support. Pawel Osciak.
-> >
-> > 5) Media Controller Roadmap. Laurent Pinchart. This probably warrants a short
-> >     presentation.
-> >
-> > 6) TO DO list regarding V4L2 core framework including the new control framework.
-> >     Hans Verkuil. Will be a presentation.
-> >
-> > 7) Status of the Texas Instruments drivers: omapX (Hiremath Vaibhav) and DMxxxx
-> >     (Sergio Aguirre). Probably should be a short presentation.
-> >
-> > 8) soc-camera status. Particularly with regards to the remaining soc-camera
-> >     dependencies in sensor drivers. Guennadi Liakhovetski.
-> >
-> > 9) Driver compliance. We need a framework for V4L2 driver compliance. Hans
-> >     Verkuil.
-> >
-> > 10) Discuss list of 'reference' programs to test against. Mauro?
-> >
-> > 11) Adopting old V4L1 programs and converting to V4L2. Hans de Goede?
-> >
-> > 12) Status of intel drivers. Xiaolin Zhang.
-> >
-> > It is my understanding that we will also have X11 and gstreamer experts on hand.
-> > Topics relating to that are welcome.
-> >
-> > During the memory handling brainstorming session earlier this year we also
-> > touched on creating some sort of a generic buffer model allowing for easy
-> > exchange between v4l buffers, framebuffers, texture buffers, etc. It is my
-> > opinion that we should not discuss this in Helsinki. The list of topics is
-> > already quite long and I think it is too early to start working on that. We
-> > probably need another brainstorming session first in order to come up with
-> > a reasonable proposal.
-> >
-> > Comments? Topics I missed?
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+This is with Jon's IR handling routine and a recent MCE device, still
+need to go back and see how the older one behaves, but within the next
+few days, I should have a patch worthy of submission.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Jarod Wilson
+jarod@wilsonet.com
