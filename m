@@ -1,78 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3226 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751030Ab0EIJVe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 05:21:34 -0400
-Received: from tschai.localnet (cm-84.208.87.21.getinternet.no [84.208.87.21])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id o499LWdq025150
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 9 May 2010 11:21:33 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: RFC: behavior of QUERYSTD when no signal is present
-Date: Sun, 9 May 2010 11:23:05 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Received: from poutre.nerim.net ([62.4.16.124]:56122 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752189Ab0EZMnR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 May 2010 08:43:17 -0400
+Date: Wed, 26 May 2010 14:43:13 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Dan Carpenter <error27@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Beholder Intl. Ltd. Dmitry Belimov" <d.belimov@gmail.com>,
+	hermann pitton <hermann-pitton@arcor.de>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch v3 1/2] video/saa7134: change dprintk() to i2cdprintk()
+Message-ID: <20100526144313.1d15222f@hyperion.delvare>
+In-Reply-To: <20100525091816.GA13034@bicker>
+References: <20100525091816.GA13034@bicker>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201005091123.05375.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-What is VIDIOC_QUERYSTD supposed to do when there is no signal?
+Hi Dan,
 
-The spec says this:
+On Tue, 25 May 2010 11:19:53 +0200, Dan Carpenter wrote:
+> The problem is that dprintk() dereferences "dev" which is null here.
+> The i2cdprintk() uses "ir" so that's OK.
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> ---
+> v2: Jean Delvare suggested that I use i2cdprintk() instead of modifying
+> dprintk().
+> v3: V2 had a bonus cleanup that I removed from v3
+> 
+> diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
+> index e5565e2..7691bf2 100644
+> --- a/drivers/media/video/saa7134/saa7134-input.c
+> +++ b/drivers/media/video/saa7134/saa7134-input.c
+> @@ -141,8 +141,8 @@ static int get_key_flydvb_trio(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+>  	struct saa7134_dev *dev = ir->c->adapter->algo_data;
+>  
+>  	if (dev == NULL) {
+> -		dprintk("get_key_flydvb_trio: "
+> -			 "gir->c->adapter->algo_data is NULL!\n");
+> +		i2cdprintk("get_key_flydvb_trio: "
+> +			   "gir->c->adapter->algo_data is NULL!\n");
 
-"The hardware may be able to detect the current video standard automatically.
-To do so, applications call VIDIOC_QUERYSTD with a pointer to a v4l2_std_id
-type. The driver stores here a set of candidates, this can be a single flag
-or a set of supported standards if for example the hardware can only
-distinguish between 50 and 60 Hz systems. When detection is not possible or
-fails, the set must contain all standards supported by the current video
-input or output."
+Sorry for noticing only now, but "gir->" in the comment is odd. As seen
+in the code above, it's actually "ir->". Maybe you want to fix this, as
+you are already touching that line anyway.
 
-The last sentence is the problem. There are several possibilities:
 
-1) The hardware is physically unable to detect the current video std. In that
-case this ioctl shouldn't be implemented at all.
+Other than this, this patch is:
 
-2) While detecting the std an error occurs (e.g. i2c read error). In that case
-the error should be returned.
+Acked-by: Jean Delvare <khali@linux-fr.org>
 
-3) There is no input signal. Does that constitute 'detection is not possible or
-fails'? If so, then all supported standards should be returned. But that seems
-very strange. After all, I did detect the standard: i.e. there is none, so I
-would say that QUERYSTD should return V4L2_STD_UNKNOWN (0).
+>  		return -EIO;
+>  	}
+>  
+> @@ -195,8 +195,8 @@ static int get_key_msi_tvanywhere_plus(struct IR_i2c *ir, u32 *ir_key,
+>  	/* <dev> is needed to access GPIO. Used by the saa_readl macro. */
+>  	struct saa7134_dev *dev = ir->c->adapter->algo_data;
+>  	if (dev == NULL) {
+> -		dprintk("get_key_msi_tvanywhere_plus: "
+> -			"gir->c->adapter->algo_data is NULL!\n");
+> +		i2cdprintk("get_key_msi_tvanywhere_plus: "
+> +			   "gir->c->adapter->algo_data is NULL!\n");
+>  		return -EIO;
+>  	}
+>  
+> 
 
-A quick check of the current state of affairs when no signal is present reveals
-that:
-
-- saa7115, ks0127, saa7191 return 0 with std set to V4L2_STD_ALL
-- adv7180, vpx3220 return 0 with std set to V4L2_STD_UNKNOWN
-- saa7110 returns 0 with std set to the current std
-- bt819 and bttv do not handle this case at all, and just pick 50 Hz or 60 Hz
-- tvp514x returns -EINVAL.
-
-Lovely... :-)
-
-It is clear that applications currently have no hope in hell to use the output
-of querystd in a reliable manner. For all practical purposes the behavior of
-querystd when no signal is present is undefined.
-
-I would propose to specify that if no signal is present then QUERYSTD should
-return 0 with std V4L2_STD_UNKNOWN.
-
-It would also be consistent with QUERY_DV_PRESET where the preset DV_INVALID
-is returned in that case.
-
-If we decide to change it, then it is trivial to fix all drivers that implement
-querystd.
-
-Comments?
-
-	Hans
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Jean Delvare
