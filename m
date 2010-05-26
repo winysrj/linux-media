@@ -1,73 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:38591 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751307Ab0EOXHm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 May 2010 19:07:42 -0400
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: Douglas Schilling Landgraf <dougsland@redhat.com>
-Subject: Re: av7110 and budget_av are broken!
-Date: Sun, 16 May 2010 01:06:52 +0200
-Cc: "Hans Verkuil" <hverkuil@xs4all.nl>,
-	"e9hack" <e9hack@googlemail.com>, linux-media@vger.kernel.org,
-	"Mauro Carvalho Chehab" <mchehab@infradead.org>
-References: <ee20bb7da9d2708352bb7236108294d5.squirrel@webmail.xs4all.nl> <201004211144.19591@orion.escape-edv.de>
-In-Reply-To: <201004211144.19591@orion.escape-edv.de>
+Received: from bld-mail18.adl2.internode.on.net ([150.101.137.103]:46714 "EHLO
+	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S934201Ab0EZHB0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 May 2010 03:01:26 -0400
+Message-ID: <4BFCC741.8070204@gmail.com>
+Date: Wed, 26 May 2010 17:01:21 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Markus Rechberger <mrechberger@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ideal DVB-C PCI/e card? [linux-media]
+References: <4BF8D735.9070400@gmail.com>	<4BF9717D.9080209@s5r6.in-berlin.de>	<4BFA1F26.7070709@gmail.com>	<4BFC2691.1040203@s5r6.in-berlin.de>	<AANLkTikStvq6xhdS-e5skEy0LiTMSEBntIyBcb_AK7tc@mail.gmail.com>	<4BFCA843.2080203@gmail.com>	<4BFCAB05.4000104@gmail.com> <AANLkTilkwWVkHgUV2YBcpscsbeUt6GSCpudc0F7W-OSX@mail.gmail.com>
+In-Reply-To: <AANLkTilkwWVkHgUV2YBcpscsbeUt6GSCpudc0F7W-OSX@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201005160106.56028@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 21 April 2010 11:44:16 Oliver Endriss wrote:
-> On Wednesday 21 April 2010 08:37:39 Hans Verkuil wrote:
-> > > Am 22.3.2010 20:34, schrieb e9hack:
-> > >> Am 20.3.2010 22:37, schrieb Hans Verkuil:
-> > >>> On Saturday 20 March 2010 17:03:01 e9hack wrote:
-> > >>> OK, I know that. But does the patch I mailed you last time fix this
-> > >>> problem
-> > >>> without causing new ones? If so, then I'll post that patch to the list.
-> > >>
-> > >> With your last patch, I've no problems. I'm using a a TT-C2300 and a
-> > >> Budget card. If my
-> > >> VDR does start, currently I've no chance to determine which module is
-> > >> load first, but it
-> > >> works. If I unload all modules and load it again, I've no problem. In
-> > >> this case, the
-> > >> modules for the budget card is load first and the modules for the FF
-> > >> loads as second one.
-> > >
-> > > Ping!!!!!!
-> >
-> > It's merged in Mauro's fixes tree, but I don't think those pending patches
-> > have been pushed upstream yet. Mauro, can you verify this? They should be
-> > pushed to 2.6.34!
-> 
-> What about the HG driver?
-> The v4l-dvb HG repository is broken for 7 weeks...
+>>>>>>>> Ideally it'd be dual DVB-C, the only one I've found is more than dual
+>>>>>>>> DVB-C&  is far too expensive.
+>>>>>>>
+>>>>>>> If you need two receivers but can only spare up to one PCI or PCIe
+>>>>>>> slot,
+>>>>>>> why not use two USB or FireWire attached receivers?
+>>>>>>>
+>>>>>>> FireWire ones seem to be out of production now though and weren't
+>>>>>>> exactly on the cheap side. OTOH one can drive up to 3 DVB FireWire
+>>>>>>> receivers on a single FireWire bus; and for those who need even more
+>>>>>>> there are dual link FireWire PCI and PCIe cards readily available.
+>>>>>>
+>>>>>> Thanks for offering your thoughts Stefan.
+>>>>>> Any specific recommendations?
+>>>>>>
+>>>>>> Ideally I want two or more dvb-c tuners in a pci/e form-factor.
+>>>>>>
+>>>>>> If there's FW or USB tuners that are mounted onto a PCI/e card, work
+>>>>>> well in Linux,&  are relatively cheap, then I'd love to know!
+>>>>>
+>>>>> I don't have an overview over USB tuners.
+>>>>>
+>>>>
+>>>> We have USB DVB-C/T hybrid devices which are supported with Linux.
+>>>>
+>>>> http://support.sundtek.com/index.php/topic,4.0.html (the driver is
+>>>> mostly independent from
+>>>> Linux Kernels).
+>>>>
+>>>> Aside of that we just made it work on a Dreambox 800 (300 Mhz MIPS as
+>>>> well, and looking forward
+>>>> to support other platforms as well).
+>>>>
+>>>>
+>>>> http://sundtek.com/shop/Digital-TV-Sticks/Sundtek-MediaTV-Digital-Home-DVB-CT.html
+>>>>
+>>>>
+>>>> Best Regards,
+>>>> Markus
+>>>
+>>> Thanks but I'd prefer PCI/e form-factor...
+>>> If there's something fw or usb-based x2,&  squeezed into that
+>>> form-factor, I'm very interested!
+>>
+>> I may only have room for 1x pci/e dvb-c card (hopefully one that has two
+>> single fw tuners mounted).
+>> So I may still look at USB based tuners like yours...
+>>
+>
+> There are also MiniPCIe USB DVB-C/T solutions available, although we
+> have only seen single
+> PCIe - MiniPCIe solutions yet (and those required an additional
+> internal USB connection for the USB part)
+> Another option might be a PCI/PCIe USB Bridge +  USB DVB-C, we tested
+> 3x USB DVB-C devices
+> with a notebook at the same time (maybe 4 are possible, our test PC
+> only had 3x USB Slots back then).
 
-Hi guys,
+Not sure what you mean, I don't suppose you could clarify?
 
-we have May 16th, and the HG driver is broken for 10 weeks now!
+You mean I might be able to buy 2x mini-PCIe cards that can be mounted 
+onto a PCIe <-> USB bridge & then that card (bridge) will have two usb 
+cables that need to be connected to 2 USB headers on the motherboard?
 
-History:
-- The changeset which caused the mess was applied on March 2nd:
-  http://linuxtv.org/hg/v4l-dvb/rev/2eda2bcc8d6f
-
-- A fix is waiting at fixes.git since March 24th:
-  http://git.linuxtv.org/fixes.git?a=commitdiff_plain;h=40358c8b5380604ac2507be2fac0c9bbd3e02b73
-
-Are there any plans to bring v4ldvb HG to an usable state?
-
-CU
-Oliver
-
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+If yes, that'd be fairly pricey wouldn't it?
