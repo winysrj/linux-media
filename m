@@ -1,48 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ny01.nytud.hu ([193.6.194.1]:37248 "EHLO ny01.nytud.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752112Ab0EDUqL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 May 2010 16:46:11 -0400
-Received: (from oravecz@localhost)
-	by ny01.nytud.hu (8.11.6/8.11.6) id o44KVGv14553
-	for linux-media@vger.kernel.org; Tue, 4 May 2010 22:31:16 +0200
-Message-Id: <201005042031.o44KVGv14553@ny01.nytud.hu>
-Subject: MSI DigiVox A/D II (analog sound) problem reloaded
-To: linux-media@vger.kernel.org
-Date: Tue, 4 May 2010 22:31:16 +0200 (CEST)
-From: Oravecz Csaba <oravecz@nytud.hu>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:33834 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932536Ab0EZHOc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 May 2010 03:14:32 -0400
+Received: by gwaa12 with SMTP id a12so559000gwa.19
+        for <linux-media@vger.kernel.org>; Wed, 26 May 2010 00:14:27 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4BFCC741.8070204@gmail.com>
+References: <4BF8D735.9070400@gmail.com>
+	<4BF9717D.9080209@s5r6.in-berlin.de>
+	<4BFA1F26.7070709@gmail.com>
+	<4BFC2691.1040203@s5r6.in-berlin.de>
+	<AANLkTikStvq6xhdS-e5skEy0LiTMSEBntIyBcb_AK7tc@mail.gmail.com>
+	<4BFCA843.2080203@gmail.com>
+	<4BFCAB05.4000104@gmail.com>
+	<AANLkTilkwWVkHgUV2YBcpscsbeUt6GSCpudc0F7W-OSX@mail.gmail.com>
+	<4BFCC741.8070204@gmail.com>
+Date: Wed, 26 May 2010 09:14:25 +0200
+Message-ID: <AANLkTiluewH2PfhWMg8WThvVnLTInkcTl2yhD08aOmIE@mail.gmail.com>
+Subject: Re: ideal DVB-C PCI/e card? [linux-media]
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Jed <jedi.theone@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, May 26, 2010 at 9:01 AM, Jed <jedi.theone@gmail.com> wrote:
+>
+> Not sure what you mean, I don't suppose you could clarify?
+>
+> You mean I might be able to buy 2x mini-PCIe cards that can be mounted onto
+> a PCIe <-> USB bridge & then that card (bridge) will have two usb cables
+> that need to be connected to 2 USB headers on the motherboard?
+>
+> If yes, that'd be fairly pricey wouldn't it?
+>
 
-quite some time ago there was some discussion on this issue but i suspect it
-has not been resolved ever since.
+I'm only writing about the technical possibilities.
+Personally I prefer the USB Dongles, since they are flexible. Once you
+leave your
+home you can just unplug the DVB-C tuner connect it to a
+notebook/netbook and use
+it for FM, analog TV or DVB-T.
 
-On Thu, 15 Jan 2009 09:32:14 Bastian Beekes wrote:
-
-> So I tried modprobe em28xx card=50, which is my MSI DigiVox A/D II - the
-> video was alright, but when I ran arecord -D hw:1,0 -f dat | aplay -f dat , I
-> only got buffer underruns. So I pulled a fresh copy from hg, compiled &
-> installed it, rebooted, plugged - now the stick gets detected without the
-> card=50 option, but still only buffer underruns in arecord | aplay.
-> what now?
-
-In the old days, in Markus Rechberger's mcentral driver beside the em28xx-audio
-module there was another module, called em28xx-audioep, which was, i assume,
-dedicated to this kind of devices, and had to be loaded to get analogue
-sound. Now that mcentral has gone into oblivion and kernels evolve, this
-device has become unusable with recent linux distros, i.e. with the stock
-kernel drivers video is nice but there is no sound whatsoever.
-
-Lacking the necessary competence myself to look into this matter, i'm humbly
-asking whether someone on this list could help make this card working. I could
-of course provide diagnostics and also the source file for em28xx-audioep if
-the issue is taken up.
-
-Best,
-csaba oravecz
-
+Markus
