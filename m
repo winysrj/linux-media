@@ -1,84 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:47952 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754741Ab0E3V3H (ORCPT
+Received: from einhorn.in-berlin.de ([192.109.42.8]:58956 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751018Ab0EZID0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 17:29:07 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
-Date: Sun, 30 May 2010 23:28:54 +0200
-Cc: "Jean-Francois Moine" <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-References: <201005291909.33593.linux@rainbow-software.org> <201005301955.24442.linux@rainbow-software.org> <1275247574.7020.7.camel@localhost>
-In-Reply-To: <1275247574.7020.7.camel@localhost>
+	Wed, 26 May 2010 04:03:26 -0400
+Message-ID: <4BFCD5BF.1090804@s5r6.in-berlin.de>
+Date: Wed, 26 May 2010 10:03:11 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: post 2.6.34 bug: new code enabled by default
+References: <tkrat.872472794cabd92e@s5r6.in-berlin.de> <4BFC9FA5.3040201@redhat.com>
+In-Reply-To: <4BFC9FA5.3040201@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201005302328.56690.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 30 May 2010 21:26:14 Andy Walls wrote:
-> On Sun, 2010-05-30 at 19:55 +0200, Ondrej Zary wrote:
-> > On Sunday 30 May 2010 13:34:55 Jean-Francois Moine wrote:
-> > > On Sat, 29 May 2010 21:32:07 +0200
-> > >
-> > > Ondrej Zary <linux@rainbow-software.org> wrote:
-> > > > The Color Space/Compression reported by the driver is only one: RGB
-> > > > 24 The driver also uses these files which may (or may not) be related
-> > > > to used compression: iyuv_32.dll, msh263.drv, msyuv.dll, tsbyuv.dll
-> > > > In standalone mode, the camera records video in MJPEG format.
-> > >
-> > > Hello Ondrej,
-> > >
-> > > Bad news, the images are compressed by an unknown algorithm (unknown
-> > > from Linux point of vue). The decompression function could be found in
-> > > some part of the ms-win driver, but:
-> > > - first, I have no time to search and disassemble this function,
-> > > - then, I did have this problem with an other webcam (17a1:0118), and
-> > >   after searching for a long time, nobody could find the function, and
-> > >   the driver is in stand-by since 2 years,
-> > > - eventually, is this legal?
-> >
-> > That's bad...
-> >
-> > The driver contains file sp5x_32.dll which is registered in system.ini
-> > file as [drivers32]
-> > VIDC.SP54=SP5X_32.DLL
-> >
-> > Seems that the codec is called SP54 - hope that it's used to decompress
-> > the data.
-> >
-> > > All I can do is to code the driver and let you or anyone find the
-> > > decompression function...
->
-> SP54 is Sunplus' ( http://www.sunplus.com.tw/ ) FourCC code for a
-> version of MJPEG with the headers removed according to
->
-> 	http://www.fourcc.org/
->
-> > Maybe we can dump some data, create AVI file from that and try to decode
-> > the file using that codec.
->
-> FourCC.org points to this page:
->
-> 	http://libland.fr.st/download.html
->
-> which points to a utility to conver the data back into an MJPEG:
->
-> 	http://mxhaard.free.fr/spca50x/Download/sp54convert.tar.gz
->
->
-> I have no idea if any of the above is true, 'cause I read it on the
-> Internet. ;)
+Mauro Carvalho Chehab wrote:
+> Stefan Richter wrote:
+[CONFIG_RC_MAP et al]
+>> Please leave the default of new options at N.
+>>
+>> (Unless this were a special case of new options that replaced older
+>> options and need to be migrated to 'on' per default in make oldconfig.
+>> I think this is not the case here.)
+> 
+> This is the case here. Before the RC subsystem, the decoding for NEC and RC-5
+> were done inside ir-core (at ir-functions). Also, all the keymap entries (RC_MAP)
+> were compiled in-kernel.
 
-Modified that utility to work on raw video frame extracted from usbsnoop file. 
-The bad news is that the resulting jpeg file is not readable.
+OK.  I happened to have a setup in which nothing of this was actually
+used before.  (CONFIG_FIREDTV as only DVB tuner driver.)  --- Aha, it is
+just a consequence of ir-core being enabled by default regardless if
+needed, since 2.6.33:
 
-I also deleted the sp5x_32.dll file and the camera still works...
-
+config IR_CORE
+	tristate
+	depends on INPUT
+	default INPUT
 -- 
-Ondrej Zary
+Stefan Richter
+-=====-==-=- -=-= ==-=-
+http://arcgraph.de/sr/
