@@ -1,41 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:38872 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932169Ab0EYJWQ (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40395 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753035Ab0EZOMJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 May 2010 05:22:16 -0400
-Date: Tue, 25 May 2010 11:21:50 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Beholder Intl. Ltd. Dmitry Belimov" <d.belimov@gmail.com>,
-	hermann pitton <hermann-pitton@arcor.de>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch v3 2/2] video/saa7134: remove duplicate break
-Message-ID: <20100525092149.GA13089@bicker>
+	Wed, 26 May 2010 10:12:09 -0400
+Date: Wed, 26 May 2010 16:12:08 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: About master clock frequency in soc-camera
+Message-ID: <20100526141208.GT17272@pengutronix.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The original code had two break statements in a row.
+Hi Guennadi et all,
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
----
-v3: Put this in a seperate patch.
+On our i.MX27 board we have a wide range of cameras (mt9m001, mt9v022,
+mt9m131). Registering all of them and let the probe routines decide
+which one is connected works quite good.
+The problem I have now is that the mt9m131 allows for a higher master
+clock frequency. ATM the mclk is given with the mx2_camera platform data
+(same on i.MX31), thus only one mclk frequency is supported per kernel
+image. Do you have any hints on how to make the mclk a parameter of the
+sensors?
 
-diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-index e5565e2..7691bf2 100644
---- a/drivers/media/video/saa7134/saa7134-input.c
-+++ b/drivers/media/video/saa7134/saa7134-input.c
-@@ -815,7 +815,6 @@ int saa7134_input_init1(struct saa7134_dev *dev)
- 		mask_keyup   = 0x020000;
- 		polling      = 50; /* ms */
- 		break;
--	break;
- 	}
- 	if (NULL == ir_codes) {
- 		printk("%s: Oops: IR config error [card=%d]\n",
+Sascha
 
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
