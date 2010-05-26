@@ -1,108 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:57519 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751274Ab0EAQxQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 12:53:16 -0400
-Received: by wye20 with SMTP id 20so841366wye.19
-        for <linux-media@vger.kernel.org>; Sat, 01 May 2010 09:53:15 -0700 (PDT)
-Date: Sat, 1 May 2010 16:58:50 +0200
-From: Frederic Weisbecker <fweisbec@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Arnd Bergmann <arnd@arndb.de>, John Kacur <jkacur@redhat.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Jan Blunck <jblunck@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg KH <gregkh@suse.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/5] Pushdown bkl from v4l ioctls
-Message-ID: <20100501145848.GA5353@nowhere>
-References: <alpine.LFD.2.00.1004280750330.3739@i5.linux-foundation.org> <201004290844.29347.hverkuil@xs4all.nl> <201004290910.43412.laurent.pinchart@ideasonboard.com> <201005011155.37057.hverkuil@xs4all.nl>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2510 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752838Ab0EZVAq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 May 2010 17:00:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Tentative agenda for Helsinki mini-summit
+Date: Wed, 26 May 2010 23:02:33 +0200
+Cc: linux-media@vger.kernel.org, "Zhong, Jeff" <hzhong@quicinc.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	Sergio Rodriguez <saaguirre@ti.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201005231236.49048.hverkuil@xs4all.nl> <4BFD42AD.4090701@redhat.com>
+In-Reply-To: <4BFD42AD.4090701@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201005011155.37057.hverkuil@xs4all.nl>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005262302.33508.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, May 01, 2010 at 11:55:37AM +0200, Hans Verkuil wrote:
-> On Thursday 29 April 2010 09:10:42 Laurent Pinchart wrote:
-> > Hi Hans,
-> > 
-> > On Thursday 29 April 2010 08:44:29 Hans Verkuil wrote:
-> > > On Thursday 29 April 2010 05:42:39 Frederic Weisbecker wrote:
-> > > > Hi,
-> > > > 
-> > > > Linus suggested to rename struct v4l2_file_operations::ioctl
-> > > > into bkl_ioctl to eventually get something greppable and make
-> > > > its background explicit.
-> > > > 
-> > > > While at it I thought it could be a good idea to just pushdown
-> > > > the bkl to every v4l drivers that have an .ioctl, so that we
-> > > > actually remove struct v4l2_file_operations::ioctl for good.
-> > > > 
-> > > > It passed make allyesconfig on sparc.
-> > > > Please tell me what you think.
-> > > 
-> > > I much prefer to keep the bkl inside the v4l2 core. One reason is that I
-> > > think that we can replace the bkl in the core with a mutex. Still not
-> > > ideal of course, so the next step will be to implement proper locking in
-> > > each driver. For this some additional v4l infrastructure work needs to be
-> > > done. I couldn't proceed with that until the v4l events API patches went
-> > > in, and that happened yesterday.
-> > > 
-> > > So from my point of view the timeline is this:
-> > > 
-> > > 1) I do the infrastructure work this weekend. This will make it much easier
-> > > to convert drivers to do proper locking. And it will also simplify
-> > > v4l2_priority handling, so I'm killing two birds with one stone :-)
-> > > 
-> > > 2) Wait until Arnd's patch gets merged that pushes the bkl down to
-> > > v4l2-dev.c
-> > > 
-> > > 3) Investigate what needs to be done to replace the bkl with a v4l2-dev.c
-> > > global mutex. Those drivers that call the bkl themselves should probably be
-> > > converted to do proper locking, but there are only about 14 drivers that do
-> > > this. The other 60 or so drivers should work fine if a v4l2-dev global lock
-> > > is used. At this point the bkl is effectively removed from the v4l
-> > > subsystem.
-> > > 
-> > > 4) Work on the remaining 60 drivers to do proper locking and get rid of the
-> > > v4l2-dev global lock. This is probably less work than it sounds.
-> > > 
-> > > Since your patch moves everything down to the driver level it will actually
-> > > make this work harder rather than easier. And it touches almost all drivers
-> > > as well.
-> > 
-> > Every driver will need to be carefully checked to make sure the BKL can be 
-> > replaced by a v4l2-dev global mutex. Why would it be more difficult to do so 
-> > if the BKL is pushed down to the drivers ?
+On Wednesday 26 May 2010 17:47:57 Hans de Goede wrote:
+> Hi,
 > 
-> The main reason is really that pushing the bkl into the v4l core makes it
-> easier to review. I noticed for example that this patch series forgot to change
-> the video_ioctl2 call in ivtv-ioctl.c to video_ioctl2_unlocked. And there may
-> be other places as well that were missed. Having so many drivers changed also
-> means a lot of careful reviewing.
+> I would like to add my "RFC: a processing plugin API for libv4l" to the
+> schedule, see the mail I just send. This actually is one of the main
+> reasons for me to come to the summit.
 
+OK, I'll add it. I'll post an update topic list this weekend.
 
-Indeed, that's because I did it in a half automated way and my script
-didn't took the direct calls to video_ioctl2() into account, so I had
-to check them manually and probably missed a few, I will fix this one and
-double check.
+Regards,
 
+	Hans
 
+> Thanks & Regards,
 > 
-> But I will not block this change. However, I do think it would be better to
-> create a video_ioctl2_bkl rather than add a video_ioctl2_unlocked. The current
-> video_ioctl2 function *is* already unlocked. So you are subtle changing the
-> behavior of video_ioctl2. Not a good idea IMHO. And yes, grepping for
-> video_ioctl2_bkl is also easy to do and makes it more obvious that the BKL is
-> used in drivers that call this.
+> Hans
+> 
+> 
+> On 05/23/2010 12:36 PM, Hans Verkuil wrote:
+> > Hi all,
+> >
+> > This is a tentative agenda for the Helsinki mini-summit on June 14-16.
+> >
+> > Please reply to this thread if you have comments or want to add topics.
+> >
+> > The overall layout of the summit is to use the first day to go through all
+> > topics and either come to a conclusion quickly for the 'simple' topics, or
+> > discuss enough so that everyone understands the problem for the more complex
+> > issues.
+> >
+> > The second day will be used for in-depth discussions on those complex topics
+> > and on the third day we will go through all topics again and translate the
+> > discussions into something concrete like a time-line, action items, etc.
+> >
+> > We have a lot to discuss, so we may have to split the second day into two
+> > 'tracks', each discussing different topics. I hope it is not needed, but I
+> > fear we may have no choice. If we do split up, then one track will touch on
+> > the videobuf-related topics and the other on the remaining topics.
+> >
+> > The first day will also feature a few short presentations on various topics.
+> > Presentations shouldn't be longer than, say, 10 minutes. These presentations
+> > are meant to get everyone up to speed quickly.
+> >
+> > After each topic I've put the names of the main developers active in that area.
+> > If you see your name, then make sure you know the status of that topic so you
+> > can explain it to everyone else. If I think it warrants a presentation, then I
+> > will mention that. Of course, if you disagree, or want/don't want to do a
+> > presentation then just say so. It's a tentative agenda only.
+> >
+> > The topics below are in no particular order except for the first one. I am
+> > very pleased that Qualcomm has joined this project so I think it would be
+> > nice to start the meeting off with a presentation on their HW architecture.
+> >
+> > 1) Presentation on the Qualcomm video hw architecture. Most of us have no
+> >     experience with Qualcomm hardware, so I've asked Jeff Zhong to give a short
+> >     overview of their video hardware.
+> >
+> > 2) Removal of V4L1: status of driver conversion in the kernel, status of
+> >     moving v4l1->v4l2 conversion into libv4l1. What needs to be done, when
+> >     will it be done and who will do it. Driver conversion: Hans Verkuil,
+> >     libv4l1 conversion: Hans de Goede.
+> >
+> > 3) videobuf/videobuf2: what are the shortcomings, what are the requirements for
+> >     a 'proper' videobuf implementation, can the existing videobuf be fixed or do
+> >     we need a videobuf2. If the latter, what would be needed to convert existing
+> >     drivers over to a videobuf2. Laurent Pinchart and Pawel Osciak. This I'm sure
+> >     requires a presentation.
+> >
+> > 4) Multi-planar support. Pawel Osciak.
+> >
+> > 5) Media Controller Roadmap. Laurent Pinchart. This probably warrants a short
+> >     presentation.
+> >
+> > 6) TO DO list regarding V4L2 core framework including the new control framework.
+> >     Hans Verkuil. Will be a presentation.
+> >
+> > 7) Status of the Texas Instruments drivers: omapX (Hiremath Vaibhav) and DMxxxx
+> >     (Sergio Aguirre). Probably should be a short presentation.
+> >
+> > 8) soc-camera status. Particularly with regards to the remaining soc-camera
+> >     dependencies in sensor drivers. Guennadi Liakhovetski.
+> >
+> > 9) Driver compliance. We need a framework for V4L2 driver compliance. Hans
+> >     Verkuil.
+> >
+> > 10) Discuss list of 'reference' programs to test against. Mauro?
+> >
+> > 11) Adopting old V4L1 programs and converting to V4L2. Hans de Goede?
+> >
+> > 12) Status of intel drivers. Xiaolin Zhang.
+> >
+> > It is my understanding that we will also have X11 and gstreamer experts on hand.
+> > Topics relating to that are welcome.
+> >
+> > During the memory handling brainstorming session earlier this year we also
+> > touched on creating some sort of a generic buffer model allowing for easy
+> > exchange between v4l buffers, framebuffers, texture buffers, etc. It is my
+> > opinion that we should not discuss this in Helsinki. The list of topics is
+> > already quite long and I think it is too early to start working on that. We
+> > probably need another brainstorming session first in order to come up with
+> > a reasonable proposal.
+> >
+> > Comments? Topics I missed?
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
-
-Totally agreed, will respin with this rename.
-
-Thanks.
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
