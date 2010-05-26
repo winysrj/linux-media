@@ -1,84 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.tech.numericable.fr ([82.216.111.38]:52086 "EHLO
-	smtp2.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751499Ab0EGHFN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 03:05:13 -0400
-Date: Fri, 7 May 2010 09:05:15 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] stv6110x Fix kernel null pointer deref when plugging
- two TT s2-1600
-Message-ID: <20100507090515.2fb971a7@zombie>
-In-Reply-To: <20100503230924.3f560423@pedra>
-References: <20100411231529.1538cf69@borg.bxl.tuxicoman.be>
-	<20100503230924.3f560423@pedra>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/h5nd.1tCdRmmR=cMVPXjv.f"
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:33405 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752574Ab0EZGhn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 May 2010 02:37:43 -0400
+Received: by gwaa12 with SMTP id a12so540778gwa.19
+        for <linux-media@vger.kernel.org>; Tue, 25 May 2010 23:37:42 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4BFCAB05.4000104@gmail.com>
+References: <4BF8D735.9070400@gmail.com>
+	<4BF9717D.9080209@s5r6.in-berlin.de>
+	<4BFA1F26.7070709@gmail.com>
+	<4BFC2691.1040203@s5r6.in-berlin.de>
+	<AANLkTikStvq6xhdS-e5skEy0LiTMSEBntIyBcb_AK7tc@mail.gmail.com>
+	<4BFCA843.2080203@gmail.com>
+	<4BFCAB05.4000104@gmail.com>
+Date: Wed, 26 May 2010 08:37:40 +0200
+Message-ID: <AANLkTilkwWVkHgUV2YBcpscsbeUt6GSCpudc0F7W-OSX@mail.gmail.com>
+Subject: Re: ideal DVB-C PCI/e card? [linux-media]
+From: Markus Rechberger <mrechberger@gmail.com>
+To: Jed <jedi.theone@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/h5nd.1tCdRmmR=cMVPXjv.f
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+On Wed, May 26, 2010 at 7:00 AM, Jed <jedi.theone@gmail.com> wrote:
+>>>>>>> Ideally it'd be dual DVB-C, the only one I've found is more than dual
+>>>>>>> DVB-C& is far too expensive.
+>>>>>>
+>>>>>> If you need two receivers but can only spare up to one PCI or PCIe
+>>>>>> slot,
+>>>>>> why not use two USB or FireWire attached receivers?
+>>>>>>
+>>>>>> FireWire ones seem to be out of production now though and weren't
+>>>>>> exactly on the cheap side. OTOH one can drive up to 3 DVB FireWire
+>>>>>> receivers on a single FireWire bus; and for those who need even more
+>>>>>> there are dual link FireWire PCI and PCIe cards readily available.
+>>>>>
+>>>>> Thanks for offering your thoughts Stefan.
+>>>>> Any specific recommendations?
+>>>>>
+>>>>> Ideally I want two or more dvb-c tuners in a pci/e form-factor.
+>>>>>
+>>>>> If there's FW or USB tuners that are mounted onto a PCI/e card, work
+>>>>> well in Linux,& are relatively cheap, then I'd love to know!
+>>>>
+>>>> I don't have an overview over USB tuners.
+>>>>
+>>>
+>>> We have USB DVB-C/T hybrid devices which are supported with Linux.
+>>>
+>>> http://support.sundtek.com/index.php/topic,4.0.html (the driver is
+>>> mostly independent from
+>>> Linux Kernels).
+>>>
+>>> Aside of that we just made it work on a Dreambox 800 (300 Mhz MIPS as
+>>> well, and looking forward
+>>> to support other platforms as well).
+>>>
+>>>
+>>> http://sundtek.com/shop/Digital-TV-Sticks/Sundtek-MediaTV-Digital-Home-DVB-CT.html
+>>>
+>>>
+>>> Best Regards,
+>>> Markus
+>>
+>> Thanks but I'd prefer PCI/e form-factor...
+>> If there's something fw or usb-based x2, & squeezed into that
+>> form-factor, I'm very interested!
+>
+> I may only have room for 1x pci/e dvb-c card (hopefully one that has two
+> single fw tuners mounted).
+> So I may still look at USB based tuners like yours...
+>
 
+There are also MiniPCIe USB DVB-C/T solutions available, although we
+have only seen single
+PCIe - MiniPCIe solutions yet (and those required an additional
+internal USB connection for the USB part)
+Another option might be a PCI/PCIe USB Bridge +  USB DVB-C, we tested
+3x USB DVB-C devices
+with a notebook at the same time (maybe 4 are possible, our test PC
+only had 3x USB Slots back then).
 
-Hi Mauro,
-
-> This fix seem to be at the wrong place. There's nothing on stv090x.c
-> that require a not null value for fe->tuner_priv.
-
-Thanks for the review !
-
-> So, a better fix for your bug is to add a check for fe->tuner_priv
-> inside stv6110x_sleep().
-
-
-Fix initialization of the TT s2-1600 card when plugging two of them in
-the same box. Check for fe->tuner_priv to be set when
-stv6110x_sleep() is called.
-
-Signed-off-by : Guy Martin <gmsoft@tuxicoman.be>
-
-
-Regards,
-  Guy
-
-
---MP_/h5nd.1tCdRmmR=cMVPXjv.f
-Content-Type: text/x-patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=stv6110x-sleep-null-deref.patch
-
-diff -r 4a8d6d981f07 linux/drivers/media/dvb/frontends/stv6110x.c
---- a/linux/drivers/media/dvb/frontends/stv6110x.c	Wed May 05 11:58:44 2010 -0300
-+++ b/linux/drivers/media/dvb/frontends/stv6110x.c	Fri May 07 08:51:18 2010 +0200
-@@ -302,7 +302,10 @@
- 
- static int stv6110x_sleep(struct dvb_frontend *fe)
- {
--	return stv6110x_set_mode(fe, TUNER_SLEEP);
-+	if (fe->tuner_priv)
-+		return stv6110x_set_mode(fe, TUNER_SLEEP);
-+
-+	return 0;
- }
- 
- static int stv6110x_get_status(struct dvb_frontend *fe, u32 *status)
-diff -r 4a8d6d981f07 linux/drivers/media/dvb/ttpci/budget.c
---- a/linux/drivers/media/dvb/ttpci/budget.c	Wed May 05 11:58:44 2010 -0300
-+++ b/linux/drivers/media/dvb/ttpci/budget.c	Fri May 07 08:51:18 2010 +0200
-@@ -461,8 +461,8 @@
- };
- 
- static struct isl6423_config tt1600_isl6423_config = {
--	.current_max		= SEC_CURRENT_515m,
--	.curlim			= SEC_CURRENT_LIM_ON,
-+	.current_max		= SEC_CURRENT_800m,
-+	.curlim			= SEC_CURRENT_LIM_OFF,
- 	.mod_extern		= 1,
- 	.addr			= 0x08,
- };
-
---MP_/h5nd.1tCdRmmR=cMVPXjv.f--
+Markus
