@@ -1,36 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:40395 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753035Ab0EZOMJ (ORCPT
+Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:41827
+	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757459Ab0E0Qku (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 10:12:09 -0400
-Date: Wed, 26 May 2010 16:12:08 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
+	Thu, 27 May 2010 12:40:50 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
 To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: About master clock frequency in soc-camera
-Message-ID: <20100526141208.GT17272@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Cc: Markus Demleitner <msdemlei@tucana.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Ellingsworth <david@identd.dyndns.org>
+Subject: [PATCH/RFC v2 4/8] dsbr100: remove disconnected indicator
+Date: Thu, 27 May 2010 12:39:12 -0400
+Message-Id: <1274978356-25836-5-git-send-email-david@identd.dyndns.org>
+In-Reply-To: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
+References: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi et all,
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/dsbr100.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-On our i.MX27 board we have a wide range of cameras (mt9m001, mt9v022,
-mt9m131). Registering all of them and let the probe routines decide
-which one is connected works quite good.
-The problem I have now is that the mt9m131 allows for a higher master
-clock frequency. ATM the mclk is given with the mx2_camera platform data
-(same on i.MX31), thus only one mclk frequency is supported per kernel
-image. Do you have any hints on how to make the mclk a parameter of the
-sensors?
-
-Sascha
-
+diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
+index b62fe40..c949ace 100644
+--- a/drivers/media/radio/dsbr100.c
++++ b/drivers/media/radio/dsbr100.c
+@@ -151,7 +151,6 @@ struct dsbr100_device {
+ 	struct mutex lock;	/* buffer locking */
+ 	int curfreq;
+ 	int stereo;
+-	int removed;
+ 	int status;
+ };
+ 
+@@ -353,7 +352,7 @@ static void usb_dsbr100_disconnect(struct usb_interface *intf)
+ 	usb_set_intfdata (intf, NULL);
+ 
+ 	mutex_lock(&radio->lock);
+-	radio->removed = 1;
++	radio->usbdev = NULL;
+ 	mutex_unlock(&radio->lock);
+ 
+ 	v4l2_device_disconnect(&radio->v4l2_dev);
+@@ -521,7 +520,7 @@ static long usb_dsbr100_ioctl(struct file *file, unsigned int cmd,
+ 
+ 	mutex_lock(&radio->lock);
+ 
+-	if (radio->removed) {
++	if (!radio->usbdev) {
+ 		retval = -EIO;
+ 		goto unlock;
+ 	}
+@@ -649,7 +648,6 @@ static int usb_dsbr100_probe(struct usb_interface *intf,
+ 
+ 	mutex_init(&radio->lock);
+ 
+-	radio->removed = 0;
+ 	radio->usbdev = interface_to_usbdev(intf);
+ 	radio->curfreq = FREQ_MIN * FREQ_MUL;
+ 	radio->status = STOPPED;
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.1
+
