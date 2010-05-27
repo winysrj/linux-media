@@ -1,79 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:34662 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752391Ab0ESQgC (ORCPT
+Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:41824
+	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757186Ab0E0Qku (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 May 2010 12:36:02 -0400
-Message-ID: <4BF4130C.6030304@arcor.de>
-Date: Wed, 19 May 2010 18:34:20 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 video image
-References: <4BF40649.5090900@arcor.de> <4BF40889.4090809@redhat.com> <4BF40DDC.1010604@arcor.de>
-In-Reply-To: <4BF40DDC.1010604@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+	Thu, 27 May 2010 12:40:50 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+To: linux-media@vger.kernel.org
+Cc: Markus Demleitner <msdemlei@tucana.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Ellingsworth <david@identd.dyndns.org>
+Subject: [PATCH/RFC v2 7/8] dsbr100: cleanup usb probe routine
+Date: Thu, 27 May 2010 12:39:15 -0400
+Message-Id: <1274978356-25836-8-git-send-email-david@identd.dyndns.org>
+In-Reply-To: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
+References: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro, I will little rewrite the function copy_streams and copy_packets,
-I mean fusion these two function to one (copy_streams) and I have tested
-both of them with shorter code -> works.
+This patch simplifies the error paths within the
+usb_dsbr100_probe routine. It also removes an unnecessary
+local variable.
 
-Stefan Ringel
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/dsbr100.c |   39 ++++++++++++++++++++-------------------
+ 1 files changed, 20 insertions(+), 19 deletions(-)
 
-
-Am 19.05.2010 18:12, schrieb Stefan Ringel:
-> Am 19.05.2010 17:49, schrieb Mauro Carvalho Chehab:
->   
->> Stefan Ringel wrote:
->>   
->>     
->>> Hi Mauro,
->>>
->>> I have found what wrong is with video image. 
->>>     
->>>       
->> Great!
->>
->>   
->>     
->>> You generate video buffer
->>> in function tm6000_isoc_copy, but that is not right. I move that in
->>> function copy_multiplexed and copy_streams. And that works without this
->>> http://www.stefan.ringel.de/pub/tm6000_image_10_05_2010.jpg (The lines
->>> with little left shift) . 
->>>     
->>>       
->> Didn't work:
->>
->> 404: Not Found - www.stefan.ringel.de
->>
->>   
->>     
-> Sorry. A point  to much.
->
-> http://www.stefanringel.de/pub/tm6000_image_10_05_2010.jpg
->
->   
->>> Now, I generate a patch.
->>>     
->>>       
->> Ok. It would be great to have this issue finally fixed.
->>
->> Cheers,
->> Mauro
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>   
->>     
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
+index 96e6128..81e6aa5 100644
+--- a/drivers/media/radio/dsbr100.c
++++ b/drivers/media/radio/dsbr100.c
+@@ -645,33 +645,28 @@ static int usb_dsbr100_probe(struct usb_interface *intf,
+ 				const struct usb_device_id *id)
+ {
+ 	struct dsbr100_device *radio;
+-	struct v4l2_device *v4l2_dev;
+ 	int retval;
+ 
+ 	radio = kzalloc(sizeof(struct dsbr100_device), GFP_KERNEL);
+-
+ 	if (!radio)
+ 		return -ENOMEM;
+ 
+ 	radio->transfer_buffer = kmalloc(TB_LEN, GFP_KERNEL);
+-
+ 	if (!(radio->transfer_buffer)) {
+-		kfree(radio);
+-		return -ENOMEM;
++		retval = -ENOMEM;
++		goto err_nobuf;
+ 	}
+ 
+-	v4l2_dev = &radio->v4l2_dev;
+-
+-	retval = v4l2_device_register(&intf->dev, v4l2_dev);
++	retval = v4l2_device_register(&intf->dev, &radio->v4l2_dev);
+ 	if (retval < 0) {
+-		v4l2_err(v4l2_dev, "couldn't register v4l2_device\n");
+-		kfree(radio->transfer_buffer);
+-		kfree(radio);
+-		return retval;
++		v4l2_err(&radio->v4l2_dev, "couldn't register v4l2_device\n");
++		goto err_v4l2;
+ 	}
+ 
+-	strlcpy(radio->videodev.name, v4l2_dev->name, sizeof(radio->videodev.name));
+-	radio->videodev.v4l2_dev = v4l2_dev;
++	strlcpy(radio->videodev.name, radio->v4l2_dev.name,
++		sizeof(radio->videodev.name));
++
++	radio->videodev.v4l2_dev = &radio->v4l2_dev;
+ 	radio->videodev.fops = &usb_dsbr100_fops;
+ 	radio->videodev.ioctl_ops = &usb_dsbr100_ioctl_ops;
+ 	radio->videodev.release = usb_dsbr100_video_device_release;
+@@ -685,14 +680,20 @@ static int usb_dsbr100_probe(struct usb_interface *intf,
+ 
+ 	retval = video_register_device(&radio->videodev, VFL_TYPE_RADIO, radio_nr);
+ 	if (retval < 0) {
+-		v4l2_err(v4l2_dev, "couldn't register video device\n");
+-		v4l2_device_unregister(v4l2_dev);
+-		kfree(radio->transfer_buffer);
+-		kfree(radio);
+-		return -EIO;
++		v4l2_err(&radio->v4l2_dev, "couldn't register video device\n");
++		goto err_vdev;
+ 	}
++
+ 	usb_set_intfdata(intf, radio);
+ 	return 0;
++
++err_vdev:
++	v4l2_device_unregister(&radio->v4l2_dev);
++err_v4l2:
++	kfree(radio->transfer_buffer);
++err_nobuf:
++	kfree(radio);
++	return retval;
+ }
+ 
+ static int __init dsbr100_init(void)
+-- 
+1.7.1
 
