@@ -1,61 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:56872 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750855Ab0E1WrR (ORCPT
+Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:41825
+	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757330Ab0E0Qku (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 May 2010 18:47:17 -0400
-Date: Fri, 28 May 2010 15:46:35 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: linux-usb@vger.kernel.org, linux-media@vger.kernel.org
-Cc: bugzilla-daemon@bugzilla.kernel.org,
-	bugme-daemon@bugzilla.kernel.org, davidsen@tmr.com
-Subject: Re: [Bugme-new] [Bug 16050] New: The ibmcam driver is not working
-Message-Id: <20100528154635.129b621b.akpm@linux-foundation.org>
-In-Reply-To: <bug-16050-10286@https.bugzilla.kernel.org/>
-References: <bug-16050-10286@https.bugzilla.kernel.org/>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 27 May 2010 12:40:50 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+To: linux-media@vger.kernel.org
+Cc: Markus Demleitner <msdemlei@tucana.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Ellingsworth <david@identd.dyndns.org>
+Subject: [PATCH/RFC v2 2/8] dsbr100: fix potential use after free
+Date: Thu, 27 May 2010 12:39:10 -0400
+Message-Id: <1274978356-25836-3-git-send-email-david@identd.dyndns.org>
+In-Reply-To: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
+References: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/dsbr100.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-(switched to email.  Please respond via emailed reply-to-all, not via the
-bugzilla web interface).
-
-On Tue, 25 May 2010 23:02:23 GMT
-bugzilla-daemon@bugzilla.kernel.org wrote:
-
-> https://bugzilla.kernel.org/show_bug.cgi?id=16050
-> 
->                URL: https://bugzilla.redhat.com/show_bug.cgi?id=588900
->            Summary: The ibmcam driver is not working
->            Product: Drivers
->            Version: 2.5
->     Kernel Version: 2.6.34
->           Platform: All
->         OS/Version: Linux
->               Tree: Mainline
->             Status: NEW
->           Severity: normal
->           Priority: P1
->          Component: USB
->         AssignedTo: greg@kroah.com
->         ReportedBy: davidsen@tmr.com
->         Regression: Yes
-> 
-> 
-> This driver has been working, and around the 1st of May I updated my Fedora
-> kernel (FC13-RC) to current. The camera stopped working, so I built the latest
-> 2.6.34-rc version and verified the problem. When 2.6.34 final released I
-> repeated the test and the driver is still not working.
-> 
-> Originally reported against Fedora (not going to be fixed in FC13) the
-> information in the Fedora report may be enough to identify the problem. I can
-> do a bit of test almost any day, but the cams are on a video monitoring system,
-> so I'm not able to do long bisects and such.
-> 
-
-It's a 2.6.33 -> 2.6.34 regression, I think.  I don't know whether it's
-a v4l problem or a USB one..
+diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
+index 673eda8..2f96e13 100644
+--- a/drivers/media/radio/dsbr100.c
++++ b/drivers/media/radio/dsbr100.c
+@@ -354,8 +354,8 @@ static void usb_dsbr100_disconnect(struct usb_interface *intf)
+ 	radio->removed = 1;
+ 	mutex_unlock(&radio->lock);
+ 
+-	video_unregister_device(&radio->videodev);
+ 	v4l2_device_disconnect(&radio->v4l2_dev);
++	video_unregister_device(&radio->videodev);
+ }
+ 
+ 
+-- 
+1.7.1
 
