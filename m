@@ -1,84 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.atmel.fr ([81.80.104.162]:33813 "EHLO atmel-es2.atmel.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759033Ab0ECORs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 May 2010 10:17:48 -0400
-Message-ID: <4BDEDB06.9090909@atmel.com>
-Date: Mon, 03 May 2010 16:17:42 +0200
-From: Sedji Gaouaou <sedji.gaouaou@atmel.com>
+Received: from ey-out-2122.google.com ([74.125.78.25]:47306 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932386Ab0E0Qz0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 12:55:26 -0400
+Received: by ey-out-2122.google.com with SMTP id d26so17807eyd.19
+        for <linux-media@vger.kernel.org>; Thu, 27 May 2010 09:55:24 -0700 (PDT)
+Date: Thu, 27 May 2010 18:55:21 +0200
+From: Davor Emard <davoremard@gmail.com>
+To: Samuel =?utf-8?Q?Rakitni=C4=8Dan?= <samuel.rakitnican@gmail.com>
+Cc: semiRocket <semirocket@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Compro Videomate T750F Vista digital+analog support
+Message-ID: <20100527165520.GA9987@emard.lan>
+References: <20100508160628.GA6050@z60m>
+ <op.vceiu5q13xmt7q@crni>
+ <AANLkTinMYcgG6Ac73Vgdx8NMYocW8Net6_-dMC3yEflQ@mail.gmail.com>
+ <AANLkTikbpZ0LM5rK70abVuJS27j0lT7iZs12DrSKB9wI@mail.gmail.com>
+ <op.vcfoxwnq3xmt7q@crni>
+ <20100509173243.GA8227@z60m>
+ <op.vcga9rw2ndeod6@crni>
+ <20100509231535.GA6334@z60m>
+ <op.vcsntos43xmt7q@crni>
+ <op.vc551isrndeod6@crni>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-input@vger.kernel.org
-Subject: Re: ATMEL camera interface
-References: <4BD9AA8A.7030306@atmel.com> <Pine.LNX.4.64.1004291824200.4666@axis700.grange> <4BDED3A8.4090606@atmel.com> <Pine.LNX.4.64.1005031556570.4231@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1005031556570.4231@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <op.vc551isrndeod6@crni>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Well I need contiguous memory, so I guess I will have a look at 
-mx1_camera.c? Is there another example?
+HI
 
-What do you mean by videobuf implementation? As I said I just need a 
-contiguous memory.
+This code is responsible to prepare the card to load the firmware
+I have no true clue what it actually does, possible it is a
+reset sequence for onboard tuner chips or just a matter of 
+enabling some power to them. 
 
-Le 5/3/2010 4:03 PM, Guennadi Liakhovetski a écrit :
-> On Mon, 3 May 2010, Sedji Gaouaou wrote:
->
->> Hi,
->>
->> I will try to write a soc driver(it seems easier ;)).
->>
->> Are the mx?_camera.c a good starting point?
->
-> In principle - yes. But think about one pretty important distinction -
-> what videobuf implementation is your driver going to use? Are you going to
-> support scatter-gather or only contiguous buffers? If SG - the only such
-> example in the mainline is pxa_camera.c. If contiguous - feel free to use
-> any one of the rest. Further, mx3_camera uses the dmaengine API, others
-> don't. Hope, this will simplify your choice a bit;)
->
-> Thanks
-> Guennadi
->
->> Regards,
->> Sedji
->>
->> Le 4/29/2010 6:35 PM, Guennadi Liakhovetski a écrit :
->>> Hi Sedji
->>>
->>> On Thu, 29 Apr 2010, Sedji Gaouaou wrote:
->>>
->>>> Hi,
->>>>
->>>> I need to re-work my driver so I could commit it to the community.
->>>> Is there a git tree that I can use?
->>>
->>> Nice to hear that! As far as soc-camera is concerned, the present APIs are
->>> pretty stable. Just use the Linus' git tree, or, if you like, you can use
->>> the v4l-dvb git tree at git://linuxtv.org/v4l-dvb.git. In fact, you don't
->>> have to use the soc-camera API these days, you can just write a complete
->>> v4l2-device driver, using the v4l2-subdev API to interface to video
->>> clients (sensors, decoders, etc.) However, you can still write your driver
->>> as an soc-camera host driver, which would make your task a bit easier at
->>> the cost of some reduced flexibility, it's up to you to decide.
->>>
->>> Thanks
->>> Guennadi
->>> ---
->>> Guennadi Liakhovetski, Ph.D.
->>> Freelance Open-Source Software Developer
->>> http://www.open-technology.de/
->>>
->>
->>
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
->
+I have googled for compro 750 related discussions and seen various posts 
+so I narrowed to this. Feel free to either comment out the code or
+try slightly different values to see if they leat to more reliable
+loading of the firmware at your hardware
 
++               case SAA7134_BOARD_VIDEOMATE_T750:
++                       saa7134_set_gpio(dev, 20, 0);
++                       msleep(10);
++                       saa7134_set_gpio(dev, 20, 1);
++               break;
 
++       case SAA7134_BOARD_VIDEOMATE_T750:
++               dev->has_remote = SAA7134_REMOTE_GPIO;
++               saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
++               saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
++               break;
+
+some similar cards use instead of 0x00008000 use 0x0000C000
+also it's possible to try other values if they can help on
+your hardware (I tried a lots of them, some work, some don't 
+but with not obvious improvement for my card so I left the 
+minimum that works)
+
+Emard
