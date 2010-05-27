@@ -1,345 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2335 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751462Ab0EINjx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 09:39:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: RFC PATCH: v4l2-subdev.h: fix enum_mbus_fmt prototype
-Date: Sun, 9 May 2010 15:41:25 +0200
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35091 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754968Ab0E0GoO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 02:44:14 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Thu, 27 May 2010 12:14:05 +0530
+Subject: RE: Idea of a v4l -> fb interface driver
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E616F05@dbde02.ent.ti.com>
+References: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201005091541.25521.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
 
-Can you review this patch?
-
-It's a simple and sensible change, but I also had to make a similar change
-in soc-camera so I'd like to you to take a look as well.
-
-Regards,
-
-	Hans
-
-enum_mbus_fmt received an index argument that was defined as an int instead
-of an unsigned int. This is now fixed. This had the knock-on effect that the
-index argument in the callback get_formats in soc_camera.h also had to be
-changed to unsigned.
-
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/ak881x.c               |    2 +-
- drivers/media/video/mt9m001.c              |    4 ++--
- drivers/media/video/mt9m111.c              |    4 ++--
- drivers/media/video/mt9t031.c              |    2 +-
- drivers/media/video/mt9t112.c              |    4 ++--
- drivers/media/video/mt9v022.c              |    4 ++--
- drivers/media/video/mx3_camera.c           |    4 ++--
- drivers/media/video/ov772x.c               |    4 ++--
- drivers/media/video/ov9640.c               |    4 ++--
- drivers/media/video/pxa_camera.c           |    4 ++--
- drivers/media/video/rj54n1cb0c.c           |    4 ++--
- drivers/media/video/sh_mobile_ceu_camera.c |    4 ++--
- drivers/media/video/soc_camera.c           |    3 ++-
- drivers/media/video/soc_camera_platform.c  |    2 +-
- drivers/media/video/tw9910.c               |    2 +-
- include/media/soc_camera.h                 |    2 +-
- include/media/v4l2-subdev.h                |    2 +-
- 18 files changed, 48 insertions(+), 27 deletions(-)
-
-diff --git a/drivers/media/video/ak881x.c b/drivers/media/video/ak881x.c
-index 35390d4..f2e71d1 100644
---- a/drivers/media/video/ak881x.c
-+++ b/drivers/media/video/ak881x.c
-@@ -141,7 +141,7 @@ static int ak881x_s_mbus_fmt(struct v4l2_subdev *sd,
- 	return ak881x_try_g_mbus_fmt(sd, mf);
- }
- 
--static int ak881x_enum_mbus_fmt(struct v4l2_subdev *sd, int index,
-+static int ak881x_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
- 				enum v4l2_mbus_pixelcode *code)
- {
- 	if (index)
-diff --git a/drivers/media/video/mt9m001.c b/drivers/media/video/mt9m001.c
-index b62c0bd..c55d766 100644
---- a/drivers/media/video/mt9m001.c
-+++ b/drivers/media/video/mt9m001.c
-@@ -701,13 +701,13 @@ static struct v4l2_subdev_core_ops mt9m001_subdev_core_ops = {
- #endif
- };
- 
--static int mt9m001_enum_fmt(struct v4l2_subdev *sd, int index,
-+static int mt9m001_enum_fmt(struct v4l2_subdev *sd, unsigned index,
- 			    enum v4l2_mbus_pixelcode *code)
- {
- 	struct i2c_client *client = sd->priv;
- 	struct mt9m001 *mt9m001 = to_mt9m001(client);
- 
--	if ((unsigned int)index >= mt9m001->num_fmts)
-+	if (index >= mt9m001->num_fmts)
- 		return -EINVAL;
- 
- 	*code = mt9m001->fmts[index].code;
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index d35f536..78dbb5d 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -999,10 +999,10 @@ static struct v4l2_subdev_core_ops mt9m111_subdev_core_ops = {
- #endif
- };
- 
--static int mt9m111_enum_fmt(struct v4l2_subdev *sd, int index,
-+static int mt9m111_enum_fmt(struct v4l2_subdev *sd, unsigned index,
- 			    enum v4l2_mbus_pixelcode *code)
- {
--	if ((unsigned int)index >= ARRAY_SIZE(mt9m111_colour_fmts))
-+	if (index >= ARRAY_SIZE(mt9m111_colour_fmts))
- 		return -EINVAL;
- 
- 	*code = mt9m111_colour_fmts[index].code;
-diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-index 78b4e09..c1d12a0 100644
---- a/drivers/media/video/mt9t031.c
-+++ b/drivers/media/video/mt9t031.c
-@@ -798,7 +798,7 @@ static struct v4l2_subdev_core_ops mt9t031_subdev_core_ops = {
- #endif
- };
- 
--static int mt9t031_enum_fmt(struct v4l2_subdev *sd, int index,
-+static int mt9t031_enum_fmt(struct v4l2_subdev *sd, unsigned index,
- 			    enum v4l2_mbus_pixelcode *code)
- {
- 	if (index)
-diff --git a/drivers/media/video/mt9t112.c b/drivers/media/video/mt9t112.c
-index 7438f8d..802312e 100644
---- a/drivers/media/video/mt9t112.c
-+++ b/drivers/media/video/mt9t112.c
-@@ -1017,10 +1017,10 @@ static int mt9t112_try_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int mt9t112_enum_fmt(struct v4l2_subdev *sd, int index,
-+static int mt9t112_enum_fmt(struct v4l2_subdev *sd, unsigned index,
- 			   enum v4l2_mbus_pixelcode *code)
- {
--	if ((unsigned int)index >= ARRAY_SIZE(mt9t112_cfmts))
-+	if (index >= ARRAY_SIZE(mt9t112_cfmts))
- 		return -EINVAL;
- 
- 	*code = mt9t112_cfmts[index].code;
-diff --git a/drivers/media/video/mt9v022.c b/drivers/media/video/mt9v022.c
-index e5bae4c..9699c38 100644
---- a/drivers/media/video/mt9v022.c
-+++ b/drivers/media/video/mt9v022.c
-@@ -838,13 +838,13 @@ static struct v4l2_subdev_core_ops mt9v022_subdev_core_ops = {
- #endif
- };
- 
--static int mt9v022_enum_fmt(struct v4l2_subdev *sd, int index,
-+static int mt9v022_enum_fmt(struct v4l2_subdev *sd, unsigned index,
- 			    enum v4l2_mbus_pixelcode *code)
- {
- 	struct i2c_client *client = sd->priv;
- 	struct mt9v022 *mt9v022 = to_mt9v022(client);
- 
--	if ((unsigned int)index >= mt9v022->num_fmts)
-+	if (index >= mt9v022->num_fmts)
- 		return -EINVAL;
- 
- 	*code = mt9v022->fmts[index].code;
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index d477e30..5b908fb 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -672,7 +672,7 @@ static bool mx3_camera_packing_supported(const struct soc_mbus_pixelfmt *fmt)
- 		 fmt->packing == SOC_MBUS_PACKING_EXTEND16);
- }
- 
--static int mx3_camera_get_formats(struct soc_camera_device *icd, int idx,
-+static int mx3_camera_get_formats(struct soc_camera_device *icd, unsigned idx,
- 				  struct soc_camera_format_xlate *xlate)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-@@ -689,7 +689,7 @@ static int mx3_camera_get_formats(struct soc_camera_device *icd, int idx,
- 	fmt = soc_mbus_get_fmtdesc(code);
- 	if (!fmt) {
- 		dev_err(icd->dev.parent,
--			"Invalid format code #%d: %d\n", idx, code);
-+			"Invalid format code #%u: %d\n", idx, code);
- 		return 0;
- 	}
- 
-diff --git a/drivers/media/video/ov772x.c b/drivers/media/video/ov772x.c
-index 7f8ece3..a235067 100644
---- a/drivers/media/video/ov772x.c
-+++ b/drivers/media/video/ov772x.c
-@@ -1092,10 +1092,10 @@ static struct v4l2_subdev_core_ops ov772x_subdev_core_ops = {
- #endif
- };
- 
--static int ov772x_enum_fmt(struct v4l2_subdev *sd, int index,
-+static int ov772x_enum_fmt(struct v4l2_subdev *sd, unsigned index,
- 			   enum v4l2_mbus_pixelcode *code)
- {
--	if ((unsigned int)index >= ARRAY_SIZE(ov772x_cfmts))
-+	if (index >= ARRAY_SIZE(ov772x_cfmts))
- 		return -EINVAL;
- 
- 	*code = ov772x_cfmts[index].code;
-diff --git a/drivers/media/video/ov9640.c b/drivers/media/video/ov9640.c
-index 36599a6..e36fa65 100644
---- a/drivers/media/video/ov9640.c
-+++ b/drivers/media/video/ov9640.c
-@@ -614,10 +614,10 @@ static int ov9640_try_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int ov9640_enum_fmt(struct v4l2_subdev *sd, int index,
-+static int ov9640_enum_fmt(struct v4l2_subdev *sd, unsigned index,
- 			   enum v4l2_mbus_pixelcode *code)
- {
--	if ((unsigned int)index >= ARRAY_SIZE(ov9640_codes))
-+	if (index >= ARRAY_SIZE(ov9640_codes))
- 		return -EINVAL;
- 
- 	*code = ov9640_codes[index];
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index 520a35b..2d9eb57 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -1245,7 +1245,7 @@ static bool pxa_camera_packing_supported(const struct soc_mbus_pixelfmt *fmt)
- 		 fmt->packing == SOC_MBUS_PACKING_EXTEND16);
- }
- 
--static int pxa_camera_get_formats(struct soc_camera_device *icd, int idx,
-+static int pxa_camera_get_formats(struct soc_camera_device *icd, unsigned idx,
- 				  struct soc_camera_format_xlate *xlate)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-@@ -1262,7 +1262,7 @@ static int pxa_camera_get_formats(struct soc_camera_device *icd, int idx,
- 
- 	fmt = soc_mbus_get_fmtdesc(code);
- 	if (!fmt) {
--		dev_err(dev, "Invalid format code #%d: %d\n", idx, code);
-+		dev_err(dev, "Invalid format code #%u: %d\n", idx, code);
- 		return 0;
- 	}
- 
-diff --git a/drivers/media/video/rj54n1cb0c.c b/drivers/media/video/rj54n1cb0c.c
-index bbd9c11..a107574 100644
---- a/drivers/media/video/rj54n1cb0c.c
-+++ b/drivers/media/video/rj54n1cb0c.c
-@@ -481,10 +481,10 @@ static int reg_write_multiple(struct i2c_client *client,
- 	return 0;
- }
- 
--static int rj54n1_enum_fmt(struct v4l2_subdev *sd, int index,
-+static int rj54n1_enum_fmt(struct v4l2_subdev *sd, unsigned index,
- 			   enum v4l2_mbus_pixelcode *code)
- {
--	if ((unsigned int)index >= ARRAY_SIZE(rj54n1_colour_fmts))
-+	if (index >= ARRAY_SIZE(rj54n1_colour_fmts))
- 		return -EINVAL;
- 
- 	*code = rj54n1_colour_fmts[index].code;
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 1604034..a426470 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -877,7 +877,7 @@ static bool sh_mobile_ceu_packing_supported(const struct soc_mbus_pixelfmt *fmt)
- 
- static int client_g_rect(struct v4l2_subdev *sd, struct v4l2_rect *rect);
- 
--static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, int idx,
-+static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned idx,
- 				     struct soc_camera_format_xlate *xlate)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-@@ -896,7 +896,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, int idx,
- 	fmt = soc_mbus_get_fmtdesc(code);
- 	if (!fmt) {
- 		dev_err(icd->dev.parent,
--			"Invalid format code #%d: %d\n", idx, code);
-+			"Invalid format code #%u: %d\n", idx, code);
- 		return -EINVAL;
- 	}
- 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 95cb336..7e8d106 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -199,7 +199,8 @@ static int soc_camera_init_user_formats(struct soc_camera_device *icd)
- {
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);
--	int i, fmts = 0, raw_fmts = 0, ret;
-+	unsigned i, fmts = 0, raw_fmts = 0;
-+	int ret;
- 	enum v4l2_mbus_pixelcode code;
- 
- 	while (!v4l2_subdev_call(sd, video, enum_mbus_fmt, raw_fmts, &code))
-diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
-index 10b003a..09e1d68 100644
---- a/drivers/media/video/soc_camera_platform.c
-+++ b/drivers/media/video/soc_camera_platform.c
-@@ -71,7 +71,7 @@ static int soc_camera_platform_try_fmt(struct v4l2_subdev *sd,
- 
- static struct v4l2_subdev_core_ops platform_subdev_core_ops;
- 
--static int soc_camera_platform_enum_fmt(struct v4l2_subdev *sd, int index,
-+static int soc_camera_platform_enum_fmt(struct v4l2_subdev *sd, unsigned index,
- 					enum v4l2_mbus_pixelcode *code)
- {
- 	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
-diff --git a/drivers/media/video/tw9910.c b/drivers/media/video/tw9910.c
-index 76be733..0e1cc08 100644
---- a/drivers/media/video/tw9910.c
-+++ b/drivers/media/video/tw9910.c
-@@ -903,7 +903,7 @@ static struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
- #endif
- };
- 
--static int tw9910_enum_fmt(struct v4l2_subdev *sd, int index,
-+static int tw9910_enum_fmt(struct v4l2_subdev *sd, unsigned index,
- 			   enum v4l2_mbus_pixelcode *code)
- {
- 	if (index)
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index c9a5bbf..79b2e21 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -66,7 +66,7 @@ struct soc_camera_host_ops {
- 	 * .get_formats() fail, .put_formats() will not be called at all, the
- 	 * failing .get_formats() must then clean up internally.
- 	 */
--	int (*get_formats)(struct soc_camera_device *, int,
-+	int (*get_formats)(struct soc_camera_device *, unsigned,
- 			   struct soc_camera_format_xlate *);
- 	void (*put_formats)(struct soc_camera_device *);
- 	int (*cropcap)(struct soc_camera_device *, struct v4l2_cropcap *);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index a888893..a3b2e58 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -246,7 +246,7 @@ struct v4l2_subdev_video_ops {
- 			struct v4l2_dv_timings *timings);
- 	int (*g_dv_timings)(struct v4l2_subdev *sd,
- 			struct v4l2_dv_timings *timings);
--	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, int index,
-+	int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned index,
- 			     enum v4l2_mbus_pixelcode *code);
- 	int (*g_mbus_fmt)(struct v4l2_subdev *sd,
- 			  struct v4l2_mbus_framefmt *fmt);
--- 
-1.6.4.2
+> -----Original Message-----
+> From: linux-fbdev-owner@vger.kernel.org [mailto:linux-fbdev-
+> owner@vger.kernel.org] On Behalf Of Guennadi Liakhovetski
+> Sent: Wednesday, May 26, 2010 7:40 PM
+> To: linux-fbdev@vger.kernel.org
+> Subject: Idea of a v4l -> fb interface driver
+> 
+> This message has been earlier sent to the V4L mailing list
+> 
+> Linux Media Mailing List <linux-media@vger.kernel.org>
+I replied to Linux-Media list, but saw this thread again. So pasting my response here and adding linux-media to CC.
 
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+> 
+> When replying, please add it to CC. This is a discussion proposal for the
+> V4L mini summit, that is going to take place in June in Helsinki, Finland.
+> Any opinions very welcome.
+> 
+> 		V4L(2) video output vs. framebuffer.
+> 
+> Problem: Currently the standard way to provide graphical output on various
+> (embedded) displays like LCDs is to use a framebuffer driver. The
+> interface is well supported and widely adopted in the user-space, many
+> applications, including the X-server, various libraries like directfb,
+> gstreamer, mplayer, etc. In the kernel space, however, the subsystem has a
+> number of problems. It is unmaintained. The infrastructure is not being
+> further developed, every specific hardware driver is being supported by
+> the respective architecture community. But as video output hardware
+> evolves, more complex displays and buses appear and have to be supported,
+> the subsystem shows its aging. For example, there is currently no way to
+> write reusable across multiple platforms display drivers.
+> 
+[Hiremath, Vaibhav] Up to certain extent yes you are correct.
+
+> OTOH V4L2 has a standard video output driver support, it is not very
+> widely used, in the userspace I know only of gstreamer, that somehow
+> supports video-output v4l2 devices in latest versions. But, being a part
+> of the v4l2 subsystem, these drivers already now can take a full advantage
+> of all v4l2 APIs, including the v4l2-subdev API for the driver reuse.
+> 
+> So, how can we help graphics driver developers on the one hand by
+> providing them with a capable driver framework (v4l2) and on the other
+> hand by simplifying the task of interfacing to the user-space?
+> 
+[Hiremath, Vaibhav] I think this is really complex question which requires healthy discussion over list.
+
+> How about a v4l2-output - fbdev translation layer? You write a v4l2-output
+> driver and get a framebuffer device free of charge... TBH, I haven't given
+> this too much of a thought, but so far I don't see anything that would
+> make this impossible in principle. The video buffer management is quite
+> different between the two systems, but maybe we can teach video-output
+> drivers to work with just one buffer too? 
+[Hiremath, Vaibhav] I believe V4L2 buf won't limit you to do this. Atleast in case of OMAP v4L2 display driver we are sticking to last buffer if application fails to queue one. So for me this is single buffer keeps on displaying unless application queue next buffer.
+
+> Anyway, feel free to tell me why
+> this is an absolutely impossible / impractical idea;)
+> 
+[Hiremath, Vaibhav] If I understanding correctly you are trying to propose something like,
+
+Without changing Fbdev interface to user space application, create translation layers which will allow driver developer to write driver under V4L2 framework providing /dev/fbx but using V4L2 API/framework.
+
+Also as mentioned by Jaya, it would be great if you put benefits we are targeting would be helpful.
+
+Thanks,
+Vaibhav
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
