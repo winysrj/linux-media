@@ -1,68 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:37059 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756124Ab0EXLPB (ORCPT
+Received: from mail-in-04.arcor-online.net ([151.189.21.44]:58060 "EHLO
+	mail-in-04.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758734Ab0E0USZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 07:15:01 -0400
-Date: Mon, 24 May 2010 13:14:57 +0200
-From: Wolfram Sang <w.sang@pengutronix.de>
-To: Daniel Mack <daniel@caiaq.de>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jiri Slaby <jslaby@suse.cz>, Dmitry Torokhov <dtor@mail.ru>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] drivers/media/dvb/dvb-usb/dib0700: fix return
-	values
-Message-ID: <20100524111457.GB16756@pengutronix.de>
-References: <AANLkTikffmoWofbIo2h6zw-VW5aKEH8T_b0vMfKdo3KJ@mail.gmail.com> <1274698635-19512-1-git-send-email-daniel@caiaq.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="TakKZr9L6Hm6aLOc"
-Content-Disposition: inline
-In-Reply-To: <1274698635-19512-1-git-send-email-daniel@caiaq.de>
+	Thu, 27 May 2010 16:18:25 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, d.belimov@gmail.com,
+	Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH] tm6000: bugfix outp in function copy_multiplexed
+Date: Thu, 27 May 2010 22:16:29 +0200
+Message-Id: <1274991389-6439-1-git-send-email-stefan.ringel@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
---TakKZr9L6Hm6aLOc
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+bugfix outp in function copy_multiplexed
 
-On Mon, May 24, 2010 at 12:57:14PM +0200, Daniel Mack wrote:
-> Propagte correct error values instead of returning -1 which just means
-> -EPERM ("Permission denied")
->=20
-> Signed-off-by: Daniel Mack <daniel@caiaq.de>
-> Cc: Wolfram Sang <w.sang@pengutronix.de>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Jiri Slaby <jslaby@suse.cz>
-> Cc: Dmitry Torokhov <dtor@mail.ru>
-> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-> Cc: linux-media@vger.kernel.org
 
-I am no specialist for this driver, but as I am on cc and it looks good to =
-me
-(no big changes, after all):
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-video.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-Acked-by: Wolfram Sang <w.sang@pengutronix.de>
+diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+index 31c574f..96cbbf7 100644
+--- a/drivers/staging/tm6000/tm6000-video.c
++++ b/drivers/staging/tm6000/tm6000-video.c
+@@ -358,7 +358,7 @@ static int copy_multiplexed(u8 *ptr, unsigned long len,
+ 	while (len>0) {
+ 		cpysize=min(len,buf->vb.size-pos);
+ 		//printk("Copying %d bytes (max=%lu) from %p to %p[%u]\n",cpysize,(*buf)->vb.size,ptr,out_p,pos);
+-		memcpy(&out_p[pos], ptr, cpysize);
++		memcpy(&outp[pos], ptr, cpysize);
+ 		pos+=cpysize;
+ 		ptr+=cpysize;
+ 		len-=cpysize;
+@@ -370,8 +370,8 @@ static int copy_multiplexed(u8 *ptr, unsigned long len,
+ 			get_next_buf (dma_q, &buf);
+ 			if (!buf)
+ 				break;
+-			out_p = videobuf_to_vmalloc(&(buf->vb));
+-			if (!out_p)
++			outp = videobuf_to_vmalloc(&(buf->vb));
++			if (!outp)
+ 				return rc;
+ 			pos = 0;
+ 		}
+-- 
+1.7.0.3
 
---=20
-Pengutronix e.K.                           | Wolfram Sang                |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-
---TakKZr9L6Hm6aLOc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkv6X7EACgkQD27XaX1/VRteoQCgxzMWXyx8Ek4ZAhCkYwnx4YRG
-sSgAmgO8gLxtxec5abXDi4AjwBEMvjVO
-=bNQB
------END PGP SIGNATURE-----
-
---TakKZr9L6Hm6aLOc--
