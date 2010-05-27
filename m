@@ -1,48 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outbound.icp-qv1-irony-out3.iinet.net.au ([203.59.1.148]:48079
-	"EHLO outbound.icp-qv1-irony-out3.iinet.net.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751518Ab0ESIhV (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:43653 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754222Ab0E0PIt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 May 2010 04:37:21 -0400
-Message-ID: <4BF3A33F.8040707@ii.net>
-Date: Wed, 19 May 2010 16:37:19 +0800
-From: Cliffe <cliffe@ii.net>
+	Thu, 27 May 2010 11:08:49 -0400
+Message-ID: <4BFE8A96.9000000@arcor.de>
+Date: Thu, 27 May 2010 17:07:02 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-To: CityK <cityk@rogers.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: No video0, /dev/dvb/adapter0 present
-References: <4BEE6B30.30303@ii.net> <4BEEC1C4.5040809@rogers.com>
-In-Reply-To: <4BEEC1C4.5040809@rogers.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+To: Luis Henrique Fagundes <lhfagundes@hacklab.com.br>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Dmitri Belimov <d.belimov@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Bee Hock Goh <beehock@gmail.com>
+Subject: Re: [PATCH 3/4] tm6000: bugfix video image
+References: <AANLkTinXZL1jy8HF73WeWwCRjDIryevcag1yZUji5iy7@mail.gmail.com>
+In-Reply-To: <AANLkTinXZL1jy8HF73WeWwCRjDIryevcag1yZUji5iy7@mail.gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------090800080408040800070807"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks! That helped get me back on track.
+This is a multi-part message in MIME format.
+--------------090800080408040800070807
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-MythTV doesn't scan channels correctly (I thought it was related to
-video0) but importing a channels.conf created using the scan program
-works. So now I have a working MythTV setup!
-
-Cheers,
-
-Cliffe.
-
-On 15/05/10 23:46, CityK wrote:
-> Cliffe,
+Am 27.05.2010 16:43, schrieb Luis Henrique Fagundes:
+> Hi Stefan,
 >
-> Your card does not support analogue, hence there will be no /dev/videoN
-> node created.  You are most likely attempting to use analogue tv viewing
-> applications (i.e. xawtv v3.9x, tvtime, ...). Use applications for
-> digital tv instead (i.e. kaffiene....).
+> Looks like your patch sent on May 19th doesn't compile. I might be
+> missing something, but I needed the attached patch to make it compile.
 >
-> If you go back over the "How to Obtain, Build and Install V4L-DVB Device
-> Drivers" article, you will find links to two other articles
->
-> http://www.linuxtv.org/wiki/index.php/What_is_V4L_or_DVB%3F
-> http://www.linuxtv.org/wiki/index.php/Device_nodes_and_character_devices
->
-> which should provide you with fuller details.
->
+> Luis
 >   
 
+That is bugfix in later patch ([5/5] tm6000:rewrite copy_streams
+https://patchwork.kernel.org/patch/101759/ from 23.05.2010)
+
+
+
+
+-- 
+Stefan Ringel <stefan.ringel@arcor.de>
+
+
+--------------090800080408040800070807
+Content-Type: text/x-vcard; charset=utf-8;
+ name="stefan_ringel.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="stefan_ringel.vcf"
+
+begin:vcard
+fn:Stefan Ringel
+n:Ringel;Stefan
+email;internet:stefan.ringel@arcor.de
+note:web: www.stefanringel.de
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
+
+
+--------------090800080408040800070807--
