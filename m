@@ -1,316 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1-out1.atlantis.sk ([80.94.52.55]:40042 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752982Ab0E2RJj convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:56620 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755121Ab0E0Lny (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 13:09:39 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: "Jean-Francois Moine" <moinejf@free.fr>
-Subject: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
-Date: Sat, 29 May 2010 19:09:32 +0200
-Cc: linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201005291909.33593.linux@rainbow-software.org>
+	Thu, 27 May 2010 07:43:54 -0400
+Date: Thu, 27 May 2010 13:43:06 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: Tentative agenda for Helsinki mini-summit
+In-reply-to: <Pine.LNX.4.64.1005271158550.2293@axis700.grange>
+To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
+Cc: 'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	"'Zhong, Jeff'" <hzhong@quicinc.com>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	"'Zhang, Xiaolin'" <xiaolin.zhang@intel.com>,
+	'Sergio Rodriguez' <saaguirre@ti.com>,
+	'Vaibhav Hiremath' <hvaibhav@ti.com>,
+	'Hans de Goede' <hdegoede@redhat.com>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Kamil Debski' <k.debski@samsung.com>,
+	linux-fbdev@vger.kernel.org
+Message-id: <005f01cafd91$c5f25a00$51d70e00$%osciak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <201005231236.49048.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1005231929091.3571@axis700.grange>
+ <005201cafd82$557b24f0$00716ed0$%osciak@samsung.com>
+ <Pine.LNX.4.64.1005271158550.2293@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-I got a MD80-clone camera based on SPCA1527A chip. It's webcam-like camera 
-with battery and microSD slot and can record video on its own. It has two USB 
-modes - mass storage (USB ID 04fc:0171) and webcam mode (USB ID 04fc:1528). 
-This chip seems to be used in many other SD card cameras too.
+>Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+>On Thu, 27 May 2010, Pawel Osciak wrote:
+>
+>> Hi,
+>>
+>> >Guennadi Liakhovetski wrote:
+>> >
+>> >No idea whether this is a worthy and suitable topic for this meeting, but:
+>> >
+>> >V4L(2) video output vs. framebuffer.
+>> >
+>> >How about a v4l2-output - fbdev translation layer? You write a v4l2-output
+>> >driver and get a framebuffer device free of charge... TBH, I haven't given
+>> >this too much of a thought, but so far I don't see anything that would
+>> >make this impossible in principle. The video buffer management is quite
+>> >different between the two systems, but maybe we can teach video-output
+>> >drivers to work with just one buffer too? Anyway, feel free to tell me why
+>> >this is an absolutely impossible / impractical idea;)
+>>
+>> We also use v4l2-outputs for our display interfaces and for that we have
+>> v4l2-subdevices in a framebuffer driver. Although we have had no need for
+>> such a translation layer per se up to now, the idea seems interesting.
+>
+>Interesting, but sorry, don't quite understand "we use v4l2-outputs" and
+>"in a framebuffer driver" - so, is it a framebuffer (/dev/fbX) or a v4l2
+>output device driver or both? Which driver is this? Is it already in the
+>mainline?
+>
 
-The webcam mode is not supported by gspca so I captured some data to 
-(hopefully) make support in gspca possible. There seems to be 3 interfaces:
+It's the (mostly) standard s3c-fb driver with a v4l2-subdev video interface
+added. A separate v4l2 output device driver uses that interface to communicate
+with the framebuffer driver, as some setup is required on both parts.
 
-# lsusb -v -d 04fc:1528
+Those operations cannot be performed from userspace as they have to be
+synchronized in interrupts.
 
-Bus 001 Device 003: ID 04fc:1528 Sunplus Technology Co., Ltd 
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  idVendor           0x04fc Sunplus Technology Co., Ltd
-  idProduct          0x1528 
-  bcdDevice            1.00
-  iManufacturer           1 Sunplus Co Ltd 
-  iProduct                2 General Image Devic
-  iSerial                 0 
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          183
-    bNumInterfaces          3
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower              500mA
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x87  EP 7 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0000  1x 0 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0080  1x 128 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       2
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0180  1x 384 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       3
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       4
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0280  1x 640 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       5
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0300  1x 768 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       6
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0380  1x 896 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       7
-      bNumEndpoints           1
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            1
-          Transfer Type            Isochronous
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x03ff  1x 1023 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        2
-      bAlternateSetting       0
-      bNumEndpoints           3
-      bInterfaceClass       255 Vendor Specific Class
-      bInterfaceSubClass      0 
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x82  EP 2 IN
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x03  EP 3 OUT
-        bmAttributes            2
-          Transfer Type            Bulk
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0200  1x 512 bytes
-        bInterval               0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x84  EP 4 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass            0 (Defined at Interface level)
-  bDeviceSubClass         0 
-  bDeviceProtocol         0 
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0000
-  (Bus Powered)
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
 
->From Windows driver:
-interface 0: SPCA1528 Video Interrupt Device (no driver used)
-interface 1: SPCA1528 Video Camera Device (ca1528av.sys, dext1528.ax, 
-sp5x_32.dll)
-interface 2: SPCA1528 Still Camera Device (bulk1528.sys)
-
-The camera does not seem to support audio in webcam mode.
-
-Interface 0 seems to be useless and there's no application to test interface 2 
-(still camera) so the only interesting interface seems to be interface 1.
-
-
-Some SniffUSB logs are here:
-http://www.rainbow-software.org/linux_files/spca1528/
-
-usbsnoop-composite.log - composite device plug&unplug
-
-usbsnoop-still.log - interface 2 plug&unplug
-
-usbsnoop-video-capture-320x240.log - interface 1 plug, capture of about 1 
-second video at 320x240, unplug
-
-usbsnoop-video-plug.log - interface 1 plug&unplug
-
--- 
-Ondrej Zary
