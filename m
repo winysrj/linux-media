@@ -1,80 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54942 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756609Ab0EYKIu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 May 2010 06:08:50 -0400
-Received: from int-mx05.intmail.prod.int.phx2.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.18])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4PA8ocX030856
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 25 May 2010 06:08:50 -0400
-From: huzaifas@redhat.com
-To: linux-media@vger.kernel.org
-Cc: hdegoede@redhat.com, Huzaifa Sidhpurwala <huzaifas@redhat.com>
-Subject: [PATCH] libv4l1: move v4l1 ioctls from kernel to libv4l1:VIDIOCGCHAN
-Date: Tue, 25 May 2010 15:36:39 +0530
-Message-Id: <1274781999-19738-1-git-send-email-huzaifas@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:50867 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755434Ab0E0Msk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 08:48:40 -0400
+Date: Thu, 27 May 2010 14:48:54 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Jaya Kumar <jayakumar.lkml@gmail.com>
+cc: linux-fbdev@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Idea of a v4l -> fb interface driver
+In-Reply-To: <AANLkTik0DHDhmr78xOG2cTUgrTWZKzYDwBl27TXHgcGp@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1005271338370.2293@axis700.grange>
+References: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>
+ <AANLkTilnb20a4KO1NmK_y148HE_4b6ka14hUJY5o93QT@mail.gmail.com>
+ <Pine.LNX.4.64.1005270809110.2293@axis700.grange>
+ <AANLkTik0DHDhmr78xOG2cTUgrTWZKzYDwBl27TXHgcGp@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+On Thu, 27 May 2010, Jaya Kumar wrote:
 
-move VIDIOCGCHAN to libv4l1
+> You've raised the MIPI-DSI issue. It is a good area to focus the
+> discussion on for fbdev minded people and one that needs to be
+> resolved soon so that we don't get dozens of host controller specific
+> mipi display panel drivers. I had seen that omap2 fbdev has a portion
+> of the MIPI-DSI command set exposed to their various display panel
+> drivers which then hands off these commands to the omap specific
+> lcd_mipid.c which uses spi. I see you've also implemented a similar
+> concept in sh-mobile. When I saw the multiple display panel drivers
+> showing up in omap, I raised a concern with Tomi and I think there was
+> an intent to try to improve the abstraction. I'm not sure how far that
+> has progressed. Are you saying v4l would help us in that area? I'm not
+> yet able to follow the details of how using v4l would help address the
+> need for mipi-dsi abstraction. Could you elaborate on that?
 
-Signed-off-by: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+Well, I thought about an abstract driver for MIPI DSI... But, there is not 
+really much there, that you can abstract. I've created a generic 
+mipi_display.h header, that contains defines for display related (DSI, 
+DCS) commands and transaction types. Once this header is in the mainline, 
+we plan to convert OMAP drivers to it too. To talk to MIPI displays you 
+need a capability to send and receive generic short and long telegrams, 
+so, providing higher level functions like get_display_id() or 
+soft_reset(), probably, wouldn't make sense. What you do need a proper API 
+for is, when you start supporting proprietary display-specific commands 
+and want to reuse those display drivers with different MIPI DSI hosts. For 
+that we will want a generic API like .send_short_command(), 
+.send_short_command_param(), etc.
+
+As for using v4l2 for MIPI displays - well, I am not sure it makes sense 
+at all. This could make sense if, e.g., you were writing a driver for a 
+graphics controller, capable to talk to various PHYs over a fixed bus 
+(which is actually also the case with the sh-mobile LCDC), then you could 
+design it, using V4L2, in the following way:
+
+/dev/videoX                /dev/fbX
+   |                           |
+   |   /- - fbdev translate - -/
+   v   v
+v4l2 output device driver
+       |
+       v
+   v4l2-subdev API
+    |    ...    |
+    v           v
+MIPI PHY ...  parallel PHY
+ driver  ...    driver
+    |
+    v
+ MIPI bus
+abstraction
+    |
+    v
+MIPI display
+  driver
+
+So, you would use the v4l2-subdev API to abstract various PHY drivers. The 
+/dev/fbX link above would, certainly, only exist if we implement the 
+v4l2-output - fbdev translation driver.
+
+Thanks
+Guennadi
 ---
- lib/libv4l1/libv4l1.c |   39 ++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 38 insertions(+), 1 deletions(-)
-
-diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
-index 9bfddd3..f64025a 100644
---- a/lib/libv4l1/libv4l1.c
-+++ b/lib/libv4l1/libv4l1.c
-@@ -624,7 +624,44 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
- 
- 		if ((devices[index].flags & V4L1_SUPPORTS_ENUMINPUT) &&
- 				(devices[index].flags & V4L1_SUPPORTS_ENUMSTD)) {
--			result = SYS_IOCTL(fd, request, arg);
-+
-+			v4l2_std_id sid;
-+
-+			input2.index = chan->channel;
-+			result = SYS_IOCTL(fd, VIDIOC_ENUMINPUT, &input2);
-+			if (result < 0)
-+				break;
-+
-+			chan->channel = input2.index;
-+			memcpy(chan->name, input2.name,
-+				min(sizeof(chan->name), sizeof(input2.name)));
-+
-+			chan->name[sizeof(chan->name) - 1] = 0;
-+			chan->tuners =
-+				(input2.type == V4L2_INPUT_TYPE_TUNER) ? 1 : 0;
-+
-+			chan->flags = (chan->tuners) ? VIDEO_VC_TUNER : 0;
-+			switch (input2.type) {
-+			case V4L2_INPUT_TYPE_TUNER:
-+				chan->type = VIDEO_TYPE_TV;
-+				break;
-+			default:
-+			case V4L2_INPUT_TYPE_CAMERA:
-+				chan->type = VIDEO_TYPE_CAMERA;
-+				break;
-+			}
-+			chan->norm = 0;
-+			if (SYS_IOCTL(fd, VIDIOC_G_STD, &sid) == 0) {
-+				if (sid & V4L2_STD_PAL)
-+					chan->norm = VIDEO_MODE_PAL;
-+				if (sid & V4L2_STD_NTSC)
-+					chan->norm = VIDEO_MODE_NTSC;
-+				if (sid & V4L2_STD_SECAM)
-+					chan->norm = VIDEO_MODE_SECAM;
-+				if (sid == V4L2_STD_ALL)
-+					chan->norm = VIDEO_MODE_AUTO;
-+			}
-+
- 			break;
- 		}
- 
--- 
-1.6.6
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
