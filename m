@@ -1,71 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59184 "EHLO comal.ext.ti.com"
+Received: from mgw1.diku.dk ([130.225.96.91]:52104 "EHLO mgw1.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753491Ab0EaH6U convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 03:58:20 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Tobias Klauser <tklauser@distanz.ch>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
-Date: Mon, 31 May 2010 13:28:03 +0530
-Subject: RE: [PATCH 06/11] V4L/DVB: omap_vout: Storage class should be
- before const qualifier
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E6D26E3@dbde02.ent.ti.com>
-References: <1274344588-9034-1-git-send-email-tklauser@distanz.ch>
-In-Reply-To: <1274344588-9034-1-git-send-email-tklauser@distanz.ch>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1754720Ab0E0Mgu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 08:36:50 -0400
+Date: Thu, 27 May 2010 14:36:45 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 8/11] drivers/media: Eliminate a NULL pointer dereference
+Message-ID: <Pine.LNX.4.64.1005271434030.5422@ask.diku.dk>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Julia Lawall <julia@diku.dk>
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Tobias Klauser
-> Sent: Thursday, May 20, 2010 2:06 PM
-> To: mchehab@infradead.org; linux-media@vger.kernel.org
-> Cc: kernel-janitors@vger.kernel.org; Tobias Klauser
-> Subject: [PATCH 06/11] V4L/DVB: omap_vout: Storage class should be before
-> const qualifier
-> 
-> The C99 specification states in section 6.11.5:
-> 
-> The placement of a storage-class specifier other than at the beginning
-> of the declaration specifiers in a declaration is an obsolescent
-> feature.
-> 
-> Signed-off-by: Tobias Klauser <tklauser@distanz.ch>
-> ---
->  drivers/media/video/omap/omap_vout.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap/omap_vout.c
-> b/drivers/media/video/omap/omap_vout.c
-> index 4c0ab49..d6a2ae1 100644
-> --- a/drivers/media/video/omap/omap_vout.c
-> +++ b/drivers/media/video/omap/omap_vout.c
-> @@ -128,7 +128,7 @@ module_param(debug, bool, S_IRUGO);
->  MODULE_PARM_DESC(debug, "Debug level (0-1)");
-> 
->  /* list of image formats supported by OMAP2 video pipelines */
-> -const static struct v4l2_fmtdesc omap_formats[] = {
-> +static const struct v4l2_fmtdesc omap_formats[] = {
->  	{
->  		/* Note:  V4L2 defines RGB565 as:
->  		 *
-Acked-by: Vaibhav Hiremath <hvaibhav@ti.com>
+In each case, the print involves dereferencing a value that is NULL or is
+near NULL.
 
-Thanks,
-Vaibhav
+A simplified version of the semantic match that finds this problem is as
+follows: (http://coccinelle.lip6.fr/)
 
-> --
-> 1.6.3.3
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+// <smpl>
+@r exists@
+expression E,E1;
+identifier f;
+statement S1,S2,S3;
+@@
+
+if ((E == NULL && ...) || ...)
+{
+  ... when != if (...) S1 else S2
+      when != E = E1
+* E->f
+  ... when any
+  return ...;
+}
+else S3
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/media/dvb/firewire/firedtv-1394.c       |    2 +-
+ drivers/media/video/hdpvr/hdpvr-video.c         |    2 +-
+ drivers/media/video/usbvision/usbvision-video.c |    3 +--
+ 3 files changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/video/usbvision/usbvision-video.c b/drivers/media/video/usbvision/usbvision-video.c
+index 6248a63..c2690df 100644
+--- a/drivers/media/video/usbvision/usbvision-video.c
++++ b/drivers/media/video/usbvision/usbvision-video.c
+@@ -1671,8 +1671,7 @@ static void __devexit usbvision_disconnect(struct usb_interface *intf)
+ 	PDEBUG(DBG_PROBE, "");
+ 
+ 	if (usbvision == NULL) {
+-		dev_err(&usbvision->dev->dev,
+-			"%s: usb_get_intfdata() failed\n", __func__);
++		pr_err("%s: usb_get_intfdata() failed\n", __func__);
+ 		return;
+ 	}
+ 
+diff --git a/drivers/media/video/hdpvr/hdpvr-video.c b/drivers/media/video/hdpvr/hdpvr-video.c
+index 7cfccfd..c338f3f 100644
+--- a/drivers/media/video/hdpvr/hdpvr-video.c
++++ b/drivers/media/video/hdpvr/hdpvr-video.c
+@@ -366,7 +366,7 @@ static int hdpvr_open(struct file *file)
+ 
+ 	dev = (struct hdpvr_device *)video_get_drvdata(video_devdata(file));
+ 	if (!dev) {
+-		v4l2_err(&dev->v4l2_dev, "open failing with with ENODEV\n");
++		pr_err("open failing with with ENODEV\n");
+ 		retval = -ENODEV;
+ 		goto err;
+ 	}
+diff --git a/drivers/media/dvb/firewire/firedtv-1394.c b/drivers/media/dvb/firewire/firedtv-1394.c
+index 26333b4..b34ca7a 100644
+--- a/drivers/media/dvb/firewire/firedtv-1394.c
++++ b/drivers/media/dvb/firewire/firedtv-1394.c
+@@ -58,7 +58,7 @@ static void rawiso_activity_cb(struct hpsb_iso *iso)
+ 	num = hpsb_iso_n_ready(iso);
+ 
+ 	if (!fdtv) {
+-		dev_err(fdtv->device, "received at unknown iso channel\n");
++		pr_err("received at unknown iso channel\n");
+ 		goto out;
+ 	}
+ 
