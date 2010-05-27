@@ -1,106 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51908 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751241Ab0EaMX5 convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.155]:9590 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753101Ab0E0CbR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 08:23:57 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"manjunathan.padua@wipro.com" <manjunathan.padua@wipro.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 31 May 2010 17:53:41 +0530
-Subject: RE: Regarding  OMAP 35xx  ISP subsystem and SoC-Camera
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E6D27F7@dbde02.ent.ti.com>
-References: <336834A7A2D8B34BA5A8906E6E71DF870113EC41@BLR-SJP-MBX01.wipro.com>
- <201005310959.18029.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201005310959.18029.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Wed, 26 May 2010 22:31:17 -0400
+Received: by fg-out-1718.google.com with SMTP id d23so3109613fga.1
+        for <linux-media@vger.kernel.org>; Wed, 26 May 2010 19:31:16 -0700 (PDT)
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Bug fix: make IR work again for dm1105.
+From: "Igor M. Liplianin" <liplianin@me.by>
+Date: Thu, 27 May 2010 05:31:21 +0300
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005270531.21919.liplianin@me.by>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+It makes IR to work again for dm1105 and, possibly, others.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Monday, May 31, 2010 1:29 PM
-> To: manjunathan.padua@wipro.com; Guennadi Liakhovetski
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: Regarding OMAP 35xx ISP subsystem and SoC-Camera
-> 
-> Hi Manjunathan,
-> 
-[Hiremath, Vaibhav] Just clarifying some the things -
+Signed-off-by: Igor M. Liplianin <liplianin@me.by>
+---
+diff --git a/linux/drivers/media/IR/ir-keytable.c b/linux/drivers/media/IR/ir-keytable.c
+--- a/linux/drivers/media/IR/ir-keytable.c
++++ b/linux/drivers/media/IR/ir-keytable.c
+@@ -491,11 +491,12 @@
+ 	if (rc < 0)
+ 		goto out_table;
+ 
+-	if (ir_dev->props->driver_type == RC_DRIVER_IR_RAW) {
+-		rc = ir_raw_event_register(input_dev);
+-		if (rc < 0)
+-			goto out_event;
+-	}
++	if (ir_dev->props)
++		if (ir_dev->props->driver_type == RC_DRIVER_IR_RAW) {
++			rc = ir_raw_event_register(input_dev);
++			if (rc < 0)
++				goto out_event;
++		}
+ 
+ 	IR_dprintk(1, "Registered input device on %s for %s remote.\n",
+ 		   driver_name, rc_tab->name);
+@@ -531,8 +532,10 @@
+ 	IR_dprintk(1, "Freed keycode table\n");
+ 
+ 	del_timer_sync(&ir_dev->timer_keyup);
+-	if (ir_dev->props->driver_type == RC_DRIVER_IR_RAW)
+-		ir_raw_event_unregister(input_dev);
++	if (ir_dev->props)
++		if (ir_dev->props->driver_type == RC_DRIVER_IR_RAW)
++			ir_raw_event_unregister(input_dev);
++
+ 	rc_tab = &ir_dev->rc_tab;
+ 	rc_tab->size = 0;
+ 	kfree(rc_tab->scan);
+diff --git a/linux/drivers/media/IR/ir-sysfs.c b/linux/drivers/media/IR/ir-sysfs.c
+--- a/linux/drivers/media/IR/ir-sysfs.c
++++ b/linux/drivers/media/IR/ir-sysfs.c
+@@ -222,9 +222,10 @@
+ 	if (unlikely(devno < 0))
+ 		return devno;
+ 
+-	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE)
+-		ir_dev->dev.type = &rc_dev_type;
+-	else
++	if (ir_dev->props) {
++		if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE)
++			ir_dev->dev.type = &rc_dev_type;
++	} else
+ 		ir_dev->dev.type = &ir_raw_dev_type;
+ 
+ 	ir_dev->dev.class = &ir_input_class;
+diff --git a/linux/drivers/media/dvb/dm1105/dm1105.c b/linux/drivers/media/dvb/dm1105/dm1105.c
+--- a/linux/drivers/media/dvb/dm1105/dm1105.c
++++ b/linux/drivers/media/dvb/dm1105/dm1105.c
+@@ -616,7 +616,7 @@
+ int __devinit dm1105_ir_init(struct dm1105_dev *dm1105)
+ {
+ 	struct input_dev *input_dev;
+-	char *ir_codes = NULL;
++	char *ir_codes = RC_MAP_DM1105_NEC;
+ 	int err = -ENOMEM;
+ 
+ 	input_dev = input_allocate_device();
+--
 
-
-> On Friday 28 May 2010 15:54:57 manjunathan.padua@wipro.com wrote:
-> > Dear Linux-media group
-> >   I am a newbie and have recently started working on integration of a new
-> > camera sensor MT9M112 sensor with OMAP ISP Camera subsystem on a OMAP 3530
-> > based custom board.  So I checked in mainline kernel if driver is
-> > available for this camera sensor and  I found it in the
-> > Linux/driver/media/video/mt9m11.c, this supports both MT9M111 and MT9M112.
-> > It is based on SoC-Camera framework.   But unfortunately this is not
-> > compatible with OMAP 35xx  Camera ISP subsystem  as OMAP camera ISP
-> > subsystem is based on V4L2-INT.
-> 
-> The OMAP3 ISP driver doesn't use the deprecated V4L2 int-device API anymore.
-> The latest version of the driver can be found in the omap3camera tree on
-> gitorious (make sure you checkout the devel branch).
-> 
-[Hiremath, Vaibhav] Manjunathan,
-
-Please note that this is based on Media controller concept which is new framework or interface we are working on.
-
-> > Also I got know that there are there are 3 different frameworks for camera
-> > sensor drivers in Linux
-> > a. V4L2-INT is deprecated but currently supported by OMAP35xx ISP Linux
-> BSP
-> > b. SoC-Camera is  also deprecated.
-> > c. Sub-Device is the current architecture supported from Open source
-> > community
-> >
-> > 1. Is this understanding correct ?
-> 
-> That's correct. The OMAP35xx ISP driver in the Linux BSP is also deprecated
-> :-)
-> 
-> > 2. Since V4L2-INT and SoC-Camera frameworks are deprecated, can you please
-> > let me know the roadmap for Sub-Device framework ?
-> 
-> The soc-camera framework isn't deprecated, but it isn't used by the OMAP3
-> ISP
-> driver either.
-> 
-[Hiremath, Vaibhav] Laurent, I believe going forward this SoC-Camera will get also deprecated and all drivers will be migrated to sub-device framework.
-
-Thanks,
-Vaibhav
-
-> > 3. What is the best option/recommendation from community for me to
-> integrate
-> > MT9M112 with Camera ISP system on OMAP 3530 based board ?
-> 
-> The dependencies on the soc-camera framework in the MT9M112 driver need to
-> be
-> removed. I've CC'ed Guennadi Liakhovetski to this e-mail, he's the author of
-> the soc-camera framework and should be able to provide information on what
-> is
-> required.
-> 
-> > 4. And lastly are there any other different camera sensors which have Sub-
-> > Device based drivers available in Mainline Linux?
-> 
-> Not that I know of, but there's a video decoder driver (tvp5150).
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
