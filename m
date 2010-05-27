@@ -1,59 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9873 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754029Ab0EEUQ7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 May 2010 16:16:59 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o45KGwIS023988
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 5 May 2010 16:16:58 -0400
-Received: from [10.11.9.8] (vpn-9-8.rdu.redhat.com [10.11.9.8])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o45KGtlU031715
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 5 May 2010 16:16:58 -0400
-Message-ID: <4BE1D237.9020007@redhat.com>
-Date: Wed, 05 May 2010 17:16:55 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] videobuf-vmalloc: remove __videobuf_sync()
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:41818
+	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757052Ab0E0Qku (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 12:40:50 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+To: linux-media@vger.kernel.org
+Cc: Markus Demleitner <msdemlei@tucana.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Ellingsworth <david@identd.dyndns.org>
+Subject: [PATCH/RFC v2 8/8] dsbr100: simplify access to radio device
+Date: Thu, 27 May 2010 12:39:16 -0400
+Message-Id: <1274978356-25836-9-git-send-email-david@identd.dyndns.org>
+In-Reply-To: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
+References: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-videobuf-core checks if .sync ops is defined before calling.
+This patch replaces calls to video_drvdata with
+references to struct file->private_data which is
+set during usb_dsbr100_open. This value is passed
+by video_ioctl2 via the *priv argument and is
+accessible via file->private_data otherwise.
 
-So, we don't need a do-nothing function.
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/dsbr100.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
+diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
+index 81e6aa5..a8c3d5a 100644
+--- a/drivers/media/radio/dsbr100.c
++++ b/drivers/media/radio/dsbr100.c
+@@ -366,7 +366,7 @@ static void usb_dsbr100_disconnect(struct usb_interface *intf)
+ static int vidioc_querycap(struct file *file, void *priv,
+ 					struct v4l2_capability *v)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 
+ 	strlcpy(v->driver, "dsbr100", sizeof(v->driver));
+ 	strlcpy(v->card, "D-Link R-100 USB FM Radio", sizeof(v->card));
+@@ -379,7 +379,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ static int vidioc_g_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 
+ 	if (v->index > 0)
+ 		return -EINVAL;
+@@ -411,7 +411,7 @@ static int vidioc_s_tuner(struct file *file, void *priv,
+ static int vidioc_s_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 	int retval = dsbr100_setfreq(radio, f->frequency);
+ 
+ 	if (retval < 0)
+@@ -423,7 +423,7 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ static int vidioc_g_frequency(struct file *file, void *priv,
+ 				struct v4l2_frequency *f)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 
+ 	f->type = V4L2_TUNER_RADIO;
+ 	f->frequency = radio->curfreq;
+@@ -444,7 +444,7 @@ static int vidioc_queryctrl(struct file *file, void *priv,
+ static int vidioc_g_ctrl(struct file *file, void *priv,
+ 				struct v4l2_control *ctrl)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+@@ -457,7 +457,7 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
+ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 				struct v4l2_control *ctrl)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = priv;
+ 	int retval;
+ 
+ 	switch (ctrl->id) {
+@@ -518,7 +518,7 @@ static int vidioc_s_audio(struct file *file, void *priv,
+ static long usb_dsbr100_ioctl(struct file *file, unsigned int cmd,
+ 				unsigned long arg)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
++	struct dsbr100_device *radio = file->private_data;
+ 	long retval = 0;
+ 
+ 	mutex_lock(&radio->lock);
+@@ -556,6 +556,7 @@ static int usb_dsbr100_open(struct file *file)
+ 		radio->status |= INITIALIZED;
+ 	}
+ 
++	file->private_data = radio;
+ unlock:
+ 	mutex_unlock(&radio->lock);
+ 	return retval;
 -- 
+1.7.1
 
-Cheers,
-Mauro
-diff --git a/drivers/media/video/videobuf-vmalloc.c b/drivers/media/video/videobuf-vmalloc.c
-index f8b5b56..583728f 100644
---- a/drivers/media/video/videobuf-vmalloc.c
-+++ b/drivers/media/video/videobuf-vmalloc.c
-@@ -229,12 +229,6 @@ static int __videobuf_iolock(struct videobuf_queue *q,
- 	return 0;
- }
- 
--static int __videobuf_sync(struct videobuf_queue *q,
--			   struct videobuf_buffer *buf)
--{
--	return 0;
--}
--
- static int __videobuf_mmap_mapper(struct videobuf_queue *q,
- 				  struct videobuf_buffer *buf,
- 				  struct vm_area_struct *vma)
-@@ -301,7 +295,6 @@ static struct videobuf_qtype_ops qops = {
- 
- 	.alloc        = __videobuf_alloc,
- 	.iolock       = __videobuf_iolock,
--	.sync         = __videobuf_sync,
- 	.mmap_mapper  = __videobuf_mmap_mapper,
- 	.vaddr        = videobuf_to_vmalloc,
- };
