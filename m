@@ -1,54 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:62428 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934609Ab0EDXSO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 19:18:14 -0400
-Date: Tue, 4 May 2010 16:18:10 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: hvaibhav@ti.com
-Cc: linux-omap@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [Resubmit: PATCH-V2] AM3517: Add VPFE Capture driver support
-Message-ID: <20100504231810.GS29604@atomide.com>
-References: <hvaibhav@ti.com>
- <1268991469-2747-1-git-send-email-hvaibhav@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1268991469-2747-1-git-send-email-hvaibhav@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:26353 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751136Ab0E0Gnf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 02:43:35 -0400
+Received: from int-mx05.intmail.prod.int.phx2.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.18])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4R6hZbH006676
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 27 May 2010 02:43:35 -0400
+From: huzaifas@redhat.com
+To: linux-media@vger.kernel.org
+Cc: hdegoede@redhat.com
+Subject: [PATCH] libv4l1: move v4l1 ioctls from kernel to libv4l1: VIDIOCSCHAN move VIDIOCSCHAN to libv4l1 Signed-off-by: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+Date: Thu, 27 May 2010 12:11:29 +0530
+Message-Id: <1274942489-27548-1-git-send-email-huzaifas@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* hvaibhav@ti.com <hvaibhav@ti.com> [100319 02:34]:
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> AM3517 and DM644x uses same CCDC IP, so reusing the driver
-> for AM3517.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/mach-omap2/board-am3517evm.c |  160 +++++++++++++++++++++++++++++++++
->  1 files changed, 160 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
-> index f04311f..d2d2ced 100644
-> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> @@ -30,11 +30,164 @@
-> 
->  #include <plat/board.h>
->  #include <plat/common.h>
-> +#include <plat/control.h>
->  #include <plat/usb.h>
->  #include <plat/display.h>
-> 
-> +#include <media/tvp514x.h>
-> +#include <media/ti-media/vpfe_capture.h>
-> +
+From: Huzaifa Sidhpurwala <huzaifas@fedora-12.(none)>
 
-At least the mainline kernel does not seem to have media/ti-media/,
-so I'm not taking this.
+---
+ lib/libv4l1/libv4l1.c |   39 ++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 38 insertions(+), 1 deletions(-)
 
-Looks like it should be safe to merge via linux-media from omap
-point of view.
+diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
+index f64025a..077d57c 100644
+--- a/lib/libv4l1/libv4l1.c
++++ b/lib/libv4l1/libv4l1.c
+@@ -702,7 +702,44 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
+ 		struct video_channel *chan = arg;
+ 		if ((devices[index].flags & V4L1_SUPPORTS_ENUMINPUT) &&
+ 				(devices[index].flags & V4L1_SUPPORTS_ENUMSTD)) {
+-			result = SYS_IOCTL(fd, request, arg);
++
++			v4l2_std_id sid;
++
++			input2.index = chan->channel;
++			result = SYS_IOCTL(fd, VIDIOC_ENUMINPUT, &input2);
++			if (result < 0)
++				break;
++
++			chan->channel = input2.index;
++			memcpy(chan->name, input2.name,
++				min(sizeof(chan->name), sizeof(input2.name)));
++
++			chan->name[sizeof(chan->name) - 1] = 0;
++			chan->tuners =
++				(input2.type == V4L2_INPUT_TYPE_TUNER) ? 1 : 0;
++
++			chan->flags = (chan->tuners) ? VIDEO_VC_TUNER : 0;
++			switch (input2.type) {
++			case V4L2_INPUT_TYPE_TUNER:
++				chan->type = VIDEO_TYPE_TV;
++				break;
++			default:
++			case V4L2_INPUT_TYPE_CAMERA:
++				chan->type = VIDEO_TYPE_CAMERA;
++				break;
++			}
++			chan->norm = 0;
++			if (SYS_IOCTL(fd, VIDIOC_G_STD, &sid) == 0) {
++				if (sid & V4L2_STD_PAL)
++					chan->norm = VIDEO_MODE_PAL;
++				if (sid & V4L2_STD_NTSC)
++					chan->norm = VIDEO_MODE_NTSC;
++				if (sid & V4L2_STD_SECAM)
++					chan->norm = VIDEO_MODE_SECAM;
++				if (sid == V4L2_STD_ALL)
++					chan->norm = VIDEO_MODE_AUTO;
++			}
++
+ 			break;
+ 		}
+ 		/* In case of no ENUMSTD support, ignore the norm member of the
+-- 
+1.6.6.1
 
-Acked-by: Tony Lindgren <tony@atomide.com>
