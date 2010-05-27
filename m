@@ -1,214 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1570 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757382Ab0E2Ooy (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:47669 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305Ab0E0FCP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 10:44:54 -0400
-Message-Id: <dd93b359f685bf61b2a727b29a5a9df9394de3f2.1275143672.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1275143672.git.hverkuil@xs4all.nl>
-References: <cover.1275143672.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sat, 29 May 2010 16:46:44 +0200
-Subject: [PATCH 12/15] [RFCv4] cs53l32a: convert to new control framework.
+	Thu, 27 May 2010 01:02:15 -0400
+Received: by pwi7 with SMTP id 7so548860pwi.19
+        for <linux-media@vger.kernel.org>; Wed, 26 May 2010 22:02:15 -0700 (PDT)
+Message-ID: <4BFDFCD1.6020208@gmail.com>
+Date: Thu, 27 May 2010 13:02:09 +0800
+From: Ang Way Chuang <wcang79@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+CC: Jarod Wilson <jarod@redhat.com>
+Subject: [PATCH] dvb-core: Fix ULE decapsulation bug when less than 4 bytes
+ of ULE SNDU is packed into the remaining bytes of a MPEG2-TS frame
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+ULE (Unidirectional Lightweight Encapsulation RFC 4326) decapsulation 
+code has a bug that incorrectly treats ULE SNDU packed into the 
+remaining 2 or 3 bytes of a MPEG2-TS frame as having invalid pointer 
+field on the subsequent MPEG2-TS frame.
+
+This patch was generated and tested against the latest Linus's pre
+2.6.35-rc1 tree. 
+
+Signed-off-by: Ang Way Chuang <wcang@nav6.org>
 ---
- drivers/media/video/cs53l32a.c |  107 +++++++++++++++++++++++++--------------
- 1 files changed, 68 insertions(+), 39 deletions(-)
-
-diff --git a/drivers/media/video/cs53l32a.c b/drivers/media/video/cs53l32a.c
-index 80bca8d..a46b1d0 100644
---- a/drivers/media/video/cs53l32a.c
-+++ b/drivers/media/video/cs53l32a.c
-@@ -25,10 +25,10 @@
- #include <linux/ioctl.h>
- #include <asm/uaccess.h>
- #include <linux/i2c.h>
--#include <linux/i2c-id.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-ctrls.h>
- #include <media/v4l2-i2c-drv.h>
+diff --git a/drivers/media/dvb/dvb-core/dvb_net.c b/drivers/media/dvb/dvb-core/dvb_net.c
+index f6dac2b..6c3a8a0 100644
+--- a/drivers/media/dvb/dvb-core/dvb_net.c
++++ b/drivers/media/dvb/dvb-core/dvb_net.c
+@@ -351,6 +351,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 	const u8 *ts, *ts_end, *from_where = NULL;
+ 	u8 ts_remain = 0, how_much = 0, new_ts = 1;
+ 	struct ethhdr *ethh = NULL;
++	bool error = false;
  
- MODULE_DESCRIPTION("i2c device driver for cs53l32a Audio ADC");
-@@ -42,6 +42,21 @@ module_param(debug, bool, 0644);
- MODULE_PARM_DESC(debug, "Debugging messages, 0=Off (default), 1=On");
+ #ifdef ULE_DEBUG
+ 	/* The code inside ULE_DEBUG keeps a history of the last 100 TS cells processed. */
+@@ -460,10 +461,16 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
  
- 
-+struct cs53l32a_state {
-+	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
-+};
+ 						/* Drop partly decoded SNDU, reset state, resync on PUSI. */
+ 						if (priv->ule_skb) {
+-							dev_kfree_skb( priv->ule_skb );
++							error = true;
++							dev_kfree_skb(priv->ule_skb);
++						}
 +
-+static inline struct cs53l32a_state *to_state(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct cs53l32a_state, sd);
-+}
++						if (error || priv->ule_sndu_remain) {
+ 							dev->stats.rx_errors++;
+ 							dev->stats.rx_frame_errors++;
++							error = false;
+ 						}
 +
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct cs53l32a_state, hdl)->sd;
-+}
-+
- /* ----------------------------------------------------------------------- */
+ 						reset_ule(priv);
+ 						priv->need_pusi = 1;
+ 						continue;
+@@ -535,6 +542,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 				from_where += 2;
+ 			}
  
- static int cs53l32a_write(struct v4l2_subdev *sd, u8 reg, u8 value)
-@@ -73,31 +88,20 @@ static int cs53l32a_s_routing(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int cs53l32a_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int cs53l32a_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	if (ctrl->id == V4L2_CID_AUDIO_MUTE) {
--		ctrl->value = (cs53l32a_read(sd, 0x03) & 0xc0) != 0;
--		return 0;
--	}
--	if (ctrl->id != V4L2_CID_AUDIO_VOLUME)
--		return -EINVAL;
--	ctrl->value = (s8)cs53l32a_read(sd, 0x04);
--	return 0;
--}
-+	struct v4l2_subdev *sd = to_sd(ctrl);
- 
--static int cs53l32a_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	if (ctrl->id == V4L2_CID_AUDIO_MUTE) {
--		cs53l32a_write(sd, 0x03, ctrl->value ? 0xf0 : 0x30);
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		cs53l32a_write(sd, 0x03, ctrl->val ? 0xf0 : 0x30);
-+		return 0;
-+	case V4L2_CID_AUDIO_VOLUME:
-+		cs53l32a_write(sd, 0x04, (u8)ctrl->val);
-+		cs53l32a_write(sd, 0x05, (u8)ctrl->val);
- 		return 0;
- 	}
--	if (ctrl->id != V4L2_CID_AUDIO_VOLUME)
--		return -EINVAL;
--	if (ctrl->value > 12 || ctrl->value < -96)
--		return -EINVAL;
--	cs53l32a_write(sd, 0x04, (u8) ctrl->value);
--	cs53l32a_write(sd, 0x05, (u8) ctrl->value);
--	return 0;
-+	return -EINVAL;
- }
- 
- static int cs53l32a_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
-@@ -110,23 +114,30 @@ static int cs53l32a_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_id
- 
- static int cs53l32a_log_status(struct v4l2_subdev *sd)
- {
-+	struct cs53l32a_state *state = to_state(sd);
- 	u8 v = cs53l32a_read(sd, 0x01);
--	u8 m = cs53l32a_read(sd, 0x03);
--	s8 vol = cs53l32a_read(sd, 0x04);
- 
--	v4l2_info(sd, "Input:  %d%s\n", (v >> 4) & 3,
--			(m & 0xC0) ? " (muted)" : "");
--	v4l2_info(sd, "Volume: %d dB\n", vol);
-+	v4l2_info(sd, "Input:  %d\n", (v >> 4) & 3);
-+	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
- 	return 0;
- }
- 
- /* ----------------------------------------------------------------------- */
- 
-+static const struct v4l2_ctrl_ops cs53l32a_ctrl_ops = {
-+	.s_ctrl = cs53l32a_s_ctrl,
-+};
-+
- static const struct v4l2_subdev_core_ops cs53l32a_core_ops = {
- 	.log_status = cs53l32a_log_status,
- 	.g_chip_ident = cs53l32a_g_chip_ident,
--	.g_ctrl = cs53l32a_g_ctrl,
--	.s_ctrl = cs53l32a_s_ctrl,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
- };
- 
- static const struct v4l2_subdev_audio_ops cs53l32a_audio_ops = {
-@@ -150,6 +161,7 @@ static const struct v4l2_subdev_ops cs53l32a_ops = {
- static int cs53l32a_probe(struct i2c_client *client,
- 			  const struct i2c_device_id *id)
- {
-+	struct cs53l32a_state *state;
- 	struct v4l2_subdev *sd;
- 	int i;
- 
-@@ -163,9 +175,10 @@ static int cs53l32a_probe(struct i2c_client *client,
- 	v4l_info(client, "chip found @ 0x%x (%s)\n",
- 			client->addr << 1, client->adapter->name);
- 
--	sd = kmalloc(sizeof(struct v4l2_subdev), GFP_KERNEL);
--	if (sd == NULL)
-+	state = kzalloc(sizeof(struct cs53l32a_state), GFP_KERNEL);
-+	if (state == NULL)
- 		return -ENOMEM;
-+	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &cs53l32a_ops);
- 
- 	for (i = 1; i <= 7; i++) {
-@@ -174,15 +187,29 @@ static int cs53l32a_probe(struct i2c_client *client,
- 		v4l2_dbg(1, debug, sd, "Read Reg %d %02x\n", i, v);
- 	}
- 
-+	v4l2_ctrl_handler_init(&state->hdl, 2);
-+	v4l2_ctrl_new_std(&state->hdl, &cs53l32a_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, -96, 12, 1, 0);
-+	v4l2_ctrl_new_std(&state->hdl, &cs53l32a_ctrl_ops,
-+			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-+	sd->ctrl_handler = &state->hdl;
-+	if (state->hdl.error) {
-+		int err = state->hdl.error;
-+
-+		v4l2_ctrl_handler_free(&state->hdl);
-+		kfree(state);
-+		return err;
-+	}
-+
- 	/* Set cs53l32a internal register for Adaptec 2010/2410 setup */
- 
--	cs53l32a_write(sd, 0x01, (u8) 0x21);
--	cs53l32a_write(sd, 0x02, (u8) 0x29);
--	cs53l32a_write(sd, 0x03, (u8) 0x30);
--	cs53l32a_write(sd, 0x04, (u8) 0x00);
--	cs53l32a_write(sd, 0x05, (u8) 0x00);
--	cs53l32a_write(sd, 0x06, (u8) 0x00);
--	cs53l32a_write(sd, 0x07, (u8) 0x00);
-+	cs53l32a_write(sd, 0x01, 0x21);
-+	cs53l32a_write(sd, 0x02, 0x29);
-+	cs53l32a_write(sd, 0x03, 0x30);
-+	cs53l32a_write(sd, 0x04, 0x00);
-+	cs53l32a_write(sd, 0x05, 0x00);
-+	cs53l32a_write(sd, 0x06, 0x00);
-+	cs53l32a_write(sd, 0x07, 0x00);
- 
- 	/* Display results, should be 0x21,0x29,0x30,0x00,0x00,0x00,0x00 */
- 
-@@ -197,9 +224,11 @@ static int cs53l32a_probe(struct i2c_client *client,
- static int cs53l32a_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct cs53l32a_state *state = to_state(sd);
- 
- 	v4l2_device_unregister_subdev(sd);
--	kfree(sd);
-+	v4l2_ctrl_handler_free(&state->hdl);
-+	kfree(state);
- 	return 0;
- }
- 
--- 
-1.6.4.2
-
++			priv->ule_sndu_remain = priv->ule_sndu_len + 2;
+ 			/*
+ 			 * State of current TS:
+ 			 *   ts_remain (remaining bytes in the current TS cell)
+@@ -544,6 +552,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 			 */
+ 			switch (ts_remain) {
+ 				case 1:
++					priv->ule_sndu_remain--;
+ 					priv->ule_sndu_type = from_where[0] << 8;
+ 					priv->ule_sndu_type_1 = 1; /* first byte of ule_type is set. */
+ 					ts_remain -= 1; from_where += 1;
+@@ -557,6 +566,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
+ 				default: /* complete ULE header is present in current TS. */
+ 					/* Extract ULE type field. */
+ 					if (priv->ule_sndu_type_1) {
++						priv->ule_sndu_type_1 = 0;
+ 						priv->ule_sndu_type |= from_where[0];
+ 						from_where += 1; /* points to payload start. */
+ 						ts_remain -= 1;
