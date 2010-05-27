@@ -1,79 +1,271 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:45752 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1755245Ab0E1TPV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 May 2010 15:15:21 -0400
-Message-ID: <4C001643.2070802@gmx.de>
-Date: Fri, 28 May 2010 21:15:15 +0200
-From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-MIME-Version: 1.0
-To: Alex Deucher <alexdeucher@gmail.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jaya Kumar <jayakumar.lkml@gmail.com>,
-	linux-fbdev@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Idea of a v4l -> fb interface driver
-References: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>	<AANLkTilnb20a4KO1NmK_y148HE_4b6ka14hUJY5o93QT@mail.gmail.com>	<Pine.LNX.4.64.1005270809110.2293@axis700.grange>	<AANLkTin_ia3Ym3z7FOu40voZkjCeMqSDZjuE_1aBjwOW@mail.gmail.com>	<Pine.LNX.4.64.1005272216380.1703@axis700.grange> <AANLkTikTBFPxbl5p9kI65bHt2UJZ5j0DAxFwJ6rzD77L@mail.gmail.com>
-In-Reply-To: <AANLkTikTBFPxbl5p9kI65bHt2UJZ5j0DAxFwJ6rzD77L@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:41829
+	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757486Ab0E0Qkv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 12:40:51 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
+To: linux-media@vger.kernel.org
+Cc: Markus Demleitner <msdemlei@tucana.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Ellingsworth <david@identd.dyndns.org>
+Subject: [PATCH/RFC v2 1/8] dsbr100: implement proper locking
+Date: Thu, 27 May 2010 12:39:09 -0400
+Message-Id: <1274978356-25836-2-git-send-email-david@identd.dyndns.org>
+In-Reply-To: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
+References: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alex Deucher schrieb:
-> On Fri, May 28, 2010 at 4:21 AM, Guennadi Liakhovetski
-> <g.liakhovetski@gmx.de> wrote:
->> On Thu, 27 May 2010, Alex Deucher wrote:
->>
->>>
->>> Another API to consider in the drm kms (kernel modesetting) interface.
->>>  The kms API deals properly with advanced display hardware and
->>> properly handles crtcs, encoders, and connectors.  It also provides
->>> fbdev api emulation.
->> Well, is KMS planned as a replacement for both fbdev and user-space
->> graphics drivers? I mean, if you'd be writing a new fb driver for a
->> relatively simple embedded SoC, would KMS apriori be a preferred API?
-> 
-> It's become the defacto standard for X and things like EGL are being
-> built onto of the API.  As for the kms vs fbdev, kms provides a nice
-> API for complex display setups with multiple display controllers and
-> connectors while fbdev assumes one monitor/connector/encoder per
-> device.  The fbdev and console stuff has yet to take advantage of this
-> flexibility, I'm not sure what will happen there.  fbdev emulation is
-> provided by kms, but it has to hide the complexity of the attached
-> displays.  For an soc with a single encoder and display, there's
-> probably not much advantage over fbdev, but if you have an soc that
-> can do TMDS and LVDS and possibly analog tv out, it gets more
-> interesting.
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/dsbr100.c |   77 +++++++++++++++++-----------------------
+ 1 files changed, 33 insertions(+), 44 deletions(-)
 
-Well hiding complexity is actually the job of an API. I don't see any 
-need for major changes in fbdev for complex display setups. In most 
-cases as a userspace application you really don't want to be bothered 
-how many different output devices you have and control each 
-individually, you just want an area to draw and to know/control what 
-area the user is expected to see and that's already provided in fbdev.
-If the user wants the same content on multiple outputs just configure 
-the driver to do so.
-If he wants different (independent) content on each output, just provide 
-multiple /dev/fbX devices. I admit that we could use a controlling 
-interface here that decides which user (application) might draw at a 
-time to the interface which they currently only do if they are the 
-active VT.
-If you want 2 or more outputs to be merged as one just configure this in 
-the driver.
-The only thing that is impossible to do in fbdev is controlling 2 or 
-more independent display outputs that access the same buffer. But that's 
-not an issue I think.
-The things above only could use a unification of how to set them up on 
-module load time (as only limited runtime changes are permited given 
-that we must always be able to support a mode that we once entered 
-during runtime).
-
-The thing that's really missing in fbdev is a way to allow hardware 
-acceleration for userspace.
-
-
-Regards,
-
-Florian Tobias Schandinat
+diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
+index ed9cd7a..673eda8 100644
+--- a/drivers/media/radio/dsbr100.c
++++ b/drivers/media/radio/dsbr100.c
+@@ -182,7 +182,7 @@ static int dsbr100_start(struct dsbr100_device *radio)
+ 	int retval;
+ 	int request;
+ 
+-	mutex_lock(&radio->lock);
++	BUG_ON(!mutex_is_locked(&radio->lock));
+ 
+ 	retval = usb_control_msg(radio->usbdev,
+ 		usb_rcvctrlpipe(radio->usbdev, 0),
+@@ -207,11 +207,9 @@ static int dsbr100_start(struct dsbr100_device *radio)
+ 	}
+ 
+ 	radio->status = STARTED;
+-	mutex_unlock(&radio->lock);
+ 	return (radio->transfer_buffer)[0];
+ 
+ usb_control_msg_failed:
+-	mutex_unlock(&radio->lock);
+ 	dev_err(&radio->usbdev->dev,
+ 		"%s - usb_control_msg returned %i, request %i\n",
+ 			__func__, retval, request);
+@@ -225,7 +223,7 @@ static int dsbr100_stop(struct dsbr100_device *radio)
+ 	int retval;
+ 	int request;
+ 
+-	mutex_lock(&radio->lock);
++	BUG_ON(!mutex_is_locked(&radio->lock));
+ 
+ 	retval = usb_control_msg(radio->usbdev,
+ 		usb_rcvctrlpipe(radio->usbdev, 0),
+@@ -250,11 +248,9 @@ static int dsbr100_stop(struct dsbr100_device *radio)
+ 	}
+ 
+ 	radio->status = STOPPED;
+-	mutex_unlock(&radio->lock);
+ 	return (radio->transfer_buffer)[0];
+ 
+ usb_control_msg_failed:
+-	mutex_unlock(&radio->lock);
+ 	dev_err(&radio->usbdev->dev,
+ 		"%s - usb_control_msg returned %i, request %i\n",
+ 			__func__, retval, request);
+@@ -269,7 +265,7 @@ static int dsbr100_setfreq(struct dsbr100_device *radio)
+ 	int request;
+ 	int freq = (radio->curfreq / 16 * 80) / 1000 + 856;
+ 
+-	mutex_lock(&radio->lock);
++	BUG_ON(!mutex_is_locked(&radio->lock));
+ 
+ 	retval = usb_control_msg(radio->usbdev,
+ 		usb_rcvctrlpipe(radio->usbdev, 0),
+@@ -306,12 +302,10 @@ static int dsbr100_setfreq(struct dsbr100_device *radio)
+ 	}
+ 
+ 	radio->stereo = !((radio->transfer_buffer)[0] & 0x01);
+-	mutex_unlock(&radio->lock);
+ 	return (radio->transfer_buffer)[0];
+ 
+ usb_control_msg_failed:
+ 	radio->stereo = -1;
+-	mutex_unlock(&radio->lock);
+ 	dev_err(&radio->usbdev->dev,
+ 		"%s - usb_control_msg returned %i, request %i\n",
+ 			__func__, retval, request);
+@@ -324,7 +318,7 @@ static void dsbr100_getstat(struct dsbr100_device *radio)
+ {
+ 	int retval;
+ 
+-	mutex_lock(&radio->lock);
++	BUG_ON(!mutex_is_locked(&radio->lock));
+ 
+ 	retval = usb_control_msg(radio->usbdev,
+ 		usb_rcvctrlpipe(radio->usbdev, 0),
+@@ -340,8 +334,6 @@ static void dsbr100_getstat(struct dsbr100_device *radio)
+ 	} else {
+ 		radio->stereo = !(radio->transfer_buffer[0] & 0x01);
+ 	}
+-
+-	mutex_unlock(&radio->lock);
+ }
+ 
+ /* USB subsystem interface begins here */
+@@ -385,10 +377,6 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ {
+ 	struct dsbr100_device *radio = video_drvdata(file);
+ 
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+ 	if (v->index > 0)
+ 		return -EINVAL;
+ 
+@@ -410,12 +398,6 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ static int vidioc_s_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *v)
+ {
+-	struct dsbr100_device *radio = video_drvdata(file);
+-
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+ 	if (v->index > 0)
+ 		return -EINVAL;
+ 
+@@ -428,17 +410,12 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 	struct dsbr100_device *radio = video_drvdata(file);
+ 	int retval;
+ 
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+-	mutex_lock(&radio->lock);
+ 	radio->curfreq = f->frequency;
+-	mutex_unlock(&radio->lock);
+ 
+ 	retval = dsbr100_setfreq(radio);
+ 	if (retval < 0)
+ 		dev_warn(&radio->usbdev->dev, "Set frequency failed\n");
++
+ 	return 0;
+ }
+ 
+@@ -447,10 +424,6 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ {
+ 	struct dsbr100_device *radio = video_drvdata(file);
+ 
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+ 	f->type = V4L2_TUNER_RADIO;
+ 	f->frequency = radio->curfreq;
+ 	return 0;
+@@ -472,10 +445,6 @@ static int vidioc_g_ctrl(struct file *file, void *priv,
+ {
+ 	struct dsbr100_device *radio = video_drvdata(file);
+ 
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		ctrl->value = radio->status;
+@@ -490,10 +459,6 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 	struct dsbr100_device *radio = video_drvdata(file);
+ 	int retval;
+ 
+-	/* safety check */
+-	if (radio->removed)
+-		return -EIO;
+-
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		if (ctrl->value) {
+@@ -513,6 +478,7 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 		}
+ 		return 0;
+ 	}
++
+ 	return -EINVAL;
+ }
+ 
+@@ -548,12 +514,34 @@ static int vidioc_s_audio(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static long usb_dsbr100_ioctl(struct file *file, unsigned int cmd,
++				unsigned long arg)
++{
++	struct dsbr100_device *radio = video_drvdata(file);
++	long retval = 0;
++
++	mutex_lock(&radio->lock);
++
++	if (radio->removed) {
++		retval = -EIO;
++		goto unlock;
++	}
++
++	retval = video_ioctl2(file, cmd, arg);
++
++unlock:
++	mutex_unlock(&radio->lock);
++	return retval;
++}
++
+ /* Suspend device - stop device. */
+ static int usb_dsbr100_suspend(struct usb_interface *intf, pm_message_t message)
+ {
+ 	struct dsbr100_device *radio = usb_get_intfdata(intf);
+ 	int retval;
+ 
++	mutex_lock(&radio->lock);
++
+ 	if (radio->status == STARTED) {
+ 		retval = dsbr100_stop(radio);
+ 		if (retval < 0)
+@@ -564,12 +552,10 @@ static int usb_dsbr100_suspend(struct usb_interface *intf, pm_message_t message)
+ 		 * we set status equal to STARTED.
+ 		 * On resume we will check status and run radio if needed.
+ 		 */
+-
+-		mutex_lock(&radio->lock);
+ 		radio->status = STARTED;
+-		mutex_unlock(&radio->lock);
+ 	}
+ 
++	mutex_unlock(&radio->lock);
+ 	dev_info(&intf->dev, "going into suspend..\n");
+ 
+ 	return 0;
+@@ -581,12 +567,15 @@ static int usb_dsbr100_resume(struct usb_interface *intf)
+ 	struct dsbr100_device *radio = usb_get_intfdata(intf);
+ 	int retval;
+ 
++	mutex_lock(&radio->lock);
++
+ 	if (radio->status == STARTED) {
+ 		retval = dsbr100_start(radio);
+ 		if (retval < 0)
+ 			dev_warn(&intf->dev, "dsbr100_start failed\n");
+ 	}
+ 
++	mutex_unlock(&radio->lock);
+ 	dev_info(&intf->dev, "coming out of suspend..\n");
+ 
+ 	return 0;
+@@ -605,7 +594,7 @@ static void usb_dsbr100_video_device_release(struct video_device *videodev)
+ /* File system interface */
+ static const struct v4l2_file_operations usb_dsbr100_fops = {
+ 	.owner		= THIS_MODULE,
+-	.ioctl		= video_ioctl2,
++	.unlocked_ioctl	= usb_dsbr100_ioctl,
+ };
+ 
+ static const struct v4l2_ioctl_ops usb_dsbr100_ioctl_ops = {
+-- 
+1.7.1
 
