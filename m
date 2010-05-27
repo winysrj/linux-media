@@ -1,119 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1195 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756047Ab0E2OoA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 May 2010 10:44:00 -0400
-Message-Id: <cover.1275143672.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sat, 29 May 2010 16:45:50 +0200
-Subject: [PATCH 00/15] [RFCv4] New control handling framework
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Received: from cnc.isely.net ([64.81.146.143]:36882 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751254Ab0E0FSW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 01:18:22 -0400
+Date: Thu, 27 May 2010 00:18:21 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Julia Lawall <julia@diku.dk>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	kernel-janitors@vger.kernel.org,
+	Mike Isely at pobox <isely@pobox.com>
+Subject: Re: [PATCH 5/17] drivers/media/video/pvrusb2: Add missing
+ mutex_unlock
+In-Reply-To: <Pine.LNX.4.64.1005261755110.23743@ask.diku.dk>
+Message-ID: <alpine.DEB.1.10.1005270013020.19542@ivanova.isely.net>
+References: <Pine.LNX.4.64.1005261755110.23743@ask.diku.dk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This RFC patch series adds the control handling framework and implements
-it in ivtv and all subdev drivers used by ivtv.
 
-It is a bare-bones implementation, so no sysfs or debugfs enhancements.
+I looked through my revision history and that bug has been there in the 
+driver source since at least May 2005, long before it was ever merged 
+into the kernel.  Wow, what a great catch.  Thanks!
 
-It is the fourth version of this framework, incorporating comments from
-Laurent.
+Acked-By: Mike Isely <isely@pobox.com>
 
-Changes compared to the second version (the third version was never posted):
-
-- Replaced 'bridge driver' by 'V4L2 driver'.
-- Added is_volatile and is_uninitialized flags (to control whether g_volatile_ctrl or
-  init should be called).
-- Added is_volatile, is_uninitialized and is_private flags to v4l2_ctrl_config.
-- If the name field in struct v4l2_ctrl_config is NULL, then assume it is a standard
-  control and fill in the defaults accordingly.
-
-These last two changes together make it possible to make a const array of
-struct v4l2_ctrl_config to create all controls.
-
-- v4l2_ctrl_new_std_menu now has a 'max' argument.
-- v4l2_ctrl_new_std can no longer be used to create a standard menu control.
-  This should prevent confusion regarding step and skip_mask.
-- v4l2_ctrl_active and v4l2_ctrl_grab set the flag atomically, so can be called
-  from anywhere.
-- The init op can now return an error code.
-- Extended the section on control initialization in the documentation.
-- Added v4l2_ctrl_init_disable to give drivers the option to disable controls
-  that failed to initialize.
-- Added two new proposals to the doc to extend the spec:
-
------- start excerpt -------------
-3) Trying to set volatile inactive controls should result in -EACCESS.
-
-4) Add a new flag to mark volatile controls. Any application that wants
-to store the state of the controls can then skip volatile inactive controls.
-Currently it is not possible to detect such controls.
-------- end excerpt --------------
-
-This version incorporates all comments I have received.
-
-Regards,
-
-	Hans
+  -Mike
 
 
-Hans Verkuil (15):
-  v4l2: Add new control handling framework
-  v4l2-ctrls: reorder 'case' statements to match order in header.
-  Documentation: add v4l2-controls.txt documenting the new controls
-    API.
-  v4l2: hook up the new control framework into the core framework
-  saa7115: convert to the new control framework
-  msp3400: convert to the new control framework
-  saa717x: convert to the new control framework
-  cx25840/ivtv: replace ugly priv control with s_config
-  cx25840: convert to the new control framework
-  cx2341x: convert to the control framework
-  wm8775: convert to the new control framework
-  cs53l32a: convert to new control framework.
-  wm8739: convert to the new control framework
-  ivtv: convert gpio subdev to new control framework.
-  ivtv: convert to the new control framework
+On Wed, 26 May 2010, Julia Lawall wrote:
 
- Documentation/video4linux/v4l2-controls.txt |  694 ++++++++++
- drivers/media/video/Makefile                |    2 +-
- drivers/media/video/cs53l32a.c              |  107 +-
- drivers/media/video/cx2341x.c               |  747 +++++++++--
- drivers/media/video/cx25840/cx25840-audio.c |  144 +--
- drivers/media/video/cx25840/cx25840-core.c  |  201 ++--
- drivers/media/video/cx25840/cx25840-core.h  |   26 +-
- drivers/media/video/ivtv/ivtv-controls.c    |  275 +----
- drivers/media/video/ivtv/ivtv-controls.h    |    6 +-
- drivers/media/video/ivtv/ivtv-driver.c      |   26 +-
- drivers/media/video/ivtv/ivtv-driver.h      |    4 +-
- drivers/media/video/ivtv/ivtv-fileops.c     |   23 +-
- drivers/media/video/ivtv/ivtv-firmware.c    |    6 +-
- drivers/media/video/ivtv/ivtv-gpio.c        |   77 +-
- drivers/media/video/ivtv/ivtv-i2c.c         |    7 +
- drivers/media/video/ivtv/ivtv-ioctl.c       |   31 +-
- drivers/media/video/ivtv/ivtv-streams.c     |   20 +-
- drivers/media/video/msp3400-driver.c        |  248 ++---
- drivers/media/video/msp3400-driver.h        |   18 +-
- drivers/media/video/msp3400-kthreads.c      |   16 +-
- drivers/media/video/saa7115.c               |  183 ++--
- drivers/media/video/saa717x.c               |  323 ++----
- drivers/media/video/v4l2-common.c           |  479 +-------
- drivers/media/video/v4l2-ctrls.c            | 1935 +++++++++++++++++++++++++++
- drivers/media/video/v4l2-dev.c              |    8 +-
- drivers/media/video/v4l2-device.c           |    7 +
- drivers/media/video/v4l2-ioctl.c            |   46 +-
- drivers/media/video/wm8739.c                |  179 +--
- drivers/media/video/wm8775.c                |   79 +-
- include/media/cx2341x.h                     |   97 ++
- include/media/cx25840.h                     |   11 +
- include/media/v4l2-ctrls.h                  |  495 +++++++
- include/media/v4l2-dev.h                    |    4 +
- include/media/v4l2-device.h                 |    4 +
- include/media/v4l2-subdev.h                 |    3 +
- 35 files changed, 4623 insertions(+), 1908 deletions(-)
- create mode 100644 Documentation/video4linux/v4l2-controls.txt
- create mode 100644 drivers/media/video/v4l2-ctrls.c
- create mode 100644 include/media/v4l2-ctrls.h
+> From: Julia Lawall <julia@diku.dk>
+> 
+> Add a mutex_unlock missing on the error path.  In the other functions in
+> the same file the locks and unlocks of this mutex appear to be balanced,
+> so it would seem that the same should hold in this case.
+> 
+> The semantic match that finds this problem is as follows:
+> (http://coccinelle.lip6.fr/)
+> 
+> // <smpl>
+> @@
+> expression E1;
+> @@
+> 
+> * mutex_lock(E1,...);
+>   <+... when != E1
+>   if (...) {
+>     ... when != E1
+> *   return ...;
+>   }
+>   ...+>
+> * mutex_unlock(E1,...);
+> // </smpl>
+> 
+> Signed-off-by: Julia Lawall <julia@diku.dk>
+> 
+> ---
+>  drivers/media/video/pvrusb2/pvrusb2-ioread.c |    5 ++++-
+>  1 file changed, 4 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/video/pvrusb2/pvrusb2-ioread.c b/drivers/media/video/pvrusb2/pvrusb2-ioread.c
+> index b482478..bba6115 100644
+> --- a/drivers/media/video/pvrusb2/pvrusb2-ioread.c
+> +++ b/drivers/media/video/pvrusb2/pvrusb2-ioread.c
+> @@ -223,7 +223,10 @@ int pvr2_ioread_setup(struct pvr2_ioread *cp,struct pvr2_stream *sp)
+>  				   " pvr2_ioread_setup (setup) id=%p",cp);
+>  			pvr2_stream_kill(sp);
+>  			ret = pvr2_stream_set_buffer_count(sp,BUFFER_COUNT);
+> -			if (ret < 0) return ret;
+> +			if (ret < 0) {
+> +				mutex_unlock(&cp->mutex);
+> +				return ret;
+> +			}
+>  			for (idx = 0; idx < BUFFER_COUNT; idx++) {
+>  				bp = pvr2_stream_get_buffer(sp,idx);
+>  				pvr2_buffer_set_buffer(bp,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+> 
 
+-- 
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
