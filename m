@@ -1,115 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4292 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754606Ab0EQSir (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:37207 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750967Ab0E0Ghn convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 May 2010 14:38:47 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4HIcjTP045215
-	for <linux-media@vger.kernel.org>; Mon, 17 May 2010 20:38:45 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 17 May 2010 20:38:45 +0200 (CEST)
-Message-Id: <201005171838.o4HIcjTP045215@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Thu, 27 May 2010 02:37:43 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Zhong, Jeff" <hzhong@quicinc.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
+	"Aguirre, Sergio" <saaguirre@ti.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Date: Thu, 27 May 2010 12:07:11 +0530
+Subject: RE: Tentative agenda for Helsinki mini-summit
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E616EFA@dbde02.ent.ti.com>
+References: <201005231236.49048.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1005231929091.3571@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1005231929091.3571@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+> -----Original Message-----
+> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> Sent: Sunday, May 23, 2010 11:33 PM
+> To: Hans Verkuil
+> Cc: Linux Media Mailing List; Zhong, Jeff; Laurent Pinchart; Pawel Osciak;
+> Zhang, Xiaolin; Aguirre, Sergio; Hiremath, Vaibhav; Hans de Goede; Mauro
+> Carvalho Chehab
+> Subject: Re: Tentative agenda for Helsinki mini-summit
+> 
+> On Sun, 23 May 2010, Hans Verkuil wrote:
+> 
+> > Hi all,
+> >
+> > This is a tentative agenda for the Helsinki mini-summit on June 14-16.
+> >
+> > Please reply to this thread if you have comments or want to add topics.
+> 
+> [snip]
+> 
+> > 8) soc-camera status. Particularly with regards to the remaining soc-
+> camera
+> >    dependencies in sensor drivers. Guennadi Liakhovetski.
+> 
+> Don't think a formal presentation is needed, but I can tell a couple of
+> words to clarify the current status a bit.
+> 
+> > Comments? Topics I missed?
+> 
+> No idea whether this is a worthy and suitable topic for this meeting, but:
+> 
+> V4L(2) video output vs. framebuffer.
+> 
+> Problem: Currently the standard way to provide graphical output on various
+> (embedded) displays like LCDs is to use a framebuffer driver. The
+> interface is well supported and widely adopted in the user-space, many
+> applications, including the X-server, various libraries like directfb,
+> gstreamer, mplayer, etc. In the kernel space, however, the subsystem has a
+> number of problems. It is unmaintained. 
+[Hiremath, Vaibhav] Unfortunately yes it is true.
 
-Results of the daily build of v4l-dvb:
+> The infrastructure is not being
+> further developed, every specific hardware driver is being supported by
+> the respective architecture community. But as video output hardware
+> evolves, more complex displays and buses appear and have to be supported,
+> the subsystem shows its aging. For example, there is currently no way to
+> write reusable across multiple platforms display drivers.
+> 
+[Hiremath, Vaibhav] Up to certain extent yes you are correct.
 
-date:        Mon May 17 19:00:21 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14859:8f5129efe974
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+> OTOH V4L2 has a standard vodeo output driver support, it is not very
+> widely used, in the userspace I know only of gstreamer, that somehow
+> supports video-output v4l2 devices in latest versions. But, being a part
+> of the v4l2 subsystem, these drivers already now can take a full advantage
+> of all v4l2 APIs, including the v4l2-subdev API for the driver reuse.
+> 
+> So, how can we help graphics driver developers on the one hand by
+> providing them with a capable driver framework (v4l2) and on the other
+> hand by simplifying the task of interfacing to the user-space?
+> 
+[Hiremath, Vaibhav] I think this is really complex question which requires healthy discussion over list.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc7-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc7-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc7-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc7-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc7-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc7-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc7-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc7-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc7-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
 
-Detailed results are available here:
+> How about a v4l2-output - fbdev translation layer? You write a v4l2-output
+> driver and get a framebuffer device free of charge... 
+[Hiremath, Vaibhav] It would be nice if you put some more details/thoughts here for better understanding of what exactly you are thinking/proposing.
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+> TBH, I haven't given
+> this too much of a thought, but so far I don't see anything that would
+> make this impossible in principle. The video buffer management is quite
+> different between the two systems, but maybe we can teach video-output
+> drivers to work with just one buffer too? 
+[Hiremath, Vaibhav] I believe V4L2 buf won't limit you to do this. Atleast in case of OMAP v4L2 display driver we are sticking to last buffer if application fails to queue one. So for me this is single buffer keeps on displaying unless application queue next buffer. 
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+> Anyway, feel free to tell me why
+> this is an absolutely impossible / impractical idea;)
+> 
+[Hiremath, Vaibhav] If I understanding correctly you are trying to propose something like,
 
-The V4L-DVB specification from this daily build is here:
+Without changing Fbdev interface to user space application, create translation layers which will allow driver developer to write driver under V4L2 framework providing /dev/fbx but using V4L2 API/framework.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks,
+Vaibhav
+
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
