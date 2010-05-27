@@ -1,544 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1264 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375Ab0EPNUB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 May 2010 09:20:01 -0400
-Message-Id: <4a8279225b7a8621e15162f4eaea007f834aa921.1274015085.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1274015084.git.hverkuil@xs4all.nl>
-References: <cover.1274015084.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 16 May 2010 15:21:34 +0200
-Subject: [PATCH 09/15] [RFCv2] cx25840: convert to the new control framework
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
+Received: from mail.gmx.net ([213.165.64.20]:31683 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1757581Ab0E0JpQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 05:45:16 -0400
+Date: Thu, 27 May 2010 11:45:25 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: mt9m111 swap_rgb_red_blue
+In-Reply-To: <87bpc2za9i.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.1005271112410.2293@axis700.grange>
+References: <20100526141848.GU17272@pengutronix.de> <87bpc2za9i.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+On Wed, 26 May 2010, Robert Jarzmik wrote:
+
+> Sascha Hauer <s.hauer@pengutronix.de> writes:
+> 
+> > Hi,
+> >
+> > The mt9m111 soc-camera driver has a swap_rgb_red_blue variable which is
+> > hardcoded to 1. This results in, well the name says it, red and blue being
+> > swapped in my picture.
+> > Is this value needed on some boards or is it just a leftover from
+> > development?
+> 
+> Hi Sascha,
+> 
+> It's not a development leftover, it's something that the sensor and the host
+> have to agree upon (ie. agree upon the output the sensor has to deliver to the
+> host).
+> 
+> By now, only the Marvell PXA27x CPU was used as the host of this sensor, and the
+> PXA expects the inverted Red/Blue order (ie. have BGR format).
+> 
+> Now, for the solution to your problem, we could :
+>  - enhance the mt9m111, and add the V4L2_MBUS_FMT_BGR565_2X8_LE format
+>    This format would have swap_rgb_red_blue = 1
+>  - fix the mt9m111, and add for the V4L2_MBUS_FMT_BGR565_2X8_LE format
+>    swap_rgb_red_blue = 0
+>  - fix the pxa_camera, and convert the RGB format asked for by userland into the
+>  V4L2_MBUS_FMT_BGR565_2X8_LE
+> 
+> What is your opinion here, Guennadi ?
+> 
+> --
+> Robert
+> 
+> PS: As for now, the RGB565 format is transfered as follows from the sensor, for
+> one pixel, over a 8 bit bus (D7-D0):
+> 
+>        D7 D6 D5 D4 D3 D2 D1 D0
+>        =======================
+> Byte1: G4 G3 G2 R7 R6 R5 R4 R3
+> Byte2: B7 B6 B5 B4 B3 G7 G6 G5
+> 
+> This is BGR565, with byte1 and byte2 inverted.
+
+"inverted" has to be explained here, I think. So, an BGR565 is a 16-bit 
+word like (using your notation)
+
+High byte                  | Low byte
+bit15                      |                      bit0
+   b7 b6 b5 b4 b3 g7 g6 g5 | g4 g3 g2 r7 r6 r5 r4 r3
+
+on a LE machine this will be stored in RAM as
+
+address 0 | address 1
+Low byte  | High byte
+
+So, if we take a "natural pass-through" packing as
+
+Byte1 -> address 0
+Byte2 -> address 1
+
+Then your table above is a V4L2_MBUS_FMT_BGR565_2X8_LE format. Agree? So, 
+that's what you get with "swap_rgb_red_blue = 1." Now, this flag actually 
+swaps the colour components, not the bytes, right? With "swap_rgb_red_blue 
+= 0" you'd get V4L2_MBUS_FMT_BGR565_2X8_BE. So, yes, I agree, that 
+you have to extend the mt9m111 driver to support both these formats by 
+toggling that bit, and yes, you have to replace *RGB* formats with *BGR* 
+analogs in both mt9m111 and pxa drivers, because that's what we actually 
+have, right? And, while at it, we should extend mt9m111 to handle the 
+swap_rgb_red_blue flag to also provide *RGB* formats.
+
+> PPS: This is what Sascha is expecting, if I understood correctly:
+> 
+>        D7 D6 D5 D4 D3 D2 D1 D0
+>        =======================
+> Byte1: G4 G3 G2 B7 B6 B5 B4 B3
+> Byte2: R7 R6 R5 R4 R3 G7 G6 G5
+> 
+> This is RGB565, with byte1 and byte2 inverted.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/cx25840/cx25840-audio.c |  144 +++-------------------
- drivers/media/video/cx25840/cx25840-core.c  |  178 ++++++++++-----------------
- drivers/media/video/cx25840/cx25840-core.h  |   15 ++-
- 3 files changed, 91 insertions(+), 246 deletions(-)
-
-diff --git a/drivers/media/video/cx25840/cx25840-audio.c b/drivers/media/video/cx25840/cx25840-audio.c
-index 45608d5..6faad34 100644
---- a/drivers/media/video/cx25840/cx25840-audio.c
-+++ b/drivers/media/video/cx25840/cx25840-audio.c
-@@ -474,33 +474,10 @@ void cx25840_audio_set_path(struct i2c_client *client)
- 		cx25840_and_or(client, 0x803, ~0x10, 0x10);
- }
- 
--static int get_volume(struct i2c_client *client)
--{
--	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
--	int vol;
--
--	if (state->unmute_volume >= 0)
--		return state->unmute_volume;
--
--	/* Volume runs +18dB to -96dB in 1/2dB steps
--	 * change to fit the msp3400 -114dB to +12dB range */
--
--	/* check PATH1_VOLUME */
--	vol = 228 - cx25840_read(client, 0x8d4);
--	vol = (vol / 2) + 23;
--	return vol << 9;
--}
--
- static void set_volume(struct i2c_client *client, int volume)
- {
--	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
- 	int vol;
- 
--	if (state->unmute_volume >= 0) {
--		state->unmute_volume = volume;
--		return;
--	}
--
- 	/* Convert the volume to msp3400 values (0-127) */
- 	vol = volume >> 9;
- 
-@@ -517,52 +494,6 @@ static void set_volume(struct i2c_client *client, int volume)
- 	cx25840_write(client, 0x8d4, 228 - (vol * 2));
- }
- 
--static int get_bass(struct i2c_client *client)
--{
--	/* bass is 49 steps +12dB to -12dB */
--
--	/* check PATH1_EQ_BASS_VOL */
--	int bass = cx25840_read(client, 0x8d9) & 0x3f;
--	bass = (((48 - bass) * 0xffff) + 47) / 48;
--	return bass;
--}
--
--static void set_bass(struct i2c_client *client, int bass)
--{
--	/* PATH1_EQ_BASS_VOL */
--	cx25840_and_or(client, 0x8d9, ~0x3f, 48 - (bass * 48 / 0xffff));
--}
--
--static int get_treble(struct i2c_client *client)
--{
--	/* treble is 49 steps +12dB to -12dB */
--
--	/* check PATH1_EQ_TREBLE_VOL */
--	int treble = cx25840_read(client, 0x8db) & 0x3f;
--	treble = (((48 - treble) * 0xffff) + 47) / 48;
--	return treble;
--}
--
--static void set_treble(struct i2c_client *client, int treble)
--{
--	/* PATH1_EQ_TREBLE_VOL */
--	cx25840_and_or(client, 0x8db, ~0x3f, 48 - (treble * 48 / 0xffff));
--}
--
--static int get_balance(struct i2c_client *client)
--{
--	/* balance is 7 bit, 0 to -96dB */
--
--	/* check PATH1_BAL_LEVEL */
--	int balance = cx25840_read(client, 0x8d5) & 0x7f;
--	/* check PATH1_BAL_LEFT */
--	if ((cx25840_read(client, 0x8d5) & 0x80) == 0)
--		balance = 0x80 - balance;
--	else
--		balance = 0x80 + balance;
--	return balance << 8;
--}
--
- static void set_balance(struct i2c_client *client, int balance)
- {
- 	int bal = balance >> 8;
-@@ -579,31 +510,6 @@ static void set_balance(struct i2c_client *client, int balance)
- 	}
- }
- 
--static int get_mute(struct i2c_client *client)
--{
--	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
--
--	return state->unmute_volume >= 0;
--}
--
--static void set_mute(struct i2c_client *client, int mute)
--{
--	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
--
--	if (mute && state->unmute_volume == -1) {
--		int vol = get_volume(client);
--
--		set_volume(client, 0);
--		state->unmute_volume = vol;
--	}
--	else if (!mute && state->unmute_volume != -1) {
--		int vol = state->unmute_volume;
--
--		state->unmute_volume = -1;
--		set_volume(client, vol);
--	}
--}
--
- int cx25840_s_clock_freq(struct v4l2_subdev *sd, u32 freq)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-@@ -624,25 +530,31 @@ int cx25840_s_clock_freq(struct v4l2_subdev *sd, u32 freq)
- 	return retval;
- }
- 
--int cx25840_audio_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int cx25840_audio_s_ctrl(struct v4l2_ctrl *ctrl)
- {
-+	struct v4l2_subdev *sd = to_sd(ctrl);
-+	struct cx25840_state *state = to_state(sd);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_VOLUME:
--		ctrl->value = get_volume(client);
-+		if (state->mute->val)
-+			set_volume(client, 0);
-+		else
-+			set_volume(client, state->volume->val);
- 		break;
- 	case V4L2_CID_AUDIO_BASS:
--		ctrl->value = get_bass(client);
-+		/* PATH1_EQ_BASS_VOL */
-+		cx25840_and_or(client, 0x8d9, ~0x3f,
-+					48 - (ctrl->val * 48 / 0xffff));
- 		break;
- 	case V4L2_CID_AUDIO_TREBLE:
--		ctrl->value = get_treble(client);
-+		/* PATH1_EQ_TREBLE_VOL */
-+		cx25840_and_or(client, 0x8db, ~0x3f,
-+					48 - (ctrl->val * 48 / 0xffff));
- 		break;
- 	case V4L2_CID_AUDIO_BALANCE:
--		ctrl->value = get_balance(client);
--		break;
--	case V4L2_CID_AUDIO_MUTE:
--		ctrl->value = get_mute(client);
-+		set_balance(client, ctrl->val);
- 		break;
- 	default:
- 		return -EINVAL;
-@@ -650,28 +562,6 @@ int cx25840_audio_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 	return 0;
- }
- 
--int cx25840_audio_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	switch (ctrl->id) {
--	case V4L2_CID_AUDIO_VOLUME:
--		set_volume(client, ctrl->value);
--		break;
--	case V4L2_CID_AUDIO_BASS:
--		set_bass(client, ctrl->value);
--		break;
--	case V4L2_CID_AUDIO_TREBLE:
--		set_treble(client, ctrl->value);
--		break;
--	case V4L2_CID_AUDIO_BALANCE:
--		set_balance(client, ctrl->value);
--		break;
--	case V4L2_CID_AUDIO_MUTE:
--		set_mute(client, ctrl->value);
--		break;
--	default:
--		return -EINVAL;
--	}
--	return 0;
--}
-+const struct v4l2_ctrl_ops cx25840_audio_ctrl_ops = {
-+	.s_ctrl = cx25840_audio_s_ctrl,
-+};
-diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-index 528bd00..d88605b 100644
---- a/drivers/media/video/cx25840/cx25840-core.c
-+++ b/drivers/media/video/cx25840/cx25840-core.c
-@@ -909,94 +909,29 @@ static int set_v4lstd(struct i2c_client *client)
- 
- /* ----------------------------------------------------------------------- */
- 
--static int cx25840_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
-+static int cx25840_s_ctrl(struct v4l2_ctrl *ctrl)
- {
--	struct cx25840_state *state = to_state(sd);
-+	struct v4l2_subdev *sd = to_sd(ctrl);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
--		if (ctrl->value < 0 || ctrl->value > 255) {
--			v4l_err(client, "invalid brightness setting %d\n",
--				    ctrl->value);
--			return -ERANGE;
--		}
--
--		cx25840_write(client, 0x414, ctrl->value - 128);
-+		cx25840_write(client, 0x414, ctrl->val - 128);
- 		break;
- 
- 	case V4L2_CID_CONTRAST:
--		if (ctrl->value < 0 || ctrl->value > 127) {
--			v4l_err(client, "invalid contrast setting %d\n",
--				    ctrl->value);
--			return -ERANGE;
--		}
--
--		cx25840_write(client, 0x415, ctrl->value << 1);
-+		cx25840_write(client, 0x415, ctrl->val << 1);
- 		break;
- 
- 	case V4L2_CID_SATURATION:
--		if (ctrl->value < 0 || ctrl->value > 127) {
--			v4l_err(client, "invalid saturation setting %d\n",
--				    ctrl->value);
--			return -ERANGE;
--		}
--
--		cx25840_write(client, 0x420, ctrl->value << 1);
--		cx25840_write(client, 0x421, ctrl->value << 1);
-+		cx25840_write(client, 0x420, ctrl->val << 1);
-+		cx25840_write(client, 0x421, ctrl->val << 1);
- 		break;
- 
- 	case V4L2_CID_HUE:
--		if (ctrl->value < -128 || ctrl->value > 127) {
--			v4l_err(client, "invalid hue setting %d\n", ctrl->value);
--			return -ERANGE;
--		}
--
--		cx25840_write(client, 0x422, ctrl->value);
-+		cx25840_write(client, 0x422, ctrl->val);
- 		break;
- 
--	case V4L2_CID_AUDIO_VOLUME:
--	case V4L2_CID_AUDIO_BASS:
--	case V4L2_CID_AUDIO_TREBLE:
--	case V4L2_CID_AUDIO_BALANCE:
--	case V4L2_CID_AUDIO_MUTE:
--		if (is_cx2583x(state))
--			return -EINVAL;
--		return cx25840_audio_s_ctrl(sd, ctrl);
--
--	default:
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
--static int cx25840_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
--{
--	struct cx25840_state *state = to_state(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	switch (ctrl->id) {
--	case V4L2_CID_BRIGHTNESS:
--		ctrl->value = (s8)cx25840_read(client, 0x414) + 128;
--		break;
--	case V4L2_CID_CONTRAST:
--		ctrl->value = cx25840_read(client, 0x415) >> 1;
--		break;
--	case V4L2_CID_SATURATION:
--		ctrl->value = cx25840_read(client, 0x420) >> 1;
--		break;
--	case V4L2_CID_HUE:
--		ctrl->value = (s8)cx25840_read(client, 0x422);
--		break;
--	case V4L2_CID_AUDIO_VOLUME:
--	case V4L2_CID_AUDIO_BASS:
--	case V4L2_CID_AUDIO_TREBLE:
--	case V4L2_CID_AUDIO_BALANCE:
--	case V4L2_CID_AUDIO_MUTE:
--		if (is_cx2583x(state))
--			return -EINVAL;
--		return cx25840_audio_g_ctrl(sd, ctrl);
- 	default:
- 		return -EINVAL;
- 	}
-@@ -1171,8 +1106,6 @@ static void log_audio_status(struct i2c_client *client)
- 	default: p = "not defined";
- 	}
- 	v4l_info(client, "Detected audio standard:   %s\n", p);
--	v4l_info(client, "Audio muted:               %s\n",
--		    (state->unmute_volume >= 0) ? "yes" : "no");
- 	v4l_info(client, "Audio microcontroller:     %s\n",
- 		    (download_ctl & 0x10) ?
- 				((mute_ctl & 0x2) ? "detecting" : "running") : "stopped");
-@@ -1389,40 +1322,6 @@ static int cx25840_s_stream(struct v4l2_subdev *sd, int enable)
- 	return 0;
- }
- 
--static int cx25840_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
--{
--	struct cx25840_state *state = to_state(sd);
--
--	switch (qc->id) {
--	case V4L2_CID_BRIGHTNESS:
--		return v4l2_ctrl_query_fill(qc, 0, 255, 1, 128);
--	case V4L2_CID_CONTRAST:
--	case V4L2_CID_SATURATION:
--		return v4l2_ctrl_query_fill(qc, 0, 127, 1, 64);
--	case V4L2_CID_HUE:
--		return v4l2_ctrl_query_fill(qc, -128, 127, 1, 0);
--	default:
--		break;
--	}
--	if (is_cx2583x(state))
--		return -EINVAL;
--
--	switch (qc->id) {
--	case V4L2_CID_AUDIO_VOLUME:
--		return v4l2_ctrl_query_fill(qc, 0, 65535,
--				65535 / 100, state->default_volume);
--	case V4L2_CID_AUDIO_MUTE:
--		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 0);
--	case V4L2_CID_AUDIO_BALANCE:
--	case V4L2_CID_AUDIO_BASS:
--	case V4L2_CID_AUDIO_TREBLE:
--		return v4l2_ctrl_query_fill(qc, 0, 65535, 65535 / 100, 32768);
--	default:
--		return -EINVAL;
--	}
--	return -EINVAL;
--}
--
- static int cx25840_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
- {
- 	struct cx25840_state *state = to_state(sd);
-@@ -1584,6 +1483,7 @@ static int cx25840_log_status(struct v4l2_subdev *sd)
- 	log_video_status(client);
- 	if (!is_cx2583x(state))
- 		log_audio_status(client);
-+	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
- 	return 0;
- }
- 
-@@ -1603,13 +1503,21 @@ static int cx25840_s_config(struct v4l2_subdev *sd, int irq, void *platform_data
- 
- /* ----------------------------------------------------------------------- */
- 
-+static const struct v4l2_ctrl_ops cx25840_ctrl_ops = {
-+	.s_ctrl = cx25840_s_ctrl,
-+};
-+
- static const struct v4l2_subdev_core_ops cx25840_core_ops = {
- 	.log_status = cx25840_log_status,
- 	.s_config = cx25840_s_config,
- 	.g_chip_ident = cx25840_g_chip_ident,
--	.g_ctrl = cx25840_g_ctrl,
--	.s_ctrl = cx25840_s_ctrl,
--	.queryctrl = cx25840_queryctrl,
-+	.g_ctrl = v4l2_subdev_g_ctrl,
-+	.s_ctrl = v4l2_subdev_s_ctrl,
-+	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
-+	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
-+	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
-+	.queryctrl = v4l2_subdev_queryctrl,
-+	.querymenu = v4l2_subdev_querymenu,
- 	.s_std = cx25840_s_std,
- 	.reset = cx25840_reset,
- 	.load_fw = cx25840_load_fw,
-@@ -1699,6 +1607,7 @@ static int cx25840_probe(struct i2c_client *client,
- {
- 	struct cx25840_state *state;
- 	struct v4l2_subdev *sd;
-+	int default_volume;
- 	u32 id = V4L2_IDENT_NONE;
- 	u16 device_id;
- 
-@@ -1742,6 +1651,7 @@ static int cx25840_probe(struct i2c_client *client,
- 
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &cx25840_ops);
-+
- 	switch (id) {
- 	case V4L2_IDENT_CX23885_AV:
- 		v4l_info(client, "cx23885 A/V decoder found @ 0x%x (%s)\n",
-@@ -1786,12 +1696,48 @@ static int cx25840_probe(struct i2c_client *client,
- 	state->audclk_freq = 48000;
- 	state->pvr150_workaround = 0;
- 	state->audmode = V4L2_TUNER_MODE_LANG1;
--	state->unmute_volume = -1;
--	state->default_volume = 228 - cx25840_read(client, 0x8d4);
--	state->default_volume = ((state->default_volume / 2) + 23) << 9;
- 	state->vbi_line_offset = 8;
- 	state->id = id;
- 	state->rev = device_id;
-+	v4l2_ctrl_handler_init(&state->hdl, 9);
-+	v4l2_ctrl_new_std(&state->hdl, &cx25840_ctrl_ops,
-+			V4L2_CID_BRIGHTNESS, 0, 255, 1, 128);
-+	v4l2_ctrl_new_std(&state->hdl, &cx25840_ctrl_ops,
-+			V4L2_CID_CONTRAST, 0, 127, 1, 64);
-+	v4l2_ctrl_new_std(&state->hdl, &cx25840_ctrl_ops,
-+			V4L2_CID_SATURATION, 0, 127, 1, 64);
-+	v4l2_ctrl_new_std(&state->hdl, &cx25840_ctrl_ops,
-+			V4L2_CID_HUE, -128, 127, 1, 0);
-+	if (!is_cx2583x(state)) {
-+		default_volume = 228 - cx25840_read(client, 0x8d4);
-+		default_volume = ((default_volume / 2) + 23) << 9;
-+
-+		state->volume = v4l2_ctrl_new_std(&state->hdl,
-+			&cx25840_audio_ctrl_ops, V4L2_CID_AUDIO_VOLUME,
-+			0, 65335, 65535 / 100, default_volume);
-+		state->mute = v4l2_ctrl_new_std(&state->hdl,
-+			&cx25840_audio_ctrl_ops, V4L2_CID_AUDIO_MUTE,
-+			0, 1, 1, 0);
-+		v4l2_ctrl_new_std(&state->hdl, &cx25840_audio_ctrl_ops,
-+			V4L2_CID_AUDIO_BALANCE,
-+			0, 65535, 65535 / 100, 32768);
-+		v4l2_ctrl_new_std(&state->hdl, &cx25840_audio_ctrl_ops,
-+			V4L2_CID_AUDIO_BASS,
-+			0, 65535, 65535 / 100, 32768);
-+		v4l2_ctrl_new_std(&state->hdl, &cx25840_audio_ctrl_ops,
-+			V4L2_CID_AUDIO_TREBLE,
-+			0, 65535, 65535 / 100, 32768);
-+	}
-+	sd->ctrl_handler = &state->hdl;
-+	if (state->hdl.error) {
-+		int err = state->hdl.error;
-+
-+		v4l2_ctrl_handler_free(&state->hdl);
-+		kfree(state);
-+		return err;
-+	}
-+	v4l2_ctrl_cluster(2, &state->volume);
-+	v4l2_ctrl_handler_setup(&state->hdl);
- 
- 	return 0;
- }
-@@ -1799,9 +1745,11 @@ static int cx25840_probe(struct i2c_client *client,
- static int cx25840_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct cx25840_state *state = to_state(sd);
- 
- 	v4l2_device_unregister_subdev(sd);
--	kfree(to_state(sd));
-+	v4l2_ctrl_handler_free(&state->hdl);
-+	kfree(state);
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/cx25840/cx25840-core.h b/drivers/media/video/cx25840/cx25840-core.h
-index 32ab9d5..0b8f808 100644
---- a/drivers/media/video/cx25840/cx25840-core.h
-+++ b/drivers/media/video/cx25840/cx25840-core.h
-@@ -24,11 +24,15 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-ctrls.h>
- #include <linux/i2c.h>
- 
- struct cx25840_state {
- 	struct i2c_client *c;
- 	struct v4l2_subdev sd;
-+	struct v4l2_ctrl_handler hdl;
-+	struct v4l2_ctrl *volume;
-+	struct v4l2_ctrl *mute;
- 	int pvr150_workaround;
- 	int radio;
- 	v4l2_std_id std;
-@@ -36,8 +40,6 @@ struct cx25840_state {
- 	enum cx25840_audio_input aud_input;
- 	u32 audclk_freq;
- 	int audmode;
--	int unmute_volume; /* -1 if not muted */
--	int default_volume;
- 	int vbi_line_offset;
- 	u32 id;
- 	u32 rev;
-@@ -51,6 +53,11 @@ static inline struct cx25840_state *to_state(struct v4l2_subdev *sd)
- 	return container_of(sd, struct cx25840_state, sd);
- }
- 
-+static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
-+{
-+	return &container_of(ctrl->handler, struct cx25840_state, hdl)->sd;
-+}
-+
- static inline bool is_cx2583x(struct cx25840_state *state)
- {
- 	return state->id == V4L2_IDENT_CX25836 ||
-@@ -86,8 +93,8 @@ int cx25840_loadfw(struct i2c_client *client);
- /* cx25850-audio.c                                                         */
- void cx25840_audio_set_path(struct i2c_client *client);
- int cx25840_s_clock_freq(struct v4l2_subdev *sd, u32 freq);
--int cx25840_audio_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
--int cx25840_audio_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl);
-+
-+extern const struct v4l2_ctrl_ops cx25840_audio_ctrl_ops;
- 
- /* ----------------------------------------------------------------------- */
- /* cx25850-vbi.c                                                           */
--- 
-1.6.4.2
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
