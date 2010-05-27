@@ -1,504 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f225.google.com ([209.85.218.225]:56673 "EHLO
-	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933589Ab0EDWup (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 May 2010 18:50:45 -0400
-Received: by bwz25 with SMTP id 25so2539948bwz.28
-        for <linux-media@vger.kernel.org>; Tue, 04 May 2010 15:50:43 -0700 (PDT)
-Date: Wed, 5 May 2010 08:53:50 +1000
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stefan Ringel <stefan.ringel@arcor.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Bee Hock Goh <beehock@gmail.com>
-Subject: [PATCH] Rework for support xc5000
-Message-ID: <20100505085350.1b4f023f@glory.loctelecom.ru>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/7J1.V48qLnDV1vsHDmiU=2N"
+Received: from bear.ext.ti.com ([192.94.94.41]:54241 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750904Ab0E0NLd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 09:11:33 -0400
+From: hvaibhav@ti.com
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, m-karicheri2@ti.com,
+	linux-omap@vger.kernel.org, Vaibhav Hiremath <hvaibhav@ti.com>
+Subject: [PATCH 2/2] AM3517: Add VPFE Capture driver support to board file
+Date: Thu, 27 May 2010 18:41:16 +0530
+Message-Id: <1274965876-21845-3-git-send-email-hvaibhav@ti.com>
+In-Reply-To: <hvaibhav@ti.com>
+References: <hvaibhav@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/7J1.V48qLnDV1vsHDmiU=2N
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+From: Vaibhav Hiremath <hvaibhav@ti.com>
 
-Hi
+Also created vpfe master/slave clock aliases, since naming
+convention is different in both Davinci and AM3517 devices.
 
-Set correct GPIO number for BEHOLD_WANDER/VOYAGER
-Add xc5000 callback function
-Small rework tm6000_cards_setup function
-Small rework tm6000_config_tuner, build mode_mask by config information
-Rework for support xc5000 silicon tuner
-Add some information messages for more better understand an errors.
+Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+---
+ arch/arm/mach-omap2/board-am3517evm.c |  161 +++++++++++++++++++++++++++++++++
+ 1 files changed, 161 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index f795a3e..17e3d4c 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -231,7 +231,9 @@ struct tm6000_board tm6000_boards[] = {
- 			.has_remote   = 1,
- 		},
- 		.gpio = {
--			.tuner_reset	= TM6000_GPIO_2,
-+			.tuner_reset	= TM6010_GPIO_0,
-+			.demod_reset	= TM6010_GPIO_1,
-+			.power_led	= TM6010_GPIO_6,
- 		},
- 	},
- 	[TM6010_BOARD_BEHOLD_VOYAGER] = {
-@@ -247,7 +249,8 @@ struct tm6000_board tm6000_boards[] = {
- 			.has_remote   = 1,
- 		},
- 		.gpio = {
--			.tuner_reset	= TM6000_GPIO_2,
-+			.tuner_reset	= TM6010_GPIO_0,
-+			.power_led	= TM6010_GPIO_6,
- 		},
- 	},
- 	[TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
-@@ -320,6 +323,31 @@ struct usb_device_id tm6000_id_table [] = {
- 	{ },
- };
+diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-omap2/board-am3517evm.c
+index c1c4389..edcb6db 100644
+--- a/arch/arm/mach-omap2/board-am3517evm.c
++++ b/arch/arm/mach-omap2/board-am3517evm.c
+@@ -30,15 +30,168 @@
  
-+/* Tuner callback to provide the proper gpio changes needed for xc5000 */
-+int tm6000_xc5000_callback(void *ptr, int component, int command, int arg)
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <plat/control.h>
+ #include <plat/usb.h>
+ #include <plat/display.h>
+ 
++#include <media/tvp514x.h>
++#include <media/davinci/vpfe_capture.h>
++
+ #include "mux.h"
+ 
+ #define LCD_PANEL_PWR		176
+ #define LCD_PANEL_BKLIGHT_PWR	182
+ #define LCD_PANEL_PWM		181
+ 
++/*
++ * VPFE - Video Decoder interface
++ */
++#define TVP514X_STD_ALL		(V4L2_STD_NTSC | V4L2_STD_PAL)
++
++/* Inputs available at the TVP5146 */
++static struct v4l2_input tvp5146_inputs[] = {
++	{
++		.index	= 0,
++		.name	= "Composite",
++		.type	= V4L2_INPUT_TYPE_CAMERA,
++		.std	= TVP514X_STD_ALL,
++	},
++	{
++		.index	= 1,
++		.name	= "S-Video",
++		.type	= V4L2_INPUT_TYPE_CAMERA,
++		.std	= TVP514X_STD_ALL,
++	},
++};
++
++static struct tvp514x_platform_data tvp5146_pdata = {
++	.clk_polarity	= 0,
++	.hs_polarity	= 1,
++	.vs_polarity	= 1
++};
++
++static struct vpfe_route tvp5146_routes[] = {
++	{
++		.input	= INPUT_CVBS_VI1A,
++		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
++	},
++	{
++		.input	= INPUT_SVIDEO_VI2C_VI1C,
++		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
++	},
++};
++
++static struct vpfe_subdev_info vpfe_sub_devs[] = {
++	{
++		.name		= "tvp5146",
++		.grp_id		= 0,
++		.num_inputs	= ARRAY_SIZE(tvp5146_inputs),
++		.inputs		= tvp5146_inputs,
++		.routes		= tvp5146_routes,
++		.can_route	= 1,
++		.ccdc_if_params	= {
++			.if_type = VPFE_BT656,
++			.hdpol	= VPFE_PINPOL_POSITIVE,
++			.vdpol	= VPFE_PINPOL_POSITIVE,
++		},
++		.board_info	= {
++			I2C_BOARD_INFO("tvp5146", 0x5C),
++			.platform_data = &tvp5146_pdata,
++		},
++	},
++};
++
++static void am3517_evm_clear_vpfe_intr(int vdint)
 +{
-+	int rc = 0;
-+	struct tm6000_core *dev = ptr;
++	unsigned int vpfe_int_clr;
 +
-+	if (dev->tuner_type != TUNER_XC5000)
-+		return 0;
++	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
 +
-+	switch (command) {
-+	case XC5000_TUNER_RESET:
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+			       dev->gpio.tuner_reset, 0x01);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+			       dev->gpio.tuner_reset, 0x00);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+			       dev->gpio.tuner_reset, 0x01);
++	switch (vdint) {
++	/* VD0 interrrupt */
++	case INT_35XX_CCDC_VD0_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD0_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD0_INT_CLR;
++		break;
++	/* VD1 interrrupt */
++	case INT_35XX_CCDC_VD1_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD1_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD1_INT_CLR;
++		break;
++	/* VD2 interrrupt */
++	case INT_35XX_CCDC_VD2_IRQ:
++		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD2_INT_CLR;
++		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD2_INT_CLR;
++		break;
++	/* Clear all interrrupts */
++	default:
++		vpfe_int_clr &= ~(AM35XX_VPFE_CCDC_VD0_INT_CLR |
++				AM35XX_VPFE_CCDC_VD1_INT_CLR |
++				AM35XX_VPFE_CCDC_VD2_INT_CLR);
++		vpfe_int_clr |= (AM35XX_VPFE_CCDC_VD0_INT_CLR |
++				AM35XX_VPFE_CCDC_VD1_INT_CLR |
++				AM35XX_VPFE_CCDC_VD2_INT_CLR);
 +		break;
 +	}
-+	return (rc);
++	omap_ctrl_writel(vpfe_int_clr, AM35XX_CONTROL_LVL_INTR_CLEAR);
++	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
 +}
 +
++static struct vpfe_config vpfe_cfg = {
++	.num_subdevs	= ARRAY_SIZE(vpfe_sub_devs),
++	.i2c_adapter_id	= 3,
++	.sub_devs	= vpfe_sub_devs,
++	.clr_intr	= am3517_evm_clear_vpfe_intr,
++	.card_name	= "DM6446 EVM",
++	.ccdc		= "DM6446 CCDC",
++};
 +
- /* Tuner callback to provide the proper gpio changes needed for xc2028 */
- 
- int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
-@@ -438,6 +466,21 @@ int tm6000_cards_setup(struct tm6000_core *dev)
- 		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_on, 0x00);
- 		msleep(15);
- 		break;
-+	case TM6010_BOARD_BEHOLD_WANDER:
-+		/* Power led on (blue) */
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.power_led, 0x01);
-+		msleep(15);
-+		/* Reset zarlink zl10353 */
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_reset, 0x00);
-+		msleep(50);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_reset, 0x01);
-+		msleep(15);
-+		break;
-+	case TM6010_BOARD_BEHOLD_VOYAGER:
-+		/* Power led on (blue) */
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.power_led, 0x01);
-+		msleep(15);
-+		break;
- 	default:
- 		break;
- 	}
-@@ -449,42 +492,38 @@ int tm6000_cards_setup(struct tm6000_core *dev)
- 	 * If a device uses a different sequence or different GPIO pins for
- 	 * reset, just add the code at the board-specific part
- 	 */
--	for (i = 0; i < 2; i++) {
--		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
--					dev->gpio.tuner_reset, 0x00);
--		if (rc < 0) {
--			printk(KERN_ERR "Error %i doing GPIO1 reset\n", rc);
--			return rc;
--		}
--
--		msleep(10); /* Just to be conservative */
--		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
--					dev->gpio.tuner_reset, 0x01);
--		if (rc < 0) {
--			printk(KERN_ERR "Error %i doing GPIO1 reset\n", rc);
--			return rc;
--		}
- 
--		msleep(10);
--		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 0);
--		if (rc < 0) {
--			printk(KERN_ERR "Error %i doing GPIO4 reset\n", rc);
--			return rc;
--		}
-+	if (dev->gpio.tuner_reset)
++static struct resource vpfe_resources[] = {
 +	{
-+		for (i = 0; i < 2; i++) {
-+			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+						dev->gpio.tuner_reset, 0x00);
-+			if (rc < 0) {
-+				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
-+				return rc;
-+			}
- 
--		msleep(10);
--		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 1);
--		if (rc < 0) {
--			printk(KERN_ERR "Error %i doing GPIO4 reset\n", rc);
--			return rc;
--		}
-+			msleep(10); /* Just to be conservative */
-+			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+						dev->gpio.tuner_reset, 0x01);
-+			if (rc < 0) {
-+				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
-+				return rc;
-+			}
-+			msleep(10);
- 
--		if (!i) {
--			rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
--			if (rc >= 0)
--				printk(KERN_DEBUG "board=0x%08x\n", rc);
-+			if (!i) {
-+				rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
-+				if (rc >= 0)
-+					printk(KERN_DEBUG "board=0x%08x\n", rc);
-+			}
- 		}
- 	}
-+	else
++		.start	= INT_35XX_CCDC_VD0_IRQ,
++		.end	= INT_35XX_CCDC_VD0_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	},
 +	{
-+		printk(KERN_ERR "Tuner reset is not configured\n");
-+		return -1;
-+	}
- 
- 	msleep(50);
- 
-@@ -502,12 +541,30 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
- 	memset(&tun_setup, 0, sizeof(tun_setup));
- 	tun_setup.type   = dev->tuner_type;
- 	tun_setup.addr   = dev->tuner_addr;
--	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
--	tun_setup.tuner_callback = tm6000_tuner_callback;
++		.start	= INT_35XX_CCDC_VD1_IRQ,
++		.end	= INT_35XX_CCDC_VD1_IRQ,
++		.flags	= IORESOURCE_IRQ,
++	},
++};
 +
-+	tun_setup.mode_mask = 0;
-+	if (dev->caps.has_tuner)
-+		tun_setup.mode_mask |= (T_ANALOG_TV | T_RADIO);
-+	if (dev->caps.has_dvb)
-+		tun_setup.mode_mask |= T_DIGITAL_TV;
++static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
++static struct platform_device vpfe_capture_dev = {
++	.name		= CAPTURE_DRV_NAME,
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(vpfe_resources),
++	.resource	= vpfe_resources,
++	.dev = {
++		.dma_mask		= &vpfe_capture_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++		.platform_data		= &vpfe_cfg,
++	},
++};
 +
-+	switch (dev->tuner_type)
++static struct resource dm644x_ccdc_resource[] = {
++	/* CCDC Base address */
 +	{
-+	case TUNER_XC2028:
-+		tun_setup.tuner_callback = tm6000_tuner_callback;;
-+		break;
-+	case TUNER_XC5000:
-+		tun_setup.tuner_callback = tm6000_xc5000_callback;
-+		break;
-+	}
++		.start	= AM35XX_IPSS_VPFE_BASE,
++		.end	= AM35XX_IPSS_VPFE_BASE + 0xffff,
++		.flags	= IORESOURCE_MEM,
++	},
++};
 +
- 
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr, &tun_setup);
- 
--	if (dev->tuner_type == TUNER_XC2028) {
-+	switch (dev->tuner_type)
-+	{
-+	case TUNER_XC2028:
-+		{
- 		struct v4l2_priv_tun_config  xc2028_cfg;
- 		struct xc2028_ctrl           ctl;
- 
-@@ -537,9 +594,31 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
- 		}
- 
- 		printk(KERN_INFO "Setting firmware parameters for xc2028\n");
--
- 		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config,
- 				     &xc2028_cfg);
++static struct platform_device dm644x_ccdc_dev = {
++	.name		= "dm644x_ccdc",
++	.id		= -1,
++	.num_resources	= ARRAY_SIZE(dm644x_ccdc_resource),
++	.resource	= dm644x_ccdc_resource,
++	.dev = {
++		.dma_mask		= &vpfe_capture_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	},
++};
 +
-+		}
-+		break;
-+	case TUNER_XC5000:
-+		{
-+		struct v4l2_priv_tun_config  xc5000_cfg;
-+		struct xc5000_config ctl = {
-+			.i2c_address = dev->tuner_addr,
-+			.if_khz      = 4570,
-+			.radio_input = XC5000_RADIO_FM1,
-+			};
-+
-+		xc5000_cfg.tuner = TUNER_XC5000;
-+		xc5000_cfg.priv  = &ctl;
-+
-+
-+		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config,
-+				     &xc5000_cfg);
-+		}
-+		break;
-+	default:
-+		printk(KERN_INFO "Unknown tuner type. Tuner is not configured.\n");
-+		break;
- 	}
- }
- 
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index 7aeded8..325a2b1 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -216,6 +216,7 @@ struct tm6000_fh {
- /* In tm6000-cards.c */
- 
- int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
-+int tm6000_xc5000_callback (void *ptr, int component, int command, int arg);
- int tm6000_cards_setup(struct tm6000_core *dev);
- 
- /* In tm6000-core.c */
-
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
-
-With my best regards, Dmitry.
---MP_/7J1.V48qLnDV1vsHDmiU=2N
-Content-Type: text/x-patch; name=tm6000.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment; filename=tm6000.patch
-
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index f795a3e..17e3d4c 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -231,7 +231,9 @@ struct tm6000_board tm6000_boards[] = {
- 			.has_remote   = 1,
- 		},
- 		.gpio = {
--			.tuner_reset	= TM6000_GPIO_2,
-+			.tuner_reset	= TM6010_GPIO_0,
-+			.demod_reset	= TM6010_GPIO_1,
-+			.power_led	= TM6010_GPIO_6,
- 		},
+ static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
+ 	{
+ 		I2C_BOARD_INFO("s35390a", 0x30),
+@@ -46,6 +199,7 @@ static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
  	},
- 	[TM6010_BOARD_BEHOLD_VOYAGER] = {
-@@ -247,7 +249,8 @@ struct tm6000_board tm6000_boards[] = {
- 			.has_remote   = 1,
- 		},
- 		.gpio = {
--			.tuner_reset	= TM6000_GPIO_2,
-+			.tuner_reset	= TM6010_GPIO_0,
-+			.power_led	= TM6010_GPIO_6,
- 		},
- 	},
- 	[TM6010_BOARD_TERRATEC_CINERGY_HYBRID_XE] = {
-@@ -320,6 +323,31 @@ struct usb_device_id tm6000_id_table [] = {
- 	{ },
  };
  
-+/* Tuner callback to provide the proper gpio changes needed for xc5000 */
-+int tm6000_xc5000_callback(void *ptr, int component, int command, int arg)
-+{
-+	int rc = 0;
-+	struct tm6000_core *dev = ptr;
 +
-+	if (dev->tuner_type != TUNER_XC5000)
-+		return 0;
-+
-+	switch (command) {
-+	case XC5000_TUNER_RESET:
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+			       dev->gpio.tuner_reset, 0x01);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+			       dev->gpio.tuner_reset, 0x00);
-+		msleep(15);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+			       dev->gpio.tuner_reset, 0x01);
-+		break;
-+	}
-+	return (rc);
-+}
-+
-+
- /* Tuner callback to provide the proper gpio changes needed for xc2028 */
+ /*
+  * RTC - S35390A
+  */
+@@ -261,6 +415,8 @@ static struct omap_board_config_kernel am3517_evm_config[] __initdata = {
  
- int tm6000_tuner_callback(void *ptr, int component, int command, int arg)
-@@ -438,6 +466,21 @@ int tm6000_cards_setup(struct tm6000_core *dev)
- 		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_on, 0x00);
- 		msleep(15);
- 		break;
-+	case TM6010_BOARD_BEHOLD_WANDER:
-+		/* Power led on (blue) */
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.power_led, 0x01);
-+		msleep(15);
-+		/* Reset zarlink zl10353 */
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_reset, 0x00);
-+		msleep(50);
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.demod_reset, 0x01);
-+		msleep(15);
-+		break;
-+	case TM6010_BOARD_BEHOLD_VOYAGER:
-+		/* Power led on (blue) */
-+		tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, dev->gpio.power_led, 0x01);
-+		msleep(15);
-+		break;
- 	default:
- 		break;
- 	}
-@@ -449,42 +492,38 @@ int tm6000_cards_setup(struct tm6000_core *dev)
- 	 * If a device uses a different sequence or different GPIO pins for
- 	 * reset, just add the code at the board-specific part
- 	 */
--	for (i = 0; i < 2; i++) {
--		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
--					dev->gpio.tuner_reset, 0x00);
--		if (rc < 0) {
--			printk(KERN_ERR "Error %i doing GPIO1 reset\n", rc);
--			return rc;
--		}
--
--		msleep(10); /* Just to be conservative */
--		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
--					dev->gpio.tuner_reset, 0x01);
--		if (rc < 0) {
--			printk(KERN_ERR "Error %i doing GPIO1 reset\n", rc);
--			return rc;
--		}
+ static struct platform_device *am3517_evm_devices[] __initdata = {
+ 	&am3517_evm_dss_device,
++	&dm644x_ccdc_dev,
++	&vpfe_capture_dev,
+ };
  
--		msleep(10);
--		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 0);
--		if (rc < 0) {
--			printk(KERN_ERR "Error %i doing GPIO4 reset\n", rc);
--			return rc;
--		}
-+	if (dev->gpio.tuner_reset)
-+	{
-+		for (i = 0; i < 2; i++) {
-+			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+						dev->gpio.tuner_reset, 0x00);
-+			if (rc < 0) {
-+				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
-+				return rc;
-+			}
+ static void __init am3517_evm_init_irq(void)
+@@ -313,6 +469,11 @@ static void __init am3517_evm_init(void)
  
--		msleep(10);
--		rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN, TM6000_GPIO_4, 1);
--		if (rc < 0) {
--			printk(KERN_ERR "Error %i doing GPIO4 reset\n", rc);
--			return rc;
--		}
-+			msleep(10); /* Just to be conservative */
-+			rc = tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-+						dev->gpio.tuner_reset, 0x01);
-+			if (rc < 0) {
-+				printk(KERN_ERR "Error %i doing tuner reset\n", rc);
-+				return rc;
-+			}
-+			msleep(10);
- 
--		if (!i) {
--			rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
--			if (rc >= 0)
--				printk(KERN_DEBUG "board=0x%08x\n", rc);
-+			if (!i) {
-+				rc = tm6000_get_reg32(dev, REQ_40_GET_VERSION, 0, 0);
-+				if (rc >= 0)
-+					printk(KERN_DEBUG "board=0x%08x\n", rc);
-+			}
- 		}
- 	}
-+	else
-+	{
-+		printk(KERN_ERR "Tuner reset is not configured\n");
-+		return -1;
-+	}
- 
- 	msleep(50);
- 
-@@ -502,12 +541,30 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
- 	memset(&tun_setup, 0, sizeof(tun_setup));
- 	tun_setup.type   = dev->tuner_type;
- 	tun_setup.addr   = dev->tuner_addr;
--	tun_setup.mode_mask = T_ANALOG_TV | T_RADIO | T_DIGITAL_TV;
--	tun_setup.tuner_callback = tm6000_tuner_callback;
+ 	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
+ 				ARRAY_SIZE(am3517evm_i2c_boardinfo));
 +
-+	tun_setup.mode_mask = 0;
-+	if (dev->caps.has_tuner)
-+		tun_setup.mode_mask |= (T_ANALOG_TV | T_RADIO);
-+	if (dev->caps.has_dvb)
-+		tun_setup.mode_mask |= T_DIGITAL_TV;
-+
-+	switch (dev->tuner_type)
-+	{
-+	case TUNER_XC2028:
-+		tun_setup.tuner_callback = tm6000_tuner_callback;;
-+		break;
-+	case TUNER_XC5000:
-+		tun_setup.tuner_callback = tm6000_xc5000_callback;
-+		break;
-+	}
-+
- 
- 	v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_type_addr, &tun_setup);
- 
--	if (dev->tuner_type == TUNER_XC2028) {
-+	switch (dev->tuner_type)
-+	{
-+	case TUNER_XC2028:
-+		{
- 		struct v4l2_priv_tun_config  xc2028_cfg;
- 		struct xc2028_ctrl           ctl;
- 
-@@ -537,9 +594,31 @@ static void tm6000_config_tuner (struct tm6000_core *dev)
- 		}
- 
- 		printk(KERN_INFO "Setting firmware parameters for xc2028\n");
--
- 		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config,
- 				     &xc2028_cfg);
-+
-+		}
-+		break;
-+	case TUNER_XC5000:
-+		{
-+		struct v4l2_priv_tun_config  xc5000_cfg;
-+		struct xc5000_config ctl = {
-+			.i2c_address = dev->tuner_addr,
-+			.if_khz      = 4570,
-+			.radio_input = XC5000_RADIO_FM1,
-+			};
-+
-+		xc5000_cfg.tuner = TUNER_XC5000;
-+		xc5000_cfg.priv  = &ctl;
-+
-+
-+		v4l2_device_call_all(&dev->v4l2_dev, 0, tuner, s_config,
-+				     &xc5000_cfg);
-+		}
-+		break;
-+	default:
-+		printk(KERN_INFO "Unknown tuner type. Tuner is not configured.\n");
-+		break;
- 	}
++	clk_add_alias("master", "dm644x_ccdc", "master",
++			&vpfe_capture_dev.dev);
++	clk_add_alias("slave", "dm644x_ccdc", "slave",
++			&vpfe_capture_dev.dev);
  }
  
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index 7aeded8..325a2b1 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -216,6 +216,7 @@ struct tm6000_fh {
- /* In tm6000-cards.c */
- 
- int tm6000_tuner_callback (void *ptr, int component, int command, int arg);
-+int tm6000_xc5000_callback (void *ptr, int component, int command, int arg);
- int tm6000_cards_setup(struct tm6000_core *dev);
- 
- /* In tm6000-core.c */
+ static void __init am3517_evm_map_io(void)
+-- 
+1.6.2.4
 
-Signed-off-by: Beholder Intl. Ltd. Dmitry Belimov <d.belimov@gmail.com>
-
---MP_/7J1.V48qLnDV1vsHDmiU=2N--
