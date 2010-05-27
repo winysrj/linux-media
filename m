@@ -1,70 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3258 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751821Ab0EIT1c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 15:27:32 -0400
-Received: from localhost (cm-84.208.87.21.getinternet.no [84.208.87.21])
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o49JRU9K034599
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 9 May 2010 21:27:30 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Message-Id: <cover.1273432986.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 09 May 2010 21:29:05 +0200
-Subject: [PATCH 0/7] [RFC] Move VIDIOC_G/S_PRIORITY handling to the V4L core
+Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:41828
+	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757525Ab0E0Qkv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 12:40:51 -0400
+From: David Ellingsworth <david@identd.dyndns.org>
 To: linux-media@vger.kernel.org
+Cc: Markus Demleitner <msdemlei@tucana.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	David Ellingsworth <david@identd.dyndns.org>
+Subject: [PATCH/RFC v2 5/8] dsbr100: cleanup return value of start/stop handlers
+Date: Thu, 27 May 2010 12:39:13 -0400
+Message-Id: <1274978356-25836-6-git-send-email-david@identd.dyndns.org>
+In-Reply-To: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
+References: <[PATCH/RFC 0/7] dsbr100: driver cleanup>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Few drivers implement VIDIOC_G/S_PRIORITY and those that do often implement
-it incorrectly.
+The value returned from the device in radio->transfer_buffer[0]
+isn't clearly defined, but is used as a return code. This value
+is an unsigned 8-bit integer that is implicitly converted to an
+int. Since this value can never be less than 0, return 0 instead.
+This simplifies the verification of calling dsbr100_start and
+dsbr100_stop.
 
-Now that we have a v4l2_fh struct it is easy to add support for priority
-handling to the v4l core framework.
+Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
+---
+ drivers/media/radio/dsbr100.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-There are three types of drivers:
-
-1) Those that use v4l2_fh. There the local priority can be stored in the
-   v4l2_fh struct.
-
-2) Those that do not have an open or release function defined in v4l2_file_ops.
-   That means that file->private_data will never be filled and so we can use
-   that to store the local priority in.
-
-3) Others. In all other cases we leave it to the driver. Of course, the goal is
-   to eventually move the 'others' into type 1 or 2.
-
-This patch series shows how it is done and converts ivtv to rely on the core
-framework instead of doing it manually.
-
-Comments?
-
-Regards,
-
-	Hans
-
-Hans Verkuil (7):
-  v4l2_prio: move from v4l2-common to v4l2-device.
-  v4l2-device: add v4l2_prio_state to v4l2_device.
-  v4l2-fh: implement v4l2_priority support.
-  v4l2-dev: add and support flag V4L2_FH_USE_PRIO.
-  v4l2-ioctl: add priority handling support.
-  ivtv: drop priority handling, use core framework for this.
-  ivtv: add priority checks for the non-standard commands.
-
- drivers/media/video/cpia2/cpia2.h          |    1 +
- drivers/media/video/ivtv/ivtv-driver.h     |    2 -
- drivers/media/video/ivtv/ivtv-fileops.c    |    2 -
- drivers/media/video/ivtv/ivtv-ioctl.c      |   61 ++++++++------------------
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c |    1 +
- drivers/media/video/v4l2-common.c          |   59 -------------------------
- drivers/media/video/v4l2-dev.c             |   23 +++++++++-
- drivers/media/video/v4l2-device.c          |   62 +++++++++++++++++++++++++++
- drivers/media/video/v4l2-fh.c              |    4 ++
- drivers/media/video/v4l2-ioctl.c           |   64 +++++++++++++++++++++++++---
- include/media/v4l2-common.h                |   15 -------
- include/media/v4l2-dev.h                   |    6 +++
- include/media/v4l2-device.h                |   17 +++++++
- include/media/v4l2-fh.h                    |    1 +
- 14 files changed, 190 insertions(+), 128 deletions(-)
+diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
+index c949ace..0e009b7 100644
+--- a/drivers/media/radio/dsbr100.c
++++ b/drivers/media/radio/dsbr100.c
+@@ -206,7 +206,7 @@ static int dsbr100_start(struct dsbr100_device *radio)
+ 	}
+ 
+ 	radio->status = STARTED;
+-	return (radio->transfer_buffer)[0];
++	return 0;
+ 
+ usb_control_msg_failed:
+ 	dev_err(&radio->usbdev->dev,
+@@ -247,7 +247,7 @@ static int dsbr100_stop(struct dsbr100_device *radio)
+ 	}
+ 
+ 	radio->status = STOPPED;
+-	return (radio->transfer_buffer)[0];
++	return 0;
+ 
+ usb_control_msg_failed:
+ 	dev_err(&radio->usbdev->dev,
+@@ -461,14 +461,14 @@ static int vidioc_s_ctrl(struct file *file, void *priv,
+ 	case V4L2_CID_AUDIO_MUTE:
+ 		if (ctrl->value) {
+ 			retval = dsbr100_stop(radio);
+-			if (retval < 0) {
++			if (retval) {
+ 				dev_warn(&radio->usbdev->dev,
+ 					 "Radio did not respond properly\n");
+ 				return -EBUSY;
+ 			}
+ 		} else {
+ 			retval = dsbr100_start(radio);
+-			if (retval < 0) {
++			if (retval) {
+ 				dev_warn(&radio->usbdev->dev,
+ 					 "Radio did not respond properly\n");
+ 				return -EBUSY;
+@@ -542,7 +542,7 @@ static int usb_dsbr100_suspend(struct usb_interface *intf, pm_message_t message)
+ 
+ 	if (radio->status == STARTED) {
+ 		retval = dsbr100_stop(radio);
+-		if (retval < 0)
++		if (retval)
+ 			dev_warn(&intf->dev, "dsbr100_stop failed\n");
+ 
+ 		/* After dsbr100_stop() status set to STOPPED.
+@@ -569,7 +569,7 @@ static int usb_dsbr100_resume(struct usb_interface *intf)
+ 
+ 	if (radio->status == STARTED) {
+ 		retval = dsbr100_start(radio);
+-		if (retval < 0)
++		if (retval)
+ 			dev_warn(&intf->dev, "dsbr100_start failed\n");
+ 	}
+ 
+-- 
+1.7.1
 
