@@ -1,115 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4387 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752263Ab0EOSip (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57019 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751777Ab0E0IEC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 May 2010 14:38:45 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4FIchvt019632
-	for <linux-media@vger.kernel.org>; Sat, 15 May 2010 20:38:44 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 15 May 2010 20:38:43 +0200 (CEST)
-Message-Id: <201005151838.o4FIchvt019632@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Thu, 27 May 2010 04:04:02 -0400
+Date: Thu, 27 May 2010 10:04:00 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: mt9m111 swap_rgb_red_blue
+Message-ID: <20100527080400.GA23664@pengutronix.de>
+References: <20100526141848.GU17272@pengutronix.de> <87bpc2za9i.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <87bpc2za9i.fsf@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wed, May 26, 2010 at 10:19:21PM +0200, Robert Jarzmik wrote:
+> Sascha Hauer <s.hauer@pengutronix.de> writes:
+> 
+> > Hi,
+> >
+> > The mt9m111 soc-camera driver has a swap_rgb_red_blue variable which is
+> > hardcoded to 1. This results in, well the name says it, red and blue being
+> > swapped in my picture.
+> > Is this value needed on some boards or is it just a leftover from
+> > development?
+> 
+> Hi Sascha,
+> 
+> It's not a development leftover, it's something that the sensor and the host
+> have to agree upon (ie. agree upon the output the sensor has to deliver to the
+> host).
+> 
+> By now, only the Marvell PXA27x CPU was used as the host of this sensor, and the
+> PXA expects the inverted Red/Blue order (ie. have BGR format).
+> 
+> Now, for the solution to your problem, we could :
+>  - enhance the mt9m111, and add the V4L2_MBUS_FMT_BGR565_2X8_LE format
+>    This format would have swap_rgb_red_blue = 1
+>  - fix the mt9m111, and add for the V4L2_MBUS_FMT_BGR565_2X8_LE format
+>    swap_rgb_red_blue = 0
 
-Results of the daily build of v4l-dvb:
+You mean V4L2_MBUS_FMT_RGB565_2X8_LE => swap_rgb_red_blue = 0 ?
 
-date:        Sat May 15 19:00:18 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14851:16ade09022d9
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc7-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc7-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc7-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc7-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc7-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc7-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc7-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc7-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc7-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+>  - fix the pxa_camera, and convert the RGB format asked for by userland into the
+>  V4L2_MBUS_FMT_BGR565_2X8_LE
+> 
+> What is your opinion here, Guennadi ?
+> 
+> --
+> Robert
+> 
+> PS: As for now, the RGB565 format is transfered as follows from the sensor, for
+> one pixel, over a 8 bit bus (D7-D0):
+> 
+>        D7 D6 D5 D4 D3 D2 D1 D0
+>        =======================
+> Byte1: G4 G3 G2 R7 R6 R5 R4 R3
+> Byte2: B7 B6 B5 B4 B3 G7 G6 G5
+> 
+> This is BGR565, with byte1 and byte2 inverted.
+> 
+> 
+> PPS: This is what Sascha is expecting, if I understood correctly:
+> 
+>        D7 D6 D5 D4 D3 D2 D1 D0
+>        =======================
+> Byte1: G4 G3 G2 B7 B6 B5 B4 B3
+> Byte2: R7 R6 R5 R4 R3 G7 G6 G5
+> 
+> This is RGB565, with byte1 and byte2 inverted.
 
-Detailed results are available here:
+Yes, that's what I need
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+Sascha
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
