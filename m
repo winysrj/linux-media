@@ -1,62 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.coote.org ([93.97.186.182]:56785 "EHLO mercury.coote.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753511Ab0EEXSD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 May 2010 19:18:03 -0400
-Received: from [127.0.0.1] (unknown [172.17.1.1])
-	by mercury.coote.org (Postfix) with ESMTP id E4BE841B3
-	for <linux-media@vger.kernel.org>; Thu,  6 May 2010 00:07:38 +0100 (BST)
-Message-Id: <E23F27D7-CF5B-4F6B-9656-EB63E7005BD0@coote.org>
-From: Tim Coote <tim+vger.kernel.org@coote.org>
+Received: from mx1.redhat.com ([209.132.183.28]:3061 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755428Ab0E0HIh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 May 2010 03:08:37 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4R78bHN005345
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 27 May 2010 03:08:37 -0400
+From: huzaifas@redhat.com
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Apple Message framework v936)
-Subject: setting up a tevii s660
-Date: Thu, 6 May 2010 00:07:38 +0100
+Cc: hdegoede@redhat.com, Huzaifa Sidhpurwala <huzaifas@redhat.com>
+Subject: [PATCH] move v4l1 ioctls from kernel to libv4l1: VIDIOCSCHAN move VIDIOCSCHAN to libv4l1 Signed-off-by: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+Date: Thu, 27 May 2010 12:36:33 +0530
+Message-Id: <1274943993-28246-1-git-send-email-huzaifas@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hullo
-I've been struggling with this for a couple of days. I have checked  
-archives, but missed anything useful.
+From: Huzaifa Sidhpurwala <huzaifas@redhat.com>
 
-I've got a tevii s660 (dvbs2 via usb). It works with some limitations  
-on windows xp (I cannot get HD signals decoded, but think that's a  
-limitation of the software that comes on the CD).
+---
+ lib/libv4l1/libv4l1.c |   30 +++++++++++++++++++++++++++++-
+ 1 files changed, 29 insertions(+), 1 deletions(-)
 
-I'm trying to get this working on Linux. I've tried VMs based on  
-fedora 12 and mythbuntu (VMWare Fusion on a MacBookPro, both based on  
-kernel 2.6.32), using the drivers from tevii's site (www.tevii.com/support.asp) 
-. these drivers are slightly modified versions of the v4l tip - but  
-don't appear to be modified where I've not yet managed to get the  
-drivers working :-(.  Mythbuntu seems to be closest to working.  
-Goodness knows how tevii tested the code, but it doesn't seem to work  
-as far as I can see.  My issues could just be down to using a VM.
+diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
+index f64025a..4a65222 100644
+--- a/lib/libv4l1/libv4l1.c
++++ b/lib/libv4l1/libv4l1.c
+@@ -702,7 +702,35 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
+ 		struct video_channel *chan = arg;
+ 		if ((devices[index].flags & V4L1_SUPPORTS_ENUMINPUT) &&
+ 				(devices[index].flags & V4L1_SUPPORTS_ENUMSTD)) {
+-			result = SYS_IOCTL(fd, request, arg);
++
++			v4l2_std_id sid = 0;
++			struct v4l2_input input2;
++
++			result = SYS_IOCTL(fd, VIDIOC_ENUMINPUT, &input2);
++			if (result < 0)
++				break;
++
++			switch (chan->norm) {
++			case VIDEO_MODE_PAL:
++				sid = V4L2_STD_PAL;
++				break;
++			case VIDEO_MODE_NTSC:
++				sid = V4L2_STD_NTSC;
++				break;
++			case VIDEO_MODE_SECAM:
++				sid = V4L2_STD_SECAM;
++				break;
++			case VIDEO_MODE_AUTO:
++				sid = V4L2_STD_ALL;
++				break;
++			}
++			
++			if (0 != sid) {
++				result = SYS_IOCTLdrv(fd, VIDIOC_S_STD, &sid);
++				if (result < 0)
++					break;
++			}
++			
+ 			break;
+ 		}
+ 		/* In case of no ENUMSTD support, ignore the norm member of the
+-- 
+1.6.6.1
 
-I believe that I need to load up the modules ds3000 and dvb-usb- 
-dw2102, + add a rule to /etc/udev/rules.d and a script to /etc/udev/ 
-scripts.
-
-I think that I must be missing quite a lot of context, tho'. When I  
-look at the code in dw2102.c, which seems to support the s660, the bit  
-that downloads the firmware looks broken and if I add a default clause  
-to the switch that does the download, the s660's missed the download  
-process.  This could be why when I do get anything out of the device  
-it looks like I'm just getting repeated bytes (the same value  
-repeated, different values at different times, sometimes nothing).   
-I'm finding it non-trivial working out the call sequences of the code  
-or devising repeatable tests.
-
-Can anyone kick me off on getting this working? I'd like to at least  
-get to the point where scandvb can tune the device. It does look like  
-some folk have had success in the past, but probably with totally  
-different codebase (there are posts that refer to the teviis660  
-module, which I cannot find).
-
-Any pointer gratefully accepted. I'll feed back any success if I can  
-be pointed at where to drop document it.
-
-tia
-
-Tim
