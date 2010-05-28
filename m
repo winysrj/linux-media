@@ -1,103 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smarthost02.mail.zen.net.uk ([212.23.3.141]:55482 "EHLO
-	smarthost02.mail.zen.net.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752736Ab0EFTO4 (ORCPT
+Received: from mail-in-03.arcor-online.net ([151.189.21.43]:36393 "EHLO
+	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752750Ab0E1WBK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 May 2010 15:14:56 -0400
-Received: from [217.155.39.57] (helo=proxyplus.universe)
-	by smarthost02.mail.zen.net.uk with esmtp (Exim 4.63)
-	(envelope-from <paul@whitelands.org.uk>)
-	id 1OA6X9-0003KH-A0
-	for linux-media@vger.kernel.org; Thu, 06 May 2010 19:14:55 +0000
-Received: from 127.0.0.1 [127.0.0.1]
-	by Proxy+ with ESMTP
-	for <linux-media@vger.kernel.org>; Thu, 06 May 2010 20:14:47 +0100
-Message-ID: <4BE31526.6020602@whitelands.org.uk>
-Date: Thu, 06 May 2010 20:14:46 +0100
-From: Paul Shepherd <paul@whitelands.org.uk>
+	Fri, 28 May 2010 18:01:10 -0400
+Message-ID: <4C003CB9.1090700@arcor.de>
+Date: Fri, 28 May 2010 23:59:21 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Fwd: Re: setting up a tevii s660
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] tm6000: rewrite copy_streams
+References: <1275069820-23980-1-git-send-email-stefan.ringel@arcor.de>
+In-Reply-To: <1275069820-23980-1-git-send-email-stefan.ringel@arcor.de>
+Content-Type: multipart/mixed;
+ boundary="------------050404040100050803000106"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------050404040100050803000106
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-On 06/05/2010 00:07, Tim Coote wrote:
-> Hullo
-> I've been struggling with this for a couple of days. I have checked
-> archives, but missed anything useful.
+Am 28.05.2010 20:03, schrieb stefan.ringel@arcor.de:
+> From: Stefan Ringel <stefan.ringel@arcor.de>
 >
-> I've got a tevii s660 (dvbs2 via usb). It works with some limitations on
-> windows xp (I cannot get HD signals decoded, but think that's a
-> limitation of the software that comes on the CD).
-
-I downloaded version from tevii.com and it worked for me on laptop
-running win 7.  Had problems with HD on an XP machine but I assumed it
-was because the video card was old/slow.
-
+> fusion function copy streams and copy_packets to new function copy_streams.
 >
-> I'm trying to get this working on Linux. I've tried VMs based on fedora
-> 12 and mythbuntu (VMWare Fusion on a MacBookPro, both based on kernel
-> 2.6.32), using the drivers from tevii's site
-> (www.tevii.com/support.asp). these drivers are slightly modified
-> versions of the v4l tip - but don't appear to be modified where I've not
-> yet managed to get the drivers working :-(. Mythbuntu seems to be
-> closest to working. Goodness knows how tevii tested the code, but it
-> doesn't seem to work as far as I can see. My issues could just be down
-> to using a VM.
-
-I tried on Ubuntu 9.10 but had problems which I documented here on 16
-april. Loading the firmware worked fine but there were problems with
-remote control messages being logged continually as well as stability
-problems. The card would tune (with scan) and worked with mythtv (for a
-day or so)
-
-> I believe that I need to load up the modules ds3000 and dvb-usb-dw2102,
-> + add a rule to /etc/udev/rules.d and a script to /etc/udev/scripts.
-
-I didn't touch rules.d
-
-> I think that I must be missing quite a lot of context, tho'. When I look
-> at the code in dw2102.c, which seems to support the s660, the bit that
-> downloads the firmware looks broken and if I add a default clause to the
-> switch that does the download, the s660's missed the download process.
-> This could be why when I do get anything out of the device it looks like
-> I'm just getting repeated bytes (the same value repeated, different
-> values at different times, sometimes nothing). I'm finding it
-> non-trivial working out the call sequences of the code or devising
-> repeatable tests.
-
-Had no problem with Ubuntu recognising the device and the correct .fw
-file being downloaded.
-
-There are various versions of dw2102.c from tevii, etc.  I think I tried
-all of them. I did change the timeout on RC messages (dw2102.c?) which
-helped but did not cure the problem.
-
-Also tried the s2-liplianin library as well which seemed promising but
-also did not cure the problem.
-
-> Can anyone kick me off on getting this working? I'd like to at least get
-> to the point where scandvb can tune the device. It does look like some
-> folk have had success in the past, but probably with totally different
-> codebase (there are posts that refer to the teviis660 module, which I
-> cannot find).
+> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+> ---
+>  drivers/staging/tm6000/tm6000-usb-isoc.h |    5 +-
+>  drivers/staging/tm6000/tm6000-video.c    |  329 +++++++++++-------------------
+>  2 files changed, 119 insertions(+), 215 deletions(-)
 >
-> Any pointer gratefully accepted. I'll feed back any success if I can be
-> pointed at where to drop document it.
+> diff --git a/drivers/staging/tm6000/tm6000-usb-isoc.h b/drivers/staging/tm6000/tm6000-usb-isoc.h
+> -- snipp
+>   
+Mauro can you superseded the patch from 28.05.2010 , 18:03 h
 
-I didn't have the knowledge (or time) to decide if the problem was in
-the firmware or the v4l drivers or perhaps some strange interaction with
-my dvb-t usb box.
+thanks
+Stefan Ringel
 
-Exchanged some emails with tevii guys who had posted here however they
-appear to take the view that if it works under windows then the device
-is fine and offer no other solution.
+-- 
+Stefan Ringel <stefan.ringel@arcor.de>
 
-In the end I bought a Nova S2 PCI card which works fine but would be
-interested in trying to get the S660 working.
 
-paul
+--------------050404040100050803000106
+Content-Type: text/x-vcard; charset=utf-8;
+ name="stefan_ringel.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="stefan_ringel.vcf"
 
+begin:vcard
+fn:Stefan Ringel
+n:Ringel;Stefan
+email;internet:stefan.ringel@arcor.de
+note:web: www.stefanringel.de
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
+
+
+--------------050404040100050803000106--
