@@ -1,68 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58955 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754130Ab0EYHUG (ORCPT
+Received: from filtteri2.pp.htv.fi ([213.243.153.185]:56051 "EHLO
+	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758423Ab0E1UOf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 May 2010 03:20:06 -0400
-Date: Tue, 25 May 2010 09:20:04 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Baruch Siach <baruch@tkos.co.il>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 0/3] Driver for the i.MX2x CMOS Sensor Interface
-Message-ID: <20100525072004.GI17272@pengutronix.de>
-References: <cover.1273150585.git.baruch@tkos.co.il> <20100521072045.GD17272@pengutronix.de> <20100521072737.GA6967@tarshish> <Pine.LNX.4.64.1005212023400.8450@axis700.grange>
+	Fri, 28 May 2010 16:14:35 -0400
+Date: Fri, 28 May 2010 23:06:04 +0300
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>
+To: Alex Deucher <alexdeucher@gmail.com>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Jaya Kumar <jayakumar.lkml@gmail.com>,
+	linux-fbdev@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Idea of a v4l -> fb interface driver
+Message-ID: <20100528200604.GA10135@sci.fi>
+References: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>
+ <AANLkTilnb20a4KO1NmK_y148HE_4b6ka14hUJY5o93QT@mail.gmail.com>
+ <Pine.LNX.4.64.1005270809110.2293@axis700.grange>
+ <AANLkTin_ia3Ym3z7FOu40voZkjCeMqSDZjuE_1aBjwOW@mail.gmail.com>
+ <Pine.LNX.4.64.1005272216380.1703@axis700.grange>
+ <AANLkTikTBFPxbl5p9kI65bHt2UJZ5j0DAxFwJ6rzD77L@mail.gmail.com>
+ <4C001643.2070802@gmx.de>
+ <AANLkTimHM66vREdBf60D1jrgvFLDOjf3f3KcHjy6cYSR@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1005212023400.8450@axis700.grange>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTimHM66vREdBf60D1jrgvFLDOjf3f3KcHjy6cYSR@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 21, 2010 at 08:33:40PM +0200, Guennadi Liakhovetski wrote:
-> On Fri, 21 May 2010, Baruch Siach wrote:
+On Fri, May 28, 2010 at 03:41:46PM -0400, Alex Deucher wrote:
+> On Fri, May 28, 2010 at 3:15 PM, Florian Tobias Schandinat
+> > If he wants different (independent) content on each output, just provide
+> > multiple /dev/fbX devices. I admit that we could use a controlling interface
+> > here that decides which user (application) might draw at a time to the
+> > interface which they currently only do if they are the active VT.
+> > If you want 2 or more outputs to be merged as one just configure this in the
+> > driver.
+> > The only thing that is impossible to do in fbdev is controlling 2 or more
+> > independent display outputs that access the same buffer. But that's not an
+> > issue I think.
+> > The things above only could use a unification of how to set them up on
+> > module load time (as only limited runtime changes are permited given that we
+> > must always be able to support a mode that we once entered during runtime).
+> >
 > 
-> > Hi Sascha,
-> > 
-> > On Fri, May 21, 2010 at 09:20:45AM +0200, Sascha Hauer wrote:
-> > > On Thu, May 06, 2010 at 04:09:38PM +0300, Baruch Siach wrote:
-> > > > This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and 
-> > > > platform code for the i.MX25 and i.MX27 chips. This driver is based on a driver 
-> > > > for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has posted in 
-> > > > linux-media last December[1]. Since all I have is a i.MX25 PDK paltform I can't 
-> > > > test the mx27 specific code. Testers and comment are welcome.
-> > > > 
-> > > > [1] https://patchwork.kernel.org/patch/67636/
-> > > > 
-> > > > Baruch Siach (3):
-> > > >   mx2_camera: Add soc_camera support for i.MX25/i.MX27
-> > > >   mx27: add support for the CSI device
-> > > >   mx25: add support for the CSI device
-> > > 
-> > > With the two additions I sent I can confirm this working on i.MX27, so
-> > > no need to remove the related code.
-> > 
-> > Thanks. I'll add your patches to my queue and resend the series next week.
-> 
-> Firstly, Sascha, unfortunately, you've forgotten to CC the maintainer, 
-> that will have to deal with these patches.
-> 
-> Secondly, I don't think that's a good idea to submit mx27 fixes as 
-> incremental patches. I'd prefer to have them rolled into the actual driver 
-> submission patches, where Sascha would just add his Sob / acked-by / 
-> tested-by / whatever... Or you can first submit an mx25-only driver and 
-> let Sascha add mx27 to it, in which case this would be a functionality 
-> extension, but not a fix of a broken driver.
+> What about changing outputs on the fly (turn off VGA, turn on DVI,
+> switch between multi-head and single-head, etc) or encoders shared
+> between multiple connectors (think a single dac shared between a VGA
+> and a TV port); how do you expose them easily as separate fbdevs?
+> Lots of stuff is doable with fbdev, but it's nicer with kms.
 
-My intention with these fixes was that Baruch integrates them into his
-patch (which he did).
+But actually getting your data onto the screen is a lot easier with
+fbdev. There's no standard API in drm to actually allocate the
+framebuffer and manipulate it. You always need a user space driver
+to go along with the kernel bits.
 
-Sascha
-
+I'm not saying fbdev is better than drm/kms but at least it can be
+used to write simple applications that work across different
+hardware. Perhaps that's something that should be addressed in the
+drm API.
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Ville Syrjälä
+syrjala@sci.fi
+http://www.sci.fi/~syrjala/
