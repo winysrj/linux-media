@@ -1,55 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23888 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49229 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932254Ab0EDOD3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 May 2010 10:03:29 -0400
-Date: Tue, 4 May 2010 10:03:18 -0400
+	id S1758288Ab0E1UCU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 May 2010 16:02:20 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4SK2JqI002997
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 28 May 2010 16:02:20 -0400
+Date: Fri, 28 May 2010 16:02:18 -0400
 From: Jarod Wilson <jarod@redhat.com>
-To: Dan Carpenter <error27@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] IR/imon: remove dead IMON_KEY_RELEASE_OFFSET
-Message-ID: <20100504140318.GA10813@redhat.com>
-References: <20100504122030.GX29093@bicker>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/2] IR: add Windows MCE/eHome IR receiver driver
+Message-ID: <20100528200218.GA7313@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20100504122030.GX29093@bicker>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This hack was used when the imon driver was using internal key lookup
-routines, but became dead weight when the driver was converted to use
-ir-core's key lookup routines. These bits simply didn't get removed,
-drop 'em now.
+This pair of patches adds ir-core support for the Windows Media Center
+Edition / eHome Infrared Remote transceiver devices bundled with many
+video capture cards, some HTPCs and various stand-alone kit.
 
-Pointed out by Dan Carpenter.
-
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/imon.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
-index 27743eb..bce8ef8 100644
---- a/drivers/media/IR/imon.c
-+++ b/drivers/media/IR/imon.c
-@@ -55,7 +55,6 @@
- #define BIT_DURATION	250	/* each bit received is 250us */
- 
- #define IMON_CLOCK_ENABLE_PACKETS	2
--#define IMON_KEY_RELEASE_OFFSET		1000
- 
- /*** P R O T O T Y P E S ***/
- 
-@@ -1205,7 +1204,7 @@ static u32 imon_panel_key_lookup(u64 hw_code)
- 		if (imon_panel_key_table[i].hw_code == (code | 0xffee))
- 			break;
- 
--	keycode = imon_panel_key_table[i % IMON_KEY_RELEASE_OFFSET].keycode;
-+	keycode = imon_panel_key_table[i].keycode;
- 
- 	return keycode;
- }
+[PATCH 1/2] IR: add RC6 keymap for Windows Media Center Ed. remotes
+[PATCH 2/2] IR: add mceusb IR receiver driver
 
 -- 
 Jarod Wilson
