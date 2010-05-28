@@ -1,59 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1580 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752994Ab0EIT1w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 May 2010 15:27:52 -0400
-Received: from localhost (cm-84.208.87.21.getinternet.no [84.208.87.21])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o49JRoev037521
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 9 May 2010 21:27:51 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Message-Id: <3c0e23e743fdd08545613d56229a122d128358ba.1273432986.git.hverkuil@xs4all.nl>
-In-Reply-To: <cover.1273432986.git.hverkuil@xs4all.nl>
-References: <cover.1273432986.git.hverkuil@xs4all.nl>
-From: Hans Verkuil <hverkuil@xs4all.nl>
-Date: Sun, 09 May 2010 21:29:26 +0200
-Subject: [PATCH 7/7] [RFC] ivtv: add priority checks for the non-standard commands.
-To: linux-media@vger.kernel.org
+Received: from mail.gmx.net ([213.165.64.20]:36674 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754694Ab0E1KHw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 May 2010 06:07:52 -0400
+Date: Fri, 28 May 2010 12:07:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Rob Clark <rob@ti.com>
+cc: linux-fbdev@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Idea of a v4l -> fb interface driver
+In-Reply-To: <4BFED8B0.8010504@ti.com>
+Message-ID: <Pine.LNX.4.64.1005280851000.32352@axis700.grange>
+References: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>
+ <AANLkTilnb20a4KO1NmK_y148HE_4b6ka14hUJY5o93QT@mail.gmail.com>
+ <Pine.LNX.4.64.1005270809110.2293@axis700.grange> <4BFED8B0.8010504@ti.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+(re-adding lists to CC)
+
+On Thu, 27 May 2010, Rob Clark wrote:
+
+> Hi Guennadi,
+> 
+> Sounds like an interesting idea... but how about the inverse?  A v4l2
+> interface on top of fbdev.  If v4l2 was more widely available as an output
+> device, perhaps more userspace software would utilize it.
+
+Don't see any advantage in doing this apart from "attracting user-space 
+developers to develop for v4l2 output interface," which doesn't seem like 
+a worthy goal in itself. Whereas with my translation you get access to 
+existing user-space applications and to a powerful in-kernel API, and 
+achieve a better interoperability with video-input streams.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/ivtv/ivtv-ioctl.c |   20 +++++++++++++++++++-
- 1 files changed, 19 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-index c532b77..de392a2 100644
---- a/drivers/media/video/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-@@ -1777,7 +1777,25 @@ static int ivtv_decoder_ioctls(struct file *filp, unsigned int cmd, void *arg)
- 
- static long ivtv_default(struct file *file, void *fh, int cmd, void *arg)
- {
--	struct ivtv *itv = ((struct ivtv_open_id *)fh)->itv;
-+	struct ivtv_open_id *id = fh2id(fh);
-+	struct ivtv *itv = id->itv;
-+	int ret;
-+
-+	switch (cmd) {
-+	case VIDEO_PLAY:
-+	case VIDEO_STOP:
-+	case VIDEO_FREEZE:
-+	case VIDEO_CONTINUE:
-+	case VIDEO_COMMAND:
-+	case VIDEO_SELECT_SOURCE:
-+	case AUDIO_SET_MUTE:
-+	case AUDIO_CHANNEL_SELECT:
-+	case AUDIO_BILINGUAL_CHANNEL_SELECT:
-+		ret = v4l2_prio_check(&itv->v4l2_dev.prio, id->fh.prio);
-+		if (ret)
-+			return ret;
-+		break;
-+	}
- 
- 	switch (cmd) {
- 	case VIDIOC_INT_RESET: {
--- 
-1.6.4.2
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
