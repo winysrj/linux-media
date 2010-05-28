@@ -1,206 +1,3113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:59868 "EHLO
-	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751024Ab0EYRmb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 May 2010 13:42:31 -0400
-Received: by ewy8 with SMTP id 8so615533ewy.28
-        for <linux-media@vger.kernel.org>; Tue, 25 May 2010 10:42:29 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 25 May 2010 20:42:29 +0300
-Message-ID: <AANLkTimxiByXV9LI5uXbykT9NRoxo_AfdUDpA3XHy7w4@mail.gmail.com>
-Subject: [PATCH for 2.6.34] saa7134: add support for Compro VideoMate M1F
-From: Pavel Osnova <pvosnova@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:42849 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758181Ab0E1RDg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 May 2010 13:03:36 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4SH3Z3V031994
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 28 May 2010 13:03:35 -0400
+Date: Fri, 28 May 2010 13:03:28 -0400
+From: Amerigo Wang <amwang@redhat.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Amerigo Wang <amwang@redhat.com>
+Message-Id: <20100528170729.5164.67807.sendpatchset@localhost.localdomain>
+In-Reply-To: <20100528170611.5164.29857.sendpatchset@localhost.localdomain>
+References: <20100528170611.5164.29857.sendpatchset@localhost.localdomain>
+Subject: [PATCH 6/6] Remove obsolete zc0301 v4l driver
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add support for Compro VideoMate M1F analog TV tuner.
+From: Amerigo Wang <amwang@redhat.com>
+Date: Fri, 28 May 2010 17:53:47 +0800
+Subject: [PATCH 6/6] Remove obsolete zc0301 v4l driver
 
+Duplicate functionality with the gspca_zc3xx driver, zc0301 only
+supports 2 USB-ID's (because it only supports a limited set of
+sensors) wich are also supported by the gspca_zc3xx driver
+(which supports 53 USB-ID's in total).
 
-diff -urN linux-2.6.34/Documentation/video4linux/CARDLIST.saa7134
-linux-2.6.34patched orig/Documentation/video4linux/CARDLIST.saa7134
---- linux-2.6.34/Documentation/video4linux/CARDLIST.saa7134
-2010-05-17 00:17:36.000000000 +0300
-+++ linux-2.6.34patched
-orig/Documentation/video4linux/CARDLIST.saa7134    2010-05-24
-13:33:01.915467949 +0300
-@@ -175,3 +175,4 @@
- 174 -> Asus Europa Hybrid OEM                   [1043:4847]
- 175 -> Leadtek Winfast DTV1000S                 [107d:6655]
- 176 -> Beholder BeholdTV 505 RDS                [0000:5051]
-+177 -> Compro VideoMate M1F               [185b:c900]
-diff -urN linux-2.6.34/drivers/media/IR/ir-keymaps.c
-linux-2.6.34patched orig/drivers/media/IR/ir-keymaps.c
---- linux-2.6.34/drivers/media/IR/ir-keymaps.c    2010-05-17
-00:17:36.000000000 +0300
-+++ linux-2.6.34patched orig/drivers/media/IR/ir-keymaps.c
-2010-05-24 13:37:59.872106122 +0300
-@@ -3492,3 +3492,65 @@
-     .ir_type = IR_TYPE_NEC,
- };
- EXPORT_SYMBOL_GPL(ir_codes_kworld_315u_table);
-+
-+/* Compro VideoMate M1F
-+ * Pavel Osnova <pvosnova@gmail.com>
-+ */
-+static struct ir_scancode ir_codes_videomate_m1f[] = {
-+    { 0x01, KEY_POWER },
-+    { 0x31, KEY_TUNER },
-+    { 0x33, KEY_VIDEO },
-+    { 0x2f, KEY_RADIO },
-+    { 0x30, KEY_CAMERA },
-+    { 0x2d, KEY_NEW }, /* TV record button */
-+    { 0x17, KEY_CYCLEWINDOWS },
-+    { 0x2c, KEY_ANGLE },
-+    { 0x2b, KEY_LANGUAGE },
-+    { 0x32, KEY_SEARCH }, /* '...' button */
-+    { 0x11, KEY_UP },
-+    { 0x13, KEY_LEFT },
-+    { 0x15, KEY_OK },
-+    { 0x14, KEY_RIGHT },
-+    { 0x12, KEY_DOWN },
-+    { 0x16, KEY_BACKSPACE },
-+    { 0x02, KEY_ZOOM }, /* WIN key */
-+    { 0x04, KEY_INFO },
-+    { 0x05, KEY_VOLUMEUP },
-+    { 0x03, KEY_MUTE },
-+    { 0x07, KEY_CHANNELUP },
-+    { 0x06, KEY_VOLUMEDOWN },
-+    { 0x08, KEY_CHANNELDOWN },
-+    { 0x0c, KEY_RECORD },
-+    { 0x0e, KEY_STOP },
-+    { 0x0a, KEY_BACK },
-+    { 0x0b, KEY_PLAY },
-+    { 0x09, KEY_FORWARD },
-+    { 0x10, KEY_PREVIOUS },
-+    { 0x0d, KEY_PAUSE },
-+    { 0x0f, KEY_NEXT },
-+    { 0x1e, KEY_1 },
-+    { 0x1f, KEY_2 },
-+    { 0x20, KEY_3 },
-+    { 0x21, KEY_4 },
-+    { 0x22, KEY_5 },
-+    { 0x23, KEY_6 },
-+    { 0x24, KEY_7 },
-+    { 0x25, KEY_8 },
-+    { 0x26, KEY_9 },
-+    { 0x2a, KEY_NUMERIC_STAR }, /* * key */
-+    { 0x1d, KEY_0 },
-+    { 0x29, KEY_SUBTITLE }, /* # key */
-+    { 0x27, KEY_CLEAR },
-+    { 0x34, KEY_SCREEN },
-+    { 0x28, KEY_ENTER },
-+    { 0x19, KEY_RED },
-+    { 0x1a, KEY_GREEN },
-+    { 0x1b, KEY_YELLOW },
-+    { 0x1c, KEY_BLUE },
-+    { 0x18, KEY_TEXT },
-+};
-+struct ir_scancode_table ir_codes_videomate_m1f_table = {
-+    .scan = ir_codes_videomate_m1f,
-+    .size = ARRAY_SIZE(ir_codes_videomate_m1f),
-+};
-+EXPORT_SYMBOL_GPL(ir_codes_videomate_m1f_table);
-diff -urN linux-2.6.34/drivers/media/video/saa7134/saa7134-cards.c
-linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134-cards.c
---- linux-2.6.34/drivers/media/video/saa7134/saa7134-cards.c
-2010-05-17 00:17:36.000000000 +0300
-+++ linux-2.6.34patched
-orig/drivers/media/video/saa7134/saa7134-cards.c    2010-05-24
-13:44:41.618731443 +0300
-@@ -5355,7 +5355,39 @@
-             .amux = LINE2,
-         },
-     },
+Cc: Hans de Goede <hdegoede@redhat.com>
+Signed-off-by: Amerigo Wang <amwang@redhat.com>
+---
+ Documentation/feature-removal-schedule.txt    |   11 -
+ drivers/media/video/Kconfig                   |    2 -
+ drivers/media/video/Makefile                  |    1 -
+ drivers/media/video/zc0301/Kconfig            |   15 -
+ drivers/media/video/zc0301/Makefile           |    3 -
+ drivers/media/video/zc0301/zc0301.h           |  196 ---
+ drivers/media/video/zc0301/zc0301_core.c      | 2098 -------------------------
+ drivers/media/video/zc0301/zc0301_pas202bcb.c |  362 -----
+ drivers/media/video/zc0301/zc0301_pb0330.c    |  188 ---
+ drivers/media/video/zc0301/zc0301_sensor.h    |  107 --
+ 10 files changed, 0 insertions(+), 2983 deletions(-)
+ delete mode 100644 drivers/media/video/zc0301/Kconfig
+ delete mode 100644 drivers/media/video/zc0301/Makefile
+ delete mode 100644 drivers/media/video/zc0301/zc0301.h
+ delete mode 100644 drivers/media/video/zc0301/zc0301_core.c
+ delete mode 100644 drivers/media/video/zc0301/zc0301_pas202bcb.c
+ delete mode 100644 drivers/media/video/zc0301/zc0301_pb0330.c
+ delete mode 100644 drivers/media/video/zc0301/zc0301_sensor.h
+
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index 5a29615..a1b33b1 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -459,17 +459,6 @@ Who:	Corentin Chary <corentin.chary@gmail.com>
+ 
+ ----------------------------
+ 
+-What:	zc0301 v4l driver
+-When:	2.6.35
+-Files:	drivers/media/video/zc0301/*
+-Why:	Duplicate functionality with the gspca_zc3xx driver, zc0301 only
+-	supports 2 USB-ID's (because it only supports a limited set of
+-	sensors) wich are also supported by the gspca_zc3xx driver
+-	(which supports 53 USB-ID's in total)
+-Who:	Hans de Goede <hdegoede@redhat.com>
 -
-+    [SAA7134_BOARD_VIDEOMATE_M1F] = {
-+                .name           = "Compro VideoMate M1F",
-+                .audio_clock    = 0x00187de7,
-+                .tuner_type     = TUNER_LG_PAL_NEW_TAPC,
-+                .radio_type     = TUNER_TEA5767,
-+                .tuner_addr     = ADDR_UNSET,
-+                .radio_addr     = 0x60,
-+                .tda9887_conf   = TDA9887_PRESENT,
-+                .inputs         = {{
-+                        .name = name_tv,
-+                        .vmux = 1,
-+                        .amux = TV,
-+                        .tv   = 1,
-+                },{
-+                        .name = name_comp1,
-+                        .vmux = 3,
-+                        .amux = LINE2,
-+                },{
-+                        .name = name_svideo,
-+                        .vmux = 8,
-+                        .amux = LINE1,
-+                }},
-+                .radio = {
-+                        .name = name_radio,
-+                        .amux = LINE2,
-+                        .gpio = 0x80000,
-+                },
-+                .mute = {
-+                        .name = name_mute,
-+                        .amux = LINE2,
-+                        .gpio = 0x40000,
-+                },
-+        },
- };
+-----------------------------
+-
+ What:	sysfs-class-rfkill state file
+ When:	Feb 2014
+ Files:	net/rfkill/core.c
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 4361fe6..01f3696 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -1013,8 +1013,6 @@ config USB_SE401
+ 
+ source "drivers/media/video/sn9c102/Kconfig"
+ 
+-source "drivers/media/video/zc0301/Kconfig"
+-
+ source "drivers/media/video/pwc/Kconfig"
+ 
+ config USB_ZR364XX
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 5c2a38e..2beb4e4 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -133,7 +133,6 @@ obj-$(CONFIG_USB_STKWEBCAM)     += stkwebcam.o
+ obj-$(CONFIG_USB_SN9C102)       += sn9c102/
+ obj-$(CONFIG_USB_ET61X251)      += et61x251/
+ obj-$(CONFIG_USB_PWC)           += pwc/
+-obj-$(CONFIG_USB_ZC0301)        += zc0301/
+ obj-$(CONFIG_USB_GSPCA)         += gspca/
+ 
+ obj-$(CONFIG_VIDEO_HDPVR)	+= hdpvr/
+diff --git a/drivers/media/video/zc0301/Kconfig b/drivers/media/video/zc0301/Kconfig
+deleted file mode 100644
+index a7e610e..0000000
+--- a/drivers/media/video/zc0301/Kconfig
++++ /dev/null
+@@ -1,15 +0,0 @@
+-config USB_ZC0301
+-	tristate "USB ZC0301[P] webcam support (DEPRECATED)"
+-	depends on VIDEO_V4L2
+-	default n
+-	---help---
+-	  This driver is DEPRECATED please use the gspca zc3xx module
+-	  instead.
+-
+-	  Say Y here if you want support for cameras based on the ZC0301 or
+-	  ZC0301P Image Processors and Control Chips.
+-
+-	  See <file:Documentation/video4linux/zc0301.txt> for more info.
+-
+-	  To compile this driver as a module, choose M here: the
+-	  module will be called zc0301.
+diff --git a/drivers/media/video/zc0301/Makefile b/drivers/media/video/zc0301/Makefile
+deleted file mode 100644
+index d9e6d97..0000000
+--- a/drivers/media/video/zc0301/Makefile
++++ /dev/null
+@@ -1,3 +0,0 @@
+-zc0301-objs     := zc0301_core.o zc0301_pb0330.o zc0301_pas202bcb.o
+-
+-obj-$(CONFIG_USB_ZC0301)        += zc0301.o
+diff --git a/drivers/media/video/zc0301/zc0301.h b/drivers/media/video/zc0301/zc0301.h
+deleted file mode 100644
+index b1b5cce..0000000
+--- a/drivers/media/video/zc0301/zc0301.h
++++ /dev/null
+@@ -1,196 +0,0 @@
+-/***************************************************************************
+- * V4L2 driver for ZC0301[P] Image Processor and Control Chip              *
+- *                                                                         *
+- * Copyright (C) 2006-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
+- *                                                                         *
+- * This program is free software; you can redistribute it and/or modify    *
+- * it under the terms of the GNU General Public License as published by    *
+- * the Free Software Foundation; either version 2 of the License, or       *
+- * (at your option) any later version.                                     *
+- *                                                                         *
+- * This program is distributed in the hope that it will be useful,         *
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+- * GNU General Public License for more details.                            *
+- *                                                                         *
+- * You should have received a copy of the GNU General Public License       *
+- * along with this program; if not, write to the Free Software             *
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
+- ***************************************************************************/
+-
+-#ifndef _ZC0301_H_
+-#define _ZC0301_H_
+-
+-#include <linux/version.h>
+-#include <linux/usb.h>
+-#include <linux/videodev2.h>
+-#include <media/v4l2-common.h>
+-#include <media/v4l2-ioctl.h>
+-#include <linux/device.h>
+-#include <linux/list.h>
+-#include <linux/spinlock.h>
+-#include <linux/time.h>
+-#include <linux/wait.h>
+-#include <linux/types.h>
+-#include <linux/param.h>
+-#include <linux/mutex.h>
+-#include <linux/rwsem.h>
+-#include <linux/stddef.h>
+-#include <linux/string.h>
+-#include <linux/kref.h>
+-
+-#include "zc0301_sensor.h"
+-
+-/*****************************************************************************/
+-
+-#define ZC0301_DEBUG
+-#define ZC0301_DEBUG_LEVEL         2
+-#define ZC0301_MAX_DEVICES         64
+-#define ZC0301_FORCE_MUNMAP        0
+-#define ZC0301_MAX_FRAMES          32
+-#define ZC0301_COMPRESSION_QUALITY 0
+-#define ZC0301_URBS                2
+-#define ZC0301_ISO_PACKETS         7
+-#define ZC0301_ALTERNATE_SETTING   7
+-#define ZC0301_URB_TIMEOUT         msecs_to_jiffies(2 * ZC0301_ISO_PACKETS)
+-#define ZC0301_CTRL_TIMEOUT        100
+-#define ZC0301_FRAME_TIMEOUT       2
+-
+-/*****************************************************************************/
+-
+-ZC0301_ID_TABLE
+-ZC0301_SENSOR_TABLE
+-
+-enum zc0301_frame_state {
+-	F_UNUSED,
+-	F_QUEUED,
+-	F_GRABBING,
+-	F_DONE,
+-	F_ERROR,
+-};
+-
+-struct zc0301_frame_t {
+-	void* bufmem;
+-	struct v4l2_buffer buf;
+-	enum zc0301_frame_state state;
+-	struct list_head frame;
+-	unsigned long vma_use_count;
+-};
+-
+-enum zc0301_dev_state {
+-	DEV_INITIALIZED = 0x01,
+-	DEV_DISCONNECTED = 0x02,
+-	DEV_MISCONFIGURED = 0x04,
+-};
+-
+-enum zc0301_io_method {
+-	IO_NONE,
+-	IO_READ,
+-	IO_MMAP,
+-};
+-
+-enum zc0301_stream_state {
+-	STREAM_OFF,
+-	STREAM_INTERRUPT,
+-	STREAM_ON,
+-};
+-
+-struct zc0301_module_param {
+-	u8 force_munmap;
+-	u16 frame_timeout;
+-};
+-
+-static DECLARE_RWSEM(zc0301_dev_lock);
+-
+-struct zc0301_device {
+-	struct video_device* v4ldev;
+-
+-	struct zc0301_sensor sensor;
+-
+-	struct usb_device* usbdev;
+-	struct urb* urb[ZC0301_URBS];
+-	void* transfer_buffer[ZC0301_URBS];
+-	u8* control_buffer;
+-
+-	struct zc0301_frame_t *frame_current, frame[ZC0301_MAX_FRAMES];
+-	struct list_head inqueue, outqueue;
+-	u32 frame_count, nbuffers, nreadbuffers;
+-
+-	enum zc0301_io_method io;
+-	enum zc0301_stream_state stream;
+-
+-	struct v4l2_jpegcompression compression;
+-
+-	struct zc0301_module_param module_param;
+-
+-	struct kref kref;
+-	enum zc0301_dev_state state;
+-	u8 users;
+-
+-	struct completion probe;
+-	struct mutex open_mutex, fileop_mutex;
+-	spinlock_t queue_lock;
+-	wait_queue_head_t wait_open, wait_frame, wait_stream;
+-};
+-
+-/*****************************************************************************/
+-
+-struct zc0301_device*
+-zc0301_match_id(struct zc0301_device* cam, const struct usb_device_id *id)
+-{
+-	return usb_match_id(usb_ifnum_to_if(cam->usbdev, 0), id) ? cam : NULL;
+-}
+-
+-void
+-zc0301_attach_sensor(struct zc0301_device* cam, struct zc0301_sensor* sensor)
+-{
+-	memcpy(&cam->sensor, sensor, sizeof(struct zc0301_sensor));
+-}
+-
+-/*****************************************************************************/
+-
+-#undef DBG
+-#undef KDBG
+-#ifdef ZC0301_DEBUG
+-#	define DBG(level, fmt, args...)                                       \
+-do {                                                                          \
+-	if (debug >= (level)) {                                               \
+-		if ((level) == 1)                                             \
+-			dev_err(&cam->usbdev->dev, fmt "\n", ## args);        \
+-		else if ((level) == 2)                                        \
+-			dev_info(&cam->usbdev->dev, fmt "\n", ## args);       \
+-		else if ((level) >= 3)                                        \
+-			dev_info(&cam->usbdev->dev, "[%s:%s:%d] " fmt "\n",   \
+-				 __FILE__, __func__, __LINE__ , ## args); \
+-	}                                                                     \
+-} while (0)
+-#	define KDBG(level, fmt, args...)                                      \
+-do {                                                                          \
+-	if (debug >= (level)) {                                               \
+-		if ((level) == 1 || (level) == 2)                             \
+-			pr_info("zc0301: " fmt "\n", ## args);                \
+-		else if ((level) == 3)                                        \
+-			pr_debug("sn9c102: [%s:%s:%d] " fmt "\n", __FILE__,   \
+-				 __func__, __LINE__ , ## args);           \
+-	}                                                                     \
+-} while (0)
+-#	define V4LDBG(level, name, cmd)                                       \
+-do {                                                                          \
+-	if (debug >= (level))                                                 \
+-		v4l_print_ioctl(name, cmd);                                   \
+-} while (0)
+-#else
+-#	define DBG(level, fmt, args...) do {;} while(0)
+-#	define KDBG(level, fmt, args...) do {;} while(0)
+-#	define V4LDBG(level, name, cmd) do {;} while(0)
+-#endif
+-
+-#undef PDBG
+-#define PDBG(fmt, args...)                                                    \
+-dev_info(&cam->usbdev->dev, "[%s:%s:%d] " fmt "\n", __FILE__, __func__,   \
+-	 __LINE__ , ## args)
+-
+-#undef PDBGG
+-#define PDBGG(fmt, args...) do {;} while(0) /* placeholder */
+-
+-#endif /* _ZC0301_H_ */
+diff --git a/drivers/media/video/zc0301/zc0301_core.c b/drivers/media/video/zc0301/zc0301_core.c
+deleted file mode 100644
+index bb51cfb..0000000
+--- a/drivers/media/video/zc0301/zc0301_core.c
++++ /dev/null
+@@ -1,2098 +0,0 @@
+-/***************************************************************************
+- * Video4Linux2 driver for ZC0301[P] Image Processor and Control Chip      *
+- *                                                                         *
+- * Copyright (C) 2006-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
+- *                                                                         *
+- * Informations about the chip internals needed to enable the I2C protocol *
+- * have been taken from the documentation of the ZC030x Video4Linux1       *
+- * driver written by Andrew Birkett <andy@nobugs.org>                      *
+- *                                                                         *
+- * This program is free software; you can redistribute it and/or modify    *
+- * it under the terms of the GNU General Public License as published by    *
+- * the Free Software Foundation; either version 2 of the License, or       *
+- * (at your option) any later version.                                     *
+- *                                                                         *
+- * This program is distributed in the hope that it will be useful,         *
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+- * GNU General Public License for more details.                            *
+- *                                                                         *
+- * You should have received a copy of the GNU General Public License       *
+- * along with this program; if not, write to the Free Software             *
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
+- ***************************************************************************/
+-
+-#include <linux/module.h>
+-#include <linux/init.h>
+-#include <linux/kernel.h>
+-#include <linux/param.h>
+-#include <linux/errno.h>
+-#include <linux/slab.h>
+-#include <linux/device.h>
+-#include <linux/fs.h>
+-#include <linux/delay.h>
+-#include <linux/compiler.h>
+-#include <linux/ioctl.h>
+-#include <linux/poll.h>
+-#include <linux/stat.h>
+-#include <linux/mm.h>
+-#include <linux/vmalloc.h>
+-#include <linux/page-flags.h>
+-#include <asm/byteorder.h>
+-#include <asm/page.h>
+-#include <asm/uaccess.h>
+-
+-#include "zc0301.h"
+-
+-/*****************************************************************************/
+-
+-#define ZC0301_MODULE_NAME    "V4L2 driver for ZC0301[P] "                    \
+-			      "Image Processor and Control Chip"
+-#define ZC0301_MODULE_AUTHOR  "(C) 2006-2007 Luca Risolia"
+-#define ZC0301_AUTHOR_EMAIL   "<luca.risolia@studio.unibo.it>"
+-#define ZC0301_MODULE_LICENSE "GPL"
+-#define ZC0301_MODULE_VERSION "1:1.10"
+-#define ZC0301_MODULE_VERSION_CODE  KERNEL_VERSION(1, 1, 10)
+-
+-/*****************************************************************************/
+-
+-MODULE_DEVICE_TABLE(usb, zc0301_id_table);
+-
+-MODULE_AUTHOR(ZC0301_MODULE_AUTHOR " " ZC0301_AUTHOR_EMAIL);
+-MODULE_DESCRIPTION(ZC0301_MODULE_NAME);
+-MODULE_VERSION(ZC0301_MODULE_VERSION);
+-MODULE_LICENSE(ZC0301_MODULE_LICENSE);
+-
+-static short video_nr[] = {[0 ... ZC0301_MAX_DEVICES-1] = -1};
+-module_param_array(video_nr, short, NULL, 0444);
+-MODULE_PARM_DESC(video_nr,
+-		 "\n<-1|n[,...]> Specify V4L2 minor mode number."
+-		 "\n -1 = use next available (default)"
+-		 "\n  n = use minor number n (integer >= 0)"
+-		 "\nYou can specify up to "
+-		 __MODULE_STRING(ZC0301_MAX_DEVICES) " cameras this way."
+-		 "\nFor example:"
+-		 "\nvideo_nr=-1,2,-1 would assign minor number 2 to"
+-		 "\nthe second registered camera and use auto for the first"
+-		 "\none and for every other camera."
+-		 "\n");
+-
+-static short force_munmap[] = {[0 ... ZC0301_MAX_DEVICES-1] =
+-			       ZC0301_FORCE_MUNMAP};
+-module_param_array(force_munmap, bool, NULL, 0444);
+-MODULE_PARM_DESC(force_munmap,
+-		 "\n<0|1[,...]> Force the application to unmap previously"
+-		 "\nmapped buffer memory before calling any VIDIOC_S_CROP or"
+-		 "\nVIDIOC_S_FMT ioctl's. Not all the applications support"
+-		 "\nthis feature. This parameter is specific for each"
+-		 "\ndetected camera."
+-		 "\n 0 = do not force memory unmapping"
+-		 "\n 1 = force memory unmapping (save memory)"
+-		 "\nDefault value is "__MODULE_STRING(ZC0301_FORCE_MUNMAP)"."
+-		 "\n");
+-
+-static unsigned int frame_timeout[] = {[0 ... ZC0301_MAX_DEVICES-1] =
+-				       ZC0301_FRAME_TIMEOUT};
+-module_param_array(frame_timeout, uint, NULL, 0644);
+-MODULE_PARM_DESC(frame_timeout,
+-		 "\n<n[,...]> Timeout for a video frame in seconds."
+-		 "\nThis parameter is specific for each detected camera."
+-		 "\nDefault value is "__MODULE_STRING(ZC0301_FRAME_TIMEOUT)"."
+-		 "\n");
+-
+-#ifdef ZC0301_DEBUG
+-static unsigned short debug = ZC0301_DEBUG_LEVEL;
+-module_param(debug, ushort, 0644);
+-MODULE_PARM_DESC(debug,
+-		 "\n<n> Debugging information level, from 0 to 3:"
+-		 "\n0 = none (use carefully)"
+-		 "\n1 = critical errors"
+-		 "\n2 = significant informations"
+-		 "\n3 = more verbose messages"
+-		 "\nLevel 3 is useful for testing only, when only "
+-		 "one device is used."
+-		 "\nDefault value is "__MODULE_STRING(ZC0301_DEBUG_LEVEL)"."
+-		 "\n");
+-#endif
+-
+-/*****************************************************************************/
+-
+-static u32
+-zc0301_request_buffers(struct zc0301_device* cam, u32 count,
+-		       enum zc0301_io_method io)
+-{
+-	struct v4l2_pix_format* p = &(cam->sensor.pix_format);
+-	struct v4l2_rect* r = &(cam->sensor.cropcap.bounds);
+-	const size_t imagesize = cam->module_param.force_munmap ||
+-				 io == IO_READ ?
+-				 (p->width * p->height * p->priv) / 8 :
+-				 (r->width * r->height * p->priv) / 8;
+-	void* buff = NULL;
+-	u32 i;
+-
+-	if (count > ZC0301_MAX_FRAMES)
+-		count = ZC0301_MAX_FRAMES;
+-
+-	cam->nbuffers = count;
+-	while (cam->nbuffers > 0) {
+-		if ((buff = vmalloc_32_user(cam->nbuffers *
+-					    PAGE_ALIGN(imagesize))))
+-			break;
+-		cam->nbuffers--;
+-	}
+-
+-	for (i = 0; i < cam->nbuffers; i++) {
+-		cam->frame[i].bufmem = buff + i*PAGE_ALIGN(imagesize);
+-		cam->frame[i].buf.index = i;
+-		cam->frame[i].buf.m.offset = i*PAGE_ALIGN(imagesize);
+-		cam->frame[i].buf.length = imagesize;
+-		cam->frame[i].buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-		cam->frame[i].buf.sequence = 0;
+-		cam->frame[i].buf.field = V4L2_FIELD_NONE;
+-		cam->frame[i].buf.memory = V4L2_MEMORY_MMAP;
+-		cam->frame[i].buf.flags = 0;
+-	}
+-
+-	return cam->nbuffers;
+-}
+-
+-
+-static void zc0301_release_buffers(struct zc0301_device* cam)
+-{
+-	if (cam->nbuffers) {
+-		vfree(cam->frame[0].bufmem);
+-		cam->nbuffers = 0;
+-	}
+-	cam->frame_current = NULL;
+-}
+-
+-
+-static void zc0301_empty_framequeues(struct zc0301_device* cam)
+-{
+-	u32 i;
+-
+-	INIT_LIST_HEAD(&cam->inqueue);
+-	INIT_LIST_HEAD(&cam->outqueue);
+-
+-	for (i = 0; i < ZC0301_MAX_FRAMES; i++) {
+-		cam->frame[i].state = F_UNUSED;
+-		cam->frame[i].buf.bytesused = 0;
+-	}
+-}
+-
+-
+-static void zc0301_requeue_outqueue(struct zc0301_device* cam)
+-{
+-	struct zc0301_frame_t *i;
+-
+-	list_for_each_entry(i, &cam->outqueue, frame) {
+-		i->state = F_QUEUED;
+-		list_add(&i->frame, &cam->inqueue);
+-	}
+-
+-	INIT_LIST_HEAD(&cam->outqueue);
+-}
+-
+-
+-static void zc0301_queue_unusedframes(struct zc0301_device* cam)
+-{
+-	unsigned long lock_flags;
+-	u32 i;
+-
+-	for (i = 0; i < cam->nbuffers; i++)
+-		if (cam->frame[i].state == F_UNUSED) {
+-			cam->frame[i].state = F_QUEUED;
+-			spin_lock_irqsave(&cam->queue_lock, lock_flags);
+-			list_add_tail(&cam->frame[i].frame, &cam->inqueue);
+-			spin_unlock_irqrestore(&cam->queue_lock, lock_flags);
+-		}
+-}
+-
+-/*****************************************************************************/
+-
+-int zc0301_write_reg(struct zc0301_device* cam, u16 index, u16 value)
+-{
+-	struct usb_device* udev = cam->usbdev;
+-	int res;
+-
+-	res = usb_control_msg(udev, usb_sndctrlpipe(udev, 0), 0xa0, 0x40,
+-			      value, index, NULL, 0, ZC0301_CTRL_TIMEOUT);
+-	if (res < 0) {
+-		DBG(3, "Failed to write a register (index 0x%04X, "
+-		       "value 0x%02X, error %d)",index, value, res);
+-		return -1;
+-	}
+-
+-	return 0;
+-}
+-
+-
+-int zc0301_read_reg(struct zc0301_device* cam, u16 index)
+-{
+-	struct usb_device* udev = cam->usbdev;
+-	u8* buff = cam->control_buffer;
+-	int res;
+-
+-	res = usb_control_msg(udev, usb_rcvctrlpipe(udev, 0), 0xa1, 0xc0,
+-			      0x0001, index, buff, 1, ZC0301_CTRL_TIMEOUT);
+-	if (res < 0)
+-		DBG(3, "Failed to read a register (index 0x%04X, error %d)",
+-		    index, res);
+-
+-	PDBGG("Read: index 0x%04X, value: 0x%04X", index, (int)(*buff));
+-
+-	return (res >= 0) ? (int)(*buff) : -1;
+-}
+-
+-
+-int zc0301_i2c_read(struct zc0301_device* cam, u16 address, u8 length)
+-{
+-	int err = 0, res, r0, r1;
+-
+-	err += zc0301_write_reg(cam, 0x0092, address);
+-	err += zc0301_write_reg(cam, 0x0090, 0x02);
+-
+-	msleep(1);
+-
+-	res = zc0301_read_reg(cam, 0x0091);
+-	if (res < 0)
+-		err += res;
+-	r0 = zc0301_read_reg(cam, 0x0095);
+-	if (r0 < 0)
+-		err += r0;
+-	r1 = zc0301_read_reg(cam, 0x0096);
+-	if (r1 < 0)
+-		err += r1;
+-
+-	res = (length <= 1) ? r0 : r0 | (r1 << 8);
+-
+-	if (err)
+-		DBG(3, "I2C read failed at address 0x%04X, value: 0x%04X",
+-		    address, res);
+-
+-
+-	PDBGG("I2C read: address 0x%04X, value: 0x%04X", address, res);
+-
+-	return err ? -1 : res;
+-}
+-
+-
+-int zc0301_i2c_write(struct zc0301_device* cam, u16 address, u16 value)
+-{
+-	int err = 0, res;
+-
+-	err += zc0301_write_reg(cam, 0x0092, address);
+-	err += zc0301_write_reg(cam, 0x0093, value & 0xff);
+-	err += zc0301_write_reg(cam, 0x0094, value >> 8);
+-	err += zc0301_write_reg(cam, 0x0090, 0x01);
+-
+-	msleep(1);
+-
+-	res = zc0301_read_reg(cam, 0x0091);
+-	if (res < 0)
+-		err += res;
+-
+-	if (err)
+-		DBG(3, "I2C write failed at address 0x%04X, value: 0x%04X",
+-		    address, value);
+-
+-	PDBGG("I2C write: address 0x%04X, value: 0x%04X", address, value);
+-
+-	return err ? -1 : 0;
+-}
+-
+-/*****************************************************************************/
+-
+-static void zc0301_urb_complete(struct urb *urb)
+-{
+-	struct zc0301_device* cam = urb->context;
+-	struct zc0301_frame_t** f;
+-	size_t imagesize;
+-	u8 i;
+-	int err = 0;
+-
+-	if (urb->status == -ENOENT)
+-		return;
+-
+-	f = &cam->frame_current;
+-
+-	if (cam->stream == STREAM_INTERRUPT) {
+-		cam->stream = STREAM_OFF;
+-		if ((*f))
+-			(*f)->state = F_QUEUED;
+-		DBG(3, "Stream interrupted");
+-		wake_up(&cam->wait_stream);
+-	}
+-
+-	if (cam->state & DEV_DISCONNECTED)
+-		return;
+-
+-	if (cam->state & DEV_MISCONFIGURED) {
+-		wake_up_interruptible(&cam->wait_frame);
+-		return;
+-	}
+-
+-	if (cam->stream == STREAM_OFF || list_empty(&cam->inqueue))
+-		goto resubmit_urb;
+-
+-	if (!(*f))
+-		(*f) = list_entry(cam->inqueue.next, struct zc0301_frame_t,
+-				  frame);
+-
+-	imagesize = (cam->sensor.pix_format.width *
+-		     cam->sensor.pix_format.height *
+-		     cam->sensor.pix_format.priv) / 8;
+-
+-	for (i = 0; i < urb->number_of_packets; i++) {
+-		unsigned int len, status;
+-		void *pos;
+-		u16* soi;
+-		u8 sof;
+-
+-		len = urb->iso_frame_desc[i].actual_length;
+-		status = urb->iso_frame_desc[i].status;
+-		pos = urb->iso_frame_desc[i].offset + urb->transfer_buffer;
+-
+-		if (status) {
+-			DBG(3, "Error in isochronous frame");
+-			(*f)->state = F_ERROR;
+-			continue;
+-		}
+-
+-		sof = (*(soi = pos) == 0xd8ff);
+-
+-		PDBGG("Isochrnous frame: length %u, #%u i,", len, i);
+-
+-		if ((*f)->state == F_QUEUED || (*f)->state == F_ERROR)
+-start_of_frame:
+-			if (sof) {
+-				(*f)->state = F_GRABBING;
+-				(*f)->buf.bytesused = 0;
+-				do_gettimeofday(&(*f)->buf.timestamp);
+-				DBG(3, "SOF detected: new video frame");
+-			}
+-
+-		if ((*f)->state == F_GRABBING) {
+-			if (sof && (*f)->buf.bytesused)
+-					goto end_of_frame;
+-
+-			if ((*f)->buf.bytesused + len > imagesize) {
+-				DBG(3, "Video frame size exceeded");
+-				(*f)->state = F_ERROR;
+-				continue;
+-			}
+-
+-			memcpy((*f)->bufmem+(*f)->buf.bytesused, pos, len);
+-			(*f)->buf.bytesused += len;
+-
+-			if ((*f)->buf.bytesused == imagesize) {
+-				u32 b;
+-end_of_frame:
+-				b = (*f)->buf.bytesused;
+-				(*f)->state = F_DONE;
+-				(*f)->buf.sequence= ++cam->frame_count;
+-				spin_lock(&cam->queue_lock);
+-				list_move_tail(&(*f)->frame, &cam->outqueue);
+-				if (!list_empty(&cam->inqueue))
+-					(*f) = list_entry(cam->inqueue.next,
+-						       struct zc0301_frame_t,
+-							  frame);
+-				else
+-					(*f) = NULL;
+-				spin_unlock(&cam->queue_lock);
+-				DBG(3, "Video frame captured: : %lu bytes",
+-				       (unsigned long)(b));
+-
+-				if (!(*f))
+-					goto resubmit_urb;
+-
+-				if (sof)
+-					goto start_of_frame;
+-			}
+-		}
+-	}
+-
+-resubmit_urb:
+-	urb->dev = cam->usbdev;
+-	err = usb_submit_urb(urb, GFP_ATOMIC);
+-	if (err < 0 && err != -EPERM) {
+-		cam->state |= DEV_MISCONFIGURED;
+-		DBG(1, "usb_submit_urb() failed");
+-	}
+-
+-	wake_up_interruptible(&cam->wait_frame);
+-}
+-
+-
+-static int zc0301_start_transfer(struct zc0301_device* cam)
+-{
+-	struct usb_device *udev = cam->usbdev;
+-	struct usb_host_interface* altsetting = usb_altnum_to_altsetting(
+-						     usb_ifnum_to_if(udev, 0),
+-						     ZC0301_ALTERNATE_SETTING);
+-	const unsigned int psz = le16_to_cpu(altsetting->
+-					     endpoint[0].desc.wMaxPacketSize);
+-	struct urb* urb;
+-	s8 i, j;
+-	int err = 0;
+-
+-	for (i = 0; i < ZC0301_URBS; i++) {
+-		cam->transfer_buffer[i] = kzalloc(ZC0301_ISO_PACKETS * psz,
+-						  GFP_KERNEL);
+-		if (!cam->transfer_buffer[i]) {
+-			err = -ENOMEM;
+-			DBG(1, "Not enough memory");
+-			goto free_buffers;
+-		}
+-	}
+-
+-	for (i = 0; i < ZC0301_URBS; i++) {
+-		urb = usb_alloc_urb(ZC0301_ISO_PACKETS, GFP_KERNEL);
+-		cam->urb[i] = urb;
+-		if (!urb) {
+-			err = -ENOMEM;
+-			DBG(1, "usb_alloc_urb() failed");
+-			goto free_urbs;
+-		}
+-		urb->dev = udev;
+-		urb->context = cam;
+-		urb->pipe = usb_rcvisocpipe(udev, 1);
+-		urb->transfer_flags = URB_ISO_ASAP;
+-		urb->number_of_packets = ZC0301_ISO_PACKETS;
+-		urb->complete = zc0301_urb_complete;
+-		urb->transfer_buffer = cam->transfer_buffer[i];
+-		urb->transfer_buffer_length = psz * ZC0301_ISO_PACKETS;
+-		urb->interval = 1;
+-		for (j = 0; j < ZC0301_ISO_PACKETS; j++) {
+-			urb->iso_frame_desc[j].offset = psz * j;
+-			urb->iso_frame_desc[j].length = psz;
+-		}
+-	}
+-
+-	err = usb_set_interface(udev, 0, ZC0301_ALTERNATE_SETTING);
+-	if (err) {
+-		DBG(1, "usb_set_interface() failed");
+-		goto free_urbs;
+-	}
+-
+-	cam->frame_current = NULL;
+-
+-	for (i = 0; i < ZC0301_URBS; i++) {
+-		err = usb_submit_urb(cam->urb[i], GFP_KERNEL);
+-		if (err) {
+-			for (j = i-1; j >= 0; j--)
+-				usb_kill_urb(cam->urb[j]);
+-			DBG(1, "usb_submit_urb() failed, error %d", err);
+-			goto free_urbs;
+-		}
+-	}
+-
+-	return 0;
+-
+-free_urbs:
+-	for (i = 0; (i < ZC0301_URBS) && cam->urb[i]; i++)
+-		usb_free_urb(cam->urb[i]);
+-
+-free_buffers:
+-	for (i = 0; (i < ZC0301_URBS) && cam->transfer_buffer[i]; i++)
+-		kfree(cam->transfer_buffer[i]);
+-
+-	return err;
+-}
+-
+-
+-static int zc0301_stop_transfer(struct zc0301_device* cam)
+-{
+-	struct usb_device *udev = cam->usbdev;
+-	s8 i;
+-	int err = 0;
+-
+-	if (cam->state & DEV_DISCONNECTED)
+-		return 0;
+-
+-	for (i = ZC0301_URBS-1; i >= 0; i--) {
+-		usb_kill_urb(cam->urb[i]);
+-		usb_free_urb(cam->urb[i]);
+-		kfree(cam->transfer_buffer[i]);
+-	}
+-
+-	err = usb_set_interface(udev, 0, 0); /* 0 Mb/s */
+-	if (err)
+-		DBG(3, "usb_set_interface() failed");
+-
+-	return err;
+-}
+-
+-
+-static int zc0301_stream_interrupt(struct zc0301_device* cam)
+-{
+-	long timeout;
+-
+-	cam->stream = STREAM_INTERRUPT;
+-	timeout = wait_event_timeout(cam->wait_stream,
+-				     (cam->stream == STREAM_OFF) ||
+-				     (cam->state & DEV_DISCONNECTED),
+-				     ZC0301_URB_TIMEOUT);
+-	if (cam->state & DEV_DISCONNECTED)
+-		return -ENODEV;
+-	else if (cam->stream != STREAM_OFF) {
+-		cam->state |= DEV_MISCONFIGURED;
+-		DBG(1, "URB timeout reached. The camera is misconfigured. To "
+-		       "use it, close and open %s again.",
+-		    video_device_node_name(cam->v4ldev));
+-		return -EIO;
+-	}
+-
+-	return 0;
+-}
+-
+-/*****************************************************************************/
+-
+-static int
+-zc0301_set_compression(struct zc0301_device* cam,
+-		       struct v4l2_jpegcompression* compression)
+-{
+-	int r, err = 0;
+-
+-	if ((r = zc0301_read_reg(cam, 0x0008)) < 0)
+-		err += r;
+-	err += zc0301_write_reg(cam, 0x0008, r | 0x11 | compression->quality);
+-
+-	return err ? -EIO : 0;
+-}
+-
+-
+-static int zc0301_init(struct zc0301_device* cam)
+-{
+-	struct zc0301_sensor* s = &cam->sensor;
+-	struct v4l2_control ctrl;
+-	struct v4l2_queryctrl *qctrl;
+-	struct v4l2_rect* rect;
+-	u8 i = 0;
+-	int err = 0;
+-
+-	if (!(cam->state & DEV_INITIALIZED)) {
+-		mutex_init(&cam->open_mutex);
+-		init_waitqueue_head(&cam->wait_open);
+-		qctrl = s->qctrl;
+-		rect = &(s->cropcap.defrect);
+-		cam->compression.quality = ZC0301_COMPRESSION_QUALITY;
+-	} else { /* use current values */
+-		qctrl = s->_qctrl;
+-		rect = &(s->_rect);
+-	}
+-
+-	if (s->init) {
+-		err = s->init(cam);
+-		if (err) {
+-			DBG(3, "Sensor initialization failed");
+-			return err;
+-		}
+-	}
+-
+-	if ((err = zc0301_set_compression(cam, &cam->compression))) {
+-		DBG(3, "set_compression() failed");
+-		return err;
+-	}
+-
+-	if (s->set_crop)
+-		if ((err = s->set_crop(cam, rect))) {
+-			DBG(3, "set_crop() failed");
+-			return err;
+-		}
+-
+-	if (s->set_ctrl) {
+-		for (i = 0; i < ARRAY_SIZE(s->qctrl); i++)
+-			if (s->qctrl[i].id != 0 &&
+-			    !(s->qctrl[i].flags & V4L2_CTRL_FLAG_DISABLED)) {
+-				ctrl.id = s->qctrl[i].id;
+-				ctrl.value = qctrl[i].default_value;
+-				err = s->set_ctrl(cam, &ctrl);
+-				if (err) {
+-					DBG(3, "Set %s control failed",
+-					    s->qctrl[i].name);
+-					return err;
+-				}
+-				DBG(3, "Image sensor supports '%s' control",
+-				    s->qctrl[i].name);
+-			}
+-	}
+-
+-	if (!(cam->state & DEV_INITIALIZED)) {
+-		mutex_init(&cam->fileop_mutex);
+-		spin_lock_init(&cam->queue_lock);
+-		init_waitqueue_head(&cam->wait_frame);
+-		init_waitqueue_head(&cam->wait_stream);
+-		cam->nreadbuffers = 2;
+-		memcpy(s->_qctrl, s->qctrl, sizeof(s->qctrl));
+-		memcpy(&(s->_rect), &(s->cropcap.defrect),
+-		       sizeof(struct v4l2_rect));
+-		cam->state |= DEV_INITIALIZED;
+-	}
+-
+-	DBG(2, "Initialization succeeded");
+-	return 0;
+-}
+-
+-/*****************************************************************************/
+-
+-static void zc0301_release_resources(struct kref *kref)
+-{
+-	struct zc0301_device *cam = container_of(kref, struct zc0301_device,
+-						 kref);
+-	DBG(2, "V4L2 device %s deregistered",
+-	    video_device_node_name(cam->v4ldev));
+-	video_set_drvdata(cam->v4ldev, NULL);
+-	video_unregister_device(cam->v4ldev);
+-	usb_put_dev(cam->usbdev);
+-	kfree(cam->control_buffer);
+-	kfree(cam);
+-}
+-
+-
+-static int zc0301_open(struct file *filp)
+-{
+-	struct zc0301_device* cam;
+-	int err = 0;
+-
+-	if (!down_read_trylock(&zc0301_dev_lock))
+-		return -EAGAIN;
+-
+-	cam = video_drvdata(filp);
+-
+-	if (wait_for_completion_interruptible(&cam->probe)) {
+-		up_read(&zc0301_dev_lock);
+-		return -ERESTARTSYS;
+-	}
+-
+-	kref_get(&cam->kref);
+-
+-	if (mutex_lock_interruptible(&cam->open_mutex)) {
+-		kref_put(&cam->kref, zc0301_release_resources);
+-		up_read(&zc0301_dev_lock);
+-		return -ERESTARTSYS;
+-	}
+-
+-	if (cam->state & DEV_DISCONNECTED) {
+-		DBG(1, "Device not present");
+-		err = -ENODEV;
+-		goto out;
+-	}
+-
+-	if (cam->users) {
+-		DBG(2, "Device %s is busy...",
+-		    video_device_node_name(cam->v4ldev));
+-		DBG(3, "Simultaneous opens are not supported");
+-		if ((filp->f_flags & O_NONBLOCK) ||
+-		    (filp->f_flags & O_NDELAY)) {
+-			err = -EWOULDBLOCK;
+-			goto out;
+-		}
+-		DBG(2, "A blocking open() has been requested. Wait for the "
+-		       "device to be released...");
+-		up_read(&zc0301_dev_lock);
+-		err = wait_event_interruptible_exclusive(cam->wait_open,
+-						(cam->state & DEV_DISCONNECTED)
+-							 || !cam->users);
+-		down_read(&zc0301_dev_lock);
+-		if (err)
+-			goto out;
+-		if (cam->state & DEV_DISCONNECTED) {
+-			err = -ENODEV;
+-			goto out;
+-		}
+-	}
+-
+-	if (cam->state & DEV_MISCONFIGURED) {
+-		err = zc0301_init(cam);
+-		if (err) {
+-			DBG(1, "Initialization failed again. "
+-			       "I will retry on next open().");
+-			goto out;
+-		}
+-		cam->state &= ~DEV_MISCONFIGURED;
+-	}
+-
+-	if ((err = zc0301_start_transfer(cam)))
+-		goto out;
+-
+-	filp->private_data = cam;
+-	cam->users++;
+-	cam->io = IO_NONE;
+-	cam->stream = STREAM_OFF;
+-	cam->nbuffers = 0;
+-	cam->frame_count = 0;
+-	zc0301_empty_framequeues(cam);
+-
+-	DBG(3, "Video device %s is open",
+-	    video_device_node_name(cam->v4ldev));
+-
+-out:
+-	mutex_unlock(&cam->open_mutex);
+-	if (err)
+-		kref_put(&cam->kref, zc0301_release_resources);
+-	up_read(&zc0301_dev_lock);
+-	return err;
+-}
+-
+-
+-static int zc0301_release(struct file *filp)
+-{
+-	struct zc0301_device* cam;
+-
+-	down_write(&zc0301_dev_lock);
+-
+-	cam = video_drvdata(filp);
+-
+-	zc0301_stop_transfer(cam);
+-	zc0301_release_buffers(cam);
+-	cam->users--;
+-	wake_up_interruptible_nr(&cam->wait_open, 1);
+-
+-	DBG(3, "Video device %s closed",
+-	    video_device_node_name(cam->v4ldev));
+-
+-	kref_put(&cam->kref, zc0301_release_resources);
+-
+-	up_write(&zc0301_dev_lock);
+-
+-	return 0;
+-}
+-
+-
+-static ssize_t
+-zc0301_read(struct file* filp, char __user * buf, size_t count, loff_t* f_pos)
+-{
+-	struct zc0301_device *cam = video_drvdata(filp);
+-	struct zc0301_frame_t* f, * i;
+-	unsigned long lock_flags;
+-	long timeout;
+-	int err = 0;
+-
+-	if (mutex_lock_interruptible(&cam->fileop_mutex))
+-		return -ERESTARTSYS;
+-
+-	if (cam->state & DEV_DISCONNECTED) {
+-		DBG(1, "Device not present");
+-		mutex_unlock(&cam->fileop_mutex);
+-		return -ENODEV;
+-	}
+-
+-	if (cam->state & DEV_MISCONFIGURED) {
+-		DBG(1, "The camera is misconfigured. Close and open it "
+-		       "again.");
+-		mutex_unlock(&cam->fileop_mutex);
+-		return -EIO;
+-	}
+-
+-	if (cam->io == IO_MMAP) {
+-		DBG(3, "Close and open the device again to choose the read "
+-		       "method");
+-		mutex_unlock(&cam->fileop_mutex);
+-		return -EBUSY;
+-	}
+-
+-	if (cam->io == IO_NONE) {
+-		if (!zc0301_request_buffers(cam, cam->nreadbuffers, IO_READ)) {
+-			DBG(1, "read() failed, not enough memory");
+-			mutex_unlock(&cam->fileop_mutex);
+-			return -ENOMEM;
+-		}
+-		cam->io = IO_READ;
+-		cam->stream = STREAM_ON;
+-	}
+-
+-	if (list_empty(&cam->inqueue)) {
+-		if (!list_empty(&cam->outqueue))
+-			zc0301_empty_framequeues(cam);
+-		zc0301_queue_unusedframes(cam);
+-	}
+-
+-	if (!count) {
+-		mutex_unlock(&cam->fileop_mutex);
+-		return 0;
+-	}
+-
+-	if (list_empty(&cam->outqueue)) {
+-		if (filp->f_flags & O_NONBLOCK) {
+-			mutex_unlock(&cam->fileop_mutex);
+-			return -EAGAIN;
+-		}
+-		timeout = wait_event_interruptible_timeout
+-			  ( cam->wait_frame,
+-			    (!list_empty(&cam->outqueue)) ||
+-			    (cam->state & DEV_DISCONNECTED) ||
+-			    (cam->state & DEV_MISCONFIGURED),
+-			    msecs_to_jiffies(
+-				cam->module_param.frame_timeout * 1000
+-			    )
+-			  );
+-		if (timeout < 0) {
+-			mutex_unlock(&cam->fileop_mutex);
+-			return timeout;
+-		}
+-		if (cam->state & DEV_DISCONNECTED) {
+-			mutex_unlock(&cam->fileop_mutex);
+-			return -ENODEV;
+-		}
+-		if (!timeout || (cam->state & DEV_MISCONFIGURED)) {
+-			mutex_unlock(&cam->fileop_mutex);
+-			return -EIO;
+-		}
+-	}
+-
+-	f = list_entry(cam->outqueue.prev, struct zc0301_frame_t, frame);
+-
+-	if (count > f->buf.bytesused)
+-		count = f->buf.bytesused;
+-
+-	if (copy_to_user(buf, f->bufmem, count)) {
+-		err = -EFAULT;
+-		goto exit;
+-	}
+-	*f_pos += count;
+-
+-exit:
+-	spin_lock_irqsave(&cam->queue_lock, lock_flags);
+-	list_for_each_entry(i, &cam->outqueue, frame)
+-		i->state = F_UNUSED;
+-	INIT_LIST_HEAD(&cam->outqueue);
+-	spin_unlock_irqrestore(&cam->queue_lock, lock_flags);
+-
+-	zc0301_queue_unusedframes(cam);
+-
+-	PDBGG("Frame #%lu, bytes read: %zu",
+-	      (unsigned long)f->buf.index, count);
+-
+-	mutex_unlock(&cam->fileop_mutex);
+-
+-	return err ? err : count;
+-}
+-
+-
+-static unsigned int zc0301_poll(struct file *filp, poll_table *wait)
+-{
+-	struct zc0301_device *cam = video_drvdata(filp);
+-	struct zc0301_frame_t* f;
+-	unsigned long lock_flags;
+-	unsigned int mask = 0;
+-
+-	if (mutex_lock_interruptible(&cam->fileop_mutex))
+-		return POLLERR;
+-
+-	if (cam->state & DEV_DISCONNECTED) {
+-		DBG(1, "Device not present");
+-		goto error;
+-	}
+-
+-	if (cam->state & DEV_MISCONFIGURED) {
+-		DBG(1, "The camera is misconfigured. Close and open it "
+-		       "again.");
+-		goto error;
+-	}
+-
+-	if (cam->io == IO_NONE) {
+-		if (!zc0301_request_buffers(cam, cam->nreadbuffers, IO_READ)) {
+-			DBG(1, "poll() failed, not enough memory");
+-			goto error;
+-		}
+-		cam->io = IO_READ;
+-		cam->stream = STREAM_ON;
+-	}
+-
+-	if (cam->io == IO_READ) {
+-		spin_lock_irqsave(&cam->queue_lock, lock_flags);
+-		list_for_each_entry(f, &cam->outqueue, frame)
+-			f->state = F_UNUSED;
+-		INIT_LIST_HEAD(&cam->outqueue);
+-		spin_unlock_irqrestore(&cam->queue_lock, lock_flags);
+-		zc0301_queue_unusedframes(cam);
+-	}
+-
+-	poll_wait(filp, &cam->wait_frame, wait);
+-
+-	if (!list_empty(&cam->outqueue))
+-		mask |= POLLIN | POLLRDNORM;
+-
+-	mutex_unlock(&cam->fileop_mutex);
+-
+-	return mask;
+-
+-error:
+-	mutex_unlock(&cam->fileop_mutex);
+-	return POLLERR;
+-}
+-
+-
+-static void zc0301_vm_open(struct vm_area_struct* vma)
+-{
+-	struct zc0301_frame_t* f = vma->vm_private_data;
+-	f->vma_use_count++;
+-}
+-
+-
+-static void zc0301_vm_close(struct vm_area_struct* vma)
+-{
+-	/* NOTE: buffers are not freed here */
+-	struct zc0301_frame_t* f = vma->vm_private_data;
+-	f->vma_use_count--;
+-}
+-
+-
+-static const struct vm_operations_struct zc0301_vm_ops = {
+-	.open = zc0301_vm_open,
+-	.close = zc0301_vm_close,
+-};
+-
+-
+-static int zc0301_mmap(struct file* filp, struct vm_area_struct *vma)
+-{
+-	struct zc0301_device *cam = video_drvdata(filp);
+-	unsigned long size = vma->vm_end - vma->vm_start,
+-		      start = vma->vm_start;
+-	void *pos;
+-	u32 i;
+-
+-	if (mutex_lock_interruptible(&cam->fileop_mutex))
+-		return -ERESTARTSYS;
+-
+-	if (cam->state & DEV_DISCONNECTED) {
+-		DBG(1, "Device not present");
+-		mutex_unlock(&cam->fileop_mutex);
+-		return -ENODEV;
+-	}
+-
+-	if (cam->state & DEV_MISCONFIGURED) {
+-		DBG(1, "The camera is misconfigured. Close and open it "
+-		       "again.");
+-		mutex_unlock(&cam->fileop_mutex);
+-		return -EIO;
+-	}
+-
+-	if (!(vma->vm_flags & (VM_WRITE | VM_READ))) {
+-		mutex_unlock(&cam->fileop_mutex);
+-		return -EACCES;
+-	}
+-
+-	if (cam->io != IO_MMAP ||
+-	    size != PAGE_ALIGN(cam->frame[0].buf.length)) {
+-		mutex_unlock(&cam->fileop_mutex);
+-		return -EINVAL;
+-	}
+-
+-	for (i = 0; i < cam->nbuffers; i++) {
+-		if ((cam->frame[i].buf.m.offset>>PAGE_SHIFT) == vma->vm_pgoff)
+-			break;
+-	}
+-	if (i == cam->nbuffers) {
+-		mutex_unlock(&cam->fileop_mutex);
+-		return -EINVAL;
+-	}
+-
+-	vma->vm_flags |= VM_IO;
+-	vma->vm_flags |= VM_RESERVED;
+-
+-	pos = cam->frame[i].bufmem;
+-	while (size > 0) { /* size is page-aligned */
+-		if (vm_insert_page(vma, start, vmalloc_to_page(pos))) {
+-			mutex_unlock(&cam->fileop_mutex);
+-			return -EAGAIN;
+-		}
+-		start += PAGE_SIZE;
+-		pos += PAGE_SIZE;
+-		size -= PAGE_SIZE;
+-	}
+-
+-	vma->vm_ops = &zc0301_vm_ops;
+-	vma->vm_private_data = &cam->frame[i];
+-	zc0301_vm_open(vma);
+-
+-	mutex_unlock(&cam->fileop_mutex);
+-
+-	return 0;
+-}
+-
+-/*****************************************************************************/
+-
+-static int
+-zc0301_vidioc_querycap(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_capability cap = {
+-		.driver = "zc0301",
+-		.version = ZC0301_MODULE_VERSION_CODE,
+-		.capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_READWRITE |
+-				V4L2_CAP_STREAMING,
+-	};
+-
+-	strlcpy(cap.card, cam->v4ldev->name, sizeof(cap.card));
+-	if (usb_make_path(cam->usbdev, cap.bus_info, sizeof(cap.bus_info)) < 0)
+-		strlcpy(cap.bus_info, dev_name(&cam->usbdev->dev),
+-			sizeof(cap.bus_info));
+-
+-	if (copy_to_user(arg, &cap, sizeof(cap)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_enuminput(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_input i;
+-
+-	if (copy_from_user(&i, arg, sizeof(i)))
+-		return -EFAULT;
+-
+-	if (i.index)
+-		return -EINVAL;
+-
+-	memset(&i, 0, sizeof(i));
+-	strcpy(i.name, "Camera");
+-	i.type = V4L2_INPUT_TYPE_CAMERA;
+-
+-	if (copy_to_user(arg, &i, sizeof(i)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_g_input(struct zc0301_device* cam, void __user * arg)
+-{
+-	int index = 0;
+-
+-	if (copy_to_user(arg, &index, sizeof(index)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_s_input(struct zc0301_device* cam, void __user * arg)
+-{
+-	int index;
+-
+-	if (copy_from_user(&index, arg, sizeof(index)))
+-		return -EFAULT;
+-
+-	if (index != 0)
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_query_ctrl(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct zc0301_sensor* s = &cam->sensor;
+-	struct v4l2_queryctrl qc;
+-	u8 i;
+-
+-	if (copy_from_user(&qc, arg, sizeof(qc)))
+-		return -EFAULT;
+-
+-	for (i = 0; i < ARRAY_SIZE(s->qctrl); i++)
+-		if (qc.id && qc.id == s->qctrl[i].id) {
+-			memcpy(&qc, &(s->qctrl[i]), sizeof(qc));
+-			if (copy_to_user(arg, &qc, sizeof(qc)))
+-				return -EFAULT;
+-			return 0;
+-		}
+-
+-	return -EINVAL;
+-}
+-
+-
+-static int
+-zc0301_vidioc_g_ctrl(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct zc0301_sensor* s = &cam->sensor;
+-	struct v4l2_control ctrl;
+-	int err = 0;
+-	u8 i;
+-
+-	if (!s->get_ctrl && !s->set_ctrl)
+-		return -EINVAL;
+-
+-	if (copy_from_user(&ctrl, arg, sizeof(ctrl)))
+-		return -EFAULT;
+-
+-	if (!s->get_ctrl) {
+-		for (i = 0; i < ARRAY_SIZE(s->qctrl); i++)
+-			if (ctrl.id == s->qctrl[i].id) {
+-				ctrl.value = s->_qctrl[i].default_value;
+-				goto exit;
+-			}
+-		return -EINVAL;
+-	} else
+-		err = s->get_ctrl(cam, &ctrl);
+-
+-exit:
+-	if (copy_to_user(arg, &ctrl, sizeof(ctrl)))
+-		return -EFAULT;
+-
+-	return err;
+-}
+-
+-
+-static int
+-zc0301_vidioc_s_ctrl(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct zc0301_sensor* s = &cam->sensor;
+-	struct v4l2_control ctrl;
+-	u8 i;
+-	int err = 0;
+-
+-	if (!s->set_ctrl)
+-		return -EINVAL;
+-
+-	if (copy_from_user(&ctrl, arg, sizeof(ctrl)))
+-		return -EFAULT;
+-
+-	for (i = 0; i < ARRAY_SIZE(s->qctrl); i++) {
+-		if (ctrl.id == s->qctrl[i].id) {
+-			if (s->qctrl[i].flags & V4L2_CTRL_FLAG_DISABLED)
+-				return -EINVAL;
+-			if (ctrl.value < s->qctrl[i].minimum ||
+-			    ctrl.value > s->qctrl[i].maximum)
+-				return -ERANGE;
+-			ctrl.value -= ctrl.value % s->qctrl[i].step;
+-			break;
+-		}
+-	}
+-	if (i == ARRAY_SIZE(s->qctrl))
+-		return -EINVAL;
+-	if ((err = s->set_ctrl(cam, &ctrl)))
+-		return err;
+-
+-	s->_qctrl[i].default_value = ctrl.value;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_cropcap(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_cropcap* cc = &(cam->sensor.cropcap);
+-
+-	cc->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	cc->pixelaspect.numerator = 1;
+-	cc->pixelaspect.denominator = 1;
+-
+-	if (copy_to_user(arg, cc, sizeof(*cc)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_g_crop(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct zc0301_sensor* s = &cam->sensor;
+-	struct v4l2_crop crop = {
+-		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-	};
+-
+-	memcpy(&(crop.c), &(s->_rect), sizeof(struct v4l2_rect));
+-
+-	if (copy_to_user(arg, &crop, sizeof(crop)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_s_crop(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct zc0301_sensor* s = &cam->sensor;
+-	struct v4l2_crop crop;
+-	struct v4l2_rect* rect;
+-	struct v4l2_rect* bounds = &(s->cropcap.bounds);
+-	const enum zc0301_stream_state stream = cam->stream;
+-	const u32 nbuffers = cam->nbuffers;
+-	u32 i;
+-	int err = 0;
+-
+-	if (copy_from_user(&crop, arg, sizeof(crop)))
+-		return -EFAULT;
+-
+-	rect = &(crop.c);
+-
+-	if (crop.type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-
+-	if (cam->module_param.force_munmap)
+-		for (i = 0; i < cam->nbuffers; i++)
+-			if (cam->frame[i].vma_use_count) {
+-				DBG(3, "VIDIOC_S_CROP failed. "
+-				       "Unmap the buffers first.");
+-				return -EBUSY;
+-			}
+-
+-	if (!s->set_crop) {
+-		memcpy(rect, &(s->_rect), sizeof(*rect));
+-		if (copy_to_user(arg, &crop, sizeof(crop)))
+-			return -EFAULT;
+-		return 0;
+-	}
+-
+-	rect->left &= ~7L;
+-	rect->top &= ~7L;
+-	if (rect->width < 8)
+-		rect->width = 8;
+-	if (rect->height < 8)
+-		rect->height = 8;
+-	if (rect->width > bounds->width)
+-		rect->width = bounds->width;
+-	if (rect->height > bounds->height)
+-		rect->height = bounds->height;
+-	if (rect->left < bounds->left)
+-		rect->left = bounds->left;
+-	if (rect->top < bounds->top)
+-		rect->top = bounds->top;
+-	if (rect->left + rect->width > bounds->left + bounds->width)
+-		rect->left = bounds->left+bounds->width - rect->width;
+-	if (rect->top + rect->height > bounds->top + bounds->height)
+-		rect->top = bounds->top+bounds->height - rect->height;
+-	rect->width &= ~7L;
+-	rect->height &= ~7L;
+-
+-	if (cam->stream == STREAM_ON)
+-		if ((err = zc0301_stream_interrupt(cam)))
+-			return err;
+-
+-	if (copy_to_user(arg, &crop, sizeof(crop))) {
+-		cam->stream = stream;
+-		return -EFAULT;
+-	}
+-
+-	if (cam->module_param.force_munmap || cam->io == IO_READ)
+-		zc0301_release_buffers(cam);
+-
+-	if (s->set_crop)
+-		err += s->set_crop(cam, rect);
+-
+-	if (err) { /* atomic, no rollback in ioctl() */
+-		cam->state |= DEV_MISCONFIGURED;
+-		DBG(1, "VIDIOC_S_CROP failed because of hardware problems. To "
+-		       "use the camera, close and open %s again.",
+-		    video_device_node_name(cam->v4ldev));
+-		return -EIO;
+-	}
+-
+-	s->pix_format.width = rect->width;
+-	s->pix_format.height = rect->height;
+-	memcpy(&(s->_rect), rect, sizeof(*rect));
+-
+-	if ((cam->module_param.force_munmap  || cam->io == IO_READ) &&
+-	    nbuffers != zc0301_request_buffers(cam, nbuffers, cam->io)) {
+-		cam->state |= DEV_MISCONFIGURED;
+-		DBG(1, "VIDIOC_S_CROP failed because of not enough memory. To "
+-		       "use the camera, close and open %s again.",
+-		    video_device_node_name(cam->v4ldev));
+-		return -ENOMEM;
+-	}
+-
+-	if (cam->io == IO_READ)
+-		zc0301_empty_framequeues(cam);
+-	else if (cam->module_param.force_munmap)
+-		zc0301_requeue_outqueue(cam);
+-
+-	cam->stream = stream;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_enum_framesizes(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_frmsizeenum frmsize;
+-
+-	if (copy_from_user(&frmsize, arg, sizeof(frmsize)))
+-		return -EFAULT;
+-
+-	if (frmsize.index != 0 && frmsize.index != 1)
+-		return -EINVAL;
+-
+-	if (frmsize.pixel_format != V4L2_PIX_FMT_JPEG)
+-		return -EINVAL;
+-
+-	frmsize.type = V4L2_FRMSIZE_TYPE_DISCRETE;
+-
+-	if (frmsize.index == 1) {
+-		frmsize.discrete.width = cam->sensor.cropcap.defrect.width;
+-		frmsize.discrete.height = cam->sensor.cropcap.defrect.height;
+-	}
+-	memset(&frmsize.reserved, 0, sizeof(frmsize.reserved));
+-
+-	if (copy_to_user(arg, &frmsize, sizeof(frmsize)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_enum_fmt(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_fmtdesc fmtd;
+-
+-	if (copy_from_user(&fmtd, arg, sizeof(fmtd)))
+-		return -EFAULT;
+-
+-	if (fmtd.type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-
+-	if (fmtd.index == 0) {
+-		strcpy(fmtd.description, "JPEG");
+-		fmtd.pixelformat = V4L2_PIX_FMT_JPEG;
+-		fmtd.flags = V4L2_FMT_FLAG_COMPRESSED;
+-	} else
+-		return -EINVAL;
+-
+-	fmtd.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	memset(&fmtd.reserved, 0, sizeof(fmtd.reserved));
+-
+-	if (copy_to_user(arg, &fmtd, sizeof(fmtd)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_g_fmt(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_format format;
+-	struct v4l2_pix_format* pfmt = &(cam->sensor.pix_format);
+-
+-	if (copy_from_user(&format, arg, sizeof(format)))
+-		return -EFAULT;
+-
+-	if (format.type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-
+-	pfmt->bytesperline = 0;
+-	pfmt->sizeimage = pfmt->height * ((pfmt->width*pfmt->priv)/8);
+-	pfmt->field = V4L2_FIELD_NONE;
+-	memcpy(&(format.fmt.pix), pfmt, sizeof(*pfmt));
+-
+-	if (copy_to_user(arg, &format, sizeof(format)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_try_s_fmt(struct zc0301_device* cam, unsigned int cmd,
+-			void __user * arg)
+-{
+-	struct zc0301_sensor* s = &cam->sensor;
+-	struct v4l2_format format;
+-	struct v4l2_pix_format* pix;
+-	struct v4l2_pix_format* pfmt = &(s->pix_format);
+-	struct v4l2_rect* bounds = &(s->cropcap.bounds);
+-	struct v4l2_rect rect;
+-	const enum zc0301_stream_state stream = cam->stream;
+-	const u32 nbuffers = cam->nbuffers;
+-	u32 i;
+-	int err = 0;
+-
+-	if (copy_from_user(&format, arg, sizeof(format)))
+-		return -EFAULT;
+-
+-	pix = &(format.fmt.pix);
+-
+-	if (format.type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-
+-	memcpy(&rect, &(s->_rect), sizeof(rect));
+-
+-	if (!s->set_crop) {
+-		pix->width = rect.width;
+-		pix->height = rect.height;
+-	} else {
+-		rect.width = pix->width;
+-		rect.height = pix->height;
+-	}
+-
+-	if (rect.width < 8)
+-		rect.width = 8;
+-	if (rect.height < 8)
+-		rect.height = 8;
+-	if (rect.width > bounds->left + bounds->width - rect.left)
+-		rect.width = bounds->left + bounds->width - rect.left;
+-	if (rect.height > bounds->top + bounds->height - rect.top)
+-		rect.height = bounds->top + bounds->height - rect.top;
+-	rect.width &= ~7L;
+-	rect.height &= ~7L;
+-
+-	pix->width = rect.width;
+-	pix->height = rect.height;
+-	pix->pixelformat = pfmt->pixelformat;
+-	pix->priv = pfmt->priv;
+-	pix->colorspace = pfmt->colorspace;
+-	pix->bytesperline = 0;
+-	pix->sizeimage = pix->height * ((pix->width * pix->priv) / 8);
+-	pix->field = V4L2_FIELD_NONE;
+-
+-	if (cmd == VIDIOC_TRY_FMT) {
+-		if (copy_to_user(arg, &format, sizeof(format)))
+-			return -EFAULT;
+-		return 0;
+-	}
+-
+-	if (cam->module_param.force_munmap)
+-		for (i = 0; i < cam->nbuffers; i++)
+-			if (cam->frame[i].vma_use_count) {
+-				DBG(3, "VIDIOC_S_FMT failed. "
+-				       "Unmap the buffers first.");
+-				return -EBUSY;
+-			}
+-
+-	if (cam->stream == STREAM_ON)
+-		if ((err = zc0301_stream_interrupt(cam)))
+-			return err;
+-
+-	if (copy_to_user(arg, &format, sizeof(format))) {
+-		cam->stream = stream;
+-		return -EFAULT;
+-	}
+-
+-	if (cam->module_param.force_munmap || cam->io == IO_READ)
+-		zc0301_release_buffers(cam);
+-
+-	if (s->set_crop)
+-		err += s->set_crop(cam, &rect);
+-
+-	if (err) { /* atomic, no rollback in ioctl() */
+-		cam->state |= DEV_MISCONFIGURED;
+-		DBG(1, "VIDIOC_S_FMT failed because of hardware problems. To "
+-		       "use the camera, close and open %s again.",
+-		    video_device_node_name(cam->v4ldev));
+-		return -EIO;
+-	}
+-
+-	memcpy(pfmt, pix, sizeof(*pix));
+-	memcpy(&(s->_rect), &rect, sizeof(rect));
+-
+-	if ((cam->module_param.force_munmap  || cam->io == IO_READ) &&
+-	    nbuffers != zc0301_request_buffers(cam, nbuffers, cam->io)) {
+-		cam->state |= DEV_MISCONFIGURED;
+-		DBG(1, "VIDIOC_S_FMT failed because of not enough memory. To "
+-		       "use the camera, close and open %s again.",
+-		    video_device_node_name(cam->v4ldev));
+-		return -ENOMEM;
+-	}
+-
+-	if (cam->io == IO_READ)
+-		zc0301_empty_framequeues(cam);
+-	else if (cam->module_param.force_munmap)
+-		zc0301_requeue_outqueue(cam);
+-
+-	cam->stream = stream;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_g_jpegcomp(struct zc0301_device* cam, void __user * arg)
+-{
+-	if (copy_to_user(arg, &cam->compression, sizeof(cam->compression)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_s_jpegcomp(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_jpegcompression jc;
+-	const enum zc0301_stream_state stream = cam->stream;
+-	int err = 0;
+-
+-	if (copy_from_user(&jc, arg, sizeof(jc)))
+-		return -EFAULT;
+-
+-	if (jc.quality != 0)
+-		return -EINVAL;
+-
+-	if (cam->stream == STREAM_ON)
+-		if ((err = zc0301_stream_interrupt(cam)))
+-			return err;
+-
+-	err += zc0301_set_compression(cam, &jc);
+-	if (err) { /* atomic, no rollback in ioctl() */
+-		cam->state |= DEV_MISCONFIGURED;
+-		DBG(1, "VIDIOC_S_JPEGCOMP failed because of hardware "
+-		       "problems. To use the camera, close and open %s again.",
+-		       video_device_node_name(cam->v4ldev));
+-		return -EIO;
+-	}
+-
+-	cam->compression.quality = jc.quality;
+-
+-	cam->stream = stream;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_reqbufs(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_requestbuffers rb;
+-	u32 i;
+-	int err;
+-
+-	if (copy_from_user(&rb, arg, sizeof(rb)))
+-		return -EFAULT;
+-
+-	if (rb.type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+-	    rb.memory != V4L2_MEMORY_MMAP)
+-		return -EINVAL;
+-
+-	if (cam->io == IO_READ) {
+-		DBG(3, "Close and open the device again to choose the mmap "
+-		       "I/O method");
+-		return -EBUSY;
+-	}
+-
+-	for (i = 0; i < cam->nbuffers; i++)
+-		if (cam->frame[i].vma_use_count) {
+-			DBG(3, "VIDIOC_REQBUFS failed. "
+-			       "Previous buffers are still mapped.");
+-			return -EBUSY;
+-		}
+-
+-	if (cam->stream == STREAM_ON)
+-		if ((err = zc0301_stream_interrupt(cam)))
+-			return err;
+-
+-	zc0301_empty_framequeues(cam);
+-
+-	zc0301_release_buffers(cam);
+-	if (rb.count)
+-		rb.count = zc0301_request_buffers(cam, rb.count, IO_MMAP);
+-
+-	if (copy_to_user(arg, &rb, sizeof(rb))) {
+-		zc0301_release_buffers(cam);
+-		cam->io = IO_NONE;
+-		return -EFAULT;
+-	}
+-
+-	cam->io = rb.count ? IO_MMAP : IO_NONE;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_querybuf(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_buffer b;
+-
+-	if (copy_from_user(&b, arg, sizeof(b)))
+-		return -EFAULT;
+-
+-	if (b.type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+-	    b.index >= cam->nbuffers || cam->io != IO_MMAP)
+-		return -EINVAL;
+-
+-	memcpy(&b, &cam->frame[b.index].buf, sizeof(b));
+-
+-	if (cam->frame[b.index].vma_use_count)
+-		b.flags |= V4L2_BUF_FLAG_MAPPED;
+-
+-	if (cam->frame[b.index].state == F_DONE)
+-		b.flags |= V4L2_BUF_FLAG_DONE;
+-	else if (cam->frame[b.index].state != F_UNUSED)
+-		b.flags |= V4L2_BUF_FLAG_QUEUED;
+-
+-	if (copy_to_user(arg, &b, sizeof(b)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_qbuf(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_buffer b;
+-	unsigned long lock_flags;
+-
+-	if (copy_from_user(&b, arg, sizeof(b)))
+-		return -EFAULT;
+-
+-	if (b.type != V4L2_BUF_TYPE_VIDEO_CAPTURE ||
+-	    b.index >= cam->nbuffers || cam->io != IO_MMAP)
+-		return -EINVAL;
+-
+-	if (cam->frame[b.index].state != F_UNUSED)
+-		return -EINVAL;
+-
+-	cam->frame[b.index].state = F_QUEUED;
+-
+-	spin_lock_irqsave(&cam->queue_lock, lock_flags);
+-	list_add_tail(&cam->frame[b.index].frame, &cam->inqueue);
+-	spin_unlock_irqrestore(&cam->queue_lock, lock_flags);
+-
+-	PDBGG("Frame #%lu queued", (unsigned long)b.index);
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_dqbuf(struct zc0301_device* cam, struct file* filp,
+-		    void __user * arg)
+-{
+-	struct v4l2_buffer b;
+-	struct zc0301_frame_t *f;
+-	unsigned long lock_flags;
+-	long timeout;
+-
+-	if (copy_from_user(&b, arg, sizeof(b)))
+-		return -EFAULT;
+-
+-	if (b.type != V4L2_BUF_TYPE_VIDEO_CAPTURE || cam->io!= IO_MMAP)
+-		return -EINVAL;
+-
+-	if (list_empty(&cam->outqueue)) {
+-		if (cam->stream == STREAM_OFF)
+-			return -EINVAL;
+-		if (filp->f_flags & O_NONBLOCK)
+-			return -EAGAIN;
+-		timeout = wait_event_interruptible_timeout
+-			  ( cam->wait_frame,
+-			    (!list_empty(&cam->outqueue)) ||
+-			    (cam->state & DEV_DISCONNECTED) ||
+-			    (cam->state & DEV_MISCONFIGURED),
+-			    cam->module_param.frame_timeout *
+-			    1000 * msecs_to_jiffies(1) );
+-		if (timeout < 0)
+-			return timeout;
+-		if (cam->state & DEV_DISCONNECTED)
+-			return -ENODEV;
+-		if (!timeout || (cam->state & DEV_MISCONFIGURED))
+-			return -EIO;
+-	}
+-
+-	spin_lock_irqsave(&cam->queue_lock, lock_flags);
+-	f = list_entry(cam->outqueue.next, struct zc0301_frame_t, frame);
+-	list_del(cam->outqueue.next);
+-	spin_unlock_irqrestore(&cam->queue_lock, lock_flags);
+-
+-	f->state = F_UNUSED;
+-
+-	memcpy(&b, &f->buf, sizeof(b));
+-	if (f->vma_use_count)
+-		b.flags |= V4L2_BUF_FLAG_MAPPED;
+-
+-	if (copy_to_user(arg, &b, sizeof(b)))
+-		return -EFAULT;
+-
+-	PDBGG("Frame #%lu dequeued", (unsigned long)f->buf.index);
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_streamon(struct zc0301_device* cam, void __user * arg)
+-{
+-	int type;
+-
+-	if (copy_from_user(&type, arg, sizeof(type)))
+-		return -EFAULT;
+-
+-	if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE || cam->io != IO_MMAP)
+-		return -EINVAL;
+-
+-	cam->stream = STREAM_ON;
+-
+-	DBG(3, "Stream on");
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_streamoff(struct zc0301_device* cam, void __user * arg)
+-{
+-	int type, err;
+-
+-	if (copy_from_user(&type, arg, sizeof(type)))
+-		return -EFAULT;
+-
+-	if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE || cam->io != IO_MMAP)
+-		return -EINVAL;
+-
+-	if (cam->stream == STREAM_ON)
+-		if ((err = zc0301_stream_interrupt(cam)))
+-			return err;
+-
+-	zc0301_empty_framequeues(cam);
+-
+-	DBG(3, "Stream off");
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_g_parm(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_streamparm sp;
+-
+-	if (copy_from_user(&sp, arg, sizeof(sp)))
+-		return -EFAULT;
+-
+-	if (sp.type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-
+-	sp.parm.capture.extendedmode = 0;
+-	sp.parm.capture.readbuffers = cam->nreadbuffers;
+-
+-	if (copy_to_user(arg, &sp, sizeof(sp)))
+-		return -EFAULT;
+-
+-	return 0;
+-}
+-
+-
+-static int
+-zc0301_vidioc_s_parm(struct zc0301_device* cam, void __user * arg)
+-{
+-	struct v4l2_streamparm sp;
+-
+-	if (copy_from_user(&sp, arg, sizeof(sp)))
+-		return -EFAULT;
+-
+-	if (sp.type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-
+-	sp.parm.capture.extendedmode = 0;
+-
+-	if (sp.parm.capture.readbuffers == 0)
+-		sp.parm.capture.readbuffers = cam->nreadbuffers;
+-
+-	if (sp.parm.capture.readbuffers > ZC0301_MAX_FRAMES)
+-		sp.parm.capture.readbuffers = ZC0301_MAX_FRAMES;
+-
+-	if (copy_to_user(arg, &sp, sizeof(sp)))
+-		return -EFAULT;
+-
+-	cam->nreadbuffers = sp.parm.capture.readbuffers;
+-
+-	return 0;
+-}
+-
+-
+-static long zc0301_ioctl_v4l2(struct file *filp,
+-			     unsigned int cmd, void __user *arg)
+-{
+-	struct zc0301_device *cam = video_drvdata(filp);
+-
+-	switch (cmd) {
+-
+-	case VIDIOC_QUERYCAP:
+-		return zc0301_vidioc_querycap(cam, arg);
+-
+-	case VIDIOC_ENUMINPUT:
+-		return zc0301_vidioc_enuminput(cam, arg);
+-
+-	case VIDIOC_G_INPUT:
+-		return zc0301_vidioc_g_input(cam, arg);
+-
+-	case VIDIOC_S_INPUT:
+-		return zc0301_vidioc_s_input(cam, arg);
+-
+-	case VIDIOC_QUERYCTRL:
+-		return zc0301_vidioc_query_ctrl(cam, arg);
+-
+-	case VIDIOC_G_CTRL:
+-		return zc0301_vidioc_g_ctrl(cam, arg);
+-
+-	case VIDIOC_S_CTRL:
+-		return zc0301_vidioc_s_ctrl(cam, arg);
+-
+-	case VIDIOC_CROPCAP:
+-		return zc0301_vidioc_cropcap(cam, arg);
+-
+-	case VIDIOC_G_CROP:
+-		return zc0301_vidioc_g_crop(cam, arg);
+-
+-	case VIDIOC_S_CROP:
+-		return zc0301_vidioc_s_crop(cam, arg);
+-
+-	case VIDIOC_ENUM_FMT:
+-		return zc0301_vidioc_enum_fmt(cam, arg);
+-
+-	case VIDIOC_G_FMT:
+-		return zc0301_vidioc_g_fmt(cam, arg);
+-
+-	case VIDIOC_TRY_FMT:
+-	case VIDIOC_S_FMT:
+-		return zc0301_vidioc_try_s_fmt(cam, cmd, arg);
+-
+-	case VIDIOC_ENUM_FRAMESIZES:
+-		return zc0301_vidioc_enum_framesizes(cam, arg);
+-
+-	case VIDIOC_G_JPEGCOMP:
+-		return zc0301_vidioc_g_jpegcomp(cam, arg);
+-
+-	case VIDIOC_S_JPEGCOMP:
+-		return zc0301_vidioc_s_jpegcomp(cam, arg);
+-
+-	case VIDIOC_REQBUFS:
+-		return zc0301_vidioc_reqbufs(cam, arg);
+-
+-	case VIDIOC_QUERYBUF:
+-		return zc0301_vidioc_querybuf(cam, arg);
+-
+-	case VIDIOC_QBUF:
+-		return zc0301_vidioc_qbuf(cam, arg);
+-
+-	case VIDIOC_DQBUF:
+-		return zc0301_vidioc_dqbuf(cam, filp, arg);
+-
+-	case VIDIOC_STREAMON:
+-		return zc0301_vidioc_streamon(cam, arg);
+-
+-	case VIDIOC_STREAMOFF:
+-		return zc0301_vidioc_streamoff(cam, arg);
+-
+-	case VIDIOC_G_PARM:
+-		return zc0301_vidioc_g_parm(cam, arg);
+-
+-	case VIDIOC_S_PARM:
+-		return zc0301_vidioc_s_parm(cam, arg);
+-
+-	case VIDIOC_G_STD:
+-	case VIDIOC_S_STD:
+-	case VIDIOC_QUERYSTD:
+-	case VIDIOC_ENUMSTD:
+-	case VIDIOC_QUERYMENU:
+-	case VIDIOC_ENUM_FRAMEINTERVALS:
+-		return -EINVAL;
+-
+-	default:
+-		return -EINVAL;
+-
+-	}
+-}
+-
+-
+-static long zc0301_ioctl(struct file *filp,
+-			unsigned int cmd, unsigned long arg)
+-{
+-	struct zc0301_device *cam = video_drvdata(filp);
+-	int err = 0;
+-
+-	if (mutex_lock_interruptible(&cam->fileop_mutex))
+-		return -ERESTARTSYS;
+-
+-	if (cam->state & DEV_DISCONNECTED) {
+-		DBG(1, "Device not present");
+-		mutex_unlock(&cam->fileop_mutex);
+-		return -ENODEV;
+-	}
+-
+-	if (cam->state & DEV_MISCONFIGURED) {
+-		DBG(1, "The camera is misconfigured. Close and open it "
+-		       "again.");
+-		mutex_unlock(&cam->fileop_mutex);
+-		return -EIO;
+-	}
+-
+-	V4LDBG(3, "zc0301", cmd);
+-
+-	err = zc0301_ioctl_v4l2(filp, cmd, (void __user *)arg);
+-
+-	mutex_unlock(&cam->fileop_mutex);
+-
+-	return err;
+-}
+-
+-
+-static const struct v4l2_file_operations zc0301_fops = {
+-	.owner =   THIS_MODULE,
+-	.open =    zc0301_open,
+-	.release = zc0301_release,
+-	.ioctl =   zc0301_ioctl,
+-	.read =    zc0301_read,
+-	.poll =    zc0301_poll,
+-	.mmap =    zc0301_mmap,
+-};
+-
+-/*****************************************************************************/
+-
+-static int
+-zc0301_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
+-{
+-	struct usb_device *udev = interface_to_usbdev(intf);
+-	struct zc0301_device* cam;
+-	static unsigned int dev_nr;
+-	unsigned int i;
+-	int err = 0;
+-
+-	if (!(cam = kzalloc(sizeof(struct zc0301_device), GFP_KERNEL)))
+-		return -ENOMEM;
+-
+-	cam->usbdev = udev;
+-
+-	if (!(cam->control_buffer = kzalloc(4, GFP_KERNEL))) {
+-		DBG(1, "kmalloc() failed");
+-		err = -ENOMEM;
+-		goto fail;
+-	}
+-
+-	if (!(cam->v4ldev = video_device_alloc())) {
+-		DBG(1, "video_device_alloc() failed");
+-		err = -ENOMEM;
+-		goto fail;
+-	}
+-
+-	DBG(2, "ZC0301[P] Image Processor and Control Chip detected "
+-	       "(vid/pid 0x%04X:0x%04X)",id->idVendor, id->idProduct);
+-
+-	for  (i = 0; zc0301_sensor_table[i]; i++) {
+-		err = zc0301_sensor_table[i](cam);
+-		if (!err)
+-			break;
+-	}
+-
+-	if (!err)
+-		DBG(2, "%s image sensor detected", cam->sensor.name);
+-	else {
+-		DBG(1, "No supported image sensor detected");
+-		err = -ENODEV;
+-		goto fail;
+-	}
+-
+-	if (zc0301_init(cam)) {
+-		DBG(1, "Initialization failed. I will retry on open().");
+-		cam->state |= DEV_MISCONFIGURED;
+-	}
+-
+-	strcpy(cam->v4ldev->name, "ZC0301[P] PC Camera");
+-	cam->v4ldev->fops = &zc0301_fops;
+-	cam->v4ldev->release = video_device_release;
+-	cam->v4ldev->parent = &udev->dev;
+-	video_set_drvdata(cam->v4ldev, cam);
+-
+-	init_completion(&cam->probe);
+-
+-	err = video_register_device(cam->v4ldev, VFL_TYPE_GRABBER,
+-				    video_nr[dev_nr]);
+-	if (err) {
+-		DBG(1, "V4L2 device registration failed");
+-		if (err == -ENFILE && video_nr[dev_nr] == -1)
+-			DBG(1, "Free /dev/videoX node not found");
+-		video_nr[dev_nr] = -1;
+-		dev_nr = (dev_nr < ZC0301_MAX_DEVICES-1) ? dev_nr+1 : 0;
+-		complete_all(&cam->probe);
+-		goto fail;
+-	}
+-
+-	DBG(2, "V4L2 device registered as %s",
+-	    video_device_node_name(cam->v4ldev));
+-
+-	cam->module_param.force_munmap = force_munmap[dev_nr];
+-	cam->module_param.frame_timeout = frame_timeout[dev_nr];
+-
+-	dev_nr = (dev_nr < ZC0301_MAX_DEVICES-1) ? dev_nr+1 : 0;
+-
+-	usb_set_intfdata(intf, cam);
+-	kref_init(&cam->kref);
+-	usb_get_dev(cam->usbdev);
+-
+-	complete_all(&cam->probe);
+-
+-	return 0;
+-
+-fail:
+-	if (cam) {
+-		kfree(cam->control_buffer);
+-		if (cam->v4ldev)
+-			video_device_release(cam->v4ldev);
+-		kfree(cam);
+-	}
+-	return err;
+-}
+-
+-
+-static void zc0301_usb_disconnect(struct usb_interface* intf)
+-{
+-	struct zc0301_device* cam;
+-
+-	down_write(&zc0301_dev_lock);
+-
+-	cam = usb_get_intfdata(intf);
+-
+-	DBG(2, "Disconnecting %s...", cam->v4ldev->name);
+-
+-	if (cam->users) {
+-		DBG(2, "Device %s is open! Deregistration and "
+-		       "memory deallocation are deferred.",
+-		    video_device_node_name(cam->v4ldev));
+-		cam->state |= DEV_MISCONFIGURED;
+-		zc0301_stop_transfer(cam);
+-		cam->state |= DEV_DISCONNECTED;
+-		wake_up_interruptible(&cam->wait_frame);
+-		wake_up(&cam->wait_stream);
+-	} else
+-		cam->state |= DEV_DISCONNECTED;
+-
+-	wake_up_interruptible_all(&cam->wait_open);
+-
+-	kref_put(&cam->kref, zc0301_release_resources);
+-
+-	up_write(&zc0301_dev_lock);
+-}
+-
+-
+-static struct usb_driver zc0301_usb_driver = {
+-	.name =       "zc0301",
+-	.id_table =   zc0301_id_table,
+-	.probe =      zc0301_usb_probe,
+-	.disconnect = zc0301_usb_disconnect,
+-};
+-
+-/*****************************************************************************/
+-
+-static int __init zc0301_module_init(void)
+-{
+-	int err = 0;
+-
+-	KDBG(2, ZC0301_MODULE_NAME " v" ZC0301_MODULE_VERSION);
+-	KDBG(3, ZC0301_MODULE_AUTHOR);
+-
+-	if ((err = usb_register(&zc0301_usb_driver)))
+-		KDBG(1, "usb_register() failed");
+-
+-	return err;
+-}
+-
+-
+-static void __exit zc0301_module_exit(void)
+-{
+-	usb_deregister(&zc0301_usb_driver);
+-}
+-
+-
+-module_init(zc0301_module_init);
+-module_exit(zc0301_module_exit);
+diff --git a/drivers/media/video/zc0301/zc0301_pas202bcb.c b/drivers/media/video/zc0301/zc0301_pas202bcb.c
+deleted file mode 100644
+index 24b0dfb..0000000
+--- a/drivers/media/video/zc0301/zc0301_pas202bcb.c
++++ /dev/null
+@@ -1,362 +0,0 @@
+-/***************************************************************************
+- * Plug-in for PAS202BCB image sensor connected to the ZC0301 Image        *
+- * Processor and Control Chip                                              *
+- *                                                                         *
+- * Copyright (C) 2006-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
+- *                                                                         *
+- * Initialization values of the ZC0301[P] have been taken from the SPCA5XX *
+- * driver maintained by Michel Xhaard <mxhaard@magic.fr>                   *
+- *                                                                         *
+- * This program is free software; you can redistribute it and/or modify    *
+- * it under the terms of the GNU General Public License as published by    *
+- * the Free Software Foundation; either version 2 of the License, or       *
+- * (at your option) any later version.                                     *
+- *                                                                         *
+- * This program is distributed in the hope that it will be useful,         *
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+- * GNU General Public License for more details.                            *
+- *                                                                         *
+- * You should have received a copy of the GNU General Public License       *
+- * along with this program; if not, write to the Free Software             *
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
+- ***************************************************************************/
+-
+-/*
+-   NOTE: Sensor controls are disabled for now, becouse changing them while
+-	 streaming sometimes results in out-of-sync video frames. We'll use
+-	 the default initialization, until we know how to stop and start video
+-	 in the chip. However, the image quality still looks good under various
+-	 light conditions.
+-*/
+-
+-#include <linux/delay.h>
+-#include "zc0301_sensor.h"
+-
+-
+-static struct zc0301_sensor pas202bcb;
+-
+-
+-static int pas202bcb_init(struct zc0301_device* cam)
+-{
+-	int err = 0;
+-
+-	err += zc0301_write_reg(cam, 0x0002, 0x00);
+-	err += zc0301_write_reg(cam, 0x0003, 0x02);
+-	err += zc0301_write_reg(cam, 0x0004, 0x80);
+-	err += zc0301_write_reg(cam, 0x0005, 0x01);
+-	err += zc0301_write_reg(cam, 0x0006, 0xE0);
+-	err += zc0301_write_reg(cam, 0x0098, 0x00);
+-	err += zc0301_write_reg(cam, 0x009A, 0x03);
+-	err += zc0301_write_reg(cam, 0x011A, 0x00);
+-	err += zc0301_write_reg(cam, 0x011C, 0x03);
+-	err += zc0301_write_reg(cam, 0x009B, 0x01);
+-	err += zc0301_write_reg(cam, 0x009C, 0xE6);
+-	err += zc0301_write_reg(cam, 0x009D, 0x02);
+-	err += zc0301_write_reg(cam, 0x009E, 0x86);
+-
+-	err += zc0301_i2c_write(cam, 0x02, 0x02);
+-	err += zc0301_i2c_write(cam, 0x0A, 0x01);
+-	err += zc0301_i2c_write(cam, 0x0B, 0x01);
+-	err += zc0301_i2c_write(cam, 0x0D, 0x00);
+-	err += zc0301_i2c_write(cam, 0x12, 0x05);
+-	err += zc0301_i2c_write(cam, 0x13, 0x63);
+-	err += zc0301_i2c_write(cam, 0x15, 0x70);
+-
+-	err += zc0301_write_reg(cam, 0x0101, 0xB7);
+-	err += zc0301_write_reg(cam, 0x0100, 0x0D);
+-	err += zc0301_write_reg(cam, 0x0189, 0x06);
+-	err += zc0301_write_reg(cam, 0x01AD, 0x00);
+-	err += zc0301_write_reg(cam, 0x01C5, 0x03);
+-	err += zc0301_write_reg(cam, 0x01CB, 0x13);
+-	err += zc0301_write_reg(cam, 0x0250, 0x08);
+-	err += zc0301_write_reg(cam, 0x0301, 0x08);
+-	err += zc0301_write_reg(cam, 0x018D, 0x70);
+-	err += zc0301_write_reg(cam, 0x0008, 0x03);
+-	err += zc0301_write_reg(cam, 0x01C6, 0x04);
+-	err += zc0301_write_reg(cam, 0x01CB, 0x07);
+-	err += zc0301_write_reg(cam, 0x0120, 0x11);
+-	err += zc0301_write_reg(cam, 0x0121, 0x37);
+-	err += zc0301_write_reg(cam, 0x0122, 0x58);
+-	err += zc0301_write_reg(cam, 0x0123, 0x79);
+-	err += zc0301_write_reg(cam, 0x0124, 0x91);
+-	err += zc0301_write_reg(cam, 0x0125, 0xA6);
+-	err += zc0301_write_reg(cam, 0x0126, 0xB8);
+-	err += zc0301_write_reg(cam, 0x0127, 0xC7);
+-	err += zc0301_write_reg(cam, 0x0128, 0xD3);
+-	err += zc0301_write_reg(cam, 0x0129, 0xDE);
+-	err += zc0301_write_reg(cam, 0x012A, 0xE6);
+-	err += zc0301_write_reg(cam, 0x012B, 0xED);
+-	err += zc0301_write_reg(cam, 0x012C, 0xF3);
+-	err += zc0301_write_reg(cam, 0x012D, 0xF8);
+-	err += zc0301_write_reg(cam, 0x012E, 0xFB);
+-	err += zc0301_write_reg(cam, 0x012F, 0xFF);
+-	err += zc0301_write_reg(cam, 0x0130, 0x26);
+-	err += zc0301_write_reg(cam, 0x0131, 0x23);
+-	err += zc0301_write_reg(cam, 0x0132, 0x20);
+-	err += zc0301_write_reg(cam, 0x0133, 0x1C);
+-	err += zc0301_write_reg(cam, 0x0134, 0x16);
+-	err += zc0301_write_reg(cam, 0x0135, 0x13);
+-	err += zc0301_write_reg(cam, 0x0136, 0x10);
+-	err += zc0301_write_reg(cam, 0x0137, 0x0D);
+-	err += zc0301_write_reg(cam, 0x0138, 0x0B);
+-	err += zc0301_write_reg(cam, 0x0139, 0x09);
+-	err += zc0301_write_reg(cam, 0x013A, 0x07);
+-	err += zc0301_write_reg(cam, 0x013B, 0x06);
+-	err += zc0301_write_reg(cam, 0x013C, 0x05);
+-	err += zc0301_write_reg(cam, 0x013D, 0x04);
+-	err += zc0301_write_reg(cam, 0x013E, 0x03);
+-	err += zc0301_write_reg(cam, 0x013F, 0x02);
+-	err += zc0301_write_reg(cam, 0x010A, 0x4C);
+-	err += zc0301_write_reg(cam, 0x010B, 0xF5);
+-	err += zc0301_write_reg(cam, 0x010C, 0xFF);
+-	err += zc0301_write_reg(cam, 0x010D, 0xF9);
+-	err += zc0301_write_reg(cam, 0x010E, 0x51);
+-	err += zc0301_write_reg(cam, 0x010F, 0xF5);
+-	err += zc0301_write_reg(cam, 0x0110, 0xFB);
+-	err += zc0301_write_reg(cam, 0x0111, 0xED);
+-	err += zc0301_write_reg(cam, 0x0112, 0x5F);
+-	err += zc0301_write_reg(cam, 0x0180, 0x00);
+-	err += zc0301_write_reg(cam, 0x0019, 0x00);
+-	err += zc0301_write_reg(cam, 0x0087, 0x20);
+-	err += zc0301_write_reg(cam, 0x0088, 0x21);
+-
+-	err += zc0301_i2c_write(cam, 0x20, 0x02);
+-	err += zc0301_i2c_write(cam, 0x21, 0x1B);
+-	err += zc0301_i2c_write(cam, 0x03, 0x44);
+-	err += zc0301_i2c_write(cam, 0x0E, 0x01);
+-	err += zc0301_i2c_write(cam, 0x0F, 0x00);
+-
+-	err += zc0301_write_reg(cam, 0x01A9, 0x14);
+-	err += zc0301_write_reg(cam, 0x01AA, 0x24);
+-	err += zc0301_write_reg(cam, 0x0190, 0x00);
+-	err += zc0301_write_reg(cam, 0x0191, 0x02);
+-	err += zc0301_write_reg(cam, 0x0192, 0x1B);
+-	err += zc0301_write_reg(cam, 0x0195, 0x00);
+-	err += zc0301_write_reg(cam, 0x0196, 0x00);
+-	err += zc0301_write_reg(cam, 0x0197, 0x4D);
+-	err += zc0301_write_reg(cam, 0x018C, 0x10);
+-	err += zc0301_write_reg(cam, 0x018F, 0x20);
+-	err += zc0301_write_reg(cam, 0x001D, 0x44);
+-	err += zc0301_write_reg(cam, 0x001E, 0x6F);
+-	err += zc0301_write_reg(cam, 0x001F, 0xAD);
+-	err += zc0301_write_reg(cam, 0x0020, 0xEB);
+-	err += zc0301_write_reg(cam, 0x0087, 0x0F);
+-	err += zc0301_write_reg(cam, 0x0088, 0x0E);
+-	err += zc0301_write_reg(cam, 0x0180, 0x40);
+-	err += zc0301_write_reg(cam, 0x0192, 0x1B);
+-	err += zc0301_write_reg(cam, 0x0191, 0x02);
+-	err += zc0301_write_reg(cam, 0x0190, 0x00);
+-	err += zc0301_write_reg(cam, 0x0116, 0x1D);
+-	err += zc0301_write_reg(cam, 0x0117, 0x40);
+-	err += zc0301_write_reg(cam, 0x0118, 0x99);
+-	err += zc0301_write_reg(cam, 0x0180, 0x42);
+-	err += zc0301_write_reg(cam, 0x0116, 0x1D);
+-	err += zc0301_write_reg(cam, 0x0117, 0x40);
+-	err += zc0301_write_reg(cam, 0x0118, 0x99);
+-	err += zc0301_write_reg(cam, 0x0007, 0x00);
+-
+-	err += zc0301_i2c_write(cam, 0x11, 0x01);
+-
+-	msleep(100);
+-
+-	return err;
+-}
+-
+-
+-static int pas202bcb_get_ctrl(struct zc0301_device* cam,
+-			      struct v4l2_control* ctrl)
+-{
+-	switch (ctrl->id) {
+-	case V4L2_CID_EXPOSURE:
+-		{
+-			int r1 = zc0301_i2c_read(cam, 0x04, 1),
+-			    r2 = zc0301_i2c_read(cam, 0x05, 1);
+-			if (r1 < 0 || r2 < 0)
+-				return -EIO;
+-			ctrl->value = (r1 << 6) | (r2 & 0x3f);
+-		}
+-		return 0;
+-	case V4L2_CID_RED_BALANCE:
+-		if ((ctrl->value = zc0301_i2c_read(cam, 0x09, 1)) < 0)
+-			return -EIO;
+-		ctrl->value &= 0x0f;
+-		return 0;
+-	case V4L2_CID_BLUE_BALANCE:
+-		if ((ctrl->value = zc0301_i2c_read(cam, 0x07, 1)) < 0)
+-			return -EIO;
+-		ctrl->value &= 0x0f;
+-		return 0;
+-	case V4L2_CID_GAIN:
+-		if ((ctrl->value = zc0301_i2c_read(cam, 0x10, 1)) < 0)
+-			return -EIO;
+-		ctrl->value &= 0x1f;
+-		return 0;
+-	case ZC0301_V4L2_CID_GREEN_BALANCE:
+-		if ((ctrl->value = zc0301_i2c_read(cam, 0x08, 1)) < 0)
+-			return -EIO;
+-		ctrl->value &= 0x0f;
+-		return 0;
+-	case ZC0301_V4L2_CID_DAC_MAGNITUDE:
+-		if ((ctrl->value = zc0301_i2c_read(cam, 0x0c, 1)) < 0)
+-			return -EIO;
+-		return 0;
+-	default:
+-		return -EINVAL;
+-	}
+-}
+-
+-
+-static int pas202bcb_set_ctrl(struct zc0301_device* cam,
+-			      const struct v4l2_control* ctrl)
+-{
+-	int err = 0;
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_EXPOSURE:
+-		err += zc0301_i2c_write(cam, 0x04, ctrl->value >> 6);
+-		err += zc0301_i2c_write(cam, 0x05, ctrl->value & 0x3f);
+-		break;
+-	case V4L2_CID_RED_BALANCE:
+-		err += zc0301_i2c_write(cam, 0x09, ctrl->value);
+-		break;
+-	case V4L2_CID_BLUE_BALANCE:
+-		err += zc0301_i2c_write(cam, 0x07, ctrl->value);
+-		break;
+-	case V4L2_CID_GAIN:
+-		err += zc0301_i2c_write(cam, 0x10, ctrl->value);
+-		break;
+-	case ZC0301_V4L2_CID_GREEN_BALANCE:
+-		err += zc0301_i2c_write(cam, 0x08, ctrl->value);
+-		break;
+-	case ZC0301_V4L2_CID_DAC_MAGNITUDE:
+-		err += zc0301_i2c_write(cam, 0x0c, ctrl->value);
+-		break;
+-	default:
+-		return -EINVAL;
+-	}
+-	err += zc0301_i2c_write(cam, 0x11, 0x01);
+-
+-	return err ? -EIO : 0;
+-}
+-
+-
+-static struct zc0301_sensor pas202bcb = {
+-	.name = "PAS202BCB",
+-	.init = &pas202bcb_init,
+-	.qctrl = {
+-		{
+-			.id = V4L2_CID_EXPOSURE,
+-			.type = V4L2_CTRL_TYPE_INTEGER,
+-			.name = "exposure",
+-			.minimum = 0x01e5,
+-			.maximum = 0x3fff,
+-			.step = 0x0001,
+-			.default_value = 0x01e5,
+-			.flags = V4L2_CTRL_FLAG_DISABLED,
+-		},
+-		{
+-			.id = V4L2_CID_GAIN,
+-			.type = V4L2_CTRL_TYPE_INTEGER,
+-			.name = "global gain",
+-			.minimum = 0x00,
+-			.maximum = 0x1f,
+-			.step = 0x01,
+-			.default_value = 0x0c,
+-			.flags = V4L2_CTRL_FLAG_DISABLED,
+-		},
+-		{
+-			.id = ZC0301_V4L2_CID_DAC_MAGNITUDE,
+-			.type = V4L2_CTRL_TYPE_INTEGER,
+-			.name = "DAC magnitude",
+-			.minimum = 0x00,
+-			.maximum = 0xff,
+-			.step = 0x01,
+-			.default_value = 0x00,
+-			.flags = V4L2_CTRL_FLAG_DISABLED,
+-		},
+-		{
+-			.id = V4L2_CID_RED_BALANCE,
+-			.type = V4L2_CTRL_TYPE_INTEGER,
+-			.name = "red balance",
+-			.minimum = 0x00,
+-			.maximum = 0x0f,
+-			.step = 0x01,
+-			.default_value = 0x01,
+-			.flags = V4L2_CTRL_FLAG_DISABLED,
+-		},
+-		{
+-			.id = V4L2_CID_BLUE_BALANCE,
+-			.type = V4L2_CTRL_TYPE_INTEGER,
+-			.name = "blue balance",
+-			.minimum = 0x00,
+-			.maximum = 0x0f,
+-			.step = 0x01,
+-			.default_value = 0x05,
+-			.flags = V4L2_CTRL_FLAG_DISABLED,
+-		},
+-		{
+-			.id = ZC0301_V4L2_CID_GREEN_BALANCE,
+-			.type = V4L2_CTRL_TYPE_INTEGER,
+-			.name = "green balance",
+-			.minimum = 0x00,
+-			.maximum = 0x0f,
+-			.step = 0x01,
+-			.default_value = 0x00,
+-			.flags = V4L2_CTRL_FLAG_DISABLED,
+-		},
+-	},
+-	.get_ctrl = &pas202bcb_get_ctrl,
+-	.set_ctrl = &pas202bcb_set_ctrl,
+-	.cropcap = {
+-		.bounds = {
+-			.left = 0,
+-			.top = 0,
+-			.width = 640,
+-			.height = 480,
+-		},
+-		.defrect = {
+-			.left = 0,
+-			.top = 0,
+-			.width = 640,
+-			.height = 480,
+-		},
+-	},
+-	.pix_format = {
+-		.width = 640,
+-		.height = 480,
+-		.pixelformat = V4L2_PIX_FMT_JPEG,
+-		.priv = 8,
+-		.colorspace = V4L2_COLORSPACE_JPEG,
+-	},
+-};
+-
+-
+-int zc0301_probe_pas202bcb(struct zc0301_device* cam)
+-{
+-	int r0 = 0, r1 = 0, err = 0;
+-	unsigned int pid = 0;
+-
+-	err += zc0301_write_reg(cam, 0x0000, 0x01);
+-	err += zc0301_write_reg(cam, 0x0010, 0x0e);
+-	err += zc0301_write_reg(cam, 0x0001, 0x01);
+-	err += zc0301_write_reg(cam, 0x0012, 0x03);
+-	err += zc0301_write_reg(cam, 0x0012, 0x01);
+-	err += zc0301_write_reg(cam, 0x008d, 0x08);
+-
+-	msleep(10);
+-
+-	r0 = zc0301_i2c_read(cam, 0x00, 1);
+-	r1 = zc0301_i2c_read(cam, 0x01, 1);
+-
+-	if (r0 < 0 || r1 < 0 || err)
+-		return -EIO;
+-
+-	pid = (r0 << 4) | ((r1 & 0xf0) >> 4);
+-	if (pid != 0x017)
+-		return -ENODEV;
+-
+-	zc0301_attach_sensor(cam, &pas202bcb);
+-
+-	return 0;
+-}
+diff --git a/drivers/media/video/zc0301/zc0301_pb0330.c b/drivers/media/video/zc0301/zc0301_pb0330.c
+deleted file mode 100644
+index 9519aba..0000000
+--- a/drivers/media/video/zc0301/zc0301_pb0330.c
++++ /dev/null
+@@ -1,188 +0,0 @@
+-/***************************************************************************
+- * Plug-in for PB-0330 image sensor connected to the ZC0301P Image         *
+- * Processor and Control Chip                                              *
+- *                                                                         *
+- * Copyright (C) 2006-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
+- *                                                                         *
+- * Initialization values of the ZC0301[P] have been taken from the SPCA5XX *
+- * driver maintained by Michel Xhaard <mxhaard@magic.fr>                   *
+- *                                                                         *
+- * This program is free software; you can redistribute it and/or modify    *
+- * it under the terms of the GNU General Public License as published by    *
+- * the Free Software Foundation; either version 2 of the License, or       *
+- * (at your option) any later version.                                     *
+- *                                                                         *
+- * This program is distributed in the hope that it will be useful,         *
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+- * GNU General Public License for more details.                            *
+- *                                                                         *
+- * You should have received a copy of the GNU General Public License       *
+- * along with this program; if not, write to the Free Software             *
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
+- ***************************************************************************/
+-
+-#include <linux/delay.h>
+-#include "zc0301_sensor.h"
+-
+-
+-static struct zc0301_sensor pb0330;
+-
+-
+-static int pb0330_init(struct zc0301_device* cam)
+-{
+-	int err = 0;
+-
+-	err += zc0301_write_reg(cam, 0x0000, 0x01);
+-	err += zc0301_write_reg(cam, 0x0008, 0x03);
+-	err += zc0301_write_reg(cam, 0x0010, 0x0A);
+-	err += zc0301_write_reg(cam, 0x0002, 0x00);
+-	err += zc0301_write_reg(cam, 0x0003, 0x02);
+-	err += zc0301_write_reg(cam, 0x0004, 0x80);
+-	err += zc0301_write_reg(cam, 0x0005, 0x01);
+-	err += zc0301_write_reg(cam, 0x0006, 0xE0);
+-	err += zc0301_write_reg(cam, 0x0001, 0x01);
+-	err += zc0301_write_reg(cam, 0x0012, 0x05);
+-	err += zc0301_write_reg(cam, 0x0012, 0x07);
+-	err += zc0301_write_reg(cam, 0x0098, 0x00);
+-	err += zc0301_write_reg(cam, 0x009A, 0x00);
+-	err += zc0301_write_reg(cam, 0x011A, 0x00);
+-	err += zc0301_write_reg(cam, 0x011C, 0x00);
+-	err += zc0301_write_reg(cam, 0x0012, 0x05);
+-
+-	err += zc0301_i2c_write(cam, 0x01, 0x0006);
+-	err += zc0301_i2c_write(cam, 0x02, 0x0011);
+-	err += zc0301_i2c_write(cam, 0x03, 0x01E7);
+-	err += zc0301_i2c_write(cam, 0x04, 0x0287);
+-	err += zc0301_i2c_write(cam, 0x06, 0x0003);
+-	err += zc0301_i2c_write(cam, 0x07, 0x3002);
+-	err += zc0301_i2c_write(cam, 0x20, 0x1100);
+-	err += zc0301_i2c_write(cam, 0x2F, 0xF7B0);
+-	err += zc0301_i2c_write(cam, 0x30, 0x0005);
+-	err += zc0301_i2c_write(cam, 0x31, 0x0000);
+-	err += zc0301_i2c_write(cam, 0x34, 0x0100);
+-	err += zc0301_i2c_write(cam, 0x35, 0x0060);
+-	err += zc0301_i2c_write(cam, 0x3D, 0x068F);
+-	err += zc0301_i2c_write(cam, 0x40, 0x01E0);
+-	err += zc0301_i2c_write(cam, 0x58, 0x0078);
+-	err += zc0301_i2c_write(cam, 0x62, 0x0411);
+-
+-	err += zc0301_write_reg(cam, 0x0087, 0x10);
+-	err += zc0301_write_reg(cam, 0x0101, 0x37);
+-	err += zc0301_write_reg(cam, 0x0012, 0x05);
+-	err += zc0301_write_reg(cam, 0x0100, 0x0D);
+-	err += zc0301_write_reg(cam, 0x0189, 0x06);
+-	err += zc0301_write_reg(cam, 0x01AD, 0x00);
+-	err += zc0301_write_reg(cam, 0x01C5, 0x03);
+-	err += zc0301_write_reg(cam, 0x01CB, 0x13);
+-	err += zc0301_write_reg(cam, 0x0250, 0x08);
+-	err += zc0301_write_reg(cam, 0x0301, 0x08);
+-	err += zc0301_write_reg(cam, 0x01A8, 0x60);
+-	err += zc0301_write_reg(cam, 0x018D, 0x6C);
+-	err += zc0301_write_reg(cam, 0x01AD, 0x09);
+-	err += zc0301_write_reg(cam, 0x01AE, 0x15);
+-	err += zc0301_write_reg(cam, 0x010A, 0x50);
+-	err += zc0301_write_reg(cam, 0x010B, 0xF8);
+-	err += zc0301_write_reg(cam, 0x010C, 0xF8);
+-	err += zc0301_write_reg(cam, 0x010D, 0xF8);
+-	err += zc0301_write_reg(cam, 0x010E, 0x50);
+-	err += zc0301_write_reg(cam, 0x010F, 0xF8);
+-	err += zc0301_write_reg(cam, 0x0110, 0xF8);
+-	err += zc0301_write_reg(cam, 0x0111, 0xF8);
+-	err += zc0301_write_reg(cam, 0x0112, 0x50);
+-	err += zc0301_write_reg(cam, 0x0008, 0x03);
+-	err += zc0301_write_reg(cam, 0x01C6, 0x08);
+-	err += zc0301_write_reg(cam, 0x01CB, 0x0F);
+-	err += zc0301_write_reg(cam, 0x010A, 0x50);
+-	err += zc0301_write_reg(cam, 0x010B, 0xF8);
+-	err += zc0301_write_reg(cam, 0x010C, 0xF8);
+-	err += zc0301_write_reg(cam, 0x010D, 0xF8);
+-	err += zc0301_write_reg(cam, 0x010E, 0x50);
+-	err += zc0301_write_reg(cam, 0x010F, 0xF8);
+-	err += zc0301_write_reg(cam, 0x0110, 0xF8);
+-	err += zc0301_write_reg(cam, 0x0111, 0xF8);
+-	err += zc0301_write_reg(cam, 0x0112, 0x50);
+-	err += zc0301_write_reg(cam, 0x0180, 0x00);
+-	err += zc0301_write_reg(cam, 0x0019, 0x00);
+-
+-	err += zc0301_i2c_write(cam, 0x05, 0x0066);
+-	err += zc0301_i2c_write(cam, 0x09, 0x02B2);
+-	err += zc0301_i2c_write(cam, 0x10, 0x0002);
+-
+-	err += zc0301_write_reg(cam, 0x011D, 0x60);
+-	err += zc0301_write_reg(cam, 0x0190, 0x00);
+-	err += zc0301_write_reg(cam, 0x0191, 0x07);
+-	err += zc0301_write_reg(cam, 0x0192, 0x8C);
+-	err += zc0301_write_reg(cam, 0x0195, 0x00);
+-	err += zc0301_write_reg(cam, 0x0196, 0x00);
+-	err += zc0301_write_reg(cam, 0x0197, 0x8A);
+-	err += zc0301_write_reg(cam, 0x018C, 0x10);
+-	err += zc0301_write_reg(cam, 0x018F, 0x20);
+-	err += zc0301_write_reg(cam, 0x01A9, 0x14);
+-	err += zc0301_write_reg(cam, 0x01AA, 0x24);
+-	err += zc0301_write_reg(cam, 0x001D, 0xD7);
+-	err += zc0301_write_reg(cam, 0x001E, 0xF0);
+-	err += zc0301_write_reg(cam, 0x001F, 0xF8);
+-	err += zc0301_write_reg(cam, 0x0020, 0xFF);
+-	err += zc0301_write_reg(cam, 0x01AD, 0x09);
+-	err += zc0301_write_reg(cam, 0x01AE, 0x15);
+-	err += zc0301_write_reg(cam, 0x0180, 0x40);
+-	err += zc0301_write_reg(cam, 0x0180, 0x42);
+-
+-	msleep(100);
+-
+-	return err;
+-}
+-
+-
+-static struct zc0301_sensor pb0330 = {
+-	.name = "PB-0330",
+-	.init = &pb0330_init,
+-	.cropcap = {
+-		.bounds = {
+-			.left = 0,
+-			.top = 0,
+-			.width = 640,
+-			.height = 480,
+-		},
+-		.defrect = {
+-			.left = 0,
+-			.top = 0,
+-			.width = 640,
+-			.height = 480,
+-		},
+-	},
+-	.pix_format = {
+-		.width = 640,
+-		.height = 480,
+-		.pixelformat = V4L2_PIX_FMT_JPEG,
+-		.priv = 8,
+-		.colorspace = V4L2_COLORSPACE_JPEG,
+-	},
+-};
+-
+-
+-int zc0301_probe_pb0330(struct zc0301_device* cam)
+-{
+-	int r0, err = 0;
+-
+-	err += zc0301_write_reg(cam, 0x0000, 0x01);
+-	err += zc0301_write_reg(cam, 0x0010, 0x0a);
+-	err += zc0301_write_reg(cam, 0x0001, 0x01);
+-	err += zc0301_write_reg(cam, 0x0012, 0x03);
+-	err += zc0301_write_reg(cam, 0x0012, 0x01);
+-
+-	msleep(10);
+-
+-	r0 = zc0301_i2c_read(cam, 0x00, 2);
+-
+-	if (r0 < 0 || err)
+-		return -EIO;
+-
+-	if (r0 != 0x8243)
+-		return -ENODEV;
+-
+-	zc0301_attach_sensor(cam, &pb0330);
+-
+-	return 0;
+-}
+diff --git a/drivers/media/video/zc0301/zc0301_sensor.h b/drivers/media/video/zc0301/zc0301_sensor.h
+deleted file mode 100644
+index 0be783c..0000000
+--- a/drivers/media/video/zc0301/zc0301_sensor.h
++++ /dev/null
+@@ -1,107 +0,0 @@
+-/***************************************************************************
+- * API for image sensors connected to the ZC0301[P] Image Processor and    *
+- * Control Chip                                                            *
+- *                                                                         *
+- * Copyright (C) 2006-2007 by Luca Risolia <luca.risolia@studio.unibo.it>  *
+- *                                                                         *
+- * This program is free software; you can redistribute it and/or modify    *
+- * it under the terms of the GNU General Public License as published by    *
+- * the Free Software Foundation; either version 2 of the License, or       *
+- * (at your option) any later version.                                     *
+- *                                                                         *
+- * This program is distributed in the hope that it will be useful,         *
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of          *
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           *
+- * GNU General Public License for more details.                            *
+- *                                                                         *
+- * You should have received a copy of the GNU General Public License       *
+- * along with this program; if not, write to the Free Software             *
+- * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.               *
+- ***************************************************************************/
+-
+-#ifndef _ZC0301_SENSOR_H_
+-#define _ZC0301_SENSOR_H_
+-
+-#include <linux/usb.h>
+-#include <linux/videodev2.h>
+-#include <linux/device.h>
+-#include <linux/stddef.h>
+-#include <linux/errno.h>
+-#include <asm/types.h>
+-
+-struct zc0301_device;
+-struct zc0301_sensor;
+-
+-/*****************************************************************************/
+-
+-extern int zc0301_probe_pas202bcb(struct zc0301_device* cam);
+-extern int zc0301_probe_pb0330(struct zc0301_device* cam);
+-
+-#define ZC0301_SENSOR_TABLE                                                   \
+-/* Weak detections must go at the end of the list */                          \
+-static int (*zc0301_sensor_table[])(struct zc0301_device*) = {                \
+-	&zc0301_probe_pas202bcb,                                              \
+-	&zc0301_probe_pb0330,                                                 \
+-	NULL,                                                                 \
+-};
+-
+-extern struct zc0301_device*
+-zc0301_match_id(struct zc0301_device* cam, const struct usb_device_id *id);
+-
+-extern void
+-zc0301_attach_sensor(struct zc0301_device* cam, struct zc0301_sensor* sensor);
+-
+-#define ZC0301_USB_DEVICE(vend, prod, intclass)                               \
+-	.match_flags = USB_DEVICE_ID_MATCH_DEVICE |                           \
+-		       USB_DEVICE_ID_MATCH_INT_CLASS,                         \
+-	.idVendor = (vend),                                                   \
+-	.idProduct = (prod),                                                  \
+-	.bInterfaceClass = (intclass)
+-
+-#if !defined CONFIG_USB_GSPCA_ZC3XX && !defined CONFIG_USB_GSPCA_ZC3XX_MODULE
+-#define ZC0301_ID_TABLE                                                       \
+-static const struct usb_device_id zc0301_id_table[] =  {                      \
+-	{ ZC0301_USB_DEVICE(0x046d, 0x08ae, 0xff), }, /* PAS202 */            \
+-	{ ZC0301_USB_DEVICE(0x0ac8, 0x303b, 0xff), }, /* PB-0330 */           \
+-	{ }                                                                   \
+-};
+-#else
+-#define ZC0301_ID_TABLE                                                       \
+-static const struct usb_device_id zc0301_id_table[] =  {                      \
+-	{ ZC0301_USB_DEVICE(0x046d, 0x08ae, 0xff), }, /* PAS202 */            \
+-	{ }                                                                   \
+-};
+-#endif
+-
+-/*****************************************************************************/
+-
+-extern int zc0301_write_reg(struct zc0301_device*, u16 index, u16 value);
+-extern int zc0301_read_reg(struct zc0301_device*, u16 index);
+-extern int zc0301_i2c_write(struct zc0301_device*, u16 address, u16 value);
+-extern int zc0301_i2c_read(struct zc0301_device*, u16 address, u8 length);
+-
+-/*****************************************************************************/
+-
+-#define ZC0301_MAX_CTRLS (V4L2_CID_LASTP1 - V4L2_CID_BASE + 10)
+-#define ZC0301_V4L2_CID_DAC_MAGNITUDE (V4L2_CID_PRIVATE_BASE + 0)
+-#define ZC0301_V4L2_CID_GREEN_BALANCE (V4L2_CID_PRIVATE_BASE + 1)
+-
+-struct zc0301_sensor {
+-	char name[32];
+-
+-	struct v4l2_queryctrl qctrl[ZC0301_MAX_CTRLS];
+-	struct v4l2_cropcap cropcap;
+-	struct v4l2_pix_format pix_format;
+-
+-	int (*init)(struct zc0301_device*);
+-	int (*get_ctrl)(struct zc0301_device*, struct v4l2_control* ctrl);
+-	int (*set_ctrl)(struct zc0301_device*,
+-			const struct v4l2_control* ctrl);
+-	int (*set_crop)(struct zc0301_device*, const struct v4l2_rect* rect);
+-
+-	/* Private */
+-	struct v4l2_queryctrl _qctrl[ZC0301_MAX_CTRLS];
+-	struct v4l2_rect _rect;
+-};
+-
+-#endif /* _ZC0301_SENSOR_H_ */
+-- 
+1.6.5.2
 
- const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-@@ -6803,6 +6835,7 @@
-     case SAA7134_BOARD_VIDEOMATE_TV_PVR:
-     case SAA7134_BOARD_VIDEOMATE_GOLD_PLUS:
-     case SAA7134_BOARD_VIDEOMATE_TV_GOLD_PLUSII:
-+    case SAA7134_BOARD_VIDEOMATE_M1F:
-     case SAA7134_BOARD_VIDEOMATE_DVBT_300:
-     case SAA7134_BOARD_VIDEOMATE_DVBT_200:
-     case SAA7134_BOARD_VIDEOMATE_DVBT_200A:
-diff -urN linux-2.6.34/drivers/media/video/saa7134/saa7134.h
-linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134.h
---- linux-2.6.34/drivers/media/video/saa7134/saa7134.h    2010-05-17
-00:17:36.000000000 +0300
-+++ linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134.h
-2010-05-24 13:42:13.798747367 +0300
-@@ -300,6 +300,7 @@
- #define SAA7134_BOARD_ASUS_EUROPA_HYBRID    174
- #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
- #define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
-+#define SAA7134_BOARD_VIDEOMATE_M1F    177
-
- #define SAA7134_MAXBOARDS 32
- #define SAA7134_INPUT_MAX 8
-diff -urN linux-2.6.34/drivers/media/video/saa7134/saa7134-input.c
-linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134-input.c
---- linux-2.6.34/drivers/media/video/saa7134/saa7134-input.c
-2010-05-17 00:17:36.000000000 +0300
-+++ linux-2.6.34patched
-orig/drivers/media/video/saa7134/saa7134-input.c    2010-05-24
-13:45:33.755392801 +0300
-@@ -679,6 +679,11 @@
-         mask_keyup   = 0x020000;
-         polling      = 50; /* ms */
-         break;
-+    case SAA7134_BOARD_VIDEOMATE_M1F:
-+        ir_codes     = &ir_codes_videomate_m1f_table;
-+        mask_keycode = 0x0ff00;
-+        mask_keyup   = 0x040000;
-+        break;
-     break;
-     }
-     if (NULL == ir_codes) {
-diff -urN linux-2.6.34/include/media/ir-common.h linux-2.6.34patched
-orig/include/media/ir-common.h
---- linux-2.6.34/include/media/ir-common.h    2010-05-17
-00:17:36.000000000 +0300
-+++ linux-2.6.34patched orig/include/media/ir-common.h    2010-05-24
-13:49:29.845368218 +0300
-@@ -164,4 +164,5 @@
- extern struct ir_scancode_table ir_codes_nec_terratec_cinergy_xs_table;
- extern struct ir_scancode_table ir_codes_winfast_usbii_deluxe_table;
- extern struct ir_scancode_table ir_codes_kworld_315u_table;
-+extern struct ir_scancode_table ir_codes_videomate_m1f_table;
- #endif
