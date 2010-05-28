@@ -1,84 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:38633 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755895Ab0EYXop (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 May 2010 19:44:45 -0400
-Received: by wyb29 with SMTP id 29so2823511wyb.19
-        for <linux-media@vger.kernel.org>; Tue, 25 May 2010 16:44:44 -0700 (PDT)
+Received: from wipro-blr-out01.wipro.com ([203.91.198.74]:57526 "EHLO
+	wipro-blr-out02.wipro.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754683Ab0E1NzF convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 May 2010 09:55:05 -0400
+Content-class: urn:content-classes:message
 MIME-Version: 1.0
-Reply-To: h.ordiales@gmail.com
-In-Reply-To: <AANLkTinD-7F0fHvKR3D89B3_IXHWgpHkFwYr0ud93EIJ@mail.gmail.com>
-References: <AANLkTinD-7F0fHvKR3D89B3_IXHWgpHkFwYr0ud93EIJ@mail.gmail.com>
-From: =?ISO-8859-1?Q?Hern=E1n_Ordiales?= <h.ordiales@gmail.com>
-Date: Tue, 25 May 2010 20:44:28 -0300
-Message-ID: <AANLkTinyVoBwSQQbmJrItuZoJzhkrc1yr-Uflc8o2Lex@mail.gmail.com>
-Subject: [PATCH] Adding support to the Geniatech/MyGica SBTVD Stick S870
-	remote control
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0016363ba32ae72937048773bda7
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Subject: Regarding  OMAP 35xx  ISP subsystem and SoC-Camera
+Date: Fri, 28 May 2010 19:24:57 +0530
+Message-ID: <336834A7A2D8B34BA5A8906E6E71DF870113EC41@BLR-SJP-MBX01.wipro.com>
+From: <manjunathan.padua@wipro.com>
+To: <linux-media@vger.kernel.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016363ba32ae72937048773bda7
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Dear Linux-media group
+  I am a newbie and have recently started working on integration of a new camera sensor MT9M112 sensor with OMAP ISP Camera subsystem on a OMAP 3530 based custom board.  So I checked in mainline kernel if driver is available for this camera sensor and  I found it in the  Linux/driver/media/video/mt9m11.c, this supports both MT9M111 and MT9M112. It is based on SoC-Camera framework.   But unfortunately this is not compatible with OMAP 35xx  Camera ISP subsystem  as OMAP camera ISP subsystem is based on V4L2-INT.
 
-Hi, i'm sending as attachment a patch against
-http://linuxtv.org/hg/v4l-dvb (i hope this is ok) with some changes to
-the the dib0700 module to add support for this remote control. I added
-the key codes and a new case on parsing ir data
-(dvb_usb_dib0700_ir_proto=3D1).
+Also I got know that there are there are 3 different frameworks for camera sensor drivers in Linux
+a. V4L2-INT is deprecated but currently supported by OMAP35xx ISP Linux BSP
+b. SoC-Camera is  also deprecated.
+c. Sub-Device is the current architecture supported from Open source community 
 
-Cheers
---
-Hern=E1n
-http://h.ordia.com.ar
-GnuPG: 0xEE8A3FE9
+1. Is this understanding correct ?
+2. Since V4L2-INT and SoC-Camera frameworks are deprecated, can you please let me know the roadmap for Sub-Device framework ?
+3. What is the best option/recommendation from community for me to integrate MT9M112 with Camera ISP system on OMAP 3530 based board ?
+4. And lastly are there any other different camera sensors which have Sub-Device based drivers available in Mainline Linux?
 
---0016363ba32ae72937048773bda7
-Content-Type: text/x-patch; charset=US-ASCII; name="geniatech-rc.patch"
-Content-Disposition: attachment; filename="geniatech-rc.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g9ncit8p0
+Thanks & best regards
+Manjunathan
 
-ZGlmZiAtciBiNTc2NTA5ZWE2ZDIgbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIw
-NzAwX2NvcmUuYwotLS0gYS9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBf
-Y29yZS5jCVdlZCBNYXkgMTkgMTk6MzQ6MzMgMjAxMCAtMDMwMAorKysgYi9saW51eC9kcml2ZXJz
-L21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfY29yZS5jCVdlZCBNYXkgMjYgMTk6MzE6MjQgMjAx
-MCAtMDMwMApAQCAtNTUwLDYgKzU1MCwxNiBAQAogCQkJcG9sbF9yZXBseS5kYXRhX3N0YXRlID0g
-MjsKIAkJCWJyZWFrOwogCQl9CisKKwkJYnJlYWs7CisJY2FzZSAxOgorCQkvKiBHZW5pYXRlY2gv
-TXlHaWNhIHJlbW90ZSBwcm90b2NvbCAqLworCQlwb2xsX3JlcGx5LnJlcG9ydF9pZCAgPSBidWZb
-MF07CisJCXBvbGxfcmVwbHkuZGF0YV9zdGF0ZSA9IGJ1ZlsxXTsKKwkJcG9sbF9yZXBseS5zeXN0
-ZW0gICAgID0gKGJ1Zls0XSA8PCA4KSB8IGJ1Zls0XTsKKwkJcG9sbF9yZXBseS5kYXRhICAgICAg
-ID0gYnVmWzVdOworCQlwb2xsX3JlcGx5Lm5vdF9kYXRhICAgPSBidWZbNF07IC8qIGludGVncml0
-eSBjaGVjayAqLworCQkKIAkJYnJlYWs7CiAJZGVmYXVsdDoKIAkJLyogUkM1IFByb3RvY29sICov
-CmRpZmYgLXIgYjU3NjUwOWVhNmQyIGxpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGli
-MDcwMF9kZXZpY2VzLmMKLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIw
-NzAwX2RldmljZXMuYwlXZWQgTWF5IDE5IDE5OjM0OjMzIDIwMTAgLTAzMDAKKysrIGIvbGludXgv
-ZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIwNzAwX2RldmljZXMuYwlXZWQgTWF5IDI2IDE5
-OjMxOjI0IDIwMTAgLTAzMDAKQEAgLTgzMSw2ICs4MzEsNDYgQEAKIAl7IDB4NDU0MCwgS0VZX1JF
-Q09SRCB9LCAvKiBGb250ICdTaXplJyBmb3IgVGVsZXRleHQgKi8KIAl7IDB4NDU0MSwgS0VZX1ND
-UkVFTiB9LCAvKiAgRnVsbCBzY3JlZW4gdG9nZ2xlLCAnSG9sZCcgZm9yIFRlbGV0ZXh0ICovCiAJ
-eyAweDQ1NDIsIEtFWV9TRUxFQ1QgfSwgLyogU2VsZWN0IHZpZGVvIGlucHV0LCAnU2VsZWN0JyBm
-b3IgVGVsZXRleHQgKi8KKworCisJLyogS2V5IGNvZGVzIGZvciB0aGUgR2VuaWF0ZWNoL015R2lj
-YSBTQlRWRCBTdGljayBTODcwIHJlbW90ZQorCSAgIHNldCBkdmJfdXNiX2RpYjA3MDBfaXJfcHJv
-dG89MSAqLworCXsgMHgzOGM3LCBLRVlfVFYgfSwgLyogVFYvQVYgKi8KKwl7IDB4MGNmMywgS0VZ
-X1BPV0VSIH0sCisJeyAweDBhZjUsIEtFWV9NVVRFIH0sCisJeyAweDJiZDQsIEtFWV9WT0xVTUVV
-UCB9LAorCXsgMHgyY2QzLCBLRVlfVk9MVU1FRE9XTiB9LAorCXsgMHgxMmVkLCBLRVlfQ0hBTk5F
-TFVQIH0sCisJeyAweDEzZWMsIEtFWV9DSEFOTkVMRE9XTiB9LAorCXsgMHgwMWZlLCBLRVlfMSB9
-LAorCXsgMHgwMmZkLCBLRVlfMiB9LAorCXsgMHgwM2ZjLCBLRVlfMyB9LAorCXsgMHgwNGZiLCBL
-RVlfNCB9LAorCXsgMHgwNWZhLCBLRVlfNSB9LAorCXsgMHgwNmY5LCBLRVlfNiB9LAorCXsgMHgw
-N2Y4LCBLRVlfNyB9LAorCXsgMHgwOGY3LCBLRVlfOCB9LAorCXsgMHgwOWY2LCBLRVlfOSB9LAor
-CXsgMHgwMGZmLCBLRVlfMCB9LAorCXsgMHgxNmU5LCBLRVlfUEFVU0UgfSwKKwl7IDB4MTdlOCwg
-S0VZX1BMQVkgfSwKKwl7IDB4MGJmNCwgS0VZX1NUT1AgfSwKKwl7IDB4MjZkOSwgS0VZX1JFV0lO
-RCB9LAorCXsgMHgyN2Q4LCBLRVlfRkFTVEZPUldBUkQgfSwKKwl7IDB4MjlkNiwgS0VZX0VTQyB9
-LAorCXsgMHgxZmUwLCBLRVlfUkVDT1JEIH0sCisJeyAweDIwZGYsIEtFWV9VUCB9LAorCXsgMHgy
-MWRlLCBLRVlfRE9XTiB9LAorCXsgMHgxMWVlLCBLRVlfTEVGVCB9LAorCXsgMHgxMGVmLCBLRVlf
-UklHSFQgfSwKKwl7IDB4MGRmMiwgS0VZX09LIH0sCisJeyAweDFlZTEsIEtFWV9QTEFZUEFVU0Ug
-fSwgLyogVGltZXNoaWZ0ICovCisJeyAweDBlZjEsIEtFWV9DQU1FUkEgfSwgLyogU25hcHNob3Qg
-Ki8KKwl7IDB4MjVkYSwgS0VZX0VQRyB9LCAvKiBJbmZvIEtFWV9JTkZPICovCisJeyAweDJkZDIs
-IEtFWV9NRU5VIH0sIC8qIERWRCBNZW51ICovCisJeyAweDBmZjAsIEtFWV9TQ1JFRU4gfSwgLyog
-RnVsbCBzY3JlZW4gdG9nZ2xlICovCisJeyAweDE0ZWIsIEtFWV9TSFVGRkxFIH0sCisKIH07CiAK
-IC8qIFNUSzc3MDBQOiBIYXVwcGF1Z2UgTm92YS1UIFN0aWNrLCBBVmVyTWVkaWEgVm9sYXIgKi8K
---0016363ba32ae72937048773bda7--
+
+For your reference : Below are some references that I found on the internet/mailing list while researching on this. These are extra information on OMAP's Camera ISP subsystem implementation on Linux and SoC camera.
+
+As per the following websites/mailing lists, it seems that we there is no direct way to integrate SoC camera framework based drivers with OMAP and SoC CAM is deprecated.
+ 1) http://processors.wiki.ti.com/index.php/OMAP3_GIT_Linux_Kernel#Video_Capture
+ 2) http://www.archivum.info/video4linux-list@redhat.com/2008-08/00125/Re:-%5BPATCH-v2%5D-soc-camera:-add-API-documentation.html
+
+----------- extract from #2 mailing list dated August 2008 ----------------
+......
+.....
+I've been thinking it could make sense to unify v4l2-int-if and SoC camera efforts in longer term.
+
+Although the approach in SoC camera is somewhat different than in v4l2-int-if they share some similarities. V4l2-int-if tries to define common set of commands for commanding different hardware devices that make one V4L2 device, e.g. /dev/video0. SoC camera, OTOH, is a hardware-independent camera driver that can interface with different camera controllers and image sensors.
+
+Interestingly, the concepts used in v4l2-int-if and SoC camera are quite
+similar. Roughly equivalent pieces can be found easily:
+
+v4l2-int-if + OMAP 3 camera             SoC camera
+
+OMAP 3 camera driver (int if master)    SoC camera driver
+OMAP 3 ISP driver                       host
+sensor (int if slave)                   device
+lens (int if slave)
+flash (int if slave)
+
+Control flow:
+
+SoC camera
+|    \
+|     \
+|      \
+|       \
+host    device
+
+OMAP 3 camera driver
+|    |        |   \
+|    |        |    \
+|    |        |     \
+|    |        |      \
+|    sensor   lens    flash
+|    |
+|    |
+|    machine/platform specific code
+|      /
+|     /
+|    /
+|   /
+|  /
+ISP
+
+------------------------------end of the extract from mailing list-------------------------------------------
+
