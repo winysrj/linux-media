@@ -1,43 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.115.56]:47395 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751259Ab0EFXlu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 May 2010 19:41:50 -0400
-Received: from chimera.site ([71.245.98.113]) by xenotime.net for <linux-media@vger.kernel.org>; Thu, 6 May 2010 16:41:45 -0700
-Date: Thu, 6 May 2010 16:41:44 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: Stephen Rothwell <sfr@canb.auug.org.au>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57870 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143Ab0E1G1d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 May 2010 02:27:33 -0400
+Date: Fri, 28 May 2010 08:27:31 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	linux-media@vger.kernel.org
-Subject: [PATCH -next] IR: add header file to fix build
-Message-Id: <20100506164144.f2e176c3.rdunlap@xenotime.net>
-In-Reply-To: <20100506151502.f97afe54.sfr@canb.auug.org.au>
-References: <20100506151502.f97afe54.sfr@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: Re: mt9m111 swap_rgb_red_blue
+Message-ID: <20100528062731.GE23664@pengutronix.de>
+References: <20100526141848.GU17272@pengutronix.de> <87bpc2za9i.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <87bpc2za9i.fsf@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+Hi Robert,
 
-Fix build error:
-drivers/media/IR/rc-map.c:51: error: implicit declaration of function 'msleep'
+On Wed, May 26, 2010 at 10:19:21PM +0200, Robert Jarzmik wrote:
+> Sascha Hauer <s.hauer@pengutronix.de> writes:
+> 
+> > Hi,
+> >
+> > The mt9m111 soc-camera driver has a swap_rgb_red_blue variable which is
+> > hardcoded to 1. This results in, well the name says it, red and blue being
+> > swapped in my picture.
+> > Is this value needed on some boards or is it just a leftover from
+> > development?
+> 
+> Hi Sascha,
+> 
+> It's not a development leftover, it's something that the sensor and the host
+> have to agree upon (ie. agree upon the output the sensor has to deliver to the
+> host).
+> 
+> By now, only the Marvell PXA27x CPU was used as the host of this sensor, and the
+> PXA expects the inverted Red/Blue order (ie. have BGR format).
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+I have digged around in the Datasheet and if I understand it correctly
+the PXA swaps red/blue in RGB mode. So if we do not use rgb mode but yuv
+(which should be a pass through) we should be able to support rgb on PXA
+aswell. Robert, can you confirm that with the following patch applied
+you still get an image but with red/blue swapped?
+
+Sascha
+
+
+
+>From c7b7d94eca2ed3c17121c558b4cbd31eaadb9dc0 Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Fri, 28 May 2010 08:23:20 +0200
+Subject: [PATCH] pxa_camera: Allow real rgb565 format
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 ---
- drivers/media/IR/rc-map.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/video/pxa_camera.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
---- linux-next-20100506.orig/drivers/media/IR/rc-map.c
-+++ linux-next-20100506/drivers/media/IR/rc-map.c
-@@ -13,6 +13,7 @@
-  */
+diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
+index 7fe70e7..f635ad2 100644
+--- a/drivers/media/video/pxa_camera.c
++++ b/drivers/media/video/pxa_camera.c
+@@ -1129,7 +1129,7 @@ static void pxa_camera_setup_cicr(struct soc_camera_device *icd,
+ 			CICR1_TBIT | CICR1_COLOR_SP_VAL(1);
+ 		break;
+ 	case V4L2_PIX_FMT_RGB565:
+-		cicr1 |= CICR1_COLOR_SP_VAL(1) | CICR1_RGB_BPP_VAL(2);
++		cicr1 |= CICR1_COLOR_SP_VAL(2);
+ 		break;
+ 	}
  
- #include <media/ir-core.h>
-+#include <linux/delay.h>
- #include <linux/spinlock.h>
- 
- /* Used to handle IR raw handler extensions */
+-- 
+1.7.1
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
