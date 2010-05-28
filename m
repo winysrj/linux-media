@@ -1,49 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:50710 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751208Ab0E3Ldp convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f183.google.com ([209.85.221.183]:49149 "EHLO
+	mail-qy0-f183.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751051Ab0E1Erz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 07:33:45 -0400
-Date: Sun, 30 May 2010 13:34:55 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Ondrej Zary <linux@rainbow-software.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
-Message-ID: <20100530133455.489c4f46@tele>
-In-Reply-To: <201005292132.09705.linux@rainbow-software.org>
-References: <201005291909.33593.linux@rainbow-software.org>
-	<20100529202425.75b4ff56@tele>
-	<201005292132.09705.linux@rainbow-software.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 28 May 2010 00:47:55 -0400
+Received: by qyk13 with SMTP id 13so1232734qyk.1
+        for <linux-media@vger.kernel.org>; Thu, 27 May 2010 21:47:55 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 28 May 2010 00:47:52 -0400
+Message-ID: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>
+Subject: ir-core multi-protocol decode and mceusb
+From: Jarod Wilson <jarod@wilsonet.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 29 May 2010 21:32:07 +0200
-Ondrej Zary <linux@rainbow-software.org> wrote:
+So I'm inching closer to a viable mceusb driver submission -- both a
+first-gen and a third-gen transceiver are now working perfectly with
+multiple different mce remotes. However, that's only when I make sure
+the mceusb driver is loaded w/only the rc6 decoder loaded. When
+ir-core comes up, it requests all decoders to load, starting with the
+nec decoder, followed by the rc5 decoder, then the rc6 decoder and so
+on (init_decoders() in ir-raw-event.c). When I call
+ir_raw_event_handle, all decoders get run on the ir data buffer,
+starting with nec. Well, the nec decoder doesn't like the rc6 data, so
+it pukes. The RUN_DECODER macro break's out of the routine when that
+happens, and the rc6 decoder never gets a chance to run. (Similarly,
+if only ir-nec-decoder has been removed, the rc5 decoder pukes on the
+rc6 data, same problem). If I'm thinking clearly, rather than breaking
+out of the loop in RUN_DECODER, we really ought to be issuing a
+continue to go on to the next decoder, and possibly be accumulating
+failures, though I don't know that _sumrc actually matters other than
+"greater than zero" (i.e., at least one decoder was successfully able
+to decode the signal). If I'm not thinking clearly, a pointer to what
+I'm missing would be appreciated. :)
 
-> The Color Space/Compression reported by the driver is only one: RGB 24
-> The driver also uses these files which may (or may not) be related to
-> used compression: iyuv_32.dll, msh263.drv, msyuv.dll, tsbyuv.dll
-> In standalone mode, the camera records video in MJPEG format.
+The next fun thing I'm starting to look at is this MCE IR
+keyboard/mouse combo device I've got here[1]... It uses a Philips RC
+variant (I suspect RC-MM at first glance[2]) for the mouse
+functionality and most of the keyboard keys (except many of the
+multimedia keys, which are RC6 like their matching counterparts on the
+MCE remotes). There's a hack atop an old version of lirc_mceusb out
+there that supports this thing[3], which actually has some pretty
+decent looking documentation on its site (though the code itself is...
+well, its hacked in atop an old lirc driver...).
 
-Hello Ondrej,
+Support for the keyboard can wait though. I think the issue
+w/RUN_DECODER is really all that still needs to be resolved for an
+initial submission.
 
-Bad news, the images are compressed by an unknown algorithm (unknown
-from Linux point of vue). The decompression function could be found in
-some part of the ms-win driver, but:
-- first, I have no time to search and disassemble this function,
-- then, I did have this problem with an other webcam (17a1:0118), and
-  after searching for a long time, nobody could find the function, and
-  the driver is in stand-by since 2 years,
-- eventually, is this legal?
-
-All I can do is to code the driver and let you or anyone find the
-decompression function...
-
-Best regards.
+[1] http://www.amazon.com/Microsoft-Remote-Keyboard-Windows-ZV1-00004/dp/B000AOAAN8
+[2] http://www.sbprojects.com/knowledge/ir/rcmm.htm
+[3] http://mod-mce.sourceforge.net/
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Jarod Wilson
+jarod@wilsonet.com
