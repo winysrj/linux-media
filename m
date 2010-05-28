@@ -1,136 +1,354 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:41268 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752052Ab0EaGUF convert rfc822-to-8bit (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:49183 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750842Ab0E1Oxk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 02:20:05 -0400
-Received: by vws9 with SMTP id 9so281469vws.19
-        for <linux-media@vger.kernel.org>; Sun, 30 May 2010 23:20:04 -0700 (PDT)
+	Fri, 28 May 2010 10:53:40 -0400
+Message-ID: <4BFFD887.1060104@arcor.de>
+Date: Fri, 28 May 2010 16:51:51 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>
-References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>
-	<1275136793.2260.18.camel@localhost>
-	<AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>
-	<1275163295.17477.143.camel@localhost>
-	<AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>
-	<4C02700A.9040807@redhat.com>
-	<AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>
-Date: Mon, 31 May 2010 02:20:04 -0400
-Message-ID: <AANLkTik_-6Z12G8rz0xkjbLkpWvfRHorGtD_LbsPr_11@mail.gmail.com>
-Subject: Re: ir-core multi-protocol decode and mceusb
-From: Jarod Wilson <jarod@wilsonet.com>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+CC: linux-media@vger.kernel.org, d.belimov@gmail.com
+Subject: Re: [PATCH 5/5] tm6000: rewrite copy_streams
+References: <1274639505-2674-1-git-send-email-stefan.ringel@arcor.de>	<1274639505-2674-2-git-send-email-stefan.ringel@arcor.de> <20100527182313.70ccc509@pedra>
+In-Reply-To: <20100527182313.70ccc509@pedra>
+Content-Type: multipart/mixed;
+ boundary="------------070306010009060208060803"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 30, 2010 at 3:57 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
-> On Sun, May 30, 2010 at 10:02 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 29-05-2010 23:24, Jarod Wilson escreveu:
->>> On Sat, May 29, 2010 at 4:01 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> ...
->>>>>  We do have the
->>>>> option to disable all but the relevant protocol handler on a
->>>>> per-device basis though, if that's a problem. Hrm, the key tables also
->>>>> have a protocol tied to them, not sure if that's taken into account
->>>>> when doing matching... Still getting to know the code. :)
->>>>
->>>> It does not look like
->>>>
->>>>        ir_keydown()
->>>>                ir_g_keycode_from_table()
->>>>                        ir_getkeycode()
->>>>
->>>> bother to check the ir_type (e.g. IR_TYPE_NEC) of the keymap against the
->>>> decoders type.  Neither do the decoders themselves.
->>>>
->>>>
->>>> If a decoder decodes something and thinks its valid, it tries to send a
->>>> key event with ir_keydown().  ir_keydown() won't send a key event if the
->>>> lookup comes back KEY_RESERVED, but it doesn't tell the decoder about
->>>> the failure to find a key mapping.  A decoder can come back saying it
->>>> did it's job, without knowing whether or not the decoding corresponded
->>>> to a valid key in the loaded keymap. :(
->>>>
->>>>
->>>>>> You will have to deal with the case that two or more decoders may match
->>>>>> and each sends an IR event.  (Unless the ir-core already deals with this
->>>>>> somehow...)
->>>>>
->>>>> Well, its gotta decode correctly to a value, and then match a value in
->>>>> the loaded key table for an input event to get sent through. At least
->>>>> for the RC6 MCE remotes, I haven't seen any of the other decoders take
->>>>> the signal and interpret it as valid -- which ought to be by design,
->>>>> if you consider that people use several different remotes with varying
->>>>> ir signals with different devices all receiving them all the time
->>>>> without problems (usually). And if we're not already, we could likely
->>>>> add some logic to give higher precedence to values arrived at using
->>>>> the protocol decoder that matches the key table we've got loaded for a
->>>>> given device.
->>>>
->>>> After looking at things, the only potential problem I can see right now
->>>> is with the JVC decoder and NEC remotes.
->>>>
->>>> I think that problem is most easily eliminated either by
->>>>
->>>> a. having ir_keydown() (or the functions it calls) check to see that the
->>>> decoder matches the loaded keymap, or
->>>>
->>>> b. only calling the decoder that matches the loaded keymap's protocol
->>>>
->>>> Of the above, b. saves processor cycles and frees up the global
->>>> ir_raw_handler spin lock sooner.  That spin lock is serializing pulse
->>>> decoding for all the IR receivers in the system  (pulse decoding can
->>>> still be interleaved, just only one IR receiver's pulses are be
->>>> processed at any time).  What's the point of running decoders that
->>>> should never match the loaded keymap?
->>>
->>> For the daily use case where a known-good keymap is in place, I'm
->>> coming to the conclusion that there's no point, we're only wasting
->>> resources. For initial "figure out what this remote is" type of stuff,
->>> running all decoders makes sense. One thought I had was that perhaps
->>> we start by running through the decoder that is listed in the keymap.
->>> If it decodes to a scancode and we find a valid key in the key table
->>> (i.e., not KEY_RESERVED), we're done. If decoding fails or we don't
->>> find a valid key, then try the other decoders. However, this is
->>> possibly also wasteful -- most people with any somewhat involved htpc
->>> setup are going to be constantly sending IR signals intended for other
->>> devices that we pick up and try to decode.
->>>
->>> So I'd say we go with your option b, and only call the decoder that
->>> matches the loaded keymap. One could either pass in a modparam or
->>> twiddle a sysfs attr or use ir-keytable to put the receiver into a
->>> mode that called all decoders -- i.e., set protocol to
->>> IR_TYPE_UNKNOWN, with the intention being to figure it out based on
->>> running all decoders, and create a new keymap where IR_TYPE_FOO is
->>> known.
->>
->> There's no need to extra parameters. Decoders can be disabled by userspace,
->> per each rc sysfs node. Btw, the current version of ir-keytable already sets
->> the enabled protocols based on the protocol reported by the rc keymap.
->>
->> What it makes sense is to add a patch at RC core that will properly enable/disable
->> the protocols based on IR_TYPE, when the rc-map is stored in-kernel.
->
-> Ah, yeah, that does make sense. And if we add that, ir-keytable
-> doesn't actually have to worry about doing similar itself any longer.
-> If you're not already working on it, I can try to whip something up,
-> though I'm knee-deep in an ir-lirc-codec bridge right now...
+This is a multi-part message in MIME format.
+--------------070306010009060208060803
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-I've now got an ir-lirc-codec bridge passing data over to a completely
-unmodified lirc_dev, with the data then making its way out to the
-lircd userspace where its even getting properly decoded. I don't have
-the transmit side of things in ir-lirc-codec wired up just yet, but
-I'd like to submit what I've got (after some cleanup) tomorrow, and
-will then incrementally work on transmit. I'm pretty sure wiring up
-transmit is going to require some of the bits we'd be using for native
-transmit as well, so there may be some discussion required. Will give
-a look at setting enabled/disabled decoders tomorrow too, hopefully.
+Am 27.05.2010 23:23, schrieb Mauro Carvalho Chehab:
+> Em Sun, 23 May 2010 20:31:45 +0200
+> stefan.ringel@arcor.de escreveu:
+>
+>   
+>> From: Stefan Ringel <stefan.ringel@arcor.de>
+>>
+>> fusion function copy streams and copy_packets to new function copy_streams.
+>>
+>> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+>> ---
+>>  drivers/staging/tm6000/tm6000-usb-isoc.h |    5 +-
+>>  drivers/staging/tm6000/tm6000-video.c    |  337 +++++++++++-------------------
+>>  2 files changed, 127 insertions(+), 215 deletions(-)
+>>
+>> diff --git a/drivers/staging/tm6000/tm6000-usb-isoc.h b/drivers/staging/tm6000/tm6000-usb-isoc.h
+>> index 5a5049a..138716a 100644
+>> --- a/drivers/staging/tm6000/tm6000-usb-isoc.h
+>> +++ b/drivers/staging/tm6000/tm6000-usb-isoc.h
+>> @@ -39,7 +39,7 @@ struct usb_isoc_ctl {
+>>  	int				pos, size, pktsize;
+>>  
+>>  		/* Last field: ODD or EVEN? */
+>> -	int				field;
+>> +	int				vfield;
+>>  
+>>  		/* Stores incomplete commands */
+>>  	u32				tmp_buf;
+>> @@ -47,7 +47,4 @@ struct usb_isoc_ctl {
+>>  
+>>  		/* Stores already requested buffers */
+>>  	struct tm6000_buffer    	*buf;
+>> -
+>> -		/* Stores the number of received fields */
+>> -	int				nfields;
+>>  };
+>> diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+>> index 2a61cc3..31c574f 100644
+>> --- a/drivers/staging/tm6000/tm6000-video.c
+>> +++ b/drivers/staging/tm6000/tm6000-video.c
+>> @@ -186,234 +186,153 @@ const char *tm6000_msg_type[] = {
+>>  /*
+>>   * Identify the tm5600/6000 buffer header type and properly handles
+>>   */
+>> -static int copy_packet(struct urb *urb, u32 header, u8 **ptr, u8 *endp,
+>> -			u8 *out_p, struct tm6000_buffer **buf)
+>> -{
+>> -	struct tm6000_dmaqueue  *dma_q = urb->context;
+>> -	struct tm6000_core *dev = container_of(dma_q, struct tm6000_core, vidq);
+>> -	u8 c;
+>> -	unsigned int cmd, cpysize, pktsize, size, field, block, line, pos = 0;
+>> -	int rc = 0;
+>> -	/* FIXME: move to tm6000-isoc */
+>> -	static int last_line = -2, start_line = -2, last_field = -2;
+>> -
+>> -	/* FIXME: this is the hardcoded window size
+>> -	 */
+>> -	unsigned int linewidth = (*buf)->vb.width << 1;
+>> -
+>> -	if (!dev->isoc_ctl.cmd) {
+>> -		c = (header >> 24) & 0xff;
+>> -
+>> -		/* split the header fields */
+>> -		size  = ((header & 0x7e) << 1);
+>> -
+>> -		if (size > 0)
+>> -			size -= 4;
+>> -
+>> -		block = (header >> 7) & 0xf;
+>> -		field = (header >> 11) & 0x1;
+>> -		line  = (header >> 12) & 0x1ff;
+>> -		cmd   = (header >> 21) & 0x7;
+>> -
+>> -		/* Validates header fields */
+>> -		if(size > TM6000_URB_MSG_LEN)
+>> -			size = TM6000_URB_MSG_LEN;
+>> -
+>> -		if (cmd == TM6000_URB_MSG_VIDEO) {
+>> -			if ((block+1)*TM6000_URB_MSG_LEN>linewidth)
+>> -				cmd = TM6000_URB_MSG_ERR;
+>> -
+>> -			/* FIXME: Mounts the image as field0+field1
+>> -			 * It should, instead, check if the user selected
+>> -			 * entrelaced or non-entrelaced mode
+>> -			 */
+>> -			pos= ((line<<1)+field)*linewidth +
+>> -				block*TM6000_URB_MSG_LEN;
+>> -
+>> -			/* Don't allow to write out of the buffer */
+>> -			if (pos+TM6000_URB_MSG_LEN > (*buf)->vb.size) {
+>> -				dprintk(dev, V4L2_DEBUG_ISOC,
+>> -					"ERR: size=%d, num=%d, line=%d, "
+>> -					"field=%d\n",
+>> -					size, block, line, field);
+>> -
+>> -				cmd = TM6000_URB_MSG_ERR;
+>> -			}
+>> -		} else {
+>> -			pos=0;
+>> -		}
+>> -
+>> -		/* Prints debug info */
+>> -		dprintk(dev, V4L2_DEBUG_ISOC, "size=%d, num=%d, "
+>> -				" line=%d, field=%d\n",
+>> -				size, block, line, field);
+>> -
+>> -		if ((last_line!=line)&&(last_line+1!=line) &&
+>> -		    (cmd != TM6000_URB_MSG_ERR) )  {
+>> -			if (cmd != TM6000_URB_MSG_VIDEO)  {
+>> -				dprintk(dev, V4L2_DEBUG_ISOC,  "cmd=%d, "
+>> -					"size=%d, num=%d, line=%d, field=%d\n",
+>> -					cmd, size, block, line, field);
+>> -			}
+>> -			if (start_line<0)
+>> -				start_line=last_line;
+>> -			/* Prints debug info */
+>> -			dprintk(dev, V4L2_DEBUG_ISOC, "lines= %d-%d, "
+>> -					"field=%d\n",
+>> -					start_line, last_line, field);
+>> -
+>> -			if ((start_line<6 && last_line>200) &&
+>> -				(last_field != field) ) {
+>> -
+>> -				dev->isoc_ctl.nfields++;
+>> -				if (dev->isoc_ctl.nfields>=2) {
+>> -					dev->isoc_ctl.nfields=0;
+>> -
+>> -					/* Announces that a new buffer were filled */
+>> -					buffer_filled (dev, dma_q, *buf);
+>> -					dprintk(dev, V4L2_DEBUG_ISOC,
+>> -							"new buffer filled\n");
+>> -					get_next_buf (dma_q, buf);
+>> -					if (!*buf)
+>> -						return rc;
+>> -					out_p = videobuf_to_vmalloc(&((*buf)->vb));
+>> -					if (!out_p)
+>> -						return rc;
+>> -
+>> -					pos = dev->isoc_ctl.pos = 0;
+>> -				}
+>> -			}
+>> -
+>> -			start_line=line;
+>> -			last_field=field;
+>> -		}
+>> -		if (cmd == TM6000_URB_MSG_VIDEO)
+>> -			last_line = line;
+>> -
+>> -		pktsize = TM6000_URB_MSG_LEN;
+>> -	} else {
+>> -		/* Continue the last copy */
+>> -		cmd = dev->isoc_ctl.cmd;
+>> -		size= dev->isoc_ctl.size;
+>> -		pos = dev->isoc_ctl.pos;
+>> -		pktsize = dev->isoc_ctl.pktsize;
+>> -	}
+>> -
+>> -	cpysize = (endp-(*ptr) > size) ? size : endp - *ptr;
+>> -
+>> -	if (cpysize) {
+>> -		/* handles each different URB message */
+>> -		switch(cmd) {
+>> -		case TM6000_URB_MSG_VIDEO:
+>> -			/* Fills video buffer */
+>> -			memcpy(&out_p[pos], *ptr, cpysize);
+>> -			break;
+>> -		case TM6000_URB_MSG_PTS:
+>> -			break;
+>> -		case TM6000_URB_MSG_AUDIO:
+>> -			/* Need some code to process audio */
+>> -			printk ("%ld: cmd=%s, size=%d\n", jiffies,
+>> -				tm6000_msg_type[cmd],size);
+>> -			break;
+>> -		case TM6000_URB_MSG_VBI:
+>> -			break;
+>> -		default:
+>> -			dprintk (dev, V4L2_DEBUG_ISOC, "cmd=%s, size=%d\n",
+>> -						tm6000_msg_type[cmd],size);
+>> -		}
+>> -	}
+>> -	if (cpysize<size) {
+>> -		/* End of URB packet, but cmd processing is not
+>> -		 * complete. Preserve the state for a next packet
+>> -		 */
+>> -		dev->isoc_ctl.pos = pos+cpysize;
+>> -		dev->isoc_ctl.size= size-cpysize;
+>> -		dev->isoc_ctl.cmd = cmd;
+>> -		dev->isoc_ctl.pktsize = pktsize-cpysize;
+>> -		(*ptr)+=cpysize;
+>> -	} else {
+>> -		dev->isoc_ctl.cmd = 0;
+>> -		(*ptr)+=pktsize;
+>> -	}
+>> -
+>> -	return rc;
+>> -}
+>> -
+>>  static int copy_streams(u8 *data, unsigned long len,
+>>  			struct urb *urb)
+>>  {
+>>  	struct tm6000_dmaqueue  *dma_q = urb->context;
+>>  	struct tm6000_core *dev= container_of(dma_q,struct tm6000_core,vidq);
+>> -	u8 *ptr=data, *endp=data+len;
+>> +	u8 *ptr=data, *endp=data+len, c;
+>>  	unsigned long header=0;
+>>  	int rc=0;
+>> -	struct tm6000_buffer *buf;
+>> -	char *outp = NULL;
+>> -
+>> -	get_next_buf(dma_q, &buf);
+>> -	if (buf)
+>> -		outp = videobuf_to_vmalloc(&buf->vb);
+>> +	unsigned int cmd, cpysize, pktsize, size, field, block, line, pos = 0;
+>> +	struct tm6000_buffer *vbuf;
+>> +	char *voutp = NULL;
+>> +	unsigned int linewidth;
+>>  
+>> -	if (!outp)
+>> +	/* get video buffer */
+>> +	get_next_buf (dma_q, &vbuf);
+>> +	if (!vbuf)
+>> +		return rc;
+>> +	voutp = videobuf_to_vmalloc(&vbuf->vb);
+>> +	if (!voutp)
+>>  		return 0;
+>>  
+>> -	for (ptr=data; ptr<endp;) {
+>> +	for (ptr = data; ptr < endp;) {
+>>  		if (!dev->isoc_ctl.cmd) {
+>> -			u8 *p=(u8 *)&dev->isoc_ctl.tmp_buf;
+>> -			/* FIXME: This seems very complex
+>> -			 * It just recovers up to 3 bytes of the header that
+>> -			 * might be at the previous packet
+>> -			 */
+>> -			if (dev->isoc_ctl.tmp_buf_len) {
+>> -				while (dev->isoc_ctl.tmp_buf_len) {
+>> -					if ( *(ptr+3-dev->isoc_ctl.tmp_buf_len) == 0x47) {
+>> -						break;
+>> -					}
+>> -					p++;
+>> -					dev->isoc_ctl.tmp_buf_len--;
+>> -				}
+>> -				if (dev->isoc_ctl.tmp_buf_len) {
+>> -					memcpy(&header, p,
+>> -						dev->isoc_ctl.tmp_buf_len);
+>> -					memcpy((u8 *)&header +
+>> +			/* Header */
+>> +			if (dev->isoc_ctl.tmp_buf_len > 0) {
+>> +				/* from last urb or packet */
+>> +				header = dev->isoc_ctl.tmp_buf;
+>> +				if (4 - dev->isoc_ctl.tmp_buf_len > 0)
+>> +					memcpy ((u8 *)&header +
+>>  						dev->isoc_ctl.tmp_buf_len,
+>>  						ptr,
+>>  						4 - dev->isoc_ctl.tmp_buf_len);
+>>  					ptr += 4 - dev->isoc_ctl.tmp_buf_len;
+>> -					goto HEADER;
+>>  				}
+>> +				dev->isoc_ctl.tmp_buf_len = 0;
+>> +			} else {
+>> +				if (ptr + 3 >= endp) {
+>> +					/* have incomplete header */
+>> +					dev->isoc_ctl.tmp_buf_len = endp - ptr;
+>> +					memcpy (&dev->isoc_ctl.tmp_buf, ptr,
+>> +						dev->isoc_ctl.tmp_buf_len);
+>> +					return rc;
+>> +				}
+>> +				/* Seek for sync */
+>> +				for (; ptr < endp - 3; ptr++) {
+>> +					if (ptr < endp - 187) {
+>> +						if (*(ptr + 3) == 0x47 &&
+>> +							(*(ptr + 187) == 0x47)
+>> +							break;
+>>     
+> Hmm... are you sure you need to do this? Just checking for the current sync seems
+> to be enough, except if the URB is corrupted. In the latter case, it would be better
+> to do the opposite: test for the sync at either ptr or ptr + 187:
+>
+> 		if (*(ptr + 3) == 0x47 || (*(ptr + 187) == 0x47)
+>
+>   
+Mauro that doesn't work. It lost any blocks.
+> I don't like the above neither, but this device requires so many workarounds to work
+> with a bad hardware/firmware that one more hack wouldn't hurt, but, if this is really
+> needed, a proper comment explaining the reason for the hack should be added.
+>
+>   
+>> +					} else {
+>> +						if (*(ptr + 3) == 0x47)
+>> +							break;
+>> +					}
+>> +					if (ptr + 3 >= endp)
+>> +						return rc;
+>>     
+> Huh? This test look strange: if ptr + 3 >= endp, the loop would be end before
+> calling this code. So, it seems to be a dead code.
+>
+>   
+>> +				}
+>> +				/* Get message header */
+>> +				header = *(unsigned long *)ptr;
+>> +				ptr += 4;
+>>  			}
+>>     
+>   
 
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Stefan Ringel <stefan.ringel@arcor.de>
+
+
+--------------070306010009060208060803
+Content-Type: text/x-vcard; charset=utf-8;
+ name="stefan_ringel.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="stefan_ringel.vcf"
+
+begin:vcard
+fn:Stefan Ringel
+n:Ringel;Stefan
+email;internet:stefan.ringel@arcor.de
+note:web: www.stefanringel.de
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
+
+
+--------------070306010009060208060803--
