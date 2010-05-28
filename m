@@ -1,67 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:55705 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758769Ab0EYTfu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 May 2010 15:35:50 -0400
-Message-ID: <4BFC2691.1040203@s5r6.in-berlin.de>
-Date: Tue, 25 May 2010 21:35:45 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Received: from mail.gmx.net ([213.165.64.20]:59470 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1755805Ab0E1IVP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 May 2010 04:21:15 -0400
+Date: Fri, 28 May 2010 10:21:23 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Alex Deucher <alexdeucher@gmail.com>
+cc: Jaya Kumar <jayakumar.lkml@gmail.com>, linux-fbdev@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Idea of a v4l -> fb interface driver
+In-Reply-To: <AANLkTin_ia3Ym3z7FOu40voZkjCeMqSDZjuE_1aBjwOW@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1005272216380.1703@axis700.grange>
+References: <Pine.LNX.4.64.1005261559390.22516@axis700.grange>
+ <AANLkTilnb20a4KO1NmK_y148HE_4b6ka14hUJY5o93QT@mail.gmail.com>
+ <Pine.LNX.4.64.1005270809110.2293@axis700.grange>
+ <AANLkTin_ia3Ym3z7FOu40voZkjCeMqSDZjuE_1aBjwOW@mail.gmail.com>
 MIME-Version: 1.0
-To: Jed <jedi.theone@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ideal DVB-C PCI/e card? [linux-media]
-References: <4BF8D735.9070400@gmail.com> <4BF9717D.9080209@s5r6.in-berlin.de> <4BFA1F26.7070709@gmail.com>
-In-Reply-To: <4BFA1F26.7070709@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jed wrote:
-> On 24/05/10 4:18 AM, Stefan Richter wrote:
->> Jed wrote:
->>> Ideally it'd be dual DVB-C, the only one I've found is more than dual
->>> DVB-C&  is far too expensive.
->>
->> If you need two receivers but can only spare up to one PCI or PCIe slot,
->> why not use two USB or FireWire attached receivers?
->>
->> FireWire ones seem to be out of production now though and weren't
->> exactly on the cheap side.  OTOH one can drive up to 3 DVB FireWire
->> receivers on a single FireWire bus; and for those who need even more
->> there are dual link FireWire PCI and PCIe cards readily available.
+On Thu, 27 May 2010, Alex Deucher wrote:
+
+> On Thu, May 27, 2010 at 2:56 AM, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+
+...
+
+> > Ok, let me explain what exactly I meant. Above I referred to "display
+> > drivers," which is not the same as a "framebuffer controller driver" or
+> > whatever you would call it. By framebuffer controller driver I mean a
+> > driver for the actual graphics engine on a certain graphics card or an
+> > SoC. This is the part, that reads data from the actual framebuffer and
+> > outputs it to some hardware interface to a display device. Now this
+> > interface can be a VGA or a DVI connector, it can be one of several bus
+> > types, used with various LCD displays. In many cases this is all you have
+> > to do to get the output to your display. But in some cases the actual
+> > display on the other side of this bus also requires a driver. That can be
+> > some kind of a smart display, it can be a panel with an attached display
+> > controller, that must be at least configured, say, over SPI, it can be a
+> > display, attached to the host over the MIPI DSI bus, and implementing some
+> > proprietary commands. In each of these cases you will have to write a
+> > display driver for this specific display or controller type, and your
+> > framebuffer driver will have to interface with that display driver. Now,
+> > obviously, those displays can be connected to a variety of host systems,
+> > in which case you will want to reuse that display driver. This means,
+> > there has to be a standard fb-driver - display-driver API. AFAICS, this is
+> > currently not implemented in fbdev, please, correct me if I am wrong.
 > 
-> Thanks for offering your thoughts Stefan.
-> Any specific recommendations?
->
-> Ideally I want two or more dvb-c tuners in a pci/e form-factor.
->
-> If there's FW or USB tuners that are mounted onto a PCI/e card, work
-> well in Linux, & are relatively cheap, then I'd love to know!
+> 
+> Another API to consider in the drm kms (kernel modesetting) interface.
+>  The kms API deals properly with advanced display hardware and
+> properly handles crtcs, encoders, and connectors.  It also provides
+> fbdev api emulation.
 
-I don't have an overview over USB tuners.
+Well, is KMS planned as a replacement for both fbdev and user-space 
+graphics drivers? I mean, if you'd be writing a new fb driver for a 
+relatively simple embedded SoC, would KMS apriori be a preferred API?
 
-FireWire tuners are (or rather were) available as external boxes as well
-as cards that could be mounted either in a PCI(e) slot --- but still had
-to be connected to an internal or external FireWire port then --- or in
-a floppy disk bay.  One tuner took up one slot or one bay.  Slot for CAM
-included.
-
-As I said, the FireWire tuners were _not_ cheap, compared to average USB
-tuners or PCI tuners.  Maybe used one can be found to a somewhat better
-price.  FireWire DVB tuners that were sold in the past by different
-vendors were similar in hardware AFAIK, but only ones from Digital
-Everywhere (called FireDTV and FloppyDTV) are supported under Linux
-because DE supplied initial driver code and firmware information.
-
-If you go for USB tuners, then I guess that you will also have to use
-either external devices /or/ drive-bay mounted devices /or/ two PCI(e)
-slots, since you wrote that you need CAMs --- and I doubt that there is
-a cheap off-the-shelf solution that crams two CAM slots into a single
-PCI slot or shares a CAM between tuners...  But as I said, I don't have
-an overview.
--- 
-Stefan Richter
--=====-==-=- -=-= ==--=
-http://arcgraph.de/sr/
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
