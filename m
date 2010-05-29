@@ -1,123 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:34654 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752803Ab0E3T5h convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2313 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757126Ab0E2Oo0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 15:57:37 -0400
-Received: by vws11 with SMTP id 11so1331834vws.19
-        for <linux-media@vger.kernel.org>; Sun, 30 May 2010 12:57:36 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C02700A.9040807@redhat.com>
-References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>
-	<1275136793.2260.18.camel@localhost>
-	<AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>
-	<1275163295.17477.143.camel@localhost>
-	<AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>
-	<4C02700A.9040807@redhat.com>
-Date: Sun, 30 May 2010 15:57:35 -0400
-Message-ID: <AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>
-Subject: Re: ir-core multi-protocol decode and mceusb
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sat, 29 May 2010 10:44:26 -0400
+Message-Id: <82ab009b026cbeaa52473d40b0515c3edda2ef3a.1275143672.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1275143672.git.hverkuil@xs4all.nl>
+References: <cover.1275143672.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sat, 29 May 2010 16:46:08 +0200
+Subject: [PATCH 04/15] [RFCv4] v4l2: hook up the new control framework into the core framework
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, May 30, 2010 at 10:02 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 29-05-2010 23:24, Jarod Wilson escreveu:
->> On Sat, May 29, 2010 at 4:01 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-...
->>>>  We do have the
->>>> option to disable all but the relevant protocol handler on a
->>>> per-device basis though, if that's a problem. Hrm, the key tables also
->>>> have a protocol tied to them, not sure if that's taken into account
->>>> when doing matching... Still getting to know the code. :)
->>>
->>> It does not look like
->>>
->>>        ir_keydown()
->>>                ir_g_keycode_from_table()
->>>                        ir_getkeycode()
->>>
->>> bother to check the ir_type (e.g. IR_TYPE_NEC) of the keymap against the
->>> decoders type.  Neither do the decoders themselves.
->>>
->>>
->>> If a decoder decodes something and thinks its valid, it tries to send a
->>> key event with ir_keydown().  ir_keydown() won't send a key event if the
->>> lookup comes back KEY_RESERVED, but it doesn't tell the decoder about
->>> the failure to find a key mapping.  A decoder can come back saying it
->>> did it's job, without knowing whether or not the decoding corresponded
->>> to a valid key in the loaded keymap. :(
->>>
->>>
->>>>> You will have to deal with the case that two or more decoders may match
->>>>> and each sends an IR event.  (Unless the ir-core already deals with this
->>>>> somehow...)
->>>>
->>>> Well, its gotta decode correctly to a value, and then match a value in
->>>> the loaded key table for an input event to get sent through. At least
->>>> for the RC6 MCE remotes, I haven't seen any of the other decoders take
->>>> the signal and interpret it as valid -- which ought to be by design,
->>>> if you consider that people use several different remotes with varying
->>>> ir signals with different devices all receiving them all the time
->>>> without problems (usually). And if we're not already, we could likely
->>>> add some logic to give higher precedence to values arrived at using
->>>> the protocol decoder that matches the key table we've got loaded for a
->>>> given device.
->>>
->>> After looking at things, the only potential problem I can see right now
->>> is with the JVC decoder and NEC remotes.
->>>
->>> I think that problem is most easily eliminated either by
->>>
->>> a. having ir_keydown() (or the functions it calls) check to see that the
->>> decoder matches the loaded keymap, or
->>>
->>> b. only calling the decoder that matches the loaded keymap's protocol
->>>
->>> Of the above, b. saves processor cycles and frees up the global
->>> ir_raw_handler spin lock sooner.  That spin lock is serializing pulse
->>> decoding for all the IR receivers in the system  (pulse decoding can
->>> still be interleaved, just only one IR receiver's pulses are be
->>> processed at any time).  What's the point of running decoders that
->>> should never match the loaded keymap?
->>
->> For the daily use case where a known-good keymap is in place, I'm
->> coming to the conclusion that there's no point, we're only wasting
->> resources. For initial "figure out what this remote is" type of stuff,
->> running all decoders makes sense. One thought I had was that perhaps
->> we start by running through the decoder that is listed in the keymap.
->> If it decodes to a scancode and we find a valid key in the key table
->> (i.e., not KEY_RESERVED), we're done. If decoding fails or we don't
->> find a valid key, then try the other decoders. However, this is
->> possibly also wasteful -- most people with any somewhat involved htpc
->> setup are going to be constantly sending IR signals intended for other
->> devices that we pick up and try to decode.
->>
->> So I'd say we go with your option b, and only call the decoder that
->> matches the loaded keymap. One could either pass in a modparam or
->> twiddle a sysfs attr or use ir-keytable to put the receiver into a
->> mode that called all decoders -- i.e., set protocol to
->> IR_TYPE_UNKNOWN, with the intention being to figure it out based on
->> running all decoders, and create a new keymap where IR_TYPE_FOO is
->> known.
->
-> There's no need to extra parameters. Decoders can be disabled by userspace,
-> per each rc sysfs node. Btw, the current version of ir-keytable already sets
-> the enabled protocols based on the protocol reported by the rc keymap.
->
-> What it makes sense is to add a patch at RC core that will properly enable/disable
-> the protocols based on IR_TYPE, when the rc-map is stored in-kernel.
+Add the calls needed to automatically merge subdev controls into a bridge
+control handler.
 
-Ah, yeah, that does make sense. And if we add that, ir-keytable
-doesn't actually have to worry about doing similar itself any longer.
-If you're not already working on it, I can try to whip something up,
-though I'm knee-deep in an ir-lirc-codec bridge right now...
+Hook up the control framework in __video_ioctl2 and video_register_device.
 
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/v4l2-dev.c    |    8 +++++-
+ drivers/media/video/v4l2-device.c |    7 +++++
+ drivers/media/video/v4l2-ioctl.c  |   46 ++++++++++++++++++++++++++----------
+ 3 files changed, 46 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index 0ca7ec9..773ffe1 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -447,8 +447,12 @@ static int __video_register_device(struct video_device *vdev, int type, int nr,
+ 
+ 	vdev->vfl_type = type;
+ 	vdev->cdev = NULL;
+-	if (vdev->v4l2_dev && vdev->v4l2_dev->dev)
+-		vdev->parent = vdev->v4l2_dev->dev;
++	if (vdev->v4l2_dev) {
++		if (vdev->v4l2_dev->dev)
++			vdev->parent = vdev->v4l2_dev->dev;
++		if (vdev->ctrl_handler == NULL)
++			vdev->ctrl_handler = vdev->v4l2_dev->ctrl_handler;
++	}
+ 
+ 	/* Part 2: find a free minor, device node number and device index. */
+ #ifdef CONFIG_VIDEO_FIXED_MINOR_RANGES
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 5a7dc4a..0b08f96 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -26,6 +26,7 @@
+ #endif
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
+ 
+ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
+ {
+@@ -115,6 +116,8 @@ EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 						struct v4l2_subdev *sd)
+ {
++	int err;
++
+ 	/* Check for valid input */
+ 	if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
+ 		return -EINVAL;
+@@ -122,6 +125,10 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	WARN_ON(sd->v4l2_dev != NULL);
+ 	if (!try_module_get(sd->owner))
+ 		return -ENODEV;
++	/* This just returns 0 if either of the two args is NULL */
++	err = v4l2_ctrl_add_handler(v4l2_dev->ctrl_handler, sd->ctrl_handler);
++	if (err)
++		return err;
+ 	sd->v4l2_dev = v4l2_dev;
+ 	spin_lock(&v4l2_dev->lock);
+ 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index 0395b1c..94776c3 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -25,6 +25,7 @@
+ #endif
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-ctrls.h>
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-chip-ident.h>
+@@ -1258,9 +1259,12 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_queryctrl *p = arg;
+ 
+-		if (!ops->vidioc_queryctrl)
++		if (vfd->ctrl_handler)
++			ret = v4l2_queryctrl(vfd->ctrl_handler, p);
++		else if (ops->vidioc_queryctrl)
++			ret = ops->vidioc_queryctrl(file, fh, p);
++		else
+ 			break;
+-		ret = ops->vidioc_queryctrl(file, fh, p);
+ 		if (!ret)
+ 			dbgarg(cmd, "id=0x%x, type=%d, name=%s, min/max=%d/%d, "
+ 					"step=%d, default=%d, flags=0x%08x\n",
+@@ -1275,7 +1279,9 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_control *p = arg;
+ 
+-		if (ops->vidioc_g_ctrl)
++		if (vfd->ctrl_handler)
++			ret = v4l2_g_ctrl(vfd->ctrl_handler, p);
++		else if (ops->vidioc_g_ctrl)
+ 			ret = ops->vidioc_g_ctrl(file, fh, p);
+ 		else if (ops->vidioc_g_ext_ctrls) {
+ 			struct v4l2_ext_controls ctrls;
+@@ -1305,11 +1311,16 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls ctrls;
+ 		struct v4l2_ext_control ctrl;
+ 
+-		if (!ops->vidioc_s_ctrl && !ops->vidioc_s_ext_ctrls)
++		if (!vfd->ctrl_handler &&
++			!ops->vidioc_s_ctrl && !ops->vidioc_s_ext_ctrls)
+ 			break;
+ 
+ 		dbgarg(cmd, "id=0x%x, value=%d\n", p->id, p->value);
+ 
++		if (vfd->ctrl_handler) {
++			ret = v4l2_s_ctrl(vfd->ctrl_handler, p);
++			break;
++		}
+ 		if (ops->vidioc_s_ctrl) {
+ 			ret = ops->vidioc_s_ctrl(file, fh, p);
+ 			break;
+@@ -1331,10 +1342,12 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls *p = arg;
+ 
+ 		p->error_idx = p->count;
+-		if (!ops->vidioc_g_ext_ctrls)
+-			break;
+-		if (check_ext_ctrls(p, 0))
++		if (vfd->ctrl_handler)
++			ret = v4l2_g_ext_ctrls(vfd->ctrl_handler, p);
++		else if (ops->vidioc_g_ext_ctrls && check_ext_ctrls(p, 0))
+ 			ret = ops->vidioc_g_ext_ctrls(file, fh, p);
++		else
++			break;
+ 		v4l_print_ext_ctrls(cmd, vfd, p, !ret);
+ 		break;
+ 	}
+@@ -1343,10 +1356,12 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls *p = arg;
+ 
+ 		p->error_idx = p->count;
+-		if (!ops->vidioc_s_ext_ctrls)
++		if (!vfd->ctrl_handler && !ops->vidioc_s_ext_ctrls)
+ 			break;
+ 		v4l_print_ext_ctrls(cmd, vfd, p, 1);
+-		if (check_ext_ctrls(p, 0))
++		if (vfd->ctrl_handler)
++			ret = v4l2_s_ext_ctrls(vfd->ctrl_handler, p);
++		else if (check_ext_ctrls(p, 0))
+ 			ret = ops->vidioc_s_ext_ctrls(file, fh, p);
+ 		break;
+ 	}
+@@ -1355,10 +1370,12 @@ static long __video_do_ioctl(struct file *file,
+ 		struct v4l2_ext_controls *p = arg;
+ 
+ 		p->error_idx = p->count;
+-		if (!ops->vidioc_try_ext_ctrls)
++		if (!vfd->ctrl_handler && !ops->vidioc_try_ext_ctrls)
+ 			break;
+ 		v4l_print_ext_ctrls(cmd, vfd, p, 1);
+-		if (check_ext_ctrls(p, 0))
++		if (vfd->ctrl_handler)
++			ret = v4l2_try_ext_ctrls(vfd->ctrl_handler, p);
++		else if (check_ext_ctrls(p, 0))
+ 			ret = ops->vidioc_try_ext_ctrls(file, fh, p);
+ 		break;
+ 	}
+@@ -1366,9 +1383,12 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		struct v4l2_querymenu *p = arg;
+ 
+-		if (!ops->vidioc_querymenu)
++		if (vfd->ctrl_handler)
++			ret = v4l2_querymenu(vfd->ctrl_handler, p);
++		else if (ops->vidioc_querymenu)
++			ret = ops->vidioc_querymenu(file, fh, p);
++		else
+ 			break;
+-		ret = ops->vidioc_querymenu(file, fh, p);
+ 		if (!ret)
+ 			dbgarg(cmd, "id=0x%x, index=%d, name=%s\n",
+ 				p->id, p->index, p->name);
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+1.6.4.2
+
