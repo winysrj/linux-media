@@ -1,89 +1,310 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail14.adl6.internode.on.net ([150.101.137.99]:60045 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751170Ab0EZH2T (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2389 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757382Ab0E2OpI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 03:28:19 -0400
-Message-ID: <4BFCCD90.70701@gmail.com>
-Date: Wed, 26 May 2010 17:28:16 +1000
-From: Jed <jedi.theone@gmail.com>
-MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ideal DVB-C PCI/e card? [linux-media]
-References: <4BF8D735.9070400@gmail.com>	<4BF9717D.9080209@s5r6.in-berlin.de>	<4BFA1F26.7070709@gmail.com>	<4BFC2691.1040203@s5r6.in-berlin.de>	<AANLkTikStvq6xhdS-e5skEy0LiTMSEBntIyBcb_AK7tc@mail.gmail.com>	<4BFCA843.2080203@gmail.com>	<4BFCAB05.4000104@gmail.com> <AANLkTilkwWVkHgUV2YBcpscsbeUt6GSCpudc0F7W-OSX@mail.gmail.com> <4BFCC741.8070204@gmail.com>
-In-Reply-To: <4BFCC741.8070204@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 29 May 2010 10:45:08 -0400
+Message-Id: <03d41efd13bfa2097b49ba6127d6d746ced4d4f2.1275143672.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1275143672.git.hverkuil@xs4all.nl>
+References: <cover.1275143672.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sat, 29 May 2010 16:46:46 +0200
+Subject: [PATCH 13/15] [RFCv4] wm8739: convert to the new control framework
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>>>>>>> If you need two receivers but can only spare up to one PCI or PCIe
->>>>>>>> slot,
->>>>>>>> why not use two USB or FireWire attached receivers?
->>>>>>>>
->>>>>>>> FireWire ones seem to be out of production now though and weren't
->>>>>>>> exactly on the cheap side. OTOH one can drive up to 3 DVB FireWire
->>>>>>>> receivers on a single FireWire bus; and for those who need even
->>>>>>>> more
->>>>>>>> there are dual link FireWire PCI and PCIe cards readily available.
->>>>>>>
->>>>>>> Thanks for offering your thoughts Stefan.
->>>>>>> Any specific recommendations?
->>>>>>>
->>>>>>> Ideally I want two or more dvb-c tuners in a pci/e form-factor.
->>>>>>>
->>>>>>> If there's FW or USB tuners that are mounted onto a PCI/e card, work
->>>>>>> well in Linux, & are relatively cheap, then I'd love to know!
->>>>>>
->>>>>> We have USB DVB-C/T hybrid devices which are supported with Linux.
->>>>>>
->>>>>> http://support.sundtek.com/index.php/topic,4.0.html (the driver is
->>>>>> mostly independent from
->>>>>> Linux Kernels).
->>>>>>
->>>>>> Aside of that we just made it work on a Dreambox 800 (300 Mhz MIPS as
->>>>>> well, and looking forward
->>>>>> to support other platforms as well).
->>>>>>
->>>>>> http://sundtek.com/shop/Digital-TV-Sticks/Sundtek-MediaTV-Digital-Home-DVB-CT.html
->>>>>>
->>>>>> Best Regards,
->>>>>> Markus
->>>>>
->>>>> Thanks but I'd prefer PCI/e form-factor...
->>>>> If there's something fw or usb-based x2,& squeezed into that
->>>>> form-factor, I'm very interested!
->>>>
->>>> I may only have room for 1x pci/e dvb-c card (hopefully one that has two
->>>> single fw tuners mounted).
->>>> So I may still look at USB based tuners like yours...
->>>
->>> There are also MiniPCIe USB DVB-C/T solutions available, although we
->>> have only seen single
->>> PCIe - MiniPCIe solutions yet (and those required an additional
->>> internal USB connection for the USB part)
->>> Another option might be a PCI/PCIe USB Bridge + USB DVB-C, we tested
->>> 3x USB DVB-C devices
->>> with a notebook at the same time (maybe 4 are possible, our test PC
->>> only had 3x USB Slots back then).
->>
->> Not sure what you mean, I don't suppose you could clarify?
->>
->> You mean I might be able to buy 2x mini-PCIe cards that can be mounted
->> onto a PCIe <-> USB bridge & then that card (bridge) will have two usb
->> cables that need to be connected to 2 USB headers on the motherboard?
->>
->> If yes, that'd be fairly pricey wouldn't it?
->
-> I'm only writing about the technical possibilities.
-> Personally I prefer the USB Dongles, since they are flexible. Once you
-> leave your
-> home you can just unplug the DVB-C tuner connect it to a
-> notebook/netbook and use
-> it for FM, analog TV or DVB-T.
->
-> Markus
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/wm8739.c |  179 +++++++++++++++---------------------------
+ 1 files changed, 62 insertions(+), 117 deletions(-)
 
-Oh, so you're not aware of anything like that, which is purchasable?
+diff --git a/drivers/media/video/wm8739.c b/drivers/media/video/wm8739.c
+index b572ce2..f5779c2 100644
+--- a/drivers/media/video/wm8739.c
++++ b/drivers/media/video/wm8739.c
+@@ -26,11 +26,11 @@
+ #include <linux/ioctl.h>
+ #include <asm/uaccess.h>
+ #include <linux/i2c.h>
+-#include <linux/i2c-id.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-i2c-drv.h>
++#include <media/v4l2-ctrls.h>
+ 
+ MODULE_DESCRIPTION("wm8739 driver");
+ MODULE_AUTHOR("T. Adachi, Hans Verkuil");
+@@ -53,12 +53,14 @@ enum {
+ 
+ struct wm8739_state {
+ 	struct v4l2_subdev sd;
++	struct v4l2_ctrl_handler hdl;
++	struct {
++		/* audio cluster */
++		struct v4l2_ctrl *volume;
++		struct v4l2_ctrl *mute;
++		struct v4l2_ctrl *balance;
++	};
+ 	u32 clock_freq;
+-	u8 muted;
+-	u16 volume;
+-	u16 balance;
+-	u8 vol_l; 		/* +12dB to -34.5dB 1.5dB step (5bit) def:0dB */
+-	u8 vol_r; 		/* +12dB to -34.5dB 1.5dB step (5bit) def:0dB */
+ };
+ 
+ static inline struct wm8739_state *to_state(struct v4l2_subdev *sd)
+@@ -66,6 +68,11 @@ static inline struct wm8739_state *to_state(struct v4l2_subdev *sd)
+ 	return container_of(sd, struct wm8739_state, sd);
+ }
+ 
++static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
++{
++	return &container_of(ctrl->handler, struct wm8739_state, hdl)->sd;
++}
++
+ /* ------------------------------------------------------------------------ */
+ 
+ static int wm8739_write(struct v4l2_subdev *sd, int reg, u16 val)
+@@ -88,58 +95,17 @@ static int wm8739_write(struct v4l2_subdev *sd, int reg, u16 val)
+ 	return -1;
+ }
+ 
+-/* write regs to set audio volume etc */
+-static void wm8739_set_audio(struct v4l2_subdev *sd)
+-{
+-	struct wm8739_state *state = to_state(sd);
+-	u16 mute = state->muted ? 0x80 : 0;
+-
+-	/* Volume setting: bits 0-4, 0x1f = 12 dB, 0x00 = -34.5 dB
+-	 * Default setting: 0x17 = 0 dB
+-	 */
+-	wm8739_write(sd, R0, (state->vol_l & 0x1f) | mute);
+-	wm8739_write(sd, R1, (state->vol_r & 0x1f) | mute);
+-}
+-
+-static int wm8739_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+-	struct wm8739_state *state = to_state(sd);
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_AUDIO_MUTE:
+-		ctrl->value = state->muted;
+-		break;
+-
+-	case V4L2_CID_AUDIO_VOLUME:
+-		ctrl->value = state->volume;
+-		break;
+-
+-	case V4L2_CID_AUDIO_BALANCE:
+-		ctrl->value = state->balance;
+-		break;
+-
+-	default:
+-		return -EINVAL;
+-	}
+-	return 0;
+-}
+-
+-static int wm8739_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
++static int wm8739_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
++	struct v4l2_subdev *sd = to_sd(ctrl);
+ 	struct wm8739_state *state = to_state(sd);
+ 	unsigned int work_l, work_r;
++	u8 vol_l; 	/* +12dB to -34.5dB 1.5dB step (5bit) def:0dB */
++	u8 vol_r; 	/* +12dB to -34.5dB 1.5dB step (5bit) def:0dB */
++	u16 mute;
+ 
+ 	switch (ctrl->id) {
+-	case V4L2_CID_AUDIO_MUTE:
+-		state->muted = ctrl->value;
+-		break;
+-
+ 	case V4L2_CID_AUDIO_VOLUME:
+-		state->volume = ctrl->value;
+-		break;
+-
+-	case V4L2_CID_AUDIO_BALANCE:
+-		state->balance = ctrl->value;
+ 		break;
+ 
+ 	default:
+@@ -147,52 +113,25 @@ static int wm8739_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 	}
+ 
+ 	/* normalize ( 65535 to 0 -> 31 to 0 (12dB to -34.5dB) ) */
+-	work_l = (min(65536 - state->balance, 32768) * state->volume) / 32768;
+-	work_r = (min(state->balance, (u16)32768) * state->volume) / 32768;
++	work_l = (min(65536 - state->balance->val, 32768) * state->volume->val) / 32768;
++	work_r = (min(state->balance->val, 32768) * state->volume->val) / 32768;
+ 
+-	state->vol_l = (long)work_l * 31 / 65535;
+-	state->vol_r = (long)work_r * 31 / 65535;
++	vol_l = (long)work_l * 31 / 65535;
++	vol_r = (long)work_r * 31 / 65535;
+ 
+ 	/* set audio volume etc. */
+-	wm8739_set_audio(sd);
++	mute = state->mute->val ? 0x80 : 0;
++
++	/* Volume setting: bits 0-4, 0x1f = 12 dB, 0x00 = -34.5 dB
++	 * Default setting: 0x17 = 0 dB
++	 */
++	wm8739_write(sd, R0, (vol_l & 0x1f) | mute);
++	wm8739_write(sd, R1, (vol_r & 0x1f) | mute);
+ 	return 0;
+ }
+ 
+ /* ------------------------------------------------------------------------ */
+ 
+-static struct v4l2_queryctrl wm8739_qctrl[] = {
+-	{
+-		.id            = V4L2_CID_AUDIO_VOLUME,
+-		.name          = "Volume",
+-		.minimum       = 0,
+-		.maximum       = 65535,
+-		.step          = 65535/100,
+-		.default_value = 58880,
+-		.flags         = 0,
+-		.type          = V4L2_CTRL_TYPE_INTEGER,
+-	}, {
+-		.id            = V4L2_CID_AUDIO_MUTE,
+-		.name          = "Mute",
+-		.minimum       = 0,
+-		.maximum       = 1,
+-		.step          = 1,
+-		.default_value = 1,
+-		.flags         = 0,
+-		.type          = V4L2_CTRL_TYPE_BOOLEAN,
+-	}, {
+-		.id            = V4L2_CID_AUDIO_BALANCE,
+-		.name          = "Balance",
+-		.minimum       = 0,
+-		.maximum       = 65535,
+-		.step          = 65535/100,
+-		.default_value = 32768,
+-		.flags         = 0,
+-		.type          = V4L2_CTRL_TYPE_INTEGER,
+-	}
+-};
+-
+-/* ------------------------------------------------------------------------ */
+-
+ static int wm8739_s_clock_freq(struct v4l2_subdev *sd, u32 audiofreq)
+ {
+ 	struct wm8739_state *state = to_state(sd);
+@@ -221,18 +160,6 @@ static int wm8739_s_clock_freq(struct v4l2_subdev *sd, u32 audiofreq)
+ 	return 0;
+ }
+ 
+-static int wm8739_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(wm8739_qctrl); i++)
+-		if (qc->id && qc->id == wm8739_qctrl[i].id) {
+-			memcpy(qc, &wm8739_qctrl[i], sizeof(*qc));
+-			return 0;
+-		}
+-	return -EINVAL;
+-}
+-
+ static int wm8739_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+@@ -245,21 +172,26 @@ static int wm8739_log_status(struct v4l2_subdev *sd)
+ 	struct wm8739_state *state = to_state(sd);
+ 
+ 	v4l2_info(sd, "Frequency: %u Hz\n", state->clock_freq);
+-	v4l2_info(sd, "Volume L:  %02x%s\n", state->vol_l & 0x1f,
+-			state->muted ? " (muted)" : "");
+-	v4l2_info(sd, "Volume R:  %02x%s\n", state->vol_r & 0x1f,
+-			state->muted ? " (muted)" : "");
++	v4l2_ctrl_handler_log_status(&state->hdl, sd->name);
+ 	return 0;
+ }
+ 
+ /* ----------------------------------------------------------------------- */
+ 
++static const struct v4l2_ctrl_ops wm8739_ctrl_ops = {
++	.s_ctrl = wm8739_s_ctrl,
++};
++
+ static const struct v4l2_subdev_core_ops wm8739_core_ops = {
+ 	.log_status = wm8739_log_status,
+ 	.g_chip_ident = wm8739_g_chip_ident,
+-	.queryctrl = wm8739_queryctrl,
+-	.g_ctrl = wm8739_g_ctrl,
+-	.s_ctrl = wm8739_s_ctrl,
++	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
++	.g_ctrl = v4l2_subdev_g_ctrl,
++	.s_ctrl = v4l2_subdev_s_ctrl,
++	.queryctrl = v4l2_subdev_queryctrl,
++	.querymenu = v4l2_subdev_querymenu,
+ };
+ 
+ static const struct v4l2_subdev_audio_ops wm8739_audio_ops = {
+@@ -288,17 +220,28 @@ static int wm8739_probe(struct i2c_client *client,
+ 	v4l_info(client, "chip found @ 0x%x (%s)\n",
+ 			client->addr << 1, client->adapter->name);
+ 
+-	state = kmalloc(sizeof(struct wm8739_state), GFP_KERNEL);
++	state = kzalloc(sizeof(struct wm8739_state), GFP_KERNEL);
+ 	if (state == NULL)
+ 		return -ENOMEM;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &wm8739_ops);
+-	state->vol_l = 0x17; /* 0dB */
+-	state->vol_r = 0x17; /* 0dB */
+-	state->muted = 0;
+-	state->balance = 32768;
+-	/* normalize (12dB(31) to -34.5dB(0) [0dB(23)] -> 65535 to 0) */
+-	state->volume = ((long)state->vol_l + 1) * 65535 / 31;
++	v4l2_ctrl_handler_init(&state->hdl, 2);
++	state->volume = v4l2_ctrl_new_std(&state->hdl, &wm8739_ctrl_ops,
++			V4L2_CID_AUDIO_VOLUME, 0, 65535, 65535 / 100, 50736);
++	state->mute = v4l2_ctrl_new_std(&state->hdl, &wm8739_ctrl_ops,
++			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
++	state->balance = v4l2_ctrl_new_std(&state->hdl, &wm8739_ctrl_ops,
++			V4L2_CID_AUDIO_BALANCE, 0, 65535, 65535 / 100, 32768);
++	sd->ctrl_handler = &state->hdl;
++	if (state->hdl.error) {
++		int err = state->hdl.error;
++
++		v4l2_ctrl_handler_free(&state->hdl);
++		kfree(state);
++		return err;
++	}
++	v4l2_ctrl_cluster(3, &state->volume);
++
+ 	state->clock_freq = 48000;
+ 
+ 	/* Initialize wm8739 */
+@@ -317,15 +260,17 @@ static int wm8739_probe(struct i2c_client *client,
+ 	/* activate */
+ 	wm8739_write(sd, R9, 0x001);
+ 	/* set volume/mute */
+-	wm8739_set_audio(sd);
++	v4l2_ctrl_handler_setup(&state->hdl);
+ 	return 0;
+ }
+ 
+ static int wm8739_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct wm8739_state *state = to_state(sd);
+ 
+ 	v4l2_device_unregister_subdev(sd);
++	v4l2_ctrl_handler_free(&state->hdl);
+ 	kfree(to_state(sd));
+ 	return 0;
+ }
+-- 
+1.6.4.2
 
