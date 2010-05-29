@@ -1,48 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:33764 "EHLO
-	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751772Ab0EGNky (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 09:40:54 -0400
-Received: from MacBook-Pro.local
- (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0L21006PQXZXWYS0@mta5.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Fri, 07 May 2010 09:40:48 -0400 (EDT)
-Date: Fri, 07 May 2010 09:40:45 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: Time to merge support for new HVR-2200?
-In-reply-to: <4BE407F9.8040409@barber-family.id.au>
-To: Francis Barber <fedora@barber-family.id.au>
-Cc: linux-media@vger.kernel.org
-Message-id: <4BE4185D.3010902@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4BE407F9.8040409@barber-family.id.au>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1938 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757192Ab0E2Oom (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 May 2010 10:44:42 -0400
+Message-Id: <6980b4dab6209a44aa8d582dfd39c92fd56b99eb.1275143672.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1275143672.git.hverkuil@xs4all.nl>
+References: <cover.1275143672.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sat, 29 May 2010 16:46:32 +0200
+Subject: [PATCH 08/15] [RFCv4] cx25840/ivtv: replace ugly priv control with s_config
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 5/7/10 8:30 AM, Francis Barber wrote:
-> Hello Steven,
->
-> I was just what your plans are to submit the latest patches from
-> http://www.kernellabs.com/hg/saa7164-stable to the main linuxtv
-> repository?  It would be great to have these in the main kernel.
+The cx25840 used a private control CX25840_CID_ENABLE_PVR150_WORKAROUND
+to be told whether to enable a workaround for certain pvr150 cards.
 
-Hi Frank.
+This is really config data that it needs to get at load time.
 
-Yeah, I actually have a large number of patches for the HVR22xx and the CX2388x 
-sitting up on kernellabs.com
+Implemented this in cx25840 and ivtv.
 
-I'm hoping to get these out for pull this weekend. Another dev is also working 
-on the TDA10048 fixes so the plan is to pull these into saa7164-dev, test using 
-a generator and (all being well) promote these into a unified tree.
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+---
+ drivers/media/video/cx25840/cx25840-core.c |   23 +++++++++++++++--------
+ drivers/media/video/cx25840/cx25840-core.h |    8 --------
+ drivers/media/video/ivtv/ivtv-driver.c     |    9 +--------
+ drivers/media/video/ivtv/ivtv-i2c.c        |    7 +++++++
+ include/media/cx25840.h                    |   11 +++++++++++
+ 5 files changed, 34 insertions(+), 24 deletions(-)
 
-Regards,
-
-- Steve
-
+diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
+index 8b6fb35..528bd00 100644
+--- a/drivers/media/video/cx25840/cx25840-core.c
++++ b/drivers/media/video/cx25840/cx25840-core.c
+@@ -915,11 +915,6 @@ static int cx25840_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+ 	switch (ctrl->id) {
+-	case CX25840_CID_ENABLE_PVR150_WORKAROUND:
+-		state->pvr150_workaround = ctrl->value;
+-		set_input(client, state->vid_input, state->aud_input);
+-		break;
+-
+ 	case V4L2_CID_BRIGHTNESS:
+ 		if (ctrl->value < 0 || ctrl->value > 255) {
+ 			v4l_err(client, "invalid brightness setting %d\n",
+@@ -982,9 +977,6 @@ static int cx25840_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 
+ 	switch (ctrl->id) {
+-	case CX25840_CID_ENABLE_PVR150_WORKAROUND:
+-		ctrl->value = state->pvr150_workaround;
+-		break;
+ 	case V4L2_CID_BRIGHTNESS:
+ 		ctrl->value = (s8)cx25840_read(client, 0x414) + 128;
+ 		break;
+@@ -1595,10 +1587,25 @@ static int cx25840_log_status(struct v4l2_subdev *sd)
+ 	return 0;
+ }
+ 
++static int cx25840_s_config(struct v4l2_subdev *sd, int irq, void *platform_data)
++{
++	struct cx25840_state *state = to_state(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	if (platform_data) {
++		struct cx25840_platform_data *pdata = platform_data;
++
++		state->pvr150_workaround = pdata->pvr150_workaround;
++		set_input(client, state->vid_input, state->aud_input);
++	}
++	return 0;
++}
++
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_subdev_core_ops cx25840_core_ops = {
+ 	.log_status = cx25840_log_status,
++	.s_config = cx25840_s_config,
+ 	.g_chip_ident = cx25840_g_chip_ident,
+ 	.g_ctrl = cx25840_g_ctrl,
+ 	.s_ctrl = cx25840_s_ctrl,
+diff --git a/drivers/media/video/cx25840/cx25840-core.h b/drivers/media/video/cx25840/cx25840-core.h
+index 04393b9..32ab9d5 100644
+--- a/drivers/media/video/cx25840/cx25840-core.h
++++ b/drivers/media/video/cx25840/cx25840-core.h
+@@ -26,14 +26,6 @@
+ #include <media/v4l2-chip-ident.h>
+ #include <linux/i2c.h>
+ 
+-/* ENABLE_PVR150_WORKAROUND activates a workaround for a hardware bug that is
+-   present in Hauppauge PVR-150 (and possibly PVR-500) cards that have
+-   certain NTSC tuners (tveeprom tuner model numbers 85, 99 and 112). The
+-   audio autodetect fails on some channels for these models and the workaround
+-   is to select the audio standard explicitly. Many thanks to Hauppauge for
+-   providing this information. */
+-#define CX25840_CID_ENABLE_PVR150_WORKAROUND (V4L2_CID_PRIVATE_BASE+0)
+-
+ struct cx25840_state {
+ 	struct i2c_client *c;
+ 	struct v4l2_subdev sd;
+diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
+index 1b79475..85aab0e 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.c
++++ b/drivers/media/video/ivtv/ivtv-driver.c
+@@ -1253,15 +1253,8 @@ int ivtv_init_on_first_open(struct ivtv *itv)
+ 	IVTV_DEBUG_INFO("Getting firmware version..\n");
+ 	ivtv_firmware_versions(itv);
+ 
+-	if (itv->card->hw_all & IVTV_HW_CX25840) {
+-		struct v4l2_control ctrl;
+-
++	if (itv->card->hw_all & IVTV_HW_CX25840)
+ 		v4l2_subdev_call(itv->sd_video, core, load_fw);
+-		/* CX25840_CID_ENABLE_PVR150_WORKAROUND */
+-		ctrl.id = V4L2_CID_PRIVATE_BASE;
+-		ctrl.value = itv->pvr150_workaround;
+-		v4l2_subdev_call(itv->sd_video, core, s_ctrl, &ctrl);
+-	}
+ 
+ 	vf.tuner = 0;
+ 	vf.type = V4L2_TUNER_ANALOG_TV;
+diff --git a/drivers/media/video/ivtv/ivtv-i2c.c b/drivers/media/video/ivtv/ivtv-i2c.c
+index a5b92d1..d391bbd 100644
+--- a/drivers/media/video/ivtv/ivtv-i2c.c
++++ b/drivers/media/video/ivtv/ivtv-i2c.c
+@@ -63,6 +63,7 @@
+ #include "ivtv-cards.h"
+ #include "ivtv-gpio.h"
+ #include "ivtv-i2c.h"
++#include <media/cx25840.h>
+ 
+ /* i2c implementation for cx23415/6 chip, ivtv project.
+  * Author: Kevin Thayer (nufan_wfk at yahoo.com)
+@@ -292,6 +293,12 @@ int ivtv_i2c_register(struct ivtv *itv, unsigned idx)
+ 	if (hw == IVTV_HW_UPD64031A || hw == IVTV_HW_UPD6408X) {
+ 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
+ 				adap, mod, type, 0, I2C_ADDRS(hw_addrs[idx]));
++	} else if (hw == IVTV_HW_CX25840) {
++		struct cx25840_platform_data pdata;
++
++		pdata.pvr150_workaround = itv->pvr150_workaround;
++		sd = v4l2_i2c_new_subdev_cfg(&itv->v4l2_dev,
++				adap, mod, type, 0, &pdata, hw_addrs[idx], NULL);
+ 	} else {
+ 		sd = v4l2_i2c_new_subdev(&itv->v4l2_dev,
+ 				adap, mod, type, hw_addrs[idx], NULL);
+diff --git a/include/media/cx25840.h b/include/media/cx25840.h
+index 0b0cb17..df28412 100644
+--- a/include/media/cx25840.h
++++ b/include/media/cx25840.h
+@@ -97,4 +97,15 @@ enum cx25840_audio_input {
+ 	CX25840_AUDIO8,
+ };
+ 
++/* pvr150_workaround activates a workaround for a hardware bug that is
++   present in Hauppauge PVR-150 (and possibly PVR-500) cards that have
++   certain NTSC tuners (tveeprom tuner model numbers 85, 99 and 112). The
++   audio autodetect fails on some channels for these models and the workaround
++   is to select the audio standard explicitly. Many thanks to Hauppauge for
++   providing this information.
++   This platform data only needs to be supplied by the ivtv driver. */
++struct cx25840_platform_data {
++	int pvr150_workaround;
++};
++
+ #endif
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.6.4.2
 
