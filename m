@@ -1,97 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.tkos.co.il ([62.219.50.35]:60204 "EHLO tango.tkos.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750896Ab0EQN7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 May 2010 09:59:09 -0400
-Date: Mon, 17 May 2010 16:58:00 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH 1/3] mx2_camera: Add soc_camera support for
- i.MX25/i.MX27
-Message-ID: <20100517135800.GB30927@jasper.tkos.co.il>
-References: <cover.1273150585.git.baruch@tkos.co.il>
- <a029bab8fcb3273df4a1d98f779f110b127742bd.1273150585.git.baruch@tkos.co.il>
- <Pine.LNX.4.64.1005090045230.10524@axis700.grange>
- <20100517072720.GD31199@pengutronix.de>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:46757 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751816Ab0E2Q7D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 May 2010 12:59:03 -0400
+Received: by vws11 with SMTP id 11so311626vws.19
+        for <linux-media@vger.kernel.org>; Sat, 29 May 2010 09:58:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100517072720.GD31199@pengutronix.de>
+In-Reply-To: <1275136793.2260.18.camel@localhost>
+References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>
+	<1275136793.2260.18.camel@localhost>
+Date: Sat, 29 May 2010 12:58:55 -0400
+Message-ID: <AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>
+Subject: Re: ir-core multi-protocol decode and mceusb
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sascha,
+On Sat, May 29, 2010 at 8:39 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+> On Fri, 2010-05-28 at 00:47 -0400, Jarod Wilson wrote:
+>> So I'm inching closer to a viable mceusb driver submission -- both a
+>> first-gen and a third-gen transceiver are now working perfectly with
+>> multiple different mce remotes. However, that's only when I make sure
+>> the mceusb driver is loaded w/only the rc6 decoder loaded. When
+>> ir-core comes up, it requests all decoders to load, starting with the
+>> nec decoder, followed by the rc5 decoder, then the rc6 decoder and so
+>> on (init_decoders() in ir-raw-event.c). When I call
+>> ir_raw_event_handle, all decoders get run on the ir data buffer,
+>> starting with nec. Well, the nec decoder doesn't like the rc6 data, so
+>> it pukes. The RUN_DECODER macro break's out of the routine when that
+>> happens, and the rc6 decoder never gets a chance to run. (Similarly,
+>> if only ir-nec-decoder has been removed, the rc5 decoder pukes on the
+>> rc6 data, same problem).
+>
+> Yes, if the system kernel is going to attempt to discriminate between
+> various input singals, it needs to let all its "correlators" run and
+> produce a "confidence" number from each.
+>
+> Then ideally one would take the result with the highest confidence.
+>
+> Right now it looks like all the confidence determinations are boolean (0
+> or -EINVAL) and there is no chance to deal with the case that two
+> different decoders validly decode something.  The first decoder that
+> declares a match "wins" and sends an event.
 
-Thanks for your comments.
+Yeah, it does look that way. I wonder how likely it is that e.g. a
+valid RC6 signal would be decoded to something by say the NEC decoder,
+with a resulting value that matched an entry in the (RC6) keymap
+loaded for the remote... Certainly seems like something that *could*
+happen somehow, but probably unlikely? I dunno... We do have the
+option to disable all but the relevant protocol handler on a
+per-device basis though, if that's a problem. Hrm, the key tables also
+have a protocol tied to them, not sure if that's taken into account
+when doing matching... Still getting to know the code. :)
 
-On Mon, May 17, 2010 at 09:27:20AM +0200, Sascha Hauer wrote:
-> On Wed, May 12, 2010 at 09:02:29PM +0200, Guennadi Liakhovetski wrote:
-> > Hi Baruch
-> > 
-> > Thanks for eventually mainlining this driver! A couple of comments below. 
-> > Sascha, would be great, if you could get it tested on imx27 with and 
-> > without emma.
-> 
-> I will see what I can do. Testing and probably breathing life into a
-> camera driver usually takes me two days given that the platform support
-> is very outdated. I hope our customer is interested in this, then it
-> would be possible to test it.
-> 
-> > BTW, if you say, that you use emma to avoid using the 
-> > standard DMA controller, why would anyone want not to use emma? Resource 
-> > conflict? There is also a question for you down in the comments, please, 
-> > skim over.
-> 
-> I originally did not know how all the components should work together.
-> Now I think it's the right way to use the EMMA to be able to scale
-> images and to do colour conversions (which does not work with our Bayer
-> format cameras, so I cannot test it).
+>>  If I'm thinking clearly, rather than breaking
+>> out of the loop in RUN_DECODER, we really ought to be issuing a
+>> continue to go on to the next decoder, and possibly be accumulating
+>> failures, though I don't know that _sumrc actually matters other than
+>> "greater than zero" (i.e., at least one decoder was successfully able
+>> to decode the signal). If I'm not thinking clearly, a pointer to what
+>> I'm missing would be appreciated. :)
+>
+> You will have to deal with the case that two or more decoders may match
+> and each sends an IR event.  (Unless the ir-core already deals with this
+> somehow...)
 
-So can I remove the non EMMA code from this driver? This will simplify the 
-code quite a bit.
+Well, its gotta decode correctly to a value, and then match a value in
+the loaded key table for an input event to get sent through. At least
+for the RC6 MCE remotes, I haven't seen any of the other decoders take
+the signal and interpret it as valid -- which ought to be by design,
+if you consider that people use several different remotes with varying
+ir signals with different devices all receiving them all the time
+without problems (usually). And if we're not already, we could likely
+add some logic to give higher precedence to values arrived at using
+the protocol decoder that matches the key table we've got loaded for a
+given device.
 
-[snip]
+In looking closer at what we're doing now with RUN_DECODER(), it seems
+only __ir_input_register() actually cares about the retval, and
+unfortunately, it seems to be checking for a ret < 0 to indicate
+failure, which isn't possible -- its _sumrc that gets returned, and
+its initialized to 0, then only ever adjusted if _rc >= 0, so we'll
+never see it as a failure in __ir_input_register().
 
-> > > +static int mclk_get_divisor(struct mx2_camera_dev *pcdev)
-> > > +{
-> > > +	dev_info(pcdev->dev, "%s not implemented. Running at max speed\n",
-> > > +			__func__);
-> > 
-> > Hm, why is this unimplemented?
-> > 
-> > > +
-> > > +#if 0
-> > > +	unsigned int mclk = pcdev->pdata->clk_csi;
-> > > +	unsigned int pclk = clk_get_rate(pcdev->clk_csi);
-> > > +	int i;
-> > > +
-> > > +	dev_dbg(pcdev->dev, "%s: %ld %ld\n", __func__, mclk, pclk);
-> > > +
-> > > +	for (i = 0; i < 0xf; i++)
-> > > +		if ((i + 1) * 2 * mclk <= pclk)
-> > > +			break;
-> > 
-> > This doesn't look right. You increment the counter i, and terminate the
-> > loop as soon as "(i + 1) * 2 * mclk <= pclk". Obviously, if 2 * mclk <= pclk,
-> > this will terminate immediately, otherwise it will run until the end and
-> > return 0xf without satisfying the condition. What exactly are you trying to
-> > achieve? Find the _largest_ i, such that "(i + 1) * 2 * mclk <= pclk"? Then
-> > why not just do "i = pclk / 2 / mclk - 1"?
-> > 
-> > > +	return i;
-> > > +#endif
-> > > +	return 0;
-> > > +}
-
-Can you shed some light on this?
-
-Thanks,
-baruch
+Given that bit of data, I'd say the patch I submitted yesterday isn't
+quite correct. I think RUN_DECODER should actually be adding _rc to
+_sumrc in all cases -- instead of an if/else on _rc < 0, just always
+do the _sumrc += _rc and return _sumrc, which will either be 0 or some
+negative value. I don't think we need to worry at all about the retval
+we get from the decode functions though -- either we get one or more
+decoded values to match against our key table or we don't...
 
 -- 
-                                                     ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
+Jarod Wilson
+jarod@wilsonet.com
