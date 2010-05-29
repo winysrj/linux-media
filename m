@@ -1,63 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail19.adl2.internode.on.net ([150.101.137.104]:56094 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750887Ab0EZEtL (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1546 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756516Ab0E2OoH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 00:49:11 -0400
-Message-ID: <4BFCA843.2080203@gmail.com>
-Date: Wed, 26 May 2010 14:49:07 +1000
-From: Jed <jedi.theone@gmail.com>
-MIME-Version: 1.0
-To: Markus Rechberger <mrechberger@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ideal DVB-C PCI/e card? [linux-media]
-References: <4BF8D735.9070400@gmail.com> <4BF9717D.9080209@s5r6.in-berlin.de>	 <4BFA1F26.7070709@gmail.com> <4BFC2691.1040203@s5r6.in-berlin.de> <AANLkTikStvq6xhdS-e5skEy0LiTMSEBntIyBcb_AK7tc@mail.gmail.com>
-In-Reply-To: <AANLkTikStvq6xhdS-e5skEy0LiTMSEBntIyBcb_AK7tc@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 29 May 2010 10:44:07 -0400
+Message-Id: <26377cc0d504521ece3b111070bd653ed270950f.1275143672.git.hverkuil@xs4all.nl>
+In-Reply-To: <cover.1275143672.git.hverkuil@xs4all.nl>
+References: <cover.1275143672.git.hverkuil@xs4all.nl>
+From: Hans Verkuil <hverkuil@xs4all.nl>
+Date: Sat, 29 May 2010 16:45:56 +0200
+Subject: [PATCH 02/15] [RFCv4] v4l2-ctrls: reorder 'case' statements to match order in header.
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>>>> Ideally it'd be dual DVB-C, the only one I've found is more than dual
->>>>> DVB-C&    is far too expensive.
->>>>
->>>> If you need two receivers but can only spare up to one PCI or PCIe slot,
->>>> why not use two USB or FireWire attached receivers?
->>>>
->>>> FireWire ones seem to be out of production now though and weren't
->>>> exactly on the cheap side.  OTOH one can drive up to 3 DVB FireWire
->>>> receivers on a single FireWire bus; and for those who need even more
->>>> there are dual link FireWire PCI and PCIe cards readily available.
->>>
->>> Thanks for offering your thoughts Stefan.
->>> Any specific recommendations?
->>>
->>> Ideally I want two or more dvb-c tuners in a pci/e form-factor.
->>>
->>> If there's FW or USB tuners that are mounted onto a PCI/e card, work
->>> well in Linux,&  are relatively cheap, then I'd love to know!
->>
->> I don't have an overview over USB tuners.
->>
->
-> We have USB DVB-C/T hybrid devices which are supported with Linux.
->
-> http://support.sundtek.com/index.php/topic,4.0.html (the driver is
-> mostly independent from
-> Linux Kernels).
->
-> Aside of that we just made it work on a Dreambox 800 (300 Mhz MIPS as
-> well, and looking forward
-> to support other platforms as well).
->
-> http://sundtek.com/shop/Digital-TV-Sticks/Sundtek-MediaTV-Digital-Home-DVB-CT.html
->
-> Best Regards,
-> Markus
+To make it easier to determine whether all controls are added in v4l2-ctrls.c
+the case statements inside the switch are re-ordered to match the header.
 
-Thanks but I'd prefer PCI/e form-factor...
-If there's something fw or usb-based x2, & squeezed into that 
-form-factor, I'm very interested!
+Signed-off-by: Hans Verkuil <hverkuil@xs4all.nl>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   30 +++++++++++++++++-------------
+ 1 files changed, 17 insertions(+), 13 deletions(-)
 
-Cheers,
-Jed
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index e565066..477216b 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -266,6 +266,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ {
+ 	switch (id) {
+ 	/* USER controls */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
+ 	case V4L2_CID_USER_CLASS: 		return "User Controls";
+ 	case V4L2_CID_BRIGHTNESS: 		return "Brightness";
+ 	case V4L2_CID_CONTRAST: 		return "Contrast";
+@@ -296,28 +297,37 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_SHARPNESS:		return "Sharpness";
+ 	case V4L2_CID_BACKLIGHT_COMPENSATION:	return "Backlight Compensation";
+ 	case V4L2_CID_CHROMA_AGC:		return "Chroma AGC";
+-	case V4L2_CID_CHROMA_GAIN:		return "Chroma Gain";
+ 	case V4L2_CID_COLOR_KILLER:		return "Color Killer";
+ 	case V4L2_CID_COLORFX:			return "Color Effects";
+ 	case V4L2_CID_AUTOBRIGHTNESS:		return "Brightness, Automatic";
+ 	case V4L2_CID_BAND_STOP_FILTER:		return "Band-Stop Filter";
+ 	case V4L2_CID_ROTATE:			return "Rotate";
+ 	case V4L2_CID_BG_COLOR:			return "Background Color";
++	case V4L2_CID_CHROMA_GAIN:		return "Chroma Gain";
+ 
+ 	/* MPEG controls */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
+ 	case V4L2_CID_MPEG_CLASS: 		return "MPEG Encoder Controls";
++	case V4L2_CID_MPEG_STREAM_TYPE: 	return "Stream Type";
++	case V4L2_CID_MPEG_STREAM_PID_PMT: 	return "Stream PMT Program ID";
++	case V4L2_CID_MPEG_STREAM_PID_AUDIO: 	return "Stream Audio Program ID";
++	case V4L2_CID_MPEG_STREAM_PID_VIDEO: 	return "Stream Video Program ID";
++	case V4L2_CID_MPEG_STREAM_PID_PCR: 	return "Stream PCR Program ID";
++	case V4L2_CID_MPEG_STREAM_PES_ID_AUDIO: return "Stream PES Audio ID";
++	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
++	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ: return "Audio Sampling Frequency";
+ 	case V4L2_CID_MPEG_AUDIO_ENCODING: 	return "Audio Encoding";
+ 	case V4L2_CID_MPEG_AUDIO_L1_BITRATE: 	return "Audio Layer I Bitrate";
+ 	case V4L2_CID_MPEG_AUDIO_L2_BITRATE: 	return "Audio Layer II Bitrate";
+ 	case V4L2_CID_MPEG_AUDIO_L3_BITRATE: 	return "Audio Layer III Bitrate";
+-	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE: 	return "Audio AAC Bitrate";
+-	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE: 	return "Audio AC-3 Bitrate";
+ 	case V4L2_CID_MPEG_AUDIO_MODE: 		return "Audio Stereo Mode";
+ 	case V4L2_CID_MPEG_AUDIO_MODE_EXTENSION: return "Audio Stereo Mode Extension";
+ 	case V4L2_CID_MPEG_AUDIO_EMPHASIS: 	return "Audio Emphasis";
+ 	case V4L2_CID_MPEG_AUDIO_CRC: 		return "Audio CRC";
+ 	case V4L2_CID_MPEG_AUDIO_MUTE: 		return "Audio Mute";
++	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE: 	return "Audio AAC Bitrate";
++	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE: 	return "Audio AC-3 Bitrate";
+ 	case V4L2_CID_MPEG_VIDEO_ENCODING: 	return "Video Encoding";
+ 	case V4L2_CID_MPEG_VIDEO_ASPECT: 	return "Video Aspect";
+ 	case V4L2_CID_MPEG_VIDEO_B_FRAMES: 	return "Video B Frames";
+@@ -330,16 +340,9 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_MPEG_VIDEO_TEMPORAL_DECIMATION: return "Video Temporal Decimation";
+ 	case V4L2_CID_MPEG_VIDEO_MUTE: 		return "Video Mute";
+ 	case V4L2_CID_MPEG_VIDEO_MUTE_YUV:	return "Video Mute YUV";
+-	case V4L2_CID_MPEG_STREAM_TYPE: 	return "Stream Type";
+-	case V4L2_CID_MPEG_STREAM_PID_PMT: 	return "Stream PMT Program ID";
+-	case V4L2_CID_MPEG_STREAM_PID_AUDIO: 	return "Stream Audio Program ID";
+-	case V4L2_CID_MPEG_STREAM_PID_VIDEO: 	return "Stream Video Program ID";
+-	case V4L2_CID_MPEG_STREAM_PID_PCR: 	return "Stream PCR Program ID";
+-	case V4L2_CID_MPEG_STREAM_PES_ID_AUDIO: return "Stream PES Audio ID";
+-	case V4L2_CID_MPEG_STREAM_PES_ID_VIDEO: return "Stream PES Video ID";
+-	case V4L2_CID_MPEG_STREAM_VBI_FMT:	return "Stream VBI Format";
+ 
+ 	/* CAMERA controls */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
+ 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
+ 	case V4L2_CID_EXPOSURE_AUTO:		return "Auto Exposure";
+ 	case V4L2_CID_EXPOSURE_ABSOLUTE:	return "Exposure Time, Absolute";
+@@ -353,14 +356,15 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FOCUS_ABSOLUTE:		return "Focus, Absolute";
+ 	case V4L2_CID_FOCUS_RELATIVE:		return "Focus, Relative";
+ 	case V4L2_CID_FOCUS_AUTO:		return "Focus, Automatic";
+-	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
+-	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+ 	case V4L2_CID_ZOOM_ABSOLUTE:		return "Zoom, Absolute";
+ 	case V4L2_CID_ZOOM_RELATIVE:		return "Zoom, Relative";
+ 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
++	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
++	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+ 
+ 	/* FM Radio Modulator control */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
+ 	case V4L2_CID_FM_TX_CLASS:		return "FM Radio Modulator Controls";
+ 	case V4L2_CID_RDS_TX_DEVIATION:		return "RDS Signal Deviation";
+ 	case V4L2_CID_RDS_TX_PI:		return "RDS Program ID";
+-- 
+1.6.4.2
+
