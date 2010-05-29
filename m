@@ -1,22 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:61384 "EHLO
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:62950 "EHLO
 	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757124Ab0EaUEY (ORCPT
+	with ESMTP id S1750960Ab0E2EXZ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 16:04:24 -0400
-Received: by fxm8 with SMTP id 8so387594fxm.19
-        for <linux-media@vger.kernel.org>; Mon, 31 May 2010 13:04:21 -0700 (PDT)
+	Sat, 29 May 2010 00:23:25 -0400
+Received: by fxm10 with SMTP id 10so1194536fxm.19
+        for <linux-media@vger.kernel.org>; Fri, 28 May 2010 21:23:23 -0700 (PDT)
 MIME-Version: 1.0
-Date: Mon, 31 May 2010 22:04:21 +0200
-Message-ID: <AANLkTilTK6Bh7g2z3IqtjTSvkME2ZKLDQy6GYg_iDhSY@mail.gmail.com>
-Subject: Kaffeine 1.0 released
-From: Christoph Pfister <christophpfister@gmail.com>
-To: kaffeine-announce@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+In-Reply-To: <AANLkTikyQt4CKLQ1JqjeiNZLMv9Fa9YzcV-BcROd1QWe@mail.gmail.com>
+References: <AANLkTikyQt4CKLQ1JqjeiNZLMv9Fa9YzcV-BcROd1QWe@mail.gmail.com>
+Date: Sat, 29 May 2010 07:23:22 +0300
+Message-ID: <AANLkTik_Pqab77LY-XpBdeQ8rSUkP2k9AxyIvzRygbBE@mail.gmail.com>
+Subject: Re: TBS 6980 Dual Tuner PCI-e card.....not in Wiki at all?
+From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
+To: Another Sillyname <anothersname@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-See the announcement at http://kaffeine.kde.org/?q=node/27
+hello, i can't comment on your questions about the Wiki, but i made
+the driver for TBS 6980 and i can ensure you that the driver will be
+released as open-source under GPL as soon as i have permission to do
+that, but compared to other cards at least even at the moment you can
+use the card in Linux and it's very easy to add support for it using
+the binary modules even to the latest V4L code from repository and so
+those "blobs" are actually not so big limitation.
 
-Christoph
+also, you are very wrong about the price - as far as i know retails
+price is less than 200 USD, for example TBS online shop gives a price
+of 158.99 USD:
+
+http://www.buydvb.net/pcie-dvbs2-dual-tuner-tv-card_p11.html
+
+and i believe the dual DVB-S2 card with price of 1000 USD that you're
+talking about is the NetUP one and not the TurboSight TBS 6980 dual
+DVB-S2 card.
+
+--konstantin
+
+On Sat, May 29, 2010 at 5:16 AM, Another Sillyname
+<anothersname@googlemail.com> wrote:
+> Guys
+>
+> The TBS 6920 PCI-e card is in the Wiki and is a supported card.
+>
+> The TBS 6980 dual tuner PCI-e card is not in the Wiki at all, is there
+> a reason for this given they have released a non GPL blob at least?
+>
+> Also is there a reason that an indicative price for supported cards is
+> not shown in the wiki?  It would save a load of time rather then
+> having to search on each card only to find out it's ridiculously
+> priced at $1000.
+>
+> Thanks
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
