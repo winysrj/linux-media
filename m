@@ -1,484 +1,388 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29466 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752528Ab0E3SFj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 May 2010 14:05:39 -0400
-Message-ID: <4C02A8F2.8070502@redhat.com>
-Date: Sun, 30 May 2010 15:05:38 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1761 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751520Ab0E3JRv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 May 2010 05:17:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: Re: [PATCH v3 2/4] MFD: WL1273 FM Radio: MFD driver for the FM radio.
+Date: Sun, 30 May 2010 11:19:41 +0200
+Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com
+References: <1274703703-11670-1-git-send-email-matti.j.aaltonen@nokia.com> <1274703703-11670-2-git-send-email-matti.j.aaltonen@nokia.com> <1274703703-11670-3-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1274703703-11670-3-git-send-email-matti.j.aaltonen@nokia.com>
 MIME-Version: 1.0
-To: Pavel Osnova <pvosnova@gmail.com>
-CC: hermann pitton <hermann-pitton@arcor.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH for 2.6.34] saa7134: add support for Compro VideoMate
- M1F
-References: <AANLkTimxiByXV9LI5uXbykT9NRoxo_AfdUDpA3XHy7w4@mail.gmail.com>	 <1274832031.3273.79.camel@pc07.localdom.local> <1274905829.17833.7.camel@localhost.localdomain>
-In-Reply-To: <1274905829.17833.7.camel@localhost.localdomain>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201005301119.41716.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 26-05-2010 17:30, Pavel Osnova escreveu:
-> Sorry for the line breakages.
-
-Patch doesn't apply:
-
-$ test_patch 
-patching file Documentation/video4linux/CARDLIST.saa7134
-Hunk #1 FAILED at 176.
-1 out of 1 hunk FAILED -- saving rejects to file Documentation/video4linux/CARDLIST.saa7134.rej
-patching file drivers/media/IR/keymaps/Makefile
-Hunk #1 FAILED at 61.
-1 out of 1 hunk FAILED -- saving rejects to file drivers/media/IR/keymaps/Makefile.rej
-patching file drivers/media/IR/keymaps/rc-videomate-m1f.c
-patching file drivers/media/video/saa7134/saa7134-cards.c
-Hunk #1 FAILED at 5428.
-Hunk #2 FAILED at 6890.
-2 out of 2 hunks FAILED -- saving rejects to file drivers/media/video/saa7134/saa7134-cards.c.rej
-patching file drivers/media/video/saa7134/saa7134.h
-Hunk #1 FAILED at 303.
-1 out of 1 hunk FAILED -- saving rejects to file drivers/media/video/saa7134/saa7134.h.rej
-patching file drivers/media/video/saa7134/saa7134-input.c
-Hunk #1 FAILED at 815.
-1 out of 1 hunk FAILED -- saving rejects to file drivers/media/video/saa7134/saa7134-input.c.rej
-patching file include/media/rc-map.h
-Hunk #1 succeeded at 112 (offset 1 line).
->>> Patch patches/lmml_102504_for_2_6_34_saa7134_add_support_for_compro_videomate_m1f.patch doesn't apply
-
+On Monday 24 May 2010 14:21:41 Matti J. Aaltonen wrote:
+> This is a parent driver for two child drivers: the V4L2 driver and
+> the ALSA codec driver. The MFD part provides the I2C communication
+> to the device and a couple of functions that are called from both
+> children.
 > 
-> diff -uprN v4l-dvb_orig/Documentation/video4linux/CARDLIST.saa7134 v4l-dvb/Documentation/video4linux/CARDLIST.saa7134
-> --- v4l-dvb_orig/Documentation/video4linux/CARDLIST.saa7134     2010-05-26 20:34:06.000000000 +0300
-> +++ v4l-dvb/Documentation/video4linux/CARDLIST.saa7134  2010-05-26 21:12:28.247684250 +0300
-> @@ -176,5 +176,6 @@
->  175 -> Leadtek Winfast DTV1000S                 [107d:6655]
->  176 -> Beholder BeholdTV 505 RDS                [0000:5051]
->  177 -> Hawell HW-404M7
-> -179 -> Beholder BeholdTV H7                    [5ace:7190]
-> -180 -> Beholder BeholdTV A7                    [5ace:7090]
-> +178 -> Beholder BeholdTV H7                    [5ace:7190]
-> +179 -> Beholder BeholdTV A7                    [5ace:7090]
-> +180 -> Compro VideoMate M1F                    [185b:c900]
-> diff -uprN v4l-dvb_orig/drivers/media/IR/keymaps/Makefile v4l-dvb/drivers/media/IR/keymaps/Makefile
-> --- v4l-dvb_orig/drivers/media/IR/keymaps/Makefile      2010-05-26 20:34:09.000000000 +0300
-> +++ v4l-dvb/drivers/media/IR/keymaps/Makefile   2010-05-26 21:09:41.498117258 +0300
-> @@ -61,6 +61,7 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t
->                         rc-terratec-cinergy-xs.o \
->                         rc-tevii-nec.o \
->                         rc-tt-1500.o \
-> +                       rc-videomate-m1f.o \
->                         rc-videomate-s350.o \
->                         rc-videomate-tv-pvr.o \
->                         rc-winfast.o \
-> diff -uprN v4l-dvb_orig/drivers/media/IR/keymaps/rc-videomate-m1f.c v4l-dvb/drivers/media/IR/keymaps/rc-videomate-m1f.c
-> --- v4l-dvb_orig/drivers/media/IR/keymaps/rc-videomate-m1f.c    1970-01-01 03:00:00.000000000 +0300
-> +++ v4l-dvb/drivers/media/IR/keymaps/rc-videomate-m1f.c 2010-05-26 22:27:31.993333335 +0300
-> @@ -0,0 +1,92 @@
-> +/* videomate-m1f.h - Keytable for videomate_m1f Remote Controller
+> Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+> ---
+>  drivers/mfd/Kconfig             |    6 +
+>  drivers/mfd/Makefile            |    2 +
+>  drivers/mfd/wl1273-core.c       |  606 +++++++++++++++++++++++++++++++++++++++
+>  include/linux/mfd/wl1273-core.h |  326 +++++++++++++++++++++
+>  4 files changed, 940 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/mfd/wl1273-core.c
+>  create mode 100644 include/linux/mfd/wl1273-core.h
+> 
+> diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+> index 413576a..5998a94 100644
+> --- a/drivers/mfd/Kconfig
+> +++ b/drivers/mfd/Kconfig
+> @@ -135,6 +135,12 @@ config TWL4030_CODEC
+>  	select MFD_CORE
+>  	default n
+>  
+> +config WL1273_CORE
+> +	bool
+> +	depends on I2C
+> +	select MFD_CORE
+> +	default n
+> +
+>  config MFD_TMIO
+>  	bool
+>  	default n
+> diff --git a/drivers/mfd/Makefile b/drivers/mfd/Makefile
+> index 78295d6..46e611d 100644
+> --- a/drivers/mfd/Makefile
+> +++ b/drivers/mfd/Makefile
+> @@ -30,6 +30,8 @@ obj-$(CONFIG_TWL4030_CORE)	+= twl-core.o twl4030-irq.o twl6030-irq.o
+>  obj-$(CONFIG_TWL4030_POWER)    += twl4030-power.o
+>  obj-$(CONFIG_TWL4030_CODEC)	+= twl4030-codec.o
+>  
+> +obj-$(CONFIG_WL1273_CORE)	+= wl1273-core.o
+> +
+>  obj-$(CONFIG_MFD_MC13783)	+= mc13783-core.o
+>  
+>  obj-$(CONFIG_MFD_CORE)		+= mfd-core.o
+> diff --git a/drivers/mfd/wl1273-core.c b/drivers/mfd/wl1273-core.c
+> new file mode 100644
+> index 0000000..7e02c36
+> --- /dev/null
+> +++ b/drivers/mfd/wl1273-core.c
+> @@ -0,0 +1,606 @@
+> +/*
+> + * MFD driver for wl1273 FM radio and audio codec submodules.
 > + *
-> + * keymap imported from ir-keymaps.c
+> + * Author:	Matti Aaltonen <matti.j.aaltonen@nokia.com>
 > + *
-> + * Copyright (c) 2010 by Pavel Osnova <pvosnova@gmail.com>
+> + * Copyright:   (C) 2010 Nokia Corporation
 > + *
 > + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * (at your option) any later version.
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but
+> + * WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+> + * General Public License for more details.
+> + *
+> + * You should have received a copy of the GNU General Public License
+> + * along with this program; if not, write to the Free Software
+> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
+> + * 02110-1301 USA
+> + *
 > + */
 > +
-> +#include <media/rc-map.h>
+> +#undef DEBUG
 > +
-> +static struct ir_scancode videomate_m1f[] = {
-> +       { 0x01, KEY_POWER },
-> +       { 0x31, KEY_TUNER },
-> +       { 0x33, KEY_VIDEO },
-> +       { 0x2f, KEY_RADIO },
-> +       { 0x30, KEY_CAMERA },
-> +       { 0x2d, KEY_NEW }, /* TV record button */
-> +       { 0x17, KEY_CYCLEWINDOWS },
-> +       { 0x2c, KEY_ANGLE },
-> +       { 0x2b, KEY_LANGUAGE },
-> +       { 0x32, KEY_SEARCH }, /* '...' button */
-> +       { 0x11, KEY_UP },
-> +       { 0x13, KEY_LEFT },
-> +       { 0x15, KEY_OK },
-> +       { 0x14, KEY_RIGHT },
-> +       { 0x12, KEY_DOWN },
-> +       { 0x16, KEY_BACKSPACE },
-> +       { 0x02, KEY_ZOOM }, /* WIN key */
-> +       { 0x04, KEY_INFO },
-> +       { 0x05, KEY_VOLUMEUP },
-> +       { 0x03, KEY_MUTE },
-> +       { 0x07, KEY_CHANNELUP },
-> +       { 0x06, KEY_VOLUMEDOWN },
-> +       { 0x08, KEY_CHANNELDOWN },
-> +       { 0x0c, KEY_RECORD },
-> +       { 0x0e, KEY_STOP },
-> +       { 0x0a, KEY_BACK },
-> +       { 0x0b, KEY_PLAY },
-> +       { 0x09, KEY_FORWARD },
-> +       { 0x10, KEY_PREVIOUS },
-> +       { 0x0d, KEY_PAUSE },
-> +       { 0x0f, KEY_NEXT },
-> +       { 0x1e, KEY_1 },
-> +       { 0x1f, KEY_2 },
-> +       { 0x20, KEY_3 },
-> +       { 0x21, KEY_4 },
-> +       { 0x22, KEY_5 },
-> +       { 0x23, KEY_6 },
-> +       { 0x24, KEY_7 },
-> +       { 0x25, KEY_8 },
-> +       { 0x26, KEY_9 },
-> +       { 0x2a, KEY_NUMERIC_STAR }, /* * key */
-> +       { 0x1d, KEY_0 },
-> +       { 0x29, KEY_SUBTITLE }, /* # key */
-> +       { 0x27, KEY_CLEAR },
-> +       { 0x34, KEY_SCREEN },
-> +       { 0x28, KEY_ENTER },
-> +       { 0x19, KEY_RED },
-> +       { 0x1a, KEY_GREEN },
-> +       { 0x1b, KEY_YELLOW },
-> +       { 0x1c, KEY_BLUE },
-> +       { 0x18, KEY_TEXT },
+> +#include <asm/unaligned.h>
+> +#include <linux/completion.h>
+> +#include <linux/delay.h>
+> +#include <linux/i2c.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/module.h>
+> +#include <linux/types.h>
+> +#include <linux/kernel.h>
+> +#include <linux/fs.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/mfd/core.h>
+> +#include <linux/mfd/wl1273-core.h>
+> +#include <media/v4l2-common.h>
+> +
+> +#define DRIVER_DESC "WL1273 FM Radio Core"
+> +
+> +#define WL1273_IRQ_MASK	 (WL1273_FR_EVENT		|	\
+> +			  WL1273_POW_ENB_EVENT)
+> +
+> +static const struct band_info bands[] = {
+> +	/* Japan */
+> +	{
+> +		.bottom_frequency	= 76000,
+> +		.top_frequency		= 90000,
+> +		.band			= 0,
+> +	},
+> +	/* USA & Europe */
+> +	{
+> +		.bottom_frequency	= 87500,
+> +		.top_frequency		= 108000,
+> +		.band			= 1,
+> +	},
 > +};
 > +
-> +static struct rc_keymap videomate_m1f_map = {
-> +       .map = {
-> +               .scan    = videomate_m1f,
-> +               .size    = ARRAY_SIZE(videomate_m1f),
-> +               .ir_type = IR_TYPE_UNKNOWN,     /* Legacy IR type */
-> +               .name    = RC_MAP_VIDEOMATE_M1F,
-> +       }
-> +};
+> +/*
+> + * static unsigned char radio_band - Band
+> + *
+> + * The bands are 0=Japan, 1=USA-Europe. USA-Europe is the default.
+> + */
+> +static unsigned char radio_band = 1;
+> +module_param(radio_band, byte, 0);
+> +MODULE_PARM_DESC(radio_band, "Band: 0=Japan, 1=USA-Europe*");
 > +
-> +static int __init init_rc_map_videomate_m1f(void)
+> +/*
+> + * static unsigned int rds_buf - the number of RDS buffer blocks used.
+> + *
+> + * The default number is 100.
+> + */
+> +static unsigned int rds_buf = 100;
+> +module_param(rds_buf, uint, 0);
+> +MODULE_PARM_DESC(rds_buf, "RDS buffer entries: *100*");
+> +
+> +int wl1273_fm_read_reg(struct wl1273_core *core, u8 reg, u16 *value)
 > +{
-> +       return ir_register_map(&videomate_m1f_map);
-> +}
+> +	struct i2c_client *client = core->i2c_dev;
+> +	u8 b[2];
+> +	int r;
 > +
-> +static void __exit exit_rc_map_videomate_m1f(void)
+> +	r = i2c_smbus_read_i2c_block_data(client, reg, 2, b);
+> +	if (r != 2) {
+> +		dev_err(&client->dev, "%s: Read: %d fails.\n", __func__, reg);
+> +		return -EREMOTEIO;
+> +	}
+> +
+> +	*value = (u16)b[0] << 8 | b[1];
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(wl1273_fm_read_reg);
+> +
+> +int wl1273_fm_write_cmd(struct wl1273_core *core, u8 cmd, u16 param)
 > +{
-> +       ir_unregister_map(&videomate_m1f_map);
+> +	struct i2c_client *client = core->i2c_dev;
+> +	u8 buf[] = { (param >> 8) & 0xff, param & 0xff };
+> +	int r;
+> +
+> +	r = i2c_smbus_write_i2c_block_data(client, cmd, 2, buf);
+> +	if (r) {
+> +		dev_err(&client->dev, "%s: Cmd: %d fails.\n", __func__, cmd);
+> +		return r;
+> +	}
+> +
+> +	return 0;
 > +}
+> +EXPORT_SYMBOL(wl1273_fm_write_cmd);
 > +
-> +module_init(init_rc_map_videomate_m1f)
-> +module_exit(exit_rc_map_videomate_m1f)
+> +int wl1273_fm_write_data(struct wl1273_core *core, u8 *data, u16 len)
+> +{
+> +	struct i2c_client *client = core->i2c_dev;
+> +	struct i2c_msg msg[1];
+> +	int r;
 > +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Pavel Osnova <pvosnova@gmail.com>");
-> diff -uprN v4l-dvb_orig/drivers/media/video/saa7134/saa7134-cards.c v4l-dvb/drivers/media/video/saa7134/saa7134-cards.c
-> --- v4l-dvb_orig/drivers/media/video/saa7134/saa7134-cards.c    2010-05-26 20:34:09.000000000 +0300
-> +++ v4l-dvb/drivers/media/video/saa7134/saa7134-cards.c 2010-05-26 22:28:39.163333335 +0300
-> @@ -5428,7 +5428,33 @@ struct saa7134_board saa7134_boards[] =
->                         .amux = TV,
->                 },
->         },
-> -
-> +       [SAA7134_BOARD_VIDEOMATE_M1F] = {
-> +               /* Pavel Osnova <pvosnova@gmail.com> */
-> +               .name           = "Compro VideoMate M1F",
-> +               .audio_clock    = 0x00187de7,
-> +               .tuner_type     = TUNER_LG_PAL_NEW_TAPC,
-> +               .radio_type     = TUNER_TEA5767,
-> +               .tuner_addr     = ADDR_UNSET,
-> +               .radio_addr     = 0x60,
-> +               .inputs         = { {
-> +                       .name = name_tv,
-> +                       .vmux = 1,
-> +                       .amux = TV,
-> +                       .tv   = 1,
-> +               }, {
-> +                       .name = name_comp1,
-> +                       .vmux = 3,
-> +                       .amux = LINE2,
-> +               }, {
-> +                       .name = name_svideo,
-> +                       .vmux = 8,
-> +                       .amux = LINE2,
-> +               } },
-> +               .radio = {
-> +                       .name = name_radio,
-> +                       .amux = LINE2,
-> +               },
-> +       },
->  };
->  
->  const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
-> @@ -6890,6 +6916,7 @@ int saa7134_board_init1(struct saa7134_d
->         case SAA7134_BOARD_VIDEOMATE_TV_PVR:
->         case SAA7134_BOARD_VIDEOMATE_GOLD_PLUS:
->         case SAA7134_BOARD_VIDEOMATE_TV_GOLD_PLUSII:
-> +       case SAA7134_BOARD_VIDEOMATE_M1F:
->         case SAA7134_BOARD_VIDEOMATE_DVBT_300:
->         case SAA7134_BOARD_VIDEOMATE_DVBT_200:
->         case SAA7134_BOARD_VIDEOMATE_DVBT_200A:
-> diff -uprN v4l-dvb_orig/drivers/media/video/saa7134/saa7134.h v4l-dvb/drivers/media/video/saa7134/saa7134.h
-> --- v4l-dvb_orig/drivers/media/video/saa7134/saa7134.h  2010-05-26 20:34:09.000000000 +0300
-> +++ v4l-dvb/drivers/media/video/saa7134/saa7134.h       2010-05-26 21:13:10.654349519 +0300
-> @@ -303,6 +303,7 @@ struct saa7134_format {
->  #define SAA7134_BOARD_HAWELL_HW_404M7          177
->  #define SAA7134_BOARD_BEHOLD_H7             178
->  #define SAA7134_BOARD_BEHOLD_A7             179
-> +#define SAA7134_BOARD_VIDEOMATE_M1F            180
->  
->  #define SAA7134_MAXBOARDS 32
->  #define SAA7134_INPUT_MAX 8
-> diff -uprN v4l-dvb_orig/drivers/media/video/saa7134/saa7134-input.c v4l-dvb/drivers/media/video/saa7134/saa7134-input.c
-> --- v4l-dvb_orig/drivers/media/video/saa7134/saa7134-input.c    2010-05-26 20:34:09.000000000 +0300
-> +++ v4l-dvb/drivers/media/video/saa7134/saa7134-input.c 2010-05-26 21:14:54.764339462 +0300
-> @@ -815,6 +815,11 @@ int saa7134_input_init1(struct saa7134_d
->                 mask_keyup   = 0x020000;
->                 polling      = 50; /* ms */
->                 break;
-> +       case SAA7134_BOARD_VIDEOMATE_M1F:
-> +               ir_codes     = RC_MAP_VIDEOMATE_M1F;
-> +               mask_keycode = 0x0ff00;
-> +               mask_keyup   = 0x040000;
-> +               break;
->         break;
->         }
->         if (NULL == ir_codes) {
-> diff -uprN v4l-dvb_orig/include/media/rc-map.h v4l-dvb/include/media/rc-map.h
-> --- v4l-dvb_orig/include/media/rc-map.h 2010-05-26 20:34:11.000000000 +0300
-> +++ v4l-dvb/include/media/rc-map.h      2010-05-26 21:07:32.494384159 +0300
-> @@ -111,6 +111,7 @@ void rc_map_init(void);
->  #define RC_MAP_TERRATEC_CINERGY_XS       "rc-terratec-cinergy-xs"
->  #define RC_MAP_TEVII_NEC                 "rc-tevii-nec"
->  #define RC_MAP_TT_1500                   "rc-tt-1500"
-> +#define RC_MAP_VIDEOMATE_M1F             "rc-videomate-m1f"
->  #define RC_MAP_VIDEOMATE_S350            "rc-videomate-s350"
->  #define RC_MAP_VIDEOMATE_TV_PVR          "rc-videomate-tv-pvr"
->  #define RC_MAP_WINFAST                   "rc-winfast"
-> Signed-off-by: Pavel Osnova <pvosnova@gmail.com>
-> 
-> 
-> 
-> On Wed, 2010-05-26 at 02:00 +0200, hermann pitton wrote:
->> Hi Pavel,
->>
->> Am Dienstag, den 25.05.2010, 20:42 +0300 schrieb Pavel Osnova:
->>> This patch add support for Compro VideoMate M1F analog TV tuner.
->>
->> just some small comments.
->>
->> You must find a way to get patches to patchwork without line breakages.
->>
->> Patches should be against recent git or mercurial v4l-dvb and you should
->> run "make checkpatch" and review the minor stuff it complains about.
->>
->> For my knowledge, there is no TUNER_LG_PAL_NEW_TAPC with tda9887.
->> The NEW_TAPC uses LG tuner API and those with tda9887 Philips MK3.
->>
->> They are different for the UHF switch. Did you test on anything in UHF?
->>
->> We have some stuff in that cruft unfortunately.
->>
->> Even with extra radio tuner, Composite and S-Video should have the same
->> amux.
->>
->> You set gpios without defining a gpio mask.
->>
->> Such has no effect.
->>
->> Cheers,
->> Hermann
->>
->>
->>>
->>> diff -urN linux-2.6.34/Documentation/video4linux/CARDLIST.saa7134
->>> linux-2.6.34patched orig/Documentation/video4linux/CARDLIST.saa7134
->>> --- linux-2.6.34/Documentation/video4linux/CARDLIST.saa7134
->>> 2010-05-17 00:17:36.000000000 +0300
->>> +++ linux-2.6.34patched
->>> orig/Documentation/video4linux/CARDLIST.saa7134    2010-05-24
->>> 13:33:01.915467949 +0300
->>> @@ -175,3 +175,4 @@
->>>  174 -> Asus Europa Hybrid OEM                   [1043:4847]
->>>  175 -> Leadtek Winfast DTV1000S                 [107d:6655]
->>>  176 -> Beholder BeholdTV 505 RDS                [0000:5051]
->>> +177 -> Compro VideoMate M1F               [185b:c900]
->>> diff -urN linux-2.6.34/drivers/media/IR/ir-keymaps.c
->>> linux-2.6.34patched orig/drivers/media/IR/ir-keymaps.c
->>> --- linux-2.6.34/drivers/media/IR/ir-keymaps.c    2010-05-17
->>> 00:17:36.000000000 +0300
->>> +++ linux-2.6.34patched orig/drivers/media/IR/ir-keymaps.c
->>> 2010-05-24 13:37:59.872106122 +0300
->>> @@ -3492,3 +3492,65 @@
->>>      .ir_type = IR_TYPE_NEC,
->>>  };
->>>  EXPORT_SYMBOL_GPL(ir_codes_kworld_315u_table);
->>> +
->>> +/* Compro VideoMate M1F
->>> + * Pavel Osnova <pvosnova@gmail.com>
->>> + */
->>> +static struct ir_scancode ir_codes_videomate_m1f[] = {
->>> +    { 0x01, KEY_POWER },
->>> +    { 0x31, KEY_TUNER },
->>> +    { 0x33, KEY_VIDEO },
->>> +    { 0x2f, KEY_RADIO },
->>> +    { 0x30, KEY_CAMERA },
->>> +    { 0x2d, KEY_NEW }, /* TV record button */
->>> +    { 0x17, KEY_CYCLEWINDOWS },
->>> +    { 0x2c, KEY_ANGLE },
->>> +    { 0x2b, KEY_LANGUAGE },
->>> +    { 0x32, KEY_SEARCH }, /* '...' button */
->>> +    { 0x11, KEY_UP },
->>> +    { 0x13, KEY_LEFT },
->>> +    { 0x15, KEY_OK },
->>> +    { 0x14, KEY_RIGHT },
->>> +    { 0x12, KEY_DOWN },
->>> +    { 0x16, KEY_BACKSPACE },
->>> +    { 0x02, KEY_ZOOM }, /* WIN key */
->>> +    { 0x04, KEY_INFO },
->>> +    { 0x05, KEY_VOLUMEUP },
->>> +    { 0x03, KEY_MUTE },
->>> +    { 0x07, KEY_CHANNELUP },
->>> +    { 0x06, KEY_VOLUMEDOWN },
->>> +    { 0x08, KEY_CHANNELDOWN },
->>> +    { 0x0c, KEY_RECORD },
->>> +    { 0x0e, KEY_STOP },
->>> +    { 0x0a, KEY_BACK },
->>> +    { 0x0b, KEY_PLAY },
->>> +    { 0x09, KEY_FORWARD },
->>> +    { 0x10, KEY_PREVIOUS },
->>> +    { 0x0d, KEY_PAUSE },
->>> +    { 0x0f, KEY_NEXT },
->>> +    { 0x1e, KEY_1 },
->>> +    { 0x1f, KEY_2 },
->>> +    { 0x20, KEY_3 },
->>> +    { 0x21, KEY_4 },
->>> +    { 0x22, KEY_5 },
->>> +    { 0x23, KEY_6 },
->>> +    { 0x24, KEY_7 },
->>> +    { 0x25, KEY_8 },
->>> +    { 0x26, KEY_9 },
->>> +    { 0x2a, KEY_NUMERIC_STAR }, /* * key */
->>> +    { 0x1d, KEY_0 },
->>> +    { 0x29, KEY_SUBTITLE }, /* # key */
->>> +    { 0x27, KEY_CLEAR },
->>> +    { 0x34, KEY_SCREEN },
->>> +    { 0x28, KEY_ENTER },
->>> +    { 0x19, KEY_RED },
->>> +    { 0x1a, KEY_GREEN },
->>> +    { 0x1b, KEY_YELLOW },
->>> +    { 0x1c, KEY_BLUE },
->>> +    { 0x18, KEY_TEXT },
->>> +};
->>> +struct ir_scancode_table ir_codes_videomate_m1f_table = {
->>> +    .scan = ir_codes_videomate_m1f,
->>> +    .size = ARRAY_SIZE(ir_codes_videomate_m1f),
->>> +};
->>> +EXPORT_SYMBOL_GPL(ir_codes_videomate_m1f_table);
->>> diff -urN linux-2.6.34/drivers/media/video/saa7134/saa7134-cards.c
->>> linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134-cards.c
->>> --- linux-2.6.34/drivers/media/video/saa7134/saa7134-cards.c
->>> 2010-05-17 00:17:36.000000000 +0300
->>> +++ linux-2.6.34patched
->>> orig/drivers/media/video/saa7134/saa7134-cards.c    2010-05-24
->>> 13:44:41.618731443 +0300
->>> @@ -5355,7 +5355,39 @@
->>>              .amux = LINE2,
->>>          },
->>>      },
->>> -
->>> +    [SAA7134_BOARD_VIDEOMATE_M1F] = {
->>> +                .name           = "Compro VideoMate M1F",
->>> +                .audio_clock    = 0x00187de7,
->>> +                .tuner_type     = TUNER_LG_PAL_NEW_TAPC,
->>> +                .radio_type     = TUNER_TEA5767,
->>> +                .tuner_addr     = ADDR_UNSET,
->>> +                .radio_addr     = 0x60,
->>> +                .tda9887_conf   = TDA9887_PRESENT,
->>> +                .inputs         = {{
->>> +                        .name = name_tv,
->>> +                        .vmux = 1,
->>> +                        .amux = TV,
->>> +                        .tv   = 1,
->>> +                },{
->>> +                        .name = name_comp1,
->>> +                        .vmux = 3,
->>> +                        .amux = LINE2,
->>> +                },{
->>> +                        .name = name_svideo,
->>> +                        .vmux = 8,
->>> +                        .amux = LINE1,
->>> +                }},
->>> +                .radio = {
->>> +                        .name = name_radio,
->>> +                        .amux = LINE2,
->>> +                        .gpio = 0x80000,
->>> +                },
->>> +                .mute = {
->>> +                        .name = name_mute,
->>> +                        .amux = LINE2,
->>> +                        .gpio = 0x40000,
->>> +                },
->>> +        },
->>>  };
->>>
->>>  const unsigned int saa7134_bcount = ARRAY_SIZE(saa7134_boards);
->>> @@ -6803,6 +6835,7 @@
->>>      case SAA7134_BOARD_VIDEOMATE_TV_PVR:
->>>      case SAA7134_BOARD_VIDEOMATE_GOLD_PLUS:
->>>      case SAA7134_BOARD_VIDEOMATE_TV_GOLD_PLUSII:
->>> +    case SAA7134_BOARD_VIDEOMATE_M1F:
->>>      case SAA7134_BOARD_VIDEOMATE_DVBT_300:
->>>      case SAA7134_BOARD_VIDEOMATE_DVBT_200:
->>>      case SAA7134_BOARD_VIDEOMATE_DVBT_200A:
->>> diff -urN linux-2.6.34/drivers/media/video/saa7134/saa7134.h
->>> linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134.h
->>> --- linux-2.6.34/drivers/media/video/saa7134/saa7134.h    2010-05-17
->>> 00:17:36.000000000 +0300
->>> +++ linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134.h
->>> 2010-05-24 13:42:13.798747367 +0300
->>> @@ -300,6 +300,7 @@
->>>  #define SAA7134_BOARD_ASUS_EUROPA_HYBRID    174
->>>  #define SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S 175
->>>  #define SAA7134_BOARD_BEHOLD_505RDS_MK3     176
->>> +#define SAA7134_BOARD_VIDEOMATE_M1F    177
->>>
->>>  #define SAA7134_MAXBOARDS 32
->>>  #define SAA7134_INPUT_MAX 8
->>> diff -urN linux-2.6.34/drivers/media/video/saa7134/saa7134-input.c
->>> linux-2.6.34patched orig/drivers/media/video/saa7134/saa7134-input.c
->>> --- linux-2.6.34/drivers/media/video/saa7134/saa7134-input.c
->>> 2010-05-17 00:17:36.000000000 +0300
->>> +++ linux-2.6.34patched
->>> orig/drivers/media/video/saa7134/saa7134-input.c    2010-05-24
->>> 13:45:33.755392801 +0300
->>> @@ -679,6 +679,11 @@
->>>          mask_keyup   = 0x020000;
->>>          polling      = 50; /* ms */
->>>          break;
->>> +    case SAA7134_BOARD_VIDEOMATE_M1F:
->>> +        ir_codes     = &ir_codes_videomate_m1f_table;
->>> +        mask_keycode = 0x0ff00;
->>> +        mask_keyup   = 0x040000;
->>> +        break;
->>>      break;
->>>      }
->>>      if (NULL == ir_codes) {
->>> diff -urN linux-2.6.34/include/media/ir-common.h linux-2.6.34patched
->>> orig/include/media/ir-common.h
->>> --- linux-2.6.34/include/media/ir-common.h    2010-05-17
->>> 00:17:36.000000000 +0300
->>> +++ linux-2.6.34patched orig/include/media/ir-common.h    2010-05-24
->>> 13:49:29.845368218 +0300
->>> @@ -164,4 +164,5 @@
->>>  extern struct ir_scancode_table ir_codes_nec_terratec_cinergy_xs_table;
->>>  extern struct ir_scancode_table ir_codes_winfast_usbii_deluxe_table;
->>>  extern struct ir_scancode_table ir_codes_kworld_315u_table;
->>> +extern struct ir_scancode_table ir_codes_videomate_m1f_table;
->>>  #endif
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	msg[0].addr = client->addr;
+> +	msg[0].flags = 0;
+> +	msg[0].buf = data;
+> +	msg[0].len = len;
+> +
+> +	r = i2c_transfer(client->adapter, msg, 1);
+> +
+> +	if (r != 1) {
+> +		dev_err(&client->dev, "%s: write error.\n", __func__);
+> +		return -EREMOTEIO;
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(wl1273_fm_write_data);
+> +
+> +/**
+> + * wl1273_fm_set_audio() -	Set audio mode.
+> + * @core:			A pointer to the device struct.
+> + * @new_mode:			The new audio mode.
+> + *
+> + * Audio modes are WL1273_AUDIO_DIGITAL and WL1273_AUDIO_ANALOG.
+> + */
+> +int wl1273_fm_set_audio(struct wl1273_core *core, unsigned int new_mode)
+> +{
+> +	int r = 0;
+> +
+> +	if (core->mode == WL1273_MODE_OFF ||
+> +	    core->mode == WL1273_MODE_SUSPENDED)
+> +		return -EPERM;
+> +
+> +	if (core->mode == WL1273_MODE_RX && new_mode == WL1273_AUDIO_DIGITAL) {
+> +		r = wl1273_fm_write_cmd(core, WL1273_PCM_MODE_SET,
+> +					WL1273_PCM_DEF_MODE);
+> +		if (r)
+> +			goto out;
+> +
+> +		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
+> +					core->i2s_mode);
+> +		if (r)
+> +			goto out;
+> +
+> +		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
+> +					WL1273_AUDIO_ENABLE_I2S);
+> +		if (r)
+> +			goto out;
+> +
+> +	} else if (core->mode == WL1273_MODE_RX &&
+> +		   new_mode == WL1273_AUDIO_ANALOG) {
+> +		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
+> +					WL1273_AUDIO_ENABLE_ANALOG);
+> +		if (r)
+> +			goto out;
+> +
+> +	} else if (core->mode == WL1273_MODE_TX &&
+> +		   new_mode == WL1273_AUDIO_DIGITAL) {
+> +		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
+> +					core->i2s_mode);
+> +		if (r)
+> +			goto out;
+> +
+> +		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
+> +					WL1273_AUDIO_IO_SET_I2S);
+> +		if (r)
+> +			goto out;
+> +
+> +	} else if (core->mode == WL1273_MODE_TX &&
+> +		   new_mode == WL1273_AUDIO_ANALOG) {
+> +		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_IO_SET,
+> +					WL1273_AUDIO_IO_SET_ANALOG);
+> +		if (r)
+> +			goto out;
+> +	}
+> +
+> +	core->audio_mode = new_mode;
+> +
+> +out:
+> +	return r;
+> +}
+> +EXPORT_SYMBOL(wl1273_fm_set_audio);
+> +
+> +/**
+> + * wl1273_fm_set_volume() -	Set volume.
+> + * @core:			A pointer to the device struct.
+> + * @volume:			The new volume value.
+> + */
+> +int wl1273_fm_set_volume(struct wl1273_core *core, unsigned int volume)
+> +{
+> +	u16 val;
+> +	int r;
+> +
+> +	if (volume > WL1273_MAX_VOLUME)
+> +		return -EINVAL;
+> +
+> +	if (core->volume == volume)
+> +		return 0;
+> +
+> +	val = volume;
+> +	r = wl1273_fm_read_reg(core, WL1273_VOLUME_SET, &val);
+> +	if (r)
+> +		return r;
+> +
+> +	core->volume = volume;
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(wl1273_fm_set_volume);
+> +
+> +static int wl1273_fm_rds(struct wl1273_core *core)
+> +{
+> +	struct i2c_client *client = core->i2c_dev;
+> +	struct device *dev = &client->dev;
+> +	struct rds_status {
+> +		unsigned int block_id:3;
+> +		unsigned int error_status:2;
+> +		unsigned int fifo_status:1;
+> +		unsigned int frame_in_sync:1;
+> +		unsigned int spare:1;
 
+Don't use bitfields! How bitfields are ordered is compiler specific.
+
+> +	} rsta;
+> +	u16 val;
+> +	u8 b0[] = { WL1273_RDS_DATA_GET };
+> +	u8 b1[] = { 0, 0, 0 };
+> +	struct i2c_msg msg[] = {
+> +		{
+> +			.addr = client->addr,
+> +			.flags = 0,
+> +			.buf = b0,
+> +			.len = 1
+> +		},
+> +		{
+> +			.addr = client->addr,
+> +			.flags = I2C_M_RD,
+> +			.buf = b1,
+> +			.len = 3
+> +		}
+> +	};
+> +	int r;
+> +
+> +	r = wl1273_fm_read_reg(core, WL1273_RDS_SYNC_GET, &val);
+> +	if (r)
+> +		return r;
+> +
+> +	if ((val & 0x01) == 0) {
+> +		/* RDS decoder not synchronized */
+> +		return -EAGAIN;
+> +	}
+> +
+> +	/* copy all four RDS blocks to internal buffer */
+> +	do {
+> +		r = i2c_transfer(client->adapter, msg, 2);
+> +		if (r != 2) {
+> +			dev_err(dev, WL1273_FM_DRIVER_NAME
+> +				": %s: read_rds error r == %i)\n",
+> +				__func__, r);
+> +		}
+> +
+> +		rsta = *(struct rds_status *) &b1[2];
+> +		if (rsta.fifo_status == 0)
+> +			break;
+> +
+> +		/* copy RDS block to internal buffer */
+> +		memcpy(&core->buffer[core->wr_index], &b1, 3);
+> +		core->wr_index += 3;
+
+Does the data you copy here conform to the v4l2_rds_data struct?
+In particular the block byte. It is well documented in the Spec in the
+section on 'Reading RDS data'.
+
+> +
+> +		/* wrap write pointer */
+> +		if (core->wr_index >= core->buf_size)
+> +			core->wr_index = 0;
+> +
+> +		/* check for overflow & start over */
+> +		if (core->wr_index == core->rd_index) {
+> +			dev_dbg(dev, "RDS OVERFLOW");
+> +
+> +			core->rd_index = 0;
+> +			core->wr_index = 0;
+> +			break;
+> +		}
+> +	} while (rsta.fifo_status == 1);
+> +
+> +	/* wake up read queue */
+> +	if (core->wr_index != core->rd_index)
+> +		wake_up_interruptible(&core->read_queue);
+> +
+> +	return 0;
+> +}
+
+Regards,
+
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
