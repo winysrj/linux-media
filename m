@@ -1,40 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f199.google.com ([209.85.221.199]:44314 "EHLO
-	mail-qy0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757988Ab0EFMrd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 08:47:33 -0400
-Received: by qyk37 with SMTP id 37so2183596qyk.22
-        for <linux-media@vger.kernel.org>; Thu, 06 May 2010 05:47:32 -0700 (PDT)
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3520 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751609Ab0E3IOF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 May 2010 04:14:05 -0400
+Received: from tschai.localnet (cm-84.208.87.21.getinternet.no [84.208.87.21])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4U8E4Kk003077
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 30 May 2010 10:14:04 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Version 2: Tentative agenda for Helsinki mini-summit
+Date: Sun, 30 May 2010 10:15:59 +0200
 MIME-Version: 1.0
-In-Reply-To: <w2zef62033e1005060544ja4331869gcbc2ccdf95d57318@mail.gmail.com>
-References: <i2kef62033e1005060450n93f9fe12jc535886682e055a7@mail.gmail.com>
-	 <l2i83bcf6341005060533zd92299a9y7b8037f0a46ff5cb@mail.gmail.com>
-	 <w2zef62033e1005060544ja4331869gcbc2ccdf95d57318@mail.gmail.com>
-Date: Thu, 6 May 2010 08:47:32 -0400
-Message-ID: <k2u83bcf6341005060547v983baea9g9617c45fd577f414@mail.gmail.com>
-Subject: Re: Avermedia AverTV Capture HD support
-From: Steven Toth <stoth@kernellabs.com>
-To: Omer Uner GUCLU <omerunerguclu@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201005301015.59776.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 6, 2010 at 8:44 AM, Omer Uner GUCLU <omerunerguclu@gmail.com> wrote:
-> Steven,
->
-> I do not know this card is same with you. lspci output is like that.
->
-> 02:00.0 Multimedia video controller: Device 1a0a:6200 (rev 01)
+Hi all,
 
-Don't remove the mailing list cc, I've added it back.
+This is the second version of a tentative agenda for the Helsinki mini-summit
+on June 14-16.
 
-Unless you have the datasheet for the TM6200 PCIe bridge then this
-cannot happen, last I checked it was not freely available. So, I do
-not think this is possible.
+Please reply to this thread if you have comments or want to add topics.
+
+If you want to attend the summit then contact Sakari Ailus
+(sakari.ailus@maxwell.research.nokia.com). We are very full already (over 20
+attendees), so I'm not sure if there is still room left.
+
+The overall layout of the summit is to use the first day to go through all
+topics and either come to a conclusion quickly for the 'simple' topics, or
+discuss enough so that everyone understands the problem for the more complex
+issues.
+
+The second day will be used for in-depth discussions on those complex topics
+and on the third day we will go through all topics again and translate the
+discussions into something concrete like a time-line, action items, etc.
+
+We have a lot to discuss, so we almost certainly have to split the second day
+into two tracks, each discussing different topics. If we do split up, then one
+track will touch on the videobuf-related topics and the other on the remaining
+topics.
+
+The first day will also feature a few short presentations on various topics.
+Presentations shouldn't be longer than, say, 10 minutes tops. Please keep them
+as short and to the point as possible. These presentations are meant to get
+everyone up to speed quickly. Most of us have an extensive background in video
+hardware and the v4l subsystem, so you don't need to spend time explaining
+things.
+
+After each topic I've put the names of the main developers active in that area.
+If you see your name, then make sure you know the status of that topic so you
+can explain it to everyone else. If I think it warrants a presentation, then I
+will mention that. Of course, if you disagree, or want/don't want to do a
+presentation then just say so. It's a tentative agenda only.
+
+The topics below are in no particular order except for the first one. I am
+very pleased that Qualcomm has joined this project so I think it would be
+nice to start the meeting off with a presentation on their HW architecture.
+
+1) Presentation on the Qualcomm video hw architecture. Most of us have no
+   experience with Qualcomm hardware, so I've asked Jeff Zhong to give a short
+   overview of their video hardware.
+
+2) Removal of V4L1: status of driver conversion in the kernel, status of
+   moving v4l1->v4l2 conversion into libv4l1. What needs to be done, when
+   will it be done and who will do it. Driver conversion: Hans Verkuil,
+   libv4l1 conversion: Hans de Goede.
+
+3) videobuf/videobuf2: what are the shortcomings, what are the requirements for
+   a 'proper' videobuf implementation, can the existing videobuf be fixed or do
+   we need a videobuf2. If the latter, what would be needed to convert existing
+   drivers over to a videobuf2. Related topics (custom/pluggable allocators,
+   out-of-order buffer dequeuing and per-buffer wait queues) will also be part
+   of this topic.
+   Laurent Pinchart and Pawel Osciak with presentations.
+
+4) Multi-planar support. Pawel Osciak.
+
+5) Media Controller Roadmap. Laurent Pinchart has a presentation.
+
+6) TO DO list regarding V4L2 core framework including the new control framework.
+   Hans Verkuil. Will be a presentation.
+
+7) Status of the Texas Instruments drivers: omapX (Laurent Pinchart/Hiremath Vaibhav)
+   and DMxxxx (Sergio Aguirre). Probably should be a short presentation.
+
+8) soc-camera status. Particularly with regards to the remaining soc-camera
+   dependencies in sensor drivers. Guennadi Liakhovetski.
+
+9) Driver compliance. We need a framework for V4L2 driver compliance. Hans
+   Verkuil.
+
+10) Discuss list of 'reference' programs to test against. Mauro Carvalho Chehab.
+
+11) Adopting old V4L1 programs and converting to V4L2. Hans de Goede?
+
+12) Status of intel drivers. Xiaolin Zhang.
+
+13) Remote Controllers. Presentation by Mauro Carvalho Chehab.
+
+14) V4L2 video output vs. framebuffer. Guennadi Liakhovetski.
+
+15) A processing plugin API for libv4l. Hans de Goede.
+    See: http://www.mail-archive.com/linux-media@vger.kernel.org/msg18993.html
+
+It is my understanding that we will also have X11 and gstreamer experts on hand.
+Topics relating to that are welcome.
+
+During the memory handling brainstorming session earlier this year we also
+touched on creating some sort of a generic buffer model allowing for easy
+exchange between v4l buffers, framebuffers, texture buffers, etc. It is my
+opinion that we should not discuss this in Helsinki. The list of topics is
+already quite long and I think it is too early to start working on that. We
+probably need another brainstorming session first in order to come up with
+a reasonable proposal.
+
+Comments? Topics I missed?
 
 Regards,
 
+        Hans
+
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
