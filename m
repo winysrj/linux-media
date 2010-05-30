@@ -1,140 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:55172 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754046Ab0ESQop (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 May 2010 12:44:45 -0400
-Received: from dlep36.itg.ti.com ([157.170.170.91])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o4JGiiaY026357
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500
-Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
-	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4JGiikd005458
-	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500 (CDT)
-Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
-	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o4JGiimx013202
-	for <linux-media@vger.kernel.org>; Wed, 19 May 2010 11:44:44 -0500 (CDT)
-From: <asheeshb@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: Asheesh Bhardwaj <asheeshb@ti.com>
-Subject: [PATCH 6/7] DM365 capture MMAP buffer allocation
-Date: Wed, 19 May 2010 11:44:37 -0500
-Message-ID: <1274287478-14661-7-git-send-email-asheeshb@ti.com>
-In-Reply-To: <1274287478-14661-6-git-send-email-asheeshb@ti.com>
-References: <1274287478-14661-1-git-send-email-asheeshb@ti.com>
- <1274287478-14661-2-git-send-email-asheeshb@ti.com>
- <1274287478-14661-3-git-send-email-asheeshb@ti.com>
- <1274287478-14661-4-git-send-email-asheeshb@ti.com>
- <1274287478-14661-5-git-send-email-asheeshb@ti.com>
- <1274287478-14661-6-git-send-email-asheeshb@ti.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:38331 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754548Ab0E3CYL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 May 2010 22:24:11 -0400
+Received: by vws11 with SMTP id 11so683105vws.19
+        for <linux-media@vger.kernel.org>; Sat, 29 May 2010 19:24:11 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <1275163295.17477.143.camel@localhost>
+References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>
+	<1275136793.2260.18.camel@localhost>
+	<AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>
+	<1275163295.17477.143.camel@localhost>
+Date: Sat, 29 May 2010 22:24:09 -0400
+Message-ID: <AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>
+Subject: Re: ir-core multi-protocol decode and mceusb
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Asheesh Bhardwaj <asheeshb@ti.com>
+On Sat, May 29, 2010 at 4:01 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> On Sat, 2010-05-29 at 12:58 -0400, Jarod Wilson wrote:
+>> On Sat, May 29, 2010 at 8:39 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+>> > On Fri, 2010-05-28 at 00:47 -0400, Jarod Wilson wrote:
+>> >> So I'm inching closer to a viable mceusb driver submission -- both a
+>> >> first-gen and a third-gen transceiver are now working perfectly with
+>> >> multiple different mce remotes. However, that's only when I make sure
+>> >> the mceusb driver is loaded w/only the rc6 decoder loaded. When
+>> >> ir-core comes up, it requests all decoders to load, starting with the
+>> >> nec decoder, followed by the rc5 decoder, then the rc6 decoder and so
+>> >> on (init_decoders() in ir-raw-event.c). When I call
+>> >> ir_raw_event_handle, all decoders get run on the ir data buffer,
+>> >> starting with nec. Well, the nec decoder doesn't like the rc6 data, so
+>> >> it pukes. The RUN_DECODER macro break's out of the routine when that
+>> >> happens, and the rc6 decoder never gets a chance to run. (Similarly,
+>> >> if only ir-nec-decoder has been removed, the rc5 decoder pukes on the
+>> >> rc6 data, same problem).
+>> >
+>> > Yes, if the system kernel is going to attempt to discriminate between
+>> > various input singals, it needs to let all its "correlators" run and
+>> > produce a "confidence" number from each.
+>> >
+>> > Then ideally one would take the result with the highest confidence.
+>> >
+>> > Right now it looks like all the confidence determinations are boolean (0
+>> > or -EINVAL) and there is no chance to deal with the case that two
+>> > different decoders validly decode something.  The first decoder that
+>> > declares a match "wins" and sends an event.
+>>
+>> Yeah, it does look that way. I wonder how likely it is that e.g. a
+>> valid RC6 signal would be decoded to something by say the NEC decoder,
+>
+> NEC is a pulse position code and RC-6 is manchester encoded, so that
+> particular case would be unlikely.
+>
+> I would think one would have a better chance of false positiive
+> detections between similar encoding types: pulse position, pulse width,
+> or manchester.
+>
+> Looking at slide 11 of this:
+>
+>        http://www.audiodevelopers.com/temp/Remote_Controls.ppt
+>
+> It looks like the pulse position protocols with a header space of 8T
+> (where 8T is about 4ms) would be the only ones that could get confused.
+>
+> Since these are streaming decoders, it looks like JVC would come up with
+> false detections first, since it has the shortest payload of the pulse
+> position protocols.  I think JVC will always claim to decode an NEC
+> pulse train.  (I'll try to test that sometime.)
+>
+>
+>> with a resulting value that matched an entry in the (RC6) keymap
+>> loaded for the remote... Certainly seems like something that *could*
+>> happen somehow, but probably unlikely? I dunno...
+>
+> I don't know either.  There appears to be a chance for the first 16 bits
+> of a transmitted NEC (Addr:Addr') or Extended NEC (AddrHi:AddrLo)
+> sequence, to be interpreted as JVC (Addr:Cmd), and the JVC decoder
+> matching a scancode in the keytable for the NEC remote.
+>
+>
+>
+>
+>>  We do have the
+>> option to disable all but the relevant protocol handler on a
+>> per-device basis though, if that's a problem. Hrm, the key tables also
+>> have a protocol tied to them, not sure if that's taken into account
+>> when doing matching... Still getting to know the code. :)
+>
+> It does not look like
+>
+>        ir_keydown()
+>                ir_g_keycode_from_table()
+>                        ir_getkeycode()
+>
+> bother to check the ir_type (e.g. IR_TYPE_NEC) of the keymap against the
+> decoders type.  Neither do the decoders themselves.
+>
+>
+> If a decoder decodes something and thinks its valid, it tries to send a
+> key event with ir_keydown().  ir_keydown() won't send a key event if the
+> lookup comes back KEY_RESERVED, but it doesn't tell the decoder about
+> the failure to find a key mapping.  A decoder can come back saying it
+> did it's job, without knowing whether or not the decoding corresponded
+> to a valid key in the loaded keymap. :(
+>
+>
+>> > You will have to deal with the case that two or more decoders may match
+>> > and each sends an IR event.  (Unless the ir-core already deals with this
+>> > somehow...)
+>>
+>> Well, its gotta decode correctly to a value, and then match a value in
+>> the loaded key table for an input event to get sent through. At least
+>> for the RC6 MCE remotes, I haven't seen any of the other decoders take
+>> the signal and interpret it as valid -- which ought to be by design,
+>> if you consider that people use several different remotes with varying
+>> ir signals with different devices all receiving them all the time
+>> without problems (usually). And if we're not already, we could likely
+>> add some logic to give higher precedence to values arrived at using
+>> the protocol decoder that matches the key table we've got loaded for a
+>> given device.
+>
+> After looking at things, the only potential problem I can see right now
+> is with the JVC decoder and NEC remotes.
+>
+> I think that problem is most easily eliminated either by
+>
+> a. having ir_keydown() (or the functions it calls) check to see that the
+> decoder matches the loaded keymap, or
+>
+> b. only calling the decoder that matches the loaded keymap's protocol
+>
+> Of the above, b. saves processor cycles and frees up the global
+> ir_raw_handler spin lock sooner.  That spin lock is serializing pulse
+> decoding for all the IR receivers in the system  (pulse decoding can
+> still be interleaved, just only one IR receiver's pulses are be
+> processed at any time).  What's the point of running decoders that
+> should never match the loaded keymap?
 
----
- drivers/media/video/davinci/vpfe_capture.c |   39 +++++++++++++++++++++++++---
- include/media/davinci/vpfe_capture.h       |    1 +
- 2 files changed, 36 insertions(+), 4 deletions(-)
+For the daily use case where a known-good keymap is in place, I'm
+coming to the conclusion that there's no point, we're only wasting
+resources. For initial "figure out what this remote is" type of stuff,
+running all decoders makes sense. One thought I had was that perhaps
+we start by running through the decoder that is listed in the keymap.
+If it decodes to a scancode and we find a valid key in the key table
+(i.e., not KEY_RESERVED), we're done. If decoding fails or we don't
+find a valid key, then try the other decoders. However, this is
+possibly also wasteful -- most people with any somewhat involved htpc
+setup are going to be constantly sending IR signals intended for other
+devices that we pick up and try to decode.
 
-diff --git a/drivers/media/video/davinci/vpfe_capture.c b/drivers/media/video/davinci/vpfe_capture.c
-index b26b9d5..c6eadba 100644
---- a/drivers/media/video/davinci/vpfe_capture.c
-+++ b/drivers/media/video/davinci/vpfe_capture.c
-@@ -87,11 +87,15 @@ static int debug;
- static u32 numbuffers = 3;
- static u32 bufsize = PAL_IMAGE_SIZE + SECOND_IMAGE_SIZE_MAX;
- static int interface;
-+static u32 cont_bufoffset = 0;
-+static u32 cont_bufsize = 0;
- 
- module_param(interface, bool, S_IRUGO);
- module_param(numbuffers, uint, S_IRUGO);
- module_param(bufsize, uint, S_IRUGO);
- module_param(debug, bool, 0644);
-+module_param(cont_bufoffset, uint, S_IRUGO);
-+module_param(cont_bufsize, uint, S_IRUGO);
- 
- /**
-  * VPFE capture can be used for capturing video such as from TVP5146 or TVP7002
-@@ -107,6 +111,8 @@ MODULE_PARM_DESC(interface, "interface 0-1 (default:0)");
- MODULE_PARM_DESC(numbuffers, "buffer count (default:3)");
- MODULE_PARM_DESC(bufsize, "buffer size in bytes, (default:1443840 bytes)");
- MODULE_PARM_DESC(debug, "Debug level 0-1");
-+MODULE_PARM_DESC(cont_bufoffset,"Capture buffer offset(default 0)");
-+MODULE_PARM_DESC(cont_bufsize,"Capture buffer size(default 0)");
- 
- MODULE_DESCRIPTION("VPFE Video for Linux Capture Driver");
- MODULE_LICENSE("GPL");
-@@ -1828,10 +1834,14 @@ static int vpfe_videobuf_setup(struct videobuf_queue *vq,
- 			*size = config_params.device_bufsize;
- 	}
- 
--	if (*count < config_params.min_numbuffers)
--		*count = config_params.min_numbuffers;
-+	if ( config_params.video_limit) {
-+		while (*size * *count > config_params.video_limit)
-+			(*count)--;
-+	}
- 
--	v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
-+ 	if (*count < config_params.min_numbuffers)
-+		*count = config_params.min_numbuffers;
-+        v4l2_dbg(1, debug, &vpfe_dev->v4l2_dev,
- 		"count=%d, size=%d\n", *count, *size);
- 	return 0;
- }
-@@ -2608,8 +2618,10 @@ static __init int vpfe_probe(struct platform_device *pdev)
- 	struct vpfe_device *vpfe_dev;
- 	struct i2c_adapter *i2c_adap;
- 	struct video_device *vfd;
--	int ret = -ENOMEM, i, j;
-+	int ret = -ENOMEM, i, j, err;
- 	int num_subdevs = 0;
-+	unsigned long phys_end_kernel;
-+	size_t size;
- 
- 	/* Get the pointer to the device object */
- 	vpfe_dev = vpfe_initialize();
-@@ -2622,6 +2634,25 @@ static __init int vpfe_probe(struct platform_device *pdev)
- 
- 	vpfe_dev->pdev = &pdev->dev;
- 
-+        if(cont_bufsize) {
-+            /* attempt to determine the end of Linux kernel memory */
-+            phys_end_kernel = virt_to_phys((void *)PAGE_OFFSET) +
-+                   (num_physpages << PAGE_SHIFT);
-+            size = cont_bufsize;
-+            phys_end_kernel += cont_bufoffset; 
-+            err = dma_declare_coherent_memory(&pdev->dev, phys_end_kernel,
-+		  phys_end_kernel,
-+		  size,
-+		  DMA_MEMORY_MAP |
-+         	  DMA_MEMORY_EXCLUSIVE);
-+		if (!err) {
-+			dev_err(&pdev->dev, "Unable to declare MMAP memory.\n");
-+			ret = -ENOENT;
-+		        goto probe_free_dev_mem;
-+         	}
-+            config_params.video_limit = size;
-+        }  
-+
- 	if (NULL == pdev->dev.platform_data) {
- 		v4l2_err(pdev->dev.driver, "Unable to get vpfe config\n");
- 		ret = -ENOENT;
-diff --git a/include/media/davinci/vpfe_capture.h b/include/media/davinci/vpfe_capture.h
-index bd0f13a..785157c 100644
---- a/include/media/davinci/vpfe_capture.h
-+++ b/include/media/davinci/vpfe_capture.h
-@@ -228,6 +228,7 @@ struct vpfe_config_params {
- 	u8 numbuffers;
- 	u32 min_bufsize;
- 	u32 device_bufsize;
-+	u32 video_limit;
- };
- 
- #endif				/* End of __KERNEL__ */
+So I'd say we go with your option b, and only call the decoder that
+matches the loaded keymap. One could either pass in a modparam or
+twiddle a sysfs attr or use ir-keytable to put the receiver into a
+mode that called all decoders -- i.e., set protocol to
+IR_TYPE_UNKNOWN, with the intention being to figure it out based on
+running all decoders, and create a new keymap where IR_TYPE_FOO is
+known.
+
+
 -- 
-1.6.3.3
-
+Jarod Wilson
+jarod@wilsonet.com
