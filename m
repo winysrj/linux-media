@@ -1,110 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smarthost01.mail.zen.net.uk ([212.23.3.140]:54339 "EHLO
-	smarthost01.mail.zen.net.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753372Ab0EFS6s (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4385 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351Ab0E3H6K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 May 2010 14:58:48 -0400
-Message-ID: <4BE31163.90505@whitelands.org.uk>
-Date: Thu, 06 May 2010 19:58:43 +0100
-From: Paul Shepherd <paul@whitelands.org.uk>
+	Sun, 30 May 2010 03:58:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: Tentative agenda for Helsinki mini-summit
+Date: Sun, 30 May 2010 09:59:59 +0200
+Cc: linux-media@vger.kernel.org, "'Zhong, Jeff'" <hzhong@quicinc.com>,
+	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
+	"'Zhang, Xiaolin'" <xiaolin.zhang@intel.com>,
+	"'Sergio Rodriguez'" <saaguirre@ti.com>,
+	"'Vaibhav Hiremath'" <hvaibhav@ti.com>,
+	"'Guennadi Liakhovetski'" <g.liakhovetski@gmx.de>,
+	"'Hans de Goede'" <hdegoede@redhat.com>,
+	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
+	"'Kamil Debski'" <k.debski@samsung.com>
+References: <201005231236.49048.hverkuil@xs4all.nl> <002201cafcea$93b06c00$bb114400$%osciak@samsung.com>
+In-Reply-To: <002201cafcea$93b06c00$bb114400$%osciak@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: tlelegard@logiways.com
-Subject: Re: cx88 pci_abort errors (Hauppauge WinTV Nova-HD-S2)
-References: <91E6C7608D34E145A3D9634F0ED7163E81D787@venus.logiways-france.fr>
-In-Reply-To: <91E6C7608D34E145A3D9634F0ED7163E81D787@venus.logiways-france.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201005300959.59316.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wednesday 26 May 2010 17:46:16 Pawel Osciak wrote:
+> Hi Hans,
+> 
+> thank you for your work on this!
+> 
+> >Hans Verkuil wrote:
+> 
+> >3) videobuf/videobuf2: what are the shortcomings, what are the requirements
+> >for a 'proper' videobuf implementation, can the existing videobuf be fixed or
+> >do we need a videobuf2. If the latter, what would be needed to convert
+> >existing drivers over to a videobuf2. Laurent Pinchart and Pawel Osciak. This I'm
+> >sure requires a presentation.
+> 
+> As Laurent volunteered to prepare the "videobuf problems" presentation, I will
+> hopefully make it before the summit with an initial (general) design for the new
+> videobuf2 - requirements, API, things like that. So I'm thinking about a short
+> presentation on this. What do you think?
 
-On 06/05/2010 16:01, Thierry LELEGARD wrote:
+That's OK.
 
->
-> I recently added a Hauppauge WinTV Nova-HD-S2 into a Linux system.
-> I experience frequent packet loss and pci_abort errors.
->
-> Each time my application detects packet loss (continuity errors
-> actually), I get the following messages in dmesg:
->
-> cx88[0]: irq mpeg  [0x80000] pci_abort*
-> cx88[0]/2-mpeg: general errors: 0x00080000
->
-> Such problems occur every few seconds.
->
-> I use firmware file dvb-fe-cx24116.fw version 1.26.90.0.
->
-> Since the IRQ was shared with the nVidia card and a Dektec modulator,
-> I swapped some PCI boards. The IRQ is still shared but with another
-> Tuner I do not use when using the S2 tuner. After swapping the PCI
-> boards, the errors occur less frequently but still happen.
->
-> Assuming that the pci_abort was due to an interrupted DMA transfer, I
-> tried to increase the PCI latency timer of the device to 248 but this
-> did not change anything (setpci -s 05:05 latency_timer=f8).
->
-> I use the tuner with a custom application which reads the complete
-> Transport stream. This application had worked for years using DVB-T
-> and DVB-S tuners. I tried to reduce the application read buffer
-> input size and it did not change anything at all.
->
-> Note that my application still uses the V3 API, not the S2API. But,
-> using DVB-S transponders, it works (except the pci_abort errors).
->
-> I disabled the serial port, the parallel port and the PS/2 ports in the
-> BIOS. It did not change anything either.
->
-> Does anyone have an idea, please?
-> Thanks a lot in advance for any help.
-> -Thierry
+> >4) Multi-planar support. Pawel Osciak.
+> 
+> Yes. Will provide a short status update. Is a presentation of the whole concept
+> required? If so, I can conduct one as well.
 
-I have the board working in a Ubuntu 9.10 system, log below shows no pci 
-errors:
+I don't think a presentation is required.
 
-> Apr 21 18:32:11 antec300 kernel: [   16.576416] cx88/2: cx2388x MPEG-TS Driver Manager version 0.0.7 loaded
-> Apr 21 18:32:11 antec300 kernel: [   16.576711] cx88[0]: subsystem: 0070:6906, board: Hauppauge WinTV-HVR4000(Lite) DVB-S/S2 [card=69,autodetected], frontend(s): 1
-> Apr 21 18:32:11 antec300 kernel: [   16.576714] cx88[0]: TV tuner type -1, Radio tuner type -1
-> Apr 21 18:32:11 antec300 kernel: [   16.583565] cx88/0: cx2388x v4l2 driver version 0.0.7 loaded
-> Apr 21 18:32:11 antec300 kernel: [   16.586270] cx2388x alsa driver version 0.0.7 loaded
-> Apr 21 18:32:11 antec300 kernel: [   16.605679] EXT4-fs (sda1): internal journal on sda1:8
-> Apr 21 18:32:11 antec300 kernel: [   16.755834] EXT4-fs (sdc1): barriers enabled
-> Apr 21 18:32:11 antec300 kernel: [   16.757791] kjournald2 starting: pid 956, dev sdc1:8, commit interval 5 seconds
-> Apr 21 18:32:11 antec300 kernel: [   16.763057] EXT4-fs (sdc1): internal journal on sdc1:8
-> Apr 21 18:32:11 antec300 kernel: [   16.763061] EXT4-fs (sdc1): delayed allocation enabled
-> Apr 21 18:32:11 antec300 kernel: [   16.763063] EXT4-fs: file extents enabled
-> Apr 21 18:32:11 antec300 kernel: [   16.789147] EXT4-fs: mballoc enabled
-> Apr 21 18:32:11 antec300 kernel: [   16.789163] EXT4-fs (sdc1): mounted filesystem with ordered data mode
-> Apr 21 18:32:11 antec300 kernel: [   16.795868] tveeprom 2-0050: Hauppauge model 69100, rev B4C3, serial# 7084390
-> Apr 21 18:32:11 antec300 kernel: [   16.795871] tveeprom 2-0050: MAC address is 00:0d:fe:6c:19:66
-> Apr 21 18:32:11 antec300 kernel: [   16.795874] tveeprom 2-0050: tuner model is Conexant CX24118A (idx 123, type 4)
-> Apr 21 18:32:11 antec300 kernel: [   16.795876] tveeprom 2-0050: TV standards ATSC/DVB Digital (eeprom 0x80)
-> Apr 21 18:32:11 antec300 kernel: [   16.795878] tveeprom 2-0050: audio processor is None (idx 0)
-> Apr 21 18:32:11 antec300 kernel: [   16.795880] tveeprom 2-0050: decoder processor is CX880 (idx 20)
-> Apr 21 18:32:11 antec300 kernel: [   16.795882] tveeprom 2-0050: has no radio, has IR receiver, has no IR transmitter
-> Apr 21 18:32:11 antec300 kernel: [   16.795884] cx88[0]: hauppauge eeprom: model=69100
-> Apr 21 18:32:11 antec300 kernel: [   16.798457] input: cx88 IR (Hauppauge WinTV-HVR400 as /devices/pci0000:00/0000:00:1e.0/0000:06:02.2/input/input6
-> Apr 21 18:32:11 antec300 kernel: [   16.798488] cx88[0]/2: cx2388x 8802 Driver Manager
-> Apr 21 18:32:11 antec300 kernel: [   16.798500] cx88-mpeg driver manager 0000:06:02.2: PCI INT A -> GSI 19 (level, low) -> IRQ 19
-> Apr 21 18:32:11 antec300 kernel: [   16.798506] cx88[0]/2: found at 0000:06:02.2, rev: 5, irq: 19, latency: 32, mmio: 0xf8000000
-> Apr 21 18:32:11 antec300 kernel: [   16.798510] IRQ 19/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-> Apr 21 18:32:11 antec300 kernel: [   16.799143] cx8800 0000:06:02.0: PCI INT A -> GSI 19 (level, low) -> IRQ 19
-> Apr 21 18:32:11 antec300 kernel: [   16.799151] cx88[0]/0: found at 0000:06:02.0, rev: 5, irq: 19, latency: 32, mmio: 0xfa000000
-> Apr 21 18:32:11 antec300 kernel: [   16.799158] IRQ 19/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-> Apr 21 18:32:11 antec300 kernel: [   16.799193] cx88[0]/0: registered device video0 [v4l2]
-> Apr 21 18:32:11 antec300 kernel: [   16.799210] cx88[0]/0: registered device vbi0
-> Apr 21 18:32:11 antec300 kernel: [   16.802095] cx88_audio 0000:06:02.1: PCI INT A -> GSI 19 (level, low) -> IRQ 19
-> Apr 21 18:32:11 antec300 kernel: [   16.802102] IRQ 19/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-> Apr 21 18:32:11 antec300 kernel: [   16.802122] cx88[0]/1: CX88x/0: ALSA support for cx2388x boards
-> Apr 21 18:32:11 antec300 kernel: [   17.166889] cx88/2: cx2388x dvb driver version 0.0.7 loaded
-> Apr 21 18:32:11 antec300 kernel: [   17.166893] cx88/2: registering cx8802 driver, type: dvb access: shared
-> Apr 21 18:32:11 antec300 kernel: [   17.166897] cx88[0]/2: subsystem: 0070:6906, board: Hauppauge WinTV-HVR4000(Lite) DVB-S/S2 [card=69]
-> Apr 21 18:32:11 antec300 kernel: [   17.166902] cx88[0]/2: cx2388x based DVB/ATSC card
-> Apr 21 18:32:11 antec300 kernel: [   17.166905] cx8802_alloc_frontends() allocating 1 frontend(s)
+> >9) Driver compliance. We need a framework for V4L2 driver compliance. Hans
+> >   Verkuil.
+> 
+> I am very interested in this!
+> 
+> >10) Discuss list of 'reference' programs to test against. Mauro?
+> >
+> 
+> Ditto.
+> 
+> >During the memory handling brainstorming session earlier this year we also
+> >touched on creating some sort of a generic buffer model allowing for easy
+> >exchange between v4l buffers, framebuffers, texture buffers, etc. It is my
+> >opinion that we should not discuss this in Helsinki. The list of topics is
+> >already quite long and I think it is too early to start working on that. We
+> >probably need another brainstorming session first in order to come up with
+> >a reasonable proposal.
+> 
+> I agree.
+> 
+> >Comments? Topics I missed?
+> 
+> It would be great to touch on the following subjects if we find some time
+> (and if people would be interested, I had little feedback on the list):
+> 
+> 1) Custom/pluggable allocators
+> As most of us are aware there are important problems with memory allocation
+> in videobuf that most of us have already faced.
+> For those unfamiliar with the topic, please see my recent RFC:
+> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/19581
+> 
+> I'd like to provide a design of an API:
+> * for videobuf that would allow drivers to plug-in their own memory allocation
+>   routines,
+> * future-proof enough to be usable with videobuf2 as well.
+> 
+> Hoping for a (short-ish) discussion on that.
+> 
+> 2) Out-of-order buffer dequeuing and per-buffer wait queues in videobuf. See:
+> RFC: http://www.mail-archive.com/linux-media@vger.kernel.org/msg17319.html
+> Patches: http://www.mail-archive.com/linux-media@vger.kernel.org/msg17886.html
 
-Not sure which .fw file was loaded (it just worked).  If you would like 
-further info let me know.
+These topics should all be folded into the videobuf topic. Due to the importance
+of videobuf I expect that a considerable amount of time will be spend on this.
 
-paul
+On the first day I will probably put this topic last on the list and try to get
+through the other topics fairly quickly so that we hopefully have 2-3 hours for
+this topic.
 
+What makes this a difficult topic is that you have this list of relatively
+small sub-topics (like allocators, out-of-order dequeuing, videobuf improvements,
+caching, etc. etc.), but it is not always easy to see the big picture: i.e.
+what is the goal that you are working towards and what is the purpose for these
+smaller sub-topics in the bigger picture.
 
+I know that was difficult for me in the beginning, so I think it will probably
+help people if you also provide the big picture and the context within which to
+place these sub-topics. The 'big picture' also includes the memory pool idea.
+Not that we will discuss this in Helsinki, but people should be aware that it
+will be part of a next phase.
+
+BTW, the videobuf presentation(s) can be longer than 10 minutes if needed.
+This is the 'big topic' of the summit, so we will have more time for this.
+
+Regards,
+
+	Hans
+
+> 
+> 
+> Please let me know what you think. Thanks!
+> 
+> Best regards
+> --
+> Pawel Osciak
+> Linux Platform Group
+> Samsung Poland R&D Center
+> 
+> 
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
