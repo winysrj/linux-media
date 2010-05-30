@@ -1,63 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:41729 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755487Ab0EOVSp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 May 2010 17:18:45 -0400
-Date: Sat, 15 May 2010 23:18:40 +0200 (CEST)
-From: Julia Lawall <julia@diku.dk>
-To: Huang Shijie <shijie8@gmail.com>,
-	Kang Yong <kangyong@telegent.com>,
-	Zhang Xiaobing <xbzhang@telegent.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH 18/37] drivers/media/video/tlg2300: Use kmemdup
-Message-ID: <Pine.LNX.4.64.1005152318160.21345@ask.diku.dk>
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:47952 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754741Ab0E3V3H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 May 2010 17:29:07 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
+Date: Sun, 30 May 2010 23:28:54 +0200
+Cc: "Jean-Francois Moine" <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+References: <201005291909.33593.linux@rainbow-software.org> <201005301955.24442.linux@rainbow-software.org> <1275247574.7020.7.camel@localhost>
+In-Reply-To: <1275247574.7020.7.camel@localhost>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201005302328.56690.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
+On Sunday 30 May 2010 21:26:14 Andy Walls wrote:
+> On Sun, 2010-05-30 at 19:55 +0200, Ondrej Zary wrote:
+> > On Sunday 30 May 2010 13:34:55 Jean-Francois Moine wrote:
+> > > On Sat, 29 May 2010 21:32:07 +0200
+> > >
+> > > Ondrej Zary <linux@rainbow-software.org> wrote:
+> > > > The Color Space/Compression reported by the driver is only one: RGB
+> > > > 24 The driver also uses these files which may (or may not) be related
+> > > > to used compression: iyuv_32.dll, msh263.drv, msyuv.dll, tsbyuv.dll
+> > > > In standalone mode, the camera records video in MJPEG format.
+> > >
+> > > Hello Ondrej,
+> > >
+> > > Bad news, the images are compressed by an unknown algorithm (unknown
+> > > from Linux point of vue). The decompression function could be found in
+> > > some part of the ms-win driver, but:
+> > > - first, I have no time to search and disassemble this function,
+> > > - then, I did have this problem with an other webcam (17a1:0118), and
+> > >   after searching for a long time, nobody could find the function, and
+> > >   the driver is in stand-by since 2 years,
+> > > - eventually, is this legal?
+> >
+> > That's bad...
+> >
+> > The driver contains file sp5x_32.dll which is registered in system.ini
+> > file as [drivers32]
+> > VIDC.SP54=SP5X_32.DLL
+> >
+> > Seems that the codec is called SP54 - hope that it's used to decompress
+> > the data.
+> >
+> > > All I can do is to code the driver and let you or anyone find the
+> > > decompression function...
+>
+> SP54 is Sunplus' ( http://www.sunplus.com.tw/ ) FourCC code for a
+> version of MJPEG with the headers removed according to
+>
+> 	http://www.fourcc.org/
+>
+> > Maybe we can dump some data, create AVI file from that and try to decode
+> > the file using that codec.
+>
+> FourCC.org points to this page:
+>
+> 	http://libland.fr.st/download.html
+>
+> which points to a utility to conver the data back into an MJPEG:
+>
+> 	http://mxhaard.free.fr/spca50x/Download/sp54convert.tar.gz
+>
+>
+> I have no idea if any of the above is true, 'cause I read it on the
+> Internet. ;)
 
-Use kmemdup when some other buffer is immediately copied into the
-allocated region.
+Modified that utility to work on raw video frame extracted from usbsnoop file. 
+The bad news is that the resulting jpeg file is not readable.
 
-A simplified version of the semantic patch that makes this change is as
-follows: (http://coccinelle.lip6.fr/)
+I also deleted the sp5x_32.dll file and the camera still works...
 
-// <smpl>
-@@
-expression from,to,size,flag;
-statement S;
-@@
-
--  to = \(kmalloc\|kzalloc\)(size,flag);
-+  to = kmemdup(from,size,flag);
-   if (to==NULL || ...) S
--  memcpy(to, from, size);
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/media/video/tlg2300/pd-main.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff -u -p a/drivers/media/video/tlg2300/pd-main.c b/drivers/media/video/tlg2300/pd-main.c
---- a/drivers/media/video/tlg2300/pd-main.c
-+++ b/drivers/media/video/tlg2300/pd-main.c
-@@ -227,12 +227,11 @@ static int firmware_download(struct usb_
- 
- 	fwlength = fw->size;
- 
--	fwbuf = kzalloc(fwlength, GFP_KERNEL);
-+	fwbuf = kmemdup(fw->data, fwlength, GFP_KERNEL);
- 	if (!fwbuf) {
- 		ret = -ENOMEM;
- 		goto out;
- 	}
--	memcpy(fwbuf, fw->data, fwlength);
- 
- 	max_packet_size = udev->ep_out[0x1]->desc.wMaxPacketSize;
- 	log("\t\t download size : %d", (int)max_packet_size);
+-- 
+Ondrej Zary
