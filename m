@@ -1,43 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from a.mx.esa.t-systems.com ([81.7.202.133]:58463 "EHLO
-	a.mx.esa.t-systems.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751094Ab0ECIjI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 May 2010 04:39:08 -0400
-Content-class: urn:content-classes:message
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Subject: RE: [RFC 0/2] UVC gadget driver
-Date: Mon, 3 May 2010 10:29:17 +0200
-Message-ID: <D6DB9C7EDECDA944B870F62B587008622C89AB@NL-EXC-06.intra.local>
-References: <1272495179-2652-1-git-send-email-laurent.pinchart@ideasonboard.com> <201004290914.04140.laurent.pinchart@ideasonboard.com> <20100429073210.GA9462@kroah.com> <201004290934.50743.laurent.pinchart@ideasonboard.com>
-From: "Robert Lukassen" <Robert.Lukassen@tomtom.com>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>,
-	"Greg KH" <greg@kroah.com>
-Cc: <linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>
+Received: from lo.gmane.org ([80.91.229.12]:39014 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754984Ab0E3XPI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 May 2010 19:15:08 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1OIrih-0003hs-Gr
+	for linux-media@vger.kernel.org; Mon, 31 May 2010 01:15:03 +0200
+Received: from mil13-1-88-163-137-134.fbx.proxad.net ([88.163.137.134])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 31 May 2010 01:15:03 +0200
+Received: from s_elmaleh by mil13-1-88-163-137-134.fbx.proxad.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 31 May 2010 01:15:03 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?b?U3TDqXBoYW5l?= Elmaleh <s_elmaleh@hotmail.com>
+Subject: [PATCH] support for medion dvb stick 1660:1921
+Date: Sun, 30 May 2010 22:46:57 +0000 (UTC)
+Message-ID: <loom.20100531T003945-828@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
+I'm not sure of doing this the right way since I'm not a programmer.
+
+
+
+diff -r b576509ea6d2 linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+--- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Wed May 19 19:34:33 
+2010 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Mon May 31 00:34:44 
+2010 +0200
+@@ -2083,6 +2083,7 @@
+ 	{ USB_DEVICE(USB_VID_PCTV,	USB_PID_PINNACLE_PCTV282E) },
+ 	{ USB_DEVICE(USB_VID_DIBCOM,	USB_PID_DIBCOM_STK7770P) },
+ /* 60 */{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_XXS_2) },
++	{ USB_DEVICE(USB_VID_MEDION,	USB_PID_MEDION_STICK_CTX_1921) },
+ 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK807XPVR) },
+ 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK807XP) },
+ 	{ USB_DEVICE(USB_VID_PIXELVIEW, USB_PID_PIXELVIEW_SBTVD) },
+@@ -2606,10 +2607,14 @@
+ 			},
+ 		},
  
-> > > Both drivers act as "webcams". Robert's version exports the local 
-> > > frame buffer through USB, making the "webcam" capture what's 
-> > > displayed on the device. My version exposes a V4L2 interface to 
-> > > userspace, allowing an application on the device to send 
-> whatever it 
-> > > wants over USB (for instance frames captured from a 
-> sensor, making 
-> > > the device a real camera).
-> > 
-> > Ah.  So your's has the advantage of being able to do what 
-> his does as 
-> > well, right?
+-		.num_device_descs = 2,
++		.num_device_descs = 3,
+ 		.devices = {
+ 			{   "DiBcom STK7770P reference design",
+ 				{ &dib0700_usb_id_table[59], NULL },
++				{ NULL },
++			},
++			{   "Medion Stick ctx 1921",
++				{ &dib0700_usb_id_table[61], NULL },
+ 				{ NULL },
+ 			},
+ 			{   "Terratec Cinergy T USB XXS (HD)/ T3",
+diff -r b576509ea6d2 linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Wed May 19 19:34:33 
+2010 -0300
++++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	Mon May 31 00:34:44 
+2010 +0200
+@@ -303,4 +303,5 @@
+ #define USB_PID_TERRATEC_DVBS2CI_V2			0x10ac
+ #define USB_PID_TECHNISAT_USB2_HDCI_V1			0x0001
+ #define USB_PID_TECHNISAT_USB2_HDCI_V2			0x0002
++#define USB_PID_MEDION_STICK_CTX_1921			0x1921
+ #endif
 
-Our driver has been developed with an explicit goal of being 'transparent' for user-land. When an application uses a double-buffered framebuffer device for rendering, ALSA for sound playback and the linux input framework for input, then it just works. We have in the past also used a V4L2 like API on the video function, but stepped away from it as the framebuffer usually is uncached, and reading from the framebuffer is slow. In the approach you suggest, you'll have to memcpy() from a mmapped framebuffer to the V4L2 buffer. In the kernel driver, you'll have a copy of the data from the V4L2 buffer to the payload buffers. In the driver we've posted, data is copied from the framebuffer using an ordinary memcpy(), but for specific devices we've replaced that with a DMA memory copy. In that situation, the CPU doesn't do any copying of data and impact of streaming out video to a host is very low.
-
-Laurent's driver is more generic, our's has been tuned to low impact/high performance. I believe there is value in both approaches, but if you want to avoid to have two function implementations of the same device class it would be right to favour Laurent's generality over our tuning. 
-
-Please let me know if you still want me to post a patch for f_vdc as a separate function implementation.
-
-Regards,
-
-Robert Lukassen 
