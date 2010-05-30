@@ -1,142 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:63301 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753650Ab0ESDSY convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:18983 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754972Ab0E3V6G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 May 2010 23:18:24 -0400
-From: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 19 May 2010 11:17:38 +0800
-Subject: [PATCH v3 09/10] V4L2 ISP driver patchset for Intel Moorestown
- Camera Imaging Subsystem
-Message-ID: <33AB447FBD802F4E932063B962385B351E895DA7@shsmsx501.ccr.corp.intel.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sun, 30 May 2010 17:58:06 -0400
+Subject: Re: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
+From: Andy Walls <awalls@md.metrocast.net>
+To: Ondrej Zary <linux@rainbow-software.org>
+Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+In-Reply-To: <201005302328.56690.linux@rainbow-software.org>
+References: <201005291909.33593.linux@rainbow-software.org>
+	 <201005301955.24442.linux@rainbow-software.org>
+	 <1275247574.7020.7.camel@localhost>
+	 <201005302328.56690.linux@rainbow-software.org>
+Content-Type: multipart/mixed; boundary="=-uAS1LAN+BgejLJfqxY+g"
+Date: Sun, 30 May 2010 17:58:11 -0400
+Message-ID: <1275256691.4863.19.camel@localhost>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From 25b539d6fb4105c5552aca9a40f94aa30cd3a07c Mon Sep 17 00:00:00 2001
-From: Xiaolin Zhang <xiaolin.zhang@intel.com>
-Date: Tue, 18 May 2010 15:52:01 +0800
-Subject: [PATCH 09/10] This patch is a part of v4l2 ISP patchset for Intel Moorestown camera imaging
- subsystem support which declare the private ioctls information.
 
-Signed-off-by: Xiaolin Zhang <xiaolin.zhang@intel.com>
----
- drivers/media/video/mrstisp/include/ci_va.h        |   47 ++++++++++++++++++++
- .../media/video/mrstisp/include/v4l2_jpg_review.h  |   47 ++++++++++++++++++++
- 2 files changed, 94 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/mrstisp/include/ci_va.h
- create mode 100644 drivers/media/video/mrstisp/include/v4l2_jpg_review.h
+--=-uAS1LAN+BgejLJfqxY+g
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-diff --git a/drivers/media/video/mrstisp/include/ci_va.h b/drivers/media/video/mrstisp/include/ci_va.h
-new file mode 100644
-index 0000000..e77bb58
---- /dev/null
-+++ b/drivers/media/video/mrstisp/include/ci_va.h
-@@ -0,0 +1,47 @@
-+/*
-+ * Support for Moorestown Langwell Camera Imaging ISP subsystem.
-+ *
-+ * Copyright (c) 2009 Intel Corporation. All Rights Reserved.
-+ *
-+ * Copyright (c) Silicon Image 2008  www.siliconimage.com
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ * 02110-1301, USA.
-+ *
-+ *
-+ * Xiaolin Zhang <xiaolin.zhang@intel.com>
-+ */
-+
-+/*
-+ * for buffer sharing between camera and video subsystem to improve preview
-+ *  and video capture perofrmance
-+ */
-+
-+#ifndef _CI_VA_H
-+#define _CI_VA_H
-+
-+/* fixme: will be replaced for subdev/media controller framework */
-+struct ci_frame_info {
-+	unsigned long frame_id; /* in */
-+	unsigned int width; /* out */
-+	unsigned int height; /* out */
-+	unsigned int stride; /* out */
-+	unsigned int fourcc; /* out */
-+	unsigned int offset; /* out */
-+};
-+
-+#define ISP_IOCTL_GET_FRAME_INFO _IOWR('V', 192 + 5, struct ci_frame_info)
-+
-+#endif
-+
-diff --git a/drivers/media/video/mrstisp/include/v4l2_jpg_review.h b/drivers/media/video/mrstisp/include/v4l2_jpg_review.h
-new file mode 100644
-index 0000000..d574d83
---- /dev/null
-+++ b/drivers/media/video/mrstisp/include/v4l2_jpg_review.h
-@@ -0,0 +1,47 @@
-+/*
-+ * Support for Moorestown Langwell Camera Imaging ISP subsystem.
-+ *
-+ * Copyright (c) 2009 Intel Corporation. All Rights Reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License version
-+ * 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ * 02110-1301, USA.
-+ *
-+ *
-+ * Xiaolin Zhang <xiaolin.zhang@intel.com>
-+ */
-+
-+#ifndef	__V4L2_JPG_REVIEW_EXT_H
-+#define	__V4L2_JPG_REVIEW_EXT_H
-+
-+#include <linux/videodev2.h>
-+
-+/*
-+ * Moorestown JPG image auto review structure and IOCTL.
-+ */
-+struct v4l2_jpg_review_buffer{
-+	__u32	width;		/* in: frame width */
-+	__u32	height;		/* in: frame height */
-+	__u32	pix_fmt;	/* in: frame fourcc */
-+	__u32	jpg_frame;	/* in: corresponding jpg frame id */
-+	__u32	bytesperline;	/* out: 0 if not used */
-+	__u32	frame_size;	/* out: frame size */
-+	__u32	offset;		/* out: mmap offset */
-+};
-+
-+#define	BASE_VIDIOC_PRIVATE_JPG_REVIEW	(BASE_VIDIOC_PRIVATE + 10)
-+
-+#define	VIDIOC_CREATE_JPG_REVIEW_BUF	_IOWR('V', \
-+		BASE_VIDIOC_PRIVATE_JPG_REVIEW + 1, \
-+		struct v4l2_jpg_review_buffer)
-+#endif
--- 
-1.6.3.2
+On Sun, 2010-05-30 at 23:28 +0200, Ondrej Zary wrote:
+> On Sunday 30 May 2010 21:26:14 Andy Walls wrote:
+> > On Sun, 2010-05-30 at 19:55 +0200, Ondrej Zary wrote:
+> > > On Sunday 30 May 2010 13:34:55 Jean-Francois Moine wrote:
+
+> >
+> > SP54 is Sunplus' ( http://www.sunplus.com.tw/ ) FourCC code for a
+> > version of MJPEG with the headers removed according to
+> >
+> > 	http://www.fourcc.org/
+> >
+> > > Maybe we can dump some data, create AVI file from that and try to decode
+> > > the file using that codec.
+> >
+> > FourCC.org points to this page:
+> >
+> > 	http://libland.fr.st/download.html
+> >
+> > which points to a utility to conver the data back into an MJPEG:
+> >
+> > 	http://mxhaard.free.fr/spca50x/Download/sp54convert.tar.gz
+> >
+> >
+> > I have no idea if any of the above is true, 'cause I read it on the
+> > Internet. ;)
+> 
+> Modified that utility to work on raw video frame extracted from usbsnoop file. 
+> The bad news is that the resulting jpeg file is not readable.
+> 
+> I also deleted the sp5x_32.dll file and the camera still works...
+
+I would try extracting a JPEG header from one of the files captured by
+the camera in stand alone mode (either a JPEG still or MJPEG file), and
+put that header together with the image data from the USB capture.  It
+may not look perfect, but hopefully you will get something you
+recognize.
+
+Attached was Theodore's first attempt of such a procedure with a header
+extracted from a standalone image file from my Jeilin based camera and
+USB snoop data from the same camera.  It wasn't perfect, but it was
+recognizable.
+
+
+I did look at the image data file Jean-Francois provided from your
+usbsnoop logs.  To my eye the data looks like it is Huffman coded
+(indicating JPEG).  Maybe I'm just seeing what I want to see.
+
+
+Regards,
+Andy
+
+--=-uAS1LAN+BgejLJfqxY+g
+Content-Type: image/jpeg; name="frame_one.jpg"
+Content-Disposition: attachment; filename="frame_one.jpg"
+Content-Transfer-Encoding: base64
+
+/9j/4QahRXhpZgAASUkqAAgAAAAKAA8BAgAMAAAAhgAAABABAgAIAAAAkgAAABIBAwABAAAAAQAA
+ABoBBQABAAAAmgAAABsBBQABAAAAogAAACgBAwABAAAAAgAAADEBAgAcAAAAqgAAADIBAgAUAAAA
+xgAAABMCAwABAAAAAQAAAGmHBAABAAAA2gAAAAAAAABKRUlMSU4gVEVDSC5RUSBEVjA0T7QAAAAB
+AAAAtAAAAAEAAABDMDA3MDAxMAAMAgCSCAIAnhwCALYUAgDSCAUCMjAwNjowNzoyNiAxMTowMDow
+MAAiAJqCBQABAAAAeAIAAJ2CBQABAAAAgAIAAACQBwAEAAAAMDIyMAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAGRBwAEAAAAAQIDAAKRBQABAAAAsAIAAAGSCgABAAAAuAIAAAKSBQABAAAAwAIAAASS
+CgABAAAAyAIAAAWSBQABAAAA0AIAAAeSAwABAAAAAQAAAAmSAwABAAAAIAAAAAqSBQABAAAA2AIA
+AHySBwBkAgAA6AIAAIaSBwAIAQAALAUAAJCSAgAEAAAAODM1AACgBwAEAAAAMDEwMAGgAwABAAAA
+AQAAAAKgBAABAAAAgAIAAAOgBAABAAAA4AEAAAWgBAABAAAANAYAAA6iBQABAAAAUgYAAA+iBQAB
+AAAAWgYAABCiAwABAAAAAgAAABeiAwABAAAAAgAAAACjBwABAAAAAwAAAAiSAwABAAAAAQAAAAKk
+AwABAAAAAAAAAAOkAwABAAAAAAAAAASkBQABAAAAYgYAAAakAwABAAAAAAAAABWiBQABAAAA4AIA
+AAekAwABAAAABAAAAAAAAAABAAAABAAAABwAAAAKAAAAICAgIDogIDogICAgIDogIDogIAAgICAg
+OiAgOiAgICAgOiAgOiAgAAMAAAABAAAAQAAAACAAAABfAAAAIAAAAAAAAAADAAAAZQAAACAAAACa
+AwAAIAAAAD0AAAABAAAAas0AAAICGQoACD0NABk7nv0DAQAADQFY3EBFQQExqAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAI0AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAIAAQACAAQAAABSOTgAAgAHAAQAAAAwMTAwAAAAAF8aZAAbAQAAxxNLANQAAACAAgAAgAIA
+AAMAAwEDAAEAAAAGAAAAAQIEAAEAAACUBgAAAgIEAAEAAACGNwAAAAAAAM0CkpAI/9sAQwADAgID
+AgIDAwIDAwMDBAUIBQUEBAUJBwcFCAsKCwsLCgsKDA4RDwwNEA0KCw8UDxASEhMUEwwOFRcVExcR
+ExMT/9sAQwEDAwMFBAUJBQUJEwwLDBMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMTExMT
+ExMTExMTExMTExMTExMT/8AAEQgB4AKAAwEhAAIRAQMRAf/EAB8AAAEFAQEBAQEBAAAAAAAAAAAB
+AgMEBQYHCAkKC//EALUQAAIBAwMCBAMFBQQEAAABfQECAwAEEQUSITFBBhNRYQcicRQygZGhCCNC
+scEVUtHwJDNicoIJChYXGBkaJSYnKCkqNDU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0
+dXZ3eHl6g4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY
+2drh4uPk5ebn6Onq8fLz9PX29/j5+v/EAB8BAAMBAQEBAQEBAQEAAAAAAAABAgMEBQYHCAkKC//E
+ALURAAIBAgQEAwQHBQQEAAECdwABAgMRBAUhMQYSQVEHYXETIjKBCBRCkaGxwQkjM1LwFWJy0QoW
+JDThJfEXGBkaJicoKSo1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoKDhIWG
+h4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uLj5OXm5+jp
+6vLz9PX29/j5+v/aAAwDAQACEQMRAD8Atlc4oA/HFddxCjIHFKB/k0MVheAetGBUNgLjPSgCgBcA
++1BHNFxBj2oxzzUtgAwKB7jmjcQE9z1oyTSGLilA60hCjGKXHHSmAhyBTs0r9ABRg09elMA25pcD
+tSYAAPejHHNMBwA9c0hHvSADx0pcDuaYCgU1gOh6UXAXGOfyo69apMYHB6ZpMc9/ai4Bj16UkmAO
+BzRfUaKQyaBz1q3uMUdRmlHHXFFxMDR9OtSwFBwfpRk96QhQQOeaXjOaLsYgx06UZGOlSxCfypQM
+c0hi4zQox1AoEB/DilByDxRcGA9gKeeOnNHUAxnqKTHtRcQq+9PBA69aV7gBPtSkcdKGwG+wpQe3
+NAD1PpSNjtmncBBzT8Z5PancAB+tDdeOaQCYxxS449/encYYxzikJ56cfSmgAjHt9RSEDHIoGUOO
++KVR+dW7jAGlyaBBu5pM1NhBmlzmkwFBOKXr3BpDDP1ozQhCigH60gFHFHHrQgDNCt60gFzmnA0M
+QZpw54pAB46Uqknr1oAXByaXOAcULQBAKM+1NagOB4o680gExjtTsHPPemAUh4PHWmMcDg4/Klx7
+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
+
+
+--=-uAS1LAN+BgejLJfqxY+g--
 
