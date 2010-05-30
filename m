@@ -1,58 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web27806.mail.ukl.yahoo.com ([217.146.182.11]:24549 "HELO
-	web27806.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751261Ab0EQOSM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 May 2010 10:18:12 -0400
-Message-ID: <96187.19117.qm@web27806.mail.ukl.yahoo.com>
-Date: Mon, 17 May 2010 14:18:10 +0000 (GMT)
-From: marc balta <marc_balta@yahoo.de>
-Subject: Re: Stuck Digittrade DVB-T stick (dvb_usb_af9015)
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <4BED857A.9050203@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:43757 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751266Ab0E3W1V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 May 2010 18:27:21 -0400
+Received: by wyb36 with SMTP id 36so927660wyb.19
+        for <linux-media@vger.kernel.org>; Sun, 30 May 2010 15:27:20 -0700 (PDT)
+Subject: [PATCH 3/3] Gspca-gl860 driver update
+From: Olivier Lorin <olorin75@gmail.com>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Cc: Jean-Francois Moine <moinejf@free.fr>
+Content-Type: text/plain
+Date: Mon, 31 May 2010 00:27:17 +0200
+Message-Id: <1275258437.18267.27.camel@miniol>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi,
+gspca - gl860: minor functional changes
 
-After the past days there has been no device crash anymore but another problem:
+From: Olivier Lorin <o.lorin@laposte.net>
 
-it seems after some time running the device (some hours) tuning takes longer and longer until it isnt  possible at all anymore to tune to some channels, although signal strength is sufficient: rmmoding and modprobing the driver (dvb_usb_af9015) solves the problem and tuning is fast on the same channel again.
+- Setting changes applied after an end of image marker reception
+  This is the way MI2020 sensor works.
+  It seems to be logical to wait for a complete image before 
+  to change a setting.
+- 1 ms "msleep" applied to each sensor after USB control data exchange
+  This was done for two sensors because these exchanges were known to
+  be too quick depending on laptop model.
+  It should be fairly logical to apply this delay to each sensor
+  in order to prevent from having errors with untested hardwares.
 
+Priority: normal
 
+Signed-off-by: Olivier Lorin <o.lorin@laposte.net>
 
-Greetings,
-Marc
-
---- Antti Palosaari <crope@iki.fi> schrieb am Fr, 14.5.2010:
-
-> Von: Antti Palosaari <crope@iki.fi>
-> Betreff: Re: Stuck Digittrade DVB-T stick (dvb_usb_af9015)
-> An: "marc balta" <marc_balta@yahoo.de>
-> CC: linux-media@vger.kernel.org
-> Datum: Freitag, 14. Mai, 2010 19:16 Uhr
-> Terve
-> 
-> On 05/14/2010 02:17 PM, marc balta wrote:
-> > would be nice because it is happening rather often :
-> Every second or third day. Is there a way to reinit the
-> device with a script wihtout restarting my server and
-> without influencing other usb devices. If yes I could reinit
-> the device say two minutes before every recording starts
-> using a hook. This would solve my problems.
-> 
-> I just added support for new firmware 5.1.0.0. Please test
-> if it helps.
-> http://linuxtv.org/hg/~anttip/af9015/
-> http://palosaari.fi/linux/v4l-dvb/firmware/af9015/5.1.0.0/
-> 
-> regards
-> Antti
-> -- http://palosaari.fi/
-> 
+diff -urpN der_gl860i3/gl860.c gl860/gl860.c
+--- der_gl860i3/gl860.c	2010-04-29 21:01:15.000000000 +0200
++++ gl860/gl860.c	2010-04-28 23:45:19.000000000 +0200
+@@ -63,7 +63,7 @@ static int sd_set_##thename(struct gspca
+ \
+ 	sd->vcur.thename = val;\
+ 	if (gspca_dev->streaming)\
+-		sd->dev_camera_settings(gspca_dev);\
++		sd->waitSet = 1;\
+ 	return 0;\
+ } \
+ static int sd_get_##thename(struct gspca_dev *gspca_dev, s32 *val)\
+@@ -595,10 +595,7 @@ int gl860_RTx(struct gspca_dev *gspca_de
+ 	else if (len > 1 && r < len)
+ 		PDEBUG(D_ERR, "short ctrl transfer %d/%d", r, len);
+ 
+-	if (_MI2020_ && (val || index))
+-		msleep(1);
+-	if (_OV2640_)
+-		msleep(1);
++	msleep(1);
+ 
+ 	return r;
+ }
 
 
