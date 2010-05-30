@@ -1,86 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34785 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755877Ab0EaIFc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 04:05:32 -0400
-Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4V85Vi3030303
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 31 May 2010 04:05:32 -0400
-From: huzaifas@redhat.com
-To: linux-media@vger.kernel.org
-Cc: hdegoede@redhat.com, Huzaifa Sidhpurwala <huzaifas@redhat.com>
-Subject: [PATCH] libv4l1: Move VIDIOCGFBUF into libv4l1
-Date: Mon, 31 May 2010 13:33:28 +0530
-Message-Id: <1275293008-3261-1-git-send-email-huzaifas@redhat.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:60126 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751342Ab0E3HHr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 May 2010 03:07:47 -0400
+Received: by vws11 with SMTP id 11so839282vws.19
+        for <linux-media@vger.kernel.org>; Sun, 30 May 2010 00:07:47 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201005291909.36973.mike_booth76@iprimus.com.au>
+References: <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com>
+	<AANLkTinU8T0fWHHHS0azFK33Ec8yYLguiZxos9z7hOvP@mail.gmail.com>
+	<201005291909.36973.mike_booth76@iprimus.com.au>
+Date: Sun, 30 May 2010 00:07:46 -0700
+Message-ID: <AANLkTilbus32dL3I_gkY3PBjHuhptaWQpn6ptjBscANL@mail.gmail.com>
+Subject: Re: What ever happened to standardizing signal level?
+From: VDR User <user.vdr@gmail.com>
+To: Mike Booth <mike_booth76@iprimus.com.au>
+Cc: Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
+	"mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Huzaifa Sidhpurwala <huzaifas@fedora-12.(none)>
+On Sat, May 29, 2010 at 2:09 AM, Mike Booth <mike_booth76@iprimus.com.au> wrote:
+> i think someone is too concerned about being precisely accurate. So much so
+> that no-one can see the woods for the trees any more.
+>
+> Its not important to me that accuracy is spot on. I only want to know that
+> when tuning the dish I'm getting \better or worse.
 
-Move VIDIOCGFBUF into libv4l1
+I tend to agree with this.  Ultimately what's important is not
+necessarily that the readings are 100% accurate, but rather simply put
+into some kind of universal scale that provides useful output to the
+user.  Many users were happy to see some activity addressing this
+issue and unfortunately it seems to have stalled out but I'm not sure
+why.  I honestly felt there was enough common ground being discussed
+that we'd have a solution by now.
 
-Signed-off-by: Huzaifa Sidhpurwala <huzaifas@redhat.com>
----
- lib/libv4l1/libv4l1.c |   45 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 45 insertions(+), 0 deletions(-)
-
-diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
-index e13feba..5b2dc29 100644
---- a/lib/libv4l1/libv4l1.c
-+++ b/lib/libv4l1/libv4l1.c
-@@ -804,6 +804,51 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
- 		break;
- 	}
- 
-+	case VIDIOCGFBUF: {
-+		struct video_buffer *buffer = arg;
-+		struct v4l2_framebuffer fbuf = { 0, };
-+
-+		result = v4l2_ioctl(fd, VIDIOC_G_FBUF, buffer);
-+		if (result < 0)
-+			break;
-+
-+		buffer->base = fbuf.base;
-+		buffer->height = fbuf.fmt.height;
-+		buffer->width = fbuf.fmt.width;
-+
-+		switch (fbuf.fmt.pixelformat) {
-+		case V4L2_PIX_FMT_RGB332:
-+			buffer->depth = 8;
-+			break;
-+		case V4L2_PIX_FMT_RGB555:
-+			buffer->depth = 15;
-+			break;
-+		case V4L2_PIX_FMT_RGB565:
-+			buffer->depth = 16;
-+			break;
-+		case V4L2_PIX_FMT_BGR24:
-+			buffer->depth = 24;
-+			break;
-+		case V4L2_PIX_FMT_BGR32:
-+			buffer->depth = 32;
-+			break;
-+		default:
-+			buffer->depth = 0;
-+		}
-+
-+		if (fbuf.fmt.bytesperline) {
-+			buffer->bytesperline = fbuf.fmt.bytesperline;
-+			if (!buffer->depth && buffer->width)
-+				buffer->depth = ((fbuf.fmt.bytesperline<<3)
-+						+ (buffer->width-1))
-+						/ buffer->width;
-+			} else {
-+				buffer->bytesperline =
-+					(buffer->width * buffer->depth + 7) & 7;
-+				buffer->bytesperline >>= 3;
-+			}
-+	}
-+
- 	default:
- 		/* Pass through libv4l2 for applications which are using v4l2 through
- 		   libv4l1 (this can happen with the v4l1compat.so wrapper preloaded */
--- 
-1.6.6.1
-
+Regards.
