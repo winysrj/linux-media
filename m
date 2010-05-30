@@ -1,120 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1324 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754553Ab0EXKAL (ORCPT
+Received: from mail.hauppauge.com ([167.206.143.4]:1332 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754521Ab0E3Pdx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 May 2010 06:00:11 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [PATCH 03/15] [RFCv2] Documentation: add v4l2-controls.txt documenting the new controls API.
-Date: Mon, 24 May 2010 12:01:42 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-References: <cover.1274015084.git.hverkuil@xs4all.nl> <201005240117.35431.laurent.pinchart@ideasonboard.com> <1274660109.2275.51.camel@localhost>
-In-Reply-To: <1274660109.2275.51.camel@localhost>
+	Sun, 30 May 2010 11:33:53 -0400
+Message-ID: <4C0281C1.70506@linuxtv.org>
+Date: Sun, 30 May 2010 11:18:25 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: VDR User <user.vdr@gmail.com>,
+	Mike Booth <mike_booth76@iprimus.com.au>,
+	Konstantin Dimitrov <kosio.dimitrov@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: What ever happened to standardizing signal level?
+References: <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com> <201005291909.36973.mike_booth76@iprimus.com.au> <AANLkTilbus32dL3I_gkY3PBjHuhptaWQpn6ptjBscANL@mail.gmail.com> <201005300923.35376.hverkuil@xs4all.nl>
+In-Reply-To: <201005300923.35376.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201005241201.42885.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 24 May 2010 02:15:08 Andy Walls wrote:
-> On Mon, 2010-05-24 at 01:17 +0200, Laurent Pinchart wrote:
-> > Hi Hans,
-> > 
+Hans Verkuil wrote:
+> On Sunday 30 May 2010 09:07:46 VDR User wrote:
+>> On Sat, May 29, 2010 at 2:09 AM, Mike Booth <mike_booth76@iprimus.com.au> wrote:
+>>> i think someone is too concerned about being precisely accurate. So much so
+>>> that no-one can see the woods for the trees any more.
+>>>
+>>> Its not important to me that accuracy is spot on. I only want to know that
+>>> when tuning the dish I'm getting \better or worse.
+>> I tend to agree with this.  Ultimately what's important is not
+>> necessarily that the readings are 100% accurate, but rather simply put
+>> into some kind of universal scale that provides useful output to the
+>> user.  Many users were happy to see some activity addressing this
+>> issue and unfortunately it seems to have stalled out but I'm not sure
+>> why.  I honestly felt there was enough common ground being discussed
+>> that we'd have a solution by now.
 > 
-> > > +Proposals for Extensions
-> > > +========================
-> > > +
-> > > +Some ideas for future extensions to the spec:
-> > > +
-> > > +1) Add a V4L2_CTRL_FLAG_HEX to have values shown as hexadecimal instead of
-> > > +decimal. Useful for e.g. video_mute_yuv.
-> > 
-> > Shown where ?
+> To the best of my knowledge Mike Krufky intended to work on this but he
+> clearly no longer has time to do that work.
 > 
-> In the output of `v4l2-ctl -L` or any other app that builds controls for
-> the user to see.  This is really just a formatting hint for the
-> application, analogous to "%x" in a printf() format.  I think there may
-> be a larger issue of control formatting hints here.
+> Mike, can you perhaps explain what you wanted to do? Hopefully someone else
+> can find the time to implement it.
 > 
+> Regards,
 > 
+> 	Hans
 > 
-> So now for a digression:
-> 
-> video_mute_yuv is both a very good and bad example:
-> 
-> $ v4l2-ctl -L
-> ...
-> video_mute_yuv (int)  : min=0 max=16777215 step=1 default=32896 value=32896
-> ...
-> 
-> The value is YUV values encoded as 0x00YYUUVV.  For the cx18 driver the
-> default is 32869 or 0x008080 (no luminance and neutral red and blue
-> chrominance).  A hex readout makes the control setting more readable.  
-> 
-> But even with improved formatting, this control is a still poor UI
-> element.  Most people can't map a color word, like "green", to a (Y, U,
-> V) coordinate easily.
-> 
-> I'll assert
-> 
-> a. a menu with a few human-readable color names would be more useful
 
-True, but not as flexible.
- 
-> or
-> 
-> b. the control could really be broken up into three separate sliders,
-> obviating the need for the HEX formatting hint. Just because the MPEG
-> encoding engine wants it set as one value, doesn't mean humans must set
-> it that way.
 
-Hmm, I don't really like this idea. What you really want to communicate
-is that this is a color. How it is represented in a user interface is up
-to the application.
+..."clearly no longer has time" -- please do not speak on my behalf -- I 
+have taken a break from v4l-dvb, and I will return when I have time for 
+it again.
 
-So:
+I already did a lot of the work for standardizing signal level, but I 
+need to clean it up, consider new demod modules, push trees and send 
+pull requests.  Right now, correct -- I don't have time for it.  I'll 
+likely get to this by mid-august -- I will have more time again by then.
 
-c. we add a V4L2_CTRL_FLAG_COLOR flag.
-
-The problem is: how do you specify the colorspace and possibly color depth.
-
-And perhaps there is an alpha channel as well.
-
-The reason I went with a simple hex flag is that it is, well, simple. It
-greatly improves the readability of colors and other values that are more
-easily readable in hex format, without introducing the complexity that
-you get once you start talking about colors.
-
-Right now all the color controls that we have are in the 'advanced user'
-category so I would be happy with just providing a hex flag.
-
-Should color controls become much more important, then we can revisit this
-and make true color controls.
-
-Obviously, if someone wants to make a proposal for this now, then feel free.
-But I don't think it's worth the time and effort.
+I have a plethora of changes in my queue that I have to burn through and 
+merge, including j-rod's lgdt3304 support.  I used to get this stuff 
+done very quickly, but there is a lot of change going on in my life 
+right now... When things settle down here, I'll be back in full force.  :-)
 
 Regards,
 
-	Hans
- 
-> I suppose since it's in ivtv and cx18, it's mine to fix. :)
-> 
-> Regards,
-> Andy
-> 
-> 
-> > > +2) It is possible to mark in the controls array which controls have been
-> > > +successfully written and which failed by for example adding a bit to the
-> > > +control ID. Not sure if it is worth the effort, though.
-> > 
-> 
-> 
-> 
+Mike Krufky
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Regards,
+
+Mike
