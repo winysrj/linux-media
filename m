@@ -1,21 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o4MDl07N022531
-	for <video4linux-list@redhat.com>; Sat, 22 May 2010 09:47:01 -0400
-Received: from mail-wy0-f174.google.com (mail-wy0-f174.google.com
-	[74.125.82.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4MDkjt0006787
-	for <video4linux-list@redhat.com>; Sat, 22 May 2010 09:46:46 -0400
-Received: by wyb29 with SMTP id 29so524053wyb.33
-	for <video4linux-list@redhat.com>; Sat, 22 May 2010 06:46:44 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 22 May 2010 14:46:44 +0100
-Message-ID: <AANLkTimXIFtu3Up2JMwpn2hAE6jz86YOnggxQwxih37O@mail.gmail.com>
-Subject: VIDIOC_G_STD, VIDIOC_S_STD, VIDIO_C_ENUMSTD for outputs
-From: Andre Draszik <v4l2@andred.net>
+Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.6])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o4UH5JOY008611
+	for <video4linux-list@redhat.com>; Sun, 30 May 2010 13:05:19 -0400
+Received: from k2smtpout01-01.prod.mesa1.secureserver.net
+	(k2smtpout01-01.prod.mesa1.secureserver.net [64.202.189.88])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o4UH5A95017798
+	for <video4linux-list@redhat.com>; Sun, 30 May 2010 13:05:10 -0400
+Message-ID: <20100530103828.94103kduabadb5a8@www.nautae.eti.br>
+Date: Sun, 30 May 2010 10:38:28 -0600
+From: alexander@nautae.eti.br
 To: video4linux-list@redhat.com
+Subject: Braziliam World Cup on Cable Tv - II
+MIME-Version: 1.0
+Content-Disposition: inline
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,30 +22,26 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"; DelSp="Yes"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hi again,
 
-As per the spec, the above ioctl codes are defined for inputs only -
-it would be useful if there were similar codes for outputs.
+being more precise, what about the following devices:
 
-I therefore propose to add the following:
+http://produto.mercadolivre.com.br/MLB-140806133-pinnacle-pctv-pro-usb-20-excelente-controle-remoto-_JM
 
-VIDIOC_G_OUTPUT_STD
-VIDIOC_S_OUTPUT_STD
-VIDIOC_ENUM_OUTPUT_STD
+http://produto.mercadolivre.com.br/MLB-143279520-pra-vender-logo-pixelview-ext-usb-playtv-405-frete-gratis-_JM
 
-which would behave similar to the above, but for output devices.
+[]s
+Alexander
+Brazil
 
-Thoughts?
-
-
-Cheers,
-Andre'
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
 
 --
 video4linux-list mailing list
