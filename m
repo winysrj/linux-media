@@ -1,58 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f216.google.com ([209.85.219.216]:46547 "EHLO
+Received: from mail-ew0-f216.google.com ([209.85.219.216]:53360 "EHLO
 	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753036Ab0EaT14 (ORCPT
+	with ESMTP id S1753379Ab0EaTOH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 31 May 2010 15:27:56 -0400
-Date: Mon, 31 May 2010 21:27:39 +0200
+	Mon, 31 May 2010 15:14:07 -0400
+Received: by ewy8 with SMTP id 8so1044025ewy.28
+        for <linux-media@vger.kernel.org>; Mon, 31 May 2010 12:14:04 -0700 (PDT)
+Date: Mon, 31 May 2010 21:13:23 +0200
 From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Antti Palosaari <crope@iki.fi>,
-	=?iso-8859-1?Q?Andr=E9?= Goddard Rosa <andre.goddard@gmail.com>,
-	Jiri Kosina <jkosina@suse.cz>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] V4L/DVB: remove unneeded null check in anysee_probe()
-Message-ID: <20100531192632.GZ5483@bicker>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Subject: Re: dereferencing uninitialized variable in anysee_probe()
+Message-ID: <20100531191323.GY5483@bicker>
+References: <20100531150914.GX5483@bicker> <4C03D449.2020507@iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <4C03D449.2020507@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Smatch complained because "d" is dereferenced first and then checked for
-null later .  The only code path where "d" could be a invalid pointer is
-if this is a cold device in dvb_usb_device_init().  I consulted Antti 
-Palosaari and he explained that anysee is always a warm device.
+On Mon, May 31, 2010 at 06:22:49PM +0300, Antti Palosaari wrote:
+> Terve Dan,
+>
+> On 05/31/2010 06:09 PM, Dan Carpenter wrote:
+>> Hi I'm going through some smatch stuff and I had a question.
+>>
+>> drivers/media/dvb/dvb-usb/anysee.c +482 anysee_probe(30)
+>> 	warn: variable dereferenced before check 'd'
+>>
+>>     466          ret = dvb_usb_device_init(intf,&anysee_properties, THIS_MODULE,&d,
+>>     467                  adapter_nr);
+>>
+>> 	If we're in a cold state then dvb_usb_device_init() can return
+>> 	zero but d is uninitialized here.
+>
+> Anysee is always warm. Its USB-bridge, Cypress FX2, uploads firmware  
+> from eeprom and due to that it is never cold from the drivers point of 
+> view.
+>
+> *cold means device needs firmware upload from driver
+> *warm means device is ready. Firmware is already uploaded or it is not  
+> needed at all.
+>
 
-I have added a comment and removed the unneeded null check.
+Wow.  Thanks for the quick response.  I was just auditing the code and
+noticed some extra null checking which made me confused.  I'll send a
+patch for that.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-
-diff --git a/drivers/media/dvb/dvb-usb/anysee.c b/drivers/media/dvb/dvb-usb/anysee.c
-index faca1ad..aa5c7d5 100644
---- a/drivers/media/dvb/dvb-usb/anysee.c
-+++ b/drivers/media/dvb/dvb-usb/anysee.c
-@@ -463,6 +463,11 @@ static int anysee_probe(struct usb_interface *intf,
- 	if (intf->num_altsetting < 1)
- 		return -ENODEV;
- 
-+	/*
-+	 * Anysee is always warm (its USB-bridge, Cypress FX2, uploads
-+	 * firmware from eeprom).  If dvb_usb_device_init() succeeds that
-+	 * means d is a valid pointer.
-+	 */
- 	ret = dvb_usb_device_init(intf, &anysee_properties, THIS_MODULE, &d,
- 		adapter_nr);
- 	if (ret)
-@@ -479,10 +484,7 @@ static int anysee_probe(struct usb_interface *intf,
- 	if (ret)
- 		return ret;
- 
--	if (d)
--		ret = anysee_init(d);
--
--	return ret;
-+	return anysee_init(d);
- }
- 
- static struct usb_device_id anysee_table[] = {
+regards,
+dan carpenter
