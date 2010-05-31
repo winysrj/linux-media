@@ -1,74 +1,58 @@
-Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <kamiar.kanani@gmail.com>) id 1O1Z80-0006bP-J3
-	for linux-dvb@linuxtv.org; Tue, 13 Apr 2010 07:57:41 +0200
-Received: from mail-bw0-f219.google.com ([209.85.218.219])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
-	for <linux-dvb@linuxtv.org>
-	id 1O1Z7z-0004aI-2v; Tue, 13 Apr 2010 07:57:40 +0200
-Received: by bwz19 with SMTP id 19so95674bwz.1
-	for <linux-dvb@linuxtv.org>; Mon, 12 Apr 2010 22:57:38 -0700 (PDT)
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from banach.math.auburn.edu ([131.204.45.3]:60950 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755376Ab0EaTZM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 15:25:12 -0400
+Date: Mon, 31 May 2010 14:52:11 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Jean-Francois Moine <moinejf@free.fr>
+cc: Olivier Lorin <olorin75@gmail.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/3] Gspca-gl860 driver update
+In-Reply-To: <20100531093120.1f288052@tele>
+Message-ID: <alpine.LNX.2.00.1005311451250.15755@banach.math.auburn.edu>
+References: <1275258261.18267.23.camel@miniol> <20100531093120.1f288052@tele>
 MIME-Version: 1.0
-Date: Tue, 13 Apr 2010 10:27:38 +0430
-Message-ID: <k2y2959ff601004122257t66a7cd61q8ca4b7a55cc6c40a@mail.gmail.com>
-From: kamiar kanani <kamiar.kanani@gmail.com>
-To: linux-dvb@linuxtv.org
-Content-Type: multipart/mixed; boundary=0016e6da98c85e8bf4048417f0f6
-Subject: [linux-dvb] ir-Tehran initial scan file (DVB-T)
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-863829203-233661751-1275335533=:15755"
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
---0016e6da98c85e8bf4048417f0f6
-Content-Type: multipart/alternative; boundary=0016e6da98c85e8bec048417f0f4
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---0016e6da98c85e8bec048417f0f4
-Content-Type: text/plain; charset=UTF-8
+---863829203-233661751-1275335533=:15755
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
-hi
-herewith attached is the *initial scan file of Tehran* @ Iran
 
--- 
-Kamiar Kanani
 
---0016e6da98c85e8bec048417f0f4
-Content-Type: text/html; charset=UTF-8
+On Mon, 31 May 2010, Jean-Francois Moine wrote:
 
-<div dir="ltr">hi<br>herewith attached is the <b>initial scan file of Tehran</b> @ Iran <br clear="all"><br>-- <br>Kamiar Kanani<br><br>
-</div>
+> On Mon, 31 May 2010 00:24:21 +0200
+> Olivier Lorin <olorin75@gmail.com> wrote:
+> 
+> > - Change of rounded image resolutions to the real ones
+> > - Fix for an irrelevant OV9655 image resolution identifier name
+> > - Extra spaces to align some variable names and a defined value
+> 
+> Hi Olivier,
+> 
+> If I can anticipate, the changes are too different. You should split
+> this patch.
+> 
+> Best regards.
+> 
+> -- 
+> Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+> Jef		|		http://moinejf.free.fr/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
---0016e6da98c85e8bec048417f0f4--
+Congratulations. Nice.
 
---0016e6da98c85e8bf4048417f0f6
-Content-Type: application/octet-stream; name=ir-Tehran
-Content-Disposition: attachment; filename=ir-Tehran
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g7yaufua0
-
-IyBEVkItVCBUZWhyYW4KIyBUIGZyZXEgYncgZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9u
-LW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5ClQgNjAyMDAwMDAwIDhNSHogMi8zIE5PTkUg
-UUFNNjQgOGsgMS84IE5PTkUgICAgICMgSVJJQi1UVjEvMi8zLzQvNSwgSVJJTk4sIEFNT1VaRVNI
-LCBRVVJBTi1UVgpUIDY1MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvOCBOT05FICAg
-ICAjIFBSRVNTIFRWLCBBTC1BTEFNLCBBTC1LT1VTQVIsIEpBQU1FSkFNIDEsIElSSUIgTU9TVEFO
-QUQsIElSSUIgT1NUQU5JCgo=
---0016e6da98c85e8bf4048417f0f6
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---0016e6da98c85e8bf4048417f0f6--
+Theodore Kilgore
+---863829203-233661751-1275335533=:15755--
