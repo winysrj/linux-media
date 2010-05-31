@@ -1,114 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4066 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753577Ab0EFS1A (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 May 2010 14:27:00 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o46IQwEE027279
-	for <linux-media@vger.kernel.org>; Thu, 6 May 2010 20:26:58 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 6 May 2010 20:26:58 +0200 (CEST)
-Message-Id: <201005061826.o46IQwEE027279@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:53439 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753491Ab0EaHy0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 03:54:26 -0400
+Date: Mon, 31 May 2010 09:54:25 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Robert Jarzmik <robert.jarzmik@free.fr>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: mt9m111 swap_rgb_red_blue
+Message-ID: <20100531075424.GD26820@pengutronix.de>
+References: <20100526141848.GU17272@pengutronix.de> <87bpc2za9i.fsf@free.fr> <20100528062731.GE23664@pengutronix.de> <87y6f1uhnn.fsf@free.fr> <Pine.LNX.4.64.1005310842160.16053@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1005310842160.16053@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, May 31, 2010 at 08:46:00AM +0200, Guennadi Liakhovetski wrote:
+> On Mon, 31 May 2010, Robert Jarzmik wrote:
+> 
+> > Sascha Hauer <s.hauer@pengutronix.de> writes:
+> > 
+> > > Hi Robert,
+> > >
+> > > I have digged around in the Datasheet and if I understand it correctly
+> > > the PXA swaps red/blue in RGB mode. So if we do not use rgb mode but yuv
+> > > (which should be a pass through) we should be able to support rgb on PXA
+> > > aswell. Robert, can you confirm that with the following patch applied
+> > > you still get an image but with red/blue swapped?
+> > I can confirm the color swap.
+> > If you want to follow that path, I would suggest instead :
+> >    cicr1 |= CICR1_COLOR_SP_VAL(0);
+> > 
+> > There is no difference from a processing point of view, it's just that
+> > CICR1_COLOR_SP_VAL(0) is "raw colorspace", with means "pass through", and that
+> > seems to be your goal here.
+> 
+> That would be the default case in that switch, but raw only supports 8, 9, 
+> or 10 bpp, so, you'd have to use 8bpp but then fake the pixels-per-line 
+> field.
 
-Results of the daily build of v4l-dvb:
+That's why I suggested yuv. I could leave a big comment why this is
+done, but I would implement it using raw mode aswell if that's prefered.
 
-date:        Thu May  6 19:00:24 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14644:4a8d6d981f07
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: fe6abd62358baa849e3ac5940fd47f25015b49fe
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+> But that would be the cleanest way, yes. Would that work like that?
+> 
+> > Note that the patch would have to be completed with the BGR565 into RGB565
+> > conversion, if the sensor was to provide only BGR565. But that could very well
+> > be for another patch.
 
-linux-2.6.32.6-armv5: ERRORS
-linux-2.6.33-armv5: ERRORS
-linux-2.6.34-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: ERRORS
-linux-2.6.31.12-i686: ERRORS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: OK
-linux-2.6.34-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: ERRORS
-linux-2.6.33-m32r: ERRORS
-linux-2.6.34-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: ERRORS
-linux-2.6.34-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: ERRORS
-linux-2.6.34-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: ERRORS
-linux-2.6.31.12-x86_64: ERRORS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc1-x86_64: WARNINGS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Will do, I just wanted to see if this works at all.
 
-Detailed results are available here:
+Sascha
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
