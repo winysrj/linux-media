@@ -1,83 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60097 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:34785 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752129Ab0EEGHr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 May 2010 02:07:47 -0400
-Message-ID: <4BE10B2C.9020508@redhat.com>
-Date: Wed, 05 May 2010 03:07:40 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 calculating urb buffer
-References: <4BDB067E.4070501@arcor.de> <4BDB3017.9070101@arcor.de> <4BE03F8D.1050905@arcor.de> <4BE066B7.2050704@redhat.com> <4BE071C2.4050309@arcor.de> <4BE07A6A.9000303@redhat.com> <4BE07C54.6000804@arcor.de>
-In-Reply-To: <4BE07C54.6000804@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+	id S1755877Ab0EaIFc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 04:05:32 -0400
+Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4V85Vi3030303
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 31 May 2010 04:05:32 -0400
+From: huzaifas@redhat.com
+To: linux-media@vger.kernel.org
+Cc: hdegoede@redhat.com, Huzaifa Sidhpurwala <huzaifas@redhat.com>
+Subject: [PATCH] libv4l1: Move VIDIOCGFBUF into libv4l1
+Date: Mon, 31 May 2010 13:33:28 +0530
+Message-Id: <1275293008-3261-1-git-send-email-huzaifas@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Ringel wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->  
-> Am 04.05.2010 21:50, schrieb Mauro Carvalho Chehab:
->> Stefan Ringel wrote:
->>
->>>>> datagram from urb to videobuf
->>>>>
->>>>> urb           copy to     temp         copy to         1. videobuf
->>>>>                          buffer                        2. audiobuf
->>>>>                                                        3. vbi
->>>>> 184 Packets   ------->   184 * 3072    ---------->     4. etc.
->>>>> a 3072 bytes               bytes
->>>>>                184 *                   3072 *
->>>>>              3072 bytes              180 bytes
->>>>>                                 (184 bytes - 4 bytes
->>>>>                                     header )
->>>> In order to receive 184 packets with 3072 bytes each, the USB code will
->>>> try to allocate the next power-of-two memory block capable of receiving
->>>> such data block. As: 184 * 3072 = 565248, the kernel allocator will seek
->>>> for a continuous block of 1 MB, that can do DMA transfers (required by
->>>> ehci driver). On a typical machine, due to memory fragmentation,
->>>> in general, there aren't many of such blocks. So, this will increase the
->>>> probability of not having any such large block available, causing an
->>> horrible
->>>> dump at kernel, plus a -ENOMEM on the driver, generally requiring a
-> reboot
->>>> if you want to run the driver again.
->>>>
->>> And direct copy from urb to videobuf/alsa/vbi in 184 Bytes segments.
->>>
->>> urb                      1. videobuf
->>>               copy to    2. audiobuf
->>>                          3. vbi
->>> 184 Packets   ------->   4. etc.
->>> a 3072 bytes  
->>>               180 Bytes (without headers)
->> That's basically what that logic does. It preserves the header if you
-> select
->> TM6000 format (so, no checks for the start of the block, etc), or copies
->> just the data, if you select YUY2 or UYUV.
->>
->>> or how can I copy 180 Bytes Data from 184 Bytes block with an
->>> anligment of 184 urb pipe (184 * 3072 Bytes)?
->> A 184 x 3072 URB pipe is a big problem. We used a large pipe in the
-> past, and this
->> won't work. For example, on a notebook I used to run some tests with 1
-> GB of
->> ram after starting X and do anything (like opening a browser), the URB
->> allocation used to fail, as there weren't any available 1MB segment at
->> the DMA area. Even without starting X, after a few tests, it would
-> eventually
->> have fragmented the memory and the driver stops working.
->>
->>
-> and 3072 * 46 = 141312 bytes and it can through 184 ! it's 1/4 smaller.
+From: Huzaifa Sidhpurwala <huzaifas@fedora-12.(none)>
 
-It is a worthy trial to use this value for the number of packets. Yet, as
-someone might have run the device on windows before, it will still need
-to seek for the segment start.
+Move VIDIOCGFBUF into libv4l1
 
-Cheers,
-Mauro
+Signed-off-by: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+---
+ lib/libv4l1/libv4l1.c |   45 +++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 45 insertions(+), 0 deletions(-)
+
+diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
+index e13feba..5b2dc29 100644
+--- a/lib/libv4l1/libv4l1.c
++++ b/lib/libv4l1/libv4l1.c
+@@ -804,6 +804,51 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
+ 		break;
+ 	}
+ 
++	case VIDIOCGFBUF: {
++		struct video_buffer *buffer = arg;
++		struct v4l2_framebuffer fbuf = { 0, };
++
++		result = v4l2_ioctl(fd, VIDIOC_G_FBUF, buffer);
++		if (result < 0)
++			break;
++
++		buffer->base = fbuf.base;
++		buffer->height = fbuf.fmt.height;
++		buffer->width = fbuf.fmt.width;
++
++		switch (fbuf.fmt.pixelformat) {
++		case V4L2_PIX_FMT_RGB332:
++			buffer->depth = 8;
++			break;
++		case V4L2_PIX_FMT_RGB555:
++			buffer->depth = 15;
++			break;
++		case V4L2_PIX_FMT_RGB565:
++			buffer->depth = 16;
++			break;
++		case V4L2_PIX_FMT_BGR24:
++			buffer->depth = 24;
++			break;
++		case V4L2_PIX_FMT_BGR32:
++			buffer->depth = 32;
++			break;
++		default:
++			buffer->depth = 0;
++		}
++
++		if (fbuf.fmt.bytesperline) {
++			buffer->bytesperline = fbuf.fmt.bytesperline;
++			if (!buffer->depth && buffer->width)
++				buffer->depth = ((fbuf.fmt.bytesperline<<3)
++						+ (buffer->width-1))
++						/ buffer->width;
++			} else {
++				buffer->bytesperline =
++					(buffer->width * buffer->depth + 7) & 7;
++				buffer->bytesperline >>= 3;
++			}
++	}
++
+ 	default:
+ 		/* Pass through libv4l2 for applications which are using v4l2 through
+ 		   libv4l1 (this can happen with the v4l1compat.so wrapper preloaded */
+-- 
+1.6.6.1
+
