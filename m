@@ -1,67 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60518 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752552Ab0ERSKs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 May 2010 14:10:48 -0400
-Message-ID: <4BF2D81B.5050804@redhat.com>
-Date: Tue, 18 May 2010 15:10:35 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:51151 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751241Ab0EaMgM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 08:36:12 -0400
+Date: Mon, 31 May 2010 14:36:24 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"manjunathan.padua@wipro.com" <manjunathan.padua@wipro.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: Regarding  OMAP 35xx  ISP subsystem and SoC-Camera
+In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E6D27F7@dbde02.ent.ti.com>
+Message-ID: <Pine.LNX.4.64.1005311427380.16053@axis700.grange>
+References: <336834A7A2D8B34BA5A8906E6E71DF870113EC41@BLR-SJP-MBX01.wipro.com>
+ <201005310959.18029.laurent.pinchart@ideasonboard.com>
+ <19F8576C6E063C45BE387C64729E7394044E6D27F7@dbde02.ent.ti.com>
 MIME-Version: 1.0
-To: Alexjan Carraturo <axjslack@gmail.com>
-CC: CityK <cityk@rogers.com>, video4linux-list@redhat.com,
-	Linux-media <linux-media@vger.kernel.org>
-Subject: Re: Pinnacle PCTV DVB-T 70e
-References: <AANLkTilbPB2DeJhah0XzSMYEOpXUTzt-v4-h9JsV1BP2@mail.gmail.com> 	<4BEEC5E5.9020805@rogers.com> <AANLkTilJ24ok_LzX_m3QvXz8tio0DIfarYp5Dj0hUc5o@mail.gmail.com>
-In-Reply-To: <AANLkTilJ24ok_LzX_m3QvXz8tio0DIfarYp5Dj0hUc5o@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Alexjan Carraturo wrote:
+On Mon, 31 May 2010, Hiremath, Vaibhav wrote:
 
-> Why not? Because nobody can cure this entry? Or why the driver is not
-> compatible with the version in the kernel now?
+> > > 2. Since V4L2-INT and SoC-Camera frameworks are deprecated, can you please
+> > > let me know the roadmap for Sub-Device framework ?
+> > 
+> > The soc-camera framework isn't deprecated, but it isn't used by the OMAP3
+> > ISP
+> > driver either.
+> > 
+> [Hiremath, Vaibhav] Laurent, I believe going forward this SoC-Camera 
+> will get also deprecated and all drivers will be migrated to sub-device 
+> framework.
 
-For someone to add support to a device, it needs to have that device (or
-a similar one), and to be able to get access to the datasheets or to use
-some reverse engineering technique. One important information is what
-are the chips inside the device.
+Vaibhav, I think you're misunderstanding. The soc-camera framework has 
+been designed to fulfill two tasks: (1) create a standard interface 
+between (SoC) camera hosts and video clients, and (2) to simplify 
+implementation of new camera host drivers by taking a part of common 
+for many SoC camera controllers functionality into the soc-camera core. 
+The first task is being replaced by v4l2-subdev, that's correct. But I so 
+far don't see a compelling reason to obsolete the 2nd task, which would 
+migrate that common functionality into each camera host driver. New camera 
+host driver authors are free to either use or not to use soc-camera. If 
+they think, the functionality provided by soc-camera core fits well with 
+their hardware, they can use it. If they think, it is imposing too many 
+restrictions and their hardware is more complicated, than what soc-camera 
+offers, then they can write a complete v4l2-device driver.
 
->> You can, however, look to see if you can add support for your device to
->> the existing v4l-dvb kernel driver. There are several developers that
->> are knowledgeable of the em28xx driver, and whom may be able to help you
->> in that regard, but you will have to gain there attention first.
->>
->>
-> 
-> I'm sorry, but even knowing a bit 'of the C programming language, I
-> have never written a driver, I'm not able, and I honestly do not even
-> capable.
-> 
-> You tell me to add support to the current driver, but I have no idea
-> how to do. It is also good to clarify that the driver on the kernel
-> vanulla charge in the presence of this card, but simply does not work,
-> and does not create deivce (/dev/dvb/).
-
-Take a look at linuxtv WIKI pages. It explains several useful things
-on how to add support to a new device.
-
-> So knowing that I'm not able to write the driver, I would say that
-> this device is definitely dead and buried ... in this case would be at
-> least that was not loaded em28xx module (the one in the kernel),
-> avoiding giving the illusion that the driver functions.
-> 
-> I do not know if you can, but should be added, if any, in a sort of blacklist.
-
-The USB ID used by your device is generic: all devices with em2870 without
-eeprom will inform the same code (and even some with eeprom, but where
-the vendor didn't care to write their own ID there).
-
-What are the components used on your device?
-
-
--- 
-
-Cheers,
-Mauro
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
