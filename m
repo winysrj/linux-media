@@ -1,51 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:39680 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754018Ab0EATVj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 May 2010 15:21:39 -0400
-Received: by vws19 with SMTP id 19so929575vws.19
-        for <linux-media@vger.kernel.org>; Sat, 01 May 2010 12:21:38 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 1 May 2010 12:21:38 -0700
-Message-ID: <y2wa3ef07921005011221h4b71c791p7c906ab150875144@mail.gmail.com>
-Subject: av7110 crash when unloading.
-From: VDR User <user.vdr@gmail.com>
-To: "mailing list: linux-media" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from poutre.nerim.net ([62.4.16.124]:65226 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750824Ab0EaU5y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 16:57:54 -0400
+Date: Mon, 31 May 2010 22:57:50 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Wolfram Sang <w.sang@pengutronix.de>, linux-i2c@vger.kernel.org,
+	George Joseph <george.joseph@fairview5.com>,
+	Riku Voipio <riku.voipio@iki.fi>,
+	Guillaume Ligneul <guillaume.ligneul@gmail.com>,
+	"Ben Dooks (embedded platforms)" <ben-linux@fluff.org>,
+	Alessandro Rubini <rubini@ipvvis.unipv.it>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	Colin Leroy <colin@colino.net>,
+	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Liam Girdwood <lrg@slimlogic.co.uk>,
+	Paul Gortmaker <p_gortmaker@yahoo.com>,
+	Alessandro Zummo <a.zummo@towertech.it>,
+	Greg Kroah-Hartman <gregkh@suse.de>, lm-sensors@lm-sensors.org,
+	linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
+	linuxppc-dev@ozlabs.org, linux-media@vger.kernel.org,
+	linux-mtd@lists.infradead.org, rtc-linux@googlegroups.com,
+	devel@driverdev.osuosl.org
+Subject: Re: [PATCH] drivers: remove all i2c_set_clientdata(client, NULL)
+Message-ID: <20100531225750.0dc18950@hyperion.delvare>
+In-Reply-To: <20100531190911.GC30712@core.coreip.homeip.net>
+References: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
+	<20100531190911.GC30712@core.coreip.homeip.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I just grabbed the latest hg tree and got the following when I tried
-to unload the drivers for my nexus-s:
+Hi Dmitry,
 
-Message from syslogd@test at Sat May  1 12:19:23 2010 ...
-test kernel: [  814.077154] Oops: 0000 [#1] SMP
+On Mon, 31 May 2010 12:09:12 -0700, Dmitry Torokhov wrote:
+> Frankly I'd prefer taking input stuff through my tree with the goal of
+> .36 merge window just to minimize potential merge issues. This is a
+> simple cleanup patch that has no dependencies, so there is little gain
+> from doing it all in one go.
 
-Message from syslogd@test at Sat May  1 12:19:23 2010 ...
-test kernel: [  814.077156] last sysfs file:
-/sys/devices/virtual/vtconsole/vtcon0/uevent
+If I take the patch in my i2c tree, the aim is to merge it upstream
+immediately, so merge issues won't exist.
 
-Message from syslogd@test at Sat May  1 12:19:23 2010 ...
-test kernel: [  814.077193] Process rmmod (pid: 5099, ti=f6a54000
-task=f5311490 task.ti=f6a54000)
-
-Message from syslogd@test at Sat May  1 12:19:23 2010 ...
-test kernel: [  814.077300] CR2: 0000000000000000
-
-Message from syslogd@test at Sat May  1 12:19:23 2010 ...
-test kernel: [  814.077296] EIP: [<f98dfeaa>]
-v4l2_device_unregister+0x14/0x4f [videodev] SS:ESP 0068:f6a55e7c
-
-Message from syslogd@test at Sat May  1 12:19:23 2010 ...
-test kernel: [  814.077273] Code: 89 c3 8b 00 85 c0 74 0d 31 d2 e8 90
-91 8c c7 c7 03 00 00 00 00 5b c3 57 85 c0 56 89 c6 53 74 42 e8 da ff
-ff ff 8b 5e 04 83 c6 04 <8b> 3b eb 2f 89 d8 e8 fb fe ff ff f6 43 0c 01
-74 0c 8b 43 3c 85
-
-Message from syslogd@test at Sat May  1 12:19:23 2010 ...
-test kernel: [  814.077195] Stack:
-
-Message from syslogd@test at Sat May  1 12:19:23 2010 ...
-test kernel: [  814.077211] Call Trace:
-
-The modules wouldn't unload and a reboot was needed to clear it.
+-- 
+Jean Delvare
