@@ -1,98 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anchor-post-3.mail.demon.net ([195.173.77.134]:48312 "EHLO
-	anchor-post-3.mail.demon.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755082Ab0EWSda (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:46207 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756824Ab0EaJrN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 May 2010 14:33:30 -0400
-From: Ian Armstrong <mail01@iarmst.co.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: VIDIOC_G_STD, VIDIOC_S_STD, VIDIO_C_ENUMSTD for outputs
-Date: Sun, 23 May 2010 19:33:27 +0100
-Cc: linux-media@vger.kernel.org, Andy Walls <awalls@md.metrocast.net>,
-	Andre Draszik <v4l2@andred.net>
-References: <AANLkTineD8GCtG1OD4WQahW7zS23IxQDx7XmnAsrVSqs@mail.gmail.com> <201005221821.32711.mail01@iarmst.co.uk> <201005231320.13560.hverkuil@xs4all.nl>
-In-Reply-To: <201005231320.13560.hverkuil@xs4all.nl>
+	Mon, 31 May 2010 05:47:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: manjunathan.padua@wipro.com
+Subject: Re: Regarding  OMAP 35xx  ISP subsystem and SoC-Camera
+Date: Mon, 31 May 2010 11:49:30 +0200
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org
+References: <336834A7A2D8B34BA5A8906E6E71DF870113EC41@BLR-SJP-MBX01.wipro.com> <201005310959.18029.laurent.pinchart@ideasonboard.com> <336834A7A2D8B34BA5A8906E6E71DF879D17EA@BLR-SJP-MBX01.wipro.com>
+In-Reply-To: <336834A7A2D8B34BA5A8906E6E71DF879D17EA@BLR-SJP-MBX01.wipro.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201005231933.27307.mail01@iarmst.co.uk>
+Message-Id: <201005311149.30848.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 23 May 2010, Hans Verkuil wrote:
-> On Saturday 22 May 2010 19:21:32 Ian Armstrong wrote:
-> > On Saturday 22 May 2010, Andy Walls wrote:
+Hi Manjunathan,
 
-> > > Some thoughts:
+On Monday 31 May 2010 11:40:55 manjunathan.padua@wipro.com wrote:
+> > On Friday 28 May 2010 15:54:57 manjunathan.padua@wipro.com wrote:
+> > > Dear Linux-media group
+> > >
+> > > I am a newbie and have recently started working on integration of a new
+> > > camera sensor MT9M112 sensor with OMAP ISP Camera subsystem on a OMAP
+> > > 3530 based custom board.  So I checked in mainline kernel if driver is
+> > > available for this camera sensor and  I found it in the
+> > > Linux/driver/media/video/mt9m11.c, this supports both MT9M111 and
+> > > MT9M112. It is based on SoC-Camera framework.   But unfortunately this
+> > > is not compatible with OMAP 35xx  Camera ISP subsystem  as OMAP camera
+> > > ISP subsystem is based on V4L2-INT.
+> >
+> > The OMAP3 ISP driver doesn't use the deprecated V4L2 int-device API
+> > anymore. The latest version of the driver can be found in the omap3camera
+> > tree on gitorious (make sure you checkout the devel branch).
+> 
+> Does this mean current code of OMAP3 ISP in gitorious is updated to use
+> sub-device framework?
+
+Yes it does.
+
+> > > Also I got know that there are there are 3 different frameworks for
+> > > camera sensor drivers in Linux
+> > > a. V4L2-INT is deprecated but currently supported by OMAP35xx ISP Linux
+> > > BSP
+> > > b. SoC-Camera is  also deprecated.
+> > > c. Sub-Device is the current architecture supported from Open source
+> > > community
 > > > 
-> > > 1. to me it appears that the ivtv driver looks like it ties the output
-> > > standard to the input standard currently (probably due to some firmware
-> > > limitation).  This need not be the case in general.
-> > 
-> > The ivtv limitation is the driver and not the firmware.
+> > > 1. Is this understanding correct ?
+> > >
+> > That's correct. The OMAP35xx ISP driver in the Linux BSP is also
+> > deprecated :-)
 > 
-> Correct.
+> It is surprising to hear that OMAP35xx ISP driver is also deprecated.
+
+The OMAP34xx and OMAP35xx ISP are very similar and should be supported by the 
+same driver. The most up-to-date driver is available in the omap3camera tree, 
+and that's the one that will be merged to mainline when it will be ready. All 
+other drivers are either deprecated or temporary solutions.
+
+> > > 2. Since V4L2-INT and SoC-Camera frameworks are deprecated, can you
+> > > please let me know the roadmap for Sub-Device framework ?
+> >
+> > The soc-camera framework isn't deprecated, but it isn't used by the OMAP3
+> > ISP driver either.
 > 
-> > The firmware itself
-> > seems quite happy with mixed standards & in some cases will automatically
-> > switch the output standard itself (resulting in a standards mismatch
-> > between the cx23415 & saa7127, breaking output). For the previous 2
-> > months I've been running a patched version of the ivtv driver that
-> > separates the input & output format with no noticeable issues.
-> > 
-> > > 2. currently the ivtv driver uses sepearte device nodes for input
-> > > device and an output device.  If bridge drivers maintain that
-> > > paradigm, then separate ioctl()s for S_STD, G_STD, and ENUMSTD are
-> > > likely not needed.
-> > 
-> > This is how my patched version works, talk to an input device for the
-> > input & an output device for the output. However, from my reading of the
-> > specs I do get the impression this is not the 'correct' way to do this
-> > and it should really be a separate ioctl. I don't know what other cards,
-> > if any, support mixed input & output standards or how they handle it.
+> Wow, that's what I heard from folks at TI. I will re-check with them as why
+> it they said so.
 > 
-> I have considered implementing these output ioctls as well and as mentioned
-> s_std_output is actually implemented on the subdev level (it was really
-> needed there).
+> > > 3. What is the best option/recommendation from community for me to
+> > > integrate MT9M112 with Camera ISP system on OMAP 3530 based board ?
+> >
+> > The dependencies on the soc-camera framework in the MT9M112 driver need to
+> > be removed. I've CC'ed Guennadi Liakhovetski to this e-mail, he's the
+> > author of the soc-camera framework and should be able to provide
+> > information on what is required.
 > 
-> The reason it was never done for bridge drivers is twofold:
+> Thanks, I had already contacted Guennadi on this about a week ago, he
+> provided me recommendation and some details on how this can be done and
+> also request me to post query on linux-media mailing list.
 > 
-> 1) No one ever needed it. Why would you want to select one format for input
-> and another for output? Other than debugging this never happens for the
-> sort of drivers we have now. So selecting e.g. PAL and have it change both
-> input and output is actually what most people expect.
-
-There's no denying that mixed standards is unusual, but is it a case of nobody 
-ever wanted it, or did they just assume the hardware wasn't capable of it. The 
-only reason I ever created a patch to support mixed standards in the ivtv 
-driver is because it was a feature which I wanted to use.
-
-In my case all captures are PAL, but I view a lot of NTSC material. I find 
-that interlaced video looks best when displayed in its native format so I use 
-a script to identify & change the output to match. Mixed standards allow 
-MythTV to record a show in PAL while I'm watching an NTSC video on an NTSC  
-output.
-
-Another instance when mixed formats would be useful is when capturing a video 
-which doesn't match your regions standard. If I'm trying to capture an NTSC 
-video, it doesn't mean I want the output mode changed from my native PAL. Just 
-because the card can output NTSC doesn't mean the display can handle it.
-
-> 2) Do we really need to make new ioctls? Here it becomes hairy. According
-> to the V4L2 spec changing the std for one video device should change it
-> for all others as well. So if we follow that spec, then we should indeed
-> introduce new ioctls. But in practice all driver have separate device
-> nodes for capture and output. So perhaps we should change the spec and
-> specify that it will only change the std for those device nodes that are
-> linked to the same input or output.
-
-I doubt it's really used outside of v4l2-ctl, but the ivtv driver allows 
-output configuration to be changed via the capture device. In this instance a 
-new ioctl would avoid a situation where the output can only be partially 
-configured through the capture device. In reality I doubt any application 
-actually configures the output via the capture device, but to reuse the ioctl 
-& link it to a specific device node would create an inconsistency.
+> > > 4. And lastly are there any other different camera sensors which have
+> > > Sub- Device based drivers available in Mainline Linux?
+> >
+> > Not that I know of, but there's a video decoder driver (tvp5150).
 
 -- 
-Ian
+Regards,
+
+Laurent Pinchart
