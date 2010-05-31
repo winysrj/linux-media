@@ -1,75 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw1.diku.dk ([130.225.96.91]:44228 "EHLO mgw1.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753446Ab0EOJq7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 May 2010 05:46:59 -0400
-Date: Sat, 15 May 2010 11:46:54 +0200 (CEST)
-From: Julia Lawall <julia@diku.dk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH 4/4] drivers/media/video: Eliminate use after free
-Message-ID: <Pine.LNX.4.64.1005151146370.15566@ask.diku.dk>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:34633 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754630Ab0EaRvS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 13:51:18 -0400
+Received: by fxm8 with SMTP id 8so290068fxm.19
+        for <linux-media@vger.kernel.org>; Mon, 31 May 2010 10:51:17 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <AANLkTinecMK9uvrmWJHsV1CrafJGqrhrwkL7svK96K0v@mail.gmail.com>
+References: <AANLkTinecMK9uvrmWJHsV1CrafJGqrhrwkL7svK96K0v@mail.gmail.com>
+Date: Mon, 31 May 2010 19:51:17 +0200
+Message-ID: <AANLkTik-2oawMp-vB5fI4tcgv1moITwOLNKyQLwr56-N@mail.gmail.com>
+Subject: Re: fr-Nantes file outdated
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Charles <landemaine@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
+2010/5/28 Charles <landemaine@gmail.com>:
+> Hello,
+>
+> I found out that frequencies listed here are outdated:
+> http://linuxtv.org/hg/dvb-apps/file/7de0663facd9/util/scan/dvb-t/fr-Nantes
 
-The error value is saved in a new local variable err before freeing the
-containing structure.
+What about these ones:
+http://linuxtv.org/hg/dvb-apps/file/tip/util/scan/dvb-t/fr-Nantes
 
-A simplified version of the semantic match that finds this problem is as
-follows: (http://coccinelle.lip6.fr/)
+> These are the new frequencies:
+>
+> 538167000
+> 682167000
+> 546167000
+> 738167000
+> 490167000
+> 658167000
+>
+> Sincerely,
+>
+> Charles.
 
-// <smpl>
-@free@
-expression E;
-position p;
-@@
-kfree@p(E)
-
-@@
-expression free.E, subE<=free.E, E1;
-position free.p;
-@@
-
-  kfree@p(E)
-  ...
-(
-  subE = E1
-|
-* E
-)
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/media/video/mem2mem_testdev.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-index baf211b..fb73f34 100644
---- a/drivers/media/video/mem2mem_testdev.c
-+++ b/drivers/media/video/mem2mem_testdev.c
-@@ -858,6 +858,7 @@ static int m2mtest_open(struct file *file)
- {
- 	struct m2mtest_dev *dev = video_drvdata(file);
- 	struct m2mtest_ctx *ctx = NULL;
-+	int err;
- 
- 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
- 	if (!ctx)
-@@ -871,8 +872,9 @@ static int m2mtest_open(struct file *file)
- 
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(ctx, dev->m2m_dev, queue_init);
- 	if (IS_ERR(ctx->m2m_ctx)) {
-+		err = PTR_ERR(ctx->m2m_ctx);
- 		kfree(ctx);
--		return PTR_ERR(ctx->m2m_ctx);
-+		return err;
- 	}
- 
- 	atomic_inc(&dev->num_inst);
+Christoph
