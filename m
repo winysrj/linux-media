@@ -1,73 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:45516 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754919Ab0ECRYM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 May 2010 13:24:12 -0400
-Date: Mon, 3 May 2010 10:15:48 -0700
-From: Greg KH <greg@kroah.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Viral Mehta <Viral.Mehta@lntinfotech.com>,
-	"linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"robert.lukassen@tomtom.com" <robert.lukassen@tomtom.com>
-Subject: Re: [PATCH 1/2] USB gadget: video class function driver
-Message-ID: <20100503171548.GA11151@kroah.com>
-References: <1272826662-8279-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1272826662-8279-2-git-send-email-laurent.pinchart@ideasonboard.com>
- <70376CA23424B34D86F1C7DE6B9973430254343AAE@VSHINMSMBX01.vshodc.lntinfotech.com>
- <201005031430.00428.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201005031430.00428.laurent.pinchart@ideasonboard.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:23379 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751745Ab0EaMnm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 08:43:42 -0400
+Subject: Re: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: Ondrej Zary <linux@rainbow-software.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <20100531091953.39055944@tele>
+References: <201005291909.33593.linux@rainbow-software.org>
+	 <201005302328.56690.linux@rainbow-software.org>
+	 <1275256691.4863.19.camel@localhost>
+	 <201005310003.12761.linux@rainbow-software.org>
+	 <20100531091953.39055944@tele>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 31 May 2010 08:43:51 -0400
+Message-ID: <1275309831.2227.26.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 03, 2010 at 02:29:57PM +0200, Laurent Pinchart wrote:
-> Hi Viral,
+On Mon, 2010-05-31 at 09:19 +0200, Jean-Francois Moine wrote:
+> On Mon, 31 May 2010 00:03:10 +0200
+> Ondrej Zary <linux@rainbow-software.org> wrote:
 > 
-> On Monday 03 May 2010 13:14:11 Viral Mehta wrote:
-> > Hi,
+> > > I would try extracting a JPEG header from one of the files captured
+> > > by the camera in stand alone mode (either a JPEG still or MJPEG
+> > > file), and put that header together with the image data from the
+> > > USB capture.  It may not look perfect, but hopefully you will get
+> > > something you recognize.  
 > > 
-> > >This USB video class function driver implements a video capture device
-> > >from the host's point of view. It creates a V4L2 output device on the
-> > >gadget's side to transfer data from a userspace application over USB.
-> > >
-> > >The UVC-specific descriptors are passed by the gadget driver to the UVC
-> > >function driver, making them completely configurable without any
-> > >modification to the function's driver code.
+> > Just thought about the same thing so I uploaded a video file: 
+> > http://www.rainbow-software.org/linux_files/spca1528/sunp0003.avi
 > > 
-> > I wanted to test this code. I git cloned[1] tree. It has v4l2-event.[c,h]
-> > and so I assume that now this tree has support for v4l2 event code.
-> > 
-> > But, while compilation, I am getting this error.
-> > [root@viral linux-next]# make uImage > /dev/null && make modules
-> >   CHK     include/linux/version.h
-> >   CHK     include/generated/utsrelease.h
-> > make[1]: `include/generated/mach-types.h' is up to date.
-> >   CALL    scripts/checksyscalls.sh
-> >   Building modules, stage 2.
-> >   MODPOST 5 modules
-> > ERROR: "v4l2_event_dequeue" [drivers/usb/gadget/g_webcam.ko] undefined!
-> > ERROR: "v4l2_event_init" [drivers/usb/gadget/g_webcam.ko] undefined!
-> > make[1]: *** [__modpost] Error 1
-> > make: *** [modules] Error 2
-> > 
-> > And by looking at the code, those symbols are not exported and thus the
-> > error is obvious. Can you please point me out where to take v4l2-event
-> > code? I tried to look for on linuxtv.org but was not able to locate the
-> > right code.
-> > 
-> > [1]git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-next.git
+> > > Attached was Theodore's first attempt of such a procedure with a
+> > > header extracted from a standalone image file from my Jeilin based
+> > > camera and USB snoop data from the same camera.  It wasn't perfect,
+> > > but it was recognizable.  
 > 
-> There's a patch pending on the linux-media list to export those two functions. 
-> It has been acked by Sakari (the author of the V4L2 events patch set), but not 
-> committed by Mauro to his linux-next yet. That should be a matter of days.
+> I could not believe it! I already tried the image as JPEG, but I got
+> just big colored pixels. I changed the 'samples Y' from 21 to 22 and
+> I got something coherent! Here is the same image as yesterday with
+> JPEG 411 header, compression quality 80% and insertion of 0x00 after
+> 0xff.
 
-Do you have a pointer to that patch?  I'll take it into my usb tree for
-now, to keep things building, and let Mauro send it to Linus for
-merging.
+Very nice work!
 
-thanks,
+I think I understand the 'samples Y' change.  According to ITU T.81, you
+changed the Vertical sampling factor in the Y component.  So, I guess
+Luma is undersampled vertically for that mode of the camera (the camera
+only really has a 240 line sensor)?
 
-greg k-h
+Regards,
+Andy
+
