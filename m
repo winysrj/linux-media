@@ -1,68 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6923 "EHLO mga09.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:17893 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751032Ab0EJNpj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 May 2010 09:45:39 -0400
-Date: Mon, 10 May 2010 06:45:20 -0700
-From: Sarah Sharp <sarah.a.sharp@intel.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	LMML <linux-media@vger.kernel.org>, linux-usb@vger.kernel.org
-Subject: Re: Status of the patches under review (85 patches) and some misc
- notes about the devel procedures
-Message-ID: <20100510134520.GA6213@xanatos>
-References: <20100507093916.2e2ef8e3@pedra>
- <20100508083127.73a72af7@tele>
- <4BE5E995.4070003@redhat.com>
+	id S1757049Ab0EaTGJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 15:06:09 -0400
+Message-ID: <4C0408A9.4040904@redhat.com>
+Date: Mon, 31 May 2010 16:06:17 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4BE5E995.4070003@redhat.com>
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Subject: Re: ir-core multi-protocol decode and mceusb
+References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>	 <1275136793.2260.18.camel@localhost>	 <AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>	 <1275163295.17477.143.camel@localhost>	 <AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>	 <4C02700A.9040807@redhat.com>	 <AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>	 <AANLkTik_-6Z12G8rz0xkjbLkpWvfRHorGtD_LbsPr_11@mail.gmail.com> <1275308142.2227.16.camel@localhost>
+In-Reply-To: <1275308142.2227.16.camel@localhost>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, May 08, 2010 at 03:45:41PM -0700, Mauro Carvalho Chehab wrote:
-> Jean-Francois Moine wrote:
-> > On Fri, 7 May 2010 09:39:16 -0300
-> > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> > 
-> >> 		== Gspca patches - Waiting Jean-Francois Moine
-> >> <moinejf@free.fr> submission/review == 
-> >>
-> >> Feb,24 2010: gspca pac7302: add USB PID range based on
-> >> heuristics                   http://patchwork.kernel.org/patch/81612
-> >> May, 3 2010: gspca: Try a less bandwidth-intensive alt
-> >> setting.                     http://patchwork.kernel.org/patch/96514
-> > 
-> > Hello Mauro,
-> > 
-> > I don't think the patch about pac7302 should be applied.
-> 
-> > 
-> > The patch about the gspca main is in my last git pull request.
-> 
-> (c/c Sarah)
-> 
-> I also didn't like this patch strategy. It seems a sort of workaround
-> for xHCI, instead of a proper fix.
-> 
-> I'll mark this patch as rejected, and wait for a proper fix.
+Hi Andy,
 
-This isn't a work around for a bug in the xHCI host.  The bandwidth
-checking is a feature.  It allows the host to reject a new interface if
-other devices are already taking up too much of the bus bandwidth.  I
-expect that all drivers that use interrupt or isochronous will have to
-fall back to a different alternate interface setting if they can.
+Em 31-05-2010 09:15, Andy Walls escreveu:
+>> I've now got an ir-lirc-codec bridge passing data over to a completely
+>> unmodified lirc_dev, with the data then making its way out to the
+>> lircd userspace where its even getting properly decoded. I don't have
+>> the transmit side of things in ir-lirc-codec wired up just yet, but
+>> I'd like to submit what I've got (after some cleanup) tomorrow, and
+>> will then incrementally work on transmit. I'm pretty sure wiring up
+>> transmit is going to require some of the bits we'd be using for native
+>> transmit as well, so there may be some discussion required. Will give
+>> a look at setting enabled/disabled decoders tomorrow too, hopefully.
+> 
+> 
+> Since you're looking at Tx, please take a look at the v4l2_subdev
+> interface for ir devices.  See 
+> 
+> linux/include/media/v4l2-subdev.h: struct v4l2_subdev_ir_ops 
+> 
+> I was wondering how this interface could be modified to interface nicely
+> to lirc (or I guess ir-lirc-codec) for transmit functionality.
 
-Now, Alan Stern and I have been talking about making a different API for
-drivers to request a specific polling rate and frame list length for an
-endpoint.  However, I expect that the call would have to be either
-before or part of the call to usb_set_interface(), because of how the
-xHCI hardware tracks endpoints.  So even if we had the ideal interface,
-the drivers would still need code like this to fall back to
-less-bandwidth intensive alternate settings.
+> Right now, only the cx23885 driver uses it:
+> 
+> linux/drivers/media/video/cx23885/cx23888-ir.[ch]
+> 
+> I have the skeleton of transmit for the device implemented (it does need
+> some fixing up).
+> 
+> (The CX23888 hardware is nice in that it only deals with raw pulses so
+> one can decode any protocol and transmit any protocols.  The hardware
+> provides hardware counter/timers for measuring incoming pulses and
+> sending outgoing pulses.)
 
-Is there a different way you think we should handle running out of
-bandwidth?
+This interface is bound to V4L needs. As the Remote Controller subsystem
+is meant to support not only V4L or DVB IR's, but also other kinds of remote
+controllers that aren't associated to media devices, it makes no sense on
+binding TX to this interface. 
 
-Sarah Sharp
+The biggest advantage of V4L subdev interface is that a command, like VIDIOC_S_STD
+could be sent to several devices that may need to know what's the current standard,
+in order to configure audio, video, etc. It also provides a nice way to access
+devices on a device-internal bus. In the case of RC, I don't see any similar
+need. So, IMO, the better is to use an in interface similar to RX for TX, e. g.,
+something like:
+	rc_register_tx()
+	rc_unregister_tx()
+	rc_send_code()
+
+Of course, inside the V4L drivers, it may actually make sense to keep using the 
+v4l2-subdev if the IR is accessed, for example, via I2C bus.
+
+Cheers,
+Mauro.
