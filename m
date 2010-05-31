@@ -1,83 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.tmr.com ([64.65.253.246]:57170 "EHLO partygirl.tmr.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752244Ab0E2DTx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 May 2010 23:19:53 -0400
-Message-ID: <4C0087AA.3030909@tmr.com>
-Date: Fri, 28 May 2010 23:19:06 -0400
-From: Bill Davidsen <davidsen@tmr.com>
-MIME-Version: 1.0
-To: Andrew Morton <akpm@linux-foundation.org>
-CC: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	bugzilla-daemon@bugzilla.kernel.org,
-	bugme-daemon@bugzilla.kernel.org
-Subject: Re: [Bugme-new] [Bug 16050] New: The ibmcam driver is not working
-References: <bug-16050-10286@https.bugzilla.kernel.org/> <20100528154635.129b621b.akpm@linux-foundation.org>
-In-Reply-To: <20100528154635.129b621b.akpm@linux-foundation.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:32711 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755722Ab0EaTiW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 15:38:22 -0400
+Subject: Re: ir-core multi-protocol decode and mceusb
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+In-Reply-To: <4C0408A9.4040904@redhat.com>
+References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>
+	 <1275136793.2260.18.camel@localhost>
+	 <AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>
+	 <1275163295.17477.143.camel@localhost>
+	 <AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>
+	 <4C02700A.9040807@redhat.com>
+	 <AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>
+	 <AANLkTik_-6Z12G8rz0xkjbLkpWvfRHorGtD_LbsPr_11@mail.gmail.com>
+	 <1275308142.2227.16.camel@localhost>  <4C0408A9.4040904@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 31 May 2010 15:38:19 -0400
+Message-ID: <1275334699.2261.45.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andrew Morton wrote:
-> (switched to email.  Please respond via emailed reply-to-all, not via the
-> bugzilla web interface).
->
-> On Tue, 25 May 2010 23:02:23 GMT
-> bugzilla-daemon@bugzilla.kernel.org wrote:
->
->   
->> https://bugzilla.kernel.org/show_bug.cgi?id=16050
->>
->>                URL: https://bugzilla.redhat.com/show_bug.cgi?id=588900
->>            Summary: The ibmcam driver is not working
->>            Product: Drivers
->>            Version: 2.5
->>     Kernel Version: 2.6.34
->>           Platform: All
->>         OS/Version: Linux
->>               Tree: Mainline
->>             Status: NEW
->>           Severity: normal
->>           Priority: P1
->>          Component: USB
->>         AssignedTo: greg@kroah.com
->>         ReportedBy: davidsen@tmr.com
->>         Regression: Yes
->>
->>
->> This driver has been working, and around the 1st of May I updated my Fedora
->> kernel (FC13-RC) to current. The camera stopped working, so I built the latest
->> 2.6.34-rc version and verified the problem. When 2.6.34 final released I
->> repeated the test and the driver is still not working.
->>
->> Originally reported against Fedora (not going to be fixed in FC13) the
->> information in the Fedora report may be enough to identify the problem. I can
->> do a bit of test almost any day, but the cams are on a video monitoring system,
->> so I'm not able to do long bisects and such.
->>
->>     
->
-> It's a 2.6.33 -> 2.6.34 regression, I think.  I don't know whether it's
-> a v4l problem or a USB one..
->
->   
-Sounds right, there's quite a bit of version information in the redhat 
-BZ entry I noted, and I thought it was a Fedora issue at first. Then 
-when Fedora support said it wasn't going to be fixed for FC13 I tried 
-the kernel.org source instead. There are some initial comments from 
-zaitcev@redhat.com saying there were patches in git to make it work with 
-fswebcam (don't use it), but it doesn't seem to with cheese, motion, or 
-xawtv, so I'm unsure how "fixed" it is.
+On Mon, 2010-05-31 at 16:06 -0300, Mauro Carvalho Chehab wrote:
+> Hi Andy,
+> 
+> Em 31-05-2010 09:15, Andy Walls escreveu:
+> >> I've now got an ir-lirc-codec bridge passing data over to a completely
+> >> unmodified lirc_dev, with the data then making its way out to the
+> >> lircd userspace where its even getting properly decoded. I don't have
+> >> the transmit side of things in ir-lirc-codec wired up just yet, but
+> >> I'd like to submit what I've got (after some cleanup) tomorrow, and
+> >> will then incrementally work on transmit. I'm pretty sure wiring up
+> >> transmit is going to require some of the bits we'd be using for native
+> >> transmit as well, so there may be some discussion required. Will give
+> >> a look at setting enabled/disabled decoders tomorrow too, hopefully.
+> > 
+> > 
+> > Since you're looking at Tx, please take a look at the v4l2_subdev
+> > interface for ir devices.  See 
+> > 
+> > linux/include/media/v4l2-subdev.h: struct v4l2_subdev_ir_ops 
+> > 
+> > I was wondering how this interface could be modified to interface nicely
+> > to lirc (or I guess ir-lirc-codec) for transmit functionality.
+> 
+> > Right now, only the cx23885 driver uses it:
+> > 
+> > linux/drivers/media/video/cx23885/cx23888-ir.[ch]
+> > 
+> > I have the skeleton of transmit for the device implemented (it does need
+> > some fixing up).
+> > 
+> > (The CX23888 hardware is nice in that it only deals with raw pulses so
+> > one can decode any protocol and transmit any protocols.  The hardware
+> > provides hardware counter/timers for measuring incoming pulses and
+> > sending outgoing pulses.)
+> 
+> This interface is bound to V4L needs. As the Remote Controller subsystem
+> is meant to support not only V4L or DVB IR's, but also other kinds of remote
+> controllers that aren't associated to media devices, it makes no sense on
+> binding TX to this interface. 
+> 
+> The biggest advantage of V4L subdev interface is that a command, like VIDIOC_S_STD
+> could be sent to several devices that may need to know what's the current standard,
+> in order to configure audio, video, etc. It also provides a nice way to access
+> devices on a device-internal bus. In the case of RC, I don't see any similar
+> need. So, IMO, the better is to use an in interface similar to RX for TX, e. g.,
+> something like:
+> 	rc_register_tx()
+> 	rc_unregister_tx()
+> 	rc_send_code()
 
-I'm ready to try stable releases as they come out, or git releases if 
-need be. I have issues getting time on build machine or time of video 
-server to do bisect, unfortunately. I looked at the patches all the way 
-back to 2.6.27, and ibmcam looks inert, so the changes in v4l would be 
-my first guess. Sorry I can't do more.
+Right, I agree.  The v4l2_subdev ir_ops is a detail hidden by the bridge
+driver and the bridge driver needs to deal with that.  A registration
+process seems to be the proper way to do things.
 
--- 
-Bill Davidsen <davidsen@tmr.com>
-  "We can't solve today's problems by using the same thinking we
-   used in creating them." - Einstein
+BTW, maybe
+
+	rc_set_tx_parameters()
+
+is needed as well to set up the parameters for the transmitter.
+
+I haven't looked very hard at rc_register_rx() and related functions so
+I will soon.  
+
+Regards,
+Andy
 
