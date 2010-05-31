@@ -1,49 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:55224 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752447Ab0ETLrV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 May 2010 07:47:21 -0400
-Content-class: urn:content-classes:message
+Received: from banach.math.auburn.edu ([131.204.45.3]:54096 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755845Ab0EaDqH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 May 2010 23:46:07 -0400
+Date: Sun, 30 May 2010 22:15:52 -0500 (CDT)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Andy Walls <awalls@md.metrocast.net>
+cc: Jean-Francois Moine <moinejf@free.fr>,
+	Ondrej Zary <linux@rainbow-software.org>,
+	linux-media@vger.kernel.org
+Subject: Re: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
+In-Reply-To: <1275273390.4863.30.camel@localhost>
+Message-ID: <alpine.LNX.2.00.1005302209500.14957@banach.math.auburn.edu>
+References: <201005291909.33593.linux@rainbow-software.org>  <201005292132.09705.linux@rainbow-software.org>  <20100530133455.489c4f46@tele>  <201005301955.24442.linux@rainbow-software.org>  <20100530201343.223a10bd@tele>
+ <1275273390.4863.30.camel@localhost>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-Subject: RE: [linux-dvb] new DVB-T initial tuning for fr-nantes
-Date: Thu, 20 May 2010 13:47:02 +0200
-Message-ID: <91E6C7608D34E145A3D9634F0ED7163E88873A@venus.logiways-france.fr>
-In-Reply-To: <alpine.DEB.2.01.1005201256140.29367@ureoreg>
-References: <4BF290A2.1020904@free.fr> <4BF432E7.2000203@free.fr> <alpine.DEB.2.01.1005201256140.29367@ureoreg>
-From: "Thierry LELEGARD" <tlelegard@logiways.com>
-To: <linux-media@vger.kernel.org>, "Damien Bally" <biribi@free.fr>
-Cc: <linux-dvb@linuxtv.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-PiBPbmUgdGhpbmcgdGhhdCB3b3VsZCBiZSBnb29kIHRvIGRvIC0tIGZvciBzb21lb25lIHdobyBp
-cyBpbiB0aGUNCj4gYXJlYSBzZXJ2ZWQgYnkgYSB0cmFuc21pdHRlciAtLSByYXRoZXIgdGhhbiB1
-c2UgwqtBVVRPwrsgZm9yIHRoZQ0KPiBGRUMgYW5kIEd1YXJkIEludGVydmFsIHZhbHVlcyBhYm92
-ZSwgd291bGQgYmUgdG8gcGVyZm9ybSBhIE5JVA0KPiBzY2FuIG9uIHRoZSBhcHByb3ByaWF0ZSBm
-cmVxdWVuY2llcy4NCj4gDQo+IFRoaXMgc2hvdWxkIGdpdmUgYXMgYSByZXN1bHQgdGhlIGFjdHVh
-bCB0cmFuc21pdHRlciBmcmVxdWVuY3kNCj4gYW5kIG90aGVyIHBhcmFtZXRlcnMgaW4gdXNlLCBh
-bmQgcGVyaGFwcyByZWxhdGVkIG9uZXMgZnJvbSBvdGhlcg0KPiBzaXRlcy4NCj4gDQo+IFRoZXNl
-IHZhbHVlcyBhcmUgY29uZmlndXJlZCBieSB0aGUgYnJvYWRjYXN0ZXIgYW5kIGFyZSB0aGVyZWZv
-cmUNCj4gbm90IGd1YXJhbnRlZWQgdG8gYmUgMTAwJSBhY2N1cmF0ZSwgYnV0IGl0IGlzIG1vcmUg
-bGlrZWx5IHRoYXQNCj4gdGhleSBrbm93IHRoZSB2YWx1ZXMgdGhleSBhcmUgdXNpbmcgLS0gdGhl
-c2UgdmFsdWVzIGNhbiBiZSB1c2VkDQo+IHRvIGxvY2F0ZSBvdGhlciB0cmFuc21pdHRlciBmcmVx
-dWVuY2llcywgYXMgaXMgdGhlIHdlbGwta25vd24NCj4gY2FzZSBmb3IgRFZCLVMgc2F0ZWxsaXRl
-IE5JVCB0YWJsZXMuDQoNClVuZm9ydHVuYXRlbHksIHRoZSB0ZXJyZXN0cmlhbCBkZWxpdmVyeSBk
-ZXNjcmlwdG9ycyBhcmUgY29tcGxldGVseQ0Kd3JvbmcgaW4gdGhlIE5JVCBvZiB0aGUgRnJlbmNo
-IHRlcnJlc3RyaWFsIG5ldHdvcmsuIFRoZSBOSVQgaXMgdGhlDQpzYW1lIGFsbCBvdmVyIHRoZSBj
-b3VudHJ5LCB3aGljaCBpcyBub3QgYXBwcm9wcmlhdGUgaW4gYSB0ZXJyZXN0cmlhbA0KbmV0d29y
-aywgYW5kIHRoZSBmcmVxdWVuY3ksIEZFQyBhbmQgZ3VhcmQgaW50ZXJ2YWwgYXJlIHdyb25nLiBU
-aGUNCnNhbWUgVFMgd2lsbCBoYXZlIGRpc3RpbmN0IGZyZXF1ZW5jaWVzIChvZiBjb3Vyc2UpIG9u
-IGRpZmZlcmVudA0KdHJhbnNtaXR0ZXJzIGJ1dCBhbHNvIGRpc3RpbmN0IEZFQyBhbmQgZ3VhcmQg
-aW50ZXJ2YWwgKGFjdHVhbGx5LA0KdHdvIGNvbWJpbmF0aW9ucyBhcmUgdXNlZDogZWl0aGVyIDIv
-MyAmIDEvMzIgb3IgMy80ICYgMS84KS4NCg0KUmVjZW50bHksIG1hbnkgdHJhbnNtaXR0ZXJzIGhh
-dmUgY2hhbmdlZCB0aGUgbW9kdWxhdGlvbiBwYXJhbWV0ZXJzDQp3aGlsZSBzdGF5aW5nIG9uIHRo
-ZSBzYW1lIGZyZXF1ZW5jeS4gSXQgaXMgdmVyeSBkaWZmaWN1bHQgdG8ga2VlcA0KdXAgdG8gZGF0
-ZS4gQmV0d2VlbiB0aGUgbW9tZW50IHdoZW4geW91IHN1Ym1pdCBhIHBhdGNoIHdpdGggdGhlDQpu
-ZXcgcGFyYW1ldGVycyBhbmQgdGhlIG1vbWVudCB5b3UgZ2V0IHRoZSBmaWxlIGluIHlvdXIgZGlz
-dHJvLA0KdGhlIHBhcmFtZXRlcnMgbWF5IGhhdmUgY2hhbmdlZCBhZ2Fpbi4NCg0KSSB0aGluayB0
-aGF0IGluIHN1Y2ggYSBtb3ZpbmcgZW52aXJvbm1lbnQsIHRoZSAiQVVUTyIgY2hvaWNlIGlzDQpk
-ZWZpbml0ZWx5IGJldHRlci4NCg0KLVRoaWVycnkNCg0K
+
+
+On Sun, 30 May 2010, Andy Walls wrote:
+
+> On Sun, 2010-05-30 at 20:13 +0200, Jean-Francois Moine wrote:
+> > On Sun, 30 May 2010 19:55:22 +0200
+> > Ondrej Zary <linux@rainbow-software.org> wrote:
+> > 
+> > > That's bad...
+> > > 
+> > > The driver contains file sp5x_32.dll which is registered in
+> > > system.ini file as [drivers32]
+> > > VIDC.SP54=SP5X_32.DLL
+> > > 
+> > > Seems that the codec is called SP54 - hope that it's used to
+> > > decompress the data.
+> > > 
+> > > > All I can do is to code the driver and let you or anyone find the
+> > > > decompression function...
+> > > 
+> > > Maybe we can dump some data, create AVI file from that and try to
+> > > decode the file using that codec.
+> > 
+> > It is easy to get images from the usbsnoop files. I join an image
+> > extracted from your file usbsnoop-video-capture-640x480.log. If you
+> > want more images, they are in IsoPackets. The first 2 bytes of each isoc
+> > packet mean:
+> > - '02 80' or '02 81': first of intermediate part of the image ('0' or
+> >   '1' is the image sequence number)
+> > - '02 82' or '02 83': last part of the image
+> > 
+> > Someone had an idea to try and guess the compression algorithm: do
+> > usbsnoop's with full black and full white images. But this idea did not
+> > work with the other webcam: the images were quite the same!
+> 
+> I have attached an image I constructed from the image data file you
+> provided, the MJPEG headers in the AVI file Ondrej provided, and the
+> Huffman table in the jpeg.h file in the gspca driver.
+> 
+> If you zoom in, there is an small pattern in the top left portion of the
+> scan.
+> 
+> I doesn't look quite like an whole image, but it does look like the
+> start of one.
+> 
+> Regards,
+> Andy
+
+Downloaded it. And, hmmm. Here are the error messages on trying to look at 
+the output:
+
+kilgota@khayyam:~$ display test1.jpg
+display: Corrupt JPEG data: premature end of data segment `test1.jpg' @ 
+warning/jpeg.c/EmitMessage/228.
+display: Unsupported marker type 0x3a `test1.jpg' @ 
+error/jpeg.c/EmitMessage/233.
+kilgota@khayyam:~$ 
+
+Quite possibly it _is_ going down "strips" or such. That is what the 
+JL2005C cameras are doing. Each vertical strip of 16 bytes from the 
+picture is in fact a separate JPEG image, and needs to be separately 
+processed, and then the results glued together into an image. This is even 
+seen in the raw data, once one is so wise that it is all figured out. The 
+data for each strip ends with FF D9. So one suggestion here would be to 
+see how many times the FF D9 is coming up in the data. There may be a 
+pattern to that.
+
+Theodore Kilgore
