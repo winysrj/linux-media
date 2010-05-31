@@ -1,291 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-10.arcor-online.net ([151.189.21.50]:42843 "EHLO
-	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753104Ab0EMHsC (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:9126 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753817Ab0EaVpt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 May 2010 03:48:02 -0400
-Subject: Re: Mercurial x git tree sync - was: Re: Remote control at Zolid
-	Hybrid TV Tuner
-From: hermann pitton <hermann-pitton@arcor.de>
+	Mon, 31 May 2010 17:45:49 -0400
+Subject: Re: ir-core multi-protocol decode and mceusb
+From: Andy Walls <awalls@md.metrocast.net>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Sander Pientka <cumulus0007@gmail.com>,
-	linux-media@vger.kernel.org, Douglas Landgraf <dougsland@gmail.com>
-In-Reply-To: <4BEB84F5.5030506@redhat.com>
-References: <db09c9681002161116k52278916ob68884ddc989044@mail.gmail.com>
-	 <1266375385.3176.5.camel@pc07.localdom.local>
-	 <db09c9681002170838tdb15cbbu67cd45a518c11b4b@mail.gmail.com>
-	 <1266445236.7202.17.camel@pc07.localdom.local>
-	 <AANLkTin6b9JT1j0iNBmrp0UIhN9Z2Y-V6xdrEy7g5NQb@mail.gmail.com>
-	 <4BEAFA76.5070809@redhat.com>
-	 <1273721312.10695.12.camel@pc07.localdom.local>
-	 <4BEB84F5.5030506@redhat.com>
-Content-Type: text/plain
-Date: Thu, 13 May 2010 09:37:33 +0200
-Message-Id: <1273736253.3197.71.camel@pc07.localdom.local>
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+In-Reply-To: <4C042310.4090603@redhat.com>
+References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>
+	 <1275136793.2260.18.camel@localhost>
+	 <AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>
+	 <1275163295.17477.143.camel@localhost>
+	 <AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>
+	 <4C02700A.9040807@redhat.com>
+	 <AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>
+	 <AANLkTik_-6Z12G8rz0xkjbLkpWvfRHorGtD_LbsPr_11@mail.gmail.com>
+	 <1275308142.2227.16.camel@localhost>  <4C0408A9.4040904@redhat.com>
+	 <1275334699.2261.45.camel@localhost>  <4C042310.4090603@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 31 May 2010 17:45:42 -0400
+Message-ID: <1275342342.2260.37.camel@localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-Am Donnerstag, den 13.05.2010, 01:49 -0300 schrieb Mauro Carvalho
-Chehab:
-> hermann pitton wrote:
-> > Am Mittwoch, den 12.05.2010, 15:59 -0300 schrieb Mauro Carvalho Chehab:
-> >> Sander Pientka wrote:
-> >>> Hi Hermann,
-> >>>
-> >>> I am going to revive this old thread, I completely forgot about it and
-> >>> I still want to solve this problem.
-> >>>
-> >>> Yes, with the IR transmitter not plugged in, the gpio is reported as
-> >>> 00000 by dmesg.
-> >>>
-> >>> I am aware there is a picture of the backside missing on the wiki, I
-> >>> will try to make one a.s.a.p.
-> >>>
-> >>> NEC IR support seems to be built-in already: drivers/media/IR/ir-nec-decoder.c.
-> >>>
-> >>> Besides, dmesg outputs a section of error messages I don't understand:
-> >>>
-> >>> [ 1585.548221] tda18271_write_regs: ERROR: idx = 0x5, len = 1,
-> >>> i2c_transfer returned: -5
-> >>> [ 1585.548229] tda18271_toggle_output: error -5 on line 47
-> >>> [ 1585.720118] tda18271_write_regs: ERROR: idx = 0x5, len = 1,
-> >>> i2c_transfer returned: -5
-> >>> [ 1585.720129] tda18271_init: error -5 on line 826
-> >>> [ 1585.720136] tda18271_tune: error -5 on line 904
-> >>> [ 1585.720141] tda18271_set_analog_params: error -5 on line 1041
-> >>> [ 1586.381026] tda18271_write_regs: ERROR: idx = 0x6, len = 1,
-> >>> i2c_transfer returned: -5
-> >>> [ 1586.500589] tda18271_write_regs: ERROR: idx = 0x1d, len = 1,
-> >>> i2c_transfer returned: -5
-> >>> [ 1586.629447] tda18271_write_regs: ERROR: idx = 0x10, len = 1,
-> >>> i2c_transfer returned: -5
-> >>> [ 1586.629458] tda18271_channel_configuration: error -5 on line 160
-> >>> [ 1586.629465] tda18271_set_analog_params: error -5 on line 1041
+On Mon, 2010-05-31 at 17:58 -0300, Mauro Carvalho Chehab wrote:
+> Em 31-05-2010 16:38, Andy Walls escreveu:
+> > On Mon, 2010-05-31 at 16:06 -0300, Mauro Carvalho Chehab wrote:
+> >> Hi Andy,
+> >>
+> >> Em 31-05-2010 09:15, Andy Walls escreveu:
+> >>>> I've now got an ir-lirc-codec bridge passing data over to a completely
+> >>>> unmodified lirc_dev, with the data then making its way out to the
+> >>>> lircd userspace where its even getting properly decoded. I don't have
+> >>>> the transmit side of things in ir-lirc-codec wired up just yet, but
+> >>>> I'd like to submit what I've got (after some cleanup) tomorrow, and
+> >>>> will then incrementally work on transmit. I'm pretty sure wiring up
+> >>>> transmit is going to require some of the bits we'd be using for native
+> >>>> transmit as well, so there may be some discussion required. Will give
+> >>>> a look at setting enabled/disabled decoders tomorrow too, hopefully.
 > >>>
 > >>>
-> >>> Do you have any idea about the origin of these errors? Do you think
-> >>> they affect the IR functionality?
-> >> The above errors won't change anything at IR side. For IR, the better approach
-> >> is to start using raw_decode mode. I've enabled it only for Avermedia M135A, 
-> >> since this is the board I'm using at the IR refactoring tests, but the same approach
-> >> should work fine for any other saa7134 board that uses GPIO18 or GPIO16. For GPIO18,
-> >> all you need is to use something like:
+> >>> Since you're looking at Tx, please take a look at the v4l2_subdev
+> >>> interface for ir devices.  See 
+> >>>
+> >>> linux/include/media/v4l2-subdev.h: struct v4l2_subdev_ir_ops 
+> >>>
+> >>> I was wondering how this interface could be modified to interface nicely
+> >>> to lirc (or I guess ir-lirc-codec) for transmit functionality.
 > >>
-> >>         case SAA7134_BOARD_AVERMEDIA_M135A:
-> >>                 ir_codes     = RC_MAP_AVERMEDIA_M135A_RM_JX;
-> >>                 mask_keydown = 0x0040000;
-> >>                 mask_keyup   = 0x0040000;
-> >>                 mask_keycode = 0xffff;
-> >>                 raw_decode   = 1;
-> >>                 break;
+> >>> Right now, only the cx23885 driver uses it:
+> >>>
+> >>> linux/drivers/media/video/cx23885/cx23888-ir.[ch]
+> >>>
+> >>> I have the skeleton of transmit for the device implemented (it does need
+> >>> some fixing up).
+> >>>
+> >>> (The CX23888 hardware is nice in that it only deals with raw pulses so
+> >>> one can decode any protocol and transmit any protocols.  The hardware
+> >>> provides hardware counter/timers for measuring incoming pulses and
+> >>> sending outgoing pulses.)
 > >>
-> >> (Of course, replacing the board name by your board name (SAA7134_BOARD_ZOLID_HYBRID_PCI?),
-> >> and pointing to the proper ir_codes table. You'll likely need to write one table for
-> >> the IR that were shipped with your board.
+> >> This interface is bound to V4L needs. As the Remote Controller subsystem
+> >> is meant to support not only V4L or DVB IR's, but also other kinds of remote
+> >> controllers that aren't associated to media devices, it makes no sense on
+> >> binding TX to this interface. 
 > >>
-> >> To do that, you'll need to enable debug at ir_core (modprobe ir_core debug=1), and type every
-> >> key on your keyboard, associating the scancode number with a key name. See http://www.linuxtv.org/wiki/index.php/Remote_Controllers for a reference of the most comon keycodes.
-> >>
-> >> For example, pressing the power button of an IR I have here (for Leadtek PVR3000), it
-> >> gives this info at the dmesg log:
-> >> ir_nec_decode: NEC scancode 0x0300
-> >>
-> >> All I need to do is to write a new keymap:
-> >>
-> >> add a new media/rc-map.h
-> >>
-> >>
-> >>  as, for example:
-> >> 	drivers/media/IR/keymaps/rc-leadtek_pvr3000.c
-> >> (copying one of the existing keymaps) and add:
-> >>
-> >> static struct ir_scancode leadtek_winfast_pvr3000_dlx[] = {
-> >> 	{ 0x300, KEY_POWER2 },
-> >>
-> >> for every key that it is there. Then, add the new file at drivers/media/IR/keymaps/Makefile.
-> >>
-> >> I've tried to summarize the above patches on a change I just did at the wiki page. Feel 
-> >> free to improve it, if needed.
-> >>
-> >> Cheers,
-> >> Mauro
+> >> The biggest advantage of V4L subdev interface is that a command, like VIDIOC_S_STD
+> >> could be sent to several devices that may need to know what's the current standard,
+> >> in order to configure audio, video, etc. It also provides a nice way to access
+> >> devices on a device-internal bus. In the case of RC, I don't see any similar
+> >> need. So, IMO, the better is to use an in interface similar to RX for TX, e. g.,
+> >> something like:
+> >> 	rc_register_tx()
+> >> 	rc_unregister_tx()
+> >> 	rc_send_code()
 > > 
-> > Hi Mauro,
+> > Right, I agree.  The v4l2_subdev ir_ops is a detail hidden by the bridge
+> > driver and the bridge driver needs to deal with that.  A registration
+> > process seems to be the proper way to do things.
 > > 
-> > what I did try to point to, with some sarcasm involved, is that I can't
-> > advice any v4l-dvb as reference anymore.
+> > BTW, maybe
 > > 
-> > To start to look such up, with all patches involved, per user, who
-> > likely does not know himself on what he exactly is, find the last
-> > building kernel for him then, guess on pending pull requests that time,
-> > and so on, is not making any sense for me.
+> > 	rc_set_tx_parameters()
 > > 
-> > Should we not state, that is nothing against Douglas at all or Hans with
-> > his build reports, please be on latest .rc and git to test anything we
-> > have around?
+> > is needed as well to set up the parameters for the transmitter.
 > > 
-> > We are out of sync else.
+> > I haven't looked very hard at rc_register_rx() and related functions so
+> > I will soon.  
 > 
-> Hermann,
+> They are declared at include/media/ir-core.h. The actual name is ir_input_register().
 > 
-> Sorry, but, sometimes, it is very hard to understand your English. I'm suspecting
-> that you're referring to the sync between hg and git.
+> The RX parameters are configured at the IR structs, before calling the function.
+
+
+
+> I may be wrong (since we didn't write any TX support), but I think that a
+> rc_set_tx_parameters() wouldn't be necessary, as I don't see why the driver will
+> change the parameters after registering, and without any userspace request.
+
+Yes, my intent was to handle a user space request to change the
+transmitter setup parameters to handle the protocol.
+
+I also don't want to worry about having to code in kernel parameter
+tables for any bizzare protocol userspace may know about.
+
+
+> If we consider that some userspace sysfs nodes will allow changing some parameters,
+> then the better is to have a callback function call, passed via the registering function,
+> that will allow calling a function inside the driver to change the TX parameters.
 > 
-> Short answer:
-> ============
+> For example, something like:
 > 
->  - AFAIK, Douglas finished syncing the trees at the night of May, 12.
+> struct rc_tx_props {
+> ...
+> 	int	(*change_protocol)(...);
+> ...
+> };
 > 
->  - Developers primary reference tree:
-> 	http://git.linuxtv.org/v4l-dvb.git
 > 
->  - Backport tree:
-> 	http://linuxtv.org/hg/v4l-dvb
-> 
->    As the backport is manual, some delay is expected at the backport tree. Also,
-> backports are made at the best efforts basis. So, nobody can warrant that the
-> drivers will behave correctly with an old kernel. Also, eventually, the backport tree
-> can break when compiled with an older kernel.
-> 
->    Developers are encouraged to use git for development, but patches and pull
-> requests against the backport tree are accepted.
-> 
-> Long answer:
-> ===========
-> 
-> As I have about 100 pending patches at Patchwork, plus 4 or 5 pull requests not
-> handled yet, mercurial tree will be soon out of sync. I'll try to merge most of the
-> pending stuff during this weekend.
-> 
-> The main developers reference is -git. We merge all patches there. 
-> So, new stuff arrives there before being backported.
-> 
-> That's said, we should be using git since 2.6.12, together with the kernel 
-> community. By not using it, our merge process became very complex
-> and it weren't scaling anymore. It is also impossible to merge the current
-> embedded patches with -hg, since we would need to keep several arch trees
-> inside hg, properly synchronized, which would make -hg tree very big
-> and full of hacks.
-> 
-> Due to our late adoption of git on our development trees, we're still
-> needing to adjust the process. I'll likely need to do some improvements for
-> the next kernel cycle, since I'm still suffering some merge issues upstream,
-> that will likely affect developers if I don't adjust the procedures.
-> 
-> The solution will likely be merging at git inside separate branches for separate
-> topics.
-> 
-> I'm trying to keep one branch (currently, master) with the latest final kernel 
-> version. For example, if you use it right now, it is the vanilla 2.6.33 kernel, 
-> plus v4l-dvb new stuff. This allows not only developers to use, but also advanced
-> users that know how to compile a kernel (that's not that hard: in general,
-> "make oldconfig && make" is enough, if the distro kernel is not very old).
-> 
-> Unfortunately, I don't have any time anymore to maintain the backport tree. We've
-> broke our record in terms of number of patches per release at -rc6: almost 
-> 800 patches for linux next, on a shorter kernel development cycle. So, we had about
-> 19 patches committed by day, 7 days by week, plus the ones that needed to be 
-> re-designed, due to some troubles, plus all architectural discussions we're having
-> about videobuf, events interface, mem2mem, etc.
-> 
-> I suspect that part of growth on the number of patches is due to the usage of git, as
-> I'm seeing more upstream kernel hackers sending patches to drivers/media lately.
-> 
-> So, Douglas assumed the maintainership of the hg tree. As all upstream patches
-> need to be backported, he's likely having a high demand bandwidth, because of the high 
-> number of patches.
-> 
-> As far as I know (Douglas, please correct me if I'm wrong), he started by
-> applying patches, testing against a selected number of legacy kernels and publish
-> after the tests. Also, he needs to identify the origin of a patch before applying
-> on his tree, to avoid breaking developers tree based on mercurial to require rebasing
-> after his merge. Life would probably be easier for him if everybody would be generating
-> patches against git when submitting upstream.
-> 
-> As people complained about the high delay, he decided just a few days ago 
-> to just sync the tree, and then adding backport patches with the help of the 
-> community. Of course, this means that the current -hg tree will compile only 
-> against 2.6.33, until someone backports the tree to the earlier kernels.
-> 
-> I suspect that people will also complain about that. Not sure what strategy would
-> be the better.
-> 
-> The fact is that, even with -hg, when we were close to the next merge window, the
-> number of patches tend to increase (as everybody tries to send their code for the
-> next merge window), and the need for backport increases, as other maintainers are
-> always improving the kernel ABI's. So, during a period of up to 4 weeks (one or 
-> two weeks before and the two weeks of the merge window), it would almost certain
-> that backport support would be broken.
-> 
-> Anyway, it is up to Douglas to define what would be the better way to maintain the
-> backport tree, as he is the one that is feeling all the pain of backporting
-> stuff, of course listening to the community feedback. It would be nice if
-> people could also help him by sending backport patches were needed.
-> 
+> rc_register_tx(..., struct rc_tx_props *props)
 
-Hi Mauro, Sander, Douglas,
+A callback is likely needed.  I'm not sure I would have chosen the name
+change_protocol(), because transmitter parameters can be common between
+protocols (at least RC-5 and RC-6 can be supported with one set of
+parameters), or not match any existing in-kernel protocol.  As long as
+it is flexible enough to change individual transmitter parameters
+(modulated/baseband, carrier freq, duty cycle, etc.) it will be fine.
 
-I can see all that.
-
-But the question was very simple.
-
-What revision of v4l-dvb I should have suggested to Sander on the day of
-his request to work further on it?
-
-I don't know, without very detailed input and a lot of looking up and
-broken build as next condition. So I do suggest to go to .rc and latest
-git. De facto it happened already.
-
-If this is within Sander's plans, not only Devin did list some
-shortcomings already for being on latest, I doubt. And a well maintained
-2.6.18 seems to have still many fans :)
-
-I also can see, on a first look, that Sander is not in sync with
-Michael's latest.
-
-More patches still come in from older stuff. (Compro T750/T750F, we run
-into detection troubles again)
-
-Until Douglas should complain, I'll stay quiet, but I guess it will turn
-into some "stable" mercurial v4l-dvb release every few weeks and I doubt
-to be interested to dig around in such and compare.
-
-Gerd did hold the v4l backward compat on 2.4.x during the introduction
-of v4l2, xawtv and nvrec have been the only working v4l2 apps for long,
-tvtime followed then, somehow forced, and much later mplayer, with lots
-of cries in between.
-
-Full v4l1 compat, it always had bugs like the mute ioctl on saa713x, is
-broken anyway since long on hybrid tuners, see fmtools on recent tuners.
-
-I always was for it, to have the broadest possible testing base, but if
-there is no clear fall back anymore, I luckily can miss support for a
-few cards the OEMs never did care about.
-
-Cheers,
-Hermann
- 
+Currently LIRC userspace changes Tx parameters using an ioctl().  It
+asks the hardware to change transmitter parameters, because the current
+model is that the transmitters don't need to know about protocols. (LIRC
+userspace knows the parameters of the protocol it wants to use, so the
+driver's don't have too).
 
 
+I notice IR Rx also has a change_protocol() callback that is not
+currently in use.  If sending raw pulses to userspace, it would be also
+nice to expose that callback so userspace could set the receiver
+parameters.
 
 
-
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
-
-
-
-
-
+Regards,
+Andy
 
