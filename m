@@ -1,115 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4228 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755315Ab0EYTLt (ORCPT
+Received: from lennier.cc.vt.edu ([198.82.162.213]:34039 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756201Ab0EaTBs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 May 2010 15:11:49 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4PJBhCt018685
-	for <linux-media@vger.kernel.org>; Tue, 25 May 2010 21:11:48 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 25 May 2010 21:11:43 +0200 (CEST)
-Message-Id: <201005251911.o4PJBhCt018685@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Mon, 31 May 2010 15:01:48 -0400
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [PATCH] input: fix error at the default input_get_keycode call
+In-Reply-To: Your message of "Thu, 20 May 2010 13:51:46 EDT."
+             <9427.1274377906@localhost>
+From: Valdis.Kletnieks@vt.edu
+References: <4BF4C0D6.9030808@redhat.com>
+            <9427.1274377906@localhost>
+Mime-Version: 1.0
+Content-Type: multipart/signed; boundary="==_Exmh_1275332484_6730P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
+Date: Mon, 31 May 2010 15:01:24 -0400
+Message-ID: <48947.1275332484@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+--==_Exmh_1275332484_6730P
+Content-Type: text/plain; charset=us-ascii
 
-Results of the daily build of v4l-dvb:
+On Thu, 20 May 2010 13:51:46 EDT, Valdis.Kletnieks@vt.edu said:
 
-date:        Tue May 25 19:00:22 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14873:b576509ea6d2
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+*ping*?  Still broken in a linux-next pull I did about an hour ago.  The
+patch fixed one oops, but it just died a little further down - I'm guessing
+it missed a case?
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc7-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc7-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc7-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc7-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc7-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc7-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc7-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc7-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc7-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+> > input_default_getkeycode_from_index() returns the scancode at kt_entry.scancode
+> > pointer. Fill it with the scancode address at the function call.
+> > 
+> > Thanks-to: Vladis Kletnieks <Valdis.Kletnieks@vt.edu> for pointing the issue
+> > 
+> > Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > 
+> > diff --git a/drivers/input/input.c b/drivers/input/input.c
+> > index 3b63fad..7851d8e 100644
+> 
+> Still dies, but in input_set_keycode() instead...
+> 
+> [   35.294528] BUG: unable to handle kernel NULL pointer dereference at (null
+)
+> [   35.295005] IP: [<(null)>] (null)
+> [   35.296935] PGD 11da3c067 PUD 11d4ad067 PMD 0 
+> [   35.296935] Oops: 0010 [#1] PREEMPT SMP 
+> [   35.299667] last sysfs file: /sys/devices/pci0000:00/0000:00:1a.7/usb1/idVendor
+> [   35.300328] CPU 0 
+> [   35.300328] Modules linked in:
+> [   35.300328] 
+> [   35.300328] Pid: 2481, comm: keymap Not tainted 2.6.34-mmotm0519 #1 0X564R/Latitude E6500                  
+> [   35.300328] RIP: 0010:[<0000000000000000>]  [<(null)>] (null)
+> [   35.300328] RSP: 0018:ffff88011d4d5cb0  EFLAGS: 00010046
+> [   35.310163] RAX: 0000000000000000 RBX: ffff88011c03e000 RCX: 0000000000000081
+> [   35.310163] RDX: ffff88011d4d5cc4 RSI: ffff88011d4d5cc8 RDI: ffff88011c03e000
+> [   35.310163] RBP: ffff88011d4d5d28 R08: ffff88011e9b28e8 R09: 0000000000000001
+> [   35.310163] R10: ffffffff81e0b160 R11: 0000000000000004 R12: 00000000000000a4
+> [   35.310163] R13: ffff88011c03e830 R14: 0000000000000286 R15: ffff88011d4d5cc8
+> [   35.310163] FS:  00007f4b86283700(0000) GS:ffff880002600000(0000) knlGS:0000000000000000
+> [   35.319397] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> [   35.319397] CR2: 0000000000000000 CR3: 000000011d575000 CR4: 00000000000406f0
+> [   35.319397] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> [   35.319397] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> [   35.319397] Process keymap (pid: 2481, threadinfo ffff88011d4d4000, task ffff88011e9b28c0)
+> [   35.319397] Stack:
+> [   35.319397]  ffffffff813bf3d1 ffff88011d4d5cf8 0000008100000246 00000081000000a4
+> [   35.319397] <0> 0000000000000004 0000000000000000 ffff88011d4d5cc4 ffff88011cf11200
+> [   35.319397] <0> ffff88011c179000 ffff88011d4d5d28 0000000000000081 00007fff9ee21fa0
+> [   35.319397] Call Trace:
+> [   35.319397]  [<ffffffff813bf3d1>] ? input_set_keycode+0xad/0x12c
+> [   35.319397]  [<ffffffff813c231d>] evdev_do_ioctl+0x22b/0x79b
+> [   35.337913]  [<ffffffff815a4b04>] ? __mutex_lock_common+0x564/0x580
+> [   35.337913]  [<ffffffff813c28ca>] ? evdev_ioctl_handler+0x3d/0x80
+> [   35.341507]  [<ffffffff813c28ca>] ? evdev_ioctl_handler+0x3d/0x80
+> [   35.341507]  [<ffffffff813c28f0>] evdev_ioctl_handler+0x63/0x80
+> [   35.344034]  [<ffffffff813c292a>] evdev_ioctl+0xb/0xd
+> [   35.344034]  [<ffffffff810ea6cd>] vfs_ioctl+0x2d/0xa1
+> [   35.344034]  [<ffffffff810eac4c>] do_vfs_ioctl+0x494/0x4cd
+> [   35.344034]  [<ffffffff810eacdc>] sys_ioctl+0x57/0x95
+> [   35.344034]  [<ffffffff8100266b>] system_call_fastpath+0x16/0x1b
+> [   35.344034] Code:  Bad RIP value.
+> [   35.344034] RIP  [<(null)>] (null)
+> [   35.344034]  RSP <ffff88011d4d5cb0>
+> [   35.344034] CR2: 0000000000000000
+> [   35.357018] ---[ end trace 394fa5aa8a77b6f3 ]---
 
-Detailed results are available here:
+--==_Exmh_1275332484_6730P
+Content-Type: application/pgp-signature
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
 
-Full logs are available here:
+iD8DBQFMBAeEcC3lWbTT17ARAqtcAJ9ndlto6WyxyyfdNNn/QoBRYwVxZQCeNdti
+3I14q0vxms+A/U24gd0vUnY=
+=3zLD
+-----END PGP SIGNATURE-----
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+--==_Exmh_1275332484_6730P--
 
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
