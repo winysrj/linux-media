@@ -1,52 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f171.google.com ([209.85.210.171]:43157 "EHLO
-	mail-yx0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756339Ab0EJUOW convert rfc822-to-8bit (ORCPT
+Received: from mail1-out1.atlantis.sk ([80.94.52.55]:58878 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750749Ab0EaH40 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 May 2010 16:14:22 -0400
-Received: by yxe1 with SMTP id 1so2918799yxe.33
-        for <linux-media@vger.kernel.org>; Mon, 10 May 2010 13:14:21 -0700 (PDT)
+	Mon, 31 May 2010 03:56:26 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: "Jean-Francois Moine" <moinejf@free.fr>
+Subject: Re: SPCA1527A/SPCA1528 (micro)SD camera in webcam mode
+Date: Mon, 31 May 2010 09:56:16 +0200
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+References: <201005291909.33593.linux@rainbow-software.org> <201005310003.12761.linux@rainbow-software.org> <20100531091953.39055944@tele>
+In-Reply-To: <20100531091953.39055944@tele>
 MIME-Version: 1.0
-In-Reply-To: <4BE84C44.4020000@email.cz>
-References: <4BE84C44.4020000@email.cz>
-Date: Mon, 10 May 2010 22:08:58 +0200
-Message-ID: <AANLkTilUDP5eBqNcFNJqiWl2M_sp2CiKm-RtWXNXqEH0@mail.gmail.com>
-Subject: Re: Analog FM radio support for dib0700
-From: Markus Rechberger <mrechberger@gmail.com>
-To: =?UTF-8?Q?Mirek_Sluge=C5=88?= <thunder.m@email.cz>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201005310956.16961.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 10, 2010 at 8:11 PM, Mirek Slugeň <thunder.m@email.cz> wrote:
-> Hi,
+On Monday 31 May 2010, Jean-Francois Moine wrote:
+> On Mon, 31 May 2010 00:03:10 +0200
 >
->        I am working on project for monitoring analog FM radio stations in
-> our Country and I need to find USB device which is supported under Linux
-> including FM radio. I can't find such device for very long time (6 months),
-> only AverTV Volar HX with binary drivers and very unstable linux drivers.
+> Ondrej Zary <linux@rainbow-software.org> wrote:
+> > > I would try extracting a JPEG header from one of the files captured
+> > > by the camera in stand alone mode (either a JPEG still or MJPEG
+> > > file), and put that header together with the image data from the
+> > > USB capture.  It may not look perfect, but hopefully you will get
+> > > something you recognize.
+> >
+> > Just thought about the same thing so I uploaded a video file:
+> > http://www.rainbow-software.org/linux_files/spca1528/sunp0003.avi
+> >
+> > > Attached was Theodore's first attempt of such a procedure with a
+> > > header extracted from a standalone image file from my Jeilin based
+> > > camera and USB snoop data from the same camera.  It wasn't perfect,
+> > > but it was recognizable.
 >
-> So I am considering to pay for analog FM radio support for dib0700 devices.
->
-> + I need this support in next 25 days, later is too late.
-> + I can pay for adding FM radio maximum 1000 USD or 800 EUR (it depends on
-> many factors such as accepting patches by linuxtv tree).
->
-> If there is anyone intereseted please write me message.
->
+> I could not believe it! I already tried the image as JPEG, but I got
+> just big colored pixels. I changed the 'samples Y' from 21 to 22 and
+> I got something coherent! Here is the same image as yesterday with
+> JPEG 411 header, compression quality 80% and insertion of 0x00 after
+> 0xff.
 
-* FM Radio (including RDS)
-* Analog TV
-* Digital TV
+That's great - that's what it should look like! It's a part of LCD monitor and 
+a shelf above it.
 
-http://support.sundtek.com/index.php/topic,4.0.html
-
-Those devices are also used in the industrial field, depending on the
-volume we can also provide FM Radio USB dongles only (USB Audio Class
-based)
-That way you can get started quickly with your project.
-
-Best Regards,
-Markus Rechberger
+-- 
+Ondrej Zary
