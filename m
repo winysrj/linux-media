@@ -1,20 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.10])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o4DMq6Rp013405
-	for <video4linux-list@redhat.com>; Thu, 13 May 2010 18:52:06 -0400
-Received: from mail-gw0-f46.google.com (mail-gw0-f46.google.com [74.125.83.46])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4DMptEb008102
-	for <video4linux-list@redhat.com>; Thu, 13 May 2010 18:51:56 -0400
-Received: by gwj19 with SMTP id 19so915803gwj.33
-	for <video4linux-list@redhat.com>; Thu, 13 May 2010 15:51:55 -0700 (PDT)
-MIME-Version: 1.0
-From: Alexjan Carraturo <axjslack@gmail.com>
-Date: Fri, 14 May 2010 00:51:34 +0200
-Message-ID: <AANLkTilbPB2DeJhah0XzSMYEOpXUTzt-v4-h9JsV1BP2@mail.gmail.com>
-Subject: Pinnacle PCTV DVB-T 70e
-To: video4linux-list@redhat.com
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o4VCUrXw001039
+	for <video4linux-list@redhat.com>; Mon, 31 May 2010 08:30:54 -0400
+Received: from stockholm.opq.se (www.opq.se [213.88.151.150])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o4VCUdQH014846
+	for <video4linux-list@redhat.com>; Mon, 31 May 2010 08:30:40 -0400
+Subject: Re: Newbie questions: live camera view with composite image +
+	capturing images
+From: Roger Oberholtzer <roger@opq.se>
+To: rasker@linetec.nl
+In-Reply-To: <1275304813.5728.69.camel@localhost>
+References: <1275304813.5728.69.camel@localhost>
+Date: Mon, 31 May 2010 14:28:41 +0200
+Message-ID: <1275308921.14494.51.camel@acme.pacific>
+Mime-Version: 1.0
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -22,58 +24,24 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello everyone,
-
-My name Alexjan Carraturo and am new to this list, and I apologize if
-my first request for assistance infringe some custom.
-
-Long time I try to run a particular type of device DVB-T, and sometimes I did.
-
-The device in question is a Usbstick Pinnacle PCTV DVB-T (70th); is
-USB, running lsusb we have this
-
-eb1a:2870 eMPIA Technology, Inc. Pinnacle PCTV Stick
-
-As I said before, once I managed to get it working with both Fedora
-and Slackware (the Linux distributions that I use routinely).
-
-Did not work with the drivers on the kernel (em28xx, em28xx-dvb); the
-"traditional driver" try to recognize the device, but doesn't work.
-
-The device works only (and very well) with a version made by some
-individuals, called em28xx-new. There is a version of these drivers,
-compile manually, but it works only until kernel 2.6.31 (
-http://launchpadlibrarian.net/35049921/em28xx-new.tar.gz )
-
-Searching the internet I saw that many users are trying to work this
-board (very common).
-
-Is there a way to incorporate the changes mentioned in the official driver?
-Or, you can suggest how they might be modified drivers indicated to
-work with recent kernels (2.6.32, and soon 2.6.33 or later)?
-
-Thank yuo
-
-Alex.
--- 
-########################################
-Alexjan Carraturo
-admin of
-Free Software Users Group Italia
-http://www.fsugitalia.org
-Fedora Ambassador: Axjslack
-openSUSE Ambassador: Axjslack
-Free Software Foundation Europe Fellow 1623
-Software Freedom International board member
-########################################
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+T24gTW9uLCAyMDEwLTA1LTMxIGF0IDEzOjIwICswMjAwLCBSaWNoYXJkIFJhc2tlciB3cm90ZToK
+Cm9wZW5DViwgd2hpY2ggaXMgYSBncmVhdCBpbWFnZSBwcm9jZXNzaW5nIHRvb2wga2l0LCBoYXMg
+c29tZSBzaW1wbGUgR1VJCmNyZWF0aW9uIHRvb2xzLiBNYXliZSB0aGVyZSBpcyBzb21ldGhpbmcg
+dGhlcmUgd2hpY2ggaXMgdXNlZnVsLiBJSVJDLCBpdApjYW4gcmVhZCBmcm9tIGEgdjRsMiBjYW1l
+cmEuIERvbid0IGJlIHB1dCBvZmYgYnkgdGhlIHdlYiBzaXRlLiBUaGUgdG9vbApraXQgaXMgbXVj
+aCBiZXR0ZXIgcXVhbGl0eSB0aGFuIHRoZSBzaXRlIG1pZ2h0IGhpbnQgYXQuCgpUaGUgaW1hZ2Ug
+cHJvY2Vzc2luZyBvZmZlcmVkIGJ5IG9wZW5DViBpcyB3ZWxsIGJleW9uZCB3aGF0IElNIGRvZXMu
+IEFuZCwKb3BlbkNWIGNhbiBvcHRpb25hbGx5IHVzZSBpbnRlbCdzIElQUCBsaWJyYXJ5IHRvIGdl
+dCByZWFsIHNwZWVkCmltcHJvdmVtZW50cy4KCi0tIApSb2dlciBPYmVyaG9sdHplcgoKT1BRIFN5
+c3RlbXMgLyBSYW1iw7ZsbCBSU1QKClJhbWLDtmxsIFN2ZXJpZ2UgQUIKS3J1a21ha2FyZ2F0YW4g
+MjEKUC5PLiBCb3ggMTcwMDkKU0UtMTA0IDYyIFN0b2NraG9sbSwgU3dlZGVuCgpPZmZpY2U6IElu
+dCArNDYgMTAtNjE1IDYwIDIwCk1vYmlsZTogSW50ICs0NiA3MC04MTUgMTY5NgoKLS0KdmlkZW80
+bGludXgtbGlzdCBtYWlsaW5nIGxpc3QKVW5zdWJzY3JpYmUgbWFpbHRvOnZpZGVvNGxpbnV4LWxp
+c3QtcmVxdWVzdEByZWRoYXQuY29tP3N1YmplY3Q9dW5zdWJzY3JpYmUKaHR0cHM6Ly93d3cucmVk
+aGF0LmNvbS9tYWlsbWFuL2xpc3RpbmZvL3ZpZGVvNGxpbnV4LWxpc3Q=
