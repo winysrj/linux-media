@@ -1,62 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 99-34-136-231.lightspeed.bcvloh.sbcglobal.net ([99.34.136.231]:48165
-	"EHLO desource.dyndns.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755912Ab0EERhU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 May 2010 13:37:20 -0400
-From: David Ellingsworth <david@identd.dyndns.org>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2139 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754576Ab0EaTMz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 15:12:55 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4VJCoJ2038583
+	for <linux-media@vger.kernel.org>; Mon, 31 May 2010 21:12:54 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 31 May 2010 21:12:50 +0200 (CEST)
+Message-Id: <201005311912.o4VJCoJ2038583@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: David Ellingsworth <david@identd.dyndns.org>
-Subject: [PATCH/RFC 4/7] dsbr100: remove disconnected indicator
-Date: Wed,  5 May 2010 13:05:27 -0400
-Message-Id: <1273079130-21999-5-git-send-email-david@identd.dyndns.org>
-In-Reply-To: <1273079130-21999-1-git-send-email-david@identd.dyndns.org>
-References: <1273079130-21999-1-git-send-email-david@identd.dyndns.org>
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: David Ellingsworth <david@identd.dyndns.org>
----
- drivers/media/radio/dsbr100.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-diff --git a/drivers/media/radio/dsbr100.c b/drivers/media/radio/dsbr100.c
-index b62fe40..c949ace 100644
---- a/drivers/media/radio/dsbr100.c
-+++ b/drivers/media/radio/dsbr100.c
-@@ -151,7 +151,6 @@ struct dsbr100_device {
- 	struct mutex lock;	/* buffer locking */
- 	int curfreq;
- 	int stereo;
--	int removed;
- 	int status;
- };
- 
-@@ -353,7 +352,7 @@ static void usb_dsbr100_disconnect(struct usb_interface *intf)
- 	usb_set_intfdata (intf, NULL);
- 
- 	mutex_lock(&radio->lock);
--	radio->removed = 1;
-+	radio->usbdev = NULL;
- 	mutex_unlock(&radio->lock);
- 
- 	v4l2_device_disconnect(&radio->v4l2_dev);
-@@ -521,7 +520,7 @@ static long usb_dsbr100_ioctl(struct file *file, unsigned int cmd,
- 
- 	mutex_lock(&radio->lock);
- 
--	if (radio->removed) {
-+	if (!radio->usbdev) {
- 		retval = -EIO;
- 		goto unlock;
- 	}
-@@ -649,7 +648,6 @@ static int usb_dsbr100_probe(struct usb_interface *intf,
- 
- 	mutex_init(&radio->lock);
- 
--	radio->removed = 0;
- 	radio->usbdev = interface_to_usbdev(intf);
- 	radio->curfreq = FREQ_MIN * FREQ_MUL;
- 	radio->status = STOPPED;
--- 
-1.7.1
+Results of the daily build of v4l-dvb:
 
+date:        Mon May 31 19:00:28 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14875:304cfde05b3f
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: ERRORS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: ERRORS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: ERRORS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: ERRORS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: ERRORS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: ERRORS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
