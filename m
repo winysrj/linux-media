@@ -1,74 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 25.mail-out.ovh.net ([91.121.27.228]:41281 "HELO
-	25.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751127Ab0EGEjQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 May 2010 00:39:16 -0400
-Message-ID: <5a07650fa788200a5704379bc3e47890.squirrel@webmail.ovh.net>
-In-Reply-To: <i2h83bcf6341005060540sb9e841d2jbf1f8f8c81bd9bb9@mail.gmail.com>
-References: <f8f6b7c78cd8469f838fc084573dbe8b.squirrel@webmail.ovh.net>
-    <i2h83bcf6341005060540sb9e841d2jbf1f8f8c81bd9bb9@mail.gmail.com>
-Date: Thu, 6 May 2010 23:39:13 -0500 (GMT+5)
-Subject: Re: [PATCH] dvb_frontend: fix typos in comments and one function
-From: "Guillaume Audirac" <guillaume.audirac@webag.fr>
-To: "Steven Toth" <stoth@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Reply-To: guillaume.audirac@webag.fr
+Received: from mx1.redhat.com ([209.132.183.28]:12218 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753436Ab0EaWbl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 18:31:41 -0400
+Message-ID: <4C0438CE.4090801@redhat.com>
+Date: Mon, 31 May 2010 19:31:42 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Jarod Wilson <jarod@wilsonet.com>, linux-media@vger.kernel.org
+Subject: Re: ir-core multi-protocol decode and mceusb
+References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>	 <1275136793.2260.18.camel@localhost>	 <AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>	 <1275163295.17477.143.camel@localhost>	 <AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>	 <4C02700A.9040807@redhat.com>	 <AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>	 <AANLkTik_-6Z12G8rz0xkjbLkpWvfRHorGtD_LbsPr_11@mail.gmail.com>	 <1275308142.2227.16.camel@localhost>  <4C0408A9.4040904@redhat.com>	 <1275334699.2261.45.camel@localhost>  <4C042310.4090603@redhat.com> <1275342342.2260.37.camel@localhost>
+In-Reply-To: <1275342342.2260.37.camel@localhost>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Steven,
+Em 31-05-2010 18:45, Andy Walls escreveu:
+> On Mon, 2010-05-31 at 17:58 -0300, Mauro Carvalho Chehab wrote:
 
-> I've had an open TDA10048 bug on my list for quite a while, I think
-> you've already made reference to this in an earlier email. Essentially
-> I'm told my a number of Australian users that the 10048 isn't
-> broad-locking when tuned +- 167Khz away from the carrier, which it
-> should definitely do. If you're in the mood for patching the 10048 and
-> want to find and flip the broad-locking bit then I'd be certainly
-> thrilled to test this. :)
+>> I may be wrong (since we didn't write any TX support), but I think that a
+>> rc_set_tx_parameters() wouldn't be necessary, as I don't see why the driver will
+>> change the parameters after registering, and without any userspace request.
+> 
+> Yes, my intent was to handle a user space request to change the
+> transmitter setup parameters to handle the protocol.
+> 
+> I also don't want to worry about having to code in kernel parameter
+> tables for any bizzare protocol userspace may know about.
 
-Well, this is an interesting subject and there is a lot to say. Sorry in
-advance if you already know what I will explain:
-- the channel distribution is usually well known in DVB-T. For example,
-from 474MHz to 858MHz in UHF/8MHz. This channel distribution depends on
-each country.
-- due to the existing analogue channels, some FIXED frequency offsets have
-been introduced here and there to move the DVB-T channel away from the
-analogue channels depending on how critical it can be.
-These frequency offsets are commonly +/-166KHz everywhere, except in
-France (+/-N*166KHz with N=1,2,3) and in Australia (+/-125KHz) as far as I
-know.
-- hence the DVB-T channel can be shifted in IF by +/-125KHz, +/-166KHz,
-+/-333KHz, +/-500KHz. The channel decoder will or will not recover such an
-offset depending on the strategy. If it can lock, the IF signal will be
-partially filtered out by the IF filter and this impacts the performance.
-The best approach is to detect the potential frequency offset and
-re-program the tuner to the new frequency.
+Makes sense.
+> 
+> 
+>> If we consider that some userspace sysfs nodes will allow changing some parameters,
+>> then the better is to have a callback function call, passed via the registering function,
+>> that will allow calling a function inside the driver to change the TX parameters.
+>>
+>> For example, something like:
+>>
+>> struct rc_tx_props {
+>> ...
+>> 	int	(*change_protocol)(...);
+>> ...
+>> };
+>>
+>>
+>> rc_register_tx(..., struct rc_tx_props *props)
+> 
+> A callback is likely needed.  I'm not sure I would have chosen the name
+> change_protocol(), because transmitter parameters can be common between
+> protocols (at least RC-5 and RC-6 can be supported with one set of
+> parameters), or not match any existing in-kernel protocol.  As long as
+> it is flexible enough to change individual transmitter parameters
+> (modulated/baseband, carrier freq, duty cycle, etc.) it will be fine.
 
-Now about the TDA10048:
-- it naturally recovers the small offsets during the lock (error returned
-in FREQERR_R at 0x28 & 0x29):
-in 8MHz: +/-93KHz
-in 7MHz: +/-82KHz
-in 6MHz: +/-70KHz
-- the AUTOOFFSET bit allows to detect the fixed frequency offset whose
-value is returned in OFFSET_F (in 0x14) when there is no lock. If an
-offset is detected, it is applied to the tuner, then AUTOOFFSET is set to
-0 and the acquisition is checked again. This is the normal and preferred
-way.
+I just used this name as an example, as the same name exists on RX.
 
-The non-recommended option is to force the lock when a fixed offset is
-detected without reprogramming the tuner. This is possible only with
-certain firmware versions (>=0x34), in forcing 1 in register 0x19[0], the
-fixed offset will still be available in OFFSET_F after the lock. For
-earlier firmware versions, the 0x19[0] bit has no effect.
+Depending on how we code the userspace API, we may use just one set_parameters
+function, or a set of per-attribute changes.
 
-Ideally, for the channel demodulator driver, the API should provide an
-interface to set the frequency offset recovery (AUTO, NONE...) and to get
-the detected frequency offset if any.
+In other words, if we implement severa sysfs nodes to change several parameters,
+maybe it makes sense to have several callbacks. Another alternative would be
+to have a "commit" sysfs node to apply a set of parameters at once. 
 
--- 
-Guillaume
+> Currently LIRC userspace changes Tx parameters using an ioctl().  It
+> asks the hardware to change transmitter parameters, because the current
+> model is that the transmitters don't need to know about protocols. (LIRC
+> userspace knows the parameters of the protocol it wants to use, so the
+> driver's don't have too).
+> 
+> 
+> I notice IR Rx also has a change_protocol() callback that is not
+> currently in use.  
+
+It is used only by em28xx, where the hardware decoder can work either with
+RC-5 or NEC (newer chips also support RC-6, but this is currently not
+implemented).
+
+> If sending raw pulses to userspace, it would be also
+> nice to expose that callback so userspace could set the receiver
+> parameters.
+
+Raw pulse transmission is probably the easiest case. Probably, there's nothing
+or a very few things that might need adjustments.
+
+> 
+> 
+> Regards,
+> Andy
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
