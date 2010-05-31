@@ -1,115 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1659 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755042Ab0E1TMR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 May 2010 15:12:17 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o4SJC1jC033646
-	for <linux-media@vger.kernel.org>; Fri, 28 May 2010 21:12:16 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 28 May 2010 21:12:01 +0200 (CEST)
-Message-Id: <201005281912.o4SJC1jC033646@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.kapsi.fi ([217.30.184.167]:40065 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755788Ab0EaPW5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 11:22:57 -0400
+Message-ID: <4C03D449.2020507@iki.fi>
+Date: Mon, 31 May 2010 18:22:49 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Dan Carpenter <error27@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: dereferencing uninitialized variable in anysee_probe()
+References: <20100531150914.GX5483@bicker>
+In-Reply-To: <20100531150914.GX5483@bicker>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Terve Dan,
 
-Results of the daily build of v4l-dvb:
+On 05/31/2010 06:09 PM, Dan Carpenter wrote:
+> Hi I'm going through some smatch stuff and I had a question.
+>
+> drivers/media/dvb/dvb-usb/anysee.c +482 anysee_probe(30)
+> 	warn: variable dereferenced before check 'd'
+>
+>     466          ret = dvb_usb_device_init(intf,&anysee_properties, THIS_MODULE,&d,
+>     467                  adapter_nr);
+>
+> 	If we're in a cold state then dvb_usb_device_init() can return
+> 	zero but d is uninitialized here.
 
-date:        Fri May 28 19:00:31 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14875:304cfde05b3f
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Anysee is always warm. Its USB-bridge, Cypress FX2, uploads firmware 
+from eeprom and due to that it is never cold from the drivers point of view.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-rc7-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-rc7-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-rc7-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-rc7-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-rc7-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-rc7-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-rc7-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-rc7-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-rc7-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+*cold means device needs firmware upload from driver
+*warm means device is ready. Firmware is already uploaded or it is not 
+needed at all.
 
-Detailed results are available here:
+>     468          if (ret)
+>     469                  return ret;
+>     470
+>     471          alt = usb_altnum_to_altsetting(intf, 0);
+>     472          if (alt == NULL) {
+>     473                  deb_info("%s: no alt found!\n", __func__);
+>     474                  return -ENODEV;
+>     475          }
+>     476
+>     477          ret = usb_set_interface(d->udev, alt->desc.bInterfaceNumber,
+>                                          ^^^^^^^
+> 	That would lead to an oops here.
+>
+>     478                  alt->desc.bAlternateSetting);
+>
+> I'm not sure how to fix this.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+After that answer, do you still see problem?
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+best regards
+Antti
+-- 
+http://palosaari.fi/
