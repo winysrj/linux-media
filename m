@@ -1,95 +1,318 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:59103 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754228Ab0EZNFS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 May 2010 09:05:18 -0400
-Date: Wed, 26 May 2010 15:05:11 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH RESEND] FusionHDTV: Use quick reads for I2C IR device
- probing
-Message-ID: <20100526150511.3e2560ed@hyperion.delvare>
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:53471 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751710Ab0EaA1H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 May 2010 20:27:07 -0400
+Subject: Re: [PATCH] Compro Videomate T750F Vista digital+analog support
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Davor Emard <davoremard@gmail.com>
+Cc: Samuel =?UTF-8?Q?Rakitni=C4=8Dan?= <samuel.rakitnican@gmail.com>,
+	semiRocket <semirocket@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <20100530234817.GA17135@emard.lan>
+References: <20100508160628.GA6050@z60m> <op.vceiu5q13xmt7q@crni>
+	 <AANLkTinMYcgG6Ac73Vgdx8NMYocW8Net6_-dMC3yEflQ@mail.gmail.com>
+	 <AANLkTikbpZ0LM5rK70abVuJS27j0lT7iZs12DrSKB9wI@mail.gmail.com>
+	 <op.vcfoxwnq3xmt7q@crni> <20100509173243.GA8227@z60m>
+	 <op.vcga9rw2ndeod6@crni> <20100509231535.GA6334@z60m>
+	 <op.vcsntos43xmt7q@crni> <op.vc551isrndeod6@crni>
+	 <20100530234817.GA17135@emard.lan>
+Content-Type: text/plain
+Date: Mon, 31 May 2010 02:27:13 +0200
+Message-Id: <1275265633.3654.7.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-IR support on FusionHDTV cards is broken since kernel 2.6.31. One side
-effect of the switch to the standard binding model for IR I2C devices
-was to let i2c-core do the probing instead of the ir-kbd-i2c driver.
-There is a slight difference between the two probe methods: i2c-core
-uses 0-byte writes, while the ir-kbd-i2c was using 0-byte reads. As
-some IR I2C devices only support reads, the new probe method fails to
-detect them.
 
-For now, revert to letting the driver do the probe, using 0-byte
-reads. In the future, i2c-core will be extended to let callers of
-i2c_new_probed_device() provide a custom probing function.
+Hi Davor,
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Tested-by: "Timothy D. Lenz" <tlenz@vorgon.com>
----
-This fix applies to kernels 2.6.31 to 2.6.34. Should be sent to Linus
-quickly. I had already sent on March 29th, but apparently it was
-overlooked. I have further i2c patches which depend on this one, so
-please process it quickly, otherwise I'll have to push it myself.
+Am Montag, den 31.05.2010, 01:48 +0200 schrieb Davor Emard:
+> HI!
+> 
+> I have downloaded latest hg v4l and adapted the compro 
+> t750f support patch. The patch is the same but v4l code is
+> newer so there's some improvement
+> 
+> Restarting VDR is now stable. Tried it cca 10x VDR restarts, 
+> DVB-T tuner always worked. Remote still has 10% keys lost.
+> 
+> ALSA device now appears with alsa=1 in the list
+> arecord -l (but I haven't tried to capture anything yet)
+> 
+> Someone mentioned that MCE-alike remote is the same to all 
+> f-series of the cards so I called it rc-videomate-f.
+> 
+> Here's the patch
 
- drivers/media/video/cx23885/cx23885-i2c.c |   12 +++++++++++-
- drivers/media/video/cx88/cx88-i2c.c       |   16 +++++++++++++++-
- 2 files changed, 26 insertions(+), 2 deletions(-)
+likely one of the most difficult cards on that driver during the last
+time.
 
---- linux-2.6.34-rc1.orig/drivers/media/video/cx23885/cx23885-i2c.c	2010-02-25 09:10:33.000000000 +0100
-+++ linux-2.6.34-rc1/drivers/media/video/cx23885/cx23885-i2c.c	2010-03-18 13:33:05.000000000 +0100
-@@ -365,7 +365,17 @@ int cx23885_i2c_register(struct cx23885_
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
--		i2c_new_probed_device(&bus->i2c_adap, &info, addr_list);
-+		/*
-+		 * We can't call i2c_new_probed_device() because it uses
-+		 * quick writes for probing and the IR receiver device only
-+		 * replies to reads.
-+		 */
-+		if (i2c_smbus_xfer(&bus->i2c_adap, addr_list[0], 0,
-+				   I2C_SMBUS_READ, 0, I2C_SMBUS_QUICK,
-+				   NULL) >= 0) {
-+			info.addr = addr_list[0];
-+			i2c_new_device(&bus->i2c_adap, &info);
-+		}
- 	}
- 
- 	return bus->i2c_rc;
---- linux-2.6.34-rc1.orig/drivers/media/video/cx88/cx88-i2c.c	2010-02-25 09:08:40.000000000 +0100
-+++ linux-2.6.34-rc1/drivers/media/video/cx88/cx88-i2c.c	2010-03-18 13:33:05.000000000 +0100
-@@ -188,10 +188,24 @@ int cx88_i2c_init(struct cx88_core *core
- 			0x18, 0x6b, 0x71,
- 			I2C_CLIENT_END
- 		};
-+		const unsigned short *addrp;
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
--		i2c_new_probed_device(&core->i2c_adap, &info, addr_list);
-+		/*
-+		 * We can't call i2c_new_probed_device() because it uses
-+		 * quick writes for probing and at least some R receiver
-+		 * devices only reply to reads.
-+		 */
-+		for (addrp = addr_list; *addrp != I2C_CLIENT_END; addrp++) {
-+			if (i2c_smbus_xfer(&core->i2c_adap, *addrp, 0,
-+					   I2C_SMBUS_READ, 0,
-+					   I2C_SMBUS_QUICK, NULL) >= 0) {
-+				info.addr = *addrp;
-+				i2c_new_device(&core->i2c_adap, &info);
-+				break;
-+			}
-+		}
- 	}
- 	return core->i2c_rc;
- }
+Does't look such bad to me, after all, without having one.
+
+Hmm, somehow its #define in the saa7134.h header is missing?
+
+I'm also wondering, why we don't see the usual three lines offset on the
+end of current patches.
+
+Cheers,
+Hermann
 
 
--- 
-Jean Delvare
+> diff -r 304cfde05b3f linux/drivers/media/IR/keymaps/Makefile
+> --- a/linux/drivers/media/IR/keymaps/Makefile	Tue May 25 23:50:51 2010 -0400
+> +++ b/linux/drivers/media/IR/keymaps/Makefile	Mon May 31 01:18:12 2010 +0200
+> @@ -63,5 +63,6 @@
+>  			rc-tt-1500.o \
+>  			rc-videomate-s350.o \
+>  			rc-videomate-tv-pvr.o \
+> +			rc-videomate-f.o \
+>  			rc-winfast.o \
+>  			rc-winfast-usbii-deluxe.o
+> diff -r 304cfde05b3f linux/drivers/media/video/saa7134/saa7134-cards.c
+> --- a/linux/drivers/media/video/saa7134/saa7134-cards.c	Tue May 25 23:50:51 2010 -0400
+> +++ b/linux/drivers/media/video/saa7134/saa7134-cards.c	Mon May 31 01:18:12 2010 +0200
+> @@ -4920,12 +4920,14 @@
+>  	},
+>  	[SAA7134_BOARD_VIDEOMATE_T750] = {
+>  		/* John Newbigin <jn@it.swin.edu.au> */
+> +		/* Emard 2010-05-10 v18-v4l <davoremard@gmail.com> */
+>  		.name           = "Compro VideoMate T750",
+>  		.audio_clock    = 0x00187de7,
+>  		.tuner_type     = TUNER_XC2028,
+>  		.radio_type     = UNSET,
+> -		.tuner_addr	= ADDR_UNSET,
+> +		.tuner_addr	= 0x61,
+>  		.radio_addr	= ADDR_UNSET,
+> +		.mpeg           = SAA7134_MPEG_DVB,
+>  		.inputs = {{
+>  			.name   = name_tv,
+>  			.vmux   = 3,
+> @@ -6752,6 +6754,11 @@
+>  			msleep(10);
+>  			saa7134_set_gpio(dev, 18, 1);
+>  		break;
+> +		case SAA7134_BOARD_VIDEOMATE_T750:
+> +			saa7134_set_gpio(dev, 20, 0);
+> +			msleep(10);
+> +			saa7134_set_gpio(dev, 20, 1);
+> +		break;
+>  		}
+>  	return 0;
+>  	}
+> @@ -7171,6 +7178,11 @@
+>  		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x0000C000, 0x0000C000);
+>  		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x0000C000, 0x0000C000);
+>  		break;
+> +	case SAA7134_BOARD_VIDEOMATE_T750:
+> +		dev->has_remote = SAA7134_REMOTE_GPIO;
+> +		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x00008000, 0x00008000);
+> +		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x00008000, 0x00008000);
+> +		break;
+>  	}
+>  	return 0;
+>  }
+> diff -r 304cfde05b3f linux/drivers/media/video/saa7134/saa7134-dvb.c
+> --- a/linux/drivers/media/video/saa7134/saa7134-dvb.c	Tue May 25 23:50:51 2010 -0400
+> +++ b/linux/drivers/media/video/saa7134/saa7134-dvb.c	Mon May 31 01:18:12 2010 +0200
+> @@ -55,6 +55,7 @@
+>  #include "tda8290.h"
+>  
+>  #include "zl10353.h"
+> +#include "qt1010.h"
+>  
+>  #include "zl10036.h"
+>  #include "zl10039.h"
+> @@ -886,6 +887,17 @@
+>  	.disable_i2c_gate_ctrl = 1,
+>  };
+>  
+> +static struct zl10353_config videomate_t750_zl10353_config = {
+> +	.demod_address  = 0x0f,
+> +	.no_tuner = 1,
+> +	.parallel_ts = 1,
+> +};
+> +
+> +static struct qt1010_config videomate_t750_qt1010_config = {
+> +	.i2c_address = 0x62
+> +};
+> +
+> +
+>  /* ==================================================================
+>   * tda10086 based DVB-S cards, helper functions
+>   */
+> @@ -1569,6 +1581,21 @@
+>  					__func__);
+>  
+>  		break;
+> +	case SAA7134_BOARD_VIDEOMATE_T750:
+> +		printk("Compro VideoMate T750 DVB setup\n");
+> +		fe0->dvb.frontend = dvb_attach(zl10353_attach,
+> +						&videomate_t750_zl10353_config,
+> +						&dev->i2c_adap);
+> +		if (fe0->dvb.frontend != NULL) {
+> +			// if there is a gate function then the i2c bus breaks.....!
+> +			fe0->dvb.frontend->ops.i2c_gate_ctrl = 0;
+> +			if (dvb_attach(qt1010_attach,
+> +					fe0->dvb.frontend,
+> +					&dev->i2c_adap,
+> +					&videomate_t750_qt1010_config) == NULL)
+> +				wprintk("error attaching QT1010\n");
+> +		}
+> +		break;
+>  	case SAA7134_BOARD_ZOLID_HYBRID_PCI:
+>  		fe0->dvb.frontend = dvb_attach(tda10048_attach,
+>  					       &zolid_tda10048_config,
+> diff -r 304cfde05b3f linux/drivers/media/video/saa7134/saa7134-input.c
+> --- a/linux/drivers/media/video/saa7134/saa7134-input.c	Tue May 25 23:50:51 2010 -0400
+> +++ b/linux/drivers/media/video/saa7134/saa7134-input.c	Mon May 31 01:18:12 2010 +0200
+> @@ -865,6 +865,11 @@
+>  		mask_keycode = 0x003f00;
+>  		mask_keydown = 0x040000;
+>  		break;
+> +	case SAA7134_BOARD_VIDEOMATE_T750:
+> +		ir_codes     = RC_MAP_VIDEOMATE_F;
+> +		mask_keycode = 0x003f00;
+> +		mask_keyup   = 0x040000;
+> +		break;
+>  	case SAA7134_BOARD_LEADTEK_WINFAST_DTV1000S:
+>  		ir_codes     = RC_MAP_WINFAST;
+>  		mask_keycode = 0x5f00;
+> diff -r 304cfde05b3f linux/include/media/rc-map.h
+> --- a/linux/include/media/rc-map.h	Tue May 25 23:50:51 2010 -0400
+> +++ b/linux/include/media/rc-map.h	Mon May 31 01:18:12 2010 +0200
+> @@ -113,6 +113,7 @@
+>  #define RC_MAP_TT_1500                   "rc-tt-1500"
+>  #define RC_MAP_VIDEOMATE_S350            "rc-videomate-s350"
+>  #define RC_MAP_VIDEOMATE_TV_PVR          "rc-videomate-tv-pvr"
+> +#define RC_MAP_VIDEOMATE_F               "rc-videomate-f"
+>  #define RC_MAP_WINFAST                   "rc-winfast"
+>  #define RC_MAP_WINFAST_USBII_DELUXE      "rc-winfast-usbii-deluxe"
+>  /*
+> --- v4l-dvb/linux/drivers/media/IR/keymaps/rc-videomate-f.c.orig	2010-05-31 01:31:03.000000000 +0200
+> +++ v4l-dvb/linux/drivers/media/IR/keymaps/rc-videomate-f.c	2010-05-31 00:54:31.000000000 +0200
+> @@ -0,0 +1,119 @@
+> +/* videomate-f.h - Keytable for videomate f series Remote Controller
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include <media/rc-map.h>
+> +
+> +/*
+> +Compro videomate vista T750F remote
+> +-----------------------------------
+> +Emard 2010-05-09 <davoremard@gmail.com>
+> +                                            POWER
+> +VIDEO           RADIO       AUDIO          CAMERA 
+> +PVR             EPG         TV      DVD  SUBTITLE
+> +
+> +                      UP
+> +                 LEFT OK RIGHT
+> +                     DOWN
+> +
+> +BACK                 MENU                    INFO
+> +
+> +VOLUMEUP                                CHANNELUP
+> +                     MUTE
+> +VOLUMEDOWN                            CHANNELDOWN
+> +
+> +RECORD                                       STOP
+> +REWIND               PLAY             FASTFORWARD
+> +PREVIOUSSONG       PLAYPAUSE             NEXTSONG
+> +
+> +NUMERIC_1          NUMERIC_2         NUMERIC_3
+> +NUMERIC_4          NUMERIC_5         NUMERIC_6
+> +NUMERIC_7          NUMERIC_8         NUMERIC_9
+> +NUMERIC_STAR       NUMERIC_0         NUMERIC_POUND
+> +
+> +CLEAR                ZOOM                 ENTER
+> +
+> +RED      GREEN      YELLOW     BLUE        TEXT
+> +*/
+> +static struct ir_scancode videomate_f[] = {
+> +	{ 0x01, KEY_POWER},
+> +	{ 0x31, KEY_VIDEO},
+> +	{ 0x33, KEY_RADIO},
+> +	{ 0x2f, KEY_AUDIO},
+> +	{ 0x30, KEY_CAMERA}, /* pictures */
+> +	{ 0x2d, KEY_PVR},    /* Recordings */
+> +	{   23, KEY_EPG},
+> +	{   44, KEY_TV},
+> +	{   43, KEY_DVD},
+> +	{ 0x32, KEY_SUBTITLE},
+> +	{   17, KEY_UP},
+> +	{   19, KEY_LEFT},
+> +	{   21, KEY_OK},
+> +	{   20, KEY_RIGHT},
+> +	{   18, KEY_DOWN},
+> +	{   22, KEY_BACK},
+> +	{ 0x02, KEY_MENU},
+> +	{ 0x04, KEY_INFO},
+> +	{ 0x05, KEY_VOLUMEUP},
+> +	{ 0x06, KEY_VOLUMEDOWN},
+> +	{ 0x03, KEY_MUTE},
+> +	{ 0x07, KEY_CHANNELUP},
+> +	{ 0x08, KEY_CHANNELDOWN},
+> +	{ 0x0c, KEY_RECORD},
+> +	{ 0x0e, KEY_STOP},
+> +	{ 0x0a, KEY_REWIND},
+> +	{ 0x0b, KEY_PLAY},
+> +	{ 0x09, KEY_FASTFORWARD},
+> +	{ 0x10, KEY_PREVIOUSSONG},
+> +	{ 0x0d, KEY_PLAYPAUSE},
+> +	{ 0x0f, KEY_NEXTSONG},
+> +	{   30, KEY_NUMERIC_1},
+> +	{ 0x1f, KEY_NUMERIC_2},
+> +	{ 0x20, KEY_NUMERIC_3},
+> +	{ 0x21, KEY_NUMERIC_4},
+> +	{ 0x22, KEY_NUMERIC_5},
+> +	{ 0x23, KEY_NUMERIC_6},
+> +	{ 0x24, KEY_NUMERIC_7},
+> +	{ 0x25, KEY_NUMERIC_8},
+> +	{ 0x26, KEY_NUMERIC_9},
+> +	{ 0x2a, KEY_NUMERIC_STAR},
+> +	{   29, KEY_NUMERIC_0},
+> +	{   41, KEY_NUMERIC_POUND},
+> +	{   39, KEY_CLEAR},
+> +	{ 0x34, KEY_ZOOM},
+> +	{ 0x28, KEY_ENTER},
+> +	{   25, KEY_RED},
+> +	{   26, KEY_GREEN},
+> +	{   27, KEY_YELLOW},
+> +	{   28, KEY_BLUE},
+> +	{   24, KEY_TEXT},
+> +};
+> +
+> +static struct rc_keymap videomate_f_map = {
+> +	.map = {
+> +		.scan    = videomate_f,
+> +		.size    = ARRAY_SIZE(videomate_f),
+> +		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
+> +		.name    = RC_MAP_VIDEOMATE_F,
+> +	}
+> +};
+> +
+> +static int __init init_rc_map_videomate_f(void)
+> +{
+> +	return ir_register_map(&videomate_f_map);
+> +}
+> +
+> +static void __exit exit_rc_map_videomate_f(void)
+> +{
+> +	ir_unregister_map(&videomate_f_map);
+> +}
+> +
+> +module_init(init_rc_map_videomate_f)
+> +module_exit(exit_rc_map_videomate_f)
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Davor Emard <davoremard@gmail.com>");
+> 
+> --
+
