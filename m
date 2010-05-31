@@ -1,106 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63690 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51908 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755873Ab0EURzO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 May 2010 13:55:14 -0400
-Date: Fri, 21 May 2010 13:54:56 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Ang Way Chuang <wcang79@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: dvb-core: Fix ULE decapsulation bug when less than 4 bytes of
- ULE SNDU is packed into the remaining bytes of a MPEG2-TS frame
-Message-ID: <20100521175456.GL22862@redhat.com>
-References: <4BE2D7A6.30201@gmail.com>
- <20100520192213.GA19133@redhat.com>
- <4BF600B2.1080305@gmail.com>
+	id S1751241Ab0EaMX5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 08:23:57 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"manjunathan.padua@wipro.com" <manjunathan.padua@wipro.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 31 May 2010 17:53:41 +0530
+Subject: RE: Regarding  OMAP 35xx  ISP subsystem and SoC-Camera
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E6D27F7@dbde02.ent.ti.com>
+References: <336834A7A2D8B34BA5A8906E6E71DF870113EC41@BLR-SJP-MBX01.wipro.com>
+ <201005310959.18029.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201005310959.18029.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4BF600B2.1080305@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 21, 2010 at 11:40:34AM +0800, Ang Way Chuang wrote:
-> Hi Jarod,
->    Thanks for the review. My answers are inlined.
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> Sent: Monday, May 31, 2010 1:29 PM
+> To: manjunathan.padua@wipro.com; Guennadi Liakhovetski
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: Regarding OMAP 35xx ISP subsystem and SoC-Camera
 > 
-> Jarod Wilson wrote:
-> >On Thu, May 06, 2010 at 02:52:22PM -0000, Ang Way Chuang wrote:
-> >>ULE (Unidirectional Lightweight Encapsulation RFC 4326)
-> >>decapsulation code has a bug that incorrectly treats ULE SNDU
-> >>packed into the remaining 2 or 3 bytes of a MPEG2-TS frame as
-> >>having invalid pointer field on the subsequent MPEG2-TS frame.
-> >>
-> >>This patch was generated and tested against v2.6.34-rc6. I
-> >>suspect that this bug was introduced in kernel version 2.6.15,
-> >>but had not verified it.
-> >>
-> >>Care has been taken not to introduce more bug by fixing this bug, but
-> >>please scrutinize the code because I always produces buggy code.
-...
-> >>@@ -534,6 +535,7 @@ static void dvb_net_ule( struct net_device *dev, const u8 *buf, size_t buf_len )
-> >>				from_where += 2;
-> >>			}
-> >>
-> >>+			priv->ule_sndu_remain = priv->ule_sndu_len + 2;
-> >>			/*
-> >>			 * State of current TS:
-> >>			 *   ts_remain (remaining bytes in the current TS cell)
+> Hi Manjunathan,
+> 
+[Hiremath, Vaibhav] Just clarifying some the things -
+
+
+> On Friday 28 May 2010 15:54:57 manjunathan.padua@wipro.com wrote:
+> > Dear Linux-media group
+> >   I am a newbie and have recently started working on integration of a new
+> > camera sensor MT9M112 sensor with OMAP ISP Camera subsystem on a OMAP 3530
+> > based custom board.  So I checked in mainline kernel if driver is
+> > available for this camera sensor and  I found it in the
+> > Linux/driver/media/video/mt9m11.c, this supports both MT9M111 and MT9M112.
+> > It is based on SoC-Camera framework.   But unfortunately this is not
+> > compatible with OMAP 35xx  Camera ISP subsystem  as OMAP camera ISP
+> > subsystem is based on V4L2-INT.
+> 
+> The OMAP3 ISP driver doesn't use the deprecated V4L2 int-device API anymore.
+> The latest version of the driver can be found in the omap3camera tree on
+> gitorious (make sure you checkout the devel branch).
+> 
+[Hiremath, Vaibhav] Manjunathan,
+
+Please note that this is based on Media controller concept which is new framework or interface we are working on.
+
+> > Also I got know that there are there are 3 different frameworks for camera
+> > sensor drivers in Linux
+> > a. V4L2-INT is deprecated but currently supported by OMAP35xx ISP Linux
+> BSP
+> > b. SoC-Camera is  also deprecated.
+> > c. Sub-Device is the current architecture supported from Open source
+> > community
 > >
-> >Is this *always* true? Your description says "...the remaining 2 or 3
-> >bytes", indicating this could sometimes need to be +3. Is +0 also a
-> >possibility?
-> >
+> > 1. Is this understanding correct ?
 > 
-> Not sure whether I understand your question correctly. Here is my
-> attempt to answer your question. The encapsulation format always
-> mandate that at least of 2 bytes of ULE SNDU (the LENGTH field) must
-> be present within a MPEG2-TS frame. So, if only 1 byte of the ULE
-> SNDU get packed into the remaining MPEG2-TS frame, then it is
-> invalid. Of course, there is no issue regarding 0 byte as that would
-> be the case of filling MPEG2-TS frame up to its boundary. New ULE
-> SNDU will have to packed into the next MPEG2-TS frame in that case.
+> That's correct. The OMAP35xx ISP driver in the Linux BSP is also deprecated
+> :-)
 > 
-> Now the problem with existing code is the interpretation of
-> remainder length when 2 or 3 bytes of ULE SNDU are packed into the
-> remainder of MPEG2-TS frame. In the 2 bytes case, only the LENGTH
-> field is available while in the case 3 bytes, only the 1st octet of
-> the 2-octets TYPE field and the LENGTH field are available. The
-> ule_sndu_remain should carry the value of length of ULE SNDU
-> following the the TYPE field. Technically, this would mean that
-> remainder byte of ULE SNDU that need to be received is going to be:
+> > 2. Since V4L2-INT and SoC-Camera frameworks are deprecated, can you please
+> > let me know the roadmap for Sub-Device framework ?
 > 
-> Value(LENGTH) + 2 (We owe 2 bytes of TYPE field here) if only 2
-> bytes of ULE SNDU is packed (as in the case of case 0: at line 550).
-> This is addressed by adding the priv->ule_sndu_remain =
-> priv->ule_sndu_len + 2;
+> The soc-camera framework isn't deprecated, but it isn't used by the OMAP3
+> ISP
+> driver either.
 > 
-> Value(LENGTH) + 1 (We owe 1 byte of TYPE field here) if 3 bytes of
-> ULE SNDU is packed (as in the case of case 1: at 545). This is
-> addressed by adding priv->ule_sndu_remain--;
-> 
-> If complete ULE header (>= 4 bytes) is available:
-> priv->ule_sndu_remain = priv->ule_sndu_len; at line 582 takes care
-> of the rest and it works just fine in the existing code.
-> 
-> Due to the wrong interpretation of remaining length of ULE SNDU when
-> 2 or 3 bytes of ULE SNDU are packed into a MPEG2-TS frame, the
-> subsequent checking of payload pointer (line 455) always fails
-> leading to unnecessary packet drops.
-> 
-> Looking back at the fix after a few months, I had trouble
-> understanding how these few lines fixed the problem at first glance.
+[Hiremath, Vaibhav] Laurent, I believe going forward this SoC-Camera will get also deprecated and all drivers will be migrated to sub-device framework.
 
-Yeah, my question was whether or not the +2 would account for both the +2
-bytes and +3 bytes situations, and it seems that's handled appropriately
-by the ts_remain switch. Thank you for the detailed explanation.
+Thanks,
+Vaibhav
 
-If you'd alter that nested check for freeing the skb and give it a quick
-test, I'm happy to throw an acked-by or reviewed-by on a followup
-submission.
-
-
--- 
-Jarod Wilson
-jarod@redhat.com
-
+> > 3. What is the best option/recommendation from community for me to
+> integrate
+> > MT9M112 with Camera ISP system on OMAP 3530 based board ?
+> 
+> The dependencies on the soc-camera framework in the MT9M112 driver need to
+> be
+> removed. I've CC'ed Guennadi Liakhovetski to this e-mail, he's the author of
+> the soc-camera framework and should be able to provide information on what
+> is
+> required.
+> 
+> > 4. And lastly are there any other different camera sensors which have Sub-
+> > Device based drivers available in Mainline Linux?
+> 
+> Not that I know of, but there's a video decoder driver (tvp5150).
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
