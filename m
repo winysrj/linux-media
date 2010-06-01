@@ -1,84 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-01-ewr.mailhop.org ([204.13.248.71]:56547 "EHLO
-	mho-01-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753101Ab0FPH4e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jun 2010 03:56:34 -0400
-Date: Wed, 16 Jun 2010 10:56:43 +0300
-From: Tony Lindgren <tony@atomide.com>
-To: Felipe Contreras <felipe.contreras@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Aguirre, Sergio" <saaguirre@ti.com>,
-	"Nagarajan, Rajkumar" <x0133774@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: Alternative for defconfig
-Message-ID: <20100616075642.GA12255@atomide.com>
-References: <201006091227.29175.laurent.pinchart@ideasonboard.com>
- <AANLkTilPWyHcoT6q1T-o-UMvcMSs2_If45f9UocVtrbl@mail.gmail.com>
- <A24693684029E5489D1D202277BE894455DDEC44@dlee02.ent.ti.com>
- <201006111707.34463.laurent.pinchart@ideasonboard.com>
- <AANLkTikdUanfxhkbb0sYZ-Yhd_9dVywv9Yj1a5DL18oN@mail.gmail.com>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:63597 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751364Ab0FAU4E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 16:56:04 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTikdUanfxhkbb0sYZ-Yhd_9dVywv9Yj1a5DL18oN@mail.gmail.com>
+In-Reply-To: <4C05135D.1080108@atmel.com>
+References: <4C03D80B.5090009@atmel.com>
+	<1275329947.2261.19.camel@localhost>
+	<4C04C17D.8020702@atmel.com>
+	<4C05135D.1080108@atmel.com>
+Date: Tue, 1 Jun 2010 16:56:01 -0400
+Message-ID: <AANLkTil-_h_DwGxRzRqtDQc1Q4weQ2ffNQ9LBoxA1cdk@mail.gmail.com>
+Subject: Re: question about v4l2_subdev
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Sedji Gaouaou <sedji.gaouaou@atmel.com>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Felipe Contreras <felipe.contreras@gmail.com> [100611 19:03]:
-> On Fri, Jun 11, 2010 at 6:07 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > My understanding is that Linus will remove all ARM defconfigs in 2.6.36,
-> > unless someone can convince him not to.
-> 
-> Huh? I thought he was only threatening to remove them[1]. I don't
-> think he said he was going to do that without any alternative in
-> place.
-> 
-> My suggestion[2] was to have minimal defconfigs so that we could do
-> $ cp arch/arm/configs/omap3_beagle_baseconfig .config
-> $ echo "" | make ARCH=arm oldconfig
-> 
-> [1] http://article.gmane.org/gmane.linux.kernel/994194
-> [2] http://article.gmane.org/gmane.linux.kernel/995412
+On Tue, Jun 1, 2010 at 10:04 AM, Sedji Gaouaou <sedji.gaouaou@atmel.com> wrote:
+> Hi,
+>
+> Sorry to bother you again, but here is the situation:
+> I have 2 drivers: an ov2640 driver and my atmel driver.
+> Basically the ov2640 driver is the same as the ov7670 driver.
+>
+> So what I don't know is how to call the ov2640 functions(such as set format)
+> in my atmel driver.
+>
+> In the ov2640 I used the function: v4l2_i2c_subdev_init, and in the atmel
+> driver I used v4l2_device_register.
+>
+> But I don't know where I should use the v4l2_i2c_new_subdev function, and
+> how to link my atmel video struct to the i2c sensor.
+>
+> Is there any examples in linux?
+>
+> Regards,
+> Sedji
+>
 
-Sounds like the defconfigs will be going though and we'll use
-some Kconfig based system that's still open. I believe Russell
-said he is not taking any more defconfig patches, so we should
-not merge them either.
-
-Anyways, we already have multi-omap mostly working for both
-mach-omap1 and mach-omap2.
-
-So the remaining things to do are:
-
-1. For mach-omap1, patch entry-macro.S to allow compiling in
-   7xx, 15xx and 16xx. This can be done in a similar way as
-   for mach-omap2. The only issue is how to detect 7xx from
-   other mach-omap1 omaps. If anybody has a chance to work
-   on this, please go for it!
-
-2. The old omap_cfg_reg mux function needs to disappear
-   for mach-omap2 and use the new mux code instead. I'm
-   currently working on this and should have it ready
-   for testing this week.
-
-3. To boot both ARMv6 and 7, we need to get rid of
-   CONFIG_HAS_TLS_REG. I already have a patch for that,
-   I'll try to update that during this week.
-
-4. To make CONFIG_VFP work for both ARMv6 and 7, we need
-   to fix CONFIG_VFPv3 so it boots on ARMv6 too. It currently
-   oopses. Will take a look at this after I'm done with the
-   CONFIG_HAS_TLS_REG. This is another one where some help
-   would be nice. To reproduce, boot Linux on ARMv6 with
-   CONFIG_VFPv3 set.
-
-5. After all this works, we can participate on building
-   in multiple ARM platforms :)
+If I understand what you're saying, ov2640 and ovv7670 are both video
+drivers but they have shared functionality. If the shared
+functionality is in the form of controlling say an i2c device of some
+sorts then you should implement that functionality as a subdev.
+Otherwise, you should extract the shared functionality into its own
+module that can be utilized by both drivers (there are many examples
+of this within the kernel).
 
 Regards,
 
-Tony
+David Ellingsworth
