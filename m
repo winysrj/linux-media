@@ -1,96 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.tkos.co.il ([62.219.50.35]:35010 "EHLO tango.tkos.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752513Ab0FUFQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 01:16:49 -0400
-From: Baruch Siach <baruch@tkos.co.il>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCHv4 2/3] mx27: add support for the CSI device
-Date: Mon, 21 Jun 2010 08:15:59 +0300
-Message-Id: <72e1ece6cc4f2e733dbb5f16dc5f06e7f1498f6c.1277096909.git.baruch@tkos.co.il>
-In-Reply-To: <cover.1277096909.git.baruch@tkos.co.il>
-References: <cover.1277096909.git.baruch@tkos.co.il>
+Received: from bonnie-vm4.ifh.de ([141.34.50.21]:40125 "EHLO smtp.ifh.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751259Ab0FAKZD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jun 2010 06:25:03 -0400
+Date: Tue, 1 Jun 2010 11:53:17 +0200 (CEST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: =?ISO-8859-15?Q?St=E9phane_Elmaleh?= <s_elmaleh@hotmail.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] support for medion dvb stick 1660:1921
+In-Reply-To: <loom.20100531T003945-828@post.gmane.org>
+Message-ID: <alpine.LRH.2.00.1006011150030.28355@pub2.ifh.de>
+References: <loom.20100531T003945-828@post.gmane.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
----
- arch/arm/mach-mx2/clock_imx27.c |    2 +-
- arch/arm/mach-mx2/devices.c     |   31 +++++++++++++++++++++++++++++++
- arch/arm/mach-mx2/devices.h     |    1 +
- 3 files changed, 33 insertions(+), 1 deletions(-)
+Hi Stephane,
 
-diff --git a/arch/arm/mach-mx2/clock_imx27.c b/arch/arm/mach-mx2/clock_imx27.c
-index 0f0823c..5a1aa15 100644
---- a/arch/arm/mach-mx2/clock_imx27.c
-+++ b/arch/arm/mach-mx2/clock_imx27.c
-@@ -644,7 +644,7 @@ static struct clk_lookup lookups[] = {
- 	_REGISTER_CLOCK("spi_imx.1", NULL, cspi2_clk)
- 	_REGISTER_CLOCK("spi_imx.2", NULL, cspi3_clk)
- 	_REGISTER_CLOCK("imx-fb.0", NULL, lcdc_clk)
--	_REGISTER_CLOCK(NULL, "csi", csi_clk)
-+	_REGISTER_CLOCK("mx2-camera.0", NULL, csi_clk)
- 	_REGISTER_CLOCK("fsl-usb2-udc", "usb", usb_clk)
- 	_REGISTER_CLOCK("fsl-usb2-udc", "usb_ahb", usb_clk1)
- 	_REGISTER_CLOCK("mxc-ehci.0", "usb", usb_clk)
-diff --git a/arch/arm/mach-mx2/devices.c b/arch/arm/mach-mx2/devices.c
-index a0aeb8a..08201f5 100644
---- a/arch/arm/mach-mx2/devices.c
-+++ b/arch/arm/mach-mx2/devices.c
-@@ -40,6 +40,37 @@
- 
- #include "devices.h"
- 
-+#ifdef CONFIG_MACH_MX27
-+static struct resource mx27_camera_resources[] = {
-+	{
-+	       .start = MX27_CSI_BASE_ADDR,
-+	       .end = MX27_CSI_BASE_ADDR + 0x1f,
-+	       .flags = IORESOURCE_MEM,
-+	}, {
-+	       .start = MX27_EMMA_PRP_BASE_ADDR,
-+	       .end = MX27_EMMA_PRP_BASE_ADDR + 0x1f,
-+	       .flags = IORESOURCE_MEM,
-+	}, {
-+	       .start = MX27_INT_CSI,
-+	       .end = MX27_INT_CSI,
-+	       .flags = IORESOURCE_IRQ,
-+	},{
-+	       .start = MX27_INT_EMMAPRP,
-+	       .end = MX27_INT_EMMAPRP,
-+	       .flags = IORESOURCE_IRQ,
-+	},
-+};
-+struct platform_device mx27_camera_device = {
-+	.name = "mx2-camera",
-+	.id = 0,
-+	.num_resources = ARRAY_SIZE(mx27_camera_resources),
-+	.resource = mx27_camera_resources,
-+	.dev = {
-+		.coherent_dma_mask = 0xffffffff,
-+	},
-+};
-+#endif
-+
- /*
-  * SPI master controller
-  *
-diff --git a/arch/arm/mach-mx2/devices.h b/arch/arm/mach-mx2/devices.h
-index 84ed513..8bdf018 100644
---- a/arch/arm/mach-mx2/devices.h
-+++ b/arch/arm/mach-mx2/devices.h
-@@ -29,6 +29,7 @@ extern struct platform_device mxc_i2c_device1;
- extern struct platform_device mxc_sdhc_device0;
- extern struct platform_device mxc_sdhc_device1;
- extern struct platform_device mxc_otg_udc_device;
-+extern struct platform_device mx27_camera_device;
- extern struct platform_device mxc_otg_host;
- extern struct platform_device mxc_usbh1;
- extern struct platform_device mxc_usbh2;
--- 
-1.7.1
+On Sun, 30 May 2010, St?phane Elmaleh wrote:
+> Hello,
+> I'm not sure of doing this the right way since I'm not a programmer.
 
+Thanks for submitting the patch.
+
+> diff -r b576509ea6d2 linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
+> --- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Wed May 19 19:34:33
+> 2010 -0300
+> +++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c	Mon May 31 00:34:44
+> 2010 +0200
+> @@ -2083,6 +2083,7 @@
+> 	{ USB_DEVICE(USB_VID_PCTV,	USB_PID_PINNACLE_PCTV282E) },
+> 	{ USB_DEVICE(USB_VID_DIBCOM,	USB_PID_DIBCOM_STK7770P) },
+> /* 60 */{ USB_DEVICE(USB_VID_TERRATEC,	USB_PID_TERRATEC_CINERGY_T_XXS_2) },
+> +	{ USB_DEVICE(USB_VID_MEDION,	USB_PID_MEDION_STICK_CTX_1921) },
+> 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK807XPVR) },
+> 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK807XP) },
+> 	{ USB_DEVICE(USB_VID_PIXELVIEW, USB_PID_PIXELVIEW_SBTVD) }
+
+Could you please move your inserted line to the end of this PID/VID-table? 
+How it is done now will change the indices used for all other 
+PID/VID-entries which will break all the references to it.
+
+
+> @@ -2606,10 +2607,14 @@
+> 			},
+> 		},
+>
+> -		.num_device_descs = 2,
+> +		.num_device_descs = 3,
+> 		.devices = {
+> 			{   "DiBcom STK7770P reference design",
+> 				{ &dib0700_usb_id_table[59], NULL },
+> +				{ NULL },
+> +			},
+> +			{   "Medion Stick ctx 1921",
+> +				{ &dib0700_usb_id_table[61], NULL },
+
+If moved to the end of the table you have to adapt the 61 here to the 
+real value.
+
+Please resent the patch afterwards.
+
+thanks,
+Patrick.
+
+--
+
+Patrick Boettcher - Kernel Labs
+http://www.kernellabs.com/
