@@ -1,41 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:39507 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756478Ab0FNR2m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jun 2010 13:28:42 -0400
-Date: Mon, 14 Jun 2010 19:30:03 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
-Cc: Krivchikov Sergei <sergei.krivchikov@gmail.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: genius islim 310 webcam test
-Message-ID: <20100614193003.00988b97@tele>
-In-Reply-To: <4C164387.1000608@freemail.hu>
-References: <68c794d61003301249u138e643am20bb264375c3dfe1@mail.gmail.com>
-	<4BB2E42B.4090302@freemail.hu>
-	<AANLkTikIivyjNkVYlo4CKCJcFK_UW5J28qG48cnWQBm8@mail.gmail.com>
-	<4C164387.1000608@freemail.hu>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:56931 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754678Ab0FAW5z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 18:57:55 -0400
+Received: by mail-ww0-f46.google.com with SMTP id 28so2464375wwb.19
+        for <linux-media@vger.kernel.org>; Tue, 01 Jun 2010 15:57:54 -0700 (PDT)
+Subject: [PATCH 3/6] gspca - gl860: USB control message delay unification
+From: Olivier Lorin <olorin75@gmail.com>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Cc: Jean-Francois Moine <moinejf@free.fr>
+Content-Type: text/plain
+Date: Wed, 02 Jun 2010 00:57:48 +0200
+Message-Id: <1275433068.20756.101.camel@miniol>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 14 Jun 2010 16:58:15 +0200
-Németh Márton <nm127@freemail.hu> wrote:
+gspca - gl860: USB control message delay unification
 
-> Hi Jean-Francois, I got this report about a working Genius iSlim 310
-> webcam. Maybe it would be a good idea to add the device 0x093a:0x2625
-> in pac7302.c. Should I send a patch for you?
+From: Olivier Lorin <o.lorin@laposte.net>
 
-Hi Németh,
+- 1 ms "msleep" applied to each sensor after USB control data exchange
+  This was done for two sensors because these exchanges were known to
+  be too quick depending on laptop model.
+  It is fairly logical to apply this delay to each sensor
+  in order to prevent from having errors with untested hardwares.
 
-OK for the patch. Don't forget to add the webcam in the file
-Documentation/video4linux/gspca.txt.
+Priority: normal
 
-Thanks.
+Signed-off-by: Olivier Lorin <o.lorin@laposte.net>
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+diff -urpN i2/gl860.c gl860/gl860.c
+--- i2/gl860.c	2010-06-01 23:11:26.000000000 +0200
++++ gl860/gl860.c	2010-06-01 23:16:59.000000000 +0200
+@@ -595,10 +595,7 @@ int gl860_RTx(struct gspca_dev *gspca_de
+ 	else if (len > 1 && r < len)
+ 		PDEBUG(D_ERR, "short ctrl transfer %d/%d", r, len);
+ 
+-	if (_MI2020_ && (val || index))
+-		msleep(1);
+-	if (_OV2640_)
+-		msleep(1);
++	msleep(1);
+ 
+ 	return r;
+ }
+
+
