@@ -1,510 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.mx.bawue.net ([193.7.176.67]:36804 "EHLO
-	relay01.mx.bawue.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753616Ab0FXSTt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jun 2010 14:19:49 -0400
-Date: Thu, 24 Jun 2010 20:19:41 +0200
-From: Nils Radtke <Nils.Radtke@Think-Future.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: laurent.pinchart@skynet.be, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
-	Greg Kroah-Hartman <gregkh@suse.de>, stable@kernel.org
-Subject: Re: [2.6.33.4 PATCH] V4L/uvcvideo: Add support for Suyin Corp.
-  Lenovo Webcam
-Message-ID: <20100624181941.GE13364@localhost>
-Reply-To: Nils Radtke <Nils.Radtke@Think-Future.de>
-References: <20100623092316.GA13364@localhost>
- <201006231445.54883.laurent.pinchart@ideasonboard.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:49285 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751926Ab0FAFWO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 01:22:14 -0400
+Received: by vws11 with SMTP id 11so483584vws.19
+        for <linux-media@vger.kernel.org>; Mon, 31 May 2010 22:22:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="uAKRQypu60I7Lcqm"
-Content-Disposition: inline
-In-Reply-To: <201006231445.54883.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4C0438CE.4090801@redhat.com>
+References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>
+	<1275136793.2260.18.camel@localhost>
+	<AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>
+	<1275163295.17477.143.camel@localhost>
+	<AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>
+	<4C02700A.9040807@redhat.com>
+	<AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>
+	<AANLkTik_-6Z12G8rz0xkjbLkpWvfRHorGtD_LbsPr_11@mail.gmail.com>
+	<1275308142.2227.16.camel@localhost>
+	<4C0408A9.4040904@redhat.com>
+	<1275334699.2261.45.camel@localhost>
+	<4C042310.4090603@redhat.com>
+	<1275342342.2260.37.camel@localhost>
+	<4C0438CE.4090801@redhat.com>
+Date: Tue, 1 Jun 2010 01:22:12 -0400
+Message-ID: <AANLkTimAjriy1hlysvlAOxMPodp_lw2MZGcLl1D5oR9h@mail.gmail.com>
+Subject: Re: ir-core multi-protocol decode and mceusb
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, May 31, 2010 at 6:31 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 31-05-2010 18:45, Andy Walls escreveu:
+>> On Mon, 2010-05-31 at 17:58 -0300, Mauro Carvalho Chehab wrote:
+>
+>>> I may be wrong (since we didn't write any TX support), but I think that a
+>>> rc_set_tx_parameters() wouldn't be necessary, as I don't see why the driver will
+>>> change the parameters after registering, and without any userspace request.
+>>
+>> Yes, my intent was to handle a user space request to change the
+>> transmitter setup parameters to handle the protocol.
+>>
+>> I also don't want to worry about having to code in kernel parameter
+>> tables for any bizzare protocol userspace may know about.
+>
+> Makes sense.
+>>
+>>
+>>> If we consider that some userspace sysfs nodes will allow changing some parameters,
+>>> then the better is to have a callback function call, passed via the registering function,
+>>> that will allow calling a function inside the driver to change the TX parameters.
+>>>
+>>> For example, something like:
+>>>
+>>> struct rc_tx_props {
+>>> ...
+>>>      int     (*change_protocol)(...);
+>>> ...
+>>> };
+>>>
+>>>
+>>> rc_register_tx(..., struct rc_tx_props *props)
+>>
+>> A callback is likely needed.  I'm not sure I would have chosen the name
+>> change_protocol(), because transmitter parameters can be common between
+>> protocols (at least RC-5 and RC-6 can be supported with one set of
+>> parameters), or not match any existing in-kernel protocol.  As long as
+>> it is flexible enough to change individual transmitter parameters
+>> (modulated/baseband, carrier freq, duty cycle, etc.) it will be fine.
+>
+> I just used this name as an example, as the same name exists on RX.
+>
+> Depending on how we code the userspace API, we may use just one set_parameters
+> function, or a set of per-attribute changes.
+>
+> In other words, if we implement severa sysfs nodes to change several parameters,
+> maybe it makes sense to have several callbacks. Another alternative would be
+> to have a "commit" sysfs node to apply a set of parameters at once.
+>
+>> Currently LIRC userspace changes Tx parameters using an ioctl().  It
+>> asks the hardware to change transmitter parameters, because the current
+>> model is that the transmitters don't need to know about protocols. (LIRC
+>> userspace knows the parameters of the protocol it wants to use, so the
+>> driver's don't have too).
 
---uAKRQypu60I7Lcqm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The list of transmit-related ioctls implemented in the lirc_mceusb driver:
 
-  Hi Laurent,
+- LIRC_SET_TRANSMITTER_MASK -- these devices have two IR tx outputs,
+default is to send the signal out both, but you can also select just a
+specific one (i.e., two set top boxes, only want to send command to
+one or the other of them).
 
-On Wed 2010-06-23 @ 02-45-53PM +0200, Laurent Pinchart wrote: 
-# Hi Nils,
-# 
-# On Wednesday 23 June 2010 11:23:16 Nils Radtke wrote:
-# > From: Nils Radtke <lkml@Think-Future.de>
-# > 
-# > This patch adds support for the Suyin Corp. Lenovo Webcam.
-# > lsusb: ID 064e:a102 Suyin Corp. Lenovo Webcam
-# > 
-# > It is available as built-in webcam i.e. in ACER timeline 1810t
-# > notebooks.
-# > 
-# > The note in uvc_driver.c about Logitech cameras applies the same
-# > to the Suyin web cam: it doesn't announce itself as UVC devices
-# > but is compliant.
-# > 
-# > Signed-off-by: Nils Radtke <lkml@Think-Future.de>
-# 
-# Thanks for the patch. Could you please send me the output of lsusb -v for your 
+- LIRC_GET_SEND_MODE -- get current transmit mode
 
-Bus 002 Device 002: ID 064e:a102 Suyin Corp. Lenovo Webcam
-Device Descriptor:
-  bLength                18
-  bDescriptorType         1
-  bcdUSB               2.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  idVendor           0x064e Suyin Corp.
-  idProduct          0xa102 Lenovo Webcam
-  bcdDevice            2.22
-  iManufacturer           2 SuYin
-  iProduct                1 WebCam
-  iSerial                 3 CN0316-S30C-OV061-VA-R02.02.02
-  bNumConfigurations      1
-  Configuration Descriptor:
-    bLength                 9
-    bDescriptorType         2
-    wTotalLength          569
-    bNumInterfaces          2
-    bConfigurationValue     1
-    iConfiguration          0 
-    bmAttributes         0x80
-      (Bus Powered)
-    MaxPower               98mA
-    Interface Association:
-      bLength                 8
-      bDescriptorType        11
-      bFirstInterface         0
-      bInterfaceCount         2
-      bFunctionClass         14 Video
-      bFunctionSubClass       3 Video Interface Collection
-      bFunctionProtocol       0 
-      iFunction               5 Webcam
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        0
-      bAlternateSetting       0
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      1 Video Control
-      bInterfaceProtocol      0 
-      iInterface              5 Webcam
-      VideoControl Interface Descriptor:
-        bLength                13
-        bDescriptorType        36
-        bDescriptorSubtype      1 (HEADER)
-        bcdUVC               1.00
-        wTotalLength          103
-        dwClockFrequency       15.000000MHz
-        bInCollection           1
-        baInterfaceNr( 0)       1
-      VideoControl Interface Descriptor:
-        bLength                 9
-        bDescriptorType        36
-        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
-        bTerminalID             2
-        wTerminalType      0x0101 USB Streaming
-        bAssocTerminal          0
-        bSourceID               5
-        iTerminal               0 
-      VideoControl Interface Descriptor:
-        bLength                26
-        bDescriptorType        36
-        bDescriptorSubtype      6 (EXTENSION_UNIT)
-        bUnitID                 4
-        guidExtensionCode         {7033f028-1163-2e4a-ba2c-6890eb334016}
-        bNumControl             8
-        bNrPins                 1
-        baSourceID( 0)          3
-        bControlSize            1
-        bmControls( 0)       0x0f
-        iExtension              0 
-      VideoControl Interface Descriptor:
-        bLength                26
-        bDescriptorType        36
-        bDescriptorSubtype      6 (EXTENSION_UNIT)
-        bUnitID                 5
-        guidExtensionCode         {3fae1228-d7bc-114e-a357-6f1edef7d61d}
-        bNumControl             8
-        bNrPins                 1
-        baSourceID( 0)          4
-        bControlSize            1
-        bmControls( 0)       0xff
-        iExtension              0 
-      VideoControl Interface Descriptor:
-        bLength                18
-        bDescriptorType        36
-        bDescriptorSubtype      2 (INPUT_TERMINAL)
-        bTerminalID             1
-        wTerminalType      0x0201 Camera Sensor
-        bAssocTerminal          0
-        iTerminal               0 
-        wObjectiveFocalLengthMin      0
-        wObjectiveFocalLengthMax      0
-        wOcularFocalLength            0
-        bControlSize                  3
-        bmControls           0x00000000
-      VideoControl Interface Descriptor:
-        bLength                11
-        bDescriptorType        36
-        bDescriptorSubtype      5 (PROCESSING_UNIT)
-      Warning: Descriptor too short
-        bUnitID                 3
-        bSourceID               1
-        wMaxMultiplier          0
-        bControlSize            2
-        bmControls     0x0000173f
-          Brightness
-          Contrast
-          Hue
-          Saturation
-          Sharpness
-          Gamma
-          Backlight Compensation
-          Gain
-          Power Line Frequency
-          White Balance Temperature, Auto
-        iProcessing             0 
-        bmVideoStandards     0x 0
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x83  EP 3 IN
-        bmAttributes            3
-          Transfer Type            Interrupt
-          Synch Type               None
-          Usage Type               Data
-        wMaxPacketSize     0x0010  1x 16 bytes
-        bInterval               6
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       0
-      bNumEndpoints           0
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      VideoStreaming Interface Descriptor:
-        bLength                            14
-        bDescriptorType                    36
-        bDescriptorSubtype                  1 (INPUT_HEADER)
-        bNumFormats                         1
-        wTotalLength                      323
-        bEndPointAddress                  129
-        bmInfo                              0
-        bTerminalLink                       2
-        bStillCaptureMethod                 2
-        bTriggerSupport                     1
-        bTriggerUsage                       1
-        bControlSize                        1
-        bmaControls( 0)                    27
-      VideoStreaming Interface Descriptor:
-        bLength                            27
-        bDescriptorType                    36
-        bDescriptorSubtype                  4 (FORMAT_UNCOMPRESSED)
-        bFormatIndex                        1
-        bNumFrameDescriptors                5
-        guidFormat                            {59555932-0000-1000-8000-00aa00389b71}
-        bBitsPerPixel                      16
-        bDefaultFrameIndex                  1
-        bAspectRatioX                       0
-        bAspectRatioY                       0
-        bmInterlaceFlags                 0x00
-          Interlaced stream or variable: No
-          Fields per frame: 1 fields
-          Field 1 first: No
-          Field pattern: Field 1 only
-          bCopyProtect                      0
-      VideoStreaming Interface Descriptor:
-        bLength                            50
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         1
-        bmCapabilities                   0x00
-          Still image unsupported
-        wWidth                            640
-        wHeight                           480
-        dwMinBitRate                  3072000
-        dwMaxBitRate                 18432000
-        dwMaxVideoFrameBufferSize      614400
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  6
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            400000
-        dwFrameInterval( 2)            500000
-        dwFrameInterval( 3)            666666
-        dwFrameInterval( 4)           1000000
-        dwFrameInterval( 5)           2000000
-      VideoStreaming Interface Descriptor:
-        bLength                            50
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         2
-        bmCapabilities                   0x00
-          Still image unsupported
-        wWidth                            352
-        wHeight                           288
-        dwMinBitRate                  1013760
-        dwMaxBitRate                  6082560
-        dwMaxVideoFrameBufferSize      202752
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  6
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            400000
-        dwFrameInterval( 2)            500000
-        dwFrameInterval( 3)            666666
-        dwFrameInterval( 4)           1000000
-        dwFrameInterval( 5)           2000000
-      VideoStreaming Interface Descriptor:
-        bLength                            50
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         3
-        bmCapabilities                   0x00
-          Still image unsupported
-        wWidth                            320
-        wHeight                           240
-        dwMinBitRate                   768000
-        dwMaxBitRate                  4608000
-        dwMaxVideoFrameBufferSize      153600
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  6
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            400000
-        dwFrameInterval( 2)            500000
-        dwFrameInterval( 3)            666666
-        dwFrameInterval( 4)           1000000
-        dwFrameInterval( 5)           2000000
-      VideoStreaming Interface Descriptor:
-        bLength                            50
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         4
-        bmCapabilities                   0x00
-          Still image unsupported
-        wWidth                            176
-        wHeight                           144
-        dwMinBitRate                   253440
-        dwMaxBitRate                  1520640
-        dwMaxVideoFrameBufferSize       50688
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  6
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            400000
-        dwFrameInterval( 2)            500000
-        dwFrameInterval( 3)            666666
-        dwFrameInterval( 4)           1000000
-        dwFrameInterval( 5)           2000000
-      VideoStreaming Interface Descriptor:
-        bLength                            50
-        bDescriptorType                    36
-        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
-        bFrameIndex                         5
-        bmCapabilities                   0x00
-          Still image unsupported
-        wWidth                            160
-        wHeight                           120
-        dwMinBitRate                   192000
-        dwMaxBitRate                  1152000
-        dwMaxVideoFrameBufferSize       38400
-        dwDefaultFrameInterval         333333
-        bFrameIntervalType                  6
-        dwFrameInterval( 0)            333333
-        dwFrameInterval( 1)            400000
-        dwFrameInterval( 2)            500000
-        dwFrameInterval( 3)            666666
-        dwFrameInterval( 4)           1000000
-        dwFrameInterval( 5)           2000000
-      VideoStreaming Interface Descriptor:
-        bLength                            26
-        bDescriptorType                    36
-        bDescriptorSubtype                  3 (STILL_IMAGE_FRAME)
-        bEndpointAddress                    0
-        bNumImageSizePatterns               5
-        wWidth( 0)                        640
-        wHeight( 0)                       480
-        wWidth( 1)                        352
-        wHeight( 1)                       288
-        wWidth( 2)                        320
-        wHeight( 2)                       240
-        wWidth( 3)                        176
-        wHeight( 3)                       144
-        wWidth( 4)                        160
-        wHeight( 4)                       120
-        bNumCompressionPatterns             5
-      VideoStreaming Interface Descriptor:
-        bLength                             6
-        bDescriptorType                    36
-        bDescriptorSubtype                 13 (COLORFORMAT)
-        bColorPrimaries                     1 (BT.709,sRGB)
-        bTransferCharacteristics            1 (BT.709)
-        bMatrixCoefficients                 4 (SMPTE 170M (BT.601))
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       1
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0080  1x 128 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       2
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0100  1x 256 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       3
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0320  1x 800 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       4
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x0b20  2x 800 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       5
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x1320  3x 800 bytes
-        bInterval               1
-    Interface Descriptor:
-      bLength                 9
-      bDescriptorType         4
-      bInterfaceNumber        1
-      bAlternateSetting       6
-      bNumEndpoints           1
-      bInterfaceClass        14 Video
-      bInterfaceSubClass      2 Video Streaming
-      bInterfaceProtocol      0 
-      iInterface              0 
-      Endpoint Descriptor:
-        bLength                 7
-        bDescriptorType         5
-        bEndpointAddress     0x81  EP 1 IN
-        bmAttributes            5
-          Transfer Type            Isochronous
-          Synch Type               Asynchronous
-          Usage Type               Data
-        wMaxPacketSize     0x1400  3x 1024 bytes
-        bInterval               1
-Device Qualifier (for other device speed):
-  bLength                10
-  bDescriptorType         6
-  bcdUSB               2.00
-  bDeviceClass          239 Miscellaneous Device
-  bDeviceSubClass         2 ?
-  bDeviceProtocol         1 Interface Association
-  bMaxPacketSize0        64
-  bNumConfigurations      1
-Device Status:     0x0002
-  (Bus Powered)
-  Remote Wakeup Enabled
+- LIRC_SET_SEND_MODE -- set current transmit mode
+
+- LIRC_SET_SEND_CARRIER -- set the transmit carrier freq
+
+- LIRC_GET_FEATURE -- get both the send and receive capabilities of the device
 
 
-# cat /proc/bus/usb/xxx/yyy
-See attached.
+>> I notice IR Rx also has a change_protocol() callback that is not
+>> currently in use.
+>
+> It is used only by em28xx, where the hardware decoder can work either with
+> RC-5 or NEC (newer chips also support RC-6, but this is currently not
+> implemented).
 
+The imon driver also implements change_protocol for the current-gen
+devices, which are capable of decoding either mce remote signals or
+the native imon remote signals. I was originally thinking I'd need to
+implement change_protocol for the mceusb driver, but its ultimately a
+no-op, since the hardware doesn't give a damn (and there's a note
+somewhere that mentions its only relevant for hardware decode devices
+that need to be put into a specific mode). Although, on something like
+the mceusb driver, change_protocol *could* be wired up to mark only
+the desired protocol enabled -- which might reduce complexity for
+ir-keytable when loading a new keymap. (I went with a rather simple
+approach for marking only the desired decoder enabled at initial
+keymap load time which won't help here -- patch coming tomorrow for
+that).
 
-          Cheers,
+>> If sending raw pulses to userspace, it would be also
+>> nice to expose that callback so userspace could set the receiver
+>> parameters.
+>
+> Raw pulse transmission is probably the easiest case. Probably, there's nothing
+> or a very few things that might need adjustments.
 
-                    Nils
+Transmitter mask, carrier frequency and a repeat count are the things
+I can see needing to set regularly. From experience, at least with
+motorola set top box hardware, you need to send a given signal 2-3
+times, not just once, for the hardware to pick it up. There's a
+min_repeat parameter in lirc config files only used on the transmit
+side of the house to specify how many repeats of each blasted signal
+to send.
 
-
---uAKRQypu60I7Lcqm
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename="cat_proc-bus-usb-002-002_suying_webcam.log"
-Content-Transfer-Encoding: base64
-
-EgEAAu8CAUBOBgKhIgICAQMBCQI5AgIBAIAxCAsAAg4DAAUJBAAAAQ4BAAUNJAEAAWcAwOHk
-AAEBCSQDAgEBAAUAGiQGBHAz8CgRYy5KuixokOszQBYIAQMBDwAaJAYFP64SKNe8EU6jV28e
-3vfWHQgBBAH/ABIkAgEBAgAAAAAAAAAAAwAAAAskBQMBAAACPxcABwWDAxAABgUlAxAACQQB
-AAAOAgAADiQBAUMBgQACAgEBAQAbJAQBBVlVWTIAABAAgAAAqgA4m3EQAQAAAAAyJAUBAIAC
-4AEA4C4AAEAZAQBgCQAVFgUABhUWBQCAGgYAIKEHACosCgBAQg8AgIQeADIkBQIAYAEgAQB4
-DwAA0FwAABgDABUWBQAGFRYFAIAaBgAgoQcAKiwKAEBCDwCAhB4AMiQFAwBAAfAAALgLAABQ
-RgAAWAIAFRYFAAYVFgUAgBoGACChBwAqLAoAQEIPAICEHgAyJAUEALAAkAAA3gMAADQXAADG
-AAAVFgUABhUWBQCAGgYAIKEHACosCgBAQg8AgIQeADIkBQUAoAB4AADuAgAAlBEAAJYAABUW
-BQAGFRYFAIAaBgAgoQcAKiwKAEBCDwCAhB4AGiQDAAWAAuABYAEgAUAB8ACwAJAAoAB4AAAG
-JA0BAQQJBAEBAQ4CAAAHBYEFgAABCQQBAgEOAgAABwWBBQABAQkEAQMBDgIAAAcFgQUgAwEJ
-BAEEAQ4CAAAHBYEFIAsBCQQBBQEOAgAABwWBBSATAQkEAQYBDgIAAAcFgQUAFAE=
-
---uAKRQypu60I7Lcqm--
+-- 
+Jarod Wilson
+jarod@wilsonet.com
