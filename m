@@ -1,162 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4489 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:7847 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751811Ab0F1RAZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jun 2010 13:00:25 -0400
-Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5SH0P5D029471
+	id S1754295Ab0FAU1I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jun 2010 16:27:08 -0400
+Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o51KR8Gc008423
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 13:00:25 -0400
-Received: from pedra (vpn-9-119.rdu.redhat.com [10.11.9.119])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o5SH0HGK008891
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 13:00:23 -0400
-Date: Mon, 28 Jun 2010 13:59:57 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 4/4] ir-core: allow specifying multiple protocols at one
- open/write
-Message-ID: <20100628135957.4bb18df2@pedra>
-In-Reply-To: <cover.1277744236.git.mchehab@redhat.com>
-References: <cover.1277744236.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+	for <linux-media@vger.kernel.org>; Tue, 1 Jun 2010 16:27:08 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [10.16.43.238])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o51KR7KI027196
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Tue, 1 Jun 2010 16:27:08 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [127.0.0.1])
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.3) with ESMTP id o51KR7I7028037
+	for <linux-media@vger.kernel.org>; Tue, 1 Jun 2010 16:27:07 -0400
+Received: (from jarod@localhost)
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.4/Submit) id o51KR7g1028035
+	for linux-media@vger.kernel.org; Tue, 1 Jun 2010 16:27:07 -0400
+Date: Tue, 1 Jun 2010 16:27:07 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] IR: only initially enable protocol that matches loaded keymap
+Message-ID: <20100601202707.GA28024@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With this change, it is now possible to do something like:
-        su -c 'echo "none +rc-5 +nec" > /sys/class/rc/rc1/protocols'
+Rather than loading all IR protocol decoders as enabled when bringing
+up a new device, only enable the IR protocol decoder that matches the
+keymap being loaded. Additional decoders can be enabled on the fly by
+those that need to, either by twiddling sysfs bits or by using the
+ir-keytable util from v4l-utils.
 
-This prevents the need of multiple opens, one for each protocol change,
-and makes userspace application easier.
+Functional testing done with the mceusb driver, and it behaves as expected,
+only the rc6 decoder is enabled, keys are all handled properly, etc.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/ir-jvc-decoder.c  |    4 +++-
+ drivers/media/IR/ir-nec-decoder.c  |    4 +++-
+ drivers/media/IR/ir-rc5-decoder.c  |    4 +++-
+ drivers/media/IR/ir-rc6-decoder.c  |    4 +++-
+ drivers/media/IR/ir-sony-decoder.c |    4 +++-
+ 5 files changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index db8c7f4..e538f16 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -117,61 +117,62 @@ static ssize_t store_protocols(struct device *d,
- 	const char *tmp;
- 	u64 type;
- 	u64 mask;
--	int rc, i;
-+	int rc, i, count = 0;
- 	unsigned long flags;
+diff --git a/drivers/media/IR/ir-jvc-decoder.c b/drivers/media/IR/ir-jvc-decoder.c
+index 0b80494..b02e801 100644
+--- a/drivers/media/IR/ir-jvc-decoder.c
++++ b/drivers/media/IR/ir-jvc-decoder.c
+@@ -253,6 +253,7 @@ static int ir_jvc_register(struct input_dev *input_dev)
+ {
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+ 	struct decoder_data *data;
++	u64 ir_type = ir_dev->rc_tab.ir_type;
+ 	int rc;
  
--	tmp = skip_spaces(data);
--	if (*tmp == '\0') {
--		IR_dprintk(1, "Protocol not specified\n");
--		return -EINVAL;
--	} else if (*tmp == '+') {
--		enable = true;
--		disable = false;
--		tmp++;
--	} else if (*tmp == '-') {
--		enable = false;
--		disable = true;
--		tmp++;
--	} else {
--		enable = false;
--		disable = false;
--	}
--
--
--	if (!enable && !disable && !strncasecmp(tmp, PROTO_NONE, sizeof(PROTO_NONE))) {
--		mask = 0;
--		tmp += sizeof(PROTO_NONE);
--	} else {
--		for (i = 0; i < ARRAY_SIZE(proto_names); i++) {
--			if (!strncasecmp(tmp, proto_names[i].name, strlen(proto_names[i].name))) {
--				tmp += strlen(proto_names[i].name);
--				mask = proto_names[i].type;
--				break;
--			}
--		}
--		if (i == ARRAY_SIZE(proto_names)) {
--			IR_dprintk(1, "Unknown protocol\n");
--			return -EINVAL;
--		}
--	}
--
--	tmp = skip_spaces(tmp);
--	if (*tmp != '\0') {
--		IR_dprintk(1, "Invalid trailing characters\n");
--		return -EINVAL;
--	}
--
- 	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE)
- 		type = ir_dev->rc_tab.ir_type;
- 	else
- 		type = ir_dev->raw->enabled_protocols;
- 
--	if (enable)
--		type |= mask;
--	else if (disable)
--		type &= ~mask;
--	else
--		type = mask;
-+	while ((tmp = strsep((char **) &data, " \n")) != NULL) {
-+		if (!*tmp)
-+			break;
-+
-+		if (*tmp == '+') {
-+			enable = true;
-+			disable = false;
-+			tmp++;
-+		} else if (*tmp == '-') {
-+			enable = false;
-+			disable = true;
-+			tmp++;
-+		} else {
-+			enable = false;
-+			disable = false;
-+		}
-+
-+		if (!enable && !disable && !strncasecmp(tmp, PROTO_NONE, sizeof(PROTO_NONE))) {
-+			tmp += sizeof(PROTO_NONE);
-+			mask = 0;
-+			count++;
-+		} else {
-+			for (i = 0; i < ARRAY_SIZE(proto_names); i++) {
-+				if (!strncasecmp(tmp, proto_names[i].name, strlen(proto_names[i].name))) {
-+					tmp += strlen(proto_names[i].name);
-+					mask = proto_names[i].type;
-+					break;
-+				}
-+			}
-+			if (i == ARRAY_SIZE(proto_names)) {
-+				IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
-+				return -EINVAL;
-+			}
-+			count++;
-+		}
-+
-+		if (enable)
-+			type |= mask;
-+		else if (disable)
-+			type &= ~mask;
-+		else
-+			type = mask;
-+	}
-+
-+	if (!count) {
-+		IR_dprintk(1, "Protocol not specified\n");
-+		return -EINVAL;
-+	}
- 
- 	if (ir_dev->props && ir_dev->props->change_protocol) {
- 		rc = ir_dev->props->change_protocol(ir_dev->props->priv,
-@@ -191,7 +192,6 @@ static ssize_t store_protocols(struct device *d,
- 		ir_dev->raw->enabled_protocols = type;
+ 	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
+@@ -266,7 +267,8 @@ static int ir_jvc_register(struct input_dev *input_dev)
  	}
  
--
- 	IR_dprintk(1, "Current protocol(s): 0x%llx\n",
- 		   (long long)type);
+ 	data->ir_dev = ir_dev;
+-	data->enabled = 1;
++	if (ir_type == IR_TYPE_JVC || ir_type == IR_TYPE_UNKNOWN)
++		data->enabled = 1;
  
+ 	spin_lock(&decoder_lock);
+ 	list_add_tail(&data->list, &decoder_list);
+diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
+index ba79233..6059a1f 100644
+--- a/drivers/media/IR/ir-nec-decoder.c
++++ b/drivers/media/IR/ir-nec-decoder.c
+@@ -260,6 +260,7 @@ static int ir_nec_register(struct input_dev *input_dev)
+ {
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+ 	struct decoder_data *data;
++	u64 ir_type = ir_dev->rc_tab.ir_type;
+ 	int rc;
+ 
+ 	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
+@@ -273,7 +274,8 @@ static int ir_nec_register(struct input_dev *input_dev)
+ 	}
+ 
+ 	data->ir_dev = ir_dev;
+-	data->enabled = 1;
++	if (ir_type == IR_TYPE_NEC || ir_type == IR_TYPE_UNKNOWN)
++		data->enabled = 1;
+ 
+ 	spin_lock(&decoder_lock);
+ 	list_add_tail(&data->list, &decoder_list);
+diff --git a/drivers/media/IR/ir-rc5-decoder.c b/drivers/media/IR/ir-rc5-decoder.c
+index 23cdb1b..4aa797b 100644
+--- a/drivers/media/IR/ir-rc5-decoder.c
++++ b/drivers/media/IR/ir-rc5-decoder.c
+@@ -256,6 +256,7 @@ static int ir_rc5_register(struct input_dev *input_dev)
+ {
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+ 	struct decoder_data *data;
++	u64 ir_type = ir_dev->rc_tab.ir_type;
+ 	int rc;
+ 
+ 	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
+@@ -269,7 +270,8 @@ static int ir_rc5_register(struct input_dev *input_dev)
+ 	}
+ 
+ 	data->ir_dev = ir_dev;
+-	data->enabled = 1;
++	if (ir_type == IR_TYPE_RC5 || ir_type == IR_TYPE_UNKNOWN)
++		data->enabled = 1;
+ 
+ 	spin_lock(&decoder_lock);
+ 	list_add_tail(&data->list, &decoder_list);
+diff --git a/drivers/media/IR/ir-rc6-decoder.c b/drivers/media/IR/ir-rc6-decoder.c
+index 2bf479f..9f61da2 100644
+--- a/drivers/media/IR/ir-rc6-decoder.c
++++ b/drivers/media/IR/ir-rc6-decoder.c
+@@ -352,6 +352,7 @@ static int ir_rc6_register(struct input_dev *input_dev)
+ {
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+ 	struct decoder_data *data;
++	u64 ir_type = ir_dev->rc_tab.ir_type;
+ 	int rc;
+ 
+ 	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
+@@ -365,7 +366,8 @@ static int ir_rc6_register(struct input_dev *input_dev)
+ 	}
+ 
+ 	data->ir_dev = ir_dev;
+-	data->enabled = 1;
++	if (ir_type == IR_TYPE_RC6 || ir_type == IR_TYPE_UNKNOWN)
++		data->enabled = 1;
+ 
+ 	spin_lock(&decoder_lock);
+ 	list_add_tail(&data->list, &decoder_list);
+diff --git a/drivers/media/IR/ir-sony-decoder.c b/drivers/media/IR/ir-sony-decoder.c
+index 9f440c5..219075f 100644
+--- a/drivers/media/IR/ir-sony-decoder.c
++++ b/drivers/media/IR/ir-sony-decoder.c
+@@ -245,6 +245,7 @@ static int ir_sony_register(struct input_dev *input_dev)
+ {
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+ 	struct decoder_data *data;
++	u64 ir_type = ir_dev->rc_tab.ir_type;
+ 	int rc;
+ 
+ 	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
+@@ -258,7 +259,8 @@ static int ir_sony_register(struct input_dev *input_dev)
+ 	}
+ 
+ 	data->ir_dev = ir_dev;
+-	data->enabled = 1;
++	if (ir_type == IR_TYPE_SONY || ir_type == IR_TYPE_UNKNOWN)
++		data->enabled = 1;
+ 
+ 	spin_lock(&decoder_lock);
+ 	list_add_tail(&data->list, &decoder_list);
 -- 
-1.7.1
+1.6.5.2
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
