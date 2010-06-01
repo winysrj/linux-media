@@ -1,77 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:36355 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752047Ab0FFMjl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 08:39:41 -0400
-Date: Sun, 6 Jun 2010 14:43:02 +0200
-From: Richard Zidlicky <rz@linux-m68k.org>
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [PATCH 2.6.34] schedule inside spin_lock_irqsave
-Message-ID: <20100606124302.GA10119@linux-m68k.org>
-References: <20100530145240.GA21559@linux-m68k.org> <4C028336.8030704@gmail.com>
-MIME-Version: 1.0
+Received: from lo.gmane.org ([80.91.229.12]:58845 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751282Ab0FAQkh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jun 2010 12:40:37 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1OJUW3-0004Je-S9
+	for linux-media@vger.kernel.org; Tue, 01 Jun 2010 18:40:35 +0200
+Received: from 151.82.2.202 ([151.82.2.202])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 01 Jun 2010 18:40:35 +0200
+Received: from francescolavra by 151.82.2.202 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 01 Jun 2010 18:40:35 +0200
+To: linux-media@vger.kernel.org
+From: Francesco Lavra <francescolavra@interfree.it>
+Subject: Re: 2.6.35-rc1 fails to boot: OOPS in =?utf-8?b?aXJfcmVnaXN0ZXJfY2xhc3M=?=
+Date: Tue, 1 Jun 2010 16:40:26 +0000 (UTC)
+Message-ID: <loom.20100601T183044-479@post.gmane.org>
+References: <201006010847.34422.martin.dauskardt@gmx.de>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C028336.8030704@gmail.com>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Martin Dauskardt <martin.dauskardt <at> gmx.de> writes:
 
-I have done a minimaly invasive patch for the stable 2.6.34 kernel and stress-tested 
-it for many hours, definitely seems to improve the behaviour.
+> 
+> It's sad that this bug has gone into 2.6.35-rc1.
+> 
+> I already reported it on 24.05.2010: 
+> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/19564/
+> Unfortunately it didn't get any attention, which makes me a little bit
+depressive...
+> 
+> What is the right way to report bugs if code is still in linux-next, but not
+in a release candidate? 
+> Should I make an entry in https://bugzilla.kernel.org/? 
+> Or ist this list the right place to report it?
 
-I have left out your beautification suggestion for now, want to do more playing with
-other aspects of the driver. There still seem to be issues when the device is unplugged 
-while in use and such.
+This list is the right place to report such bugs.
+If in your report you had said the problem was present in linux-next, I think
+this bug would have gotten more attention and wouldn't have made it to
+2.6.35-rc1 :)
 
---- linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c.rz	2010-06-03 21:58:11.000000000 +0200
-+++ linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c	2010-06-04 23:00:35.000000000 +0200
-@@ -1100,31 +1100,26 @@
-  *
-  * @return pointer to descriptor on success, NULL on error.
-  */
--struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
-+
-+struct smscore_buffer_t *get_entry(void)
- {
- 	struct smscore_buffer_t *cb = NULL;
- 	unsigned long flags;
- 
--	DEFINE_WAIT(wait);
--
- 	spin_lock_irqsave(&coredev->bufferslock, flags);
--
--	/* This function must return a valid buffer, since the buffer list is
--	 * finite, we check that there is an available buffer, if not, we wait
--	 * until such buffer become available.
--	 */
--
--	prepare_to_wait(&coredev->buffer_mng_waitq, &wait, TASK_INTERRUPTIBLE);
--
--	if (list_empty(&coredev->buffers))
--		schedule();
--
--	finish_wait(&coredev->buffer_mng_waitq, &wait);
--
-+	if (!list_empty(&coredev->buffers)) {
- 	cb = (struct smscore_buffer_t *) coredev->buffers.next;
- 	list_del(&cb->entry);
--
-+	}
- 	spin_unlock_irqrestore(&coredev->bufferslock, flags);
-+	return cb;
-+}
-+
-+struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
-+{
-+	struct smscore_buffer_t *cb = NULL;
-+
-+	wait_event(coredev->buffer_mng_waitq, (cb = get_entry()));
- 
- 	return cb;
- }
+Francesco
 
 
-Richard
