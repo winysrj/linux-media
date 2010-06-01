@@ -1,48 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32559 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755693Ab0FIHte (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 9 Jun 2010 03:49:34 -0400
-Message-ID: <4C0F47FD.7020505@redhat.com>
-Date: Wed, 09 Jun 2010 09:51:25 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Balint Reczey <balint@balintreczey.hu>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] libv4l1: support up to 256 different frame sizes
-References: <1276018618-12162-1-git-send-email-balint@balintreczey.hu>
-In-Reply-To: <1276018618-12162-1-git-send-email-balint@balintreczey.hu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:56931 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754678Ab0FAW5v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 18:57:51 -0400
+Received: by mail-ww0-f46.google.com with SMTP id 28so2464375wwb.19
+        for <linux-media@vger.kernel.org>; Tue, 01 Jun 2010 15:57:51 -0700 (PDT)
+Subject: [PATCH 2/6] gspca - gl860: setting changes applied after an EOI
+From: Olivier Lorin <olorin75@gmail.com>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Cc: Jean-Francois Moine <moinejf@free.fr>
+Content-Type: text/plain
+Date: Wed, 02 Jun 2010 00:57:48 +0200
+Message-Id: <1275433068.20756.100.camel@miniol>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+gspca - gl860: setting changes applied after an EOI
 
-Thanks for the patch I've applied it to the v4l-utils tree.
+From: Olivier Lorin <o.lorin@laposte.net>
 
-Regards,
+- Setting changes applied after an end of image marker reception
+  This is the way MI2020 sensor works.
+  It seems to be logical to wait for a complete image before 
+  to change a setting.
 
-Hans
+Priority: normal
+
+Signed-off-by: Olivier Lorin <o.lorin@laposte.net>
+
+diff -urpN i1/gl860.c gl860/gl860.c
+--- i1/gl860.c	2010-06-01 23:26:22.000000000 +0200
++++ gl860/gl860.c	2010-06-01 23:11:26.000000000 +0200
+@@ -63,7 +63,7 @@ static int sd_set_##thename(struct gspca
+ \
+ 	sd->vcur.thename = val;\
+ 	if (gspca_dev->streaming)\
+-		sd->dev_camera_settings(gspca_dev);\
++		sd->waitSet = 1;\
+ 	return 0;\
+ } \
+ static int sd_get_##thename(struct gspca_dev *gspca_dev, s32 *val)\
 
 
-On 06/08/2010 07:36 PM, Balint Reczey wrote:
-> Logitech, Inc. Webcam Pro 9000 supports 18 wich is more than the the originally
-> supported 16. 256 should be enough for a while.
-> ---
->   lib/libv4lconvert/libv4lconvert-priv.h |    2 +-
->   1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
-> index 6e880f8..b3e4c4e 100644
-> --- a/lib/libv4lconvert/libv4lconvert-priv.h
-> +++ b/lib/libv4lconvert/libv4lconvert-priv.h
-> @@ -29,7 +29,7 @@
->   #define ARRAY_SIZE(x) ((int)sizeof(x)/(int)sizeof((x)[0]))
->
->   #define V4LCONVERT_ERROR_MSG_SIZE 256
-> -#define V4LCONVERT_MAX_FRAMESIZES 16
-> +#define V4LCONVERT_MAX_FRAMESIZES 256
->
->   #define V4LCONVERT_ERR(...) \
->   	snprintf(data->error_msg, V4LCONVERT_ERROR_MSG_SIZE, \
