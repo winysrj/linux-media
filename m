@@ -1,53 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:56321 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752262Ab0FWMpz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jun 2010 08:45:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Nils Radtke <lkml@think-future.de>
-Subject: Re: [2.6.33.4 PATCH] V4L/uvcvideo: Add support for Suyin Corp. Lenovo Webcam
-Date: Wed, 23 Jun 2010 14:45:53 +0200
-Cc: laurent.pinchart@skynet.be, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-usb@vger.kernel.org,
-	"Greg Kroah-Hartman" <gregkh@suse.de>, stable@kernel.org
-References: <20100623092316.GA13364@localhost>
-In-Reply-To: <20100623092316.GA13364@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:2322 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753328Ab0FAIjs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jun 2010 04:39:48 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o518dlZX022315
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 1 Jun 2010 04:39:47 -0400
+Message-ID: <4C04C7BF.4020701@redhat.com>
+Date: Tue, 01 Jun 2010 10:41:35 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: huzaifas@redhat.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] libv4l1: Move VIDIOCGFBUF into libv4l1
+References: <1275293008-3261-1-git-send-email-huzaifas@redhat.com>
+In-Reply-To: <1275293008-3261-1-git-send-email-huzaifas@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201006231445.54883.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Nils,
+Hi,
 
-On Wednesday 23 June 2010 11:23:16 Nils Radtke wrote:
-> From: Nils Radtke <lkml@Think-Future.de>
-> 
-> This patch adds support for the Suyin Corp. Lenovo Webcam.
-> lsusb: ID 064e:a102 Suyin Corp. Lenovo Webcam
-> 
-> It is available as built-in webcam i.e. in ACER timeline 1810t
-> notebooks.
-> 
-> The note in uvc_driver.c about Logitech cameras applies the same
-> to the Suyin web cam: it doesn't announce itself as UVC devices
-> but is compliant.
-> 
-> Signed-off-by: Nils Radtke <lkml@Think-Future.de>
+Thanks, I've applied your patch with one small fix,
+The else block at the end of was wrongly indented
+(one indent level too much) It is the else for the first if, not the second.
+Note the first if has a { at the end of the line, and the second does not,
+and the else starts with a }.
 
-Thanks for the patch. Could you please send me the output of lsusb -v for your 
-camera, as well as the raw binary descriptors ? You can retrieve the later 
-with
-
-cat /proc/bus/usb/xxx/yyy
-
-Replace xxx with the device bus number, and yyy with the device number. Both 
-can be retrieved from /proc/bus/usb/devices.
-
--- 
 Regards,
 
-Laurent Pinchart
+Hans
+
+
+On 05/31/2010 10:03 AM, huzaifas@redhat.com wrote:
+> From: Huzaifa Sidhpurwala<huzaifas@fedora-12.(none)>
+>
+> Move VIDIOCGFBUF into libv4l1
+>
+> Signed-off-by: Huzaifa Sidhpurwala<huzaifas@redhat.com>
+> ---
+>   lib/libv4l1/libv4l1.c |   45 +++++++++++++++++++++++++++++++++++++++++++++
+>   1 files changed, 45 insertions(+), 0 deletions(-)
+>
+> diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
+> index e13feba..5b2dc29 100644
+> --- a/lib/libv4l1/libv4l1.c
+> +++ b/lib/libv4l1/libv4l1.c
+> @@ -804,6 +804,51 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
+>   		break;
+>   	}
+>
+> +	case VIDIOCGFBUF: {
+> +		struct video_buffer *buffer = arg;
+> +		struct v4l2_framebuffer fbuf = { 0, };
+> +
+> +		result = v4l2_ioctl(fd, VIDIOC_G_FBUF, buffer);
+> +		if (result<  0)
+> +			break;
+> +
+> +		buffer->base = fbuf.base;
+> +		buffer->height = fbuf.fmt.height;
+> +		buffer->width = fbuf.fmt.width;
+> +
+> +		switch (fbuf.fmt.pixelformat) {
+> +		case V4L2_PIX_FMT_RGB332:
+> +			buffer->depth = 8;
+> +			break;
+> +		case V4L2_PIX_FMT_RGB555:
+> +			buffer->depth = 15;
+> +			break;
+> +		case V4L2_PIX_FMT_RGB565:
+> +			buffer->depth = 16;
+> +			break;
+> +		case V4L2_PIX_FMT_BGR24:
+> +			buffer->depth = 24;
+> +			break;
+> +		case V4L2_PIX_FMT_BGR32:
+> +			buffer->depth = 32;
+> +			break;
+> +		default:
+> +			buffer->depth = 0;
+> +		}
+> +
+> +		if (fbuf.fmt.bytesperline) {
+> +			buffer->bytesperline = fbuf.fmt.bytesperline;
+> +			if (!buffer->depth&&  buffer->width)
+> +				buffer->depth = ((fbuf.fmt.bytesperline<<3)
+> +						+ (buffer->width-1))
+> +						/ buffer->width;
+> +			} else {
+> +				buffer->bytesperline =
+> +					(buffer->width * buffer->depth + 7)&  7;
+> +				buffer->bytesperline>>= 3;
+> +			}
+> +	}
+> +
+>   	default:
+>   		/* Pass through libv4l2 for applications which are using v4l2 through
+>   		   libv4l1 (this can happen with the v4l1compat.so wrapper preloaded */
