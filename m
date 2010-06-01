@@ -1,151 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5644 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:54745 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932425Ab0FEAVW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jun 2010 20:21:22 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o550LM3P011183
+	id S1753279Ab0FAIoZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 1 Jun 2010 04:44:25 -0400
+Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o518iPkb015816
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 20:21:22 -0400
-Received: from pedra (vpn-10-9.rdu.redhat.com [10.11.10.9])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o550LI7k015252
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 20:21:21 -0400
-Date: Fri, 4 Jun 2010 21:21:07 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3/6] tm6000-alsa: rework audio buffer
- allocation/deallocation
-Message-ID: <20100604212107.3b9e8a1b@pedra>
-In-Reply-To: <cover.1275696910.git.mchehab@redhat.com>
-References: <cover.1275696910.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	for <linux-media@vger.kernel.org>; Tue, 1 Jun 2010 04:44:25 -0400
+Message-ID: <4C04C7DC.6050403@redhat.com>
+Date: Tue, 01 Jun 2010 14:12:04 +0530
+From: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+MIME-Version: 1.0
+To: Hans de Goede <hdegoede@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] libv4l1: Move VIDIOCGFBUF into libv4l1
+References: <1275293008-3261-1-git-send-email-huzaifas@redhat.com> <4C04C7BF.4020701@redhat.com>
+In-Reply-To: <4C04C7BF.4020701@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-diff --git a/drivers/staging/tm6000/tm6000-alsa.c b/drivers/staging/tm6000/tm6000-alsa.c
-index 8520434..ca9aec5 100644
---- a/drivers/staging/tm6000/tm6000-alsa.c
-+++ b/drivers/staging/tm6000/tm6000-alsa.c
-@@ -15,6 +15,7 @@
- #include <linux/device.h>
- #include <linux/interrupt.h>
- #include <linux/usb.h>
-+#include <linux/vmalloc.h>
- 
- #include <asm/delay.h>
- #include <sound/core.h>
-@@ -105,19 +106,39 @@ static int _tm6000_stop_audio_dma(struct snd_tm6000_card *chip)
- 	return 0;
- }
- 
--static int dsp_buffer_free(struct snd_tm6000_card *chip)
-+static void dsp_buffer_free(struct snd_pcm_substream *substream)
- {
--	BUG_ON(!chip->bufsize);
-+	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
- 
- 	dprintk(2, "Freeing buffer\n");
- 
--	/* FIXME: Frees buffer */
-+	vfree(substream->runtime->dma_area);
-+	substream->runtime->dma_area = NULL;
-+	substream->runtime->dma_bytes = 0;
-+}
-+
-+static int dsp_buffer_alloc(struct snd_pcm_substream *substream, int size)
-+{
-+	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
-+
-+	dprintk(2, "Allocating buffer\n");
- 
--	chip->bufsize = 0;
-+	if (substream->runtime->dma_area) {
-+		if (substream->runtime->dma_bytes > size)
-+			return 0;
-+		dsp_buffer_free(substream);
-+	}
- 
--       return 0;
-+	substream->runtime->dma_area = vmalloc(size);
-+	if (!substream->runtime->dma_area)
-+		return -ENOMEM;
-+
-+	substream->runtime->dma_bytes = size;
-+
-+	return 0;
- }
- 
-+
- /****************************************************************************
- 				ALSA PCM Interface
-  ****************************************************************************/
-@@ -184,23 +205,13 @@ static int snd_tm6000_close(struct snd_pcm_substream *substream)
- static int snd_tm6000_hw_params(struct snd_pcm_substream *substream,
- 			      struct snd_pcm_hw_params *hw_params)
- {
--	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
-+	int size, rc;
- 
--	if (substream->runtime->dma_area) {
--		dsp_buffer_free(chip);
--		substream->runtime->dma_area = NULL;
--	}
--
--	chip->period_size = params_period_bytes(hw_params);
--	chip->num_periods = params_periods(hw_params);
--	chip->bufsize = chip->period_size * params_periods(hw_params);
--
--	BUG_ON(!chip->bufsize);
--
--	dprintk(1, "Setting buffer\n");
--
--	/* FIXME: Allocate buffer for audio */
-+	size = params_period_bytes(hw_params) * params_periods(hw_params);
- 
-+	rc = dsp_buffer_alloc(substream, size);
-+	if (rc < 0)
-+		return rc;
- 
- 	return 0;
- }
-@@ -210,13 +221,7 @@ static int snd_tm6000_hw_params(struct snd_pcm_substream *substream,
-  */
- static int snd_tm6000_hw_free(struct snd_pcm_substream *substream)
- {
--
--	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
--
--	if (substream->runtime->dma_area) {
--		dsp_buffer_free(chip);
--		substream->runtime->dma_area = NULL;
--	}
-+	dsp_buffer_free(substream);
- 
- 	return 0;
- }
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index 18d1e51..a1d96d6 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -136,11 +136,7 @@ struct snd_tm6000_card {
- 	struct snd_card			*card;
- 	spinlock_t			reg_lock;
- 	atomic_t			count;
--	unsigned int			period_size;
--	unsigned int			num_periods;
- 	struct tm6000_core		*core;
--	struct tm6000_buffer		*buf;
--	int				bufsize;
- 	struct snd_pcm_substream	*substream;
- };
- 
--- 
-1.7.1
+Hans de Goede wrote:
+> Hi,
+> 
+> Thanks, I've applied your patch with one small fix,
+> The else block at the end of was wrongly indented
+> (one indent level too much) It is the else for the first if, not the
+> second.
+> Note the first if has a { at the end of the line, and the second does not,
+> and the else starts with a }.
+> 
+Cool , i wonder why checkpatch.pl did not catch it :)
+> Regards,
+> 
+> Hans
+> 
+> 
+> On 05/31/2010 10:03 AM, huzaifas@redhat.com wrote:
+>> From: Huzaifa Sidhpurwala<huzaifas@fedora-12.(none)>
+>>
+>> Move VIDIOCGFBUF into libv4l1
+>>
+>> Signed-off-by: Huzaifa Sidhpurwala<huzaifas@redhat.com>
+>> ---
+>>   lib/libv4l1/libv4l1.c |   45
+>> +++++++++++++++++++++++++++++++++++++++++++++
+>>   1 files changed, 45 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
+>> index e13feba..5b2dc29 100644
+>> --- a/lib/libv4l1/libv4l1.c
+>> +++ b/lib/libv4l1/libv4l1.c
+>> @@ -804,6 +804,51 @@ int v4l1_ioctl(int fd, unsigned long int request,
+>> ...)
+>>           break;
+>>       }
+>>
+>> +    case VIDIOCGFBUF: {
+>> +        struct video_buffer *buffer = arg;
+>> +        struct v4l2_framebuffer fbuf = { 0, };
+>> +
+>> +        result = v4l2_ioctl(fd, VIDIOC_G_FBUF, buffer);
+>> +        if (result<  0)
+>> +            break;
+>> +
+>> +        buffer->base = fbuf.base;
+>> +        buffer->height = fbuf.fmt.height;
+>> +        buffer->width = fbuf.fmt.width;
+>> +
+>> +        switch (fbuf.fmt.pixelformat) {
+>> +        case V4L2_PIX_FMT_RGB332:
+>> +            buffer->depth = 8;
+>> +            break;
+>> +        case V4L2_PIX_FMT_RGB555:
+>> +            buffer->depth = 15;
+>> +            break;
+>> +        case V4L2_PIX_FMT_RGB565:
+>> +            buffer->depth = 16;
+>> +            break;
+>> +        case V4L2_PIX_FMT_BGR24:
+>> +            buffer->depth = 24;
+>> +            break;
+>> +        case V4L2_PIX_FMT_BGR32:
+>> +            buffer->depth = 32;
+>> +            break;
+>> +        default:
+>> +            buffer->depth = 0;
+>> +        }
+>> +
+>> +        if (fbuf.fmt.bytesperline) {
+>> +            buffer->bytesperline = fbuf.fmt.bytesperline;
+>> +            if (!buffer->depth&&  buffer->width)
+>> +                buffer->depth = ((fbuf.fmt.bytesperline<<3)
+>> +                        + (buffer->width-1))
+>> +                        / buffer->width;
+>> +            } else {
+>> +                buffer->bytesperline =
+>> +                    (buffer->width * buffer->depth + 7)&  7;
+>> +                buffer->bytesperline>>= 3;
+>> +            }
+>> +    }
+>> +
+>>       default:
+>>           /* Pass through libv4l2 for applications which are using
+>> v4l2 through
+>>              libv4l1 (this can happen with the v4l1compat.so wrapper
+>> preloaded */
 
 
+- --
+Regards,
+Huzaifa Sidhpurwala, RHCE, CCNA (IRC: huzaifas)
+IT Desktop R&D Lead.
+Global Help Desk, Pune (India)
+Phone: +91 20 4005 7322 (UTC +5.5)
+
+GnuPG Fingerprint:
+3A0F DAFB 9279 02ED 273B FFE9 CC70 DCF2 DA5B DAE5
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.5 (GNU/Linux)
+Comment: Using GnuPG with Red Hat - http://enigmail.mozdev.org/
+
+iD8DBQFMBMfbzHDc8tpb2uURAtJ0AKCPnWfPn3UEdPTxz2n9AJJw4+YzwACgmcvp
+TH5SM8YvgsiO66KOwspLk5k=
+=yvT4
+-----END PGP SIGNATURE-----
