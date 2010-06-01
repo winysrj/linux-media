@@ -1,117 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bamako.nerim.net ([62.4.17.28]:59731 "EHLO bamako.nerim.net"
+Received: from mx1.redhat.com ([209.132.183.28]:17520 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751219Ab0FHIBF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jun 2010 04:01:05 -0400
-Date: Tue, 8 Jun 2010 10:01:00 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Linux I2C <linux-i2c@vger.kernel.org>,
-	LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 2/2] V4L/DVB: Use custom I2C probing function mechanism
-Message-ID: <20100608100100.35bdae0f@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1753083Ab0FAD7E (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 31 May 2010 23:59:04 -0400
+Message-ID: <4C048593.7010105@redhat.com>
+Date: Tue, 01 Jun 2010 00:59:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Luis Henrique Fagundes <lhfagundes@hacklab.com.br>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 audio urb
+References: <AANLkTikHJfHDnSdX-TqHR9ZU4J6KRqS5vVgB9D0LynZC@mail.gmail.com>
+In-Reply-To: <AANLkTikHJfHDnSdX-TqHR9ZU4J6KRqS5vVgB9D0LynZC@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that i2c-core offers the possibility to provide custom probing
-function for I2C devices, let's make use of it.
+Em 31-05-2010 19:22, Luis Henrique Fagundes escreveu:
+> Hi,
+> 
+> I'm having my first adventures on driver coding, trying to help audio
+> development of tm6000 based on Mauro's hints.
+> 
+> According to Mauro and coding comments, the audio URBs are already
+> being received by tm6000-video. The copy_packet function correctly
+> filters video packets (identified as cmd=1, extracted from header) and
+> the tm6000_msg_type array suggests that the cmd=2 would be the audio
+> packets. I logged all packets not being copied to video buffer and
+> realized that the only packets remaining have been identified as
+> cmd=4, which is supposedly type "pts".
+> 
+> For me it looks like either the cmd=4 type is audio, or the audio is
+> not really being received. Does this make sense?
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/i2c/i2c-core.c                    |    7 +++++++
- drivers/media/video/cx23885/cx23885-i2c.c |   15 ++++-----------
- drivers/media/video/cx88/cx88-i2c.c       |   19 ++++---------------
- include/linux/i2c.h                       |    3 +++
- 4 files changed, 18 insertions(+), 26 deletions(-)
+Luis Henrique,
 
---- linux-2.6.35-rc2.orig/drivers/media/video/cx23885/cx23885-i2c.c	2010-06-07 16:12:38.000000000 +0200
-+++ linux-2.6.35-rc2/drivers/media/video/cx23885/cx23885-i2c.c	2010-06-08 09:17:06.000000000 +0200
-@@ -365,17 +365,10 @@ int cx23885_i2c_register(struct cx23885_
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
--		/*
--		 * We can't call i2c_new_probed_device() because it uses
--		 * quick writes for probing and the IR receiver device only
--		 * replies to reads.
--		 */
--		if (i2c_smbus_xfer(&bus->i2c_adap, addr_list[0], 0,
--				   I2C_SMBUS_READ, 0, I2C_SMBUS_QUICK,
--				   NULL) >= 0) {
--			info.addr = addr_list[0];
--			i2c_new_device(&bus->i2c_adap, &info);
--		}
-+		/* Use quick read command for probe, some IR chips don't
-+		 * support writes */
-+		i2c_new_probed_device(&bus->i2c_adap, &info, addr_list,
-+				      i2c_probe_func_quick_read);
- 	}
- 
- 	return bus->i2c_rc;
---- linux-2.6.35-rc2.orig/drivers/media/video/cx88/cx88-i2c.c	2010-06-07 16:12:38.000000000 +0200
-+++ linux-2.6.35-rc2/drivers/media/video/cx88/cx88-i2c.c	2010-06-08 09:17:06.000000000 +0200
-@@ -188,24 +188,13 @@ int cx88_i2c_init(struct cx88_core *core
- 			0x18, 0x6b, 0x71,
- 			I2C_CLIENT_END
- 		};
--		const unsigned short *addrp;
- 
- 		memset(&info, 0, sizeof(struct i2c_board_info));
- 		strlcpy(info.type, "ir_video", I2C_NAME_SIZE);
--		/*
--		 * We can't call i2c_new_probed_device() because it uses
--		 * quick writes for probing and at least some R receiver
--		 * devices only reply to reads.
--		 */
--		for (addrp = addr_list; *addrp != I2C_CLIENT_END; addrp++) {
--			if (i2c_smbus_xfer(&core->i2c_adap, *addrp, 0,
--					   I2C_SMBUS_READ, 0,
--					   I2C_SMBUS_QUICK, NULL) >= 0) {
--				info.addr = *addrp;
--				i2c_new_device(&core->i2c_adap, &info);
--				break;
--			}
--		}
-+		/* Use quick read command for probe, some IR chips don't
-+		 * support writes */
-+		i2c_new_probed_device(&core->i2c_adap, &info, addr_list,
-+				      i2c_probe_func_quick_read);
- 	}
- 	return core->i2c_rc;
- }
---- linux-2.6.35-rc2.orig/drivers/i2c/i2c-core.c	2010-06-07 16:12:38.000000000 +0200
-+++ linux-2.6.35-rc2/drivers/i2c/i2c-core.c	2010-06-08 09:17:06.000000000 +0200
-@@ -1453,6 +1453,13 @@ static int i2c_detect(struct i2c_adapter
- 	return err;
- }
- 
-+int i2c_probe_func_quick_read(struct i2c_adapter *adap, unsigned short addr)
-+{
-+	return i2c_smbus_xfer(adap, addr, 0, I2C_SMBUS_READ, 0,
-+			      I2C_SMBUS_QUICK, NULL) >= 0;
-+}
-+EXPORT_SYMBOL_GPL(i2c_probe_func_quick_read);
-+
- struct i2c_client *
- i2c_new_probed_device(struct i2c_adapter *adap,
- 		      struct i2c_board_info *info,
---- linux-2.6.35-rc2.orig/include/linux/i2c.h	2010-06-07 16:15:10.000000000 +0200
-+++ linux-2.6.35-rc2/include/linux/i2c.h	2010-06-08 09:19:07.000000000 +0200
-@@ -292,6 +292,9 @@ i2c_new_probed_device(struct i2c_adapter
- 		      unsigned short const *addr_list,
- 		      int (*probe)(struct i2c_adapter *, unsigned short addr));
- 
-+/* Common custom probe functions */
-+extern int i2c_probe_func_quick_read(struct i2c_adapter *, unsigned short addr);
-+
- /* For devices that use several addresses, use i2c_new_dummy() to make
-  * client handles for the extra addresses.
-  */
+The audio type is correct. You should notice that some logic is needed to enable
+audio at tm6000. For example, you'll see this code at tm6000-alsa:
 
 
--- 
-Jean Delvare
+static int _tm6000_start_audio_dma(struct snd_tm6000_card *chip)
+{
+	struct tm6000_core *core = chip->core;
+	int val;
+
+	/* Enables audio */
+	val = tm6000_get_reg(core, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, 0x0);
+	val |= 0x20;
+	tm6000_set_reg(core, TM6010_REQ07_RCC_ACTIVE_VIDEO_IF, val);
+
+	tm6000_set_reg(core, TM6010_REQ08_R01_A_INIT, 0x80);
+
+	return 0;
+}
+
+You'll also see this at tm6000-core:
+
+	tm6000_set_audio_bitrate (dev,48000);
+
+...
+
+
+int tm6000_set_audio_bitrate(struct tm6000_core *dev, int bitrate)
+{
+	int val;
+
+	val=tm6000_get_reg (dev, REQ_07_SET_GET_AVREG, 0xeb, 0x0);
+printk("Original value=%d\n",val);
+	if (val<0)
+		return val;
+
+	val &= 0x0f;		/* Preserve the audio input control bits */
+	switch (bitrate) {
+	case 44100:
+		val|=0xd0;
+		dev->audio_bitrate=bitrate;
+		break;
+	case 48000:
+		val|=0x60;
+		dev->audio_bitrate=bitrate;
+		break;
+	}
+	val=tm6000_set_reg (dev, REQ_07_SET_GET_AVREG, 0xeb, val);
+
+	return val;
+}
+
+You need to double check if the enabling stuff is properly called
+at the right place.
+
+I'm sure that, before adding tm6010 support, audio packages got received.
+Eventually, some new patches to add support for tm6010 might have broken
+the reception of audio packages.
+
+So, I suggest that you should play with those routines and review the
+git backlog to get what's going wrong.
+
+> 
+> Luis
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Cheers,
+Mauro.
