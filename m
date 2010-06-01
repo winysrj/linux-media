@@ -1,67 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor.suse.de ([195.135.220.2]:32813 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754781Ab0FPP4Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jun 2010 11:56:25 -0400
-Date: Wed, 16 Jun 2010 17:56:23 +0200 (CEST)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Dan Carpenter <error27@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Antti Palosaari <crope@iki.fi>,
-	=?ISO-8859-15?Q?Andr=E9_Goddard_Rosa?= <andre.goddard@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] V4L/DVB: remove unneeded null check in anysee_probe()
-In-Reply-To: <20100531192632.GZ5483@bicker>
-Message-ID: <alpine.LNX.2.00.1006161755560.12271@pobox.suse.cz>
-References: <20100531192632.GZ5483@bicker>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38463 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752882Ab0FARN4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 13:13:56 -0400
+Date: Tue, 1 Jun 2010 19:17:10 +0200
+From: Richard Zidlicky <rz@linux-m68k.org>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: schedule inside spin_lock_irqsave?
+Message-ID: <20100601171710.GA5176@linux-m68k.org>
+References: <20100530145240.GA21559@linux-m68k.org> <4C028336.8030704@gmail.com> <4C0284FF.4080707@gmail.com> <20100530145240.GA21559@linux-m68k.org> <4C028336.8030704@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4C0284FF.4080707@gmail.com> <4C028336.8030704@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 31 May 2010, Dan Carpenter wrote:
+On Sun, May 30, 2010 at 05:24:38PM +0200, Jiri Slaby wrote:
 
-> Smatch complained because "d" is dereferenced first and then checked for
-> null later .  The only code path where "d" could be a invalid pointer is
-> if this is a cold device in dvb_usb_device_init().  I consulted Antti 
-> Palosaari and he explained that anysee is always a warm device.
+Hi,
+
+> > came across following snippet of code (2.6.34:drivers/media/dvb/siano/smscoreapi.c) and 
+
+...
+...
+...
+
+> This should be
+> wait_event(&coredev->buffer_mng_waitq, cb = get_entry());
+> with get_entry like:
+> struct smscore_buffer_t *get_entry(void)
+> {
+>   struct smscore_buffer_t *cb = NULL;
+>   spin_lock_irqsave(&coredev->bufferslock, flags);
+>   if (!list_empty(&coredev->buffers)) {
+>     cb = (struct smscore_buffer_t *) coredev->buffers.next;
+>     list_del(&cb->entry);
+>   }
+>   spin_unlock_irqrestore(&coredev->bufferslock, flags);
+>   return cb;
+> }
+
+...
+...
+...
+
+
 > 
-> I have added a comment and removed the unneeded null check.
+> Looking at the smscore_buffer_t definition, this is really ugly since it
+> relies on entry being the first in the structure. It should be
+> list_first_entry(&coredev->buffers, ...) instead, cast-less.
 > 
-> Signed-off-by: Dan Carpenter <error27@gmail.com>
-> 
-> diff --git a/drivers/media/dvb/dvb-usb/anysee.c b/drivers/media/dvb/dvb-usb/anysee.c
-> index faca1ad..aa5c7d5 100644
-> --- a/drivers/media/dvb/dvb-usb/anysee.c
-> +++ b/drivers/media/dvb/dvb-usb/anysee.c
-> @@ -463,6 +463,11 @@ static int anysee_probe(struct usb_interface *intf,
->  	if (intf->num_altsetting < 1)
->  		return -ENODEV;
->  
-> +	/*
-> +	 * Anysee is always warm (its USB-bridge, Cypress FX2, uploads
-> +	 * firmware from eeprom).  If dvb_usb_device_init() succeeds that
-> +	 * means d is a valid pointer.
-> +	 */
->  	ret = dvb_usb_device_init(intf, &anysee_properties, THIS_MODULE, &d,
->  		adapter_nr);
->  	if (ret)
-> @@ -479,10 +484,7 @@ static int anysee_probe(struct usb_interface *intf,
->  	if (ret)
->  		return ret;
->  
-> -	if (d)
-> -		ret = anysee_init(d);
-> -
-> -	return ret;
-> +	return anysee_init(d);
+> >     list_del(&cb->entry);
+> >   }
+> >   spin_unlock_irqrestore(&coredev->bufferslock, flags);
+> >   return cb;
+> > }
 
-Doesn't seem to be present in linux-next as of today. Mauro, will you 
-take it?
-Or I can take it if you ack it.
+thanks for the suggestions, is it on anyones TODO list or should I cook up my own patch? 
+Would take a few more days till I can get at it.
 
-Thanks,
+BTW does anyone have knowledge how to enable IR receiver code for the smsxxx devices? 
+Looks like its just the matter of setting sms_board_gpio_cfg.ir to the "right" value
+- which value?
 
--- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+Richard
