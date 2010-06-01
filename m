@@ -1,140 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.tkos.co.il ([62.219.50.35]:35012 "EHLO tango.tkos.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752513Ab0FUFQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 01:16:53 -0400
-From: Baruch Siach <baruch@tkos.co.il>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCHv4 3/3] mx25: add support for the CSI device
-Date: Mon, 21 Jun 2010 08:16:00 +0300
-Message-Id: <36c9db771cd895d7bbfe422fbd910dc9bf211219.1277096909.git.baruch@tkos.co.il>
-In-Reply-To: <cover.1277096909.git.baruch@tkos.co.il>
-References: <cover.1277096909.git.baruch@tkos.co.il>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:56931 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754678Ab0FAW6F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 18:58:05 -0400
+Received: by mail-ww0-f46.google.com with SMTP id 28so2464375wwb.19
+        for <linux-media@vger.kernel.org>; Tue, 01 Jun 2010 15:58:04 -0700 (PDT)
+Subject: [PATCH 5/6] gspca - gl860: fix for wrong 0V9655 resolution
+ identifier name
+From: Olivier Lorin <olorin75@gmail.com>
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Cc: Jean-Francois Moine <moinejf@free.fr>
+Content-Type: text/plain
+Date: Wed, 02 Jun 2010 00:58:02 +0200
+Message-Id: <1275433082.20756.103.camel@miniol>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Baruch Siach <baruch@tkos.co.il>
----
- arch/arm/mach-mx25/clock.c            |   14 ++++++++++++--
- arch/arm/mach-mx25/devices.c          |   22 ++++++++++++++++++++++
- arch/arm/mach-mx25/devices.h          |    1 +
- arch/arm/plat-mxc/include/mach/mx25.h |    2 ++
- 4 files changed, 37 insertions(+), 2 deletions(-)
+gspca - gl860: fix for wrong 0V9655 resolution identifier name
 
-diff --git a/arch/arm/mach-mx25/clock.c b/arch/arm/mach-mx25/clock.c
-index 1550149..7a98d18 100644
---- a/arch/arm/mach-mx25/clock.c
-+++ b/arch/arm/mach-mx25/clock.c
-@@ -129,6 +129,11 @@ static unsigned long get_rate_lcdc(struct clk *clk)
- 	return get_rate_per(7);
- }
- 
-+static unsigned long get_rate_csi(struct clk *clk)
-+{
-+	return get_rate_per(0);
-+}
-+
- static unsigned long get_rate_otg(struct clk *clk)
- {
- 	return 48000000; /* FIXME */
-@@ -174,6 +179,8 @@ DEFINE_CLOCK(cspi3_clk,  0, CCM_CGCR1,  7, get_rate_ipg, NULL, NULL);
- DEFINE_CLOCK(fec_ahb_clk, 0, CCM_CGCR0, 23, NULL,	 NULL, NULL);
- DEFINE_CLOCK(lcdc_ahb_clk, 0, CCM_CGCR0, 24, NULL,	 NULL, NULL);
- DEFINE_CLOCK(lcdc_per_clk, 0, CCM_CGCR0,  7, NULL,	 NULL, &lcdc_ahb_clk);
-+DEFINE_CLOCK(csi_ahb_clk, 0, CCM_CGCR0, 18, get_rate_csi, NULL, NULL);
-+DEFINE_CLOCK(csi_per_clk, 0, CCM_CGCR0, 0, get_rate_csi, NULL, &csi_ahb_clk);
- DEFINE_CLOCK(uart1_clk,  0, CCM_CGCR2, 14, get_rate_uart, NULL, &uart_per_clk);
- DEFINE_CLOCK(uart2_clk,  0, CCM_CGCR2, 15, get_rate_uart, NULL, &uart_per_clk);
- DEFINE_CLOCK(uart3_clk,  0, CCM_CGCR2, 16, get_rate_uart, NULL, &uart_per_clk);
-@@ -191,6 +198,7 @@ DEFINE_CLOCK(i2c_clk,	 0, CCM_CGCR0,  6, get_rate_i2c, NULL, NULL);
- DEFINE_CLOCK(fec_clk,	 0, CCM_CGCR1, 15, get_rate_ipg, NULL, &fec_ahb_clk);
- DEFINE_CLOCK(dryice_clk, 0, CCM_CGCR1,  8, get_rate_ipg, NULL, NULL);
- DEFINE_CLOCK(lcdc_clk,	 0, CCM_CGCR1, 29, get_rate_lcdc, NULL, &lcdc_per_clk);
-+DEFINE_CLOCK(csi_clk,    0, CCM_CGCR1,  4, get_rate_csi, NULL,  &csi_per_clk);
- 
- #define _REGISTER_CLOCK(d, n, c)	\
- 	{				\
-@@ -225,6 +233,7 @@ static struct clk_lookup lookups[] = {
- 	_REGISTER_CLOCK("fec.0", NULL, fec_clk)
- 	_REGISTER_CLOCK("imxdi_rtc.0", NULL, dryice_clk)
- 	_REGISTER_CLOCK("imx-fb.0", NULL, lcdc_clk)
-+	_REGISTER_CLOCK("mx2-camera.0", NULL, csi_clk)
+From: Olivier Lorin <o.lorin@laposte.net>
+
+- Fix for a wrong OV9655 image resolution identifier name
+
+Priority: normal
+
+Signed-off-by: Olivier Lorin <o.lorin@laposte.net>
+
+diff -urpN i4/gl860-ov9655.c gl860/gl860-ov9655.c
+--- i4/gl860-ov9655.c	2010-06-01 23:18:28.000000000 +0200
++++ gl860/gl860-ov9655.c	2010-04-28 13:39:14.000000000 +0200
+@@ -69,7 +69,7 @@ static u8 *tbl_640[] = {
+ 	"\xd0\x01\xd1\x08\xd2\xe0\xd3\x01" "\xd4\x10\xd5\x80"
  };
  
- int __init mx25_clocks_init(void)
-@@ -239,8 +248,9 @@ int __init mx25_clocks_init(void)
- 	__raw_writel((0xf << 16) | (3 << 26), CRM_BASE + CCM_CGCR1);
- 	__raw_writel((1 << 5), CRM_BASE + CCM_CGCR2);
+-static u8 *tbl_800[] = {
++static u8 *tbl_1280[] = {
+ 	"\x00\x40\x07\x6a\x06\xf3\x0d\x6a" "\x10\x10\xc1\x01"
+ 	,
+ 	"\x12\x80\x00\x00\x01\x98\x02\x80" "\x03\x12\x04\x01\x0b\x57\x0e\x61"
+@@ -217,7 +217,7 @@ static int ov9655_init_post_alt(struct g
  
--	/* Clock source for lcdc is upll */
--	__raw_writel(__raw_readl(CRM_BASE+0x64) | (1 << 7), CRM_BASE + 0x64);
-+	/* Clock source for lcdc and csi is upll */
-+	__raw_writel(__raw_readl(CRM_BASE+0x64) | (1 << 7) | (1 << 0),
-+			CRM_BASE + 0x64);
+ 	ctrl_out(gspca_dev, 0x40, 5, 0x0001, 0x0000, 0, NULL);
  
- 	mxc_timer_init(&gpt_clk, MX25_IO_ADDRESS(MX25_GPT1_BASE_ADDR), 54);
+-	tbl = (reso == IMAGE_640) ? tbl_640 : tbl_800;
++	tbl = (reso == IMAGE_640) ? tbl_640 : tbl_1280;
  
-diff --git a/arch/arm/mach-mx25/devices.c b/arch/arm/mach-mx25/devices.c
-index 3a405fa..cbecbe1 100644
---- a/arch/arm/mach-mx25/devices.c
-+++ b/arch/arm/mach-mx25/devices.c
-@@ -515,3 +515,25 @@ struct platform_device mxc_wdt = {
- 	.num_resources = ARRAY_SIZE(mxc_wdt_resources),
- 	.resource = mxc_wdt_resources,
- };
-+
-+static struct resource mx25_csi_resources[] = {
-+	{
-+		.start	= MX25_CSI_BASE_ADDR,
-+		.end	= MX25_CSI_BASE_ADDR + 0xfff,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	{
-+		.start	= MX25_INT_CSI,
-+		.flags	= IORESOURCE_IRQ
-+	},
-+};
-+
-+struct platform_device mx25_csi_device = {
-+	.name	= "mx2-camera",
-+	.id	= 0,
-+	.num_resources	= ARRAY_SIZE(mx25_csi_resources),
-+	.resource	= mx25_csi_resources,
-+	.dev		= {
-+		.coherent_dma_mask = 0xFFFFFFFF,
-+	},
-+};
-diff --git a/arch/arm/mach-mx25/devices.h b/arch/arm/mach-mx25/devices.h
-index cee12c0..b46f122 100644
---- a/arch/arm/mach-mx25/devices.h
-+++ b/arch/arm/mach-mx25/devices.h
-@@ -22,3 +22,4 @@ extern struct platform_device mxc_nand_device;
- extern struct platform_device mx25_rtc_device;
- extern struct platform_device mx25_fb_device;
- extern struct platform_device mxc_wdt;
-+extern struct platform_device mx25_csi_device;
-diff --git a/arch/arm/plat-mxc/include/mach/mx25.h b/arch/arm/plat-mxc/include/mach/mx25.h
-index 4eb6e33..5e6a8b5 100644
---- a/arch/arm/plat-mxc/include/mach/mx25.h
-+++ b/arch/arm/plat-mxc/include/mach/mx25.h
-@@ -34,11 +34,13 @@
- #define MX25_NFC_BASE_ADDR		0xbb000000
- #define MX25_DRYICE_BASE_ADDR		0x53ffc000
- #define MX25_LCDC_BASE_ADDR		0x53fbc000
-+#define MX25_CSI_BASE_ADDR		0x53ff8000
- 
- #define MX25_INT_DRYICE	25
- #define MX25_INT_FEC	57
- #define MX25_INT_NANDFC	33
- #define MX25_INT_LCDC	39
-+#define MX25_INT_CSI	17
- 
- #if defined(IMX_NEEDS_DEPRECATED_SYMBOLS)
- #define UART1_BASE_ADDR			MX25_UART1_BASE_ADDR
--- 
-1.7.1
+ 	ctrl_out(gspca_dev, 0x40, 3, 0x0000, 0x0200,
+ 			tbl_length[0], tbl[0]);
+
 
