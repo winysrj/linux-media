@@ -1,50 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:33910 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750711Ab0FGNtJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jun 2010 09:49:09 -0400
-Received: by wwe15 with SMTP id 15so407609wwe.19
-        for <linux-media@vger.kernel.org>; Mon, 07 Jun 2010 06:49:08 -0700 (PDT)
+Received: from fg-out-1718.google.com ([72.14.220.154]:50297 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932918Ab0FBWut (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jun 2010 18:50:49 -0400
+Received: by fg-out-1718.google.com with SMTP id l26so1897624fgb.1
+        for <linux-media@vger.kernel.org>; Wed, 02 Jun 2010 15:50:48 -0700 (PDT)
+Content-Type: text/plain; charset=iso-8859-2; format=flowed; delsp=yes
+To: semiRocket <semirocket@gmail.com>,
+	"Davor Emard" <davoremard@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Compro Videomate T750F Vista digital+analog support
+References: <AANLkTikbpZ0LM5rK70abVuJS27j0lT7iZs12DrSKB9wI@mail.gmail.com>
+ <op.vcfoxwnq3xmt7q@crni> <20100509173243.GA8227@z60m> <op.vcga9rw2ndeod6@crni>
+ <20100509231535.GA6334@z60m> <op.vcsntos43xmt7q@crni> <op.vc551isrndeod6@crni>
+ <20100530234817.GA17135@emard.lan> <20100531075214.GA17456@lipa.lan>
+ <op.vdn7g9nj3xmt7q@crni> <20100602182757.GA22171@emard.lan>
+Date: Thu, 03 Jun 2010 00:50:45 +0200
 MIME-Version: 1.0
-In-Reply-To: <4C0CF124.4010103@redhat.com>
-References: <20100607112744.7B3B010FC20F@dd16922.kasserver.com>
-	<4C0CF124.4010103@redhat.com>
-Date: Mon, 7 Jun 2010 09:49:07 -0400
-Message-ID: <AANLkTinisZ5DtH1Izn6WZS8isrF_G3oFZuppoHuwhlUj@mail.gmail.com>
-Subject: Re: v4l-dvb - Is it still usable for a distribution ?
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: vdr@helmutauer.de, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+From: =?iso-8859-2?B?U2FtdWVsIFJha2l0bmnoYW4=?=
+	<samuel.rakitnican@gmail.com>
+Message-ID: <op.vdo22vmundeod6@crni>
+In-Reply-To: <20100602182757.GA22171@emard.lan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 7, 2010 at 9:16 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 07-06-2010 08:27, vdr@helmutauer.de escreveu:
-...
->> Another problem (after fixing the compile issues) is the IR Part of v4l-dvb which includes an Imon module.
->> This module doesn't provide any lirc devices, so how can this oe be used as an IR device ?
+On Wed, 02 Jun 2010 20:27:59 +0200, Davor Emard <davoremard@gmail.com>  
+wrote:
+
+> HI!
 >
-> You don't need lirc to use imon, since it now provides a standard input/event interface. So, the driver
-> currently can be used with lirc event interface, or alone.
-
-See http://wilsonet.com/jarod/imon_stuff/imon-devinput-lirc/ for the
-config I use w/my own imon hardware.
-
->> Til now I am using lirc_imon which fit all my needs.
+> Have you tested my lastest GPIO suggestion, or come up
+> with your own initialization? Does it allow
+> to load firmware without windows booting?
 >
-> Lirc-dev patches are currently being discussed. There are just a few adjustments on it, in order to get it
-> finally merged. The kernel-userspace interface will likely need a few changes, so you'll likely need to update
-> lirc after the merge. Better to follow the IR threads at linux-media ML, in order to be in-tune with the changes.
 
-I've considered adding lirc_dev support back to the imon driver when
-we get it merged, but it really doesn't make a whole lot of sense,
-given that the imon devices do all IR decoding in hardware. As long as
-the keymap is complete, there's no benefit to wiring up lirc_dev vs.
-just using lircd's devinput access method for imon devices.
+Didn't have time to look for gpios, tomorrow I will have. But I can tell  
+that this change is not working for me:
+
+	case SAA7134_BOARD_VIDEOMATE_T750:
+		dev->has_remote = SAA7134_REMOTE_GPIO;
+		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x8082c000, 0x8082c000);
+		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x8082c000, 0x0080c000);
+		break;
+
+> Key namings of the remote must be some from linux input.h
+> I welcome you to change whatever is needed to fit any of your
+> application if current scheme is not suitable. I use VDR whcih
+> can adapt to just anything event layer gives.
+>
+> d.
+
+OK, I'm not having any personal opinion about the keys nor a application  
+which I'm using, I'm just noticed that the keys differ against standard  
+keys defined at linuxtv wiki. But if the keys at wiki are not correct,  
+then perhaps should we change them there and let all use the same keys.
+
+If we have standard keys, than userspace applications programmers can make  
+a use of it and assign the keys to their applications and to have just  
+work experience to their users. But maybe I'm terrible wrong...
 
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Best regards,
+Samuel
