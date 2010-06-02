@@ -1,73 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-11.arcor-online.net ([151.189.21.51]:47923 "EHLO
-	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753168Ab0FYV77 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jun 2010 17:59:59 -0400
-Subject: Re: [PATCH] Terratec Cinergy 250 PCI support
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jean-Michel Grimaldi <jm@via.ecp.fr>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1277423038.4742.9.camel@pc07.localdom.local>
-References: <AANLkTim5-Cc-ijE1U7M1DWSF8hcj8svSH30a0YVM4qv9@mail.gmail.com>
-	 <1277423038.4742.9.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Fri, 25 Jun 2010 23:59:31 +0200
-Message-Id: <1277503171.6256.7.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from comsmtp1.singnet.com.sg ([165.21.101.74]:35207 "EHLO
+	comsmtp1.singnet.com.sg" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756649Ab0FBHRg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jun 2010 03:17:36 -0400
+To: info@unpd.org
+Subject: Final Notification
+Message-ID: <1275462810.4c06049ad3397@arrowana.singnet.com.sg>
+Date: Wed, 02 Jun 2010 15:13:30 +0800 (SGT)
+From: United Nations <infweb591@singnet.com.sg>
+Reply-To: info_unitednations@yahoo.cn
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+United Nations has awarded a prize donation of 950,500.00USD .Provide your information to Dr.Packer Estrada.
 
-Am Freitag, den 25.06.2010, 01:43 +0200 schrieb hermann pitton:
-> Hi, Jean-Michel,
-> 
-> Am Freitag, den 25.06.2010, 00:42 +0200 schrieb Jean-Michel Grimaldi:
-> > Hi, I have a Terratec Cinergy 250 PCI video card, and a small
-> > modification in saa7134-cards.c is needed for it to work. I built the
-> > patch on 2.6.34 version (I sent the modification to the maintainer in
-> > early 2009 but got no feedback):
-> > 
-> > -- saa7134-cards.old.c	2010-06-25 00:31:16.000000000 +0200
-> > +++ saa7134-cards.new.c	2010-06-25 00:30:52.000000000 +0200
-> > @@ -2833,7 +2833,7 @@
-> >  			.tv   = 1,
-> >  		},{
-> >  			.name = name_svideo,  /* NOT tested */
-> > -			.vmux = 8,
-> > +			.vmux = 3,
-> >  			.amux = LINE1,
-> >  		}},
-> >  		.radio = {
-> > 
-> > Thanks for taking it into account in future kernels.
-> > 
-> 
-> hm, don't know who missed it. After Gerd, the main mover on saa7134 was
-> Hartmut, also /me and some well known others cared.
-> 
-> Official maintainer these days is Mauro.
-> 
-> For latest DVB stuff, you also will meet Mike Krufky.
-> 
-> I'm sorry, but your patch is still wrong.
-> 
-> You do have only a Composite signal. S-Video, with separated chroma and
-> luma, can only be on vmux 5-9.
-> 
-> NACKED-by: hermann pitton <hermann-pitton@arcor.de>
+Full Names
+Complete Address
+Age
+Occupation
+Tel
+Country
 
-Jean-Michel,
-
-do you understand?
-
-You need to add the missing Composite inputs instead.
-One of them can be Composite over the S-Video-in connector.
-
-Have a look at other cards in saa7134-cards.c.
-
-Cheers,
-Hermann
-
-
+Email: info_unitednations171@yahoo.cn
+Regards,
+Dr.Packer Estrada.
