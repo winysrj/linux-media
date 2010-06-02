@@ -1,60 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:51581 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752802Ab0FOLie (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jun 2010 07:38:34 -0400
-Date: Tue, 15 Jun 2010 13:38:30 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
-	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
-	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	linux-media@vger.kernel.org,
-	"Justin P. Mattock" <justinmattock@gmail.com>
-Subject: Re: [PATCH 7/8]ieee1394/sdp2 Fix warning: variable
- 'unit_characteristics' set but not used
-Message-ID: <20100615133830.55afdddf@hyperion.delvare>
-In-Reply-To: <1276547208-26569-8-git-send-email-justinmattock@gmail.com>
-References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
-	<1276547208-26569-8-git-send-email-justinmattock@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from [93.89.92.10] ([93.89.92.10]:41038 "EHLO xen2.csldevices.co.uk"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756414Ab0FBRj4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Jun 2010 13:39:56 -0400
+Received: from [212.49.228.51] (helo=[192.168.17.1])
+	by xen2.csldevices.co.uk with esmtp (Exim 4.69)
+	(envelope-from <phil@csldevices.co.uk>)
+	id 1OJrJi-0006we-VW
+	for linux-media@vger.kernel.org; Wed, 02 Jun 2010 18:01:23 +0100
+Message-ID: <4C068E48.6070301@csldevices.co.uk>
+Date: Wed, 02 Jun 2010 18:00:56 +0100
+From: Philip Downer <phil@csldevices.co.uk>
+MIME-Version: 1.0
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Implementing a hardware dvb pid filter
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 14 Jun 2010 13:26:47 -0700, Justin P. Mattock wrote:
-> Temporary fix until something is resolved
+Hi all,
 
-This is wrong by design, sorry. Warnings aren't blocking, and thus need
-no "temporary fix". Such temporary fixes would be only hiding the
-warning, cancelling the good work of gcc developers. Nack nack nack.
+I'm looking to implement a hardware pid filter for a card I'm working 
+on. I've been looking at how other drivers do this however all the 
+drivers I've looked at still seem to call the software filter routines 
+to pass data to user space. For example I've been looking at the flexcop 
+(ie b2c2) driver and whilst that has a hardware filter, the interrupt 
+service routine seems to always call flexcop_pass_dmx_data or 
+flexcop_pass_dmx_packets from dvb/b2c2/flexcop.c which both call 
+dvb_dmx_swfilter_packets or dvb_dmx_swfilter respectively.
 
-> to fix the below warning:
->   CC [M]  drivers/ieee1394/sbp2.o
-> drivers/ieee1394/sbp2.c: In function 'sbp2_parse_unit_directory':
-> drivers/ieee1394/sbp2.c:1353:6: warning: variable 'unit_characteristics' set but not used
->  Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
-> 
-> ---
->  drivers/ieee1394/sbp2.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/ieee1394/sbp2.c b/drivers/ieee1394/sbp2.c
-> index 4565cb5..fcf8bd5 100644
-> --- a/drivers/ieee1394/sbp2.c
-> +++ b/drivers/ieee1394/sbp2.c
-> @@ -1356,6 +1356,8 @@ static void sbp2_parse_unit_directory(struct sbp2_lu *lu,
->  
->  	management_agent_addr = 0;
->  	unit_characteristics = 0;
-> +	if (!unit_characteristics)
-> +		unit_characteristics = 0;
->  	firmware_revision = SBP2_ROM_VALUE_MISSING;
->  	model = ud->flags & UNIT_DIRECTORY_MODEL_ID ?
->  				ud->model_id : SBP2_ROM_VALUE_MISSING;
+I had assumed that I would be able to make a ts stream coming from a 
+hardware demux directly available to demux clients and dvr0, but no 
+other budget driver (ie without mpeg/video out) seems to do this without 
+using the swfilter. Can anyone point me at a driver which does similar 
+to what I'm trying to implement or am I just missing something.
 
+Thanks in advance,
 
--- 
-Jean Delvare
+Phil
