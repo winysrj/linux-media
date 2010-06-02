@@ -1,27 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from he.sipsolutions.net ([78.46.109.217]:48670 "EHLO
-	sipsolutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755430Ab0F3VLP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jun 2010 17:11:15 -0400
-Subject: macbook webcam no longer works on .35-rc
-From: Johannes Berg <johannes@sipsolutions.net>
-To: "laurent.pinchart" <laurent.pinchart@skynet.be>
-Cc: linux-media@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 30 Jun 2010 23:11:09 +0200
-Message-ID: <1277932269.11050.1.camel@jlt3.sipsolutions.net>
-Mime-Version: 1.0
+Received: from bld-mail15.adl6.internode.on.net ([150.101.137.100]:53618 "EHLO
+	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S932450Ab0FBRH5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jun 2010 13:07:57 -0400
+Received: from Jeds-Mini.local (unverified [118.208.156.217])
+	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id 14921486-1927428
+	for <linux-media@vger.kernel.org>; Thu, 03 Jun 2010 02:37:55 +0930 (CST)
+Message-ID: <4C068FE9.9020709@gmail.com>
+Date: Thu, 03 Jun 2010 03:07:53 +1000
+From: Jed <jedi.theone@gmail.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: is the list down?
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'm pretty sure this was a regression in .34, but haven't checked right
-now, can bisect when I find time but wanted to inquire first if somebody
-had ideas. All I get is:
-
-[57372.078968] uvcvideo: Failed to query (130) UVC control 5 (unit 3) :
--32 (exp. 1).
-
-johannes
-
+just a test, not getting anything....
