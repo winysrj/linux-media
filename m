@@ -1,49 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36449 "EHLO mx1.redhat.com"
+Received: from smtp5-g21.free.fr ([212.27.42.5]:39001 "EHLO smtp5-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755506Ab0FHOvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jun 2010 10:51:00 -0400
-Message-ID: <4C0E58B8.3010004@redhat.com>
-Date: Tue, 08 Jun 2010 11:50:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: vdr@helmutauer.de
-CC: jarod@wilsonet.com, linux-media@vger.kernel.org
-Subject: Re: v4l-dvb - Is it still usable for a distribution ?
-References: <20100608085644.73E9B10FC098@dd16922.kasserver.com>
-In-Reply-To: <20100608085644.73E9B10FC098@dd16922.kasserver.com>
+	id S1758361Ab0FCIif convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 04:38:35 -0400
+Date: Thu, 3 Jun 2010 10:39:47 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Which GIT repository for 2.6.35/2.6.36
+Message-ID: <20100603103947.4458bac3@tele>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 08-06-2010 05:56, vdr@helmutauer.de escreveu:
-> Hi
-> 
->>> Is your imon driver fully compatible with the lirc_imon in the display part ?
->>
->> Yes, works perfectly fine with the exact same lcdproc setup here --
->> both vfd and lcd tested.
->>
->>> It would be very helpful to add a parameter for disabling the IR Part, I have many users which
->>> are using only the display part.
->>
->> Hm. I was going to suggest that if people aren't using the receiver,
->> there should be no need to disable IR, but I guess someone might want
->> to use an mce remote w/an mce receiver, and that would have
->> interesting results if they had one of the imon IR receivers
->> programmed for mce mode. I'll keep it in mind for the next time I'm
->> poking at the imon code in depth. Need to finish work on some of the
->> other new ir/rc bits first (you'll soon be seeing the mceusb driver
->> ported to the new infra also in v4l-dvb hg, as well as an lirc bridge
->> driver, which is currently my main focal point).
->>
-> Just one more question.
-> Your driver is missing the ir_protocol parameter. How can I switch between Native Imon and RC-6 ?
+Hi Mauro,
 
-With the IR subsystem, the protocol changes are done via sysfs. The 
-ir-keytable program, at v4l-utils git tree, allows controlling the 
-enabled protocols and changing the IR keytable.
+I am lost with the GIT repositories at LinuxTv.org.
 
-Cheers,
-Mauro.
+My local development repository is based on
+git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+origin and git://linuxtv.org/v4l-dvb.git master
+
+When moving any local branch, the kernel is 2.6.33.
+Looking at 'origin/HEAD', the kernel is 2.6.34.
+Then, looking at http://git.linuxtv.org/linux-2.6.git, the kernel is
+2.6.35-rc1.
+
+A problem appeared when some gspca testers signalled compilation errors
+with kernels 2.6.34. Looking more carefuly, I see that, in the file
+	drivers/media/video/gspca/zc3xx.c
+there is no
+	#include <linux/slab.h>
+in the local branches, nor in v4l-dvb master, while it exists in
+v4l-dvb devel/for_v2.6.34.
+
+Looking at http://git.linuxtv.org/linux-2.6.git, I see that there is a
+recent change about the files slab.h et gfp.h (commit
+5a0e3ad6af8660be21ca98a971cd00f331318c05) which touches gspca files
+again.
+
+I do not think I will put anything more in the new kernel (2.6.35),
+but what with 2.6.36? Some gspca files have been changed in kernels
+2.6.34 and 2.6.35, and these changes don't appear in the v4l-dvb
+repository. What can I do?
+
+- if I continue to develop with v4l-dvb, there will be permanent merge
+  problems with the future kernel.
+
+- if I base my local repository directly on the last 2.6.35, there will
+  be problems with v4l-dvb.
+
+Otherwise, at LinuxTv.org, is there any development repository in sync
+with both the last kernel and the video stuff?
+
+Cheers.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
