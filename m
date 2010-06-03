@@ -1,24 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta03.eastlink.ca ([24.224.136.9]:62083 "EHLO mta03.eastlink.ca"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750811Ab0FCIRd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jun 2010 04:17:33 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; CHARSET=US-ASCII
-Received: from ip03.eastlink.ca ([unknown] [24.222.39.36])
- by mta03.eastlink.ca (Sun Java(tm) System Messaging Server 7.3-11.01 64bit
- (built Sep  1 2009)) with ESMTP id <0L3F00FVJJ273F53@mta03.eastlink.ca> for
- linux-media@vger.kernel.org; Thu, 03 Jun 2010 05:18:07 -0300 (ADT)
-Message-id: <1275551439.4c075ecfb216a@webmail.xcelco.on.ca>
-Date: Thu, 03 Jun 2010 03:50:39 -0400
-From: BANK OF CHINA <info@w.cn>
-Reply-to: chen_guan777@w.cn
-Subject: I Need Your Trust
-To: undisclosed-recipients:;
+Received: from smtp108.rog.mail.re2.yahoo.com ([68.142.225.206]:26524 "HELO
+	smtp108.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S933767Ab0FCDlx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Jun 2010 23:41:53 -0400
+Message-ID: <4C072479.60601@rogers.com>
+Date: Wed, 02 Jun 2010 23:41:45 -0400
+From: CityK <cityk@rogers.com>
+MIME-Version: 1.0
+CC: Jed <jedi.theone@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: is the list down?
+References: <4C068FE9.9020709@gmail.com> <4C069040.10705@gmail.com> <4C06B54B.2030801@kernellabs.com>
+In-Reply-To: <4C06B54B.2030801@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a Business for you worth some huge amount of money please are you
-interested in my business get back to me with my personal Email
-chen_guan777@w.cn
+  Jed wrote:
+> nope got that, but not getting other people's emails. weird.
+
+
+Maybe its amnesia?
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg19011.html
+
+"I'm unsubscribing from this list..."
+
+
