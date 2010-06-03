@@ -1,35 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11251 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756922Ab0FFPVQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jun 2010 11:21:16 -0400
-Message-ID: <4C0BBCD3.8000101@redhat.com>
-Date: Sun, 06 Jun 2010 12:20:51 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from web113202.mail.gq1.yahoo.com ([98.136.165.123]:40939 "HELO
+	web113202.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S933344Ab0FCAbv convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 2 Jun 2010 20:31:51 -0400
+Message-ID: <370023.77962.qm@web113202.mail.gq1.yahoo.com>
+Date: Wed, 2 Jun 2010 17:25:10 -0700 (PDT)
+From: Don Kramer <gedaliah_atl@yahoo.com>
+Subject: changed em28xx-cards-c; Plextor ConvertX AV100U now works!
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 autio isoc blocks
-References: <4C09686E.5090601@arcor.de>
-In-Reply-To: <4C09686E.5090601@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 04-06-2010 17:56, Stefan Ringel escreveu:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->  
-> Hi Mauro,
-> 
-> I have check the windows usb log and if I have audio block it's say 0
-> byte, but the data is complete 180 bytes until next block header. So I
-> think it's good if that audio block (cmd=2) resize from 0 to 180
+Hi all,
 
-AFAIK, even if the data is empty, all blocks have 180 bytes of size.
-Yet, maybe the block size simply doesn't apply for audio... Tests are
-needed to double check what's the case here.
+I'm new to this.  I wanted to get the Plextor ConvertX AV100U (with a eMPIA EM2820 chip) to run in Ubuntu 10.04. This was made circa 2004 and
+to the best of my knowledge the only official drives for it are Windows XP.
 
-Cheers,
-Mauro
+This is the device:
+
+http://www.overclockersonline.net/reviews/5000198/
+
+and this is the board:
+
+http://www.overclockersonline.net/images/articles/plextor/av100u/large/pcb.jpg
+
+and by adding this code to em28xx-cards-c
+
+{ USB_DEVICE(0x093b, 0xa003),
+            .driver_info = EM2820_BOARD_PINNACLE_DVC_90 }, /* Plextor Corp. ConvertX AV100U A/V Capture Audio */
+
+It works!  
+
+I'm opening it as a capture device in VLC Player.  Video is high quality, only defect is a green bar on maybe the lower 15% of the screen.  So three questions:
+
+1) how do I address the green bar?
+
+2) how to I get audio?  I can see the device in Ubuntu under sound preferences. How do I identify what the audio device name is?
+
+3) What is the process to submit this change to em28xx-cards-c for v4l2?
+
+Thanks,
+
+Don Kramer
+Atlanta, GA.
+
+
+
+      
