@@ -1,191 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58142 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755444Ab0FPUKt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jun 2010 16:10:49 -0400
-Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5GKAmvl027520
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 16:10:48 -0400
-Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [10.16.43.238])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o5GKAloZ032213
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 16:10:47 -0400
-Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [127.0.0.1])
-	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.3) with ESMTP id o5GKAkE3010007
-	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 16:10:46 -0400
-Received: (from jarod@localhost)
-	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.4/Submit) id o5GKAk1Q010006
-	for linux-media@vger.kernel.org; Wed, 16 Jun 2010 16:10:46 -0400
-Date: Wed, 16 Jun 2010 16:10:46 -0400
-From: Jarod Wilson <jarod@redhat.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4398 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751993Ab0FCTMr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 15:12:47 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o53JCj74004699
+	for <linux-media@vger.kernel.org>; Thu, 3 Jun 2010 21:12:46 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 3 Jun 2010 21:12:45 +0200 (CEST)
+Message-Id: <201006031912.o53JCj74004699@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] IR/mceusb: kill pinnacle-device-specific nonsense
-Message-ID: <20100616201046.GA10000@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have pinnacle hardware now. None of this pinnacle-specific crap is at
-all necessary (in fact, some of it needed to be removed to actually make
-it work). The only thing unique about this device is that it often
-transfers inbound data w/a header of 0x90, meaning 16 bytes of IR data
-following it, so I had to make adjustments for that, and now its working
-perfectly fine.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/mceusb.c |   63 ++++++++++-----------------------------------
- 1 files changed, 14 insertions(+), 49 deletions(-)
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
-index 756f718..708a71a 100644
---- a/drivers/media/IR/mceusb.c
-+++ b/drivers/media/IR/mceusb.c
-@@ -68,7 +68,7 @@
- #define MCE_PULSE_BIT	0x80 /* Pulse bit, MSB set == PULSE else SPACE */
- #define MCE_PULSE_MASK	0x7F /* Pulse mask */
- #define MCE_MAX_PULSE_LENGTH 0x7F /* Longest transmittable pulse symbol */
--#define MCE_PACKET_LENGTH_MASK  0xF /* Packet length mask */
-+#define MCE_PACKET_LENGTH_MASK  0x1F /* Packet length mask */
- 
- 
- /* module parameters */
-@@ -209,11 +209,6 @@ static struct usb_device_id gen3_list[] = {
- 	{}
- };
- 
--static struct usb_device_id pinnacle_list[] = {
--	{ USB_DEVICE(VENDOR_PINNACLE, 0x0225) },
--	{}
--};
--
- static struct usb_device_id microsoft_gen1_list[] = {
- 	{ USB_DEVICE(VENDOR_MICROSOFT, 0x006d) },
- 	{}
-@@ -542,6 +537,7 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- {
- 	struct ir_raw_event rawir = { .pulse = false, .duration = 0 };
- 	int i, start_index = 0;
-+	u8 hdr = MCE_CONTROL_HEADER;
- 
- 	/* skip meaningless 0xb1 0x60 header bytes on orig receiver */
- 	if (ir->flags.microsoft_gen1)
-@@ -551,15 +547,16 @@ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
- 		if (ir->rem == 0) {
- 			/* decode mce packets of the form (84),AA,BB,CC,DD */
- 			/* IR data packets can span USB messages - rem */
--			ir->rem = (ir->buf_in[i] & MCE_PACKET_LENGTH_MASK);
--			ir->cmd = (ir->buf_in[i] & ~MCE_PACKET_LENGTH_MASK);
-+			hdr = ir->buf_in[i];
-+			ir->rem = (hdr & MCE_PACKET_LENGTH_MASK);
-+			ir->cmd = (hdr & ~MCE_PACKET_LENGTH_MASK);
- 			dev_dbg(ir->dev, "New data. rem: 0x%02x, cmd: 0x%02x\n",
- 				ir->rem, ir->cmd);
- 			i++;
- 		}
- 
--		/* Only cmd 0x8<bytes> is IR data, don't process MCE commands */
--		if (ir->cmd != 0x80) {
-+		/* don't process MCE commands */
-+		if (hdr == MCE_CONTROL_HEADER || hdr == 0xff) {
- 			ir->rem = 0;
- 			return;
- 		}
-@@ -841,12 +838,10 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	struct usb_endpoint_descriptor *ep_out = NULL;
- 	struct usb_host_config *config;
- 	struct mceusb_dev *ir = NULL;
--	int pipe, maxp;
--	int i, ret;
-+	int pipe, maxp, i;
- 	char buf[63], name[128] = "";
- 	bool is_gen3;
- 	bool is_microsoft_gen1;
--	bool is_pinnacle;
- 	bool tx_mask_inverted;
- 
- 	dev_dbg(&intf->dev, ": %s called\n", __func__);
-@@ -858,7 +853,6 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 
- 	is_gen3 = usb_match_id(intf, gen3_list) ? 1 : 0;
- 	is_microsoft_gen1 = usb_match_id(intf, microsoft_gen1_list) ? 1 : 0;
--	is_pinnacle = usb_match_id(intf, pinnacle_list) ? 1 : 0;
- 	tx_mask_inverted = usb_match_id(intf, std_tx_mask_list) ? 0 : 1;
- 
- 	/* step through the endpoints to find first bulk in and out endpoint */
-@@ -873,19 +867,11 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 			|| ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
- 			    == USB_ENDPOINT_XFER_INT))) {
- 
--			dev_dbg(&intf->dev, ": acceptable inbound endpoint "
--				"found\n");
- 			ep_in = ep;
- 			ep_in->bmAttributes = USB_ENDPOINT_XFER_INT;
--			if (!is_pinnacle)
--				/*
--				 * Ideally, we'd use what the device offers up,
--				 * but that leads to non-functioning first and
--				 * second-gen devices, and many devices have an
--				 * invalid bInterval of 0. Pinnacle devices
--				 * don't work witha  bInterval of 1 though.
--				 */
--				ep_in->bInterval = 1;
-+			ep_in->bInterval = 1;
-+			dev_dbg(&intf->dev, ": acceptable inbound endpoint "
-+				"found\n");
- 		}
- 
- 		if ((ep_out == NULL)
-@@ -896,19 +882,11 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 			|| ((ep->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
- 			    == USB_ENDPOINT_XFER_INT))) {
- 
--			dev_dbg(&intf->dev, ": acceptable outbound endpoint "
--				"found\n");
- 			ep_out = ep;
- 			ep_out->bmAttributes = USB_ENDPOINT_XFER_INT;
--			if (!is_pinnacle)
--				/*
--				 * Ideally, we'd use what the device offers up,
--				 * but that leads to non-functioning first and
--				 * second-gen devices, and many devices have an
--				 * invalid bInterval of 0. Pinnacle devices
--				 * don't work witha  bInterval of 1 though.
--				 */
--				ep_out->bInterval = 1;
-+			ep_out->bInterval = 1;
-+			dev_dbg(&intf->dev, ": acceptable outbound endpoint "
-+				"found\n");
- 		}
- 	}
- 	if (ep_in == NULL) {
-@@ -962,19 +940,6 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
- 	ir->urb_in->transfer_dma = ir->dma_in;
- 	ir->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
- 
--	if (is_pinnacle) {
--		/*
--		 * I have no idea why but this reset seems to be crucial to
--		 * getting the device to do outbound IO correctly - without
--		 * this the device seems to hang, ignoring all input - although
--		 * IR signals are correctly sent from the device, no input is
--		 * interpreted by the device and the host never does the
--		 * completion routine
--		 */
--		ret = usb_reset_configuration(dev);
--		dev_info(&intf->dev, "usb reset config ret %x\n", ret);
--	}
--
- 	/* initialize device */
- 	if (ir->flags.gen3)
- 		mceusb_gen3_init(ir);
--- 
-1.6.5.2
+date:        Thu Jun  3 19:00:24 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14875:304cfde05b3f
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
--- 
-Jarod Wilson
-jarod@redhat.com
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: ERRORS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: ERRORS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: ERRORS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: ERRORS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: ERRORS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: ERRORS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
