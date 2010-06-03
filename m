@@ -1,65 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:57403 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753020Ab0FECph convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 22:45:37 -0400
-Received: by vws5 with SMTP id 5so496725vws.19
-        for <linux-media@vger.kernel.org>; Fri, 04 Jun 2010 19:45:36 -0700 (PDT)
+Received: from mail.tmr.com ([64.65.253.246]:60185 "EHLO partygirl.tmr.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751510Ab0FCQT3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Jun 2010 12:19:29 -0400
+Message-ID: <4C07D5AC.2000404@tmr.com>
+Date: Thu, 03 Jun 2010 12:17:48 -0400
+From: Bill Davidsen <davidsen@tmr.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimFzEEPYnKEsUsd42ny1z1DPnhbPhUIwW_6E5rb@mail.gmail.com>
-References: <BQCH7Bq3jFB@christoph>
-	<4C09482B.8030404@redhat.com>
-	<AANLkTikr49GiEcENLb6n1shtCkWrDhMXoYh4VJ4IPtdQ@mail.gmail.com>
-	<20100604201733.GJ23375@redhat.com>
-	<AANLkTimrV3zUg1yqtWCROtUqY4AfvfXrv81BVmh8HHlk@mail.gmail.com>
-	<AANLkTimFzEEPYnKEsUsd42ny1z1DPnhbPhUIwW_6E5rb@mail.gmail.com>
-Date: Fri, 4 Jun 2010 22:45:36 -0400
-Message-ID: <AANLkTim5pV1nDrDplx-XClAwt4LPHnhr0FeWdfgeKl63@mail.gmail.com>
-Subject: Re: [PATCH 1/3] IR: add core lirc device interface
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Hans de Goede <hdegoede@redhat.com>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	bugzilla-daemon@bugzilla.kernel.org,
+	bugme-daemon@bugzilla.kernel.org
+Subject: Re: [Bugme-new] [Bug 16050] New: The ibmcam driver is not working
+References: <bug-16050-10286@https.bugzilla.kernel.org/> <20100528154635.129b621b.akpm@linux-foundation.org> <4C04C942.6000900@redhat.com> <4C054105.6020806@tmr.com> <4C07B3BC.3050209@redhat.com> <4C07C316.2090903@tmr.com> <4C07C711.5040900@redhat.com>
+In-Reply-To: <4C07C711.5040900@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 4, 2010 at 7:16 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> On Fri, Jun 4, 2010 at 5:17 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
->> On Fri, Jun 4, 2010 at 4:17 PM, Jarod Wilson <jarod@redhat.com> wrote:
->>> On Fri, Jun 04, 2010 at 02:57:04PM -0400, Jon Smirl wrote:
->> ...
->>>> > From what I'm seeing, those are the current used ioctls:
->>>> >
->>>> > +#define LIRC_GET_FEATURES              _IOR('i', 0x00000000, unsigned long)
->>>> > +#define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, unsigned long)
->>>>
->>>> Has this been set into stone yet? if not a 64b word would be more future proof.
->>>
->>> Nope, not set in stone at all, nothing has been merged. A patch I was
->>> carrying in Fedora changed all unsigned long to u64 and unsigned int to
->>> u32, and my current ir wip tree has all u32, but I don't see a reason why
->>> if we're going to make a change, it couldn't be to all u64, for as much
->>> future-proofing as possible.
->>
->> Hrm, struct file_operations specifies an unsigned long for the ioctl
->> args, so doesn't that mean we're pretty much stuck with only 32-bit
->> for the ioctls?
+Hans de Goede wrote:
+> Hi,
 >
-> I haven't written an IOCTL in a while, but how would you pass a 64b
-> memory address?
+> On 06/03/2010 04:58 PM, Bill Davidsen wrote:
+>> Hans de Goede wrote:
+>>> Hi,
+>>>
+>>> On 06/01/2010 07:19 PM, Bill Davidsen wrote:
+>>>> Hans de Goede wrote:
+>>> >
+>>>> In case you don't have this information, here is a line from lsusb:
+>>>> Bus 003 Device 002: ID 0545:8080 Xirlink, Inc. IBM C-It Webcam
+>>>>
+>>>> Hopefully the items you have ordered are the same model.
+>>>>
+>>>
+>>> I have the same usb-id, but I'm working on the driver now and it
+>>> seems XirLink distinguishes between different models by bcdversion,
+>>> instead of using different usb ids for each product.
+>>>
+>>> Can you send me a mail with the output of "lsusb -v", then I can
+>>> see if you have the same version as I have for testing.
+>>>
+>>
+>> Sure, attached.
+>>
+>
+> Thx,
+>
+> Your device has a revision of 3.0a (the firmware programmers did not
+> seem to fully grasp the concept of the d in bcd (it stands for decimal),
+> which is different from mine which is revision 3.01 . Your version is
+> referred to as a model2 by the old driver, where as mine is a model3.
+>
+> This is both bad and good news, the bad news is I cannot give you an
+> already tested driver to fix your issues. The good news is, that this
+> means that, assuming that you are willing to help out with testing, we
+> can now also verify that model 2 cams will work with the new driver.
+>
+> So would you be willing to test the new driver (when it is finished) ?
+>
+Sure, just let me know what kernel the patch is against. As you say, my 
+cams are Model2 in the old nomenclature.
 
-Well, you wouldn't use struct file_operations' ioctl definition if you
-wanted to do so on a 32-bit host. :)
-
-Its definitely possible using a different ioctl definition (see
-gdth_ioctl_free in drivers/scsi/gdth_proc.c, for example), but we're
-currently bound by what's there for file_operations.
+Interesting that the size is set to 352x240 rather than CIF 352x288. And 
+while xawtv sort of works with the latest 2.6.33.5-112.fc13.x86_64 koji 
+kernel, cheese doesn't, not that I need it, but it worked on the early 
+kernels.
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Bill Davidsen <davidsen@tmr.com>
+  "We can't solve today's problems by using the same thinking we
+   used in creating them." - Einstein
+
