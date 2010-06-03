@@ -1,47 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:34780 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752727Ab0FQHp6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jun 2010 03:45:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: dot file
-Date: Thu, 17 Jun 2010 09:49:10 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <4C19AA5B.3080206@redhat.com>
-In-Reply-To: <4C19AA5B.3080206@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:57726 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754823Ab0FCNwC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Jun 2010 09:52:02 -0400
+Message-ID: <4C07B3BC.3050209@redhat.com>
+Date: Thu, 03 Jun 2010 15:53:00 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Bill Davidsen <davidsen@tmr.com>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	bugzilla-daemon@bugzilla.kernel.org,
+	bugme-daemon@bugzilla.kernel.org
+Subject: Re: [Bugme-new] [Bug 16050] New: The ibmcam driver is not working
+References: <bug-16050-10286@https.bugzilla.kernel.org/> <20100528154635.129b621b.akpm@linux-foundation.org> <4C04C942.6000900@redhat.com> <4C054105.6020806@tmr.com>
+In-Reply-To: <4C054105.6020806@tmr.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201006170949.11459.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi,
 
-(CC'ing linux-media as other people might be interested in this).
+On 06/01/2010 07:19 PM, Bill Davidsen wrote:
+> Hans de Goede wrote:
+ >
+> In case you don't have this information, here is a line from lsusb:
+> Bus 003 Device 002: ID 0545:8080 Xirlink, Inc. IBM C-It Webcam
+>
+> Hopefully the items you have ordered are the same model.
+>
 
-On Thursday 17 June 2010 06:53:47 Mauro Carvalho Chehab wrote:
-> 
-> This is just a reminder: please send me one .dot file that you used to
-> create the subdev mapping for one of the devices. The more complex, the
-> better.
-> 
-> As I said, my idea is to write a small rfc file using it as an example,
-> in order to give a clear separation when someone should use udev/sysfs
-> (or some equivalent script on embedded systems) to discover the device
-> topology, and when media controller should be used. We need to have some
-> sort of guidelines for userspace developers, as we will have two ways
-> to get topology, and the reported topology may be different between
-> those two, depending on how userspace is creating the device files at
-> /dev.
+I have the same usb-id, but I'm working on the driver now and it
+seems XirLink distinguishes between different models by bcdversion,
+instead of using different usb ids for each product.
 
-The OMAP3 ISP entities graph (in both dot and postscript forms) can be found 
-at http://www.ideasonboard.org/media/
+Can you send me a mail with the output of "lsusb -v", then I can
+see if you have the same version as I have for testing.
 
--- 
 Regards,
 
-Laurent Pinchart
+Hans
