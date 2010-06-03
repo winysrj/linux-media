@@ -1,251 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:50572 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752554Ab0FHCcD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jun 2010 22:32:03 -0400
-Date: Mon, 7 Jun 2010 20:31:58 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: Re: [PATCH] Add the viafb video capture driver
-Message-ID: <20100607203158.4ec59ab1@bike.lwn.net>
-In-Reply-To: <201006080303.14784.laurent.pinchart@ideasonboard.com>
-References: <20100607172615.311edce9@bike.lwn.net>
-	<201006080303.14784.laurent.pinchart@ideasonboard.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64658 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933199Ab0FCG1h convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 02:27:37 -0400
+Received: by wyi11 with SMTP id 11so2506435wyi.19
+        for <linux-media@vger.kernel.org>; Wed, 02 Jun 2010 23:27:36 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTimAjriy1hlysvlAOxMPodp_lw2MZGcLl1D5oR9h@mail.gmail.com>
+References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>
+	<1275136793.2260.18.camel@localhost>
+	<AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>
+	<1275163295.17477.143.camel@localhost>
+	<AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>
+	<4C02700A.9040807@redhat.com>
+	<AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>
+	<AANLkTik_-6Z12G8rz0xkjbLkpWvfRHorGtD_LbsPr_11@mail.gmail.com>
+	<1275308142.2227.16.camel@localhost>
+	<4C0408A9.4040904@redhat.com>
+	<1275334699.2261.45.camel@localhost>
+	<4C042310.4090603@redhat.com>
+	<1275342342.2260.37.camel@localhost>
+	<4C0438CE.4090801@redhat.com>
+	<AANLkTimAjriy1hlysvlAOxMPodp_lw2MZGcLl1D5oR9h@mail.gmail.com>
+Date: Thu, 3 Jun 2010 02:27:35 -0400
+Message-ID: <AANLkTinDQF0bvaItVelPncSDTNeXfo4OxpZG9ssEJy4f@mail.gmail.com>
+Subject: Re: ir-core multi-protocol decode and mceusb
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 8 Jun 2010 03:03:14 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+On Tue, Jun 1, 2010 at 1:22 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> On Mon, May 31, 2010 at 6:31 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 31-05-2010 18:45, Andy Walls escreveu:
+>>> On Mon, 2010-05-31 at 17:58 -0300, Mauro Carvalho Chehab wrote:
+>>
+>>>> I may be wrong (since we didn't write any TX support), but I think that a
+>>>> rc_set_tx_parameters() wouldn't be necessary, as I don't see why the driver will
+>>>> change the parameters after registering, and without any userspace request.
+>>>
+>>> Yes, my intent was to handle a user space request to change the
+>>> transmitter setup parameters to handle the protocol.
+>>>
+>>> I also don't want to worry about having to code in kernel parameter
+>>> tables for any bizzare protocol userspace may know about.
+>>
+>> Makes sense.
+>>>
+>>>
+>>>> If we consider that some userspace sysfs nodes will allow changing some parameters,
+>>>> then the better is to have a callback function call, passed via the registering function,
+>>>> that will allow calling a function inside the driver to change the TX parameters.
+>>>>
+>>>> For example, something like:
+>>>>
+>>>> struct rc_tx_props {
+>>>> ...
+>>>>      int     (*change_protocol)(...);
+>>>> ...
+>>>> };
+>>>>
+>>>>
+>>>> rc_register_tx(..., struct rc_tx_props *props)
+>>>
+>>> A callback is likely needed.  I'm not sure I would have chosen the name
+>>> change_protocol(), because transmitter parameters can be common between
+>>> protocols (at least RC-5 and RC-6 can be supported with one set of
+>>> parameters), or not match any existing in-kernel protocol.  As long as
+>>> it is flexible enough to change individual transmitter parameters
+>>> (modulated/baseband, carrier freq, duty cycle, etc.) it will be fine.
+>>
+>> I just used this name as an example, as the same name exists on RX.
+>>
+>> Depending on how we code the userspace API, we may use just one set_parameters
+>> function, or a set of per-attribute changes.
+>>
+>> In other words, if we implement severa sysfs nodes to change several parameters,
+>> maybe it makes sense to have several callbacks. Another alternative would be
+>> to have a "commit" sysfs node to apply a set of parameters at once.
+>>
+>>> Currently LIRC userspace changes Tx parameters using an ioctl().  It
+>>> asks the hardware to change transmitter parameters, because the current
+>>> model is that the transmitters don't need to know about protocols. (LIRC
+>>> userspace knows the parameters of the protocol it wants to use, so the
+>>> driver's don't have too).
+>
+> The list of transmit-related ioctls implemented in the lirc_mceusb driver:
+>
+> - LIRC_SET_TRANSMITTER_MASK -- these devices have two IR tx outputs,
+> default is to send the signal out both, but you can also select just a
+> specific one (i.e., two set top boxes, only want to send command to
+> one or the other of them).
+>
+> - LIRC_GET_SEND_MODE -- get current transmit mode
+>
+> - LIRC_SET_SEND_MODE -- set current transmit mode
+>
+> - LIRC_SET_SEND_CARRIER -- set the transmit carrier freq
+>
+> - LIRC_GET_FEATURE -- get both the send and receive capabilities of the device
+>
+>
+>>> I notice IR Rx also has a change_protocol() callback that is not
+>>> currently in use.
+>>
+>> It is used only by em28xx, where the hardware decoder can work either with
+>> RC-5 or NEC (newer chips also support RC-6, but this is currently not
+>> implemented).
+>
+> The imon driver also implements change_protocol for the current-gen
+> devices, which are capable of decoding either mce remote signals or
+> the native imon remote signals. I was originally thinking I'd need to
+> implement change_protocol for the mceusb driver, but its ultimately a
+> no-op, since the hardware doesn't give a damn (and there's a note
+> somewhere that mentions its only relevant for hardware decode devices
+> that need to be put into a specific mode). Although, on something like
+> the mceusb driver, change_protocol *could* be wired up to mark only
+> the desired protocol enabled -- which might reduce complexity for
+> ir-keytable when loading a new keymap. (I went with a rather simple
+> approach for marking only the desired decoder enabled at initial
+> keymap load time which won't help here -- patch coming tomorrow for
+> that).
+>
+>>> If sending raw pulses to userspace, it would be also
+>>> nice to expose that callback so userspace could set the receiver
+>>> parameters.
+>>
+>> Raw pulse transmission is probably the easiest case. Probably, there's nothing
+>> or a very few things that might need adjustments.
+>
+> Transmitter mask, carrier frequency and a repeat count are the things
+> I can see needing to set regularly. From experience, at least with
+> motorola set top box hardware, you need to send a given signal 2-3
+> times, not just once, for the hardware to pick it up. There's a
+> min_repeat parameter in lirc config files only used on the transmit
+> side of the house to specify how many repeats of each blasted signal
+> to send.
 
-> If it's not too late for review, here are some comments. I've reviewed the 
-> code from bottom to top, so comments might be a bit inconsistent sometimes.
+I keep bouncing between two machines, so I finally got smart(ish) and
+pushed a working git tree to have both push and pull from.
 
-Never too late to make the code better.  These are good comments, thanks.
-Mauro, I guess I've got another version coming...:)  It will take me a bit,
-I've got another ocean to cross tomorrow.
+http://git.wilsonet.com/linux-2.6-ir-wip.git/
 
-Specific responses below.  I've snipped out a fair number of comments; that
-means "you're right, I'll fix it."
+Just pushed 3 patches with which I can now transmit IR via an mceusb
+device. I've only added three callbacks to ir_dev_props, the rest of
+the magic is done in mceusb.c and ir-lirc-codec.c. I'm still not sure
+what sort of non-lirc interface we want for transmitting IR, and we
+don't (yet) have in-kernel IR encoders...
 
-> Don't define device structures as static object. You must kmalloc the 
-> via_camera structure in probe and set the pointer as driver private data to 
-> access it later in V4L2 operations and device core callbacks. Otherwise Bad 
-> Things (TM) will happen if the device is removed while the video device node 
-> is opened.
+I see Mauro was scrawling red ink all over the lirc_dev patch
+tonight... ;) I'll try to reply to review comments tomorrow, I'm
+spent! (I know the compat ioctl thing sucks, but changing it breaks
+existing lirc userspace (for 32-bit users, iirc), which I'd like to
+avoid).
 
-I understand the comment...but this device is blasted onto the system's
-base silicon.  It's not going to be removed in a way which leaves a
-functioning computer.  Still, dynamic allocation is easy enough to do.
-
-> > +/*
-> > + * Configure the sensor.  It's up to the caller to ensure
-> > + * that the camera is in the correct operating state.
-> > + */
-> > +static int viacam_configure_sensor(struct via_camera *cam)
-> > +{
-> > +	struct v4l2_format fmt;
-> > +	int ret;
-> > +
-> > +	fmt.fmt.pix = cam->sensor_format;
-> > +	ret = sensor_call(cam, core, init, 0);
-> > +	if (ret == 0)
-> > +		ret = sensor_call(cam, video, s_fmt, &fmt);
-> > +	/*
-> > +	 * OV7670 does weird things if flip is set *before* format...
-> 
-> What if the user sets vflip using VIDIOC_S_CTRL directly before setting the 
-> format ?
-
-All is well; we remember the setting and set the flip properly afterward.
-
-> > +	/*
-> > +	 * Copy over the data and let any waiters know.
-> > +	 */
-> > +	vdma = videobuf_to_dma(vb);
-> > +	viafb_dma_copy_out_sg(cam->cb_offsets[bufn], vdma->sglist, vdma->sglen);
-> 
-> Ouch that's going to hurt performances !
-> 
-> What are the hardware restrictions regarding the memory it can capture images 
-> to ? Does it just have to be physically contiguous, or does the memory need to 
-> come from a specific memory area ? In the first case you could use 
-> videobuf_dma_contig and avoid the memcpy completely. In the second case you 
-> should still mmap the memory to userspace when using kernel-allocated buffers 
-> instead of memcpying the data. If you really need a memcpy, you should then 
-> probably use videobuf_vmalloc instead of videobuf_dma_sg.
-
-It's a DMA copy, so performance is actually not a problem.
-
-The video capture engine grabs frames into a three-buffer ring stored in
-viafb framebuffer memory.  I *could* let user space map that memory
-directly, but it would be an eternal race with the engine and would not end
-well.  We really do have to do the copy.  In a sense, the framebuffer
-memory is just part of the capture device; the DMA operation is how we make
-data available to the rest of the system.
-
-[Incidentally, the biggest cost here, I think, is setting up 150 DMA
-descriptors for each transfer.  That's an artifact of the page-at-a-time
-memory allocation used by videobuf_dma_sg.  I have a branch with an SG
-variant which tries to allocate the largest contiguous buffers possible
-without going over; it reduces the number of descriptors to about five.  It
-didn't change my life a whole lot, so I back-burnered it, but I might
-send that patch out one of these days.]
-
-> > +	viacam_write_reg(cam, VCR_CAPINTC, ~VCR_CI_ENABLE);
-> > +	viacam_write_reg(cam, VCR_CAPINTC, ~(VCR_CI_ENABLE|VCR_CI_CLKEN));
-> 
-> I don't know how the VCR_CAPINTC register works, but did you really mean to 
-> write all bits to 1 except VCR_CI_ENABLE and VCR_CI_CLKEN ?
-
-Ouch, no, I don't; that's meant to be a mask operation.
-
-> > +	/*
-> > +	 * Disable a bunch of stuff.
-> > +	 */
-> > +	viacam_write_reg(cam, VCR_HORRANGE, 0x06200120);
-> > +	viacam_write_reg(cam, VCR_VERTRANGE, 0x01de0000);
-> 
-> Any idea what that bunch of stuff is ? Replacing the magic numbers by 
-> #define'd constants would be nice.
-
-It's 640x480, modulo weird VIA magic.  I got it straight from them.  I can
-add a comment, though.
-
-> > +	(void) viacam_read_reg(cam, VCR_CAPINTC); /* Force post */
-> 
-> Why a (void) cast ?
-
-It's my way of saying that I meant to ignore the return value of a function
-whose purpose is to return a value.
-
-> > +static int viacam_vb_buf_setup(struct videobuf_queue *q,
-> > +		unsigned int *count, unsigned int *size)
-> > +{
-> > +	struct via_camera *cam = q->priv_data;
-> > +
-> > +	*size = cam->user_format.sizeimage;
-> > +	if (*count == 0 || *count > 6)  /* Arbitrary number */
-> > +		*count = 6;
-> 
-> Shouldn't the limit should be computed from the available fb memory ?
-
-That would always be three, but user space might well want more buffering
-than that.  I don't quite see why the two need to be tied.
-
-> > +static void viacam_vb_buf_queue(struct videobuf_queue *q,
-> > +		struct videobuf_buffer *vb)
-> > +{
-> > +	struct via_camera *cam = q->priv_data;
-> > +
-> > +	/*
-> > +	 * Note that videobuf holds the lock when it calls
-> > +	 * us, so we need not (indeed, cannot) take it here.
-> > +	 */
-> > +	vb->state = VIDEOBUF_QUEUED;
-> > +	list_add_tail(&vb->queue, &cam->buffer_queue);
-> > +}
-> 
-> Shouldn't you also pass the buffer to the hardware if the interrupt handler 
-> ran out of buffers earlier ?
-
-The hardware doesn't see this buffer directly - that's what the DMA
-operation is for.  I *could* track the existence of a ready buffer and DMA
-to it immediately, but that risks racing with the engine.  I don't think
-it's worth it.
-
-> > +		videobuf_queue_sg_init(&cam->vb_queue, &viacam_vb_ops,
-> > +				&cam->platdev->dev, &cam->viadev->reg_lock,
-> > +				V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
-> > +				sizeof(struct videobuf_buffer), cam);
-> 
-> Why don't you initialize the queue on probe ?
-
-...because every example I saw does it at open time?  Looking at the code
-now, it doesn't look like it needs to be done at open time.
-
-> > +/*
-> > + * Control ops are passed through to the sensor.
-> > + */
-> > +static int viacam_queryctrl(struct file *filp, void *priv,
-> > +		struct v4l2_queryctrl *qc)
-> > +{
-> > +	struct via_camera *cam = priv;
-> > +	int ret;
-> > +
-> > +	mutex_lock(&cam->lock);
-> > +	ret = sensor_call(cam, core, queryctrl, qc);
-> > +	mutex_unlock(&cam->lock);
-> 
-> If the sensor needs locking shouldn't it provide it itself ?
-
-Maybe, but ov7670 doesn't do that.  Changing that would be a job for a
-different patch set.
-
-> > +static int viacam_querycap(struct file *filp, void *priv,
-> > +		struct v4l2_capability *cap)
-> > +{
-> > +	strcpy(cap->driver, "via-camera");
-> > +	strcpy(cap->card, "via-camera");
-> > +	cap->version = 1;
-> 
-> According to the V4L2 spec the version number should be formatted using 
-> KERNEL_VERSION().
-
-Interesting, I'd missed that.  I've just optimized a call to
-KERNEL_VERSION(0, 0, 1) :)
-
-> > +static int viacam_streamoff(struct file *filp, void *priv, enum
-> > v4l2_buf_type t) +{
-> > +	struct via_camera *cam = priv;
-> > +	int ret;
-> > +
-> > +	if (t != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> > +		return -EINVAL;
-> > +	pm_qos_remove_requirement(PM_QOS_CPU_DMA_LATENCY, "viafb-dma");
-> > +	viacam_stop_engine(cam);
-> 
-> If the user calls VIDIOC_STREAMOFF twice you will try to remove the DMA 
-> latency requirement and stop the engine twice. Is that OK ?
-
-Probably, but it should still check the state.  Plus there's the little
-detail that pm_qos_remove_requirement() doesn't exist in 2.6.35...I *know*
-I did that merge, I'm not quite sure why it's not reflected here.
-
-> > +static struct video_device viacam_v4l_template = {
-> > +	.name		= "via-camera",
-> > +	.minor		= -1,
-> > +	.tvnorms	= V4L2_STD_NTSC_M,
-> > +	.current_norm	= V4L2_STD_NTSC_M,
-> 
-> It's a webcam, norms don't make sense.
-
-I agree they don't make sense.  When I did the cafe_ccic driver, though, I
-found that applications failed if they didn't get some sort of answer
-here.  Has that situation improved?
-
-> > +static int viacam_init(void)
-> > +{
-> > +#ifdef CONFIG_OLPC_XO_1_5
-> > +	if (viacam_check_serial_port())
-> > +		return -EBUSY;
-> > +#endif
-> 
-> Should this prevent the driver from being loaded at all, or would it
-> better to perform the check in the probe function ?
-
-Arguably this code should't be here at all; it really only exists for OLPC
-developers.  But, then, perhaps somebody else will be trying to debug
-something on an XO 1.5 and will appreciate the check.  Load time and probe
-time are almost the same, so I'm not sure it makes a difference one way or
-the other, except that a probe-time failure leaves a useless module in the
-kernel.
-
-Thanks,
-
-jon
+-- 
+Jarod Wilson
+jarod@wilsonet.com
