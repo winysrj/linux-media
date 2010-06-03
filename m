@@ -1,62 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:50024 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753988Ab0FXX5M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jun 2010 19:57:12 -0400
-Subject: Re: [PATCH] Terratec Cinergy 250 PCI support
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Jean-Michel Grimaldi <jm@via.ecp.fr>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <AANLkTim5-Cc-ijE1U7M1DWSF8hcj8svSH30a0YVM4qv9@mail.gmail.com>
-References: <AANLkTim5-Cc-ijE1U7M1DWSF8hcj8svSH30a0YVM4qv9@mail.gmail.com>
-Content-Type: text/plain
-Date: Fri, 25 Jun 2010 01:43:58 +0200
-Message-Id: <1277423038.4742.9.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from bld-mail14.adl6.internode.on.net ([150.101.137.99]:43314 "EHLO
+	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752172Ab0FCE6G (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 00:58:06 -0400
+Message-ID: <4C07365A.4060109@gmail.com>
+Date: Thu, 03 Jun 2010 14:58:02 +1000
+From: Jed <jedi.theone@gmail.com>
+MIME-Version: 1.0
+To: CityK <cityk@rogers.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: is the list down?
+References: <4C068FE9.9020709@gmail.com> <4C069040.10705@gmail.com> <4C06B54B.2030801@kernellabs.com> <4C072479.60601@rogers.com>
+In-Reply-To: <4C072479.60601@rogers.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Jean-Michel,
+LOL, nice one smart-arse! ;)
+I had successfully subscribed about an hour before enquiring.
+Perhaps t'was just a lull in the list.
 
-Am Freitag, den 25.06.2010, 00:42 +0200 schrieb Jean-Michel Grimaldi:
-> Hi, I have a Terratec Cinergy 250 PCI video card, and a small
-> modification in saa7134-cards.c is needed for it to work. I built the
-> patch on 2.6.34 version (I sent the modification to the maintainer in
-> early 2009 but got no feedback):
-> 
-> -- saa7134-cards.old.c	2010-06-25 00:31:16.000000000 +0200
-> +++ saa7134-cards.new.c	2010-06-25 00:30:52.000000000 +0200
-> @@ -2833,7 +2833,7 @@
->  			.tv   = 1,
->  		},{
->  			.name = name_svideo,  /* NOT tested */
-> -			.vmux = 8,
-> +			.vmux = 3,
->  			.amux = LINE1,
->  		}},
->  		.radio = {
-> 
-> Thanks for taking it into account in future kernels.
-> 
-
-hm, don't know who missed it. After Gerd, the main mover on saa7134 was
-Hartmut, also /me and some well known others cared.
-
-Official maintainer these days is Mauro.
-
-For latest DVB stuff, you also will meet Mike Krufky.
-
-I'm sorry, but your patch is still wrong.
-
-You do have only a Composite signal. S-Video, with separated chroma and
-luma, can only be on vmux 5-9.
-
-NACKED-by: hermann pitton <hermann-pitton@arcor.de>
-
-Cheers,
-Hermann
-
-
-
+On 3/06/10 1:41 PM, CityK wrote:
+>    Jed wrote:
+>> nope got that, but not getting other people's emails. weird.
+>
+>
+> Maybe its amnesia?
+>
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg19011.html
+>
+> "I'm unsubscribing from this list..."
+>
+>
+>
