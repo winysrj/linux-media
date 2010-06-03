@@ -1,23 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:46140 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756376Ab0FKOzM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jun 2010 10:55:12 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Felipe Contreras <felipe.contreras@gmail.com>,
-	"Nagarajan, Rajkumar" <x0133774@ti.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34615 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758149Ab0FCIUQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 04:20:16 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "mchehab@redhat.com" <mchehab@redhat.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
 	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Fri, 11 Jun 2010 09:55:07 -0500
-Subject: RE: Alternative for defconfig
-Message-ID: <A24693684029E5489D1D202277BE894455DDEC44@dlee02.ent.ti.com>
-References: <201006091227.29175.laurent.pinchart@ideasonboard.com>
-	<FF55437E1F14DA4BAEB721A458B6701706BD9A3A73@dbde02.ent.ti.com>
- <AANLkTilPWyHcoT6q1T-o-UMvcMSs2_If45f9UocVtrbl@mail.gmail.com>
-In-Reply-To: <AANLkTilPWyHcoT6q1T-o-UMvcMSs2_If45f9UocVtrbl@mail.gmail.com>
+Date: Thu, 3 Jun 2010 13:49:59 +0530
+Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
+ file
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E6D30E1@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+ <1275547321-31406-3-git-send-email-hvaibhav@ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0323207C30@dbde02.ent.ti.com>
+ <19F8576C6E063C45BE387C64729E7394044E6D30D6@dbde02.ent.ti.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB0323207C6B@dbde02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323207C6B@dbde02.ent.ti.com>
 Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -26,43 +27,298 @@ Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
-
 > -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Felipe Contreras
-> Sent: Friday, June 11, 2010 8:43 AM
-> To: Nagarajan, Rajkumar
-> Cc: Laurent Pinchart; linux-media@vger.kernel.org; Hiremath, Vaibhav;
-> linux-omap@vger.kernel.org
-> Subject: Re: Alternative for defconfig
+> From: DebBarma, Tarun Kanti
+> Sent: Thursday, June 03, 2010 1:44 PM
+> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
+> Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-omap@vger.kernel.org
+> Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
+> file
 > 
-> On Fri, Jun 11, 2010 at 3:19 PM, Nagarajan, Rajkumar <x0133774@ti.com>
-> wrote:
-> > 1. What is the alternative way of submitting defconfig changes/files to
-> LO?
-
-I don't think defconfig changes are prohibited now. If I understand
-correctly, Linus just hates the fact that there is a big percentage of
-patches for defconfigs. Maybe he wants us to hold these, and better
-provide higher percentage of actual code changes.
-
-What about holding defconfig changes in a separate branch, and just send
-them for upstream once in a while, specially if there's a big quantity of
-them in the queue?
-
-IMHO, defconfigs are just meant to make us life easier, but changes to them
-should _never_ be a fix/solution to any problem, and therefore I understand
-that those aren't a priority over regressions.
-
-Regards,
-Sergio
-
 > 
-> I don't think we have any alternative yet.
+> > -----Original Message-----
+> > From: Hiremath, Vaibhav
+> > Sent: Thursday, June 03, 2010 1:41 PM
+> > To: DebBarma, Tarun Kanti; linux-media@vger.kernel.org
+> > Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-
+> > omap@vger.kernel.org
+> > Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to
+> > board file
+> >
+> >
+> > > -----Original Message-----
+> > > From: DebBarma, Tarun Kanti
+> > > Sent: Thursday, June 03, 2010 12:49 PM
+> > > To: Hiremath, Vaibhav; linux-media@vger.kernel.org
+> > > Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-
+> > omap@vger.kernel.org
+> > > Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to
+> > board
+> > > file
+> > >
+> > > Vaibhav,
+> > >
+> > >
+> > > > -----Original Message-----
+> > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
+> > > > owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
+> > > > Sent: Thursday, June 03, 2010 12:12 PM
+> > > > To: linux-media@vger.kernel.org
+> > > > Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-
+> > > > omap@vger.kernel.org; Hiremath, Vaibhav
+> > > > Subject: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to
+> > board
+> > > > file
+> > > >
+> > > > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > >
+> > > > Also created vpfe master/slave clock aliases, since naming
+> > > > convention is different in both Davinci and AM3517 devices.
+> > > >
+> > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
+> > > > ---
+> > > >  arch/arm/mach-omap2/board-am3517evm.c |  161
+> > > > +++++++++++++++++++++++++++++++++
+> > > >  1 files changed, 161 insertions(+), 0 deletions(-)
+> > > >
+> > > > diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
+> > > > omap2/board-am3517evm.c
+> > > > index c1c4389..f2ff751 100644
+> > > > --- a/arch/arm/mach-omap2/board-am3517evm.c
+> > > > +++ b/arch/arm/mach-omap2/board-am3517evm.c
+> > > > @@ -30,15 +30,168 @@
+> > > >
+> > > >  #include <plat/board.h>
+> > > >  #include <plat/common.h>
+> > > > +#include <plat/control.h>
+> > > >  #include <plat/usb.h>
+> > > >  #include <plat/display.h>
+> > > >
+> > > > +#include <media/tvp514x.h>
+> > > > +#include <media/davinci/vpfe_capture.h>
+> > > > +
+> > > >  #include "mux.h"
+> > > >
+> > > >  #define LCD_PANEL_PWR		176
+> > > >  #define LCD_PANEL_BKLIGHT_PWR	182
+> > > >  #define LCD_PANEL_PWM		181
+> > > >
+> > > > +/*
+> > > > + * VPFE - Video Decoder interface
+> > > > + */
+> > > > +#define TVP514X_STD_ALL		(V4L2_STD_NTSC | V4L2_STD_PAL)
+> > > > +
+> > > > +/* Inputs available at the TVP5146 */
+> > > > +static struct v4l2_input tvp5146_inputs[] = {
+> > > > +	{
+> > > > +		.index	= 0,
+> > > > +		.name	= "Composite",
+> > > > +		.type	= V4L2_INPUT_TYPE_CAMERA,
+> > > > +		.std	= TVP514X_STD_ALL,
+> > > > +	},
+> > > > +	{
+> > > > +		.index	= 1,
+> > > > +		.name	= "S-Video",
+> > > > +		.type	= V4L2_INPUT_TYPE_CAMERA,
+> > > > +		.std	= TVP514X_STD_ALL,
+> > > > +	},
+> > > > +};
+> > > > +
+> > > > +static struct tvp514x_platform_data tvp5146_pdata = {
+> > > > +	.clk_polarity	= 0,
+> > > > +	.hs_polarity	= 1,
+> > > > +	.vs_polarity	= 1
+> > > > +};
+> > > > +
+> > > > +static struct vpfe_route tvp5146_routes[] = {
+> > > > +	{
+> > > > +		.input	= INPUT_CVBS_VI1A,
+> > > > +		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
+> > > > +	},
+> > > > +	{
+> > > > +		.input	= INPUT_SVIDEO_VI2C_VI1C,
+> > > > +		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
+> > > > +	},
+> > > > +};
+> > > > +
+> > > > +static struct vpfe_subdev_info vpfe_sub_devs[] = {
+> > > > +	{
+> > > > +		.name		= "tvp5146",
+> > > > +		.grp_id		= 0,
+> > > > +		.num_inputs	= ARRAY_SIZE(tvp5146_inputs),
+> > > > +		.inputs		= tvp5146_inputs,
+> > > > +		.routes		= tvp5146_routes,
+> > > > +		.can_route	= 1,
+> > > > +		.ccdc_if_params	= {
+> > > > +			.if_type = VPFE_BT656,
+> > > > +			.hdpol	= VPFE_PINPOL_POSITIVE,
+> > > > +			.vdpol	= VPFE_PINPOL_POSITIVE,
+> > > > +		},
+> > > > +		.board_info	= {
+> > > > +			I2C_BOARD_INFO("tvp5146", 0x5C),
+> > > > +			.platform_data = &tvp5146_pdata,
+> > > > +		},
+> > > > +	},
+> > > > +};
+> > > > +
+> > > > +static void am3517_evm_clear_vpfe_intr(int vdint)
+> > > > +{
+> > > > +	unsigned int vpfe_int_clr;
+> > > > +
+> > > > +	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> > > > +
+> > > > +	switch (vdint) {
+> > > > +	/* VD0 interrrupt */
+> > > > +	case INT_35XX_CCDC_VD0_IRQ:
+> > > > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD0_INT_CLR;
+> > > > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD0_INT_CLR;
+> > > > +		break;
+> > > > +	/* VD1 interrrupt */
+> > > > +	case INT_35XX_CCDC_VD1_IRQ:
+> > > > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD1_INT_CLR;
+> > > > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD1_INT_CLR;
+> > > > +		break;
+> > > > +	/* VD2 interrrupt */
+> > > > +	case INT_35XX_CCDC_VD2_IRQ:
+> > > > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD2_INT_CLR;
+> > > > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD2_INT_CLR;
+> > > > +		break;
+> > > > +	/* Clear all interrrupts */
+> > > > +	default:
+> > > > +		vpfe_int_clr &= ~(AM35XX_VPFE_CCDC_VD0_INT_CLR |
+> > > > +				AM35XX_VPFE_CCDC_VD1_INT_CLR |
+> > > > +				AM35XX_VPFE_CCDC_VD2_INT_CLR);
+> > > > +		vpfe_int_clr |= (AM35XX_VPFE_CCDC_VD0_INT_CLR |
+> > > > +				AM35XX_VPFE_CCDC_VD1_INT_CLR |
+> > > > +				AM35XX_VPFE_CCDC_VD2_INT_CLR);
+> > > > +		break;
+> > > > +	}
+> > > > +	omap_ctrl_writel(vpfe_int_clr, AM35XX_CONTROL_LVL_INTR_CLEAR);
+> > > > +	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
+> > >
+> > > Is it necessary to assign to the local variable (vpfe_int_clr)? If not,
+> > we
+> > > can reduce the size of this routine by two assembly instructions:
+> > > One: copying the result to a register
+> > > Two: pushing the register value to stack
+> > >
+> > [Hiremath, Vaibhav] How are you going to achieve this? How are you going
+> > to define the switch case values here?
 > 
-> --
-> Felipe Contreras
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> [Tarun] I am only referring to the last statement, outside the switch()
+> statement.
+[Hiremath, Vaibhav] Ohhh Ok.
+It is required; actually the read operation is required to push/reflect the value written to register. In the past we have seen issues like write is not getting reflected immediately leading to spurious interrupts.
+
+Thanks,
+Vaibhav
+> >
+> > Also currently this covers only VPFE Capture related interrupts but this
+> > function may required for other modules which are part of IPSS, like HECC,
+> > EMAC and USBOTG.
+> >
+> > Thanks,
+> > Vaibhav
+> >
+> > > -Tarun
+> > >
+> > >
+> > > > +}
+> > > > +
+> > > > +static struct vpfe_config vpfe_cfg = {
+> > > > +	.num_subdevs	= ARRAY_SIZE(vpfe_sub_devs),
+> > > > +	.i2c_adapter_id	= 3,
+> > > > +	.sub_devs	= vpfe_sub_devs,
+> > > > +	.clr_intr	= am3517_evm_clear_vpfe_intr,
+> > > > +	.card_name	= "AM3517 EVM",
+> > > > +	.ccdc		= "DM6446 CCDC",
+> > > > +};
+> > > > +
+> > > > +static struct resource vpfe_resources[] = {
+> > > > +	{
+> > > > +		.start	= INT_35XX_CCDC_VD0_IRQ,
+> > > > +		.end	= INT_35XX_CCDC_VD0_IRQ,
+> > > > +		.flags	= IORESOURCE_IRQ,
+> > > > +	},
+> > > > +	{
+> > > > +		.start	= INT_35XX_CCDC_VD1_IRQ,
+> > > > +		.end	= INT_35XX_CCDC_VD1_IRQ,
+> > > > +		.flags	= IORESOURCE_IRQ,
+> > > > +	},
+> > > > +};
+> > > > +
+> > > > +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
+> > > > +static struct platform_device vpfe_capture_dev = {
+> > > > +	.name		= CAPTURE_DRV_NAME,
+> > > > +	.id		= -1,
+> > > > +	.num_resources	= ARRAY_SIZE(vpfe_resources),
+> > > > +	.resource	= vpfe_resources,
+> > > > +	.dev = {
+> > > > +		.dma_mask		= &vpfe_capture_dma_mask,
+> > > > +		.coherent_dma_mask	= DMA_BIT_MASK(32),
+> > > > +		.platform_data		= &vpfe_cfg,
+> > > > +	},
+> > > > +};
+> > > > +
+> > > > +static struct resource am3517_ccdc_resource[] = {
+> > > > +	/* CCDC Base address */
+> > > > +	{
+> > > > +		.start	= AM35XX_IPSS_VPFE_BASE,
+> > > > +		.end	= AM35XX_IPSS_VPFE_BASE + 0xffff,
+> > > > +		.flags	= IORESOURCE_MEM,
+> > > > +	},
+> > > > +};
+> > > > +
+> > > > +static struct platform_device am3517_ccdc_dev = {
+> > > > +	.name		= "dm644x_ccdc",
+> > > > +	.id		= -1,
+> > > > +	.num_resources	= ARRAY_SIZE(am3517_ccdc_resource),
+> > > > +	.resource	= am3517_ccdc_resource,
+> > > > +	.dev = {
+> > > > +		.dma_mask		= &vpfe_capture_dma_mask,
+> > > > +		.coherent_dma_mask	= DMA_BIT_MASK(32),
+> > > > +	},
+> > > > +};
+> > > > +
+> > > >  static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
+> > > >  	{
+> > > >  		I2C_BOARD_INFO("s35390a", 0x30),
+> > > > @@ -46,6 +199,7 @@ static struct i2c_board_info __initdata
+> > > > am3517evm_i2c_boardinfo[] = {
+> > > >  	},
+> > > >  };
+> > > >
+> > > > +
+> > > >  /*
+> > > >   * RTC - S35390A
+> > > >   */
+> > > > @@ -261,6 +415,8 @@ static struct omap_board_config_kernel
+> > > > am3517_evm_config[] __initdata = {
+> > > >
+> > > >  static struct platform_device *am3517_evm_devices[] __initdata = {
+> > > >  	&am3517_evm_dss_device,
+> > > > +	&am3517_ccdc_dev,
+> > > > +	&vpfe_capture_dev,
+> > > >  };
+> > > >
+> > > >  static void __init am3517_evm_init_irq(void)
+> > > > @@ -313,6 +469,11 @@ static void __init am3517_evm_init(void)
+> > > >
+> > > >  	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
+> > > >  				ARRAY_SIZE(am3517evm_i2c_boardinfo));
+> > > > +
+> > > > +	clk_add_alias("master", "dm644x_ccdc", "master",
+> > > > +			&vpfe_capture_dev.dev);
+> > > > +	clk_add_alias("slave", "dm644x_ccdc", "slave",
+> > > > +			&vpfe_capture_dev.dev);
+> > > >  }
+> > > >
+> > > >  static void __init am3517_evm_map_io(void)
+> > > > --
+> > > > 1.6.2.4
+> > > >
+> > > > --
+> > > > To unsubscribe from this list: send the line "unsubscribe linux-omap"
+> > in
+> > > > the body of a message to majordomo@vger.kernel.org
+> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
