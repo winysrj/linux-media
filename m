@@ -1,66 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.mx.bawue.net ([193.7.176.67]:34597 "EHLO
-	relay01.mx.bawue.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696Ab0FWJ31 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 23 Jun 2010 05:29:27 -0400
-Date: Wed, 23 Jun 2010 11:23:16 +0200
-From: Nils Radtke <lkml@Think-Future.de>
-To: laurent.pinchart@skynet.be
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
-	stable@kernel.org
-Subject: [2.6.33.4 PATCH] V4L/uvcvideo: Add support for Suyin Corp. Lenovo
- Webcam
-Message-ID: <20100623092316.GA13364@localhost>
-Reply-To: Nils Radtke <lkml@Think-Future.de>
+Received: from mx1.redhat.com ([209.132.183.28]:45829 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751993Ab0FCWMb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Jun 2010 18:12:31 -0400
+Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o53MCVPp001082
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 3 Jun 2010 18:12:31 -0400
+Date: Thu, 3 Jun 2010 18:10:32 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2 v2] IR: add mceusb IR receiver driver
+Message-ID: <20100603221032.GD23375@redhat.com>
+References: <20100601203208.GA28165@redhat.com>
+ <4C0745DE.20306@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <4C0745DE.20306@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Nils Radtke <lkml@Think-Future.de>
+On Thu, Jun 03, 2010 at 03:04:14AM -0300, Mauro Carvalho Chehab wrote:
+> Em 01-06-2010 17:32, Jarod Wilson escreveu:
+> > This is a new driver for the Windows Media Center Edition/eHome
+> > Infrared Remote transceiver devices. Its a port of the current
+> > lirc_mceusb driver to ir-core, and currently lacks transmit support,
+> > but will grow it back soon enough... This driver also differs from
+> > lirc_mceusb in that it borrows heavily from a simplified IR buffer
+> > decode routine found in Jon Smirl's earlier ir-mceusb port.
+> > 
+> > This driver has been tested on the original first-generation MCE IR
+> > device with the MS vendor ID, as well as a current-generation device
+> > with a Topseed vendor ID. Every receiver supported by lirc_mceusb
+> > should work equally well. Testing was done primarily with RC6 MCE
+> > remotes, but also briefly with a Hauppauge RC5 remote, and all works
+> > as expected.
+> > 
+> > v2: fix call to ir_raw_event_handle so repeats work as they should.
+> 
+> The driver seems ok, except for a few "magic" numbers.
+> 
+> I'll apply at the tree, to allow more people to test. Please send me later
+> a patch fixing those small issues.
 
-This patch adds support for the Suyin Corp. Lenovo Webcam.
-lsusb: ID 064e:a102 Suyin Corp. Lenovo Webcam
+I'll get something in flight tonight or tomorrow. All those uglies are in
+the 1st-gen init code, which needs some further work anyway to kill off a
+warning about the driver mapping memory from stack. I've got a number of
+other 1st-gen tx and debug output fixes queued up as well.
 
-It is available as built-in webcam i.e. in ACER timeline 1810t 
-notebooks.
-
-The note in uvc_driver.c about Logitech cameras applies the same 
-to the Suyin web cam: it doesn't announce itself as UVC devices 
-but is compliant.
-
-Signed-off-by: Nils Radtke <lkml@Think-Future.de>
-
----
-
-  Thank you,
-
-                    Nils
-
- uvc_driver.c |    8 ++++++++
-  1 file changed, 8 insertions(+)
-
-
-Index: linux/drivers/media/video/uvc/uvc_driver.c
-===================================================================
---- linux.orig/drivers/media/video/uvc/uvc_driver.c	2010-06-23 10:37:03.000000000 +0200
-+++ linux/drivers/media/video/uvc/uvc_driver.c	2010-06-23 10:37:07.000000000 +0200
-@@ -2153,6 +2153,14 @@
- 	  .bInterfaceProtocol	= 0,
- 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
- 				| UVC_QUIRK_IGNORE_SELECTOR_UNIT },
-+	/* Suyin Corp. Lenovo Webcam */
-+	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-+				| USB_DEVICE_ID_MATCH_INT_INFO,
-+	  .idVendor		= 0x064e,
-+	  .idProduct		= 0xa102,
-+	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
-+	  .bInterfaceSubClass	= 1,
-+	  .bInterfaceProtocol	= 0 },
- 	/* Generic USB Video Class */
- 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
- 	{}
+-- 
+Jarod Wilson
+jarod@redhat.com
 
