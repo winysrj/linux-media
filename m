@@ -1,312 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:56462 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750731Ab0FAEEo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jun 2010 00:04:44 -0400
-Message-ID: <4C0486BF.1000904@arcor.de>
-Date: Tue, 01 Jun 2010 06:04:15 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Received: from mx1.redhat.com ([209.132.183.28]:39353 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754061Ab0FCOb1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Jun 2010 10:31:27 -0400
+Message-ID: <4C07BCBD.3050407@redhat.com>
+Date: Thu, 03 Jun 2010 11:31:25 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH] tm6000: rewrite copy_streams
-References: <1275319534-8616-1-git-send-email-stefan.ringel@arcor.de> <4C043386.3070805@redhat.com>
-In-Reply-To: <4C043386.3070805@redhat.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+CC: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Subject: Re: ir-core multi-protocol decode and mceusb
+References: <AANLkTinpzNYueEczjxdjAo3IgToM42NwkHhm97oz2Koj@mail.gmail.com>	<1275136793.2260.18.camel@localhost>	<AANLkTil0U5s1UQiwiRRvvJOpEYbZwHpFG7NAkm7JJIEi@mail.gmail.com>	<1275163295.17477.143.camel@localhost>	<AANLkTilsB6zTMwJjBdRwwZChQdH5KdiOeb5jFcWvyHSu@mail.gmail.com>	<4C02700A.9040807@redhat.com>	<AANLkTimYjc0reLHV6RtGFIMFz1bbjyZiTYGj1TcacVzT@mail.gmail.com>	<AANLkTik_-6Z12G8rz0xkjbLkpWvfRHorGtD_LbsPr_11@mail.gmail.com>	<1275308142.2227.16.camel@localhost>	<4C0408A9.4040904@redhat.com>	<1275334699.2261.45.camel@localhost>	<4C042310.4090603@redhat.com>	<1275342342.2260.37.camel@localhost>	<4C0438CE.4090801@redhat.com>	<AANLkTimAjriy1hlysvlAOxMPodp_lw2MZGcLl1D5oR9h@mail.gmail.com> <AANLkTinDQF0bvaItVelPncSDTNeXfo4OxpZG9ssEJy4f@mail.gmail.com>
+In-Reply-To: <AANLkTinDQF0bvaItVelPncSDTNeXfo4OxpZG9ssEJy4f@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
- 
-Am 01.06.2010 00:09, schrieb Mauro Carvalho Chehab:
-> Em 31-05-2010 12:25, stefan.ringel@arcor.de escreveu:
->> From: Stefan Ringel <stefan.ringel@arcor.de>
+Em 03-06-2010 03:27, Jarod Wilson escreveu:
+> On Tue, Jun 1, 2010 at 1:22 AM, Jarod Wilson <jarod@wilsonet.com> wrote:
+>> On Mon, May 31, 2010 at 6:31 PM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>> Em 31-05-2010 18:45, Andy Walls escreveu:
+>>>> On Mon, 2010-05-31 at 17:58 -0300, Mauro Carvalho Chehab wrote:
+>>>
+>>>>> I may be wrong (since we didn't write any TX support), but I think that a
+>>>>> rc_set_tx_parameters() wouldn't be necessary, as I don't see why the driver will
+>>>>> change the parameters after registering, and without any userspace request.
+>>>>
+>>>> Yes, my intent was to handle a user space request to change the
+>>>> transmitter setup parameters to handle the protocol.
+>>>>
+>>>> I also don't want to worry about having to code in kernel parameter
+>>>> tables for any bizzare protocol userspace may know about.
+>>>
+>>> Makes sense.
+>>>>
+>>>>
+>>>>> If we consider that some userspace sysfs nodes will allow changing some parameters,
+>>>>> then the better is to have a callback function call, passed via the registering function,
+>>>>> that will allow calling a function inside the driver to change the TX parameters.
+>>>>>
+>>>>> For example, something like:
+>>>>>
+>>>>> struct rc_tx_props {
+>>>>> ...
+>>>>>      int     (*change_protocol)(...);
+>>>>> ...
+>>>>> };
+>>>>>
+>>>>>
+>>>>> rc_register_tx(..., struct rc_tx_props *props)
+>>>>
+>>>> A callback is likely needed.  I'm not sure I would have chosen the name
+>>>> change_protocol(), because transmitter parameters can be common between
+>>>> protocols (at least RC-5 and RC-6 can be supported with one set of
+>>>> parameters), or not match any existing in-kernel protocol.  As long as
+>>>> it is flexible enough to change individual transmitter parameters
+>>>> (modulated/baseband, carrier freq, duty cycle, etc.) it will be fine.
+>>>
+>>> I just used this name as an example, as the same name exists on RX.
+>>>
+>>> Depending on how we code the userspace API, we may use just one set_parameters
+>>> function, or a set of per-attribute changes.
+>>>
+>>> In other words, if we implement severa sysfs nodes to change several parameters,
+>>> maybe it makes sense to have several callbacks. Another alternative would be
+>>> to have a "commit" sysfs node to apply a set of parameters at once.
+>>>
+>>>> Currently LIRC userspace changes Tx parameters using an ioctl().  It
+>>>> asks the hardware to change transmitter parameters, because the current
+>>>> model is that the transmitters don't need to know about protocols. (LIRC
+>>>> userspace knows the parameters of the protocol it wants to use, so the
+>>>> driver's don't have too).
 >>
->> fusion function copy streams and copy_packets to new function
-copy_streams.
->
->
-> There's something wrong with this patch:
->
-> $ patch -p1 -i /tmp/tm6000\:\ rewrite\ copy_streams.eml -l
-> (Stripping trailing CRs from patch.)
-> patching file drivers/staging/tm6000/tm6000-usb-isoc.h
-> (Stripping trailing CRs from patch.)
-> patching file drivers/staging/tm6000/tm6000-video.c
-> Hunk #1 FAILED at 186.
-> Hunk #2 FAILED at 439.
-> Hunk #3 FAILED at 451.
-> 3 out of 6 hunks FAILED -- saving rejects to file
-drivers/staging/tm6000/tm6000-video.c.rej
->
-> Please rebase it against git branch "devel/for_v2.6.35" of my
-v4l-dvb.git tree.
->
-Thanks, I rebase it and send it new today.
->
->
+>> The list of transmit-related ioctls implemented in the lirc_mceusb driver:
 >>
->>  static int copy_streams(u8 *data, unsigned long len,
->>              struct urb *urb)
->>  {
->>      struct tm6000_dmaqueue  *dma_q = urb->context;
->>      struct tm6000_core *dev= container_of(dma_q,struct tm6000_core,vidq);
->> -    u8 *ptr=data, *endp=data+len;
->> +    u8 *ptr=data, *endp=data+len, c;
->>      unsigned long header=0;
->>      int rc=0;
->> -    struct tm6000_buffer *buf;
->> -    char *outp = NULL;
->> -
->> -    get_next_buf(dma_q, &buf);
->> -    if (buf)
->> -        outp = videobuf_to_vmalloc(&buf->vb);
->> +    unsigned int cmd, cpysize, pktsize, size, field, block, line, pos
-= 0;
->> +    struct tm6000_buffer *vbuf;
->> +    char *voutp = NULL;
->> +    unsigned int linewidth;
->> 
->> -    if (!outp)
->> +    /* get video buffer */
->> +    get_next_buf (dma_q, &vbuf);
->> +    if (!vbuf)
->> +        return rc;
->> +    voutp = videobuf_to_vmalloc(&vbuf->vb);
->> +    if (!voutp)
->>          return 0;
->> 
->> -    for (ptr=data; ptr<endp;) {
->> +    for (ptr = data; ptr < endp;) {
->>          if (!dev->isoc_ctl.cmd) {
->> -            u8 *p=(u8 *)&dev->isoc_ctl.tmp_buf;
->> -            /* FIXME: This seems very complex
->> -             * It just recovers up to 3 bytes of the header that
->> -             * might be at the previous packet
->> -             */
->> -            if (dev->isoc_ctl.tmp_buf_len) {
->> -                while (dev->isoc_ctl.tmp_buf_len) {
->> -                    if ( *(ptr+3-dev->isoc_ctl.tmp_buf_len) == 0x47) {
->> -                        break;
->> -                    }
->> -                    p++;
->> -                    dev->isoc_ctl.tmp_buf_len--;
->> -                }
->> -                if (dev->isoc_ctl.tmp_buf_len) {
->> -                    memcpy(&header, p,
->> -                        dev->isoc_ctl.tmp_buf_len);
->> -                    memcpy((u8 *)&header +
->> +            /* Header */
->> +            if (dev->isoc_ctl.tmp_buf_len > 0) {
->> +                /* from last urb or packet */
->> +                header = dev->isoc_ctl.tmp_buf;
->> +                if (4 - dev->isoc_ctl.tmp_buf_len > 0) {
->> +                    memcpy ((u8 *)&header +
->>                          dev->isoc_ctl.tmp_buf_len,
->>                          ptr,
->>                          4 - dev->isoc_ctl.tmp_buf_len);
->>                      ptr += 4 - dev->isoc_ctl.tmp_buf_len;
->> -                    goto HEADER;
->>                  }
->> +                dev->isoc_ctl.tmp_buf_len = 0;
->> +            } else {
->> +                if (ptr + 3 >= endp) {
->> +                    /* have incomplete header */
->> +                    dev->isoc_ctl.tmp_buf_len = endp - ptr;
->> +                    memcpy (&dev->isoc_ctl.tmp_buf, ptr,
->> +                        dev->isoc_ctl.tmp_buf_len);
->> +                    return rc;
->> +                }
->> +                /* Seek for sync */
->> +                for (; ptr < endp - 3; ptr++) {
->> +                    if (*(ptr + 3) == 0x47)
->> +                        break;
->> +                }
->> +                /* Get message header */
->> +                header = *(unsigned long *)ptr;
->> +                ptr += 4;
->>              }
->> -            /* Seek for sync */
->> -            for (;ptr<endp-3;ptr++) {
->> -                if (*(ptr+3)==0x47)
->> -                    break;
->> +            /* split the header fields */
->> +            c = (header >> 24) & 0xff;
->> +            size = ((header & 0x7e) << 1);
->> +            if (size > 0)
->> +                size -= 4;
->> +            block = (header >> 7) & 0xf;
->> +            field = (header >> 11) & 0x1;
->> +            line  = (header >> 12) & 0x1ff;
->> +            cmd   = (header >> 21) & 0x7;
->> +            /* Validates haeder fields */
->> +            if (size > TM6000_URB_MSG_LEN)
->> +                size = TM6000_URB_MSG_LEN;
->> +            pktsize = TM6000_URB_MSG_LEN;
->> +            /* calculate position in buffer
->> +             * and change the buffer
->> +             */
->> +            switch (cmd) {
->> +            case TM6000_URB_MSG_VIDEO:
->> +                if ((dev->isoc_ctl.vfield != field) &&
->> +                    (field == 1)) {
->> +                    /* Announces that a new buffer
->> +                     * were filled
->> +                     */
->> +                    buffer_filled (dev, dma_q, vbuf);
->> +                    dprintk (dev, V4L2_DEBUG_ISOC,
->> +                            "new buffer filled\n");
->> +                    get_next_buf (dma_q, &vbuf);
->> +                    if (!vbuf)
->> +                        return rc;
->> +                    voutp = videobuf_to_vmalloc (&vbuf->vb);
->> +                    if (!voutp)
->> +                        return rc;
->> +                }
->> +                linewidth = vbuf->vb.width << 1;
->> +                pos = ((line << 1) - field - 1) * linewidth +
->> +                    block * TM6000_URB_MSG_LEN;
->> +                /* Don't allow to write out of the buffer */
->> +                if (pos + size > vbuf->vb.size)
->> +                    cmd = TM6000_URB_MSG_ERR;
->> +                dev->isoc_ctl.vfield = field;
->> +                break;
->> +            case TM6000_URB_MSG_AUDIO:
->> +            case TM6000_URB_MSG_VBI:
->> +            case TM6000_URB_MSG_PTS:
->> +                break;
->>              }
->> -
->> -            if (ptr+3>=endp) {
->> -                dev->isoc_ctl.tmp_buf_len=endp-ptr;
->> -                memcpy (&dev->isoc_ctl.tmp_buf,ptr,
->> -                    dev->isoc_ctl.tmp_buf_len);
->> -                dev->isoc_ctl.cmd=0;
->> -                return rc;
->> +        } else {
->> +            /* Continue the last copy */
->> +            cmd = dev->isoc_ctl.cmd;
->> +            size = dev->isoc_ctl.size;
->> +            pos = dev->isoc_ctl.pos;
->> +            pktsize = dev->isoc_ctl.pktsize;
->> +        }
->> +        cpysize = (endp - ptr > size) ? size : endp - ptr;
->> +        if (cpysize) {
->> +            /* copy data in different buffers */
->> +            switch (cmd) {
->> +            case TM6000_URB_MSG_VIDEO:
->> +                /* Fills video buffer */
->> +                if (vbuf)
->> +                    memcpy (&voutp[pos], ptr, cpysize);
->> +                break;
->> +            case TM6000_URB_MSG_AUDIO:
->> +                /* Need some code to copy audio buffer */
->> +                break;
->> +            case TM6000_URB_MSG_VBI:
->> +                /* Need some code to copy vbi buffer */
->> +                break;
->> +            case TM6000_URB_MSG_PTS:
->> +                /* Need some code to copy pts */
->> +                break;
->>              }
->> -
->> -            /* Get message header */
->> -            header=*(unsigned long *)ptr;
->> -            ptr+=4;
->>          }
->> -HEADER:
->> -        /* Copy or continue last copy */
->> -        rc=copy_packet(urb,header,&ptr,endp,outp,&buf);
->> -        if (rc<0) {
->> -            buf=NULL;
->> -            printk(KERN_ERR "tm6000: buffer underrun at %ld\n",
->> -                    jiffies);
->> -            return rc;
->> +        if (ptr + pktsize > endp) {
->> +            /* End of URB packet, but cmd processing is not
->> +             * complete. Preserve the state for a next packet
->> +             */
->> +            dev->isoc_ctl.pos = pos + cpysize;
->> +            dev->isoc_ctl.size = size - cpysize;
->> +            dev->isoc_ctl.cmd = cmd;
->> +            dev->isoc_ctl.pktsize = pktsize - (endp - ptr);
->> +            ptr += endp - ptr;
->> +        } else {
->> +            dev->isoc_ctl.cmd = 0;
->> +            ptr += pktsize;
->>          }
->> -        if (!*buf)
->> -            return 0;
->>      }
->> -
->>      return 0;
->>  }
->>  /*
->> @@ -439,7 +350,7 @@ static int copy_multiplexed(u8 *ptr, unsigned long
-len,
->>      while (len>0) {
->>          cpysize=min(len,buf->vb.size-pos);
->>          //printk("Copying %d bytes (max=%lu) from %p to
-%p[%u]\n",cpysize,(*buf)->vb.size,ptr,out_p,pos);
->> -        memcpy(&out_p[pos], ptr, cpysize);
->> +        memcpy(&outp[pos], ptr, cpysize);
->>          pos+=cpysize;
->>          ptr+=cpysize;
->>          len-=cpysize;
->> @@ -451,8 +362,8 @@ static int copy_multiplexed(u8 *ptr, unsigned long
-len,
->>              get_next_buf (dma_q, &buf);
->>              if (!buf)
->>                  break;
->> -            out_p = videobuf_to_vmalloc(&(buf->vb));
->> -            if (!out_p)
->> +            outp = videobuf_to_vmalloc(&(buf->vb));
->> +            if (!outp)
->>                  return rc;
->>              pos = 0;
->>          }
->> @@ -510,7 +421,6 @@ static inline int tm6000_isoc_copy(struct urb *urb)
->>  {
->>      struct tm6000_dmaqueue  *dma_q = urb->context;
->>      struct tm6000_core *dev= container_of(dma_q,struct tm6000_core,vidq);
->> -    struct tm6000_buffer *buf;
->>      int i, len=0, rc=1, status;
->>      char *p;
->> 
->> @@ -585,7 +495,6 @@ static void tm6000_uninit_isoc(struct tm6000_core
-*dev)
->>      struct urb *urb;
->>      int i;
->> 
->> -    dev->isoc_ctl.nfields = -1;
->>      dev->isoc_ctl.buf = NULL;
->>      for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
->>          urb=dev->isoc_ctl.urb[i];
->> @@ -610,8 +519,6 @@ static void tm6000_uninit_isoc(struct tm6000_core
-*dev)
->>      dev->isoc_ctl.urb=NULL;
->>      dev->isoc_ctl.transfer_buffer=NULL;
->>      dev->isoc_ctl.num_bufs = 0;
->> -
->> -    dev->isoc_ctl.num_bufs=0;
->>  }
->> 
->>  /*
->
+>> - LIRC_SET_TRANSMITTER_MASK -- these devices have two IR tx outputs,
+>> default is to send the signal out both, but you can also select just a
+>> specific one (i.e., two set top boxes, only want to send command to
+>> one or the other of them).
+>>
+>> - LIRC_GET_SEND_MODE -- get current transmit mode
+>>
+>> - LIRC_SET_SEND_MODE -- set current transmit mode
+>>
+>> - LIRC_SET_SEND_CARRIER -- set the transmit carrier freq
+>>
+>> - LIRC_GET_FEATURE -- get both the send and receive capabilities of the device
+>>
+>>
+>>>> I notice IR Rx also has a change_protocol() callback that is not
+>>>> currently in use.
+>>>
+>>> It is used only by em28xx, where the hardware decoder can work either with
+>>> RC-5 or NEC (newer chips also support RC-6, but this is currently not
+>>> implemented).
+>>
+>> The imon driver also implements change_protocol for the current-gen
+>> devices, which are capable of decoding either mce remote signals or
+>> the native imon remote signals. I was originally thinking I'd need to
+>> implement change_protocol for the mceusb driver, but its ultimately a
+>> no-op, since the hardware doesn't give a damn (and there's a note
+>> somewhere that mentions its only relevant for hardware decode devices
+>> that need to be put into a specific mode). Although, on something like
+>> the mceusb driver, change_protocol *could* be wired up to mark only
+>> the desired protocol enabled -- which might reduce complexity for
+>> ir-keytable when loading a new keymap. (I went with a rather simple
+>> approach for marking only the desired decoder enabled at initial
+>> keymap load time which won't help here -- patch coming tomorrow for
+>> that).
+>>
+>>>> If sending raw pulses to userspace, it would be also
+>>>> nice to expose that callback so userspace could set the receiver
+>>>> parameters.
+>>>
+>>> Raw pulse transmission is probably the easiest case. Probably, there's nothing
+>>> or a very few things that might need adjustments.
+>>
+>> Transmitter mask, carrier frequency and a repeat count are the things
+>> I can see needing to set regularly. From experience, at least with
+>> motorola set top box hardware, you need to send a given signal 2-3
+>> times, not just once, for the hardware to pick it up. There's a
+>> min_repeat parameter in lirc config files only used on the transmit
+>> side of the house to specify how many repeats of each blasted signal
+>> to send.
+> 
+> I keep bouncing between two machines, so I finally got smart(ish) and
+> pushed a working git tree to have both push and pull from.
+> 
+> http://git.wilsonet.com/linux-2.6-ir-wip.git/
+> 
+> Just pushed 3 patches with which I can now transmit IR via an mceusb
+> device. I've only added three callbacks to ir_dev_props, the rest of
+> the magic is done in mceusb.c and ir-lirc-codec.c.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.12 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
- 
-iQEcBAEBAgAGBQJMBIa/AAoJEAWtPFjxMvFGCCkH/279v1htNxN02qmI3epHiPg7
-SqBxo6n+GdKe6tb/UfgypRroKqiYUxXSY03zusTtOi9CmwbZ03KixNlT82VQlYul
-x5pMu2uTgkGpUGPzgBR0Bw018eenWe6GDNcC0FSaLi6sWyBS+BBjUt7AUmdEYfPw
-C2YwO1KGb/VEeZxfwzc4oWkLEfipoipTmfyC9jYgv8Cc/iBE4inG88jE9rASeyDF
-70IbWpI53ez7zyt7zkZaQCfZ1gjxOfaUggS2ty+A16kHA4QF5rKMQl05oj/wUDl6
-TUZcwuoQ9gZr8fyXIHTcvAD1Ir0Sas9F5dR+H9rHHkets+YTFpg7pvqBLGuP1GA=
-=JIaH
------END PGP SIGNATURE-----
+Nice!
 
+> I'm still not sure
+> what sort of non-lirc interface we want for transmitting IR, and we
+> don't (yet) have in-kernel IR encoders...
+
+Well, as we don't have any usecase yet, maybe we could just add the lirc
+interface for now.
+
+> I see Mauro was scrawling red ink all over the lirc_dev patch
+> tonight... ;) 
+
+:)
+
+It was not that serious: just BKL, compat32 and postponing the definition of
+the ioctls that aren't yet used.
+
+> I'll try to reply to review comments tomorrow, I'm
+> spent! (I know the compat ioctl thing sucks, but changing it breaks
+> existing lirc userspace (for 32-bit users, iirc), which I'd like to
+> avoid).
+
+If we remove the compat32 stuff and define everything using __u32
+instead of unsigned int, this won't break compatibility if both kernespace
+and userspace are 32 bits.
+
+The breakage will happen with a 64 bits userspace application, compiled with
+the old lirc include.
+
+A re-compilation of the application will solve the issue.
+
+This kind of breakage is more serious where the userspace is provided as
+binary only, as the user can't compile it.
+
+I won't bother much about such breakage, since:
+
+1) Currently, lirc is a set of out-of-tree patches. So, the official kernels
+are not bound to the lirc interface;
+
+2) After adding lirc-dev in kernel, a new version of lirc should be produced
+anyway, properly documenting that lirc-dev shouldn't be compiled with the
+newer kernels and eventually changing the build procedures;
+
+3) The kernel-driver aware version of lirc can be indicated as the minimum requirement
+for lirc-dev at Documentation/Changes;
+
+4) An older version of lirc will have its own lirc-dev patches. If someone is using
+it, the out-of-tree lirc-dev were already used;
+
+5) We can add a way for newer lirc userspace apps to check for the lirc kernelspace
+version. This way, we can move the compat32 stuff to userspace during a transitory
+period, where people may have been using the new lirc with an older kernel;
+
+6) With compat32 being on userspace, after a  few kernel cycles (or after being sure that
+most distros had already applied the in-tree lirc-dev), this compat32 can be removed on 
+userspace. As kernelspace user API's are forever, the same won't occur if we
+let the patch be applied as-is.
+
+On the other hand, keeping the additional complexity of a compat layer for a new driver
+just due to a temporary need of for a transitory period doesn't seem the right thing
+to do.
+
+Cheers,
+Mauro.
