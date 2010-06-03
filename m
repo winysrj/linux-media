@@ -1,124 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3984 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484Ab0F3Tdn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jun 2010 15:33:43 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5UJXXJx063044
-	for <linux-media@vger.kernel.org>; Wed, 30 Jun 2010 21:33:41 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 30 Jun 2010 21:33:33 +0200 (CEST)
-Message-Id: <201006301933.o5UJXXJx063044@smtp-vbr18.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from bear.ext.ti.com ([192.94.94.41]:46210 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755867Ab0FCPdn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 11:33:43 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"mchehab@redhat.com" <mchehab@redhat.com>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Thu, 3 Jun 2010 21:03:27 +0530
+Subject: RE: [PATCH-V1 1/2] Davinci: Create seperate Kconfig file for
+ davinci devices
+Message-ID: <19F8576C6E063C45BE387C64729E7394044E6D3278@dbde02.ent.ti.com>
+References: <hvaibhav@ti.com>
+	<1275547321-31406-2-git-send-email-hvaibhav@ti.com>
+ <20100603082643.83293005.rdunlap@xenotime.net>
+In-Reply-To: <20100603082643.83293005.rdunlap@xenotime.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
+> -----Original Message-----
+> From: Randy Dunlap [mailto:rdunlap@xenotime.net]
+> Sent: Thursday, June 03, 2010 8:57 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; Karicheri,
+> Muralidharan; linux-omap@vger.kernel.org
+> Subject: Re: [PATCH-V1 1/2] Davinci: Create seperate Kconfig file for
+> davinci devices
+> 
+> On Thu,  3 Jun 2010 12:12:00 +0530 hvaibhav@ti.com wrote:
+> 
+> > From: Vaibhav Hiremath <hvaibhav@ti.com>
+> >
+> > Currently VPFE Capture driver and DM6446 CCDC driver is being
+> > reused for AM3517. So this patch is preparing the Kconfig/makefile
+> > for re-use of such IP's.
+> 
+> Hi,
+> What are "IP's"?
+> 
+[Hiremath, Vaibhav] Actually we have various DM series devices and IP's from it are being re-used for some of the OMAP/AM/DM devices as well. We do have some AM18x/AM17x parts which are coming to list in the near future which will again re-use drivers from here.
 
-date:        Wed Jun 30 19:00:18 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Thanks,
+Vaibhav
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> thanks,
+> ---
+> ~Randy
+> *** Remember to use Documentation/SubmitChecklist when testing your code ***
