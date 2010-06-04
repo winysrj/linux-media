@@ -1,55 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-16.arcor-online.net ([151.189.21.56]:46563 "EHLO
-	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758877Ab0FVC2r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 22:28:47 -0400
-Subject: Re: Laptop failing to suspend when WinTV-HVR950 installed.
-From: hermann pitton <hermann-pitton@arcor.de>
-To: David Hagood <david.hagood@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1277169560.6715.6.camel@chumley>
-References: <1277169560.6715.6.camel@chumley>
-Content-Type: text/plain
-Date: Tue, 22 Jun 2010 04:19:13 +0200
-Message-Id: <1277173153.3399.10.camel@pc07.localdom.local>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:19054 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754329Ab0FDSir (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jun 2010 14:38:47 -0400
+Message-ID: <4C09482B.8030404@redhat.com>
+Date: Fri, 04 Jun 2010 15:38:35 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Christoph Bartelmus <lirc@bartelmus.de>
+CC: jarod@redhat.com, linux-media@vger.kernel.org,
+	Jon Smirl <jonsmirl@gmail.com>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Subject: Re: [PATCH 1/3] IR: add core lirc device interface
+References: <BQCH7Bq3jFB@christoph>
+In-Reply-To: <BQCH7Bq3jFB@christoph>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi David,
-
-Am Montag, den 21.06.2010, 20:19 -0500 schrieb David Hagood:
-> I have a 100% repeatable failure for my laptop runing Lucid 64 bit to
-> suspend when my WinTV-HVR950 is installed, and a 100% success rate on it
-> suspending when the device is not installed.
+Em 04-06-2010 12:51, Christoph Bartelmus escreveu:
+> Hi Mauro,
 > 
-> If I put the device in, remove the device, and suspend (e.g. by closing
-> the lid) it will suspend. There are no processes opening the device (as
-> confirmed by lsof | grep dvb).
+> on 04 Jun 10 at 01:10, Mauro Carvalho Chehab wrote:
+>> Em 03-06-2010 19:06, Jarod Wilson escreveu:
+> [...]
+>>> As for the compat bits... I actually pulled them out of the Fedora kernel
+>>> and userspace for a while, and there were only a few people who really ran
+>>> into issues with it, but I think if the new userspace and kernel are rolled
+>>> out at the same time in a new distro release (i.e., Fedora 14, in our
+>>> particular case), it should be mostly transparent to users.
 > 
-> Additionally, most of the time the failure to suspend occurs, the
-> machine becomes unresponsive, and I have to hard power off to get it
-> back.
+>> For sure this will happen on all distros that follows upstream: they'll
+>> update lirc to fulfill the minimal requirement at Documentation/Changes.
+>>
+>> The issue will appear only to people that manually compile kernel and lirc.
+>> Those users are likely smart enough to upgrade to a newer lirc version if
+>> they notice a trouble, and to check at the forums.
 > 
-> Has anybody else seen this?
+>>> Christoph
+>>> wasn't a fan of the change, and actually asked me to revert it, so I'm
+>>> cc'ing him here for further feedback, but I'm inclined to say that if this
+>>> is the price we pay to get upstream, so be it.
+> 
+>> I understand Christoph view, but I think that having to deal with compat
+>> stuff forever is a high price to pay, as the impact of this change is
+>> transitory and shouldn't be hard to deal with.
+> 
+> I'm not against doing this change, but it has to be coordinated between  
+> drivers and user-space.
+> Just changing lirc.h is not enough. You also have to change all user-space  
+> applications that use the affected ioctls to use the correct types.
+> That's what Jarod did not address last time so I asked him to revert the  
+> change.
 
-just as a hint.
+For sure coordination between kernel and userspace is very important. I'm sure
+that Jarod can help with this sync. Also, after having the changes implemented
+on userspace, I expect one patch from you adding the minimal lirc requirement 
+at Documentation/Changes.
 
-You need some cloud of users, that somebody sticks in.
+> And I'd also like to collect all other change request to the API  
+> if there are any and do all changes in one go.
 
-I still have cases, where a single user claims on the wiki, all Asus
-stuff is rubbish, but he still is exactly the only one failing after
-years.
+You and Jarod are the most indicated people to point for such needs. Also, Jon
+and David may have some comments.
 
-I don't deny, that it might fail for him.
+>From my side, as I said before, I'd like to see a documentation of the defined API bits,
+and the removal of the currently unused ioctls (they can be added later, together
+with the patches that will introduce the code that handles them) to give my final ack.
+
+>From what I'm seeing, those are the current used ioctls:
+
++#define LIRC_GET_FEATURES              _IOR('i', 0x00000000, unsigned long)
+
++#define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, unsigned long)
+
++#define LIRC_GET_MIN_TIMEOUT           _IOR('i', 0x00000008, uint32_t)
++#define LIRC_GET_MAX_TIMEOUT           _IOR('i', 0x00000009, uint32_t)
+
+There is also a defined LIRC_GET_REC_MODE that just returns a mask of GET_FEATURES
+bits, and a LIRC_SET_REC_MODE that do nothing.
+
+I can't comment about the other ioctls, as currently there's no code using them, but
+it seems that some of them would be better implemented as ioctl, like the ones that
+send carrier/burst, etc.
+
+One discussion that may be pertinent is if we should add ioctls for those controls,
+or if it would be better to just add sysfs nodes for them.
+
+As all those ioctls are related to config stuff, IMO, using sysfs would be better, but
+I haven't a closed opinion about that matter.
+
+Btw, a lirc userspace that would work with both the out-of-tree and in-tree lirc-dev
+can easily check for the proper sysfs nodes to know what version of the driver is being
+used. It will need access sysfs anyway, to enable the lirc decoder.
 
 Cheers,
-Hermann
-
-
-
-
-
-
+Mauro.
