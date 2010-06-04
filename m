@@ -1,75 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2.tu-cottbus.de ([141.43.99.248]:42787 "EHLO
-	smtp2.tu-cottbus.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757431Ab0FPNkX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jun 2010 09:40:23 -0400
-Date: Wed, 16 Jun 2010 15:40:14 +0200
-From: Eugeniy Meshcheryakov <eugen@debian.org>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Problem with em28xx card, PAL and teletext
-Message-ID: <20100616134014.GA4393@localhost.localdomain>
-References: <20100317145900.GA7875@localhost.localdomain>
- <829197381003170843u73743ccand32e7d0d2e6d3ca6@mail.gmail.com>
- <20100613150938.GA5483@localhost.localdomain>
- <AANLkTimgmQzy5sAh_lU_RHYj-ZD9XZavvLmgs7tSNNdZ@mail.gmail.com>
- <20100614032105.GA3456@localhost.localdomain>
- <AANLkTikSa6M2wzPz9Ro4z-hHOQXBSFvpOapRpk4fKdzX@mail.gmail.com>
+Received: from mx01.sz.bfs.de ([194.94.69.103]:53492 "EHLO mx01.sz.bfs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753800Ab0FDM0J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jun 2010 08:26:09 -0400
+Message-ID: <4C08F0DD.50702@bfs.de>
+Date: Fri, 04 Jun 2010 14:26:05 +0200
+From: walter harms <wharms@bfs.de>
+Reply-To: wharms@bfs.de
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6TrnltStXW4iwmi0"
-Content-Disposition: inline
-In-Reply-To: <AANLkTikSa6M2wzPz9Ro4z-hHOQXBSFvpOapRpk4fKdzX@mail.gmail.com>
+To: Dan Carpenter <error27@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Frederic Weisbecker <fweisbec@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [patch] V4L/DVB: dvb_ca_en50221: return -EFAULT on copy_to_user
+ errors
+References: <20100604103629.GC5483@bicker>
+In-Reply-To: <20100604103629.GC5483@bicker>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 
---6TrnltStXW4iwmi0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hello Devin,
+Dan Carpenter schrieb:
+> copy_to_user() returns the number of bytes remaining to be copied which
+> isn't the right thing to return here.  The comments say that these 
+> functions in dvb_ca_en50221.c should return the number of bytes copied or
+> an error return.  I've changed it to return -EFAULT.
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> 
+> diff --git a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
+> index ef259a0..aa7a298 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
+> @@ -1318,8 +1318,10 @@ static ssize_t dvb_ca_en50221_io_write(struct file *file,
+>  
+>  		fragbuf[0] = connection_id;
+>  		fragbuf[1] = ((fragpos + fraglen) < count) ? 0x80 : 0x00;
+> -		if ((status = copy_from_user(fragbuf + 2, buf + fragpos, fraglen)) != 0)
+> +		if ((status = copy_from_user(fragbuf + 2, buf + fragpos, fraglen)) != 0) {
+> +			status = -EFAULT;
+>  			goto exit;
+> +		}
+>  
+>  		timeout = jiffies + HZ / 2;
+>  		written = 0;
+> @@ -1494,8 +1496,10 @@ static ssize_t dvb_ca_en50221_io_read(struct file *file, char __user * buf,
+>  
+>  	hdr[0] = slot;
+>  	hdr[1] = connection_id;
+> -	if ((status = copy_to_user(buf, hdr, 2)) != 0)
+> +	if ((status = copy_to_user(buf, hdr, 2)) != 0) {
+> +		status = -EFAULT;
+>  		goto exit;
+> +	}
+>  	status = pktlen;
+>  
+>  exit:
+> --
 
-14 =D1=87=D0=B5=D1=80=D0=B2=D0=BD=D1=8F 2010 =D0=BE 10:19 -0400 Devin Heitm=
-ueller =D0=BD=D0=B0=D0=BF=D0=B8=D1=81=D0=B0=D0=B2(-=D0=BB=D0=B0):
-> > Thanks for the tip. It worked with 640x480. But when I tried to use
-> > 720x576 I got a picture with a lot of noise made of horizontal white
-> > lines. However maybe it is because of damaged USB connector...
->=20
-> If you email me a screenshot (preferably off list due to the size), I
-> can probably provide some additional advice.  Also please provide the
-> exact mplayer command you used so I can try to reproduce it here.
-The lines do not look white for me now, it is probably depends on
-picture. You can see screenshots here:
-http://people.debian.org/~eugen/em28xx/
 
-I had the following in mplayer config file:
-ao=3Dalsa
-vo=3Dxv
-framedrop=3D1
-panscan=3D0
-tv=3Dwidth=3D640:height=3D480:norm=3Dpal-bg:device=3D/dev/video1:tdevice=3D=
-/dev/vbi0:alsa=3Dyes:adevice=3Dhw.2,0:amode=3D1:immediatemode=3D0:audiorate=
-=3D48000:chanlist=3Deurope-west:channels=3D<long list of channels>
-lavdopts=3Dthreads=3D2
-vf=3Dyadif=3D0,screenshot=3D1
+Doint to many things at once is bad. IMHO it is more readable to do so:
 
-Regards,
-Eugeniy Meshcheryakov
++status = copy_to_user(buf, hdr, 2);
++if ( status  != 0) {
 
---6TrnltStXW4iwmi0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Maybe the maintainer has different ideas but especialy lines like will gain.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+-if ((status = copy_from_user(fragbuf + 2, buf + fragpos, fraglen)) != 0)
++status = copy_from_user(fragbuf + 2, buf + fragpos, fraglen):
++if ( status  != 0) {
 
-iEYEARECAAYFAkwY1D4ACgkQKaC6+zmozOJTzQCdFfDDmskIurAsA4F9zlufYsnS
-5UQAoIVHPw9pDa9YbTx5m83ngAqzL5g/
-=qKg/
------END PGP SIGNATURE-----
-
---6TrnltStXW4iwmi0--
+just my 2 cents,
+ wh
