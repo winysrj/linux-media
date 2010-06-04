@@ -1,74 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.tkos.co.il ([62.219.50.35]:34997 "EHLO tango.tkos.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752513Ab0FUFQh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 01:16:37 -0400
-From: Baruch Siach <baruch@tkos.co.il>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Baruch Siach <baruch@tkos.co.il>
-Subject: [PATCHv4 0/3] Driver for the i.MX2x CMOS Sensor Interface
-Date: Mon, 21 Jun 2010 08:15:57 +0300
-Message-Id: <cover.1277096909.git.baruch@tkos.co.il>
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:34979 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756995Ab0FDBbS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 3 Jun 2010 21:31:18 -0400
+Subject: Re: What ever happened to standardizing signal level?
+From: hermann pitton <hermann-pitton@arcor.de>
+To: VDR User <user.vdr@gmail.com>
+Cc: "mailing list: linux-media" <linux-media@vger.kernel.org>
+In-Reply-To: <AANLkTilIrG5cwlLv_iAI7E7XX5117qh4AHof80pRRYSs@mail.gmail.com>
+References: <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com>
+	 <1275198741.3213.50.camel@pc07.localdom.local>
+	 <AANLkTilIrG5cwlLv_iAI7E7XX5117qh4AHof80pRRYSs@mail.gmail.com>
+Content-Type: text/plain
+Date: Fri, 04 Jun 2010 05:30:26 +0200
+Message-Id: <1275622226.6635.24.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and
-platform code for the i.MX25 and i.MX27 chips. This driver is based on a 
-driver for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has 
-posted in linux-media last December[1]. I tested the mx2_camera driver on the 
-i.MX25 PDK. Sascha Hauer has tested a earlier version of this driver on an 
-i.MX27 based board. I included in this version some fixes from Sascha that 
-enable i.MX27 support.
+Hi,
 
-[1] https://patchwork.kernel.org/patch/67636/
+Am Sonntag, den 30.05.2010, 00:01 -0700 schrieb VDR User:
+> On Sat, May 29, 2010 at 10:52 PM, hermann pitton
+> <hermann-pitton@arcor.de> wrote:
+> >
+> ...troll spam removed...
+> >
+> 
+> Hermann, you're a known troll with clearly nothing to contribute to
+> this thread therefore you're comments are unwelcome.  Your mostly
+> incoherent rant sounds like the ramblings of somebody who has consumed
+> too much alcohol, and you're obviously using this mailing list as a
+> cry for attention.  I'll ask you kindly to stop wasting everyones time
+> with your moronic nonsense and direct your harassment elsewhere.  I'm
+> sure you can find something better to do with your time then polluting
+> this mailing list and making yourself look foolish.
+> 
+> To everyone else, please disregard this post and the imbecile in which
+> I'm replying to.
 
-Changes v3 -> v4
-    Address more comments from Guennadi Liakhovetski, including:
+I tried in vain, several times, to get the VDR User to some ground.
 
-    * Fix the double trigger handling of mx27 eMMA
+To participate in development is about patches, as a minimum.
 
-    * Add a FIXME comment in the code of eMMA overflow handling
+Driver maintainers are on a much higher level and can disregard patches.
 
-Changes v2 -> v3
-    Address more comments from Guennadi Liakhovetski.
+If patches go to mainline, one has to allow to be authenticated.
 
-    Applied part of Sashca's patch that I forgot in v2.
+There is no other way to get any "stuff" in else, with reasons.
 
-Changes v1 -> v2
-    Addressed the comments of Guennadi Liakhovetski except from the following:
+If one is acting under some anonymous name and email account, there is
+no way to fulfill this first requirement.
 
-    1. The mclk_get_divisor implementation, since I don't know what this code 
-       is good for
+So, anything coming in from such, is taken as trolling.
 
-    2. mx2_videobuf_release should not set pcdev->active on i.MX27, because 
-       mx27_camera_frame_done needs this pointer
+Especially, if one did already qualify for "taking it all over", rule
+the personal engaged and so on ...
 
-    3. In mx27_camera_emma_buf_init I don't know the meaning of those hard 
-       coded magic numbers
+I'm not sure, if we have to improve the wiki for those never ever
+sending any patches, since this is the first on what we meet.
 
-    Applied i.MX27 fixes from Sascha.
+But some, taking it all over, seem still to be in urgent need about how
+to improve that ;)
 
-Baruch Siach (3):
-  mx2_camera: Add soc_camera support for i.MX25/i.MX27
-  mx27: add support for the CSI device
-  mx25: add support for the CSI device
+Cheers,
+Hermann
 
- arch/arm/mach-mx2/clock_imx27.c          |    2 +-
- arch/arm/mach-mx2/devices.c              |   31 +
- arch/arm/mach-mx2/devices.h              |    1 +
- arch/arm/mach-mx25/clock.c               |   14 +-
- arch/arm/mach-mx25/devices.c             |   22 +
- arch/arm/mach-mx25/devices.h             |    1 +
- arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
- arch/arm/plat-mxc/include/mach/mx25.h    |    2 +
- arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
- drivers/media/video/Kconfig              |   13 +
- drivers/media/video/Makefile             |    1 +
- drivers/media/video/mx2_camera.c         | 1493 ++++++++++++++++++++++++++++++
- 12 files changed, 1625 insertions(+), 5 deletions(-)
- create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
- create mode 100644 drivers/media/video/mx2_camera.c
+
+
+
+
+
+
+
 
