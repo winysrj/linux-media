@@ -1,89 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:62584 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756576Ab0FNVVl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jun 2010 17:21:41 -0400
-Message-ID: <4C169D71.90800@gmail.com>
-Date: Mon, 14 Jun 2010 14:21:53 -0700
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:48704 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750729Ab0FDFSE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 01:18:04 -0400
+Received: by vws11 with SMTP id 11so1130725vws.19
+        for <linux-media@vger.kernel.org>; Thu, 03 Jun 2010 22:18:02 -0700 (PDT)
 MIME-Version: 1.0
-To: Edward Shishkin <edward.shishkin@gmail.com>
-CC: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
-	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
-	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/8]reiserfs:stree.c Fix variable set but not used.
-References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com> <1276547208-26569-2-git-send-email-justinmattock@gmail.com> <4C1699AA.3000900@gmail.com>
-In-Reply-To: <4C1699AA.3000900@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1275622226.6635.24.camel@pc07.localdom.local>
+References: <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com>
+	<1275198741.3213.50.camel@pc07.localdom.local>
+	<AANLkTilIrG5cwlLv_iAI7E7XX5117qh4AHof80pRRYSs@mail.gmail.com>
+	<1275622226.6635.24.camel@pc07.localdom.local>
+Date: Thu, 3 Jun 2010 22:18:01 -0700
+Message-ID: <AANLkTikvkkfr0F_h1u8wIgoLMiy05iWy8ZQkdF5y2Xii@mail.gmail.com>
+Subject: Re: What ever happened to standardizing signal level?
+From: VDR User <user.vdr@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: "mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/14/2010 02:05 PM, Edward Shishkin wrote:
-> Justin P. Mattock wrote:
->> Not sure if this is correct or not.
->> the below patch gets rid of this warning message
->> produced by gcc 4.6.0
->>
->> fs/reiserfs/stree.c: In function 'search_by_key':
->> fs/reiserfs/stree.c:602:6: warning: variable
->> 'right_neighbor_of_leaf_node' set but not used
->>
->> Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
->
-> Acked-by: Edward Shishkin <edward.shishkin@gmail.com>
->
+hermann pitton <hermann-pitton@arcor.de>, you are contributing
+absolutely nothing to this thread aside of annoying people with your
+by trolling and half incoherent nonsense.  It's quite ironic you
+suggest _I_ am the one trolling when this is a thread _I_ created.
+And further, several people have posted legitimate responses to --
+clearly you are the only one suffering from your delusion.
+Additionally you've been stalking me in email as well.  Your behavior
+is not only uncalled for, it's abusive of both this mailing list and
+the people willingly participating in the discussion.  As I understand
+it, this is not the first time you've been the source of harassment.
 
-o.k.!!
-what about the whitespace issue?
-from what I remember I did notice the "+"
-that git does when making patches like this
-but given some many of these warnings I just
-did a quick workaround or however then figured
-to worry later on that.
-
->> ---
->> fs/reiserfs/stree.c | 7 ++-----
->> 1 files changed, 2 insertions(+), 5 deletions(-)
->>
->> diff --git a/fs/reiserfs/stree.c b/fs/reiserfs/stree.c
->> index 313d39d..73086ad 100644
->> --- a/fs/reiserfs/stree.c
->> +++ b/fs/reiserfs/stree.c
->> @@ -599,7 +599,6 @@ int search_by_key(struct super_block *sb, const
->> struct cpu_key *key, /* Key to s
->> struct buffer_head *bh;
->> struct path_element *last_element;
->> int node_level, retval;
->> - int right_neighbor_of_leaf_node;
->> int fs_gen;
->> struct buffer_head *reada_bh[SEARCH_BY_KEY_READA];
->> b_blocknr_t reada_blocks[SEARCH_BY_KEY_READA];
->> @@ -617,8 +616,7 @@ int search_by_key(struct super_block *sb, const
->> struct cpu_key *key, /* Key to s
->>
->> pathrelse(search_path);
->>
->> - right_neighbor_of_leaf_node = 0;
->> -
->> +
->> /* With each iteration of this loop we search through the items in the
->> current node, and calculate the next current node(next path element)
->> for the next iteration of this loop.. */
->> @@ -695,8 +693,7 @@ int search_by_key(struct super_block *sb, const
->> struct cpu_key *key, /* Key to s
->> starting from the root. */
->> block_number = SB_ROOT_BLOCK(sb);
->> expected_level = -1;
->> - right_neighbor_of_leaf_node = 0;
->> -
->> +
->> /* repeat search from the root */
->> continue;
->> }
->
->
-
+Do us all a favor -- go find some other thread to infect with your
+childishness, find some other user(s) to harass/stalk/obsess over, or
+simply grow up and stop wasting everyone's time.  In case you haven't
+noticed there has been absolutely nobody supporting your rants.  Take
+a hint.
