@@ -1,88 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp107.rog.mail.re2.yahoo.com ([68.142.225.205]:41378 "HELO
-	smtp107.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750777Ab0FCEWZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jun 2010 00:22:25 -0400
-Message-ID: <4C072DFE.7000409@rogers.com>
-Date: Thu, 03 Jun 2010 00:22:22 -0400
-From: CityK <cityk@rogers.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:48191 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757516Ab0FDXQP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 19:16:15 -0400
+Received: by vws5 with SMTP id 5so283877vws.19
+        for <linux-media@vger.kernel.org>; Fri, 04 Jun 2010 16:16:14 -0700 (PDT)
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org
-Subject: Re: DNTV Dual Hybrid (7164) PCIe
-References: <370023.77962.qm@web113202.mail.gq1.yahoo.com> <4C06FBAD.60304@macquarie.com>
-In-Reply-To: <4C06FBAD.60304@macquarie.com>
+In-Reply-To: <AANLkTimrV3zUg1yqtWCROtUqY4AfvfXrv81BVmh8HHlk@mail.gmail.com>
+References: <BQCH7Bq3jFB@christoph>
+	<4C09482B.8030404@redhat.com>
+	<AANLkTikr49GiEcENLb6n1shtCkWrDhMXoYh4VJ4IPtdQ@mail.gmail.com>
+	<20100604201733.GJ23375@redhat.com>
+	<AANLkTimrV3zUg1yqtWCROtUqY4AfvfXrv81BVmh8HHlk@mail.gmail.com>
+Date: Fri, 4 Jun 2010 19:16:14 -0400
+Message-ID: <AANLkTimFzEEPYnKEsUsd42ny1z1DPnhbPhUIwW_6E5rb@mail.gmail.com>
+Subject: Re: [PATCH 1/3] IR: add core lirc device interface
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	linux-media@vger.kernel.org,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Martin Brown wrote:
-> I'm trying to get a driver working for this card under Ubuntu Lucid
-> (10.04).
+On Fri, Jun 4, 2010 at 5:17 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> On Fri, Jun 4, 2010 at 4:17 PM, Jarod Wilson <jarod@redhat.com> wrote:
+>> On Fri, Jun 04, 2010 at 02:57:04PM -0400, Jon Smirl wrote:
+> ...
+>>> > From what I'm seeing, those are the current used ioctls:
+>>> >
+>>> > +#define LIRC_GET_FEATURES              _IOR('i', 0x00000000, unsigned long)
+>>> > +#define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, unsigned long)
+>>>
+>>> Has this been set into stone yet? if not a 64b word would be more future proof.
+>>
+>> Nope, not set in stone at all, nothing has been merged. A patch I was
+>> carrying in Fedora changed all unsigned long to u64 and unsigned int to
+>> u32, and my current ir wip tree has all u32, but I don't see a reason why
+>> if we're going to make a change, it couldn't be to all u64, for as much
+>> future-proofing as possible.
 >
-> I believe the card is based on the SAA7164 so I'm trying the
-> kernellabs driver.
+> Hrm, struct file_operations specifies an unsigned long for the ioctl
+> args, so doesn't that mean we're pretty much stuck with only 32-bit
+> for the ioctls?
+
+I haven't written an IOCTL in a while, but how would you pass a 64b
+memory address?
+
 >
-> Results of modprobe saa7164 are:
+> Even with "only" 32 feature flags, I think we'd still be just fine,
+> there appear to be only 15 feature flags at present, and I doubt many
+> more features need to be added, given how long lirc has been around.
 >
-> /etc/modprobe.d/options.conf contains:
-> options saa7164 card=4
->
->
-> kernel: [ 159.091047] saa7164 driver loaded
-> kernel: [ 159.091102] saa7164 0000:04:00.0: PCI INT A -> GSI 18
-> (level, low) -> IRQ 18
-> kernel: [ 159.091974] CORE saa7164[0]: subsystem: 107d:6f2c, board:
-> Hauppauge WinTV-HVR2200 [card=4,insmod option]
-> kernel: [ 159.091980] saa7164[0]/0: found at 0000:04:00.0, rev: 129,
-> irq: 18, latency: 0, mmio: 0x93000000
-> kernel: [ 159.135163] tveeprom 0-0000: Encountered bad packet header
-> [00]. Corrupt or not a Hauppauge eeprom.
-> kernel: [ 159.135168] saa7164[0]: Hauppauge eeprom: model=0
->
-> That's it. Nothing more. No /dev/dvb/adpator... created.
->
-> When /etc/modprobe.conf has:
-> options saa7164 card=5 I get:
->
-> kernel: [ 547.123384] saa7164 driver loaded
-> kernel: [ 547.123435] saa7164 0000:04:00.0: PCI INT A -> GSI 18
-> (level, low) -> IRQ 18
-> kernel: [ 547.123614] CORE saa7164[0]: subsystem: 107d:6f2c, board:
-> Hauppauge WinTV-HVR2200 [card=5,insmod option]
-> kernel: [ 547.123619] saa7164[0]/0: found at 0000:04:00.0, rev: 129,
-> irq: 18, latency: 0, mmio: 0x93000000
-> kernel: [ 547.160228] tveeprom 0-0000: Encountered bad packet header
-> [ff]. Corrupt or not a Hauppauge eeprom.
-> kernel: [ 547.160233] saa7164[0]: Hauppauge eeprom: model=0
-> kernel: [ 547.207655] tda18271 1-0060: creating new instance
-> kernel: [ 547.211800] TDA18271HD/C2 detected @ 1-0060
-> kernel: [ 547.469221] DVB: registering new adapter (saa7164)
-> kernel: [ 547.469226] DVB: registering adapter 2 frontend 0 (NXP
-> TDA10048HN DVB-T)...
->
-> But only one /dev/dvb/adaptor created instead of 2 and I suspect the
-> tveeprom error is fatal.
->
-> Does anyone have any suggestions?
->
-> Thanks,
-> Martin
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> Jarod Wilson
+> jarod@wilsonet.com
 >
 
-Read the topmost note of:
-
-http://www.linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-
-Is your device in any way related to those two iterations of the
-Hauppauge HVR-2200 model?
-
-(http://linuxtv.org/hg/v4l-dvb/file/304cfde05b3f/linux/Documentation/video4linux/CARDLIST.saa7164)
 
 
+-- 
+Jon Smirl
+jonsmirl@gmail.com
