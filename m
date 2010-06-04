@@ -1,124 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1371 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756819Ab0FKTd1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jun 2010 15:33:27 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5BJXQvs092204
-	for <linux-media@vger.kernel.org>; Fri, 11 Jun 2010 21:33:26 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 11 Jun 2010 21:33:26 +0200 (CEST)
-Message-Id: <201006111933.o5BJXQvs092204@smtp-vbr18.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from moutng.kundenserver.de ([212.227.17.10]:62608 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751560Ab0FDPwf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 11:52:35 -0400
+Date: 04 Jun 2010 17:51:00 +0200
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: mchehab@redhat.com
+Cc: jarod@redhat.com
+Cc: linux-media@vger.kernel.org
+Message-ID: <BQCH7Bq3jFB@christoph>
+In-Reply-To: <4C087CBE.10202@redhat.com>
+Subject: Re: [PATCH 1/3] IR: add core lirc device interface
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Mauro,
 
-Results of the daily build of v4l-dvb:
+on 04 Jun 10 at 01:10, Mauro Carvalho Chehab wrote:
+> Em 03-06-2010 19:06, Jarod Wilson escreveu:
+[...]
+>> As for the compat bits... I actually pulled them out of the Fedora kernel
+>> and userspace for a while, and there were only a few people who really ran
+>> into issues with it, but I think if the new userspace and kernel are rolled
+>> out at the same time in a new distro release (i.e., Fedora 14, in our
+>> particular case), it should be mostly transparent to users.
 
-date:        Fri Jun 11 19:00:20 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14974:023a0048e6a8
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+> For sure this will happen on all distros that follows upstream: they'll
+> update lirc to fulfill the minimal requirement at Documentation/Changes.
+>
+> The issue will appear only to people that manually compile kernel and lirc.
+> Those users are likely smart enough to upgrade to a newer lirc version if
+> they notice a trouble, and to check at the forums.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+>> Christoph
+>> wasn't a fan of the change, and actually asked me to revert it, so I'm
+>> cc'ing him here for further feedback, but I'm inclined to say that if this
+>> is the price we pay to get upstream, so be it.
 
-Detailed results are available here:
+> I understand Christoph view, but I think that having to deal with compat
+> stuff forever is a high price to pay, as the impact of this change is
+> transitory and shouldn't be hard to deal with.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+I'm not against doing this change, but it has to be coordinated between  
+drivers and user-space.
+Just changing lirc.h is not enough. You also have to change all user-space  
+applications that use the affected ioctls to use the correct types.
+That's what Jarod did not address last time so I asked him to revert the  
+change. And I'd also like to collect all other change request to the API  
+if there are any and do all changes in one go.
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Christoph
