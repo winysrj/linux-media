@@ -1,80 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:35086 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753696Ab0FUS0f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 14:26:35 -0400
-Date: Mon, 21 Jun 2010 20:26:54 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Baruch Siach <baruch@tkos.co.il>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] soc_camera_platform: add set_fmt callback
-In-Reply-To: <266c646d111590fda11bd3bbecfe49dea6789e4e.1277097465.git.baruch@tkos.co.il>
-Message-ID: <Pine.LNX.4.64.1006212023001.6299@axis700.grange>
-References: <266c646d111590fda11bd3bbecfe49dea6789e4e.1277097465.git.baruch@tkos.co.il>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from lo.gmane.org ([80.91.229.12]:43873 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932651Ab0FEJ07 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Jun 2010 05:26:59 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1OKpec-0004Dw-BK
+	for linux-media@vger.kernel.org; Sat, 05 Jun 2010 11:26:58 +0200
+Received: from ti521110a080-2322.bb.online.no ([85.167.97.22])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 05 Jun 2010 11:26:58 +0200
+Received: from bjorn by ti521110a080-2322.bb.online.no with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sat, 05 Jun 2010 11:26:58 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: Terratec Cinergy C DVB-C card problems
+Date: Sat, 05 Jun 2010 11:26:48 +0200
+Message-ID: <87631x25k7.fsf@nemi.mork.no>
+References: <AANLkTinh0rXgar5Q0cDqLuBkXtK7b7JPUxyKZI_E9xe3@mail.gmail.com>
+	<AANLkTil4vj-6yx4uywsCZi7vQxDs_0fc6PmlN_VKd1ly@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 21 Jun 2010, Baruch Siach wrote:
+Rune Evjen <rune.evjen@gmail.com> writes:
 
-> This allows the platform camera to arrange a change in the capture format.
+> For some reason this module is not automatically loaded during boot
+> with ubuntu, but I added 'modprobe mantis' to /etc/rc.local so that it
+> loads during bootup.
 
-Sorry, no. I don't like this. This driver is a very primitive piece of 
-code, allowing you to bootstrap a camera in a most simple static way. We 
-even were considering removing it from the kernel, because there's only 
-one user currently in the mainline and, unfortunately, it is not very well 
-maintained. So, you can use this driver as it is in the kernel now, 
-bug-fixes are welcome. But if it isn't enough for you, this means you need 
-a proper driver.
+The mantis driver in linux 2.6.33-2.6.35-rc1 is still missing this patch:
+http://jusst.de/hg/mantis-v4l-dvb/raw-rev/3731f71ed6bf
 
-Thanks
-Guennadi
+You can apply that on top of your Ubuntu 2.6.33 kernel if you want to
+add auto loading.
 
-> 
-> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> ---
->  drivers/media/video/soc_camera_platform.c |    3 +++
->  include/media/soc_camera_platform.h       |    2 ++
->  2 files changed, 5 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
-> index 248c986..208fd42 100644
-> --- a/drivers/media/video/soc_camera_platform.c
-> +++ b/drivers/media/video/soc_camera_platform.c
-> @@ -61,6 +61,9 @@ static int soc_camera_platform_try_fmt(struct v4l2_subdev *sd,
->  {
->  	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
->  
-> +	if (p->try_fmt)
-> +		return p->try_fmt(p, mf);
-> +
->  	mf->width	= p->format.width;
->  	mf->height	= p->format.height;
->  	mf->code	= p->format.code;
-> diff --git a/include/media/soc_camera_platform.h b/include/media/soc_camera_platform.h
-> index 0ecefe2..0558ffc 100644
-> --- a/include/media/soc_camera_platform.h
-> +++ b/include/media/soc_camera_platform.h
-> @@ -22,6 +22,8 @@ struct soc_camera_platform_info {
->  	struct v4l2_mbus_framefmt format;
->  	unsigned long bus_param;
->  	struct device *dev;
-> +	int (*try_fmt)(struct soc_camera_platform_info *info,
-> +			struct v4l2_mbus_framefmt *mf);
->  	int (*set_capture)(struct soc_camera_platform_info *info, int enable);
->  };
->  
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Bjørn
+
