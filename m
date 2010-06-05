@@ -1,37 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:41798 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753618Ab0F2KGm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jun 2010 06:06:42 -0400
-Received: by pvc7 with SMTP id 7so28535pvc.19
-        for <linux-media@vger.kernel.org>; Tue, 29 Jun 2010 03:06:41 -0700 (PDT)
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:63818 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932771Ab0FELJM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jun 2010 07:09:12 -0400
+Received: by fxm8 with SMTP id 8so1253215fxm.19
+        for <linux-media@vger.kernel.org>; Sat, 05 Jun 2010 04:09:11 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <AANLkTik6dQw_yw28L3CajIZYdLLGHkfddrDQq4BuSDAI@mail.gmail.com>
-References: <AANLkTikojhopHeY2WuHxK_tbCs99_SV7ksWnYv4UXM4W@mail.gmail.com>
-	<4C28FCA8.5090005@hoogenraad.net>
-	<4C290096.5080209@gmail.com>
-	<4C298AAD.2090701@hoogenraad.net>
-	<AANLkTik6dQw_yw28L3CajIZYdLLGHkfddrDQq4BuSDAI@mail.gmail.com>
-Date: Tue, 29 Jun 2010 11:06:41 +0100
-Message-ID: <AANLkTin_3mIUd8SkVTnwKqPIlRtapwy7ieqgxR1Hv0kC@mail.gmail.com>
-Subject: Fwd: v4l-dvb unsupported device: Conceptronic CTVDIGUSB2 1b80:d393
-	(Afatech) - possibly similar to CTVCTVDIGRCU v3.0?
-From: =?UTF-8?Q?Pedro_C=C3=B4rte=2DReal?= <pedro@pedrocr.net>
-To: linux-media@vger.kernel.org
+In-Reply-To: <4C07C851.2090107@orange.fr>
+References: <4C07C851.2090107@orange.fr>
+Date: Sat, 5 Jun 2010 13:09:11 +0200
+Message-ID: <AANLkTilmj7sF7ERCORrnUs8vwVOMv0mc-byIYXTq6DjB@mail.gmail.com>
+Subject: Re: New multiplex list for Boulogne sur mer / France
+From: Christoph Pfister <christophpfister@gmail.com>
+To: =?UTF-8?Q?Jean=2Dmichel_D=C3=A9champs?= <jean-michel-62@orange.fr>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 29, 2010 at 6:54 AM, Jan Hoogenraad
-<jan-conceptronic@hoogenraad.net> wrote:
-> I see: apparently the versions earlier than V3.0 of CTVDIGRCU used Realtek
-> RTL2831U. I'll make a note of that on the wiki page.
+2010/6/3 Jean-michel Déchamps <jean-michel-62@orange.fr>:
+> Hi,
+>
+> Since very first times of DVB-T at Boulogne sur mer / France, I tried to
+> use fr-Boulogne regular lists for my scans (I'm a vdr user) but it
+> worked very badly; as there was only one frequency correct.
+> (DVB-T began in 2007 december here in Boulogne sur mer).
+>     So i managed to create my own list, from the official channel
+> numbers. So here following is the list i use since then; that works
+> perfectly for me. I want to share this little thing with others ...
 
-Is the CTVDIGRCU well supported by mainline? I think I can source
-these locally.
+Updated, thanks!
 
-Is the AF9015 driver stable? I've had very bad luck with 3 different
-devices now.
+Christoph
 
-Pedro
+
+> Cheers
+> Jean-michel Déchamps / Boulogne sur mer / France
+>
+>
+> # Boulogne - France (DVB-T transmitter of Boulogne ( MontLambert ) )
+> # Boulogne - France (signal DVB-T transmis depuis l'émetteur de MontLambert
+> )
+> #
+> # Si vous constatez des problemes et voulez apporter des
+> # modifications au fichier, envoyez le fichier modifie a
+> # l'adresse linux-media@vger.kernel.org (depot des fichiers d'init dvb)
+> #
+> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> #### Boulogne - MontLambert ####
+> # (Boulogne sur mer)
+> #R1
+> T 530000000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> #R2
+> T 586000000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> #R3
+> T 634000000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> #R4
+> T 658000000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> #R5
+> T 698000000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> #R6
+> T 714000000 8MHz AUTO NONE QAM64 8k AUTO NONE
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
