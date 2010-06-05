@@ -1,82 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22465 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753279Ab0FAIq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jun 2010 04:46:58 -0400
-Message-ID: <4C04C942.6000900@redhat.com>
-Date: Tue, 01 Jun 2010 10:48:02 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Andrew Morton <akpm@linux-foundation.org>
-CC: linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	bugzilla-daemon@bugzilla.kernel.org,
-	bugme-daemon@bugzilla.kernel.org, davidsen@tmr.com
-Subject: Re: [Bugme-new] [Bug 16050] New: The ibmcam driver is not working
-References: <bug-16050-10286@https.bugzilla.kernel.org/> <20100528154635.129b621b.akpm@linux-foundation.org>
-In-Reply-To: <20100528154635.129b621b.akpm@linux-foundation.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:50413 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933304Ab0FEMok (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jun 2010 08:44:40 -0400
+Received: by vws5 with SMTP id 5so973562vws.19
+        for <linux-media@vger.kernel.org>; Sat, 05 Jun 2010 05:44:38 -0700 (PDT)
+References: <BQCH7Bq3jFB@christoph> <4C09482B.8030404@redhat.com> <AANLkTikr49GiEcENLb6n1shtCkWrDhMXoYh4VJ4IPtdQ@mail.gmail.com> <20100604201733.GJ23375@redhat.com> <AANLkTimrV3zUg1yqtWCROtUqY4AfvfXrv81BVmh8HHlk@mail.gmail.com> <AANLkTimFzEEPYnKEsUsd42ny1z1DPnhbPhUIwW_6E5rb@mail.gmail.com> <AANLkTim5pV1nDrDplx-XClAwt4LPHnhr0FeWdfgeKl63@mail.gmail.com>
+Message-Id: <5601B1AB-20EF-49D3-8EFE-E7F07250E7BC@wilsonet.com>
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+In-Reply-To: <AANLkTim5pV1nDrDplx-XClAwt4LPHnhr0FeWdfgeKl63@mail.gmail.com>
+Content-Type: text/plain;
+	charset=us-ascii;
+	format=flowed;
+	delsp=yes
 Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0 (iPhone Mail 7E18)
+Subject: Re: [PATCH 1/3] IR: add core lirc device interface
+Date: Sat, 5 Jun 2010 08:43:59 -0400
+Cc: Jon Smirl <jonsmirl@gmail.com>, Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	=?utf-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Jun 4, 2010, at 10:45 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
 
-On 05/29/2010 12:46 AM, Andrew Morton wrote:
->
-> (switched to email.  Please respond via emailed reply-to-all, not via the
-> bugzilla web interface).
->
-> On Tue, 25 May 2010 23:02:23 GMT
-> bugzilla-daemon@bugzilla.kernel.org wrote:
->
->> https://bugzilla.kernel.org/show_bug.cgi?id=16050
+> On Fri, Jun 4, 2010 at 7:16 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
+>> On Fri, Jun 4, 2010 at 5:17 PM, Jarod Wilson <jarod@wilsonet.com>  
+>> wrote:
+>>> On Fri, Jun 4, 2010 at 4:17 PM, Jarod Wilson <jarod@redhat.com>  
+>>> wrote:
+>>>> On Fri, Jun 04, 2010 at 02:57:04PM -0400, Jon Smirl wrote:
+>>> ...
+>>>>>> From what I'm seeing, those are the current used ioctls:
+>>>>>>
+>>>>>> +#define LIRC_GET_FEATURES              _IOR('i', 0x00000000,  
+>>>>>> unsigned long)
+>>>>>> +#define LIRC_GET_LENGTH                _IOR('i', 0x0000000f,  
+>>>>>> unsigned long)
+>>>>>
+>>>>> Has this been set into stone yet? if not a 64b word would be  
+>>>>> more future proof.
+>>>>
+>>>> Nope, not set in stone at all, nothing has been merged. A patch I  
+>>>> was
+>>>> carrying in Fedora changed all unsigned long to u64 and unsigned  
+>>>> int to
+>>>> u32, and my current ir wip tree has all u32, but I don't see a  
+>>>> reason why
+>>>> if we're going to make a change, it couldn't be to all u64, for  
+>>>> as much
+>>>> future-proofing as possible.
+>>>
+>>> Hrm, struct file_operations specifies an unsigned long for the ioctl
+>>> args, so doesn't that mean we're pretty much stuck with only 32-bit
+>>> for the ioctls?
 >>
->>                 URL: https://bugzilla.redhat.com/show_bug.cgi?id=588900
->>             Summary: The ibmcam driver is not working
->>             Product: Drivers
->>             Version: 2.5
->>      Kernel Version: 2.6.34
->>            Platform: All
->>          OS/Version: Linux
->>                Tree: Mainline
->>              Status: NEW
->>            Severity: normal
->>            Priority: P1
->>           Component: USB
->>          AssignedTo: greg@kroah.com
->>          ReportedBy: davidsen@tmr.com
->>          Regression: Yes
->>
->>
->> This driver has been working, and around the 1st of May I updated my Fedora
->> kernel (FC13-RC) to current. The camera stopped working, so I built the latest
->> 2.6.34-rc version and verified the problem. When 2.6.34 final released I
->> repeated the test and the driver is still not working.
->>
->> Originally reported against Fedora (not going to be fixed in FC13) the
->> information in the Fedora report may be enough to identify the problem. I can
->> do a bit of test almost any day, but the cams are on a video monitoring system,
->> so I'm not able to do long bisects and such.
->>
+>> I haven't written an IOCTL in a while, but how would you pass a 64b
+>> memory address?
 >
-> It's a 2.6.33 ->  2.6.34 regression, I think.  I don't know whether it's
-> a v4l problem or a USB one..
+> Well, you wouldn't use struct file_operations' ioctl definition if you
+> wanted to do so on a 32-bit host. :)
 >
+> Its definitely possible using a different ioctl definition (see
+> gdth_ioctl_free in drivers/scsi/gdth_proc.c, for example), but we're
+> currently bound by what's there for file_operations.
 
-It may very well be a regression, I don't know. But in general the usbvideo drivers
-(of which the ibmcam is one) have been unmaintained for a long while, and they are
-still v4l1 drivers. I've been slowly working on converting all old v4l1 usb webcam
-drivers to the gspca usb webcam driver framework, removing a lot of code duplication
-(and other cruft such as controls being controlled through module parameters)
-from these drivers and making them v4l2 drivers in the progress.
+There's also the two-pass approach. Just split the address (or feature  
+flags) across two slightly different ioctl cmds.
 
-I really bough 2 ibmcam driver using webcams in the US and had them shipped to the
-Netherlands esp. for this purpose. I hope to have a new gspca subdriver to replace
-ibmcam soon.
+-- 
+Jarod Wilson
+jarod@wilsonet.com
 
-I know this is not really a fix for the problems with the existing ibmcam driver, but
-as it is destined to be replaced soon anyways I think this is the best way forward.
-
-Regards,
-
-Hans
