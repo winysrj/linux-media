@@ -1,103 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:63273 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757415Ab0FUSoM convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 14:44:12 -0400
-Received: by vws3 with SMTP id 3so1363915vws.19
-        for <linux-media@vger.kernel.org>; Mon, 21 Jun 2010 11:44:11 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C1FADF3.8040301@ventoso.org>
-References: <AANLkTimtPb6A5Cd6mB2z3S5U2uZy0l4fkbVyyL3njizs@mail.gmail.com>
-	<4C1F0DDC.4070307@ventoso.org>
-	<AANLkTimnh1hG27aEdqktSHfXbIEOmirlG9ZJXDpVBQQQ@mail.gmail.com>
-	<4C1FADF3.8040301@ventoso.org>
-Date: Mon, 21 Jun 2010 14:44:10 -0400
-Message-ID: <AANLkTik5CucpRF2sBRMZEBruww7UEUX-u1bpZ0VSHzIM@mail.gmail.com>
-Subject: Re: [PATCH] af9005: use generic_bulk_ctrl_endpoint_response
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Luca Olivetti <luca@ventoso.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:5644 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932425Ab0FEAVW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jun 2010 20:21:22 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o550LM3P011183
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 20:21:22 -0400
+Received: from pedra (vpn-10-9.rdu.redhat.com [10.11.10.9])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o550LI7k015252
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 20:21:21 -0400
+Date: Fri, 4 Jun 2010 21:21:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 3/6] tm6000-alsa: rework audio buffer
+ allocation/deallocation
+Message-ID: <20100604212107.3b9e8a1b@pedra>
+In-Reply-To: <cover.1275696910.git.mchehab@redhat.com>
+References: <cover.1275696910.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 21, 2010 at 2:22 PM, Luca Olivetti <luca@ventoso.org> wrote:
-> Al 21/06/10 17:45, En/na Michael Krufky ha escrit:
->>
->> On Mon, Jun 21, 2010 at 2:59 AM, Luca Olivetti<luca@ventoso.org>  wrote:
->>>
->>> En/na Michael Krufky ha escrit:
->>>>
->>>> Could somebody please test this patch and confirm that it doesn't
->>>> break the af9005 support?
->>>>
->>>> This patch removes the af9005_usb_generic_rw function and uses the
->>>> dvb_usb_generic_rw function instead, using
->>>> generic_bulk_ctrl_endpoint_response to differentiate between the read
->>>> pipe and the write pipe.
->>>
->>> Unfortunately I cannot test it (my device is broken)[*].
->>> At the time I wrote my own rw function because I didn't find a way to
->>> send
->>> on a bulk endpoint and receiving on another one (i.e. I didn't know about
->>> generic_bulk_ctrl_endpoint/generic_bulk_ctrl_endpoint_response or they
->>> weren't available at the time).
->>>
->>> [*]Actually the tuner is broken, but the usb is working fine, so maybe I
->>> can
->>> give it a try.
->>
->>
->> Luca,
->>
->> That's OK -- I only added this "generic_bulk_ctrl_endpoint_response"
->> feature 4 months ago -- your driver predates that.  I am pushing this
->> patch to reduce the size of the kernel while using your driver to
->> demonstrate how to use the new feature.  I am already using it in an
->> out of tree driver that I plan to merge within the next few months or
->> so, but its always nice to optimize code that already exists with
->> small cleanups like this.
->>
->> You don't need the tuner in order to prove the patch -- if you can
->> simply confirm that you are able to both read and write successfully,
->> that would be enough to prove the patch.  After testing, please
->> provide an ack in this thread so that I may include that with my pull
->> request.
->
-> I cloned your hg tree and had to modify a couple of #if otherwise it
-> wouldn't compile (it choked on dvb_class->nodename and dvb_class->devnode),
-> after that it built fine and apparently the usb communication still works:
->
-> usb 8-2: new full speed USB device using uhci_hcd and address 2
-> usb 8-2: New USB device found, idVendor=15a4, idProduct=9020
-> usb 8-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> usb 8-2: Product: DVBT
-> usb 8-2: Manufacturer: Afatech
-> usb 8-2: configuration #1 chosen from 1 choice
-> dvb-usb: found a 'Afatech DVB-T USB1.1 stick' in cold state, will try to
-> load a firmware
-> usb 8-2: firmware: requesting af9005.fw
-> dvb-usb: downloading firmware from file 'af9005.fw'
-> dvb-usb: found a 'Afatech DVB-T USB1.1 stick' in warm state.
-> dvb-usb: will use the device's hardware PID filter (table count: 32).
-> DVB: registering new adapter (Afatech DVB-T USB1.1 stick)
-> DVB: registering adapter 0 frontend 0 (AF9005 USB DVB-T)...
-> input: IR-receiver inside an USB DVB receiver as
-> /devices/pci0000:00/0000:00:1d.2/usb8/8-2/input/input12
-> dvb-usb: schedule remote query interval to 200 msecs.
-> dvb-usb: Afatech DVB-T USB1.1 stick successfully initialized and connected.
-> MT2060: successfully identified (IF1 = 1224)
->
-> Acked-by: Luca Olivetti <luca@ventoso.org>
->
-> Bye
-> --
-> Luca
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Thank you, Luca -- I'll add your ack now and send off a pull request.
+diff --git a/drivers/staging/tm6000/tm6000-alsa.c b/drivers/staging/tm6000/tm6000-alsa.c
+index 8520434..ca9aec5 100644
+--- a/drivers/staging/tm6000/tm6000-alsa.c
++++ b/drivers/staging/tm6000/tm6000-alsa.c
+@@ -15,6 +15,7 @@
+ #include <linux/device.h>
+ #include <linux/interrupt.h>
+ #include <linux/usb.h>
++#include <linux/vmalloc.h>
+ 
+ #include <asm/delay.h>
+ #include <sound/core.h>
+@@ -105,19 +106,39 @@ static int _tm6000_stop_audio_dma(struct snd_tm6000_card *chip)
+ 	return 0;
+ }
+ 
+-static int dsp_buffer_free(struct snd_tm6000_card *chip)
++static void dsp_buffer_free(struct snd_pcm_substream *substream)
+ {
+-	BUG_ON(!chip->bufsize);
++	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
+ 
+ 	dprintk(2, "Freeing buffer\n");
+ 
+-	/* FIXME: Frees buffer */
++	vfree(substream->runtime->dma_area);
++	substream->runtime->dma_area = NULL;
++	substream->runtime->dma_bytes = 0;
++}
++
++static int dsp_buffer_alloc(struct snd_pcm_substream *substream, int size)
++{
++	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
++
++	dprintk(2, "Allocating buffer\n");
+ 
+-	chip->bufsize = 0;
++	if (substream->runtime->dma_area) {
++		if (substream->runtime->dma_bytes > size)
++			return 0;
++		dsp_buffer_free(substream);
++	}
+ 
+-       return 0;
++	substream->runtime->dma_area = vmalloc(size);
++	if (!substream->runtime->dma_area)
++		return -ENOMEM;
++
++	substream->runtime->dma_bytes = size;
++
++	return 0;
+ }
+ 
++
+ /****************************************************************************
+ 				ALSA PCM Interface
+  ****************************************************************************/
+@@ -184,23 +205,13 @@ static int snd_tm6000_close(struct snd_pcm_substream *substream)
+ static int snd_tm6000_hw_params(struct snd_pcm_substream *substream,
+ 			      struct snd_pcm_hw_params *hw_params)
+ {
+-	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
++	int size, rc;
+ 
+-	if (substream->runtime->dma_area) {
+-		dsp_buffer_free(chip);
+-		substream->runtime->dma_area = NULL;
+-	}
+-
+-	chip->period_size = params_period_bytes(hw_params);
+-	chip->num_periods = params_periods(hw_params);
+-	chip->bufsize = chip->period_size * params_periods(hw_params);
+-
+-	BUG_ON(!chip->bufsize);
+-
+-	dprintk(1, "Setting buffer\n");
+-
+-	/* FIXME: Allocate buffer for audio */
++	size = params_period_bytes(hw_params) * params_periods(hw_params);
+ 
++	rc = dsp_buffer_alloc(substream, size);
++	if (rc < 0)
++		return rc;
+ 
+ 	return 0;
+ }
+@@ -210,13 +221,7 @@ static int snd_tm6000_hw_params(struct snd_pcm_substream *substream,
+  */
+ static int snd_tm6000_hw_free(struct snd_pcm_substream *substream)
+ {
+-
+-	struct snd_tm6000_card *chip = snd_pcm_substream_chip(substream);
+-
+-	if (substream->runtime->dma_area) {
+-		dsp_buffer_free(chip);
+-		substream->runtime->dma_area = NULL;
+-	}
++	dsp_buffer_free(substream);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
+index 18d1e51..a1d96d6 100644
+--- a/drivers/staging/tm6000/tm6000.h
++++ b/drivers/staging/tm6000/tm6000.h
+@@ -136,11 +136,7 @@ struct snd_tm6000_card {
+ 	struct snd_card			*card;
+ 	spinlock_t			reg_lock;
+ 	atomic_t			count;
+-	unsigned int			period_size;
+-	unsigned int			num_periods;
+ 	struct tm6000_core		*core;
+-	struct tm6000_buffer		*buf;
+-	int				bufsize;
+ 	struct snd_pcm_substream	*substream;
+ };
+ 
+-- 
+1.7.1
 
-Cheers,.
 
-Mike Krufky
