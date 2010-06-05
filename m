@@ -1,44 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:33823 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752038Ab0FIDpZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jun 2010 23:45:25 -0400
-Received: by vws17 with SMTP id 17so1900905vws.19
-        for <linux-media@vger.kernel.org>; Tue, 08 Jun 2010 20:45:24 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTilRCGGcwbln42XBcw_u4-b8Q2QiwtQPMU5gEx0N@mail.gmail.com>
-References: <20100604150601.GG23375@redhat.com>
-	<AANLkTilRCGGcwbln42XBcw_u4-b8Q2QiwtQPMU5gEx0N@mail.gmail.com>
-Date: Tue, 8 Jun 2010 23:45:24 -0400
-Message-ID: <AANLkTil9NdTHjvd7aMkMZd5qaFxs8HFA6DcfVcDhGr8R@mail.gmail.com>
-Subject: Re: [PATCH] IR/mceusb: clean up gen1 device init
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:23332 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751554Ab0FEB12 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jun 2010 21:27:28 -0400
+Subject: Re: question about v4l2_subdev
+From: Andy Walls <awalls@md.metrocast.net>
+To: Sedji Gaouaou <sedji.gaouaou@atmel.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-input@vger.kernel.org
+In-Reply-To: <4C04C17D.8020702@atmel.com>
+References: <4C03D80B.5090009@atmel.com>
+	 <1275329947.2261.19.camel@localhost>  <4C04C17D.8020702@atmel.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 04 Jun 2010 21:27:38 -0400
+Message-ID: <1275701258.2247.16.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 8, 2010 at 11:08 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
-> On Fri, Jun 4, 2010 at 11:06 AM, Jarod Wilson <jarod@redhat.com> wrote:
->> The first-gen mceusb device init code, while mostly functional, had a few
->> issues in it. This patch does the following:
->>
->> 1) removes use of magic numbers
->> 2) eliminates mapping of memory from stack
->> 3) makes debug spew translator functional
->> 4) properly initializes default tx blaster mask
->
-> My memory is starting to go. I pretty much resubmitted exactly the
-> same patch (https://patchwork.kernel.org/patch/105042/) today,
-> forgetting I'd already submitted this. There's a minor context
-> difference though, the newer one should match the staging/rc tree
-> better.
+On Tue, 2010-06-01 at 10:14 +0200, Sedji Gaouaou wrote:
+> Hi,
+> 
+> 
+> >
+> > 1. Something first should call v4l2_device_register() on a v4l2_device
+> > object.  (Typically there is only one v4l2_device object per "bridge"
+> > chip between the PCI, PCIe, or USB bus and the subdevices, even if that
+> > bridge chip has more than one I2C master implementation.)
+> >
+> > 2. Then, for subdevices connected to the bridge chip via I2C, something
+> > needs to call v4l2_i2c_new_subdev() with the v4l2_device pointer as one
+> > of the arguments, to get back a v4l2_subdevice instance pointer.
+> >
+> > 3. After that, v4l2_subdev_call() with the v4l2_subdev pointer as one of
+> > the arguments can be used to invoke the subdevice methods.
+> >
+> > TV Video capture drivers do this work themselves.  Drivers using a
+> > camera framework may have the framework doing some of the work for them.
+> >
+> >
+> > Regards,
+> > Andy
+> >
+> >
+> >
+> 
+> 
+> Is there a sensor driver which is using this method?
+> 
+> To write the ov2640 driver I have just copied the ov7670.c file, and I 
+> didn't find the v4l2_i2c_new_subdev in it...
 
-Or maybe not. I think I pooched one of the mceusb_dev struct member
-names, too many patches in flight. Lemme just resend a proper v3
-tomorrow...
+Subdev driver modules, like ov7670.c, don't attach themselves; the
+bridge chip driver attaches an instance to an I2C bus.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Look at
+
+	drivers/media/video/cafe_ccic.c
+
+And examine cafe_pci_probe() and the definition and use of the
+sensor_call() macro.
+
+Also note
+
+$ grep -Ril ov7670 drivers/media/video/*
+
+will show you in what drivers, the ov7670 might be used.
+
+
+Regards,
+Andy
+
+> Regards,
+> Sedji
+
+
+
