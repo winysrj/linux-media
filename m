@@ -1,324 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34615 "EHLO arroyo.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:5713 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758149Ab0FCIUQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 04:20:16 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "mchehab@redhat.com" <mchehab@redhat.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Thu, 3 Jun 2010 13:49:59 +0530
-Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
- file
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E6D30E1@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1275547321-31406-3-git-send-email-hvaibhav@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0323207C30@dbde02.ent.ti.com>
- <19F8576C6E063C45BE387C64729E7394044E6D30D6@dbde02.ent.ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0323207C6B@dbde02.ent.ti.com>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323207C6B@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S932168Ab0FEA23 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 4 Jun 2010 20:28:29 -0400
+Message-ID: <4C099A25.7010302@redhat.com>
+Date: Fri, 04 Jun 2010 21:28:21 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Luis Henrique Fagundes <lhfagundes@hacklab.com.br>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 audio buffer
+References: <AANLkTind4rEphKcFnoBBa-GV9iQsOumX7M0mRVE1SYyq@mail.gmail.com>
+In-Reply-To: <AANLkTind4rEphKcFnoBBa-GV9iQsOumX7M0mRVE1SYyq@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Luis,
 
-> -----Original Message-----
-> From: DebBarma, Tarun Kanti
-> Sent: Thursday, June 03, 2010 1:44 PM
-> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
-> Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
-> file
+Em 04-06-2010 16:39, Luis Henrique Fagundes escreveu:
+> Hi,
 > 
+> I'm sending a patch that hypothetically would allocate a memory buffer
+> for the audio and copy the data from urb to buffer. It doesn't work,
+> so I'm not putting a [PATCH] in subject and send it just for feedback.
+> Am I going on the right way of implementing this? The patch was made
+> against the mercurial version at http://linuxtv.org/hg/v4l-dvb.
 > 
-> > -----Original Message-----
-> > From: Hiremath, Vaibhav
-> > Sent: Thursday, June 03, 2010 1:41 PM
-> > To: DebBarma, Tarun Kanti; linux-media@vger.kernel.org
-> > Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-
-> > omap@vger.kernel.org
-> > Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to
-> > board file
-> >
-> >
-> > > -----Original Message-----
-> > > From: DebBarma, Tarun Kanti
-> > > Sent: Thursday, June 03, 2010 12:49 PM
-> > > To: Hiremath, Vaibhav; linux-media@vger.kernel.org
-> > > Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-
-> > omap@vger.kernel.org
-> > > Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to
-> > board
-> > > file
-> > >
-> > > Vaibhav,
-> > >
-> > >
-> > > > -----Original Message-----
-> > > > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > > > owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
-> > > > Sent: Thursday, June 03, 2010 12:12 PM
-> > > > To: linux-media@vger.kernel.org
-> > > > Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-
-> > > > omap@vger.kernel.org; Hiremath, Vaibhav
-> > > > Subject: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to
-> > board
-> > > > file
-> > > >
-> > > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > >
-> > > > Also created vpfe master/slave clock aliases, since naming
-> > > > convention is different in both Davinci and AM3517 devices.
-> > > >
-> > > > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > > > ---
-> > > >  arch/arm/mach-omap2/board-am3517evm.c |  161
-> > > > +++++++++++++++++++++++++++++++++
-> > > >  1 files changed, 161 insertions(+), 0 deletions(-)
-> > > >
-> > > > diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
-> > > > omap2/board-am3517evm.c
-> > > > index c1c4389..f2ff751 100644
-> > > > --- a/arch/arm/mach-omap2/board-am3517evm.c
-> > > > +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> > > > @@ -30,15 +30,168 @@
-> > > >
-> > > >  #include <plat/board.h>
-> > > >  #include <plat/common.h>
-> > > > +#include <plat/control.h>
-> > > >  #include <plat/usb.h>
-> > > >  #include <plat/display.h>
-> > > >
-> > > > +#include <media/tvp514x.h>
-> > > > +#include <media/davinci/vpfe_capture.h>
-> > > > +
-> > > >  #include "mux.h"
-> > > >
-> > > >  #define LCD_PANEL_PWR		176
-> > > >  #define LCD_PANEL_BKLIGHT_PWR	182
-> > > >  #define LCD_PANEL_PWM		181
-> > > >
-> > > > +/*
-> > > > + * VPFE - Video Decoder interface
-> > > > + */
-> > > > +#define TVP514X_STD_ALL		(V4L2_STD_NTSC | V4L2_STD_PAL)
-> > > > +
-> > > > +/* Inputs available at the TVP5146 */
-> > > > +static struct v4l2_input tvp5146_inputs[] = {
-> > > > +	{
-> > > > +		.index	= 0,
-> > > > +		.name	= "Composite",
-> > > > +		.type	= V4L2_INPUT_TYPE_CAMERA,
-> > > > +		.std	= TVP514X_STD_ALL,
-> > > > +	},
-> > > > +	{
-> > > > +		.index	= 1,
-> > > > +		.name	= "S-Video",
-> > > > +		.type	= V4L2_INPUT_TYPE_CAMERA,
-> > > > +		.std	= TVP514X_STD_ALL,
-> > > > +	},
-> > > > +};
-> > > > +
-> > > > +static struct tvp514x_platform_data tvp5146_pdata = {
-> > > > +	.clk_polarity	= 0,
-> > > > +	.hs_polarity	= 1,
-> > > > +	.vs_polarity	= 1
-> > > > +};
-> > > > +
-> > > > +static struct vpfe_route tvp5146_routes[] = {
-> > > > +	{
-> > > > +		.input	= INPUT_CVBS_VI1A,
-> > > > +		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
-> > > > +	},
-> > > > +	{
-> > > > +		.input	= INPUT_SVIDEO_VI2C_VI1C,
-> > > > +		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
-> > > > +	},
-> > > > +};
-> > > > +
-> > > > +static struct vpfe_subdev_info vpfe_sub_devs[] = {
-> > > > +	{
-> > > > +		.name		= "tvp5146",
-> > > > +		.grp_id		= 0,
-> > > > +		.num_inputs	= ARRAY_SIZE(tvp5146_inputs),
-> > > > +		.inputs		= tvp5146_inputs,
-> > > > +		.routes		= tvp5146_routes,
-> > > > +		.can_route	= 1,
-> > > > +		.ccdc_if_params	= {
-> > > > +			.if_type = VPFE_BT656,
-> > > > +			.hdpol	= VPFE_PINPOL_POSITIVE,
-> > > > +			.vdpol	= VPFE_PINPOL_POSITIVE,
-> > > > +		},
-> > > > +		.board_info	= {
-> > > > +			I2C_BOARD_INFO("tvp5146", 0x5C),
-> > > > +			.platform_data = &tvp5146_pdata,
-> > > > +		},
-> > > > +	},
-> > > > +};
-> > > > +
-> > > > +static void am3517_evm_clear_vpfe_intr(int vdint)
-> > > > +{
-> > > > +	unsigned int vpfe_int_clr;
-> > > > +
-> > > > +	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-> > > > +
-> > > > +	switch (vdint) {
-> > > > +	/* VD0 interrrupt */
-> > > > +	case INT_35XX_CCDC_VD0_IRQ:
-> > > > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD0_INT_CLR;
-> > > > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD0_INT_CLR;
-> > > > +		break;
-> > > > +	/* VD1 interrrupt */
-> > > > +	case INT_35XX_CCDC_VD1_IRQ:
-> > > > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD1_INT_CLR;
-> > > > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD1_INT_CLR;
-> > > > +		break;
-> > > > +	/* VD2 interrrupt */
-> > > > +	case INT_35XX_CCDC_VD2_IRQ:
-> > > > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD2_INT_CLR;
-> > > > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD2_INT_CLR;
-> > > > +		break;
-> > > > +	/* Clear all interrrupts */
-> > > > +	default:
-> > > > +		vpfe_int_clr &= ~(AM35XX_VPFE_CCDC_VD0_INT_CLR |
-> > > > +				AM35XX_VPFE_CCDC_VD1_INT_CLR |
-> > > > +				AM35XX_VPFE_CCDC_VD2_INT_CLR);
-> > > > +		vpfe_int_clr |= (AM35XX_VPFE_CCDC_VD0_INT_CLR |
-> > > > +				AM35XX_VPFE_CCDC_VD1_INT_CLR |
-> > > > +				AM35XX_VPFE_CCDC_VD2_INT_CLR);
-> > > > +		break;
-> > > > +	}
-> > > > +	omap_ctrl_writel(vpfe_int_clr, AM35XX_CONTROL_LVL_INTR_CLEAR);
-> > > > +	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-> > >
-> > > Is it necessary to assign to the local variable (vpfe_int_clr)? If not,
-> > we
-> > > can reduce the size of this routine by two assembly instructions:
-> > > One: copying the result to a register
-> > > Two: pushing the register value to stack
-> > >
-> > [Hiremath, Vaibhav] How are you going to achieve this? How are you going
-> > to define the switch case values here?
+> I can see the audio packets at tm6000-video.c. Mauro said that the urb
+> audio packets had just 4 bytes of relevant data, 2 for each channel,
+> but the audio buffer has 128Kb and I see too few packets. Anyway, the
+> tm6000_audio_isocirq function receives the size of the packet and now
+> is copying everything to the buffer, I guess next step will be to find
+> what is relevant in this stream and make sure I have all packets here.
 > 
-> [Tarun] I am only referring to the last statement, outside the switch()
-> statement.
-[Hiremath, Vaibhav] Ohhh Ok.
-It is required; actually the read operation is required to push/reflect the value written to register. In the past we have seen issues like write is not getting reflected immediately leading to spurious interrupts.
+> I haven't applied all the recent patches from Stefan yet.
 
-Thanks,
-Vaibhav
-> >
-> > Also currently this covers only VPFE Capture related interrupts but this
-> > function may required for other modules which are part of IPSS, like HECC,
-> > EMAC and USBOTG.
-> >
-> > Thanks,
-> > Vaibhav
-> >
-> > > -Tarun
-> > >
-> > >
-> > > > +}
-> > > > +
-> > > > +static struct vpfe_config vpfe_cfg = {
-> > > > +	.num_subdevs	= ARRAY_SIZE(vpfe_sub_devs),
-> > > > +	.i2c_adapter_id	= 3,
-> > > > +	.sub_devs	= vpfe_sub_devs,
-> > > > +	.clr_intr	= am3517_evm_clear_vpfe_intr,
-> > > > +	.card_name	= "AM3517 EVM",
-> > > > +	.ccdc		= "DM6446 CCDC",
-> > > > +};
-> > > > +
-> > > > +static struct resource vpfe_resources[] = {
-> > > > +	{
-> > > > +		.start	= INT_35XX_CCDC_VD0_IRQ,
-> > > > +		.end	= INT_35XX_CCDC_VD0_IRQ,
-> > > > +		.flags	= IORESOURCE_IRQ,
-> > > > +	},
-> > > > +	{
-> > > > +		.start	= INT_35XX_CCDC_VD1_IRQ,
-> > > > +		.end	= INT_35XX_CCDC_VD1_IRQ,
-> > > > +		.flags	= IORESOURCE_IRQ,
-> > > > +	},
-> > > > +};
-> > > > +
-> > > > +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-> > > > +static struct platform_device vpfe_capture_dev = {
-> > > > +	.name		= CAPTURE_DRV_NAME,
-> > > > +	.id		= -1,
-> > > > +	.num_resources	= ARRAY_SIZE(vpfe_resources),
-> > > > +	.resource	= vpfe_resources,
-> > > > +	.dev = {
-> > > > +		.dma_mask		= &vpfe_capture_dma_mask,
-> > > > +		.coherent_dma_mask	= DMA_BIT_MASK(32),
-> > > > +		.platform_data		= &vpfe_cfg,
-> > > > +	},
-> > > > +};
-> > > > +
-> > > > +static struct resource am3517_ccdc_resource[] = {
-> > > > +	/* CCDC Base address */
-> > > > +	{
-> > > > +		.start	= AM35XX_IPSS_VPFE_BASE,
-> > > > +		.end	= AM35XX_IPSS_VPFE_BASE + 0xffff,
-> > > > +		.flags	= IORESOURCE_MEM,
-> > > > +	},
-> > > > +};
-> > > > +
-> > > > +static struct platform_device am3517_ccdc_dev = {
-> > > > +	.name		= "dm644x_ccdc",
-> > > > +	.id		= -1,
-> > > > +	.num_resources	= ARRAY_SIZE(am3517_ccdc_resource),
-> > > > +	.resource	= am3517_ccdc_resource,
-> > > > +	.dev = {
-> > > > +		.dma_mask		= &vpfe_capture_dma_mask,
-> > > > +		.coherent_dma_mask	= DMA_BIT_MASK(32),
-> > > > +	},
-> > > > +};
-> > > > +
-> > > >  static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
-> > > >  	{
-> > > >  		I2C_BOARD_INFO("s35390a", 0x30),
-> > > > @@ -46,6 +199,7 @@ static struct i2c_board_info __initdata
-> > > > am3517evm_i2c_boardinfo[] = {
-> > > >  	},
-> > > >  };
-> > > >
-> > > > +
-> > > >  /*
-> > > >   * RTC - S35390A
-> > > >   */
-> > > > @@ -261,6 +415,8 @@ static struct omap_board_config_kernel
-> > > > am3517_evm_config[] __initdata = {
-> > > >
-> > > >  static struct platform_device *am3517_evm_devices[] __initdata = {
-> > > >  	&am3517_evm_dss_device,
-> > > > +	&am3517_ccdc_dev,
-> > > > +	&vpfe_capture_dev,
-> > > >  };
-> > > >
-> > > >  static void __init am3517_evm_init_irq(void)
-> > > > @@ -313,6 +469,11 @@ static void __init am3517_evm_init(void)
-> > > >
-> > > >  	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
-> > > >  				ARRAY_SIZE(am3517evm_i2c_boardinfo));
-> > > > +
-> > > > +	clk_add_alias("master", "dm644x_ccdc", "master",
-> > > > +			&vpfe_capture_dev.dev);
-> > > > +	clk_add_alias("slave", "dm644x_ccdc", "slave",
-> > > > +			&vpfe_capture_dev.dev);
-> > > >  }
-> > > >
-> > > >  static void __init am3517_evm_map_io(void)
-> > > > --
-> > > > 1.6.2.4
-> > > >
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-omap"
-> > in
-> > > > the body of a message to majordomo@vger.kernel.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I just sent a series of patches against my git (branch staging/tm6000), where
+the other patches were added. I'll be merging those patches there shortly.
+
+It basically implements most of the code to proccess alsa, and fixes some bugs.
+
+The remaining code is just to copy the data into the alsa dma runtime buffers,
+that the code already allocates.
+
+I'll be writing the code and sending the patch soon. Yet, I suspect that there's
+something still wrong, as the amount of audio data seems too less than I would
+expect (at least on my tests, where those info are printed at console).
+
+This is what I'm getting here with the Saphire WonderTV (you need to modprobe
+tm6000-alsa to see the printk's, as they're implemented inside the alsa module):
+
+[ 4476.987081] Audio (48 bytes): (0x24a4, 0x03dc), (0x472f, 0x346e), (0x5b86, 0x5982), (0x427a, 0x4585), (0x5080, 0x4a8a), (0x4889, 0x4162), (0x4192, 0x2448), (0x2a7b, 0x4e5e), (0x4f6b, 0x3d6a), (0x4679, 0x546f), (0x4880, 0x4172), (0x4d83, 0x4f77), 
+[ 4479.534198] Audio (8 bytes): (0x2a91, 0x2868), (0x2e88, 0x2578), 
+[ 4480.908388] Audio (16 bytes): (0x5387, 0x5578), (0x5064, 0x4e8e), (0x4c61, 0x4a91), (0x4967, 0x4897), 
+[ 4482.184835] Audio (132 bytes): (0xb03e, 0x633a), (0x9238, 0x7b32), (0x882d, 0x7734), (0x8738, 0x7836), (0x7b34, 0x8137), (0x8439, 0x7738), (0x5c37, 0x2683), (0x8347, 0x7935), (0x6e34, 0x8235), (0x7d37, 0x7637), (0x8639, 0x763a), (0x8238, 0x7d36), (0x8e37, 0x7e37), (0x8736, 0x8c3a), (0x7b3d, 0x953f), (0x6a40, 0x963f), (0x5b3d, 0x8e3d), (0x6541, 0x7e42), (0x763f, 0x793c), (0x813b, 0x7c39), (0x813a, 0x7e3b), (0x843a, 0x7d39), (0x883c, 0x7f3e), (0x883b, 0x8139), (0x853b, 0x833b), (0x7e38, 0x843a), (0x773d, 0x7f3b), (0x6d38, 0x7c35), (0x6f35, 0x7d35), (0x8d3a, 0x7a41), (0xa946, 0x6f58), (0xa25a, 0x6a3f), (0x9328, 0x6d34), 
+[ 4483.810896] Audio (28 bytes): (0x478a, 0x4862), (0x4889, 0x4761), (0x4385, 0x4067), (0x3f87, 0x3e6e), (0x3d7a, 0x3f74), (0x416f, 0x4372), (0x427e, 0x416d), 
+[ 4483.813847] Audio (56 bytes): (0x4273, 0x4930), (0x5035, 0x502a), (0x5148, 0x5250), (0x5669, 0x5e60), (0x5a74, 0x4f5f), (0x4c89, 0x4d5e), (0x4988, 0x425e), (0x4380, 0x4468), (0x4487, 0x496b), (0x4d8f, 0x4d6b), (0x4d8b, 0x5276), (0x5883, 0x4f79), (0x4d7f, 0x4b79), (0x4578, 0x457d), 
+[ 4484.794152] Audio (8 bytes): (0x5b73, 0x5c65), (0x5487, 0x5b5f), 
+[ 4488.094453] Audio (180 bytes): (0x8847, 0x2644), (0x9e56, 0x4f3f), (0x852f, 0x554b), (0x814c, 0x6e3a), (0x7b41, 0x9b40), (0x833b, 0x9e37), (0xa135, 0x8134), (0xa435, 0x8c34), (0x913a, 0x7a3e), (0x9f32, 0x6336), (0x8e3d, 0x873e), (0x783e, 0x7648), (0x974b, 0x6540), (0x933f, 0x873d), (0x733c, 0x914a), (0x6f59, 0x7249), (0x803a, 0x594c), (0x8363, 0x576a), (0x776d, 0xb37e), (0x4c87, 0xe380), (0x5687, 0x9592), (0x8175, 0x7e5e), (0x6c5e, 0x9366), (0x5c72, 0x8d75), (0x627d, 0x9289), (0x5b7f, 0xaa7c), (0x558d, 0xa39b), (0x66a6, 0x9bb2), (0x6dba, 0x5cc0), (0x29b3, 0x9247), (0x72c3, 0x7fc4), (0x76c1, 0x88bb), (0x6ab5, 0x99af), (0x6aac, 0x90a7), (0x7aa9, 0x96a2), (0x708e, 0xdc7b), (0x527f, 0xf080), (0x7073, 0xd96a), (0xb85e, 0x9264), (0xcb55, 0x784b), (0xb447, 0x5344), (0xb747, 0x6a40), (0x9624, 0x9517), (0x751e, 0x6c24), (0x8c27, 0x6b2e), 
+
+Cheers,
+Mauro
