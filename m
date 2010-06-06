@@ -1,78 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:50413 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933304Ab0FEMok (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 5 Jun 2010 08:44:40 -0400
-Received: by vws5 with SMTP id 5so973562vws.19
-        for <linux-media@vger.kernel.org>; Sat, 05 Jun 2010 05:44:38 -0700 (PDT)
-References: <BQCH7Bq3jFB@christoph> <4C09482B.8030404@redhat.com> <AANLkTikr49GiEcENLb6n1shtCkWrDhMXoYh4VJ4IPtdQ@mail.gmail.com> <20100604201733.GJ23375@redhat.com> <AANLkTimrV3zUg1yqtWCROtUqY4AfvfXrv81BVmh8HHlk@mail.gmail.com> <AANLkTimFzEEPYnKEsUsd42ny1z1DPnhbPhUIwW_6E5rb@mail.gmail.com> <AANLkTim5pV1nDrDplx-XClAwt4LPHnhr0FeWdfgeKl63@mail.gmail.com>
-Message-Id: <5601B1AB-20EF-49D3-8EFE-E7F07250E7BC@wilsonet.com>
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <AANLkTim5pV1nDrDplx-XClAwt4LPHnhr0FeWdfgeKl63@mail.gmail.com>
-Content-Type: text/plain;
-	charset=us-ascii;
-	format=flowed;
-	delsp=yes
+Received: from mx1.redhat.com ([209.132.183.28]:48407 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757960Ab0FFOxo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Jun 2010 10:53:44 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o56ErhAf025693
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 6 Jun 2010 10:53:43 -0400
+Received: from pedra (vpn-11-208.rdu.redhat.com [10.11.11.208])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o56EraZD031853
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 6 Jun 2010 10:53:42 -0400
+Date: Sun, 6 Jun 2010 11:53:13 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/2] tm6000-alsa: Implement fillbuf
+Message-ID: <20100606115313.475eba6c@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (iPhone Mail 7E18)
-Subject: Re: [PATCH 1/3] IR: add core lirc device interface
-Date: Sat, 5 Jun 2010 08:43:59 -0400
-Cc: Jon Smirl <jonsmirl@gmail.com>, Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	=?utf-8?Q?David_H=C3=A4rdeman?= <david@hardeman.nu>
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Jun 4, 2010, at 10:45 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+This series fixes some bugs at alsa initialization that were leading into
+passing a wrong pointer into alsa PCM substream private_data, causing oopses
+at start/stop stream.
 
-> On Fri, Jun 4, 2010 at 7:16 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
->> On Fri, Jun 4, 2010 at 5:17 PM, Jarod Wilson <jarod@wilsonet.com>  
->> wrote:
->>> On Fri, Jun 4, 2010 at 4:17 PM, Jarod Wilson <jarod@redhat.com>  
->>> wrote:
->>>> On Fri, Jun 04, 2010 at 02:57:04PM -0400, Jon Smirl wrote:
->>> ...
->>>>>> From what I'm seeing, those are the current used ioctls:
->>>>>>
->>>>>> +#define LIRC_GET_FEATURES              _IOR('i', 0x00000000,  
->>>>>> unsigned long)
->>>>>> +#define LIRC_GET_LENGTH                _IOR('i', 0x0000000f,  
->>>>>> unsigned long)
->>>>>
->>>>> Has this been set into stone yet? if not a 64b word would be  
->>>>> more future proof.
->>>>
->>>> Nope, not set in stone at all, nothing has been merged. A patch I  
->>>> was
->>>> carrying in Fedora changed all unsigned long to u64 and unsigned  
->>>> int to
->>>> u32, and my current ir wip tree has all u32, but I don't see a  
->>>> reason why
->>>> if we're going to make a change, it couldn't be to all u64, for  
->>>> as much
->>>> future-proofing as possible.
->>>
->>> Hrm, struct file_operations specifies an unsigned long for the ioctl
->>> args, so doesn't that mean we're pretty much stuck with only 32-bit
->>> for the ioctls?
->>
->> I haven't written an IOCTL in a while, but how would you pass a 64b
->> memory address?
->
-> Well, you wouldn't use struct file_operations' ioctl definition if you
-> wanted to do so on a 32-bit host. :)
->
-> Its definitely possible using a different ioctl definition (see
-> gdth_ioctl_free in drivers/scsi/gdth_proc.c, for example), but we're
-> currently bound by what's there for file_operations.
+It also implements a routine to fill the alsa buffers when data is received
+at the URB handler.
 
-There's also the two-pass approach. Just split the address (or feature  
-flags) across two slightly different ioctl cmds.
+Note: I tested here with both tm6010 and tm5600 devices. The number of "audio"
+packets is incredibly small, meaning that or the audio packets aren't properly
+decoded, or there are still bugs at the copy_streams() routine. Maybe Stefan
+or Dmitri can double check what's going wrong there.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Mauro Carvalho Chehab (2):
+  tm6000-alsa: Fix several bugs at the driver initialization code
+  tm6000-alsa: Implement a routine to store data received from URB
+
+ drivers/staging/tm6000/tm6000-alsa.c |  105 +++++++++++++++++++++++-----------
+ drivers/staging/tm6000/tm6000-core.c |    6 +-
+ drivers/staging/tm6000/tm6000.h      |    5 +-
+ 3 files changed, 78 insertions(+), 38 deletions(-)
 
