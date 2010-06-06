@@ -1,72 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:21320 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754683Ab0F0POj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jun 2010 11:14:39 -0400
-Subject: Re: [PATCH 5/8] ir-core: partially convert bt8xx to not use
- ir-functions.c
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-In-Reply-To: <4C273FFE.4090300@redhat.com>
-References: <20100607192830.21236.69701.stgit@localhost.localdomain>
-	 <20100607193238.21236.72227.stgit@localhost.localdomain>
-	 <4C273FFE.4090300@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 27 Jun 2010 11:14:54 -0400
-Message-ID: <1277651694.2329.5.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:52055 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752072Ab0FFUjd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 16:39:33 -0400
+Received: by bwz11 with SMTP id 11so795726bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Jun 2010 13:39:31 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20100606215906.1c1f5536@romy.gusto>
+References: <20100606010311.6d98ef7b@romy.gusto>
+	<20100606084301.GA3070@gmail.com>
+	<20100606133946.76c3a6e0@romy.gusto>
+	<20100606124925.GB3070@gmail.com>
+	<20100606145154.60de422e@romy.gusto>
+	<20100606125636.GC3070@gmail.com>
+	<20100606150554.55be1852@romy.gusto>
+	<AANLkTin1jaMbG0ULhQRZi3QWkd2oVXazJ4BTGh5rMYdM@mail.gmail.com>
+	<20100606212814.1e55206c@romy.gusto>
+	<AANLkTilLnzSddnbyCn0QawNwvQkeFsWK_RvkgNPH4Gyx@mail.gmail.com>
+	<20100606215906.1c1f5536@romy.gusto>
+Date: Sun, 6 Jun 2010 22:39:30 +0200
+Message-ID: <AANLkTilkO8i2e_SyHVVqYuaPEhjm95VmHHpiABFQc_Rj@mail.gmail.com>
+Subject: Re: [linux-dvb] hvr4000 doesnt work w/ dvb-s2 nor DVB-T
+From: Niels Wagenaar <n.wagenaar@xs4all.nl>
+To: Lars Schotte <lars.schotte@schotteweb.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-06-27 at 09:11 -0300, Mauro Carvalho Chehab wrote:
-> Em 07-06-2010 16:32, David Härdeman escreveu:
-> > Partially convert drivers/media/video/bt8xx/bttv-input.c to
-> > not use ir-functions.c.
-> > 
-> > Since the last user is gone with this patch, also remove a
-> > bunch of code from ir-functions.c.
-> 
-> This patch breakd mceusb driver:
-> 
-> drivers/media/IR/mceusb.c: In function ‘mceusb_init_input_dev’:
-> drivers/media/IR/mceusb.c:774: error: invalid application of ‘sizeof’ to incomplete type ‘struct ir_input_state’ 
-> drivers/media/IR/mceusb.c:785: error: implicit declaration of function ‘ir_input_init’
-> make[1]: ** [drivers/media/IR/mceusb.o] Erro 1
-> make[1]: ** Esperando que outros processos terminem.
-> make: ** [drivers/media/IR/] Erro 2
-> 
-> Also, the description is wrong, since it changes not only bttv, but also cx23885 and saa7134.
+2010/6/6 Lars Schotte <lars.schotte@schotteweb.de>:
+> how do you think i watch DVB-S?
 
-Mauro,
+I really don't know, I really don't care.
 
-I'll be removing the RC5 and NEC decoding from the cx23885 driver
-hopefully by the end of the day.  That will make parts of David's patch
-obsolete.
+> now you are lying, and that for sure!
 
-I'll be developing off of the v4l-dvb.git staging/rc branch.  Is that
-the right branch to use?
+I do not. Please, read my information carefully. You seem to miss something.
 
-Also the IR registration Ooops is not patched in staging/rc, so the
-cx23885 driver Oops-es on load.  Is it OK if I pull in (fetch & merge)
-the patch from some other branch, or would it be easier for you if I
-just use an uncommitted patch in my working tree?
+> because mplayer has still this tunig issue, because he doesnt know that
+> coderate shit, and even so, i tried it w/ szap-s2 -r option and tried
+> to play it and only sound came out, so ... maybe you should check it
+> before writing again.
+>
 
-Regards,
-Andy
+I've never tried mplayer in combination with szap-s2. Like I told you
+before, I use VDR in combination with Xine.
 
-Mauro
+> VLC and these ... players will do the same ... there is nothing better
+> than mplayer out there. mplayer is the best!!
+>
 
 
 
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> i know, that DVB-T on HVR4000 is supported by linux, because yes it
+> works to me, but it doesnt find any programmes, so i would suggest you
+> try it out by yourself before writing again. like I wrote to the first
+> post - it works but is not usable (maybe internal noise too high).
+>
+> analog TV works, and FM i didnt check.
+>
 
+To proof to you (and the rest of this world) I'm not lying or
+whatever, here's my attempt with scan-s2 and szap-s2:
 
+- I made an file called hd_astra with the following contents:
+
+S 11361000 H 22000000 2/3
+
+- Then I scanned with scan-s2:
+
+./scan-s2 -o zap ./hd_astra > ~/channels.conf
+
+- Which gave me the following information:
+
+Das Erste HD:11361:h:0:22000:6010:6020:11100:6
+ZDF HD:11361:h:0:22000:6110:6120:11110:6
+arte HD:11361:h:0:22000:6210:6221:11120:6
+
+- Then I used szap-s2
+
+./szap-s2 -c ~/channels.conf -S 1 -M 5 -C 23 -n 2
+
+- Which gave me the following output:
+
+root@ubuntu:/usr/local/src/szap-s2# ./szap-s2 -c ~/channels.conf -S 1
+-M 5 -C 23 -n 2
+reading channels from file '/home/htpc/channels.conf'
+zapping to 2 'ZDF HD':
+delivery DVB-S2, modulation 8PSK
+sat 0, frequency 11361 MHz H, symbolrate 22000000, coderate 2/3, rolloff 0.35
+vpid 0x17de, apid 0x17e8, sid 0x2b66
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 00 | signal 05aa | snr 002e | ber 00000000 | unc fffffffe |
+status 1b | signal 05aa | snr 002c | ber 00000000 | unc fffffffe | FE_HAS_LOCK
+status 1b | signal 05aa | snr 002d | ber 00516155 | unc fffffffe | FE_HAS_LOCK
+status 1b | signal 05aa | snr 002d | ber 00145855 | unc fffffffe | FE_HAS_LOCK
+status 1b | signal 05aa | snr 002c | ber 00000000 | unc fffffffe | FE_HAS_LOCK
+status 1b | signal 05aa | snr 002c | ber 00000000 | unc fffffffe | FE_HAS_LOCK
+
+It locks. So mplayer should make it work. I can't test this since I
+don't have mplayer installed. But I think that some apologies are in
+order, since the issue is not with your hardware or szap-s2.
+
+> On Sun, 6 Jun 2010 21:45:45 +0200
+> Niels Wagenaar <n.wagenaar@xs4all.nl> wrote:
+>
+>> Me? Lying? Before even telling me that I'm paid by Hauppauge, please
+>> be sure to read my post. I wrote that it works like a charm in
+>> combination with VDR (Google it). I've never used szap-s2 since I use
+>> VDR for my TV playback.
+>>
+>> By my better judgement I'm going to give you an other option. If you
+>> want to watch some TV without many options to configure (just install,
+>> scan and watch through VLC, mplayer, xbmc or whatever), you might want
+>> to check TV Headend
+>> (http://www.lonelycoder.com/hts/tvheadend_overview.html). It works
+>> like a charm with my NOVA-HD-S2.
+>>
+>> Oh and for your information. The DVB-T and DVB-S[2] of the device
+>> can't be used at the same time. It's not a driver issue, it's a
+>> hardware issue. In Windows you aren't able to do the same.
+>>
+>> The card (if it's the HVR-4000 or the NOVA-HD-S2) works perfectly
+>> under Linux. I even got it working with Kaffeine.
+>>
+>> 2010/6/6 Lars Schotte <lars.schotte@schotteweb.de>:
+>> > OK,
+>> > i am using w_scan, it scanned and found DVB-S2 channels but szap-s2
+>> > doesnt tune in and there is no data, exactly like i said, so either
+>> > you are lying and you have none of this things running or you were
+>> > paid by huappauge to say this.
+>> >
+>> > i am using fedora 13 and HVR4000 and only DVB-S works. mplayer has
+>> > the same problem and again - I have no diseq switch installed.
+>> >
+>>
+>
+
+-- 
+Met vriendelijke groet,
+
+Niels Wagenaar
