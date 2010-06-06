@@ -1,59 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.infomaniak.ch ([84.16.68.89]:55671 "EHLO
-	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756071Ab0FUIth (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 04:49:37 -0400
-Received: from ams-thkernen-8719.cisco.com (64-103-25-233.cisco.com [64.103.25.233])
-	(authenticated bits=0)
-	by smtp1.infomaniak.ch (8.14.2/8.14.2) with ESMTP id o5L8ZrqX006224
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 21 Jun 2010 10:35:55 +0200
-Message-ID: <4C1F2469.6030603@deckpoint.ch>
-Date: Mon, 21 Jun 2010 10:35:53 +0200
-From: Thomas Kernen <tkernen@deckpoint.ch>
-MIME-Version: 1.0
+Received: from ms16-1.1blu.de ([89.202.0.34]:49380 "EHLO ms16-1.1blu.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933945Ab0FFCMP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 5 Jun 2010 22:12:15 -0400
+Received: from [95.103.170.192] (helo=romy.gusto)
+	by ms16-1.1blu.de with esmtpsa (TLS-1.0:DHE_RSA_AES_128_CBC_SHA1:16)
+	(Exim 4.69)
+	(envelope-from <lars.schotte@schotteweb.de>)
+	id 1OL5LO-0001Q3-TI
+	for linux-media@vger.kernel.org; Sun, 06 Jun 2010 04:12:11 +0200
+Date: Sun, 6 Jun 2010 04:12:09 +0200
+From: Lars Schotte <lars.schotte@schotteweb.de>
 To: linux-media@vger.kernel.org
-Subject: Switzerland, Geneva DVB-T scan update
-Content-Type: multipart/mixed;
- boundary="------------080804070705020505050907"
+Subject: hvr4000 in general
+Message-ID: <20100606041209.6406c09b@romy.gusto>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080804070705020505050907
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+hi all hvr4000 "friends"
 
+i am wondering if someone has this card working a little more then I do.
 
-Hi all,
+i have dvb-s working quite good. the only thing what I can say
+positively about thisc card is that it at least reports a better signal
+strength and also SNR. so it is possible that the part "before" the
+chipset from the viewpoint of the signal arriving from space it may
+have a better "tuner".
 
-For the Switzerland, Geneva region, a new mux has been launched in May 
-2010 for the local TV station. Therefore this is now different from the 
-ch-All DVB-T file.
-
-Attached is a new file for ch-Geneva containing the SFN frequency for 
-the main mux and this new mux.
-
-I expect another update may appear in August if/when the French DVB-T 
-mux start broadcasting in this region.
-
-Regards,
-Thomas
-
-
---------------080804070705020505050907
-Content-Type: text/plain; x-mac-type="0"; x-mac-creator="0";
- name="CH-Geneva"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="CH-Geneva"
-
-IyBTd2l0emVybGFuZCwgR2VuZXZhIHJlZ2lvbgojIENyZWF0ZWQgZnJvbSBodHRwOi8vd3d3
-LmJyb2FkY2FzdC5jaC9wb3J0YWwuYXNweD9waWQ9NzA1CiMgaHR0cDovL3d3dy5icm9hZGNh
-c3QuY2gvZGF0YV9wcm9ncmFtX2R2YnQuYXNweAojIGFuZCB3X3NjYW4gZm9yIHRoZSBuZXcg
-bXV4CiMgVCBmcmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1
-YXJkLWludGVydmFsIGhpZXJhcmNoeQpUIDU3ODAwMDAwMCA4TUh6IDUvNiBOT05FIFFBTTE2
-IDhrIDEvNCBOT05FClQgNzA2MDAwMDAwIDhNSHogMS8yIE5PTkUgUUFNMTYgOGsgMS80IE5P
-TkU=
---------------080804070705020505050907--
+but so far ... has someone dvb-s2 working? (on linux/not freebsd!!)
