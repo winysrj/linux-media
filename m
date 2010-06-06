@@ -1,55 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f223.google.com ([209.85.219.223]:48644 "EHLO
-	mail-ew0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750922Ab0FDKgp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 06:36:45 -0400
-Date: Fri, 4 Jun 2010 12:36:29 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Frederic Weisbecker <fweisbec@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch] V4L/DVB: dvb_ca_en50221: return -EFAULT on copy_to_user
-	errors
-Message-ID: <20100604103629.GC5483@bicker>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4482 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108Ab0FFTbu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 15:31:50 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o56JVjoc046350
+	for <linux-media@vger.kernel.org>; Sun, 6 Jun 2010 21:31:49 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 6 Jun 2010 21:31:45 +0200 (CEST)
+Message-Id: <201006061931.o56JVjoc046350@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-copy_to_user() returns the number of bytes remaining to be copied which
-isn't the right thing to return here.  The comments say that these 
-functions in dvb_ca_en50221.c should return the number of bytes copied or
-an error return.  I've changed it to return -EFAULT.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
-index ef259a0..aa7a298 100644
---- a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
-@@ -1318,8 +1318,10 @@ static ssize_t dvb_ca_en50221_io_write(struct file *file,
- 
- 		fragbuf[0] = connection_id;
- 		fragbuf[1] = ((fragpos + fraglen) < count) ? 0x80 : 0x00;
--		if ((status = copy_from_user(fragbuf + 2, buf + fragpos, fraglen)) != 0)
-+		if ((status = copy_from_user(fragbuf + 2, buf + fragpos, fraglen)) != 0) {
-+			status = -EFAULT;
- 			goto exit;
-+		}
- 
- 		timeout = jiffies + HZ / 2;
- 		written = 0;
-@@ -1494,8 +1496,10 @@ static ssize_t dvb_ca_en50221_io_read(struct file *file, char __user * buf,
- 
- 	hdr[0] = slot;
- 	hdr[1] = connection_id;
--	if ((status = copy_to_user(buf, hdr, 2)) != 0)
-+	if ((status = copy_to_user(buf, hdr, 2)) != 0) {
-+		status = -EFAULT;
- 		goto exit;
-+	}
- 	status = pktlen;
- 
- exit:
+date:        Sun Jun  6 19:00:32 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14883:d1b6a39bf32c
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: OK
+linux-2.6.33-armv5-ixp: OK
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
