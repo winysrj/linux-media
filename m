@@ -1,82 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:45172 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751576Ab0FOGhO (ORCPT
+Received: from mail-in-10.arcor-online.net ([151.189.21.50]:38200 "EHLO
+	mail-in-10.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751977Ab0FFXGp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jun 2010 02:37:14 -0400
-Message-ID: <4C171F8C.9040004@maxwell.research.nokia.com>
-Date: Tue, 15 Jun 2010 09:37:00 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: "Zhang, Xiaolin" <xiaolin.zhang@intel.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Add 12 bit RAW Bayer Pattern pixel format support in
- V4L2
-References: <33AB447FBD802F4E932063B962385B351E895A6A@shsmsx501.ccr.corp.intel.com>
-In-Reply-To: <33AB447FBD802F4E932063B962385B351E895A6A@shsmsx501.ccr.corp.intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 6 Jun 2010 19:06:45 -0400
+Subject: Re: correction:  success
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Alexander Apostolatos <Alexander.Apostolatos@gmx.de>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20100604115716.327290@gmx.net>
+References: <20100604015932.212640@gmx.net>
+	 <1275626370.3140.5.camel@pc07.localdom.local>
+	 <20100604115716.327290@gmx.net>
+Content-Type: text/plain
+Date: Mon, 07 Jun 2010 01:01:59 +0200
+Message-Id: <1275865319.3164.71.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Zhang, Xiaolin wrote:
-> From 54079deb89764a9399c95098e4c3830c88d24a5c Mon Sep 17 00:00:00 2001
-> From: Xiaolin Zhang <xiaolin.zhang@intel.com>
-> Date: Tue, 18 May 2010 18:02:24 +0800
-> Subject: [PATCH] Add 12 bit RAW Bayer Pattern pixel format support.
+Hi Alexander,
 
-Hi Xiaolin,
-
-> Signed-off-by: Xiaolin Zhang <xiaolin.zhang@intel.com>
-> ---
->  Documentation/DocBook/v4l/videodev2.h.xml |   10 +++++++++-
->  include/linux/videodev2.h                 |    4 ++++
->  2 files changed, 13 insertions(+), 1 deletions(-)
+Am Freitag, den 04.06.2010, 13:57 +0200 schrieb Alexander Apostolatos:
+> -------- Original-Nachricht --------
+> > Datum: Fri, 04 Jun 2010 06:39:30 +0200
+> > Von: hermann pitton <hermann-pitton@arcor.de>
+> > An: Alexander Apostolatos <Alexander.Apostolatos@gmx.de>
+> > CC: linux-media@vger.kernel.org
+> > Betreff: Re: success
 > 
-> diff --git a/Documentation/DocBook/v4l/videodev2.h.xml b/Documentation/DocBook/v4l/videodev2.h.xml
-> index 0683259..649ef9e 100644
-> --- a/Documentation/DocBook/v4l/videodev2.h.xml
-> +++ b/Documentation/DocBook/v4l/videodev2.h.xml
-> @@ -330,7 +330,15 @@ struct <link linkend="v4l2-pix-format">v4l2_pix_format</link> {
->  #define <link linkend="V4L2-PIX-FMT-SBGGR8">V4L2_PIX_FMT_SBGGR8</link>  v4l2_fourcc('B', 'A', '8', '1') /*  8  BGBG.. GRGR.. */
->  #define <link linkend="V4L2-PIX-FMT-SGBRG8">V4L2_PIX_FMT_SGBRG8</link>  v4l2_fourcc('G', 'B', 'R', 'G') /*  8  GBGB.. RGRG.. */
->  #define <link linkend="V4L2-PIX-FMT-SGRBG8">V4L2_PIX_FMT_SGRBG8</link>  v4l2_fourcc('G', 'R', 'B', 'G') /*  8  GRGR.. BGBG.. */
-> -#define <link linkend="V4L2-PIX-FMT-SGRBG10">V4L2_PIX_FMT_SGRBG10</link> v4l2_fourcc('B', 'A', '1', '0') /* 10bit raw bayer */
-> +#define <link linkend="V4L2-PIX-FMT-SGRBG8">V4L2_PIX_FMT_SRGGB8</link>  v4l2_fourcc('R', 'G', 'G', 'B') /*  8  RGRG.. GBGB.. */
-> +#define <link linkend="V4L2-PIX-FMT-SBGGR10">V4L2_PIX_FMT_SBGGR10</link>  v4l2_fourcc('B', 'G', '1', '0') /*  10  BGBG.. GRGR.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGBRG10">V4L2_PIX_FMT_SGBRG10</link>  v4l2_fourcc('G', 'B', '1', '0') /*  10  GBGB.. RGRG.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGRBG10">V4L2_PIX_FMT_SGRBG10</link>  v4l2_fourcc('B', 'A', '1', '0') /*  10  GRGR.. BGBG.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGRBG10">V4L2_PIX_FMT_SRGGB10</link>  v4l2_fourcc('R', 'G', '1', '0') /*  10  RGRG.. GBGB.. */
-> +#define <link linkend="V4L2-PIX-FMT-SBGGR12">V4L2_PIX_FMT_SBGGR12</link>  v4l2_fourcc('B', 'G', '1', '2') /*  12  BGBG.. GRGR.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGBRG12">V4L2_PIX_FMT_SGBRG12</link>  v4l2_fourcc('G', 'B', '1', '2') /*  12  GBGB.. RGRG.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGRBG12">V4L2_PIX_FMT_SGRBG12</link>  v4l2_fourcc('B', 'A', '1', '2') /*  12  GRGR.. BGBG.. */
-> +#define <link linkend="V4L2-PIX-FMT-SGRBG12">V4L2_PIX_FMT_SRGGB12</link>  v4l2_fourcc('R', 'G', '1', '2') /*  12  RGRG.. GBGB.. */
->          /* 10bit raw bayer DPCM compressed to 8 bits */
->  #define <link linkend="V4L2-PIX-FMT-SGRBG10DPCM8">V4L2_PIX_FMT_SGRBG10DPCM8</link> v4l2_fourcc('B', 'D', '1', '0')
->          /*
+> > Hi,
+> > 
+> > Am Freitag, den 04.06.2010, 03:59 +0200 schrieb Alexander Apostolatos:
+> > > Hi, had success in activating analog tuner in:
+> > > 
+> > > http://linuxtv.org/wiki/index.php/DVB-T_PCI_Cards
+> > > Philips TV/Radio Card CTX918, (Medion 7134), PCI 
+> > > 
+> > > In my case, device is labeled:
+> > > MEDION
+> > > Type: TV-Tuner 7134
+> > > V.92 Data/Fax Modem
+> > > Rev: CTX918_V2 DVB-T/TV
+> > > P/N: 20024179
+> > > 
+> > > 
+> > > Label on tuner (other side of PCB) offers info on tuner type:
+> > > Label reads:
+> > > 3139 147 22491c#
+> > > FMD1216ME/I H-3
+> > > SV21 6438
 
-How about arranging the 12 bit modes after the 10 bit ones?
+mine is SV21 0437. Guess you have 0438 and both should work as tuner=63.
 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 3793d16..202092a 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -335,6 +335,10 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_SGBRG10 v4l2_fourcc('G', 'B', '1', '0') /* 10  GBGB.. RGRG.. */
->  #define V4L2_PIX_FMT_SGRBG10 v4l2_fourcc('B', 'A', '1', '0') /* 10  GRGR.. BGBG.. */
->  #define V4L2_PIX_FMT_SRGGB10 v4l2_fourcc('R', 'G', '1', '0') /* 10  RGRG.. GBGB.. */
-> +#define V4L2_PIX_FMT_SBGGR12 v4l2_fourcc('B', 'G', '1', '2') /* 12  BGBG.. GRGR.. */
-> +#define V4L2_PIX_FMT_SGBRG12 v4l2_fourcc('G', 'B', '1', '2') /* 12  GBGB.. RGRG.. */
-> +#define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
-> +#define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
->  	/* 10bit raw bayer DPCM compressed to 8 bits */
->  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
->  	/*
+> > > Made in INONESIA
+> > 
+> > > So I suppose tuner=78 is the compatible type for FMD1216ME/I H-3,
+> > > 
+> > > NOT tuner=63 as detected by system. Please check and alter if
+> > applicable.
+> > > 
+> > > Suspect different Hardware revs come with identical hardware ID's.
+> > > Will provide additional info if told hot to obtain (hardware ID or
+> > whatever), but have to take a nap right now. It's 4 in the morning.
+> > 
+> > I have such stuff with some known flaws, easily to circumvent.
+> > 
+> > The CTX918 V2 needs to be in the original dual bus master capable blue
+> > MSI/Medion PCI slot.
+> > 
+> > Else, it can become very tricky.
+> > 
+> > Cheers,
+> > Hermann
+> > 
+> 
+> Hermann, thanks for the reply. 
+> I knew of the blue slot from the manufacturer's website, so the device always was in the blue slot.
 
-Same here.
+Good, that is most important.
 
-Regards,
+> However, I have to correct myself. I double checked last night, instead of having a nap and it turned out, that there are preconditions involved for the function of the card:
+> 
+> in my case, the card works only after provoking a segfault by loading with card=97 Tuner=38 and running eg. tvtime.
+> After the ensuing segfault, a modprobe with card=12 and everyone of tuner 38, 63 and 78 yields a working device as it seems.
+> 
+> This means that after a segfault, the drive works with the parameters passed by autodetect. I have too look into that, find out what exactly the segfault does. However I have a bit of a learning curve to get there.
+> 
+> I'm currently running ubuntu lucid live and I have to look at the behaviour when installed.
+> 
+> If You'd like to share Your experiences with the card, especially the easily to convent problems, I'd be very grateful. Especially if it involves getting how to get DVB (T) to work or how to enable dma sound instead of using an audio cable.
+> 
+> Your's
+> 
+> Alex
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+On current kernels the tuner by default is only enabled for DVB-T. 
+
+There are some special bits in tuner core code to enable it for analog
+mode, which currently don't come through in the init sequences on first
+load.
+
+You will notice in "dmesg" that the analog IF demodulator tda9887 is
+missing. You must reload the driver once and it will be there.
+
+You might set options saa7134 alsa=0 in /etc/modprobe.d/saa7134.conf,
+else on recent distros the audio daemons might hold use count on
+saa7134-alsa and you can't "modprobe -vr saa7134-dvb", which also
+unloads saa7134.
+
+On the wiki should be some instructions for saa7134-alsa usage.
+http://www.linuxtv.org/wiki/index.php/Saa7134-alsa
+
+On radio autoscan does not work, since the tuner does not provide a
+stereo detection bit, but sound is good stereo. Radio sound is better
+with audio cable in the red connector.
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
+
