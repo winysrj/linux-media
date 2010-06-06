@@ -1,62 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.tkos.co.il ([62.219.50.35]:35065 "EHLO tango.tkos.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753230Ab0F3DEJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jun 2010 23:04:09 -0400
-Date: Wed, 30 Jun 2010 06:03:16 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-Subject: Re: [PATCHv4 1/3] mx2_camera: Add soc_camera support for
- i.MX25/i.MX27
-Message-ID: <20100630030315.GA23534@tarshish>
-References: <cover.1277096909.git.baruch@tkos.co.il>
- <03d6e55c39690618e92a91a580ec34549a135c79.1277096909.git.baruch@tkos.co.il>
- <Pine.LNX.4.64.1006292145001.22603@axis700.grange>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:36355 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752047Ab0FFMjl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 08:39:41 -0400
+Date: Sun, 6 Jun 2010 14:43:02 +0200
+From: Richard Zidlicky <rz@linux-m68k.org>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: [PATCH 2.6.34] schedule inside spin_lock_irqsave
+Message-ID: <20100606124302.GA10119@linux-m68k.org>
+References: <20100530145240.GA21559@linux-m68k.org> <4C028336.8030704@gmail.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1006292145001.22603@axis700.grange>
+In-Reply-To: <4C028336.8030704@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 29, 2010 at 09:47:42PM +0200, Guennadi Liakhovetski wrote:
-> On Mon, 21 Jun 2010, Baruch Siach wrote:
-> 
-> > This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
-> > Carvalho de Assis modified the original driver to get it working on more recent
-> > kernels. I modified it further to add support for i.MX25. This driver has been
-> > tested on i.MX25 and i.MX27 based platforms.
-> 
-> This looks good to me, thanks! Overflow on eMMA is, probably, still 
-> broken, but it will, most probably, remain so, until someone tests and 
-> fixes it. One question though: do you know whether this imx/mxc overhaul: 
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2010-June/thread.html#18844 
-> affects your driver?
+Hi,
 
-I tested this yesterday, and, unfortunately, it does :(. See 
-http://lists.infradead.org/pipermail/linux-arm-kernel/2010-June/019111.html.  
-However, this issue does not affect mx27 builds. So I think this should not 
-stop the merge of this driver, for now. I hope Uwe and I will find an 
-acceptable solution before the .36 merge window opens.
+I have done a minimaly invasive patch for the stable 2.6.34 kernel and stress-tested 
+it for many hours, definitely seems to improve the behaviour.
 
-baruch
+I have left out your beautification suggestion for now, want to do more playing with
+other aspects of the driver. There still seem to be issues when the device is unplugged 
+while in use and such.
 
-> I can ask Uwe, but maybe you have an idea or could test your patches with 
-> Uwe's git tree?
-> 
-> Thanks
-> Guennadi
-> 
-> > 
-> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> > ---
+--- linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c.rz	2010-06-03 21:58:11.000000000 +0200
++++ linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c	2010-06-04 23:00:35.000000000 +0200
+@@ -1100,31 +1100,26 @@
+  *
+  * @return pointer to descriptor on success, NULL on error.
+  */
+-struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
++
++struct smscore_buffer_t *get_entry(void)
+ {
+ 	struct smscore_buffer_t *cb = NULL;
+ 	unsigned long flags;
+ 
+-	DEFINE_WAIT(wait);
+-
+ 	spin_lock_irqsave(&coredev->bufferslock, flags);
+-
+-	/* This function must return a valid buffer, since the buffer list is
+-	 * finite, we check that there is an available buffer, if not, we wait
+-	 * until such buffer become available.
+-	 */
+-
+-	prepare_to_wait(&coredev->buffer_mng_waitq, &wait, TASK_INTERRUPTIBLE);
+-
+-	if (list_empty(&coredev->buffers))
+-		schedule();
+-
+-	finish_wait(&coredev->buffer_mng_waitq, &wait);
+-
++	if (!list_empty(&coredev->buffers)) {
+ 	cb = (struct smscore_buffer_t *) coredev->buffers.next;
+ 	list_del(&cb->entry);
+-
++	}
+ 	spin_unlock_irqrestore(&coredev->bufferslock, flags);
++	return cb;
++}
++
++struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
++{
++	struct smscore_buffer_t *cb = NULL;
++
++	wait_event(coredev->buffer_mng_waitq, (cb = get_entry()));
+ 
+ 	return cb;
+ }
 
--- 
-                                                     ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
+
+Richard
