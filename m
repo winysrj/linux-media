@@ -1,91 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14706 "EHLO mx1.redhat.com"
+Received: from ms16-1.1blu.de ([89.202.0.34]:43478 "EHLO ms16-1.1blu.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751811Ab0F1RA0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jun 2010 13:00:26 -0400
-Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5SH0Qen021350
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 13:00:26 -0400
-Received: from pedra (vpn-9-119.rdu.redhat.com [10.11.9.119])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o5SH0HGL008891
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 13:00:25 -0400
-Date: Mon, 28 Jun 2010 13:59:58 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3/4] ir-core: Add support for disabling all protocols
-Message-ID: <20100628135958.3b36a6bf@pedra>
-In-Reply-To: <cover.1277744236.git.mchehab@redhat.com>
-References: <cover.1277744236.git.mchehab@redhat.com>
+	id S1755063Ab0FFWM2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Jun 2010 18:12:28 -0400
+Date: Mon, 7 Jun 2010 00:12:24 +0200
+From: Lars Schotte <lars.schotte@schotteweb.de>
+To: hermann pitton <hermann-pitton@arcor.de>
+Cc: VDR User <user.vdr@gmail.com>,
+	"mailing list: linux-media" <linux-media@vger.kernel.org>
+Subject: Re: What ever happened to standardizing signal level?
+Message-ID: <20100607001224.530dfe35@romy.gusto>
+In-Reply-To: <1275861682.3164.44.camel@pc07.localdom.local>
+References: <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com>
+	<1275198741.3213.50.camel@pc07.localdom.local>
+	<AANLkTilIrG5cwlLv_iAI7E7XX5117qh4AHof80pRRYSs@mail.gmail.com>
+	<1275622226.6635.24.camel@pc07.localdom.local>
+	<AANLkTikvkkfr0F_h1u8wIgoLMiy05iWy8ZQkdF5y2Xii@mail.gmail.com>
+	<1275861682.3164.44.camel@pc07.localdom.local>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Writing "none" to /dev/class/rc/rc*/protocols will disable all protocols.
-This allows an easier setup, from userspace, as userspace applications don't
-need to disable protocol per protocol, before enabling a different set of
-protocols.
+stop flaming all the time, there are ppl out there like me who have
+some problems w/ their HW, and you are arguing here about nothing.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On Mon, 07 Jun 2010 00:01:22 +0200
+hermann pitton <hermann-pitton@arcor.de> wrote:
 
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index 9a464a3..db8c7f4 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -45,6 +45,8 @@ static struct {
- 	{ IR_TYPE_SONY,		"sony"		},
- };
- 
-+#define PROTO_NONE	"none"
-+
- /**
-  * show_protocols() - shows the current IR protocol(s)
-  * @d:		the device descriptor
-@@ -101,6 +103,7 @@ static ssize_t show_protocols(struct device *d,
-  * Writing "+proto" will add a protocol to the list of enabled protocols.
-  * Writing "-proto" will remove a protocol from the list of enabled protocols.
-  * Writing "proto" will enable only "proto".
-+ * Writing "none" will disable all protocols.
-  * Returns -EINVAL if an invalid protocol combination or unknown protocol name
-  * is used, otherwise @len.
-  */
-@@ -134,16 +137,22 @@ static ssize_t store_protocols(struct device *d,
- 		disable = false;
- 	}
- 
--	for (i = 0; i < ARRAY_SIZE(proto_names); i++) {
--		if (!strncasecmp(tmp, proto_names[i].name, strlen(proto_names[i].name))) {
--			tmp += strlen(proto_names[i].name);
--			mask = proto_names[i].type;
--			break;
-+
-+	if (!enable && !disable && !strncasecmp(tmp, PROTO_NONE, sizeof(PROTO_NONE))) {
-+		mask = 0;
-+		tmp += sizeof(PROTO_NONE);
-+	} else {
-+		for (i = 0; i < ARRAY_SIZE(proto_names); i++) {
-+			if (!strncasecmp(tmp, proto_names[i].name, strlen(proto_names[i].name))) {
-+				tmp += strlen(proto_names[i].name);
-+				mask = proto_names[i].type;
-+				break;
-+			}
-+		}
-+		if (i == ARRAY_SIZE(proto_names)) {
-+			IR_dprintk(1, "Unknown protocol\n");
-+			return -EINVAL;
- 		}
--	}
--	if (i == ARRAY_SIZE(proto_names)) {
--		IR_dprintk(1, "Unknown protocol\n");
--		return -EINVAL;
- 	}
- 
- 	tmp = skip_spaces(tmp);
--- 
-1.7.1
-
-
+> 
+> Am Donnerstag, den 03.06.2010, 22:18 -0700 schrieb VDR User:
+> > hermann pitton <hermann-pitton@arcor.de>, you are contributing
+> > absolutely nothing to this thread aside of annoying people with your
+> > by trolling and half incoherent nonsense.  It's quite ironic you
+> > suggest _I_ am the one trolling when this is a thread _I_ created.
+> > And further, several people have posted legitimate responses to --
+> > clearly you are the only one suffering from your delusion.
+> 
+> Dream on.
+> 
+> The question never was, if you are trolling from time to time, but
+> only if you are a duplicate of another troll or on your own.
+> 
+> I have talked with Mauro about that and since then I ask you to
+> provide your full name or point at least to a patch from you, where
+> you have to agree to provide your real name in your SOB line.
+> 
+> There was none and you also did not point to somebody else, to confirm
+> for us, that you are known and on kernel development not only as a
+> troll.
+> 
+> You did not give an sufficient answer during the last two years.
+> 
+> > Additionally you've been stalking me in email as well.  Your
+> > behavior is not only uncalled for, it's abusive of both this
+> > mailing list and the people willingly participating in the
+> > discussion.  As I understand it, this is not the first time you've
+> > been the source of harassment.
+> 
+> The opposite again is true, you stalked me by private e-mail and
+> therefor my reply went as copy also to Mauro and Manu. If even Manu
+> does not have your contact data, who else? Please provide them at
+> least to him or someone else you trust and you are free for rants,
+> within limitations.
+> 
+> > Do us all a favor -- go find some other thread to infect with your
+> > childishness, find some other user(s) to harass/stalk/obsess over,
+> > or simply grow up and stop wasting everyone's time.  In case you
+> > haven't noticed there has been absolutely nobody supporting your
+> > rants.  Take a hint.
+> 
+> http://linuxtv.org/wiki/index.php/People_behind_V4L-DVB
+> 
+> I did not put myself on this list and you should take me a little more
+> serious when asking you to fulfill the minimum requirements for
+> participating in kernel development.
+> 
+> Also, if you further associate me with illegal drugs, I give you a
+> 100% guarantee, that this will become _very_ expensive for you.
+> 
+> You also won't make the vine sour I have after working on my linux
+> "hobby".
+> 
+> Now, after wasting my time looking at it, I can see you have a first
+> alsa patch in 2.6.33 with an invalid SOB, since only Derek, but
+> corrected to Derek Kelly in 2.6.34.
+> 
+> Missing is still, if you are working as a Hobbyist or if you are paid
+> for your work. Greg might ask you such soon or did already.
+> 
+> If your name is true, you could have saved yourself and all others
+> most of all the trouble. Looking at your methods, my doubts are not
+> gone, but I let it to others now.
+> 
+> Hermann
+> 
+> 
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
