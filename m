@@ -1,80 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:21595 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753990Ab0FCOEM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 10:04:12 -0400
-Received: by ey-out-2122.google.com with SMTP id 25so59585eya.19
-        for <linux-media@vger.kernel.org>; Thu, 03 Jun 2010 07:04:10 -0700 (PDT)
-Date: Thu, 3 Jun 2010 16:04:07 +0200
-From: Davor Emard <davoremard@gmail.com>
-To: Samuel =?utf-8?Q?Rakitni=C4=8Dan?= <samuel.rakitnican@gmail.com>
-Cc: semiRocket <semirocket@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Compro Videomate T750F Vista digital+analog support
-Message-ID: <20100603140403.GA22382@emard.lan>
-References: <20100509173243.GA8227@z60m>
- <op.vcga9rw2ndeod6@crni>
- <20100509231535.GA6334@z60m>
- <op.vcsntos43xmt7q@crni>
- <op.vc551isrndeod6@crni>
- <20100530234817.GA17135@emard.lan>
- <20100531075214.GA17456@lipa.lan>
- <op.vdn7g9nj3xmt7q@crni>
- <20100602182757.GA22171@emard.lan>
- <op.vdo22vmundeod6@crni>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <op.vdo22vmundeod6@crni>
+Received: from mx1.redhat.com ([209.132.183.28]:58460 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934033Ab0FFOxk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Jun 2010 10:53:40 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o56EreKn025687
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 6 Jun 2010 10:53:40 -0400
+Received: from pedra (vpn-11-208.rdu.redhat.com [10.11.11.208])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o56EraZB031853
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 6 Jun 2010 10:53:39 -0400
+Date: Sun, 6 Jun 2010 11:53:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] tm6000-alsa: Implement a routine to store data received
+ from URB
+Message-ID: <20100606115311.398acc2a@pedra>
+In-Reply-To: <cover.1275835609.git.mchehab@redhat.com>
+References: <cover.1275835609.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Didn't have time to look for gpios, tomorrow I will have. But I can
-> tell that this change is not working for me:
-> 
-> 	case SAA7134_BOARD_VIDEOMATE_T750:
-> 		dev->has_remote = SAA7134_REMOTE_GPIO;
-> 		saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   0x8082c000, 0x8082c000);
-> 		saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, 0x8082c000, 0x0080c000);
-> 		break;
+Implements the fillbuf callback to store data received via URB
+data transfers.
 
-Thanx for testing it out, If it doesn't work, try this:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-saa_andorl(SAA7134_GPIO_GPMODE0 >> 2,   /* keep */ 0x8082c000, /* keep */   0x8082c000);
-saa_andorl(SAA7134_GPIO_GPSTATUS0 >> 2, /* keep */ 0x8082c000, /* modify */ 0x0080c000);
+diff --git a/drivers/staging/tm6000/tm6000-alsa.c b/drivers/staging/tm6000/tm6000-alsa.c
+index fa19a41..d31b525 100644
+--- a/drivers/staging/tm6000/tm6000-alsa.c
++++ b/drivers/staging/tm6000/tm6000-alsa.c
+@@ -157,16 +157,16 @@ static struct snd_pcm_hardware snd_tm6000_digital_hw = {
+ 		SNDRV_PCM_INFO_MMAP_VALID,
+ 	.formats = SNDRV_PCM_FMTBIT_S16_LE,
+ 
+-	.rates =		SNDRV_PCM_RATE_44100 | SNDRV_PCM_RATE_48000,
+-	.rate_min =		44100,
++	.rates =		SNDRV_PCM_RATE_48000,
++	.rate_min =		48000,
+ 	.rate_max =		48000,
+ 	.channels_min = 2,
+ 	.channels_max = 2,
+-	.period_bytes_min = DEFAULT_FIFO_SIZE/4,
+-	.period_bytes_max = DEFAULT_FIFO_SIZE/4,
++	.period_bytes_min = 62720,
++	.period_bytes_max = 62720,
+ 	.periods_min = 1,
+ 	.periods_max = 1024,
+-	.buffer_bytes_max = (1024*1024),
++	.buffer_bytes_max = 62720 * 8,
+ };
+ 
+ /*
+@@ -203,15 +203,45 @@ static int snd_tm6000_close(struct snd_pcm_substream *substream)
+ 
+ static int tm6000_fillbuf(struct tm6000_core *core, char *buf, int size)
+ {
+-	int i;
++	struct snd_tm6000_card *chip = core->adev;
++	struct snd_pcm_substream *substream = chip->substream;
++	struct snd_pcm_runtime *runtime;
++	int period_elapsed = 0;
++	unsigned int stride, buf_pos;
+ 
+-	/* Need to add a real code to copy audio buffer */
+-	printk("Audio (%i bytes): ", size);
+-	for (i = 0; i < size - 3; i +=4)
+-		printk("(0x%04x, 0x%04x), ",
+-			*(u16 *)(buf + i), *(u16 *)(buf + i + 2));
++	if (!size || !substream)
++		return -EINVAL;
+ 
+-	printk("\n");
++	runtime = substream->runtime;
++	if (!runtime || !runtime->dma_area)
++		return -EINVAL;
++
++	buf_pos = chip->buf_pos;
++	stride = runtime->frame_bits >> 3;
++
++	dprintk(1, "Copying %d bytes at %p[%d] - buf size=%d x %d\n", size,
++		runtime->dma_area, buf_pos,
++		(unsigned int)runtime->buffer_size, stride);
++
++	if (buf_pos + size >= runtime->buffer_size * stride) {
++		unsigned int cnt = runtime->buffer_size * stride - buf_pos;
++		memcpy(runtime->dma_area + buf_pos, buf, cnt);
++		memcpy(runtime->dma_area, buf + cnt, size - cnt);
++	} else
++		memcpy(runtime->dma_area + buf_pos, buf, size);
++
++	chip->buf_pos += size;
++	if (chip->buf_pos >= runtime->buffer_size * stride)
++		chip->buf_pos -= runtime->buffer_size * stride;
++
++	chip->period_pos += size;
++	if (chip->period_pos >= runtime->period_size) {
++		chip->period_pos -= runtime->period_size;
++		period_elapsed = 1;
++	}
++
++	if (period_elapsed)
++		snd_pcm_period_elapsed(substream);
+ 
+ 	return 0;
+ }
+-- 
+1.7.1
 
-modify only the indicated number, try 0, try 0x8082c000 and if
-you have time try all combinations of bits 0x8082c000 optionally set to 0
-e.g. 0x8002c000, 0x8080c000, 0x80828000, 0x0080c000 etc...
-
-It is possible that you and I don't have same revision of the
-card and you need a slightly different initialization procedure.
-If you get something to work for your card then I can try it back at
-mine there's a changes that we get a common setup which works for both.
-
-> OK, I'm not having any personal opinion about the keys nor a
-> application which I'm using, I'm just noticed that the keys differ
-> against standard keys defined at linuxtv wiki. But if the keys at
-> wiki are not correct, then perhaps should we change them there and
-> let all use the same keys.
-> 
-> If we have standard keys, than userspace applications programmers
-> can make a use of it and assign the keys to their applications and
-> to have just work experience to their users. But maybe I'm terrible
-> wrong...
-
-Yeah I know, almost every remote has its own logic so it seems my version
-is yet-another-bla... I'm hoping for upcoming X11 xinput2 layer hopefully 
-get full support of MCE remotes and nicely integrate with X applications
-therefore I produced MCE stuff here for a challenge to the xinput2
-
-For integrated TV and PC to work well we need all remote keys be different 
-than any other existing key used by keyboard.
-
-Without this, when X11 based TV view application gets "out of input focus"
-means it becomes irresponsive to ambiguity keys on the remote controller 
-(in this example cursor keys) and we need to first use mouse to click on 
-TV application and then continue using cursors on remote control 
-(imagine how practical it is to make mouse click when watching TV from sofa) 
-
-best regards, d.
