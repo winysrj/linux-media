@@ -1,54 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4768 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933798Ab0FRR1q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jun 2010 13:27:46 -0400
-Received: from tschai.localnet (18.80-203-20.nextgentel.com [80.203.20.18])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5IHRjF3082224
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 18 Jun 2010 19:27:45 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Got internet again, mini-summit report will follow this weekend
-Date: Fri, 18 Jun 2010 19:29:58 +0200
+Received: from fg-out-1718.google.com ([72.14.220.152]:35927 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485Ab0FFRv6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 13:51:58 -0400
+Message-ID: <4C0BE03C.8000709@gmail.com>
+Date: Sun, 06 Jun 2010 19:51:56 +0200
+From: Jiri Slaby <jirislaby@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Richard Zidlicky <rz@linux-m68k.org>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2.6.34] schedule inside spin_lock_irqsave
+References: <20100530145240.GA21559@linux-m68k.org> <4C028336.8030704@gmail.com> <20100606124302.GA10119@linux-m68k.org>
+In-Reply-To: <20100606124302.GA10119@linux-m68k.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201006181929.58711.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On 06/06/2010 02:43 PM, Richard Zidlicky wrote:
+> Hi,
+> 
+> I have done a minimaly invasive patch for the stable 2.6.34 kernel and stress-tested 
+> it for many hours, definitely seems to improve the behaviour.
+> 
+> I have left out your beautification suggestion for now, want to do more playing with
+> other aspects of the driver. There still seem to be issues when the device is unplugged 
+> while in use and such.
+> 
+> --- linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c.rz	2010-06-03 21:58:11.000000000 +0200
+> +++ linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c	2010-06-04 23:00:35.000000000 +0200
+> @@ -1100,31 +1100,26 @@
+>   *
+>   * @return pointer to descriptor on success, NULL on error.
+>   */
+> -struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
+> +
+> +struct smscore_buffer_t *get_entry(void)
+>  {
+>  	struct smscore_buffer_t *cb = NULL;
+>  	unsigned long flags;
+>  
+> -	DEFINE_WAIT(wait);
+> -
+>  	spin_lock_irqsave(&coredev->bufferslock, flags);
 
-I got internet in my new apartment this morning, so I hope that I can post
-the mini-summit report tomorrow or Sunday at the latest.
+Sorry, maybe I'm just blind, but where is 'coredev' defined in this
+scope? You probably forgot to pass it to get_entry?
 
-The summit was a smashing success IMHO, although marred for me personally by
-having to seek medical assistance on Tuesday evening :-( Luckily I did manage
-to finish the meetings, but I had to skip out on the social events on Tuesday
-and Wednesday, which was a shame, and I wasn't quite on top form in the
-afternoons. I can only hope it wasn't too noticable...
+How could this be compiled? Is there coredev defined globally?
 
-Luckily we managed to tackle all items on the agenda and finished even a
-bit ahead of schedule.
-
-It was absolutely brilliant to see so many enthusiastic developers willing
-to contribute to this project and come up with solutions to existing problems.
-And it is equally clear that we will definitely have more brainstorm meetings
-and mini-summits in the future since a few days with face-to-face meetings
-makes it possible to do an amazing amount of work that would take weeks on the
-mailinglist.
-
-Thank you all who contributed to the mini-summit and special thanks to Nokia
-and Sakari Ailus for hosting and organizing this event!
-
-Regards,
-
-	Hans
+> -
+> -	/* This function must return a valid buffer, since the buffer list is
+> -	 * finite, we check that there is an available buffer, if not, we wait
+> -	 * until such buffer become available.
+> -	 */
+> -
+> -	prepare_to_wait(&coredev->buffer_mng_waitq, &wait, TASK_INTERRUPTIBLE);
+> -
+> -	if (list_empty(&coredev->buffers))
+> -		schedule();
+> -
+> -	finish_wait(&coredev->buffer_mng_waitq, &wait);
+> -
+> +	if (!list_empty(&coredev->buffers)) {
+>  	cb = (struct smscore_buffer_t *) coredev->buffers.next;
+>  	list_del(&cb->entry);
+> -
+> +	}
+>  	spin_unlock_irqrestore(&coredev->bufferslock, flags);
+> +	return cb;
+> +}
+> +
+> +struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
+> +{
+> +	struct smscore_buffer_t *cb = NULL;
+> +
+> +	wait_event(coredev->buffer_mng_waitq, (cb = get_entry()));
+>  
+>  	return cb;
+>  }
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+js
