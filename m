@@ -1,139 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tuxmail.imn.htwk-leipzig.de ([141.57.7.10]:40381 "EHLO
-	tuxmail.imn.htwk-leipzig.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752401Ab0F3TQc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jun 2010 15:16:32 -0400
-From: Torsten Krah <tkrah@fachschaft.imn.htwk-leipzig.de>
-Reply-To: tkrah@fachschaft.imn.htwk-leipzig.de
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Subject: Re: em28xx/xc3028 - kernel driver vs. Markus Rechberger's driver
-Date: Wed, 30 Jun 2010 21:16:18 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Thorsten Hirsch <t.hirsch@web.de>
-References: <AANLkTilP-jf0MaV82LuTz8DjoNJKQ3xGCHuFgds4b212@mail.gmail.com> <201006292142.48380.tkrah@fachschaft.imn.htwk-leipzig.de> <AANLkTin1Bj__L4p1jEvwLO-2Wjw6-R8ICLsfb2w32jP3@mail.gmail.com>
-In-Reply-To: <AANLkTin1Bj__L4p1jEvwLO-2Wjw6-R8ICLsfb2w32jP3@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart8092888.IFkfR55BLe";
-  protocol="application/pkcs7-signature";
-  micalg=sha1
+Received: from ms16-1.1blu.de ([89.202.0.34]:58271 "EHLO ms16-1.1blu.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752072Ab0FFUva (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 6 Jun 2010 16:51:30 -0400
+Date: Sun, 6 Jun 2010 22:51:27 +0200
+From: Lars Schotte <lars.schotte@schotteweb.de>
+To: Niels Wagenaar <n.wagenaar@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] hvr4000 doesnt work w/ dvb-s2 nor DVB-T
+Message-ID: <20100606225127.726fe8dd@romy.gusto>
+In-Reply-To: <AANLkTilkO8i2e_SyHVVqYuaPEhjm95VmHHpiABFQc_Rj@mail.gmail.com>
+References: <20100606010311.6d98ef7b@romy.gusto>
+	<20100606084301.GA3070@gmail.com>
+	<20100606133946.76c3a6e0@romy.gusto>
+	<20100606124925.GB3070@gmail.com>
+	<20100606145154.60de422e@romy.gusto>
+	<20100606125636.GC3070@gmail.com>
+	<20100606150554.55be1852@romy.gusto>
+	<AANLkTin1jaMbG0ULhQRZi3QWkd2oVXazJ4BTGh5rMYdM@mail.gmail.com>
+	<20100606212814.1e55206c@romy.gusto>
+	<AANLkTilLnzSddnbyCn0QawNwvQkeFsWK_RvkgNPH4Gyx@mail.gmail.com>
+	<20100606215906.1c1f5536@romy.gusto>
+	<AANLkTilkO8i2e_SyHVVqYuaPEhjm95VmHHpiABFQc_Rj@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201006302116.25893.tkrah@fachschaft.imn.htwk-leipzig.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---nextPart8092888.IFkfR55BLe
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: quoted-printable
+you are right, it locks i found out by myself even before you had sent
+this mail, you can check it, but try to play it with xine, you have
+xine installed, like you said and lets see if that works!
 
-Am Dienstag, 29. Juni 2010 schrieben Sie:
-> Could you please verify if you have  the module i2c-dev loaded?
+On Sun, 6 Jun 2010 22:39:30 +0200
+Niels Wagenaar <n.wagenaar@xs4all.nl> wrote:
 
-Yes it is.
-
->=20
-> Example:
->=20
-> #lsmod | grep i2c_dev
-> i2c_dev                 6976  0
-> i2c_core               21104  11
-> i2c_dev,lgdt330x,tuner_xc2028,tuner,tvp5150,saa7115,em28xx,v4l2_common,vi=
-de
-> odev,tveeprom,i2c_i801
-
-#lsmod | grep i2c
-i2c_dev                 4970  0=20
-i2c_algo_bit            5028  1 radeon
-
-
->=20
-> If yes, please give us the output of:
->=20
-> #i2cdetect -l
-> i2c-0   smbus           SMBus I801 adapter at ece0              SMBus
-> adapter i2c-1   smbus           em28xx
-> #0                               SMBus adapter ^ here my device/driver
-
-Thats the output:
-
-# i2cdetect -l
-i2c-0	i2c       	                                	I2C adapter
-
-
->=20
-> Basically, in your case the tool is not able to recognize your device
-> by i2cdetect.This may happen because i2c_dev module was not able to
-> load?
-
-Its loaded.
-
-> If the module is not loaded, please load it manually and give a new try.
-
-Did that but still no success.
-
->=20
-> I did right now a test with i2c-tools 3.0.0 and 3.0.2.
-> http://dl.lm-sensors.org/i2c-tools/releases/
-
-I am using version 3.0.2.
-
->=20
-> Let us know the results.
-
-
-Did what you told but still no success using the tool - any other hints or=
-=20
-things i can do?
-
-thx
-
-
-Torsten
-
---nextPart8092888.IFkfR55BLe
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Transfer-Encoding: base64
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIFXDCCBVgw
-ggNAoAMCAQICAwefRjANBgkqhkiG9w0BAQUFADB5MRAwDgYDVQQKEwdSb290IENBMR4wHAYDVQQL
-ExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmluZyBBdXRob3Jp
-dHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZzAeFw0wOTEwMjAxMzQ2MzVaFw0x
-MTEwMjAxMzQ2MzVaME8xGDAWBgNVBAMTD0NBY2VydCBXb1QgVXNlcjEzMDEGCSqGSIb3DQEJARYk
-dGtyYWhAZmFjaHNjaGFmdC5pbW4uaHR3ay1sZWlwemlnLmRlMIIBIjANBgkqhkiG9w0BAQEFAAOC
-AQ8AMIIBCgKCAQEA3y1Pu6r0+4FmfSZWO07KYv5FWDy+AqKfvQ/+trLjKHgJv1sZDKIURtVVHlgP
-qsMddecGuLrcSnjbAEO9I0XNvpOaTyNIKvsfyTBc9/oNk5Oeb8XQ2PG6UM1RQiHuLwxTEquFh/xf
-oTO7ZlRl3j0YzsXa7hR/slU64EVGidO3289Z6eJv2jD9E1I1ujD630ifCMhiI/HGxobGYFdI1cy1
-Ne3Pc8BeWsSv8BS4fI7eMuFDI3DSCmk8mtgVSSBFLvRQ6laD7zawB+aDvvu+/NgClAEksCBRim5D
-DnJ+PVZm29GUHpkP7sf2ztsotckLyet3d5rg/aVwI7iYBAoWkvwDcwIDAQABo4IBETCCAQ0wDAYD
-VR0TAQH/BAIwADBWBglghkgBhvhCAQ0ESRZHVG8gZ2V0IHlvdXIgb3duIGNlcnRpZmljYXRlIGZv
-ciBGUkVFIGhlYWQgb3ZlciB0byBodHRwOi8vd3d3LkNBY2VydC5vcmcwQAYDVR0lBDkwNwYIKwYB
-BQUHAwQGCCsGAQUFBwMCBgorBgEEAYI3CgMEBgorBgEEAYI3CgMDBglghkgBhvhCBAEwMgYIKwYB
-BQUHAQEEJjAkMCIGCCsGAQUFBzABhhZodHRwOi8vb2NzcC5jYWNlcnQub3JnMC8GA1UdEQQoMCaB
-JHRrcmFoQGZhY2hzY2hhZnQuaW1uLmh0d2stbGVpcHppZy5kZTANBgkqhkiG9w0BAQUFAAOCAgEA
-MMKq9NNbTFUEPdbQ4jZT9T6oY4YQTbXYuF6ymvbBXx3TKsFWGpVjln0whIoQptkBMPSoa6BAZVtO
-mFiIAYwusK05xlYOknxZj/ksm2tWY5lKni4q85kDn+QIfJZ0OF9PP8r8azzw/Wsa2FGx2MUfZYqS
-OeFbL0qWmwhXzGp2CSiTNPNnGSbXBe22uCjYKw+0Gpno0swfbC2iTZjv2KlXWIM0sYPs2yDsFer6
-5/PHVExVEAD1Xrpu/ivADT660nx/GWDBa9zuRE+C42DwBBA6GhYCR4W8AkFiLNdz/7lgrnIax1So
-REiEK7ZdAtwkB3QzyMIVd3BwtGOkJMcUa4R1MrGCmC9ixORxDxrZNUSVY32TVRs2OzIzHCjawWFw
-lmDcomjU5cXj/ZKTmnGqTCpiyesaE1/1IKdyE8EBtqqVoGs7mdgjWSrrgPLVPcmSIDRsd+66Fc4x
-rRnbJf/yi3v3DdJqTgX/JuJmi1gsiPnwEg807WARuLANbF6y7HX/Ssd49ovGYQQdnFYcZfcAwWBL
-vEYxwIvHOnaLgaFcngdtEtdxrY2tUPllv1GhLF/cHQdEnQghZS1RJ/jCFBbmTMJ+PbTutO3JNBTn
-bZ3GT5Ffipk195Tj6CGFXauMiQiUHIKwNG8W1FR0TAdZGDOYiqA3wfPgBHgLt04cnrevCd4rk8Ex
-ggIyMIICLgIBATCBgDB5MRAwDgYDVQQKEwdSb290IENBMR4wHAYDVQQLExVodHRwOi8vd3d3LmNh
-Y2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmluZyBBdXRob3JpdHkxITAfBgkqhkiG9w0B
-CQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZwIDB59GMAkGBSsOAwIaBQCggYcwGAYJKoZIhvcNAQkDMQsG
-CSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTAwNjMwMTkxNjIwWjAjBgkqhkiG9w0BCQQxFgQU
-CXEXdSzzHvaHH/xLyxTPSTZNDjkwKAYJKoZIhvcNAQkPMRswGTALBglghkgBZQMEAQIwCgYIKoZI
-hvcNAwcwDQYJKoZIhvcNAQEBBQAEggEAX35LqXe7zAofeyQyImgj0neUpqhc82UiEEiUGFIDwj/k
-LGhYwayfjmG8svqkz5bNWMnf1Yl/Xn+TcHZfQNWmWBQO08YwakBIQX40a4PuvfJ+47VgWNnS/yRV
-GTgVKKNwLBOkn+NXNba85yF18AZ2gRzqffMvFetZiSC8RyF2Eo4fjD0jvuwMbZbkHEnErdUlcmuk
-agSM6PWV7tYqTKyge2AN0V0I0bstDcAlskA5Yc3URLszjr4YVGsW8ycZtZEL0PqqrGk6sIQ2l8kn
-DEN3AYh+dVGI3IX5/6Tv7EOcR8LmiEh3feo0bKgL+qmXbYH2oOdlvgvJxTRgVbO5iskl1QAAAAAA
-AA==
-
---nextPart8092888.IFkfR55BLe--
+> 2010/6/6 Lars Schotte <lars.schotte@schotteweb.de>:
+> > how do you think i watch DVB-S?
+> 
+> I really don't know, I really don't care.
+> 
+> > now you are lying, and that for sure!
+> 
+> I do not. Please, read my information carefully. You seem to miss
+> something.
+> 
+> > because mplayer has still this tunig issue, because he doesnt know
+> > that coderate shit, and even so, i tried it w/ szap-s2 -r option
+> > and tried to play it and only sound came out, so ... maybe you
+> > should check it before writing again.
+> >
+> 
+> I've never tried mplayer in combination with szap-s2. Like I told you
+> before, I use VDR in combination with Xine.
+> 
+> > VLC and these ... players will do the same ... there is nothing
+> > better than mplayer out there. mplayer is the best!!
+> >
+> 
+> 
+> 
+> > i know, that DVB-T on HVR4000 is supported by linux, because yes it
+> > works to me, but it doesnt find any programmes, so i would suggest
+> > you try it out by yourself before writing again. like I wrote to
+> > the first post - it works but is not usable (maybe internal noise
+> > too high).
+> >
+> > analog TV works, and FM i didnt check.
+> >
+> 
+> To proof to you (and the rest of this world) I'm not lying or
+> whatever, here's my attempt with scan-s2 and szap-s2:
+> 
+> - I made an file called hd_astra with the following contents:
+> 
+> S 11361000 H 22000000 2/3
+> 
+> - Then I scanned with scan-s2:
+> 
+> ./scan-s2 -o zap ./hd_astra > ~/channels.conf
+> 
+> - Which gave me the following information:
+> 
+> Das Erste HD:11361:h:0:22000:6010:6020:11100:6
+> ZDF HD:11361:h:0:22000:6110:6120:11110:6
+> arte HD:11361:h:0:22000:6210:6221:11120:6
+> 
+> - Then I used szap-s2
+> 
+> ./szap-s2 -c ~/channels.conf -S 1 -M 5 -C 23 -n 2
+> 
+> - Which gave me the following output:
+> 
+> root@ubuntu:/usr/local/src/szap-s2# ./szap-s2 -c ~/channels.conf -S 1
+> -M 5 -C 23 -n 2
+> reading channels from file '/home/htpc/channels.conf'
+> zapping to 2 'ZDF HD':
+> delivery DVB-S2, modulation 8PSK
+> sat 0, frequency 11361 MHz H, symbolrate 22000000, coderate 2/3,
+> rolloff 0.35 vpid 0x17de, apid 0x17e8, sid 0x2b66
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> status 00 | signal 05aa | snr 002e | ber 00000000 | unc fffffffe |
+> status 1b | signal 05aa | snr 002c | ber 00000000 | unc fffffffe |
+> FE_HAS_LOCK status 1b | signal 05aa | snr 002d | ber 00516155 | unc
+> fffffffe | FE_HAS_LOCK status 1b | signal 05aa | snr 002d | ber
+> 00145855 | unc fffffffe | FE_HAS_LOCK status 1b | signal 05aa | snr
+> 002c | ber 00000000 | unc fffffffe | FE_HAS_LOCK status 1b | signal
+> 05aa | snr 002c | ber 00000000 | unc fffffffe | FE_HAS_LOCK
+> 
+> It locks. So mplayer should make it work. I can't test this since I
+> don't have mplayer installed. But I think that some apologies are in
+> order, since the issue is not with your hardware or szap-s2.
+> 
+> > On Sun, 6 Jun 2010 21:45:45 +0200
+> > Niels Wagenaar <n.wagenaar@xs4all.nl> wrote:
+> >
+> >> Me? Lying? Before even telling me that I'm paid by Hauppauge,
+> >> please be sure to read my post. I wrote that it works like a charm
+> >> in combination with VDR (Google it). I've never used szap-s2 since
+> >> I use VDR for my TV playback.
+> >>
+> >> By my better judgement I'm going to give you an other option. If
+> >> you want to watch some TV without many options to configure (just
+> >> install, scan and watch through VLC, mplayer, xbmc or whatever),
+> >> you might want to check TV Headend
+> >> (http://www.lonelycoder.com/hts/tvheadend_overview.html). It works
+> >> like a charm with my NOVA-HD-S2.
+> >>
+> >> Oh and for your information. The DVB-T and DVB-S[2] of the device
+> >> can't be used at the same time. It's not a driver issue, it's a
+> >> hardware issue. In Windows you aren't able to do the same.
+> >>
+> >> The card (if it's the HVR-4000 or the NOVA-HD-S2) works perfectly
+> >> under Linux. I even got it working with Kaffeine.
+> >>
+> >> 2010/6/6 Lars Schotte <lars.schotte@schotteweb.de>:
+> >> > OK,
+> >> > i am using w_scan, it scanned and found DVB-S2 channels but
+> >> > szap-s2 doesnt tune in and there is no data, exactly like i
+> >> > said, so either you are lying and you have none of this things
+> >> > running or you were paid by huappauge to say this.
+> >> >
+> >> > i am using fedora 13 and HVR4000 and only DVB-S works. mplayer
+> >> > has the same problem and again - I have no diseq switch
+> >> > installed.
+> >> >
+> >>
+> >
+> 
