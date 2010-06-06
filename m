@@ -1,124 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2428 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752472Ab0FJTd4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jun 2010 15:33:56 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5AJXgLj079025
-	for <linux-media@vger.kernel.org>; Thu, 10 Jun 2010 21:33:50 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 10 Jun 2010 21:33:42 +0200 (CEST)
-Message-Id: <201006101933.o5AJXgLj079025@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:53462 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752108Ab0FFTpr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 15:45:47 -0400
+Received: by fxm8 with SMTP id 8so1647892fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Jun 2010 12:45:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20100606212814.1e55206c@romy.gusto>
+References: <20100606010311.6d98ef7b@romy.gusto>
+	<20100606084301.GA3070@gmail.com>
+	<20100606133946.76c3a6e0@romy.gusto>
+	<20100606124925.GB3070@gmail.com>
+	<20100606145154.60de422e@romy.gusto>
+	<20100606125636.GC3070@gmail.com>
+	<20100606150554.55be1852@romy.gusto>
+	<AANLkTin1jaMbG0ULhQRZi3QWkd2oVXazJ4BTGh5rMYdM@mail.gmail.com>
+	<20100606212814.1e55206c@romy.gusto>
+Date: Sun, 6 Jun 2010 21:45:45 +0200
+Message-ID: <AANLkTilLnzSddnbyCn0QawNwvQkeFsWK_RvkgNPH4Gyx@mail.gmail.com>
+Subject: Re: [linux-dvb] hvr4000 doesnt work w/ dvb-s2 nor DVB-T
+From: Niels Wagenaar <n.wagenaar@xs4all.nl>
+To: Lars Schotte <lars.schotte@schotteweb.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Me? Lying? Before even telling me that I'm paid by Hauppauge, please
+be sure to read my post. I wrote that it works like a charm in
+combination with VDR (Google it). I've never used szap-s2 since I use
+VDR for my TV playback.
 
-Results of the daily build of v4l-dvb:
+By my better judgement I'm going to give you an other option. If you
+want to watch some TV without many options to configure (just install,
+scan and watch through VLC, mplayer, xbmc or whatever), you might want
+to check TV Headend
+(http://www.lonelycoder.com/hts/tvheadend_overview.html). It works
+like a charm with my NOVA-HD-S2.
 
-date:        Thu Jun 10 19:00:22 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14974:023a0048e6a8
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Oh and for your information. The DVB-T and DVB-S[2] of the device
+can't be used at the same time. It's not a driver issue, it's a
+hardware issue. In Windows you aren't able to do the same.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+The card (if it's the HVR-4000 or the NOVA-HD-S2) works perfectly
+under Linux. I even got it working with Kaffeine.
 
-Detailed results are available here:
+2010/6/6 Lars Schotte <lars.schotte@schotteweb.de>:
+> OK,
+> i am using w_scan, it scanned and found DVB-S2 channels but szap-s2
+> doesnt tune in and there is no data, exactly like i said, so either you
+> are lying and you have none of this things running or you were paid by
+> huappauge to say this.
+>
+> i am using fedora 13 and HVR4000 and only DVB-S works. mplayer has the
+> same problem and again - I have no diseq switch installed.
+>
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+-- 
+Met vriendelijke groet/Regards,
 
-Full logs are available here:
+Niels Wagenaar
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- Sent from my BlackBerry® smartphone
