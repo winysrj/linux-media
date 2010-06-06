@@ -1,83 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:39545 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758035Ab0FBRWm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jun 2010 13:22:42 -0400
-Received: by wwb28 with SMTP id 28so3082165wwb.19
-        for <linux-media@vger.kernel.org>; Wed, 02 Jun 2010 10:22:40 -0700 (PDT)
-Date: Wed, 2 Jun 2010 19:22:36 +0200
-From: Davor Emard <davoremard@gmail.com>
-To: semiRocket <semirocket@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Compro Videomate T750F Vista digital+analog support
-Message-ID: <20100602172224.GA15872@emard.lan>
-References: <AANLkTikbpZ0LM5rK70abVuJS27j0lT7iZs12DrSKB9wI@mail.gmail.com>
- <op.vcfoxwnq3xmt7q@crni>
- <20100509173243.GA8227@z60m>
- <op.vcga9rw2ndeod6@crni>
- <20100509231535.GA6334@z60m>
- <op.vcsntos43xmt7q@crni>
- <op.vc551isrndeod6@crni>
- <20100530234817.GA17135@emard.lan>
- <20100531075214.GA17456@lipa.lan>
- <op.vdn7g9nj3xmt7q@crni>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:36925 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754002Ab0FFInC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 04:43:02 -0400
+Received: by bwz11 with SMTP id 11so695486bwz.19
+        for <linux-media@vger.kernel.org>; Sun, 06 Jun 2010 01:43:00 -0700 (PDT)
+Date: Sun, 6 Jun 2010 10:43:02 +0200
+From: Gregoire Favre <gregoire.favre@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] hvr4000 doesnt work w/ dvb-s2 nor DVB-T
+Message-ID: <20100606084301.GA3070@gmail.com>
+References: <20100606010311.6d98ef7b@romy.gusto>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <op.vdn7g9nj3xmt7q@crni>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20100606010311.6d98ef7b@romy.gusto>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> >HI!
-> >
-> >I just went to compro website and have seen that *f cards
-> >have some identical MCE-alike but also slightly different remotes,
-> >so we have to invent some better names to distinguish between
-> >them (compro itself might have some names for them)
-> >
-> Tested your new patch with Gerd's input-events utility. input-events
-> is reporting wrong key (KEY_MIN_INTERESTING) for KEY_MUTE, not sure
-> why.
+On Sun, Jun 06, 2010 at 01:03:11AM +0200, Lars Schotte wrote:
+> hi,
+> i have a happauge HVR4000 and all works fine, analogue TV and DVB-S was
+> tested by me so, all would be fine except the fact, that there is
+> DVB-S2 support noted on the wiki
+> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000 site.
+> 
+> so basically my question is, what makes you think, that HVR4000 is able
+> to play DVB-S2 streams when it doesn't?!
 
-HI! Is at least tuner (and loading of the firmware) working now without 
-preinitialization with windows?
+I use it for DVB-S2 under vdr without problem, and I tested (a long time
+ago) DVB-T under kaffeine (I don't have KDE installed at the moment).
 
-About remote keys:
-My evtest in debian is outdated (probably also your input-events). 
-Not only it doesn't support all KEY_*s but also for some existing keys it 
-reports the wrong names (like KEY_MIN_INTERESTING). 
-
-Try it with xev, at least MUTE should work correctly there (reports XF86AudioMute).
-However KEY_NUMERIC_* won't be recognized by xev because X11 doesn't map
-them to anything by default
-
-However only the input layer keycodes matter, we can ignore it's name interpreted 
-by some application (every app may name it different or even wrong...).
-
-The tools should be compiled against latest /usr/include/linux/input.h
-and have all new key names there (and corrected some existing names).
-
-My intention was to map remote key pictograms to most appropriate
-event in latest kernel's input.h, avoiding PC keyboard ambiguity as
-much as I can.
-
-Because in the kernel they have expanded input.h with a number of new keys to 
-better cover MCE remotes and new media keyboards, so you get those ??? for
-old apps but the keycode numbers should still be correct according to the 
-kernel's input layer. input layer Applications map key events to the keycode 
-numbers, and have freedom to give any name to the key.
-
-The KEY_PREVIOUS and KEY_NEXT are actually keys for prev page and
-next page on the keyboard, used for scrolling text. PREVIOUSSONG 
-NEXTSIONG are used to skip to songs and are also expanded to skipping
-to video DVD chapters, so I thought they are more appropriate for the
-remote pictograms "|<" ">|" at VCR key group. I wanted to avoid ambiguity
-between keyboard events and remote, however I still have KEY_ENTER
-and KEY_BACKSPACE and the cursors, which is in ambiguity to the
-normal keyboard - any idea what to replace them with in MCE style?
-
-I have no issue of mapping all current keys to VDR. If you have any real issue of
-mapping keys to some other TV view application or to the linux console or X11, 
-feel free to change them and suggest a patch
-
-d.
+So the card is definitely able to do DVB-S2 or DVB-T (the card can't do
+both simultaneously).
+-- 
+Grégoire Favre, Chemin de Mallieu 15, 1009 Pully, +41 21 550 61 93 
+prof -> Gymnase de Chamblandes, Avenue des Désertes 29, 1009 Pully
+sip -> 310546@sip.freesip.ch  / gsm -> +41 78 765 65 00
+http://www.gycham.vd.ch/~greg / netvoip.ch : +41 21 544 77 44
