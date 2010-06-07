@@ -1,121 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:34595 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752304Ab0FYKBn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jun 2010 06:01:43 -0400
-Received: by qyk38 with SMTP id 38so508422qyk.19
-        for <linux-media@vger.kernel.org>; Fri, 25 Jun 2010 03:01:42 -0700 (PDT)
+Received: from bld-mail15.adl6.internode.on.net ([150.101.137.100]:34159 "EHLO
+	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755303Ab0FGDV6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 23:21:58 -0400
+Message-ID: <4C0C65D4.7000701@gmail.com>
+Date: Mon, 07 Jun 2010 13:21:56 +1000
+From: Jed <jedi.theone@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <201006251132.52431.laurent.pinchart@ideasonboard.com>
-References: <AANLkTilsMviOOwo1IWpyfNkd5jeSMU9SozqvgcamBdF_@mail.gmail.com>
-	<201006251132.52431.laurent.pinchart@ideasonboard.com>
-Date: Fri, 25 Jun 2010 18:01:42 +0800
-Message-ID: <AANLkTikn3OCc7V2IiwQaetoVmt1flFaVN5zHQz_7S_ri@mail.gmail.com>
-Subject: Re: Question on newly build uvcvideo.ko
-From: Samuel Xu <samuel.xu.tech@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Lars Schotte <lars.schotte@schotteweb.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: What ever happened to standardizing signal level?
+References: <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com>	<1275198741.3213.50.camel@pc07.localdom.local>	<AANLkTilIrG5cwlLv_iAI7E7XX5117qh4AHof80pRRYSs@mail.gmail.com>	<1275622226.6635.24.camel@pc07.localdom.local>	<AANLkTikvkkfr0F_h1u8wIgoLMiy05iWy8ZQkdF5y2Xii@mail.gmail.com>	<1275861682.3164.44.camel@pc07.localdom.local> <20100607001224.530dfe35@romy.gusto>
+In-Reply-To: <20100607001224.530dfe35@romy.gusto>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One correction: After make and make install, uvcvideo module can't
-auto loaded any more. I must manually "insmod uvcvideo.ko" to load it.
+Pot, meet kettle...
 
-Here is lsmod result, I never have chance to make uvcvideo module used
-bit to 1 :(
-[root@user-desktop uvc]# lsmod
-Module                  Size  Used by
-uvcvideo               46182  0
-rt2860sta             406917  1
-battery                 7968  0
+That's a bit rich accusing others of flaming when you've been exposing 
+the entire list to your rants, ever heard of emailing users directly?
 
-After 2 questions, there is dmesg from uvcvideo after my manually
-insmod, any idea?
-Another question is: If newest v4l code tree has been advanced much
-than src tree inside 2.6.33 kernel, which v4l src label is nearest
-from src tree inside 2.6.33 kernel?
-3rdd question is: if I want to build v4l driver from src inside 2.6.33
-kernel directly. How should I do? (I tried to make menuconfig and make
-modules from a clean kernel, while insmod the newly build uvcvideo.ko
-reports: insmod: error inserting './uvcvideo.ko': -1 Invalid module
-format
+You really think this list is you personal support mail-list don't you.
 
-[   78.446109] uvcvideo: Found UVC 1.00 device CNF7129 (04f2:b071)
-[   78.462540] ------------[ cut here ]------------
-[   78.462569] WARNING: at drivers/media/video/v4l2-dev.c:420
-__video_register_device+0x44/0x3d7()
-[   78.462581] Hardware name: 1000H
-[   78.462588] Modules linked in: uvcvideo(+) rt2860sta(C) battery
-[   78.462616] Pid: 690, comm: insmod Tainted: G         C
-2.6.33.3-11.1-netbook #1
-[   78.462626] Call Trace:
-[   78.462647]  [<c1030944>] warn_slowpath_common+0x66/0x7d
-[   78.462665]  [<c12f89ad>] ? __video_register_device+0x44/0x3d7
-[   78.462682]  [<c1030968>] warn_slowpath_null+0xd/0x10
-[   78.462697]  [<c12f89ad>] __video_register_device+0x44/0x3d7
-[   78.462714]  [<c12f8d56>] video_register_device+0xa/0xc
-[   78.462744]  [<f82e50fc>] uvc_probe+0x9c0/0xb26 [uvcvideo]
-[   78.462763]  [<c12c1e35>] usb_probe_interface+0xe1/0x136
-[   78.462782]  [<c11fff7b>] driver_probe_device+0x87/0x107
-[   78.462799]  [<c120003e>] __driver_attach+0x43/0x5f
-[   78.462815]  [<c11ff907>] bus_for_each_dev+0x3e/0x69
-[   78.462831]  [<c11ffe46>] driver_attach+0x14/0x16
-[   78.462846]  [<c11ffffb>] ? __driver_attach+0x0/0x5f
-[   78.462862]  [<c11ff3aa>] bus_add_driver+0x105/0x235
-[   78.462879]  [<c1200280>] driver_register+0x7a/0xe1
-[   78.462894]  [<c12c1bf6>] usb_register_driver+0x67/0x104
-[   78.462919]  [<f82c2000>] ? uvc_init+0x0/0x71 [uvcvideo]
-[   78.462942]  [<f82c2059>] uvc_init+0x59/0x71 [uvcvideo]
-[   78.462958]  [<c100113a>] do_one_initcall+0x4d/0x132
-[   78.462977]  [<c105a1b6>] sys_init_module+0xa7/0x1db
-[   78.462992]  [<c10027d0>] sysenter_do_call+0x12/0x26
-[   78.463051] ---[ end trace a67861dcf94e1e3a ]---
-[   78.463064] uvcvideo: Failed to register video device (-22).
-[   78.463758] usbcore: registered new interface driver uvcvideo
-[   78.463774] USB Video Class driver (v0.1.0)
-
-2010/6/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
-> Hi Samuel,
+On 7/06/10 8:12 AM, Lars Schotte wrote:
+> stop flaming all the time, there are ppl out there like me who have
+> some problems w/ their HW, and you are arguing here about nothing.
 >
-> On Friday 25 June 2010 11:25:13 Samuel Xu wrote:
->> HI:
->> I am using a ASUS netbook with a USB 2.0 web camera (04f2:b071 Chicony
->> Electronics Co., Ltd 2.0M UVC WebCam / CNF7129)
->> I installed Linux, and the default uvcvideo.ko works (I tried
->> gstreamer-properties, which can find CNF7129 device and show correct
->> video camera test).
->> While I want to try the newest V4L2 build, So I follow
->> http://www.linuxtv.org/wiki to:
->> 1: get the src code v4l-dvb-9652f85e688a.tar.gz
->> 2: make and make install on my netbook.
->> 3: reboot system
+> On Mon, 07 Jun 2010 00:01:22 +0200
+> hermann pitton<hermann-pitton@arcor.de>  wrote:
+>
 >>
->> lsmod shows me uvcvideo module has been loaded, while
->> gstreamer-properties can't find CNF7129 device, so I can't use this
->> USB 2.0 web camera now.
->
-> Can you look at the kernel log (dmesg) and report messages printed by the
-> uvcvideo driver ?
->
->> I also tried re-install original workable Linux, and make v4l again.
->> Then copy the newly build uvcvideo.ko to
->> /lib/modules/2.6.33.xx/kernel/drivers/media/video/uvc/
->> module still can be found from lsmod, while gstreamer-properties still
->> can't find CNF7129 device.
->
-> That's to be expected, as the new v4l-dvb build you installed replaced the
-> core v4l modules (such as videodev.ko), and the new version isn't compatible
-> with the uvcvideo driver that came with your kernel.
->
->> Does it mean I must do some code modification for 04f2:b071 device
->> before I build v4l driver?
->
-> In theory, no.
->
+>> Am Donnerstag, den 03.06.2010, 22:18 -0700 schrieb VDR User:
+>>> hermann pitton<hermann-pitton@arcor.de>, you are contributing
+>>> absolutely nothing to this thread aside of annoying people with your
+>>> by trolling and half incoherent nonsense.  It's quite ironic you
+>>> suggest _I_ am the one trolling when this is a thread _I_ created.
+>>> And further, several people have posted legitimate responses to --
+>>> clearly you are the only one suffering from your delusion.
+>>
+>> Dream on.
+>>
+>> The question never was, if you are trolling from time to time, but
+>> only if you are a duplicate of another troll or on your own.
+>>
+>> I have talked with Mauro about that and since then I ask you to
+>> provide your full name or point at least to a patch from you, where
+>> you have to agree to provide your real name in your SOB line.
+>>
+>> There was none and you also did not point to somebody else, to confirm
+>> for us, that you are known and on kernel development not only as a
+>> troll.
+>>
+>> You did not give an sufficient answer during the last two years.
+>>
+>>> Additionally you've been stalking me in email as well.  Your
+>>> behavior is not only uncalled for, it's abusive of both this
+>>> mailing list and the people willingly participating in the
+>>> discussion.  As I understand it, this is not the first time you've
+>>> been the source of harassment.
+>>
+>> The opposite again is true, you stalked me by private e-mail and
+>> therefor my reply went as copy also to Mauro and Manu. If even Manu
+>> does not have your contact data, who else? Please provide them at
+>> least to him or someone else you trust and you are free for rants,
+>> within limitations.
+>>
+>>> Do us all a favor -- go find some other thread to infect with your
+>>> childishness, find some other user(s) to harass/stalk/obsess over,
+>>> or simply grow up and stop wasting everyone's time.  In case you
+>>> haven't noticed there has been absolutely nobody supporting your
+>>> rants.  Take a hint.
+>>
+>> http://linuxtv.org/wiki/index.php/People_behind_V4L-DVB
+>>
+>> I did not put myself on this list and you should take me a little more
+>> serious when asking you to fulfill the minimum requirements for
+>> participating in kernel development.
+>>
+>> Also, if you further associate me with illegal drugs, I give you a
+>> 100% guarantee, that this will become _very_ expensive for you.
+>>
+>> You also won't make the vine sour I have after working on my linux
+>> "hobby".
+>>
+>> Now, after wasting my time looking at it, I can see you have a first
+>> alsa patch in 2.6.33 with an invalid SOB, since only Derek, but
+>> corrected to Derek Kelly in 2.6.34.
+>>
+>> Missing is still, if you are working as a Hobbyist or if you are paid
+>> for your work. Greg might ask you such soon or did already.
+>>
+>> If your name is true, you could have saved yourself and all others
+>> most of all the trouble. Looking at your methods, my doubts are not
+>> gone, but I let it to others now.
+>>
+>> Hermann
+>>
+>>
+>>
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>> linux-media" in the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > --
-> Regards,
->
-> Laurent Pinchart
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
