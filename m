@@ -1,70 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12836 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755866Ab0FCO4B (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jun 2010 10:56:01 -0400
-Message-ID: <4C07C281.8090304@redhat.com>
-Date: Thu, 03 Jun 2010 11:56:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:42659 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752480Ab0FGVcV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jun 2010 17:32:21 -0400
+Received: by iwn37 with SMTP id 37so3866835iwn.19
+        for <linux-media@vger.kernel.org>; Mon, 07 Jun 2010 14:32:21 -0700 (PDT)
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: Which GIT repository for 2.6.35/2.6.36
-References: <20100603103947.4458bac3@tele>
-In-Reply-To: <20100603103947.4458bac3@tele>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Date: Mon, 7 Jun 2010 14:32:20 -0700
+Message-ID: <AANLkTimL7XvSCrjsLBy81YmbTft8904kJJyauLmwn8Sr@mail.gmail.com>
+Subject: zvbi-atsc-cc Time-stamps?
+From: Santino Chianti <sonnychianti@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-06-2010 05:39, Jean-Francois Moine escreveu:
-> Hi Mauro,
-> 
-> I am lost with the GIT repositories at LinuxTv.org.
-> 
-> My local development repository is based on
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> origin and git://linuxtv.org/v4l-dvb.git master
-> 
-> When moving any local branch, the kernel is 2.6.33.
-> Looking at 'origin/HEAD', the kernel is 2.6.34.
-> Then, looking at http://git.linuxtv.org/linux-2.6.git, the kernel is
-> 2.6.35-rc1.
-> 
-> A problem appeared when some gspca testers signalled compilation errors
-> with kernels 2.6.34. Looking more carefuly, I see that, in the file
-> 	drivers/media/video/gspca/zc3xx.c
-> there is no
-> 	#include <linux/slab.h>
-> in the local branches, nor in v4l-dvb master, while it exists in
-> v4l-dvb devel/for_v2.6.34.
-> 
-> Looking at http://git.linuxtv.org/linux-2.6.git, I see that there is a
-> recent change about the files slab.h et gfp.h (commit
-> 5a0e3ad6af8660be21ca98a971cd00f331318c05) which touches gspca files
-> again.
-> 
-> I do not think I will put anything more in the new kernel (2.6.35),
-> but what with 2.6.36? Some gspca files have been changed in kernels
-> 2.6.34 and 2.6.35, and these changes don't appear in the v4l-dvb
-> repository. What can I do?
-> 
-> - if I continue to develop with v4l-dvb, there will be permanent merge
->   problems with the future kernel.
-> 
-> - if I base my local repository directly on the last 2.6.35, there will
->   be problems with v4l-dvb.
-> 
-> Otherwise, at LinuxTv.org, is there any development repository in sync
-> with both the last kernel and the video stuff?
+Hi everyone,
 
-I'm experimenting some adjustments on the procedures I'm using to handle patches,
-in order to solve some troubles I've identified during the last merge period.
-During this time, the better thing to do is to base your tree at Linus tree.
+I need help figure out a way to get accurate time stamps on my closed
+captioning files using zvbi-atsc-cc.
 
-As I've created separate staging trees, per subject, each branch can be based
-on different object references, provided that they are already merged upstream.
+I have Hauppauge HVR-1850 cards working in digital mode.  I need
+separate recordings of the video/audio file (mpeg2) and the closed
+captioning (plain text).  I can capture a plain mpeg stream by issuing
+this in one console:
 
-Cheers,
-Mauro
+* azap -r KOCE-HD
 
+And this in a second console:
+
+* cat /dev/dvb/adapter0/dvr0 > test-cat3.mpeg
+
+I tested this file and it plays fine.  To generate the closed
+captioning, I feed this file into zvbi-atsc-cc:
+
+* zvbi-atsc-cc --atsc -c KCAL-HD -T < test-cat3.mpeg
+
+"KCAL-HD" being the the channel in my channels.conf that I captured from.
+
+
+The problem: I need accurate time stamps.  Normally, I add the time
+stamps during capture, so they match reality. If I get the closed
+captioning from a file, the information is still in the file (I just
+need to set the start time), but how do I get that information out?
+
+Our system relies on the time stamps in the closed captioning to cue
+the video, so they need to be accurate.  One-second accuracy is
+adequate, so if I can get the STT information from the PSIP info, that
+would be good enough. I'm using an off-air signal, so these are ATSC
+8VSB channels:
+
+LA18.8:497000000:8VSB:161:164:8
+KBEH-DT:533000000:8VSB:49:52:1
+KCET-HD:557000000:8VSB:49:52:1
+
+A typical closed captioning file should end up looking like this:
+
+2010-05-02_1100_CNN_Amanpour_2010-05-02_11:00:02
+% Communication Studies Archive, UCLA
+% 87e70c70-5614-11df-b2f7-00e0815fe826
+% Video length 0:59:54.024
+% Christiane Amanpour
+2010-05-02_1100_CNN_Amanpour_2010-05-02_11:00:12
+2010-05-02_1100_CNN_Amanpour_2010-05-02_11:00:22
+A HIGH STAKES INVESTIGATION
+IS STARTED AFTER A CAR BOMB IS 2010-05-02_1100_CNN_Amanpour_2010-05-02_11:00:32
+FOUND IN NEW YORK'S TIMES
+SQUARE.
+WHO WANTED TO ATTACK THE
+CROSSROADS OF THE WORLD AND WHY.
+PRESIDENT OBAMA HEADS TO THE
+GULF COAST FOR A FIRSTHAND LOOK 2010-05-02_1100_CNN_Amanpour_2010-05-02_11:00:42
+AT DESPERATE EFFORTS TO MAINTAIN
+AN OIL SPILL.
+
+-- in other words, a time stamp every ten seconds, which is then used
+by our search engine to link to the video. The header (%) is added
+afterward. Ideally for us, then, I would get the STT stamp at
+ten-second intervals inserted into the closed captioning file. Are
+there command-line Linux tools for reading PSIP?
+
+(There are also other possible uses of PSIP. xds information is too
+unreliable and inconsistent for us to use, but if PSIP is reliable,
+I'd like to use it to verify that I'm getting the recording I intended
+to get (channel and program name). I could potentially use this
+information to crop the video to the exact program -- but it would
+have to be reliable enough to be automated, I don't have staff to do
+anything manual with individual recordings.)
+
+Alternatively, Devin Heitmueller tells us that there is also the PTS
+(presentation timestamp), which should be pretty easy to modify
+zlib-atsc-cc to show.  Since the PTS can be used to synchronize the
+video to the CC info is it possible to make a small modification to
+zvbi-atsc-cc to log the CC info with the PTS, and then write a really
+simple utility to seek to a given PTS and play the video?
+
+Could someone help me out with accurate timestamps in relation to PSIP
+info and PTS?
+
+Warm wishes,
+Santino
