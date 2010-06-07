@@ -1,49 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6108 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756135Ab0FZNf4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jun 2010 09:35:56 -0400
-Message-ID: <4C26022E.5060008@redhat.com>
-Date: Sat, 26 Jun 2010 10:35:42 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from tuxmail.imn.htwk-leipzig.de ([141.57.7.10]:50678 "EHLO
+	tuxmail.imn.htwk-leipzig.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751474Ab0FGUp3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jun 2010 16:45:29 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by tuxmail.imn.htwk-leipzig.de (Postfix) with ESMTP id 607691516E
+	for <linux-media@vger.kernel.org>; Mon,  7 Jun 2010 22:36:49 +0200 (CEST)
+Received: from tuxmail.imn.htwk-leipzig.de ([141.57.7.10])
+	by localhost (tuxmail.imn.htwk-leipzig.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id sBb2KE22nXIh for <linux-media@vger.kernel.org>;
+	Mon,  7 Jun 2010 22:36:45 +0200 (CEST)
+Received: from baumbart.mittelerde.home (178-24-113-116-dynip.superkabel.de [178.24.113.116])
+	by tuxmail.imn.htwk-leipzig.de (Postfix) with ESMTPSA id 7D02F1436F
+	for <linux-media@vger.kernel.org>; Mon,  7 Jun 2010 22:36:45 +0200 (CEST)
+From: Torsten Krah <tkrah@fachschaft.imn.htwk-leipzig.de>
+Reply-To: tkrah@fachschaft.imn.htwk-leipzig.de
+To: linux-media@vger.kernel.org
+Subject: Pinnacle PCTV 70e Support question
+Date: Mon, 7 Jun 2010 22:36:44 +0200
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [git:v4l-dvb/ivtv] V4L/DVB: tda18271: fix error detection during
- initialization of first instance
-References: <E1OSV9v-0001x8-3g@www.linuxtv.org> <1277558644.8545.4.camel@localhost>
-In-Reply-To: <1277558644.8545.4.camel@localhost>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201006072236.44591.tkrah@fachschaft.imn.htwk-leipzig.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 26-06-2010 10:24, Andy Walls escreveu:
-> On Sat, 2010-06-26 at 14:51 +0200, Mauro Carvalho Chehab wrote:
->> This is an automatic generated email to let you know that the following patch were queued at the 
->> http://git.linuxtv.org/v4l-dvb.git tree:
->>
->> Subject: V4L/DVB: tda18271: fix error detection during initialization of first instance
->> Author:  Michael Krufky <mkrufky@kernellabs.com>
->> Date:    Mon May 3 02:10:15 2010 -0300
-> 
-> Hi Mauro,
-> 
-> The e-mail subject line has "ivtv" in it, but no ivtv related changes in
-> the email.  I'm guessing this is a branch tag? 
-> 
-> Regards,
-> Andy
-> 
-Yes, I noticed only after merging upstream... Sorry for the mess.
+Hi,
 
-I have a number of working dirs here, in order to handle each staging tree, but, due to disk 
-constraints (each working tree eats about 300Mb, plus extra space when I run make). 
-Unfortunately, I currently can't have a one-per-one mapping. Those patches were meant to go
-to staging/other. This should cause no big deal, but I really need to buy more disks and an
-extra disk case for my Dell machine. On the other hand, reverting the patches at the upstream
-tree will be bad, since it may break trees from others that pull from mine.
+i wonder what needs to be done to support this usb stick also know as Pinnacle 
+PCTV DVB-T (usb: eb1a:2870).
+The stick has a MT2060 tuner and a Zarlink ZL10353 dvb frontend.
 
-Cheers,
-Mauro
+My kernel (2.6.32) does not "know" this board out-of-the-box but mention it as 
+card=45 in dmesg.
+But it does not work - using 45 as card type this is the result:
+
+The support for this board weren't valid yet.
+
+So what does it need to get stick and IR control working?
+
+Torsten
