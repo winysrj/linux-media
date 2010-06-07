@@ -1,56 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59243 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752304Ab0F3GYT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jun 2010 02:24:19 -0400
-Date: Wed, 30 Jun 2010 08:24:03 +0200
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCHv4 1/3] mx2_camera: Add soc_camera support for
-	i.MX25/i.MX27
-Message-ID: <20100630062403.GD23160@pengutronix.de>
-References: <cover.1277096909.git.baruch@tkos.co.il> <03d6e55c39690618e92a91a580ec34549a135c79.1277096909.git.baruch@tkos.co.il> <Pine.LNX.4.64.1006292145001.22603@axis700.grange> <20100630030315.GA23534@tarshish>
+Received: from mx1.redhat.com ([209.132.183.28]:9101 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752587Ab0FGUSQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 7 Jun 2010 16:18:16 -0400
+Date: Mon, 7 Jun 2010 16:15:30 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: Re: [PATCH 3/4] ir-core: move decoding state to ir_raw_event_ctrl
+Message-ID: <20100607201530.GG16638@redhat.com>
+References: <20100424210843.11570.82007.stgit@localhost.localdomain>
+ <20100424211411.11570.2189.stgit@localhost.localdomain>
+ <4BDF2B45.9060806@redhat.com>
+ <20100607190003.GC19390@hardeman.nu>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100630030315.GA23534@tarshish>
+In-Reply-To: <20100607190003.GC19390@hardeman.nu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 30, 2010 at 06:03:16AM +0300, Baruch Siach wrote:
-> On Tue, Jun 29, 2010 at 09:47:42PM +0200, Guennadi Liakhovetski wrote:
-> > On Mon, 21 Jun 2010, Baruch Siach wrote:
+On Mon, Jun 07, 2010 at 09:00:03PM +0200, David Härdeman wrote:
+> On Mon, May 03, 2010 at 05:00:05PM -0300, Mauro Carvalho Chehab wrote:
+> > David Härdeman wrote:
+> > > This patch moves the state from each raw decoder into the
+> > > ir_raw_event_ctrl struct.
+> > > 
+> > > This allows the removal of code like this:
+> > > 
+> > >         spin_lock(&decoder_lock);
+> > >         list_for_each_entry(data, &decoder_list, list) {
+> > >                 if (data->ir_dev == ir_dev)
+> > >                         break;
+> > >         }
+> > >         spin_unlock(&decoder_lock);
+> > >         return data;
+> > > 
+> > > which is currently run for each decoder on each event in order
+> > > to get the client-specific decoding state data.
+> > > 
+> > > In addition, ir decoding modules and ir driver module load
+> > > order is now independent. Centralizing the data also allows
+> > > for a nice code reduction of about 30% per raw decoder as
+> > > client lists and client registration callbacks are no longer
+> > > necessary.
 > > 
-> > > This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
-> > > Carvalho de Assis modified the original driver to get it working on more recent
-> > > kernels. I modified it further to add support for i.MX25. This driver has been
-> > > tested on i.MX25 and i.MX27 based platforms.
-> > 
-> > This looks good to me, thanks! Overflow on eMMA is, probably, still 
-> > broken, but it will, most probably, remain so, until someone tests and 
-> > fixes it. One question though: do you know whether this imx/mxc overhaul: 
-> > http://lists.infradead.org/pipermail/linux-arm-kernel/2010-June/thread.html#18844 
-> > affects your driver?
+> > The registration callbacks will likely still be needed by lirc,
+> > as you need to create/delete lirc_dev interfaces, when the module
+> > is registered, but I might be wrong. It would be interesting to
+> > add lirc_dev first, in order to be sure about the better interfaces
+> > for it.
 > 
-> I tested this yesterday, and, unfortunately, it does :(. See 
-> http://lists.infradead.org/pipermail/linux-arm-kernel/2010-June/019111.html.  
-> However, this issue does not affect mx27 builds. So I think this should not 
-> stop the merge of this driver, for now. I hope Uwe and I will find an 
-> acceptable solution before the .36 merge window opens.
-Sascha already pulled my tree, but he wants to rebase it on top of his
-for-2.6.35 branch, so we can sort that out, too.  I will coordinate with
-him.
+> Or the lirc_dev patch can add whatever interfaces it needs. Anyway, the 
+> current interfaces are not good enough since it'll break if lirc_dev is 
+> loaded after the hardware modules.
 
-Best regards
-Uwe
+This is something I've been meaning to mention myself. On system boot, if
+an mceusb device is connected, it pretty regularly only has the NEC
+decoder available to use. I have to reload mceusb, or make sure ir-core is
+explicitly loaded, wait a bit, then load mceusb, if I want to have all of
+the protocol handlers available -- which includes the needed-by-default
+rc6 one. I've only briefly tinkered with trying to fix it, sounds like you
+may already have fixage within this patchset.
+
+...
+> In addition, random module load order is currently broken (try loading 
+> decoders first and hardware later and you'll see).  With this patch, it 
+> works again.
+
+Want.
+
+> Anyway, I'll post a new patch series this evening and then we can go 
+> back to our regular arguing :)
+
+Hey, at least we're making progress too! :)
 
 -- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Jarod Wilson
+jarod@redhat.com
+
