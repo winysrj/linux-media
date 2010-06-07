@@ -1,68 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:60375 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757637Ab0FOLnr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jun 2010 07:43:47 -0400
-Date: Tue, 15 Jun 2010 13:43:43 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
-	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
-	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/8]i2c:i2c_core Fix warning: variable 'dummy' set but
- not used
-Message-ID: <20100615134343.6ae4a6e1@hyperion.delvare>
-In-Reply-To: <4C1699C4.3010809@gmail.com>
-References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
-	<1276547208-26569-7-git-send-email-justinmattock@gmail.com>
-	<20100614225315.2bae9e37@hyperion.delvare>
-	<4C1699C4.3010809@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from dd16922.kasserver.com ([85.13.137.202]:45750 "EHLO
+	dd16922.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754912Ab0FGL1q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jun 2010 07:27:46 -0400
+Received: from dd16922.kasserver.com (kasmail1.kasserver.com [85.13.137.172])
+	by dd16922.kasserver.com (Postfix) with SMTP id 7B3B010FC20F
+	for <linux-media@vger.kernel.org>; Mon,  7 Jun 2010 13:27:44 +0200 (CEST)
+Subject: v4l-dvb - Is it still usable for a distribution ?
+from: vdr@helmutauer.de
+to: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
+Message-Id: <20100607112744.7B3B010FC20F@dd16922.kasserver.com>
+Date: Mon,  7 Jun 2010 13:27:44 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Justin,
+Hello List,
 
-On Mon, 14 Jun 2010 14:06:12 -0700, Justin P. Mattock wrote:
-> On 06/14/2010 01:53 PM, Jean Delvare wrote:
-> > Hi Justin,
-> >
-> > On Mon, 14 Jun 2010 13:26:46 -0700, Justin P. Mattock wrote:
-> >> could be a right solution, could be wrong
-> >> here is the warning:
-> >>    CC      drivers/i2c/i2c-core.o
-> >> drivers/i2c/i2c-core.c: In function 'i2c_register_adapter':
-> >> drivers/i2c/i2c-core.c:757:15: warning: variable 'dummy' set but not used
-> >>
-> >>   Signed-off-by: Justin P. Mattock<justinmattock@gmail.com>
-> >>
-> >> ---
-> >>   drivers/i2c/i2c-core.c |    2 ++
-> >>   1 files changed, 2 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> >> index 1cca263..79c6c26 100644
-> >> --- a/drivers/i2c/i2c-core.c
-> >> +++ b/drivers/i2c/i2c-core.c
-> >> @@ -794,6 +794,8 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
-> >>   	mutex_lock(&core_lock);
-> >>   	dummy = bus_for_each_drv(&i2c_bus_type, NULL, adap,
-> >>   				 __process_new_adapter);
-> >> +	if(!dummy)
-> >> +		dummy = 0;
-> >
-> > One word: scripts/checkpatch.pl
-> 
-> it was this, and/or just take the code out
-> (since I'm a newbie)
+I have a Gentoo based VDR Distribution named Gen2VDR.
+As the name said its main application is VDR.
+Until kernel 2.6.33 I bundled the v4l-dvb drivers emerged via the gentoo ebuild with my distribution.
+Now with kernel 2.6.34 this doesn't work anymore, because v4l-dvb doesn't compile.
+Another problem (after fixing the compile issues) is the IR Part of v4l-dvb which includes an Imon module.
+This module doesn't provide any lirc devices, so how can this oe be used as an IR device ?
+Til now I am using lirc_imon which fit all my needs.
 
-I was not (yet) arguing on the code itself, but on its format. Any
-patch you send should pass the formatting tests performed by
-scripts/checkpatch.pl. Thanks.
+The final question for me:
+Does it make any sense anymore to stay with v4l-dvb or do I have to change to the kernel drivers ?
+The major disadvantage of the kernel drivers is the fact that I cannot switch to newer dvb drivers, I am stuck to the ones included in the kernel.
 
--- 
-Jean Delvare
+Any comments are very welcome
+
+Helmut Auer
+
+
+
