@@ -1,32 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from canardo.mork.no ([148.122.252.1]:60442 "EHLO canardo.mork.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757606Ab0FCIvt convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 04:51:49 -0400
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [Bugme-new] [Bug 16077] New: Drop is video frame rate in kernel .34
-References: <bug-16077-10286@https.bugzilla.kernel.org/>
-	<20100602140916.759d7159.akpm@linux-foundation.org>
-	<4C072451.7090001@infradead.org> <87r5kod2dm.fsf@nemi.mork.no>
-	<4C076AD5.2090909@redhat.com>
-Date: Thu, 03 Jun 2010 10:51:30 +0200
-In-Reply-To: <4C076AD5.2090909@redhat.com> (Hans de Goede's message of "Thu,
-	03 Jun 2010 10:41:57 +0200")
-Message-ID: <876320cxd9.fsf@nemi.mork.no>
+Received: from bombadil.infradead.org ([18.85.46.34]:48955 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739Ab0FHEAl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jun 2010 00:00:41 -0400
+Message-ID: <4C0DC04E.5000600@infradead.org>
+Date: Tue, 08 Jun 2010 01:00:14 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+To: Jonathan Corbet <corbet@lwn.net>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH] Add the viafb video capture driver
+References: <20100607172615.311edce9@bike.lwn.net>	<201006080303.14784.laurent.pinchart@ideasonboard.com> <20100607203158.4ec59ab1@bike.lwn.net>
+In-Reply-To: <20100607203158.4ec59ab1@bike.lwn.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans de Goede <hdegoede@redhat.com> writes:
+Em 07-06-2010 23:31, Jonathan Corbet escreveu:
+> On Tue, 8 Jun 2010 03:03:14 +0200
+> Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+> 
+>> If it's not too late for review, here are some comments. I've reviewed the 
+>> code from bottom to top, so comments might be a bit inconsistent sometimes.
+> 
+> Never too late to make the code better.  These are good comments, thanks.
+> Mauro, I guess I've got another version coming...:)
 
-> I notice in the original bug report that you claim that the lower framerate
-> clip with 2.6.34 has "much better quality", could you define this a bit better.
+Ok, I'll be waiting for it ;)
 
-Sorry for the confusion, but this wasn't me.  I just read the bug report.
-
-
-Bjørn
+Cheers,
+Mauro
