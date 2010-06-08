@@ -1,20 +1,19 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.10])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o5N9K8tU010879
-	for <video4linux-list@redhat.com>; Wed, 23 Jun 2010 05:20:09 -0400
-Received: from mail-vw0-f46.google.com (mail-vw0-f46.google.com
-	[209.85.212.46])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5N9JueN015825
-	for <video4linux-list@redhat.com>; Wed, 23 Jun 2010 05:19:56 -0400
-Received: by vws9 with SMTP id 9so881321vws.33
-	for <video4linux-list@redhat.com>; Wed, 23 Jun 2010 02:19:56 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o58CHENx011392
+	for <video4linux-list@redhat.com>; Tue, 8 Jun 2010 08:17:14 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o58CH4r3013961
+	for <video4linux-list@redhat.com>; Tue, 8 Jun 2010 08:17:04 -0400
+Date: Tue, 08 Jun 2010 14:17:01 +0200
+From: "christian reiser" <r.christian@gmx.de>
+In-Reply-To: <20100531082425.195860@gmx.net>
+Message-ID: <20100608121701.113500@gmx.net>
 MIME-Version: 1.0
-Date: Wed, 23 Jun 2010 17:19:56 +0800
-Message-ID: <AANLkTikFxDxD_p_Gt8DazzywifbtTTnrkEHs2XFFAMmD@mail.gmail.com>
-Subject: User Controls
-From: jiangtao nie <caicai0119@gmail.com>
+References: <20100531082425.195860@gmx.net>
+Subject: Re: FM Radio w
 To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -29,73 +28,25 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Dear ALL:
+Hi,
 
-   V4L2 has defined many user controls IDs prefixed with V4L2_CID_, which
-can be found in header file *videodev*2*.h* or *v4l2 spec*. Does it miss
-any?  For example, Camera class control IDs have been pre-defined as
-followed.
+just to answer my own question:
 
-*/*in videodev2.h*/*
- */*  Camera class control IDs */*
-*#define V4L2_CID_CAMERA_CLASS ** **(V4L2_CTRL_CLASS_CAMERA | 1)*
-*#define V4L2_CID_EXPOSURE_AUTO** **(V4L2_CID_CAMERA_CLASS_BASE+1)*
-*.....................................*
-*#define V4L2_CID_PRIVACY** **(V4L2_CID_CAMERA_CLASS_BASE+16)*
 
-  16 IDs has been defined,But Camera terminal support 19 controls described
-UVC spec.
+-------- Original-Nachricht --------
+> Also all information, which usb-stick with linux and fm support can still
+> be bought would help much.
 
-     *D00 Scanning Mode*
+All si470x devices seem to work. This includes the reference USB Radio Card from SIlabs http://www.silabs.com/products/mcu/Pages/USBFMRadioRD.aspx
 
-*     D01 Auto-Exposure Mode*
+Anyway, i have the impression, that tuning is screwed up with my current kernel (2.6.27-17), as i get 106.4 when tuning to 94.9. Anybody out there with a working fm radio based on si470x chipset?
 
-*     D02 Auto-Exposure Priority*
+Best regards,
+Christian
+-- 
+GMX DSL: Internet-, Telefon- und Handy-Flat ab 19,99 EUR/mtl.  
+Bis zu 150 EUR Startguthaben inklusive! http://portal.gmx.net/de/go/dsl
 
-*     D03 Exposure Time (Absolute)*
-
-*     D04 Exposure Time (Relative)*
-
-*     D05 Focus (Absolute)*
-
-*     D06 Focus (Relative)*
-
-*     D07 Iris (Absolute)*
-
-*     D08 Iris (Relative)*
-
-*     D09 Zoom (Absolute)*
-
-*     D10 Zoom (Relative)*
-
-*     D11 Pan (Absolute)*
-
-*     D12 Pan (Relative)*
-
-*     D13 Roll (Absolute)*
-
-*     D14 Roll (Relative)*
-
-*     D15 Tilt (Absolute)*
-
-*     D16 Tilt (Relative)*
-
-*     D17 Focus Auto*
-
-*     D18 Privacy*
-
-*
-*
-
-*     Would V4l2 will support all controls defined by uvc?*
-
-*
-*
-
-*
-*
-
-*Tony*
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
