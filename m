@@ -1,57 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:52998 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932868Ab0FQJvS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jun 2010 05:51:18 -0400
-Received: by pxi12 with SMTP id 12so120073pxi.19
-        for <linux-media@vger.kernel.org>; Thu, 17 Jun 2010 02:51:17 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTik-CVBuwVbXLlAQ1Vso4RlnAzSOzvkcIEhfR7uO@mail.gmail.com>
-References: <AANLkTiny9YXXT185VbNuw-z6aZDdIfS50UxFLERdlY-z@mail.gmail.com>
-	<AANLkTinkDzTJfaFHx1bsGsdWlJnVGqa0n2VWdLvNBJRB@mail.gmail.com>
-	<20100616205745.GA22103@linux-m68k.org>
-	<AANLkTik-CVBuwVbXLlAQ1Vso4RlnAzSOzvkcIEhfR7uO@mail.gmail.com>
-Date: Thu, 17 Jun 2010 10:51:17 +0100
-Message-ID: <AANLkTimRduresDdSlIgKkC3f0EVmVDae5flTv1EKccKR@mail.gmail.com>
-Subject: Re: Trouble getting DVB-T working with Portuguese transmissions
-From: =?UTF-8?Q?Pedro_C=C3=B4rte=2DReal?= <pedro@pedrocr.net>
-To: Richard Zidlicky <rz@linux-m68k.org>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from lo.gmane.org ([80.91.229.12]:35189 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754333Ab0FHKOg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jun 2010 06:14:36 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1OLvpL-00037D-IU
+	for linux-media@vger.kernel.org; Tue, 08 Jun 2010 12:14:35 +0200
+Received: from ti521110a080-2322.bb.online.no ([85.167.97.22])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 08 Jun 2010 12:14:35 +0200
+Received: from bjorn by ti521110a080-2322.bb.online.no with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 08 Jun 2010 12:14:35 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: Is anybody working on TechniSat CableStar Combo HD CI USB device?
+Date: Tue, 08 Jun 2010 12:14:21 +0200
+Message-ID: <87eighygoy.fsf@nemi.mork.no>
+References: <20100607070123.GA28216@wozi.local> <4C0D4E18.30507@vanbest.org>
+	<20100608062621.GA4053@wozi.local>
+	<291a60d4cc2cd21b923d74bd86856c6b.squirrel@www.vanbest.eu>
+	<AANLkTik0KfaObIY7Hwki-_uuIU6m3KgsaaiNa5u4WnSu@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 17, 2010 at 10:03 AM, Pedro Côrte-Real <pedro@pedrocr.net> wrote:
-> On Wed, Jun 16, 2010 at 9:57 PM, Richard Zidlicky <rz@linux-m68k.org> wrote:
->> Did you try kaffeine or w_scan?
->
-> I did try both of those. kaffeine I haven't been able to get to work
-> at all and w_scan found the frequency but not the channels, much like
-> scan. I'll try those again.
+Markus Rechberger <mrechberger@gmail.com> writes:
 
-I tried both those again with pretty much the same results. Here is kaffeine:
+> Trident is also still improving the quality of their driver and
+> firmware, it very much makes
+> sense that they handle their driver especially since those DRX drivers
+> are very complex
+> (basically too complex for being handled by the community, the drivers
+> would just
+> end up somewhere unmaintained).
 
-kaffeine(2196) DvbScanFilter::timerEvent: timeout while reading
-section; type = 0 pid = 0
-kaffeine(2196) DvbScanFilter::timerEvent: timeout while reading
-section; type = 2 pid = 17
+Ouch.  That makes me wonder about the state of the Windows drivers for
+those devices...  Better stay away from them, I guess.
 
-And here is "w_scan -c PT":
 
-842000: (time: 02:44) (time: 02:47) signal ok:
-	QAM_AUTO f = 842000 kHz I999B8C999D999T999G999Y999
-Info: NIT(actual) filter timeout
-850000: (time: 03:02)
-858000: (time: 03:05)
-tune to: QAM_AUTO f = 842000 kHz I999B8C999D999T999G999Y999
-(time: 03:08) Info: PAT filter timeout
-Info: SDT(actual) filter timeout
-Info: NIT(actual) filter timeout
+Bjørn
 
-I wonder if the PT setting here is correct for DVB-T, but it does find
-something in the correct frequency but then does a timeout just like
-scan.
-
-Pedro
