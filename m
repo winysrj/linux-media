@@ -1,139 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:60205 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757605Ab0FRD0P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jun 2010 23:26:15 -0400
-Received: by gwj15 with SMTP id 15so342010gwj.19
-        for <linux-media@vger.kernel.org>; Thu, 17 Jun 2010 20:26:14 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:36449 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755506Ab0FHOvA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 8 Jun 2010 10:51:00 -0400
+Message-ID: <4C0E58B8.3010004@redhat.com>
+Date: Tue, 08 Jun 2010 11:50:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTil20ry1QgNxRz7SDrb7sQvSbtSaulCMaK2TAT3u@mail.gmail.com>
-References: <1274349174-3961-1-git-send-email-npajkovs@redhat.com>
-	<4C000A96.3010308@iki.fi>
-	<AANLkTinFIakra2JzIiI74qEZBO_D2bqgp8T55R_Df9rc@mail.gmail.com>
-	<4C013BBF.3080509@gmx.de>
-	<AANLkTil20ry1QgNxRz7SDrb7sQvSbtSaulCMaK2TAT3u@mail.gmail.com>
-Date: Fri, 18 Jun 2010 11:26:14 +0800
-Message-ID: <AANLkTilylL8Rz-r-ucAwg_eBpUbmWZglHUweKx_pr8_w@mail.gmail.com>
-Subject: Re: Fwd: [PATCH] V4L/DVB: New NXP tda18218 tuner
-From: Bee Hock Goh <beehock@gmail.com>
-To: Lauris Ding <lding@gmx.de>, LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: vdr@helmutauer.de
+CC: jarod@wilsonet.com, linux-media@vger.kernel.org
+Subject: Re: v4l-dvb - Is it still usable for a distribution ?
+References: <20100608085644.73E9B10FC098@dd16922.kasserver.com>
+In-Reply-To: <20100608085644.73E9B10FC098@dd16922.kasserver.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Can someone share what is the process to get a patch into the mainstream codes?
+Em 08-06-2010 05:56, vdr@helmutauer.de escreveu:
+> Hi
+> 
+>>> Is your imon driver fully compatible with the lirc_imon in the display part ?
+>>
+>> Yes, works perfectly fine with the exact same lcdproc setup here --
+>> both vfd and lcd tested.
+>>
+>>> It would be very helpful to add a parameter for disabling the IR Part, I have many users which
+>>> are using only the display part.
+>>
+>> Hm. I was going to suggest that if people aren't using the receiver,
+>> there should be no need to disable IR, but I guess someone might want
+>> to use an mce remote w/an mce receiver, and that would have
+>> interesting results if they had one of the imon IR receivers
+>> programmed for mce mode. I'll keep it in mind for the next time I'm
+>> poking at the imon code in depth. Need to finish work on some of the
+>> other new ir/rc bits first (you'll soon be seeing the mceusb driver
+>> ported to the new infra also in v4l-dvb hg, as well as an lirc bridge
+>> driver, which is currently my main focal point).
+>>
+> Just one more question.
+> Your driver is missing the ir_protocol parameter. How can I switch between Native Imon and RC-6 ?
 
-It been quite a while already and its still been review. Seem like a
-waste if this patch disappear again just like the previous time when
-it was submitted long ago.
+With the IR subsystem, the protocol changes are done via sysfs. The 
+ir-keytable program, at v4l-utils git tree, allows controlling the 
+enabled protocols and changing the IR keytable.
 
-On Sun, May 30, 2010 at 8:22 AM, Bee Hock Goh <beehock@gmail.com> wrote:
-> Hi Lauris,
->
-> thanks for the reply. I am just a user. :)
->
-> As you are the original driver developer, it would great if you could
-> endorsed/ack the patch sent by Nikola.
->
-> thanks,
->  Hock.
->
-> On Sun, May 30, 2010 at 12:07 AM, Lauris Ding <lding@gmx.de> wrote:
->> On 29.05.2010 11:39, Bee Hock Goh wrote:
->>>
->>> Dear Lauris,
->>>
->>> Are you still active? Nikola have submitted a patch for af9015/tda18218.
->>>
->>> Could you maybe spend some time to help and endorsed it?
->>>
->>> thanks,
->>>  Hock.
->>>
->>>
->>> ---------- Forwarded message ----------
->>> From: Antti Palosaari<crope@iki.fi>
->>> Date: Sat, May 29, 2010 at 2:25 AM
->>> Subject: Re: [PATCH] V4L/DVB: New NXP tda18218 tuner
->>> To: Nikola Pajkovsky<npajkovs@redhat.com>
->>> Cc: linux-media@vger.kernel.org
->>>
->>>
->>> Terve,
->>>
->>> On 05/20/2010 12:52 PM, Nikola Pajkovsky wrote:
->>>
->>>>
->>>> Signed-off-by: Nikola Pajkovsky<npajkovs@redhat.com>
->>>> ---
->>>>  drivers/media/common/tuners/Kconfig         |    7 +
->>>>  drivers/media/common/tuners/Makefile        |    1 +
->>>>  drivers/media/common/tuners/tda18218.c      |  432
->>>> +++++++++++++++++++++++++++
->>>>  drivers/media/common/tuners/tda18218.h      |   44 +++
->>>>  drivers/media/common/tuners/tda18218_priv.h |   36 +++
->>>>  drivers/media/dvb/dvb-usb/af9015.c          |   13 +-
->>>>  drivers/media/dvb/frontends/af9013.c        |   15 +
->>>>  drivers/media/dvb/frontends/af9013_priv.h   |    5 +-
->>>>  8 files changed, 548 insertions(+), 5 deletions(-)
->>>>  create mode 100644 drivers/media/common/tuners/tda18218.c
->>>>  create mode 100644 drivers/media/common/tuners/tda18218.h
->>>>  create mode 100644 drivers/media/common/tuners/tda18218_priv.h
->>>>
->>>
->>> tda18218_write_reg() could use tda18218_write_regs()
->>>
->>> tda18218_set_params() correct frequency limits. No need to check both
->>> upper and lower limit.
->>>
->>> printk(KERN_INFO "We've got a lock!");
->>> it does not sounds good idea to print INFO when lock
->>>
->>> while(i<  10) {
->>> use for loop insted. Two rows less code.
->>>
->>> tda18218_init()
->>> why return -EREMOTEIO; ?
->>>
->>> tda18218_attach()
->>> printk(KERN_WARNING "Device is not a TDA18218!\n");
->>> we should fail without noise since many times tuner attach is used for
->>> probe correct tuner
->>>
->>> A lot of error checkings are missing when reg write / read
->>>
->>> checkpatch returns a lot of warnings and for errors too almost every
->>> file changed
->>>
->>> Is that checked TDA18218 uses same demod settings as TDA18271?
->>>
->>> And the biggest problem is that driver author Lauris haven't replied
->>> any mails...
->>>
->>> regards
->>> Antti
->>>
->>>
->>> --
->>> http://palosaari.fi/
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>
->>
->> Hi,
->>
->> well, I've stopped doing anything on it after I finally got it working, as
->> it was enough for me having it just working, more or less regardless of what
->> the code looked like.
->>
->> I very much appreciate your work on it, but I'm quite unexperienced in
->> kernel programming; I'll try to help whenever I can from now on, though.
->>
->> Regards, Lauris
->>
->
+Cheers,
+Mauro.
