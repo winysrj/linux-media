@@ -1,106 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from r02s01.colo.vollmar.net ([83.151.24.194]:43294 "EHLO
-	holzeisen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756654Ab0FSTBE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jun 2010 15:01:04 -0400
-Received: from [10.7.0.6] (unknown [10.7.0.6])
-	by holzeisen.de (Postfix) with ESMTPA id E81FC807FE8E
-	for <linux-media@vger.kernel.org>; Sat, 19 Jun 2010 20:57:28 +0200 (CEST)
-Message-ID: <4C1D1228.1090702@holzeisen.de>
-Date: Sat, 19 Jun 2010 20:53:28 +0200
-From: Thomas Holzeisen <thomas@holzeisen.de>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:34090 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752914Ab0FHRkf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jun 2010 13:40:35 -0400
+Date: Tue, 8 Jun 2010 19:40:31 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>, jarod@redhat.com,
+	linux-media@vger.kernel.org, Jon Smirl <jonsmirl@gmail.com>,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [PATCH 1/3] IR: add core lirc device interface
+Message-ID: <20100608174031.GB5181@hardeman.nu>
+References: <BQCH7Bq3jFB@christoph>
+ <4C09482B.8030404@redhat.com>
+ <20100607184434.GA19390@hardeman.nu>
+ <AANLkTinDTJYUgxxJeSZ_jYYZuBXN8jsvkpZILLyc01jb@mail.gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: dvb_usb_rtl2831u module cause "oops" on kernel 2.6.32 when loading
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTinDTJYUgxxJeSZ_jYYZuBXN8jsvkpZILLyc01jb@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, Jun 07, 2010 at 03:45:38PM -0400, Jarod Wilson wrote:
+> On Mon, Jun 7, 2010 at 2:44 PM, David Härdeman <david@hardeman.nu> wrote:
+> > On Fri, Jun 04, 2010 at 03:38:35PM -0300, Mauro Carvalho Chehab wrote:
+> >> Em 04-06-2010 12:51, Christoph Bartelmus escreveu:
+> >> > Hi Mauro,
+> >> >
+> >> > on 04 Jun 10 at 01:10, Mauro Carvalho Chehab wrote:
+> >> >> Em 03-06-2010 19:06, Jarod Wilson escreveu:
+> >> > [...]
+> >> >>> As for the compat bits... I actually pulled them out of the Fedora kernel
+> >> >>> and userspace for a while, and there were only a few people who really ran
+> >> >>> into issues with it, but I think if the new userspace and kernel are rolled
+> >> >>> out at the same time in a new distro release (i.e., Fedora 14, in our
+> >> >>> particular case), it should be mostly transparent to users.
+> >> >
+> >> >> For sure this will happen on all distros that follows upstream: they'll
+> >> >> update lirc to fulfill the minimal requirement at Documentation/Changes.
+> >> >>
+> >> >> The issue will appear only to people that manually compile kernel and lirc.
+> >> >> Those users are likely smart enough to upgrade to a newer lirc version if
+> >> >> they notice a trouble, and to check at the forums.
+> >> >
+> >> >>> Christoph
+> >> >>> wasn't a fan of the change, and actually asked me to revert it, so I'm
+> >> >>> cc'ing him here for further feedback, but I'm inclined to say that if this
+> >> >>> is the price we pay to get upstream, so be it.
+> >> >
+> >> >> I understand Christoph view, but I think that having to deal with compat
+> >> >> stuff forever is a high price to pay, as the impact of this change is
+> >> >> transitory and shouldn't be hard to deal with.
+> >> >
+> >> > I'm not against doing this change, but it has to be coordinated between
+> >> > drivers and user-space.
+> >> > Just changing lirc.h is not enough. You also have to change all user-space
+> >> > applications that use the affected ioctls to use the correct types.
+> >> > That's what Jarod did not address last time so I asked him to revert the
+> >> > change.
+> >>
+> >> For sure coordination between kernel and userspace is very important. I'm sure
+> >> that Jarod can help with this sync. Also, after having the changes implemented
+> >> on userspace, I expect one patch from you adding the minimal lirc requirement
+> >> at Documentation/Changes.
+> >>
+> >> > And I'd also like to collect all other change request to the API
+> >> > if there are any and do all changes in one go.
+> >>
+> >> You and Jarod are the most indicated people to point for such needs. Also, Jon
+> >> and David may have some comments.
+> >
+> > David (who has been absent, sorry about that, life got in the way)
+> > thinks that the lirc raw decoder should implement the minimum amount of
+> > ioctl's possible while still being usable by the lirc userspace and
+> > without going beyond being a raw pulse/space "decoder" or we'll risk
+> > having to extend the entire decoder API just to support the lirc
+> > compatability decoder.
+> 
+> Thus far, I can get 100% feature-parity w/lirc_mceusb in my ir-core
+> mceusb driver by adding only 3 tx-specific callbacks to ir_dev_props,
+> and they're all callbacks (set output mask, set carrier and ir tx
+> function) that any rc-core native tx solution is also going to need.
 
-i am using a DVB-T USB-Stick with Realtek RTL2831 chip (14aa:0160) on Debian Lenny having the 
-lastest Backport kernel 2.6.32.
+Yes, but I hope...think...that we're going to have one set-RX-parameters 
+and one set-TX-parameters callback when we're done. Setting parameters 
+could be a costly operation so all settings should be passed to the 
+driver in one go (whether they come from an ioctl or some fancy 
+sysfs-with-transactions scheme).
 
-> $ uname -a
-> Linux xbmc 2.6.32-bpo.5-686 #1 SMP Fri Jun 11 22:20:29 UTC 2010 i686 GNU/Linux
+On the other hand, changing the callbacks you're proposing once we 
+actually have support in rc-core shouldn't be too much work, so I won't 
+oppose those changes.
 
-For v4l I took the drivers from here:
-
-> http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/
-
-The checked out source compile and installs fine. I compiled them starting with "make distclean". 
-But when plugging the DVB-Stick this happens:
-
-> [  229.524028] usb 4-2: new high speed USB device using ehci_hcd and address 3
-> [  229.658591] usb 4-2: New USB device found, idVendor=14aa, idProduct=0160
-> [  229.661204] usb 4-2: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> [  229.663841] usb 4-2: Product: DTV Receiver
-> [  229.666308] usb 4-2: Manufacturer: DTV Receiver
-> [  229.668826] usb 4-2: SerialNumber: 0000000000067936
-> [  229.671609] usb 4-2: configuration #1 chosen from 1 choice
-> [  230.266960] dvb-usb: found a 'Freecom USB 2.0 DVB-T Device' in warm state.
-> [  230.270314] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> [  230.273641] DVB: registering new adapter (Freecom USB 2.0 DVB-T Device)
-> [  230.277461] DVB: registering adapter 0 frontend 0 (Realtek RTL2831 DVB-T)...
-> [  230.282081] BUG: unable to handle kernel paging request at 02b65c40
-> [  230.285794] IP: [<f7c623ba>] dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
-> [  230.291463] *pde = 00000000
-> [  230.293969] Oops: 0002 [#1] SMP
-> [  230.293969] last sysfs file: /sys/devices/pci0000:00/0000:00:06.1/usb4/4-2/bmAttributes
-> [  230.293969] Modules linked in: dvb_usb_rtl2831u(+) dvb_usb_dibusb_common dvb_usb dib3000mc dibx000_common dvb_ttpci dvb_core saa7146_vv videodev v4l1_compat saa7146 videobuf_dma_sg videobuf_core ttpci_eeprom iscsi_trgt crc32c loop snd_hda_codec_nvhdmi snd_hda_codec_realtek snd_hda_intel snd_hda_codec snd_hwdep snd_pcm snd_seq snd_timer snd_seq_device snd tpm_tis soundcore tpm shpchp psmouse wmi serio_raw tpm_bios snd_page_alloc pcspkr pci_hotplug processor evdev button ir_core nvidia(P) lirc_imon i2c_nforce2 i2c_core lirc_dev ext3 jbd mbcache raid1 md_mod usbhid hid sg sr_mod cdrom sd_mod crc_t10dif usb_storage ahci ata_generic libata ehci_hcd ohci_hcd scsi_mod usbcore nls_base forcedeth thermal fan thermal_sys [last unloaded: scsi_wait_scan]
-> [  230.293969]
-> [  230.293969] Pid: 3279, comm: modprobe Tainted: P           (2.6.32-bpo.5-686 #1) Point of View
-> [  230.293969] EIP: 0060:[<f7c623ba>] EFLAGS: 00010246 CPU: 0
-> [  230.293969] EIP is at dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
-> [  230.293969] EAX: 69656148 EBX: f589b000 ECX: c14c18e4 EDX: f589b018
-> [  230.293969] ESI: f5904000 EDI: 000003b8 EBP: 00000077 ESP: f5851e88
-> [  230.293969]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
-> [  230.293969] Process modprobe (pid: 3279, ti=f5850000 task=f5cd4400 task.ti=f5850000)
-> [  230.293969] Stack:
-> [  230.293969]  f589b018 f5904000 f5904000 f5904864 00000001 f7c61945 f5904418 f80bb8d0
-> [  230.293969] <0> f5912000 f5b8f800 f80bad88 00000000 f80bad88 00000000 f5912000 00000000
-> [  230.293969] <0> f80bb894 f80ba970 f80b886d 00000000 f80ba960 f5912000 f80c8c98 f591201c
-> [  230.293969] Call Trace:
-> [  230.293969]  [<f7c61945>] ? dvb_usb_device_init+0x515/0x51c [dvb_usb]
-> [  230.293969]  [<f80b886d>] ? rtd2831u_usb_probe+0x19/0x48 [dvb_usb_rtl2831u]
-> [  230.293969]  [<f80c8c98>] ? usb_probe_interface+0xe7/0x130 [usbcore]
-> [  230.293969]  [<c11b2c22>] ? driver_probe_device+0x8a/0x11e
-> [  230.293969]  [<c11b2cf6>] ? __driver_attach+0x40/0x5b
-> [  230.293969]  [<c11b2667>] ? bus_for_each_dev+0x37/0x5f
-> [  230.293969]  [<c11b2af5>] ? driver_attach+0x11/0x13
-> [  230.293969]  [<c11b2cb6>] ? __driver_attach+0x0/0x5b
-> [  230.293969]  [<c11b2135>] ? bus_add_driver+0x99/0x1c2
-> [  230.293969]  [<c11b2f2b>] ? driver_register+0x87/0xe0
-> [  230.293969]  [<f80c8aa6>] ? usb_register_driver+0x5d/0xb4 [usbcore]
-> [  230.293969]  [<f80f6000>] ? rtd2831u_usb_module_init+0x0/0x2c [dvb_usb_rtl2831u]
-> [  230.293969]  [<f80f6015>] ? rtd2831u_usb_module_init+0x15/0x2c [dvb_usb_rtl2831u]
-> [  230.293969]  [<c100113e>] ? do_one_initcall+0x55/0x155
-> [  230.293969]  [<c1057dd7>] ? sys_init_module+0xa7/0x1d7
-> [  230.293969]  [<c10030fb>] ? sysenter_do_call+0x12/0x28
-> [  230.293969] Code: 3e c6 f7 20 74 18 8b 86 a0 00 00 00 55 ff 74 38 04 68 59 38 c6 f7 e8 1b a1 60 c9 83 c4 0c 8b 86 a0 00 00 00 8b 14 24 8b 44 38 04 <f0> 0f ab 02 45 83 c7 08 3b ae a4 00 00 00 7c c2 83 be ac 00 00
-> [  230.293969] EIP: [<f7c623ba>] dvb_usb_remote_init+0x12e/0x209 [dvb_usb] SS:ESP 0068:f5851e88
-> [  230.293969] CR2: 0000000002b65c40
-> [  230.663846] ---[ end trace e2ebfa1976bffdae ]---
-
-Mostly interesting, the modules are still getting loaded:
-
-> $ lsmod | grep dvb
-> dvb_usb_rtl2831u       89189  15
-> dvb_usb_dibusb_common     4578  1 dvb_usb_rtl2831u
-> dvb_usb                13320  2 dvb_usb_rtl2831u,dvb_usb_dibusb_common
-> dib3000mc               8544  1 dvb_usb_dibusb_common
-> dvb_ttpci              70046  0
-> dvb_core               63034  2 dvb_usb,dvb_ttpci
-> saa7146_vv             31312  1 dvb_ttpci
-> saa7146                 9911  2 dvb_ttpci,saa7146_vv
-> ttpci_eeprom            1224  1 dvb_ttpci
-> i2c_core               12700  8 dvb_usb,dib3000mc,dibx000_common,dvb_ttpci,videodev,ttpci_eeprom,nvidia,i2c_nforce2
-> usbcore                98466  10 dvb_usb_rtl2831u,dvb_usb,lirc_imon,usbhid,usb_storage,ehci_hcd,ohci_hcd
-
-When plugging the usb-stick after boot I am able to use it as intend. But when having it inserted 
-during boot the system hangs up. Calling lsusb from console causes the used console to hang up as 
-well. Would be great if anyone got a solution for this problem.
-
-Best regards,
-Thomas
+-- 
+David Härdeman
