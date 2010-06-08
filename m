@@ -1,46 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:56931 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754678Ab0FAW5v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 18:57:51 -0400
-Received: by mail-ww0-f46.google.com with SMTP id 28so2464375wwb.19
-        for <linux-media@vger.kernel.org>; Tue, 01 Jun 2010 15:57:51 -0700 (PDT)
-Subject: [PATCH 2/6] gspca - gl860: setting changes applied after an EOI
-From: Olivier Lorin <olorin75@gmail.com>
-To: V4L Mailing List <linux-media@vger.kernel.org>
-Cc: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: text/plain
-Date: Wed, 02 Jun 2010 00:57:48 +0200
-Message-Id: <1275433068.20756.100.camel@miniol>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-yw0-f204.google.com ([209.85.211.204]:53807 "EHLO
+	mail-yw0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751280Ab0FHKcD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jun 2010 06:32:03 -0400
+Received: by ywh42 with SMTP id 42so3746256ywh.15
+        for <linux-media@vger.kernel.org>; Tue, 08 Jun 2010 03:32:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <87eighygoy.fsf@nemi.mork.no>
+References: <20100607070123.GA28216@wozi.local>
+	<4C0D4E18.30507@vanbest.org>
+	<20100608062621.GA4053@wozi.local>
+	<291a60d4cc2cd21b923d74bd86856c6b.squirrel@www.vanbest.eu>
+	<AANLkTik0KfaObIY7Hwki-_uuIU6m3KgsaaiNa5u4WnSu@mail.gmail.com>
+	<87eighygoy.fsf@nemi.mork.no>
+Date: Tue, 8 Jun 2010 12:32:00 +0200
+Message-ID: <AANLkTikYtMirdn6w46bhjHDlvyTHqoraHj6WCyaxIB2D@mail.gmail.com>
+Subject: Re: Is anybody working on TechniSat CableStar Combo HD CI USB device?
+From: Markus Rechberger <mrechberger@gmail.com>
+To: =?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gspca - gl860: setting changes applied after an EOI
+On Tue, Jun 8, 2010 at 12:14 PM, Bjørn Mork <bjorn@mork.no> wrote:
+> Markus Rechberger <mrechberger@gmail.com> writes:
+>
+>> Trident is also still improving the quality of their driver and
+>> firmware, it very much makes
+>> sense that they handle their driver especially since those DRX drivers
+>> are very complex
+>> (basically too complex for being handled by the community, the drivers
+>> would just
+>> end up somewhere unmaintained).
+>
+> Ouch.  That makes me wonder about the state of the Windows drivers for
+> those devices...  Better stay away from them, I guess.
+>
 
-From: Olivier Lorin <o.lorin@laposte.net>
+If you have issues with your Windows driver you should contact the
+manufacturer of your device.
+If they care about their product and/or some customer relation they
+will try to help you.
 
-- Setting changes applied after an end of image marker reception
-  This is the way MI2020 sensor works.
-  It seems to be logical to wait for a complete image before 
-  to change a setting.
-
-Priority: normal
-
-Signed-off-by: Olivier Lorin <o.lorin@laposte.net>
-
-diff -urpN i1/gl860.c gl860/gl860.c
---- i1/gl860.c	2010-06-01 23:26:22.000000000 +0200
-+++ gl860/gl860.c	2010-06-01 23:11:26.000000000 +0200
-@@ -63,7 +63,7 @@ static int sd_set_##thename(struct gspca
- \
- 	sd->vcur.thename = val;\
- 	if (gspca_dev->streaming)\
--		sd->dev_camera_settings(gspca_dev);\
-+		sd->waitSet = 1;\
- 	return 0;\
- } \
- static int sd_get_##thename(struct gspca_dev *gspca_dev, s32 *val)\
-
-
+Markus
