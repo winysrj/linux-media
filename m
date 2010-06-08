@@ -1,43 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:46473 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754342Ab0FAIRo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 04:17:44 -0400
-Date: Tue, 1 Jun 2010 10:17:27 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] V4L/DVB: cpia_usb: remove unneeded variable
-Message-ID: <20100601081727.GL5483@bicker>
+Received: from perceval.irobotique.be ([92.243.18.41]:44232 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616Ab0FHBET (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jun 2010 21:04:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux newbie <linux.newbie79@gmail.com>
+Subject: Re: cam max width and height
+Date: Tue, 8 Jun 2010 03:07:01 +0200
+Cc: "Linux-media" <linux-media@vger.kernel.org>,
+	linux-uvc-devel@lists.berlios.de
+References: <AANLkTimh-FVg9yspF6ASGrlY5kd5Puppa7VlKA6NljQ5@mail.gmail.com>
+In-Reply-To: <AANLkTimh-FVg9yspF6ASGrlY5kd5Puppa7VlKA6NljQ5@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201006080307.02170.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is just a cleanup patch.  We never use the "udev" variable so I
-have removed it.
+Hi,
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+On Tuesday 08 June 2010 02:09:39 linux newbie wrote:
+> Hi,
+> 
+> I am using linux 2.6.26.3. I connected "microsoft live cam" and its
+> max supported resolution is 1280x800. If I use VIDIOC_G_FMT,
+> fmt.fmt.pix.width, fmt.fmt.pix.height returns 640x480.
+> 
+> How to get the maximum supported resolution??
 
-diff --git a/drivers/media/video/cpia_usb.c b/drivers/media/video/cpia_usb.c
-index ef1f893..58d193f 100644
---- a/drivers/media/video/cpia_usb.c
-+++ b/drivers/media/video/cpia_usb.c
-@@ -584,7 +584,6 @@ static void cpia_disconnect(struct usb_interface *intf)
- {
- 	struct cam_data *cam = usb_get_intfdata(intf);
- 	struct usb_cpia *ucpia;
--	struct usb_device *udev;
- 
- 	usb_set_intfdata(intf, NULL);
- 	if (!cam)
-@@ -606,8 +605,6 @@ static void cpia_disconnect(struct usb_interface *intf)
- 	if (waitqueue_active(&ucpia->wq_stream))
- 		wake_up_interruptible(&ucpia->wq_stream);
- 
--	udev = interface_to_usbdev(intf);
--
- 	ucpia->curbuff = ucpia->workbuff = NULL;
- 
- 	vfree(ucpia->buffers[2]);
+You can use VIDIOC_ENUM_FRAMESIZES to enumeration all the supported 
+resolutions.
+
+-- 
+Regards,
+
+Laurent Pinchart
