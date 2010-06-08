@@ -1,53 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms16-1.1blu.de ([89.202.0.34]:57251 "EHLO ms16-1.1blu.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754869Ab0FFLlw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jun 2010 07:41:52 -0400
-Date: Sun, 6 Jun 2010 13:41:47 +0200
-From: Lars Schotte <lars.schotte@schotteweb.de>
-To: Ang Way Chuang <wcang79@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: hvr4000 in general
-Message-ID: <20100606134147.0d940dca@romy.gusto>
-In-Reply-To: <4C0B5CA7.6070709@gmail.com>
-References: <20100606041209.6406c09b@romy.gusto>
-	<4C0B5CA7.6070709@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-ew0-f216.google.com ([209.85.219.216]:43154 "EHLO
+	mail-ew0-f216.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755589Ab0FHRhz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jun 2010 13:37:55 -0400
+Received: by ewy8 with SMTP id 8so1197289ewy.28
+        for <linux-media@vger.kernel.org>; Tue, 08 Jun 2010 10:37:53 -0700 (PDT)
+From: Balint Reczey <balint@balintreczey.hu>
+To: linux-media@vger.kernel.org
+Cc: Balint Reczey <balint@balintreczey.hu>
+Subject: [PATCH] libv4l1: support up to 256 different frame sizes
+Date: Tue,  8 Jun 2010 19:36:58 +0200
+Message-Id: <1276018618-12162-1-git-send-email-balint@balintreczey.hu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-yes? it works definitely? and how is that? again, I need something to
-see and as long as it doesnt tune in and as long as no data is flowing
-i can NOT see how it could be working.
+Logitech, Inc. Webcam Pro 9000 supports 18 wich is more than the the originally
+supported 16. 256 should be enough for a while.
+---
+ lib/libv4lconvert/libv4lconvert-priv.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-what fragility do you mean? did she burned out/ overheating, or what
-kind of fragility?
+diff --git a/lib/libv4lconvert/libv4lconvert-priv.h b/lib/libv4lconvert/libv4lconvert-priv.h
+index 6e880f8..b3e4c4e 100644
+--- a/lib/libv4lconvert/libv4lconvert-priv.h
++++ b/lib/libv4lconvert/libv4lconvert-priv.h
+@@ -29,7 +29,7 @@
+ #define ARRAY_SIZE(x) ((int)sizeof(x)/(int)sizeof((x)[0]))
+ 
+ #define V4LCONVERT_ERROR_MSG_SIZE 256
+-#define V4LCONVERT_MAX_FRAMESIZES 16
++#define V4LCONVERT_MAX_FRAMESIZES 256
+ 
+ #define V4LCONVERT_ERR(...) \
+ 	snprintf(data->error_msg, V4LCONVERT_ERROR_MSG_SIZE, \
+-- 
+1.7.1
 
-On Sun, 06 Jun 2010 16:30:31 +0800
-Ang Way Chuang <wcang79@gmail.com> wrote:
-
-> That card definitely works on DVB-S2. The only problem I had with
-> that card is its fragility. I have a few burnt HVR 4000 (lite) cards
-> in the lab.
-> 
-> Lars Schotte wrote:
-> > hi all hvr4000 "friends"
-> > 
-> > i am wondering if someone has this card working a little more then
-> > I do.
-> > 
-> > i have dvb-s working quite good. the only thing what I can say
-> > positively about thisc card is that it at least reports a better
-> > signal strength and also SNR. so it is possible that the part
-> > "before" the chipset from the viewpoint of the signal arriving from
-> > space it may have a better "tuner".
-> > 
-> > but so far ... has someone dvb-s2 working? (on linux/not freebsd!!)
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe
-> > linux-media" in the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
