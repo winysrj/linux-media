@@ -1,65 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from psmtp13.wxs.nl ([195.121.247.25]:62039 "EHLO psmtp13.wxs.nl"
+Received: from poutre.nerim.net ([62.4.16.124]:61396 "EHLO poutre.nerim.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751898Ab0F2Fy7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jun 2010 01:54:59 -0400
-Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
- by psmtp13.wxs.nl
- (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
- with ESMTP id <0L4R00A4LHRJQM@psmtp13.wxs.nl> for linux-media@vger.kernel.org;
- Tue, 29 Jun 2010 07:54:56 +0200 (MEST)
-Date: Tue, 29 Jun 2010 07:54:53 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Subject: Re: v4l-dvb unsupported device: Conceptronic CTVDIGUSB2 1b80:d393
- (Afatech) - possibly similar to CTVCTVDIGRCU v3.0?
-In-reply-to: <4C290096.5080209@gmail.com>
-To: Matteo Sisti Sette <matteosistisette@gmail.com>
-Cc: linux-media@vger.kernel.org
-Message-id: <4C298AAD.2090701@hoogenraad.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 8BIT
-References: <AANLkTikojhopHeY2WuHxK_tbCs99_SV7ksWnYv4UXM4W@mail.gmail.com>
- <4C28FCA8.5090005@hoogenraad.net> <4C290096.5080209@gmail.com>
+	id S1752994Ab0FIRjJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Jun 2010 13:39:09 -0400
+Date: Wed, 9 Jun 2010 19:39:07 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Wolfram Sang <w.sang@pengutronix.de>
+Cc: Linux I2C <linux-i2c@vger.kernel.org>,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 2/2] V4L/DVB: Use custom I2C probing function mechanism
+Message-ID: <20100609193907.521cd4a8@hyperion.delvare>
+In-Reply-To: <20100609150540.GB31319@pengutronix.de>
+References: <20100608100100.35bdae0f@hyperion.delvare>
+	<20100609150540.GB31319@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I see: apparently the versions earlier than V3.0 of CTVDIGRCU used 
-Realtek RTL2831U. I'll make a note of that on the wiki page.
+Hi Wolfram,
 
-Matteo Sisti Sette wrote:
-> On 06/28/2010 09:48 PM, Jan Hoogenraad wrote:
->> Matteo:
->>
->> If I read this well, CTVDIGUSB2 1b80:d393 (Afatech) is not at all
->> similar to the CTVDIGRCU.
->> The CTVDIGRCU has a Realtek RTL2831U decoder, and is NOT included in the
->> standard dvb list.
+On Wed, 9 Jun 2010 17:05:40 +0200, Wolfram Sang wrote:
+> Hi Jean,
 > 
-> So is the table at http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices 
-> incorrect?
+> On Tue, Jun 08, 2010 at 10:01:00AM +0200, Jean Delvare wrote:
+> > Now that i2c-core offers the possibility to provide custom probing
+> > function for I2C devices, let's make use of it.
+> > 
+> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
+> > Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 > 
-> It says:
-> 
-> Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0    
->  ✔ Yes, in kernel since 2.6.31
-> 1b80:e397 USB2.0    
-> Afatech AF9015
-> 
-> 
-> Anyway, I see there are other sticks with chipsets by Afatech. Is there 
-> any chance that some of the currently implemented driver would work fine 
-> with my chipset if only I forced the driver to recognize the chipset as 
-> another one by touching the source code?
-> How could I try that? (if it deserves a try)
-> 
-> Thanks
-> m.
-> 
+> If this custom function is in i2c-core, maybe it should be documented?
 
+What kind of documentation would you expect for a one-line function?
+Where, and aimed at who?
+
+Patch welcome ;)
 
 -- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+Jean Delvare
