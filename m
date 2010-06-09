@@ -1,68 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53311 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752348Ab0F3HHZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jun 2010 03:07:25 -0400
-Date: Wed, 30 Jun 2010 09:07:17 +0200
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCHv4 1/3] mx2_camera: Add soc_camera support for
-	i.MX25/i.MX27
-Message-ID: <20100630070717.GA11746@pengutronix.de>
-References: <cover.1277096909.git.baruch@tkos.co.il> <03d6e55c39690618e92a91a580ec34549a135c79.1277096909.git.baruch@tkos.co.il>
+Received: from mx1.redhat.com ([209.132.183.28]:14750 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755892Ab0FIOvI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 9 Jun 2010 10:51:08 -0400
+Message-ID: <4C0FAA73.8030203@redhat.com>
+Date: Wed, 09 Jun 2010 16:51:31 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <03d6e55c39690618e92a91a580ec34549a135c79.1277096909.git.baruch@tkos.co.il>
+To: Bill Davidsen <davidsen@tmr.com>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	bugzilla-daemon@bugzilla.kernel.org,
+	bugme-daemon@bugzilla.kernel.org
+Subject: Re: [Bugme-new] [Bug 16050] New: The ibmcam driver is not working
+References: <bug-16050-10286@https.bugzilla.kernel.org/> <20100528154635.129b621b.akpm@linux-foundation.org> <4C04C942.6000900@redhat.com> <4C054105.6020806@tmr.com> <4C07B3BC.3050209@redhat.com> <4C07C316.2090903@tmr.com> <4C07C711.5040900@redhat.com> <4C07D5AC.2000404@tmr.com>
+In-Reply-To: <4C07D5AC.2000404@tmr.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 21, 2010 at 08:15:58AM +0300, Baruch Siach wrote:
-> This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
-> Carvalho de Assis modified the original driver to get it working on more recent
-> kernels. I modified it further to add support for i.MX25. This driver has been
-> tested on i.MX25 and i.MX27 based platforms.
-> 
-> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> ---
->  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
->  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
->  drivers/media/video/Kconfig              |   13 +
->  drivers/media/video/Makefile             |    1 +
->  drivers/media/video/mx2_camera.c         | 1493 ++++++++++++++++++++++++++++++
->  5 files changed, 1555 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
->  create mode 100644 drivers/media/video/mx2_camera.c
-> 
-> diff --git a/arch/arm/plat-mxc/include/mach/memory.h b/arch/arm/plat-mxc/include/mach/memory.h
-> index c4b40c3..5803836 100644
-> --- a/arch/arm/plat-mxc/include/mach/memory.h
-> +++ b/arch/arm/plat-mxc/include/mach/memory.h
-> @@ -44,12 +44,12 @@
->   */
->  #define CONSISTENT_DMA_SIZE SZ_8M
->  
-> -#elif defined(CONFIG_MX1_VIDEO)
-> +#elif defined(CONFIG_MX1_VIDEO) || defined(CONFIG_MX2_VIDEO)
->  /*
->   * Increase size of DMA-consistent memory region.
->   * This is required for i.MX camera driver to capture at least four VGA frames.
->   */
->  #define CONSISTENT_DMA_SIZE SZ_4M
-> -#endif /* CONFIG_MX1_VIDEO */
-> +#endif /* CONFIG_MX1_VIDEO || CONFIG_MX2_VIDEO */
-Why not use CONFIG_VIDEO_MX2 here and get rid of CONFIG_MX2_VIDEO?
- 
-Best regards
-Uwe
+Hi,
 
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+On 06/03/2010 06:17 PM, Bill Davidsen wrote:
+>> So would you be willing to test the new driver (when it is finished) ?
+>>
+> Sure, just let me know what kernel the patch is against. As you say, my
+> cams are Model2 in the old nomenclature.
+>
+> Interesting that the size is set to 352x240 rather than CIF 352x288. And
+> while xawtv sort of works with the latest 2.6.33.5-112.fc13.x86_64 koji
+> kernel, cheese doesn't, not that I need it, but it worked on the early
+> kernels.
+>
+
+Ok, I've a version of the new driver ready for testing.
+
+
+To test you need the latest libv4l, and my gspca tree:
+
+First update libv4l, do:
+git clone git://linuxtv.org/v4l-utils.git
+cd v4l-utils/lib
+And then follow the instructions here:
+http://hansdegoede.livejournal.com/7622.html
+
+Then get my gspca tree, and compile and install it, note
+that this is based on the special hg v4l-dvb tree, which
+is meant as an overlay to your running kernel, so doing this
+will replace the v4l and dvb subsystems of your kernel
+while leaving the rest as is:
+hg clone http://linuxtv.org/hg/~hgoede/ibmcam
+cd ibmcam
+make menuconfig
+<deselect the ibmcam driver and make any other changes you wish>
+make
+sudo make install
+<reboot, yes really>
+
+Now after the reboot do the following as root:
+echo 63 > /sys/module/gspca_main/parameters/debug
+
+And then try using your camera with a v4l app such
+as cheese, camorama or some such.
+
+Please collect the output of dmesg and mail it to me.
+
+Also please try running at a resolution of 176x144.
+
+If things don't work (chances are they won't) please try
+to describe what exactly is the problem. ie is the
+image shifted left / right / up / down with some garbage
+or black area being shown on the other side, is there no
+image at all is it to dark / light, are the colors wrong etc.
+
+Thanks & Regards,
+
+Hans
