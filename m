@@ -1,50 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:24203 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753202Ab0FMKHg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jun 2010 06:07:36 -0400
-Received: by ey-out-2122.google.com with SMTP id 25so521645eya.19
-        for <linux-media@vger.kernel.org>; Sun, 13 Jun 2010 03:07:35 -0700 (PDT)
-Date: Sun, 13 Jun 2010 12:07:22 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: VDR User <user.vdr@gmail.com>
-cc: "mailing list: linux-media" <linux-media@vger.kernel.org>,
-	Oliver Endriss <o.endriss@gmx.de>
-Subject: Re: [PATCH] Fix av7110 driver name
-In-Reply-To: <AANLkTilYElPyhhej6XYF15D9wwBtkiMWrmkTvsviCI3W@mail.gmail.com>
-Message-ID: <alpine.DEB.2.01.1006131200580.17071@localhost.localdomain>
-References: <AANLkTilYElPyhhej6XYF15D9wwBtkiMWrmkTvsviCI3W@mail.gmail.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:60911 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754200Ab0FIR4Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jun 2010 13:56:25 -0400
+Date: Wed, 9 Jun 2010 19:56:21 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: Re: [PATCH 3/4] ir-core: move decoding state to ir_raw_event_ctrl
+Message-ID: <20100609175621.GA19620@hardeman.nu>
+References: <20100424210843.11570.82007.stgit@localhost.localdomain>
+ <20100424211411.11570.2189.stgit@localhost.localdomain>
+ <4BDF2B45.9060806@redhat.com>
+ <20100607190003.GC19390@hardeman.nu>
+ <20100607201530.GG16638@redhat.com>
+ <20100608175017.GC5181@hardeman.nu>
+ <AANLkTimuYkKzDPvtnrWKoT8sh1H9paPBQQNmYWOT7-R2@mail.gmail.com>
+ <20100609132908.GM16638@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20100609132908.GM16638@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat (Saturday) 12.Jun (June) 2010, 05:10,  VDR User wrote:
+On Wed, Jun 09, 2010 at 09:29:08AM -0400, Jarod Wilson wrote:
+> On Tue, Jun 08, 2010 at 11:46:36PM -0400, Jarod Wilson wrote:
+> > On Tue, Jun 8, 2010 at 1:50 PM, David Härdeman <david@hardeman.nu> wrote:
+> > > b) Mauro mentioned in <4BDF28C0.4060102@redhat.com> that:
+> > >
+> > >        I liked the idea of your redesign, but I didn't like the removal
+> > >        of a per-decoder sysfs entry. As already discussed, there are
+> > >        cases where we'll need a per-decoder sysfs entry (lirc_dev is
+> > >        probably one of those cases - also Jarod's imon driver is
+> > >        currently implementing a modprobe parameter that needs to be
+> > >        moved to the driver).
+> > >
+> > >   could you please confirm if your lirc and/or imon drivers would be
+> > >   negatively affected by the proposed patches?
+> > 
+> > Will do so once I get them wedged in on top.
+> 
+> Got it all merged and compiling, but not yet runtime tested. Compiling
+> alone sheds some light on things though...
+> 
+> So this definitely negatively impacts my ir-core-to-lirc_dev
+> (ir-lirc-codec.c) bridge driver, as it was doing the lirc_dev device
+> registration work in its register function. However, if (after your
+> patchset) we add a new pair of callbacks replacing raw_register and
+> raw_unregister, which are optional, that work could be done there instead,
+> so I don't think this is an insurmountable obstacle for the lirc bits.
 
-> This patch simply changes the name of the av7110 driver to "AV7110"
-> instead of the generic "dvb" it's set to currently.  Although it's
-> somewhat trivial, it still seems appropriate to fix the name to be
-> descriptive of the driver.
+While I'm not sure exactly what callbacks you're suggesting, it still 
+sounds like the callbacks would have the exact same problems that the 
+current code has (i.e. the decoder will be blissfully unaware of 
+hardware which exists before the decoder is loaded). Right?
 
-Thanks Derek; I'll just note that as submitted, the trivial patch
-is a ``reversed'' patch, but I'd hope that any tools written for
-auto-patch-handing should be able to detect this and correct this
-issue.
+> As for the imon driver, the modprobe parameter in question (iirc) was
+> already removed from the driver, as its functionality is replaced by
+> implementing a change_protocol callback. However, there's a request to
+> add it (or something like it) back to the driver to allow disabling the
+> IR part altogether, and there are a few other modparams that might be
+> better suited as sysfs entries. However, its actually not relevant to the
+> case of registering raw protocol handlers, as the imon devices do their
+> decoding in hardware. I can see the possibility for protocol-specific
+> knobs in sysfs though. But I think the same optional callbacks I'd use to
+> keep the lirc bits working could also be used for this. Can't think of a
+> good name for these yet, probably need more coffee first... ;)
 
-The other patch is in ``proper'' order, so no worries.
+But those sysfs entries wouldn't be 
+per-decoder-per-hardware-device....they'd just be 
+per-hardware-device...right?
 
-
-
-> --- v4l-dvb/linux/drivers/media/dvb/ttpci/av7110.c      2010-06-11
-> 13:24:29.000000000 -0700
-> +++ v4l-dvb.orig/linux/drivers/media/dvb/ttpci/av7110.c 2010-06-11
-> 12:49:50.000000000 -0700
-
-
-> -       .name           = "AV7110",
-> +       .name           = "dvb",
-
-
-thanks,
-barry bouwsma
+-- 
+David Härdeman
