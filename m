@@ -1,15 +1,14 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4121 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756836Ab0FTTd3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jun 2010 15:33:29 -0400
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2115 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757250Ab0FITeb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jun 2010 15:34:31 -0400
 Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5KJXRdC099068
-	for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 21:33:28 +0200 (CEST)
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id o59JYEwi091386
+	for <linux-media@vger.kernel.org>; Wed, 9 Jun 2010 21:34:30 +0200 (CEST)
 	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 20 Jun 2010 21:33:27 +0200 (CEST)
-Message-Id: <201006201933.o5KJXRdC099068@smtp-vbr13.xs4all.nl>
+Date: Wed, 9 Jun 2010 21:34:14 +0200 (CEST)
+Message-Id: <201006091934.o59JYEwi091386@smtp-vbr18.xs4all.nl>
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
@@ -21,9 +20,9 @@ the kernels and architectures in the list below.
 
 Results of the daily build of v4l-dvb:
 
-date:        Sun Jun 20 19:00:09 CEST 2010
+date:        Wed Jun  9 19:00:57 CEST 2010
 path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
+changeset:   14944:973004c9c2ae
 git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
 git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
 gcc version:      i686-linux-gcc (GCC) 4.4.3
@@ -113,11 +112,11 @@ linux-2.6.21.7-x86_64: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
 The V4L-DVB specification from this daily build is here:
 
