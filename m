@@ -1,37 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:39538 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136Ab0F2G2G (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:54783 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754669Ab0FJHwO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jun 2010 02:28:06 -0400
-Received: by wwb18 with SMTP id 18so206492wwb.19
-        for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 23:28:02 -0700 (PDT)
-Message-ID: <4C299270.9030100@gmail.com>
-Date: Tue, 29 Jun 2010 08:28:00 +0200
-From: Matteo Sisti Sette <matteosistisette@gmail.com>
-MIME-Version: 1.0
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: v4l-dvb unsupported device: Conceptronic CTVDIGUSB2 1b80:d393
- (Afatech) - possibly similar to CTVCTVDIGRCU v3.0?
-References: <AANLkTikojhopHeY2WuHxK_tbCs99_SV7ksWnYv4UXM4W@mail.gmail.com> <4C28FCA8.5090005@hoogenraad.net> <4C290096.5080209@gmail.com> <4C298AAD.2090701@hoogenraad.net>
-In-Reply-To: <4C298AAD.2090701@hoogenraad.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 10 Jun 2010 03:52:14 -0400
+Date: Thu, 10 Jun 2010 09:53:38 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: jiajun <zhujiajun@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: V4L Camera frame timestamp question
+Message-ID: <20100610095338.35d46e1c@tele>
+In-Reply-To: <loom.20100610T052202-829@post.gmane.org>
+References: <loom.20100610T052202-829@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/29/2010 07:54 AM, Jan Hoogenraad wrote:
-> I see: apparently the versions earlier than V3.0 of CTVDIGRCU used
-> Realtek RTL2831U. I'll make a note of that on the wiki page.
+On Thu, 10 Jun 2010 03:24:05 +0000 (UTC)
+jiajun <zhujiajun@gmail.com> wrote:
 
-Thank you; indeed I provided incomplete information (i forgot the v3.0 
-part).
+> I'm currently using the V4L-DVB driver to control a few logitech
+> webcams and playstation eye cameras on a Gubuntu system.
+> 
+> Everything works just fine except one thing:  the buffer timestamp
+> value seems wrong.
+	[snip]
+> this should be the timestamp of when the image is taken (similar to
+> gettimeofday() function)
+> but the value I got is something way smaller (e.g. 75000) than what
+> it should be (e.g. 1275931384)
+> 
+> Is this a known problem?
 
-Is it possible to force the driver to treat my chipset "as if" it was an 
-af9015 and try and see if it works?
+Hi,
 
-thanks
-m.
+No, I did not know it! Thank you. I will try to fix it for the kernel
+2.6.35.
 
+Best regards.
 
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
