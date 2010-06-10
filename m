@@ -1,49 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:52777 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750828Ab0F0XRN (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.25]:44955 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752525Ab0FJGtJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jun 2010 19:17:13 -0400
-Subject: MCEUSB memory leak and how to tell if ir_register_input() failure
- registered input_dev?
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-In-Reply-To: <AANLkTimDJAyvowo_1bLhKPhlDWzzMeF87or4MriJ_UT8@mail.gmail.com>
-References: <20100607192830.21236.69701.stgit@localhost.localdomain>
-	 <20100607193238.21236.72227.stgit@localhost.localdomain>
-	 <4C273FFE.4090300@redhat.com>
-	 <AANLkTimDJAyvowo_1bLhKPhlDWzzMeF87or4MriJ_UT8@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 27 Jun 2010 19:17:25 -0400
-Message-ID: <1277680645.3347.7.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 10 Jun 2010 02:49:09 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so343268eya.19
+        for <linux-media@vger.kernel.org>; Wed, 09 Jun 2010 23:49:08 -0700 (PDT)
+Date: Thu, 10 Jun 2010 08:48:45 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: =?UTF-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+cc: linux-media@vger.kernel.org
+Subject: Re: Is anybody working on TechniSat CableStar Combo HD CI USB
+ device?
+In-Reply-To: <87eighygoy.fsf@nemi.mork.no>
+Message-ID: <alpine.DEB.2.01.1006090014310.17071@localhost.localdomain>
+References: <20100607070123.GA28216@wozi.local> <4C0D4E18.30507@vanbest.org> <20100608062621.GA4053@wozi.local> <291a60d4cc2cd21b923d74bd86856c6b.squirrel@www.vanbest.eu> <AANLkTik0KfaObIY7Hwki-_uuIU6m3KgsaaiNa5u4WnSu@mail.gmail.com>
+ <87eighygoy.fsf@nemi.mork.no>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue (Tuesday) 08.Jun (June) 2010, 12:14,  Bjørn Mork wrote:
 
-Jarrod,
+> Markus Rechberger <mrechberger@gmail.com> writes:
+> 
+> > Trident is also still improving the quality of their driver and
+> > firmware, it very much makes
+> > sense that they handle their driver especially since those DRX drivers
+> > are very complex
+> > (basically too complex for being handled by the community, the drivers
+> > would just
+> > end up somewhere unmaintained).
+> 
+> Ouch.  That makes me wonder about the state of the Windows drivers for
+> those devices...  Better stay away from them, I guess.
 
-Looking at the patches branch from your WIP git tree:
+Just to throw this out there, the 'doze support for one such
+Micronas-based device I have -- the Linux kernel support for which
+either does not exist or cannot be publicly distributed -- is less
+than optimal in my experience, which may have nothing to do with
+reality.
 
-Is mceusb_init_input_dev() supposed to allocate a struct ir_input_dev?
-It looks like ir_register_input() handles that, and it is trashing your
-pointer (memory leak).
+While I was able to make a flawless test recording for a few
+minutes of one medium-bitrate lower-resolution high-definition
+programme to mislead me into thinking that I'd have success with
+a full-length programme, for some reason it turned out that my use
+of the device under 'doze for an extended time on a borrowed 'doze
+box suffered fairly frequent problems manifested each as a short
+dropout of the recording.
 
-Mauro and Jarrod,
+This could also be pilot error, as I remain willfully ignorant of
+'doze and its details, but if a machine with CPU horsepower over
+eight times that (neglecting other acceleration) of my workhorse
+that routinely makes four simultaneous flawless recordings
+including some at higher resolution/bitrate, is unable to keep up
+with the bitstream, then something has got to be seriously wrong,
+in my opinion.
 
-When ir_register_input() fails, it doesn't indicate whether or not it
-was able to register the input_dev or not.  To me it looks like it can
-return with failure with the input_dev either way depending on the case.
-This makes proper cleanup of the input_dev in my cx23885_input_init()
-function difficult in the failure case, since the input subsystem has
-two different deallocators depending on if the device had been
-registered or not.
+A later recording of a higher bitrate (excellent quality standard-
+definition video source) stream again exhibited the same problem.
+Perhaps 'doze can't keep up writing to its own native filesystem
+as it approaches being full, or if I can't keep my hands away from
+configuring it to be user-hostile as I prefer.
 
-Regards,
-Andy
+And of course there's the factor of intermediate hardware to be
+considered -- my device is connected via a USB interface which has
+caused major filesystem corruption over time with the particular
+Linux kernel I was using, despite of working flawlessly with a
+different video card.  And 'doze...  *shiver*
+
+Anyway, I'd be happy to learn that others have had success with
+the same device, although for me it's no longer a priority to have
+it working, to say nothing of working perfectly.  My testing of
+the device has been relatively minimal, using it where other tuner
+cards lack support.
 
 
+barry bouwsma
