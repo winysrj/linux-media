@@ -1,42 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:36925 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754002Ab0FFInC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 04:43:02 -0400
-Received: by bwz11 with SMTP id 11so695486bwz.19
-        for <linux-media@vger.kernel.org>; Sun, 06 Jun 2010 01:43:00 -0700 (PDT)
-Date: Sun, 6 Jun 2010 10:43:02 +0200
-From: Gregoire Favre <gregoire.favre@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] hvr4000 doesnt work w/ dvb-s2 nor DVB-T
-Message-ID: <20100606084301.GA3070@gmail.com>
-References: <20100606010311.6d98ef7b@romy.gusto>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:32866 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758640Ab0FJJVK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 10 Jun 2010 05:21:10 -0400
+Received: by wyb40 with SMTP id 40so808519wyb.19
+        for <linux-media@vger.kernel.org>; Thu, 10 Jun 2010 02:21:08 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100606010311.6d98ef7b@romy.gusto>
+In-Reply-To: <20100610095338.35d46e1c@tele>
+References: <loom.20100610T052202-829@post.gmane.org>
+	<20100610095338.35d46e1c@tele>
+Date: Thu, 10 Jun 2010 10:20:58 +0100
+Message-ID: <AANLkTinoHhuPRV8m7vf38lKiwOXV7WNFd36MmBmuRhNQ@mail.gmail.com>
+Subject: Re: V4L Camera frame timestamp question
+From: Paulo Assis <pj.assis@gmail.com>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: jiajun <zhujiajun@gmail.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 06, 2010 at 01:03:11AM +0200, Lars Schotte wrote:
-> hi,
-> i have a happauge HVR4000 and all works fine, analogue TV and DVB-S was
-> tested by me so, all would be fine except the fact, that there is
-> DVB-S2 support noted on the wiki
-> http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000 site.
-> 
-> so basically my question is, what makes you think, that HVR4000 is able
-> to play DVB-S2 streams when it doesn't?!
+2010/6/10 Jean-Francois Moine <moinejf@free.fr>:
+> On Thu, 10 Jun 2010 03:24:05 +0000 (UTC)
+> jiajun <zhujiajun@gmail.com> wrote:
+>
+>> I'm currently using the V4L-DVB driver to control a few logitech
+>> webcams and playstation eye cameras on a Gubuntu system.
+>>
+>> Everything works just fine except one thing:  the buffer timestamp
+>> value seems wrong.
+>        [snip]
+>> this should be the timestamp of when the image is taken (similar to
+>> gettimeofday() function)
+>> but the value I got is something way smaller (e.g. 75000) than what
+>> it should be (e.g. 1275931384)
+>>
+>> Is this a known problem?
+>
+> Hi,
+>
+> No, I did not know it! Thank you. I will try to fix it for the kernel
+> 2.6.35.
+>
 
-I use it for DVB-S2 under vdr without problem, and I tested (a long time
-ago) DVB-T under kaffeine (I don't have KDE installed at the moment).
+You can't use gettimeofday for timestamps or you will have big
+problems if your clock changes when you are grabbing video.
+You must use a monotonic clock, this is what gspca and uvc are doing,
+they now use ktime, a monotonic highres clock.
+This prevents time shifts that can break the video stream playback,
+also gettimeofday as problems in multicore cpus since for most
+processors
+the internal cpus are not exactly in sync.
 
-So the card is definitely able to do DVB-S2 or DVB-T (the card can't do
-both simultaneously).
--- 
-Grégoire Favre, Chemin de Mallieu 15, 1009 Pully, +41 21 550 61 93 
-prof -> Gymnase de Chamblandes, Avenue des Désertes 29, 1009 Pully
-sip -> 310546@sip.freesip.ch  / gsm -> +41 78 765 65 00
-http://www.gycham.vd.ch/~greg / netvoip.ch : +41 21 544 77 44
+So PLEASE leave it like it is now, also other drivers should really
+move into using ktime nad not gettimeofday.
+
+You are converting the timestamp to seconds this will produce a
+smaller value, you should really convert it to ms, then you would get
+a value closer to what you want.
+
+Best Regards,
+Paulo
+
+> Best regards.
+>
+> --
+> Ken ar c'hentañ |             ** Breizh ha Linux atav! **
+> Jef             |               http://moinejf.free.fr/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
