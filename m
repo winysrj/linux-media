@@ -1,84 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:40222 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755890Ab0FQPLw (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:52268 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757565Ab0FKP22 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jun 2010 11:11:52 -0400
+	Fri, 11 Jun 2010 11:28:28 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Gadiyar, Anand" <gadiyar@ti.com>
+CC: Felipe Contreras <felipe.contreras@gmail.com>,
+	"Nagarajan, Rajkumar" <x0133774@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Fri, 11 Jun 2010 10:28:23 -0500
+Subject: RE: Alternative for defconfig
+Message-ID: <A24693684029E5489D1D202277BE894455DDECBE@dlee02.ent.ti.com>
+References: <201006091227.29175.laurent.pinchart@ideasonboard.com>
+ <201006111707.34463.laurent.pinchart@ideasonboard.com>
+ <5A47E75E594F054BAF48C5E4FC4B92AB03233C036E@dbde02.ent.ti.com>
+ <201006111726.28384.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201006111726.28384.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <1276776859.2461.16.camel@localhost>
-References: <20100424211411.11570.2189.stgit@localhost.localdomain>
-	<4BDF2B45.9060806@redhat.com>
-	<20100607190003.GC19390@hardeman.nu>
-	<20100607201530.GG16638@redhat.com>
-	<20100608175017.GC5181@hardeman.nu>
-	<AANLkTimuYkKzDPvtnrWKoT8sh1H9paPBQQNmYWOT7-R2@mail.gmail.com>
-	<20100609132908.GM16638@redhat.com>
-	<20100609175621.GA19620@hardeman.nu>
-	<20100609181506.GO16638@redhat.com>
-	<AANLkTims0dmYCOoI_K4S6Q8hwLV_MqUdGQjVwFu43sCL@mail.gmail.com>
-	<20100613202945.GA5883@hardeman.nu>
-	<AANLkTim6f6jM4TGzyQsuHDNPUSsjINXFHck0NevrtqHr@mail.gmail.com>
-	<AANLkTil6P0rnmViLwpkiBOYoC6qF217V90g7Nslk3DHN@mail.gmail.com>
-	<1276776859.2461.16.camel@localhost>
-Date: Thu, 17 Jun 2010 11:11:48 -0400
-Message-ID: <AANLkTinJPFBBDEiOpbFhkAccF5E7caKNmAuvEnq-uV4W@mail.gmail.com>
-Subject: Re: [PATCH 3/4] ir-core: move decoding state to ir_raw_event_ctrl
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 17, 2010 at 8:14 AM, Andy Walls <awalls@md.metrocast.net> wrote:
-> On Wed, 2010-06-16 at 16:41 -0400, Jarod Wilson wrote:
->> On Wed, Jun 16, 2010 at 4:04 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
->> ...
->> >> I have another suggestion, let's keep the client register/unregister
->> >> callbacks for decoders (but add a comment that they're only used for
->> >> lirc). Then teach drivers/media/IR/ir-raw-event.c to keep track of the
->> >> raw clients so that it can pass all pre-existing clients to newly added
->> >> decoders.
->> >>
->> >> I'll post two patches (compile tested only) in a few seconds to show
->> >> what I mean.
->> >
->> > Consider them now runtime tested as well. They appear to do the trick,
->> > the lirc bridge comes up just fine, even when ir-lirc-codec isn't
->> > loaded until after mceusb. *Much* better implementation than my ugly
->> > trick. I'll ack your patches and submit a series on top of them for
->> > lirc support, hopefully this evening (in addition to a few other fixes
->> > that aren't dependent on any of them).
->>
->> A fully functional tree carrying both of David's patches and the
->> entire stack of other patches I've submitted today, based on top of
->> the linuxtv staging/rc branch, can be found here:
->>
->> http://git.wilsonet.com/linux-2.6-ir-wip.git/?a=shortlog;h=refs/heads/patches
->>
->> Also includes the lirc patches that I believe are ready to be
->> submitted for actual consideration (note that they're dependent on
->> David's two patches).
->
->
-> I'll try and play with this this weekend along with some cx23885
-> cleanup.
 
-Excellent. A few things to note... Many of the lirc_dev ioctls are
-currently commented out, and haven't in any way been wired up to tx
-callbacks, I've only enabled the minimum necessary for mceusb. The
-ioctls are all using __u32 params, which, if you're on x86_64, will
-require a patched lirc userspace build to make the ioctl types match.
-I'm using this patch atm:
 
-http://wilsonet.com/jarod/lirc_misc/lirc-0.8.6-make-ioctls-u32.patch
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Friday, June 11, 2010 10:26 AM
+> To: Gadiyar, Anand
+> Cc: Aguirre, Sergio; Felipe Contreras; Nagarajan, Rajkumar; linux-
+> media@vger.kernel.org; Hiremath, Vaibhav; linux-omap@vger.kernel.org
+> Subject: Re: Alternative for defconfig
+> 
+> Hi Anand,
+> 
+> On Friday 11 June 2010 17:14:19 Gadiyar, Anand wrote:
+> > Laurent Pinchart wrote:
+> > > On Friday 11 June 2010 16:55:07 Aguirre, Sergio wrote:
+> > > > > On Fri, Jun 11, 2010 at 3:19 PM, Nagarajan, Rajkumar wrote:
+> > > > > > 1. What is the alternative way of submitting defconfig
+> > > > > > changes/files to
+> > > > >
+> > > > > LO?
+> > > >
+> > > > I don't think defconfig changes are prohibited now. If I understand
+> > > > correctly, Linus just hates the fact that there is a big percentage
+> of
+> > > > patches for defconfigs. Maybe he wants us to hold these, and better
+> > > > provide higher percentage of actual code changes.
+> > > >
+> > > > What about holding defconfig changes in a separate branch, and just
+> > > > send them for upstream once in a while, specially if there's a big
+> > > > quantity of them in the queue?
+> > > >
+> > > > IMHO, defconfigs are just meant to make us life easier, but changes
+> to
+> > > > them should _never_ be a fix/solution to any problem, and therefore
+> I
+> > > > understand that those aren't a priority over regressions.
+> > >
+> > > My understanding is that Linus will remove all ARM defconfigs in
+> 2.6.36,
+> > > unless someone can convince him not to. Board-specific defconfigs
+> won't
+> > > be allowed anymore, the number of defconfigs needs to be reduced
+> > > drastically (ideally to one or two only).
+> >
+> > There is some good work going on on the linux-arm-kernel mailing list to
+> > cut down heavily the ARM defconfigs. Would be good to join that
+> discussion.
+> >
+> > For OMAP, I suppose maintaining omap1_defconfig and omap3_defconfig
+> would
+> > suffice to cover all OMAPs?
+> 
+> I'm not sure what the exact roadmap will be. Linus is complaining about
+> the
+> defconfig changes taking up too much of the diffstat. I don't know if he
+> will
+> accept patches to solve the problem gradually, or if he will just remove
+> all
+> defconfig files in 2.6.36.
+> 
+> In any case, all changes that make it possible to built more machine types
+> and
+> platform types in the same kernel are a step in the right direction.
 
-(In the future, lirc userspace should obviously just build against
-<media/lirc.h>).
+I definitely think that one important step to achieve a multi platform build
+is to detect the minimal arm_defconfig first, and then (most importantly
+IMHO) proceed with trying to generate kernel modules of almost all
+peripherals.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Many boards tend to be tested with just monolithic single-platform kernels,
+and making things modular hasn't been addressed at all in some drivers (old
+OMAP DSS code, for example).
+
+Regards,
+Sergio
+
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
