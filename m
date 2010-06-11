@@ -1,30 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-09.arcor-online.net ([151.189.21.49]:45869 "EHLO
-	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754875Ab0F0MOI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jun 2010 08:14:08 -0400
-Message-ID: <4C27408D.4080502@arcor.de>
-Date: Sun, 27 Jun 2010 14:14:05 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Received: from mx1.redhat.com ([209.132.183.28]:61368 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756359Ab0FKNc0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jun 2010 09:32:26 -0400
+Message-ID: <4C123AB4.5080300@redhat.com>
+Date: Fri, 11 Jun 2010 10:31:32 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: tm6000 + audio
-References: <20100622180521.614eb85d@glory.loctelecom.ru> <4C20D91F.500@redhat.com> <4C212A90.7070707@arcor.de> <4C213257.6060101@redhat.com> <4C222561.4040605@arcor.de> <4C224753.2090109@redhat.com>
-In-Reply-To: <4C224753.2090109@redhat.com>
+To: Sedji Gaouaou <sedji.gaouaou@atmel.com>
+CC: video4linux-list@redhat.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [PATCH] Atmel IMAGE SENSOR INTERFACE (ISI) driver.
+References: <1276094787-11214-1-git-send-email-sedji.gaouaou@atmel.com> <4C120197.7000106@atmel.com>
+In-Reply-To: <4C120197.7000106@atmel.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Em 11-06-2010 06:27, Sedji Gaouaou escreveu:
+> Hi,
+> 
+> No comments about this patch?
+> 
+Most developers are preparing to travel abroad to the V4L mini-summit next
+week. So, it may take some time until we would be able to review it.
 
-I have great problems with _tm6000_start_audio_dma if I started mencoder
-or arecord. It creashed and after a while it frosts in. (It hasn't logged).
-
-Stefan Ringel
-
--- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
+Cheers,
+Mauro.
