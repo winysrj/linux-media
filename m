@@ -1,49 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f223.google.com ([209.85.219.223]:45033 "EHLO
-	mail-ew0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752032Ab0FDPiR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 11:38:17 -0400
-Date: Fri, 4 Jun 2010 17:37:58 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: walter harms <wharms@bfs.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Frederic Weisbecker <fweisbec@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [patch] V4L/DVB: dvb_ca_en50221: return -EFAULT on
-	copy_to_user errors
-Message-ID: <20100604153758.GG5483@bicker>
-References: <20100604103629.GC5483@bicker> <4C08F0DD.50702@bfs.de>
+Received: from devils.ext.ti.com ([198.47.26.153]:47589 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753391Ab0FKPO0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jun 2010 11:14:26 -0400
+From: "Gadiyar, Anand" <gadiyar@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Aguirre, Sergio" <saaguirre@ti.com>
+CC: Felipe Contreras <felipe.contreras@gmail.com>,
+	"Nagarajan, Rajkumar" <x0133774@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Fri, 11 Jun 2010 20:44:19 +0530
+Subject: RE: Alternative for defconfig
+Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB03233C036E@dbde02.ent.ti.com>
+References: <201006091227.29175.laurent.pinchart@ideasonboard.com>
+ <AANLkTilPWyHcoT6q1T-o-UMvcMSs2_If45f9UocVtrbl@mail.gmail.com>
+ <A24693684029E5489D1D202277BE894455DDEC44@dlee02.ent.ti.com>
+ <201006111707.34463.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201006111707.34463.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C08F0DD.50702@bfs.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 04, 2010 at 02:26:05PM +0200, walter harms wrote:
+Laurent Pinchart wrote:
+> On Friday 11 June 2010 16:55:07 Aguirre, Sergio wrote:
+> > > On Fri, Jun 11, 2010 at 3:19 PM, Nagarajan, Rajkumar wrote:
+> > > > 1. What is the alternative way of submitting defconfig changes/files to
+> > > 
+> > > LO?
+> > 
+> > I don't think defconfig changes are prohibited now. If I understand
+> > correctly, Linus just hates the fact that there is a big percentage of
+> > patches for defconfigs. Maybe he wants us to hold these, and better
+> > provide higher percentage of actual code changes.
+> > 
+> > What about holding defconfig changes in a separate branch, and just send
+> > them for upstream once in a while, specially if there's a big quantity of
+> > them in the queue?
+> > 
+> > IMHO, defconfigs are just meant to make us life easier, but changes to them
+> > should _never_ be a fix/solution to any problem, and therefore I understand
+> > that those aren't a priority over regressions.
 > 
-> Doint to many things at once is bad. IMHO it is more readable to do so:
+> My understanding is that Linus will remove all ARM defconfigs in 2.6.36, 
+> unless someone can convince him not to. Board-specific defconfigs won't be 
+> allowed anymore, the number of defconfigs needs to be reduced drastically 
+> (ideally to one or two only).
 > 
-> +status = copy_to_user(buf, hdr, 2);
-> +if ( status  != 0) {
-> 
-> Maybe the maintainer has different ideas but especialy lines like will gain.
-> 
-> -if ((status = copy_from_user(fragbuf + 2, buf + fragpos, fraglen)) != 0)
-> +status = copy_from_user(fragbuf + 2, buf + fragpos, fraglen):
-> +if ( status  != 0) {
-> 
-> just my 2 cents,
 
-You're right of course as always and checkpatch warns about these as
-well.
+There is some good work going on on the linux-arm-kernel mailing list to
+cut down heavily the ARM defconfigs. Would be good to join that discussion.
 
-I figured if it was in the original code, it was probably OK to leave it.
-But I now recognize this as pure laziness on my part and I appologize.  
-Twenty lashes for me and all that.  Fixed patch coming up.  ;)
+For OMAP, I suppose maintaining omap1_defconfig and omap3_defconfig would
+suffice to cover all OMAPs?
 
-regards,
-dan carpenter
-
-
+- Anand
