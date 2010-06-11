@@ -1,44 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:1226 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754524Ab0FTQxy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jun 2010 12:53:54 -0400
-Subject: Re: [PATCH] drivers/media/IR/imon.c: Use pr_err instead of err
-From: Joe Perches <joe@perches.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-In-Reply-To: <16004456-69D9-41BD-8597-5590BB7B099E@wilsonet.com>
-References: <1277018446.1548.66.camel@Joe-Laptop.home>
-	 <16004456-69D9-41BD-8597-5590BB7B099E@wilsonet.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 20 Jun 2010 09:53:51 -0700
-Message-ID: <1277052831.1548.103.camel@Joe-Laptop.home>
-Mime-Version: 1.0
+Received: from perceval.irobotique.be ([92.243.18.41]:57879 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751424Ab0FKPXc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 11 Jun 2010 11:23:32 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Gadiyar, Anand" <gadiyar@ti.com>
+Subject: Re: Alternative for defconfig
+Date: Fri, 11 Jun 2010 17:26:25 +0200
+Cc: "Aguirre, Sergio" <saaguirre@ti.com>,
+	Felipe Contreras <felipe.contreras@gmail.com>,
+	"Nagarajan, Rajkumar" <x0133774@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+References: <201006091227.29175.laurent.pinchart@ideasonboard.com> <201006111707.34463.laurent.pinchart@ideasonboard.com> <5A47E75E594F054BAF48C5E4FC4B92AB03233C036E@dbde02.ent.ti.com>
+In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB03233C036E@dbde02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201006111726.28384.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-06-20 at 11:58 -0400, Jarod Wilson wrote:
-> On Jun 20, 2010, at 3:20 AM, Joe Perches <joe@perches.com> wrote:
-> Use the standard error logging mechanisms.
-> > Add #define pr_fmt(fmt) KBUILD_MODNAME ":%s" fmt, __func__
-> > Remove __func__ from err calls, add '\n', rename to pr_err
-> Eh. If we're going to make a change here, I'd rather it be to using  
-> dev_err instead, since most of the other spew in this driver uses  
-> similar.
+Hi Anand,
 
-The idea is to eventually remove info/err/warn from usb.h by
-changing the code outside of drivers/usb first.
+On Friday 11 June 2010 17:14:19 Gadiyar, Anand wrote:
+> Laurent Pinchart wrote:
+> > On Friday 11 June 2010 16:55:07 Aguirre, Sergio wrote:
+> > > > On Fri, Jun 11, 2010 at 3:19 PM, Nagarajan, Rajkumar wrote:
+> > > > > 1. What is the alternative way of submitting defconfig
+> > > > > changes/files to
+> > > > 
+> > > > LO?
+> > > 
+> > > I don't think defconfig changes are prohibited now. If I understand
+> > > correctly, Linus just hates the fact that there is a big percentage of
+> > > patches for defconfigs. Maybe he wants us to hold these, and better
+> > > provide higher percentage of actual code changes.
+> > > 
+> > > What about holding defconfig changes in a separate branch, and just
+> > > send them for upstream once in a while, specially if there's a big
+> > > quantity of them in the queue?
+> > > 
+> > > IMHO, defconfigs are just meant to make us life easier, but changes to
+> > > them should _never_ be a fix/solution to any problem, and therefore I
+> > > understand that those aren't a priority over regressions.
+> > 
+> > My understanding is that Linus will remove all ARM defconfigs in 2.6.36,
+> > unless someone can convince him not to. Board-specific defconfigs won't
+> > be allowed anymore, the number of defconfigs needs to be reduced
+> > drastically (ideally to one or two only).
+> 
+> There is some good work going on on the linux-arm-kernel mailing list to
+> cut down heavily the ARM defconfigs. Would be good to join that discussion.
+> 
+> For OMAP, I suppose maintaining omap1_defconfig and omap3_defconfig would
+> suffice to cover all OMAPs?
 
-There will always be some mix of printk or pr_<level> along
-with dev_<level> because struct device * is NULL or as is
-mostly used here there's no struct imon_context * available.
+I'm not sure what the exact roadmap will be. Linus is complaining about the 
+defconfig changes taking up too much of the diffstat. I don't know if he will 
+accept patches to solve the problem gradually, or if he will just remove all 
+defconfig files in 2.6.36.
 
-I suggest you have a look and see which ones of these
-changes could use dev_<level> instead.
+In any case, all changes that make it possible to built more machine types and 
+platform types in the same kernel are a step in the right direction.
 
-cheers, Joe
+-- 
+Regards,
 
-
+Laurent Pinchart
