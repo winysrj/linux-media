@@ -1,269 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41516 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752087Ab0FCHTa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 03:19:30 -0400
-From: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "mchehab@redhat.com" <mchehab@redhat.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Thu, 3 Jun 2010 12:49:06 +0530
-Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
- file
-Message-ID: <5A47E75E594F054BAF48C5E4FC4B92AB0323207C30@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1275547321-31406-3-git-send-email-hvaibhav@ti.com>
-In-Reply-To: <1275547321-31406-3-git-send-email-hvaibhav@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mfe4.msomt.modwest.com ([204.11.245.168]:47799 "EHLO
+	mfe4.msomt.modwest.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752689Ab0FLW2N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 12 Jun 2010 18:28:13 -0400
+Received: from fao (unknown [190.246.191.228])
+	(using TLSv1 with cipher DHE-RSA-AES128-SHA (128/128 bits))
+	(No client certificate requested)
+	by mfe4.msomt.modwest.com (Postfix) with ESMTP id C180C218008
+	for <linux-media@vger.kernel.org>; Sat, 12 Jun 2010 15:58:03 -0600 (MDT)
+Date: Sat, 12 Jun 2010 18:57:58 -0300
+From: Ramiro Morales <ramiro@rmorales.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] saa7134: Add support for Compro VideoMate Vista M1F
+Message-ID: <20100612215757.GA4796@fao>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Vaibhav,
+Hi all,
+
+(I've just subscribed myself to the list so I can't easily reply to the
+original "[PATCH for 2.6.34] saa7134: add support for Compro VideoMate
+M1F" thread from May 25 started by Pavel Osnova.)
+
+I've just bought this card. I'm in Argentina so if there are several
+models it should be the appropriate one for this market (PAL-NC?).
+
+Find below Pavel's latest patch adapted/updated to v4l-dvb Mercurial
+repository status as of today (Hg revision 023a0048e6a8).
+
+For a start, the PCI ID is different from the Pavel's one (185b:c900):
+
+  $ lspci |grep -i philips
+  01:07.0 Multimedia controller: Philips Semiconductors SAA7131/SAA7133/SAA7135 Video Broadcast Decoder (rev d1)
+  $ lspci -n |grep 01\:07\.0
+  01:07.0 0480: 1131:7133 (rev d1)
+
+(btw, it's the same PCI ID as card #17: AOPEN VA1000 POWER)
+
+I've decided to maintain Pavel's name, email address and
+"Signed-off-by:" header, hopefully he will be able to review the patch
+and give his opinion.
+
+Will reply to this message with another one containing a full
+description of the card components hermann-pitton had asked for.
+
+Regards,
 
 
-> -----Original Message-----
-> From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
-> Sent: Thursday, June 03, 2010 12:12 PM
-> To: linux-media@vger.kernel.org
-> Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-
-> omap@vger.kernel.org; Hiremath, Vaibhav
-> Subject: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
-> file
-> 
-> From: Vaibhav Hiremath <hvaibhav@ti.com>
-> 
-> Also created vpfe master/slave clock aliases, since naming
-> convention is different in both Davinci and AM3517 devices.
-> 
-> Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> ---
->  arch/arm/mach-omap2/board-am3517evm.c |  161
-> +++++++++++++++++++++++++++++++++
->  1 files changed, 161 insertions(+), 0 deletions(-)
-> 
-> diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
-> omap2/board-am3517evm.c
-> index c1c4389..f2ff751 100644
-> --- a/arch/arm/mach-omap2/board-am3517evm.c
-> +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> @@ -30,15 +30,168 @@
-> 
->  #include <plat/board.h>
->  #include <plat/common.h>
-> +#include <plat/control.h>
->  #include <plat/usb.h>
->  #include <plat/display.h>
-> 
-> +#include <media/tvp514x.h>
-> +#include <media/davinci/vpfe_capture.h>
-> +
->  #include "mux.h"
-> 
->  #define LCD_PANEL_PWR		176
->  #define LCD_PANEL_BKLIGHT_PWR	182
->  #define LCD_PANEL_PWM		181
-> 
-> +/*
-> + * VPFE - Video Decoder interface
-> + */
-> +#define TVP514X_STD_ALL		(V4L2_STD_NTSC | V4L2_STD_PAL)
-> +
-> +/* Inputs available at the TVP5146 */
-> +static struct v4l2_input tvp5146_inputs[] = {
-> +	{
-> +		.index	= 0,
-> +		.name	= "Composite",
-> +		.type	= V4L2_INPUT_TYPE_CAMERA,
-> +		.std	= TVP514X_STD_ALL,
-> +	},
-> +	{
-> +		.index	= 1,
-> +		.name	= "S-Video",
-> +		.type	= V4L2_INPUT_TYPE_CAMERA,
-> +		.std	= TVP514X_STD_ALL,
-> +	},
-> +};
-> +
-> +static struct tvp514x_platform_data tvp5146_pdata = {
-> +	.clk_polarity	= 0,
-> +	.hs_polarity	= 1,
-> +	.vs_polarity	= 1
-> +};
-> +
-> +static struct vpfe_route tvp5146_routes[] = {
-> +	{
-> +		.input	= INPUT_CVBS_VI1A,
-> +		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
-> +	},
-> +	{
-> +		.input	= INPUT_SVIDEO_VI2C_VI1C,
-> +		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
-> +	},
-> +};
-> +
-> +static struct vpfe_subdev_info vpfe_sub_devs[] = {
-> +	{
-> +		.name		= "tvp5146",
-> +		.grp_id		= 0,
-> +		.num_inputs	= ARRAY_SIZE(tvp5146_inputs),
-> +		.inputs		= tvp5146_inputs,
-> +		.routes		= tvp5146_routes,
-> +		.can_route	= 1,
-> +		.ccdc_if_params	= {
-> +			.if_type = VPFE_BT656,
-> +			.hdpol	= VPFE_PINPOL_POSITIVE,
-> +			.vdpol	= VPFE_PINPOL_POSITIVE,
-> +		},
-> +		.board_info	= {
-> +			I2C_BOARD_INFO("tvp5146", 0x5C),
-> +			.platform_data = &tvp5146_pdata,
-> +		},
-> +	},
-> +};
-> +
-> +static void am3517_evm_clear_vpfe_intr(int vdint)
-> +{
-> +	unsigned int vpfe_int_clr;
-> +
-> +	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-> +
-> +	switch (vdint) {
-> +	/* VD0 interrrupt */
-> +	case INT_35XX_CCDC_VD0_IRQ:
-> +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD0_INT_CLR;
-> +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD0_INT_CLR;
-> +		break;
-> +	/* VD1 interrrupt */
-> +	case INT_35XX_CCDC_VD1_IRQ:
-> +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD1_INT_CLR;
-> +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD1_INT_CLR;
-> +		break;
-> +	/* VD2 interrrupt */
-> +	case INT_35XX_CCDC_VD2_IRQ:
-> +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD2_INT_CLR;
-> +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD2_INT_CLR;
-> +		break;
-> +	/* Clear all interrrupts */
-> +	default:
-> +		vpfe_int_clr &= ~(AM35XX_VPFE_CCDC_VD0_INT_CLR |
-> +				AM35XX_VPFE_CCDC_VD1_INT_CLR |
-> +				AM35XX_VPFE_CCDC_VD2_INT_CLR);
-> +		vpfe_int_clr |= (AM35XX_VPFE_CCDC_VD0_INT_CLR |
-> +				AM35XX_VPFE_CCDC_VD1_INT_CLR |
-> +				AM35XX_VPFE_CCDC_VD2_INT_CLR);
-> +		break;
-> +	}
-> +	omap_ctrl_writel(vpfe_int_clr, AM35XX_CONTROL_LVL_INTR_CLEAR);
-> +	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-
-Is it necessary to assign to the local variable (vpfe_int_clr)? If not, we can reduce the size of this routine by two assembly instructions:
-One: copying the result to a register
-Two: pushing the register value to stack
-
--Tarun
+diff --git a/linux/Documentation/video4linux/CARDLIST.saa7134 b/linux/Documentation/video4linux/CARDLIST.saa7134
+--- a/linux/Documentation/video4linux/CARDLIST.saa7134
++++ b/linux/Documentation/video4linux/CARDLIST.saa7134
+@@ -179,3 +179,4 @@
+ 178 -> Beholder BeholdTV H7                     [5ace:7190]
+ 179 -> Beholder BeholdTV A7                     [5ace:7090]
+ 180 -> Avermedia PCI M733A                      [1461:4155,1461:4255]
++181 -> Compro VideoMate Vista M1F               [185b:c900,1131:7133]
+diff --git a/linux/drivers/media/IR/keymaps/Makefile b/linux/drivers/media/IR/keymaps/Makefile
+--- a/linux/drivers/media/IR/keymaps/Makefile
++++ b/linux/drivers/media/IR/keymaps/Makefile
+@@ -62,6 +62,7 @@
+ 			rc-terratec-cinergy-xs.o \
+ 			rc-tevii-nec.o \
+ 			rc-tt-1500.o \
++			rc-videomate-m1f.o \
+ 			rc-videomate-s350.o \
+ 			rc-videomate-tv-pvr.o \
+ 			rc-winfast.o \
+diff --git a/linux/drivers/media/IR/keymaps/rc-videomate-m1f.c b/linux/drivers/media/IR/keymaps/rc-videomate-m1f.c
+new file mode 100644
+--- /dev/null
++++ b/linux/drivers/media/IR/keymaps/rc-videomate-m1f.c
+@@ -0,0 +1,92 @@
++/* videomate-m1f.h - Keytable for videomate_m1f Remote Controller
++ *
++ * keymap imported from ir-keymaps.c
++ *
++ * Copyright (c) 2010 by Pavel Osnova <pvosnova <at> gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <media/rc-map.h>
++
++static struct ir_scancode videomate_m1f[] = {
++	{ 0x01, KEY_POWER },
++	{ 0x31, KEY_TUNER },
++	{ 0x33, KEY_VIDEO },
++	{ 0x2f, KEY_RADIO },
++	{ 0x30, KEY_CAMERA },
++	{ 0x2d, KEY_NEW }, /* TV record button */
++	{ 0x17, KEY_CYCLEWINDOWS },
++	{ 0x2c, KEY_ANGLE },
++	{ 0x2b, KEY_LANGUAGE },
++	{ 0x32, KEY_SEARCH }, /* '...' button */
++	{ 0x11, KEY_UP },
++	{ 0x13, KEY_LEFT },
++	{ 0x15, KEY_OK },
++	{ 0x14, KEY_RIGHT },
++	{ 0x12, KEY_DOWN },
++	{ 0x16, KEY_BACKSPACE },
++	{ 0x02, KEY_ZOOM }, /* WIN key */
++	{ 0x04, KEY_INFO },
++	{ 0x05, KEY_VOLUMEUP },
++	{ 0x03, KEY_MUTE },
++	{ 0x07, KEY_CHANNELUP },
++	{ 0x06, KEY_VOLUMEDOWN },
++	{ 0x08, KEY_CHANNELDOWN },
++	{ 0x0c, KEY_RECORD },
++	{ 0x0e, KEY_STOP },
++	{ 0x0a, KEY_BACK },
++	{ 0x0b, KEY_PLAY },
++	{ 0x09, KEY_FORWARD },
++	{ 0x10, KEY_PREVIOUS },
++	{ 0x0d, KEY_PAUSE },
++	{ 0x0f, KEY_NEXT },
++	{ 0x1e, KEY_1 },
++	{ 0x1f, KEY_2 },
++	{ 0x20, KEY_3 },
++	{ 0x21, KEY_4 },
++	{ 0x22, KEY_5 },
++	{ 0x23, KEY_6 },
++	{ 0x24, KEY_7 },
++	{ 0x25, KEY_8 },
++	{ 0x26, KEY_9 },
++	{ 0x2a, KEY_NUMERIC_STAR }, /* * key */
++	{ 0x1d, KEY_0 },
++	{ 0x29, KEY_SUBTITLE }, /* # key */
++	{ 0x27, KEY_CLEAR },
++	{ 0x34, KEY_SCREEN },
++	{ 0x28, KEY_ENTER },
++	{ 0x19, KEY_RED },
++	{ 0x1a, KEY_GREEN },
++	{ 0x1b, KEY_YELLOW },
++	{ 0x1c, KEY_BLUE },
++	{ 0x18, KEY_TEXT },
++};
++
++static struct rc_keymap videomate_m1f_map = {
++	.map = {
++		.scan    = videomate_m1f,
++		.size    = ARRAY_SIZE(videomate_m1f),
++		.ir_type = IR_TYPE_UNKNOWN,     /* Legacy IR type */
++		.name    = RC_MAP_VIDEOMATE_M1F,
++	}
++};
++
++static int __init init_rc_map_videomate_m1f(void)
++{
++	return ir_register_map(&videomate_m1f_map);
++}
++
++static void __exit exit_rc_map_videomate_m1f(void)
++{
++	ir_unregister_map(&videomate_m1f_map);
++}
++
++module_init(init_rc_map_videomate_m1f)
++module_exit(exit_rc_map_videomate_m1f)
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Pavel Osnova <pvosnova <at> gmail.com>");
+diff --git a/linux/drivers/media/video/saa7134/saa7134-cards.c b/linux/drivers/media/video/saa7134/saa7134-cards.c
+--- a/linux/drivers/media/video/saa7134/saa7134-cards.c
++++ b/linux/drivers/media/video/saa7134/saa7134-cards.c
+@@ -5501,6 +5501,33 @@
+ 			.amux = TV,
+ 		},
+ 	},
++	[SAA7134_BOARD_VIDEOMATE_M1F] = {
++		/* Pavel Osnova <pvosnova <at> gmail.com> */
++		.name           = "Compro VideoMate Vista M1F",
++		.audio_clock    = 0x00187de7,
++		.tuner_type     = TUNER_LG_PAL_NEW_TAPC,
++		.radio_type     = TUNER_TEA5767,
++		.tuner_addr     = ADDR_UNSET,
++		.radio_addr     = 0x60,
++		.inputs         = { {
++			.name = name_tv,
++			.vmux = 1,
++			.amux = TV,
++			.tv   = 1,
++		}, {
++			.name = name_comp1,
++			.vmux = 3,
++			.amux = LINE2,
++		}, {
++			.name = name_svideo,
++			.vmux = 8,
++			.amux = LINE2,
++		} },
++		.radio = {
++			.name = name_radio,
++			.amux = LINE2,
++		},
++	},
  
+ };
+ 
+@@ -7017,6 +7044,7 @@
+ 	case SAA7134_BOARD_VIDEOMATE_TV_PVR:
+ 	case SAA7134_BOARD_VIDEOMATE_GOLD_PLUS:
+ 	case SAA7134_BOARD_VIDEOMATE_TV_GOLD_PLUSII:
++	case SAA7134_BOARD_VIDEOMATE_M1F:
+ 	case SAA7134_BOARD_VIDEOMATE_DVBT_300:
+ 	case SAA7134_BOARD_VIDEOMATE_DVBT_200:
+ 	case SAA7134_BOARD_VIDEOMATE_DVBT_200A:
+diff --git a/linux/drivers/media/video/saa7134/saa7134-input.c b/linux/drivers/media/video/saa7134/saa7134-input.c
+--- a/linux/drivers/media/video/saa7134/saa7134-input.c
++++ b/linux/drivers/media/video/saa7134/saa7134-input.c
+@@ -879,6 +879,11 @@
+ 		mask_keyup   = 0x020000;
+ 		polling      = 50; /* ms */
+ 		break;
++	case SAA7134_BOARD_VIDEOMATE_M1F:
++		ir_codes     = RC_MAP_VIDEOMATE_M1F;
++		mask_keycode = 0x0ff00;
++		mask_keyup   = 0x040000;
++		break;
+ 	break;
+ 	}
+ 	if (NULL == ir_codes) {
+diff --git a/linux/drivers/media/video/saa7134/saa7134.h b/linux/drivers/media/video/saa7134/saa7134.h
+--- a/linux/drivers/media/video/saa7134/saa7134.h
++++ b/linux/drivers/media/video/saa7134/saa7134.h
+@@ -305,6 +305,7 @@
+ #define SAA7134_BOARD_BEHOLD_H7             178
+ #define SAA7134_BOARD_BEHOLD_A7             179
+ #define SAA7134_BOARD_AVERMEDIA_M733A       180
++#define SAA7134_BOARD_VIDEOMATE_M1F         181
+ 
+ #define SAA7134_MAXBOARDS 32
+ #define SAA7134_INPUT_MAX 8
+diff --git a/linux/include/media/rc-map.h b/linux/include/media/rc-map.h
+--- a/linux/include/media/rc-map.h
++++ b/linux/include/media/rc-map.h
+@@ -112,6 +112,7 @@
+ #define RC_MAP_TERRATEC_CINERGY_XS       "rc-terratec-cinergy-xs"
+ #define RC_MAP_TEVII_NEC                 "rc-tevii-nec"
+ #define RC_MAP_TT_1500                   "rc-tt-1500"
++#define RC_MAP_VIDEOMATE_M1F             "rc-videomate-m1f"
+ #define RC_MAP_VIDEOMATE_S350            "rc-videomate-s350"
+ #define RC_MAP_VIDEOMATE_TV_PVR          "rc-videomate-tv-pvr"
+ #define RC_MAP_WINFAST                   "rc-winfast"
+Signed-off-by: Pavel Osnova <pvosnova <at> gmail.com>
 
-> +}
-> +
-> +static struct vpfe_config vpfe_cfg = {
-> +	.num_subdevs	= ARRAY_SIZE(vpfe_sub_devs),
-> +	.i2c_adapter_id	= 3,
-> +	.sub_devs	= vpfe_sub_devs,
-> +	.clr_intr	= am3517_evm_clear_vpfe_intr,
-> +	.card_name	= "AM3517 EVM",
-> +	.ccdc		= "DM6446 CCDC",
-> +};
-> +
-> +static struct resource vpfe_resources[] = {
-> +	{
-> +		.start	= INT_35XX_CCDC_VD0_IRQ,
-> +		.end	= INT_35XX_CCDC_VD0_IRQ,
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +	{
-> +		.start	= INT_35XX_CCDC_VD1_IRQ,
-> +		.end	= INT_35XX_CCDC_VD1_IRQ,
-> +		.flags	= IORESOURCE_IRQ,
-> +	},
-> +};
-> +
-> +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-> +static struct platform_device vpfe_capture_dev = {
-> +	.name		= CAPTURE_DRV_NAME,
-> +	.id		= -1,
-> +	.num_resources	= ARRAY_SIZE(vpfe_resources),
-> +	.resource	= vpfe_resources,
-> +	.dev = {
-> +		.dma_mask		= &vpfe_capture_dma_mask,
-> +		.coherent_dma_mask	= DMA_BIT_MASK(32),
-> +		.platform_data		= &vpfe_cfg,
-> +	},
-> +};
-> +
-> +static struct resource am3517_ccdc_resource[] = {
-> +	/* CCDC Base address */
-> +	{
-> +		.start	= AM35XX_IPSS_VPFE_BASE,
-> +		.end	= AM35XX_IPSS_VPFE_BASE + 0xffff,
-> +		.flags	= IORESOURCE_MEM,
-> +	},
-> +};
-> +
-> +static struct platform_device am3517_ccdc_dev = {
-> +	.name		= "dm644x_ccdc",
-> +	.id		= -1,
-> +	.num_resources	= ARRAY_SIZE(am3517_ccdc_resource),
-> +	.resource	= am3517_ccdc_resource,
-> +	.dev = {
-> +		.dma_mask		= &vpfe_capture_dma_mask,
-> +		.coherent_dma_mask	= DMA_BIT_MASK(32),
-> +	},
-> +};
-> +
->  static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
->  	{
->  		I2C_BOARD_INFO("s35390a", 0x30),
-> @@ -46,6 +199,7 @@ static struct i2c_board_info __initdata
-> am3517evm_i2c_boardinfo[] = {
->  	},
->  };
-> 
-> +
->  /*
->   * RTC - S35390A
->   */
-> @@ -261,6 +415,8 @@ static struct omap_board_config_kernel
-> am3517_evm_config[] __initdata = {
-> 
->  static struct platform_device *am3517_evm_devices[] __initdata = {
->  	&am3517_evm_dss_device,
-> +	&am3517_ccdc_dev,
-> +	&vpfe_capture_dev,
->  };
-> 
->  static void __init am3517_evm_init_irq(void)
-> @@ -313,6 +469,11 @@ static void __init am3517_evm_init(void)
-> 
->  	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
->  				ARRAY_SIZE(am3517evm_i2c_boardinfo));
-> +
-> +	clk_add_alias("master", "dm644x_ccdc", "master",
-> +			&vpfe_capture_dev.dev);
-> +	clk_add_alias("slave", "dm644x_ccdc", "slave",
-> +			&vpfe_capture_dev.dev);
->  }
-> 
->  static void __init am3517_evm_map_io(void)
-> --
-> 1.6.2.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Ramiro Morales
+
+
