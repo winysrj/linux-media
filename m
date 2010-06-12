@@ -1,46 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44716 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752794Ab0F1GUX convert rfc822-to-8bit (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:64607 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752228Ab0FLDK3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jun 2010 02:20:23 -0400
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5S6KJls026073
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 01:20:22 -0500
-Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
-	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5S6KIhE014654
-	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 11:50:19 +0530 (IST)
-From: "Taneja, Archit" <archit@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Guruswamy, Senthilvadivu" <svadivu@ti.com>,
-	"Mittal, Mukund" <mmittal@ti.com>
-Date: Mon, 28 Jun 2010 11:50:18 +0530
-Subject: V4L2 display for manual update panels
-Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030597BB26@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Fri, 11 Jun 2010 23:10:29 -0400
+Received: by pvg16 with SMTP id 16so1118590pvg.19
+        for <linux-media@vger.kernel.org>; Fri, 11 Jun 2010 20:10:28 -0700 (PDT)
 MIME-Version: 1.0
+Date: Fri, 11 Jun 2010 20:10:28 -0700
+Message-ID: <AANLkTilYElPyhhej6XYF15D9wwBtkiMWrmkTvsviCI3W@mail.gmail.com>
+Subject: [PATCH] Fix av7110 driver name
+From: VDR User <user.vdr@gmail.com>
+To: "mailing list: linux-media" <linux-media@vger.kernel.org>
+Cc: Oliver Endriss <o.endriss@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This patch simply changes the name of the av7110 driver to "AV7110"
+instead of the generic "dvb" it's set to currently.  Although it's
+somewhat trivial, it still seems appropriate to fix the name to be
+descriptive of the driver.
 
-Is anyone aware of a V4L2 display driver which supports manual update
-panels, i.e. panels which require an explicit device->driver->update
-call?
-An auto update panel would be one which does not require the V4L2 driver
-requesting for the next frame, the display drivers below the V4l2 layer
-will handle this updation of the frame and notifying the v4l2 isr to unblock
-the dqbuf ioctl.
-This manual update feature is needed for panels which support DSI command
-mode interface; in this case, it is generally the responsibility of the display
-driver users (V4L2, FB etc) to give a explicit manual update call.
+Signed-off-by: Derek Kelly <user.vdr@gmail.com>
+----------
+
+--- v4l-dvb/linux/drivers/media/dvb/ttpci/av7110.c      2010-06-11
+13:24:29.000000000 -0700
++++ v4l-dvb.orig/linux/drivers/media/dvb/ttpci/av7110.c 2010-06-11
+12:49:50.000000000 -0700
+@@ -2893,7 +2893,7 @@ MODULE_DEVICE_TABLE(pci, pci_tbl);
 
 
-Thanks,
+ static struct saa7146_extension av7110_extension_driver = {
+-       .name           = "AV7110",
++       .name           = "dvb",
+        .flags          = SAA7146_USE_I2C_IRQ,
 
-Archit
-
+        .module         = THIS_MODULE,
