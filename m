@@ -1,287 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45894 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751449Ab0FCILZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 04:11:25 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "DebBarma, Tarun Kanti" <tarun.kanti@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "mchehab@redhat.com" <mchehab@redhat.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Date: Thu, 3 Jun 2010 13:40:54 +0530
-Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
- file
-Message-ID: <19F8576C6E063C45BE387C64729E7394044E6D30D6@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
- <1275547321-31406-3-git-send-email-hvaibhav@ti.com>
- <5A47E75E594F054BAF48C5E4FC4B92AB0323207C30@dbde02.ent.ti.com>
-In-Reply-To: <5A47E75E594F054BAF48C5E4FC4B92AB0323207C30@dbde02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:63623 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753141Ab0FMQNo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jun 2010 12:13:44 -0400
+Received: by yxl31 with SMTP id 31so1057533yxl.19
+        for <linux-media@vger.kernel.org>; Sun, 13 Jun 2010 09:13:43 -0700 (PDT)
 MIME-Version: 1.0
+Date: Mon, 14 Jun 2010 00:13:43 +0800
+Message-ID: <AANLkTil_2Em3Q7IHpui30Vv35itUZOSerijSnJ-7eNfT@mail.gmail.com>
+Subject: Compro VideoMate U3 [eb1a:2870] still not working in 2.6.32
+From: Alica <alicaccs@seed.net.tw>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+My Compro VideoMate U3 DVB-T USB stick [eb1a:2870] does not work under
+Debian squeeze (kernel 2.6.32). Below is the kernel message from
+"modprobe em28xx":
 
-> -----Original Message-----
-> From: DebBarma, Tarun Kanti
-> Sent: Thursday, June 03, 2010 12:49 PM
-> To: Hiremath, Vaibhav; linux-media@vger.kernel.org
-> Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-omap@vger.kernel.org
-> Subject: RE: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
-> file
-> 
-> Vaibhav,
-> 
-> 
-> > -----Original Message-----
-> > From: linux-omap-owner@vger.kernel.org [mailto:linux-omap-
-> > owner@vger.kernel.org] On Behalf Of Hiremath, Vaibhav
-> > Sent: Thursday, June 03, 2010 12:12 PM
-> > To: linux-media@vger.kernel.org
-> > Cc: mchehab@redhat.com; Karicheri, Muralidharan; linux-
-> > omap@vger.kernel.org; Hiremath, Vaibhav
-> > Subject: [PATCH-V1 2/2] AM3517: Add VPFE Capture driver support to board
-> > file
-> >
-> > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> >
-> > Also created vpfe master/slave clock aliases, since naming
-> > convention is different in both Davinci and AM3517 devices.
-> >
-> > Signed-off-by: Vaibhav Hiremath <hvaibhav@ti.com>
-> > ---
-> >  arch/arm/mach-omap2/board-am3517evm.c |  161
-> > +++++++++++++++++++++++++++++++++
-> >  1 files changed, 161 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/arch/arm/mach-omap2/board-am3517evm.c b/arch/arm/mach-
-> > omap2/board-am3517evm.c
-> > index c1c4389..f2ff751 100644
-> > --- a/arch/arm/mach-omap2/board-am3517evm.c
-> > +++ b/arch/arm/mach-omap2/board-am3517evm.c
-> > @@ -30,15 +30,168 @@
-> >
-> >  #include <plat/board.h>
-> >  #include <plat/common.h>
-> > +#include <plat/control.h>
-> >  #include <plat/usb.h>
-> >  #include <plat/display.h>
-> >
-> > +#include <media/tvp514x.h>
-> > +#include <media/davinci/vpfe_capture.h>
-> > +
-> >  #include "mux.h"
-> >
-> >  #define LCD_PANEL_PWR		176
-> >  #define LCD_PANEL_BKLIGHT_PWR	182
-> >  #define LCD_PANEL_PWM		181
-> >
-> > +/*
-> > + * VPFE - Video Decoder interface
-> > + */
-> > +#define TVP514X_STD_ALL		(V4L2_STD_NTSC | V4L2_STD_PAL)
-> > +
-> > +/* Inputs available at the TVP5146 */
-> > +static struct v4l2_input tvp5146_inputs[] = {
-> > +	{
-> > +		.index	= 0,
-> > +		.name	= "Composite",
-> > +		.type	= V4L2_INPUT_TYPE_CAMERA,
-> > +		.std	= TVP514X_STD_ALL,
-> > +	},
-> > +	{
-> > +		.index	= 1,
-> > +		.name	= "S-Video",
-> > +		.type	= V4L2_INPUT_TYPE_CAMERA,
-> > +		.std	= TVP514X_STD_ALL,
-> > +	},
-> > +};
-> > +
-> > +static struct tvp514x_platform_data tvp5146_pdata = {
-> > +	.clk_polarity	= 0,
-> > +	.hs_polarity	= 1,
-> > +	.vs_polarity	= 1
-> > +};
-> > +
-> > +static struct vpfe_route tvp5146_routes[] = {
-> > +	{
-> > +		.input	= INPUT_CVBS_VI1A,
-> > +		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
-> > +	},
-> > +	{
-> > +		.input	= INPUT_SVIDEO_VI2C_VI1C,
-> > +		.output	= OUTPUT_10BIT_422_EMBEDDED_SYNC,
-> > +	},
-> > +};
-> > +
-> > +static struct vpfe_subdev_info vpfe_sub_devs[] = {
-> > +	{
-> > +		.name		= "tvp5146",
-> > +		.grp_id		= 0,
-> > +		.num_inputs	= ARRAY_SIZE(tvp5146_inputs),
-> > +		.inputs		= tvp5146_inputs,
-> > +		.routes		= tvp5146_routes,
-> > +		.can_route	= 1,
-> > +		.ccdc_if_params	= {
-> > +			.if_type = VPFE_BT656,
-> > +			.hdpol	= VPFE_PINPOL_POSITIVE,
-> > +			.vdpol	= VPFE_PINPOL_POSITIVE,
-> > +		},
-> > +		.board_info	= {
-> > +			I2C_BOARD_INFO("tvp5146", 0x5C),
-> > +			.platform_data = &tvp5146_pdata,
-> > +		},
-> > +	},
-> > +};
-> > +
-> > +static void am3517_evm_clear_vpfe_intr(int vdint)
-> > +{
-> > +	unsigned int vpfe_int_clr;
-> > +
-> > +	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-> > +
-> > +	switch (vdint) {
-> > +	/* VD0 interrrupt */
-> > +	case INT_35XX_CCDC_VD0_IRQ:
-> > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD0_INT_CLR;
-> > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD0_INT_CLR;
-> > +		break;
-> > +	/* VD1 interrrupt */
-> > +	case INT_35XX_CCDC_VD1_IRQ:
-> > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD1_INT_CLR;
-> > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD1_INT_CLR;
-> > +		break;
-> > +	/* VD2 interrrupt */
-> > +	case INT_35XX_CCDC_VD2_IRQ:
-> > +		vpfe_int_clr &= ~AM35XX_VPFE_CCDC_VD2_INT_CLR;
-> > +		vpfe_int_clr |= AM35XX_VPFE_CCDC_VD2_INT_CLR;
-> > +		break;
-> > +	/* Clear all interrrupts */
-> > +	default:
-> > +		vpfe_int_clr &= ~(AM35XX_VPFE_CCDC_VD0_INT_CLR |
-> > +				AM35XX_VPFE_CCDC_VD1_INT_CLR |
-> > +				AM35XX_VPFE_CCDC_VD2_INT_CLR);
-> > +		vpfe_int_clr |= (AM35XX_VPFE_CCDC_VD0_INT_CLR |
-> > +				AM35XX_VPFE_CCDC_VD1_INT_CLR |
-> > +				AM35XX_VPFE_CCDC_VD2_INT_CLR);
-> > +		break;
-> > +	}
-> > +	omap_ctrl_writel(vpfe_int_clr, AM35XX_CONTROL_LVL_INTR_CLEAR);
-> > +	vpfe_int_clr = omap_ctrl_readl(AM35XX_CONTROL_LVL_INTR_CLEAR);
-> 
-> Is it necessary to assign to the local variable (vpfe_int_clr)? If not, we
-> can reduce the size of this routine by two assembly instructions:
-> One: copying the result to a register
-> Two: pushing the register value to stack
-> 
-[Hiremath, Vaibhav] How are you going to achieve this? How are you going to define the switch case values here?
+> Jun 13 01:51:42 dvb kernel: [85382.931321] Linux video capture interface: v2.00
+> Jun 13 01:51:42 dvb kernel: [85382.950628] em28xx: New device VideoMate U3 @ 480 Mbps (eb1a:2870, interface 0, class 0)
+> Jun 13 01:51:42 dvb kernel: [85382.951393] em28xx #0: chip ID is em2870
+> Jun 13 01:51:42 dvb kernel: [85383.029814] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 70 28 40 12 62 40 6a 1c 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.029868] em28xx #0: i2c eeprom 10: 00 00 04 57 0e 1d 00 00 00 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.029917] em28xx #0: i2c eeprom 20: 04 00 00 00 f0 10 01 00 00 00 00 00 5b 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.029965] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030013] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030061] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030109] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 1c 03 56 00 69 00
+> Jun 13 01:51:42 dvb kernel: [85383.030157] em28xx #0: i2c eeprom 70: 64 00 65 00 6f 00 4d 00 61 00 74 00 65 00 20 00
+> Jun 13 01:51:42 dvb kernel: [85383.030205] em28xx #0: i2c eeprom 80: 55 00 33 00 00 00 63 00 65 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030253] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030301] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030349] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030397] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030445] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030493] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030541] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+> Jun 13 01:51:42 dvb kernel: [85383.030591] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xc9c50bc9
+> Jun 13 01:51:42 dvb kernel: [85383.030611] em28xx #0: EEPROM info:
+> Jun 13 01:51:42 dvb kernel: [85383.030627] em28xx #0:^INo audio on board.
+> Jun 13 01:51:42 dvb kernel: [85383.030643] em28xx #0:^I500mA max power
+> Jun 13 01:51:42 dvb kernel: [85383.030661] em28xx #0:^ITable at 0x04, strings=0x1c6a, 0x0000, 0x0000
+> Jun 13 01:51:42 dvb kernel: [85383.031562] em28xx #0: Identified as Unknown EM2750/28xx video grabber (card=1)
+> Jun 13 01:51:42 dvb kernel: [85383.053436] em28xx #0: found i2c device @ 0xa0 [eeprom]
+> Jun 13 01:51:42 dvb kernel: [85383.058435] em28xx #0: found i2c device @ 0xc4 [tuner (analog)]
+> Jun 13 01:51:42 dvb kernel: [85383.067576] em28xx #0: v4l2 driver version 0.1.2
+> Jun 13 01:51:42 dvb kernel: [85383.077231] em28xx #0: V4L2 video device registered as /dev/video0
+> Jun 13 01:51:42 dvb kernel: [85383.077302] usbcore: registered new interface driver em28xx
+> Jun 13 01:51:42 dvb kernel: [85383.078147] em28xx driver loaded
 
-Also currently this covers only VPFE Capture related interrupts but this function may required for other modules which are part of IPSS, like HECC, EMAC and USBOTG.
-
-Thanks,
-Vaibhav
-
-> -Tarun
-> 
-> 
-> > +}
-> > +
-> > +static struct vpfe_config vpfe_cfg = {
-> > +	.num_subdevs	= ARRAY_SIZE(vpfe_sub_devs),
-> > +	.i2c_adapter_id	= 3,
-> > +	.sub_devs	= vpfe_sub_devs,
-> > +	.clr_intr	= am3517_evm_clear_vpfe_intr,
-> > +	.card_name	= "AM3517 EVM",
-> > +	.ccdc		= "DM6446 CCDC",
-> > +};
-> > +
-> > +static struct resource vpfe_resources[] = {
-> > +	{
-> > +		.start	= INT_35XX_CCDC_VD0_IRQ,
-> > +		.end	= INT_35XX_CCDC_VD0_IRQ,
-> > +		.flags	= IORESOURCE_IRQ,
-> > +	},
-> > +	{
-> > +		.start	= INT_35XX_CCDC_VD1_IRQ,
-> > +		.end	= INT_35XX_CCDC_VD1_IRQ,
-> > +		.flags	= IORESOURCE_IRQ,
-> > +	},
-> > +};
-> > +
-> > +static u64 vpfe_capture_dma_mask = DMA_BIT_MASK(32);
-> > +static struct platform_device vpfe_capture_dev = {
-> > +	.name		= CAPTURE_DRV_NAME,
-> > +	.id		= -1,
-> > +	.num_resources	= ARRAY_SIZE(vpfe_resources),
-> > +	.resource	= vpfe_resources,
-> > +	.dev = {
-> > +		.dma_mask		= &vpfe_capture_dma_mask,
-> > +		.coherent_dma_mask	= DMA_BIT_MASK(32),
-> > +		.platform_data		= &vpfe_cfg,
-> > +	},
-> > +};
-> > +
-> > +static struct resource am3517_ccdc_resource[] = {
-> > +	/* CCDC Base address */
-> > +	{
-> > +		.start	= AM35XX_IPSS_VPFE_BASE,
-> > +		.end	= AM35XX_IPSS_VPFE_BASE + 0xffff,
-> > +		.flags	= IORESOURCE_MEM,
-> > +	},
-> > +};
-> > +
-> > +static struct platform_device am3517_ccdc_dev = {
-> > +	.name		= "dm644x_ccdc",
-> > +	.id		= -1,
-> > +	.num_resources	= ARRAY_SIZE(am3517_ccdc_resource),
-> > +	.resource	= am3517_ccdc_resource,
-> > +	.dev = {
-> > +		.dma_mask		= &vpfe_capture_dma_mask,
-> > +		.coherent_dma_mask	= DMA_BIT_MASK(32),
-> > +	},
-> > +};
-> > +
-> >  static struct i2c_board_info __initdata am3517evm_i2c_boardinfo[] = {
-> >  	{
-> >  		I2C_BOARD_INFO("s35390a", 0x30),
-> > @@ -46,6 +199,7 @@ static struct i2c_board_info __initdata
-> > am3517evm_i2c_boardinfo[] = {
-> >  	},
-> >  };
-> >
-> > +
-> >  /*
-> >   * RTC - S35390A
-> >   */
-> > @@ -261,6 +415,8 @@ static struct omap_board_config_kernel
-> > am3517_evm_config[] __initdata = {
-> >
-> >  static struct platform_device *am3517_evm_devices[] __initdata = {
-> >  	&am3517_evm_dss_device,
-> > +	&am3517_ccdc_dev,
-> > +	&vpfe_capture_dev,
-> >  };
-> >
-> >  static void __init am3517_evm_init_irq(void)
-> > @@ -313,6 +469,11 @@ static void __init am3517_evm_init(void)
-> >
-> >  	i2c_register_board_info(1, am3517evm_i2c_boardinfo,
-> >  				ARRAY_SIZE(am3517evm_i2c_boardinfo));
-> > +
-> > +	clk_add_alias("master", "dm644x_ccdc", "master",
-> > +			&vpfe_capture_dev.dev);
-> > +	clk_add_alias("slave", "dm644x_ccdc", "slave",
-> > +			&vpfe_capture_dev.dev);
-> >  }
-> >
-> >  static void __init am3517_evm_map_io(void)
-> > --
-> > 1.6.2.4
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-omap" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Adding the card=46 module option (which is U3 listed as 185b:2870 in
+CARDLIST.em28xx) also does not populate the dvb device. Any
+suggestions?
