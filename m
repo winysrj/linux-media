@@ -1,37 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.asenwelt.de ([89.238.66.139]:49613 "EHLO
-	extern.asenwelt.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932456Ab0FOVQI (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:51391 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754656Ab0FMT6B convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jun 2010 17:16:08 -0400
-Message-ID: <4C17EBD1.1030807@asenwelt.de>
-Date: Tue, 15 Jun 2010 23:08:33 +0200
-From: Malte Zacharias <kernel-ml-alias@asenwelt.de>
+	Sun, 13 Jun 2010 15:58:01 -0400
 MIME-Version: 1.0
-To: crope@iki.fi, linux-media@vger.kernel.org
-Subject: Re: AVerTV Volar HD PRO (A835)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <alpine.DEB.2.01.1006131103590.3964@bogon.housecafe.de>
+References: <g77CuMUl7QI.A.5wF.V5OFMB@chimera> <YPGdyfWGvNK.A.C8B.d9OFMB@chimera>
+	<201006131722.44062.s.L-H@gmx.de> <alpine.DEB.2.01.1006131103590.3964@bogon.housecafe.de>
+From: Grant Likely <grant.likely@secretlab.ca>
+Date: Sun, 13 Jun 2010 13:57:40 -0600
+Message-ID: <AANLkTily7ZDG16uE2vSsq8t3mssuATwtHnr8OajX8oga@mail.gmail.com>
+Subject: Re: [Bug #15589] 2.6.34-rc1: Badness at fs/proc/generic.c:316
+To: Christian Kujau <lists@nerdbynature.de>
+Cc: Stefan Lippers-Hollmann <s.L-H@gmx.de>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Kernel Testers List <kernel-testers@vger.kernel.org>,
+	Maciej Rutecki <maciej.rutecki@gmail.com>,
+	Michael Ellerman <michael@ellerman.id.au>,
+	linux-media@vger.kernel.org, mchehab@infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hei Antti,
+On Sun, Jun 13, 2010 at 12:10 PM, Christian Kujau <lists@nerdbynature.de> wrote:
+> On Sun, 13 Jun 2010 at 17:22, Stefan Lippers-Hollmann wrote:
+>> Still existing in 2.6.34 and 2.6.35 HEAD, however a patch fixing the issue
+>> for b2c2-flexcop/ flexcop-pci has been posted last week:
+>
+> So, now we have two patches for slightly different issues?
+>
+> * http://lkml.indiana.edu/hypermail/linux/kernel/1006.0/00137.html
+>  ...fixes the flexcop-pci.c driver.
+>
+> * http://patchwork.ozlabs.org/patch/52978/
+>  ...fixes "some bogus firmwares include properties with "/" in their
+>  name". I'm not sure if this would make the flexcop-pci.c badness go
+>  away too.
+>
+> Anyway, both patches are not upstream yet, but Michael mentioned that
+> Grant Likely or Ben might push it eventually.
 
-I picked this thread up from the web archive at
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/18690/focus=19258
+On brief review, they look like completely different issues.  I doubt
+the second patch will fix the flexcop-pci issue.  I'll pick up the
+device tree patch, but the flexcop-pci patch should go in by the
+v4l/dvb tree.
 
-I too have  an Aver A835 DVB-T USB Stick and was wondering if it can be 
-supported, after a thorough search I didn't find evidence in the web to 
-support that, so I thought I might reopen the thread.
-
-I checked the Windows driver .inf file as per your suggestion and can 
-confirm that AF9035 appears to be the chipset. What steps are needed to 
-get this supported? I am not afraid to patch my kernel and test whether 
-it works, unfortunately I can't create such a patch by myself.
-
-I have the hardware at hand and am willing to support you in every way 
-possible (Preferarbly without harming the device :-) ). What more 
-information would you need?
-
-Greetings
-Malte Z.
+g.
