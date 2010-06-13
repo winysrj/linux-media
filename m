@@ -1,41 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 30.mail-out.ovh.net ([213.186.62.213]:42770 "HELO
-	30.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751176Ab0FUHGX (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.26]:24203 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753202Ab0FMKHg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 03:06:23 -0400
-Message-ID: <4C1F0DDC.4070307@ventoso.org>
-Date: Mon, 21 Jun 2010 08:59:40 +0200
-From: Luca Olivetti <luca@ventoso.org>
+	Sun, 13 Jun 2010 06:07:36 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so521645eya.19
+        for <linux-media@vger.kernel.org>; Sun, 13 Jun 2010 03:07:35 -0700 (PDT)
+Date: Sun, 13 Jun 2010 12:07:22 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: VDR User <user.vdr@gmail.com>
+cc: "mailing list: linux-media" <linux-media@vger.kernel.org>,
+	Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: [PATCH] Fix av7110 driver name
+In-Reply-To: <AANLkTilYElPyhhej6XYF15D9wwBtkiMWrmkTvsviCI3W@mail.gmail.com>
+Message-ID: <alpine.DEB.2.01.1006131200580.17071@localhost.localdomain>
+References: <AANLkTilYElPyhhej6XYF15D9wwBtkiMWrmkTvsviCI3W@mail.gmail.com>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@kernellabs.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] af9005: use generic_bulk_ctrl_endpoint_response
-References: <AANLkTimtPb6A5Cd6mB2z3S5U2uZy0l4fkbVyyL3njizs@mail.gmail.com>
-In-Reply-To: <AANLkTimtPb6A5Cd6mB2z3S5U2uZy0l4fkbVyyL3njizs@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-En/na Michael Krufky ha escrit:
-> Could somebody please test this patch and confirm that it doesn't
-> break the af9005 support?
-> 
-> This patch removes the af9005_usb_generic_rw function and uses the
-> dvb_usb_generic_rw function instead, using
-> generic_bulk_ctrl_endpoint_response to differentiate between the read
-> pipe and the write pipe.
+On Sat (Saturday) 12.Jun (June) 2010, 05:10,  VDR User wrote:
 
-Unfortunately I cannot test it (my device is broken)[*].
-At the time I wrote my own rw function because I didn't find a way to 
-send on a bulk endpoint and receiving on another one (i.e. I didn't know 
-about generic_bulk_ctrl_endpoint/generic_bulk_ctrl_endpoint_response or 
-they weren't available at the time).
+> This patch simply changes the name of the av7110 driver to "AV7110"
+> instead of the generic "dvb" it's set to currently.  Although it's
+> somewhat trivial, it still seems appropriate to fix the name to be
+> descriptive of the driver.
 
-[*]Actually the tuner is broken, but the usb is working fine, so maybe I 
-can give it a try.
+Thanks Derek; I'll just note that as submitted, the trivial patch
+is a ``reversed'' patch, but I'd hope that any tools written for
+auto-patch-handing should be able to detect this and correct this
+issue.
 
-Bye
--- 
-Luca
+The other patch is in ``proper'' order, so no worries.
+
+
+
+> --- v4l-dvb/linux/drivers/media/dvb/ttpci/av7110.c      2010-06-11
+> 13:24:29.000000000 -0700
+> +++ v4l-dvb.orig/linux/drivers/media/dvb/ttpci/av7110.c 2010-06-11
+> 12:49:50.000000000 -0700
+
+
+> -       .name           = "AV7110",
+> +       .name           = "dvb",
+
+
+thanks,
+barry bouwsma
