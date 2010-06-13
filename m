@@ -1,136 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31392 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932446Ab0FEAVY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jun 2010 20:21:24 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o550LOiK012574
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 20:21:24 -0400
-Received: from pedra (vpn-10-9.rdu.redhat.com [10.11.10.9])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o550LI7l015252
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 20:21:23 -0400
-Date: Fri, 4 Jun 2010 21:21:08 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/6] tm6000: Fix compilation breakages
-Message-ID: <20100604212108.4e1f233e@pedra>
-In-Reply-To: <cover.1275696910.git.mchehab@redhat.com>
-References: <cover.1275696910.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:46122 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754766Ab0FMU3t (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 13 Jun 2010 16:29:49 -0400
+Date: Sun, 13 Jun 2010 22:29:45 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: Re: [PATCH 3/4] ir-core: move decoding state to ir_raw_event_ctrl
+Message-ID: <20100613202945.GA5883@hardeman.nu>
+References: <20100424211411.11570.2189.stgit@localhost.localdomain>
+ <4BDF2B45.9060806@redhat.com>
+ <20100607190003.GC19390@hardeman.nu>
+ <20100607201530.GG16638@redhat.com>
+ <20100608175017.GC5181@hardeman.nu>
+ <AANLkTimuYkKzDPvtnrWKoT8sh1H9paPBQQNmYWOT7-R2@mail.gmail.com>
+ <20100609132908.GM16638@redhat.com>
+ <20100609175621.GA19620@hardeman.nu>
+ <20100609181506.GO16638@redhat.com>
+ <AANLkTims0dmYCOoI_K4S6Q8hwLV_MqUdGQjVwFu43sCL@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTims0dmYCOoI_K4S6Q8hwLV_MqUdGQjVwFu43sCL@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A previous patch seemed to break compilation of the driver.
+On Wed, Jun 09, 2010 at 09:25:44PM -0400, Jarod Wilson wrote:
+> On Wed, Jun 9, 2010 at 2:15 PM, Jarod Wilson <jarod@redhat.com> wrote:
+> > On Wed, Jun 09, 2010 at 07:56:21PM +0200, David Härdeman wrote:
+> >> On Wed, Jun 09, 2010 at 09:29:08AM -0400, Jarod Wilson wrote:
+> ...
+> >> > So this definitely negatively impacts my ir-core-to-lirc_dev
+> >> > (ir-lirc-codec.c) bridge driver, as it was doing the lirc_dev device
+> >> > registration work in its register function. However, if (after your
+> >> > patchset) we add a new pair of callbacks replacing raw_register and
+> >> > raw_unregister, which are optional, that work could be done there instead,
+> >> > so I don't think this is an insurmountable obstacle for the lirc bits.
+> >>
+> >> While I'm not sure exactly what callbacks you're suggesting,
+> >
+> > Essentially:
+> >
+> > .setup_other_crap
+> > .tear_down_other_crap
+> >
+> > ...which in the ir-lirc-codec case, register ir-lirc-codec for a specific
+> > hardware receiver as an lirc_dev client, and conversely, tear it down.
+> >
+> >> it still
+> >> sounds like the callbacks would have the exact same problems that the
+> >> current code has (i.e. the decoder will be blissfully unaware of
+> >> hardware which exists before the decoder is loaded). Right?
+> >
+> > In my head, this was going to work out, but you're correct, I still have
+> > the exact same problem -- its not in ir_raw_handler_list yet when
+> > ir_raw_event_register runs, and thus the callback never fires, so lirc_dev
+> > never actually gets wired up to ir-lirc-codec. It now knows about the lirc
+> > decoder, but its completely useless. Narf.
+> 
+> And now I have it working atop your patches. Its a bit of a nasty-ish
+> hack, at least for the lirc case, but its working, even in the case
+> where the decoder drivers aren't actually loaded until after the
+> device driver. I've added one extra param to each protocol-specific
+> struct in ir-core-priv.h (bool initialized) and hooked into the
+> protocol-specific decode functions to both determine whether a
+> protocol should be enabled or disabled by default, and to run any
+> additionally required initialization (such as in the ir-lirc-codec
+> case).
+> 
+> So initially, mceusb comes up with all decoders enabled. Then when ir
+> comes in, every protocol-specific decoder fires. Each of them check
+> for whether or not they've been fully initialized, and if not, we
+> check the loaded keymap, and if it doesn't match, we disable that
+> decoder (bringing back the "disable protocol handlers we don't need"
+> functionality that disappeared w/this patchset). In the lirc case, we
+> actually do all the work needed to wire up the connection over to
+> lirc_dev.
+> 
+> This works perfectly fine for all the in-kernel decoders, but has one
+> minor shortcoming for ir-lirc-codec, in that /dev/lirc0 won't actually
+> exist until the first incoming ir signal is seen. lircd can handle
+> this case just fine, it'll wait for /dev/lirc0 to show up, but it
+> doesn't come up fast enough to catch and decode the very first
+> incoming ir signal. Subsequent ones work perfectly fine though. This
+> need to initialize the link via incoming ir is a bit problematic if
+> you're using a device for transmit-only (e.g., and mceusb device
+> hooked to a mythtv backend in the closet or something), as there would
+> be a strong possibility of /dev/lirc0 never getting hooked up. I can
+> think of a few workarounds, but none are particularly clean and/or
+> automagic.
+> 
+> Not sure how palatable it is, but here it is:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+I think it sounds pretty awful :)
 
- mode change 100644 => 100755 Documentation/video4linux/extract_xc3028.pl
+I have another suggestion, let's keep the client register/unregister 
+callbacks for decoders (but add a comment that they're only used for 
+lirc). Then teach drivers/media/IR/ir-raw-event.c to keep track of the 
+raw clients so that it can pass all pre-existing clients to newly added 
+decoders.
 
-diff --git a/Documentation/video4linux/extract_xc3028.pl b/Documentation/video4linux/extract_xc3028.pl
-old mode 100644
-new mode 100755
-diff --git a/drivers/staging/tm6000/tm6000-cards.c b/drivers/staging/tm6000/tm6000-cards.c
-index 4a8c659..50756e5 100644
---- a/drivers/staging/tm6000/tm6000-cards.c
-+++ b/drivers/staging/tm6000/tm6000-cards.c
-@@ -683,7 +683,6 @@ static int tm6000_init_dev(struct tm6000_core *dev)
- 	tm6000_add_into_devlist(dev);
- 	tm6000_init_extension(dev);
- 
--	}
- 	mutex_unlock(&dev->lock);
- 	return 0;
- 
-diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-index 2fbf4f6..1f2765c 100644
---- a/drivers/staging/tm6000/tm6000-core.c
-+++ b/drivers/staging/tm6000/tm6000-core.c
-@@ -295,7 +295,6 @@ int tm6000_init_analog_mode(struct tm6000_core *dev)
- 			tm6000_set_reg(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE, 0x20);
- 		else	/* Enable Hfilter and disable TS Drop err */
- 			tm6000_set_reg(dev, TM6010_REQ07_RC0_ACTIVE_VIDEO_SOURCE, 0x80);
--		}
- 
- 		tm6000_set_reg(dev, TM6010_REQ07_RC3_HSTART1, 0x88);
- 		tm6000_set_reg(dev, TM6010_REQ07_RD8_IR_WAKEUP_SEL, 0x23);
-@@ -401,7 +400,7 @@ int tm6000_init_digital_mode(struct tm6000_core *dev)
- 
- 	return 0;
- }
--EXPORT_SYMBOL(tm6000_init_digial_mode);
-+EXPORT_SYMBOL(tm6000_init_digital_mode);
- 
- struct reg_init {
- 	u8 req;
-diff --git a/drivers/staging/tm6000/tm6000-dvb.c b/drivers/staging/tm6000/tm6000-dvb.c
-index 3ccc466..5ee1aff 100644
---- a/drivers/staging/tm6000/tm6000-dvb.c
-+++ b/drivers/staging/tm6000/tm6000-dvb.c
-@@ -38,7 +38,7 @@ MODULE_SUPPORTED_DEVICE("{{Trident, tm5600},"
- 			"{{Trident, tm6000},"
- 			"{{Trident, tm6010}");
- 
--static int debug
-+static int debug;
- 
- module_param(debug, int, 0644);
- MODULE_PARM_DESC(debug, "enable debug message");
-@@ -191,7 +191,7 @@ int tm6000_start_feed(struct dvb_demux_feed *feed)
- 		dvb->streams = 1;
- /*		mutex_init(&tm6000_dev->streming_mutex); */
- 		tm6000_start_stream(dev);
--	} else {
-+	} else
- 		++(dvb->streams);
- 	mutex_unlock(&dvb->mutex);
- 
-@@ -227,7 +227,7 @@ int tm6000_dvb_attach_frontend(struct tm6000_core *dev)
- 
- 	if (dev->caps.has_zl10353) {
- 		struct zl10353_config config = {
--				     demod_address = dev->demod_addr,
-+				     .demod_address = dev->demod_addr,
- 				     .no_tuner = 1,
- 				     .parallel_ts = 1,
- 				     .if2 = 45700,
-@@ -390,7 +390,7 @@ static int dvb_init(struct tm6000_core *dev)
- 	int rc;
- 
- 	if (!dev)
--		retrun 0;
-+		return 0;
- 
- 	if (!dev->caps.has_dvb)
- 		return 0;
-@@ -427,7 +427,7 @@ static int dvb_fini(struct tm6000_core *dev)
- 		dev->dvb = NULL;
- 	}
- 
--	retrun 0;
-+	return 0;
- }
- 
- static struct tm6000_ops dvb_ops = {
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index 4b65094..18d1e51 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -269,9 +269,6 @@ int tm6000_init_analog_mode(struct tm6000_core *dev);
- int tm6000_init_digital_mode(struct tm6000_core *dev);
- int tm6000_set_audio_bitrate(struct tm6000_core *dev, int bitrate);
- 
--int tm6000_dvb_register(struct tm6000_core *dev);
--void tm6000_dvb_unregister(struct tm6000_core *dev);
--
- int tm6000_v4l2_register(struct tm6000_core *dev);
- int tm6000_v4l2_unregister(struct tm6000_core *dev);
- int tm6000_v4l2_exit(void);
+I'll post two patches (compile tested only) in a few seconds to show 
+what I mean.
+
 -- 
-1.7.1
-
-
+David Härdeman
