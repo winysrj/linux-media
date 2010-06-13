@@ -1,81 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:44955 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752525Ab0FJGtJ (ORCPT
+Received: from mail-in-11.arcor-online.net ([151.189.21.51]:42583 "EHLO
+	mail-in-11.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754228Ab0FMRyL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jun 2010 02:49:09 -0400
-Received: by ey-out-2122.google.com with SMTP id 25so343268eya.19
-        for <linux-media@vger.kernel.org>; Wed, 09 Jun 2010 23:49:08 -0700 (PDT)
-Date: Thu, 10 Jun 2010 08:48:45 +0200 (CEST)
-From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
-To: =?UTF-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-cc: linux-media@vger.kernel.org
-Subject: Re: Is anybody working on TechniSat CableStar Combo HD CI USB
- device?
-In-Reply-To: <87eighygoy.fsf@nemi.mork.no>
-Message-ID: <alpine.DEB.2.01.1006090014310.17071@localhost.localdomain>
-References: <20100607070123.GA28216@wozi.local> <4C0D4E18.30507@vanbest.org> <20100608062621.GA4053@wozi.local> <291a60d4cc2cd21b923d74bd86856c6b.squirrel@www.vanbest.eu> <AANLkTik0KfaObIY7Hwki-_uuIU6m3KgsaaiNa5u4WnSu@mail.gmail.com>
- <87eighygoy.fsf@nemi.mork.no>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Sun, 13 Jun 2010 13:54:11 -0400
+Subject: Re: [PATCH] Fix av7110 driver name
+From: hermann pitton <hermann-pitton@arcor.de>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Cc: VDR User <user.vdr@gmail.com>,
+	"mailing list: linux-media" <linux-media@vger.kernel.org>,
+	Oliver Endriss <o.endriss@gmx.de>
+In-Reply-To: <alpine.DEB.2.01.1006131200580.17071@localhost.localdomain>
+References: <AANLkTilYElPyhhej6XYF15D9wwBtkiMWrmkTvsviCI3W@mail.gmail.com>
+	 <alpine.DEB.2.01.1006131200580.17071@localhost.localdomain>
+Content-Type: text/plain
+Date: Sun, 13 Jun 2010 19:48:04 +0200
+Message-Id: <1276451284.3128.18.camel@pc07.localdom.local>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue (Tuesday) 08.Jun (June) 2010, 12:14,  Bjørn Mork wrote:
+Hi Barry,
 
-> Markus Rechberger <mrechberger@gmail.com> writes:
+Am Sonntag, den 13.06.2010, 12:07 +0200 schrieb BOUWSMA Barry:
+> On Sat (Saturday) 12.Jun (June) 2010, 05:10,  VDR User wrote:
 > 
-> > Trident is also still improving the quality of their driver and
-> > firmware, it very much makes
-> > sense that they handle their driver especially since those DRX drivers
-> > are very complex
-> > (basically too complex for being handled by the community, the drivers
-> > would just
-> > end up somewhere unmaintained).
+> > This patch simply changes the name of the av7110 driver to "AV7110"
+> > instead of the generic "dvb" it's set to currently.  Although it's
+> > somewhat trivial, it still seems appropriate to fix the name to be
+> > descriptive of the driver.
 > 
-> Ouch.  That makes me wonder about the state of the Windows drivers for
-> those devices...  Better stay away from them, I guess.
+> Thanks Derek; I'll just note that as submitted, the trivial patch
+> is a ``reversed'' patch, but I'd hope that any tools written for
+> auto-patch-handing should be able to detect this and correct this
+> issue.
+> 
+> The other patch is in ``proper'' order, so no worries.
+> 
+> 
+> 
+> > --- v4l-dvb/linux/drivers/media/dvb/ttpci/av7110.c      2010-06-11
+> > 13:24:29.000000000 -0700
+> > +++ v4l-dvb.orig/linux/drivers/media/dvb/ttpci/av7110.c 2010-06-11
+> > 12:49:50.000000000 -0700
+> 
+> 
+> > -       .name           = "AV7110",
+> > +       .name           = "dvb",
+> 
+> 
+> thanks,
+> barry bouwsma
 
-Just to throw this out there, the 'doze support for one such
-Micronas-based device I have -- the Linux kernel support for which
-either does not exist or cannot be publicly distributed -- is less
-than optimal in my experience, which may have nothing to do with
-reality.
+the whole situation, dealing with such sort of patches, also given the
+noise for nothing previously, is of course somewhat unpleasant.
 
-While I was able to make a flawless test recording for a few
-minutes of one medium-bitrate lower-resolution high-definition
-programme to mislead me into thinking that I'd have success with
-a full-length programme, for some reason it turned out that my use
-of the device under 'doze for an extended time on a borrowed 'doze
-box suffered fairly frequent problems manifested each as a short
-dropout of the recording.
+But out of such, we had best support from people not obviously related
+to linux many times and that counts.
 
-This could also be pilot error, as I remain willfully ignorant of
-'doze and its details, but if a machine with CPU horsepower over
-eight times that (neglecting other acceleration) of my workhorse
-that routinely makes four simultaneous flawless recordings
-including some at higher resolution/bitrate, is unable to keep up
-with the bitstream, then something has got to be seriously wrong,
-in my opinion.
+So, for my experience, it is always worth to have some rumble.
 
-A later recording of a higher bitrate (excellent quality standard-
-definition video source) stream again exhibited the same problem.
-Perhaps 'doze can't keep up writing to its own native filesystem
-as it approaches being full, or if I can't keep my hands away from
-configuring it to be user-hostile as I prefer.
-
-And of course there's the factor of intermediate hardware to be
-considered -- my device is connected via a USB interface which has
-caused major filesystem corruption over time with the particular
-Linux kernel I was using, despite of working flawlessly with a
-different video card.  And 'doze...  *shiver*
-
-Anyway, I'd be happy to learn that others have had success with
-the same device, although for me it's no longer a priority to have
-it working, to say nothing of working perfectly.  My testing of
-the device has been relatively minimal, using it where other tuner
-cards lack support.
+Cheers,
+Hermann
 
 
-barry bouwsma
+
+
+
+
