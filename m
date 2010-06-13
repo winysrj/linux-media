@@ -1,101 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:56178 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758053Ab0FOSxz (ORCPT
+Received: from netrider.rowland.org ([192.131.102.5]:48476 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753821Ab0FMPWs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jun 2010 14:53:55 -0400
-From: "Sergey V." <sftp.mtuci@gmail.com>
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Subject: Re: [PATCH 4/8]drivers:tmp.c Fix warning: variable 'rc' set but not used
-Date: Tue, 15 Jun 2010 22:53:43 +0400
-Cc: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
-	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
-	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com> <1276547208-26569-5-git-send-email-justinmattock@gmail.com>
-In-Reply-To: <1276547208-26569-5-git-send-email-justinmattock@gmail.com>
+	Sun, 13 Jun 2010 11:22:48 -0400
+Date: Sun, 13 Jun 2010 11:22:46 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: thomas.schorpp@gmail.com
+cc: "C. Hemsing" <C.Hemsing@gmx.net>, <linux-media@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>
+Subject: Re: was: af9015, af9013 DVB-T problems. now: Intermittent USB
+ disconnects with many (2.0) high speed devices
+In-Reply-To: <4C14E971.5020604@gmail.com>
+Message-ID: <Pine.LNX.4.44L0.1006131117530.23535-100000@netrider.rowland.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201006152253.44326.sftp.mtuci@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 15 of June 2010 00:26:44 Justin P. Mattock wrote:
-> Im getting this warning when compiling:
->  CC      drivers/char/tpm/tpm.o
-> drivers/char/tpm/tpm.c: In function 'tpm_gen_interrupt':
-> drivers/char/tpm/tpm.c:508:10: warning: variable 'rc' set but not used
+On Sun, 13 Jun 2010, thomas schorpp wrote:
+
+> Am 13.06.2010 15:57, schrieb Alan Stern:
+> > On Sun, 13 Jun 2010, thomas schorpp wrote:
+> >
+> >> ehci-hcd is broken and halts silently or disconnects after hours or a few days, with the wlan usb adapter
+> >
+> > How do you know the bug is in ehci-hcd and not in the hardware?
 > 
-> The below patch gets rid of the warning,
-> but I'm not sure if it's the best solution.
+> All 3 usb devices and 2 different series VIA usb hosts and Hemsing's and many other broken i2c comms reporter's on linux-media are broken instead?
+
+It's certainly possible and has been known to happen.
+
+> Well, if we get that confirmed, I'll buy 2 of those with NEC chipset:
+> http://cgi.ebay.de/ws/eBayISAPI.dll?ViewItem&item=190318779935
 > 
->  Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+> >
+> >> I was able to catch a dmesg err message like "ehci...force halt... handshake failed" once only.
+> >
+> > Can you please post the error message?
 > 
-> ---
->  drivers/char/tpm/tpm.c |    2 ++
->  1 files changed, 2 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/char/tpm/tpm.c b/drivers/char/tpm/tpm.c
-> index 05ad4a1..3d685dc 100644
-> --- a/drivers/char/tpm/tpm.c
-> +++ b/drivers/char/tpm/tpm.c
-> @@ -514,6 +514,8 @@ void tpm_gen_interrupt(struct tpm_chip *chip)
->  
->  	rc = transmit_cmd(chip, &tpm_cmd, TPM_INTERNAL_RESULT_SIZE,
->  			"attempting to determine the timeouts");
-> +	if (!rc)
-> +		rc = 0;
->  }
->  EXPORT_SYMBOL_GPL(tpm_gen_interrupt);
->  
-> -- 
-> 1.7.1.rc1.21.gf3bd6
-> 
+> Jun  3 08:38:29 tom3 kernel: [75071.004062] ehci_hcd 0000:00:0e.2: force halt; handhake cc9c0814 0000c000 00000000 -> -110
+> Jun  3 08:45:13 tom3 kernel: [75475.004061] ehci_hcd 0000:00:0e.2: force halt; handhake cc9c0814 0000c000 00000000 -> -110
+> Previous debian testing version of Linux tom3 2.6.32-5-686 #1 SMP Tue Jun 1 04:59:47 UTC 2010 i686 GNU/Linux,
+> not yet reproduced with current version.
 
-Hi Justin
+You may need to copy the "broken periodic workaround" code from the
+PCI_VENDOR_ID_INTEL case in ehci_pci_setup(),
+drivers/usb/host/ehci-pci.c into the PCI_VENDOR_ID_VIA case.
 
-IMHO
-See code of functions tpm_transmit(), transmit_cmd and tpm_gen_interrupt(). 
-In tpm_gen_interrupt() not need check rc for wrong value bacause if in function 
-transmit_cmd() len == TPM_ERROR_SIZE then put a debug message (dev_dbg()).
-Again, if something wrong in tpm_transmit() then runs dev_err() and rc in 
-tpm_gen_interrupt() get -E* value.
-So, we can remove unused rc variable in tpm_gen_interrupt(). 
+Alan Stern
 
-See patch below. Note: I not tested it.
-
-
-Subject: [PATCH] drivers: tpm.c: Remove unused variable 'rc'
-
----
- drivers/char/tpm/tpm.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/char/tpm/tpm.c b/drivers/char/tpm/tpm.c
-index 05ad4a1..f9f5b47 100644
---- a/drivers/char/tpm/tpm.c
-+++ b/drivers/char/tpm/tpm.c
-@@ -505,15 +505,14 @@ ssize_t tpm_getcap(struct device *dev, __be32 subcap_id, 
-cap_t *cap,
- void tpm_gen_interrupt(struct tpm_chip *chip)
- {
- 	struct	tpm_cmd_t tpm_cmd;
--	ssize_t rc;
- 
- 	tpm_cmd.header.in = tpm_getcap_header;
- 	tpm_cmd.params.getcap_in.cap = TPM_CAP_PROP;
- 	tpm_cmd.params.getcap_in.subcap_size = cpu_to_be32(4);
- 	tpm_cmd.params.getcap_in.subcap = TPM_CAP_PROP_TIS_TIMEOUT;
- 
--	rc = transmit_cmd(chip, &tpm_cmd, TPM_INTERNAL_RESULT_SIZE,
--			"attempting to determine the timeouts");
-+	transmit_cmd(chip, &tpm_cmd, TPM_INTERNAL_RESULT_SIZE,
-+		     "attempting to determine the timeouts");
- }
- EXPORT_SYMBOL_GPL(tpm_gen_interrupt);
- 
--- 
-1.7.1
