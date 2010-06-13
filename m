@@ -1,48 +1,60 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o5I0BOvO004728
-	for <video4linux-list@redhat.com>; Thu, 17 Jun 2010 20:11:24 -0400
-Received: from web82204.mail.mud.yahoo.com (web82204.mail.mud.yahoo.com
-	[209.191.86.99])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o5I0BDT5001412
-	for <video4linux-list@redhat.com>; Thu, 17 Jun 2010 20:11:13 -0400
-Message-ID: <238416.59894.qm@web82204.mail.mud.yahoo.com>
-Date: Thu, 17 Jun 2010 17:11:12 -0700 (PDT)
-From: David Milici <davemilici@sbcglobal.net>
-Subject: USB audio / video sync question
-To: video4linux-list@redhat.com
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <C.Hemsing@gmx.net>) id 1ONhAU-0004q0-BL
+	for linux-dvb@linuxtv.org; Sun, 13 Jun 2010 08:59:43 +0200
+Received: from mail.gmx.net ([213.165.64.20])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with smtp
+	for <linux-dvb@linuxtv.org>
+	id 1ONhAT-0003wp-2e; Sun, 13 Jun 2010 08:59:42 +0200
+Received: from [192.168.129.248] (dino.hcc-intra.de [192.168.129.248])
+	by dino.hcc-intra.de (Postfix) with ESMTPS id 7C4DF690AE9
+	for <linux-dvb@linuxtv.org>; Sun, 13 Jun 2010 08:59:39 +0200 (CEST)
+Message-ID: <4C1481DB.6030404@gmx.net>
+Date: Sun, 13 Jun 2010 08:59:39 +0200
+From: "C. Hemsing" <C.Hemsing@gmx.net>
 MIME-Version: 1.0
-List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] af9015, af9013 DVB-T problems
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
 
-Hi all--
+To the maintainer of the af9015, af9013 modules:
 
-I'm working with Pixart USB camera, using Video4Linux for video capture and ALSA for audio capture. I'm having trouble establishing sync between audio and video streams during capture sessions. Sometimes sync is acceptable, and other times audio leads video.
+A recent kernel (but the problem had been the same with older kernels):
+2.6.32-22-generic #36-Ubuntu SMP Thu Jun 3 22:02:19 UTC 2010 i686 GNU/Linux
 
-I tried enabling timestamps on ALSA PCM updates to compare with V4L timestamps, and for 20 FPS camera input see that video frames and audio blocks are typically within 50 msec of each other.
+Latest (as of yesterday) checkout of v4l-dvb (but the problem had been
+the same with older checkouts).
 
-What happens on some sessions is that audio blocks show up sooner than the first video frame, like 3 blocks will be delivered ~150 msec earlier. Some other saved capture sessions are out of sync by even more time.
+Dual channel USB DVB-T stick initialized ok, but
+regularly the stick does not tune properly on one of the two channels
+and the kernel shows these error messages at the same time:
 
-This makes me wonder if the audio and video input streams could be running at their respective driver's pace, and "sync" happens to be incidental from the streams running concurrently.
+[14410.717905] af9015: command failed:2
+[14410.717913] af9013: I2C read failed reg:d330
+[18208.030546] af9015: command failed:2
+[18208.030554] af9013: I2C read failed reg:d2e6
 
-What then is the recommended method(s) for capturing audio and video streams in sync? Is there an example available for a USB camera?
+I'm willing to help debug. Who is the maintainer of af9015, af9013?
 
-Thanks for any help you could offer,
---Dave Milici
+Cheers,
+Chris
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
