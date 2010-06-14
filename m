@@ -1,54 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:62608 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751560Ab0FDPwf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 11:52:35 -0400
-Date: 04 Jun 2010 17:51:00 +0200
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: mchehab@redhat.com
-Cc: jarod@redhat.com
-Cc: linux-media@vger.kernel.org
-Message-ID: <BQCH7Bq3jFB@christoph>
-In-Reply-To: <4C087CBE.10202@redhat.com>
-Subject: Re: [PATCH 1/3] IR: add core lirc device interface
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:52855 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755745Ab0FNU04 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 16:26:56 -0400
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: reiserfs-devel@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	clemens@ladisch.de, debora@linux.vnet.ibm.com,
+	dri-devel@lists.freedesktop.org, linux-i2c@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH 4/8]drivers:tmp.c Fix warning: variable 'rc' set but not used
+Date: Mon, 14 Jun 2010 13:26:44 -0700
+Message-Id: <1276547208-26569-5-git-send-email-justinmattock@gmail.com>
+In-Reply-To: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Im getting this warning when compiling:
+ CC      drivers/char/tpm/tpm.o
+drivers/char/tpm/tpm.c: In function 'tpm_gen_interrupt':
+drivers/char/tpm/tpm.c:508:10: warning: variable 'rc' set but not used
 
-on 04 Jun 10 at 01:10, Mauro Carvalho Chehab wrote:
-> Em 03-06-2010 19:06, Jarod Wilson escreveu:
-[...]
->> As for the compat bits... I actually pulled them out of the Fedora kernel
->> and userspace for a while, and there were only a few people who really ran
->> into issues with it, but I think if the new userspace and kernel are rolled
->> out at the same time in a new distro release (i.e., Fedora 14, in our
->> particular case), it should be mostly transparent to users.
+The below patch gets rid of the warning,
+but I'm not sure if it's the best solution.
 
-> For sure this will happen on all distros that follows upstream: they'll
-> update lirc to fulfill the minimal requirement at Documentation/Changes.
->
-> The issue will appear only to people that manually compile kernel and lirc.
-> Those users are likely smart enough to upgrade to a newer lirc version if
-> they notice a trouble, and to check at the forums.
+ Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
->> Christoph
->> wasn't a fan of the change, and actually asked me to revert it, so I'm
->> cc'ing him here for further feedback, but I'm inclined to say that if this
->> is the price we pay to get upstream, so be it.
+---
+ drivers/char/tpm/tpm.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-> I understand Christoph view, but I think that having to deal with compat
-> stuff forever is a high price to pay, as the impact of this change is
-> transitory and shouldn't be hard to deal with.
+diff --git a/drivers/char/tpm/tpm.c b/drivers/char/tpm/tpm.c
+index 05ad4a1..3d685dc 100644
+--- a/drivers/char/tpm/tpm.c
++++ b/drivers/char/tpm/tpm.c
+@@ -514,6 +514,8 @@ void tpm_gen_interrupt(struct tpm_chip *chip)
+ 
+ 	rc = transmit_cmd(chip, &tpm_cmd, TPM_INTERNAL_RESULT_SIZE,
+ 			"attempting to determine the timeouts");
++	if (!rc)
++		rc = 0;
+ }
+ EXPORT_SYMBOL_GPL(tpm_gen_interrupt);
+ 
+-- 
+1.7.1.rc1.21.gf3bd6
 
-I'm not against doing this change, but it has to be coordinated between  
-drivers and user-space.
-Just changing lirc.h is not enough. You also have to change all user-space  
-applications that use the affected ioctls to use the correct types.
-That's what Jarod did not address last time so I asked him to revert the  
-change. And I'd also like to collect all other change request to the API  
-if there are any and do all changes in one go.
-
-Christoph
