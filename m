@@ -1,113 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail15.adl6.internode.on.net ([150.101.137.100]:34159 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755303Ab0FGDV6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 23:21:58 -0400
-Message-ID: <4C0C65D4.7000701@gmail.com>
-Date: Mon, 07 Jun 2010 13:21:56 +1000
-From: Jed <jedi.theone@gmail.com>
-MIME-Version: 1.0
-To: Lars Schotte <lars.schotte@schotteweb.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: What ever happened to standardizing signal level?
-References: <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com>	<1275198741.3213.50.camel@pc07.localdom.local>	<AANLkTilIrG5cwlLv_iAI7E7XX5117qh4AHof80pRRYSs@mail.gmail.com>	<1275622226.6635.24.camel@pc07.localdom.local>	<AANLkTikvkkfr0F_h1u8wIgoLMiy05iWy8ZQkdF5y2Xii@mail.gmail.com>	<1275861682.3164.44.camel@pc07.localdom.local> <20100607001224.530dfe35@romy.gusto>
-In-Reply-To: <20100607001224.530dfe35@romy.gusto>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2507 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750980Ab0FNTdh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 15:33:37 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5EJXP5t055792
+	for <linux-media@vger.kernel.org>; Mon, 14 Jun 2010 21:33:36 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 14 Jun 2010 21:33:25 +0200 (CEST)
+Message-Id: <201006141933.o5EJXP5t055792@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pot, meet kettle...
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-That's a bit rich accusing others of flaming when you've been exposing 
-the entire list to your rants, ever heard of emailing users directly?
+Results of the daily build of v4l-dvb:
 
-You really think this list is you personal support mail-list don't you.
+date:        Mon Jun 14 19:00:11 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14977:23492745405c
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-On 7/06/10 8:12 AM, Lars Schotte wrote:
-> stop flaming all the time, there are ppl out there like me who have
-> some problems w/ their HW, and you are arguing here about nothing.
->
-> On Mon, 07 Jun 2010 00:01:22 +0200
-> hermann pitton<hermann-pitton@arcor.de>  wrote:
->
->>
->> Am Donnerstag, den 03.06.2010, 22:18 -0700 schrieb VDR User:
->>> hermann pitton<hermann-pitton@arcor.de>, you are contributing
->>> absolutely nothing to this thread aside of annoying people with your
->>> by trolling and half incoherent nonsense.  It's quite ironic you
->>> suggest _I_ am the one trolling when this is a thread _I_ created.
->>> And further, several people have posted legitimate responses to --
->>> clearly you are the only one suffering from your delusion.
->>
->> Dream on.
->>
->> The question never was, if you are trolling from time to time, but
->> only if you are a duplicate of another troll or on your own.
->>
->> I have talked with Mauro about that and since then I ask you to
->> provide your full name or point at least to a patch from you, where
->> you have to agree to provide your real name in your SOB line.
->>
->> There was none and you also did not point to somebody else, to confirm
->> for us, that you are known and on kernel development not only as a
->> troll.
->>
->> You did not give an sufficient answer during the last two years.
->>
->>> Additionally you've been stalking me in email as well.  Your
->>> behavior is not only uncalled for, it's abusive of both this
->>> mailing list and the people willingly participating in the
->>> discussion.  As I understand it, this is not the first time you've
->>> been the source of harassment.
->>
->> The opposite again is true, you stalked me by private e-mail and
->> therefor my reply went as copy also to Mauro and Manu. If even Manu
->> does not have your contact data, who else? Please provide them at
->> least to him or someone else you trust and you are free for rants,
->> within limitations.
->>
->>> Do us all a favor -- go find some other thread to infect with your
->>> childishness, find some other user(s) to harass/stalk/obsess over,
->>> or simply grow up and stop wasting everyone's time.  In case you
->>> haven't noticed there has been absolutely nobody supporting your
->>> rants.  Take a hint.
->>
->> http://linuxtv.org/wiki/index.php/People_behind_V4L-DVB
->>
->> I did not put myself on this list and you should take me a little more
->> serious when asking you to fulfill the minimum requirements for
->> participating in kernel development.
->>
->> Also, if you further associate me with illegal drugs, I give you a
->> 100% guarantee, that this will become _very_ expensive for you.
->>
->> You also won't make the vine sour I have after working on my linux
->> "hobby".
->>
->> Now, after wasting my time looking at it, I can see you have a first
->> alsa patch in 2.6.33 with an invalid SOB, since only Derek, but
->> corrected to Derek Kelly in 2.6.34.
->>
->> Missing is still, if you are working as a Hobbyist or if you are paid
->> for your work. Greg might ask you such soon or did already.
->>
->> If your name is true, you could have saved yourself and all others
->> most of all the trouble. Looking at your methods, my doubts are not
->> gone, but I let it to others now.
->>
->> Hermann
->>
->>
->>
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe
->> linux-media" in the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
