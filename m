@@ -1,67 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57310 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752682Ab0F3H2S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jun 2010 03:28:18 -0400
-Date: Wed, 30 Jun 2010 09:28:08 +0200
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Baruch Siach <baruch@tkos.co.il>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCHv4 1/3] mx2_camera: Add soc_camera support for
-	i.MX25/i.MX27
-Message-ID: <20100630072808.GD11746@pengutronix.de>
-References: <cover.1277096909.git.baruch@tkos.co.il> <03d6e55c39690618e92a91a580ec34549a135c79.1277096909.git.baruch@tkos.co.il> <20100630070717.GA11746@pengutronix.de> <Pine.LNX.4.64.1006300918190.17489@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <Pine.LNX.4.64.1006300918190.17489@axis700.grange>
+Received: from poutre.nerim.net ([62.4.16.124]:55770 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755730Ab0FNUxT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 16:53:19 -0400
+Date: Mon, 14 Jun 2010 22:53:15 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/8]i2c:i2c_core Fix warning: variable 'dummy' set but
+ not used
+Message-ID: <20100614225315.2bae9e37@hyperion.delvare>
+In-Reply-To: <1276547208-26569-7-git-send-email-justinmattock@gmail.com>
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
+	<1276547208-26569-7-git-send-email-justinmattock@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Justin,
 
-On Wed, Jun 30, 2010 at 09:20:36AM +0200, Guennadi Liakhovetski wrote:
-> > > --- a/arch/arm/plat-mxc/include/mach/memory.h
-> > > +++ b/arch/arm/plat-mxc/include/mach/memory.h
-> > > @@ -44,12 +44,12 @@
-> > >   */
-> > >  #define CONSISTENT_DMA_SIZE SZ_8M
-> > >  
-> > > -#elif defined(CONFIG_MX1_VIDEO)
-> > > +#elif defined(CONFIG_MX1_VIDEO) || defined(CONFIG_MX2_VIDEO)
-> > >  /*
-> > >   * Increase size of DMA-consistent memory region.
-> > >   * This is required for i.MX camera driver to capture at least four VGA frames.
-> > >   */
-> > >  #define CONSISTENT_DMA_SIZE SZ_4M
-> > > -#endif /* CONFIG_MX1_VIDEO */
-> > > +#endif /* CONFIG_MX1_VIDEO || CONFIG_MX2_VIDEO */
-> > Why not use CONFIG_VIDEO_MX2 here and get rid of CONFIG_MX2_VIDEO?
+On Mon, 14 Jun 2010 13:26:46 -0700, Justin P. Mattock wrote:
+> could be a right solution, could be wrong
+> here is the warning:
+>   CC      drivers/i2c/i2c-core.o
+> drivers/i2c/i2c-core.c: In function 'i2c_register_adapter':
+> drivers/i2c/i2c-core.c:757:15: warning: variable 'dummy' set but not used
+>  
+>  Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 > 
-> Well, firstly for uniformity with MX1 and MX3,
-Using a common scheme for names on all platforms is fine, but if the
-existing names are bad better establish a nicer scheme.
+> ---
+>  drivers/i2c/i2c-core.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index 1cca263..79c6c26 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -794,6 +794,8 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
+>  	mutex_lock(&core_lock);
+>  	dummy = bus_for_each_drv(&i2c_bus_type, NULL, adap,
+>  				 __process_new_adapter);
+> +	if(!dummy)
+> +		dummy = 0;
 
->                                                secondly not to have to use 
-> (CONFIG_VIDEO_MX2 || CONFIG_VIDEO_MX2_MODULE),
-ah, didn't notice that MX?_VIDEO is bool while VIDEO_MX? is tristate.
-That's fine.  Still I would prefer a better naming that doesn't force
-having to look up which variable is for the driver and which is for the
-arch stuff.
+One word: scripts/checkpatch.pl
 
->                                                also note, that 
-> CONFIG_MX1_VIDEO is also used for linking of the FIQ handler for the camera.
-This is just a matter of fixing the corresponding Makefile.
+In other news, the above is just plain wrong. First we force people to
+read the result of bus_for_each_drv() and then when they do and don't
+need the value, gcc complains, so we add one more layer of useless
+code, which developers and possibly tools will later wonder and
+complain about? I can easily imagine that a static code analyzer would
+spot the above code as being a potential bug.
 
-Best regards
-Uwe
+Let's stop this madness now please.
+
+Either __must_check goes away from bus_for_each_drv() and from every
+other function which raises this problem, or we must disable that new
+type of warning gcc 4.6.0 generates. Depends which warnings we value
+more, as we can't sanely have both.
+
+>  	mutex_unlock(&core_lock);
+>  
+>  	return 0;
+
 
 -- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Jean Delvare
