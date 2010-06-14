@@ -1,82 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:51235 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754046Ab0FGTcg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jun 2010 15:32:36 -0400
-Subject: [PATCH 4/8] ir-core: partially convert ir-kbd-i2c.c to not use
-	ir-functions.c
-To: mchehab@redhat.com
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Date: Mon, 07 Jun 2010 21:32:33 +0200
-Message-ID: <20100607193233.21236.11164.stgit@localhost.localdomain>
-In-Reply-To: <20100607192830.21236.69701.stgit@localhost.localdomain>
-References: <20100607192830.21236.69701.stgit@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from mail-px0-f174.google.com ([209.85.212.174]:65524 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755885Ab0FNU1D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 16:27:03 -0400
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: reiserfs-devel@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	clemens@ladisch.de, debora@linux.vnet.ibm.com,
+	dri-devel@lists.freedesktop.org, linux-i2c@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH 7/8]ieee1394/sdp2 Fix warning: variable 'unit_characteristics' set but not used
+Date: Mon, 14 Jun 2010 13:26:47 -0700
+Message-Id: <1276547208-26569-8-git-send-email-justinmattock@gmail.com>
+In-Reply-To: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Partially convert drivers/media/video/ir-kbd-i2c.c to
-not use ir-functions.c
+Temporary fix until something is resolved
+to fix the below warning:
+  CC [M]  drivers/ieee1394/sbp2.o
+drivers/ieee1394/sbp2.c: In function 'sbp2_parse_unit_directory':
+drivers/ieee1394/sbp2.c:1353:6: warning: variable 'unit_characteristics' set but not used
+ Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
 ---
- drivers/media/video/ir-kbd-i2c.c |   14 ++++----------
- include/media/ir-kbd-i2c.h       |    2 +-
- 2 files changed, 5 insertions(+), 11 deletions(-)
+ drivers/ieee1394/sbp2.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
-index 29d4397..27ae8bb 100644
---- a/drivers/media/video/ir-kbd-i2c.c
-+++ b/drivers/media/video/ir-kbd-i2c.c
-@@ -47,7 +47,7 @@
- #include <linux/i2c-id.h>
- #include <linux/workqueue.h>
+diff --git a/drivers/ieee1394/sbp2.c b/drivers/ieee1394/sbp2.c
+index 4565cb5..fcf8bd5 100644
+--- a/drivers/ieee1394/sbp2.c
++++ b/drivers/ieee1394/sbp2.c
+@@ -1356,6 +1356,8 @@ static void sbp2_parse_unit_directory(struct sbp2_lu *lu,
  
--#include <media/ir-common.h>
-+#include <media/ir-core.h>
- #include <media/ir-kbd-i2c.h>
- 
- /* ----------------------------------------------------------------------- */
-@@ -272,11 +272,8 @@ static void ir_key_poll(struct IR_i2c *ir)
- 		return;
- 	}
- 
--	if (0 == rc) {
--		ir_input_nokey(ir->input, &ir->ir);
--	} else {
--		ir_input_keydown(ir->input, &ir->ir, ir_key);
--	}
-+	if (rc)
-+		ir_keydown(ir->input, ir_key, 0);
- }
- 
- static void ir_work(struct work_struct *work)
-@@ -439,10 +436,7 @@ static int ir_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 		 dev_name(&client->dev));
- 
- 	/* init + register input device */
--	err = ir_input_init(input_dev, &ir->ir, ir_type);
--	if (err < 0)
--		goto err_out_free;
--
-+	ir->ir_type = ir_type;
- 	input_dev->id.bustype = BUS_I2C;
- 	input_dev->name       = ir->name;
- 	input_dev->phys       = ir->phys;
-diff --git a/include/media/ir-kbd-i2c.h b/include/media/ir-kbd-i2c.h
-index 0506e45..5e96d7a 100644
---- a/include/media/ir-kbd-i2c.h
-+++ b/include/media/ir-kbd-i2c.h
-@@ -11,7 +11,7 @@ struct IR_i2c {
- 	struct i2c_client      *c;
- 	struct input_dev       *input;
- 	struct ir_input_state  ir;
--
-+	u64                    ir_type;
- 	/* Used to avoid fast repeating */
- 	unsigned char          old;
- 
+ 	management_agent_addr = 0;
+ 	unit_characteristics = 0;
++	if (!unit_characteristics)
++		unit_characteristics = 0;
+ 	firmware_revision = SBP2_ROM_VALUE_MISSING;
+ 	model = ud->flags & UNIT_DIRECTORY_MODEL_ID ?
+ 				ud->model_id : SBP2_ROM_VALUE_MISSING;
+-- 
+1.7.1.rc1.21.gf3bd6
 
