@@ -1,42 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 149.Red-80-37-155.staticIP.rima-tde.net ([80.37.155.149]:61659
-	"EHLO mail.claunia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238Ab0FHAYn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jun 2010 20:24:43 -0400
-Subject: Re: [Linux-uvc-devel] cam max width and height
-Mime-Version: 1.0 (Apple Message framework v1078)
-Content-Type: text/plain; charset=iso-8859-1
-From: Natalia Portillo <claunia@claunia.com>
-In-Reply-To: <AANLkTimh-FVg9yspF6ASGrlY5kd5Puppa7VlKA6NljQ5@mail.gmail.com>
-Date: Tue, 8 Jun 2010 01:17:17 +0100
-Cc: Linux-media <linux-media@vger.kernel.org>,
-	linux-uvc-devel@lists.berlios.de
-Content-Transfer-Encoding: 8BIT
-Message-Id: <E009656A-B664-4339-B127-B6A71EC13192@claunia.com>
-References: <AANLkTimh-FVg9yspF6ASGrlY5kd5Puppa7VlKA6NljQ5@mail.gmail.com>
-To: linux newbie <linux.newbie79@gmail.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:33720 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752049Ab0FNVJp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 17:09:45 -0400
+Message-ID: <4C169AA6.6030809@gmail.com>
+Date: Mon, 14 Jun 2010 14:09:58 -0700
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+MIME-Version: 1.0
+To: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/8]reiserfs:stree.c Fix variable set but not used.
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com> <1276547208-26569-2-git-send-email-justinmattock@gmail.com> <20100614204805.GA12589@elliptictech.com>
+In-Reply-To: <20100614204805.GA12589@elliptictech.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 06/14/2010 01:48 PM, Nick Bowler wrote:
+> On 13:26 Mon 14 Jun     , Justin P. Mattock wrote:
+>> @@ -617,8 +616,7 @@ int search_by_key(struct super_block *sb, const struct cpu_key *key,	/* Key to s
+>>
+>>   	pathrelse(search_path);
+>>
+>> -	right_neighbor_of_leaf_node = 0;
+>> -
+>> +	
+>
+> This hunk introduces whitespace on the empty line, which is not cool.
 
-El 08/06/2010, a las 01:09, linux newbie escribió:
+I can resend!!(biggest problem is working
+through these warnings)
 
-> Hi,
-> 
-> I am using linux 2.6.26.3. I connected "microsoft live cam" and its
-> max supported resolution is 1280x800. If I use VIDIOC_G_FMT,
-> fmt.fmt.pix.width, fmt.fmt.pix.height returns 640x480.
-> 
-> How to get the maximum supported resolution??
+>
+>>   	/* With each iteration of this loop we search through the items in the
+>>   	   current node, and calculate the next current node(next path element)
+>>   	   for the next iteration of this loop.. */
+>> @@ -695,8 +693,7 @@ int search_by_key(struct super_block *sb, const struct cpu_key *key,	/* Key to s
+>>   			   starting from the root. */
+>>   			block_number = SB_ROOT_BLOCK(sb);
+>>   			expected_level = -1;
+>> -			right_neighbor_of_leaf_node = 0;
+>> -
+>> +			
+>
+> Here, too.
+>
+> Most of the patches in this series have similar issues.
+>
 
-You should check in Microsoft's webpage or included documentation that 1280x800 is a video resolution and not only a still image resolution.
+main thing now(for me atleast)is,
+is this actual dead code or what?
+if not then something else needs to
+be done, if yes then I guess I can
+resend this, with out the whitespace
+issue.
 
-It is common for many cameras to do that.
-
-> Thanks
-> _______________________________________________
-> Linux-uvc-devel mailing list
-> Linux-uvc-devel@lists.berlios.de
-> https://lists.berlios.de/mailman/listinfo/linux-uvc-devel
-
+Justin P. Mattock
