@@ -1,57 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30443 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758261Ab0FBRxC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Jun 2010 13:53:02 -0400
-Message-ID: <4C069A7F.50104@redhat.com>
-Date: Wed, 02 Jun 2010 14:53:03 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from einhorn.in-berlin.de ([192.109.42.8]:44430 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753325Ab0FNXIR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 19:08:17 -0400
+Date: Tue, 15 Jun 2010 01:07:56 +0200 (CEST)
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Subject: Re: [PATCH 1/8]reiserfs:stree.c Fix variable set but not used.
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+cc: Edward Shishkin <edward.shishkin@gmail.com>,
+	linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+In-Reply-To: <4C16B236.7080506@gmail.com>
+Message-ID: <tkrat.d7bea45e7dbad972@s5r6.in-berlin.de>
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
+ <1276547208-26569-2-git-send-email-justinmattock@gmail.com>
+ <4C1699AA.3000900@gmail.com> <4C169D71.90800@gmail.com>
+ <4C16A372.6020604@gmail.com> <4C16B236.7080506@gmail.com>
 MIME-Version: 1.0
-To: stefan.ringel@arcor.de
-CC: linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 2/3] tm6000: move debug info print from header into c
- file
-References: <1275221944-27887-1-git-send-email-stefan.ringel@arcor.de> <1275221944-27887-2-git-send-email-stefan.ringel@arcor.de>
-In-Reply-To: <1275221944-27887-2-git-send-email-stefan.ringel@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; CHARSET=us-ascii
+Content-Disposition: INLINE
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 30-05-2010 09:19, stefan.ringel@arcor.de escreveu:
-> From: Stefan Ringel <stefan.ringel@arcor.de>
+On 14 Jun, Justin P. Mattock wrote:
+> On 06/14/2010 02:47 PM, Edward Shishkin wrote:
+>> Whitespaces should be removed.
+>> I recommend quilt package for managing patches:
+>> "quilt refresh --strip-trailing-whitespace" is your friend..
 > 
-> move debug info print from header into c file
+> o.k. I resent this.. fixed the whitespace(hopefully)
+> and add your Acked to it.
+> as for quilt I'll have to look into that..
+> (using a lfs system, so if the sourcecode is easy
+> to deal with(build), then it's a good but if it becomes
+> a nightmare maybe not!!).
 
-I don't see why to duplicate the printk's on every file. It seems better to me to
-just keep them at the header file, and use tm6000_debug symbol for every tm6000
-module.
-
-Btw, I've applied a CodingStyle fix patch on my tree, together with the other patches.
-As it touches on almost all drivers, it is better to merge from my tree ASAP.
-
-I dunno why, but your rewrite copy_streams didn't apply fine, but this time I've fixed
-the issues manually. I tested it here with two cards (Saphire Wonder TV - a 10moons clone,
-based on tm5600 - and HVR900H), and the merge worked fine.
-
-With your patch, image seems to be working fine (yet, I didn't re-add the memset(0) to
-double check). However, running on a remote machine, via fast ethernet, the buffering
-effect is seeing. Probably, there's still some trouble at the routine that fills the
-buffers.
-
--
-
-I suggest that you and Dmitri to use staging/tm6000 branch for development. this will
-likely help to avoid conflict issues.
-
-As usual, before submitting a patch, it would be wise to rebase it against upstream
-with:
-	git remote update
-	git pull . staging/tm6000
-	git rebase staging/tm6000
-
-After doing it, please compile and test, before submitting me the patches.
-
-Cheers,
-Mauro.
+Since you appear to generate the patches with git, you can use "git diff
+--check [...]" for some basic whitespace checks (additions of trailing
+space, additions of space before tab).  For more extensive checks, try
+"git diff [...] | scripts/checkpatch.pl -".  Check this before you
+commit.  If you committed already, "git commit --amend [-a] [...]" lets
+you alter the very last commit of course.
+-- 
+Stefan Richter
+-=====-==-=- -==- -====
+http://arcgraph.de/sr/
 
