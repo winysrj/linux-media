@@ -1,40 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-05.arcor-online.net ([151.189.21.45]:46665 "EHLO
-	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756305Ab0FDU4o (ORCPT
+Received: from relay03.digicable.hu ([92.249.128.185]:60015 "EHLO
+	relay03.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754756Ab0FNUxG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jun 2010 16:56:44 -0400
-Message-ID: <4C09686E.5090601@arcor.de>
-Date: Fri, 04 Jun 2010 22:56:14 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
+	Mon, 14 Jun 2010 16:53:06 -0400
+Message-ID: <4C168F51.90708@freemail.hu>
+Date: Mon, 14 Jun 2010 22:21:37 +0200
+From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: tm6000 autio isoc blocks
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Krivchikov Sergei <sergei.krivchikov@gmail.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] gspca_pac7302: add Genius iSlim 310
+References: <68c794d61003301249u138e643am20bb264375c3dfe1@mail.gmail.com>	<4BB2E42B.4090302@freemail.hu>	<AANLkTikIivyjNkVYlo4CKCJcFK_UW5J28qG48cnWQBm8@mail.gmail.com>	<4C164387.1000608@freemail.hu> <20100614193003.00988b97@tele>
+In-Reply-To: <20100614193003.00988b97@tele>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
- 
-Hi Mauro,
+From: Márton Németh <nm127@freemail.hu>
 
-I have check the windows usb log and if I have audio block it's say 0
-byte, but the data is complete 180 bytes until next block header. So I
-think it's good if that audio block (cmd=2) resize from 0 to 180
-(actual read 0 without resize it).
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.12 (MingW32)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
- 
-iQEcBAEBAgAGBQJMCWhtAAoJEAWtPFjxMvFGgyAH/jCgxFhc6pA7umakxaYAwfnf
-Yrg/V+JDEPUGzGVmvl4a7jzHkzn1hrZ3Pn3YCgNP7CIGeaoaiWgx+4ptLpKSyuH3
-noG36DXQBX19g35Dhch4vpCrhVlCE4M+fD6gsBRgcCFEmAdWojsHDpyhOBoPnxrS
-t9xkh59SEcYSPKvleB3HGVP9/tKggbGXoeRh7Ag7lBtzKAraqQMA/C0REwT4OHmc
-/IL2+z1D1fb/vR2MU5uYHLgANI3WdiRbdr9yHzBdpOJ57IrytsoVRL8WdhbmuFI8
-/PH2NXYfOAoyi/boFbVidmu0MSj7+OA0XrHUORjKPnmrgleOahbitDYZAxh6Jfo=
-=CRkV
------END PGP SIGNATURE-----
+Add Genius iSlim 310 webcam to the supported list of the PAC7302 driver.
+For more information see http://linuxtv.org/wiki/index.php/PixArt_PAC7301/PAC7302 .
 
+Signed-off-by: Márton Németh <nm127@freemail.hu>
+---
+diff --git a/Documentation/video4linux/gspca.txt b/Documentation/video4linux/gspca.txt
+index f13eb03..f9b9d32 100644
+--- a/Documentation/video4linux/gspca.txt
++++ b/Documentation/video4linux/gspca.txt
+@@ -253,6 +253,7 @@ pac7302		093a:2620	Apollo AC-905
+ pac7302		093a:2621	PAC731x
+ pac7302		093a:2622	Genius Eye 312
+ pac7302		093a:2624	PAC7302
++pac7302		093a:2625	Genius iSlim 310
+ pac7302		093a:2626	Labtec 2200
+ pac7302		093a:2628	Genius iLook 300
+ pac7302		093a:2629	Genious iSlim 300
+diff --git a/drivers/media/video/gspca/pac7302.c b/drivers/media/video/gspca/pac7302.c
+index 2a68220..7c0f265 100644
+--- a/drivers/media/video/gspca/pac7302.c
++++ b/drivers/media/video/gspca/pac7302.c
+@@ -1200,6 +1200,7 @@ static const struct usb_device_id device_table[] __devinitconst = {
+ 	{USB_DEVICE(0x093a, 0x2621)},
+ 	{USB_DEVICE(0x093a, 0x2622), .driver_info = FL_VFLIP},
+ 	{USB_DEVICE(0x093a, 0x2624), .driver_info = FL_VFLIP},
++	{USB_DEVICE(0x093a, 0x2625)},
+ 	{USB_DEVICE(0x093a, 0x2626)},
+ 	{USB_DEVICE(0x093a, 0x2628)},
+ 	{USB_DEVICE(0x093a, 0x2629), .driver_info = FL_VFLIP},
