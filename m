@@ -1,50 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:38870 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755875Ab0FTRe1 (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:52855 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755730Ab0FNU1A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jun 2010 13:34:27 -0400
-MIME-Version: 1.0
-In-Reply-To: <1277052831.1548.103.camel@Joe-Laptop.home>
-References: <1277018446.1548.66.camel@Joe-Laptop.home>
-	<16004456-69D9-41BD-8597-5590BB7B099E@wilsonet.com>
-	<1277052831.1548.103.camel@Joe-Laptop.home>
-Date: Sun, 20 Jun 2010 13:34:26 -0400
-Message-ID: <AANLkTik4LVNFxj7GHs0HDGBA9Rdf0IP7BJmFwfx_qwGz@mail.gmail.com>
-Subject: Re: [PATCH] drivers/media/IR/imon.c: Use pr_err instead of err
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Joe Perches <joe@perches.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 14 Jun 2010 16:27:00 -0400
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: linux-kernel@vger.kernel.org
+Cc: reiserfs-devel@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	clemens@ladisch.de, debora@linux.vnet.ibm.com,
+	dri-devel@lists.freedesktop.org, linux-i2c@vger.kernel.org,
+	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH 6/8]i2c:i2c_core Fix warning: variable 'dummy' set but not used
+Date: Mon, 14 Jun 2010 13:26:46 -0700
+Message-Id: <1276547208-26569-7-git-send-email-justinmattock@gmail.com>
+In-Reply-To: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 20, 2010 at 12:53 PM, Joe Perches <joe@perches.com> wrote:
-> On Sun, 2010-06-20 at 11:58 -0400, Jarod Wilson wrote:
->> On Jun 20, 2010, at 3:20 AM, Joe Perches <joe@perches.com> wrote:
->> Use the standard error logging mechanisms.
->> > Add #define pr_fmt(fmt) KBUILD_MODNAME ":%s" fmt, __func__
->> > Remove __func__ from err calls, add '\n', rename to pr_err
->> Eh. If we're going to make a change here, I'd rather it be to using
->> dev_err instead, since most of the other spew in this driver uses
->> similar.
->
-> The idea is to eventually remove info/err/warn from usb.h by
-> changing the code outside of drivers/usb first.
->
-> There will always be some mix of printk or pr_<level> along
-> with dev_<level> because struct device * is NULL or as is
-> mostly used here there's no struct imon_context * available.
->
-> I suggest you have a look and see which ones of these
-> changes could use dev_<level> instead.
+could be a right solution, could be wrong
+here is the warning:
+  CC      drivers/i2c/i2c-core.o
+drivers/i2c/i2c-core.c: In function 'i2c_register_adapter':
+drivers/i2c/i2c-core.c:757:15: warning: variable 'dummy' set but not used
+ 
+ Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
-Ah, tbh, didn't look all that closely. Okay, I'll see if any of them
-can actually be made into dev_err instead of pr_err, but any that
-can't, sure, there's no problem w/this change.
+---
+ drivers/i2c/i2c-core.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+index 1cca263..79c6c26 100644
+--- a/drivers/i2c/i2c-core.c
++++ b/drivers/i2c/i2c-core.c
+@@ -794,6 +794,8 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
+ 	mutex_lock(&core_lock);
+ 	dummy = bus_for_each_drv(&i2c_bus_type, NULL, adap,
+ 				 __process_new_adapter);
++	if(!dummy)
++		dummy = 0;
+ 	mutex_unlock(&core_lock);
+ 
+ 	return 0;
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+1.7.1.rc1.21.gf3bd6
+
