@@ -1,72 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:38194 "EHLO smtp5-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:53268 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755157Ab0FAS7A (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jun 2010 14:59:00 -0400
-Received: from [192.168.0.101] (mil13-1-88-163-137-134.fbx.proxad.net [88.163.137.134])
-	by smtp5-g21.free.fr (Postfix) with ESMTP id C74B7D480E9
-	for <linux-media@vger.kernel.org>; Tue,  1 Jun 2010 20:58:52 +0200 (CEST)
-Subject: Re: [PATCH] support for medion dvb stick 1660:1921
-From: =?ISO-8859-1?Q?St=E9phane?= Elmaleh <stephane.elmaleh@laposte.net>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Date: Tue, 01 Jun 2010 20:58:51 +0200
-Message-Id: <1275418731.28407.2.camel@stef-netbook>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+	id S1756431Ab0FNVGL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 17:06:11 -0400
+Message-ID: <4C1699AA.3000900@gmail.com>
+Date: Mon, 14 Jun 2010 23:05:46 +0200
+From: Edward Shishkin <edward.shishkin@gmail.com>
+MIME-Version: 1.0
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+CC: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/8]reiserfs:stree.c Fix variable set but not used.
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com> <1276547208-26569-2-git-send-email-justinmattock@gmail.com>
+In-Reply-To: <1276547208-26569-2-git-send-email-justinmattock@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Patrick
+Justin P. Mattock wrote:
+> Not sure if this is correct or not.
+> the below patch gets rid of this warning message
+> produced by gcc 4.6.0
+>
+> fs/reiserfs/stree.c: In function 'search_by_key':
+> fs/reiserfs/stree.c:602:6: warning: variable 'right_neighbor_of_leaf_node' set but not used
+>
+>  Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+>   
 
-thank you for your help, I understand my mistake.
-Here is the new patch, I hope this one is right.
+Acked-by: Edward Shishkin <edward.shishkin@gmail.com>
 
-regards
-Stéphane
-
-diff -r b576509ea6d2 linux/drivers/media/dvb/dvb-usb/dib0700_devices.c
---- a/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c Wed May 19
-19:34:33 2010 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/dib0700_devices.c Tue Jun 01
-20:28:13 2010 +0200
-@@ -2091,6 +2091,7 @@
-        { USB_DEVICE(USB_VID_PINNACLE,  USB_PID_PINNACLE_PCTV282E) },
-        { USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_STK8096GP) },
-        { USB_DEVICE(USB_VID_ELGATO,
-USB_PID_ELGATO_EYETV_DIVERSITY) },
-+       { USB_DEVICE(USB_VID_MEDION,    USB_PID_MEDION_STICK_CTX_1921) },
-        { 0 }           /* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -2606,10 +2607,14 @@
-                        },
-                },
- 
--               .num_device_descs = 2,
-+               .num_device_descs = 3,
-                .devices = {
-                        {   "DiBcom STK7770P reference design",
-                                { &dib0700_usb_id_table[59], NULL },
-+                               { NULL },
-+                       },
-+                       {   "Medion Stick ctx 1921",
-+                               { &dib0700_usb_id_table[69], NULL },
-                                { NULL },
-                        },
-                        {   "Terratec Cinergy T USB XXS (HD)/ T3",
-diff -r b576509ea6d2 linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
---- a/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h     Wed May 19
-19:34:33
-2010 -0300
-+++ b/linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h     Tue Jun 01
-20:28:13
-2010 +0200
-@@ -303,4 +303,5 @@
- #define USB_PID_TERRATEC_DVBS2CI_V2                    0x10ac
- #define USB_PID_TECHNISAT_USB2_HDCI_V1                 0x0001
- #define USB_PID_TECHNISAT_USB2_HDCI_V2                 0x0002
-+#define USB_PID_MEDION_STICK_CTX_1921                  0x1921
- #endif
-
+> ---
+>  fs/reiserfs/stree.c |    7 ++-----
+>  1 files changed, 2 insertions(+), 5 deletions(-)
+>
+> diff --git a/fs/reiserfs/stree.c b/fs/reiserfs/stree.c
+> index 313d39d..73086ad 100644
+> --- a/fs/reiserfs/stree.c
+> +++ b/fs/reiserfs/stree.c
+> @@ -599,7 +599,6 @@ int search_by_key(struct super_block *sb, const struct cpu_key *key,	/* Key to s
+>  	struct buffer_head *bh;
+>  	struct path_element *last_element;
+>  	int node_level, retval;
+> -	int right_neighbor_of_leaf_node;
+>  	int fs_gen;
+>  	struct buffer_head *reada_bh[SEARCH_BY_KEY_READA];
+>  	b_blocknr_t reada_blocks[SEARCH_BY_KEY_READA];
+> @@ -617,8 +616,7 @@ int search_by_key(struct super_block *sb, const struct cpu_key *key,	/* Key to s
+>  
+>  	pathrelse(search_path);
+>  
+> -	right_neighbor_of_leaf_node = 0;
+> -
+> +	
+>  	/* With each iteration of this loop we search through the items in the
+>  	   current node, and calculate the next current node(next path element)
+>  	   for the next iteration of this loop.. */
+> @@ -695,8 +693,7 @@ int search_by_key(struct super_block *sb, const struct cpu_key *key,	/* Key to s
+>  			   starting from the root. */
+>  			block_number = SB_ROOT_BLOCK(sb);
+>  			expected_level = -1;
+> -			right_neighbor_of_leaf_node = 0;
+> -
+> +			
+>  			/* repeat search from the root */
+>  			continue;
+>  		}
+>   
 
