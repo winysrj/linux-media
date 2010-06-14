@@ -1,146 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:43744 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756421Ab0FOQUm (ORCPT
+Received: from mail-px0-f174.google.com ([209.85.212.174]:55565 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756082Ab0FNVF7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 15 Jun 2010 12:20:42 -0400
-Received: by bwz7 with SMTP id 7so2784200bwz.19
-        for <linux-media@vger.kernel.org>; Tue, 15 Jun 2010 09:20:40 -0700 (PDT)
-Received: from rz by localhost.localdomain with local (Exim 4.69)
-	(envelope-from <rz@linux-m68k.org>)
-	id 1OOYun-0001vq-Cf
-	for linux-media@vger.kernel.org; Tue, 15 Jun 2010 18:23:05 +0200
-Date: Tue, 15 Jun 2010 18:23:05 +0200
-From: Richard Zidlicky <rz@linux-m68k.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] support for Hauppauge WinTV MiniStic IR remote
-Message-ID: <20100615162305.GA4585@linux-m68k.org>
+	Mon, 14 Jun 2010 17:05:59 -0400
+Message-ID: <4C1699C4.3010809@gmail.com>
+Date: Mon, 14 Jun 2010 14:06:12 -0700
+From: "Justin P. Mattock" <justinmattock@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Jean Delvare <khali@linux-fr.org>
+CC: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/8]i2c:i2c_core Fix warning: variable 'dummy' set but
+ not used
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>	<1276547208-26569-7-git-send-email-justinmattock@gmail.com> <20100614225315.2bae9e37@hyperion.delvare>
+In-Reply-To: <20100614225315.2bae9e37@hyperion.delvare>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 06/14/2010 01:53 PM, Jean Delvare wrote:
+> Hi Justin,
+>
+> On Mon, 14 Jun 2010 13:26:46 -0700, Justin P. Mattock wrote:
+>> could be a right solution, could be wrong
+>> here is the warning:
+>>    CC      drivers/i2c/i2c-core.o
+>> drivers/i2c/i2c-core.c: In function 'i2c_register_adapter':
+>> drivers/i2c/i2c-core.c:757:15: warning: variable 'dummy' set but not used
+>>
+>>   Signed-off-by: Justin P. Mattock<justinmattock@gmail.com>
+>>
+>> ---
+>>   drivers/i2c/i2c-core.c |    2 ++
+>>   1 files changed, 2 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+>> index 1cca263..79c6c26 100644
+>> --- a/drivers/i2c/i2c-core.c
+>> +++ b/drivers/i2c/i2c-core.c
+>> @@ -794,6 +794,8 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
+>>   	mutex_lock(&core_lock);
+>>   	dummy = bus_for_each_drv(&i2c_bus_type, NULL, adap,
+>>   				 __process_new_adapter);
+>> +	if(!dummy)
+>> +		dummy = 0;
+>
+> One word: scripts/checkpatch.pl
 
-I have guessed which gpio line to use and activated the ir-remote receiver.
-The keymap seems to work fairly well with the supplied DSR-0112 remote, mostly
-tested it with xev as I do not have a working lircd on this computer.
+it was this, and/or just take the code out
+(since I'm a newbie)
 
-The patch is against 2.6.34.
+>
+> In other news, the above is just plain wrong. First we force people to
+> read the result of bus_for_each_drv() and then when they do and don't
+> need the value, gcc complains, so we add one more layer of useless
+> code, which developers and possibly tools will later wonder and
+> complain about? I can easily imagine that a static code analyzer would
+> spot the above code as being a potential bug.
+>
+> Let's stop this madness now please.
+>
 
-Richard
+your telling me!! I haven't even compiled all the way
+through the kernel yet.(lots of warnings)
 
-Jun 15 16:46:27 localhost kernel: [24399.381936] usb 5-6: New USB device found, idVendor=2040, idProduct=5500
-Jun 15 16:46:27 localhost kernel: [24399.381939] usb 5-6: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-Jun 15 16:46:27 localhost kernel: [24399.381941] usb 5-6: Product: WinTV MiniStick
-Jun 15 16:46:27 localhost kernel: [24399.381943] usb 5-6: Manufacturer: Hauppauge Computer Works
-Jun 15 16:46:27 localhost kernel: [24399.381945] usb 5-6: SerialNumber: f069684c
-Jun 15 16:46:27 localhost kernel: [24399.384194] usb 5-6: firmware: requesting sms1xxx-hcw-55xxx-dvbt-02.fw
-Jun 15 16:46:28 localhost kernel: [24400.000075] smscore_set_device_mode: firmware download success: sms1xxx-hcw-55
-xxx-dvbt-02.fw
-Jun 15 16:46:28 localhost kernel: [24400.000303] DVB: registering new adapter (Hauppauge WinTV MiniStick)
-Jun 15 16:46:28 localhost kernel: [24400.000796] DVB: registering adapter 0 frontend 0 (Siano Mobile Digital MDTV R
-eceiver)...
-Jun 15 16:46:28 localhost kernel: [24400.001798] sms_ir_init: Allocating input device
-Jun 15 16:46:28 localhost kernel: [24400.001802] sms_ir_init: IR remote keyboard type is 1
-Jun 15 16:46:28 localhost kernel: [24400.001804] sms_ir_init: IR port 0, timeout 100 ms
-Jun 15 16:46:28 localhost kernel: [24400.001807] sms_ir_init: Input device (IR) SMS IR w/kbd type 1 is set for key 
-events
-Jun 15 16:46:28 localhost kernel: [24400.001887] input: SMS IR w/kbd type 1 as /devices/pci0000:00/0000:00:1d.7/usb
-5/5-6/input/input9
+> Either __must_check goes away from bus_for_each_drv() and from every
+> other function which raises this problem, or we must disable that new
+> type of warning gcc 4.6.0 generates. Depends which warnings we value
+> more, as we can't sanely have both.
+>
+>>   	mutex_unlock(&core_lock);
+>>
+>>   	return 0;
+>
+>
 
+up to you guys..
+best thing now is deciphering what
+and what not is an actual issue.
 
---- linux-2.6.34/drivers/media/dvb/siano/smsir.h.rz	2010-06-11 11:24:20.000000000 +0200
-+++ linux-2.6.34/drivers/media/dvb/siano/smsir.h	2010-06-11 01:12:54.000000000 +0200
-@@ -30,6 +30,7 @@
- 
- enum ir_kb_type {
- 	SMS_IR_KB_DEFAULT_TV,
-+	SMS_IR_KB_HCW_DSR0112,
- 	SMS_IR_KB_HCW_SILVER
- };
- 
---- linux-2.6.34/drivers/media/dvb/siano/smsir.c.rz	2010-06-11 10:07:32.000000000 +0200
-+++ linux-2.6.34/drivers/media/dvb/siano/smsir.c	2010-06-15 18:08:37.000000000 +0200
-@@ -54,6 +54,34 @@
- 					0, 0, 0, 0, 0, 0, 0, 0, 0, 0
- 			}
- 		},
-+		[SMS_IR_KB_HCW_DSR0112] = {
-+			.ir_protocol = IR_RC5,
-+			.rc5_kbd_address = KEYBOARD_ADDRESS_LIGHTING,
-+			.keyboard_layout_map = {
-+					KEY_0, KEY_1, KEY_2,
-+					KEY_3, KEY_4, KEY_5,
-+					KEY_6, KEY_7, KEY_8,
-+					KEY_9, KEY_TEXT, KEY_RED,
-+					KEY_RADIO, KEY_MENU,
-+					KEY_SUBTITLE,
-+					KEY_MUTE, KEY_VOLUMEUP,
-+					KEY_VOLUMEDOWN, KEY_PREVIOUS, 0,
-+					KEY_UP, KEY_DOWN, KEY_LEFT,
-+					KEY_RIGHT, KEY_VIDEO, KEY_AUDIO,
-+					KEY_MHP, KEY_EPG, KEY_TV,
-+					0, KEY_NEXTSONG, KEY_EXIT,
-+					KEY_CHANNELUP, 	KEY_CHANNELDOWN,
-+					KEY_CHANNEL, 0,
-+					KEY_PREVIOUSSONG, KEY_ENTER,
-+					KEY_SLEEP, 0, 0, KEY_BLUE,
-+					0, 0, 0, 0, KEY_GREEN, 0,
-+					KEY_PAUSE, 0, KEY_REWIND,
-+					0, KEY_FASTFORWARD, KEY_PLAY,
-+					KEY_STOP, KEY_RECORD,
-+					KEY_YELLOW, 0, 0, KEY_SELECT,
-+					KEY_ZOOM, KEY_POWER, 0, 0
-+			}
-+		},
- 		[SMS_IR_KB_HCW_SILVER] = {
- 			.ir_protocol = IR_RC5,
- 			.rc5_kbd_address = KEYBOARD_ADDRESS_LIGHTING1,
-@@ -120,6 +148,7 @@
- 
- 	sms_log("kernel input keycode (from ir) %d", keycode);
- 	input_report_key(coredev->ir.input_dev, keycode, 1);
-+	input_report_key(coredev->ir.input_dev, keycode, 0);
- 	input_sync(coredev->ir.input_dev);
- 
- }
-@@ -247,6 +276,8 @@
- int sms_ir_init(struct smscore_device_t *coredev)
- {
- 	struct input_dev *input_dev;
-+	int i;
-+	u16 *key_map;
- 
- 	sms_log("Allocating input device");
- 	input_dev = input_allocate_device();
-@@ -278,7 +309,14 @@
- 
- 	/* Key press events only */
- 	input_dev->evbit[0] = BIT_MASK(EV_KEY);
--	input_dev->keybit[BIT_WORD(BTN_0)] = BIT_MASK(BTN_0);
-+
-+	key_map = keyboard_layout_maps[coredev->ir.ir_kb_type].keyboard_layout_map;
-+		
-+	memset (input_dev->keybit, 0, sizeof(input_dev->keybit));
-+	for (i=0; i<IR_KEYBOARD_LAYOUT_SIZE; i++) {
-+		if (key_map[i])
-+			set_bit (key_map[i], input_dev->keybit);
-+	}
- 
- 	sms_log("Input device (IR) %s is set for key events", input_dev->name);
- 
---- linux-2.6.34/drivers/media/dvb/siano/sms-cards.c.rz	2010-06-09 14:37:19.000000000 +0200
-+++ linux-2.6.34/drivers/media/dvb/siano/sms-cards.c	2010-06-11 01:08:49.000000000 +0200
-@@ -64,6 +64,8 @@
- 		.type	= SMS_NOVA_B0,
- 		.fw[DEVICE_MODE_ISDBT_BDA] = "sms1xxx-hcw-55xxx-isdbt-02.fw",
- 		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
-+		.ir_kb_type = SMS_IR_KB_HCW_DSR0112,
-+		.board_cfg.ir = 4,
- 		.board_cfg.leds_power = 26,
- 		.board_cfg.led0 = 27,
- 		.board_cfg.led1 = 28,
-
-
+Justin P. Mattock
