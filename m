@@ -1,54 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms16-1.1blu.de ([89.202.0.34]:35211 "EHLO ms16-1.1blu.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933931Ab0FFCAO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 5 Jun 2010 22:00:14 -0400
-Date: Sun, 6 Jun 2010 04:00:11 +0200
-From: Lars Schotte <lars.schotte@schotteweb.de>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: hvr4000 doesnt work w/ dvb-s2 nor DVB-T
-Message-ID: <20100606040011.30c94d18@romy.gusto>
-In-Reply-To: <AANLkTin-QLz0lM1bpGer_a71YHbnoN-dTQrPRjwtCfo3@mail.gmail.com>
-References: <20100606010752.4a138f82@romy.gusto>
-	<AANLkTin-QLz0lM1bpGer_a71YHbnoN-dTQrPRjwtCfo3@mail.gmail.com>
+Received: from lennier.cc.vt.edu ([198.82.162.213]:39603 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751713Ab0FODuC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 23:50:02 -0400
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/8]drivers:tmp.c Fix warning: variable 'rc' set but not used
+In-Reply-To: Your message of "Mon, 14 Jun 2010 19:12:31 PDT."
+             <4C16E18F.9050901@gmail.com>
+From: Valdis.Kletnieks@vt.edu
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com> <1276547208-26569-5-git-send-email-justinmattock@gmail.com> <21331.1276560832@localhost>
+            <4C16E18F.9050901@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/signed; boundary="==_Exmh_1276573789_4860P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
+Date: Mon, 14 Jun 2010 23:49:49 -0400
+Message-ID: <9275.1276573789@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+--==_Exmh_1276573789_4860P
+Content-Type: text/plain; charset=us-ascii
 
-thanks for your response. really!
+On Mon, 14 Jun 2010 19:12:31 PDT, "Justin P. Mattock" said:
 
-its a pretty good sign, but as long as i have no stream running its
-worth nothing.
-
-and Yes, I used szap-s2 and was careful about what it answerd. so I am
-sure that it was all right.
-
-
-On Sat, 5 Jun 2010 21:33:24 -0400
-Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
-
-> On Sat, Jun 5, 2010 at 7:07 PM, Lars Schotte
-> <lars.schotte@schotteweb.de> wrote:
-> > so basically my question is, what makes you think, that HVR4000 is
-> > able to play DVB-S2 streams when it doesn't?!
+> what I tried was this:
 > 
-> Well, the fact that the developer who added the Linux S2-API support
-> did it for that card would be a pretty good indicator that it should
-> work.
+> if (!rc)
+> 	printk("test........"\n")
 > 
-> > so I have tried this out, run w_scan which printed me also all the
-> > DVB-S2 channels out and provided me a tuning list (channels.conf)
-> > and then I tried to tune in w/ "szap-s2 -S 1 -c
-> > ~/.mplayer/channels.conf ZDFHD"
+> and everything looked good,
+> but as a soon as I changed
 > 
-> If w_scan gave you a channel list, that is a pretty good sign that the
-> card is working.  You probably are just feeding the zap tool the wrong
-> arguments (something which someone who has more familiarity than I do
-> with dvb-s2 would probably be able to help you with.
+> rc = transmit_cmd(chip,&tpm_cmd, TPM_INTERNAL_RESULT_SIZE,
+>     			"attempting to determine the timeouts");
 > 
-> Devin
+> to this:
 > 
+> rc = transmit_cmd(chip,&tpm_cmd, TPM_INTERNAL_RESULT_SIZE);
+> 
+> if (!rc)
+> 	printk("attempting to determine the timeouts\n");
+
+*baffled* Why did you think that would work? transmit_cmd()s signature
+has 4 parameters.
+
+--==_Exmh_1276573789_4860P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFMFvhdcC3lWbTT17ARAoaDAJsFnmHjFcoQL0nTEuY8H8yGQYdpqQCglYgf
+HqrVXnNW5QE2b8CWdDVStzE=
+=d/C0
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1276573789_4860P--
+
