@@ -1,65 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:55895 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752573Ab0F1Dei convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3723 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752324Ab0FOTdj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jun 2010 23:34:38 -0400
-Received: by vws19 with SMTP id 19so626444vws.19
-        for <linux-media@vger.kernel.org>; Sun, 27 Jun 2010 20:34:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1277680645.3347.7.camel@localhost>
-References: <20100607192830.21236.69701.stgit@localhost.localdomain>
-	<20100607193238.21236.72227.stgit@localhost.localdomain>
-	<4C273FFE.4090300@redhat.com>
-	<AANLkTimDJAyvowo_1bLhKPhlDWzzMeF87or4MriJ_UT8@mail.gmail.com>
-	<1277680645.3347.7.camel@localhost>
-Date: Sun, 27 Jun 2010 23:34:36 -0400
-Message-ID: <AANLkTinda8JSa3XRZSSbEuj9JKVkLnRNwnW4YGBtDfWj@mail.gmail.com>
-Subject: Re: MCEUSB memory leak and how to tell if ir_register_input() failure
-	registered input_dev?
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 15 Jun 2010 15:33:39 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5FJXX2U087829
+	for <linux-media@vger.kernel.org>; Tue, 15 Jun 2010 21:33:38 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 15 Jun 2010 21:33:33 +0200 (CEST)
+Message-Id: <201006151933.o5FJXX2U087829@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 27, 2010 at 7:17 PM, Andy Walls <awalls@md.metrocast.net> wrote:
->
-> Jarrod,
->
-> Looking at the patches branch from your WIP git tree:
->
-> Is mceusb_init_input_dev() supposed to allocate a struct ir_input_dev?
-> It looks like ir_register_input() handles that, and it is trashing your
-> pointer (memory leak).
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Eep, crap, you're right. Fixed locally (I think), will test it out and
-ship off the patch probably tomorrow (exhausting weekend of watching
-futbol and some heavy-duty bbq'ing, need to turn in early... ;).
+Results of the daily build of v4l-dvb:
 
-Just double-checked, I actually cribbed that incorrectness from
-imon.c, so I'll need to fix it there too. D'oh.
+date:        Tue Jun 15 19:00:12 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14991:b12134cf27a6
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-> Mauro and Jarrod,
->
-> When ir_register_input() fails, it doesn't indicate whether or not it
-> was able to register the input_dev or not.  To me it looks like it can
-> return with failure with the input_dev either way depending on the case.
-> This makes proper cleanup of the input_dev in my cx23885_input_init()
-> function difficult in the failure case, since the input subsystem has
-> two different deallocators depending on if the device had been
-> registered or not.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Hm. I've done a double-take a few times now, but if
-input_register_device is successful, and something later in
-__ir_input_register fails, input_unregister_device *does* get called
-within __ir_input_register, so all you should have to do is call
-input_free_device in your init function's error path, no?
+Detailed results are available here:
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
