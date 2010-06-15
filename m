@@ -1,39 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dd16922.kasserver.com ([85.13.137.202]:45750 "EHLO
-	dd16922.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754912Ab0FGL1q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jun 2010 07:27:46 -0400
-Received: from dd16922.kasserver.com (kasmail1.kasserver.com [85.13.137.172])
-	by dd16922.kasserver.com (Postfix) with SMTP id 7B3B010FC20F
-	for <linux-media@vger.kernel.org>; Mon,  7 Jun 2010 13:27:44 +0200 (CEST)
-Subject: v4l-dvb - Is it still usable for a distribution ?
-from: vdr@helmutauer.de
-to: linux-media@vger.kernel.org
+Received: from foo.birdnet.se ([213.88.146.6]:47566 "HELO foo.birdnet.se"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750855Ab0FOFg0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jun 2010 01:36:26 -0400
+Message-ID: <20100615052944.7746.qmail@stuge.se>
+Date: Tue, 15 Jun 2010 07:29:44 +0200
+From: Peter Stuge <peter@stuge.se>
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: Valdis.Kletnieks@vt.edu, linux-kernel@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, debora@linux.vnet.ibm.com,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/8]drivers:tmp.c Fix warning: variable 'rc' set but
+	not used
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com> <1276547208-26569-5-git-send-email-justinmattock@gmail.com> <21331.1276560832@localhost> <4C16E18F.9050901@gmail.com> <9275.1276573789@localhost> <4C16F9FC.2080905@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
-Message-Id: <20100607112744.7B3B010FC20F@dd16922.kasserver.com>
-Date: Mon,  7 Jun 2010 13:27:44 +0200 (CEST)
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4C16F9FC.2080905@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello List,
+Justin P. Mattock wrote:
+> > *baffled* Why did you think that would work? transmit_cmd()s signature
+> > has 4 parameters.
+> 
+> I have no manual in front of me. Did a quick google, but came up with 
+> (no hits) info on what that function does. grep showed too many entries 
+> to really see why/what this is.
 
-I have a Gentoo based VDR Distribution named Gen2VDR.
-As the name said its main application is VDR.
-Until kernel 2.6.33 I bundled the v4l-dvb drivers emerged via the gentoo ebuild with my distribution.
-Now with kernel 2.6.34 this doesn't work anymore, because v4l-dvb doesn't compile.
-Another problem (after fixing the compile issues) is the IR Part of v4l-dvb which includes an Imon module.
-This module doesn't provide any lirc devices, so how can this oe be used as an IR device ?
-Til now I am using lirc_imon which fit all my needs.
-
-The final question for me:
-Does it make any sense anymore to stay with v4l-dvb or do I have to change to the kernel drivers ?
-The major disadvantage of the kernel drivers is the fact that I cannot switch to newer dvb drivers, I am stuck to the ones included in the kernel.
-
-Any comments are very welcome
-
-Helmut Auer
+Check out the tool cscope. (Or kscope, if you prefer a GUI.)
 
 
-
+//Peter
