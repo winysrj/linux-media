@@ -1,47 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59873 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757238Ab0FAUuH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jun 2010 16:50:07 -0400
-Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o51Ko6vL019226
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 1 Jun 2010 16:50:07 -0400
-Date: Tue, 1 Jun 2010 16:50:05 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/3] IR: add lirc support to ir-core
-Message-ID: <20100601205005.GA28322@redhat.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:46603 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752875Ab0FOCMR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 22:12:17 -0400
+Message-ID: <4C16E18F.9050901@gmail.com>
+Date: Mon, 14 Jun 2010 19:12:31 -0700
+From: "Justin P. Mattock" <justinmattock@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Valdis.Kletnieks@vt.edu
+CC: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/8]drivers:tmp.c Fix warning: variable 'rc' set but not
+ used
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>            <1276547208-26569-5-git-send-email-justinmattock@gmail.com> <21331.1276560832@localhost>
+In-Reply-To: <21331.1276560832@localhost>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds the core lirc device interface, lirc_dev, and
-an ir-core bridge driver. Currently, only the receive side is wired
-up in the bridge driver, but adding transmit support is up next.
+On 06/14/2010 05:13 PM, Valdis.Kletnieks@vt.edu wrote:
+> On Mon, 14 Jun 2010 13:26:44 PDT, "Justin P. Mattock" said:
+>> Im getting this warning when compiling:
+>>   CC      drivers/char/tpm/tpm.o
+>> drivers/char/tpm/tpm.c: In function 'tpm_gen_interrupt':
+>> drivers/char/tpm/tpm.c:508:10: warning: variable 'rc' set but not used
+>>
+>> The below patch gets rid of the warning,
+>> but I'm not sure if it's the best solution.
+>
+>>   	rc = transmit_cmd(chip,&tpm_cmd, TPM_INTERNAL_RESULT_SIZE,
+>>   			"attempting to determine the timeouts");
+>> +	if (!rc)
+>> +		rc = 0;
+>>   }
+>
+> Good thing that's a void function. ;)
+>
+> Unless transmit_cmd() is marked 'must_check', maybe losing the 'rc =' would
+> be a better solution?
 
-Currently, adding this code allows any raw IR ir-core device driver to
-pass raw IR out to the lirc userspace, without the driver having to have
-any actual knowledge of lirc -- its just feeding data to another IR
-protocol decoder engine.
 
-This also (hopefully) makes life easier for any currently out-of-tree
-pure lirc device drivers, as they can count on the lirc core bits being
-present. This is a Good Thing(tm) while we work on porting additional
-lirc device drivers to ir-core, and also makes life easier for users to
-migrate from lirc decoding to in-kernel decoding (where possible) when
-their device's driver gets ported.
+what I tried was this:
 
-This patchset has been tested with the ir-core mceusb driver, and IR
-receive behaves 100% identical in lirc mode to the old lirc_mceusb.
+if (!rc)
+	printk("test........"\n")
 
-[PATCH 1/3] IR: add core lirc device interface
-[PATCH 2/3] IR: add an empty lirc "protocol" keymap
-[PATCH 3/3] IR: add ir-core to lirc interface bridge driver
+and everything looked good,
+but as a soon as I changed
 
--- 
-Jarod Wilson
-jarod@redhat.com
+rc = transmit_cmd(chip,&tpm_cmd, TPM_INTERNAL_RESULT_SIZE,
+    			"attempting to determine the timeouts");
 
+to this:
+
+rc = transmit_cmd(chip,&tpm_cmd, TPM_INTERNAL_RESULT_SIZE);
+
+if (!rc)
+	printk("attempting to determine the timeouts\n");
+
+I error out with transmit_cmd not having enough
+functions to it.. so I just added the rc = 0;
+and went on to the next.
+
+Justin P. Mattock
