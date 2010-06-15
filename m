@@ -1,124 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2507 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750980Ab0FNTdh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jun 2010 15:33:37 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5EJXP5t055792
-	for <linux-media@vger.kernel.org>; Mon, 14 Jun 2010 21:33:36 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 14 Jun 2010 21:33:25 +0200 (CEST)
-Message-Id: <201006141933.o5EJXP5t055792@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from poutre.nerim.net ([62.4.16.124]:51581 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752802Ab0FOLie (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jun 2010 07:38:34 -0400
+Date: Tue, 15 Jun 2010 13:38:30 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: Re: [PATCH 7/8]ieee1394/sdp2 Fix warning: variable
+ 'unit_characteristics' set but not used
+Message-ID: <20100615133830.55afdddf@hyperion.delvare>
+In-Reply-To: <1276547208-26569-8-git-send-email-justinmattock@gmail.com>
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
+	<1276547208-26569-8-git-send-email-justinmattock@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, 14 Jun 2010 13:26:47 -0700, Justin P. Mattock wrote:
+> Temporary fix until something is resolved
 
-Results of the daily build of v4l-dvb:
+This is wrong by design, sorry. Warnings aren't blocking, and thus need
+no "temporary fix". Such temporary fixes would be only hiding the
+warning, cancelling the good work of gcc developers. Nack nack nack.
 
-date:        Mon Jun 14 19:00:11 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14977:23492745405c
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+> to fix the below warning:
+>   CC [M]  drivers/ieee1394/sbp2.o
+> drivers/ieee1394/sbp2.c: In function 'sbp2_parse_unit_directory':
+> drivers/ieee1394/sbp2.c:1353:6: warning: variable 'unit_characteristics' set but not used
+>  Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+> 
+> ---
+>  drivers/ieee1394/sbp2.c |    2 ++
+>  1 files changed, 2 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/ieee1394/sbp2.c b/drivers/ieee1394/sbp2.c
+> index 4565cb5..fcf8bd5 100644
+> --- a/drivers/ieee1394/sbp2.c
+> +++ b/drivers/ieee1394/sbp2.c
+> @@ -1356,6 +1356,8 @@ static void sbp2_parse_unit_directory(struct sbp2_lu *lu,
+>  
+>  	management_agent_addr = 0;
+>  	unit_characteristics = 0;
+> +	if (!unit_characteristics)
+> +		unit_characteristics = 0;
+>  	firmware_revision = SBP2_ROM_VALUE_MISSING;
+>  	model = ud->flags & UNIT_DIRECTORY_MODEL_ID ?
+>  				ud->model_id : SBP2_ROM_VALUE_MISSING;
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Jean Delvare
