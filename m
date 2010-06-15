@@ -1,155 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2309 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756227Ab0FFNNG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 09:13:06 -0400
-Received: from tschai.localnet (cm-84.208.87.21.getinternet.no [84.208.87.21])
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id o56DCxu8097312
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 6 Jun 2010 15:13:03 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: Version 2: Tentative agenda for Helsinki mini-summit
-Date: Sun, 6 Jun 2010 15:15:04 +0200
-References: <201005301015.59776.hverkuil@xs4all.nl>
-In-Reply-To: <201005301015.59776.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from lennier.cc.vt.edu ([198.82.162.213]:34368 "EHLO
+	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753947Ab0FOAN6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 20:13:58 -0400
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/8]drivers:tmp.c Fix warning: variable 'rc' set but not used
+In-Reply-To: Your message of "Mon, 14 Jun 2010 13:26:44 PDT."
+             <1276547208-26569-5-git-send-email-justinmattock@gmail.com>
+From: Valdis.Kletnieks@vt.edu
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
+            <1276547208-26569-5-git-send-email-justinmattock@gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; boundary="==_Exmh_1276560832_4535P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201006061515.04515.hverkuil@xs4all.nl>
+Date: Mon, 14 Jun 2010 20:13:52 -0400
+Message-ID: <21331.1276560832@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+--==_Exmh_1276560832_4535P
+Content-Type: text/plain; charset=us-ascii
 
-The only change to the agenda has been that after the Qualcomm presentation
-there will also be a short presentation from ST-Ericsson on their hardware.
+On Mon, 14 Jun 2010 13:26:44 PDT, "Justin P. Mattock" said:
+> Im getting this warning when compiling:
+>  CC      drivers/char/tpm/tpm.o
+> drivers/char/tpm/tpm.c: In function 'tpm_gen_interrupt':
+> drivers/char/tpm/tpm.c:508:10: warning: variable 'rc' set but not used
+> 
+> The below patch gets rid of the warning,
+> but I'm not sure if it's the best solution.
 
-We are also completely full. The substantial interest in this summit shows
-how active the v4l community is, in particular in the area of embedded systems.
+>  	rc = transmit_cmd(chip, &tpm_cmd, TPM_INTERNAL_RESULT_SIZE,
+>  			"attempting to determine the timeouts");
+> +	if (!rc)
+> +		rc = 0;
+>  }
 
-If I've missed a topic or you want to add one, please contact me!
+Good thing that's a void function. ;)
 
-The Saturday before the summit I'll post the final agenda and with all the
-topics in order.
+Unless transmit_cmd() is marked 'must_check', maybe losing the 'rc =' would
+be a better solution?
 
-Note that I am also moving to a new apartment this month, so I'm not as often
-online as I normally am.
+--==_Exmh_1276560832_4535P
+Content-Type: application/pgp-signature
 
-Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
 
-	Hans
+iD8DBQFMFsW/cC3lWbTT17ARAozXAKDUzsPJ5qGjLthg1WUw+ja58I+MOwCfeVvx
+zBQCgslSY2ar/mPFtJHVUAA=
+=j1Q9
+-----END PGP SIGNATURE-----
 
-On Sunday 30 May 2010 10:15:59 Hans Verkuil wrote:
-> Hi all,
-> 
-> This is the second version of a tentative agenda for the Helsinki mini-summit
-> on June 14-16.
-> 
-> Please reply to this thread if you have comments or want to add topics.
-> 
-> If you want to attend the summit then contact Sakari Ailus
-> (sakari.ailus@maxwell.research.nokia.com). We are very full already (over 20
-> attendees), so I'm not sure if there is still room left.
-> 
-> The overall layout of the summit is to use the first day to go through all
-> topics and either come to a conclusion quickly for the 'simple' topics, or
-> discuss enough so that everyone understands the problem for the more complex
-> issues.
-> 
-> The second day will be used for in-depth discussions on those complex topics
-> and on the third day we will go through all topics again and translate the
-> discussions into something concrete like a time-line, action items, etc.
-> 
-> We have a lot to discuss, so we almost certainly have to split the second day
-> into two tracks, each discussing different topics. If we do split up, then one
-> track will touch on the videobuf-related topics and the other on the remaining
-> topics.
-> 
-> The first day will also feature a few short presentations on various topics.
-> Presentations shouldn't be longer than, say, 10 minutes tops. Please keep them
-> as short and to the point as possible. These presentations are meant to get
-> everyone up to speed quickly. Most of us have an extensive background in video
-> hardware and the v4l subsystem, so you don't need to spend time explaining
-> things.
-> 
-> After each topic I've put the names of the main developers active in that area.
-> If you see your name, then make sure you know the status of that topic so you
-> can explain it to everyone else. If I think it warrants a presentation, then I
-> will mention that. Of course, if you disagree, or want/don't want to do a
-> presentation then just say so. It's a tentative agenda only.
-> 
-> The topics below are in no particular order except for the first one. I am
-> very pleased that Qualcomm has joined this project so I think it would be
-> nice to start the meeting off with a presentation on their HW architecture.
-> 
-> 1) Presentation on the Qualcomm video hw architecture. Most of us have no
->    experience with Qualcomm hardware, so I've asked Jeff Zhong to give a short
->    overview of their video hardware.
-> 
-> 2) Removal of V4L1: status of driver conversion in the kernel, status of
->    moving v4l1->v4l2 conversion into libv4l1. What needs to be done, when
->    will it be done and who will do it. Driver conversion: Hans Verkuil,
->    libv4l1 conversion: Hans de Goede.
-> 
-> 3) videobuf/videobuf2: what are the shortcomings, what are the requirements for
->    a 'proper' videobuf implementation, can the existing videobuf be fixed or do
->    we need a videobuf2. If the latter, what would be needed to convert existing
->    drivers over to a videobuf2. Related topics (custom/pluggable allocators,
->    out-of-order buffer dequeuing and per-buffer wait queues) will also be part
->    of this topic.
->    Laurent Pinchart and Pawel Osciak with presentations.
-> 
-> 4) Multi-planar support. Pawel Osciak.
-> 
-> 5) Media Controller Roadmap. Laurent Pinchart has a presentation.
-> 
-> 6) TO DO list regarding V4L2 core framework including the new control framework.
->    Hans Verkuil. Will be a presentation.
-> 
-> 7) Status of the Texas Instruments drivers: omapX (Laurent Pinchart/Hiremath Vaibhav)
->    and DMxxxx (Sergio Aguirre). Probably should be a short presentation.
-> 
-> 8) soc-camera status. Particularly with regards to the remaining soc-camera
->    dependencies in sensor drivers. Guennadi Liakhovetski.
-> 
-> 9) Driver compliance. We need a framework for V4L2 driver compliance. Hans
->    Verkuil.
-> 
-> 10) Discuss list of 'reference' programs to test against. Mauro Carvalho Chehab.
-> 
-> 11) Adopting old V4L1 programs and converting to V4L2. Hans de Goede?
-> 
-> 12) Status of intel drivers. Xiaolin Zhang.
-> 
-> 13) Remote Controllers. Presentation by Mauro Carvalho Chehab.
-> 
-> 14) V4L2 video output vs. framebuffer. Guennadi Liakhovetski.
-> 
-> 15) A processing plugin API for libv4l. Hans de Goede.
->     See: http://www.mail-archive.com/linux-media@vger.kernel.org/msg18993.html
-> 
-> It is my understanding that we will also have X11 and gstreamer experts on hand.
-> Topics relating to that are welcome.
-> 
-> During the memory handling brainstorming session earlier this year we also
-> touched on creating some sort of a generic buffer model allowing for easy
-> exchange between v4l buffers, framebuffers, texture buffers, etc. It is my
-> opinion that we should not discuss this in Helsinki. The list of topics is
-> already quite long and I think it is too early to start working on that. We
-> probably need another brainstorming session first in order to come up with
-> a reasonable proposal.
-> 
-> Comments? Topics I missed?
-> 
-> Regards,
-> 
->         Hans
-> 
-> 
+--==_Exmh_1276560832_4535P--
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
