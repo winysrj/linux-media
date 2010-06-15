@@ -1,59 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from xenotime.net ([72.52.115.56]:43731 "HELO xenotime.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750797Ab0FCPhO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jun 2010 11:37:14 -0400
-Received: from chimera.site ([71.245.98.113]) by xenotime.net for <linux-media@vger.kernel.org>; Thu, 3 Jun 2010 08:37:12 -0700
-Date: Thu, 3 Jun 2010 08:37:12 -0700
-From: Randy Dunlap <rdunlap@xenotime.net>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"mchehab@redhat.com" <mchehab@redhat.com>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: [PATCH-V1 1/2] Davinci: Create seperate Kconfig file for
- davinci devices
-Message-Id: <20100603083712.836dc89e.rdunlap@xenotime.net>
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E6D3278@dbde02.ent.ti.com>
-References: <hvaibhav@ti.com>
-	<1275547321-31406-2-git-send-email-hvaibhav@ti.com>
-	<20100603082643.83293005.rdunlap@xenotime.net>
-	<19F8576C6E063C45BE387C64729E7394044E6D3278@dbde02.ent.ti.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:36283 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753989Ab0FOD4b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 14 Jun 2010 23:56:31 -0400
+Message-ID: <4C16F9FC.2080905@gmail.com>
+Date: Mon, 14 Jun 2010 20:56:44 -0700
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+MIME-Version: 1.0
+To: Valdis.Kletnieks@vt.edu
+CC: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/8]drivers:tmp.c Fix warning: variable 'rc' set but not
+ used
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com> <1276547208-26569-5-git-send-email-justinmattock@gmail.com> <21331.1276560832@localhost>            <4C16E18F.9050901@gmail.com> <9275.1276573789@localhost>
+In-Reply-To: <9275.1276573789@localhost>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 3 Jun 2010 21:03:27 +0530 Hiremath, Vaibhav wrote:
+On 06/14/2010 08:49 PM, Valdis.Kletnieks@vt.edu wrote:
+> On Mon, 14 Jun 2010 19:12:31 PDT, "Justin P. Mattock" said:
+>
+>> what I tried was this:
+>>
+>> if (!rc)
+>> 	printk("test........"\n")
+>>
+>> and everything looked good,
+>> but as a soon as I changed
+>>
+>> rc = transmit_cmd(chip,&tpm_cmd, TPM_INTERNAL_RESULT_SIZE,
+>>      			"attempting to determine the timeouts");
+>>
+>> to this:
+>>
+>> rc = transmit_cmd(chip,&tpm_cmd, TPM_INTERNAL_RESULT_SIZE);
+>>
+>> if (!rc)
+>> 	printk("attempting to determine the timeouts\n");
+>
+> *baffled* Why did you think that would work? transmit_cmd()s signature
+> has 4 parameters.
 
-> 
-> > -----Original Message-----
-> > From: Randy Dunlap [mailto:rdunlap@xenotime.net]
-> > Sent: Thursday, June 03, 2010 8:57 PM
-> > To: Hiremath, Vaibhav
-> > Cc: linux-media@vger.kernel.org; mchehab@redhat.com; Karicheri,
-> > Muralidharan; linux-omap@vger.kernel.org
-> > Subject: Re: [PATCH-V1 1/2] Davinci: Create seperate Kconfig file for
-> > davinci devices
-> > 
-> > On Thu,  3 Jun 2010 12:12:00 +0530 hvaibhav@ti.com wrote:
-> > 
-> > > From: Vaibhav Hiremath <hvaibhav@ti.com>
-> > >
-> > > Currently VPFE Capture driver and DM6446 CCDC driver is being
-> > > reused for AM3517. So this patch is preparing the Kconfig/makefile
-> > > for re-use of such IP's.
-> > 
-> > Hi,
-> > What are "IP's"?
-> > 
-> [Hiremath, Vaibhav] Actually we have various DM series devices and IP's from it are being re-used for some of the OMAP/AM/DM devices as well. We do have some AM18x/AM17x parts which are coming to list in the near future which will again re-use drivers from here.
+I have no manual in front of me. Did a quick google, but came up with 
+(no hits) info on what that function does. grep showed too many entries 
+to really see why/what this is. So I kind of just scrambled with this one.
 
-Since you didn't answer the question:
-
-So IP's are Intellectual Property logic blocks?
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Justin P. Mattock
