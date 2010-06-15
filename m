@@ -1,52 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:51684 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753757Ab0FZTEx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jun 2010 15:04:53 -0400
-Received: by ewy7 with SMTP id 7so40565ewy.19
-        for <linux-media@vger.kernel.org>; Sat, 26 Jun 2010 12:04:51 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201006262051.52754.hverkuil@xs4all.nl>
-References: <AANLkTim9TfITmvy7nEuSVJnCxRwCkpbmgRc2FIIIWHGF@mail.gmail.com>
-	<201006262051.52754.hverkuil@xs4all.nl>
-Date: Sat, 26 Jun 2010 15:04:51 -0400
-Message-ID: <AANLkTikPKv6iCQmV14JSiR61AUMswsOoTB7i-eSHAwH4@mail.gmail.com>
-Subject: Re: Correct way to do s_ctrl ioctl taking into account subdev
-	framework?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from poutre.nerim.net ([62.4.16.124]:60375 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757637Ab0FOLnr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 15 Jun 2010 07:43:47 -0400
+Date: Tue, 15 Jun 2010 13:43:43 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
+	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
+	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
+	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/8]i2c:i2c_core Fix warning: variable 'dummy' set but
+ not used
+Message-ID: <20100615134343.6ae4a6e1@hyperion.delvare>
+In-Reply-To: <4C1699C4.3010809@gmail.com>
+References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
+	<1276547208-26569-7-git-send-email-justinmattock@gmail.com>
+	<20100614225315.2bae9e37@hyperion.delvare>
+	<4C1699C4.3010809@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jun 26, 2010 at 2:51 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> There really is no good way at the moment to handle cases like this, or at
-> least not without a lot of work.
+Hi Justin,
 
-Ok, it's good to know I'm not missing something obvious.
+On Mon, 14 Jun 2010 14:06:12 -0700, Justin P. Mattock wrote:
+> On 06/14/2010 01:53 PM, Jean Delvare wrote:
+> > Hi Justin,
+> >
+> > On Mon, 14 Jun 2010 13:26:46 -0700, Justin P. Mattock wrote:
+> >> could be a right solution, could be wrong
+> >> here is the warning:
+> >>    CC      drivers/i2c/i2c-core.o
+> >> drivers/i2c/i2c-core.c: In function 'i2c_register_adapter':
+> >> drivers/i2c/i2c-core.c:757:15: warning: variable 'dummy' set but not used
+> >>
+> >>   Signed-off-by: Justin P. Mattock<justinmattock@gmail.com>
+> >>
+> >> ---
+> >>   drivers/i2c/i2c-core.c |    2 ++
+> >>   1 files changed, 2 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> >> index 1cca263..79c6c26 100644
+> >> --- a/drivers/i2c/i2c-core.c
+> >> +++ b/drivers/i2c/i2c-core.c
+> >> @@ -794,6 +794,8 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
+> >>   	mutex_lock(&core_lock);
+> >>   	dummy = bus_for_each_drv(&i2c_bus_type, NULL, adap,
+> >>   				 __process_new_adapter);
+> >> +	if(!dummy)
+> >> +		dummy = 0;
+> >
+> > One word: scripts/checkpatch.pl
+> 
+> it was this, and/or just take the code out
+> (since I'm a newbie)
 
-> The plan is to have the framework merged in time for 2.6.36. My last patch
-> series for the framework already converts a bunch of subdevs to use it. Your
-> best bet is to take the patch series and convert any remaining subdevs used
-> by em28xx and em28xx itself. I'd be happy to add those patches to my patch
-> series, so that when I get the go ahead the em28xx driver will be fixed
-> automatically.
->
-> It would be useful for me anyway to have someone else use it: it's a good
-> check whether my documentation is complete.
-
-Sure, could you please point me to the tree in question and I'll take a look?
-
-Given I've got applications failing, for the short term I will likely
-just submit a patch which makes the s_ctrl always return zero
-regardless of the subdev response, instead of returning 1.
-
-Thanks,
-
-Devin
+I was not (yet) arguing on the code itself, but on its format. Any
+patch you send should pass the formatting tests performed by
+scripts/checkpatch.pl. Thanks.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Jean Delvare
