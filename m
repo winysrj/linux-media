@@ -1,55 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:41875 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751788Ab0FZXDF convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1571 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758407Ab0FPTdV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jun 2010 19:03:05 -0400
-Received: by bwz10 with SMTP id 10so233876bwz.19
-        for <linux-media@vger.kernel.org>; Sat, 26 Jun 2010 16:03:04 -0700 (PDT)
-From: Jaroslav Klaus <jaroslav.klaus@gmail.com>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Subject: TS discontinuity with TT S-2300
-Date: Sun, 27 Jun 2010 01:05:57 +0200
-Message-Id: <1CF58597-201D-4448-A80C-55815811753E@gmail.com>
+	Wed, 16 Jun 2010 15:33:21 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5GJXJS2040975
+	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 21:33:19 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 16 Jun 2010 21:33:19 +0200 (CEST)
+Message-Id: <201006161933.o5GJXJS2040975@smtp-vbr18.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Mime-Version: 1.0 (Apple Message framework v1081)
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I'm loosing TS packets in my dual CAM premium TT S-2300 card (av7110+saa7146).
+Results of the daily build of v4l-dvb:
 
-Is it possible the problem is in firmware? Here is the description:
+date:        Wed Jun 16 19:00:10 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14992:eb3a7341a233
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-04:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
-        Subsystem: Technotrend Systemtechnik GmbH Technotrend/Hauppauge DVB card rev2.3
-        Flags: bus master, medium devsel, latency 32, IRQ 20
-        Memory at fddff000 (32-bit, non-prefetchable) [size=512]
-        Kernel driver in use: dvb
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-dvb 0000:04:00.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
-IRQ 20/: IRQF_DISABLED is not guaranteed on shared IRQs
-saa7146: found saa7146 @ mem ffffc90005248000 (revision 1, irq 20) (0x13c2,0x000e).
-dvb 0000:04:00.0: firmware: requesting dvb-ttpci-01.fw
-DVB: registering new adapter (Technotrend/Hauppauge WinTV Nexus-S rev2.3)
-adapter has MAC addr = 00:d0:5c:04:2e:ea
-dvb 0000:04:00.0: firmware: requesting av7110/bootcode.bin
-dvb-ttpci: info @ card 0: firm f0240009, rtsl b0250018, vid 71010068, app 80f12623
-dvb-ttpci: firmware @ card 0 supports CI link layer interface
+Detailed results are available here:
 
-I've tried also:
- dvb-ttpci: info @ card 1: firm f0240009, rtsl b0250018, vid 71010068, app 8000261a
- dvb-ttpci: info @ card 1: firm f0240009, rtsl b0250018, vid 71010068, app 80002622
-without any impact.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-SR of my signal is 27500, 2x official CAMs (videoguard).
+Full logs are available here:
 
-I use dvblast to select 4 TV channels (~ 16 PIDs) from multiplex, descramble them and stream them to network. Dvblast reports TS discontinuity across all video PIDs only (no audio) usually every 1-3 minutes ~80 packets. But sometimes it goes well for tens of minutes (up to 1-2hours). Everything seems to be ok with 3 TV channels.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-Do you thing it is av7110 issue? Do you know any relevant limits of av7110? What should I test/try more? Thanks
+The V4L-DVB specification from this daily build is here:
 
-Regards,
-Jaroslav
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
