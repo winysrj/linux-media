@@ -1,123 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1666 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672Ab0FDTMw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 15:12:52 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o54JCkVQ089472
-	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 21:12:51 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 4 Jun 2010 21:12:46 +0200 (CEST)
-Message-Id: <201006041912.o54JCkVQ089472@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:57423 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758559Ab0FPKMS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jun 2010 06:12:18 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 16 Jun 2010 12:12:01 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 5/7] ARM: S5PV210: Add fifo link definitions for fimc and
+ framebuffer
+In-reply-to: <1276683123-30224-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, ben-linux@fluff.org,
+	kgene.kim@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1276683123-30224-6-git-send-email-s.nawrocki@samsung.com>
+References: <1276683123-30224-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Results of the daily build of v4l-dvb:
+Add definition of local paths that are available on Sasmung S5PV210
+SoCs.
 
-date:        Fri Jun  4 19:00:22 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14875:304cfde05b3f
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ arch/arm/mach-s5pv210/setup-fimc0.c       |   23 +++++++++++++++++++++++
+ arch/arm/mach-s5pv210/setup-fimc1.c       |   23 +++++++++++++++++++++++
+ arch/arm/mach-s5pv210/setup-fimc2.c       |   23 +++++++++++++++++++++++
+ arch/arm/plat-samsung/include/plat/fimc.h |    4 ++++
+ 4 files changed, 73 insertions(+), 0 deletions(-)
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: ERRORS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: ERRORS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: ERRORS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: ERRORS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: ERRORS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: ERRORS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+diff --git a/arch/arm/mach-s5pv210/setup-fimc0.c b/arch/arm/mach-s5pv210/setup-fimc0.c
+index 94205f5..fab6e52 100644
+--- a/arch/arm/mach-s5pv210/setup-fimc0.c
++++ b/arch/arm/mach-s5pv210/setup-fimc0.c
+@@ -10,6 +10,10 @@
+  */
+ 
+ #include <plat/fimc.h>
++#include <plat/fifo.h>
++#include <linux/fb.h>
++#include <plat/fb.h>
++#include <plat/devs.h>
+ 
+ struct samsung_plat_fimc s5p_fimc0_default_data __initdata = {
+ 	.capability	= S5P_FIMC_IN_ROT | S5P_FIMC_OUT_ROT,
+@@ -23,3 +27,22 @@ struct samsung_plat_fimc s5p_fimc0_default_data __initdata = {
+ 	.out_rot_en_w	= 1920,
+ 	.out_rot_dis_w	= 4224
+ };
++
++static struct s3c_fifo_link s5pv210_fimc0_win0_link = {
++	.master_dev	= &s5p_device_fimc0.dev,
++	.slave_dev	= &s3c_device_fb.dev,
++};
++
++void __init s5pv210_setup_fimc0_fb_link(void)
++{
++	struct s3c_fb_platdata *fb_pd;
++	struct samsung_plat_fimc *fimc_pd;
++
++	fimc_pd = s5p_device_fimc0.dev.platform_data;
++	fb_pd = s3c_device_fb.dev.platform_data;
++
++	if (fimc_pd && fb_pd && fb_pd->win[0]) {
++		fb_pd->win[0]->fifo_sources[0] = &s5pv210_fimc0_win0_link;
++		fimc_pd->fifo_targets[0] = &s5pv210_fimc0_win0_link;
++	}
++}
+diff --git a/arch/arm/mach-s5pv210/setup-fimc1.c b/arch/arm/mach-s5pv210/setup-fimc1.c
+index bfaffe9..2a6e930 100644
+--- a/arch/arm/mach-s5pv210/setup-fimc1.c
++++ b/arch/arm/mach-s5pv210/setup-fimc1.c
+@@ -10,6 +10,10 @@
+  */
+ 
+ #include <plat/fimc.h>
++#include <plat/fifo.h>
++#include <linux/fb.h>
++#include <plat/fb.h>
++#include <plat/devs.h>
+ 
+ struct samsung_plat_fimc s5p_fimc1_default_data __initdata = {
+ 	.capability	= S5P_FIMC_IN_ROT | S5P_FIMC_OUT_ROT,
+@@ -23,3 +27,22 @@ struct samsung_plat_fimc s5p_fimc1_default_data __initdata = {
+ 	.out_rot_en_w	= 1920,
+ 	.out_rot_dis_w	= 4224
+ };
++
++static struct s3c_fifo_link s5pv210_fimc1_win1_link = {
++	.master_dev	= &s5p_device_fimc1.dev,
++	.slave_dev	= &s3c_device_fb.dev,
++};
++
++void __init s5pv210_setup_fimc1_fb_link(void)
++{
++	struct s3c_fb_platdata *fb_pd;
++	struct samsung_plat_fimc *fimc_pd;
++
++	fimc_pd = s5p_device_fimc1.dev.platform_data;
++	fb_pd = s3c_device_fb.dev.platform_data;
++
++	if (fimc_pd && fb_pd && fb_pd->win[1]) {
++		fb_pd->win[1]->fifo_sources[0] = &s5pv210_fimc1_win1_link;
++		fimc_pd->fifo_targets[0] = &s5pv210_fimc1_win1_link;
++	}
++}
+diff --git a/arch/arm/mach-s5pv210/setup-fimc2.c b/arch/arm/mach-s5pv210/setup-fimc2.c
+index a53a382..79b61b0 100644
+--- a/arch/arm/mach-s5pv210/setup-fimc2.c
++++ b/arch/arm/mach-s5pv210/setup-fimc2.c
+@@ -10,6 +10,10 @@
+  */
+ 
+ #include <plat/fimc.h>
++#include <plat/fifo.h>
++#include <linux/fb.h>
++#include <plat/fb.h>
++#include <plat/devs.h>
+ 
+ struct samsung_plat_fimc s5p_fimc2_default_data __initdata = {
+ 	.capability	= S5P_FIMC_IN_ROT | S5P_FIMC_OUT_ROT,
+@@ -23,3 +27,22 @@ struct samsung_plat_fimc s5p_fimc2_default_data __initdata = {
+ 	.out_rot_en_w	= 1280,
+ 	.out_rot_dis_w	= 1920
+ };
++
++static struct s3c_fifo_link s5pv210_fimc2_win2_link = {
++	.master_dev	= &s5p_device_fimc2.dev,
++	.slave_dev	= &s3c_device_fb.dev,
++};
++
++void __init s5pv210_setup_fimc2_fb_link(void)
++{
++	struct s3c_fb_platdata *fb_pd;
++	struct samsung_plat_fimc *fimc_pd;
++
++	fimc_pd = s5p_device_fimc2.dev.platform_data;
++	fb_pd = s3c_device_fb.dev.platform_data;
++
++	if (fimc_pd && fb_pd && fb_pd->win[2]) {
++		fb_pd->win[2]->fifo_sources[0] = &s5pv210_fimc2_win2_link;
++		fimc_pd->fifo_targets[0] = &s5pv210_fimc2_win2_link;
++	}
++}
+diff --git a/arch/arm/plat-samsung/include/plat/fimc.h b/arch/arm/plat-samsung/include/plat/fimc.h
+index bc6799e..8f95fc0 100644
+--- a/arch/arm/plat-samsung/include/plat/fimc.h
++++ b/arch/arm/plat-samsung/include/plat/fimc.h
+@@ -54,5 +54,9 @@ extern void s5p_fimc0_set_platdata(struct samsung_plat_fimc *fimc);
+ extern void s5p_fimc1_set_platdata(struct samsung_plat_fimc *fimc);
+ extern void s5p_fimc2_set_platdata(struct samsung_plat_fimc *fimc);
+ 
++extern void __init s5pv210_setup_fimc0_fb_link(void);
++extern void __init s5pv210_setup_fimc1_fb_link(void);
++extern void __init s5pv210_setup_fimc2_fb_link(void);
++
+ #endif /* FIMC_H_ */
+ 
+-- 
+1.7.0.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
