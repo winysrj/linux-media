@@ -1,52 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay03.digicable.hu ([92.249.128.185]:60015 "EHLO
-	relay03.digicable.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754756Ab0FNUxG (ORCPT
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:48257 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759619Ab0FPUj2 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jun 2010 16:53:06 -0400
-Message-ID: <4C168F51.90708@freemail.hu>
-Date: Mon, 14 Jun 2010 22:21:37 +0200
-From: =?UTF-8?B?TsOpbWV0aCBNw6FydG9u?= <nm127@freemail.hu>
+	Wed, 16 Jun 2010 16:39:28 -0400
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: Krivchikov Sergei <sergei.krivchikov@gmail.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] gspca_pac7302: add Genius iSlim 310
-References: <68c794d61003301249u138e643am20bb264375c3dfe1@mail.gmail.com>	<4BB2E42B.4090302@freemail.hu>	<AANLkTikIivyjNkVYlo4CKCJcFK_UW5J28qG48cnWQBm8@mail.gmail.com>	<4C164387.1000608@freemail.hu> <20100614193003.00988b97@tele>
-In-Reply-To: <20100614193003.00988b97@tele>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTinUnmKIvaWasBot_iy0Sk5_Ba54zfpEscKu2N74@mail.gmail.com>
+References: <20100613202718.6044.29599.stgit@localhost.localdomain>
+	<20100613202936.6044.99651.stgit@localhost.localdomain>
+	<AANLkTinUnmKIvaWasBot_iy0Sk5_Ba54zfpEscKu2N74@mail.gmail.com>
+Date: Wed, 16 Jun 2010 16:39:27 -0400
+Message-ID: <AANLkTim5AVO67s20VjOew8L4QyhsELpURMZ6hEd0iXYZ@mail.gmail.com>
+Subject: Re: [PATCH 2/2] ir-core: move decoding state to ir_raw_event_ctrl
+From: Jarod Wilson <jarod@wilsonet.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: jarod@redhat.com, linux-media@vger.kernel.org, mchehab@redhat.com,
+	linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: MÃ¡rton NÃ©meth <nm127@freemail.hu>
+On Wed, Jun 16, 2010 at 4:06 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> On Sun, Jun 13, 2010 at 4:29 PM, David Härdeman <david@hardeman.nu> wrote:
+>> This patch moves the state from each raw decoder into the
+>> ir_raw_event_ctrl struct.
+>>
+>> This allows the removal of code like this:
+>>
+>>        spin_lock(&decoder_lock);
+>>        list_for_each_entry(data, &decoder_list, list) {
+>>                if (data->ir_dev == ir_dev)
+>>                        break;
+>>        }
+>>        spin_unlock(&decoder_lock);
+>>        return data;
+>>
+>> which is currently run for each decoder on each event in order
+>> to get the client-specific decoding state data.
+>>
+>> In addition, ir decoding modules and ir driver module load
+>> order is now independent. Centralizing the data also allows
+>> for a nice code reduction of about 30% per raw decoder as
+>> client lists and client registration callbacks are no longer
+>> necessary (but still kept around for the benefit of the lirc
+>> decoder).
+>>
+>> Out-of-tree modules can still use a similar trick to what
+>> the raw decoders did before this patch until they are merged.
+>>
+>> Signed-off-by: David Härdeman <david@hardeman.nu>
+>
+> Acked-by: Jarod Wilson <jarod@redhat.com>
+> Tested-by: Jarod Wilson <jarod@redhat.com>
+>
+> Note that I was running a version rebased atop the linuxtv staging/rc
+> branch though.
 
-Add Genius iSlim 310 webcam to the supported list of the PAC7302 driver.
-For more information see http://linuxtv.org/wiki/index.php/PixArt_PAC7301/PAC7302 .
+Which can be seen here:
 
-Signed-off-by: MÃ¡rton NÃ©meth <nm127@freemail.hu>
----
-diff --git a/Documentation/video4linux/gspca.txt b/Documentation/video4linux/gspca.txt
-index f13eb03..f9b9d32 100644
---- a/Documentation/video4linux/gspca.txt
-+++ b/Documentation/video4linux/gspca.txt
-@@ -253,6 +253,7 @@ pac7302		093a:2620	Apollo AC-905
- pac7302		093a:2621	PAC731x
- pac7302		093a:2622	Genius Eye 312
- pac7302		093a:2624	PAC7302
-+pac7302		093a:2625	Genius iSlim 310
- pac7302		093a:2626	Labtec 2200
- pac7302		093a:2628	Genius iLook 300
- pac7302		093a:2629	Genious iSlim 300
-diff --git a/drivers/media/video/gspca/pac7302.c b/drivers/media/video/gspca/pac7302.c
-index 2a68220..7c0f265 100644
---- a/drivers/media/video/gspca/pac7302.c
-+++ b/drivers/media/video/gspca/pac7302.c
-@@ -1200,6 +1200,7 @@ static const struct usb_device_id device_table[] __devinitconst = {
- 	{USB_DEVICE(0x093a, 0x2621)},
- 	{USB_DEVICE(0x093a, 0x2622), .driver_info = FL_VFLIP},
- 	{USB_DEVICE(0x093a, 0x2624), .driver_info = FL_VFLIP},
-+	{USB_DEVICE(0x093a, 0x2625)},
- 	{USB_DEVICE(0x093a, 0x2626)},
- 	{USB_DEVICE(0x093a, 0x2628)},
- 	{USB_DEVICE(0x093a, 0x2629), .driver_info = FL_VFLIP},
+http://git.wilsonet.com//linux-2.6-ir-wip.git?a=commitdiff;h=faee132179abe884a6e995acb1f5106cb2d5afa2
+
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
