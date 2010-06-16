@@ -1,97 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4268 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751548Ab0FICft (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jun 2010 22:35:49 -0400
-Message-ID: <4C0EFDE9.3030404@redhat.com>
-Date: Tue, 08 Jun 2010 23:35:21 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:59820 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754920Ab0FPMli convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jun 2010 08:41:38 -0400
+Received: by iwn9 with SMTP id 9so5646165iwn.19
+        for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 05:41:38 -0700 (PDT)
 MIME-Version: 1.0
-To: Helmut Auer <vdr@helmutauer.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: Kernel oops with current hg (ir-sysfs.c ?)
-References: <201005241726.52932.martin.dauskardt@gmx.de> <4C0D1F49.4040501@helmutauer.de>
-In-Reply-To: <4C0D1F49.4040501@helmutauer.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4C17FCA0.8010704@vorgon.com>
+References: <4C159A0F.20006@vorgon.com>
+	<1276519194.4376.25.camel@localhost>
+	<4C17FCA0.8010704@vorgon.com>
+Date: Wed, 16 Jun 2010 09:41:37 -0300
+Message-ID: <AANLkTimZ--pc_LWez3Op2K86i-Cp_hUu28Yxuu13Gmew@mail.gmail.com>
+Subject: Re: Kernel oops with new IR modules
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: "Timothy D. Lenz" <tlenz@vorgon.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 07-06-2010 13:33, Helmut Auer escreveu:
-> Am 24.05.2010 17:26, schrieb Martin Dauskardt:
->> I guess it is a similar problem like the one that was solved a few months ago with this patch:
->> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/14232
+Hello Timothy,
+
+On Tue, Jun 15, 2010 at 7:20 PM, Timothy D. Lenz <tlenz@vorgon.com> wrote:
+> Looks like the patches fixed it. At least no oops this time. Now to install
+> xine/vdpau and see if it all works
+>
+>
+> On 6/14/2010 5:39 AM, Andy Walls wrote:
 >>
->> I compiled the current v4l-dvb hg against the 2.6.32 Ubuntu 10.04 kernel
+>> On Sun, 2010-06-13 at 19:55 -0700, Timothy D. Lenz wrote:
+>>>
+>>> I tried to build new drivers from v4l hg for 06/08/10 and when I tried
+>>> to load drivers I got a kernel oops. Kernel is 2.6.34 64bit for amd cpu
+>>>
+>>> http://pastebin.com/7KwJtFJg
+>>
+
+If you prefer, the current hg tree contain this patch.
+
+Cheers
+Douglas
+
+>>
+>> See:
+>>
+>> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/20198
+>>
+>> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/19904
+>>
+>> The Oops appears to be in the same place as the Oops I analyzed in the
+>> second link.  However, your compiler, like mine, decides to code the
+>> comparison against RC_DRIVER_SCANCODE (which is 0) first:
+>>
+>>        4f: 83 3a 00   cmpl   $0x0,(%rdx)<---------- Oopsing insn
+>>
+>> Right about here:
 >>
 >>
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.629408] DVB: registering new adapter (TT-Budget C-1501 PCI)
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.646949] tda9887 3-0043: i2c i/o error: rc == -5 (should be 4)
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.649823] tda9887 3-0043: i2c i/o error: rc == -5 (should be 4)
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.666028] adapter has MAC addr = 00:d0:5c:c6:5a:11
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692518] Registered IR keymap rc-tt-1500
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692545] BUG: unable to handle kernel NULL pointer dereference at (null)
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692554] IP: [<f825bd7e>] ir_register_class+0x3e/0x190 [ir_core]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692566] *pde = 00000000
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692571] Oops: 0000 [#1] SMP
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692575] last sysfs file: /sys/module/ir_core/initstate
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692580] Modules linked in: rc_tt_1500 tda10021 snd_hda_codec_realtek tuner_simple tuner_types tda9887 tda8290 tuner msp3400 snd_hda_intel$
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692659]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692663] Pid: 375, comm: modprobe Not tainted (2.6.32-22-generic #33-Ubuntu) M56S-S3
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692669] EIP: 0060:[<f825bd7e>] EFLAGS: 00010246 CPU: 0
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692677] EIP is at ir_register_class+0x3e/0x190 [ir_core]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692681] EAX: 00000000 EBX: f6375000 ECX: 00000000 EDX: 00000100
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692686] ESI: f4fa6000 EDI: 00000000 EBP: f61d5d78 ESP: f61d5d4c
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692691]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692697] Process modprobe (pid: 375, ti=f61d4000 task=f61b6680 task.ti=f61d4000)
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692704] Stack:
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692707]  00000246 f825ba47 c24054e0 f825ba47 001d5d64 00000128 f4fa6000 0000003f
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692717] <0> faee9068 00000027 f4fa6000 f61d5db0 f825bb7c 0000009f 00000000 f8ce32ef
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692728] <0> c0588f82 f825cc11 00000296 f637513c f6375120 f6375000 f6827000 f4fa6000
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692741] Call Trace:
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692750]  [<f825ba47>] ? __ir_input_register+0x167/0x350 [ir_core]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692759]  [<f825ba47>] ? __ir_input_register+0x167/0x350 [ir_core]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692769]  [<f825bb7c>] ? __ir_input_register+0x29c/0x350 [ir_core]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692779]  [<c0588f82>] ? printk+0x1d/0x23
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692789]  [<f8ce1153>] ? budget_ci_attach+0x193/0xd80 [budget_ci]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692800]  [<f81ffeac>] ? saa7146_init_one+0x7dc/0x860 [saa7146]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692811]  [<c01078d0>] ? dma_generic_alloc_coherent+0x0/0xc0
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692821]  [<c0363883>] ? local_pci_probe+0x13/0x20
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692827]  [<c0364688>] ? pci_device_probe+0x68/0x90
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692835]  [<c03e688d>] ? really_probe+0x4d/0x140
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692843]  [<c03ed19e>] ? pm_runtime_barrier+0x4e/0xc0
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692850]  [<c03e69bc>] ? driver_probe_device+0x3c/0x60
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692857]  [<c03e6a61>] ? __driver_attach+0x81/0x90
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692864]  [<c03e5ea3>] ? bus_for_each_dev+0x53/0x80
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692871]  [<c03e675e>] ? driver_attach+0x1e/0x20
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692877]  [<c03e69e0>] ? __driver_attach+0x0/0x90
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692884]  [<c03e6125>] ? bus_add_driver+0xd5/0x280
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692890]  [<c03645c0>] ? pci_device_remove+0x0/0x40
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692897]  [<c03e6d5a>] ? driver_register+0x6a/0x130
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692903]  [<c03648c5>] ? __pci_register_driver+0x45/0xb0
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692913]  [<f81fed63>] ? saa7146_register_extension+0x53/0x90 [saa7146]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692923]  [<f8ce700d>] ? budget_ci_init+0xd/0xf [budget_ci]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692929]  [<c0101131>] ? do_one_initcall+0x31/0x190
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692937]  [<f8ce7000>] ? budget_ci_init+0x0/0xf [budget_ci]
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692945]  [<c0182340>] ? sys_init_module+0xb0/0x210
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692951]  [<c01033ec>] ? syscall_call+0x7/0xb
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.692956] Code: 00 89 c6 8d 80 a0 07 00 00 e8 bf a7 18 c8 ba 00 01 00 00 89 c3 b8 0c d4 25 f8 e8 6e ec 0e c8 89 c7 85 ff 78 6f 8b 83 44 01 $
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.693003] EIP: [<f825bd7e>] ir_register_class+0x3e/0x190 [ir_core] SS:ESP 0068:f61d5d4c
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.693015] CR2: 0000000000000000
->> May 24 13:30:22 ubuntuvdr1 kernel: [    5.693020] ---[ end trace 2c915ef882a2f862 ]---
->> --I can confirm this. Loading budget_ci from current v4l-dvb hg with kernel 2.6.34 causes kernel oops:
-
-As I've answered at the other thread, there's a fix that will likely solve this bug, already merged upstream.
-The patch is available at:
-
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=84b14f181a36eea6591779156ef356f8d198bbfd
-
-> 
-> It looks to me that v4l-dvb is not really maintained anymore :(
-
-It is maintained, but Douglas had a 2-weeks trip abroad and couldn't find time to backport
-the patches during the trip. He is currently working to re-sync the backport tree with the
-upstream one.
-
-Cheers,
-Mauro.
+>> http://linuxtv.org/hg/v4l-dvb/file/23492745405c/linux/drivers/media/IR/ir-sysfs.c#l226
+>>
+>>
+>> As mentioned in the first link, please try the patch found here:
+>>
+>>
+>> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=84b14f181a36eea6591779156ef356f8d198bbfd
+>>
+>> Regards,
+>> Andy
+>>
+>>> Jun 13 14:35:40 x64VDR kernel: IR JVC protocol handler initialized
+>>> Jun 13 14:35:40 x64VDR kernel: IR Sony protocol handler initialized
+>>> Jun 13 14:35:40 x64VDR kernel: cx23885_dev_checkrevision() Hardware
+>>> revision = 0xb0
+>>> Jun 13 14:35:40 x64VDR kernel: cx23885[0]/0: found at 0000:02:00.0, rev:
+>>> 2, irq: 16, latency: 0, mmio: 0xfdc00000
+>>> Jun 13 14:35:40 x64VDR kernel: cx23885 0000:02:00.0: setting latency
+>>> timer to 64
+>>> Jun 13 14:35:40 x64VDR kernel: IRQ 16/cx23885[0]: IRQF_DISABLED is not
+>>> guaranteed on shared IRQs
+>>> Jun 13 14:35:40 x64VDR kernel: Registered IR keymap rc-fusionhdtv-mce
+>>> Jun 13 14:35:40 x64VDR kernel: BUG: unable to handle kernel NULL pointer
+>>> dereference at (null)
+>>> Jun 13 14:35:40 x64VDR kernel: IP: [<ffffffffa0229e30>]
+>>> ir_register_class+0x4f/0x15f [ir_core]
+>>> Jun 13 14:35:40 x64VDR kernel: PGD 7ebdb067 PUD 7ebd3067 PMD 0
+>>> Jun 13 14:35:40 x64VDR kernel: Oops: 0000 [#1] PREEMPT SMP
+>>> Jun 13 14:35:40 x64VDR kernel: last sysfs file:
+>>> /sys/module/ir_core/initstate
+>>> Jun 13 14:35:40 x64VDR kernel: CPU 1
+>>> Jun 13 14:35:40 x64VDR kernel: Modules linked in: rc_fusionhdtv_mce
+>>> ir_kbd_i2c(+) ir_sony_decoder ir_jvc_decoder ir_rc6_decoder cx23885
+>>> ir_rc5_decoder cx2341x v4l2_common videobuf_dvb ir_common ir_nec_decoder
+>>> ir_core btcx_risc tveeprom lnbp21 stv0299 dvb_ttpci dvb_core saa7146_vv
+>>> videodev v4l1_compat v4l2_compat_ioctl32 saa7146 videobuf_dma_sg
+>>> videobuf_core ttpci_eeprom powernow_k8 hwmon_vid max6650 snd_intel8x0
+>>> snd_ac97_codec ac97_bus smbfs af_packet snd_hda_codec_analog
+>>> snd_hda_intel snd_hda_codec snd_pcm snd_seq snd_timer snd_seq_device snd
+>>> sg psmouse amd64_edac_mod k8temp fan soundcore snd_page_alloc
+>>> asus_atk0110 i2c_nforce2 thermal processor button
+>>> Jun 13 14:35:40 x64VDR kernel:
+>>> Jun 13 14:35:40 x64VDR kernel: Pid: 1933, comm: modprobe Not tainted
+>>> 2.6.34.20100610.1 #1 M2N-E/System Product Name
+>>> Jun 13 14:35:40 x64VDR kernel: RIP: 0010:[<ffffffffa0229e30>]
+>>> [<ffffffffa0229e30>] ir_register_class+0x4f/0x15f [ir_core]
+>>> Jun 13 14:35:40 x64VDR kernel: RSP: 0018:ffff88007e0abd18  EFLAGS:
+>>> 00010246
+>>> Jun 13 14:35:40 x64VDR kernel: RAX: 0000000000000000 RBX:
+>>> ffff88007ee5ec00 RCX: ffffffffa022ae00
+>>> Jun 13 14:35:40 x64VDR kernel: RDX: 0000000000000000 RSI:
+>>> ffffffffa022a9d4 RDI: ffff88007ee5ec00
+>>> Jun 13 14:35:40 x64VDR kernel: RBP: 0000000000000000 R08:
+>>> 000000000000004f R09: 00000000ffffffff
+>>> Jun 13 14:35:40 x64VDR kernel: R10: 00000000ffffffff R11:
+>>> ffff88007ee28808 R12: ffffffffa029d060
+>>> Jun 13 14:35:40 x64VDR kernel: R13: ffff88007ee28000 R14:
+>>> 0000000000000282 R15: ffffffffa0296aec
+>>> Jun 13 14:35:40 x64VDR kernel: FS:  00007fdc8355d6f0(0000)
+>>> GS:ffff880001700000(0000) knlGS:0000000000000000
+>>> Jun 13 14:35:40 x64VDR kernel: CS:  0010 DS: 0000 ES: 0000 CR0:
+>>> 000000008005003b
+>>> Jun 13 14:35:40 x64VDR kernel: CR2: 0000000000000000 CR3:
+>>> 000000007ebd1000 CR4: 00000000000006e0
+>>> Jun 13 14:35:40 x64VDR kernel: DR0: 0000000000000000 DR1:
+>>> 0000000000000000 DR2: 0000000000000000
+>>> Jun 13 14:35:40 x64VDR kernel: DR3: 0000000000000000 DR6:
+>>> 00000000ffff0ff0 DR7: 0000000000000400
+>>> Jun 13 14:35:40 x64VDR kernel: Process modprobe (pid: 1933, threadinfo
+>>> ffff88007e0aa000, task ffff88007e22a280)
+>>> Jun 13 14:35:40 x64VDR kernel: Stack:
+>>> Jun 13 14:35:40 x64VDR kernel:  ffff88007ee28000 ffff88007ee5ec00
+>>> ffff88007ee28000 ffffffffa029d060
+>>> Jun 13 14:35:40 x64VDR kernel:<0>  000000000000002d ffffffffa022960a
+>>> 0000000000000001 ffffffff00000000
+>>> Jun 13 14:35:40 x64VDR kernel:<0>  ffff88007ee5ee20 ffff88007ee5edf8
+>>> ffff88007e0aa000 ffff88007d815600
+>>> Jun 13 14:35:40 x64VDR kernel: Call Trace:
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffffa022960a>] ?
+>>> __ir_input_register+0x243/0x2e7 [ir_core]
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffffa02963aa>] ?
+>>> ir_probe+0x37f/0x448 [ir_kbd_i2c]
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffffa029602b>] ?
+>>> ir_probe+0x0/0x448 [ir_kbd_i2c]
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff81222ce2>] ?
+>>> i2c_device_probe+0xb0/0xe6
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff811be322>] ?
+>>> driver_sysfs_add+0x42/0x69
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff811be452>] ?
+>>> driver_probe_device+0x9c/0x123
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff811be528>] ?
+>>> __driver_attach+0x4f/0x6f
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff811be4d9>] ?
+>>> __driver_attach+0x0/0x6f
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff811bdd13>] ?
+>>> bus_for_each_dev+0x44/0x78
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff811bd6f8>] ?
+>>> bus_add_driver+0xaf/0x1f7
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff811be7cd>] ?
+>>> driver_register+0x90/0xf8
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffffa029a000>] ? ir_init+0x0/0x19
+>>> [ir_kbd_i2c]
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff812238f9>] ?
+>>> i2c_register_driver+0x40/0x91
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffffa029a000>] ? ir_init+0x0/0x19
+>>> [ir_kbd_i2c]
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff810001e0>] ?
+>>> do_one_initcall+0x4f/0x13e
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff81052330>] ?
+>>> sys_init_module+0xc6/0x222
+>>> Jun 13 14:35:40 x64VDR kernel:  [<ffffffff81001eab>] ?
+>>> system_call_fastpath+0x16/0x1b
+>>> Jun 13 14:35:40 x64VDR kernel: Code: a0 48 89 c3 e8 b9 23 f2 e0 85 c0 89
+>>> c5 0f 88 1b 01 00 00 48 8b 93 30 02 00 00 48 c7 c1 00 ae 22 a0 48 c7 c6
+>>> d4 a9 22 a0 48 89 df<83>  3a 00 48 c7 c2 30 ae 22 a0 48 c7 83 d8 01 00
+>>> 00 90 ad 22 a0
+>>> Jun 13 14:35:40 x64VDR kernel: RIP  [<ffffffffa0229e30>]
+>>> ir_register_class+0x4f/0x15f [ir_core]
+>>> Jun 13 14:35:40 x64VDR kernel:  RSP<ffff88007e0abd18>
+>>> Jun 13 14:35:40 x64VDR kernel: CR2: 0000000000000000
+>>> Jun 13 14:35:40 x64VDR kernel: ---[ end trace 3443a52638911d4d ]---
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
