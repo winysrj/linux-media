@@ -1,51 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web113211.mail.gq1.yahoo.com ([98.136.164.164]:47587 "HELO
-	web113211.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752139Ab0FCNSU (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:37547 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752249Ab0FPUFn convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jun 2010 09:18:20 -0400
-Message-ID: <113272.38986.qm@web113211.mail.gq1.yahoo.com>
-Date: Thu, 3 Jun 2010 06:11:40 -0700 (PDT)
-From: Don Kramer <gedaliah_atl@yahoo.com>
-Subject: changed em28xx-cards-c; Plextor ConvertX AV100U now works!
-To: linux-media@vger.kernel.org
+	Wed, 16 Jun 2010 16:05:43 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <20100613202930.6044.97940.stgit@localhost.localdomain>
+References: <20100613202718.6044.29599.stgit@localhost.localdomain>
+	<20100613202930.6044.97940.stgit@localhost.localdomain>
+Date: Wed, 16 Jun 2010 16:05:41 -0400
+Message-ID: <AANLkTilI8pmY0Gezv8BdeGKmYr1u4nEFyquFdKa-RrEA@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ir-core: centralize sysfs raw decoder
+	enabling/disabling
+From: Jarod Wilson <jarod@wilsonet.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: jarod@redhat.com, linux-media@vger.kernel.org, mchehab@redhat.com,
+	linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Sun, Jun 13, 2010 at 4:29 PM, David Härdeman <david@hardeman.nu> wrote:
+> With the current logic, each raw decoder needs to add a copy of the exact
+> same sysfs code. This is both unnecessary and also means that (re)loading
+> an IR driver after raw decoder modules have been loaded won't work as
+> expected.
+>
+> This patch moves that logic into ir-raw-event and adds a single sysfs
+> file per device.
+>
+> Reading that file returns something like:
+>
+>        "rc5 [rc6] nec jvc [sony]"
+>
+> (with enabled protocols in [] brackets)
+>
+> Writing either "+protocol" or "-protocol" to that file will
+> enable or disable the according protocol decoder.
+>
+> An additional benefit is that the disabling of a decoder will be
+> remembered across module removal/insertion so a previously
+> disabled decoder won't suddenly be activated again. The default
+> setting is to enable all decoders.
+>
+> This is also necessary for the next patch which moves even more decoder
+> state into the central raw decoding structs.
+>
+> Signed-off-by: David Härdeman <david@hardeman.nu>
 
-I'm new to this.  I wanted to get the Plextor ConvertX AV100U (with a eMPIA EM2820 chip) to run in Ubuntu 10.04. This was made circa 2004 and
-to the best of my knowledge the only official drives for it are Windows XP.
+Acked-by: Jarod Wilson <jarod@redhat.com>
+Tested-by: Jarod Wilson <jarod@redhat.com>
 
-This is the device:
+Note that I was running a version rebased atop the linuxtv staging/rc
+branch though.
 
-http://www.overclockersonline.net/reviews/5000198/
-
-and this is the board:
-
-http://www.overclockersonline.net/images/articles/plextor/av100u/large/pcb.jpg
-
-and by adding this code to em28xx-cards-c
-
-{ USB_DEVICE(0x093b, 0xa003),
-            .driver_info = EM2820_BOARD_PINNACLE_DVC_90 }, /* Plextor Corp. ConvertX AV100U A/V Capture Audio */
-
-It works! 
-
-I'm opening it as a capture device in VLC Player.  Video is high quality, only defect is a green bar on maybe the lower 15% of the screen.  So three questions:
-
-1) how do I address the green bar?
-
-2) how to I get audio?  I can see the device in Ubuntu under sound preferences. How do I identify what the audio device name is?
-
-3) What is the process to submit this change to em28xx-cards-c for v4l2?
-
-Thanks,
-
-Don Kramer
-Atlanta, GA.
-
-
-      
+-- 
+Jarod Wilson
+jarod@wilsonet.com
