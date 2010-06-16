@@ -1,89 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:55787 "EHLO
-	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752093Ab0FTLha (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:57423 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758544Ab0FPKMN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jun 2010 07:37:30 -0400
-Message-ID: <4C1DFD75.3080606@kolumbus.fi>
-Date: Sun, 20 Jun 2010 14:37:25 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Mantis: append tasklet maintenance for DVB stream delivery
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 16 Jun 2010 06:12:13 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 16 Jun 2010 12:11:58 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 2/7] ARM: Samsung: Add platform definitions for local FIMC/FIMD
+ fifo path
+In-reply-to: <1276683123-30224-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, ben-linux@fluff.org,
+	kgene.kim@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1276683123-30224-3-git-send-email-s.nawrocki@samsung.com>
+References: <1276683123-30224-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Hi
+Add a common s3c_fifo_link structure that describes a local path link
+between 2 multimedia devices (like FIMC and FrameBuffer).
 
-I have a patch that should fix possible memory corruption problems in 
-Mantis drivers
-with tasklets after DMA transfer has been stopped.
-In the patch tasklet is enabled only for DVB stream delivery, at end of 
-DVB stream delivery tasklet is disabled again.
-The lack of tasklet maintenance might cause problems with following 
-schedulings:
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ arch/arm/plat-samsung/include/plat/fifo.h |   37 +++++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-samsung/include/plat/fifo.h
 
-1. dvb_dmxdev_filter_stop() calls mantis_dvb_stop_feed: mantis_dma_stop()
-2. dvb_dmxdev_filter_stop() calls release_ts_feed() or some other filter 
-freeing function.
-3. tasklet: mantis_dma_xfer calls dvb_dmx_swfilter to copy DMA buffer's 
-content into freed memory, accessing freed spinlocks.
-This case might occur while tuning into another frequency.
-Perhaps cdurrhau has found some version from this bug at 
-http://www.linuxtv.org/pipermail/linux-dvb/2010-June/032688.html:
- > This is what I get on the remote console via IPMI:
- > 40849.442492] BUG: soft lockup - CPU#2 stuck for 61s! [section
- > handler:4617]
+diff --git a/arch/arm/plat-samsung/include/plat/fifo.h b/arch/arm/plat-samsung/include/plat/fifo.h
+new file mode 100644
+index 0000000..84d242b
+--- /dev/null
++++ b/arch/arm/plat-samsung/include/plat/fifo.h
+@@ -0,0 +1,37 @@
++/*
++ * Copyright (c) 2010 Samsung Electronics
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef FIFO_H_
++#define FIFO_H_
++
++#include <linux/device.h>
++#include <media/v4l2-subdev.h>
++
++/*
++ * The multimedia devices contained in Samsung S3C/S5P SoC series
++ * like framebuffer, camera interface or tv scaler can transfer data
++ * directly between each other through hardware fifo channels.
++ * s3c_fifo_link data structure is an abstraction for such links,
++ * it allows to define V4L2 device drivers hierarchy according to
++ * the hardware structure. Fifo links are mostly unidirectional, exclusive
++ * data buses. To control data transfer in fifo mode synchronization is
++ * is required between drivers at both ends of the fifo channel
++ * (master_dev, slave_dev). s3c_fifo_link:sub_dev is intended  to export
++ * in a consistent way all the functionality of the slave device required
++ * at master device driver to enable transfer through fifo channel.
++ * master_dev and slave_dev is to be setup by the platform code whilst
++ * sub_dev entry will mostly be initlized during slave_dev probe().
++ */
++struct s3c_fifo_link {
++	struct device		*master_dev;
++	struct device		*slave_dev;
++	struct v4l2_subdev	*sub_dev;
++};
++
++#endif /* FIFO_H_ */
++
+-- 
+1.7.0.4
 
-
-The following schedule might also be a problem:
-1. mantis_core_exit: mantis_dma_stop()
-2. mantis_core_exit: mantis_dma_exit().
-3. run tasklet (with another CPU?), accessing memory freed by 
-mantis_dma_exit().
-This case might occur with rmmod.
-
-The following patch tries to deactivate the tasklet in mantis_dma_stop 
-and activate it in mantis_dma_start, thus avoiding these cases.
-
-Marko Ristola
-
-
-diff --git a/drivers/media/dvb/mantis/mantis_dma.c 
-b/drivers/media/dvb/mantis/mantis_dma.c
-index 46202a4..cf502a6 100644
---- a/drivers/media/dvb/mantis/mantis_dma.c
-+++ b/drivers/media/dvb/mantis/mantis_dma.c
-@@ -217,12 +217,14 @@ void mantis_dma_start(struct mantis_pci *mantis)
-      mmwrite(MANTIS_FIFO_EN | MANTIS_DCAP_EN
-                     | MANTIS_RISC_EN, MANTIS_DMA_CTL);
-
-+    tasklet_enable(&mantis->tasklet);
-  }
-
-  void mantis_dma_stop(struct mantis_pci *mantis)
-  {
-      u32 stat = 0, mask = 0;
-
-+    tasklet_disable(&mantis->tasklet);
-      stat = mmread(MANTIS_INT_STAT);
-      mask = mmread(MANTIS_INT_MASK);
-      dprintk(MANTIS_DEBUG, 1, "Mantis Stop DMA engine");
-diff --git a/drivers/media/dvb/mantis/mantis_dvb.c 
-b/drivers/media/dvb/mantis/mantis_dvb.c
-index 99d82ee..0c29f01 100644
---- a/drivers/media/dvb/mantis/mantis_dvb.c
-+++ b/drivers/media/dvb/mantis/mantis_dvb.c
-@@ -216,6 +216,7 @@ int __devinit mantis_dvb_init(struct mantis_pci *mantis)
-
-      dvb_net_init(&mantis->dvb_adapter, &mantis->dvbnet, 
-&mantis->demux.dmx);
-      tasklet_init(&mantis->tasklet, mantis_dma_xfer, (unsigned long) 
-mantis);
-+    tasklet_disable_nosync(&mantis->tasklet);
-      if (mantis->hwconfig) {
-          result = config->frontend_init(mantis, mantis->fe);
-          if (result < 0) {
