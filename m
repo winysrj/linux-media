@@ -1,95 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:38261 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753526Ab0FTQra convert rfc822-to-8bit (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:33978 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751595Ab0FPUjJ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jun 2010 12:47:30 -0400
-Received: by qyk1 with SMTP id 1so977692qyk.19
-        for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 09:47:29 -0700 (PDT)
+	Wed, 16 Jun 2010 16:39:09 -0400
 MIME-Version: 1.0
-In-Reply-To: <4C1E456D.8040301@arcor.de>
-References: <1277048292-19215-1-git-send-email-stefan.ringel@arcor.de>
-	<AANLkTimY13YXeDxjR_PRZ3qLXFj-pvVKJT1QMHn445TL@mail.gmail.com>
-	<4C1E456D.8040301@arcor.de>
-Date: Sun, 20 Jun 2010 12:47:29 -0400
-Message-ID: <AANLkTim8eL1uNVufJvzxaWX1hfEmykgdmzkyi0VVIWpZ@mail.gmail.com>
-Subject: Re: [PATCH] tm6000: add ir support
+In-Reply-To: <AANLkTilI8pmY0Gezv8BdeGKmYr1u4nEFyquFdKa-RrEA@mail.gmail.com>
+References: <20100613202718.6044.29599.stgit@localhost.localdomain>
+	<20100613202930.6044.97940.stgit@localhost.localdomain>
+	<AANLkTilI8pmY0Gezv8BdeGKmYr1u4nEFyquFdKa-RrEA@mail.gmail.com>
+Date: Wed, 16 Jun 2010 16:39:05 -0400
+Message-ID: <AANLkTimb-xWQFHmMleMeFy_x3EJ3VOkWo4PR49x-P7T8@mail.gmail.com>
+Subject: Re: [PATCH 1/2] ir-core: centralize sysfs raw decoder
+	enabling/disabling
 From: Jarod Wilson <jarod@wilsonet.com>
-To: Stefan Ringel <stefan.ringel@arcor.de>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	d.belimov@gmail.com
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: jarod@redhat.com, linux-media@vger.kernel.org, mchehab@redhat.com,
+	linux-input@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 20, 2010 at 12:44 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
-> Am 20.06.2010 18:31, schrieb Jarod Wilson:
->> On Sun, Jun 20, 2010 at 11:38 AM,  <stefan.ringel@arcor.de> wrote:
->>> From: Stefan Ringel <stefan.ringel@arcor.de>
->>>
->>> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
->>> ---
->>>  drivers/staging/tm6000/Makefile       |    3 +-
->>>  drivers/staging/tm6000/tm6000-cards.c |   27 +++-
->>>  drivers/staging/tm6000/tm6000-input.c |  357
-> +++++++++++++++++++++++++++++++++
->>>  drivers/staging/tm6000/tm6000.h       |   11 +
->>>  4 files changed, 396 insertions(+), 2 deletions(-)
->>>  create mode 100644 drivers/staging/tm6000/tm6000-input.c
->> ...
->>> diff --git a/drivers/staging/tm6000/tm6000-input.c
-> b/drivers/staging/tm6000/tm6000-input.c
->>> new file mode 100644
->>> index 0000000..e45b443
->>> --- /dev/null
->>> +++ b/drivers/staging/tm6000/tm6000-input.c
->>> @@ -0,0 +1,357 @@
->>> +/*
->>> +   tm6000-input.c - driver for TM5600/TM6000/TM6010 USB video capture
-> devices
->>> +
->>> +   Copyright (C) 2010 Stefan Ringel <stefan.ringel@arcor.de>
->>> +
->>> +   This program is free software; you can redistribute it and/or modify
->>> +   it under the terms of the GNU General Public License as published by
->>> +   the Free Software Foundation version 2
->>> +
->>> +   This program is distributed in the hope that it will be useful,
->>> +   but WITHOUT ANY WARRANTY; without even the implied warranty of
->>> +   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->>> +   GNU General Public License for more details.
->>> +
->>> +   You should have received a copy of the GNU General Public License
->>> +   along with this program; if not, write to the Free Software
->>> +   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
->>> + */
->>> +
->>> +#include <linux/module.h>
->>> +#include <linux/init.h>
->>> +#include <linux/delay.h>
->>> +
->>> +#include <linux/input.h>
->>> +#include <linux/usb.h>
->>> +
->>> +#include "compat.h"
->>> +#include "tm6000.h"
->>> +#include "tm6000-regs.h"
+On Wed, Jun 16, 2010 at 4:05 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> On Sun, Jun 13, 2010 at 4:29 PM, David Härdeman <david@hardeman.nu> wrote:
+>> With the current logic, each raw decoder needs to add a copy of the exact
+>> same sysfs code. This is both unnecessary and also means that (re)loading
+>> an IR driver after raw decoder modules have been loaded won't work as
+>> expected.
 >>
->> Please use the new ir-core infrastructure here. (#include
->> <media/ir-core.h>, #include <media/rc-map.h>, and assorted code in
->> drivers/media/IR/).
+>> This patch moves that logic into ir-raw-event and adds a single sysfs
+>> file per device.
 >>
+>> Reading that file returns something like:
 >>
-> It use the new code (for example rc map in tm6000-card.c), but I can
-> added the header files. It doesn't use software encoding, it use
-> hardware encodeing.
+>>        "rc5 [rc6] nec jvc [sony]"
+>>
+>> (with enabled protocols in [] brackets)
+>>
+>> Writing either "+protocol" or "-protocol" to that file will
+>> enable or disable the according protocol decoder.
+>>
+>> An additional benefit is that the disabling of a decoder will be
+>> remembered across module removal/insertion so a previously
+>> disabled decoder won't suddenly be activated again. The default
+>> setting is to enable all decoders.
+>>
+>> This is also necessary for the next patch which moves even more decoder
+>> state into the central raw decoding structs.
+>>
+>> Signed-off-by: David Härdeman <david@hardeman.nu>
+>
+> Acked-by: Jarod Wilson <jarod@redhat.com>
+> Tested-by: Jarod Wilson <jarod@redhat.com>
+>
+> Note that I was running a version rebased atop the linuxtv staging/rc
+> branch though.
 
-It only partially uses it. You're setting up input_dev's directly and
-still using ir_input_state. You should be using the ir_input_dev
-functions. Hardware decoder vs. software decoder doesn't matter. See
-drivers/media/IR/imon.c for another hardware decoding device that's
-using ir_input_dev. :)
+Found here:
+
+http://git.wilsonet.com//linux-2.6-ir-wip.git?a=commitdiff;h=e4166a6c70c4f9a06644ce8b4e9beeea7c336d90
 
 
 -- 
