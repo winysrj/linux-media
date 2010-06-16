@@ -1,21 +1,23 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <C.Hemsing@gmx.net>) id 1ONhAU-0004q0-BL
-	for linux-dvb@linuxtv.org; Sun, 13 Jun 2010 08:59:43 +0200
-Received: from mail.gmx.net ([213.165.64.20])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with smtp
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1OOwCX-0005i2-3p
+	for linux-dvb@linuxtv.org; Wed, 16 Jun 2010 19:14:58 +0200
+Received: from ey-out-2122.google.com ([74.125.78.27])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1ONhAT-0003wp-2e; Sun, 13 Jun 2010 08:59:42 +0200
-Received: from [192.168.129.248] (dino.hcc-intra.de [192.168.129.248])
-	by dino.hcc-intra.de (Postfix) with ESMTPS id 7C4DF690AE9
-	for <linux-dvb@linuxtv.org>; Sun, 13 Jun 2010 08:59:39 +0200 (CEST)
-Message-ID: <4C1481DB.6030404@gmx.net>
-Date: Sun, 13 Jun 2010 08:59:39 +0200
-From: "C. Hemsing" <C.Hemsing@gmx.net>
+	id 1OOwCW-0007Am-Br; Wed, 16 Jun 2010 19:14:56 +0200
+Received: by ey-out-2122.google.com with SMTP id 9so847152eyd.39
+	for <linux-dvb@linuxtv.org>; Wed, 16 Jun 2010 10:14:55 -0700 (PDT)
+Date: Wed, 16 Jun 2010 19:14:31 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: "Erich N. Pekarek" <epek@gmx.net>
+In-Reply-To: <4C0CAE38.8050806@gmx.net>
+Message-ID: <alpine.DEB.2.01.1006161906320.13184@localhost.localdomain>
+References: <4C0CAE38.8050806@gmx.net>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] af9015, af9013 DVB-T problems
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Terratec Cinergy Piranha tuning (again)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -30,28 +32,44 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-To the maintainer of the af9015, af9013 modules:
+On Mon (Monday) 07.Jun (June) 2010, 10:30,  Erich N. Pekarek wrote:
 
-A recent kernel (but the problem had been the same with older kernels):
-2.6.32-22-generic #36-Ubuntu SMP Thu Jun 3 22:02:19 UTC 2010 i686 GNU/Linux
+> my DVB-T Stick, that formerly worked fine under previous kernel versions now
+> does not tune to any channel unter 2.6.32+.
 
-Latest (as of yesterday) checkout of v4l-dvb (but the problem had been
-the same with older checkouts).
+Sorry for the delay, but I've been trying to recover from a USB
+system disk that's finally become uselessly corrupted.
 
-Dual channel USB DVB-T stick initialized ok, but
-regularly the stick does not tune properly on one of the two channels
-and the kernel shows these error messages at the same time:
+Thanks for pointing this out -- I can verify that I see a similar
+problem with a particular 2.6.34-rc2 that I've just built to try
+and get other things working again.
 
-[14410.717905] af9015: command failed:2
-[14410.717913] af9013: I2C read failed reg:d330
-[18208.030546] af9015: command failed:2
-[18208.030554] af9013: I2C read failed reg:d2e6
 
-I'm willing to help debug. Who is the maintainer of af9015, af9013?
 
-Cheers,
-Chris
+> Symptoms: Stick gets recognized, firmware gets loaded, frontend gets loaded.
 
+I see something a bit different --
+[62890.938154] usb 4-2.1: firmware: requesting dvbt_bda_stellar_usb.inp
+[62894.338892] usbcore: registered new interface driver smsusb
+[62894.467939] usb 4-2.1: USB disconnect, address 4
+[62896.753324] usb 4-2.1: New USB device found, idVendor=187f, idProduct=0100
+
+That is, no frontend gets loaded for me.  So, no tuning.  The
+other two devices attached at the moment both work properly.
+
+
+I'll try to build the very latest -git kernel on this machine
+and if nothing's horribly broken, see if there's any change, as
+well as see if I can figure out what's gone wrong.  Not as Real
+Soon Now[tm] as it should be, but slow machine and slow me.
+
+Plus I'll have to see what changes I need to get the DAB support
+from Siano working properly, as I hadn't done that yet with the
+2.6.34-rc2 kernel.
+
+
+thanks,
+barry bouwsma
 
 _______________________________________________
 linux-dvb users mailing list
