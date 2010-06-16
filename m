@@ -1,87 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:55565 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756082Ab0FNVF7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jun 2010 17:05:59 -0400
-Message-ID: <4C1699C4.3010809@gmail.com>
-Date: Mon, 14 Jun 2010 14:06:12 -0700
-From: "Justin P. Mattock" <justinmattock@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:16647 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752450Ab0FPUId (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jun 2010 16:08:33 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5GK8XHK004641
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 16:08:33 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [10.16.43.238])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o5GK8WF4013093
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 16:08:33 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [127.0.0.1])
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.3) with ESMTP id o5GK8WgK009850
+	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 16:08:32 -0400
+Received: (from jarod@localhost)
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.4/Submit) id o5GK8WbV009849
+	for linux-media@vger.kernel.org; Wed, 16 Jun 2010 16:08:32 -0400
+Date: Wed, 16 Jun 2010 16:08:32 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] IR/mceusb: use the proper ir-core device unregister function
+Message-ID: <20100616200832.GA9846@redhat.com>
 MIME-Version: 1.0
-To: Jean Delvare <khali@linux-fr.org>
-CC: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
-	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
-	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/8]i2c:i2c_core Fix warning: variable 'dummy' set but
- not used
-References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>	<1276547208-26569-7-git-send-email-justinmattock@gmail.com> <20100614225315.2bae9e37@hyperion.delvare>
-In-Reply-To: <20100614225315.2bae9e37@hyperion.delvare>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/14/2010 01:53 PM, Jean Delvare wrote:
-> Hi Justin,
->
-> On Mon, 14 Jun 2010 13:26:46 -0700, Justin P. Mattock wrote:
->> could be a right solution, could be wrong
->> here is the warning:
->>    CC      drivers/i2c/i2c-core.o
->> drivers/i2c/i2c-core.c: In function 'i2c_register_adapter':
->> drivers/i2c/i2c-core.c:757:15: warning: variable 'dummy' set but not used
->>
->>   Signed-off-by: Justin P. Mattock<justinmattock@gmail.com>
->>
->> ---
->>   drivers/i2c/i2c-core.c |    2 ++
->>   1 files changed, 2 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
->> index 1cca263..79c6c26 100644
->> --- a/drivers/i2c/i2c-core.c
->> +++ b/drivers/i2c/i2c-core.c
->> @@ -794,6 +794,8 @@ static int i2c_register_adapter(struct i2c_adapter *adap)
->>   	mutex_lock(&core_lock);
->>   	dummy = bus_for_each_drv(&i2c_bus_type, NULL, adap,
->>   				 __process_new_adapter);
->> +	if(!dummy)
->> +		dummy = 0;
->
-> One word: scripts/checkpatch.pl
+Was using input_unregister_device directly, instead of using
+ir_input_unregister, which tears down a bunch of other things in
+addition to eventually calling input_unregister_device.
 
-it was this, and/or just take the code out
-(since I'm a newbie)
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/mceusb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
->
-> In other news, the above is just plain wrong. First we force people to
-> read the result of bus_for_each_drv() and then when they do and don't
-> need the value, gcc complains, so we add one more layer of useless
-> code, which developers and possibly tools will later wonder and
-> complain about? I can easily imagine that a static code analyzer would
-> spot the above code as being a potential bug.
->
-> Let's stop this madness now please.
->
+diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
+index fe15091..c9dd2f8 100644
+--- a/drivers/media/IR/mceusb.c
++++ b/drivers/media/IR/mceusb.c
+@@ -1021,7 +1021,7 @@ static void __devexit mceusb_dev_disconnect(struct usb_interface *intf)
+ 		return;
+ 
+ 	ir->usbdev = NULL;
+-	input_unregister_device(ir->idev);
++	ir_input_unregister(ir->idev);
+ 	usb_kill_urb(ir->urb_in);
+ 	usb_free_urb(ir->urb_in);
+ 	usb_free_coherent(dev, ir->len_in, ir->buf_in, ir->dma_in);
+-- 
+1.6.5.2
 
-your telling me!! I haven't even compiled all the way
-through the kernel yet.(lots of warnings)
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-> Either __must_check goes away from bus_for_each_drv() and from every
-> other function which raises this problem, or we must disable that new
-> type of warning gcc 4.6.0 generates. Depends which warnings we value
-> more, as we can't sanely have both.
->
->>   	mutex_unlock(&core_lock);
->>
->>   	return 0;
->
->
-
-up to you guys..
-best thing now is deciphering what
-and what not is an actual issue.
-
-Justin P. Mattock
