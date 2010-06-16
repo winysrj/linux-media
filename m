@@ -1,123 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:61499 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249Ab0FPUES convert rfc822-to-8bit (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:56856 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753172Ab0FPKY1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jun 2010 16:04:18 -0400
+	Wed, 16 Jun 2010 06:24:27 -0400
+Received: by gye5 with SMTP id 5so3824438gye.19
+        for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 03:24:27 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20100613202945.GA5883@hardeman.nu>
-References: <20100424211411.11570.2189.stgit@localhost.localdomain>
-	<4BDF2B45.9060806@redhat.com>
-	<20100607190003.GC19390@hardeman.nu>
-	<20100607201530.GG16638@redhat.com>
-	<20100608175017.GC5181@hardeman.nu>
-	<AANLkTimuYkKzDPvtnrWKoT8sh1H9paPBQQNmYWOT7-R2@mail.gmail.com>
-	<20100609132908.GM16638@redhat.com>
-	<20100609175621.GA19620@hardeman.nu>
-	<20100609181506.GO16638@redhat.com>
-	<AANLkTims0dmYCOoI_K4S6Q8hwLV_MqUdGQjVwFu43sCL@mail.gmail.com>
-	<20100613202945.GA5883@hardeman.nu>
-Date: Wed, 16 Jun 2010 16:04:16 -0400
-Message-ID: <AANLkTim6f6jM4TGzyQsuHDNPUSsjINXFHck0NevrtqHr@mail.gmail.com>
-Subject: Re: [PATCH 3/4] ir-core: move decoding state to ir_raw_event_ctrl
-From: Jarod Wilson <jarod@wilsonet.com>
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Date: Wed, 16 Jun 2010 11:24:27 +0100
+Message-ID: <AANLkTiny9YXXT185VbNuw-z6aZDdIfS50UxFLERdlY-z@mail.gmail.com>
+Subject: Trouble getting DVB-T working with Portuguese transmissions
+From: =?UTF-8?Q?Pedro_C=C3=B4rte=2DReal?= <pedro@pedrocr.net>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 13, 2010 at 4:29 PM, David Härdeman <david@hardeman.nu> wrote:
-> On Wed, Jun 09, 2010 at 09:25:44PM -0400, Jarod Wilson wrote:
->> On Wed, Jun 9, 2010 at 2:15 PM, Jarod Wilson <jarod@redhat.com> wrote:
->> > On Wed, Jun 09, 2010 at 07:56:21PM +0200, David Härdeman wrote:
->> >> On Wed, Jun 09, 2010 at 09:29:08AM -0400, Jarod Wilson wrote:
->> ...
->> >> > So this definitely negatively impacts my ir-core-to-lirc_dev
->> >> > (ir-lirc-codec.c) bridge driver, as it was doing the lirc_dev device
->> >> > registration work in its register function. However, if (after your
->> >> > patchset) we add a new pair of callbacks replacing raw_register and
->> >> > raw_unregister, which are optional, that work could be done there instead,
->> >> > so I don't think this is an insurmountable obstacle for the lirc bits.
->> >>
->> >> While I'm not sure exactly what callbacks you're suggesting,
->> >
->> > Essentially:
->> >
->> > .setup_other_crap
->> > .tear_down_other_crap
->> >
->> > ...which in the ir-lirc-codec case, register ir-lirc-codec for a specific
->> > hardware receiver as an lirc_dev client, and conversely, tear it down.
->> >
->> >> it still
->> >> sounds like the callbacks would have the exact same problems that the
->> >> current code has (i.e. the decoder will be blissfully unaware of
->> >> hardware which exists before the decoder is loaded). Right?
->> >
->> > In my head, this was going to work out, but you're correct, I still have
->> > the exact same problem -- its not in ir_raw_handler_list yet when
->> > ir_raw_event_register runs, and thus the callback never fires, so lirc_dev
->> > never actually gets wired up to ir-lirc-codec. It now knows about the lirc
->> > decoder, but its completely useless. Narf.
->>
->> And now I have it working atop your patches. Its a bit of a nasty-ish
->> hack, at least for the lirc case, but its working, even in the case
->> where the decoder drivers aren't actually loaded until after the
->> device driver. I've added one extra param to each protocol-specific
->> struct in ir-core-priv.h (bool initialized) and hooked into the
->> protocol-specific decode functions to both determine whether a
->> protocol should be enabled or disabled by default, and to run any
->> additionally required initialization (such as in the ir-lirc-codec
->> case).
->>
->> So initially, mceusb comes up with all decoders enabled. Then when ir
->> comes in, every protocol-specific decoder fires. Each of them check
->> for whether or not they've been fully initialized, and if not, we
->> check the loaded keymap, and if it doesn't match, we disable that
->> decoder (bringing back the "disable protocol handlers we don't need"
->> functionality that disappeared w/this patchset). In the lirc case, we
->> actually do all the work needed to wire up the connection over to
->> lirc_dev.
->>
->> This works perfectly fine for all the in-kernel decoders, but has one
->> minor shortcoming for ir-lirc-codec, in that /dev/lirc0 won't actually
->> exist until the first incoming ir signal is seen. lircd can handle
->> this case just fine, it'll wait for /dev/lirc0 to show up, but it
->> doesn't come up fast enough to catch and decode the very first
->> incoming ir signal. Subsequent ones work perfectly fine though. This
->> need to initialize the link via incoming ir is a bit problematic if
->> you're using a device for transmit-only (e.g., and mceusb device
->> hooked to a mythtv backend in the closet or something), as there would
->> be a strong possibility of /dev/lirc0 never getting hooked up. I can
->> think of a few workarounds, but none are particularly clean and/or
->> automagic.
->>
->> Not sure how palatable it is, but here it is:
->
-> I think it sounds pretty awful :)
+Hi,
 
-So my suspicion wrt palatability was correct. :)
+I've been trying to use the Portuguese DVB-T transmissions. These are
+h264 unencrypted transmissions. I bought an Asus My Cinema U3100 mini,
+which seems to be correctly recognized by the dib0700 driver in Ubuntu
+10.04 (kernel 2.6.32-22-generic). I can try the latest upstream kernel
+to see if anything has changed. From the dmesg:
 
-> I have another suggestion, let's keep the client register/unregister
-> callbacks for decoders (but add a comment that they're only used for
-> lirc). Then teach drivers/media/IR/ir-raw-event.c to keep track of the
-> raw clients so that it can pass all pre-existing clients to newly added
-> decoders.
->
-> I'll post two patches (compile tested only) in a few seconds to show
-> what I mean.
+[ 2118.910130] usb 1-3: new high speed USB device using ehci_hcd and address 6
+[ 2119.061233] usb 1-3: configuration #1 chosen from 1 choice
+[ 2119.062384] dvb-usb: found a 'ASUS My Cinema U3100 Mini DVBT Tuner'
+in cold state, will try to load a firmware
+[ 2119.062396] usb 1-3: firmware: requesting dvb-usb-dib0700-1.20.fw
+[ 2119.066293] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+[ 2119.273034] dib0700: firmware started successfully.
+[ 2119.784908] dvb-usb: found a 'ASUS My Cinema U3100 Mini DVBT Tuner'
+in warm state.
+[ 2119.785018] dvb-usb: will pass the complete MPEG2 transport stream
+to the software demuxer.
+[ 2119.785368] DVB: registering new adapter (ASUS My Cinema U3100 Mini
+DVBT Tuner)
+[ 2120.027066] DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+[ 2120.247440] DiB0070: successfully identified
+[ 2120.247609] input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:1a.7/usb1/1-3/input/input11
+[ 2120.247724] dvb-usb: schedule remote query interval to 50 msecs.
+[ 2120.247732] dvb-usb: ASUS My Cinema U3100 Mini DVBT Tuner
+successfully initialized and connected.
 
-Consider them now runtime tested as well. They appear to do the trick,
-the lirc bridge comes up just fine, even when ir-lirc-codec isn't
-loaded until after mceusb. *Much* better implementation than my ugly
-trick. I'll ack your patches and submit a series on top of them for
-lirc support, hopefully this evening (in addition to a few other fixes
-that aren't dependent on any of them).
+The messages talk about MPEG2 so I don't know if there is anything in
+the driver that doesn't work with MPEG4/h264.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+dvb-apps doesn't include a scan file for Portugal but the relevant
+line seems to be:
+
+T 842000000 8MHz 2/3 1/2 QAM64 8k 1/4 NONE    # RTP1, RTP2, SIC, TVI
+
+This should work for almost everywhere except in the Azores islands
+where several frequencies are used. I can submit a full set of files
+to be included with dvb-apps. Scanning doesn't usually work:
+
+$ scan /usr/share/dvb/dvb-t/pt-Porto -v -o zap > channels.conf
+scanning /usr/share/dvb/dvb-t/pt-Porto
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 842000000 0 2 1 3 1 3 0
+>>> tune to: 842000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
+>>> tuning status == 0x1b
+WARNING: filter timeout pid 0x0011
+WARNING: filter timeout pid 0x0000
+WARNING: filter timeout pid 0x0010
+dumping lists (0 services)
+Done.
+
+There was however one time where it did work. I though it was because
+I had set fec_lo to 1/2 where before was NONE but after a reboot it
+stopped working again. The time it did work it generated the following
+channels.conf:
+
+RTP 1:842000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:256:257:1101
+RTP 2:842000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:512:513:1102
+SIC:842000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:768:769:1103
+TVI:842000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1024:1025:1104
+HD:842000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_1_2:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:3840:3841:1111
+
+Using vlc and either this channels.conf or just tuning to 842Mhz
+directly no sound or image is obtained and continuous error messages
+like these come out:
+
+libdvbpsi error (PSI decoder): TS discontinuity (received 6, expected
+1) for PID 0
+
+Using mplayer produces a similar result:
+
+dvb_streaming_read, attempt N. 6 failed with errno 0 when reading 1484 bytes
+
+Any ideas on how to get this working?
+
+Pedro
