@@ -1,163 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5409 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751811Ab0F1RAW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jun 2010 13:00:22 -0400
-Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5SH0LqZ002516
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 13:00:22 -0400
-Received: from pedra (vpn-9-119.rdu.redhat.com [10.11.9.119])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o5SH0HGI008891
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 13:00:20 -0400
-Date: Mon, 28 Jun 2010 14:00:00 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/4] ir-core: Remove magic numbers at the sysfs logic
-Message-ID: <20100628140000.2fef2911@pedra>
-In-Reply-To: <cover.1277744236.git.mchehab@redhat.com>
-References: <cover.1277744236.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:57423 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758618Ab0FPKMT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jun 2010 06:12:19 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 16 Jun 2010 12:12:03 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 7/7] ARM: S5PC100: enable FIMC on SMDKC100
+In-reply-to: <1276683123-30224-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-fbdev@vger.kernel.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, ben-linux@fluff.org,
+	kgene.kim@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1276683123-30224-8-git-send-email-s.nawrocki@samsung.com>
+References: <1276683123-30224-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using "magic" sizes for protocol names, replace them by an
-array, and use strlen().
+Add support for FIMC on Samsung SMDKC100 board.
 
-No functional changes.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ arch/arm/mach-s5pc100/Kconfig         |    6 ++++++
+ arch/arm/mach-s5pc100/mach-smdkc100.c |    9 +++++++++
+ 2 files changed, 15 insertions(+), 0 deletions(-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index f73e4a6..2b1a9d2 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -33,6 +33,18 @@ static struct class ir_input_class = {
- 	.devnode	= ir_devnode,
+diff --git a/arch/arm/mach-s5pc100/Kconfig b/arch/arm/mach-s5pc100/Kconfig
+index 81a06a3..2ead495 100644
+--- a/arch/arm/mach-s5pc100/Kconfig
++++ b/arch/arm/mach-s5pc100/Kconfig
+@@ -62,6 +62,12 @@ config MACH_SMDKC100
+ 	select S5PC100_SETUP_FB_24BPP
+ 	select S5PC100_SETUP_I2C1
+ 	select S5PC100_SETUP_SDHCI
++	select S5P_DEV_FIMC0
++	select S5PC100_SETUP_FIMC0
++	select S5P_DEV_FIMC1
++	select S5PC100_SETUP_FIMC1
++	select S5P_DEV_FIMC2
++	select S5PC100_SETUP_FIMC2
+ 	help
+ 	  Machine support for the Samsung SMDKC100
+ 
+diff --git a/arch/arm/mach-s5pc100/mach-smdkc100.c b/arch/arm/mach-s5pc100/mach-smdkc100.c
+index af22f82..425b1c5 100644
+--- a/arch/arm/mach-s5pc100/mach-smdkc100.c
++++ b/arch/arm/mach-s5pc100/mach-smdkc100.c
+@@ -42,6 +42,7 @@
+ #include <plat/s5pc100.h>
+ #include <plat/fb.h>
+ #include <plat/iic.h>
++#include <plat/fimc.h>
+ 
+ /* Following are default values for UCON, ULCON and UFCON UART registers */
+ #define S5PC100_UCON_DEFAULT	(S3C2410_UCON_TXILEVEL |	\
+@@ -159,6 +160,9 @@ static struct platform_device *smdkc100_devices[] __initdata = {
+ 	&smdkc100_lcd_powerdev,
+ 	&s5pc100_device_iis0,
+ 	&s5pc100_device_ac97,
++	&s5p_device_fimc0,
++	&s5p_device_fimc1,
++	&s5p_device_fimc2,
  };
  
-+static struct {
-+	u64	type;
-+	char	*name;
-+} proto_names[] = {
-+	{ IR_TYPE_UNKNOWN,	"unknown"	},
-+	{ IR_TYPE_RC5,		"rc5"		},
-+	{ IR_TYPE_NEC,		"nec"		},
-+	{ IR_TYPE_RC6,		"rc6"		},
-+	{ IR_TYPE_JVC,		"jvc"		},
-+	{ IR_TYPE_SONY,		"sony"		},
-+};
+ static void __init smdkc100_map_io(void)
+@@ -178,6 +182,11 @@ static void __init smdkc100_machine_init(void)
+ 
+ 	s3c_fb_set_platdata(&smdkc100_lcd_pdata);
+ 
++	/* FIMC */
++	s5p_fimc0_set_platdata(NULL);
++	s5p_fimc1_set_platdata(NULL);
++	s5p_fimc2_set_platdata(NULL);
 +
- /**
-  * show_protocols() - shows the current IR protocol(s)
-  * @d:		the device descriptor
-@@ -50,6 +62,7 @@ static ssize_t show_protocols(struct device *d,
- 	struct ir_input_dev *ir_dev = dev_get_drvdata(d);
- 	u64 allowed, enabled;
- 	char *tmp = buf;
-+	int i;
- 
- 	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
- 		enabled = ir_dev->rc_tab.ir_type;
-@@ -63,35 +76,12 @@ static ssize_t show_protocols(struct device *d,
- 		   (long long)allowed,
- 		   (long long)enabled);
- 
--	if (allowed & enabled & IR_TYPE_UNKNOWN)
--		tmp += sprintf(tmp, "[unknown] ");
--	else if (allowed & IR_TYPE_UNKNOWN)
--		tmp += sprintf(tmp, "unknown ");
--
--	if (allowed & enabled & IR_TYPE_RC5)
--		tmp += sprintf(tmp, "[rc5] ");
--	else if (allowed & IR_TYPE_RC5)
--		tmp += sprintf(tmp, "rc5 ");
--
--	if (allowed & enabled & IR_TYPE_NEC)
--		tmp += sprintf(tmp, "[nec] ");
--	else if (allowed & IR_TYPE_NEC)
--		tmp += sprintf(tmp, "nec ");
--
--	if (allowed & enabled & IR_TYPE_RC6)
--		tmp += sprintf(tmp, "[rc6] ");
--	else if (allowed & IR_TYPE_RC6)
--		tmp += sprintf(tmp, "rc6 ");
--
--	if (allowed & enabled & IR_TYPE_JVC)
--		tmp += sprintf(tmp, "[jvc] ");
--	else if (allowed & IR_TYPE_JVC)
--		tmp += sprintf(tmp, "jvc ");
--
--	if (allowed & enabled & IR_TYPE_SONY)
--		tmp += sprintf(tmp, "[sony] ");
--	else if (allowed & IR_TYPE_SONY)
--		tmp += sprintf(tmp, "sony ");
-+	for (i = 0; i < ARRAY_SIZE(proto_names); i++) {
-+		if (allowed & enabled & proto_names[i].type)
-+			tmp += sprintf(tmp, "[%s] ", proto_names[i].name);
-+		else if (allowed & proto_names[i].type)
-+			tmp += sprintf(tmp, "%s ", proto_names[i].name);
-+	}
- 
- 	if (tmp != buf)
- 		tmp--;
-@@ -124,12 +114,14 @@ static ssize_t store_protocols(struct device *d,
- 	const char *tmp;
- 	u64 type;
- 	u64 mask;
--	int rc;
-+	int rc, i;
- 	unsigned long flags;
- 
- 	tmp = skip_spaces(data);
--
--	if (*tmp == '+') {
-+	if (*tmp == '\0') {
-+		IR_dprintk(1, "Protocol not specified\n");
-+		return -EINVAL;
-+	} else if (*tmp == '+') {
- 		enable = true;
- 		disable = false;
- 		tmp++;
-@@ -142,25 +134,14 @@ static ssize_t store_protocols(struct device *d,
- 		disable = false;
- 	}
- 
--	if (!strncasecmp(tmp, "unknown", 7)) {
--		tmp += 7;
--		mask = IR_TYPE_UNKNOWN;
--	} else if (!strncasecmp(tmp, "rc5", 3)) {
--		tmp += 3;
--		mask = IR_TYPE_RC5;
--	} else if (!strncasecmp(tmp, "nec", 3)) {
--		tmp += 3;
--		mask = IR_TYPE_NEC;
--	} else if (!strncasecmp(tmp, "rc6", 3)) {
--		tmp += 3;
--		mask = IR_TYPE_RC6;
--	} else if (!strncasecmp(tmp, "jvc", 3)) {
--		tmp += 3;
--		mask = IR_TYPE_JVC;
--	} else if (!strncasecmp(tmp, "sony", 4)) {
--		tmp += 4;
--		mask = IR_TYPE_SONY;
--	} else {
-+	for (i = 0; i < ARRAY_SIZE(proto_names); i++) {
-+		if (!strncasecmp(tmp, proto_names[i].name, strlen(proto_names[i].name))) {
-+			tmp += strlen(proto_names[i].name);
-+			mask = proto_names[i].type;
-+			break;
-+		}
-+	}
-+	if (i == ARRAY_SIZE(proto_names)) {
- 		IR_dprintk(1, "Unknown protocol\n");
- 		return -EINVAL;
- 	}
+ 	/* LCD init */
+ 	gpio_request(S5PC100_GPD(0), "GPD");
+ 	gpio_request(S5PC100_GPH0(6), "GPH0");
 -- 
-1.7.1
-
+1.7.0.4
 
