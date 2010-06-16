@@ -1,72 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59526 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932234Ab0FGHjl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jun 2010 03:39:41 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o577dfle029145
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 7 Jun 2010 03:39:41 -0400
-Message-ID: <4C0CA2AE.5000908@redhat.com>
-Date: Mon, 07 Jun 2010 09:41:34 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:61499 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752249Ab0FPUES convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jun 2010 16:04:18 -0400
 MIME-Version: 1.0
-To: huzaifas@redhat.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] libv4l1: move VIDIOCCAPTURE to libv4l1
-References: <1275637214-22089-1-git-send-email-huzaifas@redhat.com>
-In-Reply-To: <1275637214-22089-1-git-send-email-huzaifas@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20100613202945.GA5883@hardeman.nu>
+References: <20100424211411.11570.2189.stgit@localhost.localdomain>
+	<4BDF2B45.9060806@redhat.com>
+	<20100607190003.GC19390@hardeman.nu>
+	<20100607201530.GG16638@redhat.com>
+	<20100608175017.GC5181@hardeman.nu>
+	<AANLkTimuYkKzDPvtnrWKoT8sh1H9paPBQQNmYWOT7-R2@mail.gmail.com>
+	<20100609132908.GM16638@redhat.com>
+	<20100609175621.GA19620@hardeman.nu>
+	<20100609181506.GO16638@redhat.com>
+	<AANLkTims0dmYCOoI_K4S6Q8hwLV_MqUdGQjVwFu43sCL@mail.gmail.com>
+	<20100613202945.GA5883@hardeman.nu>
+Date: Wed, 16 Jun 2010 16:04:16 -0400
+Message-ID: <AANLkTim6f6jM4TGzyQsuHDNPUSsjINXFHck0NevrtqHr@mail.gmail.com>
+Subject: Re: [PATCH 3/4] ir-core: move decoding state to ir_raw_event_ctrl
+From: Jarod Wilson <jarod@wilsonet.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-Looks good, applied
-
-Thanks!
-
-Regards,
-
-Hans
-
-
-
-On 06/04/2010 09:40 AM, huzaifas@redhat.com wrote:
-> From: Huzaifa Sidhpurwala<huzaifas@redhat.com>
+On Sun, Jun 13, 2010 at 4:29 PM, David Härdeman <david@hardeman.nu> wrote:
+> On Wed, Jun 09, 2010 at 09:25:44PM -0400, Jarod Wilson wrote:
+>> On Wed, Jun 9, 2010 at 2:15 PM, Jarod Wilson <jarod@redhat.com> wrote:
+>> > On Wed, Jun 09, 2010 at 07:56:21PM +0200, David Härdeman wrote:
+>> >> On Wed, Jun 09, 2010 at 09:29:08AM -0400, Jarod Wilson wrote:
+>> ...
+>> >> > So this definitely negatively impacts my ir-core-to-lirc_dev
+>> >> > (ir-lirc-codec.c) bridge driver, as it was doing the lirc_dev device
+>> >> > registration work in its register function. However, if (after your
+>> >> > patchset) we add a new pair of callbacks replacing raw_register and
+>> >> > raw_unregister, which are optional, that work could be done there instead,
+>> >> > so I don't think this is an insurmountable obstacle for the lirc bits.
+>> >>
+>> >> While I'm not sure exactly what callbacks you're suggesting,
+>> >
+>> > Essentially:
+>> >
+>> > .setup_other_crap
+>> > .tear_down_other_crap
+>> >
+>> > ...which in the ir-lirc-codec case, register ir-lirc-codec for a specific
+>> > hardware receiver as an lirc_dev client, and conversely, tear it down.
+>> >
+>> >> it still
+>> >> sounds like the callbacks would have the exact same problems that the
+>> >> current code has (i.e. the decoder will be blissfully unaware of
+>> >> hardware which exists before the decoder is loaded). Right?
+>> >
+>> > In my head, this was going to work out, but you're correct, I still have
+>> > the exact same problem -- its not in ir_raw_handler_list yet when
+>> > ir_raw_event_register runs, and thus the callback never fires, so lirc_dev
+>> > never actually gets wired up to ir-lirc-codec. It now knows about the lirc
+>> > decoder, but its completely useless. Narf.
+>>
+>> And now I have it working atop your patches. Its a bit of a nasty-ish
+>> hack, at least for the lirc case, but its working, even in the case
+>> where the decoder drivers aren't actually loaded until after the
+>> device driver. I've added one extra param to each protocol-specific
+>> struct in ir-core-priv.h (bool initialized) and hooked into the
+>> protocol-specific decode functions to both determine whether a
+>> protocol should be enabled or disabled by default, and to run any
+>> additionally required initialization (such as in the ir-lirc-codec
+>> case).
+>>
+>> So initially, mceusb comes up with all decoders enabled. Then when ir
+>> comes in, every protocol-specific decoder fires. Each of them check
+>> for whether or not they've been fully initialized, and if not, we
+>> check the loaded keymap, and if it doesn't match, we disable that
+>> decoder (bringing back the "disable protocol handlers we don't need"
+>> functionality that disappeared w/this patchset). In the lirc case, we
+>> actually do all the work needed to wire up the connection over to
+>> lirc_dev.
+>>
+>> This works perfectly fine for all the in-kernel decoders, but has one
+>> minor shortcoming for ir-lirc-codec, in that /dev/lirc0 won't actually
+>> exist until the first incoming ir signal is seen. lircd can handle
+>> this case just fine, it'll wait for /dev/lirc0 to show up, but it
+>> doesn't come up fast enough to catch and decode the very first
+>> incoming ir signal. Subsequent ones work perfectly fine though. This
+>> need to initialize the link via incoming ir is a bit problematic if
+>> you're using a device for transmit-only (e.g., and mceusb device
+>> hooked to a mythtv backend in the closet or something), as there would
+>> be a strong possibility of /dev/lirc0 never getting hooked up. I can
+>> think of a few workarounds, but none are particularly clean and/or
+>> automagic.
+>>
+>> Not sure how palatable it is, but here it is:
 >
-> move VIDIOCCAPTURE to libv4l1
+> I think it sounds pretty awful :)
+
+So my suspicion wrt palatability was correct. :)
+
+> I have another suggestion, let's keep the client register/unregister
+> callbacks for decoders (but add a comment that they're only used for
+> lirc). Then teach drivers/media/IR/ir-raw-event.c to keep track of the
+> raw clients so that it can pass all pre-existing clients to newly added
+> decoders.
 >
-> Signed-of-by: Huzaifa Sidhpurwala<huzaifas@redhat.com>
-> ---
->   lib/libv4l1/libv4l1.c |   16 ++++++++++++++++
->   1 files changed, 16 insertions(+), 0 deletions(-)
->
-> diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
-> index 579f13b..2981c40 100644
-> --- a/lib/libv4l1/libv4l1.c
-> +++ b/lib/libv4l1/libv4l1.c
-> @@ -967,6 +967,22 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
->
->   		break;
->   	}
-> +
-> +	case VIDIOCCAPTURE: {
-> +		int *on = arg;
-> +		enum v4l2_buf_type captype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +
-> +		if (0 == *on) {
-> +		/* dirty hack time.  But v4l1 has no STREAMOFF
-> +		* equivalent in the API, and this one at
-> +		* least comes close ... */
-> +			v4l2_ioctl(fd, VIDIOC_STREAMOFF,&captype);
-> +		}
-> +
-> +		result = v4l2_ioctl(fd, VIDIOC_OVERLAY, on);
-> +
-> +		break;
-> +	}
->   	default:
->   		/* Pass through libv4l2 for applications which are using v4l2 through
->   		   libv4l1 (this can happen with the v4l1compat.so wrapper preloaded */
+> I'll post two patches (compile tested only) in a few seconds to show
+> what I mean.
+
+Consider them now runtime tested as well. They appear to do the trick,
+the lirc bridge comes up just fine, even when ir-lirc-codec isn't
+loaded until after mceusb. *Much* better implementation than my ugly
+trick. I'll ack your patches and submit a series on top of them for
+lirc support, hopefully this evening (in addition to a few other fixes
+that aren't dependent on any of them).
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
