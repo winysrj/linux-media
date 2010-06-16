@@ -1,247 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh01.mail.saunalahti.fi ([62.142.5.107]:48033 "EHLO
-	emh01.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752701Ab0F0JKB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jun 2010 05:10:01 -0400
-Received: from saunalahti-vams (vs3-11.mail.saunalahti.fi [62.142.5.95])
-	by emh01-2.mail.saunalahti.fi (Postfix) with SMTP id 8A2E28C413
-	for <linux-media@vger.kernel.org>; Sun, 27 Jun 2010 12:09:59 +0300 (EEST)
-Message-ID: <4C271564.2020501@kolumbus.fi>
-Date: Sun, 27 Jun 2010 12:09:56 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:26469 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759658Ab0FPUzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 16 Jun 2010 16:55:54 -0400
+Received: from int-mx05.intmail.prod.int.phx2.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.18])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5GKtrUv014195
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 16:55:54 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [10.16.43.238])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o5GKtqTO006019
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 16:55:53 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [127.0.0.1])
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.3) with ESMTP id o5GKtqCv018755
+	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 16:55:52 -0400
+Received: (from jarod@localhost)
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.4/Submit) id o5GKtqYi018754
+	for linux-media@vger.kernel.org; Wed, 16 Jun 2010 16:55:52 -0400
+Date: Wed, 16 Jun 2010 16:55:52 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 2/2] IR/mceusb: add tx callback functions and wire up
+Message-ID: <20100616205552.GB18723@redhat.com>
+References: <20100616205044.GA18486@redhat.com>
 MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Avoid unnecessary data copying inside dvb_dmx_swfilter_204()
- function
-References: <4C2615FB.2000805@kolumbus.fi>
-In-Reply-To: <4C2615FB.2000805@kolumbus.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100616205044.GA18486@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/mceusb.c |  141 ++++++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 132 insertions(+), 9 deletions(-)
 
-Hi
-
-Here is an improved version of the original patch:
-The original patch removed unnecessary copying for 204 sized packets only.
-This patch improves performance for 188 sized packets too.
-
-Unnecessary copying means: if dvb_dmx_swfilter(_204)() doesn't have to
-modify
-the source packet, the source packet is delivered for
-dvb_dmx_swfilter_packet()
-without copying.
-
-This assumes, that a DMA transfer won't modify the accepted 188/204 sized
-packet underneath while dvb_dmx_swfilter_packet() processes it.
-The assumption is already in dvb_dmx_swfilter_packets().
-
-With tasklets the risk for breaking the assumption is low. If there
-would be
-a normal thread instead of a tasklet, copying from the DMA buffer might
-come too late.
-
-Could someone test this patch who uses the dvb_dmx_swfilter() function
-(188 sized)?
-
-So _dvb_dmx_swfilter is now common for both 188 and 204 sized packet
-parsing.
-The measure was done during recording of H.264 steram under VDR,
-using "perf top -d 10"
-
-   PerfTop:      62 irqs/sec  kernel:80.6% [1000Hz cycles],  (all, 1 CPUs)
-
-             samples  pcnt
-function                                            DSO
-
-              339.00 18.1%
-dvb_dmx_swfilter_packet                            
-[dvb_core]                                                   
-              315.00 16.9%
-acpi_pm_read                                       
-[kernel.kallsyms]                                            
-               70.00  3.7%
-_ZN2SI5CRC325crc32EPKcij                           
-/usr/sbin/vdr                                                
-               53.00  2.8%
-mantis_i2c_xfer                                    
-[mantis_core]                                                
-               53.00  2.8%
-__mktime_internal                                  
-/lib64/libc-2.12.so                                          
-               39.00  2.1%
-_ZN14cAudioRepacker6RepackEP17cRingBufferLinearPKhi
-/usr/sbin/vdr                                                
-               33.00  1.8%
-delay_tsc                                          
-[kernel.kallsyms]                                            
-               30.00  1.6%
-dvb_dmx_memcopy                                    
-[dvb_core]                                                   
-               28.00  1.5%
-dvb_ringbuffer_write                               
-[dvb_core]                                                   
-               28.00  1.5%
-_dvb_dmx_swfilter                                  
-[dvb_core]                                                   
-
-
-diff --git a/drivers/media/dvb/dvb-core/dvb_demux.c
-b/drivers/media/dvb/dvb-core/dvb_demux.c
-index 977ddba..2ddaaaa 100644
---- a/drivers/media/dvb/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb/dvb-core/dvb_demux.c
-@@ -478,95 +478,78 @@ void dvb_dmx_swfilter_packets(struct dvb_demux
-*demux, const u8 *buf,
+diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
+index 708a71a..aaa40d8 100644
+--- a/drivers/media/IR/mceusb.c
++++ b/drivers/media/IR/mceusb.c
+@@ -15,10 +15,6 @@
+  * Jon Smirl, which included enhancements and simplifications to the
+  * incoming IR buffer parsing routines.
+  *
+- * TODO:
+- * - add rc-core transmit support, once available
+- * - enable support for forthcoming ir-lirc-codec interface
+- *
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -263,14 +259,13 @@ struct mceusb_dev {
+ 		u32 reserved:28;
+ 	} flags;
  
- EXPORT_SYMBOL(dvb_dmx_swfilter_packets);
+-	/* handle sending (init strings) */
++	/* transmit support */
+ 	int send_flags;
+-	int carrier;
++	u32 carrier;
++	unsigned char tx_mask;
  
--void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count)
-+static inline int findNextSyncByte(const u8 *buf, int pos, size_t
-count, const int pktsize)
-+{
-+    while(likely(pos < count)) {
-+        if (likely(buf[pos] == 0x47 || (pktsize == 204 && buf[pos] ==
-0xB8)))
-+            break;
-+        pos++;
-+    }
-+
-+    return pos;
-+}
-+
-+/* pktsize must be either 204 or 188. If pktsize is 204, 0xB8 must be
-accepted for SYNC byte too, but then convert it into 0x47.
-+ * Designed pktsize so, that compiler would remove 204 related code
-during inlining. */
-+static inline void _dvb_dmx_swfilter(struct dvb_demux *demux, const u8
-*buf, size_t count, const int pktsize)
- {
-     int p = 0, i, j;
-+    const u8 *q;
+ 	char name[128];
+ 	char phys[64];
+-
+-	unsigned char tx_mask;
+ };
  
-     spin_lock(&demux->lock);
- 
--    if (demux->tsbufp) {
-+    if (likely(demux->tsbufp)) { /* tsbuf[0] is now 0x47. */
-         i = demux->tsbufp;
--        j = 188 - i;
--        if (count < j) {
-+        j = pktsize - i;
-+        if (unlikely(count < j)) {
-             memcpy(&demux->tsbuf[i], buf, count);
-             demux->tsbufp += count;
-             goto bailout;
-         }
-         memcpy(&demux->tsbuf[i], buf, j);
--        if (demux->tsbuf[0] == 0x47)
-+        if (likely(demux->tsbuf[0] == 0x47)) /* double check */
-             dvb_dmx_swfilter_packet(demux, demux->tsbuf);
-         demux->tsbufp = 0;
-         p += j;
-     }
- 
--    while (p < count) {
--        if (buf[p] == 0x47) {
--            if (count - p >= 188) {
--                dvb_dmx_swfilter_packet(demux, &buf[p]);
--                p += 188;
--            } else {
--                i = count - p;
--                memcpy(demux->tsbuf, &buf[p], i);
--                demux->tsbufp = i;
--                goto bailout;
--            }
--        } else
--            p++;
-+    while (likely((p = findNextSyncByte(buf, p, count, pktsize)) <
-count)) {
-+        if (unlikely(count - p < pktsize))
-+            break;
-+
-+        q = &buf[p];
-+
-+        if (unlikely(pktsize == 204 && (*q == 0xB8))) {
-+            memcpy(demux->tsbuf, q, 188);
-+            demux->tsbuf[0] = 0x47;
-+            q = demux->tsbuf;
-+        }
-+        dvb_dmx_swfilter_packet(demux, q);
-+        p += pktsize;
-+    }
-+
-+    i = count - p;
-+    if (likely(i)) {
-+        memcpy(demux->tsbuf, &buf[p], i);
-+        demux->tsbufp = i;
-+        if (unlikely(pktsize == 204 && demux->tsbuf[0] == 0xB8))
-+            demux->tsbuf[0] = 0x47;
-     }
- 
- bailout:
-     spin_unlock(&demux->lock);
+ /*
+@@ -520,6 +515,88 @@ static void mce_sync_in(struct mceusb_dev *ir, unsigned char *data, int size)
+ 	mce_request_packet(ir, ir->usb_ep_in, data, size, MCEUSB_RX);
  }
  
-+void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count)
++/* Send data out the IR blaster port(s) */
++static int mceusb_tx_ir(void *priv, const char *buf, u32 n)
 +{
-+    _dvb_dmx_swfilter(demux, buf, count, 188);
++	struct mceusb_dev *ir = priv;
++	int i, count = 0, cmdcount = 0;
++	int wbuf[IRBUF_SIZE]; /* Workbuffer with values to tx */
++	unsigned char cmdbuf[MCE_CMDBUF_SIZE]; /* MCE command buffer */
++	unsigned long signal_duration = 0; /* Singnal length in us */
++	struct timeval start_time, end_time;
++
++	do_gettimeofday(&start_time);
++
++	if (n % sizeof(int))
++		return -EINVAL;
++	count = n / sizeof(int);
++
++	/* Check if command is within limits */
++	if (count > IRBUF_SIZE || count % 2 == 0)
++		return -EINVAL;
++	if (copy_from_user(wbuf, buf, n))
++		return -EFAULT;
++
++	/* MCE tx init header */
++	cmdbuf[cmdcount++] = MCE_CONTROL_HEADER;
++	cmdbuf[cmdcount++] = 0x08;
++	cmdbuf[cmdcount++] = ir->tx_mask;
++
++	/* Generate mce packet data */
++	for (i = 0; (i < count) && (cmdcount < MCE_CMDBUF_SIZE); i++) {
++		signal_duration += wbuf[i];
++		wbuf[i] = wbuf[i] / MCE_TIME_UNIT;
++
++		do { /* loop to support long pulses/spaces > 127*50us=6.35ms */
++
++			/* Insert mce packet header every 4th entry */
++			if ((cmdcount < MCE_CMDBUF_SIZE) &&
++			    (cmdcount - MCE_TX_HEADER_LENGTH) %
++			     MCE_CODE_LENGTH == 0)
++				cmdbuf[cmdcount++] = MCE_PACKET_HEADER;
++
++			/* Insert mce packet data */
++			if (cmdcount < MCE_CMDBUF_SIZE)
++				cmdbuf[cmdcount++] =
++					(wbuf[i] < MCE_PULSE_BIT ?
++					 wbuf[i] : MCE_MAX_PULSE_LENGTH) |
++					 (i & 1 ? 0x00 : MCE_PULSE_BIT);
++			else
++				return -EINVAL;
++		} while ((wbuf[i] > MCE_MAX_PULSE_LENGTH) &&
++			 (wbuf[i] -= MCE_MAX_PULSE_LENGTH));
++	}
++
++	/* Fix packet length in last header */
++	cmdbuf[cmdcount - (cmdcount - MCE_TX_HEADER_LENGTH) % MCE_CODE_LENGTH] =
++		0x80 + (cmdcount - MCE_TX_HEADER_LENGTH) % MCE_CODE_LENGTH - 1;
++
++	/* Check if we have room for the empty packet at the end */
++	if (cmdcount >= MCE_CMDBUF_SIZE)
++		return -EINVAL;
++
++	/* All mce commands end with an empty packet (0x80) */
++	cmdbuf[cmdcount++] = 0x80;
++
++	/* Transmit the command to the mce device */
++	mce_async_out(ir, cmdbuf, cmdcount);
++
++	/*
++	 * The lircd gap calculation expects the write function to
++	 * wait the time it takes for the ircommand to be sent before
++	 * it returns.
++	 */
++	do_gettimeofday(&end_time);
++	signal_duration -= (end_time.tv_usec - start_time.tv_usec) +
++			   (end_time.tv_sec - start_time.tv_sec) * 1000000;
++
++	/* delay with the closest number of ticks */
++	set_current_state(TASK_INTERRUPTIBLE);
++	schedule_timeout(usecs_to_jiffies(signal_duration));
++
++	return n;
 +}
 +
- EXPORT_SYMBOL(dvb_dmx_swfilter);
- 
- void dvb_dmx_swfilter_204(struct dvb_demux *demux, const u8 *buf,
-size_t count)
+ /* Sets active IR outputs -- mce devices typically (all?) have two */
+ static int mceusb_set_tx_mask(void *priv, u32 mask)
  {
--    int p = 0, i, j;
--    u8 tmppack[188];
--
--    spin_lock(&demux->lock);
--
--    if (demux->tsbufp) {
--        i = demux->tsbufp;
--        j = 204 - i;
--        if (count < j) {
--            memcpy(&demux->tsbuf[i], buf, count);
--            demux->tsbufp += count;
--            goto bailout;
--        }
--        memcpy(&demux->tsbuf[i], buf, j);
--        if ((demux->tsbuf[0] == 0x47) || (demux->tsbuf[0] == 0xB8)) {
--            memcpy(tmppack, demux->tsbuf, 188);
--            if (tmppack[0] == 0xB8)
--                tmppack[0] = 0x47;
--            dvb_dmx_swfilter_packet(demux, tmppack);
--        }
--        demux->tsbufp = 0;
--        p += j;
--    }
--
--    while (p < count) {
--        if ((buf[p] == 0x47) || (buf[p] == 0xB8)) {
--            if (count - p >= 204) {
--                memcpy(tmppack, &buf[p], 188);
--                if (tmppack[0] == 0xB8)
--                    tmppack[0] = 0x47;
--                dvb_dmx_swfilter_packet(demux, tmppack);
--                p += 204;
--            } else {
--                i = count - p;
--                memcpy(demux->tsbuf, &buf[p], i);
--                demux->tsbufp = i;
--                goto bailout;
--            }
--        } else {
--            p++;
--        }
--    }
--
--bailout:
--    spin_unlock(&demux->lock);
-+    _dvb_dmx_swfilter(demux, buf, count, 204);
+@@ -533,6 +610,49 @@ static int mceusb_set_tx_mask(void *priv, u32 mask)
+ 	return 0;
  }
  
- EXPORT_SYMBOL(dvb_dmx_swfilter_204);
++/* Sets the send carrier frequency and mode */
++static int mceusb_set_tx_carrier(void *priv, u32 carrier)
++{
++	struct mceusb_dev *ir = priv;
++	int clk = 10000000;
++	int prescaler = 0, divisor = 0;
++	unsigned char cmdbuf[4] = { 0x9f, 0x06, 0x00, 0x00 };
++
++	/* Carrier has changed */
++	if (ir->carrier != carrier) {
++
++		if (carrier == 0) {
++			ir->carrier = carrier;
++			cmdbuf[2] = 0x01;
++			cmdbuf[3] = 0x80;
++			dev_dbg(ir->dev, "%s: disabling carrier "
++				"modulation\n", __func__);
++			mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
++			return carrier;
++		}
++
++		for (prescaler = 0; prescaler < 4; ++prescaler) {
++			divisor = (clk >> (2 * prescaler)) / carrier;
++			if (divisor <= 0xFF) {
++				ir->carrier = carrier;
++				cmdbuf[2] = prescaler;
++				cmdbuf[3] = divisor;
++				dev_dbg(ir->dev, "%s: requesting %u HZ "
++					"carrier\n", __func__, carrier);
++
++				/* Transmit new carrier to mce device */
++				mce_async_out(ir, cmdbuf, sizeof(cmdbuf));
++				return carrier;
++			}
++		}
++
++		return -EINVAL;
++
++	}
++
++	return carrier;
++}
++
+ static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+ {
+ 	struct ir_raw_event rawir = { .pulse = false, .duration = 0 };
+@@ -791,7 +911,7 @@ static struct input_dev *mceusb_init_input_dev(struct mceusb_dev *ir)
+ 		goto ir_dev_alloc_failed;
+ 	}
+ 
+-	snprintf(ir->name, sizeof(ir->name), "Media Center Edition eHome "
++	snprintf(ir->name, sizeof(ir->name), "Media Center Ed. eHome "
+ 		 "Infrared Remote Transceiver (%04x:%04x)",
+ 		 le16_to_cpu(ir->usbdev->descriptor.idVendor),
+ 		 le16_to_cpu(ir->usbdev->descriptor.idProduct));
+@@ -804,6 +924,9 @@ static struct input_dev *mceusb_init_input_dev(struct mceusb_dev *ir)
+ 	props->priv = ir;
+ 	props->driver_type = RC_DRIVER_IR_RAW;
+ 	props->allowed_protos = IR_TYPE_ALL;
++	props->s_tx_mask = mceusb_set_tx_mask;
++	props->s_tx_carrier = mceusb_set_tx_carrier;
++	props->tx_ir = mceusb_tx_ir;
+ 
+ 	ir->props = props;
+ 	ir->irdev = irdev;
+-- 
+1.6.5.2
+
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
