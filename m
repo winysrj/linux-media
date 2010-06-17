@@ -1,57 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41691 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751952Ab0FDHmP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jun 2010 03:42:15 -0400
-Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o547gEqj006455
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 03:42:14 -0400
-From: huzaifas@redhat.com
-To: linux-media@vger.kernel.org
-Cc: hdegoede@redhat.com, Huzaifa Sidhpurwala <huzaifas@redhat.com>
-Subject: [PATCH] libv4l1: move VIDIOCCAPTURE to libv4l1
-Date: Fri,  4 Jun 2010 13:10:14 +0530
-Message-Id: <1275637214-22089-1-git-send-email-huzaifas@redhat.com>
+Received: from vppmailmx03.vip.hr ([212.91.113.9]:37063 "EHLO
+	vppmailmx03.vip.hr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933084Ab0FQRAU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jun 2010 13:00:20 -0400
+Message-ID: <20100617185438.OU5OI.23433.root@vppmailmx03>
+Date: Thu, 17 Jun 2010 18:54:38 +0200
+From: Bank of China <tanja.puhek@vip.hr>
+Reply-To: chenguan777@w.cn
+Subject: Business Suggestion
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+Dear Friend,
 
-move VIDIOCCAPTURE to libv4l1
+I have a business suggestion for you. I am Mr. Chen Guan, Foreign Operations Manager of the Bank of China (Hong kong).I have a Business for you worth (US$17,300,000.00)Please reply to my private email for more Details ( chenguan777@w.cn ) Thank you for your time and understanding
 
-Signed-of-by: Huzaifa Sidhpurwala <huzaifas@redhat.com>
----
- lib/libv4l1/libv4l1.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
-
-diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
-index 579f13b..2981c40 100644
---- a/lib/libv4l1/libv4l1.c
-+++ b/lib/libv4l1/libv4l1.c
-@@ -967,6 +967,22 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
- 
- 		break;
- 	}
-+
-+	case VIDIOCCAPTURE: {
-+		int *on = arg;
-+		enum v4l2_buf_type captype = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+
-+		if (0 == *on) {
-+		/* dirty hack time.  But v4l1 has no STREAMOFF
-+		* equivalent in the API, and this one at
-+		* least comes close ... */
-+			v4l2_ioctl(fd, VIDIOC_STREAMOFF, &captype);
-+		}
-+
-+		result = v4l2_ioctl(fd, VIDIOC_OVERLAY, on);
-+
-+		break;
-+	}
- 	default:
- 		/* Pass through libv4l2 for applications which are using v4l2 through
- 		   libv4l1 (this can happen with the v4l1compat.so wrapper preloaded */
--- 
-1.6.6.1
+Kind Regards,
+Mr. Chen Guan.
 
