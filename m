@@ -1,68 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:48191 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757516Ab0FDXQP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 19:16:15 -0400
-Received: by vws5 with SMTP id 5so283877vws.19
-        for <linux-media@vger.kernel.org>; Fri, 04 Jun 2010 16:16:14 -0700 (PDT)
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:65270 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933186Ab0FQT6H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jun 2010 15:58:07 -0400
+Received: by wyb33 with SMTP id 33so74055wyb.19
+        for <linux-media@vger.kernel.org>; Thu, 17 Jun 2010 12:58:05 -0700 (PDT)
+Date: Thu, 17 Jun 2010 22:00:37 +0200
+From: Richard Zidlicky <rz@linux-m68k.org>
+To: Pedro =?iso-8859-1?Q?C=F4rte-Real?= <pedro@pedrocr.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Trouble getting DVB-T working with Portuguese transmissions
+Message-ID: <20100617200037.GA6530@linux-m68k.org>
+References: <AANLkTiny9YXXT185VbNuw-z6aZDdIfS50UxFLERdlY-z@mail.gmail.com> <AANLkTinkDzTJfaFHx1bsGsdWlJnVGqa0n2VWdLvNBJRB@mail.gmail.com> <20100616205745.GA22103@linux-m68k.org> <AANLkTik-CVBuwVbXLlAQ1Vso4RlnAzSOzvkcIEhfR7uO@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimrV3zUg1yqtWCROtUqY4AfvfXrv81BVmh8HHlk@mail.gmail.com>
-References: <BQCH7Bq3jFB@christoph>
-	<4C09482B.8030404@redhat.com>
-	<AANLkTikr49GiEcENLb6n1shtCkWrDhMXoYh4VJ4IPtdQ@mail.gmail.com>
-	<20100604201733.GJ23375@redhat.com>
-	<AANLkTimrV3zUg1yqtWCROtUqY4AfvfXrv81BVmh8HHlk@mail.gmail.com>
-Date: Fri, 4 Jun 2010 19:16:14 -0400
-Message-ID: <AANLkTimFzEEPYnKEsUsd42ny1z1DPnhbPhUIwW_6E5rb@mail.gmail.com>
-Subject: Re: [PATCH 1/3] IR: add core lirc device interface
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	linux-media@vger.kernel.org,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTik-CVBuwVbXLlAQ1Vso4RlnAzSOzvkcIEhfR7uO@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 4, 2010 at 5:17 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
-> On Fri, Jun 4, 2010 at 4:17 PM, Jarod Wilson <jarod@redhat.com> wrote:
->> On Fri, Jun 04, 2010 at 02:57:04PM -0400, Jon Smirl wrote:
-> ...
->>> > From what I'm seeing, those are the current used ioctls:
->>> >
->>> > +#define LIRC_GET_FEATURES              _IOR('i', 0x00000000, unsigned long)
->>> > +#define LIRC_GET_LENGTH                _IOR('i', 0x0000000f, unsigned long)
->>>
->>> Has this been set into stone yet? if not a 64b word would be more future proof.
->>
->> Nope, not set in stone at all, nothing has been merged. A patch I was
->> carrying in Fedora changed all unsigned long to u64 and unsigned int to
->> u32, and my current ir wip tree has all u32, but I don't see a reason why
->> if we're going to make a change, it couldn't be to all u64, for as much
->> future-proofing as possible.
->
-> Hrm, struct file_operations specifies an unsigned long for the ioctl
-> args, so doesn't that mean we're pretty much stuck with only 32-bit
-> for the ioctls?
+On Thu, Jun 17, 2010 at 10:03:16AM +0100, Pedro Côrte-Real wrote:
+> On Wed, Jun 16, 2010 at 9:57 PM, Richard Zidlicky <rz@linux-m68k.org> wrote:
+> > On Wed, Jun 16, 2010 at 11:43:09AM +0100, Pedro Côrte-Real wrote:
+> >
+> >> status  C Y  | signal  66% | snr   0% | ber 2097151 | unc 0 |
+> >> status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
+> >> status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
+> >> status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
+> >> status SC YL | signal  64% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
+> >> status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
+> >> status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
+> >> status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
+> >> status SC YL | signal  64% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
+> >
+> > the ber is very strange. It should be 0 or very close.
+> 
+> What are the ber and the unc? And does the 0% snr make sense? Why the
+> % scale for that?
 
-I haven't written an IOCTL in a while, but how would you pass a 64b
-memory address?
+berr is supposed to be the bit error rate. The values displayed here appear to be
+bogus - then again I am not familiar with this particular driver so maybe just the 
+error reporting is bogus. The w_scan results also look pretty bad.
 
->
-> Even with "only" 32 feature flags, I think we'd still be just fine,
-> there appear to be only 15 feature flags at present, and I doubt many
-> more features need to be added, given how long lirc has been around.
->
-> --
-> Jarod Wilson
-> jarod@wilsonet.com
->
+Newest kernel is allways worth a try.
 
-
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
+Richard
