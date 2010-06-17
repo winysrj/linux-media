@@ -1,44 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:48294 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1753814Ab0FRXCY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jun 2010 19:02:24 -0400
-Received: from lyakh (helo=localhost)
-	by axis700.grange with local-esmtp (Exim 4.63)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1OPkZr-0003td-3W
-	for linux-media@vger.kernel.org; Sat, 19 Jun 2010 01:02:23 +0200
-Date: Sat, 19 Jun 2010 01:02:23 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] sh_mobile_ceu_camera: fix debugging message
-Message-ID: <Pine.LNX.4.64.1006190101330.3118@axis700.grange>
+Received: from perceval.irobotique.be ([92.243.18.41]:43924 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753634Ab0FQG75 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 17 Jun 2010 02:59:57 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+Subject: Re: sub device device node and ioctl support?
+Date: Thu, 17 Jun 2010 09:03:12 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <A69FA2915331DC488A831521EAE36FE4016B3A7671@dlee06.ent.ti.com>
+In-Reply-To: <A69FA2915331DC488A831521EAE36FE4016B3A7671@dlee06.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201006170903.12665.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With enabled debugging sh_mobile_ceu_camera.c dereferences an invalid or a NULL
-pointer. Thanks to James Wang for reporting.
+Hi Murali,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/sh_mobile_ceu_camera.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Thursday 17 June 2010 00:15:23 Karicheri, Muralidharan wrote:
+> Hello,
+> 
+> I need to support ioctls on sub devices as part of my work on vpbe display
+> driver. For example, currently we have use proprietary ioctls on a fb
+> device to configure osd hardware on DMXXX VPBE and would like to migrate
+> them to the osd sub device node. But currently sub devices are not
+> exporting device nodes. I know there is work done by Laurent to add this
+> support as part of media controller activity, but then I have to wait for
+> this for ever. Is there a way we can get this support merged to the kernel
+> tree for 2.6.36?
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 4ac3b48..3766e30 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -1005,7 +1005,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, int idx,
- 		xlate->code	= code;
- 		xlate++;
- 		dev_dbg(dev, "Providing format %s in pass-through mode\n",
--			xlate->host_fmt->name);
-+			fmt->name);
- 	}
- 
- 	return formats;
+The media controller upstreaming process will start in one or two weeks. This 
+will require a lot of time, so everything won't be ready for 2.6.36.
+
+This being said, the subdevice userspace API is the first part of the media 
+controller that will be pushed upstream. Getting it ready for 2.6.36 might be 
+a bit difficult, it will depend on how many rc cycles we still get for 2.6.35. 
+It will also depend on how fast the patches get reviewed, so you can help 
+there :-)
+
 -- 
-1.6.2.4
+Regards,
 
+Laurent Pinchart
