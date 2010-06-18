@@ -1,50 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:54936 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752367Ab0F1UGD (ORCPT
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:60205 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757605Ab0FRD0P convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jun 2010 16:06:03 -0400
-Received: by wwd20 with SMTP id 20so301395wwd.19
-        for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 13:06:01 -0700 (PDT)
-Message-ID: <4C290096.5080209@gmail.com>
-Date: Mon, 28 Jun 2010 22:05:42 +0200
-From: Matteo Sisti Sette <matteosistisette@gmail.com>
+	Thu, 17 Jun 2010 23:26:15 -0400
+Received: by gwj15 with SMTP id 15so342010gwj.19
+        for <linux-media@vger.kernel.org>; Thu, 17 Jun 2010 20:26:14 -0700 (PDT)
 MIME-Version: 1.0
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: v4l-dvb unsupported device: Conceptronic CTVDIGUSB2 1b80:d393
- (Afatech) - possibly similar to CTVCTVDIGRCU v3.0?
-References: <AANLkTikojhopHeY2WuHxK_tbCs99_SV7ksWnYv4UXM4W@mail.gmail.com> <4C28FCA8.5090005@hoogenraad.net>
-In-Reply-To: <4C28FCA8.5090005@hoogenraad.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTil20ry1QgNxRz7SDrb7sQvSbtSaulCMaK2TAT3u@mail.gmail.com>
+References: <1274349174-3961-1-git-send-email-npajkovs@redhat.com>
+	<4C000A96.3010308@iki.fi>
+	<AANLkTinFIakra2JzIiI74qEZBO_D2bqgp8T55R_Df9rc@mail.gmail.com>
+	<4C013BBF.3080509@gmx.de>
+	<AANLkTil20ry1QgNxRz7SDrb7sQvSbtSaulCMaK2TAT3u@mail.gmail.com>
+Date: Fri, 18 Jun 2010 11:26:14 +0800
+Message-ID: <AANLkTilylL8Rz-r-ucAwg_eBpUbmWZglHUweKx_pr8_w@mail.gmail.com>
+Subject: Re: Fwd: [PATCH] V4L/DVB: New NXP tda18218 tuner
+From: Bee Hock Goh <beehock@gmail.com>
+To: Lauris Ding <lding@gmx.de>, LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/28/2010 09:48 PM, Jan Hoogenraad wrote:
-> Matteo:
+Can someone share what is the process to get a patch into the mainstream codes?
+
+It been quite a while already and its still been review. Seem like a
+waste if this patch disappear again just like the previous time when
+it was submitted long ago.
+
+On Sun, May 30, 2010 at 8:22 AM, Bee Hock Goh <beehock@gmail.com> wrote:
+> Hi Lauris,
 >
-> If I read this well, CTVDIGUSB2 1b80:d393 (Afatech) is not at all
-> similar to the CTVDIGRCU.
-> The CTVDIGRCU has a Realtek RTL2831U decoder, and is NOT included in the
-> standard dvb list.
-
-So is the table at http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices 
-incorrect?
-
-It says:
-
-Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0 	
-  âœ” Yes, in kernel since 2.6.31
-1b80:e397 USB2.0 	
-Afatech AF9015
-
-
-Anyway, I see there are other sticks with chipsets by Afatech. Is there 
-any chance that some of the currently implemented driver would work fine 
-with my chipset if only I forced the driver to recognize the chipset as 
-another one by touching the source code?
-How could I try that? (if it deserves a try)
-
-Thanks
-m.
+> thanks for the reply. I am just a user. :)
+>
+> As you are the original driver developer, it would great if you could
+> endorsed/ack the patch sent by Nikola.
+>
+> thanks,
+>  Hock.
+>
+> On Sun, May 30, 2010 at 12:07 AM, Lauris Ding <lding@gmx.de> wrote:
+>> On 29.05.2010 11:39, Bee Hock Goh wrote:
+>>>
+>>> Dear Lauris,
+>>>
+>>> Are you still active? Nikola have submitted a patch for af9015/tda18218.
+>>>
+>>> Could you maybe spend some time to help and endorsed it?
+>>>
+>>> thanks,
+>>>  Hock.
+>>>
+>>>
+>>> ---------- Forwarded message ----------
+>>> From: Antti Palosaari<crope@iki.fi>
+>>> Date: Sat, May 29, 2010 at 2:25 AM
+>>> Subject: Re: [PATCH] V4L/DVB: New NXP tda18218 tuner
+>>> To: Nikola Pajkovsky<npajkovs@redhat.com>
+>>> Cc: linux-media@vger.kernel.org
+>>>
+>>>
+>>> Terve,
+>>>
+>>> On 05/20/2010 12:52 PM, Nikola Pajkovsky wrote:
+>>>
+>>>>
+>>>> Signed-off-by: Nikola Pajkovsky<npajkovs@redhat.com>
+>>>> ---
+>>>>  drivers/media/common/tuners/Kconfig         |    7 +
+>>>>  drivers/media/common/tuners/Makefile        |    1 +
+>>>>  drivers/media/common/tuners/tda18218.c      |  432
+>>>> +++++++++++++++++++++++++++
+>>>>  drivers/media/common/tuners/tda18218.h      |   44 +++
+>>>>  drivers/media/common/tuners/tda18218_priv.h |   36 +++
+>>>>  drivers/media/dvb/dvb-usb/af9015.c          |   13 +-
+>>>>  drivers/media/dvb/frontends/af9013.c        |   15 +
+>>>>  drivers/media/dvb/frontends/af9013_priv.h   |    5 +-
+>>>>  8 files changed, 548 insertions(+), 5 deletions(-)
+>>>>  create mode 100644 drivers/media/common/tuners/tda18218.c
+>>>>  create mode 100644 drivers/media/common/tuners/tda18218.h
+>>>>  create mode 100644 drivers/media/common/tuners/tda18218_priv.h
+>>>>
+>>>
+>>> tda18218_write_reg() could use tda18218_write_regs()
+>>>
+>>> tda18218_set_params() correct frequency limits. No need to check both
+>>> upper and lower limit.
+>>>
+>>> printk(KERN_INFO "We've got a lock!");
+>>> it does not sounds good idea to print INFO when lock
+>>>
+>>> while(i<  10) {
+>>> use for loop insted. Two rows less code.
+>>>
+>>> tda18218_init()
+>>> why return -EREMOTEIO; ?
+>>>
+>>> tda18218_attach()
+>>> printk(KERN_WARNING "Device is not a TDA18218!\n");
+>>> we should fail without noise since many times tuner attach is used for
+>>> probe correct tuner
+>>>
+>>> A lot of error checkings are missing when reg write / read
+>>>
+>>> checkpatch returns a lot of warnings and for errors too almost every
+>>> file changed
+>>>
+>>> Is that checked TDA18218 uses same demod settings as TDA18271?
+>>>
+>>> And the biggest problem is that driver author Lauris haven't replied
+>>> any mails...
+>>>
+>>> regards
+>>> Antti
+>>>
+>>>
+>>> --
+>>> http://palosaari.fi/
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>>
+>>
+>> Hi,
+>>
+>> well, I've stopped doing anything on it after I finally got it working, as
+>> it was enough for me having it just working, more or less regardless of what
+>> the code looked like.
+>>
+>> I very much appreciate your work on it, but I'm quite unexperienced in
+>> kernel programming; I'll try to help whenever I can from now on, though.
+>>
+>> Regards, Lauris
+>>
+>
