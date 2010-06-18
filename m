@@ -1,124 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3214 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756471Ab0FUTdb (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:62061 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758698Ab0FRNAY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 15:33:31 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5LJXT3T099738
-	for <linux-media@vger.kernel.org>; Mon, 21 Jun 2010 21:33:30 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 21 Jun 2010 21:33:29 +0200 (CEST)
-Message-Id: <201006211933.o5LJXT3T099738@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Fri, 18 Jun 2010 09:00:24 -0400
+MIME-Version: 1.0
+In-Reply-To: <20100616075642.GA12255@atomide.com>
+References: <201006091227.29175.laurent.pinchart@ideasonboard.com>
+	<AANLkTilPWyHcoT6q1T-o-UMvcMSs2_If45f9UocVtrbl@mail.gmail.com>
+	<A24693684029E5489D1D202277BE894455DDEC44@dlee02.ent.ti.com>
+	<201006111707.34463.laurent.pinchart@ideasonboard.com>
+	<AANLkTikdUanfxhkbb0sYZ-Yhd_9dVywv9Yj1a5DL18oN@mail.gmail.com>
+	<20100616075642.GA12255@atomide.com>
+Date: Fri, 18 Jun 2010 16:00:22 +0300
+Message-ID: <AANLkTinF9icY0SSHAKcurjP3DX4h7mA9vlRK6ZaAoHdx@mail.gmail.com>
+Subject: Re: Alternative for defconfig
+From: Felipe Contreras <felipe.contreras@gmail.com>
+To: Tony Lindgren <tony@atomide.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Aguirre, Sergio" <saaguirre@ti.com>,
+	"Nagarajan, Rajkumar" <x0133774@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wed, Jun 16, 2010 at 10:56 AM, Tony Lindgren <tony@atomide.com> wrote:
+> * Felipe Contreras <felipe.contreras@gmail.com> [100611 19:03]:
+>> On Fri, Jun 11, 2010 at 6:07 PM, Laurent Pinchart
+>> <laurent.pinchart@ideasonboard.com> wrote:
+>> > My understanding is that Linus will remove all ARM defconfigs in 2.6.36,
+>> > unless someone can convince him not to.
+>>
+>> Huh? I thought he was only threatening to remove them[1]. I don't
+>> think he said he was going to do that without any alternative in
+>> place.
+>>
+>> My suggestion[2] was to have minimal defconfigs so that we could do
+>> $ cp arch/arm/configs/omap3_beagle_baseconfig .config
+>> $ echo "" | make ARCH=arm oldconfig
+>>
+>> [1] http://article.gmane.org/gmane.linux.kernel/994194
+>> [2] http://article.gmane.org/gmane.linux.kernel/995412
+>
+> Sounds like the defconfigs will be going though and we'll use
+> some Kconfig based system that's still open. I believe Russell
+> said he is not taking any more defconfig patches, so we should
+> not merge them either.
+>
+> Anyways, we already have multi-omap mostly working for both
+> mach-omap1 and mach-omap2.
 
-Results of the daily build of v4l-dvb:
+Cool, that's a much better approach :)
 
-date:        Mon Jun 21 19:00:08 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Although it still doesn't solve the problem of default configuration
+for certain boards... I doubt many people know how to enable USB,
+audio, and so on. We would probably need some place to share
+configuration samples and documentation.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Felipe Contreras
