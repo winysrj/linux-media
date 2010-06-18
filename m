@@ -1,29 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33449 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758632Ab0FBVJy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 2 Jun 2010 17:09:54 -0400
-Date: Wed, 2 Jun 2010 14:09:16 -0700
-From: Andrew Morton <akpm@linux-foundation.org>
-To: "Rafael J. Wysocki" <rjw@sisk.pl>,
-	Maciej Rutecki <maciej.rutecki@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [Bugme-new] [Bug 16077] New: Drop is video frame rate in kernel
- .34
-Message-Id: <20100602140916.759d7159.akpm@linux-foundation.org>
-In-Reply-To: <bug-16077-10286@https.bugzilla.kernel.org/>
-References: <bug-16077-10286@https.bugzilla.kernel.org/>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from kroah.org ([198.145.64.141]:53036 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753001Ab0FRXtO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 18 Jun 2010 19:49:14 -0400
+Date: Fri, 18 Jun 2010 16:46:44 -0700
+From: Greg KH <greg@kroah.com>
+To: Timofey Trofimov <tumoxep@gmail.com>
+Cc: gregh@suse.de, mchehab@redhat.com, d.belimov@gmail.com,
+	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 6/6] Staging: tm6000: Fix coding style issues Fixed
+ coding style issues founded by checkpatch.pl in files: tm6000-alsa.c,
+ tm6000-cards, tm6000-core.c, tm6000-dvb.c, tm6000-i2c.c, tm6000-stds.c,
+ tm6000-usb-isoc.h, tm6000.h Signed-off-by: Timofey Trofimov
+ <tumoxep@gmail.com>
+Message-ID: <20100618234644.GA509@kroah.com>
+References: <1275151966-8868-1-git-send-email-tumoxep@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1275151966-8868-1-git-send-email-tumoxep@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 30 May 2010 14:29:55 GMT
-bugzilla-daemon@bugzilla.kernel.org wrote:
 
-> https://bugzilla.kernel.org/show_bug.cgi?id=16077
+This patch does not apply properly.  What tree did you make it against?
+Please redo it against the latest linux-next tree and resend it.
 
-2.6.33 -> 2.6.34 performance regression in dvb webcam frame rates.
+thanks,
+
+greg k-h
