@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay01.ispgateway.de ([80.67.31.28]:57247 "EHLO
-	smtprelay01.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751908Ab0FULXj (ORCPT
+Received: from mail-in-06.arcor-online.net ([151.189.21.46]:58874 "EHLO
+	mail-in-06.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756598Ab0FSRzY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 07:23:39 -0400
-Received: from [93.196.55.196] (helo=db1ras.afulinux.de)
-	by smtprelay01.ispgateway.de with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.68)
-	(envelope-from <andi@afulinux.de>)
-	id 1OQf6F-0003YL-DT
-	for linux-media@vger.kernel.org; Mon, 21 Jun 2010 13:23:35 +0200
-Received: from localhost.afulinux.de ([127.0.0.1] helo=localhost)
-	by db1ras.afulinux.de with esmtp (Exim 4.69)
-	(envelope-from <andi@afulinux.de>)
-	id 1OQf6E-0008Md-Or
-	for linux-media@vger.kernel.org; Mon, 21 Jun 2010 13:23:34 +0200
-From: Andreas Stempfhuber <andi@afulinux.de>
-To: linux-media@vger.kernel.org
-Subject: Re: WinTV-NOVA HD-S2 unable to load firmware since register 0x20 is allways 0
-Date: Mon, 21 Jun 2010 13:17:45 +0200
-References: <201006200311.46367.andi@afulinux.de>
-In-Reply-To: <201006200311.46367.andi@afulinux.de>
+	Sat, 19 Jun 2010 13:55:24 -0400
+Message-ID: <9475442.1276970122521.JavaMail.ngmail@webmail09.arcor-online.net>
+Date: Sat, 19 Jun 2010 19:55:22 +0200 (CEST)
+From: Stefan Ringel <stefan.ringel@arcor.de>
+To: greg@kroah.com, stefan.ringel@arcor.de
+Subject: Aw: Re: [PATCH 6/6] Staging: tm6000: Fix coding style issues Fixed
+  coding style issues founded by checkpatch.pl in files: tm6000-alsa.c,
+  tm6000-cards, tm6000-core.c, tm6000-dvb.c, tm6000-i2c.c, tm6000-stds.c,
+  tm6000-usb-isoc.h, tm6000.h Signed-off-by: Timofey Trofimov
+  <tumoxep@gmail.com>
+Cc: tumoxep@gmail.com, gregh@suse.de, mchehab@redhat.com,
+	d.belimov@gmail.com, devel@driverdev.osuosl.org,
+	linux-media@vger.kernel.org
+In-Reply-To: <20100619172526.GD28159@kroah.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201006211317.46016.andi@afulinux.de>
+References: <20100619172526.GD28159@kroah.com> <1275151966-8868-1-git-send-email-tumoxep@gmail.com>
+ <20100618234644.GA509@kroah.com>
+ <4C1C5701.2000208@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+ 
 
-Am Sonntag, 20. Juni 2010 schrieb Andreas Stempfhuber:
-> Hello,
->
-> I bought a brandnew Hauppauge WinTV-NOVA HD-S2 which does not load the
-> firmware since the value of register 0x20 is allways 0x00. After changing
-> the cx24116 driver to not check register 0x20, the firmware is loaded and
-> the card works as expected (DVB-S, audio and remote control).
-[...]
 
-I did a few additional tests and there seems to be only an issue with brandnew 
-cards which have never before got a firmware uploaded. As on my card register 
-0x20 allways returned 0 with different kernel and driver versions and several 
-reboots.
+----- Original Nachricht ----
+Von:     Greg KH <greg@kroah.com>
+An:      Stefan Ringel <stefan.ringel@arcor.de>
+Datum:   19.06.2010 19:25
+Betreff: Re: [PATCH 6/6] Staging: tm6000: Fix coding style issues Fixed
+ coding style issues founded by checkpatch.pl in files: tm6000-alsa.c,
+ tm6000-cards, tm6000-core.c, tm6000-dvb.c, tm6000-i2c.c, tm6000-stds.c,
+ tm6000-usb-isoc.h, tm6000.h Signed-off-by: Timofey Trofimov
+ <tumoxep@gmail.com>
 
-After forcing a firmware upload by modifying the driver to not check the state 
-of register 0x20, the issue no longer exists. If I now reboot or power cycle 
-the PC, register 0x20 returns values unequal 0 and the original driver works 
-as expected.
+> On Sat, Jun 19, 2010 at 07:34:57AM +0200, Stefan Ringel wrote:
+> > Am 19.06.2010 01:46, schrieb Greg KH:
+> > > This patch does not apply properly.  What tree did you make it against?
+> > > Please redo it against the latest linux-next tree and resend it.
+> > >
+> > > thanks,
+> > >
+> > > greg k-h
+> > >   
+> > please look in staging/tm6000 brunch.
+> 
+> "brunch"?
+> 
+> I'm still confused.
+> 
+> greg k-h
 
-It seems to me that relying on register 0x20 for firmware uploads is not 
-stable as a brandnew card may return 0 until it got the first firmware 
-uploaded.
-
-Regards,
-
-Andreas
-
--- 
+here http://git.linuxtv.org/v4l-dvb.git?a=shortlog;h=refs/heads/staging/tm6000
+> 
