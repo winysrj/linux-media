@@ -1,31 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from avas2.ac-besancon.fr ([195.221.85.114]:50210 "EHLO
-	avas2.ac-besancon.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751398Ab0FDSTV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 14:19:21 -0400
-From: <jean-luc.robbe@ac-besancon.fr>
-Reply-To: choi_chu808@yahoo.co.jp
-Message-ID: <ecaa6e5a2df097f9.4c08d4cd@ac-besancon.fr>
-Date: Fri, 04 Jun 2010 10:26:21 -0700
-MIME-Version: 1.0
-Content-Language: fr
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from fallback1.mail.ru ([94.100.176.18]:53507 "EHLO
+	fallback1.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754195Ab0FSIMQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Jun 2010 04:12:16 -0400
+Received: from mx34.mail.ru (mx34.mail.ru [94.100.176.48])
+	by fallback1.mail.ru (mPOP.Fallback_MX) with ESMTP id 697CB9862DF
+	for <linux-media@vger.kernel.org>; Sat, 19 Jun 2010 12:12:14 +0400 (MSD)
+Date: Sat, 19 Jun 2010 12:14:32 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Cc: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] hvr4000 doesnt work w/ dvb-s2 nor DVB-T
+Message-ID: <20100619121432.39f49539@bk.ru>
+In-Reply-To: <20100606150554.55be1852@romy.gusto>
+References: <20100606010311.6d98ef7b@romy.gusto>
+	<20100606084301.GA3070@gmail.com>
+	<20100606133946.76c3a6e0@romy.gusto>
+	<20100606124925.GB3070@gmail.com>
+	<20100606145154.60de422e@romy.gusto>
+	<20100606125636.GC3070@gmail.com>
+	<20100606150554.55be1852@romy.gusto>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-I am Mr. Vincent Cheng Hoi Chuen, GBS, JP Chairman of the Hong Kong and Shanghai Banking Corporation Limited.i have a 
-business proposal of Twenty Two million Five Hundred Thousand United State Dollars only for you to  transact with me from my 
-bank to your country.
-
-All confirmable documents to back up the claims will be made available to you prior to your acceptance and as soon as I receive 
-your return mail Via my email address:choi_chu808@yahoo.co.jp and I will let you know what is required of you.
-
-Your earliest response to this letter will be appreciated.
- 
-Best Regards,
-Mr. Vincent Cheng
+my hvr4k also works well with dvb-s2
+have a look please on http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000
