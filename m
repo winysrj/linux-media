@@ -1,71 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms16-1.1blu.de ([89.202.0.34]:53468 "EHLO ms16-1.1blu.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752066Ab0FGAz3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jun 2010 20:55:29 -0400
-Date: Mon, 7 Jun 2010 02:55:26 +0200
-From: Lars Schotte <lars.schotte@schotteweb.de>
-To: hermann pitton <hermann-pitton@arcor.de>
-Cc: VDR User <user.vdr@gmail.com>,
-	"mailing list: linux-media" <linux-media@vger.kernel.org>
-Subject: Re: What ever happened to standardizing signal level?
-Message-ID: <20100607025526.171a3225@romy.gusto>
-In-Reply-To: <1275867229.3164.78.camel@pc07.localdom.local>
-References: <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com>
-	<1275198741.3213.50.camel@pc07.localdom.local>
-	<AANLkTilIrG5cwlLv_iAI7E7XX5117qh4AHof80pRRYSs@mail.gmail.com>
-	<1275622226.6635.24.camel@pc07.localdom.local>
-	<AANLkTikvkkfr0F_h1u8wIgoLMiy05iWy8ZQkdF5y2Xii@mail.gmail.com>
-	<1275861682.3164.44.camel@pc07.localdom.local>
-	<20100607001224.530dfe35@romy.gusto>
-	<1275867229.3164.78.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.gmx.net ([213.165.64.20]:46246 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756001Ab0FSONR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 19 Jun 2010 10:13:17 -0400
+Date: Sat, 19 Jun 2010 16:13:31 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Baruch Siach <baruch@tkos.co.il>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v3 1/3] mx2_camera: Add soc_camera support for i.MX25/i.MX27
+In-Reply-To: <190248f3b311ccfcb73f1fc71d185e3927f0bf05.1274865040.git.baruch@tkos.co.il>
+Message-ID: <Pine.LNX.4.64.1006191458420.11313@axis700.grange>
+References: <cover.1274865040.git.baruch@tkos.co.il>
+ <190248f3b311ccfcb73f1fc71d185e3927f0bf05.1274865040.git.baruch@tkos.co.il>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-of course, that one is cleared
+Hi Baruch
 
-On Mon, 07 Jun 2010 01:33:49 +0200
-hermann pitton <hermann-pitton@arcor.de> wrote:
+On Wed, 26 May 2010, Baruch Siach wrote:
 
+> This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
+> Carvalho de Assis modified the original driver to get it working on more recent
+> kernels. I modified it further to add support for i.MX25. This driver has been
+> tested on i.MX25 and i.MX27 based platforms.
+
+I hoped, this would be the final version, but if I'm not mistaken, you've 
+introduced an error, which we better fix before committing. And as we 
+anyway will likely need a v4, I'll also ask you to improve a couple of 
+stylistic issues, which otherwise I'd just fix myself with your 
+permission.
+
+> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> ---
+>  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
+>  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
+>  drivers/media/video/Kconfig              |   13 +
+>  drivers/media/video/Makefile             |    1 +
+>  drivers/media/video/mx2_camera.c         | 1488 ++++++++++++++++++++++++++++++
+>  5 files changed, 1550 insertions(+), 2 deletions(-)
+>  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
+>  create mode 100644 drivers/media/video/mx2_camera.c
 > 
-> Am Montag, den 07.06.2010, 00:12 +0200 schrieb Lars Schotte:
-> > stop flaming all the time, there are ppl out there like me who have
-> > some problems w/ their HW, and you are arguing here about nothing.
-> > 
-> > On Mon, 07 Jun 2010 00:01:22 +0200
-> > hermann pitton <hermann-pitton@arcor.de> wrote:
-> > 
-> 
-> 
-> 
-> > > 
-> > > If your name is true, you could have saved yourself and all others
-> > > most of all the trouble. Looking at your methods, my doubts are
-> > > not gone, but I let it to others now.
-> > > 
-> > > Hermann
-> > > 
-> 
-> ugh, seems you start new flaming ;)
-> 
-> Am Sonntag, den 06.06.2010, 21:28 +0200 schrieb Lars Schotte:
-> > OK,
-> > i am using w_scan, it scanned and found DVB-S2 channels but szap-s2
-> > doesnt tune in and there is no data, exactly like i said, so either
-> > you
-> > are lying and you have none of this things running or you were paid
-> > by huappauge to say this.
-> 
-> I fore sure will stay away ...
-> 
-> Cheers,
-> Hermann
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe
-> linux-media" in the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/arch/arm/plat-mxc/include/mach/memory.h b/arch/arm/plat-mxc/include/mach/memory.h
+> index c4b40c3..5803836 100644
+> --- a/arch/arm/plat-mxc/include/mach/memory.h
+> +++ b/arch/arm/plat-mxc/include/mach/memory.h
+
+[snip]
+
+> +static void mx2_videobuf_queue(struct videobuf_queue *vq,
+> +			       struct videobuf_buffer *vb)
+> +{
+> +	struct soc_camera_device *icd = vq->priv_data;
+> +	struct soc_camera_host *ici =
+> +		to_soc_camera_host(icd->dev.parent);
+> +	struct mx2_camera_dev *pcdev = ici->priv;
+> +	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+> +		vb, vb->baddr, vb->bsize);
+> +
+> +	spin_lock_irqsave(&pcdev->lock, flags);
+> +
+> +	vb->state = VIDEOBUF_QUEUED;
+> +	list_add_tail(&vb->queue, &pcdev->capture);
+> +
+> +	if (mx27_camera_emma(pcdev))
+> +		goto out;
+> +	else if (cpu_is_mx27()) {
+
+One of the minor ones - please, add braces in the "if" case.
+
+[snip]
+
+> +static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+> +{
+> +	struct mx2_camera_dev *pcdev = data;
+> +	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
+> +	struct mx2_buffer *buf;
+> +
+> +	if ((status & (3 << 5)) == (3 << 5)
+> +			&& !list_empty(&pcdev->active_bufs)) {
+> +		/*
+> +		 * Both buffers have triggered, process the one we're expecting
+> +		 * to first
+> +		 */
+> +		buf = list_entry(pcdev->active_bufs.next,
+> +			struct mx2_buffer, vb.queue);
+> +		mx27_camera_frame_done_emma(pcdev, buf->bufnum, VIDEOBUF_DONE);
+> +	}
+> +	if (status & (1 << 6))
+> +		mx27_camera_frame_done_emma(pcdev, 0, VIDEOBUF_DONE);
+> +	if (status & (1 << 5))
+> +		mx27_camera_frame_done_emma(pcdev, 1, VIDEOBUF_DONE);
+
+Now, this is the important one. In my review of v2 I proposed the above 
+fix for the both-bits-set case. But, I think, your implementation is not 
+correct. Don't you have to clear the expected buffer number, so that you 
+don't process it twice? Something like
+
+		status &= ~(1 << 6 - buf->bufnum);
+
+anywhere inside the first of the three ifs?
+
+> +	if (status & (1 << 7)) {
+
+Bit 7 is overflow. A correct handling could be resetting the buffer, 
+returning an error frame and continuing with the next one. However, I 
+understand, that you do not have a chance to implement this properly 
+now. So, please, at least add a "FIXME" comment, explaining, what should 
+be done here. Besides, error states are normally checked before normal 
+data processing. So, either mention this in the comment too, or move this 
+above the buffer completion processing.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
