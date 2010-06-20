@@ -1,124 +1,305 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2806 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751476Ab0F2Tdl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jun 2010 15:33:41 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5TJXWGF064994
-	for <linux-media@vger.kernel.org>; Tue, 29 Jun 2010 21:33:40 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 29 Jun 2010 21:33:32 +0200 (CEST)
-Message-Id: <201006291933.o5TJXWGF064994@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.perches.com ([173.55.12.10]:1223 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753109Ab0FTHUt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jun 2010 03:20:49 -0400
+Subject: [PATCH] drivers/media/IR/imon.c: Use pr_err instead of err
+From: Joe Perches <joe@perches.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 20 Jun 2010 00:20:46 -0700
+Message-ID: <1277018446.1548.66.camel@Joe-Laptop.home>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Use the standard error logging mechanisms.
+Add #define pr_fmt(fmt) KBUILD_MODNAME ":%s" fmt, __func__
+Remove __func__ from err calls, add '\n', rename to pr_err
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/IR/imon.c |   73 ++++++++++++++++++++++-------------------------
+ 1 files changed, 34 insertions(+), 39 deletions(-)
 
-date:        Tue Jun 29 19:00:25 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
+index 4bbd45f..36fb423 100644
+--- a/drivers/media/IR/imon.c
++++ b/drivers/media/IR/imon.c
+@@ -26,6 +26,8 @@
+  *   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+ 
++#define pr_fmt(fmt) KBUILD_MODNAME ":%s: " fmt, __func__
++
+ #include <linux/errno.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+@@ -364,15 +366,14 @@ static int display_open(struct inode *inode, struct file *file)
+ 	subminor = iminor(inode);
+ 	interface = usb_find_interface(&imon_driver, subminor);
+ 	if (!interface) {
+-		err("%s: could not find interface for minor %d",
+-		    __func__, subminor);
++		pr_err("could not find interface for minor %d\n", subminor);
+ 		retval = -ENODEV;
+ 		goto exit;
+ 	}
+ 	ictx = usb_get_intfdata(interface);
+ 
+ 	if (!ictx) {
+-		err("%s: no context found for minor %d", __func__, subminor);
++		pr_err("no context found for minor %d\n", subminor);
+ 		retval = -ENODEV;
+ 		goto exit;
+ 	}
+@@ -380,10 +381,10 @@ static int display_open(struct inode *inode, struct file *file)
+ 	mutex_lock(&ictx->lock);
+ 
+ 	if (!ictx->display_supported) {
+-		err("%s: display not supported by device", __func__);
++		pr_err("display not supported by device\n");
+ 		retval = -ENODEV;
+ 	} else if (ictx->display_isopen) {
+-		err("%s: display port is already open", __func__);
++		pr_err("display port is already open\n");
+ 		retval = -EBUSY;
+ 	} else {
+ 		ictx->display_isopen = true;
+@@ -410,17 +411,17 @@ static int display_close(struct inode *inode, struct file *file)
+ 	ictx = (struct imon_context *)file->private_data;
+ 
+ 	if (!ictx) {
+-		err("%s: no context for device", __func__);
++		pr_err("no context for device\n");
+ 		return -ENODEV;
+ 	}
+ 
+ 	mutex_lock(&ictx->lock);
+ 
+ 	if (!ictx->display_supported) {
+-		err("%s: display not supported by device", __func__);
++		pr_err("display not supported by device\n");
+ 		retval = -ENODEV;
+ 	} else if (!ictx->display_isopen) {
+-		err("%s: display is not open", __func__);
++		pr_err("display is not open\n");
+ 		retval = -EIO;
+ 	} else {
+ 		ictx->display_isopen = false;
+@@ -499,19 +500,19 @@ static int send_packet(struct imon_context *ictx)
+ 	if (retval) {
+ 		ictx->tx.busy = false;
+ 		smp_rmb(); /* ensure later readers know we're not busy */
+-		err("%s: error submitting urb(%d)", __func__, retval);
++		pr_err("error submitting urb(%d)\n", retval);
+ 	} else {
+ 		/* Wait for transmission to complete (or abort) */
+ 		mutex_unlock(&ictx->lock);
+ 		retval = wait_for_completion_interruptible(
+ 				&ictx->tx.finished);
+ 		if (retval)
+-			err("%s: task interrupted", __func__);
++			pr_err("task interrupted\n");
+ 		mutex_lock(&ictx->lock);
+ 
+ 		retval = ictx->tx.status;
+ 		if (retval)
+-			err("%s: packet tx failed (%d)", __func__, retval);
++			pr_err("packet tx failed (%d)\n", retval);
+ 	}
+ 
+ 	kfree(control_req);
+@@ -543,12 +544,12 @@ static int send_associate_24g(struct imon_context *ictx)
+ 					  0x00, 0x00, 0x00, 0x20 };
+ 
+ 	if (!ictx) {
+-		err("%s: no context for device", __func__);
++		pr_err("no context for device\n");
+ 		return -ENODEV;
+ 	}
+ 
+ 	if (!ictx->dev_present_intf0) {
+-		err("%s: no iMON device present", __func__);
++		pr_err("no iMON device present\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -576,7 +577,7 @@ static int send_set_imon_clock(struct imon_context *ictx,
+ 	int i;
+ 
+ 	if (!ictx) {
+-		err("%s: no context for device", __func__);
++		pr_err("no context for device\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -637,8 +638,7 @@ static int send_set_imon_clock(struct imon_context *ictx,
+ 		memcpy(ictx->usb_tx_buf, clock_enable_pkt[i], 8);
+ 		retval = send_packet(ictx);
+ 		if (retval) {
+-			err("%s: send_packet failed for packet %d",
+-			    __func__, i);
++			pr_err("send_packet failed for packet %d\n", i);
+ 			break;
+ 		}
+ 	}
+@@ -814,20 +814,20 @@ static ssize_t vfd_write(struct file *file, const char *buf,
+ 
+ 	ictx = (struct imon_context *)file->private_data;
+ 	if (!ictx) {
+-		err("%s: no context for device", __func__);
++		pr_err("no context for device\n");
+ 		return -ENODEV;
+ 	}
+ 
+ 	mutex_lock(&ictx->lock);
+ 
+ 	if (!ictx->dev_present_intf0) {
+-		err("%s: no iMON device present", __func__);
++		pr_err("no iMON device present\n");
+ 		retval = -ENODEV;
+ 		goto exit;
+ 	}
+ 
+ 	if (n_bytes <= 0 || n_bytes > 32) {
+-		err("%s: invalid payload size", __func__);
++		pr_err("invalid payload size\n");
+ 		retval = -EINVAL;
+ 		goto exit;
+ 	}
+@@ -853,8 +853,7 @@ static ssize_t vfd_write(struct file *file, const char *buf,
+ 
+ 		retval = send_packet(ictx);
+ 		if (retval) {
+-			err("%s: send packet failed for packet #%d",
+-					__func__, seq/2);
++			pr_err("send packet failed for packet #%d\n", seq / 2);
+ 			goto exit;
+ 		} else {
+ 			seq += 2;
+@@ -868,8 +867,7 @@ static ssize_t vfd_write(struct file *file, const char *buf,
+ 	ictx->usb_tx_buf[7] = (unsigned char) seq;
+ 	retval = send_packet(ictx);
+ 	if (retval)
+-		err("%s: send packet failed for packet #%d",
+-		    __func__, seq / 2);
++		pr_err("send packet failed for packet #%d\n", seq / 2);
+ 
+ exit:
+ 	mutex_unlock(&ictx->lock);
+@@ -898,21 +896,20 @@ static ssize_t lcd_write(struct file *file, const char *buf,
+ 
+ 	ictx = (struct imon_context *)file->private_data;
+ 	if (!ictx) {
+-		err("%s: no context for device", __func__);
++		pr_err("no context for device\n");
+ 		return -ENODEV;
+ 	}
+ 
+ 	mutex_lock(&ictx->lock);
+ 
+ 	if (!ictx->display_supported) {
+-		err("%s: no iMON display present", __func__);
++		pr_err("no iMON display present\n");
+ 		retval = -ENODEV;
+ 		goto exit;
+ 	}
+ 
+ 	if (n_bytes != 8) {
+-		err("%s: invalid payload size: %d (expecting 8)",
+-		    __func__, (int) n_bytes);
++		pr_err("invalid payload size: %d (expected 8)\n", (int)n_bytes);
+ 		retval = -EINVAL;
+ 		goto exit;
+ 	}
+@@ -924,7 +921,7 @@ static ssize_t lcd_write(struct file *file, const char *buf,
+ 
+ 	retval = send_packet(ictx);
+ 	if (retval) {
+-		err("%s: send packet failed!", __func__);
++		pr_err("send packet failed!\n");
+ 		goto exit;
+ 	} else {
+ 		dev_dbg(ictx->dev, "%s: write %d bytes to LCD\n",
+@@ -1863,7 +1860,7 @@ static bool imon_find_endpoints(struct imon_context *ictx,
+ 
+ 	/* Input endpoint is mandatory */
+ 	if (!ir_ep_found)
+-		err("%s: no valid input (IR) endpoint found.", __func__);
++		pr_err("no valid input (IR) endpoint found\n");
+ 
+ 	ictx->tx_control = tx_control;
+ 
+@@ -1935,8 +1932,7 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
+ 
+ 	ret = usb_submit_urb(ictx->rx_urb_intf0, GFP_KERNEL);
+ 	if (ret) {
+-		err("%s: usb_submit_urb failed for intf0 (%d)",
+-		    __func__, ret);
++		pr_err("usb_submit_urb failed for intf0 (%d)\n", ret);
+ 		goto urb_submit_failed;
+ 	}
+ 
+@@ -1968,7 +1964,7 @@ static struct imon_context *imon_init_intf1(struct usb_interface *intf,
+ 
+ 	rx_urb = usb_alloc_urb(0, GFP_KERNEL);
+ 	if (!rx_urb) {
+-		err("%s: usb_alloc_urb failed for IR urb", __func__);
++		pr_err("usb_alloc_urb failed for IR urb\n");
+ 		goto rx_urb_alloc_failed;
+ 	}
+ 
+@@ -2006,8 +2002,7 @@ static struct imon_context *imon_init_intf1(struct usb_interface *intf,
+ 	ret = usb_submit_urb(ictx->rx_urb_intf1, GFP_KERNEL);
+ 
+ 	if (ret) {
+-		err("%s: usb_submit_urb failed for intf1 (%d)",
+-		    __func__, ret);
++		pr_err("usb_submit_urb failed for intf1 (%d)\n", ret);
+ 		goto urb_submit_failed;
+ 	}
+ 
+@@ -2200,7 +2195,7 @@ static int __devinit imon_probe(struct usb_interface *interface,
+ 	if (ifnum == 0) {
+ 		ictx = imon_init_intf0(interface);
+ 		if (!ictx) {
+-			err("%s: failed to initialize context!\n", __func__);
++			pr_err("failed to initialize context!\n");
+ 			ret = -ENODEV;
+ 			goto fail;
+ 		}
+@@ -2209,7 +2204,7 @@ static int __devinit imon_probe(struct usb_interface *interface,
+ 	/* this is the secondary interface on the device */
+ 		ictx = imon_init_intf1(interface, first_if_ctx);
+ 		if (!ictx) {
+-			err("%s: failed to attach to context!\n", __func__);
++			pr_err("failed to attach to context!\n");
+ 			ret = -ENODEV;
+ 			goto fail;
+ 		}
+@@ -2236,8 +2231,8 @@ static int __devinit imon_probe(struct usb_interface *interface,
+ 			sysfs_err = sysfs_create_group(&interface->dev.kobj,
+ 						       &imon_rf_attribute_group);
+ 			if (sysfs_err)
+-				err("%s: Could not create RF sysfs entries(%d)",
+-				    __func__, sysfs_err);
++				pr_err("Could not create RF sysfs entries(%d)\n",
++				       sysfs_err);
+ 		}
+ 
+ 		if (ictx->display_supported)
+@@ -2387,7 +2382,7 @@ static int __init imon_init(void)
+ 
+ 	rc = usb_register(&imon_driver);
+ 	if (rc) {
+-		err("%s: usb register failed(%d)", __func__, rc);
++		pr_err("usb register failed(%d)\n", rc);
+ 		rc = -ENODEV;
+ 	}
+ 
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
