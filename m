@@ -1,94 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:52321 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755157Ab0FFWGJ (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:38870 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755875Ab0FTRe1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jun 2010 18:06:09 -0400
-Subject: Re: What ever happened to standardizing signal level?
-From: hermann pitton <hermann-pitton@arcor.de>
-To: VDR User <user.vdr@gmail.com>
-Cc: "mailing list: linux-media" <linux-media@vger.kernel.org>
-In-Reply-To: <AANLkTikvkkfr0F_h1u8wIgoLMiy05iWy8ZQkdF5y2Xii@mail.gmail.com>
-References: <AANLkTinPCgrLPdtFgEDa76RnEG85GSLVJv0G6z56z3P1@mail.gmail.com>
-	 <1275198741.3213.50.camel@pc07.localdom.local>
-	 <AANLkTilIrG5cwlLv_iAI7E7XX5117qh4AHof80pRRYSs@mail.gmail.com>
-	 <1275622226.6635.24.camel@pc07.localdom.local>
-	 <AANLkTikvkkfr0F_h1u8wIgoLMiy05iWy8ZQkdF5y2Xii@mail.gmail.com>
-Content-Type: text/plain
-Date: Mon, 07 Jun 2010 00:01:22 +0200
-Message-Id: <1275861682.3164.44.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 20 Jun 2010 13:34:27 -0400
+MIME-Version: 1.0
+In-Reply-To: <1277052831.1548.103.camel@Joe-Laptop.home>
+References: <1277018446.1548.66.camel@Joe-Laptop.home>
+	<16004456-69D9-41BD-8597-5590BB7B099E@wilsonet.com>
+	<1277052831.1548.103.camel@Joe-Laptop.home>
+Date: Sun, 20 Jun 2010 13:34:26 -0400
+Message-ID: <AANLkTik4LVNFxj7GHs0HDGBA9Rdf0IP7BJmFwfx_qwGz@mail.gmail.com>
+Subject: Re: [PATCH] drivers/media/IR/imon.c: Use pr_err instead of err
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Joe Perches <joe@perches.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Sun, Jun 20, 2010 at 12:53 PM, Joe Perches <joe@perches.com> wrote:
+> On Sun, 2010-06-20 at 11:58 -0400, Jarod Wilson wrote:
+>> On Jun 20, 2010, at 3:20 AM, Joe Perches <joe@perches.com> wrote:
+>> Use the standard error logging mechanisms.
+>> > Add #define pr_fmt(fmt) KBUILD_MODNAME ":%s" fmt, __func__
+>> > Remove __func__ from err calls, add '\n', rename to pr_err
+>> Eh. If we're going to make a change here, I'd rather it be to using
+>> dev_err instead, since most of the other spew in this driver uses
+>> similar.
+>
+> The idea is to eventually remove info/err/warn from usb.h by
+> changing the code outside of drivers/usb first.
+>
+> There will always be some mix of printk or pr_<level> along
+> with dev_<level> because struct device * is NULL or as is
+> mostly used here there's no struct imon_context * available.
+>
+> I suggest you have a look and see which ones of these
+> changes could use dev_<level> instead.
 
-Am Donnerstag, den 03.06.2010, 22:18 -0700 schrieb VDR User:
-> hermann pitton <hermann-pitton@arcor.de>, you are contributing
-> absolutely nothing to this thread aside of annoying people with your
-> by trolling and half incoherent nonsense.  It's quite ironic you
-> suggest _I_ am the one trolling when this is a thread _I_ created.
-> And further, several people have posted legitimate responses to --
-> clearly you are the only one suffering from your delusion.
+Ah, tbh, didn't look all that closely. Okay, I'll see if any of them
+can actually be made into dev_err instead of pr_err, but any that
+can't, sure, there's no problem w/this change.
 
-Dream on.
-
-The question never was, if you are trolling from time to time, but only
-if you are a duplicate of another troll or on your own.
-
-I have talked with Mauro about that and since then I ask you to provide
-your full name or point at least to a patch from you, where you have to
-agree to provide your real name in your SOB line.
-
-There was none and you also did not point to somebody else, to confirm
-for us, that you are known and on kernel development not only as a
-troll.
-
-You did not give an sufficient answer during the last two years.
-
-> Additionally you've been stalking me in email as well.  Your behavior
-> is not only uncalled for, it's abusive of both this mailing list and
-> the people willingly participating in the discussion.  As I understand
-> it, this is not the first time you've been the source of harassment.
-
-The opposite again is true, you stalked me by private e-mail and
-therefor my reply went as copy also to Mauro and Manu. If even Manu does
-not have your contact data, who else? Please provide them at least to
-him or someone else you trust and you are free for rants, within
-limitations.
-
-> Do us all a favor -- go find some other thread to infect with your
-> childishness, find some other user(s) to harass/stalk/obsess over, or
-> simply grow up and stop wasting everyone's time.  In case you haven't
-> noticed there has been absolutely nobody supporting your rants.  Take
-> a hint.
-
-http://linuxtv.org/wiki/index.php/People_behind_V4L-DVB
-
-I did not put myself on this list and you should take me a little more
-serious when asking you to fulfill the minimum requirements for
-participating in kernel development.
-
-Also, if you further associate me with illegal drugs, I give you a 100%
-guarantee, that this will become _very_ expensive for you.
-
-You also won't make the vine sour I have after working on my linux
-"hobby".
-
-Now, after wasting my time looking at it, I can see you have a first
-alsa patch in 2.6.33 with an invalid SOB, since only Derek, but
-corrected to Derek Kelly in 2.6.34.
-
-Missing is still, if you are working as a Hobbyist or if you are paid
-for your work. Greg might ask you such soon or did already.
-
-If your name is true, you could have saved yourself and all others most
-of all the trouble. Looking at your methods, my doubts are not gone, but
-I let it to others now.
-
-Hermann
-
-
-
-
-
+-- 
+Jarod Wilson
+jarod@wilsonet.com
