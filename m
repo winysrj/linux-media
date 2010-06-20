@@ -1,79 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:48465 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753101Ab0FTQiJ convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4121 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756836Ab0FTTd3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jun 2010 12:38:09 -0400
-Received: by qyk1 with SMTP id 1so974880qyk.19
-        for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 09:38:05 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1277048292-19215-1-git-send-email-stefan.ringel@arcor.de>
-References: <1277048292-19215-1-git-send-email-stefan.ringel@arcor.de>
-Date: Sun, 20 Jun 2010 12:31:42 -0400
-Message-ID: <AANLkTimY13YXeDxjR_PRZ3qLXFj-pvVKJT1QMHn445TL@mail.gmail.com>
-Subject: Re: [PATCH] tm6000: add ir support
-From: Jarod Wilson <jarod@wilsonet.com>
-To: stefan.ringel@arcor.de
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	d.belimov@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sun, 20 Jun 2010 15:33:29 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5KJXRdC099068
+	for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 21:33:28 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 20 Jun 2010 21:33:27 +0200 (CEST)
+Message-Id: <201006201933.o5KJXRdC099068@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 20, 2010 at 11:38 AM,  <stefan.ringel@arcor.de> wrote:
-> From: Stefan Ringel <stefan.ringel@arcor.de>
->
-> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
-> ---
->  drivers/staging/tm6000/Makefile       |    3 +-
->  drivers/staging/tm6000/tm6000-cards.c |   27 +++-
->  drivers/staging/tm6000/tm6000-input.c |  357 +++++++++++++++++++++++++++++++++
->  drivers/staging/tm6000/tm6000.h       |   11 +
->  4 files changed, 396 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/staging/tm6000/tm6000-input.c
-...
-> diff --git a/drivers/staging/tm6000/tm6000-input.c b/drivers/staging/tm6000/tm6000-input.c
-> new file mode 100644
-> index 0000000..e45b443
-> --- /dev/null
-> +++ b/drivers/staging/tm6000/tm6000-input.c
-> @@ -0,0 +1,357 @@
-> +/*
-> +   tm6000-input.c - driver for TM5600/TM6000/TM6010 USB video capture devices
-> +
-> +   Copyright (C) 2010 Stefan Ringel <stefan.ringel@arcor.de>
-> +
-> +   This program is free software; you can redistribute it and/or modify
-> +   it under the terms of the GNU General Public License as published by
-> +   the Free Software Foundation version 2
-> +
-> +   This program is distributed in the hope that it will be useful,
-> +   but WITHOUT ANY WARRANTY; without even the implied warranty of
-> +   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> +   GNU General Public License for more details.
-> +
-> +   You should have received a copy of the GNU General Public License
-> +   along with this program; if not, write to the Free Software
-> +   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/init.h>
-> +#include <linux/delay.h>
-> +
-> +#include <linux/input.h>
-> +#include <linux/usb.h>
-> +
-> +#include "compat.h"
-> +#include "tm6000.h"
-> +#include "tm6000-regs.h"
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Please use the new ir-core infrastructure here. (#include
-<media/ir-core.h>, #include <media/rc-map.h>, and assorted code in
-drivers/media/IR/).
+Results of the daily build of v4l-dvb:
 
+date:        Sun Jun 20 19:00:09 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
