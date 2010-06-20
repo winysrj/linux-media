@@ -1,97 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:60565 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752295Ab0FUF3f (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:56979 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754648Ab0FTOTc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 01:29:35 -0400
-Received: by fxm10 with SMTP id 10so1531407fxm.19
-        for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 22:29:33 -0700 (PDT)
+	Sun, 20 Jun 2010 10:19:32 -0400
+Message-ID: <4C1E2372.4080400@nexgo.de>
+Date: Sun, 20 Jun 2010 16:19:30 +0200
+From: Martin Berndaner <martin.berndaner@nexgo.de>
 MIME-Version: 1.0
-Date: Mon, 21 Jun 2010 01:29:31 -0400
-Message-ID: <AANLkTimtPb6A5Cd6mB2z3S5U2uZy0l4fkbVyyL3njizs@mail.gmail.com>
-Subject: [PATCH] af9005: use generic_bulk_ctrl_endpoint_response
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Luca Olivetti <luca@ventoso.org>
-Content-Type: multipart/mixed; boundary=00163649a35be232ae04898396bf
+To: linux-media@vger.kernel.org
+Subject: Firmware extract from usbsnoop.log
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---00163649a35be232ae04898396bf
-Content-Type: text/plain; charset=ISO-8859-1
+Hello,
 
-Could somebody please test this patch and confirm that it doesn't
-break the af9005 support?
+does anyone know how to extract the firmware from a usbsnoop.log?
 
-This patch removes the af9005_usb_generic_rw function and uses the
-dvb_usb_generic_rw function instead, using
-generic_bulk_ctrl_endpoint_response to differentiate between the read
-pipe and the write pipe.
-
-Also found in the mercurial repository:
-
-http://kernellabs.com/hg/~mkrufky/af9005
-
-Cheers,
-
-Mike Krufky
-
---00163649a35be232ae04898396bf
-Content-Type: application/octet-stream; name="8d43c09cfe26.patch"
-Content-Disposition: attachment; filename="8d43c09cfe26.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gaov68pi0
-
-CiMgSEcgY2hhbmdlc2V0IHBhdGNoCiMgVXNlciBNaWNoYWVsIEtydWZreSA8bWtydWZreUBrZXJu
-ZWxsYWJzLmNvbT4KIyBEYXRlIDEyNzcwOTU3ODIgMTQ0MDAKIyBOb2RlIElEIDhkNDNjMDljZmUy
-NjY1NTE2NmU3YWIwMzlmNzY1MjIzYmM4N2YzYzUKIyBQYXJlbnQgNzIzZTAzYTU3ZWYzMzVhNGUw
-MDVhYzU3ZTQ5ZmE1MGQyYzY2YTAxMAphZjkwMDU6IHVzZSBnZW5lcmljX2J1bGtfY3RybF9lbmRw
-b2ludF9yZXNwb25zZQoKRnJvbTogTWljaGFlbCBLcnVma3kgPG1rcnVma3lAa2VybmVsbGFicy5j
-b20+CgpQcmlvcml0eTogbm9ybWFsCgpTaWduZWQtb2ZmLWJ5OiBNaWNoYWVsIEtydWZreSA8bWty
-dWZreUBrZXJuZWxsYWJzLmNvbT4KCi0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11
-c2IvYWY5MDA1LmMJU3VuIEphbiAzMSAxOTowNjoxMCAyMDEwIC0wNTAwCisrKyBiL2xpbnV4L2Ry
-aXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvYWY5MDA1LmMJTW9uIEp1biAyMSAwMDo0OTo0MiAyMDEw
-IC0wNDAwCkBAIC01NCw1MCArNTQsNiBAQAogCWludCBsZWRfc3RhdGU7CiB9OwogCi1zdGF0aWMg
-aW50IGFmOTAwNV91c2JfZ2VuZXJpY19ydyhzdHJ1Y3QgZHZiX3VzYl9kZXZpY2UgKmQsIHU4ICp3
-YnVmLCB1MTYgd2xlbiwKLQkJCSAgdTggKnJidWYsIHUxNiBybGVuLCBpbnQgZGVsYXlfbXMpCi17
-Ci0JaW50IGFjdGxlbiwgcmV0ID0gLUVOT01FTTsKLQotCWlmICh3YnVmID09IE5VTEwgfHwgd2xl
-biA9PSAwKQotCQlyZXR1cm4gLUVJTlZBTDsKLQotCWlmICgocmV0ID0gbXV0ZXhfbG9ja19pbnRl
-cnJ1cHRpYmxlKCZkLT51c2JfbXV0ZXgpKSkKLQkJcmV0dXJuIHJldDsKLQotCWRlYl94ZmVyKCI+
-Pj4gIik7Ci0JZGVidWdfZHVtcCh3YnVmLCB3bGVuLCBkZWJfeGZlcik7Ci0KLQlyZXQgPSB1c2Jf
-YnVsa19tc2coZC0+dWRldiwgdXNiX3NuZGJ1bGtwaXBlKGQtPnVkZXYsCi0JCQkJCQkgICAgMiks
-IHdidWYsIHdsZW4sCi0JCQkgICAmYWN0bGVuLCAyMDAwKTsKLQotCWlmIChyZXQpCi0JCWVycigi
-YnVsayBtZXNzYWdlIGZhaWxlZDogJWQgKCVkLyVkKSIsIHJldCwgd2xlbiwgYWN0bGVuKTsKLQll
-bHNlCi0JCXJldCA9IGFjdGxlbiAhPSB3bGVuID8gLTEgOiAwOwotCi0JLyogYW4gYW5zd2VyIGlz
-IGV4cGVjdGVkLCBhbmQgbm8gZXJyb3IgYmVmb3JlICovCi0JaWYgKCFyZXQgJiYgcmJ1ZiAmJiBy
-bGVuKSB7Ci0JCWlmIChkZWxheV9tcykKLQkJCW1zbGVlcChkZWxheV9tcyk7Ci0KLQkJcmV0ID0g
-dXNiX2J1bGtfbXNnKGQtPnVkZXYsIHVzYl9yY3ZidWxrcGlwZShkLT51ZGV2LAotCQkJCQkJCSAg
-ICAweDAxKSwgcmJ1ZiwKLQkJCQkgICBybGVuLCAmYWN0bGVuLCAyMDAwKTsKLQotCQlpZiAocmV0
-KQotCQkJZXJyKCJyZWN2IGJ1bGsgbWVzc2FnZSBmYWlsZWQ6ICVkIiwgcmV0KTsKLQkJZWxzZSB7
-Ci0JCQlkZWJfeGZlcigiPDw8ICIpOwotCQkJZGVidWdfZHVtcChyYnVmLCBhY3RsZW4sIGRlYl94
-ZmVyKTsKLQkJfQotCX0KLQotCW11dGV4X3VubG9jaygmZC0+dXNiX211dGV4KTsKLQlyZXR1cm4g
-cmV0OwotfQotCiBzdGF0aWMgaW50IGFmOTAwNV9nZW5lcmljX3JlYWRfd3JpdGUoc3RydWN0IGR2
-Yl91c2JfZGV2aWNlICpkLCB1MTYgcmVnLAogCQkJICAgICAgaW50IHJlYWR3cml0ZSwgaW50IHR5
-cGUsIHU4ICogdmFsdWVzLCBpbnQgbGVuKQogewpAQCAtMTQ2LDcgKzEwMiw3IEBACiAJCW9idWZb
-OF0gPSB2YWx1ZXNbMF07CiAJb2J1Zls3XSA9IGNvbW1hbmQ7CiAKLQlyZXQgPSBhZjkwMDVfdXNi
-X2dlbmVyaWNfcncoZCwgb2J1ZiwgMTYsIGlidWYsIDE3LCAwKTsKKwlyZXQgPSBkdmJfdXNiX2dl
-bmVyaWNfcncoZCwgb2J1ZiwgMTYsIGlidWYsIDE3LCAwKTsKIAlpZiAocmV0KQogCQlyZXR1cm4g
-cmV0OwogCkBAIC01MzcsNyArNDkzLDcgQEAKIAlidWZbNl0gPSB3bGVuOwogCWZvciAoaSA9IDA7
-IGkgPCB3bGVuOyBpKyspCiAJCWJ1Zls3ICsgaV0gPSB3YnVmW2ldOwotCXJldCA9IGFmOTAwNV91
-c2JfZ2VuZXJpY19ydyhkLCBidWYsIHdsZW4gKyA3LCBpYnVmLCBybGVuICsgNywgMCk7CisJcmV0
-ID0gZHZiX3VzYl9nZW5lcmljX3J3KGQsIGJ1Ziwgd2xlbiArIDcsIGlidWYsIHJsZW4gKyA3LCAw
-KTsKIAlpZiAocmV0KQogCQlyZXR1cm4gcmV0OwogCWlmIChpYnVmWzJdICE9IDB4MjcpIHsKQEAg
-LTU4NCw3ICs1NDAsNyBAQAogCiAJb2J1Zls2XSA9IGxlbjsKIAlvYnVmWzddID0gYWRkcmVzczsK
-LQlyZXQgPSBhZjkwMDVfdXNiX2dlbmVyaWNfcncoZCwgb2J1ZiwgMTYsIGlidWYsIDE0LCAwKTsK
-KwlyZXQgPSBkdmJfdXNiX2dlbmVyaWNfcncoZCwgb2J1ZiwgMTYsIGlidWYsIDE0LCAwKTsKIAlp
-ZiAocmV0KQogCQlyZXR1cm4gcmV0OwogCWlmIChpYnVmWzJdICE9IDB4MmIpIHsKQEAgLTg4NSw3
-ICs4NDEsNyBAQAogCW9idWZbMl0gPSAweDQwOwkJLyogcmVhZCByZW1vdGUgKi8KIAlvYnVmWzNd
-ID0gMTsJCS8qIHJlc3Qgb2YgcGFja2V0IGxlbmd0aCAqLwogCW9idWZbNF0gPSBzdC0+c2VxdWVu
-Y2UrKzsJLyogc2VxdWVuY2UgbnVtYmVyICovCi0JcmV0ID0gYWY5MDA1X3VzYl9nZW5lcmljX3J3
-KGQsIG9idWYsIDUsIGlidWYsIDI1NiwgMCk7CisJcmV0ID0gZHZiX3VzYl9nZW5lcmljX3J3KGQs
-IG9idWYsIDUsIGlidWYsIDI1NiwgMCk7CiAJaWYgKHJldCkgewogCQllcnIoInJjIHF1ZXJ5IGZh
-aWxlZCIpOwogCQlyZXR1cm4gcmV0OwpAQCAtMTA3Nyw2ICsxMDMzLDkgQEAKIAkucmNfa2V5X21h
-cF9zaXplID0gMCwKIAkucmNfcXVlcnkgPSBhZjkwMDVfcmNfcXVlcnksCiAKKwkuZ2VuZXJpY19i
-dWxrX2N0cmxfZW5kcG9pbnQgICAgICAgICAgPSAyLAorCS5nZW5lcmljX2J1bGtfY3RybF9lbmRw
-b2ludF9yZXNwb25zZSA9IDEsCisKIAkubnVtX2RldmljZV9kZXNjcyA9IDMsCiAJLmRldmljZXMg
-PSB7CiAJCSAgICB7Lm5hbWUgPSAiQWZhdGVjaCBEVkItVCBVU0IxLjEgc3RpY2siLAoK
---00163649a35be232ae04898396bf--
+Regards
+Martin.
