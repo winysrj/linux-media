@@ -1,51 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:51391 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754656Ab0FMT6B convert rfc822-to-8bit (ORCPT
+Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:55787 "EHLO
+	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752093Ab0FTLha (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jun 2010 15:58:01 -0400
+	Sun, 20 Jun 2010 07:37:30 -0400
+Message-ID: <4C1DFD75.3080606@kolumbus.fi>
+Date: Sun, 20 Jun 2010 14:37:25 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-In-Reply-To: <alpine.DEB.2.01.1006131103590.3964@bogon.housecafe.de>
-References: <g77CuMUl7QI.A.5wF.V5OFMB@chimera> <YPGdyfWGvNK.A.C8B.d9OFMB@chimera>
-	<201006131722.44062.s.L-H@gmx.de> <alpine.DEB.2.01.1006131103590.3964@bogon.housecafe.de>
-From: Grant Likely <grant.likely@secretlab.ca>
-Date: Sun, 13 Jun 2010 13:57:40 -0600
-Message-ID: <AANLkTily7ZDG16uE2vSsq8t3mssuATwtHnr8OajX8oga@mail.gmail.com>
-Subject: Re: [Bug #15589] 2.6.34-rc1: Badness at fs/proc/generic.c:316
-To: Christian Kujau <lists@nerdbynature.de>
-Cc: Stefan Lippers-Hollmann <s.L-H@gmx.de>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Kernel Testers List <kernel-testers@vger.kernel.org>,
-	Maciej Rutecki <maciej.rutecki@gmail.com>,
-	Michael Ellerman <michael@ellerman.id.au>,
-	linux-media@vger.kernel.org, mchehab@infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Mantis: append tasklet maintenance for DVB stream delivery
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 13, 2010 at 12:10 PM, Christian Kujau <lists@nerdbynature.de> wrote:
-> On Sun, 13 Jun 2010 at 17:22, Stefan Lippers-Hollmann wrote:
->> Still existing in 2.6.34 and 2.6.35 HEAD, however a patch fixing the issue
->> for b2c2-flexcop/ flexcop-pci has been posted last week:
->
-> So, now we have two patches for slightly different issues?
->
-> * http://lkml.indiana.edu/hypermail/linux/kernel/1006.0/00137.html
->  ...fixes the flexcop-pci.c driver.
->
-> * http://patchwork.ozlabs.org/patch/52978/
->  ...fixes "some bogus firmwares include properties with "/" in their
->  name". I'm not sure if this would make the flexcop-pci.c badness go
->  away too.
->
-> Anyway, both patches are not upstream yet, but Michael mentioned that
-> Grant Likely or Ben might push it eventually.
 
-On brief review, they look like completely different issues.  I doubt
-the second patch will fix the flexcop-pci issue.  I'll pick up the
-device tree patch, but the flexcop-pci patch should go in by the
-v4l/dvb tree.
+Hi
 
-g.
+I have a patch that should fix possible memory corruption problems in 
+Mantis drivers
+with tasklets after DMA transfer has been stopped.
+In the patch tasklet is enabled only for DVB stream delivery, at end of 
+DVB stream delivery tasklet is disabled again.
+The lack of tasklet maintenance might cause problems with following 
+schedulings:
+
+1. dvb_dmxdev_filter_stop() calls mantis_dvb_stop_feed: mantis_dma_stop()
+2. dvb_dmxdev_filter_stop() calls release_ts_feed() or some other filter 
+freeing function.
+3. tasklet: mantis_dma_xfer calls dvb_dmx_swfilter to copy DMA buffer's 
+content into freed memory, accessing freed spinlocks.
+This case might occur while tuning into another frequency.
+Perhaps cdurrhau has found some version from this bug at 
+http://www.linuxtv.org/pipermail/linux-dvb/2010-June/032688.html:
+ > This is what I get on the remote console via IPMI:
+ > 40849.442492] BUG: soft lockup - CPU#2 stuck for 61s! [section
+ > handler:4617]
+
+
+The following schedule might also be a problem:
+1. mantis_core_exit: mantis_dma_stop()
+2. mantis_core_exit: mantis_dma_exit().
+3. run tasklet (with another CPU?), accessing memory freed by 
+mantis_dma_exit().
+This case might occur with rmmod.
+
+The following patch tries to deactivate the tasklet in mantis_dma_stop 
+and activate it in mantis_dma_start, thus avoiding these cases.
+
+Marko Ristola
+
+
+diff --git a/drivers/media/dvb/mantis/mantis_dma.c 
+b/drivers/media/dvb/mantis/mantis_dma.c
+index 46202a4..cf502a6 100644
+--- a/drivers/media/dvb/mantis/mantis_dma.c
++++ b/drivers/media/dvb/mantis/mantis_dma.c
+@@ -217,12 +217,14 @@ void mantis_dma_start(struct mantis_pci *mantis)
+      mmwrite(MANTIS_FIFO_EN | MANTIS_DCAP_EN
+                     | MANTIS_RISC_EN, MANTIS_DMA_CTL);
+
++    tasklet_enable(&mantis->tasklet);
+  }
+
+  void mantis_dma_stop(struct mantis_pci *mantis)
+  {
+      u32 stat = 0, mask = 0;
+
++    tasklet_disable(&mantis->tasklet);
+      stat = mmread(MANTIS_INT_STAT);
+      mask = mmread(MANTIS_INT_MASK);
+      dprintk(MANTIS_DEBUG, 1, "Mantis Stop DMA engine");
+diff --git a/drivers/media/dvb/mantis/mantis_dvb.c 
+b/drivers/media/dvb/mantis/mantis_dvb.c
+index 99d82ee..0c29f01 100644
+--- a/drivers/media/dvb/mantis/mantis_dvb.c
++++ b/drivers/media/dvb/mantis/mantis_dvb.c
+@@ -216,6 +216,7 @@ int __devinit mantis_dvb_init(struct mantis_pci *mantis)
+
+      dvb_net_init(&mantis->dvb_adapter, &mantis->dvbnet, 
+&mantis->demux.dmx);
+      tasklet_init(&mantis->tasklet, mantis_dma_xfer, (unsigned long) 
+mantis);
++    tasklet_disable_nosync(&mantis->tasklet);
+      if (mantis->hwconfig) {
+          result = config->frontend_init(mantis, mantis->fe);
+          if (result < 0) {
