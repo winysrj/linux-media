@@ -1,102 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:48279 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757247Ab0FJBZq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jun 2010 21:25:46 -0400
+Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:53899 "EHLO
+	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752120Ab0FTQGU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jun 2010 12:06:20 -0400
+Received: from saunalahti-vams (vs3-11.mail.saunalahti.fi [62.142.5.95])
+	by emh03-2.mail.saunalahti.fi (Postfix) with SMTP id AEEA4EBC24
+	for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 19:06:18 +0300 (EEST)
+Received: from tammi.koti (a88-114-153-83.elisa-laajakaista.fi [88.114.153.83])
+	by emh06.mail.saunalahti.fi (Postfix) with ESMTP id 8F0CEE51A4
+	for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 19:06:17 +0300 (EEST)
+Message-ID: <4C1E3C79.60108@kolumbus.fi>
+Date: Sun, 20 Jun 2010 19:06:17 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-In-Reply-To: <20100609181506.GO16638@redhat.com>
-References: <20100424210843.11570.82007.stgit@localhost.localdomain>
-	<20100424211411.11570.2189.stgit@localhost.localdomain>
-	<4BDF2B45.9060806@redhat.com>
-	<20100607190003.GC19390@hardeman.nu>
-	<20100607201530.GG16638@redhat.com>
-	<20100608175017.GC5181@hardeman.nu>
-	<AANLkTimuYkKzDPvtnrWKoT8sh1H9paPBQQNmYWOT7-R2@mail.gmail.com>
-	<20100609132908.GM16638@redhat.com>
-	<20100609175621.GA19620@hardeman.nu>
-	<20100609181506.GO16638@redhat.com>
-Date: Wed, 9 Jun 2010 21:25:44 -0400
-Message-ID: <AANLkTims0dmYCOoI_K4S6Q8hwLV_MqUdGQjVwFu43sCL@mail.gmail.com>
-Subject: Re: [PATCH 3/4] ir-core: move decoding state to ir_raw_event_ctrl
-From: Jarod Wilson <jarod@wilsonet.com>
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Mantis: append tasklet maintenance for DVB stream delivery
+References: <4C1DFD75.3080606@kolumbus.fi> <87vd9dbyng.fsf@nemi.mork.no>
+In-Reply-To: <87vd9dbyng.fsf@nemi.mork.no>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 9, 2010 at 2:15 PM, Jarod Wilson <jarod@redhat.com> wrote:
-> On Wed, Jun 09, 2010 at 07:56:21PM +0200, David Härdeman wrote:
->> On Wed, Jun 09, 2010 at 09:29:08AM -0400, Jarod Wilson wrote:
-...
->> > So this definitely negatively impacts my ir-core-to-lirc_dev
->> > (ir-lirc-codec.c) bridge driver, as it was doing the lirc_dev device
->> > registration work in its register function. However, if (after your
->> > patchset) we add a new pair of callbacks replacing raw_register and
->> > raw_unregister, which are optional, that work could be done there instead,
->> > so I don't think this is an insurmountable obstacle for the lirc bits.
->>
->> While I'm not sure exactly what callbacks you're suggesting,
+20.06.2010 16:51, BjÃ¸rn Mork kirjoitti:
+> Note that mantis_core_exit() is never called.  Unless I've missed
+> something, the drivers/media/dvb/mantis/mantis_core.{h,c} files can
+> just be deleted.  They look like some development leftovers?
 >
-> Essentially:
->
-> .setup_other_crap
-> .tear_down_other_crap
->
-> ...which in the ir-lirc-codec case, register ir-lirc-codec for a specific
-> hardware receiver as an lirc_dev client, and conversely, tear it down.
->
->> it still
->> sounds like the callbacks would have the exact same problems that the
->> current code has (i.e. the decoder will be blissfully unaware of
->> hardware which exists before the decoder is loaded). Right?
->
-> In my head, this was going to work out, but you're correct, I still have
-> the exact same problem -- its not in ir_raw_handler_list yet when
-> ir_raw_event_register runs, and thus the callback never fires, so lirc_dev
-> never actually gets wired up to ir-lirc-codec. It now knows about the lirc
-> decoder, but its completely useless. Narf.
+>    
+I see. mantis_core.ko kernel module exists though.
+Maybe the mantis/Makefile references for mantis_core.c, mantis.c and 
+hopper.c are just some leftovers too.
 
-And now I have it working atop your patches. Its a bit of a nasty-ish
-hack, at least for the lirc case, but its working, even in the case
-where the decoder drivers aren't actually loaded until after the
-device driver. I've added one extra param to each protocol-specific
-struct in ir-core-priv.h (bool initialized) and hooked into the
-protocol-specific decode functions to both determine whether a
-protocol should be enabled or disabled by default, and to run any
-additionally required initialization (such as in the ir-lirc-codec
-case).
+I moved tasklet_enable/disable calls into mantis_dvb.c where almost all 
+other tasklet code is located.
 
-So initially, mceusb comes up with all decoders enabled. Then when ir
-comes in, every protocol-specific decoder fires. Each of them check
-for whether or not they've been fully initialized, and if not, we
-check the loaded keymap, and if it doesn't match, we disable that
-decoder (bringing back the "disable protocol handlers we don't need"
-functionality that disappeared w/this patchset). In the lirc case, we
-actually do all the work needed to wire up the connection over to
-lirc_dev.
+So the following reasoning still holds:
 
-This works perfectly fine for all the in-kernel decoders, but has one
-minor shortcoming for ir-lirc-codec, in that /dev/lirc0 won't actually
-exist until the first incoming ir signal is seen. lircd can handle
-this case just fine, it'll wait for /dev/lirc0 to show up, but it
-doesn't come up fast enough to catch and decode the very first
-incoming ir signal. Subsequent ones work perfectly fine though. This
-need to initialize the link via incoming ir is a bit problematic if
-you're using a device for transmit-only (e.g., and mceusb device
-hooked to a mythtv backend in the closet or something), as there would
-be a strong possibility of /dev/lirc0 never getting hooked up. I can
-think of a few workarounds, but none are particularly clean and/or
-automagic.
-
-Not sure how palatable it is, but here it is:
-
-http://git.wilsonet.com/linux-2.6-ir-wip.git/?a=commitdiff;h=8f2be576ecb82448daa0c0d789bf0c978c66b103
+1. dvb_dmxdev_filter_stop() calls mantis_dvb_stop_feed: mantis_dma_stop()
+2. dvb_dmxdev_filter_stop() calls release_ts_feed() or some other filter 
+freeing function.
+3. tasklet: mantis_dma_xfer calls dvb_dmx_swfilter to copy DMA buffer's 
+content into freed memory, accessing freed spinlocks.
+This case might occur while tuning into another frequency.
+Perhaps cdurrhau has found some version from this bug at 
+http://www.linuxtv.org/pipermail/linux-dvb/2010-June/032688.html:
+ > This is what I get on the remote console via IPMI:
+ > 40849.442492] BUG: soft lockup - CPU#2 stuck for 61s! [section
+ > handler:4617]
 
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+New reasoning for the patch (same as the one above, but from higher level):
+After dvb-core has called mantis-fe->stop_feed(dvbdmxfeed) the last time 
+(count to zero),
+no data should ever be copied with dvb_dmx_swfilter() by a tasklet: the 
+target structure might be in an unusable state.
+Caller of mantis_fe->stop_feed() assumes that feeding is stopped after 
+stop_feed() has been called, ie. dvb_dmx_swfilter()
+isn't running, and won't be called.
+
+There is a risk that dvb_dmx_swfilter() references freed resources 
+(memory or spinlocks or ???) causing instabilities.
+Thus tasklet_disable(&mantis->tasklet) must be called inside of 
+mantis-fe->stop_feed(dvbdmxfeed) when necessary.
+
+Signed-off-by: Marko Ristola <marko.ristola@kolumbus.fi>
+
+Marko
+
+diff --git a/drivers/media/dvb/mantis/mantis_dvb.c 
+b/drivers/media/dvb/mantis/mantis_dvb.c
+index 99d82ee..a9864f7 100644
+--- a/drivers/media/dvb/mantis/mantis_dvb.c
++++ b/drivers/media/dvb/mantis/mantis_dvb.c
+@@ -117,6 +117,7 @@ static int mantis_dvb_start_feed(struct 
+dvb_demux_feed *dvbdmxfeed)
+      if (mantis->feeds == 1)     {
+          dprintk(MANTIS_DEBUG, 1, "mantis start feed & dma");
+          mantis_dma_start(mantis);
++        tasklet_enable(&mantis->tasklet);
+      }
+
+      return mantis->feeds;
+@@ -136,6 +137,7 @@ static int mantis_dvb_stop_feed(struct 
+dvb_demux_feed *dvbdmxfeed)
+      mantis->feeds--;
+      if (mantis->feeds == 0) {
+          dprintk(MANTIS_DEBUG, 1, "mantis stop feed and dma");
++        tasklet_disable(&mantis->tasklet);
+          mantis_dma_stop(mantis);
+      }
+
+@@ -216,6 +218,7 @@ int __devinit mantis_dvb_init(struct mantis_pci *mantis)
+
+      dvb_net_init(&mantis->dvb_adapter, &mantis->dvbnet, 
+&mantis->demux.dmx);
+      tasklet_init(&mantis->tasklet, mantis_dma_xfer, (unsigned long) 
+mantis);
++    tasklet_disable(&mantis->tasklet);
+      if (mantis->hwconfig) {
+          result = config->frontend_init(mantis, mantis->fe);
+          if (result < 0) {
+
