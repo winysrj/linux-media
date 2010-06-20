@@ -1,37 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail01.syd.optusnet.com.au ([211.29.132.182]:38139 "EHLO
-	mail01.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756218Ab0FBBoJ (ORCPT
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:38261 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753526Ab0FTQra convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jun 2010 21:44:09 -0400
-Received: from [192.168.1.101] (c211-30-2-188.rivrw2.nsw.optusnet.com.au [211.30.2.188])
-	(authenticated sender leolist)
-	by mail01.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id o521i7bi019973
-	for <linux-media@vger.kernel.org>; Wed, 2 Jun 2010 11:44:07 +1000
-Subject: AVerTV Hybrid Volar HD
-From: Leo List <leolist@optushome.com.au>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 02 Jun 2010 11:44:02 +1000
-Message-ID: <1275443042.9415.13.camel@leos-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 20 Jun 2010 12:47:30 -0400
+Received: by qyk1 with SMTP id 1so977692qyk.19
+        for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 09:47:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4C1E456D.8040301@arcor.de>
+References: <1277048292-19215-1-git-send-email-stefan.ringel@arcor.de>
+	<AANLkTimY13YXeDxjR_PRZ3qLXFj-pvVKJT1QMHn445TL@mail.gmail.com>
+	<4C1E456D.8040301@arcor.de>
+Date: Sun, 20 Jun 2010 12:47:29 -0400
+Message-ID: <AANLkTim8eL1uNVufJvzxaWX1hfEmykgdmzkyi0VVIWpZ@mail.gmail.com>
+Subject: Re: [PATCH] tm6000: add ir support
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	d.belimov@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I just did something stupid and bought this USB device, which according
-to AVerMedia has no Linux driver and no planned support.
+On Sun, Jun 20, 2010 at 12:44 PM, Stefan Ringel <stefan.ringel@arcor.de> wrote:
+> Am 20.06.2010 18:31, schrieb Jarod Wilson:
+>> On Sun, Jun 20, 2010 at 11:38 AM,  <stefan.ringel@arcor.de> wrote:
+>>> From: Stefan Ringel <stefan.ringel@arcor.de>
+>>>
+>>> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+>>> ---
+>>>  drivers/staging/tm6000/Makefile       |    3 +-
+>>>  drivers/staging/tm6000/tm6000-cards.c |   27 +++-
+>>>  drivers/staging/tm6000/tm6000-input.c |  357
+> +++++++++++++++++++++++++++++++++
+>>>  drivers/staging/tm6000/tm6000.h       |   11 +
+>>>  4 files changed, 396 insertions(+), 2 deletions(-)
+>>>  create mode 100644 drivers/staging/tm6000/tm6000-input.c
+>> ...
+>>> diff --git a/drivers/staging/tm6000/tm6000-input.c
+> b/drivers/staging/tm6000/tm6000-input.c
+>>> new file mode 100644
+>>> index 0000000..e45b443
+>>> --- /dev/null
+>>> +++ b/drivers/staging/tm6000/tm6000-input.c
+>>> @@ -0,0 +1,357 @@
+>>> +/*
+>>> +   tm6000-input.c - driver for TM5600/TM6000/TM6010 USB video capture
+> devices
+>>> +
+>>> +   Copyright (C) 2010 Stefan Ringel <stefan.ringel@arcor.de>
+>>> +
+>>> +   This program is free software; you can redistribute it and/or modify
+>>> +   it under the terms of the GNU General Public License as published by
+>>> +   the Free Software Foundation version 2
+>>> +
+>>> +   This program is distributed in the hope that it will be useful,
+>>> +   but WITHOUT ANY WARRANTY; without even the implied warranty of
+>>> +   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+>>> +   GNU General Public License for more details.
+>>> +
+>>> +   You should have received a copy of the GNU General Public License
+>>> +   along with this program; if not, write to the Free Software
+>>> +   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+>>> + */
+>>> +
+>>> +#include <linux/module.h>
+>>> +#include <linux/init.h>
+>>> +#include <linux/delay.h>
+>>> +
+>>> +#include <linux/input.h>
+>>> +#include <linux/usb.h>
+>>> +
+>>> +#include "compat.h"
+>>> +#include "tm6000.h"
+>>> +#include "tm6000-regs.h"
+>>
+>> Please use the new ir-core infrastructure here. (#include
+>> <media/ir-core.h>, #include <media/rc-map.h>, and assorted code in
+>> drivers/media/IR/).
+>>
+>>
+> It use the new code (for example rc map in tm6000-card.c), but I can
+> added the header files. It doesn't use software encoding, it use
+> hardware encodeing.
 
-Other than trying to sell this on eBay, is there a way of getting this
-to work? I have searched the archives and google, but cannot find any
-reference to this device as its just been released. I don't need support
-for the remote, I just want to use MythTV
+It only partially uses it. You're setting up input_dev's directly and
+still using ir_input_state. You should be using the ir_input_dev
+functions. Hardware decoder vs. software decoder doesn't matter. See
+drivers/media/IR/imon.c for another hardware decoding device that's
+using ir_input_dev. :)
 
-I'm running 64Bit Ubuntu Karmic with kernel 2.6.31-21-generic
 
-lsusb lists the device as 07ca:0830
-
-Thanks for your help
-
-Leo
-
+-- 
+Jarod Wilson
+jarod@wilsonet.com
