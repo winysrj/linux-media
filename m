@@ -1,100 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:22163 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1754440Ab0FJGAd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jun 2010 02:00:33 -0400
-Date: Thu, 10 Jun 2010 08:00:40 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Baruch Siach <baruch@tkos.co.il>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3 0/3] Driver for the i.MX2x CMOS Sensor Interface
-In-Reply-To: <20100610052618.GA31840@jasper.tkos.co.il>
-Message-ID: <Pine.LNX.4.64.1006100759010.12192@axis700.grange>
-References: <cover.1274865040.git.baruch@tkos.co.il> <20100610052618.GA31840@jasper.tkos.co.il>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:48465 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753101Ab0FTQiJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jun 2010 12:38:09 -0400
+Received: by qyk1 with SMTP id 1so974880qyk.19
+        for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 09:38:05 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <1277048292-19215-1-git-send-email-stefan.ringel@arcor.de>
+References: <1277048292-19215-1-git-send-email-stefan.ringel@arcor.de>
+Date: Sun, 20 Jun 2010 12:31:42 -0400
+Message-ID: <AANLkTimY13YXeDxjR_PRZ3qLXFj-pvVKJT1QMHn445TL@mail.gmail.com>
+Subject: Re: [PATCH] tm6000: add ir support
+From: Jarod Wilson <jarod@wilsonet.com>
+To: stefan.ringel@arcor.de
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	d.belimov@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 10 Jun 2010, Baruch Siach wrote:
+On Sun, Jun 20, 2010 at 11:38 AM,  <stefan.ringel@arcor.de> wrote:
+> From: Stefan Ringel <stefan.ringel@arcor.de>
+>
+> Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+> ---
+>  drivers/staging/tm6000/Makefile       |    3 +-
+>  drivers/staging/tm6000/tm6000-cards.c |   27 +++-
+>  drivers/staging/tm6000/tm6000-input.c |  357 +++++++++++++++++++++++++++++++++
+>  drivers/staging/tm6000/tm6000.h       |   11 +
+>  4 files changed, 396 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/staging/tm6000/tm6000-input.c
+...
+> diff --git a/drivers/staging/tm6000/tm6000-input.c b/drivers/staging/tm6000/tm6000-input.c
+> new file mode 100644
+> index 0000000..e45b443
+> --- /dev/null
+> +++ b/drivers/staging/tm6000/tm6000-input.c
+> @@ -0,0 +1,357 @@
+> +/*
+> +   tm6000-input.c - driver for TM5600/TM6000/TM6010 USB video capture devices
+> +
+> +   Copyright (C) 2010 Stefan Ringel <stefan.ringel@arcor.de>
+> +
+> +   This program is free software; you can redistribute it and/or modify
+> +   it under the terms of the GNU General Public License as published by
+> +   the Free Software Foundation version 2
+> +
+> +   This program is distributed in the hope that it will be useful,
+> +   but WITHOUT ANY WARRANTY; without even the implied warranty of
+> +   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> +   GNU General Public License for more details.
+> +
+> +   You should have received a copy of the GNU General Public License
+> +   along with this program; if not, write to the Free Software
+> +   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+> + */
+> +
+> +#include <linux/module.h>
+> +#include <linux/init.h>
+> +#include <linux/delay.h>
+> +
+> +#include <linux/input.h>
+> +#include <linux/usb.h>
+> +
+> +#include "compat.h"
+> +#include "tm6000.h"
+> +#include "tm6000-regs.h"
 
-> Hi linux-media list,
-> 
-> Ping?
-> Any news on this?
+Please use the new ir-core infrastructure here. (#include
+<media/ir-core.h>, #include <media/rc-map.h>, and assorted code in
+drivers/media/IR/).
 
-Hi Baruch
 
-Sorry for taking longer to review this version, having a bit of a stressed 
-week. I did look through this version briefly, looks good so far. I'll 
-look at it again and come back to you, perhaps, end of the next week, or, 
-with a lot of luck, today / tomorrow.
-
-Thanks
-Guennadi
-
-> 
-> baruch
-> 
-> On Wed, May 26, 2010 at 12:13:15PM +0300, Baruch Siach wrote:
-> > This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and
-> > platform code for the i.MX25 and i.MX27 chips. This driver is based on a 
-> > driver for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has 
-> > posted in linux-media last December[1]. I tested the mx2_camera driver on the 
-> > i.MX25 PDK. Sascha Hauer has tested a earlier version of this driver on an 
-> > i.MX27 based board. I included in this version some fixes from Sascha that 
-> > enable i.MX27 support.
-> > 
-> > [1] https://patchwork.kernel.org/patch/67636/
-> > 
-> > Changes v2 -> v3
-> >     Address more comments from Guennadi Liakhovetski.
-> > 
-> >     Applied part of Sashca's patch that I forgot in v2.
-> > 
-> > Changes v1 -> v2
-> >     Addressed the comments of Guennadi Liakhovetski except from the following:
-> > 
-> >     1. The mclk_get_divisor implementation, since I don't know what this code 
-> >        is good for
-> > 
-> >     2. mx2_videobuf_release should not set pcdev->active on i.MX27, because 
-> >        mx27_camera_frame_done needs this pointer
-> > 
-> >     3. In mx27_camera_emma_buf_init I don't know the meaning of those hard 
-> >        coded magic numbers
-> > 
-> >     Applied i.MX27 fixes from Sascha.
-> > 
-> > Baruch Siach (3):
-> >   mx2_camera: Add soc_camera support for i.MX25/i.MX27
-> >   mx27: add support for the CSI device
-> >   mx25: add support for the CSI device
-> > 
-> >  arch/arm/mach-mx2/clock_imx27.c          |    2 +-
-> >  arch/arm/mach-mx2/devices.c              |   31 +
-> >  arch/arm/mach-mx2/devices.h              |    1 +
-> >  arch/arm/mach-mx25/clock.c               |   14 +-
-> >  arch/arm/mach-mx25/devices.c             |   22 +
-> >  arch/arm/mach-mx25/devices.h             |    1 +
-> >  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
-> >  arch/arm/plat-mxc/include/mach/mx25.h    |    2 +
-> >  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
-> >  drivers/media/video/Kconfig              |   13 +
-> >  drivers/media/video/Makefile             |    1 +
-> >  drivers/media/video/mx2_camera.c         | 1488 ++++++++++++++++++++++++++++++
-> >  12 files changed, 1620 insertions(+), 5 deletions(-)
-> >  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
-> >  create mode 100644 drivers/media/video/mx2_camera.c
-> > 
-> 
-> -- 
->                                                      ~. .~   Tk Open Systems
-> =}------------------------------------------------ooO--U--Ooo------------{=
->    - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
-> 
-
----
-Guennadi Liakhovetski
+-- 
+Jarod Wilson
+jarod@wilsonet.com
