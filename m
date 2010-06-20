@@ -1,70 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:59510 "EHLO bear.ext.ti.com"
+Received: from mgw1.diku.dk ([130.225.96.91]:58643 "EHLO mgw1.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756782Ab0F3VMx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Jun 2010 17:12:53 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Wed, 30 Jun 2010 16:12:48 -0500
-Subject: RE: [Query] How to preserve soc_camera and still use a sensor for
- media controller?
-Message-ID: <A24693684029E5489D1D202277BE8944563902E3@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE89445638FD0E@dlee02.ent.ti.com>
- <Pine.LNX.4.64.1006302048310.17489@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1006302048310.17489@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	id S1754567Ab0FTNkm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jun 2010 09:40:42 -0400
+Date: Sun, 20 Jun 2010 15:40:37 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 3/3] drivers/media/dvb/frontends: remove duplicate structure
+ field initialization
+Message-ID: <Pine.LNX.4.64.1006201540210.6207@ask.diku.dk>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Julia Lawall <julia@diku.dk>
 
-> -----Original Message-----
-> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
-> Sent: Wednesday, June 30, 2010 1:53 PM
-> To: Aguirre, Sergio
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: [Query] How to preserve soc_camera and still use a sensor for
-> media controller?
-> 
-> Hi Sergio
-> 
-> On Wed, 30 Jun 2010, Aguirre, Sergio wrote:
-> 
-> > Hi all,
-> >
-> > Is it possible to keep a sensor chip driver compatible with 2
-> interfaces?
-> >
-> > I'm particularly interested in mt9t112 sensor.
-> >
-> > Has this been done before with other driver?
-> 
-> You can try looking at this thread:
-> http://thread.gmane.org/gmane.linux.drivers.video-input-
-> infrastructure/16311
+The read_status field is initialized twice to the same value.
 
-Very interesting thread :)
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-> and remembering our discussions at the mini-summit;) You can also look at
-> Hans' report of summit's results. A few people know, what has to be done,
-> but noone has done it yet... The world is still looking for a hero to do
-> the job:)
+// <smpl>
+@r@
+identifier I, s, fld;
+position p0,p;
+expression E;
+@@
 
-OK, thanks for the info :)
+struct I s =@p0 { ... .fld@p = E, ...};
 
-I'll think about that...
+@s@
+identifier I, s, r.fld;
+position r.p0,p;
+expression E;
+@@
 
-Regards,
-Sergio
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+struct I s =@p0 { ... .fld@p = E, ...};
+
+@script:python@
+p0 << r.p0;
+fld << r.fld;
+ps << s.p;
+pr << r.p;
+@@
+
+if int(ps[0].line)<int(pr[0].line) or int(ps[0].column)<int(pr[0].column):
+  cocci.print_main(fld,p0)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/media/dvb/frontends/mb86a16.c |    1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/dvb/frontends/mb86a16.c b/drivers/media/dvb/frontends/mb86a16.c
+index 599d1aa..33b6323 100644
+--- a/drivers/media/dvb/frontends/mb86a16.c
++++ b/drivers/media/dvb/frontends/mb86a16.c
+@@ -1833,7 +1833,6 @@ static struct dvb_frontend_ops mb86a16_ops = {
+ 
+ 	.get_frontend_algo		= mb86a16_frontend_algo,
+ 	.search				= mb86a16_search,
+-	.read_status			= mb86a16_read_status,
+ 	.init				= mb86a16_init,
+ 	.sleep				= mb86a16_sleep,
+ 	.read_status			= mb86a16_read_status,
