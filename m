@@ -1,34 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp2b.orange.fr ([80.12.242.145]:42279 "EHLO smtp2b.orange.fr"
+Received: from mail.perches.com ([173.55.12.10]:1226 "EHLO mail.perches.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932687Ab0FQIcE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 17 Jun 2010 04:32:04 -0400
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2b13.orange.fr (SMTP Server) with ESMTP id 7B05C70003F0
-	for <linux-media@vger.kernel.org>; Thu, 17 Jun 2010 10:32:03 +0200 (CEST)
-Received: from me-wanadoo.net (localhost [127.0.0.1])
-	by mwinf2b13.orange.fr (SMTP Server) with ESMTP id 6C11A70003F3
-	for <linux-media@vger.kernel.org>; Thu, 17 Jun 2010 10:32:03 +0200 (CEST)
-Received: from [192.168.1.3] (APlessis-Bouchard-151-1-13-91.w82-121.abo.wanadoo.fr [82.121.59.91])
-	by mwinf2b13.orange.fr (SMTP Server) with ESMTP id 42B1C70003F0
-	for <linux-media@vger.kernel.org>; Thu, 17 Jun 2010 10:32:03 +0200 (CEST)
-Message-ID: <4C19DD6D.8010800@free.fr>
-Date: Thu, 17 Jun 2010 10:31:41 +0200
-From: deb <theedge456@free.fr>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [OT] preferred video apps?
-References: <20100430095721.b1da05af.rdunlap@xenotime.net> <4BDB7A5B.7070204@redhat.com>
-In-Reply-To: <4BDB7A5B.7070204@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1754524Ab0FTQxy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 20 Jun 2010 12:53:54 -0400
+Subject: Re: [PATCH] drivers/media/IR/imon.c: Use pr_err instead of err
+From: Joe Perches <joe@perches.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>
+In-Reply-To: <16004456-69D9-41BD-8597-5590BB7B099E@wilsonet.com>
+References: <1277018446.1548.66.camel@Joe-Laptop.home>
+	 <16004456-69D9-41BD-8597-5590BB7B099E@wilsonet.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 20 Jun 2010 09:53:51 -0700
+Message-ID: <1277052831.1548.103.camel@Joe-Laptop.home>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/01/2010 02:48 AM, Mauro Carvalho Chehab wrote:
-> On digital side, I use kaffeine, gnutv and vlc. Kaffeine and gnutv can record.
-> Not sure about vlc.
-vlc can too. Check "advance controls" in the menu "View" to get the nice 
-red button :-)
+On Sun, 2010-06-20 at 11:58 -0400, Jarod Wilson wrote:
+> On Jun 20, 2010, at 3:20 AM, Joe Perches <joe@perches.com> wrote:
+> Use the standard error logging mechanisms.
+> > Add #define pr_fmt(fmt) KBUILD_MODNAME ":%s" fmt, __func__
+> > Remove __func__ from err calls, add '\n', rename to pr_err
+> Eh. If we're going to make a change here, I'd rather it be to using  
+> dev_err instead, since most of the other spew in this driver uses  
+> similar.
+
+The idea is to eventually remove info/err/warn from usb.h by
+changing the code outside of drivers/usb first.
+
+There will always be some mix of printk or pr_<level> along
+with dev_<level> because struct device * is NULL or as is
+mostly used here there's no struct imon_context * available.
+
+I suggest you have a look and see which ones of these
+changes could use dev_<level> instead.
+
+cheers, Joe
 
 
