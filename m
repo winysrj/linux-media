@@ -1,124 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3084 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756032Ab0FRTdc (ORCPT
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:64384 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752808Ab0FTR6X (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 18 Jun 2010 15:33:32 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5IJXU9M020548
-	for <linux-media@vger.kernel.org>; Fri, 18 Jun 2010 21:33:30 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 18 Jun 2010 21:33:30 +0200 (CEST)
-Message-Id: <201006181933.o5IJXU9M020548@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Sun, 20 Jun 2010 13:58:23 -0400
+Received: by wwb22 with SMTP id 22so1278167wwb.19
+        for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 10:58:21 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sun, 20 Jun 2010 19:58:21 +0200
+Message-ID: <AANLkTikRD9O6Fg7DCqM_SzuXgDg3VoiI5GoyILDXkE_s@mail.gmail.com>
+Subject: Slovak Republic DVB-T scan updates
+From: Peter Butkovic <puk007@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Content-Type: multipart/mixed; boundary=0016e65b656a097b03048979ef40
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+--0016e65b656a097b03048979ef40
+Content-Type: text/plain; charset=ISO-8859-1
 
-Results of the daily build of v4l-dvb:
+Hi all,
 
-date:        Fri Jun 18 19:00:12 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+in Slovak Republic there are some updates regarding DVB-T.
+Diff is attached, please commit, thx.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Updates were made based on official announcement (in slovak):
+http://www.dvbt.towercom.sk/odbornici.php
 
-Detailed results are available here:
+Kind regards
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Peter Butkovic
 
-Full logs are available here:
+--0016e65b656a097b03048979ef40
+Content-Type: text/x-patch; charset=US-ASCII; name="sk-updates.diff"
+Content-Disposition: attachment; filename="sk-updates.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gao6jhh80
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+ZGlmZiAtciA3NWNhMjk4ZDVhYTQgdXRpbC9zY2FuL2R2Yi10L3NrLUJhbnNrYUJ5c3RyaWNhCi0t
+LSBhL3V0aWwvc2Nhbi9kdmItdC9zay1CYW5za2FCeXN0cmljYQlTYXQgSnVuIDA1IDEzOjA4OjA3
+IDIwMTAgKzAyMDAKKysrIGIvdXRpbC9zY2FuL2R2Yi10L3NrLUJhbnNrYUJ5c3RyaWNhCVN1biBK
+dW4gMjAgMTk6NDc6NDggMjAxMCArMDIwMApAQCAtMSw1ICsxLDExIEBACiAjIERWQi1UIEJhbnNr
+YSBCeXN0cmljYSAoQmFuc2thIEJ5c3RyaWNhLCBTbG92YWsgUmVwdWJsaWMpCiAjIFQgZnJlcSBi
+dyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVy
+YXJjaHkKIAotIyBvbiBjaGFubmVsIDY1CisjIDEuc3QgbXVsdGlwbGV4IC0gb24gY2hhbm5lbCA2
+NQogVCA4MjYwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQorCisjIDIuc3Qg
+bXVsdGlwbGV4IChjb21tZXJjaWFsKSAtIG9uIGNoYW5uZWwgNTEKK1QgNzE0MDAwMDAwIDhNSHog
+Mi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKKworIyAzLnN0IG11bHRpcGxleCAocHVibGljKSAt
+IG9uIGNoYW5uZWwgMzMKK1QgNTcwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5P
+TkUKZGlmZiAtciA3NWNhMjk4ZDVhYTQgdXRpbC9zY2FuL2R2Yi10L3NrLUJhcmRlam92Ci0tLSBh
+L3V0aWwvc2Nhbi9kdmItdC9zay1CYXJkZWpvdglTYXQgSnVuIDA1IDEzOjA4OjA3IDIwMTAgKzAy
+MDAKKysrIGIvdXRpbC9zY2FuL2R2Yi10L3NrLUJhcmRlam92CVN1biBKdW4gMjAgMTk6NDc6NDgg
+MjAxMCArMDIwMApAQCAtMSw1ICsxLDExIEBACiAjIERWQi1UIEJhcmRlam92IChCYXJkZWpvdiwg
+U2xvdmFrIFJlcHVibGljKQogIyBUIGZyZXEgYncgZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNz
+aW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5CiAKLSMgb24gY2hhbm5lbCA2MgorIyAx
+LnN0IG11bHRpcGxleCAtIG9uIGNoYW5uZWwgNjIKIFQgODAyMDAwMDAwIDhNSHogMi8zIE5PTkUg
+UUFNNjQgOGsgMS80IE5PTkUKKworIyAyLnN0IG11bHRpcGxleCAoY29tbWVyY2lhbCkgLSBvbiBj
+aGFubmVsIDQwCitUIDYyNjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FCisK
+KyMgMy5zdCBtdWx0aXBsZXggKHB1YmxpYykgLSBvbiBjaGFubmVsIDU0CitUIDczODAwMDAwMCA4
+TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FCmRpZmYgLXIgNzVjYTI5OGQ1YWE0IHV0aWwv
+c2Nhbi9kdmItdC9zay1CcmF0aXNsYXZhCi0tLSBhL3V0aWwvc2Nhbi9kdmItdC9zay1CcmF0aXNs
+YXZhCVNhdCBKdW4gMDUgMTM6MDg6MDcgMjAxMCArMDIwMAorKysgYi91dGlsL3NjYW4vZHZiLXQv
+c2stQnJhdGlzbGF2YQlTdW4gSnVuIDIwIDE5OjQ3OjQ4IDIwMTAgKzAyMDAKQEAgLTEsNSArMSwx
+MSBAQAogIyBEVkItVCBCcmF0aXNsYXZhIChCcmF0aXNsYXZhLCBTbG92YWsgUmVwdWJsaWMpCiAj
+IFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRl
+cnZhbCBoaWVyYXJjaHkKIAotIyBvbiBjaGFubmVsIDY2CisjIDEuc3QgbXVsdGlwbGV4IC0gb24g
+Y2hhbm5lbCA2NgogVCA4MzQwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQor
+CisjIDIuc3QgbXVsdGlwbGV4IChjb21tZXJjaWFsKSAtIG9uIGNoYW5uZWwgNTYKK1QgNzU0MDAw
+MDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKKworIyAzLnN0IG11bHRpcGxleCAo
+cHVibGljKSAtIG9uIGNoYW5uZWwgMjcKK1QgNTIyMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQg
+OGsgMS80IE5PTkUKZGlmZiAtciA3NWNhMjk4ZDVhYTQgdXRpbC9zY2FuL2R2Yi10L3NrLUtvc2lj
+ZQotLS0gYS91dGlsL3NjYW4vZHZiLXQvc2stS29zaWNlCVNhdCBKdW4gMDUgMTM6MDg6MDcgMjAx
+MCArMDIwMAorKysgYi91dGlsL3NjYW4vZHZiLXQvc2stS29zaWNlCVN1biBKdW4gMjAgMTk6NDc6
+NDggMjAxMCArMDIwMApAQCAtMSw1ICsxLDExIEBACiAjIERWQi1UIEtvc2ljZSAoS29zaWNlLCBT
+bG92YWsgUmVwdWJsaWMpCiAjIFQgZnJlcSBidyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Np
+b24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVyYXJjaHkKIAotIyBvbiBjaGFubmVsIDY0CisjIDEu
+c3QgbXVsdGlwbGV4IC0gb24gY2hhbm5lbCA2NAogVCA4MTgwMDAwMDAgOE1IeiAyLzMgTk9ORSBR
+QU02NCA4ayAxLzQgTk9ORQorCisjIDIuc3QgbXVsdGlwbGV4IChjb21tZXJjaWFsKSAtIG9uIGNo
+YW5uZWwgNTkKK1QgNzc4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKKwor
+IyAzLnN0IG11bHRpcGxleCAocHVibGljKSAtIG9uIGNoYW5uZWwgMjUKK1QgNTA2MDAwMDAwIDhN
+SHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUKZGlmZiAtciA3NWNhMjk4ZDVhYTQgdXRpbC9z
+Y2FuL2R2Yi10L3NrLU1pY2hhbG92Y2UKLS0tIGEvdXRpbC9zY2FuL2R2Yi10L3NrLU1pY2hhbG92
+Y2UJU2F0IEp1biAwNSAxMzowODowNyAyMDEwICswMjAwCisrKyBiL3V0aWwvc2Nhbi9kdmItdC9z
+ay1NaWNoYWxvdmNlCVN1biBKdW4gMjAgMTk6NDc6NDggMjAxMCArMDIwMApAQCAtMSw1ICsxLDEx
+IEBACiAjIERWQi1UIE1pY2hhbG92Y2UgKE1pY2hhbG92Y2UsIFNsb3ZhayBSZXB1YmxpYykKICMg
+VCBmcmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVy
+dmFsIGhpZXJhcmNoeQogCi0jIG9uIGNoYW5uZWwgNjQKKyMgMS5zdCBtdWx0aXBsZXggLSBvbiBj
+aGFubmVsIDY0CiBUIDgxODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FCisK
+KyMgMi5zdCBtdWx0aXBsZXggKGNvbW1lcmNpYWwpIC0gb24gY2hhbm5lbCA1OQorVCA3NzgwMDAw
+MDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQorCisjIDMuc3QgbXVsdGlwbGV4IChw
+dWJsaWMpIC0gb24gY2hhbm5lbCAyNQorVCA1MDYwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4
+ayAxLzQgTk9ORQpkaWZmIC1yIDc1Y2EyOThkNWFhNCB1dGlsL3NjYW4vZHZiLXQvc2stTmFtZXN0
+b3ZvCi0tLSBhL3V0aWwvc2Nhbi9kdmItdC9zay1OYW1lc3Rvdm8JU2F0IEp1biAwNSAxMzowODow
+NyAyMDEwICswMjAwCisrKyBiL3V0aWwvc2Nhbi9kdmItdC9zay1OYW1lc3Rvdm8JU3VuIEp1biAy
+MCAxOTo0Nzo0OCAyMDEwICswMjAwCkBAIC0xLDUgKzEsMTEgQEAKICMgRFZCLVQgTmFtZXN0b3Zv
+IChOYW1lc3Rvdm8sIFNsb3ZhayBSZXB1YmxpYykKICMgVCBmcmVxIGJ3IGZlY19oaSBmZWNfbG8g
+bW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhpZXJhcmNoeQogCi0jIG9uIGNo
+YW5uZWwgNjgKKyMgMS5zdCBtdWx0aXBsZXggLSBvbiBjaGFubmVsIDY4CiBUIDg1MDAwMDAwMCA4
+TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FCisKKyMgMi5zdCBtdWx0aXBsZXggKGNvbW1l
+cmNpYWwpIC0gb24gY2hhbm5lbCA1OQorVCA3NzgwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4
+ayAxLzQgTk9ORQorCisjIDMuc3QgbXVsdGlwbGV4IChwdWJsaWMpIC0gb24gY2hhbm5lbCAyNgor
+VCA1MTQwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQpkaWZmIC1yIDc1Y2Ey
+OThkNWFhNCB1dGlsL3NjYW4vZHZiLXQvc2stUG9wcmFkCi0tLSBhL3V0aWwvc2Nhbi9kdmItdC9z
+ay1Qb3ByYWQJU2F0IEp1biAwNSAxMzowODowNyAyMDEwICswMjAwCisrKyBiL3V0aWwvc2Nhbi9k
+dmItdC9zay1Qb3ByYWQJU3VuIEp1biAyMCAxOTo0Nzo0OCAyMDEwICswMjAwCkBAIC0xLDUgKzEs
+MTEgQEAKICMgRFZCLVQgUG9wcmFkIChQb3ByYWQsIFNsb3ZhayBSZXB1YmxpYykKICMgVCBmcmVx
+IGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhp
+ZXJhcmNoeQogCi0jIG9uIGNoYW5uZWwgNjYKKyMgMS5zdCBtdWx0aXBsZXggLSBvbiBjaGFubmVs
+IDY2CiBUIDgzNDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FCisKKyMgMi5z
+dCBtdWx0aXBsZXggKGNvbW1lcmNpYWwpIC0gb24gY2hhbm5lbCA1NQorVCA3NDYwMDAwMDAgOE1I
+eiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQorCisjIDMuc3QgbXVsdGlwbGV4IChwdWJsaWMp
+IC0gb24gY2hhbm5lbCAyNAorVCA0OTgwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQg
+Tk9ORQpkaWZmIC1yIDc1Y2EyOThkNWFhNCB1dGlsL3NjYW4vZHZiLXQvc2stUmltYXZza2FTb2Jv
+dGEKLS0tIGEvdXRpbC9zY2FuL2R2Yi10L3NrLVJpbWF2c2thU29ib3RhCVNhdCBKdW4gMDUgMTM6
+MDg6MDcgMjAxMCArMDIwMAorKysgYi91dGlsL3NjYW4vZHZiLXQvc2stUmltYXZza2FTb2JvdGEJ
+U3VuIEp1biAyMCAxOTo0Nzo0OCAyMDEwICswMjAwCkBAIC0xLDUgKzEsMTEgQEAKICMgRFZCLVQg
+UmltYXZza2EgU29ib3RhIChSaW1hdnNrYSBTb2JvdGEsIFNsb3ZhayBSZXB1YmxpYykKICMgVCBm
+cmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFs
+IGhpZXJhcmNoeQogCi0jIG9uIGNoYW5uZWwgNjEKKyMgMS5zdCBtdWx0aXBsZXggLSBvbiBjaGFu
+bmVsIDYxCiBUIDc5NDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FCisKKyMg
+Mi5zdCBtdWx0aXBsZXggKGNvbW1lcmNpYWwpIC0gb24gY2hhbm5lbCAyNworVCA1MjIwMDAwMDAg
+OE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQorCisjIDMuc3QgbXVsdGlwbGV4IChwdWJs
+aWMpIC0gb24gY2hhbm5lbCA1NAorVCA3MzgwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAx
+LzQgTk9ORQpkaWZmIC1yIDc1Y2EyOThkNWFhNCB1dGlsL3NjYW4vZHZiLXQvc2stVHJlbmNpbgot
+LS0gYS91dGlsL3NjYW4vZHZiLXQvc2stVHJlbmNpbglTYXQgSnVuIDA1IDEzOjA4OjA3IDIwMTAg
+KzAyMDAKKysrIGIvdXRpbC9zY2FuL2R2Yi10L3NrLVRyZW5jaW4JU3VuIEp1biAyMCAxOTo0Nzo0
+OCAyMDEwICswMjAwCkBAIC0xLDUgKzEsMTIgQEAKICMgRFZCLVQgVHJlbmNpbiAoVHJlbmNpbiwg
+U2xvdmFrIFJlcHVibGljKQogIyBUIGZyZXEgYncgZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNz
+aW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwgaGllcmFyY2h5CiAKLSMgb24gY2hhbm5lbCA2OQorIyAx
+LnN0IG11bHRpcGxleCAtIG9uIGNoYW5uZWwgNjkKIFQgODU4MDAwMDAwIDhNSHogMi8zIE5PTkUg
+UUFNNjQgOGsgMS80IE5PTkUKKworIyAyLnN0IG11bHRpcGxleCAoY29tbWVyY2lhbCkgLSBvbiBj
+aGFubmVsIDUyLzU2CitUIDcyMjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05F
+CitUIDc1NDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FCisKKyMgMy5zdCBt
+dWx0aXBsZXggKHB1YmxpYykgLSBvbiBjaGFubmVsIDU3CitUIDc2MjAwMDAwMCA4TUh6IDIvMyBO
+T05FIFFBTTY0IDhrIDEvNCBOT05FCmRpZmYgLXIgNzVjYTI5OGQ1YWE0IHV0aWwvc2Nhbi9kdmIt
+dC9zay1WZWxreUtydGlzCi0tLSBhL3V0aWwvc2Nhbi9kdmItdC9zay1WZWxreUtydGlzCVNhdCBK
+dW4gMDUgMTM6MDg6MDcgMjAxMCArMDIwMAorKysgYi91dGlsL3NjYW4vZHZiLXQvc2stVmVsa3lL
+cnRpcwlTdW4gSnVuIDIwIDE5OjQ3OjQ4IDIwMTAgKzAyMDAKQEAgLTEsNSArMSwxMSBAQAogIyBE
+VkItVCBWZWxreSBLcnRpcyAoVmVsa3kgS3J0aXMsIFNsb3ZhayBSZXB1YmxpYykKICMgVCBmcmVx
+IGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2RlIGd1YXJkLWludGVydmFsIGhp
+ZXJhcmNoeQogCi0jIG9uIGNoYW5uZWwgNjUKKyMgMS5zdCBtdWx0aXBsZXggLSBvbiBjaGFubmVs
+IDY1CiBUIDgyNjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FCisKKyMgMi5z
+dCBtdWx0aXBsZXggKGNvbW1lcmNpYWwpIC0gb24gY2hhbm5lbCA2MAorVCA3ODYwMDAwMDAgOE1I
+eiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQorCisjIDMuc3QgbXVsdGlwbGV4IChwdWJsaWMp
+IC0gb24gY2hhbm5lbCAzMworVCA1NzAwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQg
+Tk9ORQpkaWZmIC1yIDc1Y2EyOThkNWFhNCB1dGlsL3NjYW4vZHZiLXQvc2stWmlsaW5hCi0tLSBh
+L3V0aWwvc2Nhbi9kdmItdC9zay1aaWxpbmEJU2F0IEp1biAwNSAxMzowODowNyAyMDEwICswMjAw
+CisrKyBiL3V0aWwvc2Nhbi9kdmItdC9zay1aaWxpbmEJU3VuIEp1biAyMCAxOTo0Nzo0OCAyMDEw
+ICswMjAwCkBAIC0xLDUgKzEsMTEgQEAKICMgRFZCLVQgWmlsaW5hIChaaWxpbmEsIFNsb3ZhayBS
+ZXB1YmxpYykKICMgVCBmcmVxIGJ3IGZlY19oaSBmZWNfbG8gbW9kIHRyYW5zbWlzc2lvbi1tb2Rl
+IGd1YXJkLWludGVydmFsIGhpZXJhcmNoeQogCi0jIG9uIGNoYW5uZWwgNjgKKyMgMS5zdCBtdWx0
+aXBsZXggLSBvbiBjaGFubmVsIDY4CiBUIDg1MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhr
+IDEvNCBOT05FCisKKyMgMi5zdCBtdWx0aXBsZXggKGNvbW1lcmNpYWwpIC0gb24gY2hhbm5lbCA1
+MgorVCA3MjIwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORQorCisjIDMuc3Qg
+bXVsdGlwbGV4IChwdWJsaWMpIC0gb24gY2hhbm5lbCAzMgorVCA1NjIwMDAwMDAgOE1IeiAyLzMg
+Tk9ORSBRQU02NCA4ayAxLzQgTk9ORQo=
+--0016e65b656a097b03048979ef40--
