@@ -1,124 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1288 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755189Ab0F0Tg1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jun 2010 15:36:27 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5RJaM60012426
-	for <linux-media@vger.kernel.org>; Sun, 27 Jun 2010 21:36:26 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 27 Jun 2010 21:36:22 +0200 (CEST)
-Message-Id: <201006271936.o5RJaM60012426@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from tango.tkos.co.il ([62.219.50.35]:34984 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751818Ab0FUFPq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 01:15:46 -0400
+Date: Mon, 21 Jun 2010 08:15:19 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v3 1/3] mx2_camera: Add soc_camera support for
+ i.MX25/i.MX27
+Message-ID: <20100621051519.GB18217@jasper.tkos.co.il>
+References: <cover.1274865040.git.baruch@tkos.co.il>
+ <190248f3b311ccfcb73f1fc71d185e3927f0bf05.1274865040.git.baruch@tkos.co.il>
+ <Pine.LNX.4.64.1006191458420.11313@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1006191458420.11313@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Guennadi,
 
-Results of the daily build of v4l-dvb:
+On Sat, Jun 19, 2010 at 04:13:31PM +0200, Guennadi Liakhovetski wrote:
+> On Wed, 26 May 2010, Baruch Siach wrote:
+> 
+> > This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
+> > Carvalho de Assis modified the original driver to get it working on more recent
+> > kernels. I modified it further to add support for i.MX25. This driver has been
+> > tested on i.MX25 and i.MX27 based platforms.
 
-date:        Sun Jun 27 19:00:26 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Tanks for your review. I'll send v4 shortly.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+baruch
 
-Detailed results are available here:
+> I hoped, this would be the final version, but if I'm not mistaken, you've 
+> introduced an error, which we better fix before committing. And as we anyway 
+> will likely need a v4, I'll also ask you to improve a couple of stylistic 
+> issues, which otherwise I'd just fix myself with your permission.
+> 
+> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> > ---
+> >  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
+> >  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
+> >  drivers/media/video/Kconfig              |   13 +
+> >  drivers/media/video/Makefile             |    1 +
+> >  drivers/media/video/mx2_camera.c         | 1488 ++++++++++++++++++++++++++++++
+> >  5 files changed, 1550 insertions(+), 2 deletions(-)
+> >  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
+> >  create mode 100644 drivers/media/video/mx2_camera.c
+> > 
+> > diff --git a/arch/arm/plat-mxc/include/mach/memory.h b/arch/arm/plat-mxc/include/mach/memory.h
+> > index c4b40c3..5803836 100644
+> > --- a/arch/arm/plat-mxc/include/mach/memory.h
+> > +++ b/arch/arm/plat-mxc/include/mach/memory.h
+> 
+> [snip]
+> 
+> > +static void mx2_videobuf_queue(struct videobuf_queue *vq,
+> > +			       struct videobuf_buffer *vb)
+> > +{
+> > +	struct soc_camera_device *icd = vq->priv_data;
+> > +	struct soc_camera_host *ici =
+> > +		to_soc_camera_host(icd->dev.parent);
+> > +	struct mx2_camera_dev *pcdev = ici->priv;
+> > +	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
+> > +	unsigned long flags;
+> > +	int ret;
+> > +
+> > +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
+> > +		vb, vb->baddr, vb->bsize);
+> > +
+> > +	spin_lock_irqsave(&pcdev->lock, flags);
+> > +
+> > +	vb->state = VIDEOBUF_QUEUED;
+> > +	list_add_tail(&vb->queue, &pcdev->capture);
+> > +
+> > +	if (mx27_camera_emma(pcdev))
+> > +		goto out;
+> > +	else if (cpu_is_mx27()) {
+> 
+> One of the minor ones - please, add braces in the "if" case.
+> 
+> [snip]
+> 
+> > +static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+> > +{
+> > +	struct mx2_camera_dev *pcdev = data;
+> > +	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
+> > +	struct mx2_buffer *buf;
+> > +
+> > +	if ((status & (3 << 5)) == (3 << 5)
+> > +			&& !list_empty(&pcdev->active_bufs)) {
+> > +		/*
+> > +		 * Both buffers have triggered, process the one we're expecting
+> > +		 * to first
+> > +		 */
+> > +		buf = list_entry(pcdev->active_bufs.next,
+> > +			struct mx2_buffer, vb.queue);
+> > +		mx27_camera_frame_done_emma(pcdev, buf->bufnum, VIDEOBUF_DONE);
+> > +	}
+> > +	if (status & (1 << 6))
+> > +		mx27_camera_frame_done_emma(pcdev, 0, VIDEOBUF_DONE);
+> > +	if (status & (1 << 5))
+> > +		mx27_camera_frame_done_emma(pcdev, 1, VIDEOBUF_DONE);
+> 
+> Now, this is the important one. In my review of v2 I proposed the above 
+> fix for the both-bits-set case. But, I think, your implementation is not 
+> correct. Don't you have to clear the expected buffer number, so that you 
+> don't process it twice? Something like
+> 
+> 		status &= ~(1 << 6 - buf->bufnum);
+> 
+> anywhere inside the first of the three ifs?
+> 
+> > +	if (status & (1 << 7)) {
+> 
+> Bit 7 is overflow. A correct handling could be resetting the buffer, 
+> returning an error frame and continuing with the next one. However, I 
+> understand, that you do not have a chance to implement this properly 
+> now. So, please, at least add a "FIXME" comment, explaining, what should 
+> be done here. Besides, error states are normally checked before normal 
+> data processing. So, either mention this in the comment too, or move this 
+> above the buffer completion processing.
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
