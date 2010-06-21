@@ -1,34 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:52513 "EHLO lo.gmane.org"
+Received: from tango.tkos.co.il ([62.219.50.35]:35012 "EHLO tango.tkos.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752175Ab0F2LXG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jun 2010 07:23:06 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1OTYu2-0001MT-Ni
-	for linux-media@vger.kernel.org; Tue, 29 Jun 2010 13:23:00 +0200
-Received: from dynamic-adsl-78-14-92-229.clienti.tiscali.it ([78.14.92.229])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 29 Jun 2010 13:22:58 +0200
-Received: from avljawrowski by dynamic-adsl-78-14-92-229.clienti.tiscali.it with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 29 Jun 2010 13:22:58 +0200
-To: linux-media@vger.kernel.org
-From: Avl Jawrowski <avljawrowski@gmail.com>
-Subject: Re: Problems with Pinnacle 310i (saa7134) and recent kernels
-Date: Tue, 29 Jun 2010 11:22:50 +0000 (UTC)
-Message-ID: <loom.20100629T131617-608@post.gmane.org>
-References: <loom.20090718T135733-267@post.gmane.org>  <1248033581.3667.40.camel@pc07.localdom.local>  <loom.20090720T224156-477@post.gmane.org>  <1248146456.3239.6.camel@pc07.localdom.local>  <loom.20090722T123703-889@post.gmane.org>  <1248338430.3206.34.camel@pc07.localdom.local>  <loom.20090910T234610-403@post.gmane.org>  <1252630820.3321.14.camel@pc07.localdom.local>  <loom.20090912T211959-273@post.gmane.org>  <1252815178.3259.39.camel@pc07.localdom.local>  <loom.20090913T115105-855@post.gmane.org>  <1252881736.4318.48.camel@pc07.localdom.local>  <loom.20090914T150511-456@post.gmane.org>  <1252968793.3250.23.camel@pc07.localdom.local>  <loom.20090915T215753-102@post.gmane.org>  <1253138846.3901.19.camel@pc07.localdom.local>  <loom.20100220T123935-59@post.gmane.org>  <1267420877.3185.31.camel@pc07.localdom.local>  <loom.20100626T135340-672@post.gmane.org> <1277588888.10200.35.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	id S1752513Ab0FUFQx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 01:16:53 -0400
+From: Baruch Siach <baruch@tkos.co.il>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCHv4 3/3] mx25: add support for the CSI device
+Date: Mon, 21 Jun 2010 08:16:00 +0300
+Message-Id: <36c9db771cd895d7bbfe422fbd910dc9bf211219.1277096909.git.baruch@tkos.co.il>
+In-Reply-To: <cover.1277096909.git.baruch@tkos.co.il>
+References: <cover.1277096909.git.baruch@tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Well, thank you very much Hermann!
-You're very helpul. The sure thing is that when I'll buy a new card I'll ask you 
-for a hint.
-Thank you again,
-Avl
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+---
+ arch/arm/mach-mx25/clock.c            |   14 ++++++++++++--
+ arch/arm/mach-mx25/devices.c          |   22 ++++++++++++++++++++++
+ arch/arm/mach-mx25/devices.h          |    1 +
+ arch/arm/plat-mxc/include/mach/mx25.h |    2 ++
+ 4 files changed, 37 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-mx25/clock.c b/arch/arm/mach-mx25/clock.c
+index 1550149..7a98d18 100644
+--- a/arch/arm/mach-mx25/clock.c
++++ b/arch/arm/mach-mx25/clock.c
+@@ -129,6 +129,11 @@ static unsigned long get_rate_lcdc(struct clk *clk)
+ 	return get_rate_per(7);
+ }
+ 
++static unsigned long get_rate_csi(struct clk *clk)
++{
++	return get_rate_per(0);
++}
++
+ static unsigned long get_rate_otg(struct clk *clk)
+ {
+ 	return 48000000; /* FIXME */
+@@ -174,6 +179,8 @@ DEFINE_CLOCK(cspi3_clk,  0, CCM_CGCR1,  7, get_rate_ipg, NULL, NULL);
+ DEFINE_CLOCK(fec_ahb_clk, 0, CCM_CGCR0, 23, NULL,	 NULL, NULL);
+ DEFINE_CLOCK(lcdc_ahb_clk, 0, CCM_CGCR0, 24, NULL,	 NULL, NULL);
+ DEFINE_CLOCK(lcdc_per_clk, 0, CCM_CGCR0,  7, NULL,	 NULL, &lcdc_ahb_clk);
++DEFINE_CLOCK(csi_ahb_clk, 0, CCM_CGCR0, 18, get_rate_csi, NULL, NULL);
++DEFINE_CLOCK(csi_per_clk, 0, CCM_CGCR0, 0, get_rate_csi, NULL, &csi_ahb_clk);
+ DEFINE_CLOCK(uart1_clk,  0, CCM_CGCR2, 14, get_rate_uart, NULL, &uart_per_clk);
+ DEFINE_CLOCK(uart2_clk,  0, CCM_CGCR2, 15, get_rate_uart, NULL, &uart_per_clk);
+ DEFINE_CLOCK(uart3_clk,  0, CCM_CGCR2, 16, get_rate_uart, NULL, &uart_per_clk);
+@@ -191,6 +198,7 @@ DEFINE_CLOCK(i2c_clk,	 0, CCM_CGCR0,  6, get_rate_i2c, NULL, NULL);
+ DEFINE_CLOCK(fec_clk,	 0, CCM_CGCR1, 15, get_rate_ipg, NULL, &fec_ahb_clk);
+ DEFINE_CLOCK(dryice_clk, 0, CCM_CGCR1,  8, get_rate_ipg, NULL, NULL);
+ DEFINE_CLOCK(lcdc_clk,	 0, CCM_CGCR1, 29, get_rate_lcdc, NULL, &lcdc_per_clk);
++DEFINE_CLOCK(csi_clk,    0, CCM_CGCR1,  4, get_rate_csi, NULL,  &csi_per_clk);
+ 
+ #define _REGISTER_CLOCK(d, n, c)	\
+ 	{				\
+@@ -225,6 +233,7 @@ static struct clk_lookup lookups[] = {
+ 	_REGISTER_CLOCK("fec.0", NULL, fec_clk)
+ 	_REGISTER_CLOCK("imxdi_rtc.0", NULL, dryice_clk)
+ 	_REGISTER_CLOCK("imx-fb.0", NULL, lcdc_clk)
++	_REGISTER_CLOCK("mx2-camera.0", NULL, csi_clk)
+ };
+ 
+ int __init mx25_clocks_init(void)
+@@ -239,8 +248,9 @@ int __init mx25_clocks_init(void)
+ 	__raw_writel((0xf << 16) | (3 << 26), CRM_BASE + CCM_CGCR1);
+ 	__raw_writel((1 << 5), CRM_BASE + CCM_CGCR2);
+ 
+-	/* Clock source for lcdc is upll */
+-	__raw_writel(__raw_readl(CRM_BASE+0x64) | (1 << 7), CRM_BASE + 0x64);
++	/* Clock source for lcdc and csi is upll */
++	__raw_writel(__raw_readl(CRM_BASE+0x64) | (1 << 7) | (1 << 0),
++			CRM_BASE + 0x64);
+ 
+ 	mxc_timer_init(&gpt_clk, MX25_IO_ADDRESS(MX25_GPT1_BASE_ADDR), 54);
+ 
+diff --git a/arch/arm/mach-mx25/devices.c b/arch/arm/mach-mx25/devices.c
+index 3a405fa..cbecbe1 100644
+--- a/arch/arm/mach-mx25/devices.c
++++ b/arch/arm/mach-mx25/devices.c
+@@ -515,3 +515,25 @@ struct platform_device mxc_wdt = {
+ 	.num_resources = ARRAY_SIZE(mxc_wdt_resources),
+ 	.resource = mxc_wdt_resources,
+ };
++
++static struct resource mx25_csi_resources[] = {
++	{
++		.start	= MX25_CSI_BASE_ADDR,
++		.end	= MX25_CSI_BASE_ADDR + 0xfff,
++		.flags	= IORESOURCE_MEM,
++	},
++	{
++		.start	= MX25_INT_CSI,
++		.flags	= IORESOURCE_IRQ
++	},
++};
++
++struct platform_device mx25_csi_device = {
++	.name	= "mx2-camera",
++	.id	= 0,
++	.num_resources	= ARRAY_SIZE(mx25_csi_resources),
++	.resource	= mx25_csi_resources,
++	.dev		= {
++		.coherent_dma_mask = 0xFFFFFFFF,
++	},
++};
+diff --git a/arch/arm/mach-mx25/devices.h b/arch/arm/mach-mx25/devices.h
+index cee12c0..b46f122 100644
+--- a/arch/arm/mach-mx25/devices.h
++++ b/arch/arm/mach-mx25/devices.h
+@@ -22,3 +22,4 @@ extern struct platform_device mxc_nand_device;
+ extern struct platform_device mx25_rtc_device;
+ extern struct platform_device mx25_fb_device;
+ extern struct platform_device mxc_wdt;
++extern struct platform_device mx25_csi_device;
+diff --git a/arch/arm/plat-mxc/include/mach/mx25.h b/arch/arm/plat-mxc/include/mach/mx25.h
+index 4eb6e33..5e6a8b5 100644
+--- a/arch/arm/plat-mxc/include/mach/mx25.h
++++ b/arch/arm/plat-mxc/include/mach/mx25.h
+@@ -34,11 +34,13 @@
+ #define MX25_NFC_BASE_ADDR		0xbb000000
+ #define MX25_DRYICE_BASE_ADDR		0x53ffc000
+ #define MX25_LCDC_BASE_ADDR		0x53fbc000
++#define MX25_CSI_BASE_ADDR		0x53ff8000
+ 
+ #define MX25_INT_DRYICE	25
+ #define MX25_INT_FEC	57
+ #define MX25_INT_NANDFC	33
+ #define MX25_INT_LCDC	39
++#define MX25_INT_CSI	17
+ 
+ #if defined(IMX_NEEDS_DEPRECATED_SYMBOLS)
+ #define UART1_BASE_ADDR			MX25_UART1_BASE_ADDR
+-- 
+1.7.1
 
