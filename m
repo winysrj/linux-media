@@ -1,123 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:3054 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755922Ab0FATNA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 15:13:00 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id o51JCsCN036924
-	for <linux-media@vger.kernel.org>; Tue, 1 Jun 2010 21:12:59 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 1 Jun 2010 21:12:54 +0200 (CEST)
-Message-Id: <201006011912.o51JCsCN036924@smtp-vbr18.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.gmx.net ([213.165.64.20]:35086 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753696Ab0FUS0f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 14:26:35 -0400
+Date: Mon, 21 Jun 2010 20:26:54 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Baruch Siach <baruch@tkos.co.il>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] soc_camera_platform: add set_fmt callback
+In-Reply-To: <266c646d111590fda11bd3bbecfe49dea6789e4e.1277097465.git.baruch@tkos.co.il>
+Message-ID: <Pine.LNX.4.64.1006212023001.6299@axis700.grange>
+References: <266c646d111590fda11bd3bbecfe49dea6789e4e.1277097465.git.baruch@tkos.co.il>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, 21 Jun 2010, Baruch Siach wrote:
 
-Results of the daily build of v4l-dvb:
+> This allows the platform camera to arrange a change in the capture format.
 
-date:        Tue Jun  1 19:00:19 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14875:304cfde05b3f
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Sorry, no. I don't like this. This driver is a very primitive piece of 
+code, allowing you to bootstrap a camera in a most simple static way. We 
+even were considering removing it from the kernel, because there's only 
+one user currently in the mainline and, unfortunately, it is not very well 
+maintained. So, you can use this driver as it is in the kernel now, 
+bug-fixes are welcome. But if it isn't enough for you, this means you need 
+a proper driver.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: ERRORS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: ERRORS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: ERRORS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: ERRORS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: ERRORS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: ERRORS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Thanks
+Guennadi
 
-Detailed results are available here:
+> 
+> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> ---
+>  drivers/media/video/soc_camera_platform.c |    3 +++
+>  include/media/soc_camera_platform.h       |    2 ++
+>  2 files changed, 5 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_camera_platform.c b/drivers/media/video/soc_camera_platform.c
+> index 248c986..208fd42 100644
+> --- a/drivers/media/video/soc_camera_platform.c
+> +++ b/drivers/media/video/soc_camera_platform.c
+> @@ -61,6 +61,9 @@ static int soc_camera_platform_try_fmt(struct v4l2_subdev *sd,
+>  {
+>  	struct soc_camera_platform_info *p = v4l2_get_subdevdata(sd);
+>  
+> +	if (p->try_fmt)
+> +		return p->try_fmt(p, mf);
+> +
+>  	mf->width	= p->format.width;
+>  	mf->height	= p->format.height;
+>  	mf->code	= p->format.code;
+> diff --git a/include/media/soc_camera_platform.h b/include/media/soc_camera_platform.h
+> index 0ecefe2..0558ffc 100644
+> --- a/include/media/soc_camera_platform.h
+> +++ b/include/media/soc_camera_platform.h
+> @@ -22,6 +22,8 @@ struct soc_camera_platform_info {
+>  	struct v4l2_mbus_framefmt format;
+>  	unsigned long bus_param;
+>  	struct device *dev;
+> +	int (*try_fmt)(struct soc_camera_platform_info *info,
+> +			struct v4l2_mbus_framefmt *mf);
+>  	int (*set_capture)(struct soc_camera_platform_info *info, int enable);
+>  };
+>  
+> -- 
+> 1.7.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
