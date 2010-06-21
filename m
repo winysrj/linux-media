@@ -1,69 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63346 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751239Ab0FDHZk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jun 2010 03:25:40 -0400
-Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o547Peqd028245
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 03:25:40 -0400
-From: huzaifas@redhat.com
-To: linux-media@vger.kernel.org
-Cc: hdegoede@redhat.com, Huzaifa Sidhpurwala <huzaifas@redhat.com>
-Subject: [PATCH] libv4l1: move VIDIOCGFREQ and VIDIOCSFREQ to libv4l1
-Date: Fri,  4 Jun 2010 12:53:40 +0530
-Message-Id: <1275636220-21975-1-git-send-email-huzaifas@redhat.com>
+Received: from 30.mail-out.ovh.net ([213.186.62.213]:42770 "HELO
+	30.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751176Ab0FUHGX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 03:06:23 -0400
+Message-ID: <4C1F0DDC.4070307@ventoso.org>
+Date: Mon, 21 Jun 2010 08:59:40 +0200
+From: Luca Olivetti <luca@ventoso.org>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] af9005: use generic_bulk_ctrl_endpoint_response
+References: <AANLkTimtPb6A5Cd6mB2z3S5U2uZy0l4fkbVyyL3njizs@mail.gmail.com>
+In-Reply-To: <AANLkTimtPb6A5Cd6mB2z3S5U2uZy0l4fkbVyyL3njizs@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Huzaifa Sidhpurwala <huzaifas@redhat.com>
+En/na Michael Krufky ha escrit:
+> Could somebody please test this patch and confirm that it doesn't
+> break the af9005 support?
+> 
+> This patch removes the af9005_usb_generic_rw function and uses the
+> dvb_usb_generic_rw function instead, using
+> generic_bulk_ctrl_endpoint_response to differentiate between the read
+> pipe and the write pipe.
 
-move VIDIOCGFREQ and VIDIOCSFREQ to libv4l1
+Unfortunately I cannot test it (my device is broken)[*].
+At the time I wrote my own rw function because I didn't find a way to 
+send on a bulk endpoint and receiving on another one (i.e. I didn't know 
+about generic_bulk_ctrl_endpoint/generic_bulk_ctrl_endpoint_response or 
+they weren't available at the time).
 
-Signed-of-by: Huzaifa Sidhpurwala <huzaifas@redhat.com>
----
- lib/libv4l1/libv4l1.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+[*]Actually the tuner is broken, but the usb is working fine, so maybe I 
+can give it a try.
 
-diff --git a/lib/libv4l1/libv4l1.c b/lib/libv4l1/libv4l1.c
-index 081ed0a..579f13b 100644
---- a/lib/libv4l1/libv4l1.c
-+++ b/lib/libv4l1/libv4l1.c
-@@ -939,6 +939,34 @@ int v4l1_ioctl(int fd, unsigned long int request, ...)
- 		break;
- 	}
- 
-+	case VIDIOCSFREQ: {
-+		unsigned long *freq = arg;
-+		struct v4l2_frequency freq2 = { 0, };
-+
-+		result = v4l2_ioctl(fd, VIDIOC_G_FREQUENCY, &freq2);
-+		if (result < 0)
-+			break;
-+
-+		freq2.frequency = *freq;
-+
-+		result = v4l2_ioctl(fd, VIDIOC_S_FREQUENCY, &freq2);
-+
-+		break;
-+	}
-+
-+	case VIDIOCGFREQ: {
-+		unsigned long *freq = arg;
-+		struct v4l2_frequency freq2 = { 0, };
-+
-+		freq2.tuner = 0;
-+		result = v4l2_ioctl(fd, VIDIOC_G_FREQUENCY, &freq2);
-+		if (result < 0)
-+			break;
-+		if (0 == result)
-+			*freq = freq2.frequency;
-+
-+		break;
-+	}
- 	default:
- 		/* Pass through libv4l2 for applications which are using v4l2 through
- 		   libv4l1 (this can happen with the v4l1compat.so wrapper preloaded */
+Bye
 -- 
-1.6.6.1
-
+Luca
