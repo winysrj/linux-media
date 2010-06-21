@@ -1,62 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh07.mail.saunalahti.fi ([62.142.5.117]:41538 "EHLO
-	emh07.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753409Ab0F0Uvc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jun 2010 16:51:32 -0400
-Message-ID: <4C27B9CD.4070404@kolumbus.fi>
-Date: Sun, 27 Jun 2010 23:51:25 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Oliver Endriss <o.endriss@gmx.de>,
-	Jaroslav Klaus <jaroslav.klaus@gmail.com>
-Subject: Re: TS discontinuity with TT S-2300
-References: <1CF58597-201D-4448-A80C-55815811753E@gmail.com> <201006271437.01502@orion.escape-edv.de> <4C277496.7050508@kolumbus.fi> <201006272025.39822@orion.escape-edv.de>
-In-Reply-To: <201006272025.39822@orion.escape-edv.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from tango.tkos.co.il ([62.219.50.35]:35010 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752513Ab0FUFQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 01:16:49 -0400
+From: Baruch Siach <baruch@tkos.co.il>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCHv4 2/3] mx27: add support for the CSI device
+Date: Mon, 21 Jun 2010 08:15:59 +0300
+Message-Id: <72e1ece6cc4f2e733dbb5f16dc5f06e7f1498f6c.1277096909.git.baruch@tkos.co.il>
+In-Reply-To: <cover.1277096909.git.baruch@tkos.co.il>
+References: <cover.1277096909.git.baruch@tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-27.06.2010 21:25, Oliver Endriss wrote:
-> Are you sure that Mantis driver delivers garbage, not partial packets?
-> Please note that the dvb_dmx_swfilter[_204]() routines must accept
-> partial packets, i.e. the rest of the packet will be dellivered with the
-> next call.
->   
-Yes, I'm sure that the garbage comes from the PCI device itself:
-garbage should be found at less than 204 byte position otherwise.
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+---
+ arch/arm/mach-mx2/clock_imx27.c |    2 +-
+ arch/arm/mach-mx2/devices.c     |   31 +++++++++++++++++++++++++++++++
+ arch/arm/mach-mx2/devices.h     |    1 +
+ 3 files changed, 33 insertions(+), 1 deletions(-)
 
-My latest mailed patch that I use makes sure 0x47 is found at
-demux->tsbufp[0],
-if there is at least one spared byte. Otherwise the resulting 188 sized
-packet would be discarded eventually.
-
-It would be good if Mauro would accept my patch for dvb_dmx_swfilter(_204)
-functions some day. It increases robustness with garbage input, and
-performance by avoiding unnecessary packet copying.
-
-> dvb_dmx_swfilter_packets() expects complete TS packets from the driver.
-> The saa7146 does so. It does not deliver garbage data. (Otherwise this
-> would have been noticed a long time ago. The ttpci drivers are the
-> oldest DVB drivers and are very well tested.)
->   
-I'm very sorry I even questioned ttpci's and the hardware's robustness.
-
-I'm delighted to hear that ttpci is so well implemented and tested and
-so long :)
-I was very impressed in the quality of the code with
-dvb_dmx_swfilter_packets():
-so simple and efficient.
-
-Unfortunately I have had lots of problems with Mantis.
-But because of that, I've learned DVB driver programming.
-
-H.264 works now mostly in one TV channel without crashing Xine with
-remote vdr.
-I had to modify streamdev plugin too for vdr.
-
-CU
-Marko
+diff --git a/arch/arm/mach-mx2/clock_imx27.c b/arch/arm/mach-mx2/clock_imx27.c
+index 0f0823c..5a1aa15 100644
+--- a/arch/arm/mach-mx2/clock_imx27.c
++++ b/arch/arm/mach-mx2/clock_imx27.c
+@@ -644,7 +644,7 @@ static struct clk_lookup lookups[] = {
+ 	_REGISTER_CLOCK("spi_imx.1", NULL, cspi2_clk)
+ 	_REGISTER_CLOCK("spi_imx.2", NULL, cspi3_clk)
+ 	_REGISTER_CLOCK("imx-fb.0", NULL, lcdc_clk)
+-	_REGISTER_CLOCK(NULL, "csi", csi_clk)
++	_REGISTER_CLOCK("mx2-camera.0", NULL, csi_clk)
+ 	_REGISTER_CLOCK("fsl-usb2-udc", "usb", usb_clk)
+ 	_REGISTER_CLOCK("fsl-usb2-udc", "usb_ahb", usb_clk1)
+ 	_REGISTER_CLOCK("mxc-ehci.0", "usb", usb_clk)
+diff --git a/arch/arm/mach-mx2/devices.c b/arch/arm/mach-mx2/devices.c
+index a0aeb8a..08201f5 100644
+--- a/arch/arm/mach-mx2/devices.c
++++ b/arch/arm/mach-mx2/devices.c
+@@ -40,6 +40,37 @@
+ 
+ #include "devices.h"
+ 
++#ifdef CONFIG_MACH_MX27
++static struct resource mx27_camera_resources[] = {
++	{
++	       .start = MX27_CSI_BASE_ADDR,
++	       .end = MX27_CSI_BASE_ADDR + 0x1f,
++	       .flags = IORESOURCE_MEM,
++	}, {
++	       .start = MX27_EMMA_PRP_BASE_ADDR,
++	       .end = MX27_EMMA_PRP_BASE_ADDR + 0x1f,
++	       .flags = IORESOURCE_MEM,
++	}, {
++	       .start = MX27_INT_CSI,
++	       .end = MX27_INT_CSI,
++	       .flags = IORESOURCE_IRQ,
++	},{
++	       .start = MX27_INT_EMMAPRP,
++	       .end = MX27_INT_EMMAPRP,
++	       .flags = IORESOURCE_IRQ,
++	},
++};
++struct platform_device mx27_camera_device = {
++	.name = "mx2-camera",
++	.id = 0,
++	.num_resources = ARRAY_SIZE(mx27_camera_resources),
++	.resource = mx27_camera_resources,
++	.dev = {
++		.coherent_dma_mask = 0xffffffff,
++	},
++};
++#endif
++
+ /*
+  * SPI master controller
+  *
+diff --git a/arch/arm/mach-mx2/devices.h b/arch/arm/mach-mx2/devices.h
+index 84ed513..8bdf018 100644
+--- a/arch/arm/mach-mx2/devices.h
++++ b/arch/arm/mach-mx2/devices.h
+@@ -29,6 +29,7 @@ extern struct platform_device mxc_i2c_device1;
+ extern struct platform_device mxc_sdhc_device0;
+ extern struct platform_device mxc_sdhc_device1;
+ extern struct platform_device mxc_otg_udc_device;
++extern struct platform_device mx27_camera_device;
+ extern struct platform_device mxc_otg_host;
+ extern struct platform_device mxc_usbh1;
+ extern struct platform_device mxc_usbh2;
+-- 
+1.7.1
 
