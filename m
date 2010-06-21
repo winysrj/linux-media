@@ -1,151 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms16-1.1blu.de ([89.202.0.34]:41143 "EHLO ms16-1.1blu.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753853Ab0FFU7j (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jun 2010 16:59:39 -0400
-Date: Sun, 6 Jun 2010 22:59:36 +0200
-From: Lars Schotte <lars.schotte@schotteweb.de>
-To: Niels Wagenaar <n.wagenaar@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] hvr4000 doesnt work w/ dvb-s2 nor DVB-T
-Message-ID: <20100606225936.3eb0376d@romy.gusto>
-In-Reply-To: <AANLkTilkO8i2e_SyHVVqYuaPEhjm95VmHHpiABFQc_Rj@mail.gmail.com>
-References: <20100606010311.6d98ef7b@romy.gusto>
-	<20100606084301.GA3070@gmail.com>
-	<20100606133946.76c3a6e0@romy.gusto>
-	<20100606124925.GB3070@gmail.com>
-	<20100606145154.60de422e@romy.gusto>
-	<20100606125636.GC3070@gmail.com>
-	<20100606150554.55be1852@romy.gusto>
-	<AANLkTin1jaMbG0ULhQRZi3QWkd2oVXazJ4BTGh5rMYdM@mail.gmail.com>
-	<20100606212814.1e55206c@romy.gusto>
-	<AANLkTilLnzSddnbyCn0QawNwvQkeFsWK_RvkgNPH4Gyx@mail.gmail.com>
-	<20100606215906.1c1f5536@romy.gusto>
-	<AANLkTilkO8i2e_SyHVVqYuaPEhjm95VmHHpiABFQc_Rj@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:63273 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757415Ab0FUSoM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 14:44:12 -0400
+Received: by vws3 with SMTP id 3so1363915vws.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Jun 2010 11:44:11 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4C1FADF3.8040301@ventoso.org>
+References: <AANLkTimtPb6A5Cd6mB2z3S5U2uZy0l4fkbVyyL3njizs@mail.gmail.com>
+	<4C1F0DDC.4070307@ventoso.org>
+	<AANLkTimnh1hG27aEdqktSHfXbIEOmirlG9ZJXDpVBQQQ@mail.gmail.com>
+	<4C1FADF3.8040301@ventoso.org>
+Date: Mon, 21 Jun 2010 14:44:10 -0400
+Message-ID: <AANLkTik5CucpRF2sBRMZEBruww7UEUX-u1bpZ0VSHzIM@mail.gmail.com>
+Subject: Re: [PATCH] af9005: use generic_bulk_ctrl_endpoint_response
+From: Michael Krufky <mkrufky@kernellabs.com>
+To: Luca Olivetti <luca@ventoso.org>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-and lets not forget, we have both found out that it does lock, but that
-isnt dvb-s2 because there is no video, so what is it for?
+On Mon, Jun 21, 2010 at 2:22 PM, Luca Olivetti <luca@ventoso.org> wrote:
+> Al 21/06/10 17:45, En/na Michael Krufky ha escrit:
+>>
+>> On Mon, Jun 21, 2010 at 2:59 AM, Luca Olivetti<luca@ventoso.org>  wrote:
+>>>
+>>> En/na Michael Krufky ha escrit:
+>>>>
+>>>> Could somebody please test this patch and confirm that it doesn't
+>>>> break the af9005 support?
+>>>>
+>>>> This patch removes the af9005_usb_generic_rw function and uses the
+>>>> dvb_usb_generic_rw function instead, using
+>>>> generic_bulk_ctrl_endpoint_response to differentiate between the read
+>>>> pipe and the write pipe.
+>>>
+>>> Unfortunately I cannot test it (my device is broken)[*].
+>>> At the time I wrote my own rw function because I didn't find a way to
+>>> send
+>>> on a bulk endpoint and receiving on another one (i.e. I didn't know about
+>>> generic_bulk_ctrl_endpoint/generic_bulk_ctrl_endpoint_response or they
+>>> weren't available at the time).
+>>>
+>>> [*]Actually the tuner is broken, but the usb is working fine, so maybe I
+>>> can
+>>> give it a try.
+>>
+>>
+>> Luca,
+>>
+>> That's OK -- I only added this "generic_bulk_ctrl_endpoint_response"
+>> feature 4 months ago -- your driver predates that.  I am pushing this
+>> patch to reduce the size of the kernel while using your driver to
+>> demonstrate how to use the new feature.  I am already using it in an
+>> out of tree driver that I plan to merge within the next few months or
+>> so, but its always nice to optimize code that already exists with
+>> small cleanups like this.
+>>
+>> You don't need the tuner in order to prove the patch -- if you can
+>> simply confirm that you are able to both read and write successfully,
+>> that would be enough to prove the patch.  After testing, please
+>> provide an ack in this thread so that I may include that with my pull
+>> request.
+>
+> I cloned your hg tree and had to modify a couple of #if otherwise it
+> wouldn't compile (it choked on dvb_class->nodename and dvb_class->devnode),
+> after that it built fine and apparently the usb communication still works:
+>
+> usb 8-2: new full speed USB device using uhci_hcd and address 2
+> usb 8-2: New USB device found, idVendor=15a4, idProduct=9020
+> usb 8-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+> usb 8-2: Product: DVBT
+> usb 8-2: Manufacturer: Afatech
+> usb 8-2: configuration #1 chosen from 1 choice
+> dvb-usb: found a 'Afatech DVB-T USB1.1 stick' in cold state, will try to
+> load a firmware
+> usb 8-2: firmware: requesting af9005.fw
+> dvb-usb: downloading firmware from file 'af9005.fw'
+> dvb-usb: found a 'Afatech DVB-T USB1.1 stick' in warm state.
+> dvb-usb: will use the device's hardware PID filter (table count: 32).
+> DVB: registering new adapter (Afatech DVB-T USB1.1 stick)
+> DVB: registering adapter 0 frontend 0 (AF9005 USB DVB-T)...
+> input: IR-receiver inside an USB DVB receiver as
+> /devices/pci0000:00/0000:00:1d.2/usb8/8-2/input/input12
+> dvb-usb: schedule remote query interval to 200 msecs.
+> dvb-usb: Afatech DVB-T USB1.1 stick successfully initialized and connected.
+> MT2060: successfully identified (IF1 = 1224)
+>
+> Acked-by: Luca Olivetti <luca@ventoso.org>
+>
+> Bye
+> --
+> Luca
 
-it doesnt mean anything as long as there is no picture.
+Thank you, Luca -- I'll add your ack now and send off a pull request.
 
-On Sun, 6 Jun 2010 22:39:30 +0200
-Niels Wagenaar <n.wagenaar@xs4all.nl> wrote:
+Cheers,.
 
-> 2010/6/6 Lars Schotte <lars.schotte@schotteweb.de>:
-> > how do you think i watch DVB-S?
-> 
-> I really don't know, I really don't care.
-> 
-> > now you are lying, and that for sure!
-> 
-> I do not. Please, read my information carefully. You seem to miss
-> something.
-> 
-> > because mplayer has still this tunig issue, because he doesnt know
-> > that coderate shit, and even so, i tried it w/ szap-s2 -r option
-> > and tried to play it and only sound came out, so ... maybe you
-> > should check it before writing again.
-> >
-> 
-> I've never tried mplayer in combination with szap-s2. Like I told you
-> before, I use VDR in combination with Xine.
-> 
-> > VLC and these ... players will do the same ... there is nothing
-> > better than mplayer out there. mplayer is the best!!
-> >
-> 
-> 
-> 
-> > i know, that DVB-T on HVR4000 is supported by linux, because yes it
-> > works to me, but it doesnt find any programmes, so i would suggest
-> > you try it out by yourself before writing again. like I wrote to
-> > the first post - it works but is not usable (maybe internal noise
-> > too high).
-> >
-> > analog TV works, and FM i didnt check.
-> >
-> 
-> To proof to you (and the rest of this world) I'm not lying or
-> whatever, here's my attempt with scan-s2 and szap-s2:
-> 
-> - I made an file called hd_astra with the following contents:
-> 
-> S 11361000 H 22000000 2/3
-> 
-> - Then I scanned with scan-s2:
-> 
-> ./scan-s2 -o zap ./hd_astra > ~/channels.conf
-> 
-> - Which gave me the following information:
-> 
-> Das Erste HD:11361:h:0:22000:6010:6020:11100:6
-> ZDF HD:11361:h:0:22000:6110:6120:11110:6
-> arte HD:11361:h:0:22000:6210:6221:11120:6
-> 
-> - Then I used szap-s2
-> 
-> ./szap-s2 -c ~/channels.conf -S 1 -M 5 -C 23 -n 2
-> 
-> - Which gave me the following output:
-> 
-> root@ubuntu:/usr/local/src/szap-s2# ./szap-s2 -c ~/channels.conf -S 1
-> -M 5 -C 23 -n 2
-> reading channels from file '/home/htpc/channels.conf'
-> zapping to 2 'ZDF HD':
-> delivery DVB-S2, modulation 8PSK
-> sat 0, frequency 11361 MHz H, symbolrate 22000000, coderate 2/3,
-> rolloff 0.35 vpid 0x17de, apid 0x17e8, sid 0x2b66
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> status 00 | signal 05aa | snr 002e | ber 00000000 | unc fffffffe |
-> status 1b | signal 05aa | snr 002c | ber 00000000 | unc fffffffe |
-> FE_HAS_LOCK status 1b | signal 05aa | snr 002d | ber 00516155 | unc
-> fffffffe | FE_HAS_LOCK status 1b | signal 05aa | snr 002d | ber
-> 00145855 | unc fffffffe | FE_HAS_LOCK status 1b | signal 05aa | snr
-> 002c | ber 00000000 | unc fffffffe | FE_HAS_LOCK status 1b | signal
-> 05aa | snr 002c | ber 00000000 | unc fffffffe | FE_HAS_LOCK
-> 
-> It locks. So mplayer should make it work. I can't test this since I
-> don't have mplayer installed. But I think that some apologies are in
-> order, since the issue is not with your hardware or szap-s2.
-> 
-> > On Sun, 6 Jun 2010 21:45:45 +0200
-> > Niels Wagenaar <n.wagenaar@xs4all.nl> wrote:
-> >
-> >> Me? Lying? Before even telling me that I'm paid by Hauppauge,
-> >> please be sure to read my post. I wrote that it works like a charm
-> >> in combination with VDR (Google it). I've never used szap-s2 since
-> >> I use VDR for my TV playback.
-> >>
-> >> By my better judgement I'm going to give you an other option. If
-> >> you want to watch some TV without many options to configure (just
-> >> install, scan and watch through VLC, mplayer, xbmc or whatever),
-> >> you might want to check TV Headend
-> >> (http://www.lonelycoder.com/hts/tvheadend_overview.html). It works
-> >> like a charm with my NOVA-HD-S2.
-> >>
-> >> Oh and for your information. The DVB-T and DVB-S[2] of the device
-> >> can't be used at the same time. It's not a driver issue, it's a
-> >> hardware issue. In Windows you aren't able to do the same.
-> >>
-> >> The card (if it's the HVR-4000 or the NOVA-HD-S2) works perfectly
-> >> under Linux. I even got it working with Kaffeine.
-> >>
-> >> 2010/6/6 Lars Schotte <lars.schotte@schotteweb.de>:
-> >> > OK,
-> >> > i am using w_scan, it scanned and found DVB-S2 channels but
-> >> > szap-s2 doesnt tune in and there is no data, exactly like i
-> >> > said, so either you are lying and you have none of this things
-> >> > running or you were paid by huappauge to say this.
-> >> >
-> >> > i am using fedora 13 and HVR4000 and only DVB-S works. mplayer
-> >> > has the same problem and again - I have no diseq switch
-> >> > installed.
-> >> >
-> >>
-> >
-> 
+Mike Krufky
