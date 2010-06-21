@@ -1,62 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f223.google.com ([209.85.219.223]:37593 "EHLO
-	mail-ew0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551Ab0FDPjY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 4 Jun 2010 11:39:24 -0400
-Date: Fri, 4 Jun 2010 17:39:03 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: walter harms <wharms@bfs.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Frederic Weisbecker <fweisbec@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [patch v2] V4L/DVB: dvb_ca_en50221: return -EFAULT on copy_to_user
-	errors
-Message-ID: <20100604153903.GH5483@bicker>
-References: <20100604103629.GC5483@bicker> <4C08F0DD.50702@bfs.de>
+Received: from 30.mail-out.ovh.net ([213.186.62.213]:47061 "HELO
+	30.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752178Ab0FUSWs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 14:22:48 -0400
+Message-ID: <4C1FADF3.8040301@ventoso.org>
+Date: Mon, 21 Jun 2010 20:22:43 +0200
+From: Luca Olivetti <luca@ventoso.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C08F0DD.50702@bfs.de>
+To: Michael Krufky <mkrufky@kernellabs.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] af9005: use generic_bulk_ctrl_endpoint_response
+References: <AANLkTimtPb6A5Cd6mB2z3S5U2uZy0l4fkbVyyL3njizs@mail.gmail.com>	<4C1F0DDC.4070307@ventoso.org> <AANLkTimnh1hG27aEdqktSHfXbIEOmirlG9ZJXDpVBQQQ@mail.gmail.com>
+In-Reply-To: <AANLkTimnh1hG27aEdqktSHfXbIEOmirlG9ZJXDpVBQQQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-copy_to_user() returns the number of bytes remaining to be copied which
-isn't the right thing to return here.  The comments say that these 
-functions in dvb_ca_en50221.c should return the number of bytes copied or
-an error return.  I've changed it to return -EFAULT.
+Al 21/06/10 17:45, En/na Michael Krufky ha escrit:
+> On Mon, Jun 21, 2010 at 2:59 AM, Luca Olivetti<luca@ventoso.org>  wrote:
+>> En/na Michael Krufky ha escrit:
+>>>
+>>> Could somebody please test this patch and confirm that it doesn't
+>>> break the af9005 support?
+>>>
+>>> This patch removes the af9005_usb_generic_rw function and uses the
+>>> dvb_usb_generic_rw function instead, using
+>>> generic_bulk_ctrl_endpoint_response to differentiate between the read
+>>> pipe and the write pipe.
+>>
+>> Unfortunately I cannot test it (my device is broken)[*].
+>> At the time I wrote my own rw function because I didn't find a way to send
+>> on a bulk endpoint and receiving on another one (i.e. I didn't know about
+>> generic_bulk_ctrl_endpoint/generic_bulk_ctrl_endpoint_response or they
+>> weren't available at the time).
+>>
+>> [*]Actually the tuner is broken, but the usb is working fine, so maybe I can
+>> give it a try.
+>
+>
+> Luca,
+>
+> That's OK -- I only added this "generic_bulk_ctrl_endpoint_response"
+> feature 4 months ago -- your driver predates that.  I am pushing this
+> patch to reduce the size of the kernel while using your driver to
+> demonstrate how to use the new feature.  I am already using it in an
+> out of tree driver that I plan to merge within the next few months or
+> so, but its always nice to optimize code that already exists with
+> small cleanups like this.
+>
+> You don't need the tuner in order to prove the patch -- if you can
+> simply confirm that you are able to both read and write successfully,
+> that would be enough to prove the patch.  After testing, please
+> provide an ack in this thread so that I may include that with my pull
+> request.
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
----
-V2: Some style fixes suggested by Walter Harms.
+I cloned your hg tree and had to modify a couple of #if otherwise it 
+wouldn't compile (it choked on dvb_class->nodename and 
+dvb_class->devnode), after that it built fine and apparently the usb 
+communication still works:
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c b/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
-index ef259a0..cb97e6b 100644
---- a/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
-+++ b/drivers/media/dvb/dvb-core/dvb_ca_en50221.c
-@@ -1318,8 +1318,11 @@ static ssize_t dvb_ca_en50221_io_write(struct file *file,
- 
- 		fragbuf[0] = connection_id;
- 		fragbuf[1] = ((fragpos + fraglen) < count) ? 0x80 : 0x00;
--		if ((status = copy_from_user(fragbuf + 2, buf + fragpos, fraglen)) != 0)
-+		status = copy_from_user(fragbuf + 2, buf + fragpos, fraglen);
-+		if (status) {
-+			status = -EFAULT;
- 			goto exit;
-+		}
- 
- 		timeout = jiffies + HZ / 2;
- 		written = 0;
-@@ -1494,8 +1497,11 @@ static ssize_t dvb_ca_en50221_io_read(struct file *file, char __user * buf,
- 
- 	hdr[0] = slot;
- 	hdr[1] = connection_id;
--	if ((status = copy_to_user(buf, hdr, 2)) != 0)
-+	status = copy_to_user(buf, hdr, 2);
-+	if (status) {
-+		status = -EFAULT;
- 		goto exit;
-+	}
- 	status = pktlen;
- 
- exit:
+usb 8-2: new full speed USB device using uhci_hcd and address 2
+usb 8-2: New USB device found, idVendor=15a4, idProduct=9020
+usb 8-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 8-2: Product: DVBT
+usb 8-2: Manufacturer: Afatech
+usb 8-2: configuration #1 chosen from 1 choice
+dvb-usb: found a 'Afatech DVB-T USB1.1 stick' in cold state, will try to 
+load a firmware
+usb 8-2: firmware: requesting af9005.fw
+dvb-usb: downloading firmware from file 'af9005.fw'
+dvb-usb: found a 'Afatech DVB-T USB1.1 stick' in warm state.
+dvb-usb: will use the device's hardware PID filter (table count: 32).
+DVB: registering new adapter (Afatech DVB-T USB1.1 stick)
+DVB: registering adapter 0 frontend 0 (AF9005 USB DVB-T)...
+input: IR-receiver inside an USB DVB receiver as 
+/devices/pci0000:00/0000:00:1d.2/usb8/8-2/input/input12
+dvb-usb: schedule remote query interval to 200 msecs.
+dvb-usb: Afatech DVB-T USB1.1 stick successfully initialized and connected.
+MT2060: successfully identified (IF1 = 1224)
+
+Acked-by: Luca Olivetti <luca@ventoso.org>
+
+Bye
+-- 
+Luca
