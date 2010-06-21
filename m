@@ -1,62 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:54696 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757834Ab0FFNW4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 09:22:56 -0400
-Received: by pvg16 with SMTP id 16so1115701pvg.19
-        for <linux-media@vger.kernel.org>; Sun, 06 Jun 2010 06:22:56 -0700 (PDT)
-Message-ID: <4C0BA129.8040509@gmail.com>
-Date: Sun, 06 Jun 2010 21:22:49 +0800
-From: Ang Way Chuang <wcang79@gmail.com>
-MIME-Version: 1.0
-To: Lars Schotte <lars.schotte@schotteweb.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: hvr4000 in general
-References: <20100606041209.6406c09b@romy.gusto>	<4C0B5CA7.6070709@gmail.com> <20100606134147.0d940dca@romy.gusto>
-In-Reply-To: <20100606134147.0d940dca@romy.gusto>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from tango.tkos.co.il ([62.219.50.35]:34997 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752513Ab0FUFQh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 01:16:37 -0400
+From: Baruch Siach <baruch@tkos.co.il>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCHv4 0/3] Driver for the i.MX2x CMOS Sensor Interface
+Date: Mon, 21 Jun 2010 08:15:57 +0300
+Message-Id: <cover.1277096909.git.baruch@tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lars Schotte wrote:
-> yes? it works definitely? and how is that? again, I need something to
-> see and as long as it doesnt tune in and as long as no data is flowing
-> i can NOT see how it could be working.
+This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and
+platform code for the i.MX25 and i.MX27 chips. This driver is based on a 
+driver for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has 
+posted in linux-media last December[1]. I tested the mx2_camera driver on the 
+i.MX25 PDK. Sascha Hauer has tested a earlier version of this driver on an 
+i.MX27 based board. I included in this version some fixes from Sascha that 
+enable i.MX27 support.
 
-Definitely works using szap-s2. Tuning works and so is the data. I don't have access to the system right now.
+[1] https://patchwork.kernel.org/patch/67636/
 
-> 
-> what fragility do you mean? did she burned out/ overheating, or what
-> kind of fragility?
+Changes v3 -> v4
+    Address more comments from Guennadi Liakhovetski, including:
 
-One of the chip on the board got burned for all the burnt cards.
+    * Fix the double trigger handling of mx27 eMMA
 
-> 
-> On Sun, 06 Jun 2010 16:30:31 +0800
-> Ang Way Chuang <wcang79@gmail.com> wrote:
-> 
->> That card definitely works on DVB-S2. The only problem I had with
->> that card is its fragility. I have a few burnt HVR 4000 (lite) cards
->> in the lab.
->>
->> Lars Schotte wrote:
->>> hi all hvr4000 "friends"
->>>
->>> i am wondering if someone has this card working a little more then
->>> I do.
->>>
->>> i have dvb-s working quite good. the only thing what I can say
->>> positively about thisc card is that it at least reports a better
->>> signal strength and also SNR. so it is possible that the part
->>> "before" the chipset from the viewpoint of the signal arriving from
->>> space it may have a better "tuner".
->>>
->>> but so far ... has someone dvb-s2 working? (on linux/not freebsd!!)
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe
->>> linux-media" in the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
-> 
+    * Add a FIXME comment in the code of eMMA overflow handling
+
+Changes v2 -> v3
+    Address more comments from Guennadi Liakhovetski.
+
+    Applied part of Sashca's patch that I forgot in v2.
+
+Changes v1 -> v2
+    Addressed the comments of Guennadi Liakhovetski except from the following:
+
+    1. The mclk_get_divisor implementation, since I don't know what this code 
+       is good for
+
+    2. mx2_videobuf_release should not set pcdev->active on i.MX27, because 
+       mx27_camera_frame_done needs this pointer
+
+    3. In mx27_camera_emma_buf_init I don't know the meaning of those hard 
+       coded magic numbers
+
+    Applied i.MX27 fixes from Sascha.
+
+Baruch Siach (3):
+  mx2_camera: Add soc_camera support for i.MX25/i.MX27
+  mx27: add support for the CSI device
+  mx25: add support for the CSI device
+
+ arch/arm/mach-mx2/clock_imx27.c          |    2 +-
+ arch/arm/mach-mx2/devices.c              |   31 +
+ arch/arm/mach-mx2/devices.h              |    1 +
+ arch/arm/mach-mx25/clock.c               |   14 +-
+ arch/arm/mach-mx25/devices.c             |   22 +
+ arch/arm/mach-mx25/devices.h             |    1 +
+ arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
+ arch/arm/plat-mxc/include/mach/mx25.h    |    2 +
+ arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
+ drivers/media/video/Kconfig              |   13 +
+ drivers/media/video/Makefile             |    1 +
+ drivers/media/video/mx2_camera.c         | 1493 ++++++++++++++++++++++++++++++
+ 12 files changed, 1625 insertions(+), 5 deletions(-)
+ create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
+ create mode 100644 drivers/media/video/mx2_camera.c
 
