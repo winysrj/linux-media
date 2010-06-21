@@ -1,59 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36799 "EHLO mx1.redhat.com"
+Received: from canardo.mork.no ([148.122.252.1]:36307 "EHLO canardo.mork.no"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753086Ab0F0Beu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jun 2010 21:34:50 -0400
-Message-ID: <4C26AAAC.1020803@redhat.com>
-Date: Sat, 26 Jun 2010 22:34:36 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1753660Ab0FUIxb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 04:53:31 -0400
+From: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Bj=C3=B8rn=20Mork?= <bjorn@mork.no>,
+	Manu Abraham <abraham.manu@gmail.com>,
+	"Ozan ?a?layan" <ozan@pardus.org.tr>,
+	Manu Abraham <manu@linuxtv.org>, stable@kernel.org
+Subject: [PATCH] Mantis, hopper: use MODULE_DEVICE_TABLE use the macro to make modules auto-loadable
+Date: Mon, 21 Jun 2010 10:52:56 +0200
+Message-Id: <1277110376-6993-1-git-send-email-bjorn@mork.no>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Correct way to do s_ctrl ioctl taking into account subdev 	framework?
-References: <AANLkTim9TfITmvy7nEuSVJnCxRwCkpbmgRc2FIIIWHGF@mail.gmail.com>	<201006262051.52754.hverkuil@xs4all.nl> <AANLkTikPKv6iCQmV14JSiR61AUMswsOoTB7i-eSHAwH4@mail.gmail.com>
-In-Reply-To: <AANLkTikPKv6iCQmV14JSiR61AUMswsOoTB7i-eSHAwH4@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 26-06-2010 16:04, Devin Heitmueller escreveu:
-> On Sat, Jun 26, 2010 at 2:51 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> There really is no good way at the moment to handle cases like this, or at
->> least not without a lot of work.
-> 
-> Ok, it's good to know I'm not missing something obvious.
-> 
->> The plan is to have the framework merged in time for 2.6.36. My last patch
->> series for the framework already converts a bunch of subdevs to use it. Your
->> best bet is to take the patch series and convert any remaining subdevs used
->> by em28xx and em28xx itself. I'd be happy to add those patches to my patch
->> series, so that when I get the go ahead the em28xx driver will be fixed
->> automatically.
->>
->> It would be useful for me anyway to have someone else use it: it's a good
->> check whether my documentation is complete.
-> 
-> Sure, could you please point me to the tree in question and I'll take a look?
-> 
-> Given I've got applications failing, for the short term I will likely
-> just submit a patch which makes the s_ctrl always return zero
-> regardless of the subdev response, instead of returning 1.
+Thanks to Ozan ?a?layan <ozan@pardus.org.tr> for pointing it out
 
-Yeah, something like:
+From: Manu Abraham <abraham.manu@gmail.com>
 
-if (rc = 1) {
-	rc = 0;
-...
+Signed-off-by: Manu Abraham <manu@linuxtv.org>
+[bjorn@mork.no: imported from http://jusst.de/hg/mantis-v4l-dvb/raw-rev/3731f71ed6bf]
+Signed-off-by: Bjørn Mork <bjorn@mork.no>
+Cc: stable@kernel.org
+---
+This patch is so obviously correct that I do not know how to write it differently.
 
-would do the trick. Yet, the application is broken, as it is considering a positive
-return as an error. A positive code should never be considered as an error. So, we
-need to fix v4l2-ctl as well (ok, returning 1 is wrong as well, as this is a non-v4l2
-compliance in this case).
+It is copied from the mercurial repostory at http://jusst.de/hg/mantis-v4l-dvb/
+where it has been resting for more than 4 months. I certainly hope everyone is
+OK with me just forwarding it like this...  My only agenda is a fully functional
+mantis driver in the kernel.
 
-We might add a new handler at subdev, but, as Laurent is reworking
-it, the above trick would be an acceptable workaround.
+This patch does nothing but add all the relevant device id's for these two drivers, so
+I consider it material for stable as well.
 
-Cheers,
-Mauro.
+Bjørn
+
+ drivers/media/dvb/mantis/hopper_cards.c |    2 ++
+ drivers/media/dvb/mantis/mantis_cards.c |    2 ++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/dvb/mantis/hopper_cards.c b/drivers/media/dvb/mantis/hopper_cards.c
+index d073c61..1bf03ac 100644
+--- a/drivers/media/dvb/mantis/hopper_cards.c
++++ b/drivers/media/dvb/mantis/hopper_cards.c
+@@ -250,6 +250,8 @@ static struct pci_device_id hopper_pci_table[] = {
+ 	{ }
+ };
+ 
++MODULE_DEVICE_TABLE(pci, hopper_pci_table);
++
+ static struct pci_driver hopper_pci_driver = {
+ 	.name		= DRIVER_NAME,
+ 	.id_table	= hopper_pci_table,
+diff --git a/drivers/media/dvb/mantis/mantis_cards.c b/drivers/media/dvb/mantis/mantis_cards.c
+index 16f1708..64970cf 100644
+--- a/drivers/media/dvb/mantis/mantis_cards.c
++++ b/drivers/media/dvb/mantis/mantis_cards.c
+@@ -280,6 +280,8 @@ static struct pci_device_id mantis_pci_table[] = {
+ 	{ }
+ };
+ 
++MODULE_DEVICE_TABLE(pci, mantis_pci_table);
++
+ static struct pci_driver mantis_pci_driver = {
+ 	.name		= DRIVER_NAME,
+ 	.id_table	= mantis_pci_table,
+-- 
+1.7.1
+
