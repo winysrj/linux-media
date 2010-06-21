@@ -1,36 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bld-mail14.adl6.internode.on.net ([150.101.137.99]:43314 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752172Ab0FCE6G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 3 Jun 2010 00:58:06 -0400
-Message-ID: <4C07365A.4060109@gmail.com>
-Date: Thu, 03 Jun 2010 14:58:02 +1000
-From: Jed <jedi.theone@gmail.com>
-MIME-Version: 1.0
-To: CityK <cityk@rogers.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: is the list down?
-References: <4C068FE9.9020709@gmail.com> <4C069040.10705@gmail.com> <4C06B54B.2030801@kernellabs.com> <4C072479.60601@rogers.com>
-In-Reply-To: <4C072479.60601@rogers.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:46651 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751243Ab0FUQPz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 12:15:55 -0400
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH 8/8 v2]tuners:tuner-simple Fix warning: variable 'tun' set but not used
+Date: Mon, 21 Jun 2010 09:15:47 -0700
+Message-Id: <1277136947-2787-1-git-send-email-justinmattock@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-LOL, nice one smart-arse! ;)
-I had successfully subscribed about an hour before enquiring.
-Perhaps t'was just a lull in the list.
+Resend due to a whitespace issue I created by mistake.
+The below patch fixes a warning message create by gcc 4.6.0
+ 
+ CC [M]  drivers/media/common/tuners/tuner-simple.o
+drivers/media/common/tuners/tuner-simple.c: In function 'simple_set_tv_freq':
+drivers/media/common/tuners/tuner-simple.c:548:20: warning: variable 'tun' set but not used
 
-On 3/06/10 1:41 PM, CityK wrote:
->    Jed wrote:
->> nope got that, but not getting other people's emails. weird.
->
->
-> Maybe its amnesia?
->
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg19011.html
->
-> "I'm unsubscribing from this list..."
->
->
->
+ Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+ Reviewed-By: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+---
+ drivers/media/common/tuners/tuner-simple.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/common/tuners/tuner-simple.c b/drivers/media/common/tuners/tuner-simple.c
+index 8abbcc5..84900fa 100644
+--- a/drivers/media/common/tuners/tuner-simple.c
++++ b/drivers/media/common/tuners/tuner-simple.c
+@@ -545,14 +545,11 @@ static int simple_set_tv_freq(struct dvb_frontend *fe,
+ 	struct tuner_simple_priv *priv = fe->tuner_priv;
+ 	u8 config, cb;
+ 	u16 div;
+-	struct tunertype *tun;
+ 	u8 buffer[4];
+ 	int rc, IFPCoff, i;
+ 	enum param_type desired_type;
+ 	struct tuner_params *t_params;
+ 
+-	tun = priv->tun;
+-
+ 	/* IFPCoff = Video Intermediate Frequency - Vif:
+ 		940  =16*58.75  NTSC/J (Japan)
+ 		732  =16*45.75  M/N STD
+-- 
+1.7.1.rc1.21.gf3bd6
+
