@@ -1,84 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tango.tkos.co.il ([62.219.50.35]:52060 "EHLO tango.tkos.co.il"
+Received: from mx1.redhat.com ([209.132.183.28]:51890 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751550Ab0FJF1G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jun 2010 01:27:06 -0400
-Date: Thu, 10 Jun 2010 08:26:19 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3 0/3] Driver for the i.MX2x CMOS Sensor Interface
-Message-ID: <20100610052618.GA31840@jasper.tkos.co.il>
-References: <cover.1274865040.git.baruch@tkos.co.il>
+	id S1751528Ab0FVWPo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jun 2010 18:15:44 -0400
+Message-ID: <4C213608.2080709@redhat.com>
+Date: Tue, 22 Jun 2010 19:15:36 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1274865040.git.baruch@tkos.co.il>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Thorsten Hirsch <t.hirsch@web.de>, linux-media@vger.kernel.org
+Subject: Re: em28xx/xc3028 - kernel driver vs. Markus Rechberger's driver
+References: <AANLkTilP-jf0MaV82LuTz8DjoNJKQ3xGCHuFgds4b212@mail.gmail.com> <AANLkTinfZ8M_NlcQFwqRQFfLmMVKKIA3aC3o8v5u7YEF@mail.gmail.com>
+In-Reply-To: <AANLkTinfZ8M_NlcQFwqRQFfLmMVKKIA3aC3o8v5u7YEF@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi linux-media list,
+Em 22-06-2010 18:52, Devin Heitmueller escreveu:
+> On Tue, Jun 22, 2010 at 5:25 PM, Thorsten Hirsch <t.hirsch@web.de> wrote:
+>> Hi,
+>>
+>> as far as I know there's been some trouble in the past regarding
+>> Markus Rechberger's em28xx driver (em28xx-new) and the official
+>> development line, resulting in the current situation:
+>>
+>> - M. Rechberger isn't developing his driver anymore
+>> - kernel driver doesn't support em28xx/xc3028 based usb sticks
+>> (cinergy usb t xs)
+>>
+>> Can I help to solve the situation?
+>>
+>> So far I opened a bug report on launchpad
+>> (https://bugs.launchpad.net/ubuntu/+source/linux/+bug/460636)
+>> describing the situation with both drivers. I also tried to update M.
+>> Rechberger's driver making it work in more recent kernels. This worked
+>> for a short while, but then my usb stick lost its official (terratec
+>> branded) usb id and I couldn't manage to make it work again since.
 
-Ping?
-Any news on this?
+You probably damaged the contents of the device's eeprom. If you have the
+logs with the previous eeprom contents somewhere, it is possible to recover
+it. There's an util at v4l-utils that allows re-writing the information at
+the eeprom.
+>> The
+>> current situation for my patched version of M. Rechberger's driver is,
+>> that everything seems to work fine except for locking channels / some
+>> tuning stuff ...well, I don't know exactly, I just see that kaffeine
+>> detects the device and can scan for channels. While the 2 signal bars
+>> (snr/quality) are pretty active and even the green tuning led (in
+>> kaffeine) is very often active, there is just no channel entering the
+>> list.
+>>
+>> Regarding the official em28xx driver my usb stick is far away from
+>> working. It stops as soon as when the firmware is being loaded:
+>>
+>> [  576.009547] xc2028 5-0060: Incorrect readback of firmware version
+>>
+>> I already wrote an email to Mauro Carvalho Chehab (the author of the
+>> em28xx driver) and he told me that my firmware file must be corrupted.
+>> That's xc3028-v27.fw. My version is from Ubuntu's nonfree firmware
+>> package. But it's the same file as when I follow Mauro's description
+>> of how to extract the firmware from the Windows driver
+>> (extract_xc3028.pl). So it looks as if the Cinergy USB T XS needs a
+>> different xc3028-v27.fw file.
+>>
+>> What about the firmware in M. Rechberger's driver? Well, it doesn't
+>> depend on an external firmware file, because the firmware is included
+>> in xc3028/xc3028_firmwares.h, which has the following copyright note:
+>> (c) 2006, Xceive Corporation. Looks like the official one, so I guess
+>> it should work. And since my device was already working with that
+>> firmware a while ago when Markus was still developing his driver I
+>> guess I should focus on the following question:
+>>
+>> => How can I extract the firmware from Xceive's official
+>> xc3028/xc3028_firmwares.h and making it work with the em28xx driver
+>> (vanilla kernel)?
 
-baruch
+> I hate to say that "you're totally on the wrong track", except that's
+> almost certainly the case.
+> 
+> You've got the right firmware already (and there isn't a 'different
+> v.27').  That error occurs if the driver is unable to read back the
+> version from the chip after loading the firmware.  It's most likely
+> the board profile isn't setup properly to bring the chip out of reset.
 
-On Wed, May 26, 2010 at 12:13:15PM +0300, Baruch Siach wrote:
-> This series contains a soc_camera driver for the i.MX25/i.MX27 CSI device, and
-> platform code for the i.MX25 and i.MX27 chips. This driver is based on a 
-> driver for i.MX27 CSI from Sascha Hauer, that  Alan Carvalho de Assis has 
-> posted in linux-media last December[1]. I tested the mx2_camera driver on the 
-> i.MX25 PDK. Sascha Hauer has tested a earlier version of this driver on an 
-> i.MX27 based board. I included in this version some fixes from Sascha that 
-> enable i.MX27 support.
+I agree with the diagnosis. 
+
+As you're now saying that the eeprom contents of your board got
+damaged (different USB ID), this means that it is using the wrong setup
+for the GPIO pins. One (or two) pins are required to poweron/reset the
+xc3028 device. If the pin configuration is wrong, the firmware won't load
+at xc3028, and the device won't work.
+
+> The firmware is separated out because the Linux kernel process does
+> permit firmware embedding.  It *must* be provided as a separate blob.
+
+Due to GPL licensing for the kernel drivers, the only legal way for a 
+firmware to be inside the kernel (or inside a kernel driver) is if the 
+firmware is also provided as GPL. That's why a separate file is required.
+
+> Also, Xceive hasn't granted permission to redistribute the xc3028
+> firmware, which is why it usually has to be extracted from the Windows
+> driver (unlike the xc4000 and xc5000 where they have explicitly
+> granted redistribution rights).
 > 
-> [1] https://patchwork.kernel.org/patch/67636/
+> Regarding the statement that the "kernel driver doesn't support
+> em28xx/xc3028 based usb sticks", this is simply incorrect.  The
+> current kernel supports a variety of devices that have a combination
+> of the em28xx and xc3028.  A board profile needs to be added for the
+> device in question (I have the board but haven't had a chance to do
+> the necessary work).
 > 
-> Changes v2 -> v3
->     Address more comments from Guennadi Liakhovetski.
+> Exactly what is the USB ID of the board you have (there are a variety
+> different versions of the board with that name).  I probably have the
+> board already, but I want to be sure.
 > 
->     Applied part of Sashca's patch that I forgot in v2.
+> In the end, it's probably something like 12 lines of code need to be
+> added to the current driver.
 > 
-> Changes v1 -> v2
->     Addressed the comments of Guennadi Liakhovetski except from the following:
-> 
->     1. The mclk_get_divisor implementation, since I don't know what this code 
->        is good for
-> 
->     2. mx2_videobuf_release should not set pcdev->active on i.MX27, because 
->        mx27_camera_frame_done needs this pointer
-> 
->     3. In mx27_camera_emma_buf_init I don't know the meaning of those hard 
->        coded magic numbers
-> 
->     Applied i.MX27 fixes from Sascha.
-> 
-> Baruch Siach (3):
->   mx2_camera: Add soc_camera support for i.MX25/i.MX27
->   mx27: add support for the CSI device
->   mx25: add support for the CSI device
-> 
->  arch/arm/mach-mx2/clock_imx27.c          |    2 +-
->  arch/arm/mach-mx2/devices.c              |   31 +
->  arch/arm/mach-mx2/devices.h              |    1 +
->  arch/arm/mach-mx25/clock.c               |   14 +-
->  arch/arm/mach-mx25/devices.c             |   22 +
->  arch/arm/mach-mx25/devices.h             |    1 +
->  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
->  arch/arm/plat-mxc/include/mach/mx25.h    |    2 +
->  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
->  drivers/media/video/Kconfig              |   13 +
->  drivers/media/video/Makefile             |    1 +
->  drivers/media/video/mx2_camera.c         | 1488 ++++++++++++++++++++++++++++++
->  12 files changed, 1620 insertions(+), 5 deletions(-)
->  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
->  create mode 100644 drivers/media/video/mx2_camera.c
+> Devin
 > 
 
--- 
-                                                     ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
