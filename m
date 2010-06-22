@@ -1,158 +1,486 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms16-1.1blu.de ([89.202.0.34]:40830 "EHLO ms16-1.1blu.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753853Ab0FFU5g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jun 2010 16:57:36 -0400
-Date: Sun, 6 Jun 2010 22:57:31 +0200
-From: Lars Schotte <lars.schotte@schotteweb.de>
-To: Niels Wagenaar <n.wagenaar@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [linux-dvb] hvr4000 doesnt work w/ dvb-s2 nor DVB-T
-Message-ID: <20100606225731.41ce283c@romy.gusto>
-In-Reply-To: <AANLkTilkO8i2e_SyHVVqYuaPEhjm95VmHHpiABFQc_Rj@mail.gmail.com>
-References: <20100606010311.6d98ef7b@romy.gusto>
-	<20100606084301.GA3070@gmail.com>
-	<20100606133946.76c3a6e0@romy.gusto>
-	<20100606124925.GB3070@gmail.com>
-	<20100606145154.60de422e@romy.gusto>
-	<20100606125636.GC3070@gmail.com>
-	<20100606150554.55be1852@romy.gusto>
-	<AANLkTin1jaMbG0ULhQRZi3QWkd2oVXazJ4BTGh5rMYdM@mail.gmail.com>
-	<20100606212814.1e55206c@romy.gusto>
-	<AANLkTilLnzSddnbyCn0QawNwvQkeFsWK_RvkgNPH4Gyx@mail.gmail.com>
-	<20100606215906.1c1f5536@romy.gusto>
-	<AANLkTilkO8i2e_SyHVVqYuaPEhjm95VmHHpiABFQc_Rj@mail.gmail.com>
+Received: from smtpq2.gn.mail.iss.as9143.net ([212.54.34.165]:35369 "EHLO
+	smtpq2.gn.mail.iss.as9143.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751528Ab0FVWiL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jun 2010 18:38:11 -0400
+Received: from [212.54.34.139] (helo=smtp8.gn.mail.iss.as9143.net)
+	by smtpq2.gn.mail.iss.as9143.net with esmtp (Exim 4.69)
+	(envelope-from <walingdijkstra@hotmail.com>)
+	id 1ORBd1-0005S6-92
+	for linux-media@vger.kernel.org; Wed, 23 Jun 2010 00:07:35 +0200
+Received: from 5ed0874a.cable.ziggo.nl ([94.208.135.74] helo=[192.168.200.250])
+	by smtp8.gn.mail.iss.as9143.net with esmtp (Exim 4.69)
+	(envelope-from <walingdijkstra@hotmail.com>)
+	id 1ORBd0-0007YC-Bs
+	for linux-media@vger.kernel.org; Wed, 23 Jun 2010 00:07:34 +0200
+Subject: [PATCH] TT CT-3650 IR and CI support
+From: Waling Dijkstra <walingdijkstra@hotmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 23 Jun 2010 00:10:17 +0200
+Message-ID: <1277244617.27675.12.camel@shoebox.walinsky.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-apologies to whom? to hauppauge?
+Hi linux-media,
 
-the fact that it didnt lock in is a fact and the fact that mplayer
-doesnt play it from dvr0 or from itselfs chennels.conf list is a fact
-as well and then we have this DVB-T issue...
+adding support for IR and CI on the TT CT-3650.
+CI code was mainly copied from pctv452e (PCTV 452e DVB driver).
+IR support is same as on TT-S1500 (and 452e).
 
-you know what, you were not helpful at all, all you do is arguing with
-me what works and what doesnt, first you write how good it works and
-everything is fine and now you are presenting this hack, because the HW
-doesnt do sth. would be acceptable to say it first but not argumenting
-that you were right using this knowlegde i found out by myself before.
+Signed-off-by: Waling Dijkstra <walingdijkstra@hotmail.com>
 
-On Sun, 6 Jun 2010 22:39:30 +0200
-Niels Wagenaar <n.wagenaar@xs4all.nl> wrote:
+rgrds,
 
-> 2010/6/6 Lars Schotte <lars.schotte@schotteweb.de>:
-> > how do you think i watch DVB-S?
-> 
-> I really don't know, I really don't care.
-> 
-> > now you are lying, and that for sure!
-> 
-> I do not. Please, read my information carefully. You seem to miss
-> something.
-> 
-> > because mplayer has still this tunig issue, because he doesnt know
-> > that coderate shit, and even so, i tried it w/ szap-s2 -r option
-> > and tried to play it and only sound came out, so ... maybe you
-> > should check it before writing again.
-> >
-> 
-> I've never tried mplayer in combination with szap-s2. Like I told you
-> before, I use VDR in combination with Xine.
-> 
-> > VLC and these ... players will do the same ... there is nothing
-> > better than mplayer out there. mplayer is the best!!
-> >
-> 
-> 
-> 
-> > i know, that DVB-T on HVR4000 is supported by linux, because yes it
-> > works to me, but it doesnt find any programmes, so i would suggest
-> > you try it out by yourself before writing again. like I wrote to
-> > the first post - it works but is not usable (maybe internal noise
-> > too high).
-> >
-> > analog TV works, and FM i didnt check.
-> >
-> 
-> To proof to you (and the rest of this world) I'm not lying or
-> whatever, here's my attempt with scan-s2 and szap-s2:
-> 
-> - I made an file called hd_astra with the following contents:
-> 
-> S 11361000 H 22000000 2/3
-> 
-> - Then I scanned with scan-s2:
-> 
-> ./scan-s2 -o zap ./hd_astra > ~/channels.conf
-> 
-> - Which gave me the following information:
-> 
-> Das Erste HD:11361:h:0:22000:6010:6020:11100:6
-> ZDF HD:11361:h:0:22000:6110:6120:11110:6
-> arte HD:11361:h:0:22000:6210:6221:11120:6
-> 
-> - Then I used szap-s2
-> 
-> ./szap-s2 -c ~/channels.conf -S 1 -M 5 -C 23 -n 2
-> 
-> - Which gave me the following output:
-> 
-> root@ubuntu:/usr/local/src/szap-s2# ./szap-s2 -c ~/channels.conf -S 1
-> -M 5 -C 23 -n 2
-> reading channels from file '/home/htpc/channels.conf'
-> zapping to 2 'ZDF HD':
-> delivery DVB-S2, modulation 8PSK
-> sat 0, frequency 11361 MHz H, symbolrate 22000000, coderate 2/3,
-> rolloff 0.35 vpid 0x17de, apid 0x17e8, sid 0x2b66
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> status 00 | signal 05aa | snr 002e | ber 00000000 | unc fffffffe |
-> status 1b | signal 05aa | snr 002c | ber 00000000 | unc fffffffe |
-> FE_HAS_LOCK status 1b | signal 05aa | snr 002d | ber 00516155 | unc
-> fffffffe | FE_HAS_LOCK status 1b | signal 05aa | snr 002d | ber
-> 00145855 | unc fffffffe | FE_HAS_LOCK status 1b | signal 05aa | snr
-> 002c | ber 00000000 | unc fffffffe | FE_HAS_LOCK status 1b | signal
-> 05aa | snr 002c | ber 00000000 | unc fffffffe | FE_HAS_LOCK
-> 
-> It locks. So mplayer should make it work. I can't test this since I
-> don't have mplayer installed. But I think that some apologies are in
-> order, since the issue is not with your hardware or szap-s2.
-> 
-> > On Sun, 6 Jun 2010 21:45:45 +0200
-> > Niels Wagenaar <n.wagenaar@xs4all.nl> wrote:
-> >
-> >> Me? Lying? Before even telling me that I'm paid by Hauppauge,
-> >> please be sure to read my post. I wrote that it works like a charm
-> >> in combination with VDR (Google it). I've never used szap-s2 since
-> >> I use VDR for my TV playback.
-> >>
-> >> By my better judgement I'm going to give you an other option. If
-> >> you want to watch some TV without many options to configure (just
-> >> install, scan and watch through VLC, mplayer, xbmc or whatever),
-> >> you might want to check TV Headend
-> >> (http://www.lonelycoder.com/hts/tvheadend_overview.html). It works
-> >> like a charm with my NOVA-HD-S2.
-> >>
-> >> Oh and for your information. The DVB-T and DVB-S[2] of the device
-> >> can't be used at the same time. It's not a driver issue, it's a
-> >> hardware issue. In Windows you aren't able to do the same.
-> >>
-> >> The card (if it's the HVR-4000 or the NOVA-HD-S2) works perfectly
-> >> under Linux. I even got it working with Kaffeine.
-> >>
-> >> 2010/6/6 Lars Schotte <lars.schotte@schotteweb.de>:
-> >> > OK,
-> >> > i am using w_scan, it scanned and found DVB-S2 channels but
-> >> > szap-s2 doesnt tune in and there is no data, exactly like i
-> >> > said, so either you are lying and you have none of this things
-> >> > running or you were paid by huappauge to say this.
-> >> >
-> >> > i am using fedora 13 and HVR4000 and only DVB-S works. mplayer
-> >> > has the same problem and again - I have no diseq switch
-> >> > installed.
-> >> >
-> >>
-> >
-> 
+
+Waling
+
+diff --git a/drivers/media/dvb/dvb-usb/ttusb2.c b/drivers/media/dvb/dvb-usb/ttusb2.c
+index a6de489..5ce6a51 100644
+--- a/drivers/media/dvb/dvb-usb/ttusb2.c
++++ b/drivers/media/dvb/dvb-usb/ttusb2.c
+@@ -32,6 +32,8 @@
+ #include "tda1002x.h"
+ #include "tda827x.h"
+ #include "lnbp21.h"
++/* CA */
++#include "dvb_ca_en50221.h"
+ 
+ /* debug */
+ static int dvb_usb_ttusb2_debug;
+@@ -41,7 +43,26 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able))." DVB_USB_DEBUG_
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
++#define ci_dbg(format, arg...)                \
++do {                                          \
++	if (0)                                    \
++		printk (KERN_DEBUG DVB_USB_LOG_PREFIX \
++			": " format "\n" , ## arg);       \
++} while (0)
++
++enum {
++	TT3650_CMD_CI_TEST = 0x40,
++	TT3650_CMD_CI_RD_CTRL,
++	TT3650_CMD_CI_WR_CTRL,
++	TT3650_CMD_CI_RD_ATTR,
++	TT3650_CMD_CI_WR_ATTR,
++	TT3650_CMD_CI_RESET,
++	TT3650_CMD_CI_SET_VIDEO_PORT
++};
++
+ struct ttusb2_state {
++	struct dvb_ca_en50221 ca;
++	struct mutex ca_mutex;
+ 	u8 id;
+ };
+ 
+@@ -128,6 +149,333 @@ static struct i2c_algorithm ttusb2_i2c_algo = {
+ 	.functionality = ttusb2_i2c_func,
+ };
+ 
++/* IR */
++/* Remote Control Stuff for CT-3650 (copied from TT-S1500): */
++static struct dvb_usb_rc_key tt_connect_CT_3650_rc_key[] = {
++	{0x1501, KEY_POWER},
++	{0x1502, KEY_SHUFFLE}, /* ? double-arrow key */
++	{0x1503, KEY_1},
++	{0x1504, KEY_2},
++	{0x1505, KEY_3},
++	{0x1506, KEY_4},
++	{0x1507, KEY_5},
++	{0x1508, KEY_6},
++	{0x1509, KEY_7},
++	{0x150a, KEY_8},
++	{0x150b, KEY_9},
++	{0x150c, KEY_0},
++	{0x150d, KEY_UP},
++	{0x150e, KEY_LEFT},
++	{0x150f, KEY_OK},
++	{0x1510, KEY_RIGHT},
++	{0x1511, KEY_DOWN},
++	{0x1512, KEY_INFO},
++	{0x1513, KEY_EXIT},
++	{0x1514, KEY_RED},
++	{0x1515, KEY_GREEN},
++	{0x1516, KEY_YELLOW},
++	{0x1517, KEY_BLUE},
++	{0x1518, KEY_MUTE},
++	{0x1519, KEY_TEXT},
++	{0x151a, KEY_MODE},  /* ? TV/Radio */
++	{0x1521, KEY_OPTION},
++	{0x1522, KEY_EPG},
++	{0x1523, KEY_CHANNELUP},
++	{0x1524, KEY_CHANNELDOWN},
++	{0x1525, KEY_VOLUMEUP},
++	{0x1526, KEY_VOLUMEDOWN},
++	{0x1527, KEY_SETUP},
++	{0x153a, KEY_RECORD},/* these keys are only in the black remote */
++	{0x153b, KEY_PLAY},
++	{0x153c, KEY_STOP},
++	{0x153d, KEY_REWIND},
++	{0x153e, KEY_PAUSE},
++	{0x153f, KEY_FORWARD}
++};
++
++static int tt3650_rc_query(struct dvb_usb_device *d, u32 *keyevent, int *keystate)
++{
++	u8 keybuf[5];
++	int ret;
++	u8 b[36];/* this was (CMD_BUFFER_SIZE) u8 b[0x28] - dvb_usb_generic_rw adds another 4 */
++	u8 rx[60];/* same (64 -4) */
++	ret = ttusb2_msg(d, CMD_GET_IR_CODE, b, 0, rx, 9);
++	if (ret != 0)
++		return ret;
++
++	if (rx[8] & 0x01) {
++		/* got a "press" event */
++/*		if (debug > 2) {
++			printk("%s: cmd=0x%02x sys=0x%02x\n", __func__, rx[2], rx[3]);
++		}
++*/
++		keybuf[0] = 0x01;/* DVB_USB_RC_NEC_KEY_PRESSED; why is this #define'd privately? */
++		keybuf[1] = rx[3];
++		keybuf[2] = ~keybuf[1]; /* fake checksum */
++		keybuf[3] = rx[2];
++		keybuf[4] = ~keybuf[3]; /* fake checksum */
++		dvb_usb_nec_rc_key_to_event(d, keybuf, keyevent, keystate);
++	}
++	return 0;
++}
++
++/* ci */
++static int tt3650_ci_msg (struct dvb_usb_device *d, u8 cmd, u8 *data,
++							unsigned int write_len, unsigned int read_len)
++{
++    int ret;
++    u8 rx[60];/* (64 -4) */
++    ret = ttusb2_msg(d, cmd, data, write_len, rx, read_len);
++    if (ret == 0)
++		memcpy (data, rx, read_len);
++    return ret;
++}
++
++static int tt3650_ci_msg_locked(struct dvb_ca_en50221 *ca,
++								u8 cmd, u8 *data, unsigned int write_len, unsigned int read_len)
++{
++	struct dvb_usb_device *d = (struct dvb_usb_device *)ca->data;
++	struct ttusb2_state *state = (struct ttusb2_state *)d->priv;
++	int ret;
++
++	mutex_lock(&state->ca_mutex);
++	ret = tt3650_ci_msg(d, cmd, data, write_len, read_len);
++	mutex_unlock(&state->ca_mutex);
++
++	return ret;
++}
++
++static int tt3650_ci_read_attribute_mem(struct dvb_ca_en50221 *ca, int slot, int address)
++{
++	u8 buf[3];
++	int ret;
++
++	if (0 != slot)
++		return -EINVAL;
++
++	buf[0] = (address >> 8) & 0x0F;
++	buf[1] = address;
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_RD_ATTR, buf, 2, 3);
++
++	ci_dbg ("%s %04x -> %d 0x%02x",
++		__func__, address, ret, buf[2]);
++
++	if (ret < 0)
++		return ret;
++
++	return buf[2];
++}
++
++static int tt3650_ci_write_attribute_mem(struct dvb_ca_en50221 *ca, int slot, int address, u8 value)
++{
++	u8 buf[3];
++
++	ci_dbg("%s %d 0x%04x 0x%02x",
++		__func__, slot, address, value);
++
++	if (0 != slot)
++		return -EINVAL;
++
++	buf[0] = (address >> 8) & 0x0F;
++	buf[1] = address;
++	buf[2] = value;
++
++	return tt3650_ci_msg_locked(ca, TT3650_CMD_CI_WR_ATTR, buf, 3, 3);
++}
++
++static int tt3650_ci_read_cam_control(struct dvb_ca_en50221 *ca, int slot, u8 address)
++{
++	u8 buf[2];
++	int ret;
++
++	if (0 != slot)
++		return -EINVAL;
++
++	buf[0] = address & 3;
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_RD_CTRL, buf, 1, 2);
++
++	ci_dbg("%s 0x%02x -> %d 0x%02x",
++		__func__, address, ret, buf[1]);
++
++	if (ret < 0)
++		return ret;
++
++	return buf[1];
++}
++
++static int tt3650_ci_write_cam_control(struct dvb_ca_en50221 *ca, int slot, u8 address, u8 value)
++{
++	u8 buf[2];
++
++	ci_dbg("%s %d 0x%02x 0x%02x",
++		__func__, slot, address, value);
++
++	if (0 != slot)
++		return -EINVAL;
++
++	buf[0] = address;
++	buf[1] = value;
++
++	return tt3650_ci_msg_locked(ca, TT3650_CMD_CI_WR_CTRL, buf, 2, 2);
++}
++
++static int tt3650_ci_set_video_port(struct dvb_ca_en50221 *ca, int slot, int enable)
++{
++	u8 buf[1];
++	int ret;
++
++	ci_dbg("%s %d %d", __func__, slot, enable);
++
++	if (0 != slot)
++		return -EINVAL;
++
++	enable = !!enable;
++	buf[0] = enable;
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_SET_VIDEO_PORT, buf, 1, 1);
++	if (ret < 0)
++		return ret;
++
++	if (enable != buf[0]) {
++		err("CI not %sabled.", enable ? "en" : "dis");
++		return -EIO;
++	}
++
++	return 0;
++}
++
++static int tt3650_ci_slot_shutdown(struct dvb_ca_en50221 *ca, int slot)
++{
++	return tt3650_ci_set_video_port(ca, slot, /* enable */ 0);
++}
++
++static int tt3650_ci_slot_ts_enable(struct dvb_ca_en50221 *ca, int slot)
++{
++	return tt3650_ci_set_video_port(ca, slot, /* enable */ 1);
++}
++
++static int tt3650_ci_slot_reset(struct dvb_ca_en50221 *ca, int slot)
++{
++	struct dvb_usb_device *d = (struct dvb_usb_device *)ca->data;
++	struct ttusb2_state *state = (struct ttusb2_state *)d->priv;
++	u8 buf[1];
++	int ret;
++
++	ci_dbg ("%s %d", __func__, slot);
++
++	if (0 != slot)
++		return -EINVAL;
++
++	buf[0] = 0;
++
++	mutex_lock (&state->ca_mutex);
++
++	ret = tt3650_ci_msg(d, TT3650_CMD_CI_RESET, buf, 1, 1);
++	if (0 != ret)
++		goto failed;
++
++	msleep (500);
++
++	buf[0] = 1;
++
++	ret = tt3650_ci_msg(d, TT3650_CMD_CI_RESET, buf, 1, 1);
++	if (0 != ret)
++		goto failed;
++
++	msleep (500);
++
++	buf[0] = 0; /* FTA */
++
++	ret = tt3650_ci_msg(d, TT3650_CMD_CI_SET_VIDEO_PORT, buf, 1, 1);
++
++ failed:
++	mutex_unlock (&state->ca_mutex);
++
++	return ret;
++}
++
++static int tt3650_ci_poll_slot_status(struct dvb_ca_en50221 *ca, int slot, int open)
++{
++	u8 buf[1];
++	int ret;
++
++	if (0 != slot)
++		return -EINVAL;
++
++	ret = tt3650_ci_msg_locked(ca, TT3650_CMD_CI_TEST, buf, 0, 1);
++	if (0 != ret)
++		return ret;
++
++	if (1 == buf[0]) {
++		return DVB_CA_EN50221_POLL_CAM_PRESENT |
++			DVB_CA_EN50221_POLL_CAM_READY;
++	} else {
++		return 0;
++	}
++}
++
++static void tt3650_ci_uninit(struct dvb_usb_device *d)
++{
++	struct ttusb2_state *state;
++
++	ci_dbg("%s", __func__);
++
++	if (NULL == d)
++		return;
++
++	state = (struct ttusb2_state *)d->priv;
++	if (NULL == state)
++		return;
++
++	if (NULL == state->ca.data)
++		return;
++
++	/* Error ignored. */
++	tt3650_ci_set_video_port(&state->ca, /* slot */ 0, /* enable */ 0);
++
++	dvb_ca_en50221_release(&state->ca);
++
++	memset(&state->ca, 0, sizeof(state->ca));
++}
++
++static int tt3650_ci_init(struct dvb_usb_adapter *a)
++{
++	struct dvb_usb_device *d = a->dev;
++	struct ttusb2_state *state = (struct ttusb2_state *)d->priv;
++	int ret;
++
++	ci_dbg ("%s", __func__);
++
++	mutex_init(&state->ca_mutex);
++
++	state->ca.owner = THIS_MODULE;
++	state->ca.read_attribute_mem = tt3650_ci_read_attribute_mem;
++	state->ca.write_attribute_mem = tt3650_ci_write_attribute_mem;
++	state->ca.read_cam_control = tt3650_ci_read_cam_control;
++	state->ca.write_cam_control = tt3650_ci_write_cam_control;
++	state->ca.slot_reset = tt3650_ci_slot_reset;
++	state->ca.slot_shutdown = tt3650_ci_slot_shutdown;
++	state->ca.slot_ts_enable = tt3650_ci_slot_ts_enable;
++	state->ca.poll_slot_status = tt3650_ci_poll_slot_status;
++	state->ca.data = d;
++
++	ret = dvb_ca_en50221_init (&a->dvb_adap,
++				   &state->ca,
++				   /* flags */ 0,
++				   /* n_slots */ 1);
++	if (0 != ret) {
++		err ("Cannot initialize CI: Error %d.", ret);
++		memset (&state->ca, 0, sizeof (state->ca));
++		return ret;
++	}
++
++	info ("CI initialized.");
++
++	return 0;
++}
++
+ /* Callbacks for DVB USB */
+ static int ttusb2_identify_state (struct usb_device *udev, struct
+ 		dvb_usb_device_properties *props, struct dvb_usb_device_description **desc,
+@@ -177,12 +525,19 @@ static int ttusb2_frontend_tda10086_attach(struct dvb_usb_adapter *adap)
+ 
+ static int ttusb2_frontend_tda10023_attach(struct dvb_usb_adapter *adap)
+ {
++	struct usb_device_id *id;
+ 	if (usb_set_interface(adap->dev->udev, 0, 3) < 0)
+ 		err("set interface to alts=3 failed");
+ 	if ((adap->fe = dvb_attach(tda10023_attach, &tda10023_config, &adap->dev->i2c_adap, 0x48)) == NULL) {
+ 		deb_info("TDA10023 attach failed\n");
+ 		return -ENODEV;
+ 	}
++	id = adap->dev->desc->warm_ids[0];
++	if (USB_VID_TECHNOTREND == id->idVendor
++	    && USB_PID_TECHNOTREND_CONNECT_CT3650 == id->idProduct) {
++		/* Error ignored. */
++		tt3650_ci_init (adap);
++	}
+ 	return 0;
+ }
+ 
+@@ -214,6 +569,14 @@ static struct dvb_usb_device_properties ttusb2_properties;
+ static struct dvb_usb_device_properties ttusb2_properties_s2400;
+ static struct dvb_usb_device_properties ttusb2_properties_ct3650;
+ 
++static void ttusb2_usb_disconnect (struct usb_interface *intf)
++{
++	struct dvb_usb_device *d = usb_get_intfdata (intf);
++
++	tt3650_ci_uninit (d);
++	dvb_usb_device_exit (intf);
++}
++
+ static int ttusb2_probe(struct usb_interface *intf,
+ 		const struct usb_device_id *id)
+ {
+@@ -345,6 +708,11 @@ static struct dvb_usb_device_properties ttusb2_properties_ct3650 = {
+ 
+ 	.size_of_priv = sizeof(struct ttusb2_state),
+ 
++	.rc_key_map = tt_connect_CT_3650_rc_key,
++	.rc_key_map_size = ARRAY_SIZE(tt_connect_CT_3650_rc_key),
++	.rc_query = tt3650_rc_query,
++	.rc_interval = 500,
++
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+@@ -387,7 +755,7 @@ static struct dvb_usb_device_properties ttusb2_properties_ct3650 = {
+ static struct usb_driver ttusb2_driver = {
+ 	.name		= "dvb_usb_ttusb2",
+ 	.probe		= ttusb2_probe,
+-	.disconnect = dvb_usb_device_exit,
++	.disconnect = ttusb2_usb_disconnect,
+ 	.id_table	= ttusb2_table,
+ };
+ 
+diff --git a/drivers/media/dvb/dvb-usb/ttusb2.h b/drivers/media/dvb/dvb-usb/ttusb2.h
+index 52a63af..1bd5d54 100644
+--- a/drivers/media/dvb/dvb-usb/ttusb2.h
++++ b/drivers/media/dvb/dvb-usb/ttusb2.h
+@@ -45,6 +45,9 @@
+ #define CMD_DISEQC          0x18
+ /* out data: <master=0xff/burst=??> <cmdlen> <cmdbytes>[cmdlen] */
+ 
++/* command to poll IR receiver (copied from pctv452e.c) */
++#define CMD_GET_IR_CODE     0x1b
++
+ #define CMD_PID_ENABLE      0x22
+ /* out data: <index> <type: ts=1/sec=2> <pid msb> <pid lsb> */
+ 
+
+
