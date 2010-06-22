@@ -1,99 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:53815 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756919Ab0FIN7O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jun 2010 09:59:14 -0400
-Message-ID: <4C0F9E2A.5000708@online.de>
-Date: Wed, 09 Jun 2010 15:59:06 +0200
-From: =?ISO-8859-15?Q?Andrea_N=F6tzel?= <andrea.noetzel@online.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: TECHNOTREND TT-budget C-1501 broken in latest tree budget_ci?
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from mail.pripojeni.net ([217.66.174.14]:50025 "EHLO
+	mail.jetsystems.cz" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1752441Ab0FVLrs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jun 2010 07:47:48 -0400
+From: Jiri Slaby <jslaby@suse.cz>
+To: mchehab@infradead.org
+Cc: linux-kernel@vger.kernel.org, jirislaby@gmail.com,
+	Jiri Slaby <jslaby@suse.cz>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Tejun Heo <tj@kernel.org>,
+	Ian Armstrong <ian@iarmst.demon.co.uk>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+Subject: [PATCH] VIDEO: ivtvfb, remove unneeded NULL test
+Date: Tue, 22 Jun 2010 13:41:50 +0200
+Message-Id: <1277206910-27228-1-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Stanse found that in ivtvfb_callback_cleanup there is an unneeded test
+for itv being NULL. But itv is initialized as container_of with
+non-zero offset, so it is never NULL (even if v4l2_dev is). This was
+found because itv is dereferenced earlier than the test.
 
-since some weeks the TT-budget C-1501 is not longer recognized as
-/dev/dvb/.. device using the latest  V4L Snapshot from hg
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Tejun Heo <tj@kernel.org>
+Cc: Ian Armstrong <ian@iarmst.demon.co.uk>
+Cc: ivtv-devel@ivtvdriver.org
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/video/ivtv/ivtvfb.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-http://linuxtv.org/hg/v4l-dvb
-
-I have exactly the same problem this user seems to have:
-http://www.vdrportal.de/board/thread.php?postid=895650
-
-Using an old V4L snapshot from April works.
-I'm using:
-ubuntu 2.6.32-22-generic-pae on Ubuntu Lucid
-dmesg tells a lot of warnings
-[   10.265004] budget_ci: disagrees about version of symbol
-ir_codes_budget_ci_old_table
-[   10.265006] budget_ci: Unknown symbol ir_codes_budget_ci_old_table
-[   10.265321] budget_ci: disagrees about version of symbol
-ir_codes_hauppauge_new_table
-[   10.265322] budget_ci: Unknown symbol ir_codes_hauppauge_new_table
-[   10.265543] budget_ci: disagrees about version of symbol
-ir_codes_tt_1500_table
-[   10.265545] budget_ci: Unknown symbol ir_codes_tt_1500_table
-[   10.265669] budget_ci: disagrees about version of symbol ir_input_init
-[   10.265670] budget_ci: Unknown symbol ir_input_init
-[   10.265960] budget_ci: disagrees about version of symbol ir_input_nokey
-[   10.265961] budget_ci: Unknown symbol ir_input_nokey
-[   10.266475] budget_ci: disagrees about version of symbol ir_input_keydown
-[   10.266476] budget_ci: Unknown symbol ir_input_keydown
-lsmod lists some dvb modules but dvb device is absent
-loading budget_ci with modprobe leads to more errors with unknown symbols
-[ 1821.613142] budget_ci: disagrees about version of symbol
-saa7146_unregister_extension
-[ 1821.613151] budget_ci: Unknown symbol saa7146_unregister_extension
-[ 1821.613456] budget_ci: disagrees about version of symbol
-dvb_ca_en50221_init
-[ 1821.613462] budget_ci: Unknown symbol dvb_ca_en50221_init
-[ 1821.613855] budget_ci: disagrees about version of symbol
-ttpci_budget_debiwrite
-[ 1821.613860] budget_ci: Unknown symbol ttpci_budget_debiwrite
-[ 1821.614311] budget_ci: disagrees about version of symbol
-ttpci_budget_irq10_handler
-[ 1821.614316] budget_ci: Unknown symbol ttpci_budget_irq10_handler
-[ 1821.614554] budget_ci: Unknown symbol __ir_input_register
-[ 1821.614768] budget_ci: disagrees about version of symbol
-ttpci_budget_deinit
-[ 1821.614773] budget_ci: Unknown symbol ttpci_budget_deinit
-[ 1821.615003] budget_ci: disagrees about version of symbol
-saa7146_register_extension
-[ 1821.615008] budget_ci: Unknown symbol saa7146_register_extension
-[ 1821.615658] budget_ci: Unknown symbol ir_keydown
-[ 1821.615893] budget_ci: disagrees about version of symbol
-ttpci_budget_set_video_port
-[ 1821.615898] budget_ci: Unknown symbol ttpci_budget_set_video_port
-[ 1821.616116] budget_ci: disagrees about version of symbol
-ttpci_budget_debiread
-[ 1821.616121] budget_ci: Unknown symbol ttpci_budget_debiread
-[ 1821.616576] budget_ci: disagrees about version of symbol
-dvb_frontend_detach
-[ 1821.616581] budget_ci: Unknown symbol dvb_frontend_detach
-[ 1821.617515] budget_ci: disagrees about version of symbol
-dvb_unregister_frontend
-[ 1821.617521] budget_ci: Unknown symbol dvb_unregister_frontend
-[ 1821.618001] budget_ci: disagrees about version of symbol
-ttpci_budget_init_hooks
-[ 1821.618006] budget_ci: Unknown symbol ttpci_budget_init_hooks
-[ 1821.618309] budget_ci: disagrees about version of symbol
-ttpci_budget_init
-[ 1821.618314] budget_ci: Unknown symbol ttpci_budget_init
-[ 1821.618532] budget_ci: disagrees about version of symbol
-dvb_register_frontend
-[ 1821.618537] budget_ci: Unknown symbol dvb_register_frontend
-[ 1821.618764] budget_ci: disagrees about version of symbol saa7146_setgpio
-[ 1821.618769] budget_ci: Unknown symbol saa7146_setgpio
-[ 1821.619011] budget_ci: Unknown symbol get_rc_map
-
-Can somebody help me out please?
-
-Best Regards,
-Andrea
-
+diff --git a/drivers/media/video/ivtv/ivtvfb.c b/drivers/media/video/ivtv/ivtvfb.c
+index 9ff3425..5dc460e 100644
+--- a/drivers/media/video/ivtv/ivtvfb.c
++++ b/drivers/media/video/ivtv/ivtvfb.c
+@@ -1219,7 +1219,7 @@ static int ivtvfb_callback_cleanup(struct device *dev, void *p)
+ 	struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
+ 	struct osd_info *oi = itv->osd_info;
+ 
+-	if (itv && (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
++	if (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT) {
+ 		if (unregister_framebuffer(&itv->osd_info->ivtvfb_info)) {
+ 			IVTVFB_WARN("Framebuffer %d is in use, cannot unload\n",
+ 				       itv->instance);
+-- 
+1.7.1
 
 
