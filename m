@@ -1,96 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:58905 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249Ab0FXT3I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jun 2010 15:29:08 -0400
-Received: by bwz7 with SMTP id 7so365227bwz.19
-        for <linux-media@vger.kernel.org>; Thu, 24 Jun 2010 12:29:07 -0700 (PDT)
+Received: from mail.vigard.cz ([78.24.9.173]:41183 "EHLO mail.vigard.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755314Ab0FVKil (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 22 Jun 2010 06:38:41 -0400
+Received: from [10.10.10.5] (216.191.broadband13.iol.cz [90.180.191.216])
+	(Authenticated sender: ld)
+	by mail.vigard.cz (Postfix) with ESMTPSA id B4FE29DCAF
+	for <linux-media@vger.kernel.org>; Tue, 22 Jun 2010 12:28:48 +0200 (CEST)
+Message-ID: <4C209063.7080504@dolezel.info>
+Date: Tue, 22 Jun 2010 12:28:51 +0200
+From: =?ISO-8859-2?Q?Lubo=B9_Dole=BEel?= <lubos@dolezel.info>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTim4ZxnPGxJZJPf3UdhFBhZoSfxdfx6MzJb3Y3Qp@mail.gmail.com>
-References: <AANLkTim4ZxnPGxJZJPf3UdhFBhZoSfxdfx6MzJb3Y3Qp@mail.gmail.com>
-Date: Thu, 24 Jun 2010 21:29:07 +0200
-Message-ID: <AANLkTikun4SyEVINPVltA8tC03Nlm8iU0qVVTM-zIWaK@mail.gmail.com>
-Subject: Re: update for util/scan/dvb-t/fr-Brest + ask
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Johann Ollivier Lapeyre <johann.ollivierlapeyre@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+To: linux-media@vger.kernel.org
+Subject: Support for 0ccd:0072 in em28xx?
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/6/17 Johann Ollivier Lapeyre <johann.ollivierlapeyre@gmail.com>:
-> Hi,
->
-> Last week, the France/Bretagne removed analog frequencies and changed
-> DVB frequencies. Severals files has to changes (Rennes, Brest, ...),
-> here is the one i made & tested for util/scan/dvb-t/fr-Brest :
->
-> # Brest - France
-> # Emetteur du Roch Tredudon
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> T 546000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 578000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 586000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 618000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 650000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 770000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
->
-> ( frequencies with TV Channels).
+Hello,
 
-Committed, thanks.
+I have a Terratec Cinergy XS Hybrid card [0ccd:0072] that used to be 
+supported by the em28xx-new driver. The project has since been 
+discontinued and the source code is unmaintained and incompatible with 
+current kernels.
 
-> But perhaps you could include all channel to be ready to futurs
-> changes, i don't know. All frequencies:
+Happens anyone to be working on supporting my model in the in-kernel 
+em28xx? It seems my card is based on xc5000, which the current code 
+doesn't take in to account :-(
 
-In this case you could just use autoscan.
+I don't care about analog/FM that much, DVB-T is what matters the most.
 
-Christoph
+Please CC me in response!
 
-
-> # Brest - France
-> # Emetteur du Roch Tredudon
-> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
-> T 466000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 474000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 482000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 490000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 498000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 506000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 514000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 522000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 530000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 538000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 546000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 554000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 562000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 570000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 578000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 586000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 594000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 602000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 610000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 618000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 626000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 634000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 642000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 650000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 658000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 666000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 674000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 682000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 690000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 698000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 706000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 714000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 722000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 730000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 738000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 746000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 754000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 762000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 770000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
-> T 778000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
->
->
-> And thanks a lot for your job !
+Thanks,
+best regards,
+--
+Lubo¹ Dole¾el
