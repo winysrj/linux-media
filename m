@@ -1,46 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.157]:1339 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754701Ab0F0PUq convert rfc822-to-8bit (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.27]:58148 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753820Ab0FVDEV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 27 Jun 2010 11:20:46 -0400
-Received: by fg-out-1718.google.com with SMTP id e21so232041fga.1
-        for <linux-media@vger.kernel.org>; Sun, 27 Jun 2010 08:20:45 -0700 (PDT)
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Apple Message framework v1081)
-Subject: Re: TS discontinuity with TT S-2300
-From: Jaroslav Klaus <jaroslav.klaus@gmail.com>
-In-Reply-To: <201006271437.01502@orion.escape-edv.de>
-Date: Sun, 27 Jun 2010 17:23:31 +0200
-Content-Transfer-Encoding: 8BIT
-Message-Id: <3CBBD92C-CC3B-42A1-8E74-C27508B26CB0@gmail.com>
-References: <1CF58597-201D-4448-A80C-55815811753E@gmail.com> <201006271437.01502@orion.escape-edv.de>
-To: linux-media@vger.kernel.org
+	Mon, 21 Jun 2010 23:04:21 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so382799eya.19
+        for <linux-media@vger.kernel.org>; Mon, 21 Jun 2010 20:04:20 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20100622023715.GC14792@vazy.pykota.com>
+References: <20100622023715.GC14792@vazy.pykota.com>
+Date: Mon, 21 Jun 2010 23:04:19 -0400
+Message-ID: <AANLkTim8qTh7uVUismyJp-fEYHcW0_mOBjzzHoEi4RsV@mail.gmail.com>
+Subject: Re: About Viewcast Osprey 450e
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: alet@librelogiciel.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, Jun 21, 2010 at 10:37 PM,  <alet@librelogiciel.com> wrote:
+> Is there any chance this card will be supported by V4L in the future (or
+> is it already) ?
 
-On 27.6.2010, at 14:37, Oliver Endriss wrote:
+KernelLabs has written a driver for both the 240e and 450e (in
+cooperation with ViewCast) and it is currently in testing (with plans
+to be merged upstream).  Keep an eye on the KernelLabs blog for more
+info.
 
-> Hi,
-> 
-> On Sunday 27 June 2010 01:05:57 Jaroslav Klaus wrote:
->> Hi,
->> 
->> I'm loosing TS packets in my dual CAM premium TT S-2300 card (av7110+saa7146).
->> Do you thing it is av7110 issue? Do you know any relevant limits of
->> av7110? What should I test/try more? Thanks 
-> 
-> The full-featured cards are not able to deliver the full bandwidth of a
-> transponder. It is a limitaion of the board design, not a firmware or
-> driver issue.
+http://www.kernellabs.com/blog/
 
-I thought full bandwidth is impossible to process but I thought 4 TV channel should be ok. It's too much obviously. Especially when peaks of all TV channels meet in the same time.
+Cheers,
 
-> You can fix this by applying the 'full-ts' hardware modification.
-> For more information follow the link in my signature.
+Devin
 
-Great link. This really make sense. Thanks
-
-Jaroslav
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
