@@ -1,21 +1,26 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <mo.ucina@gmail.com>) id 1OTw5i-000515-4a
-	for linux-dvb@linuxtv.org; Wed, 30 Jun 2010 14:08:36 +0200
-Received: from mail-pw0-f54.google.com ([209.85.160.54])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with esmtp
+	(envelope-from <freebeer.bouwsma@gmail.com>) id 1OR0iZ-0004Sh-O1
+	for linux-dvb@linuxtv.org; Tue, 22 Jun 2010 12:28:36 +0200
+Received: from mail-wy0-f182.google.com ([74.125.82.182])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1OTw5h-0000MT-3t; Wed, 30 Jun 2010 14:08:33 +0200
-Received: by pwi3 with SMTP id 3so323316pwi.41
-	for <linux-dvb@linuxtv.org>; Wed, 30 Jun 2010 05:08:27 -0700 (PDT)
-Message-ID: <4C2B33B6.90408@gmail.com>
-Date: Wed, 30 Jun 2010 22:08:22 +1000
-From: O&M Ugarcina <mo.ucina@gmail.com>
+	id 1OR0iZ-0001r3-0C; Tue, 22 Jun 2010 12:28:35 +0200
+Received: by wyb33 with SMTP id 33so3758903wyb.41
+	for <linux-dvb@linuxtv.org>; Tue, 22 Jun 2010 03:28:28 -0700 (PDT)
+Date: Tue, 22 Jun 2010 12:28:25 +0200 (CEST)
+From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+To: "Erich N. Pekarek" <epek@gmx.net>
+In-Reply-To: <20100622090854.12710@gmx.net>
+Message-ID: <alpine.DEB.2.01.1006221217090.6056@localhost.localdomain>
+References: <4C0CAE38.8050806@gmx.net>
+	<alpine.DEB.2.01.1006161906320.13184@localhost.localdomain>
+	<20100622090854.12710@gmx.net>
 MIME-Version: 1.0
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] TeVii S470 in mythtv  - diseqc problems
-Reply-To: linux-media@vger.kernel.org, mo.ucina@gmail.com
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Terratec Cinergy Piranha tuning (again)
+Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
 List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
@@ -23,41 +28,48 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello Guys,
+Moin moin,
 
-Just installed a S470 into my mythbox , fedora 12 kernel 
-2.6.32.14-127.fc12.i686.PAE . Myth is .23 the most recent fedora package 
-, the drivers for dvb card I have at the moment were pulled in 
-2010-04-01 . I assume they are pretty current . The problem that I have 
-is as follows :
-Most of my viewing is done on a Satellite connected to diseqc port 2 , 
-and myth tunes into that with no probs at all , but occasionally I try 
-to watch a channel that is on a second satellite - port 1 and here 
-things fail . Myth tries to tune into the channel - then times out with 
-error , during this the dvb driver crashes , and when I try to retune 
-again with myth there is no lock on either satellite  . So I need to 
-restart pc , then everything comes back on port 2 and myth is able to 
-tune again channels within that first satellite . Any one else 
-experienced diseqc issues with this card and myth ?
+On Tue (Tuesday) 22.Jun (June) 2010, 11:08,  Erich N. Pekarek wrote:
 
-Second question what is the tool of choice to use to scan dvbs2 
-satellites ? I tried dvbscan but it only picked up dvbs transponders , 
-on dvbs2 it failed to tune . I saw that there used to be this utillity 
-scan-s2 , but looks like it was abandoned a couple of years ago and has 
-not been maintained since . So how do you guys do a transponder scan for 
-dvbs2 ?
+> > That is, no frontend gets loaded for me.  So, no tuning.  The
+> > other two devices attached at the moment both work properly.
+> 
+> Yes, that problem sounds familiar - see my comment on this below, please.
 
-Best Regards
-
-Milorad
+This is also the case with the latest (at the time I built it a
+few days ago) 2.6.35-rc3 kernel.
 
 
+
+> > Plus I'll have to see what changes I need to get the DAB support
+> > from Siano working properly, as I hadn't done that yet with the
+> > 2.6.34-rc2 kernel.
+> 
+> I can't help in that case, since, up to my knowlegde, in favour to dvb-t radio there is no dab-radio in Austria.
+
+It is true that the ORF tests of DAB radio from Wien and Innsbruck
+were discontinued -- a shame in my opinion, as part of the 
+services they offered were in better quality or at least 
+comparable to what I receive by satellite in .mp2 audio.
+
+However I have some DAB/DAB+ ensembles nearby that I can receive
+so my attempts to get that working should present no problem.
+
+I will try to see what I can get working -- the 2.6.35-rc3 kernel
+that I built has some serious networking issues (retries
+apparently don't happen) and is useless for on-line use, as I want
+the Siano device to be useful to me.
+
+
+thanks,
+barry bouwsma
 
 _______________________________________________
 linux-dvb users mailing list
