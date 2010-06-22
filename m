@@ -1,56 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:46163 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751073Ab0FVEHw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 22 Jun 2010 00:07:52 -0400
-Subject: Re: Laptop failing to suspend when WinTV-HVR950 installed.
-From: hermann pitton <hermann-pitton@arcor.de>
-To: David Hagood <david.hagood@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <1277173153.3399.10.camel@pc07.localdom.local>
-References: <1277169560.6715.6.camel@chumley>
-	 <1277173153.3399.10.camel@pc07.localdom.local>
-Content-Type: text/plain
-Date: Tue, 22 Jun 2010 05:58:10 +0200
-Message-Id: <1277179090.3145.4.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from vazy.pykota.com ([92.243.13.115]:39005 "EHLO vazy.pykota.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758893Ab0FVC5m (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 21 Jun 2010 22:57:42 -0400
+Date: Tue, 22 Jun 2010 04:37:15 +0200
+To: linux-media@vger.kernel.org
+Subject: About Viewcast Osprey 450e
+Message-ID: <20100622023715.GC14792@vazy.pykota.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+From: alet@librelogiciel.com
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi there,
 
-Am Dienstag, den 22.06.2010, 04:19 +0200 schrieb hermann pitton:
-> Hi David,
-> 
-> Am Montag, den 21.06.2010, 20:19 -0500 schrieb David Hagood:
-> > I have a 100% repeatable failure for my laptop runing Lucid 64 bit to
-> > suspend when my WinTV-HVR950 is installed, and a 100% success rate on it
-> > suspending when the device is not installed.
-> > 
-> > If I put the device in, remove the device, and suspend (e.g. by closing
-> > the lid) it will suspend. There are no processes opening the device (as
-> > confirmed by lsof | grep dvb).
-> > 
-> > Additionally, most of the time the failure to suspend occurs, the
-> > machine becomes unresponsive, and I have to hard power off to get it
-> > back.
-> > 
-> > Has anybody else seen this?
-> 
-> just as a hint.
-> 
-> You need some cloud of users, that somebody sticks in.
-> 
-> I still have cases, where a single user claims on the wiki, all Asus
-> stuff is rubbish, but he still is exactly the only one failing after
-> years.
+Over the years I've used successfully several products from Viewcast to
+do video capture, most notably Osprey 100, 210, 230 and 440, as part of
+the Boxtream Free Software project (http://boxtream.unice.fr)
 
-To stop joking, well noticed from you.
+The 440 is a 4-inputs video capture card based on BT878, and it works
+flawlessly for my needs.
 
-The dvb subsystem never had any way to suspend and recover reliable.
+Now when building an instance of Boxtream based on a motherboard with
+PCI express bus, I've simply thought that the Osprey 450e was identical
+to the 440 but with a PCI express slot, and purchased one without asking
+first...
 
-Cheers,
-Hermann
+Unfortunately I was wrong, this card is based on a different chip than
+the 440, and it doesn't seem to be supported.
 
+Here's the output of lspci -vv :
 
+07:00.0 Multimedia video controller: Micronas Semiconductor Holding AG
+Device 0720
+        Subsystem: Viewcast COM Device 0032
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+        ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+        <TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 0, Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 15
+        Region 0: Memory at df3e0000 (32-bit, non-prefetchable)
+        [size=64K]
+        Region 1: Memory at df3f0000 (64-bit, non-prefetchable)
+        [size=64K]
+        Capabilities: [40] Power Management version 2
+                Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA
+                PME(D0-,D1-,D2-,D3hot-,D3cold-)
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [48] Message Signalled Interrupts: Mask- 64bit+
+        Queue=0/0 Enable-
+                Address: 0000000000000000  Data: 0000
+        Capabilities: [58] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
+                <64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal+
+                Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr+ NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr-
+                TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s,
+                Latency L0 unlimited, L1 unlimited
+                        ClockPM- Suprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain-
+                CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+
+                DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [100] Device Serial Number 00-11-3c-20-07-00-00-00
+        Capabilities: [400] Virtual Channel <?>
+
+08:00.0 Multimedia video controller: Micronas Semiconductor Holding AG
+Device 0720
+        Subsystem: Viewcast COM Device 0032
+        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+        ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+        <TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 0, Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 14
+        Region 0: Memory at df2e0000 (32-bit, non-prefetchable)
+        [size=64K]
+        Region 1: Memory at df2f0000 (64-bit, non-prefetchable)
+        [size=64K]
+        Capabilities: [40] Power Management version 2
+                Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA
+                PME(D0-,D1-,D2-,D3hot-,D3cold-)
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [48] Message Signalled Interrupts: Mask- 64bit+
+        Queue=0/0 Enable-
+                Address: 0000000000000000  Data: 0000
+        Capabilities: [58] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
+                <64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal+
+                Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr+ NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr-
+                TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s,
+                Latency L0 unlimited, L1 unlimited
+                        ClockPM- Suprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain-
+                CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+
+                DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [100] Device Serial Number 00-11-3c-20-07-00-00-00
+        Capabilities: [400] Virtual Channel <?>
+
+The commercial specs are available from :
+
+  http://www.viewcast.com/products/osprey-cards/osprey-450e
+
+Is there any chance this card will be supported by V4L in the future (or
+is it already) ?
+
+I'm not a kernel developper, but I'm more than willing to help and/or
+test if I can be useful.
+
+Thanks in advance for any help
+
+Jerome Alet
