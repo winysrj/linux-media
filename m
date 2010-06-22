@@ -1,23 +1,22 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <lars.schotte@schotteweb.de>) id 1OL2Oa-0004tq-8s
-	for linux-dvb@linuxtv.org; Sun, 06 Jun 2010 01:03:17 +0200
-Received: from ms16-1.1blu.de ([89.202.0.34])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-b) with esmtps
-	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
-	id 1OL2OZ-00070V-8S; Sun, 06 Jun 2010 01:03:15 +0200
-Received: from [95.103.170.192] (helo=romy.gusto)
-	by ms16-1.1blu.de with esmtpsa (TLS-1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.69) (envelope-from <lars.schotte@schotteweb.de>)
-	id 1OL2OY-0003Tz-K1
-	for linux-dvb@linuxtv.org; Sun, 06 Jun 2010 01:03:14 +0200
-Date: Sun, 6 Jun 2010 01:03:11 +0200
-From: Lars Schotte <lars.schotte@schotteweb.de>
-To: linux-dvb@linuxtv.org
-Message-ID: <20100606010311.6d98ef7b@romy.gusto>
-Mime-Version: 1.0
-Subject: [linux-dvb] hvr4000 doesnt work w/ dvb-s2 nor DVB-T
+	(envelope-from <epek@gmx.net>) id 1OQzTX-0002Yy-Ri
+	for linux-dvb@linuxtv.org; Tue, 22 Jun 2010 11:09:00 +0200
+Received: from mail.gmx.net ([213.165.64.20])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with smtp
+	for <linux-dvb@linuxtv.org>
+	id 1OQzTX-0000m4-0t; Tue, 22 Jun 2010 11:08:59 +0200
+Date: Tue, 22 Jun 2010 11:08:54 +0200
+From: "Erich N. Pekarek" <epek@gmx.net>
+In-Reply-To: <alpine.DEB.2.01.1006161906320.13184@localhost.localdomain>
+Message-ID: <20100622090854.12710@gmx.net>
+MIME-Version: 1.0
+References: <4C0CAE38.8050806@gmx.net>
+	<alpine.DEB.2.01.1006161906320.13184@localhost.localdomain>
+To: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Terratec Cinergy Piranha tuning (again)
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -32,113 +31,66 @@ Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-hi,
-i have a happauge HVR4000 and all works fine, analogue TV and DVB-S was
-tested by me so, all would be fine except the fact, that there is
-DVB-S2 support noted on the wiki
-http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-4000 site.
+> From: BOUWSMA Barry <freebeer.bouwsma@gmail.com>
+> > Symptoms: Stick gets recognized, firmware gets loaded, frontend gets
+> loaded.
+> 
+> I see something a bit different --
+> [62890.938154] usb 4-2.1: firmware: requesting dvbt_bda_stellar_usb.inp
+> [62894.338892] usbcore: registered new interface driver smsusb
+> [62894.467939] usb 4-2.1: USB disconnect, address 4
+> [62896.753324] usb 4-2.1: New USB device found, idVendor=187f,
+> idProduct=0100
+> 
+> That is, no frontend gets loaded for me.  So, no tuning.  The
+> other two devices attached at the moment both work properly.
 
-so basically my question is, what makes you think, that HVR4000 is able
-to play DVB-S2 streams when it doesn't?!
+Yes, that problem sounds familiar - see my comment on this below, please.
 
-so I have tried this out, run w_scan which printed me also all the
-DVB-S2 channels out and provided me a tuning list (channels.conf) and
-then I tried to tune in w/ "szap-s2 -S 1 -c ~/.mplayer/channels.conf
-ZDFHD"
+> Plus I'll have to see what changes I need to get the DAB support
+> from Siano working properly, as I hadn't done that yet with the
+> 2.6.34-rc2 kernel.
 
-the output is:
---------------
-zapping to 1 'ZDFHD':
-delivery DVB-S2, modulation 8PSK (i tried QPSK as well)
-sat 0, frequency 11361 MHz H, symbolrate 22000000, coderate auto,
-rolloff 0.35 vpid 0x17de, apid 0x17e8, sid 0x2b66
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 01 | signal dbc0 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 03 | signal db40 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 01 | signal dbc0 | snr 0000 | ber 00000000 | unc 00000000 | 
-status 01 | signal dbc0 | snr 0000 | ber 00000000 | unc 00000000 | 
---------------
+I can't help in that case, since, up to my knowlegde, in favour to dvb-t radio there is no dab-radio in Austria.
 
-so, and that is basically the same as w/ my old NOVA-S CL.
+> thanks,
+> barry bouwsma
 
-the fact, that he is not able to get a lock tells me, that there is no
-DVB-S2 kind of thing on this HVR4000 and I bought my card for nothing,
-except that now I have a newer card, w/ FM and analog TV, maybe DVB-T
-as well, but i tested that one as well and it doesn't work as well, so
-I wouldn't say that that card is able to do DVB-T as well.
+Comment on the frontend loading issue:
 
-there are USB sticks, like my VOLAR-HD or my Equinox Tube, that ones do
-DVB-T really, but not this HVR4000, so it is a 3in1 card w/ DVB-S,
-analog TV and FM, at best, as long as I don't know if FM works.
+This is my dmesg...
 
-here some data (first lspci -v and then dmesg):
+[30256.700149] usb 6-1: new full speed USB device using uhci_hcd and address 2
+[30256.861399] usb 6-1: configuration #1 chosen from 1 choice
+[30257.339156] smsusb_probe: line: 422: rom interface 0 is not used
+[30257.342174] usb 6-1: firmware: requesting dvbt_bda_stellar_usb.inp
+[30257.483485] usbcore: registered new interface driver smsusb
+[30257.540221] usb 6-1: USB disconnect, address 2
+[30260.050077] usb 6-1: new full speed USB device using uhci_hcd and address 3
+[30260.224132] usb 6-1: configuration #1 chosen from 1 choice
+[30260.233362] DVB: registering new adapter (Siano Stellar Digital Receiver)
+[30260.233828] DVB: registering adapter 0 frontend 0 (Siano Mobile Digital MDTV Receiver)...
 
-05:02.0 Multimedia video controller: Conexant Systems, Inc.
-CX23880/1/2/3 PCI Video and Audio Decoder (rev 05) Subsystem: Hauppauge
-computer works Inc. WinTV HVR-4000-HD Flags: bus master, medium devsel,
-latency 32, IRQ 18 Memory at fc000000 (32-bit, non-prefetchable)
-[size=16M] Capabilities: [44] Vital Product Data
-	Capabilities: [4c] Power Management version 2
-	Kernel driver in use: cx8800
-	Kernel modules: cx8800
+Of course I am using the original ".inp"-Microcode, which I previously copied to /lib/firmware/`uname -r`/dvbt_bda_stellar_usb.inp
 
-05:02.1 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI
-Video and Audio Decoder [Audio Port] (rev 05) Subsystem: Hauppauge
-computer works Inc. Device 6902 Flags: bus master, medium devsel,
-latency 32, IRQ 18 Memory at fb000000 (32-bit, non-prefetchable)
-[size=16M] Capabilities: [4c] Power Management version 2
-	Kernel driver in use: cx88_audio
-	Kernel modules: cx88-alsa
+Since the autoload of the interface seems to have been forgotten within the source code itself, I created /etc/modprobe.d/siano.conf with the following line:
 
-05:02.2 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI
-Video and Audio Decoder [MPEG Port] (rev 05) Subsystem: Hauppauge
-computer works Inc. WinTV HVR-4000-HD Flags: bus master, medium devsel,
-latency 32, IRQ 18 Memory at fa000000 (32-bit, non-prefetchable)
-[size=16M] Capabilities: [4c] Power Management version 2
-	Kernel driver in use: cx88-mpeg driver manager
-	Kernel modules: cx8802
+install smsusb /sbin/modprobe --ignore-install smsusb && /sbin/modprobe --ignore-install smsdvb
 
-05:02.4 Multimedia controller: Conexant Systems, Inc. CX23880/1/2/3 PCI
-Video and Audio Decoder [IR Port] (rev 05) Subsystem: Hauppauge
-computer works Inc. WinTV HVR-4000-HD Flags: bus master, medium devsel,
-latency 32, IRQ 7 Memory at f9000000 (32-bit, non-prefetchable)
-[size=16M] Capabilities: [4c] Power Management version 2
+I hope this is the right way to do it and does not cause other problems.
 
-cx24116_firmware_ondemand: Waiting for firmware upload
-(dvb-fe-cx24116.fw)... cx88-mpeg driver manager 0000:05:02.2: firmware:
-requesting dvb-fe-cx24116.fw cx24116_firmware_ondemand: Waiting for
-firmware upload(2)... cx24116_load_firmware: FW version 1.26.90.0
-cx24116_firmware_ondemand: Firmware upload complete
-cx24116_firmware_ondemand: Waiting for firmware upload
-(dvb-fe-cx24116.fw)... cx88-mpeg driver manager 0000:05:02.2: firmware:
-requesting dvb-fe-cx24116.fw cx24116_firmware_ondemand: Waiting for
-firmware upload(2)... cx24116_load_firmware: FW version 1.26.90.0
-cx24116_firmware_ondemand: Firmware upload complete
-cx24116_firmware_ondemand: Waiting for firmware upload
-(dvb-fe-cx24116.fw)... cx88-mpeg driver manager 0000:05:02.2: firmware:
-requesting dvb-fe-cx24116.fw cx24116_firmware_ondemand: Waiting for
-firmware upload(2)... cx24116_load_firmware: FW version 1.26.90.0
-cx24116_firmware_ondemand: Firmware upload complete
-cx24116_firmware_ondemand: Waiting for firmware upload
-(dvb-fe-cx24116.fw)... cx88-mpeg driver manager 0000:05:02.2: firmware:
-requesting dvb-fe-cx24116.fw cx24116_firmware_ondemand: Waiting for
-firmware upload(2)... cx24116_load_firmware: FW version 1.26.90.0
-cx24116_firmware_ondemand: Firmware upload complete
-cx24116_firmware_ondemand: Waiting for firmware upload
-(dvb-fe-cx24116.fw)... cx88-mpeg driver manager 0000:05:02.2: firmware:
-requesting dvb-fe-cx24116.fw cx24116_firmware_ondemand: Waiting for
-firmware upload(2)... cx24116_load_firmware: FW version 1.26.90.0
-cx24116_firmware_ondemand: Firmware upload complete
-cx24116_firmware_ondemand: Waiting for firmware upload
-(dvb-fe-cx24116.fw)... cx88-mpeg driver manager 0000:05:02.2: firmware:
-requesting dvb-fe-cx24116.fw cx24116_firmware_ondemand: Waiting for
-firmware upload(2)... cx24116_load_firmware: FW version 1.26.90.0
-cx24116_firmware_ondemand: Firmware upload complete
-cx24116_firmware_ondemand: Waiting for firmware upload
-(dvb-fe-cx24116.fw)... cx88-mpeg driver manager 0000:05:02.2: firmware:
-requesting dvb-fe-cx24116.fw cx24116_firmware_ondemand: Waiting for
-firmware upload(2)... cx24116_load_firmware: FW version 1.26.90.0
-cx24116_firmware_ondemand: Firmware upload complete
+I once repeat: the dvb-device is accessible, but the signal and snr levels stay at "0" permanently.
+I remember, that a similar problem occurred in the siano-dev branch before. Mkrufky had a patch addressing this issue in former versions (adapted for 2.6.8-to 2.6.18), but it eventually did not find it's way into the repository.
+
+Unfortunately, I do not possess a copy of the ancient patch file any longer.
+
+Thanks for your reply and
+best regards
+
+Erich
+-- 
+GMX DSL: Internet-, Telefon- und Handy-Flat ab 19,99 EUR/mtl.  
+Bis zu 150 EUR Startguthaben inklusive! http://portal.gmx.net/de/go/dsl
 
 _______________________________________________
 linux-dvb users mailing list
