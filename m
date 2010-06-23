@@ -1,18 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <epek@gmx.net>) id 1OLXjd-0005D6-6o
-	for linux-dvb@linuxtv.org; Mon, 07 Jun 2010 10:31:06 +0200
-Received: from mail.gmx.net ([213.165.64.20])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with smtp
+	(envelope-from <shacky83@gmail.com>) id 1ORSPT-0000dG-W5
+	for linux-dvb@linuxtv.org; Wed, 23 Jun 2010 18:02:44 +0200
+Received: from mail-bw0-f54.google.com ([209.85.214.54])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1OLXja-0000X4-5E; Mon, 07 Jun 2010 10:31:04 +0200
-Message-ID: <4C0CAE38.8050806@gmx.net>
-Date: Mon, 07 Jun 2010 10:30:48 +0200
-From: "Erich N. Pekarek" <epek@gmx.net>
+	id 1ORSPT-0001XI-An; Wed, 23 Jun 2010 18:02:43 +0200
+Received: by bwz17 with SMTP id 17so458357bwz.41
+	for <linux-dvb@linuxtv.org>; Wed, 23 Jun 2010 09:02:37 -0700 (PDT)
 MIME-Version: 1.0
+Date: Wed, 23 Jun 2010 18:02:36 +0200
+Message-ID: <AANLkTinks_MHz5R7DzcR712IuZlLe54NXbvlvIfk2DJI@mail.gmail.com>
+From: shacky <shacky83@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Terratec Cinergy Piranha tuning (again)
+Subject: [linux-dvb] Record from DVB tuner
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,41 +23,24 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"; Format="flowed"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello,
+Hi.
 
-my DVB-T Stick, that formerly worked fine under previous kernel versions =
+I need to record some DVB channels from the command line using a
+supported DVB tuner PCI card on Linux Debian.
+I know I can tune the DVB adapter using dvbtools and record the raw
+input using cat from /dev/dvb/adapter0, but what about recording two
+or more different channels from the same multiplex?
+How I can do this from the command line?
+Could you help me please?
 
-now does not tune to any channel unter 2.6.32+.
-The old repositories siano-dev and sms1xxx won=B4t compile without manual =
-
-changes to the code.
-
-Symptoms: Stick gets recognized, firmware gets loaded, frontend gets =
-
-loaded. While tuning, signal an snr levels are always 0 (zero) with =
-
-actual modules from mainstream kernels. I already tried to look at the =
-
-source, but this specific model seems to run with basic initialisation, =
-
-while Hauppauge sticks and others have a specific initialization array. =
-
-I don't have any specification datasheets.
-
-Do you have any idea, where to look for the bug? Could it be a =
-
-misinitialization of the stick's tuner?
-
-Thanks in advance
-
-Regards
-Erich
+Thank you very much!
+Bye.
 
 _______________________________________________
 linux-dvb users mailing list
