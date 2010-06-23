@@ -1,36 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vazy.pykota.com ([92.243.13.115]:33078 "EHLO vazy.pykota.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752526Ab0FVDIe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 23:08:34 -0400
-Date: Tue, 22 Jun 2010 05:08:33 +0200
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: About Viewcast Osprey 450e
-Message-ID: <20100622030833.GD14792@vazy.pykota.com>
-References: <20100622023715.GC14792@vazy.pykota.com> <AANLkTim8qTh7uVUismyJp-fEYHcW0_mOBjzzHoEi4RsV@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <AANLkTim8qTh7uVUismyJp-fEYHcW0_mOBjzzHoEi4RsV@mail.gmail.com>
-From: alet@librelogiciel.com
+Received: from mta5.srv.hcvlny.cv.net ([167.206.4.200]:45801 "EHLO
+	mta5.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493Ab0FWMnS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jun 2010 08:43:18 -0400
+Received: from TheShoveller.local
+ (ool-18bfe0d5.dyn.optonline.net [24.191.224.213]) by mta5.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0L4G00B3VWO5MXY0@mta5.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Wed, 23 Jun 2010 08:43:17 -0400 (EDT)
+Date: Wed, 23 Jun 2010 08:43:17 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: buffer management
+In-reply-to: <AANLkTikuPBKre8wjkGZ-fXhQc5ad_OmNtERvFslpPXvR@mail.gmail.com>
+To: Manu Abraham <abraham.manu@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-id: <4C220165.50809@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <AANLkTikuPBKre8wjkGZ-fXhQc5ad_OmNtERvFslpPXvR@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 21, 2010 at 11:04:19PM -0400, Devin Heitmueller wrote:
-> On Mon, Jun 21, 2010 at 10:37 PM,  <alet@librelogiciel.com> wrote:
-> > Is there any chance this card will be supported by V4L in the future (or
-> > is it already) ?
->
-> KernelLabs has written a driver for both the 240e and 450e (in
-> cooperation with ViewCast) and it is currently in testing (with plans
-> to be merged upstream).  Keep an eye on the KernelLabs blog for more
-> info.
->
-> http://www.kernellabs.com/blog/
+> Now, on each video interrupt, I know which SG list i need to read
+> from. At this stage i do need to copy the
+> buffers associated with each of the SG lists at once. In this
+> scenario, I don't see how videobuf could be used,
+> while I keep getting this feeling that a simple copy_to_user of the
+> entire buffer could do the whole job in a
+> better way, since the buffers themselves are already managed and
+> initialized already. Am I correct in thinking
+> so, or is it that I am overlooking something ?
 
-Thanks so much for this !
+Manu,
 
-bye
+SAA7164 suffers from this. If you find a solution I'd love to hear it.
 
-Jerome Alet
+Regards,
+
+- Steve
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
+
