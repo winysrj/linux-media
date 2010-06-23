@@ -1,42 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:53950 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755030Ab0FXS5a (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:52656 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752188Ab0FWVNW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jun 2010 14:57:30 -0400
-Received: by bwz7 with SMTP id 7so352519bwz.19
-        for <linux-media@vger.kernel.org>; Thu, 24 Jun 2010 11:57:29 -0700 (PDT)
+	Wed, 23 Jun 2010 17:13:22 -0400
+Received: by pwj8 with SMTP id 8so1570734pwj.19
+        for <linux-media@vger.kernel.org>; Wed, 23 Jun 2010 14:13:21 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4C1F2469.6030603@deckpoint.ch>
-References: <4C1F2469.6030603@deckpoint.ch>
-Date: Thu, 24 Jun 2010 20:57:28 +0200
-Message-ID: <AANLkTiknjfw9zMABOy08vAOvWZsgi8PX9myeB5CLl9qc@mail.gmail.com>
-Subject: Re: Switzerland, Geneva DVB-T scan update
-From: Christoph Pfister <christophpfister@gmail.com>
-To: Thomas Kernen <tkernen@deckpoint.ch>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Date: Thu, 24 Jun 2010 07:13:21 +1000
+Message-ID: <AANLkTimDPMjN1OF7zKHqn2JOYoUm4DFq2VRwQJAICThX@mail.gmail.com>
+Subject: Update to tuning file frequencies for au-Brisbane location to include
+	a new channel
+From: Jared Norris <jrnorris@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/6/21 Thomas Kernen <tkernen@deckpoint.ch>:
-> Hi all,
->
-> For the Switzerland, Geneva region, a new mux has been launched in May 2010
-> for the local TV station. Therefore this is now different from the ch-All
-> DVB-T file.
->
-> Attached is a new file for ch-Geneva containing the SFN frequency for the
-> main mux and this new mux.
+Good morning,
 
-I've added this mux to ch-All (this way the file stays valid).
+I would like to include an update in the auto tune file for the
+/dvb/dvb-t/au-Brisbane file as there has recently been an additional
+channel added to the area. If you can please add the following 2 lines
+to the file that would be appreciated.
 
-> I expect another update may appear in August if/when the French DVB-T mux
-> start broadcasting in this region.
->
-> Regards,
-> Thomas
+# 31 Digital
+T 599500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
 
-Thanks,
+It is appropriate for it to be at the end of the list so the whole
+file would look like (just in case it makes it easier for you than a
+single line in isolation):
 
-Christoph
+# Australia / Brisbane (Mt Coot-tha transmitters)
+# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+# ABC
+T 226500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+# Seven
+T 177500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+# Nine
+T 191625000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+# Ten
+T 219500000 7MHz 3/4 NONE QAM64 8k 1/16 NONE
+# SBS
+T 585625000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
+# 31 Digital
+T 599500000 7MHz 2/3 NONE QAM64 8k 1/8 NONE
+
+I hope this is enough information for your requirements. I have tested
+this on several devices under several dvb applications and from what I
+can see the options are all correct. If further information or testing
+is required please let me know and I will happily help out. Thanks for
+your time.
+
+Regards,
+
+Jared Norris
