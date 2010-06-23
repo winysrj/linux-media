@@ -1,123 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1110 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752946Ab0FHTcc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jun 2010 15:32:32 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id o58JWRsl097880
-	for <linux-media@vger.kernel.org>; Tue, 8 Jun 2010 21:32:31 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 8 Jun 2010 21:32:27 +0200 (CEST)
-Message-Id: <201006081932.o58JWRsl097880@smtp-vbr18.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from relay01.mx.bawue.net ([193.7.176.67]:34597 "EHLO
+	relay01.mx.bawue.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751696Ab0FWJ31 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 23 Jun 2010 05:29:27 -0400
+Date: Wed, 23 Jun 2010 11:23:16 +0200
+From: Nils Radtke <lkml@Think-Future.de>
+To: laurent.pinchart@skynet.be
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-usb@vger.kernel.org, Greg Kroah-Hartman <gregkh@suse.de>,
+	stable@kernel.org
+Subject: [2.6.33.4 PATCH] V4L/uvcvideo: Add support for Suyin Corp. Lenovo
+ Webcam
+Message-ID: <20100623092316.GA13364@localhost>
+Reply-To: Nils Radtke <lkml@Think-Future.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+From: Nils Radtke <lkml@Think-Future.de>
 
-Results of the daily build of v4l-dvb:
+This patch adds support for the Suyin Corp. Lenovo Webcam.
+lsusb: ID 064e:a102 Suyin Corp. Lenovo Webcam
 
-date:        Tue Jun  8 19:00:24 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14902:6aaee61d04ea
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 4fcfa8824391ef0f9cff82122067f31c6d920921
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+It is available as built-in webcam i.e. in ACER timeline 1810t 
+notebooks.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: OK
-linux-2.6.33-armv5-ixp: OK
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+The note in uvc_driver.c about Logitech cameras applies the same 
+to the Suyin web cam: it doesn't announce itself as UVC devices 
+but is compliant.
 
-Detailed results are available here:
+Signed-off-by: Nils Radtke <lkml@Think-Future.de>
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+---
 
-Full logs are available here:
+  Thank you,
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+                    Nils
 
-The V4L-DVB specification from this daily build is here:
+ uvc_driver.c |    8 ++++++++
+  1 file changed, 8 insertions(+)
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+
+Index: linux/drivers/media/video/uvc/uvc_driver.c
+===================================================================
+--- linux.orig/drivers/media/video/uvc/uvc_driver.c	2010-06-23 10:37:03.000000000 +0200
++++ linux/drivers/media/video/uvc/uvc_driver.c	2010-06-23 10:37:07.000000000 +0200
+@@ -2153,6 +2153,14 @@
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info		= UVC_QUIRK_PROBE_MINMAX
+ 				| UVC_QUIRK_IGNORE_SELECTOR_UNIT },
++	/* Suyin Corp. Lenovo Webcam */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x064e,
++	  .idProduct		= 0xa102,
++	  .bInterfaceClass	= USB_CLASS_VENDOR_SPEC,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0 },
+ 	/* Generic USB Video Class */
+ 	{ USB_INTERFACE_INFO(USB_CLASS_VIDEO, 1, 0) },
+ 	{}
+
