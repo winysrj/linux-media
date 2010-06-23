@@ -1,20 +1,20 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.7])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o54KhjJu007183
-	for <video4linux-list@redhat.com>; Fri, 4 Jun 2010 16:43:45 -0400
-Received: from mail-iw0-f174.google.com (mail-iw0-f174.google.com
-	[209.85.214.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o54KhX2l014969
-	for <video4linux-list@redhat.com>; Fri, 4 Jun 2010 16:43:33 -0400
-Received: by iwn37 with SMTP id 37so1726159iwn.33
-	for <video4linux-list@redhat.com>; Fri, 04 Jun 2010 13:43:32 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.10])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o5N9K8tU010879
+	for <video4linux-list@redhat.com>; Wed, 23 Jun 2010 05:20:09 -0400
+Received: from mail-vw0-f46.google.com (mail-vw0-f46.google.com
+	[209.85.212.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5N9JueN015825
+	for <video4linux-list@redhat.com>; Wed, 23 Jun 2010 05:19:56 -0400
+Received: by vws9 with SMTP id 9so881321vws.33
+	for <video4linux-list@redhat.com>; Wed, 23 Jun 2010 02:19:56 -0700 (PDT)
 MIME-Version: 1.0
-Date: Fri, 4 Jun 2010 16:43:32 -0400
-Message-ID: <AANLkTilWmUN9ZHCHs2wDoeDH5iXOFJoI5Zk53vmg8N3c@mail.gmail.com>
-Subject: Pixelview prokink PlayTV USB Ultra on Fedora 9 Question
-From: Osvaldo Sarubbi <osarubbi@gmail.com>
+Date: Wed, 23 Jun 2010 17:19:56 +0800
+Message-ID: <AANLkTikFxDxD_p_Gt8DazzywifbtTTnrkEHs2XFFAMmD@mail.gmail.com>
+Subject: User Controls
+From: jiangtao nie <caicai0119@gmail.com>
 To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -29,51 +29,73 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-I have a card Pixelview Prolink PlayTV USB Ultra, model PV-A6600U1(FRT)-F.
-OS: Fedora 9, 2.6.27.25-78.2.56.fc9.i686
+Dear ALL:
 
-The problem is that apparently the em28xx driver does not detect the device
-and does not create / dev/video0
+   V4L2 has defined many user controls IDs prefixed with V4L2_CID_, which
+can be found in header file *videodev*2*.h* or *v4l2 spec*. Does it miss
+any?  For example, Camera class control IDs have been pre-defined as
+followed.
 
-Any Ideas?
+*/*in videodev2.h*/*
+ */*  Camera class control IDs */*
+*#define V4L2_CID_CAMERA_CLASS ** **(V4L2_CTRL_CLASS_CAMERA | 1)*
+*#define V4L2_CID_EXPOSURE_AUTO** **(V4L2_CID_CAMERA_CLASS_BASE+1)*
+*.....................................*
+*#define V4L2_CID_PRIVACY** **(V4L2_CID_CAMERA_CLASS_BASE+16)*
 
+  16 IDs has been defined,But Camera terminal support 19 controls described
+UVC spec.
 
-lsusb:
-*Bus 001 Device 005: ID 1554:5018 Prolink Microsystems Corp. *
-Bus 001 Device 002: ID 0409:0058 NEC Corp. HighSpeed Hub
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 003 Device 002: ID 04b3:310b IBM Corp. Red Wheel Mouse
-Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+     *D00 Scanning Mode*
 
-dmesg:
-em28xx driver loaded
-usb 1-1.3: new high speed USB device using ehci_hcd and address 5
-usb 1-1.3: configuration #1 chosen from 1 choice
-usb 1-1.3: New USB device found, idVendor=1554, idProduct=5018
-usb 1-1.3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-usb 1-1.3: Product: A6600U
-usb 1-1.3: Manufacturer: Conexant Corporation
-usb 1-1.3: SerialNumber: CIR000000000001
-usbcore: deregistering interface driver em28xx
-usbcore: registered new interface driver em28xx
-em28xx driver loaded
+*     D01 Auto-Exposure Mode*
 
+*     D02 Auto-Exposure Priority*
 
+*     D03 Exposure Time (Absolute)*
 
+*     D04 Exposure Time (Relative)*
 
+*     D05 Focus (Absolute)*
 
+*     D06 Focus (Relative)*
 
+*     D07 Iris (Absolute)*
 
+*     D08 Iris (Relative)*
 
+*     D09 Zoom (Absolute)*
 
+*     D10 Zoom (Relative)*
 
+*     D11 Pan (Absolute)*
 
+*     D12 Pan (Relative)*
 
+*     D13 Roll (Absolute)*
 
+*     D14 Roll (Relative)*
 
--- 
-Osvaldo L. Sarubbi B.
+*     D15 Tilt (Absolute)*
+
+*     D16 Tilt (Relative)*
+
+*     D17 Focus Auto*
+
+*     D18 Privacy*
+
+*
+*
+
+*     Would V4l2 will support all controls defined by uvc?*
+
+*
+*
+
+*
+*
+
+*Tony*
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
