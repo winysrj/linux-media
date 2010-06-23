@@ -1,66 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:42540 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208Ab0F1MPd (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3637 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751708Ab0FWTdf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jun 2010 08:15:33 -0400
-From: Renzo Dani <arons7@gmail.com>
-To: adams.xu@azwave.com.cn
-Cc: arons7@gmail.com, mchehab@infradead.org, rdunlap@xenotime.net,
-	o.endriss@gmx.de, awalls@radix.net, crope@iki.fi, manu@linuxtv.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 1/1] Retrieve firmware for az6027
-Date: Mon, 28 Jun 2010 14:15:19 +0200
-Message-Id: <1277727319-9498-1-git-send-email-arons7@gmail.com>
+	Wed, 23 Jun 2010 15:33:35 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5NJXUbZ001220
+	for <linux-media@vger.kernel.org>; Wed, 23 Jun 2010 21:33:34 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 23 Jun 2010 21:33:30 +0200 (CEST)
+Message-Id: <201006231933.o5NJXUbZ001220@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Renzo Dani <arons7@gmail.com>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Renzo Dani <arons7@gmail.com>
----
- Documentation/dvb/get_dvb_firmware |   19 ++++++++++++++++++-
- 1 files changed, 18 insertions(+), 1 deletions(-)
+date:        Wed Jun 23 19:00:09 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
-index 239cbdb..507868b 100644
---- a/Documentation/dvb/get_dvb_firmware
-+++ b/Documentation/dvb/get_dvb_firmware
-@@ -26,7 +26,7 @@ use IO::Handle;
- 		"dec3000s", "vp7041", "dibusb", "nxt2002", "nxt2004",
- 		"or51211", "or51132_qam", "or51132_vsb", "bluebird",
- 		"opera1", "cx231xx", "cx18", "cx23885", "pvrusb2", "mpc718",
--		"af9015", "ngene");
-+		"af9015", "ngene", "az6027");
- 
- # Check args
- syntax() if (scalar(@ARGV) != 1);
-@@ -567,6 +567,23 @@ sub ngene {
-     "$file1, $file2";
- }
- 
-+sub az6027{
-+    my $file = "AZ6027_Linux_Driver.tar.gz";
-+    my $url = "http://linux.terratec.de/files/$file";
-+    my $firmware = "dvb-usb-az6027-03.fw";
-+
-+    wgetfile($file, $url);
-+
-+    #untar
-+    if( system("tar xzvf $file")){
-+        die "failed to untar firmware";
-+    }
-+    if( system("rm -rf AZ6027_Linux_Driver; rm $file")){
-+        die ("unable to remove unnecessary files");
-+    }
-+
-+    $firmware;
-+}
- # ---------------------------------------------------------------
- # Utilities
- 
--- 
-1.7.1
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
