@@ -1,124 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4622 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752341Ab0FMTdb (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:53995 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751617Ab0FWSHO convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 13 Jun 2010 15:33:31 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5DJXTNk095542
-	for <linux-media@vger.kernel.org>; Sun, 13 Jun 2010 21:33:30 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 13 Jun 2010 21:33:29 +0200 (CEST)
-Message-Id: <201006131933.o5DJXTNk095542@smtp-vbr6.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Wed, 23 Jun 2010 14:07:14 -0400
+Received: by wyi11 with SMTP id 11so1029848wyi.19
+        for <linux-media@vger.kernel.org>; Wed, 23 Jun 2010 11:07:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTilGJyf4GAW0R4YWJdZp0xdY7NjLoLr2Bjlmx_Zd@mail.gmail.com>
+References: <AANLkTikOFpM1eHJa9FM1v9PtEnDuJtaiEvbTQubTsQS0@mail.gmail.com>
+	<AANLkTilGJyf4GAW0R4YWJdZp0xdY7NjLoLr2Bjlmx_Zd@mail.gmail.com>
+Date: Wed, 23 Jun 2010 19:07:12 +0100
+Message-ID: <AANLkTilY8_oki2_AWL5CSinAsP-g1m9-B-TsVtpQkg_P@mail.gmail.com>
+Subject: Record from DVB tuner
+From: Simon Liddicott <simon@liddicott.com>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Depending how you want to use it you may like getstream.
+http://silicon-verl.de/home/flo/projects/streaming/
 
-Results of the daily build of v4l-dvb:
+You set up a config file that specifies the adapter the channels and
+the output (can be streamed or saved to file.
 
-date:        Sun Jun 13 19:00:10 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14976:b594029d762f
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Or dvbstreamer
+http://sourceforge.net/apps/mediawiki/dvbstreamer/index.php?title=Main_Page
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+This can have a config file but can also have its operation changed
+while running.
+Si.
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+On 23 June 2010 17:06, shacky <shacky83@gmail.com> wrote:
+>
+> Hi.
+>
+> I need to record some DVB channels from the command line using a
+> supported DVB tuner PCI card on Linux Debian.
+> I know I can tune the DVB adapter using dvbtools and record the raw
+> input using cat from /dev/dvb/adapter0, but what about recording two
+> or more different channels from the same multiplex?
+> How I can do this from the command line?
+> Could you help me please?
+>
+> Thank you very much!
+> Bye.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
