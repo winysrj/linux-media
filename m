@@ -1,172 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40470 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750834Ab0F1XeM convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.154]:33103 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752357Ab0FXGdU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 28 Jun 2010 19:34:12 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 28 Jun 2010 18:34:01 -0500
-Subject: [media-ctl] [omap3camera:devel] How to use the app?
-Message-ID: <A24693684029E5489D1D202277BE8944562E8B71@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 24 Jun 2010 02:33:20 -0400
+Received: by fg-out-1718.google.com with SMTP id l26so589572fgb.1
+        for <linux-media@vger.kernel.org>; Wed, 23 Jun 2010 23:33:19 -0700 (PDT)
 MIME-Version: 1.0
+Reply-To: debarshi.ray@gmail.com
+Date: Thu, 24 Jun 2010 09:33:18 +0300
+Message-ID: <AANLkTikiNKl-Np2EqhVw4JfpgScA4HZFvUz_W1Qrh-KE@mail.gmail.com>
+Subject: IR port on TechniSat CableStar HD 2
+From: Debarshi Ray <debarshi.ray@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent/Sakari,
+I read [1] that you were working on adding support for the IR port on
+the TechniSat CableStar HD 2 card. However, when I tried to compile
+the drivers from http://linuxtv.org/hg/v4l-dvb as instructed on
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers#If_the_Modules_did_not_load_correctly_or_the_device_is_still_not_configured_correctly_for_use
+it did not work. The device is not listed in /proc/bus/input/devices
 
-I have been attempting to migrate my IMX046 sensor driver, that I had working
-on my Zoom3(OMAP3630 ES1.1) with older codebase, to work with the latest
-omap3camera tree, 'devel' branch:
+I am using Debian testing which has the 2.6.32 kernel and here are
+some of the modules I have loaded:
 
-http://gitorious.org/omap3camera/mainline/commits/devel
+bob@bob:~$ lsmod | grep mantis
+mantis                 14872  0
+mantis_core            23989  6 mantis
+ir_common               3621  1 mantis_core
+ir_core                10193  7
+ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,ir_rc5_decoder,mantis_core,ir_nec_decoder,ir_common
+tda665x                 2679  1 mantis
+lnbp21                  1740  1 mantis
+mb86a16                16566  1 mantis
+stb6100                 5525  1 mantis
+tda10021                4774  1 mantis
+tda10023                5823  1 mantis
+zl10353                 5861  1 mantis
+stb0899                28713  1 mantis
+stv0299                 7812  1 mantis
+dvb_core               74866  3 b2c2_flexcop,mantis_core,stv0299
+i2c_core               15712  20
+b2c2_flexcop,cx24123,cx24113,s5h1420,mantis,mantis_core,tda665x,lnbp21,mb86a16,stb6100,tda10021,tda10023,zl10353,stb0899,stv0299,nouveau,drm_kms_helper,drm,i2c_algo_bit,i2c_nforce2
 
-And for that, I'm trying to also understand how to use your test tool:
-"media-ctl":
+I also tried to build the drivers from
+http://jusst.de/hg/mantis-v4l-dvb/ but the build failed.
 
-http://git.ideasonboard.org/?p=media-ctl.git;a=summary
+Could you please let me know what is the current status?
 
-Now, the thing is that, I don't see any guide to learn how to write the
-Proper format for some of the parameters, like to build links in interactive
-mode (-i), or to set formats (-f).
+Thanks,
+Debarshi
 
-Can you please detail about a typical usage for this tool? (example on how to
-build a link, set link format, etc.)
 
-So far, my progress is pushed into this branch:
-
-http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=shortlog;h=refs/heads/mc_migration_wip
-
-And with that, after I boot, I get the following topology:
-
-# /media-ctl -d /dev/media0 -p
-Opening media device /dev/media0
-Enumerating entities
-Found 18 entities
-Enumerating pads and links
-Device topology
-- entity 1: imx046 2-001a (1 pad, 1 link)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/subdev0
-        pad0: Output [SGRBG10 3280x2464]
-                -> 'OMAP3 ISP CSI2a':pad0 [IMMUTABLE,ACTIVE]
-
-- entity 2: lv8093 2-0072 (0 pad, 0 link)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/subdev1
-
-- entity 3: omap3/imx046 2-001a/lv8093 2-00 (1 pad, 0 link)
-            type Node subtype V4L
-            device node name /dev/video0
-        pad0: Input
-
-- entity 4: OMAP3 ISP CCP2 (2 pads, 1 link)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/subdev2
-        pad0: Input [unknown 0x0]
-        pad1: Output [unknown 0x0]
-                -> 'OMAP3 ISP CCDC':pad0 []
-
-- entity 5: OMAP3 ISP CCP2 input (1 pad, 1 link)
-            type Node subtype V4L
-            device node name /dev/video1
-        pad0: Output
-                -> 'OMAP3 ISP CCP2':pad0 []
-
-- entity 6: OMAP3 ISP CSI2a (2 pads, 2 links)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/subdev3
-        pad0: Input [SGRBG10 0x0]
-        pad1: Output [SGRBG10 0x0]
-                -> 'OMAP3 ISP CSI2a output':pad0 []
-                -> 'OMAP3 ISP CCDC':pad0 []
-
-- entity 7: OMAP3 ISP CSI2a output (1 pad, 0 link)
-            type Node subtype V4L
-            device node name /dev/video2
-        pad0: Input
-
-- entity 8: OMAP3 ISP CCDC (3 pads, 7 links)
-            type V4L2 subdev subtype Unknown
-            device node name /dev/subdev4
-        pad0: Input [unknown 0x0]
-        pad1: Output [unknown 0x0]
-                -> 'OMAP3 ISP CCDC output':pad0 []
-                -> 'OMAP3 ISP resizer':pad0 []
-                -> 'omap3/imx046 2-001a/lv8093 2-00':pad0 []
-        pad2: Output [unknown 0x0]
-                -> 'OMAP3 ISP preview':pad0 []
-                -> 'OMAP3 ISP AEWB':pad0 []
-                -> 'OMAP3 ISP AF':pad0 []
-                -> 'OMAP3 ISP histogram':pad0 []
-
-- entity 9: OMAP3 ISP CCDC output (1 pad, 0 link)
-            type Node subtype V4L
-            device node name /dev/video3
-        pad0: Input
-
-- entity 10: OMAP3 ISP preview (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/subdev5
-        pad0: Input [unknown 0x0]
-        pad1: Output [unknown 0x0]
-                -> 'OMAP3 ISP preview output':pad0 []
-                -> 'OMAP3 ISP resizer':pad0 []
-
-- entity 11: OMAP3 ISP preview input (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video4
-        pad0: Output
-                -> 'OMAP3 ISP preview':pad0 []
-
-- entity 12: OMAP3 ISP preview output (1 pad, 0 link)
-             type Node subtype V4L
-             device node name /dev/video5
-        pad0: Input
-
-- entity 13: OMAP3 ISP resizer (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/subdev6
-        pad0: Input [unknown 0x0]
-        pad1: Output [unknown 0x0]
-                -> 'OMAP3 ISP resizer output':pad0 []
-                -> 'omap3/imx046 2-001a/lv8093 2-00':pad0 []
-
-- entity 14: OMAP3 ISP resizer input (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video6
-        pad0: Output
-                -> 'OMAP3 ISP resizer':pad0 []
-
-- entity 15: OMAP3 ISP resizer output (1 pad, 0 link)
-             type Node subtype V4L
-             device node name /dev/video7
-        pad0: Input
-
-- entity 16: OMAP3 ISP AEWB (1 pad, 0 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/subdev7
-        pad0: Input
-
-- entity 17: OMAP3 ISP AF (1 pad, 0 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/subdev8
-        pad0: Input
-
-- entity 18: OMAP3 ISP histogram (1 pad, 0 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/subdev9
-        pad0: Input
-
-Can you help me understand how to configure all this?
-
-Thanks in advance!
-
-Regards,
-Sergio
-
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg14620.html
