@@ -1,89 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns2011.yellis.net ([79.170.233.11]:36623 "EHLO
-	vds2011.yellis.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751688Ab0FKQHz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jun 2010 12:07:55 -0400
-Message-ID: <4C125DD5.6060604@anevia.com>
-Date: Fri, 11 Jun 2010 18:01:25 +0200
-From: Florent AUDEBERT <florent.audebert@anevia.com>
+Received: from [200.29.137.120] ([200.29.137.120]:37485 "EHLO tesla.opendot.cl"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1754645Ab0FXQgd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jun 2010 12:36:33 -0400
+Received: from [192.168.0.10] (unknown [200.2.215.29])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by tesla.opendot.cl (Postfix) with ESMTPSA id 0591EC8001
+	for <linux-media@vger.kernel.org>; Thu, 24 Jun 2010 12:15:04 -0400 (CLT)
+Message-ID: <4C238B30.3050908@opendot.cl>
+Date: Thu, 24 Jun 2010 12:43:28 -0400
+From: "Reynaldo H. Verdejo Pinochet" <reynaldo@opendot.cl>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-CC: abraham.manu@gmail.com, Florent Audebert <faudebert@anevia.com>
-Subject: [PATCH] stb0899: Removed an extra byte sent at init on DiSEqC bus
+Subject: ISDB-T Tuning
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi guys
 
-I noticed a stray 0x00 at init on DiSEqC bus (KNC1 DVB-S2) with a DiSEqC
-tool analyzer.
+I have been trying to get a siano based 1seg ISDB-T USB dongle
+to scan and tune under Linux to no avail. Asking around it has
+been brought to my attention there might be no app available
+that would do this successfully even with an adapter currently
+supported by the kernel like the one I'm using. Facing that
+scenario and assuming my lack of luck trying to find such an
+application supports that claim, I'm wondering if there is
+anyone reading this that might be working on writing such an
+application and/or in extending an existing one like 'scan'
+to be able to work with ISDB-T. Just to avoid duplicating the
+effort.
 
-I removed the register from initialization table and all seem to go well
-(at least for my KNC board).
+Best regards
 
-
-Regards,
-
-
-Signed-off-by: Florent Audebert <florent.audebert@anevia.com>
----
- drivers/media/dvb/dvb-usb/az6027.c       |    1 -
- drivers/media/dvb/mantis/mantis_vp1041.c |    1 -
- drivers/media/dvb/ttpci/budget-av.c      |    1 -
- drivers/media/dvb/ttpci/budget-ci.c      |    1 -
- 4 files changed, 0 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
-index 6681ac1..9710e7b 100644
---- a/drivers/media/dvb/dvb-usb/az6027.c
-+++ b/drivers/media/dvb/dvb-usb/az6027.c
-@@ -40,7 +40,6 @@ static const struct stb0899_s1_reg az6027_stb0899_s1_init_1[] = {
- 	{ STB0899_DISRX_ST0     	, 0x04 },
- 	{ STB0899_DISRX_ST1     	, 0x00 },
- 	{ STB0899_DISPARITY     	, 0x00 },
--	{ STB0899_DISFIFO       	, 0x00 },
- 	{ STB0899_DISSTATUS		, 0x20 },
- 	{ STB0899_DISF22        	, 0x99 },
- 	{ STB0899_DISF22RX      	, 0xa8 },
-diff --git a/drivers/media/dvb/mantis/mantis_vp1041.c b/drivers/media/dvb/mantis/mantis_vp1041.c
-index d1aa2bc..7bb1f28 100644
---- a/drivers/media/dvb/mantis/mantis_vp1041.c
-+++ b/drivers/media/dvb/mantis/mantis_vp1041.c
-@@ -51,7 +51,6 @@ static const struct stb0899_s1_reg vp1041_stb0899_s1_init_1[] = {
- 	{ STB0899_DISRX_ST0     	, 0x04 },
- 	{ STB0899_DISRX_ST1     	, 0x00 },
- 	{ STB0899_DISPARITY     	, 0x00 },
--	{ STB0899_DISFIFO       	, 0x00 },
- 	{ STB0899_DISSTATUS		, 0x20 },
- 	{ STB0899_DISF22        	, 0x99 },
- 	{ STB0899_DISF22RX      	, 0xa8 },
-diff --git a/drivers/media/dvb/ttpci/budget-av.c b/drivers/media/dvb/ttpci/budget-av.c
-index 983672a..b697af4 100644
---- a/drivers/media/dvb/ttpci/budget-av.c
-+++ b/drivers/media/dvb/ttpci/budget-av.c
-@@ -896,7 +896,6 @@ static const struct stb0899_s1_reg knc1_stb0899_s1_init_1[] = {
- 	{ STB0899_DISRX_ST0		, 0x04 },
- 	{ STB0899_DISRX_ST1		, 0x00 },
- 	{ STB0899_DISPARITY		, 0x00 },
--	{ STB0899_DISFIFO		, 0x00 },
- 	{ STB0899_DISSTATUS		, 0x20 },
- 	{ STB0899_DISF22		, 0x8c },
- 	{ STB0899_DISF22RX		, 0x9a },
-diff --git a/drivers/media/dvb/ttpci/budget-ci.c b/drivers/media/dvb/ttpci/budget-ci.c
-index 13ac9e3..da5a72c 100644
---- a/drivers/media/dvb/ttpci/budget-ci.c
-+++ b/drivers/media/dvb/ttpci/budget-ci.c
-@@ -1046,7 +1046,6 @@ static const struct stb0899_s1_reg tt3200_stb0899_s1_init_1[] = {
- 	{ STB0899_DISRX_ST0     	, 0x04 },
- 	{ STB0899_DISRX_ST1     	, 0x00 },
- 	{ STB0899_DISPARITY     	, 0x00 },
--	{ STB0899_DISFIFO       	, 0x00 },
- 	{ STB0899_DISSTATUS		, 0x20 },
- 	{ STB0899_DISF22        	, 0x8c },
- 	{ STB0899_DISF22RX      	, 0x9a },
--- 
-1.7.1
-
+--
+Reynaldo
