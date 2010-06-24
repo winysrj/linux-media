@@ -1,88 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 30.mail-out.ovh.net ([213.186.62.213]:47061 "HELO
-	30.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752178Ab0FUSWs (ORCPT
+Received: from mail-in-08.arcor-online.net ([151.189.21.48]:50024 "EHLO
+	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753988Ab0FXX5M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 14:22:48 -0400
-Message-ID: <4C1FADF3.8040301@ventoso.org>
-Date: Mon, 21 Jun 2010 20:22:43 +0200
-From: Luca Olivetti <luca@ventoso.org>
-MIME-Version: 1.0
-To: Michael Krufky <mkrufky@kernellabs.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] af9005: use generic_bulk_ctrl_endpoint_response
-References: <AANLkTimtPb6A5Cd6mB2z3S5U2uZy0l4fkbVyyL3njizs@mail.gmail.com>	<4C1F0DDC.4070307@ventoso.org> <AANLkTimnh1hG27aEdqktSHfXbIEOmirlG9ZJXDpVBQQQ@mail.gmail.com>
-In-Reply-To: <AANLkTimnh1hG27aEdqktSHfXbIEOmirlG9ZJXDpVBQQQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Thu, 24 Jun 2010 19:57:12 -0400
+Subject: Re: [PATCH] Terratec Cinergy 250 PCI support
+From: hermann pitton <hermann-pitton@arcor.de>
+To: Jean-Michel Grimaldi <jm@via.ecp.fr>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTim5-Cc-ijE1U7M1DWSF8hcj8svSH30a0YVM4qv9@mail.gmail.com>
+References: <AANLkTim5-Cc-ijE1U7M1DWSF8hcj8svSH30a0YVM4qv9@mail.gmail.com>
+Content-Type: text/plain
+Date: Fri, 25 Jun 2010 01:43:58 +0200
+Message-Id: <1277423038.4742.9.camel@pc07.localdom.local>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Al 21/06/10 17:45, En/na Michael Krufky ha escrit:
-> On Mon, Jun 21, 2010 at 2:59 AM, Luca Olivetti<luca@ventoso.org>  wrote:
->> En/na Michael Krufky ha escrit:
->>>
->>> Could somebody please test this patch and confirm that it doesn't
->>> break the af9005 support?
->>>
->>> This patch removes the af9005_usb_generic_rw function and uses the
->>> dvb_usb_generic_rw function instead, using
->>> generic_bulk_ctrl_endpoint_response to differentiate between the read
->>> pipe and the write pipe.
->>
->> Unfortunately I cannot test it (my device is broken)[*].
->> At the time I wrote my own rw function because I didn't find a way to send
->> on a bulk endpoint and receiving on another one (i.e. I didn't know about
->> generic_bulk_ctrl_endpoint/generic_bulk_ctrl_endpoint_response or they
->> weren't available at the time).
->>
->> [*]Actually the tuner is broken, but the usb is working fine, so maybe I can
->> give it a try.
->
->
-> Luca,
->
-> That's OK -- I only added this "generic_bulk_ctrl_endpoint_response"
-> feature 4 months ago -- your driver predates that.  I am pushing this
-> patch to reduce the size of the kernel while using your driver to
-> demonstrate how to use the new feature.  I am already using it in an
-> out of tree driver that I plan to merge within the next few months or
-> so, but its always nice to optimize code that already exists with
-> small cleanups like this.
->
-> You don't need the tuner in order to prove the patch -- if you can
-> simply confirm that you are able to both read and write successfully,
-> that would be enough to prove the patch.  After testing, please
-> provide an ack in this thread so that I may include that with my pull
-> request.
+Hi, Jean-Michel,
 
-I cloned your hg tree and had to modify a couple of #if otherwise it 
-wouldn't compile (it choked on dvb_class->nodename and 
-dvb_class->devnode), after that it built fine and apparently the usb 
-communication still works:
+Am Freitag, den 25.06.2010, 00:42 +0200 schrieb Jean-Michel Grimaldi:
+> Hi, I have a Terratec Cinergy 250 PCI video card, and a small
+> modification in saa7134-cards.c is needed for it to work. I built the
+> patch on 2.6.34 version (I sent the modification to the maintainer in
+> early 2009 but got no feedback):
+> 
+> -- saa7134-cards.old.c	2010-06-25 00:31:16.000000000 +0200
+> +++ saa7134-cards.new.c	2010-06-25 00:30:52.000000000 +0200
+> @@ -2833,7 +2833,7 @@
+>  			.tv   = 1,
+>  		},{
+>  			.name = name_svideo,  /* NOT tested */
+> -			.vmux = 8,
+> +			.vmux = 3,
+>  			.amux = LINE1,
+>  		}},
+>  		.radio = {
+> 
+> Thanks for taking it into account in future kernels.
+> 
 
-usb 8-2: new full speed USB device using uhci_hcd and address 2
-usb 8-2: New USB device found, idVendor=15a4, idProduct=9020
-usb 8-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 8-2: Product: DVBT
-usb 8-2: Manufacturer: Afatech
-usb 8-2: configuration #1 chosen from 1 choice
-dvb-usb: found a 'Afatech DVB-T USB1.1 stick' in cold state, will try to 
-load a firmware
-usb 8-2: firmware: requesting af9005.fw
-dvb-usb: downloading firmware from file 'af9005.fw'
-dvb-usb: found a 'Afatech DVB-T USB1.1 stick' in warm state.
-dvb-usb: will use the device's hardware PID filter (table count: 32).
-DVB: registering new adapter (Afatech DVB-T USB1.1 stick)
-DVB: registering adapter 0 frontend 0 (AF9005 USB DVB-T)...
-input: IR-receiver inside an USB DVB receiver as 
-/devices/pci0000:00/0000:00:1d.2/usb8/8-2/input/input12
-dvb-usb: schedule remote query interval to 200 msecs.
-dvb-usb: Afatech DVB-T USB1.1 stick successfully initialized and connected.
-MT2060: successfully identified (IF1 = 1224)
+hm, don't know who missed it. After Gerd, the main mover on saa7134 was
+Hartmut, also /me and some well known others cared.
 
-Acked-by: Luca Olivetti <luca@ventoso.org>
+Official maintainer these days is Mauro.
 
-Bye
--- 
-Luca
+For latest DVB stuff, you also will meet Mike Krufky.
+
+I'm sorry, but your patch is still wrong.
+
+You do have only a Composite signal. S-Video, with separated chroma and
+luma, can only be on vmux 5-9.
+
+NACKED-by: hermann pitton <hermann-pitton@arcor.de>
+
+Cheers,
+Hermann
+
+
+
