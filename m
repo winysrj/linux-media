@@ -1,21 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.10])
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
 	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o5OJkclm003357
-	for <video4linux-list@redhat.com>; Thu, 24 Jun 2010 15:46:38 -0400
-Received: from mail-gy0-f174.google.com (mail-gy0-f174.google.com
-	[209.85.160.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5OJkSA5011611
-	for <video4linux-list@redhat.com>; Thu, 24 Jun 2010 15:46:28 -0400
-Received: by gye5 with SMTP id 5so6213894gye.33
-	for <video4linux-list@redhat.com>; Thu, 24 Jun 2010 12:46:28 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 24 Jun 2010 15:50:42 -0300
-Message-ID: <AANLkTilBMkMEsBs2uPnU9JpQoJ7ehPkVmCv0xeBLPSBp@mail.gmail.com>
-Subject: get all avaliabe sizes of a camera
-From: Gabriel Duarte <confusosk8@gmail.com>
+	id o5O39Aib002162
+	for <video4linux-list@redhat.com>; Wed, 23 Jun 2010 23:09:10 -0400
+Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5O390MP029892
+	for <video4linux-list@redhat.com>; Wed, 23 Jun 2010 23:09:00 -0400
+Received: from jim.nabble.com ([192.168.236.80])
+	by kuber.nabble.com with esmtp (Exim 4.63)
+	(envelope-from <emmanuelchanson@gmail.com>) id 1ORcoF-0006ZQ-RJ
+	for video4linux-list@redhat.com; Wed, 23 Jun 2010 20:08:59 -0700
+Date: Wed, 23 Jun 2010 20:08:59 -0700 (PDT)
+From: manunc <emmanuelchanson@gmail.com>
 To: video4linux-list@redhat.com
+Message-ID: <1277348939838-5216071.post@n2.nabble.com>
+In-Reply-To: <1277269620009-5211808.post@n2.nabble.com>
+References: <1277269620009-5211808.post@n2.nabble.com>
+Subject: Re: V4L & VLC 1.0.6 and standard selection
+MIME-Version: 1.0
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -29,21 +32,12 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello folks!
-I'd like to how to gather information about avaliable sizes of a camera. If
-someone knows how to help me  out, I'd be glad!
-Thanks!
 
+No ideas on how to add SECAM K1 to V4L drivers ?
 -- 
-Gabriel Duarte
-Linux User #471185
-Rio de Janeiro - RJ
-http://w3.impa.br/~gabrield
+View this message in context: http://video4linux-list.1448896.n2.nabble.com/V4L-VLC-1-0-6-and-standard-selection-tp5211808p5216071.html
+Sent from the video4linux-list mailing list archive at Nabble.com.
 
-Phones:
-(55) (21) 9463-7760 /*Mobile*/
-(55) (21) 2464-9302 /*Home*/
-(55) (21) 2529-5080 /*Work*/
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
