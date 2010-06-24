@@ -1,36 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f204.google.com ([209.85.211.204]:42475 "EHLO
-	mail-yw0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932120Ab0FIWpl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jun 2010 18:45:41 -0400
-Received: by ywh42 with SMTP id 42so6192570ywh.15
-        for <linux-media@vger.kernel.org>; Wed, 09 Jun 2010 15:45:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C10189D.1020406@gmail.com>
-References: <4C10189D.1020406@gmail.com>
-Date: Wed, 9 Jun 2010 18:45:40 -0400
-Message-ID: <AANLkTinRBjTqIfjlknZO_fPvr8N-0d091oPYh5Yvy9f_@mail.gmail.com>
-Subject: Re: avertv h830 hybrid tv usb stick
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: jacqweber@gmail.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from lo.gmane.org ([80.91.229.12]:36996 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754961Ab0FXMcy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jun 2010 08:32:54 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1ORlbv-0007Dm-4K
+	for linux-media@vger.kernel.org; Thu, 24 Jun 2010 14:32:51 +0200
+Received: from 193.160.199.2 ([193.160.199.2])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 24 Jun 2010 14:32:51 +0200
+Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Thu, 24 Jun 2010 14:32:51 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: CI-Module not working on Technisat Cablestar HD2
+Date: Thu, 24 Jun 2010 14:32:39 +0200
+Message-ID: <87r5jw4nmg.fsf@nemi.mork.no>
+References: <AANLkTinz5Wvd7XuFIxsMMOV2XUTEXAafRUgXiBMLpEQn@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 9, 2010 at 6:41 PM, Jacques Weber <jacqweber@gmail.com> wrote:
-> I just have bought an avertv h830 hybrid tv usb stick, the vendor having
-> certified to me it will work under linux...
-> By now it does not.
-> When I plug the stick, no /dev/video device is created.
-> I suppose it lacks some firmware supporting this hardware.
-> Does somebody know if this stick will be supported in the future ?
+Pascal Hahn <derpassi@gmail.com> writes:
 
-If the vendor "certified it", then you should be calling their
-technical support instead of asking us.
+> I can't see any of the expected mantis_ca_init but couldn't figure out
+> in the code where that gets called.
 
-Devin
+I don't think it is.  It was at some point, but it seems to be removed.
+Most likely because it wasn't considered ready at the time this driver
+was merged(?)
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+BTW, there is a potentional null dereference in mantis_irq_handler(),
+which will do
+
+        ca = mantis->mantis_ca;
+..
+        if (stat & MANTIS_INT_IRQ0) {
+                dprintk(MANTIS_DEBUG, 0, "<%s>", label[1]);
+                mantis->gpif_status = rst_stat;
+                wake_up(&ca->hif_write_wq);
+                schedule_work(&ca->hif_evm_work);
+        }
+
+This will blow up if (stat & MANTIS_INT_IRQ0) is true, since
+mantis->mantis_ca never is allocated.  But then I guess that the
+hardware should normally prevent (stat & MANTIS_INT_IRQ0) from being
+true as long as the ca system isn't initiated, so this does not pose a
+problem in practice.
+
+Still doesn't look good.
+
+
+
+Bjørn
+
