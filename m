@@ -1,45 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:40277 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752745Ab0FHLSE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jun 2010 07:18:04 -0400
-Received: by gye5 with SMTP id 5so2935813gye.19
-        for <linux-media@vger.kernel.org>; Tue, 08 Jun 2010 04:18:02 -0700 (PDT)
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:58905 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751249Ab0FXT3I (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jun 2010 15:29:08 -0400
+Received: by bwz7 with SMTP id 7so365227bwz.19
+        for <linux-media@vger.kernel.org>; Thu, 24 Jun 2010 12:29:07 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <AANLkTikJzaAnTNGNFZY4B7aYctuq-aejsRiDmkBWMSzZ@mail.gmail.com>
-References: <AANLkTikJzaAnTNGNFZY4B7aYctuq-aejsRiDmkBWMSzZ@mail.gmail.com>
-Date: Tue, 8 Jun 2010 07:18:02 -0400
-Message-ID: <AANLkTinC2DfP414b4USOuW1OnSRgClmVKMUjcEfsa6zS@mail.gmail.com>
-Subject: Re: VBI support for em2870 (Kworld UB435-Q)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Vasilis Liaskovitis <vliaskov@gmail.com>
+In-Reply-To: <AANLkTim4ZxnPGxJZJPf3UdhFBhZoSfxdfx6MzJb3Y3Qp@mail.gmail.com>
+References: <AANLkTim4ZxnPGxJZJPf3UdhFBhZoSfxdfx6MzJb3Y3Qp@mail.gmail.com>
+Date: Thu, 24 Jun 2010 21:29:07 +0200
+Message-ID: <AANLkTikun4SyEVINPVltA8tC03Nlm8iU0qVVTM-zIWaK@mail.gmail.com>
+Subject: Re: update for util/scan/dvb-t/fr-Brest + ask
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Johann Ollivier Lapeyre <johann.ollivierlapeyre@gmail.com>
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 8, 2010 at 12:45 AM, Vasilis Liaskovitis <vliaskov@gmail.com> wrote:
-> HI,
+2010/6/17 Johann Ollivier Lapeyre <johann.ollivierlapeyre@gmail.com>:
+> Hi,
 >
-> I can successfully use my Kworld UB435-Q for OTA capture thanks to the
-> development work in this thread:
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg10472.html
+> Last week, the France/Bretagne removed analog frequencies and changed
+> DVB frequencies. Severals files has to changes (Rennes, Brest, ...),
+> here is the one i made & tested for util/scan/dvb-t/fr-Brest :
 >
-> however I 'd like to get closed captioning support if possible. I
-> don't get a /dev/vbi device with the current em28xx driver.
+> # Brest - France
+> # Emetteur du Roch Tredudon
+> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> T 546000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 578000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 586000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 618000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 650000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 770000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
 >
-> Does the em2870 chip support VBI in the first place?
+> ( frequencies with TV Channels).
 
-The UB435-Q is an ATSC/ClearQAM only device.  It has no analog support
-at all (and hence no VBI support).
+Committed, thanks.
 
-The fact that a /dev/video device gets created at all is a bug that is
-on my TODO list to fix.
+> But perhaps you could include all channel to be ready to futurs
+> changes, i don't know. All frequencies:
 
-Cheers,
+In this case you could just use autoscan.
 
-Devin
+Christoph
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
+> # Brest - France
+> # Emetteur du Roch Tredudon
+> # T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+> T 466000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 474000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 482000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 490000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 498000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 506000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 514000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 522000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 530000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 538000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 546000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 554000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 562000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 570000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 578000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 586000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 594000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 602000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 610000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 618000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 626000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 634000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 642000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 650000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 658000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 666000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 674000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 682000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 690000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 698000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 706000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 714000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 722000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 730000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 738000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 746000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 754000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 762000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 770000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+> T 778000000 8MHz AUTO NONE AUTO AUTO AUTO NONE
+>
+>
+> And thanks a lot for your job !
