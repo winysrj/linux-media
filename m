@@ -1,127 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46246 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1756001Ab0FSONR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jun 2010 10:13:17 -0400
-Date: Sat, 19 Jun 2010 16:13:31 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Baruch Siach <baruch@tkos.co.il>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3 1/3] mx2_camera: Add soc_camera support for i.MX25/i.MX27
-In-Reply-To: <190248f3b311ccfcb73f1fc71d185e3927f0bf05.1274865040.git.baruch@tkos.co.il>
-Message-ID: <Pine.LNX.4.64.1006191458420.11313@axis700.grange>
-References: <cover.1274865040.git.baruch@tkos.co.il>
- <190248f3b311ccfcb73f1fc71d185e3927f0bf05.1274865040.git.baruch@tkos.co.il>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from psmtp31.wxs.nl ([195.121.247.33]:51641 "EHLO psmtp31.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754143Ab0FXOzg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 24 Jun 2010 10:55:36 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp31.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L4I00F5DXGAK0@psmtp31.wxs.nl> for linux-media@vger.kernel.org;
+ Thu, 24 Jun 2010 16:55:23 +0200 (CEST)
+Date: Thu, 24 Jun 2010 16:55:20 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Help wanted on removing dibusb_rc_keys from  dvb_usb_rtl2831u module
+In-reply-to: <4C1D1228.1090702@holzeisen.de>
+To: Thomas Holzeisen <thomas@holzeisen.de>, linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>
+Message-id: <4C2371D8.8090601@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4C1D1228.1090702@holzeisen.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Baruch
+This is probably caused by the current dvb_usb_rtl2831u module using 
+dibusb_rc_keys, which disapperead due to IR changes.
 
-On Wed, 26 May 2010, Baruch Siach wrote:
+Syncing the rtl2831-r2/ tree with the main archive cause compilation 
+problems in v4l/dibusb-mc.c and I suppose rtd2830u.c will not compile 
+anymore either.
 
-> This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
-> Carvalho de Assis modified the original driver to get it working on more recent
-> kernels. I modified it further to add support for i.MX25. This driver has been
-> tested on i.MX25 and i.MX27 based platforms.
+Can somebody with knowledge on IR help me with updating the code ?
 
-I hoped, this would be the final version, but if I'm not mistaken, you've 
-introduced an error, which we better fix before committing. And as we 
-anyway will likely need a v4, I'll also ask you to improve a couple of 
-stylistic issues, which otherwise I'd just fix myself with your 
-permission.
+$ grep dibusb_rc_keys */*.[ch]
+v4l/dibusb-mc.c:	.rc_key_map       = dibusb_rc_keys,
+v4l/rtd2830u.c:		d->props.rc_key_map = dibusb_rc_keys;
+v4l/rtd2830u.c:	.rc_key_map = dibusb_rc_keys,
+v4l/rtd2830u.c:	.rc_key_map = dibusb_rc_keys,
 
-> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> ---
->  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
->  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
->  drivers/media/video/Kconfig              |   13 +
->  drivers/media/video/Makefile             |    1 +
->  drivers/media/video/mx2_camera.c         | 1488 ++++++++++++++++++++++++++++++
->  5 files changed, 1550 insertions(+), 2 deletions(-)
->  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
->  create mode 100644 drivers/media/video/mx2_camera.c
+I addition, I'd like to get help on how to move the IR code into
+http://linuxtv.org/hg/~anttip/rtl2831u
+
+That (in all other respects much better) version has NO IR support at 
+all at. Adding IR to that driver, and getting it into the kernel would 
+solve all problems.
+
+Thomas Holzeisen wrote:
+> Hi,
 > 
-> diff --git a/arch/arm/plat-mxc/include/mach/memory.h b/arch/arm/plat-mxc/include/mach/memory.h
-> index c4b40c3..5803836 100644
-> --- a/arch/arm/plat-mxc/include/mach/memory.h
-> +++ b/arch/arm/plat-mxc/include/mach/memory.h
+> i am using a DVB-T USB-Stick with Realtek RTL2831 chip (14aa:0160) on 
+> Debian Lenny having the lastest Backport kernel 2.6.32.
+> 
+>> $ uname -a
+>> Linux xbmc 2.6.32-bpo.5-686 #1 SMP Fri Jun 11 22:20:29 UTC 2010 i686 
+>> GNU/Linux
+> 
+> For v4l I took the drivers from here:
+> 
+>> http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/
+> 
+> The checked out source compile and installs fine. I compiled them 
+> starting with "make distclean". But when plugging the DVB-Stick this 
+> happens:
+> 
+>> [  229.524028] usb 4-2: new high speed USB device using ehci_hcd and 
+>> address 3
+>> [  229.658591] usb 4-2: New USB device found, idVendor=14aa, 
+>> idProduct=0160
+>> [  229.661204] usb 4-2: New USB device strings: Mfr=1, Product=2, 
+>> SerialNumber=3
+>> [  229.663841] usb 4-2: Product: DTV Receiver
+>> [  229.666308] usb 4-2: Manufacturer: DTV Receiver
+>> [  229.668826] usb 4-2: SerialNumber: 0000000000067936
+>> [  229.671609] usb 4-2: configuration #1 chosen from 1 choice
+>> [  230.266960] dvb-usb: found a 'Freecom USB 2.0 DVB-T Device' in warm 
+>> state.
+>> [  230.270314] dvb-usb: will pass the complete MPEG2 transport stream 
+>> to the software demuxer.
+>> [  230.273641] DVB: registering new adapter (Freecom USB 2.0 DVB-T 
+>> Device)
+>> [  230.277461] DVB: registering adapter 0 frontend 0 (Realtek RTL2831 
+>> DVB-T)...
+>> [  230.282081] BUG: unable to handle kernel paging request at 02b65c40
+>> [  230.285794] IP: [<f7c623ba>] dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
+>> [  230.291463] *pde = 00000000
+>> [  230.293969] Oops: 0002 [#1] SMP
+>> [  230.293969] last sysfs file: 
+>> /sys/devices/pci0000:00/0000:00:06.1/usb4/4-2/bmAttributes
+>> [  230.293969] Modules linked in: dvb_usb_rtl2831u(+) 
+>> dvb_usb_dibusb_common dvb_usb dib3000mc dibx000_common dvb_ttpci 
+>> dvb_core saa7146_vv videodev v4l1_compat saa7146 videobuf_dma_sg 
+>> videobuf_core ttpci_eeprom iscsi_trgt crc32c loop snd_hda_codec_nvhdmi 
+>> snd_hda_codec_realtek snd_hda_intel snd_hda_codec snd_hwdep snd_pcm 
+>> snd_seq snd_timer snd_seq_device snd tpm_tis soundcore tpm shpchp 
+>> psmouse wmi serio_raw tpm_bios snd_page_alloc pcspkr pci_hotplug 
+>> processor evdev button ir_core nvidia(P) lirc_imon i2c_nforce2 
+>> i2c_core lirc_dev ext3 jbd mbcache raid1 md_mod usbhid hid sg sr_mod 
+>> cdrom sd_mod crc_t10dif usb_storage ahci ata_generic libata ehci_hcd 
+>> ohci_hcd scsi_mod usbcore nls_base forcedeth thermal fan thermal_sys 
+>> [last unloaded: scsi_wait_scan]
+>> [  230.293969]
+>> [  230.293969] Pid: 3279, comm: modprobe Tainted: P           
+>> (2.6.32-bpo.5-686 #1) Point of View
+>> [  230.293969] EIP: 0060:[<f7c623ba>] EFLAGS: 00010246 CPU: 0
+>> [  230.293969] EIP is at dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
+>> [  230.293969] EAX: 69656148 EBX: f589b000 ECX: c14c18e4 EDX: f589b018
+>> [  230.293969] ESI: f5904000 EDI: 000003b8 EBP: 00000077 ESP: f5851e88
+>> [  230.293969]  DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
+>> [  230.293969] Process modprobe (pid: 3279, ti=f5850000 task=f5cd4400 
+>> task.ti=f5850000)
+>> [  230.293969] Stack:
+>> [  230.293969]  f589b018 f5904000 f5904000 f5904864 00000001 f7c61945 
+>> f5904418 f80bb8d0
+>> [  230.293969] <0> f5912000 f5b8f800 f80bad88 00000000 f80bad88 
+>> 00000000 f5912000 00000000
+>> [  230.293969] <0> f80bb894 f80ba970 f80b886d 00000000 f80ba960 
+>> f5912000 f80c8c98 f591201c
+>> [  230.293969] Call Trace:
+>> [  230.293969]  [<f7c61945>] ? dvb_usb_device_init+0x515/0x51c [dvb_usb]
+>> [  230.293969]  [<f80b886d>] ? rtd2831u_usb_probe+0x19/0x48 
+>> [dvb_usb_rtl2831u]
+>> [  230.293969]  [<f80c8c98>] ? usb_probe_interface+0xe7/0x130 [usbcore]
+>> [  230.293969]  [<c11b2c22>] ? driver_probe_device+0x8a/0x11e
+>> [  230.293969]  [<c11b2cf6>] ? __driver_attach+0x40/0x5b
+>> [  230.293969]  [<c11b2667>] ? bus_for_each_dev+0x37/0x5f
+>> [  230.293969]  [<c11b2af5>] ? driver_attach+0x11/0x13
+>> [  230.293969]  [<c11b2cb6>] ? __driver_attach+0x0/0x5b
+>> [  230.293969]  [<c11b2135>] ? bus_add_driver+0x99/0x1c2
+>> [  230.293969]  [<c11b2f2b>] ? driver_register+0x87/0xe0
+>> [  230.293969]  [<f80c8aa6>] ? usb_register_driver+0x5d/0xb4 [usbcore]
+>> [  230.293969]  [<f80f6000>] ? rtd2831u_usb_module_init+0x0/0x2c 
+>> [dvb_usb_rtl2831u]
+>> [  230.293969]  [<f80f6015>] ? rtd2831u_usb_module_init+0x15/0x2c 
+>> [dvb_usb_rtl2831u]
+>> [  230.293969]  [<c100113e>] ? do_one_initcall+0x55/0x155
+>> [  230.293969]  [<c1057dd7>] ? sys_init_module+0xa7/0x1d7
+>> [  230.293969]  [<c10030fb>] ? sysenter_do_call+0x12/0x28
+>> [  230.293969] Code: 3e c6 f7 20 74 18 8b 86 a0 00 00 00 55 ff 74 38 
+>> 04 68 59 38 c6 f7 e8 1b a1 60 c9 83 c4 0c 8b 86 a0 00 00 00 8b 14 24 
+>> 8b 44 38 04 <f0> 0f ab 02 45 83 c7 08 3b ae a4 00 00 00 7c c2 83 be ac 
+>> 00 00
+>> [  230.293969] EIP: [<f7c623ba>] dvb_usb_remote_init+0x12e/0x209 
+>> [dvb_usb] SS:ESP 0068:f5851e88
+>> [  230.293969] CR2: 0000000002b65c40
+>> [  230.663846] ---[ end trace e2ebfa1976bffdae ]---
+> 
+> Mostly interesting, the modules are still getting loaded:
+> 
+>> $ lsmod | grep dvb
+>> dvb_usb_rtl2831u       89189  15
+>> dvb_usb_dibusb_common     4578  1 dvb_usb_rtl2831u
+>> dvb_usb                13320  2 dvb_usb_rtl2831u,dvb_usb_dibusb_common
+>> dib3000mc               8544  1 dvb_usb_dibusb_common
+>> dvb_ttpci              70046  0
+>> dvb_core               63034  2 dvb_usb,dvb_ttpci
+>> saa7146_vv             31312  1 dvb_ttpci
+>> saa7146                 9911  2 dvb_ttpci,saa7146_vv
+>> ttpci_eeprom            1224  1 dvb_ttpci
+>> i2c_core               12700  8 
+>> dvb_usb,dib3000mc,dibx000_common,dvb_ttpci,videodev,ttpci_eeprom,nvidia,i2c_nforce2 
+>>
+>> usbcore                98466  10 
+>> dvb_usb_rtl2831u,dvb_usb,lirc_imon,usbhid,usb_storage,ehci_hcd,ohci_hcd
+> 
+> When plugging the usb-stick after boot I am able to use it as intend. 
+> But when having it inserted during boot the system hangs up. Calling 
+> lsusb from console causes the used console to hang up as well. Would be 
+> great if anyone got a solution for this problem.
+> 
+> Best regards,
+> Thomas
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-[snip]
 
-> +static void mx2_videobuf_queue(struct videobuf_queue *vq,
-> +			       struct videobuf_buffer *vb)
-> +{
-> +	struct soc_camera_device *icd = vq->priv_data;
-> +	struct soc_camera_host *ici =
-> +		to_soc_camera_host(icd->dev.parent);
-> +	struct mx2_camera_dev *pcdev = ici->priv;
-> +	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
-> +	unsigned long flags;
-> +	int ret;
-> +
-> +	dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__,
-> +		vb, vb->baddr, vb->bsize);
-> +
-> +	spin_lock_irqsave(&pcdev->lock, flags);
-> +
-> +	vb->state = VIDEOBUF_QUEUED;
-> +	list_add_tail(&vb->queue, &pcdev->capture);
-> +
-> +	if (mx27_camera_emma(pcdev))
-> +		goto out;
-> +	else if (cpu_is_mx27()) {
-
-One of the minor ones - please, add braces in the "if" case.
-
-[snip]
-
-> +static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
-> +{
-> +	struct mx2_camera_dev *pcdev = data;
-> +	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
-> +	struct mx2_buffer *buf;
-> +
-> +	if ((status & (3 << 5)) == (3 << 5)
-> +			&& !list_empty(&pcdev->active_bufs)) {
-> +		/*
-> +		 * Both buffers have triggered, process the one we're expecting
-> +		 * to first
-> +		 */
-> +		buf = list_entry(pcdev->active_bufs.next,
-> +			struct mx2_buffer, vb.queue);
-> +		mx27_camera_frame_done_emma(pcdev, buf->bufnum, VIDEOBUF_DONE);
-> +	}
-> +	if (status & (1 << 6))
-> +		mx27_camera_frame_done_emma(pcdev, 0, VIDEOBUF_DONE);
-> +	if (status & (1 << 5))
-> +		mx27_camera_frame_done_emma(pcdev, 1, VIDEOBUF_DONE);
-
-Now, this is the important one. In my review of v2 I proposed the above 
-fix for the both-bits-set case. But, I think, your implementation is not 
-correct. Don't you have to clear the expected buffer number, so that you 
-don't process it twice? Something like
-
-		status &= ~(1 << 6 - buf->bufnum);
-
-anywhere inside the first of the three ifs?
-
-> +	if (status & (1 << 7)) {
-
-Bit 7 is overflow. A correct handling could be resetting the buffer, 
-returning an error frame and continuing with the next one. However, I 
-understand, that you do not have a chance to implement this properly 
-now. So, please, at least add a "FIXME" comment, explaining, what should 
-be done here. Besides, error states are normally checked before normal 
-data processing. So, either mention this in the comment too, or move this 
-above the buffer completion processing.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
