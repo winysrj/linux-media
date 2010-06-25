@@ -1,43 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback.mail.elte.hu ([157.181.151.13]:49191 "EHLO
-	fallback.mail.elte.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133Ab0FAGrm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 02:47:42 -0400
-Date: Tue, 1 Jun 2010 08:04:33 +0200
-From: Ingo Molnar <mingo@elte.hu>
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: akpm@linux-foundation.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH -mmotm] media: ak881x needs slab.h
-Message-ID: <20100601060433.GA24396@elte.hu>
-References: <201005192341.o4JNf5Hv012931@imap1.linux-foundation.org>
- <20100520140823.a9b81de9.randy.dunlap@oracle.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:41709 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753067Ab0FYJco (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jun 2010 05:32:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Samuel Xu <samuel.xu.tech@gmail.com>
+Subject: Re: Question on newly build uvcvideo.ko
+Date: Fri, 25 Jun 2010 11:32:51 +0200
+Cc: linux-media@vger.kernel.org
+References: <AANLkTilsMviOOwo1IWpyfNkd5jeSMU9SozqvgcamBdF_@mail.gmail.com>
+In-Reply-To: <AANLkTilsMviOOwo1IWpyfNkd5jeSMU9SozqvgcamBdF_@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100520140823.a9b81de9.randy.dunlap@oracle.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201006251132.52431.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Samuel,
 
-* Randy Dunlap <randy.dunlap@oracle.com> wrote:
-
-> From: Randy Dunlap <randy.dunlap@oracle.com>
+On Friday 25 June 2010 11:25:13 Samuel Xu wrote:
+> HI:
+> I am using a ASUS netbook with a USB 2.0 web camera (04f2:b071 Chicony
+> Electronics Co., Ltd 2.0M UVC WebCam / CNF7129)
+> I installed Linux, and the default uvcvideo.ko works (I tried
+> gstreamer-properties, which can find CNF7129 device and show correct
+> video camera test).
+> While I want to try the newest V4L2 build, So I follow
+> http://www.linuxtv.org/wiki to:
+> 1: get the src code v4l-dvb-9652f85e688a.tar.gz
+> 2: make and make install on my netbook.
+> 3: reboot system
 > 
-> Add slab.h to fix ak881x build:
-> 
-> drivers/media/video/ak881x.c:265:error: implicit declaration of function 'kzalloc'
-> drivers/media/video/ak881x.c:265:warning: assignment makes pointer from integer without a cast
-> drivers/media/video/ak881x.c:283:error: implicit declaration of function 'kfree'
-> 
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> ---
->  drivers/media/video/ak881x.c |    1 +
+> lsmod shows me uvcvideo module has been loaded, while
+> gstreamer-properties can't find CNF7129 device, so I can't use this
+> USB 2.0 web camera now.
 
-This build bug is now triggering in .35-rc1 as well.
+Can you look at the kernel log (dmesg) and report messages printed by the 
+uvcvideo driver ?
 
-	Ingo
+> I also tried re-install original workable Linux, and make v4l again.
+> Then copy the newly build uvcvideo.ko to
+> /lib/modules/2.6.33.xx/kernel/drivers/media/video/uvc/
+> module still can be found from lsmod, while gstreamer-properties still
+> can't find CNF7129 device.
+
+That's to be expected, as the new v4l-dvb build you installed replaced the 
+core v4l modules (such as videodev.ko), and the new version isn't compatible 
+with the uvcvideo driver that came with your kernel.
+
+> Does it mean I must do some code modification for 04f2:b071 device
+> before I build v4l driver?
+
+In theory, no.
+
+-- 
+Regards,
+
+Laurent Pinchart
