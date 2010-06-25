@@ -1,42 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.newportit.com ([65.99.194.148]:35318 "EHLO wapdot.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756951Ab0FUPsQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 11:48:16 -0400
-Subject: Re: How to use aux input on ATI TV Wonder 600 USB?
-From: Steve Freitas <sflist@ihonk.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <AANLkTil3akZ0OAahETLyHv9Wc0eG3UrEz3RAmsg7GSlU@mail.gmail.com>
-References: <1277132966.27109.24.camel@phat>
-	 <AANLkTil3akZ0OAahETLyHv9Wc0eG3UrEz3RAmsg7GSlU@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 21 Jun 2010 08:48:13 -0700
-Message-ID: <1277135293.27109.32.camel@phat>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:41152 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755221Ab0FYMP5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jun 2010 08:15:57 -0400
+Received: by ewy20 with SMTP id 20so581029ewy.19
+        for <linux-media@vger.kernel.org>; Fri, 25 Jun 2010 05:15:55 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <87r5jw4nmg.fsf@nemi.mork.no>
+References: <AANLkTinz5Wvd7XuFIxsMMOV2XUTEXAafRUgXiBMLpEQn@mail.gmail.com>
+	<87r5jw4nmg.fsf@nemi.mork.no>
+From: Pascal Hahn <derpassi@gmail.com>
+Date: Fri, 25 Jun 2010 14:15:35 +0200
+Message-ID: <AANLkTinY4jzSBe5mp0MskB-bLNTtc54L29ApgxtGskOK@mail.gmail.com>
+Subject: Re: CI-Module not working on Technisat Cablestar HD2
+To: =?UTF-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2010-06-21 at 11:22 -0400, Devin Heitmueller wrote:
-> On Mon, Jun 21, 2010 at 11:09 AM, Steve Freitas <sflist@ihonk.com> wrote:
-> > Hi all,
-> >
-> > I have an ATI TV Wonder 600 USB and have successfully used it for its
-> > DVB features, thanks to the work of many of you on this list. However,
-> > this device also has an auxiliary s-video/composite input[1] which I'd
-> > like to use in VLC, and I can't figure out how. Is there any capability
-> > in the driver to switch to that?
-> 
-> Yes, it's fully supported.  But bear in mind it's an analog input, so
-> you need to use a V4L application as opposed to something designed for
-> DVB.  Once you use an analog app (such as tvtime), just toggle over to
-> input 1 for composite or input 2 for S-Video (input zero is the analog
-> tuner input).
+Thanks for the feedback already. Do you know which kernel version this
+driver is functional in out of the top of your head?
 
-That was just the help I needed. Thanks! Would it be appropriate for me
-to add that input number information to the wiki page[1]?
+I tried multiple kernels and had no luck getting it to work so far.
 
-Steve
-
-[1] http://www.linuxtv.org/wiki/index.php/ATI/AMD_TV_Wonder_HD_600_USB
-
+On Thu, Jun 24, 2010 at 2:32 PM, Bjørn Mork <bjorn@mork.no> wrote:
+> Pascal Hahn <derpassi@gmail.com> writes:
+>
+>> I can't see any of the expected mantis_ca_init but couldn't figure out
+>> in the code where that gets called.
+>
+> I don't think it is.  It was at some point, but it seems to be removed.
+> Most likely because it wasn't considered ready at the time this driver
+> was merged(?)
+>
+> BTW, there is a potentional null dereference in mantis_irq_handler(),
+> which will do
+>
+>        ca = mantis->mantis_ca;
+> ..
+>        if (stat & MANTIS_INT_IRQ0) {
+>                dprintk(MANTIS_DEBUG, 0, "<%s>", label[1]);
+>                mantis->gpif_status = rst_stat;
+>                wake_up(&ca->hif_write_wq);
+>                schedule_work(&ca->hif_evm_work);
+>        }
+>
+> This will blow up if (stat & MANTIS_INT_IRQ0) is true, since
+> mantis->mantis_ca never is allocated.  But then I guess that the
+> hardware should normally prevent (stat & MANTIS_INT_IRQ0) from being
+> true as long as the ca system isn't initiated, so this does not pose a
+> problem in practice.
+>
+> Still doesn't look good.
+>
+>
+>
+> Bjørn
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
