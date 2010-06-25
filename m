@@ -1,40 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:64607 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752228Ab0FLDK3 (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:56516 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755515Ab0FYLYG convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 11 Jun 2010 23:10:29 -0400
-Received: by pvg16 with SMTP id 16so1118590pvg.19
-        for <linux-media@vger.kernel.org>; Fri, 11 Jun 2010 20:10:28 -0700 (PDT)
+	Fri, 25 Jun 2010 07:24:06 -0400
+Received: by bwz7 with SMTP id 7so651814bwz.19
+        for <linux-media@vger.kernel.org>; Fri, 25 Jun 2010 04:24:05 -0700 (PDT)
 MIME-Version: 1.0
-Date: Fri, 11 Jun 2010 20:10:28 -0700
-Message-ID: <AANLkTilYElPyhhej6XYF15D9wwBtkiMWrmkTvsviCI3W@mail.gmail.com>
-Subject: [PATCH] Fix av7110 driver name
-From: VDR User <user.vdr@gmail.com>
-To: "mailing list: linux-media" <linux-media@vger.kernel.org>
-Cc: Oliver Endriss <o.endriss@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <1277456138.29446.33.camel@slash.doma>
+References: <1277456138.29446.33.camel@slash.doma>
+Date: Fri, 25 Jun 2010 13:24:05 +0200
+Message-ID: <AANLkTilIqi6kgD2t97jiXkWHPUcwGiC9cUGYWZ6fFFq4@mail.gmail.com>
+Subject: Re: Slovenia DVB-T scan
+From: Christoph Pfister <christophpfister@gmail.com>
+To: =?UTF-8?Q?Alja=C5=BE_Prusnik?= <prusnik@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch simply changes the name of the av7110 driver to "AV7110"
-instead of the generic "dvb" it's set to currently.  Although it's
-somewhat trivial, it still seems appropriate to fix the name to be
-descriptive of the driver.
+2010/6/25 Aljaž Prusnik <prusnik@gmail.com>:
+> Hi!
+>
+> I noticed there isn't yet a tuning file for Slovenia so I'm giving you
+> info on our receivers (scanned with w_scan):
+>
+> # Slovenia / Ljubljana
+> # MULTIPLEX A
+> #------------------------------------------
+> T 602000000 8MHz 2/3 NONE QAM64 8k 1/4 NONE
+> T 514000000 8MHz 2/3 NONE QAM64 8k 1/8 NONE
 
-Signed-off-by: Derek Kelly <user.vdr@gmail.com>
-----------
+Added, thanks.
 
---- v4l-dvb/linux/drivers/media/dvb/ttpci/av7110.c      2010-06-11
-13:24:29.000000000 -0700
-+++ v4l-dvb.orig/linux/drivers/media/dvb/ttpci/av7110.c 2010-06-11
-12:49:50.000000000 -0700
-@@ -2893,7 +2893,7 @@ MODULE_DEVICE_TABLE(pci, pci_tbl);
+> Regards,
+> Aljaz
 
-
- static struct saa7146_extension av7110_extension_driver = {
--       .name           = "AV7110",
-+       .name           = "dvb",
-        .flags          = SAA7146_USE_I2C_IRQ,
-
-        .module         = THIS_MODULE,
+Christoph
