@@ -1,45 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from dd16922.kasserver.com ([85.13.137.202]:34612 "EHLO
-	dd16922.kasserver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751036Ab0FHEZv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 8 Jun 2010 00:25:51 -0400
-Message-ID: <4C0DC655.8040204@helmutauer.de>
-Date: Tue, 08 Jun 2010 06:25:57 +0200
-From: Helmut Auer <vdr@helmutauer.de>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:56328 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752724Ab0FYIwR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jun 2010 04:52:17 -0400
+Received: by qyk38 with SMTP id 38so490429qyk.19
+        for <linux-media@vger.kernel.org>; Fri, 25 Jun 2010 01:52:16 -0700 (PDT)
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: v4l-dvb - Is it still usable for a distribution ?
-References: <20100607112744.7B3B010FC20F@dd16922.kasserver.com>	<4C0CF124.4010103@redhat.com>	<AANLkTinisZ5DtH1Izn6WZS8isrF_G3oFZuppoHuwhlUj@mail.gmail.com>	<4C0D63AF.7090203@helmutauer.de> <AANLkTinavLdYZDZi1SjOyeKupWRX9kjA-Le7GFMQCWUB@mail.gmail.com>
-In-Reply-To: <AANLkTinavLdYZDZi1SjOyeKupWRX9kjA-Le7GFMQCWUB@mail.gmail.com>
+Date: Fri, 25 Jun 2010 16:52:16 +0800
+Message-ID: <AANLkTimlIcD8K1Xo8WiQ39YZbiIAUyRTUWlrW-FdAI7G@mail.gmail.com>
+Subject: Hello to Linux Media mail list
+From: Samuel Xu <samuel.xu.tech@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
-
->> Is your imon driver fully compatible with the lirc_imon in the display part ?
-> 
-> Yes, works perfectly fine with the exact same lcdproc setup here --
-> both vfd and lcd tested.
-> 
-fine - I will give it a try !
-
->> It would be very helpful to add a parameter for disabling the IR Part, I have many users which
->> are using only the display part.
-> 
-> Hm. I was going to suggest that if people aren't using the receiver,
-> there should be no need to disable IR, but I guess someone might want
-> to use an mce remote w/an mce receiver, and that would have
-> interesting results if they had one of the imon IR receivers
-> programmed for mce mode. 
->
-Thats what I meant :)
-
-> I'll keep it in mind for the next time I'm
-> poking at the imon code in depth. 
-Maybe you can use the already available ir_protocol parameter.
-
--- 
-Helmut Auer, helmut@helmutauer.de
+It is my first post to linux-media, sorry for NULL msg.
