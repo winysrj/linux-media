@@ -1,130 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vazy.pykota.com ([92.243.13.115]:39005 "EHLO vazy.pykota.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758893Ab0FVC5m (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 22:57:42 -0400
-Date: Tue, 22 Jun 2010 04:37:15 +0200
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2573 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756464Ab0FYTdl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jun 2010 15:33:41 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5PJXZBD085503
+	for <linux-media@vger.kernel.org>; Fri, 25 Jun 2010 21:33:39 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 25 Jun 2010 21:33:35 +0200 (CEST)
+Message-Id: <201006251933.o5PJXZBD085503@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: About Viewcast Osprey 450e
-Message-ID: <20100622023715.GC14792@vazy.pykota.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-From: alet@librelogiciel.com
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Over the years I've used successfully several products from Viewcast to
-do video capture, most notably Osprey 100, 210, 230 and 440, as part of
-the Boxtream Free Software project (http://boxtream.unice.fr)
+Results of the daily build of v4l-dvb:
 
-The 440 is a 4-inputs video capture card based on BT878, and it works
-flawlessly for my needs.
+date:        Fri Jun 25 19:00:11 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Now when building an instance of Boxtream based on a motherboard with
-PCI express bus, I've simply thought that the Osprey 450e was identical
-to the 440 but with a PCI express slot, and purchased one without asking
-first...
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Unfortunately I was wrong, this card is based on a different chip than
-the 440, and it doesn't seem to be supported.
+Detailed results are available here:
 
-Here's the output of lspci -vv :
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-07:00.0 Multimedia video controller: Micronas Semiconductor Holding AG
-Device 0720
-        Subsystem: Viewcast COM Device 0032
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-        ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-        <TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 0, Cache Line Size: 64 bytes
-        Interrupt: pin A routed to IRQ 15
-        Region 0: Memory at df3e0000 (32-bit, non-prefetchable)
-        [size=64K]
-        Region 1: Memory at df3f0000 (64-bit, non-prefetchable)
-        [size=64K]
-        Capabilities: [40] Power Management version 2
-                Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA
-                PME(D0-,D1-,D2-,D3hot-,D3cold-)
-                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-        Capabilities: [48] Message Signalled Interrupts: Mask- 64bit+
-        Queue=0/0 Enable-
-                Address: 0000000000000000  Data: 0000
-        Capabilities: [58] Express (v1) Endpoint, MSI 00
-                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
-                <64ns, L1 <1us
-                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
-                DevCtl: Report errors: Correctable- Non-Fatal- Fatal+
-                Unsupported-
-                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr+ NoSnoop+
-                        MaxPayload 128 bytes, MaxReadReq 512 bytes
-                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr-
-                TransPend-
-                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s,
-                Latency L0 unlimited, L1 unlimited
-                        ClockPM- Suprise- LLActRep- BwNot-
-                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain-
-                CommClk+
-                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+
-                DLActive- BWMgmt- ABWMgmt-
-        Capabilities: [100] Device Serial Number 00-11-3c-20-07-00-00-00
-        Capabilities: [400] Virtual Channel <?>
+Full logs are available here:
 
-08:00.0 Multimedia video controller: Micronas Semiconductor Holding AG
-Device 0720
-        Subsystem: Viewcast COM Device 0032
-        Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-        ParErr- Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-        <TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 0, Cache Line Size: 64 bytes
-        Interrupt: pin A routed to IRQ 14
-        Region 0: Memory at df2e0000 (32-bit, non-prefetchable)
-        [size=64K]
-        Region 1: Memory at df2f0000 (64-bit, non-prefetchable)
-        [size=64K]
-        Capabilities: [40] Power Management version 2
-                Flags: PMEClk- DSI- D1- D2- AuxCurrent=0mA
-                PME(D0-,D1-,D2-,D3hot-,D3cold-)
-                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-        Capabilities: [48] Message Signalled Interrupts: Mask- 64bit+
-        Queue=0/0 Enable-
-                Address: 0000000000000000  Data: 0000
-        Capabilities: [58] Express (v1) Endpoint, MSI 00
-                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
-                <64ns, L1 <1us
-                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
-                DevCtl: Report errors: Correctable- Non-Fatal- Fatal+
-                Unsupported-
-                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr+ NoSnoop+
-                        MaxPayload 128 bytes, MaxReadReq 512 bytes
-                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr-
-                TransPend-
-                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s,
-                Latency L0 unlimited, L1 unlimited
-                        ClockPM- Suprise- LLActRep- BwNot-
-                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain-
-                CommClk+
-                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+
-                DLActive- BWMgmt- ABWMgmt-
-        Capabilities: [100] Device Serial Number 00-11-3c-20-07-00-00-00
-        Capabilities: [400] Virtual Channel <?>
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-The commercial specs are available from :
+The V4L-DVB specification from this daily build is here:
 
-  http://www.viewcast.com/products/osprey-cards/osprey-450e
-
-Is there any chance this card will be supported by V4L in the future (or
-is it already) ?
-
-I'm not a kernel developper, but I'm more than willing to help and/or
-test if I can be useful.
-
-Thanks in advance for any help
-
-Jerome Alet
+http://www.xs4all.nl/~hverkuil/spec/media.html
