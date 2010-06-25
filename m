@@ -1,51 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:61148 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753905Ab0FOAY7 (ORCPT
+Received: from farizej.centrum.cz ([90.183.38.130]:54854 "EHLO
+	farizej.centrum.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751624Ab0FYICh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jun 2010 20:24:59 -0400
-Date: Mon, 14 Jun 2010 21:24:49 -0300
-From: "Gustavo F. Padovan" <gustavo@padovan.org>
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
-	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
-	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/8]bluetooth/hci_ldisc.c Fix warning: variable 'tty'
- set but not used
-Message-ID: <20100615001444.GC9203@vigoh>
-References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
- <1276547208-26569-3-git-send-email-justinmattock@gmail.com>
+	Fri, 25 Jun 2010 04:02:37 -0400
+Received: by mail255.centrum.cz id S50336306Ab0FYICV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 25 Jun 2010 10:02:21 +0200
+Date: Fri, 25 Jun 2010 10:02:21 +0200
+From: "favour" <amanda_favour@centrum.sk>
+To: "amanda_favour" <amanda_favour@centrum.sk>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1276547208-26569-3-git-send-email-justinmattock@gmail.com>
+Message-ID: <201006251002.17052@centrum.cz>
+Subject: hello
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Justin,
+hello with love and trust
+my dearest friend compliment of the day to you.my name is Amanda favour a
+girl of 23years old honest trusting kind caring loving and fun with
+compasionate and generous nature viewing your email address which really interest
+me to know more about you that is having communication friendship with you
+if you will have the desire with me.so that we can get to know each other
+better sharing feelings and thought together .i will like you to write me
+through my email for easiest communication.i will be waiting to read from
+you.I will be waiting for your mail;please make sure you replied to me with the email address below,it is very confidential and private,thanks and have a nice day.
+here is my email address
+ Amandasaleeby@she.com
 
-* Justin P. Mattock <justinmattock@gmail.com> [2010-06-14 13:26:42 -0700]:
-
-> Im getting this while building:
->   CC [M]  drivers/bluetooth/hci_ldisc.o
-> drivers/bluetooth/hci_ldisc.c: In function 'hci_uart_send_frame':
-> drivers/bluetooth/hci_ldisc.c:213:21: warning: variable 'tty' set but not used
-> 
-> the below fixed it for me, but am not sure if
-> it's correct.
 
 
-The fix is correct, you just need to fix the trailing whitespace
-problem and resend it.
-Also we use "Bluetooth:" as part of the commit message on the bluetooth
-subsystem. For example:
-
-"Bluetooth: Remove set but not used varible 'tty' 
-
-Or something like that.
-
--- 
-Gustavo F. Padovan
-http://padovan.org
