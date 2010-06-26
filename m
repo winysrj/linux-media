@@ -1,39 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14953 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932369Ab0FPUut (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jun 2010 16:50:49 -0400
-Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5GKolXs017033
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 16:50:47 -0400
-Date: Wed, 16 Jun 2010 16:50:44 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 0/2] IR: add initial IR transmit support
-Message-ID: <20100616205044.GA18486@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:51268 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752995Ab0FZNXs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jun 2010 09:23:48 -0400
+Subject: Re: [git:v4l-dvb/ivtv] V4L/DVB: tda18271: fix error detection
+ during initialization of first instance
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Cc: linuxtv-commits@linuxtv.org,
+	Michael Krufky <mkrufky@kernellabs.com>
+In-Reply-To: <E1OSV9v-0001x8-3g@www.linuxtv.org>
+References: <E1OSV9v-0001x8-3g@www.linuxtv.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 26 Jun 2010 09:24:04 -0400
+Message-ID: <1277558644.8545.4.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To enable IR transmit support in the mceusb driver, I need to add just
-three callbacks to achieve feature-parity with IR transmit using the old
-lirc_mceusb driver. This series adds those callbacks to ir-core's
-ir_dev_props struct, then wires them up for the mceusb driver.
+On Sat, 2010-06-26 at 14:51 +0200, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the 
+> http://git.linuxtv.org/v4l-dvb.git tree:
+> 
+> Subject: V4L/DVB: tda18271: fix error detection during initialization of first instance
+> Author:  Michael Krufky <mkrufky@kernellabs.com>
+> Date:    Mon May 3 02:10:15 2010 -0300
 
-At the moment, we have no "native" interface for transmitting IR, but a
-later patchset to add "legacy" lirc device interface support provides a
-means to transmit IR using this ir-core implementation.
+Hi Mauro,
 
-[PATCH 1/2] IR: add tx callbacks to ir-core
-[PATCH 2/2] IR/mceusb: add and wire up tx callback functions
+The e-mail subject line has "ivtv" in it, but no ivtv related changes in
+the email.  I'm guessing this is a branch tag? 
 
-Patches are against the linuxtv staging/rc tree, but will probably apply
-elsewhere as well.
-
--- 
-Jarod Wilson
-jarod@redhat.com
+Regards,
+Andy
 
