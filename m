@@ -1,61 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:53172 "EHLO poutre.nerim.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755020Ab0FANxO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jun 2010 09:53:14 -0400
-Date: Tue, 1 Jun 2010 15:53:10 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Wolfram Sang <w.sang@pengutronix.de>
-Cc: linux-i2c@vger.kernel.org,
-	George Joseph <george.joseph@fairview5.com>,
-	Riku Voipio <riku.voipio@iki.fi>,
-	Guillaume Ligneul <guillaume.ligneul@gmail.com>,
-	"Ben Dooks (embedded platforms)" <ben-linux@fluff.org>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Alessandro Rubini <rubini@ipvvis.unipv.it>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Colin Leroy <colin@colino.net>,
-	Benjamin Herrenschmidt <benh@kernel.crashing.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Liam Girdwood <lrg@slimlogic.co.uk>,
-	Paul Gortmaker <p_gortmaker@yahoo.com>,
-	Alessandro Zummo <a.zummo@towertech.it>,
-	Greg Kroah-Hartman <gregkh@suse.de>, lm-sensors@lm-sensors.org,
-	linux-kernel@vger.kernel.org, linux-input@vger.kernel.org,
-	linuxppc-dev@ozlabs.org, linux-media@vger.kernel.org,
-	linux-mtd@lists.infradead.org, rtc-linux@googlegroups.com,
-	devel@driverdev.osuosl.org
-Subject: Re: [PATCH] drivers: remove all i2c_set_clientdata(client, NULL)
-Message-ID: <20100601155310.3781fce6@hyperion.delvare>
-In-Reply-To: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
-References: <1275310552-14685-1-git-send-email-w.sang@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:52269 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753060Ab0FZShy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jun 2010 14:37:54 -0400
+Received: by ewy7 with SMTP id 7so39523ewy.19
+        for <linux-media@vger.kernel.org>; Sat, 26 Jun 2010 11:37:51 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sat, 26 Jun 2010 14:37:51 -0400
+Message-ID: <AANLkTim9TfITmvy7nEuSVJnCxRwCkpbmgRc2FIIIWHGF@mail.gmail.com>
+Subject: Correct way to do s_ctrl ioctl taking into account subdev framework?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 31 May 2010 14:55:48 +0200, Wolfram Sang wrote:
-> I2C-drivers can use the clientdata-pointer to point to private data. As I2C
-> devices are not really unregistered, but merely detached from their driver, it
-> used to be the drivers obligation to clear this pointer during remove() or a
-> failed probe(). As a couple of drivers forgot to do this, it was agreed that it
-> was cleaner if the i2c-core does this clearance when appropriate, as there is
-> no guarantee for the lifetime of the clientdata-pointer after remove() anyhow.
-> This feature was added to the core with commit
-> e4a7b9b04de15f6b63da5ccdd373ffa3057a3681 to fix the faulty drivers.
-> 
-> As there is no need anymore to clear the clientdata-pointer, remove all current
-> occurrences in the drivers to simplify the code and prevent confusion.
-> 
-> Signed-off-by: Wolfram Sang <w.sang@pengutronix.de>
-> Cc: Jean Delvare <khali@linux-fr.org>
-> (...)
+First, a bit of background:
 
-Applied, thanks. Will go to Linus in the next few days.
+A bug in the em28xx implementation of s_ctrl() was present where it
+would always return 1, even in success cases, regardless of what the
+subdev servicing the request said (in this case the video decoder).
+It was using v4l2_device_call_all(), and disregarding the return value
+from any of the subdevs.
+
+This prompted me to change the code so that it started using
+v4l2_device_call_until_err(), figuring that subdevs that did not
+support it would simply return -ENOIOCTLCMD.  However, as Mauro
+correctly pointed out, subdevs that do implement s_ctrl, but not the
+desired control will return -EINVAL, which would cause the bridge to
+stop sending the command to other subdevs and return an error.
+
+I looked at various other bridges, and don't see any consistent
+approach for this case.  Some of the bridges always return zero
+(regardless of what happened during the call).  Some of them look at
+the content of the resulting struct for some value that suggests it
+was changed.  Others feed the call to different classes of subdevice
+depending on what the actual control being set was.
+
+So what's the "right" approach?  I'm willing to conform to whatever
+the recommendation is here, since it will obviously be an improvement
+over always returning 1 (even always returning zero would be better
+since at least applications wouldn't treat it as a failure).
+
+Hans?
+
+Devin
 
 -- 
-Jean Delvare
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
