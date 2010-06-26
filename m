@@ -1,55 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54171 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932459Ab0FEAV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jun 2010 20:21:26 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o550LQJj010679
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 20:21:26 -0400
-Received: from pedra (vpn-10-9.rdu.redhat.com [10.11.10.9])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o550LI7m015252
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 4 Jun 2010 20:21:24 -0400
-Date: Fri, 4 Jun 2010 21:21:09 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/6] tm6000: Avoid OOPS when loading tm6000-alsa module
-Message-ID: <20100604212109.7fa8b874@pedra>
-In-Reply-To: <cover.1275696910.git.mchehab@redhat.com>
-References: <cover.1275696910.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:41875 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751788Ab0FZXDF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jun 2010 19:03:05 -0400
+Received: by bwz10 with SMTP id 10so233876bwz.19
+        for <linux-media@vger.kernel.org>; Sat, 26 Jun 2010 16:03:04 -0700 (PDT)
+From: Jaroslav Klaus <jaroslav.klaus@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Subject: TS discontinuity with TT S-2300
+Date: Sun, 27 Jun 2010 01:05:57 +0200
+Message-Id: <1CF58597-201D-4448-A80C-55815811753E@gmail.com>
+To: linux-media@vger.kernel.org
+Mime-Version: 1.0 (Apple Message framework v1081)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Hi,
 
-diff --git a/drivers/staging/tm6000/tm6000-alsa.c b/drivers/staging/tm6000/tm6000-alsa.c
-index 55a0925..8520434 100644
---- a/drivers/staging/tm6000/tm6000-alsa.c
-+++ b/drivers/staging/tm6000/tm6000-alsa.c
-@@ -39,7 +39,7 @@
-  ****************************************************************************/
- 
- static int index[SNDRV_CARDS] = SNDRV_DEFAULT_IDX;	/* Index 0-MAX */
--static char *id[SNDRV_CARDS] = SNDRV_DEFAULT_STR;       /* ID for this card */
-+
- static int enable[SNDRV_CARDS] = {1, [1 ... (SNDRV_CARDS - 1)] = 1};
- 
- module_param_array(enable, bool, NULL, 0444);
-@@ -316,7 +316,7 @@ int tm6000_audio_init(struct tm6000_core *dev)
- 	if (!enable[devnr])
- 		return -ENOENT;
- 
--	rc = snd_card_create(index[devnr], id[devnr], THIS_MODULE, 0, &card);
-+	rc = snd_card_create(index[devnr], "tm6000", THIS_MODULE, 0, &card);
- 	if (rc < 0) {
- 		snd_printk(KERN_ERR "cannot create card instance %d\n", devnr);
- 		return rc;
--- 
-1.7.1
+I'm loosing TS packets in my dual CAM premium TT S-2300 card (av7110+saa7146).
 
+Is it possible the problem is in firmware? Here is the description:
+
+04:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+        Subsystem: Technotrend Systemtechnik GmbH Technotrend/Hauppauge DVB card rev2.3
+        Flags: bus master, medium devsel, latency 32, IRQ 20
+        Memory at fddff000 (32-bit, non-prefetchable) [size=512]
+        Kernel driver in use: dvb
+
+dvb 0000:04:00.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
+IRQ 20/: IRQF_DISABLED is not guaranteed on shared IRQs
+saa7146: found saa7146 @ mem ffffc90005248000 (revision 1, irq 20) (0x13c2,0x000e).
+dvb 0000:04:00.0: firmware: requesting dvb-ttpci-01.fw
+DVB: registering new adapter (Technotrend/Hauppauge WinTV Nexus-S rev2.3)
+adapter has MAC addr = 00:d0:5c:04:2e:ea
+dvb 0000:04:00.0: firmware: requesting av7110/bootcode.bin
+dvb-ttpci: info @ card 0: firm f0240009, rtsl b0250018, vid 71010068, app 80f12623
+dvb-ttpci: firmware @ card 0 supports CI link layer interface
+
+I've tried also:
+ dvb-ttpci: info @ card 1: firm f0240009, rtsl b0250018, vid 71010068, app 8000261a
+ dvb-ttpci: info @ card 1: firm f0240009, rtsl b0250018, vid 71010068, app 80002622
+without any impact.
+
+SR of my signal is 27500, 2x official CAMs (videoguard).
+
+I use dvblast to select 4 TV channels (~ 16 PIDs) from multiplex, descramble them and stream them to network. Dvblast reports TS discontinuity across all video PIDs only (no audio) usually every 1-3 minutes ~80 packets. But sometimes it goes well for tens of minutes (up to 1-2hours). Everything seems to be ok with 3 TV channels.
+
+Do you thing it is av7110 issue? Do you know any relevant limits of av7110? What should I test/try more? Thanks
+
+Regards,
+Jaroslav
 
