@@ -1,124 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3363 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753517Ab0FZTdg (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:44248 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751565Ab0FZF1L convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 26 Jun 2010 15:33:36 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5QJXRZN064670
-	for <linux-media@vger.kernel.org>; Sat, 26 Jun 2010 21:33:35 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 26 Jun 2010 21:33:27 +0200 (CEST)
-Message-Id: <201006261933.o5QJXRZN064670@smtp-vbr16.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Sat, 26 Jun 2010 01:27:11 -0400
+Received: by qwi4 with SMTP id 4so843933qwi.19
+        for <linux-media@vger.kernel.org>; Fri, 25 Jun 2010 22:27:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTikn3OCc7V2IiwQaetoVmt1flFaVN5zHQz_7S_ri@mail.gmail.com>
+References: <AANLkTilsMviOOwo1IWpyfNkd5jeSMU9SozqvgcamBdF_@mail.gmail.com>
+	<201006251132.52431.laurent.pinchart@ideasonboard.com>
+	<AANLkTikn3OCc7V2IiwQaetoVmt1flFaVN5zHQz_7S_ri@mail.gmail.com>
+Date: Sat, 26 Jun 2010 13:27:09 +0800
+Message-ID: <AANLkTinv479DY-eag9fiMDKhDsBUHDv_Gf_WhegfNd8S@mail.gmail.com>
+Subject: Re: Question on newly build uvcvideo.ko
+From: Samuel Xu <samuel.xu.tech@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi, Pinchart:
+ Appreciate your possible comments on those dmesg info.
 
-Results of the daily build of v4l-dvb:
+Samuel
 
-date:        Sat Jun 26 19:00:25 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
-
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+2010/6/25 Samuel Xu <samuel.xu.tech@gmail.com>:
+> One correction: After make and make install, uvcvideo module can't
+> auto loaded any more. I must manually "insmod uvcvideo.ko" to load it.
+>
+> Here is lsmod result, I never have chance to make uvcvideo module used
+> bit to 1 :(
+> [root@user-desktop uvc]# lsmod
+> Module                  Size  Used by
+> uvcvideo               46182  0
+> rt2860sta             406917  1
+> battery                 7968  0
+>
+> After 2 questions, there is dmesg from uvcvideo after my manually
+> insmod, any idea?
+> Another question is: If newest v4l code tree has been advanced much
+> than src tree inside 2.6.33 kernel, which v4l src label is nearest
+> from src tree inside 2.6.33 kernel?
+> 3rdd question is: if I want to build v4l driver from src inside 2.6.33
+> kernel directly. How should I do? (I tried to make menuconfig and make
+> modules from a clean kernel, while insmod the newly build uvcvideo.ko
+> reports: insmod: error inserting './uvcvideo.ko': -1 Invalid module
+> format
+>
+> [   78.446109] uvcvideo: Found UVC 1.00 device CNF7129 (04f2:b071)
+> [   78.462540] ------------[ cut here ]------------
+> [   78.462569] WARNING: at drivers/media/video/v4l2-dev.c:420
+> __video_register_device+0x44/0x3d7()
+> [   78.462581] Hardware name: 1000H
+> [   78.462588] Modules linked in: uvcvideo(+) rt2860sta(C) battery
+> [   78.462616] Pid: 690, comm: insmod Tainted: G         C
+> 2.6.33.3-11.1-netbook #1
+> [   78.462626] Call Trace:
+> [   78.462647]  [<c1030944>] warn_slowpath_common+0x66/0x7d
+> [   78.462665]  [<c12f89ad>] ? __video_register_device+0x44/0x3d7
+> [   78.462682]  [<c1030968>] warn_slowpath_null+0xd/0x10
+> [   78.462697]  [<c12f89ad>] __video_register_device+0x44/0x3d7
+> [   78.462714]  [<c12f8d56>] video_register_device+0xa/0xc
+> [   78.462744]  [<f82e50fc>] uvc_probe+0x9c0/0xb26 [uvcvideo]
+> [   78.462763]  [<c12c1e35>] usb_probe_interface+0xe1/0x136
+> [   78.462782]  [<c11fff7b>] driver_probe_device+0x87/0x107
+> [   78.462799]  [<c120003e>] __driver_attach+0x43/0x5f
+> [   78.462815]  [<c11ff907>] bus_for_each_dev+0x3e/0x69
+> [   78.462831]  [<c11ffe46>] driver_attach+0x14/0x16
+> [   78.462846]  [<c11ffffb>] ? __driver_attach+0x0/0x5f
+> [   78.462862]  [<c11ff3aa>] bus_add_driver+0x105/0x235
+> [   78.462879]  [<c1200280>] driver_register+0x7a/0xe1
+> [   78.462894]  [<c12c1bf6>] usb_register_driver+0x67/0x104
+> [   78.462919]  [<f82c2000>] ? uvc_init+0x0/0x71 [uvcvideo]
+> [   78.462942]  [<f82c2059>] uvc_init+0x59/0x71 [uvcvideo]
+> [   78.462958]  [<c100113a>] do_one_initcall+0x4d/0x132
+> [   78.462977]  [<c105a1b6>] sys_init_module+0xa7/0x1db
+> [   78.462992]  [<c10027d0>] sysenter_do_call+0x12/0x26
+> [   78.463051] ---[ end trace a67861dcf94e1e3a ]---
+> [   78.463064] uvcvideo: Failed to register video device (-22).
+> [   78.463758] usbcore: registered new interface driver uvcvideo
+> [   78.463774] USB Video Class driver (v0.1.0)
+>
+> 2010/6/25 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+>> Hi Samuel,
+>>
+>> On Friday 25 June 2010 11:25:13 Samuel Xu wrote:
+>>> HI:
+>>> I am using a ASUS netbook with a USB 2.0 web camera (04f2:b071 Chicony
+>>> Electronics Co., Ltd 2.0M UVC WebCam / CNF7129)
+>>> I installed Linux, and the default uvcvideo.ko works (I tried
+>>> gstreamer-properties, which can find CNF7129 device and show correct
+>>> video camera test).
+>>> While I want to try the newest V4L2 build, So I follow
+>>> http://www.linuxtv.org/wiki to:
+>>> 1: get the src code v4l-dvb-9652f85e688a.tar.gz
+>>> 2: make and make install on my netbook.
+>>> 3: reboot system
+>>>
+>>> lsmod shows me uvcvideo module has been loaded, while
+>>> gstreamer-properties can't find CNF7129 device, so I can't use this
+>>> USB 2.0 web camera now.
+>>
+>> Can you look at the kernel log (dmesg) and report messages printed by the
+>> uvcvideo driver ?
+>>
+>>> I also tried re-install original workable Linux, and make v4l again.
+>>> Then copy the newly build uvcvideo.ko to
+>>> /lib/modules/2.6.33.xx/kernel/drivers/media/video/uvc/
+>>> module still can be found from lsmod, while gstreamer-properties still
+>>> can't find CNF7129 device.
+>>
+>> That's to be expected, as the new v4l-dvb build you installed replaced the
+>> core v4l modules (such as videodev.ko), and the new version isn't compatible
+>> with the uvcvideo driver that came with your kernel.
+>>
+>>> Does it mean I must do some code modification for 04f2:b071 device
+>>> before I build v4l driver?
+>>
+>> In theory, no.
+>>
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
+>>
+>
