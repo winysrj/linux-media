@@ -1,39 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:51187 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756221Ab0FFM4g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 6 Jun 2010 08:56:36 -0400
-Received: by fxm8 with SMTP id 8so1528831fxm.19
-        for <linux-media@vger.kernel.org>; Sun, 06 Jun 2010 05:56:33 -0700 (PDT)
-Date: Sun, 6 Jun 2010 14:56:36 +0200
-From: Gregoire Favre <gregoire.favre@gmail.com>
-To: Lars Schotte <lars.schotte@schotteweb.de>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] hvr4000 doesnt work w/ dvb-s2 nor DVB-T
-Message-ID: <20100606125636.GC3070@gmail.com>
-References: <20100606010311.6d98ef7b@romy.gusto>
- <20100606084301.GA3070@gmail.com>
- <20100606133946.76c3a6e0@romy.gusto>
- <20100606124925.GB3070@gmail.com>
- <20100606145154.60de422e@romy.gusto>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100606145154.60de422e@romy.gusto>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3363 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753517Ab0FZTdg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 26 Jun 2010 15:33:36 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5QJXRZN064670
+	for <linux-media@vger.kernel.org>; Sat, 26 Jun 2010 21:33:35 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 26 Jun 2010 21:33:27 +0200 (CEST)
+Message-Id: <201006261933.o5QJXRZN064670@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jun 06, 2010 at 02:51:54PM +0200, Lars Schotte wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> ah. so i see you had some problems as well. thats better, because as
-> long as i am not the only one maybe some time it will work.
+Results of the daily build of v4l-dvb:
 
-??? It was the developpement process and Disecq wasn't working right in
-the driver, which is now fixed, so the time I spent for this card should
-be good for you.
--- 
-Grégoire Favre, Chemin de Mallieu 15, 1009 Pully, +41 21 550 61 93 
-prof -> Gymnase de Chamblandes, Avenue des Désertes 29, 1009 Pully
-sip -> 310546@sip.freesip.ch  / gsm -> +41 78 765 65 00
-http://www.gycham.vd.ch/~greg / netvoip.ch : +41 21 544 77 44
+date:        Sat Jun 26 19:00:25 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
