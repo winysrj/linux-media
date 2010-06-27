@@ -1,54 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ms16-1.1blu.de ([89.202.0.34]:39257 "EHLO ms16-1.1blu.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752842Ab0FFTww (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jun 2010 15:52:52 -0400
-Received: from [95.103.170.192] (helo=romy.gusto)
-	by ms16-1.1blu.de with esmtpsa (TLS-1.0:DHE_RSA_AES_128_CBC_SHA1:16)
-	(Exim 4.69)
-	(envelope-from <lars.schotte@schotteweb.de>)
-	id 1OLLtp-0002CP-Iy
-	for linux-media@vger.kernel.org; Sun, 06 Jun 2010 21:52:49 +0200
-Date: Sun, 6 Jun 2010 21:52:46 +0200
-From: Lars Schotte <lars.schotte@schotteweb.de>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1288 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755189Ab0F0Tg1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Jun 2010 15:36:27 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o5RJaM60012426
+	for <linux-media@vger.kernel.org>; Sun, 27 Jun 2010 21:36:26 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 27 Jun 2010 21:36:22 +0200 (CEST)
+Message-Id: <201006271936.o5RJaM60012426@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: major brakethrough on HVR4000
-Message-ID: <20100606215246.4f67e391@romy.gusto>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-i have played w/ szap-s2 parameters and I got tuning, BUT not a picture
-yet, so that only means that it can tune in, as long as i have no
-picture and not a usable stream for dvb-s2 again, it means NOTHING.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-here the output of:
-./szap-s2 -O 20 -C 23 -M 5 -S 1 -r -c ~/.mplayer/channels.conf "arte
-HD(ZDFvision)"
-....
-zapping to 449 'arte HD(ZDFvision)':
-delivery DVB-S2, modulation 8PSK
-sat 0, frequency 11361 MHz H, symbolrate 22000000, coderate 2/3,
-rolloff 0.20 vpid 0x1842, apid 0x184d, sid 0x2b70
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-status 1f | signal dac0 | snr 0000 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK status 1f | signal dac0 | snr 0000 | ber 00000000 | unc
-00000000 | FE_HAS_LOCK status 1f | signal dac0 | snr fb33 | ber
-00000000 | unc 00000000 | FE_HAS_LOCK status 1f | signal dac0 | snr
-fb33 | ber 00000000 | unc 00000000 | FE_HAS_LOCK status 1f | signal
-dac0 | snr fb33 | ber 00000000 | unc 00000000 | FE_HAS_LOCK status 1f |
-signal dac0 | snr fb33 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal db40 | snr fb33 | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK status 1f | signal dac0 | snr fb33 | ber 00000000 | unc
-00000000 | FE_HAS_LOCK status 1f | signal dac0 | snr fccd | ber
-00000000 | unc 00000000 | FE_HAS_LOCK status 1f | signal dac0 | snr
-fccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK status 1f | signal
-dac0 | snr fccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK status 1f |
-signal dac0 | snr fccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal dac0 | snr fccd | ber 00000000 | unc 00000000 |
-FE_HAS_LOCK status 1f | signal db40 | snr fccd | ber 00000000 | unc
-00000000 | FE_HAS_LOCK
+Results of the daily build of v4l-dvb:
 
-- and this coderate 2/3 setting was it that made the difference.
+date:        Sun Jun 27 19:00:26 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
