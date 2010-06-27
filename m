@@ -1,274 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [200.29.137.120] ([200.29.137.120]:48816 "EHLO tesla.opendot.cl"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1755646Ab0FXUti (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 24 Jun 2010 16:49:38 -0400
-Message-ID: <4C23C7E3.40300@opendot.cl>
-Date: Thu, 24 Jun 2010 17:02:27 -0400
-From: "Reynaldo H. Verdejo Pinochet" <reynaldo@opendot.cl>
-MIME-Version: 1.0
+Received: from fg-out-1718.google.com ([72.14.220.157]:1339 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754701Ab0F0PUq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Jun 2010 11:20:46 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so232041fga.1
+        for <linux-media@vger.kernel.org>; Sun, 27 Jun 2010 08:20:45 -0700 (PDT)
+Content-Type: text/plain; charset=us-ascii
+Mime-Version: 1.0 (Apple Message framework v1081)
+Subject: Re: TS discontinuity with TT S-2300
+From: Jaroslav Klaus <jaroslav.klaus@gmail.com>
+In-Reply-To: <201006271437.01502@orion.escape-edv.de>
+Date: Sun, 27 Jun 2010 17:23:31 +0200
+Content-Transfer-Encoding: 8BIT
+Message-Id: <3CBBD92C-CC3B-42A1-8E74-C27508B26CB0@gmail.com>
+References: <1CF58597-201D-4448-A80C-55815811753E@gmail.com> <201006271437.01502@orion.escape-edv.de>
 To: linux-media@vger.kernel.org
-CC: Alan Carvalho de Assis <acassis@gmail.com>
-Subject: Re: ISDB-T Tuning
-References: <4C238B30.3050908@opendot.cl> <AANLkTilm8evyWV7hiP9f-Sb3DDKSGNpvqJXkZkm0hEuy@mail.gmail.com>
-In-Reply-To: <AANLkTilm8evyWV7hiP9f-Sb3DDKSGNpvqJXkZkm0hEuy@mail.gmail.com>
-Content-Type: multipart/mixed;
- boundary="------------050600090708000708060407"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050600090708000708060407
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-Hi Alan
+On 27.6.2010, at 14:37, Oliver Endriss wrote:
 
-Alan Carvalho de Assis wrote:
-> If you have all frequencies supported in your country you can the
-> "scan" command to detected all transmitted channels.
+> Hi,
+> 
+> On Sunday 27 June 2010 01:05:57 Jaroslav Klaus wrote:
+>> Hi,
+>> 
+>> I'm loosing TS packets in my dual CAM premium TT S-2300 card (av7110+saa7146).
+>> Do you thing it is av7110 issue? Do you know any relevant limits of
+>> av7110? What should I test/try more? Thanks 
+> 
+> The full-featured cards are not able to deliver the full bandwidth of a
+> transponder. It is a limitaion of the board design, not a firmware or
+> driver issue.
 
-I do have them but scan is showing no results. I'm using a homemade
-antenna that is giving 90-100% coverage with the windows app
-so I'm rather sure this is not a signal strength nor snr issue.
+I thought full bandwidth is impossible to process but I thought 4 TV channel should be ok. It's too much obviously. Especially when peaks of all TV channels meet in the same time.
 
-Here is my freqs file
+> You can fix this by applying the 'full-ts' hardware modification.
+> For more information follow the link in my signature.
 
-T 533143000 6MHz 3/4 3/4 AUTO 2k 1/32 NONE     # channel 24
-T 533143000 6MHz 3/4 AUTO AUTO AUTO AUTO NONE   # channel 24
-T 569143000 6MHz 3/4 3/4 AUTO 2k 1/32 NONE     # channel 30
-T 569143000 6MHz 3/4 AUTO AUTO AUTO AUTO NONE   # channel 30
-T 587143000 6MHz 3/4 3/4 AUTO 2k 1/32 NONE     # channel 33
-T 587143000 6MHz 3/4 AUTO AUTO AUTO AUTO NONE   # channel 33
-T 551143000 6MHz 3/4 3/4 AUTO 2k 1/32 NONE     # channel 27
-T 551143000 6MHz 3/4 AUTO AUTO AUTO AUTO NONE   # channel 27
+Great link. This really make sense. Thanks
 
-(entries repeated just to try out different combinations)
+Jaroslav
 
-Now, I know for sure there is a 1seg broadcast at 587143 KHZ
-, that's the one I'm getting with the windows app but scan on
-Linux keeps showing no results.
-
-I'm attaching the verbose scan output (I have also tried with
--5 with similar results):
-
-Best regards
-
---
-Reynaldo
-
-
---------------050600090708000708060407
-Content-Type: text/plain;
- name="scan_log"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="scan_log"
-
-scanning ChileISDBT
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 533143000 2 3 3 6 0 0 0
-initial transponder 533143000 2 3 9 6 2 4 0
-initial transponder 569143000 2 3 3 6 0 0 0
-initial transponder 569143000 2 3 9 6 2 4 0
-initial transponder 587143000 2 3 3 6 0 0 0
-initial transponder 587143000 2 3 9 6 2 4 0
-initial transponder 551143000 2 3 3 6 0 0 0
-initial transponder 551143000 2 3 9 6 2 4 0
->>> tune to: 533143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_3_4:QAM_AUTO:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 533143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_3_4:QAM_AUTO:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 533143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 533143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE (tuning failed)
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 569143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_3_4:QAM_AUTO:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 569143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_3_4:QAM_AUTO:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 569143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 569143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE (tuning failed)
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 587143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_3_4:QAM_AUTO:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 587143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_3_4:QAM_AUTO:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 587143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 587143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE (tuning failed)
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 551143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_3_4:QAM_AUTO:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 551143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_3_4:QAM_AUTO:TRANSMISSION_MODE_2K:GUARD_INTERVAL_1_32:HIERARCHY_NONE (tuning failed)
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 551143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
->>> tune to: 551143000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_3_4:FEC_AUTO:QAM_AUTO:TRANSMISSION_MODE_AUTO:GUARD_INTERVAL_AUTO:HIERARCHY_NONE (tuning failed)
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
->>> tuning status == 0x00
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-
---------------050600090708000708060407--
