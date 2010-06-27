@@ -1,69 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:43718 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755366Ab0FNU0u (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3415 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754377Ab0F0JK1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jun 2010 16:26:50 -0400
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-To: linux-kernel@vger.kernel.org
-Cc: reiserfs-devel@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	clemens@ladisch.de, debora@linux.vnet.ibm.com,
-	dri-devel@lists.freedesktop.org, linux-i2c@vger.kernel.org,
-	linux1394-devel@lists.sourceforge.net, linux-media@vger.kernel.org,
-	"Justin P. Mattock" <justinmattock@gmail.com>
-Subject: [PATCH 1/8]reiserfs:stree.c Fix variable set but not used.
-Date: Mon, 14 Jun 2010 13:26:41 -0700
-Message-Id: <1276547208-26569-2-git-send-email-justinmattock@gmail.com>
-In-Reply-To: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
-References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com>
+	Sun, 27 Jun 2010 05:10:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: Correct way to do s_ctrl ioctl taking into account subdev framework?
+Date: Sun, 27 Jun 2010 11:12:33 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <AANLkTim9TfITmvy7nEuSVJnCxRwCkpbmgRc2FIIIWHGF@mail.gmail.com> <201006262051.52754.hverkuil@xs4all.nl> <AANLkTikPKv6iCQmV14JSiR61AUMswsOoTB7i-eSHAwH4@mail.gmail.com>
+In-Reply-To: <AANLkTikPKv6iCQmV14JSiR61AUMswsOoTB7i-eSHAwH4@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201006271112.33893.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Not sure if this is correct or not.
-the below patch gets rid of this warning message
-produced by gcc 4.6.0
+On Saturday 26 June 2010 21:04:51 Devin Heitmueller wrote:
+> On Sat, Jun 26, 2010 at 2:51 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > There really is no good way at the moment to handle cases like this, or at
+> > least not without a lot of work.
+> 
+> Ok, it's good to know I'm not missing something obvious.
+> 
+> > The plan is to have the framework merged in time for 2.6.36. My last patch
+> > series for the framework already converts a bunch of subdevs to use it. Your
+> > best bet is to take the patch series and convert any remaining subdevs used
+> > by em28xx and em28xx itself. I'd be happy to add those patches to my patch
+> > series, so that when I get the go ahead the em28xx driver will be fixed
+> > automatically.
+> >
+> > It would be useful for me anyway to have someone else use it: it's a good
+> > check whether my documentation is complete.
+> 
+> Sure, could you please point me to the tree in question and I'll take a look?
 
-fs/reiserfs/stree.c: In function 'search_by_key':
-fs/reiserfs/stree.c:602:6: warning: variable 'right_neighbor_of_leaf_node' set but not used
+http://git.linuxtv.org/hverkuil/v4l-dvb.git, branch ctrlfw5.
 
- Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+This tree is based on the latest v4l-dvb master.
 
----
- fs/reiserfs/stree.c |    7 ++-----
- 1 files changed, 2 insertions(+), 5 deletions(-)
+Laurent, when you start working on moving UVC over to the control framework,
+please use this new branch. The old patch series no longer applies cleanly
+due to changes in the master.
 
-diff --git a/fs/reiserfs/stree.c b/fs/reiserfs/stree.c
-index 313d39d..73086ad 100644
---- a/fs/reiserfs/stree.c
-+++ b/fs/reiserfs/stree.c
-@@ -599,7 +599,6 @@ int search_by_key(struct super_block *sb, const struct cpu_key *key,	/* Key to s
- 	struct buffer_head *bh;
- 	struct path_element *last_element;
- 	int node_level, retval;
--	int right_neighbor_of_leaf_node;
- 	int fs_gen;
- 	struct buffer_head *reada_bh[SEARCH_BY_KEY_READA];
- 	b_blocknr_t reada_blocks[SEARCH_BY_KEY_READA];
-@@ -617,8 +616,7 @@ int search_by_key(struct super_block *sb, const struct cpu_key *key,	/* Key to s
- 
- 	pathrelse(search_path);
- 
--	right_neighbor_of_leaf_node = 0;
--
-+	
- 	/* With each iteration of this loop we search through the items in the
- 	   current node, and calculate the next current node(next path element)
- 	   for the next iteration of this loop.. */
-@@ -695,8 +693,7 @@ int search_by_key(struct super_block *sb, const struct cpu_key *key,	/* Key to s
- 			   starting from the root. */
- 			block_number = SB_ROOT_BLOCK(sb);
- 			expected_level = -1;
--			right_neighbor_of_leaf_node = 0;
--
-+			
- 			/* repeat search from the root */
- 			continue;
- 		}
+Regards,
+
+         Hans
+
+> 
+> Given I've got applications failing, for the short term I will likely
+> just submit a patch which makes the s_ctrl always return zero
+> regardless of the subdev response, instead of returning 1.
+> 
+> Thanks,
+> 
+> Devin
+> 
+> 
+
 -- 
-1.7.1.rc1.21.gf3bd6
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
