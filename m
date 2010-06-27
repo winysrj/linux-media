@@ -1,197 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57612 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756484Ab0FHVKm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 8 Jun 2010 17:10:42 -0400
-Received: from int-mx05.intmail.prod.int.phx2.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.18])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o58LAf2Z015129
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 8 Jun 2010 17:10:42 -0400
-Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [10.16.43.238])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o58LAeeH031015
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 8 Jun 2010 17:10:40 -0400
-Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [127.0.0.1])
-	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.3) with ESMTP id o58LAeSg013150
-	for <linux-media@vger.kernel.org>; Tue, 8 Jun 2010 17:10:40 -0400
-Received: (from jarod@localhost)
-	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.4/Submit) id o58LAdCp013145
-	for linux-media@vger.kernel.org; Tue, 8 Jun 2010 17:10:39 -0400
-Date: Tue, 8 Jun 2010 17:10:39 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] IR/mceusb: fixups for 1st-gen transceiver
-Message-ID: <20100608211039.GA7974@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:51892 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754908Ab0F0NA4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 27 Jun 2010 09:00:56 -0400
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Jaroslav Klaus <jaroslav.klaus@gmail.com>
+Subject: Re: TS discontinuity with TT S-2300
+Date: Sun, 27 Jun 2010 14:37:00 +0200
+Cc: linux-media@vger.kernel.org
+References: <1CF58597-201D-4448-A80C-55815811753E@gmail.com>
+In-Reply-To: <1CF58597-201D-4448-A80C-55815811753E@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Content-Disposition: inline
+Message-Id: <201006271437.01502@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The 1st-gen (Microsoft device ID) MCE transceiver devices are
-initialized differently than all others, and their incoming data
-buffers look a bit different. We need to strip off the first two
-bytes of data on each incoming buffer to get to the real data,
-and that wasn't being done in the detailed debug spew routines.
+Hi,
 
-Additionally, the 1st-gen init routine was... ugly. Well, it sill
-is, but less so, with fewer magic numbers in it, and a nasty
-looking warning about mapping memory from the stack gets eliminated
-by switching some temp data buffers from stack to being kmalloc'd.
+On Sunday 27 June 2010 01:05:57 Jaroslav Klaus wrote:
+> Hi,
+> 
+> I'm loosing TS packets in my dual CAM premium TT S-2300 card (av7110+saa7146).
+> 
+> Is it possible the problem is in firmware? Here is the description:
+> 
+> 04:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+>         Subsystem: Technotrend Systemtechnik GmbH Technotrend/Hauppauge DVB card rev2.3
+>         Flags: bus master, medium devsel, latency 32, IRQ 20
+>         Memory at fddff000 (32-bit, non-prefetchable) [size=512]
+>         Kernel driver in use: dvb
+> 
+> dvb 0000:04:00.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
+> IRQ 20/: IRQF_DISABLED is not guaranteed on shared IRQs
+> saa7146: found saa7146 @ mem ffffc90005248000 (revision 1, irq 20) (0x13c2,0x000e).
+> dvb 0000:04:00.0: firmware: requesting dvb-ttpci-01.fw
+> DVB: registering new adapter (Technotrend/Hauppauge WinTV Nexus-S rev2.3)
+> adapter has MAC addr = 00:d0:5c:04:2e:ea
+> dvb 0000:04:00.0: firmware: requesting av7110/bootcode.bin
+> dvb-ttpci: info @ card 0: firm f0240009, rtsl b0250018, vid 71010068, app 80f12623
+> dvb-ttpci: firmware @ card 0 supports CI link layer interface
+> 
+> I've tried also:
+>  dvb-ttpci: info @ card 1: firm f0240009, rtsl b0250018, vid 71010068, app 8000261a
+>  dvb-ttpci: info @ card 1: firm f0240009, rtsl b0250018, vid 71010068, app 80002622
+> without any impact.
+> 
+> SR of my signal is 27500, 2x official CAMs (videoguard).
+> 
+> I use dvblast to select 4 TV channels (~ 16 PIDs) from multiplex,
+> descramble them and stream them to network. Dvblast reports TS
+> discontinuity across all video PIDs only (no audio) usually every
+> 1-3 minutes ~80 packets. But sometimes it goes well for tens of
+> minutes (up to 1-2hours). Everything seems to be ok with 3 TV channels.
+> 
+> Do you thing it is av7110 issue? Do you know any relevant limits of
+> av7110? What should I test/try more? Thanks 
 
-And finally, the proper default tx blaster bitmask can't be read
-from the 1st-gen hardware, it has to be manually set.
+The full-featured cards are not able to deliver the full bandwidth of a
+transponder. It is a limitaion of the board design, not a firmware or
+driver issue.
 
-All successfully tested on my own 1st-gen mceusb transceiver.
+You can fix this by applying the 'full-ts' hardware modification.
+For more information follow the link in my signature.
 
-Patch is against v4l/dvb staging/rc tree.
-
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/mceusb.c |   57 ++++++++++++++++++++++++++++++++------------
- 1 files changed, 41 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
-index fe15091..b4cef00 100644
---- a/drivers/media/IR/mceusb.c
-+++ b/drivers/media/IR/mceusb.c
-@@ -52,6 +52,8 @@
- 
- #define USB_BUFLEN	32	/* USB reception buffer length */
- #define IRBUF_SIZE	256	/* IR work buffer length */
-+#define USB_CTRL_MSG_SZ	2	/* Size of usb ctrl msg on gen1 hw */
-+#define MCE_G1_INIT_MSGS 40	/* Init messages on gen1 hw to throw out */
- 
- /* MCE constants */
- #define MCE_CMDBUF_SIZE	384 /* MCE Command buffer length */
-@@ -307,11 +309,13 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- 	int i;
- 	u8 cmd, subcmd, data1, data2;
- 	struct device *dev = ir->dev;
-+	int idx = 0;
- 
--	if (len <= 0)
--		return;
-+	/* skip meaningless 0xb1 0x60 header bytes on orig receiver */
-+	if (ir->flags.microsoft_gen1 && !out)
-+		idx = 2;
- 
--	if (ir->flags.microsoft_gen1 && len <= 2)
-+	if (len <= idx)
- 		return;
- 
- 	for (i = 0; i < len && i < USB_BUFLEN; i++)
-@@ -325,10 +329,10 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- 	else
- 		strcpy(inout, "Got\0");
- 
--	cmd    = buf[0] & 0xff;
--	subcmd = buf[1] & 0xff;
--	data1  = buf[2] & 0xff;
--	data2  = buf[3] & 0xff;
-+	cmd    = buf[idx] & 0xff;
-+	subcmd = buf[idx + 1] & 0xff;
-+	data1  = buf[idx + 2] & 0xff;
-+	data2  = buf[idx + 3] & 0xff;
- 
- 	switch (cmd) {
- 	case 0x00:
-@@ -346,7 +350,7 @@ static void mceusb_dev_printdata(struct mceusb_dev *ir, char *buf,
- 			else
- 				dev_info(dev, "hw/sw rev 0x%02x 0x%02x "
- 					 "0x%02x 0x%02x\n", data1, data2,
--					 buf[4], buf[5]);
-+					 buf[idx + 4], buf[idx + 5]);
- 			break;
- 		case 0xaa:
- 			dev_info(dev, "Device reset requested\n");
-@@ -574,6 +578,13 @@ static void mceusb_set_default_xmit_mask(struct urb *urb)
- 	char *buffer = urb->transfer_buffer;
- 	u8 cmd, subcmd, def_xmit_mask;
- 
-+	/* default mask isn't fetchable on gen1, we have to set it */
-+	if (ir->flags.microsoft_gen1) {
-+		ir->def_tx_mask = MCE_DEFAULT_TX_MASK;
-+		ir->tx_mask = MCE_DEFAULT_TX_MASK;
-+		return;
-+	}
-+
- 	cmd    = buffer[0] & 0xff;
- 	subcmd = buffer[1] & 0xff;
- 
-@@ -637,27 +648,38 @@ static void mceusb_dev_recv(struct urb *urb, struct pt_regs *regs)
- static void mceusb_gen1_init(struct mceusb_dev *ir)
- {
- 	int i, ret;
--	char junk[64], data[8];
- 	int partial = 0;
- 	struct device *dev = ir->dev;
-+	char *junk, *data;
-+
-+	junk = kmalloc(2 * USB_BUFLEN, GFP_KERNEL);
-+	if (!junk) {
-+		dev_err(dev, "%s: memory allocation failed!\n", __func__);
-+		return;
-+	}
-+
-+	data = kzalloc(USB_CTRL_MSG_SZ, GFP_KERNEL);
-+	if (!data) {
-+		dev_err(dev, "%s: memory allocation failed!\n", __func__);
-+		kfree(junk);
-+		return;
-+	}
- 
- 	/*
- 	 * Clear off the first few messages. These look like calibration
- 	 * or test data, I can't really tell. This also flushes in case
- 	 * we have random ir data queued up.
- 	 */
--	for (i = 0; i < 40; i++)
-+	for (i = 0; i < MCE_G1_INIT_MSGS; i++)
- 		usb_bulk_msg(ir->usbdev,
- 			usb_rcvbulkpipe(ir->usbdev,
- 				ir->usb_ep_in->bEndpointAddress),
--			junk, 64, &partial, HZ * 10);
--
--	memset(data, 0, 8);
-+			junk, sizeof(junk), &partial, HZ * 10);
- 
- 	/* Get Status */
- 	ret = usb_control_msg(ir->usbdev, usb_rcvctrlpipe(ir->usbdev, 0),
- 			      USB_REQ_GET_STATUS, USB_DIR_IN,
--			      0, 0, data, 2, HZ * 3);
-+			      0, 0, data, USB_CTRL_MSG_SZ, HZ * 3);
- 
- 	/*    ret = usb_get_status( ir->usbdev, 0, 0, data ); */
- 	dev_dbg(dev, "%s - ret = %d status = 0x%x 0x%x\n", __func__,
-@@ -667,11 +689,11 @@ static void mceusb_gen1_init(struct mceusb_dev *ir)
- 	 * This is a strange one. They issue a set address to the device
- 	 * on the receive control pipe and expect a certain value pair back
- 	 */
--	memset(data, 0, 8);
-+	memset(data, 0, sizeof(data));
- 
- 	ret = usb_control_msg(ir->usbdev, usb_rcvctrlpipe(ir->usbdev, 0),
- 			      USB_REQ_SET_ADDRESS, USB_TYPE_VENDOR, 0, 0,
--			      data, 2, HZ * 3);
-+			      data, USB_CTRL_MSG_SZ, HZ * 3);
- 	dev_dbg(dev, "%s - ret = %d\n", __func__, ret);
- 	dev_dbg(dev, "%s - data[0] = %d, data[1] = %d\n",
- 		__func__, data[0], data[1]);
-@@ -694,6 +716,9 @@ static void mceusb_gen1_init(struct mceusb_dev *ir)
- 			      2, USB_TYPE_VENDOR,
- 			      0x0000, 0x0100, NULL, 0, HZ * 3);
- 	dev_dbg(dev, "%s - retC = %d\n", __func__, ret);
-+
-+	kfree(data);
-+	kfree(junk);
- };
- 
- static void mceusb_gen2_init(struct mceusb_dev *ir)
--- 
-1.6.5.2
+CU
+Oliver
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
