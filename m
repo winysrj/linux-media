@@ -1,105 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:53899 "EHLO
-	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752120Ab0FTQGU convert rfc822-to-8bit (ORCPT
+Received: from emh04.mail.saunalahti.fi ([62.142.5.110]:55906 "EHLO
+	emh04.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754916Ab0F0P4M (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 20 Jun 2010 12:06:20 -0400
-Received: from saunalahti-vams (vs3-11.mail.saunalahti.fi [62.142.5.95])
-	by emh03-2.mail.saunalahti.fi (Postfix) with SMTP id AEEA4EBC24
-	for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 19:06:18 +0300 (EEST)
-Received: from tammi.koti (a88-114-153-83.elisa-laajakaista.fi [88.114.153.83])
-	by emh06.mail.saunalahti.fi (Postfix) with ESMTP id 8F0CEE51A4
-	for <linux-media@vger.kernel.org>; Sun, 20 Jun 2010 19:06:17 +0300 (EEST)
-Message-ID: <4C1E3C79.60108@kolumbus.fi>
-Date: Sun, 20 Jun 2010 19:06:17 +0300
+	Sun, 27 Jun 2010 11:56:12 -0400
+Message-ID: <4C277496.7050508@kolumbus.fi>
+Date: Sun, 27 Jun 2010 18:56:06 +0300
 From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Mantis: append tasklet maintenance for DVB stream delivery
-References: <4C1DFD75.3080606@kolumbus.fi> <87vd9dbyng.fsf@nemi.mork.no>
-In-Reply-To: <87vd9dbyng.fsf@nemi.mork.no>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+CC: Oliver Endriss <o.endriss@gmx.de>,
+	Jaroslav Klaus <jaroslav.klaus@gmail.com>
+Subject: Re: TS discontinuity with TT S-2300
+References: <1CF58597-201D-4448-A80C-55815811753E@gmail.com> <201006271437.01502@orion.escape-edv.de>
+In-Reply-To: <201006271437.01502@orion.escape-edv.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-20.06.2010 16:51, Bjørn Mork kirjoitti:
-> Note that mantis_core_exit() is never called.  Unless I've missed
-> something, the drivers/media/dvb/mantis/mantis_core.{h,c} files can
-> just be deleted.  They look like some development leftovers?
+27.06.2010 15:37, Oliver Endriss wrote:
+> Hi,
 >
->    
-I see. mantis_core.ko kernel module exists though.
-Maybe the mantis/Makefile references for mantis_core.c, mantis.c and 
-hopper.c are just some leftovers too.
+> On Sunday 27 June 2010 01:05:57 Jaroslav Klaus wrote:
+>   
+>> Hi,
+>>
+>> I'm loosing TS packets in my dual CAM premium TT S-2300 card (av7110+saa7146).
+>>
+>> I use dvblast to select 4 TV channels (~ 16 PIDs) from multiplex,
+>> descramble them and stream them to network. Dvblast reports TS
+>> discontinuity across all video PIDs only (no audio) usually every
+>> 1-3 minutes ~80 packets. But sometimes it goes well for tens of
+>> minutes (up to 1-2hours). Everything seems to be ok with 3 TV channels.
+>>
+>>     
+> The full-featured cards are not able to deliver the full bandwidth of a
+> transponder. It is a limitaion of the board design, not a firmware or
+> driver issue.
+>   
+I noticed that saa7146 uses dvb_dmx_swfilter_packets().
 
-I moved tasklet_enable/disable calls into mantis_dvb.c where almost all 
-other tasklet code is located.
+I planned using of that function too for
+Mantis 16K buffer delivery, but I found out that
+hardware delivers sometimes additional bytes (corrupted partially lost
+packets?)
+between the full sized 204 byte packets:
 
-So the following reasoning still holds:
+Jun 26 16:20:37 koivu kernel: demux: skipped 49 bytes at position 3379
+Jun 26 16:20:37 koivu kernel: demux: skipped 18 bytes at position 9868
+Jun 26 16:20:37 koivu kernel: demux: skipped 30 bytes at position 10090
+Jun 26 16:20:38 koivu kernel: demux: skipped 14 bytes at position 7208
+Jun 26 16:20:38 koivu kernel: demux: skipped 114 bytes at position 7426
 
-1. dvb_dmxdev_filter_stop() calls mantis_dvb_stop_feed: mantis_dma_stop()
-2. dvb_dmxdev_filter_stop() calls release_ts_feed() or some other filter 
-freeing function.
-3. tasklet: mantis_dma_xfer calls dvb_dmx_swfilter to copy DMA buffer's 
-content into freed memory, accessing freed spinlocks.
-This case might occur while tuning into another frequency.
-Perhaps cdurrhau has found some version from this bug at 
-http://www.linuxtv.org/pipermail/linux-dvb/2010-June/032688.html:
- > This is what I get on the remote console via IPMI:
- > 40849.442492] BUG: soft lockup - CPU#2 stuck for 61s! [section
- > handler:4617]
+So dvb_dmx_swfilter(_204)() is needed to skip
+these unwanted bytes. With simple usage of
+dvb_dmx_swfilter_packets() the rest of the buffer
+would have been lost. I wrote a faster version of these
+functions, also for 188 sized packets today:
+"Re: [PATCH] Avoid unnecessary data copying inside
+dvb_dmx_swfilter_204() function"
 
-
-New reasoning for the patch (same as the one above, but from higher level):
-After dvb-core has called mantis-fe->stop_feed(dvbdmxfeed) the last time 
-(count to zero),
-no data should ever be copied with dvb_dmx_swfilter() by a tasklet: the 
-target structure might be in an unusable state.
-Caller of mantis_fe->stop_feed() assumes that feeding is stopped after 
-stop_feed() has been called, ie. dvb_dmx_swfilter()
-isn't running, and won't be called.
-
-There is a risk that dvb_dmx_swfilter() references freed resources 
-(memory or spinlocks or ???) causing instabilities.
-Thus tasklet_disable(&mantis->tasklet) must be called inside of 
-mantis-fe->stop_feed(dvbdmxfeed) when necessary.
-
-Signed-off-by: Marko Ristola <marko.ristola@kolumbus.fi>
-
+CU
 Marko
 
-diff --git a/drivers/media/dvb/mantis/mantis_dvb.c 
-b/drivers/media/dvb/mantis/mantis_dvb.c
-index 99d82ee..a9864f7 100644
---- a/drivers/media/dvb/mantis/mantis_dvb.c
-+++ b/drivers/media/dvb/mantis/mantis_dvb.c
-@@ -117,6 +117,7 @@ static int mantis_dvb_start_feed(struct 
-dvb_demux_feed *dvbdmxfeed)
-      if (mantis->feeds == 1)     {
-          dprintk(MANTIS_DEBUG, 1, "mantis start feed & dma");
-          mantis_dma_start(mantis);
-+        tasklet_enable(&mantis->tasklet);
-      }
-
-      return mantis->feeds;
-@@ -136,6 +137,7 @@ static int mantis_dvb_stop_feed(struct 
-dvb_demux_feed *dvbdmxfeed)
-      mantis->feeds--;
-      if (mantis->feeds == 0) {
-          dprintk(MANTIS_DEBUG, 1, "mantis stop feed and dma");
-+        tasklet_disable(&mantis->tasklet);
-          mantis_dma_stop(mantis);
-      }
-
-@@ -216,6 +218,7 @@ int __devinit mantis_dvb_init(struct mantis_pci *mantis)
-
-      dvb_net_init(&mantis->dvb_adapter, &mantis->dvbnet, 
-&mantis->demux.dmx);
-      tasklet_init(&mantis->tasklet, mantis_dma_xfer, (unsigned long) 
-mantis);
-+    tasklet_disable(&mantis->tasklet);
-      if (mantis->hwconfig) {
-          result = config->frontend_init(mantis, mantis->fe);
-          if (result < 0) {
 
