@@ -1,95 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:37610 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752821Ab0FPKnK convert rfc822-to-8bit (ORCPT
+Received: from mail-in-09.arcor-online.net ([151.189.21.49]:45869 "EHLO
+	mail-in-09.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754875Ab0F0MOI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 16 Jun 2010 06:43:10 -0400
-Received: by gwj15 with SMTP id 15so3843602gwj.19
-        for <linux-media@vger.kernel.org>; Wed, 16 Jun 2010 03:43:09 -0700 (PDT)
+	Sun, 27 Jun 2010 08:14:08 -0400
+Message-ID: <4C27408D.4080502@arcor.de>
+Date: Sun, 27 Jun 2010 14:14:05 +0200
+From: Stefan Ringel <stefan.ringel@arcor.de>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTiny9YXXT185VbNuw-z6aZDdIfS50UxFLERdlY-z@mail.gmail.com>
-References: <AANLkTiny9YXXT185VbNuw-z6aZDdIfS50UxFLERdlY-z@mail.gmail.com>
-Date: Wed, 16 Jun 2010 11:43:09 +0100
-Message-ID: <AANLkTinkDzTJfaFHx1bsGsdWlJnVGqa0n2VWdLvNBJRB@mail.gmail.com>
-Subject: Re: Trouble getting DVB-T working with Portuguese transmissions
-From: =?UTF-8?Q?Pedro_C=C3=B4rte=2DReal?= <pedro@pedrocr.net>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: tm6000 + audio
+References: <20100622180521.614eb85d@glory.loctelecom.ru> <4C20D91F.500@redhat.com> <4C212A90.7070707@arcor.de> <4C213257.6060101@redhat.com> <4C222561.4040605@arcor.de> <4C224753.2090109@redhat.com>
+In-Reply-To: <4C224753.2090109@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 16, 2010 at 11:24 AM, Pedro Côrte-Real <pedro@pedrocr.net> wrote:
-> I bought an Asus My Cinema U3100 mini,
-> which seems to be correctly recognized by the dib0700 driver in Ubuntu
-> 10.04 (kernel 2.6.32-22-generic). I can try the latest upstream kernel
-> to see if anything has changed.
+Mauro,
 
-Just tested the Ubuntu packaged kernel.org git snapshot of 2.6.35
-(2010-06-15 15:05) and much the same results happen. Scanning throws
-the same timeout and mplayer the same error messages although it now
-quits after a while:
+I have great problems with _tm6000_start_audio_dma if I started mencoder
+or arecord. It creashed and after a while it frosts in. (It hasn't logged).
 
-"""
-$ mplayer dvb://
-MPlayer SVN-r1.0~rc3+svn20090426-4.4.3 (C) 2000-2009 MPlayer Team
-mplayer: could not connect to socket
-mplayer: No such file or directory
-Failed to open LIRC support. You will not be able to use your remote control.
+Stefan Ringel
 
-Playing dvb://.
-dvb_tune Freq: 842000000
-dvb_streaming_read, attempt N. 6 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 5 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 4 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 3 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 2 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, attempt N. 1 failed with errno 0 when reading 2048 bytes
-dvb_streaming_read, return 0 bytes
+-- 
+Stefan Ringel <stefan.ringel@arcor.de>
 
-
-Exiting... (End of file)
-"""
-
-vlc for some reason no longer shows the error messages but it doesn't
-work either.
-
-One thing I forgot to mention before is that femon does show a lock:
-
-pedrocr@nash:~$ femon -H
-FE: DiBcom 7000PC (DVBT)
-status       | signal   0% | snr   1% | ber 2097151 | unc 0 |
-[... after tuning ...]
-status S     | signal  16% | snr   1% | ber 2097151 | unc 0 |
-status S     | signal  25% | snr   1% | ber 2097151 | unc 0 |
-status S     | signal  24% | snr   1% | ber 2097151 | unc 0 |
-status SC    | signal  24% | snr   1% | ber 2097151 | unc 0 |
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 6 | FE_HAS_LOCK
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 11 | FE_HAS_LOCK
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 7 | FE_HAS_LOCK
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  23% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-[... after changing to a better and amplified antenna ...]
-status  C Y  | signal  66% | snr   0% | ber 2097151 | unc 0 |
-status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  64% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  65% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-status SC YL | signal  64% | snr   0% | ber 2097151 | unc 0 | FE_HAS_LOCK
-
-(Showing snr in % seems very strange here)
-
-One thing I forgot to mention is that I bought the U3100 at a retailer
-and it seems to have been opened before so there is a chance it is
-broken somehow.
-
-Pedro
