@@ -1,43 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from canardo.mork.no ([148.122.252.1]:48519 "EHLO canardo.mork.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753044Ab0FYM05 convert rfc822-to-8bit (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:59752 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751960Ab0F1J6J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 25 Jun 2010 08:26:57 -0400
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-To: Pascal Hahn <derpassi@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: CI-Module not working on Technisat Cablestar HD2
-References: <AANLkTinz5Wvd7XuFIxsMMOV2XUTEXAafRUgXiBMLpEQn@mail.gmail.com>
-	<87r5jw4nmg.fsf@nemi.mork.no>
-	<AANLkTinY4jzSBe5mp0MskB-bLNTtc54L29ApgxtGskOK@mail.gmail.com>
-Date: Fri, 25 Jun 2010 14:26:51 +0200
-In-Reply-To: <AANLkTinY4jzSBe5mp0MskB-bLNTtc54L29ApgxtGskOK@mail.gmail.com>
-	(Pascal Hahn's message of "Fri, 25 Jun 2010 14:15:35 +0200")
-Message-ID: <871vbvuwl0.fsf@nemi.mork.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+	Mon, 28 Jun 2010 05:58:09 -0400
+From: Renzo Dani <arons7@gmail.com>
+To: adams.xu@azwave.com.cn
+Cc: arons7@gmail.com, mchehab@infradead.org, rdunlap@xenotime.net,
+	o.endriss@gmx.de, awalls@radix.net, crope@iki.fi, manu@linuxtv.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 1/1] Added Technisat Skystar USB HD CI
+Date: Mon, 28 Jun 2010 11:57:35 +0200
+Message-Id: <1277719055-14585-1-git-send-email-arons7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pascal Hahn <derpassi@gmail.com> writes:
-
-> Thanks for the feedback already. Do you know which kernel version this
-> driver is functional in out of the top of your head?
->
-> I tried multiple kernels and had no luck getting it to work so far.
-
-If you are talking about the mantis driver in Linus' mainline kernels,
-then it isn't updated at all since it was merged.  No need to try
-different kernels. They are all the same with respect to this driver.
-
-But the mantis driver went through a lot of changes during the very
-active development before it was merged, and the CA code used to be
-enabled at some point.  But I do not know if it worked.  And there were
-most likely very good reasons to disable it...
-
-Google will know.
+From: Renzo Dani <arons7@gmail.com>
 
 
-Bjørn
+Signed-off-by: Renzo Dani <arons7@gmail.com>
+---
+ Documentation/dvb/get_dvb_firmware |   19 ++++++++++++++++++-
+ drivers/media/dvb/dvb-usb/az6027.c |   14 ++++++++++++--
+ 2 files changed, 30 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
+index 239cbdb..c203e94 100644
+--- a/Documentation/dvb/get_dvb_firmware
++++ b/Documentation/dvb/get_dvb_firmware
+@@ -26,7 +26,7 @@ use IO::Handle;
+ 		"dec3000s", "vp7041", "dibusb", "nxt2002", "nxt2004",
+ 		"or51211", "or51132_qam", "or51132_vsb", "bluebird",
+ 		"opera1", "cx231xx", "cx18", "cx23885", "pvrusb2", "mpc718",
+-		"af9015", "ngene");
++		"af9015", "ngene", "az6027");
+ 
+ # Check args
+ syntax() if (scalar(@ARGV) != 1);
+@@ -567,6 +567,23 @@ sub ngene {
+     "$file1, $file2";
+ }
+ 
++sub az6027{
++    my $file = "AZ6027_Linux_Driver.tar.gz";
++	my $url = "http://linux.terratec.de/files/$file";
++    my $firmware = "dvb-usb-az6027-03.fw";
++
++	wgetfile($file, $url);
++
++	#untar
++    if( system("tar xzvf $file")){
++		die "failed to untar firmware";
++	}
++	if( system("rm -rf AZ6027_Linux_Driver; rm $file")){
++		die ("unable to remove unnecessary files");
++    }
++
++    $firmware;
++}
+ # ---------------------------------------------------------------
+ # Utilities
+ 
+diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
+index d7290b2..891ae04 100644
+--- a/drivers/media/dvb/dvb-usb/az6027.c
++++ b/drivers/media/dvb/dvb-usb/az6027.c
+@@ -1103,13 +1103,23 @@ static struct dvb_usb_device_properties az6027_properties = {
+ 	.rc_query         = az6027_rc_query,
+ 	.i2c_algo         = &az6027_i2c_algo,
+ 
+-	.num_device_descs = 1,
++	.num_device_descs = 2,
+ 	.devices = {
+ 		{
+ 			.name = "AZUREWAVE DVB-S/S2 USB2.0 (AZ6027)",
+ 			.cold_ids = { &az6027_usb_table[0], NULL },
+ 			.warm_ids = { NULL },
+ 		},
++		{
++		    .name = " Terratec DVB 2 CI",
++			.cold_ids = { &az6027_usb_table[1], NULL },
++			.warm_ids = { NULL },
++		},
++		{
++		    .name = "TechniSat SkyStar USB 2 HD CI (AZ6027)",
++			.cold_ids = { &az6027_usb_table[2], NULL },
++			.warm_ids = { NULL },
++		},
+ 		{ NULL },
+ 	}
+ };
+@@ -1118,7 +1128,7 @@ static struct dvb_usb_device_properties az6027_properties = {
+ static struct usb_driver az6027_usb_driver = {
+ 	.name		= "dvb_usb_az6027",
+ 	.probe 		= az6027_usb_probe,
+-	.disconnect 	= az6027_usb_disconnect,
++	.disconnect	= az6027_usb_disconnect,
+ 	.id_table 	= az6027_usb_table,
+ };
+ 
+-- 
+1.7.1
+
