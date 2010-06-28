@@ -1,59 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:36520 "EHLO
-	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756492Ab0FUTCL convert rfc822-to-8bit (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:44716 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752794Ab0F1GUX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 15:02:11 -0400
-Message-ID: <4C1FB725.6070707@kolumbus.fi>
-Date: Mon, 21 Jun 2010 22:01:57 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>
-CC: VDR User <user.vdr@gmail.com>, linux-media@vger.kernel.org,
-	Manu Abraham <abraham.manu@gmail.com>,
-	Ozan ?a?layan <ozan@pardus.org.tr>,
-	Manu Abraham <manu@linuxtv.org>, stable@kernel.org
-Subject: Re: [PATCH] Mantis, hopper: use MODULE_DEVICE_TABLE use the macro
- to  make modules auto-loadable
-References: <1277110376-6993-1-git-send-email-bjorn@mork.no>	<AANLkTilghfY5tsC0V4m6IQ1VIFE-j-rB4i6Xi2mYevwV@mail.gmail.com> <87vd9c72id.fsf@nemi.mork.no>
-In-Reply-To: <87vd9c72id.fsf@nemi.mork.no>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+	Mon, 28 Jun 2010 02:20:23 -0400
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by devils.ext.ti.com (8.13.7/8.13.7) with ESMTP id o5S6KJls026073
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 01:20:22 -0500
+Received: from dbde70.ent.ti.com (localhost [127.0.0.1])
+	by dbdp20.itg.ti.com (8.13.8/8.13.8) with ESMTP id o5S6KIhE014654
+	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 11:50:19 +0530 (IST)
+From: "Taneja, Archit" <archit@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Guruswamy, Senthilvadivu" <svadivu@ti.com>,
+	"Mittal, Mukund" <mmittal@ti.com>
+Date: Mon, 28 Jun 2010 11:50:18 +0530
+Subject: V4L2 display for manual update panels
+Message-ID: <FCCFB4CDC6E5564B9182F639FC356087030597BB26@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-21.06.2010 19:51, Bjørn Mork wrote:
-> VDR User<user.vdr@gmail.com>  writes:
->
->    
->> Instead of copy&paste patches from Manu's tree, maybe it's better to
->> just wait for him to push all the changes into v4l.
->>      
->    
+Hi,
 
-I'm Manu sorry about trying to put patches directly into v4-dvb, if 
-those should go onto your branch first.
+Is anyone aware of a V4L2 display driver which supports manual update
+panels, i.e. panels which require an explicit device->driver->update
+call?
+An auto update panel would be one which does not require the V4L2 driver
+requesting for the next frame, the display drivers below the V4l2 layer
+will handle this updation of the frame and notifying the v4l2 isr to unblock
+the dqbuf ioctl.
+This manual update feature is needed for panels which support DSI command
+mode interface; in this case, it is generally the responsibility of the display
+driver users (V4L2, FB etc) to give a explicit manual update call.
 
-So, what Manu do you think about my DMA patch or other patches I sent 
-into linux-media mailing list this weekend?
-Is it okay to generate one interrupt once per 16k bytes,
-or are the interrupts too rare?
 
-At least VDR reads the DVB stream rarely, so I think
-that it is enough if the DVB card has always something
-to be delivered when VDR or MythTV asks more data,
-so if the number of DMA transfer IRQs is twice than the
-number of times VDR or MythTV asks more data per second,
-then the context switches are in balance.
+Thanks,
 
-Understandable DMA RISC programming should be easier to maintain, and it 
-removes the initial garbage from the stream too.
-
-How about the tasklet enable/disable patch I wrote?
-
-What needs to be done for these patches to be accepted?
-
-Best regards,
-Marko
-
+Archit
 
