@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46096 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751403Ab0FUHTk (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:55895 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752573Ab0F1Dei convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 21 Jun 2010 03:19:40 -0400
-Date: Mon, 21 Jun 2010 09:19:31 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Baruch Siach <baruch@tkos.co.il>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCHv4 0/3] Driver for the i.MX2x CMOS Sensor Interface
-Message-ID: <20100621071931.GG12115@pengutronix.de>
-References: <cover.1277096909.git.baruch@tkos.co.il>
+	Sun, 27 Jun 2010 23:34:38 -0400
+Received: by vws19 with SMTP id 19so626444vws.19
+        for <linux-media@vger.kernel.org>; Sun, 27 Jun 2010 20:34:37 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1277096909.git.baruch@tkos.co.il>
+In-Reply-To: <1277680645.3347.7.camel@localhost>
+References: <20100607192830.21236.69701.stgit@localhost.localdomain>
+	<20100607193238.21236.72227.stgit@localhost.localdomain>
+	<4C273FFE.4090300@redhat.com>
+	<AANLkTimDJAyvowo_1bLhKPhlDWzzMeF87or4MriJ_UT8@mail.gmail.com>
+	<1277680645.3347.7.camel@localhost>
+Date: Sun, 27 Jun 2010 23:34:36 -0400
+Message-ID: <AANLkTinda8JSa3XRZSSbEuj9JKVkLnRNwnW4YGBtDfWj@mail.gmail.com>
+Subject: Re: MCEUSB memory leak and how to tell if ir_register_input() failure
+	registered input_dev?
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Baruch,
+On Sun, Jun 27, 2010 at 7:17 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+>
+> Jarrod,
+>
+> Looking at the patches branch from your WIP git tree:
+>
+> Is mceusb_init_input_dev() supposed to allocate a struct ir_input_dev?
+> It looks like ir_register_input() handles that, and it is trashing your
+> pointer (memory leak).
 
+Eep, crap, you're right. Fixed locally (I think), will test it out and
+ship off the patch probably tomorrow (exhausting weekend of watching
+futbol and some heavy-duty bbq'ing, need to turn in early... ;).
 
-> 
-> Baruch Siach (3):
->   mx2_camera: Add soc_camera support for i.MX25/i.MX27
->   mx27: add support for the CSI device
->   mx25: add support for the CSI device
+Just double-checked, I actually cribbed that incorrectness from
+imon.c, so I'll need to fix it there too. D'oh.
 
-applied 2/3 and 3/3 for 2.6.36.
+> Mauro and Jarrod,
+>
+> When ir_register_input() fails, it doesn't indicate whether or not it
+> was able to register the input_dev or not.  To me it looks like it can
+> return with failure with the input_dev either way depending on the case.
+> This makes proper cleanup of the input_dev in my cx23885_input_init()
+> function difficult in the failure case, since the input subsystem has
+> two different deallocators depending on if the device had been
+> registered or not.
 
-Sascha
-
-> 
->  arch/arm/mach-mx2/clock_imx27.c          |    2 +-
->  arch/arm/mach-mx2/devices.c              |   31 +
->  arch/arm/mach-mx2/devices.h              |    1 +
->  arch/arm/mach-mx25/clock.c               |   14 +-
->  arch/arm/mach-mx25/devices.c             |   22 +
->  arch/arm/mach-mx25/devices.h             |    1 +
->  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
->  arch/arm/plat-mxc/include/mach/mx25.h    |    2 +
->  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
->  drivers/media/video/Kconfig              |   13 +
->  drivers/media/video/Makefile             |    1 +
->  drivers/media/video/mx2_camera.c         | 1493 ++++++++++++++++++++++++++++++
->  12 files changed, 1625 insertions(+), 5 deletions(-)
->  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
->  create mode 100644 drivers/media/video/mx2_camera.c
-> 
-> 
+Hm. I've done a double-take a few times now, but if
+input_register_device is successful, and something later in
+__ir_input_register fails, input_unregister_device *does* get called
+within __ir_input_register, so all you should have to do is call
+input_free_device in your init function's error path, no?
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Jarod Wilson
+jarod@wilsonet.com
