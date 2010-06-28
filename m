@@ -1,88 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-17.arcor-online.net ([151.189.21.57]:46770 "EHLO
-	mail-in-17.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754302Ab0FCPvL (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:40470 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750834Ab0F1XeM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jun 2010 11:51:11 -0400
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, d.belimov@gmail.com,
-	Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH] tm6000: bugfix unkown symbol tm6000_debug
-Date: Thu,  3 Jun 2010 17:49:18 +0200
-Message-Id: <1275580158-18878-1-git-send-email-stefan.ringel@arcor.de>
+	Mon, 28 Jun 2010 19:34:12 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 28 Jun 2010 18:34:01 -0500
+Subject: [media-ctl] [omap3camera:devel] How to use the app?
+Message-ID: <A24693684029E5489D1D202277BE8944562E8B71@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Hi Laurent/Sakari,
 
-May 30 07:54:09 linux-v5dy kernel: [ 2555.727426] tm6000: Unknown symbol
-tm6000_debug
+I have been attempting to migrate my IMX046 sensor driver, that I had working
+on my Zoom3(OMAP3630 ES1.1) with older codebase, to work with the latest
+omap3camera tree, 'devel' branch:
 
+http://gitorious.org/omap3camera/mainline/commits/devel
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
----
- drivers/staging/tm6000/tm6000-core.c  |    2 ++
- drivers/staging/tm6000/tm6000-dvb.c   |    4 ++--
- drivers/staging/tm6000/tm6000-video.c |    2 +-
- drivers/staging/tm6000/tm6000.h       |    2 --
- 4 files changed, 5 insertions(+), 5 deletions(-)
+And for that, I'm trying to also understand how to use your test tool:
+"media-ctl":
 
-diff --git a/drivers/staging/tm6000/tm6000-core.c b/drivers/staging/tm6000/tm6000-core.c
-index 2fbf4f6..350770e 100644
---- a/drivers/staging/tm6000/tm6000-core.c
-+++ b/drivers/staging/tm6000/tm6000-core.c
-@@ -29,6 +29,8 @@
- #include <media/v4l2-common.h>
- #include <media/tuner.h>
- 
-+static int tm6000_debug;
-+
- #define USB_TIMEOUT	5*HZ /* ms */
- 
- int tm6000_read_write_usb(struct tm6000_core *dev, u8 req_type, u8 req,
-diff --git a/drivers/staging/tm6000/tm6000-dvb.c b/drivers/staging/tm6000/tm6000-dvb.c
-index 3ccc466..34dc8e5 100644
---- a/drivers/staging/tm6000/tm6000-dvb.c
-+++ b/drivers/staging/tm6000/tm6000-dvb.c
-@@ -38,9 +38,9 @@ MODULE_SUPPORTED_DEVICE("{{Trident, tm5600},"
- 			"{{Trident, tm6000},"
- 			"{{Trident, tm6010}");
- 
--static int debug
-+static int tm6000_debug;
- 
--module_param(debug, int, 0644);
-+module_param_named(debug, tm6000_debug, int, 0644);
- MODULE_PARM_DESC(debug, "enable debug message");
- 
- static inline void print_err_status(struct tm6000_core *dev,
-diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
-index 1e348ac..1663dd2 100644
---- a/drivers/staging/tm6000/tm6000-video.c
-+++ b/drivers/staging/tm6000/tm6000-video.c
-@@ -55,7 +55,7 @@ static unsigned int vid_limit = 16;	/* Video memory limit, in Mb */
- static int video_nr = -1;		/* /dev/videoN, -1 for autodetect */
- 
- /* Debug level */
--int tm6000_debug;
-+static int tm6000_debug;
- 
- /* supported controls */
- static struct v4l2_queryctrl tm6000_qctrl[] = {
-diff --git a/drivers/staging/tm6000/tm6000.h b/drivers/staging/tm6000/tm6000.h
-index 4b65094..ed7fece 100644
---- a/drivers/staging/tm6000/tm6000.h
-+++ b/drivers/staging/tm6000/tm6000.h
-@@ -318,8 +318,6 @@ int tm6000_queue_init(struct tm6000_core *dev);
- 
- /* Debug stuff */
- 
--extern int tm6000_debug;
--
- #define dprintk(dev, level, fmt, arg...) do {\
- 	if (tm6000_debug & level) \
- 		printk(KERN_INFO "(%lu) %s %s :"fmt, jiffies, \
--- 
-1.7.0.3
+http://git.ideasonboard.org/?p=media-ctl.git;a=summary
+
+Now, the thing is that, I don't see any guide to learn how to write the
+Proper format for some of the parameters, like to build links in interactive
+mode (-i), or to set formats (-f).
+
+Can you please detail about a typical usage for this tool? (example on how to
+build a link, set link format, etc.)
+
+So far, my progress is pushed into this branch:
+
+http://dev.omapzoom.org/?p=saaguirre/linux-omap-camera.git;a=shortlog;h=refs/heads/mc_migration_wip
+
+And with that, after I boot, I get the following topology:
+
+# /media-ctl -d /dev/media0 -p
+Opening media device /dev/media0
+Enumerating entities
+Found 18 entities
+Enumerating pads and links
+Device topology
+- entity 1: imx046 2-001a (1 pad, 1 link)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/subdev0
+        pad0: Output [SGRBG10 3280x2464]
+                -> 'OMAP3 ISP CSI2a':pad0 [IMMUTABLE,ACTIVE]
+
+- entity 2: lv8093 2-0072 (0 pad, 0 link)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/subdev1
+
+- entity 3: omap3/imx046 2-001a/lv8093 2-00 (1 pad, 0 link)
+            type Node subtype V4L
+            device node name /dev/video0
+        pad0: Input
+
+- entity 4: OMAP3 ISP CCP2 (2 pads, 1 link)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/subdev2
+        pad0: Input [unknown 0x0]
+        pad1: Output [unknown 0x0]
+                -> 'OMAP3 ISP CCDC':pad0 []
+
+- entity 5: OMAP3 ISP CCP2 input (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video1
+        pad0: Output
+                -> 'OMAP3 ISP CCP2':pad0 []
+
+- entity 6: OMAP3 ISP CSI2a (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/subdev3
+        pad0: Input [SGRBG10 0x0]
+        pad1: Output [SGRBG10 0x0]
+                -> 'OMAP3 ISP CSI2a output':pad0 []
+                -> 'OMAP3 ISP CCDC':pad0 []
+
+- entity 7: OMAP3 ISP CSI2a output (1 pad, 0 link)
+            type Node subtype V4L
+            device node name /dev/video2
+        pad0: Input
+
+- entity 8: OMAP3 ISP CCDC (3 pads, 7 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/subdev4
+        pad0: Input [unknown 0x0]
+        pad1: Output [unknown 0x0]
+                -> 'OMAP3 ISP CCDC output':pad0 []
+                -> 'OMAP3 ISP resizer':pad0 []
+                -> 'omap3/imx046 2-001a/lv8093 2-00':pad0 []
+        pad2: Output [unknown 0x0]
+                -> 'OMAP3 ISP preview':pad0 []
+                -> 'OMAP3 ISP AEWB':pad0 []
+                -> 'OMAP3 ISP AF':pad0 []
+                -> 'OMAP3 ISP histogram':pad0 []
+
+- entity 9: OMAP3 ISP CCDC output (1 pad, 0 link)
+            type Node subtype V4L
+            device node name /dev/video3
+        pad0: Input
+
+- entity 10: OMAP3 ISP preview (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/subdev5
+        pad0: Input [unknown 0x0]
+        pad1: Output [unknown 0x0]
+                -> 'OMAP3 ISP preview output':pad0 []
+                -> 'OMAP3 ISP resizer':pad0 []
+
+- entity 11: OMAP3 ISP preview input (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video4
+        pad0: Output
+                -> 'OMAP3 ISP preview':pad0 []
+
+- entity 12: OMAP3 ISP preview output (1 pad, 0 link)
+             type Node subtype V4L
+             device node name /dev/video5
+        pad0: Input
+
+- entity 13: OMAP3 ISP resizer (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/subdev6
+        pad0: Input [unknown 0x0]
+        pad1: Output [unknown 0x0]
+                -> 'OMAP3 ISP resizer output':pad0 []
+                -> 'omap3/imx046 2-001a/lv8093 2-00':pad0 []
+
+- entity 14: OMAP3 ISP resizer input (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video6
+        pad0: Output
+                -> 'OMAP3 ISP resizer':pad0 []
+
+- entity 15: OMAP3 ISP resizer output (1 pad, 0 link)
+             type Node subtype V4L
+             device node name /dev/video7
+        pad0: Input
+
+- entity 16: OMAP3 ISP AEWB (1 pad, 0 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/subdev7
+        pad0: Input
+
+- entity 17: OMAP3 ISP AF (1 pad, 0 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/subdev8
+        pad0: Input
+
+- entity 18: OMAP3 ISP histogram (1 pad, 0 link)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/subdev9
+        pad0: Input
+
+Can you help me understand how to configure all this?
+
+Thanks in advance!
+
+Regards,
+Sergio
 
