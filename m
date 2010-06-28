@@ -1,23 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.perfora.net ([74.208.4.195]:59797 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754065Ab0F2Xyc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jun 2010 19:54:32 -0400
-Message-ID: <4C2A87A4.1090104@vorgon.com>
-Date: Tue, 29 Jun 2010 16:54:12 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
-MIME-Version: 1.0
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:52732 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751439Ab0F1IRJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jun 2010 04:17:09 -0400
+Received: from eu_spt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L4P00I96TOH6A@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 28 Jun 2010 09:17:05 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L4P000KETOHGI@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 28 Jun 2010 09:17:05 +0100 (BST)
+Date: Mon, 28 Jun 2010 10:16:56 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH] v4l: mem2mem_testdev: fix g_fmt NULL pointer dereference
 To: linux-media@vger.kernel.org
-Subject: laggy remote on x64
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: p.osciak@samsung.com, kyungmin.park@samsung.com, nm127@freemail.hu
+Message-id: <1277713016-24339-1-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have 2 systems nearly identical except one runs 64bit and the other 
-runs 32bit. I'm now trying to use the remote port on the nexus-s card. 
-The 32 bit seems to be working ok, but the 64bit acts like it's bussy 
-doing somthing else. It randomly won't respond to the remote. It doesn't 
-buffer the keys or anything. Wait a moment and maybe it works fine for a 
-few presses. When it doesn't respond is highly random. Kernel-2.6.34, 
-debian squeeze updated a few days ago, v4l is hg from 06/25/2010
+Calling g_fmt before s_fmt resulted in a NULL pointer dereference as no
+default formats were being selected on probe.
+
+Reported-by: Németh Márton <nm127@freemail.hu>
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Fix for 2.6.35
+
+ drivers/media/video/mem2mem_testdev.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index d4fd8a3..033aa12 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -1000,6 +1000,9 @@ static int m2mtest_probe(struct platform_device *pdev)
+ 		goto err_m2m;
+ 	}
+ 
++	q_data[V4L2_M2M_SRC].fmt = &formats[0];
++	q_data[V4L2_M2M_DST].fmt = &formats[0];
++
+ 	return 0;
+ 
+ err_m2m:
+-- 
+1.7.1.240.g225c9
+
