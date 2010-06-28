@@ -1,78 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:60911 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754200Ab0FIR4Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 9 Jun 2010 13:56:25 -0400
-Date: Wed, 9 Jun 2010 19:56:21 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: Re: [PATCH 3/4] ir-core: move decoding state to ir_raw_event_ctrl
-Message-ID: <20100609175621.GA19620@hardeman.nu>
-References: <20100424210843.11570.82007.stgit@localhost.localdomain>
- <20100424211411.11570.2189.stgit@localhost.localdomain>
- <4BDF2B45.9060806@redhat.com>
- <20100607190003.GC19390@hardeman.nu>
- <20100607201530.GG16638@redhat.com>
- <20100608175017.GC5181@hardeman.nu>
- <AANLkTimuYkKzDPvtnrWKoT8sh1H9paPBQQNmYWOT7-R2@mail.gmail.com>
- <20100609132908.GM16638@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100609132908.GM16638@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:60910 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751811Ab0F1RA2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 28 Jun 2010 13:00:28 -0400
+Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o5SH0S3i000505
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 13:00:28 -0400
+Received: from pedra (vpn-9-119.rdu.redhat.com [10.11.9.119])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o5SH0HGM008891
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 28 Jun 2010 13:00:27 -0400
+Date: Mon, 28 Jun 2010 13:59:59 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/4] ir-core: Rename sysfs protocols nomenclature to rc-5
+ and rc-6
+Message-ID: <20100628135959.4b5c3137@pedra>
+In-Reply-To: <cover.1277744236.git.mchehab@redhat.com>
+References: <cover.1277744236.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 09, 2010 at 09:29:08AM -0400, Jarod Wilson wrote:
-> On Tue, Jun 08, 2010 at 11:46:36PM -0400, Jarod Wilson wrote:
-> > On Tue, Jun 8, 2010 at 1:50 PM, David Härdeman <david@hardeman.nu> wrote:
-> > > b) Mauro mentioned in <4BDF28C0.4060102@redhat.com> that:
-> > >
-> > >        I liked the idea of your redesign, but I didn't like the removal
-> > >        of a per-decoder sysfs entry. As already discussed, there are
-> > >        cases where we'll need a per-decoder sysfs entry (lirc_dev is
-> > >        probably one of those cases - also Jarod's imon driver is
-> > >        currently implementing a modprobe parameter that needs to be
-> > >        moved to the driver).
-> > >
-> > >   could you please confirm if your lirc and/or imon drivers would be
-> > >   negatively affected by the proposed patches?
-> > 
-> > Will do so once I get them wedged in on top.
-> 
-> Got it all merged and compiling, but not yet runtime tested. Compiling
-> alone sheds some light on things though...
-> 
-> So this definitely negatively impacts my ir-core-to-lirc_dev
-> (ir-lirc-codec.c) bridge driver, as it was doing the lirc_dev device
-> registration work in its register function. However, if (after your
-> patchset) we add a new pair of callbacks replacing raw_register and
-> raw_unregister, which are optional, that work could be done there instead,
-> so I don't think this is an insurmountable obstacle for the lirc bits.
+While rc-5 and rc-6 protocols are generally abreviated as "rc5" and "rc6",
+previous sysfs nodes uses rc-5 and rc-6 for the Philips protocols. This is
+consistent with the protocol nomenclature given by the original Philips
+spec: "Remote control system RC-5" (doc. Nr. 9398 706 23011).
+Also, rc5 is the name of a widely known cryptography protocol.
 
-While I'm not sure exactly what callbacks you're suggesting, it still 
-sounds like the callbacks would have the exact same problems that the 
-current code has (i.e. the decoder will be blissfully unaware of 
-hardware which exists before the decoder is loaded). Right?
+So, the better is to keep referring to those protocols as "rc-5" and "rc-6".
 
-> As for the imon driver, the modprobe parameter in question (iirc) was
-> already removed from the driver, as its functionality is replaced by
-> implementing a change_protocol callback. However, there's a request to
-> add it (or something like it) back to the driver to allow disabling the
-> IR part altogether, and there are a few other modparams that might be
-> better suited as sysfs entries. However, its actually not relevant to the
-> case of registering raw protocol handlers, as the imon devices do their
-> decoding in hardware. I can see the possibility for protocol-specific
-> knobs in sysfs though. But I think the same optional callbacks I'd use to
-> keep the lirc bits working could also be used for this. Can't think of a
-> good name for these yet, probably need more coffee first... ;)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-But those sysfs entries wouldn't be 
-per-decoder-per-hardware-device....they'd just be 
-per-hardware-device...right?
-
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index 2b1a9d2..9a464a3 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -38,9 +38,9 @@ static struct {
+ 	char	*name;
+ } proto_names[] = {
+ 	{ IR_TYPE_UNKNOWN,	"unknown"	},
+-	{ IR_TYPE_RC5,		"rc5"		},
++	{ IR_TYPE_RC5,		"rc-5"		},
+ 	{ IR_TYPE_NEC,		"nec"		},
+-	{ IR_TYPE_RC6,		"rc6"		},
++	{ IR_TYPE_RC6,		"rc-6"		},
+ 	{ IR_TYPE_JVC,		"jvc"		},
+ 	{ IR_TYPE_SONY,		"sony"		},
+ };
 -- 
-David Härdeman
+1.7.1
+
+
