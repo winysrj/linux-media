@@ -1,106 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:56557 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752066Ab0F2VHX (ORCPT
+Received: from tuxmail.imn.htwk-leipzig.de ([141.57.7.10]:48078 "EHLO
+	tuxmail.imn.htwk-leipzig.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754599Ab0F2Nmd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 29 Jun 2010 17:07:23 -0400
-Received: by wyb38 with SMTP id 38so48105wyb.19
-        for <linux-media@vger.kernel.org>; Tue, 29 Jun 2010 14:07:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTin1Bj__L4p1jEvwLO-2Wjw6-R8ICLsfb2w32jP3@mail.gmail.com>
-References: <AANLkTilP-jf0MaV82LuTz8DjoNJKQ3xGCHuFgds4b212@mail.gmail.com>
-	<201006291542.27655.tkrah@fachschaft.imn.htwk-leipzig.de>
-	<AANLkTin5iXho6LJP8mOPC-AIIJTi8myxZsy_V6msxSpa@mail.gmail.com>
-	<201006292142.48380.tkrah@fachschaft.imn.htwk-leipzig.de>
-	<AANLkTin1Bj__L4p1jEvwLO-2Wjw6-R8ICLsfb2w32jP3@mail.gmail.com>
-Date: Tue, 29 Jun 2010 23:07:16 +0200
-Message-ID: <AANLkTilKBR6q-iNLxT5ut0EXtT5agD0nyr3XjhaoJeR_@mail.gmail.com>
-Subject: Re: em28xx/xc3028 - kernel driver vs. Markus Rechberger's driver
-From: Thorsten Hirsch <t.hirsch@web.de>
+	Tue, 29 Jun 2010 09:42:33 -0400
+From: Torsten Krah <tkrah@fachschaft.imn.htwk-leipzig.de>
+Reply-To: tkrah@fachschaft.imn.htwk-leipzig.de
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: em28xx/xc3028 - kernel driver vs. Markus Rechberger's driver
+Date: Tue, 29 Jun 2010 15:42:16 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Thorsten Hirsch <t.hirsch@web.de>
+References: <AANLkTilP-jf0MaV82LuTz8DjoNJKQ3xGCHuFgds4b212@mail.gmail.com> <AANLkTinfZ8M_NlcQFwqRQFfLmMVKKIA3aC3o8v5u7YEF@mail.gmail.com> <4C213608.2080709@redhat.com>
+In-Reply-To: <4C213608.2080709@redhat.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed;
+  boundary="nextPart2859757.TmSiZeaGep";
+  protocol="application/pkcs7-signature";
+  micalg=sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201006291542.27655.tkrah@fachschaft.imn.htwk-leipzig.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+--nextPart2859757.TmSiZeaGep
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+
+Am Mittwoch, 23. Juni 2010, um 00:15:36 schrieb Mauro Carvalho Chehab:
+> You probably damaged the contents of the device's eeprom. If you have the
+> logs with the previous eeprom contents somewhere, it is possible to recov=
+er
+> it. There's an util at v4l-utils that allows re-writing the information at
+> the eeprom.
+
 Hi,
 
-success! I could recover my eeprom with Mauro's rewrite_eeprom.pl.
-@Torsten: I also had to modprobe i2c-dev manually. And I even
-modprobed i2c-smbus.
+can you tell me which util and how it can be done.
+I am too affected and damaged the eeprom (don't know how) - but my usb id d=
+id=20
+change too from e1ba:2870 to eb1a:2871.=20
 
-Unfortunately the driver (kernel 2.6.34) still doesn't work. There's
-no /dev/dvb (even after loading em28xx_dvb manually as it has not been
-loaded automatically.
+Still need to find a old dmesg log for my stick but it should be this:
 
-Please have another look at the attached dmesg output.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg14758.html
 
-Thorsten
+Is this "output" enough to rewrite the correct eeprom date back to my "bork=
+ed"=20
+stick or is something else needed?
 
+thx
 
-[ 3481.670969] usb 2-3: new high speed USB device using ehci_hcd and address 5
-[ 3481.829797] em28xx: New device TerraTec Electronic GmbH Cinergy T
-USB XS @ 480 Mbps (0ccd:0043, interface 0, class 0)
-[ 3481.829956] em28xx #0: chip ID is em2870
-[ 3481.983457] em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 43 00 c0 12
-81 00 6a 24 8e 34
-[ 3481.983483] em28xx #0: i2c eeprom 10: 00 00 06 57 02 0c 00 00 00 00
-00 00 00 00 00 00
-[ 3481.983504] em28xx #0: i2c eeprom 20: 44 00 00 00 f0 10 01 00 00 00
-00 00 5b 00 00 00
-[ 3481.983525] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01
-00 00 26 3c e3 49
-[ 3481.983547] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 3481.983568] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 3481.983589] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
-24 03 43 00 69 00
-[ 3481.983611] em28xx #0: i2c eeprom 70: 6e 00 65 00 72 00 67 00 79 00
-20 00 54 00 20 00
-[ 3481.983632] em28xx #0: i2c eeprom 80: 55 00 53 00 42 00 20 00 58 00
-53 00 00 00 34 03
-[ 3481.983653] em28xx #0: i2c eeprom 90: 54 00 65 00 72 00 72 00 61 00
-54 00 65 00 63 00
-[ 3481.983675] em28xx #0: i2c eeprom a0: 20 00 45 00 6c 00 65 00 63 00
-74 00 72 00 6f 00
-[ 3481.983696] em28xx #0: i2c eeprom b0: 6e 00 69 00 63 00 20 00 47 00
-6d 00 62 00 48 00
-[ 3481.983717] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 3481.983738] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 3481.983759] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 3481.983781] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00
-00 00 00 00 00 00
-[ 3481.983805] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x5a1fc1df
-[ 3481.983810] em28xx #0: EEPROM info:
-[ 3481.983814] em28xx #0:       No audio on board.
-[ 3481.983817] em28xx #0:       500mA max power
-[ 3481.983823] em28xx #0:       Table at 0x06, strings=0x246a, 0x348e, 0x0000
-[ 3481.984942] em28xx #0: Identified as Terratec Cinergy T XS (card=43)
-[ 3481.984947] em28xx #0:
-[ 3481.984949]
-[ 3481.984953] em28xx #0: The support for this board weren't valid yet.
-[ 3481.984958] em28xx #0: Please send a report of having this working
-[ 3481.984962] em28xx #0: not to V4L mailing list (and/or to other addresses)
-[ 3481.984965]
-[ 3481.990805] Chip ID is not zero. It is not a TEA5767
-[ 3481.990980] tuner 5-0060: chip found @ 0xc0 (em28xx #0)
-[ 3481.991163] xc2028 5-0060: creating new instance
-[ 3481.991169] xc2028 5-0060: type set to XCeive xc2028/xc3028 tuner
-[ 3481.991182] usb 2-3: firmware: requesting xc3028-v27.fw
-[ 3481.998357] xc2028 5-0060: Loading 80 firmware images from
-xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-[ 3482.052776] xc2028 5-0060: Loading firmware for type=BASE (1), id
-0000000000000000.
-[ 3483.003956] xc2028 5-0060: Loading firmware for type=(0), id
-000000000000b700.
-[ 3483.018947] SCODE (20000000), id 000000000000b700:
-[ 3483.018961] xc2028 5-0060: Loading SCODE for type=MONO SCODE
-HAS_IF_4320 (60008000), id 0000000000008000.
-[ 3483.054451] xc2028 5-0060: Returned an incorrect version. However,
-read is not reliable enough. Ignoring it.
-[ 3483.220169] em28xx #0: v4l2 driver version 0.1.2
-[ 3483.225202] em28xx #0: V4L2 video device registered as video1
-[ 3508.137491] Em28xx: Initialized (Em28xx dvb Extension) extension
+Torsten
+
+=2D-=20
+Bitte senden Sie mir keine Word- oder PowerPoint-Anh=E4nge.
+Siehe http://www.gnu.org/philosophy/no-word-attachments.de.html
+
+Really, I'm not out to destroy Microsoft. That will just be a=20
+completely unintentional side effect."
+	-- Linus Torvalds
+
+--nextPart2859757.TmSiZeaGep
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIFXDCCBVgw
+ggNAoAMCAQICAwefRjANBgkqhkiG9w0BAQUFADB5MRAwDgYDVQQKEwdSb290IENBMR4wHAYDVQQL
+ExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmluZyBBdXRob3Jp
+dHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZzAeFw0wOTEwMjAxMzQ2MzVaFw0x
+MTEwMjAxMzQ2MzVaME8xGDAWBgNVBAMTD0NBY2VydCBXb1QgVXNlcjEzMDEGCSqGSIb3DQEJARYk
+dGtyYWhAZmFjaHNjaGFmdC5pbW4uaHR3ay1sZWlwemlnLmRlMIIBIjANBgkqhkiG9w0BAQEFAAOC
+AQ8AMIIBCgKCAQEA3y1Pu6r0+4FmfSZWO07KYv5FWDy+AqKfvQ/+trLjKHgJv1sZDKIURtVVHlgP
+qsMddecGuLrcSnjbAEO9I0XNvpOaTyNIKvsfyTBc9/oNk5Oeb8XQ2PG6UM1RQiHuLwxTEquFh/xf
+oTO7ZlRl3j0YzsXa7hR/slU64EVGidO3289Z6eJv2jD9E1I1ujD630ifCMhiI/HGxobGYFdI1cy1
+Ne3Pc8BeWsSv8BS4fI7eMuFDI3DSCmk8mtgVSSBFLvRQ6laD7zawB+aDvvu+/NgClAEksCBRim5D
+DnJ+PVZm29GUHpkP7sf2ztsotckLyet3d5rg/aVwI7iYBAoWkvwDcwIDAQABo4IBETCCAQ0wDAYD
+VR0TAQH/BAIwADBWBglghkgBhvhCAQ0ESRZHVG8gZ2V0IHlvdXIgb3duIGNlcnRpZmljYXRlIGZv
+ciBGUkVFIGhlYWQgb3ZlciB0byBodHRwOi8vd3d3LkNBY2VydC5vcmcwQAYDVR0lBDkwNwYIKwYB
+BQUHAwQGCCsGAQUFBwMCBgorBgEEAYI3CgMEBgorBgEEAYI3CgMDBglghkgBhvhCBAEwMgYIKwYB
+BQUHAQEEJjAkMCIGCCsGAQUFBzABhhZodHRwOi8vb2NzcC5jYWNlcnQub3JnMC8GA1UdEQQoMCaB
+JHRrcmFoQGZhY2hzY2hhZnQuaW1uLmh0d2stbGVpcHppZy5kZTANBgkqhkiG9w0BAQUFAAOCAgEA
+MMKq9NNbTFUEPdbQ4jZT9T6oY4YQTbXYuF6ymvbBXx3TKsFWGpVjln0whIoQptkBMPSoa6BAZVtO
+mFiIAYwusK05xlYOknxZj/ksm2tWY5lKni4q85kDn+QIfJZ0OF9PP8r8azzw/Wsa2FGx2MUfZYqS
+OeFbL0qWmwhXzGp2CSiTNPNnGSbXBe22uCjYKw+0Gpno0swfbC2iTZjv2KlXWIM0sYPs2yDsFer6
+5/PHVExVEAD1Xrpu/ivADT660nx/GWDBa9zuRE+C42DwBBA6GhYCR4W8AkFiLNdz/7lgrnIax1So
+REiEK7ZdAtwkB3QzyMIVd3BwtGOkJMcUa4R1MrGCmC9ixORxDxrZNUSVY32TVRs2OzIzHCjawWFw
+lmDcomjU5cXj/ZKTmnGqTCpiyesaE1/1IKdyE8EBtqqVoGs7mdgjWSrrgPLVPcmSIDRsd+66Fc4x
+rRnbJf/yi3v3DdJqTgX/JuJmi1gsiPnwEg807WARuLANbF6y7HX/Ssd49ovGYQQdnFYcZfcAwWBL
+vEYxwIvHOnaLgaFcngdtEtdxrY2tUPllv1GhLF/cHQdEnQghZS1RJ/jCFBbmTMJ+PbTutO3JNBTn
+bZ3GT5Ffipk195Tj6CGFXauMiQiUHIKwNG8W1FR0TAdZGDOYiqA3wfPgBHgLt04cnrevCd4rk8Ex
+ggIyMIICLgIBATCBgDB5MRAwDgYDVQQKEwdSb290IENBMR4wHAYDVQQLExVodHRwOi8vd3d3LmNh
+Y2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmluZyBBdXRob3JpdHkxITAfBgkqhkiG9w0B
+CQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZwIDB59GMAkGBSsOAwIaBQCggYcwGAYJKoZIhvcNAQkDMQsG
+CSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTAwNjI5MTM0MjIyWjAjBgkqhkiG9w0BCQQxFgQU
+mn5uqFrTboUVjzPHpBXEWAAExP0wKAYJKoZIhvcNAQkPMRswGTALBglghkgBZQMEAQIwCgYIKoZI
+hvcNAwcwDQYJKoZIhvcNAQEBBQAEggEAdNtoCxlycuLVePmGUvvdzxfg0YI93coZq3XdoSMUuXi+
+fSVWrXgyJdyx6DkvUdMVLy98qpCs5cykwdU56M8kXwqK9U0xFi2dbdaxkcBo1oUVhs4uR/Y+KJLU
+5QZ9WrW+4Q3JJ5bj3QbIU+1D3OslBWkuZZX7qYar9aatEyf6unjVtnWvdsyCH5w4hS3HZaHh90ND
+uoLTmIfAHif9ohH7H7wWDhdqaEJtqMBpXzTgYqAsF6og64z31XeH4E5Hz71ND9i9AyhZ7bHtIkkP
+lg3bAM2bMdy57P5ubIoRh81808uI6gPe2gyRJygIGvB0kcy3IORbPKif7quVkc14jlXlSwAAAAAA
+AA==
+
+--nextPart2859757.TmSiZeaGep--
