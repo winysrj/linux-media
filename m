@@ -1,43 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1.goneo.de ([82.100.220.80]:22281 "EHLO smtp1.goneo.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759123Ab0FJRyG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 10 Jun 2010 13:54:06 -0400
-Received: from smtp1.goneo.de (localhost [127.0.0.1])
-	by scan.goneo.de (Postfix) with ESMTP id 2BD4C3A3896
-	for <linux-media@vger.kernel.org>; Thu, 10 Jun 2010 19:47:10 +0200 (CEST)
-Received: from smtp1.goneo.de ([127.0.0.1])
-	by smtp1.goneo.de (smtp1.goneo.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id bVUQEgQU2B5E for <linux-media@vger.kernel.org>;
-	Thu, 10 Jun 2010 19:46:57 +0200 (CEST)
-Received: from mctrus1.localnet (99.a2c-250-229.astra2connect.com [92.250.229.99])
-	by smtp1.goneo.de (Postfix) with ESMTPSA id B4B053A390C
-	for <linux-media@vger.kernel.org>; Thu, 10 Jun 2010 19:46:55 +0200 (CEST)
-From: Tobias Trus <trus@elnrode.de>
-To: linux-media@vger.kernel.org
-Subject: No frontend0 for Technotrend Budget 3200
-Date: Thu, 10 Jun 2010 19:46:43 +0200
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:41798 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753618Ab0F2KGm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jun 2010 06:06:42 -0400
+Received: by pvc7 with SMTP id 7so28535pvc.19
+        for <linux-media@vger.kernel.org>; Tue, 29 Jun 2010 03:06:41 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201006101946.43691.trus@elnrode.de>
+In-Reply-To: <AANLkTik6dQw_yw28L3CajIZYdLLGHkfddrDQq4BuSDAI@mail.gmail.com>
+References: <AANLkTikojhopHeY2WuHxK_tbCs99_SV7ksWnYv4UXM4W@mail.gmail.com>
+	<4C28FCA8.5090005@hoogenraad.net>
+	<4C290096.5080209@gmail.com>
+	<4C298AAD.2090701@hoogenraad.net>
+	<AANLkTik6dQw_yw28L3CajIZYdLLGHkfddrDQq4BuSDAI@mail.gmail.com>
+Date: Tue, 29 Jun 2010 11:06:41 +0100
+Message-ID: <AANLkTin_3mIUd8SkVTnwKqPIlRtapwy7ieqgxR1Hv0kC@mail.gmail.com>
+Subject: Fwd: v4l-dvb unsupported device: Conceptronic CTVDIGUSB2 1b80:d393
+	(Afatech) - possibly similar to CTVCTVDIGRCU v3.0?
+From: =?UTF-8?Q?Pedro_C=C3=B4rte=2DReal?= <pedro@pedrocr.net>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Tue, Jun 29, 2010 at 6:54 AM, Jan Hoogenraad
+<jan-conceptronic@hoogenraad.net> wrote:
+> I see: apparently the versions earlier than V3.0 of CTVDIGRCU used Realtek
+> RTL2831U. I'll make a note of that on the wiki page.
 
-I've got a Technotrend Budget 3200 installed in my Kubuntu Lucid (10.04) 
-machine. It worked fine out of the box. Because I want to watch a broadcast and 
-record another one at the same time I bought another DVB-Card. This time I 
-bought a Technisat Skystar HD2 because with the TT Budget I've problems 
-getting a lock on some channels.
+Is the CTVDIGRCU well supported by mainline? I think I can source
+these locally.
 
-To getting the Technisat SkyStar HD2 work I compiled and installed the actual 
-v4l-dvb-drivers using hg clone http://linuxtv.org/hg/v4l-dvb.
+Is the AF9015 driver stable? I've had very bad luck with 3 different
+devices now.
 
-Now the Technisat worked fine but the frontend0-entry for the Technotrend is 
-missing. Does anybody know how to fix it?
-
-best regards
-Tobias
+Pedro
