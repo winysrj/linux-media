@@ -1,42 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:54742 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932641Ab0FBS2H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 2 Jun 2010 14:28:07 -0400
-Received: by wwb28 with SMTP id 28so3134229wwb.19
-        for <linux-media@vger.kernel.org>; Wed, 02 Jun 2010 11:28:03 -0700 (PDT)
-Date: Wed, 2 Jun 2010 20:27:59 +0200
-From: Davor Emard <davoremard@gmail.com>
-To: semiRocket <semirocket@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Compro Videomate T750F Vista digital+analog support
-Message-ID: <20100602182757.GA22171@emard.lan>
-References: <AANLkTikbpZ0LM5rK70abVuJS27j0lT7iZs12DrSKB9wI@mail.gmail.com>
- <op.vcfoxwnq3xmt7q@crni>
- <20100509173243.GA8227@z60m>
- <op.vcga9rw2ndeod6@crni>
- <20100509231535.GA6334@z60m>
- <op.vcsntos43xmt7q@crni>
- <op.vc551isrndeod6@crni>
- <20100530234817.GA17135@emard.lan>
- <20100531075214.GA17456@lipa.lan>
- <op.vdn7g9nj3xmt7q@crni>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:47959 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755442Ab0F2U3V convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jun 2010 16:29:21 -0400
+Received: by iwn7 with SMTP id 7so41920iwn.19
+        for <linux-media@vger.kernel.org>; Tue, 29 Jun 2010 13:29:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <op.vdn7g9nj3xmt7q@crni>
+In-Reply-To: <201006292142.48380.tkrah@fachschaft.imn.htwk-leipzig.de>
+References: <AANLkTilP-jf0MaV82LuTz8DjoNJKQ3xGCHuFgds4b212@mail.gmail.com>
+	<201006291542.27655.tkrah@fachschaft.imn.htwk-leipzig.de>
+	<AANLkTin5iXho6LJP8mOPC-AIIJTi8myxZsy_V6msxSpa@mail.gmail.com>
+	<201006292142.48380.tkrah@fachschaft.imn.htwk-leipzig.de>
+Date: Tue, 29 Jun 2010 17:29:20 -0300
+Message-ID: <AANLkTin1Bj__L4p1jEvwLO-2Wjw6-R8ICLsfb2w32jP3@mail.gmail.com>
+Subject: Re: em28xx/xc3028 - kernel driver vs. Markus Rechberger's driver
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: tkrah@fachschaft.imn.htwk-leipzig.de
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Thorsten Hirsch <t.hirsch@web.de>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI!
+Hello,
 
-Have you tested my lastest GPIO suggestion, or come up
-with your own initialization? Does it allow
-to load firmware without windows booting?
+On Tue, Jun 29, 2010 at 4:42 PM, Torsten Krah
+<tkrah@fachschaft.imn.htwk-leipzig.de> wrote:
+> Am Dienstag, 29. Juni 2010 schrieb Douglas Schilling Landgraf:
+>> The rewrite_eeprom.pl is available under git.utils tree:
+>> http://git.linuxtv.org/v4l-utils.git
+>>
+>> All instructions are available into the source code. Let me know if
+>> you have any problem with such tool.
+>
+> Hi, yes i have problems with the tool :-).
+>
+> Connected my "broken" device:
+>
+> lsusb:
+> Bus 001 Device 002: ID eb1a:2871 eMPIA Technology, Inc.
+>
+> dmesg:
+> [  455.348172] usb 1-1: new high speed USB device using ehci_hcd and address 2
+> [  455.481791] usb 1-1: configuration #1 chosen from 1 choice
+> [  455.609668] usbcore: registered new interface driver snd-usb-audio
+>
+>
+> Running the script which does generate the recover script does work.
+> But running this one fails with:
+>
+> Could not detect i2c bus from any device, run again ./rewrite_eeprom.pl. Did
+> you forget to connect the device?
+> Modules supported: em28xx saa7134
+>
+> Device is connected.
+>
+> Anything what i can do?
 
-Key namings of the remote must be some from linux input.h
-I welcome you to change whatever is needed to fit any of your
-application if current scheme is not suitable. I use VDR whcih 
-can adapt to just anything event layer gives.
+Could you please verify if you have  the module i2c-dev loaded?
 
-d.
+Example:
+
+#lsmod | grep i2c_dev
+i2c_dev                 6976  0
+i2c_core               21104  11
+i2c_dev,lgdt330x,tuner_xc2028,tuner,tvp5150,saa7115,em28xx,v4l2_common,videodev,tveeprom,i2c_i801
+
+If yes, please give us the output of:
+
+#i2cdetect -l
+i2c-0	smbus     	SMBus I801 adapter at ece0      	SMBus adapter
+i2c-1	smbus     	em28xx #0                       	SMBus adapter
+                                           ^ here my device/driver
+
+Basically, in your case the tool is not able to recognize your device
+by i2cdetect.This may happen because i2c_dev module was not able to
+load?
+If the module is not loaded, please load it manually and give a new try.
+
+I did right now a test with i2c-tools 3.0.0 and 3.0.2.
+http://dl.lm-sensors.org/i2c-tools/releases/
+
+Let us know the results.
+
+Cheers
+Douglas
