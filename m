@@ -1,67 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lennier.cc.vt.edu ([198.82.162.213]:39603 "EHLO
-	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751713Ab0FODuC (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:38526 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755590Ab0F2Mop (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 14 Jun 2010 23:50:02 -0400
-To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: linux-kernel@vger.kernel.org, reiserfs-devel@vger.kernel.org,
-	linux-bluetooth@vger.kernel.org, clemens@ladisch.de,
-	debora@linux.vnet.ibm.com, dri-devel@lists.freedesktop.org,
-	linux-i2c@vger.kernel.org, linux1394-devel@lists.sourceforge.net,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 4/8]drivers:tmp.c Fix warning: variable 'rc' set but not used
-In-Reply-To: Your message of "Mon, 14 Jun 2010 19:12:31 PDT."
-             <4C16E18F.9050901@gmail.com>
-From: Valdis.Kletnieks@vt.edu
-References: <1276547208-26569-1-git-send-email-justinmattock@gmail.com> <1276547208-26569-5-git-send-email-justinmattock@gmail.com> <21331.1276560832@localhost>
-            <4C16E18F.9050901@gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1276573789_4860P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Date: Mon, 14 Jun 2010 23:49:49 -0400
-Message-ID: <9275.1276573789@localhost>
+	Tue, 29 Jun 2010 08:44:45 -0400
+From: Sergio Aguirre <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [media-ctl RFC][PATCH 5/5] v4l: Add missing linux/types.h include
+Date: Tue, 29 Jun 2010 07:43:10 -0500
+Message-Id: <1277815390-24681-6-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1277815390-24681-1-git-send-email-saaguirre@ti.com>
+References: <1277815390-24681-1-git-send-email-saaguirre@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---==_Exmh_1276573789_4860P
-Content-Type: text/plain; charset=us-ascii
+This fixes following headers_check warnings:
 
-On Mon, 14 Jun 2010 19:12:31 PDT, "Justin P. Mattock" said:
+*/usr/include/linux/v4l2-mediabus.h:63: found __[us]{8,16,32,64} type without #include <linux/types.h>
+*/usr/include/linux/v4l2-subdev.h:33: found __[us]{8,16,32,64} type without #include <linux/types.h>
 
-> what I tried was this:
-> 
-> if (!rc)
-> 	printk("test........"\n")
-> 
-> and everything looked good,
-> but as a soon as I changed
-> 
-> rc = transmit_cmd(chip,&tpm_cmd, TPM_INTERNAL_RESULT_SIZE,
->     			"attempting to determine the timeouts");
-> 
-> to this:
-> 
-> rc = transmit_cmd(chip,&tpm_cmd, TPM_INTERNAL_RESULT_SIZE);
-> 
-> if (!rc)
-> 	printk("attempting to determine the timeouts\n");
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ include/linux/v4l2-mediabus.h |    1 +
+ include/linux/v4l2-subdev.h   |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-*baffled* Why did you think that would work? transmit_cmd()s signature
-has 4 parameters.
-
---==_Exmh_1276573789_4860P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFMFvhdcC3lWbTT17ARAoaDAJsFnmHjFcoQL0nTEuY8H8yGQYdpqQCglYgf
-HqrVXnNW5QE2b8CWdDVStzE=
-=d/C0
------END PGP SIGNATURE-----
-
---==_Exmh_1276573789_4860P--
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 6832919..2a8e490 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -11,6 +11,7 @@
+ #ifndef __LINUX_V4L2_MEDIABUS_H
+ #define __LINUX_V4L2_MEDIABUS_H
+ 
++#include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
+ /*
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 5df95d4..e2e2c8d 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -19,6 +19,7 @@
+ #define __LINUX_V4L2_SUBDEV_H
+ 
+ #include <linux/ioctl.h>
++#include <linux/types.h>
+ #include <linux/v4l2-mediabus.h>
+ 
+ enum v4l2_subdev_format {
+-- 
+1.6.3.3
 
