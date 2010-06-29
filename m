@@ -1,57 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:51229 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753833Ab0FGTcV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 7 Jun 2010 15:32:21 -0400
-Subject: [PATCH 1/8] ir-core: convert mantis to not use ir-functions.c
-To: mchehab@redhat.com
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org
-Date: Mon, 07 Jun 2010 21:32:18 +0200
-Message-ID: <20100607193218.21236.78478.stgit@localhost.localdomain>
-In-Reply-To: <20100607192830.21236.69701.stgit@localhost.localdomain>
-References: <20100607192830.21236.69701.stgit@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Received: from comal.ext.ti.com ([198.47.26.152]:57016 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753330Ab0F2Mop (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jun 2010 08:44:45 -0400
+From: Sergio Aguirre <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [media-ctl RFC][PATCH 4/5] media: Add missing linux/types.h include
+Date: Tue, 29 Jun 2010 07:43:09 -0500
+Message-Id: <1277815390-24681-5-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1277815390-24681-1-git-send-email-saaguirre@ti.com>
+References: <1277815390-24681-1-git-send-email-saaguirre@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert drivers/media/dvb/mantis/mantis_input.c to not use ir-functions.c
+This fixes headers_check warning:
 
-Signed-off-by: David Härdeman <david@hardeman.nu>
+*/usr/include/linux/media.h:25: found __[us]{8,16,32,64} type without #include <linux/types.h>
+
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
 ---
- drivers/media/dvb/mantis/mantis_input.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+ include/linux/media.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/dvb/mantis/mantis_input.c b/drivers/media/dvb/mantis/mantis_input.c
-index 3d4e466..a99489b 100644
---- a/drivers/media/dvb/mantis/mantis_input.c
-+++ b/drivers/media/dvb/mantis/mantis_input.c
-@@ -19,7 +19,7 @@
- */
+diff --git a/include/linux/media.h b/include/linux/media.h
+index a44875d..4f39639 100644
+--- a/include/linux/media.h
++++ b/include/linux/media.h
+@@ -1,6 +1,8 @@
+ #ifndef __LINUX_MEDIA_H
+ #define __LINUX_MEDIA_H
  
- #include <linux/input.h>
--#include <media/ir-common.h>
-+#include <media/ir-core.h>
- #include <linux/pci.h>
++#include <linux/types.h>
++
+ #define MEDIA_ENTITY_TYPE_NODE		1
+ #define MEDIA_ENTITY_TYPE_SUBDEV	2
  
- #include "dmxdev.h"
-@@ -104,7 +104,6 @@ EXPORT_SYMBOL_GPL(ir_mantis);
- int mantis_input_init(struct mantis_pci *mantis)
- {
- 	struct input_dev *rc;
--	struct ir_input_state rc_state;
- 	char name[80], dev[80];
- 	int err;
- 
-@@ -120,8 +119,6 @@ int mantis_input_init(struct mantis_pci *mantis)
- 	rc->name = name;
- 	rc->phys = dev;
- 
--	ir_input_init(rc, &rc_state, IR_TYPE_OTHER);
--
- 	rc->id.bustype	= BUS_PCI;
- 	rc->id.vendor	= mantis->vendor_id;
- 	rc->id.product	= mantis->device_id;
+-- 
+1.6.3.3
 
