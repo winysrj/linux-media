@@ -1,40 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-13.arcor-online.net ([151.189.21.53]:47887 "EHLO
-	mail-in-13.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752847Ab0FSFfB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 19 Jun 2010 01:35:01 -0400
-Message-ID: <4C1C5701.2000208@arcor.de>
-Date: Sat, 19 Jun 2010 07:34:57 +0200
-From: Stefan Ringel <stefan.ringel@arcor.de>
-MIME-Version: 1.0
-To: Greg KH <greg@kroah.com>
-CC: Timofey Trofimov <tumoxep@gmail.com>, gregh@suse.de,
-	mchehab@redhat.com, d.belimov@gmail.com,
-	devel@driverdev.osuosl.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 6/6] Staging: tm6000: Fix coding style issues Fixed coding
- style issues founded by checkpatch.pl in files: tm6000-alsa.c, tm6000-cards,
- tm6000-core.c, tm6000-dvb.c, tm6000-i2c.c, tm6000-stds.c, tm6000-usb-isoc.h,
- tm6000.h Signed-off-by: Timofey Trofimov <tumoxep@gmail.com>
-References: <1275151966-8868-1-git-send-email-tumoxep@gmail.com> <20100618234644.GA509@kroah.com>
-In-Reply-To: <20100618234644.GA509@kroah.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from psmtp13.wxs.nl ([195.121.247.25]:62039 "EHLO psmtp13.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751898Ab0F2Fy7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jun 2010 01:54:59 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp13.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L4R00A4LHRJQM@psmtp13.wxs.nl> for linux-media@vger.kernel.org;
+ Tue, 29 Jun 2010 07:54:56 +0200 (MEST)
+Date: Tue, 29 Jun 2010 07:54:53 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: v4l-dvb unsupported device: Conceptronic CTVDIGUSB2 1b80:d393
+ (Afatech) - possibly similar to CTVCTVDIGRCU v3.0?
+In-reply-to: <4C290096.5080209@gmail.com>
+To: Matteo Sisti Sette <matteosistisette@gmail.com>
+Cc: linux-media@vger.kernel.org
+Message-id: <4C298AAD.2090701@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 8BIT
+References: <AANLkTikojhopHeY2WuHxK_tbCs99_SV7ksWnYv4UXM4W@mail.gmail.com>
+ <4C28FCA8.5090005@hoogenraad.net> <4C290096.5080209@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 19.06.2010 01:46, schrieb Greg KH:
-> This patch does not apply properly.  What tree did you make it against?
-> Please redo it against the latest linux-next tree and resend it.
->
-> thanks,
->
-> greg k-h
->   
-please look in staging/tm6000 brunch.
+I see: apparently the versions earlier than V3.0 of CTVDIGRCU used 
+Realtek RTL2831U. I'll make a note of that on the wiki page.
 
-Stefan Ringel
+Matteo Sisti Sette wrote:
+> On 06/28/2010 09:48 PM, Jan Hoogenraad wrote:
+>> Matteo:
+>>
+>> If I read this well, CTVDIGUSB2 1b80:d393 (Afatech) is not at all
+>> similar to the CTVDIGRCU.
+>> The CTVDIGRCU has a Realtek RTL2831U decoder, and is NOT included in the
+>> standard dvb list.
+> 
+> So is the table at http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices 
+> incorrect?
+> 
+> It says:
+> 
+> Conceptronic USB2.0 DVB-T CTVDIGRCU V3.0    
+>  ✔ Yes, in kernel since 2.6.31
+> 1b80:e397 USB2.0    
+> Afatech AF9015
+> 
+> 
+> Anyway, I see there are other sticks with chipsets by Afatech. Is there 
+> any chance that some of the currently implemented driver would work fine 
+> with my chipset if only I forced the driver to recognize the chipset as 
+> another one by touching the source code?
+> How could I try that? (if it deserves a try)
+> 
+> Thanks
+> m.
+> 
+
 
 -- 
-Stefan Ringel <stefan.ringel@arcor.de>
-
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
