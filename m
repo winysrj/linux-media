@@ -1,165 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7847 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754295Ab0FAU1I (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 1 Jun 2010 16:27:08 -0400
-Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o51KR8Gc008423
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 1 Jun 2010 16:27:08 -0400
-Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [10.16.43.238])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o51KR7KI027196
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 1 Jun 2010 16:27:08 -0400
-Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [127.0.0.1])
-	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.3) with ESMTP id o51KR7I7028037
-	for <linux-media@vger.kernel.org>; Tue, 1 Jun 2010 16:27:07 -0400
-Received: (from jarod@localhost)
-	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.4/Submit) id o51KR7g1028035
-	for linux-media@vger.kernel.org; Tue, 1 Jun 2010 16:27:07 -0400
-Date: Tue, 1 Jun 2010 16:27:07 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] IR: only initially enable protocol that matches loaded keymap
-Message-ID: <20100601202707.GA28024@redhat.com>
+Received: from tuxmail.imn.htwk-leipzig.de ([141.57.7.10]:41330 "EHLO
+	tuxmail.imn.htwk-leipzig.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753558Ab0F2Tmy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 29 Jun 2010 15:42:54 -0400
+From: Torsten Krah <tkrah@fachschaft.imn.htwk-leipzig.de>
+Reply-To: tkrah@fachschaft.imn.htwk-leipzig.de
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Subject: Re: em28xx/xc3028 - kernel driver vs. Markus Rechberger's driver
+Date: Tue, 29 Jun 2010 21:42:42 +0200
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Thorsten Hirsch <t.hirsch@web.de>
+References: <AANLkTilP-jf0MaV82LuTz8DjoNJKQ3xGCHuFgds4b212@mail.gmail.com> <201006291542.27655.tkrah@fachschaft.imn.htwk-leipzig.de> <AANLkTin5iXho6LJP8mOPC-AIIJTi8myxZsy_V6msxSpa@mail.gmail.com>
+In-Reply-To: <AANLkTin5iXho6LJP8mOPC-AIIJTi8myxZsy_V6msxSpa@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: multipart/signed;
+  boundary="nextPart3455493.gU4aWHY14n";
+  protocol="application/pkcs7-signature";
+  micalg=sha1
+Content-Transfer-Encoding: 7bit
+Message-Id: <201006292142.48380.tkrah@fachschaft.imn.htwk-leipzig.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Rather than loading all IR protocol decoders as enabled when bringing
-up a new device, only enable the IR protocol decoder that matches the
-keymap being loaded. Additional decoders can be enabled on the fly by
-those that need to, either by twiddling sysfs bits or by using the
-ir-keytable util from v4l-utils.
+--nextPart3455493.gU4aWHY14n
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Functional testing done with the mceusb driver, and it behaves as expected,
-only the rc6 decoder is enabled, keys are all handled properly, etc.
+Am Dienstag, 29. Juni 2010 schrieb Douglas Schilling Landgraf:
+> The rewrite_eeprom.pl is available under git.utils tree:
+> http://git.linuxtv.org/v4l-utils.git
+>=20
+> All instructions are available into the source code. Let me know if
+> you have any problem with such tool.
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/ir-jvc-decoder.c  |    4 +++-
- drivers/media/IR/ir-nec-decoder.c  |    4 +++-
- drivers/media/IR/ir-rc5-decoder.c  |    4 +++-
- drivers/media/IR/ir-rc6-decoder.c  |    4 +++-
- drivers/media/IR/ir-sony-decoder.c |    4 +++-
- 5 files changed, 15 insertions(+), 5 deletions(-)
+Hi, yes i have problems with the tool :-).
 
-diff --git a/drivers/media/IR/ir-jvc-decoder.c b/drivers/media/IR/ir-jvc-decoder.c
-index 0b80494..b02e801 100644
---- a/drivers/media/IR/ir-jvc-decoder.c
-+++ b/drivers/media/IR/ir-jvc-decoder.c
-@@ -253,6 +253,7 @@ static int ir_jvc_register(struct input_dev *input_dev)
- {
- 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
- 	struct decoder_data *data;
-+	u64 ir_type = ir_dev->rc_tab.ir_type;
- 	int rc;
- 
- 	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
-@@ -266,7 +267,8 @@ static int ir_jvc_register(struct input_dev *input_dev)
- 	}
- 
- 	data->ir_dev = ir_dev;
--	data->enabled = 1;
-+	if (ir_type == IR_TYPE_JVC || ir_type == IR_TYPE_UNKNOWN)
-+		data->enabled = 1;
- 
- 	spin_lock(&decoder_lock);
- 	list_add_tail(&data->list, &decoder_list);
-diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
-index ba79233..6059a1f 100644
---- a/drivers/media/IR/ir-nec-decoder.c
-+++ b/drivers/media/IR/ir-nec-decoder.c
-@@ -260,6 +260,7 @@ static int ir_nec_register(struct input_dev *input_dev)
- {
- 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
- 	struct decoder_data *data;
-+	u64 ir_type = ir_dev->rc_tab.ir_type;
- 	int rc;
- 
- 	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
-@@ -273,7 +274,8 @@ static int ir_nec_register(struct input_dev *input_dev)
- 	}
- 
- 	data->ir_dev = ir_dev;
--	data->enabled = 1;
-+	if (ir_type == IR_TYPE_NEC || ir_type == IR_TYPE_UNKNOWN)
-+		data->enabled = 1;
- 
- 	spin_lock(&decoder_lock);
- 	list_add_tail(&data->list, &decoder_list);
-diff --git a/drivers/media/IR/ir-rc5-decoder.c b/drivers/media/IR/ir-rc5-decoder.c
-index 23cdb1b..4aa797b 100644
---- a/drivers/media/IR/ir-rc5-decoder.c
-+++ b/drivers/media/IR/ir-rc5-decoder.c
-@@ -256,6 +256,7 @@ static int ir_rc5_register(struct input_dev *input_dev)
- {
- 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
- 	struct decoder_data *data;
-+	u64 ir_type = ir_dev->rc_tab.ir_type;
- 	int rc;
- 
- 	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
-@@ -269,7 +270,8 @@ static int ir_rc5_register(struct input_dev *input_dev)
- 	}
- 
- 	data->ir_dev = ir_dev;
--	data->enabled = 1;
-+	if (ir_type == IR_TYPE_RC5 || ir_type == IR_TYPE_UNKNOWN)
-+		data->enabled = 1;
- 
- 	spin_lock(&decoder_lock);
- 	list_add_tail(&data->list, &decoder_list);
-diff --git a/drivers/media/IR/ir-rc6-decoder.c b/drivers/media/IR/ir-rc6-decoder.c
-index 2bf479f..9f61da2 100644
---- a/drivers/media/IR/ir-rc6-decoder.c
-+++ b/drivers/media/IR/ir-rc6-decoder.c
-@@ -352,6 +352,7 @@ static int ir_rc6_register(struct input_dev *input_dev)
- {
- 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
- 	struct decoder_data *data;
-+	u64 ir_type = ir_dev->rc_tab.ir_type;
- 	int rc;
- 
- 	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
-@@ -365,7 +366,8 @@ static int ir_rc6_register(struct input_dev *input_dev)
- 	}
- 
- 	data->ir_dev = ir_dev;
--	data->enabled = 1;
-+	if (ir_type == IR_TYPE_RC6 || ir_type == IR_TYPE_UNKNOWN)
-+		data->enabled = 1;
- 
- 	spin_lock(&decoder_lock);
- 	list_add_tail(&data->list, &decoder_list);
-diff --git a/drivers/media/IR/ir-sony-decoder.c b/drivers/media/IR/ir-sony-decoder.c
-index 9f440c5..219075f 100644
---- a/drivers/media/IR/ir-sony-decoder.c
-+++ b/drivers/media/IR/ir-sony-decoder.c
-@@ -245,6 +245,7 @@ static int ir_sony_register(struct input_dev *input_dev)
- {
- 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
- 	struct decoder_data *data;
-+	u64 ir_type = ir_dev->rc_tab.ir_type;
- 	int rc;
- 
- 	rc = sysfs_create_group(&ir_dev->dev.kobj, &decoder_attribute_group);
-@@ -258,7 +259,8 @@ static int ir_sony_register(struct input_dev *input_dev)
- 	}
- 
- 	data->ir_dev = ir_dev;
--	data->enabled = 1;
-+	if (ir_type == IR_TYPE_SONY || ir_type == IR_TYPE_UNKNOWN)
-+		data->enabled = 1;
- 
- 	spin_lock(&decoder_lock);
- 	list_add_tail(&data->list, &decoder_list);
--- 
-1.6.5.2
+Connected my "broken" device:
 
--- 
-Jarod Wilson
-jarod@redhat.com
+lsusb:
+Bus 001 Device 002: ID eb1a:2871 eMPIA Technology, Inc.
 
+dmesg:
+[  455.348172] usb 1-1: new high speed USB device using ehci_hcd and addres=
+s 2
+[  455.481791] usb 1-1: configuration #1 chosen from 1 choice
+[  455.609668] usbcore: registered new interface driver snd-usb-audio
+
+
+Running the script which does generate the recover script does work.
+But running this one fails with:
+
+Could not detect i2c bus from any device, run again ./rewrite_eeprom.pl. Di=
+d=20
+you forget to connect the device?
+Modules supported: em28xx saa7134
+
+Device is connected.
+
+Anything what i can do?
+
+thx
+
+Torsten
+
+--nextPart3455493.gU4aWHY14n
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Transfer-Encoding: base64
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIFXDCCBVgw
+ggNAoAMCAQICAwefRjANBgkqhkiG9w0BAQUFADB5MRAwDgYDVQQKEwdSb290IENBMR4wHAYDVQQL
+ExVodHRwOi8vd3d3LmNhY2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmluZyBBdXRob3Jp
+dHkxITAfBgkqhkiG9w0BCQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZzAeFw0wOTEwMjAxMzQ2MzVaFw0x
+MTEwMjAxMzQ2MzVaME8xGDAWBgNVBAMTD0NBY2VydCBXb1QgVXNlcjEzMDEGCSqGSIb3DQEJARYk
+dGtyYWhAZmFjaHNjaGFmdC5pbW4uaHR3ay1sZWlwemlnLmRlMIIBIjANBgkqhkiG9w0BAQEFAAOC
+AQ8AMIIBCgKCAQEA3y1Pu6r0+4FmfSZWO07KYv5FWDy+AqKfvQ/+trLjKHgJv1sZDKIURtVVHlgP
+qsMddecGuLrcSnjbAEO9I0XNvpOaTyNIKvsfyTBc9/oNk5Oeb8XQ2PG6UM1RQiHuLwxTEquFh/xf
+oTO7ZlRl3j0YzsXa7hR/slU64EVGidO3289Z6eJv2jD9E1I1ujD630ifCMhiI/HGxobGYFdI1cy1
+Ne3Pc8BeWsSv8BS4fI7eMuFDI3DSCmk8mtgVSSBFLvRQ6laD7zawB+aDvvu+/NgClAEksCBRim5D
+DnJ+PVZm29GUHpkP7sf2ztsotckLyet3d5rg/aVwI7iYBAoWkvwDcwIDAQABo4IBETCCAQ0wDAYD
+VR0TAQH/BAIwADBWBglghkgBhvhCAQ0ESRZHVG8gZ2V0IHlvdXIgb3duIGNlcnRpZmljYXRlIGZv
+ciBGUkVFIGhlYWQgb3ZlciB0byBodHRwOi8vd3d3LkNBY2VydC5vcmcwQAYDVR0lBDkwNwYIKwYB
+BQUHAwQGCCsGAQUFBwMCBgorBgEEAYI3CgMEBgorBgEEAYI3CgMDBglghkgBhvhCBAEwMgYIKwYB
+BQUHAQEEJjAkMCIGCCsGAQUFBzABhhZodHRwOi8vb2NzcC5jYWNlcnQub3JnMC8GA1UdEQQoMCaB
+JHRrcmFoQGZhY2hzY2hhZnQuaW1uLmh0d2stbGVpcHppZy5kZTANBgkqhkiG9w0BAQUFAAOCAgEA
+MMKq9NNbTFUEPdbQ4jZT9T6oY4YQTbXYuF6ymvbBXx3TKsFWGpVjln0whIoQptkBMPSoa6BAZVtO
+mFiIAYwusK05xlYOknxZj/ksm2tWY5lKni4q85kDn+QIfJZ0OF9PP8r8azzw/Wsa2FGx2MUfZYqS
+OeFbL0qWmwhXzGp2CSiTNPNnGSbXBe22uCjYKw+0Gpno0swfbC2iTZjv2KlXWIM0sYPs2yDsFer6
+5/PHVExVEAD1Xrpu/ivADT660nx/GWDBa9zuRE+C42DwBBA6GhYCR4W8AkFiLNdz/7lgrnIax1So
+REiEK7ZdAtwkB3QzyMIVd3BwtGOkJMcUa4R1MrGCmC9ixORxDxrZNUSVY32TVRs2OzIzHCjawWFw
+lmDcomjU5cXj/ZKTmnGqTCpiyesaE1/1IKdyE8EBtqqVoGs7mdgjWSrrgPLVPcmSIDRsd+66Fc4x
+rRnbJf/yi3v3DdJqTgX/JuJmi1gsiPnwEg807WARuLANbF6y7HX/Ssd49ovGYQQdnFYcZfcAwWBL
+vEYxwIvHOnaLgaFcngdtEtdxrY2tUPllv1GhLF/cHQdEnQghZS1RJ/jCFBbmTMJ+PbTutO3JNBTn
+bZ3GT5Ffipk195Tj6CGFXauMiQiUHIKwNG8W1FR0TAdZGDOYiqA3wfPgBHgLt04cnrevCd4rk8Ex
+ggIyMIICLgIBATCBgDB5MRAwDgYDVQQKEwdSb290IENBMR4wHAYDVQQLExVodHRwOi8vd3d3LmNh
+Y2VydC5vcmcxIjAgBgNVBAMTGUNBIENlcnQgU2lnbmluZyBBdXRob3JpdHkxITAfBgkqhkiG9w0B
+CQEWEnN1cHBvcnRAY2FjZXJ0Lm9yZwIDB59GMAkGBSsOAwIaBQCggYcwGAYJKoZIhvcNAQkDMQsG
+CSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMTAwNjI5MTk0MjQzWjAjBgkqhkiG9w0BCQQxFgQU
+ZkVwBz8RZoB5zS+kRbUvJqnp60EwKAYJKoZIhvcNAQkPMRswGTALBglghkgBZQMEAQIwCgYIKoZI
+hvcNAwcwDQYJKoZIhvcNAQEBBQAEggEAlC6dOUdxQIi2XCzi9etlj8LRFYa+u9rlq4xL84R4iB7c
+3mKiqPn3ZLnCVEVdQjw4qr9n3llpAGe+LVdvBrsDRfUSAMq+a8rHeVAjD0aG2gcMMWXg/G6hXxjz
+anK3mz+UGwKnfSWI086vuhE7rS4dOqW/uwrhqW1zS9CGYVzh1RcIAOxY5BMjCSIASbmPeUj/47+7
+TCnguK4KbYrP9U12A3L4dfmAQOvSmkNkCm3RS+/4/6XJipGsjTbLSwlCj2Ch6qhNcH6O8iUuKnAH
+JEQATsp89VHetr+sVGg+w66gDNPLJHxWRnDciTQJnnkAVY23kWI35pcIUdt45pAoEd44ngAAAAAA
+AA==
+
+--nextPart3455493.gU4aWHY14n--
