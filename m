@@ -1,66 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25130 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758395Ab0FCIkV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jun 2010 04:40:21 -0400
-Message-ID: <4C076AD5.2090909@redhat.com>
-Date: Thu, 03 Jun 2010 10:41:57 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:57310 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752682Ab0F3H2S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jun 2010 03:28:18 -0400
+Date: Wed, 30 Jun 2010 09:28:08 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Baruch Siach <baruch@tkos.co.il>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCHv4 1/3] mx2_camera: Add soc_camera support for
+	i.MX25/i.MX27
+Message-ID: <20100630072808.GD11746@pengutronix.de>
+References: <cover.1277096909.git.baruch@tkos.co.il> <03d6e55c39690618e92a91a580ec34549a135c79.1277096909.git.baruch@tkos.co.il> <20100630070717.GA11746@pengutronix.de> <Pine.LNX.4.64.1006300918190.17489@axis700.grange>
 MIME-Version: 1.0
-To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>
-CC: linux-media@vger.kernel.org
-Subject: Re: [Bugme-new] [Bug 16077] New: Drop is video frame rate in kernel
- .34
-References: <bug-16077-10286@https.bugzilla.kernel.org/>	<20100602140916.759d7159.akpm@linux-foundation.org>	<4C072451.7090001@infradead.org> <87r5kod2dm.fsf@nemi.mork.no>
-In-Reply-To: <87r5kod2dm.fsf@nemi.mork.no>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <Pine.LNX.4.64.1006300918190.17489@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Guennadi,
 
-On 06/03/2010 09:03 AM, BjÃ¸rn Mork wrote:
-> Mauro Carvalho Chehab<mchehab@infradead.org>  writes:
->> Em 02-06-2010 18:09, Andrew Morton escreveu:
->>> On Sun, 30 May 2010 14:29:55 GMT
->>> bugzilla-daemon@bugzilla.kernel.org wrote:
->>>
->>>> https://bugzilla.kernel.org/show_bug.cgi?id=16077
->>>
->>> 2.6.33 ->  2.6.34 performance regression in dvb webcam frame rates.
->>
->> I don't think this is a regression. Probably, the new code is allowing a higher
->> resolution. As the maximum bandwidth from the sensor to the USB bridge doesn't
->> change, and a change from QVGA to VGA implies on 4x more pixels per frame, as
->> consequence, the number of frames per second will likely reduce by a factor of 4x.
->>
->> I've asked the reporter to confirm what resolutions he is setting on 2.6.33
->> and on 2.6.34, just to double check if my thesis is correct.
->
-> Well, the two video clips attached to the bug shows the same resolution
-> but a much, much lower video (and overall) bitrate in 2.6.34.  Output
-> from mediainfo:
->
+On Wed, Jun 30, 2010 at 09:20:36AM +0200, Guennadi Liakhovetski wrote:
+> > > --- a/arch/arm/plat-mxc/include/mach/memory.h
+> > > +++ b/arch/arm/plat-mxc/include/mach/memory.h
+> > > @@ -44,12 +44,12 @@
+> > >   */
+> > >  #define CONSISTENT_DMA_SIZE SZ_8M
+> > >  
+> > > -#elif defined(CONFIG_MX1_VIDEO)
+> > > +#elif defined(CONFIG_MX1_VIDEO) || defined(CONFIG_MX2_VIDEO)
+> > >  /*
+> > >   * Increase size of DMA-consistent memory region.
+> > >   * This is required for i.MX camera driver to capture at least four VGA frames.
+> > >   */
+> > >  #define CONSISTENT_DMA_SIZE SZ_4M
+> > > -#endif /* CONFIG_MX1_VIDEO */
+> > > +#endif /* CONFIG_MX1_VIDEO || CONFIG_MX2_VIDEO */
+> > Why not use CONFIG_VIDEO_MX2 here and get rid of CONFIG_MX2_VIDEO?
+> 
+> Well, firstly for uniformity with MX1 and MX3,
+Using a common scheme for names on all platforms is fine, but if the
+existing names are bad better establish a nicer scheme.
 
+>                                                secondly not to have to use 
+> (CONFIG_VIDEO_MX2 || CONFIG_VIDEO_MX2_MODULE),
+ah, didn't notice that MX?_VIDEO is bool while VIDEO_MX? is tristate.
+That's fine.  Still I would prefer a better naming that doesn't force
+having to look up which variable is for the driver and which is for the
+arch stuff.
 
-I notice in the original bug report that you claim that the lower framerate
-clip with 2.6.34 has "much better quality", could you define this a bit better.
+>                                                also note, that 
+> CONFIG_MX1_VIDEO is also used for linking of the FIQ handler for the camera.
+This is just a matter of fixing the corresponding Makefile.
 
-I think that what is happening is the code for the new (correct) sensor is
-setting a higher exposure value (and thus a lighter / less dark image), but
-setting a higher exposure value comes at the cost of framerate. As the framerate
-can never be higher then 1 / exposure_time_for_1_frame.
+Best regards
+Uwe
 
-2 things:
-
-1) Go the preferences in cheese, and see which resolutions you can select, and
-    make sure you are using the same resolution in 2.6.34 and 2.6.33
-
-2) Start a v4l2 control panel applet, like v4l2ucp or gtk-v4l, and try playing
-    around with the controls (note the controls inside cheese are software not
-    hardware controls so don't use those).
-
-Regards,
-
-Hans
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
