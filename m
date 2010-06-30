@@ -1,81 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:23332 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751554Ab0FEB12 (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:49372 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757357Ab0F3WIX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 4 Jun 2010 21:27:28 -0400
-Subject: Re: question about v4l2_subdev
-From: Andy Walls <awalls@md.metrocast.net>
-To: Sedji Gaouaou <sedji.gaouaou@atmel.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-input@vger.kernel.org
-In-Reply-To: <4C04C17D.8020702@atmel.com>
-References: <4C03D80B.5090009@atmel.com>
-	 <1275329947.2261.19.camel@localhost>  <4C04C17D.8020702@atmel.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 04 Jun 2010 21:27:38 -0400
-Message-ID: <1275701258.2247.16.camel@localhost>
-Mime-Version: 1.0
+	Wed, 30 Jun 2010 18:08:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [media-ctl] [omap3camera:devel] How to use the app?
+Date: Thu, 1 Jul 2010 00:08:44 +0200
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <A24693684029E5489D1D202277BE8944562E8B71@dlee02.ent.ti.com> <201006291222.47159.laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE8944562E943A@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE8944562E943A@dlee02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201007010008.44537.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2010-06-01 at 10:14 +0200, Sedji Gaouaou wrote:
-> Hi,
+Hi Sergio,
+
+On Wednesday 30 June 2010 00:13:43 Aguirre, Sergio wrote:
+> > -----Original Message-----
+> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> > Sent: Tuesday, June 29, 2010 5:23 AM
+> > On Tuesday 29 June 2010 01:34:01 Aguirre, Sergio wrote:
+
+[snip]
+
+> > You will find a set of patches that remove the legacy video nodes attached
+> > to this e-mail. They haven't been applied to the omap3camera tree yet, as
+> > we still haven't fixed all userspace components yet, but they should get
+> > there in a few weeks hopefully. You should probably apply them to your
+> > tree to make sure you don't start using the legacy video nodes by mistake.
+> > They also remove a lot of code, which is always good, and remove the
+> > hardcoded number of sensors.
 > 
+> I had following compilation error:
 > 
-> >
-> > 1. Something first should call v4l2_device_register() on a v4l2_device
-> > object.  (Typically there is only one v4l2_device object per "bridge"
-> > chip between the PCI, PCIe, or USB bus and the subdevices, even if that
-> > bridge chip has more than one I2C master implementation.)
-> >
-> > 2. Then, for subdevices connected to the bridge chip via I2C, something
-> > needs to call v4l2_i2c_new_subdev() with the v4l2_device pointer as one
-> > of the arguments, to get back a v4l2_subdevice instance pointer.
-> >
-> > 3. After that, v4l2_subdev_call() with the v4l2_subdev pointer as one of
-> > the arguments can be used to invoke the subdevice methods.
-> >
-> > TV Video capture drivers do this work themselves.  Drivers using a
-> > camera framework may have the framework doing some of the work for them.
-> >
-> >
-> > Regards,
-> > Andy
-> >
-> >
-> >
+> drivers/media/video/isp/ispvideo.c: In function 'isp_video_streamon':
+> drivers/media/video/isp/ispvideo.c:780: error: 'const struct
+> isp_video_operations' has no member named 'stream_off'
+> drivers/media/video/isp/ispvideo.c:781: error: 'const struct
+> isp_video_operations' has no member named 'stream_off' make[4]: ***
+> [drivers/media/video/isp/ispvideo.o] Error 1
+> make[3]: *** [drivers/media/video/isp] Error 2
+> make[3]: *** Waiting for unfinished jobs....
+> make[2]: *** [drivers/media/video] Error 2
+> make[1]: *** [drivers/media] Error 2
+> make: *** [drivers] Error 2
 > 
-> 
-> Is there a sensor driver which is using this method?
-> 
-> To write the ov2640 driver I have just copied the ov7670.c file, and I 
-> didn't find the v4l2_i2c_new_subdev in it...
+> Which I solved with the attached patch. You might want to squash it with
+> your patch "omap3isp: video: Remove the init, cleanup and stream_off
+> operations"
 
-Subdev driver modules, like ov7670.c, don't attach themselves; the
-bridge chip driver attaches an instance to an I2C bus.
+Thanks for the patch. The fix was already in my tree, I suppose the patches 
+I've sent were not in sync. Sorry about that.
 
-Look at
-
-	drivers/media/video/cafe_ccic.c
-
-And examine cafe_pci_probe() and the definition and use of the
-sensor_call() macro.
-
-Also note
-
-$ grep -Ril ov7670 drivers/media/video/*
-
-will show you in what drivers, the ov7670 might be used.
-
-
+-- 
 Regards,
-Andy
 
-> Regards,
-> Sedji
-
-
-
+Laurent Pinchart
