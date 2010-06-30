@@ -1,65 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61730 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756142Ab0FCPOY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 3 Jun 2010 11:14:24 -0400
-Message-ID: <4C07C711.5040900@redhat.com>
-Date: Thu, 03 Jun 2010 17:15:29 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:49167 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751758Ab0F3HUb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jun 2010 03:20:31 -0400
+Date: Wed, 30 Jun 2010 09:20:36 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+cc: Baruch Siach <baruch@tkos.co.il>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCHv4 1/3] mx2_camera: Add soc_camera support for i.MX25/i.MX27
+In-Reply-To: <20100630070717.GA11746@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1006300918190.17489@axis700.grange>
+References: <cover.1277096909.git.baruch@tkos.co.il>
+ <03d6e55c39690618e92a91a580ec34549a135c79.1277096909.git.baruch@tkos.co.il>
+ <20100630070717.GA11746@pengutronix.de>
 MIME-Version: 1.0
-To: Bill Davidsen <davidsen@tmr.com>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	bugzilla-daemon@bugzilla.kernel.org,
-	bugme-daemon@bugzilla.kernel.org
-Subject: Re: [Bugme-new] [Bug 16050] New: The ibmcam driver is not working
-References: <bug-16050-10286@https.bugzilla.kernel.org/> <20100528154635.129b621b.akpm@linux-foundation.org> <4C04C942.6000900@redhat.com> <4C054105.6020806@tmr.com> <4C07B3BC.3050209@redhat.com> <4C07C316.2090903@tmr.com>
-In-Reply-To: <4C07C316.2090903@tmr.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, 30 Jun 2010, Uwe Kleine-König wrote:
 
-On 06/03/2010 04:58 PM, Bill Davidsen wrote:
-> Hans de Goede wrote:
->> Hi,
->>
->> On 06/01/2010 07:19 PM, Bill Davidsen wrote:
->>> Hans de Goede wrote:
->> >
->>> In case you don't have this information, here is a line from lsusb:
->>> Bus 003 Device 002: ID 0545:8080 Xirlink, Inc. IBM C-It Webcam
->>>
->>> Hopefully the items you have ordered are the same model.
->>>
->>
->> I have the same usb-id, but I'm working on the driver now and it
->> seems XirLink distinguishes between different models by bcdversion,
->> instead of using different usb ids for each product.
->>
->> Can you send me a mail with the output of "lsusb -v", then I can
->> see if you have the same version as I have for testing.
->>
->
-> Sure, attached.
->
+> On Mon, Jun 21, 2010 at 08:15:58AM +0300, Baruch Siach wrote:
+> > This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
+> > Carvalho de Assis modified the original driver to get it working on more recent
+> > kernels. I modified it further to add support for i.MX25. This driver has been
+> > tested on i.MX25 and i.MX27 based platforms.
+> > 
+> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> > ---
+> >  arch/arm/plat-mxc/include/mach/memory.h  |    4 +-
+> >  arch/arm/plat-mxc/include/mach/mx2_cam.h |   46 +
+> >  drivers/media/video/Kconfig              |   13 +
+> >  drivers/media/video/Makefile             |    1 +
+> >  drivers/media/video/mx2_camera.c         | 1493 ++++++++++++++++++++++++++++++
+> >  5 files changed, 1555 insertions(+), 2 deletions(-)
+> >  create mode 100644 arch/arm/plat-mxc/include/mach/mx2_cam.h
+> >  create mode 100644 drivers/media/video/mx2_camera.c
+> > 
+> > diff --git a/arch/arm/plat-mxc/include/mach/memory.h b/arch/arm/plat-mxc/include/mach/memory.h
+> > index c4b40c3..5803836 100644
+> > --- a/arch/arm/plat-mxc/include/mach/memory.h
+> > +++ b/arch/arm/plat-mxc/include/mach/memory.h
+> > @@ -44,12 +44,12 @@
+> >   */
+> >  #define CONSISTENT_DMA_SIZE SZ_8M
+> >  
+> > -#elif defined(CONFIG_MX1_VIDEO)
+> > +#elif defined(CONFIG_MX1_VIDEO) || defined(CONFIG_MX2_VIDEO)
+> >  /*
+> >   * Increase size of DMA-consistent memory region.
+> >   * This is required for i.MX camera driver to capture at least four VGA frames.
+> >   */
+> >  #define CONSISTENT_DMA_SIZE SZ_4M
+> > -#endif /* CONFIG_MX1_VIDEO */
+> > +#endif /* CONFIG_MX1_VIDEO || CONFIG_MX2_VIDEO */
+> Why not use CONFIG_VIDEO_MX2 here and get rid of CONFIG_MX2_VIDEO?
 
-Thx,
+Well, firstly for uniformity with MX1 and MX3, secondly not to have to use 
+(CONFIG_VIDEO_MX2 || CONFIG_VIDEO_MX2_MODULE), also note, that 
+CONFIG_MX1_VIDEO is also used for linking of the FIQ handler for the camera.
 
-Your device has a revision of 3.0a (the firmware programmers did not
-seem to fully grasp the concept of the d in bcd (it stands for decimal),
-which is different from mine which is revision 3.01 . Your version is
-referred to as a model2 by the old driver, where as mine is a model3.
-
-This is both bad and good news, the bad news is I cannot give you an
-already tested driver to fix your issues. The good news is, that this
-means that, assuming that you are willing to help out with testing, we
-can now also verify that model 2 cams will work with the new driver.
-
-So would you be willing to test the new driver (when it is finished) ?
-
-Regards,
-
-Hans
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
