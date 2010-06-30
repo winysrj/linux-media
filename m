@@ -1,44 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14201 "EHLO mx1.redhat.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:59510 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757960Ab0FFP1p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 6 Jun 2010 11:27:45 -0400
-Message-ID: <4C0BBE58.6000504@redhat.com>
-Date: Sun, 06 Jun 2010 12:27:20 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1756782Ab0F3VMx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jun 2010 17:12:53 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 30 Jun 2010 16:12:48 -0500
+Subject: RE: [Query] How to preserve soc_camera and still use a sensor for
+ media controller?
+Message-ID: <A24693684029E5489D1D202277BE8944563902E3@dlee02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE89445638FD0E@dlee02.ent.ti.com>
+ <Pine.LNX.4.64.1006302048310.17489@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1006302048310.17489@axis700.grange>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 and ir
-References: <4C096A05.2010907@arcor.de>
-In-Reply-To: <4C096A05.2010907@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Stefan,
+Hi Guennadi,
 
-Em 04-06-2010 18:03, Stefan Ringel escreveu:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->  
-> Hi Mauro,
+> -----Original Message-----
+> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> Sent: Wednesday, June 30, 2010 1:53 PM
+> To: Aguirre, Sergio
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: [Query] How to preserve soc_camera and still use a sensor for
+> media controller?
 > 
-> I write actually the ir implementation (tm6000-input.c). Can you give
-> me any stuff what can help me?
+> Hi Sergio
+> 
+> On Wed, 30 Jun 2010, Aguirre, Sergio wrote:
+> 
+> > Hi all,
+> >
+> > Is it possible to keep a sensor chip driver compatible with 2
+> interfaces?
+> >
+> > I'm particularly interested in mt9t112 sensor.
+> >
+> > Has this been done before with other driver?
+> 
+> You can try looking at this thread:
+> http://thread.gmane.org/gmane.linux.drivers.video-input-
+> infrastructure/16311
 
-I never tried to implement IR support for tm6000, but if you use the
-em28xx-input as reference, it shouldn't be hard to add support for IR.
+Very interesting thread :)
 
-I suspect that tm6000 have a hardware/firmware IR decoder, probably
-capable of handling NEC and RC-5 protocols. 
+> and remembering our discussions at the mini-summit;) You can also look at
+> Hans' report of summit's results. A few people know, what has to be done,
+> but noone has done it yet... The world is still looking for a hero to do
+> the job:)
 
-Probably, all that you need to do is to send some initialization sequence
-at tm6000-input and periodically try to get data via URB (for example, you
-may run a workqueue or a timer, on every 50 ms, checking for the code 
-reception). You may use the rc-empty table on your initial tests and, after
-having it working, you'll need to create a keymap table with your IR.
+OK, thanks for the info :)
 
-Cheers,
-Mauro.
+I'll think about that...
+
+Regards,
+Sergio
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
