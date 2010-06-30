@@ -1,50 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:56931 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754678Ab0FAW5z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 1 Jun 2010 18:57:55 -0400
-Received: by mail-ww0-f46.google.com with SMTP id 28so2464375wwb.19
-        for <linux-media@vger.kernel.org>; Tue, 01 Jun 2010 15:57:54 -0700 (PDT)
-Subject: [PATCH 3/6] gspca - gl860: USB control message delay unification
-From: Olivier Lorin <olorin75@gmail.com>
-To: V4L Mailing List <linux-media@vger.kernel.org>
-Cc: Jean-Francois Moine <moinejf@free.fr>
-Content-Type: text/plain
-Date: Wed, 02 Jun 2010 00:57:48 +0200
-Message-Id: <1275433068.20756.101.camel@miniol>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:16470 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755198Ab0F3UWZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jun 2010 16:22:25 -0400
+Message-ID: <4C2BA772.4010305@redhat.com>
+Date: Wed, 30 Jun 2010 17:22:10 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 and losing blocks
+References: <4C2BA19C.9080708@arcor.de>
+In-Reply-To: <4C2BA19C.9080708@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-gspca - gl860: USB control message delay unification
+Em 30-06-2010 16:57, Stefan Ringel escreveu:
+> Hi Mauro,
+> 
+> I have tested your patch, but that logic to detect the end of urb is wrong. Many blocks going to lost. 
+> byte 0x47 can 2 different state:
+> 1. sync byte
+> 2. data byte
+> 
+> Your logic has that problem, that if receive the new urb and search the new sync byte, the first 0x47 will use and 
+> that are not always the sync byte.
 
-From: Olivier Lorin <o.lorin@laposte.net>
+Stefan,
 
-- 1 ms "msleep" applied to each sensor after USB control data exchange
-  This was done for two sensors because these exchanges were known to
-  be too quick depending on laptop model.
-  It is fairly logical to apply this delay to each sensor
-  in order to prevent from having errors with untested hardwares.
+> 
+>> From: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> Date: Mon, 7 Jun 2010 15:10:14 +0000 (-0300)
+>> Subject: tm6000: Fix copybuf continue logic
+>> X-Git-Url: http://git.linuxtv.org/v4l-dvb.git?a=commitdiff_plain;h=dcdc55b917681378f84e6db26dcd56931ae2f1c8
+>>
+>> tm6000: Fix copybuf continue logic
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> ---
+>>
+>> diff --git a/drivers/staging/tm6000/tm6000-video.c b/drivers/staging/tm6000/tm6000-video.c
+>> index 6bf2b13..9a0b5a7 100644
+>> --- a/drivers/staging/tm6000/tm6000-video.c
+>> +++ b/drivers/staging/tm6000/tm6000-video.c
+>> @@ -285,7 +285,7 @@ static int copy_streams(u8 *data, unsigned long len,
+>> 				break;
+>> 			case TM6000_URB_MSG_AUDIO:
+>> 			case TM6000_URB_MSG_PTS:
+>> -				cpysize = pktsize;	/* Size is always 180 bytes */
+>> +				size = pktsize;		/* Size is always 180 bytes */
+>> 				break;
+>> 			}
 
-Priority: normal
+This is OK: with audio and TS URB's, the packet has always 180 bytes, and the "size" information
+from the header is not used.
 
-Signed-off-by: Olivier Lorin <o.lorin@laposte.net>
+>> 		} else {
+>> @@ -315,7 +315,7 @@ static int copy_streams(u8 *data, unsigned long len,
+>> 				break;
+>> 			}
+>> 		}
+>> -		if (ptr + pktsize > endp) {
+>> +		if (cpysize < size) {
+>> 			/* End of URB packet, but cmd processing is not
+>> 			 * complete. Preserve the state for a next packet
+>> 			 */
+> 
+> I think that is wrong
+> 
+>> @@ -323,7 +323,7 @@ static int copy_streams(u8 *data, unsigned long len,
+>> 			dev->isoc_ctl.size = size - cpysize;
+>> 			dev->isoc_ctl.cmd = cmd;
+>> 			dev->isoc_ctl.pktsize = pktsize - (endp - ptr);
+>> -			ptr += endp - ptr;
+>> +			ptr += cpysize;
+>> 		} else {
+>> 			dev->isoc_ctl.cmd = 0;
+>> 			ptr += pktsize;
+> 
+> dito
+> 
 
-diff -urpN i2/gl860.c gl860/gl860.c
---- i2/gl860.c	2010-06-01 23:11:26.000000000 +0200
-+++ gl860/gl860.c	2010-06-01 23:16:59.000000000 +0200
-@@ -595,10 +595,7 @@ int gl860_RTx(struct gspca_dev *gspca_de
- 	else if (len > 1 && r < len)
- 		PDEBUG(D_ERR, "short ctrl transfer %d/%d", r, len);
- 
--	if (_MI2020_ && (val || index))
--		msleep(1);
--	if (_OV2640_)
--		msleep(1);
-+	msleep(1);
- 
- 	return r;
- }
+Hm...
+	cpysize = (endp - ptr > size) ? size : endp - ptr;
 
+and size = pktsize (for Audio/PTS), this is OK for audio and PTS.
 
+For VBI and video, "size" comes from the data package. It should be equal to 180 bytes
+as well, but, if it is different than 180, then we may have a problem.
+
+As, in practice, all packets have 180 byes of payload, and it is somewhat common to get
+broken URB 's with this device, I agree that it is safer to reverse those two hunks.
+
+Cheers,
+Mauro.
