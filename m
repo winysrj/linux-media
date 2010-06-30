@@ -1,55 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46902 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752186Ab0FGJXH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 7 Jun 2010 05:23:07 -0400
-Date: Mon, 7 Jun 2010 11:23:17 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: Version 2: Tentative agenda for Helsinki mini-summit
-In-Reply-To: <19F8576C6E063C45BE387C64729E7394044E7A16AC@dbde02.ent.ti.com>
-Message-ID: <Pine.LNX.4.64.1006071101470.12965@axis700.grange>
-References: <201005301015.59776.hverkuil@xs4all.nl>
- <19F8576C6E063C45BE387C64729E7394044E7A16AC@dbde02.ent.ti.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1358 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754762Ab0F3Rst (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 30 Jun 2010 13:48:49 -0400
+Date: Wed, 30 Jun 2010 19:48:45 +0200 (CEST)
+From: Hans Houwaard <hans@ginder.xs4all.nl>
+To: linux-media@vger.kernel.org, mo ucina <mo.ucina@gmail.com>
+Message-ID: <20081599.48.1277920125030.JavaMail.root@ginder>
+In-Reply-To: <4C2B33B6.90408@gmail.com>
+Subject: Re: [linux-dvb] TeVii S470 in mythtv  - diseqc problems
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 7 Jun 2010, Hiremath, Vaibhav wrote:
+I had the same issue, I have a combination of Hauppauge and Tevii card. The problems arrise when the order of loading of the cards differ from the order of card installed in MythTV. I have added module options to get the modules to use the same /dev/dvb device on boot.
 
-> > 14) V4L2 video output vs. framebuffer. Guennadi Liakhovetski.
-> > 
-> [Hiremath, Vaibhav] Guennadi,
-> 
-> Do you have anything in your mind on this? Are you preparing any slides 
-> for this? Do you want me to have something from OMAP side which we can 
-> use as a use-case?
+Hope this helps for you,
 
-Yes, I will prepare some introduction, maybe a couple of slides. My 
-impression is, that we shall be making all topics as short as possible, 
-so, I'll try to make it concise, but I don't know exactly yet how much 
-time we'd get.
+Hans 
 
-> I can make couple of slides on this.
+----- Oorspronkelijk bericht -----
+Van: "O&M Ugarcina" <mo.ucina@gmail.com>
+Aan: linux-dvb@linuxtv.org
+Verzonden: Woensdag 30 juni 2010 14:08:22
+Onderwerp: [linux-dvb] TeVii S470 in mythtv  - diseqc problems
 
-In principle - yes, sure, I'd love you to present your use-case, but as I 
-said - no idea whether we'll have time for this. So, definitely, would be 
-great if you could comment on the topic, if we get time, slides would be 
-great too, so, if it's not too complicated for you - please prepare them, 
-but unfortunately I do not know yet whether we'll get a chance to go 
-through them. In fact, I'm not quite sure how topics without an explicitly 
-mentioned presentation should work - there would be some introduction in 
-any case, right, Hans? Just not as long as a "proper presentation?" And 
-the mentioned 10 minutes are only for the presentation, the discussion 
-comes on top of that? So, I think, we should have time for your slides, 
-Vaibhav, Hans can correct me if I'm wrong;)
+Hello Guys,
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Just installed a S470 into my mythbox , fedora 12 kernel 
+2.6.32.14-127.fc12.i686.PAE . Myth is .23 the most recent fedora package 
+, the drivers for dvb card I have at the moment were pulled in 
+2010-04-01 . I assume they are pretty current . The problem that I have 
+is as follows :
+Most of my viewing is done on a Satellite connected to diseqc port 2 , 
+and myth tunes into that with no probs at all , but occasionally I try 
+to watch a channel that is on a second satellite - port 1 and here 
+things fail . Myth tries to tune into the channel - then times out with 
+error , during this the dvb driver crashes , and when I try to retune 
+again with myth there is no lock on either satellite  . So I need to 
+restart pc , then everything comes back on port 2 and myth is able to 
+tune again channels within that first satellite . Any one else 
+experienced diseqc issues with this card and myth ?
+
+Second question what is the tool of choice to use to scan dvbs2 
+satellites ? I tried dvbscan but it only picked up dvbs transponders , 
+on dvbs2 it failed to tune . I saw that there used to be this utillity 
+scan-s2 , but looks like it was abandoned a couple of years ago and has 
+not been maintained since . So how do you guys do a transponder scan for 
+dvbs2 ?
+
+Best Regards
+
+Milorad
+
+
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
