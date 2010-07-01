@@ -1,57 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:44175 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756104Ab0GGVdG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 17:33:06 -0400
-Received: by gxk23 with SMTP id 23so61686gxk.19
-        for <linux-media@vger.kernel.org>; Wed, 07 Jul 2010 14:33:03 -0700 (PDT)
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:54780 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783Ab0GAOqd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Jul 2010 10:46:33 -0400
+Date: Thu, 1 Jul 2010 16:46:23 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Baruch Siach <baruch@tkos.co.il>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCHv5] mx2_camera: Add soc_camera support for i.MX25/i.MX27
+Message-ID: <20100701144622.GG28535@pengutronix.de>
+References: <47538fc4c6ffbc6a4c80ba55ecdd03603e67095c.1277981781.git.baruch@tkos.co.il> <20100701122803.GE28535@pengutronix.de> <Pine.LNX.4.64.1007011612580.17489@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <20100707110613.18be4215@tele>
-References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
-	<20100707074431.66629934@tele> <AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
-	<20100707110613.18be4215@tele>
-From: Kyle Baker <kyleabaker@gmail.com>
-Date: Wed, 7 Jul 2010 17:32:43 -0400
-Message-ID: <AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
-Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <Pine.LNX.4.64.1007011612580.17489@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 7, 2010 at 5:06 AM, Jean-Francois Moine <moinejf@free.fr> wrote:
->
-> The video and audio don't work at the same time because the video is
-> opened before the audio and it takes all the USB bandwidth.
->
-> The problem is in the main gspca.c, not in sonixj.c. It may fixed using
-> a lower alternate setting. To check it, you may add the following lines:
->
->        if (dev->config->desc.bNumInterfaces != 1)
->                gspca_dev->nbalt -= 1;
-> after
->        gspca_dev->nbalt = intf->num_altsetting;
-> in the function gspca_dev_probe() of gspca.c.
->
-> If it still does not work, change "-= 1" to "-= 2" or "-= 3" (there are
-> 8 alternate settings in your webcam).
+Hi Guennadi,
 
-I've edited the gspca.c file with your suggestion to begin testing,
-but I'm unable to get the new drivers to compile with and Error 2.
+On Thu, Jul 01, 2010 at 04:23:23PM +0200, Guennadi Liakhovetski wrote:
+> > > +config VIDEO_MX2
+> > > +	tristate "i.MX27/i.MX25 Camera Sensor Interface driver"
+> > > +	depends on VIDEO_DEV && SOC_CAMERA && (MACH_MX27 || ARCH_MX25)
+> > > +	select VIDEOBUF_DMA_CONTIG
+> > CONTIG?
+> 
+> What exactly was your question here?
+I thought it to be a mistyped "CONFIG", I was wrong.
+ 
+> > > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> > > new file mode 100644
+> > > index 0000000..98c93fa
+> > > --- /dev/null
+> > > +++ b/drivers/media/video/mx2_camera.c
+> > > @@ -0,0 +1,1513 @@
+> > 
+> > [...snip...]
+> 
+> > > +static struct platform_driver mx2_camera_driver = {
+> > > +	.driver 	= {
+> > > +		.name	= MX2_CAM_DRV_NAME,
+> > I'm always unsure if you need
+> > 
+> > 		.owner  = THIS_MODULE,
+> > 
+> > here.
+> 
+> It is not needed in this case. See the "owner" field in struct 
+> soc_camera_host_ops mx2_soc_camera_host_ops.
+> 
+> But that's not the reason why I'm replying. What I didn't like in these 
+> your reviews, was the fact, that this driver has been submitted a number 
+> of times to the arm-kernel ML, it has "mx2" in its subject, so, you had 
+> enough chances to review it, just like Sascha did. Instead, you review it 
+> now, making the author create new versions of his patch. You have been 
+> asked for advise, because this patch potentially collided with other your 
+> patches, your help in resolving this question is appreciated. But then you 
+> suddenly decide to review the whole patch... Several of my patches have 
+> been treated similarly in the past, so, I know how annoying it is to have 
+> to re-iterate them because at v5 someone suddenly decided to take part in 
+> the patch review process too...
+OK it might annoying but still I cannot understand why this is a reason to
+lament.  I don't necessarily feel part of the intended audience for each
+patch on LAKML that contains mx2 in it's subject, still less if the
+patch changes very little in arch/arm/{plat-mxc,arch-mx*} as Baruch's
+patch does.  Now he cc:d me and I had a look and even took the time to
+point out the things that I noticed.  From my POV a late reviewer is
+better than getting code in that is less optimal.  And let me point out
+that reviewing sequentially is more efficient in the sum---at least for
+the reviewers.
 
-> For a correct fix, the exact video bandwidth shall be calculated and I
-> could not find yet time enough to do the job and people to test it...
+So should I ignore patches that are say already > v3?
 
-If you find time to start progress on this, I will be ready to test
-your changes. In the meantime, I will continue trying to compile and
-test these changes. If I understood more of how everything works then
-I'd start the bandwidth calculation progress myself. Unfortunately I
-don't, but I may be able to get a patch working if this will ever
-compile.
+Best regards
+Uwe
 
-Thanks.
-
---
-Kyle Baker
+-- 
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
