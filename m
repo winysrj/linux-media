@@ -1,71 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56826 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754036Ab0G3Tgq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 15:36:46 -0400
-Message-ID: <4C5329D3.3020801@redhat.com>
-Date: Fri, 30 Jul 2010 16:36:51 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail.gmx.net ([213.165.64.20]:35637 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756141Ab0GAOXJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Jul 2010 10:23:09 -0400
+Date: Thu, 1 Jul 2010 16:23:23 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+cc: Baruch Siach <baruch@tkos.co.il>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCHv5] mx2_camera: Add soc_camera support for i.MX25/i.MX27
+In-Reply-To: <20100701122803.GE28535@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1007011612580.17489@axis700.grange>
+References: <47538fc4c6ffbc6a4c80ba55ecdd03603e67095c.1277981781.git.baruch@tkos.co.il>
+ <20100701122803.GE28535@pengutronix.de>
 MIME-Version: 1.0
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-CC: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [PATCH 06/13] IR: nec decoder: fix repeat.
-References: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com> <1280489933-20865-7-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280489933-20865-7-git-send-email-maximlevitsky@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 30-07-2010 08:38, Maxim Levitsky escreveu:
-> Repeat space is 4 units, not 8.
-> Current code would never trigger a repeat.
+Hi Uwe
 
-Yes, this fixed the issue:
+On Thu, 1 Jul 2010, Uwe Kleine-König wrote:
 
-Jul 30 16:53:52 agua kernel: [24343.507577] ir_getkeycode: unknown key for scancode 0x0009
-Jul 30 16:53:52 agua kernel: [24343.507588] ir_nec_decode: Repeat last key
-Jul 30 16:53:52 agua kernel: [24343.507590] ir_nec_decode: NEC scancode 0x0009
-Jul 30 16:53:52 agua kernel: [24343.507592] ir_getkeycode: unknown key for scancode 0x0009
-Jul 30 16:53:52 agua kernel: [24343.507595] ir_nec_decode: Repeat last key
-Jul 30 16:53:52 agua kernel: [24343.724242] ir_nec_decode: NEC scancode 0x0009
-Jul 30 16:53:52 agua kernel: [24343.724246] ir_getkeycode: unknown key for scancode 0x0009
-Jul 30 16:53:52 agua kernel: [24343.724257] ir_nec_decode: Repeat last key
-Jul 30 16:53:52 agua kernel: [24343.724259] ir_nec_decode: NEC scancode 0x0009
-Jul 30 16:53:52 agua kernel: [24343.724261] ir_getkeycode: unknown key for scancode 0x0009
-Jul 30 16:53:52 agua kernel: [24343.724264] ir_nec_decode: Repeat last key
-Jul 30 16:53:53 agua kernel: [24343.937576] ir_nec_decode: NEC scancode 0x0009
-Jul 30 16:53:53 agua kernel: [24343.937580] ir_getkeycode: unknown key for scancode 0x0009
-Jul 30 16:53:53 agua kernel: [24343.937592] ir_nec_decode: Repeat last key
-Jul 30 16:53:53 agua kernel: [24343.937594] ir_nec_decode: NEC scancode 0x0009
-Jul 30 16:53:53 agua kernel: [24343.937596] ir_getkeycode: unknown key for scancode 0x0009
-Jul 30 16:53:53 agua kernel: [24343.937599] ir_nec_decode: Repeat last key
+> > diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+> > index bdbc9d3..27e2acc 100644
+> > --- a/drivers/media/video/Kconfig
+> > +++ b/drivers/media/video/Kconfig
+> > @@ -969,6 +969,19 @@ config VIDEO_OMAP2
+> >  	---help---
+> >  	  This is a v4l2 driver for the TI OMAP2 camera capture interface
+> >  
+> > +config VIDEO_MX2_HOSTSUPPORT
+> > +        bool
+> > +
+> > +config VIDEO_MX2
+> > +	tristate "i.MX27/i.MX25 Camera Sensor Interface driver"
+> > +	depends on VIDEO_DEV && SOC_CAMERA && (MACH_MX27 || ARCH_MX25)
+> > +	select VIDEOBUF_DMA_CONTIG
+> CONTIG?
 
+What exactly was your question here?
+
+> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> > new file mode 100644
+> > index 0000000..98c93fa
+> > --- /dev/null
+> > +++ b/drivers/media/video/mx2_camera.c
+> > @@ -0,0 +1,1513 @@
 > 
-> However that isn't true for NECX, so repeat there
-> must be handled differently.
+> [...snip...]
+
+> > +static struct platform_driver mx2_camera_driver = {
+> > +	.driver 	= {
+> > +		.name	= MX2_CAM_DRV_NAME,
+> I'm always unsure if you need
 > 
-> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-
-Please preserve Andy's reviewed-by: when re-submitting a patch.
-
-> ---
->  drivers/media/IR/ir-nec-decoder.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> 		.owner  = THIS_MODULE,
 > 
-> diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
-> index 52e0f37..1c0cf03 100644
-> --- a/drivers/media/IR/ir-nec-decoder.c
-> +++ b/drivers/media/IR/ir-nec-decoder.c
-> @@ -20,7 +20,7 @@
->  #define NEC_HEADER_PULSE	(16 * NEC_UNIT)
->  #define NECX_HEADER_PULSE	(8  * NEC_UNIT) /* Less common NEC variant */
->  #define NEC_HEADER_SPACE	(8  * NEC_UNIT)
-> -#define NEC_REPEAT_SPACE	(8  * NEC_UNIT)
-> +#define NEC_REPEAT_SPACE	(4  * NEC_UNIT)
->  #define NEC_BIT_PULSE		(1  * NEC_UNIT)
->  #define NEC_BIT_0_SPACE		(1  * NEC_UNIT)
->  #define NEC_BIT_1_SPACE		(3  * NEC_UNIT)
+> here.
 
+It is not needed in this case. See the "owner" field in struct 
+soc_camera_host_ops mx2_soc_camera_host_ops.
+
+But that's not the reason why I'm replying. What I didn't like in these 
+your reviews, was the fact, that this driver has been submitted a number 
+of times to the arm-kernel ML, it has "mx2" in its subject, so, you had 
+enough chances to review it, just like Sascha did. Instead, you review it 
+now, making the author create new versions of his patch. You have been 
+asked for advise, because this patch potentially collided with other your 
+patches, your help in resolving this question is appreciated. But then you 
+suddenly decide to review the whole patch... Several of my patches have 
+been treated similarly in the past, so, I know how annoying it is to have 
+to re-iterate them because at v5 someone suddenly decided to take part in 
+the patch review process too...
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
