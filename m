@@ -1,124 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1469 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751853Ab0G0TdW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jul 2010 15:33:22 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6RJXK4V071264
-	for <linux-media@vger.kernel.org>; Tue, 27 Jul 2010 21:33:20 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 27 Jul 2010 21:33:20 +0200 (CEST)
-Message-Id: <201007271933.o6RJXK4V071264@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from tango.tkos.co.il ([62.219.50.35]:55964 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750848Ab0GAFAW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 1 Jul 2010 01:00:22 -0400
+Date: Thu, 1 Jul 2010 08:00:03 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCHv4 1/3] mx2_camera: Add soc_camera support for
+ i.MX25/i.MX27
+Message-ID: <20100701050002.GB16981@jasper.tkos.co.il>
+References: <cover.1277096909.git.baruch@tkos.co.il>
+ <03d6e55c39690618e92a91a580ec34549a135c79.1277096909.git.baruch@tkos.co.il>
+ <20100630070717.GA11746@pengutronix.de>
+ <Pine.LNX.4.64.1006300918190.17489@axis700.grange>
+ <20100630072808.GD11746@pengutronix.de>
+ <Pine.LNX.4.64.1006301058170.17489@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1006301058170.17489@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Guennadi,
 
-Results of the daily build of v4l-dvb:
+On Wed, Jun 30, 2010 at 11:08:41AM +0200, Guennadi Liakhovetski wrote:
 
-date:        Tue Jul 27 19:00:24 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+[snip]
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+> In any case, I'm fine with the patch as it is, so, here's
+> 
+> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-Detailed results are available here:
+Thanks for your thorough review and ack.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+> I think, it would be better if you, Uwe, or Sascha pull all these 3 patches 
+> via one of your tree, because patches 2/3 and 3/3 are ARM/MX2 stuff anyway 
+> and this patch changes some files under arch/arm and collides with some mx2 
+> changes.
 
-Full logs are available here:
+Patches 2/3 and 3/3 are already in the imx-for-2.6.36 branch.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+baruch
 
-The V4L-DVB specification from this daily build is here:
+> Mauro, do you agree? Do we need your ack too? So, taking them all 
+> via IMX/MXC would make synchronisation easier. However, if you change 
+> anything under drivers/media (including Makefile / Kconfig) or 
+> include/media, please let me know, so that I can ack it again.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
