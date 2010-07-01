@@ -1,65 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:32924 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752275Ab0G0Mdj (ORCPT
+Received: from elasmtp-dupuy.atl.sa.earthlink.net ([209.86.89.62]:41829 "EHLO
+	elasmtp-dupuy.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755696Ab0GAQUa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jul 2010 08:33:39 -0400
-Received: by fxm14 with SMTP id 14so580993fxm.19
-        for <linux-media@vger.kernel.org>; Tue, 27 Jul 2010 05:33:37 -0700 (PDT)
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>,
-	Mike Isely <isely@pobox.com>
-Subject: [PATCH 2/2] media: video: pvrusb2: remove custom hex_to_bin()
-Date: Tue, 27 Jul 2010 15:32:50 +0300
-Message-Id: <39e0be58882d4d5fd84e2b70a8fdc38bc1b4fc41.1280233873.git.andy.shevchenko@gmail.com>
-In-Reply-To: <aaffa1b668767c4bf7ce9baf2d5c5dfb11784c19.1280233873.git.andy.shevchenko@gmail.com>
-References: <aaffa1b668767c4bf7ce9baf2d5c5dfb11784c19.1280233873.git.andy.shevchenko@gmail.com>
-In-Reply-To: <aaffa1b668767c4bf7ce9baf2d5c5dfb11784c19.1280233873.git.andy.shevchenko@gmail.com>
-References: <aaffa1b668767c4bf7ce9baf2d5c5dfb11784c19.1280233873.git.andy.shevchenko@gmail.com>
+	Thu, 1 Jul 2010 12:20:30 -0400
+Received: from [209.86.224.34] (helo=elwamui-hound.atl.sa.earthlink.net)
+	by elasmtp-dupuy.atl.sa.earthlink.net with esmtpa (Exim 4.67)
+	(envelope-from <elazarb@earthlink.net>)
+	id 1OUMV3-0000Z7-VJ
+	for linux-media@vger.kernel.org; Thu, 01 Jul 2010 12:20:29 -0400
+Message-ID: <19515445.1278001229684.JavaMail.root@elwamui-hound.atl.sa.earthlink.net>
+Date: Thu, 1 Jul 2010 12:20:29 -0400 (GMT-04:00)
+From: Elazar Broad <elazarb@earthlink.net>
+Reply-To: Elazar Broad <elazarb@earthlink.net>
+To: linux-media@vger.kernel.org
+Subject: bttv and chinese kmc-8800 clone
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Mike Isely <isely@pobox.com>
----
- drivers/media/video/pvrusb2/pvrusb2-debugifc.c |   14 ++------------
- 1 files changed, 2 insertions(+), 12 deletions(-)
+Hello,
+ I am having a heck of a time getting a chinese kmc-8800 clone working with bttv. My current setup setup is a Dell PowerEdge SC420(Celeron 2.53, 1.5GB RAM) running Slackware 13.1 with a 2.6.34 kernel (which was previously running a Lorex QLR460 4 port single bt878a quite stably). I don't have the exact output however, lspci states that the card has 2 bt878a rev 11 and 6 bt878a rev 2. The card has 8 bt878a in total with a PLX PCI6150 PCI bridge(Hint HB4). Modprobe options: card=102,102,102.... latency=64. The problem is as follows:
 
-diff --git a/drivers/media/video/pvrusb2/pvrusb2-debugifc.c b/drivers/media/video/pvrusb2/pvrusb2-debugifc.c
-index e9b11e1..4279ebb 100644
---- a/drivers/media/video/pvrusb2/pvrusb2-debugifc.c
-+++ b/drivers/media/video/pvrusb2/pvrusb2-debugifc.c
-@@ -94,8 +94,6 @@ static int debugifc_parse_unsigned_number(const char *buf,unsigned int count,
- 					  u32 *num_ptr)
- {
- 	u32 result = 0;
--	u32 val;
--	int ch;
- 	int radix = 10;
- 	if ((count >= 2) && (buf[0] == '0') &&
- 	    ((buf[1] == 'x') || (buf[1] == 'X'))) {
-@@ -107,17 +105,9 @@ static int debugifc_parse_unsigned_number(const char *buf,unsigned int count,
- 	}
+bttv hangs and the system locks hard when loading the module, either manually via modprobe/insmod or when booting. With a few printk's I tracked the hang to about 3/4 of the way through init_bt848(), around the color and hue setup, however the function never returns. The card uses IRQ 17 which is shared with the Intel I2C SMBus(i801), there are 3 PCI slots in the system wired to IRQ's 16-18 respectively. IRQ 16 is used by the USB host controller and the ethernet card and IRQ 18 is used by the on board graphics card.
  
- 	while (count--) {
--		ch = *buf++;
--		if ((ch >= '0') && (ch <= '9')) {
--			val = ch - '0';
--		} else if ((ch >= 'a') && (ch <= 'f')) {
--			val = ch - 'a' + 10;
--		} else if ((ch >= 'A') && (ch <= 'F')) {
--			val = ch - 'A' + 10;
--		} else {
-+		int val = hex_to_bin(*buf++);
-+		if (val < 0 || val >= radix)
- 			return -EINVAL;
--		}
--		if (val >= radix) return -EINVAL;
- 		result *= radix;
- 		result += val;
- 	}
--- 
-1.7.1.1
+I have yet to setup a serial console and sysrq does not work. Any ideas are much appreciated.
+
+Thanks,
+ elazar
 
