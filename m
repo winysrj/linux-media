@@ -1,138 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-03.arcor-online.net ([151.189.21.43]:39086 "EHLO
-	mail-in-03.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751279Ab0GXWLO (ORCPT
+Received: from gateway15.websitewelcome.com ([67.18.94.13]:57001 "HELO
+	gateway15.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755230Ab0GBSWG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Jul 2010 18:11:14 -0400
-Received: from mail-in-08-z2.arcor-online.net (mail-in-08-z2.arcor-online.net [151.189.8.20])
-	by mx.arcor.de (Postfix) with ESMTP id EF2F4D8056
-	for <linux-media@vger.kernel.org>; Sun, 25 Jul 2010 00:11:11 +0200 (CEST)
-Received: from mail-in-08.arcor-online.net (mail-in-08.arcor-online.net [151.189.21.48])
-	by mail-in-08-z2.arcor-online.net (Postfix) with ESMTP id 0F17677F30
-	for <linux-media@vger.kernel.org>; Sun, 25 Jul 2010 00:11:12 +0200 (CEST)
-Received: from quake.FAMILY-BUSINESS (dslb-094-216-072-244.pools.arcor-ip.net [94.216.72.244])
-	(Authenticated sender: rettenberger.familie@arcor.de)
-	by mail-in-08.arcor-online.net (Postfix) with ESMTPSA id C7AC820557C
-	for <linux-media@vger.kernel.org>; Sun, 25 Jul 2010 00:11:11 +0200 (CEST)
-Received: from sarge.family-business (host70.natpool.mwn.de [138.246.7.70])
-	by quake.FAMILY-BUSINESS (Postfix) with ESMTPSA id 0C935A4048
-	for <linux-media@vger.kernel.org>; Sun, 25 Jul 2010 00:11:11 +0200 (CEST)
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Terratec Cinergy USB (HD) (remote control key codes)
-From: Sebastian Rettenberger <rettenberger.sebastian@arcor.de>
-Date: Sun, 25 Jul 2010 00:11:06 +0200
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+	Fri, 2 Jul 2010 14:22:06 -0400
+Received: from [66.15.212.169] (port=27175 helo=[10.140.5.14])
+	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <pete@sensoray.com>)
+	id 1OUklr-0007EO-Oz
+	for linux-media@vger.kernel.org; Fri, 02 Jul 2010 13:15:27 -0500
+Subject: vivi videobuf bug with tvtime
+From: Pete Eberlein <pete@sensoray.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 02 Jul 2010 11:15:24 -0700
+Message-ID: <1278094524.32074.13.camel@pete-desktop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007250011.08123.rettenberger.sebastian@arcor.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+There's a problem with the tvtime application that affects recent v4l2
+drivers.  The tvtime application works fine the first time you run it,
+but the second time tvtime is run, the call to VIDIOC_REQBUFS fails with
+EBUSY.  
 
-I figured out that my remote control of the Cinergy T USB XXS
-(HD)
-has slightly different key codes then the one already in the
-dvb_usb_dib0700 module.
+The problem is that tvtime does a VIDIOC_STREAMOFF, then VIDIOC_QBUF a
+few times before closing the fd.  This only affects v4l2 drivers that
+store the 'struct videobuf_queue vb_vidq' in the dev struct.  It doesn't
+affect older drivers that store that struct in the driver fh struct.
+The videobuf_reqbufs call is returning from this statement:
+videobuf-core.c: in videobuf_reqbufs()
+        if (!list_empty(&q->stream)) {
+                dprintk(1, "reqbufs: stream running\n");
+                retval = -EBUSY;
+                goto done;
+        }
 
-The following patch adds the key codes
-to
-table.
+Is tvtime abusing the API, or is this a videobuf buf?  My opinion is
+that applications shouldn't be able to force the driver into an unusable
+state.
 
-Best regards,
-Sebastian
+Here's the debug kernel log starting at the streamoff:
+[ 4862.871055] vivi: VIDIOC_STREAMOFF
+[ 4862.871061] vivi-000: buffer_release
+[ 4862.871063] vivi-000: free_buffer, state: 6
+[ 4862.871065] vivi-000: free_buffer: freed
+[ 4862.871066] vivi-000: buffer_release
+[ 4862.871068] vivi-000: free_buffer, state: 5
+[ 4862.871069] vivi-000: free_buffer: freed
+[ 4862.871071] vivi-000: buffer_release
+[ 4862.871073] vivi-000: free_buffer, state: 5
+[ 4862.871074] vivi-000: free_buffer: freed
+[ 4862.871076] vivi-000: buffer_release
+[ 4862.871077] vivi-000: free_buffer, state: 6
+[ 4862.871079] vivi-000: free_buffer: freed
+[ 4862.871081] vivi-000: vivi_stop_generating
+[ 4862.871087] vivi-000: thread: exit
+[ 4862.871108] vivi: VIDIOC_QBUF
+[ 4862.871111] vbuf: qbuf: requesting next field
+[ 4862.871113] vivi-000: buffer_prepare, field=4
+[ 4862.871138] vbuf: qbuf: succeded
+[ 4862.871140] vivi: VIDIOC_QBUF
+[ 4862.871142] vbuf: qbuf: requesting next field
+[ 4862.871144] vivi-000: buffer_prepare, field=4
+[ 4862.871167] vbuf: qbuf: succeded
+[ 4862.871169] vivi: VIDIOC_QBUF
+[ 4862.871171] vbuf: qbuf: requesting next field
+[ 4862.871173] vivi-000: buffer_prepare, field=4
+[ 4862.871196] vbuf: qbuf: succeded
+[ 4862.871198] vivi: VIDIOC_QBUF
+[ 4862.871200] vbuf: qbuf: requesting next field
+[ 4862.871202] vivi-000: buffer_prepare, field=4
+[ 4862.871225] vbuf: qbuf: succeded
+[ 4862.871498] vivi-000: vivi_stop_generating
+[ 4862.871500] vivi-000: close called (dev=video0)
+[ 4865.031222] vivi: VIDIOC_QUERYCAP
+[ 4865.031232] vivi: VIDIOC_ENUMINPUT
+[ 4865.031235] vivi: VIDIOC_ENUMINPUT
+[ 4865.031238] vivi: VIDIOC_ENUMINPUT
+[ 4865.031241] vivi: VIDIOC_ENUMINPUT
+[ 4865.031244] vivi: VIDIOC_ENUMINPUT
+[ 4865.031265] vivi: v4l1 ioctl 'v', dir=r-, #198 (0x800476c6)
+[ 4865.031273] vivi: VIDIOC_S_INPUT
+[ 4865.031298] vivi: VIDIOC_G_INPUT
+[ 4865.031305] vivi: VIDIOC_ENUMINPUT
+[ 4865.031312] vivi: VIDIOC_G_STD
+[ 4865.031318] vivi: VIDIOC_S_STD
+[ 4865.031324] vivi: VIDIOC_G_TUNER
+[ 4865.031482] vivi: VIDIOC_S_FMT
+[ 4865.031490] vivi: VIDIOC_TRY_FMT
+[ 4865.031497] vivi: VIDIOC_REQBUFS
+[ 4865.031504] vbuf: reqbufs: stream running
+[ 4865.031519] vivi-000: vivi_stop_generating
+[ 4865.031525] vivi-000: close called (dev=video0)
 
----
 
-Add key codes for Cinergy T USB XXS
-(HD) (device ID: 0ccd:00ab) remote control.
-Signed-off-by: Sebastian
-Rettenberger <rettenberger.sebastian@arcor.de>
----
-a/drivers/media/dvb/dvb-usb/dib0700_devices.c       2010-07-24
-19:05:45.659569355 +0200
-+++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c  
-    2010-07-24 19:08:31.667571034 +0200
-@@ -639,6 +639,56 @@ static struct
-dvb_usb_rc_key dib0700_rc_
-        { 0xeb58, KEY_RECORD },
-        { 0xeb5c,
-KEY_NEXT },
- 
-+       /* Terratec Cinergy USB (HD) */
-+       { 0x1401,
-KEY_POWER },
-+       { 0x1402, KEY_1 },
-+       { 0x1403, KEY_2 },
-+       {
-0x1404, KEY_3 },
-+       { 0x1405, KEY_4 },
-+       { 0x1406, KEY_5 },
-+    
-  { 0x1407, KEY_6 },
-+       { 0x1408, KEY_7 },
-+       { 0x1409, KEY_8 },
-+
-      { 0x140a, KEY_9 },
-+       { 0x140b, KEY_VIDEO },
-+       { 0x140c,
-KEY_0 },
-+       { 0x140d, KEY_REFRESH },
-+       { 0x140f, KEY_EPG },
-+    
-  { 0x1410, KEY_UP },
-+       { 0x1411, KEY_LEFT },
-+       { 0x1412, KEY_OK
-},
-+       { 0x1413, KEY_RIGHT },
-+       { 0x1414, KEY_DOWN },
-+       {
-0x1416, KEY_INFO },
-+       { 0x1417, KEY_RED },
-+       { 0x1418, KEY_GREEN
-},
-+       { 0x1419, KEY_YELLOW },
-+       { 0x141a, KEY_BLUE },
-+       {
-0x141b, KEY_CHANNELUP },
-+       { 0x141c, KEY_VOLUMEUP },
-+       { 0x141d,
-KEY_MUTE },
-+       { 0x141e, KEY_VOLUMEDOWN },
-+       { 0x141f,
-KEY_CHANNELDOWN },
-+       { 0x1440, KEY_PAUSE },
-+       { 0x1441, KEY_HOME
-},
-+       { 0x1442, KEY_MENU }, /* DVD Menu */
-+       { 0x1443,
-KEY_SUBTITLE },
-+       { 0x1444, KEY_TEXT }, /* Teletext */
-+       {
-0x1445, KEY_DELETE },
-+       { 0x1446, KEY_TV },
-+       { 0x1447, KEY_DVD
-},
-+       { 0x1448, KEY_STOP },
-+       { 0x1449, KEY_VIDEO },
-+       {
-0x144a, KEY_AUDIO }, /* Music */
-+       { 0x144b, KEY_SCREEN }, /* Pic */
-+
-      { 0x144c, KEY_PLAY },
-+       { 0x144d, KEY_BACK },
-+       { 0x144e,
-KEY_REWIND },
-+       { 0x144f, KEY_FASTFORWARD },
-+       { 0x1454,
-KEY_PREVIOUS },
-+       { 0x1458, KEY_RECORD },
-+       { 0x145c, KEY_NEXT
-},
-+
-        /* Key codes for the Haupauge WinTV Nova-TD, copied from
-nova-t-usb2.c (Nova-T USB2) */
-        { 0x1e00, KEY_0 },
-        { 0x1e01,
-KEY_1 },
