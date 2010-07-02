@@ -1,60 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:43379 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752262Ab0GKODo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jul 2010 10:03:44 -0400
-Received: by eya25 with SMTP id 25so438835eya.19
-        for <linux-media@vger.kernel.org>; Sun, 11 Jul 2010 07:03:42 -0700 (PDT)
+Received: from mail.gmx.net ([213.165.64.20]:58086 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752548Ab0GBIFD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Jul 2010 04:05:03 -0400
+Content-Type: text/plain; charset="utf-8"
+Date: Fri, 02 Jul 2010 10:05:01 +0200
+From: "Dirk Langner" <dirkolus@gmx.de>
+Message-ID: <20100702080501.188310@gmx.net>
 MIME-Version: 1.0
-In-Reply-To: <1278854614.2283.8.camel@localhost>
-References: <AANLkTikYq6w4ELQntkKMF-PuB1JkO7Eu6kx5XqxSAnU6@mail.gmail.com>
-	<1278854614.2283.8.camel@localhost>
-Date: Sun, 11 Jul 2010 10:03:42 -0400
-Message-ID: <AANLkTimLiBLh2Z3TsfozzxLMVc_zxyzQdEGhR-Ct57Nw@mail.gmail.com>
-Subject: Re: RFC: Use of s_std calling s_freq when tuner powered down
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: TerraTec Cinergy Hybrid Stick [0ccd:00a5] - worth trying?
+To: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+Hi, 
 
-On Sun, Jul 11, 2010 at 9:23 AM, Andy Walls <awalls@md.metrocast.net> wrote:
-> At the risk of missing something obvious:
->
-> In your bridge driver's VIDIOC_S_STD ioctl()
->
-> a. power up the analog tuner if it is not already
-> b. call s_std for the subdevices (including the tuner),
-> c. power down that analog tuner if not using the tuner input.
->
-> No I2C errors in the log and the tuner is powered down when not in use,
->
-> IMO, VIDIOC_S_STD is not a timing critical operation from userspace and
-> it doesn't happen that often.  You can also filter the cases when
-> VIDIOC_S_STD is called on the same input, but the standard is not being
-> changed.
+I'm really pissed that whenever I try to find a TV-USB-stick (analog in my case), it's not in the shops any longer or it's not listed on the linuxtv validated sticks. The names of the USB sticks are only slightly changed, which may mean, this is only a rebranding or a completely new hardware (even without name change). Therefore is the support for these sticks kind of a lottery and one first have to buy them, check the USB id and whether it's supported or not. Seems, that the product cycles are too short for us linux-users :(
 
-Thanks for taking the time to provide feedback.
+Ok, genug gekotzt, now to the facts: I've purchased the USB-stick TerraTec Cinergy Hybrid Stick, although it's a little older (1/2 year) it is still in the shops.
 
-It's not timing critical, but on some tuners initialization can take
-several seconds (e.g. tda18271, xc5000).  I'm not thrilled about it
-taking 3-5 seconds to change the standard (something which some
-applications may very well do on every channel change).
+Vendor: TerraTec
+Model: Cinergy Hybrid Stick
+Vendor/Product ID: 0ccd:00a5
+Supports DVB-T and Analog Cable (tested already successful on Windows)
 
-I'm tempted to just jam a zero into the tuner->tv_freq when powering
-down the tuner, but that's not a very clean solution obviously.
+I'm using the latest snapshot of v4l-dvb (incl. experimental driver) on Ubuntu 10.04
 
-The tuner core makes decisions based on tuner->tv_freq not being zero,
-so I believe tuner_core should provide some way to reset it back to
-zero as needed.
+Tests made: 
+- plug in and out into USB 2.0 slot
+Only the message appears in dmesg, that an USB device is connected or disconnected when pluggin in or out. When loading the driver by hand (i've tried em28xx) there is nothing which relates to this stick: The driver will not unload when unplugging the stick, nor loaded when the stick is plugged in.
 
-Devin
+To be honest I have no clue, what kind of chips are used in there and which one to load - that does not happen automatically.
+
+My question now is: is it worth trying to have a look at this hardware since there already seem to be some in the field? Or is it working and I don't know? Or has everybody already given up?
+
+Thanks for help. I'm also open for providing some information and tests with this stick if anybody is interested in it.
+
+Thanks, 
+    Dirk
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+GMX DSL: Internet-, Telefon- und Handy-Flat ab 19,99 EUR/mtl.  
+Bis zu 150 EUR Startguthaben inklusive! http://portal.gmx.net/de/go/dsl
