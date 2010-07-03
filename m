@@ -1,83 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36476 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757971Ab0G2QHP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:07:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE v3 10/12] omap3: Export omap3isp platform device structure
-Date: Thu, 29 Jul 2010 18:06:54 +0200
-Message-Id: <1280419616-7658-22-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:46718 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756510Ab0GCBra convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 2 Jul 2010 21:47:30 -0400
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Manu Abraham <abraham.manu@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Sat, 03 Jul 2010 02:47:23 +0100
+Message-ID: <1278121643.4878.277.camel@localhost>
+Mime-Version: 1.0
+Subject: [PATCH] V4L/DVB: mantis: Rename gpio_set_bits to
+ mantis_gpio_set_bits
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stanimir Varbanov <svarbanov@mm-sol.com>
+This function is declared extern and exported, and should not be given
+a generic name which may conflict with gpiolib in future.
 
-omap3isp platform device structure pointer is needed from camera board
-files for subdevs registration and calls.
-
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+Signed-off-by: Ben Hutchings <ben@decadent.org.uk>
 ---
- arch/arm/mach-omap2/devices.c |    5 ++++-
- arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
- 2 files changed, 21 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/devices.h
+ drivers/media/dvb/mantis/hopper_vp3028.c |    4 ++--
+ drivers/media/dvb/mantis/mantis_core.c   |    2 +-
+ drivers/media/dvb/mantis/mantis_dvb.c    |   14 +++++++-------
+ drivers/media/dvb/mantis/mantis_ioc.c    |    4 ++--
+ drivers/media/dvb/mantis/mantis_ioc.h    |    2 +-
+ drivers/media/dvb/mantis/mantis_vp1034.c |    8 ++++----
+ drivers/media/dvb/mantis/mantis_vp3030.c |    4 ++--
+ 7 files changed, 19 insertions(+), 19 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 46b0b4b..ae465ce 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -32,6 +32,8 @@
+diff --git a/drivers/media/dvb/mantis/hopper_vp3028.c b/drivers/media/dvb/mantis/hopper_vp3028.c
+index 96674c7..d958449 100644
+--- a/drivers/media/dvb/mantis/hopper_vp3028.c
++++ b/drivers/media/dvb/mantis/hopper_vp3028.c
+@@ -47,11 +47,11 @@ static int vp3028_frontend_init(struct mantis_pci *mantis, struct dvb_frontend *
+ 	struct mantis_hwconfig *config	= mantis->hwconfig;
+ 	int err = 0;
  
- #include "mux.h"
+-	gpio_set_bits(mantis, config->reset, 0);
++	mantis_gpio_set_bits(mantis, config->reset, 0);
+ 	msleep(100);
+ 	err = mantis_frontend_power(mantis, POWER_ON);
+ 	msleep(100);
+-	gpio_set_bits(mantis, config->reset, 1);
++	mantis_gpio_set_bits(mantis, config->reset, 1);
  
-+#include "devices.h"
-+
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+ 	err = mantis_frontend_power(mantis, POWER_ON);
+ 	if (err == 0) {
+diff --git a/drivers/media/dvb/mantis/mantis_core.c b/drivers/media/dvb/mantis/mantis_core.c
+index 8113b23..1ac4d12 100644
+--- a/drivers/media/dvb/mantis/mantis_core.c
++++ b/drivers/media/dvb/mantis/mantis_core.c
+@@ -201,7 +201,7 @@ int mantis_core_exit(struct mantis_pci *mantis)
+ }
  
- static struct resource cam_resources[] = {
-@@ -142,12 +144,13 @@ static struct resource omap3isp_resources[] = {
- 	}
- };
- 
--static struct platform_device omap3isp_device = {
-+struct platform_device omap3isp_device = {
- 	.name		= "omap3isp",
- 	.id		= -1,
- 	.num_resources	= ARRAY_SIZE(omap3isp_resources),
- 	.resource	= omap3isp_resources,
- };
-+EXPORT_SYMBOL_GPL(omap3isp_device);
- 
- static inline void omap_init_camera(void)
+ /* Turn the given bit on or off. */
+-void gpio_set_bits(struct mantis_pci *mantis, u32 bitpos, u8 value)
++void mantis_gpio_set_bits(struct mantis_pci *mantis, u32 bitpos, u8 value)
  {
-diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
-new file mode 100644
-index 0000000..f312d49
---- /dev/null
-+++ b/arch/arm/mach-omap2/devices.h
-@@ -0,0 +1,17 @@
-+/*
-+ * arch/arm/mach-omap2/devices.h
-+ *
-+ * OMAP2 platform device setup/initialization
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
-+#define __ARCH_ARM_MACH_OMAP_DEVICES_H
-+
-+extern struct platform_device omap3isp_device;
-+
-+#endif
+ 	u32 cur;
+ 
+diff --git a/drivers/media/dvb/mantis/mantis_dvb.c b/drivers/media/dvb/mantis/mantis_dvb.c
+index 99d82ee..a8e5719 100644
+--- a/drivers/media/dvb/mantis/mantis_dvb.c
++++ b/drivers/media/dvb/mantis/mantis_dvb.c
+@@ -47,15 +47,15 @@ int mantis_frontend_power(struct mantis_pci *mantis, enum mantis_power power)
+ 	switch (power) {
+ 	case POWER_ON:
+ 		dprintk(MANTIS_DEBUG, 1, "Power ON");
+-		gpio_set_bits(mantis, config->power, POWER_ON);
++		mantis_gpio_set_bits(mantis, config->power, POWER_ON);
+ 		msleep(100);
+-		gpio_set_bits(mantis, config->power, POWER_ON);
++		mantis_gpio_set_bits(mantis, config->power, POWER_ON);
+ 		msleep(100);
+ 		break;
+ 
+ 	case POWER_OFF:
+ 		dprintk(MANTIS_DEBUG, 1, "Power OFF");
+-		gpio_set_bits(mantis, config->power, POWER_OFF);
++		mantis_gpio_set_bits(mantis, config->power, POWER_OFF);
+ 		msleep(100);
+ 		break;
+ 
+@@ -73,13 +73,13 @@ void mantis_frontend_soft_reset(struct mantis_pci *mantis)
+ 	struct mantis_hwconfig *config = mantis->hwconfig;
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Frontend RESET");
+-	gpio_set_bits(mantis, config->reset, 0);
++	mantis_gpio_set_bits(mantis, config->reset, 0);
+ 	msleep(100);
+-	gpio_set_bits(mantis, config->reset, 0);
++	mantis_gpio_set_bits(mantis, config->reset, 0);
+ 	msleep(100);
+-	gpio_set_bits(mantis, config->reset, 1);
++	mantis_gpio_set_bits(mantis, config->reset, 1);
+ 	msleep(100);
+-	gpio_set_bits(mantis, config->reset, 1);
++	mantis_gpio_set_bits(mantis, config->reset, 1);
+ 	msleep(100);
+ 
+ 	return;
+diff --git a/drivers/media/dvb/mantis/mantis_ioc.c b/drivers/media/dvb/mantis/mantis_ioc.c
+index de148de..e97cb63 100644
+--- a/drivers/media/dvb/mantis/mantis_ioc.c
++++ b/drivers/media/dvb/mantis/mantis_ioc.c
+@@ -82,7 +82,7 @@ int mantis_get_mac(struct mantis_pci *mantis)
+ EXPORT_SYMBOL_GPL(mantis_get_mac);
+ 
+ /* Turn the given bit on or off. */
+-void gpio_set_bits(struct mantis_pci *mantis, u32 bitpos, u8 value)
++void mantis_gpio_set_bits(struct mantis_pci *mantis, u32 bitpos, u8 value)
+ {
+ 	u32 cur;
+ 
+@@ -97,7 +97,7 @@ void gpio_set_bits(struct mantis_pci *mantis, u32 bitpos, u8 value)
+ 	mmwrite(mantis->gpio_status, MANTIS_GPIF_ADDR);
+ 	mmwrite(0x00, MANTIS_GPIF_DOUT);
+ }
+-EXPORT_SYMBOL_GPL(gpio_set_bits);
++EXPORT_SYMBOL_GPL(mantis_gpio_set_bits);
+ 
+ int mantis_stream_control(struct mantis_pci *mantis, enum mantis_stream_control stream_ctl)
+ {
+diff --git a/drivers/media/dvb/mantis/mantis_ioc.h b/drivers/media/dvb/mantis/mantis_ioc.h
+index 188fe5a..d56e002 100644
+--- a/drivers/media/dvb/mantis/mantis_ioc.h
++++ b/drivers/media/dvb/mantis/mantis_ioc.h
+@@ -44,7 +44,7 @@ enum mantis_stream_control {
+ };
+ 
+ extern int mantis_get_mac(struct mantis_pci *mantis);
+-extern void gpio_set_bits(struct mantis_pci *mantis, u32 bitpos, u8 value);
++extern void mantis_gpio_set_bits(struct mantis_pci *mantis, u32 bitpos, u8 value);
+ 
+ extern int mantis_stream_control(struct mantis_pci *mantis, enum mantis_stream_control stream_ctl);
+ 
+diff --git a/drivers/media/dvb/mantis/mantis_vp1034.c b/drivers/media/dvb/mantis/mantis_vp1034.c
+index 8e6ae55..b31fcb1 100644
+--- a/drivers/media/dvb/mantis/mantis_vp1034.c
++++ b/drivers/media/dvb/mantis/mantis_vp1034.c
+@@ -50,13 +50,13 @@ int vp1034_set_voltage(struct dvb_frontend *fe, fe_sec_voltage_t voltage)
+ 	switch (voltage) {
+ 	case SEC_VOLTAGE_13:
+ 		dprintk(MANTIS_ERROR, 1, "Polarization=[13V]");
+-		gpio_set_bits(mantis, 13, 1);
+-		gpio_set_bits(mantis, 14, 0);
++		mantis_gpio_set_bits(mantis, 13, 1);
++		mantis_gpio_set_bits(mantis, 14, 0);
+ 		break;
+ 	case SEC_VOLTAGE_18:
+ 		dprintk(MANTIS_ERROR, 1, "Polarization=[18V]");
+-		gpio_set_bits(mantis, 13, 1);
+-		gpio_set_bits(mantis, 14, 1);
++		mantis_gpio_set_bits(mantis, 13, 1);
++		mantis_gpio_set_bits(mantis, 14, 1);
+ 		break;
+ 	case SEC_VOLTAGE_OFF:
+ 		dprintk(MANTIS_ERROR, 1, "Frontend (dummy) POWERDOWN");
+diff --git a/drivers/media/dvb/mantis/mantis_vp3030.c b/drivers/media/dvb/mantis/mantis_vp3030.c
+index 1f43342..da39de0 100644
+--- a/drivers/media/dvb/mantis/mantis_vp3030.c
++++ b/drivers/media/dvb/mantis/mantis_vp3030.c
+@@ -59,11 +59,11 @@ static int vp3030_frontend_init(struct mantis_pci *mantis, struct dvb_frontend *
+ 	struct mantis_hwconfig *config	= mantis->hwconfig;
+ 	int err = 0;
+ 
+-	gpio_set_bits(mantis, config->reset, 0);
++	mantis_gpio_set_bits(mantis, config->reset, 0);
+ 	msleep(100);
+ 	err = mantis_frontend_power(mantis, POWER_ON);
+ 	msleep(100);
+-	gpio_set_bits(mantis, config->reset, 1);
++	mantis_gpio_set_bits(mantis, config->reset, 1);
+ 
+ 	if (err == 0) {
+ 		msleep(250);
 -- 
 1.7.1
+
 
