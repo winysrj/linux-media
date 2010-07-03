@@ -1,857 +1,464 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40564 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:30637 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755679Ab0GZXcv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 19:32:51 -0400
-Date: Mon, 26 Jul 2010 19:32:49 -0400
+	id S1749667Ab0GCEHz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Jul 2010 00:07:55 -0400
+Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6347sD8001156
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 3 Jul 2010 00:07:55 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [10.16.43.238])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o6347sEC012710
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 3 Jul 2010 00:07:54 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [127.0.0.1])
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.3) with ESMTP id o6347rmn031511
+	for <linux-media@vger.kernel.org>; Sat, 3 Jul 2010 00:07:53 -0400
+Received: (from jarod@localhost)
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.4/Submit) id o6347rPn031510
+	for linux-media@vger.kernel.org; Sat, 3 Jul 2010 00:07:53 -0400
+Date: Sat, 3 Jul 2010 00:07:53 -0400
 From: Jarod Wilson <jarod@redhat.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: [PATCH 12/15] staging/lirc: add lirc_streamzap driver
-Message-ID: <20100726233249.GM21225@redhat.com>
-References: <20100726232546.GA21225@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2 2/3] IR: add ir-core to lirc userspace decoder bridge
+ driver
+Message-ID: <20100703040753.GD31255@redhat.com>
+References: <20100601205005.GA28322@redhat.com>
+ <20100703040530.GB31255@redhat.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20100726232546.GA21225@redhat.com>
+In-Reply-To: <20100703040530.GB31255@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+v2: copy of buffer data from userspace done inside this plugin/driver,
+keeping the actual drivers minimal, and more flexible in what we can
+deliver to them later on (they may be fed from within kernelspace later
+on, by an in-kernel IR encoder).
+
 Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
- drivers/staging/lirc/lirc_streamzap.c |  821 +++++++++++++++++++++++++++++++++
- 1 files changed, 821 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/lirc/lirc_streamzap.c
+ drivers/media/IR/Kconfig         |   10 ++
+ drivers/media/IR/Makefile        |    1 +
+ drivers/media/IR/ir-core-priv.h  |   13 ++
+ drivers/media/IR/ir-lirc-codec.c |  284 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/IR/ir-raw-event.c  |    1 +
+ drivers/media/IR/ir-sysfs.c      |    8 +
+ include/media/rc-map.h           |    4 +-
+ 7 files changed, 320 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/IR/ir-lirc-codec.c
 
-diff --git a/drivers/staging/lirc/lirc_streamzap.c b/drivers/staging/lirc/lirc_streamzap.c
+diff --git a/drivers/media/IR/Kconfig b/drivers/media/IR/Kconfig
+index 5a32b99..d8e5c73 100644
+--- a/drivers/media/IR/Kconfig
++++ b/drivers/media/IR/Kconfig
+@@ -67,6 +67,16 @@ config IR_SONY_DECODER
+ 	   Enable this option if you have an infrared remote control which
+ 	   uses the Sony protocol, and you need software decoding support.
+ 
++config IR_LIRC_CODEC
++	tristate "Enable IR to LIRC bridge"
++	depends on IR_CORE
++	depends on LIRC
++	default y
++
++	---help---
++	   Enable this option to pass raw IR to and from userspace via
++	   the LIRC interface.
++
+ config IR_IMON
+ 	tristate "SoundGraph iMON Receiver and Display"
+ 	depends on USB_ARCH_HAS_HCD
+diff --git a/drivers/media/IR/Makefile b/drivers/media/IR/Makefile
+index 3ba00bb..2ae4f3a 100644
+--- a/drivers/media/IR/Makefile
++++ b/drivers/media/IR/Makefile
+@@ -11,6 +11,7 @@ obj-$(CONFIG_IR_RC5_DECODER) += ir-rc5-decoder.o
+ obj-$(CONFIG_IR_RC6_DECODER) += ir-rc6-decoder.o
+ obj-$(CONFIG_IR_JVC_DECODER) += ir-jvc-decoder.o
+ obj-$(CONFIG_IR_SONY_DECODER) += ir-sony-decoder.o
++obj-$(CONFIG_IR_LIRC_CODEC) += ir-lirc-codec.o
+ 
+ # stand-alone IR receivers/transmitters
+ obj-$(CONFIG_IR_IMON) += imon.o
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index 0a82b22..babd520 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -73,6 +73,11 @@ struct ir_raw_event_ctrl {
+ 		bool first;
+ 		bool toggle;
+ 	} jvc;
++	struct lirc_codec {
++		struct ir_input_dev *ir_dev;
++		struct lirc_driver *drv;
++		int lircdata;
++	} lirc;
+ };
+ 
+ /* macros for IR decoders */
+@@ -164,4 +169,12 @@ void ir_raw_init(void);
+ #define load_sony_decode()	0
+ #endif
+ 
++/* from ir-lirc-codec.c */
++#ifdef CONFIG_IR_LIRC_CODEC_MODULE
++#define load_lirc_codec()	request_module("ir-lirc-codec")
++#else
++#define load_lirc_codec()	0
++#endif
++
++
+ #endif /* _IR_RAW_EVENT */
+diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
 new file mode 100644
-index 0000000..5b46ac4
+index 0000000..aff31d1
 --- /dev/null
-+++ b/drivers/staging/lirc/lirc_streamzap.c
-@@ -0,0 +1,821 @@
-+/*
-+ * Streamzap Remote Control driver
++++ b/drivers/media/IR/ir-lirc-codec.c
+@@ -0,0 +1,284 @@
++/* ir-lirc-codec.c - ir-core to classic lirc interface bridge
 + *
-+ * Copyright (c) 2005 Christoph Bartelmus <lirc@bartelmus.de>
++ * Copyright (C) 2010 by Jarod Wilson <jarod@redhat.com>
 + *
-+ * This driver was based on the work of Greg Wickham and Adrian
-+ * Dewhurst. It was substantially rewritten to support correct signal
-+ * gaps and now maintains a delay buffer, which is used to present
-+ * consistent timing behaviour to user space applications. Without the
-+ * delay buffer an ugly hack would be required in lircd, which can
-+ * cause sluggish signal decoding in certain situations.
-+ *
-+ * This driver is based on the USB skeleton driver packaged with the
-+ * kernel; copyright (C) 2001-2003 Greg Kroah-Hartman (greg@kroah.com)
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
++ * This program is free software; you can redistribute it and/or modify
 + *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
++ *  the Free Software Foundation version 2 of the License.
 + *
 + *  This program is distributed in the hope that it will be useful,
 + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
 + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 + *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/errno.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/module.h>
-+#include <linux/smp_lock.h>
-+#include <linux/completion.h>
-+#include <linux/uaccess.h>
-+#include <linux/usb.h>
-+
++#include <linux/sched.h>
++#include <linux/wait.h>
 +#include <media/lirc.h>
-+#include <media/lirc_dev.h>
++#include <media/ir-core.h>
++#include "ir-core-priv.h"
++#include "lirc_dev.h"
 +
-+#define DRIVER_VERSION	"1.28"
-+#define DRIVER_NAME	"lirc_streamzap"
-+#define DRIVER_DESC	"Streamzap Remote Control driver"
-+
-+static int debug;
-+
-+#define USB_STREAMZAP_VENDOR_ID		0x0e9c
-+#define USB_STREAMZAP_PRODUCT_ID	0x0000
-+
-+/* Use our own dbg macro */
-+#define dprintk(fmt, args...)					\
-+	do {							\
-+		if (debug)					\
-+			printk(KERN_DEBUG DRIVER_NAME "[%d]: "	\
-+			       fmt "\n", ## args);		\
-+	} while (0)
-+
-+/* table of devices that work with this driver */
-+static struct usb_device_id streamzap_table[] = {
-+	/* Streamzap Remote Control */
-+	{ USB_DEVICE(USB_STREAMZAP_VENDOR_ID, USB_STREAMZAP_PRODUCT_ID) },
-+	/* Terminating entry */
-+	{ }
-+};
-+
-+MODULE_DEVICE_TABLE(usb, streamzap_table);
-+
-+#define STREAMZAP_PULSE_MASK 0xf0
-+#define STREAMZAP_SPACE_MASK 0x0f
-+#define STREAMZAP_TIMEOUT    0xff
-+#define STREAMZAP_RESOLUTION 256
-+
-+/* number of samples buffered */
-+#define STREAMZAP_BUF_LEN 128
-+
-+enum StreamzapDecoderState {
-+	PulseSpace,
-+	FullPulse,
-+	FullSpace,
-+	IgnorePulse
-+};
-+
-+/* Structure to hold all of our device specific stuff
-+ *
-+ * some remarks regarding locking:
-+ * theoretically this struct can be accessed from three threads:
-+ *
-+ * - from lirc_dev through set_use_inc/set_use_dec
-+ *
-+ * - from the USB layer throuh probe/disconnect/irq
-+ *
-+ *   Careful placement of lirc_register_driver/lirc_unregister_driver
-+ *   calls will prevent conflicts. lirc_dev makes sure that
-+ *   set_use_inc/set_use_dec are not being executed and will not be
-+ *   called after lirc_unregister_driver returns.
-+ *
-+ * - by the timer callback
-+ *
-+ *   The timer is only running when the device is connected and the
-+ *   LIRC device is open. Making sure the timer is deleted by
-+ *   set_use_dec will make conflicts impossible.
-+ */
-+struct usb_streamzap {
-+
-+	/* usb */
-+	/* save off the usb device pointer */
-+	struct usb_device	*udev;
-+	/* the interface for this device */
-+	struct usb_interface	*interface;
-+
-+	/* buffer & dma */
-+	unsigned char		*buf_in;
-+	dma_addr_t		dma_in;
-+	unsigned int		buf_in_len;
-+
-+	struct usb_endpoint_descriptor *endpoint;
-+
-+	/* IRQ */
-+	struct urb		*urb_in;
-+
-+	/* lirc */
-+	struct lirc_driver	*driver;
-+	struct lirc_buffer	*delay_buf;
-+
-+	/* timer used to support delay buffering */
-+	struct timer_list	delay_timer;
-+	int			timer_running;
-+	spinlock_t		timer_lock;
-+
-+	/* tracks whether we are currently receiving some signal */
-+	int			idle;
-+	/* sum of signal lengths received since signal start */
-+	unsigned long		sum;
-+	/* start time of signal; necessary for gap tracking */
-+	struct timeval		signal_last;
-+	struct timeval		signal_start;
-+	enum StreamzapDecoderState decoder_state;
-+	struct timer_list	flush_timer;
-+	int			flush;
-+	int			in_use;
-+	int			timeout_enabled;
-+};
-+
-+
-+/* local function prototypes */
-+static int streamzap_probe(struct usb_interface *interface,
-+			   const struct usb_device_id *id);
-+static void streamzap_disconnect(struct usb_interface *interface);
-+static void usb_streamzap_irq(struct urb *urb);
-+static int streamzap_use_inc(void *data);
-+static void streamzap_use_dec(void *data);
-+static long streamzap_ioctl(struct file *filep, unsigned int cmd,
-+			    unsigned long arg);
-+static int streamzap_suspend(struct usb_interface *intf, pm_message_t message);
-+static int streamzap_resume(struct usb_interface *intf);
-+
-+/* usb specific object needed to register this driver with the usb subsystem */
-+
-+static struct usb_driver streamzap_driver = {
-+	.name =		DRIVER_NAME,
-+	.probe =	streamzap_probe,
-+	.disconnect =	streamzap_disconnect,
-+	.suspend =	streamzap_suspend,
-+	.resume =	streamzap_resume,
-+	.id_table =	streamzap_table,
-+};
-+
-+static void stop_timer(struct usb_streamzap *sz)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&sz->timer_lock, flags);
-+	if (sz->timer_running) {
-+		sz->timer_running = 0;
-+		spin_unlock_irqrestore(&sz->timer_lock, flags);
-+		del_timer_sync(&sz->delay_timer);
-+	} else {
-+		spin_unlock_irqrestore(&sz->timer_lock, flags);
-+	}
-+}
-+
-+static void flush_timeout(unsigned long arg)
-+{
-+	struct usb_streamzap *sz = (struct usb_streamzap *) arg;
-+
-+	/* finally start accepting data */
-+	sz->flush = 0;
-+}
-+static void delay_timeout(unsigned long arg)
-+{
-+	unsigned long flags;
-+	/* deliver data every 10 ms */
-+	static unsigned long timer_inc =
-+		(10000/(1000000/HZ)) == 0 ? 1 : (10000/(1000000/HZ));
-+	struct usb_streamzap *sz = (struct usb_streamzap *) arg;
-+	int data;
-+
-+	spin_lock_irqsave(&sz->timer_lock, flags);
-+
-+	if (!lirc_buffer_empty(sz->delay_buf) &&
-+	    !lirc_buffer_full(sz->driver->rbuf)) {
-+		lirc_buffer_read(sz->delay_buf, (unsigned char *) &data);
-+		lirc_buffer_write(sz->driver->rbuf, (unsigned char *) &data);
-+	}
-+	if (!lirc_buffer_empty(sz->delay_buf)) {
-+		while (lirc_buffer_available(sz->delay_buf) <
-+		       STREAMZAP_BUF_LEN / 2 &&
-+		       !lirc_buffer_full(sz->driver->rbuf)) {
-+			lirc_buffer_read(sz->delay_buf,
-+					   (unsigned char *) &data);
-+			lirc_buffer_write(sz->driver->rbuf,
-+					    (unsigned char *) &data);
-+		}
-+		if (sz->timer_running) {
-+			sz->delay_timer.expires = jiffies + timer_inc;
-+			add_timer(&sz->delay_timer);
-+		}
-+	} else {
-+		sz->timer_running = 0;
-+	}
-+
-+	if (!lirc_buffer_empty(sz->driver->rbuf))
-+		wake_up(&sz->driver->rbuf->wait_poll);
-+
-+	spin_unlock_irqrestore(&sz->timer_lock, flags);
-+}
-+
-+static void flush_delay_buffer(struct usb_streamzap *sz)
-+{
-+	int data;
-+	int empty = 1;
-+
-+	while (!lirc_buffer_empty(sz->delay_buf)) {
-+		empty = 0;
-+		lirc_buffer_read(sz->delay_buf, (unsigned char *) &data);
-+		if (!lirc_buffer_full(sz->driver->rbuf)) {
-+			lirc_buffer_write(sz->driver->rbuf,
-+					    (unsigned char *) &data);
-+		} else {
-+			dprintk("buffer overflow", sz->driver->minor);
-+		}
-+	}
-+	if (!empty)
-+		wake_up(&sz->driver->rbuf->wait_poll);
-+}
-+
-+static void push(struct usb_streamzap *sz, unsigned char *data)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&sz->timer_lock, flags);
-+	if (lirc_buffer_full(sz->delay_buf)) {
-+		int read_data;
-+
-+		lirc_buffer_read(sz->delay_buf,
-+				   (unsigned char *) &read_data);
-+		if (!lirc_buffer_full(sz->driver->rbuf)) {
-+			lirc_buffer_write(sz->driver->rbuf,
-+					    (unsigned char *) &read_data);
-+		} else {
-+			dprintk("buffer overflow", sz->driver->minor);
-+		}
-+	}
-+
-+	lirc_buffer_write(sz->delay_buf, data);
-+
-+	if (!sz->timer_running) {
-+		sz->delay_timer.expires = jiffies + HZ/10;
-+		add_timer(&sz->delay_timer);
-+		sz->timer_running = 1;
-+	}
-+
-+	spin_unlock_irqrestore(&sz->timer_lock, flags);
-+}
-+
-+static void push_full_pulse(struct usb_streamzap *sz,
-+			    unsigned char value)
-+{
-+	int pulse;
-+
-+	if (sz->idle) {
-+		long deltv;
-+		int tmp;
-+
-+		sz->signal_last = sz->signal_start;
-+		do_gettimeofday(&sz->signal_start);
-+
-+		deltv = sz->signal_start.tv_sec-sz->signal_last.tv_sec;
-+		if (deltv > 15) {
-+			/* really long time */
-+			tmp = LIRC_SPACE(LIRC_VALUE_MASK);
-+		} else {
-+			tmp = (int) (deltv*1000000+
-+					sz->signal_start.tv_usec -
-+					sz->signal_last.tv_usec);
-+			tmp -= sz->sum;
-+			tmp = LIRC_SPACE(tmp);
-+		}
-+		dprintk("ls %u", sz->driver->minor, tmp);
-+		push(sz, (char *)&tmp);
-+
-+		sz->idle = 0;
-+		sz->sum = 0;
-+	}
-+
-+	pulse = ((int) value) * STREAMZAP_RESOLUTION;
-+	pulse += STREAMZAP_RESOLUTION / 2;
-+	sz->sum += pulse;
-+	pulse = LIRC_PULSE(pulse);
-+
-+	dprintk("p %u", sz->driver->minor, pulse & PULSE_MASK);
-+	push(sz, (char *)&pulse);
-+}
-+
-+static void push_half_pulse(struct usb_streamzap *sz,
-+			    unsigned char value)
-+{
-+	push_full_pulse(sz, (value & STREAMZAP_PULSE_MASK)>>4);
-+}
-+
-+static void push_full_space(struct usb_streamzap *sz,
-+			    unsigned char value)
-+{
-+	int space;
-+
-+	space = ((int) value)*STREAMZAP_RESOLUTION;
-+	space += STREAMZAP_RESOLUTION/2;
-+	sz->sum += space;
-+	space = LIRC_SPACE(space);
-+	dprintk("s %u", sz->driver->minor, space);
-+	push(sz, (char *)&space);
-+}
-+
-+static void push_half_space(struct usb_streamzap *sz,
-+			    unsigned char value)
-+{
-+	push_full_space(sz, value & STREAMZAP_SPACE_MASK);
-+}
++#define LIRCBUF_SIZE 256
 +
 +/**
-+ * usb_streamzap_irq - IRQ handler
++ * ir_lirc_decode() - Send raw IR data to lirc_dev to be relayed to the
++ *		      lircd userspace daemon for decoding.
++ * @input_dev:	the struct input_dev descriptor of the device
++ * @duration:	the struct ir_raw_event descriptor of the pulse/space
 + *
-+ * This procedure is invoked on reception of data from
-+ * the usb remote.
++ * This function returns -EINVAL if the lirc interfaces aren't wired up.
 + */
-+static void usb_streamzap_irq(struct urb *urb)
++static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
 +{
-+	struct usb_streamzap *sz;
-+	int		len;
-+	unsigned int	i = 0;
++	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
 +
-+	if (!urb)
-+		return;
++	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_LIRC))
++		return 0;
 +
-+	sz = urb->context;
-+	len = urb->actual_length;
++	if (!ir_dev->raw->lirc.drv || !ir_dev->raw->lirc.drv->rbuf)
++		return -EINVAL;
 +
-+	switch (urb->status) {
-+	case -ECONNRESET:
-+	case -ENOENT:
-+	case -ESHUTDOWN:
-+		/*
-+		 * this urb is terminated, clean up.
-+		 * sz might already be invalid at this point
-+		 */
-+		dprintk("urb status: %d", -1, urb->status);
-+		return;
-+	default:
++	IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
++		   TO_US(ev.duration), TO_STR(ev.pulse));
++
++	ir_dev->raw->lirc.lircdata += ev.duration / 1000;
++	if (ev.pulse)
++		ir_dev->raw->lirc.lircdata |= PULSE_BIT;
++
++	lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
++			  (unsigned char *) &ir_dev->raw->lirc.lircdata);
++	wake_up(&ir_dev->raw->lirc.drv->rbuf->wait_poll);
++
++	ir_dev->raw->lirc.lircdata = 0;
++
++	return 0;
++}
++
++static ssize_t ir_lirc_transmit_ir(struct file *file, const char *buf,
++				   size_t n, loff_t *ppos)
++{
++	struct lirc_codec *lirc;
++	struct ir_input_dev *ir_dev;
++	int *txbuf; /* buffer with values to transmit */
++	int ret = 0, count;
++
++	lirc = lirc_get_pdata(file);
++	if (!lirc)
++		return -EFAULT;
++
++	if (n % sizeof(int))
++		return -EINVAL;
++
++	count = n / sizeof(int);
++	if (count > LIRCBUF_SIZE || count % 2 == 0)
++		return -EINVAL;
++
++	txbuf = kzalloc(sizeof(int) * LIRCBUF_SIZE, GFP_KERNEL);
++	if (!txbuf)
++		return -ENOMEM;
++
++	if (copy_from_user(txbuf, buf, n)) {
++		ret = -EFAULT;
++		goto out;
++	}
++
++	ir_dev = lirc->ir_dev;
++	if (!ir_dev) {
++		ret = -EFAULT;
++		goto out;
++	}
++
++	if (ir_dev->props && ir_dev->props->tx_ir)
++		ret = ir_dev->props->tx_ir(ir_dev->props->priv, txbuf, (u32)n);
++
++out:
++	kfree(txbuf);
++	return ret;
++}
++
++static int ir_lirc_ioctl(struct inode *node, struct file *filep,
++			 unsigned int cmd, unsigned long arg)
++{
++	struct lirc_codec *lirc;
++	struct ir_input_dev *ir_dev;
++	int ret = 0;
++	void *drv_data;
++	unsigned long val;
++
++	lirc = lirc_get_pdata(filep);
++	if (!lirc)
++		return -EFAULT;
++
++	ir_dev = lirc->ir_dev;
++	if (!ir_dev || !ir_dev->props || !ir_dev->props->priv)
++		return -EFAULT;
++
++	drv_data = ir_dev->props->priv;
++
++	switch (cmd) {
++	case LIRC_SET_TRANSMITTER_MASK:
++		ret = get_user(val, (unsigned long *)arg);
++		if (ret)
++			return ret;
++
++		if (ir_dev->props && ir_dev->props->s_tx_mask)
++			ret = ir_dev->props->s_tx_mask(drv_data, (u32)val);
++		else
++			return -EINVAL;
 +		break;
++
++	case LIRC_SET_SEND_CARRIER:
++		ret = get_user(val, (unsigned long *)arg);
++		if (ret)
++			return ret;
++
++		if (ir_dev->props && ir_dev->props->s_tx_carrier)
++			ir_dev->props->s_tx_carrier(drv_data, (u32)val);
++		else
++			return -EINVAL;
++		break;
++
++	case LIRC_GET_SEND_MODE:
++		val = LIRC_CAN_SEND_PULSE & LIRC_CAN_SEND_MASK;
++		ret = put_user(val, (unsigned long *)arg);
++		break;
++
++	case LIRC_SET_SEND_MODE:
++		ret = get_user(val, (unsigned long *)arg);
++		if (ret)
++			return ret;
++
++		if (val != (LIRC_MODE_PULSE & LIRC_CAN_SEND_MASK))
++			return -EINVAL;
++		break;
++
++	default:
++		return lirc_dev_fop_ioctl(node, filep, cmd, arg);
 +	}
 +
-+	dprintk("received %d", sz->driver->minor, urb->actual_length);
-+	if (!sz->flush) {
-+		for (i = 0; i < urb->actual_length; i++) {
-+			dprintk("%d: %x", sz->driver->minor,
-+				i, (unsigned char) sz->buf_in[i]);
-+			switch (sz->decoder_state) {
-+			case PulseSpace:
-+				if ((sz->buf_in[i]&STREAMZAP_PULSE_MASK) ==
-+				    STREAMZAP_PULSE_MASK) {
-+					sz->decoder_state = FullPulse;
-+					continue;
-+				} else if ((sz->buf_in[i]&STREAMZAP_SPACE_MASK)
-+					   == STREAMZAP_SPACE_MASK) {
-+					push_half_pulse(sz, sz->buf_in[i]);
-+					sz->decoder_state = FullSpace;
-+					continue;
-+				} else {
-+					push_half_pulse(sz, sz->buf_in[i]);
-+					push_half_space(sz, sz->buf_in[i]);
-+				}
-+				break;
-+			case FullPulse:
-+				push_full_pulse(sz, sz->buf_in[i]);
-+				sz->decoder_state = IgnorePulse;
-+				break;
-+			case FullSpace:
-+				if (sz->buf_in[i] == STREAMZAP_TIMEOUT) {
-+					sz->idle = 1;
-+					stop_timer(sz);
-+					if (sz->timeout_enabled) {
-+						int timeout =
-+							LIRC_TIMEOUT
-+							(STREAMZAP_TIMEOUT *
-+							STREAMZAP_RESOLUTION);
-+						push(sz, (char *)&timeout);
-+					}
-+					flush_delay_buffer(sz);
-+				} else
-+					push_full_space(sz, sz->buf_in[i]);
-+				sz->decoder_state = PulseSpace;
-+				break;
-+			case IgnorePulse:
-+				if ((sz->buf_in[i]&STREAMZAP_SPACE_MASK) ==
-+				    STREAMZAP_SPACE_MASK) {
-+					sz->decoder_state = FullSpace;
-+					continue;
-+				}
-+				push_half_space(sz, sz->buf_in[i]);
-+				sz->decoder_state = PulseSpace;
-+				break;
-+			}
-+		}
-+	}
++	return ret;
++}
 +
-+	usb_submit_urb(urb, GFP_ATOMIC);
++static int ir_lirc_open(void *data)
++{
++	return 0;
++}
 +
++static void ir_lirc_close(void *data)
++{
 +	return;
 +}
 +
-+static struct file_operations streamzap_fops = {
++static struct file_operations lirc_fops = {
 +	.owner		= THIS_MODULE,
-+	.unlocked_ioctl	= streamzap_ioctl,
++	.write		= ir_lirc_transmit_ir,
++	.ioctl		= ir_lirc_ioctl,
 +	.read		= lirc_dev_fop_read,
-+	.write		= lirc_dev_fop_write,
 +	.poll		= lirc_dev_fop_poll,
 +	.open		= lirc_dev_fop_open,
 +	.release	= lirc_dev_fop_close,
 +};
 +
-+
-+/**
-+ *	streamzap_probe
-+ *
-+ *	Called by usb-core to associated with a candidate device
-+ *	On any failure the return value is the ERROR
-+ *	On success return 0
-+ */
-+static int streamzap_probe(struct usb_interface *interface,
-+			   const struct usb_device_id *id)
++static int ir_lirc_register(struct input_dev *input_dev)
 +{
-+	struct usb_device *udev = interface_to_usbdev(interface);
-+	struct usb_host_interface *iface_host;
-+	struct usb_streamzap *sz;
-+	struct lirc_driver *driver;
-+	struct lirc_buffer *lirc_buf;
-+	struct lirc_buffer *delay_buf;
-+	char buf[63], name[128] = "";
-+	int retval = -ENOMEM;
-+	int minor = 0;
++	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	struct lirc_driver *drv;
++	struct lirc_buffer *rbuf;
++	int rc = -ENOMEM;
++	unsigned long features;
 +
-+	/* Allocate space for device driver specific data */
-+	sz = kzalloc(sizeof(struct usb_streamzap), GFP_KERNEL);
-+	if (sz == NULL)
-+		return -ENOMEM;
++	drv = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
++	if (!drv)
++		return rc;
 +
-+	sz->udev = udev;
-+	sz->interface = interface;
++	rbuf = kzalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
++	if (!drv)
++		goto rbuf_alloc_failed;
 +
-+	/* Check to ensure endpoint information matches requirements */
-+	iface_host = interface->cur_altsetting;
++	rc = lirc_buffer_init(rbuf, sizeof(int), LIRCBUF_SIZE);
++	if (rc)
++		goto rbuf_init_failed;
 +
-+	if (iface_host->desc.bNumEndpoints != 1) {
-+		err("%s: Unexpected desc.bNumEndpoints (%d)", __func__,
-+		    iface_host->desc.bNumEndpoints);
-+		retval = -ENODEV;
-+		goto free_sz;
++	features = LIRC_CAN_REC_MODE2;
++	if (ir_dev->props->tx_ir) {
++		features |= LIRC_CAN_SEND_PULSE;
++		if (ir_dev->props->s_tx_mask)
++			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
++		if (ir_dev->props->s_tx_carrier)
++			features |= LIRC_CAN_SET_SEND_CARRIER;
 +	}
 +
-+	sz->endpoint = &(iface_host->endpoint[0].desc);
-+	if ((sz->endpoint->bEndpointAddress & USB_ENDPOINT_DIR_MASK)
-+	    != USB_DIR_IN) {
-+		err("%s: endpoint doesn't match input device 02%02x",
-+		    __func__, sz->endpoint->bEndpointAddress);
-+		retval = -ENODEV;
-+		goto free_sz;
++	snprintf(drv->name, sizeof(drv->name), "ir-lirc-codec (%s)",
++		 ir_dev->driver_name);
++	drv->minor = -1;
++	drv->features = features;
++	drv->data = &ir_dev->raw->lirc;
++	drv->rbuf = rbuf;
++	drv->set_use_inc = &ir_lirc_open;
++	drv->set_use_dec = &ir_lirc_close;
++	drv->code_length = sizeof(struct ir_raw_event) * 8;
++	drv->fops = &lirc_fops;
++	drv->dev = &ir_dev->dev;
++	drv->owner = THIS_MODULE;
++
++	drv->minor = lirc_register_driver(drv);
++	if (drv->minor < 0) {
++		rc = -ENODEV;
++		goto lirc_register_failed;
 +	}
 +
-+	if ((sz->endpoint->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK)
-+	    != USB_ENDPOINT_XFER_INT) {
-+		err("%s: endpoint attributes don't match xfer 02%02x",
-+		    __func__, sz->endpoint->bmAttributes);
-+		retval = -ENODEV;
-+		goto free_sz;
-+	}
-+
-+	if (sz->endpoint->wMaxPacketSize == 0) {
-+		err("%s: endpoint message size==0? ", __func__);
-+		retval = -ENODEV;
-+		goto free_sz;
-+	}
-+
-+	/* Allocate the USB buffer and IRQ URB */
-+
-+	sz->buf_in_len = sz->endpoint->wMaxPacketSize;
-+	sz->buf_in = usb_alloc_coherent(sz->udev, sz->buf_in_len,
-+				      GFP_ATOMIC, &sz->dma_in);
-+	if (sz->buf_in == NULL)
-+		goto free_sz;
-+
-+	sz->urb_in = usb_alloc_urb(0, GFP_KERNEL);
-+	if (sz->urb_in == NULL)
-+		goto free_sz;
-+
-+	/* Connect this device to the LIRC sub-system */
-+	driver = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
-+	if (!driver)
-+		goto free_sz;
-+
-+	lirc_buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
-+	if (!lirc_buf)
-+		goto free_driver;
-+	if (lirc_buffer_init(lirc_buf, sizeof(int), STREAMZAP_BUF_LEN))
-+		goto kfree_lirc_buf;
-+
-+	delay_buf = kmalloc(sizeof(struct lirc_buffer), GFP_KERNEL);
-+	if (!delay_buf)
-+		goto free_lirc_buf;
-+	if (lirc_buffer_init(delay_buf, sizeof(int), STREAMZAP_BUF_LEN))
-+		goto kfree_delay_buf;
-+
-+	sz->driver = driver;
-+	strcpy(sz->driver->name, DRIVER_NAME);
-+	sz->driver->minor = -1;
-+	sz->driver->sample_rate = 0;
-+	sz->driver->code_length = sizeof(int) * 8;
-+	sz->driver->features = LIRC_CAN_REC_MODE2 |
-+		LIRC_CAN_GET_REC_RESOLUTION |
-+		LIRC_CAN_SET_REC_TIMEOUT;
-+	sz->driver->data = sz;
-+	sz->driver->min_timeout = STREAMZAP_TIMEOUT * STREAMZAP_RESOLUTION;
-+	sz->driver->max_timeout = STREAMZAP_TIMEOUT * STREAMZAP_RESOLUTION;
-+	sz->driver->rbuf = lirc_buf;
-+	sz->delay_buf = delay_buf;
-+	sz->driver->set_use_inc = &streamzap_use_inc;
-+	sz->driver->set_use_dec = &streamzap_use_dec;
-+	sz->driver->fops = &streamzap_fops;
-+	sz->driver->dev = &interface->dev;
-+	sz->driver->owner = THIS_MODULE;
-+
-+	sz->idle = 1;
-+	sz->decoder_state = PulseSpace;
-+	init_timer(&sz->delay_timer);
-+	sz->delay_timer.function = delay_timeout;
-+	sz->delay_timer.data = (unsigned long) sz;
-+	sz->timer_running = 0;
-+	spin_lock_init(&sz->timer_lock);
-+
-+	init_timer(&sz->flush_timer);
-+	sz->flush_timer.function = flush_timeout;
-+	sz->flush_timer.data = (unsigned long) sz;
-+	/* Complete final initialisations */
-+
-+	usb_fill_int_urb(sz->urb_in, udev,
-+		usb_rcvintpipe(udev, sz->endpoint->bEndpointAddress),
-+		sz->buf_in, sz->buf_in_len, usb_streamzap_irq, sz,
-+		sz->endpoint->bInterval);
-+	sz->urb_in->transfer_dma = sz->dma_in;
-+	sz->urb_in->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
-+
-+	if (udev->descriptor.iManufacturer
-+	    && usb_string(udev, udev->descriptor.iManufacturer,
-+			  buf, sizeof(buf)) > 0)
-+		strlcpy(name, buf, sizeof(name));
-+
-+	if (udev->descriptor.iProduct
-+	    && usb_string(udev, udev->descriptor.iProduct,
-+			  buf, sizeof(buf)) > 0)
-+		snprintf(name + strlen(name), sizeof(name) - strlen(name),
-+			 " %s", buf);
-+
-+	minor = lirc_register_driver(driver);
-+
-+	if (minor < 0)
-+		goto free_delay_buf;
-+
-+	sz->driver->minor = minor;
-+
-+	usb_set_intfdata(interface, sz);
-+
-+	printk(KERN_INFO DRIVER_NAME "[%d]: %s on usb%d:%d attached\n",
-+	       sz->driver->minor, name,
-+	       udev->bus->busnum, sz->udev->devnum);
++	ir_dev->raw->lirc.drv = drv;
++	ir_dev->raw->lirc.ir_dev = ir_dev;
++	ir_dev->raw->lirc.lircdata = PULSE_MASK;
 +
 +	return 0;
 +
-+free_delay_buf:
-+	lirc_buffer_free(sz->delay_buf);
-+kfree_delay_buf:
-+	kfree(delay_buf);
-+free_lirc_buf:
-+	lirc_buffer_free(sz->driver->rbuf);
-+kfree_lirc_buf:
-+	kfree(lirc_buf);
-+free_driver:
-+	kfree(driver);
-+free_sz:
-+	if (retval == -ENOMEM)
-+		err("Out of memory");
++lirc_register_failed:
++rbuf_init_failed:
++	kfree(rbuf);
++rbuf_alloc_failed:
++	kfree(drv);
 +
-+	if (sz) {
-+		usb_free_urb(sz->urb_in);
-+		usb_free_coherent(udev, sz->buf_in_len, sz->buf_in, sz->dma_in);
-+		kfree(sz);
-+	}
-+
-+	return retval;
++	return rc;
 +}
 +
-+static int streamzap_use_inc(void *data)
++static int ir_lirc_unregister(struct input_dev *input_dev)
 +{
-+	struct usb_streamzap *sz = data;
++	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	struct lirc_codec *lirc = &ir_dev->raw->lirc;
 +
-+	if (!sz) {
-+		dprintk("%s called with no context", -1, __func__);
-+		return -EINVAL;
-+	}
-+	dprintk("set use inc", sz->driver->minor);
-+
-+	lirc_buffer_clear(sz->driver->rbuf);
-+	lirc_buffer_clear(sz->delay_buf);
-+
-+	sz->flush_timer.expires = jiffies + HZ;
-+	sz->flush = 1;
-+	add_timer(&sz->flush_timer);
-+
-+	sz->urb_in->dev = sz->udev;
-+	if (usb_submit_urb(sz->urb_in, GFP_ATOMIC)) {
-+		dprintk("open result = -EIO error submitting urb",
-+			sz->driver->minor);
-+		return -EIO;
-+	}
-+	sz->in_use++;
++	lirc_unregister_driver(lirc->drv->minor);
++	lirc_buffer_free(lirc->drv->rbuf);
++	kfree(lirc->drv);
 +
 +	return 0;
 +}
 +
-+static void streamzap_use_dec(void *data)
++static struct ir_raw_handler lirc_handler = {
++	.protocols	= IR_TYPE_LIRC,
++	.decode		= ir_lirc_decode,
++	.raw_register	= ir_lirc_register,
++	.raw_unregister	= ir_lirc_unregister,
++};
++
++static int __init ir_lirc_codec_init(void)
 +{
-+	struct usb_streamzap *sz = data;
++	ir_raw_handler_register(&lirc_handler);
 +
-+	if (!sz) {
-+		dprintk("%s called with no context", -1, __func__);
-+		return;
-+	}
-+	dprintk("set use dec", sz->driver->minor);
-+
-+	if (sz->flush) {
-+		sz->flush = 0;
-+		del_timer_sync(&sz->flush_timer);
-+	}
-+
-+	usb_kill_urb(sz->urb_in);
-+
-+	stop_timer(sz);
-+
-+	sz->in_use--;
-+}
-+
-+static long streamzap_ioctl(struct file *filep, unsigned int cmd,
-+			    unsigned long arg)
-+{
-+	int result = 0;
-+	int val;
-+	struct usb_streamzap *sz = lirc_get_pdata(filep);
-+
-+	switch (cmd) {
-+	case LIRC_GET_REC_RESOLUTION:
-+		result = put_user(STREAMZAP_RESOLUTION, (unsigned int *) arg);
-+		break;
-+	case LIRC_SET_REC_TIMEOUT:
-+		result = get_user(val, (int *)arg);
-+		if (result == 0) {
-+			if (val == STREAMZAP_TIMEOUT * STREAMZAP_RESOLUTION)
-+				sz->timeout_enabled = 1;
-+			else if (val == 0)
-+				sz->timeout_enabled = 0;
-+			else
-+				result = -EINVAL;
-+		}
-+		break;
-+	default:
-+		return lirc_dev_fop_ioctl(filep, cmd, arg);
-+	}
-+	return result;
-+}
-+
-+/**
-+ * streamzap_disconnect
-+ *
-+ * Called by the usb core when the device is removed from the system.
-+ *
-+ * This routine guarantees that the driver will not submit any more urbs
-+ * by clearing dev->udev.  It is also supposed to terminate any currently
-+ * active urbs.  Unfortunately, usb_bulk_msg(), used in streamzap_read(),
-+ * does not provide any way to do this.
-+ */
-+static void streamzap_disconnect(struct usb_interface *interface)
-+{
-+	struct usb_streamzap *sz;
-+	int errnum;
-+	int minor;
-+
-+	sz = usb_get_intfdata(interface);
-+
-+	/* unregister from the LIRC sub-system */
-+
-+	errnum = lirc_unregister_driver(sz->driver->minor);
-+	if (errnum != 0)
-+		dprintk("error in lirc_unregister: (returned %d)",
-+			sz->driver->minor, errnum);
-+
-+	lirc_buffer_free(sz->delay_buf);
-+	lirc_buffer_free(sz->driver->rbuf);
-+
-+	/* unregister from the USB sub-system */
-+
-+	usb_free_urb(sz->urb_in);
-+
-+	usb_free_coherent(sz->udev, sz->buf_in_len, sz->buf_in, sz->dma_in);
-+
-+	minor = sz->driver->minor;
-+	kfree(sz->driver->rbuf);
-+	kfree(sz->driver);
-+	kfree(sz->delay_buf);
-+	kfree(sz);
-+
-+	printk(KERN_INFO DRIVER_NAME "[%d]: disconnected\n", minor);
-+}
-+
-+static int streamzap_suspend(struct usb_interface *intf, pm_message_t message)
-+{
-+	struct usb_streamzap *sz = usb_get_intfdata(intf);
-+
-+	printk(KERN_INFO DRIVER_NAME "[%d]: suspend\n", sz->driver->minor);
-+	if (sz->in_use) {
-+		if (sz->flush) {
-+			sz->flush = 0;
-+			del_timer_sync(&sz->flush_timer);
-+		}
-+
-+		stop_timer(sz);
-+
-+		usb_kill_urb(sz->urb_in);
-+	}
++	printk(KERN_INFO "IR LIRC bridge handler initialized\n");
 +	return 0;
 +}
 +
-+static int streamzap_resume(struct usb_interface *intf)
++static void __exit ir_lirc_codec_exit(void)
 +{
-+	struct usb_streamzap *sz = usb_get_intfdata(intf);
-+
-+	lirc_buffer_clear(sz->driver->rbuf);
-+	lirc_buffer_clear(sz->delay_buf);
-+
-+	if (sz->in_use) {
-+		sz->flush_timer.expires = jiffies + HZ;
-+		sz->flush = 1;
-+		add_timer(&sz->flush_timer);
-+
-+		sz->urb_in->dev = sz->udev;
-+		if (usb_submit_urb(sz->urb_in, GFP_ATOMIC)) {
-+			dprintk("open result = -EIO error submitting urb",
-+				sz->driver->minor);
-+			return -EIO;
-+		}
-+	}
-+	return 0;
++	ir_raw_handler_unregister(&lirc_handler);
 +}
 +
-+/**
-+ *	usb_streamzap_init
-+ */
-+static int __init usb_streamzap_init(void)
-+{
-+	int result;
++module_init(ir_lirc_codec_init);
++module_exit(ir_lirc_codec_exit);
 +
-+	/* register this driver with the USB subsystem */
-+	result = usb_register(&streamzap_driver);
-+
-+	if (result) {
-+		err("usb_register failed. Error number %d",
-+		    result);
-+		return result;
-+	}
-+
-+	printk(KERN_INFO DRIVER_NAME " " DRIVER_VERSION " registered\n");
-+	return 0;
-+}
-+
-+/**
-+ *	usb_streamzap_exit
-+ */
-+static void __exit usb_streamzap_exit(void)
-+{
-+	usb_deregister(&streamzap_driver);
-+}
-+
-+
-+module_init(usb_streamzap_init);
-+module_exit(usb_streamzap_exit);
-+
-+MODULE_AUTHOR("Christoph Bartelmus, Greg Wickham, Adrian Dewhurst");
-+MODULE_DESCRIPTION(DRIVER_DESC);
 +MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Jarod Wilson <jarod@redhat.com>");
++MODULE_AUTHOR("Red Hat Inc. (http://www.redhat.com)");
++MODULE_DESCRIPTION("LIRC IR handler bridge");
+diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+index 5f98ab8..6f192ef 100644
+--- a/drivers/media/IR/ir-raw-event.c
++++ b/drivers/media/IR/ir-raw-event.c
+@@ -253,6 +253,7 @@ static void init_decoders(struct work_struct *work)
+ 	load_rc6_decode();
+ 	load_jvc_decode();
+ 	load_sony_decode();
++	load_lirc_codec();
+ 
+ 	/* If needed, we may later add some init code. In this case,
+ 	   it is needed to change the CONFIG_MODULE test at ir-core.h
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index f73e4a6..a841e51 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -93,6 +93,11 @@ static ssize_t show_protocols(struct device *d,
+ 	else if (allowed & IR_TYPE_SONY)
+ 		tmp += sprintf(tmp, "sony ");
+ 
++	if (allowed & enabled & IR_TYPE_LIRC)
++		tmp += sprintf(tmp, "[lirc] ");
++	else if (allowed & IR_TYPE_LIRC)
++		tmp += sprintf(tmp, "lirc ");
 +
-+module_param(debug, bool, S_IRUGO | S_IWUSR);
-+MODULE_PARM_DESC(debug, "Enable debugging messages");
+ 	if (tmp != buf)
+ 		tmp--;
+ 	*tmp = '\n';
+@@ -160,6 +165,9 @@ static ssize_t store_protocols(struct device *d,
+ 	} else if (!strncasecmp(tmp, "sony", 4)) {
+ 		tmp += 4;
+ 		mask = IR_TYPE_SONY;
++	} else if (!strncasecmp(tmp, "lirc", 4)) {
++		tmp += 4;
++		mask = IR_TYPE_LIRC;
+ 	} else {
+ 		IR_dprintk(1, "Unknown protocol\n");
+ 		return -EINVAL;
+diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+index 7abe12e..63b35e4 100644
+--- a/include/media/rc-map.h
++++ b/include/media/rc-map.h
+@@ -17,10 +17,12 @@
+ #define IR_TYPE_RC6	(1  << 2)	/* Philips RC6 protocol */
+ #define IR_TYPE_JVC	(1  << 3)	/* JVC protocol */
+ #define IR_TYPE_SONY	(1  << 4)	/* Sony12/15/20 protocol */
++#define IR_TYPE_LIRC	(1  << 30)	/* Pass raw IR to lirc userspace */
+ #define IR_TYPE_OTHER	(1u << 31)
+ 
+ #define IR_TYPE_ALL (IR_TYPE_RC5 | IR_TYPE_NEC  | IR_TYPE_RC6  | \
+-		     IR_TYPE_JVC | IR_TYPE_SONY | IR_TYPE_OTHER)
++		     IR_TYPE_JVC | IR_TYPE_SONY | IR_TYPE_LIRC | \
++		     IR_TYPE_OTHER)
+ 
+ struct ir_scancode {
+ 	u32	scancode;
 -- 
-1.7.1.1
+1.7.1
 
 -- 
 Jarod Wilson
