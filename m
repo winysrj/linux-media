@@ -1,26 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <arnuschky@xylon.de>) id 1OcvnD-00023w-61
-	for linux-dvb@linuxtv.org; Sun, 25 Jul 2010 09:38:39 +0200
-Received: from xylos.xylon.de ([80.237.242.185] helo=mail.xylon.de)
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
+	(envelope-from <jdg8tb@gmail.com>) id 1OUspL-00078S-8z
+	for linux-dvb@linuxtv.org; Sat, 03 Jul 2010 04:51:38 +0200
+Received: from mail-ew0-f54.google.com ([209.85.215.54])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1OcvnC-0002Gy-Bj; Sun, 25 Jul 2010 09:38:38 +0200
-Received: from localhost (xylos.xylon.de [127.0.0.1])
-	by mail.xylon.de (Postfix) with ESMTP id AC1816A0008
-	for <linux-dvb@linuxtv.org>; Sun, 25 Jul 2010 09:38:34 +0200 (CEST)
-Received: from mail.xylon.de ([127.0.0.1])
-	by localhost (mail.xylon.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id SpyYIVCV1TlP for <linux-dvb@linuxtv.org>;
-	Sun, 25 Jul 2010 09:38:33 +0200 (CEST)
-Message-ID: <20100725093833.61271ktl891c25ts@webmail.xylon.de>
-Date: Sun, 25 Jul 2010 09:38:33 +0200
-From: Arnuschky <arnuschky@xylon.de>
-To: linux-dvb@linuxtv.org
+	id 1OUspJ-0006e7-6F; Sat, 03 Jul 2010 04:51:34 +0200
+Received: by ewy26 with SMTP id 26so1563693ewy.41
+	for <linux-dvb@linuxtv.org>; Fri, 02 Jul 2010 19:51:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Disposition: inline
-Subject: [linux-dvb] Very poor quality on buget card TwinHan VP DST
+Date: Sat, 3 Jul 2010 03:21:23 +0100
+Message-ID: <AANLkTimQqT99icH6wGhyizm-Zymg_wNrLhxS4yqGo1Wu@mail.gmail.com>
+From: JD <jdg8tb@gmail.com>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Firmware for HVR-1110
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,36 +23,50 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"; DelSp="Yes"
+Content-Type: multipart/mixed; boundary="===============1499116152=="
+Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi,
+--===============1499116152==
+Content-Type: multipart/alternative; boundary=0015174c0d94206a83048a725c03
 
-I am using a TwinHan VP DST card under Ubuntu Lucid Lynx (2.6.32-23  
-with s2-liplianin-dkms updated dvb drivers).
+--0015174c0d94206a83048a725c03
+Content-Type: text/plain; charset=ISO-8859-1
 
-The card is detected fine, but does not seem to have analogue tuner. I  
-can scan channels fine, and I can watch TV using digital-only capable  
-applications (Me-TV, Kaffeine). Nevertheless, the general quality is  
-VERY bad. Basically, there's not a single frame without decoding error  
-and the picture freezes often. Sound suffers the same problem. It all  
-behaves like a bad signal/bad antenna installation.
+What firmware in needed for the HVR-1110, as I am unable to find any
+channels?
 
-The problem is: a parallel windows installation gives a crystal-clear  
-and stable picture, without touching the antenna in between.
-
-I assume it's a channel fine-tune problem or decoder quality. Can  
-anyone help me with solving these problems?
-
+Scouring the web claims that the dvb-fe-tda10046 is required; however, dmesg
+logs show that this fails to be uploaded.
+If I use the dvb-fe-tda-10048-1.0.fw, dmesg seems to successfully load this
+firmware, but I still can't find any singal.
 Thanks
-Arne
 
+--0015174c0d94206a83048a725c03
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+What firmware in needed for the HVR-1110, as I am unable to find any channe=
+ls?<br><br>Scouring the web claims that the dvb-fe-tda10046 is required; ho=
+wever, dmesg logs show that this fails to be uploaded.<br>If I use the dvb-=
+fe-tda-10048-1.0.fw, dmesg seems to successfully load this firmware, but I =
+still can&#39;t find any singal.<br>
+Thanks<br>
+
+--0015174c0d94206a83048a725c03--
+
+
+--===============1499116152==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1499116152==--
