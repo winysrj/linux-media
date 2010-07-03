@@ -1,20 +1,20 @@
 Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <rakesht.tripathi@gmail.com>) id 1OW6JL-0005qB-Vd
-	for linux-dvb@linuxtv.org; Tue, 06 Jul 2010 13:27:36 +0200
-Received: from mail-vw0-f54.google.com ([209.85.212.54])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtp
+	(envelope-from <jdg8tb@gmail.com>) id 1OUsNl-0006S9-A0
+	for linux-dvb@linuxtv.org; Sat, 03 Jul 2010 04:23:16 +0200
+Received: from mail-ew0-f54.google.com ([209.85.215.54])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1OW6JL-0005tm-9v; Tue, 06 Jul 2010 13:27:35 +0200
-Received: by vws6 with SMTP id 6so9022932vws.41
-	for <linux-dvb@linuxtv.org>; Tue, 06 Jul 2010 04:27:33 -0700 (PDT)
+	id 1OUsNQ-0003SV-3E; Sat, 03 Jul 2010 04:22:44 +0200
+Received: by ewy26 with SMTP id 26so1559551ewy.41
+	for <linux-dvb@linuxtv.org>; Fri, 02 Jul 2010 19:22:12 -0700 (PDT)
 MIME-Version: 1.0
-Date: Tue, 6 Jul 2010 16:57:33 +0530
-Message-ID: <AANLkTin6BXlmjB1n-tpTPT9BSjKHMKV5MVvohggC6X8o@mail.gmail.com>
-From: Rakesh Tripathi <rakesht.tripathi@gmail.com>
+Date: Sat, 3 Jul 2010 03:15:47 +0100
+Message-ID: <AANLkTim_W3O84yNUPCOnMnCLdBbn92nuj6lWHsZV-frl@mail.gmail.com>
+From: JD <jdg8tb@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] posting on linux dvb
+Subject: [linux-dvb] f
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,36 +23,29 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============0929422638=="
+Content-Type: multipart/mixed; boundary="===============0571141205=="
 Mime-version: 1.0
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
---===============0929422638==
-Content-Type: multipart/alternative; boundary=0016362835fae22c41048ab65617
+--===============0571141205==
+Content-Type: multipart/alternative; boundary=0015174c1196146995048a724856
 
---0016362835fae22c41048ab65617
+--0015174c1196146995048a724856
 Content-Type: text/plain; charset=ISO-8859-1
 
--- 
-------
-Regards
------------------------
-Rakesh Tripathi
-+91 9969739068
+d
 
-"Defeat is not when you fell down, but when you refuse to get up."
-
---0016362835fae22c41048ab65617
+--0015174c1196146995048a724856
 Content-Type: text/html; charset=ISO-8859-1
 
-<br clear="all"><br>-- <br>------<br>Regards<br>-----------------------<br>Rakesh Tripathi<br>+91 9969739068<br><br>&quot;Defeat is not when you fell down, but when you refuse to get up.&quot;<br>
+d<br>
 
---0016362835fae22c41048ab65617--
+--0015174c1196146995048a724856--
 
 
---===============0929422638==
+--===============0571141205==
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -63,4 +56,4 @@ linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============0929422638==--
+--===============0571141205==--
