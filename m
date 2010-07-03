@@ -1,103 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:52928 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752870Ab0GCWs7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Jul 2010 18:48:59 -0400
-Date: Sat, 3 Jul 2010 17:43:32 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Julia Lawall <julia@diku.dk>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Mike Isely <isely@isely.net>
-Subject: Re: [git:v4l-dvb/other] V4L/DVB: drivers/media/video/pvrusb2: Add
- missing mutex_unlock
-In-Reply-To: <E1OV9yX-0006Dg-H2@www.linuxtv.org>
-Message-ID: <alpine.DEB.1.10.1007031733360.19299@cnc.isely.net>
-References: <E1OV9yX-0006Dg-H2@www.linuxtv.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:4717 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755719Ab0GCTeB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jul 2010 15:34:01 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr18.xs4all.nl (8.13.8/8.13.8) with ESMTP id o63JXxrP091336
+	for <linux-media@vger.kernel.org>; Sat, 3 Jul 2010 21:34:00 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 3 Jul 2010 21:33:59 +0200 (CEST)
+Message-Id: <201007031934.o63JXxrP091336@smtp-vbr18.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Mauro:
+Results of the daily build of v4l-dvb:
 
-FYI, I posted an "Acked-By: Mike Isely <isely@pobox.com>" weeks ago, 
-back on 27-May, immediately after the patch was posted.  It's a great 
-catch, and the bug has been there since basically the beginning of the 
-driver.  Was I ever supposed to see any kind of reaction to that ack 
-(e.g. having the "Acked-By" added to the patch)?  I had posted it in 
-reply to the original patch, copied back to the patch author, to lkml, 
-to linux-media, kernel-janitors, and Mauro.
+date:        Sat Jul  3 19:00:21 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-  -Mike
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
+Detailed results are available here:
 
-On Sat, 3 Jul 2010, Mauro Carvalho Chehab wrote:
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/v4l-dvb.git tree:
-> 
-> Subject: V4L/DVB: drivers/media/video/pvrusb2: Add missing mutex_unlock
-> Author:  Julia Lawall <julia@diku.dk>
-> Date:    Tue Jun 29 01:42:53 2010 -0300
-> 
-> Add a mutex_unlock missing on the error path.  In the other functions in
-> the same file the locks and unlocks of this mutex appear to be balanced,
-> so it would seem that the same should hold in this case.
-> 
-> The semantic match that finds this problem is as follows:
-> (http://coccinelle.lip6.fr/)
-> 
-> // <smpl>
-> @@
-> expression E1;
-> @@
-> 
-> * mutex_lock(E1,...);
->   <+... when != E1
->   if (...) {
->     ... when != E1
-> *   return ...;
->   }
->   ...+>
-> * mutex_unlock(E1,...);
-> // </smpl>
-> 
-> Signed-off-by: Julia Lawall <julia@diku.dk>
-> Signed-off-by: Douglas Schilling Landgraf <dougsland@redhat.com>
-> Cc: Mike Isely <isely@isely.net>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
->  drivers/media/video/pvrusb2/pvrusb2-ioread.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> ---
-> 
-> http://git.linuxtv.org/v4l-dvb.git?a=commitdiff;h=ccbc746b6bc3662b11679c75d1793753228ae67a
-> 
-> diff --git a/drivers/media/video/pvrusb2/pvrusb2-ioread.c b/drivers/media/video/pvrusb2/pvrusb2-ioread.c
-> index b482478..bba6115 100644
-> --- a/drivers/media/video/pvrusb2/pvrusb2-ioread.c
-> +++ b/drivers/media/video/pvrusb2/pvrusb2-ioread.c
-> @@ -223,7 +223,10 @@ int pvr2_ioread_setup(struct pvr2_ioread *cp,struct pvr2_stream *sp)
->  				   " pvr2_ioread_setup (setup) id=%p",cp);
->  			pvr2_stream_kill(sp);
->  			ret = pvr2_stream_set_buffer_count(sp,BUFFER_COUNT);
-> -			if (ret < 0) return ret;
-> +			if (ret < 0) {
-> +				mutex_unlock(&cp->mutex);
-> +				return ret;
-> +			}
->  			for (idx = 0; idx < BUFFER_COUNT; idx++) {
->  				bp = pvr2_stream_get_buffer(sp,idx);
->  				pvr2_buffer_set_buffer(bp,
-> 
+Full logs are available here:
 
--- 
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
