@@ -1,88 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4840 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966226Ab0GQKYt (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:14797 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755230Ab0GCNUf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jul 2010 06:24:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <p.osciak@samsung.com>
-Subject: Re: [RFC v4] Multi-plane buffer support for V4L2 API
-Date: Sat, 17 Jul 2010 12:27:07 +0200
-Cc: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
-	"'Linux Media Mailing List'" <linux-media@vger.kernel.org>,
-	"'Hans de Goede'" <hdegoede@redhat.com>, kyungmin.park@samsung.com
-References: <004b01cb1f98$e586ae10$b0940a30$%osciak@samsung.com> <4C3B8923.1040109@redhat.com> <002801cb226f$e462b720$ad282560$%osciak@samsung.com>
-In-Reply-To: <002801cb226f$e462b720$ad282560$%osciak@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+	Sat, 3 Jul 2010 09:20:35 -0400
+Subject: Re: MCEUSB memory leak and how to tell if ir_register_input()
+ failure  registered input_dev?
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+In-Reply-To: <AANLkTinda8JSa3XRZSSbEuj9JKVkLnRNwnW4YGBtDfWj@mail.gmail.com>
+References: <20100607192830.21236.69701.stgit@localhost.localdomain>
+	 <20100607193238.21236.72227.stgit@localhost.localdomain>
+	 <4C273FFE.4090300@redhat.com>
+	 <AANLkTimDJAyvowo_1bLhKPhlDWzzMeF87or4MriJ_UT8@mail.gmail.com>
+	 <1277680645.3347.7.camel@localhost>
+	 <AANLkTinda8JSa3XRZSSbEuj9JKVkLnRNwnW4YGBtDfWj@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 03 Jul 2010 09:20:51 -0400
+Message-ID: <1278163251.2304.2.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007171227.08031.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 13 July 2010 11:43:47 Pawel Osciak wrote:
-> Hi Mauro,
-> 
-> thanks for taking the time to look at this.
-> 
-> >Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> >
-> >With Hans proposed changes that you've already acked, I think the proposal is
-> >ok,
-> >except for one detail:
-> >
-> >> 4. Format enumeration
-> >> ----------------------------------
-> >> struct v4l2_fmtdesc, used for format enumeration, does include the
-> >v4l2_buf_type
-> >> enum as well, so the new types can be handled properly here as well.
-> >> For drivers supporting both versions of the API, 1-plane formats should be
-> >> returned for multiplanar buffer types as well, for consistency. In other
-> >words,
-> >> for multiplanar buffer types, the formats returned are a superset of those
-> >> returned when enumerating with the old buffer types.
-> >>
-> >
-> >We shouldn't mix types here. If the userspace is asking for multi-planar
-> >types,
-> >the driver should return just the multi-planar formats.
-> >
-> >If the userspace wants to know about both, it will just call for both types
-> >of
-> >formats.
-> 
-> Yes. Although the idea here is that we wanted to be able to use single-planar
-> formats with either the old API or the new multiplane API. In the new API, you
-> could just set num_planes=1.
-> 
-> So multiplanar API != multiplanar format. When you enum_fmt for mutliplanar
-> types, you get "all formats you can use with the multiplanar API" and not
-> "all formats that have num_planes > 1".
-> 
-> This can simplify applications - they don't have to switch between APIs when
-> switching between formats. They may even choose not to use the old API at all
-> (if a driver allows it).
-> 
-> Do we want to lose the ability to use multiplanar API for single-plane
-> formats?
+On Sun, 2010-06-27 at 23:34 -0400, Jarod Wilson wrote:
+> On Sun, Jun 27, 2010 at 7:17 PM, Andy Walls <awalls@md.metrocast.net> wrote:
 
-I'm very much opposed to making num_planes=1 a special case in the multiplanar
-API. Just like the extended control API can still handle 'normal' controls (well,
-they should, at least :-) ), so should the multiplanar API be a superset of the normal
-API. Anything else would make applications unnecessarily complex.
+> > Mauro and Jarrod,
+> >
+> > When ir_register_input() fails, it doesn't indicate whether or not it
+> > was able to register the input_dev or not.  To me it looks like it can
+> > return with failure with the input_dev either way depending on the case.
+> > This makes proper cleanup of the input_dev in my cx23885_input_init()
+> > function difficult in the failure case, since the input subsystem has
+> > two different deallocators depending on if the device had been
+> > registered or not.
+> 
+> Hm. I've done a double-take a few times now, but if
+> input_register_device is successful, and something later in
+> __ir_input_register fails, input_unregister_device *does* get called
+> within __ir_input_register, so all you should have to do is call
+> input_free_device in your init function's error path, no?
 
-Any driver that has multiplanar formats should be using the videobuf2 framework.
-Which will hopefully make it very easy to have support for both 1-plane and
-multiplanar APIs. Probably the only place where you need to do something special
-is in ENUM_FMT: the multiplanar stream type will enumerate all formats, the 'old'
-stream types will only enumerate the 1-plane formats.
 
-So minimal impact to the driver, but nicely consistent towards the application.
+I couldn't quite tell (with the constant stream of intteruptions I get
+at times).  That's why I asked. :)
+
+I'll double check today once I'm done with getting the CX23888 IR Tx
+working.
 
 Regards,
+Andy
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
