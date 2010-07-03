@@ -1,58 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:47960 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756568Ab0G3OX7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 10:23:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [media-ctl PATCH 2/3] Just include kernel headers
-Date: Fri, 30 Jul 2010 16:23:46 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-References: <1279124246-12187-1-git-send-email-saaguirre@ti.com> <201007301545.07534.laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE894456C0B476@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894456C0B476@dlee02.ent.ti.com>
+Received: from bis.amsnet.pl ([195.64.174.7]:56745 "EHLO host.amsnet.pl"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751942Ab0GCWNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Jul 2010 18:13:38 -0400
+Received: from 62.152.129.52.dsl.dynamic.eranet.pl ([62.152.129.52] helo=[192.168.1.3])
+	by host.amsnet.pl with esmtpa (Exim 4.71)
+	(envelope-from <gasiu@konto.pl>)
+	id 1OVARh-0007C9-QU
+	for linux-media@vger.kernel.org; Sat, 03 Jul 2010 23:40:21 +0200
+Message-ID: <4C2FAF42.9000603@konto.pl>
+Date: Sat, 03 Jul 2010 23:44:34 +0200
+From: Gasiu <gasiu@konto.pl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007301623.46995.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: TT-3200 + CI slot - decoding
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+I've got:
 
-On Friday 30 July 2010 16:10:08 Aguirre, Sergio wrote:
-> On Friday 30 July 2010 8:45 AM Laurent Pinchart wrote:
-> > On Wednesday 14 July 2010 18:17:25 Sergio Aguirre wrote:
-> > > We shouldn't require full kernel source for this.
-> > 
-> > That's right in theory, but I then get
-> > 
-> > $ make KDIR=/home/laurent/src/arm/kernel/
-> > arm-none-linux-gnueabi-gcc -O2 -Wall -fpic -I. -
-> > I/home/laurent/src/arm/kernel//include    -c -o media.o media.c
-> > In file included from /opt/cs/arm-2009q1/bin/../arm-none-linux-
-> > gnueabi/libc/usr/include/asm/types.h:4,
-> >                  from
-> > /home/laurent/src/arm/kernel//include/linux/types.h:4,
-> >                  from
-> > /home/laurent/src/arm/kernel//include/linux/videodev2.h:66,
-> >                  from media.c:31:
-> > /home/laurent/src/arm/kernel//include/asm-generic/int-ll64.h:11:29:
-> > error: asm/bitsperlong.h: No such file or directory
-> > make: *** [media.o] Error 1
-> > 
-> > when building against a kernel tree.
-> 
-> KDIR doesn't exist anymore.
-> 
-> By the result of your log, I don't see how that value got passed into the
-> makefile... Are you sure you applied the patch correctly?
+Kubuntu 10.04 64-bit + Skystar HD + CI Slot + Aston 2.18 + Cyfra+ 
+(Seca2) card + Kaffeine 0.8.8
 
-I haven't, I've just removed the arch include dir from KDIR in the Makefile. 
-The end result is the same.
+and I try to use it with s2-liplianin driver - it lock signal (90% 
+success), but problem is with decoding... I've got audio without video, 
+or video without audio, or "slideshow" – here only 5% attempts with full 
+success... :(
+
+with v4l-dvb is the same...
+
+any help?
 
 -- 
-Regards,
+Pozdrawiam!
+Gasiu
 
-Laurent Pinchart
