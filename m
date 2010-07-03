@@ -1,109 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.sikkerhed.org ([78.109.215.82]:60964 "EHLO
-	mail.sikkerhed.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132Ab0G0TaY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jul 2010 15:30:24 -0400
-Received: from localhost (mailscan.sikkerhed.org [78.109.215.84])
-	by mail.sikkerhed.org (Postfix) with ESMTP id 415EB16487
-	for <linux-media@vger.kernel.org>; Tue, 27 Jul 2010 21:21:16 +0200 (CEST)
-Received: from mail.sikkerhed.org ([78.109.215.82])
-	by localhost (mailscan.sikkerhed.org [78.109.215.84]) (amavisd-new, port 10024)
-	with LMTP id cNmu3Yt5JuF3 for <linux-media@vger.kernel.org>;
-	Tue, 27 Jul 2010 21:21:11 +0200 (CEST)
-Received: from [10.0.0.7] (boreas.sikkerhed.org [130.225.166.200])
-	by mail.sikkerhed.org (Postfix) with ESMTPSA id 7AF4C16484
-	for <linux-media@vger.kernel.org>; Tue, 27 Jul 2010 21:21:11 +0200 (CEST)
-Message-ID: <4C4F31A7.8060609@iversen-net.dk>
-Date: Tue, 27 Jul 2010 21:21:11 +0200
-From: Christian Iversen <chrivers@iversen-net.dk>
+Received: from mx1.redhat.com ([209.132.183.28]:13018 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752443Ab0GCXDD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Jul 2010 19:03:03 -0400
+Message-ID: <4C2FC0B6.9040407@redhat.com>
+Date: Sat, 03 Jul 2010 19:59:02 -0300
+From: Douglas Schilling Landgraf <dougsland@redhat.com>
+Reply-To: dougsland@redhat.com
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Unknown CX23885 device
+To: Mike Isely <isely@isely.net>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Julia Lawall <julia@diku.dk>
+Subject: Re: [git:v4l-dvb/other] V4L/DVB: drivers/media/video/pvrusb2: Add
+ missing mutex_unlock
+References: <E1OV9yX-0006Dg-H2@www.linuxtv.org> <alpine.DEB.1.10.1007031733360.19299@cnc.isely.net>
+In-Reply-To: <alpine.DEB.1.10.1007031733360.19299@cnc.isely.net>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(please CC, I'm not subscribed yet)
+Hello Mike,
 
-Hey Linux-DVB people
+Mike Isely wrote:
+> Mauro:
+> 
+> FYI, I posted an "Acked-By: Mike Isely <isely@pobox.com>" weeks ago, 
+> back on 27-May, immediately after the patch was posted.  It's a great 
+> catch, and the bug has been there since basically the beginning of the 
+> driver.  Was I ever supposed to see any kind of reaction to that ack 
+> (e.g. having the "Acked-By" added to the patch)?  I had posted it in 
+> reply to the original patch, copied back to the patch author, to lkml, 
+> to linux-media, kernel-janitors, and Mauro.
+> 
+>   -Mike
 
-I'm trying to make an as-of-yet unsupported CX23885 device work in Linux.
+It seems my mistake since I have added CC instead of Acked-by, sorry.
+This happened because usually I add CC to the authors of drivers when I 
+took patches from patchwork and I wanna notify them. In your case, I 
+missed the acked-by.
 
-I've tested that the device is not supported using the newest snapshot
-of the DVB drivers. They did support a bunch of extra devices compared
-to the standard ubuntu driver, but to no avail.
+Mauro, if possible, could you please replace CC to the correct Acked-by 
+before submit this patch to Linus?
 
-This is what I know about the device:
-
-### physical description ###
-
-The device is a small mini-PCIe device currently installed in my
-Thinkpad T61p notebook. It did not originate there, but I managed to fit 
-it in.
-
-It has an "Avermedia" logo on top, but no other discernable markings.
-I've tried removing the chip cover, but I can't see any other major chips
-than the cx23885. I can take a second look, if I know what to look for.
-
-### pci info ###
-
-$ sudo lspci -s 02:00.0 -vv
-02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI 
-Video and Audio Decoder (rev 02)
-         Subsystem: Avermedia Technologies Inc Device c139
-         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR+ FastB2B- DisINTx-
-         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-         Latency: 0, Cache Line Size: 64 bytes
-         Interrupt: pin A routed to IRQ 16
-         Region 0: Memory at d7a00000 (64-bit, non-prefetchable) [size=2M]
-         Capabilities: [40] Express (v1) Endpoint, MSI 00
-                 DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s 
-<64ns, L1 <1us
-                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
-                 DevCtl: Report errors: Correctable- Non-Fatal- Fatal- 
-Unsupported-
-                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
-                         MaxPayload 128 bytes, MaxReadReq 512 bytes
-                 DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ 
-AuxPwr- TransPend-
-                 LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, 
-Latency L0 <2us, L1 <4us
-                         ClockPM- Suprise- LLActRep- BwNot-
-                 LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- 
-CommClk+
-                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ 
-DLActive- BWMgmt- ABWMgmt-
-         Capabilities: [80] Power Management version 2
-                 Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA 
-PME(D0+,D1+,D2+,D3hot+,D3cold-)
-                 Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-         Capabilities: [90] Vital Product Data <?>
-         Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ 
-Queue=0/0 Enable-
-                 Address: 0000000000000000  Data: 0000
-         Capabilities: [100] Advanced Error Reporting <?>
-         Capabilities: [200] Virtual Channel <?>
-         Kernel driver in use: cx23885
-         Kernel modules: cx23885
-
-
-I've tried several different card=X settings for "modprobe cx23885", and 
-a few of them result in creation of /dev/dvb devices, but none of them 
-really seem towork.
-
-What can I try for a next step?
-
--- 
-Med venlig hilsen
-Christian Iversen
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Thanks
+Douglas
