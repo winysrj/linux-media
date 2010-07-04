@@ -1,54 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:41206 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753237Ab0GNDCP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jul 2010 23:02:15 -0400
-Received: by gwj18 with SMTP id 18so3150138gwj.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Jul 2010 20:02:15 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTik5_v0Siy4K6rA0gsLxmA1XmoJAlVv3Dd1gu5hb@mail.gmail.com>
-References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
-	<20100707074431.66629934@tele> <AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
-	<20100707110613.18be4215@tele> <AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
-	<20100708121454.75db358c@tele> <AANLkTilw1KxYanoQZEZVaiFCLfkdTpO72Z9xV73i4gm2@mail.gmail.com>
-	<20100709200312.755e8069@tele> <AANLkTikxIJxuQiV_7PqPA5C6ZU5XhhmmQ3hAbIwWsrPT@mail.gmail.com>
-	<20100710113616.1ed63ebc@tele> <AANLkTikrKBpRSI6wVdMO3tSYPhm1CECFGeNiyJdzTa03@mail.gmail.com>
-	<20100711155008.1f8f583f@tele> <AANLkTinnNhJ-DoFWfU8U5NuTj_p48SefYzWWAxZqiUb-@mail.gmail.com>
-	<20100712101802.08527e82@tele> <AANLkTinUHyTHt78ihMHy8dzz0kfPvUMBXKreRmuM-cYW@mail.gmail.com>
-	<20100712132100.1b4072b9@tele> <AANLkTimku962Cm_7glThtq3X3jZiwmHSWOYzc2d3WLBl@mail.gmail.com>
-	<20100713211345.43caeabb@tele> <AANLkTik5_v0Siy4K6rA0gsLxmA1XmoJAlVv3Dd1gu5hb@mail.gmail.com>
-From: Kyle Baker <kyleabaker@gmail.com>
-Date: Tue, 13 Jul 2010 23:01:55 -0400
-Message-ID: <AANLkTileCxtocP4Y222C2KInlHC5IA_U0Oyy7JAXmwGc@mail.gmail.com>
-Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Received: from cnc.isely.net ([64.81.146.143]:45905 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756673Ab0GDCyg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 3 Jul 2010 22:54:36 -0400
+Date: Sat, 3 Jul 2010 21:54:35 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Douglas Schilling Landgraf <dougsland@redhat.com>
+cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Julia Lawall <julia@diku.dk>, Mike Isely <isely@isely.net>
+Subject: Re: [git:v4l-dvb/other] V4L/DVB: drivers/media/video/pvrusb2: Add
+ missing mutex_unlock
+In-Reply-To: <4C2FC0B6.9040407@redhat.com>
+Message-ID: <alpine.DEB.1.10.1007032150240.25068@cnc.isely.net>
+References: <E1OV9yX-0006Dg-H2@www.linuxtv.org> <alpine.DEB.1.10.1007031733360.19299@cnc.isely.net> <4C2FC0B6.9040407@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 13, 2010 at 7:59 PM, Kyle Baker <kyleabaker@gmail.com> wrote:
-> On a different note, I've noticed that there is a bug either with
-> Cheese or with the camera drivers after recording video. The problem
-> is that, after I record a video in Cheese, the recording stops and the
-> video is saved, but the record button is now disabled until I reopen
-> the application.
+On Sat, 3 Jul 2010, Douglas Schilling Landgraf wrote:
 
-I've tested this on my Ubuntu 10.04 32-bit laptop with both GSPCA
-2.7.0 and GSPCA 2.9.52. The results match, Cheese 2.30.1 works as
-intended. However, I'm using the same version of Cheese on my Ubuntu
-10.10 64-bit computer and results are different. I'll keep an eye on
-this issue and if it doesn't clear up by time of Ubuntu 10.10 release
-then I'll look back into it.
+> Hello Mike,
+> 
+> Mike Isely wrote:
+> > Mauro:
+> > 
+> > FYI, I posted an "Acked-By: Mike Isely <isely@pobox.com>" weeks ago, back on
+> > 27-May, immediately after the patch was posted.  It's a great catch, and the
+> > bug has been there since basically the beginning of the driver.  Was I ever
+> > supposed to see any kind of reaction to that ack (e.g. having the "Acked-By"
+> > added to the patch)?  I had posted it in reply to the original patch, copied
+> > back to the patch author, to lkml, to linux-media, kernel-janitors, and
+> > Mauro.
+> > 
+> >   -Mike
+> 
+> It seems my mistake since I have added CC instead of Acked-by, sorry.
+> This happened because usually I add CC to the authors of drivers when I took
+> patches from patchwork and I wanna notify them. In your case, I missed the
+> acked-by.
+> 
+> Mauro, if possible, could you please replace CC to the correct Acked-by before
+> submit this patch to Linus?
+> 
 
-FYI, there is a warning message in the "make" process that I wanted to
-bring your attention to. Its not causing problems, but maybe it can be
-removed?
-.../gspca-2.9.52/build/jpeg.h:152: warning: ‘jpeg_set_qual’ defined but not used
+Hmm, going through my old e-mail now I can see that the patch was picked 
+up for -mm on 1-Jun.  At that time I was marked as a CC: for the patch - 
+which I'd expect as the driver maintainer.  But no Acked-By: was 
+showing.  Maybe that's when the ack got missed.
 
-Cheers.
+Obviously I have no issue with this patch.  My only real concern is that 
+nobody thinks I might have been ignoring it.  Thanks for following up.
+
+  -Mike
+
 
 -- 
-Kyle Baker
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
