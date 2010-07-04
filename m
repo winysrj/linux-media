@@ -1,84 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:62665 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752240Ab0G3VW7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 17:22:59 -0400
-Date: 30 Jul 2010 23:22:00 +0200
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: maximlevitsky@gmail.com
-Cc: linux-input@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: lirc-list@lists.sourceforge.net
-Cc: mchehab@redhat.com
-Message-ID: <BTpNtKTJjFB@christoph>
-References: <1280489933-20865-11-git-send-email-maximlevitsky@gmail.com>
-Subject: Re: [PATCH 10/13] IR: extend interfaces to support more device settings LIRC: add new IOCTL that enables learning mode (wide band receiver)
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:42226 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756390Ab0GDAqf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jul 2010 20:46:35 -0400
+Received: by qwh6 with SMTP id 6so455911qwh.19
+        for <linux-media@vger.kernel.org>; Sat, 03 Jul 2010 17:46:34 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <4C2FB6E8.5090001@redhat.com>
+References: <20100616201046.GA10000@redhat.com>
+	<20100703040227.GA31255@redhat.com>
+	<4C2FB6E8.5090001@redhat.com>
+Date: Sat, 3 Jul 2010 20:41:21 -0400
+Message-ID: <AANLkTimbfm9nGxtNyCnpNFz3WhP1g6CzMQvRP0lJe9Dc@mail.gmail.com>
+Subject: Re: [PATCH] IR/mceusb: kill pinnacle-device-specific nonsense
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
-
-Maxim Levitsky "maximlevitsky@gmail.com" wrote:
-
-> Still missing features: carrier report & timeout reports.
-> Will need to pack these into ir_raw_event
-
-
-Hm, this patch changes the LIRC interface but I can't see the according  
-patch to the documentation.
-
-[...]
->   * @tx_ir: transmit IR
->   * @s_idle: optional: enable/disable hardware idle mode, upon which,
-> +<<<<<<< current
->   *	device doesn't interrupt host untill it sees IR data
-> +=======
-
-Huh?
-
-> +	device doesn't interrupt host untill it sees IR data
-> + * @s_learning_mode: enable wide band receiver used for learning
-+>>>>>>>> patched
-
-s/untill/until/
-
-[...]
->  #define LIRC_CAN_MEASURE_CARRIER          0x02000000
-> +#define LIRC_CAN_HAVE_WIDEBAND_RECEIVER   0x04000000
-
-LIRC_CAN_USE_WIDEBAND_RECEIVER
-
-[...]
-> @@ -145,7 +146,7 @@
->   * if enabled from the next key press on the driver will send
->   * LIRC_MODE2_FREQUENCY packets
->   */
-> -#define LIRC_SET_MEASURE_CARRIER_MODE  _IOW('i', 0x0000001d, __u32)
-> +#define LIRC_SET_MEASURE_CARRIER_MODE	_IOW('i', 0x0000001d, __u32)
+On Saturday, July 3, 2010, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> Em 03-07-2010 01:02, Jarod Wilson escreveu:
+>> I have pinnacle hardware now. None of this pinnacle-specific crap is at
+>> all necessary (in fact, some of it needed to be removed to actually make
+>> it work). The only thing unique about this device is that it often
+>> transfers inbound data w/a header of 0x90, meaning 16 bytes of IR data
+>> following it, so I had to make adjustments for that, and now its working
+>> perfectly fine.
+>>
+>> v2: stillborn
+>>
+>> v3: remove completely unnecessary usb_reset_device() call that only served
+>> to piss off the pinnacle device regularly and unify/simplify some of the
+>> generation-specific device initialization code.
+>>
+>> post-mortem: it seems the pinnacle hardware actually still gets pissed off
+>> from time to time, but I can (try) to fix that later (if possible). The
+>> patch is still quite helpful from a code reduction standpoint.
+>>
+>> Signed-off-by: Jarod Wilson <jarod@redhat.com>
 >
->  /*
->   * to set a range use
-> @@ -162,4 +163,6 @@
->  #define LIRC_SETUP_START               _IO('i', 0x00000021)
->  #define LIRC_SETUP_END                 _IO('i', 0x00000022)
+> I've already applied a previous version of this patch:
 >
-> +#define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
+> http://git.linuxtv.org/v4l-dvb.git?a=commit;h=afd46362e573276e3fb0a44834ad320c97947233
+>
+> Could you please rebase it against my tree?
 
-If you really want this new ioctl, then it should be clarified how it  
-behaves in relation to LIRC_SET_MEASURE_CARRIER_MODE.
+D'oh, sure, will do, should be able to knock that out tonight.
 
-Do you have to enable the wide-band receiver explicitly before you can  
-enable carrier reports or does enabling carrier reports implicitly switch  
-to the wide-band receiver?
+>> ---
+>>  Makefile                  |    2 +-
+>>  drivers/media/IR/mceusb.c |  110 +++++++++------------------------------------
+>>  2 files changed, 22 insertions(+), 90 deletions(-)
+>>
+>> diff --git a/Makefile b/Makefile
+>> index 6e39ec7..0417c74 100644
+>> --- a/Makefile
+>> +++ b/Makefile
+>> @@ -1,7 +1,7 @@
+>>  VERSION = 2
+>>  PATCHLEVEL = 6
+>>  SUBLEVEL = 35
+>> -EXTRAVERSION = -rc1
+>> +EXTRAVERSION = -rc1-ir
+>
+> Please, don't patch the upstream Makefile ;)
 
-What happens if carrier mode is enabled and you explicitly turn off the  
-wide-band receiver?
+Gah, I saw that and meant to remove it. The perils of rushing things
+the night before going on vacation...
 
-And while we're at interface stuff:
-Do we really need LIRC_SETUP_START and LIRC_SETUP_END? It is only used  
-once in lircd during startup.
+--jarod
 
-Christoph
+
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
