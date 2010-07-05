@@ -1,44 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:23324 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753946Ab0G1ROh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 13:14:37 -0400
-Date: Wed, 28 Jul 2010 10:13:58 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Stephen Rothwell <sfr@canb.auug.org.au>,
-	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: linux-next: Tree for July 28 (lirc)
-Message-Id: <20100728101358.e0dcd54d.randy.dunlap@oracle.com>
-In-Reply-To: <20100728162855.4968e561.sfr@canb.auug.org.au>
-References: <20100728162855.4968e561.sfr@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:51948 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751896Ab0GEOs2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 10:48:28 -0400
+Message-ID: <4C31F0B8.4050100@infradead.org>
+Date: Mon, 05 Jul 2010 11:48:24 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: pavan_savoy@ti.com, linux-media@vger.kernel.org,
+	matti.j.aaltonen@nokia.com, pavan savoy <pavan_savoy@yahoo.co.in>,
+	eduardo.valentin@nokia.com
+Subject: Re: V4L2 radio drivers for TI-WL7
+References: <31718.25391.qm@web94912.mail.in2.yahoo.com> <201007050821.53313.hverkuil@xs4all.nl>
+In-Reply-To: <201007050821.53313.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 28 Jul 2010 16:28:55 +1000 Stephen Rothwell wrote:
-
-> Hi all,
+Em 05-07-2010 03:21, Hans Verkuil escreveu:
+> On Friday 02 July 2010 09:01:34 Pavan Savoy wrote:
+>> Hi,
+>>
+>> We have/in process of developing a V4L2 driver for the FM Radio on the Texas Instruments WiLink 7 module.
+>>
+>> For transport/communication with the chip, we intend to use the shared transport driver currently staged in mainline at drivers/staging/ti-st/.
+>>
+>> To which tree should I generate patches against? is the tree
+>> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+>> fine ? to be used with the v4l_for_2.6.35 branch ?
 > 
-> Changes since 20100727:
+> You patch against git://git.linuxtv.org/v4l-dvb.git.
 
+The latest development tree is at branch "devel/for_v2.6.36". Note, however, that
+after the launch of v2.6.35, I'll create a new branch, since the merged patches
+will likely get different hashes upstream. So, except if you have a short 
+timeframe to develop the driver, it is better to develop it against the Linus tree:
 
-when CONFIG_MODULES is not enabled:
+	git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
 
-drivers/staging/lirc/lirc_parallel.c:243: error: implicit declaration of function 'module_refcount'
-drivers/staging/lirc/lirc_it87.c:150: error: implicit declaration of function 'module_refcount'
-drivers/built-in.o: In function `it87_probe':
-lirc_it87.c:(.text+0x4079b0): undefined reference to `init_chrdev'
-lirc_it87.c:(.text+0x4079cc): undefined reference to `drop_chrdev'
-drivers/built-in.o: In function `lirc_it87_exit':
-lirc_it87.c:(.exit.text+0x38a5): undefined reference to `drop_chrdev'
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Cheers,
+Mauro.
