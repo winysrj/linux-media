@@ -1,68 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:48830 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753477Ab0GZQUl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 12:20:41 -0400
-Date: Mon, 26 Jul 2010 18:20:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
-Subject: [PATCH 3/5] V4L2: soc-camera: export soc-camera bus type for
- notifications
-In-Reply-To: <Pine.LNX.4.64.1007261739180.9816@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1007261749500.9816@axis700.grange>
-References: <Pine.LNX.4.64.1007261739180.9816@axis700.grange>
+Received: from bombadil.infradead.org ([18.85.46.34]:42542 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754550Ab0GEWMT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 18:12:19 -0400
+Message-ID: <4C3258B7.5070900@infradead.org>
+Date: Mon, 05 Jul 2010 19:12:07 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Renzo Dani <arons7@gmail.com>
+CC: adams.xu@azwave.com.cn, rdunlap@xenotime.net, o.endriss@gmx.de,
+	awalls@radix.net, crope@iki.fi, manu@linuxtv.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org
+Subject: Re: [PATCH 1/1] Added Technisat Skystar USB HD CI
+References: <1277719055-14585-1-git-send-email-arons7@gmail.com>
+In-Reply-To: <1277719055-14585-1-git-send-email-arons7@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/soc_camera.c |    3 ++-
- include/media/soc_camera.h       |    3 +++
- 2 files changed, 5 insertions(+), 1 deletions(-)
+Em 28-06-2010 06:57, Renzo Dani escreveu:
+> From: Renzo Dani <arons7@gmail.com>
+> 
+> 
+> Signed-off-by: Renzo Dani <arons7@gmail.com>
+> ---
+>  Documentation/dvb/get_dvb_firmware |   19 ++++++++++++++++++-
+>  drivers/media/dvb/dvb-usb/az6027.c |   14 ++++++++++++--
 
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index 475757b..f203293 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -1107,13 +1107,14 @@ static int soc_camera_resume(struct device *dev)
- 	return ret;
- }
- 
--static struct bus_type soc_camera_bus_type = {
-+struct bus_type soc_camera_bus_type = {
- 	.name		= "soc-camera",
- 	.probe		= soc_camera_probe,
- 	.remove		= soc_camera_remove,
- 	.suspend	= soc_camera_suspend,
- 	.resume		= soc_camera_resume,
- };
-+EXPORT_SYMBOL_GPL(soc_camera_bus_type);
- 
- static struct device_driver ic_drv = {
- 	.name	= "camera",
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index b8289c2..2ce9573 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -12,12 +12,15 @@
- #ifndef SOC_CAMERA_H
- #define SOC_CAMERA_H
- 
-+#include <linux/device.h>
- #include <linux/mutex.h>
- #include <linux/pm.h>
- #include <linux/videodev2.h>
- #include <media/videobuf-core.h>
- #include <media/v4l2-device.h>
- 
-+extern struct bus_type soc_camera_bus_type;
-+
- struct soc_camera_device {
- 	struct list_head list;
- 	struct device dev;
--- 
-1.6.2.4
+
+Please, re-base your patch against upstream and send the firmware patch on a separate
+email.
+
+Cheers,
+Mauro
+>  2 files changed, 30 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
+> index 239cbdb..c203e94 100644
+> --- a/Documentation/dvb/get_dvb_firmware
+> +++ b/Documentation/dvb/get_dvb_firmware
+> @@ -26,7 +26,7 @@ use IO::Handle;
+>  		"dec3000s", "vp7041", "dibusb", "nxt2002", "nxt2004",
+>  		"or51211", "or51132_qam", "or51132_vsb", "bluebird",
+>  		"opera1", "cx231xx", "cx18", "cx23885", "pvrusb2", "mpc718",
+> -		"af9015", "ngene");
+> +		"af9015", "ngene", "az6027");
+>  
+>  # Check args
+>  syntax() if (scalar(@ARGV) != 1);
+> @@ -567,6 +567,23 @@ sub ngene {
+>      "$file1, $file2";
+>  }
+>  
+> +sub az6027{
+> +    my $file = "AZ6027_Linux_Driver.tar.gz";
+> +	my $url = "http://linux.terratec.de/files/$file";
+> +    my $firmware = "dvb-usb-az6027-03.fw";
+> +
+> +	wgetfile($file, $url);
+> +
+> +	#untar
+> +    if( system("tar xzvf $file")){
+> +		die "failed to untar firmware";
+> +	}
+> +	if( system("rm -rf AZ6027_Linux_Driver; rm $file")){
+> +		die ("unable to remove unnecessary files");
+> +    }
+> +
+> +    $firmware;
+> +}
+>  # ---------------------------------------------------------------
+>  # Utilities
+>  
+> diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
+> index d7290b2..891ae04 100644
+> --- a/drivers/media/dvb/dvb-usb/az6027.c
+> +++ b/drivers/media/dvb/dvb-usb/az6027.c
+> @@ -1103,13 +1103,23 @@ static struct dvb_usb_device_properties az6027_properties = {
+>  	.rc_query         = az6027_rc_query,
+>  	.i2c_algo         = &az6027_i2c_algo,
+>  
+> -	.num_device_descs = 1,
+> +	.num_device_descs = 2,
+>  	.devices = {
+>  		{
+>  			.name = "AZUREWAVE DVB-S/S2 USB2.0 (AZ6027)",
+>  			.cold_ids = { &az6027_usb_table[0], NULL },
+>  			.warm_ids = { NULL },
+>  		},
+> +		{
+> +		    .name = " Terratec DVB 2 CI",
+> +			.cold_ids = { &az6027_usb_table[1], NULL },
+> +			.warm_ids = { NULL },
+> +		},
+> +		{
+> +		    .name = "TechniSat SkyStar USB 2 HD CI (AZ6027)",
+> +			.cold_ids = { &az6027_usb_table[2], NULL },
+> +			.warm_ids = { NULL },
+> +		},
+>  		{ NULL },
+>  	}
+>  };
+> @@ -1118,7 +1128,7 @@ static struct dvb_usb_device_properties az6027_properties = {
+>  static struct usb_driver az6027_usb_driver = {
+>  	.name		= "dvb_usb_az6027",
+>  	.probe 		= az6027_usb_probe,
+> -	.disconnect 	= az6027_usb_disconnect,
+> +	.disconnect	= az6027_usb_disconnect,
+>  	.id_table 	= az6027_usb_table,
+>  };
+>  
 
