@@ -1,70 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:61790 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932069Ab0G2Q0U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:26:20 -0400
-Subject: Re: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, jarod@wilsonet.com,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, mchehab@redhat.com
-In-Reply-To: <1280417934.15757.20.camel@morgan.silverblock.net>
-References: <BTlMsWzZjFB@christoph> <1280414519.29938.53.camel@maxim-laptop>
-	 <1280417934.15757.20.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 29 Jul 2010 19:26:15 +0300
-Message-ID: <1280420775.32069.5.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:34718 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751896Ab0GEPWF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 11:22:05 -0400
+Received: by wyf23 with SMTP id 23so2471622wyf.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Jul 2010 08:22:02 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 5 Jul 2010 11:22:01 -0400
+Message-ID: <AANLkTik97qZdIJYH7GY7zis2SZQpg4no9uG37Inp0884@mail.gmail.com>
+Subject: Call for testers: PCTV 80e support
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-07-29 at 11:38 -0400, Andy Walls wrote: 
-> On Thu, 2010-07-29 at 17:41 +0300, Maxim Levitsky wrote:
-> > On Thu, 2010-07-29 at 09:23 +0200, Christoph Bartelmus wrote: 
-> > > Hi Maxim,
-> > > 
-> > > on 29 Jul 10 at 02:40, Maxim Levitsky wrote:
-> > > [...]
-> > > > In addition to comments, I changed helper function that processes samples
-> > > > so it sends last space as soon as timeout is reached.
-> > > > This breaks somewhat lirc, because now it gets 2 spaces in row.
-> > > > However, if it uses timeout reports (which are now fully supported)
-> > > > it will get such report in middle.
-> > > >
-> > > > Note that I send timeout report with zero value.
-> > > > I don't think that this value is importaint.
-> > > 
-> > > This does not sound good. Of course the value is important to userspace  
-> > > and 2 spaces in a row will break decoding.
-> > > 
-> > > Christoph
-> > 
-> > Could you explain exactly how timeout reports work?
-> > 
-> > Lirc interface isn't set to stone, so how about a reasonable compromise.
-> > After reasonable long period of inactivity (200 ms for example), space
-> > is sent, and then next report starts with a pulse.
-> > So gaps between keypresses will be maximum of 200 ms, and as a bonus I
-> > could rip of the logic that deals with remembering the time?
-> > 
-> > Best regards,
-> > Maxim Levitsky
+Hello all,
 
-So, timeout report is just another sample, with a mark attached, that
-this is last sample? right?
+I'm finally happy to announce that we've got a working version of the
+drx-j driver (with the appropriate licensing) and I'm looking for
+testers if you happen to own an PCTV 80e.
 
-Christoph, right?
+More details as to where to find the tree and how to install it can be
+found here:
 
-In that case, lets do that this way:
+http://www.kernellabs.com/blog/?p=1435
 
-As soon as timeout is reached, I just send lirc the timeout report.
-Then next keypress will start with pulse.
+Feedback welcome (either here or in the blog post comments)
 
-I think this is the best solution.
+Thanks go out to Trident Microsystems for finally allowing a driver to
+be released, as well as to Hauppauge/PCTV for pushing for its release
+for so long.
 
-Best regards,
-Maxim Levitsky
+Cheers,
 
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
