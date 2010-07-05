@@ -1,60 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:43602 "EHLO smtp5-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:36856 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758032Ab0G2Q4X convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:56:23 -0400
-Date: Thu, 29 Jul 2010 18:57:10 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Hasan SAHIN <hasan.sahin@gmx.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: gspca_zc3xx module
-Message-ID: <20100729185710.42979135@tele>
-In-Reply-To: <4C517241.9050502@gmx.com>
-References: <4C517241.9050502@gmx.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1751387Ab0GEOec (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Jul 2010 10:34:32 -0400
+Message-ID: <4C31ED77.3040806@redhat.com>
+Date: Mon, 05 Jul 2010 11:34:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Palash Bandyopadhyay <Palash.Bandyopadhyay@conexant.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Jay Guillory <Jay.Guillory@conexant.com>
+Subject: Re: [cx25821] Removed duplicate code and cleaned up
+References: <34B38BE41EDBA046A4AFBB591FA31132F4B402@NBMBX01.bbnet.ad> <34B38BE41EDBA046A4AFBB591FA31132F4B404@NBMBX01.bbnet.ad>,<4C316D0C.6070707@redhat.com> <34B38BE41EDBA046A4AFBB591FA3113201B9A82A@NBMBX01.bbnet.ad>
+In-Reply-To: <34B38BE41EDBA046A4AFBB591FA3113201B9A82A@NBMBX01.bbnet.ad>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 29 Jul 2010 12:21:21 +0000
-Hasan SAHIN <hasan.sahin@gmx.com> wrote:
-
->   Hello Jean-Francois,
+Em 05-07-2010 03:49, Palash Bandyopadhyay escreveu:
+> Thanks Mauro.
 > 
-> I am using Gentoo linux stable x86 with kernel 2.6.34-r1.
-> before the kernel update to 2.6.34-r1, I was using 2.6.32-r7 and
-> there was no problem with webcam.
-> The webcam was working as good with kernel 2.6.32-r7(old gentoo
-> stable kernel)
-> but right now it does not work with the kernel 2.6.34-r1 (new gentoo 
-> stable kernel)
+>   I'll discuss with the team and come up with a solution for this.
+
+Ok.
 > 
-> And also I have tried with ubuntu 10.04 (kernel 2.6.32-25) and
-> working good. I could not understood what is the problem. (Problem
-> is : there is no output, no stream)
-	[snip]
-> gspca: probing 0ac8:303b
-> zc3xx: probe 2wr ov vga 0x0000
-> zc3xx: probe 3wr vga 1 0xc001
-> zc3xx: probe sensor -> 0013
-> zc3xx: Find Sensor MI0360SOC. Chip revision c001
-	[snip]
+>   BTW, any update on the Polaris patches? I had resent the 1/2 an 2/2 patches.
 
-Hello Hasan,
+I saw. I have a large amount of patches yet needing to analize/merge (almost 200).
+I hope to merge all of them this week.
 
-In the kernel 2.6.34, the sensor mi0360soc sequences have been changed
-to make the webcams 0ac8:301b work, but these sequences are wrong for
-the webcams 0ac8:303b.
-
-An other user is testing the fix which is in my test tarball (see my
-home page below - current version 2.10.4). There is just one remaining
-problem: the image is mirrored, and I have not found yet how to set it
-normal...
-
-Best regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Cheers,
+Mauro.
