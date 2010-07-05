@@ -1,69 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:55542 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751756Ab0GWIN1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jul 2010 04:13:27 -0400
-Date: Fri, 23 Jul 2010 10:13:37 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH] mediabus: add MIPI CSI-2 pixel format codes
-Message-ID: <Pine.LNX.4.64.1007231010370.22677@axis700.grange>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:64343 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753516Ab0GETH0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 15:07:26 -0400
+Received: by wyf23 with SMTP id 23so2539268wyf.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Jul 2010 12:07:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4C32044C.3060007@redhat.com>
+References: <20100518173011.5d9c7f2c@glory.loctelecom.ru>
+	<AANLkTilL60q2PrBGagobWK99dV9OMKldxLiKZafn1oYb@mail.gmail.com>
+	<20100525114939.067404eb@glory.loctelecom.ru>
+	<4C32044C.3060007@redhat.com>
+Date: Mon, 5 Jul 2010 15:07:24 -0400
+Message-ID: <AANLkTinctdXC5lmzXSkgwjwfIwAH3BNFCWeWMnK3Xi5-@mail.gmail.com>
+Subject: Re: [PATCH] xc5000, rework xc_write_reg
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Dmitri Belimov <d.belimov@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stefan Ringel <stefan.ringel@arcor.de>,
+	Bee Hock Goh <beehock@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add pixel format codes, defined in the MIPI CSI-2 specification.
+On Mon, Jul 5, 2010 at 12:11 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Devin/Dmitri,
+>
+> Any progress about this patch?
+>
+> Cheers,
+> Mauro
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Sorry for the delay.
 
-Even though it affects the same enum as my patch from yesterday, they are 
-independent, Hans and Laurent CCed just to avoid possible conflicts, when 
-further patching this file.
+I did some testing with it today, and it looks fine.
 
- include/media/v4l2-mediabus.h |   26 ++++++++++++++++++++++++++
- 1 files changed, 26 insertions(+), 0 deletions(-)
+Acked-by: Devin Heitmueller <dheitmueller@kernellabs.com>
 
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index a870965..b0dcace 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -41,6 +41,32 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
- 	V4L2_MBUS_FMT_SGRBG8_1X8,
-+	/* MIPI CSI-2 codes */
-+	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8_L,
-+	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8,
-+	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_10,
-+	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8_CSPS,
-+	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_10_CSPS,
-+	V4L2_MBUS_FMT_MIPI_CSI2_YUV422_8,
-+	V4L2_MBUS_FMT_MIPI_CSI2_YUV422_10,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RGB888,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RGB666,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RGB565,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RGB555,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RGB444,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RAW6,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RAW7,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RAW8,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RAW10,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RAW12,
-+	V4L2_MBUS_FMT_MIPI_CSI2_RAW14,
-+	V4L2_MBUS_FMT_MIPI_CSI2_GEN_NULL,
-+	V4L2_MBUS_FMT_MIPI_CSI2_GEN_BLANKING,
-+	V4L2_MBUS_FMT_MIPI_CSI2_GEN_EMBEDDED8,
-+	V4L2_MBUS_FMT_MIPI_CSI2_USER_1,
-+	V4L2_MBUS_FMT_MIPI_CSI2_USER_2,
-+	V4L2_MBUS_FMT_MIPI_CSI2_USER_3,
-+	V4L2_MBUS_FMT_MIPI_CSI2_USER_4,
- };
- 
- /**
+Thanks,
+
+Devin
+
 -- 
-1.6.2.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
