@@ -1,22 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.10])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o6UBV0B4025956
-	for <video4linux-list@redhat.com>; Fri, 30 Jul 2010 07:31:00 -0400
-Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6UBUpBO025219
-	for <video4linux-list@redhat.com>; Fri, 30 Jul 2010 07:30:52 -0400
-Received: from jim.nabble.com ([192.168.236.80])
-	by kuber.nabble.com with esmtp (Exim 4.63)
-	(envelope-from <sudhindra.nayak@gmail.com>) id 1Oennf-0007j1-KC
-	for video4linux-list@redhat.com; Fri, 30 Jul 2010 04:30:51 -0700
-Date: Fri, 30 Jul 2010 04:30:51 -0700 (PDT)
-From: Sudhindra Nayak <sudhindra.nayak@gmail.com>
-To: video4linux-list@redhat.com
-Message-ID: <1280489451608-5354598.post@n2.nabble.com>
-Subject: Not able to capture video frames
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o65AAkjB028416
+	for <video4linux-list@redhat.com>; Mon, 5 Jul 2010 06:10:46 -0400
+Received: from moutng.kundenserver.de (moutng.kundenserver.de
+	[212.227.126.186])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o65AAF2H019294
+	for <video4linux-list@redhat.com>; Mon, 5 Jul 2010 06:10:36 -0400
+Message-ID: <4C31AF7E.7090602@2net.co.uk>
+Date: Mon, 05 Jul 2010 11:10:06 +0100
+From: Chris Simmonds <chris.simmonds@2net.co.uk>
 MIME-Version: 1.0
+To: video4linux-list@redhat.com
+Subject: Re: Contiguous memory allocations
+References: <1278103660.6034.16.camel@localhost>
+In-Reply-To: <1278103660.6034.16.camel@localhost>
+Reply-To: chris@2net.co.uk
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,52 +24,49 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
+On 02/07/10 21:47, Eric Nelson wrote:
+> Does anyone know if there's a common infrastructure for allocation
+> of DMA'able memory by drivers and applications above the straight
+> kernel API (dma_alloc_coherent)?
+>
+> I'm working with Freescale i.MX51 drivers to do 720P video
+> input and output and the embedded calls to dma_alloc_coherent
+> fail except when used right after boot because of fragmentation.
+>
+> I'm fighting the urge to write yet another special-purpose allocator
+> for video buffers thinking this must be a common problem with a
+> solution already, but I can't seem to locate one.
+>
+> The closest thing I've found is the bigphysarea patch, which doesn't
+> appear to be supported or headed toward main-line.
+>
+> Thanks in advance,
+>
 
-Hi all,
+dma_alloc_coherent is pretty much just a wrapper round get_free_pages, 
+which is the lowest level allocator in the kernel. So, no there is no 
+other option (but see below). The simplest thing is to make sure your 
+driver is loaded at boot time and to grab all the memory you need then 
+and never let it go. That's what I do.
 
-I'm using the 'Omnivision' ov538 camera bridge processor along with an
-ov10620 CMOS sensor. I'm using a driver which I got from the following link:
+If you are desperate, you can use the bigphysarea patch - it's quite 
+common on streaming video devices - but you will have to port it to your 
+kernel. Or, you can restrict the memory the kernel uses with something 
+like "mem=128M" on the command line and take that above 128M for 
+yourself. You will have to map it in with ioremap(_nocache).
 
-http://lwn.net/Articles/308358/
+Bye for now,
+Chris.
 
-I've modified the driver by inserting printk statements in the driver code
-to understand the flow of control between functions. I've also changed the
-arguments passed to the 'sccb_reg_write' function to values corresponding to
-the ov10620 sensor. 
-
-I'm using a v4l2 example code as my application along with the above
-mentioned driver. The example code can be found at the below link:
-
-http://v4l2spec.bytesex.org/spec/capture-example.html
-
-When I run the application after inserting the driver, it calls the
-open_device(), init_device() and start_capturing() functions and then enters
-the mainloop() function. In the mainloop() function, the select() function
-call times out after 2 seconds and I'm not able to capture any video frames.
-
-I'm also receiving some errors like:
-
-gspca: ISOC data error: [3] len=56, status=-71
-gspca: ISOC data error: [4] len=12, status=-71
-
-This repeats with different values for 'len' and the value in [ ].
-
-Any solutions??
-
-
------
-Regards,
-
-Sudhindra Nayak
 -- 
-View this message in context: http://video4linux-list.1448896.n2.nabble.com/Not-able-to-capture-video-frames-tp5354598p5354598.html
-Sent from the video4linux-list mailing list archive at Nabble.com.
+Chris Simmonds                   2net Limited
+chris@2net.co.uk                 http://www.2net.co.uk/
 
 --
 video4linux-list mailing list
