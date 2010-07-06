@@ -1,124 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3116 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754638Ab0GKTgz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jul 2010 15:36:55 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6BJarUk080010
-	for <linux-media@vger.kernel.org>; Sun, 11 Jul 2010 21:36:53 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 11 Jul 2010 21:36:53 +0200 (CEST)
-Message-Id: <201007111936.o6BJarUk080010@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from hera.kernel.org ([140.211.167.34]:42419 "EHLO hera.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751835Ab0GFHC1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Jul 2010 03:02:27 -0400
+Message-ID: <4C32D4BE.9030005@kernel.org>
+Date: Tue, 06 Jul 2010 09:01:18 +0200
+From: Tejun Heo <tj@kernel.org>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: torvalds@linux-foundation.org, mingo@elte.hu,
+	linux-kernel@vger.kernel.org, jeff@garzik.org,
+	akpm@linux-foundation.org, rusty@rustcorp.com.au,
+	cl@linux-foundation.org, dhowells@redhat.com,
+	arjan@linux.intel.com, oleg@redhat.com, axboe@kernel.dk,
+	fweisbec@gmail.com, dwalker@codeaurora.org,
+	stefanr@s5r6.in-berlin.de, florian@mickler.org,
+	andi@firstfloor.org, mst@redhat.com, randy.dunlap@oracle.com,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 02/35] ivtv: use kthread_worker instead of workqueue
+References: <1277759063-24607-1-git-send-email-tj@kernel.org>	 <1277759063-24607-3-git-send-email-tj@kernel.org> <1278349860.2229.9.camel@localhost>
+In-Reply-To: <1278349860.2229.9.camel@localhost>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On 07/05/2010 07:11 PM, Andy Walls wrote:
+> Assuming the new kthread_worker implementation is OK, this change for
+> ivtv looks good.
+> 
+> Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+> Acked-by: Andy Walls <awalls@md.metrocast.net>
 
-Results of the daily build of v4l-dvb:
+May I route this patch through wq branch?  As it's not clear how this
+whole patchset will end up, I think it would be better to keep things
+isolated in this branch.
 
-date:        Sun Jul 11 19:00:26 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Thank you.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+tejun
