@@ -1,62 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway01.websitewelcome.com ([69.93.136.19]:54154 "HELO
-	gateway01.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751555Ab0GVQna (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jul 2010 12:43:30 -0400
-Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links
- enumeration
-From: Pete Eberlein <pete@sensoray.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <201007221720.04555.laurent.pinchart@ideasonboard.com>
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <1279722935-28493-7-git-send-email-laurent.pinchart@ideasonboard.com>
-	 <4C485F49.2000703@maxwell.research.nokia.com>
-	 <201007221720.04555.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 22 Jul 2010 09:36:51 -0700
-Message-ID: <1279816611.2443.111.camel@pete-desktop>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:45281 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751661Ab0GFPY3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jul 2010 11:24:29 -0400
+Date: Tue, 6 Jul 2010 08:21:46 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>, awalls@md.metrocast.net,
+	moinejf@free.fr, g.liakhovetski@gmx.de, jarod@redhat.com,
+	corbet@lwn.net, rz@linux-m68k.org, pboettcher@dibcom.fr,
+	awalls@radix.net, crope@iki.fi, davidtlwong@gmail.com,
+	laurent.pinchart@ideasonboard.com, eduardo.valentin@nokia.com,
+	p.osciak@samsung.com, liplianin@tut.by, isely@isely.net,
+	tobias.lorenz@gmx.net, hdegoede@redhat.com,
+	u.kleine-koenig@pengutronix.de, abraham.manu@gmail.com,
+	stoth@kernellabs.com, henrik@kurelid.se
+Subject: Re: Status of the patches under review at LMML (60 patches)
+Message-Id: <20100706082146.598976e9.randy.dunlap@oracle.com>
+In-Reply-To: <4C332A5F.4000706@redhat.com>
+References: <4C332A5F.4000706@redhat.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-07-22 at 17:20 +0200, Laurent Pinchart wrote:
-> > Laurent Pinchart wrote:
-> > 
-> > ...
-> > 
-> > > diff --git a/Documentation/media-framework.txt
-> > > b/Documentation/media-framework.txt index 3acc62b..16c0177 100644
-> > > --- a/Documentation/media-framework.txt
-> > > +++ b/Documentation/media-framework.txt
-> > > @@ -270,3 +270,137 @@ required, drivers don't need to provide a set_power
-> 
-> [snip]
-> 
-> > > +The media_user_pad, media_user_link and media_user_links structure are 
-> > > defined
-> > > +as
-> > 
-> > I have a comment on naming. These are user space structures, sure, but
-> > do we want that fact to be visible in the names of the structures? I
-> > would just drop the user_ out and make the naming as good as possible in
-> > user space. That is much harder to change later than naming inside the
-> > kernel.
-> 
-> I agree.
-> 
-> > That change causes a lot of clashes in naming since the equivalent
-> > kernel structure is there as well. Those could have _k postfix, for
-> > example, to differentiate them from user space names. I don't really
-> > have a good suggestion how they should be called.
-> 
-> Maybe media_k_* ? I'm not very happy with that name either though.
+On Tue, 06 Jul 2010 10:06:39 -0300 Mauro Carvalho Chehab wrote:
 
-What do you think about a single underscore prefix for the kernel
-structures, used commonly to indicate that a declaration is limited?
+> This is the summary of the patches that are currently under review at 
+> Linux Media Mailing List <linux-media@vger.kernel.org>.
+> Each patch is represented by its submission date, the subject (up to 70
+> chars) and the patchwork link (if submitted via email).
+> 
+> P.S.: This email is c/c to the developers where some action is expected.
+>       If you were copied, please review the patches, acking/nacking or
+>       submitting an update.
+> 
+> 		== New patches - waiting for some days for more review == 
+> 
+> Jul, 1 2010: v4l2-dev: fix memory leak                                              http://patchwork.kernel.org/patch/109191
+> Jul, 5 2010: soc-camera: module_put() fix                                           http://patchwork.kernel.org/patch/110202
+> Jul, 4 2010: IR/mceusb: unify and simplify different gen device init                http://patchwork.kernel.org/patch/110078
+> Jul, 6 2010: [1/2] Added Technisat Skystar USB HD CI                                http://patchwork.kernel.org/patch/110395
+> Jul, 6 2010: [2/2] Retrieve firmware for az6027                                     http://patchwork.kernel.org/patch/110394
 
 
+Hi Mauro,
+Is it possible to add Author (or From:) to each of these?
 
+thanks,
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
