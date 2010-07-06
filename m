@@ -1,179 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:8973 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751992Ab0GJS2X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jul 2010 14:28:23 -0400
-Subject: Re: [PATCH] Add support for AUX_PLL on cx2583x chips
-From: Andy Walls <awalls@md.metrocast.net>
-To: Sven Barth <pascaldragon@googlemail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Mike Isely <isely@isely.net>
-In-Reply-To: <4C38B5AD.9070104@googlemail.com>
-References: <4C38B5AD.9070104@googlemail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 10 Jul 2010 14:28:15 -0400
-Message-ID: <1278786495.2273.288.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:33701 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753827Ab0GFKaf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jul 2010 06:30:35 -0400
+From: Renzo Dani <arons7@gmail.com>
+To: mchehab@infradead.org
+Cc: arons7@gmail.com, rdunlap@xenotime.net, o.endriss@gmx.de,
+	awalls@radix.net, crope@iki.fi, manu@linuxtv.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-doc@vger.kernel.org
+Subject: [PATCH 1/2] Added Technisat Skystar USB HD CI
+Date: Tue,  6 Jul 2010 12:23:18 +0200
+Message-Id: <1278411798-6437-1-git-send-email-arons7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-07-10 at 20:02 +0200, Sven Barth wrote:
-> This adds support for the AUX_PLL in cx2583x chips which is available in 
-> those although the audio part of the chip is not.
-> The AUX_PLL is used at least by Terratec in their Grabster AV400 device.
-> 
-> Signed-off-by: Sven Barth <pascaldragon@googlemail.com>
-> Acked-By: Mike Isely <isely@pobox.com>
+From: Renzo Dani <arons7@gmail.com>
 
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-Acked-by: Andy Walls <awalls@md.metrocast.net>
 
->From my recollection of our previous emails, this patch looks right and
-is the right approach.
+Signed-off-by: Renzo Dani <arons7@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/az6027.c |   14 ++++++++++++--
+ 1 files changed, 12 insertions(+), 2 deletions(-)
 
-Regards,
-Andy
-
-> diff -aur v4l-src/linux/drivers/media/video/cx25840//cx25840-audio.c 
-> v4l-build/linux/drivers/media/video/cx25840//cx25840-audio.c
-> --- v4l-src/linux/drivers/media/video/cx25840//cx25840-audio.c 
-> 2009-10-18 21:08:26.497700904 +0200
-> +++ v4l-build/linux/drivers/media/video/cx25840//cx25840-audio.c 
-> 2010-07-09 22:35:31.067718241 +0200
-> @@ -438,41 +438,45 @@
->   {
->   	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
-> 
-> -	/* assert soft reset */
-> -	cx25840_and_or(client, 0x810, ~0x1, 0x01);
-> -
-> -	/* stop microcontroller */
-> -	cx25840_and_or(client, 0x803, ~0x10, 0);
-> -
-> -	/* Mute everything to prevent the PFFT! */
-> -	cx25840_write(client, 0x8d3, 0x1f);
-> -
-> -	if (state->aud_input == CX25840_AUDIO_SERIAL) {
-> -		/* Set Path1 to Serial Audio Input */
-> -		cx25840_write4(client, 0x8d0, 0x01011012);
-> -
-> -		/* The microcontroller should not be started for the
-> -		 * non-tuner inputs: autodetection is specific for
-> -		 * TV audio. */
-> -	} else {
-> -		/* Set Path1 to Analog Demod Main Channel */
-> -		cx25840_write4(client, 0x8d0, 0x1f063870);
-> -	}
-> +        if (!is_cx2583x(state)) {
-> +		/* assert soft reset */
-> +		cx25840_and_or(client, 0x810, ~0x1, 0x01);
-> +
-> +		/* stop microcontroller */
-> +		cx25840_and_or(client, 0x803, ~0x10, 0);
-> +
-> +		/* Mute everything to prevent the PFFT! */
-> +		cx25840_write(client, 0x8d3, 0x1f);
-> +
-> +		if (state->aud_input == CX25840_AUDIO_SERIAL) {
-> +			/* Set Path1 to Serial Audio Input */
-> +			cx25840_write4(client, 0x8d0, 0x01011012);
-> +
-> +			/* The microcontroller should not be started for the
-> +			 * non-tuner inputs: autodetection is specific for
-> +			 * TV audio. */
-> +		} else {
-> +			/* Set Path1 to Analog Demod Main Channel */
-> +			cx25840_write4(client, 0x8d0, 0x1f063870);
-> +		}
-> +        }
-> 
->   	set_audclk_freq(client, state->audclk_freq);
-> 
-> -	if (state->aud_input != CX25840_AUDIO_SERIAL) {
-> -		/* When the microcontroller detects the
-> -		 * audio format, it will unmute the lines */
-> -		cx25840_and_or(client, 0x803, ~0x10, 0x10);
-> -	}
-> -
-> -	/* deassert soft reset */
-> -	cx25840_and_or(client, 0x810, ~0x1, 0x00);
-> -
-> -	/* Ensure the controller is running when we exit */
-> -	if (is_cx2388x(state) || is_cx231xx(state))
-> -		cx25840_and_or(client, 0x803, ~0x10, 0x10);
-> +        if (!is_cx2583x(state)) {
-> +		if (state->aud_input != CX25840_AUDIO_SERIAL) {
-> +			/* When the microcontroller detects the
-> +			 * audio format, it will unmute the lines */
-> +			cx25840_and_or(client, 0x803, ~0x10, 0x10);
-> +		}
-> +
-> +		/* deassert soft reset */
-> +		cx25840_and_or(client, 0x810, ~0x1, 0x00);
-> +
-> +		/* Ensure the controller is running when we exit */
-> +		if (is_cx2388x(state) || is_cx231xx(state))
-> +			cx25840_and_or(client, 0x803, ~0x10, 0x10);
-> +        }
->   }
-> 
->   static int get_volume(struct i2c_client *client)
-> diff -aur v4l-src/linux/drivers/media/video/cx25840//cx25840-core.c 
-> v4l-build/linux/drivers/media/video/cx25840//cx25840-core.c
-> --- v4l-src/linux/drivers/media/video/cx25840//cx25840-core.c	2010-06-26 
-> 17:56:26.238525747 +0200
-> +++ v4l-build/linux/drivers/media/video/cx25840//cx25840-core.c 
-> 2010-07-09 23:28:36.784067005 +0200
-> @@ -691,6 +691,11 @@
->   	}
->   	cx25840_and_or(client, 0x401, ~0x60, 0);
->   	cx25840_and_or(client, 0x401, ~0x60, 0x60);
-> +
-> +        /* Don't write into audio registers on cx2583x chips */
-> +        if (is_cx2583x(state))
-> +        	return;
-> +
->   	cx25840_and_or(client, 0x810, ~0x01, 1);
-> 
->   	if (state->radio) {
-> @@ -849,10 +854,8 @@
-> 
->   	state->vid_input = vid_input;
->   	state->aud_input = aud_input;
-> -	if (!is_cx2583x(state)) {
-> -		cx25840_audio_set_path(client);
-> -		input_change(client);
-> -	}
-> +	cx25840_audio_set_path(client);
-> +	input_change(client);
-> 
->   	if (is_cx2388x(state)) {
->   		/* Audio channel 1 src : Parallel 1 */
-> @@ -1482,8 +1485,6 @@
->   	struct cx25840_state *state = to_state(sd);
->   	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> 
-> -	if (is_cx2583x(state))
-> -		return -EINVAL;
->   	return set_input(client, state->vid_input, input);
->   }
-> 
-> @@ -1492,8 +1493,7 @@
->   	struct cx25840_state *state = to_state(sd);
->   	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> 
-> -	if (!is_cx2583x(state))
-> -		input_change(client);
-> +	input_change(client);
->   	return 0;
->   }
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
+index d7290b2..445851a 100644
+--- a/drivers/media/dvb/dvb-usb/az6027.c
++++ b/drivers/media/dvb/dvb-usb/az6027.c
+@@ -1103,13 +1103,23 @@ static struct dvb_usb_device_properties az6027_properties = {
+ 	.rc_query         = az6027_rc_query,
+ 	.i2c_algo         = &az6027_i2c_algo,
+ 
+-	.num_device_descs = 1,
++	.num_device_descs = 3,
+ 	.devices = {
+ 		{
+ 			.name = "AZUREWAVE DVB-S/S2 USB2.0 (AZ6027)",
+ 			.cold_ids = { &az6027_usb_table[0], NULL },
+ 			.warm_ids = { NULL },
+ 		},
++		{
++		    .name = " Terratec DVB 2 CI",
++			.cold_ids = { &az6027_usb_table[1], NULL },
++			.warm_ids = { NULL },
++		},
++		{
++		    .name = "TechniSat SkyStar USB 2 HD CI (AZ6027)",
++			.cold_ids = { &az6027_usb_table[2], NULL },
++			.warm_ids = { NULL },
++		},
+ 		{ NULL },
+ 	}
+ };
+@@ -1118,7 +1128,7 @@ static struct dvb_usb_device_properties az6027_properties = {
+ static struct usb_driver az6027_usb_driver = {
+ 	.name		= "dvb_usb_az6027",
+ 	.probe 		= az6027_usb_probe,
+-	.disconnect 	= az6027_usb_disconnect,
++	.disconnect	= az6027_usb_disconnect,
+ 	.id_table 	= az6027_usb_table,
+ };
+ 
+-- 
+1.7.1
 
