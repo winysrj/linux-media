@@ -1,102 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnxtsmtp2.conexant.com ([198.62.9.253]:57268 "EHLO
-	cnxtsmtp2.conexant.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751580Ab0GEHJh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 03:09:37 -0400
-Received: from cps (nbwsmx1.bbnet.ad [157.152.183.211]) (using TLSv1 with cipher RC4-MD5 (128/128
- bits)) (No client certificate requested) by cnxtsmtp2.conexant.com (Tumbleweed MailGate 3.7.1) with
- ESMTP id 2BDF7242F64 for <linux-media@vger.kernel.org>; Sun, 4 Jul 2010 23:51:43 -0700 (PDT)
-From: "Palash Bandyopadhyay" <Palash.Bandyopadhyay@conexant.com>
-To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Jay Guillory" <Jay.Guillory@conexant.com>
-Date: Sun, 4 Jul 2010 23:49:21 -0700
-Subject: RE: [cx25821] Removed duplicate code and cleaned up
-Message-ID: <34B38BE41EDBA046A4AFBB591FA3113201B9A82A@NBMBX01.bbnet.ad>
-References: <34B38BE41EDBA046A4AFBB591FA31132F4B402@NBMBX01.bbnet.ad>
- <34B38BE41EDBA046A4AFBB591FA31132F4B404@NBMBX01.bbnet.ad>,<4C316D0C.6070707@redhat.com>
-In-Reply-To: <4C316D0C.6070707@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain;
- charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Received: from web94910.mail.in2.yahoo.com ([203.104.17.172]:46846 "HELO
+	web94910.mail.in2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751477Ab0GFFHR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Jul 2010 01:07:17 -0400
+Message-ID: <594515.49257.qm@web94910.mail.in2.yahoo.com>
+Date: Tue, 6 Jul 2010 10:37:12 +0530 (IST)
+From: Pavan Savoy <pavan_savoy@ti.com>
+Reply-To: pavan_savoy@ti.com
+Subject: Re: V4L2 radio drivers for TI-WL7
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, matti.j.aaltonen@nokia.com,
+	mchehab@infradead.org, eduardo.valentin@nokia.com
+In-Reply-To: <201007050821.53313.hverkuil@xs4all.nl>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks Mauro.
 
-  I'll discuss with the team and come up with a solution for this.
+--- On Mon, 5/7/10, Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-  BTW, any update on the Polaris patches? I had resent the 1/2 an 2/2 patches.
+> From: Hans Verkuil <hverkuil@xs4all.nl>
+> Subject: Re: V4L2 radio drivers for TI-WL7
+> To: pavan_savoy@ti.com
+> Cc: linux-media@vger.kernel.org, matti.j.aaltonen@nokia.com, mchehab@infradead.org, "pavan savoy" <pavan_savoy@yahoo.co.in>, eduardo.valentin@nokia.com
+> Date: Monday, 5 July, 2010, 11:51 AM
+> On Friday 02 July 2010 09:01:34 Pavan
+> Savoy wrote:
+> > Hi,
+> > 
+> > We have/in process of developing a V4L2 driver for the
+> FM Radio on the Texas Instruments WiLink 7 module.
+> > 
+> > For transport/communication with the chip, we intend
+> to use the shared transport driver currently staged in
+> mainline at drivers/staging/ti-st/.
+> > 
+> > To which tree should I generate patches against? is
+> the tree
+> >
+> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
+> > fine ? to be used with the v4l_for_2.6.35 branch ?
+> 
+> You patch against git://git.linuxtv.org/v4l-dvb.git.
+> 
+> > 
+> > Also, this is over the UART/TTY unlike the WL1273 i2c
+> mfd driver...
+> 
+> Is the WiLink 7 a platform device (i.e. an integral part of
+> the CPU) or a separate
+> chip that can be used with any hardware?
+> 
+> Will the FM Radio always be controlled over a UART/TTY bus
+> or is that specific
+> to your development platform?
 
-Thanks,
-Palash
+WiLink 7 would be a peripheral which has 1 interface with apps processor being UART, more details at,
 
-________________________________________
-From: Mauro Carvalho Chehab [mchehab@redhat.com]
-Sent: Sunday, July 04, 2010 10:26 PM
-To: Palash Bandyopadhyay
-Cc: linux-media@vger.kernel.org; Jay Guillory
-Subject: Re: [cx25821] Removed duplicate code and cleaned up
+http://www.google.co.in/url?sa=t&source=web&cd=3&ved=0CBQQFjAC&url=http%3A%2F%2Ffocus.ti.com%2Fgeneral%2Fdocs%2Fwtbu%2Fwtbuproductcontent.tsp%3FtemplateId%3D6123%26navigationId%3D12859%26contentId%3D67453%26DCMP%3Dwtbu_wilink7_2010%26HQS%3DOther%2BPR%2Bwilink7videos&ei=d7kyTKPXMoTGlQfJ-7W-Cw&usg=AFQjCNEjN2jc9TdSDWDRtWcmbZn6Szhbug&sig2=DN4gAQls9AdOeHQhlPlvjA
 
-Em 10-06-2010 01:27, Palash Bandyopadhyay escreveu:
-> From 58fd4cad5f6acbe16bff86b8e878d2352cc73637 Mon Sep 17 00:00:00 2001
-> Message-Id: <58fd4cad5f6acbe16bff86b8e878d2352cc73637.1276143362.git.palash.bandyopadhyay@conexant.com>
-> From: palash <palash.bandyopadhyay@conexant.com>
-> Date: Wed, 9 Jun 2010 21:11:20 -0700
-> Subject: [cx25821] Removed duplicate code and cleaned up
-> To: linux-media@vger.kernel.org
->
-> Signed-off-by: palash <palash.bandyopadhyay@conexant.com>
->
->  delete mode 100644 drivers/staging/cx25821/cx25821-audups11.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-video0.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-video1.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-video2.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-video3.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-video4.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-video5.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-video6.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-video7.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-videoioctl.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-vidups10.c
->  delete mode 100644 drivers/staging/cx25821/cx25821-vidups9.c
+Since there exists only 1 interface for all BT/FM and GPS cores on chip, a shared transport driver has been developed and placed at drivers/staging/ti-st/
 
-Hi Palash,
-
-I've applied your patch at "staging/other" branch, and added there a few patches to cleanup
-some troubles I saw on the driver. I was wanting to move it out of staging, but, unfortunately,
-the driver is not ready yet.
-
-One of the bad things I saw on the driver is this part:
-
-$ grep /root/ drivers/staging/cx25821/*
-drivers/staging/cx25821/cx25821-audio-upstream.c:                       dev->_audiofilename = "/root/audioGOOD.wav";
-drivers/staging/cx25821/cx25821-audio-upstream.h:char *_defaultAudioName = "/root/audioGOOD.wav";
-drivers/staging/cx25821/cx25821-video-upstream.c:                            PIXEL_FRMT_411) ? "/root/vid411.yuv" :
-drivers/staging/cx25821/cx25821-video-upstream.c:                           "/root/vidtest.yuv";
-drivers/staging/cx25821/cx25821-video-upstream.c:                            PIXEL_FRMT_411) ? "/root/pal411.yuv" :
-drivers/staging/cx25821/cx25821-video-upstream.c:                           "/root/pal422.yuv";
-drivers/staging/cx25821/cx25821-video-upstream-ch2.c:                        PIXEL_FRMT_411) ? "/root/vid411.yuv" :
-drivers/staging/cx25821/cx25821-video-upstream-ch2.c:                       "/root/vidtest.yuv";
-drivers/staging/cx25821/cx25821-video-upstream-ch2.c:                        PIXEL_FRMT_411) ? "/root/pal411.yuv" :
-drivers/staging/cx25821/cx25821-video-upstream-ch2.c:                       "/root/pal422.yuv";
-
-The driver should not get any file name from userspace, not should read directly to any file.
-Instead, it should be using V4L2 and ALSA API's for any kind of streams. Please fix it.
-
-Cheers,
-Mauro.
+Would it be suitable if we place the V4L2 FM driver at drivers/staging/ti-st/ to ? Since we don't have the common interface headers such as st.h in include/linux..
 
 
-Conexant E-mail Firewall (Conexant.Com) made the following annotations
----------------------------------------------------------------------
-********************** Legal Disclaimer **************************** 
+> Regards,
+> 
+>     Hans
+> 
+> -- 
+> Hans Verkuil - video4linux developer - sponsored by
+> TANDBERG, part of Cisco
+> 
 
-"This email may contain confidential and privileged material for the sole use of the intended recipient. Any unauthorized review, use or distribution by others is strictly prohibited. If you have received the message in error, please advise the sender by reply email and delete the message. Thank you." 
-
-********************************************************************** 
-
----------------------------------------------------------------------
 
