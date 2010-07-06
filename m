@@ -1,67 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32133 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755305Ab0GJOML (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jul 2010 10:12:11 -0400
-Message-ID: <4C387FC3.8030508@redhat.com>
-Date: Sat, 10 Jul 2010 11:12:19 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:63656 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755598Ab0GFMk2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jul 2010 08:40:28 -0400
+Message-ID: <4C33243D.1070107@gmail.com>
+Date: Tue, 06 Jul 2010 09:40:29 -0300
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org
-Subject: Re: [git:v4l-dvb/other] V4L/DVB: ivtv: use kthread_worker instead
- of workqueue
-References: <E1OVyBy-0007oJ-03@www.linuxtv.org>	 <1278765186.2273.6.camel@localhost>  <4C386D62.4060202@redhat.com> <1278767236.2273.33.camel@localhost>
-In-Reply-To: <1278767236.2273.33.camel@localhost>
-Content-Type: text/plain; charset=UTF-8
+To: Richard Zidlicky <rz@linux-m68k.org>
+CC: Jiri Slaby <jirislaby@gmail.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2.6.34] schedule inside spin_lock_irqsave
+References: <20100530145240.GA21559@linux-m68k.org> <4C028336.8030704@gmail.com> <20100606124302.GA10119@linux-m68k.org> <4C0BE03C.8000709@gmail.com> <20100607130048.GA6857@linux-m68k.org>
+In-Reply-To: <20100607130048.GA6857@linux-m68k.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 10-07-2010 10:07, Andy Walls escreveu:
-> On Sat, 2010-07-10 at 09:53 -0300, Mauro Carvalho Chehab wrote:
->> Em 10-07-2010 09:33, Andy Walls escreveu:
->>> On Tue, 2010-07-06 at 03:51 +0200, Mauro Carvalho Chehab wrote:
->>>> This is an automatic generated email to let you know that the following patch were queued at the 
->>>> http://git.linuxtv.org/v4l-dvb.git tree:
->>>>
->>>> Subject: V4L/DVB: ivtv: use kthread_worker instead of workqueue
->>>> Author:  Tejun Heo <tj@kernel.org>
->>>> Date:    Mon Jun 28 18:03:50 2010 -0300
->>>>
->>>> Upcoming workqueue updates will no longer guarantee fixed workqueue to
->>>> worker kthread association, so giving RT priority to the irq worker
->>>> won't work.  Use kthread_worker which guarantees specific kthread
->>>> association instead.  This also makes setting the priority cleaner.
->>>>
->>>> Signed-off-by: Tejun Heo <tj@kernel.org>
->>>> Reviewed-by: Andy Walls <awalls@md.metrocast.net>
->>>> Acked-by: Andy Walls <awalls@md.metrocast.net>
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Em 07-06-2010 10:00, Richard Zidlicky escreveu:
+> On Sun, Jun 06, 2010 at 07:51:56PM +0200, Jiri Slaby wrote:
+>> On 06/06/2010 02:43 PM, Richard Zidlicky wrote:
+>>> Hi,
 >>>
->>> Mauro,
+>>> I have done a minimaly invasive patch for the stable 2.6.34 kernel and stress-tested 
+>>> it for many hours, definitely seems to improve the behaviour.
 >>>
->>> Please revert this or keep it from going upstream.
+>>> I have left out your beautification suggestion for now, want to do more playing with
+>>> other aspects of the driver. There still seem to be issues when the device is unplugged 
+>>> while in use and such.
+>>>
+>>> --- linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c.rz	2010-06-03 21:58:11.000000000 +0200
+>>> +++ linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c	2010-06-04 23:00:35.000000000 +0200
+>>> @@ -1100,31 +1100,26 @@
+>>>   *
+>>>   * @return pointer to descriptor on success, NULL on error.
+>>>   */
+>>> -struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
+>>> +
+>>> +struct smscore_buffer_t *get_entry(void)
+>>>  {
+>>>  	struct smscore_buffer_t *cb = NULL;
+>>>  	unsigned long flags;
+>>>  
+>>> -	DEFINE_WAIT(wait);
+>>> -
+>>>  	spin_lock_irqsave(&coredev->bufferslock, flags);
 >>
->> I already did it locally at commit 635c644cdd1557a69e99bda0dcadaf006b66d432.
->> I just forgot to push it to the linuxtv repository ;)
->> I just updated upstream with this patch and another set of commits I did here.
+>> Sorry, maybe I'm just blind, but where is 'coredev' defined in this
+>> scope? You probably forgot to pass it to get_entry?
 >>
+>> How could this be compiled? Is there coredev defined globally?
 > 
-> :(
+> good catch. I think it failed and despite a different kernel id the old module was
+> loaded.
 > 
-> Hmmm.  I should really read my personal email more frequently than every
-> few days.
-> 
-> Is there anything you need me to do to help fix this? Provide my SOB on
-> a reversion patch?  Submit a reversion patch with an explanation and my
-> SOB?
-> 
-> Let me know.  I should be available most of today (EDT timezone).
+> Here is the new version, this time lightly tested
 
-For linux-next, I'll probably just send both patches, since it makes my life easier, but
-my intention is to just remove the two patches at the next submission window.
-So, feel free to ping me just after 2.6.35 launch, if you want me to remember about that ;)
+Could you please fix the indentation and send your SOB for this patch?
 
 Cheers,
 Mauro.
+> 
+> --- linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c.rz	2010-06-03 21:58:11.000000000 +0200
+> +++ linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c	2010-06-07 14:32:06.000000000 +0200
+> @@ -1100,31 +1100,26 @@
+>   *
+>   * @return pointer to descriptor on success, NULL on error.
+>   */
+> -struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
+> +
+> +struct smscore_buffer_t *get_entry(struct smscore_device_t *coredev)
+>  {
+>  	struct smscore_buffer_t *cb = NULL;
+>  	unsigned long flags;
+>  
+> -	DEFINE_WAIT(wait);
+> -
+>  	spin_lock_irqsave(&coredev->bufferslock, flags);
+> -
+> -	/* This function must return a valid buffer, since the buffer list is
+> -	 * finite, we check that there is an available buffer, if not, we wait
+> -	 * until such buffer become available.
+> -	 */
+> -
+> -	prepare_to_wait(&coredev->buffer_mng_waitq, &wait, TASK_INTERRUPTIBLE);
+> -
+> -	if (list_empty(&coredev->buffers))
+> -		schedule();
+> -
+> -	finish_wait(&coredev->buffer_mng_waitq, &wait);
+> -
+> +	if (!list_empty(&coredev->buffers)) {
+>  	cb = (struct smscore_buffer_t *) coredev->buffers.next;
+>  	list_del(&cb->entry);
+> -
+> +	}
+>  	spin_unlock_irqrestore(&coredev->bufferslock, flags);
+> +	return cb;
+> +}
+> +
+> +struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
+> +{
+> +	struct smscore_buffer_t *cb = NULL;
+> +
+> +	wait_event(coredev->buffer_mng_waitq, (cb = get_entry(coredev)));
+>  
+>  	return cb;
+>  }
+> 
+> 
+> Richard
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
