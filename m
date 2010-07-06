@@ -1,91 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:40685 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757380Ab0GIPcM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 11:32:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 5/7] v4l: subdev: Control ioctls support
-Date: Fri,  9 Jul 2010 17:31:50 +0200
-Message-Id: <1278689512-30849-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:48330 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753758Ab0GFRM5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jul 2010 13:12:57 -0400
+MIME-Version: 1.0
+In-Reply-To: <1277118245.2230.17.camel@localhost>
+References: <20100424211411.11570.2189.stgit@localhost.localdomain>
+	<4BDF2B45.9060806@redhat.com>
+	<20100607190003.GC19390@hardeman.nu>
+	<20100607201530.GG16638@redhat.com>
+	<20100608175017.GC5181@hardeman.nu>
+	<AANLkTimuYkKzDPvtnrWKoT8sh1H9paPBQQNmYWOT7-R2@mail.gmail.com>
+	<20100609132908.GM16638@redhat.com>
+	<20100609175621.GA19620@hardeman.nu>
+	<20100609181506.GO16638@redhat.com>
+	<AANLkTims0dmYCOoI_K4S6Q8hwLV_MqUdGQjVwFu43sCL@mail.gmail.com>
+	<20100613202945.GA5883@hardeman.nu>
+	<AANLkTim6f6jM4TGzyQsuHDNPUSsjINXFHck0NevrtqHr@mail.gmail.com>
+	<AANLkTil6P0rnmViLwpkiBOYoC6qF217V90g7Nslk3DHN@mail.gmail.com>
+	<1276776859.2461.16.camel@localhost>
+	<AANLkTinJPFBBDEiOpbFhkAccF5E7caKNmAuvEnq-uV4W@mail.gmail.com>
+	<1277081276.2252.12.camel@localhost>
+	<AANLkTikkSIk9XZiuF62YeCmGebrfy8SA9n3J5Agv8LjD@mail.gmail.com>
+	<1277118245.2230.17.camel@localhost>
+Date: Tue, 6 Jul 2010 13:12:55 -0400
+Message-ID: <AANLkTinNTUfrR3Yl7E2i7etRkW6cJ_HMeoG7uTZ_zy5A@mail.gmail.com>
+Subject: Re: [PATCH 3/4] ir-core: move decoding state to ir_raw_event_ctrl
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Pass the control-related ioctls to the subdev driver through the core
-operations.
+On Mon, Jun 21, 2010 at 7:04 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+> On Sun, 2010-06-20 at 23:51 -0400, Jarod Wilson wrote:
+>> On Sun, Jun 20, 2010 at 8:47 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+>
+>
+>> As for the building your own kernel thing... I've been doing my work
+>> mainly on a pair of x86_64 systems, one a ThinkPad T61 running Fedora
+>> 13, and the other an HP xw4400 workstation running RHEL6. In both
+>> cases, I copied a distro kernel's, config file out of /boot/, and then
+>> ran make oldconfig over it and build straight from what's in my tree,
+>> which works well enough on both setups.
+>
+> I pulled the config out of the kernel*.src.rpm after 'rpmbuild -bp' (I
+> only saw the configs in /boot after doing that :P ), and then ran 'make
+> oldconfig'.
+>
+> The first time around I forgot to do a modules_install and the ext[234]
+> modules weren't in the initramfs.  That made it hard for the kernel to
+> read the /boot and / filesystems. ;)
+>
+> After fixing that idiocy, it now hangs in early boot - just a blinking
+> cursor.  I'm speculating it is a problem with support for my old-ish ATI
+> Radeon Xpress 200 video chipset with a vanilla kernel.  I'll work it out
+> eventually.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/video4linux/v4l2-framework.txt |   16 ++++++++++++++++
- drivers/media/video/v4l2-subdev.c            |   24 ++++++++++++++++++++++++
- 2 files changed, 40 insertions(+), 0 deletions(-)
+Seems you've already gotten around this, but it did remind me of
+someone on one of the fedora mailing lists who said w/their older
+radeon hardware, they could only boot recent kernels if the passed in
+nomodeset=1 or something like that.
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 164bb0f..9c3f33c 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -331,6 +331,22 @@ argument to 0. Setting the argument to 1 will only enable device node
- registration if the sub-device driver has set the V4L2_SUBDEV_FL_HAS_DEVNODE
- flag.
- 
-+The device node handles a subset of the V4L2 API.
-+
-+VIDIOC_QUERYCTRL
-+VIDIOC_QUERYMENU
-+VIDIOC_G_CTRL
-+VIDIOC_S_CTRL
-+VIDIOC_G_EXT_CTRLS
-+VIDIOC_S_EXT_CTRLS
-+VIDIOC_TRY_EXT_CTRLS
-+
-+	The controls ioctls are identical to the ones defined in V4L2. They
-+	behave identically, with the only exception that they deal only with
-+	controls implemented in the sub-device. Depending on the driver, those
-+	controls can be also be accessed through one (or several) V4L2 device
-+	nodes.
-+
- 
- I2C sub-device drivers
- ----------------------
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 37142ae..0ebd760 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -43,7 +43,31 @@ static int subdev_close(struct file *file)
- 
- static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- {
-+	struct video_device *vdev = video_devdata(file);
-+	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-+
- 	switch (cmd) {
-+	case VIDIOC_QUERYCTRL:
-+		return v4l2_subdev_call(sd, core, queryctrl, arg);
-+
-+	case VIDIOC_QUERYMENU:
-+		return v4l2_subdev_call(sd, core, querymenu, arg);
-+
-+	case VIDIOC_G_CTRL:
-+		return v4l2_subdev_call(sd, core, g_ctrl, arg);
-+
-+	case VIDIOC_S_CTRL:
-+		return v4l2_subdev_call(sd, core, s_ctrl, arg);
-+
-+	case VIDIOC_G_EXT_CTRLS:
-+		return v4l2_subdev_call(sd, core, g_ext_ctrls, arg);
-+
-+	case VIDIOC_S_EXT_CTRLS:
-+		return v4l2_subdev_call(sd, core, s_ext_ctrls, arg);
-+
-+	case VIDIOC_TRY_EXT_CTRLS:
-+		return v4l2_subdev_call(sd, core, try_ext_ctrls, arg);
-+
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
+>> > I'll have time on Thursday night to try again.
+>>
+>> No rush yet, we've got a while before the merge window still.
+>> Christoph (Bartelmus) helped me out with a bunch of ioctl
+>> documentation this weekend, so I've got that to add to the tree, then
+>> I think I'll be prepared to resubmit the lirc bits. I'll shoot for
+>> doing that next weekend, and hopefully, that'll give you a chance to
+>> try 'em out before then and provide any necessary feedback/fixes/etc.
+>> (Not that we can't also just fix things up as needed post-merge). I'm
+>> still up in the air as to what I should work on next... So many lirc
+>> drivers left to port still... Maybe zilog, maybe streamzap... Maybe
+>> the MCE IR keyboard...
+>
+> I've got a PVR-150 and HVR-1600 both with the Zilog Z8's on them.  If I
+> ever get my act together, I'll at least be able to test that and
+> integrate any changes into the ivtv & cx18 drivers.   I've recently seen
+> users having trouble on IRC, BTW.
+
+Yeah, me too. Hoping to dig into porting (and fixing) lirc_zilog RSN...
+
 -- 
-1.7.1
-
+Jarod Wilson
+jarod@wilsonet.com
