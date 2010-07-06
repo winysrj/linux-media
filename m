@@ -1,59 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31938 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751915Ab0G0Se1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jul 2010 14:34:27 -0400
-Date: Tue, 27 Jul 2010 14:24:04 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Greg KH <greg@kroah.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-input@vger.kernel.org
-Subject: Re: [PATCH 0/15] STAGING: add lirc device drivers
-Message-ID: <20100727182404.GE9465@redhat.com>
-References: <20100726232546.GA21225@redhat.com>
- <4C4F0244.2070803@redhat.com>
- <20100727160955.GA7528@kroah.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41271 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751408Ab0GFPEM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jul 2010 11:04:12 -0400
+Date: Tue, 6 Jul 2010 17:03:22 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: LMML <linux-media@vger.kernel.org>, awalls@md.metrocast.net,
+	moinejf@free.fr, g.liakhovetski@gmx.de, jarod@redhat.com,
+	corbet@lwn.net, rz@linux-m68k.org, pboettcher@dibcom.fr,
+	awalls@radix.net, crope@iki.fi, davidtlwong@gmail.com,
+	laurent.pinchart@ideasonboard.com, eduardo.valentin@nokia.com,
+	p.osciak@samsung.com, liplianin@tut.by, isely@isely.net,
+	tobias.lorenz@gmx.net, hdegoede@redhat.com, abraham.manu@gmail.com,
+	stoth@kernellabs.com, henrik@kurelid.se
+Subject: Re: Status of the patches under review at LMML (60 patches)
+Message-ID: <20100706150322.GA2502@pengutronix.de>
+References: <4C332A5F.4000706@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <20100727160955.GA7528@kroah.com>
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4C332A5F.4000706@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 27, 2010 at 09:09:56AM -0700, Greg KH wrote:
-> On Tue, Jul 27, 2010 at 12:59:00PM -0300, Mauro Carvalho Chehab wrote:
-> > Em 26-07-2010 20:25, Jarod Wilson escreveu:
+Hello,
+
+> 		== Soc_camera waiting for Guennadi Liakhovetski <g.liakhovetski@gmx.de> review == 
 > 
-> Hm, Jarod, you forgot to cc: the staging maintainer, so I missed these
-> :)
+> May,11 2010: [v3] soc_camera_platform: Add necessary v4l2_subdev_video_ops method   http://patchwork.kernel.org/patch/98660
+> Jun,21 2010: mx2_camera: Add soc_camera support for i.MX25/i.MX27                   http://patchwork.kernel.org/patch/107126
+> Jun,21 2010: mx27: add support for the CSI device                                   http://patchwork.kernel.org/patch/107124
+> Jun,21 2010: mx25: add support for the CSI device                                   http://patchwork.kernel.org/patch/107125
+> Jul, 4 2010: mx2_camera: Add soc_camera support for i.MX25/i.MX27                   http://patchwork.kernel.org/patch/110090
+The 2nd patch in the list above is obsoleted by the last one.  The last
+one can have my Ack.
 
-D'oh, sorry, yeah, realized that about 10 minutes after I sent everything.
-Figured I'd ping you if you hadn't said anything about 'em in a day or
-three.
-
-> > Greg,
-> > 
-> > It is probably simpler to merge those files via my tree, as they depend
-> > on some changes scheduled for 2.6.36.
-> > 
-> > Would it be ok for you if I merge them from my tree?
-> 
-> No objection from me for them to go through your tree.
-> 
-> Do you want me to handle the cleanup and other fixes after they go into
-> the tree, or do you want to also handle them as well (either is fine
-> with me.)
-
-Note that I've got a git tree I've been maintaining the lirc drivers in
-for a while, so whomever is ultimately the gateway, I can also stage
-cleanups there -- I'll certainly be pushing any cleanups I do on the lirc
-drivers there prior to sending along for upstream, or else I'm liable to
-lose track of them... :)
-
-http://git.kernel.org/?p=linux/kernel/git/jarod/linux-2.6-lirc.git
+Best regards
+Uwe
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
