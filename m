@@ -1,39 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bis.amsnet.pl ([195.64.174.7]:56745 "EHLO host.amsnet.pl"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751942Ab0GCWNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Jul 2010 18:13:38 -0400
-Received: from 62.152.129.52.dsl.dynamic.eranet.pl ([62.152.129.52] helo=[192.168.1.3])
-	by host.amsnet.pl with esmtpa (Exim 4.71)
-	(envelope-from <gasiu@konto.pl>)
-	id 1OVARh-0007C9-QU
-	for linux-media@vger.kernel.org; Sat, 03 Jul 2010 23:40:21 +0200
-Message-ID: <4C2FAF42.9000603@konto.pl>
-Date: Sat, 03 Jul 2010 23:44:34 +0200
-From: Gasiu <gasiu@konto.pl>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: TT-3200 + CI slot - decoding
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from rcsinet10.oracle.com ([148.87.113.121]:64323 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756281Ab0GGXnK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 19:43:10 -0400
+Date: Wed, 7 Jul 2010 16:41:15 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	Jarod Wilson <jarod@redhat.com>,
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Subject: [PATCH -next] IR: jvc-decoder needs BITREVERSE
+Message-Id: <20100707164115.1682b172.randy.dunlap@oracle.com>
+In-Reply-To: <20100707165539.957e7d1c.sfr@canb.auug.org.au>
+References: <20100707165539.957e7d1c.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've got:
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-Kubuntu 10.04 64-bit + Skystar HD + CI Slot + Aston 2.18 + Cyfra+ 
-(Seca2) card + Kaffeine 0.8.8
+ir-jvc-decoder uses bitreverse interfaces, so it should select
+BITREVERSE.
 
-and I try to use it with s2-liplianin driver - it lock signal (90% 
-success), but problem is with decoding... I've got audio without video, 
-or video without audio, or "slideshow" â€“ here only 5% attempts with full 
-success... :(
+ir-jvc-decoder.c:(.text+0x550bc): undefined reference to `byte_rev_table'
+ir-jvc-decoder.c:(.text+0x550c6): undefined reference to `byte_rev_table'
 
-with v4l-dvb is the same...
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Jarod Wilson <jarod@redhat.com>
+Cc: David Härdeman <david@hardeman.nu>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+---
+ drivers/media/IR/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-any help?
-
--- 
-Pozdrawiam!
-Gasiu
-
+--- linux-next-20100707.orig/drivers/media/IR/Kconfig
++++ linux-next-20100707/drivers/media/IR/Kconfig
+@@ -53,6 +53,7 @@ config IR_RC6_DECODER
+ config IR_JVC_DECODER
+ 	tristate "Enable IR raw decoder for the JVC protocol"
+ 	depends on IR_CORE
++	select BITREVERSE
+ 	default y
+ 
+ 	---help---
