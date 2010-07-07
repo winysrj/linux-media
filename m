@@ -1,130 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:55738 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751257Ab0GDEMZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Jul 2010 00:12:25 -0400
-Subject: Re: [PATCH] VIDEO: ivtvfb, remove unneeded NULL test
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	jirislaby@gmail.com, Tejun Heo <tj@kernel.org>,
-	Ian Armstrong <ian@iarmst.demon.co.uk>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-In-Reply-To: <1277206910-27228-1-git-send-email-jslaby@suse.cz>
-References: <1277206910-27228-1-git-send-email-jslaby@suse.cz>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 04 Jul 2010 00:11:47 -0400
-Message-ID: <1278216707.2644.32.camel@localhost>
+Received: from lo.gmane.org ([80.91.229.12]:44967 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754608Ab0GGMwd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Jul 2010 08:52:33 -0400
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1OWU76-0000h2-Rn
+	for linux-media@vger.kernel.org; Wed, 07 Jul 2010 14:52:32 +0200
+Received: from 193.160.199.2 ([193.160.199.2])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 07 Jul 2010 14:52:32 +0200
+Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Wed, 07 Jul 2010 14:52:32 +0200
+To: linux-media@vger.kernel.org
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+Subject: Re: Status of the patches under review (85 patches) and some misc notes about the devel procedures
+Date: Wed, 07 Jul 2010 14:52:22 +0200
+Message-ID: <87d3uzqws9.fsf@nemi.mork.no>
+References: <20100507093916.2e2ef8e3@pedra> <87y6dv2zn4.fsf@nemi.mork.no>
+	<4C3333C6.60503@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2010-06-22 at 13:41 +0200, Jiri Slaby wrote:
-> Stanse found that in ivtvfb_callback_cleanup there is an unneeded test
-> for itv being NULL. But itv is initialized as container_of with
-> non-zero offset, so it is never NULL (even if v4l2_dev is). This was
-> found because itv is dereferenced earlier than the test.
-> 
-> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-> Cc: Andy Walls <awalls@md.metrocast.net>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Tejun Heo <tj@kernel.org>
-> Cc: Ian Armstrong <ian@iarmst.demon.co.uk>
-> Cc: ivtv-devel@ivtvdriver.org
-> Cc: linux-media@vger.kernel.org
-> ---
->  drivers/media/video/ivtv/ivtvfb.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/ivtv/ivtvfb.c b/drivers/media/video/ivtv/ivtvfb.c
-> index 9ff3425..5dc460e 100644
-> --- a/drivers/media/video/ivtv/ivtvfb.c
-> +++ b/drivers/media/video/ivtv/ivtvfb.c
-> @@ -1219,7 +1219,7 @@ static int ivtvfb_callback_cleanup(struct device *dev, void *p)
->  	struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
->  	struct osd_info *oi = itv->osd_info;
->  
-> -	if (itv && (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
-> +	if (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT) {
->  		if (unregister_framebuffer(&itv->osd_info->ivtvfb_info)) {
->  			IVTVFB_WARN("Framebuffer %d is in use, cannot unload\n",
->  				       itv->instance);
+Mauro Carvalho Chehab <mchehab@redhat.com> writes:
+> Em 01-07-2010 08:46, Bjørn Mork escreveu:
+>> Any chance of a new status update anytime soon?  
+>
+> Updated today, after two or three weeks spent to handle the backlog.
 
-Jiri,
+Great!  Thanks.  It's really appreciated, and I do note that it made
+quite a few people finally ack/nak the patches they were supposed to
+review. 
 
-You missed an identical instance of the useless test 10 lines prior in
-ivtvfb_callback_init(). :)
+>> I'm particularily
+>> interested in getting a forced status change on any patch which was
+>> "under review" at the time of the last status message.  I believe it's
+>> reasonable to expect two months "review" to be more than enough.  If
+>> the patches are found unacceptable, then it's much better to have them
+>> rejected with a "please fix foo and resubmit" than the current total
+>> silence called "review".
+>
+> The patches marked as under review means that I'm expecting an action
+> from someone else (the patch author or the driver author/maintainer).
 
-How about the patch below, instead?
+Well, I'm of course not in a position to tell you how to do your job, so
+please regard this as a humble suggestion only...
 
-Regards,
-Andy
+But I believe you make your job much harder by defining a number of
+"unofficial" driver maintainers and giving them indefinite slack, while
+at the same time *you* are the one having to keep track of all their
+outstanding patches.  Either you delegate the maintainance properly,
+documenting it in MAINTAINERS and pointing there whenever someone sends
+a patch directly to you, or you might as well just do the ack/nak
+yourself based on the mailing list feedback.
 
-[PATCH] VIDEO: ivtvfb, fix NULL check
+Putting yourself in the middle, taking the patch queue responsibility,
+but not the ack/nak responsibility, is just wasting your time on
+accounting and other boring work...
 
-Jiri Slaby reported that stanse found ivtvfb_callback_cleanup has an
-unneeded test for itv being NULL. itv was initialized as container_of
-with non-zero offset, so it was never NULL (even if v4l2_dev was).
+I do believe that having the original author(s) maintain a driver is a
+very good idea as long as they are still actively maintaining it.  But
+this must be based on actual maintainance, and not some misunderstood
+"ownership based on previous contributions".  That's what the CREDITS
+file is for.
 
-This fix now checks for v4l2_dev being NULL, and not itv.
+Please look at other subsystems with a large number of old drivers, like
+e.g. networking.  It's not like it's possible to have every tiny patch
+approved by the original author all the time.  This does not hinder some
+newer drivers having very active official maintainers, like the Intel
+e1000(e) drivers, nor does it hinder the original authors from
+participating on the mailing list giving their comments and ack/nak if
+they want.  But if they don't respond on the list, davem will just make
+a decision for himself without waiting for it.
 
-Thanks to Jiri Slaby for reporting this problem and providing an initial
-patch.
+> So, if you have patches there still under review, you're helping us 
+> if you direct your complains to the one that it is sitting on the top
+> of them.
 
-Reported-by: Jiri Slaby <jslaby@suse.cz>
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Ian Armstrong <ian@iarmst.demon.co.uk>
-Cc: ivtv-devel@ivtvdriver.org
-Cc: linux-media@vger.kernel.org
+Oh, it's not so much my submissions bothering me (I have received some
+very good feedback on this list), but the fact that some drivers do not
+get any updates at all, even though patches are submitted to this
+mailing list.  Not to mention the problem that patch submissions will
+(and do) stop due to the lack of any feedback whatsoever.  Most people
+have better things to do than writing to /dev/null, and that's the
+feeling this queuing-for-original-author-review system leaves.
 
 
- drivers/media/video/ivtv/ivtvfb.c |   21 ++++++++++++++++-----
- 1 files changed, 16 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/video/ivtv/ivtvfb.c b/drivers/media/video/ivtv/ivtvfb
-index 9ff3425..2b3259c 100644
---- a/drivers/media/video/ivtv/ivtvfb.c
-+++ b/drivers/media/video/ivtv/ivtvfb.c
-@@ -1201,9 +1201,14 @@ static int ivtvfb_init_card(struct ivtv *itv)
- static int __init ivtvfb_callback_init(struct device *dev, void *p)
- {
-        struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
--       struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
-+       struct ivtv *itv;
- 
--       if (itv && (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
-+       if (v4l2_dev == NULL)
-+               return 0;
-+
-+       itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
-+
-+       if (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT) {
-                if (ivtvfb_init_card(itv) == 0) {
-                        IVTVFB_INFO("Framebuffer registered on %s\n",
-                                        itv->v4l2_dev.name);
-@@ -1216,10 +1221,16 @@ static int __init ivtvfb_callback_init(struct device *de
- static int ivtvfb_callback_cleanup(struct device *dev, void *p)
- {
-        struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
--       struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
--       struct osd_info *oi = itv->osd_info;
-+       struct ivtv *itv;
-+       struct osd_info *oi;
-+
-+       if (v4l2_dev == NULL)
-+               return 0;
-+
-+       itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
-+       oi = itv->osd_info;
- 
--       if (itv && (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
-+       if (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT) {
-                if (unregister_framebuffer(&itv->osd_info->ivtvfb_info)) {
-                        IVTVFB_WARN("Framebuffer %d is in use, cannot unload\n",
-                                       itv->instance);
-
+Bjørn
 
