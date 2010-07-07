@@ -1,77 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3956 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753907Ab0GWNqo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jul 2010 09:46:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Per-subdev, host-specific data
-Date: Fri, 23 Jul 2010 15:46:29 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <201007231501.31170.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201007231501.31170.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from cnc.isely.net ([64.81.146.143]:40805 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751282Ab0GGP5p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Jul 2010 11:57:45 -0400
+Date: Wed, 7 Jul 2010 10:57:44 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Sven Barth <pascaldragon@googlemail.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>, Mike Isely <isely@isely.net>
+Subject: Re: Status of the patches under review at LMML (60 patches)
+In-Reply-To: <4C3468DF.1030008@googlemail.com>
+Message-ID: <alpine.DEB.1.10.1007071055310.821@cnc.isely.net>
+References: <4C332A5F.4000706@redhat.com> <4C3468DF.1030008@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007231546.29691.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 23 July 2010 15:01:29 Laurent Pinchart wrote:
-> Hi everybody,
-> 
-> Trying to implement support for multiple sensors connected to the same OMAP3 
-> ISP input (all but one of the sensors need to be kept in reset obviously), I 
-> need to associate host-specific data to the sensor subdevs.
-> 
-> The terms host and bridge are considered as synonyms in the rest of this e-
-> mail.
-> 
-> The OMAP3 ISP platform data has interface configuration parameters for the two 
-> CSI2 (a and c), CCP2 and parallel interfaces. The parameters are used to 
-> configure the bus when a sensor is selected. To support multiple sensors on 
-> the same input, the parameters need to be specified per-sensor, and not ISP-
-> wide.
-> 
-> No issue in the platform data. Board codes declare an array of structures that 
-> embed a struct v4l2_subdev_i2c_board_info instance and an OMAP3 ISP-specific 
-> interface configuration structure.
-> 
-> At runtime, when a sensor is selected, I need to access the OMAP3 ISP-specific 
-> interface configuration structure for the selected sensor. At that point all I 
-> have is a v4l2_subdev structure pointer, without a way to get back to the 
-> interface configuration structure.
-> 
-> The only point in the code where the v4l2_subdev and the interface 
-> configuration data are both known and could be linked together is in the host 
-> driver's probe function, where the v4l2_subdev instances are created. I have 
-> two solutions there:
-> 
-> - store the v4l2_subdev pointer and the interface configuration data pointer 
-> in a host-specific array, and perform a an array lookup operation at runtime 
-> with the v4l2_subdev pointer as a key
-> 
-> - add a void *host_priv field to the v4l2_subdev structure, store the 
-> interface configuration data pointer in that field, and use the field at 
-> runtime
-> 
-> The second solution seems cleaner but requires an additional field in 
-> v4l2_subdev. Opinions and other comments will be appreciated.
+On Wed, 7 Jul 2010, Sven Barth wrote:
 
-There is a third option: the grp_id field is owned by the host driver, so you
-could make that an index into a host specific array.
+> Hi!
+> 
+> Am 06.07.2010 15:06, schrieb Mauro Carvalho Chehab:
+> > 		== Waiting for Mike Isely<isely@isely.net>  review ==
+> >
+> > Apr,25 2010: Problem with cx25840 and Terratec Grabster AV400
+> http://patchwork.kernel.org/patch/94960
+> 
+> Is Mike really the maintainer of the cx25840 module and not only of the
+> pvrusb2 one? If he's not the maintainer you should contact the real one, cause
+> I don't think that Mike can help much regarding patches for the cx25840 in
+> that case.
+> 
+> Also I might need to adjust the patch cause of the recent changes that
+> happened there the last few months. (I don't know when I'll find time for
+> this...)
+> 
+> Regards,
+> Sven
 
-That said, I think having a host_priv field isn't a bad idea. Although if we
-do this, then I think the existing priv field should be renamed to drv_priv
-to prevent confusion.
+No I am definitely not the maintainer of that module, and my knowledge 
+of its inner workings (though improved a lot lately) is still not very 
+good.
 
-Regards,
+All I can do here is verify that it doesn't break the pvrusb2 driver 
+(which is what I was planning on doing).
 
-            Hans
+  -Mike
+
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
