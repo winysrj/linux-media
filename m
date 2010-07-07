@@ -1,319 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh01.mail.saunalahti.fi ([62.142.5.107]:46138 "EHLO
-	emh01.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755881Ab0GHRmn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 13:42:43 -0400
-Received: from saunalahti-vams (vs3-11.mail.saunalahti.fi [62.142.5.95])
-	by emh01-2.mail.saunalahti.fi (Postfix) with SMTP id C2D0E8C84E
-	for <linux-media@vger.kernel.org>; Thu,  8 Jul 2010 20:42:41 +0300 (EEST)
-Received: from kuusi.koti (a88-114-153-83.elisa-laajakaista.fi [88.114.153.83])
-	by emh05.mail.saunalahti.fi (Postfix) with ESMTP id 9818327D82
-	for <linux-media@vger.kernel.org>; Thu,  8 Jul 2010 20:42:40 +0300 (EEST)
-Message-ID: <4C360E10.3070002@kolumbus.fi>
-Date: Thu, 08 Jul 2010 20:42:40 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
+Received: from perceval.irobotique.be ([92.243.18.41]:50317 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754783Ab0GGLxn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 07:53:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] Mantis DMA transfer cleanup, fixes data corruption and a
- race, improves performance. (signed-off this time)
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH 4/6] v4l: subdev: Control ioctls support
+Date: Wed,  7 Jul 2010 13:53:26 +0200
+Message-Id: <1278503608-9126-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Pass the control-related ioctls to the subdev driver through the core
+operations.
 
-Hi
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   24 ++++++++++++++++++++++++
+ drivers/media/video/v4l2-subdev.c            |   24 ++++++++++++++++++++++++
+ 2 files changed, 48 insertions(+), 0 deletions(-)
 
-This is a resend of the exactly same patch
-than I sent 2010-06-20, to sign off it.
-
-Signed-off-by: Marko M Ristola <marko.ristola@kolumbus.fi>
-
-Regards,
-Marko Ristola
-
--------------------------------------------------
-
-Here is another version of the DMA transfer fix.
-Please try it. Comments?
-
-The current DMA code with drivers/media/dvb/mantis/mantis_dma.c has user
-visible problems:
-- about 1500 interrupts per second. One CPU can't copy h.264 data over
-the network for me (vdr, streamdev).
-- 64K garbage at start of the data stream, part of which goes into User
-land application.
-The garbage data is partly from the same stream (given twice), and
-partly from previous tuned frequency (buffer
-uninitialized at DMA start).
-- Race condition: Memory copying from DMA buffer is done at the same
-time as there is DMA transfer going on to the same bytes.
-Can this race cause harware problems?
-
-Current DMA code is not clear:
-Current DMA RISC coding creates one DMA transfer per 2048 bytes.
-Risc command generating code has mantis->line_count=32.
-mantis->last_block and mantis->finished_block iterates over [0 to 16].
-
-These counters are confusing. It takes lots of time to look and debug to
-understand
-what is happening there even for me :(
-
-Basic example how the 64K garbage generation happens:
-At mantis_dma_start, mantis->last_block = mantis->finished_block = 0
-1st DMA transfer (2048 bytes) generates interrupt, sets
-mantis->finished_block=15.
-Tasklet will call mantis_dma_xfer(), which iterates from
-mantis->last_block = 0 to mantis->finished_block = 14. Set last_block=15.
-2nd DMA transfer of 2048 bytes goes quietly (no interrupt generated),
-race with the tasklet above here.
-3rd DMA transfer sets mantis->finished_block = 0, mantis_dma_xfer()
-copies mantis->finished_block = 15. Set last_block=0.
-After this copying continues from block 0, so the content is valid,
-although block 0 was already partly copied.
-
-Because the current looping implementation is too hard to understand,
-I decided to rewrite it and not give you any small patch that fixes the
-issue but nobody else understands it.
-This doesn't have the alignment stuff at all that I mentioned in earlier
-emails last week.
-
-Basic idea:
-Keep DMA buffer of size 64k, but generate interrupts four times, thus
-one interrupt per 16k.
-Rename mantis->finished_block to be mantis->busy_block, because that
-keeps mantis_dma_xfer() simple:
-while(mantis->last_block != mantis->busy_block) { do copy, last_block =
-(last_block + 1) mod 4.
-last_block is thus incremented until last_block == busy_block, which
-can't be copied yet.
-
-DMA RISC code generation: outer loop iterates over blocks from 0 to 4.
-Inner loop iterates over DMA transfer units from 0 to
-MANTIS_DMA_TR_UNITS, each DMA transfer is 2048 bytes.
-The interrupt is generated at block[0], DMA unit 0: the block 0 is now
-busy :)
-
-mantis->line_bytes, mantis->line_count and mantis->risc_pos
-were used only for DMA risc code generation.
-Removed them from the structure.
-
-Benefits of this code:
-- Removes the 64k garbage issue.
-- Remove race condition with concurrent DMA transfer and memory copy.
-- Lessen interrupts to about 350 per second (seen by powertop) by
-  moving 16k bytes per interrupt, instead of 4k per interrupt.
-  The number of interrupts gets much smaller, and it becomes possible
-with single core AMD cpu to
-  deliver h.264 data over the network from vdr via streamdev.
-- Mantis DMA code is more understandable for reviewers and others.
-
-My patch is GPLv2.
-The patch is made against GIT linuxtv/master, applies cleanly to
-Mercurial v4l-dvb too.
-
-Best regards,
-Marko Ristola
-
-diff --git a/drivers/media/dvb/mantis/hopper_cards.c
-b/drivers/media/dvb/mantis/hopper_cards.c
-index 09e9fc7..3b7e376 100644
---- a/drivers/media/dvb/mantis/hopper_cards.c
-+++ b/drivers/media/dvb/mantis/hopper_cards.c
-@@ -126,7 +126,7 @@ static irqreturn_t hopper_irq_handler(int irq, void
-*dev_id)
-     }
-     if (stat & MANTIS_INT_RISCI) {
-         dprintk(MANTIS_DEBUG, 0, "<%s>", label[8]);
--        mantis->finished_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
-+        mantis->busy_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
-         tasklet_schedule(&mantis->tasklet);
-     }
-     if (stat & MANTIS_INT_I2CDONE) {
-diff --git a/drivers/media/dvb/mantis/mantis_cards.c
-b/drivers/media/dvb/mantis/mantis_cards.c
-index cf4b39f..8f048d5 100644
---- a/drivers/media/dvb/mantis/mantis_cards.c
-+++ b/drivers/media/dvb/mantis/mantis_cards.c
-@@ -134,7 +134,7 @@ static irqreturn_t mantis_irq_handler(int irq, void
-*dev_id)
-     }
-     if (stat & MANTIS_INT_RISCI) {
-         dprintk(MANTIS_DEBUG, 0, "<%s>", label[8]);
--        mantis->finished_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
-+        mantis->busy_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
-         tasklet_schedule(&mantis->tasklet);
-     }
-     if (stat & MANTIS_INT_I2CDONE) {
-diff --git a/drivers/media/dvb/mantis/mantis_common.h
-b/drivers/media/dvb/mantis/mantis_common.h
-index d0b645a..23b23b7 100644
---- a/drivers/media/dvb/mantis/mantis_common.h
-+++ b/drivers/media/dvb/mantis/mantis_common.h
-@@ -122,11 +122,8 @@ struct mantis_pci {
-     unsigned int        num;
-
-     /*    RISC Core        */
--    u32            finished_block;
-+    u32            busy_block;
-     u32            last_block;
--    u32            line_bytes;
--    u32            line_count;
--    u32            risc_pos;
-     u8            *buf_cpu;
-     dma_addr_t        buf_dma;
-     u32            *risc_cpu;
-diff --git a/drivers/media/dvb/mantis/mantis_dma.c
-b/drivers/media/dvb/mantis/mantis_dma.c
-index 46202a4..c61ca7d 100644
---- a/drivers/media/dvb/mantis/mantis_dma.c
-+++ b/drivers/media/dvb/mantis/mantis_dma.c
-@@ -43,13 +43,17 @@
- #define RISC_IRQ        (0x01 << 24)
-
- #define RISC_STATUS(status)    ((((~status) & 0x0f) << 20) | ((status &
-0x0f) << 16))
--#define RISC_FLUSH()        (mantis->risc_pos = 0)
--#define RISC_INSTR(opcode)    (mantis->risc_cpu[mantis->risc_pos++] =
-cpu_to_le32(opcode))
-+#define RISC_FLUSH(risc_pos)        (risc_pos = 0)
-+#define RISC_INSTR(risc_pos, opcode)    (mantis->risc_cpu[risc_pos++] =
-cpu_to_le32(opcode))
-
- #define MANTIS_BUF_SIZE        (64 * 1024)
--#define MANTIS_BLOCK_BYTES    (MANTIS_BUF_SIZE >> 4)
--#define MANTIS_BLOCK_COUNT    (1 << 4)
--#define MANTIS_RISC_SIZE    PAGE_SIZE
-+#define MANTIS_BLOCK_BYTES      (MANTIS_BUF_SIZE / 4)
-+#define MANTIS_DMA_TR_BYTES     (2 * 1024) /* upper limit: 4095 bytes. */
-+#define MANTIS_BLOCK_COUNT    (MANTIS_BUF_SIZE / MANTIS_BLOCK_BYTES)
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index e831aac..f315858 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -314,6 +314,30 @@ controlled through GPIO pins. This distinction is only relevant when setting
+ up the device, but once the subdev is registered it is completely transparent.
+ 
+ 
++V4L2 sub-device userspace API
++-----------------------------
 +
-+#define MANTIS_DMA_TR_UNITS     (MANTIS_BLOCK_BYTES / MANTIS_DMA_TR_BYTES)
-+/* MANTIS_BUF_SIZE / MANTIS_DMA_TR_UNITS must not exceed
-MANTIS_RISC_SIZE (4k RISC cmd buffer) */
-+#define MANTIS_RISC_SIZE    PAGE_SIZE /* RISC program must fit here. */
-
- int mantis_dma_exit(struct mantis_pci *mantis)
- {
-@@ -124,27 +128,6 @@ err:
-     return -ENOMEM;
- }
-
--static inline int mantis_calc_lines(struct mantis_pci *mantis)
--{
--    mantis->line_bytes = MANTIS_BLOCK_BYTES;
--    mantis->line_count = MANTIS_BLOCK_COUNT;
--
--    while (mantis->line_bytes > 4095) {
--        mantis->line_bytes >>= 1;
--        mantis->line_count <<= 1;
--    }
--
--    dprintk(MANTIS_DEBUG, 1, "Mantis RISC block bytes=[%d], line
-bytes=[%d], line count=[%d]",
--        MANTIS_BLOCK_BYTES, mantis->line_bytes, mantis->line_count);
--
--    if (mantis->line_count > 255) {
--        dprintk(MANTIS_ERROR, 1, "Buffer size error");
--        return -EINVAL;
--    }
--
--    return 0;
--}
--
- int mantis_dma_init(struct mantis_pci *mantis)
- {
-     int err = 0;
-@@ -158,12 +141,6 @@ int mantis_dma_init(struct mantis_pci *mantis)
-
-         goto err;
-     }
--    err = mantis_calc_lines(mantis);
--    if (err < 0) {
--        dprintk(MANTIS_ERROR, 1, "Mantis calc lines failed");
--
--        goto err;
--    }
-
-     return 0;
- err:
-@@ -174,31 +151,32 @@ EXPORT_SYMBOL_GPL(mantis_dma_init);
- static inline void mantis_risc_program(struct mantis_pci *mantis)
- {
-     u32 buf_pos = 0;
--    u32 line;
-+    u32 line, step;
-+    u32 risc_pos;
-
-     dprintk(MANTIS_DEBUG, 1, "Mantis create RISC program");
--    RISC_FLUSH();
--
--    dprintk(MANTIS_DEBUG, 1, "risc len lines %u, bytes per line %u",
--        mantis->line_count, mantis->line_bytes);
--
--    for (line = 0; line < mantis->line_count; line++) {
--        dprintk(MANTIS_DEBUG, 1, "RISC PROG line=[%d]", line);
--        if (!(buf_pos % MANTIS_BLOCK_BYTES)) {
--            RISC_INSTR(RISC_WRITE    |
--                   RISC_IRQ    |
--                   RISC_STATUS(((buf_pos / MANTIS_BLOCK_BYTES) +
--                   (MANTIS_BLOCK_COUNT - 1)) %
--                    MANTIS_BLOCK_COUNT) |
--                    mantis->line_bytes);
--        } else {
--            RISC_INSTR(RISC_WRITE    | mantis->line_bytes);
--        }
--        RISC_INSTR(mantis->buf_dma + buf_pos);
--        buf_pos += mantis->line_bytes;
-+    RISC_FLUSH(risc_pos);
++Beside exposing a kernel API through the v4l2_subdev_ops structure, V4L2
++sub-devices can also be controlled directly by userspace applications.
 +
-+    dprintk(MANTIS_DEBUG, 1, "risc len lines %u, bytes per line %u,
-bytes per DMA tr %u",
-+        MANTIS_BLOCK_COUNT, MANTIS_BLOCK_BYTES, MANTIS_DMA_TR_BYTES);
++When a sub-device is registered, a device node named subdevX is created in /dev.
++The device node handles a subset of the V4L2 API.
 +
-+    for (line = 0; line < MANTIS_BLOCK_COUNT; line++) {
-+        for (step = 0; step < MANTIS_DMA_TR_UNITS; step++) {
-+            dprintk(MANTIS_DEBUG, 1, "RISC PROG line=[%d], step=[%d]",
-line, step);
-+            if (step == 0) {
-+                RISC_INSTR(risc_pos, RISC_WRITE    |
-+                       RISC_IRQ    |
-+                       RISC_STATUS(line) |
-+                       MANTIS_DMA_TR_BYTES);
-+            } else {
-+                RISC_INSTR(risc_pos, RISC_WRITE | MANTIS_DMA_TR_BYTES);
-+            }
-+            RISC_INSTR(risc_pos, mantis->buf_dma + buf_pos);
-+            buf_pos += MANTIS_DMA_TR_BYTES;
-+          }
-     }
--    RISC_INSTR(RISC_JUMP);
--    RISC_INSTR(mantis->risc_dma);
-+    RISC_INSTR(risc_pos, RISC_JUMP);
-+    RISC_INSTR(risc_pos, mantis->risc_dma);
- }
++VIDIOC_QUERYCTRL
++VIDIOC_QUERYMENU
++VIDIOC_G_CTRL
++VIDIOC_S_CTRL
++VIDIOC_G_EXT_CTRLS
++VIDIOC_S_EXT_CTRLS
++VIDIOC_TRY_EXT_CTRLS
++
++	The controls ioctls are identical to the ones defined in V4L2. They
++	behave identically, with the only exception that they deal only with
++	controls implemented in the sub-device. Depending on the driver, those
++	controls can be also be accessed through one (or several) V4L2 device
++	nodes.
++
++
+ I2C sub-device drivers
+ ----------------------
+ 
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index a3672f0..141098b 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -43,7 +43,31 @@ static int subdev_close(struct file *file)
+ 
+ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++
+ 	switch (cmd) {
++	case VIDIOC_QUERYCTRL:
++		return v4l2_subdev_call(sd, core, queryctrl, arg);
++
++	case VIDIOC_QUERYMENU:
++		return v4l2_subdev_call(sd, core, querymenu, arg);
++
++	case VIDIOC_G_CTRL:
++		return v4l2_subdev_call(sd, core, g_ctrl, arg);
++
++	case VIDIOC_S_CTRL:
++		return v4l2_subdev_call(sd, core, s_ctrl, arg);
++
++	case VIDIOC_G_EXT_CTRLS:
++		return v4l2_subdev_call(sd, core, g_ext_ctrls, arg);
++
++	case VIDIOC_S_EXT_CTRLS:
++		return v4l2_subdev_call(sd, core, s_ext_ctrls, arg);
++
++	case VIDIOC_TRY_EXT_CTRLS:
++		return v4l2_subdev_call(sd, core, try_ext_ctrls, arg);
++
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+-- 
+1.7.1
 
- void mantis_dma_start(struct mantis_pci *mantis)
-@@ -210,7 +188,7 @@ void mantis_dma_start(struct mantis_pci *mantis)
-     mmwrite(mmread(MANTIS_GPIF_ADDR) | MANTIS_GPIF_HIFRDWRN,
-MANTIS_GPIF_ADDR);
-
-     mmwrite(0, MANTIS_DMA_CTL);
--    mantis->last_block = mantis->finished_block = 0;
-+    mantis->last_block = mantis->busy_block = 0;
-
-     mmwrite(mmread(MANTIS_INT_MASK) | MANTIS_INT_RISCI, MANTIS_INT_MASK);
-
-@@ -245,9 +223,9 @@ void mantis_dma_xfer(unsigned long data)
-     struct mantis_pci *mantis = (struct mantis_pci *) data;
-     struct mantis_hwconfig *config = mantis->hwconfig;
-
--    while (mantis->last_block != mantis->finished_block) {
-+    while (mantis->last_block != mantis->busy_block) {
-         dprintk(MANTIS_DEBUG, 1, "last block=[%d] finished block=[%d]",
--            mantis->last_block, mantis->finished_block);
-+            mantis->last_block, mantis->busy_block);
-
-         (config->ts_size ? dvb_dmx_swfilter_204 : dvb_dmx_swfilter)
-         (&mantis->demux, &mantis->buf_cpu[mantis->last_block *
-MANTIS_BLOCK_BYTES], MANTIS_BLOCK_BYTES);
