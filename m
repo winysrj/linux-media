@@ -1,42 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51747 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758657Ab0G3OyT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 10:54:19 -0400
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Received: from perceval.irobotique.be ([92.243.18.41]:50317 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754839Ab0GGLxm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 07:53:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de, p.wiesner@phytec.de,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>
-Subject: [PATCH 06/20] mt9m111: changed MAX_{HEIGHT,WIDTH} values to silicon pixelcount
-Date: Fri, 30 Jul 2010 16:53:24 +0200
-Message-Id: <1280501618-23634-7-git-send-email-m.grzeschik@pengutronix.de>
-In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
-References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH 3/6] v4l: subdev: Uninline the v4l2_subdev_init function
+Date: Wed,  7 Jul 2010 13:53:25 +0200
+Message-Id: <1278503608-9126-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
----
- drivers/media/video/mt9m111.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+The function isn't small or performance sensitive enough to be inlined.
 
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index 5f0c55e..2080615 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -131,8 +131,8 @@
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/v4l2-subdev.c |   14 ++++++++++++++
+ include/media/v4l2-subdev.h       |   15 ++-------------
+ 2 files changed, 16 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index a048161..a3672f0 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -63,3 +63,17 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.unlocked_ioctl = subdev_ioctl,
+ 	.release = subdev_close,
+ };
++
++void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
++{
++	INIT_LIST_HEAD(&sd->list);
++	BUG_ON(!ops);
++	sd->ops = ops;
++	sd->v4l2_dev = NULL;
++	sd->flags = 0;
++	sd->name[0] = '\0';
++	sd->grp_id = 0;
++	sd->priv = NULL;
++	sd->initialized = 0;
++}
++EXPORT_SYMBOL(v4l2_subdev_init);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 00010bd..7b6edcd 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -442,19 +442,8 @@ static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
+ 	return sd->priv;
+ }
  
- #define MT9M111_MIN_DARK_ROWS	8
- #define MT9M111_MIN_DARK_COLS	24
--#define MT9M111_MAX_HEIGHT	1024
--#define MT9M111_MAX_WIDTH	1280
-+#define MT9M111_MAX_HEIGHT	1032
-+#define MT9M111_MAX_WIDTH	1288
- #define MT9M111_DEF_DARK_ROWS	12
- #define MT9M111_DEF_DARK_COLS	30
- #define MT9M111_DEF_HEIGHT	1024
+-static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
+-					const struct v4l2_subdev_ops *ops)
+-{
+-	INIT_LIST_HEAD(&sd->list);
+-	BUG_ON(!ops);
+-	sd->ops = ops;
+-	sd->v4l2_dev = NULL;
+-	sd->flags = 0;
+-	sd->name[0] = '\0';
+-	sd->grp_id = 0;
+-	sd->priv = NULL;
+-	sd->initialized = 0;
+-}
++void v4l2_subdev_init(struct v4l2_subdev *sd,
++		      const struct v4l2_subdev_ops *ops);
+ 
+ /* Call an ops of a v4l2_subdev, doing the right checks against
+    NULL pointers.
 -- 
 1.7.1
 
