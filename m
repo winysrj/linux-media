@@ -1,127 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4053 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042Ab0GMS5Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jul 2010 14:57:16 -0400
-Message-ID: <4C3CB704.1040908@ginder.xs4all.nl>
-Date: Tue, 13 Jul 2010 20:57:08 +0200
-From: Hans Houwaard <hans@ginder.xs4all.nl>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:33178 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757715Ab0GGWTZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 18:19:25 -0400
+Received: by fxm14 with SMTP id 14so67075fxm.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Jul 2010 15:19:23 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, hferraggreat@gmail.com
-Subject: Re: [linux-dvb] TeVii S470 Tunning Issue (Kernel 2.6.27-21)
-References: <4C3CB05E.3080002@gmail.com>
-In-Reply-To: <4C3CB05E.3080002@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1274978356-25836-1-git-send-email-david@identd.dyndns.org>
+References: <1274978356-25836-1-git-send-email-david@identd.dyndns.org>
+Date: Wed, 7 Jul 2010 18:19:21 -0400
+Message-ID: <AANLkTilEe37y6jG5cO7XGdcQMcbLxcojMQbk2Ld5Cwrw@mail.gmail.com>
+Subject: Re: [PATCH/RFC v2 0/8] dsbr100: driver cleanup and fixes
+From: David Ellingsworth <david@identd.dyndns.org>
+To: linux-media@vger.kernel.org
+Cc: Markus Demleitner <msdemlei@tucana.harvard.edu>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I don't really know why, but it happens sometimes on my machine with the 
-same card as well. When I have problems, I power off the computer and 
-then restart it again. The card will not properly load or function 
-untill I do. There is probably some hardware lock that needs to be reset 
-by powering off the card.
+On Thu, May 27, 2010 at 12:39 PM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+> This patch series addresses several issues in the dsbr100 driver.
+> This series is based on the v4l-dvb master git branch and has been
+> compile tested only. It should be tested before applying.
+>
+> This is the second version of this series. An additional patch has
+> been added to cleanup/clarify the return values from dsbr100_start
+> and dsbr100_stop.
+>
+> The following patches are included in this series:
+>   [PATCH/RFC v2 1/8] dsbr100: implement proper locking
+>   [PATCH/RFC v2 2/8] dsbr100: fix potential use after free
+>   [PATCH/RFC v2 3/8] dsbr100: only change frequency upon success
+>   [PATCH/RFC v2 4/8] dsbr100: remove disconnected indicator
+>   [PATCH/RFC v2 5/8] dsbr100: cleanup return value of start/stop handlers
+>   [PATCH/RFC v2 6/8] dsbr100: properly initialize the radio
+>   [PATCH/RFC v2 7/8] dsbr100: cleanup usb probe routine
+>   [PATCH/RFC v2 8/8] dsbr100: simplify access to radio device
+>
 
-The loading of the firmware sometimes takes a couple of seconds in my 
-machine, it's not very fast. Besides check if the card, which is on a 
-PCI-1x slot, doesn't share an IRQ with the onboard soundcard. That will 
-seriously effect the performance of both the card and the sound.
+Mauro,
 
-Good luck,
+This series has not received any comments and the original author
+seems to have abandoned this driver. Please review these patches for
+approval. All changes are relatively straight forward. The second
+patch in this series is a bug fix for the normal case where the device
+is unplugged while closed. The current implementation will cause a
+NULL pointer dereference. The fact that no one has reported this bug
+is probably due to the lack of people using this driver. The rest of
+the changes mainly provide general cleanups and reduced overhead.
 
-Hans
+Regards,
 
-Op 13-07-10 20:28, Hamza Ferrag schreef:
-> Hi all,
->
-> I am trying to install a 'Tevii S470' card  from TeVii technology as 
-> described  here http://linuxtv.org/wiki/index.php/TeVii_S470.
->
-> My configuration is :
->
-> - intel x86 platform
-> - Kernel 2.6.27-21
-> - tevii_ds3000.tar.gz (firmware archive from 
-> http://tevii.com/tevii_ds3000.tar.gz ),
-> - s2-liplianin  mercurial sources ( from 
-> http://mercurial.intuxication.org/hg/s2-liplianin)last changes at 
-> 05/29/2010,
->
-> All work fine i.e drivers/firmware installation after madprobe a right 
-> modules.
->
-> # lsmod
-> Module                  Size  Used by    Not tainted
-> cx23885                82416  0
-> tveeprom                9348  1 cx23885
-> btcx_risc               1928  1 cx23885
-> cx2341x                 7748  1 cx23885
-> ir_common              23936  1 cx23885
-> videobuf_dma_sg         5060  1 cx23885
-> ir_core                 3596  2 cx23885,ir_common
-> v4l2_common             8896  2 cx23885,cx2341x
-> videodev               25376  2 cx23885,v4l2_common
-> videobuf_dvb            2820  1 cx23885
-> videobuf_core           8388  3 cx23885,videobuf_dma_sg,videobuf_dvb
-> lnbp21                  1024  0
-> dvb_core               54832  2 cx23885,videobuf_dvb
-> ds3000                  9668  1
->
->
-> # dmesg
-> Linux video capture interface: v2.00
-> cx23885 driver version 0.0.2 loaded
-> CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470 
-> [card=15,autodetected]
-> cx23885_dvb_register() allocating 1 frontend(s)
-> cx23885[0]: cx23885 based dvb card
-> DS3000 chip version: 0.192 attached.
-> DVB: registering new adapter (cx23885[0])
-> DVB: registering adapter 0 frontend 0 (Montage Technology 
-> DS3000/TS2020)...
-> cx23885_dev_checkrevision() Hardware revision = 0xb0
-> cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 11, latency: 0, 
-> mmio: 0xdf800000
-> cx23885 0000:03:00.0: setting latency timer to 64
-> tun: Universal TUN/TAP device driver, 1.6
->
->
->
-> A problem appear when tunning card using szap-s2 :
->
-> # szap-s2 szap-s2 -c /root/channels.conf -x -M 5 -C 89 -l 9750 -S 1 MyCh
->
-> reading channels from file '/root/channels.conf'
-> zapping to 1 'MyCh':
-> delivery DVB-S2, modulation 8PSK
-> sat 0, frequency 8420 MHz V, symbolrate 29400000, coderate 8/9,rolloff 
-> 0.35
-> vpid 0x0286, apid 0x1fff, sid 0x0000
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> ds3000_firmware_ondemand: Waiting for firmware upload 
-> (dvb-fe-ds3000.fw)...
-> firmware: requesting dvb-fe-ds3000.fw
-> ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-> ds3000_firmware_ondemand: No firmware uploaded (timeout or file not 
-> found?)
-> ds3000_tune: Unable initialise the firmware
->
-> Apparently it can't locate a firmware file,  yet :
->
-> # ls -l  /lib/firmware/
-> -rwxr-xr-x    1 root     root         8192 May  3 07:09 dvb-fe-ds3000.fw
->
->
-> Any ideas why this happens?
->
-> Thanks and best regards,
->
-> Hamza Ferrag
->
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+David Ellingsworth
