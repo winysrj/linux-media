@@ -1,241 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:51333 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:46521 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758601Ab0GUOfl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jul 2010 10:35:41 -0400
+	with ESMTP id S1754374Ab0GGToz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 15:44:55 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 04/10] media: Entity graph traversal
-Date: Wed, 21 Jul 2010 16:35:29 +0200
-Message-Id: <1279722935-28493-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC/PATCH 2/6] v4l: subdev: Add device node support
+Date: Wed, 7 Jul 2010 21:44:45 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278503608-9126-3-git-send-email-laurent.pinchart@ideasonboard.com> <4C3495F9.4070507@redhat.com>
+In-Reply-To: <4C3495F9.4070507@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007072144.46481.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Hi Mauro,
 
-Add media entity graph traversal. The traversal follows active links by
-depth first. Traversing graph backwards is prevented by comparing the next
-possible entity in the graph with the previous one. Multiply connected
-graphs are thus not supported.
+Thanks for the review.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
----
- Documentation/media-framework.txt |   40 +++++++++++++
- drivers/media/media-entity.c      |  116 +++++++++++++++++++++++++++++++++++++
- include/media/media-entity.h      |   15 +++++
- 3 files changed, 171 insertions(+), 0 deletions(-)
+On Wednesday 07 July 2010 16:58:01 Mauro Carvalho Chehab wrote:
+> Em 07-07-2010 08:53, Laurent Pinchart escreveu:
+> > Create a device node named subdevX for every registered subdev.
+> > As the device node is registered before the subdev core::s_config
+> > function is called, return -EGAIN on open until initialization
+> > completes.
 
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index 1c8779c..266d80f 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -193,3 +193,43 @@ Links have flags that describe the link capabilities and state.
- 	MEDIA_LINK_FLAG_ACTIVE must also be set since an immutable link is
- 	always active.
- 
-+
-+Graph traversal
-+---------------
-+
-+The media framework provides APIs to iterate over entities in a graph.
-+
-+To iterate over all entities belonging to a media device, drivers can use the
-+media_device_for_each_entity macro, defined in include/media/media-device.h.
-+
-+	struct media_entity *entity;
-+
-+	media_device_for_each_entity(entity, mdev) {
-+		/* entity will point to each entity in turn */
-+		...
-+	}
-+
-+Drivers might also need to iterate over all entities in a graph that can be
-+reached only through active links starting at a given entity. The media
-+framework provides a depth-first graph traversal API for that purpose.
-+
-+Note that graphs with cycles (whether directed or undirected) are *NOT*
-+supported by the graph traversal API.
-+
-+Drivers initiate a graph traversal by calling
-+
-+	media_entity_graph_walk_start(struct media_entity_graph *graph,
-+				      struct media_entity *entity);
-+
-+The graph structure, provided by the caller, is initialized to start graph
-+traversal at the given entity.
-+
-+Drivers can then retrieve the next entity by calling
-+
-+	media_entity_graph_walk_next(struct media_entity_graph *graph);
-+
-+When the graph traversal is complete the function will return NULL.
-+
-+Graph traversal can be interrupted at any moment. No cleanup function call is
-+required and the graph structure can be freed normally.
-+
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 78c3fd2..ae4e8af 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -81,6 +81,122 @@ media_entity_cleanup(struct media_entity *entity)
- }
- EXPORT_SYMBOL(media_entity_cleanup);
- 
-+/* -----------------------------------------------------------------------------
-+ * Graph traversal
-+ */
-+
-+static struct media_entity *media_entity_other(struct media_entity *entity,
-+					       struct media_entity_link *link)
-+{
-+	if (link->source->entity == entity)
-+		return link->sink->entity;
-+	else
-+		return link->source->entity;
-+}
-+
-+/* push an entity to traversal stack */
-+static void stack_push(struct media_entity_graph *graph,
-+		       struct media_entity *entity)
-+{
-+	if (graph->top == MEDIA_ENTITY_ENUM_MAX_DEPTH - 1) {
-+		WARN_ON(1);
-+		return;
-+	}
-+	graph->top++;
-+	graph->stack[graph->top].link = 0;
-+	graph->stack[graph->top].entity = entity;
-+}
-+
-+static struct media_entity *stack_pop(struct media_entity_graph *graph)
-+{
-+	struct media_entity *entity;
-+
-+	entity = graph->stack[graph->top].entity;
-+	graph->top--;
-+
-+	return entity;
-+}
-+
-+#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
-+#define link_top(en)	((en)->stack[(en)->top].link)
-+#define stack_top(en)	((en)->stack[(en)->top].entity)
-+
-+/**
-+ * media_entity_graph_walk_start - Start walking the media graph at a given entity
-+ * @graph: Media graph structure that will be used to walk the graph
-+ * @entity: Starting entity
-+ *
-+ * This function initializes the graph traversal structure to walk the entities
-+ * graph starting at the given entity. The traversal structure must not be
-+ * modified by the caller during graph traversal. When done the structure can
-+ * safely be freed.
-+ */
-+void media_entity_graph_walk_start(struct media_entity_graph *graph,
-+				   struct media_entity *entity)
-+{
-+	graph->top = 0;
-+	graph->stack[graph->top].entity = NULL;
-+	stack_push(graph, entity);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-+
-+/**
-+ * media_entity_graph_walk_next - Get the next entity in the graph
-+ * @graph: Media graph structure
-+ *
-+ * Perform a depth-first traversal of the given media entities graph.
-+ *
-+ * The graph structure must have been previously initialized with a call to
-+ * media_entity_graph_walk_start().
-+ *
-+ * Return the next entity in the graph or NULL if the whole graph have been
-+ * traversed.
-+ */
-+struct media_entity *
-+media_entity_graph_walk_next(struct media_entity_graph *graph)
-+{
-+	if (stack_top(graph) == NULL)
-+		return NULL;
-+
-+	/*
-+	 * Depth first search. Push entity to stack and continue from
-+	 * top of the stack until no more entities on the level can be
-+	 * found.
-+	 */
-+	while (link_top(graph) < stack_top(graph)->num_links) {
-+		struct media_entity *entity = stack_top(graph);
-+		struct media_entity_link *link =
-+			&entity->links[link_top(graph)];
-+		struct media_entity *next;
-+
-+		/* The link is not active so we do not follow. */
-+		if (!(link->flags & MEDIA_LINK_FLAG_ACTIVE)) {
-+			link_top(graph)++;
-+			continue;
-+		}
-+
-+		/* Get the entity in the other end of the link . */
-+		next = media_entity_other(entity, link);
-+
-+		/* Was it the entity we came here from? */
-+		if (next == stack_peek(graph)) {
-+			link_top(graph)++;
-+			continue;
-+		}
-+
-+		/* Push the new entity to stack and start over. */
-+		link_top(graph)++;
-+		stack_push(graph, next);
-+	}
-+
-+	return stack_pop(graph);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
-+
-+/* -----------------------------------------------------------------------------
-+ * Links management
-+ */
-+
- static struct
- media_entity_link *media_entity_add_link(struct media_entity *entity)
- {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index fd44647..15944bb 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -70,10 +70,25 @@ struct media_entity {
- 	};
- };
- 
-+#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-+
-+struct media_entity_graph {
-+	struct {
-+		struct media_entity *entity;
-+		int link;
-+	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-+	int top;
-+};
-+
- int media_entity_init(struct media_entity *entity, u8 num_pads,
- 		struct media_entity_pad *pads, u8 extra_links);
- void media_entity_cleanup(struct media_entity *entity);
- int media_entity_create_link(struct media_entity *source, u8 source_pad,
- 		struct media_entity *sink, u8 sink_pad, u32 flags);
- 
-+void media_entity_graph_walk_start(struct media_entity_graph *graph,
-+		struct media_entity *entity);
-+struct media_entity *
-+media_entity_graph_walk_next(struct media_entity_graph *graph);
-+
- #endif
+[snip]
+
+> > diff --git a/drivers/media/video/v4l2-subdev.c
+> > b/drivers/media/video/v4l2-subdev.c new file mode 100644
+> > index 0000000..a048161
+> > --- /dev/null
+> > +++ b/drivers/media/video/v4l2-subdev.c
+> > @@ -0,0 +1,65 @@
+
+[snip]
+
+> > +static int subdev_open(struct file *file)
+> > +{
+> > +	struct video_device *vdev = video_devdata(file);
+> > +	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+> > +
+> > +	if (!sd->initialized)
+> > +		return -EAGAIN;
+> 
+> Those internal interfaces should not be used on normal
+> devices/applications, as none of the existing drivers are tested or
+> supposed to properly work if an external program is touching on its
+> internal interfaces. So, please add:
+> 
+> 	if (!capable(CAP_SYS_ADMIN))
+> 		return -EPERM;
+
+As Hans pointed out, subdev device nodes should only be created if the subdev 
+request it explicitly. I'll fix the patch accordingly. Existing subdevs will 
+not have a device node by default anymore, so the CAP_SYS_ADMIN capability 
+won't be required (new subdevs that explicitly ask for a device node are 
+supposed to handle the calls properly, otherwise it's a bit pointless :-)).
+
+> > +
+> > +	return 0;
+> > +}
+
+[snip]
+
+> > +static long subdev_ioctl(struct file *file, unsigned int cmd,
+> > +	unsigned long arg)
+> > +{
+> > +	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
+> 
+> This is a legacy call. Please, don't use it.
+
+What should I use instead then ? I need the functionality of video_usercopy. I 
+could copy it to v4l2-subdev.c verbatim. As video_ioctl2 shares lots of code 
+with video_usercopy I think video_usercopy should stay, and video_ioctl2 
+should use it.
+
+> Also, while the API doc says that only certain ioctls are supported on
+> subdev, there's no code here preventing the usage of invalid ioctls. So,
+> it is possible to do bad things, like changing the video standard format
+> individually on each subdev, creating all sorts of problems.
+
+Invalid (or rather unsupported) ioctls will be routed to the subdev 
+core::ioctl operation. Formats will not be changed automagically just because 
+a userspace application issues a VIDIOC_S_FMT ioctl.
+
+As the device node creation will need to be requested explicitly this won't be 
+an issue anyway.
+
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
