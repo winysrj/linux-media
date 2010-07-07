@@ -1,118 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:63656 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755598Ab0GFMk2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jul 2010 08:40:28 -0400
-Message-ID: <4C33243D.1070107@gmail.com>
-Date: Tue, 06 Jul 2010 09:40:29 -0300
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:51836 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753000Ab0GGLpq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 07:45:46 -0400
+Received: by bwz1 with SMTP id 1so4144174bwz.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Jul 2010 04:45:45 -0700 (PDT)
+Message-ID: <4C3468DF.1030008@googlemail.com>
+Date: Wed, 07 Jul 2010 13:45:35 +0200
+From: Sven Barth <pascaldragon@googlemail.com>
 MIME-Version: 1.0
-To: Richard Zidlicky <rz@linux-m68k.org>
-CC: Jiri Slaby <jirislaby@gmail.com>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 2.6.34] schedule inside spin_lock_irqsave
-References: <20100530145240.GA21559@linux-m68k.org> <4C028336.8030704@gmail.com> <20100606124302.GA10119@linux-m68k.org> <4C0BE03C.8000709@gmail.com> <20100607130048.GA6857@linux-m68k.org>
-In-Reply-To: <20100607130048.GA6857@linux-m68k.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: LMML <linux-media@vger.kernel.org>
+Subject: Re: Status of the patches under review at LMML (60 patches)
+References: <4C332A5F.4000706@redhat.com>
+In-Reply-To: <4C332A5F.4000706@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 07-06-2010 10:00, Richard Zidlicky escreveu:
-> On Sun, Jun 06, 2010 at 07:51:56PM +0200, Jiri Slaby wrote:
->> On 06/06/2010 02:43 PM, Richard Zidlicky wrote:
->>> Hi,
->>>
->>> I have done a minimaly invasive patch for the stable 2.6.34 kernel and stress-tested 
->>> it for many hours, definitely seems to improve the behaviour.
->>>
->>> I have left out your beautification suggestion for now, want to do more playing with
->>> other aspects of the driver. There still seem to be issues when the device is unplugged 
->>> while in use and such.
->>>
->>> --- linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c.rz	2010-06-03 21:58:11.000000000 +0200
->>> +++ linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c	2010-06-04 23:00:35.000000000 +0200
->>> @@ -1100,31 +1100,26 @@
->>>   *
->>>   * @return pointer to descriptor on success, NULL on error.
->>>   */
->>> -struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
->>> +
->>> +struct smscore_buffer_t *get_entry(void)
->>>  {
->>>  	struct smscore_buffer_t *cb = NULL;
->>>  	unsigned long flags;
->>>  
->>> -	DEFINE_WAIT(wait);
->>> -
->>>  	spin_lock_irqsave(&coredev->bufferslock, flags);
->>
->> Sorry, maybe I'm just blind, but where is 'coredev' defined in this
->> scope? You probably forgot to pass it to get_entry?
->>
->> How could this be compiled? Is there coredev defined globally?
-> 
-> good catch. I think it failed and despite a different kernel id the old module was
-> loaded.
-> 
-> Here is the new version, this time lightly tested
+Hi!
 
-Could you please fix the indentation and send your SOB for this patch?
+Am 06.07.2010 15:06, schrieb Mauro Carvalho Chehab:
+ > 		== Waiting for Mike Isely<isely@isely.net>  review ==
+ >
+ > Apr,25 2010: Problem with cx25840 and Terratec Grabster AV400 
+                http://patchwork.kernel.org/patch/94960
 
-Cheers,
-Mauro.
-> 
-> --- linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c.rz	2010-06-03 21:58:11.000000000 +0200
-> +++ linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c	2010-06-07 14:32:06.000000000 +0200
-> @@ -1100,31 +1100,26 @@
->   *
->   * @return pointer to descriptor on success, NULL on error.
->   */
-> -struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
-> +
-> +struct smscore_buffer_t *get_entry(struct smscore_device_t *coredev)
->  {
->  	struct smscore_buffer_t *cb = NULL;
->  	unsigned long flags;
->  
-> -	DEFINE_WAIT(wait);
-> -
->  	spin_lock_irqsave(&coredev->bufferslock, flags);
-> -
-> -	/* This function must return a valid buffer, since the buffer list is
-> -	 * finite, we check that there is an available buffer, if not, we wait
-> -	 * until such buffer become available.
-> -	 */
-> -
-> -	prepare_to_wait(&coredev->buffer_mng_waitq, &wait, TASK_INTERRUPTIBLE);
-> -
-> -	if (list_empty(&coredev->buffers))
-> -		schedule();
-> -
-> -	finish_wait(&coredev->buffer_mng_waitq, &wait);
-> -
-> +	if (!list_empty(&coredev->buffers)) {
->  	cb = (struct smscore_buffer_t *) coredev->buffers.next;
->  	list_del(&cb->entry);
-> -
-> +	}
->  	spin_unlock_irqrestore(&coredev->bufferslock, flags);
-> +	return cb;
-> +}
-> +
-> +struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
-> +{
-> +	struct smscore_buffer_t *cb = NULL;
-> +
-> +	wait_event(coredev->buffer_mng_waitq, (cb = get_entry(coredev)));
->  
->  	return cb;
->  }
-> 
-> 
-> Richard
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Is Mike really the maintainer of the cx25840 module and not only of the 
+pvrusb2 one? If he's not the maintainer you should contact the real one, 
+cause I don't think that Mike can help much regarding patches for the 
+cx25840 in that case.
 
+Also I might need to adjust the patch cause of the recent changes that 
+happened there the last few months. (I don't know when I'll find time 
+for this...)
+
+Regards,
+Sven
