@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49126 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751999Ab0G1Shg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 14:37:36 -0400
-Message-ID: <4C5078E8.5010409@redhat.com>
-Date: Wed, 28 Jul 2010 15:37:28 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:44175 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756104Ab0GGVdG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 17:33:06 -0400
+Received: by gxk23 with SMTP id 23so61686gxk.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Jul 2010 14:33:03 -0700 (PDT)
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: Maxim Levitsky <maximlevitsky@gmail.com>,
-	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/9] IR: replace spinlock with mutex.
-References: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com> <1280330051-27732-4-git-send-email-maximlevitsky@gmail.com> <4C5054B6.5050207@redhat.com> <1280334778.28785.6.camel@localhost.localdomain> <20100728174338.GD26480@redhat.com>
-In-Reply-To: <20100728174338.GD26480@redhat.com>
+In-Reply-To: <20100707110613.18be4215@tele>
+References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
+	<20100707074431.66629934@tele> <AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
+	<20100707110613.18be4215@tele>
+From: Kyle Baker <kyleabaker@gmail.com>
+Date: Wed, 7 Jul 2010 17:32:43 -0400
+Message-ID: <AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
+Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 28-07-2010 14:43, Jarod Wilson escreveu:
-> On Wed, Jul 28, 2010 at 07:32:58PM +0300, Maxim Levitsky wrote:
->> On Wed, 2010-07-28 at 13:03 -0300, Mauro Carvalho Chehab wrote:
->>> Em 28-07-2010 12:14, Maxim Levitsky escreveu:
->>>> Some handlers (lirc for example) allocates memory on initialization,
->>>> doing so in atomic context is cumbersome.
->>>> Fixes warning about sleeping function in atomic context.
->>>
->>> You should not replace it by a mutex, as the decoding code may happen during
->>> IRQ time on several drivers.
->> I though decoding code is run by a work queue?
-> 
-> Yeah, it is. (INIT_WORK(&ir->raw->rx_work, ir_raw_event_work); in
-> ir_raw_event_register).
-> 
->> I don't see any atomic codepath here...
-> 
-> I think the ir_raw_event_store variants are the only things that are run
-> from an interrupt context, and none of them touch ir_raw_handler_lock.
-> That lock is advertised as being for the protection of ir_raw_handler_list
-> and ir_raw_client_list, which are primarily manipulated by
-> register/unregister functions, and we just lock them when doing actual IR
-> decode work (via said work queue) so we don't feed raw IR somewhere that
-> we shouldn't. I think Maxim is correct here, we should be okay with
-> changing this to a mutex, unless I'm missing something else.
+On Wed, Jul 7, 2010 at 5:06 AM, Jean-Francois Moine <moinejf@free.fr> wrote:
+>
+> The video and audio don't work at the same time because the video is
+> opened before the audio and it takes all the USB bandwidth.
+>
+> The problem is in the main gspca.c, not in sonixj.c. It may fixed using
+> a lower alternate setting. To check it, you may add the following lines:
+>
+>        if (dev->config->desc.bNumInterfaces != 1)
+>                gspca_dev->nbalt -= 1;
+> after
+>        gspca_dev->nbalt = intf->num_altsetting;
+> in the function gspca_dev_probe() of gspca.c.
+>
+> If it still does not work, change "-= 1" to "-= 2" or "-= 3" (there are
+> 8 alternate settings in your webcam).
 
-You're probably right. The previous code used to do this at IRQ time, but a latter
-patch changed it to happen via a workqueue.
+I've edited the gspca.c file with your suggestion to begin testing,
+but I'm unable to get the new drivers to compile with and Error 2.
 
-So, I'm OK with this patch.
+> For a correct fix, the exact video bandwidth shall be calculated and I
+> could not find yet time enough to do the job and people to test it...
 
-Cheers,
-Mauro.
+If you find time to start progress on this, I will be ready to test
+your changes. In the meantime, I will continue trying to compile and
+test these changes. If I understood more of how everything works then
+I'd start the bandwidth calculation progress myself. Unfortunately I
+don't, but I may be able to get a patch working if this will ever
+compile.
 
+Thanks.
 
+--
+Kyle Baker
