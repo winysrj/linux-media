@@ -1,118 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1831 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752626Ab0GZTwA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 15:52:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH v2 03/10] media: Entities, pads and links
-Date: Mon, 26 Jul 2010 21:51:57 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007241418.11463.hverkuil@xs4all.nl> <201007261838.29490.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201007261838.29490.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:27401 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753945Ab0GGN7k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Jul 2010 09:59:40 -0400
+Date: Wed, 7 Jul 2010 09:52:59 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Anssi Hannula <anssi.hannula@iki.fi>
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: Some issues with imon input driver
+Message-ID: <20100707135259.GA29996@redhat.com>
+References: <201007070536.45900.anssi.hannula@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007262151.57126.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201007070536.45900.anssi.hannula@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 26 July 2010 18:38:28 Laurent Pinchart wrote:
-> Hi Hans,
+On Wed, Jul 07, 2010 at 05:36:45AM +0300, Anssi Hannula wrote:
+> Hi!
 > 
-> On Saturday 24 July 2010 14:18:11 Hans Verkuil wrote:
-> > On Wednesday 21 July 2010 16:35:28 Laurent Pinchart wrote:
-> > 
-> > <snip>
-> > 
-> > > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > > new file mode 100644
-> > > index 0000000..fd44647
-> > > --- /dev/null
-> > > +++ b/include/media/media-entity.h
-> > > @@ -0,0 +1,79 @@
-> > > +#ifndef _MEDIA_ENTITY_H
-> > > +#define _MEDIA_ENTITY_H
-> > > +
-> > > +#include <linux/list.h>
-> > > +
-> > > +#define MEDIA_ENTITY_TYPE_NODE				1
-> > > +#define MEDIA_ENTITY_TYPE_SUBDEV			2
-> > > +
-> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_V4L			1
-> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_FB			2
-> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_ALSA			3
-> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_DVB			4
-> > > +
-> > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_DECODER		1
-> > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_ENCODER		2
-> > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_MISC		3
-> > 
-> > These names are too awkward.
-> > 
-> > I see two options:
-> > 
-> > 1) Rename the type field to 'entity' and the macros to
-> > MEDIA_ENTITY_NODE/SUBDEV. Also rename subtype to type and the macros to
-> > MEDIA_ENTITY_TYPE_NODE_V4L and MEDIA_ENTITY_TYPE_SUBDEV_VID_DECODER. We
-> > might even get away with dropping _TYPE from the macro name.
-> > 
-> > 2) Merge type and subtype to a single entity field. The top 16 bits are the
-> > entity type, the bottom 16 bits are the subtype. That way you end up with:
-> > 
-> > #define MEDIA_ENTITY_NODE			(1 << 16)
-> > #define MEDIA_ENTITY_SUBDEV			(2 << 16)
-> > 
-> > #define MEDIA_ENTITY_NODE_V4L			(MEDIA_ENTITY_NODE + 1)
-> > 
-> > #define MEDIA_ENTITY_SUBDEV_VID_DECODER		(MEDIA_ENTITY_SUBDEV + 1)
-> > 
-> > I rather like this option myself.
+> I tried to set up my imon remote, but run into the issue of buttons getting 
+> easily stuck. And while looking at the code, I noticed some more issues :)
+
+I'm not entirely surprised, I knew there were a few quirks left I'd not
+yet fully sorted out. Generally, it works quite well, but I didn't abuse
+the receiver quite as thoroughly as you. ;)
+
+Can I talk you into filing a bug to track this? I can probably work up
+fixes for a number of these sooner or later, if you don't beat me to them,
+but it'd be easy for one or more of the specific problems to slip through
+the cracks if not logged somewhere. My From: address here matches my
+b.k.o. account, if you want to assign said bug to me.
+
+Ah, and because we're actually handing remote controls via
+drivers/media/IR/, you should cc linux-media as well (if not instead of
+linux-input) on anything regarding this driver.
+
+Thanks much,
+
+--jarod
+
+
+> So here they all are (on 2.6.35-rc4):
 > 
-> I like option 2 better, but I would keep the field name "type" instead of 
-> "entity". Constants could start with MEDIA_ENTITY_TYPE_, or just MEDIA_ENTITY_ 
-> (I think I would prefer MEDIA_ENTITY_TYPE_).
-
-Yes, I realized that later as well. Keep the 'type' field name.
-I'm not sure about the macro name. I still think MEDIA_ENTITY_TYPE_SUBDEV_VID_DECODER
-is too much of a mouthful.
-
+> - There is no fallback timer if a release code is missed (i.e. remote pointed 
+> away from receiver or some other anomaly), causing a key stuck on autorepeat. 
+> The driver should inject a release code itself if there is no release/repeat 
+> code in 500ms after initial press or in 120ms after a repeat code.
 > 
-> > > +
-> > > +#define MEDIA_LINK_FLAG_ACTIVE				(1 << 0)
-> > > +#define MEDIA_LINK_FLAG_IMMUTABLE			(1 << 1)
-> > > +
-> > > +#define MEDIA_PAD_DIR_INPUT				1
-> > > +#define MEDIA_PAD_DIR_OUTPUT				2
-> > > +
-> > > +struct media_entity_link {
-> > > +	struct media_entity_pad *source;/* Source pad */
-> > > +	struct media_entity_pad *sink;	/* Sink pad  */
-> > > +	struct media_entity_link *other;/* Link in the reverse direction */
-> > > +	u32 flags;			/* Link flags (MEDIA_LINK_FLAG_*) */
-> > > +};
-> > > +
-> > > +struct media_entity_pad {
-> > > +	struct media_entity *entity;	/* Entity this pad belongs to */
-> > > +	u32 direction;			/* Pad direction (MEDIA_PAD_DIR_*) */
-> > > +	u8 index;			/* Pad index in the entity pads array */
-> > 
-> > We can use bitfields for direction and index. That way we can also easily
-> > add other flags/attributes.
+> - No release code is sent for 0x02XXXXXX keys if pressing any other button 
+> before release, examples:
 > 
-> You proposed to merge the direction field into a new flags field, I suppose 
-> that should be done here too for consistency. Having 16 flags might be a bit 
-> low though, 32 would be better. If you want to keep 16 bits for now, maybe we 
-> should have 2 reserved __u32 instead of one.
-
-Yes, let's use a u32 flags field for this.
-
-Regards,
-
-	Hans
+> example 1:
+> hold '5', then press 'Play' once, then release '5'
+> The 'Play' codes are relayed properly, but the release code for '5' (the 'all 
+> 0x02XXXXXX keys released' (i.e. empty HID input report) which the hardware 
+> does send properly) is wrongly interpreted as a release code for 'Play'.
+> The driver should either release '5' when the empty report is received, or, as 
+> this is just a remote control, just inject a release code for '5' when 'Play' 
+> is pressed.
+> 
+> example 2:
+> hold '5', then hold '4', then release '5', then release '4'
+> As the 0x02XXXXXX range is not completely released until after '4' is 
+> released, the zeroed bitfield is not sent until after '4', and the driver 
+> doesn't release '5' at this point anymore. The driver should've injected a 
+> release code for '5' when '4' was pressed.
+> 
+> - imon_mce_timeout() timer function seems to access ictx->last_keycode without 
+> locking
+> 
+> - imon_parse_press_type() tests for ictx->release_code which is in an 
+> undefined state if ktype isn't IMON_KEY_IMON
+> 
+> - when the dpad is in keyboard mode and you hold it down to one direction, 
+> instead of autorepeat there is a constant stream of release/press events
+> 
+> 
+> I may get around to fix these (if I find time and an MCE remote for testing), 
+> but that won't probably happen soon, thus I'm reporting these here if someone 
+> else wants to fix them.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Jarod Wilson
+jarod@redhat.com
+
