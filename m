@@ -1,48 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:64343 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753516Ab0GETH0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 15:07:26 -0400
-Received: by wyf23 with SMTP id 23so2539268wyf.19
-        for <linux-media@vger.kernel.org>; Mon, 05 Jul 2010 12:07:24 -0700 (PDT)
+Received: from smtp104.plus.mail.re1.yahoo.com ([69.147.102.67]:32581 "HELO
+	smtp104.plus.mail.re1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754966Ab0GGQAG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Jul 2010 12:00:06 -0400
+Message-ID: <4C34A2F4.8030307@yahoo.de>
+Date: Wed, 07 Jul 2010 17:53:24 +0200
+From: Uwe Sauter <uwe.sauter@yahoo.de>
+Reply-To: uwe.sauter@yahoo.de
 MIME-Version: 1.0
-In-Reply-To: <4C32044C.3060007@redhat.com>
-References: <20100518173011.5d9c7f2c@glory.loctelecom.ru>
-	<AANLkTilL60q2PrBGagobWK99dV9OMKldxLiKZafn1oYb@mail.gmail.com>
-	<20100525114939.067404eb@glory.loctelecom.ru>
-	<4C32044C.3060007@redhat.com>
-Date: Mon, 5 Jul 2010 15:07:24 -0400
-Message-ID: <AANLkTinctdXC5lmzXSkgwjwfIwAH3BNFCWeWMnK3Xi5-@mail.gmail.com>
-Subject: Re: [PATCH] xc5000, rework xc_write_reg
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Dmitri Belimov <d.belimov@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Stefan Ringel <stefan.ringel@arcor.de>,
-	Bee Hock Goh <beehock@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: libv4lconvert & Logitech Webcam 9000 Pro
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 5, 2010 at 12:11 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Devin/Dmitri,
->
-> Any progress about this patch?
->
-> Cheers,
-> Mauro
+Hi everybody,
 
-Sorry for the delay.
+I have a problem concerning libv4lconvert, Logitech Webcam 9000 Pro and 
+perhaps OpenCV.
 
-I did some testing with it today, and it looks fine.
+When I try to run OpenCV's examples that access the webcam they crash 
+with the following:
 
-Acked-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+--------------------
+libv4lconvert: warning more framesizes then I can handle!
+libv4lconvert: warning more framesizes then I can handle!
+VIDIOC_QUERYCTRL: Input/output error
+mmap: Invalid argument
+munmap: Invalid argument
+munmap: Invalid argument
+munmap: Invalid argument
+munmap: Invalid argument
+Unable to stop the stream.: Bad file descriptor
+munmap: Invalid argument
+munmap: Invalid argument
+munmap: Invalid argument
+munmap: Invalid argument
+libv4lconvert: warning more framesizes then I can handle!
+libv4lconvert: warning more framesizes then I can handle!
+HIGHGUI ERROR: V4L: device /dev/video0: Unable to query number of channels
+--------------------
 
-Thanks,
+It seems to me that the cam has more framesizes than libv4lconvert 
+actually can handle.This error happens on verions 0.6.1, 0.7.91 and 
+0.8.0. A quick fix to this:
 
-Devin
+change in v4l-utils-<version>/lib/libv4lconvert/libv4lconvert-priv.h:
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+line 32:	#define V4LCONVERT_MAX_FRAMESIZES 16
+to:		#define V4LCONVERT_MAX_FRAMESIZES 32
+or any other higher number.
+
+I have no idea which implications result from this.
+
+The mmap/munmap/stream/HIGHGUI errors seem to be OpenCV related.
+
+guvcview/luvcview both work BUT they don't link agains libv4lconvert.
+
+I hope you can include this. If I can help testing I'm glad to 
+participate. If you need more infos regarding the cam feel free to ask.
+
+
+
+Thank you,
+
+	Uwe Sauter
+
+
+
+
+
