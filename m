@@ -1,73 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:39103 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331Ab0G3LgI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 07:36:08 -0400
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and
- enable  it.
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Jon Smirl <jonsmirl@gmail.com>, lirc-list@lists.sourceforge.net,
-	Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <1280461565.15737.124.camel@localhost>
-References: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
-	 <1280456235-2024-14-git-send-email-maximlevitsky@gmail.com>
-	 <AANLkTim42mHVhOgmVGxh2XsbbbVC7ZOgtfd7DDSrxZDB@mail.gmail.com>
-	 <1280461565.15737.124.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 30 Jul 2010 14:36:01 +0300
-Message-ID: <1280489761.3646.3.camel@maxim-laptop>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:48468 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752272Ab0GGFoN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 01:44:13 -0400
+Date: Wed, 7 Jul 2010 07:44:31 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Kyle Baker <kyleabaker@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
+Message-ID: <20100707074431.66629934@tele>
+In-Reply-To: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
+References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-07-29 at 23:46 -0400, Andy Walls wrote: 
-> On Thu, 2010-07-29 at 22:39 -0400, Jon Smirl wrote:
-> > On Thu, Jul 29, 2010 at 10:17 PM, Maxim Levitsky
-> > <maximlevitsky@gmail.com> wrote:
-> > > note that error_adjustment module option is added.
-> > > This allows to reduce input samples by a percent.
-> > > This makes input on my system more correct.
-> > >
-> > > Default is 4% as it works best here.
-> > >
-> > > Note that only normal input is adjusted. I don't know
-> > > what adjustments to apply to fan tachometer input.
-> > > Maybe it is accurate already.
-> > 
-> > Do you have the manual for the ENE chip in English? or do you read Chinese?
-> 
-> The datasheet for a similar chip, the KB3700, is out there in English,
-> but it doesn't have CIR.
-> 
-> You might find these links mildly interesting:
-> 
-> http://www.coreboot.org/Embedded_controller
-> http://wiki.laptop.org/go/Embedded_controller
-> http://lists.laptop.org/pipermail/openec/2008-July/000108.html
+On Mon, 5 Jul 2010 17:40:18 -0400
+Kyle Baker <kyleabaker@gmail.com> wrote:
 
-Nope, I have read that. 
+> I'm testing the VX-1000 model web cam in test builds of Ubuntu 10.10
+> x86_64 and have found that the gspca drivers allow the microphone to
+> work with a sound recorder initially. However, when I test sound and
+> video together with Cheese, the microphone no longer works and doesn't
+> work again on the computer until the web cam is detached and
+> reattached.
 > 
-> Regards,
-> Andy
+> I was able to track the events in the system logs as follows:
+	[snip]
+> Jul 5 16:53:37 kyleabaker-desktop kernel: [105042.537960] gspca:
+> bandwidth not wide enough - trying again
+	[snip]
+> I opened Cheese to test sound and video at the 16:53 point. This seems
+> to be unique to x86_64 systems as I'm getting reports that 32-bit
+> users are not having any problems with this, but I don't have a 32-bit
+> install to test myself.
 > 
-> > Maybe you can figure out why the readings are off by 4%. I suspect
-> > that someone has set a clock divider wrong when programming the chip.
-> > For example setting the divider for a 25Mhz clock when the clock is
-> > actually 26Mhz would cause the error you are seeing. Or they just made
-> > a mistake in computing the divisor. It is probably a bug in the BIOS
-> > of your laptop.  If that's the case you could add a quirk in the
-> > system boot code to fix the register setting.
+> The selected input microphone remains the one in the web cam, but the
+> drivers fail or break when it is started with video.
 
-I figured out how windows driver compensates for the offset, and do the
-same in my driver. I think the problem is solved.
+Hi Kyle,
 
+The problem is known. I have no fix yet, but it seems that you use a
+USB 1.1. or that you have some other device on the same bus. May you
+try to connect your webcam to an other USB port?
 
-Best regards,
-Maxim Levitsky
+Best regards.
 
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
