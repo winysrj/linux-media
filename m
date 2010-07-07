@@ -1,72 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55010 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756096Ab0GaO7o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 10:59:44 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 05/13] IR: JVC: make repeat work
-Date: Sat, 31 Jul 2010 17:59:18 +0300
-Message-Id: <1280588366-26101-6-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:37547 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751065Ab0GGG6R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 02:58:17 -0400
+Received: by gye5 with SMTP id 5so2225890gye.19
+        for <linux-media@vger.kernel.org>; Tue, 06 Jul 2010 23:58:16 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20100707074431.66629934@tele>
+References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
+	<20100707074431.66629934@tele>
+From: Kyle Baker <kyleabaker@gmail.com>
+Date: Wed, 7 Jul 2010 02:57:54 -0400
+Message-ID: <AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
+Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, jvc decoder will attempt misdetect next press as a repeat
-of last keypress, therefore second keypress isn't detected.
+On Wed, Jul 7, 2010 at 1:44 AM, Jean-Francois Moine <moinejf@free.fr> wrote:
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/ir-jvc-decoder.c |   14 +++++++++++++-
- 1 files changed, 13 insertions(+), 1 deletions(-)
+> Hi Kyle,
+>
+> The problem is known. I have no fix yet, but it seems that you use a
+> USB 1.1. or that you have some other device on the same bus. May you
+> try to connect your webcam to an other USB port?
+>
+> Best regards.
 
-diff --git a/drivers/media/IR/ir-jvc-decoder.c b/drivers/media/IR/ir-jvc-decoder.c
-index 8894d8b..77a89c4 100644
---- a/drivers/media/IR/ir-jvc-decoder.c
-+++ b/drivers/media/IR/ir-jvc-decoder.c
-@@ -32,6 +32,7 @@ enum jvc_state {
- 	STATE_BIT_SPACE,
- 	STATE_TRAILER_PULSE,
- 	STATE_TRAILER_SPACE,
-+	STATE_CHECK_REPEAT,
- };
- 
- /**
-@@ -60,6 +61,7 @@ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- 	IR_dprintk(2, "JVC decode started at state %d (%uus %s)\n",
- 		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
- 
-+again:
- 	switch (data->state) {
- 
- 	case STATE_INACTIVE:
-@@ -149,8 +151,18 @@ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- 		}
- 
- 		data->count = 0;
--		data->state = STATE_BIT_PULSE;
-+		data->state = STATE_CHECK_REPEAT;
- 		return 0;
-+
-+	case STATE_CHECK_REPEAT:
-+		if (!ev.pulse)
-+			break;
-+
-+		if (eq_margin(ev.duration, JVC_HEADER_PULSE, JVC_UNIT / 2))
-+			data->state = STATE_INACTIVE;
-+  else
-+			data->state = STATE_BIT_PULSE;
-+		goto again;
- 	}
- 
- out:
+I tested different ports, but the results are the same.
+
+>From the log files it appears to be connecting via USB2.
+
+Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.202520] usb 2-1: new
+full speed USB device using ohci_hcd and address 6
+Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.426975] gspca:
+probing 045e:00f7
+Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.438792] sonixj:
+Sonix chip id: 11
+Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.444844] input:
+sonixj as /devices/pci0000:00/0000:00:02.0/usb2/2-1/input/input7
+Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.444916] gspca: video0 created
+Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.444918] gspca: found
+int in endpoint: 0x83, buffer_len=1, interval=100
+
+The only usb devices connected are my keyboard, mouse and vx-1000 webcam.
+
+I can get the microphone back if I reset the modules:
+sudo rmmod gspca_sonixj
+sudo modprobe gspca_sonixj
+
+If the microphone works when used alone (with the sound recorder
+application) and video works in Cheese, why would they not work
+together at the same time?
+
+I'm looking through the sonixj.c code to see if I can find where its
+breaking, but I'm not very experienced in C.
+
+I've been trying to get this worked out for a year, so if there is
+anything I can do to help fix this bug let me know. This is a fairly
+common webcam, so it would be great to see this resolved soon.
+
+What is the current priority of this bug?
 -- 
-1.7.0.4
-
+Thanks,
+Kyle Baker
