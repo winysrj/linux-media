@@ -1,58 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:44876 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755020Ab0GQI5X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Jul 2010 04:57:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Kromer <michael.kromer@topalis.com>
-Subject: Re: Chicony Electronics 04f2:b1b4 webcam device unsupported (yet)
-Date: Sat, 17 Jul 2010 10:57:26 +0200
-Cc: Pete Eberlein <pete@sensoray.com>, linux-media@vger.kernel.org
-References: <OF56E589E0.BB18B6B2-ONC1257762.005AE925-C1257762.005AE95B@topalis.com> <1279300489.1989.4.camel@pete-desktop> <4C416B0C.4050608@topalis.com>
-In-Reply-To: <4C416B0C.4050608@topalis.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007171057.27325.laurent.pinchart@ideasonboard.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:51477 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755169Ab0GGOkY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 10:40:24 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=US-ASCII
+Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L5600EWGZF9EL40@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 07 Jul 2010 15:40:21 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L5600G4QZF8T6@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 07 Jul 2010 15:40:21 +0100 (BST)
+Date: Wed, 07 Jul 2010 16:39:10 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: RE: [RFC/PATCH 2/6] v4l: subdev: Add device node support
+In-reply-to: <A69FA2915331DC488A831521EAE36FE4016B5EDCD7@dlee06.ent.ti.com>
+To: "'Karicheri, Muralidharan'" <m-karicheri2@ti.com>
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Message-id: <000301cb1de2$29683260$7c389720$%nawrocki@samsung.com>
+Content-language: en-us
+References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1278503608-9126-3-git-send-email-laurent.pinchart@ideasonboard.com>
+ <A69FA2915331DC488A831521EAE36FE4016B5EDCD7@dlee06.ent.ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
 
-On Saturday 17 July 2010 10:34:20 Michael Kromer wrote:
-> On 07/16/2010 07:14 PM, Pete Eberlein wrote:
-> > On Fri, 2010-07-16 at 18:32 +0200, Michael Kromer wrote:
-> >> 
-> >> I have bought myself a rather new Lenovo Thinkpad X100e, and there is no
-> >> support for the webcam device in the current (2.6.34) kernel (yet).
-> >> 2.6.35 doesn't seem to have a driver for it either. Is there any
-> >> possibility for one of you guys to take a look at it?
-> > 
-> > The descriptors look like a standard USB Video Class device.  Do you
-> > have the uvcvideo module loaded?  Then have a look at your dmesg output
-> > to see why it isn't working.
-> 
-> my problem is:
-> 
-> [ 2578.903972] uvcvideo: Found UVC 1.00 device Integrated Camera
-> (04f2:b1b4) [ 2578.905121] input: Integrated Camera as
-> /devices/pci0000:00/0000:00:13.2/usb2/2-2/2-2:1.0/input/input10
-> [ 2578.905224] usbcore: registered new interface driver uvcvideo
-> [ 2578.905228] USB Video Class driver (v0.1.0)
-> 
-> It is indeed registred as video device, however, everytime i use some
-> program (i tried cheese) to use /dev/video0 I get the following:
-> 
-> [ 2741.757993] uvcvideo: Failed to query (130) UVC control 5 (unit 3) :
-> -32 (exp. 1).
+Isn't it like there need to be {} for both "if" and "else" when
+there is more than one line in either block?
 
-Could you please send me the output of
-
-lsusb -v -d 04f2:b1b4
-
--- 
 Regards,
+--
+Sylwester Nawrocki
 
-Laurent Pinchart
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Karicheri, Muralidharan
+> Sent: Wednesday, July 07, 2010 4:15 PM
+> To: Laurent Pinchart; linux-media@vger.kernel.org
+> Cc: sakari.ailus@maxwell.research.nokia.com
+> Subject: RE: [RFC/PATCH 2/6] v4l: subdev: Add device node support
+> 
+> 
+> 
+> >v4l2_device *v4l2_dev,
+> > 		if (err && err != -ENOIOCTLCMD) {
+> > 			v4l2_device_unregister_subdev(sd);
+> > 			sd = NULL;
+> >+		} else {
+> >+			sd->initialized = 1;
+> > 		}
+> 
+> Wouldn't checkpatch.pl script complain about { } on the else part since
+> there is only one statement?
+> > 	}
+> >
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
