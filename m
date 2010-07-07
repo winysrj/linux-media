@@ -1,49 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:64323 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756281Ab0GGXnK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 19:43:10 -0400
-Date: Wed, 7 Jul 2010 16:41:15 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Stephen Rothwell <sfr@canb.auug.org.au>,
-	Jarod Wilson <jarod@redhat.com>,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH -next] IR: jvc-decoder needs BITREVERSE
-Message-Id: <20100707164115.1682b172.randy.dunlap@oracle.com>
-In-Reply-To: <20100707165539.957e7d1c.sfr@canb.auug.org.au>
-References: <20100707165539.957e7d1c.sfr@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3784 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755204Ab0GGMbf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 08:31:35 -0400
+Message-ID: <38f93094bade00b4f7a8038660164593.squirrel@webmail.xs4all.nl>
+In-Reply-To: <1278503608-9126-4-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com>
+    <1278503608-9126-4-git-send-email-laurent.pinchart@ideasonboard.com>
+Date: Wed, 7 Jul 2010 14:31:32 +0200
+Subject: Re: [RFC/PATCH 3/6] v4l: subdev: Uninline the v4l2_subdev_init
+ function
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
 
-ir-jvc-decoder uses bitreverse interfaces, so it should select
-BITREVERSE.
+> The function isn't small or performance sensitive enough to be inlined.
+>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-ir-jvc-decoder.c:(.text+0x550bc): undefined reference to `byte_rev_table'
-ir-jvc-decoder.c:(.text+0x550c6): undefined reference to `byte_rev_table'
+Reviewed-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Jarod Wilson <jarod@redhat.com>
-Cc: David Härdeman <david@hardeman.nu>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
----
- drivers/media/IR/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+Looks good!
 
---- linux-next-20100707.orig/drivers/media/IR/Kconfig
-+++ linux-next-20100707/drivers/media/IR/Kconfig
-@@ -53,6 +53,7 @@ config IR_RC6_DECODER
- config IR_JVC_DECODER
- 	tristate "Enable IR raw decoder for the JVC protocol"
- 	depends on IR_CORE
-+	select BITREVERSE
- 	default y
- 
- 	---help---
+       Hans
+
+> ---
+>  drivers/media/video/v4l2-subdev.c |   14 ++++++++++++++
+>  include/media/v4l2-subdev.h       |   15 ++-------------
+>  2 files changed, 16 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/media/video/v4l2-subdev.c
+> b/drivers/media/video/v4l2-subdev.c
+> index a048161..a3672f0 100644
+> --- a/drivers/media/video/v4l2-subdev.c
+> +++ b/drivers/media/video/v4l2-subdev.c
+> @@ -63,3 +63,17 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+>  	.unlocked_ioctl = subdev_ioctl,
+>  	.release = subdev_close,
+>  };
+> +
+> +void v4l2_subdev_init(struct v4l2_subdev *sd, const struct
+> v4l2_subdev_ops *ops)
+> +{
+> +	INIT_LIST_HEAD(&sd->list);
+> +	BUG_ON(!ops);
+> +	sd->ops = ops;
+> +	sd->v4l2_dev = NULL;
+> +	sd->flags = 0;
+> +	sd->name[0] = '\0';
+> +	sd->grp_id = 0;
+> +	sd->priv = NULL;
+> +	sd->initialized = 0;
+> +}
+> +EXPORT_SYMBOL(v4l2_subdev_init);
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 00010bd..7b6edcd 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -442,19 +442,8 @@ static inline void *v4l2_get_subdevdata(const struct
+> v4l2_subdev *sd)
+>  	return sd->priv;
+>  }
+>
+> -static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
+> -					const struct v4l2_subdev_ops *ops)
+> -{
+> -	INIT_LIST_HEAD(&sd->list);
+> -	BUG_ON(!ops);
+> -	sd->ops = ops;
+> -	sd->v4l2_dev = NULL;
+> -	sd->flags = 0;
+> -	sd->name[0] = '\0';
+> -	sd->grp_id = 0;
+> -	sd->priv = NULL;
+> -	sd->initialized = 0;
+> -}
+> +void v4l2_subdev_init(struct v4l2_subdev *sd,
+> +		      const struct v4l2_subdev_ops *ops);
+>
+>  /* Call an ops of a v4l2_subdev, doing the right checks against
+>     NULL pointers.
+> --
+> 1.7.1
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
