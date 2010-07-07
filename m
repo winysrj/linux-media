@@ -1,113 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56743 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757524Ab0GDNW4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Jul 2010 09:22:56 -0400
-Subject: Re: [PATCH] VIDEO: ivtvfb, remove unneeded NULL test
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	Tejun Heo <tj@kernel.org>,
-	Ian Armstrong <ian@iarmst.demon.co.uk>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-In-Reply-To: <4C30372D.9050304@suse.cz>
-References: <1277206910-27228-1-git-send-email-jslaby@suse.cz>
-	 <1278216707.2644.32.camel@localhost>  <4C30372D.9050304@suse.cz>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 04 Jul 2010 09:22:25 -0400
-Message-ID: <1278249745.2280.46.camel@localhost>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:44767 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751330Ab0GGJFy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 05:05:54 -0400
+Date: Wed, 7 Jul 2010 11:06:13 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Kyle Baker <kyleabaker@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
+Message-ID: <20100707110613.18be4215@tele>
+In-Reply-To: <AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
+References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
+	<20100707074431.66629934@tele>
+	<AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 2010-07-04 at 09:24 +0200, Jiri Slaby wrote:
-> On 07/04/2010 06:11 AM, Andy Walls wrote:
-> > You missed an identical instance of the useless test 10 lines prior in
-> > ivtvfb_callback_init(). :)
+On Wed, 7 Jul 2010 02:57:54 -0400
+Kyle Baker <kyleabaker@gmail.com> wrote:
+
+> If the microphone works when used alone (with the sound recorder
+> application) and video works in Cheese, why would they not work
+> together at the same time?
 > 
-> Ah, thank you for pointing out. Find my comment below.
+> I'm looking through the sonixj.c code to see if I can find where its
+> breaking, but I'm not very experienced in C.
 > 
-> > --- a/drivers/media/video/ivtv/ivtvfb.c
-> > +++ b/drivers/media/video/ivtv/ivtvfb.c
-> > @@ -1201,9 +1201,14 @@ static int ivtvfb_init_card(struct ivtv *itv)
-> >  static int __init ivtvfb_callback_init(struct device *dev, void *p)
-> >  {
-> >         struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
-> > -       struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
-> > +       struct ivtv *itv;
-> >  
-> > -       if (itv && (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
-> > +       if (v4l2_dev == NULL)
-> > +               return 0;
-> > +
-> > +       itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
-> > +
-> > +       if (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT) {
-> >                 if (ivtvfb_init_card(itv) == 0) {
-> >                         IVTVFB_INFO("Framebuffer registered on %s\n",
-> >                                         itv->v4l2_dev.name);
-> > @@ -1216,10 +1221,16 @@ static int __init ivtvfb_callback_init(struct device *de
-> >  static int ivtvfb_callback_cleanup(struct device *dev, void *p)
-> >  {
-> >         struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
-> > -       struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
-> > -       struct osd_info *oi = itv->osd_info;
-> > +       struct ivtv *itv;
-> > +       struct osd_info *oi;
-> > +
-> > +       if (v4l2_dev == NULL)
-> > +               return 0;
+> I've been trying to get this worked out for a year, so if there is
+> anything I can do to help fix this bug let me know. This is a fairly
+> common webcam, so it would be great to see this resolved soon.
 > 
-> >From my POV I NACK this. Given that it never triggered and drvdata are
-> set in v4l2_device_register called from ivtv_probe I can't see how
-> v4l2_dev be NULL. Could you elaborate?
+> What is the current priority of this bug?
 
-I hemmed and hawed over that too.  I didn't do a very thorough analysis
-of the restrictions on unloading modules, but here was my line of
-reasoning:
+The video and audio don't work at the same time because the video is
+opened before the audio and it takes all the USB bandwidth.
 
-1. I assumed the check was there because presumably someone has run into
-an Ooops there before, prior to the conversion to the v4l2_device
-infrastrucutre.
+The problem is in the main gspca.c, not in sonixj.c. It may fixed using
+a lower alternate setting. To check it, you may add the following lines:
 
-I have reasearched that with git log this morning, and found that
-assumption was false.  The itv NULL check is a hold-over from when the
-ivtvfb and ivtv were apparently more tightly coupled.  The itv pointer
-was originally read from an array in ivtv that could have entries set to
-NULL.  That array is long gone.
+	if (dev->config->desc.bNumInterfaces != 1)
+		gspca_dev->nbalt -= 1;
+after
+	gspca_dev->nbalt = intf->num_altsetting;
+in the function gspca_dev_probe() of gspca.c.
 
+If it still does not work, change "-= 1" to "-= 2" or "-= 3" (there are
+8 alternate settings in your webcam).
 
+For a correct fix, the exact video bandwidth shall be calculated and I
+could not find yet time enough to do the job and people to test it...
 
-2. Note that the ivtvfb driver is not automatically loaded nor unloaded
-by the kernel ivtv driver.  Something from userspace will reqeust the
-load and unload of the module.
+Best regards.
 
-There are windows of time where a struct device * will exist for a card
-in the ivtv driver, but a struct v4l2_device * may not: the end of
-ivtv_remove() and the beginning of ivtv_probe().
-
-I was contemplating a case where user space requested unloading both the
-ivtvfb and the ivtv driver.  Given all the I2C devices these cards can
-have, I thought v4l2_device_unregister() at the end of ivtv_remove()
-could present a window of time large enough to worry about a race.
-v4l2_device_unregister() sets the struct device  drvdata pointer to
-NULL, and then begins unregistering the i2c clients.  I haven't profiled
-the process to know how long it typically takes, though.
-
-I also don't know if kernel mechanisms will absolutely prevent
-initiating the unload of ivtv.ko before the unload of ivtvfb.ko is
-completely finished.  Will they?
-
-$ modinfo ivtvfb | grep -E '(depend)|(alias)'
-depends:        ivtv
-
-$ modinfo ivtv | grep -E '(depend)|(alias)'
-alias:          pci:v00004444d00000016sv*sd*bc*sc*i*
-alias:          pci:v00004444d00000803sv*sd*bc*sc*i*
-depends:        cx2341x,videodev,tveeprom,v4l2-common,i2c-core,i2c-algo-bit
-
-Regards,
-Andy
-
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
