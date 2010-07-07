@@ -1,49 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51755 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758679Ab0G3OyT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 10:54:19 -0400
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Received: from perceval.irobotique.be ([92.243.18.41]:50315 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754458Ab0GGLxl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 07:53:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de, p.wiesner@phytec.de,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>
-Subject: [PATCH 09/20] mt9m111: cropcap check if type is CAPTURE
-Date: Fri, 30 Jul 2010 16:53:27 +0200
-Message-Id: <1280501618-23634-10-git-send-email-m.grzeschik@pengutronix.de>
-In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
-References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH 1/6] v4l: subdev: Don't require core operations
+Date: Wed,  7 Jul 2010 13:53:23 +0200
+Message-Id: <1278503608-9126-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
----
- drivers/media/video/mt9m111.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+There's no reason to require subdevices to implement the core
+operations. Remove the check for non-NULL core operations when
+initializing the subdev.
 
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index 3b19274..e8d8e9b 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -476,6 +476,9 @@ static int mt9m111_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- 
- static int mt9m111_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/v4l2-subdev.h |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 02c6f4d..6088316 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -437,8 +437,7 @@ static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 					const struct v4l2_subdev_ops *ops)
  {
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
- 	a->bounds.left			= MT9M111_MIN_DARK_COLS;
- 	a->bounds.top			= MT9M111_MIN_DARK_ROWS;
- 	a->bounds.width			= MT9M111_MAX_WIDTH;
-@@ -484,7 +487,6 @@ static int mt9m111_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
- 	a->defrect.top			= MT9M111_DEF_DARK_ROWS;
- 	a->defrect.width		= MT9M111_DEF_WIDTH;
- 	a->defrect.height		= MT9M111_DEF_HEIGHT;
--	a->type				= V4L2_BUF_TYPE_VIDEO_CAPTURE;
- 	a->pixelaspect.numerator	= 1;
- 	a->pixelaspect.denominator	= 1;
- 
+ 	INIT_LIST_HEAD(&sd->list);
+-	/* ops->core MUST be set */
+-	BUG_ON(!ops || !ops->core);
++	BUG_ON(!ops);
+ 	sd->ops = ops;
+ 	sd->v4l2_dev = NULL;
+ 	sd->flags = 0;
 -- 
 1.7.1
 
