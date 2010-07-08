@@ -2,22 +2,30 @@ Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.5])
 	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o69GUilW031829
-	for <video4linux-list@redhat.com>; Fri, 9 Jul 2010 12:30:45 -0400
-Received: from gateway05.websitewelcome.com (gateway05.websitewelcome.com
-	[69.93.154.37])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o69GUZs6002475
-	for <video4linux-list@redhat.com>; Fri, 9 Jul 2010 12:30:35 -0400
-From: "Charlie X. Liu" <charlie@sensoray.com>
-To: "'Roger Oberholtzer'" <roger@opq.se>, <video4linux-list@redhat.com>
-References: <AANLkTim5LXb__zh-N2pumq7nfSDlqnwW8RDrEw47DErd@mail.gmail.com>	<000501cb1ed4$f45da930$dd18fb90$@com>
-	<1278656777.18926.2.camel@acme.pacific>
-In-Reply-To: <1278656777.18926.2.camel@acme.pacific>
-Subject: RE: SUGGESTION FOR A Linux based Card
-Date: Fri, 9 Jul 2010 09:30:36 -0700
-Message-ID: <000001cb1f84$0feb8af0$2fc2a0d0$@com>
+	id o68K8oUe027885
+	for <video4linux-list@redhat.com>; Thu, 8 Jul 2010 16:08:50 -0400
+Received: from wegener-net.de (www.uli-eichhorn.de [145.253.158.94])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o68K8bgO024454
+	for <video4linux-list@redhat.com>; Thu, 8 Jul 2010 16:08:38 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by wegener-net.de (Postfix) with ESMTP id 4B9D24713
+	for <video4linux-list@redhat.com>;
+	Thu,  8 Jul 2010 22:54:24 +0200 (CEST)
+Received: from wegener-net.de ([127.0.0.1])
+	by localhost (linux-shhd.site [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id V2ARoacWaKpH for <video4linux-list@redhat.com>;
+	Thu,  8 Jul 2010 22:54:23 +0200 (CEST)
+Received: from www.wegener-net.de (localhost [127.0.0.1])
+	by wegener-net.de (Postfix) with ESMTP id 8C87C441D
+	for <video4linux-list@redhat.com>;
+	Thu,  8 Jul 2010 22:54:23 +0200 (CEST)
+Message-ID: <c1892bff73376fe4888d83d4da91eeed.squirrel@www.wegener-net.de>
+Date: Thu, 8 Jul 2010 22:54:23 +0200
+Subject: 1b80:d393 Afatech supported?
+From: "Norbert Wegener" <nw@wegener-net.de>
+To: video4linux-list@redhat.com
 MIME-Version: 1.0
-Content-Language: en-us
+Reply-To: nw@wegener-net.de
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,44 +33,31 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-SXMgaXQgYSBCVDg3OC1iYXNlZCBvciBTQUE3MTM0LWJhc2VkPyBJZiB5b3UgYXJlIGxvb2tpbmcg
-Zm9yIGEgYmV0dGVyIHF1YWxpdHkgY2FwdHVyZSBjYXJkLCBjb25zaWRlcmluZyBhIFNBQTcxMzQt
-YmFzZWQgaXMgdmVyeSBpbXBvcnRhbnQsIHNpbmNlIEJUODc4IGlzIHRvbyBvbGQgYW5kIFNBQTcx
-M3ggaXMgYSBuZXdlciBnZW5lcmF0aW9uIG9uZSB0aGF0IHVzZXMgbW9yZSBhZHZhbmNlZCB0ZWNo
-bm9sb2dpZXMgaW5jbHVkaW5nIHVzaW5nIHRoZSBhZGFwdGl2ZSBjb21iIGZpbHRlciBhbmQgYWRh
-cHRpdmUgYW50aS1hbGlhcyBmaWx0ZXJpbmcgdGVjaG5pcXVlcyB3aGljaCBtYWtlIGJpZyBkaWZm
-ZXJlbmNlIG9uIGltYWdlL3ZpZGVvIHF1YWxpdHkuCgpXZSBoYWQgc2lkZS1ieS1zaWRlIGNvbXBh
-cmlzb24gYW5kIGRlY2lkZWQgdXNpbmcgU0FBNzEzNUhMIChmdWxsIHZlcnNpb24gb2YgU0FBNzEz
-NCkgZm9yIHRoZSBTZW5zb3JheSBNb2RlbCA4MTEgKCBodHRwOi8vd3d3LnNlbnNvcmF5LmNvbS9w
-cm9kdWN0cy84MTEuaHRtLCA0LWNoYW5uZWwgUENJZSkgYW5kIE1vZGVsIDkxMSAoaHR0cDovL3d3
-dy5zZW5zb3JheS5jb20vcHJvZHVjdHMvOTExLmh0bQosIDQtY2hhbm5lbCBQQ0llLzEwNCkuCgpC
-ZXN0IHJlZ2FyZHMsCgpDaGFybGllIFguIExpdSBAIFNlbnNvcmF5IENvLgoKCi0tLS0tT3JpZ2lu
-YWwgTWVzc2FnZS0tLS0tCkZyb206IHZpZGVvNGxpbnV4LWxpc3QtYm91bmNlc0ByZWRoYXQuY29t
-IFttYWlsdG86dmlkZW80bGludXgtbGlzdC1ib3VuY2VzQHJlZGhhdC5jb21dIE9uIEJlaGFsZiBP
-ZiBSb2dlciBPYmVyaG9sdHplcgpTZW50OiBUaHVyc2RheSwgSnVseSAwOCwgMjAxMCAxMToyNiBQ
-TQpUbzogdmlkZW80bGludXgtbGlzdEByZWRoYXQuY29tClN1YmplY3Q6IFJFOiBTVUdHRVNUSU9O
-IEZPUiBBIExpbnV4IGJhc2VkIENhcmQKCk9uIFRodSwgMjAxMC0wNy0wOCBhdCAxMjozNyAtMDcw
-MCwgQ2hhcmxpZSBYLiBMaXUgd3JvdGU6IAo+IFNlbnNvcmF5IENvbXBhbnkgaGFzIE1vZGVsIDgx
-MSAoYSA0LWNoYW5uZWwgUENJLUV4cHJlc3MgQ2FwdHVyZSBDYXJkOgo+IGh0dHA6Ly93d3cuc2Vu
-c29yYXkuY29tL3Byb2R1Y3RzLzgxMS5odG0gKSBhbmQgTW9kZWwgOTExIChhIDQtY2hhbm5lbAo+
-IFBDSS8xMDQtRXhwcmVzcyBDYXB0dXJlIENhcmQ6IGh0dHA6Ly93d3cuc2Vuc29yYXkuY29tL3By
-b2R1Y3RzLzkxMS5odG0gKS4KPiBCb3RoIGhhdmUgNCBDb21wb3NpdGUvUy1WaWRlbyBpbnB1dHMs
-IHBsdXMgNCBjaGFubmVsIG9mIHN0ZXJlbyBhdWRpbyBpbnB1dHMuCj4gVGhleSBhbGwgd29yayB3
-ZWxsIHVuZGVyIExpbnV4LgoKV2UgaGF2ZSB1c2VkIDQtY2hhbm5lbCBjYXJkcyBmcm9tIExpbnV4
-IE1lZGlhIExhYnMgKExNTCkuIFRoZXkgaGF2ZQp3b3JrZWQgb3V0IG9mIHRoZSBib3guIE5ldmVy
-IGEgcHJvYmxlbS4KCgotLSAKUm9nZXIgT2JlcmhvbHR6ZXIKCk9QUSBTeXN0ZW1zIC8gUmFtYsO2
-bGwgUlNUCgpSYW1iw7ZsbCBTdmVyaWdlIEFCCktydWttYWthcmdhdGFuIDIxClAuTy4gQm94IDE3
-MDA5ClNFLTEwNCA2MiBTdG9ja2hvbG0sIFN3ZWRlbgoKT2ZmaWNlOiBJbnQgKzQ2IDEwLTYxNSA2
-MCAyMApNb2JpbGU6IEludCArNDYgNzAtODE1IDE2OTYKCi0tCnZpZGVvNGxpbnV4LWxpc3QgbWFp
-bGluZyBsaXN0ClVuc3Vic2NyaWJlIG1haWx0bzp2aWRlbzRsaW51eC1saXN0LXJlcXVlc3RAcmVk
-aGF0LmNvbT9zdWJqZWN0PXVuc3Vic2NyaWJlCmh0dHBzOi8vd3d3LnJlZGhhdC5jb20vbWFpbG1h
-bi9saXN0aW5mby92aWRlbzRsaW51eC1saXN0CgoKLS0KdmlkZW80bGludXgtbGlzdCBtYWlsaW5n
-IGxpc3QKVW5zdWJzY3JpYmUgbWFpbHRvOnZpZGVvNGxpbnV4LWxpc3QtcmVxdWVzdEByZWRoYXQu
-Y29tP3N1YmplY3Q9dW5zdWJzY3JpYmUKaHR0cHM6Ly93d3cucmVkaGF0LmNvbS9tYWlsbWFuL2xp
-c3RpbmZvL3ZpZGVvNGxpbnV4LWxpc3Q=
+I got a Conceptronics usb dvb-t stick. lsusb displays it as:
+...
+Bus 001 Device 007: ID 1b80:d393 Afatech
+...
+When insterting it /var/log/messages shows:
+Jul  8 22:05:24 norbert-laptop kernel: [40109.230106] usb 1-1: new high
+speed USB device using ehci_hcd and address 9
+Jul  8 22:05:24 norbert-laptop kernel: [40109.390630] usb 1-1:
+configuration #1 chosen from 1 choice
+
+but no dvb driver is loaded.
+Is this stick supposed to work under a current distribution as Ubuntu
+10.04 64Bit?
+Thanks
+Norbert Wegener
+
+
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
