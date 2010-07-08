@@ -1,21 +1,22 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.9])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o65ERpbw016219
-	for <video4linux-list@redhat.com>; Mon, 5 Jul 2010 10:27:52 -0400
-Received: from fed1rmmtao106.cox.net (fed1rmmtao106.cox.net [68.230.241.40])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o65ERgEc006794
-	for <video4linux-list@redhat.com>; Mon, 5 Jul 2010 10:27:43 -0400
-Message-ID: <4C31EBD3.2010607@boundarydevices.com>
-Date: Mon, 05 Jul 2010 07:27:31 -0700
-From: Eric Nelson <eric.nelson@boundarydevices.com>
+Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.6])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o68JbG58011151
+	for <video4linux-list@redhat.com>; Thu, 8 Jul 2010 15:37:17 -0400
+Received: from gateway11.websitewelcome.com (gateway11.websitewelcome.com
+	[67.18.72.139])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o68Jb7ve016127
+	for <video4linux-list@redhat.com>; Thu, 8 Jul 2010 15:37:08 -0400
+From: "Charlie X. Liu" <charlie@sensoray.com>
+To: "'Akhilesh Soni'" <akhilrekha@gmail.com>, <video4linux-list@redhat.com>
+References: <AANLkTim5LXb__zh-N2pumq7nfSDlqnwW8RDrEw47DErd@mail.gmail.com>
+In-Reply-To: <AANLkTim5LXb__zh-N2pumq7nfSDlqnwW8RDrEw47DErd@mail.gmail.com>
+Subject: RE: SUGGESTION FOR A Linux based Card
+Date: Thu, 8 Jul 2010 12:37:08 -0700
+Message-ID: <000501cb1ed4$f45da930$dd18fb90$@com>
 MIME-Version: 1.0
-To: chris@2net.co.uk
-Subject: Re: Contiguous memory allocations
-References: <1278103660.6034.16.camel@localhost> <4C31AF7E.7090602@2net.co.uk>
-In-Reply-To: <4C31AF7E.7090602@2net.co.uk>
-Cc: video4linux-list@redhat.com, Chris Simmonds <chris.simmonds@2net.co.uk>
+Content-Language: en-us
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,73 +24,41 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 07/05/2010 03:10 AM, Chris Simmonds wrote:
-> On 02/07/10 21:47, Eric Nelson wrote:
->> Does anyone know if there's a common infrastructure for allocation
->> of DMA'able memory by drivers and applications above the straight
->> kernel API (dma_alloc_coherent)?
->>
->> I'm working with Freescale i.MX51 drivers to do 720P video
->> input and output and the embedded calls to dma_alloc_coherent
->> fail except when used right after boot because of fragmentation.
->>
->> I'm fighting the urge to write yet another special-purpose allocator
->> for video buffers thinking this must be a common problem with a
->> solution already, but I can't seem to locate one.
->>
->> The closest thing I've found is the bigphysarea patch, which doesn't
->> appear to be supported or headed toward main-line.
->>
->> Thanks in advance,
->
-> dma_alloc_coherent is pretty much just a wrapper round get_free_pages,
-> which is the lowest level allocator in the kernel. So, no there is no
-> other option (but see below). The simplest thing is to make sure your
-> driver is loaded at boot time and to grab all the memory you need then
-> and never let it go. That's what I do.
->
-Thanks Chris.
+Sensoray Company has Model 811 (a 4-channel PCI-Express Capture Card:
+http://www.sensoray.com/products/811.htm ) and Model 911 (a 4-channel
+PCI/104-Express Capture Card: http://www.sensoray.com/products/911.htm ).
+Both have 4 Composite/S-Video inputs, plus 4 channel of stereo audio inputs.
+They all work well under Linux.
 
-The trouble is always "how much"? If we don't know at startup what kind of
-video's needed or what size(s) of camera input may be needed, it's impossible
-to tune. In the current Freescale kernels, there are at least 4 separate
-drivers that allocate RAM, sometimes for internal use, but mostly in response
-to userspace calls (ioctl).
+Charlie X. Liu @ Sensoray Co.
 
-	- frame-buffer driver
-	- Video Processing Unit (VPU) - video encode/decode
-	- V4L2 output device - allows access to YUV output layer, color blending
-	- Image Processing Unit (IPU) - allows userspace bitblts through DMA
 
-With this number of calls, tuning with separate kernel command-line args seems
-unworkable.
+-----Original Message-----
+From: video4linux-list-bounces@redhat.com
+[mailto:video4linux-list-bounces@redhat.com] On Behalf Of Akhilesh Soni
+Sent: Thursday, July 08, 2010 6:14 AM
+To: video4linux-list@redhat.com
+Subject: SUGGESTION FOR A Linux based Card
 
-> If you are desperate, you can use the bigphysarea patch - it's quite
-> common on streaming video devices - but you will have to port it to your
-> kernel. Or, you can restrict the memory the kernel uses with something
-> like "mem=128M" on the command line and take that above 128M for
-> yourself. You will have to map it in with ioremap(_nocache).
->
-It also seems unlikely to ever make it to main-line.
+Hello,
 
-I wrote a similar driver a few years ago for Davinci processors that had a
-more general-purpose allocator specifically for accelerating bitblts.
+I am looking for a linux based card for 4 composite input with unbalanced
+audio for full D1 resolution. The idea is to capture live stream and encode
+using vlc-ffmpeg for http streaming. It is better to have availability of
+these cards in India.
 
-http://mail.directfb.org/pipermail/directfb-users/2007-November/000123.html
-
-Our current needs for i.MX51 are simpler, since we see fewer and larger
-buffer allocations, but the problem is the same: how to reserve and then
-allocate physically contiguous RAM.
-
-> Bye for now,
-> Chris.
->
+Thanks,
+Akhilesh
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
 
 --
 video4linux-list mailing list
