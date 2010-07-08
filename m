@@ -1,21 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.12])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o6RBH4Lj025822
-	for <video4linux-list@redhat.com>; Tue, 27 Jul 2010 07:17:04 -0400
-Received: from mail-px0-f174.google.com (mail-px0-f174.google.com
-	[209.85.212.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6RBGtEU011054
-	for <video4linux-list@redhat.com>; Tue, 27 Jul 2010 07:16:55 -0400
-Received: by pxi14 with SMTP id 14so483740pxi.33
-	for <video4linux-list@redhat.com>; Tue, 27 Jul 2010 04:16:55 -0700 (PDT)
-Message-ID: <4C4EB91B.1080908@gmail.com>
-Date: Tue, 27 Jul 2010 20:46:51 +1000
-From: John Palmer <thepalm2@gmail.com>
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o68M71QO017759
+	for <video4linux-list@redhat.com>; Thu, 8 Jul 2010 18:07:01 -0400
+Received: from mail-qy0-f181.google.com (mail-qy0-f181.google.com
+	[209.85.216.181])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o68M6mpo012408
+	for <video4linux-list@redhat.com>; Thu, 8 Jul 2010 18:06:49 -0400
+Received: by qyk38 with SMTP id 38so3794940qyk.12
+	for <video4linux-list@redhat.com>; Thu, 08 Jul 2010 15:06:48 -0700 (PDT)
 MIME-Version: 1.0
+Date: Thu, 8 Jul 2010 19:06:48 -0300
+Message-ID: <AANLkTilZ4-9RNbk-QLKo8KpjsxMwFEf7avg4Fjn7Kxx6@mail.gmail.com>
+Subject: Multiple webcams using the same driver
+From: "Vitor P." <dodecaphonic@gmail.com>
 To: video4linux-list@redhat.com
-Subject: Shutdown not working
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,45 +23,38 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hi,
+Hello, all. I'm new to this list, and I bring a question. I'm sorry if the
+archives hold its answer; I swear I've tried every search I could think of
+and still didn't find a definitive answer to my question.
 
-I submitted this as a bug to ubuntu 
-(https://bugs.launchpad.net/ubuntu/+bug/609946).
+I'm trying to build a sort of Street View car, for kicks, using cheap
+webcams as the source for the images. I have gotten seven Microsoft LifeCam
+VX-1000 from a friend, and proceeded to connect all of them to powered USB
+hubs. They were recognized, and a couple of V4L applications were used to
+test them individually; all went great.
 
-I thought I would try here as this is probably more relevant
+But my use case, alas, requires them to fire simultaneously, or as close to
+at the same time as possible. I couldn't: whenever I tried more than one
+camera on the same bus, "libv4l2: error turning on stream: Input/output
+error
+libv4l2: error reading: Invalid argument
+v4l2: read: Invalid argument" popped on my face. On two different buses,
+fine.
 
+Is it really not possible to use this camera (with "sonixj") in conjunction
+with sister cameras of the same model?
 
-    Bug Description
+Thanks in advance. I apologize for any mistakes and my unquestionable
+ignorance.
 
-I have a laptop running 10.04 server, running mythtv.
-
-If I don't use my USB TV tuner, "sudo shutdown -P now" works as 
-expected. After I use the tuner in MythTV, shutdown no longer works, 
-specifically I get the line "/ will now halt", the screen goes black, 
-but the power / fans etc all stay on.
-
-The tuner is a leadtek WinFast DTV Dongle Gold.
-
-To get it working I followed these instructions: 
-http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_DTV_Dongle_Gold 
-<http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_DTV_Dongle_Gold>, 
-although I had to disable one the "firedtv" options in order to get the 
-compile working in step 3.
-
-john@tv:~$ lsb_release -rd
-Description: Ubuntu 10.04 LTS
-Release: 10.04
-
-john@tv:~$ uname -r
-2.6.32-21-server
-
-
+-- 
+Vitor Peres
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
