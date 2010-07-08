@@ -1,37 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:49653 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752152Ab0GHUfd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 16:35:33 -0400
-Received: by iwn7 with SMTP id 7so1269686iwn.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Jul 2010 13:35:32 -0700 (PDT)
-Message-ID: <4C363692.5000600@gmail.com>
-Date: Thu, 08 Jul 2010 16:35:30 -0400
-From: Ivan <ivan.q.public@gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:38771 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754674Ab0GHMRO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Jul 2010 08:17:14 -0400
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1OWq2g-0001kC-Cg
+	for linux-media@vger.kernel.org; Thu, 08 Jul 2010 14:17:26 +0200
+Date: Thu, 8 Jul 2010 14:17:26 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] V4L2: fix sh_vou.c compile breakage: #include <slab.h>
+Message-ID: <Pine.LNX.4.64.1007081414590.32100@axis700.grange>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
- [eb1a:2860]
-References: <4C353039.4030202@gmail.com>	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>	<4C360E64.3020703@gmail.com>	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>	<4C362C6E.5050104@gmail.com> <AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com>
-In-Reply-To: <AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/08/2010 04:02 PM, Devin Heitmueller wrote:
-> On Thu, Jul 8, 2010 at 3:52 PM, Ivan<ivan.q.public@gmail.com>  wrote:
->> Yep, that gets rid of the vertical stripes but adds in a lovely horizontal
->> shift:
->>
->> http://www3.picturepush.com/photo/a/3763906/img/3763906.png
->
-> The "horizontal shift" issue is interesting.  Does that happen every
-> time?  And did you unplug/replug the device?  Try to reboot?
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-Reboot? What is this, Windoze? :^D
+There have been a bunch of these slab.h patches floating around, I 
+thought, there also was one for sh_vou, but I cannot find it atm. So, if 
+an equivalent patch has been submitted earlier, sorry to the original 
+author and ignore this one. Otherwise, I'll add it to the 2.6.36 queue.
 
-But yeah, it's consistent across unplugs/replugs/reboots.
+ drivers/media/video/sh_vou.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Ivan
+diff --git a/drivers/media/video/sh_vou.c b/drivers/media/video/sh_vou.c
+index f5b892a..5f73a01 100644
+--- a/drivers/media/video/sh_vou.c
++++ b/drivers/media/video/sh_vou.c
+@@ -18,6 +18,7 @@
+ #include <linux/kernel.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
++#include <linux/slab.h>
+ #include <linux/version.h>
+ #include <linux/videodev2.h>
+ 
+-- 
+1.6.2.4
+
