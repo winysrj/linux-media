@@ -1,63 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.pripojeni.net ([217.66.174.14]:58321 "EHLO
-	smtp.pripojeni.net" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1756994Ab0GRSgb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Jul 2010 14:36:31 -0400
-From: Jiri Slaby <jslaby@suse.cz>
-To: mchehab@infradead.org
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	jirislaby@gmail.com, Markus Rechberger <markus.rechberger@amd.com>
-Subject: [PATCH 1/1] DVB: fix dvr node refcounting
-Date: Sun, 18 Jul 2010 20:34:18 +0200
-Message-Id: <1279478058-974-1-git-send-email-jslaby@suse.cz>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:44122 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752094Ab0GHGjw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 02:39:52 -0400
+Date: Thu, 8 Jul 2010 08:40:10 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: "Justin P. Mattock" <justinmattock@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH]video:gspca.c Fix  warning: case value '7' not in
+ enumerated type 'enum v4l2_memory'
+Message-ID: <20100708084010.6a15f8c3@tele>
+In-Reply-To: <1278564378-19855-1-git-send-email-justinmattock@gmail.com>
+References: <1278564378-19855-1-git-send-email-justinmattock@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In dvb_dvr_release, there is a test dvbdev->users==-1, but users are
-never negative. This error results in hung tasks:
-  task                        PC stack   pid father
-bash          D ffffffffa000c948     0  3264   3170 0x00000000
- ffff88003aec5ce8 0000000000000086 0000000000011f80 0000000000011f80
- ffff88003aec5fd8 ffff88003aec5fd8 ffff88003b848670 0000000000011f80
- ffff88003aec5fd8 0000000000011f80 ffff88003e02a030 ffff88003b848670
-Call Trace:
- [<ffffffff813dd4a5>] dvb_dmxdev_release+0xc5/0x130
- [<ffffffff8107b750>] ? autoremove_wake_function+0x0/0x40
- [<ffffffffa00013a2>] dvb_usb_adapter_dvb_exit+0x42/0x70 [dvb_usb]
- [<ffffffffa0000525>] dvb_usb_exit+0x55/0xd0 [dvb_usb]
- [<ffffffffa00005ee>] dvb_usb_device_exit+0x4e/0x70 [dvb_usb]
- [<ffffffffa000a065>] af9015_usb_device_exit+0x55/0x60 [dvb_usb_af9015]
- [<ffffffff813a3f05>] usb_unbind_interface+0x55/0x1a0
- [<ffffffff81316000>] __device_release_driver+0x70/0xe0
-...
+On Wed,  7 Jul 2010 21:46:18 -0700
+"Justin P. Mattock" <justinmattock@gmail.com> wrote:
 
-So check against 1 there instead.
+> This fixes a warning I'm seeing when building:
+>   CC [M]  drivers/media/video/gspca/gspca.o
+> drivers/media/video/gspca/gspca.c: In function 'vidioc_reqbufs':
+> drivers/media/video/gspca/gspca.c:1508:2: warning: case value '7' not
+> in enumerated type 'enum v4l2_memory'
 
-BTW why's the TODO there? Adding TODOs to the code without
-descriptions is like adding nothing.
+Hi Justin,
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Markus Rechberger <markus.rechberger@amd.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
----
- drivers/media/dvb/dvb-core/dmxdev.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I don't agree with your patch: the value GSPCA_MEMORY_READ must not be
+seen by user applications.
 
-diff --git a/drivers/media/dvb/dvb-core/dmxdev.c b/drivers/media/dvb/dvb-core/dmxdev.c
-index 425862f..0042306 100644
---- a/drivers/media/dvb/dvb-core/dmxdev.c
-+++ b/drivers/media/dvb/dvb-core/dmxdev.c
-@@ -207,7 +207,7 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
- 	}
- 	/* TODO */
- 	dvbdev->users--;
--	if(dvbdev->users==-1 && dmxdev->exit==1) {
-+	if (dvbdev->users == 1 && dmxdev->exit == 1) {
- 		fops_put(file->f_op);
- 		file->f_op = NULL;
- 		mutex_unlock(&dmxdev->mutex);
+The warning may be simply fixed by (change the line numbers):
+
+--- gspca.c~	2010-07-08 08:15:14.000000000 +0200
++++ gspca.c	2010-07-08 08:28:52.000000000 +0200
+@@ -1467,7 +1467,8 @@ static int vidioc_reqbufs(struct file *f
+ 	struct gspca_dev *gspca_dev = priv;
+ 	int i, ret = 0, streaming;
+ 
+-	switch (rb->memory) {
++	i = rb->memory;			/* (avoid compilation warning) */
++	switch (i) {
+ 	case GSPCA_MEMORY_READ:			/* (internal call) */
+ 	case V4L2_MEMORY_MMAP:
+ 	case V4L2_MEMORY_USERPTR:
+
+Cheers.
+
 -- 
-1.7.1
-
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
