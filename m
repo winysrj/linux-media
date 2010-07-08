@@ -1,76 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:49195 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752955Ab0GaLDs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 07:03:48 -0400
-Message-ID: <4C5402FE.2080002@s5r6.in-berlin.de>
-Date: Sat, 31 Jul 2010 13:03:26 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:61479 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757577Ab0GHWK3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 18:10:29 -0400
+Received: by iwn7 with SMTP id 7so1364062iwn.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Jul 2010 15:10:29 -0700 (PDT)
+Message-ID: <4C364CD3.3080106@gmail.com>
+Date: Thu, 08 Jul 2010 18:10:27 -0400
+From: Ivan <ivan.q.public@gmail.com>
 MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Subject: Re: Handling of large keycodes
-References: <20100731091936.GA22253@core.coreip.homeip.net>
-In-Reply-To: <20100731091936.GA22253@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
+ [eb1a:2860]
+References: <4C353039.4030202@gmail.com>	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>	<4C360E64.3020703@gmail.com>	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>	<4C362C6E.5050104@gmail.com>	<AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com>	<4C363692.5000600@gmail.com>	<4C364416.3000809@gmail.com> <AANLkTimRQaFDzKTXAIxIs2lT7ldrMwMNIFSJN4VzJOQQ@mail.gmail.com>
+In-Reply-To: <AANLkTimRQaFDzKTXAIxIs2lT7ldrMwMNIFSJN4VzJOQQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dmitry Torokhov wrote:
-> --- a/include/linux/input.h
-> +++ b/include/linux/input.h
-> @@ -56,22 +56,35 @@ struct input_absinfo {
->  	__s32 resolution;
->  };
->  
-> -struct keycode_table_entry {
-> -	__u32 keycode;		/* e.g. KEY_A */
-> -	__u32 index;            /* Index for the given scan/key table, on EVIOCGKEYCODEBIG */
-> -	__u32 len;		/* Length of the scancode */
-> -	__u32 reserved[2];	/* Reserved for future usage */
-> -	char *scancode;		/* scancode, in machine-endian */
-> +/**
-> + * struct keymap_entry - used by EVIOCGKEYCODE/EVIOCSKEYCODE ioctls
-> + * @scancode: scancode represented in machine-endian form.
-> + * @len: length of the scancode that resides in @scancode buffer.
-> + * @index: index in the keymap, may be used instead of scancode
-> + * @by_index: boolean value indicating that kernel should perform
-> + *	lookup in keymap by @index instead of @scancode
-> + * @keycode: key code assigned to this scancode
-> + *
-> + * The structure is used to retrieve and modify keymap data. Users have
-> + * of performing lookup either by @scancode itself or by @index in
-> + * keymap entry. EVIOCGKEYCODE will also return scancode or index
-> + * (depending on which element was used to perform lookup).
-> + */
-> +struct keymap_entry {
-> +	__u8  len;
-> +	__u8  by_index;
-> +	__u16 index;
-> +	__u32 keycode;
-> +	__u8  scancode[32];
->  };
+On 07/08/2010 05:49 PM, Devin Heitmueller wrote:
+> That card does have an onboard scaler, although it's not clear to me
+> why it isn't working.  Exactly what command line did you use?
 
-I agree with Dimitry; don't put a pointer typed member into a userspace
-ABI struct.
+At first, I was always using
 
-Two remarks:
+mplayer tv:// -tv device=/dev/video1:input=1:norm=NTSC
 
-  - Presently, <linux/input.h> defines three structs named input_... for
-    userspace, two structs named input_... for kernelspace, and a few
-    structs named ff_... specially for force-feedback stuff.  How about
-    calling struct keymap_entry perhaps struct input_keymap_entry
-    instead, to keep namespaces tidy?
+which defaults to a resolution of 640x480. This output looked correct 
+(except for vertical stripes) in kernel 2.6.32-23-generic, but was 
+horizontally shifted after I updated to the current mercurial sources.
 
-  - I take it from your description that scan codes are fundamentally
-    variable-length data.  How about defining it as __u8 scancode[0]?
--- 
-Stefan Richter
--=====-==-=- -=== =====
-http://arcgraph.de/sr/
+Then I noticed that
+
+mplayer tv:// -tv device=/dev/video1:input=1:norm=NTSC:width=720
+
+gives a correct picture with current hg source.
+
+>> v4l2: 1199 frames successfully processed, -3 frames dropped.
+ >> ...
+>
+> Yeah, I don't know.  You would have to ask the mplayer/mencoder people.
+
+Ah, so those statistics are generated by mplayer, then, not by v4l.
+
+>> It would also seem that V4L doesn't actually discard any frames...
+ >> ...blah blah blah about mencoder...
+>
+> Again, this would be an mplayer/mencoder thing.
+
+I guess I'm just trying to confirm that v4l doesn't try to enforce a 
+strict NTSC framerate, but just passes all frames on even if they appear 
+at a slightly different framerate.
+
+Ivan
