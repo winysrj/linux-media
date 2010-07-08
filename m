@@ -1,102 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:44204 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754110Ab0GMSlf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jul 2010 14:41:35 -0400
-Received: by bwz1 with SMTP id 1so465267bwz.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Jul 2010 11:41:29 -0700 (PDT)
-Message-ID: <4C3CB355.7070904@gmail.com>
-Date: Tue, 13 Jul 2010 20:41:25 +0200
-From: Hamza Ferrag <hferraggreat@gmail.com>
-Reply-To: hferraggreat@gmail.com
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:60082 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756529Ab0GHVdO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 17:33:14 -0400
+Received: by iwn7 with SMTP id 7so1326915iwn.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Jul 2010 14:33:14 -0700 (PDT)
+Message-ID: <4C364416.3000809@gmail.com>
+Date: Thu, 08 Jul 2010 17:33:10 -0400
+From: Ivan <ivan.q.public@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: TeVii S470 Tunning Issue (Kernel 2.6.27-21)
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
+ [eb1a:2860]
+References: <4C353039.4030202@gmail.com>	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>	<4C360E64.3020703@gmail.com>	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>	<4C362C6E.5050104@gmail.com> <AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com> <4C363692.5000600@gmail.com>
+In-Reply-To: <4C363692.5000600@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On 07/08/2010 04:35 PM, Ivan wrote:
+> On 07/08/2010 04:02 PM, Devin Heitmueller wrote:
+>> On Thu, Jul 8, 2010 at 3:52 PM, Ivan<ivan.q.public@gmail.com> wrote:
+>>> Yep, that gets rid of the vertical stripes but adds in a lovely
+>>> horizontal
+>>> shift:
+>>>
+>>> http://www3.picturepush.com/photo/a/3763906/img/3763906.png
+>>
+>> The "horizontal shift" issue is interesting. Does that happen every
+>> time? And did you unplug/replug the device? Try to reboot?
+>
+> Reboot? What is this, Windoze? :^D
+>
+> But yeah, it's consistent across unplugs/replugs/reboots.
 
-I am trying to install a 'Tevii S470' card  from TeVii technology as 
-described  here http://linuxtv.org/wiki/index.php/TeVii_S470.
+Ok, the horizontal shift disappears if I switch to 720x480 instead of 
+640x480.
 
-My configuration is :
+Does the card always output 720x480 (in NTSC mode anyway), then, and any 
+scaling is done by V4L?
 
-- intel x86 platform
-- Kernel 2.6.27-21
-- tevii_ds3000.tar.gz (firmware archive from
-http://tevii.com/tevii_ds3000.tar.gz ),
-- s2-liplianin  mercurial sources ( from
-http://mercurial.intuxication.org/hg/s2-liplianin)last changes at
-05/29/2010,
+I also have a question about dropped frames. After running mplayer or 
+mencoder, I see a line like:
 
-All work fine i.e drivers/firmware installation after madprobe a right
-modules.
+v4l2: 1199 frames successfully processed, -3 frames dropped.
 
-# lsmod
-Module                  Size  Used by    Not tainted
-cx23885                82416  0
-tveeprom                9348  1 cx23885
-btcx_risc               1928  1 cx23885
-cx2341x                 7748  1 cx23885
-ir_common              23936  1 cx23885
-videobuf_dma_sg         5060  1 cx23885
-ir_core                 3596  2 cx23885,ir_common
-v4l2_common             8896  2 cx23885,cx2341x
-videodev               25376  2 cx23885,v4l2_common
-videobuf_dvb            2820  1 cx23885
-videobuf_core           8388  3 cx23885,videobuf_dma_sg,videobuf_dvb
-lnbp21                  1024  0
-dvb_core               54832  2 cx23885,videobuf_dvb
-ds3000                  9668  1
+I can only guess that the negative number means that V4L received frames 
+at a slightly faster rate than the expected 30000/1001 fps. In my case, 
+it would seem that my SNES is producing something more like 30.05 fps, 
+and so V4L reports a "negative" dropped frame every 12.5 seconds or so.
 
+It would also seem that V4L doesn't actually discard any frames, but 
+still passes them on to mplayer/mencoder, because mencoder shows an 
+encoding fps of 30.04 (and it will skip a frame every 12.5 seconds or so 
+unless you pass it -noskip).
 
-# dmesg
-Linux video capture interface: v2.00
-cx23885 driver version 0.0.2 loaded
-CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470
-[card=15,autodetected]
-cx23885_dvb_register() allocating 1 frontend(s)
-cx23885[0]: cx23885 based dvb card
-DS3000 chip version: 0.192 attached.
-DVB: registering new adapter (cx23885[0])
-DVB: registering adapter 0 frontend 0 (Montage Technology DS3000/TS2020)...
-cx23885_dev_checkrevision() Hardware revision = 0xb0
-cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 11, latency: 0, mmio:
-0xdf800000
-cx23885 0000:03:00.0: setting latency timer to 64
-tun: Universal TUN/TAP device driver, 1.6
+Am I right about all this?
 
-
-
-A problem appear when tunning card using szap-s2 :
-
-# szap-s2 szap-s2 -c /root/channels.conf -x -M 5 -C 89 -l 9750 -S 1 MyCh
-
-reading channels from file '/root/channels.conf'
-zapping to 1 'MyCh':
-delivery DVB-S2, modulation 8PSK
-sat 0, frequency 8420 MHz V, symbolrate 29400000, coderate 8/9,rolloff 0.35
-vpid 0x0286, apid 0x1fff, sid 0x0000
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-ds3000_firmware_ondemand: Waiting for firmware upload (dvb-fe-ds3000.fw)...
-firmware: requesting dvb-fe-ds3000.fw
-ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-ds3000_firmware_ondemand: No firmware uploaded (timeout or file not found?)
-ds3000_tune: Unable initialise the firmware
-
-Apparently it can't locate a firmware file,  yet :
-
-# ls -l  /lib/firmware/
--rwxr-xr-x    1 root     root         8192 May  3 07:09 dvb-fe-ds3000.fw
-
-
-Any ideas why this happens?
-
-Thanks and best regards,
-
-Hamza Ferrag
-
+Ivan
