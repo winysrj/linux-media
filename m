@@ -1,38 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33094 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756358Ab0GNQUI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jul 2010 12:20:08 -0400
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [media-ctl PATCH 0/3] Some patches for MC testapp
-Date: Wed, 14 Jul 2010 11:17:23 -0500
-Message-Id: <1279124246-12187-1-git-send-email-saaguirre@ti.com>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:40300 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750771Ab0GHEqE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 00:46:04 -0400
+From: "Justin P. Mattock" <justinmattock@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: moinejf@free.fr, mchehab@infradead.org,
+	linux-kernel@vger.kernel.org,
+	"Justin P. Mattock" <justinmattock@gmail.com>
+Subject: [PATCH]video:gspca.c Fix  warning: case value '7' not in enumerated type 'enum v4l2_memory'
+Date: Wed,  7 Jul 2010 21:46:18 -0700
+Message-Id: <1278564378-19855-1-git-send-email-justinmattock@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This fixes a warning I'm seeing when building:
+  CC [M]  drivers/media/video/gspca/gspca.o
+drivers/media/video/gspca/gspca.c: In function 'vidioc_reqbufs':
+drivers/media/video/gspca/gspca.c:1508:2: warning: case value '7' not in enumerated type 'enum v4l2_memory'
 
-Here's some patches I have generated when trying to use
-your app with my Zoom3 board/environment.
+Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
 
-These are based on your git tree:
+---
+ drivers/media/video/gspca/gspca.c |    1 -
+ include/linux/videodev2.h         |    1 +
+ 2 files changed, 1 insertions(+), 1 deletions(-)
 
-http://git.ideasonboard.org/?p=media-ctl.git;a=summary
-
-Your comments are appreciated.
-
-Regards,
-Sergio
-
-Sergio Aguirre (3):
-  Create initial .gitignore file
-  Just include kernel headers
-  Be able to add more CFLAGS
-
- .gitignore |    4 ++++
- Makefile   |    6 ++----
- 2 files changed, 6 insertions(+), 4 deletions(-)
- create mode 100644 .gitignore
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index 678675b..a9b4d97 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -84,7 +84,6 @@ static void PDEBUG_MODE(char *txt, __u32 pixfmt, int w, int h)
+ 
+ /* specific memory types - !! should be different from V4L2_MEMORY_xxx */
+ #define GSPCA_MEMORY_NO 0	/* V4L2_MEMORY_xxx starts from 1 */
+-#define GSPCA_MEMORY_READ 7
+ 
+ #define BUF_ALL_FLAGS (V4L2_BUF_FLAG_QUEUED | V4L2_BUF_FLAG_DONE)
+ 
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 047f7e6..b73aa18 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -170,6 +170,7 @@ enum v4l2_memory {
+ 	V4L2_MEMORY_MMAP             = 1,
+ 	V4L2_MEMORY_USERPTR          = 2,
+ 	V4L2_MEMORY_OVERLAY          = 3,
++	GSPCA_MEMORY_READ 	     = 7,
+ };
+ 
+ /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
+-- 
+1.7.1.rc1.21.gf3bd6
 
