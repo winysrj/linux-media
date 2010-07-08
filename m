@@ -1,109 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:65192 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752570Ab0GBA76 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Jul 2010 20:59:58 -0400
-Received: by iwn7 with SMTP id 7so2639303iwn.19
-        for <linux-media@vger.kernel.org>; Thu, 01 Jul 2010 17:59:58 -0700 (PDT)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:40485 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756004Ab0GHVty (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 17:49:54 -0400
+Received: by eya25 with SMTP id 25so184954eya.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Jul 2010 14:49:52 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <201006302116.25893.tkrah@fachschaft.imn.htwk-leipzig.de>
-References: <AANLkTilP-jf0MaV82LuTz8DjoNJKQ3xGCHuFgds4b212@mail.gmail.com>
-	<201006292142.48380.tkrah@fachschaft.imn.htwk-leipzig.de>
-	<AANLkTin1Bj__L4p1jEvwLO-2Wjw6-R8ICLsfb2w32jP3@mail.gmail.com>
-	<201006302116.25893.tkrah@fachschaft.imn.htwk-leipzig.de>
-Date: Thu, 1 Jul 2010 21:59:57 -0300
-Message-ID: <AANLkTikFtWbXKxnAcfGd2LP4fDjRFwGdNarzDUh3rxt6@mail.gmail.com>
-Subject: Re: em28xx/xc3028 - kernel driver vs. Markus Rechberger's driver
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: tkrah@fachschaft.imn.htwk-leipzig.de
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Thorsten Hirsch <t.hirsch@web.de>
+In-Reply-To: <4C364416.3000809@gmail.com>
+References: <4C353039.4030202@gmail.com>
+	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>
+	<4C360E64.3020703@gmail.com>
+	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>
+	<4C362C6E.5050104@gmail.com>
+	<AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com>
+	<4C363692.5000600@gmail.com>
+	<4C364416.3000809@gmail.com>
+Date: Thu, 8 Jul 2010 17:49:52 -0400
+Message-ID: <AANLkTimRQaFDzKTXAIxIs2lT7ldrMwMNIFSJN4VzJOQQ@mail.gmail.com>
+Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
+	[eb1a:2860]
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Ivan <ivan.q.public@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, Jul 8, 2010 at 5:33 PM, Ivan <ivan.q.public@gmail.com> wrote:
+> Ok, the horizontal shift disappears if I switch to 720x480 instead of
+> 640x480.
+>
+> Does the card always output 720x480 (in NTSC mode anyway), then, and any
+> scaling is done by V4L?
 
-On Wed, Jun 30, 2010 at 4:16 PM, Torsten Krah
-<tkrah@fachschaft.imn.htwk-leipzig.de> wrote:
-> Am Dienstag, 29. Juni 2010 schrieben Sie:
->> Could you please verify if you have  the module i2c-dev loaded?
->
-> Yes it is.
->
->>
->> Example:
->>
->> #lsmod | grep i2c_dev
->> i2c_dev                 6976  0
->> i2c_core               21104  11
->> i2c_dev,lgdt330x,tuner_xc2028,tuner,tvp5150,saa7115,em28xx,v4l2_common,vide
->> odev,tveeprom,i2c_i801
->
-> #lsmod | grep i2c
-> i2c_dev                 4970  0
-> i2c_algo_bit            5028  1 radeon
->
->
->>
->> If yes, please give us the output of:
->>
->> #i2cdetect -l
->> i2c-0   smbus           SMBus I801 adapter at ece0              SMBus
->> adapter i2c-1   smbus           em28xx
->> #0                               SMBus adapter ^ here my device/driver
->
-> Thats the output:
->
-> # i2cdetect -l
-> i2c-0   i2c                                                     I2C adapter
->
->
->>
->> Basically, in your case the tool is not able to recognize your device
->> by i2cdetect.This may happen because i2c_dev module was not able to
->> load?
->
-> Its loaded.
->
->> If the module is not loaded, please load it manually and give a new try.
->
-> Did that but still no success.
->
->>
->> I did right now a test with i2c-tools 3.0.0 and 3.0.2.
->> http://dl.lm-sensors.org/i2c-tools/releases/
->
-> I am using version 3.0.2.
->
->>
->> Let us know the results.
->
->
-> Did what you told but still no success using the tool - any other hints or
-> things i can do?
+That card does have an onboard scaler, although it's not clear to me
+why it isn't working.  Exactly what command line did you use?
 
-humm, not really :-/ Are you sure em28xx/device get loaded when your
-device is plugged?
+> I also have a question about dropped frames. After running mplayer or
+> mencoder, I see a line like:
+>
+> v4l2: 1199 frames successfully processed, -3 frames dropped.
+>
+> I can only guess that the negative number means that V4L received frames at
+> a slightly faster rate than the expected 30000/1001 fps. In my case, it
+> would seem that my SNES is producing something more like 30.05 fps, and so
+> V4L reports a "negative" dropped frame every 12.5 seconds or so.
 
-A good test:
+Yeah, I don't know.  You would have to ask the mplayer/mencoder people.
 
-- unplug your device
-- dmesg -c  (clear the dmesg)
-- plug your device
-- check your dmesg, see if there is any error or message and please
-send to us the output.
-- lsmod could help also.
-- if it's ok, load the i2c modules
+> It would also seem that V4L doesn't actually discard any frames, but still
+> passes them on to mplayer/mencoder, because mencoder shows an encoding fps
+> of 30.04 (and it will skip a frame every 12.5 seconds or so unless you pass
+> it -noskip).
+>
+> Am I right about all this?
 
-What's the message of rewirte_eeprom.pl? The same as Throsten?
+Again, this would be an mplayer/mencoder thing.
 
-@Thorsten, in my case never needed to load modprobed i2c-smbus also.
-That's why rewrite_eeprom failed to you, the script is not looking
-to load this module. Thanks for the feedback.
+Devin
 
-Cheers
-Douglas
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
