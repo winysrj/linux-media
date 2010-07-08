@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.7])
-	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o6THIfRq023249
-	for <video4linux-list@redhat.com>; Thu, 29 Jul 2010 13:18:41 -0400
-Received: from mail-ww0-f46.google.com (mail-ww0-f46.google.com [74.125.82.46])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6THIU50012882
-	for <video4linux-list@redhat.com>; Thu, 29 Jul 2010 13:18:31 -0400
-Received: by wwi17 with SMTP id 17so574497wwi.27
-	for <video4linux-list@redhat.com>; Thu, 29 Jul 2010 10:18:30 -0700 (PDT)
+Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.13])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o68DDn9B003918
+	for <video4linux-list@redhat.com>; Thu, 8 Jul 2010 09:13:49 -0400
+Received: from mail-vw0-f46.google.com (mail-vw0-f46.google.com
+	[209.85.212.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o68DDbvS001910
+	for <video4linux-list@redhat.com>; Thu, 8 Jul 2010 09:13:37 -0400
+Received: by vws5 with SMTP id 5so1424810vws.33
+	for <video4linux-list@redhat.com>; Thu, 08 Jul 2010 06:13:37 -0700 (PDT)
 MIME-Version: 1.0
-Date: Thu, 29 Jul 2010 13:56:01 -0300
-Message-ID: <AANLkTim-92xffBTddcCiizrV3L=bwvfF8Xt2nhvkxop1@mail.gmail.com>
-Subject: Max size format
-From: Gabriel Duarte <confusosk8@gmail.com>
-To: video4linux-list <video4linux-list@redhat.com>
+Date: Thu, 8 Jul 2010 18:43:37 +0530
+Message-ID: <AANLkTim5LXb__zh-N2pumq7nfSDlqnwW8RDrEw47DErd@mail.gmail.com>
+Subject: SUGGESTION FOR A Linux based Card
+From: Akhilesh Soni <akhilrekha@gmail.com>
+To: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,37 +29,15 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello all!
-I've built an app to get the max size of my cameras! I got two capture
-devices, and simple webcam, with max size 640x480 and a TV capture card, max
-size 744x480. When I query my webcam, at /dev/video0, it returns the right
-size, but my TV card returns a weird size, like this:
+Hello,
 
+I am looking for a linux based card for 4 composite input with unbalanced
+audio for full D1 resolution. The idea is to capture live stream and encode
+using vlc-ffmpeg for http streaming. It is better to have availability of
+these cards in India.
 
-*gabriel@bourbaki:~/Desktop$ ./camera_size /dev/video0*
-*raw pixfmt: YUYV 640x480*
-*pixfmt: RGB3 640x480*
-*gabriel@bourbaki:~/Desktop$ ./camera_size /dev/video1*
-*raw pixfmt: BGR3 48x32*
-*pixfmt: RGB3 48x32*
-*
-*
-I'll attach my code and if someone find out what is going wrong, I'd be very
-glad!
-
-Thank you all!
-
-
--- 
-Gabriel Duarte
-Linux User #471185
-Rio de Janeiro - RJ
-http://w3.impa.br/~gabrield
-
-Phones:
-(55) (21) 9463-7760  -> Mobile
-(55) (21) 2464-9302  -> Home
-(55) (21) 2529-5080  -> Work
+Thanks,
+Akhilesh
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
