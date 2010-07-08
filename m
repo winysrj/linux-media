@@ -1,86 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:45485 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758505Ab0G3LjS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 07:39:18 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 07/13] IR: NECX: support repeat
-Date: Fri, 30 Jul 2010 14:38:47 +0300
-Message-Id: <1280489933-20865-8-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:58295 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755812Ab0GHKOe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 06:14:34 -0400
+Date: Thu, 8 Jul 2010 12:14:54 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Kyle Baker <kyleabaker@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
+Message-ID: <20100708121454.75db358c@tele>
+In-Reply-To: <AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
+References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
+	<20100707074431.66629934@tele>
+	<AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
+	<20100707110613.18be4215@tele>
+	<AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds support for repeat detecting for NECX variant
-Tested with uneversal remote
+On Wed, 7 Jul 2010 17:32:43 -0400
+Kyle Baker <kyleabaker@gmail.com> wrote:
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/ir-core-priv.h   |    1 +
- drivers/media/IR/ir-nec-decoder.c |   16 ++++++++++++++--
- 2 files changed, 15 insertions(+), 2 deletions(-)
+> I've edited the gspca.c file with your suggestion to begin testing,
+> but I'm unable to get the new drivers to compile with and Error 2.
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index 84c7a9a..08383b9 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -45,6 +45,7 @@ struct ir_raw_event_ctrl {
- 		int state;
- 		unsigned count;
- 		u32 bits;
-+		bool is_nec_x;
- 	} nec;
- 	struct rc5_dec {
- 		int state;
-diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
-index 1c0cf03..59127b1 100644
---- a/drivers/media/IR/ir-nec-decoder.c
-+++ b/drivers/media/IR/ir-nec-decoder.c
-@@ -26,6 +26,7 @@
- #define NEC_BIT_1_SPACE		(3  * NEC_UNIT)
- #define	NEC_TRAILER_PULSE	(1  * NEC_UNIT)
- #define	NEC_TRAILER_SPACE	(10 * NEC_UNIT) /* even longer in reality */
-+#define NECX_REPEAT_BITS	1
- 
- enum nec_state {
- 	STATE_INACTIVE,
-@@ -67,8 +68,11 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- 		if (!ev.pulse)
- 			break;
- 
--		if (!eq_margin(ev.duration, NEC_HEADER_PULSE, NEC_UNIT / 2) &&
--		    !eq_margin(ev.duration, NECX_HEADER_PULSE, NEC_UNIT / 2))
-+		if (eq_margin(ev.duration, NEC_HEADER_PULSE, NEC_UNIT / 2))
-+			data->is_nec_x = false;
-+		else if (eq_margin(ev.duration, NECX_HEADER_PULSE, NEC_UNIT / 2))
-+			data->is_nec_x = true;
-+		else
- 			break;
- 
- 		data->count = 0;
-@@ -105,6 +109,14 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- 		if (ev.pulse)
- 			break;
- 
-+		if (geq_margin(ev.duration, NEC_TRAILER_SPACE, NEC_UNIT / 2) &&
-+			data->is_nec_x && data->count == NECX_REPEAT_BITS) {
-+				IR_dprintk(1, "Repeat last key\n");
-+				ir_repeat(input_dev);
-+				data->state = STATE_INACTIVE;
-+				return 0;
-+			}
-+
- 		data->bits <<= 1;
- 		if (eq_margin(ev.duration, NEC_BIT_1_SPACE, NEC_UNIT / 2))
- 			data->bits |= 1;
+Strange! Well, I put the change my test version. May you get this one
+from my web page and test it?
+
+Best regards.
+
 -- 
-1.7.0.4
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
