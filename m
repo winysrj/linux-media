@@ -1,127 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:52237 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756611Ab0G3MpR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 08:45:17 -0400
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and
- enable  it.
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <AANLkTi=dkyrJM_WRhQPTY1V_1YnJRwNN5RN4hGNNeZ9v@mail.gmail.com>
-References: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
-	 <1280456235-2024-14-git-send-email-maximlevitsky@gmail.com>
-	 <AANLkTim42mHVhOgmVGxh2XsbbbVC7ZOgtfd7DDSrxZDB@mail.gmail.com>
-	 <1280461565.15737.124.camel@localhost>
-	 <1280489761.3646.3.camel@maxim-laptop>
-	 <AANLkTimqi+DwXUKxBkfkLVnvS4ONRT461CcRLk3F9ojX@mail.gmail.com>
-	 <1280490865.21345.0.camel@maxim-laptop>
-	 <AANLkTikMkWt9bnY58tOneydJNHi1PZO5DsQbwuucJcrO@mail.gmail.com>
-	 <AANLkTi=dkyrJM_WRhQPTY1V_1YnJRwNN5RN4hGNNeZ9v@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 30 Jul 2010 15:45:11 +0300
-Message-ID: <1280493911.22296.5.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from perceval.irobotique.be ([92.243.18.41]:40684 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757386Ab0GIPcM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 11:32:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v2 6/7] v4l: subdev: Events support
+Date: Fri,  9 Jul 2010 17:31:51 +0200
+Message-Id: <1278689512-30849-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-07-30 at 08:07 -0400, Jon Smirl wrote: 
-> On Fri, Jul 30, 2010 at 8:02 AM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> > On Fri, Jul 30, 2010 at 7:54 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> >> On Fri, 2010-07-30 at 07:51 -0400, Jon Smirl wrote:
-> >>> On Fri, Jul 30, 2010 at 7:36 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> >>> > On Thu, 2010-07-29 at 23:46 -0400, Andy Walls wrote:
-> >>> >> On Thu, 2010-07-29 at 22:39 -0400, Jon Smirl wrote:
-> >>> >> > On Thu, Jul 29, 2010 at 10:17 PM, Maxim Levitsky
-> >>> >> > <maximlevitsky@gmail.com> wrote:
-> >>> >> > > note that error_adjustment module option is added.
-> >>> >> > > This allows to reduce input samples by a percent.
-> >>> >> > > This makes input on my system more correct.
-> >>> >> > >
-> >>> >> > > Default is 4% as it works best here.
-> >>> >> > >
-> >>> >> > > Note that only normal input is adjusted. I don't know
-> >>> >> > > what adjustments to apply to fan tachometer input.
-> >>> >> > > Maybe it is accurate already.
-> >>> >> >
-> >>> >> > Do you have the manual for the ENE chip in English? or do you read Chinese?
-> >>> >>
-> >>> >> The datasheet for a similar chip, the KB3700, is out there in English,
-> >>> >> but it doesn't have CIR.
-> >>> >>
-> >>> >> You might find these links mildly interesting:
-> >>> >>
-> >>> >> http://www.coreboot.org/Embedded_controller
-> >>> >> http://wiki.laptop.org/go/Embedded_controller
-> >>> >> http://lists.laptop.org/pipermail/openec/2008-July/000108.html
-> >>> >
-> >>> > Nope, I have read that.
-> >>> >>
-> >>> >> Regards,
-> >>> >> Andy
-> >>> >>
-> >>> >> > Maybe you can figure out why the readings are off by 4%. I suspect
-> >>> >> > that someone has set a clock divider wrong when programming the chip.
-> >>> >> > For example setting the divider for a 25Mhz clock when the clock is
-> >>> >> > actually 26Mhz would cause the error you are seeing. Or they just made
-> >>> >> > a mistake in computing the divisor. It is probably a bug in the BIOS
-> >>> >> > of your laptop.  If that's the case you could add a quirk in the
-> >>> >> > system boot code to fix the register setting.
-> >>> >
-> >>> > I figured out how windows driver compensates for the offset, and do the
-> >>> > same in my driver. I think the problem is solved.
-> >>> >
-> >>>
-> >>> Should that be a <= or >= instead of !=?
-> >>> +       if (pll_freq != 1000)
-> >>
-> >> This is how its done in windows driver.
-> >
-> > That doesn't mean it is bug free.
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-This PLL frequency is likely to be chip internal frequency.
-And windows driver doesn't touch it.
-Its embedded controller, so I don't want to touch things I am not sure
-about.
+Provide v4l2_subdevs with v4l2_event support. Subdev drivers only need very
+little to support events.
 
-> >
-> > Experimenting with changing the PLL frequency register may correct the
-> > error.  Try taking 96% of pll_freq and write it back into these
-> > register. This would be easy to fix with a manual. The root problem is
-> > almost certainly a bug in the way the PLLs were programmed.
-> >
-> > I don't like putting in fudge factors like the 4% correction. What
-> > happens if a later version of the hardware has fixed firmware? I
-> > normal user is never going to figure out that they need to change the
-> > fudge factor.
-I don't think that is a hardware bug, rather a limitation.
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Signed-off-by: David Cohen <david.cohen@nokia.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   18 +++++++
+ drivers/media/video/v4l2-subdev.c            |   71 +++++++++++++++++++++++++-
+ include/media/v4l2-subdev.h                  |   10 ++++
+ 3 files changed, 98 insertions(+), 1 deletions(-)
 
-Lets leave it as is.
-I will soon publish the driver on launchpad or something like that and
-try to contact users I debugged that driver with, and then see what
-ranges PLL register takes.
-
-
-
-> >
-> > +       pll_freq = (ene_hw_read_reg(dev, ENE_PLLFRH) << 4) +
-> > +               (ene_hw_read_reg(dev, ENE_PLLFRL) >> 2);
-> 
-
-
-> I can understand the shift of the high bits, but that shift of the low
-> bits is unlikely.  A manual would tell us if it is right.
-> 
-This shift is correct (according to datasheet, which contains mostly
-useless info, but it does dociment this reg briefly.)
-
-
-Best regards,
-Maxim Levitsky
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 9c3f33c..89bd881 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -347,6 +347,24 @@ VIDIOC_TRY_EXT_CTRLS
+ 	controls can be also be accessed through one (or several) V4L2 device
+ 	nodes.
+ 
++VIDIOC_DQEVENT
++VIDIOC_SUBSCRIBE_EVENT
++VIDIOC_UNSUBSCRIBE_EVENT
++
++	The events ioctls are identical to the ones defined in V4L2. They
++	behave identically, with the only exception that they deal only with
++	events generated by the sub-device. Depending on the driver, those
++	events can also be reported by one (or several) V4L2 device nodes.
++
++	Sub-device drivers that want to use events need to set the
++	V4L2_SUBDEV_USES_EVENTS v4l2_subdev::flags and initialize
++	v4l2_subdev::nevents to events queue depth before registering the
++	sub-device. After registration events can be queued as usual on the
++	v4l2_subdev::devnode device node.
++
++	To properly support events, the poll() file operation is also
++	implemented.
++
+ 
+ I2C sub-device drivers
+ ----------------------
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 0ebd760..31bec67 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -18,26 +18,64 @@
+  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+  */
+ 
+-#include <linux/types.h>
+ #include <linux/ioctl.h>
++#include <linux/slab.h>
++#include <linux/types.h>
+ #include <linux/videodev2.h>
+ 
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ 
+ static int subdev_open(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_fh *vfh;
++	int ret;
+ 
+ 	if (!sd->initialized)
+ 		return -EAGAIN;
+ 
++	vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
++	if (vfh == NULL)
++		return -ENOMEM;
++
++	ret = v4l2_fh_init(vfh, vdev);
++	if (ret)
++		goto err;
++
++	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
++		ret = v4l2_event_init(vfh);
++		if (ret)
++			goto err;
++
++		ret = v4l2_event_alloc(vfh, sd->nevents);
++		if (ret)
++			goto err;
++	}
++
++	v4l2_fh_add(vfh);
++	file->private_data = vfh;
++
+ 	return 0;
++
++err:
++	v4l2_fh_exit(vfh);
++	kfree(vfh);
++
++	return ret;
+ }
+ 
+ static int subdev_close(struct file *file)
+ {
++	struct v4l2_fh *vfh = file->private_data;
++
++	v4l2_fh_del(vfh);
++	v4l2_fh_exit(vfh);
++	kfree(vfh);
++
+ 	return 0;
+ }
+ 
+@@ -45,6 +83,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_fh *fh = file->private_data;
+ 
+ 	switch (cmd) {
+ 	case VIDIOC_QUERYCTRL:
+@@ -68,6 +107,18 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	case VIDIOC_TRY_EXT_CTRLS:
+ 		return v4l2_subdev_call(sd, core, try_ext_ctrls, arg);
+ 
++	case VIDIOC_DQEVENT:
++		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
++			return -ENOIOCTLCMD;
++
++		return v4l2_event_dequeue(fh, arg, file->f_flags & O_NONBLOCK);
++
++	case VIDIOC_SUBSCRIBE_EVENT:
++		return v4l2_subdev_call(sd, core, subscribe_event, fh, arg);
++
++	case VIDIOC_UNSUBSCRIBE_EVENT:
++		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
++
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+@@ -81,11 +132,29 @@ static long subdev_ioctl(struct file *file, unsigned int cmd,
+ 	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
+ }
+ 
++static unsigned int subdev_poll(struct file *file, poll_table *wait)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
++	struct v4l2_fh *fh = file->private_data;
++
++	if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
++		return POLLERR;
++
++	poll_wait(file, &fh->events->wait, wait);
++
++	if (v4l2_event_pending(fh))
++		return POLLPRI;
++
++	return 0;
++}
++
+ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = subdev_open,
+ 	.unlocked_ioctl = subdev_ioctl,
+ 	.release = subdev_close,
++	.poll = subdev_poll,
+ };
+ 
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 9ee45c8..55a8c93 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -36,6 +36,8 @@
+ #define V4L2_SUBDEV_IR_TX_FIFO_SERVICE_REQ	0x00000001
+ 
+ struct v4l2_device;
++struct v4l2_event_subscription;
++struct v4l2_fh;
+ struct v4l2_subdev;
+ struct tuner_setup;
+ 
+@@ -134,6 +136,10 @@ struct v4l2_subdev_core_ops {
+ 	int (*s_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
+ #endif
+ 	int (*s_power)(struct v4l2_subdev *sd, int on);
++	int (*subscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++			       struct v4l2_event_subscription *sub);
++	int (*unsubscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
++				 struct v4l2_event_subscription *sub);
+ };
+ 
+ /* s_mode: switch the tuner to a specific tuner mode. Replacement of s_radio.
+@@ -408,6 +414,8 @@ struct v4l2_subdev_ops {
+ #define V4L2_SUBDEV_FL_IS_SPI			(1U << 1)
+ /* Set this flag if this subdev needs a device node. */
+ #define V4L2_SUBDEV_FL_HAS_DEVNODE		(1U << 2)
++/* Set this flag if this subdev generates events. */
++#define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+ 
+ /* Each instance of a subdev driver should create this struct, either
+    stand-alone or embedded in a larger struct.
+@@ -427,6 +435,8 @@ struct v4l2_subdev {
+ 	/* subdev device node */
+ 	struct video_device devnode;
+ 	unsigned int initialized;
++	/* number of events to be allocated on open */
++	unsigned int nevents;
+ };
+ 
+ #define vdev_to_v4l2_subdev(vdev) \
+-- 
+1.7.1
 
