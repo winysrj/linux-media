@@ -1,75 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:44409 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751737Ab0GaUJv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 16:09:51 -0400
-Date: Sat, 31 Jul 2010 22:09:48 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <m.grzeschik@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>, p.wiesner@phytec.de
-Subject: Re: [PATCH 02/20] mt9m111: init chip after read CHIP_VERSION
-In-Reply-To: <1280501618-23634-3-git-send-email-m.grzeschik@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1007312157200.16769@axis700.grange>
-References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
- <1280501618-23634-3-git-send-email-m.grzeschik@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from perceval.irobotique.be ([92.243.18.41]:40683 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757342Ab0GIPcK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 11:32:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v2 1/7] v4l: subdev: Don't require core operations
+Date: Fri,  9 Jul 2010 17:31:46 +0200
+Message-Id: <1278689512-30849-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 30 Jul 2010, Michael Grzeschik wrote:
+There's no reason to require subdevices to implement the core
+operations. Remove the check for non-NULL core operations when
+initializing the subdev.
 
-> Moved mt9m111_init after the chip version detection passage: I
-> don't like the idea of writing on a device we haven't identified
-> yet.
-
-In principle it's correct, but what do you do, if a chip cannot be probed, 
-before it is initialised / enabled? Actually, this shouldn't be the case, 
-devices should be available for probing without any initialisation. So, we 
-have to ask the original author, whether this really was necessary, 
-Robert?
-
-Thanks
-Guennadi
-
-> 
-> Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> ---
->  drivers/media/video/mt9m111.c |    6 ++----
->  1 files changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> index e934559..39dff7c 100644
-> --- a/drivers/media/video/mt9m111.c
-> +++ b/drivers/media/video/mt9m111.c
-> @@ -969,10 +969,6 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
->  	mt9m111->swap_rgb_even_odd = 1;
->  	mt9m111->swap_rgb_red_blue = 1;
->  
-> -	ret = mt9m111_init(client);
-> -	if (ret)
-> -		goto ei2c;
-> -
->  	data = reg_read(CHIP_VERSION);
->  
->  	switch (data) {
-> @@ -994,6 +990,8 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
->  		goto ei2c;
->  	}
->  
-> +	ret = mt9m111_init(client);
-> +
->  ei2c:
->  	return ret;
->  }
-> -- 
-> 1.7.1
-> 
-> 
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ include/media/v4l2-subdev.h |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 02c6f4d..6088316 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -437,8 +437,7 @@ static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 					const struct v4l2_subdev_ops *ops)
+ {
+ 	INIT_LIST_HEAD(&sd->list);
+-	/* ops->core MUST be set */
+-	BUG_ON(!ops || !ops->core);
++	BUG_ON(!ops);
+ 	sd->ops = ops;
+ 	sd->v4l2_dev = NULL;
+ 	sd->flags = 0;
+-- 
+1.7.1
+
