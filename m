@@ -1,90 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-us.gmx.com ([74.208.5.67]:58798 "HELO
-	mailout-us.gmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755787Ab0G2JV0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 05:21:26 -0400
-Message-ID: <4C517241.9050502@gmx.com>
-Date: Thu, 29 Jul 2010 12:21:21 +0000
-From: Hasan SAHIN <hasan.sahin@gmx.com>
-MIME-Version: 1.0
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3590 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053Ab0GITdZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 15:33:25 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o69JXNb4049036
+	for <linux-media@vger.kernel.org>; Fri, 9 Jul 2010 21:33:24 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 9 Jul 2010 21:33:23 +0200 (CEST)
+Message-Id: <201007091933.o69JXNb4049036@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: gspca_zc3xx module
-Content-Type: text/plain; charset=ISO-8859-9; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  Hello Jean-Francois,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I am using Gentoo linux stable x86 with kernel 2.6.34-r1.
-before the kernel update to 2.6.34-r1, I was using 2.6.32-r7 and there 
-was no problem with webcam.
-The webcam was working as good with kernel 2.6.32-r7(old gentoo stable 
-kernel)
-but right now it does not work with the kernel 2.6.34-r1 (new gentoo 
-stable kernel)
+Results of the daily build of v4l-dvb:
 
-And also I have tried with ubuntu 10.04 (kernel 2.6.32-25) and working 
-good. I could not understood what is the problem. (Problem is : there is 
-no output, no stream)
+date:        Fri Jul  9 19:00:19 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-All test has been done with wxcam,cheese and your svv.c program.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Could you please help me?
+Detailed results are available here:
 
-Thanks and regards,
-Hasan.
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-lsusb :
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 001 Device 005: ID 0ac8:303b Z-Star Microelectronics Corp. ZC0303 Webcam
-Bus 001 Device 002: ID 04b3:310c IBM Corp. Wheel Mouse
-Bus 001 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Full logs are available here:
 
-lsmod
-gspca_zc3xx            34720  0
-gspca_main             17677  1 gspca_zc3xx
-videodev               27331  1 gspca_main
-usbcore                92279  7 
-gspca_zc3xx,gspca_main,usbhid,usbmouse,ehci_hcd,ohci_hcd
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
+The V4L-DVB specification from this daily build is here:
 
-this is the kernel message when I remove and re-plug the webcam :
-
-dmesg | tail -30
-gspca: isoc irq
-gspca: found int in endpoint: 0x82, buffer_len=8, interval=10
-gspca: stream off OK
-gspca: [svv] close
-gspca: frame free
-gspca: close done
-usb 1-8: USB disconnect, address 5
-gspca: video0 disconnect
-gspca: video0 released
-usb 1-8: new full speed USB device using ohci_hcd and address 6
-usb 1-8: New USB device found, idVendor=0ac8, idProduct=303b
-usb 1-8: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-usb 1-8: Product: PC Camera
-usb 1-8: Manufacturer: Vimicro Corp.
-gspca: probing 0ac8:303b
-zc3xx: probe 2wr ov vga 0x0000
-zc3xx: probe 3wr vga 1 0xc001
-zc3xx: probe sensor -> 0013
-zc3xx: Find Sensor MI0360SOC. Chip revision c001
-input: zc3xx as /devices/pci0000:00/0000:00:02.0/usb1/1-8/input/input7
-gspca: video0 created
-gspca: found int in endpoint: 0x82, buffer_len=8, interval=10
-gspca: [v4l_id] open
-gspca: open done
-gspca: [v4l_id] close
-gspca: close done
-gspca: [hald-probe-vide] open
-gspca: open done
-gspca: [hald-probe-vide] close
-gspca: close done
-
-
-
-
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
