@@ -1,198 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36475 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757955Ab0G2QHM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:07:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE v3 05/12] v4l: v4l2_subdev userspace format API
-Date: Thu, 29 Jul 2010 18:06:49 +0200
-Message-Id: <1280419616-7658-17-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:41596 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758390Ab0GIRTH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 13:19:07 -0400
+Received: by iwn7 with SMTP id 7so2406104iwn.19
+        for <linux-media@vger.kernel.org>; Fri, 09 Jul 2010 10:19:06 -0700 (PDT)
+Message-ID: <4C375A07.7010205@gmail.com>
+Date: Fri, 09 Jul 2010 13:19:03 -0400
+From: Ivan <ivan.q.public@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
+ [eb1a:2860]
+References: <4C353039.4030202@gmail.com>	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>	<4C360E64.3020703@gmail.com>	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>	<4C362C6E.5050104@gmail.com>	<AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com>	<4C363692.5000600@gmail.com>	<4C364416.3000809@gmail.com> <AANLkTimRQaFDzKTXAIxIs2lT7ldrMwMNIFSJN4VzJOQQ@mail.gmail.com> <4C364CD3.3080106@gmail.com> <4C371A74.4080901@redhat.com>
+In-Reply-To: <4C371A74.4080901@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a userspace API to get, set and enumerate the media format on a
-subdev pad.
+On 07/09/2010 08:47 AM, Mauro Carvalho Chehab wrote:
+> I never saw the em28xx scaler generating such vertical stripes. This
+> could be a mplayer or a video adapter driver problem. Are you using a
+> proprietary video driver? You may try to use ffmeg or mencoder to
+> generate a mpeg file at 640x480 and then try to play it on another
+> player (preferably on another machine), to see if this problem
+> disappears.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-subdev.c |   51 ++++++++++++++++++++++++++++
- include/linux/v4l2-subdev.h       |   66 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-subdev.h       |    6 +---
- 3 files changed, 118 insertions(+), 5 deletions(-)
- create mode 100644 include/linux/v4l2-subdev.h
+Huh? Does there even *exist* a proprietary linux driver for my card? And 
+because you never saw stripes with em28xx, they must not exist? :^P
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 2fe3818..d8b261f 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -122,6 +122,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
- 	struct v4l2_fh *vfh = file->private_data;
-+	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
- 
- 	switch (cmd) {
- 	case VIDIOC_QUERYCTRL:
-@@ -157,6 +158,56 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
- 		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
- 
-+	case VIDIOC_SUBDEV_G_FMT: {
-+		struct v4l2_subdev_pad_format *format = arg;
-+
-+		if (format->which != V4L2_SUBDEV_FORMAT_PROBE &&
-+		    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (format->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh,
-+					format->pad, &format->format,
-+					format->which);
-+	}
-+
-+	case VIDIOC_SUBDEV_S_FMT: {
-+		struct v4l2_subdev_pad_format *format = arg;
-+
-+		if (format->which != V4L2_SUBDEV_FORMAT_PROBE &&
-+		    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (format->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh,
-+					format->pad, &format->format,
-+					format->which);
-+	}
-+
-+	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
-+		struct v4l2_subdev_pad_mbus_code_enum *code = arg;
-+
-+		if (code->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, enum_mbus_code, subdev_fh,
-+					code);
-+	}
-+
-+	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE: {
-+		struct v4l2_subdev_frame_size_enum *fse = arg;
-+
-+		if (fse->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, enum_frame_size, subdev_fh,
-+					fse);
-+	}
-+
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-new file mode 100644
-index 0000000..6504f22
---- /dev/null
-+++ b/include/linux/v4l2-subdev.h
-@@ -0,0 +1,66 @@
-+/*
-+ * V4L2 subdev userspace API
-+ *
-+ * Copyright (C) 2010 Nokia
-+ *
-+ * Contributors:
-+ *	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+#ifndef __LINUX_V4L2_SUBDEV_H
-+#define __LINUX_V4L2_SUBDEV_H
-+
-+#include <linux/ioctl.h>
-+#include <linux/v4l2-mediabus.h>
-+
-+enum v4l2_subdev_format {
-+	V4L2_SUBDEV_FORMAT_PROBE = 0,
-+	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
-+};
-+
-+/**
-+ * struct v4l2_subdev_pad_format
-+ */
-+struct v4l2_subdev_pad_format {
-+	__u32 which;
-+	__u32 pad;
-+	struct v4l2_mbus_framefmt format;
-+};
-+
-+/**
-+ * struct v4l2_subdev_pad_mbus_code_enum
-+ */
-+struct v4l2_subdev_pad_mbus_code_enum {
-+	__u32 pad;
-+	__u32 index;
-+	__u32 code;
-+	__u32 reserved[5];
-+};
-+
-+struct v4l2_subdev_frame_size_enum {
-+	__u32 index;
-+	__u32 pad;
-+	__u32 code;
-+	__u32 min_width;
-+	__u32 max_width;
-+	__u32 min_height;
-+	__u32 max_height;
-+	__u32 reserved[9];
-+};
-+
-+#define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_pad_format)
-+#define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_pad_format)
-+#define VIDIOC_SUBDEV_ENUM_MBUS_CODE \
-+			_IOWR('V', 8, struct v4l2_subdev_pad_mbus_code_enum)
-+#define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
-+			_IOWR('V', 9, struct v4l2_subdev_frame_size_enum)
-+
-+#endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 684ab60..acbcd8f 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -21,6 +21,7 @@
- #ifndef _V4L2_SUBDEV_H
- #define _V4L2_SUBDEV_H
- 
-+#include <linux/v4l2-subdev.h>
- #include <media/media-entity.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-dev.h>
-@@ -399,11 +400,6 @@ struct v4l2_subdev_ir_ops {
- 				struct v4l2_subdev_ir_parameters *params);
- };
- 
--enum v4l2_subdev_format {
--	V4L2_SUBDEV_FORMAT_PROBE = 0,
--	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
--};
--
- struct v4l2_subdev_pad_ops {
- 	int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 			      struct v4l2_subdev_pad_mbus_code_enum *code);
--- 
-1.7.1
+You might want to reread the thread-- we already figured the stripes out.
 
+>>>> v4l2: 1199 frames successfully processed, -3 frames dropped.
+>
+> This is not a V4L issue.
+
+I'm aware of that by now.
+
+> A negative number of dropping frames makes no sense. It is probably a
+> mplayer bug. I would try to get a newer version of mplayer and double
+> check.
+
+Newer than latest svn? :^D
+
+If you look at the mplayer code that calculates the supposed number of 
+frames dropped (it's in stream/tvi_v4l2.c), it would seem that it's just 
+an indicator of how close the stream came to the nominal framerate 
+(30000/1001 in my case).
+
+In other words, if mplayer sees an actual framerate of less than 29.97 
+coming from v4l, it assumes (perhaps incorrectly) that this is because 
+some frames were dropped. If you do the same calculation when the actual 
+framerate is greater than 29.97, you get a negative number of dropped 
+frames. It looks weird, but it makes a kind of sense if you know what it 
+really means.
