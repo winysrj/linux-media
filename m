@@ -1,35 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:55383 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752083Ab0G2H0l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 03:26:41 -0400
-Date: 29 Jul 2010 09:25:00 +0200
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: maximlevitsky@gmail.com
-Cc: linux-input@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: lirc-list@lists.sourceforge.net
-Cc: mchehab@redhat.com
-Message-ID: <BTlMvkhXqgB@lirc>
-References: <1280360452-8852-6-git-send-email-maximlevitsky@gmail.com>
-Subject: Re: [PATCH 5/9] IR: extend interfaces to support more device settings
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:54943 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753458Ab0GITwf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 15:52:35 -0400
+Received: by wyf23 with SMTP id 23so1863484wyf.19
+        for <linux-media@vger.kernel.org>; Fri, 09 Jul 2010 12:52:33 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+In-Reply-To: <AANLkTilCwvUCEWLnurCvwvwRR1xdYU7D7359WBux2_7Q@mail.gmail.com>
+References: <AANLkTilP-jf0MaV82LuTz8DjoNJKQ3xGCHuFgds4b212@mail.gmail.com>
+	<201006302116.25893.tkrah@fachschaft.imn.htwk-leipzig.de>
+	<AANLkTikFtWbXKxnAcfGd2LP4fDjRFwGdNarzDUh3rxt6@mail.gmail.com>
+	<201007021547.24917.tkrah@fachschaft.imn.htwk-leipzig.de>
+	<AANLkTilCwvUCEWLnurCvwvwRR1xdYU7D7359WBux2_7Q@mail.gmail.com>
+Date: Fri, 9 Jul 2010 21:52:33 +0200
+Message-ID: <AANLkTilsHoG9gd6QwAV_b17h1eOnOBTr0xYDX-OUBlh_@mail.gmail.com>
+Subject: Re: em28xx/xc3028 - kernel driver vs. Markus Rechberger's driver
+From: Thorsten Hirsch <t.hirsch@web.de>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: tkrah@fachschaft.imn.htwk-leipzig.de, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Oh, sorry for the long delay.
+Yes, I was using my fake-id patch.
 
-Maxim Levitsky "maximlevitsky@gmail.com" wrote:
+@Torsten: just open
+linux-2.6/drivers/media/video/em28xx/em28xx-cards.c and search for
+"EM2870_BOARD_TERRATEC_XS". Then copy this line and the one above it,
+and finally change the usb id in the copied line according to the
+output of lsusb.
 
-> Also reuse LIRC_SET_MEASURE_CARRIER_MODE as LIRC_SET_LEARN_MODE
-> (LIRC_SET_LEARN_MODE will start carrier reports if possible, and
-> tune receiver to wide band mode)
+Thorsten
 
-I don't like the rename of the ioctl. The ioctl should enable carrier
-reports. Anything else is hardware specific. Learn mode gives a somewhat
-wrong association to me. irrecord always has been using "learn mode"
-without ever using this ioctl.
-
-Christoph
+>> Maybe i need the patch Thorsten did too, to patch the em28xx-cards.c to get
+>> the "new" wrong usb id regognized as a em28xx device so that i can reflash the
+>> eeprom of the device. I might give this a try later this day.
+>
+> Please try it, should be the root cause.
