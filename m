@@ -1,23 +1,23 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.9])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o65FVqwD026208
-	for <video4linux-list@redhat.com>; Mon, 5 Jul 2010 11:31:52 -0400
-Received: from moutng.kundenserver.de (moutng.kundenserver.de [212.227.17.8])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o65FVgIs018297
-	for <video4linux-list@redhat.com>; Mon, 5 Jul 2010 11:31:43 -0400
-Message-ID: <4C31FAD9.6050808@2net.co.uk>
-Date: Mon, 05 Jul 2010 16:31:37 +0100
-From: Chris Simmonds <chris.simmonds@2net.co.uk>
+Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.5])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o69GUilW031829
+	for <video4linux-list@redhat.com>; Fri, 9 Jul 2010 12:30:45 -0400
+Received: from gateway05.websitewelcome.com (gateway05.websitewelcome.com
+	[69.93.154.37])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o69GUZs6002475
+	for <video4linux-list@redhat.com>; Fri, 9 Jul 2010 12:30:35 -0400
+From: "Charlie X. Liu" <charlie@sensoray.com>
+To: "'Roger Oberholtzer'" <roger@opq.se>, <video4linux-list@redhat.com>
+References: <AANLkTim5LXb__zh-N2pumq7nfSDlqnwW8RDrEw47DErd@mail.gmail.com>	<000501cb1ed4$f45da930$dd18fb90$@com>
+	<1278656777.18926.2.camel@acme.pacific>
+In-Reply-To: <1278656777.18926.2.camel@acme.pacific>
+Subject: RE: SUGGESTION FOR A Linux based Card
+Date: Fri, 9 Jul 2010 09:30:36 -0700
+Message-ID: <000001cb1f84$0feb8af0$2fc2a0d0$@com>
 MIME-Version: 1.0
-To: Eric Nelson <eric.nelson@boundarydevices.com>
-Subject: Re: Contiguous memory allocations
-References: <1278103660.6034.16.camel@localhost> <4C31AF7E.7090602@2net.co.uk>
-	<4C31EBD3.2010607@boundarydevices.com>
-In-Reply-To: <4C31EBD3.2010607@boundarydevices.com>
-Cc: video4linux-list@redhat.com
-Reply-To: chris@2net.co.uk
+Content-Language: en-us
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -25,82 +25,44 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 05/07/10 15:27, Eric Nelson wrote:
-> On 07/05/2010 03:10 AM, Chris Simmonds wrote:
->> On 02/07/10 21:47, Eric Nelson wrote:
->>> Does anyone know if there's a common infrastructure for allocation
->>> of DMA'able memory by drivers and applications above the straight
->>> kernel API (dma_alloc_coherent)?
->>>
->>> I'm working with Freescale i.MX51 drivers to do 720P video
->>> input and output and the embedded calls to dma_alloc_coherent
->>> fail except when used right after boot because of fragmentation.
->>>
->>> I'm fighting the urge to write yet another special-purpose allocator
->>> for video buffers thinking this must be a common problem with a
->>> solution already, but I can't seem to locate one.
->>>
->>> The closest thing I've found is the bigphysarea patch, which doesn't
->>> appear to be supported or headed toward main-line.
->>>
->>> Thanks in advance,
->>
->> dma_alloc_coherent is pretty much just a wrapper round get_free_pages,
->> which is the lowest level allocator in the kernel. So, no there is no
->> other option (but see below). The simplest thing is to make sure your
->> driver is loaded at boot time and to grab all the memory you need then
->> and never let it go. That's what I do.
->>
-> Thanks Chris.
->
-> The trouble is always "how much"? If we don't know at startup what kind of
-> video's needed or what size(s) of camera input may be needed, it's
-> impossible
-> to tune. In the current Freescale kernels, there are at least 4 separate
-> drivers that allocate RAM, sometimes for internal use, but mostly in
-> response
-> to userspace calls (ioctl).
->
-> - frame-buffer driver
-> - Video Processing Unit (VPU) - video encode/decode
-> - V4L2 output device - allows access to YUV output layer, color blending
-> - Image Processing Unit (IPU) - allows userspace bitblts through DMA
->
-> With this number of calls, tuning with separate kernel command-line args
-> seems
-> unworkable.
-
-I think the kernel developers don't like this kind of on-the-side 
-allocator because they tend to be dedicated to solving one kind of problem.
-
-Here are a few thoughts about the imx51 specifically, based on my 
-experience. First, the size of the memory pool used for 
-dma_alloc_coherent is set in plat-mxc/include/mach/memory.h where it is 
-hard coded to 64 MiB. You could try bumping that up a bit.
-
-Second, you could re-do the buffer allocation and replace 
-dma_alloc_coherent with kmalloc and then use dma_map_single to lock it 
-down while dma is taking place. This way you avoid the 64M dma pool 
-limit and you speed up buffer access via mmap because the memory is 
-cached. In my case I got a two fold speed improvement reading frames 
-into application memory. I have to admit that my case was a bit 
-specialised though and it may not be worth the effort for you.
-
-Bye for now,
-Chris.
-
-
--- 
-Chris Simmonds                   2net Limited
-chris@2net.co.uk                 http://www.2net.co.uk/
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+SXMgaXQgYSBCVDg3OC1iYXNlZCBvciBTQUE3MTM0LWJhc2VkPyBJZiB5b3UgYXJlIGxvb2tpbmcg
+Zm9yIGEgYmV0dGVyIHF1YWxpdHkgY2FwdHVyZSBjYXJkLCBjb25zaWRlcmluZyBhIFNBQTcxMzQt
+YmFzZWQgaXMgdmVyeSBpbXBvcnRhbnQsIHNpbmNlIEJUODc4IGlzIHRvbyBvbGQgYW5kIFNBQTcx
+M3ggaXMgYSBuZXdlciBnZW5lcmF0aW9uIG9uZSB0aGF0IHVzZXMgbW9yZSBhZHZhbmNlZCB0ZWNo
+bm9sb2dpZXMgaW5jbHVkaW5nIHVzaW5nIHRoZSBhZGFwdGl2ZSBjb21iIGZpbHRlciBhbmQgYWRh
+cHRpdmUgYW50aS1hbGlhcyBmaWx0ZXJpbmcgdGVjaG5pcXVlcyB3aGljaCBtYWtlIGJpZyBkaWZm
+ZXJlbmNlIG9uIGltYWdlL3ZpZGVvIHF1YWxpdHkuCgpXZSBoYWQgc2lkZS1ieS1zaWRlIGNvbXBh
+cmlzb24gYW5kIGRlY2lkZWQgdXNpbmcgU0FBNzEzNUhMIChmdWxsIHZlcnNpb24gb2YgU0FBNzEz
+NCkgZm9yIHRoZSBTZW5zb3JheSBNb2RlbCA4MTEgKCBodHRwOi8vd3d3LnNlbnNvcmF5LmNvbS9w
+cm9kdWN0cy84MTEuaHRtLCA0LWNoYW5uZWwgUENJZSkgYW5kIE1vZGVsIDkxMSAoaHR0cDovL3d3
+dy5zZW5zb3JheS5jb20vcHJvZHVjdHMvOTExLmh0bQosIDQtY2hhbm5lbCBQQ0llLzEwNCkuCgpC
+ZXN0IHJlZ2FyZHMsCgpDaGFybGllIFguIExpdSBAIFNlbnNvcmF5IENvLgoKCi0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tCkZyb206IHZpZGVvNGxpbnV4LWxpc3QtYm91bmNlc0ByZWRoYXQuY29t
+IFttYWlsdG86dmlkZW80bGludXgtbGlzdC1ib3VuY2VzQHJlZGhhdC5jb21dIE9uIEJlaGFsZiBP
+ZiBSb2dlciBPYmVyaG9sdHplcgpTZW50OiBUaHVyc2RheSwgSnVseSAwOCwgMjAxMCAxMToyNiBQ
+TQpUbzogdmlkZW80bGludXgtbGlzdEByZWRoYXQuY29tClN1YmplY3Q6IFJFOiBTVUdHRVNUSU9O
+IEZPUiBBIExpbnV4IGJhc2VkIENhcmQKCk9uIFRodSwgMjAxMC0wNy0wOCBhdCAxMjozNyAtMDcw
+MCwgQ2hhcmxpZSBYLiBMaXUgd3JvdGU6IAo+IFNlbnNvcmF5IENvbXBhbnkgaGFzIE1vZGVsIDgx
+MSAoYSA0LWNoYW5uZWwgUENJLUV4cHJlc3MgQ2FwdHVyZSBDYXJkOgo+IGh0dHA6Ly93d3cuc2Vu
+c29yYXkuY29tL3Byb2R1Y3RzLzgxMS5odG0gKSBhbmQgTW9kZWwgOTExIChhIDQtY2hhbm5lbAo+
+IFBDSS8xMDQtRXhwcmVzcyBDYXB0dXJlIENhcmQ6IGh0dHA6Ly93d3cuc2Vuc29yYXkuY29tL3By
+b2R1Y3RzLzkxMS5odG0gKS4KPiBCb3RoIGhhdmUgNCBDb21wb3NpdGUvUy1WaWRlbyBpbnB1dHMs
+IHBsdXMgNCBjaGFubmVsIG9mIHN0ZXJlbyBhdWRpbyBpbnB1dHMuCj4gVGhleSBhbGwgd29yayB3
+ZWxsIHVuZGVyIExpbnV4LgoKV2UgaGF2ZSB1c2VkIDQtY2hhbm5lbCBjYXJkcyBmcm9tIExpbnV4
+IE1lZGlhIExhYnMgKExNTCkuIFRoZXkgaGF2ZQp3b3JrZWQgb3V0IG9mIHRoZSBib3guIE5ldmVy
+IGEgcHJvYmxlbS4KCgotLSAKUm9nZXIgT2JlcmhvbHR6ZXIKCk9QUSBTeXN0ZW1zIC8gUmFtYsO2
+bGwgUlNUCgpSYW1iw7ZsbCBTdmVyaWdlIEFCCktydWttYWthcmdhdGFuIDIxClAuTy4gQm94IDE3
+MDA5ClNFLTEwNCA2MiBTdG9ja2hvbG0sIFN3ZWRlbgoKT2ZmaWNlOiBJbnQgKzQ2IDEwLTYxNSA2
+MCAyMApNb2JpbGU6IEludCArNDYgNzAtODE1IDE2OTYKCi0tCnZpZGVvNGxpbnV4LWxpc3QgbWFp
+bGluZyBsaXN0ClVuc3Vic2NyaWJlIG1haWx0bzp2aWRlbzRsaW51eC1saXN0LXJlcXVlc3RAcmVk
+aGF0LmNvbT9zdWJqZWN0PXVuc3Vic2NyaWJlCmh0dHBzOi8vd3d3LnJlZGhhdC5jb20vbWFpbG1h
+bi9saXN0aW5mby92aWRlbzRsaW51eC1saXN0CgoKLS0KdmlkZW80bGludXgtbGlzdCBtYWlsaW5n
+IGxpc3QKVW5zdWJzY3JpYmUgbWFpbHRvOnZpZGVvNGxpbnV4LWxpc3QtcmVxdWVzdEByZWRoYXQu
+Y29tP3N1YmplY3Q9dW5zdWJzY3JpYmUKaHR0cHM6Ly93d3cucmVkaGF0LmNvbS9tYWlsbWFuL2xp
+c3RpbmZvL3ZpZGVvNGxpbnV4LWxpc3Q=
