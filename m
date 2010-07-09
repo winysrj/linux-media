@@ -1,88 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:59543 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752532Ab0GVQrE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jul 2010 12:47:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Kromer <michael.kromer@topalis.com>
-Subject: Re: Chicony Electronics 04f2:b1b4 webcam device unsupported (yet)
-Date: Thu, 22 Jul 2010 18:47:21 +0200
-Cc: Pete Eberlein <pete@sensoray.com>, linux-media@vger.kernel.org
-References: <OF56E589E0.BB18B6B2-ONC1257762.005AE925-C1257762.005AE95B@topalis.com> <201007171700.48576.laurent.pinchart@ideasonboard.com> <4C41C9C3.9040506@topalis.com>
-In-Reply-To: <4C41C9C3.9040506@topalis.com>
+Received: from mx1.redhat.com ([209.132.183.28]:44321 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753276Ab0GISDY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Jul 2010 14:03:24 -0400
+Message-ID: <4C376479.2030101@redhat.com>
+Date: Fri, 09 Jul 2010 15:03:37 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Ivan <ivan.q.public@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
+ [eb1a:2860]
+References: <4C353039.4030202@gmail.com>	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>	<4C360E64.3020703@gmail.com>	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>	<4C362C6E.5050104@gmail.com>	<AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com>	<4C363692.5000600@gmail.com>	<4C364416.3000809@gmail.com> <AANLkTimRQaFDzKTXAIxIs2lT7ldrMwMNIFSJN4VzJOQQ@mail.gmail.com> <4C364CD3.3080106@gmail.com> <4C371A74.4080901@redhat.com> <4C375A07.7010205@gmail.com>
+In-Reply-To: <4C375A07.7010205@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007221847.22334.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
-
-On Saturday 17 July 2010 17:18:27 Michael Kromer wrote:
-> Am 17.07.2010 17:00, schrieb Laurent Pinchart:
-> > On Saturday 17 July 2010 15:25:08 Michael Kromer wrote:
-> >> Am 17.07.2010 10:57, schrieb Laurent Pinchart:
-> >>> On Saturday 17 July 2010 10:34:20 Michael Kromer wrote:
-> >>>> On 07/16/2010 07:14 PM, Pete Eberlein wrote:
-> >>>>> On Fri, 2010-07-16 at 18:32 +0200, Michael Kromer wrote:
-> >>>>>> I have bought myself a rather new Lenovo Thinkpad X100e, and there
-> >>>>>> is no support for the webcam device in the current (2.6.34) kernel
-> >>>>>> (yet). 2.6.35 doesn't seem to have a driver for it either. Is there
-> >>>>>> any possibility for one of you guys to take a look at it?
-> >>>>> 
-> >>>>> The descriptors look like a standard USB Video Class device.  Do you
-> >>>>> have the uvcvideo module loaded?  Then have a look at your dmesg
-> >>>>> output to see why it isn't working.
-> >>>> 
-> >>>> my problem is:
-> >>>> 
-> >>>> [ 2578.903972] uvcvideo: Found UVC 1.00 device Integrated Camera
-> >>>> (04f2:b1b4) [ 2578.905121] input: Integrated Camera as
-> >>>> /devices/pci0000:00/0000:00:13.2/usb2/2-2/2-2:1.0/input/input10
-> >>>> [ 2578.905224] usbcore: registered new interface driver uvcvideo
-> >>>> [ 2578.905228] USB Video Class driver (v0.1.0)
-> >>>> 
-> >>>> It is indeed registred as video device, however, everytime i use some
-> >>>> program (i tried cheese) to use /dev/video0 I get the following:
-> >>>> 
-> >>>> [ 2741.757993] uvcvideo: Failed to query (130) UVC control 5 (unit 3)
-> >>>> : -32 (exp. 1).
-> >>> 
-> >>> Could you please send me the output of
-> >>> 
-> >>> lsusb -v -d 04f2:b1b4
-> >> 
-> >> Bus 002 Device 003: ID 04f2:b1b4 Chicony Electronics Co., Ltd
-> > 
-> > [snip]
-> > 
-> > Thanks. You're the second one in a few weeks to report a bug that has
-> > been there for years. Could you please try the following patch ? It
-> > should end up in the mainline kernel in 2.6.36 (2.6.35 might be
-> > possible, depending on when Mauro comes back from holidays).
-> > 
-> > http://git.linuxtv.org/v4l-
-> > dvb.git?a=commitdiff;h=9c3b10b53875279306d8464fe9b24fa634329fc8;hp=f06b9b
-> > d4c62ef93f9467a1432acf2efa84aa3456
+Em 09-07-2010 14:19, Ivan escreveu:
+> On 07/09/2010 08:47 AM, Mauro Carvalho Chehab wrote:
+>> I never saw the em28xx scaler generating such vertical stripes. This
+>> could be a mplayer or a video adapter driver problem. Are you using a
+>> proprietary video driver? You may try to use ffmeg or mencoder to
+>> generate a mpeg file at 640x480 and then try to play it on another
+>> player (preferably on another machine), to see if this problem
+>> disappears.
 > 
-> I've been looking at this issue as well, and have already seen the patch
-> you mentioned:
-> 
-> https://patchwork.kernel.org/patch/110187/
-> 
-> However, this problem didn't change anything - same error.
-> 
-> If it helps, I can provide you with an SSH session if this helps, so you
-> could investigate the problem directly.
+> Huh? Does there even *exist* a proprietary linux driver for my card? And because you never saw stripes with em28xx, they must not exist? :^P
 
-Are you 100% sure that you've loaded the patched driver ? Try modifying 
-DRIVER_DESC at the beginning of uvc_driver.c and check the kernel log with 
-dmesg to make sure the correct driver is loaded.
+Well, it depends. What are your video adapter card? ATI? Nvidia?
 
--- 
-Regards,
+> You might want to reread the thread-- we already figured the stripes out.
+> 
+>>>>> v4l2: 1199 frames successfully processed, -3 frames dropped.
+>>
+>> This is not a V4L issue.
+> 
+> I'm aware of that by now.
+> 
+>> A negative number of dropping frames makes no sense. It is probably a
+>> mplayer bug. I would try to get a newer version of mplayer and double
+>> check.
+> 
+> Newer than latest svn? :^D
 
-Laurent Pinchart
+Well, then try a stable version ;)
+
+> If you look at the mplayer code that calculates the supposed number of frames dropped (it's in stream/tvi_v4l2.c), it would seem that it's just an indicator of how close the stream came to the nominal framerate (30000/1001 in my case).
+> 
+> In other words, if mplayer sees an actual framerate of less than 29.97 coming from v4l, it assumes (perhaps incorrectly) that this is because some frames were dropped. If you do the same calculation when the actual framerate is greater than 29.97, you get a negative number of dropped frames. It looks weird, but it makes a kind of sense if you know what it really means.
+
+Such logic is broken. In the case of webcams, the framerate is generally less than 29.97 fps. For example, em2750 webcams,
+supported by em28xx driver, have a framerate of about 5 fps, due to sensor limits.
+
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
