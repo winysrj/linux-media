@@ -1,35 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:64949 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750912Ab0GYG0X convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jul 2010 02:26:23 -0400
+Received: from mail.gmx.net ([213.165.64.20]:49113 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752093Ab0GIHXy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Jul 2010 03:23:54 -0400
+Date: Fri, 9 Jul 2010 09:23:04 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Norbert Wegener <nw@wegener-net.de>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+Subject: Re: 1b80:d393 Afatech supported?
+Message-ID: <20100709072304.GA8938@minime.bse>
+References: <c1892bff73376fe4888d83d4da91eeed.squirrel@www.wegener-net.de>
 MIME-Version: 1.0
-From: =?ISO-8859-1?Q?Andr=E9s_Elizalde?= <elizalde.andres@gmail.com>
-Date: Sun, 25 Jul 2010 03:26:02 -0300
-Message-ID: <AANLkTin1h6vURtLOY3QdxqgK-Wv1fAUqh7sZzFuaD7vY@mail.gmail.com>
-Subject: [PATCH] Update for saa7134 driver. Radio support for ENLTV-FM53
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <c1892bff73376fe4888d83d4da91eeed.squirrel@www.wegener-net.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix radio support for Encore ENLTV-FM v5.3 card
+Please use linux-media@vger.kernel.org, video4linux-list@redhat.com is
+dead.
 
---- linux/drivers/media/video/saa7134/saa7134-cards.c.orig	2010-07-24
-18:21:30.000000000 -0300
-+++ linux/drivers/media/video/saa7134/saa7134-cards.c	2010-07-24
-18:21:44.000000000 -0300
-@@ -3651,7 +3651,7 @@ struct saa7134_board saa7134_boards[] =
- 		.radio = {
- 			.name = name_radio,
- 			.vmux = 1,
--			.amux = 1,
-+			.amux = LINE2,
- 		},
- 		.mute = {
- 			.name = name_mute,
+On Thu, Jul 08, 2010 at 10:54:23PM +0200, Norbert Wegener wrote:
+> I got a Conceptronics usb dvb-t stick. lsusb displays it as:
+> ...
+> Bus 001 Device 007: ID 1b80:d393 Afatech
 
-Signed-off-by: Elizalde Andrés <elizalde.andres@gmail.com>
+Although it says Afatech, this one has a Realtek chip.
+AFAIK there is currently only the out-of-tree driver written by Realtek.
+I suggest following criticalmess' instructions in here:
+	https://bugs.launchpad.net/ubuntu/+source/me-tv/+bug/478379
+
+
+Should this driver maybe be put into staging?
+
+  Daniel
