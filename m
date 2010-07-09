@@ -1,39 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:45312 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754272Ab0GEKMp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 06:12:45 -0400
-Received: by pxi14 with SMTP id 14so1625385pxi.19
-        for <linux-media@vger.kernel.org>; Mon, 05 Jul 2010 03:12:44 -0700 (PDT)
-From: Magnus Damm <magnus.damm@gmail.com>
-To: g.liakhovetski@gmx.de
-Cc: Magnus Damm <magnus.damm@gmail.com>, linux-media@vger.kernel.org
-Date: Mon, 05 Jul 2010 19:12:59 +0900
-Message-Id: <20100705101259.23155.79936.sendpatchset@t400s>
-Subject: [PATCH] V4L/DVB: soc-camera: module_put() fix
+Received: from mailout11.t-online.de ([194.25.134.85]:52542 "EHLO
+	mailout11.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751566Ab0GIWIy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 18:08:54 -0400
+From: "Andreas Witte" <andreaz@t-online.de>
+To: <linux-media@vger.kernel.org>
+Subject: Strange Problem with Antti's af9015 driver on gentoo 2.6.30-r5
+Date: Sat, 10 Jul 2010 00:07:29 +0200
+Message-ID: <008801cb1fb3$1f9b7580$5ed26080$@de>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: de
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Magnus Damm <damm@opensource.se>
+Hello TV-Friends,
 
-Avoid calling module_put() if try_module_get() has
-been skipped.
+today i checked out Antti's last af9015 (af9013) driver and encountered a
+strange problem
+on my gentoo 2.6.30-r5 box. If i install this driver, udev (149) start to
+behave strange and 
+take a long time to finish. When it comes to set to utf8 the whole box hang
+without any
+chance to do anything. I need to erase all the modules in the
+/lib/modules/./media -tree 
+(chroot from a boot-cd) to make it boot again. With the driver from around
+May all seems 
+to work (except that weird bug with not getting a lock anymore sometimes on
+my digivox-stick).
 
-Signed-off-by: Magnus Damm <damm@opensource.se>
----
+I wonder what changed in the meantime and what i missed on my gentoo-box to
+make
+it work..? Am i need a more recent kernel? More recent udev-version?
 
- drivers/media/video/soc_camera.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Any help would be nice, cause i would love to test the last change of that
+driver and all
+your wonderful work.
 
---- 0001/drivers/media/video/soc_camera.c
-+++ work/drivers/media/video/soc_camera.c	2010-06-23 13:43:05.000000000 +0900
-@@ -1034,7 +1034,8 @@ eiufmt:
- 		soc_camera_free_i2c(icd);
- 	} else {
- 		icl->del_device(icl);
--		module_put(control->driver->owner);
-+		if (control && control->driver && control->driver->owner)
-+			module_put(control->driver->owner);
- 	}
- enodrv:
- eadddev:
+Thanks in advance,
+Andreas
+
+
