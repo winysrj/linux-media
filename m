@@ -1,66 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:59543 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753848Ab0G2Pad (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 11:30:33 -0400
-Subject: Re: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Jarod Wilson <jarod@redhat.com>
-Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <20100729035213.GA11543@redhat.com>
-References: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
-	 <20100729035213.GA11543@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 29 Jul 2010 18:30:28 +0300
-Message-ID: <1280417428.29938.62.camel@maxim-laptop>
-Mime-Version: 1.0
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1679 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753817Ab0GILDe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 07:03:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: Re: [PATCH v4 1/5] V4L2: Add seek spacing and FM RX class.
+Date: Fri, 9 Jul 2010 13:06:02 +0200
+Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com
+References: <1275647663-20650-1-git-send-email-matti.j.aaltonen@nokia.com> <1275647663-20650-2-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1275647663-20650-2-git-send-email-matti.j.aaltonen@nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201007091306.02082.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2010-07-28 at 23:52 -0400, Jarod Wilson wrote: 
-> On Thu, Jul 29, 2010 at 02:40:43AM +0300, Maxim Levitsky wrote:
-> > Hi,
-> > This is second version of the patchset.
-> > Hopefully, I didn't forget to address all comments.
-> > 
-> > In addition to comments, I changed helper function that processes samples
-> > so it sends last space as soon as timeout is reached.
-> > This breaks somewhat lirc, because now it gets 2 spaces in row.
-> > However, if it uses timeout reports (which are now fully supported)
-> > it will get such report in middle.
-> > 
-> > Note that I send timeout report with zero value.
-> > I don't think that this value is importaint.
+On Friday 04 June 2010 12:34:19 Matti J. Aaltonen wrote:
+> Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
+> control classes.
 > 
-> I just patched the entire series into a branch here and tested, no
-> regressions with an mceusb transceiver with in-kernel decode, lirc decode
-> or lirc tx. Only issue I had (which I neglected to mention earlier) was
-> some pedantic issues w/whitespace. Here's the tree I built and tested:
+> Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+> ---
+>  include/linux/videodev2.h |   15 ++++++++++++++-
+>  1 files changed, 14 insertions(+), 1 deletions(-)
 > 
-> http://git.wilsonet.com/linux-2.6-ir-wip.git/?a=shortlog;h=refs/heads/maxim
-> 
-> 7486d6ae3 addresses all the whitespace/formatting issues I had. Could
-> either merge that into your patches, or I can just send it along as an
-> additional patch after the fact. In either case, for 1-7 v2:
-About whitespace, I usually fix what checkpacth.pl tells me.
-Nothing beyond that :-)
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 418dacf..95675cd 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -935,6 +935,7 @@ struct v4l2_ext_controls {
+>  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+>  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+>  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+> +#define V4L2_CTRL_CLASS_FM_RX 0x009c0000	/* FM Tuner control class */
+>  
+>  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+>  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> @@ -1313,6 +1314,17 @@ enum v4l2_preemphasis {
+>  #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
+>  #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
+>  
+> +/* FM Tuner class control IDs */
+> +#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
+> +#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
+> +
+> +#define V4L2_CID_FM_RX_BAND			(V4L2_CID_FM_TX_CLASS_BASE + 1)
+> +enum v4l2_fm_rx_band {
+> +	V4L2_FM_BAND_OTHER		= 0,
+> +	V4L2_FM_BAND_JAPAN		= 1,
+> +	V4L2_FM_BAND_OIRT		= 2
+> +};
 
+I've been thinking about this a bit more. Would it be possible to do this automatically
+in the driver? I.e. based on the frequency you switch the device into the appropriate
+band?
 
-> 
-> Tested-by: Jarod Wilson <jarod@redhat.com>
-> 
-> I have no ene hardware to actually test with, but it did build. :)
-> 
-> For 1-9 v2:
-> 
-> Acked-by: Jarod Wilson <jarod@redhat.com>
+If that is not possible, then you shouldn't forget to document this new control in the spec.
+When you document it you should give some background information as well: the freq ranges of
+these bands and roughly where they are used.
+
+Regards,
+
+	Hans
+
+> +
+>  /*
+>   *	T U N I N G
+>   */
+> @@ -1377,7 +1389,8 @@ struct v4l2_hw_freq_seek {
+>  	enum v4l2_tuner_type  type;
+>  	__u32		      seek_upward;
+>  	__u32		      wrap_around;
+> -	__u32		      reserved[8];
+> +	__u32		      spacing;
+> +	__u32		      reserved[7];
+>  };
+>  
+>  /*
 > 
 
-Best regards,
-Maxim Levitsky
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
