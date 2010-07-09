@@ -1,74 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f46.google.com ([74.125.83.46]:34752 "EHLO
-	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751965Ab0GGFvV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 01:51:21 -0400
-Received: by gwj21 with SMTP id 21so1672807gwj.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Jul 2010 22:51:20 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:1049 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755814Ab0GIMrg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Jul 2010 08:47:36 -0400
+Message-ID: <4C371A74.4080901@redhat.com>
+Date: Fri, 09 Jul 2010 09:47:48 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4C33BBEA.5000807@iki.fi>
-References: <4C332A5F.4000706@redhat.com>
-	<4C33BBEA.5000807@iki.fi>
-Date: Wed, 7 Jul 2010 13:51:18 +0800
-Message-ID: <AANLkTilNt3PH6Gxd1wlbVg7JQhfhhvYr8GXQcDPcPAAP@mail.gmail.com>
-Subject: Re: Status of the patches under review at LMML (60 patches)
-From: Bee Hock Goh <beehock@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Nikola Pajkovsky <npajkovs@redhat.com>
+To: Ivan <ivan.q.public@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
+ [eb1a:2860]
+References: <4C353039.4030202@gmail.com>	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>	<4C360E64.3020703@gmail.com>	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>	<4C362C6E.5050104@gmail.com>	<AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com>	<4C363692.5000600@gmail.com>	<4C364416.3000809@gmail.com> <AANLkTimRQaFDzKTXAIxIs2lT7ldrMwMNIFSJN4VzJOQQ@mail.gmail.com> <4C364CD3.3080106@gmail.com>
+In-Reply-To: <4C364CD3.3080106@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I know that a couple of users(including) tested the patch to be
-working. Many users(from forum) is still looking for tda18218 support
-or have been using a very old hg changeset using another patch also
-written by Nikola.
+Em 08-07-2010 19:10, Ivan escreveu:
+> On 07/08/2010 05:49 PM, Devin Heitmueller wrote:
+>> That card does have an onboard scaler, although it's not clear to me
+>> why it isn't working.  Exactly what command line did you use?
+> 
+> At first, I was always using
+> 
+> mplayer tv:// -tv device=/dev/video1:input=1:norm=NTSC
+> 
+> which defaults to a resolution of 640x480. This output looked correct (except for vertical stripes) in kernel 2.6.32-23-generic, but was horizontally shifted after I updated to the current mercurial sources.
 
-I have been using that old change set for many months and its working
-well for me.
+I never saw the em28xx scaler generating such vertical stripes. This could be a mplayer or a video adapter driver problem.
+Are you using a proprietary video driver? You may try to use ffmeg or mencoder to generate a mpeg file at 640x480 and then
+try to play it on another player (preferably on another machine), to see if this problem disappears.
+> 
+> Then I noticed that
+> 
+> mplayer tv:// -tv device=/dev/video1:input=1:norm=NTSC:width=720
+> 
+> gives a correct picture with current hg source.
+> 
+>>> v4l2: 1199 frames successfully processed, -3 frames dropped.
 
-On Wed, Jul 7, 2010 at 7:27 AM, Antti Palosaari <crope@iki.fi> wrote:
-> On 07/06/2010 04:06 PM, Mauro Carvalho Chehab wrote:
+This is not a V4L issue.
+
+A negative number of dropping frames makes no sense. It is probably a mplayer bug.
+I would try to get a newer version of mplayer and double check.
+
+If your video adapter is not fast enough, or if some post-processing logic at mplayer
+are enabled and you don't have enough processing speed at both CPU and GPU, mplayer may
+complain about frames dropped. It may also be related to audio driver, if you're enabling 
+alsa at .mplayer/config.
+
+When you have frames dropped, it may help to replace the video and audio output (-vo and -ao)
+to use one of the several different mplayer output drivers. On my own tests, I generally use
+sdl, gl or gl2 drivers for output, instead of x11, as they provide a better performance with
+the video adapters I have here.
+To get a list of available drivers, you may use:
+	$ mplayer -vo help
+
+
+>>> ...
 >>
->> This is the summary of the patches that are currently under review at
->> Linux Media Mailing List<linux-media@vger.kernel.org>.
->> Each patch is represented by its submission date, the subject (up to 70
->> chars) and the patchwork link (if submitted via email).
+>> Yeah, I don't know.  You would have to ask the mplayer/mencoder people.
+> 
+> Ah, so those statistics are generated by mplayer, then, not by v4l.
+> 
+>>> It would also seem that V4L doesn't actually discard any frames...
+>>> ...blah blah blah about mencoder...
 >>
->> P.S.: This email is c/c to the developers where some action is expected.
->>       If you were copied, please review the patches, acking/nacking or
->>       submitting an update.
->>
->
->>                == Waiting for Antti Palosaari<crope@iki.fi>  review ==
->>
->> Mar,21 2010: af9015 : more robust eeprom parsing
->>          http://patchwork.kernel.org/patch/87243
->
-> NACK, partly. I think it is rather useless.
->
->
->> May,20 2010: New NXP tda18218 tuner
->>           http://patchwork.kernel.org/patch/101170
->
-> AF9015/AF9013: ACK, partly from the AF9015/AF9013 side. It is safe to merge,
-> it will not break any currently supported device. But I am not sure if all
-> settings are correct since I don't have suitable device (AF9015+TDA18218) to
-> figure out configuration and test.
->
-> TDA18218: I don't know. I have reviewed it, feedback can be found from the
-> patchwork. I don't resist to merge, but also I don't want to take any
-> responsibility since I don't have this device.
->
-> regards
-> Antti
-> --
-> http://palosaari.fi/
-> --
+>> Again, this would be an mplayer/mencoder thing.
+> 
+> I guess I'm just trying to confirm that v4l doesn't try to enforce a strict NTSC framerate, but just passes all frames on even if they appear at a slightly different framerate.
+
+V4L doesn't enforce a framerate. It will just send frames to userspace as they're being available
+by the hardware and provided that the application is fast enough to get frames at the hardware speed.
+
+em28xx hardware outputs NTSC frames at about 30 fps.
+
+> 
+> Ivan
+> -- 
 > To unsubscribe from this list: send the line "unsubscribe linux-media" in
 > the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
