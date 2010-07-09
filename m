@@ -1,87 +1,282 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36836 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934092Ab0GOVov (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jul 2010 17:44:51 -0400
-Subject: Re: [PATCH 24/25] video/ivtv: Convert pci_table entries to
- PCI_VDEVICE (if PCI_ANY_ID is used)
-From: Andy Walls <awalls@md.metrocast.net>
-To: Peter Huewe <PeterHuewe@gmx.de>
-Cc: Kernel Janitors <kernel-janitors@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ian Armstrong <ian@iarmst.demon.co.uk>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Steven Toth <stoth@kernellabs.com>, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-In-Reply-To: <201007152108.27175.PeterHuewe@gmx.de>
-References: <201007152108.27175.PeterHuewe@gmx.de>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 15 Jul 2010 17:43:20 -0400
-Message-ID: <1279230200.7920.23.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:33716 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753053Ab0GITBD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 15:01:03 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=utf-8
+Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L5B009HP0TO2240@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 09 Jul 2010 20:01:00 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L5B002JZ0TNM6@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 09 Jul 2010 20:01:00 +0100 (BST)
+Date: Fri, 09 Jul 2010 20:59:45 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [RFC v4] Multi-plane buffer support for V4L2 API
+To: 'Linux Media Mailing List' <linux-media@vger.kernel.org>
+Cc: 'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Hans de Goede' <hdegoede@redhat.com>,
+	kyungmin.park@samsung.com
+Message-id: <004b01cb1f98$e586ae10$b0940a30$%osciak@samsung.com>
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-07-15 at 21:08 +0200, Peter Huewe wrote:
-> From: Peter Huewe <peterhuewe@gmx.de>
-> 
-> This patch converts pci_table entries, where .subvendor=PCI_ANY_ID and
-> .subdevice=PCI_ANY_ID, .class=0 and .class_mask=0, to use the
-> PCI_VDEVICE macro, and thus improves readability.
+Hello,
 
-Hi Peter,
+This is the fourth version of the multi-plane API extensions proposal.
+I think that we have reached a stage at which it is more or less finalized.
 
-I have to disagree.  The patch may improve typesetting, but it degrades
-clarity and maintainability from my perspective.
-
-a. PCI_ANY_ID indicates to the reader a wildcard match is being
-performed.  The PCI_VDEVICE() macro hides that to some degree.
-
-b. PCI_VENDOR_ID_ICOMP clearly indicates that ICOMP is a vendor.
-"ICOMP" alone does not hint to the reader that is stands for a company
-(the now defunct "Internext Compression, Inc.").
+Rationale can be found at the beginning of the original thread:
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11212
 
 
-IMO, macros, for things other than named constants, should only be used
-for constructs that the C language does not express clearly or compactly
-in the context.  This structure initialization being done in file scope,
-where white space and line feeds are cheap, will only be obfuscated by
-macros, not clarified.
+===============================================
+I. Multiplanar API description/negotiation
+===============================================
 
-So I'm going to NAK this for ivtv, unless someone can help me understand
-any big picture benefit that I may not see from my possibly myopic
-perspective.
+1. Maximum number of planes
+----------------------------------
+
+We've chosen the maximum number of planes to be 8 per buffer:
+
++#define VIDEO_MAX_PLANES               8
 
 
-BTW, I have not seen a similar patch come in my mailbox for
-cx18-driver.c.  Why propose the change for ivtv and not cx18?
+2. Capability checks
+----------------------------------
 
-Regards,
-Andy
+If a driver supports multiplanar API, it can turn on one (or both) of the
+new capability flags:
 
-> Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
-> ---
->  drivers/media/video/ivtv/ivtv-driver.c |    6 ++----
->  1 files changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-> index 90daa6e..8e73ab9 100644
-> --- a/drivers/media/video/ivtv/ivtv-driver.c
-> +++ b/drivers/media/video/ivtv/ivtv-driver.c
-> @@ -69,10 +69,8 @@ int ivtv_first_minor;
->  
->  /* add your revision and whatnot here */
->  static struct pci_device_id ivtv_pci_tbl[] __devinitdata = {
-> -	{PCI_VENDOR_ID_ICOMP, PCI_DEVICE_ID_IVTV15,
-> -	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-> -	{PCI_VENDOR_ID_ICOMP, PCI_DEVICE_ID_IVTV16,
-> -	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-> +	{PCI_VDEVICE(ICOMP, PCI_DEVICE_ID_IVTV15), 0},
-> +	{PCI_VDEVICE(ICOMP, PCI_DEVICE_ID_IVTV16), 0},
->  	{0,}
->  };
->  
++/* Is a video capture device that supports multiplanar formats */
++#define V4L2_CAP_VIDEO_CAPTURE_MPLANE  0x00001000
++/* Is a video output device that supports multiplanar formats */
++#define V4L2_CAP_VIDEO_OUTPUT_MPLANE   0x00002000
+
+- any combination of those flags is valid;
+- any combinations with the old, non-multiplanar V4L2_CAP_VIDEO_CAPTURE and
+  V4L2_CAP_VIDEO_OUTPUT flags are also valid;
+- the new flags indicate, that a driver supports the new API, but it does NOT
+  have to actually use multiplanar formats; it is perfectly possible and valid
+  to use the new API for 1-plane buffers as well;
+  using the new API for both 1-planar and n-planar formats makes the
+  applications simpler, as they do not have to fall back to the old API in the
+  former case.
+
+
+3. Describing multiplanar formats
+----------------------------------
+
+To describe multiplanar formats, we have to extend the format struct:
+
+ struct v4l2_format {
+        enum v4l2_buf_type type;
+        union {
+                struct v4l2_pix_format          pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
++               struct v4l2_pix_format_mplane   mp_pix;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+                struct v4l2_window              win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+                struct v4l2_vbi_format          vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+                struct v4l2_sliced_vbi_format   sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
+                __u8    raw_data[200];                   /* user-defined */
+        } fmt;
+ };
+
+We need a new buffer type to recognize when to use mp_pix instead of pix.
+Or, actually, two buffer types, for both OUTPUT and CAPTURE:
+
+ enum v4l2_buf_type {
+        /* ... */
++       V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
++       V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
+        /* ... */
+ };
+
+
+For those buffer types, we use struct v4l2_pix_format_mplane:
+
++/**
++ * struct v4l2_pix_format_mplane - multiplanar format definition
++ * @pix_fmt:   definition of an image format for all planes
++ * @plane_fmt: per-plane information
++ */
++struct v4l2_pix_format_mplane {
++       struct v4l2_pix_format          pix_fmt;
++       struct v4l2_plane_format        plane_fmt[VIDEO_MAX_PLANES];
++} __attribute__ ((packed));
+
+The pix_fmt member is to be used in the same way as in the old API. Its fields:
+- width, height, field, colorspace, priv retain their old meaning;
+- pixelformat is still fourcc, but new fourcc values have to be introduced
+  for multiplanar formats;
+- bytesperline, sizeimage lose their meanings and are replaced by their
+  counterparts in the new, per-plane format struct.
+
+
+The plane format struct is as follows:
+
++/**
++ * struct v4l2_plane_format - additional, per-plane format definition
++ * @sizeimage:         maximum size in bytes required for data, for which
++ *                     this plane will be used
++ * @bytesperline:      distance in bytes between the leftmost pixels in two
++ *                     adjacent lines
++ */
++struct v4l2_plane_format {
++       __u32           sizeimage;
++       __u16           bytesperline;
++       __u16           reserved[7];
++} __attribute__ ((packed));
+
+Note that bytesperline is u16 now, but that shouldn't hurt.
+
+
+Fitting everything into v4l2_format's union (which is 200 bytes long):
+v4l2_pix_format shouldn't be larger than 40 bytes.
+8 * struct v4l2_plane_format + struct v4l2_pix_format = 8 * 20 + 40 = 200
+
+
+4. Format enumeration
+----------------------------------
+struct v4l2_fmtdesc, used for format enumeration, does include the v4l2_buf_type
+enum as well, so the new types can be handled properly here as well.
+For drivers supporting both versions of the API, 1-plane formats should be
+returned for multiplanar buffer types as well, for consistency. In other words,
+for multiplanar buffer types, the formats returned are a superset of those
+returned when enumerating with the old buffer types.
+
+
+5. Requesting buffers (buffer allocation)
+----------------------------------
+VIDIOC_REQBUFS includes v4l2_buf_type as well, so everything works as expected.
+
+
+===============================================
+II. Multiplanar buffer and plane descriptors
+===============================================
+
+1. Adding plane info to v4l2_buffer
+----------------------------------
+
+ struct v4l2_buffer {
+        /* ... */ 
+        enum v4l2_buf_type      type;
+        /* ... */ 
+        union {
+                __u32           offset;
+                unsigned long   userptr;
++               struct v4l2_plane __user *planes;
+        } m;
+        __u32                   length;
+        /* ... */
+ };
+
+Multiplanar buffers are also recognized using the new v4l2_buf_types.
+
+(Note to readers familiar with the old proposal: we do not use any new memory
+types for multiplanar buffers anymore, buffer types are enough. So no more
+V4L2_MEMORY_MULTI_MMAP and V4L2_MEMORY_MULTI_USERPTR.)
+
+
+For new buffer types, we choose the "planes" member of the union. It contains
+a userspace pointer to an array of struct v4l2_plane. The size of this array
+is to be passed in "length", as it is not relevant for multiplanar buffers.
+
+2. Plane description struct
+----------------------------------
+
++/**
++ * struct v4l2_plane - plane info for multiplanar buffers
++ * @bytesused: number of bytes occupied by data in the plane (payload)
++ * @mem_off:   when memory in the associated struct v4l2_buffer is
++ *             V4L2_MEMORY_MMAP, equals the offset from the start of the
++ *             device memory for this plane (or is a "cookie" that should be
++ *             passed to mmap() called on the video node)
++ * @userptr:   when memory is V4L2_MEMORY_USERPTR, a userspace pointer pointing
++ *             to this plane
++ * @length:    size of this plane (NOT the payload) in bytes
++ * @data_off:  offset in plane to the start of data/end of header, if relevant
++ *
++ * Multi-plane buffers consist of two or more planes, e.g. an YCbCr buffer
++ * with two planes has one plane for Y, and another for interleaved CbCr
++ * components. Each plane can reside in a separate memory buffer, or in
++ * a completely separate memory chip even (e.g. in embedded devices).
++ */
++struct v4l2_plane {
++       __u32                   bytesused;
++       __u32                   length;
++       union {
++               __u32           mem_off;
++               unsigned long   userptr;
++       } m;
++       __u32                   data_off;
++       __u32                   reserved[11];
++};
+
+If a plane contents include not only data, but also a header, a driver may use
+the data_off member to indicate the offset in bytes to the start of data.
+
+Union m works in the same way as it does in the old API for v4l2_buffer.
+offset has been renamed to mem_off, so as not to be confused with data_off.
+Which of the two to choose is decided as in the old API, by checking the
+memory field in struct v4l2_buffer.
+
+
+===============================================
+III. Handling ioctl()s and mmap()
+===============================================
+
+* VIDIOC_S/G/TRY_FMT:
+Pass a new buffer type and use the new mp_pix member of the struct.
+
+* VIDIOC_ENUM_FMT:
+Pass a new buffer type.
+
+* VIDIOC_REQBUFS:
+Pass a new buffer type and count of video frames (not plane count) normally.
+Expect the driver to return count (of buffers, not planes) as usual or EINVAL
+if multiplanar API is not supported.
+(The number of planes is already known, specified by the currently chosen
+format.)
+
+* VIDIOC_QUERYBUFS:
+Pass a v4l2_buffer struct as usual, set a multiplane buffer type and put a
+pointer to an array of v4l2_plane structures under 'planes'.  Place the size
+of that array in 'length'. Expect the driver to fill mem_off fields in each
+v4l2_plane struct, analogically to offsets in non-multiplanar v4l2_buffers.
+
+* VIDIOC_QBUF
+As in the case of QUERYBUFS, pass the array of planes and its size in 'length'.
+Fill all the fields required by non-multiplanar versions of this call, although
+some of them in the planes' array members.
+
+* VIDIOC_DQBUF
+An array of planes does not have to be passed, but if you do pass it, you will
+have it filled with data, just like in case of the non-multiplanar version.
+
+* mmap()
+Basically just like in non-multiplanar buffer case, but with planes instead of
+buffers and one mmap() call per each plane.
+
+Call mmap() once for each plane, passing the offsets provided in v4l2_plane
+structs. Repeat for all buffers ((num_planes * num_buffers) calls to mmap).
+There is no need for those calls to be in any particular order.
+
+A v4l2_buffer changes state to mapped (V4L2_BUF_FLAG_MAPPED flag) only after all
+of its planes have been mmapped successfully.
+
+
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
+
 
 
