@@ -1,33 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:56638 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755170Ab0GIVJW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 17:09:22 -0400
-Received: by iwn7 with SMTP id 7so2618443iwn.19
-        for <linux-media@vger.kernel.org>; Fri, 09 Jul 2010 14:09:21 -0700 (PDT)
-Message-ID: <4C378FFF.7060204@gmail.com>
-Date: Fri, 09 Jul 2010 17:09:19 -0400
-From: Ivan <ivan.q.public@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:32133 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755305Ab0GJOML (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Jul 2010 10:12:11 -0400
+Message-ID: <4C387FC3.8030508@redhat.com>
+Date: Sat, 10 Jul 2010 11:12:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
- [eb1a:2860]
-References: <4C353039.4030202@gmail.com>	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>	<4C360E64.3020703@gmail.com>	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>	<4C362C6E.5050104@gmail.com>	<AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com>	<4C363692.5000600@gmail.com>	<4C364416.3000809@gmail.com>	<AANLkTimRQaFDzKTXAIxIs2lT7ldrMwMNIFSJN4VzJOQQ@mail.gmail.com>	<4C364CD3.3080106@gmail.com>	<4C371A74.4080901@redhat.com>	<4C375A07.7010205@gmail.com>	<4C376479.2030101@redhat.com> <AANLkTilSonpCN_gzfsOYVaMpXbmfPFVi6Wdxb06dK7W1@mail.gmail.com> <4C378D35.3080007@redhat.com>
-In-Reply-To: <4C378D35.3080007@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Andy Walls <awalls@md.metrocast.net>
+CC: linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org
+Subject: Re: [git:v4l-dvb/other] V4L/DVB: ivtv: use kthread_worker instead
+ of workqueue
+References: <E1OVyBy-0007oJ-03@www.linuxtv.org>	 <1278765186.2273.6.camel@localhost>  <4C386D62.4060202@redhat.com> <1278767236.2273.33.camel@localhost>
+In-Reply-To: <1278767236.2273.33.camel@localhost>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/09/2010 04:57 PM, Mauro Carvalho Chehab wrote:
-> I meant that vertical risk that appeared when scaling is on. I never saw em28xx
-> scaler doing something like that. It maybe some bug at mplayer or at the nvidia
-> proprietary driver. We know that this driver has serious issues with their Xv
-> support, and that it do some evil things when allocating kernel memory.
+Em 10-07-2010 10:07, Andy Walls escreveu:
+> On Sat, 2010-07-10 at 09:53 -0300, Mauro Carvalho Chehab wrote:
+>> Em 10-07-2010 09:33, Andy Walls escreveu:
+>>> On Tue, 2010-07-06 at 03:51 +0200, Mauro Carvalho Chehab wrote:
+>>>> This is an automatic generated email to let you know that the following patch were queued at the 
+>>>> http://git.linuxtv.org/v4l-dvb.git tree:
+>>>>
+>>>> Subject: V4L/DVB: ivtv: use kthread_worker instead of workqueue
+>>>> Author:  Tejun Heo <tj@kernel.org>
+>>>> Date:    Mon Jun 28 18:03:50 2010 -0300
+>>>>
+>>>> Upcoming workqueue updates will no longer guarantee fixed workqueue to
+>>>> worker kthread association, so giving RT priority to the irq worker
+>>>> won't work.  Use kthread_worker which guarantees specific kthread
+>>>> association instead.  This also makes setting the priority cleaner.
+>>>>
+>>>> Signed-off-by: Tejun Heo <tj@kernel.org>
+>>>> Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+>>>> Acked-by: Andy Walls <awalls@md.metrocast.net>
+>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>
+>>> Mauro,
+>>>
+>>> Please revert this or keep it from going upstream.
+>>
+>> I already did it locally at commit 635c644cdd1557a69e99bda0dcadaf006b66d432.
+>> I just forgot to push it to the linuxtv repository ;)
+>> I just updated upstream with this patch and another set of commits I did here.
+>>
+> 
+> :(
+> 
+> Hmmm.  I should really read my personal email more frequently than every
+> few days.
+> 
+> Is there anything you need me to do to help fix this? Provide my SOB on
+> a reversion patch?  Submit a reversion patch with an explanation and my
+> SOB?
+> 
+> Let me know.  I should be available most of today (EDT timezone).
 
-Sorry, what? You still want to argue that your vague suggestions trump 
-the direct experiences of Devin and myself? That particular bug has 
-already been identified and squashed (and I don't think it had much to 
-do with scaling, but Devin could tell you for sure).
+For linux-next, I'll probably just send both patches, since it makes my life easier, but
+my intention is to just remove the two patches at the next submission window.
+So, feel free to ping me just after 2.6.35 launch, if you want me to remember about that ;)
+
+Cheers,
+Mauro.
