@@ -2,22 +2,23 @@ Return-path: <video4linux-list-bounces@redhat.com>
 Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.6])
 	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o6CENXdW024570
-	for <video4linux-list@redhat.com>; Mon, 12 Jul 2010 10:23:33 -0400
-Received: from mail-gy0-f174.google.com (mail-gy0-f174.google.com
-	[209.85.160.174])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6CENMAW021519
-	for <video4linux-list@redhat.com>; Mon, 12 Jul 2010 10:23:22 -0400
-Received: by gye5 with SMTP id 5so3232326gye.33
-	for <video4linux-list@redhat.com>; Mon, 12 Jul 2010 07:23:22 -0700 (PDT)
-Message-ID: <4C3B248E.5050901@gmail.com>
-Date: Mon, 12 Jul 2010 11:19:58 -0300
-From: Bruno Barberi Gnecco <brunobg@gmail.com>
+	id o6ABcJ5Y020868
+	for <video4linux-list@redhat.com>; Sat, 10 Jul 2010 07:38:19 -0400
+Received: from mail-fx0-f46.google.com (mail-fx0-f46.google.com
+	[209.85.161.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6ABc81Z011547
+	for <video4linux-list@redhat.com>; Sat, 10 Jul 2010 07:38:09 -0400
+Received: by fxm14 with SMTP id 14so1698891fxm.33
+	for <video4linux-list@redhat.com>; Sat, 10 Jul 2010 04:38:08 -0700 (PDT)
 MIME-Version: 1.0
-To: "Vitor P." <dodecaphonic@gmail.com>
-Subject: Re: Multiple webcams using the same driver
-References: <AANLkTilZ4-9RNbk-QLKo8KpjsxMwFEf7avg4Fjn7Kxx6@mail.gmail.com>
-In-Reply-To: <AANLkTilZ4-9RNbk-QLKo8KpjsxMwFEf7avg4Fjn7Kxx6@mail.gmail.com>
+In-Reply-To: <1278719339.6252.21.camel@pc07.localdom.local>
+References: <AANLkTikDO_YDvP6Bot0WW3259dYDvwnJsiLz83erXDji@mail.gmail.com>
+	<1278719339.6252.21.camel@pc07.localdom.local>
+Date: Sat, 10 Jul 2010 13:38:07 +0200
+Message-ID: <AANLkTil5VwPuhqXUrfYY2xpJOauMRDJnOLkltgRR7eoj@mail.gmail.com>
+Subject: Re: saa7231 Help
+From: Simon Appleby <v12diablo@gmail.com>
+To: hermann pitton <hermann-pitton@arcor.de>
 Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
@@ -26,50 +27,68 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
-
-	I only tested 2 Lifecams (model 045e:075d) simultaneously and it worked, but I think they 
-were on different buses. But you won't be able to synchronize USB webcams -- it seems to 
-be impossible, as there is no hardware support for triggers (it's either internal or not 
-supported by the USB). Some firewire cameras support that, but for most purposes you can 
-live without synchronization if your frame rate is 30fps or more.
-
-	Now, my turn: have you been able to turn off the autogain and autoexposure of these cams? 
-Mine are recognized as v4l1 and I can't find a way to do that.
-
-	See you,
-
-> Hello, all. I'm new to this list, and I bring a question. I'm sorry if the
-> archives hold its answer; I swear I've tried every search I could think of
-> and still didn't find a definitive answer to my question.
+>> Hi,
+>>
+>> First time posting on this list, I am hoping someone will be able to help.
+>>
+>> I have a compro S800F Hybrid tuner card which which has a saa7231,
+>> which I would like to get working for my MythTV box. I have found the
+>> drivers at http://www.jusst.de/hg/saa7231/ but they are incomplete.
+>> After a few hours of hacking around I have managed to get the card
+>> recognised by the Kernel (2.6.32), and have succesfully gotten
+>> /dev/video0 showing up, as well as the I2C communication returning
+>> sensible looking data.
+>> I was wondering if anyone has any info or data on this device they
+>> could share? My queries to NXP, Trident and Manu Abraham have so far
+>> gone unanswered. Im sort of fumbling around in the dark with a lot of
+>> the chips hardware.
+>>
+>> Regards
+>>
+>> Simon Appleby
+>>
 >
-> I'm trying to build a sort of Street View car, for kicks, using cheap
-> webcams as the source for the images. I have gotten seven Microsoft LifeCam
-> VX-1000 from a friend, and proceeded to connect all of them to powered USB
-> hubs. They were recognized, and a couple of V4L applications were used to
-> test them individually; all went great.
+> it is really only Manu who can give an updated status report.
 >
-> But my use case, alas, requires them to fire simultaneously, or as close to
-> at the same time as possible. I couldn't: whenever I tried more than one
-> camera on the same bus, "libv4l2: error turning on stream: Input/output
-> error
-> libv4l2: error reading: Invalid argument
-> v4l2: read: Invalid argument" popped on my face. On two different buses,
-> fine.
+> Beside all previous conflicts about the v4l maintainer and how far he is
+> allowed to care about regular syncing of the v4l and dvb trees in the
+> past, greatly improved by trolls, the best support we can give to move
+> things forward is to declare this won't happen again on the saa7231 I
+> think.
 >
-> Is it really not possible to use this camera (with "sonixj") in conjunction
-> with sister cameras of the same model?
+> Last i had is, Manu is requiring more samples of such devices
+> successfully. Hartmut also declared to help on the analog front with
+> somehow limited means now and he was surprised how much support Manu has
+> already. Manu also tries to get NDAs for not yet included
+> demodulator/tuner combinations.
 >
-> Thanks in advance. I apologize for any mistakes and my unquestionable
-> ignorance.
+> IIRC, there are some remaining issues, concerning that GNU/Linux should
+> not be treated like just another OEM.
 >
+> We should back up Manu here, means also to stop individual queries to
+> NXP and Trident to assure this.
+>
+> If somebody is against this, please speak up.
+>
+> Cheers,
+> Hermann
 
+
+Hi Hermann,
+
+Thanks for the reply. I will wait until Manu has something new to
+share. In the meantime, if there is anything I can do to assist or
+help then please let me know.
+
+Best Regards
+
+Simon Appleby
 
 --
 video4linux-list mailing list
