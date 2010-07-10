@@ -1,56 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:39377 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755910Ab0GIM0s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Jul 2010 08:26:48 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1OXCfE-0006Np-LM
-	for linux-media@vger.kernel.org; Fri, 09 Jul 2010 14:26:44 +0200
-Received: from 193.160.199.2 ([193.160.199.2])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 09 Jul 2010 14:26:44 +0200
-Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Fri, 09 Jul 2010 14:26:44 +0200
-To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: [PATCH] Mantis DMA transfer cleanup, fixes data corruption and a race, improves performance. (signed-off this time)
-Date: Fri, 09 Jul 2010 14:26:33 +0200
-Message-ID: <87tyo8u9hi.fsf@nemi.mork.no>
-References: <4C360E10.3070002@kolumbus.fi>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:8973 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751992Ab0GJS2X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Jul 2010 14:28:23 -0400
+Subject: Re: [PATCH] Add support for AUX_PLL on cx2583x chips
+From: Andy Walls <awalls@md.metrocast.net>
+To: Sven Barth <pascaldragon@googlemail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Mike Isely <isely@isely.net>
+In-Reply-To: <4C38B5AD.9070104@googlemail.com>
+References: <4C38B5AD.9070104@googlemail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 10 Jul 2010 14:28:15 -0400
+Message-ID: <1278786495.2273.288.camel@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Marko Ristola <marko.ristola@kolumbus.fi> writes:
+On Sat, 2010-07-10 at 20:02 +0200, Sven Barth wrote:
+> This adds support for the AUX_PLL in cx2583x chips which is available in 
+> those although the audio part of the chip is not.
+> The AUX_PLL is used at least by Terratec in their Grabster AV400 device.
+> 
+> Signed-off-by: Sven Barth <pascaldragon@googlemail.com>
+> Acked-By: Mike Isely <isely@pobox.com>
 
-> This is a resend of the exactly same patch
-> than I sent 2010-06-20, to sign off it.
->
-> Signed-off-by: Marko M Ristola <marko.ristola@kolumbus.fi>
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+Acked-by: Andy Walls <awalls@md.metrocast.net>
 
-I have successfully used this patch with a "Terratec Cinergy C PCI HD"
-since Marko posted it on 2010-06-20.  My impression is that it does
-improve driver stability, although I do not have any hard numbers to
-support that.
+>From my recollection of our previous emails, this patch looks right and
+is the right approach.
 
-Anyway, if it helps review, feel free to add
+Regards,
+Andy
 
-Tested-by: Bjørn Mork <bjorn@mork.no>
+> diff -aur v4l-src/linux/drivers/media/video/cx25840//cx25840-audio.c 
+> v4l-build/linux/drivers/media/video/cx25840//cx25840-audio.c
+> --- v4l-src/linux/drivers/media/video/cx25840//cx25840-audio.c 
+> 2009-10-18 21:08:26.497700904 +0200
+> +++ v4l-build/linux/drivers/media/video/cx25840//cx25840-audio.c 
+> 2010-07-09 22:35:31.067718241 +0200
+> @@ -438,41 +438,45 @@
+>   {
+>   	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
+> 
+> -	/* assert soft reset */
+> -	cx25840_and_or(client, 0x810, ~0x1, 0x01);
+> -
+> -	/* stop microcontroller */
+> -	cx25840_and_or(client, 0x803, ~0x10, 0);
+> -
+> -	/* Mute everything to prevent the PFFT! */
+> -	cx25840_write(client, 0x8d3, 0x1f);
+> -
+> -	if (state->aud_input == CX25840_AUDIO_SERIAL) {
+> -		/* Set Path1 to Serial Audio Input */
+> -		cx25840_write4(client, 0x8d0, 0x01011012);
+> -
+> -		/* The microcontroller should not be started for the
+> -		 * non-tuner inputs: autodetection is specific for
+> -		 * TV audio. */
+> -	} else {
+> -		/* Set Path1 to Analog Demod Main Channel */
+> -		cx25840_write4(client, 0x8d0, 0x1f063870);
+> -	}
+> +        if (!is_cx2583x(state)) {
+> +		/* assert soft reset */
+> +		cx25840_and_or(client, 0x810, ~0x1, 0x01);
+> +
+> +		/* stop microcontroller */
+> +		cx25840_and_or(client, 0x803, ~0x10, 0);
+> +
+> +		/* Mute everything to prevent the PFFT! */
+> +		cx25840_write(client, 0x8d3, 0x1f);
+> +
+> +		if (state->aud_input == CX25840_AUDIO_SERIAL) {
+> +			/* Set Path1 to Serial Audio Input */
+> +			cx25840_write4(client, 0x8d0, 0x01011012);
+> +
+> +			/* The microcontroller should not be started for the
+> +			 * non-tuner inputs: autodetection is specific for
+> +			 * TV audio. */
+> +		} else {
+> +			/* Set Path1 to Analog Demod Main Channel */
+> +			cx25840_write4(client, 0x8d0, 0x1f063870);
+> +		}
+> +        }
+> 
+>   	set_audclk_freq(client, state->audclk_freq);
+> 
+> -	if (state->aud_input != CX25840_AUDIO_SERIAL) {
+> -		/* When the microcontroller detects the
+> -		 * audio format, it will unmute the lines */
+> -		cx25840_and_or(client, 0x803, ~0x10, 0x10);
+> -	}
+> -
+> -	/* deassert soft reset */
+> -	cx25840_and_or(client, 0x810, ~0x1, 0x00);
+> -
+> -	/* Ensure the controller is running when we exit */
+> -	if (is_cx2388x(state) || is_cx231xx(state))
+> -		cx25840_and_or(client, 0x803, ~0x10, 0x10);
+> +        if (!is_cx2583x(state)) {
+> +		if (state->aud_input != CX25840_AUDIO_SERIAL) {
+> +			/* When the microcontroller detects the
+> +			 * audio format, it will unmute the lines */
+> +			cx25840_and_or(client, 0x803, ~0x10, 0x10);
+> +		}
+> +
+> +		/* deassert soft reset */
+> +		cx25840_and_or(client, 0x810, ~0x1, 0x00);
+> +
+> +		/* Ensure the controller is running when we exit */
+> +		if (is_cx2388x(state) || is_cx231xx(state))
+> +			cx25840_and_or(client, 0x803, ~0x10, 0x10);
+> +        }
+>   }
+> 
+>   static int get_volume(struct i2c_client *client)
+> diff -aur v4l-src/linux/drivers/media/video/cx25840//cx25840-core.c 
+> v4l-build/linux/drivers/media/video/cx25840//cx25840-core.c
+> --- v4l-src/linux/drivers/media/video/cx25840//cx25840-core.c	2010-06-26 
+> 17:56:26.238525747 +0200
+> +++ v4l-build/linux/drivers/media/video/cx25840//cx25840-core.c 
+> 2010-07-09 23:28:36.784067005 +0200
+> @@ -691,6 +691,11 @@
+>   	}
+>   	cx25840_and_or(client, 0x401, ~0x60, 0);
+>   	cx25840_and_or(client, 0x401, ~0x60, 0x60);
+> +
+> +        /* Don't write into audio registers on cx2583x chips */
+> +        if (is_cx2583x(state))
+> +        	return;
+> +
+>   	cx25840_and_or(client, 0x810, ~0x01, 1);
+> 
+>   	if (state->radio) {
+> @@ -849,10 +854,8 @@
+> 
+>   	state->vid_input = vid_input;
+>   	state->aud_input = aud_input;
+> -	if (!is_cx2583x(state)) {
+> -		cx25840_audio_set_path(client);
+> -		input_change(client);
+> -	}
+> +	cx25840_audio_set_path(client);
+> +	input_change(client);
+> 
+>   	if (is_cx2388x(state)) {
+>   		/* Audio channel 1 src : Parallel 1 */
+> @@ -1482,8 +1485,6 @@
+>   	struct cx25840_state *state = to_state(sd);
+>   	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> 
+> -	if (is_cx2583x(state))
+> -		return -EINVAL;
+>   	return set_input(client, state->vid_input, input);
+>   }
+> 
+> @@ -1492,8 +1493,7 @@
+>   	struct cx25840_state *state = to_state(sd);
+>   	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> 
+> -	if (!is_cx2583x(state))
+> -		input_change(client);
+> +	input_change(client);
+>   	return 0;
+>   }
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-to the patch.
-
-
-BTW, I have imported this patch in a local git repository for my own
-use, together with a few other mantis patches currently under review.
-Please let me know if any of you would want to pull from there to make
-the process easier.  The repository is currently based on 
-git://linuxtv.org/v4l-dvb.git devel/for_v2.6.36
-
-
-Bjørn
 
