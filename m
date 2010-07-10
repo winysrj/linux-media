@@ -1,111 +1,405 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:44283 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753388Ab0GZQh4 (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:51470 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753180Ab0GJWXI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 12:37:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v2 03/10] media: Entities, pads and links
-Date: Mon, 26 Jul 2010 18:38:28 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-4-git-send-email-laurent.pinchart@ideasonboard.com> <201007241418.11463.hverkuil@xs4all.nl>
-In-Reply-To: <201007241418.11463.hverkuil@xs4all.nl>
+	Sat, 10 Jul 2010 18:23:08 -0400
+Received: by vws5 with SMTP id 5so3162051vws.19
+        for <linux-media@vger.kernel.org>; Sat, 10 Jul 2010 15:23:06 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007261838.29490.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <AANLkTil3JUgSE43P12RWUkErU1Uj5uQrTJQTzkq9eZQB@mail.gmail.com>
+References: <AANLkTil3JUgSE43P12RWUkErU1Uj5uQrTJQTzkq9eZQB@mail.gmail.com>
+Date: Sun, 11 Jul 2010 00:23:06 +0200
+Message-ID: <AANLkTil1wXrhQJwdxYoAQubAzgoK3qp5J6czsg0Z_qJU@mail.gmail.com>
+Subject: Re: 2.6.35-rc4 doesn't play well with TerraTec cinergyT2
+From: Jan Willies <jan@willies.info>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+2010/7/5 Jan Willies <jan@willies.info>:
+> I'm running 2.6.35-rc4 and get this with a TerraTec cinergyT2:
+>
+> Jul  5 10:03:03 htpc kernel: dvb-usb: found a 'TerraTec/qanu USB2.0
+> Highspeed DVB-T Receiver' in warm state.
+> Jul  5 10:03:05 htpc kernel: dvb-usb: bulk message failed: -110 (2/0)
+> Jul  5 10:03:05 htpc kernel: dvb-usb: will pass the complete MPEG2
+> transport stream to the software demuxer.
+> Jul  5 10:03:05 htpc kernel: dvb-usb: will pass the complete MPEG2
+> transport stream to the software demuxer.
+> Jul  5 10:03:05 htpc kernel: DVB: registering new adapter
+> (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)
+> Jul  5 10:03:07 htpc kernel: dvb-usb: bulk message failed: -110 (1/0)
+> Jul  5 10:03:07 htpc kernel: DVB: registering adapter 0 frontend 0
+> (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)...
+> Jul  5 10:03:07 htpc kernel: input: IR-receiver inside an USB DVB
+> receiver as /devices/pci0000:00/0000:00:04.1/usb1/1-2/input/input4
+> Jul  5 10:03:07 htpc kernel: dvb-usb: schedule remote query interval
+> to 50 msecs.
+> Jul  5 10:03:09 htpc kernel: dvb-usb: bulk message failed: -110 (2/0)
+> Jul  5 10:03:09 htpc kernel: dvb-usb: TerraTec/qanu USB2.0 Highspeed
+> DVB-T Receiver successfully initialized and connected.
+> Jul  5 10:03:09 htpc kernel: dvb-usb: TerraTec/qanu USB2.0 Highspeed
+> DVB-T Receiver successfully initialized and connected.
+> Jul  5 10:03:09 htpc kernel: usbcore: registered new interface driver cinergyT2
+> Jul  5 10:03:11 htpc kernel: dvb-usb: bulk message failed: -110 (1/0)
+> Jul  5 10:03:13 htpc kernel: dvb-usb: bulk message failed: -110 (1/0)
+> Jul  5 10:03:15 htpc kernel: dvb-usb: bulk message failed: -110 (1/0)
+> Jul  5 10:03:17 htpc kernel: dvb-usb: bulk message failed: -110 (1/0)
+> Jul  5 10:03:19 htpc kernel: dvb-usb: bulk message failed: -110 (1/0)
+> Jul  5 10:03:22 htpc kernel: dvb-usb: bulk message failed: -110 (1/0)
+> Jul  5 10:03:22 htpc kernel: usbcore: deregistering interface driver cinergyT2
+> Jul  5 10:03:22 htpc kernel: dvb-usb: TerraTec/qanu USB2.0 Highspeed
+> DVB-T Receiver successfully deinitialized and disconnected.
+>
+> 2.6.35-rc3 was ok. Is this a known regression or am I doing something wrong?
 
-On Saturday 24 July 2010 14:18:11 Hans Verkuil wrote:
-> On Wednesday 21 July 2010 16:35:28 Laurent Pinchart wrote:
-> 
-> <snip>
-> 
-> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> > new file mode 100644
-> > index 0000000..fd44647
-> > --- /dev/null
-> > +++ b/include/media/media-entity.h
-> > @@ -0,0 +1,79 @@
-> > +#ifndef _MEDIA_ENTITY_H
-> > +#define _MEDIA_ENTITY_H
-> > +
-> > +#include <linux/list.h>
-> > +
-> > +#define MEDIA_ENTITY_TYPE_NODE				1
-> > +#define MEDIA_ENTITY_TYPE_SUBDEV			2
-> > +
-> > +#define MEDIA_ENTITY_SUBTYPE_NODE_V4L			1
-> > +#define MEDIA_ENTITY_SUBTYPE_NODE_FB			2
-> > +#define MEDIA_ENTITY_SUBTYPE_NODE_ALSA			3
-> > +#define MEDIA_ENTITY_SUBTYPE_NODE_DVB			4
-> > +
-> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_DECODER		1
-> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_ENCODER		2
-> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_MISC		3
-> 
-> These names are too awkward.
-> 
-> I see two options:
-> 
-> 1) Rename the type field to 'entity' and the macros to
-> MEDIA_ENTITY_NODE/SUBDEV. Also rename subtype to type and the macros to
-> MEDIA_ENTITY_TYPE_NODE_V4L and MEDIA_ENTITY_TYPE_SUBDEV_VID_DECODER. We
-> might even get away with dropping _TYPE from the macro name.
-> 
-> 2) Merge type and subtype to a single entity field. The top 16 bits are the
-> entity type, the bottom 16 bits are the subtype. That way you end up with:
-> 
-> #define MEDIA_ENTITY_NODE			(1 << 16)
-> #define MEDIA_ENTITY_SUBDEV			(2 << 16)
-> 
-> #define MEDIA_ENTITY_NODE_V4L			(MEDIA_ENTITY_NODE + 1)
-> 
-> #define MEDIA_ENTITY_SUBDEV_VID_DECODER		(MEDIA_ENTITY_SUBDEV + 1)
-> 
-> I rather like this option myself.
+Now I'm getting these messages with my distros kernel too
+(2.6.33.6-147.fc13.i686), along with a call trace:
 
-I like option 2 better, but I would keep the field name "type" instead of 
-"entity". Constants could start with MEDIA_ENTITY_TYPE_, or just MEDIA_ENTITY_ 
-(I think I would prefer MEDIA_ENTITY_TYPE_).
+dvb-usb: recv bulk message failed: -75
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (9/0)
+cinergyT2: cinergyt2_fe_set_frontend() Failed! err=-110
 
-> > +
-> > +#define MEDIA_LINK_FLAG_ACTIVE				(1 << 0)
-> > +#define MEDIA_LINK_FLAG_IMMUTABLE			(1 << 1)
-> > +
-> > +#define MEDIA_PAD_DIR_INPUT				1
-> > +#define MEDIA_PAD_DIR_OUTPUT				2
-> > +
-> > +struct media_entity_link {
-> > +	struct media_entity_pad *source;/* Source pad */
-> > +	struct media_entity_pad *sink;	/* Sink pad  */
-> > +	struct media_entity_link *other;/* Link in the reverse direction */
-> > +	u32 flags;			/* Link flags (MEDIA_LINK_FLAG_*) */
-> > +};
-> > +
-> > +struct media_entity_pad {
-> > +	struct media_entity *entity;	/* Entity this pad belongs to */
-> > +	u32 direction;			/* Pad direction (MEDIA_PAD_DIR_*) */
-> > +	u8 index;			/* Pad index in the entity pads array */
-> 
-> We can use bitfields for direction and index. That way we can also easily
-> add other flags/attributes.
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (2/0)
+dvb-usb: error while enabling fifo.
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (2/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+usbcore: deregistering interface driver cinergyT2
+dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+deinitialized and disconnected.
+dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm state.
+dvb-usb: bulk message failed: -110 (2/0)
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)
+dvb-usb: bulk message failed: -110 (1/0)
+DVB: registering adapter 0 frontend 0 (TerraTec/qanu USB2.0 Highspeed
+DVB-T Receiver)...
+input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:06.1/usb2/2-1/input/input4
+dvb-usb: schedule remote query interval to 50 msecs.
+dvb-usb: bulk message failed: -110 (2/0)
+dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+initialized and connected.
+usbcore: registered new interface driver cinergyT2
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+usbcore: deregistering interface driver cinergyT2
+dvb-usb: bulk message failed: -108 (1/0)
+dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+deinitialized and disconnected.
+dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm state.
+dvb-usb: bulk message failed: -110 (2/0)
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)
+dvb-usb: bulk message failed: -110 (1/0)
+DVB: registering adapter 0 frontend 0 (TerraTec/qanu USB2.0 Highspeed
+DVB-T Receiver)...
+input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:06.1/usb2/2-1/input/input5
+dvb-usb: schedule remote query interval to 50 msecs.
+dvb-usb: bulk message failed: -110 (2/0)
+dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+initialized and connected.
+usbcore: registered new interface driver cinergyT2
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+usbcore: deregistering interface driver cinergyT2
+dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+deinitialized and disconnected.
+dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm state.
+dvb-usb: bulk message failed: -110 (2/0)
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)
+dvb-usb: bulk message failed: -110 (1/0)
+DVB: registering adapter 0 frontend 0 (TerraTec/qanu USB2.0 Highspeed
+DVB-T Receiver)...
+input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:06.1/usb2/2-1/input/input6
+dvb-usb: schedule remote query interval to 50 msecs.
+dvb-usb: bulk message failed: -110 (2/0)
+dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+initialized and connected.
+usbcore: registered new interface driver cinergyT2
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+dvb-usb: bulk message failed: -110 (1/0)
+usbcore: deregistering interface driver cinergyT2
+dvb-usb: bulk message failed: -108 (1/0)
+dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+deinitialized and disconnected.
+usb 2-1: USB disconnect, address 2
+usb 2-1: new high speed USB device using ehci_hcd and address 3
+usb 2-1: config 1 interface 0 altsetting 0 bulk endpoint 0x1 has
+invalid maxpacket 64
+usb 2-1: config 1 interface 0 altsetting 0 bulk endpoint 0x81 has
+invalid maxpacket 64
+usb 2-1: New USB device found, idVendor=0ccd, idProduct=0038
+usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 2-1: Product: Cinergy T²
+usb 2-1: Manufacturer: TerraTec GmbH
+dvb-usb: found a 'TerraTec/qanu USB2.0 Highspeed DVB-T Receiver' in warm state.
+dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+DVB: registering new adapter (TerraTec/qanu USB2.0 Highspeed DVB-T Receiver)
+DVB: registering adapter 0 frontend 0 (TerraTec/qanu USB2.0 Highspeed
+DVB-T Receiver)...
+input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:06.1/usb2/2-1/input/input7
+dvb-usb: schedule remote query interval to 50 msecs.
+dvb-usb: TerraTec/qanu USB2.0 Highspeed DVB-T Receiver successfully
+initialized and connected.
+usbcore: registered new interface driver cinergyT2
+usb 2-1: USB disconnect, address 3
+dvb-usb: bulk message failed: -22 (1/-186434564)
+dvb-usb: bulk message failed: -22 (2/0)
+dvb-usb: could not submit URB no. 0 - get them all back
+dvb-usb: bulk message failed: -22 (2/-1068899786)
+dvb-usb: error while enabling fifo.
+dvb-usb: bulk message failed: -22 (1/-1030716876)
+dvb-usb: bulk message failed: -22 (2/0)
+dvb-usb: bulk message failed: -22 (1/-186434564)
+dvb-usb: bulk message failed: -22 (1/-1028638272)
+dvb-usb: bulk message failed: -22 (9/646)
+cinergyT2: cinergyt2_fe_set_frontend() Failed! err=-22
 
-You proposed to merge the direction field into a new flags field, I suppose 
-that should be done here too for consistency. Having 16 flags might be a bit 
-low though, 32 would be better. If you want to keep 16 bits for now, maybe we 
-should have 2 reserved __u32 instead of one.
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (2/0)
+dvb-usb: bulk message failed: -22 (2/-1028619776)
+dvb-usb: bulk message failed: -22 (1/-186434564)
+dvb-usb: bulk message failed: -22 (9/646)
+cinergyT2: cinergyt2_fe_set_frontend() Failed! err=-22
 
-> > +};
-> > +
+dvb-usb: bulk message failed: -22 (9/646)
+cinergyT2: cinergyt2_fe_set_frontend() Failed! err=-22
 
--- 
-Regards,
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (9/646)
+cinergyT2: cinergyt2_fe_set_frontend() Failed! err=-22
 
-Laurent Pinchart
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (9/646)
+cinergyT2: cinergyt2_fe_set_frontend() Failed! err=-22
+
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (1/800)
+dvb-usb: bulk message failed: -22 (2/0)
+INFO: task khubd:43 blocked for more than 120 seconds.
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+khubd         D 0000152b     0    43      2 0x00000000
+ f6dd7dec 00000046 63a8c683 0000152b f6dcbf00 c0a266e4 c0a2b200 c0a2b200
+ c0a2b200 f6dcc25c 00200200 015e9661 c2a036e4 00000002 00000000 0000152b
+ f6dcbfc0 f6dd7dec 00000000 00000000 00000000 c0fb5400 00000001 f6dd7df4
+Call Trace:
+ [<f7d7cc57>] dvb_unregister_frontend+0x94/0xcb [dvb_core]
+ [<c044be05>] ? autoremove_wake_function+0x0/0x2f
+ [<f7ffbb75>] dvb_usb_adapter_frontend_exit+0x15/0x25 [dvb_usb]
+ [<f7ffb308>] dvb_usb_exit+0x2c/0x91 [dvb_usb]
+ [<f7ffb3a3>] dvb_usb_device_exit+0x36/0x4a [dvb_usb]
+ [<c067c50b>] usb_unbind_interface+0x4b/0xc0
+ [<c062eb60>] __device_release_driver+0x57/0x99
+ [<c062ec37>] device_release_driver+0x18/0x23
+ [<c062e0b2>] bus_remove_device+0x90/0xb9
+ [<c062c8c2>] device_del+0xf3/0x14b
+ [<c0679aa8>] usb_disable_device+0xa6/0x172
+ [<c0674067>] usb_disconnect+0xcb/0x183
+ [<c0675c97>] hub_thread+0x570/0x10d8
+ [<c042b36b>] ? dequeue_task_fair+0x57/0x5c
+ [<c044be05>] ? autoremove_wake_function+0x0/0x2f
+ [<c044bac3>] kthread+0x5f/0x64
+ [<c0675727>] ? hub_thread+0x0/0x10d8
+ [<c0675727>] ? hub_thread+0x0/0x10d8
+ [<c044bac3>] ? kthread+0x5f/0x64
+ [<c044ba64>] ? kthread+0x0/0x64
+ [<c040383e>] kernel_thread_helper+0x6/0x10
+INFO: task khubd:43 blocked for more than 120 seconds.
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+khubd         D 0000152b     0    43      2 0x00000000
+ f6dd7dec 00000046 63a8c683 0000152b f6dcbf00 c0a266e4 c0a2b200 c0a2b200
+ c0a2b200 f6dcc25c 00200200 015e9661 c2a036e4 00000002 00000000 0000152b
+ f6dcbfc0 f6dd7dec 00000000 00000000 00000000 c0fb5400 00000001 f6dd7df4
+Call Trace:
+ [<f7d7cc57>] dvb_unregister_frontend+0x94/0xcb [dvb_core]
+ [<c044be05>] ? autoremove_wake_function+0x0/0x2f
+ [<f7ffbb75>] dvb_usb_adapter_frontend_exit+0x15/0x25 [dvb_usb]
+ [<f7ffb308>] dvb_usb_exit+0x2c/0x91 [dvb_usb]
+ [<f7ffb3a3>] dvb_usb_device_exit+0x36/0x4a [dvb_usb]
+ [<c067c50b>] usb_unbind_interface+0x4b/0xc0
+ [<c062eb60>] __device_release_driver+0x57/0x99
+ [<c062ec37>] device_release_driver+0x18/0x23
+ [<c062e0b2>] bus_remove_device+0x90/0xb9
+ [<c062c8c2>] device_del+0xf3/0x14b
+ [<c0679aa8>] usb_disable_device+0xa6/0x172
+ [<c0674067>] usb_disconnect+0xcb/0x183
+ [<c0675c97>] hub_thread+0x570/0x10d8
+ [<c042b36b>] ? dequeue_task_fair+0x57/0x5c
+ [<c044be05>] ? autoremove_wake_function+0x0/0x2f
+ [<c044bac3>] kthread+0x5f/0x64
+ [<c0675727>] ? hub_thread+0x0/0x10d8
+ [<c0675727>] ? hub_thread+0x0/0x10d8
+ [<c044bac3>] ? kthread+0x5f/0x64
+ [<c044ba64>] ? kthread+0x0/0x64
+ [<c040383e>] kernel_thread_helper+0x6/0x10
+INFO: task khubd:43 blocked for more than 120 seconds.
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+khubd         D 0000152b     0    43      2 0x00000000
+ f6dd7dec 00000046 63a8c683 0000152b f6dcbf00 c0a266e4 c0a2b200 c0a2b200
+ c0a2b200 f6dcc25c 00200200 015e9661 c2a036e4 00000002 00000000 0000152b
+ f6dcbfc0 f6dd7dec 00000000 00000000 00000000 c0fb5400 00000001 f6dd7df4
+Call Trace:
+ [<f7d7cc57>] dvb_unregister_frontend+0x94/0xcb [dvb_core]
+ [<c044be05>] ? autoremove_wake_function+0x0/0x2f
+ [<f7ffbb75>] dvb_usb_adapter_frontend_exit+0x15/0x25 [dvb_usb]
+ [<f7ffb308>] dvb_usb_exit+0x2c/0x91 [dvb_usb]
+ [<f7ffb3a3>] dvb_usb_device_exit+0x36/0x4a [dvb_usb]
+ [<c067c50b>] usb_unbind_interface+0x4b/0xc0
+ [<c062eb60>] __device_release_driver+0x57/0x99
+ [<c062ec37>] device_release_driver+0x18/0x23
+ [<c062e0b2>] bus_remove_device+0x90/0xb9
+ [<c062c8c2>] device_del+0xf3/0x14b
+ [<c0679aa8>] usb_disable_device+0xa6/0x172
+ [<c0674067>] usb_disconnect+0xcb/0x183
+ [<c0675c97>] hub_thread+0x570/0x10d8
+ [<c042b36b>] ? dequeue_task_fair+0x57/0x5c
+ [<c044be05>] ? autoremove_wake_function+0x0/0x2f
+ [<c044bac3>] kthread+0x5f/0x64
+ [<c0675727>] ? hub_thread+0x0/0x10d8
+ [<c0675727>] ? hub_thread+0x0/0x10d8
+ [<c044bac3>] ? kthread+0x5f/0x64
+ [<c044ba64>] ? kthread+0x0/0x64
+ [<c040383e>] kernel_thread_helper+0x6/0x10
+INFO: task khubd:43 blocked for more than 120 seconds.
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+khubd         D 0000152b     0    43      2 0x00000000
+ f6dd7dec 00000046 63a8c683 0000152b f6dcbf00 c0a266e4 c0a2b200 c0a2b200
+ c0a2b200 f6dcc25c 00200200 015e9661 c2a036e4 00000002 00000000 0000152b
+ f6dcbfc0 f6dd7dec 00000000 00000000 00000000 c0fb5400 00000001 f6dd7df4
+Call Trace:
+ [<f7d7cc57>] dvb_unregister_frontend+0x94/0xcb [dvb_core]
+ [<c044be05>] ? autoremove_wake_function+0x0/0x2f
+ [<f7ffbb75>] dvb_usb_adapter_frontend_exit+0x15/0x25 [dvb_usb]
+ [<f7ffb308>] dvb_usb_exit+0x2c/0x91 [dvb_usb]
+ [<f7ffb3a3>] dvb_usb_device_exit+0x36/0x4a [dvb_usb]
+ [<c067c50b>] usb_unbind_interface+0x4b/0xc0
+ [<c062eb60>] __device_release_driver+0x57/0x99
+ [<c062ec37>] device_release_driver+0x18/0x23
+ [<c062e0b2>] bus_remove_device+0x90/0xb9
+ [<c062c8c2>] device_del+0xf3/0x14b
+ [<c0679aa8>] usb_disable_device+0xa6/0x172
+ [<c0674067>] usb_disconnect+0xcb/0x183
+ [<c0675c97>] hub_thread+0x570/0x10d8
+ [<c042b36b>] ? dequeue_task_fair+0x57/0x5c
+ [<c044be05>] ? autoremove_wake_function+0x0/0x2f
+ [<c044bac3>] kthread+0x5f/0x64
+ [<c0675727>] ? hub_thread+0x0/0x10d8
+ [<c0675727>] ? hub_thread+0x0/0x10d8
+ [<c044bac3>] ? kthread+0x5f/0x64
+ [<c044ba64>] ? kthread+0x0/0x64
+ [<c040383e>] kernel_thread_helper+0x6/0x10
+INFO: task khubd:43 blocked for more than 120 seconds.
+"echo 0 > /proc/sys/kernel/hung_task_timeout_secs" disables this message.
+khubd         D 0000152b     0    43      2 0x00000000
+ f6dd7dec 00000046 63a8c683 0000152b f6dcbf00 c0a266e4 c0a2b200 c0a2b200
+ c0a2b200 f6dcc25c 00200200 015e9661 c2a036e4 00000002 00000000 0000152b
+ f6dcbfc0 f6dd7dec 00000000 00000000 00000000 c0fb5400 00000001 f6dd7df4
+Call Trace:
+ [<f7d7cc57>] dvb_unregister_frontend+0x94/0xcb [dvb_core]
+ [<c044be05>] ? autoremove_wake_function+0x0/0x2f
+ [<f7ffbb75>] dvb_usb_adapter_frontend_exit+0x15/0x25 [dvb_usb]
+ [<f7ffb308>] dvb_usb_exit+0x2c/0x91 [dvb_usb]
+ [<f7ffb3a3>] dvb_usb_device_exit+0x36/0x4a [dvb_usb]
+ [<c067c50b>] usb_unbind_interface+0x4b/0xc0
+ [<c062eb60>] __device_release_driver+0x57/0x99
+ [<c062ec37>] device_release_driver+0x18/0x23
+ [<c062e0b2>] bus_remove_device+0x90/0xb9
+ [<c062c8c2>] device_del+0xf3/0x14b
+ [<c0679aa8>] usb_disable_device+0xa6/0x172
+ [<c0674067>] usb_disconnect+0xcb/0x183
+ [<c0675c97>] hub_thread+0x570/0x10d8
+ [<c042b36b>] ? dequeue_task_fair+0x57/0x5c
+ [<c044be05>] ? autoremove_wake_function+0x0/0x2f
+ [<c044bac3>] kthread+0x5f/0x64
+ [<c0675727>] ? hub_thread+0x0/0x10d8
+ [<c0675727>] ? hub_thread+0x0/0x10d8
+ [<c044bac3>] ? kthread+0x5f/0x64
+ [<c044ba64>] ? kthread+0x0/0x64
+ [<c040383e>] kernel_thread_helper+0x6/0x10
