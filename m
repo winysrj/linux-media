@@ -1,84 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:26293 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932824Ab0GOJKv (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3754 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755778Ab0GJQ3j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jul 2010 05:10:51 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 15 Jul 2010 11:10:34 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 03/10 v2] ARM: Samsung: Add platform definitions for local
- FIMC/FIMD fifo path
-In-reply-to: <1279185041-6004-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, kgene.kim@samsung.com,
-	linux-media@vger.kernel.org, ben-linux@fluff.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1279185041-6004-4-git-send-email-s.nawrocki@samsung.com>
-References: <1279185041-6004-1-git-send-email-s.nawrocki@samsung.com>
+	Sat, 10 Jul 2010 12:29:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC/PATCH v2 7/7] v4l: subdev: Generic ioctl support
+Date: Sat, 10 Jul 2010 18:31:49 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278689512-30849-8-git-send-email-laurent.pinchart@ideasonboard.com> <4C387EEE.3000108@redhat.com>
+In-Reply-To: <4C387EEE.3000108@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007101831.49445.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+On Saturday 10 July 2010 16:08:46 Mauro Carvalho Chehab wrote:
+> Em 09-07-2010 12:31, Laurent Pinchart escreveu:
+> > Instead of returning an error when receiving an ioctl call with an
+> > unsupported command, forward the call to the subdev core::ioctl handler.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> >  Documentation/video4linux/v4l2-framework.txt |    5 +++++
+> >  drivers/media/video/v4l2-subdev.c            |    2 +-
+> >  2 files changed, 6 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+> > index 89bd881..581e7db 100644
+> > --- a/Documentation/video4linux/v4l2-framework.txt
+> > +++ b/Documentation/video4linux/v4l2-framework.txt
+> > @@ -365,6 +365,11 @@ VIDIOC_UNSUBSCRIBE_EVENT
+> >  	To properly support events, the poll() file operation is also
+> >  	implemented.
+> >  
+> > +Private ioctls
+> > +
+> > +	All ioctls not in the above list are passed directly to the sub-device
+> > +	driver through the core::ioctl operation.
+> > +
+> >  
+> >  I2C sub-device drivers
+> >  ----------------------
+> > diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+> > index 31bec67..ce47772 100644
+> > --- a/drivers/media/video/v4l2-subdev.c
+> > +++ b/drivers/media/video/v4l2-subdev.c
+> > @@ -120,7 +120,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+> >  		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
+> >  
+> >  	default:
+> > -		return -ENOIOCTLCMD;
+> > +		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+> >  	}
+> >  
+> >  	return 0;
+> 
+> Hmm... private ioctls at subdev... I'm not sure if I like this idea. I prefer to merge this patch
+> only after having a driver actually needing it, after discussing why not using a standard ioctl
+> for that driver.
 
-Add a common s3c_fifo_link structure that describes a local path link
-between 2 multimedia devices (like FIMC and FrameBuffer).
+Part of the reason for making these subdev device nodes is to actually allow
+private ioctls (after properly discussing it and with documentation). SoCs tend
+to have a lot of very hardware specific features that do not translate to generic
+ioctls. Until now these are either ignored or handled through custom drivers, but
+but it is much better to handle them in a 'controlled' fashion.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- arch/arm/plat-samsung/include/plat/fifo.h |   37 +++++++++++++++++++++++++++++
- 1 files changed, 37 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/plat-samsung/include/plat/fifo.h
+Regards,
 
-diff --git a/arch/arm/plat-samsung/include/plat/fifo.h b/arch/arm/plat-samsung/include/plat/fifo.h
-new file mode 100644
-index 0000000..84d242b
---- /dev/null
-+++ b/arch/arm/plat-samsung/include/plat/fifo.h
-@@ -0,0 +1,37 @@
-+/*
-+ * Copyright (c) 2010 Samsung Electronics
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef FIFO_H_
-+#define FIFO_H_
-+
-+#include <linux/device.h>
-+#include <media/v4l2-subdev.h>
-+
-+/*
-+ * The multimedia devices contained in Samsung S3C/S5P SoC series
-+ * like framebuffer, camera interface or tv scaler can transfer data
-+ * directly between each other through hardware fifo channels.
-+ * s3c_fifo_link data structure is an abstraction for such links,
-+ * it allows to define V4L2 device drivers hierarchy according to
-+ * the hardware structure. Fifo links are mostly unidirectional, exclusive
-+ * data buses. To control data transfer in fifo mode synchronization is
-+ * is required between drivers at both ends of the fifo channel
-+ * (master_dev, slave_dev). s3c_fifo_link:sub_dev is intended  to export
-+ * in a consistent way all the functionality of the slave device required
-+ * at master device driver to enable transfer through fifo channel.
-+ * master_dev and slave_dev is to be setup by the platform code whilst
-+ * sub_dev entry will mostly be initlized during slave_dev probe().
-+ */
-+struct s3c_fifo_link {
-+	struct device		*master_dev;
-+	struct device		*slave_dev;
-+	struct v4l2_subdev	*sub_dev;
-+};
-+
-+#endif /* FIFO_H_ */
-+
+	Hans
+
 -- 
-1.7.0.4
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
