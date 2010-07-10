@@ -1,56 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:45768 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753195Ab0GKCbU (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3300 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752825Ab0GJTda (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jul 2010 22:31:20 -0400
-Received: by gye5 with SMTP id 5so2071076gye.19
-        for <linux-media@vger.kernel.org>; Sat, 10 Jul 2010 19:31:19 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20100710113616.1ed63ebc@tele>
-References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
-	<20100707074431.66629934@tele> <AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
-	<20100707110613.18be4215@tele> <AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
-	<20100708121454.75db358c@tele> <AANLkTilw1KxYanoQZEZVaiFCLfkdTpO72Z9xV73i4gm2@mail.gmail.com>
-	<20100709200312.755e8069@tele> <AANLkTikxIJxuQiV_7PqPA5C6ZU5XhhmmQ3hAbIwWsrPT@mail.gmail.com>
-	<20100710113616.1ed63ebc@tele>
-From: Kyle Baker <kyleabaker@gmail.com>
-Date: Sat, 10 Jul 2010 22:30:58 -0400
-Message-ID: <AANLkTikrKBpRSI6wVdMO3tSYPhm1CECFGeNiyJdzTa03@mail.gmail.com>
-Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 10 Jul 2010 15:33:30 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6AJXP33009339
+	for <linux-media@vger.kernel.org>; Sat, 10 Jul 2010 21:33:29 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 10 Jul 2010 21:33:25 +0200 (CEST)
+Message-Id: <201007101933.o6AJXP33009339@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 10, 2010 at 5:36 AM, Jean-Francois Moine <moinejf@free.fr> wrote:
-> So, the GPIO register is the second one of the bridge. It is
-> initialized at line 71 of sonixj.c. May you change it from 0x40 to 0x44?
-> (see attached diff)
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-I've compiled the driver with this updated setting and it appears to
-be the same. The microphone works initially, until video is loaded.
+Results of the daily build of v4l-dvb:
 
-$ dmesg | grep "gspca"
-[   22.141766] gspca: main v2.9.0 registered
-[   22.163928] gspca-2.9.50: probing 045e:00f7
-[   22.181869] gspca-2.9.50: video0 created
-[   22.181872] gspca-2.9.50: found int in endpoint: 0x83,
-buffer_len=1, interval=100
-[   22.181894] gspca-2.9.50: 045e:00f7 bad interface 1
-[   22.181902] gspca-2.9.50: 045e:00f7 bad interface 2
-[  544.774056] gspca-2.9.50: found int in endpoint: 0x83,
-buffer_len=1, interval=100
-[  546.318045] gspca-2.9.50: found int in endpoint: 0x83,
-buffer_len=1, interval=100
+date:        Sat Jul 10 19:00:19 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Is this change from 0x40 to 0x44 intended to fix the "bad interface"
-messages as well as the mic becoming disabled? Also, is a reboot after
-installing these drivers and changes required? I'm only curious
-because it takes so much longer to test changes.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Thanks.
+Detailed results are available here:
 
--- 
-Kyle Baker
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
