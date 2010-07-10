@@ -1,25 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from p3plsmtpa01-05.prod.phx3.secureserver.net ([72.167.82.85]:47477
-	"HELO p3plsmtpa01-05.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1759107Ab0GPTpL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jul 2010 15:45:11 -0400
-Message-ID: <4C40B598.20705@streamvenue.com>
-Date: Fri, 16 Jul 2010 14:40:08 -0500
-From: Bryan Nations <bnations@streamvenue.com>
+Received: from mx1.redhat.com ([209.132.183.28]:60877 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750736Ab0GJRWp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Jul 2010 13:22:45 -0400
+Message-ID: <4C38AC74.60008@redhat.com>
+Date: Sat, 10 Jul 2010 14:23:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: How to begin v4l2 application development??
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [RFC/PATCH v2 7/7] v4l: subdev: Generic ioctl support
+References: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278689512-30849-8-git-send-email-laurent.pinchart@ideasonboard.com> <4C387EEE.3000108@redhat.com> <201007101831.49445.hverkuil@xs4all.nl>
+In-Reply-To: <201007101831.49445.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am new to video for linux and would like to know what resources are 
-available to assist me in programming a simple webcam application with 
-c++ in a *nix environment. My main goal right now is to just view the 
-webcam in a small window. I have found lots of info on driver 
-development, but I am interested in the application side. Are there any 
-c++ examples or references that will help me get started?
+Em 10-07-2010 13:31, Hans Verkuil escreveu:
+> On Saturday 10 July 2010 16:08:46 Mauro Carvalho Chehab wrote:
+>> Em 09-07-2010 12:31, Laurent Pinchart escreveu:
 
-Thanks
+>> Hmm... private ioctls at subdev... I'm not sure if I like this idea. I prefer to merge this patch
+>> only after having a driver actually needing it, after discussing why not using a standard ioctl
+>> for that driver.
+> 
+> Part of the reason for making these subdev device nodes is to actually allow
+> private ioctls (after properly discussing it and with documentation). SoCs tend
+> to have a lot of very hardware specific features that do not translate to generic
+> ioctls. Until now these are either ignored or handled through custom drivers, but
+> but it is much better to handle them in a 'controlled' fashion.
+
+I understand that SoC's may have lots of features that are currently not being exposed,
+but if they'll be either be shown as CTRL or as new ioctls need further discussions. That's
+why I prefer to receive this patch in a patch series where such needed is required.
+
+Cheers,
+Mauro.
