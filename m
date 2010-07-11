@@ -1,59 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58732 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753089Ab0G1RVc (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:60255 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752319Ab0GKOGk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 13:21:32 -0400
-Subject: Re: Can I expect in-kernel decoding to work out of box?
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	linux-input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <AANLkTi=Ms0saB5b3+o9qQQYFNT96XStKCkVivB65q_33@mail.gmail.com>
-References: <1280269990.21278.15.camel@maxim-laptop>
-	 <1280273550.32216.4.camel@maxim-laptop>
-	 <AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
-	 <AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
-	 <1280298606.6736.15.camel@maxim-laptop>
-	 <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
-	 <4C502CE6.80106@redhat.com> <1280327080.9175.58.camel@maxim-laptop>
-	 <AANLkTi=Ww9yvN5RWaXEi+cB2QaDWn34nSVGAvKxbJ2k2@mail.gmail.com>
-	 <4C505313.2010904@redhat.com>
-	 <AANLkTi=Ms0saB5b3+o9qQQYFNT96XStKCkVivB65q_33@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 28 Jul 2010 13:21:01 -0400
-Message-ID: <1280337661.19593.66.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sun, 11 Jul 2010 10:06:40 -0400
+Received: by eya25 with SMTP id 25so439038eya.19
+        for <linux-media@vger.kernel.org>; Sun, 11 Jul 2010 07:06:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20100711131859.GD7406@lisa.snow-crash.org>
+References: <20100711131859.GD7406@lisa.snow-crash.org>
+Date: Sun, 11 Jul 2010 10:06:38 -0400
+Message-ID: <AANLkTikoRriePHgH5xhQwfOg8kHfOJmt0_kMERPmbMLa@mail.gmail.com>
+Subject: Re: Support for Pinnacle PCTV Quatro stick
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Alexander Wirt <formorer@formorer.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2010-07-28 at 13:04 -0400, Jon Smirl wrote:
-> On Wed, Jul 28, 2010 at 11:56 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Em 28-07-2010 11:41, Jon Smirl escreveu:
+On Sun, Jul 11, 2010 at 9:18 AM, Alexander Wirt <formorer@formorer.de> wrote:
+> Hi,
+>
+> I recently got a Pinnacle PCTV Quatro stick which announces itself as PCTV
+> 510e (ID: 2304:0242). It seemed that the em28xx-new driver had support for that
+> stick, but as this is dead I know need some help. Is there anywhere support
+> for this stick available?
 
-> 
-> Are there any IR protocols less than 20 (or 17) years old? If they are
-> older than that the patents have expired. I expect IR use to decline
-> in the future, it will be replaced with RF4CE radio remotes.
+Not currently.  The problem isn't the em28xx driver.  The device uses
+the Micronas drx-k demodulator, for which there is not currently any
+open source driver.
 
-UEI's XMP protocol for one, IIRC.
+Devin
 
-UEI are the folks that sell/make "OneForALL" branded remotes.
-
-You can read about their patents' remaining lifetimes in this March 2010
-SEC filing:
-
-http://www.faqs.org/sec-filings/100315/UNIVERSAL-ELECTRONICS-INC_10-K/
-
-1 to 18 years - that includes the ones they just bought from Zilog.
-That is not to say that all those patents cover protocols.
-
-
-Regards,
-Andy
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
