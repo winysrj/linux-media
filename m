@@ -1,19 +1,26 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o6DFXU7d003623
-	for <video4linux-list@redhat.com>; Tue, 13 Jul 2010 11:33:30 -0400
-Received: from web58203.mail.re3.yahoo.com (web58203.mail.re3.yahoo.com
-	[68.142.236.141])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o6DFXIsg014948
-	for <video4linux-list@redhat.com>; Tue, 13 Jul 2010 11:33:18 -0400
-Message-ID: <76976.57753.qm@web58203.mail.re3.yahoo.com>
-Date: Tue, 13 Jul 2010 08:06:35 -0700 (PDT)
-From: "C L." <rosc2112@yahoo.com>
-Subject: pchdtv & transcode capture?
-To: video4linux-list@redhat.com
+Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.10])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o6BGs88L022596
+	for <video4linux-list@redhat.com>; Sun, 11 Jul 2010 12:54:08 -0400
+Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o6BGruYp007357
+	for <video4linux-list@redhat.com>; Sun, 11 Jul 2010 12:53:57 -0400
+Date: Sun, 11 Jul 2010 18:53:05 +0200
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Roger Oberholtzer <roger@opq.se>
+Subject: Re: SUGGESTION FOR A Linux based Card
+Message-ID: <20100711165305.GA2547@minime.bse>
+References: <AANLkTim5LXb__zh-N2pumq7nfSDlqnwW8RDrEw47DErd@mail.gmail.com>
+	<000501cb1ed4$f45da930$dd18fb90$@com>
+	<1278656777.18926.2.camel@acme.pacific>
+	<000001cb1f84$0feb8af0$2fc2a0d0$@com>
+	<1278712488.24682.6.camel@manta.site>
 MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <1278712488.24682.6.camel@manta.site>
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -27,23 +34,15 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-First, let me know if there is a way to search the list archives, my searches through google haven't been very helpful. 2nd, I've looked over the v4l wiki extensively, and have this as a test script:
+On Fri, Jul 09, 2010 at 11:54:48PM +0200, Roger Oberholtzer wrote:
+> BT878 is not lower quality (in my
+> opinion when using these cards in systems to capture images for
+> high-speed image processing).
 
-transcode:
+The BT878 has an 8 bit ADC with gain controlled so that the back porch
+samples as 0x38. The successor CX23880 already uses a 10 bit ADC.
 
-transcode -x v4l2,v4l2 -M 2 -i /dev/video0 -p /dev/dsp1 -y ffmpeg -F mpeg4 -f 0,4 -I 1 -g 720x480 -u 100 -E 48000,16,2 --lame_preset medium -o $1.avi
-
-or in mplayer:
-
-mencoder -tv driver=v4l2:width=720:height=480:norm=ntsc:alsa=1:adevice=hw.1:amode=1 -ffourcc XVID -fps 30000/1001 -ovc lavc -lavcopts vcodec=mpeg4:mbd=2 -oac mp3lame -lameopts cbr:br=128 -o outfile.avi tv://
-
-I'm having problems with a pchdtv 5500 card, not the least of which is lack of documentation and support by the manufacturer. I'm thinking of just ditching this card since it doesn't seem to work very well as a plain capture card. I have to run the 'tvtime' program just to get the card initialized and tuned into the main channel (channel 3, where I have my Dish tv splitter plugged into the tuner's rca plug.)
-
-I've had no luck whatsoever getting this card to work in dvb mode, using the tools provided by pchdtv or elsewhere that I've found. I assume that's because I am using the ntsc output from my dish tv receiver which isn't exactly an "approved" purpose for this card.
-
-Anyway, when I try to capture video with either transcode or mencoder, I'm running into 2 big problems: 1, the audio is horribly out of sync, and 2, the gamma & color is horrendous. I have an AMD X4 940 cpu, so it should be plenty fast to cap sound in sync, presumably.
-
-If anyone has any experience with this card and could point me to some useful tips on how to improve the captures, I'd be much obliged.
+  Daniel
 
 --
 video4linux-list mailing list
