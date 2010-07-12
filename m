@@ -1,49 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50239 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757306Ab0GDL0u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Jul 2010 07:26:50 -0400
-Message-ID: <4C3070A4.6040702@redhat.com>
-Date: Sun, 04 Jul 2010 13:29:40 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:42243 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756027Ab0GLPeg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jul 2010 11:34:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Johannes Berg <johannes@sipsolutions.net>
+Subject: Re: macbook webcam no longer works on .35-rc
+Date: Mon, 12 Jul 2010 17:34:28 +0200
+Cc: linux-media@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Linus Torvalds <torvalds@linux-foundation.org>
+References: <1277932269.11050.1.camel@jlt3.sipsolutions.net> <201007051023.40923.laurent.pinchart@ideasonboard.com> <1278938186.5870.18.camel@jlt3.sipsolutions.net>
+In-Reply-To: <1278938186.5870.18.camel@jlt3.sipsolutions.net>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Patryk Biela <patryk.biela@gmail.com>
-Subject: ibmcam (xrilink_cit) and konica webcam driver porting to gspca update
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201007121734.29394.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Johannes,
 
-I've finished porting the usbvideo v4l1 ibmcam and
-konicawc drivers to gspcav2.
+On Monday 12 July 2010 14:36:26 Johannes Berg wrote:
+> On Mon, 2010-07-05 at 10:23 +0200, Laurent Pinchart wrote:
+> > Could you please test the following patch when you will have time ?
+> 
+> That fixes it, thank you.
 
-The ibmcam driver is replaced by gspca_xirlink_cit, which also
-adds support for 2 new models (it turned out my testing cams
-where not supported by the old driver). This one could use
-more testing.
+The fix has been applied to 
+http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=shortlog 
+and should end up in the next 2.6.35-rc.
 
-The konicawc driver is replaced by gspca_konica which is
-pretty much finished.
-
-You can get them both here:
-http://linuxtv.org/hg/~hgoede/ibmcam
-
-Once Douglas updates the hg v4l-dvb tree to be up2date with
-the latest and greatest from Mauro, then I'll rebase my
-tree (the ibmcam driver needs a very recent gspca core patch),
-and send a pull request.
-
+-- 
 Regards,
 
-Hans
-
-
-p.s.
-
-1) Many thanks to Patryk Biela for providing me a konica
-    driver using camera.
-2) Still to do the se401 driver.
-3) I'll be on vacation the coming week and not reading email.
+Laurent Pinchart
