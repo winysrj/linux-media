@@ -1,66 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52108 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755261Ab0G1P3b (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 11:29:31 -0400
-Date: Wed, 28 Jul 2010 11:18:58 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	linux-input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Can I expect in-kernel decoding to work out of box?
-Message-ID: <20100728151858.GA26480@redhat.com>
-References: <1280269990.21278.15.camel@maxim-laptop>
- <1280273550.32216.4.camel@maxim-laptop>
- <AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
- <AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
- <1280298606.6736.15.camel@maxim-laptop>
- <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
- <4C502CE6.80106@redhat.com>
- <1280327080.9175.58.camel@maxim-laptop>
- <AANLkTi=Ww9yvN5RWaXEi+cB2QaDWn34nSVGAvKxbJ2k2@mail.gmail.com>
+Received: from smtprelay-h22.telenor.se ([195.54.99.197]:56237 "EHLO
+	smtprelay-h22.telenor.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751164Ab0GLElG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jul 2010 00:41:06 -0400
+Received: from ipb1.telenor.se (ipb1.telenor.se [195.54.127.164])
+	by smtprelay-h22.telenor.se (Postfix) with ESMTP id 22935EA181
+	for <linux-media@vger.kernel.org>; Mon, 12 Jul 2010 06:20:43 +0200 (CEST)
+Message-ID: <c27a5026b3bb96531d887f4ffc950b05.squirrel@mail.kurelid.se>
+Date: Mon, 12 Jul 2010 06:20:35 +0200
+Subject: Re: Status of the patches under review at LMML (60 patches)
+From: "Henrik Kurelid" <henke@kurelid.se>
+To: "Mauro Carvalho Chehab" <mchehab@redhat.com>
+Cc: "LMML" <linux-media@vger.kernel.org>, awalls@md.metrocast.net,
+	moinejf@free.fr, g.liakhovetski@gmx.de, jarod@redhat.com,
+	corbet@lwn.net, rz@linux-m68k.org, pboettcher@dibcom.fr,
+	awalls@radix.net, crope@iki.fi, davidtlwong@gmail.com,
+	laurent.pinchart@ideasonboard.com, eduardo.valentin@nokia.com,
+	p.osciak@samsung.com, liplianin@tut.by, isely@isely.net,
+	tobias.lorenz@gmx.net, hdegoede@redhat.com,
+	u.kleine-koenig@pengutronix.de, abraham.manu@gmail.com,
+	stoth@kernellabs.com, henrik@kurelid.se
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <AANLkTi=Ww9yvN5RWaXEi+cB2QaDWn34nSVGAvKxbJ2k2@mail.gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 28, 2010 at 10:41:27AM -0400, Jon Smirl wrote:
-> On Wed, Jul 28, 2010 at 10:24 AM, Maxim Levitsky
-...
-> > You are right that my remote has  JVC protocol. (at least I am sure now
-> > it hasn't NEC, because repeat looks differently).
-> >
-> > My remote now actually partially works with JVC decoder, it decodes
-> > every other keypress.
-> >
-> > Still, no repeat is supported.
-> 
-> It probably isn't implemented yet. Jarod has been focusing more on
-> getting the basic decoders to work.
+Hi Mauro,
 
-More specifically, getting the basic decoders to work with very specific
-hardware -- i.e., the mceusb transceivers, and primarily focused only on
-RC-6(A) decode w/the mceusb bundled remotes. That, and getting the lirc
-bridge driver working for both rx and tx.
+Sorry for the late reply about
+> Mar, 1 2010: firedtv: add parameter to fake ca_system_ids in CA_INFO                http://patchwork.kernel.org/patch/82912
 
-Basically, my plan of attack has been to get enough bits in place that we
-have a "reference implementation", if you will, of a driver that supports
-all in-kernel decoders and the lirc interface, complete with the ability
-to do tx[*], and from there, then we can really dig into the in-kernel
-decoders and/or work on porting additional drivers to ir-core. I'm more
-focused on porting additional drivers to ir-core at the moment than I am
-on testing all of the protocol decoders right now.
+The reason why I wanted to make this fix in the kernel driver and not in MythTV was that the problem was hardware related and not MythTV related.
+I.e. I wanted to compensate in the kernel driver and not in the specific application for the shortcoming of this one hardware.
+MythTV uses the CI as allowed by the specification, but due to the shortcomings in the card's firmware, the driver is unable to answer one of the CI
+messages correctly. The current implementation tries to guess an answer (which is often the correct one) using the manufacturer ID as the
+CA_system_id, but since that is not always true, sometimes the driver will simply lie in its answer.
 
-[*] we still don't have an ir-core "native" tx method, but tx on the
-mceusb works quite well using the lirc bridge plugin
+I can understand your reluctance to the patch since it adds a parameter that requires quite some low level knowledge to use. However, I still see
+that this should be corrected in the kernel driver of the "faulty" hardware and not in a specific application.
 
--- 
-Jarod Wilson
-jarod@redhat.com
+Regards,
+Henrik
+
+
+> This is the summary of the patches that are currently under review at Linux Media Mailing List <linux-media@vger.kernel.org>.
+> Each patch is represented by its submission date, the subject (up to 70 chars) and the patchwork link (if submitted via email).
+>
+> P.S.: This email is c/c to the developers where some action is expected.
+>       If you were copied, please review the patches, acking/nacking or submitting an update.
+>
+> 		== New patches - waiting for some days for more review ==
+>
+> Jul, 1 2010: v4l2-dev: fix memory leak                                              http://patchwork.kernel.org/patch/109191 Jul, 5 2010:
+soc-camera: module_put() fix                                           http://patchwork.kernel.org/patch/110202 Jul, 4 2010: IR/mceusb: unify and
+simplify different gen device init                http://patchwork.kernel.org/patch/110078 Jul, 6 2010: [1/2] Added Technisat Skystar USB HD CI   
+                            http://patchwork.kernel.org/patch/110395 Jul, 6 2010: [2/2] Retrieve firmware for az6027                              
+      http://patchwork.kernel.org/patch/110394
+>
+> 		== Need more tests/acks from DVB users ==
+>
+> Jun,27 2010: Avoid unnecessary data copying inside dvb_dmx_swfilter_204() function  http://patchwork.kernel.org/patch/108274
+>
+> 		== Better to wait for videobuf changes ==
+>
+> Mar,17 2010: [2/2] V4L/DVB: buf-dma-sg.c: support non-pageable user-allocated memor http://patchwork.kernel.org/patch/97263 May,26 2010: [1/2]
+media: Add timberdale video-in driver                            http://patchwork.kernel.org/patch/102414
+>
+> 		== Waiting for a new version from Jonathan Corbet <corbet@lwn.net> ==
+>
+> Jun, 7 2010: Add the viafb video capture driver                                     http://patchwork.kernel.org/patch/104840
+>
+> 		== Depends on input get_bigkeycode stuff that got postponed ==
+>
+> May,20 2010: input: fix error at the default input_get_keycode call                 http://patchwork.kernel.org/patch/101122
+>
+> 		== Waiting for Pawel Osciak <p.osciak@samsung.com> comments - are they ready for review/merge ? ==
+>
+> Jun,16 2010: [1/7] ARM: Samsung: Add FIMC driver register definition and platform h http://patchwork.kernel.org/patch/106457 Jun,16 2010: [2/7]
+ARM: Samsung: Add platform definitions for local FIMC/FIMD fifo  http://patchwork.kernel.org/patch/106459 Jun,16 2010: [3/7] s3c-fb: Add v4l2
+subdevice to support framebuffer local fifo inp http://patchwork.kernel.org/patch/106445 Jun,16 2010: [4/7] v4l: Add Samsung FIMC (video
+postprocessor) driver               http://patchwork.kernel.org/patch/106448 Jun,16 2010: [5/7] ARM: S5PV210: Add fifo link definitions for fimc
+and framebuffer http://patchwork.kernel.org/patch/106447 Jun,16 2010: [6/7] ARM: S5PV210: enable FIMC on Aquila                             
+http://patchwork.kernel.org/patch/106449 Jun,16 2010: [7/7] ARM: S5PC100: enable FIMC on SMDKC100                           
+http://patchwork.kernel.org/patch/106454 Jun,28 2010: v4l: mem2mem_testdev: fix g_fmt NULL pointer dereference              
+http://patchwork.kernel.org/patch/108321
+>
+> 		== Soc_camera waiting for Guennadi Liakhovetski <g.liakhovetski@gmx.de> review ==
+>
+> May,11 2010: [v3] soc_camera_platform: Add necessary v4l2_subdev_video_ops method   http://patchwork.kernel.org/patch/98660 Jun,21 2010:
+mx2_camera: Add soc_camera support for i.MX25/i.MX27                   http://patchwork.kernel.org/patch/107126 Jun,21 2010: mx27: add support for
+the CSI device                                   http://patchwork.kernel.org/patch/107124 Jun,21 2010: mx25: add support for the CSI device       
+                           http://patchwork.kernel.org/patch/107125 Jul, 4 2010: mx2_camera: Add soc_camera support for i.MX25/i.MX27             
+     http://patchwork.kernel.org/patch/110090
+>
+> 		== mantis patches - waiting for Manu Abraham <abraham.manu@gmail.com> ==
+>
+> Apr,15 2010: [5/8] ir-core: convert mantis from ir-functions.c                      http://patchwork.kernel.org/patch/92961 Jun,11 2010: stb0899:
+Removed an extra byte sent at init on DiSEqC bus              http://patchwork.kernel.org/patch/105621 Jun,20 2010: Mantis DMA transfer cleanup,
+fixes data corruption and a race, improve http://patchwork.kernel.org/patch/107036 Jun,20 2010: Mantis: append tasklet maintenance for DVB stream
+delivery             http://patchwork.kernel.org/patch/107055 Jun,20 2010: [2/2] DVB/V4L: mantis: remove unused files                            
+http://patchwork.kernel.org/patch/107062 Jun,20 2010: mantis: use dvb_attach to avoid double dereferencing on module removal
+http://patchwork.kernel.org/patch/107063 Jun,21 2010: Mantis, hopper: use MODULE_DEVICE_TABLE use the macro to make modules 
+http://patchwork.kernel.org/patch/107147 Jul, 3 2010: mantis: Rename gpio_set_bits to mantis_gpio_set_bits                  
+http://patchwork.kernel.org/patch/109972
+>
+> 		== Waiting for my fixes on Docbook ==
+>
+> Feb,25 2010: DocBook/Makefile: Make it less verbose                                 http://patchwork.kernel.org/patch/82076 Feb,25 2010: DocBook:
+Add rules to auto-generate some media docbooks                http://patchwork.kernel.org/patch/82075 Feb,25 2010: DocBook/v4l/pixfmt.xml: Add
+missing formats for gspca cpia1 and sn9c20 http://patchwork.kernel.org/patch/82074 Feb,25 2010: v4l: document new Bayer and monochrome pixel
+formats                   http://patchwork.kernel.org/patch/82073
+>
+> 		== Waiting for Antti Palosaari <crope@iki.fi> review ==
+>
+> Mar,21 2010: af9015 : more robust eeprom parsing                                    http://patchwork.kernel.org/patch/87243 May,20 2010: New NXP
+tda18218 tuner                                                 http://patchwork.kernel.org/patch/101170
+>
+> 		== Waiting for Tobias Lorenz <tobias.lorenz@gmx.net> review ==
+>
+> Feb, 3 2010: radio-si470x-common: -EINVAL overwritten in si470x_vidioc_s_tuner()    http://patchwork.kernel.org/patch/76786
+>
+> 		== Waiting for its addition at linux-firmware and driver test by David Wong <davidtlwong@gmail.com>  ==
+>
+> Nov, 1 2009: lgs8gxx: remove firmware for lgs8g75                                   http://patchwork.kernel.org/patch/56822
+>
+> 		== Andy Walls <awalls@radix.net> and Aleksandr Piskunov <aleksandr.v.piskunov@gmail.com> are discussing around the solution ==
+>
+> Oct,11 2009: AVerTV MCE 116 Plus radio                                              http://patchwork.kernel.org/patch/52981
+>
+> 		== Waiting for Andy Walls <awalls@md.metrocast.net> ==
+>
+> Apr,10 2010: cx18: "missing audio" for analog recordings                            http://patchwork.kernel.org/patch/91879
+>
+> 		== Patches waiting for Patrick Boettcher <pboettcher@dibcom.fr> review ==
+>
+> Jan,15 2010: remove obsolete conditionalizing on DVB_DIBCOM_DEBUG                   http://patchwork.kernel.org/patch/73147 May,25 2010: V4L/DVB:
+Adding support to the Geniatech/MyGica SBTVD Stick S870       http://patchwork.kernel.org/patch/102314
+>
+> 		== Gspca patches - Waiting Hans de Goede <hdegoede@redhat.com> submission/review ==
+>
+> Jan,29 2010: [gspca_jf,tree] gspca zc3xx: signal when unknown packet received       http://patchwork.kernel.org/patch/75837
+>
+> 		== Gspca patches - Waiting Jean-Francois Moine <moinejf@free.fr> submission/review ==
+>
+> Feb,24 2010: gspca pac7302: add USB PID range based on heuristics                   http://patchwork.kernel.org/patch/81612
+>
+> 		== Waiting for Steven Toth <stoth@kernellabs.com> review ==
+>
+> Feb, 6 2010: cx23885: Enable Message Signaled Interrupts(MSI).                      http://patchwork.kernel.org/patch/77492 May, 5 2010: tda10048:
+fix the uncomplete function tda10048_read_ber                http://patchwork.kernel.org/patch/97058 May, 6 2010: tda10048: fix bitmask for the
+transmission mode                        http://patchwork.kernel.org/patch/97340 May, 6 2010: tda10048: clear the uncorrected packet registers
+when saturated        http://patchwork.kernel.org/patch/97341 May, 6 2010: dvb_frontend: fix typos in comments and one function                  
+http://patchwork.kernel.org/patch/97343
+>
+> 		== Waiting for Henrik Kurelid <henrik@kurelid.se> comments about an userspace patch for MythTV ==
+>
+> Mar, 1 2010: firedtv: add parameter to fake ca_system_ids in CA_INFO                http://patchwork.kernel.org/patch/82912
+>
+> 		== Waiting for Mike Isely <isely@isely.net> review ==
+>
+> Apr,25 2010: Problem with cx25840 and Terratec Grabster AV400                       http://patchwork.kernel.org/patch/94960
+>
+> 		== Waiting for Igor M. Liplianin <liplianin@tut.by> comments/review ==
+>
+> Mar,10 2010: DM1105: could not attach frontend 195d:1105                            http://patchwork.kernel.org/patch/84549
+>
+> 		== Need some fixes from Uwe Kleine-Koenig <u.kleine-koenig@pengutronix.de> ==
+>
+> Mar,16 2010: mx1-camera: compile fix                                                http://patchwork.kernel.org/patch/86106
+>
+> 		== Waiting for Signed-off-by from Richard Zidlicky <rz@linux-m68k.org> ==
+>
+> Jun,15 2010: support for Hauppauge WinTV MiniStic IR remote                         http://patchwork.kernel.org/patch/106247
+>
+> 		== Waiting for Eduardo Valentin <eduardo.valentin@nokia.com> review ==
+>
+> Jun,13 2010: [1/2] V4L/DVB: radio-si4713: Release i2c adapter in driver cleanup pat http://patchwork.kernel.org/patch/105846 Jun,13 2010: [2/2]
+V4L/DVB: radio-si4713: Add regulator framework support           http://patchwork.kernel.org/patch/105847
+>
+> 		== Waiting for Jarod Wilson <jarod@redhat.com> review/ack ==
+>
+> Jun,20 2010: drivers/media/IR/imon.c: Use pr_err instead of err                     http://patchwork.kernel.org/patch/107025
+>
+> 		== Waiting for Laurent Pinchart <laurent.pinchart@ideasonboard.com> review/ack/nack ==
+>
+> Jun,23 2010: [2.6.33.4] V4L/uvcvideo: Add support for Suyin Corp. Lenovo Webcam     http://patchwork.kernel.org/patch/107570
+>
+> 		== Patch(broken) - waiting for Manu Abraham <abraham.manu@gmail.com> submission ==
+>
+> Feb,16 2010: Twinhan 1027 + IR Port support                                         http://patchwork.kernel.org/patch/79753
+>
+> Cheers,
+> Mauro
+>
+> ---
+>
+> If you discover any patch submitted via email that weren't caught by kernel.patchwork.org, this means that the patch got mangled by your emailer.
+The more likely cause is that the emailer converted tabs into spaces or broke long lines.
+>
+> If you're using Thunderbird, the solution is to install Asalted Patches extension, available at:
+> 	https://hg.mozilla.org/users/clarkbw_gnome.org/asalted-patches/
+> Other emailers will need you to disable the wrapping long lines feature. --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
 
