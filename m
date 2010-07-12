@@ -1,93 +1,248 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh02.mail.saunalahti.fi ([62.142.5.108]:60234 "EHLO
-	emh02.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754251Ab0GISBy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 14:01:54 -0400
-Message-ID: <4C37640E.8090909@kolumbus.fi>
-Date: Fri, 09 Jul 2010 21:01:50 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: =?UTF-8?B?QmrDuHJuIE1vcms=?= <bjorn@mork.no>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Mantis: append tasklet maintenance for DVB stream delivery
-References: <4C1DFD75.3080606@kolumbus.fi> <87vd9dbyng.fsf@nemi.mork.no>
-In-Reply-To: <87vd9dbyng.fsf@nemi.mork.no>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail.perches.com ([173.55.12.10]:1745 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753519Ab0GLUuo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jul 2010 16:50:44 -0400
+From: Joe Perches <joe@perches.com>
+To: Jiri Kosina <trivial@kernel.org>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Michael Hunold <michael@mihu.de>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@skynet.be>,
+	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org
+Subject: [PATCH 11/36] drivers/media: Remove unnecessary casts of private_data
+Date: Mon, 12 Jul 2010 13:50:03 -0700
+Message-Id: <f607dad266e3d5c1b01aeb8420e09525f70cc1c0.1278967120.git.joe@perches.com>
+In-Reply-To: <cover.1278967120.git.joe@perches.com>
+References: <cover.1278967120.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/IR/imon.c                    |    6 +++---
+ drivers/media/common/saa7146_vbi.c         |    4 ++--
+ drivers/media/common/saa7146_video.c       |    4 ++--
+ drivers/media/dvb/bt8xx/dst_ca.c           |    2 +-
+ drivers/media/video/cx18/cx18-ioctl.c      |    2 +-
+ drivers/media/video/cx88/cx88-alsa.c       |    2 +-
+ drivers/media/video/hdpvr/hdpvr-video.c    |    4 ++--
+ drivers/media/video/mem2mem_testdev.c      |    4 ++--
+ drivers/media/video/saa7134/saa7134-alsa.c |    2 +-
+ drivers/media/video/uvc/uvc_v4l2.c         |    8 ++++----
+ 10 files changed, 19 insertions(+), 19 deletions(-)
 
-Resending into linux-media, for confirming authorship:
-
-I have personally done this patch.
-Acked-by: Marko M Ristola <marko.ristola@kolumbus.fi>
-
-Regards,
-Marko
-
-20.06.2010 16:51, Bjørn Mork kirjoitti:
-> Note that mantis_core_exit() is never called.  Unless I've missed
-> something, the drivers/media/dvb/mantis/mantis_core.{h,c} files can
-> just be deleted.  They look like some development leftovers?
->
->    
-I see. mantis_core.ko kernel module exists though.
-Maybe the mantis/Makefile references for mantis_core.c, mantis.c and hopper.c are just some leftovers too.
-
-I moved tasklet_enable/disable calls into mantis_dvb.c where almost all other tasklet code is located.
-
-So the following reasoning still holds:
-
-1. dvb_dmxdev_filter_stop() calls mantis_dvb_stop_feed: mantis_dma_stop()
-2. dvb_dmxdev_filter_stop() calls release_ts_feed() or some other filter freeing function.
-3. tasklet: mantis_dma_xfer calls dvb_dmx_swfilter to copy DMA buffer's content into freed memory, accessing freed spinlocks.
-This case might occur while tuning into another frequency.
-Perhaps cdurrhau has found some version from this bug at http://www.linuxtv.org/pipermail/linux-dvb/2010-June/032688.html:
-> This is what I get on the remote console via IPMI:
-> 40849.442492] BUG: soft lockup - CPU#2 stuck for 61s! [section
-> handler:4617]
-
-
-New reasoning for the patch (same as the one above, but from higher level):
-After dvb-core has called mantis-fe->stop_feed(dvbdmxfeed) the last time (count to zero),
-no data should ever be copied with dvb_dmx_swfilter() by a tasklet: the target structure might be in an unusable state.
-Caller of mantis_fe->stop_feed() assumes that feeding is stopped after stop_feed() has been called, ie. dvb_dmx_swfilter()
-isn't running, and won't be called.
-
-There is a risk that dvb_dmx_swfilter() references freed resources (memory or spinlocks or ???) causing instabilities.
-Thus tasklet_disable(&mantis->tasklet) must be called inside of mantis-fe->stop_feed(dvbdmxfeed) when necessary.
-
-Signed-off-by: Marko Ristola <marko.ristola@kolumbus.fi>
-
-Marko
-
-diff --git a/drivers/media/dvb/mantis/mantis_dvb.c b/drivers/media/dvb/mantis/mantis_dvb.c
-index 99d82ee..a9864f7 100644
---- a/drivers/media/dvb/mantis/mantis_dvb.c
-+++ b/drivers/media/dvb/mantis/mantis_dvb.c
-@@ -117,6 +117,7 @@ static int mantis_dvb_start_feed(struct dvb_demux_feed *dvbdmxfeed)
-     if (mantis->feeds == 1)     {
-         dprintk(MANTIS_DEBUG, 1, "mantis start feed & dma");
-         mantis_dma_start(mantis);
-+        tasklet_enable(&mantis->tasklet);
-     }
-
-     return mantis->feeds;
-@@ -136,6 +137,7 @@ static int mantis_dvb_stop_feed(struct dvb_demux_feed *dvbdmxfeed)
-     mantis->feeds--;
-     if (mantis->feeds == 0) {
-         dprintk(MANTIS_DEBUG, 1, "mantis stop feed and dma");
-+        tasklet_disable(&mantis->tasklet);
-         mantis_dma_stop(mantis);
-     }
-
-@@ -216,6 +218,7 @@ int __devinit mantis_dvb_init(struct mantis_pci *mantis)
-
-     dvb_net_init(&mantis->dvb_adapter, &mantis->dvbnet, &mantis->demux.dmx);
-     tasklet_init(&mantis->tasklet, mantis_dma_xfer, (unsigned long) mantis);
-+    tasklet_disable(&mantis->tasklet);
-     if (mantis->hwconfig) {
-         result = config->frontend_init(mantis, mantis->fe);
-         if (result < 0) {
+diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
+index 0195dd5..65c125e 100644
+--- a/drivers/media/IR/imon.c
++++ b/drivers/media/IR/imon.c
+@@ -407,7 +407,7 @@ static int display_close(struct inode *inode, struct file *file)
+ 	struct imon_context *ictx = NULL;
+ 	int retval = 0;
+ 
+-	ictx = (struct imon_context *)file->private_data;
++	ictx = file->private_data;
+ 
+ 	if (!ictx) {
+ 		err("%s: no context for device", __func__);
+@@ -812,7 +812,7 @@ static ssize_t vfd_write(struct file *file, const char *buf,
+ 	const unsigned char vfd_packet6[] = {
+ 		0x01, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF };
+ 
+-	ictx = (struct imon_context *)file->private_data;
++	ictx = file->private_data;
+ 	if (!ictx) {
+ 		err("%s: no context for device", __func__);
+ 		return -ENODEV;
+@@ -896,7 +896,7 @@ static ssize_t lcd_write(struct file *file, const char *buf,
+ 	int retval = 0;
+ 	struct imon_context *ictx;
+ 
+-	ictx = (struct imon_context *)file->private_data;
++	ictx = file->private_data;
+ 	if (!ictx) {
+ 		err("%s: no context for device", __func__);
+ 		return -ENODEV;
+diff --git a/drivers/media/common/saa7146_vbi.c b/drivers/media/common/saa7146_vbi.c
+index 74e2b56..8224c30 100644
+--- a/drivers/media/common/saa7146_vbi.c
++++ b/drivers/media/common/saa7146_vbi.c
+@@ -375,7 +375,7 @@ static void vbi_init(struct saa7146_dev *dev, struct saa7146_vv *vv)
+ 
+ static int vbi_open(struct saa7146_dev *dev, struct file *file)
+ {
+-	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
++	struct saa7146_fh *fh = file->private_data;
+ 
+ 	u32 arbtr_ctrl	= saa7146_read(dev, PCI_BT_V1);
+ 	int ret = 0;
+@@ -437,7 +437,7 @@ static int vbi_open(struct saa7146_dev *dev, struct file *file)
+ 
+ static void vbi_close(struct saa7146_dev *dev, struct file *file)
+ {
+-	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
++	struct saa7146_fh *fh = file->private_data;
+ 	struct saa7146_vv *vv = dev->vv_data;
+ 	DEB_VBI(("dev:%p, fh:%p\n",dev,fh));
+ 
+diff --git a/drivers/media/common/saa7146_video.c b/drivers/media/common/saa7146_video.c
+index b8b2c55..a212a91 100644
+--- a/drivers/media/common/saa7146_video.c
++++ b/drivers/media/common/saa7146_video.c
+@@ -1370,7 +1370,7 @@ static void video_init(struct saa7146_dev *dev, struct saa7146_vv *vv)
+ 
+ static int video_open(struct saa7146_dev *dev, struct file *file)
+ {
+-	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
++	struct saa7146_fh *fh = file->private_data;
+ 	struct saa7146_format *sfmt;
+ 
+ 	fh->video_fmt.width = 384;
+@@ -1394,7 +1394,7 @@ static int video_open(struct saa7146_dev *dev, struct file *file)
+ 
+ static void video_close(struct saa7146_dev *dev, struct file *file)
+ {
+-	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
++	struct saa7146_fh *fh = file->private_data;
+ 	struct saa7146_vv *vv = dev->vv_data;
+ 	struct videobuf_queue *q = &fh->video_q;
+ 	int err;
+diff --git a/drivers/media/dvb/bt8xx/dst_ca.c b/drivers/media/dvb/bt8xx/dst_ca.c
+index 770243c..cf87051 100644
+--- a/drivers/media/dvb/bt8xx/dst_ca.c
++++ b/drivers/media/dvb/bt8xx/dst_ca.c
+@@ -565,7 +565,7 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 	int result = 0;
+ 
+ 	lock_kernel();
+-	dvbdev = (struct dvb_device *)file->private_data;
++	dvbdev = file->private_data;
+ 	state = (struct dst_state *)dvbdev->priv;
+ 	p_ca_message = kmalloc(sizeof (struct ca_msg), GFP_KERNEL);
+ 	p_ca_slot_info = kmalloc(sizeof (struct ca_slot_info), GFP_KERNEL);
+diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
+index 20eaf38..d679240 100644
+--- a/drivers/media/video/cx18/cx18-ioctl.c
++++ b/drivers/media/video/cx18/cx18-ioctl.c
+@@ -1081,7 +1081,7 @@ long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd,
+ 		    unsigned long arg)
+ {
+ 	struct video_device *vfd = video_devdata(filp);
+-	struct cx18_open_id *id = (struct cx18_open_id *)filp->private_data;
++	struct cx18_open_id *id = filp->private_data;
+ 	struct cx18 *cx = id->cx;
+ 	long res;
+ 
+diff --git a/drivers/media/video/cx88/cx88-alsa.c b/drivers/media/video/cx88/cx88-alsa.c
+index 9209d5b..4f383cd 100644
+--- a/drivers/media/video/cx88/cx88-alsa.c
++++ b/drivers/media/video/cx88/cx88-alsa.c
+@@ -739,7 +739,7 @@ static int __devinit snd_cx88_create(struct snd_card *card,
+ 
+ 	pci_set_master(pci);
+ 
+-	chip = (snd_cx88_card_t *) card->private_data;
++	chip = card->private_data;
+ 
+ 	core = cx88_core_get(pci);
+ 	if (NULL == core) {
+diff --git a/drivers/media/video/hdpvr/hdpvr-video.c b/drivers/media/video/hdpvr/hdpvr-video.c
+index c338f3f..4863a21 100644
+--- a/drivers/media/video/hdpvr/hdpvr-video.c
++++ b/drivers/media/video/hdpvr/hdpvr-video.c
+@@ -394,7 +394,7 @@ err:
+ 
+ static int hdpvr_release(struct file *file)
+ {
+-	struct hdpvr_fh		*fh  = (struct hdpvr_fh *)file->private_data;
++	struct hdpvr_fh		*fh  = file->private_data;
+ 	struct hdpvr_device	*dev = fh->dev;
+ 
+ 	if (!dev)
+@@ -518,7 +518,7 @@ err:
+ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
+ {
+ 	struct hdpvr_buffer *buf = NULL;
+-	struct hdpvr_fh *fh = (struct hdpvr_fh *)filp->private_data;
++	struct hdpvr_fh *fh = filp->private_data;
+ 	struct hdpvr_device *dev = fh->dev;
+ 	unsigned int mask = 0;
+ 
+diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
+index 554eaf1..7fd54bf 100644
+--- a/drivers/media/video/mem2mem_testdev.c
++++ b/drivers/media/video/mem2mem_testdev.c
+@@ -903,14 +903,14 @@ static int m2mtest_release(struct file *file)
+ static unsigned int m2mtest_poll(struct file *file,
+ 				 struct poll_table_struct *wait)
+ {
+-	struct m2mtest_ctx *ctx = (struct m2mtest_ctx *)file->private_data;
++	struct m2mtest_ctx *ctx = file->private_data;
+ 
+ 	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
+ }
+ 
+ static int m2mtest_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	struct m2mtest_ctx *ctx = (struct m2mtest_ctx *)file->private_data;
++	struct m2mtest_ctx *ctx = file->private_data;
+ 
+ 	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
+ }
+diff --git a/drivers/media/video/saa7134/saa7134-alsa.c b/drivers/media/video/saa7134/saa7134-alsa.c
+index 68b7e8d..10460fd 100644
+--- a/drivers/media/video/saa7134/saa7134-alsa.c
++++ b/drivers/media/video/saa7134/saa7134-alsa.c
+@@ -1080,7 +1080,7 @@ static int alsa_card_saa7134_create(struct saa7134_dev *dev, int devnum)
+ 	/* Card "creation" */
+ 
+ 	card->private_free = snd_saa7134_free;
+-	chip = (snd_card_saa7134_t *) card->private_data;
++	chip = card->private_data;
+ 
+ 	spin_lock_init(&chip->lock);
+ 	spin_lock_init(&chip->mixer_lock);
+diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
+index 369ce06..86db326 100644
+--- a/drivers/media/video/uvc/uvc_v4l2.c
++++ b/drivers/media/video/uvc/uvc_v4l2.c
+@@ -516,7 +516,7 @@ static int uvc_v4l2_open(struct file *file)
+ 
+ static int uvc_v4l2_release(struct file *file)
+ {
+-	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
++	struct uvc_fh *handle = file->private_data;
+ 	struct uvc_streaming *stream = handle->stream;
+ 
+ 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_release\n");
+@@ -547,7 +547,7 @@ static int uvc_v4l2_release(struct file *file)
+ static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+-	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
++	struct uvc_fh *handle = file->private_data;
+ 	struct uvc_video_chain *chain = handle->chain;
+ 	struct uvc_streaming *stream = handle->stream;
+ 	long ret = 0;
+@@ -1116,7 +1116,7 @@ static const struct vm_operations_struct uvc_vm_ops = {
+ 
+ static int uvc_v4l2_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
++	struct uvc_fh *handle = file->private_data;
+ 	struct uvc_streaming *stream = handle->stream;
+ 	struct uvc_video_queue *queue = &stream->queue;
+ 	struct uvc_buffer *uninitialized_var(buffer);
+@@ -1171,7 +1171,7 @@ done:
+ 
+ static unsigned int uvc_v4l2_poll(struct file *file, poll_table *wait)
+ {
+-	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
++	struct uvc_fh *handle = file->private_data;
+ 	struct uvc_streaming *stream = handle->stream;
+ 
+ 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_poll\n");
+-- 
+1.7.1.337.g6068.dirty
 
