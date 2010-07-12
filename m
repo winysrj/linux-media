@@ -1,51 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2706 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755507Ab0GXMDA (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:36511 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753065Ab0GLLjJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Jul 2010 08:03:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH v2 02/10] media: Media device
-Date: Sat, 24 Jul 2010 14:02:50 +0200
+	Mon, 12 Jul 2010 07:39:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: [RFC/PATCH v2 7/7] v4l: subdev: Generic ioctl support
+Date: Mon, 12 Jul 2010 13:39:06 +0200
 Cc: linux-media@vger.kernel.org,
 	sakari.ailus@maxwell.research.nokia.com
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279722935-28493-3-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278689512-30849-8-git-send-email-laurent.pinchart@ideasonboard.com> <001001cb21a5$56f41bb0$04dc5310$%osciak@samsung.com>
+In-Reply-To: <001001cb21a5$56f41bb0$04dc5310$%osciak@samsung.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-6"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007241402.50974.hverkuil@xs4all.nl>
+Message-Id: <201007121339.07652.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 21 July 2010 16:35:27 Laurent Pinchart wrote:
-> The media_device structure abstracts functions common to all kind of
-> media devices (v4l2, dvb, alsa, ...). It manages media entities and
-> offers a userspace API to discover and configure the media device
-> internal topology.
+Hi Pawel,
+
+On Monday 12 July 2010 11:33:52 Pawel Osciak wrote:
+> > On Friday 9 July 2010 17:32:00 Laurent Pinchart wrote:
+
+[snip]
+
+> >diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-
+> >subdev.c
+> >index 31bec67..ce47772 100644
+> >--- a/drivers/media/video/v4l2-subdev.c
+> >+++ b/drivers/media/video/v4l2-subdev.c
+> >@@ -120,7 +120,7 @@ static long subdev_do_ioctl(struct file *file,
+> >unsigned int cmd, void *arg)
+> >
+> > 		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
+> > 	
+> > 	default:
+> >-		return -ENOIOCTLCMD;
+> >+		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+> >
+> > 	}
+> > 	
+> > 	return 0;
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  Documentation/media-framework.txt |   68 ++++++++++++++++++++++++++++++++
->  drivers/media/Makefile            |    2 +-
->  drivers/media/media-device.c      |   77 +++++++++++++++++++++++++++++++++++++
->  include/media/media-device.h      |   53 +++++++++++++++++++++++++
->  4 files changed, 199 insertions(+), 1 deletions(-)
->  create mode 100644 Documentation/media-framework.txt
->  create mode 100644 drivers/media/media-device.c
->  create mode 100644 include/media/media-device.h
+> Hi,
+> one remark about this:
 > 
+> (@Laurent: this is what've been discussing on Saturday on IRC)
+> 
+> It looks to me that with this, a subdev will only be able to have either
+> kernel or userspace-callable ioctls, not both. Note, that I don't mean one
+> ioctl callable from both, but 2 ioctls, where one is kernel-callable and
+> the other is userspace-callable. Technically that would work, but would
+> become a security risk. Malicious userspace would be able to call the
+> kernel-only ioctl.
+> 
+> So a driver has to be careful not to expose a node to the userspace if
+> it has kernel-callable subdev ioctls.
+> 
+> As long as drivers obey that rule and we do not require both types of
+> ioctls in one subdev, there is no problem.
 
-<snip>
-
-As discussed on IRC: I would merge media-device and media-devnode. I see no
-benefit in separating them at this time.
-
-Regards,
-
-	Hans
+I'll drop this patch for now, as Mauro would like it to go in with a driver 
+that uses it. I'll resubmit it with the OMAP3 ISP driver.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Regards,
+
+Laurent Pinchart
