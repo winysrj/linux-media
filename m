@@ -1,61 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:53390 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:42367 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815Ab0GZQTP (ORCPT
+	with ESMTP id S1751425Ab0GLP0F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 12:19:15 -0400
+	Mon, 12 Jul 2010 11:26:05 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v2 01/10] media: Media device node support
-Date: Mon, 26 Jul 2010 18:19:47 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007241359.11584.hverkuil@xs4all.nl> <201007261107.16043.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201007261107.16043.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007261819.49506.laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v3 3/7] v4l: subdev: Merge v4l2_i2c_new_subdev_cfg and v4l2_i2c_new_subdev
+Date: Mon, 12 Jul 2010 17:25:48 +0200
+Message-Id: <1278948352-17892-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+v4l2_i2c_new_subdev_cfg is called by v4l2_i2c_new_subdev only. Merge the
+two functions into v4l2_i2c_new_subdev.
 
-On Monday 26 July 2010 11:07:14 Laurent Pinchart wrote:
-> Hi Hans,
-> On Saturday 24 July 2010 13:59:11 Hans Verkuil wrote:
-> > On Wednesday 21 July 2010 16:35:26 Laurent Pinchart wrote:
-> > > The media_devnode structure provides support for registering and
-> > > unregistering character devices using a dynamic major number. Reference
-> > > counting is handled internally, making device drivers easier to write
-> > > without having to solve the open/disconnect race condition issue over
-> > > and over again.
-> > > 
-> > > The code is based on video/v4l2-dev.c.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/v4l2-common.c |    7 ++-----
+ include/media/v4l2-common.h       |   15 +--------------
+ 2 files changed, 3 insertions(+), 19 deletions(-)
 
-[snip]
-
-> > > +	mdev->dev.class = &media_class;
-> > > +	mdev->dev.devt = MKDEV(MAJOR(media_dev_t), mdev->minor);
-> > > +	mdev->dev.release = media_devnode_release;
-> > > +	if (mdev->parent)
-> > > +		mdev->dev.parent = mdev->parent;
-> > > +	dev_set_name(&mdev->dev, "media%d", mdev->minor);
-> > 
-> > Wouldn't mediactlX be a better name? Just plain 'media' is awfully
-> > general.
-> 
-> Good question.
-
-Oops, I forgot to elaborate on that :-)
-
-Plain "media" is indeed very generic. "mediactl" would be more specific, but 
-I've never really liked the term "media controller". If you look at the media 
-framework documentation, there's no reference to "controller" :-) I think it's 
-"just" a media device.
-
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 4e53b0b..bbda421 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -897,10 +897,9 @@ error:
+ }
+ EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_board);
+ 
+-struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
++struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
+ 		struct i2c_adapter *adapter,
+ 		const char *module_name, const char *client_type,
+-		int irq, void *platform_data,
+ 		u8 addr, const unsigned short *probe_addrs)
+ {
+ 	struct i2c_board_info info;
+@@ -910,13 +909,11 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
+ 	memset(&info, 0, sizeof(info));
+ 	strlcpy(info.type, client_type, sizeof(info.type));
+ 	info.addr = addr;
+-	info.irq = irq;
+-	info.platform_data = platform_data;
+ 
+ 	return v4l2_i2c_new_subdev_board(v4l2_dev, adapter, module_name,
+ 			&info, probe_addrs);
+ }
+-EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev_cfg);
++EXPORT_SYMBOL_GPL(v4l2_i2c_new_subdev);
+ 
+ /* Return i2c client address of v4l2_subdev. */
+ unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd)
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 98b3264..6fc3d7a 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -139,24 +139,11 @@ struct v4l2_subdev_ops;
+ /* Load an i2c module and return an initialized v4l2_subdev struct.
+    Only call request_module if module_name != NULL.
+    The client_type argument is the name of the chip that's on the adapter. */
+-struct v4l2_subdev *v4l2_i2c_new_subdev_cfg(struct v4l2_device *v4l2_dev,
++struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
+ 		struct i2c_adapter *adapter,
+ 		const char *module_name, const char *client_type,
+-		int irq, void *platform_data,
+ 		u8 addr, const unsigned short *probe_addrs);
+ 
+-/* Load an i2c module and return an initialized v4l2_subdev struct.
+-   Only call request_module if module_name != NULL.
+-   The client_type argument is the name of the chip that's on the adapter. */
+-static inline struct v4l2_subdev *v4l2_i2c_new_subdev(struct v4l2_device *v4l2_dev,
+-		struct i2c_adapter *adapter,
+-		const char *module_name, const char *client_type,
+-		u8 addr, const unsigned short *probe_addrs)
+-{
+-	return v4l2_i2c_new_subdev_cfg(v4l2_dev, adapter, module_name,
+-				client_type, 0, NULL, addr, probe_addrs);
+-}
+-
+ struct i2c_board_info;
+ 
+ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
