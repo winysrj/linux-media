@@ -1,68 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:59260 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752329Ab0G1PO0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 11:14:26 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 1/9] IR: Kconfig fixes
-Date: Wed, 28 Jul 2010 18:14:03 +0300
-Message-Id: <1280330051-27732-2-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:2238 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752442Ab0GLV2k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Jul 2010 17:28:40 -0400
+Message-ID: <4C3B8923.1040109@redhat.com>
+Date: Mon, 12 Jul 2010 18:29:07 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Pawel Osciak <p.osciak@samsung.com>
+CC: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>,
+	"'Hans Verkuil'" <hverkuil@xs4all.nl>,
+	"'Hans de Goede'" <hdegoede@redhat.com>, kyungmin.park@samsung.com
+Subject: Re: [RFC v4] Multi-plane buffer support for V4L2 API
+References: <004b01cb1f98$e586ae10$b0940a30$%osciak@samsung.com>
+In-Reply-To: <004b01cb1f98$e586ae10$b0940a30$%osciak@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move IR drives below separate menu.
-This allows to disable them.
-Also correct a typo.
+Hi Pawel,
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/Kconfig |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+Em 09-07-2010 15:59, Pawel Osciak escreveu:
+> Hello,
+> 
+> This is the fourth version of the multi-plane API extensions proposal.
+> I think that we have reached a stage at which it is more or less finalized.
+> 
+> Rationale can be found at the beginning of the original thread:
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11212
 
-diff --git a/drivers/media/IR/Kconfig b/drivers/media/IR/Kconfig
-index e557ae0..99ea9cd 100644
---- a/drivers/media/IR/Kconfig
-+++ b/drivers/media/IR/Kconfig
-@@ -1,8 +1,10 @@
--config IR_CORE
--	tristate
-+menuconfig IR_CORE
-+	tristate "Infrared remote controller adapters"
- 	depends on INPUT
- 	default INPUT
+With Hans proposed changes that you've already acked, I think the proposal is ok,
+except for one detail:
  
-+if IR_CORE
-+
- config VIDEO_IR
- 	tristate
- 	depends on IR_CORE
-@@ -16,7 +18,7 @@ config LIRC
- 	   Enable this option to build the Linux Infrared Remote
- 	   Control (LIRC) core device interface driver. The LIRC
- 	   interface passes raw IR to and from userspace, where the
--	   LIRC daemon handles protocol decoding for IR reception ann
-+	   LIRC daemon handles protocol decoding for IR reception and
- 	   encoding for IR transmitting (aka "blasting").
- 
- source "drivers/media/IR/keymaps/Kconfig"
-@@ -102,3 +104,9 @@ config IR_MCEUSB
- 
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called mceusb.
-+
-+
-+
-+
-+
-+endif #IR_CORE
--- 
-1.7.0.4
+> 4. Format enumeration
+> ----------------------------------
+> struct v4l2_fmtdesc, used for format enumeration, does include the v4l2_buf_type
+> enum as well, so the new types can be handled properly here as well.
+> For drivers supporting both versions of the API, 1-plane formats should be
+> returned for multiplanar buffer types as well, for consistency. In other words,
+> for multiplanar buffer types, the formats returned are a superset of those
+> returned when enumerating with the old buffer types.
+> 
 
+We shouldn't mix types here. If the userspace is asking for multi-planar types,
+the driver should return just the multi-planar formats.
+
+If the userspace wants to know about both, it will just call for both types of
+formats.
+
+Cheers,
+Mauro
