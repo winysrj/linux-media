@@ -1,114 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-08.arcor-online.net ([151.189.21.48]:58152 "EHLO
-	mail-in-08.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935392Ab0GPDfd (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:62375 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751597Ab0GLXCM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jul 2010 23:35:33 -0400
-Subject: Re: [PATCH] Add interlace support to sh_mobile_ceu_camera.c
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <w3p630hmhkf.wl%kuninori.morimoto.gx@renesas.com>
-References: <uvdtrmtin.wl%morimoto.kuninori@renesas.com>
-	 <Pine.LNX.4.64.1007120900430.7130@axis700.grange>
-	 <w3pd3uskwpw.wl%kuninori.morimoto.gx@renesas.com>
-	 <Pine.LNX.4.64.1007131622010.26727@axis700.grange>
-	 <w3pwrsygbv8.wl%kuninori.morimoto.gx@renesas.com>
-	 <1279074933.3203.21.camel@pc07.localdom.local>
-	 <w3poceafxpn.wl%kuninori.morimoto.gx@renesas.com>
-	 <1279162095.3129.17.camel@pc07.localdom.local>
-	 <w3p630hmhkf.wl%kuninori.morimoto.gx@renesas.com>
-Content-Type: text/plain
-Date: Fri, 16 Jul 2010 05:25:32 +0200
-Message-Id: <1279250732.5744.49.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 12 Jul 2010 19:02:12 -0400
+Received: by gyh4 with SMTP id 4so33690gyh.19
+        for <linux-media@vger.kernel.org>; Mon, 12 Jul 2010 16:02:11 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20100712132100.1b4072b9@tele>
+References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
+	<20100707074431.66629934@tele> <AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
+	<20100707110613.18be4215@tele> <AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
+	<20100708121454.75db358c@tele> <AANLkTilw1KxYanoQZEZVaiFCLfkdTpO72Z9xV73i4gm2@mail.gmail.com>
+	<20100709200312.755e8069@tele> <AANLkTikxIJxuQiV_7PqPA5C6ZU5XhhmmQ3hAbIwWsrPT@mail.gmail.com>
+	<20100710113616.1ed63ebc@tele> <AANLkTikrKBpRSI6wVdMO3tSYPhm1CECFGeNiyJdzTa03@mail.gmail.com>
+	<20100711155008.1f8f583f@tele> <AANLkTinnNhJ-DoFWfU8U5NuTj_p48SefYzWWAxZqiUb-@mail.gmail.com>
+	<20100712101802.08527e82@tele> <AANLkTinUHyTHt78ihMHy8dzz0kfPvUMBXKreRmuM-cYW@mail.gmail.com>
+	<20100712132100.1b4072b9@tele>
+From: Kyle Baker <kyleabaker@gmail.com>
+Date: Mon, 12 Jul 2010 19:01:51 -0400
+Message-ID: <AANLkTimku962Cm_7glThtq3X3jZiwmHSWOYzc2d3WLBl@mail.gmail.com>
+Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015174c0e52228b7c048b38bed8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Kuninori,
+--0015174c0e52228b7c048b38bed8
+Content-Type: text/plain; charset=ISO-8859-1
 
-Am Donnerstag, den 15.07.2010, 14:37 +0900 schrieb Kuninori Morimoto:
-> Dear hermann
-> 
-> > Is there any documentation and how can a user know about it?
-> 
-> "Ecovec board" which I and Guennadi were talking about is an evaluation board.
-> If you buy this board, you can find DVD including manual in its box.
-> Please check
-> ${DVD}/hardware/user's_manual/eng/rej10j2027-0101_R0P7724LC001121RL_um_1.03.pdf
+On Mon, Jul 12, 2010 at 7:21 AM, Jean-Francois Moine <moinejf@free.fr> wrote:
+> Fine job! The register 02 is the GPIO register. It seems the audio does
+> not work when the bit 0x04 is not set. I am working on the driver for
+> the other webcams, but you may patch it yourself removing the register
+> 02 settings at lines 1752, 2320 and 2321 of sonixj.c.
 
-on that stage it is now, you can't call me to crawl the web or buy any
-evaluation board, likely high priced, still not even providing a link.
+Thank you for your help. I've gotten this working for me by using the
+following conditional to determine if the driver should run the code
+that changes register 02 or not.
 
-If you use GNU/Linux, free of charge, you have to provide acceptable
-documentation too.
+if (sd->sensor != SENSOR_OV7660)
+	reg_w1(gspca_dev, 0x02, 0x62);
 
-> "dip-switch settings" is wrote in
-> 3.4 "Switch Specification"
-> 
-> If you don't have this board,
-> but have kernel source code,
-> you can watch explain comment on top of
-> ${LINUX}/arch/sh/boards/mach-ecovec24/setup.c
-> 
-> Best regards
-> --
-> Kuninori Morimoto
+and
 
-This is lame. I do want to know what is out in the markets already and
-no fall back on initial dip-switch comments. Comparable sensors ship
-from China directly for some 5 Euros and less here.
+if (sd->sensor != SENSOR_OV7660) {
+	reg_w1(gspca_dev, 0x02, reg2);
+	reg_w1(gspca_dev, 0x02, reg2);
+}
 
-This is a change (chance?) in culture too, and was already discussed in
-1976 by some, but was at least public for all those a little bit more
-interested since, let's say, 1982.
+These do fix the audio problem,  but they may not be good for other
+Sensor OV7660 devices. I am not sure how to identify only my model
+here, but that may be ideal for a better patch. I wonder if this patch
+would also be needed for the VX-3000 model?
 
-This is going on for a long time now, it did not hit the linuxtv.org
-wiki at all until today, but introduces most relevant API changes. To
-stop to provide support for older devices, in favor of the like of such
-stuff, was mentioned several times already to get quicker to the
-bonanza.
+I've attached the patch that I'm using. I attached the "diff -c" and
+"diff -uNr" style patches. the uNr style looks more like the
+changesets I've found at LinuxTV.org so it may be the easiest to
+apply. I hope the patch helps!
 
-All major hardware manufacturers, and/or those claiming to be codec
-possessors, have hired linux devel teams around the globe to move this
-forward.
+Hopefully this will make it into the Kernel source before too long so
+it works on other computers without modification. :D
 
-What it means, that everyone likely can film his life soon with two HD
-cameras on mobile devices at once, let's say with 1080p for now, one
-following his view to the "outside world", the other one pointing to
-"him/her" at the same time, about that, there is no word on this list.
+Cheers.
 
-It is not about missing some dip switch settings on an evaluation board.
+-- 
+Kyle Baker
 
-It is about missing documentation, but much more about missing
-reflection, if GNU/Linux should give the vehicle for such.
+--0015174c0e52228b7c048b38bed8
+Content-Type: application/octet-stream; name="sonixj-vx1000.patch"
+Content-Disposition: attachment; filename="sonixj-vx1000.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gbjwt7290
 
-And it obviously does, even without any further comments.
+KioqIHNvbml4ai1vcmlnaW5hbC5jCTIwMTAtMDctMTAgMDU6MDM6MDIuMDAwMDAwMDAwIC0wNDAw
+Ci0tLSBzb25peGotcGF0Y2guYwkyMDEwLTA3LTEyIDE3OjUyOjIwLjAwMDAwMDAwMCAtMDQwMAoq
+KioqKioqKioqKioqKioKKioqIDE3NDksMTc1NSAqKioqCiAgCQlyZWdfdzEoZ3NwY2FfZGV2LCAw
+eDAxLCAweDYyKTsKICAJCXJlZ193MShnc3BjYV9kZXYsIDB4MDEsIDB4NDIpOwogIAkJbXNsZWVw
+KDEwMCk7CiEgCQlyZWdfdzEoZ3NwY2FfZGV2LCAweDAyLCAweDYyKTsKICAJCWJyZWFrOwogIAlk
+ZWZhdWx0OgogIC8qCWNhc2UgU0VOU09SX0hWNzEzMVI6ICovCi0tLSAxNzQ5LDE3NTYgLS0tLQog
+IAkJcmVnX3cxKGdzcGNhX2RldiwgMHgwMSwgMHg2Mik7CiAgCQlyZWdfdzEoZ3NwY2FfZGV2LCAw
+eDAxLCAweDQyKTsKICAJCW1zbGVlcCgxMDApOwohIAkJaWYgKHNkLT5zZW5zb3IgIT0gU0VOU09S
+X09WNzY2MCkKISAJCQlyZWdfdzEoZ3NwY2FfZGV2LCAweDAyLCAweDYyKTsKICAJCWJyZWFrOwog
+IAlkZWZhdWx0OgogIC8qCWNhc2UgU0VOU09SX0hWNzEzMVI6ICovCioqKioqKioqKioqKioqKgoq
+KiogMjMxNywyMzI0ICoqKioKICAJCXJlZzIgPSAweDQwOwogIAkJYnJlYWs7CiAgCX0KISAJcmVn
+X3cxKGdzcGNhX2RldiwgMHgwMiwgcmVnMik7CiEgCXJlZ193MShnc3BjYV9kZXYsIDB4MDIsIHJl
+ZzIpOwogIAogIAlyZWdfdzEoZ3NwY2FfZGV2LCAweDE1LCBzbjljMXh4WzB4MTVdKTsKICAJcmVn
+X3cxKGdzcGNhX2RldiwgMHgxNiwgc245YzF4eFsweDE2XSk7Ci0tLSAyMzE4LDIzMjcgLS0tLQog
+IAkJcmVnMiA9IDB4NDA7CiAgCQlicmVhazsKICAJfQohIAlpZiAoc2QtPnNlbnNvciAhPSBTRU5T
+T1JfT1Y3NjYwKSB7CiEgCQlyZWdfdzEoZ3NwY2FfZGV2LCAweDAyLCByZWcyKTsKISAJCXJlZ193
+MShnc3BjYV9kZXYsIDB4MDIsIHJlZzIpOwohIAl9CiAgCiAgCXJlZ193MShnc3BjYV9kZXYsIDB4
+MTUsIHNuOWMxeHhbMHgxNV0pOwogIAlyZWdfdzEoZ3NwY2FfZGV2LCAweDE2LCBzbjljMXh4WzB4
+MTZdKTsK
+--0015174c0e52228b7c048b38bed8
+Content-Type: application/octet-stream; name="sonixj-vx1000-diff-uNr.patch"
+Content-Disposition: attachment; filename="sonixj-vx1000-diff-uNr.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gbjwxyso1
 
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-
-
-
-
-
+LS0tIHNvbml4ai1vcmlnaW5hbC5jCTIwMTAtMDctMTAgMDU6MDM6MDIuMDAwMDAwMDAwIC0wNDAw
+CisrKyBzb25peGotcGF0Y2guYwkyMDEwLTA3LTEyIDE3OjUyOjIwLjAwMDAwMDAwMCAtMDQwMApA
+QCAtMTc0OSw3ICsxNzQ5LDggQEAKIAkJcmVnX3cxKGdzcGNhX2RldiwgMHgwMSwgMHg2Mik7CiAJ
+CXJlZ193MShnc3BjYV9kZXYsIDB4MDEsIDB4NDIpOwogCQltc2xlZXAoMTAwKTsKLQkJcmVnX3cx
+KGdzcGNhX2RldiwgMHgwMiwgMHg2Mik7CisJCWlmIChzZC0+c2Vuc29yICE9IFNFTlNPUl9PVjc2
+NjApCisJCQlyZWdfdzEoZ3NwY2FfZGV2LCAweDAyLCAweDYyKTsKIAkJYnJlYWs7CiAJZGVmYXVs
+dDoKIC8qCWNhc2UgU0VOU09SX0hWNzEzMVI6ICovCkBAIC0yMzE3LDggKzIzMTgsMTAgQEAKIAkJ
+cmVnMiA9IDB4NDA7CiAJCWJyZWFrOwogCX0KLQlyZWdfdzEoZ3NwY2FfZGV2LCAweDAyLCByZWcy
+KTsKLQlyZWdfdzEoZ3NwY2FfZGV2LCAweDAyLCByZWcyKTsKKwlpZiAoc2QtPnNlbnNvciAhPSBT
+RU5TT1JfT1Y3NjYwKSB7CisJCXJlZ193MShnc3BjYV9kZXYsIDB4MDIsIHJlZzIpOworCQlyZWdf
+dzEoZ3NwY2FfZGV2LCAweDAyLCByZWcyKTsKKwl9CiAKIAlyZWdfdzEoZ3NwY2FfZGV2LCAweDE1
+LCBzbjljMXh4WzB4MTVdKTsKIAlyZWdfdzEoZ3NwY2FfZGV2LCAweDE2LCBzbjljMXh4WzB4MTZd
+KTsK
+--0015174c0e52228b7c048b38bed8--
