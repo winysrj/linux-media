@@ -1,78 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:64670 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752217Ab0GaINH (ORCPT
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2159 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752626Ab0GLMXe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 04:13:07 -0400
-Date: 31 Jul 2010 10:10:00 +0200
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: maximlevitsky@gmail.com
-Cc: linux-input@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: lirc-list@lists.sourceforge.net
-Cc: mchehab@redhat.com
-Message-ID: <BTtO1S1ZjFB@christoph>
-In-Reply-To: <1280527264.3159.10.camel@maxim-laptop>
-Subject: Re: [PATCH 10/13] IR: extend interfaces to support more device settings LIRC: add new IOCTL that enables learning mode (wide band receiver)
+	Mon, 12 Jul 2010 08:23:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: [RFC v4] Multi-plane buffer support for V4L2 API
+Date: Mon, 12 Jul 2010 14:23:13 +0200
+Cc: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>,
+	"'Hans de Goede'" <hdegoede@redhat.com>, kyungmin.park@samsung.com
+References: <004b01cb1f98$e586ae10$b0940a30$%osciak@samsung.com> <201007101825.28446.hverkuil@xs4all.nl> <000e01cb21a2$a263a910$e72afb30$%osciak@samsung.com>
+In-Reply-To: <000e01cb21a2$a263a910$e72afb30$%osciak@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007121423.13546.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxim,
+On Monday 12 July 2010 11:14:30 Pawel Osciak wrote:
+> Hi Hans,
+> 
+> thank you for your comments as always.
+> 
+> >Hans Verkuil wrote <hverkuil@xs4all.nl>:
+> >Hi Pawel,
+> >
+> >Looks good, but I have a few small suggestions:
+> >
+> >On Friday 09 July 2010 20:59:45 Pawel Osciak wrote:
+> 
+> (snip)
+> 
+> >>  struct v4l2_format {
+> >>         enum v4l2_buf_type type;
+> >>         union {
+> >>                 struct v4l2_pix_format          pix;     /*
+> >V4L2_BUF_TYPE_VIDEO_CAPTURE */
+> >> +               struct v4l2_pix_format_mplane   mp_pix;  /*
+> >V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+> >
+> >I would probably go with pix_mp to be consistent with the name of the struct.
+> >
+> 
+> ok.
+> 
+> >> +/**
+> >> + * struct v4l2_pix_format_mplane - multiplanar format definition
+> >> + * @pix_fmt:   definition of an image format for all planes
+> >> + * @plane_fmt: per-plane information
+> >> + */
+> >> +struct v4l2_pix_format_mplane {
+> >> +       struct v4l2_pix_format          pix_fmt;
+> >> +       struct v4l2_plane_format        plane_fmt[VIDEO_MAX_PLANES];
+> >> +} __attribute__ ((packed));
+> >
+> >How do you know how many planes there are? I wonder whether it wouldn't be
+> >smarter
+> >to just copy the relevant fields from struct v4l2_pix_format to struct
+> >v4l2_pix_format_mplane
+> >instead of embedded that struct. That way you can 1) add a 'planes' field and
+> >2) get rid
+> >of the no longer needed bytesperline and sizeimage fields. And I think the
+> >priv field
+> >should also go, just have a reserved[2] instead.
+> >
+> 
+> By mean "planes" you mean a field indicating the number of planes in the
+> current format, right?
 
-on 31 Jul 10 at 01:01, Maxim Levitsky wrote:
-> On Fri, 2010-07-30 at 23:22 +0200, Christoph Bartelmus wrote:
-[...]
->>> +#define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
->>
->> If you really want this new ioctl, then it should be clarified how it
->> behaves in relation to LIRC_SET_MEASURE_CARRIER_MODE.
+Right.
 
-> In my opinion, I won't need the LIRC_SET_MEASURE_CARRIER_MODE,
-> I would just optionally turn that on in learning mode.
-> You disagree, and since that is not important (besides TX and learning
-> features are present only at fraction of ENE devices. The only user I
-> did the debugging with, doesn't seem to want to help debug that code
-> anymore...)
->
-> But anyway, in current state I want these features to be independent.
-> Driver will enable learning mode if it have to.
+> Number of planes can be inferred from fourcc, but you are right, it's still
+> useful to have to have a field for that.
 
-Please avoid the term "learning mode" as to you it probably means  
-something different than to me.
+You really don't want to have a switch on the fourcc just to determine the number
+of planes. Creating a separate field will make life much easier.
 
->
-> I'll add the documentation.
+> 
+> What do you think of this:
+> 
+> /**
+>  * struct v4l2_pix_format_mplane - multiplanar format definition
+>  * @width:		image width in pixels
+>  * @height:		image height in pixels
+>  * @pixelformat:	little endian four character code (fourcc)
+>  * @field:		field order (for interlaced video)
+>  * @colorspace:		supplemental to pixelformat
+>  * @plane_fmt:		per-plane information
+>  * @num_planes:		number of planes for this format and number of valid
+>  * 			elements in plane_fmt array
+>  */
+> struct v4l2_pix_format_mplane {
+> 	__u32				width;
+> 	__u32				height;
+> 	__u32				pixelformat;
+> 	enum v4l2_field			field;
+> 	enum v4l2_colorspace		colorspace;
+> 
+> 	struct v4l2_plane_format	plane_fmt[VIDEO_MAX_PLANES];
+> 	__u8				num_planes;
+> 	__u8				reserved[11];
+> } __attribute__ ((packed));
+> 
+> v4l2_plane_format stays the same (see below).
+> 
+> 8 * struct v4l2_plane_format + 3 * 4 + 2 * enum + 12 * 1 = 8 * 20 + 40 = 200
 
->>
->> Do you have to enable the wide-band receiver explicitly before you can
->> enable carrier reports or does enabling carrier reports implicitly switch
->> to the wide-band receiver?
-> I would implicitly switch the learning mode on, untill user turns off
-> the carrier reports.
+Looks good. 
 
-You mean that you'll implicitly switch on the wide-band receiver. Ok.
+Regards,
 
->>
->> What happens if carrier mode is enabled and you explicitly turn off the
->> wide-band receiver?
-> Wouldn't it be better to have one ioctl for both after all?
+	Hans
 
-There may be hardware that allows carrier measurement but does not have a  
-wide-band receiver. And there may be hardware that does have a wide-band  
-receiver but does not allow carrier measurement. irrecord needs to be able  
-to distinguish these cases, so we need separate ioctls.
 
-I'd say: carrier reports may switch on the wide-band reciever implicitly.  
-In that case the wide-band receiver cannot be switched off explicitly  
-until carrier reports are disabled again. It just needs to be documented.
-
->>
->> And while we're at interface stuff:
->> Do we really need LIRC_SETUP_START and LIRC_SETUP_END? It is only used
->> once in lircd during startup.
-> I don't think so.
->
-
-Christoph
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
