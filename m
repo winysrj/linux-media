@@ -1,59 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:41596 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758390Ab0GIRTH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 13:19:07 -0400
-Received: by iwn7 with SMTP id 7so2406104iwn.19
-        for <linux-media@vger.kernel.org>; Fri, 09 Jul 2010 10:19:06 -0700 (PDT)
-Message-ID: <4C375A07.7010205@gmail.com>
-Date: Fri, 09 Jul 2010 13:19:03 -0400
-From: Ivan <ivan.q.public@gmail.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:43170 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754974Ab0GMScf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jul 2010 14:32:35 -0400
+Received: by bwz1 with SMTP id 1so460745bwz.19
+        for <linux-media@vger.kernel.org>; Tue, 13 Jul 2010 11:32:33 -0700 (PDT)
+Message-ID: <4C3CB13F.1080902@gmail.com>
+Date: Tue, 13 Jul 2010 20:32:31 +0200
+From: Hamza Ferrag <hferraggreat@gmail.com>
+Reply-To: hferraggreat@gmail.com
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
- [eb1a:2860]
-References: <4C353039.4030202@gmail.com>	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>	<4C360E64.3020703@gmail.com>	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>	<4C362C6E.5050104@gmail.com>	<AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com>	<4C363692.5000600@gmail.com>	<4C364416.3000809@gmail.com> <AANLkTimRQaFDzKTXAIxIs2lT7ldrMwMNIFSJN4VzJOQQ@mail.gmail.com> <4C364CD3.3080106@gmail.com> <4C371A74.4080901@redhat.com>
-In-Reply-To: <4C371A74.4080901@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: TeVii S470 Tunning Issue (Kernel 2.6.27-21)
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/09/2010 08:47 AM, Mauro Carvalho Chehab wrote:
-> I never saw the em28xx scaler generating such vertical stripes. This
-> could be a mplayer or a video adapter driver problem. Are you using a
-> proprietary video driver? You may try to use ffmeg or mencoder to
-> generate a mpeg file at 640x480 and then try to play it on another
-> player (preferably on another machine), to see if this problem
-> disappears.
+Hi all,
 
-Huh? Does there even *exist* a proprietary linux driver for my card? And 
-because you never saw stripes with em28xx, they must not exist? :^P
+I am trying to install a 'Tevii S470' card  from TeVii technology as
+described  here http://linuxtv.org/wiki/index.php/TeVii_S470.
 
-You might want to reread the thread-- we already figured the stripes out.
+My configuration is :
 
->>>> v4l2: 1199 frames successfully processed, -3 frames dropped.
->
-> This is not a V4L issue.
+- intel x86 platform
+- Kernel 2.6.27-21
+- tevii_ds3000.tar.gz (firmware archive from
+http://tevii.com/tevii_ds3000.tar.gz ),
+- s2-liplianin  mercurial sources ( from
+http://mercurial.intuxication.org/hg/s2-liplianin)last changes at
+05/29/2010,
 
-I'm aware of that by now.
+All work fine i.e drivers/firmware installation after madprobe a right
+modules.
 
-> A negative number of dropping frames makes no sense. It is probably a
-> mplayer bug. I would try to get a newer version of mplayer and double
-> check.
+# lsmod
+Module                  Size  Used by    Not tainted
+cx23885                82416  0
+tveeprom                9348  1 cx23885
+btcx_risc               1928  1 cx23885
+cx2341x                 7748  1 cx23885
+ir_common              23936  1 cx23885
+videobuf_dma_sg         5060  1 cx23885
+ir_core                 3596  2 cx23885,ir_common
+v4l2_common             8896  2 cx23885,cx2341x
+videodev               25376  2 cx23885,v4l2_common
+videobuf_dvb            2820  1 cx23885
+videobuf_core           8388  3 cx23885,videobuf_dma_sg,videobuf_dvb
+lnbp21                  1024  0
+dvb_core               54832  2 cx23885,videobuf_dvb
+ds3000                  9668  1
 
-Newer than latest svn? :^D
 
-If you look at the mplayer code that calculates the supposed number of 
-frames dropped (it's in stream/tvi_v4l2.c), it would seem that it's just 
-an indicator of how close the stream came to the nominal framerate 
-(30000/1001 in my case).
+# dmesg
+Linux video capture interface: v2.00
+cx23885 driver version 0.0.2 loaded
+CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470
+[card=15,autodetected]
+cx23885_dvb_register() allocating 1 frontend(s)
+cx23885[0]: cx23885 based dvb card
+DS3000 chip version: 0.192 attached.
+DVB: registering new adapter (cx23885[0])
+DVB: registering adapter 0 frontend 0 (Montage Technology DS3000/TS2020)...
+cx23885_dev_checkrevision() Hardware revision = 0xb0
+cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 11, latency: 0, mmio:
+0xdf800000
+cx23885 0000:03:00.0: setting latency timer to 64
+tun: Universal TUN/TAP device driver, 1.6
 
-In other words, if mplayer sees an actual framerate of less than 29.97 
-coming from v4l, it assumes (perhaps incorrectly) that this is because 
-some frames were dropped. If you do the same calculation when the actual 
-framerate is greater than 29.97, you get a negative number of dropped 
-frames. It looks weird, but it makes a kind of sense if you know what it 
-really means.
+
+
+A problem appear when tunning card using szap-s2 :
+
+# szap-s2 szap-s2 -c /root/channels.conf -x -M 5 -C 89 -l 9750 -S 1 MyCh
+
+reading channels from file '/root/channels.conf'
+zapping to 1 'MyCh':
+delivery DVB-S2, modulation 8PSK
+sat 0, frequency 8420 MHz V, symbolrate 29400000, coderate 8/9,rolloff 0.35
+vpid 0x0286, apid 0x1fff, sid 0x0000
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+ds3000_firmware_ondemand: Waiting for firmware upload (dvb-fe-ds3000.fw)...
+firmware: requesting dvb-fe-ds3000.fw
+ds3000_firmware_ondemand: Waiting for firmware upload(2)...
+ds3000_firmware_ondemand: No firmware uploaded (timeout or file not found?)
+ds3000_tune: Unable initialise the firmware
+
+Apparently it can't locate a firmware file,  yet :
+
+# ls -l  /lib/firmware/
+-rwxr-xr-x    1 root     root         8192 May  3 07:09 dvb-fe-ds3000.fw
+
+
+Any ideas why this happens?
+
+Thanks and best regards,
+
+Hamza Ferrag
+
