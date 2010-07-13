@@ -1,124 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3859 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758793Ab0GUTdo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jul 2010 15:33:44 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6LJXgcB023042
-	for <linux-media@vger.kernel.org>; Wed, 21 Jul 2010 21:33:43 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 21 Jul 2010 21:33:42 +0200 (CEST)
-Message-Id: <201007211933.o6LJXgcB023042@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail.gmx.net ([213.165.64.20]:34910 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753348Ab0GMOfB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jul 2010 10:35:01 -0400
+Date: Tue, 13 Jul 2010 16:35:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Add interlace support to sh_mobile_ceu_camera.c
+In-Reply-To: <w3pd3uskwpw.wl%kuninori.morimoto.gx@renesas.com>
+Message-ID: <Pine.LNX.4.64.1007131622010.26727@axis700.grange>
+References: <uvdtrmtin.wl%morimoto.kuninori@renesas.com>
+ <Pine.LNX.4.64.1007120900430.7130@axis700.grange>
+ <w3pd3uskwpw.wl%kuninori.morimoto.gx@renesas.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, 13 Jul 2010, Kuninori Morimoto wrote:
 
-Results of the daily build of v4l-dvb:
+> 
+> Dear Guennadi
+> 
+> > I've got a question to you, regarding your interlaced support 
+> > implementation for the CEU: do I understand it right, that the kind of 
+> > support you actually have implemented is, that if an interlaced format is 
+> > now requested from the CEU, it will interpret incoming data as interlaced 
+> > and deinterlace it internally? 
+> 
+> It is correct excluding "interlaced format is now requested from the CEU". 
+> Now, the device which request interlace format is video device.
+> If you use Ecovec, it is tw9910.
 
-date:        Wed Jul 21 19:00:19 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+That's one part of the equation, yes.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+> > If this is really the case, then, I think, 
+> > it is a wrong way to implement this functionality. If a user requests 
+> > interlaced data, it means, (s)he wants it interlaced in memory. Whereas 
+> > deinterlacing should happen transparently - if the user requested 
+> > progressive data and your source provides interlaced, you can decide to 
+> > deinterlace it internally. Or am I misunderstanding your implementation?
+> 
+> Hmm...
+> Now only "CEU + tw9910" pair use interlace mode in CEU.
+> But it doesn't support interlace mode from "user space".
+> (I don't know how to request it from user space)
 
-Detailed results are available here:
+The S_FMT ioctl() has a field "fmt.pix.field," which carries exactly this 
+information. So, by executing this ioctl() with different field values you 
+request progressive or one of interlaced formats. And returning 
+"interlaced," when you actually supply progressive data to the user is not 
+a good idea, and this is what's currently happening, I think. It's just 
+our luck, that mplayer (and gstreamer?) ignore returned field value. But 
+we'll have to fix this in sh_mobile_ceu_camera.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> Now interlace mode is used internally.
+> This mean, it seems as "progressive mode" from user space.
 
-Full logs are available here:
+Exactly, we return progressive data, but give "interlaced" back in reply 
+to S_FMT. Or at least we do not differentiate between "user field setting" 
+and "driver field setting," which we really should.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+> > Regardless of theoretical correctness - does your patch still work? Have 
+> > you been able back then to get CEU to deinterlace data, and when have you 
+> > last tested it?
+> 
+> I tested CEU interlace mode by using Ecovec board.
+> I can watch correct video image on at least v2.6.34.
+> 
+> I used this command.
+> 
+> VIDIX="-vo fbdev:vidix:sh_veu"
+> SIZE="-tv width=1280:height=720"
+> NTSC="-tv norm=NTSC"
+> OUT="tv:// -tv outfmt=nv12"
+> DEVICE="-tv device=/dev/video0"
+> mplayer ${VIDIX} ${SIZE} ${NTSC} ${OUT} ${DEVICE}
 
-The V4L-DVB specification from this daily build is here:
+Well, I think, 720p is a little too optimistic for tw9910;) tw9910 works 
+on migor for me, but not on ecovec, although the chip can be detected. Are 
+there any modifications necessary to the kernel or to the board to get it 
+to work? Maybe a jumper or something? I plug in a video signal source in 
+the "video in" connector, next to the "viceo out" one, using the same 
+cable, so, cabling should work too. But I'm only getting select timeouts 
+and no interrupts on the CEU.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
