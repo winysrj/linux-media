@@ -1,198 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52764 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756902Ab0GNOGJ (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:50683 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752231Ab0GMJpV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jul 2010 10:06:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE 05/12] v4l: v4l2_subdev userspace format API
-Date: Wed, 14 Jul 2010 16:07:07 +0200
-Message-Id: <1279116434-28278-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 13 Jul 2010 05:45:21 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=utf-8
+Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L5H003P5PRHA710@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 13 Jul 2010 10:45:18 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L5H004C1PR4IW@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 13 Jul 2010 10:45:04 +0100 (BST)
+Date: Tue, 13 Jul 2010 11:43:47 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: [RFC v4] Multi-plane buffer support for V4L2 API
+In-reply-to: <4C3B8923.1040109@redhat.com>
+To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>
+Cc: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'Hans de Goede' <hdegoede@redhat.com>,
+	kyungmin.park@samsung.com
+Message-id: <002801cb226f$e462b720$ad282560$%osciak@samsung.com>
+Content-language: pl
+References: <004b01cb1f98$e586ae10$b0940a30$%osciak@samsung.com>
+ <4C3B8923.1040109@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a userspace API to get, set and enumerate the media format on a
-subdev pad.
+Hi Mauro,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-subdev.c |   51 ++++++++++++++++++++++++++++
- include/linux/v4l2-subdev.h       |   66 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-subdev.h       |    6 +---
- 3 files changed, 118 insertions(+), 5 deletions(-)
- create mode 100644 include/linux/v4l2-subdev.h
+thanks for taking the time to look at this.
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 2fe3818..d8b261f 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -122,6 +122,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
- 	struct v4l2_fh *vfh = file->private_data;
-+	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
- 
- 	switch (cmd) {
- 	case VIDIOC_QUERYCTRL:
-@@ -157,6 +158,56 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
- 		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
- 
-+	case VIDIOC_SUBDEV_G_FMT: {
-+		struct v4l2_subdev_pad_format *format = arg;
-+
-+		if (format->which != V4L2_SUBDEV_FORMAT_PROBE &&
-+		    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (format->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh,
-+					format->pad, &format->format,
-+					format->which);
-+	}
-+
-+	case VIDIOC_SUBDEV_S_FMT: {
-+		struct v4l2_subdev_pad_format *format = arg;
-+
-+		if (format->which != V4L2_SUBDEV_FORMAT_PROBE &&
-+		    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (format->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh,
-+					format->pad, &format->format,
-+					format->which);
-+	}
-+
-+	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
-+		struct v4l2_subdev_pad_mbus_code_enum *code = arg;
-+
-+		if (code->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, enum_mbus_code, subdev_fh,
-+					code);
-+	}
-+
-+	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE: {
-+		struct v4l2_subdev_frame_size_enum *fse = arg;
-+
-+		if (fse->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, enum_frame_size, subdev_fh,
-+					fse);
-+	}
-+
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-new file mode 100644
-index 0000000..6504f22
---- /dev/null
-+++ b/include/linux/v4l2-subdev.h
-@@ -0,0 +1,66 @@
-+/*
-+ * V4L2 subdev userspace API
-+ *
-+ * Copyright (C) 2010 Nokia
-+ *
-+ * Contributors:
-+ *	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+#ifndef __LINUX_V4L2_SUBDEV_H
-+#define __LINUX_V4L2_SUBDEV_H
-+
-+#include <linux/ioctl.h>
-+#include <linux/v4l2-mediabus.h>
-+
-+enum v4l2_subdev_format {
-+	V4L2_SUBDEV_FORMAT_PROBE = 0,
-+	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
-+};
-+
-+/**
-+ * struct v4l2_subdev_pad_format
-+ */
-+struct v4l2_subdev_pad_format {
-+	__u32 which;
-+	__u32 pad;
-+	struct v4l2_mbus_framefmt format;
-+};
-+
-+/**
-+ * struct v4l2_subdev_pad_mbus_code_enum
-+ */
-+struct v4l2_subdev_pad_mbus_code_enum {
-+	__u32 pad;
-+	__u32 index;
-+	__u32 code;
-+	__u32 reserved[5];
-+};
-+
-+struct v4l2_subdev_frame_size_enum {
-+	__u32 index;
-+	__u32 pad;
-+	__u32 code;
-+	__u32 min_width;
-+	__u32 max_width;
-+	__u32 min_height;
-+	__u32 max_height;
-+	__u32 reserved[9];
-+};
-+
-+#define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_pad_format)
-+#define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_pad_format)
-+#define VIDIOC_SUBDEV_ENUM_MBUS_CODE \
-+			_IOWR('V', 8, struct v4l2_subdev_pad_mbus_code_enum)
-+#define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
-+			_IOWR('V', 9, struct v4l2_subdev_frame_size_enum)
-+
-+#endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 684ab60..acbcd8f 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -21,6 +21,7 @@
- #ifndef _V4L2_SUBDEV_H
- #define _V4L2_SUBDEV_H
- 
-+#include <linux/v4l2-subdev.h>
- #include <media/media-entity.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-dev.h>
-@@ -399,11 +400,6 @@ struct v4l2_subdev_ir_ops {
- 				struct v4l2_subdev_ir_parameters *params);
- };
- 
--enum v4l2_subdev_format {
--	V4L2_SUBDEV_FORMAT_PROBE = 0,
--	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
--};
--
- struct v4l2_subdev_pad_ops {
- 	int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 			      struct v4l2_subdev_pad_mbus_code_enum *code);
--- 
-1.7.1
+>Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>
+>With Hans proposed changes that you've already acked, I think the proposal is
+>ok,
+>except for one detail:
+>
+>> 4. Format enumeration
+>> ----------------------------------
+>> struct v4l2_fmtdesc, used for format enumeration, does include the
+>v4l2_buf_type
+>> enum as well, so the new types can be handled properly here as well.
+>> For drivers supporting both versions of the API, 1-plane formats should be
+>> returned for multiplanar buffer types as well, for consistency. In other
+>words,
+>> for multiplanar buffer types, the formats returned are a superset of those
+>> returned when enumerating with the old buffer types.
+>>
+>
+>We shouldn't mix types here. If the userspace is asking for multi-planar
+>types,
+>the driver should return just the multi-planar formats.
+>
+>If the userspace wants to know about both, it will just call for both types
+>of
+>formats.
+
+Yes. Although the idea here is that we wanted to be able to use single-planar
+formats with either the old API or the new multiplane API. In the new API, you
+could just set num_planes=1.
+
+So multiplanar API != multiplanar format. When you enum_fmt for mutliplanar
+types, you get "all formats you can use with the multiplanar API" and not
+"all formats that have num_planes > 1".
+
+This can simplify applications - they don't have to switch between APIs when
+switching between formats. They may even choose not to use the old API at all
+(if a driver allows it).
+
+Do we want to lose the ability to use multiplanar API for single-plane
+formats?
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
+
+
+
 
