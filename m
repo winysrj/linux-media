@@ -1,120 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:42214 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369Ab0G1XlG (ORCPT
+Received: from smtp5-g21.free.fr ([212.27.42.5]:35930 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753947Ab0GMTNR convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 19:41:06 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 2/9] IR: minor fixes:
-Date: Thu, 29 Jul 2010 02:40:45 +0300
-Message-Id: <1280360452-8852-3-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
+	Tue, 13 Jul 2010 15:13:17 -0400
+Date: Tue, 13 Jul 2010 21:13:45 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Kyle Baker <kyleabaker@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
+Message-ID: <20100713211345.43caeabb@tele>
+In-Reply-To: <AANLkTimku962Cm_7glThtq3X3jZiwmHSWOYzc2d3WLBl@mail.gmail.com>
+References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
+	<20100707074431.66629934@tele>
+	<AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
+	<20100707110613.18be4215@tele>
+	<AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
+	<20100708121454.75db358c@tele>
+	<AANLkTilw1KxYanoQZEZVaiFCLfkdTpO72Z9xV73i4gm2@mail.gmail.com>
+	<20100709200312.755e8069@tele>
+	<AANLkTikxIJxuQiV_7PqPA5C6ZU5XhhmmQ3hAbIwWsrPT@mail.gmail.com>
+	<20100710113616.1ed63ebc@tele>
+	<AANLkTikrKBpRSI6wVdMO3tSYPhm1CECFGeNiyJdzTa03@mail.gmail.com>
+	<20100711155008.1f8f583f@tele>
+	<AANLkTinnNhJ-DoFWfU8U5NuTj_p48SefYzWWAxZqiUb-@mail.gmail.com>
+	<20100712101802.08527e82@tele>
+	<AANLkTinUHyTHt78ihMHy8dzz0kfPvUMBXKreRmuM-cYW@mail.gmail.com>
+	<20100712132100.1b4072b9@tele>
+	<AANLkTimku962Cm_7glThtq3X3jZiwmHSWOYzc2d3WLBl@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* lirc: Don't propagate reset event to userspace
-* lirc: Remove strange logic from lirc that would make first sample always be pulse
-* Make TO_US macro actualy print what it should.
+On Mon, 12 Jul 2010 19:01:51 -0400
+Kyle Baker <kyleabaker@gmail.com> wrote:
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/ir-core-priv.h  |    4 +---
- drivers/media/IR/ir-lirc-codec.c |   14 ++++++++------
- drivers/media/IR/ir-raw-event.c  |    3 +++
- 3 files changed, 12 insertions(+), 9 deletions(-)
+> These do fix the audio problem,  but they may not be good for other
+> Sensor OV7660 devices. I am not sure how to identify only my model
+> here, but that may be ideal for a better patch. I wonder if this patch
+> would also be needed for the VX-3000 model?
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index babd520..dc26e2b 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -76,7 +76,6 @@ struct ir_raw_event_ctrl {
- 	struct lirc_codec {
- 		struct ir_input_dev *ir_dev;
- 		struct lirc_driver *drv;
--		int lircdata;
- 	} lirc;
- };
- 
-@@ -104,10 +103,9 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
- 		ev->duration -= duration;
- }
- 
--#define TO_US(duration)			(((duration) + 500) / 1000)
-+#define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
- #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
- #define IS_RESET(ev)			(ev.duration == 0)
--
- /*
-  * Routines from ir-sysfs.c - Meant to be called only internally inside
-  * ir-core
-diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
-index 3ba482d..8ca01fd 100644
---- a/drivers/media/IR/ir-lirc-codec.c
-+++ b/drivers/media/IR/ir-lirc-codec.c
-@@ -32,6 +32,7 @@
- static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- {
- 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
-+	int sample;
- 
- 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_LIRC))
- 		return 0;
-@@ -39,18 +40,21 @@ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- 	if (!ir_dev->raw->lirc.drv || !ir_dev->raw->lirc.drv->rbuf)
- 		return -EINVAL;
- 
-+	if (IS_RESET(ev))
-+		return 0;
-+
- 	IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
- 		   TO_US(ev.duration), TO_STR(ev.pulse));
- 
--	ir_dev->raw->lirc.lircdata += ev.duration / 1000;
-+
-+	sample = ev.duration / 1000;
- 	if (ev.pulse)
--		ir_dev->raw->lirc.lircdata |= PULSE_BIT;
-+		sample |= PULSE_BIT;
- 
- 	lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
--			  (unsigned char *) &ir_dev->raw->lirc.lircdata);
-+			  (unsigned char *) &sample);
- 	wake_up(&ir_dev->raw->lirc.drv->rbuf->wait_poll);
- 
--	ir_dev->raw->lirc.lircdata = 0;
- 
- 	return 0;
- }
-@@ -224,8 +228,6 @@ static int ir_lirc_register(struct input_dev *input_dev)
- 
- 	ir_dev->raw->lirc.drv = drv;
- 	ir_dev->raw->lirc.ir_dev = ir_dev;
--	ir_dev->raw->lirc.lircdata = PULSE_MASK;
--
- 	return 0;
- 
- lirc_register_failed:
-diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-index 6f192ef..ab9c4da 100644
---- a/drivers/media/IR/ir-raw-event.c
-+++ b/drivers/media/IR/ir-raw-event.c
-@@ -66,6 +66,9 @@ int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev)
- 	if (!ir->raw)
- 		return -EINVAL;
- 
-+	IR_dprintk(2, "sample: (05%dus %s)\n", TO_US(ev->duration),
-+							TO_STR(ev->pulse));
-+
- 	if (kfifo_in(&ir->raw->kfifo, ev, sizeof(*ev)) != sizeof(*ev))
- 		return -ENOMEM;
- 
+Hi Kyle,
+
+Thanks for the patch, but it is more complex. In fact, only the bridge
+sn9c105 may do audio stream and the sensor ov7660 is used with other
+bridges (the VX3000 is the same as the VX1000 and contains the sn9c105
+and the ov7660).
+
+In the new gspca test version (2.9.52), I modified the driver for it
+checks the audio device. If present, the bandwidth is reduced and for
+the sn9c105, the bit 0x04 of the GPIO register is always set (I hope
+that the audio connection is done in the same way by all manufacturer!).
+
+May you check it?
+
+Best regards.
+
 -- 
-1.7.0.4
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
