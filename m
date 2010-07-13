@@ -1,67 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28776 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752091Ab0GYShG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jul 2010 14:37:06 -0400
-Message-ID: <4C4C846C.90904@redhat.com>
-Date: Sun, 25 Jul 2010 15:37:32 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:45825 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752637Ab0GMHyt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Jul 2010 03:54:49 -0400
+Received: by iwn7 with SMTP id 7so5580677iwn.19
+        for <linux-media@vger.kernel.org>; Tue, 13 Jul 2010 00:54:49 -0700 (PDT)
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Linux Plumber's Conference: Call for Working Session Submissions
-References: <4C4B5077.3020509@redhat.com>	<AANLkTim5X6LNqcv3F=uiMVbe-emz10CV2N_9ssPcTeK+@mail.gmail.com>	<4C4C75F6.8070301@redhat.com> <AANLkTim4RiB8JXi8UfzkdnJRXDRL8995WT=431kyS1=R@mail.gmail.com>
-In-Reply-To: <AANLkTim4RiB8JXi8UfzkdnJRXDRL8995WT=431kyS1=R@mail.gmail.com>
+Date: Tue, 13 Jul 2010 17:54:48 +1000
+Message-ID: <AANLkTilzstvLDKE0VrXEw7awNLOLRVOyUpWpcf0B98HM@mail.gmail.com>
+Subject: Reception issue: DViCO Fusion HDTV DVB-T Dual Express
+From: David Shirley <tephra@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-07-2010 15:20, Jarod Wilson escreveu:
-> On Sun, Jul 25, 2010 at 1:35 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Hi Jarod,
->>
->> Em 25-07-2010 13:10, Jarod Wilson escreveu:
->>> On Sat, Jul 24, 2010 at 4:43 PM, Mauro Carvalho Chehab
->>> <mchehab@redhat.com> wrote:
->>>> CFP dead line for submitting proposals to LPC/2010 is approaching.
->>>> For those that intends to submit proposals for it, please do it quickly,
->>>> as the official dead line is July, 26.
->>>
->>> I've submitted a proposal for a Linux HTPC presentation, intending to
->>> cover everything from low-level v4l/dvb drivers, video decoder drivers
->>> and IR drivers, up the stack to userspace (primarily mythtv and a bit
->>> of xbmc). Also submitted a micro-conf proposal for media-related bits,
->>> as I didn't see one yet, and at the time, the proposal submission
->>> deadline was only a day or two out (this was before it got extended to
->>> the 26th) and I believe you were on vacation,
->>
->> Good to know. Yes, I was on vacation, just returning back and trying to get rid
->> of the immense amount of emails and spams from my inboxes...
-> 
-> One of the many joys of returning from vacation... :)
+Hi All,
 
-Yeah...
+I am having reception issues with this particular card, the problem
+manifests itself with missing video frames and popping sounds on the
+audio streams.
 
->> To be clear, the dead line for the LPC conf is by July, 26, but we still have
->> more time for the mini-conf tracks.
->>
->>> so your submission and
->>> mine are essentially duplicates.
->>>
->>> http://www.linuxplumbersconf.org/2010/ocw/proposals/621
->>> http://www.linuxplumbersconf.org/2010/ocw/proposals/195
->>
->> No, they won't conflict. My "proposal" is for leading the mini-conf panel, and not
->> for the presentation itself (it is not really a proposal - it is just the way it
->> is defined for the panel leads to register the panels).
-> 
-> The two linked above do, they're both mini-conf panel proposals, I
-> submitted both a mini-conf proposal and a presentation proposal.
+As far as I can tell it only some channels do it, "Nine" and its
+multiplexes are the worst for it
 
-Ah, now I see... Thanks for submitting it in my behalf. I'll double check what's
-the better way to adjust your proposals with mine.
+You can see that TZAP every now and reports some unc/ber:
 
-Thanks,
-Mauro
+crystal:/usr/share/dvb/dvb-t# tzap -a 0 -c 0 "Nine Digital HD"
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+reading channels from file '0'
+tuning to 191625000 Hz
+video pid 0x0200, audio pid 0x0000
+status 00 | signal 0b28 | snr 0000 | ber 00000000 | unc 000012c8 |
+status 1e | signal b64c | snr dede | ber 00000000 | unc 000013ce | FE_HAS_LOCK
+status 1e | signal bb88 | snr cece | ber 00000000 | unc 00001420 | FE_HAS_LOCK
+status 1e | signal 9b78 | snr e1e1 | ber 00000000 | unc 00001420 | FE_HAS_LOCK
+status 1e | signal 95a4 | snr e0e0 | ber 00000000 | unc 00001420 | FE_HAS_LOCK
+status 1e | signal ae4c | snr ecec | ber 00000000 | unc 00001420 | FE_HAS_LOCK
+status 1e | signal a7b4 | snr e9e9 | ber 00000316 | unc 00001420 | FE_HAS_LOCK
+status 1e | signal b7bc | snr d7d7 | ber 00000316 | unc 00001420 | FE_HAS_LOCK
+status 1e | signal a988 | snr f2f2 | ber 00000316 | unc 00001420 | FE_HAS_LOCK
+status 1e | signal a5a0 | snr f1f1 | ber 00000316 | unc 00001420 | FE_HAS_LOCK
+status 1e | signal ad70 | snr e5e5 | ber 00000316 | unc 00001420 | FE_HAS_LOCK
+status 1e | signal b358 | snr dfdf | ber 0000000d | unc 00001432 | FE_HAS_LOCK
+status 1e | signal 9de8 | snr e5e5 | ber 0000000d | unc 00001432 | FE_HAS_LOCK
+status 1e | signal 9dd0 | snr dada | ber 0000000d | unc 00001432 | FE_HAS_LOCK
+status 1e | signal ac04 | snr eded | ber 0000000d | unc 00001432 | FE_HAS_LOCK
+status 1e | signal a340 | snr e9e9 | ber 0000000d | unc 00001432 | FE_HAS_LOCK
+status 1e | signal a910 | snr e7e7 | ber 000001e7 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal aefc | snr e7e7 | ber 000001e7 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal 8d34 | snr f6f6 | ber 000001e7 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal 10ac | snr f8f8 | ber 000001e7 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal 0224 | snr f6f6 | ber 000001e7 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal 9b74 | snr ecec | ber 00000000 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal 24cc | snr f4f4 | ber 00000000 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal a2f4 | snr f9f9 | ber 00000000 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal 9d20 | snr f6f6 | ber 00000000 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal a7d8 | snr f0f0 | ber 00000000 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal a74c | snr f4f4 | ber 000000a9 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal a0fc | snr f1f1 | ber 000000a9 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal a2d4 | snr f1f1 | ber 000000a9 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal 0000 | snr fafa | ber 000000a9 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal a490 | snr e7e7 | ber 000000a9 | unc 00001432 | FE_HAS_LOCK
+status 1e | signal 0000 | snr fafa | ber 00000000 | unc 00001432 | FE_HAS_LOCK
+
+
+I have 2 other DVB-T cards in my system and they are fine:
+crystal:/usr/share/dvb/dvb-t# tzap -a 3 -c 0 "Nine Digital HD"
+using '/dev/dvb/adapter3/frontend0' and '/dev/dvb/adapter3/demux0'
+reading channels from file '0'
+tuning to 191625000 Hz
+video pid 0x0200, audio pid 0x0000
+status 01 | signal b15f | snr 0000 | ber 00000000 | unc 00000000 |
+status 1f | signal b27f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b2ef | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b1af | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b23f | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b0df | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b2ff | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b27f | snr e9e9 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b20f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b36f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b3bf | snr e8e8 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b17f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b36f | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b28f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b33f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b30f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b2ef | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b10f | snr e8e8 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b2df | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b30f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b37f | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b38f | snr ecec | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b2ff | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b34f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b36f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b3bf | snr ecec | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b34f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b2af | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b23f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b3df | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b36f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b3cf | snr ecec | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b2df | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b2bf | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b36f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b40f | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b2cf | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b35f | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b32f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b2af | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b47f | snr eaea | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b3bf | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal b41f | snr ebeb | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+
+crystal:/usr/share/dvb/dvb-t# dmesg |grep -i dvb
+CORE cx23885[0]: subsystem: 18ac:db78, board: DViCO FusionHDTV DVB-T
+Dual Express [card=11,autodetected]
+cx88[1]: subsystem: 18ac:db10, board: DViCO FusionHDTV DVB-T Plus
+[card=21,autodetected], frontend(s): 1
+cx23885_dvb_register() allocating 1 frontend(s)
+cx23885[0]: cx23885 based dvb card
+DVB: registering new adapter (cx23885[0])
+DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
+cx23885_dvb_register() allocating 1 frontend(s)
+cx23885[0]: cx23885 based dvb card
+DVB: registering new adapter (cx23885[0])
+DVB: registering adapter 1 frontend 0 (Zarlink ZL10353 DVB-T)...
+cx88/2: cx2388x dvb driver version 0.0.7 loaded
+cx88/2: registering cx8802 driver, type: dvb access: shared
+cx88[0]/2: cx2388x based DVB/ATSC card
+DVB: registering new adapter (cx88[0])
+DVB: registering adapter 2 frontend 0 (Conexant CX22702 DVB-T)...
+cx88[1]/2: subsystem: 18ac:db10, board: DViCO FusionHDTV DVB-T Plus [card=21]
+cx88[1]/2: cx2388x based DVB/ATSC card
+DVB: registering new adapter (cx88[1])
+DVB: registering adapter 3 frontend 0 (Zarlink MT352 DVB-T)...
+
+crystal:/usr/share/dvb/dvb-t# uname -a
+Linux crystal 2.6.32.14 #1 SMP PREEMPT Sat Jun 26 12:47:01 EST 2010
+i686 GNU/Linux
+
+Hopefully someone can help or give me instructions on how to debug...
+
+Cheers
+David
