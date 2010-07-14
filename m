@@ -1,89 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61224 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751170Ab0G1S24 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 14:28:56 -0400
-Message-ID: <4C5076EE.3080102@redhat.com>
-Date: Wed, 28 Jul 2010 15:29:02 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from faui40.informatik.uni-erlangen.de ([131.188.34.40]:45153 "EHLO
+	faui40.informatik.uni-erlangen.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754734Ab0GNNVK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jul 2010 09:21:10 -0400
+Date: Wed, 14 Jul 2010 15:21:06 +0200
+From: Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Olivier Grenie <Olivier.Grenie@dibcom.fr>,
+	=?iso-8859-1?Q?M=E1rton_N=E9meth?= <nm127@freemail.hu>,
+	Tejun Heo <tj@kernel.org>,
+	Muralidharan Karicheri <mkaricheri@gmail.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>,
+	Julia Lawall <julia@diku.dk>, Jonathan Corbet <corbet@lwn.net>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: vamos-dev@i4.informatik.uni-erlangen.de
+Subject: [PATCH 0/4] Removing dead code
+Message-ID: <cover.1279111369.git.qy03fugy@stud.informatik.uni-erlangen.de>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Jon Smirl <jonsmirl@gmail.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	linux-input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: Can I expect in-kernel decoding to work out of box?
-References: <1280269990.21278.15.camel@maxim-laptop>	 <1280273550.32216.4.camel@maxim-laptop>	 <AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>	 <AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>	 <1280298606.6736.15.camel@maxim-laptop>	 <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>	 <4C502CE6.80106@redhat.com>	 <AANLkTinCs7f6zF-tYZqJ49CAjNWF=2MPGh0VRuU=VLzq@mail.gmail.com>	 <1280327929.11072.24.camel@morgan.silverblock.net>	 <AANLkTikFfXx4NBB2z2UXNt5Kt-2QrvTfvK0nQhSSqw8v@mail.gmail.com>	 <4C504FDB.4070400@redhat.com> <1280336530.19593.52.camel@morgan.silverblock.net>
-In-Reply-To: <1280336530.19593.52.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 28-07-2010 14:02, Andy Walls escreveu:
-> On Wed, 2010-07-28 at 12:42 -0300, Mauro Carvalho Chehab wrote:
->> Em 28-07-2010 11:53, Jon Smirl escreveu:
->>> On Wed, Jul 28, 2010 at 10:38 AM, Andy Walls <awalls@md.metrocast.net> wrote:
->>>> On Wed, 2010-07-28 at 09:46 -0400, Jon Smirl wrote:
-> 
->>> I recommend that all decoders initially follow the strict protocol
->>> rules. That will let us find bugs like this one in the ENE driver.
->>
->> Agreed.
-> 
-> Well... 
-> 
-> I'd possibly make an exception for the protocols that have long-mark
-> leaders.  The actual long mark measurement can be far off from the
-> protocol's specification and needs a larger tolerance (IMO).
-> 
-> Only allowing 0.5 to 1.0 of a protocol time unit tolerance, for a
-> protocol element that is 8 to 16 protocol time units long, doesn't make
-> too much sense to me.  If the remote has the basic protocol time unit
-> off from our expectation, the error will likely be amplified in a long
-> protocol elements and very much off our expectation.
+Hi all!
+       
+        As part of the VAMOS[0] research project at the University of
+Erlangen we are looking at multiple integrity errors in linux'
+configuration system.
 
-We may adjust it as we note problems on it, but relaxing rules may cause
-bad effects, so the better is to be more strict.
+        I've been running a check on the drivers/media sourcetree for
+config Items not defined in Kconfig and found 4 such cases. Sourcecode
+blocks depending on these Items are not reachable from a vanilla
+kernel -- dead code. I've seen such dead blocks made on purpose
+e.g. while integrating new features into the kernel but generally
+they're just useless.
 
->> I think that the better is to add some parameters, via sysfs, to relax the
->> rules at the current decoders, if needed.
-> 
-> Is that worth the effort?  It seems like only going half-way to an
-> ultimate end state.
+        There were also CONFIG_ options set within a source file. This
+created code blocks which were always selected and compiled.
 
-Well, let's see first if this is needed. Then, we take the decisions case by case.
+        Each of the patches in this patchset removes on such dead
+config Item, I'd be glad if you consider applying them. I've been
+doing deeper analysis of such issues before and can do so again but
+I'm not so sure they were fastly usefull.
 
-> <crazy idea>
-> If you go through the effort of implementing fine grained controls
-> (tweaking tolerances for this pulse type here or there), why not just
-> implement a configurable decoding engine that takes as input:
-> 
-> 	symbol definitions
-> 		(pulse and space length specifications and tolerances)
-> 	pulse train states
-> 	allowed state transitions
-> 	gap length
-> 	decoded output data length
-> 
-> and instantiates a decoder that follows a user-space provided
-> specification?
-> 
-> The user can write his own decoding engine specification in a text file,
-> feed it into the kernel, and the kernel can implement it for him.
-> </crazy idea>
+        I build the patches against a vanilla kernel in order to
+try if the kernel compiles with this patches
 
-It is not a crazy idea, and perhaps this is the only way to work with certain
-protocols, like Quatro Pulse (see my previous email).
+        Please keep me informed of this patch getting confirmed /
+merged so we can keep track of it.
 
-But I think that we should still have the proper decoders for common
-protocols and that we won't have any legal restriction to implement
-a decoder. A generic decoder will be less efficient than 
+Regards
 
-> OK, maybe that is a little too much time and effort. ;)
+        Christian Dietrich
 
-Good point. Well, we'll need some volunteer to write such driver ;)
+[0] http://vamos1.informatik.uni-erlangen.de/
 
-Cheers,
-Mauro
+Christian Dietrich (4):
+  drivers/media/dvb: Remove dead Configs
+  drivers/media/dvb: Remove undead configs
+  drivers/media/video: Remove dead CONFIG_FB_OMAP2_FORCE_AUTO_UPDATE
+  drivers/media/video: Remove dead CONFIG_OLPC_X0_1
+
+ drivers/media/dvb/frontends/dib0090.c |  126 ---------------------------------
+ drivers/media/video/omap/omap_vout.c  |    8 --
+ drivers/media/video/ov7670.c          |   37 ----------
+ 3 files changed, 0 insertions(+), 171 deletions(-)
+
