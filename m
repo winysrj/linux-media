@@ -1,81 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61965 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758099Ab0G2RSa (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:52764 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753841Ab0GNOGL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 13:18:30 -0400
-Date: 29 Jul 2010 19:15:00 +0200
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: maximlevitsky@gmail.com
-Cc: awalls@md.metrocast.net
-Cc: jarod@wilsonet.com
-Cc: linux-input@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: lirc-list@lists.sourceforge.net
-Cc: mchehab@redhat.com
-Message-ID: <BTlN5mEJjFB@christoph>
-In-Reply-To: <1280420775.32069.5.camel@maxim-laptop>
-Subject: Re: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Wed, 14 Jul 2010 10:06:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [SAMPLE 10/12] omap3: Export omap3isp platform device structure
+Date: Wed, 14 Jul 2010 16:07:12 +0200
+Message-Id: <1279116434-28278-11-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Maxim,
+From: Stanimir Varbanov <svarbanov@mm-sol.com>
 
-on 29 Jul 10 at 19:26, Maxim Levitsky wrote:
-> On Thu, 2010-07-29 at 11:38 -0400, Andy Walls wrote:
->> On Thu, 2010-07-29 at 17:41 +0300, Maxim Levitsky wrote:
->>> On Thu, 2010-07-29 at 09:23 +0200, Christoph Bartelmus wrote:
->>>> Hi Maxim,
->>>>
->>>> on 29 Jul 10 at 02:40, Maxim Levitsky wrote:
->>>> [...]
->>>>> In addition to comments, I changed helper function that processes
->>>>> samples so it sends last space as soon as timeout is reached.
->>>>> This breaks somewhat lirc, because now it gets 2 spaces in row.
->>>>> However, if it uses timeout reports (which are now fully supported)
->>>>> it will get such report in middle.
->>>>>
->>>>> Note that I send timeout report with zero value.
->>>>> I don't think that this value is importaint.
->>>>
->>>> This does not sound good. Of course the value is important to userspace
->>>> and 2 spaces in a row will break decoding.
->>>>
->>>> Christoph
->>>
->>> Could you explain exactly how timeout reports work?
->>>
->>> Lirc interface isn't set to stone, so how about a reasonable compromise.
->>> After reasonable long period of inactivity (200 ms for example), space
->>> is sent, and then next report starts with a pulse.
->>> So gaps between keypresses will be maximum of 200 ms, and as a bonus I
->>> could rip of the logic that deals with remembering the time?
->>>
->>> Best regards,
->>> Maxim Levitsky
+omap3isp platform device structure pointer is needed from camera board
+files for subdevs registration and calls.
 
-> So, timeout report is just another sample, with a mark attached, that
-> this is last sample? right?
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+---
+ arch/arm/mach-omap2/devices.c |    5 ++++-
+ arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
+ 2 files changed, 21 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/devices.h
 
-No, a timeout report is just an additional hint for the decoder that a  
-specific amount of time has passed since the last pulse _now_.
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index 46b0b4b..ae465ce 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -32,6 +32,8 @@
+ 
+ #include "mux.h"
+ 
++#include "devices.h"
++
+ #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
+ 
+ static struct resource cam_resources[] = {
+@@ -142,12 +144,13 @@ static struct resource omap3isp_resources[] = {
+ 	}
+ };
+ 
+-static struct platform_device omap3isp_device = {
++struct platform_device omap3isp_device = {
+ 	.name		= "omap3isp",
+ 	.id		= -1,
+ 	.num_resources	= ARRAY_SIZE(omap3isp_resources),
+ 	.resource	= omap3isp_resources,
+ };
++EXPORT_SYMBOL_GPL(omap3isp_device);
+ 
+ static inline void omap_init_camera(void)
+ {
+diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
+new file mode 100644
+index 0000000..f312d49
+--- /dev/null
++++ b/arch/arm/mach-omap2/devices.h
+@@ -0,0 +1,17 @@
++/*
++ * arch/arm/mach-omap2/devices.h
++ *
++ * OMAP2 platform device setup/initialization
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
++#define __ARCH_ARM_MACH_OMAP_DEVICES_H
++
++extern struct platform_device omap3isp_device;
++
++#endif
+-- 
+1.7.1
 
-[...]
-> In that case, lets do that this way:
->
-> As soon as timeout is reached, I just send lirc the timeout report.
-> Then next keypress will start with pulse.
-
-When timeout reports are enabled the sequence must be:
-<pulse> <timeout> <space> <pulse>
-where <timeout> is optional.
-
-lircd will not work when you leave out the space. It must know the exact  
-time between the pulses. Some hardware generates timeout reports that are  
-too short to distinguish between spaces that are so short that the next  
-sequence can be interpreted as a repeat or longer spaces which indicate  
-that this is a new key press.
-
-Christoph
