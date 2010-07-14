@@ -1,115 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:42542 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754550Ab0GEWMT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 18:12:19 -0400
-Message-ID: <4C3258B7.5070900@infradead.org>
-Date: Mon, 05 Jul 2010 19:12:07 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Renzo Dani <arons7@gmail.com>
-CC: adams.xu@azwave.com.cn, rdunlap@xenotime.net, o.endriss@gmx.de,
-	awalls@radix.net, crope@iki.fi, manu@linuxtv.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org
-Subject: Re: [PATCH 1/1] Added Technisat Skystar USB HD CI
-References: <1277719055-14585-1-git-send-email-arons7@gmail.com>
-In-Reply-To: <1277719055-14585-1-git-send-email-arons7@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.irobotique.be ([92.243.18.41]:51140 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757115Ab0GNN3S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jul 2010 09:29:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH 09/10] v4l: Make video_device inherit from media_entity
+Date: Wed, 14 Jul 2010 15:30:18 +0200
+Message-Id: <1279114219-27389-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 28-06-2010 06:57, Renzo Dani escreveu:
-> From: Renzo Dani <arons7@gmail.com>
-> 
-> 
-> Signed-off-by: Renzo Dani <arons7@gmail.com>
-> ---
->  Documentation/dvb/get_dvb_firmware |   19 ++++++++++++++++++-
->  drivers/media/dvb/dvb-usb/az6027.c |   14 ++++++++++++--
+V4L2 devices are media entities. As such they need to inherit from
+(include) the media_entity structure.
 
+When registering/unregistering the device, the media entity is
+automatically registered/unregistered. The entity is acquired on device
+open and released on device close.
 
-Please, re-base your patch against upstream and send the firmware patch on a separate
-email.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   38 +++++++++++++++++++++++--
+ drivers/media/video/v4l2-dev.c               |   35 ++++++++++++++++++++++-
+ include/media/v4l2-dev.h                     |    6 ++++
+ 3 files changed, 74 insertions(+), 5 deletions(-)
 
-Cheers,
-Mauro
->  2 files changed, 30 insertions(+), 3 deletions(-)
-> 
-> diff --git a/Documentation/dvb/get_dvb_firmware b/Documentation/dvb/get_dvb_firmware
-> index 239cbdb..c203e94 100644
-> --- a/Documentation/dvb/get_dvb_firmware
-> +++ b/Documentation/dvb/get_dvb_firmware
-> @@ -26,7 +26,7 @@ use IO::Handle;
->  		"dec3000s", "vp7041", "dibusb", "nxt2002", "nxt2004",
->  		"or51211", "or51132_qam", "or51132_vsb", "bluebird",
->  		"opera1", "cx231xx", "cx18", "cx23885", "pvrusb2", "mpc718",
-> -		"af9015", "ngene");
-> +		"af9015", "ngene", "az6027");
->  
->  # Check args
->  syntax() if (scalar(@ARGV) != 1);
-> @@ -567,6 +567,23 @@ sub ngene {
->      "$file1, $file2";
->  }
->  
-> +sub az6027{
-> +    my $file = "AZ6027_Linux_Driver.tar.gz";
-> +	my $url = "http://linux.terratec.de/files/$file";
-> +    my $firmware = "dvb-usb-az6027-03.fw";
-> +
-> +	wgetfile($file, $url);
-> +
-> +	#untar
-> +    if( system("tar xzvf $file")){
-> +		die "failed to untar firmware";
-> +	}
-> +	if( system("rm -rf AZ6027_Linux_Driver; rm $file")){
-> +		die ("unable to remove unnecessary files");
-> +    }
-> +
-> +    $firmware;
-> +}
->  # ---------------------------------------------------------------
->  # Utilities
->  
-> diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
-> index d7290b2..891ae04 100644
-> --- a/drivers/media/dvb/dvb-usb/az6027.c
-> +++ b/drivers/media/dvb/dvb-usb/az6027.c
-> @@ -1103,13 +1103,23 @@ static struct dvb_usb_device_properties az6027_properties = {
->  	.rc_query         = az6027_rc_query,
->  	.i2c_algo         = &az6027_i2c_algo,
->  
-> -	.num_device_descs = 1,
-> +	.num_device_descs = 2,
->  	.devices = {
->  		{
->  			.name = "AZUREWAVE DVB-S/S2 USB2.0 (AZ6027)",
->  			.cold_ids = { &az6027_usb_table[0], NULL },
->  			.warm_ids = { NULL },
->  		},
-> +		{
-> +		    .name = " Terratec DVB 2 CI",
-> +			.cold_ids = { &az6027_usb_table[1], NULL },
-> +			.warm_ids = { NULL },
-> +		},
-> +		{
-> +		    .name = "TechniSat SkyStar USB 2 HD CI (AZ6027)",
-> +			.cold_ids = { &az6027_usb_table[2], NULL },
-> +			.warm_ids = { NULL },
-> +		},
->  		{ NULL },
->  	}
->  };
-> @@ -1118,7 +1128,7 @@ static struct dvb_usb_device_properties az6027_properties = {
->  static struct usb_driver az6027_usb_driver = {
->  	.name		= "dvb_usb_az6027",
->  	.probe 		= az6027_usb_probe,
-> -	.disconnect 	= az6027_usb_disconnect,
-> +	.disconnect	= az6027_usb_disconnect,
->  	.id_table 	= az6027_usb_table,
->  };
->  
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 8a3f14e..0d9b8ce 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -71,6 +71,10 @@ sub-device instances, the video_device struct stores V4L2 device node data
+ and in the future a v4l2_fh struct will keep track of filehandle instances
+ (this is not yet implemented).
+ 
++The V4L2 framework also optionally integrates with the media framework. If a
++driver sets the struct v4l2_device mdev field, sub-devices and video nodes
++will automatically appear in the media framework as entities.
++
+ 
+ struct v4l2_device
+ ------------------
+@@ -84,11 +88,14 @@ You must register the device instance:
+ 	v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
+ 
+ Registration will initialize the v4l2_device struct. If the dev->driver_data
+-field is NULL, it will be linked to v4l2_dev. Drivers that use the media
+-device framework in addition to the V4L2 framework need to set
++field is NULL, it will be linked to v4l2_dev.
++
++Drivers that want integration with the media device framework need to set
+ dev->driver_data manually to point to the driver-specific device structure
+ that embed the struct v4l2_device instance. This is achieved by a
+-dev_set_drvdata() call before registering the V4L2 device instance.
++dev_set_drvdata() call before registering the V4L2 device instance. They must
++also set the struct v4l2_device mdev field to point to a properly initialized
++and registered media_device instance.
+ 
+ If v4l2_dev->name is empty then it will be set to a value derived from dev
+ (driver name followed by the bus_id, to be precise). If you set it up before
+@@ -523,6 +530,21 @@ If you use v4l2_ioctl_ops, then you should set either .unlocked_ioctl or
+ The v4l2_file_operations struct is a subset of file_operations. The main
+ difference is that the inode argument is omitted since it is never used.
+ 
++If integration with the media framework is needed, you must initialize the
++media_entity struct embedded in the video_device struct (entity field) by
++calling media_entity_init():
++
++	struct media_entity_pad *pad = &my_vdev->pad;
++	int err;
++
++	err = media_entity_init(&vdev->entity, 1, pad, 0);
++
++The pads array must have been previously initialized. There is no need to
++manually set the struct media_entity type, subtype and name fields.
++
++A reference to the entity will be automatically acquired/released when the
++video device is opened/closed.
++
+ 
+ video_device registration
+ -------------------------
+@@ -536,6 +558,9 @@ for you.
+ 		return err;
+ 	}
+ 
++If the v4l2_device parent device has a non-NULL mdev field, the video device
++entity will be automatically registered with the media device.
++
+ Which device is registered depends on the type argument. The following
+ types exist:
+ 
+@@ -613,6 +638,13 @@ those will still be passed on since some buffer ioctls may still be needed.
+ When the last user of the video device node exits, then the vdev->release()
+ callback is called and you can do the final cleanup there.
+ 
++Don't forget to cleanup the media entity associated with the video device if
++it has been initialized:
++
++	media_entity_cleanup(&vdev->entity);
++
++This can be done from the release callback.
++
+ 
+ video_device helper functions
+ -----------------------------
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index bcd47a0..3b1d828 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -269,6 +269,7 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
+ static int v4l2_open(struct inode *inode, struct file *filp)
+ {
+ 	struct video_device *vdev;
++	struct media_entity *entity = NULL;
+ 	int ret = 0;
+ 
+ 	/* Check if the video device is available */
+@@ -283,12 +284,22 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+ 	/* and increase the device refcount */
+ 	video_get(vdev);
+ 	mutex_unlock(&videodev_lock);
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
++		entity = media_entity_get(&vdev->entity);
++		if (!entity) {
++			ret = -EBUSY;
++			video_put(vdev);
++			return ret;
++		}
++	}
+ 	if (vdev->fops->open)
+ 		ret = vdev->fops->open(filp);
+ 
+ 	/* decrease the refcount in case of an error */
+-	if (ret)
++	if (ret) {
++		media_entity_put(entity);
+ 		video_put(vdev);
++	}
+ 	return ret;
+ }
+ 
+@@ -301,6 +312,9 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 	if (vdev->fops->release)
+ 		vdev->fops->release(filp);
+ 
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
++		media_entity_put(&vdev->entity);
++
+ 	/* decrease the refcount unconditionally since the release()
+ 	   return value is ignored. */
+ 	video_put(vdev);
+@@ -563,11 +577,25 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
+ 			name_base, nr, video_device_node_name(vdev));
+ 
+-	/* Part 5: Activate this minor. The char device can now be used. */
++	/* Part 5: Register the entity. */
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
++		vdev->entity.type = MEDIA_ENTITY_TYPE_NODE;
++		vdev->entity.subtype = MEDIA_NODE_TYPE_V4L;
++		vdev->entity.name = vdev->name;
++		vdev->entity.v4l.major = VIDEO_MAJOR;
++		vdev->entity.v4l.minor = vdev->minor;
++		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
++			&vdev->entity);
++		if (ret < 0)
++			printk(KERN_ERR "error\n"); /* TODO */
++	}
++
++	/* Part 6: Activate this minor. The char device can now be used. */
+ 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
+ 	mutex_lock(&videodev_lock);
+ 	video_device[vdev->minor] = vdev;
+ 	mutex_unlock(&videodev_lock);
++
+ 	return 0;
+ 
+ cleanup:
+@@ -595,6 +623,9 @@ void video_unregister_device(struct video_device *vdev)
+ 	if (!vdev || !video_is_registered(vdev))
+ 		return;
+ 
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
++		media_device_unregister_entity(&vdev->entity);
++
+ 	clear_bit(V4L2_FL_REGISTERED, &vdev->flags);
+ 	device_unregister(&vdev->dev);
+ }
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 195fa56..447b154 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -16,6 +16,8 @@
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
+ 
++#include <media/media-entity.h>
++
+ #define VIDEO_MAJOR	81
+ 
+ #define VFL_TYPE_GRABBER	0
+@@ -57,6 +59,8 @@ struct v4l2_file_operations {
+ 
+ struct video_device
+ {
++	struct media_entity entity;
++
+ 	/* device ops */
+ 	const struct v4l2_file_operations *fops;
+ 
+@@ -96,6 +100,8 @@ struct video_device
+ 	const struct v4l2_ioctl_ops *ioctl_ops;
+ };
+ 
++#define media_entity_to_video_device(entity) \
++	container_of(entity, struct video_device, entity)
+ /* dev to video-device */
+ #define to_video_device(cd) container_of(cd, struct video_device, dev)
+ 
+-- 
+1.7.1
 
