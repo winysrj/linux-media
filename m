@@ -1,45 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:58116 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753909Ab0GZQUc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 12:20:32 -0400
-Date: Mon, 26 Jul 2010 18:20:49 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
-Subject: [PATCH 1/5] V4L2: mediabus: add 12-bit Bayer and YUV420 pixel formats
-In-Reply-To: <Pine.LNX.4.64.1007261739180.9816@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1007261748450.9816@axis700.grange>
-References: <Pine.LNX.4.64.1007261739180.9816@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from perceval.irobotique.be ([92.243.18.41]:52763 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756807Ab0GNOGI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jul 2010 10:06:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [SAMPLE 04/12] v4l-subdev: Add pads operations
+Date: Wed, 14 Jul 2010 16:07:06 +0200
+Message-Id: <1279116434-28278-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These formats belong to the standard format set, defined by the MIPI CSI-2
-specification.
+Add a v4l2_subdev_pad_ops structure for the operations that need to be
+performed at the pad level such as format-related operations.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+The format at the output of a subdev usually depends on the format at
+its input(s). The try format operation is thus not suitable for probing
+format at individual pads, as it can't modify the device state and thus
+can't remember the format probed at the input to compute the output
+format.
+
+To fix the problem, pass an extra argument to the get/set format
+operations to select the 'probe' or 'active' format.
+
+The probe format is used when probing the subdev. Setting the probe
+format must not change the device configuration but can store data for
+later reuse. Data storage is provided at the file-handle level so
+applications probing the subdev concurently won't interfere with each
+other.
+
+The active format is used when configuring the subdev. It's identical to
+the format handled by the usual get/set operations.
+
+Pad format-related operations use v4l2_mbus_framefmt instead of
+v4l2_format.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- include/media/v4l2-mediabus.h |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ include/media/v4l2-subdev.h |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 865cda7..584e1b1 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -41,6 +41,11 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
- 	V4L2_MBUS_FMT_SGRBG8_1X8,
-+	V4L2_MBUS_FMT_SBGGR12_1X12,
-+	V4L2_MBUS_FMT_YUYV8_1_5X8,
-+	V4L2_MBUS_FMT_YVYU8_1_5X8,
-+	V4L2_MBUS_FMT_UYVY8_1_5X8,
-+	V4L2_MBUS_FMT_VYUY8_1_5X8,
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 01b4135..684ab60 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -41,6 +41,7 @@ struct v4l2_device;
+ struct v4l2_event_subscription;
+ struct v4l2_fh;
+ struct v4l2_subdev;
++struct v4l2_subdev_fh;
+ struct tuner_setup;
+ 
+ /* decode_vbi_line */
+@@ -398,6 +399,25 @@ struct v4l2_subdev_ir_ops {
+ 				struct v4l2_subdev_ir_parameters *params);
  };
  
- /**
++enum v4l2_subdev_format {
++	V4L2_SUBDEV_FORMAT_PROBE = 0,
++	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
++};
++
++struct v4l2_subdev_pad_ops {
++	int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			      struct v4l2_subdev_pad_mbus_code_enum *code);
++	int (*enum_frame_size)(struct v4l2_subdev *sd,
++			       struct v4l2_subdev_fh *fh,
++			       struct v4l2_subdev_frame_size_enum *fse);
++	int (*get_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
++		       enum v4l2_subdev_format which);
++	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
++		       enum v4l2_subdev_format which);
++};
++
+ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_core_ops	*core;
+ 	const struct v4l2_subdev_tuner_ops	*tuner;
+@@ -406,6 +426,7 @@ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_vbi_ops	*vbi;
+ 	const struct v4l2_subdev_ir_ops		*ir;
+ 	const struct v4l2_subdev_sensor_ops	*sensor;
++	const struct v4l2_subdev_pad_ops	*pad;
+ };
+ 
+ #define V4L2_SUBDEV_NAME_SIZE 32
 -- 
-1.6.2.4
+1.7.1
 
