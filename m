@@ -1,57 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cnc.isely.net ([64.81.146.143]:40805 "EHLO cnc.isely.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751282Ab0GGP5p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Jul 2010 11:57:45 -0400
-Date: Wed, 7 Jul 2010 10:57:44 -0500 (CDT)
-From: Mike Isely <isely@isely.net>
-To: Sven Barth <pascaldragon@googlemail.com>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>, Mike Isely <isely@isely.net>
-Subject: Re: Status of the patches under review at LMML (60 patches)
-In-Reply-To: <4C3468DF.1030008@googlemail.com>
-Message-ID: <alpine.DEB.1.10.1007071055310.821@cnc.isely.net>
-References: <4C332A5F.4000706@redhat.com> <4C3468DF.1030008@googlemail.com>
-Mime-Version: 1.0
+Received: from faui40.informatik.uni-erlangen.de ([131.188.34.40]:45272 "EHLO
+	faui40.informatik.uni-erlangen.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757103Ab0GNNVu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jul 2010 09:21:50 -0400
+Date: Wed, 14 Jul 2010 15:21:48 +0200
+From: Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Cc: vamos-dev@i4.informatik.uni-erlangen.de
+Subject: [PATCH 4/4] drivers/media/video: Remove dead CONFIG_OLPC_X0_1
+Message-ID: <966ac7deeee8b102b9b8d829ca14e177f9368f21.1279111369.git.qy03fugy@stud.informatik.uni-erlangen.de>
+References: <cover.1279111369.git.qy03fugy@stud.informatik.uni-erlangen.de>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+In-Reply-To: <cover.1279111369.git.qy03fugy@stud.informatik.uni-erlangen.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 7 Jul 2010, Sven Barth wrote:
+CONFIG_OLPC_X0_1 doesn't exist in Kconfig and is never defined anywhere
+else, therefore removing all references for it from the source code.
 
-> Hi!
-> 
-> Am 06.07.2010 15:06, schrieb Mauro Carvalho Chehab:
-> > 		== Waiting for Mike Isely<isely@isely.net>  review ==
-> >
-> > Apr,25 2010: Problem with cx25840 and Terratec Grabster AV400
-> http://patchwork.kernel.org/patch/94960
-> 
-> Is Mike really the maintainer of the cx25840 module and not only of the
-> pvrusb2 one? If he's not the maintainer you should contact the real one, cause
-> I don't think that Mike can help much regarding patches for the cx25840 in
-> that case.
-> 
-> Also I might need to adjust the patch cause of the recent changes that
-> happened there the last few months. (I don't know when I'll find time for
-> this...)
-> 
-> Regards,
-> Sven
+Signed-off-by: Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de>
+---
+ drivers/media/video/ov7670.c |   37 -------------------------------------
+ 1 files changed, 0 insertions(+), 37 deletions(-)
 
-No I am definitely not the maintainer of that module, and my knowledge 
-of its inner workings (though improved a lot lately) is still not very 
-good.
-
-All I can do here is verify that it doesn't break the pvrusb2 driver 
-(which is what I was planning on doing).
-
-  -Mike
-
-
+diff --git a/drivers/media/video/ov7670.c b/drivers/media/video/ov7670.c
+index 91c886a..309b272 100644
+--- a/drivers/media/video/ov7670.c
++++ b/drivers/media/video/ov7670.c
+@@ -409,42 +409,6 @@ static struct regval_list ov7670_fmt_raw[] = {
+ 
+ /*
+  * Low-level register I/O.
+- *
+- * Note that there are two versions of these.  On the XO 1, the
+- * i2c controller only does SMBUS, so that's what we use.  The
+- * ov7670 is not really an SMBUS device, though, so the communication
+- * is not always entirely reliable.
+- */
+-#ifdef CONFIG_OLPC_XO_1
+-static int ov7670_read(struct v4l2_subdev *sd, unsigned char reg,
+-		unsigned char *value)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	int ret;
+-
+-	ret = i2c_smbus_read_byte_data(client, reg);
+-	if (ret >= 0) {
+-		*value = (unsigned char)ret;
+-		ret = 0;
+-	}
+-	return ret;
+-}
+-
+-
+-static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
+-		unsigned char value)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	int ret = i2c_smbus_write_byte_data(client, reg, value);
+-
+-	if (reg == REG_COM7 && (value & COM7_RESET))
+-		msleep(5);  /* Wait for reset to run */
+-	return ret;
+-}
+-
+-#else /* ! CONFIG_OLPC_XO_1 */
+-/*
+- * On most platforms, we'd rather do straight i2c I/O.
+  */
+ static int ov7670_read(struct v4l2_subdev *sd, unsigned char reg,
+ 		unsigned char *value)
+@@ -498,7 +462,6 @@ static int ov7670_write(struct v4l2_subdev *sd, unsigned char reg,
+ 		msleep(5);  /* Wait for reset to run */
+ 	return ret;
+ }
+-#endif /* CONFIG_OLPC_XO_1 */
+ 
+ 
+ /*
 -- 
+1.7.0.4
 
-Mike Isely
-isely @ isely (dot) net
-PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
