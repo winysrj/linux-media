@@ -1,227 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36476 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:51139 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757945Ab0G2QHJ (ORCPT
+	with ESMTP id S1757126Ab0GNN3S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:07:09 -0400
+	Wed, 14 Jul 2010 09:29:18 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
 Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v3 09/10] v4l: Make video_device inherit from media_entity
-Date: Thu, 29 Jul 2010 18:06:42 +0200
-Message-Id: <1280419616-7658-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [RFC/PATCH 10/10] v4l: Make v4l2_subdev inherit from media_entity
+Date: Wed, 14 Jul 2010 15:30:19 +0200
+Message-Id: <1279114219-27389-11-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2 devices are media entities. As such they need to inherit from
+V4L2 subdevices are media entities. As such they need to inherit from
 (include) the media_entity structure.
 
-When registering/unregistering the device, the media entity is
+When registering/unregistering the subdevice, the media entity is
 automatically registered/unregistered. The entity is acquired on device
 open and released on device close.
 
 Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- Documentation/video4linux/v4l2-framework.txt |   38 +++++++++++++++++++++++--
- drivers/media/video/v4l2-dev.c               |   35 ++++++++++++++++++++++-
- include/media/v4l2-dev.h                     |    6 ++++
- 3 files changed, 74 insertions(+), 5 deletions(-)
+ Documentation/video4linux/v4l2-framework.txt |   22 +++++++++++++++++++++
+ drivers/media/video/v4l2-device.c            |   26 +++++++++++++++++++++---
+ drivers/media/video/v4l2-subdev.c            |   27 +++++++++++++++++++++++++-
+ include/media/v4l2-subdev.h                  |    7 ++++++
+ 4 files changed, 77 insertions(+), 5 deletions(-)
 
 diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 8a3f14e..7ff4016 100644
+index 0d9b8ce..76ecd43 100644
 --- a/Documentation/video4linux/v4l2-framework.txt
 +++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -71,6 +71,10 @@ sub-device instances, the video_device struct stores V4L2 device node data
- and in the future a v4l2_fh struct will keep track of filehandle instances
- (this is not yet implemented).
- 
-+The V4L2 framework also optionally integrates with the media framework. If a
-+driver sets the struct v4l2_device mdev field, sub-devices and video nodes
-+will automatically appear in the media framework as entities.
-+
- 
- struct v4l2_device
- ------------------
-@@ -84,11 +88,14 @@ You must register the device instance:
- 	v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
- 
- Registration will initialize the v4l2_device struct. If the dev->driver_data
--field is NULL, it will be linked to v4l2_dev. Drivers that use the media
--device framework in addition to the V4L2 framework need to set
-+field is NULL, it will be linked to v4l2_dev.
-+
-+Drivers that want integration with the media device framework need to set
- dev->driver_data manually to point to the driver-specific device structure
- that embed the struct v4l2_device instance. This is achieved by a
--dev_set_drvdata() call before registering the V4L2 device instance.
-+dev_set_drvdata() call before registering the V4L2 device instance. They must
-+also set the struct v4l2_device mdev field to point to a properly initialized
-+and registered media_device instance.
- 
- If v4l2_dev->name is empty then it will be set to a value derived from dev
- (driver name followed by the bus_id, to be precise). If you set it up before
-@@ -523,6 +530,21 @@ If you use v4l2_ioctl_ops, then you should set either .unlocked_ioctl or
- The v4l2_file_operations struct is a subset of file_operations. The main
- difference is that the inode argument is omitted since it is never used.
+@@ -263,6 +263,25 @@ A sub-device driver initializes the v4l2_subdev struct using:
+ Afterwards you need to initialize subdev->name with a unique name and set the
+ module owner. This is done for you if you use the i2c helper functions.
  
 +If integration with the media framework is needed, you must initialize the
-+media_entity struct embedded in the video_device struct (entity field) by
++media_entity struct embedded in the v4l2_subdev struct (entity field) by
 +calling media_entity_init():
 +
-+	struct media_pad *pad = &my_vdev->pad;
++	struct media_entity_pad *pads = &my_sd->pads;
 +	int err;
 +
-+	err = media_entity_init(&vdev->entity, 1, pad, 0);
++	err = media_entity_init(&sd->entity, npads, pads, 0);
 +
 +The pads array must have been previously initialized. There is no need to
-+manually set the struct media_entity type and name fields.
++manually set the struct media_entity type, subtype and name fields.
 +
 +A reference to the entity will be automatically acquired/released when the
-+video device is opened/closed.
++subdev device node (if any) is opened/closed.
 +
++Don't forget to cleanup the media entity before the sub-device is destroyed:
++
++	media_entity_cleanup(&sd->entity);
++
+ A device (bridge) driver needs to register the v4l2_subdev with the
+ v4l2_device:
  
- video_device registration
- -------------------------
-@@ -536,6 +558,9 @@ for you.
- 		return err;
- 	}
+@@ -272,6 +291,9 @@ This can fail if the subdev module disappeared before it could be registered.
+ After this function was called successfully the subdev->dev field points to
+ the v4l2_device.
  
-+If the v4l2_device parent device has a non-NULL mdev field, the video device
++If the v4l2_device parent device has a non-NULL mdev field, the sub-device
 +entity will be automatically registered with the media device.
 +
- Which device is registered depends on the type argument. The following
- types exist:
+ You can unregister a sub-device using:
  
-@@ -613,6 +638,13 @@ those will still be passed on since some buffer ioctls may still be needed.
- When the last user of the video device node exits, then the vdev->release()
- callback is called and you can do the final cleanup there.
+ 	v4l2_device_unregister_subdev(sd);
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 91452cd..ccfa606 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -114,8 +114,9 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister);
  
-+Don't forget to cleanup the media entity associated with the video device if
-+it has been initialized:
-+
-+	media_entity_cleanup(&vdev->entity);
-+
-+This can be done from the release callback.
-+
- 
- video_device helper functions
- -----------------------------
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index bcd47a0..0cbd3e6 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -269,6 +269,7 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
- static int v4l2_open(struct inode *inode, struct file *filp)
+ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+-						struct v4l2_subdev *sd)
++				struct v4l2_subdev *sd)
  {
++	struct media_entity *entity = &sd->entity;
  	struct video_device *vdev;
-+	struct media_entity *entity = NULL;
  	int ret = 0;
  
- 	/* Check if the video device is available */
-@@ -283,12 +284,23 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 	/* and increase the device refcount */
- 	video_get(vdev);
- 	mutex_unlock(&videodev_lock);
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
-+		entity = media_entity_get(&vdev->entity);
-+		if (!entity) {
-+			ret = -EBUSY;
-+			video_put(vdev);
+@@ -129,6 +130,15 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	if (!try_module_get(sd->owner))
+ 		return -ENODEV;
+ 
++	/* Register the entity. */
++	if (v4l2_dev->mdev) {
++		ret = media_device_register_entity(v4l2_dev->mdev, entity);
++		if (ret < 0) {
++			module_put(sd->owner);
 +			return ret;
 +		}
 +	}
- 	if (vdev->fops->open)
- 		ret = vdev->fops->open(filp);
++
+ 	sd->v4l2_dev = v4l2_dev;
+ 	spin_lock(&v4l2_dev->lock);
+ 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
+@@ -147,22 +157,30 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 			v4l2_device_unregister_subdev(sd);
+ 	}
  
- 	/* decrease the refcount in case of an error */
--	if (ret)
-+	if (ret) {
-+		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-+			media_entity_put(entity);
- 		video_put(vdev);
-+	}
- 	return ret;
+-	return ret;
++	entity->v4l.major = VIDEO_MAJOR;
++	entity->v4l.minor = vdev->minor;
++	return 0;
  }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
  
-@@ -301,6 +313,9 @@ static int v4l2_release(struct inode *inode, struct file *filp)
- 	if (vdev->fops->release)
- 		vdev->fops->release(filp);
- 
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-+		media_entity_put(&vdev->entity);
+ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ {
++	struct v4l2_device *v4l2_dev;
 +
- 	/* decrease the refcount unconditionally since the release()
- 	   return value is ignored. */
- 	video_put(vdev);
-@@ -563,11 +578,24 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
- 			name_base, nr, video_device_node_name(vdev));
+ 	/* return if it isn't registered */
+ 	if (sd == NULL || sd->v4l2_dev == NULL)
+ 		return;
  
--	/* Part 5: Activate this minor. The char device can now be used. */
-+	/* Part 5: Register the entity. */
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
-+		vdev->entity.type = MEDIA_ENTITY_TYPE_NODE_V4L;
-+		vdev->entity.name = vdev->name;
-+		vdev->entity.v4l.major = VIDEO_MAJOR;
-+		vdev->entity.v4l.minor = vdev->minor;
-+		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
-+			&vdev->entity);
-+		if (ret < 0)
-+			printk(KERN_ERR "error\n"); /* TODO */
+-	spin_lock(&sd->v4l2_dev->lock);
++	v4l2_dev = sd->v4l2_dev;
++
++	spin_lock(&v4l2_dev->lock);
+ 	list_del(&sd->list);
+-	spin_unlock(&sd->v4l2_dev->lock);
++	spin_unlock(&v4l2_dev->lock);
+ 	sd->v4l2_dev = NULL;
+ 
+ 	module_put(sd->owner);
++	if (v4l2_dev->mdev)
++		media_device_unregister_entity(&sd->entity);
+ 	video_unregister_device(&sd->devnode);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index b063195..1efa267 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -32,7 +32,8 @@ static int subdev_open(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+-	struct v4l2_fh *vfh;
++	struct media_entity *entity;
++	struct v4l2_fh *vfh = NULL;
+ 	int ret;
+ 
+ 	if (!sd->initialized)
+@@ -59,10 +60,17 @@ static int subdev_open(struct file *file)
+ 		file->private_data = vfh;
+ 	}
+ 
++	entity = media_entity_get(&sd->entity);
++	if (!entity) {
++		ret = -EBUSY;
++		goto err;
 +	}
-+
-+	/* Part 6: Activate this minor. The char device can now be used. */
- 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
- 	mutex_lock(&videodev_lock);
- 	video_device[vdev->minor] = vdev;
- 	mutex_unlock(&videodev_lock);
 +
  	return 0;
  
- cleanup:
-@@ -595,6 +623,9 @@ void video_unregister_device(struct video_device *vdev)
- 	if (!vdev || !video_is_registered(vdev))
- 		return;
+ err:
+ 	if (vfh != NULL) {
++		v4l2_fh_del(vfh);
+ 		v4l2_fh_exit(vfh);
+ 		kfree(vfh);
+ 	}
+@@ -72,8 +80,12 @@ err:
  
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-+		media_device_unregister_entity(&vdev->entity);
+ static int subdev_close(struct file *file)
+ {
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+ 	struct v4l2_fh *vfh = file->private_data;
+ 
++	media_entity_put(&sd->entity);
 +
- 	clear_bit(V4L2_FL_REGISTERED, &vdev->flags);
- 	device_unregister(&vdev->dev);
+ 	if (vfh != NULL) {
+ 		v4l2_fh_del(vfh);
+ 		v4l2_fh_exit(vfh);
+@@ -172,5 +184,18 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ 	sd->grp_id = 0;
+ 	sd->priv = NULL;
+ 	sd->initialized = 1;
++	sd->entity.name = sd->name;
++	sd->entity.type = MEDIA_ENTITY_TYPE_SUBDEV;
  }
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 195fa56..447b154 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -16,6 +16,8 @@
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
+ EXPORT_SYMBOL(v4l2_subdev_init);
++
++int v4l2_subdev_set_power(struct media_entity *entity, int power)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++
++	dev_dbg(entity->parent->dev,
++		"%s power%s\n", entity->name, power ? "on" : "off");
++
++	return v4l2_subdev_call(sd, core, s_power, power);
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_set_power);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 55a8c93..f9e1897 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -21,6 +21,7 @@
+ #ifndef _V4L2_SUBDEV_H
+ #define _V4L2_SUBDEV_H
  
 +#include <media/media-entity.h>
-+
- #define VIDEO_MAJOR	81
- 
- #define VFL_TYPE_GRABBER	0
-@@ -57,6 +59,8 @@ struct v4l2_file_operations {
- 
- struct video_device
- {
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-mediabus.h>
+@@ -421,6 +422,8 @@ struct v4l2_subdev_ops {
+    stand-alone or embedded in a larger struct.
+  */
+ struct v4l2_subdev {
 +	struct media_entity entity;
 +
- 	/* device ops */
- 	const struct v4l2_file_operations *fops;
- 
-@@ -96,6 +100,8 @@ struct video_device
- 	const struct v4l2_ioctl_ops *ioctl_ops;
+ 	struct list_head list;
+ 	struct module *owner;
+ 	u32 flags;
+@@ -439,6 +442,8 @@ struct v4l2_subdev {
+ 	unsigned int nevents;
  };
  
-+#define media_entity_to_video_device(entity) \
-+	container_of(entity, struct video_device, entity)
- /* dev to video-device */
- #define to_video_device(cd) container_of(cd, struct video_device, dev)
++#define media_entity_to_v4l2_subdev(ent) \
++	container_of(ent, struct v4l2_subdev, entity)
+ #define vdev_to_v4l2_subdev(vdev) \
+ 	container_of(vdev, struct v4l2_subdev, devnode)
+ 
+@@ -457,6 +462,8 @@ static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
++int v4l2_subdev_set_power(struct media_entity *entity, int power);
++
+ /* Call an ops of a v4l2_subdev, doing the right checks against
+    NULL pointers.
  
 -- 
 1.7.1
