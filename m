@@ -1,184 +1,488 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41194 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758521Ab0G3LjV (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:51139 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757082Ab0GNN3P (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 07:39:21 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 08/13] IR: Allow not to compile keymaps in.
-Date: Fri, 30 Jul 2010 14:38:48 +0300
-Message-Id: <1280489933-20865-9-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
+	Wed, 14 Jul 2010 09:29:15 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH 06/10] media: Entities, pads and links enumeration
+Date: Wed, 14 Jul 2010 15:30:15 +0200
+Message-Id: <1279114219-27389-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, ir device registration fails if keymap requested by driver is not found.
-Fix that by always compiling in the empty keymap, and using it as a failback.
+Create the following two ioctls and implement them at the media device
+level to enumerate entities, pads and links.
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+- MEDIA_IOC_ENUM_ENTITIES: Enumerate entities and their properties
+- MEDIA_IOC_ENUM_LINKS: Enumerate all pads and links for a given entity
+
+Entity IDs can be non-contiguous. Userspace applications should
+enumerate entities using the MEDIA_ENTITY_ID_FLAG_NEXT flag. When the
+flag is set in the entity ID, the MEDIA_IOC_ENUM_ENTITIES will return
+the next entity with an ID bigger than the requested one.
+
+Only forward links that originate at one of the entity's source pads are
+returned during the enumeration process.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- drivers/media/IR/ir-core-priv.h     |    3 +-
- drivers/media/IR/ir-sysfs.c         |    2 +
- drivers/media/IR/keymaps/Makefile   |    1 -
- drivers/media/IR/keymaps/rc-empty.c |   44 -----------------------------------
- drivers/media/IR/rc-map.c           |   23 ++++++++++++++++++
- include/media/ir-core.h             |    8 ++++-
- 6 files changed, 33 insertions(+), 48 deletions(-)
- delete mode 100644 drivers/media/IR/keymaps/rc-empty.c
+ Documentation/media-framework.txt |  134 ++++++++++++++++++++++++++++++++
+ drivers/media/media-device.c      |  153 +++++++++++++++++++++++++++++++++++++
+ include/linux/media.h             |   73 ++++++++++++++++++
+ include/media/media-device.h      |    3 +
+ include/media/media-entity.h      |   19 +-----
+ 5 files changed, 364 insertions(+), 18 deletions(-)
+ create mode 100644 include/linux/media.h
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index 08383b9..e9c3cce 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -125,7 +125,8 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
- void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
- void ir_raw_init(void);
- 
--
-+int ir_rcmap_init(void);
-+void ir_rcmap_cleanup(void);
- /*
-  * Decoder initialization code
-  *
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index a841e51..936dff8 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -341,6 +341,7 @@ static int __init ir_core_init(void)
- 
- 	/* Initialize/load the decoders/keymap code that will be used */
- 	ir_raw_init();
-+	ir_rcmap_init();
- 
- 	return 0;
- }
-@@ -348,6 +349,7 @@ static int __init ir_core_init(void)
- static void __exit ir_core_exit(void)
- {
- 	class_unregister(&ir_input_class);
-+	ir_rcmap_cleanup();
- }
- 
- module_init(ir_core_init);
-diff --git a/drivers/media/IR/keymaps/Makefile b/drivers/media/IR/keymaps/Makefile
-index 86d3d1f..24992cd 100644
---- a/drivers/media/IR/keymaps/Makefile
-+++ b/drivers/media/IR/keymaps/Makefile
-@@ -17,7 +17,6 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-dm1105-nec.o \
- 			rc-dntv-live-dvb-t.o \
- 			rc-dntv-live-dvbt-pro.o \
--			rc-empty.o \
- 			rc-em-terratec.o \
- 			rc-encore-enltv2.o \
- 			rc-encore-enltv.o \
-diff --git a/drivers/media/IR/keymaps/rc-empty.c b/drivers/media/IR/keymaps/rc-empty.c
-deleted file mode 100644
-index 3b338d8..0000000
---- a/drivers/media/IR/keymaps/rc-empty.c
-+++ /dev/null
-@@ -1,44 +0,0 @@
--/* empty.h - Keytable for empty Remote Controller
-- *
-- * keymap imported from ir-keymaps.c
-- *
-- * Copyright (c) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- */
--
--#include <media/rc-map.h>
--
--/* empty keytable, can be used as placeholder for not-yet created keytables */
--
--static struct ir_scancode empty[] = {
--	{ 0x2a, KEY_COFFEE },
--};
--
--static struct rc_keymap empty_map = {
--	.map = {
--		.scan    = empty,
--		.size    = ARRAY_SIZE(empty),
--		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
--		.name    = RC_MAP_EMPTY,
--	}
--};
--
--static int __init init_rc_map_empty(void)
--{
--	return ir_register_map(&empty_map);
--}
--
--static void __exit exit_rc_map_empty(void)
--{
--	ir_unregister_map(&empty_map);
--}
--
--module_init(init_rc_map_empty)
--module_exit(exit_rc_map_empty)
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
-diff --git a/drivers/media/IR/rc-map.c b/drivers/media/IR/rc-map.c
-index 46a8f15..689143f 100644
---- a/drivers/media/IR/rc-map.c
-+++ b/drivers/media/IR/rc-map.c
-@@ -82,3 +82,26 @@ void ir_unregister_map(struct rc_keymap *map)
- }
- EXPORT_SYMBOL_GPL(ir_unregister_map);
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index 3da9873..0f3d720 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -268,3 +268,137 @@ required, drivers don't need to provide a set_power operation. The operation
+ is allowed to fail when turning power on, in which case the media_entity_get
+ function will return NULL.
  
 +
-+static struct ir_scancode empty[] = {
-+	{ 0x2a, KEY_COFFEE },
-+};
++Userspace application API
++-------------------------
 +
-+static struct rc_keymap empty_map = {
-+	.map = {
-+		.scan    = empty,
-+		.size    = ARRAY_SIZE(empty),
-+		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
-+		.name    = RC_MAP_EMPTY,
-+	}
-+};
++Media devices offer an API to userspace application to discover the device
++internal topology through ioctls.
 +
-+int ir_rcmap_init(void)
++	MEDIA_IOC_ENUM_ENTITIES - Enumerate entities and their properties
++	-----------------------------------------------------------------
++
++	ioctl(int fd, int request, struct media_user_entity *argp);
++
++To query the attributes of an entity, applications set the id field of a
++media_user_entity structure and call the MEDIA_IOC_ENUM_ENTITIES ioctl with a
++pointer to this structure. The driver fills the rest of the structure or
++returns a EINVAL error code when the id is invalid.
++
++Entities can be enumerated by or'ing the id with the MEDIA_ENTITY_ID_FLAG_NEXT
++flag. The driver will return information about the entity with the smallest id
++strictly larger than the requested one ('next entity'), or EINVAL if there is
++none.
++
++Entity IDs can be non-contiguous. Applications must *not* try to enumerate
++entities by calling MEDIA_IOC_ENUM_ENTITIES with increasing id's until they
++get an error.
++
++The media_user_entity structure is defined as
++
++- struct media_user_entity
++
++__u32	id		Entity id, set by the application. When the id is
++			or'ed with MEDIA_ENTITY_ID_FLAG_NEXT, the driver
++			clears the flag and returns the first entity with a
++			larger id.
++char	name[32]	Entity name. UTF-8 NULL-terminated string.
++__u32	type		Entity type.
++__u32	subtype		Entity subtype.
++__u8	pads		Number of pads.
++__u32	links		Total number of outbound links. Inbound links are not
++			counted in this field.
++/* union */
++	/* struct v4l, Valid for V4L sub-devices and nodes only */
++__u32	major		V4L device node major number. For V4L sub-devices with
++			no device node, set by the driver to 0.
++__u32	minor		V4L device node minor number. For V4L sub-devices with
++			no device node, set by the driver to 0.
++	/* struct fb, Valid for frame buffer nodes only */
++__u32	major		FB device node major number
++__u32	minor		FB device node minor number
++	/* Valid for ALSA devices only */
++int	alsa		ALSA card number
++	/* Valid for DVB devices only */
++int	dvb		DVB card number
++
++Valid entity types are
++
++	MEDIA_ENTITY_TYPE_NODE - V4L, FB, ALSA or DVB device
++	MEDIA_ENTITY_TYPE_SUBDEV - V4L sub-device
++
++For MEDIA_ENTITY_TYPE_NODE entities, valid entity subtypes are
++
++	MEDIA_NODE_TYPE_V4L - V4L video, radio or vbi device node
++	MEDIA_NODE_TYPE_FB - Frame buffer device node
++	MEDIA_NODE_TYPE_ALSA - ALSA card
++	MEDIA_NODE_TYPE_DVB - DVB card
++
++For MEDIA_ENTITY_TYPE_SUBDEV entities, valid entity subtypes are
++
++	MEDIA_SUBDEV_TYPE_VID_DECODER - Video decoder
++	MEDIA_SUBDEV_TYPE_VID_ENCODER - Video encoder
++	MEDIA_SUBDEV_TYPE_MISC - Unspecified entity subtype
++
++
++	MEDIA_IOC_ENUM_LINKS - Enumerate all pads and links for a given entity
++	----------------------------------------------------------------------
++
++	ioctl(int fd, int request, struct media_user_links *argp);
++
++Only forward links that originate at one of the entity's source pads are
++returned during the enumeration process.
++
++To enumerate pads and/or links for a given entity, applications set the entity
++field of a media_user_links structure and initialize the media_user_pad and
++media_user_link structure arrays pointed by the pads and links fields. They
++then call the MEDIA_IOC_ENUM_LINKS ioctl with a pointer to this structure.
++
++If the pads field is not NULL, the driver fills the pads array with
++information about the entity's pads. The array must have enough room to store
++all the entity's pads. The number of pads can be retrieved with the
++MEDIA_IOC_ENUM_ENTITIES ioctl.
++
++If the links field is not NULL, the driver fills the links array with
++information about the entity's outbound links. The array must have enough room
++to store all the entity's outbound links. The number of outbound links can be
++retrieved with the MEDIA_IOC_ENUM_ENTITIES ioctl.
++
++The media_user_pad, media_user_link and media_user_links structure are defined
++as
++
++- struct media_user_pad
++
++__u32			entity	ID of the entity this pad belongs to.
++__u32			index	0-based pad index.
++__u32			type	Pad type.
++
++Valid pad types are
++
++	MEDIA_PAD_TYPE_INPUT -	Input pad, relative to the entity. Input pads
++				sink data and are targets of links.
++	MEDIA_PAD_TYPE_OUTPUT -	Output pad, relative to the entity. Output
++				pads source data and are origins of links.
++
++- struct media_user_link
++
++struct media_user_pad	source	Pad at the origin of this link.
++struct media_user_pad	sink	Pad at the target of this link.
++__u32			flags	Link flags.
++
++Valid link flags are
++
++	MEDIA_LINK_FLAG_ACTIVE - The link is active and can be used to
++		transfer media data. When two or more links target a sink pad,
++		only one of them can be active at a time.
++	MEDIA_LINK_FLAG_IMMUTABLE - The link active state can't be modified at
++		runtime. An immutable link is always active.
++
++- struct media_user_links
++
++__u32			entity	Entity id, set by the application.
++struct media_user_pad	*pads	Pointer to a pads array allocated by the
++				application. Ignored if NULL.
++struct media_user_link	*links	Pointer to a links array allocated by the
++				application. Ignored if NULL.
++
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 524a909..539f4b9 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -20,13 +20,163 @@
+ 
+ #include <linux/types.h>
+ #include <linux/ioctl.h>
++#include <linux/media.h>
+ 
+ #include <media/media-device.h>
+ #include <media/media-devnode.h>
+ #include <media/media-entity.h>
+ 
++static int media_device_open(struct file *filp)
 +{
-+	return ir_register_map(&empty_map);
++	return 0;
 +}
 +
-+void ir_rcmap_cleanup(void)
++static int media_device_close(struct file *filp)
 +{
-+	ir_unregister_map(&empty_map);
++	return 0;
 +}
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index 513e60d..197d05a 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -110,8 +110,12 @@ static inline int ir_input_register(struct input_dev *dev,
- 		return -EINVAL;
- 
- 	ir_codes = get_rc_map(map_name);
--	if (!ir_codes)
--		return -EINVAL;
-+	if (!ir_codes) {
-+		ir_codes = get_rc_map(RC_MAP_EMPTY);
 +
-+		if (!ir_codes)
-+			return -EINVAL;
++static struct media_entity *find_entity(struct media_device *mdev, u32 id)
++{
++	struct media_entity *entity;
++	int next = id & MEDIA_ENTITY_ID_FLAG_NEXT;
++
++	id &= ~MEDIA_ENTITY_ID_FLAG_NEXT;
++
++	spin_lock(&mdev->lock);
++
++	media_device_for_each_entity(entity, mdev) {
++		if ((entity->id == id && !next) ||
++		    (entity->id > id && next)) {
++			spin_unlock(&mdev->lock);
++			return entity;
++		}
 +	}
++
++	spin_unlock(&mdev->lock);
++
++	return NULL;
++}
++
++static long media_device_enum_entities(struct media_device *mdev,
++				       struct media_user_entity __user *uent)
++{
++	struct media_entity *ent;
++	struct media_user_entity u_ent;
++
++	if (copy_from_user(&u_ent.id, &uent->id, sizeof(u_ent.id)))
++		return -EFAULT;
++
++	ent = find_entity(mdev, u_ent.id);
++
++	if (ent == NULL)
++		return -EINVAL;
++
++	u_ent.id = ent->id;
++	u_ent.name[0] = '\0';
++	if (ent->name)
++		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
++	u_ent.type = ent->type;
++	u_ent.subtype = ent->subtype;
++	u_ent.pads = ent->num_pads;
++	u_ent.links = ent->num_links - ent->num_backlinks;
++	u_ent.v4l.major = ent->v4l.major;
++	u_ent.v4l.minor = ent->v4l.minor;
++	if (copy_to_user(uent, &u_ent, sizeof(u_ent)))
++		return -EFAULT;
++	return 0;
++}
++
++static void media_device_kpad_to_upad(const struct media_entity_pad *kpad,
++				      struct media_user_pad *upad)
++{
++	upad->entity = kpad->entity->id;
++	upad->index = kpad->index;
++	upad->type = kpad->type;
++}
++
++static long media_device_enum_links(struct media_device *mdev,
++				    struct media_user_links __user *ulinks)
++{
++	struct media_entity *entity;
++	struct media_user_links links;
++
++	if (copy_from_user(&links, ulinks, sizeof(links)))
++		return -EFAULT;
++
++	entity = find_entity(mdev, links.entity);
++	if (entity == NULL)
++		return -EINVAL;
++
++	if (links.pads) {
++		unsigned int p;
++
++		for (p = 0; p < entity->num_pads; p++) {
++			struct media_user_pad pad;
++			media_device_kpad_to_upad(&entity->pads[p], &pad);
++			if (copy_to_user(&links.pads[p], &pad, sizeof(pad)))
++				return -EFAULT;
++		}
++	}
++
++	if (links.links) {
++		struct media_user_link __user *ulink;
++		unsigned int l;
++
++		for (l = 0, ulink = links.links; l < entity->num_links; l++) {
++			struct media_user_link link;
++
++			/* Ignore backlinks. */
++			if (entity->links[l].source->entity != entity)
++				continue;
++
++			media_device_kpad_to_upad(entity->links[l].source,
++						  &link.source);
++			media_device_kpad_to_upad(entity->links[l].sink,
++						  &link.sink);
++			link.flags = entity->links[l].flags;
++			if (copy_to_user(ulink, &link, sizeof(*ulink)))
++				return -EFAULT;
++			ulink++;
++		}
++	}
++	if (copy_to_user(ulinks, &links, sizeof(*ulinks)))
++		return -EFAULT;
++	return 0;
++}
++
++static long media_device_ioctl(struct file *filp, unsigned int cmd,
++			       unsigned long arg)
++{
++	struct media_devnode *devnode = media_devnode_data(filp);
++	struct media_device *dev = to_media_device(devnode);
++	long ret;
++
++	switch (cmd) {
++	case MEDIA_IOC_ENUM_ENTITIES:
++		ret = media_device_enum_entities(dev,
++				(struct media_user_entity __user *)arg);
++		break;
++
++	case MEDIA_IOC_ENUM_LINKS:
++		mutex_lock(&dev->graph_mutex);
++		ret = media_device_enum_links(dev,
++				(struct media_user_links __user *)arg);
++		mutex_unlock(&dev->graph_mutex);
++		break;
++
++	default:
++		ret = -ENOIOCTLCMD;
++	}
++
++	return ret;
++}
++
+ static const struct media_file_operations media_device_fops = {
+ 	.owner = THIS_MODULE,
++	.open = media_device_open,
++	.unlocked_ioctl = media_device_ioctl,
++	.release = media_device_close,
+ };
  
- 	rc = __ir_input_register(dev, ir_codes, props, driver_name);
- 	if (rc < 0)
+ static void media_device_release(struct media_devnode *mdev)
+@@ -100,6 +250,9 @@ int __must_check media_device_register_entity(struct media_device *mdev,
+ 	WARN_ON(entity->parent != NULL);
+ 	entity->parent = mdev;
+ 
++	/* find_entity() relies on entities being stored in increasing IDs
++	 * order. Don't change that without modifying find_entity().
++	 */
+ 	spin_lock(&mdev->lock);
+ 	entity->id = mdev->entity_id++;
+ 	list_add_tail(&entity->list, &mdev->entities);
+diff --git a/include/linux/media.h b/include/linux/media.h
+new file mode 100644
+index 0000000..7739f07
+--- /dev/null
++++ b/include/linux/media.h
+@@ -0,0 +1,73 @@
++#ifndef __LINUX_MEDIA_H
++#define __LINUX_MEDIA_H
++
++#define MEDIA_ENTITY_TYPE_NODE		1
++#define MEDIA_ENTITY_TYPE_SUBDEV	2
++
++#define MEDIA_NODE_TYPE_V4L		1
++#define MEDIA_NODE_TYPE_FB		2
++#define MEDIA_NODE_TYPE_ALSA		3
++#define MEDIA_NODE_TYPE_DVB		4
++
++#define MEDIA_SUBDEV_TYPE_VID_DECODER	1
++#define MEDIA_SUBDEV_TYPE_VID_ENCODER	2
++#define MEDIA_SUBDEV_TYPE_MISC		3
++
++#define MEDIA_PAD_TYPE_INPUT		1
++#define MEDIA_PAD_TYPE_OUTPUT		2
++
++#define MEDIA_LINK_FLAG_ACTIVE		(1 << 0)
++#define MEDIA_LINK_FLAG_IMMUTABLE	(1 << 1)
++
++#define MEDIA_ENTITY_ID_FLAG_NEXT	(1 << 31)
++
++struct media_user_pad {
++	__u32 entity;	/* entity ID */
++	__u32 index;	/* pad index */
++	__u32 type;	/* pad type */
++};
++
++struct media_user_entity {
++	__u32 id;
++	char name[32];
++	__u32 type;
++	__u32 subtype;
++	__u8 pads;
++	__u32 links;
++
++	union {
++		/* Node specifications */
++		struct {
++			__u32 major;
++			__u32 minor;
++		} v4l;
++		struct {
++			__u32 major;
++			__u32 minor;
++		} fb;
++		int alsa;
++		int dvb;
++
++		/* Sub-device specifications */
++		/* Nothing needed yet */
++	};
++};
++
++struct media_user_link {
++	struct media_user_pad source;
++	struct media_user_pad sink;
++	__u32 flags;
++};
++
++struct media_user_links {
++	__u32 entity;
++	/* Should have enough room for pads elements */
++	struct media_user_pad __user *pads;
++	/* Should have enough room for links elements */
++	struct media_user_link __user *links;
++};
++
++#define MEDIA_IOC_ENUM_ENTITIES		_IOWR('M', 1, struct media_user_entity)
++#define MEDIA_IOC_ENUM_LINKS		_IOWR('M', 2, struct media_user_links)
++
++#endif /* __LINUX_MEDIA_H */
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 6cea596..56e25eb 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -58,6 +58,9 @@ struct media_device {
+ 	char name[MEDIA_DEVICE_NAME_SIZE];
+ };
+ 
++/* media_devnode to media_device */
++#define to_media_device(node) container_of(node, struct media_device, devnode)
++
+ int __must_check media_device_register(struct media_device *mdev);
+ void media_device_unregister(struct media_device *mdev);
+ 
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index da86c24..b9767cb 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -2,24 +2,7 @@
+ #define _MEDIA_ENTITY_H
+ 
+ #include <linux/list.h>
+-
+-#define MEDIA_ENTITY_TYPE_NODE		1
+-#define MEDIA_ENTITY_TYPE_SUBDEV	2
+-
+-#define MEDIA_NODE_TYPE_V4L		1
+-#define MEDIA_NODE_TYPE_FB		2
+-#define MEDIA_NODE_TYPE_ALSA		3
+-#define MEDIA_NODE_TYPE_DVB		4
+-
+-#define MEDIA_SUBDEV_TYPE_VID_DECODER	1
+-#define MEDIA_SUBDEV_TYPE_VID_ENCODER	2
+-#define MEDIA_SUBDEV_TYPE_MISC		3
+-
+-#define MEDIA_LINK_FLAG_ACTIVE		(1 << 0)
+-#define MEDIA_LINK_FLAG_IMMUTABLE	(1 << 1)
+-
+-#define MEDIA_PAD_TYPE_INPUT		1
+-#define MEDIA_PAD_TYPE_OUTPUT		2
++#include <linux/media.h>
+ 
+ struct media_entity_link {
+ 	struct media_entity_pad *source;/* Source pad */
 -- 
-1.7.0.4
+1.7.1
 
