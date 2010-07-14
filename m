@@ -1,92 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-07.arcor-online.net ([151.189.21.47]:49222 "EHLO
-	mail-in-07.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755557Ab0GNCl6 (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:52763 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756925Ab0GNOGJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jul 2010 22:41:58 -0400
-Subject: Re: [PATCH] Add interlace support to sh_mobile_ceu_camera.c
-From: hermann pitton <hermann-pitton@arcor.de>
-To: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <w3pwrsygbv8.wl%kuninori.morimoto.gx@renesas.com>
-References: <uvdtrmtin.wl%morimoto.kuninori@renesas.com>
-	 <Pine.LNX.4.64.1007120900430.7130@axis700.grange>
-	 <w3pd3uskwpw.wl%kuninori.morimoto.gx@renesas.com>
-	 <Pine.LNX.4.64.1007131622010.26727@axis700.grange>
-	 <w3pwrsygbv8.wl%kuninori.morimoto.gx@renesas.com>
-Content-Type: text/plain
-Date: Wed, 14 Jul 2010 04:35:33 +0200
-Message-Id: <1279074933.3203.21.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 14 Jul 2010 10:06:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [SAMPLE 06/12] v4l: Add subdev userspace API to enumerate and configure frame interval
+Date: Wed, 14 Jul 2010 16:07:08 +0200
+Message-Id: <1279116434-28278-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The three new ioctl VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL,
+VIDIOC_SUBDEV_G_FRAME_INTERVAL and VIDIOC_SUBDEV_S_FRAME_INTERVAL can be
+used to enumerate and configure a subdev's frame rate from userspace.
 
-Am Mittwoch, den 14.07.2010, 09:12 +0900 schrieb Kuninori Morimoto:
-> Dear Guennadi
-> 
-> 
-> > our luck, that mplayer (and gstreamer?) ignore returned field value. But 
-> > we'll have to fix this in sh_mobile_ceu_camera.
-> 
-> Hmm  I understand.
-> I guess, at first, we need test program for it.
-> 
-> 
-> > Well, I think, 720p is a little too optimistic for tw9910;) tw9910 works 
-> > on migor for me, but not on ecovec, although the chip can be detected. Are 
-> > there any modifications necessary to the kernel or to the board to get it 
-> > to work? Maybe a jumper or something? I plug in a video signal source in 
-> > the "video in" connector, next to the "viceo out" one, using the same 
-> > cable, so, cabling should work too. But I'm only getting select timeouts 
-> > and no interrupts on the CEU.
-> 
-> Hmm..  strange...
-> No kernel patch is needed to use tw9910 on Ecovec.
-> 
-> Ahh...
-> Maybe the criminal is dip-switch.
-> We can not use "tw9910" and "2nd camera" in same time.
-> 
-> Please check DS2[3] on Ecovec.
-> It should OFF when you use tw9910.
-> 
-> I wrote dip-switch info on top of
-> ${LINUX}/arch/sh/boards/mach-ecovec24/setup.c
-> Please check it too.
-> 
-> Best regards
-> --
-> Kuninori Morimoto
->  
+Two new video::g/s_frame_interval subdev operations are introduced to
+support those ioctls. The existing video::g/s_parm operations are
+deprecated and shouldn't be used anymore.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ drivers/media/video/v4l2-subdev.c |   16 ++++++++++++++++
+ include/linux/v4l2-subdev.h       |   24 ++++++++++++++++++++++++
+ include/media/v4l2-subdev.h       |    7 +++++++
+ 3 files changed, 47 insertions(+), 0 deletions(-)
 
-Kuninori,
-
-you are well treated and highly honored by all staying in development
-with you. For me it is just some glitch on the edges, but very well
-noted.
-
-For now, a dip-switch, you must have been abroad somewhere, can't be a
-criminal. Or?
-
-http://www.dip-switch.com/?gclid=COjg9Mn86aICFYSdzAodNEcLkQ
-
-Could you eventually agree with that about what a dip-switch is or do I
-miss what you mean?
-
-Do you really tell there are still unclear dip-switches in 2010?
-
-If so, please let's know, but then you can't do anything against such in
-software, of course.
-
-Cheers,
-Hermann
-
-
-
-
-
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index d8b261f..8ddb2fb 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -208,6 +208,22 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 					fse);
+ 	}
+ 
++	case VIDIOC_SUBDEV_G_FRAME_INTERVAL:
++		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
++
++	case VIDIOC_SUBDEV_S_FRAME_INTERVAL:
++		return v4l2_subdev_call(sd, video, s_frame_interval, arg);
++
++	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL: {
++		struct v4l2_subdev_frame_interval_enum *fie = arg;
++
++		if (fie->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh,
++					fie);
++	}
++
+ 	default:
+ 		return -ENOIOCTLCMD;
+ 	}
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index 6504f22..e3362aa 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -56,11 +56,35 @@ struct v4l2_subdev_frame_size_enum {
+ 	__u32 reserved[9];
+ };
+ 
++/**
++ * struct v4l2_subdev_pad_frame_rate
++ */
++struct v4l2_subdev_frame_interval {
++	struct v4l2_fract interval;
++	__u32 reserved[6];
++};
++
++struct v4l2_subdev_frame_interval_enum {
++	__u32 index;
++	__u32 pad;
++	__u32 code;
++	__u32 width;
++	__u32 height;
++	struct v4l2_fract interval;
++	__u32 reserved[9];
++};
++
+ #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_pad_format)
+ #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_pad_format)
++#define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
++			_IOWR('V', 6, struct v4l2_subdev_frame_interval)
++#define VIDIOC_SUBDEV_S_FRAME_INTERVAL \
++			_IOWR('V', 7, struct v4l2_subdev_frame_interval)
+ #define VIDIOC_SUBDEV_ENUM_MBUS_CODE \
+ 			_IOWR('V', 8, struct v4l2_subdev_pad_mbus_code_enum)
+ #define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
+ 			_IOWR('V', 9, struct v4l2_subdev_frame_size_enum)
++#define VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
++			_IOWR('V', 10, struct v4l2_subdev_frame_interval_enum)
+ 
+ #endif
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index acbcd8f..58ef923 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -245,6 +245,10 @@ struct v4l2_subdev_video_ops {
+ 	int (*s_crop)(struct v4l2_subdev *sd, struct v4l2_crop *crop);
+ 	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
+ 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
++	int (*g_frame_interval)(struct v4l2_subdev *sd,
++				struct v4l2_subdev_frame_interval *interval);
++	int (*s_frame_interval)(struct v4l2_subdev *sd,
++				struct v4l2_subdev_frame_interval *interval);
+ 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
+ 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
+ 	int (*enum_dv_presets) (struct v4l2_subdev *sd,
+@@ -406,6 +410,9 @@ struct v4l2_subdev_pad_ops {
+ 	int (*enum_frame_size)(struct v4l2_subdev *sd,
+ 			       struct v4l2_subdev_fh *fh,
+ 			       struct v4l2_subdev_frame_size_enum *fse);
++	int (*enum_frame_interval)(struct v4l2_subdev *sd,
++				   struct v4l2_subdev_fh *fh,
++				   struct v4l2_subdev_frame_interval_enum *fie);
+ 	int (*get_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
+ 		       enum v4l2_subdev_format which);
+-- 
+1.7.1
 
