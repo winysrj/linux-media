@@ -1,40 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:54943 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753458Ab0GITwf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 15:52:35 -0400
-Received: by wyf23 with SMTP id 23so1863484wyf.19
-        for <linux-media@vger.kernel.org>; Fri, 09 Jul 2010 12:52:33 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTilCwvUCEWLnurCvwvwRR1xdYU7D7359WBux2_7Q@mail.gmail.com>
-References: <AANLkTilP-jf0MaV82LuTz8DjoNJKQ3xGCHuFgds4b212@mail.gmail.com>
-	<201006302116.25893.tkrah@fachschaft.imn.htwk-leipzig.de>
-	<AANLkTikFtWbXKxnAcfGd2LP4fDjRFwGdNarzDUh3rxt6@mail.gmail.com>
-	<201007021547.24917.tkrah@fachschaft.imn.htwk-leipzig.de>
-	<AANLkTilCwvUCEWLnurCvwvwRR1xdYU7D7359WBux2_7Q@mail.gmail.com>
-Date: Fri, 9 Jul 2010 21:52:33 +0200
-Message-ID: <AANLkTilsHoG9gd6QwAV_b17h1eOnOBTr0xYDX-OUBlh_@mail.gmail.com>
-Subject: Re: em28xx/xc3028 - kernel driver vs. Markus Rechberger's driver
-From: Thorsten Hirsch <t.hirsch@web.de>
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: tkrah@fachschaft.imn.htwk-leipzig.de, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from bear.ext.ti.com ([192.94.94.41]:44306 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753947Ab0GNQUI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jul 2010 12:20:08 -0400
+From: Sergio Aguirre <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
+Subject: [media-ctl PATCH 1/3] Create initial .gitignore file
+Date: Wed, 14 Jul 2010 11:17:24 -0500
+Message-Id: <1279124246-12187-2-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1279124246-12187-1-git-send-email-saaguirre@ti.com>
+References: <1279124246-12187-1-git-send-email-saaguirre@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Oh, sorry for the long delay.
-Yes, I was using my fake-id patch.
+The idea of this file is to ignore build generated files, and also
+the "standard" patches subfolder, used by quilt for example.
 
-@Torsten: just open
-linux-2.6/drivers/media/video/em28xx/em28xx-cards.c and search for
-"EM2870_BOARD_TERRATEC_XS". Then copy this line and the one above it,
-and finally change the usb id in the copied line according to the
-output of lsusb.
+Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+---
+ .gitignore |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+ create mode 100644 .gitignore
 
-Thorsten
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..1e56cf5
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,4 @@
++*.o
++media-ctl
++
++patches/*
+-- 
+1.6.3.3
 
->> Maybe i need the patch Thorsten did too, to patch the em28xx-cards.c to get
->> the "new" wrong usb id regognized as a em28xx device so that i can reflash the
->> eeprom of the device. I might give this a try later this day.
->
-> Please try it, should be the root cause.
