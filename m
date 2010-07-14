@@ -1,54 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:47905 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S934317Ab0GOTIg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jul 2010 15:08:36 -0400
-From: Peter Huewe <PeterHuewe@gmx.de>
-To: Kernel Janitors <kernel-janitors@vger.kernel.org>
-Subject: [PATCH 24/25] video/ivtv: Convert pci_table entries to PCI_VDEVICE (if PCI_ANY_ID is used)
-Date: Thu, 15 Jul 2010 21:08:26 +0200
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ian Armstrong <ian@iarmst.demon.co.uk>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Steven Toth <stoth@kernellabs.com>, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007152108.27175.PeterHuewe@gmx.de>
+Received: from perceval.irobotique.be ([92.243.18.41]:52763 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757010Ab0GNOGL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Jul 2010 10:06:11 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [SAMPLE 11/12] omap34xxcam: Register the ISP platform device during omap34xxcam probe
+Date: Wed, 14 Jul 2010 16:07:13 +0200
+Message-Id: <1279116434-28278-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Peter Huewe <peterhuewe@gmx.de>
+In order to properly clean up all resources allocated by the isp-mod
+driver, the ISP platform device needs to be unregistered when the
+omap34xxcam driver is unloaded.
 
-This patch converts pci_table entries, where .subvendor=PCI_ANY_ID and
-.subdevice=PCI_ANY_ID, .class=0 and .class_mask=0, to use the
-PCI_VDEVICE macro, and thus improves readability.
+Move the ISP platform device registration from omap_init_camera to
+omap34xxcam_probe. This fixes many memory leaks when unloading and
+reloading the omap34xxcam driver.
 
-Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+Platform device registration should be moved back to omap_init_camera
+when (if) the omap34xxcam and isp-mod drivers will be merged.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/ivtv/ivtv-driver.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+ arch/arm/mach-omap2/devices.c |   13 ++++++++++++-
+ 1 files changed, 12 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-index 90daa6e..8e73ab9 100644
---- a/drivers/media/video/ivtv/ivtv-driver.c
-+++ b/drivers/media/video/ivtv/ivtv-driver.c
-@@ -69,10 +69,8 @@ int ivtv_first_minor;
- 
- /* add your revision and whatnot here */
- static struct pci_device_id ivtv_pci_tbl[] __devinitdata = {
--	{PCI_VENDOR_ID_ICOMP, PCI_DEVICE_ID_IVTV15,
--	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
--	{PCI_VENDOR_ID_ICOMP, PCI_DEVICE_ID_IVTV16,
--	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
-+	{PCI_VDEVICE(ICOMP, PCI_DEVICE_ID_IVTV15), 0},
-+	{PCI_VDEVICE(ICOMP, PCI_DEVICE_ID_IVTV16), 0},
- 	{0,}
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index ae465ce..61e5136 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -144,17 +144,28 @@ static struct resource omap3isp_resources[] = {
+ 	}
  };
  
++static void omap3isp_release(struct device *dev)
++{
++	/* Zero the device structure to avoid re-initialization complaints from
++	 * kobject when the device will be re-registered.
++	 */
++	memset(dev, 0, sizeof(*dev));
++	dev->release = omap3isp_release;
++}
++
+ struct platform_device omap3isp_device = {
+ 	.name		= "omap3isp",
+ 	.id		= -1,
+ 	.num_resources	= ARRAY_SIZE(omap3isp_resources),
+ 	.resource	= omap3isp_resources,
++	.dev = {
++		.release	= omap3isp_release,
++	},
+ };
+ EXPORT_SYMBOL_GPL(omap3isp_device);
+ 
+ static inline void omap_init_camera(void)
+ {
+-	platform_device_register(&omap3isp_device);
+ }
+ #else
+ static inline void omap_init_camera(void)
 -- 
 1.7.1
 
