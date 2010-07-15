@@ -1,37 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:58295 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755812Ab0GHKOe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 06:14:34 -0400
-Date: Thu, 8 Jul 2010 12:14:54 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Kyle Baker <kyleabaker@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
-Message-ID: <20100708121454.75db358c@tele>
-In-Reply-To: <AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
-References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
-	<20100707074431.66629934@tele>
-	<AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
-	<20100707110613.18be4215@tele>
-	<AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36836 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934092Ab0GOVov (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Jul 2010 17:44:51 -0400
+Subject: Re: [PATCH 24/25] video/ivtv: Convert pci_table entries to
+ PCI_VDEVICE (if PCI_ANY_ID is used)
+From: Andy Walls <awalls@md.metrocast.net>
+To: Peter Huewe <PeterHuewe@gmx.de>
+Cc: Kernel Janitors <kernel-janitors@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ian Armstrong <ian@iarmst.demon.co.uk>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	Steven Toth <stoth@kernellabs.com>, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <201007152108.27175.PeterHuewe@gmx.de>
+References: <201007152108.27175.PeterHuewe@gmx.de>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 15 Jul 2010 17:43:20 -0400
+Message-ID: <1279230200.7920.23.camel@morgan.silverblock.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 7 Jul 2010 17:32:43 -0400
-Kyle Baker <kyleabaker@gmail.com> wrote:
+On Thu, 2010-07-15 at 21:08 +0200, Peter Huewe wrote:
+> From: Peter Huewe <peterhuewe@gmx.de>
+> 
+> This patch converts pci_table entries, where .subvendor=PCI_ANY_ID and
+> .subdevice=PCI_ANY_ID, .class=0 and .class_mask=0, to use the
+> PCI_VDEVICE macro, and thus improves readability.
 
-> I've edited the gspca.c file with your suggestion to begin testing,
-> but I'm unable to get the new drivers to compile with and Error 2.
+Hi Peter,
 
-Strange! Well, I put the change my test version. May you get this one
-from my web page and test it?
+I have to disagree.  The patch may improve typesetting, but it degrades
+clarity and maintainability from my perspective.
 
-Best regards.
+a. PCI_ANY_ID indicates to the reader a wildcard match is being
+performed.  The PCI_VDEVICE() macro hides that to some degree.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+b. PCI_VENDOR_ID_ICOMP clearly indicates that ICOMP is a vendor.
+"ICOMP" alone does not hint to the reader that is stands for a company
+(the now defunct "Internext Compression, Inc.").
+
+
+IMO, macros, for things other than named constants, should only be used
+for constructs that the C language does not express clearly or compactly
+in the context.  This structure initialization being done in file scope,
+where white space and line feeds are cheap, will only be obfuscated by
+macros, not clarified.
+
+So I'm going to NAK this for ivtv, unless someone can help me understand
+any big picture benefit that I may not see from my possibly myopic
+perspective.
+
+
+BTW, I have not seen a similar patch come in my mailbox for
+cx18-driver.c.  Why propose the change for ivtv and not cx18?
+
+Regards,
+Andy
+
+> Signed-off-by: Peter Huewe <peterhuewe@gmx.de>
+> ---
+>  drivers/media/video/ivtv/ivtv-driver.c |    6 ++----
+>  1 files changed, 2 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
+> index 90daa6e..8e73ab9 100644
+> --- a/drivers/media/video/ivtv/ivtv-driver.c
+> +++ b/drivers/media/video/ivtv/ivtv-driver.c
+> @@ -69,10 +69,8 @@ int ivtv_first_minor;
+>  
+>  /* add your revision and whatnot here */
+>  static struct pci_device_id ivtv_pci_tbl[] __devinitdata = {
+> -	{PCI_VENDOR_ID_ICOMP, PCI_DEVICE_ID_IVTV15,
+> -	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+> -	{PCI_VENDOR_ID_ICOMP, PCI_DEVICE_ID_IVTV16,
+> -	 PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+> +	{PCI_VDEVICE(ICOMP, PCI_DEVICE_ID_IVTV15), 0},
+> +	{PCI_VDEVICE(ICOMP, PCI_DEVICE_ID_IVTV16), 0},
+>  	{0,}
+>  };
+>  
+
+
