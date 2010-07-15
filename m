@@ -1,38 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:37468 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832Ab0GALZm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Jul 2010 07:25:42 -0400
-Received: by gyd12 with SMTP id 12so940654gyd.19
-        for <linux-media@vger.kernel.org>; Thu, 01 Jul 2010 04:25:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20081599.48.1277920125030.JavaMail.root@ginder>
-References: <4C2B33B6.90408@gmail.com>
-	<20081599.48.1277920125030.JavaMail.root@ginder>
-Date: Thu, 1 Jul 2010 21:25:40 +1000
-Message-ID: <AANLkTin9gsrxJn8RGkkU56hyJWRJeiwiuqiTGZtyAbe0@mail.gmail.com>
-Subject: Re: [linux-dvb] TeVii S470 in mythtv - diseqc problems
-From: OM Ugarcina <mo.ucina@gmail.com>
-To: Hans Houwaard <hans@ginder.xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:26293 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932824Ab0GOJKv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Jul 2010 05:10:51 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 15 Jul 2010 11:10:34 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 03/10 v2] ARM: Samsung: Add platform definitions for local
+ FIMC/FIMD fifo path
+In-reply-to: <1279185041-6004-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: p.osciak@samsung.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	linux-media@vger.kernel.org, ben-linux@fluff.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Message-id: <1279185041-6004-4-git-send-email-s.nawrocki@samsung.com>
+References: <1279185041-6004-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Much thanks for your advice . I have done that options setting  and it
-helped with my other issues . I have just worked out this problem . It
-was connected with the changing of the DVBS card that I used for years
-with a new DVBS2 and Mythtv . I thought that it was the drivers issue
-- but it is not . My apologies to the DVB developers ( sorry Igor for
-doubting ) . The issue is that Mythtv when dealing with DVBS2 card
-will need to access an additional parameter from the dtv_multiplex
-table which is mod_sys . In my mod_sys column  there was only "1" ,
-instead of a proper setting such as "DVB-S" . After updating the table
-, mythtv was able to execute a tune properly .
+Add a common s3c_fifo_link structure that describes a local path link
+between 2 multimedia devices (like FIMC and FrameBuffer).
 
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ arch/arm/plat-samsung/include/plat/fifo.h |   37 +++++++++++++++++++++++++++++
+ 1 files changed, 37 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/plat-samsung/include/plat/fifo.h
 
-Best Regards
+diff --git a/arch/arm/plat-samsung/include/plat/fifo.h b/arch/arm/plat-samsung/include/plat/fifo.h
+new file mode 100644
+index 0000000..84d242b
+--- /dev/null
++++ b/arch/arm/plat-samsung/include/plat/fifo.h
+@@ -0,0 +1,37 @@
++/*
++ * Copyright (c) 2010 Samsung Electronics
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef FIFO_H_
++#define FIFO_H_
++
++#include <linux/device.h>
++#include <media/v4l2-subdev.h>
++
++/*
++ * The multimedia devices contained in Samsung S3C/S5P SoC series
++ * like framebuffer, camera interface or tv scaler can transfer data
++ * directly between each other through hardware fifo channels.
++ * s3c_fifo_link data structure is an abstraction for such links,
++ * it allows to define V4L2 device drivers hierarchy according to
++ * the hardware structure. Fifo links are mostly unidirectional, exclusive
++ * data buses. To control data transfer in fifo mode synchronization is
++ * is required between drivers at both ends of the fifo channel
++ * (master_dev, slave_dev). s3c_fifo_link:sub_dev is intended  to export
++ * in a consistent way all the functionality of the slave device required
++ * at master device driver to enable transfer through fifo channel.
++ * master_dev and slave_dev is to be setup by the platform code whilst
++ * sub_dev entry will mostly be initlized during slave_dev probe().
++ */
++struct s3c_fifo_link {
++	struct device		*master_dev;
++	struct device		*slave_dev;
++	struct v4l2_subdev	*sub_dev;
++};
++
++#endif /* FIFO_H_ */
++
+-- 
+1.7.0.4
 
-Milorad
