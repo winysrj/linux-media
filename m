@@ -1,60 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:24023 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753538Ab0GaNzP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 09:55:15 -0400
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and
- enable  it.
-From: Andy Walls <awalls@md.metrocast.net>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Jon Smirl <jonsmirl@gmail.com>, lirc-list@lists.sourceforge.net,
-	Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <1280493911.22296.5.camel@maxim-laptop>
-References: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
-	 <1280456235-2024-14-git-send-email-maximlevitsky@gmail.com>
-	 <AANLkTim42mHVhOgmVGxh2XsbbbVC7ZOgtfd7DDSrxZDB@mail.gmail.com>
-	 <1280461565.15737.124.camel@localhost>
-	 <1280489761.3646.3.camel@maxim-laptop>
-	 <AANLkTimqi+DwXUKxBkfkLVnvS4ONRT461CcRLk3F9ojX@mail.gmail.com>
-	 <1280490865.21345.0.camel@maxim-laptop>
-	 <AANLkTikMkWt9bnY58tOneydJNHi1PZO5DsQbwuucJcrO@mail.gmail.com>
-	 <AANLkTi=dkyrJM_WRhQPTY1V_1YnJRwNN5RN4hGNNeZ9v@mail.gmail.com>
-	 <1280493911.22296.5.camel@maxim-laptop>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 31 Jul 2010 09:55:31 -0400
-Message-ID: <1280584531.2473.4.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:54361 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754116Ab0GPRXx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jul 2010 13:23:53 -0400
+Date: Fri, 16 Jul 2010 13:23:51 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org
+Subject: [PATCH] input: fix wiring up default setkeycode/setkeycodebig
+Message-ID: <20100716172351.GA4364@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-07-30 at 15:45 +0300, Maxim Levitsky wrote:
-> On Fri, 2010-07-30 at 08:07 -0400, Jon Smirl wrote: 
-> > On Fri, Jul 30, 2010 at 8:02 AM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> > > On Fri, Jul 30, 2010 at 7:54 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+I believe there's a mistake in 94977ff15f4214ee4630cf4a67195a1d48da771c,
+where the conditions on which to set a setkeycodebig function are
+incorrect. Previously, we had the case where if the dev didn't provide
+its own setkeycode, we'd set the default input layer one. Now, we set
+setkeycode big if the dev provides its own setkeycode but doesn't
+provide setkeycodebig. Devices that provide neither setkeycode nor
+setkeycodebig wind up with neither, which blows up horribly later on
+down the road when a setkeycode{,big} operation is attempted. Such is
+the case with the thinkpad_acpi driver's input device registered for the
+extra hotkey buttons on my own t61. This makes it happy again, and seems
+to be an obvious fix for a thinko.
 
-> 
-> > >
-> > > +       pll_freq = (ene_hw_read_reg(dev, ENE_PLLFRH) << 4) +
-> > > +               (ene_hw_read_reg(dev, ENE_PLLFRL) >> 2);
-> > 
-> 
-> 
-> > I can understand the shift of the high bits, but that shift of the low
-> > bits is unlikely.  A manual would tell us if it is right.
-> > 
-> This shift is correct (according to datasheet, which contains mostly
-> useless info, but it does dociment this reg briefly.)
+Oh yeah, patch is against the linuxtv staging/other tree, not sure where
+else the previously referenced hash can be found just yet.
 
-The KB3700 series datasheet indicates that the value from ENE_PLLFRL
-should be shifted by >> 4 bits, not by >> 2.  Of course, the KB3700
-isn't the exact same chip.
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/input/input.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Regards,
-Andy
+diff --git a/drivers/input/input.c b/drivers/input/input.c
+index 43aeb71..ce5d90d 100644
+--- a/drivers/input/input.c
++++ b/drivers/input/input.c
+@@ -1850,7 +1850,7 @@ int input_register_device(struct input_dev *dev)
+ 			dev->getkeycodebig_from_scancode = input_default_getkeycode_from_scancode;
+ 	}
+ 
+-	if (dev->setkeycode) {
++	if (!dev->setkeycode) {
+ 		if (!dev->setkeycodebig)
+ 			dev->setkeycodebig = input_default_setkeycode;
+ 	}
+-- 
+1.7.1.1
 
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
