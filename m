@@ -1,124 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4357 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756189Ab0GXTdx (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:19454 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965066Ab0GPK2T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Jul 2010 15:33:53 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6OJXip3094690
-	for <linux-media@vger.kernel.org>; Sat, 24 Jul 2010 21:33:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 24 Jul 2010 21:33:44 +0200 (CEST)
-Message-Id: <201007241933.o6OJXip3094690@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Fri, 16 Jul 2010 06:28:19 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v5 0/5] WL1273 FM Radio driver
+Date: Fri, 16 Jul 2010 13:27:42 +0300
+Message-Id: <1279276067-1736-1-git-send-email-matti.j.aaltonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hello all,
 
-Results of the daily build of v4l-dvb:
+and thanks for the comments Hans. NowIn this version there are several small fixes
+because now I had time to actually test the driver... 
 
-date:        Sat Jul 24 19:00:20 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Hans wrote:
+> I've been thinking about this a bit more. Would it be possible to do this automatically
+> in the driver? I.e. based on the frequency you switch the device into the appropriate
+> band?
+> If that is not possible, then you shouldn't forget to document this new control in the spec.
+> When you document it you should give some background information as well: the freq ranges of
+> these bands and roughly where they are used.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+What you suggest could of course be done but I think it would be kind of ugly especially
+when doing HW scan and things like that. So I kept the bands and added it to the documentation.
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+drivers/mfd/wl1273-core.c 
+> Have you verified that bits 0-2 correctly match the block numbering as defined
+> by the spec? You should also copy bits 0-2 into bits 3-5. This is for backwards
+> compatibility. Eventually we should be able to drop this, but for now we still
+> need to do this.
 
-Full logs are available here:
+Yes I think the block numbering is OK. Also added a copy to bits 3 to 5 etc...
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+drivers/media/radio/radio-wl1273.c
+>> +     /* TODO: handle the case of multiple readers */
+>
+> Please remove this comment: multiple reader support does not belong in the kernel,
+> so this will never happen.
 
-The V4L-DVB specification from this daily build is here:
+Fixed.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+>> +             return POLLIN | POLLRDNORM;
+>
+> Since you can write as well, shouldn't there be POLLOUT handling too?
+>
+>> +
+
+Yes, fixed...
+
+
+Cheers,
+Matti
+
+
+Matti J. Aaltonen (5):
+  V4L2: Add seek spacing and FM RX class.
+  MFD: WL1273 FM Radio: MFD driver for the FM radio.
+  ASoC: WL1273 FM Radio Digital audio codec.
+  V4L2: WL1273 FM Radio: Controls for the FM radio.
+  Documentation: v4l: Add hw_seek spacing and FM_RX class
+
+ Documentation/DocBook/v4l/controls.xml             |   71 +
+ .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 +-
+ drivers/media/radio/Kconfig                        |   15 +
+ drivers/media/radio/Makefile                       |    1 +
+ drivers/media/radio/radio-wl1273.c                 | 1897 ++++++++++++++++++++
+ drivers/mfd/Kconfig                                |    6 +
+ drivers/mfd/Makefile                               |    2 +
+ drivers/mfd/wl1273-core.c                          |  621 +++++++
+ include/linux/mfd/wl1273-core.h                    |  313 ++++
+ include/linux/videodev2.h                          |   15 +-
+ sound/soc/codecs/Kconfig                           |    6 +
+ sound/soc/codecs/Makefile                          |    2 +
+ sound/soc/codecs/wl1273.c                          |  588 ++++++
+ sound/soc/codecs/wl1273.h                          |   40 +
+ 14 files changed, 3584 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/media/radio/radio-wl1273.c
+ create mode 100644 drivers/mfd/wl1273-core.c
+ create mode 100644 include/linux/mfd/wl1273-core.h
+ create mode 100644 sound/soc/codecs/wl1273.c
+ create mode 100644 sound/soc/codecs/wl1273.h
+
