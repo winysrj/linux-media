@@ -1,89 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49107 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755215Ab0GXUnF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Jul 2010 16:43:05 -0400
-Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6OKh3GD031462
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Jul 2010 16:43:03 -0400
-Received: from [10.3.230.230] (vpn-230-230.phx2.redhat.com [10.3.230.230])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o6OKh0Tb032529
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 24 Jul 2010 16:43:02 -0400
-Message-ID: <4C4B5077.3020509@redhat.com>
-Date: Sat, 24 Jul 2010 17:43:35 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Linux Plumber's Conference: Call for Working Session Submissions
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([192.100.122.230]:57501 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964951Ab0GPK2Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jul 2010 06:28:16 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v5 5/5] Documentation: v4l: Add hw_seek spacing and FM_RX class
+Date: Fri, 16 Jul 2010 13:27:47 +0300
+Message-Id: <1279276067-1736-6-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1279276067-1736-5-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1279276067-1736-1-git-send-email-matti.j.aaltonen@nokia.com>
+ <1279276067-1736-2-git-send-email-matti.j.aaltonen@nokia.com>
+ <1279276067-1736-3-git-send-email-matti.j.aaltonen@nokia.com>
+ <1279276067-1736-4-git-send-email-matti.j.aaltonen@nokia.com>
+ <1279276067-1736-5-git-send-email-matti.j.aaltonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CFP dead line for submitting proposals to LPC/2010 is approaching.
-For those that intends to submit proposals for it, please do it quickly,
-as the official dead line is July, 26.
+Add a couple of words about the spacing field in ithe HW seek struct and
+about the new FM RX control class.
 
-
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
 ---
+ Documentation/DocBook/v4l/controls.xml             |   71 ++++++++++++++++++++
+ .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 ++-
+ 2 files changed, 79 insertions(+), 2 deletions(-)
 
-The Planning Committee for the Linux Plumbers Conference (LPC) is happy
-to announce that submissions to the "micro-conferences" portion of the
-conference is now open.  The micro-conferences are working session
-focused on specific infrastructural "plumbing" in the Linux system --
-kernel subsystems, core libraries, windowing system, etc. -- which are
-half-day in length.
+diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+index e1bdbb6..9725f06 100644
+--- a/Documentation/DocBook/v4l/controls.xml
++++ b/Documentation/DocBook/v4l/controls.xml
+@@ -2062,6 +2062,77 @@ manually or automatically if set to zero. Unit, range and step are driver-specif
+ <para>For more details about RDS specification, refer to
+ <xref linkend="en50067" /> document, from CENELEC.</para>
+     </section>
++    <section id="fm-rx-controls">
++      <title>FM Tuner Control Reference</title>
++
++      <para>The FM Tuner (FM_RX) class includes controls for common features of
++devices that are capable of receiving FM transmissions. Currently this class includes a parameter
++defining the FM radio band being used.</para>
++
++      <table pgwide="1" frame="none" id="fm-rx-control-id">
++      <title>FM_RX Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*" />
++	<colspec colname="c2" colwidth="6*" />
++	<colspec colname="c3" colwidth="2*" />
++	<colspec colname="c4" colwidth="6*" />
++	<spanspec namest="c1" nameend="c2" spanname="id" />
++	<spanspec namest="c2" nameend="c4" spanname="descr" />
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FM_RX_CLASS</constant>&nbsp;</entry>
++	    <entry>class</entry>
++	  </row><row><entry spanname="descr">The FM_RX class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FM_RX_BAND</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row id="v4l2-fm_rx_band"><entry spanname="descr">Configures the FM radio band that is
++the frequency range being used. Currentrly there are three band in use, see  <ulink
++url="http://en.wikipedia.org/wiki/FM_broadcasting">Wikipedia</ulink>.
++Usually 87.5 to 108.0 MHz is used, or some portion thereof, with a few exceptions:
++In Japan, the band 76-90 MHz is used and
++In the former Soviet republics, and some former Eastern Bloc countries,
++the older 65-74 MHz band, referred also to as the OIRT band, is still used.
++
++The enum&nbsp; v4l2_fm_rx_band defines possible values for the FM band. They are:</entry>
++	</row><row>
++	<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_FM_BAND_OTHER</constant>&nbsp;</entry>
++		      <entry>Frequencies from 87.5 to 108.0 MHz</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FM_BAND_JAPAN</constant>&nbsp;</entry>
++		      <entry>from 65 to 74 MHz</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FM_BAND_OIRT</constant>&nbsp;</entry>
++		      <entry>from 65 to 74 MHz</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++
++    </section>
+ </section>
+ 
+   <!--
+diff --git a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+index 14b3ec7..8ee614c 100644
+--- a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
++++ b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+@@ -51,7 +51,8 @@
+ 
+     <para>Start a hardware frequency seek from the current frequency.
+ To do this applications initialize the <structfield>tuner</structfield>,
+-<structfield>type</structfield>, <structfield>seek_upward</structfield> and
++<structfield>type</structfield>, <structfield>seek_upward</structfield>,
++<structfield>spacing</structfield> and
+ <structfield>wrap_around</structfield> fields, and zero out the
+ <structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
+ call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
+@@ -89,7 +90,12 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry><structfield>spacing</structfield></entry>
++	    <entry>If non-zero, gives the search resolution to be used in hardware scan. The driver selects the nearest value that is supported by the hardware. If spacing is zero use a reasonable default value.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[7]</entry>
+ 	    <entry>Reserved for future extensions. Drivers and
+ 	    applications must set the array to zero.</entry>
+ 	  </row>
+-- 
+1.6.1.3
 
-The potential topics for the working sessions can be found at the Topics
-page[1] of the LPC wiki and include:
-
-	* Power Management
-	* Virtualization
-	* Mono
-	* Desktop
-	* Tracing
-	* Real-time response for full FOSS/Linux stack
-	* User-visible Problems in Networking
-	* Media Infrastructure
-	* Audio
-	* HA Clustering
-	* Legal Hygiene
-	* Embedded Topics
-	* Boot/init
-
-[1] http://wiki.linuxplumbersconf.org/2010:topics
-
-The topics that will actually have working sessions scheduled at the LPC
-will depend on the submissions to the microconference and on the ability
-of its respective community to organize a successful working session;
-see "Responsibility of a working session leader"[2] page on the LPC
-wiki for more details.
-
-[2] http://wiki.linuxplumbersconf.org/2010:responsibilities_of_a_working_session_leader
-
-Microconference submissions do not have to reflect finished work.  In
-fact, proposals or proof-of-concepts of potential solutions to important
-problems are encouraged, so they can be discussed and debated during the
-microconference.  Proposals for presentations at a microconference may
-be submitted here [3]:
-
-[3] http://www.linuxplumbersconf.org/2010/ocw/events/LPC2010MC/proposals
-
-In addition to the micro conference, the Linux Plumbers Conference has
-open calls for papers[4] and BOF's[5].
-
-[4] http://www.linuxplumbersconf.org/2010/ocw/events/LPC2010/proposals
-[5] http://www.linuxplumbersconf.org/2010/ocw/events/LPC2010BOFS/proposals
-
-For further announcements about LPC, please watch our blog[6] or
-subscribe to our LPC announcements mailing list[7].
-
-[6] http://www.linuxplumbersconf.org/2010/feed/rss
-[7] http://lists.linuxplumbersconf.org/mailman/listinfo/lpc-announce
-
-_______________________________________________
-Lpc-session-leads mailing list
-Lpc-session-leads@lists.linuxplumbersconf.org
-http://lists.linuxplumbersconf.org/mailman/listinfo/lpc-session-leads
