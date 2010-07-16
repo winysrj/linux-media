@@ -1,64 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:33527 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757938Ab0GBJDc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jul 2010 05:03:32 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Samuel Xu <samuel.xu.tech@gmail.com>
-Subject: Re: Question on uvcvideo driver's power management
-Date: Fri, 2 Jul 2010 11:03:56 +0200
-Cc: linux-media@vger.kernel.org
-References: <AANLkTil-iWbMyCkKYfjWUUjG95iGjbo_h-y1snt0D444@mail.gmail.com>
-In-Reply-To: <AANLkTil-iWbMyCkKYfjWUUjG95iGjbo_h-y1snt0D444@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201007021103.57386.laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([192.100.105.134]:19480 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965066Ab0GPK2m (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jul 2010 06:28:42 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v5 1/5] V4L2: Add seek spacing and FM RX class.
+Date: Fri, 16 Jul 2010 13:27:43 +0300
+Message-Id: <1279276067-1736-2-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1279276067-1736-1-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1279276067-1736-1-git-send-email-matti.j.aaltonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Samuel,
+Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
+control classes.
 
-On Tuesday 29 June 2010 12:12:13 Samuel Xu wrote:
-> Question on uvcvideo driver's power management:
-> Q1: We found some USB material mentioned : Relationship between ACPI
-> Dx states and USB PM states (active/suspended) is orthogonal.
-> Suspend/resume might not effect device Dx state(e.g. D0/D1/D3). Is it
-> a correct statement for general usb device and uvcvideo usb device?
-> Q2: How to tell USB uvcvideo device’s ACPI Dx state. It seems lsusb
-> can’t tell us those info. (lspci works for PCI device’s Dx state)
-> Q3: How to tell USB uvcvideo device’s suspension state? will any query
-> via urb will cause resume of uvcvideo device?
-> Q4: should USB uvcvideo device driver response to do some
-> device-specific power action (e.g. device register writing) to put a
-> specific USB camera into low power state when responding to suspend
-> action? (I didn't find such device-specific power code inside uvcvideo
-> src code)
-> Q5: If Q4 is Yes, should device vendor respond for those device-specific
-> code?
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ include/linux/videodev2.h |   15 ++++++++++++++-
+ 1 files changed, 14 insertions(+), 1 deletions(-)
 
-Power management for UVC devices is handled at the USB level. There's nothing 
-UVC-specific to it. You've received answers to those questions on the linux-
-usb list so I won't go into a lot of details (there are developers more 
-knowledgeable about USB power management on linux-usb).
-
-In a nutshell, USB devices have a single "suspended" state instead of ACPI Dx 
-states. Devices must suspend themselves if they don't see any bus activity for 
-at 3ms (idle bus). Activity doesn't require the driver to perform any action 
-explicitly, the USB host controller will send a Start Of Frame packet every 
-millisecond on its own.
-
-Stopping activity is achieved by sending a SET_FEATURE(PORT_SUSPEND) request 
-to the hub the device is connected to (either root hub, or external hub) 
-asking it to stop USB traffic on the device port. Resuming activity is then 
-done with the CLEAR_FEATURE(PORT_SUSPEND) request.
-
-The job of the driver, before suspend, is to save the device state (if 
-required) and kill all URBs. On resume the driver will then restore the device 
-state and resubmit the URBs.
-
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 418dacf..95675cd 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -935,6 +935,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
++#define V4L2_CTRL_CLASS_FM_RX 0x009c0000	/* FM Tuner control class */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1313,6 +1314,17 @@ enum v4l2_preemphasis {
+ #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
+ #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
+ 
++/* FM Tuner class control IDs */
++#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
++#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
++
++#define V4L2_CID_FM_RX_BAND			(V4L2_CID_FM_TX_CLASS_BASE + 1)
++enum v4l2_fm_rx_band {
++	V4L2_FM_BAND_OTHER		= 0,
++	V4L2_FM_BAND_JAPAN		= 1,
++	V4L2_FM_BAND_OIRT		= 2
++};
++
+ /*
+  *	T U N I N G
+  */
+@@ -1377,7 +1389,8 @@ struct v4l2_hw_freq_seek {
+ 	enum v4l2_tuner_type  type;
+ 	__u32		      seek_upward;
+ 	__u32		      wrap_around;
+-	__u32		      reserved[8];
++	__u32		      spacing;
++	__u32		      reserved[7];
+ };
+ 
+ /*
 -- 
-Regards,
+1.6.1.3
 
-Laurent Pinchart
