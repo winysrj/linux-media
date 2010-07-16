@@ -1,98 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:39876 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756595Ab0GVPdW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jul 2010 11:33:22 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links enumeration
-Date: Thu, 22 Jul 2010 17:33:36 +0200
-Cc: linux-media@vger.kernel.org
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-7-git-send-email-laurent.pinchart@ideasonboard.com> <4C48633F.9020001@maxwell.research.nokia.com>
-In-Reply-To: <4C48633F.9020001@maxwell.research.nokia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:1837 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966209Ab0GPV35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jul 2010 17:29:57 -0400
+Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6GLTvUo019849
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 16 Jul 2010 17:29:57 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [10.16.43.238])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o6GLTtMA000785
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 16 Jul 2010 17:29:56 -0400
+Received: from ihatethathostname.lab.bos.redhat.com (ihatethathostname.lab.bos.redhat.com [127.0.0.1])
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.3) with ESMTP id o6GLTtni019989
+	for <linux-media@vger.kernel.org>; Fri, 16 Jul 2010 17:29:55 -0400
+Received: (from jarod@localhost)
+	by ihatethathostname.lab.bos.redhat.com (8.14.4/8.14.4/Submit) id o6GLTs9c019988
+	for linux-media@vger.kernel.org; Fri, 16 Jul 2010 17:29:54 -0400
+Date: Fri, 16 Jul 2010 17:29:54 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] IR/lirc: use memdup_user instead of copy_from_user
+Message-ID: <20100716212953.GA19872@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007221733.37439.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Inspired by 64047b94ede76e0c72ba8af98505e96d6a664519
 
-On Thursday 22 July 2010 17:26:55 Sakari Ailus wrote:
-> Hi,
-> 
-> Laurent Pinchart wrote:
-> ...
-> 
-> > diff --git a/include/linux/media.h b/include/linux/media.h
-> > new file mode 100644
-> > index 0000000..746bdda
-> > --- /dev/null
-> > +++ b/include/linux/media.h
-> > @@ -0,0 +1,73 @@
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/ir-lirc-codec.c |   11 +++--------
+ 1 files changed, 3 insertions(+), 8 deletions(-)
 
-[snip]
-
-> > +
-> > +struct media_user_pad {
-> > +	__u32 entity;		/* entity ID */
-> > +	__u8 index;		/* pad index */
-> > +	__u32 direction;	/* pad direction */
-> > +};
-> 
-> Another small comment, I think you mentioned it yourself some time back
-> 
-> :-): how about some reserved fields to these structures?
-
-Very good point. Reserved fields are needed in media_user_entity and 
-media_user_links at least. For media_user_pad and media_user_link, we could do 
-without reserved fields if we add fields to media_user_links to store the size 
-of those structures.
-
-> > +struct media_user_entity {
-> > +	__u32 id;
-> > +	char name[32];
-> > +	__u32 type;
-> > +	__u32 subtype;
-> > +	__u8 pads;
-> > +	__u32 links;
-> > +
-> > +	union {
-> > +		/* Node specifications */
-> > +		struct {
-> > +			__u32 major;
-> > +			__u32 minor;
-> > +		} v4l;
-> > +		struct {
-> > +			__u32 major;
-> > +			__u32 minor;
-> > +		} fb;
-> > +		int alsa;
-> > +		int dvb;
-> > +
-> > +		/* Sub-device specifications */
-> > +		/* Nothing needed yet */
-> > +	};
-> > +};
-> > +
-> > +struct media_user_link {
-> > +	struct media_user_pad source;
-> > +	struct media_user_pad sink;
-> > +	__u32 flags;
-> > +};
-> > +
-> > +struct media_user_links {
-> > +	__u32 entity;
-> > +	/* Should have enough room for pads elements */
-> > +	struct media_user_pad __user *pads;
-> > +	/* Should have enough room for links elements */
-> > +	struct media_user_link __user *links;
-> > +};
+diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
+index afb1ada..ee1f2d4 100644
+--- a/drivers/media/IR/ir-lirc-codec.c
++++ b/drivers/media/IR/ir-lirc-codec.c
+@@ -74,14 +74,9 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char *buf,
+ 	if (count > LIRCBUF_SIZE || count % 2 == 0)
+ 		return -EINVAL;
+ 
+-	txbuf = kzalloc(sizeof(int) * LIRCBUF_SIZE, GFP_KERNEL);
+-	if (!txbuf)
+-		return -ENOMEM;
+-
+-	if (copy_from_user(txbuf, buf, n)) {
+-		ret = -EFAULT;
+-		goto out;
+-	}
++	txbuf = memdup_user(buf, n);
++	if (IS_ERR(txbuf))
++		return PTR_ERR(txbuf);
+ 
+ 	ir_dev = lirc->ir_dev;
+ 	if (!ir_dev) {
+-- 
+1.7.1.1
 
 -- 
-Regards,
+Jarod Wilson
+jarod@redhat.com
 
-Laurent Pinchart
