@@ -1,56 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:60823 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753848Ab0G2P1Q (ORCPT
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:48976 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756846Ab0GPSHI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 11:27:16 -0400
-Subject: Re: [PATCH 5/9] IR: extend interfaces to support more device
- settings
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Christoph Bartelmus <lirc@bartelmus.de>
-Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, mchehab@redhat.com,
-	Jarod Wilson <jarod@wilsonet.com>
-In-Reply-To: <BTlMvkhXqgB@lirc>
-References: <1280360452-8852-6-git-send-email-maximlevitsky@gmail.com>
-	 <BTlMvkhXqgB@lirc>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 29 Jul 2010 18:27:07 +0300
-Message-ID: <1280417227.29938.60.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 16 Jul 2010 14:07:08 -0400
+MIME-Version: 1.0
+In-Reply-To: <1279280574.2905.18.camel@morgan.silverblock.net>
+References: <201007152108.27175.PeterHuewe@gmx.de>
+	<1279230200.7920.23.camel@morgan.silverblock.net>
+	<AANLkTikFTK4KwxKgQqwIId3dPy5hf5X0WjsAYkE5pEd4@mail.gmail.com>
+	<1279280574.2905.18.camel@morgan.silverblock.net>
+Date: Fri, 16 Jul 2010 14:07:07 -0400
+Message-ID: <AANLkTinqytzuGXJRakN45u1K91uN66Empk1_7FmdpOxT@mail.gmail.com>
+Subject: Re: [PATCH 24/25] video/ivtv: Convert pci_table entries to
+	PCI_VDEVICE (if PCI_ANY_ID is used)
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Peter Huewe <PeterHuewe@gmx.de>,
+	Kernel Janitors <kernel-janitors@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Ian Armstrong <ian@iarmst.demon.co.uk>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	Steven Toth <stoth@kernellabs.com>, ivtv-devel@ivtvdriver.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-07-29 at 09:25 +0200, Christoph Bartelmus wrote: 
-> Hi!
-> 
-> Maxim Levitsky "maximlevitsky@gmail.com" wrote:
-> 
-> > Also reuse LIRC_SET_MEASURE_CARRIER_MODE as LIRC_SET_LEARN_MODE
-> > (LIRC_SET_LEARN_MODE will start carrier reports if possible, and
-> > tune receiver to wide band mode)
-> 
-> I don't like the rename of the ioctl. The ioctl should enable carrier
-> reports. Anything else is hardware specific. Learn mode gives a somewhat
-> wrong association to me. irrecord always has been using "learn mode"
-> without ever using this ioctl.
+On Fri, Jul 16, 2010 at 7:42 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+> On Thu, 2010-07-15 at 18:07 -0400, Jarod Wilson wrote:
+>> On Thu, Jul 15, 2010 at 5:43 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+>> > On Thu, 2010-07-15 at 21:08 +0200, Peter Huewe wrote:
+>> >> From: Peter Huewe <peterhuewe@gmx.de>
+>
+>> > a. PCI_ANY_ID indicates to the reader a wildcard match is being
+>> > performed.  The PCI_VDEVICE() macro hides that to some degree.
+>> >
+>> > b. PCI_VENDOR_ID_ICOMP clearly indicates that ICOMP is a vendor.
+>> > "ICOMP" alone does not hint to the reader that is stands for a company
+>> > (the now defunct "Internext Compression, Inc.").
+>>
+>> Personally, I'm a fan of comments around things like this to describe
+>> *exactly* what device(s) they're referring to.
+>
+> Something like this then for ivtv:
+>
+> /* Claim every iTVC15/CX23415 or CX23416 based PCI Subsystem ever made */
+>
+> ?
 
-Why?
+More or less. Though perhaps more succinctly, just:
 
-Carrier measure (if supported by hardware I think should always be
-enabled, because it can help in-kernel decoders).
-(Which raises seperate question on how to do so. I guess I will need to
-make ir_raw_event 64 bit after all...)
+/* All iTVC15/CX23415 and CX23416 based devices */
+
+>>  Then ICOMP being all
+>> alone without the prefix isn't really much of an issue (though it
+>> could still be easily mistaken for something other than a pci vendor
+>> id, I suppose).
+>
+> Probably not.  Another minor side effect is that it breaks a tag search
+> for easily jumping to the definition to see the ID value.  "ICOMP" won't
+> be in the tags file, but "PCI_VENDOR_ID_ICOMP" will be.
+
+Hm. That's a fair point. I recall a time or three hunting for symbols
+using cscope, and having a bitch of a time, because some of them were
+obscured by macro magic.
 
 
-Another thing is reporting these results to lirc.
-By default lirc shouldn't get carrier reports, but as soon as irrecord
-starts, it can place device in special mode that allows it to capture
-input better, and optionally do carrier reports.
-
-Do you think carrier reports are needed by lircd?
-
-Best regards,
-Maxim Levitsky
-
+-- 
+Jarod Wilson
+jarod@wilsonet.com
