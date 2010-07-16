@@ -1,59 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49523 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751550Ab0G2Dwb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 23:52:31 -0400
-Date: Wed, 28 Jul 2010 23:52:13 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
-Message-ID: <20100729035213.GA11543@redhat.com>
-References: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:41034 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758875Ab0GPTnt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jul 2010 15:43:49 -0400
+Received: by eya25 with SMTP id 25so642855eya.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Jul 2010 12:43:46 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
+Date: Sat, 17 Jul 2010 01:13:45 +0530
+Message-ID: <AANLkTil1gC0Zs-dZYO2rIgmnKIPpSdW79wncEvL9evxh@mail.gmail.com>
+Subject: em28xx: new board id [0b1a:50a3]
+From: Jeevas V <jeevas.v@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 29, 2010 at 02:40:43AM +0300, Maxim Levitsky wrote:
-> Hi,
-> This is second version of the patchset.
-> Hopefully, I didn't forget to address all comments.
-> 
-> In addition to comments, I changed helper function that processes samples
-> so it sends last space as soon as timeout is reached.
-> This breaks somewhat lirc, because now it gets 2 spaces in row.
-> However, if it uses timeout reports (which are now fully supported)
-> it will get such report in middle.
-> 
-> Note that I send timeout report with zero value.
-> I don't think that this value is importaint.
+With these changes the driver is failing when it tries to load the
+xceive firmware complaining about some registers.
 
-I just patched the entire series into a branch here and tested, no
-regressions with an mceusb transceiver with in-kernel decode, lirc decode
-or lirc tx. Only issue I had (which I neglected to mention earlier) was
-some pedantic issues w/whitespace. Here's the tree I built and tested:
+Please help me in getting this working and direct me.
 
-http://git.wilsonet.com/linux-2.6-ir-wip.git/?a=shortlog;h=refs/heads/maxim
+After making the changes how can I install/insert  the em28xx module
+alone so that I don't have to install the complete driver set?
 
-7486d6ae3 addresses all the whitespace/formatting issues I had. Could
-either merge that into your patches, or I can just send it along as an
-additional patch after the fact. In either case, for 1-7 v2:
+By the way I am testing on Ubuntu Lucid 64-bit
 
-Tested-by: Jarod Wilson <jarod@redhat.com>
 
-I have no ene hardware to actually test with, but it did build. :)
 
-For 1-9 v2:
+Hi,
 
-Acked-by: Jarod Wilson <jarod@redhat.com>
+Recently I got a new Analog card  UTV 380 from Gadmei
+
+I dismantled it and got the list of components in it.
+
+    *  Empia EM2860 (USB video bridge)
+    * Empia EMP202 (AC'97 audio processor)
+    * NXP/Philips SAA7113 (video decoder)
+    * Xceive XC2028ACQ (Analog chip tuner)
+    * 24C04 (EEPROM)
+    * HCF4052 (4-channel Analog multiplexer)
+
+I have documented the same in the wiki:
+http://www.linuxtv.org/wiki/index.php/Gadmei_USB_TVBox_UTV380
+
+I tried adding support for the card using the v4l-dvb  source. Here is
+what I did.
+
+em28xx.h
+=====================================================================
+#define EM2860_BOARD_GADMEI_UTV380          76
+
+em28xx-cards.c
+=======================================================================
+[EM2860_BOARD_GADMEI_UTV380] = {
+		.name         = "Gadmei UTV380",
+		.valid        = EM28XX_BOARD_NOT_VALIDATED,
+		.tuner_type   = TUNER_XC2028,
+		.decoder      = EM28XX_SAA711X,
+		.input        = { {
+			.type     = EM28XX_VMUX_TELEVISION,
+			.vmux     = SAA7115_COMPOSITE2,
+			.amux     = EM28XX_AMUX_VIDEO,
+		}, {
+			.type     = EM28XX_VMUX_COMPOSITE1,
+			.vmux     = SAA7115_COMPOSITE0,
+			.amux     = EM28XX_AMUX_LINE_IN,
+		},
+		},
+	},
+
+---------------------------
+---------------------
+-----------------
+	{ USB_DEVICE(0xeb1a, 0x50a3),
+			.driver_info = EM2860_BOARD_GADMEI_UTV380 },
+
+====================================================================
+
+
+After this I built and installed the driver. Then I extracted and
+copied the xceive firmware(xc3028-v27.fw) from
+ http://www.steventoth.net/linux/xc5000/HVR-12x0-14x0-17x0_1_25_25271_WHQL.zip
+to /lib/firmware/
+
+
+
+With these changes the driver is failing when it tries to load the
+xceive firmware complaining about some registers.
+
+Please help me in getting this working and direct me.
+
+After making the changes how can I install/insert  the em28xx module
+alone so that I don't have to install the complete driver set?
+
+By the way I am testing on Ubuntu Lucid 64-bit
+
+
+
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+Thanks and Regards
+Jeevas
