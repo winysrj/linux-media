@@ -1,70 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:43583 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208Ab0GHUCa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 16:02:30 -0400
-Received: by eya25 with SMTP id 25so167158eya.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Jul 2010 13:02:28 -0700 (PDT)
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:56547 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935668Ab0GPHDK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jul 2010 03:03:10 -0400
+Date: Fri, 16 Jul 2010 09:02:57 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Baruch Siach <baruch@tkos.co.il>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Uwe =?iso-8859-15?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCHv6] mx2_camera: Add soc_camera support for i.MX25/i.MX27
+Message-ID: <20100716070257.GH14113@pengutronix.de>
+References: <40ccd21d0e857660038d193af3bb4cc6edd1067d.1278218817.git.baruch@tkos.co.il> <Pine.LNX.4.64.1007111315560.30182@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <4C362C6E.5050104@gmail.com>
-References: <4C353039.4030202@gmail.com>
-	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>
-	<4C360E64.3020703@gmail.com>
-	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>
-	<4C362C6E.5050104@gmail.com>
-Date: Thu, 8 Jul 2010 16:02:28 -0400
-Message-ID: <AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com>
-Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
-	[eb1a:2860]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ivan <ivan.q.public@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1007111315560.30182@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 8, 2010 at 3:52 PM, Ivan <ivan.q.public@gmail.com> wrote:
-> On 07/08/2010 01:52 PM, Devin Heitmueller wrote:
->>
->> The vertical stripes were a problem with the anti-alias filter
->> configuration, which I fixed a few months ago (and probably just
->> hasn't made it into your distribution).  Just install the current
->> v4l-dvb code and it should go away:
->>
->> http://linuxtv.org/repo
->
-> Yep, that gets rid of the vertical stripes but adds in a lovely horizontal
-> shift:
->
-> http://www3.picturepush.com/photo/a/3763906/img/3763906.png
->
-> Also, vertical lines look slightly more ragged than they did before, to my
-> eye at least.
->
-> I'm also encountering this old compilation problem:
->
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg06865.html
->
-> I worked around it by disabling firedtv in v4l/.config. (I'm running
-> 2.6.32-23-generic on Ubuntu Lucid.)
->
-> Ivan
->
+On Sun, Jul 11, 2010 at 01:18:27PM +0200, Guennadi Liakhovetski wrote:
+> On Sun, 4 Jul 2010, Baruch Siach wrote:
+> 
+> > This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
+> > Carvalho de Assis modified the original driver to get it working on more recent
+> > kernels. I modified it further to add support for i.MX25. This driver has been
+> > tested on i.MX25 and i.MX27 based platforms.
+> > 
+> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> 
+> So, who shall be taking this patch? I'd prefer it go via ARM. Then you can 
+> easier satisfy any dependencies and enforce a certain patch order. It has 
+> my ack, just verified v6 - my ack still holds (I hope, Baruch did 
+> compile-test this new version on various i.MX2x versions). However, if you 
+> prefer, I can also take it via soc-camera / v4l. Sascha, what's your take?
 
-The "jagged vertical lines" is probably this issue, which was fixed in
-git but the fix hasn't hit the hg repository yet:
+There won't be conflicts when this goes over v4l, but otoh if Baruch
+plans to add board support till the next window the platform_data will
+be missing and my tree won't compile. So it's probably best to push it
+through the i.MX tree.
 
-http://git.linuxtv.org/v4l-dvb.git?a=commitdiff;h=9db74cf24c038292d353d746cec11f6da368ef4c
+Will apply this afternoon if noone objects.
 
-The "horizontal shift" issue is interesting.  Does that happen every
-time?  And did you unplug/replug the device?  Try to reboot?
-
-Regarding the compilation issue, yeah it's annoying.  Perhaps someday
-the Ubuntu people will fix their kernel packaging process.
-
-Devin
+Sascha
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
