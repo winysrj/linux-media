@@ -1,150 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:45879 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752713Ab0G3MHe convert rfc822-to-8bit (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:39215 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936136Ab0GPJKH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 08:07:34 -0400
+	Fri, 16 Jul 2010 05:10:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [RFC/PATCH 03/10] media: Entities, pads and links
+Date: Fri, 16 Jul 2010 11:10:07 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279114219-27389-4-git-send-email-laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE894456775DDC@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894456775DDC@dlee02.ent.ti.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTikMkWt9bnY58tOneydJNHi1PZO5DsQbwuucJcrO@mail.gmail.com>
-References: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
-	<1280456235-2024-14-git-send-email-maximlevitsky@gmail.com>
-	<AANLkTim42mHVhOgmVGxh2XsbbbVC7ZOgtfd7DDSrxZDB@mail.gmail.com>
-	<1280461565.15737.124.camel@localhost>
-	<1280489761.3646.3.camel@maxim-laptop>
-	<AANLkTimqi+DwXUKxBkfkLVnvS4ONRT461CcRLk3F9ojX@mail.gmail.com>
-	<1280490865.21345.0.camel@maxim-laptop>
-	<AANLkTikMkWt9bnY58tOneydJNHi1PZO5DsQbwuucJcrO@mail.gmail.com>
-Date: Fri, 30 Jul 2010 08:07:33 -0400
-Message-ID: <AANLkTi=dkyrJM_WRhQPTY1V_1YnJRwNN5RN4hGNNeZ9v@mail.gmail.com>
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable
-	it.
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007161110.08165.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 30, 2010 at 8:02 AM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> On Fri, Jul 30, 2010 at 7:54 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
->> On Fri, 2010-07-30 at 07:51 -0400, Jon Smirl wrote:
->>> On Fri, Jul 30, 2010 at 7:36 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
->>> > On Thu, 2010-07-29 at 23:46 -0400, Andy Walls wrote:
->>> >> On Thu, 2010-07-29 at 22:39 -0400, Jon Smirl wrote:
->>> >> > On Thu, Jul 29, 2010 at 10:17 PM, Maxim Levitsky
->>> >> > <maximlevitsky@gmail.com> wrote:
->>> >> > > note that error_adjustment module option is added.
->>> >> > > This allows to reduce input samples by a percent.
->>> >> > > This makes input on my system more correct.
->>> >> > >
->>> >> > > Default is 4% as it works best here.
->>> >> > >
->>> >> > > Note that only normal input is adjusted. I don't know
->>> >> > > what adjustments to apply to fan tachometer input.
->>> >> > > Maybe it is accurate already.
->>> >> >
->>> >> > Do you have the manual for the ENE chip in English? or do you read Chinese?
->>> >>
->>> >> The datasheet for a similar chip, the KB3700, is out there in English,
->>> >> but it doesn't have CIR.
->>> >>
->>> >> You might find these links mildly interesting:
->>> >>
->>> >> http://www.coreboot.org/Embedded_controller
->>> >> http://wiki.laptop.org/go/Embedded_controller
->>> >> http://lists.laptop.org/pipermail/openec/2008-July/000108.html
->>> >
->>> > Nope, I have read that.
->>> >>
->>> >> Regards,
->>> >> Andy
->>> >>
->>> >> > Maybe you can figure out why the readings are off by 4%. I suspect
->>> >> > that someone has set a clock divider wrong when programming the chip.
->>> >> > For example setting the divider for a 25Mhz clock when the clock is
->>> >> > actually 26Mhz would cause the error you are seeing. Or they just made
->>> >> > a mistake in computing the divisor. It is probably a bug in the BIOS
->>> >> > of your laptop.  If that's the case you could add a quirk in the
->>> >> > system boot code to fix the register setting.
->>> >
->>> > I figured out how windows driver compensates for the offset, and do the
->>> > same in my driver. I think the problem is solved.
->>> >
->>>
->>> Should that be a <= or >= instead of !=?
->>> +       if (pll_freq != 1000)
->>
->> This is how its done in windows driver.
->
-> That doesn't mean it is bug free.
->
-> Experimenting with changing the PLL frequency register may correct the
-> error.  Try taking 96% of pll_freq and write it back into these
-> register. This would be easy to fix with a manual. The root problem is
-> almost certainly a bug in the way the PLLs were programmed.
->
-> I don't like putting in fudge factors like the 4% correction. What
-> happens if a later version of the hardware has fixed firmware? I
-> normal user is never going to figure out that they need to change the
-> fudge factor.
->
-> +       pll_freq = (ene_hw_read_reg(dev, ENE_PLLFRH) << 4) +
-> +               (ene_hw_read_reg(dev, ENE_PLLFRL) >> 2);
+Hi Sergio,
 
-I can understand the shift of the high bits, but that shift of the low
-bits is unlikely.  A manual would tell us if it is right.
+Thanks for the review.
 
+On Thursday 15 July 2010 16:35:20 Aguirre, Sergio wrote:
+> On Wednesday 14 July 2010 08:30:00 Laurent Pinchart wrote:
 
-> +
->
->
->>>
->>> Programming the PLL wrong would cause the 4% error.
->>>
->>>        hw_revision = ene_hw_read_reg(dev, ENE_HW_VERSION);
->>>        old_ver = ene_hw_read_reg(dev, ENE_HW_VER_OLD);
->>>
->>> +       pll_freq = (ene_hw_read_reg(dev, ENE_PLLFRH) << 4) +
->>> +               (ene_hw_read_reg(dev, ENE_PLLFRL) >> 2);
->>> +
->>> +       if (pll_freq != 1000)
->>> +               dev->rx_period_adjust = 4;
->>> +       else
->>> +               dev->rx_period_adjust = 2;
->>> +
->>> +
->>> +       ene_printk(KERN_NOTICE, "PLL freq = %d\n", pll_freq);
->>> +
->>>        if (hw_revision == 0xFF) {
->>>
->>>
->>>
->>> >
->>> > Best regards,
->>> > Maxim Levitsky
->>> >
->>> >
->>>
->>>
->>>
->>
->>
->>
->
->
->
-> --
-> Jon Smirl
-> jonsmirl@gmail.com
->
+[snip]
 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index a4d3db5..6361367 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
 
+[snip]
+
+> > @@ -72,6 +77,54 @@ EXPORT_SYMBOL_GPL(media_device_register);
+
+[snip]
+
+> > +
+> > +/**
+> > + * media_device_register_entity - Register an entity with a media device
+> > + * @mdev:    The media device
+> > + * @entity:  The entity
+> > + */
+> > +int __must_check media_device_register_entity(struct media_device *mdev,
+> > +                                           struct media_entity *entity)
+> > +{
+> 
+> What if mdev == NULL OR entity == NULL?
+
+It's not a valid use case. Drivers must not try to register a NULL entity, or 
+an entity to a NULL media device.
+
+> > +     /* Warn if we apparently re-register an entity */
+> > +     WARN_ON(entity->parent != NULL);
+> 
+> Shouldn't we exit with -EBUSY here instead? Or is there a usecase
+> In which this is a valid scenario?
+
+entity->parent != NULL isn't a valid scenario. It's a driver bug, and WARN_ON 
+will result in a backtrace being printed, notifying the driver developer that 
+something is seriously wrong.
+
+> > +     entity->parent = mdev;
+> > +
+> > +     spin_lock(&mdev->lock);
+> > +     entity->id = mdev->entity_id++;
+> > +     list_add_tail(&entity->list, &mdev->entities);
+> > +     spin_unlock(&mdev->lock);
+> > +
+> > +     return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_device_register_entity);
+> > +
+> > +/**
+> > + * media_device_unregister_entity - Unregister an entity
+> > + * @entity:  The entity
+> > + *
+> > + * If the entity has never been registered this function will return
+> > + * immediately.
+> > + */
+> > +void media_device_unregister_entity(struct media_entity *entity)
+> > +{
+> > +     struct media_device *mdev = entity->parent;
+> 
+> What if entity == NULL?
+
+Still not a valid use case, don't unregister NULL.
+
+> > +
+> > +     if (mdev == NULL)
+> > +             return;
+> > +
+> > +     spin_lock(&mdev->lock);
+> > +     list_del(&entity->list);
+> > +     spin_unlock(&mdev->lock);
+> > +     entity->parent = NULL;
+> > +}
+> > +EXPORT_SYMBOL_GPL(media_device_unregister_entity);
+> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > new file mode 100644
+> > index 0000000..d5a4b4c
+> > --- /dev/null
+> > +++ b/drivers/media/media-entity.c
+> > @@ -0,0 +1,145 @@
+> > +/*
+> > + *  Media Entity support
+> > + *
+> > + *  Copyright (C) 2009 Laurent Pinchart
+> > <laurent.pinchart@ideasonboard.com>
+> 
+> 2010?
+
+Oops, yes, will fix.
+
+[snip]
+
+> > +int
+> > +media_entity_create_link(struct media_entity *source, u8 source_pad,
+> > +                      struct media_entity *sink, u8 sink_pad, u32 flags)
+> > +{
+> > +     struct media_entity_link *link;
+> > +     struct media_entity_link *backlink;
+> > +
+> > +     BUG_ON(source == NULL || sink == NULL);
+> > +     BUG_ON(source_pad >= source->num_pads);
+> > +     BUG_ON(sink_pad >= sink->num_pads);
+> 
+> Isn't this too dramatic? :)
+> 
+> I mean, does the entire system needs to be halted because you won't be
+> able to link your video subdevices?
+
+If source or sink is NULL, the second or third BUG_ON will result in a crash. 
+If the source or sink pad numbers are out of bounds, undefined memory will be 
+dereferenced later. Both conditions will likely result in a crash, so it's 
+better to have a predictable, easy to understand crash.
+
+Once again this should never happen. It's a driver bug if it does, and should 
+not happen randomly at runtime.
+
+[snip]
+
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > new file mode 100644
+> > index 0000000..0929a90
+> > --- /dev/null
+> > +++ b/include/media/media-entity.h
+> > @@ -0,0 +1,79 @@
+> > +#ifndef _MEDIA_ENTITY_H
+> > +#define _MEDIA_ENTITY_H
+> > +
+> > +#include <linux/list.h>
+> > +
+> > +#define MEDIA_ENTITY_TYPE_NODE               1
+> > +#define MEDIA_ENTITY_TYPE_SUBDEV     2
+> > +
+> > +#define MEDIA_NODE_TYPE_V4L          1
+> > +#define MEDIA_NODE_TYPE_FB           2
+> > +#define MEDIA_NODE_TYPE_ALSA         3
+> > +#define MEDIA_NODE_TYPE_DVB          4
+> > +
+> > +#define MEDIA_SUBDEV_TYPE_VID_DECODER        1
+> > +#define MEDIA_SUBDEV_TYPE_VID_ENCODER        2
+> > +#define MEDIA_SUBDEV_TYPE_MISC               3
+> > +
+> > +#define MEDIA_LINK_FLAG_ACTIVE               (1 << 0)
+> > +#define MEDIA_LINK_FLAG_IMMUTABLE    (1 << 1)
+> > +
+> > +#define MEDIA_PAD_TYPE_INPUT         1
+> > +#define MEDIA_PAD_TYPE_OUTPUT                2
+> 
+> Shouldn't all the above be enums? (except of course the
+> MEDIA_LINK_FLAG_* defines)
+
+They can be enums, but the structures used in ioctls must use integer types as 
+enum sizes vary depending on the ABI on some platforms (most notably ARM). I 
+have no strong opinion for or against enums for the definitions of the values.
 
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+Regards,
+
+Laurent Pinchart
