@@ -1,48 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:48610 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:59935 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752794Ab0GFNNe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jul 2010 09:13:34 -0400
+	with ESMTP id S936027Ab0GPI4V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Jul 2010 04:56:21 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Status of the patches under review at LMML (60 patches)
-Date: Tue, 6 Jul 2010 15:13:26 +0200
-Cc: LMML <linux-media@vger.kernel.org>, awalls@md.metrocast.net,
-	moinejf@free.fr, g.liakhovetski@gmx.de, jarod@redhat.com,
-	corbet@lwn.net, rz@linux-m68k.org, pboettcher@dibcom.fr,
-	awalls@radix.net, crope@iki.fi, davidtlwong@gmail.com,
-	eduardo.valentin@nokia.com, p.osciak@samsung.com, liplianin@tut.by,
-	isely@isely.net, tobias.lorenz@gmx.net, hdegoede@redhat.com,
-	u.kleine-koenig@pengutronix.de, abraham.manu@gmail.com,
-	stoth@kernellabs.com, henrik@kurelid.se
-References: <4C332A5F.4000706@redhat.com>
-In-Reply-To: <4C332A5F.4000706@redhat.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [RFC/PATCH 02/10] media: Media device
+Date: Fri, 16 Jul 2010 10:56:21 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279114219-27389-3-git-send-email-laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE894456775DB7@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894456775DB7@dlee02.ent.ti.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007061513.28200.laurent.pinchart@ideasonboard.com>
+Message-Id: <201007161056.22036.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Sergio,
 
-On Tuesday 06 July 2010 15:06:39 Mauro Carvalho Chehab wrote:
-> This is the summary of the patches that are currently under review at
-> Linux Media Mailing List <linux-media@vger.kernel.org>.
-> Each patch is represented by its submission date, the subject (up to 70
-> chars) and the patchwork link (if submitted via email).
+On Thursday 15 July 2010 16:22:06 Aguirre, Sergio wrote:
+> > On Wednesday 14 July 2010 08:30:00 Laurent Pinchart wrote:
+
+<snip>
+
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > new file mode 100644
+> > index 0000000..a4d3db5
+> > --- /dev/null
+> > +++ b/drivers/media/media-device.c
+> > @@ -0,0 +1,77 @@
+
+<snip>
+
+> > +/**
+> > + * media_device_register - register a media device
+> > + * @mdev:	The media device
+> > + *
+> > + * The caller is responsible for initializing the media device before
+> > + * registration. The following fields must be set:
+> > + *
+> > + * - dev should point to the parent device. The field can be NULL when no
+> > + *   parent device is available (for instance with ISA devices).
+> > + * - name should be set to the device name. If the name is empty a parent
+> > + *   device must be set. In that case the name will be set to the parent
+> > + *   device driver name followed by a space and the parent device name.
+> > + */
+> > +int __must_check media_device_register(struct media_device *mdev)
+> > +{
+> > +	/* If dev == NULL, then name must be filled in by the caller */
+> > +	if (mdev->dev == NULL && WARN_ON(!mdev->name[0]))
 > 
-> P.S.: This email is c/c to the developers where some action is expected.
->       If you were copied, please review the patches, acking/nacking or
->       submitting an update.
+> If mdev == NULL, you'll have a kernel panic here.
 
-[snip]
-
-> Jun,23 2010: [2.6.33.4] V4L/uvcvideo: Add support for Suyin Corp. Lenovo
-> Webcam     http://patchwork.kernel.org/patch/107570
-
-NAK, the patch is not needed.
+That's why drivers must not call media_device_register with a NULL pointer :-) 
+It's not a valid use case, unlike kfree(NULL) for instance.
 
 -- 
 Regards,
