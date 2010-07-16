@@ -1,88 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:57130 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090Ab0G2UEv (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:39423 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965654Ab0GPOUj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 16:04:51 -0400
-Subject: Re: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Christoph Bartelmus <lirc@bartelmus.de>
-Cc: awalls@md.metrocast.net, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
-	mchehab@redhat.com
-In-Reply-To: <BTlNJJN3jFB@christoph>
-References: <1280424946.32069.11.camel@maxim-laptop> <BTlNJJN3jFB@christoph>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 29 Jul 2010 23:04:47 +0300
-Message-ID: <1280433887.2523.11.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 16 Jul 2010 10:20:39 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+Date: Fri, 16 Jul 2010 09:20:30 -0500
+Subject: RE: [RFC/PATCH 02/10] media: Media device
+Message-ID: <A24693684029E5489D1D202277BE8944568141B1@dlee02.ent.ti.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1279114219-27389-3-git-send-email-laurent.pinchart@ideasonboard.com>
+ <A24693684029E5489D1D202277BE894456775DB7@dlee02.ent.ti.com>
+ <201007161056.22036.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201007161056.22036.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2010-07-29 at 21:35 +0200, Christoph Bartelmus wrote: 
-> Hi!
+Hi Laurent,
+
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Friday, July 16, 2010 3:56 AM
+> To: Aguirre, Sergio
+> Cc: linux-media@vger.kernel.org; sakari.ailus@maxwell.research.nokia.com
+> Subject: Re: [RFC/PATCH 02/10] media: Media device
 > 
-> Maxim Levitsky "maximlevitsky@gmail.com" wrote:
-> [...]
-> >>>>> Could you explain exactly how timeout reports work?
-> [...]
-> >>> So, timeout report is just another sample, with a mark attached, that
-> >>> this is last sample? right?
-> >>
-> >> No, a timeout report is just an additional hint for the decoder that a
-> >> specific amount of time has passed since the last pulse _now_.
-> >>
-> >> [...]
-> >>> In that case, lets do that this way:
-> >>>
-> >>> As soon as timeout is reached, I just send lirc the timeout report.
-> >>> Then next keypress will start with pulse.
-> >>
-> >> When timeout reports are enabled the sequence must be:
-> >> <pulse> <timeout> <space> <pulse>
-> >> where <timeout> is optional.
-> >>
-> >> lircd will not work when you leave out the space. It must know the exact
-> >> time between the pulses. Some hardware generates timeout reports that are
-> >> too short to distinguish between spaces that are so short that the next
-> >> sequence can be interpreted as a repeat or longer spaces which indicate
-> >> that this is a new key press.
+> Hi Sergio,
 > 
-> > Let me give an example to see if I got that right.
-> >
-> >
-> > Suppose we have this sequence of reports from the driver:
-> >
-> > 500 (pulse)
-> > 200000 (timeout)
-> > 100000000 (space)
-> > 500 (pulse)
-> >
-> >
-> > Is that correct that time between first and second pulse is
-> > '100200000' ?
+> On Thursday 15 July 2010 16:22:06 Aguirre, Sergio wrote:
+> > > On Wednesday 14 July 2010 08:30:00 Laurent Pinchart wrote:
 > 
-> No, it's 100000000. The timeout is optional and just a hint to the decoder  
-> how much time has passed already since the last pulse. It does not change  
-> the meaning of the next space.
+> <snip>
+> 
+> > > diff --git a/drivers/media/media-device.c b/drivers/media/media-
+> device.c
+> > > new file mode 100644
+> > > index 0000000..a4d3db5
+> > > --- /dev/null
+> > > +++ b/drivers/media/media-device.c
+> > > @@ -0,0 +1,77 @@
+> 
+> <snip>
+> 
+> > > +/**
+> > > + * media_device_register - register a media device
+> > > + * @mdev:	The media device
+> > > + *
+> > > + * The caller is responsible for initializing the media device before
+> > > + * registration. The following fields must be set:
+> > > + *
+> > > + * - dev should point to the parent device. The field can be NULL
+> when no
+> > > + *   parent device is available (for instance with ISA devices).
+> > > + * - name should be set to the device name. If the name is empty a
+> parent
+> > > + *   device must be set. In that case the name will be set to the
+> parent
+> > > + *   device driver name followed by a space and the parent device
+> name.
+> > > + */
+> > > +int __must_check media_device_register(struct media_device *mdev)
+> > > +{
+> > > +	/* If dev == NULL, then name must be filled in by the caller */
+> > > +	if (mdev->dev == NULL && WARN_ON(!mdev->name[0]))
+> >
+> > If mdev == NULL, you'll have a kernel panic here.
+> 
+> That's why drivers must not call media_device_register with a NULL pointer
+> :-)
+> It's not a valid use case, unlike kfree(NULL) for instance.
 
-its like a carrier report then I guess.
-Its clear to me now.
+Right. I know.
 
-So, I really don't need to send/support timeout reports because hw
-doesn't support that.
+I guess I was thinking more in terms of not compromising the system because
+of a buggy driver, and exit gracefully instead... But I guess it's also ok,
+as a driver developer is usually updating the full kernel anyways.
 
-I can however support timeout (LIRC_SET_REC_TIMEOUT) and and use it to
-adjust threshold upon which I stop the hardware, and remember current
-time.
-I can put that in generic function for ene like hardware
-(hw that sends small packs of samples very often)
+Regards,
+Sergio
 
-
-Best regards,
-Maxim Levitsky
-
-
-
-
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
