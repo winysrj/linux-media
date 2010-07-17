@@ -1,254 +1,450 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3585 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753913Ab0GFPea (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jul 2010 11:34:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <p.osciak@samsung.com>
-Subject: Re: [RFC v3] Multi-plane buffer support for V4L2 API
-Date: Tue, 6 Jul 2010 17:36:42 +0200
-Cc: "'Linux Media Mailing List'" <linux-media@vger.kernel.org>,
-	kyungmin.park@samsung.com
-References: <002401cb139d$1d5df080$5819d180$%osciak@samsung.com> <201007050855.12059.hverkuil@xs4all.nl> <005401cb1c3e$b6c5d680$24518380$%osciak@samsung.com>
-In-Reply-To: <005401cb1c3e$b6c5d680$24518380$%osciak@samsung.com>
+Received: from mx-001.topalis.com ([195.243.109.4]:10274 "EHLO
+	mx-001.topalis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754406Ab0GQNZQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Jul 2010 09:25:16 -0400
+Message-ID: <4C41AF34.8060406@topalis.com>
+Date: Sat, 17 Jul 2010 15:25:08 +0200
+From: Michael Kromer <michael.kromer@topalis.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Pete Eberlein <pete@sensoray.com>, linux-media@vger.kernel.org
+Subject: Re: Chicony Electronics 04f2:b1b4 webcam device unsupported (yet)
+References: <OF56E589E0.BB18B6B2-ONC1257762.005AE925-C1257762.005AE95B@topalis.com> <1279300489.1989.4.camel@pete-desktop> <4C416B0C.4050608@topalis.com> <201007171057.27325.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201007171057.27325.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007061736.42346.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 05 July 2010 14:36:38 Pawel Osciak wrote:
-> Hi Hans,
-> 
-> thanks a lot for finding the time to comment on this.
-> 
-> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> >On Thursday 24 June 2010 14:59:43 Pawel Osciak wrote:
-> >> struct v4l2_pix_format_mplane {
-> >> 	struct v4l2_pix_format			pix_fmt;
-> >> 	struct v4l2_plane_format		plane_fmt[VIDEO_MAX_PLANES];
-> >> };
-> >
-> >8 planes means that struct v4l2_plane_format can have 20 bytes. That seems
-> >reasonable. If we make bytesperline a u16 and 'pack' the struct, then we
-> >have enough reserved fields I think.
-> >
-> 
-> Good idea, haven't thought of that.
-> 
-> >>
-> >> b) pass a userspace pointer to a separate array
-> >>
-> >> struct v4l2_pix_format_mplane {
-> >> 	struct v4l2_pix_format			pix_fmt;
-> >> 	__u32					num_planes;
-> >> 	/* userspace pointer to an array of size num_planes */
-> >> 	struct v4l2_plane_format		*plane_fmt;
-> >> };
-> >>
-> >> and then fetch the array separately. The second solution would give us more
-> >> flexibility for future extensions (if we add a handful of reserved fields
-> >to the
-> >> v4l2_plane_format struct).
-> >
-> >Due to the complexity of handling userspace pointers I don't think this is
-> >the
-> >way to go. In my opinion there is enough spare room in the v4l2_plane_format
-> >struct.
-> >
-> 
-> Yes, especially with 16-bit fields.
-> 
-> >>
-> >> The main discussion point here though was how to select the proper member
-> >of the
-> >> fmt union from v4l2_format struct. It is normally being done with the type
-> >> field. Now, assuming that multiplane pix formats make sense only for
-> >CAPTURE and
-> >> OUTPUT types (right?), we would be adding two new v4l2_buf_type members:
-> >>
-> >> V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE
-> >> V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE
-> >>
-> >> which is not that big of a deal in my opinion after all.
-> >
-> 
-> Should I take it that you agree to this solution?
+Hi Laurent,
 
-Yes, I do.
-
+Am 17.07.2010 10:57, schrieb Laurent Pinchart:
+> Hi Michael,
 > 
-> >We will also need to add a new flag to struct v4l2_fmtdesc:
-> >V4L2_FMT_FLAG_MPLANE.
-> >When enumerating the formats userspace needs to determine whether it is a
-> >multiplane format or not.
-> >
+> On Saturday 17 July 2010 10:34:20 Michael Kromer wrote:
+>> On 07/16/2010 07:14 PM, Pete Eberlein wrote:
+>>> On Fri, 2010-07-16 at 18:32 +0200, Michael Kromer wrote:
+>>>>
+>>>> I have bought myself a rather new Lenovo Thinkpad X100e, and there is no
+>>>> support for the webcam device in the current (2.6.34) kernel (yet).
+>>>> 2.6.35 doesn't seem to have a driver for it either. Is there any
+>>>> possibility for one of you guys to take a look at it?
+>>>
+>>> The descriptors look like a standard USB Video Class device.  Do you
+>>> have the uvcvideo module loaded?  Then have a look at your dmesg output
+>>> to see why it isn't working.
+>>
+>> my problem is:
+>>
+>> [ 2578.903972] uvcvideo: Found UVC 1.00 device Integrated Camera
+>> (04f2:b1b4) [ 2578.905121] input: Integrated Camera as
+>> /devices/pci0000:00/0000:00:13.2/usb2/2-2/2-2:1.0/input/input10
+>> [ 2578.905224] usbcore: registered new interface driver uvcvideo
+>> [ 2578.905228] USB Video Class driver (v0.1.0)
+>>
+>> It is indeed registred as video device, however, everytime i use some
+>> program (i tried cheese) to use /dev/video0 I get the following:
+>>
+>> [ 2741.757993] uvcvideo: Failed to query (130) UVC control 5 (unit 3) :
+>> -32 (exp. 1).
 > 
-> Wouldn't fourcc found in that struct be enough? Since we agreed that we'd
-> like separate fourcc codes for multiplane formats... Drivers and userspace
-> would have to be aware of them anyway. Or am I missing something?
-
-How to interpret the data in the planes should indeed be determined by the
-fourcc. But for libraries like libv4l it would be very useful if they get
-enough information from V4L to allocate and configure the plane memory. That way
-the capture code can be generic and the planes can be fed to the conversion
-code that can convert it to more common formats.
-
-In order to write generic capture/output code you need to know whether multiplanar
-is required and also the number of planes.
-
-With this flag you know that you have to use V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE.
-And through G_FMT with that stream type you can get hold of the number of planes.
- 
-> >It might also be a good idea to take one of the reserved fields and let that
-> >return the number of planes associated with this format. What do you think?
-
-This is not needed, since you get that already through G_FMT.
- 
-> Interesting idea. Although, since an application would still need to be able
-> to recognize new fourccs, how this could be used?
-
-To write generic capture/output code. That's actually how all existing apps
-work: the capture code is generic, then the interpretation of the data is
-based on the fourcc.
-
-This actually leads me to a related topic:
-
-V4L2_BUF_TYPE_VIDEO_CAPTURE is effectively a subset of V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE.
-Would it be difficult to support V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE as well for
-simple single plane formats? It would simplify apps if they can always use MPLANE for
-capturing.
-
+> Could you please send me the output of
 > 
-> >> 2. There are other fields besides bytesperline that some parties are
-> >interested
-> >> in having in the plane format struct. Among those we had: sample range
-> >> (sorry, I am still not sure I remember this one correctly, please correct
-> >me)
-> >
-> >No, that will be handled by new colorspace defines.
-> >
-> 
-> Ok, thanks for the clarification.
-> 
-> >> and - optionally - memory type-related (more on this further below).
-> >
-> >Where 'further below'?
-> >
-> 
-> Right, sorry about that. I'd originally wanted to cover that topic, but
-> then I decided that it'd be better to discuss them separately. Forgot
-> to remove this though.
-> 
-> >>
-> >> struct v4l2_plane_format {
-> >> 	__u32			bytesperline;
-> >> 	/* Anything else? */
-> >> 	__u32			reserved[?];
-> >> };
-> >>
-> >> Please provide your specific requirements for this struct.
-> >
-> >This seems reasonable:
-> >
-> >struct v4l2_plane_format {
-> >	__u16			bytesperline;
-> >	__u16			reserved[9];
-> >} __attribute__ ((packed));
-> >
-> >
-> 
-> Looks fine to me. I guess nothing else will be put in here for now...
-> 
-> >Regarding the main multi-plane proposal: as we discussed on IRC that should
-> >perhaps be combined with pre-registration.
-> >
-> 
-> I've been thinking that maybe it'd be better to agree on a general shape of
-> this, how to incorporate multiplanes into the API in general, etc., while
-> leaving enough reserved fields for pre-registration extensions (and other
-> things).
-> 
-> The interest in this topic seems to have diminished somehow, or rather people
-> just don't have time for this right now. Moreover, realistically speaking,
-> memory pools are something that will not happen in the foreseeable future
-> I'm afraid.
-> We are afraid that with that, multiplanes would get put off for a long time,
-> or even indefinitely. And this is a huge showstopper for us, we are simply
-> unable to post our multimedia drivers without it.
+> lsusb -v -d 04f2:b1b4
 
-I've come to the conclusion that the multiplanar API is needed regardless of
-any preregistration API. So there is no need to wait for that IMHO.
- 
-> >But thinking about it, you would still need to have a struct v4l2_plane: if
-> >the
-> >plane memory is allocated by the kernel, then you still need to get the plane
-> >info to the application via QUERYBUF. Pre-registration is no help there. So a
-> >V4L2_MEMORY_MMAP_MPLANE is certainly needed. Whether a
-> >V4L2_MEMORY_USERPTR_MPLANE
-> >is needed is less clear: it is likely that in practice you want to
-> >preregister
-> >the memory, so there we might want to use a frame memory descriptor thingy
-> >instead.
-> >On the other hand, that would make the API asymmetrical, which is not nice.
-> >
-> 
-> The existence of those memory types is essential for v4l2-ioctl.c code, for
-> both userptr and mplane. It'd be practically impossible to recognize
-> multiplanar formats in there without it. It is required for the code to
-> decide whether it should be copying_from/to_user v4l2_plane structs or not
-> on QUERYBUF, QBUF and DQBUF (it's similar to ext controls, but they have
-> their own, separate ioctls).
-> 
-> >Comments? I think I prefer having a symmetrical API, so adding USERPTR_MPLANE
-> >as
-> >well. It is probably trivial to do in videobuf2.
-> >
-> 
-> It is not only trivial, but also makes videobuf simpler. Right now,
-> qbuf/dqbuf/querybuf code can just use the memory type in the queued struct
-> to decide what to do. Without it, it'd have to depend on information passed
-> from driver during format negotiation, i.e. whether the current format is
-> multiplanar or not. Of course it could be done at buf_setup time (i.e. on
-> reqbufs), i.e. when drivers tell videobuf how many of how large buffers are
-> needed and how many planes per buffer. So, for num_planes>1, videobuf could
-> be assuming that all subsequent qbufs/dqbufs would be of MPLANE type. Still,
-> this would not allow using multiplane API for 1-plane buffers, which would
-> become an another inconsistency/lack of symmetry/obscure gotcha. 
-
-I agree, we should keep it symmetrical and consistent.
- 
-> >What about mixed mmap and userptr planes?
-> 
-> I see it like this: if you negotiated n-plane buffers, queuing more than
-> n planes makes all those additional buffers userptr, whatever main memory
-> type has been agreed on. Do you think it would be sufficient?
-
-Very good idea. But there needs to be a way to tell the application what the
-minimum number of planes is, and how many extra userptr 'planes' there can
-be. And what the size of those extra planes is.
-
-Theoretically you can have:
-
-- X planes with video data whose size is #lines * bytesperline, using the main
-  memory type.
-- Y 'planes' with non-video data with some maximum size, but still containing
-  required information so also using the main memory type.
-- Z optional 'planes' with non-video data with some maximum size which assume
-  userptr as the memory type.
-
-All three X, Y and Z values need to be available to the application. The question
-is if 'Y' can ever be non-zero. I can't think of an example right now, but I
-learned the hard way that you should never make assumptions.
-
-All this info can be part of struct v4l2_pix_format_mplane, I think.
-
-Regards,
-
-           Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Bus 002 Device 003: ID 04f2:b1b4 Chicony Electronics Co., Ltd
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               2.00
+  bDeviceClass          239 Miscellaneous Device
+  bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  idVendor           0x04f2 Chicony Electronics Co., Ltd
+  idProduct          0xb1b4
+  bcdDevice           30.08
+  iManufacturer           1 Image Processor
+  iProduct                2 Integrated Camera
+  iSerial                 2 Integrated Camera
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength          529
+    bNumInterfaces          2
+    bConfigurationValue     1
+    iConfiguration          0
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Association:
+      bLength                 8
+      bDescriptorType        11
+      bFirstInterface         0
+      bInterfaceCount         2
+      bFunctionClass         14 Video
+      bFunctionSubClass       3 Video Interface Collection
+      bFunctionProtocol       0
+      iFunction               0
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      1 Video Control
+      bInterfaceProtocol      0
+      iInterface              0
+      VideoControl Interface Descriptor:
+        bLength                13
+        bDescriptorType        36
+        bDescriptorSubtype      1 (HEADER)
+        bcdUVC               1.00
+        wTotalLength           77
+        dwClockFrequency       30.000000MHz
+        bInCollection           1
+        baInterfaceNr( 0)       1
+      VideoControl Interface Descriptor:
+        bLength                18
+        bDescriptorType        36
+        bDescriptorSubtype      2 (INPUT_TERMINAL)
+        bTerminalID             1
+        wTerminalType      0x0201 Camera Sensor
+        bAssocTerminal          0
+        iTerminal               0
+        wObjectiveFocalLengthMin      0
+        wObjectiveFocalLengthMax      0
+        wOcularFocalLength            0
+        bControlSize                  3
+        bmControls           0x00002a0e
+          Auto-Exposure Mode
+          Auto-Exposure Priority
+          Exposure Time (Absolute)
+          Zoom (Absolute)
+          PanTilt (Absolute)
+          Roll (Absolute)
+      VideoControl Interface Descriptor:
+        bLength                26
+        bDescriptorType        36
+        bDescriptorSubtype      6 (EXTENSION_UNIT)
+        bUnitID                 2
+        guidExtensionCode         {92423946-d10c-e34a-8783-3133f9eaaa3b}
+        bNumControl             3
+        bNrPins                 1
+        baSourceID( 0)          1
+        bControlSize            1
+        bmControls( 0)       0xff
+        iExtension              0
+      VideoControl Interface Descriptor:
+        bLength                11
+        bDescriptorType        36
+        bDescriptorSubtype      5 (PROCESSING_UNIT)
+      Warning: Descriptor too short
+        bUnitID                 3
+        bSourceID               2
+        wMaxMultiplier          0
+        bControlSize            2
+        bmControls     0x0000157f
+          Brightness
+          Contrast
+          Hue
+          Saturation
+          Sharpness
+          Gamma
+          White Balance Temperature
+          Backlight Compensation
+          Power Line Frequency
+          White Balance Temperature, Auto
+        iProcessing             0
+        bmVideoStandards     0x 9
+          None
+          SECAM - 625/50
+      VideoControl Interface Descriptor:
+        bLength                 9
+        bDescriptorType        36
+        bDescriptorSubtype      3 (OUTPUT_TERMINAL)
+        bTerminalID             4
+        wTerminalType      0x0101 USB Streaming
+        bAssocTerminal          0
+        bSourceID               3
+        iTerminal               0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x83  EP 3 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval              16
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       0
+      bNumEndpoints           0
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0
+      iInterface              0
+      VideoStreaming Interface Descriptor:
+        bLength                            14
+        bDescriptorType                    36
+        bDescriptorSubtype                  1 (INPUT_HEADER)
+        bNumFormats                         1
+        wTotalLength                      341
+        bEndPointAddress                  129
+        bmInfo                              0
+        bTerminalLink                       4
+        bStillCaptureMethod                 1
+        bTriggerSupport                     0
+        bTriggerUsage                       0
+        bControlSize                        1
+        bmaControls( 0)                    27
+      VideoStreaming Interface Descriptor:
+        bLength                            27
+        bDescriptorType                    36
+        bDescriptorSubtype                  4 (FORMAT_UNCOMPRESSED)
+        bFormatIndex                        1
+        bNumFrameDescriptors                7
+        guidFormat
+{59555932-0000-1000-8000-00aa00389b71}
+        bBitsPerPixel                      16
+        bDefaultFrameIndex                  1
+        bAspectRatioX                       0
+        bAspectRatioY                       0
+        bmInterlaceFlags                 0x00
+          Interlaced stream or variable: No
+          Fields per frame: 1 fields
+          Field 1 first: No
+          Field pattern: Field 1 only
+          bCopyProtect                      0
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         1
+        bmCapabilities                   0x01
+          Still image supported
+        wWidth                            640
+        wHeight                           480
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize      614400
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         2
+        bmCapabilities                   0x01
+          Still image supported
+        wWidth                           1280
+        wHeight                           720
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize     1843200
+        dwDefaultFrameInterval        1333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)           1333333
+        dwFrameInterval( 1)           1333334
+        dwFrameInterval( 2)           1333335
+        dwFrameInterval( 3)           1333336
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         3
+        bmCapabilities                   0x01
+          Still image supported
+        wWidth                            352
+        wHeight                           288
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize      202752
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         4
+        bmCapabilities                   0x01
+          Still image supported
+        wWidth                            320
+        wHeight                           240
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize      153600
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         5
+        bmCapabilities                   0x01
+          Still image supported
+        wWidth                            176
+        wHeight                           144
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize       50688
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         6
+        bmCapabilities                   0x01
+          Still image supported
+        wWidth                            160
+        wHeight                           120
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize       38400
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                            42
+        bDescriptorType                    36
+        bDescriptorSubtype                  5 (FRAME_UNCOMPRESSED)
+        bFrameIndex                         7
+        bmCapabilities                   0x01
+          Still image supported
+        wWidth                            640
+        wHeight                           360
+        dwMinBitRate                   912384
+        dwMaxBitRate                   912384
+        dwMaxVideoFrameBufferSize      460800
+        dwDefaultFrameInterval         333333
+        bFrameIntervalType                  4
+        dwFrameInterval( 0)            333333
+        dwFrameInterval( 1)            333334
+        dwFrameInterval( 2)            333335
+        dwFrameInterval( 3)            333336
+      VideoStreaming Interface Descriptor:
+        bLength                             6
+        bDescriptorType                    36
+        bDescriptorSubtype                 13 (COLORFORMAT)
+        bColorPrimaries                     0 (Unspecified)
+        bTransferCharacteristics            0 (Unspecified)
+        bMatrixCoefficients                 0 (Unspecified)
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       1
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x1400  3x 1024 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       2
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x1340  3x 832 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       3
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x1300  3x 768 bytes
+        bInterval               1
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        1
+      bAlternateSetting       4
+      bNumEndpoints           1
+      bInterfaceClass        14 Video
+      bInterfaceSubClass      2 Video Streaming
+      bInterfaceProtocol      0
+      iInterface              0
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            5
+          Transfer Type            Isochronous
+          Synch Type               Asynchronous
+          Usage Type               Data
+        wMaxPacketSize     0x13fc  3x 1020 bytes
+        bInterval               1
+Device Qualifier (for other device speed):
+  bLength                10
+  bDescriptorType         6
+  bcdUSB               2.00
+  bDeviceClass          239 Miscellaneous Device
+  bDeviceSubClass         2 ?
+  bDeviceProtocol         1 Interface Association
+  bMaxPacketSize0        64
+  bNumConfigurations      1
+Device Status:     0x0000
+  (Bus Powered)
