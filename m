@@ -1,51 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52763 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756606Ab0GNOGH (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:59561 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752466Ab0GQIJm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jul 2010 10:06:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE 02/12] v4l: Add 16 bit YUYV and SGRBG10 media bus format codes
-Date: Wed, 14 Jul 2010 16:07:04 +0200
-Message-Id: <1279116434-28278-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 17 Jul 2010 04:09:42 -0400
+Message-ID: <2148.41.138.190.28.1279354005.squirrel@www.scalabrini.net>
+Date: Sat, 17 Jul 2010 10:06:45 +0200 (CEST)
+Subject: 
+From: "Grant Mayor" <grantfinancing@gmail.com>
+Reply-To: to.grantfinancing@gmail.com
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the following media bus format code definitions:
+FUNDING NOTIFICATION.............I am Mr Grant Mayor. i am a loan lender
+as well as an angel investor, I offer funds based on demands and i use the
+best possible interest rate so that it can make both paties smile. I allow
+my clients to decide the loan repayment duration. So i have my door for
+funding opened to all that is in need, If you have been turned down be
+many financial institutions, this is a great time for you to make things
+up. If you need a stress free funing, kindly get back to me with a mail of
+application for funding and you will get funded within 3 working days.
+Send all mails of application to: to.grantfinancing@gmail.com.
 
-- V4L2_MBUS_FMT_SGRBG10_1X10 for 10-bit GRBG Bayer
-- V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 for 10-bit DPCM compressed GRBG Bayer
-- V4L2_MBUS_FMT_YUYV16_1X16 for 16-bit YUYV
-- V4L2_MBUS_FMT_UYVY16_1X16 for 16-bit UYVY
-- V4L2_MBUS_FMT_YVYU16_1X16 for 16-bit YVYU
-- V4L2_MBUS_FMT_VYUY16_1X16 for 16-bit VYUY
+I await your response.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/v4l2-mediabus.h |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 17219c3..34dd708 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -43,6 +43,12 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
- 	V4L2_MBUS_FMT_SGRBG8_1X8,
-+	V4L2_MBUS_FMT_SGRBG10_1X10,
-+	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
-+	V4L2_MBUS_FMT_YUYV16_1X16,
-+	V4L2_MBUS_FMT_UYVY16_1X16,
-+	V4L2_MBUS_FMT_YVYU16_1X16,
-+	V4L2_MBUS_FMT_VYUY16_1X16,
- };
- 
- /**
--- 
-1.7.1
+Grant Mayor.
 
