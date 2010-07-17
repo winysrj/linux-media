@@ -1,284 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:36651 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754453Ab0G1Kkr convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4840 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966226Ab0GQKYt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 06:40:47 -0400
+	Sat, 17 Jul 2010 06:24:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: [RFC v4] Multi-plane buffer support for V4L2 API
+Date: Sat, 17 Jul 2010 12:27:07 +0200
+Cc: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
+	"'Linux Media Mailing List'" <linux-media@vger.kernel.org>,
+	"'Hans de Goede'" <hdegoede@redhat.com>, kyungmin.park@samsung.com
+References: <004b01cb1f98$e586ae10$b0940a30$%osciak@samsung.com> <4C3B8923.1040109@redhat.com> <002801cb226f$e462b720$ad282560$%osciak@samsung.com>
+In-Reply-To: <002801cb226f$e462b720$ad282560$%osciak@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <1280298606.6736.15.camel@maxim-laptop>
-References: <1280269990.21278.15.camel@maxim-laptop>
-	<1280273550.32216.4.camel@maxim-laptop>
-	<AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
-	<AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
-	<1280298606.6736.15.camel@maxim-laptop>
-Date: Wed, 28 Jul 2010 06:40:45 -0400
-Message-ID: <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
-Subject: Re: Can I expect in-kernel decoding to work out of box?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	linux-input <linux-input@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007171227.08031.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 28, 2010 at 2:30 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> On Tue, 2010-07-27 at 22:33 -0400, Jarod Wilson wrote:
->> On Tue, Jul 27, 2010 at 9:29 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
->> > On Tue, Jul 27, 2010 at 7:32 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
->> >> On Wed, 2010-07-28 at 01:33 +0300, Maxim Levitsky wrote:
->> >>> Hi,
->> >>>
->> >>> I ported my ene driver to in-kernel decoding.
->> >>> It isn't yet ready to be released, but in few days it will be.
->> >>>
->> >>> Now, knowing about wonders of in-kernel decoding, I try to use it, but
->> >>> it just doesn't work.
->> >>>
->> >>> Mind you that lircd works with this remote.
->> >>> (I attach my lircd.conf)
->> >>>
->> >>> Here is the output of mode2 for a single keypress:
->> >
->> >    8850     4350      525     1575      525     1575
->> >     525      450      525      450      525      450
->> >     525      450      525     1575      525      450
->> >     525     1575      525      450      525     1575
->> >     525      450      525      450      525     1575
->> >     525      450      525      450      525    23625
->> >
->> > That decodes as:
->> > 1100 0010 1010 0100
->> >
->> > In the NEC protocol the second word is supposed to be the inverse of
->> > the first word and it isn't. The timing is too short for NEC protocol
->> > too.
-> No its not, its just extended NEC.
+On Tuesday 13 July 2010 11:43:47 Pawel Osciak wrote:
+> Hi Mauro,
+> 
+> thanks for taking the time to look at this.
+> 
+> >Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> >
+> >With Hans proposed changes that you've already acked, I think the proposal is
+> >ok,
+> >except for one detail:
+> >
+> >> 4. Format enumeration
+> >> ----------------------------------
+> >> struct v4l2_fmtdesc, used for format enumeration, does include the
+> >v4l2_buf_type
+> >> enum as well, so the new types can be handled properly here as well.
+> >> For drivers supporting both versions of the API, 1-plane formats should be
+> >> returned for multiplanar buffer types as well, for consistency. In other
+> >words,
+> >> for multiplanar buffer types, the formats returned are a superset of those
+> >> returned when enumerating with the old buffer types.
+> >>
+> >
+> >We shouldn't mix types here. If the userspace is asking for multi-planar
+> >types,
+> >the driver should return just the multi-planar formats.
+> >
+> >If the userspace wants to know about both, it will just call for both types
+> >of
+> >formats.
+> 
+> Yes. Although the idea here is that we wanted to be able to use single-planar
+> formats with either the old API or the new multiplane API. In the new API, you
+> could just set num_planes=1.
+> 
+> So multiplanar API != multiplanar format. When you enum_fmt for mutliplanar
+> types, you get "all formats you can use with the multiplanar API" and not
+> "all formats that have num_planes > 1".
+> 
+> This can simplify applications - they don't have to switch between APIs when
+> switching between formats. They may even choose not to use the old API at all
+> (if a driver allows it).
+> 
+> Do we want to lose the ability to use multiplanar API for single-plane
+> formats?
 
-http://www.sbprojects.com/knowledge/ir/nec.htm
-Says the last two bytes should be the complement of each other.
+I'm very much opposed to making num_planes=1 a special case in the multiplanar
+API. Just like the extended control API can still handle 'normal' controls (well,
+they should, at least :-) ), so should the multiplanar API be a superset of the normal
+API. Anything else would make applications unnecessarily complex.
 
-So for extended NEC it would need to be:
-1100 0010 1010 0101 instead of 1100 0010 1010 0100
-The last bit is wrong.
+Any driver that has multiplanar formats should be using the videobuf2 framework.
+Which will hopefully make it very easy to have support for both 1-plane and
+multiplanar APIs. Probably the only place where you need to do something special
+is in ENUM_FMT: the multiplanar stream type will enumerate all formats, the 'old'
+stream types will only enumerate the 1-plane formats.
 
->From the debug output it is decoding as NEC, but then it fails a
-consistency check. Maybe we need to add a new protocol that lets NEC
-commands through even if they fail the error checks. It may also be
-that the NEC machine rejected it because the timing was so far off
-that it concluded that it couldn't be a NEC messages. The log didn't
-include the exact reason it got rejected. Add some printks at the end
-of the NEC machine to determine the exact reason for rejection.
+So minimal impact to the driver, but nicely consistent towards the application.
 
-The current state machines enforce protocol compliance so there are
-probably a lot of older remotes that won't decode right. We can use
-some help in adjusting the state machines to let out of spec codes
-through.
+Regards,
 
-The timing of those pulses is exactly right for JVC. Maybe there is an
-extended 4 byte version of the JVC protocol. JVC doesn't have the
-error checks like NEC. The question here is, why didn't the JVC
-machine get started?
-
-User space lirc is much older. Bugs like this have been worked out of
-it. It will take some time to get the kernel implementation up to the
-same level.
-
-
->
-> This lirc generic config matches that output quite well:
-> NEC-short-pulse.conf:
->
-> begin remote
->
->  name  NEC
->  bits           16
->  flags SPACE_ENC|CONST_LENGTH
->  eps            30
->  aeps          100
->
->  header        9000 4500
->  one           563  1687
->  zero          563   562
->  ptrail        563
->  pre_data_bits 16
-> # just a guess
->  gap          108000
->
->  repeat        9000 2250
->
->  frequency    38000
->  duty_cycle   33
->
->      begin codes
->      end codes
->
-> end remote
->
->
->
->> >
->> > Valid NEC...
->> > 1100 0011 1010 0101
->> >
->> > Maybe JVC protocol but it is longer than normal.
->> >
->> > The JVC decoder was unable to get started decoding it.  I don't think
->> > the JVC decoder has been tested much. Take a look at it and see why it
->> > couldn't get out of state 0.
->>
->> Personally, I haven't really tried much of anything but RC-6(A) and
->> RC-5 while working on mceusb, so they're the only ones I can really
->> vouch for myself at the moment. It seems that I don't have many
->> remotes that aren't an RC-x variant, outside of universals, which I
->> have yet to get around to programming for various other modes to test
->> any of the protocol decoders. I assume that David Hardeman already did
->> that much before submitting each of the ir protocol decoders with his
->> name one them (which were, if I'm not mistaken, based at least
->> partially on Jon's earlier work), but its entirely possible there are
->> slight variants of each that aren't handled properly just yet. That
->> right there is one of the major reasons I saw for writing the lirc
->> bridge driver plugin in the first place -- the lirc userspace decoder
->> has been around for a LOT longer, and thus is likely to know how to
->> handle more widely varying IR signals.
->
-> In fact its dead easy to test a lot of remotes, by using an universal
-> remote. These remotes are designed to tech literate persons for a
-> reason....
->
-> On my remote, all I have to do is press TV + predefined number + OK to
-> make remote mimic a random remote.
-> Unill now, kernel decoding couldn't pick anything but one mode....
->
->
-> Here is a table I created long ago on my remote showing all kinds of
-> protocols there:
->
-> Heck, hardware isn't very accurate, I know, but streamzap receiver
-> according to what I have heard it even worse...
->
-> Best regards,
-> Maxim Levitsky
->
->
-> 08 - NEC short pulse / SANYO (38 khz), [15 - NEC]
->     9440     4640      620      550      620      550      620      550      620      550      620      550
->      620      550      620     1720      610      550      610     1720      620     1720      620     1720
->      620     1720      610     1730      610     1720      620      550      620     1720      620      550
->      620      550      620      550      620      550      620      550      620      550      610      550
->      610      550      610     1720      620     1720      620     1720      620     1720      620     1720
->      610     1720      620     1720      620     1720      620    41540     9440     2300      620   100110
->    (9440     2300      610   100110)
-> ---------------------------------------------------------------------------------------------------------------
-> 02 - Philips (RC5): (36 khz)
->      990      890      970      890     1920      890      970      890      970      890      970      890
->      970      890      970      890      970      890      970      890      970      890      970      890
->      970    94190
-> ---------------------------------------------------------------------------------------------------------------
-> 25 - Philips (RECS-80): (38 khz)
->      200     7720      170     7720      170     7700      200     7690      200     7720      170     5090
->      160     7730      170     5090      170     5090      160     5090      170     5090      170
-> ---------------------------------------------------------------------------------------------------------------
-> 01 - JVC: (38 khz)
->     8840     4370      590     1600      590     1600      590      500      590      500      590      500
->      590      500      590      510      590      510      590      500      590      500      590      500
->      590     1600      590      500      590     1600      590      500      590      500      590    25730
-> ---------------------------------------------------------------------------------------------------------------
-> 07 - Sony (SIRC): (40 khz)
->     2550      600     1260      600      630      600      630      600     1260      600      630      600
->      630      600      630      600     1260      600      630      600      630      600      630      600
->      630    27450    <rep>
-> ---------------------------------------------------------------------------------------------------------------
-> 19 - MOTOROLLA:
->      610     2730      550      550      580      520      580      520      580      490      600      520
->      580      520      580      520      580      520      580      520      580    21240
->
->     (600     2720      580     1070      580      520      580      520      580      520     1130     1070
->      580      490      580      540      550      540      580   126890)
-> ---------------------------------------------------------------------------------------------------------------
-> 06 - Sharp (denon): (38 khz)
->      370     1870      340      750      340      760      340      750      340      750      340      750
->      340     1870      340      750      340     1870      340      760      340      760      340      760
->      340      760      340     1870      340      750      340    48940
->
->      370     1870      340      750      340      760      340      760      340      750      340     1870
->      340      750      340     1870      340      760      340     1870      340     1870      340     1870
->      340     1870      340      760      340     1870      340    44610
-> ---------------------------------------------------------------------------------------------------------------
-> 30 - Nokia NRC17:
->      580     2590      550      990     1100      490      550      480      550      480      550      480
->      550      480      550      490      550      480      550      480      550      490      550      480
->      550      490      550      480      550      480      550      480      550    20230
->
->      580     2580      560      990      550      490     1100      480      550      990      550      480
->      550      490      550      480      550      480     1100      990     1100      490      550      990
->     1100      990      550    84380
->
->      580     2580      550      990      550      490     1100      480      550      990      550      490
->      550      480      550      480      550      480     1100      990     1100      480      550      990
->     1100      990      550    84380
-> ---------------------------------------------------------------------------------------------------------------
-> 03 - Mitsubishi:
->      350     2220      320     2220      320     2220      320      950      320      950      340      920
->      320     2220      320      950      320     2220      320      950      350      920      320     2220
->      320      950      320      950      320      950      320      950      320    27630      <rep>
-> ---------------------------------------------------------------------------------------------------------------
-> 04 - Panasonic:
->     3600     3460      950      820      960      820      950      820      950      820      950      820
->      960     2570      960      820      950      820      950     2580      950     2580      950      820
->      950     2580      950     2580      950     2580      950     2580      950     2580      950      820
->      950     2580      950     2580      960      820      960      820      950     2570      960    39070
->      <rep>
-> ---------------------------------------------------------------------------------------------------------------
-> 11 - Panasonic:
->     3700     1780      490      410      500     1320      490      410      490      410      490      410
->      500      410      490      410      490      410      500      410      490      410      490      410
->      490      410      490      410      490     1320      490      410      500      410      490      410
->      490      410      490      410      500      410      490      410      490      410      500      410
->      490     1320      490      410      490      410      500      410      490      410      490      410
->      490      410      490      410      490      410      490     1320      500      410      490      410
->      490     1320      500     1310      500      410      490      410      490      410      490     1320
->      490      410      490      410      490     1320      490     1320      490      410      490      410
->      490     1320      500    <rep>
-> ---------------------------------------------------------------------------------------------------------------
-> 05 - unknown:
->    20950     4110      620     1990      590     2020      580     2020      580     2020      590      980
->      580      980      580     2020      590     2020      580      980      580      980      590      980
->      590      980      580      980      580      980      580      980      580      980      580     2020
->      580     2020      590      980      580      980      580     2020      590     2020      580     2020
->      580     2020     1070
-> ---------------------------------------------------------------------------------------------------------------
-> 09 - unknown:
->      590      480      560     4230      560      480      560     4230      560     5260      560     5260
->      560      480      560     4230      560     5260      560      480      560     4220      560     5260
->      560      480      560     4220      560     5260      560      480      560   126450    <rep>
-> ---------------------------------------------------------------------------------------------------------------
-> 12 - RCA?
->     4740     4650      620     1720      620     1720      620     1720      620      550      610      550
->      610      550      610      550      620      550      620     1720      620     1720      620     1720
->      620      550      620      550      620      550      620      550      620      550      620     1720
->      620      550      620      550      610      550      610     1730      610      550      610      550
->      610      550      620      550      620     1720      620     1720      620     1720      620      550
->      620     1720      620     1720      620     1720      620
-> ---------------------------------------------------------------------------------------------------------------
-> 26 - junk -(thomson) - unsuppored/no carrier
-> 27 - junk -(unknown) - unsuppored/no carrier
-> 28 - junk -ITT  - unsuppored/no carrier
->
->
->
->
->
->>
->
->
->
-
-
+	Hans
 
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
