@@ -1,240 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36475 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757943Ab0G2QHG (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4503 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753656Ab0GRJZy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:07:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v3 04/10] media: Entity graph traversal
-Date: Thu, 29 Jul 2010 18:06:37 +0200
-Message-Id: <1280419616-7658-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sun, 18 Jul 2010 05:25:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: Re: [PATCH v5 3/5] ASoC: WL1273 FM Radio Digital audio codec.
+Date: Sun, 18 Jul 2010 11:28:28 +0200
+Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com
+References: <1279276067-1736-1-git-send-email-matti.j.aaltonen@nokia.com> <1279276067-1736-3-git-send-email-matti.j.aaltonen@nokia.com> <1279276067-1736-4-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1279276067-1736-4-git-send-email-matti.j.aaltonen@nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007181128.28603.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+On Friday 16 July 2010 12:27:45 Matti J. Aaltonen wrote:
+> The codec handles digital audio input to and output from the
+> WL1273 FM radio.
 
-Add media entity graph traversal. The traversal follows active links by
-depth first. Traversing graph backwards is prevented by comparing the next
-possible entity in the graph with the previous one. Multiply connected
-graphs are thus not supported.
+You might want to have this reviewed on the alsa mailinglist. I don't think
+anyone on the linux-media list has the expertise to review this audio codec.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
----
- Documentation/media-framework.txt |   40 +++++++++++++
- drivers/media/media-entity.c      |  115 +++++++++++++++++++++++++++++++++++++
- include/media/media-entity.h      |   15 +++++
- 3 files changed, 170 insertions(+), 0 deletions(-)
+Regards,
 
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index 5bd7216..4fe3b32 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -196,3 +196,43 @@ Links have flags that describe the link capabilities and state.
- 	MEDIA_LINK_FLAG_ACTIVE must also be set since an immutable link is
- 	always active.
- 
-+
-+Graph traversal
-+---------------
-+
-+The media framework provides APIs to iterate over entities in a graph.
-+
-+To iterate over all entities belonging to a media device, drivers can use the
-+media_device_for_each_entity macro, defined in include/media/media-device.h.
-+
-+	struct media_entity *entity;
-+
-+	media_device_for_each_entity(entity, mdev) {
-+		/* entity will point to each entity in turn */
-+		...
-+	}
-+
-+Drivers might also need to iterate over all entities in a graph that can be
-+reached only through active links starting at a given entity. The media
-+framework provides a depth-first graph traversal API for that purpose.
-+
-+Note that graphs with cycles (whether directed or undirected) are *NOT*
-+supported by the graph traversal API.
-+
-+Drivers initiate a graph traversal by calling
-+
-+	media_entity_graph_walk_start(struct media_entity_graph *graph,
-+				      struct media_entity *entity);
-+
-+The graph structure, provided by the caller, is initialized to start graph
-+traversal at the given entity.
-+
-+Drivers can then retrieve the next entity by calling
-+
-+	media_entity_graph_walk_next(struct media_entity_graph *graph);
-+
-+When the graph traversal is complete the function will return NULL.
-+
-+Graph traversal can be interrupted at any moment. No cleanup function call is
-+required and the graph structure can be freed normally.
-+
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index a2f9ad9..443c5c9 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -81,6 +81,121 @@ media_entity_cleanup(struct media_entity *entity)
- }
- EXPORT_SYMBOL(media_entity_cleanup);
- 
-+/* -----------------------------------------------------------------------------
-+ * Graph traversal
-+ */
-+
-+static struct media_entity *
-+media_entity_other(struct media_entity *entity, struct media_link *link)
-+{
-+	if (link->source->entity == entity)
-+		return link->sink->entity;
-+	else
-+		return link->source->entity;
-+}
-+
-+/* push an entity to traversal stack */
-+static void stack_push(struct media_entity_graph *graph,
-+		       struct media_entity *entity)
-+{
-+	if (graph->top == MEDIA_ENTITY_ENUM_MAX_DEPTH - 1) {
-+		WARN_ON(1);
-+		return;
-+	}
-+	graph->top++;
-+	graph->stack[graph->top].link = 0;
-+	graph->stack[graph->top].entity = entity;
-+}
-+
-+static struct media_entity *stack_pop(struct media_entity_graph *graph)
-+{
-+	struct media_entity *entity;
-+
-+	entity = graph->stack[graph->top].entity;
-+	graph->top--;
-+
-+	return entity;
-+}
-+
-+#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
-+#define link_top(en)	((en)->stack[(en)->top].link)
-+#define stack_top(en)	((en)->stack[(en)->top].entity)
-+
-+/**
-+ * media_entity_graph_walk_start - Start walking the media graph at a given entity
-+ * @graph: Media graph structure that will be used to walk the graph
-+ * @entity: Starting entity
-+ *
-+ * This function initializes the graph traversal structure to walk the entities
-+ * graph starting at the given entity. The traversal structure must not be
-+ * modified by the caller during graph traversal. When done the structure can
-+ * safely be freed.
-+ */
-+void media_entity_graph_walk_start(struct media_entity_graph *graph,
-+				   struct media_entity *entity)
-+{
-+	graph->top = 0;
-+	graph->stack[graph->top].entity = NULL;
-+	stack_push(graph, entity);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-+
-+/**
-+ * media_entity_graph_walk_next - Get the next entity in the graph
-+ * @graph: Media graph structure
-+ *
-+ * Perform a depth-first traversal of the given media entities graph.
-+ *
-+ * The graph structure must have been previously initialized with a call to
-+ * media_entity_graph_walk_start().
-+ *
-+ * Return the next entity in the graph or NULL if the whole graph have been
-+ * traversed.
-+ */
-+struct media_entity *
-+media_entity_graph_walk_next(struct media_entity_graph *graph)
-+{
-+	if (stack_top(graph) == NULL)
-+		return NULL;
-+
-+	/*
-+	 * Depth first search. Push entity to stack and continue from
-+	 * top of the stack until no more entities on the level can be
-+	 * found.
-+	 */
-+	while (link_top(graph) < stack_top(graph)->num_links) {
-+		struct media_entity *entity = stack_top(graph);
-+		struct media_link *link = &entity->links[link_top(graph)];
-+		struct media_entity *next;
-+
-+		/* The link is not active so we do not follow. */
-+		if (!(link->flags & MEDIA_LINK_FLAG_ACTIVE)) {
-+			link_top(graph)++;
-+			continue;
-+		}
-+
-+		/* Get the entity in the other end of the link . */
-+		next = media_entity_other(entity, link);
-+
-+		/* Was it the entity we came here from? */
-+		if (next == stack_peek(graph)) {
-+			link_top(graph)++;
-+			continue;
-+		}
-+
-+		/* Push the new entity to stack and start over. */
-+		link_top(graph)++;
-+		stack_push(graph, next);
-+	}
-+
-+	return stack_pop(graph);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
-+
-+/* -----------------------------------------------------------------------------
-+ * Links management
-+ */
-+
- static struct media_link *media_entity_add_link(struct media_entity *entity)
- {
- 	if (entity->num_links >= entity->max_links) {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 37a25bf..05c37a6 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -76,10 +76,25 @@ struct media_entity {
- #define media_entity_subtype(entity) \
- 	((entity)->type & MEDIA_ENTITY_SUBTYPE_MASK)
- 
-+#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-+
-+struct media_entity_graph {
-+	struct {
-+		struct media_entity *entity;
-+		int link;
-+	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-+	int top;
-+};
-+
- int media_entity_init(struct media_entity *entity, u8 num_pads,
- 		struct media_pad *pads, u8 extra_links);
- void media_entity_cleanup(struct media_entity *entity);
- int media_entity_create_link(struct media_entity *source, u8 source_pad,
- 		struct media_entity *sink, u8 sink_pad, u32 flags);
- 
-+void media_entity_graph_walk_start(struct media_entity_graph *graph,
-+		struct media_entity *entity);
-+struct media_entity *
-+media_entity_graph_walk_next(struct media_entity_graph *graph);
-+
- #endif
+	Hans
+
 -- 
-1.7.1
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
