@@ -1,125 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:47305 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755255Ab0G2WZF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 18:25:05 -0400
-Subject: Re: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	awalls@md.metrocast.net, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org, lirc-list@lists.sourceforge.net,
-	mchehab@redhat.com
-In-Reply-To: <1280441221.2523.15.camel@maxim-laptop>
-References: <1280424946.32069.11.camel@maxim-laptop> <BTlNJJN3jFB@christoph>
-	 <1280433887.2523.11.camel@maxim-laptop> <20100729212836.GD7507@redhat.com>
-	 <AANLkTi=a_kii4g2EPVJukxRsWkoqBGK9gLv2yNh4YJxH@mail.gmail.com>
-	 <1280441221.2523.15.camel@maxim-laptop>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 30 Jul 2010 01:24:59 +0300
-Message-ID: <1280442299.17111.1.camel@maxim-laptop>
-Mime-Version: 1.0
+Received: from d1.icnet.pl ([212.160.220.21]:55398 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750717Ab0GRETF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Jul 2010 00:19:05 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: linux-media@vger.kernel.org
+Subject: [RFC] [PATCH 0/6] Add camera support to the OMAP1 Amstrad Delta videophone
+Date: Sun, 18 Jul 2010 06:18:06 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201007180618.08266.jkrzyszt@tis.icnet.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-07-30 at 01:07 +0300, Maxim Levitsky wrote: 
-> On Thu, 2010-07-29 at 17:57 -0400, Jarod Wilson wrote: 
-> > On Thu, Jul 29, 2010 at 5:28 PM, Jarod Wilson <jarod@redhat.com> wrote:
-> > > On Thu, Jul 29, 2010 at 11:04:47PM +0300, Maxim Levitsky wrote:
-> > >> On Thu, 2010-07-29 at 21:35 +0200, Christoph Bartelmus wrote:
-> > >> > Hi!
-> > >> >
-> > >> > Maxim Levitsky "maximlevitsky@gmail.com" wrote:
-> > >> > [...]
-> > >> > >>>>> Could you explain exactly how timeout reports work?
-> > >> > [...]
-> > >> > >>> So, timeout report is just another sample, with a mark attached, that
-> > >> > >>> this is last sample? right?
-> > >> > >>
-> > >> > >> No, a timeout report is just an additional hint for the decoder that a
-> > >> > >> specific amount of time has passed since the last pulse _now_.
-> > >> > >>
-> > >> > >> [...]
-> > >> > >>> In that case, lets do that this way:
-> > >> > >>>
-> > >> > >>> As soon as timeout is reached, I just send lirc the timeout report.
-> > >> > >>> Then next keypress will start with pulse.
-> > >> > >>
-> > >> > >> When timeout reports are enabled the sequence must be:
-> > >> > >> <pulse> <timeout> <space> <pulse>
-> > >> > >> where <timeout> is optional.
-> > >> > >>
-> > >> > >> lircd will not work when you leave out the space. It must know the exact
-> > >> > >> time between the pulses. Some hardware generates timeout reports that are
-> > >> > >> too short to distinguish between spaces that are so short that the next
-> > >> > >> sequence can be interpreted as a repeat or longer spaces which indicate
-> > >> > >> that this is a new key press.
-> > >> >
-> > >> > > Let me give an example to see if I got that right.
-> > >> > >
-> > >> > >
-> > >> > > Suppose we have this sequence of reports from the driver:
-> > >> > >
-> > >> > > 500 (pulse)
-> > >> > > 200000 (timeout)
-> > >> > > 100000000 (space)
-> > >> > > 500 (pulse)
-> > >> > >
-> > >> > >
-> > >> > > Is that correct that time between first and second pulse is
-> > >> > > '100200000' ?
-> > >> >
-> > >> > No, it's 100000000. The timeout is optional and just a hint to the decoder
-> > >> > how much time has passed already since the last pulse. It does not change
-> > >> > the meaning of the next space.
-> > >>
-> > >> its like a carrier report then I guess.
-> > >> Its clear to me now.
-> > >>
-> > >> So, I really don't need to send/support timeout reports because hw
-> > >> doesn't support that.
-> > >>
-> > >> I can however support timeout (LIRC_SET_REC_TIMEOUT) and and use it to
-> > >> adjust threshold upon which I stop the hardware, and remember current
-> > >> time.
-> > >> I can put that in generic function for ene like hardware
-> > >> (hw that sends small packs of samples very often)
-> > >
-> > > So... I presume this means a v3 patchset? And/or, is it worth merging
-> > > patches 1, 2, 3, 6 and 7 now, then having you work on top of that?
-> > 
-> > This branch is a as-of-a-few-minutes-ago, up-to-date linuxtv
-> > staging/other plus a few outstanding patches and your patches 1, 2, 3,
-> > 6 and 7:
-> 
-> I am surely send V3 and likely V4.
-> I changed many of my patches, 
-> 
-> I now  am chasing a very strange leak of samples I see. (sometimes,
-> randomaly a sample goes missing, and that breaks in-kernel decoding...)
-> It appears to be not my driver fault, nor fifo overflow...
+This series consists of the following patches:
 
+  1/6	SoC Camera: add driver for OMAP1 camera interface
+  2/6	OMAP1: Add support for SoC camera interface
+  3/6	SoC Camera: add driver for OV6650 sensor
+  4/6	SoC Camera: add support for g_parm / s_parm operations
+  5/6	OMAP1: Amstrad Delta: add support for on-board camera
+  6/6	OMAP1: Amstrad Delta: add camera controlled LEDS trigger
 
-Rolls eyes.... 
+ arch/arm/mach-omap1/board-ams-delta.c     |   69 +
+ arch/arm/mach-omap1/devices.c             |   43
+ arch/arm/mach-omap1/include/mach/camera.h |    8
+ drivers/media/video/Kconfig               |   20
+ drivers/media/video/Makefile              |    2
+ drivers/media/video/omap1_camera.c        | 1656 ++++++++++++++++++++++++++++++
+ drivers/media/video/ov6650.c              | 1336 ++++++++++++++++++++++++
+ drivers/media/video/soc_camera.c          |   18
+ include/media/omap1_camera.h              |   16
+ include/media/v4l2-chip-ident.h           |    1
+ 10 files changed, 3169 insertions(+)
 
-
-void ir_raw_event_handle(struct input_dev *input_dev)
-{
-struct ir_input_dev *ir = input_get_drvdata(input_dev);
-
-if (!ir->raw)
-return;
-
-schedule_work(&ir->raw->rx_work);
-}
-EXPORT_SYMBOL_GPL(ir_raw_event_handle);
-
-
-This is workqueue, so who said two of them can run at same time.....
-
-Best regards,
-Maxim Levitsky
-
+Thanks,
+Janusz
