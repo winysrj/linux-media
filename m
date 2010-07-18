@@ -1,125 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:51139 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757077Ab0GNN3R (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3866 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753512Ab0GRJVo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jul 2010 09:29:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH 08/10] v4l: Add a media_device pointer to the v4l2_device structure
-Date: Wed, 14 Jul 2010 15:30:17 +0200
-Message-Id: <1279114219-27389-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sun, 18 Jul 2010 05:21:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: Re: [PATCH v5 1/5] V4L2: Add seek spacing and FM RX class.
+Date: Sun, 18 Jul 2010 11:24:14 +0200
+Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com
+References: <1279276067-1736-1-git-send-email-matti.j.aaltonen@nokia.com> <1279276067-1736-2-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1279276067-1736-2-git-send-email-matti.j.aaltonen@nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007181124.14325.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The pointer will later be used to register/unregister media entities
-when registering/unregistering a v4l2_subdev or a video_device.
+On Friday 16 July 2010 12:27:43 Matti J. Aaltonen wrote:
+> Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
+> control classes.
+> 
+> Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+> ---
+>  include/linux/videodev2.h |   15 ++++++++++++++-
+>  1 files changed, 14 insertions(+), 1 deletions(-)
+> 
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 418dacf..95675cd 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -935,6 +935,7 @@ struct v4l2_ext_controls {
+>  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
+>  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+>  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+> +#define V4L2_CTRL_CLASS_FM_RX 0x009c0000	/* FM Tuner control class */
+>  
+>  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+>  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> @@ -1313,6 +1314,17 @@ enum v4l2_preemphasis {
+>  #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
+>  #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
+>  
+> +/* FM Tuner class control IDs */
+> +#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
+> +#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
+> +
+> +#define V4L2_CID_FM_RX_BAND			(V4L2_CID_FM_TX_CLASS_BASE + 1)
+> +enum v4l2_fm_rx_band {
 
-With the introduction of media devices, device drivers need to store a
-pointer to a driver-specific structure in the device's drvdata.
-v4l2_device can't claim ownership of the drvdata anymore.
+Just a very small change: rename v4l2_fm_rx_band to v4l2_fm_band. We might need
+this enum later for transmitter devices as well so it is better to give it a
+slightly more generic name.
 
-To maintain compatibility with drivers that rely on v4l2_device storing
-a pointer to itself in the device's drvdata, v4l2_device_register() will
-keep doing so if the drvdata is NULL.
+> +	V4L2_FM_BAND_OTHER		= 0,
+> +	V4L2_FM_BAND_JAPAN		= 1,
+> +	V4L2_FM_BAND_OIRT		= 2
+> +};
+> +
+>  /*
+>   *	T U N I N G
+>   */
+> @@ -1377,7 +1389,8 @@ struct v4l2_hw_freq_seek {
+>  	enum v4l2_tuner_type  type;
+>  	__u32		      seek_upward;
+>  	__u32		      wrap_around;
+> -	__u32		      reserved[8];
+> +	__u32		      spacing;
+> +	__u32		      reserved[7];
+>  };
+>  
+>  /*
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/video4linux/v4l2-framework.txt |   17 ++++++++++++-----
- drivers/media/video/v4l2-device.c            |   13 +++++++------
- include/media/v4l2-device.h                  |    2 ++
- 3 files changed, 21 insertions(+), 11 deletions(-)
+Regards,
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 89bd881..8a3f14e 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -83,11 +83,17 @@ You must register the device instance:
- 
- 	v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
- 
--Registration will initialize the v4l2_device struct and link dev->driver_data
--to v4l2_dev. If v4l2_dev->name is empty then it will be set to a value derived
--from dev (driver name followed by the bus_id, to be precise). If you set it
--up before calling v4l2_device_register then it will be untouched. If dev is
--NULL, then you *must* setup v4l2_dev->name before calling v4l2_device_register.
-+Registration will initialize the v4l2_device struct. If the dev->driver_data
-+field is NULL, it will be linked to v4l2_dev. Drivers that use the media
-+device framework in addition to the V4L2 framework need to set
-+dev->driver_data manually to point to the driver-specific device structure
-+that embed the struct v4l2_device instance. This is achieved by a
-+dev_set_drvdata() call before registering the V4L2 device instance.
-+
-+If v4l2_dev->name is empty then it will be set to a value derived from dev
-+(driver name followed by the bus_id, to be precise). If you set it up before
-+calling v4l2_device_register then it will be untouched. If dev is NULL, then
-+you *must* setup v4l2_dev->name before calling v4l2_device_register.
- 
- You can use v4l2_device_set_name() to set the name based on a driver name and
- a driver-global atomic_t instance. This will generate names like ivtv0, ivtv1,
-@@ -108,6 +114,7 @@ You unregister with:
- 
- 	v4l2_device_unregister(struct v4l2_device *v4l2_dev);
- 
-+If the dev->driver_data field points to v4l2_dev, it will be reset to NULL.
- Unregistering will also automatically unregister all subdevs from the device.
- 
- If you have a hotpluggable device (e.g. a USB device), then when a disconnect
-diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
-index b287aaa..91452cd 100644
---- a/drivers/media/video/v4l2-device.c
-+++ b/drivers/media/video/v4l2-device.c
-@@ -45,9 +45,8 @@ int v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev)
- 	if (!v4l2_dev->name[0])
- 		snprintf(v4l2_dev->name, sizeof(v4l2_dev->name), "%s %s",
- 			dev->driver->name, dev_name(dev));
--	if (dev_get_drvdata(dev))
--		v4l2_warn(v4l2_dev, "Non-NULL drvdata on register\n");
--	dev_set_drvdata(dev, v4l2_dev);
-+	if (!dev_get_drvdata(dev))
-+		dev_set_drvdata(dev, v4l2_dev);
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(v4l2_device_register);
-@@ -70,10 +69,12 @@ EXPORT_SYMBOL_GPL(v4l2_device_set_name);
- 
- void v4l2_device_disconnect(struct v4l2_device *v4l2_dev)
- {
--	if (v4l2_dev->dev) {
-+	if (v4l2_dev->dev == NULL)
-+		return;
-+
-+	if (dev_get_drvdata(v4l2_dev->dev) == v4l2_dev)
- 		dev_set_drvdata(v4l2_dev->dev, NULL);
--		v4l2_dev->dev = NULL;
--	}
-+	v4l2_dev->dev = NULL;
- }
- EXPORT_SYMBOL_GPL(v4l2_device_disconnect);
- 
-diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
-index 5d5d550..83b5966 100644
---- a/include/media/v4l2-device.h
-+++ b/include/media/v4l2-device.h
-@@ -21,6 +21,7 @@
- #ifndef _V4L2_DEVICE_H
- #define _V4L2_DEVICE_H
- 
-+#include <media/media-device.h>
- #include <media/v4l2-subdev.h>
- 
- /* Each instance of a V4L2 device should create the v4l2_device struct,
-@@ -37,6 +38,7 @@ struct v4l2_device {
- 	   Note: dev might be NULL if there is no parent device
- 	   as is the case with e.g. ISA devices. */
- 	struct device *dev;
-+	struct media_device *mdev;
- 	/* used to keep track of the registered subdevs */
- 	struct list_head subdevs;
- 	/* lock this struct; can be used by the driver as well if this
+	Hans 
+
 -- 
-1.7.1
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
