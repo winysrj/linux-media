@@ -1,106 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19057 "EHLO mx1.redhat.com"
+Received: from d1.icnet.pl ([212.160.220.21]:56764 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751105Ab0GYR6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jul 2010 13:58:16 -0400
-Message-ID: <4C4C7B51.3000608@redhat.com>
-Date: Sun, 25 Jul 2010 14:58:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751318Ab0GRE2W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Jul 2010 00:28:22 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: [RFC] [PATCH 5/6] OMAP1: Amstrad Delta: add support for camera
+Date: Sun, 18 Jul 2010 06:27:49 +0200
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tony Lindgren <tony@atomide.com>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201007180618.08266.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201007180618.08266.jkrzyszt@tis.icnet.pl>
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 bad marge staging/tm6000 into staging/all
-References: <4C4BE78A.4090002@arcor.de>
-In-Reply-To: <4C4BE78A.4090002@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201007180627.54193.jkrzyszt@tis.icnet.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-07-2010 04:28, Stefan Ringel escreveu:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
->  
-> Hi Mauro,
-> 
-> This marge are wrong! It's added double dvb led off, but my patch has
-> only ones.
-> 
-> raw | combined (merge: 011906d 6e5e76f)
-> 
-> Merge branch 'staging/tm6000' into staging/all
-> Mauro Carvalho Chehab [Sun, 4 Jul 2010 19:33:26 +0000 (16:33 -0300)]
-> 
-> * staging/tm6000: (29 commits)
->   tm6000: Partially revert some copybuf logic
->   tm6000: Be sure that the new buffer is empty
->   tm6000: Fix copybuf continue logic Signed-off-by: Mauro Carvalho
-> Chehab <mchehab@redhat.com>
->   tm6000: audio packet has always 180 bytes
->   tm6000: Improve set bitrate routines used by alsa
->   tm6000-alsa: Implement a routine to store data received from URB
->   tm6000-alsa: Fix several bugs at the driver initialization code
->   tm6000: avoid unknown symbol tm6000_debug
->   tm6000: Add a callback code for buffer fill
->   tm6000: Use an emum for extension type
->   tm6000-alsa: rework audio buffer allocation/deallocation
->   tm6000: Avoid OOPS when loading tm6000-alsa module
->   tm6000: Fix compilation breakages
->   V4L/DVB: Staging: tm6000: Fix coding style issues
->   V4L/DVB: tm6000: move dvb into a separate kern module
->   V4L/DVB: tm6000: rewrite init and fini
->   V4L/DVB: tm6000: Fix Video decoder initialization
->   V4L/DVB: tm6000: rewrite copy_streams
->   V4L/DVB: tm6000: add DVB support for tuner xc5000
->   V4L/DVB: tm6000: set variable dev_mode in function tm6000_start_stream
->   ...
-> 
-> diff --cc drivers/staging/tm6000/tm6000-core.c
-> 
-> index 27f3f55,1fea5a0..9f60ad5
-> - --- 1/drivers/staging/tm6000/tm6000-core.c
-> - --- 2/drivers/staging/tm6000/tm6000-core.c
-> +++ b/drivers/staging/tm6000/tm6000-core.c
-> @@@ -336,11 -332,11 +332,17 @@@ int tm6000_init_analog_mode(struct tm60
->         mutex_unlock(&dev->lock);
->  
->         msleep(100);
-> - -       tm6000_set_standard (dev, &dev->norm);
-> - -       tm6000_set_audio_bitrate (dev,48000);
-> +       tm6000_set_standard(dev, &dev->norm);
-> +       tm6000_set_audio_bitrate(dev, 48000);
-> +
-> +       /* switch dvb led off */
-> +       if (dev->gpio.dvb_led) {
-> ++              tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
-> ++                      dev->gpio.dvb_led, 0x01);
-> ++      }
->  +
->  +      /* switch dvb led off */
->  +      if (dev->gpio.dvb_led) {
->                 tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
->                         dev->gpio.dvb_led, 0x01);
->         }
+This patch adds configuration data and initialization code required for camera 
+support to the Amstrad Delta board.
 
-I hate those merge conflicts ;)
+Three devices are declared: SoC camera, OMAP1 camera interface and OV6650 
+sensor.
 
-could you please send me a patch fixing it at staging/all? I won't apply it
-upstream, but we shouldn't simply revert a patch at staging, otherwise, we'll
-break every clone of my tree.
-> 
-> 
-> 
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v2.0.12 (MingW32)
-> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
->  
-> iQEcBAEBAgAGBQJMS+eJAAoJEAWtPFjxMvFGDw8IAJnmTxTehH4TeqwI3Gn+8gcn
-> Xp8VPH/F67npT3zHQMq4luBEWdnMKkI/y54en8czoqG+EHEnxZjFZUxJUkAKPbpd
-> pU9vVUrQGtUQOf7zY6qYSqaSPIJr+abTmE1k2Wnd47Zwlu35tfRhuVXqfrTu7JkT
-> /Jy4Xf/IOtJvCa62eDCnhB6+gAq+hj5peHiZb7KBxOQO1NH8DQ8DYQPT9xNn5SFs
-> mCmQv9BdNrLdXS4mCkufBWEinennolOIoaSIyj2GkvJm8aSvzIWGvm28zxjPLKPL
-> PLH7A+WPMHCdor7Psn7QJKCm3DPEKu3vcOTOmFYsBJfV/pUNMK+5y3qV1WP9Ayg=
-> =HCq5
-> -----END PGP SIGNATURE-----
-> 
+Default 12MHz clock has been selected for driving the sensor. Pixel clock has 
+been limited to get reasonable frame rates, not exceeding the board 
+capabilities. Since both devices (interface and sensor) support both pixel 
+clock polarities, decision on polarity selection has been left to drivers.
+Interface GPIO line has been found not functional, thus not configured.
 
+Created and tested against linux-2.6.35-rc3.
+
+Works on top of previous patches from the series, at least 1/6, 2/6 and 3/6.
+
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+ arch/arm/mach-omap1/board-ams-delta.c |   45 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 45 insertions(+)
+
+--- linux-2.6.35-rc3.orig/arch/arm/mach-omap1/board-ams-delta.c	2010-06-26 15:54:47.000000000 +0200
++++ linux-2.6.35-rc3/arch/arm/mach-omap1/board-ams-delta.c	2010-07-18 02:21:23.000000000 +0200
+@@ -19,6 +19,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/serial_8250.h>
+ 
++#include <media/soc_camera.h>
++
+ #include <asm/serial.h>
+ #include <mach/hardware.h>
+ #include <asm/mach-types.h>
+@@ -32,6 +34,7 @@
+ #include <plat/usb.h>
+ #include <plat/board.h>
+ #include <plat/common.h>
++#include <mach/camera.h>
+ 
+ #include <mach/ams-delta-fiq.h>
+ 
+@@ -213,10 +216,37 @@ static struct platform_device ams_delta_
+ 	.id	= -1
+ };
+ 
++static struct i2c_board_info ams_delta_camera_board_info[] = {
++	{
++		I2C_BOARD_INFO("ov6650", 0x60),
++	},
++};
++
++static struct soc_camera_link __initdata ams_delta_iclink = {
++	.bus_id         = 0,	/* OMAP1 SoC camera bus */
++	.i2c_adapter_id = 1,
++	.board_info     = &ams_delta_camera_board_info[0],
++	.module_name    = "ov6650",
++};
++
++static struct platform_device ams_delta_camera_device = {
++	.name   = "soc-camera-pdrv",
++	.id     = 0,
++	.dev    = {
++		.platform_data = &ams_delta_iclink,
++	},
++};
++
++static struct omap1_cam_platform_data ams_delta_camera_platform_data = {
++	.camexclk_khz	= 12000,	/* default 12MHz clock, no extra DPLL */
++	.lclk_khz_max	= 1334,		/* results in 5fps CIF, 10fps QCIF */
++};
++
+ static struct platform_device *ams_delta_devices[] __initdata = {
+ 	&ams_delta_kp_device,
+ 	&ams_delta_lcd_device,
+ 	&ams_delta_led_device,
++	&ams_delta_camera_device,
+ };
+ 
+ static void __init ams_delta_init(void)
+@@ -225,6 +255,20 @@ static void __init ams_delta_init(void)
+ 	omap_cfg_reg(UART1_TX);
+ 	omap_cfg_reg(UART1_RTS);
+ 
++	/* parallel camera interface */
++	omap_cfg_reg(H19_1610_CAM_EXCLK);
++	omap_cfg_reg(J15_1610_CAM_LCLK);
++	omap_cfg_reg(L18_1610_CAM_VS);
++	omap_cfg_reg(L15_1610_CAM_HS);
++	omap_cfg_reg(L19_1610_CAM_D0);
++	omap_cfg_reg(K14_1610_CAM_D1);
++	omap_cfg_reg(K15_1610_CAM_D2);
++	omap_cfg_reg(K19_1610_CAM_D3);
++	omap_cfg_reg(K18_1610_CAM_D4);
++	omap_cfg_reg(J14_1610_CAM_D5);
++	omap_cfg_reg(J19_1610_CAM_D6);
++	omap_cfg_reg(J18_1610_CAM_D7);
++
+ 	iotable_init(ams_delta_io_desc, ARRAY_SIZE(ams_delta_io_desc));
+ 
+ 	omap_board_config = ams_delta_config;
+@@ -236,6 +280,7 @@ static void __init ams_delta_init(void)
+ 	ams_delta_latch2_write(~0, 0);
+ 
+ 	omap_usb_init(&ams_delta_usb_config);
++	omap1_set_camera_info(&ams_delta_camera_platform_data);
+ 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
+ 
+ #ifdef CONFIG_AMS_DELTA_FIQ
