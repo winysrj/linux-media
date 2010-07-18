@@ -1,185 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:44330 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752318Ab0GZQeK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 12:34:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:44391 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754158Ab0GRKps (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Jul 2010 06:45:48 -0400
+Date: Sun, 18 Jul 2010 12:45:59 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links enumeration
-Date: Mon, 26 Jul 2010 18:34:42 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-7-git-send-email-laurent.pinchart@ideasonboard.com> <201007241445.40062.hverkuil@xs4all.nl>
-In-Reply-To: <201007241445.40062.hverkuil@xs4all.nl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Confusing mediabus formats
+In-Reply-To: <201007181221.51813.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1007181228470.11194@axis700.grange>
+References: <201005091032.07893.hverkuil@xs4all.nl> <201007091402.15938.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1007141541520.2150@axis700.grange> <201007181221.51813.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007261834.43211.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Sun, 18 Jul 2010, Hans Verkuil wrote:
 
-On Saturday 24 July 2010 14:45:39 Hans Verkuil wrote:
-> On Wednesday 21 July 2010 16:35:31 Laurent Pinchart wrote:
-> > Create the following two ioctls and implement them at the media device
-> > level to enumerate entities, pads and links.
+> On Wednesday 14 July 2010 16:53:00 Guennadi Liakhovetski wrote:
+> > > 
+> > > The problem with the YUV variants is that the term 'sample' does not really apply.
+> > > It's similar to the V4L2_MBUS_FMT_SBGGR8_1X8 bayer format: here the sample width is
+> > > just 8 bits and 'BGGR' describes the order of the blue, green and red samples over
+> > > the bus. I wonder, does the prefix 'S' in the sample description mean that the
+> > > sub-sample order is described?
 > > 
-> > - MEDIA_IOC_ENUM_ENTITIES: Enumerate entities and their properties
-> > - MEDIA_IOC_ENUM_LINKS: Enumerate all pads and links for a given entity
+> > No, the "S" is explained on http://www.siliconimaging.com/RGB%20Bayer.htm 
+> > as "sequential RGB," where they also refer to it as "sRGB."
+> 
+> Ah, good to know!
+> 
+> > > If so, then to be consistent I would propose these mediabus formats:
+> > > 
+> > >         V4L2_MBUS_FMT_SYUYV8_1X8,
+> > >         V4L2_MBUS_FMT_SYVYU8_1X8,
+> > >         V4L2_MBUS_FMT_SUYVY8_1X8,
+> > >         V4L2_MBUS_FMT_SVYUY8_1X8,
 > > 
-> > Entity IDs can be non-contiguous. Userspace applications should
-> > enumerate entities using the MEDIA_ENTITY_ID_FLAG_NEXT flag. When the
-> > flag is set in the entity ID, the MEDIA_IOC_ENUM_ENTITIES will return
-> > the next entity with an ID bigger than the requested one.
+> > Well, let me explain, what I meant by <sample> in above names. This is 
+> > just the number of bus sampling operations, needed to capture the number 
+> > of bits, transferred for each pixel. This is also referred to as "depth," 
+> > meaning "color depth," in include/linux/videodev2.h in the fourcc code 
+> > list. E.g.
 > > 
-> > Only forward links that originate at one of the entity's source pads are
-> > returned during the enumeration process.
+> > format		colour depth
+> > RGB555		15
+> > RGB565		16
+> > YUV4:2:2	16
+> > SBGGR8 etc.	8
+> > SBGGR10 etc.	10
+> > YUV4:2:0	12
 > > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> > ---
+> > With this in mind all your names above should have _2X8. This just seems 
+> > more intuitive to me to be able to see immediately how many times you have 
+> > to sample the bus to get "1 pixel of colour information." This is also 
+> > consistent with V4L2_MBUS_FMT_SBGGR8_1X8 - its colour-depth is 8.
+> 
+> I'm sorry, but this simply makes no sense. To get '1 pixel of colour information'
+> in the case of YUV you would need to sample the bus *4* times to get all the Y, U
+> and V components. The whole concept of colour-depth is frankly dubious for some of
+> these formats. For that matter, the concept of 'pixel' is fuzzy as well. It is well
+> defined for the Y plane, but for the chroma (UV) plane the 'pixels' are actually
+> spread out over multiple Y pixels.
+
+Pixel is just the "picture element" - think about one pixel on a monitor 
+or on a sensor. Now, "one pixel of data" is indeed less clear. I would 
+define it as "amount of data for the whole image divided through number of 
+pixels." So, for a 4x4 image with 8-bit Bayer you get 16 bytes, sampled on 
+an 8-bit bus you get 16 samples - 1 8-bit sample per _physical_ pixel, 
+even though you're right - if you regard the data - no 8 bit in memory 
+describe 1 pixel completely. Now, for YUV4:2:2 you get 32 samples, i.e., 2 
+samples per pixel on an 8-bit bus. That's where 2X8 comes from. I think, 
+this definition is rigorous and _independent_ of the actual colorspace / 
+pixel format. This is just (bytes per image) / pixels / (bus width). 
+_This_ alone is the reason why I prefer this definition. It is 
+mathematical. You don't need to know _anything_ about the colorspace or 
+pixel format. Therefore it is suitable for formal image data transfer in a 
+pass-through mode. You look at such a name and you immediately know how 
+many times you have to sample the bus to get data for your QVGA image. 
+Whereas with your concept you have to understand what YUV422 is to 
+actually realise, that V4L2_MBUS_FMT_SYUYV8_1X8 for a 4x4 image you have 
+to sample the 8-bit but 32 times.
+
+> But the number of bits for each Y, U and V sample is well defined, and I think that
+> is what we should use. And BTW, 'Sequential YUV' makes sense to me as a name as
+> well.
+
+Ok, in a way it does, just I never saw it before and I don't think it is 
+necessary. sRGB differentiates from RGB, whereas YUV _is_ already 
+"sequential," if you like, so, there's nothing to differentiate from, and 
+I think, it would just add confision, because people would start to think, 
+that SYUV is something different from YUV.
+
+> > > Regarding 4-bit wide busses: the scheme is generic enough for that:
+> > > 
+> > > E.g. V4L2_MBUS_FMT_SYUYV8_1X8 for a 4-bit bus would become:
+> > > 
+> > > 	V4L2_MBUS_FMT_SYUYV8_2X4_LE
+> > > 	V4L2_MBUS_FMT_SYUYV8_2X4_BE
 > > 
-> >  Documentation/media-framework.txt |  134
-> >  ++++++++++++++++++++++++++++++++ drivers/media/media-device.c      | 
-> >  153 +++++++++++++++++++++++++++++++++++++ include/linux/media.h        
-> >      |   73 ++++++++++++++++++
-> >  include/media/media-device.h      |    3 +
-> >  include/media/media-entity.h      |   19 +-----
-> >  5 files changed, 364 insertions(+), 18 deletions(-)
-> >  create mode 100644 include/linux/media.h
+> > Ok, this makes sense to me - only let's change them to use _4x4
+> > 
+> > > Again, how this ends up in memory is unrelated to these mbus_pixelcodes.
+> > > 
+> > > As discussed in Helsinki we need to get this sorted out soon since this header
+> > > is going to be public in the near future.
+> > 
+> > Ok, I agree, that having 
+> > 
+> > 	V4L2_MBUS_FMT_YUYV8_2X8,
+> > 	V4L2_MBUS_FMT_YVYU8_2X8,
+> > 	V4L2_MBUS_FMT_UYVY8_2X8,
+> > 	V4L2_MBUS_FMT_VYUY8_2X8,
+> > 
+> > is better, than
+> > 
+> > 	V4L2_MBUS_FMT_YUYV8_2X8_LE,
+> > 	V4L2_MBUS_FMT_YVYU8_2X8_LE,
+> > 	V4L2_MBUS_FMT_YUYV8_2X8_BE,
+> > 	V4L2_MBUS_FMT_YVYU8_2X8_BE,
 > 
-> <snip>
+> Why would V4L2_MBUS_FMT_SBGGR8_1X8 be OK and V4L2_MBUS_FMT_SYUYV8_1X8 be wrong?
+> I really don't see the difference between the two. Both formats produce a sequence
+> of 8 bit color components in a particular order.
 > 
-> > diff --git a/include/linux/media.h b/include/linux/media.h
-> > new file mode 100644
-> > index 0000000..746bdda
-> > --- /dev/null
-> > +++ b/include/linux/media.h
-> > @@ -0,0 +1,73 @@
-> > +#ifndef __LINUX_MEDIA_H
-> > +#define __LINUX_MEDIA_H
-> > +
-> > +#define MEDIA_ENTITY_TYPE_NODE				1
-> > +#define MEDIA_ENTITY_TYPE_SUBDEV			2
-> > +
-> > +#define MEDIA_ENTITY_SUBTYPE_NODE_V4L			1
-> > +#define MEDIA_ENTITY_SUBTYPE_NODE_FB			2
-> > +#define MEDIA_ENTITY_SUBTYPE_NODE_ALSA			3
-> > +#define MEDIA_ENTITY_SUBTYPE_NODE_DVB			4
-> > +
-> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_DECODER		1
-> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_ENCODER		2
-> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_MISC		3
-> > +
-> > +#define MEDIA_PAD_DIR_INPUT				1
-> > +#define MEDIA_PAD_DIR_OUTPUT				2
-> > +
-> > +#define MEDIA_LINK_FLAG_ACTIVE				(1 << 0)
-> > +#define MEDIA_LINK_FLAG_IMMUTABLE			(1 << 1)
-> > +
-> > +#define MEDIA_ENTITY_ID_FLAG_NEXT	(1 << 31)
-> > +
-> > +struct media_user_pad {
-> > +	__u32 entity;		/* entity ID */
-> > +	__u8 index;		/* pad index */
-> > +	__u32 direction;	/* pad direction */
-> > +};
+> The only difference is the colorspace used.
+
+No. See above - number of samples for the same image size and buswidth is 
+different.
+
+> > BTW, this "new" version is essentially the same, as what I've had in v1 of 
+> > my RFC;) (v2 for reference: 
+> > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/12830/focus=13394)
 > 
-> How about:
-> 
-> struct media_pad {
-> 	__u32 entity;		/* entity ID */
-> 	__u16 index;		/* pad index */
-> 	__u16 flags;		/* pad flags (includes direction) */
+> We are more or less still having the same discussion. I would like someone else to
+> jump in as well to break this deadlock.
 
-Just to be sure, I suppose I should combine flags + direction in the 
-media_k_pad structure as well, right ?
+More opinions are always good, sure;)
 
-> 	u32 reserved;
-> };
-
-OK.
-
-> I think u16 for the number of pads might be safer than a u8.
-
-it should definitely be enough, otherwise we'll have a big issue anyway.
-
-> > +
-> > +struct media_user_entity {
-> > +	__u32 id;
-> > +	char name[32];
-> > +	__u32 type;
-> > +	__u32 subtype;
-> > +	__u8 pads;
-> > +	__u32 links;
-> 
-> Need reserved fields.
-
-OK.
-
-> > +
-> > +	union {
-> > +		/* Node specifications */
-> > +		struct {
-> > +			__u32 major;
-> > +			__u32 minor;
-> > +		} v4l;
-> > +		struct {
-> > +			__u32 major;
-> > +			__u32 minor;
-> > +		} fb;
-> > +		int alsa;
-> > +		int dvb;
-> > +
-> > +		/* Sub-device specifications */
-> > +		/* Nothing needed yet */
-> 
-> Add something like:
-> 
-> 		__u8 raw[64];
-
-OK.
-
-> 
-> > +	};
-> > +};
-> > +
-> > +struct media_user_link {
-> > +	struct media_user_pad source;
-> > +	struct media_user_pad sink;
-> > +	__u32 flags;
-> 
-> Add a single __u32 reserved.
-
-OK.
-
-> > +};
-> > +
-> > +struct media_user_links {
-> > +	__u32 entity;
-> > +	/* Should have enough room for pads elements */
-> > +	struct media_user_pad __user *pads;
-> > +	/* Should have enough room for links elements */
-> > +	struct media_user_link __user *links;
-> 
-> Add a  __u32 reserved[4].
-
-OK.
-
-> > +};
-> > +
-> > +#define MEDIA_IOC_ENUM_ENTITIES	_IOWR('M', 1, struct media_user_entity)
-> > +#define MEDIA_IOC_ENUM_LINKS		_IOWR('M', 2, struct media_user_links)
-> 
-> We also need a MEDIA_IOC_QUERYCAP or MEDIA_IOC_VERSION or something like
-> that.
-
-
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
