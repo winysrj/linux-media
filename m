@@ -1,79 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web94910.mail.in2.yahoo.com ([203.104.17.172]:46846 "HELO
-	web94910.mail.in2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751477Ab0GFFHR convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Jul 2010 01:07:17 -0400
-Message-ID: <594515.49257.qm@web94910.mail.in2.yahoo.com>
-Date: Tue, 6 Jul 2010 10:37:12 +0530 (IST)
-From: Pavan Savoy <pavan_savoy@ti.com>
-Reply-To: pavan_savoy@ti.com
-Subject: Re: V4L2 radio drivers for TI-WL7
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, matti.j.aaltonen@nokia.com,
-	mchehab@infradead.org, eduardo.valentin@nokia.com
-In-Reply-To: <201007050821.53313.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mail.pripojeni.net ([217.66.174.14]:58321 "EHLO
+	smtp.pripojeni.net" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1756994Ab0GRSgb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Jul 2010 14:36:31 -0400
+From: Jiri Slaby <jslaby@suse.cz>
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	jirislaby@gmail.com, Markus Rechberger <markus.rechberger@amd.com>
+Subject: [PATCH 1/1] DVB: fix dvr node refcounting
+Date: Sun, 18 Jul 2010 20:34:18 +0200
+Message-Id: <1279478058-974-1-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+In dvb_dvr_release, there is a test dvbdev->users==-1, but users are
+never negative. This error results in hung tasks:
+  task                        PC stack   pid father
+bash          D ffffffffa000c948     0  3264   3170 0x00000000
+ ffff88003aec5ce8 0000000000000086 0000000000011f80 0000000000011f80
+ ffff88003aec5fd8 ffff88003aec5fd8 ffff88003b848670 0000000000011f80
+ ffff88003aec5fd8 0000000000011f80 ffff88003e02a030 ffff88003b848670
+Call Trace:
+ [<ffffffff813dd4a5>] dvb_dmxdev_release+0xc5/0x130
+ [<ffffffff8107b750>] ? autoremove_wake_function+0x0/0x40
+ [<ffffffffa00013a2>] dvb_usb_adapter_dvb_exit+0x42/0x70 [dvb_usb]
+ [<ffffffffa0000525>] dvb_usb_exit+0x55/0xd0 [dvb_usb]
+ [<ffffffffa00005ee>] dvb_usb_device_exit+0x4e/0x70 [dvb_usb]
+ [<ffffffffa000a065>] af9015_usb_device_exit+0x55/0x60 [dvb_usb_af9015]
+ [<ffffffff813a3f05>] usb_unbind_interface+0x55/0x1a0
+ [<ffffffff81316000>] __device_release_driver+0x70/0xe0
+...
 
---- On Mon, 5/7/10, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+So check against 1 there instead.
 
-> From: Hans Verkuil <hverkuil@xs4all.nl>
-> Subject: Re: V4L2 radio drivers for TI-WL7
-> To: pavan_savoy@ti.com
-> Cc: linux-media@vger.kernel.org, matti.j.aaltonen@nokia.com, mchehab@infradead.org, "pavan savoy" <pavan_savoy@yahoo.co.in>, eduardo.valentin@nokia.com
-> Date: Monday, 5 July, 2010, 11:51 AM
-> On Friday 02 July 2010 09:01:34 Pavan
-> Savoy wrote:
-> > Hi,
-> > 
-> > We have/in process of developing a V4L2 driver for the
-> FM Radio on the Texas Instruments WiLink 7 module.
-> > 
-> > For transport/communication with the chip, we intend
-> to use the shared transport driver currently staged in
-> mainline at drivers/staging/ti-st/.
-> > 
-> > To which tree should I generate patches against? is
-> the tree
-> >
-> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
-> > fine ? to be used with the v4l_for_2.6.35 branch ?
-> 
-> You patch against git://git.linuxtv.org/v4l-dvb.git.
-> 
-> > 
-> > Also, this is over the UART/TTY unlike the WL1273 i2c
-> mfd driver...
-> 
-> Is the WiLink 7 a platform device (i.e. an integral part of
-> the CPU) or a separate
-> chip that can be used with any hardware?
-> 
-> Will the FM Radio always be controlled over a UART/TTY bus
-> or is that specific
-> to your development platform?
+BTW why's the TODO there? Adding TODOs to the code without
+descriptions is like adding nothing.
 
-WiLink 7 would be a peripheral which has 1 interface with apps processor being UART, more details at,
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Cc: Markus Rechberger <markus.rechberger@amd.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+---
+ drivers/media/dvb/dvb-core/dmxdev.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-http://www.google.co.in/url?sa=t&source=web&cd=3&ved=0CBQQFjAC&url=http%3A%2F%2Ffocus.ti.com%2Fgeneral%2Fdocs%2Fwtbu%2Fwtbuproductcontent.tsp%3FtemplateId%3D6123%26navigationId%3D12859%26contentId%3D67453%26DCMP%3Dwtbu_wilink7_2010%26HQS%3DOther%2BPR%2Bwilink7videos&ei=d7kyTKPXMoTGlQfJ-7W-Cw&usg=AFQjCNEjN2jc9TdSDWDRtWcmbZn6Szhbug&sig2=DN4gAQls9AdOeHQhlPlvjA
-
-Since there exists only 1 interface for all BT/FM and GPS cores on chip, a shared transport driver has been developed and placed at drivers/staging/ti-st/
-
-Would it be suitable if we place the V4L2 FM driver at drivers/staging/ti-st/ to ? Since we don't have the common interface headers such as st.h in include/linux..
-
-
-> Regards,
-> 
->     Hans
-> 
-> -- 
-> Hans Verkuil - video4linux developer - sponsored by
-> TANDBERG, part of Cisco
-> 
+diff --git a/drivers/media/dvb/dvb-core/dmxdev.c b/drivers/media/dvb/dvb-core/dmxdev.c
+index 425862f..0042306 100644
+--- a/drivers/media/dvb/dvb-core/dmxdev.c
++++ b/drivers/media/dvb/dvb-core/dmxdev.c
+@@ -207,7 +207,7 @@ static int dvb_dvr_release(struct inode *inode, struct file *file)
+ 	}
+ 	/* TODO */
+ 	dvbdev->users--;
+-	if(dvbdev->users==-1 && dmxdev->exit==1) {
++	if (dvbdev->users == 1 && dmxdev->exit == 1) {
+ 		fops_put(file->f_op);
+ 		file->f_op = NULL;
+ 		mutex_unlock(&dmxdev->mutex);
+-- 
+1.7.1
 
 
