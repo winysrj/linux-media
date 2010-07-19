@@ -1,71 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:51477 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755169Ab0GGOkY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 10:40:24 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=US-ASCII
-Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L5600EWGZF9EL40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Jul 2010 15:40:21 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L5600G4QZF8T6@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Jul 2010 15:40:21 +0100 (BST)
-Date: Wed, 07 Jul 2010 16:39:10 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: RE: [RFC/PATCH 2/6] v4l: subdev: Add device node support
-In-reply-to: <A69FA2915331DC488A831521EAE36FE4016B5EDCD7@dlee06.ent.ti.com>
-To: "'Karicheri, Muralidharan'" <m-karicheri2@ti.com>
-Cc: sakari.ailus@maxwell.research.nokia.com,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Message-id: <000301cb1de2$29683260$7c389720$%nawrocki@samsung.com>
-Content-language: en-us
-References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1278503608-9126-3-git-send-email-laurent.pinchart@ideasonboard.com>
- <A69FA2915331DC488A831521EAE36FE4016B5EDCD7@dlee06.ent.ti.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:33725 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S966845Ab0GSVk1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jul 2010 17:40:27 -0400
+Subject: Re: [PATCH 1/1] VIDEO: ivtvfb, remove unneeded NULL test
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jiri Slaby <jslaby@suse.cz>
+Cc: mchehab@infradead.org, jirislaby@gmail.com,
+	linux-kernel@vger.kernel.org, Tejun Heo <tj@kernel.org>,
+	Ian Armstrong <ian@iarmst.demon.co.uk>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
+In-Reply-To: <1279561174-12468-1-git-send-email-jslaby@suse.cz>
+References: <1278346795.2229.2.camel@localhost>
+	 <1279561174-12468-1-git-send-email-jslaby@suse.cz>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 19 Jul 2010 17:39:00 -0400
+Message-ID: <1279575540.32733.4.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 2010-07-19 at 19:39 +0200, Jiri Slaby wrote:
+> Stanse found that in ivtvfb_callback_cleanup and ivtvfb_callback_init
+> there are unneeded tests for itv being NULL. But itv is initialized
+> as container_of with non-zero offset in those functions, so it is
+> never NULL (even if v4l2_dev is). This was found because itv is
+> dereferenced earlier than the test.
+> 
+> Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+> Cc: Andy Walls <awalls@md.metrocast.net>
 
-Isn't it like there need to be {} for both "if" and "else" when
-there is more than one line in either block?
+Looks fine to me.
+
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
 
 Regards,
---
-Sylwester Nawrocki
+Andy
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Karicheri, Muralidharan
-> Sent: Wednesday, July 07, 2010 4:15 PM
-> To: Laurent Pinchart; linux-media@vger.kernel.org
-> Cc: sakari.ailus@maxwell.research.nokia.com
-> Subject: RE: [RFC/PATCH 2/6] v4l: subdev: Add device node support
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: Tejun Heo <tj@kernel.org>
+> Cc: Ian Armstrong <ian@iarmst.demon.co.uk>
+> Cc: ivtv-devel@ivtvdriver.org
+> Cc: linux-media@vger.kernel.org
+> ---
+>  drivers/media/video/ivtv/ivtvfb.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> 
-> 
-> >v4l2_device *v4l2_dev,
-> > 		if (err && err != -ENOIOCTLCMD) {
-> > 			v4l2_device_unregister_subdev(sd);
-> > 			sd = NULL;
-> >+		} else {
-> >+			sd->initialized = 1;
-> > 		}
-> 
-> Wouldn't checkpatch.pl script complain about { } on the else part since
-> there is only one statement?
-> > 	}
-> >
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/drivers/media/video/ivtv/ivtvfb.c b/drivers/media/video/ivtv/ivtvfb.c
+> index 9ff3425..9c77bfa 100644
+> --- a/drivers/media/video/ivtv/ivtvfb.c
+> +++ b/drivers/media/video/ivtv/ivtvfb.c
+> @@ -1203,7 +1203,7 @@ static int __init ivtvfb_callback_init(struct device *dev, void *p)
+>  	struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
+>  	struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
+>  
+> -	if (itv && (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
+> +	if (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT) {
+>  		if (ivtvfb_init_card(itv) == 0) {
+>  			IVTVFB_INFO("Framebuffer registered on %s\n",
+>  					itv->v4l2_dev.name);
+> @@ -1219,7 +1219,7 @@ static int ivtvfb_callback_cleanup(struct device *dev, void *p)
+>  	struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
+>  	struct osd_info *oi = itv->osd_info;
+>  
+> -	if (itv && (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
+> +	if (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT) {
+>  		if (unregister_framebuffer(&itv->osd_info->ivtvfb_info)) {
+>  			IVTVFB_WARN("Framebuffer %d is in use, cannot unload\n",
+>  				       itv->instance);
 
 
