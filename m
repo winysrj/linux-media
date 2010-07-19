@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:38355 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088Ab0GFNx1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jul 2010 09:53:27 -0400
-Received: by gye5 with SMTP id 5so1742964gye.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Jul 2010 06:53:26 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C332A5F.4000706@redhat.com>
-References: <4C332A5F.4000706@redhat.com>
-Date: Tue, 6 Jul 2010 09:53:26 -0400
-Message-ID: <AANLkTilUdPjgVJdKFGoXqgN5AvoHG_j_TpJWNVioeUdd@mail.gmail.com>
-Subject: Re: Status of the patches under review at LMML (60 patches)
-From: Steven Toth <stoth@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LMML <linux-media@vger.kernel.org>, awalls@md.metrocast.net,
-	moinejf@free.fr, g.liakhovetski@gmx.de, jarod@redhat.com,
-	corbet@lwn.net, rz@linux-m68k.org, pboettcher@dibcom.fr,
-	awalls@radix.net, crope@iki.fi, davidtlwong@gmail.com,
-	laurent.pinchart@ideasonboard.com, eduardo.valentin@nokia.com,
-	p.osciak@samsung.com, liplianin@tut.by, isely@isely.net,
-	tobias.lorenz@gmx.net, hdegoede@redhat.com,
-	u.kleine-koenig@pengutronix.de, abraham.manu@gmail.com,
-	henrik@kurelid.se
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from tex.lwn.net ([70.33.254.29]:51193 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967133Ab0GSXKK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jul 2010 19:10:10 -0400
+Date: Mon, 19 Jul 2010 16:39:30 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tejun Heo <tj@kernel.org>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	vamos-dev@i4.informatik.uni-erlangen.de
+Subject: Re: [PATCH 4/4] drivers/media/video: Remove dead CONFIG_OLPC_X0_1
+Message-ID: <20100719163930.6c3333a7@bike.lwn.net>
+In-Reply-To: <966ac7deeee8b102b9b8d829ca14e177f9368f21.1279111369.git.qy03fugy@stud.informatik.uni-erlangen.de>
+References: <cover.1279111369.git.qy03fugy@stud.informatik.uni-erlangen.de>
+	<966ac7deeee8b102b9b8d829ca14e177f9368f21.1279111369.git.qy03fugy@stud.informatik.uni-erlangen.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->                == Waiting for Steven Toth <stoth@kernellabs.com> review ==
->
-> Feb, 6 2010: cx23885: Enable Message Signaled Interrupts(MSI).                      http://patchwork.kernel.org/patch/77492
-> May, 5 2010: tda10048: fix the uncomplete function tda10048_read_ber                http://patchwork.kernel.org/patch/97058
-> May, 6 2010: tda10048: fix bitmask for the transmission mode                        http://patchwork.kernel.org/patch/97340
-> May, 6 2010: tda10048: clear the uncorrected packet registers when saturated        http://patchwork.kernel.org/patch/97341
-> May, 6 2010: dvb_frontend: fix typos in comments and one function                   http://patchwork.kernel.org/patch/97343
+On Wed, 14 Jul 2010 15:21:48 +0200
+Christian Dietrich <qy03fugy@stud.informatik.uni-erlangen.de> wrote:
 
-Mauro,
+> CONFIG_OLPC_X0_1 doesn't exist in Kconfig and is never defined anywhere
+> else, therefore removing all references for it from the source code.
 
-I'm fine with all of these.
+That symbol is, needless to say, an OLPC thing; it's in their
+repository.  I do think they plan to upstream all of that at some
+point, but I think they're a little busy at the moment.
 
-Signed-off-by: Steven Toth <stoth@kernellabs.com>
+Deleting this code will increase the delta between the OLPC and
+mainline trees.  My preference would be for that not to happen.  If it
+does, though, life will obviously go on, and this code can be restored
+when the rest is upstreamed.  If you must do that, though, could I ask
+that you preserve the CONFIG_OLPC_XO_1 version of the code, which is
+the version which has traditionally been in the mainline?
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+jon
