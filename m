@@ -1,244 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29797 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754061Ab0HACxv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 22:53:51 -0400
-Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o712rpWD002916
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 31 Jul 2010 22:53:51 -0400
-Received: from pedra (vpn-10-93.rdu.redhat.com [10.11.10.93])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o712rkwE027490
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 31 Jul 2010 22:53:49 -0400
-Date: Sat, 31 Jul 2010 23:54:02 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/7] V4L/DVB: Partially revert commit
- da7251dd0bca6c17571be2bd4434b9779dea72d8
-Message-ID: <20100731235402.52f4c0e2@pedra>
-In-Reply-To: <cover.1280630041.git.mchehab@redhat.com>
-References: <cover.1280630041.git.mchehab@redhat.com>
-Mime-Version: 1.0
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4431 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932190Ab0GSNFd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jul 2010 09:05:33 -0400
+Message-ID: <148732859b96b07f91731de2c1739db5.squirrel@webmail.xs4all.nl>
+In-Reply-To: <201007191413.01447.laurent.pinchart@ideasonboard.com>
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+    <1279114219-27389-4-git-send-email-laurent.pinchart@ideasonboard.com>
+    <201007181353.51944.hverkuil@xs4all.nl>
+    <201007191413.01447.laurent.pinchart@ideasonboard.com>
+Date: Mon, 19 Jul 2010 15:05:28 +0200
+Subject: Re: [RFC/PATCH 03/10] media: Entities, pads and links
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-By mistake, changeset da7251dd0bca6c17571be2bd4434b9779dea72d8
-reverted the following commits:
-	commit 6795f9a1ac9e85deb96a49e46b29c809214bf5ea
-	commit d69861a25a54ef1cd6ee92f5ceb6ff2c01d84803
-	commit 1ba30538e2d125ce821622ac1f5e7ef31d856077
 
-This patch partially reverts the original commit, to return the
-code to its original state.
+> Hi Hans,
+>
+> Thanks for the review.
+>
+> On Sunday 18 July 2010 13:53:51 Hans Verkuil wrote:
+>> On Wednesday 14 July 2010 15:30:12 Laurent Pinchart wrote:
+>
+> [snip]
+>
+>> > +Links have flags that describe the link capabilities and state.
+>> > +
+>> > +	MEDIA_LINK_FLAG_ACTIVE indicates that the link is active and can be
+>> > +	used to transfer media data. When two or more links target a sink
+>> pad,
+>> > +	only one of them can be active at a time.
+>> > +	MEDIA_LINK_FLAG_IMMUTABLE indicates that the link active state can't
+>> > +	be modified at runtime. An immutable link is always active.
+>>
+>> I would rephrase the last sentence to:
+>>
+>> If MEDIA_LINK_FLAG_IMMUTABLE is set, then MEDIA_LINK_FLAG_ACTIVE must
+>> also
+>> be set since an immutable link is always active.
+>
+> OK, I'll change that.
+>
+> [snip]
+>
+>> > diff --git a/include/media/media-entity.h
+>> b/include/media/media-entity.h
+>> > new file mode 100644
+>> > index 0000000..0929a90
+>> > --- /dev/null
+>> > +++ b/include/media/media-entity.h
+>> > @@ -0,0 +1,79 @@
+>> > +#ifndef _MEDIA_ENTITY_H
+>> > +#define _MEDIA_ENTITY_H
+>> > +
+>> > +#include <linux/list.h>
+>> > +
+>> > +#define MEDIA_ENTITY_TYPE_NODE		1
+>> > +#define MEDIA_ENTITY_TYPE_SUBDEV	2
+>> > +
+>> > +#define MEDIA_NODE_TYPE_V4L		1
+>> > +#define MEDIA_NODE_TYPE_FB		2
+>> > +#define MEDIA_NODE_TYPE_ALSA		3
+>> > +#define MEDIA_NODE_TYPE_DVB		4
+>> > +
+>> > +#define MEDIA_SUBDEV_TYPE_VID_DECODER	1
+>> > +#define MEDIA_SUBDEV_TYPE_VID_ENCODER	2
+>> > +#define MEDIA_SUBDEV_TYPE_MISC		3
+>>
+>> Are these the subtypes? If so, I would rename this to
+>> MEDIA_ENTITY_SUBTYPE_VID_DECODER, etc.
+>
+> Those are subtypes relative to the node and subdev types. Their name
+> should
+> thus start with the type they refer to. What about
+>
+> MEDIA_ENTITY_SUBTYPE_NODE_V4L
+> MEDIA_ENTITY_SUBTYPE_NODE_FB
+> MEDIA_ENTITY_SUBTYPE_NODE_ALSA
+> MEDIA_ENTITY_SUBTYPE_NODE_DVB
+>
+> MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_DECODER
+> MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_ENCODER
+> MEDIA_ENTITY_SUBTYPE_SUBDEV_MISC
+>
+> It might be a bit long though.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Perhaps, but now I understand it. I really didn't get the original names.
 
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index a841e51..c533d8b 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -33,6 +33,21 @@ static struct class ir_input_class = {
- 	.devnode	= ir_devnode,
- };
- 
-+static struct {
-+	u64	type;
-+	char	*name;
-+} proto_names[] = {
-+	{ IR_TYPE_UNKNOWN,	"unknown"	},
-+	{ IR_TYPE_RC5,		"rc-5"		},
-+	{ IR_TYPE_NEC,		"nec"		},
-+	{ IR_TYPE_RC6,		"rc-6"		},
-+	{ IR_TYPE_JVC,		"jvc"		},
-+	{ IR_TYPE_SONY,		"sony"		},
-+	{ IR_TYPE_LIRC,		"lirc"		},
-+};
-+
-+#define PROTO_NONE	"none"
-+
- /**
-  * show_protocols() - shows the current IR protocol(s)
-  * @d:		the device descriptor
-@@ -50,6 +65,7 @@ static ssize_t show_protocols(struct device *d,
- 	struct ir_input_dev *ir_dev = dev_get_drvdata(d);
- 	u64 allowed, enabled;
- 	char *tmp = buf;
-+	int i;
- 
- 	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
- 		enabled = ir_dev->rc_tab.ir_type;
-@@ -63,35 +79,12 @@ static ssize_t show_protocols(struct device *d,
- 		   (long long)allowed,
- 		   (long long)enabled);
- 
--	if (allowed & enabled & IR_TYPE_UNKNOWN)
--		tmp += sprintf(tmp, "[unknown] ");
--	else if (allowed & IR_TYPE_UNKNOWN)
--		tmp += sprintf(tmp, "unknown ");
--
--	if (allowed & enabled & IR_TYPE_RC5)
--		tmp += sprintf(tmp, "[rc5] ");
--	else if (allowed & IR_TYPE_RC5)
--		tmp += sprintf(tmp, "rc5 ");
--
--	if (allowed & enabled & IR_TYPE_NEC)
--		tmp += sprintf(tmp, "[nec] ");
--	else if (allowed & IR_TYPE_NEC)
--		tmp += sprintf(tmp, "nec ");
--
--	if (allowed & enabled & IR_TYPE_RC6)
--		tmp += sprintf(tmp, "[rc6] ");
--	else if (allowed & IR_TYPE_RC6)
--		tmp += sprintf(tmp, "rc6 ");
--
--	if (allowed & enabled & IR_TYPE_JVC)
--		tmp += sprintf(tmp, "[jvc] ");
--	else if (allowed & IR_TYPE_JVC)
--		tmp += sprintf(tmp, "jvc ");
--
--	if (allowed & enabled & IR_TYPE_SONY)
--		tmp += sprintf(tmp, "[sony] ");
--	else if (allowed & IR_TYPE_SONY)
--		tmp += sprintf(tmp, "sony ");
-+	for (i = 0; i < ARRAY_SIZE(proto_names); i++) {
-+		if (allowed & enabled & proto_names[i].type)
-+			tmp += sprintf(tmp, "[%s] ", proto_names[i].name);
-+		else if (allowed & proto_names[i].type)
-+			tmp += sprintf(tmp, "%s ", proto_names[i].name);
-+	}
- 
- 	if (allowed & enabled & IR_TYPE_LIRC)
- 		tmp += sprintf(tmp, "[lirc] ");
-@@ -116,6 +109,7 @@ static ssize_t show_protocols(struct device *d,
-  * Writing "+proto" will add a protocol to the list of enabled protocols.
-  * Writing "-proto" will remove a protocol from the list of enabled protocols.
-  * Writing "proto" will enable only "proto".
-+ * Writing "none" will disable all protocols.
-  * Returns -EINVAL if an invalid protocol combination or unknown protocol name
-  * is used, otherwise @len.
-  */
-@@ -129,67 +123,62 @@ static ssize_t store_protocols(struct device *d,
- 	const char *tmp;
- 	u64 type;
- 	u64 mask;
--	int rc;
-+	int rc, i, count = 0;
- 	unsigned long flags;
- 
--	tmp = skip_spaces(data);
--
--	if (*tmp == '+') {
--		enable = true;
--		disable = false;
--		tmp++;
--	} else if (*tmp == '-') {
--		enable = false;
--		disable = true;
--		tmp++;
--	} else {
--		enable = false;
--		disable = false;
--	}
--
--	if (!strncasecmp(tmp, "unknown", 7)) {
--		tmp += 7;
--		mask = IR_TYPE_UNKNOWN;
--	} else if (!strncasecmp(tmp, "rc5", 3)) {
--		tmp += 3;
--		mask = IR_TYPE_RC5;
--	} else if (!strncasecmp(tmp, "nec", 3)) {
--		tmp += 3;
--		mask = IR_TYPE_NEC;
--	} else if (!strncasecmp(tmp, "rc6", 3)) {
--		tmp += 3;
--		mask = IR_TYPE_RC6;
--	} else if (!strncasecmp(tmp, "jvc", 3)) {
--		tmp += 3;
--		mask = IR_TYPE_JVC;
--	} else if (!strncasecmp(tmp, "sony", 4)) {
--		tmp += 4;
--		mask = IR_TYPE_SONY;
--	} else if (!strncasecmp(tmp, "lirc", 4)) {
--		tmp += 4;
--		mask = IR_TYPE_LIRC;
--	} else {
--		IR_dprintk(1, "Unknown protocol\n");
--		return -EINVAL;
--	}
--
--	tmp = skip_spaces(tmp);
--	if (*tmp != '\0') {
--		IR_dprintk(1, "Invalid trailing characters\n");
--		return -EINVAL;
--	}
--
- 	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE)
- 		type = ir_dev->rc_tab.ir_type;
- 	else
- 		type = ir_dev->raw->enabled_protocols;
- 
--	if (enable)
--		type |= mask;
--	else if (disable)
--		type &= ~mask;
--	else
--		type = mask;
-+	while ((tmp = strsep((char **) &data, " \n")) != NULL) {
-+		if (!*tmp)
-+			break;
-+
-+		if (*tmp == '+') {
-+			enable = true;
-+			disable = false;
-+			tmp++;
-+		} else if (*tmp == '-') {
-+			enable = false;
-+			disable = true;
-+			tmp++;
-+		} else {
-+			enable = false;
-+			disable = false;
-+		}
-+
-+		if (!enable && !disable && !strncasecmp(tmp, PROTO_NONE, sizeof(PROTO_NONE))) {
-+			tmp += sizeof(PROTO_NONE);
-+			mask = 0;
-+			count++;
-+		} else {
-+			for (i = 0; i < ARRAY_SIZE(proto_names); i++) {
-+				if (!strncasecmp(tmp, proto_names[i].name, strlen(proto_names[i].name))) {
-+					tmp += strlen(proto_names[i].name);
-+					mask = proto_names[i].type;
-+					break;
-+				}
-+			}
-+			if (i == ARRAY_SIZE(proto_names)) {
-+				IR_dprintk(1, "Unknown protocol: '%s'\n", tmp);
-+				return -EINVAL;
-+			}
-+			count++;
-+		}
-+
-+		if (enable)
-+			type |= mask;
-+		else if (disable)
-+			type &= ~mask;
-+		else
-+			type = mask;
-+	}
-+
-+	if (!count) {
-+		IR_dprintk(1, "Protocol not specified\n");
-+		return -EINVAL;
-+	}
- 
- 	if (ir_dev->props && ir_dev->props->change_protocol) {
- 		rc = ir_dev->props->change_protocol(ir_dev->props->priv,
+> The subdev subtypes need more attention. I don't think that video decoder,
+> video encoder and misc are good enough. Maybe some kind of capabilities
+> bitflag would be better.
+
+I don't think so. The problem with bitflags is that you run out of them so
+quickly. We definitely need more subtypes, though, but we can just add
+them as needed.
+
+>
+>> > +#define MEDIA_LINK_FLAG_ACTIVE		(1 << 0)
+>> > +#define MEDIA_LINK_FLAG_IMMUTABLE	(1 << 1)
+>> > +
+>> > +#define MEDIA_PAD_TYPE_INPUT		1
+>> > +#define MEDIA_PAD_TYPE_OUTPUT		2
+>> > +
+>> > +struct media_entity_link {
+>> > +	struct media_entity_pad *source;/* Source pad */
+>> > +	struct media_entity_pad *sink;	/* Sink pad  */
+>> > +	struct media_entity_link *other;/* Link in the reverse direction */
+>> > +	u32 flags;			/* Link flags (MEDIA_LINK_FLAG_*) */
+>> > +};
+>> > +
+>> > +struct media_entity_pad {
+>> > +	struct media_entity *entity;	/* Entity this pad belongs to */
+>> > +	u32 type;			/* Pad type (MEDIA_PAD_TYPE_*) */
+>> > +	u32 index;			/* Pad index in the entity pads array */
+>>
+>> u32 seems unnecessarily wasteful. u8 should be sufficient.
+>
+> OK.
+>
+>> I don't really like the name 'type'. Why not 'dir' for direction?
+>>
+>> Another reason for not using the name 'type' for this is that I think we
+>> need an actual 'type' field that describes the type of data being
+>> streamed
+>> to/from the pad. While for now we mainly have video pads, we may also
+>> get
+>> audio pads and perhaps vbi pads as well.
+>
+> Agreed. Do you think we should have a capabilities bitflag ? The direction
+> could be encoded as 2 bits, one for input and one for output.
+
+I don't really like that. It makes for awkward ANDs in the code whenever
+you need to detect the direction.
+
+If this is only used internally, then we might consider using a bitfield.
+That would work as well.
+
+Regards.
+
+        Hans
+
 -- 
-1.7.1
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
 
