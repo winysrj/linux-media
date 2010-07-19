@@ -1,87 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:64472 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757946Ab0GTUru (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jul 2010 16:47:50 -0400
-Date: Tue, 20 Jul 2010 16:38:42 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Valdis.Kletnieks@vt.edu
-Cc: akpm@linux-foundation.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-input@vger.kernel.org
-Subject: Re: mmotm 2010-07-19-16-37 uploaded
-Message-ID: <20100720203841.GL13176@redhat.com>
-References: <201007200007.o6K07Xbg028863@imap1.linux-foundation.org>
- <6434.1279658492@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6434.1279658492@localhost>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:32265 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750861Ab0GSEsy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jul 2010 00:48:54 -0400
+Subject: Re: Need testers: cx23885 IR Rx for TeVii S470 and HVR-1250
+From: Andy Walls <awalls@md.metrocast.net>
+To: Kenney Phillisjr <kphillisjr@gmail.com>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
+	stoth@kernellabs.com, hverkuil@xs4all.nl
+In-Reply-To: <1279457773.2451.14.camel@localhost>
+References: <1278707305.25199.6.camel@dandel-desktop>
+	 <1279457773.2451.14.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 19 Jul 2010 00:49:19 -0400
+Message-ID: <1279514959.4539.8.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 20, 2010 at 04:41:32PM -0400, Valdis.Kletnieks@vt.edu wrote:
-> On Mon, 19 Jul 2010 16:38:09 PDT, akpm@linux-foundation.org said:
-> > The mm-of-the-moment snapshot 2010-07-19-16-37 has been uploaded to
+On Sun, 2010-07-18 at 08:56 -0400, Andy Walls wrote:
+> On Fri, 2010-07-09 at 15:28 -0500, Kenney Phillisjr wrote:
+> > I know this is an old thread, however i have an card that meets the
+> > requirements to be tested by the patches made by andy, and so far
+> > with what i've tried it's been doing really well for input.
 > > 
-> >    http://userweb.kernel.org/~akpm/mmotm/
+> > I pretty much just downloaded and tested Andy's patch set...
+> > http://linuxtv.org/hg/~awalls/cx23885-ir2
 > 
-> (Andrew - did we lose a bunch of -swedish-chef-fix-fix-fix.patch files? This is the second
-> thing that I reported back in May, worked in mm-rc3-0701, but dies in -rc5-0719...)
 > 
-> [   50.949361] BUG: unable to handle kernel NULL pointer dereference at (null)
-> [   50.950978] IP: [<(null)>] (null)
-> [   50.952045] PGD 11b7b0067 PUD 119d9c067 PMD 0
-> [   50.954744] Oops: 0010 [#1] PREEMPT SMP
-> [   50.954744] last sysfs file: /sys/devices/pci0000:00/0000:00:1b.0/device
-> [   50.954744] CPU 0
-> [   50.954744] Modules linked in: microcode(+) [last unloaded: scsi_wait_scan]
-> [   50.954744]
-> [   50.967468] Pid: 2994, comm: keymap Tainted: G        W   2.6.35-rc5-mmotm0719 #1 0X564R/Latitude E6500
-> [   50.967468] RIP: 0010:[<0000000000000000>]  [<(null)>] (null)
-> [   50.967468] RSP: 0018:ffff88011e7e5cb0  EFLAGS: 00010046
-> [   50.967468] RAX: 0000000000000000 RBX: ffff88011d8b5000 RCX: 0000000000000000
-> [   50.967468] RDX: ffff88011e7e5cc8 RSI: ffff88011e7e5cc8 RDI: ffff88011d8b5000
-> [   50.967468] RBP: ffff88011e7e5d28 R08: 0890000000000000 R09: 0000000000000001
-> [   50.967468] R10: ffff88011d8b5858 R11: ffff88011d8b5840 R12: 0000000000000000
-> [   50.967468] R13: 00000000000000a4 R14: ffff88011d8b5840 R15: 0000000000000296
-> [   50.967468] FS:  00007fea0676e720(0000) GS:ffff880002600000(0000) knlGS:0000000000000000
-> [   50.967468] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
-> [   50.967468] CR2: 0000000000000000 CR3: 000000011f72b000 CR4: 00000000000406f0
-> [   50.967468] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> [   50.967468] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> [   50.967468] Process keymap (pid: 2994, threadinfo ffff88011e7e4000, task ffff88011e620100)
-> [   50.967468] Stack:
-> [   50.967468]  ffffffff813b4b54 ffff88011e7e5cc8 0000008100000246 00000081000000a4
-> [   50.967468] <0> 0000000000000004 0000000000000000 ffff88011e7e5cc4 00007fffe9f95f00
-> [   50.967468] <0> ffff88011b4a3300 ffff88011e7e5d28 0000000000000081 fffffffffffffff2
-> [   50.967468] Call Trace:
-> [   50.967468]  [<ffffffff813b4b54>] ? input_set_keycode+0xbc/0x13c
-> [   50.967468]  [<ffffffff813b7ee2>] evdev_do_ioctl+0x24c/0x816
-> [   51.016215]  [<ffffffff813b84e6>] ? evdev_ioctl_handler+0x3a/0x81
-> [   51.018336]  [<ffffffff813b84e6>] ? evdev_ioctl_handler+0x3a/0x81
-> [   51.021130]  [<ffffffff813b8510>] evdev_ioctl_handler+0x64/0x81
-> [   51.022519]  [<ffffffff813b854a>] evdev_ioctl+0xb/0xd
-> [   51.024439]  [<ffffffff810e91a0>] vfs_ioctl+0x31/0xa2
-> [   51.026408]  [<ffffffff810e9b1f>] do_vfs_ioctl+0x496/0x4c9
-> [   51.028337]  [<ffffffff810e9ba9>] sys_ioctl+0x57/0x96
-> [   51.030245]  [<ffffffff8100272b>] system_call_fastpath+0x16/0x1b
-> [   51.032123] Code:  Bad RIP value.
-> [   51.034015] RIP  [<(null)>] (null)
-> [   51.037307]  RSP <ffff88011e7e5cb0>
-> [   51.038270] CR2: 0000000000000000
-> [   51.038270] ---[ end trace 84b562a00a6053a0 ]---
+> I'll be porting most of these 32 patches forward to my v4l-dvb.git tree
+> (on the cx-ir branch) later today.  I need the I/O pin configuration
+> stuff for the CX23885 and CX23888 IR transmitter pin configuration.
+
+> > The tests where done on ubuntu 10.04 with kernel 2.6.32-23-generic
+> > (64-bit) and this appears to be working perfectly. (This even properly
+> > identifies the card I'm using down to the model)
+> > 
+> > card notes: Hauppauge WinTV-HVR1250 (Model: 79001)
 > 
-> And things go downhill from there...
+> I don't have an original HVR-1250 or any other card with a genuine
+> CX23885 chip anymore, so I'll be unable to test.
+> 
+> I will likely add a module parameter that end users will be required to
+> set explcitly to enable the IR integrated in the CX23885 chip.  Igor's
+> testing with the TeVii S470 resulted in the infinite IR interrupts
+> making his system unusable.
 
-This looks like the same trace we got in the Red Hat bugzilla a few days
-ago, and for which I submitted this:
+Kenney,
 
-https://patchwork.kernel.org/patch/112791/
+I've ported my changes forward.  I haven't sent a patch bomb yet,
+because I want to make one more change to disable the TeVii S470 IR by
+default (since it is reported to hang a user's machine), and I'm too
+tired ATM.  I also wanted to get some bit of Tx operational beyond
+setting the LED drive level correctly, but again, I'm too tired ATM.
 
--- 
-Jarod Wilson
-jarod@redhat.com
+Anyway, here's the stats on the updated patch set.  Please test if you
+can.  These patches will likely require a 2.6.33 or greater kernel
+(IIRC) due to the kfifo API change.
+
+The following changes since commit f6242ad1007df90691fd5b70f0808320fe7aee07:
+
+  V4L/DVB: xc5000: Fix a few warnings (2010-07-05 18:38:46 -0300)
+
+are available in the git repository at:
+  ssh://linuxtv.org/git/awalls/v4l-dvb.git cx-ir
+
+Andy Walls (13):
+      cx25840: Make cx25840 i2c register read transactions atomic
+      cx23885: Add correct detection of the HVR-1250 model 79501
+      cx23885: Add a VIDIOC_LOG_STATUS ioctl function for analog video devices
+      v4l2_subdev: Add s_io_pin_config to v4l2_subdev_core_ops
+      cx25840: Add s_io_pin_config core subdev ops for the CX2388[578]
+      v4l2_subdev, cx23885: Differentiate IR carrier sense and I/O pin inversion
+      cx23885: For CX23888 IR, configure the IO pin mux IR pins explcitly
+      v4l2_subdev: Move interrupt_service_routine ptr to v4l2_subdev_core_ops
+      cx25840: Add support for CX2388[57] A/V core integrated IR controllers
+      cx23885: Add a v4l2_subdev group id for the CX2388[578] integrated AV core
+      cx23885: Add preliminary IR Rx support for the HVR-1250 and TeVii S470
+      cx23885: Protect PCI interrupt mask manipulations with a spinlock
+      cx23885: Move AV Core irq handling to a work handler
+
+Jean Delvare (3):
+      cx23885: Return -ENXIO on slave nack
+      cx23885: Check for slave nack on all transactions
+      cx23885: i2c_wait_done returns 0 or 1, don't check for < 0 return value
+
+ drivers/media/video/cx23885/Makefile        |    5 +-
+ drivers/media/video/cx23885/cx23885-av.c    |   35 +
+ drivers/media/video/cx23885/cx23885-av.h    |   27 +
+ drivers/media/video/cx23885/cx23885-cards.c |   97 ++-
+ drivers/media/video/cx23885/cx23885-core.c  |  124 +++-
+ drivers/media/video/cx23885/cx23885-i2c.c   |   27 +-
+ drivers/media/video/cx23885/cx23885-input.c |   48 +-
+ drivers/media/video/cx23885/cx23885-ir.c    |   24 +-
+ drivers/media/video/cx23885/cx23885-reg.h   |    1 +
+ drivers/media/video/cx23885/cx23885-vbi.c   |    2 +-
+ drivers/media/video/cx23885/cx23885-video.c |   23 +-
+ drivers/media/video/cx23885/cx23885.h       |    9 +-
+ drivers/media/video/cx23885/cx23888-ir.c    |   35 +-
+ drivers/media/video/cx25840/Makefile        |    2 +-
+ drivers/media/video/cx25840/cx25840-core.c  |  339 +++++++-
+ drivers/media/video/cx25840/cx25840-core.h  |   28 +
+ drivers/media/video/cx25840/cx25840-ir.c    | 1262 +++++++++++++++++++++++++++
+ include/media/cx25840.h                     |   75 ++
+ include/media/v4l2-subdev.h                 |   44 +-
+ 19 files changed, 2118 insertions(+), 89 deletions(-)
+ create mode 100644 drivers/media/video/cx23885/cx23885-av.c
+ create mode 100644 drivers/media/video/cx23885/cx23885-av.h
+ create mode 100644 drivers/media/video/cx25840/cx25840-ir.c
+
+
+
 
