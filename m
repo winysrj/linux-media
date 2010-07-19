@@ -1,128 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36476 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757883Ab0G2QHN (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3474 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965813Ab0GSTdX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:07:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 19 Jul 2010 15:33:23 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6JJXD1r055186
+	for <linux-media@vger.kernel.org>; Mon, 19 Jul 2010 21:33:22 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 19 Jul 2010 21:33:13 +0200 (CEST)
+Message-Id: <201007191933.o6JJXD1r055186@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE v3 06/12] v4l: Add subdev userspace API to enumerate and configure frame interval
-Date: Thu, 29 Jul 2010 18:06:50 +0200
-Message-Id: <1280419616-7658-18-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The three new ioctl VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL,
-VIDIOC_SUBDEV_G_FRAME_INTERVAL and VIDIOC_SUBDEV_S_FRAME_INTERVAL can be
-used to enumerate and configure a subdev's frame rate from userspace.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Two new video::g/s_frame_interval subdev operations are introduced to
-support those ioctls. The existing video::g/s_parm operations are
-deprecated and shouldn't be used anymore.
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-subdev.c |   16 ++++++++++++++++
- include/linux/v4l2-subdev.h       |   24 ++++++++++++++++++++++++
- include/media/v4l2-subdev.h       |    7 +++++++
- 3 files changed, 47 insertions(+), 0 deletions(-)
+date:        Mon Jul 19 19:00:18 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index d8b261f..8ddb2fb 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -208,6 +208,22 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 					fse);
- 	}
- 
-+	case VIDIOC_SUBDEV_G_FRAME_INTERVAL:
-+		return v4l2_subdev_call(sd, video, g_frame_interval, arg);
-+
-+	case VIDIOC_SUBDEV_S_FRAME_INTERVAL:
-+		return v4l2_subdev_call(sd, video, s_frame_interval, arg);
-+
-+	case VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL: {
-+		struct v4l2_subdev_frame_interval_enum *fie = arg;
-+
-+		if (fie->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh,
-+					fie);
-+	}
-+
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index 6504f22..e3362aa 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -56,11 +56,35 @@ struct v4l2_subdev_frame_size_enum {
- 	__u32 reserved[9];
- };
- 
-+/**
-+ * struct v4l2_subdev_pad_frame_rate
-+ */
-+struct v4l2_subdev_frame_interval {
-+	struct v4l2_fract interval;
-+	__u32 reserved[6];
-+};
-+
-+struct v4l2_subdev_frame_interval_enum {
-+	__u32 index;
-+	__u32 pad;
-+	__u32 code;
-+	__u32 width;
-+	__u32 height;
-+	struct v4l2_fract interval;
-+	__u32 reserved[9];
-+};
-+
- #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_pad_format)
- #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_pad_format)
-+#define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
-+			_IOWR('V', 6, struct v4l2_subdev_frame_interval)
-+#define VIDIOC_SUBDEV_S_FRAME_INTERVAL \
-+			_IOWR('V', 7, struct v4l2_subdev_frame_interval)
- #define VIDIOC_SUBDEV_ENUM_MBUS_CODE \
- 			_IOWR('V', 8, struct v4l2_subdev_pad_mbus_code_enum)
- #define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
- 			_IOWR('V', 9, struct v4l2_subdev_frame_size_enum)
-+#define VIDIOC_SUBDEV_ENUM_FRAME_INTERVAL \
-+			_IOWR('V', 10, struct v4l2_subdev_frame_interval_enum)
- 
- #endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index acbcd8f..58ef923 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -245,6 +245,10 @@ struct v4l2_subdev_video_ops {
- 	int (*s_crop)(struct v4l2_subdev *sd, struct v4l2_crop *crop);
- 	int (*g_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
- 	int (*s_parm)(struct v4l2_subdev *sd, struct v4l2_streamparm *param);
-+	int (*g_frame_interval)(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_frame_interval *interval);
-+	int (*s_frame_interval)(struct v4l2_subdev *sd,
-+				struct v4l2_subdev_frame_interval *interval);
- 	int (*enum_framesizes)(struct v4l2_subdev *sd, struct v4l2_frmsizeenum *fsize);
- 	int (*enum_frameintervals)(struct v4l2_subdev *sd, struct v4l2_frmivalenum *fival);
- 	int (*enum_dv_presets) (struct v4l2_subdev *sd,
-@@ -406,6 +410,9 @@ struct v4l2_subdev_pad_ops {
- 	int (*enum_frame_size)(struct v4l2_subdev *sd,
- 			       struct v4l2_subdev_fh *fh,
- 			       struct v4l2_subdev_frame_size_enum *fse);
-+	int (*enum_frame_interval)(struct v4l2_subdev *sd,
-+				   struct v4l2_subdev_fh *fh,
-+				   struct v4l2_subdev_frame_interval_enum *fie);
- 	int (*get_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
- 		       enum v4l2_subdev_format which);
--- 
-1.7.1
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
