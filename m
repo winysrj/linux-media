@@ -1,95 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:57043 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752835Ab0GEHKY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 03:10:24 -0400
-Message-ID: <4C31855B.7030509@suse.cz>
-Date: Mon, 05 Jul 2010 09:10:19 +0200
-From: Jiri Slaby <jslaby@suse.cz>
+Received: from perceval.irobotique.be ([92.243.18.41]:42142 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760557Ab0GSLX2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jul 2010 07:23:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Muralidharan Karicheri <mkaricheri@gmail.com>
+Subject: Re: [RFC/PATCH 02/10] media: Media device
+Date: Mon, 19 Jul 2010 13:23:37 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279114219-27389-3-git-send-email-laurent.pinchart@ideasonboard.com> <AANLkTik7SaoJftra3bAUlp3AJhM4KD91w9uCOUz1xG7b@mail.gmail.com>
+In-Reply-To: <AANLkTik7SaoJftra3bAUlp3AJhM4KD91w9uCOUz1xG7b@mail.gmail.com>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	Tejun Heo <tj@kernel.org>,
-	Ian Armstrong <ian@iarmst.demon.co.uk>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] VIDEO: ivtvfb, remove unneeded NULL test
-References: <1277206910-27228-1-git-send-email-jslaby@suse.cz>	 <1278216707.2644.32.camel@localhost>  <4C30372D.9050304@suse.cz> <1278249745.2280.46.camel@localhost>
-In-Reply-To: <1278249745.2280.46.camel@localhost>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201007191323.38072.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/04/2010 03:22 PM, Andy Walls wrote:
-> On Sun, 2010-07-04 at 09:24 +0200, Jiri Slaby wrote:
->> On 07/04/2010 06:11 AM, Andy Walls wrote:
->>> --- a/drivers/media/video/ivtv/ivtvfb.c
->>> +++ b/drivers/media/video/ivtv/ivtvfb.c
->>> @@ -1201,9 +1201,14 @@ static int ivtvfb_init_card(struct ivtv *itv)
->>>  static int __init ivtvfb_callback_init(struct device *dev, void *p)
->>>  {
->>>         struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
->>> -       struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
->>> +       struct ivtv *itv;
->>>  
->>> -       if (itv && (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
->>> +       if (v4l2_dev == NULL)
->>> +               return 0;
->>> +
->>> +       itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
->>> +
->>> +       if (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT) {
->>>                 if (ivtvfb_init_card(itv) == 0) {
->>>                         IVTVFB_INFO("Framebuffer registered on %s\n",
->>>                                         itv->v4l2_dev.name);
->>> @@ -1216,10 +1221,16 @@ static int __init ivtvfb_callback_init(struct device *de
->>>  static int ivtvfb_callback_cleanup(struct device *dev, void *p)
->>>  {
->>>         struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
->>> -       struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
->>> -       struct osd_info *oi = itv->osd_info;
->>> +       struct ivtv *itv;
->>> +       struct osd_info *oi;
->>> +
->>> +       if (v4l2_dev == NULL)
->>> +               return 0;
->>
->> >From my POV I NACK this. Given that it never triggered and drvdata are
->> set in v4l2_device_register called from ivtv_probe I can't see how
->> v4l2_dev be NULL. Could you elaborate?
+Hi Murali,
+
+On Sunday 18 July 2010 17:32:24 Muralidharan Karicheri wrote:
+> Hi Laurent,
 > 
-> I hemmed and hawed over that too.  I didn't do a very thorough analysis
-> of the restrictions on unloading modules, but here was my line of
-> reasoning:
-...
-> 2. Note that the ivtvfb driver is not automatically loaded nor unloaded
-> by the kernel ivtv driver.  Something from userspace will reqeust the
-> load and unload of the module.
+> > +++ b/Documentation/media-framework.txt
+> > @@ -0,0 +1,68 @@
+> > +Linux kernel media framework
+> > +============================
+> > +
 > 
-> There are windows of time where a struct device * will exist for a card
-> in the ivtv driver, but a struct v4l2_device * may not: the end of
-> ivtv_remove() and the beginning of ivtv_probe().
-
-If there is no locking or refcounting, this won't change with the added
-check. The window is still there, but it begins after the check with
-your patch. Hence will still cause oopses.
-
-> I was contemplating a case where user space requested unloading both the
-> ivtvfb and the ivtv driver.  Given all the I2C devices these cards can
-> have, I thought v4l2_device_unregister() at the end of ivtv_remove()
-> could present a window of time large enough to worry about a race.
-> v4l2_device_unregister() sets the struct device  drvdata pointer to
-> NULL, and then begins unregistering the i2c clients.  I haven't profiled
-> the process to know how long it typically takes, though.
+> <snip>
 > 
-> I also don't know if kernel mechanisms will absolutely prevent
-> initiating the unload of ivtv.ko before the unload of ivtvfb.ko is
-> completely finished.  Will they?
+> I felt more details needed in this media-framework.txt for information such
+> as which driver call this register() /unregister() function, details on link
+> management etc. I have not seen other patches yet. If it is discussed
+> elsewhere, please ignore this.
 
-Given ivtvfb uses functions from ivtv, no, it can't unload ivtv earlier
-than ivtvfb.
+I've split the documentation among the patches, adding sections that describe 
+the code as new code was added. The final documentation is much more complete 
+than this.
 
-regards,
+> For the first part of the question, will the v4l2 core calls this for video
+> devices drivers? For other drivers such as audio, IR etc which are related
+> to the video devices, how this is handled. I think such details are required
+> in this documentation.
+
+The last patches describe the relationship between the V4L2 and media 
+frameworks in Documentation/video4linux/v4l2-framework.txt.
+
 -- 
-js
-suse labs
+Regards,
+
+Laurent Pinchart
