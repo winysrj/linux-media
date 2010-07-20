@@ -1,139 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52759 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756082Ab0GNOGE (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:27538 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757044Ab0GTBQT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jul 2010 10:06:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 19 Jul 2010 21:16:19 -0400
+Subject: [PATCH 06/17] cx23885: Add a VIDIOC_LOG_STATUS ioctl function for
+ analog video devices
+From: Andy Walls <awalls@md.metrocast.net>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE 00/12] Further V4L2 API additions and OMAP3 ISP driver
-Date: Wed, 14 Jul 2010 16:07:02 +0200
-Message-Id: <1279116434-28278-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Kenney Phillisjr <kphillisjr@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Steven Toth <stoth@kernellabs.com>
+In-Reply-To: <cover.1279586511.git.awalls@md.metrocast.net>
+References: <cover.1279586511.git.awalls@md.metrocast.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 19 Jul 2010 21:12:51 -0400
+Message-ID: <1279588371.28153.8.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+Add a simple log_status function for raw analog video capture device nodes,
+to provide insight into the state of the CX2388[578] A/V decoder core.
 
-Here's the OMAP3 ISP driver along with V4L2 API additions/enhancements that
-it depends on. As mentioned in the media controller patches, please don't
-review this set, but use it as sample code for the media controller.
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/media/video/cx23885/cx23885-video.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
 
-Antti Koskipaa (1):
-  v4l: Add crop ioctl to V4L2 subdev API
-
-Laurent Pinchart (8):
-  v4l: Move the media/v4l2-mediabus.h header to include/linux
-  v4l: Add 16 bit YUYV and SGRBG10 media bus format codes
-  v4l-subdev: Add pads operations
-  v4l: v4l2_subdev userspace format API
-  v4l: Add subdev userspace API to enumerate and configure frame
-    interval
-  v4l: subdev: Generic ioctl support
-  omap34xxcam: Register the ISP platform device during omap34xxcam
-    probe
-  OMAP3 ISP driver
-
-Stanimir Varbanov (2):
-  v4l: Create v4l2 subdev file handle structure
-  omap3: Export omap3isp platform device structure
-
-Tuukka Toivonen (1):
-  ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-
- Documentation/video4linux/v4l2-framework.txt |    5 +
- arch/arm/mach-omap2/devices.c                |   46 +-
- arch/arm/mach-omap2/devices.h                |   17 +
- arch/arm/plat-omap/include/mach/isp_user.h   |  637 ++++++++
- arch/arm/plat-omap/include/plat/omap34xx.h   |   16 +-
- drivers/media/video/Kconfig                  |    9 +
- drivers/media/video/Makefile                 |    4 +
- drivers/media/video/isp/Makefile             |   14 +
- drivers/media/video/isp/bluegamma_table.h    | 1040 ++++++++++++
- drivers/media/video/isp/cfa_coef_table.h     |  603 +++++++
- drivers/media/video/isp/greengamma_table.h   | 1040 ++++++++++++
- drivers/media/video/isp/isp.c                | 1680 +++++++++++++++++++
- drivers/media/video/isp/isp.h                |  402 +++++
- drivers/media/video/isp/ispccdc.c            | 2033 +++++++++++++++++++++++
- drivers/media/video/isp/ispccdc.h            |  177 ++
- drivers/media/video/isp/ispccp2.c            | 1001 ++++++++++++
- drivers/media/video/isp/ispccp2.h            |   90 +
- drivers/media/video/isp/ispcsi2.c            | 1207 ++++++++++++++
- drivers/media/video/isp/ispcsi2.h            |  156 ++
- drivers/media/video/isp/ispcsiphy.c          |  245 +++
- drivers/media/video/isp/ispcsiphy.h          |   72 +
- drivers/media/video/isp/isph3a.h             |  111 ++
- drivers/media/video/isp/isph3a_aewb.c        |  307 ++++
- drivers/media/video/isp/isph3a_af.c          |  358 ++++
- drivers/media/video/isp/isphist.c            |  505 ++++++
- drivers/media/video/isp/isphist.h            |   34 +
- drivers/media/video/isp/isppreview.c         | 2262 ++++++++++++++++++++++++++
- drivers/media/video/isp/isppreview.h         |  259 +++
- drivers/media/video/isp/ispqueue.c           | 1077 ++++++++++++
- drivers/media/video/isp/ispqueue.h           |  175 ++
- drivers/media/video/isp/ispreg.h             | 1798 ++++++++++++++++++++
- drivers/media/video/isp/ispresizer.c         | 1635 +++++++++++++++++++
- drivers/media/video/isp/ispresizer.h         |  136 ++
- drivers/media/video/isp/ispstat.c            |  849 ++++++++++
- drivers/media/video/isp/ispstat.h            |  160 ++
- drivers/media/video/isp/ispvideo.c           | 1245 ++++++++++++++
- drivers/media/video/isp/ispvideo.h           |  139 ++
- drivers/media/video/isp/luma_enhance_table.h |  144 ++
- drivers/media/video/isp/noise_filter_table.h |   79 +
- drivers/media/video/isp/redgamma_table.h     | 1040 ++++++++++++
- drivers/media/video/omap34xxcam.c            | 1524 +++++++++++++++++
- drivers/media/video/omap34xxcam.h            |  137 ++
- drivers/media/video/v4l2-subdev.c            |  177 ++-
- include/linux/v4l2-mediabus.h                |   70 +
- include/linux/v4l2-subdev.h                  |  102 ++
- include/media/soc_mediabus.h                 |    3 +-
- include/media/v4l2-mediabus.h                |   48 +-
- include/media/v4l2-subdev.h                  |   53 +
- 48 files changed, 24834 insertions(+), 87 deletions(-)
- create mode 100644 arch/arm/mach-omap2/devices.h
- create mode 100644 arch/arm/plat-omap/include/mach/isp_user.h
- create mode 100644 drivers/media/video/isp/Makefile
- create mode 100644 drivers/media/video/isp/bluegamma_table.h
- create mode 100644 drivers/media/video/isp/cfa_coef_table.h
- create mode 100644 drivers/media/video/isp/greengamma_table.h
- create mode 100644 drivers/media/video/isp/isp.c
- create mode 100644 drivers/media/video/isp/isp.h
- create mode 100644 drivers/media/video/isp/ispccdc.c
- create mode 100644 drivers/media/video/isp/ispccdc.h
- create mode 100644 drivers/media/video/isp/ispccp2.c
- create mode 100644 drivers/media/video/isp/ispccp2.h
- create mode 100644 drivers/media/video/isp/ispcsi2.c
- create mode 100644 drivers/media/video/isp/ispcsi2.h
- create mode 100644 drivers/media/video/isp/ispcsiphy.c
- create mode 100644 drivers/media/video/isp/ispcsiphy.h
- create mode 100644 drivers/media/video/isp/isph3a.h
- create mode 100644 drivers/media/video/isp/isph3a_aewb.c
- create mode 100644 drivers/media/video/isp/isph3a_af.c
- create mode 100644 drivers/media/video/isp/isphist.c
- create mode 100644 drivers/media/video/isp/isphist.h
- create mode 100644 drivers/media/video/isp/isppreview.c
- create mode 100644 drivers/media/video/isp/isppreview.h
- create mode 100644 drivers/media/video/isp/ispqueue.c
- create mode 100644 drivers/media/video/isp/ispqueue.h
- create mode 100644 drivers/media/video/isp/ispreg.h
- create mode 100644 drivers/media/video/isp/ispresizer.c
- create mode 100644 drivers/media/video/isp/ispresizer.h
- create mode 100644 drivers/media/video/isp/ispstat.c
- create mode 100644 drivers/media/video/isp/ispstat.h
- create mode 100644 drivers/media/video/isp/ispvideo.c
- create mode 100644 drivers/media/video/isp/ispvideo.h
- create mode 100644 drivers/media/video/isp/luma_enhance_table.h
- create mode 100644 drivers/media/video/isp/noise_filter_table.h
- create mode 100644 drivers/media/video/isp/redgamma_table.h
- create mode 100644 drivers/media/video/omap34xxcam.c
- create mode 100644 drivers/media/video/omap34xxcam.h
- create mode 100644 include/linux/v4l2-mediabus.h
- create mode 100644 include/linux/v4l2-subdev.h
-
+diff --git a/drivers/media/video/cx23885/cx23885-video.c b/drivers/media/video/cx23885/cx23885-video.c
+index 4e44dcd..2519455 100644
+--- a/drivers/media/video/cx23885/cx23885-video.c
++++ b/drivers/media/video/cx23885/cx23885-video.c
+@@ -1205,6 +1205,21 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ 	return 0;
+ }
+ 
++static int vidioc_log_status(struct file *file, void *priv)
++{
++	struct cx23885_fh  *fh  = priv;
++	struct cx23885_dev *dev = fh->dev;
++
++	printk(KERN_INFO
++		"%s/0: ============  START LOG STATUS  ============\n",
++	       dev->name);
++	call_all(dev, core, log_status);
++	printk(KERN_INFO
++		"%s/0: =============  END LOG STATUS  =============\n",
++	       dev->name);
++	return 0;
++}
++
+ static int vidioc_queryctrl(struct file *file, void *priv,
+ 				struct v4l2_queryctrl *qctrl)
+ {
+@@ -1410,6 +1425,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_enum_input    = vidioc_enum_input,
+ 	.vidioc_g_input       = vidioc_g_input,
+ 	.vidioc_s_input       = vidioc_s_input,
++	.vidioc_log_status    = vidioc_log_status,
+ 	.vidioc_queryctrl     = vidioc_queryctrl,
+ 	.vidioc_g_ctrl        = vidioc_g_ctrl,
+ 	.vidioc_s_ctrl        = vidioc_s_ctrl,
 -- 
-Regards,
+1.7.1.1
 
-Laurent Pinchart
 
