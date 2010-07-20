@@ -1,117 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:65008 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751225Ab0G1OYr (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:43952 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756910Ab0GTLQ0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 10:24:47 -0400
-Subject: Re: Can I expect in-kernel decoding to work out of box?
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jon Smirl <jonsmirl@gmail.com>, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <4C502CE6.80106@redhat.com>
-References: <1280269990.21278.15.camel@maxim-laptop>
-	 <1280273550.32216.4.camel@maxim-laptop>
-	 <AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
-	 <AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
-	 <1280298606.6736.15.camel@maxim-laptop>
-	 <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
-	 <4C502CE6.80106@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 28 Jul 2010 17:24:39 +0300
-Message-ID: <1280327080.9175.58.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 20 Jul 2010 07:16:26 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com, mchehab@redhat.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v6 0/5] WL1273 FM Radio driver...
+Date: Tue, 20 Jul 2010 14:15:57 +0300
+Message-Id: <1279624562-14125-1-git-send-email-matti.j.aaltonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2010-07-28 at 10:13 -0300, Mauro Carvalho Chehab wrote: 
-> Em 28-07-2010 07:40, Jon Smirl escreveu:
-> > On Wed, Jul 28, 2010 at 2:30 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> >> On Tue, 2010-07-27 at 22:33 -0400, Jarod Wilson wrote:
-> >>> On Tue, Jul 27, 2010 at 9:29 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> 
-> >> No its not, its just extended NEC.
-> > 
-> > http://www.sbprojects.com/knowledge/ir/nec.htm
-> > Says the last two bytes should be the complement of each other.
-> > 
-> > So for extended NEC it would need to be:
-> > 1100 0010 1010 0101 instead of 1100 0010 1010 0100
-> > The last bit is wrong.
-> > 
-> > From the debug output it is decoding as NEC, but then it fails a
-> > consistency check. Maybe we need to add a new protocol that lets NEC
-> > commands through even if they fail the error checks.
-> 
-> Assuming that Maxim's IR receiver is not causing some bad decode at the
-> NEC code, it seems simpler to add a parameter at sysfs to relax the NEC
-> detection. We should add some way, at the userspace table for those RC's
-> that uses a NEC-like code.
-> 
-> There's another alternative: currently, the NEC decoder produces a 16 bits
-> code for NEC and a 24 bits for NEC-extended code. The decoder may return a
-> 32 bits code when none of the checksum's match the NEC or NEC-extended standard.
-> 
-> Such 32 bits code won't match a keycode on a 16-bits or 24-bits table, so
-> there's no risk of generating a wrong keycode, if the wrong consistent check
-> is due to a reception error.
-> 
-> Btw, we still need to port rc core to use the new tables ioctl's, as cleaning
-> all keycodes on a 32 bits table would take forever with the current input
-> events ioctls.
-> 
-> > It may also be
-> > that the NEC machine rejected it because the timing was so far off
-> > that it concluded that it couldn't be a NEC messages. The log didn't
-> > include the exact reason it got rejected. Add some printks at the end
-> > of the NEC machine to determine the exact reason for rejection.
-> 
-> The better is to discard the possibility of a timing issue before changing
-> the decoder to accept NEC-like codes without consistency checks.
-> 
-> > The current state machines enforce protocol compliance so there are
-> > probably a lot of older remotes that won't decode right. We can use
-> > some help in adjusting the state machines to let out of spec codes
-> > through.
-> 
-> Yes, but we should take some care to avoid having another protocol decoder to
-> interpret badly a different protocol. So, I think that the decoders may have
-> some sysfs nodes to tweak the decoders to accept those older remotes.
-> 
-> We'll need a consistent way to add some logic at the remotes keycodes used by
-> ir-keycode, in order to allow it to tweak the decoder when a keycode table for
-> such remote is loaded into the driver.
-> 
-> > User space lirc is much older. Bugs like this have been worked out of
-> > it. It will take some time to get the kernel implementation up to the
-> > same level.
-> 
-> True.
+Hello All!
+
+And thank for comments Hans and Mauro.
+
+Here is the list of changes from v5:
 
 
-I more or less got to the bottom of this.
+include/linux/videodev2.h
+
+Hans wrote:
+>> +
+>> +#define V4L2_CID_FM_RX_BAND                  (V4L2_CID_FM_TX_CLASS_BASE + 1)
+>> +enum v4l2_fm_rx_band {
+>
+> Just a very small change: rename v4l2_fm_rx_band to v4l2_fm_band. We might need
+> this enum later for transmitter devices as well so it is better to give it a
+> slightly more generic name.
+
+Changed the name to v4l2_fm_band. Also changed the define constant.
+
+Hans wrote:
+>Note: you also need to add support for the new class and control to v4l2-common.c.
+>The following functions should be extended:
+>
+>v4l2_ctrl_get_menu()
+>v4l2_ctrl_get_name()
+>v4l2_ctrl_query_fill()
+
+Added code...
 
 
-It turns out that ENE reciever has a non linear measurement error.
-That is the longer sample is, the larger error it contains.
-Substracting around 4% from the samples makes the output look much more
-standard compliant.
+sound/soc/codecs/wl1273.c
 
-You are right that my remote has  JVC protocol. (at least I am sure now
-it hasn't NEC, because repeat looks differently).
+Hans wrote:
+> You might want to have this reviewed on the alsa mailinglist. I don't think
+> anyone on the linux-media list has the expertise to review this audio codec.
 
-My remote now actually partially works with JVC decoder, it decodes
-every other keypress.
+Yes, good idea, I'll send it to the ALSA list...
 
-Still, no repeat is supported.
+drivers/media/radio/radio-wl1273.c
 
-However, all recievers (and transmitters) aren't perfect.
-Thats why I prefer lirc, because it makes no assumptions about protocol,
-so it can be 'trained' to work with any remote, and under very large
-range of error tolerances.
+>> +             return POLLIN | POLLOUT | POLLRDNORM;
+>
+> You also need to add POLLWRNORM.
+>
+> I wonder if this code is correct. Doesn't this depend on whether the device
+> is in receive or transmit mode? So either poll returns POLLIN|POLLRDNORM or
+> POLLOUT|POLLWRNORM. Or am I missing something?
 
-Best regards,
-Maxim Levitsky
+I don't think you are missing anything. I've added code for RX and TX.
+
+>> +     strcpy(tuner->name, WL1273_FM_DRIVER_NAME);
+>
+> strlcpy
+
+Fixed. There was also another strcpy. Fixed also that.
+
+>> +     tuner->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
+>
+> You can't detect whether mono or stereo is received? Does the alsa codec always
+> receive two channel audio? How does it handle mono vs stereo?
+
+Stereo and mono modes can be detected. ALSA can also handle both...
+The codec conforms automatically to the audio source/sink.
+
+
+>> +     tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_RDS;
+>
+> Shouldn't CAP_STEREO be added?
+
+Added.
+
+>> +             tuner->rxsubchans |= V4L2_TUNER_SUB_RDS;
+>
+> tuner->audmode isn't filled!
+
+Filled...
+
+>> +             r = wl1273_fm_set_rds(core, WL1273_RDS_OFF);
+>
+> There is no support for SUB_MONO or SUB_STEREO?
+
+Actually there is...
+
+>> +     modulator->capability = V4L2_TUNER_CAP_RDS;
+>
+> Shouldn't CAP_LOW and CAP_STEREO be added here?
+
+I agree.
+
+>> +             modulator->txsubchans &= ~V4L2_TUNER_SUB_RDS;
+>
+> The SUB_MONO/SUB_STEREO flags aren't handled here.
+
+Handling added.
+
+> The g/s_tuner and g/s_modulator functions are always hard to get right. Lots of
+> tricky flags and settings...
+
+I agree... I kind of left the stereo/mono stuff to alsa... 
+
+
+> As Mauro's review mentioned: please specify the unit of this spacing field! (It should be Hz).
+> Don't forget to read and reply to Mauro's review as well!
+
+OK. I put kHz as the spacing unit, that should be fine grained enough? I also
+reformulated the text somewhat. And yes, I didn't notice Mauro's comments on
+v4 patch set. But now I've read his comments and also given some comments
+back.
+
+Cheers,
+Matti A.
+
+Matti J. Aaltonen (5):
+  V4L2: Add seek spacing and FM RX class.
+  MFD: WL1273 FM Radio: MFD driver for the FM radio.
+  ASoC: WL1273 FM Radio Digital audio codec.
+  V4L2: WL1273 FM Radio: Controls for the FM radio.
+  Documentation: v4l: Add hw_seek spacing and FM_RX class
+
+ Documentation/DocBook/v4l/controls.xml             |   71 +
+ .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 +-
+ drivers/media/radio/Kconfig                        |   15 +
+ drivers/media/radio/Makefile                       |    1 +
+ drivers/media/radio/radio-wl1273.c                 | 1960 ++++++++++++++++++++
+ drivers/media/video/v4l2-common.c                  |   12 +
+ drivers/mfd/Kconfig                                |    6 +
+ drivers/mfd/Makefile                               |    2 +
+ drivers/mfd/wl1273-core.c                          |  613 ++++++
+ include/linux/mfd/wl1273-core.h                    |  313 ++++
+ include/linux/videodev2.h                          |   15 +-
+ sound/soc/codecs/Kconfig                           |    6 +
+ sound/soc/codecs/Makefile                          |    2 +
+ sound/soc/codecs/wl1273.c                          |  593 ++++++
+ sound/soc/codecs/wl1273.h                          |   42 +
+ 15 files changed, 3658 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/media/radio/radio-wl1273.c
+ create mode 100644 drivers/mfd/wl1273-core.c
+ create mode 100644 include/linux/mfd/wl1273-core.h
+ create mode 100644 sound/soc/codecs/wl1273.c
+ create mode 100644 sound/soc/codecs/wl1273.h
 
