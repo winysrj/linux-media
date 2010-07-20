@@ -1,170 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59526 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757599Ab0GHNvd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Jul 2010 09:51:33 -0400
-Message-ID: <4C35D7E5.60407@redhat.com>
-Date: Thu, 08 Jul 2010 10:51:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [RFC/PATCH 2/6] v4l: subdev: Add device node support
-References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007072144.46481.laurent.pinchart@ideasonboard.com> <4C34E954.5090907@redhat.com> <201007081408.50289.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201007081408.50289.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59557 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757606Ab0GTBSZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Jul 2010 21:18:25 -0400
+Subject: [PATCH 09/17] v4l2_subdev, cx23885: Differentiate IR carrier sense
+ and I/O pin inversion
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org
+Cc: Kenney Phillisjr <kphillisjr@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Steven Toth <stoth@kernellabs.com>,
+	"Igor M.Liplianin" <liplianin@me.by>
+In-Reply-To: <cover.1279586511.git.awalls@md.metrocast.net>
+References: <cover.1279586511.git.awalls@md.metrocast.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 19 Jul 2010 21:18:49 -0400
+Message-ID: <1279588729.31145.4.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 08-07-2010 09:08, Laurent Pinchart escreveu:
-> Hi Mauro,
-> 
-> On Wednesday 07 July 2010 22:53:40 Mauro Carvalho Chehab wrote:
->> Em 07-07-2010 16:44, Laurent Pinchart escreveu:
->>> On Wednesday 07 July 2010 16:58:01 Mauro Carvalho Chehab wrote:
->>>> Em 07-07-2010 08:53, Laurent Pinchart escreveu:
->>>>> Create a device node named subdevX for every registered subdev.
->>>>> As the device node is registered before the subdev core::s_config
->>>>> function is called, return -EGAIN on open until initialization
->>>>> completes.
->>>
->>> [snip]
->>>
->>>>> +static int subdev_open(struct file *file)
->>>>> +{
->>>>> +	struct video_device *vdev = video_devdata(file);
->>>>> +	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
->>>>> +
->>>>> +	if (!sd->initialized)
->>>>> +		return -EAGAIN;
->>>>
->>>> Those internal interfaces should not be used on normal
->>>> devices/applications, as none of the existing drivers are tested or
->>>> supposed to properly work if an external program is touching on its
->>>>
->>>> internal interfaces. So, please add:
->>>> 	if (!capable(CAP_SYS_ADMIN))
->>>> 	
->>>> 		return -EPERM;
->>>
->>> As Hans pointed out, subdev device nodes should only be created if the
->>> subdev request it explicitly. I'll fix the patch accordingly. Existing
->>> subdevs will not have a device node by default anymore, so the
->>> CAP_SYS_ADMIN capability won't be required (new subdevs that explicitly
->>> ask for a device node are supposed to handle the calls properly,
->>> otherwise it's a bit pointless :-)).
->>
->> It should be not requested by the subdev, but by the bridge driver (or
->> maybe by both).
->>
->> On several drivers, the bridge is connected to more than one subdev, and
->> some changes need to go to both subdevs, in order to work. As the glue
->> logic is at the bridge driver, creating subdev interfaces will not make
->> sense on those devices.
-> 
-> Agreed. I've added a flag that subdev drivers can set to request creation of a 
-> device node explicitly, and an argument to to v4l2_i2c_new_subdev_board and 
-> v4l2_spi_new_subdev to overwrite the flag. A device node will only be created 
-> if the flag is set by the subdev (meaning "I can support device nodes") and 
-> the flag is not forced to 0 by the bridge driver (meaning "I allow userspace 
-> to access the subdev directly).
+There is a distinction on IR Tx for the CX2388[578] chips of carrier
+sense inversion (space is a carrier burst and mark is no burst) and I/O
+pin level inversion (0 is high output level, 1 is low output level).
+Allow the caller to set these parameters distinctly as v4l2_subdevice
+IR parameters.  This permits the IR device to be configured and enabled
+without the IR Tx LED being on during idle/space time due to an external
+hardware level inversion
 
-OK.
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/media/video/cx23885/cx23885-input.c |    2 +-
+ drivers/media/video/cx23885/cx23888-ir.c    |   32 ++++++++++++++++++++------
+ include/media/v4l2-subdev.h                 |    5 +++-
+ 3 files changed, 29 insertions(+), 10 deletions(-)
 
-> [snip]
-> 
->>>>> +static long subdev_ioctl(struct file *file, unsigned int cmd,
->>>>> +	unsigned long arg)
->>>>> +{
->>>>> +	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
->>>>
->>>> This is a legacy call. Please, don't use it.
->>>
->>> What should I use instead then ? I need the functionality of
->>> video_usercopy. I could copy it to v4l2-subdev.c verbatim. As
->>> video_ioctl2 shares lots of code with video_usercopy I think
->>> video_usercopy should stay, and video_ioctl2 should use it.
->>
->> The bad thing of video_usercopy() is that it has a "compat" code, to fix
->> broken definitions of some iotls (see video_fix_command()), and that a few
->> drivers still use it, instead of video_ioctl2.
-> 
-> video_ioctl2 has the same compat code.
+diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
+index d0b1613..496d751 100644
+--- a/drivers/media/video/cx23885/cx23885-input.c
++++ b/drivers/media/video/cx23885/cx23885-input.c
+@@ -170,7 +170,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+ 		 * mark is received as low logic level;
+ 		 * falling edges are detected as rising edges; etc.
+ 		 */
+-		params.invert = true;
++		params.invert_level = true;
+ 		break;
+ 	}
+ 	v4l2_subdev_call(dev->sd_ir, ir, rx_s_parameters, &params);
+diff --git a/drivers/media/video/cx23885/cx23888-ir.c b/drivers/media/video/cx23885/cx23888-ir.c
+index f63d378..28ca90f 100644
+--- a/drivers/media/video/cx23885/cx23888-ir.c
++++ b/drivers/media/video/cx23885/cx23888-ir.c
+@@ -60,6 +60,8 @@ MODULE_PARM_DESC(ir_888_debug, "enable debug messages [CX23888 IR controller]");
+ #define CNTRL_CPL	0x00001000
+ #define CNTRL_LBM	0x00002000
+ #define CNTRL_R		0x00004000
++/* CX23888 specific control flag */
++#define CNTRL_IVO	0x00008000
+ 
+ #define CX23888_IR_TXCLK_REG	0x170004
+ #define TXCLK_TCD	0x0000FFFF
+@@ -423,6 +425,13 @@ static inline void control_tx_polarity_invert(struct cx23885_dev *dev,
+ 			   invert ? CNTRL_CPL : 0);
+ }
+ 
++static inline void control_tx_level_invert(struct cx23885_dev *dev,
++					  bool invert)
++{
++	cx23888_ir_and_or4(dev, CX23888_IR_CNTRL_REG, ~CNTRL_IVO,
++			   invert ? CNTRL_IVO : 0);
++}
++
+ /*
+  * IR Rx & Tx Clock Register helpers
+  */
+@@ -782,8 +791,8 @@ static int cx23888_ir_rx_s_parameters(struct v4l2_subdev *sd,
+ 
+ 	control_rx_s_edge_detection(dev, CNTRL_EDG_BOTH);
+ 
+-	o->invert = p->invert;
+-	atomic_set(&state->rx_invert, p->invert);
++	o->invert_level = p->invert_level;
++	atomic_set(&state->rx_invert, p->invert_level);
+ 
+ 	o->interrupt_enable = p->interrupt_enable;
+ 	o->enable = p->enable;
+@@ -894,8 +903,11 @@ static int cx23888_ir_tx_s_parameters(struct v4l2_subdev *sd,
+ 	/* FIXME - make this dependent on resolution for better performance */
+ 	control_tx_irq_watermark(dev, TX_FIFO_HALF_EMPTY);
+ 
+-	control_tx_polarity_invert(dev, p->invert);
+-	o->invert = p->invert;
++	control_tx_polarity_invert(dev, p->invert_carrier_sense);
++	o->invert_carrier_sense = p->invert_carrier_sense;
++
++	control_tx_level_invert(dev, p->invert_level);
++	o->invert_level = p->invert_level;
+ 
+ 	o->interrupt_enable = p->interrupt_enable;
+ 	o->enable = p->enable;
+@@ -1025,8 +1037,11 @@ static int cx23888_ir_log_status(struct v4l2_subdev *sd)
+ 		  cntrl & CNTRL_TFE ? "enabled" : "disabled");
+ 	v4l2_info(sd, "\tFIFO interrupt watermark:          %s\n",
+ 		  cntrl & CNTRL_TIC ? "not empty" : "half full or less");
+-	v4l2_info(sd, "\tSignal polarity:                   %s\n",
+-		  cntrl & CNTRL_CPL ? "0:mark 1:space" : "0:space 1:mark");
++	v4l2_info(sd, "\tOutput pin level inversion         %s\n",
++		  cntrl & CNTRL_IVO ? "yes" : "no");
++	v4l2_info(sd, "\tCarrier polarity:                  %s\n",
++		  cntrl & CNTRL_CPL ? "space:burst mark:noburst"
++				    : "space:noburst mark:burst");
+ 	if (cntrl & CNTRL_MOD) {
+ 		v4l2_info(sd, "\tCarrier (16 clocks):               %u Hz\n",
+ 			  clock_divider_to_carrier_freq(txclk));
+@@ -1146,7 +1161,7 @@ static const struct v4l2_subdev_ir_parameters default_rx_params = {
+ 	.noise_filter_min_width = 333333, /* ns */
+ 	.carrier_range_lower = 35000,
+ 	.carrier_range_upper = 37000,
+-	.invert = false,
++	.invert_level = false,
+ };
+ 
+ static const struct v4l2_subdev_ir_parameters default_tx_params = {
+@@ -1160,7 +1175,8 @@ static const struct v4l2_subdev_ir_parameters default_tx_params = {
+ 	.modulation = true,
+ 	.carrier_freq = 36000, /* 36 kHz - RC-5 carrier */
+ 	.duty_cycle = 25,      /* 25 %   - RC-5 carrier */
+-	.invert = false,
++	.invert_level = false,
++	.invert_carrier_sense = false,
+ };
+ 
+ int cx23888_ir_probe(struct cx23885_dev *dev)
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 9195ad4..a780cca 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -379,7 +379,10 @@ struct v4l2_subdev_ir_parameters {
+ 	u32 max_pulse_width;       /* ns,      valid only for baseband signal */
+ 	unsigned int carrier_freq; /* Hz,      valid only for modulated signal*/
+ 	unsigned int duty_cycle;   /* percent, valid only for modulated signal*/
+-	bool invert;		   /* logically invert sense of mark/space */
++	bool invert_level;	   /* invert signal level */
++
++	/* Tx only */
++	bool invert_carrier_sense; /* Send 0/space as a carrier burst */
+ 
+ 	/* Rx only */
+ 	u32 noise_filter_min_width;       /* ns, min time of a valid pulse */
+-- 
+1.7.1.1
 
-Yes, in order to avoid breaking binary compatibility with files compiled against
-the old videodev2.h header that used to declare some ioctls as:
 
-#define VIDIOC_OVERLAY     	_IOWR('V', 14, int)
-#define VIDIOC_S_PARM      	 _IOW('V', 22, struct v4l2_streamparm)
-#define VIDIOC_S_CTRL      	 _IOW('V', 28, struct v4l2_control)
-#define VIDIOC_G_AUDIO     	_IOWR('V', 33, struct v4l2_audio)
-#define VIDIOC_G_AUDOUT    	_IOWR('V', 49, struct v4l2_audioout)
-#define VIDIOC_CROPCAP     	 _IOR('V', 58, struct v4l2_cropcap)
-
-instead of:
-
-#define VIDIOC_OVERLAY		 _IOW('V', 14, int)
-#define VIDIOC_S_PARM		_IOWR('V', 22, struct v4l2_streamparm)
-#define VIDIOC_S_CTRL		_IOWR('V', 28, struct v4l2_control)
-#define VIDIOC_G_AUDIO		 _IOR('V', 33, struct v4l2_audio)
-#define VIDIOC_G_AUDOUT		 _IOR('V', 49, struct v4l2_audioout)
-#define VIDIOC_CROPCAP		_IOWR('V', 58, struct v4l2_cropcap)
-
-(basically, the old ioctl's were using the wrong _IO macros, preventing a generic
-copy_from_user/copy_to_user code to work)
-
-This doesn't make sense for subdev, as old binary-only applications will never
-use the legacy ioctl definitions.
-
-Probably, we can mark this legacy support for removal at 
-Documentation/feature-removal-schedule.txt, and remove
-it on a latter version of the kernel. It seems that the old ioctl definitions are
-before 2005 (before 2.6.12):
-
-^1da177e (Linus Torvalds        2005-04-16 15:20:36 -0700 1461) #define VIDIOC_OVERLAY_OLD      _IOWR ('V', 14, int)
-^1da177e (Linus Torvalds        2005-04-16 15:20:36 -0700 1462) #define VIDIOC_S_PARM_OLD       _IOW  ('V', 22, struct v4l2_streamparm)
-^1da177e (Linus Torvalds        2005-04-16 15:20:36 -0700 1463) #define VIDIOC_S_CTRL_OLD       _IOW  ('V', 28, struct v4l2_control)
-^1da177e (Linus Torvalds        2005-04-16 15:20:36 -0700 1464) #define VIDIOC_G_AUDIO_OLD      _IOWR ('V', 33, struct v4l2_audio)
-^1da177e (Linus Torvalds        2005-04-16 15:20:36 -0700 1465) #define VIDIOC_G_AUDOUT_OLD     _IOWR ('V', 49, struct v4l2_audioout)
-^1da177e (Linus Torvalds        2005-04-16 15:20:36 -0700 1466) #define VIDIOC_CROPCAP_OLD      _IOR  ('V', 58, struct v4l2_cropcap)
-
->> For sure, we don't need the "compat" code for subdev interface. Also, as
->> time goes by, we'll eventually have different needs at the subdev interface,
->> as some types of ioctl's may be specific to subdevs and may require
->> different copy logic.
-> 
-> We can change the logic then :-)
-> 
->> IMO, the better is to use the same logic inside the subdev stuff, of course
->> removing that "old ioctl" fix logic:
->>
->> #ifdef __OLD_VIDIOC_
->> 	cmd = video_fix_command(cmd);
->> #endif
->>
->> And replacing the call to:
->> 	err = func(file, cmd, parg);
->>
->> By the proper subdev handling.
-> 
-> What about renaming video_usercopy to __video_usercopy, adding an argument to 
-> enable/disable the compat code, create a new video_usercopy that calls 
-> __video_usercopy with compat code enabled, have video_ioctl2 call 
-> __video_usercopy with compat code enabled, and having subdev_ioctl call 
-> __video_usercopy with compat code disabled ?
-
-Seems good, but maybe the better is to put the call to video_fix_command() outside
-the common function.
-
-We may add also a printk for the video_usercopy wrapper printing that the
-driver is using a legacy API call, and that this will be removed on a next kernel version.
-Maybe this way, people will finally submit patches porting the last remaining drivers to
-video_ioctl2.
-
-I suspect, however, that we'll end by needing a subdev-specific version of __video_usercopy,
-as we add new ioctls to subdev.
-
-Cheers,
-Mauro.
