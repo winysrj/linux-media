@@ -1,120 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55010 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755839Ab0GaO7i (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2395 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750719Ab0GTTdv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 10:59:38 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 02/13] IR: minor fixes:
-Date: Sat, 31 Jul 2010 17:59:15 +0300
-Message-Id: <1280588366-26101-3-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+	Tue, 20 Jul 2010 15:33:51 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6KJXe4m095396
+	for <linux-media@vger.kernel.org>; Tue, 20 Jul 2010 21:33:49 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 20 Jul 2010 21:33:40 +0200 (CEST)
+Message-Id: <201007201933.o6KJXe4m095396@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* lirc: Don't propagate reset event to userspace
-* lirc: Remove strange logic from lirc that would make first sample always be pulse
-* Make TO_US macro actualy print what it should.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/ir-core-priv.h  |    4 +---
- drivers/media/IR/ir-lirc-codec.c |   14 ++++++++------
- drivers/media/IR/ir-raw-event.c  |    3 +++
- 3 files changed, 12 insertions(+), 9 deletions(-)
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index babd520..dc26e2b 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -76,7 +76,6 @@ struct ir_raw_event_ctrl {
- 	struct lirc_codec {
- 		struct ir_input_dev *ir_dev;
- 		struct lirc_driver *drv;
--		int lircdata;
- 	} lirc;
- };
- 
-@@ -104,10 +103,9 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
- 		ev->duration -= duration;
- }
- 
--#define TO_US(duration)			(((duration) + 500) / 1000)
-+#define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
- #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
- #define IS_RESET(ev)			(ev.duration == 0)
--
- /*
-  * Routines from ir-sysfs.c - Meant to be called only internally inside
-  * ir-core
-diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
-index 3ba482d..8ca01fd 100644
---- a/drivers/media/IR/ir-lirc-codec.c
-+++ b/drivers/media/IR/ir-lirc-codec.c
-@@ -32,6 +32,7 @@
- static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- {
- 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
-+	int sample;
- 
- 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_LIRC))
- 		return 0;
-@@ -39,18 +40,21 @@ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- 	if (!ir_dev->raw->lirc.drv || !ir_dev->raw->lirc.drv->rbuf)
- 		return -EINVAL;
- 
-+	if (IS_RESET(ev))
-+		return 0;
-+
- 	IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
- 		   TO_US(ev.duration), TO_STR(ev.pulse));
- 
--	ir_dev->raw->lirc.lircdata += ev.duration / 1000;
-+
-+	sample = ev.duration / 1000;
- 	if (ev.pulse)
--		ir_dev->raw->lirc.lircdata |= PULSE_BIT;
-+		sample |= PULSE_BIT;
- 
- 	lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
--			  (unsigned char *) &ir_dev->raw->lirc.lircdata);
-+			  (unsigned char *) &sample);
- 	wake_up(&ir_dev->raw->lirc.drv->rbuf->wait_poll);
- 
--	ir_dev->raw->lirc.lircdata = 0;
- 
- 	return 0;
- }
-@@ -224,8 +228,6 @@ static int ir_lirc_register(struct input_dev *input_dev)
- 
- 	ir_dev->raw->lirc.drv = drv;
- 	ir_dev->raw->lirc.ir_dev = ir_dev;
--	ir_dev->raw->lirc.lircdata = PULSE_MASK;
--
- 	return 0;
- 
- lirc_register_failed:
-diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-index 6f192ef..51f65da 100644
---- a/drivers/media/IR/ir-raw-event.c
-+++ b/drivers/media/IR/ir-raw-event.c
-@@ -66,6 +66,9 @@ int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev)
- 	if (!ir->raw)
- 		return -EINVAL;
- 
-+	IR_dprintk(2, "sample: (05%dus %s)\n",
-+		TO_US(ev->duration), TO_STR(ev->pulse));
-+
- 	if (kfifo_in(&ir->raw->kfifo, ev, sizeof(*ev)) != sizeof(*ev))
- 		return -ENOMEM;
- 
--- 
-1.7.0.4
+date:        Tue Jul 20 19:00:19 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
