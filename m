@@ -1,32 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:36578 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753147Ab0G1J3N convert rfc822-to-8bit (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:46401 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932736Ab0GTWXp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 05:29:13 -0400
-Received: by iwn7 with SMTP id 7so4654903iwn.19
-        for <linux-media@vger.kernel.org>; Wed, 28 Jul 2010 02:29:12 -0700 (PDT)
+	Tue, 20 Jul 2010 18:23:45 -0400
+Message-Id: <201007202222.o6KMMiZi021244@imap1.linux-foundation.org>
+Subject: [patch 2/2] drivers/video/omap2/displays: add missing mutex_unlock
+To: mchehab@infradead.org
+Cc: linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	julia@diku.dk, isely@pobox.com
+From: akpm@linux-foundation.org
+Date: Tue, 20 Jul 2010 15:22:44 -0700
 MIME-Version: 1.0
-In-Reply-To: <AANLkTin4r_NrQbzXoTWoJJRCUXX9mjfgtrJ9yTPLW5_W@mail.gmail.com>
-References: <AANLkTin4r_NrQbzXoTWoJJRCUXX9mjfgtrJ9yTPLW5_W@mail.gmail.com>
-Date: Wed, 28 Jul 2010 14:59:12 +0530
-Message-ID: <AANLkTikuj0K+a0w6UsZ=2DkD=vtyqQReriNsXG2=5=p=@mail.gmail.com>
-Subject: JPEG hw decoder
-From: rd bairva <rbairva@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ANSI_X3.4-1968
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi ,
-     My board has a hardware JPEG decoder. I want to write a driver
-for this in Linux kernel, But it seems there that no Framework exists
-in kernel. Can somebody provide me some pointers?
+From: Julia Lawall <julia@diku.dk>
 
-Can V4l2 be used?
-Thanks in advance.
+Add a mutex_unlock missing on the error paths.  The use of the mutex is
+balanced elsewhere in the file.
 
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-Regards,
-Rbairva
+// <smpl>
+@@
+expression E1;
+@@
+
+* mutex_lock(E1,...);
+  <+... when != E1
+  if (...) {
+    ... when != E1
+*   return ...;
+  }
+  ...+>
+* mutex_unlock(E1,...);
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+Acked-By: Mike Isely <isely@pobox.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+---
+
+ drivers/video/omap2/displays/panel-acx565akm.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff -puN drivers/video/omap2/displays/panel-acx565akm.c~drivers-video-omap2-displays-add-missing-mutex_unlock drivers/video/omap2/displays/panel-acx565akm.c
+--- a/drivers/video/omap2/displays/panel-acx565akm.c~drivers-video-omap2-displays-add-missing-mutex_unlock
++++ a/drivers/video/omap2/displays/panel-acx565akm.c
+@@ -592,7 +592,7 @@ static int acx_panel_power_on(struct oma
+ 	r = omapdss_sdi_display_enable(dssdev);
+ 	if (r) {
+ 		pr_err("%s sdi enable failed\n", __func__);
+-		return r;
++		goto fail_unlock;
+ 	}
+ 
+ 	/*FIXME tweak me */
+@@ -633,6 +633,8 @@ static int acx_panel_power_on(struct oma
+ 	return acx565akm_bl_update_status(md->bl_dev);
+ fail:
+ 	omapdss_sdi_display_disable(dssdev);
++fail_unlock:
++	mutex_unlock(&md->mutex);
+ 	return r;
+ }
+ 
+_
