@@ -1,248 +1,727 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:1745 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753519Ab0GLUuo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jul 2010 16:50:44 -0400
-From: Joe Perches <joe@perches.com>
-To: Jiri Kosina <trivial@kernel.org>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Michael Hunold <michael@mihu.de>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@skynet.be>,
-	linux-media@vger.kernel.org, ivtv-devel@ivtvdriver.org
-Subject: [PATCH 11/36] drivers/media: Remove unnecessary casts of private_data
-Date: Mon, 12 Jul 2010 13:50:03 -0700
-Message-Id: <f607dad266e3d5c1b01aeb8420e09525f70cc1c0.1278967120.git.joe@perches.com>
-In-Reply-To: <cover.1278967120.git.joe@perches.com>
-References: <cover.1278967120.git.joe@perches.com>
+Received: from smtp.nokia.com ([192.100.122.230]:43967 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932154Ab0GTLQb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Jul 2010 07:16:31 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com, mchehab@redhat.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v6 3/5] ASoC: WL1273 FM Radio Digital audio codec.
+Date: Tue, 20 Jul 2010 14:16:00 +0300
+Message-Id: <1279624562-14125-4-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1279624562-14125-3-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1279624562-14125-1-git-send-email-matti.j.aaltonen@nokia.com>
+ <1279624562-14125-2-git-send-email-matti.j.aaltonen@nokia.com>
+ <1279624562-14125-3-git-send-email-matti.j.aaltonen@nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/media/IR/imon.c                    |    6 +++---
- drivers/media/common/saa7146_vbi.c         |    4 ++--
- drivers/media/common/saa7146_video.c       |    4 ++--
- drivers/media/dvb/bt8xx/dst_ca.c           |    2 +-
- drivers/media/video/cx18/cx18-ioctl.c      |    2 +-
- drivers/media/video/cx88/cx88-alsa.c       |    2 +-
- drivers/media/video/hdpvr/hdpvr-video.c    |    4 ++--
- drivers/media/video/mem2mem_testdev.c      |    4 ++--
- drivers/media/video/saa7134/saa7134-alsa.c |    2 +-
- drivers/media/video/uvc/uvc_v4l2.c         |    8 ++++----
- 10 files changed, 19 insertions(+), 19 deletions(-)
+The codec handles digital audio input to and output from the
+WL1273 FM radio.
 
-diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
-index 0195dd5..65c125e 100644
---- a/drivers/media/IR/imon.c
-+++ b/drivers/media/IR/imon.c
-@@ -407,7 +407,7 @@ static int display_close(struct inode *inode, struct file *file)
- 	struct imon_context *ictx = NULL;
- 	int retval = 0;
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ sound/soc/codecs/Kconfig  |    6 +
+ sound/soc/codecs/Makefile |    2 +
+ sound/soc/codecs/wl1273.c |  593 +++++++++++++++++++++++++++++++++++++++++++++
+ sound/soc/codecs/wl1273.h |   42 ++++
+ 4 files changed, 643 insertions(+), 0 deletions(-)
+ create mode 100644 sound/soc/codecs/wl1273.c
+ create mode 100644 sound/soc/codecs/wl1273.h
+
+diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
+index 31ac553..bb85495 100644
+--- a/sound/soc/codecs/Kconfig
++++ b/sound/soc/codecs/Kconfig
+@@ -38,6 +38,7 @@ config SND_SOC_ALL_CODECS
+ 	select SND_SOC_TWL6040 if TWL4030_CORE
+ 	select SND_SOC_UDA134X
+ 	select SND_SOC_UDA1380 if I2C
++	select SND_SOC_WL1273 if I2C
+ 	select SND_SOC_WM2000 if I2C
+ 	select SND_SOC_WM8350 if MFD_WM8350
+ 	select SND_SOC_WM8400 if MFD_WM8400
+@@ -179,6 +180,11 @@ config SND_SOC_UDA134X
+ config SND_SOC_UDA1380
+         tristate
  
--	ictx = (struct imon_context *)file->private_data;
-+	ictx = file->private_data;
++config SND_SOC_WL1273
++	tristate
++	select WL1273_CORE
++	default n
++
+ config SND_SOC_WM8350
+ 	tristate
  
- 	if (!ictx) {
- 		err("%s: no context for device", __func__);
-@@ -812,7 +812,7 @@ static ssize_t vfd_write(struct file *file, const char *buf,
- 	const unsigned char vfd_packet6[] = {
- 		0x01, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF };
- 
--	ictx = (struct imon_context *)file->private_data;
-+	ictx = file->private_data;
- 	if (!ictx) {
- 		err("%s: no context for device", __func__);
- 		return -ENODEV;
-@@ -896,7 +896,7 @@ static ssize_t lcd_write(struct file *file, const char *buf,
- 	int retval = 0;
- 	struct imon_context *ictx;
- 
--	ictx = (struct imon_context *)file->private_data;
-+	ictx = file->private_data;
- 	if (!ictx) {
- 		err("%s: no context for device", __func__);
- 		return -ENODEV;
-diff --git a/drivers/media/common/saa7146_vbi.c b/drivers/media/common/saa7146_vbi.c
-index 74e2b56..8224c30 100644
---- a/drivers/media/common/saa7146_vbi.c
-+++ b/drivers/media/common/saa7146_vbi.c
-@@ -375,7 +375,7 @@ static void vbi_init(struct saa7146_dev *dev, struct saa7146_vv *vv)
- 
- static int vbi_open(struct saa7146_dev *dev, struct file *file)
- {
--	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
-+	struct saa7146_fh *fh = file->private_data;
- 
- 	u32 arbtr_ctrl	= saa7146_read(dev, PCI_BT_V1);
- 	int ret = 0;
-@@ -437,7 +437,7 @@ static int vbi_open(struct saa7146_dev *dev, struct file *file)
- 
- static void vbi_close(struct saa7146_dev *dev, struct file *file)
- {
--	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
-+	struct saa7146_fh *fh = file->private_data;
- 	struct saa7146_vv *vv = dev->vv_data;
- 	DEB_VBI(("dev:%p, fh:%p\n",dev,fh));
- 
-diff --git a/drivers/media/common/saa7146_video.c b/drivers/media/common/saa7146_video.c
-index b8b2c55..a212a91 100644
---- a/drivers/media/common/saa7146_video.c
-+++ b/drivers/media/common/saa7146_video.c
-@@ -1370,7 +1370,7 @@ static void video_init(struct saa7146_dev *dev, struct saa7146_vv *vv)
- 
- static int video_open(struct saa7146_dev *dev, struct file *file)
- {
--	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
-+	struct saa7146_fh *fh = file->private_data;
- 	struct saa7146_format *sfmt;
- 
- 	fh->video_fmt.width = 384;
-@@ -1394,7 +1394,7 @@ static int video_open(struct saa7146_dev *dev, struct file *file)
- 
- static void video_close(struct saa7146_dev *dev, struct file *file)
- {
--	struct saa7146_fh *fh = (struct saa7146_fh *)file->private_data;
-+	struct saa7146_fh *fh = file->private_data;
- 	struct saa7146_vv *vv = dev->vv_data;
- 	struct videobuf_queue *q = &fh->video_q;
- 	int err;
-diff --git a/drivers/media/dvb/bt8xx/dst_ca.c b/drivers/media/dvb/bt8xx/dst_ca.c
-index 770243c..cf87051 100644
---- a/drivers/media/dvb/bt8xx/dst_ca.c
-+++ b/drivers/media/dvb/bt8xx/dst_ca.c
-@@ -565,7 +565,7 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
- 	int result = 0;
- 
- 	lock_kernel();
--	dvbdev = (struct dvb_device *)file->private_data;
-+	dvbdev = file->private_data;
- 	state = (struct dst_state *)dvbdev->priv;
- 	p_ca_message = kmalloc(sizeof (struct ca_msg), GFP_KERNEL);
- 	p_ca_slot_info = kmalloc(sizeof (struct ca_slot_info), GFP_KERNEL);
-diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
-index 20eaf38..d679240 100644
---- a/drivers/media/video/cx18/cx18-ioctl.c
-+++ b/drivers/media/video/cx18/cx18-ioctl.c
-@@ -1081,7 +1081,7 @@ long cx18_v4l2_ioctl(struct file *filp, unsigned int cmd,
- 		    unsigned long arg)
- {
- 	struct video_device *vfd = video_devdata(filp);
--	struct cx18_open_id *id = (struct cx18_open_id *)filp->private_data;
-+	struct cx18_open_id *id = filp->private_data;
- 	struct cx18 *cx = id->cx;
- 	long res;
- 
-diff --git a/drivers/media/video/cx88/cx88-alsa.c b/drivers/media/video/cx88/cx88-alsa.c
-index 9209d5b..4f383cd 100644
---- a/drivers/media/video/cx88/cx88-alsa.c
-+++ b/drivers/media/video/cx88/cx88-alsa.c
-@@ -739,7 +739,7 @@ static int __devinit snd_cx88_create(struct snd_card *card,
- 
- 	pci_set_master(pci);
- 
--	chip = (snd_cx88_card_t *) card->private_data;
-+	chip = card->private_data;
- 
- 	core = cx88_core_get(pci);
- 	if (NULL == core) {
-diff --git a/drivers/media/video/hdpvr/hdpvr-video.c b/drivers/media/video/hdpvr/hdpvr-video.c
-index c338f3f..4863a21 100644
---- a/drivers/media/video/hdpvr/hdpvr-video.c
-+++ b/drivers/media/video/hdpvr/hdpvr-video.c
-@@ -394,7 +394,7 @@ err:
- 
- static int hdpvr_release(struct file *file)
- {
--	struct hdpvr_fh		*fh  = (struct hdpvr_fh *)file->private_data;
-+	struct hdpvr_fh		*fh  = file->private_data;
- 	struct hdpvr_device	*dev = fh->dev;
- 
- 	if (!dev)
-@@ -518,7 +518,7 @@ err:
- static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
- {
- 	struct hdpvr_buffer *buf = NULL;
--	struct hdpvr_fh *fh = (struct hdpvr_fh *)filp->private_data;
-+	struct hdpvr_fh *fh = filp->private_data;
- 	struct hdpvr_device *dev = fh->dev;
- 	unsigned int mask = 0;
- 
-diff --git a/drivers/media/video/mem2mem_testdev.c b/drivers/media/video/mem2mem_testdev.c
-index 554eaf1..7fd54bf 100644
---- a/drivers/media/video/mem2mem_testdev.c
-+++ b/drivers/media/video/mem2mem_testdev.c
-@@ -903,14 +903,14 @@ static int m2mtest_release(struct file *file)
- static unsigned int m2mtest_poll(struct file *file,
- 				 struct poll_table_struct *wait)
- {
--	struct m2mtest_ctx *ctx = (struct m2mtest_ctx *)file->private_data;
-+	struct m2mtest_ctx *ctx = file->private_data;
- 
- 	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
- }
- 
- static int m2mtest_mmap(struct file *file, struct vm_area_struct *vma)
- {
--	struct m2mtest_ctx *ctx = (struct m2mtest_ctx *)file->private_data;
-+	struct m2mtest_ctx *ctx = file->private_data;
- 
- 	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
- }
-diff --git a/drivers/media/video/saa7134/saa7134-alsa.c b/drivers/media/video/saa7134/saa7134-alsa.c
-index 68b7e8d..10460fd 100644
---- a/drivers/media/video/saa7134/saa7134-alsa.c
-+++ b/drivers/media/video/saa7134/saa7134-alsa.c
-@@ -1080,7 +1080,7 @@ static int alsa_card_saa7134_create(struct saa7134_dev *dev, int devnum)
- 	/* Card "creation" */
- 
- 	card->private_free = snd_saa7134_free;
--	chip = (snd_card_saa7134_t *) card->private_data;
-+	chip = card->private_data;
- 
- 	spin_lock_init(&chip->lock);
- 	spin_lock_init(&chip->mixer_lock);
-diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-index 369ce06..86db326 100644
---- a/drivers/media/video/uvc/uvc_v4l2.c
-+++ b/drivers/media/video/uvc/uvc_v4l2.c
-@@ -516,7 +516,7 @@ static int uvc_v4l2_open(struct file *file)
- 
- static int uvc_v4l2_release(struct file *file)
- {
--	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
-+	struct uvc_fh *handle = file->private_data;
- 	struct uvc_streaming *stream = handle->stream;
- 
- 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_release\n");
-@@ -547,7 +547,7 @@ static int uvc_v4l2_release(struct file *file)
- static long uvc_v4l2_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- {
- 	struct video_device *vdev = video_devdata(file);
--	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
-+	struct uvc_fh *handle = file->private_data;
- 	struct uvc_video_chain *chain = handle->chain;
- 	struct uvc_streaming *stream = handle->stream;
- 	long ret = 0;
-@@ -1116,7 +1116,7 @@ static const struct vm_operations_struct uvc_vm_ops = {
- 
- static int uvc_v4l2_mmap(struct file *file, struct vm_area_struct *vma)
- {
--	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
-+	struct uvc_fh *handle = file->private_data;
- 	struct uvc_streaming *stream = handle->stream;
- 	struct uvc_video_queue *queue = &stream->queue;
- 	struct uvc_buffer *uninitialized_var(buffer);
-@@ -1171,7 +1171,7 @@ done:
- 
- static unsigned int uvc_v4l2_poll(struct file *file, poll_table *wait)
- {
--	struct uvc_fh *handle = (struct uvc_fh *)file->private_data;
-+	struct uvc_fh *handle = file->private_data;
- 	struct uvc_streaming *stream = handle->stream;
- 
- 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_poll\n");
+diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
+index 91429ea..8a1e7c7 100644
+--- a/sound/soc/codecs/Makefile
++++ b/sound/soc/codecs/Makefile
+@@ -25,6 +25,7 @@ snd-soc-twl4030-objs := twl4030.o
+ snd-soc-twl6040-objs := twl6040.o
+ snd-soc-uda134x-objs := uda134x.o
+ snd-soc-uda1380-objs := uda1380.o
++snd-soc-wl1273-objs := wl1273.o
+ snd-soc-wm8350-objs := wm8350.o
+ snd-soc-wm8400-objs := wm8400.o
+ snd-soc-wm8510-objs := wm8510.o
+@@ -90,6 +91,7 @@ obj-$(CONFIG_SND_SOC_TWL4030)	+= snd-soc-twl4030.o
+ obj-$(CONFIG_SND_SOC_TWL6040)	+= snd-soc-twl6040.o
+ obj-$(CONFIG_SND_SOC_UDA134X)	+= snd-soc-uda134x.o
+ obj-$(CONFIG_SND_SOC_UDA1380)	+= snd-soc-uda1380.o
++obj-$(CONFIG_SND_SOC_WL1273)	+= snd-soc-wl1273.o
+ obj-$(CONFIG_SND_SOC_WM8350)	+= snd-soc-wm8350.o
+ obj-$(CONFIG_SND_SOC_WM8400)	+= snd-soc-wm8400.o
+ obj-$(CONFIG_SND_SOC_WM8510)	+= snd-soc-wm8510.o
+diff --git a/sound/soc/codecs/wl1273.c b/sound/soc/codecs/wl1273.c
+new file mode 100644
+index 0000000..2e324ef
+--- /dev/null
++++ b/sound/soc/codecs/wl1273.c
+@@ -0,0 +1,593 @@
++/*
++ * ALSA SoC WL1273 codec driver
++ *
++ * Author:      Matti Aaltonen, <matti.j.aaltonen@nokia.com>
++ *
++ * Copyright:   (C) 2010 Nokia Corporation
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#undef DEBUG
++
++#include <linux/mfd/wl1273-core.h>
++#include <linux/slab.h>
++#include <sound/pcm.h>
++#include <sound/pcm_params.h>
++#include <sound/soc-dapm.h>
++#include <sound/initval.h>
++
++#include "wl1273.h"
++
++static int snd_wl1273_fm_set_i2s_mode(struct wl1273_core *core,
++				      int rate, int width)
++{
++	struct device *dev = &core->i2c_dev->dev;
++	int r = 0;
++	u16 mode;
++
++	dev_dbg(dev, "rate: %d\n", rate);
++	dev_dbg(dev, "width: %d\n", width);
++
++	mutex_lock(&core->lock);
++
++	mode = core->i2s_mode & ~WL1273_IS2_WIDTH & ~WL1273_IS2_RATE;
++
++	switch (rate) {
++	case 48000:
++		mode |= WL1273_IS2_RATE_48K;
++		break;
++	case 44100:
++		mode |= WL1273_IS2_RATE_44_1K;
++		break;
++	case 32000:
++		mode |= WL1273_IS2_RATE_32K;
++		break;
++	case 22050:
++		mode |= WL1273_IS2_RATE_22_05K;
++		break;
++	case 16000:
++		mode |= WL1273_IS2_RATE_16K;
++		break;
++	case 12000:
++		mode |= WL1273_IS2_RATE_12K;
++		break;
++	case 11025:
++		mode |= WL1273_IS2_RATE_11_025;
++		break;
++	case 8000:
++		mode |= WL1273_IS2_RATE_8K;
++		break;
++	default:
++		dev_err(dev, "Sampling rate: %d not supported\n", rate);
++		r = -EINVAL;
++		goto out;
++	}
++
++	switch (width) {
++	case 16:
++		mode |= WL1273_IS2_WIDTH_32;
++		break;
++	case 20:
++		mode |= WL1273_IS2_WIDTH_40;
++		break;
++	case 24:
++		mode |= WL1273_IS2_WIDTH_48;
++		break;
++	case 25:
++		mode |= WL1273_IS2_WIDTH_50;
++		break;
++	case 30:
++		mode |= WL1273_IS2_WIDTH_60;
++		break;
++	case 32:
++		mode |= WL1273_IS2_WIDTH_64;
++		break;
++	case 40:
++		mode |= WL1273_IS2_WIDTH_80;
++		break;
++	case 48:
++		mode |= WL1273_IS2_WIDTH_96;
++		break;
++	case 64:
++		mode |= WL1273_IS2_WIDTH_128;
++		break;
++	default:
++		dev_err(dev, "Data width: %d not supported\n", width);
++		r = -EINVAL;
++		goto out;
++	}
++
++	dev_dbg(dev, "WL1273_I2S_DEF_MODE: 0x%04x\n",  WL1273_I2S_DEF_MODE);
++	dev_dbg(dev, "core->i2s_mode: 0x%04x\n", core->i2s_mode);
++	dev_dbg(dev, "mode: 0x%04x\n", mode);
++
++	if (core->i2s_mode != mode) {
++		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
++					mode);
++		if (!r)
++			core->i2s_mode = mode;
++
++		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
++					WL1273_AUDIO_ENABLE_I2S);
++		if (r)
++			goto out;
++	}
++out:
++	mutex_unlock(&core->lock);
++
++	return r;
++}
++
++static int snd_wl1273_fm_set_channel_number(struct wl1273_core *core,
++					    int channel_number)
++{
++	struct i2c_client *client = core->i2c_dev;
++	struct device *dev = &client->dev;
++	int r = 0;
++
++	dev_dbg(dev, "%s\n", __func__);
++
++	mutex_lock(&core->lock);
++
++	if (core->channel_number == channel_number)
++		goto out;
++
++	if (channel_number == 1 && core->mode == WL1273_MODE_RX)
++		r = wl1273_fm_write_cmd(core, WL1273_MOST_MODE_SET,
++					WL1273_RX_MONO);
++	else if (channel_number == 1 && core->mode == WL1273_MODE_TX)
++		r = wl1273_fm_write_cmd(core, WL1273_MONO_SET,
++					WL1273_TX_MONO);
++	else if (channel_number == 2 && core->mode == WL1273_MODE_RX)
++		r = wl1273_fm_write_cmd(core, WL1273_MOST_MODE_SET,
++					WL1273_RX_STEREO);
++	else if (channel_number == 2 && core->mode == WL1273_MODE_TX)
++		r = wl1273_fm_write_cmd(core, WL1273_MONO_SET,
++					WL1273_TX_STEREO);
++	else
++		r = -EINVAL;
++out:
++	mutex_unlock(&core->lock);
++
++	return r;
++}
++
++static int snd_wl1273_get_audio_route(struct snd_kcontrol *kcontrol,
++				      struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
++	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
++
++	ucontrol->value.integer.value[0] = wl1273->mode;
++
++	return 0;
++}
++
++static int snd_wl1273_set_audio_route(struct snd_kcontrol *kcontrol,
++				      struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
++	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
++
++	/* Do not allow changes while stream is running */
++	if (codec->active)
++		return -EPERM;
++
++	wl1273->mode = ucontrol->value.integer.value[0];
++
++	return 1;
++}
++
++static const char *wl1273_audio_route[] = { "Bt", "FmRx", "FmTx" };
++
++static const struct soc_enum wl1273_enum[] = {
++	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(wl1273_audio_route), wl1273_audio_route),
++};
++
++static int snd_wl1273_fm_audio_get(struct snd_kcontrol *kcontrol,
++				   struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
++	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
++
++	dev_dbg(codec->dev, "%s: enter.\n", __func__);
++
++	ucontrol->value.integer.value[0] = wl1273->core->audio_mode;
++
++	return 0;
++}
++
++static int snd_wl1273_fm_audio_put(struct snd_kcontrol *kcontrol,
++				   struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
++	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
++	int val, r = 0;
++
++	dev_dbg(codec->dev, "%s: enter.\n", __func__);
++
++	val = ucontrol->value.integer.value[0];
++	if (wl1273->core->audio_mode == val)
++		return 0;
++
++	r = wl1273_fm_set_audio(wl1273->core, val);
++	if (r < 0)
++		return r;
++
++	return 1;
++}
++
++static const char *wl1273_audio_strings[] = { "Digital", "Analog" };
++
++static const struct soc_enum wl1273_audio_enum[] = {
++	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(wl1273_audio_strings),
++			    wl1273_audio_strings),
++};
++
++static int snd_wl1273_fm_volume_get(struct snd_kcontrol *kcontrol,
++				    struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
++	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
++
++	dev_dbg(codec->dev, "%s: enter.\n", __func__);
++
++	ucontrol->value.integer.value[0] = wl1273->core->volume;
++
++	return 0;
++}
++
++static int snd_wl1273_fm_volume_put(struct snd_kcontrol *kcontrol,
++				    struct snd_ctl_elem_value *ucontrol)
++{
++	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
++	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
++	int r;
++
++	dev_dbg(codec->dev, "%s: enter.\n", __func__);
++
++	r = wl1273_fm_set_volume(wl1273->core,
++				 ucontrol->value.integer.value[0]);
++	if (r)
++		return r;
++
++	return 1;
++}
++
++static const struct snd_kcontrol_new wl1273_controls[] = {
++	SOC_ENUM_EXT("Codec Mode", wl1273_enum[0],
++		     snd_wl1273_get_audio_route, snd_wl1273_set_audio_route),
++	SOC_ENUM_EXT("Audio Switch", wl1273_audio_enum[0],
++		     snd_wl1273_fm_audio_get,  snd_wl1273_fm_audio_put),
++	SOC_SINGLE_EXT("Volume", 0, 0, WL1273_MAX_VOLUME, 0,
++		       snd_wl1273_fm_volume_get, snd_wl1273_fm_volume_put),
++};
++
++static int wl1273_add_controls(struct snd_soc_codec *codec)
++{
++	return snd_soc_add_controls(codec, wl1273_controls,
++				    ARRAY_SIZE(wl1273_controls));
++}
++
++static int wl1273_startup(struct snd_pcm_substream *substream,
++			  struct snd_soc_dai *dai)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_device *socdev = rtd->socdev;
++	struct snd_pcm *pcm = socdev->card->dai_link->pcm;
++	struct snd_soc_codec *codec = socdev->card->codec;
++	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
++
++	switch (wl1273->mode) {
++	case WL1273_MODE_BT:
++		pcm->info_flags &= ~SNDRV_PCM_INFO_HALF_DUPLEX;
++		break;
++	case WL1273_MODE_FM_RX:
++		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
++			pr_err("Cannot play in RX mode.\n");
++			return -EINVAL;
++		}
++		pcm->info_flags |= SNDRV_PCM_INFO_HALF_DUPLEX;
++		break;
++	case WL1273_MODE_FM_TX:
++		if (substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
++			pr_err("Cannot capture in TX mode.\n");
++			return -EINVAL;
++		}
++		pcm->info_flags |= SNDRV_PCM_INFO_HALF_DUPLEX;
++		break;
++	default:
++		return -EINVAL;
++		break;
++	}
++
++	return 0;
++}
++
++static int wl1273_hw_params(struct snd_pcm_substream *substream,
++			    struct snd_pcm_hw_params *params,
++			    struct snd_soc_dai *dai)
++{
++	struct snd_soc_pcm_runtime *rtd = substream->private_data;
++	struct snd_soc_device *socdev = rtd->socdev;
++	struct snd_soc_codec *codec = socdev->card->codec;
++	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
++	struct wl1273_core *core = wl1273->core;
++	unsigned int rate, width, r;
++
++	if (params_format(params) != SNDRV_PCM_FORMAT_S16_LE) {
++		pr_err("Only SNDRV_PCM_FORMAT_S16_LE supported.\n");
++		return -EINVAL;
++	}
++
++	rate = params_rate(params);
++	width =  hw_param_interval(params, SNDRV_PCM_HW_PARAM_SAMPLE_BITS)->min;
++
++	if (wl1273->mode == WL1273_MODE_BT) {
++		if (rate != 8000) {
++			pr_err("Rate %d not supported.\n", params_rate(params));
++			return -EINVAL;
++		}
++
++		if (params_channels(params) != 1) {
++			pr_err("Only mono supported.\n");
++			return -EINVAL;
++		}
++
++		return 0;
++	}
++
++	if (wl1273->mode == WL1273_MODE_FM_TX &&
++	    substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
++		pr_err("Only playback supported with TX.\n");
++		return -EINVAL;
++	}
++
++	if (wl1273->mode == WL1273_MODE_FM_RX  &&
++	    substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
++		pr_err("Only capture supported with RX.\n");
++		return -EINVAL;
++	}
++
++	if (wl1273->mode != WL1273_MODE_FM_RX  &&
++	    wl1273->mode != WL1273_MODE_FM_TX) {
++		pr_err("Unexpected mode: %d.\n", wl1273->mode);
++		return -EINVAL;
++	}
++
++	r = snd_wl1273_fm_set_i2s_mode(core, rate, width);
++	if (r)
++		return r;
++
++	r = snd_wl1273_fm_set_channel_number(core, (params_channels(params)));
++	if (r)
++		return r;
++
++	return 0;
++}
++
++static int wl1273_set_dai_fmt(struct snd_soc_dai *codec_dai,
++			      unsigned int fmt)
++{
++	return 0;
++}
++
++static struct snd_soc_dai_ops wl1273_dai_ops = {
++	.startup	= wl1273_startup,
++	.hw_params	= wl1273_hw_params,
++	.set_fmt	= wl1273_set_dai_fmt,
++};
++
++struct snd_soc_dai wl1273_dai = {
++	.name = "WL1273 BT/FM codec",
++	.playback = {
++		.stream_name = "Playback",
++		.channels_min = 1,
++		.channels_max = 2,
++		.rates = SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_48000,
++		.formats = SNDRV_PCM_FMTBIT_S16_LE},
++	.capture = {
++		.stream_name = "Capture",
++		.channels_min = 1,
++		.channels_max = 2,
++		.rates = SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_48000,
++		.formats = SNDRV_PCM_FMTBIT_S16_LE},
++	.ops = &wl1273_dai_ops,
++};
++EXPORT_SYMBOL_GPL(wl1273_dai);
++
++enum wl1273_mode wl1273_get_codec_mode(struct snd_soc_codec *codec)
++{
++	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
++	return wl1273->mode;
++}
++EXPORT_SYMBOL_GPL(wl1273_get_codec_mode);
++
++static int wl1273_soc_suspend(struct platform_device *pdev, pm_message_t state)
++{
++	return 0;
++}
++
++static int wl1273_soc_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static struct snd_soc_codec *wl1273_codec;
++
++/*
++ * initialize the driver
++ * register the mixer and dsp interfaces with the kernel
++ */
++static int wl1273_soc_probe(struct platform_device *pdev)
++{
++	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
++	struct snd_soc_codec *codec;
++	struct wl1273_priv *wl1273;
++	int r = 0;
++
++	dev_dbg(&pdev->dev, "%s.\n", __func__);
++
++	codec = wl1273_codec;
++	wl1273 = snd_soc_codec_get_drvdata(codec);
++	socdev->card->codec = codec;
++
++	codec->name = "wl1273";
++	codec->owner = THIS_MODULE;
++	codec->dai = &wl1273_dai;
++	codec->num_dai = 1;
++
++	/* register pcms */
++	r = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
++	if (r < 0) {
++		dev_err(&pdev->dev, "Wl1273: failed to create pcms.\n");
++		goto err2;
++	}
++
++	r = wl1273_add_controls(codec);
++	if (r < 0) {
++		dev_err(&pdev->dev, "Wl1273: failed to add contols.\n");
++		goto err1;
++	}
++
++	return r;
++err1:
++	snd_soc_free_pcms(socdev);
++err2:
++	return r;
++}
++
++static int wl1273_soc_remove(struct platform_device *pdev)
++{
++	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
++
++	snd_soc_free_pcms(socdev);
++
++	return 0;
++}
++
++static int __devinit wl1273_codec_probe(struct platform_device *pdev)
++{
++	struct wl1273_core **pdata = pdev->dev.platform_data;
++	struct snd_soc_codec *codec;
++	struct wl1273_priv *wl1273;
++	int r;
++
++	dev_dbg(&pdev->dev, "%s.\n", __func__);
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "Platform data is missing.\n");
++		return -EINVAL;
++	}
++
++	wl1273 = kzalloc(sizeof(struct wl1273_priv), GFP_KERNEL);
++	if (wl1273 == NULL) {
++		dev_err(&pdev->dev, "Cannot allocate memory.\n");
++		return -ENOMEM;
++	}
++
++	wl1273->mode = WL1273_MODE_BT;
++	wl1273->core = *pdata;
++
++	codec = &wl1273->codec;
++	snd_soc_codec_set_drvdata(codec, wl1273);
++	codec->dev = &pdev->dev;
++	wl1273_dai.dev = &pdev->dev;
++
++	mutex_init(&codec->mutex);
++	INIT_LIST_HEAD(&codec->dapm_widgets);
++	INIT_LIST_HEAD(&codec->dapm_paths);
++
++	codec->name = "wl1273";
++	codec->owner = THIS_MODULE;
++	codec->dai = &wl1273_dai;
++	codec->num_dai = 1;
++
++	platform_set_drvdata(pdev, wl1273);
++	wl1273_codec = codec;
++
++	codec->bias_level = SND_SOC_BIAS_OFF;
++
++	r = snd_soc_register_codec(codec);
++	if (r != 0) {
++		dev_err(codec->dev, "Failed to register codec: %d\n", r);
++		goto err2;
++	}
++
++	r = snd_soc_register_dai(&wl1273_dai);
++	if (r != 0) {
++		dev_err(codec->dev, "Failed to register DAIs: %d\n", r);
++		goto err1;
++	}
++
++	return 0;
++
++err1:
++	snd_soc_unregister_codec(codec);
++err2:
++	kfree(wl1273);
++	return r;
++}
++
++static int __devexit wl1273_codec_remove(struct platform_device *pdev)
++{
++	struct wl1273_priv *wl1273 = platform_get_drvdata(pdev);
++
++	dev_dbg(&pdev->dev, "%s\n", __func__);
++
++	snd_soc_unregister_dai(&wl1273_dai);
++	snd_soc_unregister_codec(&wl1273->codec);
++
++	kfree(wl1273);
++	wl1273_codec = NULL;
++
++	return 0;
++}
++
++MODULE_ALIAS("platform:wl1273_codec_audio");
++
++static struct platform_driver wl1273_codec_driver = {
++	.probe		= wl1273_codec_probe,
++	.remove		= __devexit_p(wl1273_codec_remove),
++	.driver		= {
++		.name	= "wl1273_codec_audio",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init wl1273_modinit(void)
++{
++	return platform_driver_register(&wl1273_codec_driver);
++}
++module_init(wl1273_modinit);
++
++static void __exit wl1273_exit(void)
++{
++	platform_driver_unregister(&wl1273_codec_driver);
++}
++module_exit(wl1273_exit);
++
++struct snd_soc_codec_device soc_codec_dev_wl1273 = {
++	.probe = wl1273_soc_probe,
++	.remove = wl1273_soc_remove,
++	.suspend = wl1273_soc_suspend,
++	.resume = wl1273_soc_resume};
++EXPORT_SYMBOL_GPL(soc_codec_dev_wl1273);
++
++MODULE_AUTHOR("Matti Aaltonen <matti.j.aaltonen@nokia.com>");
++MODULE_DESCRIPTION("ASoC WL1273 codec driver");
++MODULE_LICENSE("GPL");
+diff --git a/sound/soc/codecs/wl1273.h b/sound/soc/codecs/wl1273.h
+new file mode 100644
+index 0000000..8fb50ab
+--- /dev/null
++++ b/sound/soc/codecs/wl1273.h
+@@ -0,0 +1,42 @@
++/*
++ * sound/soc/codec/wl1273.h
++ *
++ * ALSA SoC WL1273 codec driver
++ *
++ * Copyright (C) Nokia Corporation
++ * Author: Matti Aaltonen <matti.j.aaltonen@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#ifndef __WL1273_CODEC_H__
++#define __WL1273_CODEC_H__
++
++enum wl1273_mode { WL1273_MODE_BT, WL1273_MODE_FM_RX, WL1273_MODE_FM_TX };
++
++/* codec private data */
++struct wl1273_priv {
++	struct snd_soc_codec codec;
++	enum wl1273_mode mode;
++	struct wl1273_core *core;
++};
++
++extern struct snd_soc_dai wl1273_dai;
++extern struct snd_soc_codec_device soc_codec_dev_wl1273;
++
++enum wl1273_mode wl1273_get_codec_mode(struct snd_soc_codec *codec);
++
++#endif	/* End of __WL1273_CODEC_H__ */
 -- 
-1.7.1.337.g6068.dirty
+1.6.1.3
 
