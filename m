@@ -1,68 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41771 "EHLO
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:25077 "EHLO
 	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754052Ab0GJNGy (ORCPT
+	by vger.kernel.org with ESMTP id S1758087Ab0GTBQK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jul 2010 09:06:54 -0400
-Subject: Re: [git:v4l-dvb/other] V4L/DVB: ivtv: use kthread_worker instead
- of workqueue
+	Mon, 19 Jul 2010 21:16:10 -0400
+Subject: [PATCH 05/17] cx23885: Add correct detection of the HVR-1250 model
+ 79501
 From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: linuxtv-commits@linuxtv.org
-In-Reply-To: <4C386D62.4060202@redhat.com>
-References: <E1OVyBy-0007oJ-03@www.linuxtv.org>
-	 <1278765186.2273.6.camel@localhost>  <4C386D62.4060202@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Kenney Phillisjr <kphillisjr@gmail.com>,
+	Steven Toth <stoth@kernellabs.com>
+In-Reply-To: <cover.1279586511.git.awalls@md.metrocast.net>
+References: <cover.1279586511.git.awalls@md.metrocast.net>
 Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 10 Jul 2010 09:07:16 -0400
-Message-ID: <1278767236.2273.33.camel@localhost>
+Date: Mon, 19 Jul 2010 21:12:21 -0400
+Message-ID: <1279588341.28153.7.camel@localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-07-10 at 09:53 -0300, Mauro Carvalho Chehab wrote:
-> Em 10-07-2010 09:33, Andy Walls escreveu:
-> > On Tue, 2010-07-06 at 03:51 +0200, Mauro Carvalho Chehab wrote:
-> >> This is an automatic generated email to let you know that the following patch were queued at the 
-> >> http://git.linuxtv.org/v4l-dvb.git tree:
-> >>
-> >> Subject: V4L/DVB: ivtv: use kthread_worker instead of workqueue
-> >> Author:  Tejun Heo <tj@kernel.org>
-> >> Date:    Mon Jun 28 18:03:50 2010 -0300
-> >>
-> >> Upcoming workqueue updates will no longer guarantee fixed workqueue to
-> >> worker kthread association, so giving RT priority to the irq worker
-> >> won't work.  Use kthread_worker which guarantees specific kthread
-> >> association instead.  This also makes setting the priority cleaner.
-> >>
-> >> Signed-off-by: Tejun Heo <tj@kernel.org>
-> >> Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-> >> Acked-by: Andy Walls <awalls@md.metrocast.net>
-> >> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> > Mauro,
-> > 
-> > Please revert this or keep it from going upstream.
-> 
-> I already did it locally at commit 635c644cdd1557a69e99bda0dcadaf006b66d432.
-> I just forgot to push it to the linuxtv repository ;)
-> I just updated upstream with this patch and another set of commits I did here.
-> 
+The offset in the eeprom data for the 79501 version of the HVR-1250 is at 0xc0
+vs. the standard 0x80.
 
-:(
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/media/video/cx23885/cx23885-cards.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-Hmmm.  I should really read my personal email more frequently than every
-few days.
-
-Is there anything you need me to do to help fix this? Provide my SOB on
-a reversion patch?  Submit a reversion patch with an explanation and my
-SOB?
-
-Let me know.  I should be available most of today (EDT timezone).
-
-Regards,
-Andy
-
+diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
+index d639186..093de84 100644
+--- a/drivers/media/video/cx23885/cx23885-cards.c
++++ b/drivers/media/video/cx23885/cx23885-cards.c
+@@ -586,6 +586,9 @@ static void hauppauge_eeprom(struct cx23885_dev *dev, u8 *eeprom_data)
+ 	case 79101:
+ 		/* WinTV-HVR1250 (PCIe, Retail, IR, half height,
+ 			ATSC and Basic analog */
++	case 79501:
++		/* WinTV-HVR1250 (PCIe, No IR, half height,
++			ATSC [at least] and Basic analog) */
+ 	case 79561:
+ 		/* WinTV-HVR1250 (PCIe, OEM, No IR, half height,
+ 			ATSC and Basic analog */
+@@ -988,6 +991,13 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 
+ 	switch (dev->board) {
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
++		if (dev->i2c_bus[0].i2c_rc == 0) {
++			if (eeprom[0x80] != 0x84)
++				hauppauge_eeprom(dev, eeprom+0xc0);
++			else
++				hauppauge_eeprom(dev, eeprom+0x80);
++		}
++		break;
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1400:
+-- 
+1.7.1.1
 
 
