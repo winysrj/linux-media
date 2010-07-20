@@ -1,177 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36475 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757898Ab0G2QHK (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:29129 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757606Ab0GTBUZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:07:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 19 Jul 2010 21:20:25 -0400
+Subject: [PATCH 11/17] v4l2_subdev: Move interrupt_service_routine ptr to
+ v4l2_subdev_core_ops
+From: Andy Walls <awalls@md.metrocast.net>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE v3 01/12] v4l: Move the media/v4l2-mediabus.h header to include/linux
-Date: Thu, 29 Jul 2010 18:06:45 +0200
-Message-Id: <1280419616-7658-13-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Kenney Phillisjr <kphillisjr@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Steven Toth <stoth@kernellabs.com>
+In-Reply-To: <cover.1279586511.git.awalls@md.metrocast.net>
+References: <cover.1279586511.git.awalls@md.metrocast.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 19 Jul 2010 21:20:49 -0400
+Message-ID: <1279588849.31145.7.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The header defines the v4l2_mbus_framefmt structure which will be used
-by the V4L2 subdevs userspace API.
+The CX2584x and related cores are multifunction subdevices with a number
+of internal blocks that act as interrupt sources.  Move the v4L2_subdev
+interrupt_service_routine callback from v4l_subdev_ir_ops to
+v4l2_subdev_core_ops, as the video and audio blocks of a CX2584x and
+related cores can generate interrupts along with the IR block.  This
+change also makes sense for other subdev's that generate interrupts and
+do not have an IR block.
 
-Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
-sizes can differ between different ABIs on the same architectures.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
 ---
- include/linux/v4l2-mediabus.h |   64 +++++++++++++++++++++++++++++++++++++++++
- include/media/soc_mediabus.h  |    3 +-
- include/media/v4l2-mediabus.h |   48 +------------------------------
- 3 files changed, 66 insertions(+), 49 deletions(-)
- create mode 100644 include/linux/v4l2-mediabus.h
+ drivers/media/video/cx23885/cx23885-core.c |    2 +-
+ drivers/media/video/cx23885/cx23888-ir.c   |    3 +--
+ include/media/v4l2-subdev.h                |   16 +++++++---------
+ 3 files changed, 9 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-new file mode 100644
-index 0000000..17219c3
---- /dev/null
-+++ b/include/linux/v4l2-mediabus.h
-@@ -0,0 +1,64 @@
-+/*
-+ * Media Bus API header
-+ *
-+ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __LINUX_V4L2_MEDIABUS_H
-+#define __LINUX_V4L2_MEDIABUS_H
-+
-+#include <linux/videodev2.h>
-+
-+/*
-+ * These pixel codes uniquely identify data formats on the media bus. Mostly
-+ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-+ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-+ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-+ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-+ * transferred over the bus: "LE" means that the least significant bits are
-+ * transferred first, "BE" means that the most significant bits are transferred
-+ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-+ * incomplete high byte, are filled with padding bits.
-+ */
-+enum v4l2_mbus_pixelcode {
-+	V4L2_MBUS_FMT_FIXED = 1,
-+	V4L2_MBUS_FMT_YUYV8_2X8_LE,
-+	V4L2_MBUS_FMT_YVYU8_2X8_LE,
-+	V4L2_MBUS_FMT_YUYV8_2X8_BE,
-+	V4L2_MBUS_FMT_YVYU8_2X8_BE,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_RGB565_2X8_LE,
-+	V4L2_MBUS_FMT_RGB565_2X8_BE,
-+	V4L2_MBUS_FMT_SBGGR8_1X8,
-+	V4L2_MBUS_FMT_SBGGR10_1X10,
-+	V4L2_MBUS_FMT_GREY8_1X8,
-+	V4L2_MBUS_FMT_Y10_1X10,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-+	V4L2_MBUS_FMT_SGRBG8_1X8,
-+};
-+
-+/**
-+ * struct v4l2_mbus_framefmt - frame format on the media bus
-+ * @width:	frame width
-+ * @height:	frame height
-+ * @code:	data format code
-+ * @field:	used interlacing type
-+ * @colorspace:	colorspace of the data
-+ */
-+struct v4l2_mbus_framefmt {
-+	__u32				width;
-+	__u32				height;
-+	__u32				code;
-+	enum v4l2_field			field;
-+	enum v4l2_colorspace		colorspace;
-+};
-+
-+#endif
-diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-index 037cd7b..6243147 100644
---- a/include/media/soc_mediabus.h
-+++ b/include/media/soc_mediabus.h
-@@ -12,8 +12,7 @@
- #define SOC_MEDIABUS_H
+diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
+index 161ae73..ec8baf3 100644
+--- a/drivers/media/video/cx23885/cx23885-core.c
++++ b/drivers/media/video/cx23885/cx23885-core.c
+@@ -1765,7 +1765,7 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
+ 		handled += cx23885_video_irq(dev, vida_status);
  
- #include <linux/videodev2.h>
+ 	if (pci_status & PCI_MSK_IR) {
+-		v4l2_subdev_call(dev->sd_ir, ir, interrupt_service_routine,
++		v4l2_subdev_call(dev->sd_ir, core, interrupt_service_routine,
+ 				 pci_status, &ir_handled);
+ 		if (ir_handled)
+ 			handled++;
+diff --git a/drivers/media/video/cx23885/cx23888-ir.c b/drivers/media/video/cx23885/cx23888-ir.c
+index 28ca90f..51f2163 100644
+--- a/drivers/media/video/cx23885/cx23888-ir.c
++++ b/drivers/media/video/cx23885/cx23888-ir.c
+@@ -1126,11 +1126,10 @@ static const struct v4l2_subdev_core_ops cx23888_ir_core_ops = {
+ 	.g_register = cx23888_ir_g_register,
+ 	.s_register = cx23888_ir_s_register,
+ #endif
++	.interrupt_service_routine = cx23888_ir_irq_handler,
+ };
+ 
+ static const struct v4l2_subdev_ir_ops cx23888_ir_ir_ops = {
+-	.interrupt_service_routine = cx23888_ir_irq_handler,
 -
--#include <media/v4l2-mediabus.h>
-+#include <linux/v4l2-mediabus.h>
+ 	.rx_read = cx23888_ir_rx_read,
+ 	.rx_g_parameters = cx23888_ir_rx_g_parameters,
+ 	.rx_s_parameters = cx23888_ir_rx_s_parameters,
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index a780cca..bacd525 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -131,6 +131,11 @@ struct v4l2_subdev_io_pin_config {
  
- /**
-  * enum soc_mbus_packing - data packing types on the media-bus
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 865cda7..971c7fa 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -11,53 +11,7 @@
- #ifndef V4L2_MEDIABUS_H
- #define V4L2_MEDIABUS_H
+    s_power: puts subdevice in power saving mode (on == 0) or normal operation
+ 	mode (on == 1).
++
++   interrupt_service_routine: Called by the bridge chip's interrupt service
++	handler, when an interrupt status has be raised due to this subdev,
++	so that this subdev can handle the details.  It may schedule work to be
++	performed later.  It must not sleep.  *Called from an IRQ context*.
+  */
+ struct v4l2_subdev_core_ops {
+ 	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip);
+@@ -156,6 +161,8 @@ struct v4l2_subdev_core_ops {
+ 	int (*s_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
+ #endif
+ 	int (*s_power)(struct v4l2_subdev *sd, int on);
++	int (*interrupt_service_routine)(struct v4l2_subdev *sd,
++						u32 status, bool *handled);
+ };
  
--/*
-- * These pixel codes uniquely identify data formats on the media bus. Mostly
-- * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
-- * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
-- * data format is fixed. Additionally, "2X8" means that one pixel is transferred
-- * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
-- * transferred over the bus: "LE" means that the least significant bits are
-- * transferred first, "BE" means that the most significant bits are transferred
-- * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-- * incomplete high byte, are filled with padding bits.
-- */
--enum v4l2_mbus_pixelcode {
--	V4L2_MBUS_FMT_FIXED = 1,
--	V4L2_MBUS_FMT_YUYV8_2X8_LE,
--	V4L2_MBUS_FMT_YVYU8_2X8_LE,
--	V4L2_MBUS_FMT_YUYV8_2X8_BE,
--	V4L2_MBUS_FMT_YVYU8_2X8_BE,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_RGB565_2X8_LE,
--	V4L2_MBUS_FMT_RGB565_2X8_BE,
--	V4L2_MBUS_FMT_SBGGR8_1X8,
--	V4L2_MBUS_FMT_SBGGR10_1X10,
--	V4L2_MBUS_FMT_GREY8_1X8,
--	V4L2_MBUS_FMT_Y10_1X10,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
--	V4L2_MBUS_FMT_SGRBG8_1X8,
--};
+ /* s_mode: switch the tuner to a specific tuner mode. Replacement of s_radio.
+@@ -330,11 +337,6 @@ struct v4l2_subdev_sensor_ops {
+ };
+ 
+ /*
+-   interrupt_service_routine: Called by the bridge chip's interrupt service
+-	handler, when an IR interrupt status has be raised due to this subdev,
+-	so that this subdev can handle the details.  It may schedule work to be
+-	performed later.  It must not sleep.  *Called from an IRQ context*.
 -
--/**
-- * struct v4l2_mbus_framefmt - frame format on the media bus
-- * @width:	frame width
-- * @height:	frame height
-- * @code:	data format code
-- * @field:	used interlacing type
-- * @colorspace:	colorspace of the data
-- */
--struct v4l2_mbus_framefmt {
--	__u32				width;
--	__u32				height;
--	enum v4l2_mbus_pixelcode	code;
--	enum v4l2_field			field;
--	enum v4l2_colorspace		colorspace;
--};
-+#include <linux/v4l2-mediabus.h>
+    [rt]x_g_parameters: Get the current operating parameters and state of the
+ 	the IR receiver or transmitter.
  
- static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
- 				const struct v4l2_mbus_framefmt *mbus_fmt)
+@@ -392,10 +394,6 @@ struct v4l2_subdev_ir_parameters {
+ };
+ 
+ struct v4l2_subdev_ir_ops {
+-	/* Common to receiver and transmitter */
+-	int (*interrupt_service_routine)(struct v4l2_subdev *sd,
+-						u32 status, bool *handled);
+-
+ 	/* Receiver */
+ 	int (*rx_read)(struct v4l2_subdev *sd, u8 *buf, size_t count,
+ 				ssize_t *num);
 -- 
-1.7.1
+1.7.1.1
+
 
