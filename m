@@ -1,105 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:59192 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753703Ab0GaSds convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59270 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757606Ab0GTBWY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 14:33:48 -0400
-MIME-Version: 1.0
-In-Reply-To: <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
-References: <AANLkTimaut1mMUXwbJAgjNjmQkxgsf-GOCTXmKYNm1Lz@mail.gmail.com>
-	<BTtOJbzJjFB@christoph>
-	<AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
-Date: Sat, 31 Jul 2010 14:33:47 -0400
-Message-ID: <AANLkTi=LdmtF5R3AwLp7xY5-5SxHJ3EmmCZOT5Ae2RCV@mail.gmail.com>
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable
-	it.
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Christoph Bartelmus <lirc@bartelmus.de>
-Cc: awalls@md.metrocast.net, jarod@wilsonet.com,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, maximlevitsky@gmail.com,
-	mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 19 Jul 2010 21:22:24 -0400
+Subject: [PATCH 13/17] cx23885: Add a v4l2_subdev group id for the
+ CX2388[578] integrated AV core
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org
+Cc: Kenney Phillisjr <kphillisjr@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	"Igor M.Liplianin" <liplianin@me.by>
+In-Reply-To: <cover.1279586511.git.awalls@md.metrocast.net>
+References: <cover.1279586511.git.awalls@md.metrocast.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 19 Jul 2010 21:22:47 -0400
+Message-ID: <1279588967.31145.10.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 31, 2010 at 2:14 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
->> Hi Jon,
->>
->> on 31 Jul 10 at 12:25, Jon Smirl wrote:
->>> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
->>> wrote:
->>>> I think you won't be able to fix the problem conclusively either way.  A
->>>> lot of how the chip's clocks should be programmed depends on how the
->>>> GPIOs are used and what crystal is used.
->>>>
->>>> I suspect many designers will use some reference design layout from ENE,
->>>> but it won't be good in every case.  The wire-up of the ENE of various
->>>> motherboards is likely something you'll have to live with as unknowns.
->>>>
->>>> This is a case where looser tolerances in the in kernel decoders could
->>>> reduce this driver's complexity and/or get rid of arbitrary fudge
->>>> factors in the driver.
->>
->>> The tolerances are as loose as they can be. The NEC protocol uses
->>> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
->>> (50% of 4%).  The crystals used in electronics are accurate to
->>> 0.0001%+.
->>
->> But the standard IR receivers are far from being accurate enough to allow
->> tolerance windows of only 2%.
->> I'm surprised that this works for you. LIRC uses a standard tolerance of
->> 30% / 100 us and even this is not enough sometimes.
->>
->> For the NEC protocol one signal consists of 22 individual pulses at 38kHz.
->> If the receiver just misses one pulse, you already have an error of 1/22
->>> 4%.
->
-> There are different types of errors. The decoders can take large
-> variations in bit times. The problem is with cumulative errors. In
-> this case the error had accumulated up to 450us in the lead pulse.
-> That's just too big of an error and caused the JVC code to be
-> misclassified as NEC.
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/media/video/cx23885/cx23885-cards.c |    5 ++++-
+ drivers/media/video/cx23885/cx23885.h       |    3 ++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
-I only see two solutions to this problem:
-
-1) fix the driver to semi-accurately report correct measurements. A
-consistent off by 4% error is simply too much since the NEC protocol
-is a 4% stretched version of the JVC protocol. If the driver is
-stretching JVC by 4% it has effectively converted it into a broken NEC
-message. And that's what the decoders detected.  Given that the NEC
-protocol is a 4% stretched JVC the largest safe timing variance is 2%
-(half of 4%).  That 2% number is nothing to do with the code, it is
-caused by the definitions of the JVC and NEC protocol timings.
-
-2) Implement a record and match mode that knows nothing about
-protocols. LIRC has this in the raw protocol. That would fix this
-problem, but we're treating the symptom not the disease. The disease
-is the broken IR driver.
-
-I'd rather hold off on the raw protocol and try to fix the base IR
-drivers first.
-
-
->
-> I think he said lirc was misclassifying it too. So we both did the same thing.
->
->
->>
->> Christoph
->>
->
->
->
-> --
-> Jon Smirl
-> jonsmirl@gmail.com
->
-
-
-
+diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
+index 191bda0..96da11f 100644
+--- a/drivers/media/video/cx23885/cx23885-cards.c
++++ b/drivers/media/video/cx23885/cx23885-cards.c
+@@ -1152,7 +1152,10 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_bus[2].i2c_adap,
+ 				"cx25840", "cx25840", 0x88 >> 1, NULL);
+-		v4l2_subdev_call(dev->sd_cx25840, core, load_fw);
++		if (dev->sd_cx25840) {
++			dev->sd_cx25840->grp_id = CX23885_HW_AV_CORE;
++			v4l2_subdev_call(dev->sd_cx25840, core, load_fw);
++		}
+ 		break;
+ 	}
+ 
+diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
+index a33f2b7..460f430 100644
+--- a/drivers/media/video/cx23885/cx23885.h
++++ b/drivers/media/video/cx23885/cx23885.h
+@@ -403,7 +403,8 @@ static inline struct cx23885_dev *to_cx23885(struct v4l2_device *v4l2_dev)
+ #define call_all(dev, o, f, args...) \
+ 	v4l2_device_call_all(&dev->v4l2_dev, 0, o, f, ##args)
+ 
+-#define CX23885_HW_888_IR (1 << 0)
++#define CX23885_HW_888_IR  (1 << 0)
++#define CX23885_HW_AV_CORE (1 << 1)
+ 
+ #define call_hw(dev, grpid, o, f, args...) \
+ 	v4l2_device_call_all(&dev->v4l2_dev, grpid, o, f, ##args)
 -- 
-Jon Smirl
-jonsmirl@gmail.com
+1.7.1.1
+
+
