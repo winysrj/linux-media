@@ -1,173 +1,307 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:24212 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753711Ab0G1WRg (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:15850 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757606Ab0GTBXf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 18:17:36 -0400
-Message-ID: <4C50AC26.1080100@oracle.com>
-Date: Wed, 28 Jul 2010 15:16:06 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-MIME-Version: 1.0
-To: Janne Grunau <j@jannau.net>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: linux-next: Tree for July 28 (lirc #2)
-References: <20100728162855.4968e561.sfr@canb.auug.org.au> <20100728102417.be60049a.randy.dunlap@oracle.com> <20100728220454.GK8564@aniel.lan>
-In-Reply-To: <20100728220454.GK8564@aniel.lan>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 19 Jul 2010 21:23:35 -0400
+Subject: [PATCH 14/17] cx23885: Add preliminary IR Rx support for the
+ HVR-1250 and TeVii S470
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org
+Cc: Kenney Phillisjr <kphillisjr@gmail.com>,
+	Jarod Wilson <jarod@redhat.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	"Igor M.Liplianin" <liplianin@me.by>
+In-Reply-To: <cover.1279586511.git.awalls@md.metrocast.net>
+References: <cover.1279586511.git.awalls@md.metrocast.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 19 Jul 2010 21:23:59 -0400
+Message-ID: <1279589039.31145.12.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/28/10 15:04, Janne Grunau wrote:
-> On Wed, Jul 28, 2010 at 10:24:17AM -0700, Randy Dunlap wrote:
->> On Wed, 28 Jul 2010 16:28:55 +1000 Stephen Rothwell wrote:
->>
->>> Hi all,
->>>
->>> Changes since 20100727:
->>
->>
->> When USB_SUPPORT is not enabled and MEDIA_SUPPORT is not enabled:
->>
-> 
-> following patch should fix it
-> 
-> Janne
+Add initial IR Rx support using the intergrated IR controller in the
+A/V core of the CX23885 bridge chip.
 
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+This initial support is flawed in that I2C transactions should not
+be performed in a hard irq context.  That will be fixed in a
+follow on patch.
 
-Thanks.
+The TeVii S470 support is reported to generate perptual interrupts
+that renders a user' system nearly unusable.  The TeVii S470 IR
+will be disabled by default in a follow on patch.
 
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+---
+ drivers/media/video/cx23885/cx23885-cards.c |   52 ++++++++++++++++++++++++--
+ drivers/media/video/cx23885/cx23885-core.c  |   22 +++++++++--
+ drivers/media/video/cx23885/cx23885-input.c |   46 ++++++++++++++++++++++-
+ drivers/media/video/cx23885/cx23885-reg.h   |    1 +
+ 4 files changed, 111 insertions(+), 10 deletions(-)
 
-> 
-> From 7d1cc98c19a6c27dd74a28f04dfe4248a0b335ce Mon Sep 17 00:00:00 2001
-> From: Janne Grunau <j@jannau.net>
-> Date: Wed, 28 Jul 2010 23:53:35 +0200
-> Subject: [PATCH 1/2] staging/lirc: fix Kconfig dependencies
-> 
-> Signed-off-by: Janne Grunau <j@jannau.net>
-> ---
->  drivers/staging/lirc/Kconfig |   28 ++++++++++++++--------------
->  1 files changed, 14 insertions(+), 14 deletions(-)
-> 
-> diff --git a/drivers/staging/lirc/Kconfig b/drivers/staging/lirc/Kconfig
-> index 968c2ade..3981a4a 100644
-> --- a/drivers/staging/lirc/Kconfig
-> +++ b/drivers/staging/lirc/Kconfig
-> @@ -13,13 +13,13 @@ if LIRC_STAGING
->  
->  config LIRC_BT829
->          tristate "BT829 based hardware"
-> -	depends on LIRC_STAGING
-> +	depends on LIRC && LIRC_STAGING
->  	help
->  	  Driver for the IR interface on BT829-based hardware
->  
->  config LIRC_ENE0100
->  	tristate "ENE KB3924/ENE0100 CIR Port Reciever"
-> -	depends on LIRC_STAGING
-> +	depends on LIRC && LIRC_STAGING
->  	help
->  	  This is a driver for CIR port handled by ENE KB3924 embedded
->  	  controller found on some notebooks.
-> @@ -27,20 +27,20 @@ config LIRC_ENE0100
->  
->  config LIRC_I2C
->  	tristate "I2C Based IR Receivers"
-> -	depends on LIRC_STAGING
-> +	depends on I2C && LIRC && LIRC_STAGING
->  	help
->  	  Driver for I2C-based IR receivers, such as those commonly
->  	  found onboard Hauppauge PVR-150/250/350 video capture cards
->  
->  config LIRC_IGORPLUGUSB
->  	tristate "Igor Cesko's USB IR Receiver"
-> -	depends on LIRC_STAGING && USB
-> +	depends on USB && LIRC && LIRC_STAGING && USB
->  	help
->  	  Driver for Igor Cesko's USB IR Receiver
->  
->  config LIRC_IMON
->  	tristate "Legacy SoundGraph iMON Receiver and Display"
-> -	depends on LIRC_STAGING
-> +	depends on LIRC && LIRC_STAGING
->  	help
->  	  Driver for the original SoundGraph iMON IR Receiver and Display
->  
-> @@ -48,31 +48,31 @@ config LIRC_IMON
->  
->  config LIRC_IT87
->  	tristate "ITE IT87XX CIR Port Receiver"
-> -	depends on LIRC_STAGING
-> +	depends on LIRC && LIRC_STAGING
->  	help
->  	  Driver for the ITE IT87xx IR Receiver
->  
->  config LIRC_ITE8709
->  	tristate "ITE8709 CIR Port Receiver"
-> -	depends on LIRC_STAGING && PNP
-> +	depends on LIRC && LIRC_STAGING && PNP
->  	help
->  	  Driver for the ITE8709 IR Receiver
->  
->  config LIRC_PARALLEL
->  	tristate "Homebrew Parallel Port Receiver"
-> -	depends on LIRC_STAGING && !SMP
-> +	depends on LIRC && LIRC_STAGING && !SMP
->  	help
->  	  Driver for Homebrew Parallel Port Receivers
->  
->  config LIRC_SASEM
->  	tristate "Sasem USB IR Remote"
-> -	depends on LIRC_STAGING
-> +	depends on USB && LIRC && LIRC_STAGING
->  	help
->  	  Driver for the Sasem OnAir Remocon-V or Dign HV5 HTPC IR/VFD Module
->  
->  config LIRC_SERIAL
->  	tristate "Homebrew Serial Port Receiver"
-> -	depends on LIRC_STAGING
-> +	depends on LIRC && LIRC_STAGING
->  	help
->  	  Driver for Homebrew Serial Port Receivers
->  
-> @@ -85,25 +85,25 @@ config LIRC_SERIAL_TRANSMITTER
->  
->  config LIRC_SIR
->  	tristate "Built-in SIR IrDA port"
-> -	depends on LIRC_STAGING
-> +	depends on LIRC && LIRC_STAGING
->  	help
->  	  Driver for the SIR IrDA port
->  
->  config LIRC_STREAMZAP
->  	tristate "Streamzap PC Receiver"
-> -	depends on LIRC_STAGING
-> +	depends on USB && LIRC && LIRC_STAGING
->  	help
->  	  Driver for the Streamzap PC Receiver
->  
->  config LIRC_TTUSBIR
->  	tristate "Technotrend USB IR Receiver"
-> -	depends on LIRC_STAGING && USB
-> +	depends on USB && LIRC && LIRC_STAGING && USB
->  	help
->  	  Driver for the Technotrend USB IR Receiver
->  
->  config LIRC_ZILOG
->  	tristate "Zilog/Hauppauge IR Transmitter"
-> -	depends on LIRC_STAGING
-> +	depends on I2C && LIRC && LIRC_STAGING
->  	help
->  	  Driver for the Zilog/Hauppauge IR Transmitter, found on
->  	  PVR-150/500, HVR-1200/1250/1700/1800, HD-PVR and other cards
-
-
+diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
+index 96da11f..5c11caf 100644
+--- a/drivers/media/video/cx23885/cx23885-cards.c
++++ b/drivers/media/video/cx23885/cx23885-cards.c
+@@ -922,7 +922,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
+ 
+ int cx23885_ir_init(struct cx23885_dev *dev)
+ {
+-	static struct v4l2_subdev_io_pin_config ir_pin_cfg[] = {
++	static struct v4l2_subdev_io_pin_config ir_rxtx_pin_cfg[] = {
+ 		{
+ 			.flags	  = V4L2_SUBDEV_IO_PIN_INPUT,
+ 			.pin	  = CX23885_PIN_IR_RX_GPIO19,
+@@ -937,12 +937,22 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+ 			.strength = CX25840_PIN_DRIVE_MEDIUM,
+ 		}
+ 	};
+-	const size_t ir_pin_cfg_count = ARRAY_SIZE(ir_pin_cfg);
++	const size_t ir_rxtx_pin_cfg_count = ARRAY_SIZE(ir_rxtx_pin_cfg);
++
++	static struct v4l2_subdev_io_pin_config ir_rx_pin_cfg[] = {
++		{
++			.flags	  = V4L2_SUBDEV_IO_PIN_INPUT,
++			.pin	  = CX23885_PIN_IR_RX_GPIO19,
++			.function = CX23885_PAD_IR_RX,
++			.value	  = 0,
++			.strength = CX25840_PIN_DRIVE_MEDIUM,
++		}
++	};
++	const size_t ir_rx_pin_cfg_count = ARRAY_SIZE(ir_rx_pin_cfg);
+ 
+ 	struct v4l2_subdev_ir_parameters params;
+ 	int ret = 0;
+ 	switch (dev->board) {
+-	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1800:
+@@ -961,7 +971,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+ 			break;
+ 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_888_IR);
+ 		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
+-				 ir_pin_cfg_count, ir_pin_cfg);
++				 ir_rxtx_pin_cfg_count, ir_rxtx_pin_cfg);
+ 		dev->pci_irqmask |= PCI_MSK_IR;
+ 		/*
+ 		 * For these boards we need to invert the Tx output via the
+@@ -975,6 +985,26 @@ int cx23885_ir_init(struct cx23885_dev *dev)
+ 		params.shutdown = true;
+ 		v4l2_subdev_call(dev->sd_ir, ir, tx_s_parameters, &params);
+ 		break;
++	case CX23885_BOARD_TEVII_S470:
++		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
++		if (dev->sd_ir == NULL) {
++			ret = -ENODEV;
++			break;
++		}
++		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
++				 ir_rx_pin_cfg_count, ir_rx_pin_cfg);
++		dev->pci_irqmask |= PCI_MSK_AV_CORE;
++		break;
++	case CX23885_BOARD_HAUPPAUGE_HVR1250:
++		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
++		if (dev->sd_ir == NULL) {
++			ret = -ENODEV;
++			break;
++		}
++		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
++				 ir_rxtx_pin_cfg_count, ir_rxtx_pin_cfg);
++		dev->pci_irqmask |= PCI_MSK_AV_CORE;
++		break;
+ 	case CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP:
+ 		request_module("ir-kbd-i2c");
+ 		break;
+@@ -993,6 +1023,13 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
+ 		cx23888_ir_remove(dev);
+ 		dev->sd_ir = NULL;
+ 		break;
++	case CX23885_BOARD_TEVII_S470:
++	case CX23885_BOARD_HAUPPAUGE_HVR1250:
++		dev->pci_irqmask &= ~PCI_MSK_AV_CORE;
++		cx_clear(PCI_INT_MSK, PCI_MSK_AV_CORE);
++		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
++		dev->sd_ir = NULL;
++		break;
+ 	}
+ }
+ 
+@@ -1004,6 +1041,11 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
+ 		if (dev->sd_ir && (dev->pci_irqmask & PCI_MSK_IR))
+ 			cx_set(PCI_INT_MSK, PCI_MSK_IR);
+ 		break;
++	case CX23885_BOARD_TEVII_S470:
++	case CX23885_BOARD_HAUPPAUGE_HVR1250:
++		if (dev->sd_ir && (dev->pci_irqmask & PCI_MSK_AV_CORE))
++			cx_set(PCI_INT_MSK, PCI_MSK_AV_CORE);
++		break;
+ 	}
+ }
+ 
+@@ -1149,6 +1191,8 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
+ 	case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
++	case CX23885_BOARD_TEVII_S470:
++	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_bus[2].i2c_adap,
+ 				"cx25840", "cx25840", 0x88 >> 1, NULL);
+diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
+index ec8baf3..f912be2 100644
+--- a/drivers/media/video/cx23885/cx23885-core.c
++++ b/drivers/media/video/cx23885/cx23885-core.c
+@@ -1650,7 +1650,7 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
+ 	u32 ts1_status, ts1_mask;
+ 	u32 ts2_status, ts2_mask;
+ 	int vida_count = 0, ts1_count = 0, ts2_count = 0, handled = 0;
+-	bool ir_handled = false;
++	bool subdev_handled;
+ 
+ 	pci_status = cx_read(PCI_INT_STAT);
+ 	pci_mask = cx_read(PCI_INT_MSK);
+@@ -1681,7 +1681,7 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
+ 			  PCI_MSK_VID_C   | PCI_MSK_VID_B   | PCI_MSK_VID_A   |
+ 			  PCI_MSK_AUD_INT | PCI_MSK_AUD_EXT |
+ 			  PCI_MSK_GPIO0   | PCI_MSK_GPIO1   |
+-			  PCI_MSK_IR)) {
++			  PCI_MSK_AV_CORE | PCI_MSK_IR)) {
+ 
+ 		if (pci_status & PCI_MSK_RISC_RD)
+ 			dprintk(7, " (PCI_MSK_RISC_RD   0x%08x)\n",
+@@ -1731,6 +1731,10 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
+ 			dprintk(7, " (PCI_MSK_GPIO1     0x%08x)\n",
+ 				PCI_MSK_GPIO1);
+ 
++		if (pci_status & PCI_MSK_AV_CORE)
++			dprintk(7, " (PCI_MSK_AV_CORE   0x%08x)\n",
++				PCI_MSK_AV_CORE);
++
+ 		if (pci_status & PCI_MSK_IR)
+ 			dprintk(7, " (PCI_MSK_IR        0x%08x)\n",
+ 				PCI_MSK_IR);
+@@ -1765,9 +1769,19 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
+ 		handled += cx23885_video_irq(dev, vida_status);
+ 
+ 	if (pci_status & PCI_MSK_IR) {
++		subdev_handled = false;
+ 		v4l2_subdev_call(dev->sd_ir, core, interrupt_service_routine,
+-				 pci_status, &ir_handled);
+-		if (ir_handled)
++				 pci_status, &subdev_handled);
++		if (subdev_handled)
++			handled++;
++	}
++
++	if (pci_status & PCI_MSK_AV_CORE) {
++		subdev_handled = false;
++		v4l2_subdev_call(dev->sd_cx25840,
++				 core, interrupt_service_routine,
++				 pci_status, &subdev_handled);
++		if (subdev_handled)
+ 			handled++;
+ 	}
+ 
+diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
+index 496d751..3f924e2 100644
+--- a/drivers/media/video/cx23885/cx23885-input.c
++++ b/drivers/media/video/cx23885/cx23885-input.c
+@@ -99,8 +99,10 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
+ 	switch (dev->board) {
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
++	case CX23885_BOARD_TEVII_S470:
++	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 		/*
+-		 * The only board we handle right now.  However other boards
++		 * The only boards we handle right now.  However other boards
+ 		 * using the CX2388x integrated IR controller should be similar
+ 		 */
+ 		break;
+@@ -148,6 +150,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+ 	switch (dev->board) {
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
++	case CX23885_BOARD_HAUPPAUGE_HVR1250:
+ 		/*
+ 		 * The IR controller on this board only returns pulse widths.
+ 		 * Any other mode setting will fail to set up the device.
+@@ -172,6 +175,37 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
+ 		 */
+ 		params.invert_level = true;
+ 		break;
++	case CX23885_BOARD_TEVII_S470:
++		/*
++		 * The IR controller on this board only returns pulse widths.
++		 * Any other mode setting will fail to set up the device.
++		 */
++		params.mode = V4L2_SUBDEV_IR_MODE_PULSE_WIDTH;
++		params.enable = true;
++		params.interrupt_enable = true;
++		params.shutdown = false;
++
++		/* Setup for a standard NEC protocol */
++		params.carrier_freq = 37917; /* Hz, 455 kHz/12 for NEC */
++		params.carrier_range_lower = 33000; /* Hz */
++		params.carrier_range_upper = 43000; /* Hz */
++		params.duty_cycle = 33; /* percent, 33 percent for NEC */
++
++		/*
++		 * NEC max pulse width: (64/3)/(455 kHz/12) * 16 nec_units
++		 * (64/3)/(455 kHz/12) * 16 nec_units * 1.375 = 12378022 ns
++		 */
++		params.max_pulse_width = 12378022; /* ns */
++
++		/*
++		 * NEC noise filter min width: (64/3)/(455 kHz/12) * 1 nec_unit
++		 * (64/3)/(455 kHz/12) * 1 nec_units * 0.625 = 351648 ns
++		 */
++		params.noise_filter_min_width = 351648; /* ns */
++
++		params.modulation = false;
++		params.invert_level = true;
++		break;
+ 	}
+ 	v4l2_subdev_call(dev->sd_ir, ir, rx_s_parameters, &params);
+ 	return 0;
+@@ -244,12 +278,20 @@ int cx23885_input_init(struct cx23885_dev *dev)
+ 	switch (dev->board) {
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
+-		/* Integrated CX23888 IR controller */
++	case CX23885_BOARD_HAUPPAUGE_HVR1250:
++		/* Integrated CX2388[58] IR controller */
+ 		driver_type = RC_DRIVER_IR_RAW;
+ 		allowed_protos = IR_TYPE_ALL;
+ 		/* The grey Hauppauge RC-5 remote */
+ 		rc_map = RC_MAP_RC5_HAUPPAUGE_NEW;
+ 		break;
++	case CX23885_BOARD_TEVII_S470:
++		/* Integrated CX23885 IR controller */
++		driver_type = RC_DRIVER_IR_RAW;
++		allowed_protos = IR_TYPE_ALL;
++		/* A guess at the remote */
++		rc_map = RC_MAP_TEVII_NEC;
++		break;
+ 	default:
+ 		return -ENODEV;
+ 	}
+diff --git a/drivers/media/video/cx23885/cx23885-reg.h b/drivers/media/video/cx23885/cx23885-reg.h
+index c0bc9a0..a28772d 100644
+--- a/drivers/media/video/cx23885/cx23885-reg.h
++++ b/drivers/media/video/cx23885/cx23885-reg.h
+@@ -213,6 +213,7 @@ Channel manager Data Structure entry = 20 DWORD
+ #define DEV_CNTRL2	0x00040000
+ 
+ #define PCI_MSK_IR        (1 << 28)
++#define PCI_MSK_AV_CORE   (1 << 27)
+ #define PCI_MSK_GPIO1     (1 << 24)
+ #define PCI_MSK_GPIO0     (1 << 23)
+ #define PCI_MSK_APB_DMA   (1 << 12)
 -- 
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+1.7.1.1
+
+
