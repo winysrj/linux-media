@@ -1,44 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51743 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758643Ab0G3OyT (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:46861 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932286Ab0GUOmJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 10:54:19 -0400
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+	Wed, 21 Jul 2010 10:42:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de, p.wiesner@phytec.de,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>
-Subject: [PATCH 04/20] mt9m111: added new bit offset defines
-Date: Fri, 30 Jul 2010 16:53:22 +0200
-Message-Id: <1280501618-23634-5-git-send-email-m.grzeschik@pengutronix.de>
-In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
-References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [SAMPLE v2 11/12] omap34xxcam: Register the ISP platform device during omap34xxcam probe
+Date: Wed, 21 Jul 2010 16:41:58 +0200
+Message-Id: <1279723318-28943-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
----
- drivers/media/video/mt9m111.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+In order to properly clean up all resources allocated by the isp-mod
+driver, the ISP platform device needs to be unregistered when the
+omap34xxcam driver is unloaded.
 
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index c72c4b0..aeb2241 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -63,6 +63,12 @@
- #define MT9M111_RESET_RESTART_FRAME	(1 << 1)
- #define MT9M111_RESET_RESET_MODE	(1 << 0)
+Move the ISP platform device registration from omap_init_camera to
+omap34xxcam_probe. This fixes many memory leaks when unloading and
+reloading the omap34xxcam driver.
+
+Platform device registration should be moved back to omap_init_camera
+when (if) the omap34xxcam and isp-mod drivers will be merged.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-omap2/devices.c |   13 ++++++++++++-
+ 1 files changed, 12 insertions(+), 1 deletions(-)
+
+diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
+index ae465ce..61e5136 100644
+--- a/arch/arm/mach-omap2/devices.c
++++ b/arch/arm/mach-omap2/devices.c
+@@ -144,17 +144,28 @@ static struct resource omap3isp_resources[] = {
+ 	}
+ };
  
-+#define MT9M111_RM_FULL_POWER_RD	(0 << 10)
-+#define MT9M111_RM_LOW_POWER_RD		(1 << 10)
-+#define MT9M111_RM_COL_SKIP_4X		(1 << 5)
-+#define MT9M111_RM_ROW_SKIP_4X		(1 << 4)
-+#define MT9M111_RM_COL_SKIP_2X		(1 << 3)
-+#define MT9M111_RM_ROW_SKIP_2X		(1 << 2)
- #define MT9M111_RMB_MIRROR_COLS		(1 << 1)
- #define MT9M111_RMB_MIRROR_ROWS		(1 << 0)
- #define MT9M111_CTXT_CTRL_RESTART	(1 << 15)
++static void omap3isp_release(struct device *dev)
++{
++	/* Zero the device structure to avoid re-initialization complaints from
++	 * kobject when the device will be re-registered.
++	 */
++	memset(dev, 0, sizeof(*dev));
++	dev->release = omap3isp_release;
++}
++
+ struct platform_device omap3isp_device = {
+ 	.name		= "omap3isp",
+ 	.id		= -1,
+ 	.num_resources	= ARRAY_SIZE(omap3isp_resources),
+ 	.resource	= omap3isp_resources,
++	.dev = {
++		.release	= omap3isp_release,
++	},
+ };
+ EXPORT_SYMBOL_GPL(omap3isp_device);
+ 
+ static inline void omap_init_camera(void)
+ {
+-	platform_device_register(&omap3isp_device);
+ }
+ #else
+ static inline void omap_init_camera(void)
 -- 
 1.7.1
 
