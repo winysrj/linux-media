@@ -1,68 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:38841 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751105Ab0GYRqX (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:45619 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755213Ab0GUQeF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jul 2010 13:46:23 -0400
-Message-ID: <4C4C7889.4000304@infradead.org>
-Date: Sun, 25 Jul 2010 14:46:49 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Wed, 21 Jul 2010 12:34:05 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Wed, 21 Jul 2010 11:33:54 -0500
+Subject: RE: [media-ctl] [omap3camera:devel] How to use the app?
+Message-ID: <A24693684029E5489D1D202277BE89445698C396@dlee02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE8944562E8B71@dlee02.ent.ti.com>
+ <201006291222.47159.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201006291222.47159.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: figo zhang <figo1802@gmail.com>
-CC: hverkuil@xs4all.nl, linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: how to mmap in videobuf-dma-sg.c
-References: <1242881164.3824.2.camel@myhost>	<20090521073518.1c0c0a5b@pedra.chehab.org> <AANLkTimExb4hh8K5lRCRiM0IMIgsOpCw69bFvqLlQCDc@mail.gmail.com>
-In-Reply-To: <AANLkTimExb4hh8K5lRCRiM0IMIgsOpCw69bFvqLlQCDc@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 22-07-2010 23:31, figo zhang escreveu:
-> 
->     Em Thu, 21 May 2009 12:46:04 +0800
->     "Figo.zhang" <figo1802@gmail.com <mailto:figo1802@gmail.com>> escreveu:
-> 
->     > hi,all,
->     >  I am puzzle that how to mmap ( V4L2_MEMORY_MMAP) in videobuf-dma-sg.c?
->     >
->     > In this file, it alloc the momery using vmalloc_32() , and put this
->     > momery into sglist table,and then use dma_map_sg() to create sg dma at
->     > __videobuf_iolock() function. but in __videobuf_mmap_mapper(), i canot
->     > understand how it do the mmap?
->     > why it not use the remap_vmalloc_range() to do the mmap?
-> 
->     The answer is simple: remap_vmalloc_range() is newer than videobuf code. This
->     part of the code was written back to kernel 2.4, and nobody cared to update it
->     to use those newer functions, and simplify its code.
-> 
-> 
-> thanks, in __videobuf_mmap_mapper(), it define a videobuf_vm_ops->fault, it will alloc a new page for mmaping when it  encounter page fault (do_page_fault),
-> so how the mmap() can mmap the vmalloc memory which had allocted before using __videobuf_iolock()/vmalloc_32() ?
+Hi Laurent,
 
-Sorry for not answering earlier.
-
-The current videobuf implementation has some problems. Laurent and Pawel are working
-on a new implementation that will likely solve such issues. Not sure if they already
-submitted the patches, since I just return back from vacations, and I'm still trying
-to handle all the backlogs on my inboxes. I haven't look at LMML posts yet.
-
-Cheers,
-Mauro.
-
-> 
-> Thanks,
-> Figo.zhang
->  
-> 
-> 
->     If you want, feel free to propose some cleanups on it
-> 
-> 
-> 
->     Cheers,
->     Mauro
-> 
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Tuesday, June 29, 2010 5:23 AM
+> To: Aguirre, Sergio
+> Cc: Sakari Ailus; linux-media@vger.kernel.org
+> Subject: Re: [media-ctl] [omap3camera:devel] How to use the app?
 > 
 
+<snip>
+
+> 
+> You will find a set of patches that remove the legacy video nodes attached
+> to
+> this e-mail. They haven't been applied to the omap3camera tree yet, as we
+> still haven't fixed all userspace components yet, but they should get
+> there in
+> a few weeks hopefully. You should probably apply them to your tree to make
+> sure you don't start using the legacy video nodes by mistake. They also
+> remove
+> a lot of code, which is always good, and remove the hardcoded number of
+> sensors.
+
+By any chance, do you keep rebasing these patches in a branch somewhere?
+
+I tried rebasing them against latest 'devel' branch, but they fail on
+omap34xxcam.c, because the removed content is not the same. The delta is
+just an addition you did to reset all non-legacy links during init.
+
+Is it ok to still remove this completely? Or is this going to be rellocated
+somewhere?
+
+The patch I'm talking about is named: "omap34xxcam: Reset all links before setting up the pipeline".
+
+Regards,
+Sergio
+
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
