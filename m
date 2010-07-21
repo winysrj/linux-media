@@ -1,282 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:33716 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753053Ab0GITBD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 15:01:03 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=utf-8
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L5B009HP0TO2240@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 09 Jul 2010 20:01:00 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L5B002JZ0TNM6@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 09 Jul 2010 20:01:00 +0100 (BST)
-Date: Fri, 09 Jul 2010 20:59:45 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [RFC v4] Multi-plane buffer support for V4L2 API
-To: 'Linux Media Mailing List' <linux-media@vger.kernel.org>
-Cc: 'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'Hans de Goede' <hdegoede@redhat.com>,
-	kyungmin.park@samsung.com
-Message-id: <004b01cb1f98$e586ae10$b0940a30$%osciak@samsung.com>
-Content-language: pl
+Received: from perceval.irobotique.be ([92.243.18.41]:46856 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932131Ab0GUOmC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jul 2010 10:42:02 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [SAMPLE v2 01/12] v4l: Move the media/v4l2-mediabus.h header to include/linux
+Date: Wed, 21 Jul 2010 16:41:48 +0200
+Message-Id: <1279723318-28943-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+The header defines the v4l2_mbus_framefmt structure which will be used
+by the V4L2 subdevs userspace API.
 
-This is the fourth version of the multi-plane API extensions proposal.
-I think that we have reached a stage at which it is more or less finalized.
+Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
+sizes can differ between different ABIs on the same architectures.
 
-Rationale can be found at the beginning of the original thread:
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/11212
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/v4l2-mediabus.h |   64 +++++++++++++++++++++++++++++++++++++++++
+ include/media/soc_mediabus.h  |    3 +-
+ include/media/v4l2-mediabus.h |   48 +------------------------------
+ 3 files changed, 66 insertions(+), 49 deletions(-)
+ create mode 100644 include/linux/v4l2-mediabus.h
 
-
-===============================================
-I. Multiplanar API description/negotiation
-===============================================
-
-1. Maximum number of planes
-----------------------------------
-
-We've chosen the maximum number of planes to be 8 per buffer:
-
-+#define VIDEO_MAX_PLANES               8
-
-
-2. Capability checks
-----------------------------------
-
-If a driver supports multiplanar API, it can turn on one (or both) of the
-new capability flags:
-
-+/* Is a video capture device that supports multiplanar formats */
-+#define V4L2_CAP_VIDEO_CAPTURE_MPLANE  0x00001000
-+/* Is a video output device that supports multiplanar formats */
-+#define V4L2_CAP_VIDEO_OUTPUT_MPLANE   0x00002000
-
-- any combination of those flags is valid;
-- any combinations with the old, non-multiplanar V4L2_CAP_VIDEO_CAPTURE and
-  V4L2_CAP_VIDEO_OUTPUT flags are also valid;
-- the new flags indicate, that a driver supports the new API, but it does NOT
-  have to actually use multiplanar formats; it is perfectly possible and valid
-  to use the new API for 1-plane buffers as well;
-  using the new API for both 1-planar and n-planar formats makes the
-  applications simpler, as they do not have to fall back to the old API in the
-  former case.
-
-
-3. Describing multiplanar formats
-----------------------------------
-
-To describe multiplanar formats, we have to extend the format struct:
-
- struct v4l2_format {
-        enum v4l2_buf_type type;
-        union {
-                struct v4l2_pix_format          pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
-+               struct v4l2_pix_format_mplane   mp_pix;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
-                struct v4l2_window              win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
-                struct v4l2_vbi_format          vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
-                struct v4l2_sliced_vbi_format   sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-                __u8    raw_data[200];                   /* user-defined */
-        } fmt;
- };
-
-We need a new buffer type to recognize when to use mp_pix instead of pix.
-Or, actually, two buffer types, for both OUTPUT and CAPTURE:
-
- enum v4l2_buf_type {
-        /* ... */
-+       V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
-+       V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
-        /* ... */
- };
-
-
-For those buffer types, we use struct v4l2_pix_format_mplane:
-
-+/**
-+ * struct v4l2_pix_format_mplane - multiplanar format definition
-+ * @pix_fmt:   definition of an image format for all planes
-+ * @plane_fmt: per-plane information
-+ */
-+struct v4l2_pix_format_mplane {
-+       struct v4l2_pix_format          pix_fmt;
-+       struct v4l2_plane_format        plane_fmt[VIDEO_MAX_PLANES];
-+} __attribute__ ((packed));
-
-The pix_fmt member is to be used in the same way as in the old API. Its fields:
-- width, height, field, colorspace, priv retain their old meaning;
-- pixelformat is still fourcc, but new fourcc values have to be introduced
-  for multiplanar formats;
-- bytesperline, sizeimage lose their meanings and are replaced by their
-  counterparts in the new, per-plane format struct.
-
-
-The plane format struct is as follows:
-
-+/**
-+ * struct v4l2_plane_format - additional, per-plane format definition
-+ * @sizeimage:         maximum size in bytes required for data, for which
-+ *                     this plane will be used
-+ * @bytesperline:      distance in bytes between the leftmost pixels in two
-+ *                     adjacent lines
-+ */
-+struct v4l2_plane_format {
-+       __u32           sizeimage;
-+       __u16           bytesperline;
-+       __u16           reserved[7];
-+} __attribute__ ((packed));
-
-Note that bytesperline is u16 now, but that shouldn't hurt.
-
-
-Fitting everything into v4l2_format's union (which is 200 bytes long):
-v4l2_pix_format shouldn't be larger than 40 bytes.
-8 * struct v4l2_plane_format + struct v4l2_pix_format = 8 * 20 + 40 = 200
-
-
-4. Format enumeration
-----------------------------------
-struct v4l2_fmtdesc, used for format enumeration, does include the v4l2_buf_type
-enum as well, so the new types can be handled properly here as well.
-For drivers supporting both versions of the API, 1-plane formats should be
-returned for multiplanar buffer types as well, for consistency. In other words,
-for multiplanar buffer types, the formats returned are a superset of those
-returned when enumerating with the old buffer types.
-
-
-5. Requesting buffers (buffer allocation)
-----------------------------------
-VIDIOC_REQBUFS includes v4l2_buf_type as well, so everything works as expected.
-
-
-===============================================
-II. Multiplanar buffer and plane descriptors
-===============================================
-
-1. Adding plane info to v4l2_buffer
-----------------------------------
-
- struct v4l2_buffer {
-        /* ... */ 
-        enum v4l2_buf_type      type;
-        /* ... */ 
-        union {
-                __u32           offset;
-                unsigned long   userptr;
-+               struct v4l2_plane __user *planes;
-        } m;
-        __u32                   length;
-        /* ... */
- };
-
-Multiplanar buffers are also recognized using the new v4l2_buf_types.
-
-(Note to readers familiar with the old proposal: we do not use any new memory
-types for multiplanar buffers anymore, buffer types are enough. So no more
-V4L2_MEMORY_MULTI_MMAP and V4L2_MEMORY_MULTI_USERPTR.)
-
-
-For new buffer types, we choose the "planes" member of the union. It contains
-a userspace pointer to an array of struct v4l2_plane. The size of this array
-is to be passed in "length", as it is not relevant for multiplanar buffers.
-
-2. Plane description struct
-----------------------------------
-
-+/**
-+ * struct v4l2_plane - plane info for multiplanar buffers
-+ * @bytesused: number of bytes occupied by data in the plane (payload)
-+ * @mem_off:   when memory in the associated struct v4l2_buffer is
-+ *             V4L2_MEMORY_MMAP, equals the offset from the start of the
-+ *             device memory for this plane (or is a "cookie" that should be
-+ *             passed to mmap() called on the video node)
-+ * @userptr:   when memory is V4L2_MEMORY_USERPTR, a userspace pointer pointing
-+ *             to this plane
-+ * @length:    size of this plane (NOT the payload) in bytes
-+ * @data_off:  offset in plane to the start of data/end of header, if relevant
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+new file mode 100644
+index 0000000..17219c3
+--- /dev/null
++++ b/include/linux/v4l2-mediabus.h
+@@ -0,0 +1,64 @@
++/*
++ * Media Bus API header
 + *
-+ * Multi-plane buffers consist of two or more planes, e.g. an YCbCr buffer
-+ * with two planes has one plane for Y, and another for interleaved CbCr
-+ * components. Each plane can reside in a separate memory buffer, or in
-+ * a completely separate memory chip even (e.g. in embedded devices).
++ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+struct v4l2_plane {
-+       __u32                   bytesused;
-+       __u32                   length;
-+       union {
-+               __u32           mem_off;
-+               unsigned long   userptr;
-+       } m;
-+       __u32                   data_off;
-+       __u32                   reserved[11];
++
++#ifndef __LINUX_V4L2_MEDIABUS_H
++#define __LINUX_V4L2_MEDIABUS_H
++
++#include <linux/videodev2.h>
++
++/*
++ * These pixel codes uniquely identify data formats on the media bus. Mostly
++ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
++ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
++ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
++ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
++ * transferred over the bus: "LE" means that the least significant bits are
++ * transferred first, "BE" means that the most significant bits are transferred
++ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
++ * incomplete high byte, are filled with padding bits.
++ */
++enum v4l2_mbus_pixelcode {
++	V4L2_MBUS_FMT_FIXED = 1,
++	V4L2_MBUS_FMT_YUYV8_2X8_LE,
++	V4L2_MBUS_FMT_YVYU8_2X8_LE,
++	V4L2_MBUS_FMT_YUYV8_2X8_BE,
++	V4L2_MBUS_FMT_YVYU8_2X8_BE,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_RGB565_2X8_LE,
++	V4L2_MBUS_FMT_RGB565_2X8_BE,
++	V4L2_MBUS_FMT_SBGGR8_1X8,
++	V4L2_MBUS_FMT_SBGGR10_1X10,
++	V4L2_MBUS_FMT_GREY8_1X8,
++	V4L2_MBUS_FMT_Y10_1X10,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
++	V4L2_MBUS_FMT_SGRBG8_1X8,
 +};
-
-If a plane contents include not only data, but also a header, a driver may use
-the data_off member to indicate the offset in bytes to the start of data.
-
-Union m works in the same way as it does in the old API for v4l2_buffer.
-offset has been renamed to mem_off, so as not to be confused with data_off.
-Which of the two to choose is decided as in the old API, by checking the
-memory field in struct v4l2_buffer.
-
-
-===============================================
-III. Handling ioctl()s and mmap()
-===============================================
-
-* VIDIOC_S/G/TRY_FMT:
-Pass a new buffer type and use the new mp_pix member of the struct.
-
-* VIDIOC_ENUM_FMT:
-Pass a new buffer type.
-
-* VIDIOC_REQBUFS:
-Pass a new buffer type and count of video frames (not plane count) normally.
-Expect the driver to return count (of buffers, not planes) as usual or EINVAL
-if multiplanar API is not supported.
-(The number of planes is already known, specified by the currently chosen
-format.)
-
-* VIDIOC_QUERYBUFS:
-Pass a v4l2_buffer struct as usual, set a multiplane buffer type and put a
-pointer to an array of v4l2_plane structures under 'planes'.  Place the size
-of that array in 'length'. Expect the driver to fill mem_off fields in each
-v4l2_plane struct, analogically to offsets in non-multiplanar v4l2_buffers.
-
-* VIDIOC_QBUF
-As in the case of QUERYBUFS, pass the array of planes and its size in 'length'.
-Fill all the fields required by non-multiplanar versions of this call, although
-some of them in the planes' array members.
-
-* VIDIOC_DQBUF
-An array of planes does not have to be passed, but if you do pass it, you will
-have it filled with data, just like in case of the non-multiplanar version.
-
-* mmap()
-Basically just like in non-multiplanar buffer case, but with planes instead of
-buffers and one mmap() call per each plane.
-
-Call mmap() once for each plane, passing the offsets provided in v4l2_plane
-structs. Repeat for all buffers ((num_planes * num_buffers) calls to mmap).
-There is no need for those calls to be in any particular order.
-
-A v4l2_buffer changes state to mapped (V4L2_BUF_FLAG_MAPPED flag) only after all
-of its planes have been mmapped successfully.
-
-
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
-
-
++
++/**
++ * struct v4l2_mbus_framefmt - frame format on the media bus
++ * @width:	frame width
++ * @height:	frame height
++ * @code:	data format code
++ * @field:	used interlacing type
++ * @colorspace:	colorspace of the data
++ */
++struct v4l2_mbus_framefmt {
++	__u32				width;
++	__u32				height;
++	__u32				code;
++	enum v4l2_field			field;
++	enum v4l2_colorspace		colorspace;
++};
++
++#endif
+diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
+index 037cd7b..6243147 100644
+--- a/include/media/soc_mediabus.h
++++ b/include/media/soc_mediabus.h
+@@ -12,8 +12,7 @@
+ #define SOC_MEDIABUS_H
+ 
+ #include <linux/videodev2.h>
+-
+-#include <media/v4l2-mediabus.h>
++#include <linux/v4l2-mediabus.h>
+ 
+ /**
+  * enum soc_mbus_packing - data packing types on the media-bus
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 865cda7..971c7fa 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -11,53 +11,7 @@
+ #ifndef V4L2_MEDIABUS_H
+ #define V4L2_MEDIABUS_H
+ 
+-/*
+- * These pixel codes uniquely identify data formats on the media bus. Mostly
+- * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
+- * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
+- * data format is fixed. Additionally, "2X8" means that one pixel is transferred
+- * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
+- * transferred over the bus: "LE" means that the least significant bits are
+- * transferred first, "BE" means that the most significant bits are transferred
+- * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+- * incomplete high byte, are filled with padding bits.
+- */
+-enum v4l2_mbus_pixelcode {
+-	V4L2_MBUS_FMT_FIXED = 1,
+-	V4L2_MBUS_FMT_YUYV8_2X8_LE,
+-	V4L2_MBUS_FMT_YVYU8_2X8_LE,
+-	V4L2_MBUS_FMT_YUYV8_2X8_BE,
+-	V4L2_MBUS_FMT_YVYU8_2X8_BE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_RGB565_2X8_LE,
+-	V4L2_MBUS_FMT_RGB565_2X8_BE,
+-	V4L2_MBUS_FMT_SBGGR8_1X8,
+-	V4L2_MBUS_FMT_SBGGR10_1X10,
+-	V4L2_MBUS_FMT_GREY8_1X8,
+-	V4L2_MBUS_FMT_Y10_1X10,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+-	V4L2_MBUS_FMT_SGRBG8_1X8,
+-};
+-
+-/**
+- * struct v4l2_mbus_framefmt - frame format on the media bus
+- * @width:	frame width
+- * @height:	frame height
+- * @code:	data format code
+- * @field:	used interlacing type
+- * @colorspace:	colorspace of the data
+- */
+-struct v4l2_mbus_framefmt {
+-	__u32				width;
+-	__u32				height;
+-	enum v4l2_mbus_pixelcode	code;
+-	enum v4l2_field			field;
+-	enum v4l2_colorspace		colorspace;
+-};
++#include <linux/v4l2-mediabus.h>
+ 
+ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
+ 				const struct v4l2_mbus_framefmt *mbus_fmt)
+-- 
+1.7.1
 
