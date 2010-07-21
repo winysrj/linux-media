@@ -1,54 +1,334 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:60501 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:51334 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752726Ab0G3UZB (ORCPT
+	with ESMTP id S1758540Ab0GUOfm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 16:25:01 -0400
+	Wed, 21 Jul 2010 10:35:42 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl
-Subject: [PATCH 0/2] Per-subdev, host-specific data
-Date: Fri, 30 Jul 2010 22:24:53 +0200
-Message-Id: <1280521495-19922-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v2 05/10] media: Reference count and power handling
+Date: Wed, 21 Jul 2010 16:35:30 +0200
+Message-Id: <1279722935-28493-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-Following up on the per-subdev, host-specific data RFC, here are two patches
-that implement the feature.
+Basically these are the interface functions:
 
-The first patch fixes various subdev drivers not to access the v4l2_subdev::priv
-field directly but use v4l2_get_subdevdata instead. As the function is a static
-inline that just returns v4l2_subdev::priv, there shouldn't be any performance
-or code size impact.
+media_entity_get() - acquire entity
+media_entity_put() - release entity
 
-The second patch introduces the v4l2_subdev::host_priv field and renames the
-existing priv field to dev_priv, as suggested by Hans Verkuil.
+	If the entity is of node type, the power change is distributed to
+	all connected entities. For non-nodes it only affects that very
+	node. A mutex is used to serialise access to the entity graph.
 
-Host-specific per-subdev data will be needed by the OMAP3 ISP driver. Even if
-the patches are not applied now, I'd like to get them reviewed and acked.
+In the background there's a depth-first search algorithm that traverses the
+active links in the graph. All these functions parse the graph to implement
+whatever they're to do.
 
-Laurent Pinchart (2):
-  v4l: Use v4l2_get_subdevdata instead of accessing v4l2_subdev::priv
-  v4l: Add a v4l2_subdev host private data field
+The module counters are increased/decreased in media_entity_get/put to
+prevent module unloading when an entity is referenced.
 
- Documentation/video4linux/v4l2-framework.txt |    5 +++++
- drivers/media/video/mt9m001.c                |   26 +++++++++++++-------------
- drivers/media/video/mt9m111.c                |   20 ++++++++++----------
- drivers/media/video/mt9t031.c                |   24 ++++++++++++------------
- drivers/media/video/mt9t112.c                |   14 +++++++-------
- drivers/media/video/mt9v022.c                |   26 +++++++++++++-------------
- drivers/media/video/ov772x.c                 |   18 +++++++++---------
- drivers/media/video/ov9640.c                 |   12 ++++++------
- drivers/media/video/rj54n1cb0c.c             |   26 +++++++++++++-------------
- drivers/media/video/soc_camera.c             |    2 +-
- drivers/media/video/tw9910.c                 |   20 ++++++++++----------
- include/media/v4l2-subdev.h                  |   20 ++++++++++++++++----
- 12 files changed, 115 insertions(+), 98 deletions(-)
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+---
+ Documentation/media-framework.txt |   37 +++++++++
+ drivers/media/media-device.c      |    1 +
+ drivers/media/media-entity.c      |  146 +++++++++++++++++++++++++++++++++++++
+ include/media/media-device.h      |    3 +
+ include/media/media-entity.h      |   15 ++++
+ 5 files changed, 202 insertions(+), 0 deletions(-)
 
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index 266d80f..3acc62b 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -233,3 +233,40 @@ When the graph traversal is complete the function will return NULL.
+ Graph traversal can be interrupted at any moment. No cleanup function call is
+ required and the graph structure can be freed normally.
+ 
++
++Reference counting and power handling
++-------------------------------------
++
++Before accessing type-specific entities operations (such as the V4L2
++sub-device operations), drivers must acquire a reference to the entity. This
++ensures that the entity will be powered on and ready to accept requests.
++Similarly, after being done with an entity, drivers must release the
++reference.
++
++	media_entity_get(struct media_entity *entity)
++
++The function will increase the entity reference count. If the entity is a node
++(MEDIA_ENTITY_TYPE_NODE type), the reference count of all entities it is
++connected to, both directly or indirectly, through active links is increased.
++This ensures that the whole media pipeline will be ready to process
++
++Acquiring a reference to an entity increases the media device module reference
++count to prevent module unloading when an entity is being used.
++
++media_entity_get will return a pointer to the entity if successful, or NULL
++otherwise.
++
++	media_entity_put(struct media_entity *entity)
++
++The function will decrease the entity reference count and, for node entities,
++like media_entity_get, the reference count of all connected entities. Calling
++media_entity_put with a NULL argument is valid and will return immediately.
++
++When the first reference to an entity is acquired, or the last reference
++released, the entity's set_power operation is called. Entity drivers must
++implement the operation if they need to perform any power management task,
++such as turning powers or clocks on or off. If no power management is
++required, drivers don't need to provide a set_power operation. The operation
++is allowed to fail when turning power on, in which case the media_entity_get
++function will return NULL.
++
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 3e16138..097419b 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -51,6 +51,7 @@ int __must_check media_device_register(struct media_device *mdev)
+ 	mdev->entity_id = 1;
+ 	INIT_LIST_HEAD(&mdev->entities);
+ 	spin_lock_init(&mdev->lock);
++	mutex_init(&mdev->graph_mutex);
+ 
+ 	/* If dev == NULL, then name must be filled in by the caller */
+ 	if (mdev->dev == NULL && WARN_ON(!mdev->name[0]))
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index ae4e8af..8fdfabe 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -21,6 +21,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <media/media-entity.h>
++#include <media/media-device.h>
+ 
+ /**
+  * media_entity_init - Initialize a media entity
+@@ -194,6 +195,151 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
+ 
+ /* -----------------------------------------------------------------------------
++ * Power state handling
++ */
++
++/* Apply use count to an entity. */
++static void media_entity_use_apply_one(struct media_entity *entity, int change)
++{
++	entity->use_count += change;
++	WARN_ON(entity->use_count < 0);
++}
++
++/*
++ * Apply use count change to an entity and change power state based on
++ * new use count.
++ */
++static int media_entity_power_apply_one(struct media_entity *entity, int change)
++{
++	int ret;
++
++	if (entity->use_count == 0 && change > 0 &&
++	    entity->ops && entity->ops->set_power) {
++		ret = entity->ops->set_power(entity, 1);
++		if (ret)
++			return ret;
++	}
++
++	media_entity_use_apply_one(entity, change);
++
++	if (entity->use_count == 0 && change < 0 &&
++	    entity->ops && entity->ops->set_power)
++		entity->ops->set_power(entity, 0);
++
++	return 0;
++}
++
++/*
++ * Apply power change to all connected entities. This ignores the
++ * nodes.
++ */
++static int media_entity_power_apply(struct media_entity *entity, int change)
++{
++	struct media_entity_graph graph;
++	struct media_entity *first = entity;
++	int ret = 0;
++
++	if (!change)
++		return 0;
++
++	media_entity_graph_walk_start(&graph, entity);
++
++	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
++		if (entity->type != MEDIA_ENTITY_TYPE_NODE)
++			ret = media_entity_power_apply_one(entity, change);
++
++	if (!ret)
++		return 0;
++
++	media_entity_graph_walk_start(&graph, first);
++
++	while ((first = media_entity_graph_walk_next(&graph))
++	       && first != entity)
++		if (first->type != MEDIA_ENTITY_TYPE_NODE)
++			media_entity_power_apply_one(first, -change);
++
++	return ret;
++}
++
++/*
++ * Apply use count change to graph and change power state of entities
++ * accordingly.
++ */
++static int media_entity_node_power_change(struct media_entity *entity,
++					  int change)
++{
++	/* Apply use count to node. */
++	media_entity_use_apply_one(entity, change);
++
++	/* Apply power change to connected non-nodes. */
++	return media_entity_power_apply(entity, change);
++}
++
++/*
++ * Node entity use changes are reflected on power state of all
++ * connected (directly or indirectly) entities whereas non-node entity
++ * use count changes are limited to that very entity.
++ */
++static int media_entity_use_change(struct media_entity *entity, int change)
++{
++	if (entity->type == MEDIA_ENTITY_TYPE_NODE)
++		return media_entity_node_power_change(entity, change);
++	else
++		return media_entity_power_apply_one(entity, change);
++}
++
++static struct media_entity *__media_entity_get(struct media_entity *entity)
++{
++	if (media_entity_use_change(entity, 1))
++		return NULL;
++
++	return entity;
++}
++
++static void __media_entity_put(struct media_entity *entity)
++{
++	media_entity_use_change(entity, -1);
++}
++
++/* user open()s media entity */
++struct media_entity *media_entity_get(struct media_entity *entity)
++{
++	struct media_entity *e;
++
++	if (entity == NULL)
++		return NULL;
++
++	if (entity->parent->dev &&
++	    !try_module_get(entity->parent->dev->driver->owner))
++		return NULL;
++
++	mutex_lock(&entity->parent->graph_mutex);
++	e = __media_entity_get(entity);
++	mutex_unlock(&entity->parent->graph_mutex);
++
++	if (e == NULL && entity->parent->dev)
++		module_put(entity->parent->dev->driver->owner);
++
++	return e;
++}
++EXPORT_SYMBOL_GPL(media_entity_get);
++
++/* user release()s media entity */
++void media_entity_put(struct media_entity *entity)
++{
++	if (entity == NULL)
++		return;
++
++	mutex_lock(&entity->parent->graph_mutex);
++	__media_entity_put(entity);
++	mutex_unlock(&entity->parent->graph_mutex);
++
++	if (entity->parent->dev)
++		module_put(entity->parent->dev->driver->owner);
++}
++EXPORT_SYMBOL_GPL(media_entity_put);
++
++/* -----------------------------------------------------------------------------
+  * Links management
+  */
+ 
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index 3a713c0..4d3ad0e 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -23,6 +23,7 @@
+ 
+ #include <linux/device.h>
+ #include <linux/list.h>
++#include <linux/mutex.h>
+ #include <linux/spinlock.h>
+ 
+ #include <media/media-devnode.h>
+@@ -50,6 +51,8 @@ struct media_device {
+ 
+ 	/* Protects the entities list */
+ 	spinlock_t lock;
++	/* Serializes graph operations. */
++	struct mutex graph_mutex;
+ 
+ 	/* unique device name, by default the driver name + bus ID */
+ 	char name[MEDIA_DEVICE_NAME_SIZE];
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 15944bb..63c30a0 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -34,6 +34,10 @@ struct media_entity_pad {
+ 	u8 index;			/* Pad index in the entity pads array */
+ };
+ 
++struct media_entity_operations {
++	int (*set_power)(struct media_entity *entity, int power);
++};
++
+ struct media_entity {
+ 	struct list_head list;
+ 	struct media_device *parent;	/* Media device this entity belongs to*/
+@@ -52,6 +56,10 @@ struct media_entity {
+ 	struct media_entity_pad *pads;	/* Array of pads (num_pads elements) */
+ 	struct media_entity_link *links;/* Array of links (max_links elements)*/
+ 
++	const struct media_entity_operations *ops;	/* Entity operations */
++
++	int use_count;			/* Use count for the entity. */
++
+ 	union {
+ 		/* Node specifications */
+ 		struct {
+@@ -86,9 +94,16 @@ void media_entity_cleanup(struct media_entity *entity);
+ int media_entity_create_link(struct media_entity *source, u8 source_pad,
+ 		struct media_entity *sink, u8 sink_pad, u32 flags);
+ 
++struct media_entity *media_entity_get(struct media_entity *entity);
++void media_entity_put(struct media_entity *entity);
++
+ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ 		struct media_entity *entity);
+ struct media_entity *
+ media_entity_graph_walk_next(struct media_entity_graph *graph);
+ 
++#define media_entity_call(entity, operation, args...)			\
++	(((entity)->ops && (entity)->ops->operation) ?			\
++	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
++
+ #endif
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.1
 
