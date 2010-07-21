@@ -1,132 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:56764 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751318Ab0GRE2W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Jul 2010 00:28:22 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: [RFC] [PATCH 5/6] OMAP1: Amstrad Delta: add support for camera
-Date: Sun, 18 Jul 2010 06:27:49 +0200
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tony Lindgren <tony@atomide.com>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl>
-In-Reply-To: <201007180618.08266.jkrzyszt@tis.icnet.pl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201007180627.54193.jkrzyszt@tis.icnet.pl>
+Received: from perceval.irobotique.be ([92.243.18.41]:46861 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932131Ab0GUOmH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Jul 2010 10:42:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [SAMPLE v2 08/12] v4l: subdev: Generic ioctl support
+Date: Wed, 21 Jul 2010 16:41:55 +0200
+Message-Id: <1279723318-28943-9-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds configuration data and initialization code required for camera 
-support to the Amstrad Delta board.
+Instead of returning an error when receiving an ioctl call with an
+unsupported command, forward the call to the subdev core::ioctl handler.
 
-Three devices are declared: SoC camera, OMAP1 camera interface and OV6650 
-sensor.
-
-Default 12MHz clock has been selected for driving the sensor. Pixel clock has 
-been limited to get reasonable frame rates, not exceeding the board 
-capabilities. Since both devices (interface and sensor) support both pixel 
-clock polarities, decision on polarity selection has been left to drivers.
-Interface GPIO line has been found not functional, thus not configured.
-
-Created and tested against linux-2.6.35-rc3.
-
-Works on top of previous patches from the series, at least 1/6, 2/6 and 3/6.
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- arch/arm/mach-omap1/board-ams-delta.c |   45 ++++++++++++++++++++++++++++++++++
- 1 file changed, 45 insertions(+)
+ Documentation/video4linux/v4l2-framework.txt |    5 +++++
+ drivers/media/video/v4l2-subdev.c            |    2 +-
+ 2 files changed, 6 insertions(+), 1 deletions(-)
 
---- linux-2.6.35-rc3.orig/arch/arm/mach-omap1/board-ams-delta.c	2010-06-26 15:54:47.000000000 +0200
-+++ linux-2.6.35-rc3/arch/arm/mach-omap1/board-ams-delta.c	2010-07-18 02:21:23.000000000 +0200
-@@ -19,6 +19,8 @@
- #include <linux/platform_device.h>
- #include <linux/serial_8250.h>
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 76ecd43..b47adf2 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -401,6 +401,11 @@ VIDIOC_UNSUBSCRIBE_EVENT
+ 	To properly support events, the poll() file operation is also
+ 	implemented.
  
-+#include <media/soc_camera.h>
++Private ioctls
 +
- #include <asm/serial.h>
- #include <mach/hardware.h>
- #include <asm/mach-types.h>
-@@ -32,6 +34,7 @@
- #include <plat/usb.h>
- #include <plat/board.h>
- #include <plat/common.h>
-+#include <mach/camera.h>
- 
- #include <mach/ams-delta-fiq.h>
- 
-@@ -213,10 +216,37 @@ static struct platform_device ams_delta_
- 	.id	= -1
- };
- 
-+static struct i2c_board_info ams_delta_camera_board_info[] = {
-+	{
-+		I2C_BOARD_INFO("ov6650", 0x60),
-+	},
-+};
++	All ioctls not in the above list are passed directly to the sub-device
++	driver through the core::ioctl operation.
 +
-+static struct soc_camera_link __initdata ams_delta_iclink = {
-+	.bus_id         = 0,	/* OMAP1 SoC camera bus */
-+	.i2c_adapter_id = 1,
-+	.board_info     = &ams_delta_camera_board_info[0],
-+	.module_name    = "ov6650",
-+};
-+
-+static struct platform_device ams_delta_camera_device = {
-+	.name   = "soc-camera-pdrv",
-+	.id     = 0,
-+	.dev    = {
-+		.platform_data = &ams_delta_iclink,
-+	},
-+};
-+
-+static struct omap1_cam_platform_data ams_delta_camera_platform_data = {
-+	.camexclk_khz	= 12000,	/* default 12MHz clock, no extra DPLL */
-+	.lclk_khz_max	= 1334,		/* results in 5fps CIF, 10fps QCIF */
-+};
-+
- static struct platform_device *ams_delta_devices[] __initdata = {
- 	&ams_delta_kp_device,
- 	&ams_delta_lcd_device,
- 	&ams_delta_led_device,
-+	&ams_delta_camera_device,
- };
  
- static void __init ams_delta_init(void)
-@@ -225,6 +255,20 @@ static void __init ams_delta_init(void)
- 	omap_cfg_reg(UART1_TX);
- 	omap_cfg_reg(UART1_RTS);
+ I2C sub-device drivers
+ ----------------------
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index ad4b95e..887cd88 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -257,7 +257,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 	}
  
-+	/* parallel camera interface */
-+	omap_cfg_reg(H19_1610_CAM_EXCLK);
-+	omap_cfg_reg(J15_1610_CAM_LCLK);
-+	omap_cfg_reg(L18_1610_CAM_VS);
-+	omap_cfg_reg(L15_1610_CAM_HS);
-+	omap_cfg_reg(L19_1610_CAM_D0);
-+	omap_cfg_reg(K14_1610_CAM_D1);
-+	omap_cfg_reg(K15_1610_CAM_D2);
-+	omap_cfg_reg(K19_1610_CAM_D3);
-+	omap_cfg_reg(K18_1610_CAM_D4);
-+	omap_cfg_reg(J14_1610_CAM_D5);
-+	omap_cfg_reg(J19_1610_CAM_D6);
-+	omap_cfg_reg(J18_1610_CAM_D7);
-+
- 	iotable_init(ams_delta_io_desc, ARRAY_SIZE(ams_delta_io_desc));
+ 	default:
+-		return -ENOIOCTLCMD;
++		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+ 	}
  
- 	omap_board_config = ams_delta_config;
-@@ -236,6 +280,7 @@ static void __init ams_delta_init(void)
- 	ams_delta_latch2_write(~0, 0);
- 
- 	omap_usb_init(&ams_delta_usb_config);
-+	omap1_set_camera_info(&ams_delta_camera_platform_data);
- 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
- 
- #ifdef CONFIG_AMS_DELTA_FIQ
+ 	return 0;
+-- 
+1.7.1
+
