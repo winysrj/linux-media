@@ -1,130 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:34367 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933282Ab0GOOQv convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3933 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755309Ab0GVTeW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jul 2010 10:16:51 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-Date: Thu, 15 Jul 2010 09:16:44 -0500
-Subject: RE: [RFC/PATCH 02/10] media: Media device
-Message-ID: <A24693684029E5489D1D202277BE894456775DA5@dlee02.ent.ti.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1279114219-27389-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279114219-27389-3-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Thu, 22 Jul 2010 15:34:22 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6MJYCG7055091
+	for <linux-media@vger.kernel.org>; Thu, 22 Jul 2010 21:34:21 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 22 Jul 2010 21:34:12 +0200 (CEST)
+Message-Id: <201007221934.o6MJYCG7055091@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Very minor comment below.
+Results of the daily build of v4l-dvb:
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Wednesday, July 14, 2010 8:30 AM
-> To: linux-media@vger.kernel.org
-> Cc: sakari.ailus@maxwell.research.nokia.com
-> Subject: [RFC/PATCH 02/10] media: Media device
-> 
-> The media_device structure abstracts functions common to all kind of
-> media devices (v4l2, dvb, alsa, ...). It manages media entities and
-> offers a userspace API to discover and configure the media device
-> internal topology.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  Documentation/media-framework.txt |   68 ++++++++++++++++++++++++++++++++
->  drivers/media/Makefile            |    2 +-
->  drivers/media/media-device.c      |   77
-> +++++++++++++++++++++++++++++++++++++
->  include/media/media-device.h      |   53 +++++++++++++++++++++++++
->  4 files changed, 199 insertions(+), 1 deletions(-)
->  create mode 100644 Documentation/media-framework.txt
->  create mode 100644 drivers/media/media-device.c
->  create mode 100644 include/media/media-device.h
->
+date:        Thu Jul 22 19:00:20 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-<snip>
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> new file mode 100644
-> index 0000000..6c1fc4a
-> --- /dev/null
-> +++ b/include/media/media-device.h
-> @@ -0,0 +1,53 @@
-> +/*
-> + *  Media device support header.
-> + *
-> + *  Copyright (C) 2010  Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com>
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; either version 2 of the License, or
-> + *  (at your option) any later version.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License
-> + *  along with this program; if not, write to the Free Software
-> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-> USA
-> + */
-> +
-> +#ifndef _MEDIA_DEVICE_H
-> +#define _MEDIA_DEVICE_H
-> +
-> +#include <linux/device.h>
-> +#include <linux/list.h>
-> +
-> +#include <media/media-devnode.h>
-> +
-> +/* Each instance of a media device should create the media_device struct,
-> + * either stand-alone or embedded in a larger struct.
-> + *
-> + * It allows easy access to sub-devices (see v4l2-subdev.h) and provides
-> + * basic media device-level support.
-> + */
-> +
-> +#define MEDIA_DEVICE_NAME_SIZE (20 + 16)
+Detailed results are available here:
 
-Where does above numbers come from ??
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Regards,
-Sergio
+Full logs are available here:
 
-> +
-> +struct media_device {
-> +	/* dev->driver_data points to this struct.
-> +	 * Note: dev might be NULL if there is no parent device
-> +	 * as is the case with e.g. ISA devices.
-> +	 */
-> +	struct device *dev;
-> +	struct media_devnode devnode;
-> +
-> +	/* unique device name, by default the driver name + bus ID */
-> +	char name[MEDIA_DEVICE_NAME_SIZE];
-> +};
-> +
-> +int __must_check media_device_register(struct media_device *mdev);
-> +void media_device_unregister(struct media_device *mdev);
-> +
-> +#endif
-> --
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
