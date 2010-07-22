@@ -1,61 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:41400 "EHLO
+Received: from smtp.nokia.com ([192.100.105.134]:19999 "EHLO
 	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751851Ab0GZOp7 (ORCPT
+	with ESMTP id S1755371Ab0GVRbB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 10:45:59 -0400
-Message-ID: <4C4D9F5F.3090908@maxwell.research.nokia.com>
-Date: Mon, 26 Jul 2010 17:44:47 +0300
+	Thu, 22 Jul 2010 13:31:01 -0400
+Message-ID: <4C48802D.6090406@maxwell.research.nokia.com>
+Date: Thu, 22 Jul 2010 20:30:21 +0300
 From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC/PATCH v2 02/10] media: Media device
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-3-git-send-email-laurent.pinchart@ideasonboard.com> <201007241402.50974.hverkuil@xs4all.nl>
-In-Reply-To: <201007241402.50974.hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links enumeration
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-7-git-send-email-laurent.pinchart@ideasonboard.com> <4C48633F.9020001@maxwell.research.nokia.com> <201007221733.37439.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201007221733.37439.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> On Wednesday 21 July 2010 16:35:27 Laurent Pinchart wrote:
->> The media_device structure abstracts functions common to all kind of
->> media devices (v4l2, dvb, alsa, ...). It manages media entities and
->> offers a userspace API to discover and configure the media device
->> internal topology.
+Laurent Pinchart wrote:
+> Hi Sakari,
+
+Hello Laurent,
+
+...
+>>> +
+>>> +struct media_user_pad {
+>>> +	__u32 entity;		/* entity ID */
+>>> +	__u8 index;		/* pad index */
+>>> +	__u32 direction;	/* pad direction */
+>>> +};
 >>
->> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> ---
->>  Documentation/media-framework.txt |   68 ++++++++++++++++++++++++++++++++
->>  drivers/media/Makefile            |    2 +-
->>  drivers/media/media-device.c      |   77 +++++++++++++++++++++++++++++++++++++
->>  include/media/media-device.h      |   53 +++++++++++++++++++++++++
->>  4 files changed, 199 insertions(+), 1 deletions(-)
->>  create mode 100644 Documentation/media-framework.txt
->>  create mode 100644 drivers/media/media-device.c
->>  create mode 100644 include/media/media-device.h
+>> Another small comment, I think you mentioned it yourself some time back
 >>
+>> :-): how about some reserved fields to these structures?
 > 
-> <snip>
-> 
-> As discussed on IRC: I would merge media-device and media-devnode. I see no
-> benefit in separating them at this time.
+> Very good point. Reserved fields are needed in media_user_entity and 
+> media_user_links at least. For media_user_pad and media_user_link, we could do 
+> without reserved fields if we add fields to media_user_links to store the size 
+> of those structures.
 
-I have to say I like the current separation of registration / node
-handling and the actual implementation, as in V4L2. There's more code to
-both files in the following patches. It think the result is easier to
-understand the way it is.
+The structure size is part of the ioctl number defined by the _IOC macro
+so I'd go with reserved fields even for these structures. Otherwise
+special handling would be required for these ioctls in a few places.
 
-You do have a point there that there's no need to separate them since
-media_devnode is only used in media_device, at the moment at least. Or
-is there a chance we would get different kind of control devices that
-would use media_devnode in the future? I don't see a clear need for
-such, though.
+>>> +struct media_user_entity {
+>>> +	__u32 id;
+>>> +	char name[32];
+>>> +	__u32 type;
+>>> +	__u32 subtype;
+>>> +	__u8 pads;
+>>> +	__u32 links;
+>>> +
+>>> +	union {
+>>> +		/* Node specifications */
+>>> +		struct {
+>>> +			__u32 major;
+>>> +			__u32 minor;
+>>> +		} v4l;
+>>> +		struct {
+>>> +			__u32 major;
+>>> +			__u32 minor;
+>>> +		} fb;
+>>> +		int alsa;
+>>> +		int dvb;
+>>> +
+>>> +		/* Sub-device specifications */
+>>> +		/* Nothing needed yet */
 
-Could media_devnode and media_device be combined without breaking this
-nice separation in the code too much?
+This union could have a defined size as well, e.g. u8 blob[64] or something.
 
 Regards,
 
