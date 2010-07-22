@@ -1,130 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:51593 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751924Ab0GIVfm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 17:35:42 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Jarod Wilson <jarod@redhat.com>
-Subject: [PATCH] lirc: use unlocked_ioctl
-Date: Fri, 9 Jul 2010 23:35:39 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Frederic Weisbecker <fweisbec@gmail.com>
+Received: from smtp.nokia.com ([192.100.122.230]:63285 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143Ab0GVQaF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Jul 2010 12:30:05 -0400
+Message-ID: <4C4871F5.2020600@maxwell.research.nokia.com>
+Date: Thu, 22 Jul 2010 19:29:41 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links enumeration
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-7-git-send-email-laurent.pinchart@ideasonboard.com> <4C485F49.2000703@maxwell.research.nokia.com> <201007221720.04555.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201007221720.04555.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007092335.39250.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-New code should not rely on the big kernel lock,
-so use the unlocked_ioctl file operation in lirc.
+Laurent Pinchart wrote:
+>> That change causes a lot of clashes in naming since the equivalent
+>> kernel structure is there as well. Those could have _k postfix, for
+>> example, to differentiate them from user space names. I don't really
+>> have a good suggestion how they should be called.
+> 
+> Maybe media_k_* ? I'm not very happy with that name either though.
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
----
-The lirc code currently conflicts with my removal of the .ioctl
-operation, which I'd like to get into linux-next.
+Sounds better to me.
 
- drivers/media/IR/ir-lirc-codec.c |    7 +++----
- drivers/media/IR/lirc_dev.c      |   12 ++++++------
- drivers/media/IR/lirc_dev.h      |    3 +--
- 3 files changed, 10 insertions(+), 12 deletions(-)
+>>> +- struct media_user_pad
+>>> +
+>>> +__u32		entity		ID of the entity this pad belongs to.
+>>> +__8		index		0-based pad index.
+>>
+>> It's possible that 8 bits is enough (I think Hans commented this
+>> already). The compiler will use 4 bytes in any case and I think it's a
+>> good practice not to create holes in the structures, especially not to
+>> the interface ones.
+> 
+> The direction could become a 8-bit integer, and a 16-bit attributes/properties 
+> bitfield would be added to fill the hole (it would be used to store pad 
+> properties such as a busy flag). I'd rather make that field 32-bits wide 
+> instead of 16 though.
 
-diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
-index aff31d1..178bc5b 100644
---- a/drivers/media/IR/ir-lirc-codec.c
-+++ b/drivers/media/IR/ir-lirc-codec.c
-@@ -97,8 +97,7 @@ out:
- 	return ret;
- }
- 
--static int ir_lirc_ioctl(struct inode *node, struct file *filep,
--			 unsigned int cmd, unsigned long arg)
-+static long ir_lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
- {
- 	struct lirc_codec *lirc;
- 	struct ir_input_dev *ir_dev;
-@@ -154,7 +153,7 @@ static int ir_lirc_ioctl(struct inode *node, struct file *filep,
- 		break;
- 
- 	default:
--		return lirc_dev_fop_ioctl(node, filep, cmd, arg);
-+		return lirc_dev_fop_ioctl(filep, cmd, arg);
- 	}
- 
- 	return ret;
-@@ -173,7 +172,7 @@ static void ir_lirc_close(void *data)
- static struct file_operations lirc_fops = {
- 	.owner		= THIS_MODULE,
- 	.write		= ir_lirc_transmit_ir,
--	.ioctl		= ir_lirc_ioctl,
-+	.unlocked_ioctl	= ir_lirc_ioctl,
- 	.read		= lirc_dev_fop_read,
- 	.poll		= lirc_dev_fop_poll,
- 	.open		= lirc_dev_fop_open,
-diff --git a/drivers/media/IR/lirc_dev.c b/drivers/media/IR/lirc_dev.c
-index 9e141d5..3fd6150 100644
---- a/drivers/media/IR/lirc_dev.c
-+++ b/drivers/media/IR/lirc_dev.c
-@@ -160,7 +160,7 @@ static struct file_operations fops = {
- 	.read		= lirc_dev_fop_read,
- 	.write		= lirc_dev_fop_write,
- 	.poll		= lirc_dev_fop_poll,
--	.ioctl		= lirc_dev_fop_ioctl,
-+	.unlocked_ioctl	= lirc_dev_fop_ioctl,
- 	.open		= lirc_dev_fop_open,
- 	.release	= lirc_dev_fop_close,
- };
-@@ -242,9 +242,9 @@ int lirc_register_driver(struct lirc_driver *d)
- 		goto out;
- 	} else if (!d->rbuf) {
- 		if (!(d->fops && d->fops->read && d->fops->poll &&
--		      d->fops->ioctl)) {
-+		      d->fops->unlocked_ioctl)) {
- 			dev_err(d->dev, "lirc_dev: lirc_register_driver: "
--				"neither read, poll nor ioctl can be NULL!\n");
-+				"neither read, poll nor unlocked_ioctl can be NULL!\n");
- 			err = -EBADRQC;
- 			goto out;
- 		}
-@@ -425,6 +425,7 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
- 		retval = -ENODEV;
- 		goto error;
- 	}
-+	file->private_data = ir;
- 
- 	dev_dbg(ir->d.dev, LOGHEAD "open called\n", ir->d.name, ir->d.minor);
- 
-@@ -516,12 +517,11 @@ unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait)
- }
- EXPORT_SYMBOL(lirc_dev_fop_poll);
- 
--int lirc_dev_fop_ioctl(struct inode *inode, struct file *file,
--		       unsigned int cmd, unsigned long arg)
-+long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	unsigned long mode;
- 	int result = 0;
--	struct irctl *ir = irctls[iminor(inode)];
-+	struct irctl *ir = file->private_data;
- 
- 	dev_dbg(ir->d.dev, LOGHEAD "ioctl called (0x%x)\n",
- 		ir->d.name, ir->d.minor, cmd);
-diff --git a/drivers/media/IR/lirc_dev.h b/drivers/media/IR/lirc_dev.h
-index 4afd96a..b1f6066 100644
---- a/drivers/media/IR/lirc_dev.h
-+++ b/drivers/media/IR/lirc_dev.h
-@@ -216,8 +216,7 @@ void *lirc_get_pdata(struct file *file);
- int lirc_dev_fop_open(struct inode *inode, struct file *file);
- int lirc_dev_fop_close(struct inode *inode, struct file *file);
- unsigned int lirc_dev_fop_poll(struct file *file, poll_table *wait);
--int lirc_dev_fop_ioctl(struct inode *inode, struct file *file,
--		       unsigned int cmd, unsigned long arg);
-+long lirc_dev_fop_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
- ssize_t lirc_dev_fop_read(struct file *file, char *buffer, size_t length,
- 			  loff_t *ppos);
- ssize_t lirc_dev_fop_write(struct file *file, const char *buffer, size_t length,
+I guess you could put more reserved fields to these small holes.
+
 -- 
-1.7.1
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
