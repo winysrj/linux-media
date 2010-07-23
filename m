@@ -1,398 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2947 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754446Ab0GRLoW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Jul 2010 07:44:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH 05/10] media: Reference count and power handling
-Date: Sun, 18 Jul 2010 13:47:02 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279114219-27389-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279114219-27389-6-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:36954 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1755931Ab0GWKnR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jul 2010 06:43:17 -0400
+Date: Fri, 23 Jul 2010 12:43:27 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>
+Subject: RE: [PATCH] mediabus: add MIPI CSI-2 pixel format codes
+In-Reply-To: <000001cb2a49$db5151f0$91f3f5d0$%nawrocki@samsung.com>
+Message-ID: <Pine.LNX.4.64.1007231209410.22677@axis700.grange>
+References: <Pine.LNX.4.64.1007231010370.22677@axis700.grange>
+ <201007231035.31462.laurent.pinchart@ideasonboard.com>
+ <000001cb2a49$db5151f0$91f3f5d0$%nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007181347.02995.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 14 July 2010 15:30:14 Laurent Pinchart wrote:
-> From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> 
-> Basically these are the interface functions:
-> 
-> media_entity_get() - acquire entity
-> media_entity_put() - release entity
-> 
-> 	If the entity is of node type, the power change is distributed to
-> 	all connected entities. For non-nodes it only affects that very
-> 	node. A mutex is used to serialise access to the entity graph.
-> 
-> In the background there's a depth-first search algorithm that traverses the
-> active links in the graph. All these functions parse the graph to implement
-> whatever they're to do.
-> 
-> The module counters are increased/decreased in media_entity_get/put to
-> prevent module unloading when an entity is referenced.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> ---
->  Documentation/media-framework.txt |   37 +++++++
->  drivers/media/media-device.c      |    1 +
->  drivers/media/media-entity.c      |  190 +++++++++++++++++++++++++++++++++++++
->  include/media/media-device.h      |    3 +
->  include/media/media-entity.h      |   15 +++
->  5 files changed, 246 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-> index 5448b34..3da9873 100644
-> --- a/Documentation/media-framework.txt
-> +++ b/Documentation/media-framework.txt
-> @@ -231,3 +231,40 @@ When the graph traversal is complete the function will return NULL.
->  Graph traversal can be interrupted at any moment. No cleanup function call is
->  required and the graph structure can be freed normally.
->  
-> +
-> +Reference counting and power handling
-> +-------------------------------------
-> +
-> +Before accessing type-specific entities operations (such as the V4L2
-> +sub-device operations), drivers must acquire a reference to the entity. This
-> +ensures that the entity will be powered on and ready to accept requests.
-> +Similarly, after being done with an entity, drivers must release the
-> +reference.
-> +
-> +	media_entity_get(struct media_entity *entity)
-> +
-> +The function will increase the entity reference count. If the entity is a node
-> +(MEDIA_ENTITY_TYPE_NODE type), the reference count of all entities it is
-> +connected to, both directly or indirectly, through active links is increased.
-> +This ensures that the whole media pipeline will be ready to process
-> +
-> +Acquiring a reference to an entity increases the media device module reference
-> +count to prevent module unloading when an entity is being used.
-> +
-> +media_entity_get will return a pointer to the entity if successful, or NULL
-> +otherwise.
-> +
-> +	media_entity_put(struct media_entity *entity)
-> +
-> +The function will decrease the entity reference count and, for node entities,
-> +like media_entity_get, the reference count of all connected entities. Calling
-> +media_entity_put with a NULL argument is valid and will return immediately.
-> +
-> +When the first reference to an entity is acquired, or the last reference
-> +released, the entity's set_power operation is called. Entity drivers must
-> +implement the operation if they need to perform any power management task,
-> +such as turning powers or clocks on or off. If no power management is
-> +required, drivers don't need to provide a set_power operation. The operation
-> +is allowed to fail when turning power on, in which case the media_entity_get
-> +function will return NULL.
-> +
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index 6361367..524a909 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -51,6 +51,7 @@ int __must_check media_device_register(struct media_device *mdev)
->  	mdev->entity_id = 1;
->  	INIT_LIST_HEAD(&mdev->entities);
->  	spin_lock_init(&mdev->lock);
-> +	mutex_init(&mdev->graph_mutex);
->  
->  	/* If dev == NULL, then name must be filled in by the caller */
->  	if (mdev->dev == NULL && WARN_ON(!mdev->name[0]))
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 3d5b80f..a597cd5 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -21,6 +21,7 @@
->  #include <linux/module.h>
->  #include <linux/slab.h>
->  #include <media/media-entity.h>
-> +#include <media/media-device.h>
->  
->  /**
->   * media_entity_init - Initialize a media entity
-> @@ -194,6 +195,195 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
->  EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
->  
->  /* -----------------------------------------------------------------------------
-> + * Power state handling
-> + */
-> +
-> +/*
-> + * Return power count of nodes directly or indirectly connected to
-> + * a given entity.
-> + */
-> +static int media_entity_count_node(struct media_entity *entity)
-> +{
-> +	struct media_entity_graph graph;
-> +	int use = 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +
-> +	while ((entity = media_entity_graph_walk_next(&graph))) {
-> +		if (entity->type == MEDIA_ENTITY_TYPE_NODE)
-> +			use += entity->use_count;
-> +	}
-> +
-> +	return use;
-> +}
-> +
-> +/* Apply use count to an entity. */
-> +static void media_entity_use_apply_one(struct media_entity *entity, int change)
-> +{
-> +	entity->use_count += change;
-> +	WARN_ON(entity->use_count < 0);
-> +}
-> +
-> +/*
-> + * Apply use count change to an entity and change power state based on
-> + * new use count.
-> + */
-> +static int media_entity_power_apply_one(struct media_entity *entity, int change)
-> +{
-> +	int ret = 0;
-> +
-> +	if (entity->use_count == 0 && change > 0 &&
-> +	    entity->ops && entity->ops->set_power) {
-> +		ret = entity->ops->set_power(entity, 1);
-> +		if (ret)
-> +			return ret;
-> +	}
-> +
-> +	media_entity_use_apply_one(entity, change);
-> +
-> +	if (entity->use_count == 0 && change < 0 &&
-> +	    entity->ops && entity->ops->set_power)
-> +		ret = entity->ops->set_power(entity, 0);
+Hi Sylwester
 
-Shouldn't this code be executed before the call to media_entity_use_apply_one()?
-Or at least call media_entity_use_apply_one(entity, -change) in case of an
-error? Since it failed to power off the entity it should ensure that the use_count
-remains > 0.
+On Fri, 23 Jul 2010, Sylwester Nawrocki wrote:
 
-> +
-> +	return ret;
-> +}
-> +
-> +/*
-> + * Apply power change to all connected entities. This ignores the
-> + * nodes.
-> + */
-> +static int media_entity_power_apply(struct media_entity *entity, int change)
-> +{
-> +	struct media_entity_graph graph;
-> +	struct media_entity *first = entity;
-> +	int ret = 0;
-> +
-> +	if (!change)
-> +		return 0;
-> +
-> +	media_entity_graph_walk_start(&graph, entity);
-> +
-> +	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
-> +		if (entity->type != MEDIA_ENTITY_TYPE_NODE)
-> +			ret = media_entity_power_apply_one(entity, change);
-> +
-> +	if (!ret)
-> +		return 0;
-> +
-> +	media_entity_graph_walk_start(&graph, first);
-> +
-> +	while ((first = media_entity_graph_walk_next(&graph))
-> +	       && first != entity)
-> +		if (first->type != MEDIA_ENTITY_TYPE_NODE)
-> +			media_entity_power_apply_one(first, -change);
-> +
-> +	return ret;
-> +}
-> +
-> +/* Apply the power state changes when connecting two entities. */
-> +static int media_entity_power_connect(struct media_entity *one,
-> +				      struct media_entity *theother)
-> +{
-> +	int power_one = media_entity_count_node(one);
-> +	int power_theother = media_entity_count_node(theother);
-> +	int ret = 0;
-> +
-> +	ret = media_entity_power_apply(one, power_theother);
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return media_entity_power_apply(theother, power_one);
-> +}
-> +
-> +static void media_entity_power_disconnect(struct media_entity *one,
-> +					  struct media_entity *theother)
-> +{
-> +	int power_one = media_entity_count_node(one);
-> +	int power_theother = media_entity_count_node(theother);
-> +
-> +	media_entity_power_apply(one, -power_theother);
-> +	media_entity_power_apply(theother, -power_one);
-
-Needs a comment why the return code is not checked.
-
-> +}
-> +
-> +/*
-> + * Apply use count change to graph and change power state of entities
-> + * accordingly.
-> + */
-> +static int media_entity_node_power_change(struct media_entity *entity,
-> +					  int change)
-> +{
-> +	/* Apply use count to node. */
-> +	media_entity_use_apply_one(entity, change);
-> +
-> +	/* Apply power change to connected non-nodes. */
-> +	return media_entity_power_apply(entity, change);
-> +}
-> +
-> +/*
-> + * Node entity use changes are reflected on power state of all
-> + * connected (directly or indirectly) entities whereas non-node entity
-> + * use count changes are limited to that very entity.
-> + */
-> +static int media_entity_use_change(struct media_entity *entity, int change)
-> +{
-> +	if (entity->type == MEDIA_ENTITY_TYPE_NODE)
-> +		return media_entity_node_power_change(entity, change);
-> +	else
-> +		return media_entity_power_apply_one(entity, change);
-> +}
-> +
-> +static struct media_entity *__media_entity_get(struct media_entity *entity)
-> +{
-> +	if (media_entity_use_change(entity, 1))
-> +		return NULL;
-> +
-> +	return entity;
-> +}
-> +
-> +static void __media_entity_put(struct media_entity *entity)
-> +{
-> +	media_entity_use_change(entity, -1);
-> +}
-> +
-> +/* user open()s media entity */
-> +struct media_entity *media_entity_get(struct media_entity *entity)
-> +{
-> +	struct media_entity *e;
-> +
-> +	if (entity == NULL)
-> +		return NULL;
-> +
-> +	if (entity->parent->dev &&
-> +	    !try_module_get(entity->parent->dev->driver->owner))
-> +		return NULL;
-> +
-> +	mutex_lock(&entity->parent->graph_mutex);
-> +	e = __media_entity_get(entity);
-> +	mutex_unlock(&entity->parent->graph_mutex);
-> +
-> +	if (e == NULL && entity->parent->dev)
-> +		module_put(entity->parent->dev->driver->owner);
-> +
-> +	return e;
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_get);
-> +
-> +/* user release()s media entity */
-> +void media_entity_put(struct media_entity *entity)
-> +{
-> +	if (entity == NULL)
-> +		return;
-> +
-> +	mutex_lock(&entity->parent->graph_mutex);
-> +	__media_entity_put(entity);
-> +	mutex_unlock(&entity->parent->graph_mutex);
-> +
-> +	if (entity->parent->dev)
-> +		module_put(entity->parent->dev->driver->owner);
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_put);
-> +
-> +/* -----------------------------------------------------------------------------
->   * Links management
->   */
->  
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 9105dc3..6cea596 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -23,6 +23,7 @@
->  
->  #include <linux/device.h>
->  #include <linux/list.h>
-> +#include <linux/mutex.h>
->  #include <linux/spinlock.h>
->  
->  #include <media/media-devnode.h>
-> @@ -50,6 +51,8 @@ struct media_device {
->  
->  	/* Protects the entities list */
->  	spinlock_t lock;
-> +	/* Serializes graph operations. */
-> +	struct mutex graph_mutex;
->  
->  	/* unique device name, by default the driver name + bus ID */
->  	char name[MEDIA_DEVICE_NAME_SIZE];
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 8f5164f..da86c24 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -34,6 +34,10 @@ struct media_entity_pad {
->  	u32 index;			/* Pad index in the entity pads array */
->  };
->  
-> +struct media_entity_operations {
-> +	int (*set_power)(struct media_entity *entity, int power);
-> +};
-> +
->  struct media_entity {
->  	struct list_head list;
->  	struct media_device *parent;	/* Media device this entity belongs to*/
-> @@ -52,6 +56,10 @@ struct media_entity {
->  	struct media_entity_pad *pads;	/* Array of pads (num_pads elements) */
->  	struct media_entity_link *links;/* Array of links (max_links elements)*/
->  
-> +	const struct media_entity_operations *ops;	/* Entity operations */
-> +
-> +	int use_count;			/* Use count for the entity. */
-> +
->  	union {
->  		/* Node specifications */
->  		struct {
-> @@ -86,9 +94,16 @@ void media_entity_cleanup(struct media_entity *entity);
->  int media_entity_create_link(struct media_entity *source, u8 source_pad,
->  		struct media_entity *sink, u8 sink_pad, u32 flags);
->  
-> +struct media_entity *media_entity_get(struct media_entity *entity);
-> +void media_entity_put(struct media_entity *entity);
-> +
->  void media_entity_graph_walk_start(struct media_entity_graph *graph,
->  		struct media_entity *entity);
->  struct media_entity *
->  media_entity_graph_walk_next(struct media_entity_graph *graph);
->  
-> +#define media_entity_call(entity, operation, args...)			\
-> +	(((entity)->ops && (entity)->ops->operation) ?			\
-> +	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
-> +
->  #endif
+> Hi Laurent,
 > 
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> > Sent: Friday, July 23, 2010 10:35 AM
+> > To: Guennadi Liakhovetski
+> > Cc: Linux Media Mailing List; Hans Verkuil
+> > Subject: Re: [PATCH] mediabus: add MIPI CSI-2 pixel format codes
+> > 
+> > Hi Guennadi,
+> > 
+> > On Friday 23 July 2010 10:13:37 Guennadi Liakhovetski wrote:
+> > > Add pixel format codes, defined in the MIPI CSI-2 specification.
+> > >
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > >
+> > > Even though it affects the same enum as my patch from yesterday, they
+> > are
+> > > independent, Hans and Laurent CCed just to avoid possible conflicts,
+> > when
+> > > further patching this file.
+> > >
+> > >  include/media/v4l2-mediabus.h |   26 ++++++++++++++++++++++++++
+> > >  1 files changed, 26 insertions(+), 0 deletions(-)
+> > >
+> > > diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-
+> > mediabus.h
+> > > index a870965..b0dcace 100644
+> > > --- a/include/media/v4l2-mediabus.h
+> > > +++ b/include/media/v4l2-mediabus.h
+> > > @@ -41,6 +41,32 @@ enum v4l2_mbus_pixelcode {
+> > >  	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+> > >  	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+> > >  	V4L2_MBUS_FMT_SGRBG8_1X8,
+> > > +	/* MIPI CSI-2 codes */
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8_L,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_10,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8_CSPS,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_10_CSPS,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV422_8,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV422_10,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RGB888,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RGB666,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RGB565,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RGB555,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RGB444,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW6,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW7,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW8,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW10,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW12,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW14,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_GEN_NULL,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_GEN_BLANKING,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_GEN_EMBEDDED8,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_USER_1,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_USER_2,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_USER_3,
+> > > +	V4L2_MBUS_FMT_MIPI_CSI2_USER_4,
+> > 
+> > I don't think I like this. Take the raw formats for instance, they're
+> > used for
+> > Bayer RGB. V4L2_MBUS_FMT_MIPI_CSI2_RAW8 could map to any Bayer format
+> > (GRBG,
+> > RGGB, ...). Why don't we just use "standard" pixel codes ?
+> 
+> As far as I understand on some media buses exact pixel formats are not
+> defined,
+> although we still need information to configure the bus.
+> MIPI CSI-2 seem an example of such to me, e.g. we do configure MIPI
+> interface
+> to "*_USER_1" format but over the bus is transferred JPEG data.
+> I guess we could try to use "standard" pixel codes but then we would
+> probably have
+> to map from "any" format to specific MIPI format code to configure the
+> hardware.
+> Moreover MIPI formats are quite specific, for instance for RAW12 in 32-bit
+> sample 
+> (from MSb to LSb) we have dummy 8-bits, then 12-bit of actual data and
+> remaining
+> 12 dummy bits.
 
-Regards,
+I think, we have to approach this problem from the other side - from the 
+user perspective. A "RAW8" format tells nothing to mplayer or gstreamer, 
+whereas they shall understand 8-bit Bayer. Similarly, the sensor will 
+know, that for sending of 8-bit Bayer data it'll use RAW8. So, on the 
+receiver side, as you correctly point out, you will have to configure 
+which data format to receive. If 8-bit Bayer is sent by the sensor, you 
+will guess, that it should be RAW8. If RGB565 is expected you'll know what 
+to set too. The problem arises with USER? formats. Only the sensor will 
+know, that when requested JPEG, it will user USER1, for MPEG-4 it will use 
+USER2. And there's currently no way to know this in the bridge / host 
+driver... So, at latest, when we get such a sensor, we'll have to decide 
+how to map those. Until then I would just propose to continue using the 
+existing mediabus formats and hope, that their mapping to CSI formats is 
+of a many-to-one nature...
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
