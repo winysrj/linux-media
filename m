@@ -1,90 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:32709 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757005Ab0GTBIo (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:40329 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753501Ab0GWNBl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jul 2010 21:08:44 -0400
-Subject: [PATCH 00/17] cx23885: Add CX23885 integrated IR controller Rx
- support
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>,
-	Kenney Phillisjr <kphillisjr@gmail.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Steven Toth <stoth@kernellabs.com>,
-	Jean Delvare <khali@linux-fr.org>,
-	"Igor M.Liplianin" <liplianin@me.by>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 19 Jul 2010 21:08:04 -0400
-Message-ID: <1279588084.28153.2.camel@localhost>
-Mime-Version: 1.0
+	Fri, 23 Jul 2010 09:01:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [RFC] Per-subdev, host-specific data
+Date: Fri, 23 Jul 2010 15:01:29 +0200
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201007231501.31170.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a respin of a patch series that has been rotting away in an hg repo
-of mine for 6 months.  I needed the IO pin configuration fixes to start on
-CX23888 IR Tx support.   Since Kenney Phillis reported that he had no
-problems with the entire set for his HVR-1250, I've ported them all forward.
+Hi everybody,
 
-The patches affect the cx23885 driver along with the v4l2-subdev header, and
-are a major addition to the cx25840 module.  Thus I'm providing the patches to
-the list for any possible comments.
+Trying to implement support for multiple sensors connected to the same OMAP3 
+ISP input (all but one of the sensors need to be kept in reset obviously), I 
+need to associate host-specific data to the sensor subdevs.
 
-They can also be found in my linuxtv.org git repo at
+The terms host and bridge are considered as synonyms in the rest of this e-
+mail.
 
-	ssh://linuxtv.org/git/awalls/v4l-dvb.git cx-ir
+The OMAP3 ISP platform data has interface configuration parameters for the two 
+CSI2 (a and c), CCP2 and parallel interfaces. The parameters are used to 
+configure the bus when a sensor is selected. To support multiple sensors on 
+the same input, the parameters need to be specified per-sensor, and not ISP-
+wide.
 
-(and whatever that translates to using http://)
+No issue in the platform data. Board codes declare an array of structures that 
+embed a struct v4l2_subdev_i2c_board_info instance and an OMAP3 ISP-specific 
+interface configuration structure.
 
+At runtime, when a sensor is selected, I need to access the OMAP3 ISP-specific 
+interface configuration structure for the selected sensor. At that point all I 
+have is a v4l2_subdev structure pointer, without a way to get back to the 
+interface configuration structure.
+
+The only point in the code where the v4l2_subdev and the interface 
+configuration data are both known and could be linked together is in the host 
+driver's probe function, where the v4l2_subdev instances are created. I have 
+two solutions there:
+
+- store the v4l2_subdev pointer and the interface configuration data pointer 
+in a host-specific array, and perform a an array lookup operation at runtime 
+with the v4l2_subdev pointer as a key
+
+- add a void *host_priv field to the v4l2_subdev structure, store the 
+interface configuration data pointer in that field, and use the field at 
+runtime
+
+The second solution seems cleaner but requires an additional field in 
+v4l2_subdev. Opinions and other comments will be appreciated.
+
+-- 
 Regards,
-Andy
 
-Andy Walls (14):
-  cx25840: Make cx25840 i2c register read transactions atomic
-  cx23885: Add correct detection of the HVR-1250 model 79501
-  cx23885: Add a VIDIOC_LOG_STATUS ioctl function for analog video devices
-  v4l2_subdev: Add s_io_pin_config to v4l2_subdev_core_ops
-  cx25840: Add s_io_pin_config core subdev ops for the CX2388[578]
-  v4l2_subdev, cx23885: Differentiate IR carrier sense and I/O pin inversion
-  cx23885: For CX23888 IR, configure the IO pin mux IR pins explcitly
-  v4l2_subdev: Move interrupt_service_routine ptr to v4l2_subdev_core_ops
-  cx25840: Add support for CX2388[57] A/V core integrated IR controllers
-  cx23885: Add a v4l2_subdev group id for the CX2388[578] integrated AV core
-  cx23885: Add preliminary IR Rx support for the HVR-1250 and TeVii S470
-  cx23885: Protect PCI interrupt mask manipulations with a spinlock
-  cx23885: Move AV Core irq handling to a work handler
-  cx23885: Require user to explicitly enable CX2388[57] IR via module param
-
-Jean Delvare (3):
-  cx23885: Return -ENXIO on slave nack
-  cx23885: Check for slave nack on all transactions
-  cx23885: i2c_wait_done returns 0 or 1, don't check for < 0 return value
-
- drivers/media/video/cx23885/Makefile        |    5 +-
- drivers/media/video/cx23885/cx23885-av.c    |   35 +
- drivers/media/video/cx23885/cx23885-av.h    |   27 +
- drivers/media/video/cx23885/cx23885-cards.c |  114 +++-
- drivers/media/video/cx23885/cx23885-core.c  |  124 +++-
- drivers/media/video/cx23885/cx23885-i2c.c   |   27 +-
- drivers/media/video/cx23885/cx23885-input.c |   48 +-
- drivers/media/video/cx23885/cx23885-ir.c    |   24 +-
- drivers/media/video/cx23885/cx23885-reg.h   |    1 +
- drivers/media/video/cx23885/cx23885-vbi.c   |    2 +-
- drivers/media/video/cx23885/cx23885-video.c |   23 +-
- drivers/media/video/cx23885/cx23885.h       |    9 +-
- drivers/media/video/cx23885/cx23888-ir.c    |   35 +-
- drivers/media/video/cx25840/Makefile        |    2 +-
- drivers/media/video/cx25840/cx25840-core.c  |  339 +++++++-
- drivers/media/video/cx25840/cx25840-core.h  |   28 +
- drivers/media/video/cx25840/cx25840-ir.c    | 1262 +++++++++++++++++++++++++++
- include/media/cx25840.h                     |   75 ++
- include/media/v4l2-subdev.h                 |   44 +-
- 19 files changed, 2135 insertions(+), 89 deletions(-)
- create mode 100644 drivers/media/video/cx23885/cx23885-av.c
- create mode 100644 drivers/media/video/cx23885/cx23885-av.h
- create mode 100644 drivers/media/video/cx25840/cx25840-ir.c
-
-
+Laurent Pinchart
