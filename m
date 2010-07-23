@@ -1,124 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1686 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165Ab0GYTdl (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:29294 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759189Ab0GWPQS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jul 2010 15:33:41 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6PJXaeH011736
-	for <linux-media@vger.kernel.org>; Sun, 25 Jul 2010 21:33:40 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 25 Jul 2010 21:33:36 +0200 (CEST)
-Message-Id: <201007251933.o6PJXaeH011736@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Fri, 23 Jul 2010 11:16:18 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L60006X2NR4YM10@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 23 Jul 2010 16:16:16 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L60002QENR3KK@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 23 Jul 2010 16:16:16 +0100 (BST)
+Date: Fri, 23 Jul 2010 17:14:50 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: RE: [RFC] Per-subdev, host-specific data
+In-reply-to: <201007231501.31170.laurent.pinchart@ideasonboard.com>
+To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Cc: 'Sakari Ailus' <sakari.ailus@maxwell.research.nokia.com>,
+	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
+	'Linux Media Mailing List' <linux-media@vger.kernel.org>
+Message-id: <000b01cb2a79$cb7e42d0$627ac870$%nawrocki@samsung.com>
+Content-language: en-us
+References: <201007231501.31170.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hello,
 
-Results of the daily build of v4l-dvb:
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> Sent: Friday, July 23, 2010 3:01 PM
+> To: Linux Media Mailing List
+> Cc: Sakari Ailus; Guennadi Liakhovetski
+> Subject: [RFC] Per-subdev, host-specific data
+> 
+> Hi everybody,
+> 
+> Trying to implement support for multiple sensors connected to the same
+> OMAP3
+> ISP input (all but one of the sensors need to be kept in reset
+> obviously), I
+> need to associate host-specific data to the sensor subdevs.
+> 
+> The terms host and bridge are considered as synonyms in the rest of
+> this e-
+> mail.
+> 
+> The OMAP3 ISP platform data has interface configuration parameters for
+> the two
+> CSI2 (a and c), CCP2 and parallel interfaces. The parameters are used
+> to
+> configure the bus when a sensor is selected. To support multiple
+> sensors on
+> the same input, the parameters need to be specified per-sensor, and not
+> ISP-
+> wide.
+> 
+> No issue in the platform data. Board codes declare an array of
+> structures that
+> embed a struct v4l2_subdev_i2c_board_info instance and an OMAP3 ISP-
+> specific
+> interface configuration structure.
+> 
+> At runtime, when a sensor is selected, I need to access the OMAP3 ISP-
+> specific
+> interface configuration structure for the selected sensor. At that
+> point all I
+> have is a v4l2_subdev structure pointer, without a way to get back to
+> the
+> interface configuration structure.
+> 
+> The only point in the code where the v4l2_subdev and the interface
+> configuration data are both known and could be linked together is in
+> the host
+> driver's probe function, where the v4l2_subdev instances are created. I
+> have
+> two solutions there:
+> 
+> - store the v4l2_subdev pointer and the interface configuration data
+> pointer
+> in a host-specific array, and perform a an array lookup operation at
+> runtime
+> with the v4l2_subdev pointer as a key
+> 
+> - add a void *host_priv field to the v4l2_subdev structure, store the
+> interface configuration data pointer in that field, and use the field
+> at
+> runtime
+> 
+> The second solution seems cleaner but requires an additional field in
+> v4l2_subdev. Opinions and other comments will be appreciated.
+> 
 
-date:        Sun Jul 25 19:00:10 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+I like the solution with an additional void *host_priv field,
+it could also possibly be useful for the notify() callback to v4l2_subdev
+parent.
+On our SoCs we also need some camera host interface specific data to be
+attached
+to image sensor subdevice and later passed to host driver. So host_priv
+field in v4l2_subdev would be nice feature to have.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+> --
+> Regards,
+> 
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Detailed results are available here:
+Regards,
+--
+Sylwester Nawrocki
+Samsung Poland R&D Center
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
