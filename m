@@ -1,48 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9587 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757194Ab0GSWm2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jul 2010 18:42:28 -0400
-Message-ID: <4C44D5AA.8060600@redhat.com>
-Date: Tue, 20 Jul 2010 00:46:02 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:55542 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751756Ab0GWIN1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jul 2010 04:13:27 -0400
+Date: Fri, 23 Jul 2010 10:13:37 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] mediabus: add MIPI CSI-2 pixel format codes
+Message-ID: <Pine.LNX.4.64.1007231010370.22677@axis700.grange>
 MIME-Version: 1.0
-To: Yuri <yuri@rawbw.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Bugreport for libv4l: error out on webcam: error parsing JPEG
- header: Bogus jpeg format
-References: <4C3F61BD.7000001@rawbw.com> <4C444388.9040901@redhat.com> <4C448311.6090704@rawbw.com>
-In-Reply-To: <4C448311.6090704@rawbw.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Add pixel format codes, defined in the MIPI CSI-2 specification.
 
-On 07/19/2010 06:53 PM, Yuri wrote:
-> On 07/19/2010 05:22, Hans de Goede wrote:
->> This is not really a bug in libv4l, but more of a problem with error
->> tolerance in the application you are using. However many apps don't
->> handle
->> any kind of errors all that well. So the latest libv4l will retry (get
->> a new
->> frame) jpeg decompression errors a number of times.
->
-> You are right, application is quite rough and doesn't have any tolerance.
->
-> But why such bad bytes appear in the first place? I think they are sent
-> by the
-> camera deliberately to indicate something and Windows driver must be
-> knowing
-> what do they mean.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-That is not very likely as they are in the middle of the jpeg data stream
-(special bytes would normally be in the header or footer of each frame).
+Even though it affects the same enum as my patch from yesterday, they are 
+independent, Hans and Laurent CCed just to avoid possible conflicts, when 
+further patching this file.
 
-Most likely the cause is a not 100% usb connection, or some subtle linux
-driver bug causing this.
+ include/media/v4l2-mediabus.h |   26 ++++++++++++++++++++++++++
+ 1 files changed, 26 insertions(+), 0 deletions(-)
 
-Regards,
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index a870965..b0dcace 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -41,6 +41,32 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+ 	V4L2_MBUS_FMT_SGRBG8_1X8,
++	/* MIPI CSI-2 codes */
++	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8_L,
++	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8,
++	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_10,
++	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8_CSPS,
++	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_10_CSPS,
++	V4L2_MBUS_FMT_MIPI_CSI2_YUV422_8,
++	V4L2_MBUS_FMT_MIPI_CSI2_YUV422_10,
++	V4L2_MBUS_FMT_MIPI_CSI2_RGB888,
++	V4L2_MBUS_FMT_MIPI_CSI2_RGB666,
++	V4L2_MBUS_FMT_MIPI_CSI2_RGB565,
++	V4L2_MBUS_FMT_MIPI_CSI2_RGB555,
++	V4L2_MBUS_FMT_MIPI_CSI2_RGB444,
++	V4L2_MBUS_FMT_MIPI_CSI2_RAW6,
++	V4L2_MBUS_FMT_MIPI_CSI2_RAW7,
++	V4L2_MBUS_FMT_MIPI_CSI2_RAW8,
++	V4L2_MBUS_FMT_MIPI_CSI2_RAW10,
++	V4L2_MBUS_FMT_MIPI_CSI2_RAW12,
++	V4L2_MBUS_FMT_MIPI_CSI2_RAW14,
++	V4L2_MBUS_FMT_MIPI_CSI2_GEN_NULL,
++	V4L2_MBUS_FMT_MIPI_CSI2_GEN_BLANKING,
++	V4L2_MBUS_FMT_MIPI_CSI2_GEN_EMBEDDED8,
++	V4L2_MBUS_FMT_MIPI_CSI2_USER_1,
++	V4L2_MBUS_FMT_MIPI_CSI2_USER_2,
++	V4L2_MBUS_FMT_MIPI_CSI2_USER_3,
++	V4L2_MBUS_FMT_MIPI_CSI2_USER_4,
+ };
+ 
+ /**
+-- 
+1.6.2.4
 
-Hans
