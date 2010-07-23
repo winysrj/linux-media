@@ -1,60 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sh.osrg.net ([192.16.179.4]:55828 "EHLO sh.osrg.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753005Ab0G0OWp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jul 2010 10:22:45 -0400
-Date: Tue, 27 Jul 2010 23:21:37 +0900
-To: corbet@lwn.net
-Cc: m.szyprowski@samsung.com, linux@arm.linux.org.uk,
-	m.nazarewicz@samsung.com, linux-mm@kvack.org,
-	dwalker@codeaurora.org, p.osciak@samsung.com,
-	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
-	hvaibhav@ti.com, fujita.tomonori@lab.ntt.co.jp,
-	kyungmin.park@samsung.com, zpfeffer@codeaurora.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCHv2 2/4] mm: cma: Contiguous Memory Allocator added
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <20100727065842.40ae76c8@bike.lwn.net>
-References: <20100727120841.GC11468@n2100.arm.linux.org.uk>
-	<003701cb2d89$adae4580$090ad080$%szyprowski@samsung.com>
-	<20100727065842.40ae76c8@bike.lwn.net>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Received: from perceval.irobotique.be ([92.243.18.41]:48292 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760197Ab0GWObg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jul 2010 10:31:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC] Per-subdev, host-specific data
+Date: Fri, 23 Jul 2010 16:31:32 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <201007231501.31170.laurent.pinchart@ideasonboard.com> <201007231546.29691.hverkuil@xs4all.nl>
+In-Reply-To: <201007231546.29691.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <20100727232106Z.fujita.tomonori@lab.ntt.co.jp>
+Message-Id: <201007231631.34967.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 27 Jul 2010 06:58:42 -0600
-Jonathan Corbet <corbet@lwn.net> wrote:
+Hi Hans,
 
-> On Tue, 27 Jul 2010 14:45:58 +0200
-> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> 
-> > > How does one obtain the CPU address of this memory in order for the CPU
-> > > to access it?  
+On Friday 23 July 2010 15:46:29 Hans Verkuil wrote:
+> On Friday 23 July 2010 15:01:29 Laurent Pinchart wrote:
+> > Hi everybody,
 > > 
-> > Right, we did not cover such case. In CMA approach we tried to separate
-> > memory allocation from the memory mapping into user/kernel space. Mapping
-> > a buffer is much more complicated process that cannot be handled in a
-> > generic way, so we decided to leave this for the device drivers. Usually
-> > video processing devices also don't need in-kernel mapping for such
-> > buffers at all.
+> > Trying to implement support for multiple sensors connected to the same
+> > OMAP3 ISP input (all but one of the sensors need to be kept in reset
+> > obviously), I need to associate host-specific data to the sensor
+> > subdevs.
+> > 
+> > The terms host and bridge are considered as synonyms in the rest of this
+> > e- mail.
+> > 
+> > The OMAP3 ISP platform data has interface configuration parameters for
+> > the two CSI2 (a and c), CCP2 and parallel interfaces. The parameters are
+> > used to configure the bus when a sensor is selected. To support multiple
+> > sensors on the same input, the parameters need to be specified
+> > per-sensor, and not ISP- wide.
+> > 
+> > No issue in the platform data. Board codes declare an array of structures
+> > that embed a struct v4l2_subdev_i2c_board_info instance and an OMAP3
+> > ISP-specific interface configuration structure.
+> > 
+> > At runtime, when a sensor is selected, I need to access the OMAP3
+> > ISP-specific interface configuration structure for the selected sensor.
+> > At that point all I have is a v4l2_subdev structure pointer, without a
+> > way to get back to the interface configuration structure.
+> > 
+> > The only point in the code where the v4l2_subdev and the interface
+> > configuration data are both known and could be linked together is in the
+> > host driver's probe function, where the v4l2_subdev instances are
+> > created. I have two solutions there:
+> > 
+> > - store the v4l2_subdev pointer and the interface configuration data
+> > pointer in a host-specific array, and perform a an array lookup
+> > operation at runtime with the v4l2_subdev pointer as a key
+> > 
+> > - add a void *host_priv field to the v4l2_subdev structure, store the
+> > interface configuration data pointer in that field, and use the field at
+> > runtime
+> > 
+> > The second solution seems cleaner but requires an additional field in
+> > v4l2_subdev. Opinions and other comments will be appreciated.
 > 
-> Still...that *is* why I suggested an interface which would return both
-> the DMA address and a kernel-space virtual address, just like the DMA
-> API does...  Either that, or just return the void * kernel address and
+> There is a third option: the grp_id field is owned by the host driver, so
+> you could make that an index into a host specific array.
 
-The DMA API for coherent memory (dma_alloc_coherent) returns both an
-DMA address and a kernel-space virtual address because it does both
-allocation and mapping.
+Good point.
 
-However, other DMA API (dma_map_*) returns only an DMA address because
-it does only mapping.
+> That said, I think having a host_priv field isn't a bad idea. Although if
+> we do this, then I think the existing priv field should be renamed to
+> drv_priv to prevent confusion.
 
-I think that if we need new API for coherent memory, we could
-unify it with the DMA API for coherent memory.
+As Guennadi, Sakari and you all agree that the host_priv field is a good idea, 
+I'll submit a patch.
 
-IMO, it's cleaner to having two separate APIs for allocation and
-mapping (except for coherent memory). The drivers have been working
-in that way.
+Thanks.
+
+-- 
+Regards,
+
+Laurent Pinchart
