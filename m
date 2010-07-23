@@ -1,50 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:46352 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754898Ab0GCD1K (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jul 2010 23:27:10 -0400
-Received: by vws5 with SMTP id 5so4459899vws.19
-        for <linux-media@vger.kernel.org>; Fri, 02 Jul 2010 20:27:09 -0700 (PDT)
+Received: from comal.ext.ti.com ([198.47.26.152]:43726 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756520Ab0GWP4M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Jul 2010 11:56:12 -0400
+From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+Date: Fri, 23 Jul 2010 10:56:02 -0500
+Subject: RE: [SAMPLE v2 04/12] v4l-subdev: Add pads operations
+Message-ID: <A69FA2915331DC488A831521EAE36FE4016B84FDFD@dlee06.ent.ti.com>
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1279723318-28943-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279723318-28943-5-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 MIME-Version: 1.0
-In-Reply-To: <4C09482B.8030404@redhat.com>
-References: <BQCH7Bq3jFB@christoph>
-	<4C09482B.8030404@redhat.com>
-Date: Fri, 2 Jul 2010 23:27:09 -0400
-Message-ID: <AANLkTinVcxMFu7hCT3pO_S6JCKr-d3uMOOBnKSNYqjX9@mail.gmail.com>
-Subject: Re: [PATCH 1/3] IR: add core lirc device interface
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, jarod@redhat.com,
-	linux-media@vger.kernel.org, Jon Smirl <jonsmirl@gmail.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Andy Walls <awalls@md.metrocast.net>
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 4, 2010 at 2:38 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-...
-> From my side, as I said before, I'd like to see a documentation of the defined API bits,
-> and the removal of the currently unused ioctls (they can be added later, together
-> with the patches that will introduce the code that handles them) to give my final ack.
+Laurent,
 
-Thanks to Christoph and me spending an exciting Friday night doing
-docbook formatting for the first time ever, I've finally got a start
-of a LIRC device interface API docbook doc together, along with all
-the lirc_dev bits and ir-lirc-codec bridge, all me-tested-and-approved
-w/four different mceusb devices, both send and receive. I'm about to
-head out of town for the weekend, but hope to get patches in flight
-either before then, or from the road. In the interim, the interested
-can take a look here:
+Could you explain the probe and active usage using an example such as
+below?
 
-http://git.wilsonet.com/linux-2.6-ir-wip.git/?a=shortlog;h=refs/heads/patches
+            Link1    Link2 
+input sensor -> ccdc -> video node.
 
-Nb: this branch has been non-fast-forward-ably updated against latest
-linuxtv staging/rc. The prior variant there left too much
-lirc-specific tx bits in mceusb, which have now all been moved into
-ir-lirc-codec.
+Assume Link2 we can have either format 1 or format 2 for capture.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Thanks.
+
+Murali Karicheri
+Software Design Engineer
+Texas Instruments Inc.
+Germantown, MD 20874
+email: m-karicheri2@ti.com
+
+>-----Original Message-----
+>From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+>Sent: Wednesday, July 21, 2010 10:42 AM
+>To: linux-media@vger.kernel.org
+>Cc: sakari.ailus@maxwell.research.nokia.com
+>Subject: [SAMPLE v2 04/12] v4l-subdev: Add pads operations
+>
+>Add a v4l2_subdev_pad_ops structure for the operations that need to be
+>performed at the pad level such as format-related operations.
+>
+>The format at the output of a subdev usually depends on the format at
+>its input(s). The try format operation is thus not suitable for probing
+>format at individual pads, as it can't modify the device state and thus
+>can't remember the format probed at the input to compute the output
+>format.
+>
+>To fix the problem, pass an extra argument to the get/set format
+>operations to select the 'probe' or 'active' format.
+>
+>The probe format is used when probing the subdev. Setting the probe
+>format must not change the device configuration but can store data for
+>later reuse. Data storage is provided at the file-handle level so
+>applications probing the subdev concurently won't interfere with each
+>other.
+>
+>The active format is used when configuring the subdev. It's identical to
+>the format handled by the usual get/set operations.
+>
+>Pad format-related operations use v4l2_mbus_framefmt instead of
+>v4l2_format.
+>
+>Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>---
+> include/media/v4l2-subdev.h |   21 +++++++++++++++++++++
+> 1 files changed, 21 insertions(+), 0 deletions(-)
+>
+>diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>index 01b4135..684ab60 100644
+>--- a/include/media/v4l2-subdev.h
+>+++ b/include/media/v4l2-subdev.h
+>@@ -41,6 +41,7 @@ struct v4l2_device;
+> struct v4l2_event_subscription;
+> struct v4l2_fh;
+> struct v4l2_subdev;
+>+struct v4l2_subdev_fh;
+> struct tuner_setup;
+>
+> /* decode_vbi_line */
+>@@ -398,6 +399,25 @@ struct v4l2_subdev_ir_ops {
+> 				struct v4l2_subdev_ir_parameters *params);
+> };
+>
+>+enum v4l2_subdev_format {
+>+	V4L2_SUBDEV_FORMAT_PROBE = 0,
+>+	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
+>+};
+>+
+>+struct v4l2_subdev_pad_ops {
+>+	int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh
+>*fh,
+>+			      struct v4l2_subdev_pad_mbus_code_enum *code);
+>+	int (*enum_frame_size)(struct v4l2_subdev *sd,
+>+			       struct v4l2_subdev_fh *fh,
+>+			       struct v4l2_subdev_frame_size_enum *fse);
+>+	int (*get_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>+		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
+>+		       enum v4l2_subdev_format which);
+>+	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>+		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
+>+		       enum v4l2_subdev_format which);
+>+};
+>+
+> struct v4l2_subdev_ops {
+> 	const struct v4l2_subdev_core_ops	*core;
+> 	const struct v4l2_subdev_tuner_ops	*tuner;
+>@@ -406,6 +426,7 @@ struct v4l2_subdev_ops {
+> 	const struct v4l2_subdev_vbi_ops	*vbi;
+> 	const struct v4l2_subdev_ir_ops		*ir;
+> 	const struct v4l2_subdev_sensor_ops	*sensor;
+>+	const struct v4l2_subdev_pad_ops	*pad;
+> };
+>
+> #define V4L2_SUBDEV_NAME_SIZE 32
+>--
+>1.7.1
+>
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
