@@ -1,111 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41059 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752792Ab0GIKsU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 06:48:20 -0400
-From: "Savoy, Pavan" <pavan_savoy@ti.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"matti.j.aaltonen@nokia.com" <matti.j.aaltonen@nokia.com>,
-	"mchehab@infradead.org" <mchehab@infradead.org>,
-	"eduardo.valentin@nokia.com" <eduardo.valentin@nokia.com>
-Date: Fri, 9 Jul 2010 16:18:04 +0530
-Subject: RE: V4L2 radio drivers for TI-WL7
-Message-ID: <19F8576C6E063C45BE387C64729E7394044EB96032@dbde02.ent.ti.com>
-References: <594515.49257.qm@web94910.mail.in2.yahoo.com>
- <201007091240.40868.hverkuil@xs4all.nl>
-In-Reply-To: <201007091240.40868.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from hamlet.nurpoint.com ([212.239.26.6]:50961 "EHLO
+	hamlet.nurpoint.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752745Ab0GYADW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Jul 2010 20:03:22 -0400
+Received: from localhost ([127.0.0.1] helo=www.hawai.it)
+	by hamlet.nurpoint.com with esmtpa (Exim 4.69)
+	(envelope-from <s.danzi@hawai.it>)
+	id 1Ocnp2-0003Na-J9
+	for linux-media@vger.kernel.org; Sun, 25 Jul 2010 01:08:00 +0200
 MIME-Version: 1.0
+Date: Sun, 25 Jul 2010 01:08:00 +0200
+From: <s.danzi@hawai.it>
+To: <linux-media@vger.kernel.org>
+Subject: saa7134 and SKY7104 CCTV Card
+Message-ID: <4f65f749cf5027b7f77d908df49bcc1c@hawai.it>
+Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi!!
+I'm trying to use SKY7104 CCTV (4 channel video capture card).
+Kernel autoload module saa7134 but flag it as unknown,register two
+video devices but it seems not work.
+Someone could help me to patch saa7134 driver?
 
+windows drivere are availabe here:
+http://www.cn-dvr.com/products/enproducts78.html#1
+
+Card has 4 bnc video inputs, 1 rca video output, 10 GPIO.
+All signatures on chips was removed....
+
+One chip is near vido output and I think it is video buffer.
+Another chip is near saa7134 and I think it an i2c eeprom.
+A quartz of 24.576Mhz is connected to saa7134.
+
+There are a DIP chip (It could be a microchip pic) with a
+11.0592 quartz connected to saa7134 and to a relais with two
+outputs marked as "RESET". It could be something like a wachdog
+to connect to motherboard reset switch.
+
+I can check exactly where is connected each saa7134 pin.
+
+lspci -v
+00:01.0 Multimedia controller: Philips Semiconductors SAA7130 Video
+Broadcast Decoder (rev 01)
+	Subsystem: Philips Semiconductors Device 0000
+	Flags: bus master, medium devsel, latency 64, IRQ 16
+	Memory at febffc00 (32-bit, non-prefetchable) [size=1K]
+	Capabilities: [40] Power Management version 1
+	Kernel driver in use: saa7134
+	Kernel modules: saa7134
+
+lspci -vn
+00:01.0 0480: 1131:7130 (rev 01)
+	Subsystem: 1131:0000
+	Flags: bus master, medium devsel, latency 64, IRQ 16
+	Memory at febffc00 (32-bit, non-prefetchable) [size=1K]
+	Capabilities: [40] Power Management version 1
+	Kernel driver in use: saa7134
+	Kernel modules: saa7134
+
+
+dmesg
+[75996.656618] saa7130/34: v4l2 driver version 0.2.15 loaded
+[75996.656840] saa7130[0]: found at 0000:00:01.0, rev: 1, irq: 16,
+latency: 64, mmio: 0xfebffc00
+[75996.656857] saa7134: <rant>
+[75996.656860] saa7134:  Congratulations!  Your TV card vendor saved a few
+[75996.656864] saa7134:  cents for a eeprom, thus your pci board has no
+[75996.656867] saa7134:  subsystem ID and I can't identify it
+automatically
+[75996.656869] saa7134: </rant>
+ .....supported card list.....
+[75996.658556] saa7130[0]: subsystem: 1131:0000, board: UNKNOWN/GENERIC
+[card=0,autodetected]
+[75996.658719] saa7130[0]: board init: gpio is c0f00fc
+[75996.658731] IRQ 16/saa7130[0]: IRQF_DISABLED is not guaranteed on
+shared IRQs
+[75996.764635] saa7130[0]: Huh, no eeprom present (err=-5)?
+[75996.764646] i2c i2c-1: Invalid 7-bit address 0x7a
+[75996.767086] saa7130[0]: registered device video0 [v4l2]
+[75996.769042] saa7130[0]: registered device vbi0
 
  
-----------------
-Thanks & Regards,
-Pavan Savoy | x0099669
- 
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Friday, July 09, 2010 5:41 AM
-> To: Savoy, Pavan
-> Cc: linux-media@vger.kernel.org; matti.j.aaltonen@nokia.com; mchehab@infradead.org;
-> eduardo.valentin@nokia.com
-> Subject: Re: V4L2 radio drivers for TI-WL7
-> 
-> On Tuesday 06 July 2010 07:07:12 Pavan Savoy wrote:
-> >
-> > --- On Mon, 5/7/10, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >
-> > > From: Hans Verkuil <hverkuil@xs4all.nl>
-> > > Subject: Re: V4L2 radio drivers for TI-WL7
-> > > To: pavan_savoy@ti.com
-> > > Cc: linux-media@vger.kernel.org, matti.j.aaltonen@nokia.com, mchehab@infradead.org, "pavan savoy"
-> <pavan_savoy@yahoo.co.in>, eduardo.valentin@nokia.com
-> > > Date: Monday, 5 July, 2010, 11:51 AM
-> > > On Friday 02 July 2010 09:01:34 Pavan
-> > > Savoy wrote:
-> > > > Hi,
-> > > >
-> > > > We have/in process of developing a V4L2 driver for the
-> > > FM Radio on the Texas Instruments WiLink 7 module.
-> > > >
-> > > > For transport/communication with the chip, we intend
-> > > to use the shared transport driver currently staged in
-> > > mainline at drivers/staging/ti-st/.
-> > > >
-> > > > To which tree should I generate patches against? is
-> > > the tree
-> > > >
-> > > git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
-> > > > fine ? to be used with the v4l_for_2.6.35 branch ?
-> > >
-> > > You patch against git://git.linuxtv.org/v4l-dvb.git.
-> > >
-> > > >
-> > > > Also, this is over the UART/TTY unlike the WL1273 i2c
-> > > mfd driver...
-> > >
-> > > Is the WiLink 7 a platform device (i.e. an integral part of
-> > > the CPU) or a separate
-> > > chip that can be used with any hardware?
-> > >
-> > > Will the FM Radio always be controlled over a UART/TTY bus
-> > > or is that specific
-> > > to your development platform?
-> >
-> > WiLink 7 would be a peripheral which has 1 interface with apps processor being UART, more details at,
-> >
-> >
-> http://www.google.co.in/url?sa=t&source=web&cd=3&ved=0CBQQFjAC&url=http%3A%2F%2Ffocus.ti.com%2Fgeneral%2Fdoc
-> s%2Fwtbu%2Fwtbuproductcontent.tsp%3FtemplateId%3D6123%26navigationId%3D12859%26contentId%3D67453%26DCMP%3Dwt
-> bu_wilink7_2010%26HQS%3DOther%2BPR%2Bwilink7videos&ei=d7kyTKPXMoTGlQfJ-7W-
-> Cw&usg=AFQjCNEjN2jc9TdSDWDRtWcmbZn6Szhbug&sig2=DN4gAQls9AdOeHQhlPlvjA
-> >
-> > Since there exists only 1 interface for all BT/FM and GPS cores on chip, a shared transport driver has
-> been developed and placed at drivers/staging/ti-st/
-> 
-> It sounds like this will be typically used in embedded systems and implemented as a
-> platform device.
-
-Yes it is. It is a two-faced device driver. It essentially is a TTY ldisc driver which is mainly used for the transport purposes, and has the overall context of a platform device driver.
-
-> > Would it be suitable if we place the V4L2 FM driver at drivers/staging/ti-st/ to ? Since we don't have the
-> common interface headers such as st.h in include/linux..
-> 
-> Staging is fine. This driver can still be merged through the v4l-dvb repositories,
-> even if it is in staging.
-
-Yes, Thanks on this one. However I am not sure how it would affect the current development of the 1273 drivers (from nokia), since the V4L2 driver which we have for 1283 - would essentially have the same sort of engine which forms the commands/interprets the responses, with the only difference being the transport (i2c vs. TTY).
-Matti / Edurado  - Please comment ...
-
-> Regards,
-> 
->          Hans
-> 
-> --
-> Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
