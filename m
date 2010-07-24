@@ -1,58 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54361 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754116Ab0GPRXx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jul 2010 13:23:53 -0400
-Date: Fri, 16 Jul 2010 13:23:51 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org
-Subject: [PATCH] input: fix wiring up default setkeycode/setkeycodebig
-Message-ID: <20100716172351.GA4364@redhat.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3163 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754652Ab0GXMSQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Jul 2010 08:18:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v2 03/10] media: Entities, pads and links
+Date: Sat, 24 Jul 2010 14:18:11 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1279722935-28493-4-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007241418.11463.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I believe there's a mistake in 94977ff15f4214ee4630cf4a67195a1d48da771c,
-where the conditions on which to set a setkeycodebig function are
-incorrect. Previously, we had the case where if the dev didn't provide
-its own setkeycode, we'd set the default input layer one. Now, we set
-setkeycode big if the dev provides its own setkeycode but doesn't
-provide setkeycodebig. Devices that provide neither setkeycode nor
-setkeycodebig wind up with neither, which blows up horribly later on
-down the road when a setkeycode{,big} operation is attempted. Such is
-the case with the thinkpad_acpi driver's input device registered for the
-extra hotkey buttons on my own t61. This makes it happy again, and seems
-to be an obvious fix for a thinko.
+On Wednesday 21 July 2010 16:35:28 Laurent Pinchart wrote:
 
-Oh yeah, patch is against the linuxtv staging/other tree, not sure where
-else the previously referenced hash can be found just yet.
+<snip>
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/input/input.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> new file mode 100644
+> index 0000000..fd44647
+> --- /dev/null
+> +++ b/include/media/media-entity.h
+> @@ -0,0 +1,79 @@
+> +#ifndef _MEDIA_ENTITY_H
+> +#define _MEDIA_ENTITY_H
+> +
+> +#include <linux/list.h>
+> +
+> +#define MEDIA_ENTITY_TYPE_NODE				1
+> +#define MEDIA_ENTITY_TYPE_SUBDEV			2
+> +
+> +#define MEDIA_ENTITY_SUBTYPE_NODE_V4L			1
+> +#define MEDIA_ENTITY_SUBTYPE_NODE_FB			2
+> +#define MEDIA_ENTITY_SUBTYPE_NODE_ALSA			3
+> +#define MEDIA_ENTITY_SUBTYPE_NODE_DVB			4
+> +
+> +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_DECODER		1
+> +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_ENCODER		2
+> +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_MISC		3
 
-diff --git a/drivers/input/input.c b/drivers/input/input.c
-index 43aeb71..ce5d90d 100644
---- a/drivers/input/input.c
-+++ b/drivers/input/input.c
-@@ -1850,7 +1850,7 @@ int input_register_device(struct input_dev *dev)
- 			dev->getkeycodebig_from_scancode = input_default_getkeycode_from_scancode;
- 	}
- 
--	if (dev->setkeycode) {
-+	if (!dev->setkeycode) {
- 		if (!dev->setkeycodebig)
- 			dev->setkeycodebig = input_default_setkeycode;
- 	}
+These names are too awkward.
+
+I see two options:
+
+1) Rename the type field to 'entity' and the macros to MEDIA_ENTITY_NODE/SUBDEV.
+   Also rename subtype to type and the macros to MEDIA_ENTITY_TYPE_NODE_V4L
+   and MEDIA_ENTITY_TYPE_SUBDEV_VID_DECODER. We might even get away with dropping
+   _TYPE from the macro name.
+
+2) Merge type and subtype to a single entity field. The top 16 bits are the entity
+   type, the bottom 16 bits are the subtype. That way you end up with:
+
+#define MEDIA_ENTITY_NODE			(1 << 16)
+#define MEDIA_ENTITY_SUBDEV			(2 << 16)
+
+#define MEDIA_ENTITY_NODE_V4L			(MEDIA_ENTITY_NODE + 1)
+
+#define MEDIA_ENTITY_SUBDEV_VID_DECODER		(MEDIA_ENTITY_SUBDEV + 1)
+
+I rather like this option myself.
+
+> +
+> +#define MEDIA_LINK_FLAG_ACTIVE				(1 << 0)
+> +#define MEDIA_LINK_FLAG_IMMUTABLE			(1 << 1)
+> +
+> +#define MEDIA_PAD_DIR_INPUT				1
+> +#define MEDIA_PAD_DIR_OUTPUT				2
+> +
+> +struct media_entity_link {
+> +	struct media_entity_pad *source;/* Source pad */
+> +	struct media_entity_pad *sink;	/* Sink pad  */
+> +	struct media_entity_link *other;/* Link in the reverse direction */
+> +	u32 flags;			/* Link flags (MEDIA_LINK_FLAG_*) */
+> +};
+> +
+> +struct media_entity_pad {
+> +	struct media_entity *entity;	/* Entity this pad belongs to */
+> +	u32 direction;			/* Pad direction (MEDIA_PAD_DIR_*) */
+> +	u8 index;			/* Pad index in the entity pads array */
+
+We can use bitfields for direction and index. That way we can also easily add
+other flags/attributes.
+
+> +};
+> +
+> +struct media_entity {
+> +	struct list_head list;
+> +	struct media_device *parent;	/* Media device this entity belongs to*/
+> +	u32 id;				/* Entity ID, unique in the parent media
+> +					 * device context */
+> +	const char *name;		/* Entity name */
+> +	u32 type;			/* Entity type (MEDIA_ENTITY_TYPE_*) */
+> +	u32 subtype;			/* Entity subtype (type-specific) */
+> +
+> +	u8 num_pads;			/* Number of input and output pads */
+> +	u8 num_links;			/* Number of existing links, both active
+> +					 * and inactive */
+> +	u8 num_backlinks;		/* Number of backlinks */
+> +	u8 max_links;			/* Maximum number of links */
+> +
+> +	struct media_entity_pad *pads;	/* Array of pads (num_pads elements) */
+> +	struct media_entity_link *links;/* Array of links (max_links elements)*/
+> +
+> +	union {
+> +		/* Node specifications */
+> +		struct {
+> +			u32 major;
+> +			u32 minor;
+> +		} v4l;
+> +		struct {
+> +			u32 major;
+> +			u32 minor;
+> +		} fb;
+> +		int alsa;
+> +		int dvb;
+> +
+> +		/* Sub-device specifications */
+> +		/* Nothing needed yet */
+> +	};
+> +};
+> +
+> +int media_entity_init(struct media_entity *entity, u8 num_pads,
+> +		struct media_entity_pad *pads, u8 extra_links);
+> +void media_entity_cleanup(struct media_entity *entity);
+> +int media_entity_create_link(struct media_entity *source, u8 source_pad,
+> +		struct media_entity *sink, u8 sink_pad, u32 flags);
+> +
+> +#endif
+> 
+
+Regards,
+
+	Hans
+
 -- 
-1.7.1.1
-
-
--- 
-Jarod Wilson
-jarod@redhat.com
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
