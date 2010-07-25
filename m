@@ -1,42 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:40683 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757342Ab0GIPcK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 11:32:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from xylos.xylon.de ([80.237.242.185]:58986 "EHLO mail.xylon.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751166Ab0GYH6b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jul 2010 03:58:31 -0400
+Received: from localhost (xylos.xylon.de [127.0.0.1])
+	by mail.xylon.de (Postfix) with ESMTP id 725E16A0008
+	for <linux-media@vger.kernel.org>; Sun, 25 Jul 2010 09:52:36 +0200 (CEST)
+Received: from mail.xylon.de ([127.0.0.1])
+	by localhost (mail.xylon.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 8z0qlwLkhOZn for <linux-media@vger.kernel.org>;
+	Sun, 25 Jul 2010 09:52:35 +0200 (CEST)
+Message-ID: <20100725095235.20186r5nd8w29w74@webmail.xylon.de>
+Date: Sun, 25 Jul 2010 09:52:35 +0200
+From: Arnuschky <arnuschky@xylon.de>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v2 1/7] v4l: subdev: Don't require core operations
-Date: Fri,  9 Jul 2010 17:31:46 +0200
-Message-Id: <1278689512-30849-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1278689512-30849-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: Very poor (signal?) quality on buget card TwinHan VP DST
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's no reason to require subdevices to implement the core
-operations. Remove the check for non-NULL core operations when
-initializing the subdev.
+Hi,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/media/v4l2-subdev.h |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+I am using a TwinHan VP DST card under Ubuntu Lucid Lynx (2.6.32-23  
+with s2-liplianin-dkms updated dvb drivers).
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 02c6f4d..6088316 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -437,8 +437,7 @@ static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
- 					const struct v4l2_subdev_ops *ops)
- {
- 	INIT_LIST_HEAD(&sd->list);
--	/* ops->core MUST be set */
--	BUG_ON(!ops || !ops->core);
-+	BUG_ON(!ops);
- 	sd->ops = ops;
- 	sd->v4l2_dev = NULL;
- 	sd->flags = 0;
--- 
-1.7.1
+The card is detected fine, but does not seem to have analogue tuner. I  
+can scan channels, and I can watch TV using digital-only capable  
+applications (eg, Me-TV, Kaffeine). Nevertheless, the general picture  
+quality is VERY bad. Basically, there's not a single frame without  
+decoding error and freezes. Sound suffers the same problem. It all  
+behaves like a bad signal/bad antenna installation.
+
+The problem is: a parallel windows installation gives a crystal-clear  
+and stable picture, without touching the antenna in between.
+
+I assume it's a problem with channel fine-tuning or software decoder  
+quality. Can anyone help me with solving these problems?
+
+Thanks
+Arne
+
 
