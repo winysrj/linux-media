@@ -1,118 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57322 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:19057 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757390Ab0G2Pqd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 11:46:33 -0400
-Date: Thu, 29 Jul 2010 11:35:35 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: sfr@canb.auug.org.au, lirc-list@lists.sourceforge.net,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@redhat.com
-Subject: [PATCH] staging/lirc: fix non-CONFIG_MODULES build horkage
-Message-ID: <20100729153535.GB7507@redhat.com>
+	id S1751105Ab0GYR6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jul 2010 13:58:16 -0400
+Message-ID: <4C4C7B51.3000608@redhat.com>
+Date: Sun, 25 Jul 2010 14:58:41 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100728101358.e0dcd54d.randy.dunlap@oracle.com>
+To: Stefan Ringel <stefan.ringel@arcor.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: tm6000 bad marge staging/tm6000 into staging/all
+References: <4C4BE78A.4090002@arcor.de>
+In-Reply-To: <4C4BE78A.4090002@arcor.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix when CONFIG_MODULES is not enabled:
+Em 25-07-2010 04:28, Stefan Ringel escreveu:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>  
+> Hi Mauro,
+> 
+> This marge are wrong! It's added double dvb led off, but my patch has
+> only ones.
+> 
+> raw | combined (merge: 011906d 6e5e76f)
+> 
+> Merge branch 'staging/tm6000' into staging/all
+> Mauro Carvalho Chehab [Sun, 4 Jul 2010 19:33:26 +0000 (16:33 -0300)]
+> 
+> * staging/tm6000: (29 commits)
+>   tm6000: Partially revert some copybuf logic
+>   tm6000: Be sure that the new buffer is empty
+>   tm6000: Fix copybuf continue logic Signed-off-by: Mauro Carvalho
+> Chehab <mchehab@redhat.com>
+>   tm6000: audio packet has always 180 bytes
+>   tm6000: Improve set bitrate routines used by alsa
+>   tm6000-alsa: Implement a routine to store data received from URB
+>   tm6000-alsa: Fix several bugs at the driver initialization code
+>   tm6000: avoid unknown symbol tm6000_debug
+>   tm6000: Add a callback code for buffer fill
+>   tm6000: Use an emum for extension type
+>   tm6000-alsa: rework audio buffer allocation/deallocation
+>   tm6000: Avoid OOPS when loading tm6000-alsa module
+>   tm6000: Fix compilation breakages
+>   V4L/DVB: Staging: tm6000: Fix coding style issues
+>   V4L/DVB: tm6000: move dvb into a separate kern module
+>   V4L/DVB: tm6000: rewrite init and fini
+>   V4L/DVB: tm6000: Fix Video decoder initialization
+>   V4L/DVB: tm6000: rewrite copy_streams
+>   V4L/DVB: tm6000: add DVB support for tuner xc5000
+>   V4L/DVB: tm6000: set variable dev_mode in function tm6000_start_stream
+>   ...
+> 
+> diff --cc drivers/staging/tm6000/tm6000-core.c
+> 
+> index 27f3f55,1fea5a0..9f60ad5
+> - --- 1/drivers/staging/tm6000/tm6000-core.c
+> - --- 2/drivers/staging/tm6000/tm6000-core.c
+> +++ b/drivers/staging/tm6000/tm6000-core.c
+> @@@ -336,11 -332,11 +332,17 @@@ int tm6000_init_analog_mode(struct tm60
+>         mutex_unlock(&dev->lock);
+>  
+>         msleep(100);
+> - -       tm6000_set_standard (dev, &dev->norm);
+> - -       tm6000_set_audio_bitrate (dev,48000);
+> +       tm6000_set_standard(dev, &dev->norm);
+> +       tm6000_set_audio_bitrate(dev, 48000);
+> +
+> +       /* switch dvb led off */
+> +       if (dev->gpio.dvb_led) {
+> ++              tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+> ++                      dev->gpio.dvb_led, 0x01);
+> ++      }
+>  +
+>  +      /* switch dvb led off */
+>  +      if (dev->gpio.dvb_led) {
+>                 tm6000_set_reg(dev, REQ_03_SET_GET_MCU_PIN,
+>                         dev->gpio.dvb_led, 0x01);
+>         }
 
-drivers/staging/lirc/lirc_parallel.c:243: error: implicit declaration of function 'module_refcount'
-drivers/staging/lirc/lirc_it87.c:150: error: implicit declaration of function 'module_refcount'
-drivers/built-in.o: In function `it87_probe':
-lirc_it87.c:(.text+0x4079b0): undefined reference to `init_chrdev'
-lirc_it87.c:(.text+0x4079cc): undefined reference to `drop_chrdev'
-drivers/built-in.o: In function `lirc_it87_exit':
-lirc_it87.c:(.exit.text+0x38a5): undefined reference to `drop_chrdev'
+I hate those merge conflicts ;)
 
-Its a quick hack and untested beyond building, since I don't have the
-hardware, but it should do the trick.
-
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/staging/lirc/lirc_it87.c     |    9 ++++++---
- drivers/staging/lirc/lirc_parallel.c |    4 ++--
- 2 files changed, 8 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/staging/lirc/lirc_it87.c b/drivers/staging/lirc/lirc_it87.c
-index 781abc3..72f07f1 100644
---- a/drivers/staging/lirc/lirc_it87.c
-+++ b/drivers/staging/lirc/lirc_it87.c
-@@ -109,6 +109,7 @@ static DECLARE_WAIT_QUEUE_HEAD(lirc_read_queue);
- 
- static DEFINE_SPINLOCK(hardware_lock);
- static DEFINE_SPINLOCK(dev_lock);
-+static bool device_open;
- 
- static int rx_buf[RBUF_LEN];
- unsigned int rx_tail, rx_head;
-@@ -147,10 +148,11 @@ static void drop_port(void);
- static int lirc_open(struct inode *inode, struct file *file)
- {
- 	spin_lock(&dev_lock);
--	if (module_refcount(THIS_MODULE)) {
-+	if (device_open) {
- 		spin_unlock(&dev_lock);
- 		return -EBUSY;
- 	}
-+	device_open = true;
- 	spin_unlock(&dev_lock);
- 	return 0;
- }
-@@ -158,6 +160,9 @@ static int lirc_open(struct inode *inode, struct file *file)
- 
- static int lirc_close(struct inode *inode, struct file *file)
- {
-+	spin_lock(&dev_lock);
-+	device_open = false;
-+	spin_unlock(&dev_lock);
- 	return 0;
- }
- 
-@@ -363,7 +368,6 @@ static struct lirc_driver driver = {
- };
- 
- 
--#ifdef MODULE
- static int init_chrdev(void)
- {
- 	driver.minor = lirc_register_driver(&driver);
-@@ -380,7 +384,6 @@ static void drop_chrdev(void)
- {
- 	lirc_unregister_driver(driver.minor);
- }
--#endif
- 
- 
- /* SECTION: Hardware */
-diff --git a/drivers/staging/lirc/lirc_parallel.c b/drivers/staging/lirc/lirc_parallel.c
-index df12e7b..04ce97713 100644
---- a/drivers/staging/lirc/lirc_parallel.c
-+++ b/drivers/staging/lirc/lirc_parallel.c
-@@ -240,7 +240,7 @@ static void irq_handler(void *blah)
- 	unsigned int level, newlevel;
- 	unsigned int timeout;
- 
--	if (!module_refcount(THIS_MODULE))
-+	if (!is_open)
- 		return;
- 
- 	if (!is_claimed)
-@@ -515,7 +515,7 @@ static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
- 
- static int lirc_open(struct inode *node, struct file *filep)
- {
--	if (module_refcount(THIS_MODULE) || !lirc_claim())
-+	if (is_open || !lirc_claim())
- 		return -EBUSY;
- 
- 	parport_enable_irq(pport);
-
-
--- 
-Jarod Wilson
-jarod@redhat.com
+could you please send me a patch fixing it at staging/all? I won't apply it
+upstream, but we shouldn't simply revert a patch at staging, otherwise, we'll
+break every clone of my tree.
+> 
+> 
+> 
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v2.0.12 (MingW32)
+> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+>  
+> iQEcBAEBAgAGBQJMS+eJAAoJEAWtPFjxMvFGDw8IAJnmTxTehH4TeqwI3Gn+8gcn
+> Xp8VPH/F67npT3zHQMq4luBEWdnMKkI/y54en8czoqG+EHEnxZjFZUxJUkAKPbpd
+> pU9vVUrQGtUQOf7zY6qYSqaSPIJr+abTmE1k2Wnd47Zwlu35tfRhuVXqfrTu7JkT
+> /Jy4Xf/IOtJvCa62eDCnhB6+gAq+hj5peHiZb7KBxOQO1NH8DQ8DYQPT9xNn5SFs
+> mCmQv9BdNrLdXS4mCkufBWEinennolOIoaSIyj2GkvJm8aSvzIWGvm28zxjPLKPL
+> PLH7A+WPMHCdor7Psn7QJKCm3DPEKu3vcOTOmFYsBJfV/pUNMK+5y3qV1WP9Ayg=
+> =HCq5
+> -----END PGP SIGNATURE-----
+> 
 
