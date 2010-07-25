@@ -1,82 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:54550 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751097Ab0G3Ph4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 11:37:56 -0400
-Date: Fri, 30 Jul 2010 17:38:11 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <m.grzeschik@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>, p.wiesner@phytec.de
-Subject: Re: [PATCH 00/20] MT9M111/MT9M131
-In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1007301734540.7194@axis700.grange>
-References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+Received: from bombadil.infradead.org ([18.85.46.34]:38841 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751105Ab0GYRqX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jul 2010 13:46:23 -0400
+Message-ID: <4C4C7889.4000304@infradead.org>
+Date: Sun, 25 Jul 2010 14:46:49 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: figo zhang <figo1802@gmail.com>
+CC: hverkuil@xs4all.nl, linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: how to mmap in videobuf-dma-sg.c
+References: <1242881164.3824.2.camel@myhost>	<20090521073518.1c0c0a5b@pedra.chehab.org> <AANLkTimExb4hh8K5lRCRiM0IMIgsOpCw69bFvqLlQCDc@mail.gmail.com>
+In-Reply-To: <AANLkTimExb4hh8K5lRCRiM0IMIgsOpCw69bFvqLlQCDc@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael
-
-Thanks for the patches, and for taking care about my holiday - now I will 
-definitely not have to be bored, while lying around on tropical beaches of 
-Denmark;)
-
-Ok, I will review them, and I hope you realise, this has practically 0 
-chance to get into 2.6.36, unless Linus decides to release a couple more 
--rc's. So, I think we shall take our time and prepare these for 2.6.37.
-
-Thanks
-Guennadi
-
-On Fri, 30 Jul 2010, Michael Grzeschik wrote:
-
-> Hi everyone,
+Em 22-07-2010 23:31, figo zhang escreveu:
 > 
-> the following patchseries was created in a rewrite process of the
-> mt9m111 camera driver while it was tested for support of the very
-> similar silicon mt9m121. Some patches add functionality like panning or
-> test pattern generation or adjust rectengular positioning while others
-> do some restructuring. It has been tested as functional. Comments on
-> this are very welcome.
+>     Em Thu, 21 May 2009 12:46:04 +0800
+>     "Figo.zhang" <figo1802@gmail.com <mailto:figo1802@gmail.com>> escreveu:
 > 
-> Michael Grzeschik (19):
->   mt9m111: init chip after read CHIP_VERSION
->   mt9m111: register cleanup hex to dec bitoffset
->   mt9m111: added new bit offset defines
->   mt9m111: added default row/col/width/height values
->   mt9m111: changed MAX_{HEIGHT,WIDTH} values to silicon pixelcount
->   mt9m111: changed MIN_DARK_COLS to MT9M131 spec count
->   mt9m111: cropcap use defined default rect properties in defrect
->   mt9m111: cropcap check if type is CAPTURE
->   mt9m111: rewrite make_rect for positioning in debug
->   mt9m111: added mt9m111 format structure
->   mt9m111: s_crop add calculation of output size
->   mt9m111: s_crop check for VIDEO_CAPTURE type
->   mt9m111: added reg_mask function
->   mt9m111: rewrite setup_rect, added soft_crop for smooth panning
->   mt9m111: added more supported BE colour formats
->   mt9m111: rewrite set_pixfmt
->   mt9m111: make use of testpattern in debug mode
->   mt9m111: try_fmt rewrite to use preset values
->   mt9m111: s_fmt make use of try_fmt
+>     > hi,all,
+>     >  I am puzzle that how to mmap ( V4L2_MEMORY_MMAP) in videobuf-dma-sg.c?
+>     >
+>     > In this file, it alloc the momery using vmalloc_32() , and put this
+>     > momery into sglist table,and then use dma_map_sg() to create sg dma at
+>     > __videobuf_iolock() function. but in __videobuf_mmap_mapper(), i canot
+>     > understand how it do the mmap?
+>     > why it not use the remap_vmalloc_range() to do the mmap?
 > 
-> Philipp Wiesner (1):
->   mt9m111: Added indication that MT9M131 is supported by this driver
+>     The answer is simple: remap_vmalloc_range() is newer than videobuf code. This
+>     part of the code was written back to kernel 2.4, and nobody cared to update it
+>     to use those newer functions, and simplify its code.
 > 
->  drivers/media/video/Kconfig   |    5 +-
->  drivers/media/video/mt9m111.c |  596 ++++++++++++++++++++++++++---------------
->  2 files changed, 377 insertions(+), 224 deletions(-)
 > 
-> -- 
-> Pengutronix e.K.                           |                             |
-> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> thanks, in __videobuf_mmap_mapper(), it define a videobuf_vm_ops->fault, it will alloc a new page for mmaping when it  encounter page fault (do_page_fault),
+> so how the mmap() can mmap the vmalloc memory which had allocted before using __videobuf_iolock()/vmalloc_32() ?
+
+Sorry for not answering earlier.
+
+The current videobuf implementation has some problems. Laurent and Pawel are working
+on a new implementation that will likely solve such issues. Not sure if they already
+submitted the patches, since I just return back from vacations, and I'm still trying
+to handle all the backlogs on my inboxes. I haven't look at LMML posts yet.
+
+Cheers,
+Mauro.
+
+> 
+> Thanks,
+> Figo.zhang
+>  
+> 
+> 
+>     If you want, feel free to propose some cleanups on it
+> 
+> 
+> 
+>     Cheers,
+>     Mauro
+> 
 > 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
