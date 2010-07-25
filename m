@@ -1,28 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:55900 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755664Ab0G0K5S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jul 2010 06:57:18 -0400
-Received: by ewy23 with SMTP id 23so1185029ewy.19
-        for <linux-media@vger.kernel.org>; Tue, 27 Jul 2010 03:57:17 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:3001 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752115Ab0GYR7t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jul 2010 13:59:49 -0400
+Message-ID: <4C4C7BA5.3050709@redhat.com>
+Date: Sun, 25 Jul 2010 15:00:05 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTinU8gO1gx+3wD4hqYp7O2U2RC2UQ597Jag=gMPw@mail.gmail.com>
-References: <AANLkTinU8gO1gx+3wD4hqYp7O2U2RC2UQ597Jag=gMPw@mail.gmail.com>
-Date: Tue, 27 Jul 2010 13:56:46 +0300
-Message-ID: <AANLkTi=C_BLRBpp94VNb18cGkLjaFbfAeq_ZnCUUVn1L@mail.gmail.com>
-Subject: Re: [PATCH] Fix possible memory leak in dvbca.c
-From: Tomer Barletz <barletz@gmail.com>
-To: linux-media@vger.kernel.org
+To: Jarod Wilson <jarod@redhat.com>
+CC: Valdis.Kletnieks@vt.edu,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: Re: mmotm 2010-07-19-16-37 uploaded
+References: <201007200007.o6K07Xbg028863@imap1.linux-foundation.org> <6434.1279658492@localhost> <201007201350.28961.dmitry.torokhov@gmail.com> <4825.1279660300@localhost> <20100720214112.GM13176@redhat.com>
+In-Reply-To: <20100720214112.GM13176@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2010/7/25 Tomer Barletz <barletz@gmail.com>:
-> Allocated memory will never get free when read fails.
-> See attached patch.
->
-> Tomer
->
+Em 20-07-2010 18:41, Jarod Wilson escreveu:
+> On Tue, Jul 20, 2010 at 05:11:40PM -0400, Valdis.Kletnieks@vt.edu wrote:
+>> On Tue, 20 Jul 2010 13:50:27 PDT, Dmitry Torokhov said:
+>>
+>>>> And things go downhill from there...
+>>>
+>>> I guess you need these 2 from Jarod...
+>>
+>> Hmm. I seem to remember 2 similar patches from the last time I reported it. :)
+>>
+>> System boots fine after applying those two patches.  I'll let somebody else
+>> worry about making sure they end up in linux-next in time for the next merge
+>> window...
+> 
+> I believe Mauro's on vacation at the moment, but due back Real Soon Now,
+> and I'd expect him to pick up both fixes shortly after he settles back in
+> at his desk, so they should be in next before much longer, and definitely
+> before the merge window.
 
-Does anybody knows who's dvb-apps maintainer?
+I just arrived from vacations. I'll be testing this patch and applying it if OK.
+Just give me some days, since I have a huge backlog due to vacations.
+
+Cheers,
+Mauro.
+
