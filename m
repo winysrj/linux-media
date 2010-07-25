@@ -1,198 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:46863 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932268Ab0GUOmG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jul 2010 10:42:06 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE v2 05/12] v4l: v4l2_subdev userspace format API
-Date: Wed, 21 Jul 2010 16:41:52 +0200
-Message-Id: <1279723318-28943-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:52892 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750955Ab0GYRfX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Jul 2010 13:35:23 -0400
+Message-ID: <4C4C75F6.8070301@redhat.com>
+Date: Sun, 25 Jul 2010 14:35:50 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jarod Wilson <jarod@wilsonet.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Linux Plumber's Conference: Call for Working Session Submissions
+References: <4C4B5077.3020509@redhat.com> <AANLkTim5X6LNqcv3F=uiMVbe-emz10CV2N_9ssPcTeK+@mail.gmail.com>
+In-Reply-To: <AANLkTim5X6LNqcv3F=uiMVbe-emz10CV2N_9ssPcTeK+@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a userspace API to get, set and enumerate the media format on a
-subdev pad.
+Hi Jarod,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- drivers/media/video/v4l2-subdev.c |   51 ++++++++++++++++++++++++++++
- include/linux/v4l2-subdev.h       |   66 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-subdev.h       |    6 +---
- 3 files changed, 118 insertions(+), 5 deletions(-)
- create mode 100644 include/linux/v4l2-subdev.h
+Em 25-07-2010 13:10, Jarod Wilson escreveu:
+> On Sat, Jul 24, 2010 at 4:43 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> CFP dead line for submitting proposals to LPC/2010 is approaching.
+>> For those that intends to submit proposals for it, please do it quickly,
+>> as the official dead line is July, 26.
+> 
+> I've submitted a proposal for a Linux HTPC presentation, intending to
+> cover everything from low-level v4l/dvb drivers, video decoder drivers
+> and IR drivers, up the stack to userspace (primarily mythtv and a bit
+> of xbmc). Also submitted a micro-conf proposal for media-related bits,
+> as I didn't see one yet, and at the time, the proposal submission
+> deadline was only a day or two out (this was before it got extended to
+> the 26th) and I believe you were on vacation, 
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 2fe3818..d8b261f 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -122,6 +122,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
- 	struct v4l2_fh *vfh = file->private_data;
-+	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
- 
- 	switch (cmd) {
- 	case VIDIOC_QUERYCTRL:
-@@ -157,6 +158,56 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
- 		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
- 
-+	case VIDIOC_SUBDEV_G_FMT: {
-+		struct v4l2_subdev_pad_format *format = arg;
-+
-+		if (format->which != V4L2_SUBDEV_FORMAT_PROBE &&
-+		    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (format->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, get_fmt, subdev_fh,
-+					format->pad, &format->format,
-+					format->which);
-+	}
-+
-+	case VIDIOC_SUBDEV_S_FMT: {
-+		struct v4l2_subdev_pad_format *format = arg;
-+
-+		if (format->which != V4L2_SUBDEV_FORMAT_PROBE &&
-+		    format->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+			return -EINVAL;
-+
-+		if (format->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, set_fmt, subdev_fh,
-+					format->pad, &format->format,
-+					format->which);
-+	}
-+
-+	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
-+		struct v4l2_subdev_pad_mbus_code_enum *code = arg;
-+
-+		if (code->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, enum_mbus_code, subdev_fh,
-+					code);
-+	}
-+
-+	case VIDIOC_SUBDEV_ENUM_FRAME_SIZE: {
-+		struct v4l2_subdev_frame_size_enum *fse = arg;
-+
-+		if (fse->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(sd, pad, enum_frame_size, subdev_fh,
-+					fse);
-+	}
-+
- 	default:
- 		return -ENOIOCTLCMD;
- 	}
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-new file mode 100644
-index 0000000..6504f22
---- /dev/null
-+++ b/include/linux/v4l2-subdev.h
-@@ -0,0 +1,66 @@
-+/*
-+ * V4L2 subdev userspace API
-+ *
-+ * Copyright (C) 2010 Nokia
-+ *
-+ * Contributors:
-+ *	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This package is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * THIS PACKAGE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR
-+ * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
-+ * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-+ */
-+
-+#ifndef __LINUX_V4L2_SUBDEV_H
-+#define __LINUX_V4L2_SUBDEV_H
-+
-+#include <linux/ioctl.h>
-+#include <linux/v4l2-mediabus.h>
-+
-+enum v4l2_subdev_format {
-+	V4L2_SUBDEV_FORMAT_PROBE = 0,
-+	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
-+};
-+
-+/**
-+ * struct v4l2_subdev_pad_format
-+ */
-+struct v4l2_subdev_pad_format {
-+	__u32 which;
-+	__u32 pad;
-+	struct v4l2_mbus_framefmt format;
-+};
-+
-+/**
-+ * struct v4l2_subdev_pad_mbus_code_enum
-+ */
-+struct v4l2_subdev_pad_mbus_code_enum {
-+	__u32 pad;
-+	__u32 index;
-+	__u32 code;
-+	__u32 reserved[5];
-+};
-+
-+struct v4l2_subdev_frame_size_enum {
-+	__u32 index;
-+	__u32 pad;
-+	__u32 code;
-+	__u32 min_width;
-+	__u32 max_width;
-+	__u32 min_height;
-+	__u32 max_height;
-+	__u32 reserved[9];
-+};
-+
-+#define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_pad_format)
-+#define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_pad_format)
-+#define VIDIOC_SUBDEV_ENUM_MBUS_CODE \
-+			_IOWR('V', 8, struct v4l2_subdev_pad_mbus_code_enum)
-+#define VIDIOC_SUBDEV_ENUM_FRAME_SIZE \
-+			_IOWR('V', 9, struct v4l2_subdev_frame_size_enum)
-+
-+#endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 684ab60..acbcd8f 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -21,6 +21,7 @@
- #ifndef _V4L2_SUBDEV_H
- #define _V4L2_SUBDEV_H
- 
-+#include <linux/v4l2-subdev.h>
- #include <media/media-entity.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-dev.h>
-@@ -399,11 +400,6 @@ struct v4l2_subdev_ir_ops {
- 				struct v4l2_subdev_ir_parameters *params);
- };
- 
--enum v4l2_subdev_format {
--	V4L2_SUBDEV_FORMAT_PROBE = 0,
--	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
--};
--
- struct v4l2_subdev_pad_ops {
- 	int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 			      struct v4l2_subdev_pad_mbus_code_enum *code);
--- 
-1.7.1
+Good to know. Yes, I was on vacation, just returning back and trying to get rid
+of the immense amount of emails and spams from my inboxes...
 
+To be clear, the dead line for the LPC conf is by July, 26, but we still have 
+more time for the mini-conf tracks.
+
+> so your submission and
+> mine are essentially duplicates.
+> 
+> http://www.linuxplumbersconf.org/2010/ocw/proposals/621
+> http://www.linuxplumbersconf.org/2010/ocw/proposals/195
+
+No, they won't conflict. My "proposal" is for leading the mini-conf panel, and not
+for the presentation itself (it is not really a proposal - it is just the way it
+is defined for the panel leads to register the panels).
+
+Cheers,
+Mauro
