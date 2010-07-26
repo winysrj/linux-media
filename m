@@ -1,162 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:36312 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750757Ab0GJSC0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Jul 2010 14:02:26 -0400
-Received: by fxm14 with SMTP id 14so1674219fxm.19
-        for <linux-media@vger.kernel.org>; Sat, 10 Jul 2010 11:02:24 -0700 (PDT)
-Message-ID: <4C38B5AD.9070104@googlemail.com>
-Date: Sat, 10 Jul 2010 20:02:21 +0200
-From: Sven Barth <pascaldragon@googlemail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:42739 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751201Ab0GZXZs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jul 2010 19:25:48 -0400
+Date: Mon, 26 Jul 2010 19:25:46 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: [PATCH 0/15] STAGING: add lirc device drivers
+Message-ID: <20100726232546.GA21225@redhat.com>
 MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Mike Isely <isely@isely.net>
-Subject: [PATCH] Add support for AUX_PLL on cx2583x chips
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds support for the AUX_PLL in cx2583x chips which is available in 
-those although the audio part of the chip is not.
-The AUX_PLL is used at least by Terratec in their Grabster AV400 device.
+This patch series adds the remaining lirc_foo device drivers to the staging
+tree. The core lirc_dev driver and lirc headers are currently merged in a
+v4l/dvb staging tree (which is pulled into linux-next), and are utilized by
+way of an IR decoder/encoder bridge plugin to ir-core.
 
-Signed-off-by: Sven Barth <pascaldragon@googlemail.com>
-Acked-By: Mike Isely <isely@pobox.com>
+I've started porting lirc_foo drivers over to ir-core, first tackling the
+lirc_mceusb and lirc_imon drivers. lirc_mceusb is no more, replaced by a
+pure ir-core mceusb driver, and lirc_imon only supports the old first-gen
+imon devices now, which are quite different from the current-gen ones, now
+supported by a pure ir-core imon driver.
 
-diff -aur v4l-src/linux/drivers/media/video/cx25840//cx25840-audio.c 
-v4l-build/linux/drivers/media/video/cx25840//cx25840-audio.c
---- v4l-src/linux/drivers/media/video/cx25840//cx25840-audio.c 
-2009-10-18 21:08:26.497700904 +0200
-+++ v4l-build/linux/drivers/media/video/cx25840//cx25840-audio.c 
-2010-07-09 22:35:31.067718241 +0200
-@@ -438,41 +438,45 @@
-  {
-  	struct cx25840_state *state = to_state(i2c_get_clientdata(client));
+The long-term goal here is that all of these drivers should either be ported
+to ir-core, or dropped entirely. Some of them (*cough* lirc_parallel *cough*)
+should likely just be put out to pasture, but others are definitely still in
+use by quite a few people out there. I've got hardware for another four or
+five of the drivers, but not the rest, so I'm hoping that maybe people who
+have the hardware will pitch in and help with the porting if the bits are
+more readily available by way of the staging tree.
 
--	/* assert soft reset */
--	cx25840_and_or(client, 0x810, ~0x1, 0x01);
--
--	/* stop microcontroller */
--	cx25840_and_or(client, 0x803, ~0x10, 0);
--
--	/* Mute everything to prevent the PFFT! */
--	cx25840_write(client, 0x8d3, 0x1f);
--
--	if (state->aud_input == CX25840_AUDIO_SERIAL) {
--		/* Set Path1 to Serial Audio Input */
--		cx25840_write4(client, 0x8d0, 0x01011012);
--
--		/* The microcontroller should not be started for the
--		 * non-tuner inputs: autodetection is specific for
--		 * TV audio. */
--	} else {
--		/* Set Path1 to Analog Demod Main Channel */
--		cx25840_write4(client, 0x8d0, 0x1f063870);
--	}
-+        if (!is_cx2583x(state)) {
-+		/* assert soft reset */
-+		cx25840_and_or(client, 0x810, ~0x1, 0x01);
-+
-+		/* stop microcontroller */
-+		cx25840_and_or(client, 0x803, ~0x10, 0);
-+
-+		/* Mute everything to prevent the PFFT! */
-+		cx25840_write(client, 0x8d3, 0x1f);
-+
-+		if (state->aud_input == CX25840_AUDIO_SERIAL) {
-+			/* Set Path1 to Serial Audio Input */
-+			cx25840_write4(client, 0x8d0, 0x01011012);
-+
-+			/* The microcontroller should not be started for the
-+			 * non-tuner inputs: autodetection is specific for
-+			 * TV audio. */
-+		} else {
-+			/* Set Path1 to Analog Demod Main Channel */
-+			cx25840_write4(client, 0x8d0, 0x1f063870);
-+		}
-+        }
+Drivers I have hardware for, and am thus most likely to work on porting to
+ir-core before any others (and probably in this order):
+- lirc_zilog
+- lirc_streamzap
+- lirc_i2c
+- lirc_serial
+- lirc_sir
 
-  	set_audclk_freq(client, state->audclk_freq);
+Additionally, Maxim Levitsky, the author of lirc_ene0100, has already started
+work on porting lirc_ene0100 to ir-core. Everything else, definitely
+looking for help.
 
--	if (state->aud_input != CX25840_AUDIO_SERIAL) {
--		/* When the microcontroller detects the
--		 * audio format, it will unmute the lines */
--		cx25840_and_or(client, 0x803, ~0x10, 0x10);
--	}
--
--	/* deassert soft reset */
--	cx25840_and_or(client, 0x810, ~0x1, 0x00);
--
--	/* Ensure the controller is running when we exit */
--	if (is_cx2388x(state) || is_cx231xx(state))
--		cx25840_and_or(client, 0x803, ~0x10, 0x10);
-+        if (!is_cx2583x(state)) {
-+		if (state->aud_input != CX25840_AUDIO_SERIAL) {
-+			/* When the microcontroller detects the
-+			 * audio format, it will unmute the lines */
-+			cx25840_and_or(client, 0x803, ~0x10, 0x10);
-+		}
-+
-+		/* deassert soft reset */
-+		cx25840_and_or(client, 0x810, ~0x1, 0x00);
-+
-+		/* Ensure the controller is running when we exit */
-+		if (is_cx2388x(state) || is_cx231xx(state))
-+			cx25840_and_or(client, 0x803, ~0x10, 0x10);
-+        }
-  }
+Patches:
+staging/lirc: add lirc_bt829 driver
+staging/lirc: add lirc_ene0100 driver
+staging/lirc: add lirc_i2c driver
+staging/lirc: add lirc_igorplugusb driver
+staging/lirc: add lirc_imon driver
+staging/lirc: add lirc_it87 driver
+staging/lirc: add lirc_ite8709 driver
+staging/lirc: add lirc_parallel driver
+staging/lirc: add lirc_sasem driver
+staging/lirc: add lirc_serial driver
+staging/lirc: add lirc_sir driver
+staging/lirc: add lirc_streamzap driver
+staging/lirc: add lirc_ttusbir driver
+staging/lirc: add lirc_zilog driver
+staging/lirc: wire up Kconfig and Makefile bits
 
-  static int get_volume(struct i2c_client *client)
-diff -aur v4l-src/linux/drivers/media/video/cx25840//cx25840-core.c 
-v4l-build/linux/drivers/media/video/cx25840//cx25840-core.c
---- v4l-src/linux/drivers/media/video/cx25840//cx25840-core.c	2010-06-26 
-17:56:26.238525747 +0200
-+++ v4l-build/linux/drivers/media/video/cx25840//cx25840-core.c 
-2010-07-09 23:28:36.784067005 +0200
-@@ -691,6 +691,11 @@
-  	}
-  	cx25840_and_or(client, 0x401, ~0x60, 0);
-  	cx25840_and_or(client, 0x401, ~0x60, 0x60);
-+
-+        /* Don't write into audio registers on cx2583x chips */
-+        if (is_cx2583x(state))
-+        	return;
-+
-  	cx25840_and_or(client, 0x810, ~0x01, 1);
+Diffstat:
+ drivers/staging/Kconfig                 |    2 +
+ drivers/staging/Makefile                |    1 +
+ drivers/staging/lirc/Kconfig            |  110 +++
+ drivers/staging/lirc/Makefile           |   19 +
+ drivers/staging/lirc/TODO               |    8 +
+ drivers/staging/lirc/lirc_bt829.c       |  383 +++++++++
+ drivers/staging/lirc/lirc_ene0100.c     |  646 ++++++++++++++
+ drivers/staging/lirc/lirc_ene0100.h     |  169 ++++
+ drivers/staging/lirc/lirc_i2c.c         |  536 ++++++++++++
+ drivers/staging/lirc/lirc_igorplugusb.c |  555 ++++++++++++
+ drivers/staging/lirc/lirc_imon.c        | 1058 +++++++++++++++++++++++
+ drivers/staging/lirc/lirc_it87.c        | 1019 +++++++++++++++++++++++
+ drivers/staging/lirc/lirc_it87.h        |  116 +++
+ drivers/staging/lirc/lirc_ite8709.c     |  542 ++++++++++++
+ drivers/staging/lirc/lirc_parallel.c    |  705 ++++++++++++++++
+ drivers/staging/lirc/lirc_parallel.h    |   26 +
+ drivers/staging/lirc/lirc_sasem.c       |  933 +++++++++++++++++++++
+ drivers/staging/lirc/lirc_serial.c      | 1313 +++++++++++++++++++++++++++++
+ drivers/staging/lirc/lirc_sir.c         | 1282 ++++++++++++++++++++++++++++
+ drivers/staging/lirc/lirc_streamzap.c   |  821 ++++++++++++++++++
+ drivers/staging/lirc/lirc_ttusbir.c     |  397 +++++++++
+ drivers/staging/lirc/lirc_zilog.c       | 1387
++++++++++++++++++++++++++++++++
+ 22 files changed, 12028 insertions(+), 0 deletions(-)
 
-  	if (state->radio) {
-@@ -849,10 +854,8 @@
-
-  	state->vid_input = vid_input;
-  	state->aud_input = aud_input;
--	if (!is_cx2583x(state)) {
--		cx25840_audio_set_path(client);
--		input_change(client);
--	}
-+	cx25840_audio_set_path(client);
-+	input_change(client);
-
-  	if (is_cx2388x(state)) {
-  		/* Audio channel 1 src : Parallel 1 */
-@@ -1482,8 +1485,6 @@
-  	struct cx25840_state *state = to_state(sd);
-  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-
--	if (is_cx2583x(state))
--		return -EINVAL;
-  	return set_input(client, state->vid_input, input);
-  }
-
-@@ -1492,8 +1493,7 @@
-  	struct cx25840_state *state = to_state(sd);
-  	struct i2c_client *client = v4l2_get_subdevdata(sd);
-
--	if (!is_cx2583x(state))
--		input_change(client);
-+	input_change(client);
-  	return 0;
-  }
+-- 
+Jarod Wilson
+jarod@redhat.com
 
