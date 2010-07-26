@@ -1,139 +1,688 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:46854 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932087Ab0GUOmC (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21019 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754343Ab0GZOKe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jul 2010 10:42:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE v2 00/12] Further V4L2 API additions and OMAP3 ISP driver
-Date: Wed, 21 Jul 2010 16:41:47 +0200
-Message-Id: <1279723318-28943-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 26 Jul 2010 10:10:34 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Mon, 26 Jul 2010 16:11:43 +0200
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [PATCHv2 3/4] mm: cma: Test device and application added
+In-reply-to: <dc4bdf3e0b02c0ac4770927f72b6cbc3f0b486a2.1280151963.git.m.nazarewicz@samsung.com>
+To: linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Hiremath Vaibhav <hvaibhav@ti.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>
+Message-id: <03fd80bba187c767530614402793963d62e44e1c.1280151963.git.m.nazarewicz@samsung.com>
+References: <cover.1280151963.git.m.nazarewicz@samsung.com>
+ <743102607e2c5fb20e3c0676fadbcb93d501a78e.1280151963.git.m.nazarewicz@samsung.com>
+ <dc4bdf3e0b02c0ac4770927f72b6cbc3f0b486a2.1280151963.git.m.nazarewicz@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+This patch adds a "cma" misc device which lets user space use the
+CMA API.  This device is meant for testing.  A testing application
+is also provided.
 
-Here's the OMAP3 ISP driver along with V4L2 API additions/enhancements that
-it depends on, rebased on the media controller v2 patches. Once again please
-don't review this set, but use it as sample code for the media controller.
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/misc/Kconfig   |    8 +
+ drivers/misc/Makefile  |    1 +
+ drivers/misc/cma-dev.c |  184 ++++++++++++++++++++++++
+ include/linux/cma.h    |   30 ++++
+ tools/cma/cma-test.c   |  373 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 5 files changed, 596 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/misc/cma-dev.c
+ create mode 100644 tools/cma/cma-test.c
 
-Antti Koskipaa (1):
-  v4l: Add crop ioctl to V4L2 subdev API
-
-Laurent Pinchart (8):
-  v4l: Move the media/v4l2-mediabus.h header to include/linux
-  v4l: Add 16 bit YUYV and SGRBG10 media bus format codes
-  v4l-subdev: Add pads operations
-  v4l: v4l2_subdev userspace format API
-  v4l: Add subdev userspace API to enumerate and configure frame
-    interval
-  v4l: subdev: Generic ioctl support
-  omap34xxcam: Register the ISP platform device during omap34xxcam
-    probe
-  OMAP3 ISP driver
-
-Stanimir Varbanov (2):
-  v4l: Create v4l2 subdev file handle structure
-  omap3: Export omap3isp platform device structure
-
-Tuukka Toivonen (1):
-  ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-
- Documentation/video4linux/v4l2-framework.txt |    5 +
- arch/arm/mach-omap2/devices.c                |   46 +-
- arch/arm/mach-omap2/devices.h                |   17 +
- arch/arm/plat-omap/include/mach/isp_user.h   |  637 ++++++++
- arch/arm/plat-omap/include/plat/omap34xx.h   |   16 +-
- drivers/media/video/Kconfig                  |    9 +
- drivers/media/video/Makefile                 |    4 +
- drivers/media/video/isp/Makefile             |   14 +
- drivers/media/video/isp/bluegamma_table.h    | 1040 ++++++++++++
- drivers/media/video/isp/cfa_coef_table.h     |  603 +++++++
- drivers/media/video/isp/greengamma_table.h   | 1040 ++++++++++++
- drivers/media/video/isp/isp.c                | 1686 +++++++++++++++++++
- drivers/media/video/isp/isp.h                |  402 +++++
- drivers/media/video/isp/ispccdc.c            | 2042 +++++++++++++++++++++++
- drivers/media/video/isp/ispccdc.h            |  177 ++
- drivers/media/video/isp/ispccp2.c            | 1035 ++++++++++++
- drivers/media/video/isp/ispccp2.h            |   89 +
- drivers/media/video/isp/ispcsi2.c            | 1214 ++++++++++++++
- drivers/media/video/isp/ispcsi2.h            |  158 ++
- drivers/media/video/isp/ispcsiphy.c          |  245 +++
- drivers/media/video/isp/ispcsiphy.h          |   72 +
- drivers/media/video/isp/isph3a.h             |  111 ++
- drivers/media/video/isp/isph3a_aewb.c        |  307 ++++
- drivers/media/video/isp/isph3a_af.c          |  358 ++++
- drivers/media/video/isp/isphist.c            |  505 ++++++
- drivers/media/video/isp/isphist.h            |   34 +
- drivers/media/video/isp/isppreview.c         | 2263 ++++++++++++++++++++++++++
- drivers/media/video/isp/isppreview.h         |  259 +++
- drivers/media/video/isp/ispqueue.c           | 1074 ++++++++++++
- drivers/media/video/isp/ispqueue.h           |  175 ++
- drivers/media/video/isp/ispreg.h             | 1802 ++++++++++++++++++++
- drivers/media/video/isp/ispresizer.c         | 1637 +++++++++++++++++++
- drivers/media/video/isp/ispresizer.h         |  136 ++
- drivers/media/video/isp/ispstat.c            |  965 +++++++++++
- drivers/media/video/isp/ispstat.h            |  161 ++
- drivers/media/video/isp/ispvideo.c           | 1241 ++++++++++++++
- drivers/media/video/isp/ispvideo.h           |  139 ++
- drivers/media/video/isp/luma_enhance_table.h |  144 ++
- drivers/media/video/isp/noise_filter_table.h |   79 +
- drivers/media/video/isp/redgamma_table.h     | 1040 ++++++++++++
- drivers/media/video/omap34xxcam.c            | 1562 ++++++++++++++++++
- drivers/media/video/omap34xxcam.h            |  137 ++
- drivers/media/video/v4l2-subdev.c            |  177 ++-
- include/linux/v4l2-mediabus.h                |   70 +
- include/linux/v4l2-subdev.h                  |  102 ++
- include/media/soc_mediabus.h                 |    3 +-
- include/media/v4l2-mediabus.h                |   48 +-
- include/media/v4l2-subdev.h                  |   53 +
- 48 files changed, 25046 insertions(+), 87 deletions(-)
- create mode 100644 arch/arm/mach-omap2/devices.h
- create mode 100644 arch/arm/plat-omap/include/mach/isp_user.h
- create mode 100644 drivers/media/video/isp/Makefile
- create mode 100644 drivers/media/video/isp/bluegamma_table.h
- create mode 100644 drivers/media/video/isp/cfa_coef_table.h
- create mode 100644 drivers/media/video/isp/greengamma_table.h
- create mode 100644 drivers/media/video/isp/isp.c
- create mode 100644 drivers/media/video/isp/isp.h
- create mode 100644 drivers/media/video/isp/ispccdc.c
- create mode 100644 drivers/media/video/isp/ispccdc.h
- create mode 100644 drivers/media/video/isp/ispccp2.c
- create mode 100644 drivers/media/video/isp/ispccp2.h
- create mode 100644 drivers/media/video/isp/ispcsi2.c
- create mode 100644 drivers/media/video/isp/ispcsi2.h
- create mode 100644 drivers/media/video/isp/ispcsiphy.c
- create mode 100644 drivers/media/video/isp/ispcsiphy.h
- create mode 100644 drivers/media/video/isp/isph3a.h
- create mode 100644 drivers/media/video/isp/isph3a_aewb.c
- create mode 100644 drivers/media/video/isp/isph3a_af.c
- create mode 100644 drivers/media/video/isp/isphist.c
- create mode 100644 drivers/media/video/isp/isphist.h
- create mode 100644 drivers/media/video/isp/isppreview.c
- create mode 100644 drivers/media/video/isp/isppreview.h
- create mode 100644 drivers/media/video/isp/ispqueue.c
- create mode 100644 drivers/media/video/isp/ispqueue.h
- create mode 100644 drivers/media/video/isp/ispreg.h
- create mode 100644 drivers/media/video/isp/ispresizer.c
- create mode 100644 drivers/media/video/isp/ispresizer.h
- create mode 100644 drivers/media/video/isp/ispstat.c
- create mode 100644 drivers/media/video/isp/ispstat.h
- create mode 100644 drivers/media/video/isp/ispvideo.c
- create mode 100644 drivers/media/video/isp/ispvideo.h
- create mode 100644 drivers/media/video/isp/luma_enhance_table.h
- create mode 100644 drivers/media/video/isp/noise_filter_table.h
- create mode 100644 drivers/media/video/isp/redgamma_table.h
- create mode 100644 drivers/media/video/omap34xxcam.c
- create mode 100644 drivers/media/video/omap34xxcam.h
- create mode 100644 include/linux/v4l2-mediabus.h
- create mode 100644 include/linux/v4l2-subdev.h
-
+diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
+index 9b089df..6ae3d9f 100644
+--- a/drivers/misc/Kconfig
++++ b/drivers/misc/Kconfig
+@@ -368,4 +368,12 @@ source "drivers/misc/eeprom/Kconfig"
+ source "drivers/misc/cb710/Kconfig"
+ source "drivers/misc/iwmc3200top/Kconfig"
+ 
++config CMA_DEVICE
++	tristate "CMA misc device (DEVELOPEMENT)"
++	depends on CMA
++	help
++	  The CMA misc device allows allocating contiguous memory areas
++	  from user space.  This is mostly for testing of the CMA
++	  framework.
++
+ endif # MISC_DEVICES
+diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
+index 67552d6..9921370 100644
+--- a/drivers/misc/Makefile
++++ b/drivers/misc/Makefile
+@@ -32,3 +32,4 @@ obj-y				+= eeprom/
+ obj-y				+= cb710/
+ obj-$(CONFIG_VMWARE_BALLOON)	+= vmware_balloon.o
+ obj-$(CONFIG_ARM_CHARLCD)	+= arm-charlcd.o
++obj-$(CONFIG_CMA_DEVICE)	+= cma-dev.o
+diff --git a/drivers/misc/cma-dev.c b/drivers/misc/cma-dev.c
+new file mode 100644
+index 0000000..7d7bc05
+--- /dev/null
++++ b/drivers/misc/cma-dev.c
+@@ -0,0 +1,184 @@
++/*
++ * Contiguous Memory Allocator userspace driver
++ * Copyright (c) 2010 by Samsung Electronics.
++ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License or (at your optional) any later version of the license.
++ */
++
++#define pr_fmt(fmt) "cma: " fmt
++
++#ifdef CONFIG_CMA_DEBUG
++#  define DEBUG
++#endif
++
++#include <linux/errno.h>       /* Error numbers */
++#include <linux/err.h>         /* IS_ERR_VALUE() */
++#include <linux/fs.h>          /* struct file */
++#include <linux/mm.h>          /* Memory stuff */
++#include <linux/mman.h>
++#include <linux/slab.h>
++#include <linux/module.h>      /* Standard module stuff */
++#include <linux/device.h>      /* struct device, dev_dbg() */
++#include <linux/types.h>       /* Just to be safe ;) */
++#include <linux/uaccess.h>     /* __copy_{to,from}_user */
++#include <linux/miscdevice.h>  /* misc_register() and company */
++
++#include <linux/cma.h>
++
++static int  cma_file_open(struct inode *inode, struct file *file);
++static int  cma_file_release(struct inode *inode, struct file *file);
++static long cma_file_ioctl(struct file *file, unsigned cmd, unsigned long arg);
++static int  cma_file_mmap(struct file *file, struct vm_area_struct *vma);
++
++
++static struct miscdevice cma_miscdev = {
++	.minor = MISC_DYNAMIC_MINOR,
++	.name  = "cma",
++	.fops  = &(const struct file_operations) {
++		.owner          = THIS_MODULE,
++		.open           = cma_file_open,
++		.release        = cma_file_release,
++		.unlocked_ioctl = cma_file_ioctl,
++		.mmap           = cma_file_mmap,
++	},
++};
++#define cma_dev (cma_miscdev.this_device)
++
++
++#define cma_file_start(file) (((dma_addr_t *)(file)->private_data)[0])
++#define cma_file_size(file)  (((dma_addr_t *)(file)->private_data)[1])
++
++
++static int  cma_file_open(struct inode *inode, struct file *file)
++{
++	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
++
++	file->private_data = NULL;
++
++	return 0;
++}
++
++
++static int  cma_file_release(struct inode *inode, struct file *file)
++{
++	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
++
++	if (file->private_data) {
++		cma_put(cma_file_start(file));
++		kfree(file->private_data);
++	}
++
++	return 0;
++}
++
++
++static long cma_file_ioctl(struct file *file, unsigned cmd, unsigned long arg)
++{
++	struct cma_alloc_request req;
++	struct device fake_device;
++	unsigned long addr;
++	long ret;
++
++	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
++
++	if (cmd != IOCTL_CMA_ALLOC)
++		return -ENOTTY;
++
++	if (!arg)
++		return -EINVAL;
++
++	if (file->private_data) /* Already allocated */
++		return -EBADFD;
++
++	if (copy_from_user(&req, (void *)arg, sizeof req))
++		return -EFAULT;
++
++	if (req.magic != CMA_MAGIC)
++		return -ENOTTY;
++
++	/* May happen on 32 bit system. */
++	if (req.size > ~(typeof(req.size))0 ||
++	    req.alignment > ~(typeof(req.alignment))0)
++		return -EINVAL;
++
++	if (strnlen(req.name, sizeof req.name) >= sizeof req.name
++	 || strnlen(req.kind, sizeof req.kind) >= sizeof req.kind)
++		return -EINVAL;
++
++	file->private_data = kmalloc(2 * sizeof(dma_addr_t), GFP_KERNEL);
++	if (!file->private_data)
++		return -ENOMEM;
++
++	fake_device.init_name = req.name;
++	fake_device.kobj.name = req.name;
++	addr = cma_alloc(&fake_device, req.kind, req.size, req.alignment);
++	if (IS_ERR_VALUE(addr)) {
++		ret = addr;
++		goto error_priv;
++	}
++
++	if (put_user(addr, (typeof(req.start) *)(arg + offsetof(typeof(req), start)))) {
++		ret = -EFAULT;
++		goto error_put;
++	}
++
++	cma_file_start(file) = addr;
++	cma_file_size(file) = req.size;
++
++	dev_dbg(cma_dev, "allocated %p@%p\n",
++		(void *)(dma_addr_t)req.size, (void *)addr);
++
++	return 0;
++
++error_put:
++	cma_put(addr);
++error_priv:
++	kfree(file->private_data);
++	file->private_data = NULL;
++	return ret;
++}
++
++
++static int  cma_file_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	unsigned long pgoff, offset, length;
++
++	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
++
++	if (!file->private_data)
++		return -EBADFD;
++
++	pgoff  = vma->vm_pgoff;
++	offset = pgoff << PAGE_SHIFT;
++	length = vma->vm_end - vma->vm_start;
++
++	if (offset          >= cma_file_size(file)
++	 || length          >  cma_file_size(file)
++	 || offset + length >  cma_file_size(file))
++		return -ENOSPC;
++
++	return remap_pfn_range(vma, vma->vm_start,
++			       __phys_to_pfn(cma_file_start(file) + offset),
++			       length, vma->vm_page_prot);
++}
++
++
++
++static int __init cma_dev_init(void)
++{
++	int ret = misc_register(&cma_miscdev);
++	pr_debug("miscdev: register returned: %d\n", ret);
++	return ret;
++}
++module_init(cma_dev_init);
++
++static void __exit cma_dev_exit(void)
++{
++	dev_dbg(cma_dev, "deregisterring\n");
++	misc_deregister(&cma_miscdev);
++}
++module_exit(cma_dev_exit);
+diff --git a/include/linux/cma.h b/include/linux/cma.h
+index 96a8652..36e73fb 100644
+--- a/include/linux/cma.h
++++ b/include/linux/cma.h
+@@ -11,6 +11,36 @@
+  * See Documentation/contiguous-memory.txt for details.
+  */
+ 
++#include <linux/ioctl.h>
++#include <linux/types.h>
++
++
++#define CMA_MAGIC (('c' << 24) | ('M' << 16) | ('a' << 8) | 0x42)
++
++/**
++ * An information about area exportable to user space.
++ * @magic: must always be CMA_MAGIC.
++ * @name:  name of the device to allocate as.
++ * @kind:  kind of the memory.
++ * @_pad:  reserved.
++ * @size:  size of the chunk to allocate.
++ * @alignment: desired alignment of the chunk (must be power of two or zero).
++ * @start: when ioctl() finishes this stores physical address of the chunk.
++ */
++struct cma_alloc_request {
++	__u32 magic;
++	char  name[17];
++	char  kind[17];
++	__u16 pad;
++	/* __u64 to be compatible accross 32 and 64 bit systems. */
++	__u64 size;
++	__u64 alignment;
++	__u64 start;
++};
++
++#define IOCTL_CMA_ALLOC    _IOWR('p', 0, struct cma_alloc_request)
++
++
+ /***************************** Kernel lever API *****************************/
+ 
+ #ifdef __KERNEL__
+diff --git a/tools/cma/cma-test.c b/tools/cma/cma-test.c
+new file mode 100644
+index 0000000..567c57b
+--- /dev/null
++++ b/tools/cma/cma-test.c
+@@ -0,0 +1,373 @@
++/*
++ * cma-test.c -- CMA testing application
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *                    Author: Michal Nazarewicz <m.nazarewicz@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ */
++
++/* $(CROSS_COMPILE)gcc -Wall -Wextra -g -o cma-test cma-test.c  */
++
++#include <linux/cma.h>
++
++#include <sys/ioctl.h>
++#include <sys/stat.h>
++#include <sys/types.h>
++
++#include <fcntl.h>
++#include <unistd.h>
++
++#include <ctype.h>
++#include <errno.h>
++#include <limits.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++
++
++static void handle_command(char *line);
++
++int main(void)
++{
++	unsigned no = 1;
++	char line[1024];
++	int skip = 0;
++
++	fputs("commands:\n"
++	      " l or list                                list allocated chunks\n"
++	      " a or alloc  <name> <size>[/<alignment>]  allocate chunk\n"
++	      " f or free   [<num>]                      free an chunk\n"
++	      " # ...                                    comment\n"
++	      " <empty line>                             repeat previous\n"
++	      "\n", stderr);
++
++	while (fgets(line, sizeof line, stdin)) {
++		char *nl = strchr(line, '\n');
++		if (nl) {
++			if (skip) {
++				fprintf(stderr, "cma: %d: line too long\n", no);
++				skip = 0;
++			} else {
++				*nl = '\0';
++				handle_command(line);
++			}
++			++no;
++		} else {
++			skip = 1;
++		}
++	}
++
++	if (skip)
++		fprintf(stderr, "cma: %d: no new line at EOF\n", no);
++	return 0;
++}
++
++
++
++static void cmd_list(char *name, char *line);
++static void cmd_alloc(char *name, char *line);
++static void cmd_free(char *name, char *line);
++
++static const struct command {
++	const char name[8];
++	void (*handle)(char *name, char *line);
++} commands[] = {
++	{ "list",  cmd_list  },
++	{ "l",     cmd_list  },
++	{ "alloc", cmd_alloc },
++	{ "a",     cmd_alloc },
++	{ "free",  cmd_free  },
++	{ "f",     cmd_free  },
++	{ "",      NULL      }
++};
++
++
++#define SKIP_SPACE(ch) do while (isspace(*(ch))) ++(ch); while (0)
++
++
++static void handle_command(char *line)
++{
++	static char last_line[1024];
++
++	const struct command *cmd;
++	char *name;
++
++	SKIP_SPACE(line);
++	if (*line == '#')
++		return;
++
++	if (!*line)
++		strcpy(line, last_line);
++	else
++		strcpy(last_line, line);
++
++	name = line;
++	while (*line && !isspace(*line))
++		++line;
++
++	if (*line) {
++		*line = '\0';
++		++line;
++	}
++
++	for (cmd = commands; *(cmd->name); ++cmd)
++		if (!strcmp(name, cmd->name)) {
++			cmd->handle(name, line);
++			return;
++		}
++
++	fprintf(stderr, "%s: unknown command\n", name);
++}
++
++
++
++struct chunk {
++	struct chunk *next, *prev;
++	int fd;
++	unsigned long size;
++	unsigned long start;
++};
++
++static struct chunk root = {
++	.next = &root,
++	.prev = &root,
++};
++
++#define for_each(a) for (a = root.next; a != &root; a = a->next)
++
++static struct chunk *chunk_create(const char *prefix);
++static void chunk_destroy(struct chunk *chunk);
++static void chunk_add(struct chunk *chunk);
++
++static int memparse(char *ptr, char **retptr, unsigned long *ret);
++
++
++static void cmd_list(char *name, char *line)
++{
++	struct chunk *chunk;
++
++	(void)name; (void)line;
++
++	for_each(chunk)
++		printf("%3d: %p@%p\n", chunk->fd,
++		       (void *)chunk->size, (void *)chunk->start);
++}
++
++
++static void cmd_alloc(char *name, char *line)
++{
++	unsigned long size, alignment = 0;
++	struct cma_alloc_request req;
++	char *dev, *kind = NULL;
++	struct chunk *chunk;
++	int ret;
++
++	SKIP_SPACE(line);
++	if (!*line) {
++		fprintf(stderr, "%s: expecting name\n", name);
++		return;
++	}
++
++	for (dev = line; *line && !isspace(*line); ++line)
++		if (*line == '/')
++			kind = line;
++
++	if (!*line) {
++		fprintf(stderr, "%s: expecting size after name\n", name);
++		return;
++	}
++
++	if (kind)
++		*kind++ = '\0';
++	*line++ = '\0';
++
++	if (( kind && (size_t)(kind - dev ) > sizeof req.name)
++	 || (!kind && (size_t)(line - dev ) > sizeof req.name)
++	 || ( kind && (size_t)(line - kind) > sizeof req.kind)) {
++		fprintf(stderr, "%s: name or kind too long\n", name);
++		return;
++	}
++
++
++	if (memparse(line, &line, &size) < 0 || !size) {
++		fprintf(stderr, "%s: invalid size\n", name);
++		return;
++	}
++
++	if (*line == '/')
++		if (memparse(line, &line, &alignment) < 0) {
++			fprintf(stderr, "%s: invalid alignment\n", name);
++			return;
++		}
++
++	SKIP_SPACE(line);
++	if (*line) {
++		fprintf(stderr, "%s: unknown arguments at the end: %s\n",
++			name, line);
++		return;
++	}
++
++
++	chunk = chunk_create(name);
++	if (!chunk)
++		return;
++
++	fprintf(stderr, "%s: allocating %p/%p\n", name,
++		(void *)size, (void *)alignment);
++
++	req.magic     = CMA_MAGIC;
++	req.size      = size;
++	req.alignment = alignment;
++
++	strcpy(req.name, dev);
++	if (kind)
++		strcpy(req.kind, kind);
++	else
++		req.kind[0] = '\0';
++
++
++	ret = ioctl(chunk->fd, IOCTL_CMA_ALLOC, &req);
++	if (ret < 0) {
++		fprintf(stderr, "%s: cma_alloc: %s\n", name, strerror(errno));
++		chunk_destroy(chunk);
++	} else {
++		chunk_add(chunk);
++		chunk->size  = req.size;
++		chunk->start = req.start;
++
++		printf("%3d: %p@%p\n", chunk->fd,
++		       (void *)chunk->size, (void *)chunk->start);
++	}
++}
++
++
++static void cmd_free(char *name, char *line)
++{
++	struct chunk *chunk;
++
++	SKIP_SPACE(line);
++
++	if (*line) {
++		unsigned long num;
++
++		errno = 0;
++		num = strtoul(line, &line, 10);
++
++		if (errno || num > INT_MAX) {
++			fprintf(stderr, "%s: invalid number\n", name);
++			return;
++		}
++
++		SKIP_SPACE(line);
++		if (*line) {
++			fprintf(stderr, "%s: unknown arguments at the end: %s\n",
++				name, line);
++			return;
++		}
++
++		for_each(chunk)
++			if (chunk->fd == (int)num)
++				goto ok;
++		fprintf(stderr, "%s: no chunk %3lu\n", name, num);
++		return;
++
++	} else {
++		chunk = root.prev;
++		if (chunk == &root) {
++			fprintf(stderr, "%s: no chunks\n", name);
++			return;
++		}
++	}
++
++ok:
++	fprintf(stderr, "%s: freeing %p@%p\n", name,
++		(void *)chunk->size, (void *)chunk->start);
++	chunk_destroy(chunk);
++}
++
++
++static struct chunk *chunk_create(const char *prefix)
++{
++	struct chunk *chunk;
++	int fd;
++
++	chunk = malloc(sizeof *chunk);
++	if (!chunk) {
++		fprintf(stderr, "%s: %s\n", prefix, strerror(errno));
++		return NULL;
++	}
++
++	fd = open("/dev/cma", O_RDWR);
++	if (fd < 0) {
++		fprintf(stderr, "%s: /dev/cma: %s\n", prefix, strerror(errno));
++		return NULL;
++	}
++
++	chunk->prev = chunk;
++	chunk->next = chunk;
++	chunk->fd   = fd;
++	return chunk;
++}
++
++static void chunk_destroy(struct chunk *chunk)
++{
++	chunk->prev->next = chunk->next;
++	chunk->next->prev = chunk->prev;
++	close(chunk->fd);
++}
++
++static void chunk_add(struct chunk *chunk)
++{
++	chunk->next = &root;
++	chunk->prev = root.prev;
++	root.prev->next = chunk;
++	root.prev = chunk;
++}
++
++
++
++static int memparse(char *ptr, char **retptr, unsigned long *ret)
++{
++	unsigned long val;
++
++	SKIP_SPACE(ptr);
++
++	errno = 0;
++	val = strtoul(ptr, &ptr, 0);
++	if (errno)
++		return -1;
++
++	switch (*ptr) {
++	case 'G':
++	case 'g':
++		val <<= 10;
++	case 'M':
++	case 'm':
++		val <<= 10;
++	case 'K':
++	case 'k':
++		val <<= 10;
++		++ptr;
++	}
++
++	if (retptr) {
++		SKIP_SPACE(ptr);
++		*retptr = ptr;
++	}
++
++	*ret = val;
++	return 0;
++}
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.1
 
