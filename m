@@ -1,51 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36476 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757956Ab0G2QHL (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3159 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752815Ab0GZTsg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:07:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE v3 02/12] v4l: Add 16 bit YUYV and SGRBG10 media bus format codes
-Date: Thu, 29 Jul 2010 18:06:46 +0200
-Message-Id: <1280419616-7658-14-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 26 Jul 2010 15:48:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links enumeration
+Date: Mon, 26 Jul 2010 21:48:28 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007241445.40062.hverkuil@xs4all.nl> <201007261834.43211.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201007261834.43211.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007262148.28948.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the following media bus format code definitions:
+On Monday 26 July 2010 18:34:42 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Saturday 24 July 2010 14:45:39 Hans Verkuil wrote:
+> > On Wednesday 21 July 2010 16:35:31 Laurent Pinchart wrote:
+> > > Create the following two ioctls and implement them at the media device
+> > > level to enumerate entities, pads and links.
+> > > 
+> > > - MEDIA_IOC_ENUM_ENTITIES: Enumerate entities and their properties
+> > > - MEDIA_IOC_ENUM_LINKS: Enumerate all pads and links for a given entity
+> > > 
+> > > Entity IDs can be non-contiguous. Userspace applications should
+> > > enumerate entities using the MEDIA_ENTITY_ID_FLAG_NEXT flag. When the
+> > > flag is set in the entity ID, the MEDIA_IOC_ENUM_ENTITIES will return
+> > > the next entity with an ID bigger than the requested one.
+> > > 
+> > > Only forward links that originate at one of the entity's source pads are
+> > > returned during the enumeration process.
+> > > 
+> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> > > ---
+> > > 
+> > >  Documentation/media-framework.txt |  134
+> > >  ++++++++++++++++++++++++++++++++ drivers/media/media-device.c      | 
+> > >  153 +++++++++++++++++++++++++++++++++++++ include/linux/media.h        
+> > >      |   73 ++++++++++++++++++
+> > >  include/media/media-device.h      |    3 +
+> > >  include/media/media-entity.h      |   19 +-----
+> > >  5 files changed, 364 insertions(+), 18 deletions(-)
+> > >  create mode 100644 include/linux/media.h
+> > 
+> > <snip>
+> > 
+> > > diff --git a/include/linux/media.h b/include/linux/media.h
+> > > new file mode 100644
+> > > index 0000000..746bdda
+> > > --- /dev/null
+> > > +++ b/include/linux/media.h
+> > > @@ -0,0 +1,73 @@
+> > > +#ifndef __LINUX_MEDIA_H
+> > > +#define __LINUX_MEDIA_H
+> > > +
+> > > +#define MEDIA_ENTITY_TYPE_NODE				1
+> > > +#define MEDIA_ENTITY_TYPE_SUBDEV			2
+> > > +
+> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_V4L			1
+> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_FB			2
+> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_ALSA			3
+> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_DVB			4
+> > > +
+> > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_DECODER		1
+> > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_ENCODER		2
+> > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_MISC		3
+> > > +
+> > > +#define MEDIA_PAD_DIR_INPUT				1
+> > > +#define MEDIA_PAD_DIR_OUTPUT				2
+> > > +
+> > > +#define MEDIA_LINK_FLAG_ACTIVE				(1 << 0)
+> > > +#define MEDIA_LINK_FLAG_IMMUTABLE			(1 << 1)
+> > > +
+> > > +#define MEDIA_ENTITY_ID_FLAG_NEXT	(1 << 31)
+> > > +
+> > > +struct media_user_pad {
+> > > +	__u32 entity;		/* entity ID */
+> > > +	__u8 index;		/* pad index */
+> > > +	__u32 direction;	/* pad direction */
+> > > +};
+> > 
+> > How about:
+> > 
+> > struct media_pad {
+> > 	__u32 entity;		/* entity ID */
+> > 	__u16 index;		/* pad index */
+> > 	__u16 flags;		/* pad flags (includes direction) */
+> 
+> Just to be sure, I suppose I should combine flags + direction in the 
+> media_k_pad structure as well, right ?
 
-- V4L2_MBUS_FMT_SGRBG10_1X10 for 10-bit GRBG Bayer
-- V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 for 10-bit DPCM compressed GRBG Bayer
-- V4L2_MBUS_FMT_YUYV16_1X16 for 16-bit YUYV
-- V4L2_MBUS_FMT_UYVY16_1X16 for 16-bit UYVY
-- V4L2_MBUS_FMT_YVYU16_1X16 for 16-bit YVYU
-- V4L2_MBUS_FMT_VYUY16_1X16 for 16-bit VYUY
+Yes. I think we should just make a u32 flags, use bits 0 and 1 for the direction
+and add a simple inline like this:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/v4l2-mediabus.h |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+static inline u8 media_dir(struct media_pad *pad)
+{
+	return pad->flags & MEDIA_PAD_MASK_DIR);
+}
 
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 17219c3..34dd708 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -43,6 +43,12 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
- 	V4L2_MBUS_FMT_SGRBG8_1X8,
-+	V4L2_MBUS_FMT_SGRBG10_1X10,
-+	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
-+	V4L2_MBUS_FMT_YUYV16_1X16,
-+	V4L2_MBUS_FMT_UYVY16_1X16,
-+	V4L2_MBUS_FMT_YVYU16_1X16,
-+	V4L2_MBUS_FMT_VYUY16_1X16,
- };
- 
- /**
+And we should use the same for media_k_pad (and make a media_k_dir inline).
+
+> 
+> > 	u32 reserved;
+> > };
+> 
+> OK.
+> 
+> > I think u16 for the number of pads might be safer than a u8.
+> 
+> it should definitely be enough, otherwise we'll have a big issue anyway.
+
+Is u8 definitely enough or u16? I assume u16.
+
+<snip>
+
+Regards,
+
+	Hans
+
 -- 
-1.7.1
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
