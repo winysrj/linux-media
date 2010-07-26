@@ -1,81 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:42226 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756390Ab0GDAqf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Jul 2010 20:46:35 -0400
-Received: by qwh6 with SMTP id 6so455911qwh.19
-        for <linux-media@vger.kernel.org>; Sat, 03 Jul 2010 17:46:34 -0700 (PDT)
+Received: from mailout-de.gmx.net ([213.165.64.22]:40248 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752658Ab0GZPi7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jul 2010 11:38:59 -0400
+Received: from lyakh (helo=localhost)
+	by axis700.grange with local-esmtp (Exim 4.63)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1OdPlr-0002T4-3R
+	for linux-media@vger.kernel.org; Mon, 26 Jul 2010 17:39:15 +0200
+Date: Mon, 26 Jul 2010 17:39:15 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: V4L2: avoid name conflicts in macros
+Message-ID: <Pine.LNX.4.64.1007261738380.9816@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <4C2FB6E8.5090001@redhat.com>
-References: <20100616201046.GA10000@redhat.com>
-	<20100703040227.GA31255@redhat.com>
-	<4C2FB6E8.5090001@redhat.com>
-Date: Sat, 3 Jul 2010 20:41:21 -0400
-Message-ID: <AANLkTimbfm9nGxtNyCnpNFz3WhP1g6CzMQvRP0lJe9Dc@mail.gmail.com>
-Subject: Re: [PATCH] IR/mceusb: kill pinnacle-device-specific nonsense
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday, July 3, 2010, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> Em 03-07-2010 01:02, Jarod Wilson escreveu:
->> I have pinnacle hardware now. None of this pinnacle-specific crap is at
->> all necessary (in fact, some of it needed to be removed to actually make
->> it work). The only thing unique about this device is that it often
->> transfers inbound data w/a header of 0x90, meaning 16 bytes of IR data
->> following it, so I had to make adjustments for that, and now its working
->> perfectly fine.
->>
->> v2: stillborn
->>
->> v3: remove completely unnecessary usb_reset_device() call that only served
->> to piss off the pinnacle device regularly and unify/simplify some of the
->> generation-specific device initialization code.
->>
->> post-mortem: it seems the pinnacle hardware actually still gets pissed off
->> from time to time, but I can (try) to fix that later (if possible). The
->> patch is still quite helpful from a code reduction standpoint.
->>
->> Signed-off-by: Jarod Wilson <jarod@redhat.com>
->
-> I've already applied a previous version of this patch:
->
-> http://git.linuxtv.org/v4l-dvb.git?a=commit;h=afd46362e573276e3fb0a44834ad320c97947233
->
-> Could you please rebase it against my tree?
+"sd" and "err" are too common names to be used in macros for local variables.
+Prefix them with an underscore to avoid name clashing.
 
-D'oh, sure, will do, should be able to knock that out tonight.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ include/media/v4l2-device.h |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
 
->> ---
->>  Makefile                  |    2 +-
->>  drivers/media/IR/mceusb.c |  110 +++++++++------------------------------------
->>  2 files changed, 22 insertions(+), 90 deletions(-)
->>
->> diff --git a/Makefile b/Makefile
->> index 6e39ec7..0417c74 100644
->> --- a/Makefile
->> +++ b/Makefile
->> @@ -1,7 +1,7 @@
->>  VERSION = 2
->>  PATCHLEVEL = 6
->>  SUBLEVEL = 35
->> -EXTRAVERSION = -rc1
->> +EXTRAVERSION = -rc1-ir
->
-> Please, don't patch the upstream Makefile ;)
-
-Gah, I saw that and meant to remove it. The perils of rushing things
-the night before going on vacation...
-
---jarod
-
-
-
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index 5d5d550..aaa9f00 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -99,11 +99,11 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
+    while walking the subdevs list. */
+ #define __v4l2_device_call_subdevs(v4l2_dev, cond, o, f, args...) 	\
+ 	do { 								\
+-		struct v4l2_subdev *sd; 				\
++		struct v4l2_subdev *__sd; 				\
+ 									\
+-		list_for_each_entry(sd, &(v4l2_dev)->subdevs, list)   	\
+-			if ((cond) && sd->ops->o && sd->ops->o->f) 	\
+-				sd->ops->o->f(sd , ##args); 		\
++		list_for_each_entry(__sd, &(v4l2_dev)->subdevs, list)   \
++			if ((cond) && __sd->ops->o && __sd->ops->o->f) 	\
++				__sd->ops->o->f(__sd , ##args); 	\
+ 	} while (0)
+ 
+ /* Call the specified callback for all subdevs matching the condition.
+@@ -112,16 +112,16 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
+    subdev while walking the subdevs list. */
+ #define __v4l2_device_call_subdevs_until_err(v4l2_dev, cond, o, f, args...) \
+ ({ 									\
+-	struct v4l2_subdev *sd; 					\
+-	long err = 0; 							\
++	struct v4l2_subdev *__sd; 					\
++	long __err = 0;							\
+ 									\
+-	list_for_each_entry(sd, &(v4l2_dev)->subdevs, list) { 		\
+-		if ((cond) && sd->ops->o && sd->ops->o->f) 		\
+-			err = sd->ops->o->f(sd , ##args); 		\
+-		if (err && err != -ENOIOCTLCMD)				\
++	list_for_each_entry(__sd, &(v4l2_dev)->subdevs, list) { 	\
++		if ((cond) && __sd->ops->o && __sd->ops->o->f) 		\
++			__err = __sd->ops->o->f(__sd , ##args); 	\
++		if (__err && __err != -ENOIOCTLCMD)			\
+ 			break; 						\
+ 	} 								\
+-	(err == -ENOIOCTLCMD) ? 0 : err; 				\
++	(__err == -ENOIOCTLCMD) ? 0 : __err; 				\
+ })
+ 
+ /* Call the specified callback for all subdevs matching grp_id (if 0, then
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+1.6.2.4
+
