@@ -1,34 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55010 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755839Ab0GaO7f (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:43487 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754822Ab0GZTqZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 10:59:35 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: [PATCH 0/9 v4] IR: few fixes, additions and ENE driver
-Date: Sat, 31 Jul 2010 17:59:13 +0300
-Message-Id: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+	Mon, 26 Jul 2010 15:46:25 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [SAMPLE v2 04/12] v4l-subdev: Add pads operations
+Date: Mon, 26 Jul 2010 21:46:56 +0200
+Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007261812.56355.laurent.pinchart@ideasonboard.com> <201007262142.49879.hverkuil@xs4all.nl>
+In-Reply-To: <201007262142.49879.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007262146.58048.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-Hi,
+On Monday 26 July 2010 21:42:49 Hans Verkuil wrote:
+> On Monday 26 July 2010 18:12:55 Laurent Pinchart wrote:
+> > On Friday 23 July 2010 17:56:02 Karicheri, Muralidharan wrote:
+> > > Laurent,
+> > > 
+> > > Could you explain the probe and active usage using an example such as
+> > > below?
+> > > 
+> > >             Link1    Link2
+> > > 
+> > > input sensor -> ccdc -> video node.
+> > > 
+> > > Assume Link2 we can have either format 1 or format 2 for capture.
+> > 
+> > Sure.
+> > 
+> > The probe and active formats are used to probe supported formats and
+> > getting/setting active formats.
+> 
+> Just to verify: we are dealing with mediabus formats here, right?
 
-4th revision of my patches below:
+That's correct.
 
-Changes:
+> One thing that I don't like is the name 'probe'. I would prefer the name
+> 'proposed'. You propose an input format and based on that you can enumerate
+> a list of proposed output format. I think that name fits better than
+> 'probe' which I find confusing in this context.
 
-* more carefull repeat support in NECX protocol
-* added documentation for wide band mode ioctl
-* fix for 64 bit divide
-* updated summary of patches, and preserved few
-* Acked/Reviewed by tags you gave me.
+I'm open to all kind of suggestions. Those patches were not posted for review, 
+they're not final yet. They're just sample code.
 
-Best regards,
-	Maxim Levitsky
+> > * Enumerating supported formats on the CCDC input and output would be
+> > done with the following calls
+> > 
+> > ENUM_FMT(CCDC input pad)
+> > 
+> > for the input, and
+> > 
+> > S_FMT(PROBE, CCDC input pad, format)
+> > ENUM_FMT(CCDC output pad)
+> > 
+> > for the output.
+> 
+> How does ENUM_FMT know if it has to use the proposed or actual input
+> formats? Or is it supposed to always act on proposed formats?
 
+Enumeration always uses the probe/proposed formats.
+
+> > Setting the probe format on the input pad is required, as the format on
+> > an output pad usually depends on the format on input pads.
+> > 
+> > * Trying a format on the CCDC input and output would be done with
+> > 
+> > S_FMT(PROBE, CCDC input pad, format)
+> > 
+> > for the input, and
+> > 
+> > S_FMT(PROBE, CCDC input pad, format)
+> > S_FMT(PROBE, CCDC output pad, format)
+> > 
+> > on the output. The S_FMT call will mangle the format given format if it
+> > can't be supported exactly, so there's no need to call G_FMT after S_FMT
+> > (a G_FMT call following a S_FMT call will return the same format as the
+> > S_FMT call).
+> > 
+> > * Setting the active format is done with
+> > 
+> > S_FMT(ACTIVE, CCDC input pad, format)
+> > S_FMT(ACTIVE, CCDC output pad, format)
+> > 
+> > The formats will be applied to the hardware (possibly with a delay,
+> > drivers can delay register writes until STREAMON for instance).
+> > 
+> > Probe formats are stored in the subdev file handles, so two applications
+> > trying formats at the same time will not interfere with each other.
+> > Active formats are stored in the device structure, so modifications done
+> > by an application are visible to other applications.
+> > 
+> > Hope this helps clarifying the API.
+> 
+> You know that I have never been happy with this approach, but I also have
+> to admit that I haven't found a better way of doing it.
+
+Once again I'm open to proposals/discussions/whatever (well, mostly whatever 
+:-)). Let's concentrate on the media controller patches first, I'll then 
+submit the next set and we'll discuss it.
+
+-- 
+Regards,
+
+Laurent Pinchart
