@@ -1,74 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55010 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756196Ab0GaO74 (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:36395 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753008Ab0GZIQK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 10:59:56 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 11/13] IR: report unknown scancodes the in-kernel decoders found.
-Date: Sat, 31 Jul 2010 17:59:24 +0300
-Message-Id: <1280588366-26101-12-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+	Mon, 26 Jul 2010 04:16:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: how to mmap in videobuf-dma-sg.c
+Date: Mon, 26 Jul 2010 10:16:43 +0200
+Cc: figo zhang <figo1802@gmail.com>, hverkuil@xs4all.nl,
+	"linux-media" <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <1242881164.3824.2.camel@myhost> <AANLkTimExb4hh8K5lRCRiM0IMIgsOpCw69bFvqLlQCDc@mail.gmail.com> <4C4C7889.4000304@infradead.org>
+In-Reply-To: <4C4C7889.4000304@infradead.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007261016.44070.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This way it is possible to use evtest to create keymap for unknown remote.
+Hi Mauro,
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/ir-keytable.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+On Sunday 25 July 2010 19:46:49 Mauro Carvalho Chehab wrote:
 
-diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-index 34b9c07..ba7678a 100644
---- a/drivers/media/IR/ir-keytable.c
-+++ b/drivers/media/IR/ir-keytable.c
-@@ -339,6 +339,8 @@ void ir_repeat(struct input_dev *dev)
- 
- 	spin_lock_irqsave(&ir->keylock, flags);
- 
-+	input_event(dev, EV_MSC, MSC_SCAN, ir->last_scancode);
-+
- 	if (!ir->keypressed)
- 		goto out;
- 
-@@ -370,6 +372,8 @@ void ir_keydown(struct input_dev *dev, int scancode, u8 toggle)
- 
- 	spin_lock_irqsave(&ir->keylock, flags);
- 
-+	input_event(dev, EV_MSC, MSC_SCAN, scancode);
-+
- 	/* Repeat event? */
- 	if (ir->keypressed &&
- 	    ir->last_scancode == scancode &&
-@@ -383,9 +387,11 @@ void ir_keydown(struct input_dev *dev, int scancode, u8 toggle)
- 	ir->last_toggle = toggle;
- 	ir->last_keycode = keycode;
- 
-+
- 	if (keycode == KEY_RESERVED)
- 		goto out;
- 
-+
- 	/* Register a keypress */
- 	ir->keypressed = true;
- 	IR_dprintk(1, "%s: key down event, key 0x%04x, scancode 0x%04x\n",
-@@ -480,6 +486,8 @@ int __ir_input_register(struct input_dev *input_dev,
- 
- 	set_bit(EV_KEY, input_dev->evbit);
- 	set_bit(EV_REP, input_dev->evbit);
-+	set_bit(EV_MSC, input_dev->evbit);
-+	set_bit(MSC_SCAN, input_dev->mscbit);
- 
- 	if (ir_setkeytable(input_dev, &ir_dev->rc_tab, rc_tab)) {
- 		rc = -ENOMEM;
+[snip]
+
+> The current videobuf implementation has some problems. Laurent and Pawel
+> are working on a new implementation that will likely solve such issues.
+> Not sure if they already submitted the patches, since I just return back
+> from vacations, and I'm still trying to handle all the backlogs on my
+> inboxes. I haven't look at LMML posts yet.
+
+No patches submitted yet. It will probably still be weeks before we can submit 
+something.
+
 -- 
-1.7.0.4
+Regards,
 
+Laurent Pinchart
