@@ -1,101 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns2.station176.com ([203.194.196.208]:41807 "EHLO
-	station176.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751053Ab0GIE5s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 00:57:48 -0400
-Message-ID: <4C36AC40.9040306@kayosdesign.com>
-Date: Fri, 09 Jul 2010 14:57:36 +1000
-From: Dave Withnall <dave@kayosdesign.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:47378 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754962Ab0GZTFl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jul 2010 15:05:41 -0400
+Received: by qyk7 with SMTP id 7so2152447qyk.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Jul 2010 12:05:40 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Leadtek WinFast PxDVR3200 H scan issues
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20100726173428.GA14609@core.coreip.homeip.net>
+References: <20100726141352.GA28182@redhat.com>
+	<20100726173428.GA14609@core.coreip.homeip.net>
+Date: Mon, 26 Jul 2010 15:05:36 -0400
+Message-ID: <AANLkTinzoC9Eso=Hncc5=aaZuWnizhV4CWkcddQvFHsb@mail.gmail.com>
+Subject: Re: [PATCH] IR/imon: remove incorrect calls to input_free_device
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Greetings,
+On Mon, Jul 26, 2010 at 1:34 PM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> On Mon, Jul 26, 2010 at 10:13:52AM -0400, Jarod Wilson wrote:
+>> Per Dmitry Torokhov (in a completely unrelated thread on linux-input),
+>> following input_unregister_device with an input_free_device is
+>> forbidden, the former is sufficient alone.
+>>
+>> CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+>> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+>
+> Acked-by: Dmitry Torokhov <dtor@mail.ru>
+>
+> Random notes about irmon:
+>
+> imon_init_idev():
+>        memcpy(&ir->dev, ictx->dev, sizeof(struct device));
+>
+> This is... scary.  Devices are refcounted and if you copy them around
+> all hell may break loose. On an unrelated note you do not need memcpy to
+> copy a structire, *it->dev = *ictx->dev will do.
+>
+> imon_init_idev(), imon_init_touch(): - consizer returning proper error
+> codes via ERR_PTR() and check wit IS_ERR().
 
-I've aquired myself a /Leadtek WinFast PxDVR3200 H/ and am trying to get 
-it working under Ubuntu 10.04.
+Hm, I'm overdue to give that driver another look (bz.k.o #16351), will
+add looking at these to the TODO list... (have immortalized them in
+the bz).
 
-It's now installed and showing up in the system. I've extracted the 
-firmware and installed it as per 
-http://www.linuxtv.org/wiki/index.php/Xceive_XC3028/XC2028#How_to_Obtain_the_Firmware
 
-lspci -vv
-02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI 
-Video and Audio Decoder (rev 03)
-         Subsystem: LeadTek Research Inc. Device 6f39
-         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-         Latency: 0, Cache Line Size: 64 bytes
-         Interrupt: pin A routed to IRQ 18
-         Region 0: Memory at fac00000 (64-bit, non-prefetchable) [size=2M]
-         Capabilities: [40] Express (v1) Endpoint, MSI 00
-                 DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s 
-<64ns, L1 <1us
-                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
-                 DevCtl: Report errors: Correctable- Non-Fatal- Fatal- 
-Unsupported-
-                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
-                         MaxPayload 128 bytes, MaxReadReq 512 bytes
-                 DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ 
-AuxPwr- TransPend-
-                 LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, 
-Latency L0 <2us, L1 <4us
-                         ClockPM- Suprise- LLActRep- BwNot-
-                 LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- 
-CommClk+
-                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
-                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ 
-DLActive- BWMgmt- ABWMgmt-
-         Capabilities: [80] Power Management version 2
-                 Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA 
-PME(D0+,D1+,D2+,D3hot+,D3cold-)
-                 Status: D0 PME-Enable- DSel=0 DScale=0 PME-
-         Capabilities: [90] Vital Product Data <?>
-         Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ 
-Queue=0/0 Enable-
-                 Address: 0000000000000000  Data: 0000
-         Capabilities: [100] Advanced Error Reporting <?>
-         Capabilities: [200] Virtual Channel <?>
-         Kernel driver in use: cx23885
-         Kernel modules: cx23885
-
-However, when I try to scan for channels I get the following errors 
-showing up in messages.
-
-scan /usr/share/dvb/dvb-t/au-Brisbane
-scanning /usr/share/dvb/dvb-t/au-Brisbane
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 226500000 1 3 9 3 1 1 0
-initial transponder 177500000 1 3 9 3 1 1 0
-initial transponder 191625000 1 3 9 3 1 1 0
-initial transponder 219500000 1 3 9 3 1 1 0
-initial transponder 585625000 1 2 9 3 1 2 0
- >>> tune to: 
-226500000:INVERSION_AUTO:BANDWIDTH_7_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_16:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
-....
-etc
-
-dmesg has the following errors repeated
-[   61.354294] cx23885 0000:02:00.0: firmware: requesting xc3028-v27.fw
-[   61.379255] xc2028 2-0061: Loading 80 firmware images from 
-xc3028-v27.fw, type: xc2028 firmware, ver 2.7
-[   61.577772] xc2028 2-0061: Loading firmware for type=BASE F8MHZ (3), 
-id 0000000000000000.
-[   62.065878] xc2028 2-0061: i2c output error: rc = -5 (should be 64)
-[   62.065886] xc2028 2-0061: -5 returned from send
-[   62.065894] xc2028 2-0061: Error -22 while loading base firmware
-
-Any assistance in helping out with getting this to work would be 
-appreciated.
-
-Regards,
-
-Dave.
-
+-- 
+Jarod Wilson
+jarod@wilsonet.com
