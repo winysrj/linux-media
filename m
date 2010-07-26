@@ -1,1737 +1,1351 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19374 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:63128 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754081Ab0G2SQt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 14:16:49 -0400
-Message-ID: <4C51C58D.5060404@redhat.com>
-Date: Thu, 29 Jul 2010 15:16:45 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1755377Ab0GZXbr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jul 2010 19:31:47 -0400
+Date: Mon, 26 Jul 2010 19:31:45 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: [PATCH 10/15] staging/lirc: add lirc_serial driver
+Message-ID: <20100726233145.GK21225@redhat.com>
+References: <20100726232546.GA21225@redhat.com>
 MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] added support for DM040832731 DVB-S USB BOX - Correction
-References: <AANLkTilIWY_jHqRQwejiP4-jkQBwFQjDMgH1riH7rsyq@mail.gmail.com>
-In-Reply-To: <AANLkTilIWY_jHqRQwejiP4-jkQBwFQjDMgH1riH7rsyq@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100726232546.GA21225@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 16-07-2010 10:43, Malcolm Priestley escreveu:
-> DVB USB Driver for DM04 LME2510 + LG TDQY - P001F =(TDA8263 + TDA10086H)
-> 
-> Corrected patch error.
-> 
-> Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/staging/lirc/lirc_serial.c | 1313 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 1313 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/lirc/lirc_serial.c
 
-Hi Malcom,
+diff --git a/drivers/staging/lirc/lirc_serial.c b/drivers/staging/lirc/lirc_serial.c
+new file mode 100644
+index 0000000..d2ea3f0
+--- /dev/null
++++ b/drivers/staging/lirc/lirc_serial.c
+@@ -0,0 +1,1313 @@
++/*
++ * lirc_serial.c
++ *
++ * lirc_serial - Device driver that records pulse- and pause-lengths
++ *	       (space-lengths) between DDCD event on a serial port.
++ *
++ * Copyright (C) 1996,97 Ralph Metzler <rjkm@thp.uni-koeln.de>
++ * Copyright (C) 1998 Trent Piepho <xyzzy@u.washington.edu>
++ * Copyright (C) 1998 Ben Pfaff <blp@gnu.org>
++ * Copyright (C) 1999 Christoph Bartelmus <lirc@bartelmus.de>
++ * Copyright (C) 2007 Andrei Tanas <andrei@tanas.ca> (suspend/resume support)
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License as published by
++ *  the Free Software Foundation; either version 2 of the License, or
++ *  (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++/*
++ * Steve's changes to improve transmission fidelity:
++ *   - for systems with the rdtsc instruction and the clock counter, a
++ *     send_pule that times the pulses directly using the counter.
++ *     This means that the LIRC_SERIAL_TRANSMITTER_LATENCY fudge is
++ *     not needed. Measurement shows very stable waveform, even where
++ *     PCI activity slows the access to the UART, which trips up other
++ *     versions.
++ *   - For other system, non-integer-microsecond pulse/space lengths,
++ *     done using fixed point binary. So, much more accurate carrier
++ *     frequency.
++ *   - fine tuned transmitter latency, taking advantage of fractional
++ *     microseconds in previous change
++ *   - Fixed bug in the way transmitter latency was accounted for by
++ *     tuning the pulse lengths down - the send_pulse routine ignored
++ *     this overhead as it timed the overall pulse length - so the
++ *     pulse frequency was right but overall pulse length was too
++ *     long. Fixed by accounting for latency on each pulse/space
++ *     iteration.
++ *
++ * Steve Davies <steve@daviesfam.org>  July 2001
++ */
++
++#include <linux/module.h>
++#include <linux/errno.h>
++#include <linux/signal.h>
++#include <linux/sched.h>
++#include <linux/fs.h>
++#include <linux/interrupt.h>
++#include <linux/ioport.h>
++#include <linux/kernel.h>
++#include <linux/serial_reg.h>
++#include <linux/time.h>
++#include <linux/string.h>
++#include <linux/types.h>
++#include <linux/wait.h>
++#include <linux/mm.h>
++#include <linux/delay.h>
++#include <linux/poll.h>
++#include <linux/platform_device.h>
++
++#include <asm/system.h>
++#include <linux/io.h>
++#include <linux/irq.h>
++#include <linux/fcntl.h>
++#include <linux/spinlock.h>
++
++#ifdef CONFIG_LIRC_SERIAL_NSLU2
++#include <asm/hardware.h>
++#endif
++/* From Intel IXP42X Developer's Manual (#252480-005): */
++/* ftp://download.intel.com/design/network/manuals/25248005.pdf */
++#define UART_IE_IXP42X_UUE   0x40 /* IXP42X UART Unit enable */
++#define UART_IE_IXP42X_RTOIE 0x10 /* IXP42X Receiver Data Timeout int.enable */
++
++#include <media/lirc.h>
++#include <media/lirc_dev.h>
++
++#define LIRC_DRIVER_NAME "lirc_serial"
++
++struct lirc_serial {
++	int signal_pin;
++	int signal_pin_change;
++	u8 on;
++	u8 off;
++	long (*send_pulse)(unsigned long length);
++	void (*send_space)(long length);
++	int features;
++	spinlock_t lock;
++};
++
++#define LIRC_HOMEBREW		0
++#define LIRC_IRDEO		1
++#define LIRC_IRDEO_REMOTE	2
++#define LIRC_ANIMAX		3
++#define LIRC_IGOR		4
++#define LIRC_NSLU2		5
++
++/*** module parameters ***/
++static int type;
++static int io;
++static int irq;
++static int iommap;
++static int ioshift;
++static int softcarrier = 1;
++static int share_irq;
++static int debug;
++static int sense = -1;	/* -1 = auto, 0 = active high, 1 = active low */
++static int txsense;	/* 0 = active high, 1 = active low */
++
++#define dprintk(fmt, args...)					\
++	do {							\
++		if (debug)					\
++			printk(KERN_DEBUG LIRC_DRIVER_NAME ": "	\
++			       fmt, ## args);			\
++	} while (0)
++
++/* forward declarations */
++static long send_pulse_irdeo(unsigned long length);
++static long send_pulse_homebrew(unsigned long length);
++static void send_space_irdeo(long length);
++static void send_space_homebrew(long length);
++
++static struct lirc_serial hardware[] = {
++	[LIRC_HOMEBREW] = {
++		.signal_pin        = UART_MSR_DCD,
++		.signal_pin_change = UART_MSR_DDCD,
++		.on  = (UART_MCR_RTS | UART_MCR_OUT2 | UART_MCR_DTR),
++		.off = (UART_MCR_RTS | UART_MCR_OUT2),
++		.send_pulse = send_pulse_homebrew,
++		.send_space = send_space_homebrew,
++#ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
++		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
++				LIRC_CAN_SET_SEND_CARRIER |
++				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
++#else
++		.features    = LIRC_CAN_REC_MODE2
++#endif
++	},
++
++	[LIRC_IRDEO] = {
++		.signal_pin        = UART_MSR_DSR,
++		.signal_pin_change = UART_MSR_DDSR,
++		.on  = UART_MCR_OUT2,
++		.off = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
++		.send_pulse  = send_pulse_irdeo,
++		.send_space  = send_space_irdeo,
++		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
++				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
++	},
++
++	[LIRC_IRDEO_REMOTE] = {
++		.signal_pin        = UART_MSR_DSR,
++		.signal_pin_change = UART_MSR_DDSR,
++		.on  = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
++		.off = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
++		.send_pulse  = send_pulse_irdeo,
++		.send_space  = send_space_irdeo,
++		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
++				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
++	},
++
++	[LIRC_ANIMAX] = {
++		.signal_pin        = UART_MSR_DCD,
++		.signal_pin_change = UART_MSR_DDCD,
++		.on  = 0,
++		.off = (UART_MCR_RTS | UART_MCR_DTR | UART_MCR_OUT2),
++		.send_pulse = NULL,
++		.send_space = NULL,
++		.features   = LIRC_CAN_REC_MODE2
++	},
++
++	[LIRC_IGOR] = {
++		.signal_pin        = UART_MSR_DSR,
++		.signal_pin_change = UART_MSR_DDSR,
++		.on  = (UART_MCR_RTS | UART_MCR_OUT2 | UART_MCR_DTR),
++		.off = (UART_MCR_RTS | UART_MCR_OUT2),
++		.send_pulse = send_pulse_homebrew,
++		.send_space = send_space_homebrew,
++#ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
++		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
++				LIRC_CAN_SET_SEND_CARRIER |
++				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
++#else
++		.features    = LIRC_CAN_REC_MODE2
++#endif
++	},
++
++#ifdef CONFIG_LIRC_SERIAL_NSLU2
++	/*
++	 * Modified Linksys Network Storage Link USB 2.0 (NSLU2):
++	 * We receive on CTS of the 2nd serial port (R142,LHS), we
++	 * transmit with a IR diode between GPIO[1] (green status LED),
++	 * and ground (Matthias Goebl <matthias.goebl@goebl.net>).
++	 * See also http://www.nslu2-linux.org for this device
++	 */
++	[LIRC_NSLU2] = {
++		.signal_pin        = UART_MSR_CTS,
++		.signal_pin_change = UART_MSR_DCTS,
++		.on  = (UART_MCR_RTS | UART_MCR_OUT2 | UART_MCR_DTR),
++		.off = (UART_MCR_RTS | UART_MCR_OUT2),
++		.send_pulse = send_pulse_homebrew,
++		.send_space = send_space_homebrew,
++#ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
++		.features    = (LIRC_CAN_SET_SEND_DUTY_CYCLE |
++				LIRC_CAN_SET_SEND_CARRIER |
++				LIRC_CAN_SEND_PULSE | LIRC_CAN_REC_MODE2)
++#else
++		.features    = LIRC_CAN_REC_MODE2
++#endif
++	},
++#endif
++
++};
++
++#define RS_ISR_PASS_LIMIT 256
++
++/*
++ * A long pulse code from a remote might take up to 300 bytes.  The
++ * daemon should read the bytes as soon as they are generated, so take
++ * the number of keys you think you can push before the daemon runs
++ * and multiply by 300.  The driver will warn you if you overrun this
++ * buffer.  If you have a slow computer or non-busmastering IDE disks,
++ * maybe you will need to increase this.
++ */
++
++/* This MUST be a power of two!  It has to be larger than 1 as well. */
++
++#define RBUF_LEN 256
++
++static struct timeval lasttv = {0, 0};
++
++static struct lirc_buffer rbuf;
++
++static unsigned int freq = 38000;
++static unsigned int duty_cycle = 50;
++
++/* Initialized in init_timing_params() */
++static unsigned long period;
++static unsigned long pulse_width;
++static unsigned long space_width;
++
++#if defined(__i386__)
++/*
++ * From:
++ * Linux I/O port programming mini-HOWTO
++ * Author: Riku Saikkonen <Riku.Saikkonen@hut.fi>
++ * v, 28 December 1997
++ *
++ * [...]
++ * Actually, a port I/O instruction on most ports in the 0-0x3ff range
++ * takes almost exactly 1 microsecond, so if you're, for example, using
++ * the parallel port directly, just do additional inb()s from that port
++ * to delay.
++ * [...]
++ */
++/* transmitter latency 1.5625us 0x1.90 - this figure arrived at from
++ * comment above plus trimming to match actual measured frequency.
++ * This will be sensitive to cpu speed, though hopefully most of the 1.5us
++ * is spent in the uart access.  Still - for reference test machine was a
++ * 1.13GHz Athlon system - Steve
++ */
++
++/*
++ * changed from 400 to 450 as this works better on slower machines;
++ * faster machines will use the rdtsc code anyway
++ */
++#define LIRC_SERIAL_TRANSMITTER_LATENCY 450
++
++#else
++
++/* does anybody have information on other platforms ? */
++/* 256 = 1<<8 */
++#define LIRC_SERIAL_TRANSMITTER_LATENCY 256
++
++#endif  /* __i386__ */
++/*
++ * FIXME: should we be using hrtimers instead of this
++ * LIRC_SERIAL_TRANSMITTER_LATENCY nonsense?
++ */
++
++/* fetch serial input packet (1 byte) from register offset */
++static u8 sinp(int offset)
++{
++	if (iommap != 0)
++		/* the register is memory-mapped */
++		offset <<= ioshift;
++
++	return inb(io + offset);
++}
++
++/* write serial output packet (1 byte) of value to register offset */
++static void soutp(int offset, u8 value)
++{
++	if (iommap != 0)
++		/* the register is memory-mapped */
++		offset <<= ioshift;
++
++	outb(value, io + offset);
++}
++
++static void on(void)
++{
++#ifdef CONFIG_LIRC_SERIAL_NSLU2
++	/*
++	 * On NSLU2, we put the transmit diode between the output of the green
++	 * status LED and ground
++	 */
++	if (type == LIRC_NSLU2) {
++		gpio_line_set(NSLU2_LED_GRN, IXP4XX_GPIO_LOW);
++		return;
++	}
++#endif
++	if (txsense)
++		soutp(UART_MCR, hardware[type].off);
++	else
++		soutp(UART_MCR, hardware[type].on);
++}
++
++static void off(void)
++{
++#ifdef CONFIG_LIRC_SERIAL_NSLU2
++	if (type == LIRC_NSLU2) {
++		gpio_line_set(NSLU2_LED_GRN, IXP4XX_GPIO_HIGH);
++		return;
++	}
++#endif
++	if (txsense)
++		soutp(UART_MCR, hardware[type].on);
++	else
++		soutp(UART_MCR, hardware[type].off);
++}
++
++#ifndef MAX_UDELAY_MS
++#define MAX_UDELAY_US 5000
++#else
++#define MAX_UDELAY_US (MAX_UDELAY_MS*1000)
++#endif
++
++static void safe_udelay(unsigned long usecs)
++{
++	while (usecs > MAX_UDELAY_US) {
++		udelay(MAX_UDELAY_US);
++		usecs -= MAX_UDELAY_US;
++	}
++	udelay(usecs);
++}
++
++#ifdef USE_RDTSC
++/*
++ * This is an overflow/precision juggle, complicated in that we can't
++ * do long long divide in the kernel
++ */
++
++/*
++ * When we use the rdtsc instruction to measure clocks, we keep the
++ * pulse and space widths as clock cycles.  As this is CPU speed
++ * dependent, the widths must be calculated in init_port and ioctl
++ * time
++ */
++
++/* So send_pulse can quickly convert microseconds to clocks */
++static unsigned long conv_us_to_clocks;
++
++static int init_timing_params(unsigned int new_duty_cycle,
++		unsigned int new_freq)
++{
++	unsigned long long loops_per_sec, work;
++
++	duty_cycle = new_duty_cycle;
++	freq = new_freq;
++
++	loops_per_sec = current_cpu_data.loops_per_jiffy;
++	loops_per_sec *= HZ;
++
++	/* How many clocks in a microsecond?, avoiding long long divide */
++	work = loops_per_sec;
++	work *= 4295;  /* 4295 = 2^32 / 1e6 */
++	conv_us_to_clocks = (work >> 32);
++
++	/*
++	 * Carrier period in clocks, approach good up to 32GHz clock,
++	 * gets carrier frequency within 8Hz
++	 */
++	period = loops_per_sec >> 3;
++	period /= (freq >> 3);
++
++	/* Derive pulse and space from the period */
++	pulse_width = period * duty_cycle / 100;
++	space_width = period - pulse_width;
++	dprintk("in init_timing_params, freq=%d, duty_cycle=%d, "
++		"clk/jiffy=%ld, pulse=%ld, space=%ld, "
++		"conv_us_to_clocks=%ld\n",
++		freq, duty_cycle, current_cpu_data.loops_per_jiffy,
++		pulse_width, space_width, conv_us_to_clocks);
++	return 0;
++}
++#else /* ! USE_RDTSC */
++static int init_timing_params(unsigned int new_duty_cycle,
++		unsigned int new_freq)
++{
++/*
++ * period, pulse/space width are kept with 8 binary places -
++ * IE multiplied by 256.
++ */
++	if (256 * 1000000L / new_freq * new_duty_cycle / 100 <=
++	    LIRC_SERIAL_TRANSMITTER_LATENCY)
++		return -EINVAL;
++	if (256 * 1000000L / new_freq * (100 - new_duty_cycle) / 100 <=
++	    LIRC_SERIAL_TRANSMITTER_LATENCY)
++		return -EINVAL;
++	duty_cycle = new_duty_cycle;
++	freq = new_freq;
++	period = 256 * 1000000L / freq;
++	pulse_width = period * duty_cycle / 100;
++	space_width = period - pulse_width;
++	dprintk("in init_timing_params, freq=%d pulse=%ld, "
++		"space=%ld\n", freq, pulse_width, space_width);
++	return 0;
++}
++#endif /* USE_RDTSC */
++
++
++/* return value: space length delta */
++
++static long send_pulse_irdeo(unsigned long length)
++{
++	long rawbits, ret;
++	int i;
++	unsigned char output;
++	unsigned char chunk, shifted;
++
++	/* how many bits have to be sent ? */
++	rawbits = length * 1152 / 10000;
++	if (duty_cycle > 50)
++		chunk = 3;
++	else
++		chunk = 1;
++	for (i = 0, output = 0x7f; rawbits > 0; rawbits -= 3) {
++		shifted = chunk << (i * 3);
++		shifted >>= 1;
++		output &= (~shifted);
++		i++;
++		if (i == 3) {
++			soutp(UART_TX, output);
++			while (!(sinp(UART_LSR) & UART_LSR_THRE))
++				;
++			output = 0x7f;
++			i = 0;
++		}
++	}
++	if (i != 0) {
++		soutp(UART_TX, output);
++		while (!(sinp(UART_LSR) & UART_LSR_TEMT))
++			;
++	}
++
++	if (i == 0)
++		ret = (-rawbits) * 10000 / 1152;
++	else
++		ret = (3 - i) * 3 * 10000 / 1152 + (-rawbits) * 10000 / 1152;
++
++	return ret;
++}
++
++#ifdef USE_RDTSC
++/* Version that uses Pentium rdtsc instruction to measure clocks */
++
++/*
++ * This version does sub-microsecond timing using rdtsc instruction,
++ * and does away with the fudged LIRC_SERIAL_TRANSMITTER_LATENCY
++ * Implicitly i586 architecture...  - Steve
++ */
++
++static long send_pulse_homebrew_softcarrier(unsigned long length)
++{
++	int flag;
++	unsigned long target, start, now;
++
++	/* Get going quick as we can */
++	rdtscl(start);
++	on();
++	/* Convert length from microseconds to clocks */
++	length *= conv_us_to_clocks;
++	/* And loop till time is up - flipping at right intervals */
++	now = start;
++	target = pulse_width;
++	flag = 1;
++	/*
++	 * FIXME: This looks like a hard busy wait, without even an occasional,
++	 * polite, cpu_relax() call.  There's got to be a better way?
++	 *
++	 * The i2c code has the result of a lot of bit-banging work, I wonder if
++	 * there's something there which could be helpful here.
++	 */
++	while ((now - start) < length) {
++		/* Delay till flip time */
++		do {
++			rdtscl(now);
++		} while ((now - start) < target);
++
++		/* flip */
++		if (flag) {
++			rdtscl(now);
++			off();
++			target += space_width;
++		} else {
++			rdtscl(now); on();
++			target += pulse_width;
++		}
++		flag = !flag;
++	}
++	rdtscl(now);
++	return ((now - start) - length) / conv_us_to_clocks;
++}
++#else /* ! USE_RDTSC */
++/* Version using udelay() */
++
++/*
++ * here we use fixed point arithmetic, with 8
++ * fractional bits.  that gets us within 0.1% or so of the right average
++ * frequency, albeit with some jitter in pulse length - Steve
++ */
++
++/* To match 8 fractional bits used for pulse/space length */
++
++static long send_pulse_homebrew_softcarrier(unsigned long length)
++{
++	int flag;
++	unsigned long actual, target, d;
++	length <<= 8;
++
++	actual = 0; target = 0; flag = 0;
++	while (actual < length) {
++		if (flag) {
++			off();
++			target += space_width;
++		} else {
++			on();
++			target += pulse_width;
++		}
++		d = (target - actual -
++		     LIRC_SERIAL_TRANSMITTER_LATENCY + 128) >> 8;
++		/*
++		 * Note - we've checked in ioctl that the pulse/space
++		 * widths are big enough so that d is > 0
++		 */
++		udelay(d);
++		actual += (d << 8) + LIRC_SERIAL_TRANSMITTER_LATENCY;
++		flag = !flag;
++	}
++	return (actual-length) >> 8;
++}
++#endif /* USE_RDTSC */
++
++static long send_pulse_homebrew(unsigned long length)
++{
++	if (length <= 0)
++		return 0;
++
++	if (softcarrier)
++		return send_pulse_homebrew_softcarrier(length);
++	else {
++		on();
++		safe_udelay(length);
++		return 0;
++	}
++}
++
++static void send_space_irdeo(long length)
++{
++	if (length <= 0)
++		return;
++
++	safe_udelay(length);
++}
++
++static void send_space_homebrew(long length)
++{
++	off();
++	if (length <= 0)
++		return;
++	safe_udelay(length);
++}
++
++static void rbwrite(int l)
++{
++	if (lirc_buffer_full(&rbuf)) {
++		/* no new signals will be accepted */
++		dprintk("Buffer overrun\n");
++		return;
++	}
++	lirc_buffer_write(&rbuf, (void *)&l);
++}
++
++static void frbwrite(int l)
++{
++	/* simple noise filter */
++	static int pulse, space;
++	static unsigned int ptr;
++
++	if (ptr > 0 && (l & PULSE_BIT)) {
++		pulse += l & PULSE_MASK;
++		if (pulse > 250) {
++			rbwrite(space);
++			rbwrite(pulse | PULSE_BIT);
++			ptr = 0;
++			pulse = 0;
++		}
++		return;
++	}
++	if (!(l & PULSE_BIT)) {
++		if (ptr == 0) {
++			if (l > 20000) {
++				space = l;
++				ptr++;
++				return;
++			}
++		} else {
++			if (l > 20000) {
++				space += pulse;
++				if (space > PULSE_MASK)
++					space = PULSE_MASK;
++				space += l;
++				if (space > PULSE_MASK)
++					space = PULSE_MASK;
++				pulse = 0;
++				return;
++			}
++			rbwrite(space);
++			rbwrite(pulse | PULSE_BIT);
++			ptr = 0;
++			pulse = 0;
++		}
++	}
++	rbwrite(l);
++}
++
++static irqreturn_t irq_handler(int i, void *blah)
++{
++	struct timeval tv;
++	int counter, dcd;
++	u8 status;
++	long deltv;
++	int data;
++	static int last_dcd = -1;
++
++	if ((sinp(UART_IIR) & UART_IIR_NO_INT)) {
++		/* not our interrupt */
++		return IRQ_NONE;
++	}
++
++	counter = 0;
++	do {
++		counter++;
++		status = sinp(UART_MSR);
++		if (counter > RS_ISR_PASS_LIMIT) {
++			printk(KERN_WARNING LIRC_DRIVER_NAME ": AIEEEE: "
++			       "We're caught!\n");
++			break;
++		}
++		if ((status & hardware[type].signal_pin_change)
++		    && sense != -1) {
++			/* get current time */
++			do_gettimeofday(&tv);
++
++			/* New mode, written by Trent Piepho
++			   <xyzzy@u.washington.edu>. */
++
++			/*
++			 * The old format was not very portable.
++			 * We now use an int to pass pulses
++			 * and spaces to user space.
++			 *
++			 * If PULSE_BIT is set a pulse has been
++			 * received, otherwise a space has been
++			 * received.  The driver needs to know if your
++			 * receiver is active high or active low, or
++			 * the space/pulse sense could be
++			 * inverted. The bits denoted by PULSE_MASK are
++			 * the length in microseconds. Lengths greater
++			 * than or equal to 16 seconds are clamped to
++			 * PULSE_MASK.  All other bits are unused.
++			 * This is a much simpler interface for user
++			 * programs, as well as eliminating "out of
++			 * phase" errors with space/pulse
++			 * autodetection.
++			 */
++
++			/* calc time since last interrupt in microseconds */
++			dcd = (status & hardware[type].signal_pin) ? 1 : 0;
++
++			if (dcd == last_dcd) {
++				printk(KERN_WARNING LIRC_DRIVER_NAME
++				": ignoring spike: %d %d %lx %lx %lx %lx\n",
++				dcd, sense,
++				tv.tv_sec, lasttv.tv_sec,
++				tv.tv_usec, lasttv.tv_usec);
++				continue;
++			}
++
++			deltv = tv.tv_sec-lasttv.tv_sec;
++			if (tv.tv_sec < lasttv.tv_sec ||
++			    (tv.tv_sec == lasttv.tv_sec &&
++			     tv.tv_usec < lasttv.tv_usec)) {
++				printk(KERN_WARNING LIRC_DRIVER_NAME
++				       ": AIEEEE: your clock just jumped "
++				       "backwards\n");
++				printk(KERN_WARNING LIRC_DRIVER_NAME
++				       ": %d %d %lx %lx %lx %lx\n",
++				       dcd, sense,
++				       tv.tv_sec, lasttv.tv_sec,
++				       tv.tv_usec, lasttv.tv_usec);
++				data = PULSE_MASK;
++			} else if (deltv > 15) {
++				data = PULSE_MASK; /* really long time */
++				if (!(dcd^sense)) {
++					/* sanity check */
++					printk(KERN_WARNING LIRC_DRIVER_NAME
++					       ": AIEEEE: "
++					       "%d %d %lx %lx %lx %lx\n",
++					       dcd, sense,
++					       tv.tv_sec, lasttv.tv_sec,
++					       tv.tv_usec, lasttv.tv_usec);
++					/*
++					 * detecting pulse while this
++					 * MUST be a space!
++					 */
++					sense = sense ? 0 : 1;
++				}
++			} else
++				data = (int) (deltv*1000000 +
++					       tv.tv_usec -
++					       lasttv.tv_usec);
++			frbwrite(dcd^sense ? data : (data|PULSE_BIT));
++			lasttv = tv;
++			last_dcd = dcd;
++			wake_up_interruptible(&rbuf.wait_poll);
++		}
++	} while (!(sinp(UART_IIR) & UART_IIR_NO_INT)); /* still pending ? */
++	return IRQ_HANDLED;
++}
++
++
++static int hardware_init_port(void)
++{
++	u8 scratch, scratch2, scratch3;
++
++	/*
++	 * This is a simple port existence test, borrowed from the autoconfig
++	 * function in drivers/serial/8250.c
++	 */
++	scratch = sinp(UART_IER);
++	soutp(UART_IER, 0);
++#ifdef __i386__
++	outb(0xff, 0x080);
++#endif
++	scratch2 = sinp(UART_IER) & 0x0f;
++	soutp(UART_IER, 0x0f);
++#ifdef __i386__
++	outb(0x00, 0x080);
++#endif
++	scratch3 = sinp(UART_IER) & 0x0f;
++	soutp(UART_IER, scratch);
++	if (scratch2 != 0 || scratch3 != 0x0f) {
++		/* we fail, there's nothing here */
++		printk(KERN_ERR LIRC_DRIVER_NAME ": port existence test "
++		       "failed, cannot continue\n");
++		return -EINVAL;
++	}
++
++
++
++	/* Set DLAB 0. */
++	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
++
++	/* First of all, disable all interrupts */
++	soutp(UART_IER, sinp(UART_IER) &
++	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
++
++	/* Clear registers. */
++	sinp(UART_LSR);
++	sinp(UART_RX);
++	sinp(UART_IIR);
++	sinp(UART_MSR);
++
++#ifdef CONFIG_LIRC_SERIAL_NSLU2
++	if (type == LIRC_NSLU2) {
++		/* Setup NSLU2 UART */
++
++		/* Enable UART */
++		soutp(UART_IER, sinp(UART_IER) | UART_IE_IXP42X_UUE);
++		/* Disable Receiver data Time out interrupt */
++		soutp(UART_IER, sinp(UART_IER) & ~UART_IE_IXP42X_RTOIE);
++		/* set out2 = interrupt unmask; off() doesn't set MCR
++		   on NSLU2 */
++		soutp(UART_MCR, UART_MCR_RTS|UART_MCR_OUT2);
++	}
++#endif
++
++	/* Set line for power source */
++	off();
++
++	/* Clear registers again to be sure. */
++	sinp(UART_LSR);
++	sinp(UART_RX);
++	sinp(UART_IIR);
++	sinp(UART_MSR);
++
++	switch (type) {
++	case LIRC_IRDEO:
++	case LIRC_IRDEO_REMOTE:
++		/* setup port to 7N1 @ 115200 Baud */
++		/* 7N1+start = 9 bits at 115200 ~ 3 bits at 38kHz */
++
++		/* Set DLAB 1. */
++		soutp(UART_LCR, sinp(UART_LCR) | UART_LCR_DLAB);
++		/* Set divisor to 1 => 115200 Baud */
++		soutp(UART_DLM, 0);
++		soutp(UART_DLL, 1);
++		/* Set DLAB 0 +  7N1 */
++		soutp(UART_LCR, UART_LCR_WLEN7);
++		/* THR interrupt already disabled at this point */
++		break;
++	default:
++		break;
++	}
++
++	return 0;
++}
++
++static int init_port(void)
++{
++	int i, nlow, nhigh;
++
++	/* Reserve io region. */
++	/*
++	 * Future MMAP-Developers: Attention!
++	 * For memory mapped I/O you *might* need to use ioremap() first,
++	 * for the NSLU2 it's done in boot code.
++	 */
++	if (((iommap != 0)
++	     && (request_mem_region(iommap, 8 << ioshift,
++				    LIRC_DRIVER_NAME) == NULL))
++	   || ((iommap == 0)
++	       && (request_region(io, 8, LIRC_DRIVER_NAME) == NULL))) {
++		printk(KERN_ERR  LIRC_DRIVER_NAME
++		       ": port %04x already in use\n", io);
++		printk(KERN_WARNING LIRC_DRIVER_NAME
++		       ": use 'setserial /dev/ttySX uart none'\n");
++		printk(KERN_WARNING LIRC_DRIVER_NAME
++		       ": or compile the serial port driver as module and\n");
++		printk(KERN_WARNING LIRC_DRIVER_NAME
++		       ": make sure this module is loaded first\n");
++		return -EBUSY;
++	}
++
++	if (hardware_init_port() < 0)
++		return -EINVAL;
++
++	/* Initialize pulse/space widths */
++	init_timing_params(duty_cycle, freq);
++
++	/* If pin is high, then this must be an active low receiver. */
++	if (sense == -1) {
++		/* wait 1/2 sec for the power supply */
++		msleep(500);
++
++		/*
++		 * probe 9 times every 0.04s, collect "votes" for
++		 * active high/low
++		 */
++		nlow = 0;
++		nhigh = 0;
++		for (i = 0; i < 9; i++) {
++			if (sinp(UART_MSR) & hardware[type].signal_pin)
++				nlow++;
++			else
++				nhigh++;
++			msleep(40);
++		}
++		sense = (nlow >= nhigh ? 1 : 0);
++		printk(KERN_INFO LIRC_DRIVER_NAME  ": auto-detected active "
++		       "%s receiver\n", sense ? "low" : "high");
++	} else
++		printk(KERN_INFO LIRC_DRIVER_NAME  ": Manually using active "
++		       "%s receiver\n", sense ? "low" : "high");
++
++	return 0;
++}
++
++static int set_use_inc(void *data)
++{
++	int result;
++	unsigned long flags;
++
++	/* initialize timestamp */
++	do_gettimeofday(&lasttv);
++
++	result = request_irq(irq, irq_handler,
++			     IRQF_DISABLED | (share_irq ? IRQF_SHARED : 0),
++			     LIRC_DRIVER_NAME, (void *)&hardware);
++
++	switch (result) {
++	case -EBUSY:
++		printk(KERN_ERR LIRC_DRIVER_NAME ": IRQ %d busy\n", irq);
++		return -EBUSY;
++	case -EINVAL:
++		printk(KERN_ERR LIRC_DRIVER_NAME
++		       ": Bad irq number or handler\n");
++		return -EINVAL;
++	default:
++		dprintk("Interrupt %d, port %04x obtained\n", irq, io);
++		break;
++	};
++
++	spin_lock_irqsave(&hardware[type].lock, flags);
++
++	/* Set DLAB 0. */
++	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
++
++	soutp(UART_IER, sinp(UART_IER)|UART_IER_MSI);
++
++	spin_unlock_irqrestore(&hardware[type].lock, flags);
++
++	return 0;
++}
++
++static void set_use_dec(void *data)
++{	unsigned long flags;
++
++	spin_lock_irqsave(&hardware[type].lock, flags);
++
++	/* Set DLAB 0. */
++	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
++
++	/* First of all, disable all interrupts */
++	soutp(UART_IER, sinp(UART_IER) &
++	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
++	spin_unlock_irqrestore(&hardware[type].lock, flags);
++
++	free_irq(irq, (void *)&hardware);
++
++	dprintk("freed IRQ %d\n", irq);
++}
++
++static ssize_t lirc_write(struct file *file, const char *buf,
++			 size_t n, loff_t *ppos)
++{
++	int i, count;
++	unsigned long flags;
++	long delta = 0;
++	int *wbuf;
++
++	if (!(hardware[type].features & LIRC_CAN_SEND_PULSE))
++		return -EBADF;
++
++	count = n / sizeof(int);
++	if (n % sizeof(int) || count % 2 == 0)
++		return -EINVAL;
++	wbuf = memdup_user(buf, n);
++	if (PTR_ERR(wbuf))
++		return PTR_ERR(wbuf);
++	spin_lock_irqsave(&hardware[type].lock, flags);
++	if (type == LIRC_IRDEO) {
++		/* DTR, RTS down */
++		on();
++	}
++	for (i = 0; i < count; i++) {
++		if (i%2)
++			hardware[type].send_space(wbuf[i] - delta);
++		else
++			delta = hardware[type].send_pulse(wbuf[i]);
++	}
++	off();
++	spin_unlock_irqrestore(&hardware[type].lock, flags);
++	return n;
++}
++
++static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
++{
++	int result;
++	unsigned long value;
++	unsigned int ivalue;
++
++	switch (cmd) {
++	case LIRC_GET_SEND_MODE:
++		if (!(hardware[type].features&LIRC_CAN_SEND_MASK))
++			return -ENOIOCTLCMD;
++
++		result = put_user(LIRC_SEND2MODE
++				  (hardware[type].features&LIRC_CAN_SEND_MASK),
++				  (unsigned long *) arg);
++		if (result)
++			return result;
++		break;
++
++	case LIRC_SET_SEND_MODE:
++		if (!(hardware[type].features&LIRC_CAN_SEND_MASK))
++			return -ENOIOCTLCMD;
++
++		result = get_user(value, (unsigned long *) arg);
++		if (result)
++			return result;
++		/* only LIRC_MODE_PULSE supported */
++		if (value != LIRC_MODE_PULSE)
++			return -ENOSYS;
++		break;
++
++	case LIRC_GET_LENGTH:
++		return -ENOSYS;
++		break;
++
++	case LIRC_SET_SEND_DUTY_CYCLE:
++		dprintk("SET_SEND_DUTY_CYCLE\n");
++		if (!(hardware[type].features&LIRC_CAN_SET_SEND_DUTY_CYCLE))
++			return -ENOIOCTLCMD;
++
++		result = get_user(ivalue, (unsigned int *) arg);
++		if (result)
++			return result;
++		if (ivalue <= 0 || ivalue > 100)
++			return -EINVAL;
++		return init_timing_params(ivalue, freq);
++		break;
++
++	case LIRC_SET_SEND_CARRIER:
++		dprintk("SET_SEND_CARRIER\n");
++		if (!(hardware[type].features&LIRC_CAN_SET_SEND_CARRIER))
++			return -ENOIOCTLCMD;
++
++		result = get_user(ivalue, (unsigned int *) arg);
++		if (result)
++			return result;
++		if (ivalue > 500000 || ivalue < 20000)
++			return -EINVAL;
++		return init_timing_params(duty_cycle, ivalue);
++		break;
++
++	default:
++		return lirc_dev_fop_ioctl(filep, cmd, arg);
++	}
++	return 0;
++}
++
++static struct file_operations lirc_fops = {
++	.owner		= THIS_MODULE,
++	.write		= lirc_write,
++	.unlocked_ioctl	= lirc_ioctl,
++	.read		= lirc_dev_fop_read,
++	.poll		= lirc_dev_fop_poll,
++	.open		= lirc_dev_fop_open,
++	.release	= lirc_dev_fop_close,
++};
++
++static struct lirc_driver driver = {
++	.name		= LIRC_DRIVER_NAME,
++	.minor		= -1,
++	.code_length	= 1,
++	.sample_rate	= 0,
++	.data		= NULL,
++	.add_to_buf	= NULL,
++	.rbuf		= &rbuf,
++	.set_use_inc	= set_use_inc,
++	.set_use_dec	= set_use_dec,
++	.fops		= &lirc_fops,
++	.dev		= NULL,
++	.owner		= THIS_MODULE,
++};
++
++static struct platform_device *lirc_serial_dev;
++
++static int __devinit lirc_serial_probe(struct platform_device *dev)
++{
++	return 0;
++}
++
++static int __devexit lirc_serial_remove(struct platform_device *dev)
++{
++	return 0;
++}
++
++static int lirc_serial_suspend(struct platform_device *dev,
++			       pm_message_t state)
++{
++	/* Set DLAB 0. */
++	soutp(UART_LCR, sinp(UART_LCR) & (~UART_LCR_DLAB));
++
++	/* Disable all interrupts */
++	soutp(UART_IER, sinp(UART_IER) &
++	      (~(UART_IER_MSI|UART_IER_RLSI|UART_IER_THRI|UART_IER_RDI)));
++
++	/* Clear registers. */
++	sinp(UART_LSR);
++	sinp(UART_RX);
++	sinp(UART_IIR);
++	sinp(UART_MSR);
++
++	return 0;
++}
++
++/* twisty maze... need a forward-declaration here... */
++static void lirc_serial_exit(void);
++
++static int lirc_serial_resume(struct platform_device *dev)
++{
++	unsigned long flags;
++
++	if (hardware_init_port() < 0) {
++		lirc_serial_exit();
++		return -EINVAL;
++	}
++
++	spin_lock_irqsave(&hardware[type].lock, flags);
++	/* Enable Interrupt */
++	do_gettimeofday(&lasttv);
++	soutp(UART_IER, sinp(UART_IER)|UART_IER_MSI);
++	off();
++
++	lirc_buffer_clear(&rbuf);
++
++	spin_unlock_irqrestore(&hardware[type].lock, flags);
++
++	return 0;
++}
++
++static struct platform_driver lirc_serial_driver = {
++	.probe		= lirc_serial_probe,
++	.remove		= __devexit_p(lirc_serial_remove),
++	.suspend	= lirc_serial_suspend,
++	.resume		= lirc_serial_resume,
++	.driver		= {
++		.name	= "lirc_serial",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init lirc_serial_init(void)
++{
++	int result;
++
++	/* Init read buffer. */
++	result = lirc_buffer_init(&rbuf, sizeof(int), RBUF_LEN);
++	if (result < 0)
++		return -ENOMEM;
++
++	result = platform_driver_register(&lirc_serial_driver);
++	if (result) {
++		printk("lirc register returned %d\n", result);
++		goto exit_buffer_free;
++	}
++
++	lirc_serial_dev = platform_device_alloc("lirc_serial", 0);
++	if (!lirc_serial_dev) {
++		result = -ENOMEM;
++		goto exit_driver_unregister;
++	}
++
++	result = platform_device_add(lirc_serial_dev);
++	if (result)
++		goto exit_device_put;
++
++	return 0;
++
++exit_device_put:
++	platform_device_put(lirc_serial_dev);
++exit_driver_unregister:
++	platform_driver_unregister(&lirc_serial_driver);
++exit_buffer_free:
++	lirc_buffer_free(&rbuf);
++	return result;
++}
++
++static void lirc_serial_exit(void)
++{
++	platform_device_unregister(lirc_serial_dev);
++	platform_driver_unregister(&lirc_serial_driver);
++	lirc_buffer_free(&rbuf);
++}
++
++static int __init lirc_serial_init_module(void)
++{
++	int result;
++
++	result = lirc_serial_init();
++	if (result)
++		return result;
++
++	switch (type) {
++	case LIRC_HOMEBREW:
++	case LIRC_IRDEO:
++	case LIRC_IRDEO_REMOTE:
++	case LIRC_ANIMAX:
++	case LIRC_IGOR:
++		/* if nothing specified, use ttyS0/com1 and irq 4 */
++		io = io ? io : 0x3f8;
++		irq = irq ? irq : 4;
++		break;
++#ifdef CONFIG_LIRC_SERIAL_NSLU2
++	case LIRC_NSLU2:
++		io = io ? io : IRQ_IXP4XX_UART2;
++		irq = irq ? irq : (IXP4XX_UART2_BASE_VIRT + REG_OFFSET);
++		iommap = iommap ? iommap : IXP4XX_UART2_BASE_PHYS;
++		ioshift = ioshift ? ioshift : 2;
++		break;
++#endif
++	default:
++		result = -EINVAL;
++		goto exit_serial_exit;
++	}
++	if (!softcarrier) {
++		switch (type) {
++		case LIRC_HOMEBREW:
++		case LIRC_IGOR:
++#ifdef CONFIG_LIRC_SERIAL_NSLU2
++		case LIRC_NSLU2:
++#endif
++			hardware[type].features &=
++				~(LIRC_CAN_SET_SEND_DUTY_CYCLE|
++				  LIRC_CAN_SET_SEND_CARRIER);
++			break;
++		}
++	}
++
++	result = init_port();
++	if (result < 0)
++		goto exit_serial_exit;
++	driver.features = hardware[type].features;
++	driver.dev = &lirc_serial_dev->dev;
++	driver.minor = lirc_register_driver(&driver);
++	if (driver.minor < 0) {
++		printk(KERN_ERR  LIRC_DRIVER_NAME
++		       ": register_chrdev failed!\n");
++		result = -EIO;
++		goto exit_release;
++	}
++	return 0;
++exit_release:
++	release_region(io, 8);
++exit_serial_exit:
++	lirc_serial_exit();
++	return result;
++}
++
++static void __exit lirc_serial_exit_module(void)
++{
++	lirc_serial_exit();
++	if (iommap != 0)
++		release_mem_region(iommap, 8 << ioshift);
++	else
++		release_region(io, 8);
++	lirc_unregister_driver(driver.minor);
++	dprintk("cleaned up module\n");
++}
++
++
++module_init(lirc_serial_init_module);
++module_exit(lirc_serial_exit_module);
++
++MODULE_DESCRIPTION("Infra-red receiver driver for serial ports.");
++MODULE_AUTHOR("Ralph Metzler, Trent Piepho, Ben Pfaff, "
++	      "Christoph Bartelmus, Andrei Tanas");
++MODULE_LICENSE("GPL");
++
++module_param(type, int, S_IRUGO);
++MODULE_PARM_DESC(type, "Hardware type (0 = home-brew, 1 = IRdeo,"
++		 " 2 = IRdeo Remote, 3 = AnimaX, 4 = IgorPlug,"
++		 " 5 = NSLU2 RX:CTS2/TX:GreenLED)");
++
++module_param(io, int, S_IRUGO);
++MODULE_PARM_DESC(io, "I/O address base (0x3f8 or 0x2f8)");
++
++/* some architectures (e.g. intel xscale) have memory mapped registers */
++module_param(iommap, bool, S_IRUGO);
++MODULE_PARM_DESC(iommap, "physical base for memory mapped I/O"
++		" (0 = no memory mapped io)");
++
++/*
++ * some architectures (e.g. intel xscale) align the 8bit serial registers
++ * on 32bit word boundaries.
++ * See linux-kernel/serial/8250.c serial_in()/out()
++ */
++module_param(ioshift, int, S_IRUGO);
++MODULE_PARM_DESC(ioshift, "shift I/O register offset (0 = no shift)");
++
++module_param(irq, int, S_IRUGO);
++MODULE_PARM_DESC(irq, "Interrupt (4 or 3)");
++
++module_param(share_irq, bool, S_IRUGO);
++MODULE_PARM_DESC(share_irq, "Share interrupts (0 = off, 1 = on)");
++
++module_param(sense, bool, S_IRUGO);
++MODULE_PARM_DESC(sense, "Override autodetection of IR receiver circuit"
++		 " (0 = active high, 1 = active low )");
++
++#ifdef CONFIG_LIRC_SERIAL_TRANSMITTER
++module_param(txsense, bool, S_IRUGO);
++MODULE_PARM_DESC(txsense, "Sense of transmitter circuit"
++		 " (0 = active high, 1 = active low )");
++#endif
++
++module_param(softcarrier, bool, S_IRUGO);
++MODULE_PARM_DESC(softcarrier, "Software carrier (0 = off, 1 = on, default on)");
++
++module_param(debug, bool, S_IRUGO | S_IWUSR);
++MODULE_PARM_DESC(debug, "Enable debugging messages");
+-- 
+1.7.1.1
 
-Please read the developers section of our Wiki page for instructions on how to submit
-a driver:
-	http://linuxtv.org/wiki/index.php/Developer_Section
-
-In special, you need to read what's inside "Submiting your work" in order to fix some
-troubles I identified on your driver.
-
-> 
-> 
-> 
-> diff -r 9652f85e688a linux/drivers/media/dvb/dvb-usb/Kconfig
-> --- a/linux/drivers/media/dvb/dvb-usb/Kconfig	Thu May 27 02:02:09 2010 -0300
-> +++ b/linux/drivers/media/dvb/dvb-usb/Kconfig	Fri Jul 16 14:30:02 2010 +0100
-> @@ -346,3 +346,13 @@
->  	select DVB_STB6100 if !DVB_FE_CUSTOMISE
->  	help
->  	  Say Y here to support the AZ6027 device
-> +
-> +config DVB_USB_LME2510
-> +	tristate "LME DM04 (LME 2510 + TDQY-P001F) DVB-S USB2.0 support"
-> +	depends on DVB_USB
-
-It needs to depend also on INPUT/IR_CORE
-
-> +	select DVB_TDA10086 if !DVB_FE_CUSTOMISE
-> +	select DVB_TDA826X if !DVB_FE_CUSTOMISE
-> +	help
-> +	  Say Y here to support the LME DM04 DVB-S USB2.0 .
-> +
-> +
-> diff -r 9652f85e688a linux/drivers/media/dvb/dvb-usb/Makefile
-> --- a/linux/drivers/media/dvb/dvb-usb/Makefile	Thu May 27 02:02:09 2010 -0300
-> +++ b/linux/drivers/media/dvb/dvb-usb/Makefile	Fri Jul 16 14:30:02 2010 +0100
-> @@ -88,6 +88,9 @@
->  dvb-usb-az6027-objs = az6027.o
->  obj-$(CONFIG_DVB_USB_AZ6027) += dvb-usb-az6027.o
-> 
-> +dvb-usb-lmedm04-objs = lmedm04.o
-> +obj-$(CONFIG_DVB_USB_LME2510) += dvb-usb-lmedm04.o
-> +
->  EXTRA_CFLAGS += -Idrivers/media/dvb/dvb-core/ -Idrivers/media/dvb/frontends/
->  # due to tuner-xc3028
->  EXTRA_CFLAGS += -Idrivers/media/common/tuners
-> diff -r 9652f85e688a linux/drivers/media/dvb/dvb-usb/lmedm04.c
-> --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-> +++ b/linux/drivers/media/dvb/dvb-usb/lmedm04.c	Fri Jul 16 14:30:02 2010 +0100
-> @@ -0,0 +1,910 @@
-> +/* DVB USB compliant linux driver for
-> + *
-> + * DM040832731 DVB-S USB BOX (LME 2510 + TDQY-P001F)
-> + *
-> + * MV001F LG TDQY - P001F =(TDA8263 + TDA10086H)
-> + *
-> + * I2C addresses:
-> + * 0x0e - TDA10086   - Demodulator
-> + * 0x60 - TDA8263    - Tuner
-> + *
-> + * ***Please Note***
-> + *		There are other variants of the DM04
-> + *		***NOT SUPPORTED***
-> + *		MVB0001F (LME2510C+LGTDQT-P001F)
-> + *		MV0194 (LME2510+SHARP0194)
-> + *		MVB0194 (LME2510C+SHARP0194)
-> + *		MVB7395 (LME2510C+SHARP:BS2F7HZ7395)
-> + *
-> + * The VID of 3344 and PID of 1122 has not been set until it is known not
-> + * to be generic.
-> + *
-> + *
-> + * Copyright (C) 2010 Malcolm Priestley (tvboxspy@gmail.com)
-> + * LME2510   (C) Leaguerme (Shenzhen) MicroElectronics Co., Ltd.
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License as published by the Free
-> + * Software Foundation, version 2.
-> + *
-> + *
-> + * see Documentation/dvb/README.dvb-usb for more information
-> + *
-> + * Known Issue :
-> + * 	Non Intel USB chipsets fail to maintain High Speed on Boot or Hot Plug
-> + *
-> +  */
-> +#define DVB_USB_LOG_PREFIX "LME2510"
-> +#include <linux/usb.h>
-> +#include <linux/usb/input.h>
-> +#include "dvb-usb.h"
-> +#include "lmedm04.h"
-> +#include "tda826x.h"
-> +#include "tda10086.h"
-> +
-> +/* debug */
-> +static int dvb_usb_lme2510_debug;
-> +#define l_dprintk(var, level, args...) \
-> +	do { if ((var >= level)) info(args);  } while (0)
-> +#define deb_info(level, args...) l_dprintk(dvb_usb_lme2510_debug, level, args)
-> +#define debug_data_snipet(level, name, p) \
-> +	 deb_info(level, name" (%02x%02x%02x%02x%02x%02x%02x%02x)", \
-> +		*p, *(p+1), *(p+2), *(p+3), *(p+4), \
-> +			*(p+5), *(p+6), *(p+7));
-> +
-> +
-> +module_param_named(debug, dvb_usb_lme2510_debug, int, 0644);
-> +MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able))."
-> +			DVB_USB_DEBUG_STATUS);
-> +
-> +DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
-> +
-> +
-> +struct lme2510_state {
-> +	u8 id;
-> +	u8 signal_lock;
-> +	u8 signal_level;
-> +	u8 signal_sn;
-> +	u8 time_key;
-> +	u8 i2c_talk_onoff;
-> +	u16 pid_table[64];
-> +	u8 pid_count;
-> +	u8 pid_flag_enable;
-> +	u8 filter_data[256];
-> +	void *buffer;
-> +	struct urb *lme_urb;
-> +
-> +};
-> +
-> +static int lme2510_bulk_write(struct usb_device *dev,
-> +				u8 *snd, int len, u8 pipe)
-> +{
-> +	int ret, actual_l;
-> +	ret = usb_bulk_msg(dev, usb_sndbulkpipe(dev, pipe),
-> +				snd, len , &actual_l, 500);
-> +	return ret;
-> +}
-> +
-> +static int lme2510_bulk_read(struct usb_device *dev,
-> +				u8 *rev, int len, u8 pipe)
-> +{
-> +	int ret, actual_l;
-> +	ret = usb_bulk_msg(dev, usb_rcvbulkpipe(dev, pipe),
-> +				 rev, len , &actual_l, 500);
-> +	return ret;
-> +}
-> +
-> +static int lme2510_usb_talk(struct dvb_usb_device *d,
-> +		u8 *wbuf, int wlen, u8 *rbuf, int rlen)
-> +{
-> +	u8 s[wlen+4], r[rlen+4];
-
-This won't work fine. You should not use a buffer at stack to communicate with
-USB, as those memory areas may not be able do handle DMA transfers. Instead, you
-need to allocate a buffer for such transfers.
-
-Also, the stack area on kernel is very small. you should not allocate a dynamic area
-there, as this might cause buffer overflows, if you don't carefully check all clients
-of this function.
-
-> +	int ret = 0;
-> +	memset(s, 0, wlen);
-> +	memset(r, 0, rlen);
-
-No need, as you're copying data with memcpy bellow.
-
-> +	memcpy(&s[0], wbuf, wlen);
-> +
-> +	ret = mutex_lock_interruptible(&d->usb_mutex);
-> +
-> +	if (ret < 0)
-> +		return -EAGAIN;
-> +
-> +	ret += usb_clear_halt(d->udev, usb_sndbulkpipe(d->udev, 0x01));
-> +	msleep(5);
-> +	ret += lme2510_bulk_write(d->udev, s, wlen , 0x1);
-> +
-> +	msleep(5);
-> +	ret += usb_clear_halt(d->udev, usb_rcvbulkpipe(d->udev, 0x1));
-> +
-> +	msleep(5);
-> +	ret += lme2510_bulk_read(d->udev, r, rlen , 0x1);
-> +
-> +	if (rlen > 0)
-> +		memcpy(rbuf, &r[0], rlen);
-> +
-> +	mutex_unlock(&d->usb_mutex);
-> +
-> +	return (ret < 0) ? -EAGAIN : 0;
-
-returing -EAGAIN is not good, as one of the reasons for this error may be due to device removal.
-
-> +}
-> +
-> +static int lme2510_remote_keypress(struct dvb_usb_adapter *adap, u16 keypress)
-> +{
-> +	struct dvb_usb_device *d = adap->dev;
-> +	u32 event = 0;
-> +
-> +		switch (keypress) {
-> +		KEYCASE(LME_R_1, KEY_1);
-> +		break;
-> +		KEYCASE(LME_R_2, KEY_2);
-> +		break;
-> +		KEYCASE(LME_R_3, KEY_3);
-> +		break;
-> +		KEYCASE(LME_R_4, KEY_4);
-> +		break;
-> +		KEYCASE(LME_R_5, KEY_5);
-> +		break;
-> +		KEYCASE(LME_R_6, KEY_6);
-> +		break;
-> +		KEYCASE(LME_R_7, KEY_7);
-> +		break;
-> +		KEYCASE(LME_R_8, KEY_8);
-> +		break;
-> +		KEYCASE(LME_R_9, KEY_9);
-> +		break;
-> +		KEYCASE(LME_R_0, KEY_0);
-> +		break;
-> +		KEYCASE(LME_R_POWER, KEY_POWER);
-> +		break;
-> +		KEYCASE(LME_R_SUB, KEY_SUBTITLE);
-> +		break;
-> +		KEYCASE(LME_R_CAPTURE, KEY_PAUSE);
-> +		break;
-> +		KEYCASE(LME_R_REPEAT, KEY_MEDIA_REPEAT);
-> +		break;
-> +		KEYCASE(LME_R_PAUSE, KEY_PAUSE);
-> +		break;
-> +		KEYCASE(LME_R_VOL_D, KEY_VOLUMEDOWN);
-> +		break;
-> +		KEYCASE(LME_R_VOL_U, KEY_VOLUMEUP);
-> +		break;
-> +		KEYCASE(LME_R_CH_D, KEY_CHANNELDOWN);
-> +		break;
-> +		KEYCASE(LME_R_CH_U, KEY_CHANNELUP);
-> +		break;
-> +		KEYCASE(LME_R_PLAYBACK, KEY_PLAY);
-> +		break;
-> +		KEYCASE(LME_R_ZOOM, KEY_ZOOM);
-> +		break;
-> +		KEYCASE(LME_R_MUTE, KEY_MUTE);
-> +		break;
-> +		KEYCASE(LME_R_LIVETV, KEY_TV);
-> +		break;
-> +		KEYCASE(LME_R_RECORD, KEY_RECORD);
-> +		break;
-> +		KEYCASE(LME_R_EPG, KEY_EPG);
-> +		break;
-> +		KEYCASE(LME_R_STOP, KEY_STOPCD);
-> +		break;
-> +		default:
-> +			event = 0;
-> +		break;
-
-This is ugly for several reasons:
-
-1) it hides case reserved word;
-2) the IR translation table cannot be customized;
-3) we'll be moving all IR keytables to userspace.
-
-The proper solution is to use the rc-core handler for IR. I'll be porting soon the DVB drivers
-to use it, but you can find already some examples on some drivers under drivers/media/video (like
-saa7134 and em28xx).
-
-> +
-> +
-> +
-> +	}
-> +
-> +		deb_info(1, "INT Key Pressed =%04x Event =%04x",
-> +			 keypress, event);
-> +	if (event > 0) {
-> +		input_event(d->rc_input_dev, EV_KEY, event, 1);
-> +
-> +		input_event(d->rc_input_dev, EV_KEY, event, 0);
-> +
-> +		}
-> +
-> +    return 0;
-> +}
-> +
-> +static int lme2510_enable_filter(struct dvb_usb_adapter *adap)
-> +{
-> +	struct lme2510_state *st = adap->dev->priv;
-> +	static u8 filter_init[] = LME_FILTER_INT;
-> +	static u8 filter_on[] = LME_ST_ON_W;
-> +	static u8 rbuf[1];
-> +	static u8 *sbuf;
-> +	int ret = 0, len = 5;
-> +	info("PID Setting Filter");
-> +
-> +	sbuf = (u8 *) st->filter_data;
-> +
-> +
-> +	ret += lme2510_usb_talk(adap->dev,  filter_init, len, rbuf, 1);
-> +
-> +	ret += lme2510_usb_talk(adap->dev, sbuf, 80 , rbuf, 1);
-> +
-> +	ret += lme2510_usb_talk(adap->dev, filter_on, len, rbuf, 1);
-
-Please, don't use "magic numbers". Instead of using "1" for the rbuf size, use
-sizeof(rbuf).
-
-> +
-> +	st->pid_count = 0;
-> +	st->pid_flag_enable = 0;
-> +
-> +	return ret;
-> +}
-> +
-> +#if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 19)
-> +static void lme2510_int_response(struct urb *lme_urb, struct pt_regs *ptregs)
-> +#else
-> +static void lme2510_int_response(struct urb *lme_urb)
-> +#endif
-> +{
-> +	struct dvb_usb_adapter *adap = lme_urb->context;
-> +	struct lme2510_state *st = adap->dev->priv;
-> +	static u8 *ibuf, *rbuf;
-> +	int i = 0, offset;
-> +
-> +		switch (lme_urb->status) {
-> +		case 0:
-> +		case -ETIMEDOUT:
-> +			break;
-> +		case -ECONNRESET:
-> +		case -ENOENT:
-> +		case -ESHUTDOWN:
-> +			return;
-> +		default:
-> +			info("Error %x", lme_urb->status);
-> +			break;
-> +	}
-> +
-> +	rbuf = (u8 *) lme_urb->transfer_buffer;
-> +
-> +	offset = ((lme_urb->actual_length/8) > 4)
-> +			? 4 : (lme_urb->actual_length/8) ;
-> +
-> +
-> +	for (i = 0; i < offset; ++i) {
-> +		ibuf = (u8 *)&rbuf[i*8];
-> +		deb_info(5, "INT O/S C =%02x C/O=%02x Type =%02x%02x",
-> +		offset, i, ibuf[0], ibuf[1]);
-> +
-> +		switch (ibuf[0]) {
-> +		case 0xaa:
-> +			debug_data_snipet(1, "INT Remote data snipet in", ibuf);
-> +			lme2510_remote_keypress(adap,
-> +				(u16)(ibuf[4]<<8)+ibuf[5]);
-> +			break;
-> +		case 0xbb:
-> +			st->signal_lock = ibuf[2];
-> +			st->signal_level = ibuf[4];
-> +			st->signal_sn = ibuf[3];
-> +			st->time_key = ibuf[7];
-> +		break;
-> +		case 0xcc:
-> +			debug_data_snipet(1, "INT Control data snipet", ibuf);
-> +			break;
-> +		default:
-> +			debug_data_snipet(1, "INT Unknown data snipet", ibuf);
-> +		break;
-> +		}
-> +	}
-> +usb_submit_urb(lme_urb, GFP_ATOMIC);
-> +}
-> +
-> +static int lme2510_int_read(struct dvb_usb_adapter *adap)
-> +{
-> +	struct lme2510_state *lme_int = adap->dev->priv;
-> +	lme_int->lme_urb = usb_alloc_urb(0, GFP_ATOMIC);
-> +
-> +	if (lme_int->lme_urb == NULL)
-> +			return -ENOMEM;
-> +
-> +	lme_int->buffer = usb_buffer_alloc(adap->dev->udev, 5000, GFP_ATOMIC,
-> +					&lme_int->lme_urb->transfer_dma);
-> +
-> +	if (lme_int->buffer == NULL)
-> +			return -ENOMEM;
-> +
-> +	usb_fill_int_urb(lme_int->lme_urb,
-> +				adap->dev->udev,
-> +				usb_rcvintpipe(adap->dev->udev, 0xa),
-> +				lme_int->buffer,
-> +				4096,
-> +				lme2510_int_response,
-> +				adap,
-> +				11);
-> +
-> +	lme_int->lme_urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
-> +
-> +	usb_submit_urb(lme_int->lme_urb, GFP_ATOMIC);
-> +	info("INT Interupt Service Started");
-> +
-> +	return 0;
-> +}
-> +
-> +static int lme2510_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
-> +{
-> +	struct lme2510_state *st = adap->dev->priv;
-> +	static u8 clear_pid_reg_3[] = LME_CLEAR_PID;
-> +	static u8 rbuf[1];
-> +	int ret = 0;
-> +	deb_info(3, "PID ONOFF Filter talk =%04x onoff=%02x pid_flag%02x",
-> +			st->i2c_talk_onoff, onoff, st->pid_flag_enable);
-> +
-> +	if (onoff == 0)
-> +			return 0;
-> +	else {
-
-Don't need for an else block here.
-
-> +		deb_info(1, "PID Clearing Filter");
-> +		ret += lme2510_usb_talk(adap->dev,
-> +			clear_pid_reg_3, 4, rbuf, 1);
-> +		}
-> +	return 0;
-> +
-> +}
-> +
-> +static int lme2510_pidbuild_table(struct lme2510_state *st)
-> +{
-> +	u8 buffer_complete[] = {0x00, 0x00, 0x01, 0x00, 0x02,
-> +				0x00, 0x10, 0x00, 0x11, 0x00,
-> +				0x12, 0x00, 0x13, 0x00, 0x14,
-> +				0x00, 0x20, 0x9a};
-> +	u16 pid_out;
-> +	int j, i, b = 0, je, reg = 0;
-> +	u8 temp_buff[256];
-> +
-> +	deb_info(1, "PID Building Table");
-> +
-> +	j = 3;
-> +	temp_buff[0] = 0x03;
-> +	i = 2;
-> +	reg = 0;
-> +	while (j < 8) {
-> +		pid_out = st->pid_table[j++];
-> +			if (pid_out == 0x0012)
-> +				break;
-> +		temp_buff[i++] = reg++;
-> +		temp_buff[i++] = (u8) pid_out & 0xff;
-> +		temp_buff[i++] = reg++;
-> +		temp_buff[i++] = pid_out>>8;
-> +		};
-> +		temp_buff[i++] = reg++;
-> +		temp_buff[i++] = 0xfb;
-> +		temp_buff[i++] = reg++;
-> +		temp_buff[i++] = 0x1f;
-> +		temp_buff[i++] = reg++;
-> +		temp_buff[i++] = st->pid_table[3]&0xff;
-> +		temp_buff[i++] =  reg++;
-> +		temp_buff[i++] = st->pid_table[3]>>8;
-> +		temp_buff[i++] =  reg++;
-> +		temp_buff[i++] = st->pid_table[2]&0xff;
-> +		temp_buff[i++] =  reg++;
-> +		temp_buff[i++] = st->pid_table[2]>>8;
-> +	j = i;
-> +	je = i+16;
-> +	while (j++ < je) {
-> +		temp_buff[i++] =  reg++;
-> +		temp_buff[i++] = buffer_complete[b++];
-> +		};
-> +		temp_buff[i] = 0x20;
-> +		temp_buff[1] =  i ;
-> +		temp_buff[++i] = 0x9a;
-> +
-> +		memcpy(st->filter_data, &temp_buff[0], 255);
-
-Bad identation. Always use tabs for identation. A tab has 8 spaces. The identation should
-look like:
-	while (j++ < je) {
-		temp_buff[i++] =  reg++;
-		temp_buff[i++] = buffer_complete[b++];
-	}
-
-Also, don't use ; after }
-
-Please check your patches with scripts/checkpatch.pl (found at the kernel tree).
-There are Several CodingStyle troubles on your patch. You should also take a look
-at 
-
-> +
-> +	deb_info(2, "PID T RAW WRITE DUMP-----");
-> +	for (i = 0; i < 10; i++)
-> +		debug_data_snipet(2, ">", &st->filter_data[i*8]);
-> +
-> +
-> +	return 0;
-> +}
-> +
-> +static int lme2510_pid_filter(struct dvb_usb_adapter *adap, int index, u16 pid,
-> +	int onoff)
-> +{
-> +	struct lme2510_state *st = adap->dev->priv;
-> +	int ret = 0, i;
-> +
-> +	deb_info(4, "PID F PID=%04x Inx=%04x onoff=%02x i2c_talk=%02x FC=%02x",
-> +			pid, index, onoff,
-> +			st->i2c_talk_onoff,  adap->feedcount);
-> +
-> +	if ((pid == 0)&(index == 0)&(onoff == 0))
-> +		st->pid_count = 0;
-> +
-> +
-> +	if (index < 30) {
-> +		st->pid_table[st->pid_count] = pid;
-> +
-> +		deb_info(3, "PID T PID=%04x Inx=%04x onoff=%02x,i2c_talk=%02x",
-> +			st->pid_table[st->pid_count],
-> +			st->pid_count, onoff,
-> +			st->i2c_talk_onoff);
-> +
-> +		if ((st->pid_table[st->pid_count] == 0x0012) &
-> +						(st->pid_count > 3)) {
-> +			deb_info(2, "PID Table Dump---------");
-> +			for (i = 0; i < st->pid_count; i++)
-> +				deb_info(2, "PID No %02x=(%04x)",
-> +						i, st->pid_table[i]);
-> +
-> +
-> +			if ((st->pid_count < 8) &
-> +				(st->pid_table[3] != 0x0012)) {
-> +				ret = lme2510_pidbuild_table(st);
-> +				st->pid_flag_enable = 1;
-> +				ret -= lme2510_enable_filter(adap);
-> +			}
-> +				else
-> +			info("PID more than 4 - passing full stream");
-> +		} else
-> +		st->pid_count++;
-> +	}
-> +
-> +
-> +	return ret;
-> +}
-> +
-> +static int lme2510_return_status(struct usb_device *dev)
-> +{
-> +	int i;
-> +	u8 data[10] = {0};
-> +	i =  usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
-> +			0x06, 0x80, 0x0302, 0x00, data, 0x0006, 200);
-> +	/*i = usb_get_descriptor(dev, 0x03, 0x02, data, 0x06);*/
-> +	info("Firmware Status: %x (%x)", i, data[2]);
-
-Hmm... what happens if usb_control_msg returns an error?
-
-> +	i = data[2];
-> +	return i;
-> +}
-> +
-> +
-> +static int lme2510_msg(struct dvb_usb_device *d,
-> +		u8 *wbuf, int wlen, u8 *rbuf, int rlen)
-> +{
-> +	int ret = 0;
-> +	struct lme2510_state *st = d->priv;
-> +
-> +	if (st->i2c_talk_onoff == 1) {
-> +		if ((wbuf[0] == 0x84) & (wbuf[1] == 0x03) &
-> +			(wbuf[2] == 0x1c) & (wbuf[3] == 0x0e))
-> +			msleep(80); /*take your time when waiting for tune*/
-> +
-> +		if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
-> +			return -EAGAIN;
-> +
-> +		ret = lme2510_usb_talk(d, wbuf, wlen, rbuf, rlen);
-> +
-> +		mutex_unlock(&d->i2c_mutex);
-> +		}	else	{
-> +		if ((wbuf[0] == 0x84) & (wbuf[1] == 0x03)
-> +					& (wbuf[2] == 0x1c)) {
-> +			switch (wbuf[3]) {
-> +			case 0x0e:
-> +				rbuf[0] = 0x55;
-> +				rbuf[1] = st->signal_lock;
-> +				break;
-> +			case 0x43:
-> +				rbuf[0] = 0x55;
-> +				rbuf[1] = st->signal_level;
-> +				break;
-> +			case 0x1c:
-> +				rbuf[0] = 0x55;
-> +				rbuf[1] = st->signal_sn;
-> +				break;
-> +			default:
-> +					break;
-> +			}
-> +		deb_info(4, "I2C From Interupt Message out(%02x) in(%02x)",
-> +				wbuf[3], rbuf[1]);
-> +		}
-> +	}
-> +
-> +
-> +
-> +
-> +	return ret;
-> +}
-> +
-> +static int lme2510_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
-> +				 int num)
-> +{
-> +	struct dvb_usb_device *d = i2c_get_adapdata(adap);
-> +	static u8 obuf[64], ibuf[512];
-> +	int i, read;
-> +	u16 len;
-> +
-> +	if (num > 2)
-> +		warn("more than 2 i2c messages"
-> +			"at a time is not handled yet.	TODO.");
-> +
-> +	for (i = 0; i < num; i++) {
-> +		read = i+1 < num && (msg[i+1].flags & I2C_M_RD);
-> +		obuf[0] = 0x04 | (read << 7);
-> +		obuf[1] = (msg[i].addr < 0x40) ? LME_I2C_C_L : LME_I2C_C_H;
-> +		obuf[2] = (msg[i].addr << 1);
-> +		if (read) {
-> +			memcpy(&obuf[3], msg[i].buf, msg[i].len);
-> +			obuf[4] = msg[i].len;
-> +			len = msg[i].len+4;
-> +		} else {
-> +			memcpy(&obuf[3], msg[i].buf, msg[i].len);
-> +			len = 64;
-> +		}
-> +
-> +
-> +		if (lme2510_msg(d, obuf, len, ibuf, 512) < 0) {
-> +			deb_info(1, "i2c transfer failed.");
-> +			return -EAGAIN;
-> +		}
-> +
-> +		if (read) {
-> +			memcpy(msg[i+1].buf, &ibuf[1],
-> +				(msg[i+1].len > 512) ? 512 : msg[i+1].len);
-> +
-> +			i++;
-> +		}
-> +	}
-> +	return i;
-> +}
-> +
-> +static u32 lme2510_i2c_func(struct i2c_adapter *adapter)
-> +{
-> +	return I2C_FUNC_I2C;
-> +}
-> +
-> +static struct i2c_algorithm lme2510_i2c_algo = {
-> +	.master_xfer   = lme2510_i2c_xfer,
-> +	.functionality = lme2510_i2c_func,
-> +#ifdef NEED_ALGO_CONTROL
-> +	.algo_control = dummy_algo_control,
-> +#endif
-> +};
-> +
-> +/* Callbacks for DVB USB */
-> +static int lme2510_identify_state(struct usb_device *udev,
-> +		struct dvb_usb_device_properties *props,
-> +		struct dvb_usb_device_description **desc,
-> +		int *cold)
-> +{
-> +	*cold = 0;
-> +	return 0;
-> +}
-> +
-> +static int lme2510_init(struct dvb_usb_device *d)
-> +{
-> +	static u8 command1[] = LME_ST_OFF_C;
-> +	static u8 ibuf[512];
-> +	int ret, len = 5, len_in = 512;
-> +	msleep(500);
-> +	ret = lme2510_usb_talk(d, command1, len, ibuf, len_in);
-> +	return ret;
-> +}
-> +
-> +static int lme2510_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
-> +{
-> +	struct lme2510_state *st = adap->dev->priv;
-> +	static u8 stream_off[] = LME_ST_OFF_C;
-> +	static u8 clear_reg_3[] =  LME_CLEAR_PID;
-> +	static u8 stream_on[] = LME_ST_ON_W;
-> +	static u8 rbuf[1];
-> +	int ret = 0, len = 5;
-> +	deb_info(1, "STM  (%02x)", onoff);
-> +
-> +	if (onoff == 1)	{
-> +		ret += lme2510_usb_talk(adap->dev,
-> +				 stream_on,  len, rbuf, 1);
-> +		st->i2c_talk_onoff = 0;
-> +	} else {
-> +		st->i2c_talk_onoff = 1;
-> +		ret += lme2510_usb_talk(adap->dev,
-> +					stream_off, len, rbuf, 1);
-> +		deb_info(1, "STM Clearing PID Filter");
-> +		ret += lme2510_usb_talk(adap->dev,
-> +			 clear_reg_3, 4, rbuf, 1);
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int lme2510_int_service(struct dvb_usb_adapter *adap)
-> +{
-> +	struct dvb_usb_device *d = adap->dev;
-> +	struct input_dev *input_dev;
-> +	int ret, i;
-> +	u32 keys[] =  LME_KEYS_USED;
-> +	info("STA Configuring Remote");
-> +
-> +	usb_make_path(d->udev, d->rc_phys, sizeof(d->rc_phys));
-> +
-> +	strlcat(d->rc_phys, "/ir0", sizeof(d->rc_phys));
-> +
-> +	input_dev = input_allocate_device();
-> +	if (!input_dev)
-> +		return -ENOMEM;
-> +
-> +	input_dev->evbit[0] = BIT_MASK(EV_KEY);
-> +	input_dev->name = "LME2510 Remote Control";
-> +	input_dev->phys = d->rc_phys;
-> +	usb_to_input_id(d->udev, &input_dev->id);
-> +
-> +	for (i = 0; i < sizeof(keys)/4 ; ++i)
-> +		set_bit(keys[i], input_dev->keybit);
-> +
-> +	deb_info(3, "STA Number of Keys %d", sizeof(keys)/4);
-> +
-> +	ret = input_register_device(input_dev);
-> +	if (ret) {
-> +		input_free_device(input_dev);
-> +		return ret;
-> +	}
-> +
-> +	d->rc_input_dev = input_dev;
-> +	/* Start the Interupt */
-> +	ret = lme2510_int_read(adap);
-> +
-> +	if (ret < 0)
-> +		input_free_device(input_dev);
-> +
-> +	return (ret < 0) ? -ENODEV : 0;
-> +}
-
-Should use the IR register functions from ir-core.
-
-> +
-> +static struct tda10086_config tda10086_config = {
-> +	.demod_address = 0x0e,
-> +	.invert = 0,
-> +	.diseqc_tone = 1,
-> +	.xtal_freq = TDA10086_XTAL_16M,
-> +};
-> +
-> +static int dm04_lme2510_set_voltage(struct dvb_frontend *fe,
-> +					fe_sec_voltage_t voltage)
-> +{
-> +	struct dvb_usb_adapter *adap = fe->dvb->priv;
-> +	static u8 voltage_low[]	= LME_VOLTAGE_L;
-> +	static u8 voltage_high[] = LME_VOLTAGE_H;
-> +	static u8 rbuf[1];
-> +	int ret, len = 5;
-> +
-> +		switch (voltage) {
-> +
-> +		case SEC_VOLTAGE_18:
-> +			ret = lme2510_usb_talk(adap->dev,
-> +				voltage_high, len, rbuf, 1);
-> +		break;
-> +
-> +		case SEC_VOLTAGE_OFF:
-> +		case SEC_VOLTAGE_13:
-> +		default:
-> +		ret = lme2510_usb_talk(adap->dev,
-> +				voltage_low, len, rbuf, 1);
-> +		break;
-> +
-> +
-> +	};
-> +	return 0;
-> +}
-> +
-> +static int dm04_lme2510_frontend_attach(struct dvb_usb_adapter *adap)
-> +{
-> +	int ret = 0;
-> +	struct lme2510_state *st = adap->dev->priv;
-> +	st->pid_flag_enable = 0;
-> +	/* Interupt Start  */
-> +	ret = lme2510_int_service(adap);
-> +	if (ret < 0) {
-> +		info("INT Unable to start Interupt Service");
-> +		return -ENODEV;
-> +	}
-> +
-> +	st->i2c_talk_onoff = 1;
-> +
-> +	ret = lme2510_init(adap->dev);
-> +
-> +	adap->fe = dvb_attach(tda10086_attach, &tda10086_config,
-> +		&adap->dev->i2c_adap);
-> +
-> +	if (adap->fe != NULL) {
-> +		memcpy(&adap->fe->ops.info.name,
-> +				&"DM04_LG_TDQY-P001F DVB-S", 24);
-> +		adap->fe->ops.set_voltage = dm04_lme2510_set_voltage;
-> +	} else {
-> +		info("This DM04 Device is not supported");
-> +		return -ENODEV;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +static int dm04_lme2510_tuner_attach(struct dvb_usb_adapter *adap)
-> +{
-> +	if (dvb_attach(tda826x_attach, adap->fe, 0x60,
-> +			&adap->dev->i2c_adap, 1) == NULL) {
-> +		deb_info(1, "TDA8263 attach failed\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int lme2510_powerup(struct dvb_usb_device *d, int onoff)
-> +{
-> +	struct lme2510_state *st = d->priv;
-> +	st->i2c_talk_onoff = 1;
-> +	return 0;
-> +}
-> +
-> +static struct lme_firmware_data lme_firmware[] =   LME_FIRMWARE_D;
-> +
-> +static int lme2510_firmware(struct usb_device *dev, const struct firmware *fw)
-> +{
-> +	int ret = 0, j;
-> +	u8 data[1000] = {0};
-> +	u16 wlen = 253;
-> +	info("FRM Starting Firmware Download");
-> +
-> +	for (j = 0; j < 17; ++j)	{
-> +		wlen = (int)lme_firmware[j].length;
-> +		memcpy(&data[0], &lme_firmware[j].bulk_data[0],
-> +				(wlen < 256) ? wlen : 256);
-> +		ret += lme2510_bulk_write(dev, data,  wlen, 1);
-> +		ret += lme2510_bulk_read(dev, data, 512 , 1);
-> +		ret += (data[0] == 0x88) ? 0 : -1;
-> +	}
-> +
-> +	usb_control_msg(dev, usb_rcvctrlpipe(dev, 0),
-> +			0x06, 0x80, 0x0200, 0x00, data, 0x0109, 1000);
-> +
-> +
-> +	data[0] = 0x8a;
-> +	msleep(2000);
-> +	ret += lme2510_bulk_write(dev, data , 1, 1); /*Resetting*/
-> +	ret += lme2510_bulk_read(dev, data, 512 , 1);
-> +	msleep(400);
-> +
-> +	if (ret < 0)
-> +		info("FRM Firmware Download Failed (%04x)" , ret);
-> +	else
-> +		info("FRM Firmware Download Completed - Resetting Device");
-> +
-> +
-> +	return (ret < 0) ? -ENODEV : 0;
-> +}
-> +
-> +/* DVB USB Driver stuff */
-> +static struct dvb_usb_device_properties lme2510_properties;
-> +
-> +static int lme2510_probe(struct usb_interface *intf,
-> +		const struct usb_device_id *id)
-> +{
-> +	struct usb_device *udev = interface_to_usbdev(intf);
-> +	int ret = 0;
-> +
-> +	usb_reset_configuration(udev);
-> +
-> +	usb_set_interface(udev, intf->cur_altsetting->desc.bInterfaceNumber, 1);
-> +
-> +	if (udev->speed != USB_SPEED_HIGH) {
-> +		ret = usb_reset_device(udev);
-> +		info("DEV Failed to connect in HIGH SPEED mode");
-> +		return -ENODEV;
-> +	}
-> +
-> +
-> +	if (0x44 == lme2510_return_status(udev)) {
-> +		ret += lme2510_firmware(udev, NULL);
-> +		return 0; /* reset on way */
-> +	}
-> +
-> +
-> +	if (0 == dvb_usb_device_init(intf, &lme2510_properties,
-> +				     THIS_MODULE, NULL, adapter_nr)) {
-> +		info("DEV registering device driver");
-> +		return 0;
-> +	}
-> +
-> +	info("DEV lme2510 Error");
-> +	return -ENODEV;
-> +
-> +}
-> +
-> +static struct usb_device_id lme2510_table[] = {
-> +	{ USB_DEVICE(0x3344, 0x1122) },  /* generic China models */
-> +	{}		/* Terminating entry */
-> +};
-> +
-> +MODULE_DEVICE_TABLE(usb, lme2510_table);
-> +
-> +static struct dvb_usb_device_properties lme2510_properties = {
-> +	.caps = DVB_USB_IS_AN_I2C_ADAPTER,
-> +	.usb_ctrl = DEVICE_SPECIFIC,
-> +	.size_of_priv = sizeof(struct lme2510_state),
-> +	.num_adapters = 1,
-> +	.adapter = {
-> +		{
-> +			.caps = DVB_USB_ADAP_HAS_PID_FILTER|
-> +				DVB_USB_ADAP_NEED_PID_FILTERING|
-> +				DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-> +			.streaming_ctrl   = lme2510_streaming_ctrl,
-> +			.pid_filter_count = 29,
-> +			.pid_filter = lme2510_pid_filter,
-> +			.pid_filter_ctrl  = lme2510_pid_filter_ctrl,
-> +			.frontend_attach  = dm04_lme2510_frontend_attach,
-> +			.tuner_attach     = dm04_lme2510_tuner_attach,
-> +			/* parameter for the MPEG2-data transfer */
-> +			.stream = {
-> +				.type = USB_BULK,
-> +				.count = 10,
-> +				.endpoint = 0x06,
-> +				.u = {
-> +					.bulk = {
-> +						.buffersize = 4096,
-> +
-> +					}
-> +				}
-> +			}
-> +		}
-> +	},
-> +	.power_ctrl       = lme2510_powerup,
-> +	.identify_state   = lme2510_identify_state,
-> +	.i2c_algo         = &lme2510_i2c_algo,
-> +	.generic_bulk_ctrl_endpoint = 0,
-> +	.num_device_descs = 1,
-> +	.devices = {
-> +		{   "LME2510 + LG TDQY-P001F DVB-S USB2.0",
-> +			{ &lme2510_table[0], NULL },
-> +			},
-> +
-> +	}
-> +};
-> +
-> +void lme2510_exit_int(struct dvb_usb_device *d)
-> +{
-> +	struct lme2510_state *st = d->priv;
-> +		if (st->lme_urb != NULL) {
-> +			usb_kill_urb(st->lme_urb);
-> +			usb_buffer_free(d->udev, 5000, st->buffer,
-> +					st->lme_urb->transfer_dma);
-> +			info("Interupt Service Stopped");
-> +		}
-> +	return;
-> +}
-> +
-> +void lme2510_exit(struct usb_interface *intf)
-> +{
-> +	struct dvb_usb_device *d = usb_get_intfdata(intf);
-> +	if (d != NULL) {
-> +		lme2510_exit_int(d);
-> +		input_unregister_device(d->rc_input_dev);
-> +		info("Remote Stopped");
-> +		dvb_usb_device_exit(intf);
-> +	}
-> +
-> +}
-> +
-> +static struct usb_driver lme2510_driver = {
-> +	.name		= "LME_DVBS",
-> +	.probe		= lme2510_probe,
-> +	.disconnect 	= lme2510_exit,
-> +	.id_table	= lme2510_table,
-> +};
-> +
-> +/* module stuff */
-> +static int __init lme2510_module_init(void)
-> +{
-> +	int result = usb_register(&lme2510_driver);
-> +	if (result) {
-> +		err("usb_register failed. Error number %d", result);
-> +		return result;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static void __exit lme2510_module_exit(void)
-> +{
-> +	/* deregister this driver from the USB subsystem */
-> +	usb_deregister(&lme2510_driver);
-> +}
-> +
-> +module_init(lme2510_module_init);
-> +module_exit(lme2510_module_exit);
-> +
-> +MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
-> +MODULE_DESCRIPTION("LME DVB-S USB2.0");
-> +MODULE_VERSION("1.0");
-> +MODULE_LICENSE("GPL");
-> diff -r 9652f85e688a linux/drivers/media/dvb/dvb-usb/lmedm04.h
-> --- /dev/null	Thu Jan 01 00:00:00 1970 +0000
-> +++ b/linux/drivers/media/dvb/dvb-usb/lmedm04.h	Fri Jul 16 14:30:02 2010 +0100
-> @@ -0,0 +1,682 @@
-> +/* DVB USB compliant linux driver for
-> + *
-> + * LME DM040832731 (LME 2510 + TDQY-P001F)
-> + *
-> + * MV001F LG TDQY - P001F =(TDA8263 + TDA10086H)
-> + *
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms of the GNU General Public License as published by the Free
-> + * Software Foundation,  version 2.
-> + *
-> + * see Documentation/dvb/README.dvb-usb for more information
-> + */
-> +#ifndef _DVB_USB_LME2510_H_
-> +#define _DVB_USB_LME2510_H_
-> +
-> +
-> +/* Interupt */
-> +
-> +#define LME_REMOTE	0xaa
-> +#define LME_STREAM	0xbb
-> +#define LME_IDLE	0xcc
-> +
-> +
-> +/* Remote */
-> +
-> +#define KEYCASE(key, id) \
-> +do { case key: \
-> +  event = id;\
-> + } while (0)
-> +
-> +#define LME_R_1		0xa05f
-> +#define LME_R_2		0xaf50
-> +#define LME_R_3		0xa25d
-> +#define LME_R_4		0xbe41
-> +#define LME_R_5		0xf50a
-> +#define LME_R_6		0xbd42
-> +#define LME_R_7		0xb847
-> +#define LME_R_8		0xb649
-> +#define LME_R_9		0xfa05
-> +#define LME_R_0		0xba45
-> +#define LME_R_POWER	0xbc43
-> +#define LME_R_SUB	0xb946
-> +#define LME_R_CAPTURE	0xf906
-> +#define LME_R_REPEAT	0xfc03
-> +#define LME_R_PAUSE	0xfd02
-> +#define LME_R_VOL_D	0xa35c
-> +#define LME_R_VOL_U	0xa15e
-> +#define LME_R_CH_D	0xe51a
-> +#define LME_R_CH_U	0xf609
-> +#define LME_R_PLAYBACK	0xe11e
-> +#define LME_R_ZOOM	0xe41b
-> +#define LME_R_MUTE	0xa659
-> +#define LME_R_LIVETV	0xa55a
-> +#define LME_R_RECORD	0xe718
-> +#define LME_R_EPG	0xf807
-> +#define LME_R_STOP	0xfe01
-> +
-> +#define	LME_KEYS_USED {	KEY_1, 			KEY_2, \
-> +			KEY_3, 			KEY_4, \
-> +			KEY_5, 			KEY_6, \
-> +			KEY_7, 			KEY_8, \
-> +			KEY_9, 			KEY_0, \
-> +			KEY_POWER, 		KEY_PAUSE, \
-> +			KEY_VOLUMEDOWN, 		KEY_VOLUMEUP, \
-> +			KEY_CHANNELDOWN, 	KEY_CHANNELUP, \
-> +			KEY_PLAY, 		KEY_MUTE, KEY_TV, \
-> +			KEY_ZOOM, 		KEY_EPG, \
-> +			KEY_SUBTITLE, 		KEY_RECORD, \
-> +			KEY_MEDIA_REPEAT, 	KEY_STOPCD, \
-> +			0x0000}
-> +
-> +
-> +/* Streamer &  PID
-> + *
-> + * Note:	These commands do not actually stop the streaming
-> + *		but form some kind of packet filtering/stream count
-> + *		or tuning related functions.
-> + *  06 XX XX XX XX
-> + *  offset 1 = 00
-> + *  offset 2 = default after warm start 52, otherwise greater than 40
-> + *  offset 3 = default after warm start 80, =(power offset 3),  82,  88
-> + *  offset 4 = 20,  before PID setting 5c, 1c, d0,  (tuning 8c)
-> + *
-> + *  PID
-> + *  03 XX XX  ----> reg number ---> setting....20 XX
-> + *  offset 1 = length
-> + *  offset 2 = start of data
-> + *  end byte -1 = 20
-> + *  end byte = clear pid always a0, other wise 9c, 9a ??
-> +*/
-> +#define LME_ST_ON_W	{0x06, 0x00, 0x52, 0x80, 0x20}
-> +#define LME_FILTER_INT	{0x06, 0x00, 0x92, 0x88, 0x5c}
-> +#define LME_ST_OFF_C	{0x06, 0x00, 0x52, 0x80, 0xd0}
-> +#define LME_CLEAR_PID   {0x03, 0x02, 0x20, 0xa0}
-> +
-> +/*
-> +#define LME_ST_INIT	{0x06, 0x00, 0x72, 0xb3, 0x1c}
-> +#define LME_ST_ON_C	{0x06, 0x00, 0x52, 0x80, 0x20}
-> +#define LME_ST_ON	{0x06, 0x00, 0x40, 0x82, 0x50}
-> +*/
-> +
-> +/* LME Power Control
-> + *  07 XX XX XX XX
-> + *  offset 1 = 01  Power? my device cannot be powered down
-> + *  offset 2 = 00=Voltage low 01=Voltage high
-> + *  offset 3 = unknown but usually AE, B1-B3
-> + *  offset 4 = mosty C8 but sometimes C9
-> + */
-> +
-> +#define LME_VOLTAGE_L	{0x07, 0x01, 0x00, 0xb3, 0xc9}
-> +#define LME_VOLTAGE_H	{0x07, 0x01, 0x01, 0xb3, 0xc9}
-> +
-> +/* I2C */
-> +#define LME_I2C_C_L	0x03
-> +#define LME_I2C_C_H	0x0c
-> +#define LME_I2C_WRITE	0x04
-> +#define LME_I2C_READ	0x84
-> +
-> +/* Firmware */
-> +#define FWF1	{\
-> +		0x01, 0xf9, 0x12, 0x01, 0x00, 0x02, 0x00, 0x00, 	\
-> +		0x00, 0x40, 0x44, 0x33, 0x22, 0x11, 0x00, 0x00, 	\
-> +		0x01, 0x02, 0x03, 0x01, 0x0a, 0x06, 0x00, 0x02, 	\
-> +		0x00, 0x00, 0x00, 0x40, 0x01, 0x00, 0x09, 0x02, 	\
-> +		0x37, 0x00, 0x01, 0x01, 0x00, 0xc0, 0xfa, 0x09, 	\
-> +		0x04, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 	\
-> +		0x09, 0x04, 0x00, 0x01, 0x04, 0xff, 0x00, 0x00, 	\
-> +		0x00, 0x07, 0x05, 0x87, 0x02, 0x40, 0x00, 0x00, 	\
-> +		0x07, 0x05, 0x03, 0x02, 0x40, 0x00, 0x00, 0x07, 	\
-> +		0x05, 0x8a, 0x02, 0x40, 0x00, 0x00, 0x07, 0x05, 	\
-> +		0x0a, 0x02, 0x40, 0x00, 0x00, 0x09, 0x07, 0x53, 	\
-> +		0x00, 0x01, 0x01, 0x00, 0xc0, 0xfa, 0x09, 0x04, 	\
-> +		0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x09, 	\
-> +		0x04, 0x00, 0x01, 0x08, 0xff, 0x00, 0x00, 0x00, 	\
-> +		0x07, 0x05, 0x81, 0x02, 0x00, 0x02, 0x00, 0x07, 	\
-> +		0x05, 0x01, 0x02, 0x00, 0x02, 0x00, 0x07, 0x05, 	\
-> +		0x02, 0x02, 0x00, 0x02, 0x00, 0x07, 0x05, 0x86, 	\
-> +		0x02, 0x00, 0x02, 0x00, 0x07, 0x05, 0x87, 0x02, 	\
-> +		0x40, 0x00, 0x00, 0x07, 0x05, 0x03, 0x02, 0x40, 	\
-> +		0x00, 0x00, 0x07, 0x05, 0x8a, 0x03, 0x40, 0x00, 	\
-> +		0x0b, 0x07, 0x05, 0x0a, 0x02, 0x40, 0x00, 0x00, 	\
-> +		0x08, 0x03, 0x09, 0x04, 0x03, 0x04, 0x15, 0x16, 	\
-> +		0x05, 0x03, 0x41, 0x42, 0x43, 0x06, 0x03, 0x44, 	\
-> +		0x44, 0x44, 0x44, 0x07, 0x03, 0x48, 0x49, 0x50, 	\
-> +		0x51, 0x52, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x75}
-> +
-> +#define FWF2	{\
-> +		0x01, 0xf9, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x12, 0x01, 0x00, 0x02, 0x00, 0x00, 0x00, 0x40, 	\
-> +		0x44, 0x33, 0x22, 0x11, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x03, 0x01, 0x0a, 0x06, 0x00, 0x02, 0x00, 0x00, 	\
-> +		0x00, 0x40, 0x01, 0x00, 0x09, 0x02, 0x53, 0x00, 	\
-> +		0x01, 0x01, 0x00, 0xc0, 0xfa, 0x09, 0x04, 0x00, 	\
-> +		0x00, 0x00, 0xff, 0x00, 0x00, 0x00, 0x09, 0x04, 	\
-> +		0x00, 0x01, 0x08, 0xff, 0x00, 0x00, 0x00, 0x07, 	\
-> +		0x05, 0x81, 0x02, 0x00, 0x02, 0x00, 0x07, 0x05, 	\
-> +		0x01, 0x02, 0x00, 0x02, 0x00, 0x07, 0x05, 0x02, 	\
-> +		0x02, 0x00, 0x02, 0x00, 0x07, 0x05, 0x86, 0x02, 	\
-> +		0x00, 0x02, 0x00, 0x07, 0x05, 0x87, 0x02, 0x40, 	\
-> +		0x00, 0x00, 0x07, 0x05, 0x03, 0x02, 0x40, 0x00, 	\
-> +		0x00, 0x07, 0x05, 0x8a, 0x03, 0x40, 0x00, 0x0b, 	\
-> +		0x07, 0x05, 0x0a, 0x02, 0x40, 0x00, 0x00, 0x09, 	\
-> +		0x07, 0x37, 0x00, 0x01, 0x01, 0x00, 0xc0, 0xfa, 	\
-> +		0x09, 0x04, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 	\
-> +		0x00, 0x09, 0x04, 0x00, 0x01, 0x04, 0xff, 0x00, 	\
-> +		0x00, 0x00, 0x07, 0x05, 0x87, 0x02, 0x40, 0x00, 	\
-> +		0x00, 0x07, 0x05, 0x03, 0x02, 0x40, 0x00, 0x00, 	\
-> +		0x07, 0x05, 0x8a, 0x02, 0x40, 0x00, 0x00, 0x07, 	\
-> +		0x05, 0x0a, 0x02, 0x40, 0x00, 0x00, 0x08, 0x03, 	\
-> +		0x09, 0x04, 0x03, 0x04, 0x15, 0x16, 0x05, 0x03, 	\
-> +		0x41, 0x42, 0x43, 0x06, 0x03, 0x47, 0x47, 0x47, 	\
-> +		0x47, 0x07, 0x03, 0x48, 0x49, 0x50, 0x51, 0x52, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x7e}
-> +
-> +
-> +#define FWF3	{0x81, 0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 	\
-> +		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
-> +
-> +
-> +#define FWP1	{\
-> +		0x02, 0xf9, 0x02, 0x05, 0xc5, 0x30, 0x01, 0xfd, 	\
-> +		0x8f, 0x99, 0xc2, 0x01, 0x22, 0x02, 0x09, 0x9f, 	\
-> +		0x22, 0xff, 0xff, 0xff, 0xff, 0x02, 0x0a, 0x92, 	\
-> +		0x90, 0xc0, 0x0b, 0xe0, 0x30, 0xe1, 0x02, 0xc3, 	\
-> +		0x22, 0xd3, 0x22, 0xff, 0xff, 0x02, 0x0c, 0xdc, 	\
-> +		0xc2, 0x05, 0xe4, 0xf5, 0x0d, 0xf5, 0x0e, 0xf5, 	\
-> +		0x09, 0x90, 0xc0, 0x84, 0xe0, 0xff, 0x74, 0x0f, 	\
-> +		0x25, 0x09, 0xf8, 0xa6, 0x07, 0x05, 0x09, 0xe5, 	\
-> +		0x09, 0xb4, 0x02, 0xed, 0xe5, 0x0f, 0x12, 0x07, 	\
-> +		0x27, 0x00, 0x8b, 0x02, 0x00, 0xe0, 0x03, 0x01, 	\
-> +		0x4e, 0x04, 0x01, 0xd1, 0x05, 0x02, 0x61, 0x06, 	\
-> +		0x02, 0x76, 0x07, 0x02, 0xd8, 0x08, 0x03, 0x32, 	\
-> +		0x09, 0x03, 0x5c, 0x0a, 0x00, 0xb9, 0x82, 0x01, 	\
-> +		0x16, 0x83, 0x01, 0x92, 0x84, 0x02, 0x05, 0x85, 	\
-> +		0x02, 0x87, 0x87, 0x00, 0x7e, 0xf1, 0x00, 0xb3, 	\
-> +		0xf2, 0x02, 0x41, 0xf5, 0x00, 0x00, 0x03, 0x79, 	\
-> +		0x90, 0xc0, 0x0b, 0x74, 0x02, 0xf0, 0x90, 0xc1, 	\
-> +		0xa3, 0x74, 0x50, 0xf0, 0x22, 0x90, 0xc0, 0x84, 	\
-> +		0xe0, 0xf5, 0x0b, 0xe0, 0xf5, 0x0c, 0x90, 0xc0, 	\
-> +		0x36, 0x74, 0x8b, 0xf0, 0x90, 0xc1, 0xa2, 0x74, 	\
-> +		0x16, 0xf0, 0x74, 0x76, 0xf0, 0x90, 0xc1, 0xa8, 	\
-> +		0x74, 0x96, 0xf0, 0xad, 0x0c, 0xaf, 0x0b, 0x12, 	\
-> +		0x0c, 0x21, 0x02, 0x02, 0x02, 0x12, 0x0c, 0xcc, 	\
-> +		0x02, 0x02, 0x02, 0xe4, 0xf5, 0x0d, 0xf5, 0x0e, 	\
-> +		0xc3, 0xe5, 0x0e, 0x95, 0x10, 0xe5, 0x0d, 0x94, 	\
-> +		0x00, 0x50, 0x14, 0x90, 0xc0, 0x84, 0xe0, 0xf5, 	\
-> +		0x0c, 0xff, 0x12, 0x00, 0x03, 0x05, 0x0e, 0xe5, 	\
-> +		0x0e, 0x70, 0xe5, 0x05, 0x0d, 0x80, 0xe1, 0x02, 	\
-> +		0x02, 0x02, 0xe4, 0xf5, 0x0d, 0xf5, 0x0e, 0xc3, 	\
-> +		0xe5, 0x0e, 0x95, 0x10, 0xe5, 0x0d, 0x94, 0x00, 	\
-> +		0x50, 0x23, 0x90, 0xc0, 0x84, 0xe0, 0xf5, 0x0b, 	\
-> +		0xe0, 0xf5, 0x0c, 0xe4, 0x5a}
-> +
-> +
-> +#define FWP2	{\
-> +		0x02, 0xf9, 0x25, 0x0b, 0xf5, 0x82, 0xe4, 0x34, 	\
-> +		0x90, 0xf5, 0x83, 0xe5, 0x0c, 0xf0, 0x74, 0x02, 	\
-> +		0x25, 0x0e, 0xf5, 0x0e, 0xe4, 0x35, 0x0d, 0xf5, 	\
-> +		0x0d, 0x80, 0xd2, 0x02, 0x02, 0x02, 0x90, 0xc0, 	\
-> +		0x84, 0x74, 0x55, 0xf0, 0xe4, 0xf5, 0x0d, 0xf5, 	\
-> +		0x0e, 0xc3, 0xe5, 0x0e, 0x95, 0x10, 0xe5, 0x0d, 	\
-> +		0x94, 0x00, 0x50, 0x1f, 0x90, 0xc0, 0x84, 0xe0, 	\
-> +		0xf5, 0x0b, 0xff, 0xe4, 0x2f, 0xf5, 0x82, 0xe4, 	\
-> +		0x34, 0x90, 0xf5, 0x83, 0xe0, 0x90, 0xc0, 0x84, 	\
-> +		0xf0, 0x05, 0x0e, 0xe5, 0x0e, 0x70, 0xda, 0x05, 	\
-> +		0x0d, 0x80, 0xd6, 0x02, 0x02, 0x56, 0x90, 0xc0, 	\
-> +		0x84, 0xe0, 0xf5, 0x0a, 0xe0, 0xf5, 0x0b, 0xe5, 	\
-> +		0x10, 0x24, 0xfe, 0xf5, 0x0e, 0xe4, 0x34, 0xff, 	\
-> +		0xf5, 0x0d, 0xe4, 0xf5, 0x09, 0xc3, 0xe5, 0x09, 	\
-> +		0x95, 0x0e, 0xe4, 0x95, 0x0d, 0x50, 0x10, 0x90, 	\
-> +		0xc0, 0x84, 0xe0, 0xff, 0x74, 0x2a, 0x25, 0x09, 	\
-> +		0xf8, 0xa6, 0x07, 0x05, 0x09, 0x80, 0xe6, 0x7b, 	\
-> +		0x00, 0x7a, 0x00, 0x79, 0x2a, 0x85, 0x0e, 0x16, 	\
-> +		0xad, 0x0b, 0xaf, 0x0a, 0x12, 0x08, 0xec, 0x02, 	\
-> +		0x02, 0xd1, 0x90, 0xc0, 0x84, 0x74, 0x55, 0xf0, 	\
-> +		0xe0, 0xf5, 0x0a, 0xe0, 0xf5, 0x0b, 0xe0, 0x75, 	\
-> +		0x0d, 0x00, 0xf5, 0x0e, 0x7b, 0x00, 0x7a, 0x00, 	\
-> +		0x79, 0x22, 0xf5, 0x16, 0xad, 0x0b, 0xaf, 0x0a, 	\
-> +		0x12, 0x06, 0x51, 0xe4, 0xf5, 0x09, 0xc3, 0xe5, 	\
-> +		0x09, 0x95, 0x0e, 0xe4, 0x95, 0x0d, 0x50, 0x0e, 	\
-> +		0x74, 0x22, 0x25, 0x09, 0xf8, 0xe6, 0x90, 0xc0, 	\
-> +		0x84, 0xf0, 0x05, 0x09, 0x80, 0xe8, 0x02, 0x02, 	\
-> +		0x56, 0xe4, 0xf5, 0x0d, 0xf5, 0x0e, 0xc3, 0xe5, 	\
-> +		0x0e, 0x95, 0x10, 0xe5, 0x0d, 0x94, 0x00, 0x50, 	\
-> +		0x21, 0x90, 0xc0, 0x84, 0xe0, 0xf5, 0x0a, 0xe0, 	\
-> +		0xf5, 0x0b, 0xe0, 0xf5, 0x2a, 0xfb, 0xad, 0x0b, 	\
-> +		0xaf, 0x0a, 0x12, 0x0a, 0x7f}
-> +
-> +#define FWP3	{\
-> +		0x02, 0xf9, 0x4a, 0x74, 0x03, 0x25, 0x0e, 0xf5, 	\
-> +		0x0e, 0xe4, 0x35, 0x0d, 0xf5, 0x0d, 0x80, 0xd4, 	\
-> +		0x02, 0x02, 0xd1, 0x90, 0xc0, 0x84, 0x74, 0x55, 	\
-> +		0xf0, 0xe4, 0xf5, 0x0d, 0xf5, 0x0e, 0xc3, 0xe5, 	\
-> +		0x0e, 0x95, 0x10, 0xe5, 0x0d, 0x94, 0x00, 0x50, 	\
-> +		0x24, 0x90, 0xc0, 0x84, 0xe0, 0xf5, 0x0a, 0xe0, 	\
-> +		0xf5, 0x0b, 0xfd, 0xaf, 0x0a, 0x12, 0x08, 0x92, 	\
-> +		0x8f, 0x22, 0x90, 0xc0, 0x84, 0xe5, 0x22, 0xf0, 	\
-> +		0x74, 0x02, 0x25, 0x0e, 0xf5, 0x0e, 0xe4, 0x35, 	\
-> +		0x0d, 0xf5, 0x0d, 0x80, 0xd1, 0x80, 0x15, 0x90, 	\
-> +		0xc0, 0x84, 0x74, 0x55, 0xf0, 0xe0, 0xf5, 0x0a, 	\
-> +		0xff, 0x12, 0x0b, 0x7e, 0x8f, 0x22, 0x90, 0xc0, 	\
-> +		0x84, 0xe5, 0x22, 0xf0, 0x90, 0xc0, 0x0b, 0x74, 	\
-> +		0x02, 0xf0, 0x90, 0xc0, 0x0f, 0xf0, 0x22, 0xe4, 	\
-> +		0xf5, 0x3b, 0xf5, 0x3c, 0x7b, 0xff, 0x7a, 0x0b, 	\
-> +		0x79, 0x0f, 0x7f, 0xd0, 0x7e, 0x07, 0x12, 0x0b, 	\
-> +		0xd9, 0x02, 0x03, 0x47, 0x90, 0xc0, 0x84, 0xe0, 	\
-> +		0xf5, 0x0c, 0x70, 0x04, 0xc2, 0x83, 0x80, 0x02, 	\
-> +		0xd2, 0x83, 0x02, 0x02, 0xd1, 0x90, 0xc0, 0x84, 	\
-> +		0xe0, 0xf5, 0x09, 0xe4, 0xf5, 0x0d, 0xf5, 0x0e, 	\
-> +		0xc3, 0xe5, 0x0e, 0x95, 0x09, 0xe5, 0x0d, 0x94, 	\
-> +		0x00, 0x50, 0x34, 0xc2, 0xb7, 0xd2, 0xb6, 0xe4, 	\
-> +		0xf5, 0x0b, 0x7f, 0xc8, 0x12, 0x05, 0x9e, 0x05, 	\
-> +		0x0b, 0xe5, 0x0b, 0xc3, 0x94, 0xc8, 0x40, 0xf2, 	\
-> +		0xd2, 0xb7, 0xc2, 0xb6, 0xe4, 0xf5, 0x0b, 0x7f, 	\
-> +		0xc8, 0x12, 0x05, 0x9e, 0x05, 0x0b, 0xe5, 0x0b, 	\
-> +		0xc3, 0x94, 0xc8, 0x40, 0xf2, 0x05, 0x0e, 0xe5, 	\
-> +		0x0e, 0x70, 0xc5, 0x05, 0x0d, 0x80, 0xc1, 0x90, 	\
-> +		0xc0, 0x0b, 0x74, 0x02, 0x80, 0x52, 0x90, 0xc0, 	\
-> +		0x36, 0x74, 0x8b, 0xf0, 0x90, 0xc1, 0xa2, 0x74, 	\
-> +		0x16, 0xf0, 0x74, 0x76, 0xf0, 0x90, 0xc1, 0xa8, 	\
-> +		0x74, 0x96, 0xf0, 0x90, 0xbb}
-> +
-> +
-> +#define FWP4	{\
-> +		0x02, 0xf9, 0xc0, 0x98, 0x74, 0x66, 0xf0, 0x90, 	\
-> +		0xc0, 0x84, 0xe0, 0xf5, 0x0c, 0xe4, 0xf5, 0x0d, 	\
-> +		0xf5, 0x0e, 0xc3, 0xe5, 0x0e, 0x95, 0x0c, 0xe5, 	\
-> +		0x0d, 0x94, 0x00, 0x50, 0x14, 0x90, 0xc0, 0x88, 	\
-> +		0xe0, 0xf5, 0x0a, 0x90, 0xc0, 0x98, 0xf0, 0x05, 	\
-> +		0x0e, 0xe5, 0x0e, 0x70, 0xe5, 0x05, 0x0d, 0x80, 	\
-> +		0xe1, 0x90, 0xc0, 0x0b, 0x74, 0x02, 0xf0, 0x90, 	\
-> +		0xc0, 0x13, 0xf0, 0x90, 0xc0, 0x37, 0xf0, 0x90, 	\
-> +		0xc0, 0x84, 0x74, 0x88, 0x80, 0x52, 0x90, 0xc0, 	\
-> +		0x56, 0x74, 0x8c, 0xf0, 0x90, 0xc1, 0xa2, 0x74, 	\
-> +		0x1a, 0xf0, 0x74, 0x7a, 0xf0, 0x90, 0xc1, 0xa8, 	\
-> +		0x74, 0x9a, 0xf0, 0x90, 0xc0, 0x0b, 0x74, 0x02, 	\
-> +		0xf0, 0x90, 0xc0, 0x84, 0x74, 0x88, 0xf0, 0x90, 	\
-> +		0xc0, 0x0f, 0x74, 0x02, 0xf0, 0xd2, 0x04, 0x22, 	\
-> +		0x90, 0xc0, 0x0b, 0x74, 0x02, 0xf0, 0x90, 0xc0, 	\
-> +		0x84, 0x74, 0x88, 0xf0, 0x90, 0xc0, 0x0f, 0x74, 	\
-> +		0x02, 0xf0, 0x7f, 0xc8, 0x12, 0x05, 0xb9, 0x90, 	\
-> +		0xff, 0xff, 0xe4, 0xf0, 0x22, 0x90, 0xc0, 0x0b, 	\
-> +		0x74, 0x02, 0xf0, 0x90, 0xc0, 0x84, 0x74, 0x77, 	\
-> +		0xf0, 0x90, 0xc0, 0x0f, 0x74, 0x02, 0xf0, 0x22, 	\
-> +		0xe4, 0xff, 0xfe, 0xf5, 0x0b, 0x20, 0xb2, 0x07, 	\
-> +		0x0f, 0xbf, 0x00, 0x01, 0x0e, 0x80, 0xf6, 0xc3, 	\
-> +		0xef, 0x94, 0x28, 0xee, 0x94, 0x23, 0x50, 0x03, 	\
-> +		0x02, 0x04, 0x76, 0xd3, 0xef, 0x94, 0xc8, 0xee, 	\
-> +		0x94, 0x32, 0x40, 0x03, 0x02, 0x04, 0x76, 0xe4, 	\
-> +		0xfe, 0xff, 0x30, 0xb2, 0x07, 0x0f, 0xbf, 0x00, 	\
-> +		0x01, 0x0e, 0x80, 0xf6, 0xc3, 0xef, 0x94, 0x94, 	\
-> +		0xee, 0x94, 0x11, 0x50, 0x03, 0x02, 0x04, 0x76, 	\
-> +		0xd3, 0xef, 0x94, 0x4c, 0xee, 0x94, 0x1d, 0x40, 	\
-> +		0x03, 0x02, 0x04, 0x76, 0xe4, 0xfe, 0x7f, 0x04, 	\
-> +		0x12, 0x0c, 0xbc, 0x30, 0xb2, 0x03, 0x02, 0x04, 	\
-> +		0x76, 0xe4, 0xf5, 0x0a, 0x39}
-> +
-> +#define FWP5	{\
-> +		0x02, 0xf9, 0xe4, 0xf5, 0x09, 0x05, 0x0b, 0x30, 	\
-> +		0xb2, 0xfd, 0x74, 0x48, 0x25, 0x0a, 0xf8, 0xc0, 	\
-> +		0x00, 0xe6, 0xc3, 0x13, 0xd0, 0x00, 0xf6, 0x7f, 	\
-> +		0x06, 0x12, 0x0c, 0xbc, 0x30, 0xb2, 0x05, 0x7f, 	\
-> +		0x04, 0x12, 0x0c, 0xbc, 0x30, 0xb2, 0x05, 0x7f, 	\
-> +		0x02, 0x12, 0x0c, 0xbc, 0x30, 0xb2, 0x05, 0x7f, 	\
-> +		0x06, 0x12, 0x0c, 0xbc, 0x30, 0xb2, 0x07, 0x7f, 	\
-> +		0x08, 0x12, 0x0c, 0xbc, 0x80, 0x09, 0x74, 0x48, 	\
-> +		0x25, 0x0a, 0xf8, 0xe6, 0x44, 0x80, 0xf6, 0x20, 	\
-> +		0xb2, 0xfd, 0x05, 0x09, 0xe5, 0x09, 0xc3, 0x94, 	\
-> +		0x08, 0x40, 0xb2, 0x05, 0x0a, 0xe5, 0x0a, 0xc3, 	\
-> +		0x94, 0x04, 0x40, 0xa6, 0xe5, 0x0b, 0x64, 0x20, 	\
-> +		0x70, 0x2e, 0xf5, 0x0b, 0xe5, 0x4a, 0x25, 0x4b, 	\
-> +		0xff, 0xe4, 0x33, 0xfe, 0xef, 0xf4, 0x4e, 0x70, 	\
-> +		0x1f, 0xd2, 0x03, 0x75, 0x4c, 0xaa, 0x75, 0x47, 	\
-> +		0x04, 0xf5, 0x0a, 0x74, 0x48, 0x25, 0x0a, 0xf8, 	\
-> +		0xe6, 0xff, 0x74, 0x3f, 0x25, 0x0a, 0xf8, 0xa6, 	\
-> +		0x07, 0x05, 0x0a, 0xe5, 0x0a, 0xb4, 0x04, 0xeb, 	\
-> +		0x22, 0x90, 0xc1, 0xa3, 0x74, 0x10, 0xf0, 0x90, 	\
-> +		0xc0, 0x0e, 0x74, 0x88, 0xf0, 0x90, 0xc1, 0xa2, 	\
-> +		0x74, 0x11, 0xf0, 0x74, 0x71, 0xf0, 0x90, 0xc1, 	\
-> +		0xa8, 0x74, 0x31, 0xf0, 0x90, 0xc0, 0x36, 0x74, 	\
-> +		0x8b, 0xf0, 0x90, 0xc1, 0xa2, 0x74, 0x16, 0xf0, 	\
-> +		0x74, 0x76, 0xf0, 0x90, 0xc1, 0xa8, 0x74, 0x36, 	\
-> +		0xf0, 0x90, 0xc0, 0x0a, 0x74, 0x88, 0xf0, 0x90, 	\
-> +		0xc1, 0xa2, 0x74, 0x01, 0xf0, 0x74, 0x61, 0xf0, 	\
-> +		0x90, 0xc1, 0xa8, 0x74, 0x21, 0xf0, 0x90, 0xc0, 	\
-> +		0x12, 0x74, 0x8b, 0xf0, 0x90, 0xc1, 0xa2, 0x74, 	\
-> +		0x02, 0xf0, 0x74, 0x62, 0xf0, 0x90, 0xc1, 0xa8, 	\
-> +		0x74, 0x22, 0xf0, 0x90, 0xc0, 0x3e, 0x74, 0x8b, 	\
-> +		0xf0, 0x90, 0xc1, 0xa2, 0x74, 0x17, 0xf0, 0x74, 	\
-> +		0x77, 0xf0, 0x90, 0xc1, 0x1b}
-> +
-> +#define FWP6	{\
-> +		0x02, 0xf9, 0xa8, 0x74, 0x37, 0xf0, 0x90, 0xc0, 	\
-> +		0x56, 0x74, 0x8c, 0xf0, 0x90, 0xc1, 0xa2, 0x74, 	\
-> +		0x1a, 0xf0, 0x74, 0x7a, 0xf0, 0x90, 0xc1, 0xa8, 	\
-> +		0x74, 0x3a, 0xf0, 0x90, 0xc0, 0x1a, 0x74, 0x8b, 	\
-> +		0xf0, 0x90, 0xc1, 0xa2, 0x74, 0x03, 0xf0, 0x74, 	\
-> +		0x63, 0xf0, 0x90, 0xc1, 0xa8, 0x74, 0x23, 0xf0, 	\
-> +		0x90, 0xc0, 0x52, 0x74, 0x88, 0xf0, 0x90, 0xc1, 	\
-> +		0xa2, 0x74, 0x0a, 0xf0, 0x74, 0x6a, 0xf0, 0x90, 	\
-> +		0xc1, 0xa8, 0x74, 0x2a, 0xf0, 0x22, 0x12, 0x05, 	\
-> +		0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 	\
-> +		0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 	\
-> +		0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 	\
-> +		0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 	\
-> +		0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 	\
-> +		0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 	\
-> +		0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 	\
-> +		0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 	\
-> +		0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 	\
-> +		0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 	\
-> +		0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 	\
-> +		0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 	\
-> +		0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 	\
-> +		0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 	\
-> +		0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 	\
-> +		0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 	\
-> +		0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 	\
-> +		0x12, 0x05, 0xb9, 0x12, 0x05, 0xb9, 0x12, 0x05, 	\
-> +		0xb9, 0xe4, 0xfe, 0xee, 0xc3, 0x9f, 0x50, 0x04, 	\
-> +		0x00, 0x0e, 0x80, 0xf7, 0x22, 0x78, 0x7f, 0xe4, 	\
-> +		0xf6, 0xd8, 0xfd, 0x75, 0x81, 0x54, 0x02, 0x06, 	\
-> +		0x0c, 0x02, 0x07, 0x53, 0xe4, 0x93, 0xa3, 0xf8, 	\
-> +		0xe4, 0x93, 0xa3, 0x40, 0xe8}
-> +
-> +#define FWP7	{\
-> +		0x02, 0xf9, 0x03, 0xf6, 0x80, 0x01, 0xf2, 0x08, 	\
-> +		0xdf, 0xf4, 0x80, 0x29, 0xe4, 0x93, 0xa3, 0xf8, 	\
-> +		0x54, 0x07, 0x24, 0x0c, 0xc8, 0xc3, 0x33, 0xc4, 	\
-> +		0x54, 0x0f, 0x44, 0x20, 0xc8, 0x83, 0x40, 0x04, 	\
-> +		0xf4, 0x56, 0x80, 0x01, 0x46, 0xf6, 0xdf, 0xe4, 	\
-> +		0x80, 0x0b, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 	\
-> +		0x40, 0x80, 0x90, 0x0c, 0x3f, 0xe4, 0x7e, 0x01, 	\
-> +		0x93, 0x60, 0xbc, 0xa3, 0xff, 0x54, 0x3f, 0x30, 	\
-> +		0xe5, 0x09, 0x54, 0x1f, 0xfe, 0xe4, 0x93, 0xa3, 	\
-> +		0x60, 0x01, 0x0e, 0xcf, 0x54, 0xc0, 0x25, 0xe0, 	\
-> +		0x60, 0xa8, 0x40, 0xb8, 0xe4, 0x93, 0xa3, 0xfa, 	\
-> +		0xe4, 0x93, 0xa3, 0xf8, 0xe4, 0x93, 0xa3, 0xc8, 	\
-> +		0xc5, 0x82, 0xc8, 0xca, 0xc5, 0x83, 0xca, 0xf0, 	\
-> +		0xa3, 0xc8, 0xc5, 0x82, 0xc8, 0xca, 0xc5, 0x83, 	\
-> +		0xca, 0xdf, 0xe9, 0xde, 0xe7, 0x80, 0xbe, 0x8d, 	\
-> +		0x12, 0x8b, 0x13, 0x8a, 0x14, 0x89, 0x15, 0xef, 	\
-> +		0x54, 0xfe, 0xf5, 0x18, 0x12, 0x0c, 0x5c, 0xaf, 	\
-> +		0x18, 0x12, 0x09, 0xf5, 0x20, 0x02, 0x02, 0x80, 	\
-> +		0x69, 0x7f, 0x14, 0x12, 0x05, 0xb9, 0xaf, 0x12, 	\
-> +		0x12, 0x09, 0xf5, 0x7f, 0x14, 0x12, 0x05, 0xb9, 	\
-> +		0x20, 0x02, 0x02, 0x80, 0x55, 0x12, 0x0c, 0x5c, 	\
-> +		0xe5, 0x18, 0x04, 0xff, 0x12, 0x09, 0xf5, 0x20, 	\
-> +		0x02, 0x02, 0x80, 0x46, 0xe4, 0xf5, 0x17, 0xe5, 	\
-> +		0x16, 0x14, 0xff, 0xe5, 0x17, 0xc3, 0x9f, 0x50, 	\
-> +		0x1c, 0x12, 0x0a, 0xd2, 0xab, 0x13, 0xaa, 0x14, 	\
-> +		0xa9, 0x15, 0x85, 0x17, 0x82, 0x75, 0x83, 0x00, 	\
-> +		0xef, 0x12, 0x07, 0x05, 0xc2, 0x06, 0x12, 0x0c, 	\
-> +		0x78, 0x05, 0x17, 0x80, 0xda, 0x12, 0x0a, 0xd2, 	\
-> +		0xab, 0x13, 0xaa, 0x14, 0xa9, 0x15, 0x85, 0x17, 	\
-> +		0x82, 0x75, 0x83, 0x00, 0xef, 0x12, 0x07, 0x05, 	\
-> +		0xd2, 0x06, 0x12, 0x0c, 0x78, 0x7f, 0x14, 0x12, 	\
-> +		0x05, 0xb9, 0x12, 0x0c, 0x29}
-> +
-> +#define FWP8	{\
-> +		0x02, 0xf9, 0x94, 0x22, 0xbb, 0x01, 0x0c, 0xe5, 	\
-> +		0x82, 0x29, 0xf5, 0x82, 0xe5, 0x83, 0x3a, 0xf5, 	\
-> +		0x83, 0xe0, 0x22, 0x50, 0x06, 0xe9, 0x25, 0x82, 	\
-> +		0xf8, 0xe6, 0x22, 0xbb, 0xfe, 0x06, 0xe9, 0x25, 	\
-> +		0x82, 0xf8, 0xe2, 0x22, 0xe5, 0x82, 0x29, 0xf5, 	\
-> +		0x82, 0xe5, 0x83, 0x3a, 0xf5, 0x83, 0xe4, 0x93, 	\
-> +		0x22, 0xf8, 0xbb, 0x01, 0x0d, 0xe5, 0x82, 0x29, 	\
-> +		0xf5, 0x82, 0xe5, 0x83, 0x3a, 0xf5, 0x83, 0xe8, 	\
-> +		0xf0, 0x22, 0x50, 0x06, 0xe9, 0x25, 0x82, 0xc8, 	\
-> +		0xf6, 0x22, 0xbb, 0xfe, 0x05, 0xe9, 0x25, 0x82, 	\
-> +		0xc8, 0xf2, 0x22, 0xd0, 0x83, 0xd0, 0x82, 0xf8, 	\
-> +		0xe4, 0x93, 0x70, 0x12, 0x74, 0x01, 0x93, 0x70, 	\
-> +		0x0d, 0xa3, 0xa3, 0x93, 0xf8, 0x74, 0x01, 0x93, 	\
-> +		0xf5, 0x82, 0x88, 0x83, 0xe4, 0x73, 0x74, 0x02, 	\
-> +		0x93, 0x68, 0x60, 0xef, 0xa3, 0xa3, 0xa3, 0x80, 	\
-> +		0xdf, 0x8a, 0x83, 0x89, 0x82, 0xe4, 0x73, 0x12, 	\
-> +		0x0c, 0x01, 0x12, 0x0c, 0xa9, 0x7b, 0xff, 0x7a, 	\
-> +		0x0b, 0x79, 0xb0, 0x7d, 0x28, 0x7c, 0x00, 0x12, 	\
-> +		0x0b, 0x49, 0x12, 0x00, 0x16, 0x50, 0x11, 0xc2, 	\
-> +		0x85, 0xc2, 0x00, 0x90, 0xc1, 0xa8, 0x74, 0x91, 	\
-> +		0xf0, 0x12, 0x00, 0x26, 0xd2, 0x85, 0x80, 0xea, 	\
-> +		0x20, 0xb2, 0x0c, 0xc2, 0xaa, 0x12, 0x03, 0x8c, 	\
-> +		0xd2, 0xaa, 0x12, 0x08, 0x2c, 0x80, 0xdb, 0xe5, 	\
-> +		0x3e, 0x24, 0x38, 0xff, 0xe5, 0x3d, 0x34, 0xff, 	\
-> +		0xfe, 0xef, 0xb5, 0x3c, 0xcd, 0xee, 0xb5, 0x3b, 	\
-> +		0xc9, 0x75, 0x2a, 0x1c, 0x75, 0x2b, 0x0e, 0x12, 	\
-> +		0x08, 0x8e, 0x8f, 0x22, 0xe5, 0x22, 0x30, 0xe4, 	\
-> +		0x04, 0xc2, 0x85, 0x80, 0x02, 0xd2, 0x85, 0x75, 	\
-> +		0x2b, 0x43, 0x12, 0x08, 0x8e, 0x8f, 0x23, 0x75, 	\
-> +		0x2b, 0x1c, 0x12, 0x08, 0x8e, 0x8f, 0x24, 0x80, 	\
-> +		0xa1, 0x90, 0x90, 0x00, 0x74, 0x01, 0xf0, 0xe4, 	\
-> +		0xa3, 0xf0, 0xa3, 0xf0, 0xdc}
-> +
-> +
-> +#define FWP9	{\
-> +		0x02, 0xf9, 0xa3, 0xf0, 0xa3, 0x74, 0x03, 0xf0, 	\
-> +		0xe4, 0xa3, 0xf0, 0xa3, 0xf0, 0xa3, 0xf0, 0xa3, 	\
-> +		0x74, 0x05, 0xf0, 0xe4, 0xa3, 0xf0, 0xa3, 0xf0, 	\
-> +		0xa3, 0xf0, 0xa3, 0x74, 0x07, 0xf0, 0xe4, 0xa3, 	\
-> +		0xf0, 0xa3, 0xf0, 0xa3, 0xf0, 0xa3, 0x74, 0x09, 	\
-> +		0xf0, 0xe4, 0xa3, 0xf0, 0xa3, 0xf0, 0xa3, 0xf0, 	\
-> +		0xa3, 0x74, 0x0b, 0xf0, 0xe4, 0xa3, 0xf0, 0xa3, 	\
-> +		0xf0, 0xa3, 0xf0, 0xa3, 0x74, 0x0d, 0xf0, 0xe4, 	\
-> +		0xa3, 0xf0, 0xa3, 0xf0, 0xa3, 0xf0, 0xa3, 0x74, 	\
-> +		0x0f, 0xf0, 0xe4, 0xa3, 0xf0, 0xa3, 0xf0, 0xa3, 	\
-> +		0xf0, 0xa3, 0x74, 0xb5, 0xf0, 0xa3, 0x74, 0x06, 	\
-> +		0xf0, 0xa3, 0x74, 0xbc, 0xf0, 0x22, 0xe5, 0x47, 	\
-> +		0x60, 0x5d, 0xc2, 0xaa, 0x75, 0xa0, 0x01, 0x85, 	\
-> +		0x4c, 0x33, 0x85, 0x47, 0x34, 0xe4, 0xff, 0xef, 	\
-> +		0xc3, 0x95, 0x47, 0x50, 0x0f, 0x74, 0x3f, 0x2f, 	\
-> +		0xf8, 0xe6, 0xfe, 0x74, 0x35, 0x2f, 0xf8, 0xa6, 	\
-> +		0x06, 0x0f, 0x80, 0xeb, 0x75, 0x21, 0x08, 0xe4, 	\
-> +		0xf5, 0x47, 0x20, 0x00, 0x2d, 0x90, 0xc1, 0xa8, 	\
-> +		0x74, 0x9a, 0xf0, 0x90, 0xc0, 0xa8, 0xe5, 0x33, 	\
-> +		0xf0, 0xe5, 0x34, 0xf0, 0xe5, 0x35, 0xf0, 0xe5, 	\
-> +		0x36, 0xf0, 0xe5, 0x37, 0xf0, 0xe5, 0x38, 0xf0, 	\
-> +		0xe5, 0x39, 0xf0, 0xe5, 0x3a, 0xf0, 0x90, 0xc0, 	\
-> +		0x57, 0x74, 0x02, 0xf0, 0x90, 0xc1, 0xa8, 0x74, 	\
-> +		0x3a, 0xf0, 0xd2, 0xaa, 0x75, 0xa0, 0x02, 0x22, 	\
-> +		0xad, 0x2b, 0xaf, 0x2a, 0x8d, 0x11, 0xef, 0x54, 	\
-> +		0xfe, 0xf5, 0x13, 0x12, 0x0c, 0x5c, 0x7f, 0x14, 	\
-> +		0x12, 0x05, 0xb9, 0xaf, 0x13, 0x12, 0x09, 0xf5, 	\
-> +		0x20, 0x02, 0x02, 0x80, 0x21, 0x7f, 0x14, 0x12, 	\
-> +		0x05, 0xb9, 0xaf, 0x11, 0x12, 0x09, 0xf5, 0x20, 	\
-> +		0x02, 0x02, 0x80, 0x12, 0x7f, 0x14, 0x12, 0x05, 	\
-> +		0xb9, 0x12, 0x0c, 0x5c, 0xe5, 0x13, 0x04, 0xff, 	\
-> +		0x12, 0x09, 0xf5, 0x20, 0x9b}
-> +
-> +
-> +#define FWP10	{\
-> +		0x02, 0xf9, 0x02, 0x06, 0x12, 0x0c, 0x94, 0x7f, 	\
-> +		0x00, 0x22, 0x7f, 0x14, 0x12, 0x05, 0xb9, 0x12, 	\
-> +		0x0a, 0xd2, 0x8f, 0x12, 0xd2, 0x06, 0x12, 0x0c, 	\
-> +		0x78, 0x7f, 0x14, 0x12, 0x05, 0xb9, 0x12, 0x0c, 	\
-> +		0x94, 0xaf, 0x12, 0x22, 0x8d, 0x12, 0x8b, 0x13, 	\
-> +		0x8a, 0x14, 0x89, 0x15, 0xef, 0x54, 0xfe, 0xf5, 	\
-> +		0x18, 0x12, 0x0c, 0x5c, 0xaf, 0x18, 0x12, 0x09, 	\
-> +		0xf5, 0x20, 0x02, 0x02, 0x80, 0x3f, 0x7f, 0x14, 	\
-> +		0x12, 0x05, 0xb9, 0xaf, 0x12, 0x12, 0x09, 0xf5, 	\
-> +		0x20, 0x02, 0x02, 0x80, 0x30, 0x7f, 0x14, 0x12, 	\
-> +		0x05, 0xb9, 0xe4, 0xf5, 0x17, 0xe5, 0x17, 0xc3, 	\
-> +		0x95, 0x16, 0x50, 0x17, 0xab, 0x13, 0xaa, 0x14, 	\
-> +		0xa9, 0x15, 0x85, 0x17, 0x82, 0x75, 0x83, 0x00, 	\
-> +		0x12, 0x06, 0xd8, 0xff, 0x12, 0x09, 0xf5, 0x05, 	\
-> +		0x17, 0x80, 0xe2, 0x20, 0x02, 0x02, 0x80, 0x05, 	\
-> +		0x7f, 0x14, 0x12, 0x05, 0xb9, 0x12, 0x0c, 0x94, 	\
-> +		0x22, 0x05, 0x3a, 0x30, 0x04, 0x50, 0xe5, 0x21, 	\
-> +		0x90, 0xc1, 0xa8, 0x70, 0x1c, 0x74, 0x9a, 0xf0, 	\
-> +		0x90, 0xc0, 0xa8, 0x74, 0xbb, 0xf0, 0x74, 0x03, 	\
-> +		0xf0, 0xe5, 0x22, 0xf0, 0xe5, 0x23, 0xf0, 0xe5, 	\
-> +		0x24, 0xf0, 0xe5, 0x25, 0xf0, 0xe5, 0x26, 0x80, 	\
-> +		0x1a, 0x74, 0x9a, 0xf0, 0x90, 0xc0, 0xa8, 0xe5, 	\
-> +		0x33, 0xf0, 0xe5, 0x34, 0xf0, 0xe5, 0x35, 0xf0, 	\
-> +		0xe5, 0x36, 0xf0, 0xe5, 0x37, 0xf0, 0xe5, 0x38, 	\
-> +		0xf0, 0xe5, 0x39, 0xf0, 0xe5, 0x3a, 0xf0, 0x90, 	\
-> +		0xc0, 0x57, 0x74, 0x02, 0xf0, 0x90, 0xc1, 0xa8, 	\
-> +		0x74, 0x3a, 0xf0, 0xe4, 0xf5, 0x21, 0x22, 0xc0, 	\
-> +		0xe0, 0xc0, 0xf0, 0xc0, 0x83, 0xc0, 0x82, 0xc0, 	\
-> +		0xd0, 0x75, 0xd0, 0x00, 0xc0, 0x00, 0xc0, 0x01, 	\
-> +		0xc0, 0x02, 0xc0, 0x03, 0xc0, 0x04, 0xc0, 0x05, 	\
-> +		0xc0, 0x06, 0xc0, 0x07, 0xc2, 0x8d, 0x05, 0x4f, 	\
-> +		0xe5, 0x4f, 0x70, 0x02, 0xf9}
-> +
-> +
-> +#define FWP11	{\
-> +		0x02, 0xf9, 0x05, 0x4e, 0xc3, 0x95, 0x54, 0xe5, 	\
-> +		0x4e, 0x95, 0x53, 0x40, 0x0b, 0xc2, 0x8c, 0xc2, 	\
-> +		0xa9, 0xaa, 0x51, 0xa9, 0x52, 0x12, 0x07, 0x4d, 	\
-> +		0xd0, 0x07, 0xd0, 0x06, 0xd0, 0x05, 0xd0, 0x04, 	\
-> +		0xd0, 0x03, 0xd0, 0x02, 0xd0, 0x01, 0xd0, 0x00, 	\
-> +		0xd0, 0xd0, 0xd0, 0x82, 0xd0, 0x83, 0xd0, 0xf0, 	\
-> +		0xd0, 0xe0, 0x32, 0x8f, 0x19, 0xe4, 0xf5, 0x1a, 	\
-> +		0xaf, 0x1a, 0xe5, 0x19, 0xa8, 0x07, 0x08, 0x80, 	\
-> +		0x02, 0xc3, 0x33, 0xd8, 0xfc, 0x30, 0xe7, 0x04, 	\
-> +		0xd2, 0x80, 0x80, 0x02, 0xc2, 0x80, 0x7f, 0x08, 	\
-> +		0x12, 0x05, 0xb9, 0xd2, 0x81, 0x7f, 0x0a, 0x12, 	\
-> +		0x05, 0xb9, 0xc2, 0x81, 0x05, 0x1a, 0xe5, 0x1a, 	\
-> +		0xc3, 0x94, 0x08, 0x40, 0xd3, 0x7f, 0x02, 0x12, 	\
-> +		0x05, 0xb9, 0xd2, 0x80, 0x7f, 0x0a, 0x12, 0x05, 	\
-> +		0xb9, 0xd2, 0x81, 0x7f, 0x0a, 0x12, 0x05, 0xb9, 	\
-> +		0x30, 0x80, 0x04, 0xc2, 0x02, 0x80, 0x02, 0xd2, 	\
-> +		0x02, 0xc2, 0x81, 0x7f, 0x0a, 0x02, 0x05, 0xb9, 	\
-> +		0x8d, 0x11, 0x8b, 0x12, 0xef, 0x54, 0xfe, 0xf5, 	\
-> +		0x13, 0x12, 0x0c, 0x5c, 0x7f, 0x14, 0x12, 0x05, 	\
-> +		0xb9, 0xaf, 0x13, 0x12, 0x09, 0xf5, 0x20, 0x02, 	\
-> +		0x02, 0x80, 0x1c, 0x7f, 0x14, 0x12, 0x05, 0xb9, 	\
-> +		0xaf, 0x11, 0x12, 0x09, 0xf5, 0x20, 0x02, 0x02, 	\
-> +		0x80, 0x0d, 0x7f, 0x14, 0x12, 0x05, 0xb9, 0xaf, 	\
-> +		0x12, 0x12, 0x09, 0xf5, 0x20, 0x02, 0x03, 0x02, 	\
-> +		0x0c, 0x94, 0x7f, 0x14, 0x12, 0x05, 0xb9, 0x12, 	\
-> +		0x0c, 0x94, 0x7f, 0x14, 0x12, 0x05, 0xb9, 0x22, 	\
-> +		0xc0, 0xe0, 0xc0, 0x83, 0xc0, 0x82, 0xc0, 0xd0, 	\
-> +		0x75, 0xd0, 0x00, 0xc0, 0x06, 0xc0, 0x07, 0xc2, 	\
-> +		0x8b, 0x05, 0x3c, 0xe5, 0x3c, 0x70, 0x02, 0x05, 	\
-> +		0x3b, 0x30, 0x00, 0x17, 0xc3, 0x95, 0x3e, 0xe5, 	\
-> +		0x3b, 0x95, 0x3d, 0x40, 0x0e, 0x75, 0x3b, 0x00, 	\
-> +		0x75, 0x3c, 0x00, 0x7f, 0xbc}
-> +
-> +
-> +#define FWP12	{\
-> +		0x02, 0xf9, 0x14, 0x12, 0x05, 0xb9, 0x12, 0x09, 	\
-> +		0x49, 0xd0, 0x07, 0xd0, 0x06, 0xd0, 0xd0, 0xd0, 	\
-> +		0x82, 0xd0, 0x83, 0xd0, 0xe0, 0x32, 0xe4, 0xf5, 	\
-> +		0x19, 0xd2, 0x80, 0xf5, 0x1a, 0x7f, 0x01, 0x12, 	\
-> +		0x05, 0xb9, 0xc2, 0x81, 0x7f, 0x0a, 0x12, 0x05, 	\
-> +		0xb9, 0xd2, 0x81, 0x7f, 0x08, 0x12, 0x05, 0xb9, 	\
-> +		0xe5, 0x19, 0x25, 0xe0, 0xf5, 0x19, 0x30, 0x80, 	\
-> +		0x02, 0x05, 0x19, 0x7f, 0x01, 0x12, 0x05, 0xb9, 	\
-> +		0x05, 0x1a, 0xe5, 0x1a, 0xc3, 0x94, 0x08, 0x40, 	\
-> +		0xd4, 0xc2, 0x81, 0x7f, 0x0a, 0x12, 0x05, 0xb9, 	\
-> +		0xaf, 0x19, 0x22, 0x85, 0x3b, 0x3d, 0x85, 0x3c, 	\
-> +		0x3e, 0x90, 0xc0, 0xa8, 0x74, 0xcc, 0xf0, 0x74, 	\
-> +		0x02, 0xf0, 0xe5, 0x3d, 0xf0, 0xe5, 0x3e, 0xf0, 	\
-> +		0xe4, 0xf0, 0xf0, 0xf0, 0xf0, 0x90, 0xc0, 0x57, 	\
-> +		0x74, 0x02, 0xf0, 0x90, 0xc0, 0x36, 0x74, 0x8b, 	\
-> +		0xf0, 0x90, 0xc1, 0xa2, 0x74, 0x16, 0xf0, 0x74, 	\
-> +		0x76, 0xf0, 0x90, 0xc1, 0xa8, 0x74, 0x36, 0xf0, 	\
-> +		0xd2, 0x00, 0xc2, 0x85, 0x22, 0x8b, 0x09, 0x8a, 	\
-> +		0x0a, 0x89, 0x0b, 0x8c, 0x0c, 0x8d, 0x0d, 0xe4, 	\
-> +		0xfd, 0xfc, 0xc3, 0xed, 0x95, 0x0d, 0xe5, 0x0c, 	\
-> +		0x64, 0x80, 0xf8, 0xec, 0x64, 0x80, 0x98, 0x50, 	\
-> +		0x18, 0xab, 0x09, 0xaa, 0x0a, 0xa9, 0x0b, 0x8d, 	\
-> +		0x82, 0x8c, 0x83, 0x12, 0x06, 0xd8, 0xff, 0x12, 	\
-> +		0x00, 0x03, 0x0d, 0xbd, 0x00, 0x01, 0x0c, 0x80, 	\
-> +		0xd9, 0x22, 0x8f, 0x11, 0x12, 0x0c, 0x5c, 0x7f, 	\
-> +		0x14, 0x12, 0x05, 0xb9, 0xaf, 0x11, 0x12, 0x09, 	\
-> +		0xf5, 0x20, 0x02, 0x06, 0x12, 0x0c, 0x94, 0x7f, 	\
-> +		0x00, 0x22, 0x7f, 0x14, 0x12, 0x05, 0xb9, 0x12, 	\
-> +		0x0a, 0xd2, 0x8f, 0x12, 0xd2, 0x06, 0x12, 0x0c, 	\
-> +		0x78, 0x7f, 0x14, 0x12, 0x05, 0xb9, 0x12, 0x0c, 	\
-> +		0x94, 0xaf, 0x12, 0x22, 0x54, 0x44, 0x20, 0x69, 	\
-> +		0x6e, 0x69, 0x74, 0x20, 0x2d}
-> +
-> +
-> +#define FWP13	{\
-> +		0x02, 0xf9, 0x66, 0x69, 0x6e, 0x69, 0x73, 0x68, 	\
-> +		0x3a, 0x65, 0x78, 0x63, 0x75, 0x74, 0x65, 0x20, 	\
-> +		0x70, 0x72, 0x6f, 0x67, 0x72, 0x61, 0x6d, 0x20, 	\
-> +		0x69, 0x6e, 0x20, 0x70, 0x64, 0x72, 0x61, 0x6d, 	\
-> +		0x0d, 0x0a, 0x00, 0xc2, 0xaf, 0xc2, 0x8c, 0xe5, 	\
-> +		0x89, 0x54, 0xf0, 0x44, 0x02, 0xf5, 0x89, 0x75, 	\
-> +		0x8c, 0x87, 0x75, 0x8a, 0x87, 0x8e, 0x53, 0x8f, 	\
-> +		0x54, 0xe4, 0xf5, 0x4e, 0xf5, 0x4f, 0x8b, 0x50, 	\
-> +		0x8a, 0x51, 0x89, 0x52, 0xd2, 0xa9, 0xd2, 0x8c, 	\
-> +		0xd2, 0xaf, 0x22, 0x90, 0xc1, 0xa3, 0x74, 0x50, 	\
-> +		0xf0, 0x7f, 0xc8, 0x12, 0x05, 0x26, 0x12, 0x05, 	\
-> +		0x26, 0x74, 0x10, 0xf0, 0x90, 0x80, 0x90, 0x74, 	\
-> +		0x05, 0xf0, 0x12, 0x07, 0xc5, 0x12, 0x04, 0x77, 	\
-> +		0x02, 0x0c, 0xfa, 0x75, 0x98, 0x50, 0x75, 0x89, 	\
-> +		0x20, 0xef, 0x70, 0x05, 0x53, 0x87, 0x7f, 0x80, 	\
-> +		0x03, 0x43, 0x87, 0x80, 0x8d, 0x8d, 0xd2, 0x8e, 	\
-> +		0xc2, 0x98, 0xc2, 0x99, 0xd2, 0xac, 0xd2, 0xaf, 	\
-> +		0x22, 0xc1, 0x81, 0x02, 0x3b, 0x00, 0x00, 0x02, 	\
-> +		0x3d, 0x03, 0xe8, 0x01, 0x47, 0x00, 0x01, 0x21, 	\
-> +		0x00, 0xc1, 0x04, 0xc1, 0x00, 0x02, 0x53, 0x00, 	\
-> +		0x00, 0x02, 0x4e, 0x00, 0x00, 0x00, 0xd2, 0x80, 	\
-> +		0x7f, 0x14, 0x12, 0x05, 0xb9, 0xd2, 0x81, 0x7f, 	\
-> +		0x14, 0x12, 0x05, 0xb9, 0xc2, 0x80, 0x7f, 0x14, 	\
-> +		0x12, 0x05, 0xb9, 0xc2, 0x81, 0x7f, 0x14, 0x02, 	\
-> +		0x05, 0xb9, 0x20, 0x06, 0x04, 0xc2, 0x80, 0x80, 	\
-> +		0x02, 0xd2, 0x80, 0x7f, 0x0a, 0x12, 0x05, 0xb9, 	\
-> +		0xd2, 0x81, 0x7f, 0x0a, 0x12, 0x05, 0xb9, 0xc2, 	\
-> +		0x81, 0x7f, 0x0a, 0x02, 0x05, 0xb9, 0xc2, 0x80, 	\
-> +		0x7f, 0x14, 0x12, 0x05, 0xb9, 0xd2, 0x81, 0x7f, 	\
-> +		0x14, 0x12, 0x05, 0xb9, 0xd2, 0x80, 0x7f, 0x14, 	\
-> +		0x02, 0x05, 0xb9, 0x90, 0x80, 0x90, 0x74, 0x05, 	\
-> +		0xf0, 0xe4, 0xf5, 0xa0, 0x07}
-> +
-> +#define FWCT	{\
-> +		0x82, 0x4e, 0x12, 0x0c, 0xfa, 0xd2, 0x8a, 0xd2, 	\
-> +		0xaa, 0xd2, 0xaf, 0x22, 0xef, 0xd3, 0x94, 0x00, 	\
-> +		0x40, 0x09, 0xe4, 0xfe, 0x0e, 0xbe, 0x76, 0xfc, 	\
-> +		0x1f, 0x80, 0xf1, 0x22, 0xc2, 0xaf, 0xc2, 0xac, 	\
-> +		0xc2, 0x98, 0xc2, 0x99, 0x75, 0x98, 0x40, 0xc2, 	\
-> +		0xa9, 0xc2, 0x8e, 0x22, 0x30, 0x99, 0x04, 0xd2, 	\
-> +		0x01, 0xc2, 0x99, 0x30, 0x98, 0x05, 0x85, 0x99, 	\
-> +		0x08, 0xc2, 0x98, 0x32, 0xc2, 0x8c, 0xc2, 0xa9, 	\
-> +		0x75, 0x50, 0xff, 0x75, 0x51, 0x00, 0x75, 0x52, 	\
-> +		0x0e, 0x22, 0x7d, 0xf8, 0xe4, 0xff, 0x02, 0x0c, 	\
-> +		0x21, 0xfd}
-
-Binding the firmware binary inside the a GPL code violates GPL license. Instead, please
-split the firmware into a firmware file, and use the request_firmware() to load it from
-userspace.
-
-We need also manufacturer's ack to distribute their firmwares in a binary form, or, if this
-is not possible, we'll need some script to extract the firmare from the original driver.
-
-> +
-> +#define FWTRL	0xfd
-> +#define FWCTL	0x52
-> +#define FWF3L	0x0f
-> +#define LME_FIRMWARE_D	{{FWTRL, FWF1}, 	\
-> +			{FWTRL, FWF2}, 	\
-> +			{FWF3L, FWF3}, 	\
-> +			{FWTRL, FWP1}, 	\
-> +			{FWTRL, FWP2}, 	\
-> +			{FWTRL, FWP3}, 	\
-> +			{FWTRL, FWP4}, 	\
-> +			{FWTRL, FWP5}, 	\
-> +			{FWTRL, FWP6}, 	\
-> +			{FWTRL, FWP7}, 	\
-> +			{FWTRL, FWP8}, 	\
-> +			{FWTRL, FWP9}, 	\
-> +			{FWTRL, FWP10}, 	\
-> +			{FWTRL, FWP11}, 	\
-> +			{FWTRL, FWP12}, 	\
-> +			{FWTRL, FWP13}, 	\
-> +			{FWCTL, FWCT} }
-> +
-> +struct lme_firmware_data {
-> +	u8 length;
-> +	u8 bulk_data[256];       /* Address */
-> +};
-> +
-> +#endif
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jarod Wilson
+jarod@redhat.com
 
