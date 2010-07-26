@@ -1,95 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:46861 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:53390 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932254Ab0GUOmG (ORCPT
+	with ESMTP id S1752815Ab0GZQTP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Jul 2010 10:42:06 -0400
+	Mon, 26 Jul 2010 12:19:15 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE v2 04/12] v4l-subdev: Add pads operations
-Date: Wed, 21 Jul 2010 16:41:51 +0200
-Message-Id: <1279723318-28943-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v2 01/10] media: Media device node support
+Date: Mon, 26 Jul 2010 18:19:47 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007241359.11584.hverkuil@xs4all.nl> <201007261107.16043.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201007261107.16043.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007261819.49506.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a v4l2_subdev_pad_ops structure for the operations that need to be
-performed at the pad level such as format-related operations.
+Hi Hans,
 
-The format at the output of a subdev usually depends on the format at
-its input(s). The try format operation is thus not suitable for probing
-format at individual pads, as it can't modify the device state and thus
-can't remember the format probed at the input to compute the output
-format.
+On Monday 26 July 2010 11:07:14 Laurent Pinchart wrote:
+> Hi Hans,
+> On Saturday 24 July 2010 13:59:11 Hans Verkuil wrote:
+> > On Wednesday 21 July 2010 16:35:26 Laurent Pinchart wrote:
+> > > The media_devnode structure provides support for registering and
+> > > unregistering character devices using a dynamic major number. Reference
+> > > counting is handled internally, making device drivers easier to write
+> > > without having to solve the open/disconnect race condition issue over
+> > > and over again.
+> > > 
+> > > The code is based on video/v4l2-dev.c.
 
-To fix the problem, pass an extra argument to the get/set format
-operations to select the 'probe' or 'active' format.
+[snip]
 
-The probe format is used when probing the subdev. Setting the probe
-format must not change the device configuration but can store data for
-later reuse. Data storage is provided at the file-handle level so
-applications probing the subdev concurently won't interfere with each
-other.
+> > > +	mdev->dev.class = &media_class;
+> > > +	mdev->dev.devt = MKDEV(MAJOR(media_dev_t), mdev->minor);
+> > > +	mdev->dev.release = media_devnode_release;
+> > > +	if (mdev->parent)
+> > > +		mdev->dev.parent = mdev->parent;
+> > > +	dev_set_name(&mdev->dev, "media%d", mdev->minor);
+> > 
+> > Wouldn't mediactlX be a better name? Just plain 'media' is awfully
+> > general.
+> 
+> Good question.
 
-The active format is used when configuring the subdev. It's identical to
-the format handled by the usual get/set operations.
+Oops, I forgot to elaborate on that :-)
 
-Pad format-related operations use v4l2_mbus_framefmt instead of
-v4l2_format.
+Plain "media" is indeed very generic. "mediactl" would be more specific, but 
+I've never really liked the term "media controller". If you look at the media 
+framework documentation, there's no reference to "controller" :-) I think it's 
+"just" a media device.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/media/v4l2-subdev.h |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
-
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 01b4135..684ab60 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -41,6 +41,7 @@ struct v4l2_device;
- struct v4l2_event_subscription;
- struct v4l2_fh;
- struct v4l2_subdev;
-+struct v4l2_subdev_fh;
- struct tuner_setup;
- 
- /* decode_vbi_line */
-@@ -398,6 +399,25 @@ struct v4l2_subdev_ir_ops {
- 				struct v4l2_subdev_ir_parameters *params);
- };
- 
-+enum v4l2_subdev_format {
-+	V4L2_SUBDEV_FORMAT_PROBE = 0,
-+	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
-+};
-+
-+struct v4l2_subdev_pad_ops {
-+	int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			      struct v4l2_subdev_pad_mbus_code_enum *code);
-+	int (*enum_frame_size)(struct v4l2_subdev *sd,
-+			       struct v4l2_subdev_fh *fh,
-+			       struct v4l2_subdev_frame_size_enum *fse);
-+	int (*get_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
-+		       enum v4l2_subdev_format which);
-+	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
-+		       enum v4l2_subdev_format which);
-+};
-+
- struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_core_ops	*core;
- 	const struct v4l2_subdev_tuner_ops	*tuner;
-@@ -406,6 +426,7 @@ struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_vbi_ops	*vbi;
- 	const struct v4l2_subdev_ir_ops		*ir;
- 	const struct v4l2_subdev_sensor_ops	*sensor;
-+	const struct v4l2_subdev_pad_ops	*pad;
- };
- 
- #define V4L2_SUBDEV_NAME_SIZE 32
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
