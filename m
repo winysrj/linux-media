@@ -1,69 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19480 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965066Ab0GPK2m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jul 2010 06:28:42 -0400
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	eduardo.valentin@nokia.com
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH v5 1/5] V4L2: Add seek spacing and FM RX class.
-Date: Fri, 16 Jul 2010 13:27:43 +0300
-Message-Id: <1279276067-1736-2-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1279276067-1736-1-git-send-email-matti.j.aaltonen@nokia.com>
-References: <1279276067-1736-1-git-send-email-matti.j.aaltonen@nokia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:25944 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755829Ab0GZXeY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jul 2010 19:34:24 -0400
+Date: Mon, 26 Jul 2010 19:34:23 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: [PATCH 15/15] staging/lirc: wire up Kconfig and Makefile bits
+Message-ID: <20100726233423.GP21225@redhat.com>
+References: <20100726232546.GA21225@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100726232546.GA21225@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
-control classes.
+Make the bits under staging/lirc/ buildable, and add a TODO note.
 
-Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
- include/linux/videodev2.h |   15 ++++++++++++++-
- 1 files changed, 14 insertions(+), 1 deletions(-)
+ drivers/staging/Kconfig       |    2 +
+ drivers/staging/Makefile      |    1 +
+ drivers/staging/lirc/Kconfig  |  110 +++++++++++++++++++++++++++++++++++++++++
+ drivers/staging/lirc/Makefile |   19 +++++++
+ drivers/staging/lirc/TODO     |    8 +++
+ 5 files changed, 140 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/lirc/Kconfig
+ create mode 100644 drivers/staging/lirc/Makefile
+ create mode 100644 drivers/staging/lirc/TODO
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 418dacf..95675cd 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -935,6 +935,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
-+#define V4L2_CTRL_CLASS_FM_RX 0x009c0000	/* FM Tuner control class */
+diff --git a/drivers/staging/Kconfig b/drivers/staging/Kconfig
+index 9fc196d..fad88fb 100644
+--- a/drivers/staging/Kconfig
++++ b/drivers/staging/Kconfig
+@@ -155,5 +155,7 @@ source "drivers/staging/tidspbridge/Kconfig"
  
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1313,6 +1314,17 @@ enum v4l2_preemphasis {
- #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
- #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
+ source "drivers/staging/quickstart/Kconfig"
  
-+/* FM Tuner class control IDs */
-+#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
-+#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
++source "drivers/staging/lirc/Kconfig"
 +
-+#define V4L2_CID_FM_RX_BAND			(V4L2_CID_FM_TX_CLASS_BASE + 1)
-+enum v4l2_fm_rx_band {
-+	V4L2_FM_BAND_OTHER		= 0,
-+	V4L2_FM_BAND_JAPAN		= 1,
-+	V4L2_FM_BAND_OIRT		= 2
-+};
+ endif # !STAGING_EXCLUDE_BUILD
+ endif # STAGING
+diff --git a/drivers/staging/Makefile b/drivers/staging/Makefile
+index 26942aa..27bb127 100644
+--- a/drivers/staging/Makefile
++++ b/drivers/staging/Makefile
+@@ -58,3 +58,4 @@ obj-$(CONFIG_EASYCAP)		+= easycap/
+ obj-$(CONFIG_SOLO6X10)		+= solo6x10/
+ obj-$(CONFIG_TIDSPBRIDGE)	+= tidspbridge/
+ obj-$(CONFIG_ACPI_QUICKSTART)	+= quickstart/
++obj-$(CONFIG_LIRC_STAGING)	+= lirc/
+diff --git a/drivers/staging/lirc/Kconfig b/drivers/staging/lirc/Kconfig
+new file mode 100644
+index 0000000..968c2ad
+--- /dev/null
++++ b/drivers/staging/lirc/Kconfig
+@@ -0,0 +1,110 @@
++#
++# LIRC driver(s) configuration
++#
++menuconfig LIRC_STAGING
++	bool "Linux Infrared Remote Control IR receiver/transmitter drivers"
++	help
++	  Say Y here, and all supported Linux Infrared Remote Control IR and
++	  RF receiver and transmitter drivers will be displayed. When paired
++	  with a remote control and the lirc daemon, the receiver drivers
++	  allow control of your Linux system via remote control.
 +
- /*
-  *	T U N I N G
-  */
-@@ -1377,7 +1389,8 @@ struct v4l2_hw_freq_seek {
- 	enum v4l2_tuner_type  type;
- 	__u32		      seek_upward;
- 	__u32		      wrap_around;
--	__u32		      reserved[8];
-+	__u32		      spacing;
-+	__u32		      reserved[7];
- };
- 
- /*
++if LIRC_STAGING
++
++config LIRC_BT829
++        tristate "BT829 based hardware"
++	depends on LIRC_STAGING
++	help
++	  Driver for the IR interface on BT829-based hardware
++
++config LIRC_ENE0100
++	tristate "ENE KB3924/ENE0100 CIR Port Reciever"
++	depends on LIRC_STAGING
++	help
++	  This is a driver for CIR port handled by ENE KB3924 embedded
++	  controller found on some notebooks.
++	  It appears on PNP list as ENE0100.
++
++config LIRC_I2C
++	tristate "I2C Based IR Receivers"
++	depends on LIRC_STAGING
++	help
++	  Driver for I2C-based IR receivers, such as those commonly
++	  found onboard Hauppauge PVR-150/250/350 video capture cards
++
++config LIRC_IGORPLUGUSB
++	tristate "Igor Cesko's USB IR Receiver"
++	depends on LIRC_STAGING && USB
++	help
++	  Driver for Igor Cesko's USB IR Receiver
++
++config LIRC_IMON
++	tristate "Legacy SoundGraph iMON Receiver and Display"
++	depends on LIRC_STAGING
++	help
++	  Driver for the original SoundGraph iMON IR Receiver and Display
++
++	  Current generation iMON devices use the input layer imon driver.
++
++config LIRC_IT87
++	tristate "ITE IT87XX CIR Port Receiver"
++	depends on LIRC_STAGING
++	help
++	  Driver for the ITE IT87xx IR Receiver
++
++config LIRC_ITE8709
++	tristate "ITE8709 CIR Port Receiver"
++	depends on LIRC_STAGING && PNP
++	help
++	  Driver for the ITE8709 IR Receiver
++
++config LIRC_PARALLEL
++	tristate "Homebrew Parallel Port Receiver"
++	depends on LIRC_STAGING && !SMP
++	help
++	  Driver for Homebrew Parallel Port Receivers
++
++config LIRC_SASEM
++	tristate "Sasem USB IR Remote"
++	depends on LIRC_STAGING
++	help
++	  Driver for the Sasem OnAir Remocon-V or Dign HV5 HTPC IR/VFD Module
++
++config LIRC_SERIAL
++	tristate "Homebrew Serial Port Receiver"
++	depends on LIRC_STAGING
++	help
++	  Driver for Homebrew Serial Port Receivers
++
++config LIRC_SERIAL_TRANSMITTER
++	bool "Serial Port Transmitter"
++	default y
++	depends on LIRC_SERIAL
++	help
++	  Serial Port Transmitter support
++
++config LIRC_SIR
++	tristate "Built-in SIR IrDA port"
++	depends on LIRC_STAGING
++	help
++	  Driver for the SIR IrDA port
++
++config LIRC_STREAMZAP
++	tristate "Streamzap PC Receiver"
++	depends on LIRC_STAGING
++	help
++	  Driver for the Streamzap PC Receiver
++
++config LIRC_TTUSBIR
++	tristate "Technotrend USB IR Receiver"
++	depends on LIRC_STAGING && USB
++	help
++	  Driver for the Technotrend USB IR Receiver
++
++config LIRC_ZILOG
++	tristate "Zilog/Hauppauge IR Transmitter"
++	depends on LIRC_STAGING
++	help
++	  Driver for the Zilog/Hauppauge IR Transmitter, found on
++	  PVR-150/500, HVR-1200/1250/1700/1800, HD-PVR and other cards
++endif
+diff --git a/drivers/staging/lirc/Makefile b/drivers/staging/lirc/Makefile
+new file mode 100644
+index 0000000..a019182
+--- /dev/null
++++ b/drivers/staging/lirc/Makefile
+@@ -0,0 +1,19 @@
++# Makefile for the lirc drivers.
++#
++
++# Each configuration option enables a list of files.
++
++obj-$(CONFIG_LIRC_BT829)	+= lirc_bt829.o
++obj-$(CONFIG_LIRC_ENE0100)	+= lirc_ene0100.o
++obj-$(CONFIG_LIRC_I2C)		+= lirc_i2c.o
++obj-$(CONFIG_LIRC_IGORPLUGUSB)	+= lirc_igorplugusb.o
++obj-$(CONFIG_LIRC_IMON)		+= lirc_imon.o
++obj-$(CONFIG_LIRC_IT87)		+= lirc_it87.o
++obj-$(CONFIG_LIRC_ITE8709)	+= lirc_ite8709.o
++obj-$(CONFIG_LIRC_PARALLEL)	+= lirc_parallel.o
++obj-$(CONFIG_LIRC_SASEM)	+= lirc_sasem.o
++obj-$(CONFIG_LIRC_SERIAL)	+= lirc_serial.o
++obj-$(CONFIG_LIRC_SIR)		+= lirc_sir.o
++obj-$(CONFIG_LIRC_STREAMZAP)	+= lirc_streamzap.o
++obj-$(CONFIG_LIRC_TTUSBIR)	+= lirc_ttusbir.o
++obj-$(CONFIG_LIRC_ZILOG)	+= lirc_zilog.o
+diff --git a/drivers/staging/lirc/TODO b/drivers/staging/lirc/TODO
+new file mode 100644
+index 0000000..b6cb593
+--- /dev/null
++++ b/drivers/staging/lirc/TODO
+@@ -0,0 +1,8 @@
++- All drivers should either be ported to ir-core, or dropped entirely
++  (see drivers/media/IR/mceusb.c vs. lirc_mceusb.c in lirc cvs for an
++  example of a previously completed port).
++
++Please send patches to:
++Jarod Wilson <jarod@wilsonet.com>
++Greg Kroah-Hartman <greg@kroah.com>
++
 -- 
-1.6.1.3
+1.7.1.1
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
