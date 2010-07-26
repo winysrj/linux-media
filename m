@@ -1,50 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:44123 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753139Ab0GEQU1 (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:44283 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753388Ab0GZQh4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Jul 2010 12:20:27 -0400
-Subject: Re: [PATCH] VIDEO: ivtvfb, remove unneeded NULL test
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jiri Slaby <jslaby@suse.cz>
-Cc: mchehab@infradead.org, linux-kernel@vger.kernel.org,
-	Tejun Heo <tj@kernel.org>,
-	Ian Armstrong <ian@iarmst.demon.co.uk>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-In-Reply-To: <4C31855B.7030509@suse.cz>
-References: <1277206910-27228-1-git-send-email-jslaby@suse.cz>
-	 <1278216707.2644.32.camel@localhost>  <4C30372D.9050304@suse.cz>
-	 <1278249745.2280.46.camel@localhost>  <4C31855B.7030509@suse.cz>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 05 Jul 2010 12:19:55 -0400
-Message-ID: <1278346795.2229.2.camel@localhost>
-Mime-Version: 1.0
+	Mon, 26 Jul 2010 12:37:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v2 03/10] media: Entities, pads and links
+Date: Mon, 26 Jul 2010 18:38:28 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-4-git-send-email-laurent.pinchart@ideasonboard.com> <201007241418.11463.hverkuil@xs4all.nl>
+In-Reply-To: <201007241418.11463.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201007261838.29490.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2010-07-05 at 09:10 +0200, Jiri Slaby wrote:
-> On 07/04/2010 03:22 PM, Andy Walls wrote:
-> > On Sun, 2010-07-04 at 09:24 +0200, Jiri Slaby wrote:
-> >> On 07/04/2010 06:11 AM, Andy Walls wrote:
+Hi Hans,
 
-> > There are windows of time where a struct device * will exist for a card
-> > in the ivtv driver, but a struct v4l2_device * may not: the end of
-> > ivtv_remove() and the beginning of ivtv_probe().
+On Saturday 24 July 2010 14:18:11 Hans Verkuil wrote:
+> On Wednesday 21 July 2010 16:35:28 Laurent Pinchart wrote:
 > 
-> If there is no locking or refcounting, this won't change with the added
-> check. The window is still there, but it begins after the check with
-> your patch. Hence will still cause oopses.
+> <snip>
+> 
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > new file mode 100644
+> > index 0000000..fd44647
+> > --- /dev/null
+> > +++ b/include/media/media-entity.h
+> > @@ -0,0 +1,79 @@
+> > +#ifndef _MEDIA_ENTITY_H
+> > +#define _MEDIA_ENTITY_H
+> > +
+> > +#include <linux/list.h>
+> > +
+> > +#define MEDIA_ENTITY_TYPE_NODE				1
+> > +#define MEDIA_ENTITY_TYPE_SUBDEV			2
+> > +
+> > +#define MEDIA_ENTITY_SUBTYPE_NODE_V4L			1
+> > +#define MEDIA_ENTITY_SUBTYPE_NODE_FB			2
+> > +#define MEDIA_ENTITY_SUBTYPE_NODE_ALSA			3
+> > +#define MEDIA_ENTITY_SUBTYPE_NODE_DVB			4
+> > +
+> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_DECODER		1
+> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_ENCODER		2
+> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_MISC		3
+> 
+> These names are too awkward.
+> 
+> I see two options:
+> 
+> 1) Rename the type field to 'entity' and the macros to
+> MEDIA_ENTITY_NODE/SUBDEV. Also rename subtype to type and the macros to
+> MEDIA_ENTITY_TYPE_NODE_V4L and MEDIA_ENTITY_TYPE_SUBDEV_VID_DECODER. We
+> might even get away with dropping _TYPE from the macro name.
+> 
+> 2) Merge type and subtype to a single entity field. The top 16 bits are the
+> entity type, the bottom 16 bits are the subtype. That way you end up with:
+> 
+> #define MEDIA_ENTITY_NODE			(1 << 16)
+> #define MEDIA_ENTITY_SUBDEV			(2 << 16)
+> 
+> #define MEDIA_ENTITY_NODE_V4L			(MEDIA_ENTITY_NODE + 1)
+> 
+> #define MEDIA_ENTITY_SUBDEV_VID_DECODER		(MEDIA_ENTITY_SUBDEV + 1)
+> 
+> I rather like this option myself.
 
-Jiri,
+I like option 2 better, but I would keep the field name "type" instead of 
+"entity". Constants could start with MEDIA_ENTITY_TYPE_, or just MEDIA_ENTITY_ 
+(I think I would prefer MEDIA_ENTITY_TYPE_).
 
-Of course, you're absolutley right.
+> > +
+> > +#define MEDIA_LINK_FLAG_ACTIVE				(1 << 0)
+> > +#define MEDIA_LINK_FLAG_IMMUTABLE			(1 << 1)
+> > +
+> > +#define MEDIA_PAD_DIR_INPUT				1
+> > +#define MEDIA_PAD_DIR_OUTPUT				2
+> > +
+> > +struct media_entity_link {
+> > +	struct media_entity_pad *source;/* Source pad */
+> > +	struct media_entity_pad *sink;	/* Sink pad  */
+> > +	struct media_entity_link *other;/* Link in the reverse direction */
+> > +	u32 flags;			/* Link flags (MEDIA_LINK_FLAG_*) */
+> > +};
+> > +
+> > +struct media_entity_pad {
+> > +	struct media_entity *entity;	/* Entity this pad belongs to */
+> > +	u32 direction;			/* Pad direction (MEDIA_PAD_DIR_*) */
+> > +	u8 index;			/* Pad index in the entity pads array */
+> 
+> We can use bitfields for direction and index. That way we can also easily
+> add other flags/attributes.
 
-Please resubmit a version of your original patch fixing both instances
-of the check.  I'll add my ack and SOB.
+You proposed to merge the direction field into a new flags field, I suppose 
+that should be done here too for consistency. Having 16 flags might be a bit 
+low though, 32 would be better. If you want to keep 16 bits for now, maybe we 
+should have 2 reserved __u32 instead of one.
 
-If any users ever report an Oops, then I'll bother to add interlocking.
+> > +};
+> > +
 
+-- 
 Regards,
-Andy
 
+Laurent Pinchart
