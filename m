@@ -1,131 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3159 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752815Ab0GZTsg (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:56402 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752485Ab0GZQ3o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 15:48:36 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 26 Jul 2010 12:29:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pete Eberlein <pete@sensoray.com>
 Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links enumeration
-Date: Mon, 26 Jul 2010 21:48:28 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007241445.40062.hverkuil@xs4all.nl> <201007261834.43211.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201007261834.43211.laurent.pinchart@ideasonboard.com>
+Date: Mon, 26 Jul 2010 18:30:15 +0200
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007221720.04555.laurent.pinchart@ideasonboard.com> <1279816611.2443.111.camel@pete-desktop>
+In-Reply-To: <1279816611.2443.111.camel@pete-desktop>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-6"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007262148.28948.hverkuil@xs4all.nl>
+Message-Id: <201007261830.16705.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 26 July 2010 18:34:42 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Saturday 24 July 2010 14:45:39 Hans Verkuil wrote:
-> > On Wednesday 21 July 2010 16:35:31 Laurent Pinchart wrote:
-> > > Create the following two ioctls and implement them at the media device
-> > > level to enumerate entities, pads and links.
+Hi Pete,
+
+On Thursday 22 July 2010 18:36:51 Pete Eberlein wrote:
+> On Thu, 2010-07-22 at 17:20 +0200, Laurent Pinchart wrote:
+> > > Laurent Pinchart wrote:
 > > > 
-> > > - MEDIA_IOC_ENUM_ENTITIES: Enumerate entities and their properties
-> > > - MEDIA_IOC_ENUM_LINKS: Enumerate all pads and links for a given entity
+> > > ...
 > > > 
-> > > Entity IDs can be non-contiguous. Userspace applications should
-> > > enumerate entities using the MEDIA_ENTITY_ID_FLAG_NEXT flag. When the
-> > > flag is set in the entity ID, the MEDIA_IOC_ENUM_ENTITIES will return
-> > > the next entity with an ID bigger than the requested one.
-> > > 
-> > > Only forward links that originate at one of the entity's source pads are
-> > > returned during the enumeration process.
-> > > 
-> > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> > > ---
-> > > 
-> > >  Documentation/media-framework.txt |  134
-> > >  ++++++++++++++++++++++++++++++++ drivers/media/media-device.c      | 
-> > >  153 +++++++++++++++++++++++++++++++++++++ include/linux/media.h        
-> > >      |   73 ++++++++++++++++++
-> > >  include/media/media-device.h      |    3 +
-> > >  include/media/media-entity.h      |   19 +-----
-> > >  5 files changed, 364 insertions(+), 18 deletions(-)
-> > >  create mode 100644 include/linux/media.h
+> > > > diff --git a/Documentation/media-framework.txt
+> > > > b/Documentation/media-framework.txt index 3acc62b..16c0177 100644
+> > > > --- a/Documentation/media-framework.txt
+> > > > +++ b/Documentation/media-framework.txt
+> > > > @@ -270,3 +270,137 @@ required, drivers don't need to provide a
+> > > > set_power
 > > 
-> > <snip>
+> > [snip]
 > > 
-> > > diff --git a/include/linux/media.h b/include/linux/media.h
-> > > new file mode 100644
-> > > index 0000000..746bdda
-> > > --- /dev/null
-> > > +++ b/include/linux/media.h
-> > > @@ -0,0 +1,73 @@
-> > > +#ifndef __LINUX_MEDIA_H
-> > > +#define __LINUX_MEDIA_H
-> > > +
-> > > +#define MEDIA_ENTITY_TYPE_NODE				1
-> > > +#define MEDIA_ENTITY_TYPE_SUBDEV			2
-> > > +
-> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_V4L			1
-> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_FB			2
-> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_ALSA			3
-> > > +#define MEDIA_ENTITY_SUBTYPE_NODE_DVB			4
-> > > +
-> > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_DECODER		1
-> > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_ENCODER		2
-> > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_MISC		3
-> > > +
-> > > +#define MEDIA_PAD_DIR_INPUT				1
-> > > +#define MEDIA_PAD_DIR_OUTPUT				2
-> > > +
-> > > +#define MEDIA_LINK_FLAG_ACTIVE				(1 << 0)
-> > > +#define MEDIA_LINK_FLAG_IMMUTABLE			(1 << 1)
-> > > +
-> > > +#define MEDIA_ENTITY_ID_FLAG_NEXT	(1 << 31)
-> > > +
-> > > +struct media_user_pad {
-> > > +	__u32 entity;		/* entity ID */
-> > > +	__u8 index;		/* pad index */
-> > > +	__u32 direction;	/* pad direction */
-> > > +};
+> > > > +The media_user_pad, media_user_link and media_user_links structure
+> > > > are defined
+> > > > +as
+> > > 
+> > > I have a comment on naming. These are user space structures, sure, but
+> > > do we want that fact to be visible in the names of the structures? I
+> > > would just drop the user_ out and make the naming as good as possible
+> > > in user space. That is much harder to change later than naming inside
+> > > the kernel.
 > > 
-> > How about:
+> > I agree.
 > > 
-> > struct media_pad {
-> > 	__u32 entity;		/* entity ID */
-> > 	__u16 index;		/* pad index */
-> > 	__u16 flags;		/* pad flags (includes direction) */
+> > > That change causes a lot of clashes in naming since the equivalent
+> > > kernel structure is there as well. Those could have _k postfix, for
+> > > example, to differentiate them from user space names. I don't really
+> > > have a good suggestion how they should be called.
+> > 
+> > Maybe media_k_* ? I'm not very happy with that name either though.
 > 
-> Just to be sure, I suppose I should combine flags + direction in the 
-> media_k_pad structure as well, right ?
+> What do you think about a single underscore prefix for the kernel
+> structures, used commonly to indicate that a declaration is limited?
 
-Yes. I think we should just make a u32 flags, use bits 0 and 1 for the direction
-and add a simple inline like this:
-
-static inline u8 media_dir(struct media_pad *pad)
-{
-	return pad->flags & MEDIA_PAD_MASK_DIR);
-}
-
-And we should use the same for media_k_pad (and make a media_k_dir inline).
-
-> 
-> > 	u32 reserved;
-> > };
-> 
-> OK.
-> 
-> > I think u16 for the number of pads might be safer than a u8.
-> 
-> it should definitely be enough, otherwise we'll have a big issue anyway.
-
-Is u8 definitely enough or u16? I assume u16.
-
-<snip>
-
-Regards,
-
-	Hans
+The underscore is usually used for internal functions/variables. I'd rather go 
+for _k, I think it's more obvious.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Regards,
+
+Laurent Pinchart
