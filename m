@@ -1,43 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:39830 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750804Ab0GYQKL (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:20949 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752811Ab0GZOKb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jul 2010 12:10:11 -0400
-Received: by qyk7 with SMTP id 7so1377297qyk.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Jul 2010 09:10:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C4B5077.3020509@redhat.com>
-References: <4C4B5077.3020509@redhat.com>
-Date: Sun, 25 Jul 2010 12:10:09 -0400
-Message-ID: <AANLkTim5X6LNqcv3F=uiMVbe-emz10CV2N_9ssPcTeK+@mail.gmail.com>
-Subject: Re: Linux Plumber's Conference: Call for Working Session Submissions
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 26 Jul 2010 10:10:31 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Mon, 26 Jul 2010 16:11:44 +0200
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [PATCHv2 4/4] arm: Added CMA to Aquila and Goni
+In-reply-to: <03fd80bba187c767530614402793963d62e44e1c.1280151963.git.m.nazarewicz@samsung.com>
+To: linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.arm.linux.org.uk,
+	Hiremath Vaibhav <hvaibhav@ti.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>
+Message-id: <a5ee70136d10de93d0a20608fa3aaf6242493772.1280151963.git.m.nazarewicz@samsung.com>
+References: <cover.1280151963.git.m.nazarewicz@samsung.com>
+ <743102607e2c5fb20e3c0676fadbcb93d501a78e.1280151963.git.m.nazarewicz@samsung.com>
+ <dc4bdf3e0b02c0ac4770927f72b6cbc3f0b486a2.1280151963.git.m.nazarewicz@samsung.com>
+ <03fd80bba187c767530614402793963d62e44e1c.1280151963.git.m.nazarewicz@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 24, 2010 at 4:43 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> CFP dead line for submitting proposals to LPC/2010 is approaching.
-> For those that intends to submit proposals for it, please do it quickly,
-> as the official dead line is July, 26.
+Added the CMA initialisation code to two Samsung platforms.
 
-I've submitted a proposal for a Linux HTPC presentation, intending to
-cover everything from low-level v4l/dvb drivers, video decoder drivers
-and IR drivers, up the stack to userspace (primarily mythtv and a bit
-of xbmc). Also submitted a micro-conf proposal for media-related bits,
-as I didn't see one yet, and at the time, the proposal submission
-deadline was only a day or two out (this was before it got extended to
-the 26th) and I believe you were on vacation, so your submission and
-mine are essentially duplicates.
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/mach-s5pv210/mach-aquila.c |   13 +++++++++++++
+ arch/arm/mach-s5pv210/mach-goni.c   |   13 +++++++++++++
+ 2 files changed, 26 insertions(+), 0 deletions(-)
 
-http://www.linuxplumbersconf.org/2010/ocw/proposals/621
-http://www.linuxplumbersconf.org/2010/ocw/proposals/195
-
-
+diff --git a/arch/arm/mach-s5pv210/mach-aquila.c b/arch/arm/mach-s5pv210/mach-aquila.c
+index 0992618..ab156f9 100644
+--- a/arch/arm/mach-s5pv210/mach-aquila.c
++++ b/arch/arm/mach-s5pv210/mach-aquila.c
+@@ -19,6 +19,7 @@
+ #include <linux/gpio_keys.h>
+ #include <linux/input.h>
+ #include <linux/gpio.h>
++#include <linux/cma.h>
+ 
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+@@ -454,6 +455,17 @@ static void __init aquila_map_io(void)
+ 	s3c24xx_init_uarts(aquila_uartcfgs, ARRAY_SIZE(aquila_uartcfgs));
+ }
+ 
++static void __init aquila_reserve(void)
++{
++	static char regions[] __initdata =
++		"-mfc_fw=1M/128K;mfc_b1=32M;mfc_b2=16M@0x40000000";
++	static char map[] __initdata =
++		"s3c-mfc5/f=mfc_fw;s3c-mfc5/a=mfc_b1;s3c-mfc5/b=mfc_b2";
++
++	cma_set_defaults(regions, map, NULL);
++	cma_early_regions_reserve(NULL);
++}
++
+ static void __init aquila_machine_init(void)
+ {
+ 	/* PMIC */
+@@ -478,4 +490,5 @@ MACHINE_START(AQUILA, "Aquila")
+ 	.map_io		= aquila_map_io,
+ 	.init_machine	= aquila_machine_init,
+ 	.timer		= &s3c24xx_timer,
++	.reserve	= aquila_reserve,
+ MACHINE_END
+diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
+index 7b18505..2b0a349 100644
+--- a/arch/arm/mach-s5pv210/mach-goni.c
++++ b/arch/arm/mach-s5pv210/mach-goni.c
+@@ -19,6 +19,7 @@
+ #include <linux/gpio_keys.h>
+ #include <linux/input.h>
+ #include <linux/gpio.h>
++#include <linux/cma.h>
+ 
+ #include <asm/mach/arch.h>
+ #include <asm/mach/map.h>
+@@ -435,6 +436,17 @@ static void __init goni_map_io(void)
+ 	s3c24xx_init_uarts(goni_uartcfgs, ARRAY_SIZE(goni_uartcfgs));
+ }
+ 
++static void __init goni_reserve(void)
++{
++	static char regions[] __initdata =
++		"-mfc_fw=1M/128K;mfc_b1=32M;mfc_b2=16M@0x40000000";
++	static char map[] __initdata =
++		"s3c-mfc5/f=mfc_fw;s3c-mfc5/a=mfc_b1;s3c-mfc5/b=mfc_b2";
++
++	cma_set_defaults(regions, map, NULL);
++	cma_early_regions_reserve(NULL);
++}
++
+ static void __init goni_machine_init(void)
+ {
+ 	/* PMIC */
+@@ -456,4 +468,5 @@ MACHINE_START(GONI, "GONI")
+ 	.map_io		= goni_map_io,
+ 	.init_machine	= goni_machine_init,
+ 	.timer		= &s3c24xx_timer,
++	.reserve	= goni_reserve,
+ MACHINE_END
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+1.7.1
+
