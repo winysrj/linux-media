@@ -1,92 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56131 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755795Ab0G1RCk (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:58776 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754951Ab0GZS55 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 13:02:40 -0400
-Subject: Re: Can I expect in-kernel decoding to work out of box?
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jon Smirl <jonsmirl@gmail.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	linux-input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org
-In-Reply-To: <4C504FDB.4070400@redhat.com>
-References: <1280269990.21278.15.camel@maxim-laptop>
-	 <1280273550.32216.4.camel@maxim-laptop>
-	 <AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
-	 <AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
-	 <1280298606.6736.15.camel@maxim-laptop>
-	 <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
-	 <4C502CE6.80106@redhat.com>
-	 <AANLkTinCs7f6zF-tYZqJ49CAjNWF=2MPGh0VRuU=VLzq@mail.gmail.com>
-	 <1280327929.11072.24.camel@morgan.silverblock.net>
-	 <AANLkTikFfXx4NBB2z2UXNt5Kt-2QrvTfvK0nQhSSqw8v@mail.gmail.com>
-	 <4C504FDB.4070400@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 28 Jul 2010 13:02:10 -0400
-Message-ID: <1280336530.19593.52.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 26 Jul 2010 14:57:57 -0400
+Received: by gyg10 with SMTP id 10so949798gyg.19
+        for <linux-media@vger.kernel.org>; Mon, 26 Jul 2010 11:57:56 -0700 (PDT)
+Message-ID: <4C4DDB83.9040009@gmail.com>
+Date: Mon, 26 Jul 2010 15:01:23 -0400
+From: Emmanuel <eallaud@gmail.com>
+MIME-Version: 1.0
+CC: linux-media@vger.kernel.org
+Subject: Re: [Q]: any DVB-S2 card which is 45MS/s capable?
+References: <4C4C475E.5060500@gmail.com> <E1OdF5a-0006r0-00.goga777-bk-ru@f154.mail.ru>
+In-Reply-To: <E1OdF5a-0006r0-00.goga777-bk-ru@f154.mail.ru>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2010-07-28 at 12:42 -0300, Mauro Carvalho Chehab wrote:
-> Em 28-07-2010 11:53, Jon Smirl escreveu:
-> > On Wed, Jul 28, 2010 at 10:38 AM, Andy Walls <awalls@md.metrocast.net> wrote:
-> >> On Wed, 2010-07-28 at 09:46 -0400, Jon Smirl wrote:
-
-> > I recommend that all decoders initially follow the strict protocol
-> > rules. That will let us find bugs like this one in the ENE driver.
-> 
-> Agreed.
-
-Well... 
-
-I'd possibly make an exception for the protocols that have long-mark
-leaders.  The actual long mark measurement can be far off from the
-protocol's specification and needs a larger tolerance (IMO).
-
-Only allowing 0.5 to 1.0 of a protocol time unit tolerance, for a
-protocol element that is 8 to 16 protocol time units long, doesn't make
-too much sense to me.  If the remote has the basic protocol time unit
-off from our expectation, the error will likely be amplified in a long
-protocol elements and very much off our expectation.
-
-
-> I think that the better is to add some parameters, via sysfs, to relax the
-> rules at the current decoders, if needed.
-
-Is that worth the effort?  It seems like only going half-way to an
-ultimate end state.
-
-<crazy idea>
-If you go through the effort of implementing fine grained controls
-(tweaking tolerances for this pulse type here or there), why not just
-implement a configurable decoding engine that takes as input:
-
-	symbol definitions
-		(pulse and space length specifications and tolerances)
-	pulse train states
-	allowed state transitions
-	gap length
-	decoded output data length
-
-and instantiates a decoder that follows a user-space provided
-specification?
-
-The user can write his own decoding engine specification in a text file,
-feed it into the kernel, and the kernel can implement it for him.
-</crazy idea>
-
-OK, maybe that is a little too much time and effort. ;)
-
-Regards,
-Andy
-
-
-> Cheers,
-> Mauro
-
-
+Goga777 a écrit :
+>> If someone has tested a DVB-S2 card at 45MS/s (I am interested in QPSK 
+>> moslty) please speak out ;-).
+>> I dont need CI, dual tuner can be a bonus but definitely not mandatory.
+>> I already asked the question, so sorry to come back again with it, but I 
+>> did not get a clear answer: the only thing I know is that STV0900 is 
+>> able to do it, but I guess that the board itself must be well thought 
+>> out to achieve these high rates?
+>>     
+>
+>
+> my hvr4000 card works well with dvb-s transponder with so high SR - 44950
+> see tp 11044 on http://www.lyngsat.com/eam22.html
+>
+> also, no any problems with dvb-s2 tp with SR 30000
+>   
+Yes that I know, dvb-s up to 45MS/s is OK though I cant test that here, 
+but DVB-S2 is limited to 30000 whereas I have one tp here which is 
+DVB-S2, QPSK, FEC 5/6 at 45MS/s.
+This is why I am looking for a dvb card which is able to tune to these 
+(presumably) extreme rates.
+Bye
+Manu
