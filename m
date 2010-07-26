@@ -1,58 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.sikkerhed.org ([78.109.215.82]:47528 "EHLO
-	mail.sikkerhed.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751195Ab0G0TnW (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:45429 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161Ab0GZTo4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jul 2010 15:43:22 -0400
-Message-ID: <4C4F36D5.1050809@iversen-net.dk>
-Date: Tue, 27 Jul 2010 21:43:17 +0200
-From: Christian Iversen <chrivers@iversen-net.dk>
+	Mon, 26 Jul 2010 15:44:56 -0400
+From: "Sin, David" <davidsin@ti.com>
+To: Linus Walleij <linus.ml.walleij@gmail.com>
+CC: "linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Date: Mon, 26 Jul 2010 14:44:51 -0500
+Subject: RE: [RFC 0/8] TI TILER-DMM driver
+Message-ID: <513FF747EED39B4AADBB4D6C9D9F9F7903D63B9DF7@dlee02.ent.ti.com>
+References: <1279927694-26138-1-git-send-email-davidsin@ti.com>
+ <AANLkTinyidvgpE26M=JXjpouoC+mPfehQWyr4L_bQHu_@mail.gmail.com>
+In-Reply-To: <AANLkTinyidvgpE26M=JXjpouoC+mPfehQWyr4L_bQHu_@mail.gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Alex Deucher <alexdeucher@gmail.com>
-Subject: Re: Unknown CX23885 device
-References: <4C4F31A7.8060609@iversen-net.dk> <AANLkTinqS6pWDf4cEsFz6_KFW2r1Yq-BPMzb0uewF_O_@mail.gmail.com>
-In-Reply-To: <AANLkTinqS6pWDf4cEsFz6_KFW2r1Yq-BPMzb0uewF_O_@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2010-07-27 21:37, Alex Deucher wrote:
-> On Tue, Jul 27, 2010 at 3:21 PM, Christian Iversen
-> <chrivers@iversen-net.dk>  wrote:
->> (please CC, I'm not subscribed yet)
->>
->> Hey Linux-DVB people
->>
->> I'm trying to make an as-of-yet unsupported CX23885 device work in Linux.
->>
->> I've tested that the device is not supported using the newest snapshot
->> of the DVB drivers. They did support a bunch of extra devices compared
->> to the standard ubuntu driver, but to no avail.
->>
->> This is what I know about the device:
->>
->> ### physical description ###
->>
->> The device is a small mini-PCIe device currently installed in my
->> Thinkpad T61p notebook. It did not originate there, but I managed to fit it
->> in.
->
-> How are you attaching the video/audio/antenna/etc. input to the pcie
-> card?  I don't imagine the card is much use without external
-> connectors.
+Thanks for your feedback, Linus.  I will incorporate an acronym list in the documentation.  TCM stands for TILER container manager, which pretty much represents the interface to the logic which determines the location for a given 2-D area request.  SiTA (Simple TILER algorithm) is the implementation behind that interface.  I will work on revising the acronym to avoid any conflicts.
 
-For now, I'm using a wifi-antenna lead to connect it. I think that 
-should at least work as a proof-of-concept. Even if I can't tune in any 
-channels, I should still be able to control the card, which I can't 
-right now.
+-David     
 
-When/if it has a chance of working, I'm planning to mod my laptop to fit 
-an antenna lead, properly mounted.
+-----Original Message-----
+From: Linus Walleij [mailto:linus.ml.walleij@gmail.com] 
+Sent: Saturday, July 24, 2010 6:48 PM
+To: Sin, David
+Cc: linux-arm-kernel@lists.infradead.org
+Subject: Re: [RFC 0/8] TI TILER-DMM driver
 
-Any suggestions for proceeding?
+2010/7/24 David Sin <davidsin@ti.com>:
 
--- 
-Med venlig hilsen
-Christian Iversen
+> TILER is a hardware block made by Texas Instruments.  Its purpose is to
+> organize video/image memory in a 2-dimensional fashion to limit memory
+> bandwidth and facilitate 0 effort rotation and mirroring.  The TILER
+> driver facilitates allocating, freeing, as well as mapping 2D blocks (areas)
+> in the TILER container(s).  It also facilitates rotating and mirroring
+> the allocated blocks or its rectangular subsections.
+
+Pretty cool hardware!
+
+(...)
+> * Add multiple search directions to TCM-SiTA
+> * Add 1D block support (including adding 1D search algo to TCM-SiTA)
+
+Spell out these acronyms. I've been writing some code for the ARM
+TCM (Tightly Coupled Memory) and often vendors pick up this terminology
+and call all on-chip memory "TCM", though it has a specific technical
+meaning in ARM context.
+
+What does TCM mean in your case?
+And what is SiTA?
+
+Yours,
+Linus Walleij
