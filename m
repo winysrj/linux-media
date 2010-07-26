@@ -1,66 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:42214 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754252Ab0G1XlM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 19:41:12 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 7/9] IR: report unknown scancodes the in-kernel decoders found.
-Date: Thu, 29 Jul 2010 02:40:50 +0300
-Message-Id: <1280360452-8852-8-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45868 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754348Ab0GZOYB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jul 2010 10:24:01 -0400
+Date: Mon, 26 Jul 2010 10:13:52 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH] IR/imon: remove incorrect calls to input_free_device
+Message-ID: <20100726141352.GA28182@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This way it is possible to use evtest to create keymap for unknown remote.
+Per Dmitry Torokhov (in a completely unrelated thread on linux-input),
+following input_unregister_device with an input_free_device is
+forbidden, the former is sufficient alone.
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
- drivers/media/IR/ir-keytable.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+ drivers/media/IR/imon.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-index 34b9c07..4498c64 100644
---- a/drivers/media/IR/ir-keytable.c
-+++ b/drivers/media/IR/ir-keytable.c
-@@ -339,6 +339,8 @@ void ir_repeat(struct input_dev *dev)
+diff --git a/drivers/media/IR/imon.c b/drivers/media/IR/imon.c
+index 0195dd5..08dff8c 100644
+--- a/drivers/media/IR/imon.c
++++ b/drivers/media/IR/imon.c
+@@ -1944,7 +1944,6 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
  
- 	spin_lock_irqsave(&ir->keylock, flags);
+ urb_submit_failed:
+ 	ir_input_unregister(ictx->idev);
+-	input_free_device(ictx->idev);
+ idev_setup_failed:
+ find_endpoint_failed:
+ 	mutex_unlock(&ictx->lock);
+@@ -2014,10 +2013,8 @@ static struct imon_context *imon_init_intf1(struct usb_interface *intf,
+ 	return ictx;
  
-+	input_event(dev, EV_MSC, MSC_SCAN, ir->last_scancode);
-+
- 	if (!ir->keypressed)
- 		goto out;
- 
-@@ -383,9 +385,12 @@ void ir_keydown(struct input_dev *dev, int scancode, u8 toggle)
- 	ir->last_toggle = toggle;
- 	ir->last_keycode = keycode;
- 
-+	input_event(dev, EV_MSC, MSC_SCAN, scancode);
-+
- 	if (keycode == KEY_RESERVED)
- 		goto out;
- 
-+
- 	/* Register a keypress */
- 	ir->keypressed = true;
- 	IR_dprintk(1, "%s: key down event, key 0x%04x, scancode 0x%04x\n",
-@@ -480,6 +485,8 @@ int __ir_input_register(struct input_dev *input_dev,
- 
- 	set_bit(EV_KEY, input_dev->evbit);
- 	set_bit(EV_REP, input_dev->evbit);
-+	set_bit(EV_MSC, input_dev->evbit);
-+	set_bit(MSC_SCAN, input_dev->mscbit);
- 
- 	if (ir_setkeytable(input_dev, &ir_dev->rc_tab, rc_tab)) {
- 		rc = -ENOMEM;
+ urb_submit_failed:
+-	if (ictx->touch) {
++	if (ictx->touch)
+ 		input_unregister_device(ictx->touch);
+-		input_free_device(ictx->touch);
+-	}
+ touch_setup_failed:
+ find_endpoint_failed:
+ 	mutex_unlock(&ictx->lock);
 -- 
-1.7.0.4
+1.7.1.1
+
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
