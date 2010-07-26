@@ -1,124 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3933 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755309Ab0GVTeW (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41276 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751755Ab0GZTUw convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jul 2010 15:34:22 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6MJYCG7055091
-	for <linux-media@vger.kernel.org>; Thu, 22 Jul 2010 21:34:21 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 22 Jul 2010 21:34:12 +0200 (CEST)
-Message-Id: <201007221934.o6MJYCG7055091@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Mon, 26 Jul 2010 15:20:52 -0400
+From: "Sin, David" <davidsin@ti.com>
+To: "Shilimkar, Santosh" <santosh.shilimkar@ti.com>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Russell King <rmk@arm.linux.org.uk>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Kanigeri, Hari" <h-kanigeri2@ti.com>,
+	Ohad Ben-Cohen <ohad@wizery.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
+	"Cousson, Benoit" <b-cousson@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Date: Mon, 26 Jul 2010 14:20:41 -0500
+Subject: RE: [RFC 0/8] TI TILER-DMM driver
+Message-ID: <513FF747EED39B4AADBB4D6C9D9F9F7903D63B9DA4@dlee02.ent.ti.com>
+References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
+ <EAF47CD23C76F840A9E7FCE10091EFAB02C6255358@dbde02.ent.ti.com>
+In-Reply-To: <EAF47CD23C76F840A9E7FCE10091EFAB02C6255358@dbde02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Thanks, Santosh, for your comments.  I will roll them into an RFC v2.
 
-Results of the daily build of v4l-dvb:
+Also, adding the media list...
 
-date:        Thu Jul 22 19:00:20 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+-David
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+-----Original Message-----
+From: Shilimkar, Santosh 
+Sent: Saturday, July 24, 2010 2:45 AM
+To: Sin, David; linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org; Tony Lindgren; Russell King
+Cc: Kanigeri, Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Cousson, Benoit
+Subject: RE: [RFC 0/8] TI TILER-DMM driver
 
-Detailed results are available here:
+David, 
+> -----Original Message-----
+> From: Sin, David
+> Sent: Saturday, July 24, 2010 4:52 AM
+> To: linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org;
+> Tony Lindgren; Russell King
+> Cc: Kanigeri, Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Shilimkar, Santosh;
+> Sin, David
+> Subject: [RFC 0/8] TI TILER-DMM driver
+> 
+> TILER is a hardware block made by Texas Instruments.  Its purpose is to
+> organize video/image memory in a 2-dimensional fashion to limit memory
+> bandwidth and facilitate 0 effort rotation and mirroring.  The TILER
+> driver facilitates allocating, freeing, as well as mapping 2D blocks
+> (areas)
+> in the TILER container(s).  It also facilitates rotating and mirroring
+> the allocated blocks or its rectangular subsections.
+> 
+> List of pending items in proposed order:
+> 
+> * Add area packing support (multiple blocks can reside in the same
+> band/area)
+>   to optimize area use
+> * Add group-ID support (to specify which blocks can reside together in the
+>   same area)
+> * Add multiple search directions to TCM-SiTA
+> * Add 1D block support (including adding 1D search algo to TCM-SiTA)
+> * Optimize mutex handling (don.t hold mutex during memory
+>   allocation/mapping/cache flushing)
+> * Add block reference counting, support for sharing blocks
+> * Move all kernel-API-s to tiler-iface.c
+> * Support orphaned block support (in preparation for process cleanup
+> support)
+> * Change block identification from physical address to key-ID pair
+>   (in preparation for user space support, and process security)
+> * Add support for process security (blocks from separate processes never
+>   reside in the same band)
+> * Support file interface (ioctl and mmap)
+> * Support for buffers (ordered list of blocks that are mapped to userspace
+>   together, such as YUV420sp)
+> * Support 1D user buffer mapping into TILER container
+> * Support for block pre-reservation (to further optimize area use)
+> 
+> David Sin (1):
+>   TILER-DMM: DMM-PAT driver for TI TILER
+> 
+> Lajos Molnar (6):
+>   TILER-DMM: Container manager interface and utility definitons
+>   TILER-DMM: TILER Memory Manager interface and implementation
+>   TILER-DMM: TILER interface file and documentation
+>   TILER-DMM: Geometry and view manipulation functions.
+>   TILER-DMM: Main TILER driver implementation.
+>   TILER-DMM: Linking TILER driver into the Linux kernel build
+> 
+> Ravi Ramachandra (1):
+>   TILER-DMM: Sample TCM implementation: Simple TILER Allocator
+> 
+I am just summarizing some of my comments here
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+1. linux-arm-kernel@lists.arm.linux.org.uk is not operational anymore. The
+current list is linux-arm-kernel@lists.infradead.org
 
-Full logs are available here:
+2. Thanks for the Documentation patch. Just take care of correct directory for same
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+3. iormap on RAM will be prohibited. Russell has a patch in the queue so
+	we need to look at the alternative.
+4. You haven't implemented probe fuction in both of your diver and doing
+all work in init itself. You might want to revisit that
 
-The V4L-DVB specification from this daily build is here:
+5. DMM register info is auto-generated thanks to Benoit. We can use that directly.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+6. There are too many header files(8-9) and I think you can re-organise all of them to manage with 3-4
+
+7. Commenting style is not consistent in all patches and does not follow
+linux style in few places
+
+8. The DMM driver registration can be done using omap_device framework as
+is being done for most of the OMAP4 drivers.
+
+9. Error handling can be improved
+
+10. There is an excessive usage of barriers and may be we can keep 
+only the necessary ones.
+
+Thanks for the tiler port.
+
+Regards,
+Santosh
