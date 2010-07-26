@@ -1,60 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:44767 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751330Ab0GGJFy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 05:05:54 -0400
-Date: Wed, 7 Jul 2010 11:06:13 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Kyle Baker <kyleabaker@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
-Message-ID: <20100707110613.18be4215@tele>
-In-Reply-To: <AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
-References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
-	<20100707074431.66629934@tele>
-	<AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1353 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751874Ab0GZTnE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jul 2010 15:43:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [SAMPLE v2 04/12] v4l-subdev: Add pads operations
+Date: Mon, 26 Jul 2010 21:42:49 +0200
+Cc: "Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <A69FA2915331DC488A831521EAE36FE4016B84FDFD@dlee06.ent.ti.com> <201007261812.56355.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201007261812.56355.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007262142.49879.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 7 Jul 2010 02:57:54 -0400
-Kyle Baker <kyleabaker@gmail.com> wrote:
-
-> If the microphone works when used alone (with the sound recorder
-> application) and video works in Cheese, why would they not work
-> together at the same time?
+On Monday 26 July 2010 18:12:55 Laurent Pinchart wrote:
+> On Friday 23 July 2010 17:56:02 Karicheri, Muralidharan wrote:
+> > Laurent,
+> > 
+> > Could you explain the probe and active usage using an example such as
+> > below?
+> > 
+> >             Link1    Link2
+> > input sensor -> ccdc -> video node.
+> > 
+> > Assume Link2 we can have either format 1 or format 2 for capture.
 > 
-> I'm looking through the sonixj.c code to see if I can find where its
-> breaking, but I'm not very experienced in C.
+> Sure.
 > 
-> I've been trying to get this worked out for a year, so if there is
-> anything I can do to help fix this bug let me know. This is a fairly
-> common webcam, so it would be great to see this resolved soon.
+> The probe and active formats are used to probe supported formats and 
+> getting/setting active formats.
+
+Just to verify: we are dealing with mediabus formats here, right?
+
+One thing that I don't like is the name 'probe'. I would prefer the name
+'proposed'. You propose an input format and based on that you can enumerate
+a list of proposed output format. I think that name fits better than 'probe'
+which I find confusing in this context.
+
 > 
-> What is the current priority of this bug?
+> * Enumerating supported formats on the CCDC input and output would be done 
+> with the following calls
+> 
+> ENUM_FMT(CCDC input pad)
+> 
+> for the input, and
+> 
+> S_FMT(PROBE, CCDC input pad, format)
+> ENUM_FMT(CCDC output pad)
+> 
+> for the output.
 
-The video and audio don't work at the same time because the video is
-opened before the audio and it takes all the USB bandwidth.
+How does ENUM_FMT know if it has to use the proposed or actual input formats?
+Or is it supposed to always act on proposed formats?
 
-The problem is in the main gspca.c, not in sonixj.c. It may fixed using
-a lower alternate setting. To check it, you may add the following lines:
+> 
+> Setting the probe format on the input pad is required, as the format on an 
+> output pad usually depends on the format on input pads.
+> 
+> * Trying a format on the CCDC input and output would be done with
+> 
+> S_FMT(PROBE, CCDC input pad, format)
+> 
+> for the input, and
+> 
+> S_FMT(PROBE, CCDC input pad, format)
+> S_FMT(PROBE, CCDC output pad, format)
+> 
+> on the output. The S_FMT call will mangle the format given format if it can't 
+> be supported exactly, so there's no need to call G_FMT after S_FMT (a G_FMT 
+> call following a S_FMT call will return the same format as the S_FMT call).
+> 
+> * Setting the active format is done with
+> 
+> S_FMT(ACTIVE, CCDC input pad, format)
+> S_FMT(ACTIVE, CCDC output pad, format)
+> 
+> The formats will be applied to the hardware (possibly with a delay, drivers 
+> can delay register writes until STREAMON for instance).
+> 
+> Probe formats are stored in the subdev file handles, so two applications 
+> trying formats at the same time will not interfere with each other. Active 
+> formats are stored in the device structure, so modifications done by an 
+> application are visible to other applications.
+> 
+> Hope this helps clarifying the API.
 
-	if (dev->config->desc.bNumInterfaces != 1)
-		gspca_dev->nbalt -= 1;
-after
-	gspca_dev->nbalt = intf->num_altsetting;
-in the function gspca_dev_probe() of gspca.c.
+You know that I have never been happy with this approach, but I also have to
+admit that I haven't found a better way of doing it.
 
-If it still does not work, change "-= 1" to "-= 2" or "-= 3" (there are
-8 alternate settings in your webcam).
+Regards,
 
-For a correct fix, the exact video bandwidth shall be calculated and I
-could not find yet time enough to do the job and people to test it...
-
-Best regards.
+	Hans
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
