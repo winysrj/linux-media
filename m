@@ -1,76 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:45539 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752061Ab0G1Rie (ORCPT
+Received: from fallback2.mail.ru ([94.100.176.87]:58856 "EHLO
+	fallback2.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750698Ab0GZE0S (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 13:38:34 -0400
-MIME-Version: 1.0
-In-Reply-To: <1280337661.19593.66.camel@morgan.silverblock.net>
-References: <1280269990.21278.15.camel@maxim-laptop>
-	<1280273550.32216.4.camel@maxim-laptop>
-	<AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
-	<AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
-	<1280298606.6736.15.camel@maxim-laptop>
-	<AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
-	<4C502CE6.80106@redhat.com>
-	<1280327080.9175.58.camel@maxim-laptop>
-	<AANLkTi=Ww9yvN5RWaXEi+cB2QaDWn34nSVGAvKxbJ2k2@mail.gmail.com>
-	<4C505313.2010904@redhat.com>
-	<AANLkTi=Ms0saB5b3+o9qQQYFNT96XStKCkVivB65q_33@mail.gmail.com>
-	<1280337661.19593.66.camel@morgan.silverblock.net>
-Date: Wed, 28 Jul 2010 13:38:33 -0400
-Message-ID: <AANLkTikHpLHo7Z9XyYHVtnKapvJkHnV=wtqDK9yd6CFX@mail.gmail.com>
-Subject: Re: Can I expect in-kernel decoding to work out of box?
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Jarod Wilson <jarod@wilsonet.com>,
-	linux-input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 26 Jul 2010 00:26:18 -0400
+Received: from f154.mail.ru (f154.mail.ru [217.69.128.108])
+	by fallback2.mail.ru (mPOP.Fallback_MX) with ESMTP id 7B1FA2492D00
+	for <linux-media@vger.kernel.org>; Mon, 26 Jul 2010 08:15:15 +0400 (MSD)
+Received: from mail by f154.mail.ru with local
+	id 1OdF5a-0006r0-00
+	for linux-media@vger.kernel.org; Mon, 26 Jul 2010 08:14:54 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-media@vger.kernel.org
+Subject: =?koi8-r?Q?Re=3A_[Q]=3A_any_DVB-S2_card_which_is_45MS/s_capable=3F?=
+Mime-Version: 1.0
+Date: Mon, 26 Jul 2010 08:14:54 +0400
+References: <4C4C475E.5060500@gmail.com>
+In-Reply-To: <4C4C475E.5060500@gmail.com>
+Reply-To: Goga777 <goga777@bk.ru>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <E1OdF5a-0006r0-00.goga777-bk-ru@f154.mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 28, 2010 at 1:21 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> On Wed, 2010-07-28 at 13:04 -0400, Jon Smirl wrote:
->> On Wed, Jul 28, 2010 at 11:56 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->> > Em 28-07-2010 11:41, Jon Smirl escreveu:
->
->>
->> Are there any IR protocols less than 20 (or 17) years old? If they are
->> older than that the patents have expired. I expect IR use to decline
->> in the future, it will be replaced with RF4CE radio remotes.
->
-> UEI's XMP protocol for one, IIRC.
-
-The beauty of LIRC is that you can use any remote for input.  If one
-remote's protocols are patented, just use another remote.
-
-Only in the case where we have to xmit the protocol is the patent
-conflict unavoidable. In that case we could resort to sending a raw
-pulse timing string that comes from user space.
-
->
-> UEI are the folks that sell/make "OneForALL" branded remotes.
->
-> You can read about their patents' remaining lifetimes in this March 2010
-> SEC filing:
->
-> http://www.faqs.org/sec-filings/100315/UNIVERSAL-ELECTRONICS-INC_10-K/
->
-> 1 to 18 years - that includes the ones they just bought from Zilog.
-> That is not to say that all those patents cover protocols.
->
->
-> Regards,
-> Andy
->
->
+> If someone has tested a DVB-S2 card at 45MS/s (I am interested in QPSK 
+> moslty) please speak out ;-).
+> I dont need CI, dual tuner can be a bonus but definitely not mandatory.
+> I already asked the question, so sorry to come back again with it, but I 
+> did not get a clear answer: the only thing I know is that STV0900 is 
+> able to do it, but I guess that the board itself must be well thought 
+> out to achieve these high rates?
 
 
+my hvr4000 card works well with dvb-s transponder with so high SR - 44950
+see tp 11044 on http://www.lyngsat.com/eam22.html
 
--- 
-Jon Smirl
-jonsmirl@gmail.com
+also, no any problems with dvb-s2 tp with SR 30000
+
+Goga
+
