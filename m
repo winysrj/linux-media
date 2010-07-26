@@ -1,334 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36476 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:44330 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757945Ab0G2QHG (ORCPT
+	with ESMTP id S1752318Ab0GZQeK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:07:06 -0400
+	Mon, 26 Jul 2010 12:34:10 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v3 05/10] media: Reference count and power handling
-Date: Thu, 29 Jul 2010 18:06:38 +0200
-Message-Id: <1280419616-7658-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links enumeration
+Date: Mon, 26 Jul 2010 18:34:42 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-7-git-send-email-laurent.pinchart@ideasonboard.com> <201007241445.40062.hverkuil@xs4all.nl>
+In-Reply-To: <201007241445.40062.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007261834.43211.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Hi Hans,
 
-Basically these are the interface functions:
+On Saturday 24 July 2010 14:45:39 Hans Verkuil wrote:
+> On Wednesday 21 July 2010 16:35:31 Laurent Pinchart wrote:
+> > Create the following two ioctls and implement them at the media device
+> > level to enumerate entities, pads and links.
+> > 
+> > - MEDIA_IOC_ENUM_ENTITIES: Enumerate entities and their properties
+> > - MEDIA_IOC_ENUM_LINKS: Enumerate all pads and links for a given entity
+> > 
+> > Entity IDs can be non-contiguous. Userspace applications should
+> > enumerate entities using the MEDIA_ENTITY_ID_FLAG_NEXT flag. When the
+> > flag is set in the entity ID, the MEDIA_IOC_ENUM_ENTITIES will return
+> > the next entity with an ID bigger than the requested one.
+> > 
+> > Only forward links that originate at one of the entity's source pads are
+> > returned during the enumeration process.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> > ---
+> > 
+> >  Documentation/media-framework.txt |  134
+> >  ++++++++++++++++++++++++++++++++ drivers/media/media-device.c      | 
+> >  153 +++++++++++++++++++++++++++++++++++++ include/linux/media.h        
+> >      |   73 ++++++++++++++++++
+> >  include/media/media-device.h      |    3 +
+> >  include/media/media-entity.h      |   19 +-----
+> >  5 files changed, 364 insertions(+), 18 deletions(-)
+> >  create mode 100644 include/linux/media.h
+> 
+> <snip>
+> 
+> > diff --git a/include/linux/media.h b/include/linux/media.h
+> > new file mode 100644
+> > index 0000000..746bdda
+> > --- /dev/null
+> > +++ b/include/linux/media.h
+> > @@ -0,0 +1,73 @@
+> > +#ifndef __LINUX_MEDIA_H
+> > +#define __LINUX_MEDIA_H
+> > +
+> > +#define MEDIA_ENTITY_TYPE_NODE				1
+> > +#define MEDIA_ENTITY_TYPE_SUBDEV			2
+> > +
+> > +#define MEDIA_ENTITY_SUBTYPE_NODE_V4L			1
+> > +#define MEDIA_ENTITY_SUBTYPE_NODE_FB			2
+> > +#define MEDIA_ENTITY_SUBTYPE_NODE_ALSA			3
+> > +#define MEDIA_ENTITY_SUBTYPE_NODE_DVB			4
+> > +
+> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_DECODER		1
+> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_ENCODER		2
+> > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_MISC		3
+> > +
+> > +#define MEDIA_PAD_DIR_INPUT				1
+> > +#define MEDIA_PAD_DIR_OUTPUT				2
+> > +
+> > +#define MEDIA_LINK_FLAG_ACTIVE				(1 << 0)
+> > +#define MEDIA_LINK_FLAG_IMMUTABLE			(1 << 1)
+> > +
+> > +#define MEDIA_ENTITY_ID_FLAG_NEXT	(1 << 31)
+> > +
+> > +struct media_user_pad {
+> > +	__u32 entity;		/* entity ID */
+> > +	__u8 index;		/* pad index */
+> > +	__u32 direction;	/* pad direction */
+> > +};
+> 
+> How about:
+> 
+> struct media_pad {
+> 	__u32 entity;		/* entity ID */
+> 	__u16 index;		/* pad index */
+> 	__u16 flags;		/* pad flags (includes direction) */
 
-media_entity_get() - acquire entity
-media_entity_put() - release entity
+Just to be sure, I suppose I should combine flags + direction in the 
+media_k_pad structure as well, right ?
 
-	If the entity is of node type, the power change is distributed to
-	all connected entities. For non-nodes it only affects that very
-	node. A mutex is used to serialise access to the entity graph.
+> 	u32 reserved;
+> };
 
-In the background there's a depth-first search algorithm that traverses the
-active links in the graph. All these functions parse the graph to implement
-whatever they're to do.
+OK.
 
-The module counters are increased/decreased in media_entity_get/put to
-prevent module unloading when an entity is referenced.
+> I think u16 for the number of pads might be safer than a u8.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
----
- Documentation/media-framework.txt |   37 +++++++++
- drivers/media/media-device.c      |    1 +
- drivers/media/media-entity.c      |  146 +++++++++++++++++++++++++++++++++++++
- include/media/media-device.h      |    3 +
- include/media/media-entity.h      |   15 ++++
- 5 files changed, 202 insertions(+), 0 deletions(-)
+it should definitely be enough, otherwise we'll have a big issue anyway.
 
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index 4fe3b32..6d680c6 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -236,3 +236,40 @@ When the graph traversal is complete the function will return NULL.
- Graph traversal can be interrupted at any moment. No cleanup function call is
- required and the graph structure can be freed normally.
- 
-+
-+Reference counting and power handling
-+-------------------------------------
-+
-+Before accessing type-specific entities operations (such as the V4L2
-+sub-device operations), drivers must acquire a reference to the entity. This
-+ensures that the entity will be powered on and ready to accept requests.
-+Similarly, after being done with an entity, drivers must release the
-+reference.
-+
-+	media_entity_get(struct media_entity *entity)
-+
-+The function will increase the entity reference count. If the entity is a node
-+(MEDIA_ENTITY_TYPE_NODE type), the reference count of all entities it is
-+connected to, both directly or indirectly, through active links is increased.
-+This ensures that the whole media pipeline will be ready to process
-+
-+Acquiring a reference to an entity increases the media device module reference
-+count to prevent module unloading when an entity is being used.
-+
-+media_entity_get will return a pointer to the entity if successful, or NULL
-+otherwise.
-+
-+	media_entity_put(struct media_entity *entity)
-+
-+The function will decrease the entity reference count and, for node entities,
-+like media_entity_get, the reference count of all connected entities. Calling
-+media_entity_put with a NULL argument is valid and will return immediately.
-+
-+When the first reference to an entity is acquired, or the last reference
-+released, the entity's set_power operation is called. Entity drivers must
-+implement the operation if they need to perform any power management task,
-+such as turning powers or clocks on or off. If no power management is
-+required, drivers don't need to provide a set_power operation. The operation
-+is allowed to fail when turning power on, in which case the media_entity_get
-+function will return NULL.
-+
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-index ed64b4a..6fb2e26 100644
---- a/drivers/media/media-device.c
-+++ b/drivers/media/media-device.c
-@@ -51,6 +51,7 @@ int __must_check media_device_register(struct media_device *mdev)
- 	mdev->entity_id = 1;
- 	INIT_LIST_HEAD(&mdev->entities);
- 	spin_lock_init(&mdev->lock);
-+	mutex_init(&mdev->graph_mutex);
- 
- 	/* If dev == NULL, then name must be filled in by the caller */
- 	if (mdev->dev == NULL && WARN_ON(!mdev->devnode.name[0]))
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 443c5c9..e091bc8 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -21,6 +21,7 @@
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <media/media-entity.h>
-+#include <media/media-device.h>
- 
- /**
-  * media_entity_init - Initialize a media entity
-@@ -193,6 +194,151 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
- 
- /* -----------------------------------------------------------------------------
-+ * Power state handling
-+ */
-+
-+/* Apply use count to an entity. */
-+static void media_entity_use_apply_one(struct media_entity *entity, int change)
-+{
-+	entity->use_count += change;
-+	WARN_ON(entity->use_count < 0);
-+}
-+
-+/*
-+ * Apply use count change to an entity and change power state based on
-+ * new use count.
-+ */
-+static int media_entity_power_apply_one(struct media_entity *entity, int change)
-+{
-+	int ret;
-+
-+	if (entity->use_count == 0 && change > 0 &&
-+	    entity->ops && entity->ops->set_power) {
-+		ret = entity->ops->set_power(entity, 1);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	media_entity_use_apply_one(entity, change);
-+
-+	if (entity->use_count == 0 && change < 0 &&
-+	    entity->ops && entity->ops->set_power)
-+		entity->ops->set_power(entity, 0);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Apply power change to all connected entities. This ignores the
-+ * nodes.
-+ */
-+static int media_entity_power_apply(struct media_entity *entity, int change)
-+{
-+	struct media_entity_graph graph;
-+	struct media_entity *first = entity;
-+	int ret = 0;
-+
-+	if (!change)
-+		return 0;
-+
-+	media_entity_graph_walk_start(&graph, entity);
-+
-+	while (!ret && (entity = media_entity_graph_walk_next(&graph)))
-+		if (media_entity_type(entity) != MEDIA_ENTITY_TYPE_NODE)
-+			ret = media_entity_power_apply_one(entity, change);
-+
-+	if (!ret)
-+		return 0;
-+
-+	media_entity_graph_walk_start(&graph, first);
-+
-+	while ((first = media_entity_graph_walk_next(&graph))
-+	       && first != entity)
-+		if (media_entity_type(first) != MEDIA_ENTITY_TYPE_NODE)
-+			media_entity_power_apply_one(first, -change);
-+
-+	return ret;
-+}
-+
-+/*
-+ * Apply use count change to graph and change power state of entities
-+ * accordingly.
-+ */
-+static int media_entity_node_power_change(struct media_entity *entity,
-+					  int change)
-+{
-+	/* Apply use count to node. */
-+	media_entity_use_apply_one(entity, change);
-+
-+	/* Apply power change to connected non-nodes. */
-+	return media_entity_power_apply(entity, change);
-+}
-+
-+/*
-+ * Node entity use changes are reflected on power state of all
-+ * connected (directly or indirectly) entities whereas non-node entity
-+ * use count changes are limited to that very entity.
-+ */
-+static int media_entity_use_change(struct media_entity *entity, int change)
-+{
-+	if (media_entity_type(entity) == MEDIA_ENTITY_TYPE_NODE)
-+		return media_entity_node_power_change(entity, change);
-+	else
-+		return media_entity_power_apply_one(entity, change);
-+}
-+
-+static struct media_entity *__media_entity_get(struct media_entity *entity)
-+{
-+	if (media_entity_use_change(entity, 1))
-+		return NULL;
-+
-+	return entity;
-+}
-+
-+static void __media_entity_put(struct media_entity *entity)
-+{
-+	media_entity_use_change(entity, -1);
-+}
-+
-+/* user open()s media entity */
-+struct media_entity *media_entity_get(struct media_entity *entity)
-+{
-+	struct media_entity *e;
-+
-+	if (entity == NULL)
-+		return NULL;
-+
-+	if (entity->parent->dev &&
-+	    !try_module_get(entity->parent->dev->driver->owner))
-+		return NULL;
-+
-+	mutex_lock(&entity->parent->graph_mutex);
-+	e = __media_entity_get(entity);
-+	mutex_unlock(&entity->parent->graph_mutex);
-+
-+	if (e == NULL && entity->parent->dev)
-+		module_put(entity->parent->dev->driver->owner);
-+
-+	return e;
-+}
-+EXPORT_SYMBOL_GPL(media_entity_get);
-+
-+/* user release()s media entity */
-+void media_entity_put(struct media_entity *entity)
-+{
-+	if (entity == NULL)
-+		return;
-+
-+	mutex_lock(&entity->parent->graph_mutex);
-+	__media_entity_put(entity);
-+	mutex_unlock(&entity->parent->graph_mutex);
-+
-+	if (entity->parent->dev)
-+		module_put(entity->parent->dev->driver->owner);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_put);
-+
-+/* -----------------------------------------------------------------------------
-  * Links management
-  */
- 
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-index ac96847..39a437c 100644
---- a/include/media/media-device.h
-+++ b/include/media/media-device.h
-@@ -23,6 +23,7 @@
- 
- #include <linux/device.h>
- #include <linux/list.h>
-+#include <linux/mutex.h>
- #include <linux/spinlock.h>
- 
- #include <media/media-devnode.h>
-@@ -48,6 +49,8 @@ struct media_device {
- 
- 	/* Protects the entities list */
- 	spinlock_t lock;
-+	/* Serializes graph operations. */
-+	struct mutex graph_mutex;
- };
- 
- int __must_check media_device_register(struct media_device *mdev);
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 05c37a6..2205cbc 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -33,6 +33,10 @@ struct media_pad {
- 	unsigned long flags;		/* Pad flags (MEDIA_PAD_FLAG_*) */
- };
- 
-+struct media_entity_operations {
-+	int (*set_power)(struct media_entity *entity, int power);
-+};
-+
- struct media_entity {
- 	struct list_head list;
- 	struct media_device *parent;	/* Media device this entity belongs to*/
-@@ -50,6 +54,10 @@ struct media_entity {
- 	struct media_pad *pads;		/* Pads array (num_pads elements) */
- 	struct media_link *links;	/* Links array (max_links elements)*/
- 
-+	const struct media_entity_operations *ops;	/* Entity operations */
-+
-+	int use_count;			/* Use count for the entity. */
-+
- 	union {
- 		/* Node specifications */
- 		struct {
-@@ -92,9 +100,16 @@ void media_entity_cleanup(struct media_entity *entity);
- int media_entity_create_link(struct media_entity *source, u8 source_pad,
- 		struct media_entity *sink, u8 sink_pad, u32 flags);
- 
-+struct media_entity *media_entity_get(struct media_entity *entity);
-+void media_entity_put(struct media_entity *entity);
-+
- void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 		struct media_entity *entity);
- struct media_entity *
- media_entity_graph_walk_next(struct media_entity_graph *graph);
- 
-+#define media_entity_call(entity, operation, args...)			\
-+	(((entity)->ops && (entity)->ops->operation) ?			\
-+	 (entity)->ops->operation((entity) , ##args) : -ENOIOCTLCMD)
-+
- #endif
+> > +
+> > +struct media_user_entity {
+> > +	__u32 id;
+> > +	char name[32];
+> > +	__u32 type;
+> > +	__u32 subtype;
+> > +	__u8 pads;
+> > +	__u32 links;
+> 
+> Need reserved fields.
+
+OK.
+
+> > +
+> > +	union {
+> > +		/* Node specifications */
+> > +		struct {
+> > +			__u32 major;
+> > +			__u32 minor;
+> > +		} v4l;
+> > +		struct {
+> > +			__u32 major;
+> > +			__u32 minor;
+> > +		} fb;
+> > +		int alsa;
+> > +		int dvb;
+> > +
+> > +		/* Sub-device specifications */
+> > +		/* Nothing needed yet */
+> 
+> Add something like:
+> 
+> 		__u8 raw[64];
+
+OK.
+
+> 
+> > +	};
+> > +};
+> > +
+> > +struct media_user_link {
+> > +	struct media_user_pad source;
+> > +	struct media_user_pad sink;
+> > +	__u32 flags;
+> 
+> Add a single __u32 reserved.
+
+OK.
+
+> > +};
+> > +
+> > +struct media_user_links {
+> > +	__u32 entity;
+> > +	/* Should have enough room for pads elements */
+> > +	struct media_user_pad __user *pads;
+> > +	/* Should have enough room for links elements */
+> > +	struct media_user_link __user *links;
+> 
+> Add a  __u32 reserved[4].
+
+OK.
+
+> > +};
+> > +
+> > +#define MEDIA_IOC_ENUM_ENTITIES	_IOWR('M', 1, struct media_user_entity)
+> > +#define MEDIA_IOC_ENUM_LINKS		_IOWR('M', 2, struct media_user_links)
+> 
+> We also need a MEDIA_IOC_QUERYCAP or MEDIA_IOC_VERSION or something like
+> that.
+
+
+
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
