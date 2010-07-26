@@ -1,353 +1,479 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:38643 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752291Ab0G1XlJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 19:41:09 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 5/9] IR: extend interfaces to support more device settings
-Date: Thu, 29 Jul 2010 02:40:48 +0300
-Message-Id: <1280360452-8852-6-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:41330 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753477Ab0GZQUu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Jul 2010 12:20:50 -0400
+Date: Mon, 26 Jul 2010 18:21:02 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: "linux-sh@vger.kernel.org" <linux-sh@vger.kernel.org>
+Subject: [PATCH 4/5] V4L2: soc-camera: add a MIPI CSI-2 driver for SH-Mobile
+ platforms
+In-Reply-To: <Pine.LNX.4.64.1007261739180.9816@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1007261750520.9816@axis700.grange>
+References: <Pine.LNX.4.64.1007261739180.9816@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Also reuse LIRC_SET_MEASURE_CARRIER_MODE as LIRC_SET_LEARN_MODE
-(LIRC_SET_LEARN_MODE will start carrier reports if possible, and
-tune receiver to wide band mode)
+Some SH-Mobile SoCs implement a MIPI CSI-2 controller, that can interface to
+several video clients and send data to the CEU or to the Image Signal
+Processor.  This patch implements a v4l2-subdevice driver for CSI-2 to be used
+within the soc-camera framework, implementing the second subdevice in addition
+to the actual video clients.
 
-This IOCTL isn't yet used by lirc, so this won't break userspace.
-
-Note that drivers currently can't report carrier,
-because raw event doesn't have space to indicate that.
-
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/IR/ir-core-priv.h  |    2 +
- drivers/media/IR/ir-lirc-codec.c |  119 +++++++++++++++++++++++++++++++-------
- drivers/media/IR/ir-raw-event.c  |   13 ++---
- include/media/ir-core.h          |   11 ++++
- include/media/lirc.h             |    4 +-
- 5 files changed, 117 insertions(+), 32 deletions(-)
+ drivers/media/video/Kconfig          |    6 +
+ drivers/media/video/Makefile         |    1 +
+ drivers/media/video/sh_mobile_csi2.c |  354 ++++++++++++++++++++++++++++++++++
+ include/media/sh_mobile_csi2.h       |   46 +++++
+ 4 files changed, 407 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/sh_mobile_csi2.c
+ create mode 100644 include/media/sh_mobile_csi2.h
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index d6ec4fe..9c594af 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -77,6 +77,8 @@ struct ir_raw_event_ctrl {
- 	struct lirc_codec {
- 		struct ir_input_dev *ir_dev;
- 		struct lirc_driver *drv;
-+		int timeout_report;
-+		int carrier_low;
- 	} lirc;
- };
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index bdbc9d3..4595eb9 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -955,6 +955,12 @@ config VIDEO_PXA27x
+ 	---help---
+ 	  This is a v4l2 driver for the PXA27x Quick Capture Interface
  
-diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
-index 8ca01fd..70c299f 100644
---- a/drivers/media/IR/ir-lirc-codec.c
-+++ b/drivers/media/IR/ir-lirc-codec.c
-@@ -40,16 +40,24 @@ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- 	if (!ir_dev->raw->lirc.drv || !ir_dev->raw->lirc.drv->rbuf)
- 		return -EINVAL;
- 
--	if (IS_RESET(ev))
--		return 0;
-+	if (IS_RESET(ev)) {
++config VIDEO_SH_MOBILE_CSI2
++	tristate "SuperH Mobile MIPI CSI-2 Interface driver"
++	depends on VIDEO_DEV && SOC_CAMERA && HAVE_CLK
++	---help---
++	  This is a v4l2 driver for the SuperH MIPI CSI-2 Interface
 +
-+		if (ir_dev->raw->lirc.timeout_report)
-+			sample = LIRC_TIMEOUT(0);
-+		else
-+			return 0;
+ config VIDEO_SH_MOBILE_CEU
+ 	tristate "SuperH Mobile CEU Interface driver"
+ 	depends on VIDEO_DEV && SOC_CAMERA && HAS_DMA && HAVE_CLK
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index cc93859..79df307 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -164,6 +164,7 @@ obj-$(CONFIG_SOC_CAMERA_PLATFORM)	+= soc_camera_platform.o
+ obj-$(CONFIG_VIDEO_MX1)			+= mx1_camera.o
+ obj-$(CONFIG_VIDEO_MX3)			+= mx3_camera.o
+ obj-$(CONFIG_VIDEO_PXA27x)		+= pxa_camera.o
++obj-$(CONFIG_VIDEO_SH_MOBILE_CSI2)	+= sh_mobile_csi2.o
+ obj-$(CONFIG_VIDEO_SH_MOBILE_CEU)	+= sh_mobile_ceu_camera.o
  
--	IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
--		   TO_US(ev.duration), TO_STR(ev.pulse));
-+		IR_dprintk(2, "LIRC: Sending timeout packet\n");
- 
-+	} else {
-+		sample = ev.duration / 1000;
-+		if (ev.pulse)
-+			sample |= PULSE_BIT;
+ obj-$(CONFIG_ARCH_DAVINCI)		+= davinci/
+diff --git a/drivers/media/video/sh_mobile_csi2.c b/drivers/media/video/sh_mobile_csi2.c
+new file mode 100644
+index 0000000..c71adf6
+--- /dev/null
++++ b/drivers/media/video/sh_mobile_csi2.c
+@@ -0,0 +1,354 @@
++/*
++ * Driver for the SH-Mobile MIPI CSI-2 unit
++ *
++ * Copyright (C) 2010, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+		IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
-+			TO_US(ev.duration), TO_STR(ev.pulse));
++#include <linux/delay.h>
++#include <linux/i2c.h>
++#include <linux/io.h>
++#include <linux/platform_device.h>
++#include <linux/pm_runtime.h>
++#include <linux/slab.h>
++#include <linux/videodev2.h>
++
++#include <media/sh_mobile_csi2.h>
++#include <media/soc_camera.h>
++#include <media/v4l2-common.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-mediabus.h>
++#include <media/v4l2-subdev.h>
++
++#define SH_CSI2_TREF	0x00
++#define SH_CSI2_SRST	0x04
++#define SH_CSI2_PHYCNT	0x08
++#define SH_CSI2_CHKSUM	0x0C
++#define SH_CSI2_VCDT	0x10
++
++struct sh_csi2 {
++	struct v4l2_subdev		subdev;
++	struct list_head		list;
++	struct notifier_block		notifier;
++	unsigned int			irq;
++	void __iomem			*base;
++	struct platform_device		*pdev;
++	struct sh_csi2_client_config	*client;
++};
++
++static int sh_csi2_try_fmt(struct v4l2_subdev *sd,
++			   struct v4l2_mbus_framefmt *mf)
++{
++	struct sh_csi2 *priv = container_of(sd, struct sh_csi2, subdev);
++	struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
++
++	if (mf->width > 8188)
++		mf->width = 8188;
++	else if (mf->width & 1)
++		mf->width &= ~1;
++
++	switch (pdata->type) {
++	case SH_CSI2C:
++		switch (mf->code) {
++		case V4L2_MBUS_FMT_YUYV8_2X8_BE:	/* YUV422 */
++		case V4L2_MBUS_FMT_YUYV8_1_5X8:		/* YUV420 */
++		case V4L2_MBUS_FMT_GREY8_1X8:		/* RAW8 */
++		case V4L2_MBUS_FMT_SBGGR8_1X8:
++		case V4L2_MBUS_FMT_SGRBG8_1X8:
++			break;
++		default:
++			/* All MIPI CSI-2 devices must support one of primary formats */
++			mf->code = V4L2_MBUS_FMT_YUYV8_2X8_LE;
++		}
++		break;
++	case SH_CSI2I:
++		switch (mf->code) {
++		case V4L2_MBUS_FMT_GREY8_1X8:		/* RAW8 */
++		case V4L2_MBUS_FMT_SBGGR8_1X8:
++		case V4L2_MBUS_FMT_SGRBG8_1X8:
++		case V4L2_MBUS_FMT_SBGGR10_1X10:	/* RAW10 */
++		case V4L2_MBUS_FMT_SBGGR12_1X12:	/* RAW12 */
++			break;
++		default:
++			/* All MIPI CSI-2 devices must support one of primary formats */
++			mf->code = V4L2_MBUS_FMT_SBGGR8_1X8;
++		}
++		break;
 +	}
- 
--	sample = ev.duration / 1000;
--	if (ev.pulse)
--		sample |= PULSE_BIT;
- 
- 	lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
- 			  (unsigned char *) &sample);
-@@ -96,13 +104,13 @@ out:
- 	return ret;
- }
- 
--static long ir_lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
-+static long ir_lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long __user arg)
- {
- 	struct lirc_codec *lirc;
- 	struct ir_input_dev *ir_dev;
- 	int ret = 0;
- 	void *drv_data;
--	unsigned long val;
-+	unsigned long val = 0;
- 
- 	lirc = lirc_get_pdata(filep);
- 	if (!lirc)
-@@ -114,24 +122,22 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long ar
- 
- 	drv_data = ir_dev->props->priv;
- 
--	switch (cmd) {
--	case LIRC_SET_TRANSMITTER_MASK:
-+	if (_IOC_DIR(cmd) & _IOC_WRITE) {
- 		ret = get_user(val, (unsigned long *)arg);
- 		if (ret)
- 			return ret;
++
++	return 0;
++}
++
++/*
++ * We have done our best in try_fmt to try and tell the sensor, which formats
++ * we support. If now the configuration is unsuitable for us we can only
++ * error out.
++ */
++static int sh_csi2_s_fmt(struct v4l2_subdev *sd,
++			 struct v4l2_mbus_framefmt *mf)
++{
++	struct sh_csi2 *priv = container_of(sd, struct sh_csi2, subdev);
++	u32 tmp = (priv->client->channel & 3) << 8;
++
++	dev_dbg(sd->v4l2_dev->dev, "%s(%u)\n", __func__, mf->code);
++	if (mf->width > 8188 || mf->width & 1)
++		return -EINVAL;
++
++	switch (mf->code) {
++	case V4L2_MBUS_FMT_YUYV8_2X8_BE:
++		tmp |= 0x1e;	/* YUV422 8 bit */
++		break;
++	case V4L2_MBUS_FMT_YUYV8_1_5X8:
++		tmp |= 0x18;	/* YUV420 8 bit */
++		break;
++	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
++		tmp |= 0x21;	/* RGB555 */
++		break;
++	case V4L2_MBUS_FMT_RGB565_2X8_BE:
++		tmp |= 0x22;	/* RGB565 */
++		break;
++	case V4L2_MBUS_FMT_GREY8_1X8:
++	case V4L2_MBUS_FMT_SBGGR8_1X8:
++	case V4L2_MBUS_FMT_SGRBG8_1X8:
++		tmp |= 0x2a;	/* RAW8 */
++		break;
++	default:
++		return -EINVAL;
 +	}
- 
--		if (ir_dev->props && ir_dev->props->s_tx_mask)
-+	switch (cmd) {
-+	case LIRC_SET_TRANSMITTER_MASK:
-+		if (ir_dev->props->s_tx_mask)
- 			ret = ir_dev->props->s_tx_mask(drv_data, (u32)val);
- 		else
- 			return -EINVAL;
- 		break;
- 
- 	case LIRC_SET_SEND_CARRIER:
--		ret = get_user(val, (unsigned long *)arg);
--		if (ret)
--			return ret;
--
--		if (ir_dev->props && ir_dev->props->s_tx_carrier)
-+		if (ir_dev->props->s_tx_carrier)
- 			ir_dev->props->s_tx_carrier(drv_data, (u32)val);
- 		else
- 			return -EINVAL;
-@@ -139,22 +145,79 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long ar
- 
- 	case LIRC_GET_SEND_MODE:
- 		val = LIRC_CAN_SEND_PULSE & LIRC_CAN_SEND_MASK;
--		ret = put_user(val, (unsigned long *)arg);
- 		break;
- 
- 	case LIRC_SET_SEND_MODE:
--		ret = get_user(val, (unsigned long *)arg);
--		if (ret)
--			return ret;
--
- 		if (val != (LIRC_MODE_PULSE & LIRC_CAN_SEND_MASK))
- 			return -EINVAL;
- 		break;
- 
-+	case LIRC_GET_REC_RESOLUTION:
-+		val = ir_dev->props->rx_resolution;
++
++	iowrite32(tmp, priv->base + SH_CSI2_VCDT);
++
++	return 0;
++}
++
++static struct v4l2_subdev_video_ops sh_csi2_subdev_video_ops = {
++	.s_mbus_fmt	= sh_csi2_s_fmt,
++	.try_mbus_fmt	= sh_csi2_try_fmt,
++};
++
++static struct v4l2_subdev_core_ops sh_csi2_subdev_core_ops;
++
++static struct v4l2_subdev_ops sh_csi2_subdev_ops = {
++	.core	= &sh_csi2_subdev_core_ops,
++	.video	= &sh_csi2_subdev_video_ops,
++};
++
++static void sh_csi2_hwinit(struct sh_csi2 *priv)
++{
++	struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
++	__u32 tmp = 0x10; /* Enable MIPI CSI clock lane */
++
++	/* Reflect registers immediately */
++	iowrite32(0x00000001, priv->base + SH_CSI2_TREF);
++	/* reset CSI2 harware */
++	iowrite32(0x00000001, priv->base + SH_CSI2_SRST);
++	udelay(5);
++	iowrite32(0x00000000, priv->base + SH_CSI2_SRST);
++
++	if (priv->client->lanes & 3)
++		tmp |= priv->client->lanes & 3;
++	else
++		/* Default - both lanes */
++		tmp |= 3;
++
++	if (priv->client->phy == SH_CSI2_PHY_MAIN)
++		tmp |= 0x8000;
++
++	iowrite32(tmp, priv->base + SH_CSI2_PHYCNT);
++
++	tmp = 0;
++	if (pdata->flags & SH_CSI2_ECC)
++		tmp |= 2;
++	if (pdata->flags & SH_CSI2_CRC)
++		tmp |= 1;
++	iowrite32(tmp, priv->base + SH_CSI2_CHKSUM);
++}
++
++static int sh_csi2_set_bus_param(struct soc_camera_device *icd,
++				 unsigned long flags)
++{
++	return 0;
++}
++
++static unsigned long sh_csi2_query_bus_param(struct soc_camera_device *icd)
++{
++	struct soc_camera_link *icl = to_soc_camera_link(icd);
++	const unsigned long flags = SOCAM_PCLK_SAMPLE_RISING |
++		SOCAM_HSYNC_ACTIVE_HIGH | SOCAM_VSYNC_ACTIVE_HIGH |
++		SOCAM_MASTER | SOCAM_DATAWIDTH_8 | SOCAM_DATA_ACTIVE_HIGH;
++
++	return soc_camera_apply_sensor_flags(icl, flags);
++}
++
++static int sh_csi2_notify(struct notifier_block *nb,
++			  unsigned long action, void *data)
++{
++	struct device *dev = data;
++	struct soc_camera_device *icd = to_soc_camera_dev(dev);
++	struct v4l2_device *v4l2_dev = dev_get_drvdata(dev->parent);
++	struct sh_csi2 *priv =
++		container_of(nb, struct sh_csi2, notifier);
++	struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
++	int ret, i;
++
++	for (i = 0; i < pdata->num_clients; i++)
++		if (&pdata->clients[i].pdev->dev == icd->pdev)
++			break;
++
++	dev_dbg(dev, "%s(%p): action = %lu, found #%d\n", __func__, dev, action, i);
++
++	if (i == pdata->num_clients)
++		return NOTIFY_DONE;
++
++	switch (action) {
++	case BUS_NOTIFY_BOUND_DRIVER:
++		snprintf(priv->subdev.name, V4L2_SUBDEV_NAME_SIZE, "%s%s",
++			 dev_name(v4l2_dev->dev), ".mipi-csi");
++		ret = v4l2_device_register_subdev(v4l2_dev, &priv->subdev);
++		dev_dbg(dev, "%s(%p): ret(register_subdev) = %d\n", __func__, priv, ret);
++		if (ret < 0)
++			return NOTIFY_DONE;
++
++		priv->client = pdata->clients + i;
++
++		icd->ops->set_bus_param		= sh_csi2_set_bus_param;
++		icd->ops->query_bus_param	= sh_csi2_query_bus_param;
++
++		pm_runtime_get_sync(v4l2_get_subdevdata(&priv->subdev));
++
++		sh_csi2_hwinit(priv);
 +		break;
++	case BUS_NOTIFY_UNBIND_DRIVER:
++		priv->client = NULL;
 +
-+	case LIRC_SET_REC_TIMEOUT:
-+		if (val < ir_dev->props->min_timeout ||
-+			val > ir_dev->props->max_timeout)
-+			return -EINVAL;
-+		ir_dev->props->timeout = val;
++		/* Driver is about to be unbound */
++		icd->ops->set_bus_param		= NULL;
++		icd->ops->query_bus_param	= NULL;
++
++		v4l2_device_unregister_subdev(&priv->subdev);
++
++		pm_runtime_put(v4l2_get_subdevdata(&priv->subdev));
 +		break;
++	}
 +
-+	case LIRC_SET_REC_TIMEOUT_REPORTS:
-+		ir_dev->raw->lirc.timeout_report = !!val;
-+		return 0;
++	return NOTIFY_OK;
++}
 +
-+	case LIRC_GET_MIN_TIMEOUT:
-+		if (!ir_dev->props->max_timeout)
-+			return -ENOSYS;
-+		val = ir_dev->props->min_timeout;
-+		break;
-+	case LIRC_GET_MAX_TIMEOUT:
-+		if (!ir_dev->props->max_timeout)
-+			return -ENOSYS;
-+		val = ir_dev->props->max_timeout;
-+		break;
++static __devinit int sh_csi2_probe(struct platform_device *pdev)
++{
++	struct resource *res;
++	unsigned int irq;
++	int ret;
++	struct sh_csi2 *priv;
++	/* Platform data specify the PHY, lanes, ECC, CRC */
++	struct sh_csi2_pdata *pdata = pdev->dev.platform_data;
 +
-+	case LIRC_SET_LEARN_MODE:
-+		if (ir_dev->props->s_learning_mode)
-+			return ir_dev->props->s_learning_mode(
-+				ir_dev->props->priv, !!val);
-+		else
-+			return -ENOSYS;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	/* Interrupt unused so far */
++	irq = platform_get_irq(pdev, 0);
 +
-+	case LIRC_SET_REC_CARRIER:
-+		if (ir_dev->props->s_rx_carrier_range)
-+			ret =  ir_dev->props->s_rx_carrier_range(
-+				ir_dev->props->priv,
-+					ir_dev->raw->lirc.carrier_low, val);
-+		else
-+			return -ENOSYS;
++	if (!res || (int)irq <= 0 || !pdata) {
++		dev_err(&pdev->dev, "Not enough CSI2 platform resources.\n");
++		return -ENODEV;
++	}
 +
-+		if (!ret)
-+			ir_dev->raw->lirc.carrier_low = 0;
-+		break;
++	/* TODO: Add support for CSI2I. Careful: different register layout! */
++	if (pdata->type != SH_CSI2C) {
++		dev_err(&pdev->dev, "Only CSI2C supported ATM.\n");
++		return -EINVAL;
++	}
 +
-+	case LIRC_SET_REC_CARRIER_RANGE:
-+		if (val >= 0)
-+			ir_dev->raw->lirc.carrier_low = val;
-+		break;
++	priv = kzalloc(sizeof(struct sh_csi2), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
 +
-+	case LIRC_SET_SEND_DUTY_CYCLE:
-+		if (!ir_dev->props->s_tx_duty_cycle)
-+			return -ENOSYS;
++	priv->irq = irq;
++	priv->notifier.notifier_call = sh_csi2_notify;
 +
-+		if (val <= 0 || val >= 100)
-+			return -EINVAL;
++	/* We MUST attach after the MIPI sensor */
++	ret = bus_register_notifier(&soc_camera_bus_type, &priv->notifier);
++	if (ret < 0) {
++		dev_err(&pdev->dev, "CSI2 cannot register notifier\n");
++		goto ernotify;
++	}
 +
-+		ir_dev->props->s_tx_duty_cycle(ir_dev->props->priv, val);
-+		break;
++	if (!request_mem_region(res->start, resource_size(res), pdev->name)) {
++		dev_err(&pdev->dev, "CSI2 register region already claimed\n");
++		ret = -EBUSY;
++		goto ereqreg;
++	}
 +
- 	default:
- 		return lirc_dev_fop_ioctl(filep, cmd, arg);
- 	}
- 
-+	if (_IOC_DIR(cmd) & _IOC_READ)
-+		ret = put_user(val, (unsigned long *)arg);
- 	return ret;
- }
- 
-@@ -200,13 +263,25 @@ static int ir_lirc_register(struct input_dev *input_dev)
- 
- 	features = LIRC_CAN_REC_MODE2;
- 	if (ir_dev->props->tx_ir) {
++	priv->base = ioremap(res->start, resource_size(res));
++	if (!priv->base) {
++		ret = -ENXIO;
++		dev_err(&pdev->dev, "Unable to ioremap CSI2 registers.\n");
++		goto eremap;
++	}
 +
- 		features |= LIRC_CAN_SEND_PULSE;
- 		if (ir_dev->props->s_tx_mask)
- 			features |= LIRC_CAN_SET_TRANSMITTER_MASK;
- 		if (ir_dev->props->s_tx_carrier)
- 			features |= LIRC_CAN_SET_SEND_CARRIER;
++	priv->pdev = pdev;
 +
-+		if (ir_dev->props->s_tx_duty_cycle)
-+			features |= LIRC_CAN_SET_REC_DUTY_CYCLE;
- 	}
- 
-+	if (ir_dev->props->s_rx_carrier_range)
-+		features |= LIRC_CAN_SET_REC_CARRIER |
-+			LIRC_CAN_SET_REC_CARRIER_RANGE;
++	v4l2_subdev_init(&priv->subdev, &sh_csi2_subdev_ops);
++	v4l2_set_subdevdata(&priv->subdev, &pdev->dev);
 +
-+	if (ir_dev->props->s_learning_mode)
-+		features |= LIRC_CAN_LEARN_MODE;
++	platform_set_drvdata(pdev, priv);
 +
++	pm_runtime_enable(&pdev->dev);
 +
- 	snprintf(drv->name, sizeof(drv->name), "ir-lirc-codec (%s)",
- 		 ir_dev->driver_name);
- 	drv->minor = -1;
-diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-index bdf2ed8..2a5b824 100644
---- a/drivers/media/IR/ir-raw-event.c
-+++ b/drivers/media/IR/ir-raw-event.c
-@@ -187,6 +187,9 @@ void ir_raw_event_set_idle(struct input_dev *input_dev, int idle)
- 
- 	if (idle) {
- 		IR_dprintk(2, "enter idle mode\n");
-+		ir_raw_event_store(input_dev, &raw->current_sample);
-+		ir_raw_event_reset(input_dev);
-+		raw->current_sample.duration = 0;
- 		raw->last_event = ktime_get();
- 	} else {
- 		IR_dprintk(2, "exit idle mode\n");
-@@ -194,17 +197,11 @@ void ir_raw_event_set_idle(struct input_dev *input_dev, int idle)
- 		now = ktime_get();
- 		delta = ktime_to_ns(ktime_sub(now, ir->raw->last_event));
- 
--		WARN_ON(raw->current_sample.pulse);
--
--		raw->current_sample.duration =
--			min(raw->current_sample.duration + delta,
-+		raw->current_sample.duration = min(delta,
- 						(u64)IR_MAX_DURATION);
-+		raw->current_sample.pulse = false;
- 
- 		ir_raw_event_store(input_dev, &raw->current_sample);
--
--		if (raw->current_sample.duration == IR_MAX_DURATION)
--			ir_raw_event_reset(input_dev);
--
- 		raw->current_sample.duration = 0;
- 	}
- out:
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index e895054..7299e7a 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -44,6 +44,8 @@ enum rc_driver_type {
-  * @timeout: optional time after which device stops sending data
-  * @min_timeout: minimum timeout supported by device
-  * @max_timeout: maximum timeout supported by device
-+ * @rx_resolution : resolution (in ns) of input sampler
-+ * @tx_resolution: resolution (in ns) of output sampler
-  * @priv: driver-specific data, to be used on the callbacks
-  * @change_protocol: allow changing the protocol used on hardware decoders
-  * @open: callback to allow drivers to enable polling/irq when IR input device
-@@ -52,9 +54,12 @@ enum rc_driver_type {
-  *	is opened.
-  * @s_tx_mask: set transmitter mask (for devices with multiple tx outputs)
-  * @s_tx_carrier: set transmit carrier frequency
-+ * @s_tx_duty_cycle: set transmit duty cycle (0% - 100%)
-+ * @s_rx_carrier: inform driver about carrier it is expected to handle
-  * @tx_ir: transmit IR
-  * @s_idle: optional: enable/disable hardware idle mode, upon which,
- 	device doesn't interrupt host untill it sees IR data
-+ * @s_learning_mode: enable learning mode
-  */
- struct ir_dev_props {
- 	enum rc_driver_type	driver_type;
-@@ -65,6 +70,8 @@ struct ir_dev_props {
- 	u64			min_timeout;
- 	u64			max_timeout;
- 
-+	u32			rx_resolution;
-+	u32			tx_resolution;
- 
- 	void			*priv;
- 	int			(*change_protocol)(void *priv, u64 ir_type);
-@@ -72,8 +79,12 @@ struct ir_dev_props {
- 	void			(*close)(void *priv);
- 	int			(*s_tx_mask)(void *priv, u32 mask);
- 	int			(*s_tx_carrier)(void *priv, u32 carrier);
-+	int			(*s_tx_duty_cycle) (void *priv, u32 duty_cycle);
-+	int			(*s_rx_carrier_range) (void *priv, u32 min, u32 max);
- 	int			(*tx_ir)(void *priv, int *txbuf, u32 n);
- 	void			(*s_idle) (void *priv, int enable);
-+	int			(*s_learning_mode) (void *priv, int enable);
++	dev_dbg(&pdev->dev, "CSI2 probed.\n");
 +
- };
- 
- struct ir_input_dev {
-diff --git a/include/media/lirc.h b/include/media/lirc.h
-index 42c467c..caf172b 100644
---- a/include/media/lirc.h
-+++ b/include/media/lirc.h
-@@ -76,7 +76,7 @@
- #define LIRC_CAN_SET_REC_TIMEOUT          0x10000000
- #define LIRC_CAN_SET_REC_FILTER           0x08000000
- 
--#define LIRC_CAN_MEASURE_CARRIER          0x02000000
-+#define LIRC_CAN_LEARN_MODE               0x02000000
- 
- #define LIRC_CAN_SEND(x) ((x)&LIRC_CAN_SEND_MASK)
- #define LIRC_CAN_REC(x) ((x)&LIRC_CAN_REC_MASK)
-@@ -145,7 +145,7 @@
-  * if enabled from the next key press on the driver will send
-  * LIRC_MODE2_FREQUENCY packets
-  */
--#define LIRC_SET_MEASURE_CARRIER_MODE  _IOW('i', 0x0000001d, __u32)
-+#define LIRC_SET_LEARN_MODE		_IOW('i', 0x0000001d, __u32)
- 
- /*
-  * to set a range use
++	return 0;
++
++eremap:
++	release_mem_region(res->start, resource_size(res));
++ereqreg:
++	bus_unregister_notifier(&soc_camera_bus_type, &priv->notifier);
++ernotify:
++	kfree(priv);
++
++	return ret;
++}
++
++static __devexit int sh_csi2_remove(struct platform_device *pdev)
++{
++	struct sh_csi2 *priv = platform_get_drvdata(pdev);
++	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
++	bus_unregister_notifier(&soc_camera_bus_type, &priv->notifier);
++	pm_runtime_disable(&pdev->dev);
++	iounmap(priv->base);
++	release_mem_region(res->start, resource_size(res));
++	platform_set_drvdata(pdev, NULL);
++	kfree(priv);
++
++	return 0;
++}
++
++static struct platform_driver __refdata sh_csi2_pdrv = {
++	.remove  = __devexit_p(sh_csi2_remove),
++	.driver  = {
++		.name	= "sh-mobile-csi2",
++		.owner	= THIS_MODULE,
++	},
++};
++
++static int __init sh_csi2_init(void)
++{
++	return platform_driver_probe(&sh_csi2_pdrv, sh_csi2_probe);
++}
++
++static void __exit sh_csi2_exit(void)
++{
++	platform_driver_unregister(&sh_csi2_pdrv);
++}
++
++module_init(sh_csi2_init);
++module_exit(sh_csi2_exit);
++
++MODULE_DESCRIPTION("SH-Mobile MIPI CSI-2 driver");
++MODULE_AUTHOR("Guennadi Liakhovetski <g.liakhovetski@gmx.de>");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:sh-mobile-csi2");
+diff --git a/include/media/sh_mobile_csi2.h b/include/media/sh_mobile_csi2.h
+new file mode 100644
+index 0000000..4d26151
+--- /dev/null
++++ b/include/media/sh_mobile_csi2.h
+@@ -0,0 +1,46 @@
++/*
++ * Driver header for the SH-Mobile MIPI CSI-2 unit
++ *
++ * Copyright (C) 2010, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef SH_MIPI_CSI
++#define SH_MIPI_CSI
++
++enum sh_csi2_phy {
++	SH_CSI2_PHY_MAIN,
++	SH_CSI2_PHY_SUB,
++};
++
++enum sh_csi2_type {
++	SH_CSI2C,
++	SH_CSI2I,
++};
++
++#define SH_CSI2_CRC	(1 << 0)
++#define SH_CSI2_ECC	(1 << 1)
++
++struct platform_device;
++
++struct sh_csi2_client_config {
++	enum sh_csi2_phy phy;
++	unsigned char lanes;		/* bitmask[3:0] */
++	unsigned char channel;		/* 0..3 */
++	struct platform_device *pdev;	/* client platform device */
++};
++
++struct sh_csi2_pdata {
++	enum sh_csi2_type type;
++	unsigned int flags;
++	struct sh_csi2_client_config *clients;
++	int num_clients;
++};
++
++struct device;
++struct v4l2_device;
++
++#endif
 -- 
-1.7.0.4
+1.6.2.4
 
