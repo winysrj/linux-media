@@ -1,673 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:48934 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933407Ab0GOOfZ convert rfc822-to-8bit (ORCPT
+Received: from server1.velnet.net ([94.102.147.194]:46600 "EHLO
+	server1.velnet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753703Ab0G0KHf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jul 2010 10:35:25 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-Date: Thu, 15 Jul 2010 09:35:20 -0500
-Subject: RE: [RFC/PATCH 03/10] media: Entities, pads and links
-Message-ID: <A24693684029E5489D1D202277BE894456775DDC@dlee02.ent.ti.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1279114219-27389-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279114219-27389-4-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 27 Jul 2010 06:07:35 -0400
+Received: from host83-217-168-208.dsl.vispa.com ([83.217.168.208] helo=comerford.org.uk)
+	by server1.velnet.net with esmtp (Exim 4.69)
+	(envelope-from <jim@comerford.org.uk>)
+	id 1OdgMS-0005BW-Oy
+	for linux-media@vger.kernel.org; Tue, 27 Jul 2010 10:22:09 +0100
+Received: from [192.168.2.6] ([83.217.168.208]) by comerford.org.uk ([192.168.2.3] running VPOP3) with ESMTP for <linux-media@vger.kernel.org>; Tue, 27 Jul 2010 10:22:06 +0100
+Message-ID: <4C4EA53E.9030703@comerford.org.uk>
+Date: Tue, 27 Jul 2010 10:22:06 +0100
+From: Jim Comerford <jim@comerford.org.uk>
 MIME-Version: 1.0
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Subject: dmesg log - unknown USB video grabber
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+I recently bought a Video Grabber USB stick.
+The unit works with Windows XP and is supplied with a driver for it. I 
+hoped that I could get it to work with Linux.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Wednesday, July 14, 2010 8:30 AM
-> To: linux-media@vger.kernel.org
-> Cc: sakari.ailus@maxwell.research.nokia.com
-> Subject: [RFC/PATCH 03/10] media: Entities, pads and links
->
-> As video hardware pipelines become increasingly complex and
-> configurable, the current hardware description through v4l2 subdevices
-> reaches its limits. In addition to enumerating and configuring
-> subdevices, video camera drivers need a way to discover and modify at
-> runtime how those subdevices are connected. This is done through new
-> elements called entities, pads and links.
->
-> An entity is a basic media hardware building block. It can correspond to
-> a large variety of logical blocks such as physical hardware devices
-> (CMOS sensor for instance), logical hardware devices (a building block
-> in a System-on-Chip image processing pipeline), DMA channels or physical
-> connectors.
->
-> A pad is a connection endpoint through which an entity can interact with
-> other entities. Data (not restricted to video) produced by an entity
-> flows from the entity's output to one or more entity inputs. Pads should
-> not be confused with physical pins at chip boundaries.
->
-> A link is a point-to-point oriented connection between two pads, either
-> on the same entity or on different entities. Data flows from a source
-> pad to a sink pad.
->
-> Links are stored in the source entity. To make backwards graph walk
-> faster, a copy of all links is also stored in the sink entity. The copy
-> is known as a backlink and is only used to help graph traversal.
->
-> The entity API is made of three functions:
->
-> - media_entity_init() initializes an entity. The caller must provide an
-> array of pads as well as an estimated number of links. The links array
-> is allocated dynamically and will be reallocated if it grows beyond the
-> initial estimate.
->
-> - media_entity_cleanup() frees resources allocated for an entity. It
-> must be called during the cleanup phase after unregistering the entity
-> and before freeing it.
->
-> - media_entity_create_link() creates a link between two entities. An
-> entry in the link array of each entity is allocated and stores pointers
-> to source and sink pads.
->
-> When a media device is unregistered, all its entities are unregistered
-> automatically.
->
-> The code is based on Hans Verkuil <hverkuil@xs4all.nl> initial work.
->
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  Documentation/media-framework.txt |  125 ++++++++++++++++++++++++++++++++
->  drivers/media/Makefile            |    2 +-
->  drivers/media/media-device.c      |   53 ++++++++++++++
->  drivers/media/media-entity.c      |  145
-> +++++++++++++++++++++++++++++++++++++
->  include/media/media-device.h      |   16 ++++
->  include/media/media-entity.h      |   79 ++++++++++++++++++++
->  6 files changed, 419 insertions(+), 1 deletions(-)
->  create mode 100644 drivers/media/media-entity.c
->  create mode 100644 include/media/media-entity.h
->
-> diff --git a/Documentation/media-framework.txt b/Documentation/media-
-> framework.txt
-> index b942c8f..4a8f379 100644
-> --- a/Documentation/media-framework.txt
-> +++ b/Documentation/media-framework.txt
-> @@ -35,6 +35,30 @@ belong to userspace.
->  The media kernel API aims at solving those problems.
->
->
-> +Abstract media device model
-> +---------------------------
-> +
-> +Discovering a device internal topology, and configuring it at runtime, is
-> one
-> +of the goals of the media framework. To achieve this, hardware devices
-> are
-> +modeled as an oriented graph of building blocks called entities connected
-> +through pads.
-> +
-> +An entity is a basic media hardware building block. It can correspond to
-> +a large variety of logical blocks such as physical hardware devices
-> +(CMOS sensor for instance), logical hardware devices (a building block
-> +in a System-on-Chip image processing pipeline), DMA channels or physical
-> +connectors.
-> +
-> +A pad is a connection endpoint through which an entity can interact with
-> +other entities. Data (not restricted to video) produced by an entity
-> +flows from the entity's output to one or more entity inputs. Pads should
-> +not be confused with physical pins at chip boundaries.
-> +
-> +A link is a point-to-point oriented connection between two pads, either
-> +on the same entity or on different entities. Data flows from a source
-> +pad to a sink pad.
-> +
-> +
->  Media device
->  ------------
->
-> @@ -66,3 +90,104 @@ Drivers unregister media device instances by calling
->
->  Unregistering a media device that hasn't been registered is *NOT* safe.
->
-> +
-> +Entities, pads and links
-> +------------------------
-> +
-> +- Entities
-> +
-> +Entities are represented by a struct media_entity instance, defined in
-> +include/media/media-entity.h. The structure is usually embedded into a
-> +higher-level structure, such as a v4l2_subdev or video_device instance,
-> +although drivers can allocate entities directly.
-> +
-> +Drivers initialize entities by calling
-> +
-> +     media_entity_init(struct media_entity *entity, u8 num_pads,
-> +                       struct media_entity_pad *pads, u8 extra_links);
-> +
-> +The media_entity name, type and subtype fields can be initialized before
-> or
-> +after calling media_entity_init. Entities embedded in higher-level
-> standard
-> +structures have those fields set by the higher-level framework.
-> +
-> +As the number of pads is known in advance, the pads array is not
-> allocated
-> +dynamically but is managed by the entity driver. Most drivers will embed
-> the
-> +pads array in a driver-specific structure, avoiding dynamic allocation.
-> +
-> +Drivers must set the type of every pad in the pads array before calling
-> +media_entity_init. The function will initialize the other pads fields.
-> +
-> +Unlike the number of pads, the total number of links isn't always known
-> in
-> +advance by the entity driver. As an initial estimate, media_entity_init
-> +pre-allocates a number of links equal to the number of pads plus an
-> optional
-> +number of extra links. The links array will be reallocated if it grows
-> beyond
-> +the initial estimate.
-> +
-> +Drivers register entities with a media device by calling
-> +
-> +     media_device_register_entity(struct media_device *mdev,
-> +                                  struct media_entity *entity);
-> +
-> +When registered the entity is assigned an ID. Entity IDs are positive
-> integers
-> +and are guaranteed to be unique in the context of the media device. The
-> +framework doesn't guarantees that IDs will always be continuous.
-> +
-> +Drivers unregister entities by calling
-> +
-> +     media_device_unregister_entity(struct media_entity *entity);
-> +
-> +Unregistering an entity will not change the IDs of the other entities,
-> and the
-> +ID will never be reused for a newly registered entity.
-> +
-> +When a media device is unregistered, all its entities are unregistered
-> +automatically. No manual entities unregistration is then required.
-> +
-> +Drivers free resources associated with an entity by calling
-> +
-> +     media_entity_cleanup(struct media_entity *entity);
-> +
-> +This function must be called during the cleanup phase after unregistering
-> the
-> +entity. Note that the media_entity instance itself must be freed
-> explicitly by
-> +the driver if required.
-> +
-> +- Pads
-> +
-> +Pads are represented by a struct media_entity_pad instance, defined in
-> +include/media/media-entity.h. Each entity stores its pads in a pads array
-> +managed by the entity driver. Drivers usually embed the array in a
-> +driver-specific structure.
-> +
-> +Pads are identified by their entity and their 0-based index in the pads
-> array.
-> +Both information are stored in the media_entity_pad structure, making the
-> +media_entity_pad pointer the canonical way to store and pass link
-> references.
-> +
-> +Pads have a type, relative to the entity they belong to:
-> +
-> +     pads of type MEDIA_PAD_TYPE_INPUT sink data, while
-> +     pads of type MEDIA_PAD_TYPE_OUTPUT source data.
-> +
-> +- Links
-> +
-> +Links are represented by a struct media_entity_link instance, defined in
-> +include/media/media-entity.h. Each entity stores all links originating at
-> or
-> +targetting any of its pads in a links array. A given link is thus stored
-> +twice, once in the source entity and once in the target entity. The array
-> is
-> +pre-allocated and grows dynamically as needed.
-> +
-> +Drivers create links by calling
-> +
-> +     media_entity_create_link(struct media_entity *source, u8 source_pad,
-> +                              struct media_entity *sink,   u8 sink_pad,
-> +                              u32 flags);
-> +
-> +An entry in the link array of each entity is allocated and stores
-> pointers
-> +to source and sink pads.
-> +
-> +Links have flags that describe the link capabilities and state.
-> +
-> +     MEDIA_LINK_FLAG_ACTIVE indicates that the link is active and can be
-> +     used to transfer media data. When two or more links target a sink
-> pad,
-> +     only one of them can be active at a time.
-> +     MEDIA_LINK_FLAG_IMMUTABLE indicates that the link active state can't
-> +     be modified at runtime. An immutable link is always active.
-> +
-> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-> index f8d8dcb..a425581 100644
-> --- a/drivers/media/Makefile
-> +++ b/drivers/media/Makefile
-> @@ -2,7 +2,7 @@
->  # Makefile for the kernel multimedia device drivers.
->  #
->
-> -media-objs   := media-device.o media-devnode.o
-> +media-objs   := media-device.o media-devnode.o media-entity.o
->
->  obj-$(CONFIG_MEDIA_SUPPORT)  += media.o
->
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> index a4d3db5..6361367 100644
-> --- a/drivers/media/media-device.c
-> +++ b/drivers/media/media-device.c
-> @@ -23,6 +23,7 @@
->
->  #include <media/media-device.h>
->  #include <media/media-devnode.h>
-> +#include <media/media-entity.h>
->
->  static const struct media_file_operations media_device_fops = {
->       .owner = THIS_MODULE,
-> @@ -47,6 +48,10 @@ static void media_device_release(struct media_devnode
-> *mdev)
->   */
->  int __must_check media_device_register(struct media_device *mdev)
->  {
-> +     mdev->entity_id = 1;
-> +     INIT_LIST_HEAD(&mdev->entities);
-> +     spin_lock_init(&mdev->lock);
-> +
->       /* If dev == NULL, then name must be filled in by the caller */
->       if (mdev->dev == NULL && WARN_ON(!mdev->name[0]))
->               return 0;
-> @@ -72,6 +77,54 @@ EXPORT_SYMBOL_GPL(media_device_register);
->   */
->  void media_device_unregister(struct media_device *mdev)
->  {
-> +     struct media_entity *entity;
-> +     struct media_entity *next;
-> +
-> +     list_for_each_entry_safe(entity, next, &mdev->entities, list)
-> +             media_device_unregister_entity(entity);
-> +
->       media_devnode_unregister(&mdev->devnode);
->  }
->  EXPORT_SYMBOL_GPL(media_device_unregister);
-> +
-> +/**
-> + * media_device_register_entity - Register an entity with a media device
-> + * @mdev:    The media device
-> + * @entity:  The entity
-> + */
-> +int __must_check media_device_register_entity(struct media_device *mdev,
-> +                                           struct media_entity *entity)
-> +{
-
-What if mdev == NULL OR entity == NULL?
-
-> +     /* Warn if we apparently re-register an entity */
-> +     WARN_ON(entity->parent != NULL);
-
-Shouldn't we exit with -EBUSY here instead? Or is there a usecase
-In which this is a valid scenario?
-
-> +     entity->parent = mdev;
-> +
-> +     spin_lock(&mdev->lock);
-> +     entity->id = mdev->entity_id++;
-> +     list_add_tail(&entity->list, &mdev->entities);
-> +     spin_unlock(&mdev->lock);
-> +
-> +     return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(media_device_register_entity);
-> +
-> +/**
-> + * media_device_unregister_entity - Unregister an entity
-> + * @entity:  The entity
-> + *
-> + * If the entity has never been registered this function will return
-> + * immediately.
-> + */
-> +void media_device_unregister_entity(struct media_entity *entity)
-> +{
-> +     struct media_device *mdev = entity->parent;
-
-What if entity == NULL?
-
-> +
-> +     if (mdev == NULL)
-> +             return;
-> +
-> +     spin_lock(&mdev->lock);
-> +     list_del(&entity->list);
-> +     spin_unlock(&mdev->lock);
-> +     entity->parent = NULL;
-> +}
-> +EXPORT_SYMBOL_GPL(media_device_unregister_entity);
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> new file mode 100644
-> index 0000000..d5a4b4c
-> --- /dev/null
-> +++ b/drivers/media/media-entity.c
-> @@ -0,0 +1,145 @@
-> +/*
-> + *  Media Entity support
-> + *
-> + *  Copyright (C) 2009 Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com>
-
-2010?
-
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; either version 2 of the License, or
-> + *  (at your option) any later version.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License
-> + *  along with this program; if not, write to the Free Software
-> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-> USA
-> + */
-> +
-> +#include <linux/module.h>
-> +#include <linux/slab.h>
-> +#include <media/media-entity.h>
-> +
-> +/**
-> + * media_entity_init - Initialize a media entity
-> + *
-> + * @num_pads: Total number of input and output pads.
-> + * @extra_links: Initial estimate of the number of extra links.
-> + * @pads: Array of 'num_pads' pads.
-> + *
-> + * The total number of pads is an intrinsic property of entities known by
-> the
-> + * entity driver, while the total number of links depends on hardware
-> design
-> + * and is an extrinsic property unknown to the entity driver. However, in
-> most
-> + * use cases the entity driver can guess the number of links which can
-> safely
-> + * be assumed to be equal to or larger than the number of pads.
-> + *
-> + * For those reasons the links array can be preallocated based on the
-> entity
-> + * driver guess and will be reallocated later if extra links need to be
-> + * created.
-> + *
-> + * This function allocates a links array with enough space to hold at
-> least
-> + * 'num_pads' + 'extra_links' elements. The media_entity::max_links field
-> will
-> + * be set to the number of allocated elements.
-> + *
-> + * The pads array is managed by the entity driver and passed to
-> + * media_entity_init() where its pointer will be stored in the entity
-> structure.
-> + */
-> +int
-> +media_entity_init(struct media_entity *entity, u8 num_pads,
-> +               struct media_entity_pad *pads, u8 extra_links)
-> +{
-> +     struct media_entity_link *links;
-> +     unsigned int max_links = num_pads + extra_links;
-> +     unsigned int i;
-> +
-> +     links = kzalloc(max_links * sizeof(links[0]), GFP_KERNEL);
-> +     if (links == NULL)
-> +             return -ENOMEM;
-> +
-> +     entity->max_links = max_links;
-> +     entity->num_links = 0;
-> +     entity->num_backlinks = 0;
-> +     entity->num_pads = num_pads;
-> +     entity->pads = pads;
-> +     entity->links = links;
-> +
-> +     for (i = 0; i < num_pads; i++) {
-> +             pads[i].entity = entity;
-> +             pads[i].index = i;
-> +     }
-> +
-> +     return 0;
-> +}
-> +EXPORT_SYMBOL(media_entity_init);
-> +
-> +void
-> +media_entity_cleanup(struct media_entity *entity)
-> +{
-> +     kfree(entity->links);
-> +}
-> +EXPORT_SYMBOL(media_entity_cleanup);
-> +
-> +static struct
-> +media_entity_link *media_entity_add_link(struct media_entity *entity)
-> +{
-> +     if (entity->num_links >= entity->max_links) {
-> +             struct media_entity_link *links = entity->links;
-> +             unsigned int max_links = entity->max_links + 2;
-> +             unsigned int i;
-> +
-> +             links = krealloc(links, max_links * sizeof(*links),
-> GFP_KERNEL);
-> +             if (links == NULL)
-> +                     return NULL;
-> +
-> +             for (i = 0; i < entity->num_links; i++)
-> +                     links[i].other->other = &links[i];
-> +
-> +             entity->max_links = max_links;
-> +             entity->links = links;
-> +     }
-> +
-> +     return &entity->links[entity->num_links++];
-> +}
-> +
-> +int
-> +media_entity_create_link(struct media_entity *source, u8 source_pad,
-> +                      struct media_entity *sink, u8 sink_pad, u32 flags)
-> +{
-> +     struct media_entity_link *link;
-> +     struct media_entity_link *backlink;
-> +
-> +     BUG_ON(source == NULL || sink == NULL);
-> +     BUG_ON(source_pad >= source->num_pads);
-> +     BUG_ON(sink_pad >= sink->num_pads);
-
-Isn't this too dramatic? :)
-
-I mean, does the entire system needs to be halted because you won't be
-able to link your video subdevices?
-
-> +
-> +     link = media_entity_add_link(source);
-> +     if (link == NULL)
-> +             return -ENOMEM;
-> +
-> +     link->source = &source->pads[source_pad];
-> +     link->sink = &sink->pads[sink_pad];
-> +     link->flags = flags;
-> +
-> +     /* Create the backlink. Backlinks are used to help graph traversal
-> and
-> +      * are not reported to userspace.
-> +      */
-> +     backlink = media_entity_add_link(sink);
-> +     if (backlink == NULL) {
-> +             source->num_links--;
-> +             return -ENOMEM;
-> +     }
-> +
-> +     backlink->source = &source->pads[source_pad];
-> +     backlink->sink = &sink->pads[sink_pad];
-> +     backlink->flags = flags;
-> +
-> +     link->other = backlink;
-> +     backlink->other = link;
-> +
-> +     sink->num_backlinks++;
-> +
-> +     return 0;
-> +}
-> +EXPORT_SYMBOL(media_entity_create_link);
-> diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index 6c1fc4a..9105dc3 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -23,8 +23,10 @@
->
->  #include <linux/device.h>
->  #include <linux/list.h>
-> +#include <linux/spinlock.h>
->
->  #include <media/media-devnode.h>
-> +#include <media/media-entity.h>
->
->  /* Each instance of a media device should create the media_device struct,
->   * either stand-alone or embedded in a larger struct.
-> @@ -43,6 +45,12 @@ struct media_device {
->       struct device *dev;
->       struct media_devnode devnode;
->
-> +     u32 entity_id;
-> +     struct list_head entities;
-> +
-> +     /* Protects the entities list */
-> +     spinlock_t lock;
-> +
->       /* unique device name, by default the driver name + bus ID */
->       char name[MEDIA_DEVICE_NAME_SIZE];
->  };
-> @@ -50,4 +58,12 @@ struct media_device {
->  int __must_check media_device_register(struct media_device *mdev);
->  void media_device_unregister(struct media_device *mdev);
->
-> +int __must_check media_device_register_entity(struct media_device *mdev,
-> +                                           struct media_entity *entity);
-> +void media_device_unregister_entity(struct media_entity *entity);
-> +
-> +/* Iterate over all entities. */
-> +#define media_device_for_each_entity(entity, mdev)                   \
-> +     list_for_each_entry(entity, &(mdev)->entities, list)
-> +
->  #endif
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> new file mode 100644
-> index 0000000..0929a90
-> --- /dev/null
-> +++ b/include/media/media-entity.h
-> @@ -0,0 +1,79 @@
-> +#ifndef _MEDIA_ENTITY_H
-> +#define _MEDIA_ENTITY_H
-> +
-> +#include <linux/list.h>
-> +
-> +#define MEDIA_ENTITY_TYPE_NODE               1
-> +#define MEDIA_ENTITY_TYPE_SUBDEV     2
-> +
-> +#define MEDIA_NODE_TYPE_V4L          1
-> +#define MEDIA_NODE_TYPE_FB           2
-> +#define MEDIA_NODE_TYPE_ALSA         3
-> +#define MEDIA_NODE_TYPE_DVB          4
-> +
-> +#define MEDIA_SUBDEV_TYPE_VID_DECODER        1
-> +#define MEDIA_SUBDEV_TYPE_VID_ENCODER        2
-> +#define MEDIA_SUBDEV_TYPE_MISC               3
-> +
-> +#define MEDIA_LINK_FLAG_ACTIVE               (1 << 0)
-> +#define MEDIA_LINK_FLAG_IMMUTABLE    (1 << 1)
-> +
-> +#define MEDIA_PAD_TYPE_INPUT         1
-> +#define MEDIA_PAD_TYPE_OUTPUT                2
-
-Shouldn't all the above be enums? (except of course the
-MEDIA_LINK_FLAG_* defines)
+It is made by AGK Nordic and is model 3015. Below is a copy of the 
+relevant lines from dmesg after inserting it.
 
 Regards,
-Sergio
+Jim Comerford
 
-> +
-> +struct media_entity_link {
-> +     struct media_entity_pad *source;/* Source pad */
-> +     struct media_entity_pad *sink;  /* Sink pad  */
-> +     struct media_entity_link *other;/* Link in the reverse direction */
-> +     u32 flags;                      /* Link flags (MEDIA_LINK_FLAG_*) */
-> +};
-> +
-> +struct media_entity_pad {
-> +     struct media_entity *entity;    /* Entity this pad belongs to */
-> +     u32 type;                       /* Pad type (MEDIA_PAD_TYPE_*) */
-> +     u32 index;                      /* Pad index in the entity pads array */
-> +};
-> +
-> +struct media_entity {
-> +     struct list_head list;
-> +     struct media_device *parent;    /* Media device this entity belongs
-> to*/
-> +     u32 id;                         /* Entity ID, unique in the parent
-> media
-> +                                      * device context */
-> +     const char *name;               /* Entity name */
-> +     u32 type;                       /* Entity type (MEDIA_ENTITY_TYPE_*) */
-> +     u32 subtype;                    /* Entity subtype (type-specific) */
-> +
-> +     u8 num_pads;                    /* Number of input and output pads */
-> +     u8 num_links;                   /* Number of existing links, both
-> active
-> +                                      * and inactive */
-> +     u8 num_backlinks;               /* Number of backlinks */
-> +     u8 max_links;                   /* Maximum number of links */
-> +
-> +     struct media_entity_pad *pads;  /* Array of pads (num_pads
-> elements) */
-> +     struct media_entity_link *links;/* Array of links (max_links
-> elements)*/
-> +
-> +     union {
-> +             /* Node specifications */
-> +             struct {
-> +                     u32 major;
-> +                     u32 minor;
-> +             } v4l;
-> +             struct {
-> +                     u32 major;
-> +                     u32 minor;
-> +             } fb;
-> +             int alsa;
-> +             int dvb;
-> +
-> +             /* Sub-device specifications */
-> +             /* Nothing needed yet */
-> +     };
-> +};
-> +
-> +int media_entity_init(struct media_entity *entity, u8 num_pads,
-> +             struct media_entity_pad *pads, u8 extra_links);
-> +void media_entity_cleanup(struct media_entity *entity);
-> +int media_entity_create_link(struct media_entity *source, u8 source_pad,
-> +             struct media_entity *sink, u8 sink_pad, u32 flags);
-> +
-> +#endif
-> --
-> 1.7.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[ 2082.744121] usb 1-1: new high speed USB device using ehci_hcd and 
+address 6
+[ 2082.877991] usb 1-1: configuration #1 chosen from 1 choice
+[ 2082.878502] em28xx: New device @ 480 Mbps (eb1a:2861, interface 0, 
+class 0)
+[ 2082.878711] em28xx #0: chip ID is em2860
+[ 2082.968804] em28xx #0: board has no eeprom
+[ 2082.980570] em28xx #0: Identified as Unknown EM2750/28xx video 
+grabber (card=1)
+[ 2083.016565] em28xx #0: found i2c device @ 0xb8 [tvp5150a]
+[ 2083.029944] em28xx #0: Your board has no unique USB ID and thus need 
+a hint to be detected.
+[ 2083.029961] em28xx #0: You may try to use card=<n> insmod option to 
+workaround that.
+[ 2083.029973] em28xx #0: Please send an email with this log to:
+[ 2083.029982] em28xx #0:     V4L Mailing List <linux-media@vger.kernel.org>
+[ 2083.029992] em28xx #0: Board eeprom hash is 0x00000000
+[ 2083.030002] em28xx #0: Board i2c devicelist hash is 0x77800080
+[ 2083.030011] em28xx #0: Here is a list of valid choices for the 
+card=<n> insmod option:
+[ 2083.030023] em28xx #0:     card=0 -> Unknown EM2800 video grabber
+[ 2083.030035] em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
+[ 2083.030046] em28xx #0:     card=2 -> Terratec Cinergy 250 USB
+[ 2083.030056] em28xx #0:     card=3 -> Pinnacle PCTV USB 2
+[ 2083.030066] em28xx #0:     card=4 -> Hauppauge WinTV USB 2
+[ 2083.030075] em28xx #0:     card=5 -> MSI VOX USB 2.0
+[ 2083.030085] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
+[ 2083.030095] em28xx #0:     card=7 -> Leadtek Winfast USB II
+[ 2083.030105] em28xx #0:     card=8 -> Kworld USB2800
+[ 2083.030116] em28xx #0:     card=9 -> Pinnacle Dazzle DVC 
+90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2
+[ 2083.030129] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
+[ 2083.030140] em28xx #0:     card=11 -> Terratec Hybrid XS
+[ 2083.030150] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
+[ 2083.030160] em28xx #0:     card=13 -> Terratec Prodigy XS
+[ 2083.030170] em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview 
+Prolink PlayTV USB 2.0
+[ 2083.030182] em28xx #0:     card=15 -> V-Gear PocketTV
+[ 2083.030192] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
+[ 2083.030202] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
+[ 2083.030212] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
+[ 2083.030223] em28xx #0:     card=19 -> EM2860/SAA711X Reference Design
+[ 2083.030234] em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
+[ 2083.030244] em28xx #0:     card=21 -> eMPIA Technology, Inc. 
+GrabBeeX+ Video Encoder
+[ 2083.030256] em28xx #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber
+[ 2083.030266] em28xx #0:     card=23 -> Huaqi DLCW-130
+[ 2083.030276] em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
+[ 2083.030286] em28xx #0:     card=25 -> Gadmei UTV310
+[ 2083.030296] em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
+[ 2083.030307] em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips 
+FM1216ME)
+[ 2083.030318] em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
+[ 2083.030328] em28xx #0:     card=29 -> <NULL>
+[ 2083.030338] em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
+[ 2083.030348] em28xx #0:     card=31 -> Usbgear VD204v9
+[ 2083.030358] em28xx #0:     card=32 -> Supercomp USB 2.0 TV
+[ 2083.030368] em28xx #0:     card=33 -> <NULL>
+[ 2083.030377] em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS
+[ 2083.030388] em28xx #0:     card=35 -> Typhoon DVD Maker
+[ 2083.030397] em28xx #0:     card=36 -> NetGMBH Cam
+[ 2083.030407] em28xx #0:     card=37 -> Gadmei UTV330
+[ 2083.030417] em28xx #0:     card=38 -> Yakumo MovieMixer
+[ 2083.030426] em28xx #0:     card=39 -> KWorld PVRTV 300U
+[ 2083.030436] em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U
+[ 2083.030447] em28xx #0:     card=41 -> Kworld 350 U DVB-T
+[ 2083.030456] em28xx #0:     card=42 -> Kworld 355 U DVB-T
+[ 2083.030466] em28xx #0:     card=43 -> Terratec Cinergy T XS
+[ 2083.030477] em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
+[ 2083.030487] em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
+[ 2083.030497] em28xx #0:     card=46 -> Compro, VideoMate U3
+[ 2083.030507] em28xx #0:     card=47 -> KWorld DVB-T 305U
+[ 2083.030517] em28xx #0:     card=48 -> KWorld DVB-T 310U
+[ 2083.030527] em28xx #0:     card=49 -> MSI DigiVox A/D
+[ 2083.030536] em28xx #0:     card=50 -> MSI DigiVox A/D II
+[ 2083.030546] em28xx #0:     card=51 -> Terratec Hybrid XS Secam
+[ 2083.030557] em28xx #0:     card=52 -> DNT DA2 Hybrid
+[ 2083.030566] em28xx #0:     card=53 -> Pinnacle Hybrid Pro
+[ 2083.030576] em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
+[ 2083.030586] em28xx #0:     card=55 -> Terratec Hybrid XS (em2882)
+[ 2083.030597] em28xx #0:     card=56 -> Pinnacle Hybrid Pro (2)
+[ 2083.030607] em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
+[ 2083.030618] em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
+[ 2083.030628] em28xx #0:     card=59 -> <NULL>
+[ 2083.030637] em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
+[ 2083.030648] em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
+[ 2083.030658] em28xx #0:     card=62 -> Gadmei TVR200
+[ 2083.030668] em28xx #0:     card=63 -> Kaiomy TVnPC U2
+[ 2083.030678] em28xx #0:     card=64 -> Easy Cap Capture DC-60
+[ 2083.030688] em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
+[ 2083.030697] em28xx #0:     card=66 -> Empire dual TV
+[ 2083.030707] em28xx #0:     card=67 -> Terratec Grabby
+[ 2083.030717] em28xx #0:     card=68 -> Terratec AV350
+[ 2083.030727] em28xx #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
+[ 2083.030737] em28xx #0:     card=70 -> Evga inDtube
+[ 2083.030747] em28xx #0:     card=71 -> Silvercrest Webcam 1.3mpix
+[ 2083.030757] em28xx #0:     card=72 -> Gadmei UTV330+
+[ 2083.030767] em28xx #0:     card=73 -> Reddo DVB-C USB TV Box
+[ 2083.030927] em28xx #0: Config register raw data: 0x10
+[ 2083.052324] em28xx #0: AC97 vendor ID = 0xffffffff
+[ 2083.064322] em28xx #0: AC97 features = 0x6a90
+[ 2083.064334] em28xx #0: Empia 202 AC97 audio processor detected
+[ 2083.476112] em28xx #0: v4l2 driver version 0.1.2
+[ 2084.413128] em28xx #0: V4L2 video device registered as /dev/video1
+[ 2084.413137] em28xx #0: V4L2 VBI device registered as /dev/vbi0
+
