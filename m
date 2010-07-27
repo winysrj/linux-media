@@ -1,69 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:59930 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935955Ab0GPIx0 (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52468 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753053Ab0G0MJm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jul 2010 04:53:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [RFC/PATCH 02/10] media: Media device
-Date: Fri, 16 Jul 2010 10:53:20 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279114219-27389-3-git-send-email-laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE894456775DA5@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894456775DA5@dlee02.ent.ti.com>
+	Tue, 27 Jul 2010 08:09:42 -0400
+Date: Tue, 27 Jul 2010 13:08:41 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Cc: linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	linux-kernel@vger.kernel.org, Hiremath Vaibhav <hvaibhav@ti.com>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCHv2 2/4] mm: cma: Contiguous Memory Allocator added
+Message-ID: <20100727120841.GC11468@n2100.arm.linux.org.uk>
+References: <cover.1280151963.git.m.nazarewicz@samsung.com> <743102607e2c5fb20e3c0676fadbcb93d501a78e.1280151963.git.m.nazarewicz@samsung.com> <dc4bdf3e0b02c0ac4770927f72b6cbc3f0b486a2.1280151963.git.m.nazarewicz@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007161053.20737.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <dc4bdf3e0b02c0ac4770927f72b6cbc3f0b486a2.1280151963.git.m.nazarewicz@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+On Mon, Jul 26, 2010 at 04:40:30PM +0200, Michal Nazarewicz wrote:
+> +** Why is it needed?
+> +
+> +    Various devices on embedded systems have no scatter-getter and/or
+> +    IO map support and as such require contiguous blocks of memory to
+> +    operate.  They include devices such as cameras, hardware video
+> +    decoders and encoders, etc.
 
-Thanks for the review.
+Yes, this is becoming quite a big problem - and many ARM SoCs suffer
+from the existing memory allocators being extremely inadequate for
+their use.
 
-On Thursday 15 July 2010 16:16:44 Aguirre, Sergio wrote:
-> > On Wednesday 14 July 2010 08:30:00 Laurent Pinchart wrote:
+One of the areas I've been working on is sorting out the DMA coherent
+allocator so we don't violate the architecture requirements for ARMv6
+and ARMv7 CPUs (which basically prohibits multiple mappings of memory
+with different attributes.)
 
-<snip>
+One of the ideas that I've thought about for this is to reserve an
+amount of contiguous memory at boot time to fill the entire DMA coherent
+mapping, marking the memory in the main kernel memory map as 'no access',
+and allocate directly from the DMA coherent region.
 
-> > diff --git a/include/media/media-device.h b/include/media/media-device.h
-> > new file mode 100644
-> > index 0000000..6c1fc4a
-> > --- /dev/null
-> > +++ b/include/media/media-device.h
-> > @@ -0,0 +1,53 @@
+However, discussing this with people who have the problem you're trying
+to solve indicates that they do not want to set aside an amount of
+memory as they perceive this to be a waste of resources.
 
-[snip]
+This concern also applies to 'cma'.
 
-> > +#ifndef _MEDIA_DEVICE_H
-> > +#define _MEDIA_DEVICE_H
-> > +
-> > +#include <linux/device.h>
-> > +#include <linux/list.h>
-> > +
-> > +#include <media/media-devnode.h>
-> > +
-> > +/* Each instance of a media device should create the media_device struct,
-> > + * either stand-alone or embedded in a larger struct.
-> > + *
-> > + * It allows easy access to sub-devices (see v4l2-subdev.h) and provides
-> > + * basic media device-level support.
-> > + */
-> > +
-> > +#define MEDIA_DEVICE_NAME_SIZE (20 + 16)
-> 
-> Where does above numbers come from ??
+> +/*
+> + * Don't call it directly, use cma_alloc(), cma_alloc_from() or
+> + * cma_alloc_from_region().
+> + */
+> +dma_addr_t __must_check
+> +__cma_alloc(const struct device *dev, const char *kind,
+> +	    size_t size, dma_addr_t alignment);
 
-Copied from v4l2-device.h. It was originally BUS_ID_SIZE (the constant is now 
-gone) + 16.
+Does this really always return DMA-able memory (memory which can be
+DMA'd to/from without DMA-mapping etc?)
 
-I can replace that by a hardcoded 32.
+As it returns a dma_addr_t, it's returning a cookie for the memory which
+will be suitable for writing directly to the device 'dev' doing the DMA.
+(NB: DMA addresses may not be the same as physical addresses, especially
+if the device is on a downstream bus.  We have ARM platforms which have
+different bus offsets.)
 
--- 
-Regards,
+How does one obtain the CPU address of this memory in order for the CPU
+to access it?
 
-Laurent Pinchart
+> +static inline dma_addr_t __must_check
+> +cma_alloc(const struct device *dev, const char *kind,
+> +	  size_t size, dma_addr_t alignment)
+> +{
+> +	return dev ? -EINVAL : __cma_alloc(dev, kind, size, alignment);
+
+So I can't use this to allocate memory for anything but a NULL device?
+
+> +static inline int
+> +cma_info(struct cma_info *info, const struct device *dev, const char *kind)
+> +{
+> +	return dev ? -EINVAL : __cma_info(info, dev, kind);
+
+This won't return information for anything but a NULL device?
