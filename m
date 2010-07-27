@@ -1,81 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:32770 "EHLO mx1.redhat.com"
+Received: from mxin.ulb.ac.be ([164.15.128.112]:17755 "EHLO mxin.ulb.ac.be"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755979Ab0GGOgS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Jul 2010 10:36:18 -0400
-Date: Wed, 7 Jul 2010 10:29:44 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Jiri Slaby <jirislaby@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Linux kernel mailing list <linux-kernel@vger.kernel.org>
-Subject: [PATCH] IR/lirc_dev: fix locking in lirc_dev_fop_read
-Message-ID: <20100707142944.GC29996@redhat.com>
-References: <4C3478AA.7070805@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C3478AA.7070805@gmail.com>
+	id S1753629Ab0G0I6A (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jul 2010 04:58:00 -0400
+Subject: Patch for TwinHan VT DST and compatible DVB-T cards
+From: Arnuschky <arnuschky@xylon.de>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 27 Jul 2010 10:48:08 +0200
+Message-ID: <1280220488.21267.8.camel@edison>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 07, 2010 at 02:52:58PM +0200, Jiri Slaby wrote:
-> Hi,
-> 
-> stanse found a locking error in lirc_dev_fop_read:
-> if (mutex_lock_interruptible(&ir->irctl_lock))
->   return -ERESTARTSYS;
-> ...
-> while (written < length && ret == 0) {
->   if (mutex_lock_interruptible(&ir->irctl_lock)) {    #1
->     ret = -ERESTARTSYS;
->     break;
->   }
->   ...
-> }
-> 
-> remove_wait_queue(&ir->buf->wait_poll, &wait);
-> set_current_state(TASK_RUNNING);
-> mutex_unlock(&ir->irctl_lock);                        #2
-> 
-> If lock at #1 fails, it beaks out of the loop, with the lock unlocked,
-> but there is another "unlock" at #2.
+Hi,
 
-This should do the trick. Completely untested beyond compiling, but its
-not exactly a complicated fix, and in practice, I'm not aware of anyone
-ever actually tripping that locking bug, so there's zero functional change
-in typical use here.
+here a small patch to get a TwinHan VT DST DVB-T card working with
+kernels >= 2.6.32. Analogously to
+http://linuxtv.org/hg/v4l-dvb/rev/0e735b509163 I had to:
 
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/lirc_dev.c |    5 ++++-
- 1 files changed, 4 insertions(+), 1 deletions(-)
+"Fill in the .caps field in struct dst_dvbt_ops (around line 1763) with
+all the supported QAM modulation methods to match the capabilities of
+the card as implemented in function dst_set_modulation (around line
+502). Note that beginning with linux kernel version 2.6.32 the
+modulation method is checked (by function dvb_frontend_check_parameters
+in file drivers/media/dvb/dvb-core/dvb_frontend.c) and thus tuning fails
+if you use a modulation method that is not present in the .caps field."
 
-diff --git a/drivers/media/IR/lirc_dev.c b/drivers/media/IR/lirc_dev.c
-index 9e141d5..64170fa 100644
---- a/drivers/media/IR/lirc_dev.c
-+++ b/drivers/media/IR/lirc_dev.c
-@@ -657,7 +657,9 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 
- 			if (mutex_lock_interruptible(&ir->irctl_lock)) {
- 				ret = -ERESTARTSYS;
--				break;
-+				remove_wait_queue(&ir->buf->wait_poll, &wait);
-+				set_current_state(TASK_RUNNING);
-+				goto out_unlocked;
- 			}
- 
- 			if (!ir->attached) {
-@@ -676,6 +678,7 @@ ssize_t lirc_dev_fop_read(struct file *file,
- 	set_current_state(TASK_RUNNING);
- 	mutex_unlock(&ir->irctl_lock);
- 
-+out_unlocked:
- 	dev_dbg(ir->d.dev, LOGHEAD "read result = %s (%d)\n",
- 		ir->d.name, ir->d.minor, ret ? "-EFAULT" : "OK", ret);
- 
+Patch:
 
--- 
-Jarod Wilson
-jarod@redhat.com
+diff -r 9652f85e688a linux/drivers/media/dvb/bt8xx/dst.c
+--- a/linux/drivers/media/dvb/bt8xx/dst.c	Thu May 27 02:02:09 2010 -0300
++++ b/linux/drivers/media/dvb/bt8xx/dst.c	Tue Jul 27 09:34:38 2010 +0200
+@@ -1763,7 +1763,15 @@
+ 		.frequency_min = 137000000,
+ 		.frequency_max = 858000000,
+ 		.frequency_stepsize = 166667,
+-		.caps = FE_CAN_FEC_AUTO | FE_CAN_QAM_AUTO | FE_CAN_TRANSMISSION_MODE_AUTO | FE_CAN_GUARD_INTERVAL_AUTO
++		.caps = FE_CAN_FEC_AUTO			|
++			FE_CAN_QAM_AUTO 		|
++			FE_CAN_QAM_16			|
++			FE_CAN_QAM_32			|
++			FE_CAN_QAM_64			|
++			FE_CAN_QAM_128			|
++			FE_CAN_QAM_256			|
++			FE_CAN_TRANSMISSION_MODE_AUTO	|
++			FE_CAN_GUARD_INTERVAL_AUTO
+ 	},
+ 
+ 	.release = dst_release,
+---------------------8<--------------------------
+
+Tested on 2.6.32-24, works fine. Thanks to Klaas de Waal for creating
+the original patch for the DVB-C cards.
+
+Hope this helps someone,
+Arne
 
