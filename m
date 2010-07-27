@@ -1,38 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:44288 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754257Ab0GZQiv (ORCPT
+Received: from mta4.srv.hcvlny.cv.net ([167.206.4.199]:41974 "EHLO
+	mta4.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750996Ab0G0UJr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 12:38:51 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-Subject: Re: [SAMPLE v2 04/12] v4l-subdev: Add pads operations
-Date: Mon, 26 Jul 2010 18:39:24 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007261812.56355.laurent.pinchart@ideasonboard.com> <A69FA2915331DC488A831521EAE36FE4016B8E5FD0@dlee06.ent.ti.com>
-In-Reply-To: <A69FA2915331DC488A831521EAE36FE4016B8E5FD0@dlee06.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007261839.24881.laurent.pinchart@ideasonboard.com>
+	Tue, 27 Jul 2010 16:09:47 -0400
+Received: from TheShoveller.local
+ (ool-18bfe781.dyn.optonline.net [24.191.231.129]) by mta4.srv.hcvlny.cv.net
+ (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
+ with ESMTP id <0L6800JHFG094FR0@mta4.srv.hcvlny.cv.net> for
+ linux-media@vger.kernel.org; Tue, 27 Jul 2010 16:09:45 -0400 (EDT)
+Date: Tue, 27 Jul 2010 16:09:45 -0400
+From: Steven Toth <stoth@kernellabs.com>
+Subject: Re: Unknown CX23885 device
+In-reply-to: <4C4F31A7.8060609@iversen-net.dk>
+To: Christian Iversen <chrivers@iversen-net.dk>
+Cc: linux-media@vger.kernel.org
+Message-id: <4C4F3D09.2060405@kernellabs.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4C4F31A7.8060609@iversen-net.dk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Murali,
+On 7/27/10 3:21 PM, Christian Iversen wrote:
+> (please CC, I'm not subscribed yet)
+>
+> Hey Linux-DVB people
+>
+> I'm trying to make an as-of-yet unsupported CX23885 device work in Linux.
 
-On Monday 26 July 2010 18:19:05 Karicheri, Muralidharan wrote:
-> Laurent,
-> 
-> Thanks for clarifying this. I guess this will also get documented in the
-> v4l2 specs (if not already done) as part of this patch.
+http://kernellabs.com/hg/~stoth/cx23885-mpx/
 
-Sure it will. I haven't written the documentation yet, that's why those 
-patches are posted as sample code only for now.
+Try this and if necessary module option card=29.
+
+Any good?
+
+- Steve
 
 -- 
-Regards,
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
 
-Laurent Pinchart
+
