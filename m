@@ -1,51 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:43037 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752062Ab0G2HFS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 03:05:18 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Received: from eu_spt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L6B00IN550RA160@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Jul 2010 08:05:15 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L6B00BWN50RTR@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Jul 2010 08:05:15 +0100 (BST)
-Date: Thu, 29 Jul 2010 09:03:42 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: JPEG hw decoder
-In-reply-to: <AANLkTinj_xPSTfd81F4zLGNYcPb7=4OB-wr604rBGW20@mail.gmail.com>
-To: 'rd bairva' <rbairva@gmail.com>, linux-media@vger.kernel.org
-Message-id: <004201cb2eec$2d7f7b40$887e71c0$%osciak@samsung.com>
-Content-language: pl
-References: <AANLkTin4r_NrQbzXoTWoJJRCUXX9mjfgtrJ9yTPLW5_W@mail.gmail.com>
- <Pine.LNX.4.64.1007282110130.23907@axis700.grange>
- <AANLkTikfgYhdZ=3HogiB0j7iXuu0bqBZVkwFONz59SOM@mail.gmail.com>
- <Pine.LNX.4.64.1007290808100.16266@axis700.grange>
- <AANLkTinj_xPSTfd81F4zLGNYcPb7=4OB-wr604rBGW20@mail.gmail.com>
+Received: from tango.tkos.co.il ([62.219.50.35]:41514 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753046Ab0G0MHK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jul 2010 08:07:10 -0400
+From: Baruch Siach <baruch@tkos.co.il>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCH 4/4] mx2_camera: implement forced termination of active buffer for mx25
+Date: Tue, 27 Jul 2010 15:06:10 +0300
+Message-Id: <967af81dac1c4c7627b18b5eec23a258ac7d9cd2.1280229966.git.baruch@tkos.co.il>
+In-Reply-To: <cover.1280229966.git.baruch@tkos.co.il>
+References: <cover.1280229966.git.baruch@tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->rd bairva wrote:
->  If I write the jpeg driver using v4l2-mem2mem.
->  Than i think i need to write custom applications for the kernel
->  driver. Are there some application available to use this v4l2-mem2mem?
+This allows userspace to terminate a capture without waiting for the current
+frame to complete.
 
-There is no other interface for jpeg codec hardware in V4L2 as far
-as I am aware anyway. That's why mem2mem has been developed in the first
-place. Mem2mem has just been released (in 2.6.35), so you have to give
-it some time. That said, I don't think you will find any other (non-mem2mem)
-V4L2-based applications for jpeg hardware either. Somebody might prove
-me wrong on this though...
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+---
+ drivers/media/video/mx2_camera.c |   20 ++++++++++++++++----
+ 1 files changed, 16 insertions(+), 4 deletions(-)
 
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index d327d11..396542b 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -648,15 +648,27 @@ static void mx2_videobuf_release(struct videobuf_queue *vq,
+ 	 * Terminate only queued but inactive buffers. Active buffers are
+ 	 * released when they become inactive after videobuf_waiton().
+ 	 *
+-	 * FIXME: implement forced termination of active buffers, so that the
+-	 * user won't get stuck in an uninterruptible state. This requires a
+-	 * specific handling for each of the three DMA types that this driver
+-	 * supports.
++	 * FIXME: implement forced termination of active buffers for mx27 and 
++	 * mx27 eMMA, so that the user won't get stuck in an uninterruptible
++	 * state. This requires a specific handling for each of the these DMA
++	 * types.
+ 	 */
+ 	spin_lock_irqsave(&pcdev->lock, flags);
+ 	if (vb->state == VIDEOBUF_QUEUED) {
+ 		list_del(&vb->queue);
+ 		vb->state = VIDEOBUF_ERROR;
++	} else if (cpu_is_mx25() && vb->state == VIDEOBUF_ACTIVE) {
++		if (pcdev->fb1_active == buf) {
++			pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
++			writel(0, pcdev->base_csi + CSIDMASA_FB1);
++			pcdev->fb1_active = NULL;
++		} else if (pcdev->fb2_active == buf) {
++			pcdev->csicr1 &= ~CSICR1_FB2_DMA_INTEN;
++			writel(0, pcdev->base_csi + CSIDMASA_FB2);
++			pcdev->fb2_active = NULL;
++		}
++		writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
++		vb->state = VIDEOBUF_ERROR;
+ 	}
+ 	spin_unlock_irqrestore(&pcdev->lock, flags);
+ 
+-- 
+1.7.1
 
