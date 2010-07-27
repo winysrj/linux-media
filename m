@@ -1,129 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48704 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753461Ab0GGUxn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Jul 2010 16:53:43 -0400
-Message-ID: <4C34E954.5090907@redhat.com>
-Date: Wed, 07 Jul 2010 17:53:40 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
+Received: from perceval.irobotique.be ([92.243.18.41]:48985 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754156Ab0G0J3v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jul 2010 05:29:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links enumeration
+Date: Tue, 27 Jul 2010 11:30:26 +0200
+Cc: linux-media@vger.kernel.org,
 	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [RFC/PATCH 2/6] v4l: subdev: Add device node support
-References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278503608-9126-3-git-send-email-laurent.pinchart@ideasonboard.com> <4C3495F9.4070507@redhat.com> <201007072144.46481.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201007072144.46481.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007261834.43211.laurent.pinchart@ideasonboard.com> <201007262148.28948.hverkuil@xs4all.nl>
+In-Reply-To: <201007262148.28948.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201007271130.26745.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 07-07-2010 16:44, Laurent Pinchart escreveu:
-> Hi Mauro,
+Hi Hans,
+
+On Monday 26 July 2010 21:48:28 Hans Verkuil wrote:
+> On Monday 26 July 2010 18:34:42 Laurent Pinchart wrote:
+> > On Saturday 24 July 2010 14:45:39 Hans Verkuil wrote:
+> > > On Wednesday 21 July 2010 16:35:31 Laurent Pinchart wrote:
+> > > > Create the following two ioctls and implement them at the media
+> > > > device level to enumerate entities, pads and links.
+> > > > 
+> > > > - MEDIA_IOC_ENUM_ENTITIES: Enumerate entities and their properties
+> > > > - MEDIA_IOC_ENUM_LINKS: Enumerate all pads and links for a given
+> > > > entity
+> > > > 
+> > > > Entity IDs can be non-contiguous. Userspace applications should
+> > > > enumerate entities using the MEDIA_ENTITY_ID_FLAG_NEXT flag. When the
+> > > > flag is set in the entity ID, the MEDIA_IOC_ENUM_ENTITIES will return
+> > > > the next entity with an ID bigger than the requested one.
+> > > > 
+> > > > Only forward links that originate at one of the entity's source pads
+> > > > are returned during the enumeration process.
+> > > > 
+> > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> > > > ---
+> > > > 
+> > > >  Documentation/media-framework.txt |  134
+> > > >  ++++++++++++++++++++++++++++++++ drivers/media/media-device.c      |
+> > > >  153 +++++++++++++++++++++++++++++++++++++ include/linux/media.h
+> > > >  
+> > > >      |   73 ++++++++++++++++++
+> > > >  
+> > > >  include/media/media-device.h      |    3 +
+> > > >  include/media/media-entity.h      |   19 +-----
+> > > >  5 files changed, 364 insertions(+), 18 deletions(-)
+> > > >  create mode 100644 include/linux/media.h
+> > > 
+> > > <snip>
+> > > 
+> > > > diff --git a/include/linux/media.h b/include/linux/media.h
+> > > > new file mode 100644
+> > > > index 0000000..746bdda
+> > > > --- /dev/null
+> > > > +++ b/include/linux/media.h
+> > > > @@ -0,0 +1,73 @@
+> > > > +#ifndef __LINUX_MEDIA_H
+> > > > +#define __LINUX_MEDIA_H
+> > > > +
+> > > > +#define MEDIA_ENTITY_TYPE_NODE				1
+> > > > +#define MEDIA_ENTITY_TYPE_SUBDEV			2
+> > > > +
+> > > > +#define MEDIA_ENTITY_SUBTYPE_NODE_V4L			1
+> > > > +#define MEDIA_ENTITY_SUBTYPE_NODE_FB			2
+> > > > +#define MEDIA_ENTITY_SUBTYPE_NODE_ALSA			3
+> > > > +#define MEDIA_ENTITY_SUBTYPE_NODE_DVB			4
+> > > > +
+> > > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_DECODER		1
+> > > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_VID_ENCODER		2
+> > > > +#define MEDIA_ENTITY_SUBTYPE_SUBDEV_MISC		3
+> > > > +
+> > > > +#define MEDIA_PAD_DIR_INPUT				1
+> > > > +#define MEDIA_PAD_DIR_OUTPUT				2
+> > > > +
+> > > > +#define MEDIA_LINK_FLAG_ACTIVE				(1 << 0)
+> > > > +#define MEDIA_LINK_FLAG_IMMUTABLE			(1 << 1)
+> > > > +
+> > > > +#define MEDIA_ENTITY_ID_FLAG_NEXT	(1 << 31)
+> > > > +
+> > > > +struct media_user_pad {
+> > > > +	__u32 entity;		/* entity ID */
+> > > > +	__u8 index;		/* pad index */
+> > > > +	__u32 direction;	/* pad direction */
+> > > > +};
+> > > 
+> > > How about:
+> > > 
+> > > struct media_pad {
+> > > 
+> > > 	__u32 entity;		/* entity ID */
+> > > 	__u16 index;		/* pad index */
+> > > 	__u16 flags;		/* pad flags (includes direction) */
+> > 
+> > Just to be sure, I suppose I should combine flags + direction in the
+> > media_k_pad structure as well, right ?
 > 
-> Thanks for the review.
->
-> On Wednesday 07 July 2010 16:58:01 Mauro Carvalho Chehab wrote:
->> Em 07-07-2010 08:53, Laurent Pinchart escreveu:
->>> Create a device node named subdevX for every registered subdev.
->>> As the device node is registered before the subdev core::s_config
->>> function is called, return -EGAIN on open until initialization
->>> completes.
+> Yes. I think we should just make a u32 flags, use bits 0 and 1 for the
+> direction and add a simple inline like this:
 > 
-> [snip]
+> static inline u8 media_dir(struct media_pad *pad)
+> {
+> 	return pad->flags & MEDIA_PAD_MASK_DIR);
+> }
 > 
->>> diff --git a/drivers/media/video/v4l2-subdev.c
->>> b/drivers/media/video/v4l2-subdev.c new file mode 100644
->>> index 0000000..a048161
->>> --- /dev/null
->>> +++ b/drivers/media/video/v4l2-subdev.c
->>> @@ -0,0 +1,65 @@
+> And we should use the same for media_k_pad (and make a media_k_dir inline).
+
+OK.
+
+> > > 	u32 reserved;
+> > > 
+> > > };
+> > 
+> > OK.
+> > 
+> > > I think u16 for the number of pads might be safer than a u8.
+> > 
+> > it should definitely be enough, otherwise we'll have a big issue anyway.
 > 
-> [snip]
-> 
->>> +static int subdev_open(struct file *file)
->>> +{
->>> +	struct video_device *vdev = video_devdata(file);
->>> +	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
->>> +
->>> +	if (!sd->initialized)
->>> +		return -EAGAIN;
->>
->> Those internal interfaces should not be used on normal
->> devices/applications, as none of the existing drivers are tested or
->> supposed to properly work if an external program is touching on its
->> internal interfaces. So, please add:
->>
->> 	if (!capable(CAP_SYS_ADMIN))
->> 		return -EPERM;
-> 
-> As Hans pointed out, subdev device nodes should only be created if the subdev 
-> request it explicitly. I'll fix the patch accordingly. Existing subdevs will 
-> not have a device node by default anymore, so the CAP_SYS_ADMIN capability 
-> won't be required (new subdevs that explicitly ask for a device node are 
-> supposed to handle the calls properly, otherwise it's a bit pointless :-)).
+> Is u8 definitely enough or u16? I assume u16.
 
-It should be not requested by the subdev, but by the bridge driver (or maybe
-by both).
+u16. u8 should be enough, u16 should definitely be enough :-)
 
-On several drivers, the bridge is connected to more than one subdev, and some
-changes need to go to both subdevs, in order to work. As the glue logic is at
-the bridge driver, creating subdev interfaces will not make sense on those devices.
+-- 
+Regards,
 
->>> +
->>> +	return 0;
->>> +}
-> 
-> [snip]
-> 
->>> +static long subdev_ioctl(struct file *file, unsigned int cmd,
->>> +	unsigned long arg)
->>> +{
->>> +	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
->>
->> This is a legacy call. Please, don't use it.
-> 
-> What should I use instead then ? I need the functionality of video_usercopy. I 
-> could copy it to v4l2-subdev.c verbatim. As video_ioctl2 shares lots of code 
-> with video_usercopy I think video_usercopy should stay, and video_ioctl2 
-> should use it.
-
-The bad thing of video_usercopy() is that it has a "compat" code, to fix broken
-definitions of some iotls (see video_fix_command()), and that a few drivers still
-use it, instead of video_ioctl2. For sure, we don't need the "compat" code for
-subdev interface. Also, as time goes by, we'll eventually have different needs at
-the subdev interface, as some types of ioctl's may be specific to subdevs and may
-require different copy logic.
-
-IMO, the better is to use the same logic inside the subdev stuff, of course
-removing that "old ioctl" fix logic:
-
-#ifdef __OLD_VIDIOC_
-	cmd = video_fix_command(cmd);
-#endif
-
-And replacing the call to:
-	err = func(file, cmd, parg);
-
-By the proper subdev handling.
-
->> Also, while the API doc says that only certain ioctls are supported on
->> subdev, there's no code here preventing the usage of invalid ioctls. So,
->> it is possible to do bad things, like changing the video standard format
->> individually on each subdev, creating all sorts of problems.
-> 
-> Invalid (or rather unsupported) ioctls will be routed to the subdev 
-> core::ioctl operation. Formats will not be changed automagically just because 
-> a userspace application issues a VIDIOC_S_FMT ioctl.
-> 
-> As the device node creation will need to be requested explicitly this won't be 
-> an issue anyway.
-> 
-
-Ok. It helps if you add the proper ioctl logic, instead of a stub.
-
-Cheers,
-Mauro
-
-
-
+Laurent Pinchart
