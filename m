@@ -1,26 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx06.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.10])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o6BGs88L022596
-	for <video4linux-list@redhat.com>; Sun, 11 Jul 2010 12:54:08 -0400
-Received: from mail.gmx.net (mail.gmx.net [213.165.64.20])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o6BGruYp007357
-	for <video4linux-list@redhat.com>; Sun, 11 Jul 2010 12:53:57 -0400
-Date: Sun, 11 Jul 2010 18:53:05 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Roger Oberholtzer <roger@opq.se>
-Subject: Re: SUGGESTION FOR A Linux based Card
-Message-ID: <20100711165305.GA2547@minime.bse>
-References: <AANLkTim5LXb__zh-N2pumq7nfSDlqnwW8RDrEw47DErd@mail.gmail.com>
-	<000501cb1ed4$f45da930$dd18fb90$@com>
-	<1278656777.18926.2.camel@acme.pacific>
-	<000001cb1f84$0feb8af0$2fc2a0d0$@com>
-	<1278712488.24682.6.camel@manta.site>
+Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.12])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o6RBH4Lj025822
+	for <video4linux-list@redhat.com>; Tue, 27 Jul 2010 07:17:04 -0400
+Received: from mail-px0-f174.google.com (mail-px0-f174.google.com
+	[209.85.212.174])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6RBGtEU011054
+	for <video4linux-list@redhat.com>; Tue, 27 Jul 2010 07:16:55 -0400
+Received: by pxi14 with SMTP id 14so483740pxi.33
+	for <video4linux-list@redhat.com>; Tue, 27 Jul 2010 04:16:55 -0700 (PDT)
+Message-ID: <4C4EB91B.1080908@gmail.com>
+Date: Tue, 27 Jul 2010 20:46:51 +1000
+From: John Palmer <thepalm2@gmail.com>
 MIME-Version: 1.0
-Content-Disposition: inline
-In-Reply-To: <1278712488.24682.6.camel@manta.site>
-Cc: video4linux-list@redhat.com
+To: video4linux-list@redhat.com
+Subject: Shutdown not working
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -28,21 +23,44 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On Fri, Jul 09, 2010 at 11:54:48PM +0200, Roger Oberholtzer wrote:
-> BT878 is not lower quality (in my
-> opinion when using these cards in systems to capture images for
-> high-speed image processing).
+Hi,
 
-The BT878 has an 8 bit ADC with gain controlled so that the back porch
-samples as 0x38. The successor CX23880 already uses a 10 bit ADC.
+I submitted this as a bug to ubuntu 
+(https://bugs.launchpad.net/ubuntu/+bug/609946).
 
-  Daniel
+I thought I would try here as this is probably more relevant
+
+
+    Bug Description
+
+I have a laptop running 10.04 server, running mythtv.
+
+If I don't use my USB TV tuner, "sudo shutdown -P now" works as 
+expected. After I use the tuner in MythTV, shutdown no longer works, 
+specifically I get the line "/ will now halt", the screen goes black, 
+but the power / fans etc all stay on.
+
+The tuner is a leadtek WinFast DTV Dongle Gold.
+
+To get it working I followed these instructions: 
+http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_DTV_Dongle_Gold 
+<http://www.linuxtv.org/wiki/index.php/Leadtek_WinFast_DTV_Dongle_Gold>, 
+although I had to disable one the "firedtv" options in order to get the 
+compile working in step 3.
+
+john@tv:~$ lsb_release -rd
+Description: Ubuntu 10.04 LTS
+Release: 10.04
+
+john@tv:~$ uname -r
+2.6.32-21-server
+
 
 --
 video4linux-list mailing list
