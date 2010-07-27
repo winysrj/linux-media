@@ -1,75 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:56843 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751083Ab0GaSOm convert rfc822-to-8bit (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:58936 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754289Ab0G0NsK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 14:14:42 -0400
-MIME-Version: 1.0
-In-Reply-To: <BTtOJbzJjFB@christoph>
-References: <AANLkTimaut1mMUXwbJAgjNjmQkxgsf-GOCTXmKYNm1Lz@mail.gmail.com>
-	<BTtOJbzJjFB@christoph>
-Date: Sat, 31 Jul 2010 14:14:41 -0400
-Message-ID: <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable
-	it.
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Christoph Bartelmus <lirc@bartelmus.de>
-Cc: awalls@md.metrocast.net, jarod@wilsonet.com,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, maximlevitsky@gmail.com,
-	mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 27 Jul 2010 09:48:10 -0400
+Date: Tue, 27 Jul 2010 15:46:26 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCHv2 2/4] mm: cma: Contiguous Memory Allocator added
+In-reply-to: <20100727065842.40ae76c8@bike.lwn.net>
+To: 'Jonathan Corbet' <corbet@lwn.net>
+Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	linux-mm@kvack.org, 'Daniel Walker' <dwalker@codeaurora.org>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	'Mark Brown' <broonie@opensource.wolfsonmicro.com>,
+	linux-kernel@vger.kernel.org, 'Hiremath Vaibhav' <hvaibhav@ti.com>,
+	'FUJITA Tomonori' <fujita.tomonori@lab.ntt.co.jp>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Zach Pfeffer' <zpfeffer@codeaurora.org>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Message-id: <003f01cb2d92$20819730$6184c590$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <cover.1280151963.git.m.nazarewicz@samsung.com>
+ <743102607e2c5fb20e3c0676fadbcb93d501a78e.1280151963.git.m.nazarewicz@samsung.com>
+ <dc4bdf3e0b02c0ac4770927f72b6cbc3f0b486a2.1280151963.git.m.nazarewicz@samsung.com>
+ <20100727120841.GC11468@n2100.arm.linux.org.uk>
+ <003701cb2d89$adae4580$090ad080$%szyprowski@samsung.com>
+ <20100727065842.40ae76c8@bike.lwn.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
-> Hi Jon,
->
-> on 31 Jul 10 at 12:25, Jon Smirl wrote:
->> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
->> wrote:
->>> I think you won't be able to fix the problem conclusively either way.  A
->>> lot of how the chip's clocks should be programmed depends on how the
->>> GPIOs are used and what crystal is used.
->>>
->>> I suspect many designers will use some reference design layout from ENE,
->>> but it won't be good in every case.  The wire-up of the ENE of various
->>> motherboards is likely something you'll have to live with as unknowns.
->>>
->>> This is a case where looser tolerances in the in kernel decoders could
->>> reduce this driver's complexity and/or get rid of arbitrary fudge
->>> factors in the driver.
->
->> The tolerances are as loose as they can be. The NEC protocol uses
->> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
->> (50% of 4%).  The crystals used in electronics are accurate to
->> 0.0001%+.
->
-> But the standard IR receivers are far from being accurate enough to allow
-> tolerance windows of only 2%.
-> I'm surprised that this works for you. LIRC uses a standard tolerance of
-> 30% / 100 us and even this is not enough sometimes.
->
-> For the NEC protocol one signal consists of 22 individual pulses at 38kHz.
-> If the receiver just misses one pulse, you already have an error of 1/22
->> 4%.
+Hello,
 
-There are different types of errors. The decoders can take large
-variations in bit times. The problem is with cumulative errors. In
-this case the error had accumulated up to 450us in the lead pulse.
-That's just too big of an error and caused the JVC code to be
-misclassified as NEC.
+On Tuesday, July 27, 2010 2:59 PM Jonathan Corbet wrote:
 
-I think he said lirc was misclassifying it too. So we both did the same thing.
+> On Tue, 27 Jul 2010 14:45:58 +0200
+> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+> 
+> > > How does one obtain the CPU address of this memory in order for the CPU
+> > > to access it?
+> >
+> > Right, we did not cover such case. In CMA approach we tried to separate
+> > memory allocation from the memory mapping into user/kernel space. Mapping
+> > a buffer is much more complicated process that cannot be handled in a
+> > generic way, so we decided to leave this for the device drivers. Usually
+> > video processing devices also don't need in-kernel mapping for such
+> > buffers at all.
+> 
+> Still...that *is* why I suggested an interface which would return both
+> the DMA address and a kernel-space virtual address, just like the DMA
+> API does...  Either that, or just return the void * kernel address and
+> let drivers do the DMA mapping themselves.  Returning only the
+> dma_addr_t address will make the interface difficult to use in many
+> situations.
+
+As I said, drivers usually don't need in-kernel mapping for video buffers.
+Is there really a need for creating such mapping?
+
+Best regards
+--
+Marek Szyprowski
+Samsung Poland R&D Center
 
 
->
-> Christoph
->
-
-
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
