@@ -1,64 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.pripojeni.net ([217.66.174.14]:47423 "EHLO
-	smtp.pripojeni.net" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1760783Ab0GSRju (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jul 2010 13:39:50 -0400
-From: Jiri Slaby <jslaby@suse.cz>
-To: mchehab@infradead.org
-Cc: awalls@md.metrocast.net, jirislaby@gmail.com,
-	linux-kernel@vger.kernel.org, Jiri Slaby <jslaby@suse.cz>,
-	Tejun Heo <tj@kernel.org>,
-	Ian Armstrong <ian@iarmst.demon.co.uk>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-Subject: [PATCH 1/1] VIDEO: ivtvfb, remove unneeded NULL test
-Date: Mon, 19 Jul 2010 19:39:34 +0200
-Message-Id: <1279561174-12468-1-git-send-email-jslaby@suse.cz>
-In-Reply-To: <1278346795.2229.2.camel@localhost>
-References: <1278346795.2229.2.camel@localhost>
+Received: from sh.osrg.net ([192.16.179.4]:55828 "EHLO sh.osrg.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753005Ab0G0OWp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jul 2010 10:22:45 -0400
+Date: Tue, 27 Jul 2010 23:21:37 +0900
+To: corbet@lwn.net
+Cc: m.szyprowski@samsung.com, linux@arm.linux.org.uk,
+	m.nazarewicz@samsung.com, linux-mm@kvack.org,
+	dwalker@codeaurora.org, p.osciak@samsung.com,
+	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
+	hvaibhav@ti.com, fujita.tomonori@lab.ntt.co.jp,
+	kyungmin.park@samsung.com, zpfeffer@codeaurora.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCHv2 2/4] mm: cma: Contiguous Memory Allocator added
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <20100727065842.40ae76c8@bike.lwn.net>
+References: <20100727120841.GC11468@n2100.arm.linux.org.uk>
+	<003701cb2d89$adae4580$090ad080$%szyprowski@samsung.com>
+	<20100727065842.40ae76c8@bike.lwn.net>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-Id: <20100727232106Z.fujita.tomonori@lab.ntt.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stanse found that in ivtvfb_callback_cleanup and ivtvfb_callback_init
-there are unneeded tests for itv being NULL. But itv is initialized
-as container_of with non-zero offset in those functions, so it is
-never NULL (even if v4l2_dev is). This was found because itv is
-dereferenced earlier than the test.
+On Tue, 27 Jul 2010 06:58:42 -0600
+Jonathan Corbet <corbet@lwn.net> wrote:
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
-Cc: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Tejun Heo <tj@kernel.org>
-Cc: Ian Armstrong <ian@iarmst.demon.co.uk>
-Cc: ivtv-devel@ivtvdriver.org
-Cc: linux-media@vger.kernel.org
----
- drivers/media/video/ivtv/ivtvfb.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> On Tue, 27 Jul 2010 14:45:58 +0200
+> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+> 
+> > > How does one obtain the CPU address of this memory in order for the CPU
+> > > to access it?  
+> > 
+> > Right, we did not cover such case. In CMA approach we tried to separate
+> > memory allocation from the memory mapping into user/kernel space. Mapping
+> > a buffer is much more complicated process that cannot be handled in a
+> > generic way, so we decided to leave this for the device drivers. Usually
+> > video processing devices also don't need in-kernel mapping for such
+> > buffers at all.
+> 
+> Still...that *is* why I suggested an interface which would return both
+> the DMA address and a kernel-space virtual address, just like the DMA
+> API does...  Either that, or just return the void * kernel address and
 
-diff --git a/drivers/media/video/ivtv/ivtvfb.c b/drivers/media/video/ivtv/ivtvfb.c
-index 9ff3425..9c77bfa 100644
---- a/drivers/media/video/ivtv/ivtvfb.c
-+++ b/drivers/media/video/ivtv/ivtvfb.c
-@@ -1203,7 +1203,7 @@ static int __init ivtvfb_callback_init(struct device *dev, void *p)
- 	struct v4l2_device *v4l2_dev = dev_get_drvdata(dev);
- 	struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
- 
--	if (itv && (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
-+	if (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT) {
- 		if (ivtvfb_init_card(itv) == 0) {
- 			IVTVFB_INFO("Framebuffer registered on %s\n",
- 					itv->v4l2_dev.name);
-@@ -1219,7 +1219,7 @@ static int ivtvfb_callback_cleanup(struct device *dev, void *p)
- 	struct ivtv *itv = container_of(v4l2_dev, struct ivtv, v4l2_dev);
- 	struct osd_info *oi = itv->osd_info;
- 
--	if (itv && (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT)) {
-+	if (itv->v4l2_cap & V4L2_CAP_VIDEO_OUTPUT) {
- 		if (unregister_framebuffer(&itv->osd_info->ivtvfb_info)) {
- 			IVTVFB_WARN("Framebuffer %d is in use, cannot unload\n",
- 				       itv->instance);
--- 
-1.7.1
+The DMA API for coherent memory (dma_alloc_coherent) returns both an
+DMA address and a kernel-space virtual address because it does both
+allocation and mapping.
 
+However, other DMA API (dma_map_*) returns only an DMA address because
+it does only mapping.
 
+I think that if we need new API for coherent memory, we could
+unify it with the DMA API for coherent memory.
+
+IMO, it's cleaner to having two separate APIs for allocation and
+mapping (except for coherent memory). The drivers have been working
+in that way.
