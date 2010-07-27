@@ -1,45 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:58233 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753828Ab0GaPtc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 11:49:32 -0400
-Received: by iwn7 with SMTP id 7so2424416iwn.19
-        for <linux-media@vger.kernel.org>; Sat, 31 Jul 2010 08:49:32 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTimahhDfTESneHAGNe-lCRDr4Pw8a_dJ_tp0a2F5@mail.gmail.com>
-References: <AANLkTimahhDfTESneHAGNe-lCRDr4Pw8a_dJ_tp0a2F5@mail.gmail.com>
-Date: Sat, 31 Jul 2010 08:49:31 -0700
-Message-ID: <AANLkTi=wmDpP1UV0Do7NZfB8zLZW2+jTjoquZ0Qx3toU@mail.gmail.com>
-Subject: Re: [PATCH] Fix module dependency selection for Mantis driver
-From: VDR User <user.vdr@gmail.com>
-To: "mailing list: linux-media" <linux-media@vger.kernel.org>
-Cc: Manu Abraham <abraham.manu@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from tango.tkos.co.il ([62.219.50.35]:41504 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752131Ab0G0MGt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jul 2010 08:06:49 -0400
+From: Baruch Siach <baruch@tkos.co.il>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>,
+	Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCH 0/4] mx2_camera: mx25 fixes and enhancements
+Date: Tue, 27 Jul 2010 15:06:06 +0300
+Message-Id: <cover.1280229966.git.baruch@tkos.co.il>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jun 11, 2010 at 8:11 PM, VDR User <user.vdr@gmail.com> wrote:
-> This patch adds missing module dependencies to the Mantis Kconfig file
-> so that they are selected automatically when the user enables Mantis.
->
-> Signed-off-by: Derek Kelly <user.vdr@gmail.com>
-> ----------
->
-> --- v4l-dvb.orig/linux/drivers/media/dvb/mantis/Kconfig 2010-06-11
-> 14:28:26.000000000 -0700
-> +++ v4l-dvb/linux/drivers/media/dvb/mantis/Kconfig      2010-06-11
-> 14:32:44.000000000 -0700
-> @@ -10,6 +10,8 @@ config MANTIS_CORE
->  config DVB_MANTIS
->        tristate "MANTIS based cards"
->        depends on MANTIS_CORE && DVB_CORE && PCI && I2C
-> +       select DVB_STB0899
-> +       select DVB_STB6100
->        select DVB_MB86A16
->        select DVB_ZL10353
->        select DVB_STV0299
->
+The first 3 pathces in this series are fixes for the mx2_camera driver which is 
+going upstream via the imx git tree. The last patch implements forced active 
+buffer termination on mx25.
 
-Any reason this was ignored?
+Baruch Siach (4):
+  mx2_camera: fix a race causing NULL dereference
+  mx2_camera: return IRQ_NONE when doing nothing
+  mx2_camera: fix comment typo
+  mx2_camera: implement forced termination of active buffer for mx25
+
+ drivers/media/video/mx2_camera.c |   34 ++++++++++++++++++++++++++--------
+ 1 files changed, 26 insertions(+), 8 deletions(-)
+
