@@ -1,75 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:48869 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758312Ab0GHRoL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 13:44:11 -0400
-Received: by iwn7 with SMTP id 7so1112458iwn.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Jul 2010 10:44:10 -0700 (PDT)
-Message-ID: <4C360E64.3020703@gmail.com>
-Date: Thu, 08 Jul 2010 13:44:04 -0400
-From: Ivan <ivan.q.public@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36441 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751716Ab0G0P6l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jul 2010 11:58:41 -0400
+Message-ID: <4C4F0244.2070803@redhat.com>
+Date: Tue, 27 Jul 2010 12:59:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
- [eb1a:2860]
-References: <4C353039.4030202@gmail.com> <AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>
-In-Reply-To: <AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Jarod Wilson <jarod@redhat.com>, Greg KH <greg@kroah.com>
+CC: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-input@vger.kernel.org
+Subject: Re: [PATCH 0/15] STAGING: add lirc device drivers
+References: <20100726232546.GA21225@redhat.com>
+In-Reply-To: <20100726232546.GA21225@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- > KWORLD DVD Maker USB 2.0 (VS-USB2800)
+Em 26-07-2010 20:25, Jarod Wilson escreveu:
+> This patch series adds the remaining lirc_foo device drivers to the staging
+> tree. The core lirc_dev driver and lirc headers are currently merged in a
+> v4l/dvb staging tree (which is pulled into linux-next), and are utilized by
+> way of an IR decoder/encoder bridge plugin to ir-core.
+> 
+> I've started porting lirc_foo drivers over to ir-core, first tackling the
+> lirc_mceusb and lirc_imon drivers. lirc_mceusb is no more, replaced by a
+> pure ir-core mceusb driver, and lirc_imon only supports the old first-gen
+> imon devices now, which are quite different from the current-gen ones, now
+> supported by a pure ir-core imon driver.
+> 
+> The long-term goal here is that all of these drivers should either be ported
+> to ir-core, or dropped entirely. Some of them (*cough* lirc_parallel *cough*)
+> should likely just be put out to pasture, but others are definitely still in
+> use by quite a few people out there. I've got hardware for another four or
+> five of the drivers, but not the rest, so I'm hoping that maybe people who
+> have the hardware will pitch in and help with the porting if the bits are
+> more readily available by way of the staging tree.
+> 
+> Drivers I have hardware for, and am thus most likely to work on porting to
+> ir-core before any others (and probably in this order):
+> - lirc_zilog
+> - lirc_streamzap
+> - lirc_i2c
+> - lirc_serial
+> - lirc_sir
+> 
+> Additionally, Maxim Levitsky, the author of lirc_ene0100, has already started
+> work on porting lirc_ene0100 to ir-core. Everything else, definitely
+> looking for help.
+> 
+> Patches:
+> staging/lirc: add lirc_bt829 driver
+> staging/lirc: add lirc_ene0100 driver
+> staging/lirc: add lirc_i2c driver
+> staging/lirc: add lirc_igorplugusb driver
+> staging/lirc: add lirc_imon driver
+> staging/lirc: add lirc_it87 driver
+> staging/lirc: add lirc_ite8709 driver
+> staging/lirc: add lirc_parallel driver
+> staging/lirc: add lirc_sasem driver
+> staging/lirc: add lirc_serial driver
+> staging/lirc: add lirc_sir driver
+> staging/lirc: add lirc_streamzap driver
+> staging/lirc: add lirc_ttusbir driver
+> staging/lirc: add lirc_zilog driver
+> staging/lirc: wire up Kconfig and Makefile bits
+> 
+> Diffstat:
+>  drivers/staging/Kconfig                 |    2 +
+>  drivers/staging/Makefile                |    1 +
+>  drivers/staging/lirc/Kconfig            |  110 +++
+>  drivers/staging/lirc/Makefile           |   19 +
+>  drivers/staging/lirc/TODO               |    8 +
+>  drivers/staging/lirc/lirc_bt829.c       |  383 +++++++++
+>  drivers/staging/lirc/lirc_ene0100.c     |  646 ++++++++++++++
+>  drivers/staging/lirc/lirc_ene0100.h     |  169 ++++
+>  drivers/staging/lirc/lirc_i2c.c         |  536 ++++++++++++
+>  drivers/staging/lirc/lirc_igorplugusb.c |  555 ++++++++++++
+>  drivers/staging/lirc/lirc_imon.c        | 1058 +++++++++++++++++++++++
+>  drivers/staging/lirc/lirc_it87.c        | 1019 +++++++++++++++++++++++
+>  drivers/staging/lirc/lirc_it87.h        |  116 +++
+>  drivers/staging/lirc/lirc_ite8709.c     |  542 ++++++++++++
+>  drivers/staging/lirc/lirc_parallel.c    |  705 ++++++++++++++++
+>  drivers/staging/lirc/lirc_parallel.h    |   26 +
+>  drivers/staging/lirc/lirc_sasem.c       |  933 +++++++++++++++++++++
+>  drivers/staging/lirc/lirc_serial.c      | 1313 +++++++++++++++++++++++++++++
+>  drivers/staging/lirc/lirc_sir.c         | 1282 ++++++++++++++++++++++++++++
+>  drivers/staging/lirc/lirc_streamzap.c   |  821 ++++++++++++++++++
+>  drivers/staging/lirc/lirc_ttusbir.c     |  397 +++++++++
+>  drivers/staging/lirc/lirc_zilog.c       | 1387
+> +++++++++++++++++++++++++++++++
+>  22 files changed, 12028 insertions(+), 0 deletions(-)
+> 
+Hi Jarod,
 
-Minor correction, for people who might be searching on the exact model 
-number:
+Please add a TODO file at staging/lirc, describing what's needed for
+the drivers to move to the IR branch.
 
-KWORLD DVD Maker USB 2.0 (VS-USB2800D)
+Greg,
 
->> It seemed likely to be supported by the em28xx driver, and I'm pleased to
->> report that, in fact, it is!
->
-> Yup, it's supported.
+It is probably simpler to merge those files via my tree, as they depend
+on some changes scheduled for 2.6.36.
 
-Ok, I just wanted to submit a detailed report because I didn't see my 
-exact hardware in any of (what I suppose are) the official lists:
+Would it be ok for you if I merge them from my tree?
 
-http://www.mjmwired.net/kernel/Documentation/video4linux/CARDLIST.em28xx
+Cheers,
+Mauro
 
-http://www.linuxtv.org/wiki/index.php/Em28xx_devices#Validated_boards
 
-It's also kinda nice to see that my previous email is already in the top 
-ten google results for *linux kworld dvd maker*.
-
-> No firmware is involved at all for this device.  The Merlin ROM you
-> are seeing is for other devices that use the same underlying driver.
-
-Ah, that makes sense.
-
-> If your device actually has a physical button on it then yes it will
-> work.  The driver will generate a "KEY_CAMERA" input event via
-> inputdev (similar to a keyboard event).  Read up on inputdev to see
-> how to write a userland application which can see it.
-
-Thanks for those pointers.
-
-Now, regarding the difference in image quality between the Linux and 
-Windows drivers, I took some snapshots. Linux is first, then Windows:
-
-http://www3.picturepush.com/photo/a/3762966/img/3762966.png
-
-http://www4.picturepush.com/photo/a/3762977/img/3762977.png
-
-I would have thought that the digitized video coming from the card would 
-be essentially the same in both cases, but the vertical stripes and the 
-difference in width don't seem to be merely a matter of postprocessing. 
-Does the driver have a greater level of control than I suspected over 
-the digitization process in the card? (The difference in sharpness, on 
-the other hand, I would guess to be postprocessing.)
-
-So I'm mainly wondering whether the vertical stripes can be eliminated 
-by controlling the card differently, or if we have no control over that 
-and have to deal with it by postprocessing.
-
-Ivan
