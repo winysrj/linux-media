@@ -1,148 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:43908 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752139Ab0G3Onf convert rfc822-to-8bit (ORCPT
+Received: from mail.sikkerhed.org ([78.109.215.82]:60964 "EHLO
+	mail.sikkerhed.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132Ab0G0TaY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 10:43:35 -0400
-From: "Karicheri, Muralidharan" <m-karicheri2@ti.com>
-To: Pawel Osciak <p.osciak@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "kyungmin.park@samsung.com" <kyungmin.park@samsung.com>,
-	"m.szyprowski@samsung.com" <m.szyprowski@samsung.com>,
-	"t.fujak@samsung.com" <t.fujak@samsung.com>
-Date: Fri, 30 Jul 2010 09:43:28 -0500
-Subject: RE: [PATCH v5 0/3] Multi-planar video format and buffer support for
- the V4L2 API
-Message-ID: <A69FA2915331DC488A831521EAE36FE4016B9622E1@dlee06.ent.ti.com>
-References: <1280479783-23945-1-git-send-email-p.osciak@samsung.com>
-In-Reply-To: <1280479783-23945-1-git-send-email-p.osciak@samsung.com>
-Content-Language: en-US
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Tue, 27 Jul 2010 15:30:24 -0400
+Received: from localhost (mailscan.sikkerhed.org [78.109.215.84])
+	by mail.sikkerhed.org (Postfix) with ESMTP id 415EB16487
+	for <linux-media@vger.kernel.org>; Tue, 27 Jul 2010 21:21:16 +0200 (CEST)
+Received: from mail.sikkerhed.org ([78.109.215.82])
+	by localhost (mailscan.sikkerhed.org [78.109.215.84]) (amavisd-new, port 10024)
+	with LMTP id cNmu3Yt5JuF3 for <linux-media@vger.kernel.org>;
+	Tue, 27 Jul 2010 21:21:11 +0200 (CEST)
+Received: from [10.0.0.7] (boreas.sikkerhed.org [130.225.166.200])
+	by mail.sikkerhed.org (Postfix) with ESMTPSA id 7AF4C16484
+	for <linux-media@vger.kernel.org>; Tue, 27 Jul 2010 21:21:11 +0200 (CEST)
+Message-ID: <4C4F31A7.8060609@iversen-net.dk>
+Date: Tue, 27 Jul 2010 21:21:11 +0200
+From: Christian Iversen <chrivers@iversen-net.dk>
 MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Unknown CX23885 device
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-<Snip>
+(please CC, I'm not subscribed yet)
 
->
-> struct v4l2_format {
->        enum v4l2_buf_type type;
->        union {
->                struct v4l2_pix_format          pix;     /*
->V4L2_BUF_TYPE_VIDEO_CAPTURE */
->+               struct v4l2_pix_format_mplane   pix_mp;  /*
->V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
->                struct v4l2_window              win;     /*
->V4L2_BUF_TYPE_VIDEO_OVERLAY */
->                struct v4l2_vbi_format          vbi;     /*
->V4L2_BUF_TYPE_VBI_CAPTURE */
->                struct v4l2_sliced_vbi_format   sliced;  /*
->V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
->                __u8    raw_data[200];                   /* user-defined */
->        } fmt;
-> };
->
->For the new buffer types mp_pix member is chosen. For those buffer types,
->struct v4l2_pix_format_mplane is used:
->
+Hey Linux-DVB people
 
-Typo. replae mp_pix with pix_mp
+I'm trying to make an as-of-yet unsupported CX23885 device work in Linux.
 
->/**
-> * struct v4l2_pix_format_mplane - multiplanar format definition
-> * @width:              image width in pixels
-> * @height:             image height in pixels
-> * @pixelformat:        little endian four character code (fourcc)
-> * @field:              field order (for interlaced video)
-> * @colorspace:         supplemental to pixelformat
-> * @plane_fmt:          per-plane information
-> * @num_planes:         number of planes for this format and number of
->valid
+I've tested that the device is not supported using the newest snapshot
+of the DVB drivers. They did support a bunch of extra devices compared
+to the standard ubuntu driver, but to no avail.
 
-<Snip>
+This is what I know about the device:
 
->
->
->7. Format conversion
->----------------------------------
->v4l2 core ioctl handling includes a simple conversion layer that allows
->translation - when possible - between multi-planar and single-planar APIs,
->transparently to drivers and applications.
->
->The table below summarizes conversion behavior for cases when driver and
->application use different API versions:
->
->---------------------------------------------------------------
->              | Application MP --> Driver SP --> Application MP
->   G_FMT      |            always OK   |   always OK
->   S_FMT      |            -EINVAL     |   always OK
-> TRY_FMT      |            -EINVAL     |   always OK
->---------------------------------------------------------------
->              | Application SP --> Driver MP --> Application SP
->   G_FMT      |            always OK   |   -EBUSY
->   S_FMT      |            always OK   |   -EBUSY and WARN()
-> TRY_FMT      |            always OK   |   -EBUSY and WARN()
->
+### physical description ###
 
-What is the logic behind using -EBUSY for this? Why not -EINVAL? Also why use WARN()?
+The device is a small mini-PCIe device currently installed in my
+Thinkpad T61p notebook. It did not originate there, but I managed to fit 
+it in.
 
->Legend:
->- SP - single-planar API used (NOT format!)
->- MP - multi-planar API used (NOT format!)
->- always OK - conversion is always valid irrespective of number of planes
->- -EINVAL - if an MP application tries to TRY or SET a format with more
->            than 1 plane, EINVAL is returned from the conversion function
->            (of course, 1-plane multi-planar formats work and are
->converted)
->- -EBUSY - if an MP driver returns a more than 1-plane format to an SP
->           application, the conversion layer returns EBUSY to the
->application;
->           this is useful in cases when the driver is currently set to a
->more
->           than 1-plane format, SP application would not be able to
->understand
->           it)
->- -EBUSY and WARN() - there is only one reason for which SET or TRY from an
->SP
->           application would result in a driver returning a more than 1-
->plane
->           format - when the driver adjusts a 1-plane format to a more than
->           1-plane format. This should not happen and is a bug in driver,
->hence
->           a WARN_ON(). Application receives EBUSY.
->
->
+It has an "Avermedia" logo on top, but no other discernable markings.
+I've tried removing the chip cover, but I can't see any other major chips
+than the cx23885. I can take a second look, if I know what to look for.
 
-Suppose, S_FMT/TRY_FMT is called with UYVY format and driver supports only NV12 (2 plane) only, then for
+### pci info ###
 
-Application SP --> Driver MP --> Application SP
-
-I guess in this case, new drivers that supports multi-plane format would have to return old NV12 format code (for backward compatibility). Is
-this handled by driver or translation layer? 
-
-Application MP --> Driver SP --> Application MP
-
-In this case, new driver would return new NV12 format code and have no issue.
-Not sure what translation layer does in this scenario.
-
-<snip>
-
->
->===============================================
->V. Using ioctl()s and mmap()
->===============================================
->
->* Format calls (VIDIOC_S/TRY/G_FMT) are converted transparently across APIs
->  by the ioctl handling code, where possible. Conversion from single-planar
->  to multi-planar cannot fail, but the other way around is possible only
->for
->  1-plane formats.
->  Possible errors in conversion are described below.
->
-
-Could you explain what you mean by conversion of formats? The idea of the translation layer functionality is not clear to me. An example would help.
+$ sudo lspci -s 02:00.0 -vv
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI 
+Video and Audio Decoder (rev 02)
+         Subsystem: Avermedia Technologies Inc Device c139
+         Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR+ FastB2B- DisINTx-
+         Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+         Latency: 0, Cache Line Size: 64 bytes
+         Interrupt: pin A routed to IRQ 16
+         Region 0: Memory at d7a00000 (64-bit, non-prefetchable) [size=2M]
+         Capabilities: [40] Express (v1) Endpoint, MSI 00
+                 DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s 
+<64ns, L1 <1us
+                         ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                 DevCtl: Report errors: Correctable- Non-Fatal- Fatal- 
+Unsupported-
+                         RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                         MaxPayload 128 bytes, MaxReadReq 512 bytes
+                 DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ 
+AuxPwr- TransPend-
+                 LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, 
+Latency L0 <2us, L1 <4us
+                         ClockPM- Suprise- LLActRep- BwNot-
+                 LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- 
+CommClk+
+                         ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                 LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ 
+DLActive- BWMgmt- ABWMgmt-
+         Capabilities: [80] Power Management version 2
+                 Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA 
+PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                 Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+         Capabilities: [90] Vital Product Data <?>
+         Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ 
+Queue=0/0 Enable-
+                 Address: 0000000000000000  Data: 0000
+         Capabilities: [100] Advanced Error Reporting <?>
+         Capabilities: [200] Virtual Channel <?>
+         Kernel driver in use: cx23885
+         Kernel modules: cx23885
 
 
-Murali
+I've tried several different card=X settings for "modprobe cx23885", and 
+a few of them result in creation of /dev/dvb devices, but none of them 
+really seem towork.
 
+What can I try for a next step?
+
+-- 
+Med venlig hilsen
+Christian Iversen
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
