@@ -1,138 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36476 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757955Ab0G2QHK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:07:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE v3 00/12]  V4L2 API additions and OMAP3 ISP driver
-Date: Thu, 29 Jul 2010 18:06:44 +0200
-Message-Id: <1280419616-7658-12-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from tex.lwn.net ([70.33.254.29]:34178 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752377Ab0G0M6p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jul 2010 08:58:45 -0400
+Date: Tue, 27 Jul 2010 06:58:42 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	linux-mm@kvack.org, 'Daniel Walker' <dwalker@codeaurora.org>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	'Mark Brown' <broonie@opensource.wolfsonmicro.com>,
+	linux-kernel@vger.kernel.org, 'Hiremath Vaibhav' <hvaibhav@ti.com>,
+	'FUJITA Tomonori' <fujita.tomonori@lab.ntt.co.jp>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Zach Pfeffer' <zpfeffer@codeaurora.org>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCHv2 2/4] mm: cma: Contiguous Memory Allocator added
+Message-ID: <20100727065842.40ae76c8@bike.lwn.net>
+In-Reply-To: <003701cb2d89$adae4580$090ad080$%szyprowski@samsung.com>
+References: <cover.1280151963.git.m.nazarewicz@samsung.com>
+	<743102607e2c5fb20e3c0676fadbcb93d501a78e.1280151963.git.m.nazarewicz@samsung.com>
+	<dc4bdf3e0b02c0ac4770927f72b6cbc3f0b486a2.1280151963.git.m.nazarewicz@samsung.com>
+	<20100727120841.GC11468@n2100.arm.linux.org.uk>
+	<003701cb2d89$adae4580$090ad080$%szyprowski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Here's the OMAP3 ISP driver along with V4L2 API additions/enhancements that
-it depends on, rebased on top of the media controller v3 patches. Once again
-please don't review this set, but use it as sample code for the media
-controller.
+On Tue, 27 Jul 2010 14:45:58 +0200
+Marek Szyprowski <m.szyprowski@samsung.com> wrote:
 
-Antti Koskipaa (1):
-  v4l: Add crop ioctl to V4L2 subdev API
+> > How does one obtain the CPU address of this memory in order for the CPU
+> > to access it?  
+> 
+> Right, we did not cover such case. In CMA approach we tried to separate
+> memory allocation from the memory mapping into user/kernel space. Mapping
+> a buffer is much more complicated process that cannot be handled in a
+> generic way, so we decided to leave this for the device drivers. Usually
+> video processing devices also don't need in-kernel mapping for such
+> buffers at all.
 
-Laurent Pinchart (8):
-  v4l: Move the media/v4l2-mediabus.h header to include/linux
-  v4l: Add 16 bit YUYV and SGRBG10 media bus format codes
-  v4l-subdev: Add pads operations
-  v4l: v4l2_subdev userspace format API
-  v4l: Add subdev userspace API to enumerate and configure frame
-    interval
-  v4l: subdev: Generic ioctl support
-  omap34xxcam: Register the ISP platform device during omap34xxcam
-    probe
-  OMAP3 ISP driver
+Still...that *is* why I suggested an interface which would return both
+the DMA address and a kernel-space virtual address, just like the DMA
+API does...  Either that, or just return the void * kernel address and
+let drivers do the DMA mapping themselves.  Returning only the
+dma_addr_t address will make the interface difficult to use in many
+situations.
 
-Stanimir Varbanov (2):
-  v4l: Create v4l2 subdev file handle structure
-  omap3: Export omap3isp platform device structure
-
-Tuukka Toivonen (1):
-  ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-
- Documentation/video4linux/v4l2-framework.txt |    5 +
- arch/arm/mach-omap2/devices.c                |   46 +-
- arch/arm/mach-omap2/devices.h                |   17 +
- arch/arm/plat-omap/include/mach/isp_user.h   |  637 ++++++++
- arch/arm/plat-omap/include/plat/omap34xx.h   |   16 +-
- drivers/media/video/Kconfig                  |    9 +
- drivers/media/video/Makefile                 |    4 +
- drivers/media/video/isp/Makefile             |   14 +
- drivers/media/video/isp/bluegamma_table.h    | 1040 ++++++++++++
- drivers/media/video/isp/cfa_coef_table.h     |  603 +++++++
- drivers/media/video/isp/greengamma_table.h   | 1040 ++++++++++++
- drivers/media/video/isp/isp.c                | 1686 +++++++++++++++++++
- drivers/media/video/isp/isp.h                |  402 +++++
- drivers/media/video/isp/ispccdc.c            | 2042 +++++++++++++++++++++++
- drivers/media/video/isp/ispccdc.h            |  177 ++
- drivers/media/video/isp/ispccp2.c            | 1036 ++++++++++++
- drivers/media/video/isp/ispccp2.h            |   89 +
- drivers/media/video/isp/ispcsi2.c            | 1215 ++++++++++++++
- drivers/media/video/isp/ispcsi2.h            |  158 ++
- drivers/media/video/isp/ispcsiphy.c          |  245 +++
- drivers/media/video/isp/ispcsiphy.h          |   72 +
- drivers/media/video/isp/isph3a.h             |  111 ++
- drivers/media/video/isp/isph3a_aewb.c        |  307 ++++
- drivers/media/video/isp/isph3a_af.c          |  358 ++++
- drivers/media/video/isp/isphist.c            |  505 ++++++
- drivers/media/video/isp/isphist.h            |   34 +
- drivers/media/video/isp/isppreview.c         | 2264 ++++++++++++++++++++++++++
- drivers/media/video/isp/isppreview.h         |  259 +++
- drivers/media/video/isp/ispqueue.c           | 1074 ++++++++++++
- drivers/media/video/isp/ispqueue.h           |  175 ++
- drivers/media/video/isp/ispreg.h             | 1802 ++++++++++++++++++++
- drivers/media/video/isp/ispresizer.c         | 1638 +++++++++++++++++++
- drivers/media/video/isp/ispresizer.h         |  136 ++
- drivers/media/video/isp/ispstat.c            |  971 +++++++++++
- drivers/media/video/isp/ispstat.h            |  161 ++
- drivers/media/video/isp/ispvideo.c           | 1241 ++++++++++++++
- drivers/media/video/isp/ispvideo.h           |  139 ++
- drivers/media/video/isp/luma_enhance_table.h |  144 ++
- drivers/media/video/isp/noise_filter_table.h |   79 +
- drivers/media/video/isp/redgamma_table.h     | 1040 ++++++++++++
- drivers/media/video/omap34xxcam.c            | 1562 ++++++++++++++++++
- drivers/media/video/omap34xxcam.h            |  137 ++
- drivers/media/video/v4l2-subdev.c            |  177 ++-
- include/linux/v4l2-mediabus.h                |   70 +
- include/linux/v4l2-subdev.h                  |  102 ++
- include/media/soc_mediabus.h                 |    3 +-
- include/media/v4l2-mediabus.h                |   48 +-
- include/media/v4l2-subdev.h                  |   53 +
- 48 files changed, 25056 insertions(+), 87 deletions(-)
- create mode 100644 arch/arm/mach-omap2/devices.h
- create mode 100644 arch/arm/plat-omap/include/mach/isp_user.h
- create mode 100644 drivers/media/video/isp/Makefile
- create mode 100644 drivers/media/video/isp/bluegamma_table.h
- create mode 100644 drivers/media/video/isp/cfa_coef_table.h
- create mode 100644 drivers/media/video/isp/greengamma_table.h
- create mode 100644 drivers/media/video/isp/isp.c
- create mode 100644 drivers/media/video/isp/isp.h
- create mode 100644 drivers/media/video/isp/ispccdc.c
- create mode 100644 drivers/media/video/isp/ispccdc.h
- create mode 100644 drivers/media/video/isp/ispccp2.c
- create mode 100644 drivers/media/video/isp/ispccp2.h
- create mode 100644 drivers/media/video/isp/ispcsi2.c
- create mode 100644 drivers/media/video/isp/ispcsi2.h
- create mode 100644 drivers/media/video/isp/ispcsiphy.c
- create mode 100644 drivers/media/video/isp/ispcsiphy.h
- create mode 100644 drivers/media/video/isp/isph3a.h
- create mode 100644 drivers/media/video/isp/isph3a_aewb.c
- create mode 100644 drivers/media/video/isp/isph3a_af.c
- create mode 100644 drivers/media/video/isp/isphist.c
- create mode 100644 drivers/media/video/isp/isphist.h
- create mode 100644 drivers/media/video/isp/isppreview.c
- create mode 100644 drivers/media/video/isp/isppreview.h
- create mode 100644 drivers/media/video/isp/ispqueue.c
- create mode 100644 drivers/media/video/isp/ispqueue.h
- create mode 100644 drivers/media/video/isp/ispreg.h
- create mode 100644 drivers/media/video/isp/ispresizer.c
- create mode 100644 drivers/media/video/isp/ispresizer.h
- create mode 100644 drivers/media/video/isp/ispstat.c
- create mode 100644 drivers/media/video/isp/ispstat.h
- create mode 100644 drivers/media/video/isp/ispvideo.c
- create mode 100644 drivers/media/video/isp/ispvideo.h
- create mode 100644 drivers/media/video/isp/luma_enhance_table.h
- create mode 100644 drivers/media/video/isp/noise_filter_table.h
- create mode 100644 drivers/media/video/isp/redgamma_table.h
- create mode 100644 drivers/media/video/omap34xxcam.c
- create mode 100644 drivers/media/video/omap34xxcam.h
- create mode 100644 include/linux/v4l2-mediabus.h
- create mode 100644 include/linux/v4l2-subdev.h
-
--- 
-Regards,
-
-Laurent Pinchart
-
+jon
