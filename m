@@ -1,62 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:60082 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756529Ab0GHVdO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 17:33:14 -0400
-Received: by iwn7 with SMTP id 7so1326915iwn.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Jul 2010 14:33:14 -0700 (PDT)
-Message-ID: <4C364416.3000809@gmail.com>
-Date: Thu, 08 Jul 2010 17:33:10 -0400
-From: Ivan <ivan.q.public@gmail.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
- [eb1a:2860]
-References: <4C353039.4030202@gmail.com>	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>	<4C360E64.3020703@gmail.com>	<AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>	<4C362C6E.5050104@gmail.com> <AANLkTikCrka3EyqhjP7z6wYQa4Z8exDa9Dwda60OLsVJ@mail.gmail.com> <4C363692.5000600@gmail.com>
-In-Reply-To: <4C363692.5000600@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from tango.tkos.co.il ([62.219.50.35]:34851 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750862Ab0G0FFC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jul 2010 01:05:02 -0400
+From: Baruch Siach <baruch@tkos.co.il>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Baruch Siach <baruch@tkos.co.il>
+Subject: [PATCH] mx2_camera: fix type of dma buffer virtual address pointer
+Date: Tue, 27 Jul 2010 08:03:30 +0300
+Message-Id: <2a17cba0d337a8805a37471986f9c4a0f5945e1c.1280206807.git.baruch@tkos.co.il>
+In-Reply-To: <20100726120008.GR14113@pengutronix.de>
+References: <20100726120008.GR14113@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/08/2010 04:35 PM, Ivan wrote:
-> On 07/08/2010 04:02 PM, Devin Heitmueller wrote:
->> On Thu, Jul 8, 2010 at 3:52 PM, Ivan<ivan.q.public@gmail.com> wrote:
->>> Yep, that gets rid of the vertical stripes but adds in a lovely
->>> horizontal
->>> shift:
->>>
->>> http://www3.picturepush.com/photo/a/3763906/img/3763906.png
->>
->> The "horizontal shift" issue is interesting. Does that happen every
->> time? And did you unplug/replug the device? Try to reboot?
->
-> Reboot? What is this, Windoze? :^D
->
-> But yeah, it's consistent across unplugs/replugs/reboots.
+Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+---
+ drivers/media/video/mx2_camera.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Ok, the horizontal shift disappears if I switch to 720x480 instead of 
-640x480.
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 98c93fa..026bef0 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -238,7 +238,7 @@ struct mx2_camera_dev {
+ 
+ 	u32			csicr1;
+ 
+-	void __iomem		*discard_buffer;
++	void			*discard_buffer;
+ 	dma_addr_t		discard_buffer_dma;
+ 	size_t			discard_size;
+ };
+-- 
+1.7.1
 
-Does the card always output 720x480 (in NTSC mode anyway), then, and any 
-scaling is done by V4L?
-
-I also have a question about dropped frames. After running mplayer or 
-mencoder, I see a line like:
-
-v4l2: 1199 frames successfully processed, -3 frames dropped.
-
-I can only guess that the negative number means that V4L received frames 
-at a slightly faster rate than the expected 30000/1001 fps. In my case, 
-it would seem that my SNES is producing something more like 30.05 fps, 
-and so V4L reports a "negative" dropped frame every 12.5 seconds or so.
-
-It would also seem that V4L doesn't actually discard any frames, but 
-still passes them on to mplayer/mencoder, because mencoder shows an 
-encoding fps of 30.04 (and it will skip a frame every 12.5 seconds or so 
-unless you pass it -noskip).
-
-Am I right about all this?
-
-Ivan
