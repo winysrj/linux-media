@@ -1,71 +1,108 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx10.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.14])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o6KACiJp020295
-	for <video4linux-list@redhat.com>; Tue, 20 Jul 2010 06:12:45 -0400
-Received: from kuber.nabble.com (kuber.nabble.com [216.139.236.158])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6KACYKK007257
-	for <video4linux-list@redhat.com>; Tue, 20 Jul 2010 06:12:34 -0400
-Received: from jim.nabble.com ([192.168.236.80])
-	by kuber.nabble.com with esmtp (Exim 4.63)
-	(envelope-from <martin.moors@smail.inf.h-brs.de>) id 1Ob9oP-0002iP-Jr
-	for video4linux-list@redhat.com; Tue, 20 Jul 2010 03:12:33 -0700
-Date: Tue, 20 Jul 2010 03:12:33 -0700 (PDT)
-From: maddin2010 <martin.moors@smail.inf.h-brs.de>
-To: video4linux-list@redhat.com
-Message-ID: <1279620753610-5316010.post@n2.nabble.com>
-Subject: Philips SPC 900NC PC Camera via usb with v4l
+Return-path: <linux-dvb-bounces+mchehab=infradead.org@linuxtv.org>
+Received: from mail.tu-berlin.de ([130.149.7.33])
+	by www.linuxtv.org with esmtp (Exim 4.69)
+	(envelope-from <chrivers@iversen-net.dk>) id 1OdpZ9-0002HR-Fo
+	for linux-dvb@linuxtv.org; Tue, 27 Jul 2010 21:11:52 +0200
+Received: from mail.sikkerhed.org ([78.109.215.82])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1OdpZ8-00024E-2a; Tue, 27 Jul 2010 21:11:51 +0200
+Received: from localhost (mailscan.sikkerhed.org [78.109.215.84])
+	by mail.sikkerhed.org (Postfix) with ESMTP id 2161216317
+	for <linux-dvb@linuxtv.org>; Tue, 27 Jul 2010 21:11:49 +0200 (CEST)
+Received: from mail.sikkerhed.org ([78.109.215.82])
+	by localhost (mailscan.sikkerhed.org [78.109.215.84]) (amavisd-new,
+	port 10024) with LMTP id IGJIjB3kgmoP for <linux-dvb@linuxtv.org>;
+	Tue, 27 Jul 2010 21:11:41 +0200 (CEST)
+Received: from [10.0.0.7] (boreas.sikkerhed.org [130.225.166.200])
+	by mail.sikkerhed.org (Postfix) with ESMTPSA id 9E54C16309
+	for <linux-dvb@linuxtv.org>; Tue, 27 Jul 2010 21:11:41 +0200 (CEST)
+Message-ID: <4C4F2F6D.9000008@iversen-net.dk>
+Date: Tue, 27 Jul 2010 21:11:41 +0200
+From: Christian Iversen <chrivers@iversen-net.dk>
 MIME-Version: 1.0
-List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
-List-Post: <mailto:video4linux-list@redhat.com>
-List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
-	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+To: linux-dvb@linuxtv.org
+Subject: [linux-dvb] Unknown CX23885 device
+Reply-To: linux-media@vger.kernel.org
+List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
+List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
+List-Post: <mailto:linux-dvb@linuxtv.org>
+List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
+List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
+	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Sender: video4linux-list-bounces@redhat.com
-Errors-To: video4linux-list-bounces@redhat.com
-List-ID: <video4linux-list@redhat.com>
+Sender: linux-dvb-bounces@linuxtv.org
+Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
+List-ID: <linux-dvb@linuxtv.org>
+
+Hey Linux-DVB people
+
+I'm trying to make an as-of-yet unsupported CX23885 device work in Linux.
+
+I've tested that the device is not supported using the newest snapshot
+of the DVB drivers. They did support a bunch of extra devices compared
+to the standard ubuntu driver, but to no avail.
+
+This is what I know about the device:
+
+### physical description ###
+
+The device is a small mini-PCIe device currently installed in my
+Thinkpad T61p notebook. It did not originate there, but I managed to 
+fit it in.
+
+It has an "Avermedia" logo on top, but no other discernable markings. 
+
+I've tried removing the chip cover, but I can't see any other major chips
+than the cx23885. I can take a second look, if I know what to look for.
+
+### pci info ###
+
+$ sudo lspci -s 02:00.0 -vv
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder (rev 02)
+        Subsystem: Avermedia Technologies Inc Device c139
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 0, Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at d7a00000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <2us, L1 <4us
+                        ClockPM- Suprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data <?>
+        Capabilities: [a0] Message Signalled Interrupts: Mask- 64bit+ Queue=0/0 Enable-
+                Address: 0000000000000000  Data: 0000
+        Capabilities: [100] Advanced Error Reporting <?>
+        Capabilities: [200] Virtual Channel <?>
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
 
 
-Hi,
+I've tried several different card=X settings for "modprobe cx23885", and a few of them 
+result in creation of /dev/dvb devices, but none of them really seem towork.
 
-Iam trying to capture a video or an image from the Philips SPC 900NC PC
-Camera - Webcam.
-
-I downloded the capture.c file and changed following lines.
-
-...
-//had to be replaced from - fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; to
-fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUV420;
-fmt.fmt.pix.field       = V4L2_FIELD_INTERLACED;
-...
-
-than after compiling and executing I get an output of dots.
-
-Do I have to download somewhere a headerfile, becaue in the Spec is a header
-file which is not on the homepage.
-
-What I need is a little push, so I maybe see an image or an video from the
-webcam, so that I can begin experimenting with it.
-
-Is the video somewhere in the Memmory in form of a stream ?
-
-Hopefully you can help me a bit,
-
-Thx in advance,
-
-Martin
-
+What can I try for a next step?
 
 -- 
-View this message in context: http://video4linux-list.1448896.n2.nabble.com/Philips-SPC-900NC-PC-Camera-via-usb-with-v4l-tp5316010p5316010.html
-Sent from the video4linux-list mailing list archive at Nabble.com.
+Med venlig hilsen
+Christian Iversen
 
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
