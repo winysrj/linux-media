@@ -1,93 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:10446 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965713Ab0GPOs1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jul 2010 10:48:27 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=US-ASCII
-Date: Fri, 16 Jul 2010 16:47:07 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: RE: [PATCH 01/10 v2] ARM: Samsung: Add FIMC register and platform
- definitions
-In-reply-to: <4C40603B.8000208@gmail.com>
-To: 'Maurus Cuelenaere' <mcuelenaere@gmail.com>
-Cc: 'Kukjin Kim' <kgene.kim@samsung.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Message-id: <000801cb24f5$c3377490$49a65db0$%nawrocki@samsung.com>
-Content-language: en-us
-References: <1279185041-6004-1-git-send-email-s.nawrocki@samsung.com>
- <1279185041-6004-2-git-send-email-s.nawrocki@samsung.com>
- <012101cb24cb$83187410$89495c30$%kim@samsung.com>
- <000301cb24eb$13434000$39c9c000$%nawrocki@samsung.com>
- <4C40603B.8000208@gmail.com>
+Received: from kroah.org ([198.145.64.141]:56905 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750815Ab0G0QKD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Jul 2010 12:10:03 -0400
+Date: Tue, 27 Jul 2010 09:09:56 -0700
+From: Greg KH <greg@kroah.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jarod Wilson <jarod@redhat.com>, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-input@vger.kernel.org
+Subject: Re: [PATCH 0/15] STAGING: add lirc device drivers
+Message-ID: <20100727160955.GA7528@kroah.com>
+References: <20100726232546.GA21225@redhat.com>
+ <4C4F0244.2070803@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4C4F0244.2070803@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> -----Original Message-----
-> From: Maurus Cuelenaere [mailto:mcuelenaere@gmail.com]
-> Sent: Friday, July 16, 2010 3:36 PM
-> To: Sylwester Nawrocki
-> Cc: 'Kukjin Kim'; Pawel Osciak; Marek Szyprowski;
-> kyungmin.park@samsung.com; linux-media@vger.kernel.org; linux-samsung-
-> soc@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> Subject: Re: [PATCH 01/10 v2] ARM: Samsung: Add FIMC register and
-> platform definitions
+On Tue, Jul 27, 2010 at 12:59:00PM -0300, Mauro Carvalho Chehab wrote:
+> Em 26-07-2010 20:25, Jarod Wilson escreveu:
+
+Hm, Jarod, you forgot to cc: the staging maintainer, so I missed these
+:)
+
+> Please add a TODO file at staging/lirc, describing what's needed for
+> the drivers to move to the IR branch.
 > 
->  Op 16-07-10 15:30, Sylwester Nawrocki schreef:
-> > Hi,
-> >
-> > thank you for the review. Please se my comments below.
-> >
-> >> -----Original Message-----
-> >> From: Kukjin Kim [mailto:kgene.kim@samsung.com]
-> >> Sent: Friday, July 16, 2010 11:45 AM
-> >> To: 'Sylwester Nawrocki'; linux-samsung-soc@vger.kernel.org; linux-
-> arm-
-> >> kernel@lists.infradead.org
-> >> Cc: p.osciak@samsung.com; m.szyprowski@samsung.com;
-> >> kyungmin.park@samsung.com; linux-media@vger.kernel.org
-> >> Subject: RE: [PATCH 01/10 v2] ARM: Samsung: Add FIMC register and
-> >> platform definitions
-> >>
-
-<snip>
-
-> >>> +
-> >>> +struct samsung_plat_fimc {
-> >>> +	struct s3c_fifo_link	*fifo_targets[FIMC_MAX_FIFO_TARGETS];
-> >>> +};
-> >>> +
-> >>> +#endif /* FIMC_H_ */
-> >>> +
-> >> No need last empty line...
-> > C89 and C99 standard requires a new line character at the end of
-> file.
-> > The compiler should issue a warning when the new line character
-> > at the end of file is missing, otherwise it is not compliant with
-> > the above C standards.
-> > So I would rather add a new line where it is missing rather than
-> > removing it.
-> > There is lots of header files already in arch/arm/plat-samsung where
-> > there is even more than one empty line at the end of file.
+> Greg,
 > 
-> AFAIK there *already is* an empty line, git just omits it in diffs.
-> Try removing the last line with your editor and see what git diff
-> gives, it'll
-> show "\ No newline at end of file".
-
-Indeed, I just had two new-line characters with single empty line..
-
+> It is probably simpler to merge those files via my tree, as they depend
+> on some changes scheduled for 2.6.36.
 > 
-> --
-> Maurus Cuelenaere
+> Would it be ok for you if I merge them from my tree?
 
-Thanks,
-Sylwester
+No objection from me for them to go through your tree.
 
+Do you want me to handle the cleanup and other fixes after they go into
+the tree, or do you want to also handle them as well (either is fine
+with me.)
 
+thanks,
+
+greg k-h
