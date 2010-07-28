@@ -1,76 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:44944 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752537Ab0GZTek convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 15:34:40 -0400
-From: "Sin, David" <davidsin@ti.com>
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"Kanigeri, Hari" <h-kanigeri2@ti.com>,
-	Ohad Ben-Cohen <ohad@wizery.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"Shilimkar, Santosh" <santosh.shilimkar@ti.com>,
-	"Molnar, Lajos" <molnar@ti.com>, Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Date: Mon, 26 Jul 2010 14:34:30 -0500
-Subject: RE: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and
-	implementation
-Message-ID: <513FF747EED39B4AADBB4D6C9D9F9F7903D63B9DD3@dlee02.ent.ti.com>
-References: <1279927348-21750-1-git-send-email-davidsin@ti.com>
- <1279927348-21750-2-git-send-email-davidsin@ti.com>
- <1279927348-21750-3-git-send-email-davidsin@ti.com>
- <1279927348-21750-4-git-send-email-davidsin@ti.com>
- <1279927348-21750-5-git-send-email-davidsin@ti.com>
- <20100724080118.GB15064@n2100.arm.linux.org.uk>
-In-Reply-To: <20100724080118.GB15064@n2100.arm.linux.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:63944 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755494Ab0G1QBR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 12:01:17 -0400
+Message-ID: <4C505451.8030809@redhat.com>
+Date: Wed, 28 Jul 2010 13:01:21 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+CC: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/9] IR: minor fixes:
+References: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com> <1280330051-27732-3-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280330051-27732-3-git-send-email-maximlevitsky@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OK -- I will revisit this.  Thanks for the explanation.
+Em 28-07-2010 12:14, Maxim Levitsky escreveu:
+> * lirc: Don't propagate reset event to userspace
+> * lirc: Remove strange logic from lirc that would make first sample always be pulse
+> * Make TO_US macro actualy print what it should.
+> 
+> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+> ---
+>  drivers/media/IR/ir-core-priv.h  |    3 +--
+>  drivers/media/IR/ir-lirc-codec.c |   14 ++++++++------
+>  drivers/media/IR/ir-raw-event.c  |    3 +++
+>  3 files changed, 12 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+> index babd520..8ce80e4 100644
+> --- a/drivers/media/IR/ir-core-priv.h
+> +++ b/drivers/media/IR/ir-core-priv.h
+> @@ -76,7 +76,6 @@ struct ir_raw_event_ctrl {
+>  	struct lirc_codec {
+>  		struct ir_input_dev *ir_dev;
+>  		struct lirc_driver *drv;
+> -		int lircdata;
+>  	} lirc;
+>  };
+>  
+> @@ -104,7 +103,7 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
+>  		ev->duration -= duration;
+>  }
+>  
+> -#define TO_US(duration)			(((duration) + 500) / 1000)
+> +#define TO_US(duration)			((duration) / 1000)
 
--David
+It is better to keep rounding the duration to its closest value.
 
------Original Message-----
-From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk] 
-Sent: Saturday, July 24, 2010 3:01 AM
-To: Sin, David
-Cc: linux-arm-kernel@lists.arm.linux.org.uk; linux-omap@vger.kernel.org; Tony Lindgren; Kanigeri, Hari; Ohad Ben-Cohen; Hiremath, Vaibhav; Shilimkar, Santosh; Molnar, Lajos
-Subject: Re: [RFC 4/8] TILER-DMM: TILER Memory Manager interface and implementation
-
-On Fri, Jul 23, 2010 at 06:22:24PM -0500, David Sin wrote:
-> +/* allocate and flush a page */
-> +static struct mem *alloc_mem(void)
-> +{
-> +	struct mem *m = kzalloc(sizeof(*m), GFP_KERNEL);
-> +	if (!m)
-> +		return NULL;
-> +
-> +	m->pg = alloc_page(GFP_KERNEL | GFP_DMA);
-> +	if (!m->pg) {
-> +		kfree(m);
-> +		return NULL;
-> +	}
-> +
-> +	m->pa = page_to_phys(m->pg);
-> +
-> +	/* flush the cache entry for each page we allocate. */
-> +	dmac_flush_range(page_address(m->pg),
-> +				page_address(m->pg) + PAGE_SIZE);
-> +	outer_flush_range(m->pa, m->pa + PAGE_SIZE);
-
-NAK.  This is an abuse of these interfaces, and is buggy in any case.
-
-ARMv6 and ARMv7 CPUs speculatively prefetch memory, which means that
-there's no guarantee that if you flush the caches for a particular
-range of virtual space, that it will stay flushed until you decide
-to read it.  So flushing the caches in some memory allocator can't
-guarantee that when you eventually get around to using the page that
-there won't be cache lines associated with it.
+Cheers,
+Mauro
