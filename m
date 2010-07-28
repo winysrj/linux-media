@@ -1,123 +1,234 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3590 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751053Ab0GITdZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 15:33:25 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o69JXNb4049036
-	for <linux-media@vger.kernel.org>; Fri, 9 Jul 2010 21:33:24 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 9 Jul 2010 21:33:23 +0200 (CEST)
-Message-Id: <201007091933.o69JXNb4049036@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:59260 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751665Ab0G1POh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 11:14:37 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 4/9] IR: add helper functions for ir input devices that send ir timing data in small chunks, and alternation between pulses and spaces isn't guaranteed.
+Date: Wed, 28 Jul 2010 18:14:06 +0300
+Message-Id: <1280330051-27732-5-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ir-core-priv.h |    1 +
+ drivers/media/IR/ir-keytable.c  |    2 +-
+ drivers/media/IR/ir-raw-event.c |   86 +++++++++++++++++++++++++++++++++++++++
+ include/media/ir-core.h         |   24 +++++++++-
+ 4 files changed, 109 insertions(+), 4 deletions(-)
 
-Results of the daily build of v4l-dvb:
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index 8ce80e4..3eafdb7 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -36,6 +36,7 @@ struct ir_raw_event_ctrl {
+ 	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
+ 	ktime_t				last_event;	/* when last event occurred */
+ 	enum raw_event_type		last_type;	/* last event type */
++	struct ir_raw_event		current_sample;	/* sample that is not yet pushed to fifo */
+ 	struct input_dev		*input_dev;	/* pointer to the parent input_dev */
+ 	u64				enabled_protocols; /* enabled raw protocol decoders */
+ 
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 94a8577..34b9c07 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -428,7 +428,7 @@ static void ir_close(struct input_dev *input_dev)
+  */
+ int __ir_input_register(struct input_dev *input_dev,
+ 		      const struct ir_scancode_table *rc_tab,
+-		      const struct ir_dev_props *props,
++		      struct ir_dev_props *props,
+ 		      const char *driver_name)
+ {
+ 	struct ir_input_dev *ir_dev;
+diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+index c6a80b3..bdf2ed8 100644
+--- a/drivers/media/IR/ir-raw-event.c
++++ b/drivers/media/IR/ir-raw-event.c
+@@ -129,6 +129,92 @@ int ir_raw_event_store_edge(struct input_dev *input_dev, enum raw_event_type typ
+ EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
+ 
+ /**
++ * ir_raw_event_store_with_filter() - pass next pulse/space to decoders with some processing
++ * @input_dev:	the struct input_dev device descriptor
++ * @type:	the type of the event that has occurred
++ *
++ * This routine (which may be called from an interrupt context) is used to
++ * store the beginning of an ir pulse or space (or the start/end of ir
++ * reception) for the raw ir decoding state machines.\
++ * This routine is intended for devices with limited internal buffer
++ * It automerges samples of same type, and handles timeouts
++ */
++int ir_raw_event_store_with_filter(struct input_dev *input_dev,
++						struct ir_raw_event *ev)
++{
++	struct ir_input_dev *ir = input_get_drvdata(input_dev);
++	struct ir_raw_event_ctrl *raw = ir->raw;
++
++	if (!ir->raw || !ir->props)
++		return -EINVAL;
++
++	/* Ignore spaces in idle mode */
++	if (ir->idle && !ev->pulse)
++		return 0;
++	else if (ir->idle)
++		ir_raw_event_set_idle(input_dev, 0);
++
++	if (!raw->current_sample.duration) {
++		raw->current_sample = *ev;
++	} else if (ev->pulse == raw->current_sample.pulse) {
++		raw->current_sample.duration += ev->duration;
++	} else {
++		ir_raw_event_store(input_dev, &raw->current_sample);
++		raw->current_sample = *ev;
++	}
++
++	/* Enter idle mode if nessesary */
++	if (!ev->pulse && ir->props->timeout &&
++		raw->current_sample.duration >= ir->props->timeout)
++		ir_raw_event_set_idle(input_dev, 1);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ir_raw_event_store_with_filter);
++
++
++void ir_raw_event_set_idle(struct input_dev *input_dev, int idle)
++{
++	struct ir_input_dev *ir = input_get_drvdata(input_dev);
++	struct ir_raw_event_ctrl *raw = ir->raw;
++	ktime_t now;
++	u64 delta;
++
++	if (!ir->props)
++		return;
++
++	if (!ir->raw)
++		goto out;
++
++	if (idle) {
++		IR_dprintk(2, "enter idle mode\n");
++		raw->last_event = ktime_get();
++	} else {
++		IR_dprintk(2, "exit idle mode\n");
++
++		now = ktime_get();
++		delta = ktime_to_ns(ktime_sub(now, ir->raw->last_event));
++
++		WARN_ON(raw->current_sample.pulse);
++
++		raw->current_sample.duration =
++			min(raw->current_sample.duration + delta,
++						(u64)IR_MAX_DURATION);
++
++		ir_raw_event_store(input_dev, &raw->current_sample);
++
++		if (raw->current_sample.duration == IR_MAX_DURATION)
++			ir_raw_event_reset(input_dev);
++
++		raw->current_sample.duration = 0;
++	}
++out:
++	if (ir->props->s_idle)
++		ir->props->s_idle(ir->props->priv, idle);
++	ir->idle = idle;
++}
++EXPORT_SYMBOL_GPL(ir_raw_event_set_idle);
++
++/**
+  * ir_raw_event_handle() - schedules the decoding of stored ir data
+  * @input_dev:	the struct input_dev device descriptor
+  *
+diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+index 513e60d..53ce966 100644
+--- a/include/media/ir-core.h
++++ b/include/media/ir-core.h
+@@ -41,6 +41,9 @@ enum rc_driver_type {
+  *	anything with it. Yet, as the same keycode table can be used with other
+  *	devices, a mask is provided to allow its usage. Drivers should generally
+  *	leave this field in blank
++ * @timeout: optional time after which device stops sending data
++ * @min_timeout: minimum timeout supported by device
++ * @max_timeout: maximum timeout supported by device
+  * @priv: driver-specific data, to be used on the callbacks
+  * @change_protocol: allow changing the protocol used on hardware decoders
+  * @open: callback to allow drivers to enable polling/irq when IR input device
+@@ -50,11 +53,19 @@ enum rc_driver_type {
+  * @s_tx_mask: set transmitter mask (for devices with multiple tx outputs)
+  * @s_tx_carrier: set transmit carrier frequency
+  * @tx_ir: transmit IR
++ * @s_idle: optional: enable/disable hardware idle mode, upon which,
++	device doesn't interrupt host untill it sees IR data
+  */
+ struct ir_dev_props {
+ 	enum rc_driver_type	driver_type;
+ 	unsigned long		allowed_protos;
+ 	u32			scanmask;
++
++	u64			timeout;
++	u64			min_timeout;
++	u64			max_timeout;
++
++
+ 	void			*priv;
+ 	int			(*change_protocol)(void *priv, u64 ir_type);
+ 	int			(*open)(void *priv);
+@@ -62,6 +73,7 @@ struct ir_dev_props {
+ 	int			(*s_tx_mask)(void *priv, u32 mask);
+ 	int			(*s_tx_carrier)(void *priv, u32 carrier);
+ 	int			(*tx_ir)(void *priv, int *txbuf, u32 n);
++	void			(*s_idle) (void *priv, int enable);
+ };
+ 
+ struct ir_input_dev {
+@@ -69,9 +81,10 @@ struct ir_input_dev {
+ 	char				*driver_name;	/* Name of the driver module */
+ 	struct ir_scancode_table	rc_tab;		/* scan/key table */
+ 	unsigned long			devno;		/* device number */
+-	const struct ir_dev_props	*props;		/* Device properties */
++	struct ir_dev_props		*props;		/* Device properties */
+ 	struct ir_raw_event_ctrl	*raw;		/* for raw pulse/space events */
+ 	struct input_dev		*input_dev;	/* the input device associated with this device */
++	int				idle;
+ 
+ 	/* key info - needed by IR keycode handlers */
+ 	spinlock_t			keylock;	/* protects the below members */
+@@ -95,12 +108,12 @@ enum raw_event_type {
+ /* From ir-keytable.c */
+ int __ir_input_register(struct input_dev *dev,
+ 		      const struct ir_scancode_table *ir_codes,
+-		      const struct ir_dev_props *props,
++		      struct ir_dev_props *props,
+ 		      const char *driver_name);
+ 
+ static inline int ir_input_register(struct input_dev *dev,
+ 		      const char *map_name,
+-		      const struct ir_dev_props *props,
++		      struct ir_dev_props *props,
+ 		      const char *driver_name) {
+ 	struct ir_scancode_table *ir_codes;
+ 	struct ir_input_dev *ir_dev;
+@@ -144,6 +157,11 @@ struct ir_raw_event {
+ void ir_raw_event_handle(struct input_dev *input_dev);
+ int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev);
+ int ir_raw_event_store_edge(struct input_dev *input_dev, enum raw_event_type type);
++int ir_raw_event_store_with_filter(struct input_dev *input_dev,
++						struct ir_raw_event *ev);
++
++void ir_raw_event_set_idle(struct input_dev *input_dev, int idle);
++
+ static inline void ir_raw_event_reset(struct input_dev *input_dev)
+ {
+ 	struct ir_raw_event ev = { .pulse = false, .duration = 0 };
+-- 
+1.7.0.4
 
-date:        Fri Jul  9 19:00:19 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
-
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
