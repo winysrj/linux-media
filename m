@@ -1,101 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:32140 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754425Ab0GaSvB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 14:51:01 -0400
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and
- enable  it.
-From: Andy Walls <awalls@md.metrocast.net>
+Received: from mx1.redhat.com ([209.132.183.28]:52108 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755261Ab0G1P3b (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 11:29:31 -0400
+Date: Wed, 28 Jul 2010 11:18:58 -0400
+From: Jarod Wilson <jarod@redhat.com>
 To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Christoph Bartelmus <lirc@bartelmus.de>, jarod@wilsonet.com,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, maximlevitsky@gmail.com,
-	mchehab@redhat.com
-In-Reply-To: <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
-References: <AANLkTimaut1mMUXwbJAgjNjmQkxgsf-GOCTXmKYNm1Lz@mail.gmail.com>
-	 <BTtOJbzJjFB@christoph>
-	 <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 31 Jul 2010 14:51:21 -0400
-Message-ID: <1280602281.20879.76.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: Can I expect in-kernel decoding to work out of box?
+Message-ID: <20100728151858.GA26480@redhat.com>
+References: <1280269990.21278.15.camel@maxim-laptop>
+ <1280273550.32216.4.camel@maxim-laptop>
+ <AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
+ <AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
+ <1280298606.6736.15.camel@maxim-laptop>
+ <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
+ <4C502CE6.80106@redhat.com>
+ <1280327080.9175.58.camel@maxim-laptop>
+ <AANLkTi=Ww9yvN5RWaXEi+cB2QaDWn34nSVGAvKxbJ2k2@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTi=Ww9yvN5RWaXEi+cB2QaDWn34nSVGAvKxbJ2k2@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-07-31 at 14:14 -0400, Jon Smirl wrote:
-> On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
-> > Hi Jon,
+On Wed, Jul 28, 2010 at 10:41:27AM -0400, Jon Smirl wrote:
+> On Wed, Jul 28, 2010 at 10:24 AM, Maxim Levitsky
+...
+> > You are right that my remote has  JVC protocol. (at least I am sure now
+> > it hasn't NEC, because repeat looks differently).
 > >
-> > on 31 Jul 10 at 12:25, Jon Smirl wrote:
-> >> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
-> >> wrote:
-> >>> I think you won't be able to fix the problem conclusively either way.  A
-> >>> lot of how the chip's clocks should be programmed depends on how the
-> >>> GPIOs are used and what crystal is used.
-> >>>
-> >>> I suspect many designers will use some reference design layout from ENE,
-> >>> but it won't be good in every case.  The wire-up of the ENE of various
-> >>> motherboards is likely something you'll have to live with as unknowns.
-> >>>
-> >>> This is a case where looser tolerances in the in kernel decoders could
-> >>> reduce this driver's complexity and/or get rid of arbitrary fudge
-> >>> factors in the driver.
+> > My remote now actually partially works with JVC decoder, it decodes
+> > every other keypress.
 > >
-> >> The tolerances are as loose as they can be. The NEC protocol uses
-> >> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
-> >> (50% of 4%).  The crystals used in electronics are accurate to
-> >> 0.0001%+.
-> >
-> > But the standard IR receivers are far from being accurate enough to allow
-> > tolerance windows of only 2%.
-> > I'm surprised that this works for you. LIRC uses a standard tolerance of
-> > 30% / 100 us and even this is not enough sometimes.
-> >
-> > For the NEC protocol one signal consists of 22 individual pulses at 38kHz.
-> > If the receiver just misses one pulse, you already have an error of 1/22
-> >> 4%.
+> > Still, no repeat is supported.
 > 
-> There are different types of errors. The decoders can take large
-> variations in bit times. The problem is with cumulative errors. In
-> this case the error had accumulated up to 450us in the lead pulse.
-> That's just too big of an error 
+> It probably isn't implemented yet. Jarod has been focusing more on
+> getting the basic decoders to work.
 
-Hi Jon,
+More specifically, getting the basic decoders to work with very specific
+hardware -- i.e., the mceusb transceivers, and primarily focused only on
+RC-6(A) decode w/the mceusb bundled remotes. That, and getting the lirc
+bridge driver working for both rx and tx.
 
-Hmmm.  Leader marks are, by protocol design, there to give time for the
-receiver's AGC to settle.  We should make it OK to miss somewhat large
-portions of leader marks.  I'm not sure what the harm is in accepting
-too long of a leader mark, but I'm pretty sure a leader mark that is too
-long will always be due to systematic error and not noise errors.
+Basically, my plan of attack has been to get enough bits in place that we
+have a "reference implementation", if you will, of a driver that supports
+all in-kernel decoders and the lirc interface, complete with the ability
+to do tx[*], and from there, then we can really dig into the in-kernel
+decoders and/or work on porting additional drivers to ir-core. I'm more
+focused on porting additional drivers to ir-core at the moment than I am
+on testing all of the protocol decoders right now.
 
-However, if we know we have systematic errors caused by unknowns, we
-should be designing and imlpementing a decoding system that reasonably
-deals with those systematic errors.  Again the part of the system almost
-completely out of our control is the remote controls, and we *have no
-control* over systematic errors introduced by remotes.
+[*] we still don't have an ir-core "native" tx method, but tx on the
+mceusb works quite well using the lirc bridge plugin
 
-Obviously we want to reduce or elimiinate systematic errors by
-determining the unknowns and undoing their effects or by compensating
-for their overall effect.  But in the case of the ENE receiver driver,
-you didn't seem to like the Maxim's software compensation for the
-systematic receiver errors.
-
-
-> and caused the JVC code to be
-> misclassified as NEC.
-
-I still have not heard why we need protocol discrimination/classifcation
-in the kernel.  Doing discrimination between two protocols with such
-close timings is whose requirement again?
-
-Since these two protocols have such close timings that systematic errors
-can cause misclassifcation when using simple mark or space measurments
-against fixed thresholds, it indicates that a more sophisticated
-discrimation mechanism would be needed.  Perhaps one that takes multiple
-successive measurments into account?
-
-Regards,
-Andy
+-- 
+Jarod Wilson
+jarod@redhat.com
 
