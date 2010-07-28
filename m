@@ -1,81 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:49648 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750742Ab0GBJxx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jul 2010 05:53:53 -0400
-Received: by fxm14 with SMTP id 14so2142584fxm.19
-        for <linux-media@vger.kernel.org>; Fri, 02 Jul 2010 02:53:52 -0700 (PDT)
-Message-ID: <8969BB6B2C01423887D844C6717A13E4@PaulPC>
-From: "Paul Koppa" <meistaheinz@gmail.com>
-To: <linux-media@vger.kernel.org>
-Subject: Support for cx24120?
-Date: Fri, 2 Jul 2010 11:53:45 +0200
+Received: from rcsinet10.oracle.com ([148.87.113.121]:24212 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753711Ab0G1WRg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 18:17:36 -0400
+Message-ID: <4C50AC26.1080100@oracle.com>
+Date: Wed, 28 Jul 2010 15:16:06 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="UTF-8";
-	reply-type=original
-Content-Transfer-Encoding: 8bit
+To: Janne Grunau <j@jannau.net>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: linux-next: Tree for July 28 (lirc #2)
+References: <20100728162855.4968e561.sfr@canb.auug.org.au> <20100728102417.be60049a.randy.dunlap@oracle.com> <20100728220454.GK8564@aniel.lan>
+In-Reply-To: <20100728220454.GK8564@aniel.lan>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 07/28/10 15:04, Janne Grunau wrote:
+> On Wed, Jul 28, 2010 at 10:24:17AM -0700, Randy Dunlap wrote:
+>> On Wed, 28 Jul 2010 16:28:55 +1000 Stephen Rothwell wrote:
+>>
+>>> Hi all,
+>>>
+>>> Changes since 20100727:
+>>
+>>
+>> When USB_SUPPORT is not enabled and MEDIA_SUPPORT is not enabled:
+>>
+> 
+> following patch should fix it
+> 
+> Janne
 
-I recently got an TechniSat SkyStar S2 [13d0:2103] which uses an 
-FlexCop2-Bridge, which is supported, but an unsupported? CX24120 Demod.
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 
-(This card is rather cheap, 45€ LowProfile incl. IR-Remote, otherwise i'd 
-just have sent it back.)
-
-TechniSat provides a Binary Driver
-( 
-http://www.technisat-daun.de/download/soft/soft_linux-driver_12-2008_6611.zip )
-which contains an cx24120 blob (32/64) +Firmware, but requires an Dec2008 
-V4L-checkout (
-I need a newer rev for my E3C EC168 USB-DVBT-Stick)
-
-Anyway I can get this working? Can I help in any way?
-
-Thanks,
-
-Paul
-
-lspci
-
-Network controller: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip / 
-Technisat SkyStar2 DVB card (rev 02)
-        Subsystem: Techsan Electronics Co Ltd B2C2 FlexCopII DVB chip / 
-Technisat SkyStar2 DVB card
-        Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- 
-Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=slow >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-        Interrupt: pin A routed to IRQ 17
-        Region 0: Memory at feae0000 (32-bit, non-prefetchable) [size=64K]
-        Region 1: I/O ports at bc00 [size=32]
-        Kernel modules: b2c2-flexcop-pci
+Thanks.
 
 
-dmesg
+> 
+> From 7d1cc98c19a6c27dd74a28f04dfe4248a0b335ce Mon Sep 17 00:00:00 2001
+> From: Janne Grunau <j@jannau.net>
+> Date: Wed, 28 Jul 2010 23:53:35 +0200
+> Subject: [PATCH 1/2] staging/lirc: fix Kconfig dependencies
+> 
+> Signed-off-by: Janne Grunau <j@jannau.net>
+> ---
+>  drivers/staging/lirc/Kconfig |   28 ++++++++++++++--------------
+>  1 files changed, 14 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/staging/lirc/Kconfig b/drivers/staging/lirc/Kconfig
+> index 968c2ade..3981a4a 100644
+> --- a/drivers/staging/lirc/Kconfig
+> +++ b/drivers/staging/lirc/Kconfig
+> @@ -13,13 +13,13 @@ if LIRC_STAGING
+>  
+>  config LIRC_BT829
+>          tristate "BT829 based hardware"
+> -	depends on LIRC_STAGING
+> +	depends on LIRC && LIRC_STAGING
+>  	help
+>  	  Driver for the IR interface on BT829-based hardware
+>  
+>  config LIRC_ENE0100
+>  	tristate "ENE KB3924/ENE0100 CIR Port Reciever"
+> -	depends on LIRC_STAGING
+> +	depends on LIRC && LIRC_STAGING
+>  	help
+>  	  This is a driver for CIR port handled by ENE KB3924 embedded
+>  	  controller found on some notebooks.
+> @@ -27,20 +27,20 @@ config LIRC_ENE0100
+>  
+>  config LIRC_I2C
+>  	tristate "I2C Based IR Receivers"
+> -	depends on LIRC_STAGING
+> +	depends on I2C && LIRC && LIRC_STAGING
+>  	help
+>  	  Driver for I2C-based IR receivers, such as those commonly
+>  	  found onboard Hauppauge PVR-150/250/350 video capture cards
+>  
+>  config LIRC_IGORPLUGUSB
+>  	tristate "Igor Cesko's USB IR Receiver"
+> -	depends on LIRC_STAGING && USB
+> +	depends on USB && LIRC && LIRC_STAGING && USB
+>  	help
+>  	  Driver for Igor Cesko's USB IR Receiver
+>  
+>  config LIRC_IMON
+>  	tristate "Legacy SoundGraph iMON Receiver and Display"
+> -	depends on LIRC_STAGING
+> +	depends on LIRC && LIRC_STAGING
+>  	help
+>  	  Driver for the original SoundGraph iMON IR Receiver and Display
+>  
+> @@ -48,31 +48,31 @@ config LIRC_IMON
+>  
+>  config LIRC_IT87
+>  	tristate "ITE IT87XX CIR Port Receiver"
+> -	depends on LIRC_STAGING
+> +	depends on LIRC && LIRC_STAGING
+>  	help
+>  	  Driver for the ITE IT87xx IR Receiver
+>  
+>  config LIRC_ITE8709
+>  	tristate "ITE8709 CIR Port Receiver"
+> -	depends on LIRC_STAGING && PNP
+> +	depends on LIRC && LIRC_STAGING && PNP
+>  	help
+>  	  Driver for the ITE8709 IR Receiver
+>  
+>  config LIRC_PARALLEL
+>  	tristate "Homebrew Parallel Port Receiver"
+> -	depends on LIRC_STAGING && !SMP
+> +	depends on LIRC && LIRC_STAGING && !SMP
+>  	help
+>  	  Driver for Homebrew Parallel Port Receivers
+>  
+>  config LIRC_SASEM
+>  	tristate "Sasem USB IR Remote"
+> -	depends on LIRC_STAGING
+> +	depends on USB && LIRC && LIRC_STAGING
+>  	help
+>  	  Driver for the Sasem OnAir Remocon-V or Dign HV5 HTPC IR/VFD Module
+>  
+>  config LIRC_SERIAL
+>  	tristate "Homebrew Serial Port Receiver"
+> -	depends on LIRC_STAGING
+> +	depends on LIRC && LIRC_STAGING
+>  	help
+>  	  Driver for Homebrew Serial Port Receivers
+>  
+> @@ -85,25 +85,25 @@ config LIRC_SERIAL_TRANSMITTER
+>  
+>  config LIRC_SIR
+>  	tristate "Built-in SIR IrDA port"
+> -	depends on LIRC_STAGING
+> +	depends on LIRC && LIRC_STAGING
+>  	help
+>  	  Driver for the SIR IrDA port
+>  
+>  config LIRC_STREAMZAP
+>  	tristate "Streamzap PC Receiver"
+> -	depends on LIRC_STAGING
+> +	depends on USB && LIRC && LIRC_STAGING
+>  	help
+>  	  Driver for the Streamzap PC Receiver
+>  
+>  config LIRC_TTUSBIR
+>  	tristate "Technotrend USB IR Receiver"
+> -	depends on LIRC_STAGING && USB
+> +	depends on USB && LIRC && LIRC_STAGING && USB
+>  	help
+>  	  Driver for the Technotrend USB IR Receiver
+>  
+>  config LIRC_ZILOG
+>  	tristate "Zilog/Hauppauge IR Transmitter"
+> -	depends on LIRC_STAGING
+> +	depends on I2C && LIRC && LIRC_STAGING
+>  	help
+>  	  Driver for the Zilog/Hauppauge IR Transmitter, found on
+>  	  PVR-150/500, HVR-1200/1250/1700/1800, HD-PVR and other cards
 
-[   17.355268] b2c2-flexcop: B2C2 FlexcopII/II(b)/III digital TV receiver 
-chip loaded successfully
-[   17.357454] flexcop-pci: will use the HW PID filter.
-[   17.357460] flexcop-pci: card revision 2
-[   17.357469] b2c2_flexcop_pci 0000:05:04.0: PCI INT A -> GSI 17 (level, 
-low) -> IRQ 17
-[   17.391402] DVB: registering new adapter (FlexCop Digital TV device)
-[   17.393043] b2c2-flexcop: MAC address = xx:xx:xx:xx:d0:02
-[   17.393555] CX24123: wrong demod revision: 84
-[   17.628997] mt352_read_register: readreg error (reg=127, ret==-121)
-[   17.636769] nxt200x: nxt200x_readbytes: i2c read error (addr 0x0a, err 
-== -121)
-[   17.636772] Unknown/Unsupported NXT chip: 00 00 00 00 00
-[   17.645121] lgdt330x: i2c_read_demod_bytes: addr 0x59 select 0x02 error 
-(ret == -121)
-[   17.661886] stv0297_readreg: readreg error (reg == 0x80, ret == -121)
-[   17.671433] mt312_read: ret == -121
-[   17.671508] b2c2-flexcop: no frontend driver found for this B2C2/FlexCop 
-adapter
-[   17.671805] b2c2_flexcop_pci 0000:05:04.0: PCI INT A disabled
 
+-- 
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
