@@ -1,101 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fb2.tech.numericable.fr ([82.216.111.50]:41251 "EHLO
-	fb2.tech.numericable.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751070Ab0GYV5h convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:59260 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754822Ab0G1PO3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jul 2010 17:57:37 -0400
-Received: from smtp2.tech.numericable.fr (smtp2.nc.sdv.fr [10.0.0.36])
-	by fb2.tech.numericable.fr (Postfix) with ESMTP id 897F119460
-	for <linux-media@vger.kernel.org>; Sun, 25 Jul 2010 23:57:36 +0200 (CEST)
-Received: from rubedo.localnet (89-156-199-138.rev.numericable.fr [89.156.199.138])
-	by smtp2.tech.numericable.fr (Postfix) with ESMTP id 5556818D80D
-	for <linux-media@vger.kernel.org>; Sun, 25 Jul 2010 23:56:46 +0200 (CEST)
-To: linux-media@vger.kernel.org
-Subject: 2 problems with HVR-1300
-From: Robert Grasso <robert.grasso@modulonet.fr>
-Date: Sun, 25 Jul 2010 23:56:44 +0200
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Message-Id: <201007252356.44996.robert.grasso@modulonet.fr>
+	Wed, 28 Jul 2010 11:14:29 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 2/9] IR: minor fixes:
+Date: Wed, 28 Jul 2010 18:14:04 +0300
+Message-Id: <1280330051-27732-3-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello, 
+* lirc: Don't propagate reset event to userspace
+* lirc: Remove strange logic from lirc that would make first sample always be pulse
+* Make TO_US macro actualy print what it should.
 
-I am not a developer - this is a support request about (probably) the cx88* driver - if I am mistaking, please can somebody point me toward the correct list ?
-
-I have an Asus P5K MB, architecture x86_64, under Ubuntu 10.04, but I just tested my hardware with a Fedora 13 Live CD, I have the same problems; I bought some months ago an HVR-1300, in order to use the mpeg encoder on the board.
-
->From the moment I installed the card, I use to have two problems :
-- the boot stalls often, at some moment around the local disk mount; and a simple Reset or Power off/Power on, often are not sufficient. Now it's getting pretty annoying, especially because it's a random issue, BUT a frequent one; it makes me think of a race condition into the new Upstart parallel structure for the services startup at boot. But with the HVR-1300 unplugged the boot performs correctly !
-
-- I have a TV decoder shipped by my TV provider, so I don't change the channels on the HVR-1300 but on the decoder; thus I use to watch TV in this simple way :
-
-mplayer -vc mpeg12 -nocache /dev/video2 (mplayer /dev/video2 works as well, but with some glitches)
-
-BUT : just after booting, /dev/video2 does not output any TV image; so I found a workaround : I start :
-
-xawtv  -c  /dev/video1
-
-then stop it, and restart mplayer again : and THEN the TV image is pretty good.
-
-I noticed these two problems with Ubuntu 10.04, AND a Fedora 13 Live CD (both for x86_64)
-
-I installed Windows 7 in a small partition, and I had none of my problems with w7, after having installed the HVR-1300  driver for w7
-
-Browsing the forums and mailing-lists, I found that my problem could be an interruption problem : actually, I noticed many such messages these days in the logs :
-
-kernel: [   16.191887] IRQ 18/cx88[0]: IRQF_DISABLED is not guaranteed on shared IRQs
-
-=> The  board is sharing interruptions with the usb controller :
-
-I dumped my /proc/interrupts below.
-
-I tried to plug the HVR-1300 into another PCI connecteor, unsuccessfully - just the IRQ changed from 18 to 17 ....
-
-And I did not find many cx88* options I could tune.
-
-Does anybody have a hint ?
-
-Best regards
-
--- 
-Robert Grasso
-@home
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
 ---
-UNIX was not designed to stop you from doing stupid things, because 
-  that would also stop you from doing clever things. -- Doug Gwyn
+ drivers/media/IR/ir-core-priv.h  |    3 +--
+ drivers/media/IR/ir-lirc-codec.c |   14 ++++++++------
+ drivers/media/IR/ir-raw-event.c  |    3 +++
+ 3 files changed, 12 insertions(+), 8 deletions(-)
 
-
-root@power4:/var/log# cat /proc/interrupts 
-           CPU0       CPU1       CPU2       CPU3       
-  0:         34          0          3          7   IO-APIC-edge      timer
-  1:       2665        382       3605       2603   IO-APIC-edge      i8042
-  3:          0          1          1          0   IO-APIC-edge    
-  6:          3          1          1          0   IO-APIC-edge      floppy
-  8:          1          0          0          0   IO-APIC-edge      rtc0
-  9:          0          0          0          0   IO-APIC-fasteoi   acpi
- 16:         99         33       8038       5178   IO-APIC-fasteoi   uhci_hcd:usb3, ahci, ohci1394, nvidia
- 17:          0          0          0          0   IO-APIC-fasteoi   pata_jmicron
- 18:       1778       1451     267154     574840   IO-APIC-fasteoi   ehci_hcd:usb1, uhci_hcd:usb5, uhci_hcd:usb8, cx88[0], cx88[0], cx88[0]
- 19:          0          0          0          0   IO-APIC-fasteoi   uhci_hcd:usb7
- 21:       3138        733      12459       8031   IO-APIC-fasteoi   uhci_hcd:usb4
- 22:       2472       2492     375325     281407   IO-APIC-fasteoi   ata_piix, ata_piix, HDA Intel
- 23:          0          0          0          0   IO-APIC-fasteoi   ehci_hcd:usb2, uhci_hcd:usb6
- 28:         45    3070681         36         30   PCI-MSI-edge      eth0
-NMI:          0          0          0          0   Non-maskable interrupts
-LOC:    1632911     483726    1571132     439543   Local timer interrupts
-SPU:          0          0          0          0   Spurious interrupts
-PMI:          0          0          0          0   Performance monitoring interrupts
-PND:          0          0          0          0   Performance pending work
-RES:     139483     197008     137355     218213   Rescheduling interrupts
-CAL:     365176       3436       6505       4918   Function call interrupts
-TLB:      91270     115813      94117     185414   TLB shootdowns
-TRM:          0          0          0          0   Thermal event interrupts
-THR:          0          0          0          0   Threshold APIC interrupts
-MCE:          0          0          0          0   Machine check exceptions
-MCP:         16         16         16         16   Machine check polls
-ERR:          3
-MIS:          0
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index babd520..8ce80e4 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -76,7 +76,6 @@ struct ir_raw_event_ctrl {
+ 	struct lirc_codec {
+ 		struct ir_input_dev *ir_dev;
+ 		struct lirc_driver *drv;
+-		int lircdata;
+ 	} lirc;
+ };
+ 
+@@ -104,7 +103,7 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
+ 		ev->duration -= duration;
+ }
+ 
+-#define TO_US(duration)			(((duration) + 500) / 1000)
++#define TO_US(duration)			((duration) / 1000)
+ #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
+ #define IS_RESET(ev)			(ev.duration == 0)
+ 
+diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
+index 3ba482d..8ca01fd 100644
+--- a/drivers/media/IR/ir-lirc-codec.c
++++ b/drivers/media/IR/ir-lirc-codec.c
+@@ -32,6 +32,7 @@
+ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ {
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	int sample;
+ 
+ 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_LIRC))
+ 		return 0;
+@@ -39,18 +40,21 @@ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 	if (!ir_dev->raw->lirc.drv || !ir_dev->raw->lirc.drv->rbuf)
+ 		return -EINVAL;
+ 
++	if (IS_RESET(ev))
++		return 0;
++
+ 	IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
+ 		   TO_US(ev.duration), TO_STR(ev.pulse));
+ 
+-	ir_dev->raw->lirc.lircdata += ev.duration / 1000;
++
++	sample = ev.duration / 1000;
+ 	if (ev.pulse)
+-		ir_dev->raw->lirc.lircdata |= PULSE_BIT;
++		sample |= PULSE_BIT;
+ 
+ 	lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
+-			  (unsigned char *) &ir_dev->raw->lirc.lircdata);
++			  (unsigned char *) &sample);
+ 	wake_up(&ir_dev->raw->lirc.drv->rbuf->wait_poll);
+ 
+-	ir_dev->raw->lirc.lircdata = 0;
+ 
+ 	return 0;
+ }
+@@ -224,8 +228,6 @@ static int ir_lirc_register(struct input_dev *input_dev)
+ 
+ 	ir_dev->raw->lirc.drv = drv;
+ 	ir_dev->raw->lirc.ir_dev = ir_dev;
+-	ir_dev->raw->lirc.lircdata = PULSE_MASK;
+-
+ 	return 0;
+ 
+ lirc_register_failed:
+diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+index 6f192ef..ab9c4da 100644
+--- a/drivers/media/IR/ir-raw-event.c
++++ b/drivers/media/IR/ir-raw-event.c
+@@ -66,6 +66,9 @@ int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev)
+ 	if (!ir->raw)
+ 		return -EINVAL;
+ 
++	IR_dprintk(2, "sample: (05%dus %s)\n", TO_US(ev->duration),
++							TO_STR(ev->pulse));
++
+ 	if (kfifo_in(&ir->raw->kfifo, ev, sizeof(*ev)) != sizeof(*ev))
+ 		return -ENOMEM;
+ 
+-- 
+1.7.0.4
 
