@@ -1,47 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3001 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752115Ab0GYR7t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Jul 2010 13:59:49 -0400
-Message-ID: <4C4C7BA5.3050709@redhat.com>
-Date: Sun, 25 Jul 2010 15:00:05 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: Valdis.Kletnieks@vt.edu,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	akpm@linux-foundation.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: Re: mmotm 2010-07-19-16-37 uploaded
-References: <201007200007.o6K07Xbg028863@imap1.linux-foundation.org> <6434.1279658492@localhost> <201007201350.28961.dmitry.torokhov@gmail.com> <4825.1279660300@localhost> <20100720214112.GM13176@redhat.com>
-In-Reply-To: <20100720214112.GM13176@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:62373 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752099Ab0G1M7J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 08:59:09 -0400
+Received: by pwi5 with SMTP id 5so851611pwi.19
+        for <linux-media@vger.kernel.org>; Wed, 28 Jul 2010 05:59:08 -0700 (PDT)
+Subject: [PATCH v2]videobuf_dma_sg: a new implementation for mmap
+From: "Figo.zhang" <figo1802@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1280233300.2628.8.camel@localhost.localdomain>
+References: <1280233300.2628.8.camel@localhost.localdomain>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 28 Jul 2010 20:57:34 +0800
+Message-ID: <1280321854.13781.6.camel@localhost.localdomain>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-07-2010 18:41, Jarod Wilson escreveu:
-> On Tue, Jul 20, 2010 at 05:11:40PM -0400, Valdis.Kletnieks@vt.edu wrote:
->> On Tue, 20 Jul 2010 13:50:27 PDT, Dmitry Torokhov said:
->>
->>>> And things go downhill from there...
->>>
->>> I guess you need these 2 from Jarod...
->>
->> Hmm. I seem to remember 2 similar patches from the last time I reported it. :)
->>
->> System boots fine after applying those two patches.  I'll let somebody else
->> worry about making sure they end up in linux-next in time for the next merge
->> window...
-> 
-> I believe Mauro's on vacation at the moment, but due back Real Soon Now,
-> and I'd expect him to pick up both fixes shortly after he settles back in
-> at his desk, so they should be in next before much longer, and definitely
-> before the merge window.
+a mmap issue for videobuf-dma-sg: it will alloc a new page for mmaping
+when it encounter page fault at video_vm_ops->fault().
 
-I just arrived from vacations. I'll be testing this patch and applying it if OK.
-Just give me some days, since I have a huge backlog due to vacations.
+a new implementation for mmap, it translate the vmalloc to page at
+video_vm_ops->fault().
 
-Cheers,
-Mauro.
+in v2, if mem->dma.vmalloc is NULL at video_vm_ops->fault(), it will
+alloc memory by vmalloc_32().
+
+Signed-off-by: Figo.zhang <figo1802@gmail.com>
+---
+ drivers/media/video/videobuf-dma-sg.c |   51
++++++++++++++++++++++++++++------
+ 1 files changed, 42 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/media/video/videobuf-dma-sg.c
+b/drivers/media/video/videobuf-dma-sg.c
+index 8359e6b..767483d 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -201,10 +201,11 @@ int videobuf_dma_init_kernel(struct
+videobuf_dmabuf *dma, int direction,
+ 	dprintk(1, "init kernel [%d pages]\n", nr_pages);
+ 
+ 	dma->direction = direction;
+-	dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
+-	if (NULL == dma->vmalloc) {
+-		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
+-		return -ENOMEM;
++	if (!dma->vmalloc)
++		dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
++		if (NULL == dma->vmalloc) {
++			dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
++			return -ENOMEM;
+ 	}
+ 
+ 	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
+@@ -397,16 +398,48 @@ static void videobuf_vm_close(struct
+vm_area_struct *vma)
+  */
+ static int videobuf_vm_fault(struct vm_area_struct *vma, struct
+vm_fault *vmf)
+ {
+-	struct page *page;
++	struct page *page = NULL;
++	struct videobuf_mapping *map = vma->vm_private_data;
++	struct videobuf_queue *q = map->q;
++	struct videobuf_dma_sg_memory *mem = NULL;
++
++	unsigned long offset;
++	unsigned long page_nr;
++	int first;
+ 
+ 	dprintk(3, "fault: fault @ %08lx [vma %08lx-%08lx]\n",
+ 		(unsigned long)vmf->virtual_address,
+ 		vma->vm_start, vma->vm_end);
+ 
+-	page = alloc_page(GFP_USER | __GFP_DMA32);
+-	if (!page)
+-		return VM_FAULT_OOM;
+-	clear_user_highpage(page, (unsigned long)vmf->virtual_address);
++	mutex_lock(&q->vb_lock);
++
++	offset = (unsigned long)vmf->virtual_address - vma->vm_start;
++	page_nr = offset >> PAGE_SHIFT;
++
++	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
++			if (NULL == q->bufs[first])
++				continue;
++
++			MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
++
++			if (q->bufs[first]->map == map)
++				break;
++	}
++
++	mem = q->bufs[first]->priv;
++	if (!mem)
++		return VM_FAULT_SIGBUS;
++	if (!mem->dma.vmalloc) {
++		mem->dma.vmalloc = vmalloc_32(PAGE_ALIGN(q->bufs[first]->size));
++		if (NULL == mem->dma.vmalloc) {
++			dprintk(1, "%s: vmalloc_32() failed\n", __func__);
++			return VM_FAULT_OOM;
++		}
++	} else
++		page = vmalloc_to_page(mem->dma.vmalloc+
++				(offset & (~PAGE_MASK)));
++	mutex_unlock(&q->vb_lock);
++
+ 	vmf->page = page;
+ 
+ 	return 0;
+
+
 
