@@ -1,121 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:49121 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933302Ab0GOOWS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jul 2010 10:22:18 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: "sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-Date: Thu, 15 Jul 2010 09:22:06 -0500
-Subject: RE: [RFC/PATCH 02/10] media: Media device
-Message-ID: <A24693684029E5489D1D202277BE894456775DB7@dlee02.ent.ti.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1279114219-27389-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279114219-27389-3-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:49126 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751999Ab0G1Shg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 14:37:36 -0400
+Message-ID: <4C5078E8.5010409@redhat.com>
+Date: Wed, 28 Jul 2010 15:37:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
+To: Jarod Wilson <jarod@redhat.com>
+CC: Maxim Levitsky <maximlevitsky@gmail.com>,
+	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/9] IR: replace spinlock with mutex.
+References: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com> <1280330051-27732-4-git-send-email-maximlevitsky@gmail.com> <4C5054B6.5050207@redhat.com> <1280334778.28785.6.camel@localhost.localdomain> <20100728174338.GD26480@redhat.com>
+In-Reply-To: <20100728174338.GD26480@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Other comment I missed to mention...
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Wednesday, July 14, 2010 8:30 AM
-> To: linux-media@vger.kernel.org
-> Cc: sakari.ailus@maxwell.research.nokia.com
-> Subject: [RFC/PATCH 02/10] media: Media device
+Em 28-07-2010 14:43, Jarod Wilson escreveu:
+> On Wed, Jul 28, 2010 at 07:32:58PM +0300, Maxim Levitsky wrote:
+>> On Wed, 2010-07-28 at 13:03 -0300, Mauro Carvalho Chehab wrote:
+>>> Em 28-07-2010 12:14, Maxim Levitsky escreveu:
+>>>> Some handlers (lirc for example) allocates memory on initialization,
+>>>> doing so in atomic context is cumbersome.
+>>>> Fixes warning about sleeping function in atomic context.
+>>>
+>>> You should not replace it by a mutex, as the decoding code may happen during
+>>> IRQ time on several drivers.
+>> I though decoding code is run by a work queue?
 > 
-> The media_device structure abstracts functions common to all kind of
-> media devices (v4l2, dvb, alsa, ...). It manages media entities and
-> offers a userspace API to discover and configure the media device
-> internal topology.
+> Yeah, it is. (INIT_WORK(&ir->raw->rx_work, ir_raw_event_work); in
+> ir_raw_event_register).
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  Documentation/media-framework.txt |   68 ++++++++++++++++++++++++++++++++
->  drivers/media/Makefile            |    2 +-
->  drivers/media/media-device.c      |   77
-> +++++++++++++++++++++++++++++++++++++
->  include/media/media-device.h      |   53 +++++++++++++++++++++++++
->  4 files changed, 199 insertions(+), 1 deletions(-)
->  create mode 100644 Documentation/media-framework.txt
->  create mode 100644 drivers/media/media-device.c
->  create mode 100644 include/media/media-device.h
+>> I don't see any atomic codepath here...
 > 
+> I think the ir_raw_event_store variants are the only things that are run
+> from an interrupt context, and none of them touch ir_raw_handler_lock.
+> That lock is advertised as being for the protection of ir_raw_handler_list
+> and ir_raw_client_list, which are primarily manipulated by
+> register/unregister functions, and we just lock them when doing actual IR
+> decode work (via said work queue) so we don't feed raw IR somewhere that
+> we shouldn't. I think Maxim is correct here, we should be okay with
+> changing this to a mutex, unless I'm missing something else.
 
-<snip>
+You're probably right. The previous code used to do this at IRQ time, but a latter
+patch changed it to happen via a workqueue.
 
-> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> new file mode 100644
-> index 0000000..a4d3db5
-> --- /dev/null
-> +++ b/drivers/media/media-device.c
-> @@ -0,0 +1,77 @@
-> +/*
-> + *  Media device support.
-> + *
-> + *  Copyright (C) 2010  Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com>
-> + *
-> + *  This program is free software; you can redistribute it and/or modify
-> + *  it under the terms of the GNU General Public License as published by
-> + *  the Free Software Foundation; either version 2 of the License, or
-> + *  (at your option) any later version.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License
-> + *  along with this program; if not, write to the Free Software
-> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307
-> USA
-> + */
-> +
-> +#include <linux/types.h>
-> +#include <linux/ioctl.h>
-> +
-> +#include <media/media-device.h>
-> +#include <media/media-devnode.h>
-> +
-> +static const struct media_file_operations media_device_fops = {
-> +	.owner = THIS_MODULE,
-> +};
-> +
-> +static void media_device_release(struct media_devnode *mdev)
-> +{
-> +}
-> +
-> +/**
-> + * media_device_register - register a media device
-> + * @mdev:	The media device
-> + *
-> + * The caller is responsible for initializing the media device before
-> + * registration. The following fields must be set:
-> + *
-> + * - dev should point to the parent device. The field can be NULL when no
-> + *   parent device is available (for instance with ISA devices).
-> + * - name should be set to the device name. If the name is empty a parent
-> + *   device must be set. In that case the name will be set to the parent
-> + *   device driver name followed by a space and the parent device name.
-> + */
-> +int __must_check media_device_register(struct media_device *mdev)
-> +{
-> +	/* If dev == NULL, then name must be filled in by the caller */
-> +	if (mdev->dev == NULL && WARN_ON(!mdev->name[0]))
+So, I'm OK with this patch.
 
-If mdev == NULL, you'll have a kernel panic here.
+Cheers,
+Mauro.
 
-Regards,
-Sergio
 
