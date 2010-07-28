@@ -1,115 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2814 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753462Ab0GXIpE (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:34759 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220Ab0G1H1o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Jul 2010 04:45:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [RFC] Per-subdev, host-specific data
-Date: Sat, 24 Jul 2010 10:44:42 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <201007231501.31170.laurent.pinchart@ideasonboard.com> <201007231631.34967.laurent.pinchart@ideasonboard.com> <1279918368.2734.5.camel@morgan.silverblock.net>
-In-Reply-To: <1279918368.2734.5.camel@morgan.silverblock.net>
+	Wed, 28 Jul 2010 03:27:44 -0400
+Date: Wed, 28 Jul 2010 08:27:18 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Baruch Siach <baruch@tkos.co.il>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Sascha Hauer <kernel@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/4] mx2_camera: return IRQ_NONE when doing nothing
+Message-ID: <20100728072718.GB29277@n2100.arm.linux.org.uk>
+References: <cover.1280229966.git.baruch@tkos.co.il> <49da2476310a921b19226d572503b7c04175204d.1280229966.git.baruch@tkos.co.il> <20100728065337.GC14113@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007241044.42264.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100728065337.GC14113@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 23 July 2010 22:52:48 Andy Walls wrote:
-> On Fri, 2010-07-23 at 16:31 +0200, Laurent Pinchart wrote:
-> > Hi Hans,
+On Wed, Jul 28, 2010 at 08:53:37AM +0200, Sascha Hauer wrote:
+> On Tue, Jul 27, 2010 at 03:06:08PM +0300, Baruch Siach wrote:
+> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> > ---
+> >  drivers/media/video/mx2_camera.c |    8 +++++---
+> >  1 files changed, 5 insertions(+), 3 deletions(-)
 > > 
-> > On Friday 23 July 2010 15:46:29 Hans Verkuil wrote:
-> > > On Friday 23 July 2010 15:01:29 Laurent Pinchart wrote:
-> > > > Hi everybody,
-> > > > 
-> > > > Trying to implement support for multiple sensors connected to the same
-> > > > OMAP3 ISP input (all but one of the sensors need to be kept in reset
-> > > > obviously), I need to associate host-specific data to the sensor
-> > > > subdevs.
-> > > > 
-> > > > The terms host and bridge are considered as synonyms in the rest of this
-> > > > e- mail.
-> > > > 
-> > > > The OMAP3 ISP platform data has interface configuration parameters for
-> > > > the two CSI2 (a and c), CCP2 and parallel interfaces. The parameters are
-> > > > used to configure the bus when a sensor is selected. To support multiple
-> > > > sensors on the same input, the parameters need to be specified
-> > > > per-sensor, and not ISP- wide.
-> > > > 
-> > > > No issue in the platform data. Board codes declare an array of structures
-> > > > that embed a struct v4l2_subdev_i2c_board_info instance and an OMAP3
-> > > > ISP-specific interface configuration structure.
-> > > > 
-> > > > At runtime, when a sensor is selected, I need to access the OMAP3
-> > > > ISP-specific interface configuration structure for the selected sensor.
-> > > > At that point all I have is a v4l2_subdev structure pointer, without a
-> > > > way to get back to the interface configuration structure.
-> > > > 
-> > > > The only point in the code where the v4l2_subdev and the interface
-> > > > configuration data are both known and could be linked together is in the
-> > > > host driver's probe function, where the v4l2_subdev instances are
-> > > > created. I have two solutions there:
-> > > > 
-> > > > - store the v4l2_subdev pointer and the interface configuration data
-> > > > pointer in a host-specific array, and perform a an array lookup
-> > > > operation at runtime with the v4l2_subdev pointer as a key
-> > > > 
-> > > > - add a void *host_priv field to the v4l2_subdev structure, store the
-> > > > interface configuration data pointer in that field, and use the field at
-> > > > runtime
-> > > > 
-> > > > The second solution seems cleaner but requires an additional field in
-> > > > v4l2_subdev. Opinions and other comments will be appreciated.
+> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> > index 1536bd4..b42ad8d 100644
+> > --- a/drivers/media/video/mx2_camera.c
+> > +++ b/drivers/media/video/mx2_camera.c
+> > @@ -420,15 +420,17 @@ static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
+> >  	struct mx2_camera_dev *pcdev = data;
+> >  	u32 status = readl(pcdev->base_csi + CSISR);
+> >  
+> > -	if (status & CSISR_DMA_TSF_FB1_INT)
+> > +	writel(status, pcdev->base_csi + CSISR);
+> > +
+> > +	if (!(status & (CSISR_DMA_TSF_FB1_INT | CSISR_DMA_TSF_FB2_INT)))
+> > +		return IRQ_NONE;
 > 
-> Why isn't
-> 
-> 	v4l2_set_subdevdata(sd, private_ptr);
-> 
-> sufficient?
-> 
-> The cx18-av-core.[ch] files use that to get a bridge instance pointer
-> from a v4l2_subdev.
-> 
-> Or is it that the v4l2_subdev infrastructure help functions for I2C
-> connected devices already claim that?
+> I'm not sure this is correct. When we get here, the interrupt definitely
+> is from the camera, it's not a shared interrupt. So this only provokes a
+> 'nobody cared' message from the kernel (if it's still present, I don't
+> know).
 
-Yes, they do. It is used to store the struct i2c_client pointer.
+You'll only get the 'nobody cared' message if it's happened many times
+in a short space of time.  The odd spurious IRQ_NONE has little effect.
 
-Regards,
-
-	Hans
-
-> 
-> Regards,
-> Andy
-> 
-> > > There is a third option: the grp_id field is owned by the host driver, so
-> > > you could make that an index into a host specific array.
-> 
-> 
-> 
-> > Good point.
-> > 
-> > > That said, I think having a host_priv field isn't a bad idea. Although if
-> > > we do this, then I think the existing priv field should be renamed to
-> > > drv_priv to prevent confusion.
-> > 
-> > As Guennadi, Sakari and you all agree that the host_priv field is a good idea, 
-> > I'll submit a patch.
-> > 
-> > Thanks.
-> > 
-> 
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+It is good practice to return IRQ_NONE if there's nothing pending - it
+allows stuck IRQs to be detected and disabled without taking the system
+down.  In other words, it should make the system more robust.
