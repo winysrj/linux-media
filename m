@@ -1,95 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:44967 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754608Ab0GGMwd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Jul 2010 08:52:33 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1OWU76-0000h2-Rn
-	for linux-media@vger.kernel.org; Wed, 07 Jul 2010 14:52:32 +0200
-Received: from 193.160.199.2 ([193.160.199.2])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 07 Jul 2010 14:52:32 +0200
-Received: from bjorn by 193.160.199.2 with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Wed, 07 Jul 2010 14:52:32 +0200
+Received: from imsm058.netvigator.com ([218.102.48.211]:43759 "EHLO
+	imsm058.netvigator.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750794Ab0G1ENP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 00:13:15 -0400
+Received: from khiatani.ath.cx ([219.78.29.165])
+          by imsm058dat.netvigator.com
+          (InterMail vM.7.05.01.01 201-2174-106-103-20060222) with ESMTP
+          id <20100728035429.DCTT27715.imsm058dat.netvigator.com@khiatani.ath.cx>
+          for <linux-media@vger.kernel.org>;
+          Wed, 28 Jul 2010 11:54:29 +0800
+Received: from localhost (localhost [127.0.0.1])
+	by khiatani.ath.cx (Postfix) with ESMTP id 1708D624771
+	for <linux-media@vger.kernel.org>; Wed, 28 Jul 2010 11:54:29 +0800 (HKT)
+Received: from khiatani.ath.cx ([127.0.0.1])
+	by localhost (khiatani.ath.cx [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id LQHh0Zb69slH for <linux-media@vger.kernel.org>;
+	Wed, 28 Jul 2010 11:54:28 +0800 (HKT)
+Received: from localhost (localhost [127.0.0.1])
+	by khiatani.ath.cx (Postfix) with ESMTP id F14FD624775
+	for <linux-media@vger.kernel.org>; Wed, 28 Jul 2010 11:54:27 +0800 (HKT)
+Received: from localhost (localhost [127.0.0.1])
+	(Authenticated sender: sunil@khiatani.ath.cx)
+	by khiatani.ath.cx (Postfix) with ESMTP id 78A3B624771
+	for <linux-media@vger.kernel.org>; Wed, 28 Jul 2010 11:54:27 +0800 (HKT)
+Message-ID: <20100728115427.139030h04q7895wk@khiatani.ath.cx>
+Date: Wed, 28 Jul 2010 11:54:27 +0800
+From: Sunil Khiatani <sunil@khiatani.ath.cx>
 To: linux-media@vger.kernel.org
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-Subject: Re: Status of the patches under review (85 patches) and some misc notes about the devel procedures
-Date: Wed, 07 Jul 2010 14:52:22 +0200
-Message-ID: <87d3uzqws9.fsf@nemi.mork.no>
-References: <20100507093916.2e2ef8e3@pedra> <87y6dv2zn4.fsf@nemi.mork.no>
-	<4C3333C6.60503@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Subject: Analog support for X8558
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> writes:
-> Em 01-07-2010 08:46, Bjørn Mork escreveu:
->> Any chance of a new status update anytime soon?  
->
-> Updated today, after two or three weeks spent to handle the backlog.
+Hi,
 
-Great!  Thanks.  It's really appreciated, and I do note that it made
-quite a few people finally ack/nak the patches they were supposed to
-review. 
+I would like to try to add support to the mygica X8558. Digital TV is  
+already supported for this hardware in the linux kernel but analog  
+support isn't.  I haven't done kernel development before but the  
+chipset it contains, cx23885, seems to be widely supported.
 
->> I'm particularily
->> interested in getting a forced status change on any patch which was
->> "under review" at the time of the last status message.  I believe it's
->> reasonable to expect two months "review" to be more than enough.  If
->> the patches are found unacceptable, then it's much better to have them
->> rejected with a "please fix foo and resubmit" than the current total
->> silence called "review".
->
-> The patches marked as under review means that I'm expecting an action
-> from someone else (the patch author or the driver author/maintainer).
-
-Well, I'm of course not in a position to tell you how to do your job, so
-please regard this as a humble suggestion only...
-
-But I believe you make your job much harder by defining a number of
-"unofficial" driver maintainers and giving them indefinite slack, while
-at the same time *you* are the one having to keep track of all their
-outstanding patches.  Either you delegate the maintainance properly,
-documenting it in MAINTAINERS and pointing there whenever someone sends
-a patch directly to you, or you might as well just do the ack/nak
-yourself based on the mailing list feedback.
-
-Putting yourself in the middle, taking the patch queue responsibility,
-but not the ack/nak responsibility, is just wasting your time on
-accounting and other boring work...
-
-I do believe that having the original author(s) maintain a driver is a
-very good idea as long as they are still actively maintaining it.  But
-this must be based on actual maintainance, and not some misunderstood
-"ownership based on previous contributions".  That's what the CREDITS
-file is for.
-
-Please look at other subsystems with a large number of old drivers, like
-e.g. networking.  It's not like it's possible to have every tiny patch
-approved by the original author all the time.  This does not hinder some
-newer drivers having very active official maintainers, like the Intel
-e1000(e) drivers, nor does it hinder the original authors from
-participating on the mailing list giving their comments and ack/nak if
-they want.  But if they don't respond on the list, davem will just make
-a decision for himself without waiting for it.
-
-> So, if you have patches there still under review, you're helping us 
-> if you direct your complains to the one that it is sitting on the top
-> of them.
-
-Oh, it's not so much my submissions bothering me (I have received some
-very good feedback on this list), but the fact that some drivers do not
-get any updates at all, even though patches are submitted to this
-mailing list.  Not to mention the problem that patch submissions will
-(and do) stop due to the lack of any feedback whatsoever.  Most people
-have better things to do than writing to /dev/null, and that's the
-feeling this queuing-for-original-author-review system leaves.
+The spec sheets for the tuner used, maxim 2165E, seems to be available  
+on website.  I'm having trouble deciding whether it is possible to  
+enable analog support on this card.  It seems that there are two  
+tuners for digital tv, but only one cx23885.  Will it be possible to  
+support two analog tuners along with the tuners with only one cx23885?  
+Is there a source code I can use? What information should I try to  
+obtain to help answer this question so I can start coding for it?
 
 
-Bjørn
+Regards,
+
+Sunil
+
+
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
+
 
