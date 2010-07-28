@@ -1,63 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:39740 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752035Ab0GERMW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Jul 2010 13:12:22 -0400
-Subject: Re: [PATCH 02/35] ivtv: use kthread_worker instead of workqueue
-From: Andy Walls <awalls@md.metrocast.net>
-To: Tejun Heo <tj@kernel.org>
-Cc: torvalds@linux-foundation.org, mingo@elte.hu,
-	linux-kernel@vger.kernel.org, jeff@garzik.org,
-	akpm@linux-foundation.org, rusty@rustcorp.com.au,
-	cl@linux-foundation.org, dhowells@redhat.com,
-	arjan@linux.intel.com, oleg@redhat.com, axboe@kernel.dk,
-	fweisbec@gmail.com, dwalker@codeaurora.org,
-	stefanr@s5r6.in-berlin.de, florian@mickler.org,
-	andi@firstfloor.org, mst@redhat.com, randy.dunlap@oracle.com,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org
-In-Reply-To: <1277759063-24607-3-git-send-email-tj@kernel.org>
-References: <1277759063-24607-1-git-send-email-tj@kernel.org>
-	 <1277759063-24607-3-git-send-email-tj@kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 05 Jul 2010 13:11:00 -0400
-Message-ID: <1278349860.2229.9.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout-de.gmx.net ([213.165.64.23]:55366 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751665Ab0G1LZR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 07:25:17 -0400
+Date: Wed, 28 Jul 2010 13:25:27 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Baruch Siach <baruch@tkos.co.il>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 2/4] mx2_camera: return IRQ_NONE when doing nothing
+In-Reply-To: <49da2476310a921b19226d572503b7c04175204d.1280229966.git.baruch@tkos.co.il>
+Message-ID: <Pine.LNX.4.64.1007281317400.23907@axis700.grange>
+References: <cover.1280229966.git.baruch@tkos.co.il>
+ <49da2476310a921b19226d572503b7c04175204d.1280229966.git.baruch@tkos.co.il>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2010-06-28 at 23:03 +0200, Tejun Heo wrote:
-> Upcoming workqueue updates will no longer guarantee fixed workqueue to
-> worker kthread association, so giving RT priority to the irq worker
-> won't work.  Use kthread_worker which guarantees specific kthread
-> association instead.  This also makes setting the priority cleaner.
+A general comment to your patches: the actual driver is going to be merged 
+via the ARM tree, all other your incremental patches should rather go via 
+the v4l tree. So, we'll have to synchronise with ARM, let's hope ARM 
+patches go in early enough.
+
+On Tue, 27 Jul 2010, Baruch Siach wrote:
+
+> Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> ---
+>  drivers/media/video/mx2_camera.c |    8 +++++---
+>  1 files changed, 5 insertions(+), 3 deletions(-)
 > 
-> Signed-off-by: Tejun Heo <tj@kernel.org>
-> Cc: Andy Walls <awalls@md.metrocast.net>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: ivtv-devel@ivtvdriver.org
-> Cc: linux-media@vger.kernel.org
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index 1536bd4..b42ad8d 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -420,15 +420,17 @@ static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
+>  	struct mx2_camera_dev *pcdev = data;
+>  	u32 status = readl(pcdev->base_csi + CSISR);
+>  
+> -	if (status & CSISR_DMA_TSF_FB1_INT)
+> +	writel(status, pcdev->base_csi + CSISR);
+> +
+> +	if (!(status & (CSISR_DMA_TSF_FB1_INT | CSISR_DMA_TSF_FB2_INT)))
+> +		return IRQ_NONE;
+> +	else if (status & CSISR_DMA_TSF_FB1_INT)
+>  		mx25_camera_frame_done(pcdev, 1, VIDEOBUF_DONE);
+>  	else if (status & CSISR_DMA_TSF_FB2_INT)
+>  		mx25_camera_frame_done(pcdev, 2, VIDEOBUF_DONE);
+>  
+>  	/* FIXME: handle CSISR_RFF_OR_INT */
+>  
+> -	writel(status, pcdev->base_csi + CSISR);
+> -
+>  	return IRQ_HANDLED;
+>  }
 
+I don't think this is correct. You should return IRQ_NONE if this is not 
+an interrupt from your device at all. In this case you don't have to ack 
+your interrupts, which, I presume, is what the write to CSISR is doing. 
+OTOH, if this is an interrupt from your device, but you're just not 
+interested in it, you should ack it and return IRQ_HANDLED. So, the 
+original behaviour was more correct, than what this your patch is doing. 
+The only improvement I can think of is, that you can return IRQ_NONE if 
+status is 0, but then you don't have to ack it.
 
-Assuming the new kthread_worker implementation is OK, this change for
-ivtv looks good.
-
-Reviewed-by: Andy Walls <awalls@md.metrocast.net>
-Acked-by: Andy Walls <awalls@md.metrocast.net>
-
-Regards,
-Andy
-
->  drivers/media/video/ivtv/ivtv-driver.c |   26 ++++++++++++++++----------
->  drivers/media/video/ivtv/ivtv-driver.h |    8 ++++----
->  drivers/media/video/ivtv/ivtv-irq.c    |   15 +++------------
->  drivers/media/video/ivtv/ivtv-irq.h    |    2 +-
->  4 files changed, 24 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-> index 1b79475..49e0b1c 100644
-> --- a/drivers/media/video/ivtv/ivtv-driver.c
-> +++ b/drivers/media/video/ivtv/ivtv-driver.c
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
