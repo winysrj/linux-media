@@ -1,38 +1,284 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web23205.mail.ird.yahoo.com ([217.146.189.60]:31359 "HELO
-	web23205.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757061Ab0GBMVX convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Jul 2010 08:21:23 -0400
-Message-ID: <860779.65625.qm@web23205.mail.ird.yahoo.com>
-Date: Fri, 2 Jul 2010 05:14:41 -0700 (PDT)
-From: Newsy Paper <newspaperman_germany@yahoo.com>
-Subject: Is there any limit in stb6100 driver that prevents tuning SR < 1 Msps
-To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:36651 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754453Ab0G1Kkr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 06:40:47 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+In-Reply-To: <1280298606.6736.15.camel@maxim-laptop>
+References: <1280269990.21278.15.camel@maxim-laptop>
+	<1280273550.32216.4.camel@maxim-laptop>
+	<AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
+	<AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
+	<1280298606.6736.15.camel@maxim-laptop>
+Date: Wed, 28 Jul 2010 06:40:45 -0400
+Message-ID: <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
+Subject: Re: Can I expect in-kernel decoding to work out of box?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, Jul 28, 2010 at 2:30 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+> On Tue, 2010-07-27 at 22:33 -0400, Jarod Wilson wrote:
+>> On Tue, Jul 27, 2010 at 9:29 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
+>> > On Tue, Jul 27, 2010 at 7:32 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+>> >> On Wed, 2010-07-28 at 01:33 +0300, Maxim Levitsky wrote:
+>> >>> Hi,
+>> >>>
+>> >>> I ported my ene driver to in-kernel decoding.
+>> >>> It isn't yet ready to be released, but in few days it will be.
+>> >>>
+>> >>> Now, knowing about wonders of in-kernel decoding, I try to use it, but
+>> >>> it just doesn't work.
+>> >>>
+>> >>> Mind you that lircd works with this remote.
+>> >>> (I attach my lircd.conf)
+>> >>>
+>> >>> Here is the output of mode2 for a single keypress:
+>> >
+>> >    8850     4350      525     1575      525     1575
+>> >     525      450      525      450      525      450
+>> >     525      450      525     1575      525      450
+>> >     525     1575      525      450      525     1575
+>> >     525      450      525      450      525     1575
+>> >     525      450      525      450      525    23625
+>> >
+>> > That decodes as:
+>> > 1100 0010 1010 0100
+>> >
+>> > In the NEC protocol the second word is supposed to be the inverse of
+>> > the first word and it isn't. The timing is too short for NEC protocol
+>> > too.
+> No its not, its just extended NEC.
 
-i tried tuning to a channel that has a SR < 1 Msps in DVB-S with szap and I get
+http://www.sbprojects.com/knowledge/ir/nec.htm
+Says the last two bytes should be the complement of each other.
 
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-FE_SET_FRONTEND failed: Invalid argument
+So for extended NEC it would need to be:
+1100 0010 1010 0101 instead of 1100 0010 1010 0100
+The last bit is wrong.
 
-is there any limit in driver that doesn't allow my TT S2-3200 to try to tune into that tranponder?
+>From the debug output it is decoding as NEC, but then it fails a
+consistency check. Maybe we need to add a new protocol that lets NEC
+commands through even if they fail the error checks. It may also be
+that the NEC machine rejected it because the timing was so far off
+that it concluded that it couldn't be a NEC messages. The log didn't
+include the exact reason it got rejected. Add some printks at the end
+of the NEC machine to determine the exact reason for rejection.
 
-I know according to specification card only supports tuning from 1 Mbps - 30 Mbps, but that's specification for most cards. Most of the cards can also lock at signals with lower SRs.
+The current state machines enforce protocol compliance so there are
+probably a lot of older remotes that won't decode right. We can use
+some help in adjusting the state machines to let out of spec codes
+through.
 
-There are some low SR channels on Astra 3a http://flysat.com/astra23.php
-12660 V and 12661 V
+The timing of those pulses is exactly right for JVC. Maybe there is an
+extended 4 byte version of the JVC protocol. JVC doesn't have the
+error checks like NEC. The question here is, why didn't the JVC
+machine get started?
 
-with Technisat Skystar 2 it's working without a problem.
-
-kind regards
-
-Newspaperman
+User space lirc is much older. Bugs like this have been worked out of
+it. It will take some time to get the kernel implementation up to the
+same level.
 
 
+>
+> This lirc generic config matches that output quite well:
+> NEC-short-pulse.conf:
+>
+> begin remote
+>
+>  name  NEC
+>  bits           16
+>  flags SPACE_ENC|CONST_LENGTH
+>  eps            30
+>  aeps          100
+>
+>  header        9000 4500
+>  one           563  1687
+>  zero          563   562
+>  ptrail        563
+>  pre_data_bits 16
+> # just a guess
+>  gap          108000
+>
+>  repeat        9000 2250
+>
+>  frequency    38000
+>  duty_cycle   33
+>
+>      begin codes
+>      end codes
+>
+> end remote
+>
+>
+>
+>> >
+>> > Valid NEC...
+>> > 1100 0011 1010 0101
+>> >
+>> > Maybe JVC protocol but it is longer than normal.
+>> >
+>> > The JVC decoder was unable to get started decoding it.  I don't think
+>> > the JVC decoder has been tested much. Take a look at it and see why it
+>> > couldn't get out of state 0.
+>>
+>> Personally, I haven't really tried much of anything but RC-6(A) and
+>> RC-5 while working on mceusb, so they're the only ones I can really
+>> vouch for myself at the moment. It seems that I don't have many
+>> remotes that aren't an RC-x variant, outside of universals, which I
+>> have yet to get around to programming for various other modes to test
+>> any of the protocol decoders. I assume that David Hardeman already did
+>> that much before submitting each of the ir protocol decoders with his
+>> name one them (which were, if I'm not mistaken, based at least
+>> partially on Jon's earlier work), but its entirely possible there are
+>> slight variants of each that aren't handled properly just yet. That
+>> right there is one of the major reasons I saw for writing the lirc
+>> bridge driver plugin in the first place -- the lirc userspace decoder
+>> has been around for a LOT longer, and thus is likely to know how to
+>> handle more widely varying IR signals.
+>
+> In fact its dead easy to test a lot of remotes, by using an universal
+> remote. These remotes are designed to tech literate persons for a
+> reason....
+>
+> On my remote, all I have to do is press TV + predefined number + OK to
+> make remote mimic a random remote.
+> Unill now, kernel decoding couldn't pick anything but one mode....
+>
+>
+> Here is a table I created long ago on my remote showing all kinds of
+> protocols there:
+>
+> Heck, hardware isn't very accurate, I know, but streamzap receiver
+> according to what I have heard it even worse...
+>
+> Best regards,
+> Maxim Levitsky
+>
+>
+> 08 - NEC short pulse / SANYO (38 khz), [15 - NEC]
+>     9440     4640      620      550      620      550      620      550      620      550      620      550
+>      620      550      620     1720      610      550      610     1720      620     1720      620     1720
+>      620     1720      610     1730      610     1720      620      550      620     1720      620      550
+>      620      550      620      550      620      550      620      550      620      550      610      550
+>      610      550      610     1720      620     1720      620     1720      620     1720      620     1720
+>      610     1720      620     1720      620     1720      620    41540     9440     2300      620   100110
+>    (9440     2300      610   100110)
+> ---------------------------------------------------------------------------------------------------------------
+> 02 - Philips (RC5): (36 khz)
+>      990      890      970      890     1920      890      970      890      970      890      970      890
+>      970      890      970      890      970      890      970      890      970      890      970      890
+>      970    94190
+> ---------------------------------------------------------------------------------------------------------------
+> 25 - Philips (RECS-80): (38 khz)
+>      200     7720      170     7720      170     7700      200     7690      200     7720      170     5090
+>      160     7730      170     5090      170     5090      160     5090      170     5090      170
+> ---------------------------------------------------------------------------------------------------------------
+> 01 - JVC: (38 khz)
+>     8840     4370      590     1600      590     1600      590      500      590      500      590      500
+>      590      500      590      510      590      510      590      500      590      500      590      500
+>      590     1600      590      500      590     1600      590      500      590      500      590    25730
+> ---------------------------------------------------------------------------------------------------------------
+> 07 - Sony (SIRC): (40 khz)
+>     2550      600     1260      600      630      600      630      600     1260      600      630      600
+>      630      600      630      600     1260      600      630      600      630      600      630      600
+>      630    27450    <rep>
+> ---------------------------------------------------------------------------------------------------------------
+> 19 - MOTOROLLA:
+>      610     2730      550      550      580      520      580      520      580      490      600      520
+>      580      520      580      520      580      520      580      520      580    21240
+>
+>     (600     2720      580     1070      580      520      580      520      580      520     1130     1070
+>      580      490      580      540      550      540      580   126890)
+> ---------------------------------------------------------------------------------------------------------------
+> 06 - Sharp (denon): (38 khz)
+>      370     1870      340      750      340      760      340      750      340      750      340      750
+>      340     1870      340      750      340     1870      340      760      340      760      340      760
+>      340      760      340     1870      340      750      340    48940
+>
+>      370     1870      340      750      340      760      340      760      340      750      340     1870
+>      340      750      340     1870      340      760      340     1870      340     1870      340     1870
+>      340     1870      340      760      340     1870      340    44610
+> ---------------------------------------------------------------------------------------------------------------
+> 30 - Nokia NRC17:
+>      580     2590      550      990     1100      490      550      480      550      480      550      480
+>      550      480      550      490      550      480      550      480      550      490      550      480
+>      550      490      550      480      550      480      550      480      550    20230
+>
+>      580     2580      560      990      550      490     1100      480      550      990      550      480
+>      550      490      550      480      550      480     1100      990     1100      490      550      990
+>     1100      990      550    84380
+>
+>      580     2580      550      990      550      490     1100      480      550      990      550      490
+>      550      480      550      480      550      480     1100      990     1100      480      550      990
+>     1100      990      550    84380
+> ---------------------------------------------------------------------------------------------------------------
+> 03 - Mitsubishi:
+>      350     2220      320     2220      320     2220      320      950      320      950      340      920
+>      320     2220      320      950      320     2220      320      950      350      920      320     2220
+>      320      950      320      950      320      950      320      950      320    27630      <rep>
+> ---------------------------------------------------------------------------------------------------------------
+> 04 - Panasonic:
+>     3600     3460      950      820      960      820      950      820      950      820      950      820
+>      960     2570      960      820      950      820      950     2580      950     2580      950      820
+>      950     2580      950     2580      950     2580      950     2580      950     2580      950      820
+>      950     2580      950     2580      960      820      960      820      950     2570      960    39070
+>      <rep>
+> ---------------------------------------------------------------------------------------------------------------
+> 11 - Panasonic:
+>     3700     1780      490      410      500     1320      490      410      490      410      490      410
+>      500      410      490      410      490      410      500      410      490      410      490      410
+>      490      410      490      410      490     1320      490      410      500      410      490      410
+>      490      410      490      410      500      410      490      410      490      410      500      410
+>      490     1320      490      410      490      410      500      410      490      410      490      410
+>      490      410      490      410      490      410      490     1320      500      410      490      410
+>      490     1320      500     1310      500      410      490      410      490      410      490     1320
+>      490      410      490      410      490     1320      490     1320      490      410      490      410
+>      490     1320      500    <rep>
+> ---------------------------------------------------------------------------------------------------------------
+> 05 - unknown:
+>    20950     4110      620     1990      590     2020      580     2020      580     2020      590      980
+>      580      980      580     2020      590     2020      580      980      580      980      590      980
+>      590      980      580      980      580      980      580      980      580      980      580     2020
+>      580     2020      590      980      580      980      580     2020      590     2020      580     2020
+>      580     2020     1070
+> ---------------------------------------------------------------------------------------------------------------
+> 09 - unknown:
+>      590      480      560     4230      560      480      560     4230      560     5260      560     5260
+>      560      480      560     4230      560     5260      560      480      560     4220      560     5260
+>      560      480      560     4220      560     5260      560      480      560   126450    <rep>
+> ---------------------------------------------------------------------------------------------------------------
+> 12 - RCA?
+>     4740     4650      620     1720      620     1720      620     1720      620      550      610      550
+>      610      550      610      550      620      550      620     1720      620     1720      620     1720
+>      620      550      620      550      620      550      620      550      620      550      620     1720
+>      620      550      620      550      610      550      610     1730      610      550      610      550
+>      610      550      620      550      620     1720      620     1720      620     1720      620      550
+>      620     1720      620     1720      620     1720      620
+> ---------------------------------------------------------------------------------------------------------------
+> 26 - junk -(thomson) - unsuppored/no carrier
+> 27 - junk -(unknown) - unsuppored/no carrier
+> 28 - junk -ITT  - unsuppored/no carrier
+>
+>
+>
+>
+>
+>>
+>
+>
+>
+
+
+
+-- 
+Jon Smirl
+jonsmirl@gmail.com
