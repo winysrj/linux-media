@@ -1,96 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from server.trebels.com ([217.20.117.122]:48884 "EHLO
-	server.trebels.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755115Ab0GONfV (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:52198 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754878Ab0G1XlM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jul 2010 09:35:21 -0400
-Subject: [libdvben50221] stack leaks resources on non-MMI session reconnect
-From: Stephan Trebels <stephan@trebels.com>
-To: linux-media@vger.kernel.org
-Cc: stephan@trebels.com
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-1u1CIUtCTqeJhH73A7DQ"
-Date: Thu, 15 Jul 2010 15:20:14 +0200
-Message-ID: <1279200014.14890.33.camel@stephan-laptop>
-Mime-Version: 1.0
+	Wed, 28 Jul 2010 19:41:12 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 4/9] IR: add helper function for hardware with small o/b buffer.
+Date: Thu, 29 Jul 2010 02:40:47 +0300
+Message-Id: <1280360452-8852-5-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Some ir input devices have small buffer, and interrupt the host
+each time it is full (or half full)
 
---=-1u1CIUtCTqeJhH73A7DQ
-Content-Type: multipart/mixed; boundary="=-uhZbV5EMDvdPh+KDUrXI"
-
-
---=-uhZbV5EMDvdPh+KDUrXI
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
-
-
-The issue was, that LIBDVBEN50221 did not allow a CAM to re-establish
-the session holding non-MMI resources if using the lowlevel interface.
-The session_number was recorded on open, but not freed on close (which
-IMO is an bug in the code, I attach the scaled down hg changeset). With
-this change, the SMIT CAM with a showtime card works fine according to
-tests so far.
-
-The effect was, that the CAM tried to constantly close and re-open the
-session and the LIBDVBEN50221 kept telling it, that the resource is
-already allocated to a different session.  Additionally this caused the
-library to use the _old_ session number in communications with the CAM,
-which did not even exist anymore, so caused all writes of CA PMTs to
-fail with EINTR.
-
-Stephan
-
-P.S. If there is a better place to report user-space library bugs for
-linuxtv, please let me know.
-
---=-uhZbV5EMDvdPh+KDUrXI
-Content-Disposition: attachment; filename="dvb-apps-ca-session-leak.changeset"
-Content-Type: text/plain; name="dvb-apps-ca-session-leak.changeset";
-	charset="ISO-8859-15"
-Content-Transfer-Encoding: base64
-
-IyBIRyBjaGFuZ2VzZXQgcGF0Y2gNCiMgVXNlciBTdGVwaGFuIFRyZWJlbHMgPHN0ZXBoYW5AdHJl
-YmVscy5jb20+DQojIERhdGUgMTI3OTE5MjY5NyAtMzYwMA0KIyBOb2RlIElEIDEyOTI4NjU4ZTU3
-ZWEwNDZiMzVkZmFiNDg1ZjIzNTU5YjMwMzZkNDINCiMgUGFyZW50ICA0YmE5MzNmZjEzZmJkNjE5
-YmU5YmRiYmYwOTdiOGRiZmUwZmJmNjc5DQpDb3JyZWN0bHkgZnJlZSByZXNvdXJjZXMgd2hlbiBh
-IHNlc3Npb24gaXMgY2xvc2VkLiBUaGlzIGFsbG93cyBhIENBTSBtb2R1bGUgdG8gcmUtb3BlbiBh
-IHNlc3Npb24uDQoNCmRpZmYgLXIgNGJhOTMzZmYxM2ZiIC1yIDEyOTI4NjU4ZTU3ZSBsaWIvbGli
-ZHZiZW41MDIyMS9lbjUwMjIxX3N0ZGNhbV9sbGNpLmMNCi0tLSBhL2xpYi9saWJkdmJlbjUwMjIx
-L2VuNTAyMjFfc3RkY2FtX2xsY2kuYwlTYXQgSnVsIDAzIDE1OjI1OjE2IDIwMTAgKzAyMDANCisr
-KyBiL2xpYi9saWJkdmJlbjUwMjIxL2VuNTAyMjFfc3RkY2FtX2xsY2kuYwlUaHUgSnVsIDE1IDEy
-OjE4OjE3IDIwMTAgKzAxMDANCkBAIC0zNzQsMTQgKzM3NCwyMSBAQA0KIAkJfSBlbHNlIGlmIChy
-ZXNvdXJjZV9pZCA9PSBFTjUwMjIxX0FQUF9NTUlfUkVTT1VSQ0VJRCkgew0KIAkJCWxsY2ktPnN0
-ZGNhbS5tbWlfc2Vzc2lvbl9udW1iZXIgPSBzZXNzaW9uX251bWJlcjsNCiAJCX0NCisJCWJyZWFr
-Ow0KIA0KKwljYXNlIFNfU0NBTExCQUNLX1JFQVNPTl9DTE9TRToNCisJCWlmIChyZXNvdXJjZV9p
-ZCA9PSBFTjUwMjIxX0FQUF9NTUlfUkVTT1VSQ0VJRCkgew0KKwkJCWxsY2ktPnN0ZGNhbS5tbWlf
-c2Vzc2lvbl9udW1iZXIgPSAtMTsNCisJCX0gZWxzZSBpZiAocmVzb3VyY2VfaWQgPT0gRU41MDIy
-MV9BUFBfREFURVRJTUVfUkVTT1VSQ0VJRCkgew0KKwkJCWxsY2ktPmRhdGV0aW1lX3Nlc3Npb25f
-bnVtYmVyID0gLTE7DQorCQl9IGVsc2UgaWYgKHJlc291cmNlX2lkID09IEVONTAyMjFfQVBQX0FJ
-X1JFU09VUkNFSUQpIHsNCisJCQlsbGNpLT5zdGRjYW0uYWlfc2Vzc2lvbl9udW1iZXIgPSAtMTsN
-CisJCX0gZWxzZSBpZiAocmVzb3VyY2VfaWQgPT0gRU41MDIyMV9BUFBfQ0FfUkVTT1VSQ0VJRCkg
-ew0KKwkJCWxsY2ktPnN0ZGNhbS5jYV9zZXNzaW9uX251bWJlciA9IC0xOw0KKwkJfSBlbHNlIGlm
-IChyZXNvdXJjZV9pZCA9PSBFTjUwMjIxX0FQUF9NTUlfUkVTT1VSQ0VJRCkgew0KKwkJCWxsY2kt
-PnN0ZGNhbS5tbWlfc2Vzc2lvbl9udW1iZXIgPSAtMTsNCisJCX0NCiAJCWJyZWFrOw0KLSAgICBj
-YXNlIFNfU0NBTExCQUNLX1JFQVNPTl9DTE9TRToNCi0gICAgICAgIGlmIChyZXNvdXJjZV9pZCA9
-PSBFTjUwMjIxX0FQUF9NTUlfUkVTT1VSQ0VJRCkgew0KLSAgICAgICAgICAgIGxsY2ktPnN0ZGNh
-bS5tbWlfc2Vzc2lvbl9udW1iZXIgPSAtMTsNCi0gICAgICAgIH0NCi0NCi0gICAgICAgIGJyZWFr
-Ow0KIAl9DQogCXJldHVybiAwOw0KIH0NCg==
+Add a helper that automaticly handles timeouts, and also
+automaticly merges samples of same time (space-space)
+Such samples might be placed by hardware because size of
+sample in the buffer is small (a byte for example).
 
 
---=-uhZbV5EMDvdPh+KDUrXI--
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ir-core-priv.h |    1 +
+ drivers/media/IR/ir-keytable.c  |    2 +-
+ drivers/media/IR/ir-raw-event.c |   86 +++++++++++++++++++++++++++++++++++++++
+ include/media/ir-core.h         |   24 +++++++++-
+ 4 files changed, 109 insertions(+), 4 deletions(-)
 
---=-1u1CIUtCTqeJhH73A7DQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEABECAAYFAkw/CwsACgkQaPIaLXoy76MkoQCeO7oLtIeIFRMndS60QJtDWzrn
-KZkAoMXKUC43zFgLRzj6PpKpTCykBJHd
-=hOaK
------END PGP SIGNATURE-----
-
---=-1u1CIUtCTqeJhH73A7DQ--
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index dc26e2b..d6ec4fe 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -36,6 +36,7 @@ struct ir_raw_event_ctrl {
+ 	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
+ 	ktime_t				last_event;	/* when last event occurred */
+ 	enum raw_event_type		last_type;	/* last event type */
++	struct ir_raw_event		current_sample;	/* sample that is not yet pushed to fifo */
+ 	struct input_dev		*input_dev;	/* pointer to the parent input_dev */
+ 	u64				enabled_protocols; /* enabled raw protocol decoders */
+ 
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 94a8577..34b9c07 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -428,7 +428,7 @@ static void ir_close(struct input_dev *input_dev)
+  */
+ int __ir_input_register(struct input_dev *input_dev,
+ 		      const struct ir_scancode_table *rc_tab,
+-		      const struct ir_dev_props *props,
++		      struct ir_dev_props *props,
+ 		      const char *driver_name)
+ {
+ 	struct ir_input_dev *ir_dev;
+diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+index c6a80b3..bdf2ed8 100644
+--- a/drivers/media/IR/ir-raw-event.c
++++ b/drivers/media/IR/ir-raw-event.c
+@@ -129,6 +129,92 @@ int ir_raw_event_store_edge(struct input_dev *input_dev, enum raw_event_type typ
+ EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
+ 
+ /**
++ * ir_raw_event_store_with_filter() - pass next pulse/space to decoders with some processing
++ * @input_dev:	the struct input_dev device descriptor
++ * @type:	the type of the event that has occurred
++ *
++ * This routine (which may be called from an interrupt context) is used to
++ * store the beginning of an ir pulse or space (or the start/end of ir
++ * reception) for the raw ir decoding state machines.\
++ * This routine is intended for devices with limited internal buffer
++ * It automerges samples of same type, and handles timeouts
++ */
++int ir_raw_event_store_with_filter(struct input_dev *input_dev,
++						struct ir_raw_event *ev)
++{
++	struct ir_input_dev *ir = input_get_drvdata(input_dev);
++	struct ir_raw_event_ctrl *raw = ir->raw;
++
++	if (!ir->raw || !ir->props)
++		return -EINVAL;
++
++	/* Ignore spaces in idle mode */
++	if (ir->idle && !ev->pulse)
++		return 0;
++	else if (ir->idle)
++		ir_raw_event_set_idle(input_dev, 0);
++
++	if (!raw->current_sample.duration) {
++		raw->current_sample = *ev;
++	} else if (ev->pulse == raw->current_sample.pulse) {
++		raw->current_sample.duration += ev->duration;
++	} else {
++		ir_raw_event_store(input_dev, &raw->current_sample);
++		raw->current_sample = *ev;
++	}
++
++	/* Enter idle mode if nessesary */
++	if (!ev->pulse && ir->props->timeout &&
++		raw->current_sample.duration >= ir->props->timeout)
++		ir_raw_event_set_idle(input_dev, 1);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(ir_raw_event_store_with_filter);
++
++
++void ir_raw_event_set_idle(struct input_dev *input_dev, int idle)
++{
++	struct ir_input_dev *ir = input_get_drvdata(input_dev);
++	struct ir_raw_event_ctrl *raw = ir->raw;
++	ktime_t now;
++	u64 delta;
++
++	if (!ir->props)
++		return;
++
++	if (!ir->raw)
++		goto out;
++
++	if (idle) {
++		IR_dprintk(2, "enter idle mode\n");
++		raw->last_event = ktime_get();
++	} else {
++		IR_dprintk(2, "exit idle mode\n");
++
++		now = ktime_get();
++		delta = ktime_to_ns(ktime_sub(now, ir->raw->last_event));
++
++		WARN_ON(raw->current_sample.pulse);
++
++		raw->current_sample.duration =
++			min(raw->current_sample.duration + delta,
++						(u64)IR_MAX_DURATION);
++
++		ir_raw_event_store(input_dev, &raw->current_sample);
++
++		if (raw->current_sample.duration == IR_MAX_DURATION)
++			ir_raw_event_reset(input_dev);
++
++		raw->current_sample.duration = 0;
++	}
++out:
++	if (ir->props->s_idle)
++		ir->props->s_idle(ir->props->priv, idle);
++	ir->idle = idle;
++}
++EXPORT_SYMBOL_GPL(ir_raw_event_set_idle);
++
++/**
+  * ir_raw_event_handle() - schedules the decoding of stored ir data
+  * @input_dev:	the struct input_dev device descriptor
+  *
+diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+index 513e60d..e895054 100644
+--- a/include/media/ir-core.h
++++ b/include/media/ir-core.h
+@@ -41,6 +41,9 @@ enum rc_driver_type {
+  *	anything with it. Yet, as the same keycode table can be used with other
+  *	devices, a mask is provided to allow its usage. Drivers should generally
+  *	leave this field in blank
++ * @timeout: optional time after which device stops sending data
++ * @min_timeout: minimum timeout supported by device
++ * @max_timeout: maximum timeout supported by device
+  * @priv: driver-specific data, to be used on the callbacks
+  * @change_protocol: allow changing the protocol used on hardware decoders
+  * @open: callback to allow drivers to enable polling/irq when IR input device
+@@ -50,11 +53,19 @@ enum rc_driver_type {
+  * @s_tx_mask: set transmitter mask (for devices with multiple tx outputs)
+  * @s_tx_carrier: set transmit carrier frequency
+  * @tx_ir: transmit IR
++ * @s_idle: optional: enable/disable hardware idle mode, upon which,
++	device doesn't interrupt host untill it sees IR data
+  */
+ struct ir_dev_props {
+ 	enum rc_driver_type	driver_type;
+ 	unsigned long		allowed_protos;
+ 	u32			scanmask;
++
++	u64			timeout;
++	u64			min_timeout;
++	u64			max_timeout;
++
++
+ 	void			*priv;
+ 	int			(*change_protocol)(void *priv, u64 ir_type);
+ 	int			(*open)(void *priv);
+@@ -62,6 +73,7 @@ struct ir_dev_props {
+ 	int			(*s_tx_mask)(void *priv, u32 mask);
+ 	int			(*s_tx_carrier)(void *priv, u32 carrier);
+ 	int			(*tx_ir)(void *priv, int *txbuf, u32 n);
++	void			(*s_idle) (void *priv, int enable);
+ };
+ 
+ struct ir_input_dev {
+@@ -69,9 +81,10 @@ struct ir_input_dev {
+ 	char				*driver_name;	/* Name of the driver module */
+ 	struct ir_scancode_table	rc_tab;		/* scan/key table */
+ 	unsigned long			devno;		/* device number */
+-	const struct ir_dev_props	*props;		/* Device properties */
++	struct ir_dev_props		*props;		/* Device properties */
+ 	struct ir_raw_event_ctrl	*raw;		/* for raw pulse/space events */
+ 	struct input_dev		*input_dev;	/* the input device associated with this device */
++	bool				idle;
+ 
+ 	/* key info - needed by IR keycode handlers */
+ 	spinlock_t			keylock;	/* protects the below members */
+@@ -95,12 +108,12 @@ enum raw_event_type {
+ /* From ir-keytable.c */
+ int __ir_input_register(struct input_dev *dev,
+ 		      const struct ir_scancode_table *ir_codes,
+-		      const struct ir_dev_props *props,
++		      struct ir_dev_props *props,
+ 		      const char *driver_name);
+ 
+ static inline int ir_input_register(struct input_dev *dev,
+ 		      const char *map_name,
+-		      const struct ir_dev_props *props,
++		      struct ir_dev_props *props,
+ 		      const char *driver_name) {
+ 	struct ir_scancode_table *ir_codes;
+ 	struct ir_input_dev *ir_dev;
+@@ -144,6 +157,11 @@ struct ir_raw_event {
+ void ir_raw_event_handle(struct input_dev *input_dev);
+ int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev);
+ int ir_raw_event_store_edge(struct input_dev *input_dev, enum raw_event_type type);
++int ir_raw_event_store_with_filter(struct input_dev *input_dev,
++						struct ir_raw_event *ev);
++
++void ir_raw_event_set_idle(struct input_dev *input_dev, int idle);
++
+ static inline void ir_raw_event_reset(struct input_dev *input_dev)
+ {
+ 	struct ir_raw_event ev = { .pulse = false, .duration = 0 };
+-- 
+1.7.0.4
 
