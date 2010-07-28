@@ -1,55 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:46643 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751557Ab0GET6z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Jul 2010 15:58:55 -0400
-Date: Mon, 5 Jul 2010 21:58:52 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Magnus Damm <magnus.damm@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] V4L/DVB: soc-camera: module_put() fix
-In-Reply-To: <20100705101259.23155.79936.sendpatchset@t400s>
-Message-ID: <Pine.LNX.4.64.1007052156060.2152@axis700.grange>
-References: <20100705101259.23155.79936.sendpatchset@t400s>
+Received: from mx1.redhat.com ([209.132.183.28]:11094 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751241Ab0G1RKE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 13:10:04 -0400
+Message-ID: <4C506472.3080506@redhat.com>
+Date: Wed, 28 Jul 2010 14:10:10 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+CC: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 8/9] IR: Add ENE input driver.
+References: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com> <1280330051-27732-9-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280330051-27732-9-git-send-email-maximlevitsky@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 5 Jul 2010, Magnus Damm wrote:
+Em 28-07-2010 12:14, Maxim Levitsky escreveu:
+> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
 
-> From: Magnus Damm <damm@opensource.se>
-> 
-> Avoid calling module_put() if try_module_get() has
-> been skipped.
-> 
-> Signed-off-by: Magnus Damm <damm@opensource.se>
-> ---
-> 
->  drivers/media/video/soc_camera.c |    3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> --- 0001/drivers/media/video/soc_camera.c
-> +++ work/drivers/media/video/soc_camera.c	2010-06-23 13:43:05.000000000 +0900
-> @@ -1034,7 +1034,8 @@ eiufmt:
->  		soc_camera_free_i2c(icd);
->  	} else {
->  		icl->del_device(icl);
-> -		module_put(control->driver->owner);
-> +		if (control && control->driver && control->driver->owner)
-> +			module_put(control->driver->owner);
->  	}
->  enodrv:
->  eadddev:
+Please, instead of patch 9/9, do a patch moving ENE driver from staging into 
+drivers/media/IR, and then a patch porting it into rc-core. This will allow us
+to better understand what were done to convert it to rc-core, being an example
+for others that may work on porting the other drivers to rc-core.
 
-Hm, don't understand. I don't see how this can be a problem. Have you hit 
-a case, when you enter this path with one of those pointers == NULL? 
-Looking at the code, this is only entered from eiufmt or evidstart "if 
-(!icl->board_info)" (i.e., only with the soc_camera_platform driver). And 
-if you got down to one of those errors, you do have all those pointers in 
-place. What am I missing?
+Cheers,
+Mauro.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski
