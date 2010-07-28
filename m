@@ -1,43 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33095 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756717Ab0GNQUJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jul 2010 12:20:09 -0400
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [media-ctl PATCH 3/3] Be able to add more CFLAGS
-Date: Wed, 14 Jul 2010 11:17:26 -0500
-Message-Id: <1279124246-12187-4-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1279124246-12187-1-git-send-email-saaguirre@ti.com>
-References: <1279124246-12187-1-git-send-email-saaguirre@ti.com>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:22249 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754572Ab0G1RZz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 13:25:55 -0400
+Date: Wed, 28 Jul 2010 10:24:17 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: linux-next: Tree for July 28 (lirc #2)
+Message-Id: <20100728102417.be60049a.randy.dunlap@oracle.com>
+In-Reply-To: <20100728162855.4968e561.sfr@canb.auug.org.au>
+References: <20100728162855.4968e561.sfr@canb.auug.org.au>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This allows the gcc compilation to build with extra parameters.
+On Wed, 28 Jul 2010 16:28:55 +1000 Stephen Rothwell wrote:
 
-For example, if we want to build with -static, we just do:
+> Hi all,
+> 
+> Changes since 20100727:
 
-make CFLAGS=-static
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+When USB_SUPPORT is not enabled and MEDIA_SUPPORT is not enabled:
+
+
+ERROR: "lirc_dev_fop_close" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "lirc_dev_fop_open" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "lirc_dev_fop_poll" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "lirc_dev_fop_write" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "lirc_dev_fop_read" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "usb_register_driver" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "lirc_register_driver" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "usb_string" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "usb_alloc_urb" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "usb_alloc_coherent" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "lirc_dev_fop_ioctl" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "lirc_get_pdata" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "usb_free_coherent" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "usb_free_urb" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "lirc_unregister_driver" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "usb_kill_urb" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "usb_submit_urb" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "usb_deregister" [drivers/staging/lirc/lirc_streamzap.ko] undefined!
+ERROR: "lirc_dev_fop_close" [drivers/staging/lirc/lirc_sir.ko] undefined!
+ERROR: "lirc_dev_fop_open" [drivers/staging/lirc/lirc_sir.ko] undefined!
+ERROR: "lirc_register_driver" [drivers/staging/lirc/lirc_sir.ko] undefined!
+ERROR: "lirc_unregister_driver" [drivers/staging/lirc/lirc_sir.ko] undefined!
+
 ---
- Makefile |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/Makefile b/Makefile
-index 300ed7e..bd53626 100644
---- a/Makefile
-+++ b/Makefile
-@@ -3,7 +3,7 @@ HDIR ?= /usr/include
- 
- CC   := $(CROSS_COMPILE)gcc
- 
--CFLAGS = -O2 -Wall -fpic -I$(HDIR)
-+CFLAGS += -O2 -Wall -fpic -I$(HDIR)
- OBJS = media.o main.o options.o subdev.o
- 
- all: media-ctl
--- 
-1.6.3.3
-
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
