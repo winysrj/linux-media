@@ -1,58 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52763 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756972Ab0GNOGJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jul 2010 10:06:09 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE 08/12] v4l: subdev: Generic ioctl support
-Date: Wed, 14 Jul 2010 16:07:10 +0200
-Message-Id: <1279116434-28278-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45050 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753746Ab0G1SNH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 14:13:07 -0400
+Message-ID: <4C507338.3080005@redhat.com>
+Date: Wed, 28 Jul 2010 15:13:12 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+CC: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 8/9] IR: Add ENE input driver.
+References: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com>	 <1280330051-27732-9-git-send-email-maximlevitsky@gmail.com>	 <4C506472.3080506@redhat.com> <1280337215.6590.1.camel@maxim-laptop>
+In-Reply-To: <1280337215.6590.1.camel@maxim-laptop>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of returning an error when receiving an ioctl call with an
-unsupported command, forward the call to the subdev core::ioctl handler.
+Em 28-07-2010 14:13, Maxim Levitsky escreveu:
+> On Wed, 2010-07-28 at 14:10 -0300, Mauro Carvalho Chehab wrote: 
+>> Em 28-07-2010 12:14, Maxim Levitsky escreveu:
+>>> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+>>
+>> Please, instead of patch 9/9, do a patch moving ENE driver from staging into 
+>> drivers/media/IR, and then a patch porting it into rc-core. This will allow us
+>> to better understand what were done to convert it to rc-core, being an example
+>> for others that may work on porting the other drivers to rc-core.
+> 
+> The version in staging is outdated.
+> Should I first update it, and then move?
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/video4linux/v4l2-framework.txt |    5 +++++
- drivers/media/video/v4l2-subdev.c            |    2 +-
- 2 files changed, 6 insertions(+), 1 deletions(-)
-
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 76ecd43..b47adf2 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -401,6 +401,11 @@ VIDIOC_UNSUBSCRIBE_EVENT
- 	To properly support events, the poll() file operation is also
- 	implemented.
- 
-+Private ioctls
-+
-+	All ioctls not in the above list are passed directly to the sub-device
-+	driver through the core::ioctl operation.
-+
- 
- I2C sub-device drivers
- ----------------------
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index ad4b95e..887cd88 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -257,7 +257,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 	}
- 
- 	default:
--		return -ENOIOCTLCMD;
-+		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
- 	}
- 
- 	return 0;
--- 
-1.7.1
+Yes, please. It shouldn't be hard to produce such patches, and this will help
+other developers when porting the other drivers. So, it may result on a some gain
+at the speed for the other ports.
+> 
+> Best regards,
+> Maxim Levitsky
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
