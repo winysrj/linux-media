@@ -1,99 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:46521 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754374Ab0GGToz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 15:44:55 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56131 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755795Ab0G1RCk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 13:02:40 -0400
+Subject: Re: Can I expect in-kernel decoding to work out of box?
+From: Andy Walls <awalls@md.metrocast.net>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC/PATCH 2/6] v4l: subdev: Add device node support
-Date: Wed, 7 Jul 2010 21:44:45 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278503608-9126-3-git-send-email-laurent.pinchart@ideasonboard.com> <4C3495F9.4070507@redhat.com>
-In-Reply-To: <4C3495F9.4070507@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Cc: Jon Smirl <jonsmirl@gmail.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <4C504FDB.4070400@redhat.com>
+References: <1280269990.21278.15.camel@maxim-laptop>
+	 <1280273550.32216.4.camel@maxim-laptop>
+	 <AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
+	 <AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
+	 <1280298606.6736.15.camel@maxim-laptop>
+	 <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
+	 <4C502CE6.80106@redhat.com>
+	 <AANLkTinCs7f6zF-tYZqJ49CAjNWF=2MPGh0VRuU=VLzq@mail.gmail.com>
+	 <1280327929.11072.24.camel@morgan.silverblock.net>
+	 <AANLkTikFfXx4NBB2z2UXNt5Kt-2QrvTfvK0nQhSSqw8v@mail.gmail.com>
+	 <4C504FDB.4070400@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 28 Jul 2010 13:02:10 -0400
+Message-ID: <1280336530.19593.52.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007072144.46481.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wed, 2010-07-28 at 12:42 -0300, Mauro Carvalho Chehab wrote:
+> Em 28-07-2010 11:53, Jon Smirl escreveu:
+> > On Wed, Jul 28, 2010 at 10:38 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+> >> On Wed, 2010-07-28 at 09:46 -0400, Jon Smirl wrote:
 
-Thanks for the review.
-
-On Wednesday 07 July 2010 16:58:01 Mauro Carvalho Chehab wrote:
-> Em 07-07-2010 08:53, Laurent Pinchart escreveu:
-> > Create a device node named subdevX for every registered subdev.
-> > As the device node is registered before the subdev core::s_config
-> > function is called, return -EGAIN on open until initialization
-> > completes.
-
-[snip]
-
-> > diff --git a/drivers/media/video/v4l2-subdev.c
-> > b/drivers/media/video/v4l2-subdev.c new file mode 100644
-> > index 0000000..a048161
-> > --- /dev/null
-> > +++ b/drivers/media/video/v4l2-subdev.c
-> > @@ -0,0 +1,65 @@
-
-[snip]
-
-> > +static int subdev_open(struct file *file)
-> > +{
-> > +	struct video_device *vdev = video_devdata(file);
-> > +	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-> > +
-> > +	if (!sd->initialized)
-> > +		return -EAGAIN;
+> > I recommend that all decoders initially follow the strict protocol
+> > rules. That will let us find bugs like this one in the ENE driver.
 > 
-> Those internal interfaces should not be used on normal
-> devices/applications, as none of the existing drivers are tested or
-> supposed to properly work if an external program is touching on its
-> internal interfaces. So, please add:
-> 
-> 	if (!capable(CAP_SYS_ADMIN))
-> 		return -EPERM;
+> Agreed.
 
-As Hans pointed out, subdev device nodes should only be created if the subdev 
-request it explicitly. I'll fix the patch accordingly. Existing subdevs will 
-not have a device node by default anymore, so the CAP_SYS_ADMIN capability 
-won't be required (new subdevs that explicitly ask for a device node are 
-supposed to handle the calls properly, otherwise it's a bit pointless :-)).
+Well... 
 
-> > +
-> > +	return 0;
-> > +}
+I'd possibly make an exception for the protocols that have long-mark
+leaders.  The actual long mark measurement can be far off from the
+protocol's specification and needs a larger tolerance (IMO).
 
-[snip]
+Only allowing 0.5 to 1.0 of a protocol time unit tolerance, for a
+protocol element that is 8 to 16 protocol time units long, doesn't make
+too much sense to me.  If the remote has the basic protocol time unit
+off from our expectation, the error will likely be amplified in a long
+protocol elements and very much off our expectation.
 
-> > +static long subdev_ioctl(struct file *file, unsigned int cmd,
-> > +	unsigned long arg)
-> > +{
-> > +	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
-> 
-> This is a legacy call. Please, don't use it.
 
-What should I use instead then ? I need the functionality of video_usercopy. I 
-could copy it to v4l2-subdev.c verbatim. As video_ioctl2 shares lots of code 
-with video_usercopy I think video_usercopy should stay, and video_ioctl2 
-should use it.
+> I think that the better is to add some parameters, via sysfs, to relax the
+> rules at the current decoders, if needed.
 
-> Also, while the API doc says that only certain ioctls are supported on
-> subdev, there's no code here preventing the usage of invalid ioctls. So,
-> it is possible to do bad things, like changing the video standard format
-> individually on each subdev, creating all sorts of problems.
+Is that worth the effort?  It seems like only going half-way to an
+ultimate end state.
 
-Invalid (or rather unsupported) ioctls will be routed to the subdev 
-core::ioctl operation. Formats will not be changed automagically just because 
-a userspace application issues a VIDIOC_S_FMT ioctl.
+<crazy idea>
+If you go through the effort of implementing fine grained controls
+(tweaking tolerances for this pulse type here or there), why not just
+implement a configurable decoding engine that takes as input:
 
-As the device node creation will need to be requested explicitly this won't be 
-an issue anyway.
+	symbol definitions
+		(pulse and space length specifications and tolerances)
+	pulse train states
+	allowed state transitions
+	gap length
+	decoded output data length
 
--- 
+and instantiates a decoder that follows a user-space provided
+specification?
+
+The user can write his own decoding engine specification in a text file,
+feed it into the kernel, and the kernel can implement it for him.
+</crazy idea>
+
+OK, maybe that is a little too much time and effort. ;)
+
 Regards,
+Andy
 
-Laurent Pinchart
+
+> Cheers,
+> Mauro
+
+
