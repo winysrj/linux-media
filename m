@@ -1,78 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:45189 "EHLO d1.icnet.pl"
+Received: from mx1.redhat.com ([209.132.183.28]:55496 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751728Ab0GTRjT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jul 2010 13:39:19 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC] [PATCH 0/6] Add camera support to the OMAP1 Amstrad Delta videophone
-Date: Tue, 20 Jul 2010 19:38:13 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1007201139320.29807@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1007201139320.29807@axis700.grange>
+	id S1751377Ab0G1SIB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 14:08:01 -0400
+Message-ID: <4C50720D.5000301@redhat.com>
+Date: Wed, 28 Jul 2010 15:08:13 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+To: Jon Smirl <jonsmirl@gmail.com>
+CC: Maxim Levitsky <maximlevitsky@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: Can I expect in-kernel decoding to work out of box?
+References: <1280269990.21278.15.camel@maxim-laptop>	<1280273550.32216.4.camel@maxim-laptop>	<AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>	<AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>	<1280298606.6736.15.camel@maxim-laptop>	<AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>	<4C502CE6.80106@redhat.com>	<1280327080.9175.58.camel@maxim-laptop>	<AANLkTi=Ww9yvN5RWaXEi+cB2QaDWn34nSVGAvKxbJ2k2@mail.gmail.com>	<4C505313.2010904@redhat.com> <AANLkTi=Ms0saB5b3+o9qQQYFNT96XStKCkVivB65q_33@mail.gmail.com>
+In-Reply-To: <AANLkTi=Ms0saB5b3+o9qQQYFNT96XStKCkVivB65q_33@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201007201938.16054.jkrzyszt@tis.icnet.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tuesday 20 July 2010 11:49:54 Guennadi Liakhovetski wrote:
-> Hi Janusz
+Em 28-07-2010 14:04, Jon Smirl escreveu:
+> On Wed, Jul 28, 2010 at 11:56 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 28-07-2010 11:41, Jon Smirl escreveu:
+>>
+>>> It's possible to build a Linux IR decoder engine that can be loaded
+>>> with the old LIRC config files.
+>>
+>> I think it is a good idea to have a decoder that works with such files anyway.
+> 
+> The recorder should use the Linux IR system to record the data. It
+> would confusing to mix the systems. Users need to be really sure that
+> the standard protocol decoders don't understand their protocol before
+> resorting to this. Any one in this situation should post their
+> recorded data so we can check for driver implementation errors.
+> 
+> An example: if you use irrecord on Sony remotes lirc always records
+> them in raw mode. The true problem here is that irrecord doesn't
+> understand that Sony remotes mix different flavors of the Sony
+> protocol on a single remote. This leads you to think that the Sony
+> protocol engine is broken when it really isn't. It's the irrecord tool
+> that is broken.  The kernel IR system will decode these remotes
+> correctly without resorting to raw mode.
 
-Hi Guennadi,
-Thanks for your answer.
+A decoder like that should be a last-resort decoder, only in the
+cases where there's no other option.
 
-> On Sun, 18 Jul 2010, Janusz Krzysztofik wrote:
-> > This series consists of the following patches:
-> >
-> >   1/6	SoC Camera: add driver for OMAP1 camera interface
-> >   2/6	OMAP1: Add support for SoC camera interface
-> >   3/6	SoC Camera: add driver for OV6650 sensor
-> >   4/6	SoC Camera: add support for g_parm / s_parm operations
-> >   5/6	OMAP1: Amstrad Delta: add support for on-board camera
-> >   6/6	OMAP1: Amstrad Delta: add camera controlled LEDS trigger
->
-> It is an interesting decision to use soc-camera for an OMAP SoC, as you
-> most probably know OMAP3 and OMAP2 camera drivers do not use soc-camera. I
-> certainly do not want to discourage you from using soc-camera, just don't
-> want you to go the wrong way and then regret it or spend time re-designing
-> your driver. 
+>> There are some good reasons for that, as it would allow in-kernel support for
+>> protocols that may have some patent restrictions on a few countries that allow
+>> patents on software.
+> 
+> Are there any IR protocols less than 20 (or 17) years old?
 
-If this way occures wrong, then it's only my fault, since I've taken it 
-myself, without consulting it neither on omap nor media list, so I'm not 
-going to blame anyone except myself.
+Yes. This protocol is brand new:
+	https://www.smkusa.com/usa/technologies/qp/
 
-> Have you had specific reasons for this design? 
+And several new devices are starting to accept it.
 
-It looked like the most simple way for me. And while implementing it, I 
-haven't faced any restrictions that would lead me to changing my mind and 
-doing it another way.
+> If they are
+> older than that the patents have expired. I expect IR use to decline
+> in the future, it will be replaced with RF4CE radio remotes.
 
-> Is OMAP1 so different from 2 (and 3)? 
+I expect so, but it will take some time until this transition happens.
 
-I think so, but let's see what OMAP guys have to say.
-
-> In any case - thanks for the patches, if you do 
-> insist on going this path (;)) I'll review them and get back to you after
-> that. Beware, it might be difficult to finish the review process in time
-> for 2.6.36...
-
-Since not all patches from the series are OMAP related, and those that are 
-not, don't depend on others, I think you could have a look at 4/6 and see if 
-it makes sense or not. You could also examine 6/6 and see if you would like 
-the idea of a camera LED trigger implemented, this way or another, at the 
-soc_camera framework level rather than specific machine or platform. Last, 
-the sensor driver (3/6), even if soc_camera specific, could be considered, if 
-accepted, for adopting it as a regular v4l2-subdev, if required by a 
-different implementation of OMAP part choosen.
-
-Thanks,
-Janusz
+Cheers,
+Mauro.
