@@ -1,149 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55010 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756093Ab0GaO7m (ORCPT
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:47499 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754742Ab0G1Ol3 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 10:59:42 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 04/13] IR: replace workqueue with kthread
-Date: Sat, 31 Jul 2010 17:59:17 +0300
-Message-Id: <1280588366-26101-5-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+	Wed, 28 Jul 2010 10:41:29 -0400
+MIME-Version: 1.0
+In-Reply-To: <1280327080.9175.58.camel@maxim-laptop>
+References: <1280269990.21278.15.camel@maxim-laptop>
+	<1280273550.32216.4.camel@maxim-laptop>
+	<AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
+	<AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
+	<1280298606.6736.15.camel@maxim-laptop>
+	<AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
+	<4C502CE6.80106@redhat.com>
+	<1280327080.9175.58.camel@maxim-laptop>
+Date: Wed, 28 Jul 2010 10:41:27 -0400
+Message-ID: <AANLkTi=Ww9yvN5RWaXEi+cB2QaDWn34nSVGAvKxbJ2k2@mail.gmail.com>
+Subject: Re: Can I expect in-kernel decoding to work out of box?
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is perfectly possible to have ir_raw_event_work
-running concurently on two cpus, thus we must protect
-it from that situation.
+On Wed, Jul 28, 2010 at 10:24 AM, Maxim Levitsky
+<maximlevitsky@gmail.com> wrote:
+> On Wed, 2010-07-28 at 10:13 -0300, Mauro Carvalho Chehab wrote:
+>> Em 28-07-2010 07:40, Jon Smirl escreveu:
+>> > On Wed, Jul 28, 2010 at 2:30 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+>> >> On Tue, 2010-07-27 at 22:33 -0400, Jarod Wilson wrote:
+>> >>> On Tue, Jul 27, 2010 at 9:29 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
+>>
+>> >> No its not, its just extended NEC.
+>> >
+>> > http://www.sbprojects.com/knowledge/ir/nec.htm
+>> > Says the last two bytes should be the complement of each other.
+>> >
+>> > So for extended NEC it would need to be:
+>> > 1100 0010 1010 0101 instead of 1100 0010 1010 0100
+>> > The last bit is wrong.
+>> >
+>> > From the debug output it is decoding as NEC, but then it fails a
+>> > consistency check. Maybe we need to add a new protocol that lets NEC
+>> > commands through even if they fail the error checks.
+>>
+>> Assuming that Maxim's IR receiver is not causing some bad decode at the
+>> NEC code, it seems simpler to add a parameter at sysfs to relax the NEC
+>> detection. We should add some way, at the userspace table for those RC's
+>> that uses a NEC-like code.
+>>
+>> There's another alternative: currently, the NEC decoder produces a 16 bits
+>> code for NEC and a 24 bits for NEC-extended code. The decoder may return a
+>> 32 bits code when none of the checksum's match the NEC or NEC-extended standard.
+>>
+>> Such 32 bits code won't match a keycode on a 16-bits or 24-bits table, so
+>> there's no risk of generating a wrong keycode, if the wrong consistent check
+>> is due to a reception error.
+>>
+>> Btw, we still need to port rc core to use the new tables ioctl's, as cleaning
+>> all keycodes on a 32 bits table would take forever with the current input
+>> events ioctls.
+>>
+>> > It may also be
+>> > that the NEC machine rejected it because the timing was so far off
+>> > that it concluded that it couldn't be a NEC messages. The log didn't
+>> > include the exact reason it got rejected. Add some printks at the end
+>> > of the NEC machine to determine the exact reason for rejection.
+>>
+>> The better is to discard the possibility of a timing issue before changing
+>> the decoder to accept NEC-like codes without consistency checks.
+>>
+>> > The current state machines enforce protocol compliance so there are
+>> > probably a lot of older remotes that won't decode right. We can use
+>> > some help in adjusting the state machines to let out of spec codes
+>> > through.
+>>
+>> Yes, but we should take some care to avoid having another protocol decoder to
+>> interpret badly a different protocol. So, I think that the decoders may have
+>> some sysfs nodes to tweak the decoders to accept those older remotes.
+>>
+>> We'll need a consistent way to add some logic at the remotes keycodes used by
+>> ir-keycode, in order to allow it to tweak the decoder when a keycode table for
+>> such remote is loaded into the driver.
+>>
+>> > User space lirc is much older. Bugs like this have been worked out of
+>> > it. It will take some time to get the kernel implementation up to the
+>> > same level.
+>>
+>> True.
+>
+>
+> I more or less got to the bottom of this.
+>
+>
+> It turns out that ENE reciever has a non linear measurement error.
+> That is the longer sample is, the larger error it contains.
+> Substracting around 4% from the samples makes the output look much more
+> standard compliant.
 
-This stems from the fact that if hardware sends short packets of samples
-we might end up queueing the work item more times that nessesary.
+Most of the protocols are arranged using power of two timings.
 
-Such job isn't well suited for a workqueue, so use a kernel thread.
+For example 562.5, 1125, 2250, 4500, 9000 -- NEC
+525, 1050, 2100, 4200, 8400 - JVC
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/ir-core-priv.h |    2 +-
- drivers/media/IR/ir-raw-event.c |   42 ++++++++++++++++++++++++++++----------
- 2 files changed, 32 insertions(+), 12 deletions(-)
+The decoders are designed to be much more sensitive to the power of
+two relationship than the exact timing. Your non-linear error messed
+up the relationship.
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index dc26e2b..84c7a9a 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -32,7 +32,7 @@ struct ir_raw_handler {
- 
- struct ir_raw_event_ctrl {
- 	struct list_head		list;		/* to keep track of raw clients */
--	struct work_struct		rx_work;	/* for the rx decoding workqueue */
-+	struct task_struct		*thread;
- 	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
- 	ktime_t				last_event;	/* when last event occurred */
- 	enum raw_event_type		last_type;	/* last event type */
-diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-index 9d5c029..d0c18db 100644
---- a/drivers/media/IR/ir-raw-event.c
-+++ b/drivers/media/IR/ir-raw-event.c
-@@ -12,9 +12,10 @@
-  *  GNU General Public License for more details.
-  */
- 
--#include <linux/workqueue.h>
-+#include <linux/kthread.h>
- #include <linux/mutex.h>
- #include <linux/sched.h>
-+#include <linux/freezer.h>
- #include "ir-core-priv.h"
- 
- /* Define the max number of pulse/space transitions to buffer */
-@@ -33,20 +34,30 @@ static u64 available_protocols;
- static struct work_struct wq_load;
- #endif
- 
--static void ir_raw_event_work(struct work_struct *work)
-+static int ir_raw_event_thread(void *data)
- {
- 	struct ir_raw_event ev;
- 	struct ir_raw_handler *handler;
--	struct ir_raw_event_ctrl *raw =
--		container_of(work, struct ir_raw_event_ctrl, rx_work);
-+	struct ir_raw_event_ctrl *raw = (struct ir_raw_event_ctrl *)data;
-+
-+	while (!kthread_should_stop()) {
-+		try_to_freeze();
- 
--	while (kfifo_out(&raw->kfifo, &ev, sizeof(ev)) == sizeof(ev)) {
- 		mutex_lock(&ir_raw_handler_lock);
--		list_for_each_entry(handler, &ir_raw_handler_list, list)
--			handler->decode(raw->input_dev, ev);
-+
-+		while (kfifo_out(&raw->kfifo, &ev, sizeof(ev)) == sizeof(ev)) {
-+			list_for_each_entry(handler, &ir_raw_handler_list, list)
-+				handler->decode(raw->input_dev, ev);
-+			raw->prev_ev = ev;
-+		}
-+
- 		mutex_unlock(&ir_raw_handler_lock);
--		raw->prev_ev = ev;
-+
-+		set_current_state(TASK_INTERRUPTIBLE);
-+		schedule();
- 	}
-+
-+	return 0;
- }
- 
- /**
-@@ -141,7 +152,7 @@ void ir_raw_event_handle(struct input_dev *input_dev)
- 	if (!ir->raw)
- 		return;
- 
--	schedule_work(&ir->raw->rx_work);
-+	wake_up_process(ir->raw->thread);
- }
- EXPORT_SYMBOL_GPL(ir_raw_event_handle);
- 
-@@ -170,7 +181,7 @@ int ir_raw_event_register(struct input_dev *input_dev)
- 		return -ENOMEM;
- 
- 	ir->raw->input_dev = input_dev;
--	INIT_WORK(&ir->raw->rx_work, ir_raw_event_work);
-+
- 	ir->raw->enabled_protocols = ~0;
- 	rc = kfifo_alloc(&ir->raw->kfifo, sizeof(s64) * MAX_IR_EVENT_SIZE,
- 			 GFP_KERNEL);
-@@ -180,6 +191,15 @@ int ir_raw_event_register(struct input_dev *input_dev)
- 		return rc;
- 	}
- 
-+	ir->raw->thread = kthread_run(ir_raw_event_thread, ir->raw,
-+			"rc%u",  (unsigned int)ir->devno);
-+
-+	if (IS_ERR(ir->raw->thread)) {
-+		kfree(ir->raw);
-+		ir->raw = NULL;
-+		return PTR_ERR(ir->raw->thread);
-+	}
-+
- 	mutex_lock(&ir_raw_handler_lock);
- 	list_add_tail(&ir->raw->list, &ir_raw_client_list);
- 	list_for_each_entry(handler, &ir_raw_handler_list, list)
-@@ -198,7 +218,7 @@ void ir_raw_event_unregister(struct input_dev *input_dev)
- 	if (!ir->raw)
- 		return;
- 
--	cancel_work_sync(&ir->raw->rx_work);
-+	kthread_stop(ir->raw->thread);
- 
- 	mutex_lock(&ir_raw_handler_lock);
- 	list_del(&ir->raw->list);
+>
+> You are right that my remote has  JVC protocol. (at least I am sure now
+> it hasn't NEC, because repeat looks differently).
+>
+> My remote now actually partially works with JVC decoder, it decodes
+> every other keypress.
+>
+> Still, no repeat is supported.
+
+It probably isn't implemented yet. Jarod has been focusing more on
+getting the basic decoders to work.
+
+> However, all recievers (and transmitters) aren't perfect.
+> Thats why I prefer lirc, because it makes no assumptions about protocol,
+> so it can be 'trained' to work with any remote, and under very large
+> range of error tolerances.
+
+It's possible to build a Linux IR decoder engine that can be loaded
+with the old LIRC config files.  But before doing this we should work
+on getting all of the errors out of the standard decoders.
+
+>
+> Best regards,
+> Maxim Levitsky
+>
+>
+
+
+
 -- 
-1.7.0.4
-
+Jon Smirl
+jonsmirl@gmail.com
