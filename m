@@ -1,138 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:65382 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932157Ab0G3LnI (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:30217 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751170Ab0G1STF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 07:43:08 -0400
-Subject: Re: [PATCH v2]Resend:videobuf_dma_sg: a new implementation for mmap
-From: "Figo.zhang" <figo1802@gmail.com>
-To: npiggin@suse.de, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	akpm <akpm@linux-foundation.org>,
-	Greg Kroah-Hartman <gregkh@suse.de>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	lkml <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>
-In-Reply-To: <201007301131.17638.laurent.pinchart@ideasonboard.com>
-References: <1280448482.2648.2.camel@localhost.localdomain>
-	 <201007301131.17638.laurent.pinchart@ideasonboard.com>
+	Wed, 28 Jul 2010 14:19:05 -0400
+Subject: Re: Can I expect in-kernel decoding to work out of box?
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <AANLkTikotLLPcCvwwNFEe+80sV6w9F0pa_fx3f_jdK77@mail.gmail.com>
+References: <1280269990.21278.15.camel@maxim-laptop>
+	 <1280273550.32216.4.camel@maxim-laptop>
+	 <AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
+	 <AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
+	 <1280298606.6736.15.camel@maxim-laptop>
+	 <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
+	 <4C502CE6.80106@redhat.com>
+	 <AANLkTinCs7f6zF-tYZqJ49CAjNWF=2MPGh0VRuU=VLzq@mail.gmail.com>
+	 <1280327929.11072.24.camel@morgan.silverblock.net>
+	 <AANLkTikFfXx4NBB2z2UXNt5Kt-2QrvTfvK0nQhSSqw8v@mail.gmail.com>
+	 <4C504FDB.4070400@redhat.com>
+	 <1280336530.19593.52.camel@morgan.silverblock.net>
+	 <AANLkTikotLLPcCvwwNFEe+80sV6w9F0pa_fx3f_jdK77@mail.gmail.com>
 Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 30 Jul 2010 19:39:40 +0800
-Message-ID: <1280489980.2648.12.camel@localhost.localdomain>
+Date: Wed, 28 Jul 2010 14:18:29 -0400
+Message-ID: <1280341109.26286.38.camel@morgan.silverblock.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-07-30 at 11:31 +0200, Laurent Pinchart wrote:
-> Hi,
+On Wed, 2010-07-28 at 13:35 -0400, Jon Smirl wrote:
+> On Wed, Jul 28, 2010 at 1:02 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+> > On Wed, 2010-07-28 at 12:42 -0300, Mauro Carvalho Chehab wrote:
+> >> Em 28-07-2010 11:53, Jon Smirl escreveu:
+> >> > On Wed, Jul 28, 2010 at 10:38 AM, Andy Walls <awalls@md.metrocast.net> wrote:
+> >> >> On Wed, 2010-07-28 at 09:46 -0400, Jon Smirl wrote:
+> >
+> >> > I recommend that all decoders initially follow the strict protocol
+> >> > rules. That will let us find bugs like this one in the ENE driver.
+> >>
+> >> Agreed.
+> >
+> > Well...
+> >
+> > I'd possibly make an exception for the protocols that have long-mark
+> > leaders.  The actual long mark measurement can be far off from the
+> > protocol's specification and needs a larger tolerance (IMO).
+> >
+> > Only allowing 0.5 to 1.0 of a protocol time unit tolerance, for a
+> > protocol element that is 8 to 16 protocol time units long, doesn't make
+> > too much sense to me.  If the remote has the basic protocol time unit
+> > off from our expectation, the error will likely be amplified in a long
+> > protocol elements and very much off our expectation.
 > 
-> On Friday 30 July 2010 02:08:02 Figo.zhang wrote:
-> > a mmap issue for videobuf-dma-sg: it will alloc a new page for mmaping when
-> > it encounter page fault at video_vm_ops->fault(). pls see
-> > http://www.spinics.net/lists/linux-media/msg21243.html
-> > 
-> > a new implementation for mmap, it translate to vmalloc to page at
-> > video_vm_ops->fault().
-> > 
-> > in v2, if mem->dma.vmalloc is NULL at video_vm_ops->fault(), it will alloc
-> > memory by vmlloc_32().
-> 
-> You're replacing allocation in videobuf_vm_fault by allocationg in 
-> videobuf_vm_fault. I don't see the point. videobuf_vm_fault needs to go away 
-> completely.
-in now videobuf code, the mmap alloc a new buf, the capture dma buffer
-using vmalloc() alloc buffer, how is
-relationship with them? in usrspace , the mmap region will not the
-actual capture dma data, how is work? 
+> Do you have a better way to differentiate JVC and NEC protocols? They
+> are pretty similar except for the timings.
 
-> 
-> This has been discussed previously: fixing videobuf is not really possible. A 
-> videobuf2 implementation is needed and is (slowly) being worked on. 
-hi Mauro, do you think this is a issue for videobuf-dma-sg?
+Yes: Invoke the 80/20 rule and don't try.  Enable NEC and disable JVC by
+default.  Let the users know so as to properly manage user expectations.
+(Maxim's original question was about expectation.)
 
-> I wouldn't 
-> bother with this patch, just drop it.
-> 
-> > Signed-off-by: Figo.zhang <figo1802@gmail.com>
-> > ---
-> > drivers/media/video/videobuf-dma-sg.c |   50
-> > +++++++++++++++++++++++++++------ 1 files changed, 41 insertions(+), 9
-> > deletions(-)
-> > 
-> > diff --git a/drivers/media/video/videobuf-dma-sg.c
-> > b/drivers/media/video/videobuf-dma-sg.c index 8359e6b..f7295da 100644
-> > --- a/drivers/media/video/videobuf-dma-sg.c
-> > +++ b/drivers/media/video/videobuf-dma-sg.c
-> > @@ -201,10 +201,11 @@ int videobuf_dma_init_kernel(struct videobuf_dmabuf
-> > *dma, int direction, dprintk(1, "init kernel [%d pages]\n", nr_pages);
-> > 
-> >  	dma->direction = direction;
-> > -	dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
-> > -	if (NULL == dma->vmalloc) {
-> > -		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
-> > -		return -ENOMEM;
-> > +	if (!dma->vmalloc)
-> > +		dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
-> > +		if (NULL == dma->vmalloc) {
-> > +			dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
-> > +			return -ENOMEM;
-> >  	}
-> > 
-> >  	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
-> > @@ -397,16 +398,47 @@ static void videobuf_vm_close(struct vm_area_struct
-> > *vma) */
-> >  static int videobuf_vm_fault(struct vm_area_struct *vma, struct vm_fault
-> > *vmf) {
-> > -	struct page *page;
-> > +	struct page *page = NULL;
-> > +	struct videobuf_mapping *map = vma->vm_private_data;
-> > +	struct videobuf_queue *q = map->q;
-> > +	struct videobuf_dma_sg_memory *mem = NULL;
-> > +
-> > +	unsigned long offset;
-> > +	unsigned long page_nr;
-> > +	int first;
-> > 
-> >  	dprintk(3, "fault: fault @ %08lx [vma %08lx-%08lx]\n",
-> >  		(unsigned long)vmf->virtual_address,
-> >  		vma->vm_start, vma->vm_end);
-> > 
-> > -	page = alloc_page(GFP_USER | __GFP_DMA32);
-> > -	if (!page)
-> > -		return VM_FAULT_OOM;
-> > -	clear_user_highpage(page, (unsigned long)vmf->virtual_address);
-> > +	mutex_lock(&q->vb_lock);
-> > +	offset = (unsigned long)vmf->virtual_address - vma->vm_start;
-> > +	page_nr = offset >> PAGE_SHIFT;
-> > +
-> > +	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
-> > +			if (NULL == q->bufs[first])
-> > +				continue;
-> > +
-> > +			MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
-> > +
-> > +			if (q->bufs[first]->map == map)
-> > +				break;
-> > +	}
-> > +
-> > +	mem = q->bufs[first]->priv;
-> > +	if (!mem)
-> > +		return VM_FAULT_SIGBUS;
-> > +	if (!mem->dma.vmalloc) {
-> > +		mem->dma.vmalloc = vmalloc_32(PAGE_ALIGN(q->bufs[first]->size));
-> > +		if (NULL == mem->dma.vmalloc) {
-> > +			dprintk(1, "%s: vmalloc_32() failed\n", __func__);
-> > +			return VM_FAULT_OOM;
-> > +		}
-> > +	} else
-> > +		page = vmalloc_to_page(mem->dma.vmalloc+
-> > +				(offset & (~PAGE_MASK)));
-> > +	mutex_unlock(&q->vb_lock);
-> > +
-> >  	vmf->page = page;
-> > 
-> >  	return 0;
-> 
+When the user knows NEC isn't working, or he suspects JVC may work, he
+can bind that protocol to the particular IR receiver.
 
+
+Trying to solve the discrimination problem with blindly parallel
+decoding all the possible protocols is a big waste of effort IMO:
+
+a. Many remotes are sloppy and out of spec, and get worse with weak
+batteries.
+
+b. The IR receiver driver knows what remotes possibly came bundled with
+the hardware.  (For the case of the MCE USB, it's almost always an RC-6
+6A remote.)
+
+c. The user can tell the kernel about his remote unambiguously.
+
+There's no burning need to wear a blindfold, AFAICT, so let's not.
+
+Why bother to solve a hard problem (discrimination of protocols from out
+of spec remotes), when it raises the error rate of solving the simple
+one (properly decoding a single protocol)?
+
+Doing many things poorly is worse than doing one thing well.
+Non-adaptive protocol discovery (i.e. blind parallel decoding) should
+not be the default if it leads to problems or inflated expectations for
+the user.
+
+
+>  What happened in this case
+> was that the first signals matched the NEC protocol. Then we shifted
+> to bits that matched JVC protocol.
+> 
+> The NEC bits are 9000/8400 = 7% longer. If we allow more than a 3.5%
+> error in the initial bit you can't separate the protocols.
+> 
+> In general the decoders are pretty lax and the closest to the correct
+> one with decode the stream. The 50% rule only comes into play between
+> two very similar protocols.
+> 
+> One solution would be to implement NEC/JVC in the same engine. Then
+> apply the NEC consistency checks. If the consistency check pass
+> present the event on the NEC interface. And then always present the
+> event on the JVC interface.
+
+It's just too simple to have the user:
+
+a. Try NEC
+b. Try JVC
+c. Make a judgment and stick with the one he perceives works.
+
+
+To have reliable discrimination in the general case between two
+protocols, given the variables out of our control (i.e. the remote
+control implementation) would require some sort of data collection and
+adaptive algorithm to go on inside the kernel.  I don't think you can
+get reliable discrimination in one key press.  Maybe by looking at the
+key press and the repeats together might up the probability of correct
+discrimination (that's one criterion you examined to make a
+determination in your earlier email).
+
+Regards,
+Andy
 
 
