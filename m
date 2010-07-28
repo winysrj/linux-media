@@ -1,38 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:44306 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753947Ab0GNQUI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jul 2010 12:20:08 -0400
-From: Sergio Aguirre <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sergio Aguirre <saaguirre@ti.com>
-Subject: [media-ctl PATCH 1/3] Create initial .gitignore file
-Date: Wed, 14 Jul 2010 11:17:24 -0500
-Message-Id: <1279124246-12187-2-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1279124246-12187-1-git-send-email-saaguirre@ti.com>
-References: <1279124246-12187-1-git-send-email-saaguirre@ti.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58732 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753089Ab0G1RVc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 13:21:32 -0400
+Subject: Re: Can I expect in-kernel decoding to work out of box?
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org
+In-Reply-To: <AANLkTi=Ms0saB5b3+o9qQQYFNT96XStKCkVivB65q_33@mail.gmail.com>
+References: <1280269990.21278.15.camel@maxim-laptop>
+	 <1280273550.32216.4.camel@maxim-laptop>
+	 <AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>
+	 <AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>
+	 <1280298606.6736.15.camel@maxim-laptop>
+	 <AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>
+	 <4C502CE6.80106@redhat.com> <1280327080.9175.58.camel@maxim-laptop>
+	 <AANLkTi=Ww9yvN5RWaXEi+cB2QaDWn34nSVGAvKxbJ2k2@mail.gmail.com>
+	 <4C505313.2010904@redhat.com>
+	 <AANLkTi=Ms0saB5b3+o9qQQYFNT96XStKCkVivB65q_33@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 28 Jul 2010 13:21:01 -0400
+Message-ID: <1280337661.19593.66.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The idea of this file is to ignore build generated files, and also
-the "standard" patches subfolder, used by quilt for example.
+On Wed, 2010-07-28 at 13:04 -0400, Jon Smirl wrote:
+> On Wed, Jul 28, 2010 at 11:56 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > Em 28-07-2010 11:41, Jon Smirl escreveu:
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- .gitignore |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
- create mode 100644 .gitignore
+> 
+> Are there any IR protocols less than 20 (or 17) years old? If they are
+> older than that the patents have expired. I expect IR use to decline
+> in the future, it will be replaced with RF4CE radio remotes.
 
-diff --git a/.gitignore b/.gitignore
-new file mode 100644
-index 0000000..1e56cf5
---- /dev/null
-+++ b/.gitignore
-@@ -0,0 +1,4 @@
-+*.o
-+media-ctl
-+
-+patches/*
--- 
-1.6.3.3
+UEI's XMP protocol for one, IIRC.
+
+UEI are the folks that sell/make "OneForALL" branded remotes.
+
+You can read about their patents' remaining lifetimes in this March 2010
+SEC filing:
+
+http://www.faqs.org/sec-filings/100315/UNIVERSAL-ELECTRONICS-INC_10-K/
+
+1 to 18 years - that includes the ones they just bought from Zilog.
+That is not to say that all those patents cover protocols.
+
+
+Regards,
+Andy
 
