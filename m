@@ -1,50 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:63285 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752143Ab0GVQaF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jul 2010 12:30:05 -0400
-Message-ID: <4C4871F5.2020600@maxwell.research.nokia.com>
-Date: Thu, 22 Jul 2010 19:29:41 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:32458 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751999Ab0G1Sfv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 14:35:51 -0400
+Message-ID: <4C50788B.2000204@redhat.com>
+Date: Wed, 28 Jul 2010 15:35:55 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links enumeration
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-7-git-send-email-laurent.pinchart@ideasonboard.com> <4C485F49.2000703@maxwell.research.nokia.com> <201007221720.04555.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201007221720.04555.laurent.pinchart@ideasonboard.com>
+To: Jon Smirl <jonsmirl@gmail.com>
+CC: Andy Walls <awalls@md.metrocast.net>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Jarod Wilson <jarod@wilsonet.com>,
+	linux-input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: Can I expect in-kernel decoding to work out of box?
+References: <1280269990.21278.15.camel@maxim-laptop>	<1280273550.32216.4.camel@maxim-laptop>	<AANLkTi=493LW6ZBURCtyeSYPoX=xfz6n6z77Lw=a2C9D@mail.gmail.com>	<AANLkTimN1t-1a0v3S1zAXqk4MXJepKdsKP=cx9bmo=6g@mail.gmail.com>	<1280298606.6736.15.camel@maxim-laptop>	<AANLkTingNgxFLZcUszp-WDZocH+VK_+QTW8fB2PAR7XS@mail.gmail.com>	<4C502CE6.80106@redhat.com>	<1280327080.9175.58.camel@maxim-laptop>	<AANLkTi=Ww9yvN5RWaXEi+cB2QaDWn34nSVGAvKxbJ2k2@mail.gmail.com>	<4C505313.2010904@redhat.com>	<AANLkTi=Ms0saB5b3+o9qQQYFNT96XStKCkVivB65q_33@mail.gmail.com>	<1280337661.19593.66.camel@morgan.silverblock.net> <AANLkTikHpLHo7Z9XyYHVtnKapvJkHnV=wtqDK9yd6CFX@mail.gmail.com>
+In-Reply-To: <AANLkTikHpLHo7Z9XyYHVtnKapvJkHnV=wtqDK9yd6CFX@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
->> That change causes a lot of clashes in naming since the equivalent
->> kernel structure is there as well. Those could have _k postfix, for
->> example, to differentiate them from user space names. I don't really
->> have a good suggestion how they should be called.
-> 
-> Maybe media_k_* ? I'm not very happy with that name either though.
-
-Sounds better to me.
-
->>> +- struct media_user_pad
->>> +
->>> +__u32		entity		ID of the entity this pad belongs to.
->>> +__8		index		0-based pad index.
+Em 28-07-2010 14:38, Jon Smirl escreveu:
+> On Wed, Jul 28, 2010 at 1:21 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+>> On Wed, 2010-07-28 at 13:04 -0400, Jon Smirl wrote:
+>>> On Wed, Jul 28, 2010 at 11:56 AM, Mauro Carvalho Chehab
+>>> <mchehab@redhat.com> wrote:
+>>>> Em 28-07-2010 11:41, Jon Smirl escreveu:
 >>
->> It's possible that 8 bits is enough (I think Hans commented this
->> already). The compiler will use 4 bytes in any case and I think it's a
->> good practice not to create holes in the structures, especially not to
->> the interface ones.
+>>>
+>>> Are there any IR protocols less than 20 (or 17) years old? If they are
+>>> older than that the patents have expired. I expect IR use to decline
+>>> in the future, it will be replaced with RF4CE radio remotes.
+>>
+>> UEI's XMP protocol for one, IIRC.
 > 
-> The direction could become a 8-bit integer, and a 16-bit attributes/properties 
-> bitfield would be added to fill the hole (it would be used to store pad 
-> properties such as a busy flag). I'd rather make that field 32-bits wide 
-> instead of 16 though.
+> The beauty of LIRC is that you can use any remote for input.  If one
+> remote's protocols are patented, just use another remote.
+> 
+> Only in the case where we have to xmit the protocol is the patent
+> conflict unavoidable. In that case we could resort to sending a raw
+> pulse timing string that comes from user space.
 
-I guess you could put more reserved fields to these small holes.
+Well, software patents are valid only on very few Countries. People that live
+on a software-patent-free Country can keep using those protocols, if they
+can just upload a set of rules for a generic driver. On the other hand,
+a rule-hardcoded codec for a patented protocol cannot be inside Kernel, as
+this would restrict kernel distribution on those non-software-patent-free
+Countries.
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Cheers,
+Mauro.
+
