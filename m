@@ -1,59 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:61884 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750761Ab0GXNov (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Jul 2010 09:44:51 -0400
-Received: by pvc7 with SMTP id 7so3909864pvc.19
-        for <linux-media@vger.kernel.org>; Sat, 24 Jul 2010 06:44:50 -0700 (PDT)
-Subject: Re: how to mmap in  videobuf-dma-sg.c
-From: "Figo.zhang" <figo1802@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <20090521073518.1c0c0a5b@pedra.chehab.org>
-References: <1242881164.3824.2.camel@myhost>
-	 <20090521073518.1c0c0a5b@pedra.chehab.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 24 Jul 2010 21:43:20 +0800
-Message-ID: <1279979000.2666.0.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:54782 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751521Ab0G1RyV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 13:54:21 -0400
+Date: Wed, 28 Jul 2010 13:43:38 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/9] IR: replace spinlock with mutex.
+Message-ID: <20100728174338.GD26480@redhat.com>
+References: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com>
+ <1280330051-27732-4-git-send-email-maximlevitsky@gmail.com>
+ <4C5054B6.5050207@redhat.com>
+ <1280334778.28785.6.camel@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1280334778.28785.6.camel@localhost.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2009-05-21 at 07:35 -0300, Mauro Carvalho Chehab wrote:
-> Em Thu, 21 May 2009 12:46:04 +0800
-> "Figo.zhang" <figo1802@gmail.com> escreveu:
-> 
-> > hi,all,
-> >  I am puzzle that how to mmap ( V4L2_MEMORY_MMAP) in videobuf-dma-sg.c?
+On Wed, Jul 28, 2010 at 07:32:58PM +0300, Maxim Levitsky wrote:
+> On Wed, 2010-07-28 at 13:03 -0300, Mauro Carvalho Chehab wrote:
+> > Em 28-07-2010 12:14, Maxim Levitsky escreveu:
+> > > Some handlers (lirc for example) allocates memory on initialization,
+> > > doing so in atomic context is cumbersome.
+> > > Fixes warning about sleeping function in atomic context.
 > > 
-> > In this file, it alloc the momery using vmalloc_32() , and put this
-> > momery into sglist table,and then use dma_map_sg() to create sg dma at
-> > __videobuf_iolock() function. but in __videobuf_mmap_mapper(), i canot
-> > understand how it do the mmap? 
-> > why it not use the remap_vmalloc_range() to do the mmap?
-> 
-> The answer is simple: remap_vmalloc_range() is newer than videobuf code. This
-> part of the code was written back to kernel 2.4, and nobody cared to update it
-> to use those newer functions, and simplify its code.
-> 
-> If you want, feel free to propose some cleanups on it
-thanks, in __videobuf_mmap_mapper(), it define a videobuf_vm_ops->fault,
-it
-will alloc a new page for mmaping when it  encounter page fault
-(do_page_fault),
-so how the mmap() can mmap the vmalloc memory which had allocted before
-using __videobuf_iolock()/vmalloc_
-32() ?
+> > You should not replace it by a mutex, as the decoding code may happen during
+> > IRQ time on several drivers.
+> I though decoding code is run by a work queue?
 
-Thanks,
-Figo.zhang
+Yeah, it is. (INIT_WORK(&ir->raw->rx_work, ir_raw_event_work); in
+ir_raw_event_register).
 
-> 
-> 
-> 
-> Cheers,
-> Mauro
+> I don't see any atomic codepath here...
 
+I think the ir_raw_event_store variants are the only things that are run
+from an interrupt context, and none of them touch ir_raw_handler_lock.
+That lock is advertised as being for the protection of ir_raw_handler_list
+and ir_raw_client_list, which are primarily manipulated by
+register/unregister functions, and we just lock them when doing actual IR
+decode work (via said work queue) so we don't feed raw IR somewhere that
+we shouldn't. I think Maxim is correct here, we should be okay with
+changing this to a mutex, unless I'm missing something else.
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
