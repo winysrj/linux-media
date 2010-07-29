@@ -1,307 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:15850 "EHLO
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:50479 "EHLO
 	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757606Ab0GTBXf (ORCPT
+	by vger.kernel.org with ESMTP id S1750996Ab0G2BXc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jul 2010 21:23:35 -0400
-Subject: [PATCH 14/17] cx23885: Add preliminary IR Rx support for the
- HVR-1250 and TeVii S470
+	Wed, 28 Jul 2010 21:23:32 -0400
+Subject: Re: saa7164 i2c problem
 From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-Cc: Kenney Phillisjr <kphillisjr@gmail.com>,
-	Jarod Wilson <jarod@redhat.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	"Igor M.Liplianin" <liplianin@me.by>
-In-Reply-To: <cover.1279586511.git.awalls@md.metrocast.net>
-References: <cover.1279586511.git.awalls@md.metrocast.net>
+To: Dong Lin <d.lin@post.harvard.edu>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <20100725162511.M94906@post.harvard.edu>
+References: <20100725162511.M94906@post.harvard.edu>
 Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 19 Jul 2010 21:23:59 -0400
-Message-ID: <1279589039.31145.12.camel@localhost>
+Date: Wed, 28 Jul 2010 21:24:10 -0400
+Message-ID: <1280366650.2392.17.camel@localhost>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add initial IR Rx support using the intergrated IR controller in the
-A/V core of the CX23885 bridge chip.
+Hi Dong,
 
-This initial support is flawed in that I2C transactions should not
-be performed in a hard irq context.  That will be fixed in a
-follow on patch.
+On Sun, 2010-07-25 at 09:38 -0700, Dong Lin wrote:
+> Andy,
 
-The TeVii S470 support is reported to generate perptual interrupts
-that renders a user' system nearly unusable.  The TeVii S470 IR
-will be disabled by default in a follow on patch.
+PLease be advised that I will usually ignore private emails asking for
+tech support, when there is no obvious need for privacy.  Linux
+development works best with many eyes to help shoulder the workload and
+spot the problems.  Thus I respond Cc:-ing the LMML list.
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
----
- drivers/media/video/cx23885/cx23885-cards.c |   52 ++++++++++++++++++++++++--
- drivers/media/video/cx23885/cx23885-core.c  |   22 +++++++++--
- drivers/media/video/cx23885/cx23885-input.c |   46 ++++++++++++++++++++++-
- drivers/media/video/cx23885/cx23885-reg.h   |    1 +
- 4 files changed, 111 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-index 96da11f..5c11caf 100644
---- a/drivers/media/video/cx23885/cx23885-cards.c
-+++ b/drivers/media/video/cx23885/cx23885-cards.c
-@@ -922,7 +922,7 @@ void cx23885_gpio_setup(struct cx23885_dev *dev)
- 
- int cx23885_ir_init(struct cx23885_dev *dev)
- {
--	static struct v4l2_subdev_io_pin_config ir_pin_cfg[] = {
-+	static struct v4l2_subdev_io_pin_config ir_rxtx_pin_cfg[] = {
- 		{
- 			.flags	  = V4L2_SUBDEV_IO_PIN_INPUT,
- 			.pin	  = CX23885_PIN_IR_RX_GPIO19,
-@@ -937,12 +937,22 @@ int cx23885_ir_init(struct cx23885_dev *dev)
- 			.strength = CX25840_PIN_DRIVE_MEDIUM,
- 		}
- 	};
--	const size_t ir_pin_cfg_count = ARRAY_SIZE(ir_pin_cfg);
-+	const size_t ir_rxtx_pin_cfg_count = ARRAY_SIZE(ir_rxtx_pin_cfg);
-+
-+	static struct v4l2_subdev_io_pin_config ir_rx_pin_cfg[] = {
-+		{
-+			.flags	  = V4L2_SUBDEV_IO_PIN_INPUT,
-+			.pin	  = CX23885_PIN_IR_RX_GPIO19,
-+			.function = CX23885_PAD_IR_RX,
-+			.value	  = 0,
-+			.strength = CX25840_PIN_DRIVE_MEDIUM,
-+		}
-+	};
-+	const size_t ir_rx_pin_cfg_count = ARRAY_SIZE(ir_rx_pin_cfg);
- 
- 	struct v4l2_subdev_ir_parameters params;
- 	int ret = 0;
- 	switch (dev->board) {
--	case CX23885_BOARD_HAUPPAUGE_HVR1250:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1500:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1500Q:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1800:
-@@ -961,7 +971,7 @@ int cx23885_ir_init(struct cx23885_dev *dev)
- 			break;
- 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_888_IR);
- 		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
--				 ir_pin_cfg_count, ir_pin_cfg);
-+				 ir_rxtx_pin_cfg_count, ir_rxtx_pin_cfg);
- 		dev->pci_irqmask |= PCI_MSK_IR;
- 		/*
- 		 * For these boards we need to invert the Tx output via the
-@@ -975,6 +985,26 @@ int cx23885_ir_init(struct cx23885_dev *dev)
- 		params.shutdown = true;
- 		v4l2_subdev_call(dev->sd_ir, ir, tx_s_parameters, &params);
- 		break;
-+	case CX23885_BOARD_TEVII_S470:
-+		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
-+		if (dev->sd_ir == NULL) {
-+			ret = -ENODEV;
-+			break;
-+		}
-+		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
-+				 ir_rx_pin_cfg_count, ir_rx_pin_cfg);
-+		dev->pci_irqmask |= PCI_MSK_AV_CORE;
-+		break;
-+	case CX23885_BOARD_HAUPPAUGE_HVR1250:
-+		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
-+		if (dev->sd_ir == NULL) {
-+			ret = -ENODEV;
-+			break;
-+		}
-+		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
-+				 ir_rxtx_pin_cfg_count, ir_rxtx_pin_cfg);
-+		dev->pci_irqmask |= PCI_MSK_AV_CORE;
-+		break;
- 	case CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP:
- 		request_module("ir-kbd-i2c");
- 		break;
-@@ -993,6 +1023,13 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
- 		cx23888_ir_remove(dev);
- 		dev->sd_ir = NULL;
- 		break;
-+	case CX23885_BOARD_TEVII_S470:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1250:
-+		dev->pci_irqmask &= ~PCI_MSK_AV_CORE;
-+		cx_clear(PCI_INT_MSK, PCI_MSK_AV_CORE);
-+		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
-+		dev->sd_ir = NULL;
-+		break;
- 	}
- }
- 
-@@ -1004,6 +1041,11 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
- 		if (dev->sd_ir && (dev->pci_irqmask & PCI_MSK_IR))
- 			cx_set(PCI_INT_MSK, PCI_MSK_IR);
- 		break;
-+	case CX23885_BOARD_TEVII_S470:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1250:
-+		if (dev->sd_ir && (dev->pci_irqmask & PCI_MSK_AV_CORE))
-+			cx_set(PCI_INT_MSK, PCI_MSK_AV_CORE);
-+		break;
- 	}
- }
- 
-@@ -1149,6 +1191,8 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_MAGICPRO_PROHDTVE2:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
- 	case CX23885_BOARD_LEADTEK_WINFAST_PXTV1200:
-+	case CX23885_BOARD_TEVII_S470:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1250:
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
- 				&dev->i2c_bus[2].i2c_adap,
- 				"cx25840", "cx25840", 0x88 >> 1, NULL);
-diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
-index ec8baf3..f912be2 100644
---- a/drivers/media/video/cx23885/cx23885-core.c
-+++ b/drivers/media/video/cx23885/cx23885-core.c
-@@ -1650,7 +1650,7 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
- 	u32 ts1_status, ts1_mask;
- 	u32 ts2_status, ts2_mask;
- 	int vida_count = 0, ts1_count = 0, ts2_count = 0, handled = 0;
--	bool ir_handled = false;
-+	bool subdev_handled;
- 
- 	pci_status = cx_read(PCI_INT_STAT);
- 	pci_mask = cx_read(PCI_INT_MSK);
-@@ -1681,7 +1681,7 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
- 			  PCI_MSK_VID_C   | PCI_MSK_VID_B   | PCI_MSK_VID_A   |
- 			  PCI_MSK_AUD_INT | PCI_MSK_AUD_EXT |
- 			  PCI_MSK_GPIO0   | PCI_MSK_GPIO1   |
--			  PCI_MSK_IR)) {
-+			  PCI_MSK_AV_CORE | PCI_MSK_IR)) {
- 
- 		if (pci_status & PCI_MSK_RISC_RD)
- 			dprintk(7, " (PCI_MSK_RISC_RD   0x%08x)\n",
-@@ -1731,6 +1731,10 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
- 			dprintk(7, " (PCI_MSK_GPIO1     0x%08x)\n",
- 				PCI_MSK_GPIO1);
- 
-+		if (pci_status & PCI_MSK_AV_CORE)
-+			dprintk(7, " (PCI_MSK_AV_CORE   0x%08x)\n",
-+				PCI_MSK_AV_CORE);
-+
- 		if (pci_status & PCI_MSK_IR)
- 			dprintk(7, " (PCI_MSK_IR        0x%08x)\n",
- 				PCI_MSK_IR);
-@@ -1765,9 +1769,19 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
- 		handled += cx23885_video_irq(dev, vida_status);
- 
- 	if (pci_status & PCI_MSK_IR) {
-+		subdev_handled = false;
- 		v4l2_subdev_call(dev->sd_ir, core, interrupt_service_routine,
--				 pci_status, &ir_handled);
--		if (ir_handled)
-+				 pci_status, &subdev_handled);
-+		if (subdev_handled)
-+			handled++;
-+	}
-+
-+	if (pci_status & PCI_MSK_AV_CORE) {
-+		subdev_handled = false;
-+		v4l2_subdev_call(dev->sd_cx25840,
-+				 core, interrupt_service_routine,
-+				 pci_status, &subdev_handled);
-+		if (subdev_handled)
- 			handled++;
- 	}
- 
-diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
-index 496d751..3f924e2 100644
---- a/drivers/media/video/cx23885/cx23885-input.c
-+++ b/drivers/media/video/cx23885/cx23885-input.c
-@@ -99,8 +99,10 @@ void cx23885_input_rx_work_handler(struct cx23885_dev *dev, u32 events)
- 	switch (dev->board) {
- 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
-+	case CX23885_BOARD_TEVII_S470:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1250:
- 		/*
--		 * The only board we handle right now.  However other boards
-+		 * The only boards we handle right now.  However other boards
- 		 * using the CX2388x integrated IR controller should be similar
- 		 */
- 		break;
-@@ -148,6 +150,7 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
- 	switch (dev->board) {
- 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
-+	case CX23885_BOARD_HAUPPAUGE_HVR1250:
- 		/*
- 		 * The IR controller on this board only returns pulse widths.
- 		 * Any other mode setting will fail to set up the device.
-@@ -172,6 +175,37 @@ static int cx23885_input_ir_start(struct cx23885_dev *dev)
- 		 */
- 		params.invert_level = true;
- 		break;
-+	case CX23885_BOARD_TEVII_S470:
-+		/*
-+		 * The IR controller on this board only returns pulse widths.
-+		 * Any other mode setting will fail to set up the device.
-+		 */
-+		params.mode = V4L2_SUBDEV_IR_MODE_PULSE_WIDTH;
-+		params.enable = true;
-+		params.interrupt_enable = true;
-+		params.shutdown = false;
-+
-+		/* Setup for a standard NEC protocol */
-+		params.carrier_freq = 37917; /* Hz, 455 kHz/12 for NEC */
-+		params.carrier_range_lower = 33000; /* Hz */
-+		params.carrier_range_upper = 43000; /* Hz */
-+		params.duty_cycle = 33; /* percent, 33 percent for NEC */
-+
-+		/*
-+		 * NEC max pulse width: (64/3)/(455 kHz/12) * 16 nec_units
-+		 * (64/3)/(455 kHz/12) * 16 nec_units * 1.375 = 12378022 ns
-+		 */
-+		params.max_pulse_width = 12378022; /* ns */
-+
-+		/*
-+		 * NEC noise filter min width: (64/3)/(455 kHz/12) * 1 nec_unit
-+		 * (64/3)/(455 kHz/12) * 1 nec_units * 0.625 = 351648 ns
-+		 */
-+		params.noise_filter_min_width = 351648; /* ns */
-+
-+		params.modulation = false;
-+		params.invert_level = true;
-+		break;
- 	}
- 	v4l2_subdev_call(dev->sd_ir, ir, rx_s_parameters, &params);
- 	return 0;
-@@ -244,12 +278,20 @@ int cx23885_input_init(struct cx23885_dev *dev)
- 	switch (dev->board) {
- 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
--		/* Integrated CX23888 IR controller */
-+	case CX23885_BOARD_HAUPPAUGE_HVR1250:
-+		/* Integrated CX2388[58] IR controller */
- 		driver_type = RC_DRIVER_IR_RAW;
- 		allowed_protos = IR_TYPE_ALL;
- 		/* The grey Hauppauge RC-5 remote */
- 		rc_map = RC_MAP_RC5_HAUPPAUGE_NEW;
- 		break;
-+	case CX23885_BOARD_TEVII_S470:
-+		/* Integrated CX23885 IR controller */
-+		driver_type = RC_DRIVER_IR_RAW;
-+		allowed_protos = IR_TYPE_ALL;
-+		/* A guess at the remote */
-+		rc_map = RC_MAP_TEVII_NEC;
-+		break;
- 	default:
- 		return -ENODEV;
- 	}
-diff --git a/drivers/media/video/cx23885/cx23885-reg.h b/drivers/media/video/cx23885/cx23885-reg.h
-index c0bc9a0..a28772d 100644
---- a/drivers/media/video/cx23885/cx23885-reg.h
-+++ b/drivers/media/video/cx23885/cx23885-reg.h
-@@ -213,6 +213,7 @@ Channel manager Data Structure entry = 20 DWORD
- #define DEV_CNTRL2	0x00040000
- 
- #define PCI_MSK_IR        (1 << 28)
-+#define PCI_MSK_AV_CORE   (1 << 27)
- #define PCI_MSK_GPIO1     (1 << 24)
- #define PCI_MSK_GPIO0     (1 << 23)
- #define PCI_MSK_APB_DMA   (1 << 12)
--- 
-1.7.1.1
+> I am having trouble using an hvr-2250 card (0070:8851). It seems that there
+> was some kind of i2c error triggered by the 7164 driver.
 
+Well, I'm not quite the right person to ask about Philips chips.  I
+don't have access to datasheets and programming manuals for them.
+
+
+>  The strangest thing
+> is that it worked for the very first time when the card was physically
+> inserted into the machine. But Starting from the second boot, it no longer
+> works. I wonder if you have looked into this problem.
+
+It looks like a power management problem or chip reset problem.  See
+below.
+
+
+> Steven Toth mentioned on one mailing list that it might be related to AMD
+> systems only. But I cannot find any specifics.
+
+> Thanks,
+> 
+> Dong Lin
+> 
+> 
+> ---------------------
+> 
+> [   20.406838] saa7164 driver loaded
+> [   20.407370] ACPI: PCI Interrupt Link [APC5] enabled at IRQ 16
+> [   20.407375] saa7164 0000:03:00.0: PCI INT A -> Link[APC5] -> GSI 16 (level,
+> low) -> IRQ 16
+> [   20.407541] CORE saa7164[0]: subsystem: 0070:8851, board: Hauppauge
+> WinTV-HVR2250 [card=7,autodetected]
+> [   20.407547] saa7164[0]/0: found at 0000:03:00.0, rev: 129, irq: 16,
+> latency: 0, mmio: 0xfd000000
+> [   20.407552] saa7164 0000:03:00.0: setting latency timer to 64
+> [   20.407556] IRQ 16/saa7164[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+> [   20.564011] saa7164_downloadfirmware() no first image
+> [   20.564264] saa7164_downloadfirmware() Waiting for firmware upload
+> (v4l-saa7164-1.0.3.fw)
+> [   20.564269] saa7164 0000:03:00.0: firmware: requesting v4l-saa7164-1.0.3.fw
+> [   20.684414] saa7164_downloadfirmware() firmware read 3978608 bytes.
+> [   20.684418] saa7164_downloadfirmware() firmware loaded.
+> [   20.684419] Firmware file header part 1:
+> [   20.684422]  .FirmwareSize = 0x0
+> [   20.684423]  .BSLSize = 0x0
+> [   20.684424]  .Reserved = 0x3cb57
+> [   20.684426]  .Version = 0x3
+> [   20.684427] saa7164_downloadfirmware() SecBootLoader.FileSize = 3978608
+> [   20.684433] saa7164_downloadfirmware() FirmwareSize = 0x1fd6
+> [   20.684434] saa7164_downloadfirmware() BSLSize = 0x0
+> [   20.684436] saa7164_downloadfirmware() Reserved = 0x0
+> [   20.684438] saa7164_downloadfirmware() Version = 0x51cc1
+> [   20.699720] ACPI: PCI Interrupt Link [AAZA] enabled at IRQ 22
+> [   20.699726] HDA Intel 0000:00:05.0: PCI INT B -> Link[AAZA] -> GSI 22
+> (level, low) -> IRQ 22
+> [   20.699729] hda_intel: Disable MSI for Nvidia chipset
+> [   20.699761] HDA Intel 0000:00:05.0: setting latency timer to 64
+> [   21.296090] input: HDA Digital PCBeep as
+> /devices/pci0000:00/0000:00:05.0/input/input7
+> [   24.922396] CPU0 attaching NULL sched-domain.
+> [   24.922403] CPU1 attaching NULL sched-domain.
+> [   24.944083] CPU0 attaching sched-domain:
+> [   24.944088]  domain 0: span 0-1 level MC
+> [   24.944091]   groups: 0 1
+> [   24.944097] CPU1 attaching sched-domain:
+> [   24.944099]  domain 0: span 0-1 level MC
+> [   24.944101]   groups: 1 0
+> [   27.276020] saa7164_downloadimage() Image downloaded, booting...
+> [   27.380013] saa7164_downloadimage() Image booted successfully.
+> [   27.380031] starting firmware download(2)
+> [   29.504018] saa7164_downloadimage() Image downloaded, booting...
+> [   30.720519] eth1: no IPv6 routers present
+> [   31.168047] saa7164_downloadimage() Image booted successfully.
+> [   31.168072] firmware download complete.
+> [   31.204870] tveeprom 5-0000: Hauppauge model 88061, rev C4F2, serial# 6567048
+> [   31.204874] tveeprom 5-0000: MAC address is 00-0D-FE-64-34-88
+> [   31.204877] tveeprom 5-0000: tuner model is NXP 18271C2_716x (idx 152, type 4)
+> [   31.204880] tveeprom 5-0000: TV standards NTSC(M) ATSC/DVB Digital (eeprom
+> 0x88)
+> [   31.204883] tveeprom 5-0000: audio processor is SAA7164 (idx 43)
+> [   31.204885] tveeprom 5-0000: decoder processor is SAA7164 (idx 40)
+> [   31.204887] tveeprom 5-0000: has radio, has IR receiver, has no IR transmitter
+> [   31.204889] saa7164[0]: Hauppauge eeprom: model=88061
+> [   31.708552] tda18271 6-0060: creating new instance
+> [   31.712620] TDA18271HD/C2 detected @ 6-0060
+> [   31.964810] DVB: registering new adapter (saa7164)
+> [   31.964818] DVB: registering adapter 0 frontend 0 (Samsung S5H1411 QAM/8VSB
+> Frontend)...
+> [   32.248340] tda18271 7-0060: creating new instance
+> [   32.252388] TDA18271HD/C2 detected @ 7-0060
+> [   32.500491] tda18271: performing RF tracking filter calibration
+> [   35.254384] tda18271: RF tracking filter calibration complete
+> [   35.254732] DVB: registering new adapter (saa7164)
+> [   35.254738] DVB: registering adapter 1 frontend 0 (Samsung S5H1411 QAM/8VSB
+> Frontend)...
+
+What did you try in the 30 minutes and 45 seconds between driver load
+and the error?
+
+> [ 1879.428026] Event timed out
+> [ 1879.428033] saa7164_api_i2c_write() error, ret(1) = 0x32
+> [ 1879.428037] s5h1411_writereg: writereg error 0x19 0xf4 0x0000, ret == -5)
+                                                  ^^^^^^^^^^^^^^^^
+
+This is the s5h1411 driver trying to take the digital demodulator out of
+power down by calling s5h1411_set_powerstate(fe, 0).  The I2C subsystem
+returned -EIO (-5) which means the demodulator chip didn't respond.
+
+It could be an AMD PCIe chipset problem, but I doubt it.   PCIe bus
+errors aren't as common as PCI bus errors in my limited experience with
+PCIe.
+
+What seems to be the case is the demod chip went dumb (or some other
+slave on the I2C bus did), and a simple I2C command isn't going to bring
+it back.   If there's a GPIO that can be toggled to reset the demod,
+that's what one would want to use in this case.  You can change the
+s5h1411_sleep() function into a no-op and see if that works around your
+problem.
+
+
+Regards,
+Andy
 
