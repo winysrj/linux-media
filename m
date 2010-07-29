@@ -1,67 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28327 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751134Ab0G1R7u (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 13:59:50 -0400
-Message-ID: <4C50701B.4030807@redhat.com>
-Date: Wed, 28 Jul 2010 14:59:55 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:43801 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752013Ab0G2Ci3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Jul 2010 22:38:29 -0400
+Received: by gwb20 with SMTP id 20so25246gwb.19
+        for <linux-media@vger.kernel.org>; Wed, 28 Jul 2010 19:38:27 -0700 (PDT)
 MIME-Version: 1.0
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-CC: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/9] IR: minor fixes:
-References: <1280330051-27732-1-git-send-email-maximlevitsky@gmail.com>	 <1280330051-27732-3-git-send-email-maximlevitsky@gmail.com>	 <4C505451.8030809@redhat.com> <1280335110.28785.12.camel@localhost.localdomain>
-In-Reply-To: <1280335110.28785.12.camel@localhost.localdomain>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20100728022400.GA5398@redhat.com>
+References: <20100728022400.GA5398@redhat.com>
+Date: Wed, 28 Jul 2010 22:38:27 -0400
+Message-ID: <AANLkTinthvW1=UK09fOcgP7adNaT0oNzMSQz5Mp3GgFT@mail.gmail.com>
+Subject: Re: [PATCH] IR/mceusb: remove bad ir_input_dev use
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 28-07-2010 13:38, Maxim Levitsky escreveu:
-> On Wed, 2010-07-28 at 13:01 -0300, Mauro Carvalho Chehab wrote:
->> Em 28-07-2010 12:14, Maxim Levitsky escreveu:
->>> * lirc: Don't propagate reset event to userspace
->>> * lirc: Remove strange logic from lirc that would make first sample always be pulse
->>> * Make TO_US macro actualy print what it should.
->>>
->>> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
->>> ---
->>>  drivers/media/IR/ir-core-priv.h  |    3 +--
->>>  drivers/media/IR/ir-lirc-codec.c |   14 ++++++++------
->>>  drivers/media/IR/ir-raw-event.c  |    3 +++
->>>  3 files changed, 12 insertions(+), 8 deletions(-)
->>>
->>> diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
->>> index babd520..8ce80e4 100644
->>> --- a/drivers/media/IR/ir-core-priv.h
->>> +++ b/drivers/media/IR/ir-core-priv.h
->>> @@ -76,7 +76,6 @@ struct ir_raw_event_ctrl {
->>>  	struct lirc_codec {
->>>  		struct ir_input_dev *ir_dev;
->>>  		struct lirc_driver *drv;
->>> -		int lircdata;
->>>  	} lirc;
->>>  };
->>>  
->>> @@ -104,7 +103,7 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
->>>  		ev->duration -= duration;
->>>  }
->>>  
->>> -#define TO_US(duration)			(((duration) + 500) / 1000)
->>> +#define TO_US(duration)			((duration) / 1000)
->>
->> It is better to keep rounding the duration to its closest value.
-> 
-> But that breaks if duration is already at maximum. At that case,
-> you see usual signed int wrap from positive to negative, and abnormally
-> large space...
-> 
-> I didn't notice though that you do rounding here.
-> I replace that with something better.
+On Tue, Jul 27, 2010 at 10:24 PM, Jarod Wilson <jarod@redhat.com> wrote:
+> The ir_input_dev gets filled in by __ir_input_register, the one
+> allocated in mceusb_init_input_dev was being overwritten by the correct
+> one shortly after it was initialized (ultimately resulting in a memory
+> leak). This bug was inherited from imon.c, and was pointed out to me by
+> Maxim Levitsky.
 
-There's a function for rounding at kernel. The better is to use it, as it should already
-solve the signal wrap.
+D'oh, there's a minor errorlet in this patch...
 
-Cheers,
-Mauro
+
+> CC: Maxim Levitsky <maximlevitsky@gmail.com>
+> Signed-off-by: Jarod Wilson <jarod@redhat.com>
+> ---
+>  drivers/media/IR/mceusb.c |   15 +--------------
+>  1 files changed, 1 insertions(+), 14 deletions(-)
+>
+> diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
+> index 78bf7f7..9a7da32 100644
+> --- a/drivers/media/IR/mceusb.c
+> +++ b/drivers/media/IR/mceusb.c
+> @@ -228,7 +228,6 @@ static struct usb_device_id std_tx_mask_list[] = {
+>  /* data structure for each usb transceiver */
+>  struct mceusb_dev {
+>        /* ir-core bits */
+> -       struct ir_input_dev *irdev;
+>        struct ir_dev_props *props;
+>        struct ir_raw_event rawir;
+>
+> @@ -739,7 +738,7 @@ static void mceusb_dev_recv(struct urb *urb, struct pt_regs *regs)
+>
+>        if (ir->send_flags == RECV_FLAG_IN_PROGRESS) {
+>                ir->send_flags = SEND_FLAG_COMPLETE;
+> -               dev_dbg(&ir->irdev->dev, "setup answer received %d bytes\n",
+> +               dev_dbg(&ir->dev, "setup answer received %d bytes\n",
+
+This should be dev_dbg(ir->dev, ... (i.e., without the ampersand).
+Mauro, shall I resend this, or can you fix that at commit time?
+
+-- 
+Jarod Wilson
+jarod@wilsonet.com
