@@ -1,123 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2428 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171Ab0GETet (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 15:34:49 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o65JYl7H002121
-	for <linux-media@vger.kernel.org>; Mon, 5 Jul 2010 21:34:48 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 5 Jul 2010 21:34:47 +0200 (CEST)
-Message-Id: <201007051934.o65JYl7H002121@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from perceval.irobotique.be ([92.243.18.41]:36475 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757898Ab0G2QHK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jul 2010 12:07:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [SAMPLE v3 01/12] v4l: Move the media/v4l2-mediabus.h header to include/linux
+Date: Thu, 29 Jul 2010 18:06:45 +0200
+Message-Id: <1280419616-7658-13-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+The header defines the v4l2_mbus_framefmt structure which will be used
+by the V4L2 subdevs userspace API.
 
-Results of the daily build of v4l-dvb:
+Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
+sizes can differ between different ABIs on the same architectures.
 
-date:        Mon Jul  5 19:00:26 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/linux/v4l2-mediabus.h |   64 +++++++++++++++++++++++++++++++++++++++++
+ include/media/soc_mediabus.h  |    3 +-
+ include/media/v4l2-mediabus.h |   48 +------------------------------
+ 3 files changed, 66 insertions(+), 49 deletions(-)
+ create mode 100644 include/linux/v4l2-mediabus.h
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+new file mode 100644
+index 0000000..17219c3
+--- /dev/null
++++ b/include/linux/v4l2-mediabus.h
+@@ -0,0 +1,64 @@
++/*
++ * Media Bus API header
++ *
++ * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef __LINUX_V4L2_MEDIABUS_H
++#define __LINUX_V4L2_MEDIABUS_H
++
++#include <linux/videodev2.h>
++
++/*
++ * These pixel codes uniquely identify data formats on the media bus. Mostly
++ * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
++ * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
++ * data format is fixed. Additionally, "2X8" means that one pixel is transferred
++ * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
++ * transferred over the bus: "LE" means that the least significant bits are
++ * transferred first, "BE" means that the most significant bits are transferred
++ * first, and "PADHI" and "PADLO" define which bits - low or high, in the
++ * incomplete high byte, are filled with padding bits.
++ */
++enum v4l2_mbus_pixelcode {
++	V4L2_MBUS_FMT_FIXED = 1,
++	V4L2_MBUS_FMT_YUYV8_2X8_LE,
++	V4L2_MBUS_FMT_YVYU8_2X8_LE,
++	V4L2_MBUS_FMT_YUYV8_2X8_BE,
++	V4L2_MBUS_FMT_YVYU8_2X8_BE,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_RGB565_2X8_LE,
++	V4L2_MBUS_FMT_RGB565_2X8_BE,
++	V4L2_MBUS_FMT_SBGGR8_1X8,
++	V4L2_MBUS_FMT_SBGGR10_1X10,
++	V4L2_MBUS_FMT_GREY8_1X8,
++	V4L2_MBUS_FMT_Y10_1X10,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
++	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
++	V4L2_MBUS_FMT_SGRBG8_1X8,
++};
++
++/**
++ * struct v4l2_mbus_framefmt - frame format on the media bus
++ * @width:	frame width
++ * @height:	frame height
++ * @code:	data format code
++ * @field:	used interlacing type
++ * @colorspace:	colorspace of the data
++ */
++struct v4l2_mbus_framefmt {
++	__u32				width;
++	__u32				height;
++	__u32				code;
++	enum v4l2_field			field;
++	enum v4l2_colorspace		colorspace;
++};
++
++#endif
+diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
+index 037cd7b..6243147 100644
+--- a/include/media/soc_mediabus.h
++++ b/include/media/soc_mediabus.h
+@@ -12,8 +12,7 @@
+ #define SOC_MEDIABUS_H
+ 
+ #include <linux/videodev2.h>
+-
+-#include <media/v4l2-mediabus.h>
++#include <linux/v4l2-mediabus.h>
+ 
+ /**
+  * enum soc_mbus_packing - data packing types on the media-bus
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 865cda7..971c7fa 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -11,53 +11,7 @@
+ #ifndef V4L2_MEDIABUS_H
+ #define V4L2_MEDIABUS_H
+ 
+-/*
+- * These pixel codes uniquely identify data formats on the media bus. Mostly
+- * they correspond to similarly named V4L2_PIX_FMT_* formats, format 0 is
+- * reserved, V4L2_MBUS_FMT_FIXED shall be used by host-client pairs, where the
+- * data format is fixed. Additionally, "2X8" means that one pixel is transferred
+- * in two 8-bit samples, "BE" or "LE" specify in which order those samples are
+- * transferred over the bus: "LE" means that the least significant bits are
+- * transferred first, "BE" means that the most significant bits are transferred
+- * first, and "PADHI" and "PADLO" define which bits - low or high, in the
+- * incomplete high byte, are filled with padding bits.
+- */
+-enum v4l2_mbus_pixelcode {
+-	V4L2_MBUS_FMT_FIXED = 1,
+-	V4L2_MBUS_FMT_YUYV8_2X8_LE,
+-	V4L2_MBUS_FMT_YVYU8_2X8_LE,
+-	V4L2_MBUS_FMT_YUYV8_2X8_BE,
+-	V4L2_MBUS_FMT_YVYU8_2X8_BE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_RGB565_2X8_LE,
+-	V4L2_MBUS_FMT_RGB565_2X8_BE,
+-	V4L2_MBUS_FMT_SBGGR8_1X8,
+-	V4L2_MBUS_FMT_SBGGR10_1X10,
+-	V4L2_MBUS_FMT_GREY8_1X8,
+-	V4L2_MBUS_FMT_Y10_1X10,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+-	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+-	V4L2_MBUS_FMT_SGRBG8_1X8,
+-};
+-
+-/**
+- * struct v4l2_mbus_framefmt - frame format on the media bus
+- * @width:	frame width
+- * @height:	frame height
+- * @code:	data format code
+- * @field:	used interlacing type
+- * @colorspace:	colorspace of the data
+- */
+-struct v4l2_mbus_framefmt {
+-	__u32				width;
+-	__u32				height;
+-	enum v4l2_mbus_pixelcode	code;
+-	enum v4l2_field			field;
+-	enum v4l2_colorspace		colorspace;
+-};
++#include <linux/v4l2-mediabus.h>
+ 
+ static inline void v4l2_fill_pix_format(struct v4l2_pix_format *pix_fmt,
+ 				const struct v4l2_mbus_framefmt *mbus_fmt)
+-- 
+1.7.1
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
