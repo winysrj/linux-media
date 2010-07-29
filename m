@@ -1,85 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56437 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751393Ab0GaNX3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 09:23:29 -0400
-Message-ID: <4C5423E1.30805@redhat.com>
-Date: Sat, 31 Jul 2010 10:23:45 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Subject: Re: Handling of large keycodes
-References: <20100731091936.GA22253@core.coreip.homeip.net>
-In-Reply-To: <20100731091936.GA22253@core.coreip.homeip.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from perceval.irobotique.be ([92.243.18.41]:36475 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757943Ab0G2QHG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jul 2010 12:07:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v3 04/10] media: Entity graph traversal
+Date: Thu, 29 Jul 2010 18:06:37 +0200
+Message-Id: <1280419616-7658-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Dmitry,
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-Em 31-07-2010 06:19, Dmitry Torokhov escreveu:
-> Hi Mauro,
-> 
-> I finally got a chance to review the patches adding handling of large
-> scancodes to input core and there are a few things with this approach
-> that I do not like.
+Add media entity graph traversal. The traversal follows active links by
+depth first. Traversing graph backwards is prevented by comparing the next
+possible entity in the graph with the previous one. Multiply connected
+graphs are thus not supported.
 
-Thanks for the review!
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
+---
+ Documentation/media-framework.txt |   40 +++++++++++++
+ drivers/media/media-entity.c      |  115 +++++++++++++++++++++++++++++++++++++
+ include/media/media-entity.h      |   15 +++++
+ 3 files changed, 170 insertions(+), 0 deletions(-)
 
-> First of all I do not think that we should be working with scancode via
-> a pointer as it requires additional compat handling when running 32-bit
-> userspace on 64-bit kernel. We can use a static buffer of sufficient
-> size (lets say 32 bytes) to move scancode around and simply increase its
-> size if we come upon device that uses even bigger scancodes. As long as
-> buffer is at the end we can handle this in a compatible way.
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index 5bd7216..4fe3b32 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -196,3 +196,43 @@ Links have flags that describe the link capabilities and state.
+ 	MEDIA_LINK_FLAG_ACTIVE must also be set since an immutable link is
+ 	always active.
+ 
++
++Graph traversal
++---------------
++
++The media framework provides APIs to iterate over entities in a graph.
++
++To iterate over all entities belonging to a media device, drivers can use the
++media_device_for_each_entity macro, defined in include/media/media-device.h.
++
++	struct media_entity *entity;
++
++	media_device_for_each_entity(entity, mdev) {
++		/* entity will point to each entity in turn */
++		...
++	}
++
++Drivers might also need to iterate over all entities in a graph that can be
++reached only through active links starting at a given entity. The media
++framework provides a depth-first graph traversal API for that purpose.
++
++Note that graphs with cycles (whether directed or undirected) are *NOT*
++supported by the graph traversal API.
++
++Drivers initiate a graph traversal by calling
++
++	media_entity_graph_walk_start(struct media_entity_graph *graph,
++				      struct media_entity *entity);
++
++The graph structure, provided by the caller, is initialized to start graph
++traversal at the given entity.
++
++Drivers can then retrieve the next entity by calling
++
++	media_entity_graph_walk_next(struct media_entity_graph *graph);
++
++When the graph traversal is complete the function will return NULL.
++
++Graph traversal can be interrupted at any moment. No cleanup function call is
++required and the graph structure can be freed normally.
++
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index a2f9ad9..443c5c9 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -81,6 +81,121 @@ media_entity_cleanup(struct media_entity *entity)
+ }
+ EXPORT_SYMBOL(media_entity_cleanup);
+ 
++/* -----------------------------------------------------------------------------
++ * Graph traversal
++ */
++
++static struct media_entity *
++media_entity_other(struct media_entity *entity, struct media_link *link)
++{
++	if (link->source->entity == entity)
++		return link->sink->entity;
++	else
++		return link->source->entity;
++}
++
++/* push an entity to traversal stack */
++static void stack_push(struct media_entity_graph *graph,
++		       struct media_entity *entity)
++{
++	if (graph->top == MEDIA_ENTITY_ENUM_MAX_DEPTH - 1) {
++		WARN_ON(1);
++		return;
++	}
++	graph->top++;
++	graph->stack[graph->top].link = 0;
++	graph->stack[graph->top].entity = entity;
++}
++
++static struct media_entity *stack_pop(struct media_entity_graph *graph)
++{
++	struct media_entity *entity;
++
++	entity = graph->stack[graph->top].entity;
++	graph->top--;
++
++	return entity;
++}
++
++#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
++#define link_top(en)	((en)->stack[(en)->top].link)
++#define stack_top(en)	((en)->stack[(en)->top].entity)
++
++/**
++ * media_entity_graph_walk_start - Start walking the media graph at a given entity
++ * @graph: Media graph structure that will be used to walk the graph
++ * @entity: Starting entity
++ *
++ * This function initializes the graph traversal structure to walk the entities
++ * graph starting at the given entity. The traversal structure must not be
++ * modified by the caller during graph traversal. When done the structure can
++ * safely be freed.
++ */
++void media_entity_graph_walk_start(struct media_entity_graph *graph,
++				   struct media_entity *entity)
++{
++	graph->top = 0;
++	graph->stack[graph->top].entity = NULL;
++	stack_push(graph, entity);
++}
++EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
++
++/**
++ * media_entity_graph_walk_next - Get the next entity in the graph
++ * @graph: Media graph structure
++ *
++ * Perform a depth-first traversal of the given media entities graph.
++ *
++ * The graph structure must have been previously initialized with a call to
++ * media_entity_graph_walk_start().
++ *
++ * Return the next entity in the graph or NULL if the whole graph have been
++ * traversed.
++ */
++struct media_entity *
++media_entity_graph_walk_next(struct media_entity_graph *graph)
++{
++	if (stack_top(graph) == NULL)
++		return NULL;
++
++	/*
++	 * Depth first search. Push entity to stack and continue from
++	 * top of the stack until no more entities on the level can be
++	 * found.
++	 */
++	while (link_top(graph) < stack_top(graph)->num_links) {
++		struct media_entity *entity = stack_top(graph);
++		struct media_link *link = &entity->links[link_top(graph)];
++		struct media_entity *next;
++
++		/* The link is not active so we do not follow. */
++		if (!(link->flags & MEDIA_LINK_FLAG_ACTIVE)) {
++			link_top(graph)++;
++			continue;
++		}
++
++		/* Get the entity in the other end of the link . */
++		next = media_entity_other(entity, link);
++
++		/* Was it the entity we came here from? */
++		if (next == stack_peek(graph)) {
++			link_top(graph)++;
++			continue;
++		}
++
++		/* Push the new entity to stack and start over. */
++		link_top(graph)++;
++		stack_push(graph, next);
++	}
++
++	return stack_pop(graph);
++}
++EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
++
++/* -----------------------------------------------------------------------------
++ * Links management
++ */
++
+ static struct media_link *media_entity_add_link(struct media_entity *entity)
+ {
+ 	if (entity->num_links >= entity->max_links) {
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 37a25bf..05c37a6 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -76,10 +76,25 @@ struct media_entity {
+ #define media_entity_subtype(entity) \
+ 	((entity)->type & MEDIA_ENTITY_SUBTYPE_MASK)
+ 
++#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
++
++struct media_entity_graph {
++	struct {
++		struct media_entity *entity;
++		int link;
++	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
++	int top;
++};
++
+ int media_entity_init(struct media_entity *entity, u8 num_pads,
+ 		struct media_pad *pads, u8 extra_links);
+ void media_entity_cleanup(struct media_entity *entity);
+ int media_entity_create_link(struct media_entity *source, u8 source_pad,
+ 		struct media_entity *sink, u8 sink_pad, u32 flags);
+ 
++void media_entity_graph_walk_start(struct media_entity_graph *graph,
++		struct media_entity *entity);
++struct media_entity *
++media_entity_graph_walk_next(struct media_entity_graph *graph);
++
+ #endif
+-- 
+1.7.1
 
-Yes, this is the downside of using a pointer. I'm not aware of a Remote
-Controller protocol using more than 256 bits for scancode, so 32 bits
-should be ok.
-
-> The other issue is that interface is notsymmetrical, setting is done by
-> scancode but retrieval is done by index. I think we should be able to
-> use both scancode and index in both operations.
-
-Yes, this also bothered me. I was thinking to do something similar to your
-approach of having a bool to select between them. This change is welcome.
-
-> The usefulnes of reserved data elements in the structure is doubtful,
-> since we do not seem to require them being set to a particular value and
-> so we'll be unable to distinguish betwee legacy and newer users.
-
-David proposed some parameters that we rejected on our discussions. As we
-might need to add something similar, I decided to keep it on my approach,
-since a set of reserved fields wouldn't hurt (and removing it on our discussions
-would be easy), but I'm ok on removing them.
-
-> I also concerned about the code very messy with regard to using old/new
-> style interfaces instea dof converting old ones to use new
-> insfrastructure,
-
-Good cleanup at the code!
-
-> I below is something that addresses these issues and seems to be working
-> for me. It is on top of your patches and it also depends on a few
-> changes in my tree that I have not publushed yet but plan on doing that
-> tomorrow. I am also attaching patches converting sparse keymap and hid
-> to the new style of getkeycode and setkeycode as examples.
-> 
-> Please take a look and let me know if I missed something important.
-
-It seems to work for me. After you add the patches on your git tree, I'll 
-work on porting the RC core to the new approach, and change the ir-keycode
-userspace program to work with, in order to be 100% sure that it will work, 
-but I can't foresee any missing part on it.
-
-Currently, I'm not using my input patches, as I was waiting for your
-review. I just patched the userspace application, in order to test the legacy
-mode.
-
-Cheers,
-Mauro
