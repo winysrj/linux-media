@@ -1,20 +1,21 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx02.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.6])
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
 	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o68JbG58011151
-	for <video4linux-list@redhat.com>; Thu, 8 Jul 2010 15:37:17 -0400
-Received: from gateway11.websitewelcome.com (gateway11.websitewelcome.com
-	[67.18.72.139])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o68Jb7ve016127
-	for <video4linux-list@redhat.com>; Thu, 8 Jul 2010 15:37:08 -0400
+	id o6THkPdB021461
+	for <video4linux-list@redhat.com>; Thu, 29 Jul 2010 13:46:25 -0400
+Received: from gateway01.websitewelcome.com (gateway01.websitewelcome.com
+	[69.56.159.19])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o6THkGpa016594
+	for <video4linux-list@redhat.com>; Thu, 29 Jul 2010 13:46:16 -0400
 From: "Charlie X. Liu" <charlie@sensoray.com>
-To: "'Akhilesh Soni'" <akhilrekha@gmail.com>, <video4linux-list@redhat.com>
-References: <AANLkTim5LXb__zh-N2pumq7nfSDlqnwW8RDrEw47DErd@mail.gmail.com>
-In-Reply-To: <AANLkTim5LXb__zh-N2pumq7nfSDlqnwW8RDrEw47DErd@mail.gmail.com>
-Subject: RE: SUGGESTION FOR A Linux based Card
-Date: Thu, 8 Jul 2010 12:37:08 -0700
-Message-ID: <000501cb1ed4$f45da930$dd18fb90$@com>
+To: "'Gabriel Duarte'" <confusosk8@gmail.com>,
+        "'video4linux-list'" <video4linux-list@redhat.com>
+References: <AANLkTim-92xffBTddcCiizrV3L=bwvfF8Xt2nhvkxop1@mail.gmail.com>
+In-Reply-To: <AANLkTim-92xffBTddcCiizrV3L=bwvfF8Xt2nhvkxop1@mail.gmail.com>
+Subject: RE: Max size format
+Date: Thu, 29 Jul 2010 10:46:19 -0700
+Message-ID: <001b01cb2f45$f445b8d0$dcd12a70$@com>
 MIME-Version: 1.0
 Content-Language: en-us
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
@@ -30,31 +31,47 @@ Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-Sensoray Company has Model 811 (a 4-channel PCI-Express Capture Card:
-http://www.sensoray.com/products/811.htm ) and Model 911 (a 4-channel
-PCI/104-Express Capture Card: http://www.sensoray.com/products/911.htm ).
-Both have 4 Composite/S-Video inputs, plus 4 channel of stereo audio inputs.
-They all work well under Linux.
-
-Charlie X. Liu @ Sensoray Co.
-
+Usually, you should take 720x480 (D1.NTSC) or 720x576 (D1.PAL) or 640x480
+(VGA) size from a TV capture card.
 
 -----Original Message-----
 From: video4linux-list-bounces@redhat.com
-[mailto:video4linux-list-bounces@redhat.com] On Behalf Of Akhilesh Soni
-Sent: Thursday, July 08, 2010 6:14 AM
-To: video4linux-list@redhat.com
-Subject: SUGGESTION FOR A Linux based Card
+[mailto:video4linux-list-bounces@redhat.com] On Behalf Of Gabriel Duarte
+Sent: Thursday, July 29, 2010 9:56 AM
+To: video4linux-list
+Subject: Max size format
 
-Hello,
+Hello all!
+I've built an app to get the max size of my cameras! I got two capture
+devices, and simple webcam, with max size 640x480 and a TV capture card, max
+size 744x480. When I query my webcam, at /dev/video0, it returns the right
+size, but my TV card returns a weird size, like this:
 
-I am looking for a linux based card for 4 composite input with unbalanced
-audio for full D1 resolution. The idea is to capture live stream and encode
-using vlc-ffmpeg for http streaming. It is better to have availability of
-these cards in India.
 
-Thanks,
-Akhilesh
+*gabriel@bourbaki:~/Desktop$ ./camera_size /dev/video0*
+*raw pixfmt: YUYV 640x480*
+*pixfmt: RGB3 640x480*
+*gabriel@bourbaki:~/Desktop$ ./camera_size /dev/video1*
+*raw pixfmt: BGR3 48x32*
+*pixfmt: RGB3 48x32*
+*
+*
+I'll attach my code and if someone find out what is going wrong, I'd be very
+glad!
+
+Thank you all!
+
+
+-- 
+Gabriel Duarte
+Linux User #471185
+Rio de Janeiro - RJ
+http://w3.impa.br/~gabrield
+
+Phones:
+(55) (21) 9463-7760  -> Mobile
+(55) (21) 2464-9302  -> Home
+(55) (21) 2529-5080  -> Work
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
