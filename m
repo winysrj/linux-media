@@ -1,44 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:57746 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753604Ab0G1NlM (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:59543 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753848Ab0G2Pad (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 09:41:12 -0400
-Received: by wyf19 with SMTP id 19so4127361wyf.19
-        for <linux-media@vger.kernel.org>; Wed, 28 Jul 2010 06:41:04 -0700 (PDT)
-Subject: DVBT +AF9015 +MXL5007t
-From: hmd <tambatux@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
+	Thu, 29 Jul 2010 11:30:33 -0400
+Subject: Re: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+In-Reply-To: <20100729035213.GA11543@redhat.com>
+References: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
+	 <20100729035213.GA11543@redhat.com>
 Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 28 Jul 2010 18:10:42 +0430
-Message-ID: <1280324442.6066.5.camel@HDtv>
+Date: Thu, 29 Jul 2010 18:30:28 +0300
+Message-ID: <1280417428.29938.62.camel@maxim-laptop>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI all
-I have a usb dvbt module with af9015 +mx5007t
-both drivers exist in kernel but af9015.c needs to be patched
- 
-lsusb:
-Bus 002 Device 003: ID 15a4:9016 Afatech Technologies, Inc. AF9015 DVB-T
-USB2.0 stick
-  
-dmesg | grep 9015
-[ 3407.599086] dvb_usb_af9015 2-4:1.0: usb_probe_interface
-[ 3407.599095] dvb_usb_af9015 2-4:1.0: usb_probe_interface - got id
-[ 3407.967209] af9015: tuner id:177 not supported, please report!
-[ 3407.967270] dvb_usb_af9015 2-4:1.1: usb_probe_interface
-[ 3407.967277] dvb_usb_af9015 2-4:1.1: usb_probe_interface - got id
-[ 3407.968049] usbcore: registered new interface driver dvb_usb_af9015
+On Wed, 2010-07-28 at 23:52 -0400, Jarod Wilson wrote: 
+> On Thu, Jul 29, 2010 at 02:40:43AM +0300, Maxim Levitsky wrote:
+> > Hi,
+> > This is second version of the patchset.
+> > Hopefully, I didn't forget to address all comments.
+> > 
+> > In addition to comments, I changed helper function that processes samples
+> > so it sends last space as soon as timeout is reached.
+> > This breaks somewhat lirc, because now it gets 2 spaces in row.
+> > However, if it uses timeout reports (which are now fully supported)
+> > it will get such report in middle.
+> > 
+> > Note that I send timeout report with zero value.
+> > I don't think that this value is importaint.
+> 
+> I just patched the entire series into a branch here and tested, no
+> regressions with an mceusb transceiver with in-kernel decode, lirc decode
+> or lirc tx. Only issue I had (which I neglected to mention earlier) was
+> some pedantic issues w/whitespace. Here's the tree I built and tested:
+> 
+> http://git.wilsonet.com/linux-2.6-ir-wip.git/?a=shortlog;h=refs/heads/maxim
+> 
+> 7486d6ae3 addresses all the whitespace/formatting issues I had. Could
+> either merge that into your patches, or I can just send it along as an
+> additional patch after the fact. In either case, for 1-7 v2:
+About whitespace, I usually fix what checkpacth.pl tells me.
+Nothing beyond that :-)
 
-driver adress:
-v4l-dvb/linux/drivers/media/dvb/dvb-usb/af9015.c
-v4l-dvb/linux/drivers/media/common/tuners/mxl5007.c
 
+> 
+> Tested-by: Jarod Wilson <jarod@redhat.com>
+> 
+> I have no ene hardware to actually test with, but it did build. :)
+> 
+> For 1-9 v2:
+> 
+> Acked-by: Jarod Wilson <jarod@redhat.com>
+> 
 
-I dont know how do it
-can any one help?
-thanks
+Best regards,
+Maxim Levitsky
 
