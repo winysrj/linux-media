@@ -1,102 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:43170 "EHLO
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:61790 "EHLO
 	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754974Ab0GMScf (ORCPT
+	with ESMTP id S932069Ab0G2Q0U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jul 2010 14:32:35 -0400
-Received: by bwz1 with SMTP id 1so460745bwz.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Jul 2010 11:32:33 -0700 (PDT)
-Message-ID: <4C3CB13F.1080902@gmail.com>
-Date: Tue, 13 Jul 2010 20:32:31 +0200
-From: Hamza Ferrag <hferraggreat@gmail.com>
-Reply-To: hferraggreat@gmail.com
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: TeVii S470 Tunning Issue (Kernel 2.6.27-21)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Thu, 29 Jul 2010 12:26:20 -0400
+Subject: Re: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, jarod@wilsonet.com,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, mchehab@redhat.com
+In-Reply-To: <1280417934.15757.20.camel@morgan.silverblock.net>
+References: <BTlMsWzZjFB@christoph> <1280414519.29938.53.camel@maxim-laptop>
+	 <1280417934.15757.20.camel@morgan.silverblock.net>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 29 Jul 2010 19:26:15 +0300
+Message-ID: <1280420775.32069.5.camel@maxim-laptop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Thu, 2010-07-29 at 11:38 -0400, Andy Walls wrote: 
+> On Thu, 2010-07-29 at 17:41 +0300, Maxim Levitsky wrote:
+> > On Thu, 2010-07-29 at 09:23 +0200, Christoph Bartelmus wrote: 
+> > > Hi Maxim,
+> > > 
+> > > on 29 Jul 10 at 02:40, Maxim Levitsky wrote:
+> > > [...]
+> > > > In addition to comments, I changed helper function that processes samples
+> > > > so it sends last space as soon as timeout is reached.
+> > > > This breaks somewhat lirc, because now it gets 2 spaces in row.
+> > > > However, if it uses timeout reports (which are now fully supported)
+> > > > it will get such report in middle.
+> > > >
+> > > > Note that I send timeout report with zero value.
+> > > > I don't think that this value is importaint.
+> > > 
+> > > This does not sound good. Of course the value is important to userspace  
+> > > and 2 spaces in a row will break decoding.
+> > > 
+> > > Christoph
+> > 
+> > Could you explain exactly how timeout reports work?
+> > 
+> > Lirc interface isn't set to stone, so how about a reasonable compromise.
+> > After reasonable long period of inactivity (200 ms for example), space
+> > is sent, and then next report starts with a pulse.
+> > So gaps between keypresses will be maximum of 200 ms, and as a bonus I
+> > could rip of the logic that deals with remembering the time?
+> > 
+> > Best regards,
+> > Maxim Levitsky
 
-I am trying to install a 'Tevii S470' card  from TeVii technology as
-described  here http://linuxtv.org/wiki/index.php/TeVii_S470.
+So, timeout report is just another sample, with a mark attached, that
+this is last sample? right?
 
-My configuration is :
+Christoph, right?
 
-- intel x86 platform
-- Kernel 2.6.27-21
-- tevii_ds3000.tar.gz (firmware archive from
-http://tevii.com/tevii_ds3000.tar.gz ),
-- s2-liplianin  mercurial sources ( from
-http://mercurial.intuxication.org/hg/s2-liplianin)last changes at
-05/29/2010,
+In that case, lets do that this way:
 
-All work fine i.e drivers/firmware installation after madprobe a right
-modules.
+As soon as timeout is reached, I just send lirc the timeout report.
+Then next keypress will start with pulse.
 
-# lsmod
-Module                  Size  Used by    Not tainted
-cx23885                82416  0
-tveeprom                9348  1 cx23885
-btcx_risc               1928  1 cx23885
-cx2341x                 7748  1 cx23885
-ir_common              23936  1 cx23885
-videobuf_dma_sg         5060  1 cx23885
-ir_core                 3596  2 cx23885,ir_common
-v4l2_common             8896  2 cx23885,cx2341x
-videodev               25376  2 cx23885,v4l2_common
-videobuf_dvb            2820  1 cx23885
-videobuf_core           8388  3 cx23885,videobuf_dma_sg,videobuf_dvb
-lnbp21                  1024  0
-dvb_core               54832  2 cx23885,videobuf_dvb
-ds3000                  9668  1
+I think this is the best solution.
 
-
-# dmesg
-Linux video capture interface: v2.00
-cx23885 driver version 0.0.2 loaded
-CORE cx23885[0]: subsystem: d470:9022, board: TeVii S470
-[card=15,autodetected]
-cx23885_dvb_register() allocating 1 frontend(s)
-cx23885[0]: cx23885 based dvb card
-DS3000 chip version: 0.192 attached.
-DVB: registering new adapter (cx23885[0])
-DVB: registering adapter 0 frontend 0 (Montage Technology DS3000/TS2020)...
-cx23885_dev_checkrevision() Hardware revision = 0xb0
-cx23885[0]/0: found at 0000:03:00.0, rev: 2, irq: 11, latency: 0, mmio:
-0xdf800000
-cx23885 0000:03:00.0: setting latency timer to 64
-tun: Universal TUN/TAP device driver, 1.6
-
-
-
-A problem appear when tunning card using szap-s2 :
-
-# szap-s2 szap-s2 -c /root/channels.conf -x -M 5 -C 89 -l 9750 -S 1 MyCh
-
-reading channels from file '/root/channels.conf'
-zapping to 1 'MyCh':
-delivery DVB-S2, modulation 8PSK
-sat 0, frequency 8420 MHz V, symbolrate 29400000, coderate 8/9,rolloff 0.35
-vpid 0x0286, apid 0x1fff, sid 0x0000
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-ds3000_firmware_ondemand: Waiting for firmware upload (dvb-fe-ds3000.fw)...
-firmware: requesting dvb-fe-ds3000.fw
-ds3000_firmware_ondemand: Waiting for firmware upload(2)...
-ds3000_firmware_ondemand: No firmware uploaded (timeout or file not found?)
-ds3000_tune: Unable initialise the firmware
-
-Apparently it can't locate a firmware file,  yet :
-
-# ls -l  /lib/firmware/
--rwxr-xr-x    1 root     root         8192 May  3 07:09 dvb-fe-ds3000.fw
-
-
-Any ideas why this happens?
-
-Thanks and best regards,
-
-Hamza Ferrag
+Best regards,
+Maxim Levitsky
 
