@@ -1,120 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41194 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758219Ab0G3LjE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 07:39:04 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+Received: from tichy.grunau.be ([85.131.189.73]:47875 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754186Ab0G2MjB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jul 2010 08:39:01 -0400
+Date: Thu, 29 Jul 2010 14:39:41 +0200
+From: Janne Grunau <j@jannau.net>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Randy Dunlap <randy.dunlap@oracle.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	lirc-list@lists.sourceforge.net, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
 	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 02/13] IR: minor fixes:
-Date: Fri, 30 Jul 2010 14:38:42 +0300
-Message-Id: <1280489933-20865-3-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: linux-next: Tree for July 28 (lirc #2)
+Message-ID: <20100729123941.GL8564@aniel.lan>
+References: <20100728162855.4968e561.sfr@canb.auug.org.au>
+ <20100728102417.be60049a.randy.dunlap@oracle.com>
+ <20100728220454.GK8564@aniel.lan>
+ <4C50AC26.1080100@oracle.com>
+ <AANLkTi=DLHOnzgXmpzNE3PQXp-xSkm8vLdxBBf1mcFuO@mail.gmail.com>
+ <AANLkTimTbZ6Vjqe5rqNVtNwPV=qoo=BOsOwG_6fS1SZU@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTimTbZ6Vjqe5rqNVtNwPV=qoo=BOsOwG_6fS1SZU@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* lirc: Don't propagate reset event to userspace
-* lirc: Remove strange logic from lirc that would make first sample always be pulse
-* Make TO_US macro actualy print what it should.
+On Thu, Jul 29, 2010 at 12:27:01AM -0400, Jarod Wilson wrote:
+> On Wed, Jul 28, 2010 at 6:27 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+> > On Wed, Jul 28, 2010 at 6:16 PM, Randy Dunlap <randy.dunlap@oracle.com> wrote:
+> >> On 07/28/10 15:04, Janne Grunau wrote:
+> >>> On Wed, Jul 28, 2010 at 10:24:17AM -0700, Randy Dunlap wrote:
+> >>>> On Wed, 28 Jul 2010 16:28:55 +1000 Stephen Rothwell wrote:
+> >>>>
+> >>>>> Hi all,
+> >>>>>
+> >>>>> Changes since 20100727:
+> >>>>
+> >>>>
+> >>>> When USB_SUPPORT is not enabled and MEDIA_SUPPORT is not enabled:
+> >>>>
+> >>>
+> >>> following patch should fix it
+> >>>
+> >>> Janne
+> >>
+> >> Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+> >>
+> >> Thanks.
+> >
+> > Acked-by: Jarod Wilson <jarod@redhat.com>
+> >
+> > Indeed, thanks much, Janne!
+> 
+> D'oh, I should have looked a bit closer... What if instead of making
+> all the drivers depend on both LIRC && LIRC_STAGING, LIRC_STAGING just
+> depends on LIRC?
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+I started adding LIRC to each driver by one. Adding LIRC as LIRC_STAGING
+dependency is simpler. See updated patch.
+
+> And there are a few depends lines with duplicate
+> USB's in them and LIRC_IMON should have USB added to it (technically,
+
+D'oh, I've must have stopped reading after LIRC_STAG...
+
+fixed and added additional dependencies
+
+Janne
+
+
+>From 45d384de90e3709a986700db14888eff77bb7e1f Mon Sep 17 00:00:00 2001
+From: Janne Grunau <j@jannau.net>
+Date: Wed, 28 Jul 2010 23:53:35 +0200
+Subject: [PATCH 1/2] V4L/DVB: staging/lirc: fix Kconfig dependencies
+
+Signed-off-by: Janne Grunau <j@jannau.net>
 ---
- drivers/media/IR/ir-core-priv.h  |    4 +---
- drivers/media/IR/ir-lirc-codec.c |   14 ++++++++------
- drivers/media/IR/ir-raw-event.c  |    3 +++
- 3 files changed, 12 insertions(+), 9 deletions(-)
+ drivers/staging/lirc/Kconfig |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index babd520..dc26e2b 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -76,7 +76,6 @@ struct ir_raw_event_ctrl {
- 	struct lirc_codec {
- 		struct ir_input_dev *ir_dev;
- 		struct lirc_driver *drv;
--		int lircdata;
- 	} lirc;
- };
+diff --git a/drivers/staging/lirc/Kconfig b/drivers/staging/lirc/Kconfig
+index 968c2ade..ab30a09 100644
+--- a/drivers/staging/lirc/Kconfig
++++ b/drivers/staging/lirc/Kconfig
+@@ -3,6 +3,7 @@
+ #
+ menuconfig LIRC_STAGING
+ 	bool "Linux Infrared Remote Control IR receiver/transmitter drivers"
++	depends on LIRC
+ 	help
+ 	  Say Y here, and all supported Linux Infrared Remote Control IR and
+ 	  RF receiver and transmitter drivers will be displayed. When paired
+@@ -13,13 +14,13 @@ if LIRC_STAGING
  
-@@ -104,10 +103,9 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
- 		ev->duration -= duration;
- }
+ config LIRC_BT829
+         tristate "BT829 based hardware"
+-	depends on LIRC_STAGING
++	depends on LIRC_STAGING && PCI
+ 	help
+ 	  Driver for the IR interface on BT829-based hardware
  
--#define TO_US(duration)			(((duration) + 500) / 1000)
-+#define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
- #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
- #define IS_RESET(ev)			(ev.duration == 0)
--
- /*
-  * Routines from ir-sysfs.c - Meant to be called only internally inside
-  * ir-core
-diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
-index 3ba482d..8ca01fd 100644
---- a/drivers/media/IR/ir-lirc-codec.c
-+++ b/drivers/media/IR/ir-lirc-codec.c
-@@ -32,6 +32,7 @@
- static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- {
- 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
-+	int sample;
+ config LIRC_ENE0100
+ 	tristate "ENE KB3924/ENE0100 CIR Port Reciever"
+-	depends on LIRC_STAGING
++	depends on LIRC_STAGING && PNP
+ 	help
+ 	  This is a driver for CIR port handled by ENE KB3924 embedded
+ 	  controller found on some notebooks.
+@@ -27,7 +28,7 @@ config LIRC_ENE0100
  
- 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_LIRC))
- 		return 0;
-@@ -39,18 +40,21 @@ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
- 	if (!ir_dev->raw->lirc.drv || !ir_dev->raw->lirc.drv->rbuf)
- 		return -EINVAL;
+ config LIRC_I2C
+ 	tristate "I2C Based IR Receivers"
+-	depends on LIRC_STAGING
++	depends on LIRC_STAGING && I2C
+ 	help
+ 	  Driver for I2C-based IR receivers, such as those commonly
+ 	  found onboard Hauppauge PVR-150/250/350 video capture cards
+@@ -40,7 +41,7 @@ config LIRC_IGORPLUGUSB
  
-+	if (IS_RESET(ev))
-+		return 0;
-+
- 	IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
- 		   TO_US(ev.duration), TO_STR(ev.pulse));
+ config LIRC_IMON
+ 	tristate "Legacy SoundGraph iMON Receiver and Display"
+-	depends on LIRC_STAGING
++	depends on LIRC_STAGING && USB
+ 	help
+ 	  Driver for the original SoundGraph iMON IR Receiver and Display
  
--	ir_dev->raw->lirc.lircdata += ev.duration / 1000;
-+
-+	sample = ev.duration / 1000;
- 	if (ev.pulse)
--		ir_dev->raw->lirc.lircdata |= PULSE_BIT;
-+		sample |= PULSE_BIT;
+@@ -48,7 +49,7 @@ config LIRC_IMON
  
- 	lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
--			  (unsigned char *) &ir_dev->raw->lirc.lircdata);
-+			  (unsigned char *) &sample);
- 	wake_up(&ir_dev->raw->lirc.drv->rbuf->wait_poll);
+ config LIRC_IT87
+ 	tristate "ITE IT87XX CIR Port Receiver"
+-	depends on LIRC_STAGING
++	depends on LIRC_STAGING && PNP
+ 	help
+ 	  Driver for the ITE IT87xx IR Receiver
  
--	ir_dev->raw->lirc.lircdata = 0;
+@@ -60,13 +61,13 @@ config LIRC_ITE8709
  
- 	return 0;
- }
-@@ -224,8 +228,6 @@ static int ir_lirc_register(struct input_dev *input_dev)
+ config LIRC_PARALLEL
+ 	tristate "Homebrew Parallel Port Receiver"
+-	depends on LIRC_STAGING && !SMP
++	depends on LIRC_STAGING && PARPORT && !SMP
+ 	help
+ 	  Driver for Homebrew Parallel Port Receivers
  
- 	ir_dev->raw->lirc.drv = drv;
- 	ir_dev->raw->lirc.ir_dev = ir_dev;
--	ir_dev->raw->lirc.lircdata = PULSE_MASK;
--
- 	return 0;
+ config LIRC_SASEM
+ 	tristate "Sasem USB IR Remote"
+-	depends on LIRC_STAGING
++	depends on LIRC_STAGING && USB
+ 	help
+ 	  Driver for the Sasem OnAir Remocon-V or Dign HV5 HTPC IR/VFD Module
  
- lirc_register_failed:
-diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-index 6f192ef..51f65da 100644
---- a/drivers/media/IR/ir-raw-event.c
-+++ b/drivers/media/IR/ir-raw-event.c
-@@ -66,6 +66,9 @@ int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev)
- 	if (!ir->raw)
- 		return -EINVAL;
+@@ -91,7 +92,7 @@ config LIRC_SIR
  
-+	IR_dprintk(2, "sample: (05%dus %s)\n",
-+		TO_US(ev->duration), TO_STR(ev->pulse));
-+
- 	if (kfifo_in(&ir->raw->kfifo, ev, sizeof(*ev)) != sizeof(*ev))
- 		return -ENOMEM;
+ config LIRC_STREAMZAP
+ 	tristate "Streamzap PC Receiver"
+-	depends on LIRC_STAGING
++	depends on LIRC_STAGING && USB
+ 	help
+ 	  Driver for the Streamzap PC Receiver
  
+@@ -103,7 +104,7 @@ config LIRC_TTUSBIR
+ 
+ config LIRC_ZILOG
+ 	tristate "Zilog/Hauppauge IR Transmitter"
+-	depends on LIRC_STAGING
++	depends on LIRC_STAGING && I2C
+ 	help
+ 	  Driver for the Zilog/Hauppauge IR Transmitter, found on
+ 	  PVR-150/500, HVR-1200/1250/1700/1800, HD-PVR and other cards
 -- 
-1.7.0.4
+1.7.2
 
