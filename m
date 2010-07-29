@@ -1,66 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:33701 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753827Ab0GFKaf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Jul 2010 06:30:35 -0400
-From: Renzo Dani <arons7@gmail.com>
-To: mchehab@infradead.org
-Cc: arons7@gmail.com, rdunlap@xenotime.net, o.endriss@gmx.de,
-	awalls@radix.net, crope@iki.fi, manu@linuxtv.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-doc@vger.kernel.org
-Subject: [PATCH 1/2] Added Technisat Skystar USB HD CI
-Date: Tue,  6 Jul 2010 12:23:18 +0200
-Message-Id: <1278411798-6437-1-git-send-email-arons7@gmail.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:36476 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757955Ab0G2QHK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jul 2010 12:07:10 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [SAMPLE v3 00/12]  V4L2 API additions and OMAP3 ISP driver
+Date: Thu, 29 Jul 2010 18:06:44 +0200
+Message-Id: <1280419616-7658-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Renzo Dani <arons7@gmail.com>
+Here's the OMAP3 ISP driver along with V4L2 API additions/enhancements that
+it depends on, rebased on top of the media controller v3 patches. Once again
+please don't review this set, but use it as sample code for the media
+controller.
 
+Antti Koskipaa (1):
+  v4l: Add crop ioctl to V4L2 subdev API
 
-Signed-off-by: Renzo Dani <arons7@gmail.com>
----
- drivers/media/dvb/dvb-usb/az6027.c |   14 ++++++++++++--
- 1 files changed, 12 insertions(+), 2 deletions(-)
+Laurent Pinchart (8):
+  v4l: Move the media/v4l2-mediabus.h header to include/linux
+  v4l: Add 16 bit YUYV and SGRBG10 media bus format codes
+  v4l-subdev: Add pads operations
+  v4l: v4l2_subdev userspace format API
+  v4l: Add subdev userspace API to enumerate and configure frame
+    interval
+  v4l: subdev: Generic ioctl support
+  omap34xxcam: Register the ISP platform device during omap34xxcam
+    probe
+  OMAP3 ISP driver
 
-diff --git a/drivers/media/dvb/dvb-usb/az6027.c b/drivers/media/dvb/dvb-usb/az6027.c
-index d7290b2..445851a 100644
---- a/drivers/media/dvb/dvb-usb/az6027.c
-+++ b/drivers/media/dvb/dvb-usb/az6027.c
-@@ -1103,13 +1103,23 @@ static struct dvb_usb_device_properties az6027_properties = {
- 	.rc_query         = az6027_rc_query,
- 	.i2c_algo         = &az6027_i2c_algo,
- 
--	.num_device_descs = 1,
-+	.num_device_descs = 3,
- 	.devices = {
- 		{
- 			.name = "AZUREWAVE DVB-S/S2 USB2.0 (AZ6027)",
- 			.cold_ids = { &az6027_usb_table[0], NULL },
- 			.warm_ids = { NULL },
- 		},
-+		{
-+		    .name = " Terratec DVB 2 CI",
-+			.cold_ids = { &az6027_usb_table[1], NULL },
-+			.warm_ids = { NULL },
-+		},
-+		{
-+		    .name = "TechniSat SkyStar USB 2 HD CI (AZ6027)",
-+			.cold_ids = { &az6027_usb_table[2], NULL },
-+			.warm_ids = { NULL },
-+		},
- 		{ NULL },
- 	}
- };
-@@ -1118,7 +1128,7 @@ static struct dvb_usb_device_properties az6027_properties = {
- static struct usb_driver az6027_usb_driver = {
- 	.name		= "dvb_usb_az6027",
- 	.probe 		= az6027_usb_probe,
--	.disconnect 	= az6027_usb_disconnect,
-+	.disconnect	= az6027_usb_disconnect,
- 	.id_table 	= az6027_usb_table,
- };
- 
+Stanimir Varbanov (2):
+  v4l: Create v4l2 subdev file handle structure
+  omap3: Export omap3isp platform device structure
+
+Tuukka Toivonen (1):
+  ARM: OMAP3: Update Camera ISP definitions for OMAP3630
+
+ Documentation/video4linux/v4l2-framework.txt |    5 +
+ arch/arm/mach-omap2/devices.c                |   46 +-
+ arch/arm/mach-omap2/devices.h                |   17 +
+ arch/arm/plat-omap/include/mach/isp_user.h   |  637 ++++++++
+ arch/arm/plat-omap/include/plat/omap34xx.h   |   16 +-
+ drivers/media/video/Kconfig                  |    9 +
+ drivers/media/video/Makefile                 |    4 +
+ drivers/media/video/isp/Makefile             |   14 +
+ drivers/media/video/isp/bluegamma_table.h    | 1040 ++++++++++++
+ drivers/media/video/isp/cfa_coef_table.h     |  603 +++++++
+ drivers/media/video/isp/greengamma_table.h   | 1040 ++++++++++++
+ drivers/media/video/isp/isp.c                | 1686 +++++++++++++++++++
+ drivers/media/video/isp/isp.h                |  402 +++++
+ drivers/media/video/isp/ispccdc.c            | 2042 +++++++++++++++++++++++
+ drivers/media/video/isp/ispccdc.h            |  177 ++
+ drivers/media/video/isp/ispccp2.c            | 1036 ++++++++++++
+ drivers/media/video/isp/ispccp2.h            |   89 +
+ drivers/media/video/isp/ispcsi2.c            | 1215 ++++++++++++++
+ drivers/media/video/isp/ispcsi2.h            |  158 ++
+ drivers/media/video/isp/ispcsiphy.c          |  245 +++
+ drivers/media/video/isp/ispcsiphy.h          |   72 +
+ drivers/media/video/isp/isph3a.h             |  111 ++
+ drivers/media/video/isp/isph3a_aewb.c        |  307 ++++
+ drivers/media/video/isp/isph3a_af.c          |  358 ++++
+ drivers/media/video/isp/isphist.c            |  505 ++++++
+ drivers/media/video/isp/isphist.h            |   34 +
+ drivers/media/video/isp/isppreview.c         | 2264 ++++++++++++++++++++++++++
+ drivers/media/video/isp/isppreview.h         |  259 +++
+ drivers/media/video/isp/ispqueue.c           | 1074 ++++++++++++
+ drivers/media/video/isp/ispqueue.h           |  175 ++
+ drivers/media/video/isp/ispreg.h             | 1802 ++++++++++++++++++++
+ drivers/media/video/isp/ispresizer.c         | 1638 +++++++++++++++++++
+ drivers/media/video/isp/ispresizer.h         |  136 ++
+ drivers/media/video/isp/ispstat.c            |  971 +++++++++++
+ drivers/media/video/isp/ispstat.h            |  161 ++
+ drivers/media/video/isp/ispvideo.c           | 1241 ++++++++++++++
+ drivers/media/video/isp/ispvideo.h           |  139 ++
+ drivers/media/video/isp/luma_enhance_table.h |  144 ++
+ drivers/media/video/isp/noise_filter_table.h |   79 +
+ drivers/media/video/isp/redgamma_table.h     | 1040 ++++++++++++
+ drivers/media/video/omap34xxcam.c            | 1562 ++++++++++++++++++
+ drivers/media/video/omap34xxcam.h            |  137 ++
+ drivers/media/video/v4l2-subdev.c            |  177 ++-
+ include/linux/v4l2-mediabus.h                |   70 +
+ include/linux/v4l2-subdev.h                  |  102 ++
+ include/media/soc_mediabus.h                 |    3 +-
+ include/media/v4l2-mediabus.h                |   48 +-
+ include/media/v4l2-subdev.h                  |   53 +
+ 48 files changed, 25056 insertions(+), 87 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/devices.h
+ create mode 100644 arch/arm/plat-omap/include/mach/isp_user.h
+ create mode 100644 drivers/media/video/isp/Makefile
+ create mode 100644 drivers/media/video/isp/bluegamma_table.h
+ create mode 100644 drivers/media/video/isp/cfa_coef_table.h
+ create mode 100644 drivers/media/video/isp/greengamma_table.h
+ create mode 100644 drivers/media/video/isp/isp.c
+ create mode 100644 drivers/media/video/isp/isp.h
+ create mode 100644 drivers/media/video/isp/ispccdc.c
+ create mode 100644 drivers/media/video/isp/ispccdc.h
+ create mode 100644 drivers/media/video/isp/ispccp2.c
+ create mode 100644 drivers/media/video/isp/ispccp2.h
+ create mode 100644 drivers/media/video/isp/ispcsi2.c
+ create mode 100644 drivers/media/video/isp/ispcsi2.h
+ create mode 100644 drivers/media/video/isp/ispcsiphy.c
+ create mode 100644 drivers/media/video/isp/ispcsiphy.h
+ create mode 100644 drivers/media/video/isp/isph3a.h
+ create mode 100644 drivers/media/video/isp/isph3a_aewb.c
+ create mode 100644 drivers/media/video/isp/isph3a_af.c
+ create mode 100644 drivers/media/video/isp/isphist.c
+ create mode 100644 drivers/media/video/isp/isphist.h
+ create mode 100644 drivers/media/video/isp/isppreview.c
+ create mode 100644 drivers/media/video/isp/isppreview.h
+ create mode 100644 drivers/media/video/isp/ispqueue.c
+ create mode 100644 drivers/media/video/isp/ispqueue.h
+ create mode 100644 drivers/media/video/isp/ispreg.h
+ create mode 100644 drivers/media/video/isp/ispresizer.c
+ create mode 100644 drivers/media/video/isp/ispresizer.h
+ create mode 100644 drivers/media/video/isp/ispstat.c
+ create mode 100644 drivers/media/video/isp/ispstat.h
+ create mode 100644 drivers/media/video/isp/ispvideo.c
+ create mode 100644 drivers/media/video/isp/ispvideo.h
+ create mode 100644 drivers/media/video/isp/luma_enhance_table.h
+ create mode 100644 drivers/media/video/isp/noise_filter_table.h
+ create mode 100644 drivers/media/video/isp/redgamma_table.h
+ create mode 100644 drivers/media/video/omap34xxcam.c
+ create mode 100644 drivers/media/video/omap34xxcam.h
+ create mode 100644 include/linux/v4l2-mediabus.h
+ create mode 100644 include/linux/v4l2-subdev.h
+
 -- 
-1.7.1
+Regards,
+
+Laurent Pinchart
 
