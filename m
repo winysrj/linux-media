@@ -1,79 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:40789 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753321Ab0GaQod (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:49151 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757800Ab0G2PkE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 12:44:33 -0400
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and
- enable  it.
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	Thu, 29 Jul 2010 11:40:04 -0400
+Subject: Re: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
+From: Andy Walls <awalls@md.metrocast.net>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, jarod@wilsonet.com,
 	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-In-Reply-To: <AANLkTimaut1mMUXwbJAgjNjmQkxgsf-GOCTXmKYNm1Lz@mail.gmail.com>
-References: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
-	 <1280456235-2024-14-git-send-email-maximlevitsky@gmail.com>
-	 <AANLkTim42mHVhOgmVGxh2XsbbbVC7ZOgtfd7DDSrxZDB@mail.gmail.com>
-	 <1280461565.15737.124.camel@localhost>
-	 <1280489761.3646.3.camel@maxim-laptop>
-	 <AANLkTimqi+DwXUKxBkfkLVnvS4ONRT461CcRLk3F9ojX@mail.gmail.com>
-	 <1280490865.21345.0.camel@maxim-laptop>
-	 <AANLkTikMkWt9bnY58tOneydJNHi1PZO5DsQbwuucJcrO@mail.gmail.com>
-	 <AANLkTi=dkyrJM_WRhQPTY1V_1YnJRwNN5RN4hGNNeZ9v@mail.gmail.com>
-	 <1280493911.22296.5.camel@maxim-laptop>
-	 <1280589153.2473.78.camel@localhost>
-	 <AANLkTimaut1mMUXwbJAgjNjmQkxgsf-GOCTXmKYNm1Lz@mail.gmail.com>
+	lirc-list@lists.sourceforge.net, mchehab@redhat.com
+In-Reply-To: <1280414519.29938.53.camel@maxim-laptop>
+References: <BTlMsWzZjFB@christoph> <1280414519.29938.53.camel@maxim-laptop>
 Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 31 Jul 2010 19:44:25 +0300
-Message-ID: <1280594665.3523.7.camel@maxim-laptop>
+Date: Thu, 29 Jul 2010 11:38:54 -0400
+Message-ID: <1280417934.15757.20.camel@morgan.silverblock.net>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 2010-07-31 at 12:25 -0400, Jon Smirl wrote: 
-> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net> wrote:
-> > I think you won't be able to fix the problem conclusively either way.  A
-> > lot of how the chip's clocks should be programmed depends on how the
-> > GPIOs are used and what crystal is used.
-> >
-> > I suspect many designers will use some reference design layout from ENE,
-> > but it won't be good in every case.  The wire-up of the ENE of various
-> > motherboards is likely something you'll have to live with as unknowns.
-> >
-> > This is a case where looser tolerances in the in kernel decoders could
-> > reduce this driver's complexity and/or get rid of arbitrary fudge
-> > factors in the driver.
+On Thu, 2010-07-29 at 17:41 +0300, Maxim Levitsky wrote:
+> On Thu, 2010-07-29 at 09:23 +0200, Christoph Bartelmus wrote: 
+> > Hi Maxim,
+> > 
+> > on 29 Jul 10 at 02:40, Maxim Levitsky wrote:
+> > [...]
+> > > In addition to comments, I changed helper function that processes samples
+> > > so it sends last space as soon as timeout is reached.
+> > > This breaks somewhat lirc, because now it gets 2 spaces in row.
+> > > However, if it uses timeout reports (which are now fully supported)
+> > > it will get such report in middle.
+> > >
+> > > Note that I send timeout report with zero value.
+> > > I don't think that this value is importaint.
+> > 
+> > This does not sound good. Of course the value is important to userspace  
+> > and 2 spaces in a row will break decoding.
+> > 
+> > Christoph
 > 
-> The tolerances are as loose as they can be. The NEC protocol uses
-> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
-> (50% of 4%).  The crystals used in electronics are accurate to
-> 0.0001%+.  The 4% error in this driver is because the hardware is not
-> being programmed accurately. This needs to be fixed in the driver and
-> not in the upper layers.
+> Could you explain exactly how timeout reports work?
+> 
+> Lirc interface isn't set to stone, so how about a reasonable compromise.
+> After reasonable long period of inactivity (200 ms for example), space
+> is sent, and then next report starts with a pulse.
+> So gaps between keypresses will be maximum of 200 ms, and as a bonus I
+> could rip of the logic that deals with remembering the time?
+> 
+> Best regards,
+> Maxim Levitsky
 
-Let me explain again.
+Just for some context, the Conexant hardware generates such reports on
+it's hardware Rx FIFO:
 
-I get samples in 4 byte buffer. each sample is a count of sample
-periods.
-Sample period is programmed into hardware, at 'ENE_CIR_SAMPLE_PERIOD'
-(it is in us)
+>From section 3.8.2.3 of 
 
-Default sample period is 50 us.
+http://dl.ivtvdriver.org/datasheets/video/cx25840.pdf
 
-The error source isn't 'electronics' fault.
-The device is microprocessor.
-I don't read the samples 'directly' from hardware, but rather from ram
-of that microprocessor.
-I don't know how it samples the input.
-A expiration of sample period might just cause a IRQ inside that
-microprocessor, and it can't process it instantly. That is probably the
-source of the delay.
-Or something like that.
+"When the demodulated input signal no longer transitions, the RX pulse
+width timer overflows, which indicates the end of data transmission.
+When this occurs, the timer value contains all 1s. This value can be
+stored to the RX FIFO, to indicate the end of the transmission [...].
+Additionally, a status bit is set which can interrupt the
+microprocessor, [...]".
 
-Best regards,
-Maxim Levitsky
+So the value in the hardware RX FIFO is the maximum time measurable
+given the current hardware clock divider settings, plus a flag bit
+indicating overflow.
+
+The CX2388[58] IR implementation currently translates that hardware
+notification into V4L2_SUBDEV_IR_PULSE_RX_SEQ_END:
+
+http://git.linuxtv.org/awalls/v4l-dvb.git?a=blob;f=drivers/media/video/cx23885/cx23888-ir.c;h=51f21636e639330bcf528568c0f08c7a4a674f42;hb=094fc94360cf01960da3311698fedfca566d4712#l678
+
+which is defined here:
+
+http://git.linuxtv.org/awalls/v4l-dvb.git?a=blob;f=include/media/v4l2-subdev.h;h=bacd52568ef9fd17787554aa347f46ca6f23bdb2;hb=094fc94360cf01960da3311698fedfca566d4712#l366
+
+as
+
+#define V4L2_SUBDEV_IR_PULSE_RX_SEQ_END         0xffffffff
+
+
+I didn't look too hard at it, but IIRC the in kernel decoders would have
+interpreted this value incorrectly (the longest possible mark).
+Instead, I just pass along the longest possible space:
+
+http://git.linuxtv.org/awalls/v4l-dvb.git?a=blob;f=drivers/media/video/cx23885/cx23885-input.c;h=3f924e21b9575f7d67d99d71c8585d41828aabfe;hb=094fc94360cf01960da3311698fedfca566d4712#l49
+
+so it acts as in band signaling if anyone is looking for it, and the in
+kernel decoders happily treat it like a long space.
+
+With a little work, I could pass the actual time it took for the Rx
+timer to timeout as well (Provide the space measurement *and* the in
+band signal), if needed.
+
+
+Regards,
+Andy
 
