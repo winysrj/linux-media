@@ -1,50 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:37244 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755969Ab0G3Nmr (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:46175 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758029Ab0G2Qlf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 09:42:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sergio Aguirre <saaguirre@ti.com>
-Subject: Re: [media-ctl PATCH 1/3] Create initial .gitignore file
-Date: Fri, 30 Jul 2010 15:42:38 +0200
-Cc: linux-media@vger.kernel.org
-References: <1279124246-12187-1-git-send-email-saaguirre@ti.com> <1279124246-12187-2-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1279124246-12187-2-git-send-email-saaguirre@ti.com>
+	Thu, 29 Jul 2010 12:41:35 -0400
+Message-ID: <4C51AF49.5010408@infradead.org>
+Date: Thu, 29 Jul 2010 13:41:45 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: "Figo.zhang" <figo1802@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2]videobuf_dma_sg: a new implementation for mmap
+References: <1280233300.2628.8.camel@localhost.localdomain>	 <1280321854.13781.6.camel@localhost.localdomain>	 <1280322504.13781.7.camel@localhost.localdomain> <1280410697.13781.22.camel@localhost.localdomain>
+In-Reply-To: <1280410697.13781.22.camel@localhost.localdomain>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007301542.38731.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+Em 29-07-2010 10:38, Figo.zhang escreveu:
 
-Thanks for the patch, and sorry for the delay. Applied.
+> btw, why i send the patch , patchwork websit display a part of my patch?
+> https://patchwork.kernel.org/patch/114760/
 
-On Wednesday 14 July 2010 18:17:24 Sergio Aguirre wrote:
-> The idea of this file is to ignore build generated files, and also
-> the "standard" patches subfolder, used by quilt for example.
-> 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  .gitignore |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
->  create mode 100644 .gitignore
-> 
-> diff --git a/.gitignore b/.gitignore
-> new file mode 100644
-> index 0000000..1e56cf5
-> --- /dev/null
-> +++ b/.gitignore
-> @@ -0,0 +1,4 @@
-> +*.o
-> +media-ctl
-> +
-> +patches/*
+Because your emailer broke long lines, mangling part of your patch. The way
+you sent, it will fail to apply.
 
--- 
-Regards,
+Please, re-send it, being sure that your emailer won't break long lines.
 
-Laurent Pinchart
+Cheers,
+Mauro.
