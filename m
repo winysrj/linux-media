@@ -1,185 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55010 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756043Ab0GaO7u (ORCPT
+Received: from rcsinet10.oracle.com ([148.87.113.121]:60126 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932069Ab0G2Q1Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 10:59:50 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 08/13] IR: Allow not to compile keymaps in.
-Date: Sat, 31 Jul 2010 17:59:21 +0300
-Message-Id: <1280588366-26101-9-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+	Thu, 29 Jul 2010 12:27:16 -0400
+Message-ID: <4C51AB50.9040701@oracle.com>
+Date: Thu, 29 Jul 2010 09:24:48 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+MIME-Version: 1.0
+To: Jarod Wilson <jarod@redhat.com>
+CC: sfr@canb.auug.org.au, lirc-list@lists.sourceforge.net,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com
+Subject: Re: [PATCH] staging/lirc: fix non-CONFIG_MODULES build horkage
+References: <20100729153535.GB7507@redhat.com>
+In-Reply-To: <20100729153535.GB7507@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently, ir device registration fails if keymap requested by driver is not found.
-Fix that by always compiling in the empty keymap, and using it as a failback.
+On 07/29/10 08:35, Jarod Wilson wrote:
+> Fix when CONFIG_MODULES is not enabled:
+> 
+> drivers/staging/lirc/lirc_parallel.c:243: error: implicit declaration of function 'module_refcount'
+> drivers/staging/lirc/lirc_it87.c:150: error: implicit declaration of function 'module_refcount'
+> drivers/built-in.o: In function `it87_probe':
+> lirc_it87.c:(.text+0x4079b0): undefined reference to `init_chrdev'
+> lirc_it87.c:(.text+0x4079cc): undefined reference to `drop_chrdev'
+> drivers/built-in.o: In function `lirc_it87_exit':
+> lirc_it87.c:(.exit.text+0x38a5): undefined reference to `drop_chrdev'
+> 
+> Its a quick hack and untested beyond building, since I don't have the
+> hardware, but it should do the trick.
+> 
+> Signed-off-by: Jarod Wilson <jarod@redhat.com>
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-Acked-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/ir-core-priv.h     |    3 +-
- drivers/media/IR/ir-sysfs.c         |    2 +
- drivers/media/IR/keymaps/Makefile   |    1 -
- drivers/media/IR/keymaps/rc-empty.c |   44 -----------------------------------
- drivers/media/IR/rc-map.c           |   23 ++++++++++++++++++
- include/media/ir-core.h             |    8 ++++-
- 6 files changed, 33 insertions(+), 48 deletions(-)
- delete mode 100644 drivers/media/IR/keymaps/rc-empty.c
+Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
 
-diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-index 502d477..be68172 100644
---- a/drivers/media/IR/ir-core-priv.h
-+++ b/drivers/media/IR/ir-core-priv.h
-@@ -126,7 +126,8 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
- void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
- void ir_raw_init(void);
- 
--
-+int ir_rcmap_init(void);
-+void ir_rcmap_cleanup(void);
- /*
-  * Decoder initialization code
-  *
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index a841e51..936dff8 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -341,6 +341,7 @@ static int __init ir_core_init(void)
- 
- 	/* Initialize/load the decoders/keymap code that will be used */
- 	ir_raw_init();
-+	ir_rcmap_init();
- 
- 	return 0;
- }
-@@ -348,6 +349,7 @@ static int __init ir_core_init(void)
- static void __exit ir_core_exit(void)
- {
- 	class_unregister(&ir_input_class);
-+	ir_rcmap_cleanup();
- }
- 
- module_init(ir_core_init);
-diff --git a/drivers/media/IR/keymaps/Makefile b/drivers/media/IR/keymaps/Makefile
-index 86d3d1f..24992cd 100644
---- a/drivers/media/IR/keymaps/Makefile
-+++ b/drivers/media/IR/keymaps/Makefile
-@@ -17,7 +17,6 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-dm1105-nec.o \
- 			rc-dntv-live-dvb-t.o \
- 			rc-dntv-live-dvbt-pro.o \
--			rc-empty.o \
- 			rc-em-terratec.o \
- 			rc-encore-enltv2.o \
- 			rc-encore-enltv.o \
-diff --git a/drivers/media/IR/keymaps/rc-empty.c b/drivers/media/IR/keymaps/rc-empty.c
-deleted file mode 100644
-index 3b338d8..0000000
---- a/drivers/media/IR/keymaps/rc-empty.c
-+++ /dev/null
-@@ -1,44 +0,0 @@
--/* empty.h - Keytable for empty Remote Controller
-- *
-- * keymap imported from ir-keymaps.c
-- *
-- * Copyright (c) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- */
--
--#include <media/rc-map.h>
--
--/* empty keytable, can be used as placeholder for not-yet created keytables */
--
--static struct ir_scancode empty[] = {
--	{ 0x2a, KEY_COFFEE },
--};
--
--static struct rc_keymap empty_map = {
--	.map = {
--		.scan    = empty,
--		.size    = ARRAY_SIZE(empty),
--		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
--		.name    = RC_MAP_EMPTY,
--	}
--};
--
--static int __init init_rc_map_empty(void)
--{
--	return ir_register_map(&empty_map);
--}
--
--static void __exit exit_rc_map_empty(void)
--{
--	ir_unregister_map(&empty_map);
--}
--
--module_init(init_rc_map_empty)
--module_exit(exit_rc_map_empty)
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
-diff --git a/drivers/media/IR/rc-map.c b/drivers/media/IR/rc-map.c
-index 46a8f15..689143f 100644
---- a/drivers/media/IR/rc-map.c
-+++ b/drivers/media/IR/rc-map.c
-@@ -82,3 +82,26 @@ void ir_unregister_map(struct rc_keymap *map)
- }
- EXPORT_SYMBOL_GPL(ir_unregister_map);
- 
-+
-+static struct ir_scancode empty[] = {
-+	{ 0x2a, KEY_COFFEE },
-+};
-+
-+static struct rc_keymap empty_map = {
-+	.map = {
-+		.scan    = empty,
-+		.size    = ARRAY_SIZE(empty),
-+		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
-+		.name    = RC_MAP_EMPTY,
-+	}
-+};
-+
-+int ir_rcmap_init(void)
-+{
-+	return ir_register_map(&empty_map);
-+}
-+
-+void ir_rcmap_cleanup(void)
-+{
-+	ir_unregister_map(&empty_map);
-+}
-diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-index 513e60d..197d05a 100644
---- a/include/media/ir-core.h
-+++ b/include/media/ir-core.h
-@@ -110,8 +110,12 @@ static inline int ir_input_register(struct input_dev *dev,
- 		return -EINVAL;
- 
- 	ir_codes = get_rc_map(map_name);
--	if (!ir_codes)
--		return -EINVAL;
-+	if (!ir_codes) {
-+		ir_codes = get_rc_map(RC_MAP_EMPTY);
-+
-+		if (!ir_codes)
-+			return -EINVAL;
-+	}
- 
- 	rc = __ir_input_register(dev, ir_codes, props, driver_name);
- 	if (rc < 0)
+Thanks.
+
+> ---
+>  drivers/staging/lirc/lirc_it87.c     |    9 ++++++---
+>  drivers/staging/lirc/lirc_parallel.c |    4 ++--
+>  2 files changed, 8 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/staging/lirc/lirc_it87.c b/drivers/staging/lirc/lirc_it87.c
+> index 781abc3..72f07f1 100644
+> --- a/drivers/staging/lirc/lirc_it87.c
+> +++ b/drivers/staging/lirc/lirc_it87.c
+> @@ -109,6 +109,7 @@ static DECLARE_WAIT_QUEUE_HEAD(lirc_read_queue);
+>  
+>  static DEFINE_SPINLOCK(hardware_lock);
+>  static DEFINE_SPINLOCK(dev_lock);
+> +static bool device_open;
+>  
+>  static int rx_buf[RBUF_LEN];
+>  unsigned int rx_tail, rx_head;
+> @@ -147,10 +148,11 @@ static void drop_port(void);
+>  static int lirc_open(struct inode *inode, struct file *file)
+>  {
+>  	spin_lock(&dev_lock);
+> -	if (module_refcount(THIS_MODULE)) {
+> +	if (device_open) {
+>  		spin_unlock(&dev_lock);
+>  		return -EBUSY;
+>  	}
+> +	device_open = true;
+>  	spin_unlock(&dev_lock);
+>  	return 0;
+>  }
+> @@ -158,6 +160,9 @@ static int lirc_open(struct inode *inode, struct file *file)
+>  
+>  static int lirc_close(struct inode *inode, struct file *file)
+>  {
+> +	spin_lock(&dev_lock);
+> +	device_open = false;
+> +	spin_unlock(&dev_lock);
+>  	return 0;
+>  }
+>  
+> @@ -363,7 +368,6 @@ static struct lirc_driver driver = {
+>  };
+>  
+>  
+> -#ifdef MODULE
+>  static int init_chrdev(void)
+>  {
+>  	driver.minor = lirc_register_driver(&driver);
+> @@ -380,7 +384,6 @@ static void drop_chrdev(void)
+>  {
+>  	lirc_unregister_driver(driver.minor);
+>  }
+> -#endif
+>  
+>  
+>  /* SECTION: Hardware */
+> diff --git a/drivers/staging/lirc/lirc_parallel.c b/drivers/staging/lirc/lirc_parallel.c
+> index df12e7b..04ce97713 100644
+> --- a/drivers/staging/lirc/lirc_parallel.c
+> +++ b/drivers/staging/lirc/lirc_parallel.c
+> @@ -240,7 +240,7 @@ static void irq_handler(void *blah)
+>  	unsigned int level, newlevel;
+>  	unsigned int timeout;
+>  
+> -	if (!module_refcount(THIS_MODULE))
+> +	if (!is_open)
+>  		return;
+>  
+>  	if (!is_claimed)
+> @@ -515,7 +515,7 @@ static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
+>  
+>  static int lirc_open(struct inode *node, struct file *filep)
+>  {
+> -	if (module_refcount(THIS_MODULE) || !lirc_claim())
+> +	if (is_open || !lirc_claim())
+>  		return -EBUSY;
+>  
+>  	parport_enable_irq(pport);
+> 
+> 
+
+
 -- 
-1.7.0.4
-
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
