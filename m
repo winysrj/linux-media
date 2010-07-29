@@ -1,34 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:49297 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753362Ab0GaLPA (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:36476 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757962Ab0G2QHM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Jul 2010 07:15:00 -0400
-Message-ID: <4C5405A2.4050102@s5r6.in-berlin.de>
-Date: Sat, 31 Jul 2010 13:14:42 +0200
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-MIME-Version: 1.0
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
-Subject: Re: Handling of large keycodes
-References: <20100731091936.GA22253@core.coreip.homeip.net> <4C5402FE.2080002@s5r6.in-berlin.de>
-In-Reply-To: <4C5402FE.2080002@s5r6.in-berlin.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 29 Jul 2010 12:07:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [SAMPLE v3 04/12] v4l-subdev: Add pads operations
+Date: Thu, 29 Jul 2010 18:06:48 +0200
+Message-Id: <1280419616-7658-16-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Stefan Richter wrote:
->   - I take it from your description that scan codes are fundamentally
->     variable-length data.  How about defining it as __u8 scancode[0]?
+Add a v4l2_subdev_pad_ops structure for the operations that need to be
+performed at the pad level such as format-related operations.
 
-Forget this; that would make it difficult to extend the ABI later by
-adding more struct members.
+The format at the output of a subdev usually depends on the format at
+its input(s). The try format operation is thus not suitable for probing
+format at individual pads, as it can't modify the device state and thus
+can't remember the format probed at the input to compute the output
+format.
+
+To fix the problem, pass an extra argument to the get/set format
+operations to select the 'probe' or 'active' format.
+
+The probe format is used when probing the subdev. Setting the probe
+format must not change the device configuration but can store data for
+later reuse. Data storage is provided at the file-handle level so
+applications probing the subdev concurently won't interfere with each
+other.
+
+The active format is used when configuring the subdev. It's identical to
+the format handled by the usual get/set operations.
+
+Pad format-related operations use v4l2_mbus_framefmt instead of
+v4l2_format.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ include/media/v4l2-subdev.h |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
+
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 01b4135..684ab60 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -41,6 +41,7 @@ struct v4l2_device;
+ struct v4l2_event_subscription;
+ struct v4l2_fh;
+ struct v4l2_subdev;
++struct v4l2_subdev_fh;
+ struct tuner_setup;
+ 
+ /* decode_vbi_line */
+@@ -398,6 +399,25 @@ struct v4l2_subdev_ir_ops {
+ 				struct v4l2_subdev_ir_parameters *params);
+ };
+ 
++enum v4l2_subdev_format {
++	V4L2_SUBDEV_FORMAT_PROBE = 0,
++	V4L2_SUBDEV_FORMAT_ACTIVE = 1,
++};
++
++struct v4l2_subdev_pad_ops {
++	int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			      struct v4l2_subdev_pad_mbus_code_enum *code);
++	int (*enum_frame_size)(struct v4l2_subdev *sd,
++			       struct v4l2_subdev_fh *fh,
++			       struct v4l2_subdev_frame_size_enum *fse);
++	int (*get_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
++		       enum v4l2_subdev_format which);
++	int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       unsigned int pad, struct v4l2_mbus_framefmt *fmt,
++		       enum v4l2_subdev_format which);
++};
++
+ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_core_ops	*core;
+ 	const struct v4l2_subdev_tuner_ops	*tuner;
+@@ -406,6 +426,7 @@ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_vbi_ops	*vbi;
+ 	const struct v4l2_subdev_ir_ops		*ir;
+ 	const struct v4l2_subdev_sensor_ops	*sensor;
++	const struct v4l2_subdev_pad_ops	*pad;
+ };
+ 
+ #define V4L2_SUBDEV_NAME_SIZE 32
 -- 
-Stefan Richter
--=====-==-=- -=== =====
-http://arcgraph.de/sr/
+1.7.1
+
