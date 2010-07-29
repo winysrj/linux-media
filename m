@@ -1,55 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:40300 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750771Ab0GHEqE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 00:46:04 -0400
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: moinejf@free.fr, mchehab@infradead.org,
-	linux-kernel@vger.kernel.org,
-	"Justin P. Mattock" <justinmattock@gmail.com>
-Subject: [PATCH]video:gspca.c Fix  warning: case value '7' not in enumerated type 'enum v4l2_memory'
-Date: Wed,  7 Jul 2010 21:46:18 -0700
-Message-Id: <1278564378-19855-1-git-send-email-justinmattock@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:57322 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757390Ab0G2Pqd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jul 2010 11:46:33 -0400
+Date: Thu, 29 Jul 2010 11:35:35 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: sfr@canb.auug.org.au, lirc-list@lists.sourceforge.net,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, mchehab@redhat.com
+Subject: [PATCH] staging/lirc: fix non-CONFIG_MODULES build horkage
+Message-ID: <20100729153535.GB7507@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100728101358.e0dcd54d.randy.dunlap@oracle.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This fixes a warning I'm seeing when building:
-  CC [M]  drivers/media/video/gspca/gspca.o
-drivers/media/video/gspca/gspca.c: In function 'vidioc_reqbufs':
-drivers/media/video/gspca/gspca.c:1508:2: warning: case value '7' not in enumerated type 'enum v4l2_memory'
+Fix when CONFIG_MODULES is not enabled:
 
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
+drivers/staging/lirc/lirc_parallel.c:243: error: implicit declaration of function 'module_refcount'
+drivers/staging/lirc/lirc_it87.c:150: error: implicit declaration of function 'module_refcount'
+drivers/built-in.o: In function `it87_probe':
+lirc_it87.c:(.text+0x4079b0): undefined reference to `init_chrdev'
+lirc_it87.c:(.text+0x4079cc): undefined reference to `drop_chrdev'
+drivers/built-in.o: In function `lirc_it87_exit':
+lirc_it87.c:(.exit.text+0x38a5): undefined reference to `drop_chrdev'
 
+Its a quick hack and untested beyond building, since I don't have the
+hardware, but it should do the trick.
+
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
- drivers/media/video/gspca/gspca.c |    1 -
- include/linux/videodev2.h         |    1 +
- 2 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/staging/lirc/lirc_it87.c     |    9 ++++++---
+ drivers/staging/lirc/lirc_parallel.c |    4 ++--
+ 2 files changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
-index 678675b..a9b4d97 100644
---- a/drivers/media/video/gspca/gspca.c
-+++ b/drivers/media/video/gspca/gspca.c
-@@ -84,7 +84,6 @@ static void PDEBUG_MODE(char *txt, __u32 pixfmt, int w, int h)
+diff --git a/drivers/staging/lirc/lirc_it87.c b/drivers/staging/lirc/lirc_it87.c
+index 781abc3..72f07f1 100644
+--- a/drivers/staging/lirc/lirc_it87.c
++++ b/drivers/staging/lirc/lirc_it87.c
+@@ -109,6 +109,7 @@ static DECLARE_WAIT_QUEUE_HEAD(lirc_read_queue);
  
- /* specific memory types - !! should be different from V4L2_MEMORY_xxx */
- #define GSPCA_MEMORY_NO 0	/* V4L2_MEMORY_xxx starts from 1 */
--#define GSPCA_MEMORY_READ 7
+ static DEFINE_SPINLOCK(hardware_lock);
+ static DEFINE_SPINLOCK(dev_lock);
++static bool device_open;
  
- #define BUF_ALL_FLAGS (V4L2_BUF_FLAG_QUEUED | V4L2_BUF_FLAG_DONE)
+ static int rx_buf[RBUF_LEN];
+ unsigned int rx_tail, rx_head;
+@@ -147,10 +148,11 @@ static void drop_port(void);
+ static int lirc_open(struct inode *inode, struct file *file)
+ {
+ 	spin_lock(&dev_lock);
+-	if (module_refcount(THIS_MODULE)) {
++	if (device_open) {
+ 		spin_unlock(&dev_lock);
+ 		return -EBUSY;
+ 	}
++	device_open = true;
+ 	spin_unlock(&dev_lock);
+ 	return 0;
+ }
+@@ -158,6 +160,9 @@ static int lirc_open(struct inode *inode, struct file *file)
  
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 047f7e6..b73aa18 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -170,6 +170,7 @@ enum v4l2_memory {
- 	V4L2_MEMORY_MMAP             = 1,
- 	V4L2_MEMORY_USERPTR          = 2,
- 	V4L2_MEMORY_OVERLAY          = 3,
-+	GSPCA_MEMORY_READ 	     = 7,
+ static int lirc_close(struct inode *inode, struct file *file)
+ {
++	spin_lock(&dev_lock);
++	device_open = false;
++	spin_unlock(&dev_lock);
+ 	return 0;
+ }
+ 
+@@ -363,7 +368,6 @@ static struct lirc_driver driver = {
  };
  
- /* see also http://vektor.theorem.ca/graphics/ycbcr/ */
+ 
+-#ifdef MODULE
+ static int init_chrdev(void)
+ {
+ 	driver.minor = lirc_register_driver(&driver);
+@@ -380,7 +384,6 @@ static void drop_chrdev(void)
+ {
+ 	lirc_unregister_driver(driver.minor);
+ }
+-#endif
+ 
+ 
+ /* SECTION: Hardware */
+diff --git a/drivers/staging/lirc/lirc_parallel.c b/drivers/staging/lirc/lirc_parallel.c
+index df12e7b..04ce97713 100644
+--- a/drivers/staging/lirc/lirc_parallel.c
++++ b/drivers/staging/lirc/lirc_parallel.c
+@@ -240,7 +240,7 @@ static void irq_handler(void *blah)
+ 	unsigned int level, newlevel;
+ 	unsigned int timeout;
+ 
+-	if (!module_refcount(THIS_MODULE))
++	if (!is_open)
+ 		return;
+ 
+ 	if (!is_claimed)
+@@ -515,7 +515,7 @@ static long lirc_ioctl(struct file *filep, unsigned int cmd, unsigned long arg)
+ 
+ static int lirc_open(struct inode *node, struct file *filep)
+ {
+-	if (module_refcount(THIS_MODULE) || !lirc_claim())
++	if (is_open || !lirc_claim())
+ 		return -EBUSY;
+ 
+ 	parport_enable_irq(pport);
+
+
 -- 
-1.7.1.rc1.21.gf3bd6
+Jarod Wilson
+jarod@redhat.com
 
