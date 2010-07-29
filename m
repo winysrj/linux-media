@@ -1,346 +1,254 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:57771 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936408Ab0GSQiP (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:36475 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757943Ab0G2QHJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jul 2010 12:38:15 -0400
-Received: by fxm14 with SMTP id 14so2305049fxm.19
-        for <linux-media@vger.kernel.org>; Mon, 19 Jul 2010 09:38:14 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTikIJwr7TDC9OeymzffZ6dVGDEIJD7raqTeGT0m-@mail.gmail.com>
-References: <AANLkTikIJwr7TDC9OeymzffZ6dVGDEIJD7raqTeGT0m-@mail.gmail.com>
-Date: Mon, 19 Jul 2010 18:38:13 +0200
-Message-ID: <AANLkTikW2u1Vzi01f7T1OhmCKij9QbPIAgssShilAfT8@mail.gmail.com>
-Subject: Re: Twinhan DTV Ter-CI (3030 mantis)
-From: Niklas Claesson <nicke.claesson@gmail.com>
+	Thu, 29 Jul 2010 12:07:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0016364166e9e6a609048bc03103
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v3 10/10] v4l: Make v4l2_subdev inherit from media_entity
+Date: Thu, 29 Jul 2010 18:06:43 +0200
+Message-Id: <1280419616-7658-11-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016364166e9e6a609048bc03103
-Content-Type: text/plain; charset=UTF-8
+V4L2 subdevices are media entities. As such they need to inherit from
+(include) the media_entity structure.
 
-Hi again,
+When registering/unregistering the subdevice, the media entity is
+automatically registered/unregistered. The entity is acquired on device
+open and released on device close.
 
-I ran scan with a input file, and I've activated debug on zl10353.
-Syslog is attached.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   22 +++++++++++++++++
+ drivers/media/video/v4l2-device.c            |   32 +++++++++++++++++++++-----
+ drivers/media/video/v4l2-subdev.c            |   27 +++++++++++++++++++++-
+ include/media/v4l2-subdev.h                  |    7 +++++
+ 4 files changed, 81 insertions(+), 7 deletions(-)
 
-niklas@niklas-desktop:~/.dvbt$ scan se-Malmo_Jagersro
-scanning se-Malmo_Jagersro
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 570000000 0 3 9 3 1 3 0
->>> tune to: 570000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-WARNING: >>> tuning failed!!!
->>> tune to: 570000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_3_4:FEC_AUTO:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE (tuning failed)
-WARNING: >>> tuning failed!!!
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 7ff4016..f7b72a9 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -263,6 +263,25 @@ A sub-device driver initializes the v4l2_subdev struct using:
+ Afterwards you need to initialize subdev->name with a unique name and set the
+ module owner. This is done for you if you use the i2c helper functions.
+ 
++If integration with the media framework is needed, you must initialize the
++media_entity struct embedded in the v4l2_subdev struct (entity field) by
++calling media_entity_init():
++
++	struct media_pad *pads = &my_sd->pads;
++	int err;
++
++	err = media_entity_init(&sd->entity, npads, pads, 0);
++
++The pads array must have been previously initialized. There is no need to
++manually set the struct media_entity type and name fields.
++
++A reference to the entity will be automatically acquired/released when the
++subdev device node (if any) is opened/closed.
++
++Don't forget to cleanup the media entity before the sub-device is destroyed:
++
++	media_entity_cleanup(&sd->entity);
++
+ A device (bridge) driver needs to register the v4l2_subdev with the
+ v4l2_device:
+ 
+@@ -272,6 +291,9 @@ This can fail if the subdev module disappeared before it could be registered.
+ After this function was called successfully the subdev->dev field points to
+ the v4l2_device.
+ 
++If the v4l2_device parent device has a non-NULL mdev field, the sub-device
++entity will be automatically registered with the media device.
++
+ You can unregister a sub-device using:
+ 
+ 	v4l2_device_unregister_subdev(sd);
+diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+index 91452cd..4f74d01 100644
+--- a/drivers/media/video/v4l2-device.c
++++ b/drivers/media/video/v4l2-device.c
+@@ -114,10 +114,11 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+ 
+ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+-						struct v4l2_subdev *sd)
++				struct v4l2_subdev *sd)
+ {
++	struct media_entity *entity = &sd->entity;
+ 	struct video_device *vdev;
+-	int ret = 0;
++	int ret;
+ 
+ 	/* Check for valid input */
+ 	if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
+@@ -129,6 +130,15 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	if (!try_module_get(sd->owner))
+ 		return -ENODEV;
+ 
++	/* Register the entity. */
++	if (v4l2_dev->mdev) {
++		ret = media_device_register_entity(v4l2_dev->mdev, entity);
++		if (ret < 0) {
++			module_put(sd->owner);
++			return ret;
++		}
++	}
++
+ 	sd->v4l2_dev = v4l2_dev;
+ 	spin_lock(&v4l2_dev->lock);
+ 	list_add_tail(&sd->list, &v4l2_dev->subdevs);
+@@ -143,26 +153,36 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+ 	if (sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE) {
+ 		ret = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+ 					      sd->owner);
+-		if (ret < 0)
++		if (ret < 0) {
+ 			v4l2_device_unregister_subdev(sd);
++			return ret;
++		}
+ 	}
+ 
+-	return ret;
++	entity->v4l.major = VIDEO_MAJOR;
++	entity->v4l.minor = vdev->minor;
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+ 
+ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+ {
++	struct v4l2_device *v4l2_dev;
++
+ 	/* return if it isn't registered */
+ 	if (sd == NULL || sd->v4l2_dev == NULL)
+ 		return;
+ 
+-	spin_lock(&sd->v4l2_dev->lock);
++	v4l2_dev = sd->v4l2_dev;
++
++	spin_lock(&v4l2_dev->lock);
+ 	list_del(&sd->list);
+-	spin_unlock(&sd->v4l2_dev->lock);
++	spin_unlock(&v4l2_dev->lock);
+ 	sd->v4l2_dev = NULL;
+ 
+ 	module_put(sd->owner);
++	if (v4l2_dev->mdev)
++		media_device_unregister_entity(&sd->entity);
+ 	video_unregister_device(&sd->devnode);
+ }
+ EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index b063195..1efa267 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -32,7 +32,8 @@ static int subdev_open(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+-	struct v4l2_fh *vfh;
++	struct media_entity *entity;
++	struct v4l2_fh *vfh = NULL;
+ 	int ret;
+ 
+ 	if (!sd->initialized)
+@@ -59,10 +60,17 @@ static int subdev_open(struct file *file)
+ 		file->private_data = vfh;
+ 	}
+ 
++	entity = media_entity_get(&sd->entity);
++	if (!entity) {
++		ret = -EBUSY;
++		goto err;
++	}
++
+ 	return 0;
+ 
+ err:
+ 	if (vfh != NULL) {
++		v4l2_fh_del(vfh);
+ 		v4l2_fh_exit(vfh);
+ 		kfree(vfh);
+ 	}
+@@ -72,8 +80,12 @@ err:
+ 
+ static int subdev_close(struct file *file)
+ {
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+ 	struct v4l2_fh *vfh = file->private_data;
+ 
++	media_entity_put(&sd->entity);
++
+ 	if (vfh != NULL) {
+ 		v4l2_fh_del(vfh);
+ 		v4l2_fh_exit(vfh);
+@@ -172,5 +184,18 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ 	sd->grp_id = 0;
+ 	sd->priv = NULL;
+ 	sd->initialized = 1;
++	sd->entity.name = sd->name;
++	sd->entity.type = MEDIA_ENTITY_TYPE_SUBDEV;
+ }
+ EXPORT_SYMBOL(v4l2_subdev_init);
++
++int v4l2_subdev_set_power(struct media_entity *entity, int power)
++{
++	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
++
++	dev_dbg(entity->parent->dev,
++		"%s power%s\n", entity->name, power ? "on" : "off");
++
++	return v4l2_subdev_call(sd, core, s_power, power);
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_set_power);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 55a8c93..f9e1897 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -21,6 +21,7 @@
+ #ifndef _V4L2_SUBDEV_H
+ #define _V4L2_SUBDEV_H
+ 
++#include <media/media-entity.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+ #include <media/v4l2-mediabus.h>
+@@ -421,6 +422,8 @@ struct v4l2_subdev_ops {
+    stand-alone or embedded in a larger struct.
+  */
+ struct v4l2_subdev {
++	struct media_entity entity;
++
+ 	struct list_head list;
+ 	struct module *owner;
+ 	u32 flags;
+@@ -439,6 +442,8 @@ struct v4l2_subdev {
+ 	unsigned int nevents;
+ };
+ 
++#define media_entity_to_v4l2_subdev(ent) \
++	container_of(ent, struct v4l2_subdev, entity)
+ #define vdev_to_v4l2_subdev(vdev) \
+ 	container_of(vdev, struct v4l2_subdev, devnode)
+ 
+@@ -457,6 +462,8 @@ static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
++int v4l2_subdev_set_power(struct media_entity *entity, int power);
++
+ /* Call an ops of a v4l2_subdev, doing the right checks against
+    NULL pointers.
+ 
+-- 
+1.7.1
 
-Regards,
-Niklas Claesson
-
---0016364166e9e6a609048bc03103
-Content-Type: application/octet-stream; name=syslog_dump
-Content-Disposition: attachment; filename=syslog_dump
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gbtjgdj40
-
-bWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAg
-ICBCeXRlIDwwPiBSWEQ9MHgxZjUwMGM4MCAgWzBjXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNz
-YWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA1MCAw
-MyBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dy
-aXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDUxIDY0IF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVz
-c2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNTIg
-NDYgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193
-cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA1MyAxNSBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1l
-c3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDU0
-IDBmIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNf
-d3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNTUgODAgXQptYW50aXNfaTJjX3hmZXIgKDApOiBN
-ZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyBl
-YSAwMSBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJj
-X3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIGVhIDAwIF0KbWFudGlzX2kyY194ZmVyICgwKTog
-TWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsg
-NTYgMjggXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2ky
-Y193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA1ZSAwMyBdCm1hbnRpc19pMmNfeGZlciAoMCk6
-IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5b
-IDVjIDc1IF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19p
-MmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNjQgMzYgXQptYW50aXNfaTJjX3hmZXIgKDAp
-OiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+
-WyBjYyA3MyBdCnpsMTAzNTM6IHpsMTAzNTNfY2FsY19ub21pbmFsX3JhdGU6IGJ3IDgsIGFkY19j
-bG9jayA0NTA1NjAgPT4gMHg2N2U1Cm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAg
-ICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDY1IDY3IF0KbWFudGlz
-X2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJl
-c3M9WzB4MGZdIDxXPlsgNjYgZTUgXQp6bDEwMzUzOiB6bDEwMzUzX2NhbGNfaW5wdXRfZnJlcTog
-aWYyIDM2MTY2NywgaWZlIDg4ODkzLCBhZGNfY2xvY2sgNDUwNTYwID0+IC0xMjkzMCAvIDB4Y2Q3
-ZQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0
-ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2YyBjZCBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3Nh
-Z2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDZkIDdl
-IF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3Jp
-dGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNmUgNDEgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNz
-YWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2ZiAw
-ZCBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dy
-aXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDYyIDBhIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVz
-c2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNWYg
-MTMgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193
-cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA3MSAwMSBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1l
-c3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNjAw
-ODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9E
-RToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA3MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIg
-KDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0w
-eDFmMDgwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBC
-eXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNjAwODAgIFswMF0KbWFudGlzX2ky
-Y194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDww
-PiBSWEQ9MHgxZjA3MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAg
-ICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDgwMDgwICBbMDBdCm1h
-bnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAg
-Qnl0ZSA8MD4gUlhEPTB4MWYwNjAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2Fn
-ZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA3MDA4MCAg
-WzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgog
-ICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDgwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6
-IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYw
-NjAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUg
-TU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA3MDA4MCAgWzAwXQptYW50aXNfaTJjX3hm
-ZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJY
-RD0weDFmMDgwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAg
-ICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNjAwODAgIFswMF0KbWFudGlz
-X2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRl
-IDwwPiBSWEQ9MHgxZjA3MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoy
-CiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDgwMDgwICBbMDBd
-Cm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRl
-OiBBZGRyZXNzPVsweDBmXSA8Vz5bIDU1IDgwIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2Fn
-ZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgZWEgMDEg
-XQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0
-ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyBlYSAwMCBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3Nh
-Z2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDU2IDI4
-IF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3Jp
-dGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNWUgMDMgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNz
-YWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA1YyA3
-NSBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dy
-aXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDY0IDM2IF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVz
-c2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgY2Mg
-NzMgXQp6bDEwMzUzOiB6bDEwMzUzX2NhbGNfbm9taW5hbF9yYXRlOiBidyA4LCBhZGNfY2xvY2sg
-NDUwNTYwID0+IDB4NjdlNQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAg
-bWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2NSA2NyBdCm1hbnRpc19pMmNf
-eGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsw
-eDBmXSA8Vz5bIDY2IGU1IF0KemwxMDM1MzogemwxMDM1M19jYWxjX2lucHV0X2ZyZXE6IGlmMiAz
-NjE2NjcsIGlmZSA4ODg5MywgYWRjX2Nsb2NrIDQ1MDU2MCA9PiAtMTI5MzAgLyAweGNkN2UKbWFu
-dGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFk
-ZHJlc3M9WzB4MGZdIDxXPlsgNmMgY2QgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczox
-CiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2ZCA3ZSBdCm1h
-bnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBB
-ZGRyZXNzPVsweDBmXSA8Vz5bIDZlIDQxIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6
-MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNmYgMGQgXQpt
-YW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTog
-QWRkcmVzcz1bMHgwZl0gPFc+WyA2MiAwYSBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2Vz
-OjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDVmIDEzIF0K
-bWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6
-IEFkZHJlc3M9WzB4MGZdIDxXPlsgNzEgMDEgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdl
-czoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDYwMDgwICBb
-MDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAg
-ICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNzAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTog
-TWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA4
-MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBN
-T0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDYwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZl
-ciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhE
-PTB4MWYwNzAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAg
-IEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA4MDA4MCAgWzAwXQptYW50aXNf
-aTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUg
-PDA+IFJYRD0weDFmMDYwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIK
-ICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNzAwODAgIFswMF0K
-bWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAg
-ICBCeXRlIDwwPiBSWEQ9MHgxZjA4MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNz
-YWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDYwMDgw
-ICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6
-CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNzAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgw
-KTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgx
-ZjA4MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0
-ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDYwMDgwICBbMDBdCm1hbnRpc19pMmNf
-eGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4g
-UlhEPTB4MWYwNzAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAg
-ICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA4MDA4MCAgWzAwXQptYW50
-aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5
-dGUgPDA+IFJYRD0weDFmMDYwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2Vz
-OjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNzAwODAgIFsw
-MF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAg
-ICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA4MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBN
-ZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA1
-NSA4MCBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJj
-X3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIGVhIDAxIF0KbWFudGlzX2kyY194ZmVyICgwKTog
-TWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsg
-ZWEgMDAgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2ky
-Y193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA1NiAyOCBdCm1hbnRpc19pMmNfeGZlciAoMCk6
-IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5b
-IDVlIDAzIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19p
-MmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNWMgNzUgXQptYW50aXNfaTJjX3hmZXIgKDAp
-OiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+
-WyA2NCAzNiBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNf
-aTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIGNjIDczIF0KemwxMDM1MzogemwxMDM1M19j
-YWxjX25vbWluYWxfcmF0ZTogYncgOCwgYWRjX2Nsb2NrIDQ1MDU2MCA9PiAweDY3ZTUKbWFudGlz
-X2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJl
-c3M9WzB4MGZdIDxXPlsgNjUgNjcgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAg
-ICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2NiBlNSBdCnpsMTAz
-NTM6IHpsMTAzNTNfY2FsY19pbnB1dF9mcmVxOiBpZjIgMzYxNjY3LCBpZmUgODg4OTMsIGFkY19j
-bG9jayA0NTA1NjAgPT4gLTEyOTMwIC8gMHhjZDdlCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3Nh
-Z2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDZjIGNk
-IF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3Jp
-dGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNmQgN2UgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNz
-YWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2ZSA0
-MSBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dy
-aXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDZmIDBkIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVz
-c2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNjIg
-MGEgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193
-cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA1ZiAxMyBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1l
-c3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDcx
-IDAxIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToK
-ICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA2MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDAp
-OiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFm
-MDcwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRl
-IE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwODAwODAgIFswMF0KbWFudGlzX2kyY194
-ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4
-MGZdIDxXPlsgNTUgODAgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAg
-bWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyBlYSAwMSBdCm1hbnRpc19pMmNf
-eGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsw
-eDBmXSA8Vz5bIGVhIDAwIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAg
-IG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNTYgMjggXQptYW50aXNfaTJj
-X3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1b
-MHgwZl0gPFc+WyA1ZSAwMyBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAg
-ICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDVjIDc1IF0KbWFudGlzX2ky
-Y194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9
-WzB4MGZdIDxXPlsgNjQgMzYgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAg
-ICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyBjYyA3MyBdCnpsMTAzNTM6
-IHpsMTAzNTNfY2FsY19ub21pbmFsX3JhdGU6IGJ3IDgsIGFkY19jbG9jayA0NTA1NjAgPT4gMHg2
-N2U1Cm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dy
-aXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDY1IDY3IF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVz
-c2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNjYg
-ZTUgXQp6bDEwMzUzOiB6bDEwMzUzX2NhbGNfaW5wdXRfZnJlcTogaWYyIDM2MTY2NywgaWZlIDg4
-ODkzLCBhZGNfY2xvY2sgNDUwNTYwID0+IC0xMjkzMCAvIDB4Y2Q3ZQptYW50aXNfaTJjX3hmZXIg
-KDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0g
-PFc+WyA2YyBjZCBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50
-aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDZkIDdlIF0KbWFudGlzX2kyY194ZmVy
-ICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZd
-IDxXPlsgNmUgNDEgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFu
-dGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2ZiAwZCBdCm1hbnRpc19pMmNfeGZl
-ciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBm
-XSA8Vz5bIDYyIDBhIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1h
-bnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNWYgMTMgXQptYW50aXNfaTJjX3hm
-ZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgw
-Zl0gPFc+WyA3MSAwMSBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBC
-eXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNjAwODAgIFswMF0KbWFudGlzX2ky
-Y194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDww
-PiBSWEQ9MHgxZjA3MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAg
-ICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDgwMDgwICBbMDBdCm1h
-bnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAg
-Qnl0ZSA8MD4gUlhEPTB4MWYwNjAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2Fn
-ZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA3MDA4MCAg
-WzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgog
-ICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDgwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6
-IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYw
-NjAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUg
-TU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA3MDA4MCAgWzAwXQptYW50aXNfaTJjX3hm
-ZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJY
-RD0weDFmMDgwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAg
-ICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNjAwODAgIFswMF0KbWFudGlz
-X2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRl
-IDwwPiBSWEQ9MHgxZjA3MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoy
-CiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDgwMDgwICBbMDBd
-Cm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAg
-ICAgQnl0ZSA8MD4gUlhEPTB4MWYwNjAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVz
-c2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA3MDA4
-MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RF
-OgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDgwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAo
-MCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8
-Vz5bIDU1IDgwIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRp
-c19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgZWEgMDEgXQptYW50aXNfaTJjX3hmZXIg
-KDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0g
-PFc+WyBlYSAwMCBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50
-aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDU2IDI4IF0KbWFudGlzX2kyY194ZmVy
-ICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZd
-IDxXPlsgNWUgMDMgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFu
-dGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA1YyA3NSBdCm1hbnRpc19pMmNfeGZl
-ciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBm
-XSA8Vz5bIDY0IDM2IF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1h
-bnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgY2MgNzMgXQp6bDEwMzUzOiB6bDEw
-MzUzX2NhbGNfbm9taW5hbF9yYXRlOiBidyA4LCBhZGNfY2xvY2sgNDUwNTYwID0+IDB4NjdlNQpt
-YW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTog
-QWRkcmVzcz1bMHgwZl0gPFc+WyA2NSA2NyBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2Vz
-OjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDY2IGU1IF0K
-emwxMDM1MzogemwxMDM1M19jYWxjX2lucHV0X2ZyZXE6IGlmMiAzNjE2NjcsIGlmZSA4ODg5Mywg
-YWRjX2Nsb2NrIDQ1MDU2MCA9PiAtMTI5MzAgLyAweGNkN2UKbWFudGlzX2kyY194ZmVyICgwKTog
-TWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsg
-NmMgY2QgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2ky
-Y193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2ZCA3ZSBdCm1hbnRpc19pMmNfeGZlciAoMCk6
-IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5b
-IDZlIDQxIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19p
-MmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNmYgMGQgXQptYW50aXNfaTJjX3hmZXIgKDAp
-OiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+
-WyA2MiAwYSBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNf
-aTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDVmIDEzIF0KbWFudGlzX2kyY194ZmVyICgw
-KTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxX
-PlsgNzEgMDEgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBN
-T0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDYwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZl
-ciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhE
-PTB4MWYwNzAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAg
-IEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA4MDA4MCAgWzAwXQptYW50aXNf
-aTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUg
-PDA+IFJYRD0weDFmMDYwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIK
-ICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNzAwODAgIFswMF0K
-bWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAg
-ICBCeXRlIDwwPiBSWEQ9MHgxZjA4MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNz
-YWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDYwMDgw
-ICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6
-CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNzAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgw
-KTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgx
-ZjA4MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0
-ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDYwMDgwICBbMDBdCm1hbnRpc19pMmNf
-eGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4g
-UlhEPTB4MWYwNzAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAg
-ICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA4MDA4MCAgWzAwXQptYW50
-aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5
-dGUgPDA+IFJYRD0weDFmMDYwMDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2Vz
-OjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNzAwODAgIFsw
-MF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAg
-ICAgICBCeXRlIDwwPiBSWEQ9MHgxZjA4MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBN
-ZXNzYWdlczoyCiAgICAgICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDYw
-MDgwICBbMDBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1P
-REU6CiAgICAgICAgQnl0ZSA8MD4gUlhEPTB4MWYwNzAwODAgIFswMF0KbWFudGlzX2kyY194ZmVy
-ICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBSWEQ9
-MHgxZjA4MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAg
-bWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA1NSA4MCBdCm1hbnRpc19pMmNf
-eGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsw
-eDBmXSA8Vz5bIGVhIDAxIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAg
-IG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgZWEgMDAgXQptYW50aXNfaTJj
-X3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1b
-MHgwZl0gPFc+WyA1NiAyOCBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAg
-ICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDVlIDAzIF0KbWFudGlzX2ky
-Y194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9
-WzB4MGZdIDxXPlsgNWMgNzUgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAg
-ICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2NCAzNiBdCm1hbnRpc19p
-MmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNz
-PVsweDBmXSA8Vz5bIGNjIDczIF0KemwxMDM1MzogemwxMDM1M19jYWxjX25vbWluYWxfcmF0ZTog
-YncgOCwgYWRjX2Nsb2NrIDQ1MDU2MCA9PiAweDY3ZTUKbWFudGlzX2kyY194ZmVyICgwKTogTWVz
-c2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNjUg
-NjcgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193
-cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2NiBlNSBdCnpsMTAzNTM6IHpsMTAzNTNfY2FsY19p
-bnB1dF9mcmVxOiBpZjIgMzYxNjY3LCBpZmUgODg4OTMsIGFkY19jbG9jayA0NTA1NjAgPT4gLTEy
-OTMwIC8gMHhjZDdlCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50
-aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDZjIGNkIF0KbWFudGlzX2kyY194ZmVy
-ICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZd
-IDxXPlsgNmQgN2UgXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFu
-dGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgwZl0gPFc+WyA2ZSA0MSBdCm1hbnRpc19pMmNfeGZl
-ciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBtYW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBm
-XSA8Vz5bIDZmIDBkIF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6MQogICAgICAgIG1h
-bnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNjIgMGEgXQptYW50aXNfaTJjX3hm
-ZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTogQWRkcmVzcz1bMHgw
-Zl0gPFc+WyA1ZiAxMyBdCm1hbnRpc19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjEKICAgICAgICBt
-YW50aXNfaTJjX3dyaXRlOiBBZGRyZXNzPVsweDBmXSA8Vz5bIDcxIDAxIF0KbWFudGlzX2kyY194
-ZmVyICgwKTogTWVzc2FnZXM6MgogICAgICAgIEJ5dGUgTU9ERToKICAgICAgICBCeXRlIDwwPiBS
-WEQ9MHgxZjA2MDA4MCAgWzAwXQptYW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoyCiAgICAg
-ICAgQnl0ZSBNT0RFOgogICAgICAgIEJ5dGUgPDA+IFJYRD0weDFmMDcwMDgwICBbMDBdCm1hbnRp
-c19pMmNfeGZlciAoMCk6IE1lc3NhZ2VzOjIKICAgICAgICBCeXRlIE1PREU6CiAgICAgICAgQnl0
-ZSA8MD4gUlhEPTB4MWYwODAwODAgIFswMF0KbWFudGlzX2kyY194ZmVyICgwKTogTWVzc2FnZXM6
-MQogICAgICAgIG1hbnRpc19pMmNfd3JpdGU6IEFkZHJlc3M9WzB4MGZdIDxXPlsgNTAgMGMgXQpt
-YW50aXNfaTJjX3hmZXIgKDApOiBNZXNzYWdlczoxCiAgICAgICAgbWFudGlzX2kyY193cml0ZTog
-QWRkcmVzcz1bMHgwZl0gPFc+WyA1MSA0NCBdCg==
---0016364166e9e6a609048bc03103--
