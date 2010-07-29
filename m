@@ -1,22 +1,24 @@
 Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.11])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o65AAkjB028416
-	for <video4linux-list@redhat.com>; Mon, 5 Jul 2010 06:10:46 -0400
-Received: from moutng.kundenserver.de (moutng.kundenserver.de
-	[212.227.126.186])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o65AAF2H019294
-	for <video4linux-list@redhat.com>; Mon, 5 Jul 2010 06:10:36 -0400
-Message-ID: <4C31AF7E.7090602@2net.co.uk>
-Date: Mon, 05 Jul 2010 11:10:06 +0100
-From: Chris Simmonds <chris.simmonds@2net.co.uk>
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o6TIOotN022934
+	for <video4linux-list@redhat.com>; Thu, 29 Jul 2010 14:24:50 -0400
+Received: from mail-ww0-f46.google.com (mail-ww0-f46.google.com [74.125.82.46])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o6TIOeMc023310
+	for <video4linux-list@redhat.com>; Thu, 29 Jul 2010 14:24:41 -0400
+Received: by wwi17 with SMTP id 17so644650wwi.27
+	for <video4linux-list@redhat.com>; Thu, 29 Jul 2010 11:24:40 -0700 (PDT)
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Subject: Re: Contiguous memory allocations
-References: <1278103660.6034.16.camel@localhost>
-In-Reply-To: <1278103660.6034.16.camel@localhost>
-Reply-To: chris@2net.co.uk
+In-Reply-To: <001b01cb2f45$f445b8d0$dcd12a70$@com>
+References: <AANLkTim-92xffBTddcCiizrV3L=bwvfF8Xt2nhvkxop1@mail.gmail.com>
+	<001b01cb2f45$f445b8d0$dcd12a70$@com>
+Date: Thu, 29 Jul 2010 14:59:50 -0300
+Message-ID: <AANLkTi=xEnr0PH_tZ53KqXJE6pp8S82=kNOpDufZGKnJ@mail.gmail.com>
+Subject: Re: Max size format
+From: Gabriel Duarte <confusosk8@gmail.com>
+To: "Charlie X. Liu" <charlie@sensoray.com>
+Cc: video4linux-list <video4linux-list@redhat.com>
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,50 +26,78 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
 List-ID: <video4linux-list@redhat.com>
 
-On 02/07/10 21:47, Eric Nelson wrote:
-> Does anyone know if there's a common infrastructure for allocation
-> of DMA'able memory by drivers and applications above the straight
-> kernel API (dma_alloc_coherent)?
+I know, but the camera driver returns me 744x480. The image size is not a
+problem to, because there is post processing to it;
+
+On Thu, Jul 29, 2010 at 2:46 PM, Charlie X. Liu <charlie@sensoray.com>wrote:
+
+> Usually, you should take 720x480 (D1.NTSC) or 720x576 (D1.PAL) or 640x480
+> (VGA) size from a TV capture card.
 >
-> I'm working with Freescale i.MX51 drivers to do 720P video
-> input and output and the embedded calls to dma_alloc_coherent
-> fail except when used right after boot because of fragmentation.
+> -----Original Message-----
+> From: video4linux-list-bounces@redhat.com
+> [mailto:video4linux-list-bounces@redhat.com] On Behalf Of Gabriel Duarte
+> Sent: Thursday, July 29, 2010 9:56 AM
+> To: video4linux-list
+> Subject: Max size format
 >
-> I'm fighting the urge to write yet another special-purpose allocator
-> for video buffers thinking this must be a common problem with a
-> solution already, but I can't seem to locate one.
+> Hello all!
+> I've built an app to get the max size of my cameras! I got two capture
+> devices, and simple webcam, with max size 640x480 and a TV capture card,
+> max
+> size 744x480. When I query my webcam, at /dev/video0, it returns the right
+> size, but my TV card returns a weird size, like this:
 >
-> The closest thing I've found is the bigphysarea patch, which doesn't
-> appear to be supported or headed toward main-line.
 >
-> Thanks in advance,
+> *gabriel@bourbaki:~/Desktop$ ./camera_size /dev/video0*
+> *raw pixfmt: YUYV 640x480*
+> *pixfmt: RGB3 640x480*
+> *gabriel@bourbaki:~/Desktop$ ./camera_size /dev/video1*
+> *raw pixfmt: BGR3 48x32*
+> *pixfmt: RGB3 48x32*
+> *
+> *
+> I'll attach my code and if someone find out what is going wrong, I'd be
+> very
+> glad!
+>
+> Thank you all!
+>
+>
+> --
+> Gabriel Duarte
+> Linux User #471185
+> Rio de Janeiro - RJ
+> http://w3.impa.br/~gabrield
+>
+> Phones:
+> (55) (21) 9463-7760  -> Mobile
+> (55) (21) 2464-9302  -> Home
+> (55) (21) 2529-5080  -> Work
+> --
+> video4linux-list mailing list
+> Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+> https://www.redhat.com/mailman/listinfo/video4linux-list
+>
 >
 
-dma_alloc_coherent is pretty much just a wrapper round get_free_pages, 
-which is the lowest level allocator in the kernel. So, no there is no 
-other option (but see below). The simplest thing is to make sure your 
-driver is loaded at boot time and to grab all the memory you need then 
-and never let it go. That's what I do.
-
-If you are desperate, you can use the bigphysarea patch - it's quite 
-common on streaming video devices - but you will have to port it to your 
-kernel. Or, you can restrict the memory the kernel uses with something 
-like "mem=128M" on the command line and take that above 128M for 
-yourself. You will have to map it in with ioremap(_nocache).
-
-Bye for now,
-Chris.
 
 -- 
-Chris Simmonds                   2net Limited
-chris@2net.co.uk                 http://www.2net.co.uk/
+Gabriel Duarte
+Linux User #471185
+Rio de Janeiro - RJ
+http://w3.impa.br/~gabrield
 
+Phones:
+(55) (21) 9463-7760  -> Mobile
+(55) (21) 2464-9302  -> Home
+(55) (21) 2529-5080  -> Work
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
