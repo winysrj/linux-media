@@ -1,39 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:42243 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756027Ab0GLPeg (ORCPT
+Received: from mailout-us.gmx.com ([74.208.5.67]:58798 "HELO
+	mailout-us.gmx.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755787Ab0G2JV0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Jul 2010 11:34:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Johannes Berg <johannes@sipsolutions.net>
-Subject: Re: macbook webcam no longer works on .35-rc
-Date: Mon, 12 Jul 2010 17:34:28 +0200
-Cc: linux-media@vger.kernel.org, "Rafael J. Wysocki" <rjw@sisk.pl>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-References: <1277932269.11050.1.camel@jlt3.sipsolutions.net> <201007051023.40923.laurent.pinchart@ideasonboard.com> <1278938186.5870.18.camel@jlt3.sipsolutions.net>
-In-Reply-To: <1278938186.5870.18.camel@jlt3.sipsolutions.net>
+	Thu, 29 Jul 2010 05:21:26 -0400
+Message-ID: <4C517241.9050502@gmx.com>
+Date: Thu, 29 Jul 2010 12:21:21 +0000
+From: Hasan SAHIN <hasan.sahin@gmx.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: linux-media@vger.kernel.org
+Subject: gspca_zc3xx module
+Content-Type: text/plain; charset=ISO-8859-9; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007121734.29394.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Johannes,
+  Hello Jean-Francois,
 
-On Monday 12 July 2010 14:36:26 Johannes Berg wrote:
-> On Mon, 2010-07-05 at 10:23 +0200, Laurent Pinchart wrote:
-> > Could you please test the following patch when you will have time ?
-> 
-> That fixes it, thank you.
+I am using Gentoo linux stable x86 with kernel 2.6.34-r1.
+before the kernel update to 2.6.34-r1, I was using 2.6.32-r7 and there 
+was no problem with webcam.
+The webcam was working as good with kernel 2.6.32-r7(old gentoo stable 
+kernel)
+but right now it does not work with the kernel 2.6.34-r1 (new gentoo 
+stable kernel)
 
-The fix has been applied to 
-http://git.kernel.org/?p=linux/kernel/git/mchehab/linux-next.git;a=shortlog 
-and should end up in the next 2.6.35-rc.
+And also I have tried with ubuntu 10.04 (kernel 2.6.32-25) and working 
+good. I could not understood what is the problem. (Problem is : there is 
+no output, no stream)
 
--- 
-Regards,
+All test has been done with wxcam,cheese and your svv.c program.
 
-Laurent Pinchart
+Could you please help me?
+
+Thanks and regards,
+Hasan.
+
+lsusb :
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 001 Device 005: ID 0ac8:303b Z-Star Microelectronics Corp. ZC0303 Webcam
+Bus 001 Device 002: ID 04b3:310c IBM Corp. Wheel Mouse
+Bus 001 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+
+lsmod
+gspca_zc3xx            34720  0
+gspca_main             17677  1 gspca_zc3xx
+videodev               27331  1 gspca_main
+usbcore                92279  7 
+gspca_zc3xx,gspca_main,usbhid,usbmouse,ehci_hcd,ohci_hcd
+
+
+this is the kernel message when I remove and re-plug the webcam :
+
+dmesg | tail -30
+gspca: isoc irq
+gspca: found int in endpoint: 0x82, buffer_len=8, interval=10
+gspca: stream off OK
+gspca: [svv] close
+gspca: frame free
+gspca: close done
+usb 1-8: USB disconnect, address 5
+gspca: video0 disconnect
+gspca: video0 released
+usb 1-8: new full speed USB device using ohci_hcd and address 6
+usb 1-8: New USB device found, idVendor=0ac8, idProduct=303b
+usb 1-8: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+usb 1-8: Product: PC Camera
+usb 1-8: Manufacturer: Vimicro Corp.
+gspca: probing 0ac8:303b
+zc3xx: probe 2wr ov vga 0x0000
+zc3xx: probe 3wr vga 1 0xc001
+zc3xx: probe sensor -> 0013
+zc3xx: Find Sensor MI0360SOC. Chip revision c001
+input: zc3xx as /devices/pci0000:00/0000:00:02.0/usb1/1-8/input/input7
+gspca: video0 created
+gspca: found int in endpoint: 0x82, buffer_len=8, interval=10
+gspca: [v4l_id] open
+gspca: open done
+gspca: [v4l_id] close
+gspca: close done
+gspca: [hald-probe-vide] open
+gspca: open done
+gspca: [hald-probe-vide] close
+gspca: close done
+
+
+
+
+
