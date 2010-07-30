@@ -1,55 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:38251 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753769Ab0GKNtp convert rfc822-to-8bit (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:65382 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932157Ab0G3LnI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Jul 2010 09:49:45 -0400
-Date: Sun, 11 Jul 2010 15:50:08 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Kyle Baker <kyleabaker@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
-Message-ID: <20100711155008.1f8f583f@tele>
-In-Reply-To: <AANLkTikrKBpRSI6wVdMO3tSYPhm1CECFGeNiyJdzTa03@mail.gmail.com>
-References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
-	<20100707074431.66629934@tele>
-	<AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
-	<20100707110613.18be4215@tele>
-	<AANLkTim6xCtIMxZj3f4wpY6eZTrJBEv6uvVZZoiX-mg6@mail.gmail.com>
-	<20100708121454.75db358c@tele>
-	<AANLkTilw1KxYanoQZEZVaiFCLfkdTpO72Z9xV73i4gm2@mail.gmail.com>
-	<20100709200312.755e8069@tele>
-	<AANLkTikxIJxuQiV_7PqPA5C6ZU5XhhmmQ3hAbIwWsrPT@mail.gmail.com>
-	<20100710113616.1ed63ebc@tele>
-	<AANLkTikrKBpRSI6wVdMO3tSYPhm1CECFGeNiyJdzTa03@mail.gmail.com>
+	Fri, 30 Jul 2010 07:43:08 -0400
+Subject: Re: [PATCH v2]Resend:videobuf_dma_sg: a new implementation for mmap
+From: "Figo.zhang" <figo1802@gmail.com>
+To: npiggin@suse.de, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	akpm <akpm@linux-foundation.org>,
+	Greg Kroah-Hartman <gregkh@suse.de>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	lkml <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>
+In-Reply-To: <201007301131.17638.laurent.pinchart@ideasonboard.com>
+References: <1280448482.2648.2.camel@localhost.localdomain>
+	 <201007301131.17638.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 30 Jul 2010 19:39:40 +0800
+Message-ID: <1280489980.2648.12.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 10 Jul 2010 22:30:58 -0400
-Kyle Baker <kyleabaker@gmail.com> wrote:
+On Fri, 2010-07-30 at 11:31 +0200, Laurent Pinchart wrote:
+> Hi,
+> 
+> On Friday 30 July 2010 02:08:02 Figo.zhang wrote:
+> > a mmap issue for videobuf-dma-sg: it will alloc a new page for mmaping when
+> > it encounter page fault at video_vm_ops->fault(). pls see
+> > http://www.spinics.net/lists/linux-media/msg21243.html
+> > 
+> > a new implementation for mmap, it translate to vmalloc to page at
+> > video_vm_ops->fault().
+> > 
+> > in v2, if mem->dma.vmalloc is NULL at video_vm_ops->fault(), it will alloc
+> > memory by vmlloc_32().
+> 
+> You're replacing allocation in videobuf_vm_fault by allocationg in 
+> videobuf_vm_fault. I don't see the point. videobuf_vm_fault needs to go away 
+> completely.
+in now videobuf code, the mmap alloc a new buf, the capture dma buffer
+using vmalloc() alloc buffer, how is
+relationship with them? in usrspace , the mmap region will not the
+actual capture dma data, how is work? 
 
-> Is this change from 0x40 to 0x44 intended to fix the "bad interface"
-> messages as well as the mic becoming disabled? Also, is a reboot after
-> installing these drivers and changes required? I'm only curious
-> because it takes so much longer to test changes.
+> 
+> This has been discussed previously: fixing videobuf is not really possible. A 
+> videobuf2 implementation is needed and is (slowly) being worked on. 
+hi Mauro, do you think this is a issue for videobuf-dma-sg?
 
-The change from 0x40 to 0x44 is applied to the GPIO register of the
-SN9C105 which is the bridge of the webcam. I was thinking that some
-values of this register could break the audio input. It does not seem
-so.
+> I wouldn't 
+> bother with this patch, just drop it.
+> 
+> > Signed-off-by: Figo.zhang <figo1802@gmail.com>
+> > ---
+> > drivers/media/video/videobuf-dma-sg.c |   50
+> > +++++++++++++++++++++++++++------ 1 files changed, 41 insertions(+), 9
+> > deletions(-)
+> > 
+> > diff --git a/drivers/media/video/videobuf-dma-sg.c
+> > b/drivers/media/video/videobuf-dma-sg.c index 8359e6b..f7295da 100644
+> > --- a/drivers/media/video/videobuf-dma-sg.c
+> > +++ b/drivers/media/video/videobuf-dma-sg.c
+> > @@ -201,10 +201,11 @@ int videobuf_dma_init_kernel(struct videobuf_dmabuf
+> > *dma, int direction, dprintk(1, "init kernel [%d pages]\n", nr_pages);
+> > 
+> >  	dma->direction = direction;
+> > -	dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
+> > -	if (NULL == dma->vmalloc) {
+> > -		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
+> > -		return -ENOMEM;
+> > +	if (!dma->vmalloc)
+> > +		dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
+> > +		if (NULL == dma->vmalloc) {
+> > +			dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
+> > +			return -ENOMEM;
+> >  	}
+> > 
+> >  	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
+> > @@ -397,16 +398,47 @@ static void videobuf_vm_close(struct vm_area_struct
+> > *vma) */
+> >  static int videobuf_vm_fault(struct vm_area_struct *vma, struct vm_fault
+> > *vmf) {
+> > -	struct page *page;
+> > +	struct page *page = NULL;
+> > +	struct videobuf_mapping *map = vma->vm_private_data;
+> > +	struct videobuf_queue *q = map->q;
+> > +	struct videobuf_dma_sg_memory *mem = NULL;
+> > +
+> > +	unsigned long offset;
+> > +	unsigned long page_nr;
+> > +	int first;
+> > 
+> >  	dprintk(3, "fault: fault @ %08lx [vma %08lx-%08lx]\n",
+> >  		(unsigned long)vmf->virtual_address,
+> >  		vma->vm_start, vma->vm_end);
+> > 
+> > -	page = alloc_page(GFP_USER | __GFP_DMA32);
+> > -	if (!page)
+> > -		return VM_FAULT_OOM;
+> > -	clear_user_highpage(page, (unsigned long)vmf->virtual_address);
+> > +	mutex_lock(&q->vb_lock);
+> > +	offset = (unsigned long)vmf->virtual_address - vma->vm_start;
+> > +	page_nr = offset >> PAGE_SHIFT;
+> > +
+> > +	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
+> > +			if (NULL == q->bufs[first])
+> > +				continue;
+> > +
+> > +			MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
+> > +
+> > +			if (q->bufs[first]->map == map)
+> > +				break;
+> > +	}
+> > +
+> > +	mem = q->bufs[first]->priv;
+> > +	if (!mem)
+> > +		return VM_FAULT_SIGBUS;
+> > +	if (!mem->dma.vmalloc) {
+> > +		mem->dma.vmalloc = vmalloc_32(PAGE_ALIGN(q->bufs[first]->size));
+> > +		if (NULL == mem->dma.vmalloc) {
+> > +			dprintk(1, "%s: vmalloc_32() failed\n", __func__);
+> > +			return VM_FAULT_OOM;
+> > +		}
+> > +	} else
+> > +		page = vmalloc_to_page(mem->dma.vmalloc+
+> > +				(offset & (~PAGE_MASK)));
+> > +	mutex_unlock(&q->vb_lock);
+> > +
+> >  	vmf->page = page;
+> > 
+> >  	return 0;
+> 
 
-The "bad interface" messages are printed when the audio interfaces are
-called by HAL for probe by the video driver. This is not an error.
-I will remove this message in the next version.
 
-Rebooting after installing a new version of a module is not needed. The
-module may be removed from memory by 'rmmod'. In your case, when
-updating sonixj, you just need to unplug the webcam, do
-"rmmod gspca_sonixj" and replug the webcam.
 
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
