@@ -1,86 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:48292 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760197Ab0GWObg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Jul 2010 10:31:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC] Per-subdev, host-specific data
-Date: Fri, 23 Jul 2010 16:31:32 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <201007231501.31170.laurent.pinchart@ideasonboard.com> <201007231546.29691.hverkuil@xs4all.nl>
-In-Reply-To: <201007231546.29691.hverkuil@xs4all.nl>
+Received: from mailout-de.gmx.net ([213.165.64.22]:54550 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751097Ab0G3Ph4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jul 2010 11:37:56 -0400
+Date: Fri, 30 Jul 2010 17:38:11 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <m.grzeschik@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>, p.wiesner@phytec.de
+Subject: Re: [PATCH 00/20] MT9M111/MT9M131
+In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1007301734540.7194@axis700.grange>
+References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007231631.34967.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Michael
 
-On Friday 23 July 2010 15:46:29 Hans Verkuil wrote:
-> On Friday 23 July 2010 15:01:29 Laurent Pinchart wrote:
-> > Hi everybody,
-> > 
-> > Trying to implement support for multiple sensors connected to the same
-> > OMAP3 ISP input (all but one of the sensors need to be kept in reset
-> > obviously), I need to associate host-specific data to the sensor
-> > subdevs.
-> > 
-> > The terms host and bridge are considered as synonyms in the rest of this
-> > e- mail.
-> > 
-> > The OMAP3 ISP platform data has interface configuration parameters for
-> > the two CSI2 (a and c), CCP2 and parallel interfaces. The parameters are
-> > used to configure the bus when a sensor is selected. To support multiple
-> > sensors on the same input, the parameters need to be specified
-> > per-sensor, and not ISP- wide.
-> > 
-> > No issue in the platform data. Board codes declare an array of structures
-> > that embed a struct v4l2_subdev_i2c_board_info instance and an OMAP3
-> > ISP-specific interface configuration structure.
-> > 
-> > At runtime, when a sensor is selected, I need to access the OMAP3
-> > ISP-specific interface configuration structure for the selected sensor.
-> > At that point all I have is a v4l2_subdev structure pointer, without a
-> > way to get back to the interface configuration structure.
-> > 
-> > The only point in the code where the v4l2_subdev and the interface
-> > configuration data are both known and could be linked together is in the
-> > host driver's probe function, where the v4l2_subdev instances are
-> > created. I have two solutions there:
-> > 
-> > - store the v4l2_subdev pointer and the interface configuration data
-> > pointer in a host-specific array, and perform a an array lookup
-> > operation at runtime with the v4l2_subdev pointer as a key
-> > 
-> > - add a void *host_priv field to the v4l2_subdev structure, store the
-> > interface configuration data pointer in that field, and use the field at
-> > runtime
-> > 
-> > The second solution seems cleaner but requires an additional field in
-> > v4l2_subdev. Opinions and other comments will be appreciated.
+Thanks for the patches, and for taking care about my holiday - now I will 
+definitely not have to be bored, while lying around on tropical beaches of 
+Denmark;)
+
+Ok, I will review them, and I hope you realise, this has practically 0 
+chance to get into 2.6.36, unless Linus decides to release a couple more 
+-rc's. So, I think we shall take our time and prepare these for 2.6.37.
+
+Thanks
+Guennadi
+
+On Fri, 30 Jul 2010, Michael Grzeschik wrote:
+
+> Hi everyone,
 > 
-> There is a third option: the grp_id field is owned by the host driver, so
-> you could make that an index into a host specific array.
+> the following patchseries was created in a rewrite process of the
+> mt9m111 camera driver while it was tested for support of the very
+> similar silicon mt9m121. Some patches add functionality like panning or
+> test pattern generation or adjust rectengular positioning while others
+> do some restructuring. It has been tested as functional. Comments on
+> this are very welcome.
+> 
+> Michael Grzeschik (19):
+>   mt9m111: init chip after read CHIP_VERSION
+>   mt9m111: register cleanup hex to dec bitoffset
+>   mt9m111: added new bit offset defines
+>   mt9m111: added default row/col/width/height values
+>   mt9m111: changed MAX_{HEIGHT,WIDTH} values to silicon pixelcount
+>   mt9m111: changed MIN_DARK_COLS to MT9M131 spec count
+>   mt9m111: cropcap use defined default rect properties in defrect
+>   mt9m111: cropcap check if type is CAPTURE
+>   mt9m111: rewrite make_rect for positioning in debug
+>   mt9m111: added mt9m111 format structure
+>   mt9m111: s_crop add calculation of output size
+>   mt9m111: s_crop check for VIDEO_CAPTURE type
+>   mt9m111: added reg_mask function
+>   mt9m111: rewrite setup_rect, added soft_crop for smooth panning
+>   mt9m111: added more supported BE colour formats
+>   mt9m111: rewrite set_pixfmt
+>   mt9m111: make use of testpattern in debug mode
+>   mt9m111: try_fmt rewrite to use preset values
+>   mt9m111: s_fmt make use of try_fmt
+> 
+> Philipp Wiesner (1):
+>   mt9m111: Added indication that MT9M131 is supported by this driver
+> 
+>  drivers/media/video/Kconfig   |    5 +-
+>  drivers/media/video/mt9m111.c |  596 ++++++++++++++++++++++++++---------------
+>  2 files changed, 377 insertions(+), 224 deletions(-)
+> 
+> -- 
+> Pengutronix e.K.                           |                             |
+> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> 
 
-Good point.
-
-> That said, I think having a host_priv field isn't a bad idea. Although if
-> we do this, then I think the existing priv field should be renamed to
-> drv_priv to prevent confusion.
-
-As Guennadi, Sakari and you all agree that the host_priv field is a good idea, 
-I'll submit a patch.
-
-Thanks.
-
--- 
-Regards,
-
-Laurent Pinchart
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
