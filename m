@@ -1,124 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3293 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756653Ab0G2TdW (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51746 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758450Ab0G3OyT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 15:33:22 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6TJXLOr020518
-	for <linux-media@vger.kernel.org>; Thu, 29 Jul 2010 21:33:21 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 29 Jul 2010 21:33:21 +0200 (CEST)
-Message-Id: <201007291933.o6TJXLOr020518@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 30 Jul 2010 10:54:19 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de, p.wiesner@phytec.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: [PATCH 03/20] mt9m111: register cleanup hex to dec bitoffset
+Date: Fri, 30 Jul 2010 16:53:21 +0200
+Message-Id: <1280501618-23634-4-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+---
+ drivers/media/video/mt9m111.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-Results of the daily build of v4l-dvb:
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 39dff7c..c72c4b0 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -100,14 +100,14 @@
+ #define MT9M111_OUTFMT_BYPASS_IFP	(1 << 10)
+ #define MT9M111_OUTFMT_INV_PIX_CLOCK	(1 << 9)
+ #define MT9M111_OUTFMT_RGB		(1 << 8)
+-#define MT9M111_OUTFMT_RGB565		(0x0 << 6)
+-#define MT9M111_OUTFMT_RGB555		(0x1 << 6)
+-#define MT9M111_OUTFMT_RGB444x		(0x2 << 6)
+-#define MT9M111_OUTFMT_RGBx444		(0x3 << 6)
+-#define MT9M111_OUTFMT_TST_RAMP_OFF	(0x0 << 4)
+-#define MT9M111_OUTFMT_TST_RAMP_COL	(0x1 << 4)
+-#define MT9M111_OUTFMT_TST_RAMP_ROW	(0x2 << 4)
+-#define MT9M111_OUTFMT_TST_RAMP_FRAME	(0x3 << 4)
++#define MT9M111_OUTFMT_RGB565		(0 << 6)
++#define MT9M111_OUTFMT_RGB555		(1 << 6)
++#define MT9M111_OUTFMT_RGB444x		(2 << 6)
++#define MT9M111_OUTFMT_RGBx444		(3 << 6)
++#define MT9M111_OUTFMT_TST_RAMP_OFF	(0 << 4)
++#define MT9M111_OUTFMT_TST_RAMP_COL	(1 << 4)
++#define MT9M111_OUTFMT_TST_RAMP_ROW	(2 << 4)
++#define MT9M111_OUTFMT_TST_RAMP_FRAME	(3 << 4)
+ #define MT9M111_OUTFMT_SHIFT_3_UP	(1 << 3)
+ #define MT9M111_OUTFMT_AVG_CHROMA	(1 << 2)
+ #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y	(1 << 1)
+-- 
+1.7.1
 
-date:        Thu Jul 29 19:00:16 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
-
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
