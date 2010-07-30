@@ -1,44 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17864 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:16670 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752466Ab0GIWKV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Jul 2010 18:10:21 -0400
-Date: Fri, 9 Jul 2010 18:03:18 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Frederic Weisbecker <fweisbec@gmail.com>
-Subject: Re: [PATCH] lirc: use unlocked_ioctl
-Message-ID: <20100709220318.GM24110@redhat.com>
-References: <201007092335.39250.arnd@arndb.de>
+	id S1753105Ab0G3TdB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jul 2010 15:33:01 -0400
+Message-ID: <4C5328F2.8040404@redhat.com>
+Date: Fri, 30 Jul 2010 16:33:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201007092335.39250.arnd@arndb.de>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+CC: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [PATCH 0/9 v3] IR: few fixes, additions and ENE driver
+References: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 09, 2010 at 11:35:39PM +0200, Arnd Bergmann wrote:
-> New code should not rely on the big kernel lock,
-> so use the unlocked_ioctl file operation in lirc.
+Em 30-07-2010 08:38, Maxim Levitsky escreveu:
+> Hi,
 > 
-> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> ---
-> The lirc code currently conflicts with my removal of the .ioctl
-> operation, which I'd like to get into linux-next.
+> This is mostly same patchset.
 > 
->  drivers/media/IR/ir-lirc-codec.c |    7 +++----
->  drivers/media/IR/lirc_dev.c      |   12 ++++++------
->  drivers/media/IR/lirc_dev.h      |    3 +--
->  3 files changed, 10 insertions(+), 12 deletions(-)
+> I addressed the comments of Andy Walls.
+> 
+> Now IR decoding is done by a separate thread, and this fixes
+> the race, and unnesesary performance loss due to it.
+> 
+> Best regards,
+> 	Maxim Levitsky
+> 
 
-Still works for both rx and tx here w/one of my mceusb transceivers here.
+Hmm... some change at this changeset is trying to divide a 64 bits integer
+at the LIRC driver. This is causing the following error:
 
-Tested-by: Jarod Wilson <jarod@redhat.com>
-Acked-by: Jarod Wilson <jarod@redhat.com>
+Jul 30 16:45:23 agua kernel: [23834.179871] lirc_dev: IR Remote Control driver registered, major 251 
+Jul 30 16:45:23 agua kernel: [23834.181884] ir_lirc_codec: Unknown symbol __udivdi3 (err 0)
 
--- 
-Jarod Wilson
-jarod@redhat.com
+you should, instead use do_div for doing that. Another fix would be to define the timeout
+constants as int or u32.
 
+Cheers,
+Mauro
