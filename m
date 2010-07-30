@@ -1,68 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:37547 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751065Ab0GGG6R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 02:58:17 -0400
-Received: by gye5 with SMTP id 5so2225890gye.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Jul 2010 23:58:16 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20100707074431.66629934@tele>
-References: <AANLkTinFXtHdN6DoWucGofeftciJwLYv30Ll6f_baQtH@mail.gmail.com>
-	<20100707074431.66629934@tele>
-From: Kyle Baker <kyleabaker@gmail.com>
-Date: Wed, 7 Jul 2010 02:57:54 -0400
-Message-ID: <AANLkTimxJi3qvIImwUDZCzWSCC3fEspjAyeXg9Qkneyo@mail.gmail.com>
-Subject: Re: Microsoft VX-1000 Microphone Drivers Crash in x86_64
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51747 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758657Ab0G3OyT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jul 2010 10:54:19 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de, p.wiesner@phytec.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: [PATCH 06/20] mt9m111: changed MAX_{HEIGHT,WIDTH} values to silicon pixelcount
+Date: Fri, 30 Jul 2010 16:53:24 +0200
+Message-Id: <1280501618-23634-7-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 7, 2010 at 1:44 AM, Jean-Francois Moine <moinejf@free.fr> wrote:
+Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+---
+ drivers/media/video/mt9m111.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> Hi Kyle,
->
-> The problem is known. I have no fix yet, but it seems that you use a
-> USB 1.1. or that you have some other device on the same bus. May you
-> try to connect your webcam to an other USB port?
->
-> Best regards.
-
-I tested different ports, but the results are the same.
-
->From the log files it appears to be connecting via USB2.
-
-Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.202520] usb 2-1: new
-full speed USB device using ohci_hcd and address 6
-Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.426975] gspca:
-probing 045e:00f7
-Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.438792] sonixj:
-Sonix chip id: 11
-Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.444844] input:
-sonixj as /devices/pci0000:00/0000:00:02.0/usb2/2-1/input/input7
-Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.444916] gspca: video0 created
-Jul  7 01:48:54 kyleabaker-desktop kernel: [ 6186.444918] gspca: found
-int in endpoint: 0x83, buffer_len=1, interval=100
-
-The only usb devices connected are my keyboard, mouse and vx-1000 webcam.
-
-I can get the microphone back if I reset the modules:
-sudo rmmod gspca_sonixj
-sudo modprobe gspca_sonixj
-
-If the microphone works when used alone (with the sound recorder
-application) and video works in Cheese, why would they not work
-together at the same time?
-
-I'm looking through the sonixj.c code to see if I can find where its
-breaking, but I'm not very experienced in C.
-
-I've been trying to get this worked out for a year, so if there is
-anything I can do to help fix this bug let me know. This is a fairly
-common webcam, so it would be great to see this resolved soon.
-
-What is the current priority of this bug?
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 5f0c55e..2080615 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -131,8 +131,8 @@
+ 
+ #define MT9M111_MIN_DARK_ROWS	8
+ #define MT9M111_MIN_DARK_COLS	24
+-#define MT9M111_MAX_HEIGHT	1024
+-#define MT9M111_MAX_WIDTH	1280
++#define MT9M111_MAX_HEIGHT	1032
++#define MT9M111_MAX_WIDTH	1288
+ #define MT9M111_DEF_DARK_ROWS	12
+ #define MT9M111_DEF_DARK_COLS	30
+ #define MT9M111_DEF_HEIGHT	1024
 -- 
-Thanks,
-Kyle Baker
+1.7.1
+
