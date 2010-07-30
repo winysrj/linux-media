@@ -1,122 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:39988 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756292Ab0GHMIw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 08:08:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC/PATCH 2/6] v4l: subdev: Add device node support
-Date: Thu, 8 Jul 2010 14:08:49 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1278503608-9126-1-git-send-email-laurent.pinchart@ideasonboard.com> <201007072144.46481.laurent.pinchart@ideasonboard.com> <4C34E954.5090907@redhat.com>
-In-Reply-To: <4C34E954.5090907@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41240 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758288Ab0G3CDM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jul 2010 22:03:12 -0400
+Subject: Re: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
+From: Andy Walls <awalls@md.metrocast.net>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: maximlevitsky@gmail.com, jarod@wilsonet.com,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, mchehab@redhat.com
+In-Reply-To: <BTlN5mEJjFB@christoph>
+References: <BTlN5mEJjFB@christoph>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 29 Jul 2010 22:03:30 -0400
+Message-ID: <1280455410.15737.58.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007081408.50289.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Thu, 2010-07-29 at 19:15 +0200, Christoph Bartelmus wrote:
+> on 29 Jul 10 at 19:26, Maxim Levitsky wrote:
+> > On Thu, 2010-07-29 at 11:38 -0400, Andy Walls wrote:
+> >> On Thu, 2010-07-29 at 17:41 +0300, Maxim Levitsky wrote:
+> >>> On Thu, 2010-07-29 at 09:23 +0200, Christoph Bartelmus wrote:
 
-On Wednesday 07 July 2010 22:53:40 Mauro Carvalho Chehab wrote:
-> Em 07-07-2010 16:44, Laurent Pinchart escreveu:
-> > On Wednesday 07 July 2010 16:58:01 Mauro Carvalho Chehab wrote:
-> >> Em 07-07-2010 08:53, Laurent Pinchart escreveu:
-> >>> Create a device node named subdevX for every registered subdev.
-> >>> As the device node is registered before the subdev core::s_config
-> >>> function is called, return -EGAIN on open until initialization
-> >>> completes.
-> > 
-> > [snip]
-> > 
-> >>> +static int subdev_open(struct file *file)
-> >>> +{
-> >>> +	struct video_device *vdev = video_devdata(file);
-> >>> +	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-> >>> +
-> >>> +	if (!sd->initialized)
-> >>> +		return -EAGAIN;
-> >> 
-> >> Those internal interfaces should not be used on normal
-> >> devices/applications, as none of the existing drivers are tested or
-> >> supposed to properly work if an external program is touching on its
-> >> 
-> >> internal interfaces. So, please add:
-> >> 	if (!capable(CAP_SYS_ADMIN))
-> >> 	
-> >> 		return -EPERM;
-> > 
-> > As Hans pointed out, subdev device nodes should only be created if the
-> > subdev request it explicitly. I'll fix the patch accordingly. Existing
-> > subdevs will not have a device node by default anymore, so the
-> > CAP_SYS_ADMIN capability won't be required (new subdevs that explicitly
-> > ask for a device node are supposed to handle the calls properly,
-> > otherwise it's a bit pointless :-)).
-> 
-> It should be not requested by the subdev, but by the bridge driver (or
-> maybe by both).
-> 
-> On several drivers, the bridge is connected to more than one subdev, and
-> some changes need to go to both subdevs, in order to work. As the glue
-> logic is at the bridge driver, creating subdev interfaces will not make
-> sense on those devices.
+Hi Christoph, Mauro, and Jarrod
 
-Agreed. I've added a flag that subdev drivers can set to request creation of a 
-device node explicitly, and an argument to to v4l2_i2c_new_subdev_board and 
-v4l2_spi_new_subdev to overwrite the flag. A device node will only be created 
-if the flag is set by the subdev (meaning "I can support device nodes") and 
-the flag is not forced to 0 by the bridge driver (meaning "I allow userspace 
-to access the subdev directly).
+> When timeout reports are enabled the sequence must be:
+> <pulse> <timeout> <space> <pulse>
+> where <timeout> is optional.
 
-[snip]
+OK.  This is some of the detail I needed.
 
-> >>> +static long subdev_ioctl(struct file *file, unsigned int cmd,
-> >>> +	unsigned long arg)
-> >>> +{
-> >>> +	return video_usercopy(file, cmd, arg, subdev_do_ioctl);
-> >> 
-> >> This is a legacy call. Please, don't use it.
-> > 
-> > What should I use instead then ? I need the functionality of
-> > video_usercopy. I could copy it to v4l2-subdev.c verbatim. As
-> > video_ioctl2 shares lots of code with video_usercopy I think
-> > video_usercopy should stay, and video_ioctl2 should use it.
-> 
-> The bad thing of video_usercopy() is that it has a "compat" code, to fix
-> broken definitions of some iotls (see video_fix_command()), and that a few
-> drivers still use it, instead of video_ioctl2.
+I'm looking at the master branch of Jarrod's wip git repo, but:
 
-video_ioctl2 has the same compat code.
 
-> For sure, we don't need the "compat" code for subdev interface. Also, as
-> time goes by, we'll eventually have different needs at the subdev interface,
-> as some types of ioctl's may be specific to subdevs and may require
-> different copy logic.
+1. I don't see how a timeout report is going to make it through 
 
-We can change the logic then :-)
+	drivers/media/IR/ir-lirc-codec.c:lir_lirc_decode()
 
-> IMO, the better is to use the same logic inside the subdev stuff, of course
-> removing that "old ioctl" fix logic:
-> 
-> #ifdef __OLD_VIDIOC_
-> 	cmd = video_fix_command(cmd);
-> #endif
-> 
-> And replacing the call to:
-> 	err = func(file, cmd, parg);
-> 
-> By the proper subdev handling.
+I guess I'll have to add a "flags" field (or something) to 
 
-What about renaming video_usercopy to __video_usercopy, adding an argument to 
-enable/disable the compat code, create a new video_usercopy that calls 
-__video_usercopy with compat code enabled, have video_ioctl2 call 
-__video_usercopy with compat code enabled, and having subdev_ioctl call 
-__video_usercopy with compat code disabled ?
+	include/media/ir_core.h:struct ir_raw_event
 
--- 
+to modify the events beyond just mark or space reports.
+
+Mauro, do you have any preferences or comments here?
+
+
+
+2. The in-kernel decoders normally need a the final space to close out
+the decoding, so the above sequence will cause them to wait.  It would
+only really be noticiable if no repeat came from the remote, but it
+still would be annoying.
+
+If I send a space for the timeout to get the in kernel decoders to close
+out decoding, then I end up sending a double space out to LIRC, which I
+just read will confuse LIRC.  
+
+So...
+
+If I'm going to add a timeout event flag to struct ir_raw_event, I
+suppose we could either:
+
+	a. have the current in kernel decoders interpret an
+	   ir_raw_event with a timeout event as a cue to conclude
+           decoding the current pulse train
+
+	b. add a "finish decode" flag and have the in kernel decoders
+	   respond to that.
+
+I beleive this will also let the in-kernel decoders still respond to
+final space as they currently do.
+
+Objections? comments?
+
+
+3.  When my hardware times out, it stops measuring anything, until it
+sees a new edge.  For short timeout settings (smaller than the
+intertransmission gap), I will have generate a space in software to
+provide the length of the gap.
+
+I'll have to store the time of reading the timeout flag of the hardware
+Rx FIFO, compute an approximate gap length when the next mark
+measurement comes in, and insert a the space.  The gaps space time will
+only be approximate, as the Rx FIFO watermark is set to interrupt at 4
+measurements in the FIFO.
+
+
+
+If I can't do #1 & #2 above, I'm not sure how I can send any in band
+signaling out to user space.
+
 Regards,
+Andy
 
-Laurent Pinchart
+> lircd will not work when you leave out the space. It must know the exact  
+> time between the pulses. Some hardware generates timeout reports that are  
+> too short to distinguish between spaces that are so short that the next  
+> sequence can be interpreted as a repeat or longer spaces which indicate  
+> that this is a new key press.
+> 
+> Christoph
+
+
