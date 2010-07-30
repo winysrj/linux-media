@@ -1,44 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28938 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751874Ab0GZSdZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 14:33:25 -0400
-Message-ID: <4C4DD50A.2070609@redhat.com>
-Date: Mon, 26 Jul 2010 15:33:46 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from fallbackmx07.syd.optusnet.com.au ([211.29.132.9]:54132 "EHLO
+	fallbackmx07.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751102Ab0GaADF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jul 2010 20:03:05 -0400
+Received: from mail06.syd.optusnet.com.au (mail06.syd.optusnet.com.au [211.29.132.187])
+	by fallbackmx07.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id o6UNtLQ4004112
+	for <linux-media@vger.kernel.org>; Sat, 31 Jul 2010 09:55:22 +1000
+Received: from [127.0.0.1] (c114-77-102-107.chirn2.vic.optusnet.com.au [114.77.102.107])
+	by mail06.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id o6UNs64G028679
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 31 Jul 2010 09:54:09 +1000
+Message-ID: <4C53661C.4070601@levelbelow.net>
+Date: Sat, 31 Jul 2010 09:54:04 +1000
+From: ozatomic <ozatomic@levelbelow.net>
 MIME-Version: 1.0
-To: Stefan Ringel <stefan.ringel@arcor.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: tm6000 bad marge staging/tm6000 into staging/all
-References: <4C4BE78A.4090002@arcor.de> <4C4C7B51.3000608@redhat.com> <4C4DA709.3090706@arcor.de>
-In-Reply-To: <4C4DA709.3090706@arcor.de>
-Content-Type: text/plain; charset=ISO-8859-15
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 26-07-2010 12:17, Stefan Ringel escreveu:
->  Am 25.07.2010 19:58, schrieb Mauro Carvalho Chehab:
->> Em 25-07-2010 04:28, Stefan Ringel escreveu:
->>> -----BEGIN PGP SIGNED MESSAGE-----
->>> Hash: SHA1
->>>
->>> Hi Mauro,
->>>
->>> This marge are wrong! It's added double dvb led off, but my patch has
->>> only ones.
->>>
->>> raw | combined (merge: 011906d 6e5e76f)
->>>
->>> Merge branch 'staging/tm6000' into staging/all
->>> Mauro Carvalho Chehab [Sun, 4 Jul 2010 19:33:26 +0000 (16:33 -0300)]
->>>
->> break every clone of my tree.
-> cannot found staging/all.
-
-Sorry, I meant staging/other. staging/all is an internal temporary branch I used
-locally.
-
-Cheers,
-Mauro
 
