@@ -1,59 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:47358 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751488Ab0GZJIS (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51749 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758658Ab0G3OyT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 05:08:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v2 02/10] media: Media device
-Date: Mon, 26 Jul 2010 11:08:52 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-3-git-send-email-laurent.pinchart@ideasonboard.com> <201007241402.50974.hverkuil@xs4all.nl>
-In-Reply-To: <201007241402.50974.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007261108.52766.laurent.pinchart@ideasonboard.com>
+	Fri, 30 Jul 2010 10:54:19 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de, p.wiesner@phytec.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: [PATCH 07/20] mt9m111: changed MIN_DARK_COLS to MT9M131 spec count
+Date: Fri, 30 Jul 2010 16:53:25 +0200
+Message-Id: <1280501618-23634-8-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+---
+ drivers/media/video/mt9m111.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-On Saturday 24 July 2010 14:02:50 Hans Verkuil wrote:
-> On Wednesday 21 July 2010 16:35:27 Laurent Pinchart wrote:
-> > The media_device structure abstracts functions common to all kind of
-> > media devices (v4l2, dvb, alsa, ...). It manages media entities and
-> > offers a userspace API to discover and configure the media device
-> > internal topology.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  Documentation/media-framework.txt |   68
-> >  ++++++++++++++++++++++++++++++++ drivers/media/Makefile            |   
-> >  2 +-
-> >  drivers/media/media-device.c      |   77
-> >  +++++++++++++++++++++++++++++++++++++ include/media/media-device.h     
-> >  |   53 +++++++++++++++++++++++++ 4 files changed, 199 insertions(+), 1
-> >  deletions(-)
-> >  create mode 100644 Documentation/media-framework.txt
-> >  create mode 100644 drivers/media/media-device.c
-> >  create mode 100644 include/media/media-device.h
-> 
-> <snip>
-> 
-> As discussed on IRC: I would merge media-device and media-devnode. I see no
-> benefit in separating them at this time.
-
-I'm not too sure about it. I still think the separation gives us cleaner, 
-easier to understand code. My opinion on it isn't that strong, so I could be 
-convinced to merge the two, but Sakari seemed to think they shouldn't be 
-merged last time I talked to him about it. I'll let him answer.
-
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 2080615..f024cc5 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -130,7 +130,7 @@
+ #define reg_clear(reg, val) mt9m111_reg_clear(client, MT9M111_##reg, (val))
+ 
+ #define MT9M111_MIN_DARK_ROWS	8
+-#define MT9M111_MIN_DARK_COLS	24
++#define MT9M111_MIN_DARK_COLS	26
+ #define MT9M111_MAX_HEIGHT	1032
+ #define MT9M111_MAX_WIDTH	1288
+ #define MT9M111_DEF_DARK_ROWS	12
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
