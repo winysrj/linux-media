@@ -1,66 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:59935 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936027Ab0GPI4V (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:51425 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932157Ab0G3Lkq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jul 2010 04:56:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [RFC/PATCH 02/10] media: Media device
-Date: Fri, 16 Jul 2010 10:56:21 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279114219-27389-3-git-send-email-laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE894456775DB7@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894456775DB7@dlee02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Fri, 30 Jul 2010 07:40:46 -0400
+Subject: Re: [PATCH v2]Resend:videobuf_dma_sg: a new implementation for mmap
+From: "Figo.zhang" <figo1802@gmail.com>
+To: npiggin@suse.de, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	akpm <akpm@linux-foundation.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	lkml <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@elte.hu>
+In-Reply-To: <201007301131.17638.laurent.pinchart@ideasonboard.com>
+References: <1280448482.2648.2.camel@localhost.localdomain>
+	 <201007301131.17638.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 30 Jul 2010 19:38:31 +0800
+Message-ID: <1280489911.2648.11.camel@localhost.localdomain>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007161056.22036.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
-
-On Thursday 15 July 2010 16:22:06 Aguirre, Sergio wrote:
-> > On Wednesday 14 July 2010 08:30:00 Laurent Pinchart wrote:
-
-<snip>
-
-> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-> > new file mode 100644
-> > index 0000000..a4d3db5
-> > --- /dev/null
-> > +++ b/drivers/media/media-device.c
-> > @@ -0,0 +1,77 @@
-
-<snip>
-
-> > +/**
-> > + * media_device_register - register a media device
-> > + * @mdev:	The media device
-> > + *
-> > + * The caller is responsible for initializing the media device before
-> > + * registration. The following fields must be set:
-> > + *
-> > + * - dev should point to the parent device. The field can be NULL when no
-> > + *   parent device is available (for instance with ISA devices).
-> > + * - name should be set to the device name. If the name is empty a parent
-> > + *   device must be set. In that case the name will be set to the parent
-> > + *   device driver name followed by a space and the parent device name.
-> > + */
-> > +int __must_check media_device_register(struct media_device *mdev)
-> > +{
-> > +	/* If dev == NULL, then name must be filled in by the caller */
-> > +	if (mdev->dev == NULL && WARN_ON(!mdev->name[0]))
+On Fri, 2010-07-30 at 11:31 +0200, Laurent Pinchart wrote:
+> Hi,
 > 
-> If mdev == NULL, you'll have a kernel panic here.
+> On Friday 30 July 2010 02:08:02 Figo.zhang wrote:
+> > a mmap issue for videobuf-dma-sg: it will alloc a new page for mmaping when
+> > it encounter page fault at video_vm_ops->fault(). pls see
+> > http://www.spinics.net/lists/linux-media/msg21243.html
+> > 
+> > a new implementation for mmap, it translate to vmalloc to page at
+> > video_vm_ops->fault().
+> > 
+> > in v2, if mem->dma.vmalloc is NULL at video_vm_ops->fault(), it will alloc
+> > memory by vmlloc_32().
+> 
+> You're replacing allocation in videobuf_vm_fault by allocationg in 
+> videobuf_vm_fault. I don't see the point. videobuf_vm_fault needs to go away 
+> completely.
+in now videobuf code, the mmap alloc a new buf, the capture dma buffer
+using vmalloc() alloc buffer, how is
+relationship with them? in usrspace , the mmap region will not the
+actual capture dma data, how is work? 
 
-That's why drivers must not call media_device_register with a NULL pointer :-) 
-It's not a valid use case, unlike kfree(NULL) for instance.
+> 
+> This has been discussed previously: fixing videobuf is not really possible. A 
+> videobuf2 implementation is needed and is (slowly) being worked on. 
+hi Mauro, do you think this is a issue for videobuf-dma-sg?
 
--- 
-Regards,
+> I wouldn't 
+> bother with this patch, just drop it.
+> 
+> > Signed-off-by: Figo.zhang <figo1802@gmail.com>
+> > ---
+> > drivers/media/video/videobuf-dma-sg.c |   50
+> > +++++++++++++++++++++++++++------ 1 files changed, 41 insertions(+), 9
+> > deletions(-)
+> > 
+> > diff --git a/drivers/media/video/videobuf-dma-sg.c
+> > b/drivers/media/video/videobuf-dma-sg.c index 8359e6b..f7295da 100644
+> > --- a/drivers/media/video/videobuf-dma-sg.c
+> > +++ b/drivers/media/video/videobuf-dma-sg.c
+> > @@ -201,10 +201,11 @@ int videobuf_dma_init_kernel(struct videobuf_dmabuf
+> > *dma, int direction, dprintk(1, "init kernel [%d pages]\n", nr_pages);
+> > 
+> >  	dma->direction = direction;
+> > -	dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
+> > -	if (NULL == dma->vmalloc) {
+> > -		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
+> > -		return -ENOMEM;
+> > +	if (!dma->vmalloc)
+> > +		dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
+> > +		if (NULL == dma->vmalloc) {
+> > +			dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
+> > +			return -ENOMEM;
+> >  	}
+> > 
+> >  	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
+> > @@ -397,16 +398,47 @@ static void videobuf_vm_close(struct vm_area_struct
+> > *vma) */
+> >  static int videobuf_vm_fault(struct vm_area_struct *vma, struct vm_fault
+> > *vmf) {
+> > -	struct page *page;
+> > +	struct page *page = NULL;
+> > +	struct videobuf_mapping *map = vma->vm_private_data;
+> > +	struct videobuf_queue *q = map->q;
+> > +	struct videobuf_dma_sg_memory *mem = NULL;
+> > +
+> > +	unsigned long offset;
+> > +	unsigned long page_nr;
+> > +	int first;
+> > 
+> >  	dprintk(3, "fault: fault @ %08lx [vma %08lx-%08lx]\n",
+> >  		(unsigned long)vmf->virtual_address,
+> >  		vma->vm_start, vma->vm_end);
+> > 
+> > -	page = alloc_page(GFP_USER | __GFP_DMA32);
+> > -	if (!page)
+> > -		return VM_FAULT_OOM;
+> > -	clear_user_highpage(page, (unsigned long)vmf->virtual_address);
+> > +	mutex_lock(&q->vb_lock);
+> > +	offset = (unsigned long)vmf->virtual_address - vma->vm_start;
+> > +	page_nr = offset >> PAGE_SHIFT;
+> > +
+> > +	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
+> > +			if (NULL == q->bufs[first])
+> > +				continue;
+> > +
+> > +			MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
+> > +
+> > +			if (q->bufs[first]->map == map)
+> > +				break;
+> > +	}
+> > +
+> > +	mem = q->bufs[first]->priv;
+> > +	if (!mem)
+> > +		return VM_FAULT_SIGBUS;
+> > +	if (!mem->dma.vmalloc) {
+> > +		mem->dma.vmalloc = vmalloc_32(PAGE_ALIGN(q->bufs[first]->size));
+> > +		if (NULL == mem->dma.vmalloc) {
+> > +			dprintk(1, "%s: vmalloc_32() failed\n", __func__);
+> > +			return VM_FAULT_OOM;
+> > +		}
+> > +	} else
+> > +		page = vmalloc_to_page(mem->dma.vmalloc+
+> > +				(offset & (~PAGE_MASK)));
+> > +	mutex_unlock(&q->vb_lock);
+> > +
+> >  	vmf->page = page;
+> > 
+> >  	return 0;
+> 
 
-Laurent Pinchart
+
