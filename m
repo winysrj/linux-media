@@ -1,54 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:52060 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754752Ab0GHRwr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 13:52:47 -0400
-Received: by eya25 with SMTP id 25so144809eya.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Jul 2010 10:52:45 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C360E64.3020703@gmail.com>
-References: <4C353039.4030202@gmail.com>
-	<AANLkTikiCtPhE8uERNoYV_UF43MZU0YQgPWxyA4X0l5U@mail.gmail.com>
-	<4C360E64.3020703@gmail.com>
-Date: Thu, 8 Jul 2010 13:52:45 -0400
-Message-ID: <AANLkTilNmBPU-YVXfo12MITtTJHwsMvZsxkkjCBz68H_@mail.gmail.com>
-Subject: Re: em28xx: success report for KWORLD DVD Maker USB 2.0 (VS-USB2800)
-	[eb1a:2860]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ivan <ivan.q.public@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:34778 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755180Ab0G3AJk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jul 2010 20:09:40 -0400
+Received: by gyg10 with SMTP id 10so371566gyg.19
+        for <linux-media@vger.kernel.org>; Thu, 29 Jul 2010 17:09:40 -0700 (PDT)
+Subject: [PATCH v2]Resend:videobuf_dma_sg: a new implementation for mmap
+From: "Figo.zhang" <figo1802@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"max.song" <max.song@kolorific.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 30 Jul 2010 08:08:02 +0800
+Message-ID: <1280448482.2648.2.camel@localhost.localdomain>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 8, 2010 at 1:44 PM, Ivan <ivan.q.public@gmail.com> wrote:
-> Now, regarding the difference in image quality between the Linux and Windows
-> drivers, I took some snapshots. Linux is first, then Windows:
->
-> http://www3.picturepush.com/photo/a/3762966/img/3762966.png
->
-> http://www4.picturepush.com/photo/a/3762977/img/3762977.png
->
-> I would have thought that the digitized video coming from the card would be
-> essentially the same in both cases, but the vertical stripes and the
-> difference in width don't seem to be merely a matter of postprocessing. Does
-> the driver have a greater level of control than I suspected over the
-> digitization process in the card? (The difference in sharpness, on the other
-> hand, I would guess to be postprocessing.)
->
-> So I'm mainly wondering whether the vertical stripes can be eliminated by
-> controlling the card differently, or if we have no control over that and
-> have to deal with it by postprocessing.
+a mmap issue for videobuf-dma-sg: it will alloc a new page for mmaping when it encounter
+page fault at video_vm_ops->fault(). pls see http://www.spinics.net/lists/linux-media/msg21243.html
 
-The vertical stripes were a problem with the anti-alias filter
-configuration, which I fixed a few months ago (and probably just
-hasn't made it into your distribution).  Just install the current
-v4l-dvb code and it should go away:
+a new implementation for mmap, it translate to vmalloc to page at video_vm_ops->fault().
 
-http://linuxtv.org/repo
+in v2, if mem->dma.vmalloc is NULL at video_vm_ops->fault(), it will alloc memory by 
+vmlloc_32().
 
-Devin
+Signed-off-by: Figo.zhang <figo1802@gmail.com>
+---
+drivers/media/video/videobuf-dma-sg.c |   50 +++++++++++++++++++++++++++------
+ 1 files changed, 41 insertions(+), 9 deletions(-)
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+diff --git a/drivers/media/video/videobuf-dma-sg.c b/drivers/media/video/videobuf-dma-sg.c
+index 8359e6b..f7295da 100644
+--- a/drivers/media/video/videobuf-dma-sg.c
++++ b/drivers/media/video/videobuf-dma-sg.c
+@@ -201,10 +201,11 @@ int videobuf_dma_init_kernel(struct videobuf_dmabuf *dma, int direction,
+ 	dprintk(1, "init kernel [%d pages]\n", nr_pages);
+ 
+ 	dma->direction = direction;
+-	dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
+-	if (NULL == dma->vmalloc) {
+-		dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
+-		return -ENOMEM;
++	if (!dma->vmalloc)
++		dma->vmalloc = vmalloc_32(nr_pages << PAGE_SHIFT);
++		if (NULL == dma->vmalloc) {
++			dprintk(1, "vmalloc_32(%d pages) failed\n", nr_pages);
++			return -ENOMEM;
+ 	}
+ 
+ 	dprintk(1, "vmalloc is at addr 0x%08lx, size=%d\n",
+@@ -397,16 +398,47 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+  */
+ static int videobuf_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+-	struct page *page;
++	struct page *page = NULL;
++	struct videobuf_mapping *map = vma->vm_private_data;
++	struct videobuf_queue *q = map->q;
++	struct videobuf_dma_sg_memory *mem = NULL;
++
++	unsigned long offset;
++	unsigned long page_nr;
++	int first;
+ 
+ 	dprintk(3, "fault: fault @ %08lx [vma %08lx-%08lx]\n",
+ 		(unsigned long)vmf->virtual_address,
+ 		vma->vm_start, vma->vm_end);
+ 
+-	page = alloc_page(GFP_USER | __GFP_DMA32);
+-	if (!page)
+-		return VM_FAULT_OOM;
+-	clear_user_highpage(page, (unsigned long)vmf->virtual_address);
++	mutex_lock(&q->vb_lock);
++	offset = (unsigned long)vmf->virtual_address - vma->vm_start;
++	page_nr = offset >> PAGE_SHIFT;
++
++	for (first = 0; first < VIDEO_MAX_FRAME; first++) {
++			if (NULL == q->bufs[first])
++				continue;
++
++			MAGIC_CHECK(mem->magic, MAGIC_SG_MEM);
++
++			if (q->bufs[first]->map == map)
++				break;
++	}
++
++	mem = q->bufs[first]->priv;
++	if (!mem)
++		return VM_FAULT_SIGBUS;
++	if (!mem->dma.vmalloc) {
++		mem->dma.vmalloc = vmalloc_32(PAGE_ALIGN(q->bufs[first]->size));
++		if (NULL == mem->dma.vmalloc) {
++			dprintk(1, "%s: vmalloc_32() failed\n", __func__);
++			return VM_FAULT_OOM;
++		}
++	} else
++		page = vmalloc_to_page(mem->dma.vmalloc+
++				(offset & (~PAGE_MASK)));
++	mutex_unlock(&q->vb_lock);
++
+ 	vmf->page = page;
+ 
+ 	return 0;
+
+
