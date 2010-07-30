@@ -1,65 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:56704 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241Ab0G1XlE (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:37250 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755969Ab0G3NnE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Jul 2010 19:41:04 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 1/9] IR: Kconfig fixes
-Date: Thu, 29 Jul 2010 02:40:44 +0300
-Message-Id: <1280360452-8852-2-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
-References: <1280360452-8852-1-git-send-email-maximlevitsky@gmail.com>
+	Fri, 30 Jul 2010 09:43:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergio Aguirre <saaguirre@ti.com>
+Subject: Re: [media-ctl PATCH 3/3] Be able to add more CFLAGS
+Date: Fri, 30 Jul 2010 15:42:53 +0200
+Cc: linux-media@vger.kernel.org
+References: <1279124246-12187-1-git-send-email-saaguirre@ti.com> <1279124246-12187-4-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1279124246-12187-4-git-send-email-saaguirre@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201007301542.54401.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move IR drives below separate menu.
-This allows to disable them.
-Also correct a typo.
+Hi Sergio,
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/Kconfig |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
+Thanks for the patch, and sorry for the delay. Applied.
 
-diff --git a/drivers/media/IR/Kconfig b/drivers/media/IR/Kconfig
-index e557ae0..fc48a3f 100644
---- a/drivers/media/IR/Kconfig
-+++ b/drivers/media/IR/Kconfig
-@@ -1,8 +1,10 @@
--config IR_CORE
--	tristate
-+menuconfig IR_CORE
-+	tristate "Infrared remote controller adapters"
- 	depends on INPUT
- 	default INPUT
- 
-+if IR_CORE
-+
- config VIDEO_IR
- 	tristate
- 	depends on IR_CORE
-@@ -16,7 +18,7 @@ config LIRC
- 	   Enable this option to build the Linux Infrared Remote
- 	   Control (LIRC) core device interface driver. The LIRC
- 	   interface passes raw IR to and from userspace, where the
--	   LIRC daemon handles protocol decoding for IR reception ann
-+	   LIRC daemon handles protocol decoding for IR reception and
- 	   encoding for IR transmitting (aka "blasting").
- 
- source "drivers/media/IR/keymaps/Kconfig"
-@@ -102,3 +104,5 @@ config IR_MCEUSB
- 
- 	   To compile this driver as a module, choose M here: the
- 	   module will be called mceusb.
-+
-+endif #IR_CORE
+On Wednesday 14 July 2010 18:17:26 Sergio Aguirre wrote:
+> This allows the gcc compilation to build with extra parameters.
+> 
+> For example, if we want to build with -static, we just do:
+> 
+> make CFLAGS=-static
+> 
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  Makefile |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/Makefile b/Makefile
+> index 300ed7e..bd53626 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -3,7 +3,7 @@ HDIR ?= /usr/include
+> 
+>  CC   := $(CROSS_COMPILE)gcc
+> 
+> -CFLAGS = -O2 -Wall -fpic -I$(HDIR)
+> +CFLAGS += -O2 -Wall -fpic -I$(HDIR)
+>  OBJS = media.o main.o options.o subdev.o
+> 
+>  all: media-ctl
+
 -- 
-1.7.0.4
+Regards,
 
+Laurent Pinchart
