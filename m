@@ -1,35 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:47659 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754136Ab0GIU21 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Jul 2010 16:28:27 -0400
-Received: by qwh6 with SMTP id 6so584243qwh.19
-        for <linux-media@vger.kernel.org>; Fri, 09 Jul 2010 13:28:27 -0700 (PDT)
-Subject: Re: Need testers: cx23885 IR Rx for TeVii S470 and HVR-1250
-From: Kenney Phillisjr <kphillisjr@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 09 Jul 2010 15:28:25 -0500
-Message-ID: <1278707305.25199.6.camel@dandel-desktop>
-Mime-Version: 1.0
+Received: from perceval.irobotique.be ([92.243.18.41]:37270 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750941Ab0G3NpJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jul 2010 09:45:09 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergio Aguirre <saaguirre@ti.com>
+Subject: Re: [media-ctl PATCH 2/3] Just include kernel headers
+Date: Fri, 30 Jul 2010 15:45:06 +0200
+Cc: linux-media@vger.kernel.org
+References: <1279124246-12187-1-git-send-email-saaguirre@ti.com> <1279124246-12187-3-git-send-email-saaguirre@ti.com>
+In-Reply-To: <1279124246-12187-3-git-send-email-saaguirre@ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201007301545.07534.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I know this is an old thread, however i have an card that meets the
-requirements to be tested by the patches made by andy, and so far
-with what i've tried it's been doing really well for input.
+Hi Sergio,
 
-I pretty much just downloaded and tested Andy's patch set...
-http://linuxtv.org/hg/~awalls/cx23885-ir2
+On Wednesday 14 July 2010 18:17:25 Sergio Aguirre wrote:
+> We shouldn't require full kernel source for this.
 
-The tests where done on ubuntu 10.04 with kernel 2.6.32-23-generic
-(64-bit) and this appears to be working perfectly. (This even properly
-identifies the card I'm using down to the model)
+That's right in theory, but I then get
 
-card notes: Hauppauge WinTV-HVR1250 (Model: 79001)
+$ make KDIR=/home/laurent/src/arm/kernel/
+arm-none-linux-gnueabi-gcc -O2 -Wall -fpic -I. -I/home/laurent/src/arm/kernel//include    -c -o media.o media.c
+In file included from /opt/cs/arm-2009q1/bin/../arm-none-linux-gnueabi/libc/usr/include/asm/types.h:4,
+                 from /home/laurent/src/arm/kernel//include/linux/types.h:4,
+                 from /home/laurent/src/arm/kernel//include/linux/videodev2.h:66,
+                 from media.c:31:
+/home/laurent/src/arm/kernel//include/asm-generic/int-ll64.h:11:29: error: asm/bitsperlong.h: No such file or directory
+make: *** [media.o] Error 1
 
-oh and the only change i made to the test is i commented out the
-4 lines in the makefile that generate the firedtv module so i could
-compile the tests 
+when building against a kernel tree.
 
+> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> ---
+>  Makefile |    6 ++----
+>  1 files changed, 2 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Makefile b/Makefile
+> index bf4cf55..300ed7e 100644
+> --- a/Makefile
+> +++ b/Makefile
+> @@ -1,11 +1,9 @@
+> -SRCARCH ?= arm
+>  CROSS_COMPILE ?= arm-none-linux-gnueabi-
+> -KDIR ?= /usr/src/linux
+> +HDIR ?= /usr/include
+> 
+> -KINC := -I$(KDIR)/include -I$(KDIR)/arch/$(SRCARCH)/include
+>  CC   := $(CROSS_COMPILE)gcc
+> 
+> -CFLAGS = -O2 -Wall -fpic -I. $(KINC)
+> +CFLAGS = -O2 -Wall -fpic -I$(HDIR)
+>  OBJS = media.o main.o options.o subdev.o
+> 
+>  all: media-ctl
+
+-- 
+Regards,
+
+Laurent Pinchart
