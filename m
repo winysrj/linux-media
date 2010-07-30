@@ -1,56 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45369 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751331Ab0G0S2U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jul 2010 14:28:20 -0400
-Date: Tue, 27 Jul 2010 14:17:57 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Greg KH <greg@kroah.com>, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-input@vger.kernel.org
-Subject: Re: [PATCH 0/15] STAGING: add lirc device drivers
-Message-ID: <20100727181757.GD9465@redhat.com>
-References: <20100726232546.GA21225@redhat.com>
- <4C4F0244.2070803@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C4F0244.2070803@redhat.com>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:53717 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758301Ab0G3CRZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jul 2010 22:17:25 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: [PATCH 0/9 v2] IR: few fixes, additions and ENE driver
+Date: Fri, 30 Jul 2010 05:17:02 +0300
+Message-Id: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 27, 2010 at 12:59:00PM -0300, Mauro Carvalho Chehab wrote:
-> Em 26-07-2010 20:25, Jarod Wilson escreveu:
-> > This patch series adds the remaining lirc_foo device drivers to the staging
-> > tree.
-> >  drivers/staging/lirc/TODO               |    8 +
+Hi,
 
-^^^
+This is third revision of my patchset.
 
-> Hi Jarod,
-> 
-> Please add a TODO file at staging/lirc, describing what's needed for
-> the drivers to move to the IR branch.
+Notable changes:
 
-See above. :)
+* Added whitespace fixes from Jarod Wilson
+* 4 new bugs fixed (patches 04-07). Now in-kernel decoding
+  works perfectly with all protocols it supports.
+* lirc interface additions cleaned up.
+  no more wrong support for timeout reports
+  new ioctl for learning mode
+  still need to add carrier detect, timeout reports, and rx filter
+* replaced int with bool in my driver, plus few cleanups.
+* added myself to maintainers of the ene driver
+* added another PNP ID to ene driver
 
-It could use some further fleshing out though, particularly, some "known
-issues that must be fixed in this specific driver" type things.
+Best regards,
+	Maxim Levitsky
 
-
-> Greg,
-> 
-> It is probably simpler to merge those files via my tree, as they depend
-> on some changes scheduled for 2.6.36.
-
-The patches were created against yesterday's linux-next tree, so I'd
-assumed they could go in via staging for 2.6.36, but...
-
-> Would it be ok for you if I merge them from my tree?
-
-...it certainly doesn't matter to me if they go in this way instead.
-
--- 
-Jarod Wilson
-jarod@redhat.com
 
