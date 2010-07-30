@@ -1,73 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:58231 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S934480Ab0GOWHh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Jul 2010 18:07:37 -0400
-From: Peter =?utf-8?q?H=C3=BCwe?= <PeterHuewe@gmx.de>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [PATCH 24/25] video/ivtv: Convert pci_table entries to PCI_VDEVICE (if PCI_ANY_ID is used)
-Date: Fri, 16 Jul 2010 00:00:51 +0200
-Cc: Kernel Janitors <kernel-janitors@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ian Armstrong <ian@iarmst.demon.co.uk>,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Steven Toth <stoth@kernellabs.com>, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <201007152108.27175.PeterHuewe@gmx.de> <1279230200.7920.23.camel@morgan.silverblock.net>
-In-Reply-To: <1279230200.7920.23.camel@morgan.silverblock.net>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:62073 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752568Ab0G3WBQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jul 2010 18:01:16 -0400
+Subject: Re: [PATCH 10/13] IR: extend interfaces to support more device
+ settings LIRC: add new IOCTL that enables learning mode (wide band receiver)
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, mchehab@redhat.com
+In-Reply-To: <BTpNtKTJjFB@christoph>
+References: <1280489933-20865-11-git-send-email-maximlevitsky@gmail.com>
+	 <BTpNtKTJjFB@christoph>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 31 Jul 2010 01:01:04 +0300
+Message-ID: <1280527264.3159.10.camel@maxim-laptop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201007160000.52153.PeterHuewe@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag 15 Juli 2010 23:43:20 schrieb Andy Walls:
-> > ... use the PCI_VDEVICE macro, and thus improves readability.
-> I have to disagree.  The patch may improve typesetting, but it degrades
-> clarity and maintainability from my perspective.
-> ...
-> So I'm going to NAK this for ivtv, unless someone can help me understand
-> any big picture benefit that I may not see from my possibly myopic
-> perspective.
-
-Hi Andy,
-
-absolutely no problem ;) - I thing that is one of the great things about open 
-source that people can have different opinions and discuss them.
-
-Patches are proposals only, and if I spark a discussion which brings the 
-development process further or from which I can learn something, I'm a lucky 
-guy ;)
-
-> PCI_ANY_ID indicates to the reader a wildcard match is being
-> performed. 
-Yeah, but I get absolutely no information out of the 0, 0, parameters either - 
-unless I look up the function - but then I could also look up the Macro.
-
-> BTW, I have not seen a similar patch come in my mailbox for
-> cx18-driver.c.  Why propose the change for ivtv and not cx18?
-
-That might be the case since I picked out several different locations using 
-cscope (by gut instinct) - so the patchset is not comprehensive. 
-There are still a lot of places that are not converted, I just picked some at 
-random and stopped at 25 patches.
-The reason behind this was that I almost expected some kind of controversy and 
-discussion about the changes - and since I'm getting some NACKs I guess this 
-was a smart move - imagine I had converted the whole kernel source just to get 
-a simple NACK ;)
-
-Thanks,
-Peter
+On Fri, 2010-07-30 at 23:22 +0200, Christoph Bartelmus wrote: 
+> Hi!
+> 
+> Maxim Levitsky "maximlevitsky@gmail.com" wrote:
+> 
+> > Still missing features: carrier report & timeout reports.
+> > Will need to pack these into ir_raw_event
+> 
+> 
+> Hm, this patch changes the LIRC interface but I can't see the according  
+> patch to the documentation.
+> 
+> [...]
+> >   * @tx_ir: transmit IR
+> >   * @s_idle: optional: enable/disable hardware idle mode, upon which,
+> > +<<<<<<< current
+> >   *	device doesn't interrupt host untill it sees IR data
+> > +=======
+> 
+> Huh?
+:-)
 
 
+> 
+> > +	device doesn't interrupt host untill it sees IR data
+> > + * @s_learning_mode: enable wide band receiver used for learning
+> +>>>>>>>> patched
+> 
+> s/untill/until/
+> 
+> [...]
+> >  #define LIRC_CAN_MEASURE_CARRIER          0x02000000
+> > +#define LIRC_CAN_HAVE_WIDEBAND_RECEIVER   0x04000000
+> 
+> LIRC_CAN_USE_WIDEBAND_RECEIVER
+
+OK. 
+> 
+> [...]
+> > @@ -145,7 +146,7 @@
+> >   * if enabled from the next key press on the driver will send
+> >   * LIRC_MODE2_FREQUENCY packets
+> >   */
+> > -#define LIRC_SET_MEASURE_CARRIER_MODE  _IOW('i', 0x0000001d, __u32)
+> > +#define LIRC_SET_MEASURE_CARRIER_MODE	_IOW('i', 0x0000001d, __u32)
+> >
+> >  /*
+> >   * to set a range use
+> > @@ -162,4 +163,6 @@
+> >  #define LIRC_SETUP_START               _IO('i', 0x00000021)
+> >  #define LIRC_SETUP_END                 _IO('i', 0x00000022)
+> >
+> > +#define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
+> 
+> If you really want this new ioctl, then it should be clarified how it  
+> behaves in relation to LIRC_SET_MEASURE_CARRIER_MODE.
+
+In my opinion, I won't need the LIRC_SET_MEASURE_CARRIER_MODE,
+I would just optionally turn that on in learning mode.
+You disagree, and since that is not important (besides TX and learning
+features are present only at fraction of ENE devices. The only user I
+did the debugging with, doesn't seem to want to help debug that code
+anymore...)
+
+But anyway, in current state I want these features to be independent.
+Driver will enable learning mode if it have to.
+
+I'll add the documentation.
 
 
 
+> 
+> Do you have to enable the wide-band receiver explicitly before you can  
+> enable carrier reports or does enabling carrier reports implicitly switch  
+> to the wide-band receiver?
+I would implicitly switch the learning mode on, untill user turns off
+the carrier reports.
 
+> 
+> What happens if carrier mode is enabled and you explicitly turn off the  
+> wide-band receiver?
+Wouldn't it be better to have one ioctl for both after all?
 
+> 
+> And while we're at interface stuff:
+> Do we really need LIRC_SETUP_START and LIRC_SETUP_END? It is only used  
+> once in lircd during startup.
+I don't think so.
 
-
-
+Best regards,
+Maxim Levitsky
 
