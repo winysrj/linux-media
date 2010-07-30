@@ -1,124 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3729 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754039Ab0GMTvo (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:45485 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758455Ab0G3LjK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Jul 2010 15:51:44 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6DJpfUv066285
-	for <linux-media@vger.kernel.org>; Tue, 13 Jul 2010 21:51:43 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 13 Jul 2010 21:51:41 +0200 (CEST)
-Message-Id: <201007131951.o6DJpfUv066285@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Fri, 30 Jul 2010 07:39:10 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 04/13] IR: fix locking in ir_raw_event_work
+Date: Fri, 30 Jul 2010 14:38:44 +0300
+Message-Id: <1280489933-20865-5-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+It is prefectly possible to have ir_raw_event_work
+running concurently on two cpus, thus we must protect
+it from that situation.
 
-Results of the daily build of v4l-dvb:
+Just switch to a thread that we wake up as soon as we have data.
+This also ensures that this thread doesn't run unnessesarly.
 
-date:        Tue Jul 13 19:00:26 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ir-core-priv.h |    2 +-
+ drivers/media/IR/ir-raw-event.c |   42 ++++++++++++++++++++++++++++----------
+ 2 files changed, 32 insertions(+), 12 deletions(-)
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index dc26e2b..84c7a9a 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -32,7 +32,7 @@ struct ir_raw_handler {
+ 
+ struct ir_raw_event_ctrl {
+ 	struct list_head		list;		/* to keep track of raw clients */
+-	struct work_struct		rx_work;	/* for the rx decoding workqueue */
++	struct task_struct		*thread;
+ 	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
+ 	ktime_t				last_event;	/* when last event occurred */
+ 	enum raw_event_type		last_type;	/* last event type */
+diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+index 9d5c029..d0c18db 100644
+--- a/drivers/media/IR/ir-raw-event.c
++++ b/drivers/media/IR/ir-raw-event.c
+@@ -12,9 +12,10 @@
+  *  GNU General Public License for more details.
+  */
+ 
+-#include <linux/workqueue.h>
++#include <linux/kthread.h>
+ #include <linux/mutex.h>
+ #include <linux/sched.h>
++#include <linux/freezer.h>
+ #include "ir-core-priv.h"
+ 
+ /* Define the max number of pulse/space transitions to buffer */
+@@ -33,20 +34,30 @@ static u64 available_protocols;
+ static struct work_struct wq_load;
+ #endif
+ 
+-static void ir_raw_event_work(struct work_struct *work)
++static int ir_raw_event_thread(void *data)
+ {
+ 	struct ir_raw_event ev;
+ 	struct ir_raw_handler *handler;
+-	struct ir_raw_event_ctrl *raw =
+-		container_of(work, struct ir_raw_event_ctrl, rx_work);
++	struct ir_raw_event_ctrl *raw = (struct ir_raw_event_ctrl *)data;
++
++	while (!kthread_should_stop()) {
++		try_to_freeze();
+ 
+-	while (kfifo_out(&raw->kfifo, &ev, sizeof(ev)) == sizeof(ev)) {
+ 		mutex_lock(&ir_raw_handler_lock);
+-		list_for_each_entry(handler, &ir_raw_handler_list, list)
+-			handler->decode(raw->input_dev, ev);
++
++		while (kfifo_out(&raw->kfifo, &ev, sizeof(ev)) == sizeof(ev)) {
++			list_for_each_entry(handler, &ir_raw_handler_list, list)
++				handler->decode(raw->input_dev, ev);
++			raw->prev_ev = ev;
++		}
++
+ 		mutex_unlock(&ir_raw_handler_lock);
+-		raw->prev_ev = ev;
++
++		set_current_state(TASK_INTERRUPTIBLE);
++		schedule();
+ 	}
++
++	return 0;
+ }
+ 
+ /**
+@@ -141,7 +152,7 @@ void ir_raw_event_handle(struct input_dev *input_dev)
+ 	if (!ir->raw)
+ 		return;
+ 
+-	schedule_work(&ir->raw->rx_work);
++	wake_up_process(ir->raw->thread);
+ }
+ EXPORT_SYMBOL_GPL(ir_raw_event_handle);
+ 
+@@ -170,7 +181,7 @@ int ir_raw_event_register(struct input_dev *input_dev)
+ 		return -ENOMEM;
+ 
+ 	ir->raw->input_dev = input_dev;
+-	INIT_WORK(&ir->raw->rx_work, ir_raw_event_work);
++
+ 	ir->raw->enabled_protocols = ~0;
+ 	rc = kfifo_alloc(&ir->raw->kfifo, sizeof(s64) * MAX_IR_EVENT_SIZE,
+ 			 GFP_KERNEL);
+@@ -180,6 +191,15 @@ int ir_raw_event_register(struct input_dev *input_dev)
+ 		return rc;
+ 	}
+ 
++	ir->raw->thread = kthread_run(ir_raw_event_thread, ir->raw,
++			"rc%u",  (unsigned int)ir->devno);
++
++	if (IS_ERR(ir->raw->thread)) {
++		kfree(ir->raw);
++		ir->raw = NULL;
++		return PTR_ERR(ir->raw->thread);
++	}
++
+ 	mutex_lock(&ir_raw_handler_lock);
+ 	list_add_tail(&ir->raw->list, &ir_raw_client_list);
+ 	list_for_each_entry(handler, &ir_raw_handler_list, list)
+@@ -198,7 +218,7 @@ void ir_raw_event_unregister(struct input_dev *input_dev)
+ 	if (!ir->raw)
+ 		return;
+ 
+-	cancel_work_sync(&ir->raw->rx_work);
++	kthread_stop(ir->raw->thread);
+ 
+ 	mutex_lock(&ir_raw_handler_lock);
+ 	list_del(&ir->raw->list);
+-- 
+1.7.0.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
