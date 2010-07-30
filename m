@@ -1,106 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:62971 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752544Ab0G3Lvc convert rfc822-to-8bit (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:49469 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755841Ab0G3OKM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 07:51:32 -0400
-MIME-Version: 1.0
-In-Reply-To: <1280489761.3646.3.camel@maxim-laptop>
-References: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
-	<1280456235-2024-14-git-send-email-maximlevitsky@gmail.com>
-	<AANLkTim42mHVhOgmVGxh2XsbbbVC7ZOgtfd7DDSrxZDB@mail.gmail.com>
-	<1280461565.15737.124.camel@localhost>
-	<1280489761.3646.3.camel@maxim-laptop>
-Date: Fri, 30 Jul 2010 07:51:31 -0400
-Message-ID: <AANLkTimqi+DwXUKxBkfkLVnvS4ONRT461CcRLk3F9ojX@mail.gmail.com>
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable
-	it.
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 30 Jul 2010 10:10:12 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 30 Jul 2010 09:10:08 -0500
+Subject: RE: [media-ctl PATCH 2/3] Just include kernel headers
+Message-ID: <A24693684029E5489D1D202277BE894456C0B476@dlee02.ent.ti.com>
+References: <1279124246-12187-1-git-send-email-saaguirre@ti.com>
+ <1279124246-12187-3-git-send-email-saaguirre@ti.com>
+ <201007301545.07534.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201007301545.07534.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 30, 2010 at 7:36 AM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> On Thu, 2010-07-29 at 23:46 -0400, Andy Walls wrote:
->> On Thu, 2010-07-29 at 22:39 -0400, Jon Smirl wrote:
->> > On Thu, Jul 29, 2010 at 10:17 PM, Maxim Levitsky
->> > <maximlevitsky@gmail.com> wrote:
->> > > note that error_adjustment module option is added.
->> > > This allows to reduce input samples by a percent.
->> > > This makes input on my system more correct.
->> > >
->> > > Default is 4% as it works best here.
->> > >
->> > > Note that only normal input is adjusted. I don't know
->> > > what adjustments to apply to fan tachometer input.
->> > > Maybe it is accurate already.
->> >
->> > Do you have the manual for the ENE chip in English? or do you read Chinese?
->>
->> The datasheet for a similar chip, the KB3700, is out there in English,
->> but it doesn't have CIR.
->>
->> You might find these links mildly interesting:
->>
->> http://www.coreboot.org/Embedded_controller
->> http://wiki.laptop.org/go/Embedded_controller
->> http://lists.laptop.org/pipermail/openec/2008-July/000108.html
->
-> Nope, I have read that.
->>
->> Regards,
->> Andy
->>
->> > Maybe you can figure out why the readings are off by 4%. I suspect
->> > that someone has set a clock divider wrong when programming the chip.
->> > For example setting the divider for a 25Mhz clock when the clock is
->> > actually 26Mhz would cause the error you are seeing. Or they just made
->> > a mistake in computing the divisor. It is probably a bug in the BIOS
->> > of your laptop.  If that's the case you could add a quirk in the
->> > system boot code to fix the register setting.
->
-> I figured out how windows driver compensates for the offset, and do the
-> same in my driver. I think the problem is solved.
->
+Hi Laurent,
 
-Should that be a <= or >= instead of !=?
-+       if (pll_freq != 1000)
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Friday, July 30, 2010 8:45 AM
+> To: Aguirre, Sergio
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: [media-ctl PATCH 2/3] Just include kernel headers
+> 
+> Hi Sergio,
+> 
+> On Wednesday 14 July 2010 18:17:25 Sergio Aguirre wrote:
+> > We shouldn't require full kernel source for this.
+> 
+> That's right in theory, but I then get
+> 
+> $ make KDIR=/home/laurent/src/arm/kernel/
+> arm-none-linux-gnueabi-gcc -O2 -Wall -fpic -I. -
+> I/home/laurent/src/arm/kernel//include    -c -o media.o media.c
+> In file included from /opt/cs/arm-2009q1/bin/../arm-none-linux-
+> gnueabi/libc/usr/include/asm/types.h:4,
+>                  from
+> /home/laurent/src/arm/kernel//include/linux/types.h:4,
+>                  from
+> /home/laurent/src/arm/kernel//include/linux/videodev2.h:66,
+>                  from media.c:31:
+> /home/laurent/src/arm/kernel//include/asm-generic/int-ll64.h:11:29: error:
+> asm/bitsperlong.h: No such file or directory
+> make: *** [media.o] Error 1
+> 
+> when building against a kernel tree.
 
-Programming the PLL wrong would cause the 4% error.
+KDIR doesn't exist anymore.
 
-       hw_revision = ene_hw_read_reg(dev, ENE_HW_VERSION);
-       old_ver = ene_hw_read_reg(dev, ENE_HW_VER_OLD);
+By the result of your log, I don't see how that value got passed into the makefile... Are you sure you applied the patch correctly?
 
-+       pll_freq = (ene_hw_read_reg(dev, ENE_PLLFRH) << 4) +
-+               (ene_hw_read_reg(dev, ENE_PLLFRL) >> 2);
-+
-+       if (pll_freq != 1000)
-+               dev->rx_period_adjust = 4;
-+       else
-+               dev->rx_period_adjust = 2;
-+
-+
-+       ene_printk(KERN_NOTICE, "PLL freq = %d\n", pll_freq);
-+
-       if (hw_revision == 0xFF) {
+Regards,
+Sergio
 
-
-
->
-> Best regards,
-> Maxim Levitsky
->
->
-
-
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
+> 
+> > Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+> > ---
+> >  Makefile |    6 ++----
+> >  1 files changed, 2 insertions(+), 4 deletions(-)
+> >
+> > diff --git a/Makefile b/Makefile
+> > index bf4cf55..300ed7e 100644
+> > --- a/Makefile
+> > +++ b/Makefile
+> > @@ -1,11 +1,9 @@
+> > -SRCARCH ?= arm
+> >  CROSS_COMPILE ?= arm-none-linux-gnueabi-
+> > -KDIR ?= /usr/src/linux
+> > +HDIR ?= /usr/include
+> >
+> > -KINC := -I$(KDIR)/include -I$(KDIR)/arch/$(SRCARCH)/include
+> >  CC   := $(CROSS_COMPILE)gcc
+> >
+> > -CFLAGS = -O2 -Wall -fpic -I. $(KINC)
+> > +CFLAGS = -O2 -Wall -fpic -I$(HDIR)
+> >  OBJS = media.o main.o options.o subdev.o
+> >
+> >  all: media-ctl
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
