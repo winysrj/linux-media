@@ -1,64 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:59024 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756693Ab0GDDNV (ORCPT
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41337 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751369Ab0G3Or0 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Jul 2010 23:13:21 -0400
-Subject: Re: Fwd: Firmware for HVR-1110
-From: hermann pitton <hermann-pitton@arcor.de>
-To: JD <jdg8tb@gmail.com>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <AANLkTilBXOV-7d4mOtbwfZdiAy9qiWZiVB-aHR7x0OPm@mail.gmail.com>
-References: <AANLkTimQqT99icH6wGhyizm-Zymg_wNrLhxS4yqGo1Wu@mail.gmail.com>
-	 <AANLkTilBXOV-7d4mOtbwfZdiAy9qiWZiVB-aHR7x0OPm@mail.gmail.com>
-Content-Type: text/plain
-Date: Sun, 04 Jul 2010 05:13:15 +0200
-Message-Id: <1278213195.3229.11.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 30 Jul 2010 10:47:26 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 30 Jul 2010 09:47:22 -0500
+Subject: RE: [media-ctl PATCH 2/3] Just include kernel headers
+Message-ID: <A24693684029E5489D1D202277BE894456C0B4F4@dlee02.ent.ti.com>
+References: <1279124246-12187-1-git-send-email-saaguirre@ti.com>
+ <201007301545.07534.laurent.pinchart@ideasonboard.com>
+ <A24693684029E5489D1D202277BE894456C0B476@dlee02.ent.ti.com>
+ <201007301623.46995.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201007301623.46995.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi JD,
+Hi Laurent,
 
-Am Samstag, den 03.07.2010, 03:32 +0100 schrieb JD:
-> I'm confused as to what firmware in needed for the HVR-1110.
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Friday, July 30, 2010 9:24 AM
+> To: Aguirre, Sergio
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: [media-ctl PATCH 2/3] Just include kernel headers
 > 
-> Scouring the web, everywhere claims that the dvb-fe-tda10046 is
-> required; however, dmesg logs show that this fails to be uploaded, and
-> instead it is looking for dvb-fe-tda-10048:
+> Hi Sergio,
 > 
-> If I use tda-10048 then this seems to successfully loaded, but I am
-> unable to find any channels with a scan;  the dvb nodes within /dev/
-> are created and modules loaded, but dvbscan fails to tune.
+> On Friday 30 July 2010 16:10:08 Aguirre, Sergio wrote:
+> > On Friday 30 July 2010 8:45 AM Laurent Pinchart wrote:
+> > > On Wednesday 14 July 2010 18:17:25 Sergio Aguirre wrote:
+> > > > We shouldn't require full kernel source for this.
+> > >
+> > > That's right in theory, but I then get
+> > >
+> > > $ make KDIR=/home/laurent/src/arm/kernel/
+> > > arm-none-linux-gnueabi-gcc -O2 -Wall -fpic -I. -
+> > > I/home/laurent/src/arm/kernel//include    -c -o media.o media.c
+> > > In file included from /opt/cs/arm-2009q1/bin/../arm-none-linux-
+> > > gnueabi/libc/usr/include/asm/types.h:4,
+> > >                  from
+> > > /home/laurent/src/arm/kernel//include/linux/types.h:4,
+> > >                  from
+> > > /home/laurent/src/arm/kernel//include/linux/videodev2.h:66,
+> > >                  from media.c:31:
+> > > /home/laurent/src/arm/kernel//include/asm-generic/int-ll64.h:11:29:
+> > > error: asm/bitsperlong.h: No such file or directory
+> > > make: *** [media.o] Error 1
+> > >
+> > > when building against a kernel tree.
+> >
+> > KDIR doesn't exist anymore.
+> >
+> > By the result of your log, I don't see how that value got passed into
+> the
+> > makefile... Are you sure you applied the patch correctly?
 > 
-> ------
-> dmesg
-> --------
-> $ dmesg |grep firmware
-> tda10048_firmware_upload: waiting for firmware upload
-> (dvb-fe-tda10048-1.0.fw)...
-> saa7134 0000:03:04.0: firmware: requesting dvb-fe-tda10048-1.0.fw
-> tda10048_firmware_upload: firmware read 24878 bytes.
-> tda10048_firmware_upload: firmware uploading
-> tda10048_firmware_upload: firmware uploaded
+> I haven't, I've just removed the arch include dir from KDIR in the
+> Makefile.
+> The end result is the same.
+
+Hmm..
+
+I think this is expected, since the kernel headers folder generated with
+
+make ARCH=arm INSTALL_HDR_PATH=<your-fs-root> headers_install
+
+Is not the same as just reading the kernel source include folder.
+
+Some #ifdef get resolved depending on the arch, and the headers are
+"rebuilt". See : Documentation/make/headers_install.txt
+
+So, I guess it's not as simple as just removing the arch include folder.
+
+Regards,
+Sergio
+
 > 
-> Any tips?
-> Thanks.
 > --
-
-all variants of the HVR-1110 have a tda 10046.
-
-I can't see, how firmware loading can fail on auto detection of those
-and even switch over to tda10048 as an alternative.
-
-Do you force some card = number and are maybe on a not yet detected
-HVR-1120?
-
-Please provide the full dmesg log related to your card and make sure you
-are on Michael Krufky's latest patches.
-
-Cheers,
-Hermann
-
-
+> Regards,
+> 
+> Laurent Pinchart
