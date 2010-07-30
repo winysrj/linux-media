@@ -1,115 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:56088 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750717Ab0GREXh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Jul 2010 00:23:37 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: [RFC] [PATCH 2/6] OMAP1: Add support for SoC camera interface
-Date: Sun, 18 Jul 2010 06:23:09 +0200
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tony Lindgren <tony@atomide.com>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl>
-In-Reply-To: <201007180618.08266.jkrzyszt@tis.icnet.pl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201007180623.10663.jkrzyszt@tis.icnet.pl>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:53717 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758370Ab0G3CRq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jul 2010 22:17:46 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 05/13] IR: JVC: make repeat work
+Date: Fri, 30 Jul 2010 05:17:07 +0300
+Message-Id: <1280456235-2024-6-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for SoC camera interface to OMAP1 devices.
+Currently, jvc decoder will attempt misdetect next press as a repeat
+of last keypress, therefore second keypress isn't detected.
 
-Created and tested against linux-2.6.35-rc3 on Amstrad Delta.
-
-For successfull compilation, requires a header file provided by PATCH 1/6 from 
-this series, "SoC Camera: add driver for OMAP1 camera interface".
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
 ---
- arch/arm/mach-omap1/devices.c             |   43 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap1/include/mach/camera.h |    8 +++++
- 2 files changed, 51 insertions(+)
+ drivers/media/IR/ir-jvc-decoder.c |   14 +++++++++++++-
+ 1 files changed, 13 insertions(+), 1 deletions(-)
 
---- linux-2.6.35-rc3.orig/arch/arm/mach-omap1/devices.c	2010-06-26 15:54:47.000000000 +0200
-+++ linux-2.6.35-rc3/arch/arm/mach-omap1/devices.c	2010-07-18 01:54:39.000000000 +0200
-@@ -15,6 +15,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/spi/spi.h>
-+#include <linux/dma-mapping.h>
+diff --git a/drivers/media/IR/ir-jvc-decoder.c b/drivers/media/IR/ir-jvc-decoder.c
+index 8894d8b..77a89c4 100644
+--- a/drivers/media/IR/ir-jvc-decoder.c
++++ b/drivers/media/IR/ir-jvc-decoder.c
+@@ -32,6 +32,7 @@ enum jvc_state {
+ 	STATE_BIT_SPACE,
+ 	STATE_TRAILER_PULSE,
+ 	STATE_TRAILER_SPACE,
++	STATE_CHECK_REPEAT,
+ };
  
- #include <mach/hardware.h>
- #include <asm/mach/map.h>
-@@ -25,6 +26,7 @@
- #include <mach/gpio.h>
- #include <plat/mmc.h>
- #include <plat/omap7xx.h>
-+#include <mach/camera.h>
+ /**
+@@ -60,6 +61,7 @@ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 	IR_dprintk(2, "JVC decode started at state %d (%uus %s)\n",
+ 		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
  
- /*-------------------------------------------------------------------------*/
++again:
+ 	switch (data->state) {
  
-@@ -267,6 +269,47 @@ static inline void omap_init_sti(void)
- static inline void omap_init_sti(void) {}
- #endif
+ 	case STATE_INACTIVE:
+@@ -149,8 +151,18 @@ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 		}
  
+ 		data->count = 0;
+-		data->state = STATE_BIT_PULSE;
++		data->state = STATE_CHECK_REPEAT;
+ 		return 0;
 +
-+#define OMAP1_CAMERA_BASE	0xfffb6800
++	case STATE_CHECK_REPEAT:
++		if (!ev.pulse)
++			break;
 +
-+static struct resource omap1_camera_resources[] = {
-+	[0] = {
-+		.start	= OMAP1_CAMERA_BASE,
-+		.end	= OMAP1_CAMERA_BASE + OMAP1_CAMERA_IOSIZE - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= INT_CAMERA,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static u64 omap1_camera_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct platform_device omap1_camera_device = {
-+	.name		= "omap1-camera",
-+	.id		= 0, /* This is used to put cameras on this interface */
-+	.dev		= {
-+		.dma_mask		= &omap1_camera_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+	.num_resources	= ARRAY_SIZE(omap1_camera_resources),
-+	.resource	= omap1_camera_resources,
-+};
-+
-+void __init omap1_set_camera_info(struct omap1_cam_platform_data *info)
-+{
-+	struct platform_device *dev = &omap1_camera_device;
-+	int ret;
-+
-+	dev->dev.platform_data = info;
-+
-+	ret = platform_device_register(dev);
-+	if (ret)
-+		dev_err(&dev->dev, "unable to register device: %d\n", ret);
-+}
-+
-+
- /*-------------------------------------------------------------------------*/
++		if (eq_margin(ev.duration, JVC_HEADER_PULSE, JVC_UNIT / 2))
++			data->state = STATE_INACTIVE;
++  else
++			data->state = STATE_BIT_PULSE;
++		goto again;
+ 	}
  
- /*
---- linux-2.6.35-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h	1970-01-01 01:00:00.000000000 +0100
-+++ linux-2.6.35-rc3/arch/arm/mach-omap1/include/mach/camera.h	2010-07-18 01:57:18.000000000 +0200
-@@ -0,0 +1,8 @@
-+#ifndef __ASM_ARCH_CAMERA_H_
-+#define __ASM_ARCH_CAMERA_H_
-+
-+#include <media/omap1_camera.h>
-+
-+extern void omap1_set_camera_info(struct omap1_cam_platform_data *);
-+
-+#endif /* __ASM_ARCH_CAMERA_H_ */
+ out:
+-- 
+1.7.0.4
+
