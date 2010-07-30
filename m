@@ -1,56 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:56547 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935668Ab0GPHDK (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:53717 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758347Ab0G3CRg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Jul 2010 03:03:10 -0400
-Date: Fri, 16 Jul 2010 09:02:57 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Baruch Siach <baruch@tkos.co.il>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Uwe =?iso-8859-15?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCHv6] mx2_camera: Add soc_camera support for i.MX25/i.MX27
-Message-ID: <20100716070257.GH14113@pengutronix.de>
-References: <40ccd21d0e857660038d193af3bb4cc6edd1067d.1278218817.git.baruch@tkos.co.il> <Pine.LNX.4.64.1007111315560.30182@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1007111315560.30182@axis700.grange>
+	Thu, 29 Jul 2010 22:17:36 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 02/13] IR: minor fixes:
+Date: Fri, 30 Jul 2010 05:17:04 +0300
+Message-Id: <1280456235-2024-3-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 11, 2010 at 01:18:27PM +0200, Guennadi Liakhovetski wrote:
-> On Sun, 4 Jul 2010, Baruch Siach wrote:
-> 
-> > This is the soc_camera support developed by Sascha Hauer for the i.MX27.  Alan
-> > Carvalho de Assis modified the original driver to get it working on more recent
-> > kernels. I modified it further to add support for i.MX25. This driver has been
-> > tested on i.MX25 and i.MX27 based platforms.
-> > 
-> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> > Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> 
-> So, who shall be taking this patch? I'd prefer it go via ARM. Then you can 
-> easier satisfy any dependencies and enforce a certain patch order. It has 
-> my ack, just verified v6 - my ack still holds (I hope, Baruch did 
-> compile-test this new version on various i.MX2x versions). However, if you 
-> prefer, I can also take it via soc-camera / v4l. Sascha, what's your take?
+* lirc: Don't propagate reset event to userspace
+* lirc: Remove strange logic from lirc that would make first sample always be pulse
+* Make TO_US macro actualy print what it should.
 
-There won't be conflicts when this goes over v4l, but otoh if Baruch
-plans to add board support till the next window the platform_data will
-be missing and my tree won't compile. So it's probably best to push it
-through the i.MX tree.
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ir-core-priv.h  |    4 +---
+ drivers/media/IR/ir-lirc-codec.c |   14 ++++++++------
+ drivers/media/IR/ir-raw-event.c  |    3 +++
+ 3 files changed, 12 insertions(+), 9 deletions(-)
 
-Will apply this afternoon if noone objects.
-
-Sascha
-
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index babd520..dc26e2b 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -76,7 +76,6 @@ struct ir_raw_event_ctrl {
+ 	struct lirc_codec {
+ 		struct ir_input_dev *ir_dev;
+ 		struct lirc_driver *drv;
+-		int lircdata;
+ 	} lirc;
+ };
+ 
+@@ -104,10 +103,9 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
+ 		ev->duration -= duration;
+ }
+ 
+-#define TO_US(duration)			(((duration) + 500) / 1000)
++#define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
+ #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
+ #define IS_RESET(ev)			(ev.duration == 0)
+-
+ /*
+  * Routines from ir-sysfs.c - Meant to be called only internally inside
+  * ir-core
+diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
+index 3ba482d..8ca01fd 100644
+--- a/drivers/media/IR/ir-lirc-codec.c
++++ b/drivers/media/IR/ir-lirc-codec.c
+@@ -32,6 +32,7 @@
+ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ {
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	int sample;
+ 
+ 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_LIRC))
+ 		return 0;
+@@ -39,18 +40,21 @@ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 	if (!ir_dev->raw->lirc.drv || !ir_dev->raw->lirc.drv->rbuf)
+ 		return -EINVAL;
+ 
++	if (IS_RESET(ev))
++		return 0;
++
+ 	IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
+ 		   TO_US(ev.duration), TO_STR(ev.pulse));
+ 
+-	ir_dev->raw->lirc.lircdata += ev.duration / 1000;
++
++	sample = ev.duration / 1000;
+ 	if (ev.pulse)
+-		ir_dev->raw->lirc.lircdata |= PULSE_BIT;
++		sample |= PULSE_BIT;
+ 
+ 	lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
+-			  (unsigned char *) &ir_dev->raw->lirc.lircdata);
++			  (unsigned char *) &sample);
+ 	wake_up(&ir_dev->raw->lirc.drv->rbuf->wait_poll);
+ 
+-	ir_dev->raw->lirc.lircdata = 0;
+ 
+ 	return 0;
+ }
+@@ -224,8 +228,6 @@ static int ir_lirc_register(struct input_dev *input_dev)
+ 
+ 	ir_dev->raw->lirc.drv = drv;
+ 	ir_dev->raw->lirc.ir_dev = ir_dev;
+-	ir_dev->raw->lirc.lircdata = PULSE_MASK;
+-
+ 	return 0;
+ 
+ lirc_register_failed:
+diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+index 6f192ef..51f65da 100644
+--- a/drivers/media/IR/ir-raw-event.c
++++ b/drivers/media/IR/ir-raw-event.c
+@@ -66,6 +66,9 @@ int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev)
+ 	if (!ir->raw)
+ 		return -EINVAL;
+ 
++	IR_dprintk(2, "sample: (05%dus %s)\n",
++		TO_US(ev->duration), TO_STR(ev->pulse));
++
+ 	if (kfifo_in(&ir->raw->kfifo, ev, sizeof(*ev)) != sizeof(*ev))
+ 		return -ENOMEM;
+ 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.0.4
+
