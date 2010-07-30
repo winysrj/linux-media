@@ -1,124 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4839 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753956Ab0G3TdM (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:41194 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758521Ab0G3LjV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 15:33:12 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o6UJX9YM071202
-	for <linux-media@vger.kernel.org>; Fri, 30 Jul 2010 21:33:10 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 30 Jul 2010 21:33:09 +0200 (CEST)
-Message-Id: <201007301933.o6UJX9YM071202@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+	Fri, 30 Jul 2010 07:39:21 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 08/13] IR: Allow not to compile keymaps in.
+Date: Fri, 30 Jul 2010 14:38:48 +0300
+Message-Id: <1280489933-20865-9-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280489933-20865-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Currently, ir device registration fails if keymap requested by driver is not found.
+Fix that by always compiling in the empty keymap, and using it as a failback.
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ir-core-priv.h     |    3 +-
+ drivers/media/IR/ir-sysfs.c         |    2 +
+ drivers/media/IR/keymaps/Makefile   |    1 -
+ drivers/media/IR/keymaps/rc-empty.c |   44 -----------------------------------
+ drivers/media/IR/rc-map.c           |   23 ++++++++++++++++++
+ include/media/ir-core.h             |    8 ++++-
+ 6 files changed, 33 insertions(+), 48 deletions(-)
+ delete mode 100644 drivers/media/IR/keymaps/rc-empty.c
 
-date:        Fri Jul 30 19:00:16 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index 08383b9..e9c3cce 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -125,7 +125,8 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
+ void ir_raw_init(void);
+ 
+-
++int ir_rcmap_init(void);
++void ir_rcmap_cleanup(void);
+ /*
+  * Decoder initialization code
+  *
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index a841e51..936dff8 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -341,6 +341,7 @@ static int __init ir_core_init(void)
+ 
+ 	/* Initialize/load the decoders/keymap code that will be used */
+ 	ir_raw_init();
++	ir_rcmap_init();
+ 
+ 	return 0;
+ }
+@@ -348,6 +349,7 @@ static int __init ir_core_init(void)
+ static void __exit ir_core_exit(void)
+ {
+ 	class_unregister(&ir_input_class);
++	ir_rcmap_cleanup();
+ }
+ 
+ module_init(ir_core_init);
+diff --git a/drivers/media/IR/keymaps/Makefile b/drivers/media/IR/keymaps/Makefile
+index 86d3d1f..24992cd 100644
+--- a/drivers/media/IR/keymaps/Makefile
++++ b/drivers/media/IR/keymaps/Makefile
+@@ -17,7 +17,6 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-dm1105-nec.o \
+ 			rc-dntv-live-dvb-t.o \
+ 			rc-dntv-live-dvbt-pro.o \
+-			rc-empty.o \
+ 			rc-em-terratec.o \
+ 			rc-encore-enltv2.o \
+ 			rc-encore-enltv.o \
+diff --git a/drivers/media/IR/keymaps/rc-empty.c b/drivers/media/IR/keymaps/rc-empty.c
+deleted file mode 100644
+index 3b338d8..0000000
+--- a/drivers/media/IR/keymaps/rc-empty.c
++++ /dev/null
+@@ -1,44 +0,0 @@
+-/* empty.h - Keytable for empty Remote Controller
+- *
+- * keymap imported from ir-keymaps.c
+- *
+- * Copyright (c) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+-#include <media/rc-map.h>
+-
+-/* empty keytable, can be used as placeholder for not-yet created keytables */
+-
+-static struct ir_scancode empty[] = {
+-	{ 0x2a, KEY_COFFEE },
+-};
+-
+-static struct rc_keymap empty_map = {
+-	.map = {
+-		.scan    = empty,
+-		.size    = ARRAY_SIZE(empty),
+-		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
+-		.name    = RC_MAP_EMPTY,
+-	}
+-};
+-
+-static int __init init_rc_map_empty(void)
+-{
+-	return ir_register_map(&empty_map);
+-}
+-
+-static void __exit exit_rc_map_empty(void)
+-{
+-	ir_unregister_map(&empty_map);
+-}
+-
+-module_init(init_rc_map_empty)
+-module_exit(exit_rc_map_empty)
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
+diff --git a/drivers/media/IR/rc-map.c b/drivers/media/IR/rc-map.c
+index 46a8f15..689143f 100644
+--- a/drivers/media/IR/rc-map.c
++++ b/drivers/media/IR/rc-map.c
+@@ -82,3 +82,26 @@ void ir_unregister_map(struct rc_keymap *map)
+ }
+ EXPORT_SYMBOL_GPL(ir_unregister_map);
+ 
++
++static struct ir_scancode empty[] = {
++	{ 0x2a, KEY_COFFEE },
++};
++
++static struct rc_keymap empty_map = {
++	.map = {
++		.scan    = empty,
++		.size    = ARRAY_SIZE(empty),
++		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
++		.name    = RC_MAP_EMPTY,
++	}
++};
++
++int ir_rcmap_init(void)
++{
++	return ir_register_map(&empty_map);
++}
++
++void ir_rcmap_cleanup(void)
++{
++	ir_unregister_map(&empty_map);
++}
+diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+index 513e60d..197d05a 100644
+--- a/include/media/ir-core.h
++++ b/include/media/ir-core.h
+@@ -110,8 +110,12 @@ static inline int ir_input_register(struct input_dev *dev,
+ 		return -EINVAL;
+ 
+ 	ir_codes = get_rc_map(map_name);
+-	if (!ir_codes)
+-		return -EINVAL;
++	if (!ir_codes) {
++		ir_codes = get_rc_map(RC_MAP_EMPTY);
++
++		if (!ir_codes)
++			return -EINVAL;
++	}
+ 
+ 	rc = __ir_input_register(dev, ir_codes, props, driver_name);
+ 	if (rc < 0)
+-- 
+1.7.0.4
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
