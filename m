@@ -1,70 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:56206 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752387Ab0GEROI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 13:14:08 -0400
-Message-ID: <4C3212DE.7060803@infradead.org>
-Date: Mon, 05 Jul 2010 14:14:06 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Jiri Kosina <jkosina@suse.cz>
-CC: Dan Carpenter <error27@gmail.com>, Antti Palosaari <crope@iki.fi>,
-	=?ISO-8859-1?Q?Andr=E9_Goddard_Rosa?= <andre.goddard@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] V4L/DVB: remove unneeded null check in anysee_probe()
-References: <20100531192632.GZ5483@bicker> <alpine.LNX.2.00.1006161755560.12271@pobox.suse.cz>
-In-Reply-To: <alpine.LNX.2.00.1006161755560.12271@pobox.suse.cz>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51750 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758661Ab0G3OyT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Jul 2010 10:54:19 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de, p.wiesner@phytec.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: [PATCH 08/20] mt9m111: cropcap use defined default rect properties in defrect
+Date: Fri, 30 Jul 2010 16:53:26 +0200
+Message-Id: <1280501618-23634-9-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 16-06-2010 12:56, Jiri Kosina escreveu:
-> On Mon, 31 May 2010, Dan Carpenter wrote:
-> 
->> Smatch complained because "d" is dereferenced first and then checked for
->> null later .  The only code path where "d" could be a invalid pointer is
->> if this is a cold device in dvb_usb_device_init().  I consulted Antti 
->> Palosaari and he explained that anysee is always a warm device.
->>
->> I have added a comment and removed the unneeded null check.
->>
->> Signed-off-by: Dan Carpenter <error27@gmail.com>
->>
->> diff --git a/drivers/media/dvb/dvb-usb/anysee.c b/drivers/media/dvb/dvb-usb/anysee.c
->> index faca1ad..aa5c7d5 100644
->> --- a/drivers/media/dvb/dvb-usb/anysee.c
->> +++ b/drivers/media/dvb/dvb-usb/anysee.c
->> @@ -463,6 +463,11 @@ static int anysee_probe(struct usb_interface *intf,
->>  	if (intf->num_altsetting < 1)
->>  		return -ENODEV;
->>  
->> +	/*
->> +	 * Anysee is always warm (its USB-bridge, Cypress FX2, uploads
->> +	 * firmware from eeprom).  If dvb_usb_device_init() succeeds that
->> +	 * means d is a valid pointer.
->> +	 */
->>  	ret = dvb_usb_device_init(intf, &anysee_properties, THIS_MODULE, &d,
->>  		adapter_nr);
->>  	if (ret)
->> @@ -479,10 +484,7 @@ static int anysee_probe(struct usb_interface *intf,
->>  	if (ret)
->>  		return ret;
->>  
->> -	if (d)
->> -		ret = anysee_init(d);
->> -
->> -	return ret;
->> +	return anysee_init(d);
-> 
-> Doesn't seem to be present in linux-next as of today. Mauro, will you 
-> take it?
-> Or I can take it if you ack it.
+Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+---
+ drivers/media/video/mt9m111.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-Sorry, I'm delayed on applying patches on my tree, due to two long trips and
-the huge amount of patches that were sent those days.
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index f024cc5..3b19274 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -480,7 +480,10 @@ static int mt9m111_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+ 	a->bounds.top			= MT9M111_MIN_DARK_ROWS;
+ 	a->bounds.width			= MT9M111_MAX_WIDTH;
+ 	a->bounds.height		= MT9M111_MAX_HEIGHT;
+-	a->defrect			= a->bounds;
++	a->defrect.left			= MT9M111_DEF_DARK_COLS;
++	a->defrect.top			= MT9M111_DEF_DARK_ROWS;
++	a->defrect.width		= MT9M111_DEF_WIDTH;
++	a->defrect.height		= MT9M111_DEF_HEIGHT;
+ 	a->type				= V4L2_BUF_TYPE_VIDEO_CAPTURE;
+ 	a->pixelaspect.numerator	= 1;
+ 	a->pixelaspect.denominator	= 1;
+-- 
+1.7.1
 
-I'm applying it on my tree right now.
-
-Cheers,
-Mauro.
