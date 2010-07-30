@@ -1,77 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:19999 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755371Ab0GVRbB (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:47960 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756568Ab0G3OX7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Jul 2010 13:31:01 -0400
-Message-ID: <4C48802D.6090406@maxwell.research.nokia.com>
-Date: Thu, 22 Jul 2010 20:30:21 +0300
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	Fri, 30 Jul 2010 10:23:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [media-ctl PATCH 2/3] Just include kernel headers
+Date: Fri, 30 Jul 2010 16:23:46 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <1279124246-12187-1-git-send-email-saaguirre@ti.com> <201007301545.07534.laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE894456C0B476@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894456C0B476@dlee02.ent.ti.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [RFC/PATCH v2 06/10] media: Entities, pads and links enumeration
-References: <1279722935-28493-1-git-send-email-laurent.pinchart@ideasonboard.com> <1279722935-28493-7-git-send-email-laurent.pinchart@ideasonboard.com> <4C48633F.9020001@maxwell.research.nokia.com> <201007221733.37439.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201007221733.37439.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201007301623.46995.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi Sakari,
+Hi Sergio,
 
-Hello Laurent,
-
-...
->>> +
->>> +struct media_user_pad {
->>> +	__u32 entity;		/* entity ID */
->>> +	__u8 index;		/* pad index */
->>> +	__u32 direction;	/* pad direction */
->>> +};
->>
->> Another small comment, I think you mentioned it yourself some time back
->>
->> :-): how about some reserved fields to these structures?
+On Friday 30 July 2010 16:10:08 Aguirre, Sergio wrote:
+> On Friday 30 July 2010 8:45 AM Laurent Pinchart wrote:
+> > On Wednesday 14 July 2010 18:17:25 Sergio Aguirre wrote:
+> > > We shouldn't require full kernel source for this.
+> > 
+> > That's right in theory, but I then get
+> > 
+> > $ make KDIR=/home/laurent/src/arm/kernel/
+> > arm-none-linux-gnueabi-gcc -O2 -Wall -fpic -I. -
+> > I/home/laurent/src/arm/kernel//include    -c -o media.o media.c
+> > In file included from /opt/cs/arm-2009q1/bin/../arm-none-linux-
+> > gnueabi/libc/usr/include/asm/types.h:4,
+> >                  from
+> > /home/laurent/src/arm/kernel//include/linux/types.h:4,
+> >                  from
+> > /home/laurent/src/arm/kernel//include/linux/videodev2.h:66,
+> >                  from media.c:31:
+> > /home/laurent/src/arm/kernel//include/asm-generic/int-ll64.h:11:29:
+> > error: asm/bitsperlong.h: No such file or directory
+> > make: *** [media.o] Error 1
+> > 
+> > when building against a kernel tree.
 > 
-> Very good point. Reserved fields are needed in media_user_entity and 
-> media_user_links at least. For media_user_pad and media_user_link, we could do 
-> without reserved fields if we add fields to media_user_links to store the size 
-> of those structures.
+> KDIR doesn't exist anymore.
+> 
+> By the result of your log, I don't see how that value got passed into the
+> makefile... Are you sure you applied the patch correctly?
 
-The structure size is part of the ioctl number defined by the _IOC macro
-so I'd go with reserved fields even for these structures. Otherwise
-special handling would be required for these ioctls in a few places.
-
->>> +struct media_user_entity {
->>> +	__u32 id;
->>> +	char name[32];
->>> +	__u32 type;
->>> +	__u32 subtype;
->>> +	__u8 pads;
->>> +	__u32 links;
->>> +
->>> +	union {
->>> +		/* Node specifications */
->>> +		struct {
->>> +			__u32 major;
->>> +			__u32 minor;
->>> +		} v4l;
->>> +		struct {
->>> +			__u32 major;
->>> +			__u32 minor;
->>> +		} fb;
->>> +		int alsa;
->>> +		int dvb;
->>> +
->>> +		/* Sub-device specifications */
->>> +		/* Nothing needed yet */
-
-This union could have a defined size as well, e.g. u8 blob[64] or something.
-
-Regards,
+I haven't, I've just removed the arch include dir from KDIR in the Makefile. 
+The end result is the same.
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Regards,
+
+Laurent Pinchart
