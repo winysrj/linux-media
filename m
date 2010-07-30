@@ -1,97 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8832 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751439Ab0G1CYD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Jul 2010 22:24:03 -0400
-Date: Tue, 27 Jul 2010 22:24:00 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH] IR/mceusb: remove bad ir_input_dev use
-Message-ID: <20100728022400.GA5398@redhat.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:49803 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754953Ab0G3CjJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Jul 2010 22:39:09 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1280456235-2024-14-git-send-email-maximlevitsky@gmail.com>
+References: <1280456235-2024-1-git-send-email-maximlevitsky@gmail.com>
+	<1280456235-2024-14-git-send-email-maximlevitsky@gmail.com>
+Date: Thu, 29 Jul 2010 22:39:09 -0400
+Message-ID: <AANLkTim42mHVhOgmVGxh2XsbbbVC7ZOgtfd7DDSrxZDB@mail.gmail.com>
+Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable
+	it.
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ir_input_dev gets filled in by __ir_input_register, the one
-allocated in mceusb_init_input_dev was being overwritten by the correct
-one shortly after it was initialized (ultimately resulting in a memory
-leak). This bug was inherited from imon.c, and was pointed out to me by
-Maxim Levitsky.
+On Thu, Jul 29, 2010 at 10:17 PM, Maxim Levitsky
+<maximlevitsky@gmail.com> wrote:
+> note that error_adjustment module option is added.
+> This allows to reduce input samples by a percent.
+> This makes input on my system more correct.
+>
+> Default is 4% as it works best here.
+>
+> Note that only normal input is adjusted. I don't know
+> what adjustments to apply to fan tachometer input.
+> Maybe it is accurate already.
 
-CC: Maxim Levitsky <maximlevitsky@gmail.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/mceusb.c |   15 +--------------
- 1 files changed, 1 insertions(+), 14 deletions(-)
+Do you have the manual for the ENE chip in English? or do you read Chinese?
 
-diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
-index 78bf7f7..9a7da32 100644
---- a/drivers/media/IR/mceusb.c
-+++ b/drivers/media/IR/mceusb.c
-@@ -228,7 +228,6 @@ static struct usb_device_id std_tx_mask_list[] = {
- /* data structure for each usb transceiver */
- struct mceusb_dev {
- 	/* ir-core bits */
--	struct ir_input_dev *irdev;
- 	struct ir_dev_props *props;
- 	struct ir_raw_event rawir;
- 
-@@ -739,7 +738,7 @@ static void mceusb_dev_recv(struct urb *urb, struct pt_regs *regs)
- 
- 	if (ir->send_flags == RECV_FLAG_IN_PROGRESS) {
- 		ir->send_flags = SEND_FLAG_COMPLETE;
--		dev_dbg(&ir->irdev->dev, "setup answer received %d bytes\n",
-+		dev_dbg(&ir->dev, "setup answer received %d bytes\n",
- 			buf_len);
- 	}
- 
-@@ -861,7 +860,6 @@ static struct input_dev *mceusb_init_input_dev(struct mceusb_dev *ir)
- {
- 	struct input_dev *idev;
- 	struct ir_dev_props *props;
--	struct ir_input_dev *irdev;
- 	struct device *dev = ir->dev;
- 	int ret = -ENODEV;
- 
-@@ -878,12 +876,6 @@ static struct input_dev *mceusb_init_input_dev(struct mceusb_dev *ir)
- 		goto props_alloc_failed;
- 	}
- 
--	irdev = kzalloc(sizeof(struct ir_input_dev), GFP_KERNEL);
--	if (!irdev) {
--		dev_err(dev, "remote ir input dev allocation failed\n");
--		goto ir_dev_alloc_failed;
--	}
--
- 	snprintf(ir->name, sizeof(ir->name), "Media Center Ed. eHome "
- 		 "Infrared Remote Transceiver (%04x:%04x)",
- 		 le16_to_cpu(ir->usbdev->descriptor.idVendor),
-@@ -902,9 +894,6 @@ static struct input_dev *mceusb_init_input_dev(struct mceusb_dev *ir)
- 	props->tx_ir = mceusb_tx_ir;
- 
- 	ir->props = props;
--	ir->irdev = irdev;
--
--	input_set_drvdata(idev, irdev);
- 
- 	ret = ir_input_register(idev, RC_MAP_RC6_MCE, props, DRIVER_NAME);
- 	if (ret < 0) {
-@@ -915,8 +904,6 @@ static struct input_dev *mceusb_init_input_dev(struct mceusb_dev *ir)
- 	return idev;
- 
- irdev_failed:
--	kfree(irdev);
--ir_dev_alloc_failed:
- 	kfree(props);
- props_alloc_failed:
- 	input_free_device(idev);
--- 
-1.7.1.1
+Maybe you can figure out why the readings are off by 4%. I suspect
+that someone has set a clock divider wrong when programming the chip.
+For example setting the divider for a 25Mhz clock when the clock is
+actually 26Mhz would cause the error you are seeing. Or they just made
+a mistake in computing the divisor. It is probably a bug in the BIOS
+of your laptop.  If that's the case you could add a quirk in the
+system boot code to fix the register setting.
 
 -- 
-Jarod Wilson
-jarod@redhat.com
-
+Jon Smirl
+jonsmirl@gmail.com
