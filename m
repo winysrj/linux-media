@@ -1,112 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52763 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757004Ab0GNOGK (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51760 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758697Ab0G3OyT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Jul 2010 10:06:10 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Fri, 30 Jul 2010 10:54:19 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE 09/12] ARM: OMAP3: Update Camera ISP definitions for OMAP3630
-Date: Wed, 14 Jul 2010 16:07:11 +0200
-Message-Id: <1279116434-28278-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de, p.wiesner@phytec.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: [PATCH 10/20] mt9m111: rewrite make_rect for positioning in debug
+Date: Fri, 30 Jul 2010 16:53:28 +0200
+Message-Id: <1280501618-23634-11-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
+If DEBUG is defined it is possible to set upper left corner
 
-Add new/changed base address definitions and resources for
-OMAP3630 ISP.
-
-The OMAP3430 CSI2PHY block is same as the OMAP3630 CSIPHY2
-block. But the later name is chosen as it gives more symmetry
-to the names.
-
-Signed-off-by: Tuukka Toivonen <tuukka.o.toivonen@nokia.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
+Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
 ---
- arch/arm/mach-omap2/devices.c              |   28 ++++++++++++++++++++++++----
- arch/arm/plat-omap/include/plat/omap34xx.h |   16 ++++++++++++----
- 2 files changed, 36 insertions(+), 8 deletions(-)
+ drivers/media/video/mt9m111.c |   31 +++++++++++++++++++++++--------
+ 1 files changed, 23 insertions(+), 8 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 03e6c9e..46b0b4b 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -107,13 +107,33 @@ static struct resource omap3isp_resources[] = {
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CSI2A_BASE,
--		.end		= OMAP3430_ISP_CSI2A_END,
-+		.start		= OMAP3430_ISP_CSI2A_REGS1_BASE,
-+		.end		= OMAP3430_ISP_CSI2A_REGS1_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
--		.start		= OMAP3430_ISP_CSI2PHY_BASE,
--		.end		= OMAP3430_ISP_CSI2PHY_END,
-+		.start		= OMAP3430_ISP_CSIPHY2_BASE,
-+		.end		= OMAP3430_ISP_CSIPHY2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2A_REGS2_BASE,
-+		.end		= OMAP3630_ISP_CSI2A_REGS2_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2C_REGS1_BASE,
-+		.end		= OMAP3630_ISP_CSI2C_REGS1_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSIPHY1_BASE,
-+		.end		= OMAP3630_ISP_CSIPHY1_END,
-+		.flags		= IORESOURCE_MEM,
-+	},
-+	{
-+		.start		= OMAP3630_ISP_CSI2C_REGS2_BASE,
-+		.end		= OMAP3630_ISP_CSI2C_REGS2_END,
- 		.flags		= IORESOURCE_MEM,
- 	},
- 	{
-diff --git a/arch/arm/plat-omap/include/plat/omap34xx.h b/arch/arm/plat-omap/include/plat/omap34xx.h
-index 98fc8b4..b9e8588 100644
---- a/arch/arm/plat-omap/include/plat/omap34xx.h
-+++ b/arch/arm/plat-omap/include/plat/omap34xx.h
-@@ -56,8 +56,12 @@
- #define OMAP3430_ISP_RESZ_BASE		(OMAP3430_ISP_BASE + 0x1000)
- #define OMAP3430_ISP_SBL_BASE		(OMAP3430_ISP_BASE + 0x1200)
- #define OMAP3430_ISP_MMU_BASE		(OMAP3430_ISP_BASE + 0x1400)
--#define OMAP3430_ISP_CSI2A_BASE		(OMAP3430_ISP_BASE + 0x1800)
--#define OMAP3430_ISP_CSI2PHY_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+#define OMAP3430_ISP_CSI2A_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1800)
-+#define OMAP3430_ISP_CSIPHY2_BASE	(OMAP3430_ISP_BASE + 0x1970)
-+#define OMAP3630_ISP_CSI2A_REGS2_BASE	(OMAP3430_ISP_BASE + 0x19C0)
-+#define OMAP3630_ISP_CSI2C_REGS1_BASE	(OMAP3430_ISP_BASE + 0x1C00)
-+#define OMAP3630_ISP_CSIPHY1_BASE	(OMAP3430_ISP_BASE + 0x1D70)
-+#define OMAP3630_ISP_CSI2C_REGS2_BASE	(OMAP3430_ISP_BASE + 0x1DC0)
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index e8d8e9b..db5ac32 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -428,14 +428,7 @@ static int mt9m111_make_rect(struct i2c_client *client,
+ 			     struct v4l2_rect *rect)
+ {
+ 	struct mt9m111 *mt9m111 = to_mt9m111(client);
+-
+-	if (mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
+-	    mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE) {
+-		/* Bayer format - even size lengths */
+-		rect->width	= ALIGN(rect->width, 2);
+-		rect->height	= ALIGN(rect->height, 2);
+-		/* Let the user play with the starting pixel */
+-	}
++	enum v4l2_mbus_pixelcode code = mt9m111->fmt->code;
  
- #define OMAP3430_ISP_END		(OMAP3430_ISP_BASE         + 0x06F)
- #define OMAP3430_ISP_CBUFF_END		(OMAP3430_ISP_CBUFF_BASE   + 0x077)
-@@ -69,8 +73,12 @@
- #define OMAP3430_ISP_RESZ_END		(OMAP3430_ISP_RESZ_BASE    + 0x0AB)
- #define OMAP3430_ISP_SBL_END		(OMAP3430_ISP_SBL_BASE     + 0x0FB)
- #define OMAP3430_ISP_MMU_END		(OMAP3430_ISP_MMU_BASE     + 0x06F)
--#define OMAP3430_ISP_CSI2A_END		(OMAP3430_ISP_CSI2A_BASE   + 0x16F)
--#define OMAP3430_ISP_CSI2PHY_END	(OMAP3430_ISP_CSI2PHY_BASE + 0x007)
-+#define OMAP3430_ISP_CSI2A_REGS1_END	(OMAP3430_ISP_CSI2A_REGS1_BASE + 0x16F)
-+#define OMAP3430_ISP_CSIPHY2_END	(OMAP3430_ISP_CSIPHY2_BASE + 0x00B)
-+#define OMAP3630_ISP_CSI2A_REGS2_END	(OMAP3630_ISP_CSI2A_REGS2_BASE + 0x3F)
-+#define OMAP3630_ISP_CSI2C_REGS1_END	(OMAP3630_ISP_CSI2C_REGS1_BASE + 0x16F)
-+#define OMAP3630_ISP_CSIPHY1_END	(OMAP3630_ISP_CSIPHY1_BASE + 0x00B)
-+#define OMAP3630_ISP_CSI2C_REGS2_END	(OMAP3630_ISP_CSI2C_REGS2_BASE + 0x3F)
+ 	/* FIXME: the datasheet doesn't specify minimum sizes */
+ 	soc_camera_limit_side(&rect->left, &rect->width,
+@@ -444,6 +437,28 @@ static int mt9m111_make_rect(struct i2c_client *client,
+ 	soc_camera_limit_side(&rect->top, &rect->height,
+ 		     MT9M111_MIN_DARK_ROWS, 2, MT9M111_MAX_HEIGHT);
  
- #define OMAP34XX_HSUSB_OTG_BASE	(L4_34XX_BASE + 0xAB000)
- #define OMAP34XX_USBTLL_BASE	(L4_34XX_BASE + 0x62000)
++	switch (code) {
++	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
++		/* unprocessed Bayer pattern format, IFP is bypassed */
++#ifndef DEBUG
++		/* assure that Bayer sequence is BGGR */
++		/* in debug mode, let user play with starting pixel */
++		rect->left	= ALIGN(rect->left, 2);
++		rect->top	= ALIGN(rect->top, 2) + 1;
++#endif
++	case V4L2_MBUS_FMT_SBGGR8_1X8:
++		/* processed Bayer pattern format, sequence is fixed */
++		/* assure even side lengths for both Bayer modes */
++		rect->width	= ALIGN(rect->width, 2);
++		rect->height	= ALIGN(rect->height, 2);
++	default:
++		/* needed to avoid compiler warnings */;
++	}
++
++	dev_dbg(&client->dev, "%s: rect: left=%d top=%d width=%d height=%d "
++		"mf: pixelcode=%d\n", __func__, rect->left, rect->top,
++		rect->width, rect->height, code);
++
+ 	return mt9m111_setup_rect(client, rect);
+ }
+ 
 -- 
 1.7.1
 
