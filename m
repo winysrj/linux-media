@@ -1,115 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34074 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932070Ab0GTBQo (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:55676 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751320Ab0GaRt7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jul 2010 21:16:44 -0400
-Subject: [PATCH 04/17] cx25840: Make cx25840 i2c register read transactions
- atomic
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-Cc: Mike Isely <isely@isely.net>,
-	Kenney Phillisjr <kphillisjr@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean Delvare <khali@linux-fr.org>
-In-Reply-To: <cover.1279586511.git.awalls@md.metrocast.net>
-References: <cover.1279586511.git.awalls@md.metrocast.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 19 Jul 2010 21:11:46 -0400
-Message-ID: <1279588306.28153.6.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 31 Jul 2010 13:49:59 -0400
+Date: 31 Jul 2010 19:47:00 +0200
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: jonsmirl@gmail.com
+Cc: awalls@md.metrocast.net
+Cc: jarod@wilsonet.com
+Cc: linux-input@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: lirc-list@lists.sourceforge.net
+Cc: maximlevitsky@gmail.com
+Cc: mchehab@redhat.com
+Message-ID: <BTtOJbzJjFB@christoph>
+In-Reply-To: <AANLkTimaut1mMUXwbJAgjNjmQkxgsf-GOCTXmKYNm1Lz@mail.gmail.com>
+Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable  it.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There was a small window between writing the cx25840 register
-address over the i2c bus and reading the register contents back from the
-cx25840 device that the i2c adapter lock was released.  This change ensures the
-adapter lock is not released until the register read is done.
+Hi Jon,
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
----
- drivers/media/video/cx25840/cx25840-core.c |   58 +++++++++++++++++++---------
- 1 files changed, 39 insertions(+), 19 deletions(-)
+on 31 Jul 10 at 12:25, Jon Smirl wrote:
+> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
+> wrote:
+>> I think you won't be able to fix the problem conclusively either way.  A
+>> lot of how the chip's clocks should be programmed depends on how the
+>> GPIOs are used and what crystal is used.
+>>
+>> I suspect many designers will use some reference design layout from ENE,
+>> but it won't be good in every case.  The wire-up of the ENE of various
+>> motherboards is likely something you'll have to live with as unknowns.
+>>
+>> This is a case where looser tolerances in the in kernel decoders could
+>> reduce this driver's complexity and/or get rid of arbitrary fudge
+>> factors in the driver.
 
-diff --git a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-index bb4872b..4f908fa 100644
---- a/drivers/media/video/cx25840/cx25840-core.c
-+++ b/drivers/media/video/cx25840/cx25840-core.c
-@@ -80,33 +80,53 @@ int cx25840_write4(struct i2c_client *client, u16 addr, u32 value)
- 
- u8 cx25840_read(struct i2c_client * client, u16 addr)
- {
--	u8 buffer[2];
--	buffer[0] = addr >> 8;
--	buffer[1] = addr & 0xff;
--
--	if (i2c_master_send(client, buffer, 2) < 2)
--		return 0;
--
--	if (i2c_master_recv(client, buffer, 1) < 1)
-+	struct i2c_msg msgs[2];
-+	u8 tx_buf[2], rx_buf[1];
-+
-+	/* Write register address */
-+	tx_buf[0] = addr >> 8;
-+	tx_buf[1] = addr & 0xff;
-+	msgs[0].addr = client->addr;
-+	msgs[0].flags = 0;
-+	msgs[0].len = 2;
-+	msgs[0].buf = (char *) tx_buf;
-+
-+	/* Read data from register */
-+	msgs[1].addr = client->addr;
-+	msgs[1].flags = I2C_M_RD;
-+	msgs[1].len = 1;
-+	msgs[1].buf = (char *) rx_buf;
-+
-+	if (i2c_transfer(client->adapter, msgs, 2) < 2)
- 		return 0;
- 
--	return buffer[0];
-+	return rx_buf[0];
- }
- 
- u32 cx25840_read4(struct i2c_client * client, u16 addr)
- {
--	u8 buffer[4];
--	buffer[0] = addr >> 8;
--	buffer[1] = addr & 0xff;
--
--	if (i2c_master_send(client, buffer, 2) < 2)
--		return 0;
--
--	if (i2c_master_recv(client, buffer, 4) < 4)
-+	struct i2c_msg msgs[2];
-+	u8 tx_buf[2], rx_buf[4];
-+
-+	/* Write register address */
-+	tx_buf[0] = addr >> 8;
-+	tx_buf[1] = addr & 0xff;
-+	msgs[0].addr = client->addr;
-+	msgs[0].flags = 0;
-+	msgs[0].len = 2;
-+	msgs[0].buf = (char *) tx_buf;
-+
-+	/* Read data from registers */
-+	msgs[1].addr = client->addr;
-+	msgs[1].flags = I2C_M_RD;
-+	msgs[1].len = 4;
-+	msgs[1].buf = (char *) rx_buf;
-+
-+	if (i2c_transfer(client->adapter, msgs, 2) < 2)
- 		return 0;
- 
--	return (buffer[3] << 24) | (buffer[2] << 16) |
--	    (buffer[1] << 8) | buffer[0];
-+	return (rx_buf[3] << 24) | (rx_buf[2] << 16) | (rx_buf[1] << 8) |
-+		rx_buf[0];
- }
- 
- int cx25840_and_or(struct i2c_client *client, u16 addr, unsigned and_mask,
--- 
-1.7.1.1
+> The tolerances are as loose as they can be. The NEC protocol uses
+> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
+> (50% of 4%).  The crystals used in electronics are accurate to
+> 0.0001%+.
 
+But the standard IR receivers are far from being accurate enough to allow
+tolerance windows of only 2%.
+I'm surprised that this works for you. LIRC uses a standard tolerance of
+30% / 100 us and even this is not enough sometimes.
 
+For the NEC protocol one signal consists of 22 individual pulses at 38kHz.
+If the receiver just misses one pulse, you already have an error of 1/22
+> 4%.
+
+Christoph
