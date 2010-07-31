@@ -1,55 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sirokuusama.dnainternet.net ([83.102.40.133]:60200 "EHLO
-	sirokuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752670Ab0GGRaU convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Jul 2010 13:30:20 -0400
-From: Anssi Hannula <anssi.hannula@iki.fi>
-To: Jarod Wilson <jarod@redhat.com>
-Subject: Re: Some issues with imon input driver
-Date: Wed, 7 Jul 2010 20:21:44 +0300
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-References: <201007070536.45900.anssi.hannula@iki.fi> <20100707135259.GA29996@redhat.com>
-In-Reply-To: <20100707135259.GA29996@redhat.com>
+Received: from smtp6-g21.free.fr ([212.27.42.6]:55095 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752391Ab0GaUhB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Jul 2010 16:37:01 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	p.wiesner@phytec.de
+Subject: Re: [PATCH 02/20] mt9m111: init chip after read CHIP_VERSION
+References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+	<1280501618-23634-3-git-send-email-m.grzeschik@pengutronix.de>
+	<Pine.LNX.4.64.1007312157200.16769@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sat, 31 Jul 2010 22:36:52 +0200
+In-Reply-To: <Pine.LNX.4.64.1007312157200.16769@axis700.grange> (Guennadi Liakhovetski's message of "Sat\, 31 Jul 2010 22\:09\:48 +0200 \(CEST\)")
+Message-ID: <874off1j8b.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201007072021.44619.anssi.hannula@iki.fi>
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Jarod Wilson kirjoitti keskiviikko, 7. heinäkuuta 2010 16:52:59:
-> On Wed, Jul 07, 2010 at 05:36:45AM +0300, Anssi Hannula wrote:
-> > Hi!
-> > 
-> > I tried to set up my imon remote, but run into the issue of buttons
-> > getting easily stuck. And while looking at the code, I noticed some more
-> > issues :)
-> 
-> I'm not entirely surprised, I knew there were a few quirks left I'd not
-> yet fully sorted out. Generally, it works quite well, but I didn't abuse
-> the receiver quite as thoroughly as you. ;)
-> 
-> Can I talk you into filing a bug to track this? I can probably work up
-> fixes for a number of these sooner or later, if you don't beat me to them,
-> but it'd be easy for one or more of the specific problems to slip through
-> the cracks if not logged somewhere. My From: address here matches my
-> b.k.o. account, if you want to assign said bug to me.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Done, though I didn't have the permissions to assign it to you:
-https://bugzilla.kernel.org/show_bug.cgi?id=16351
+> On Fri, 30 Jul 2010, Michael Grzeschik wrote:
+>
+>> Moved mt9m111_init after the chip version detection passage: I
+>> don't like the idea of writing on a device we haven't identified
+>> yet.
+>
+> In principle it's correct, but what do you do, if a chip cannot be probed, 
+> before it is initialised / enabled? Actually, this shouldn't be the case, 
+> devices should be available for probing without any initialisation. So, we 
+> have to ask the original author, whether this really was necessary, 
+> Robert?
 
-> Ah, and because we're actually handing remote controls via
-> drivers/media/IR/, you should cc linux-media as well (if not instead of
-> linux-input) on anything regarding this driver.
+Michael is right I think.
+According to the specification, even before the reset, the control registers can
+be read, and they'll return their current values, which can be weird before
+reset, excepting the CHIP_VERSION which is hard coded.
 
-OK.
+Therefore I think Michael is right by reading chip version before doing the
+reset, and I ack this patch.
 
-BTW, I wonder if we should also disable kernel autorepeat and use the remote 
-control's own repeat signals instead?
-Then extra repeat codes would not not emitted if the release signal is missed.
+Cheers.
 
 -- 
-Anssi Hannula
+Robert
