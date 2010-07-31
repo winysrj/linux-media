@@ -1,81 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:44278 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754274Ab0GTOrV (ORCPT
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:56843 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751083Ab0GaSOm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Jul 2010 10:47:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC/PATCH 05/10] media: Reference count and power handling
-Date: Tue, 20 Jul 2010 16:47:13 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1279114219-27389-1-git-send-email-laurent.pinchart@ideasonboard.com> <cf2ca57033486758e0b039ce4c133a3e.squirrel@webmail.xs4all.nl> <4C443501.4030401@maxwell.research.nokia.com>
-In-Reply-To: <4C443501.4030401@maxwell.research.nokia.com>
+	Sat, 31 Jul 2010 14:14:42 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201007201647.14002.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <BTtOJbzJjFB@christoph>
+References: <AANLkTimaut1mMUXwbJAgjNjmQkxgsf-GOCTXmKYNm1Lz@mail.gmail.com>
+	<BTtOJbzJjFB@christoph>
+Date: Sat, 31 Jul 2010 14:14:41 -0400
+Message-ID: <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
+Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable
+	it.
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: awalls@md.metrocast.net, jarod@wilsonet.com,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, maximlevitsky@gmail.com,
+	mchehab@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
+> Hi Jon,
+>
+> on 31 Jul 10 at 12:25, Jon Smirl wrote:
+>> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
+>> wrote:
+>>> I think you won't be able to fix the problem conclusively either way.  A
+>>> lot of how the chip's clocks should be programmed depends on how the
+>>> GPIOs are used and what crystal is used.
+>>>
+>>> I suspect many designers will use some reference design layout from ENE,
+>>> but it won't be good in every case.  The wire-up of the ENE of various
+>>> motherboards is likely something you'll have to live with as unknowns.
+>>>
+>>> This is a case where looser tolerances in the in kernel decoders could
+>>> reduce this driver's complexity and/or get rid of arbitrary fudge
+>>> factors in the driver.
+>
+>> The tolerances are as loose as they can be. The NEC protocol uses
+>> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
+>> (50% of 4%).  The crystals used in electronics are accurate to
+>> 0.0001%+.
+>
+> But the standard IR receivers are far from being accurate enough to allow
+> tolerance windows of only 2%.
+> I'm surprised that this works for you. LIRC uses a standard tolerance of
+> 30% / 100 us and even this is not enough sometimes.
+>
+> For the NEC protocol one signal consists of 22 individual pulses at 38kHz.
+> If the receiver just misses one pulse, you already have an error of 1/22
+>> 4%.
 
-On Monday 19 July 2010 13:20:33 Sakari Ailus wrote:
-> Hans Verkuil wrote:
-> >>>> +/*
-> >>>> + * Apply use count change to an entity and change power state based
-> >>>> on + * new use count.
-> >>>> + */
-> >>>> +static int media_entity_power_apply_one(struct media_entity *entity,
-> >>>> int change)
-> >>>> +{
-> >>>> +	int ret = 0;
-> >>>> +
-> >>>> +	if (entity->use_count == 0 && change > 0 &&
-> >>>> +	    entity->ops && entity->ops->set_power) {
-> >>>> +		ret = entity->ops->set_power(entity, 1);
-> >>>> +		if (ret)
-> >>>> +			return ret;
-> >>>> +	}
-> >>>> +
-> >>>> +	media_entity_use_apply_one(entity, change);
-> >>>> +
-> >>>> +	if (entity->use_count == 0 && change < 0 &&
-> >>>> +	    entity->ops && entity->ops->set_power)
-> >>>> +		ret = entity->ops->set_power(entity, 0);
-> >>> 
-> >>> Shouldn't this code be executed before the call to
-> >>> media_entity_use_apply_one()?
-> >>> Or at least call media_entity_use_apply_one(entity, -change) in case of
-> >>> an error? Since it failed to power off the entity it should ensure that
-> >>> the use_count remains > 0.
-> 
-> Forgot to answer this one.
-> 
-> The first entity->ops->set_power() is called to power on the device.
-> This will be done when the use_count was 0 and change is positive, i.e.
-> we're asked to power on the entity. The actual use count is not changed
-> in case of a failure.
-> 
-> The latter entity->ops->set_power() is called to power the device off.
-> media_entity_use_apply_one() is called first to apply the change since
-> the change isn't necessarily -1 or 1.The change was already applied to
-> the entity->use_count that's why the comparison against 0. And the
-> change was negative, i.e. the device is to be powered off.
-> 
-> So I don't think there's an error in use_count calculation. But the
-> second set_power() to power the device off shouldn't set ret at all and
-> the function should return zero at the end.
-> 
-> Then I think it'd be correct. Things can currently go wrong when
-> media_entity_power_apply() is called from
-> media_entity_node_power_change() with a negative change.
+There are different types of errors. The decoders can take large
+variations in bit times. The problem is with cumulative errors. In
+this case the error had accumulated up to 450us in the lead pulse.
+That's just too big of an error and caused the JVC code to be
+misclassified as NEC.
 
-To summarize the discussion, what should I change here ? Just remove the "ret 
-= " in the second set_power call ?
+I think he said lirc was misclassifying it too. So we both did the same thing.
+
+
+>
+> Christoph
+>
+
+
 
 -- 
-Regards,
-
-Laurent Pinchart
+Jon Smirl
+jonsmirl@gmail.com
