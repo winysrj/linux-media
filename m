@@ -1,209 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:36475 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757957Ab0G2QHL (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:55010 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755839Ab0GaO7i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Jul 2010 12:07:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [SAMPLE v3 03/12] v4l: Create v4l2 subdev file handle structure
-Date: Thu, 29 Jul 2010 18:06:47 +0200
-Message-Id: <1280419616-7658-15-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 31 Jul 2010 10:59:38 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 02/13] IR: minor fixes:
+Date: Sat, 31 Jul 2010 17:59:15 +0300
+Message-Id: <1280588366-26101-3-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stanimir Varbanov <svarbanov@mm-sol.com>
+* lirc: Don't propagate reset event to userspace
+* lirc: Remove strange logic from lirc that would make first sample always be pulse
+* Make TO_US macro actualy print what it should.
 
-Used for storing subdev information per file handle and hold V4L2 file
-handle.
-
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
 ---
- drivers/media/video/v4l2-subdev.c |   76 ++++++++++++++++++++++++-------------
- include/media/v4l2-subdev.h       |   18 +++++++++
- 2 files changed, 67 insertions(+), 27 deletions(-)
+ drivers/media/IR/ir-core-priv.h  |    4 +---
+ drivers/media/IR/ir-lirc-codec.c |   14 ++++++++------
+ drivers/media/IR/ir-raw-event.c  |    3 +++
+ 3 files changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 1efa267..2fe3818 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -28,38 +28,60 @@
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index babd520..dc26e2b 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -76,7 +76,6 @@ struct ir_raw_event_ctrl {
+ 	struct lirc_codec {
+ 		struct ir_input_dev *ir_dev;
+ 		struct lirc_driver *drv;
+-		int lircdata;
+ 	} lirc;
+ };
  
-+static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
-+{
-+	fh->probe_fmt = kzalloc(sizeof(*fh->probe_fmt) *
-+				sd->entity.num_pads, GFP_KERNEL);
-+	if (fh->probe_fmt == NULL)
-+		return -ENOMEM;
-+
-+	return 0;
-+}
-+
-+static void subdev_fh_free(struct v4l2_subdev_fh *fh)
-+{
-+	kfree(fh->probe_fmt);
-+	fh->probe_fmt = NULL;
-+}
-+
- static int subdev_open(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-+	struct v4l2_subdev_fh *subdev_fh;
- 	struct media_entity *entity;
--	struct v4l2_fh *vfh = NULL;
- 	int ret;
+@@ -104,10 +103,9 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
+ 		ev->duration -= duration;
+ }
  
- 	if (!sd->initialized)
- 		return -EAGAIN;
- 
--	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
--		vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
--		if (vfh == NULL)
--			return -ENOMEM;
-+	subdev_fh = kzalloc(sizeof(*subdev_fh), GFP_KERNEL);
-+	if (subdev_fh == NULL)
-+		return -ENOMEM;
- 
--		ret = v4l2_fh_init(vfh, vdev);
--		if (ret)
--			goto err;
-+	ret = subdev_fh_init(subdev_fh, sd);
-+	if (ret) {
-+		kfree(subdev_fh);
-+		return ret;
-+	}
-+
-+	ret = v4l2_fh_init(&subdev_fh->vfh, vdev);
-+	if (ret)
-+		goto err;
- 
--		ret = v4l2_event_init(vfh);
-+	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
-+		ret = v4l2_event_init(&subdev_fh->vfh);
- 		if (ret)
- 			goto err;
- 
--		ret = v4l2_event_alloc(vfh, sd->nevents);
-+		ret = v4l2_event_alloc(&subdev_fh->vfh, sd->nevents);
- 		if (ret)
- 			goto err;
+-#define TO_US(duration)			(((duration) + 500) / 1000)
++#define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
+ #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
+ #define IS_RESET(ev)			(ev.duration == 0)
 -
--		v4l2_fh_add(vfh);
--		file->private_data = vfh;
- 	}
- 
-+	v4l2_fh_add(&subdev_fh->vfh);
-+	file->private_data = &subdev_fh->vfh;
-+
- 	entity = media_entity_get(&sd->entity);
- 	if (!entity) {
- 		ret = -EBUSY;
-@@ -69,11 +91,10 @@ static int subdev_open(struct file *file)
- 	return 0;
- 
- err:
--	if (vfh != NULL) {
--		v4l2_fh_del(vfh);
--		v4l2_fh_exit(vfh);
--		kfree(vfh);
--	}
-+	v4l2_fh_del(&subdev_fh->vfh);
-+	v4l2_fh_exit(&subdev_fh->vfh);
-+	subdev_fh_free(subdev_fh);
-+	kfree(subdev_fh);
- 
- 	return ret;
- }
-@@ -83,14 +104,15 @@ static int subdev_close(struct file *file)
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
- 	struct v4l2_fh *vfh = file->private_data;
-+	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
- 
- 	media_entity_put(&sd->entity);
- 
--	if (vfh != NULL) {
--		v4l2_fh_del(vfh);
--		v4l2_fh_exit(vfh);
--		kfree(vfh);
--	}
-+	v4l2_fh_del(vfh);
-+	v4l2_fh_exit(vfh);
-+	subdev_fh_free(subdev_fh);
-+	kfree(subdev_fh);
-+	file->private_data = NULL;
- 
- 	return 0;
- }
-@@ -99,7 +121,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ /*
+  * Routines from ir-sysfs.c - Meant to be called only internally inside
+  * ir-core
+diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
+index 3ba482d..8ca01fd 100644
+--- a/drivers/media/IR/ir-lirc-codec.c
++++ b/drivers/media/IR/ir-lirc-codec.c
+@@ -32,6 +32,7 @@
+ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
  {
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
--	struct v4l2_fh *fh = file->private_data;
-+	struct v4l2_fh *vfh = file->private_data;
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	int sample;
  
- 	switch (cmd) {
- 	case VIDIOC_QUERYCTRL:
-@@ -127,13 +149,13 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
- 			return -ENOIOCTLCMD;
+ 	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_LIRC))
+ 		return 0;
+@@ -39,18 +40,21 @@ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 	if (!ir_dev->raw->lirc.drv || !ir_dev->raw->lirc.drv->rbuf)
+ 		return -EINVAL;
  
--		return v4l2_event_dequeue(fh, arg, file->f_flags & O_NONBLOCK);
-+		return v4l2_event_dequeue(vfh, arg, file->f_flags & O_NONBLOCK);
- 
- 	case VIDIOC_SUBSCRIBE_EVENT:
--		return v4l2_subdev_call(sd, core, subscribe_event, fh, arg);
-+		return v4l2_subdev_call(sd, core, subscribe_event, vfh, arg);
- 
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
--		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
-+		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
- 
- 	default:
- 		return -ENOIOCTLCMD;
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index f9e1897..01b4135 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -24,6 +24,7 @@
- #include <media/media-entity.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-fh.h>
- #include <media/v4l2-mediabus.h>
- 
- /* generic v4l2_device notify callback notification values */
-@@ -447,6 +448,23 @@ struct v4l2_subdev {
- #define vdev_to_v4l2_subdev(vdev) \
- 	container_of(vdev, struct v4l2_subdev, devnode)
- 
-+/*
-+ * Used for storing subdev information per file handle
-+ */
-+struct v4l2_subdev_fh {
-+	struct v4l2_fh vfh;
-+	struct v4l2_mbus_framefmt *probe_fmt;
-+};
++	if (IS_RESET(ev))
++		return 0;
 +
-+#define to_v4l2_subdev_fh(fh)	\
-+	container_of(fh, struct v4l2_subdev_fh, vfh)
-+
-+static inline struct v4l2_mbus_framefmt *
-+v4l2_subdev_get_probe_format(struct v4l2_subdev_fh *fh, unsigned int pad)
-+{
-+	return &fh->probe_fmt[pad];
-+}
-+
- extern const struct v4l2_file_operations v4l2_subdev_fops;
+ 	IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
+ 		   TO_US(ev.duration), TO_STR(ev.pulse));
  
- static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+-	ir_dev->raw->lirc.lircdata += ev.duration / 1000;
++
++	sample = ev.duration / 1000;
+ 	if (ev.pulse)
+-		ir_dev->raw->lirc.lircdata |= PULSE_BIT;
++		sample |= PULSE_BIT;
+ 
+ 	lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
+-			  (unsigned char *) &ir_dev->raw->lirc.lircdata);
++			  (unsigned char *) &sample);
+ 	wake_up(&ir_dev->raw->lirc.drv->rbuf->wait_poll);
+ 
+-	ir_dev->raw->lirc.lircdata = 0;
+ 
+ 	return 0;
+ }
+@@ -224,8 +228,6 @@ static int ir_lirc_register(struct input_dev *input_dev)
+ 
+ 	ir_dev->raw->lirc.drv = drv;
+ 	ir_dev->raw->lirc.ir_dev = ir_dev;
+-	ir_dev->raw->lirc.lircdata = PULSE_MASK;
+-
+ 	return 0;
+ 
+ lirc_register_failed:
+diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+index 6f192ef..51f65da 100644
+--- a/drivers/media/IR/ir-raw-event.c
++++ b/drivers/media/IR/ir-raw-event.c
+@@ -66,6 +66,9 @@ int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev)
+ 	if (!ir->raw)
+ 		return -EINVAL;
+ 
++	IR_dprintk(2, "sample: (05%dus %s)\n",
++		TO_US(ev->duration), TO_STR(ev->pulse));
++
+ 	if (kfifo_in(&ir->raw->kfifo, ev, sizeof(*ev)) != sizeof(*ev))
+ 		return -ENOMEM;
+ 
 -- 
-1.7.1
+1.7.0.4
 
