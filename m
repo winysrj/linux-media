@@ -1,123 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4094 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756135Ab0GBTdg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Jul 2010 15:33:36 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o62JXYW5092878
-	for <linux-media@vger.kernel.org>; Fri, 2 Jul 2010 21:33:34 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 2 Jul 2010 21:33:34 +0200 (CEST)
-Message-Id: <201007021933.o62JXYW5092878@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from einhorn.in-berlin.de ([192.109.42.8]:49195 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752955Ab0GaLDs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Jul 2010 07:03:48 -0400
+Message-ID: <4C5402FE.2080002@s5r6.in-berlin.de>
+Date: Sat, 31 Jul 2010 13:03:26 +0200
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+MIME-Version: 1.0
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Subject: Re: Handling of large keycodes
+References: <20100731091936.GA22253@core.coreip.homeip.net>
+In-Reply-To: <20100731091936.GA22253@core.coreip.homeip.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Dmitry Torokhov wrote:
+> --- a/include/linux/input.h
+> +++ b/include/linux/input.h
+> @@ -56,22 +56,35 @@ struct input_absinfo {
+>  	__s32 resolution;
+>  };
+>  
+> -struct keycode_table_entry {
+> -	__u32 keycode;		/* e.g. KEY_A */
+> -	__u32 index;            /* Index for the given scan/key table, on EVIOCGKEYCODEBIG */
+> -	__u32 len;		/* Length of the scancode */
+> -	__u32 reserved[2];	/* Reserved for future usage */
+> -	char *scancode;		/* scancode, in machine-endian */
+> +/**
+> + * struct keymap_entry - used by EVIOCGKEYCODE/EVIOCSKEYCODE ioctls
+> + * @scancode: scancode represented in machine-endian form.
+> + * @len: length of the scancode that resides in @scancode buffer.
+> + * @index: index in the keymap, may be used instead of scancode
+> + * @by_index: boolean value indicating that kernel should perform
+> + *	lookup in keymap by @index instead of @scancode
+> + * @keycode: key code assigned to this scancode
+> + *
+> + * The structure is used to retrieve and modify keymap data. Users have
+> + * of performing lookup either by @scancode itself or by @index in
+> + * keymap entry. EVIOCGKEYCODE will also return scancode or index
+> + * (depending on which element was used to perform lookup).
+> + */
+> +struct keymap_entry {
+> +	__u8  len;
+> +	__u8  by_index;
+> +	__u16 index;
+> +	__u32 keycode;
+> +	__u8  scancode[32];
+>  };
 
-Results of the daily build of v4l-dvb:
+I agree with Dimitry; don't put a pointer typed member into a userspace
+ABI struct.
 
-date:        Fri Jul  2 19:00:18 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14993:9652f85e688a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 41c5f984b67b331064e69acc9fca5e99bf73d400
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Two remarks:
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+  - Presently, <linux/input.h> defines three structs named input_... for
+    userspace, two structs named input_... for kernelspace, and a few
+    structs named ff_... specially for force-feedback stuff.  How about
+    calling struct keymap_entry perhaps struct input_keymap_entry
+    instead, to keep namespaces tidy?
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+  - I take it from your description that scan codes are fundamentally
+    variable-length data.  How about defining it as __u8 scancode[0]?
+-- 
+Stefan Richter
+-=====-==-=- -=== =====
+http://arcgraph.de/sr/
