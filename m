@@ -1,55 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:47378 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754962Ab0GZTFl convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:55010 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756096Ab0GaO7o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Jul 2010 15:05:41 -0400
-Received: by qyk7 with SMTP id 7so2152447qyk.19
-        for <linux-media@vger.kernel.org>; Mon, 26 Jul 2010 12:05:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20100726173428.GA14609@core.coreip.homeip.net>
-References: <20100726141352.GA28182@redhat.com>
-	<20100726173428.GA14609@core.coreip.homeip.net>
-Date: Mon, 26 Jul 2010 15:05:36 -0400
-Message-ID: <AANLkTinzoC9Eso=Hncc5=aaZuWnizhV4CWkcddQvFHsb@mail.gmail.com>
-Subject: Re: [PATCH] IR/imon: remove incorrect calls to input_free_device
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sat, 31 Jul 2010 10:59:44 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 05/13] IR: JVC: make repeat work
+Date: Sat, 31 Jul 2010 17:59:18 +0300
+Message-Id: <1280588366-26101-6-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jul 26, 2010 at 1:34 PM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> On Mon, Jul 26, 2010 at 10:13:52AM -0400, Jarod Wilson wrote:
->> Per Dmitry Torokhov (in a completely unrelated thread on linux-input),
->> following input_unregister_device with an input_free_device is
->> forbidden, the former is sufficient alone.
->>
->> CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>
->> Signed-off-by: Jarod Wilson <jarod@redhat.com>
->
-> Acked-by: Dmitry Torokhov <dtor@mail.ru>
->
-> Random notes about irmon:
->
-> imon_init_idev():
->        memcpy(&ir->dev, ictx->dev, sizeof(struct device));
->
-> This is... scary.  Devices are refcounted and if you copy them around
-> all hell may break loose. On an unrelated note you do not need memcpy to
-> copy a structire, *it->dev = *ictx->dev will do.
->
-> imon_init_idev(), imon_init_touch(): - consizer returning proper error
-> codes via ERR_PTR() and check wit IS_ERR().
+Currently, jvc decoder will attempt misdetect next press as a repeat
+of last keypress, therefore second keypress isn't detected.
 
-Hm, I'm overdue to give that driver another look (bz.k.o #16351), will
-add looking at these to the TODO list... (have immortalized them in
-the bz).
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ir-jvc-decoder.c |   14 +++++++++++++-
+ 1 files changed, 13 insertions(+), 1 deletions(-)
 
-
+diff --git a/drivers/media/IR/ir-jvc-decoder.c b/drivers/media/IR/ir-jvc-decoder.c
+index 8894d8b..77a89c4 100644
+--- a/drivers/media/IR/ir-jvc-decoder.c
++++ b/drivers/media/IR/ir-jvc-decoder.c
+@@ -32,6 +32,7 @@ enum jvc_state {
+ 	STATE_BIT_SPACE,
+ 	STATE_TRAILER_PULSE,
+ 	STATE_TRAILER_SPACE,
++	STATE_CHECK_REPEAT,
+ };
+ 
+ /**
+@@ -60,6 +61,7 @@ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 	IR_dprintk(2, "JVC decode started at state %d (%uus %s)\n",
+ 		   data->state, TO_US(ev.duration), TO_STR(ev.pulse));
+ 
++again:
+ 	switch (data->state) {
+ 
+ 	case STATE_INACTIVE:
+@@ -149,8 +151,18 @@ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 		}
+ 
+ 		data->count = 0;
+-		data->state = STATE_BIT_PULSE;
++		data->state = STATE_CHECK_REPEAT;
+ 		return 0;
++
++	case STATE_CHECK_REPEAT:
++		if (!ev.pulse)
++			break;
++
++		if (eq_margin(ev.duration, JVC_HEADER_PULSE, JVC_UNIT / 2))
++			data->state = STATE_INACTIVE;
++  else
++			data->state = STATE_BIT_PULSE;
++		goto again;
+ 	}
+ 
+ out:
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+1.7.0.4
+
