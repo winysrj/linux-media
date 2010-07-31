@@ -1,44 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:51948 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751896Ab0GEOs2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Jul 2010 10:48:28 -0400
-Message-ID: <4C31F0B8.4050100@infradead.org>
-Date: Mon, 05 Jul 2010 11:48:24 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mailout-de.gmx.net ([213.165.64.22]:41671 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752391Ab0GaUZu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Jul 2010 16:25:50 -0400
+Date: Sat, 31 Jul 2010 22:25:47 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <m.grzeschik@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>, p.wiesner@phytec.de
+Subject: Re: [PATCH 05/20] mt9m111: added default row/col/width/height values
+In-Reply-To: <1280501618-23634-6-git-send-email-m.grzeschik@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1007312221540.16769@axis700.grange>
+References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+ <1280501618-23634-6-git-send-email-m.grzeschik@pengutronix.de>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: pavan_savoy@ti.com, linux-media@vger.kernel.org,
-	matti.j.aaltonen@nokia.com, pavan savoy <pavan_savoy@yahoo.co.in>,
-	eduardo.valentin@nokia.com
-Subject: Re: V4L2 radio drivers for TI-WL7
-References: <31718.25391.qm@web94912.mail.in2.yahoo.com> <201007050821.53313.hverkuil@xs4all.nl>
-In-Reply-To: <201007050821.53313.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 05-07-2010 03:21, Hans Verkuil escreveu:
-> On Friday 02 July 2010 09:01:34 Pavan Savoy wrote:
->> Hi,
->>
->> We have/in process of developing a V4L2 driver for the FM Radio on the Texas Instruments WiLink 7 module.
->>
->> For transport/communication with the chip, we intend to use the shared transport driver currently staged in mainline at drivers/staging/ti-st/.
->>
->> To which tree should I generate patches against? is the tree
->> git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git
->> fine ? to be used with the v4l_for_2.6.35 branch ?
+On Fri, 30 Jul 2010, Michael Grzeschik wrote:
+
+> Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> ---
+>  drivers/media/video/mt9m111.c |    4 ++++
+>  1 files changed, 4 insertions(+), 0 deletions(-)
 > 
-> You patch against git://git.linuxtv.org/v4l-dvb.git.
+> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> index aeb2241..5f0c55e 100644
+> --- a/drivers/media/video/mt9m111.c
+> +++ b/drivers/media/video/mt9m111.c
+> @@ -133,6 +133,10 @@
+>  #define MT9M111_MIN_DARK_COLS	24
+>  #define MT9M111_MAX_HEIGHT	1024
+>  #define MT9M111_MAX_WIDTH	1280
+> +#define MT9M111_DEF_DARK_ROWS	12
+> +#define MT9M111_DEF_DARK_COLS	30
+> +#define MT9M111_DEF_HEIGHT	1024
+> +#define MT9M111_DEF_WIDTH	1280
 
-The latest development tree is at branch "devel/for_v2.6.36". Note, however, that
-after the launch of v2.6.35, I'll create a new branch, since the merged patches
-will likely get different hashes upstream. So, except if you have a short 
-timeframe to develop the driver, it is better to develop it against the Linus tree:
+Don't think this split makes sense. Please, call them "DEFAUL": "DEF" is 
+too ambiguous, and unite with patch 08/20. In general, you're exaggerating 
+splitting og patches. Many of them make little sense with this kind of a 
+split and have to be merged.
 
-	git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+>  
+>  /* MT9M111 has only one fixed colorspace per pixelcode */
+>  struct mt9m111_datafmt {
+> -- 
+> 1.7.1
 
-Cheers,
-Mauro.
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
