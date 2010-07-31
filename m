@@ -1,22 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outgoing.x10hosting.com ([173.236.28.162]:55451 "HELO
-	outgoing.x10hosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755266Ab0GHN75 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Jul 2010 09:59:57 -0400
-Message-ID: <2abe5fa990638528c0ae01fb46605991.squirrel@fris.x10hosting.com>
-Date: Thu, 8 Jul 2010 02:13:41 -0400
-Subject: metodika pohudeniya
-From: "Alena" <alena@petro.x10.mx>
-To: maxdertyh@gmail.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:55010 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756103Ab0GaO7s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Jul 2010 10:59:48 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 07/13] IR: NECX: support repeat
+Date: Sat, 31 Jul 2010 17:59:20 +0300
+Message-Id: <1280588366-26101-8-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This adds support for repeat detecting for NECX variant
+Tested with uneversal remote
 
-http://dx9.gu.ma/
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ir-core-priv.h   |    2 ++
+ drivers/media/IR/ir-nec-decoder.c |   23 +++++++++++++++++++++--
+ 2 files changed, 23 insertions(+), 2 deletions(-)
 
-
-
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index 84c7a9a..502d477 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -45,6 +45,8 @@ struct ir_raw_event_ctrl {
+ 		int state;
+ 		unsigned count;
+ 		u32 bits;
++		bool is_nec_x;
++		bool necx_repeat;
+ 	} nec;
+ 	struct rc5_dec {
+ 		int state;
+diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
+index 1c0cf03..d597421 100644
+--- a/drivers/media/IR/ir-nec-decoder.c
++++ b/drivers/media/IR/ir-nec-decoder.c
+@@ -26,6 +26,7 @@
+ #define NEC_BIT_1_SPACE		(3  * NEC_UNIT)
+ #define	NEC_TRAILER_PULSE	(1  * NEC_UNIT)
+ #define	NEC_TRAILER_SPACE	(10 * NEC_UNIT) /* even longer in reality */
++#define NECX_REPEAT_BITS	1
+ 
+ enum nec_state {
+ 	STATE_INACTIVE,
+@@ -67,8 +68,12 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 		if (!ev.pulse)
+ 			break;
+ 
+-		if (!eq_margin(ev.duration, NEC_HEADER_PULSE, NEC_UNIT / 2) &&
+-		    !eq_margin(ev.duration, NECX_HEADER_PULSE, NEC_UNIT / 2))
++		if (eq_margin(ev.duration, NEC_HEADER_PULSE, NEC_UNIT / 2)) {
++			data->is_nec_x = false;
++			data->necx_repeat = false;
++		} else if (eq_margin(ev.duration, NECX_HEADER_PULSE, NEC_UNIT / 2))
++			data->is_nec_x = true;
++		else
+ 			break;
+ 
+ 		data->count = 0;
+@@ -105,6 +110,17 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 		if (ev.pulse)
+ 			break;
+ 
++		if (data->necx_repeat && data->count == NECX_REPEAT_BITS &&
++			geq_margin(ev.duration,
++			NEC_TRAILER_SPACE, NEC_UNIT / 2)) {
++				IR_dprintk(1, "Repeat last key\n");
++				ir_repeat(input_dev);
++				data->state = STATE_INACTIVE;
++				return 0;
++
++		} else if (data->count > NECX_REPEAT_BITS)
++			data->necx_repeat = false;
++
+ 		data->bits <<= 1;
+ 		if (eq_margin(ev.duration, NEC_BIT_1_SPACE, NEC_UNIT / 2))
+ 			data->bits |= 1;
+@@ -159,6 +175,9 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+ 			IR_dprintk(1, "NEC scancode 0x%04x\n", scancode);
+ 		}
+ 
++		if (data->is_nec_x)
++			data->necx_repeat = true;
++
+ 		ir_keydown(input_dev, scancode, 0);
+ 		data->state = STATE_INACTIVE;
+ 		return 0;
+-- 
+1.7.0.4
 
