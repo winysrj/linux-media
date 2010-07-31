@@ -1,173 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51734 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369Ab0G3OyS (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:32140 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754425Ab0GaSvB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 10:54:18 -0400
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de, p.wiesner@phytec.de
-Subject: [PATCH 01/20] mt9m111: Added indication that MT9M131 is supported by this driver
-Date: Fri, 30 Jul 2010 16:53:19 +0200
-Message-Id: <1280501618-23634-2-git-send-email-m.grzeschik@pengutronix.de>
-In-Reply-To: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
-References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+	Sat, 31 Jul 2010 14:51:01 -0400
+Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and
+ enable  it.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Christoph Bartelmus <lirc@bartelmus.de>, jarod@wilsonet.com,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, maximlevitsky@gmail.com,
+	mchehab@redhat.com
+In-Reply-To: <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
+References: <AANLkTimaut1mMUXwbJAgjNjmQkxgsf-GOCTXmKYNm1Lz@mail.gmail.com>
+	 <BTtOJbzJjFB@christoph>
+	 <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 31 Jul 2010 14:51:21 -0400
+Message-ID: <1280602281.20879.76.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Philipp Wiesner <p.wiesner@phytec.de>
+On Sat, 2010-07-31 at 14:14 -0400, Jon Smirl wrote:
+> On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
+> > Hi Jon,
+> >
+> > on 31 Jul 10 at 12:25, Jon Smirl wrote:
+> >> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
+> >> wrote:
+> >>> I think you won't be able to fix the problem conclusively either way.  A
+> >>> lot of how the chip's clocks should be programmed depends on how the
+> >>> GPIOs are used and what crystal is used.
+> >>>
+> >>> I suspect many designers will use some reference design layout from ENE,
+> >>> but it won't be good in every case.  The wire-up of the ENE of various
+> >>> motherboards is likely something you'll have to live with as unknowns.
+> >>>
+> >>> This is a case where looser tolerances in the in kernel decoders could
+> >>> reduce this driver's complexity and/or get rid of arbitrary fudge
+> >>> factors in the driver.
+> >
+> >> The tolerances are as loose as they can be. The NEC protocol uses
+> >> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
+> >> (50% of 4%).  The crystals used in electronics are accurate to
+> >> 0.0001%+.
+> >
+> > But the standard IR receivers are far from being accurate enough to allow
+> > tolerance windows of only 2%.
+> > I'm surprised that this works for you. LIRC uses a standard tolerance of
+> > 30% / 100 us and even this is not enough sometimes.
+> >
+> > For the NEC protocol one signal consists of 22 individual pulses at 38kHz.
+> > If the receiver just misses one pulse, you already have an error of 1/22
+> >> 4%.
+> 
+> There are different types of errors. The decoders can take large
+> variations in bit times. The problem is with cumulative errors. In
+> this case the error had accumulated up to 450us in the lead pulse.
+> That's just too big of an error 
 
-Added this info to Kconfig and mt9m111.c, some comment cleanup,
-replaced 'mt9m11x'-statements by clarifications or driver name.
-Driver is fully compatible to mt9m131 which has only additional functions
-compared to mt9m111. Those aren't used anyway at the moment.
+Hi Jon,
 
-Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
----
- drivers/media/video/Kconfig   |    5 +++--
- drivers/media/video/mt9m111.c |   37 +++++++++++++++++++++++--------------
- 2 files changed, 26 insertions(+), 16 deletions(-)
+Hmmm.  Leader marks are, by protocol design, there to give time for the
+receiver's AGC to settle.  We should make it OK to miss somewhat large
+portions of leader marks.  I'm not sure what the harm is in accepting
+too long of a leader mark, but I'm pretty sure a leader mark that is too
+long will always be due to systematic error and not noise errors.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index cdbbbe4..0e8cf24 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -871,10 +871,11 @@ config SOC_CAMERA_MT9M001
- 	  and colour models.
- 
- config SOC_CAMERA_MT9M111
--	tristate "mt9m111 and mt9m112 support"
-+	tristate "mt9m111, mt9m112 and mt9m131 support"
- 	depends on SOC_CAMERA && I2C
- 	help
--	  This driver supports MT9M111 and MT9M112 cameras from Micron
-+	  This driver supports MT9M111, MT9M112 and MT9M131 cameras from
-+	  Micron/Aptina
- 
- config SOC_CAMERA_MT9T031
- 	tristate "mt9t031 support"
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index d35f536..e934559 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -1,5 +1,5 @@
- /*
-- * Driver for MT9M111/MT9M112 CMOS Image Sensor from Micron
-+ * Driver for MT9M111/MT9M112/MT9M131 CMOS Image Sensor from Micron/Aptina
-  *
-  * Copyright (C) 2008, Robert Jarzmik <robert.jarzmik@free.fr>
-  *
-@@ -19,11 +19,14 @@
- #include <media/soc_camera.h>
- 
- /*
-- * mt9m111 and mt9m112 i2c address is 0x5d or 0x48 (depending on SAddr pin)
-+ * MT9M111, MT9M112 and MT9M131:
-+ * i2c address is 0x48 or 0x5d (depending on SADDR pin)
-  * The platform has to define i2c_board_info and call i2c_register_board_info()
-  */
- 
--/* mt9m111: Sensor register addresses */
-+/*
-+ * Sensor core register addresses (0x000..0x0ff)
-+ */
- #define MT9M111_CHIP_VERSION		0x000
- #define MT9M111_ROW_START		0x001
- #define MT9M111_COLUMN_START		0x002
-@@ -72,8 +75,9 @@
- #define MT9M111_CTXT_CTRL_LED_FLASH_EN	(1 << 2)
- #define MT9M111_CTXT_CTRL_VBLANK_SEL_B	(1 << 1)
- #define MT9M111_CTXT_CTRL_HBLANK_SEL_B	(1 << 0)
-+
- /*
-- * mt9m111: Colorpipe register addresses (0x100..0x1ff)
-+ * Colorpipe register addresses (0x100..0x1ff)
-  */
- #define MT9M111_OPER_MODE_CTRL		0x106
- #define MT9M111_OUTPUT_FORMAT_CTRL	0x108
-@@ -109,8 +113,9 @@
- #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y	(1 << 1)
- #define MT9M111_OUTFMT_SWAP_RGB_EVEN	(1 << 1)
- #define MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr	(1 << 0)
-+
- /*
-- * mt9m111: Camera control register addresses (0x200..0x2ff not implemented)
-+ * Camera control register addresses (0x200..0x2ff not implemented)
-  */
- 
- #define reg_read(reg) mt9m111_reg_read(client, MT9M111_##reg)
-@@ -160,7 +165,8 @@ enum mt9m111_context {
- 
- struct mt9m111 {
- 	struct v4l2_subdev subdev;
--	int model;	/* V4L2_IDENT_MT9M11x* codes from v4l2-chip-ident.h */
-+	int model;	/* V4L2_IDENT_MT9M111 or V4L2_IDENT_MT9M112 code */
-+			/* from v4l2-chip-ident.h */
- 	enum mt9m111_context context;
- 	struct v4l2_rect rect;
- 	const struct mt9m111_datafmt *fmt;
-@@ -934,7 +940,7 @@ static int mt9m111_init(struct i2c_client *client)
- 	if (!ret)
- 		ret = mt9m111_set_autoexposure(client, mt9m111->autoexposure);
- 	if (ret)
--		dev_err(&client->dev, "mt9m11x init failed: %d\n", ret);
-+		dev_err(&client->dev, "mt9m111 init failed: %d\n", ret);
- 	return ret;
- }
- 
-@@ -970,21 +976,24 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
- 	data = reg_read(CHIP_VERSION);
- 
- 	switch (data) {
--	case 0x143a: /* MT9M111 */
-+	case 0x143a: /* MT9M111 or MT9M131 */
- 		mt9m111->model = V4L2_IDENT_MT9M111;
-+		dev_info(&client->dev,
-+			"Detected a MT9M111/MT9M131 chip ID %x\n", data);
- 		break;
- 	case 0x148c: /* MT9M112 */
- 		mt9m111->model = V4L2_IDENT_MT9M112;
-+		dev_info(&client->dev, "Detected a MT9M112 chip ID %x\n", data);
- 		break;
- 	default:
- 		ret = -ENODEV;
- 		dev_err(&client->dev,
--			"No MT9M11x chip detected, register read %x\n", data);
-+			"No MT9M111/MT9M112/MT9M131 chip detected, "
-+			"register read %x\n",
-+			data);
- 		goto ei2c;
- 	}
- 
--	dev_info(&client->dev, "Detected a MT9M11x chip ID %x\n", data);
--
- ei2c:
- 	return ret;
- }
-@@ -1034,13 +1043,13 @@ static int mt9m111_probe(struct i2c_client *client,
- 	int ret;
- 
- 	if (!icd) {
--		dev_err(&client->dev, "MT9M11x: missing soc-camera data!\n");
-+		dev_err(&client->dev, "mt9m111: soc-camera data missing!\n");
- 		return -EINVAL;
- 	}
- 
- 	icl = to_soc_camera_link(icd);
- 	if (!icl) {
--		dev_err(&client->dev, "MT9M11x driver needs platform data\n");
-+		dev_err(&client->dev, "mt9m111: driver needs platform data\n");
- 		return -EINVAL;
- 	}
- 
-@@ -1116,6 +1125,6 @@ static void __exit mt9m111_mod_exit(void)
- module_init(mt9m111_mod_init);
- module_exit(mt9m111_mod_exit);
- 
--MODULE_DESCRIPTION("Micron MT9M111/MT9M112 Camera driver");
-+MODULE_DESCRIPTION("Micron/Aptina MT9M111/MT9M112/MT9M131 Camera driver");
- MODULE_AUTHOR("Robert Jarzmik");
- MODULE_LICENSE("GPL");
--- 
-1.7.1
+However, if we know we have systematic errors caused by unknowns, we
+should be designing and imlpementing a decoding system that reasonably
+deals with those systematic errors.  Again the part of the system almost
+completely out of our control is the remote controls, and we *have no
+control* over systematic errors introduced by remotes.
+
+Obviously we want to reduce or elimiinate systematic errors by
+determining the unknowns and undoing their effects or by compensating
+for their overall effect.  But in the case of the ENE receiver driver,
+you didn't seem to like the Maxim's software compensation for the
+systematic receiver errors.
+
+
+> and caused the JVC code to be
+> misclassified as NEC.
+
+I still have not heard why we need protocol discrimination/classifcation
+in the kernel.  Doing discrimination between two protocols with such
+close timings is whose requirement again?
+
+Since these two protocols have such close timings that systematic errors
+can cause misclassifcation when using simple mark or space measurments
+against fixed thresholds, it indicates that a more sophisticated
+discrimation mechanism would be needed.  Perhaps one that takes multiple
+successive measurments into account?
+
+Regards,
+Andy
 
