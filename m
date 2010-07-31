@@ -1,24 +1,185 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallbackmx07.syd.optusnet.com.au ([211.29.132.9]:54132 "EHLO
-	fallbackmx07.syd.optusnet.com.au" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751102Ab0GaADF (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:55010 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756043Ab0GaO7u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 20:03:05 -0400
-Received: from mail06.syd.optusnet.com.au (mail06.syd.optusnet.com.au [211.29.132.187])
-	by fallbackmx07.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id o6UNtLQ4004112
-	for <linux-media@vger.kernel.org>; Sat, 31 Jul 2010 09:55:22 +1000
-Received: from [127.0.0.1] (c114-77-102-107.chirn2.vic.optusnet.com.au [114.77.102.107])
-	by mail06.syd.optusnet.com.au (8.13.1/8.13.1) with ESMTP id o6UNs64G028679
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 31 Jul 2010 09:54:09 +1000
-Message-ID: <4C53661C.4070601@levelbelow.net>
-Date: Sat, 31 Jul 2010 09:54:04 +1000
-From: ozatomic <ozatomic@levelbelow.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 31 Jul 2010 10:59:50 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 08/13] IR: Allow not to compile keymaps in.
+Date: Sat, 31 Jul 2010 17:59:21 +0300
+Message-Id: <1280588366-26101-9-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Currently, ir device registration fails if keymap requested by driver is not found.
+Fix that by always compiling in the empty keymap, and using it as a failback.
+
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+Acked-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/ir-core-priv.h     |    3 +-
+ drivers/media/IR/ir-sysfs.c         |    2 +
+ drivers/media/IR/keymaps/Makefile   |    1 -
+ drivers/media/IR/keymaps/rc-empty.c |   44 -----------------------------------
+ drivers/media/IR/rc-map.c           |   23 ++++++++++++++++++
+ include/media/ir-core.h             |    8 ++++-
+ 6 files changed, 33 insertions(+), 48 deletions(-)
+ delete mode 100644 drivers/media/IR/keymaps/rc-empty.c
+
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index 502d477..be68172 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -126,7 +126,8 @@ int ir_raw_handler_register(struct ir_raw_handler *ir_raw_handler);
+ void ir_raw_handler_unregister(struct ir_raw_handler *ir_raw_handler);
+ void ir_raw_init(void);
+ 
+-
++int ir_rcmap_init(void);
++void ir_rcmap_cleanup(void);
+ /*
+  * Decoder initialization code
+  *
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index a841e51..936dff8 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -341,6 +341,7 @@ static int __init ir_core_init(void)
+ 
+ 	/* Initialize/load the decoders/keymap code that will be used */
+ 	ir_raw_init();
++	ir_rcmap_init();
+ 
+ 	return 0;
+ }
+@@ -348,6 +349,7 @@ static int __init ir_core_init(void)
+ static void __exit ir_core_exit(void)
+ {
+ 	class_unregister(&ir_input_class);
++	ir_rcmap_cleanup();
+ }
+ 
+ module_init(ir_core_init);
+diff --git a/drivers/media/IR/keymaps/Makefile b/drivers/media/IR/keymaps/Makefile
+index 86d3d1f..24992cd 100644
+--- a/drivers/media/IR/keymaps/Makefile
++++ b/drivers/media/IR/keymaps/Makefile
+@@ -17,7 +17,6 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+ 			rc-dm1105-nec.o \
+ 			rc-dntv-live-dvb-t.o \
+ 			rc-dntv-live-dvbt-pro.o \
+-			rc-empty.o \
+ 			rc-em-terratec.o \
+ 			rc-encore-enltv2.o \
+ 			rc-encore-enltv.o \
+diff --git a/drivers/media/IR/keymaps/rc-empty.c b/drivers/media/IR/keymaps/rc-empty.c
+deleted file mode 100644
+index 3b338d8..0000000
+--- a/drivers/media/IR/keymaps/rc-empty.c
++++ /dev/null
+@@ -1,44 +0,0 @@
+-/* empty.h - Keytable for empty Remote Controller
+- *
+- * keymap imported from ir-keymaps.c
+- *
+- * Copyright (c) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- */
+-
+-#include <media/rc-map.h>
+-
+-/* empty keytable, can be used as placeholder for not-yet created keytables */
+-
+-static struct ir_scancode empty[] = {
+-	{ 0x2a, KEY_COFFEE },
+-};
+-
+-static struct rc_keymap empty_map = {
+-	.map = {
+-		.scan    = empty,
+-		.size    = ARRAY_SIZE(empty),
+-		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
+-		.name    = RC_MAP_EMPTY,
+-	}
+-};
+-
+-static int __init init_rc_map_empty(void)
+-{
+-	return ir_register_map(&empty_map);
+-}
+-
+-static void __exit exit_rc_map_empty(void)
+-{
+-	ir_unregister_map(&empty_map);
+-}
+-
+-module_init(init_rc_map_empty)
+-module_exit(exit_rc_map_empty)
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
+diff --git a/drivers/media/IR/rc-map.c b/drivers/media/IR/rc-map.c
+index 46a8f15..689143f 100644
+--- a/drivers/media/IR/rc-map.c
++++ b/drivers/media/IR/rc-map.c
+@@ -82,3 +82,26 @@ void ir_unregister_map(struct rc_keymap *map)
+ }
+ EXPORT_SYMBOL_GPL(ir_unregister_map);
+ 
++
++static struct ir_scancode empty[] = {
++	{ 0x2a, KEY_COFFEE },
++};
++
++static struct rc_keymap empty_map = {
++	.map = {
++		.scan    = empty,
++		.size    = ARRAY_SIZE(empty),
++		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
++		.name    = RC_MAP_EMPTY,
++	}
++};
++
++int ir_rcmap_init(void)
++{
++	return ir_register_map(&empty_map);
++}
++
++void ir_rcmap_cleanup(void)
++{
++	ir_unregister_map(&empty_map);
++}
+diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+index 513e60d..197d05a 100644
+--- a/include/media/ir-core.h
++++ b/include/media/ir-core.h
+@@ -110,8 +110,12 @@ static inline int ir_input_register(struct input_dev *dev,
+ 		return -EINVAL;
+ 
+ 	ir_codes = get_rc_map(map_name);
+-	if (!ir_codes)
+-		return -EINVAL;
++	if (!ir_codes) {
++		ir_codes = get_rc_map(RC_MAP_EMPTY);
++
++		if (!ir_codes)
++			return -EINVAL;
++	}
+ 
+ 	rc = __ir_input_register(dev, ir_codes, props, driver_name);
+ 	if (rc < 0)
+-- 
+1.7.0.4
 
