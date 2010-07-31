@@ -1,89 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41337 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751369Ab0G3Or0 convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:60480 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753091Ab0GaJfS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Jul 2010 10:47:26 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 30 Jul 2010 09:47:22 -0500
-Subject: RE: [media-ctl PATCH 2/3] Just include kernel headers
-Message-ID: <A24693684029E5489D1D202277BE894456C0B4F4@dlee02.ent.ti.com>
-References: <1279124246-12187-1-git-send-email-saaguirre@ti.com>
- <201007301545.07534.laurent.pinchart@ideasonboard.com>
- <A24693684029E5489D1D202277BE894456C0B476@dlee02.ent.ti.com>
- <201007301623.46995.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201007301623.46995.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Sat, 31 Jul 2010 05:35:18 -0400
+Subject: Re: [PATCH 10/13] IR: extend interfaces to support more device
+ settings LIRC: add new IOCTL that enables learning mode (wide band receiver)
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, mchehab@redhat.com
+In-Reply-To: <BTtO1S1ZjFB@christoph>
+References: <BTtO1S1ZjFB@christoph>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 31 Jul 2010 12:35:12 +0300
+Message-ID: <1280568912.2733.1.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Friday, July 30, 2010 9:24 AM
-> To: Aguirre, Sergio
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: [media-ctl PATCH 2/3] Just include kernel headers
+On Sat, 2010-07-31 at 10:10 +0200, Christoph Bartelmus wrote: 
+> Hi Maxim,
 > 
-> Hi Sergio,
+> on 31 Jul 10 at 01:01, Maxim Levitsky wrote:
+> > On Fri, 2010-07-30 at 23:22 +0200, Christoph Bartelmus wrote:
+> [...]
+> >>> +#define LIRC_SET_WIDEBAND_RECEIVER     _IOW('i', 0x00000023, __u32)
+> >>
+> >> If you really want this new ioctl, then it should be clarified how it
+> >> behaves in relation to LIRC_SET_MEASURE_CARRIER_MODE.
 > 
-> On Friday 30 July 2010 16:10:08 Aguirre, Sergio wrote:
-> > On Friday 30 July 2010 8:45 AM Laurent Pinchart wrote:
-> > > On Wednesday 14 July 2010 18:17:25 Sergio Aguirre wrote:
-> > > > We shouldn't require full kernel source for this.
-> > >
-> > > That's right in theory, but I then get
-> > >
-> > > $ make KDIR=/home/laurent/src/arm/kernel/
-> > > arm-none-linux-gnueabi-gcc -O2 -Wall -fpic -I. -
-> > > I/home/laurent/src/arm/kernel//include    -c -o media.o media.c
-> > > In file included from /opt/cs/arm-2009q1/bin/../arm-none-linux-
-> > > gnueabi/libc/usr/include/asm/types.h:4,
-> > >                  from
-> > > /home/laurent/src/arm/kernel//include/linux/types.h:4,
-> > >                  from
-> > > /home/laurent/src/arm/kernel//include/linux/videodev2.h:66,
-> > >                  from media.c:31:
-> > > /home/laurent/src/arm/kernel//include/asm-generic/int-ll64.h:11:29:
-> > > error: asm/bitsperlong.h: No such file or directory
-> > > make: *** [media.o] Error 1
-> > >
-> > > when building against a kernel tree.
+> > In my opinion, I won't need the LIRC_SET_MEASURE_CARRIER_MODE,
+> > I would just optionally turn that on in learning mode.
+> > You disagree, and since that is not important (besides TX and learning
+> > features are present only at fraction of ENE devices. The only user I
+> > did the debugging with, doesn't seem to want to help debug that code
+> > anymore...)
 > >
-> > KDIR doesn't exist anymore.
+> > But anyway, in current state I want these features to be independent.
+> > Driver will enable learning mode if it have to.
+> 
+> Please avoid the term "learning mode" as to you it probably means  
+> something different than to me.
+> 
 > >
-> > By the result of your log, I don't see how that value got passed into
-> the
-> > makefile... Are you sure you applied the patch correctly?
+> > I'll add the documentation.
 > 
-> I haven't, I've just removed the arch include dir from KDIR in the
-> Makefile.
-> The end result is the same.
-
-Hmm..
-
-I think this is expected, since the kernel headers folder generated with
-
-make ARCH=arm INSTALL_HDR_PATH=<your-fs-root> headers_install
-
-Is not the same as just reading the kernel source include folder.
-
-Some #ifdef get resolved depending on the arch, and the headers are
-"rebuilt". See : Documentation/make/headers_install.txt
-
-So, I guess it's not as simple as just removing the arch include folder.
-
-Regards,
-Sergio
-
+> >>
+> >> Do you have to enable the wide-band receiver explicitly before you can
+> >> enable carrier reports or does enabling carrier reports implicitly switch
+> >> to the wide-band receiver?
+> > I would implicitly switch the learning mode on, untill user turns off
+> > the carrier reports.
 > 
-> --
-> Regards,
+> You mean that you'll implicitly switch on the wide-band receiver. Ok.
 > 
-> Laurent Pinchart
+> >>
+> >> What happens if carrier mode is enabled and you explicitly turn off the
+> >> wide-band receiver?
+> > Wouldn't it be better to have one ioctl for both after all?
+> 
+> There may be hardware that allows carrier measurement but does not have a  
+> wide-band receiver. And there may be hardware that does have a wide-band  
+> receiver but does not allow carrier measurement. irrecord needs to be able  
+> to distinguish these cases, so we need separate ioctls.
+> 
+> I'd say: carrier reports may switch on the wide-band reciever implicitly.  
+> In that case the wide-band receiver cannot be switched off explicitly  
+> until carrier reports are disabled again. It just needs to be documented.
+
+No problem.
+
+Best regards,
+Maxim Levitsky
+
