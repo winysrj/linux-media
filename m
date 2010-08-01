@@ -1,54 +1,43 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:48400 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754740Ab0HLUdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Aug 2010 16:33:08 -0400
-Date: Thu, 12 Aug 2010 22:32:59 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: [PATCH] soc-camera: initialise videobuf immediately before allocating
- them
-Message-ID: <Pine.LNX.4.64.1008122229440.17224@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:37345 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751310Ab0HAUSh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Aug 2010 16:18:37 -0400
+Date: Sun, 1 Aug 2010 17:17:18 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Udi Atar <udia@siano-ms.com>
+Subject: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge WinTV
+ MiniStick
+Message-ID: <20100801171718.5ad62978@pedra>
+In-Reply-To: <cover.1280693675.git.mchehab@redhat.com>
+References: <cover.1280693675.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Only the "streamer" process has to initialise videobufs.
+Add the proper gpio port for WinTV MiniStick, with the information provided
+by Michael.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Thanks-to: Michael Krufky <mkrufky@kernellabs.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Janusz, this and the following patch can be useful, if we decide to 
-implement dynamic switching between videobuf implementations. Only 
-compile-tested...
-
- drivers/media/video/soc_camera.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index a499cac..d90386c 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -158,6 +158,8 @@ static int soc_camera_reqbufs(struct file *file, void *priv,
- 
- 	WARN_ON(priv != file->private_data);
- 
-+	ici->ops->init_videobuf(&icf->vb_vidq, icd);
-+
- 	ret = videobuf_reqbufs(&icf->vb_vidq, p);
- 	if (ret < 0)
- 		return ret;
-@@ -409,8 +411,6 @@ static int soc_camera_open(struct file *file)
- 	file->private_data = icf;
- 	dev_dbg(&icd->dev, "camera device open\n");
- 
--	ici->ops->init_videobuf(&icf->vb_vidq, icd);
--
- 	mutex_unlock(&icd->video_lock);
- 
- 	return 0;
+diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
+index cff77e2..dcde606 100644
+--- a/drivers/media/dvb/siano/sms-cards.c
++++ b/drivers/media/dvb/siano/sms-cards.c
+@@ -67,6 +67,7 @@ static struct sms_board sms_boards[] = {
+ 		.board_cfg.leds_power = 26,
+ 		.board_cfg.led0 = 27,
+ 		.board_cfg.led1 = 28,
++		.board_cfg.ir = 9,
+ 		.led_power = 26,
+ 		.led_lo    = 27,
+ 		.led_hi    = 28,
 -- 
-1.7.2
+1.7.1
+
 
