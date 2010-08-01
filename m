@@ -1,67 +1,82 @@
-Return-path: <mchehab@pedra>
-Received: from comal.ext.ti.com ([198.47.26.152]:43274 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753936Ab0HZOyo convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 10:54:44 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nataraju, Kiran" <knataraju@ti.com>
-Date: Thu, 26 Aug 2010 09:54:37 -0500
-Subject: RE: [omap3camera] How does a lens subdevice get powered up?
-Message-ID: <A24693684029E5489D1D202277BE894463BA852B@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE894463BA7E30@dlee02.ent.ti.com>
- <201008260930.43141.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201008260930.43141.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.17.9]:56687 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755557Ab0HAJvj convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 05:51:39 -0400
+Date: 01 Aug 2010 11:50:00 +0200
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: jonsmirl@gmail.com
+Cc: awalls@md.metrocast.net
+Cc: jarod@wilsonet.com
+Cc: linux-input@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: lirc-list@lists.sourceforge.net
+Cc: maximlevitsky@gmail.com
+Cc: mchehab@redhat.com
+Message-ID: <BU0Ob6WojFB@christoph>
+In-Reply-To: <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
+Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable  it.
 MIME-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Laurent,
+Hi Jon,
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Thursday, August 26, 2010 2:31 AM
-> To: Aguirre, Sergio
-> Cc: linux-media@vger.kernel.org; Nataraju, Kiran
-> Subject: Re: [omap3camera] How does a lens subdevice get powered up?
-> 
-> Hi Sergio,
-> 
-> On Wednesday 25 August 2010 22:15:36 Aguirre, Sergio wrote:
-> > Hi Laurent,
-> >
-> > I see that usually a sensor is powered up on attempting a
-> VIDIOC_STREAMON
-> > at the capture endpoint of the pipeline, in which the sensor is linked.
-> >
-> > Now, what I don't understand quite well is, the Lens driver is a
-> separate
-> > subdevice, BUT it's obviously not linked to the sensor, nor the
-> pipeline.
-> >
-> > How would the lens driver know when to power up?
-> 
-> At the moment a userspace application needs to keep the lens subdev open
-> to
-> power-up the lens controller.
+on 31 Jul 10 at 14:14, Jon Smirl wrote:
+> On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de>
+> wrote:
+>> Hi Jon,
+>>
+>> on 31 Jul 10 at 12:25, Jon Smirl wrote:
+>>> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
+>>> wrote:
+>>>> I think you won't be able to fix the problem conclusively either way.  A
+>>>> lot of how the chip's clocks should be programmed depends on how the
+>>>> GPIOs are used and what crystal is used.
+>>>>
+>>>> I suspect many designers will use some reference design layout from ENE,
+>>>> but it won't be good in every case.  The wire-up of the ENE of various
+>>>> motherboards is likely something you'll have to live with as unknowns.
+>>>>
+>>>> This is a case where looser tolerances in the in kernel decoders could
+>>>> reduce this driver's complexity and/or get rid of arbitrary fudge
+>>>> factors in the driver.
+>>
+>>> The tolerances are as loose as they can be. The NEC protocol uses
+>>> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
+>>> (50% of 4%).  The crystals used in electronics are accurate to
+>>> 0.0001%+.
+>>
+>> But the standard IR receivers are far from being accurate enough to allow
+>> tolerance windows of only 2%.
+>> I'm surprised that this works for you. LIRC uses a standard tolerance of
+>> 30% / 100 us and even this is not enough sometimes.
+>>
+>> For the NEC protocol one signal consists of 22 individual pulses at 38kHz..
+>> If the receiver just misses one pulse, you already have an error of 1/22
+>>> 4%.
 
-I see... So in that case, does it make sense to consider it as a media entity?
+> There are different types of errors. The decoders can take large
+> variations in bit times. The problem is with cumulative errors. In
+> this case the error had accumulated up to 450us in the lead pulse.
+> That's just too big of an error and caused the JVC code to be
+> misclassified as NEC.
+>
+> I think he said lirc was misclassifying it too. So we both did the same
+> thing.
 
-I mean, there's no link, nor pad operations involved, so it doesn't really
-add any value...
+No way. JVC is a 16 bit code. NEC uses 32 bits. How can you ever confuse  
+JVC with NEC signals?
 
-What do you think?
+LIRC will work if there is a 4% or 40% or 400% error. Because irrecord  
+generates the config file using your receiver it will compensate for any  
+timing error. It will work with pulses cut down to 50 us like IrDA  
+hardware does and it will work when half of the bits are swollowed like  
+the IgorPlug USB receiver does.
 
-Regards,
-Sergio
+But of course the driver should try to generate timings as accurate as  
+possible.
 
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
+Christoph
