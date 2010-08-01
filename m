@@ -1,328 +1,316 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:32186 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758090Ab0GTBYh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Jul 2010 21:24:37 -0400
-Subject: [PATCH 15/17] cx23885: Protect PCI interrupt mask manipulations
- with a spinlock
-From: Andy Walls <awalls@md.metrocast.net>
-To: linux-media@vger.kernel.org
-Cc: Kenney Phillisjr <kphillisjr@gmail.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	"Igor M.Liplianin" <liplianin@me.by>
-In-Reply-To: <cover.1279586511.git.awalls@md.metrocast.net>
-References: <cover.1279586511.git.awalls@md.metrocast.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 19 Jul 2010 21:25:11 -0400
-Message-ID: <1279589111.31145.13.camel@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:24725 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754720Ab0HACyM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Jul 2010 22:54:12 -0400
+Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o712sCU1012685
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 31 Jul 2010 22:54:12 -0400
+Received: from pedra (vpn-10-93.rdu.redhat.com [10.11.10.93])
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o712rkwH027490
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 31 Jul 2010 22:54:10 -0400
+Date: Sat, 31 Jul 2010 23:54:05 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 4/7] V4L/DVB: dvb-usb: add support for rc-core mode
+Message-ID: <20100731235405.6eb2c54b@pedra>
+In-Reply-To: <cover.1280630041.git.mchehab@redhat.com>
+References: <cover.1280630041.git.mchehab@redhat.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch encapsulates access to the PCI_INT_MSK register and
-dev->pci_irqmask variable and protects them with a spinlock.
-This is needed because both the hard IRQ handler and a workhandler
-will need to manipulate the mask to disable the AV_CORE interrupt.
+Allows dvb-usb drivers to use rc-core, instead of the legacy
+implementation.
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
----
- drivers/media/video/cx23885/cx23885-cards.c |   17 ++---
- drivers/media/video/cx23885/cx23885-core.c  |   94 +++++++++++++++++++++++++--
- drivers/media/video/cx23885/cx23885-vbi.c   |    2 +-
- drivers/media/video/cx23885/cx23885-video.c |    7 +-
- drivers/media/video/cx23885/cx23885.h       |    5 ++
- 5 files changed, 103 insertions(+), 22 deletions(-)
+No driver were ported yet to rc-core, so, some small adjustments
+may be needed, when starting to migrate the drivers.
 
-diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-index 5c11caf..b8ad935 100644
---- a/drivers/media/video/cx23885/cx23885-cards.c
-+++ b/drivers/media/video/cx23885/cx23885-cards.c
-@@ -972,7 +972,6 @@ int cx23885_ir_init(struct cx23885_dev *dev)
- 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_888_IR);
- 		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
- 				 ir_rxtx_pin_cfg_count, ir_rxtx_pin_cfg);
--		dev->pci_irqmask |= PCI_MSK_IR;
- 		/*
- 		 * For these boards we need to invert the Tx output via the
- 		 * IR controller to have the LED off while idle
-@@ -993,7 +992,6 @@ int cx23885_ir_init(struct cx23885_dev *dev)
- 		}
- 		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
- 				 ir_rx_pin_cfg_count, ir_rx_pin_cfg);
--		dev->pci_irqmask |= PCI_MSK_AV_CORE;
- 		break;
- 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
- 		dev->sd_ir = cx23885_find_hw(dev, CX23885_HW_AV_CORE);
-@@ -1003,7 +1001,6 @@ int cx23885_ir_init(struct cx23885_dev *dev)
- 		}
- 		v4l2_subdev_call(dev->sd_cx25840, core, s_io_pin_config,
- 				 ir_rxtx_pin_cfg_count, ir_rxtx_pin_cfg);
--		dev->pci_irqmask |= PCI_MSK_AV_CORE;
- 		break;
- 	case CX23885_BOARD_DVICO_FUSIONHDTV_DVB_T_DUAL_EXP:
- 		request_module("ir-kbd-i2c");
-@@ -1018,15 +1015,13 @@ void cx23885_ir_fini(struct cx23885_dev *dev)
- 	switch (dev->board) {
- 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
--		dev->pci_irqmask &= ~PCI_MSK_IR;
--		cx_clear(PCI_INT_MSK, PCI_MSK_IR);
-+		cx23885_irq_remove(dev, PCI_MSK_IR);
- 		cx23888_ir_remove(dev);
- 		dev->sd_ir = NULL;
- 		break;
- 	case CX23885_BOARD_TEVII_S470:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
--		dev->pci_irqmask &= ~PCI_MSK_AV_CORE;
--		cx_clear(PCI_INT_MSK, PCI_MSK_AV_CORE);
-+		cx23885_irq_remove(dev, PCI_MSK_AV_CORE);
- 		/* sd_ir is a duplicate pointer to the AV Core, just clear it */
- 		dev->sd_ir = NULL;
- 		break;
-@@ -1038,13 +1033,13 @@ void cx23885_ir_pci_int_enable(struct cx23885_dev *dev)
- 	switch (dev->board) {
- 	case CX23885_BOARD_HAUPPAUGE_HVR1850:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1290:
--		if (dev->sd_ir && (dev->pci_irqmask & PCI_MSK_IR))
--			cx_set(PCI_INT_MSK, PCI_MSK_IR);
-+		if (dev->sd_ir)
-+			cx23885_irq_add_enable(dev, PCI_MSK_IR);
- 		break;
- 	case CX23885_BOARD_TEVII_S470:
- 	case CX23885_BOARD_HAUPPAUGE_HVR1250:
--		if (dev->sd_ir && (dev->pci_irqmask & PCI_MSK_AV_CORE))
--			cx_set(PCI_INT_MSK, PCI_MSK_AV_CORE);
-+		if (dev->sd_ir)
-+			cx23885_irq_add_enable(dev, PCI_MSK_AV_CORE);
- 		break;
- 	}
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
+index 7951076..b579fed 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-remote.c
+@@ -8,7 +8,7 @@
+ #include "dvb-usb-common.h"
+ #include <linux/usb/input.h>
+ 
+-static int dvb_usb_getkeycode(struct input_dev *dev,
++static int legacy_dvb_usb_getkeycode(struct input_dev *dev,
+ 				unsigned int scancode, unsigned int *keycode)
+ {
+ 	struct dvb_usb_device *d = input_get_drvdata(dev);
+@@ -25,7 +25,7 @@ static int dvb_usb_getkeycode(struct input_dev *dev,
+ 
+ 	/*
+ 	 * If is there extra space, returns KEY_RESERVED,
+-	 * otherwise, input core won't let dvb_usb_setkeycode
++	 * otherwise, input core won't let legacy_dvb_usb_setkeycode
+ 	 * to work
+ 	 */
+ 	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++)
+@@ -38,7 +38,7 @@ static int dvb_usb_getkeycode(struct input_dev *dev,
+ 	return -EINVAL;
  }
-diff --git a/drivers/media/video/cx23885/cx23885-core.c b/drivers/media/video/cx23885/cx23885-core.c
-index f912be2..fa2f4b1 100644
---- a/drivers/media/video/cx23885/cx23885-core.c
-+++ b/drivers/media/video/cx23885/cx23885-core.c
-@@ -299,6 +299,83 @@ static struct sram_channel cx23887_sram_channels[] = {
- 	},
+ 
+-static int dvb_usb_setkeycode(struct input_dev *dev,
++static int legacy_dvb_usb_setkeycode(struct input_dev *dev,
+ 				unsigned int scancode, unsigned int keycode)
+ {
+ 	struct dvb_usb_device *d = input_get_drvdata(dev);
+@@ -78,7 +78,7 @@ static int dvb_usb_setkeycode(struct input_dev *dev,
+  *
+  * TODO: Fix the repeat rate of the input device.
+  */
+-static void dvb_usb_read_remote_control(struct work_struct *work)
++static void legacy_dvb_usb_read_remote_control(struct work_struct *work)
+ {
+ 	struct dvb_usb_device *d =
+ 		container_of(work, struct dvb_usb_device, rc_query_work.work);
+@@ -154,15 +154,114 @@ schedule:
+ 	schedule_delayed_work(&d->rc_query_work,msecs_to_jiffies(d->props.rc.legacy.rc_interval));
+ }
+ 
++static int legacy_dvb_usb_remote_init(struct dvb_usb_device *d,
++				      struct input_dev *input_dev)
++{
++	int i, err, rc_interval;
++
++	input_dev->getkeycode = legacy_dvb_usb_getkeycode;
++	input_dev->setkeycode = legacy_dvb_usb_setkeycode;
++
++	/* set the bits for the keys */
++	deb_rc("key map size: %d\n", d->props.rc.legacy.rc_key_map_size);
++	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++) {
++		deb_rc("setting bit for event %d item %d\n",
++			d->props.rc.legacy.rc_key_map[i].keycode, i);
++		set_bit(d->props.rc.legacy.rc_key_map[i].keycode, input_dev->keybit);
++	}
++
++	/* setting these two values to non-zero, we have to manage key repeats */
++	input_dev->rep[REP_PERIOD] = d->props.rc.legacy.rc_interval;
++	input_dev->rep[REP_DELAY]  = d->props.rc.legacy.rc_interval + 150;
++
++	input_set_drvdata(input_dev, d);
++
++	err = input_register_device(input_dev);
++	if (err)
++		input_free_device(input_dev);
++
++	rc_interval = d->props.rc.legacy.rc_interval;
++
++	INIT_DELAYED_WORK(&d->rc_query_work, legacy_dvb_usb_read_remote_control);
++
++	info("schedule remote query interval to %d msecs.", rc_interval);
++	schedule_delayed_work(&d->rc_query_work,
++			      msecs_to_jiffies(rc_interval));
++
++	d->state |= DVB_USB_STATE_REMOTE;
++
++	return err;
++}
++
++/* Remote-control poll function - called every dib->rc_query_interval ms to see
++ * whether the remote control has received anything.
++ *
++ * TODO: Fix the repeat rate of the input device.
++ */
++static void dvb_usb_read_remote_control(struct work_struct *work)
++{
++	struct dvb_usb_device *d =
++		container_of(work, struct dvb_usb_device, rc_query_work.work);
++	int err;
++
++	/* TODO: need a lock here.  We can simply skip checking for the remote control
++	   if we're busy. */
++
++	/* when the parameter has been set to 1 via sysfs while the
++	 * driver was running, or when bulk mode is enabled after IR init
++	 */
++	if (dvb_usb_disable_rc_polling || d->props.rc.core.bulk_mode)
++		return;
++
++	err = d->props.rc.core.rc_query(d);
++	if (err)
++		err("error %d while querying for an remote control event.", err);
++
++	schedule_delayed_work(&d->rc_query_work,
++			      msecs_to_jiffies(d->props.rc.core.rc_interval));
++}
++
++static int rc_core_dvb_usb_remote_init(struct dvb_usb_device *d,
++				       struct input_dev *input_dev)
++{
++	int err, rc_interval;
++
++	d->props.rc.core.rc_props.priv = d;
++	err = ir_input_register(input_dev,
++				 d->props.rc.core.rc_codes,
++				 &d->props.rc.core.rc_props,
++				 d->props.rc.core.module_name);
++	if (err < 0)
++		return err;
++
++	if (!d->props.rc.core.rc_query || d->props.rc.core.bulk_mode)
++		return 0;
++
++	/* Polling mode - initialize a work queue for handling it */
++	INIT_DELAYED_WORK(&d->rc_query_work, dvb_usb_read_remote_control);
++
++	rc_interval = d->props.rc.core.rc_interval;
++
++	info("schedule remote query interval to %d msecs.", rc_interval);
++	schedule_delayed_work(&d->rc_query_work,
++			      msecs_to_jiffies(rc_interval));
++
++	return 0;
++}
++
+ int dvb_usb_remote_init(struct dvb_usb_device *d)
+ {
+ 	struct input_dev *input_dev;
+-	int i;
+ 	int err;
+ 
+-	if (d->props.rc.legacy.rc_key_map == NULL ||
+-		d->props.rc.legacy.rc_query == NULL ||
+-		dvb_usb_disable_rc_polling)
++	if (dvb_usb_disable_rc_polling)
++		return 0;
++
++	if (d->props.rc.legacy.rc_key_map && d->props.rc.legacy.rc_query)
++		d->props.rc.mode = DVB_RC_LEGACY;
++	else if (d->props.rc.core.rc_codes)
++		d->props.rc.mode = DVB_RC_CORE;
++	else
+ 		return 0;
+ 
+ 	usb_make_path(d->udev, d->rc_phys, sizeof(d->rc_phys));
+@@ -177,39 +276,19 @@ int dvb_usb_remote_init(struct dvb_usb_device *d)
+ 	input_dev->phys = d->rc_phys;
+ 	usb_to_input_id(d->udev, &input_dev->id);
+ 	input_dev->dev.parent = &d->udev->dev;
+-	input_dev->getkeycode = dvb_usb_getkeycode;
+-	input_dev->setkeycode = dvb_usb_setkeycode;
+-
+-	/* set the bits for the keys */
+-	deb_rc("key map size: %d\n", d->props.rc.legacy.rc_key_map_size);
+-	for (i = 0; i < d->props.rc.legacy.rc_key_map_size; i++) {
+-		deb_rc("setting bit for event %d item %d\n",
+-			d->props.rc.legacy.rc_key_map[i].keycode, i);
+-		set_bit(d->props.rc.legacy.rc_key_map[i].keycode, input_dev->keybit);
+-	}
+ 
+ 	/* Start the remote-control polling. */
+ 	if (d->props.rc.legacy.rc_interval < 40)
+ 		d->props.rc.legacy.rc_interval = 100; /* default */
+ 
+-	/* setting these two values to non-zero, we have to manage key repeats */
+-	input_dev->rep[REP_PERIOD] = d->props.rc.legacy.rc_interval;
+-	input_dev->rep[REP_DELAY]  = d->props.rc.legacy.rc_interval + 150;
+-
+-	input_set_drvdata(input_dev, d);
+-
+-	err = input_register_device(input_dev);
+-	if (err) {
+-		input_free_device(input_dev);
+-		return err;
+-	}
+-
+ 	d->rc_input_dev = input_dev;
+ 
+-	INIT_DELAYED_WORK(&d->rc_query_work, dvb_usb_read_remote_control);
+-
+-	info("schedule remote query interval to %d msecs.", d->props.rc.legacy.rc_interval);
+-	schedule_delayed_work(&d->rc_query_work,msecs_to_jiffies(d->props.rc.legacy.rc_interval));
++	if (d->props.rc.mode == DVB_RC_LEGACY)
++		err = legacy_dvb_usb_remote_init(d, input_dev);
++	else
++		err = rc_core_dvb_usb_remote_init(d, input_dev);
++	if (err)
++		return err;
+ 
+ 	d->state |= DVB_USB_STATE_REMOTE;
+ 
+@@ -221,7 +300,10 @@ int dvb_usb_remote_exit(struct dvb_usb_device *d)
+ 	if (d->state & DVB_USB_STATE_REMOTE) {
+ 		cancel_rearming_delayed_work(&d->rc_query_work);
+ 		flush_scheduled_work();
+-		input_unregister_device(d->rc_input_dev);
++		if (d->props.rc.mode == DVB_RC_LEGACY)
++			input_unregister_device(d->rc_input_dev);
++		else
++			ir_input_unregister(d->rc_input_dev);
+ 	}
+ 	d->state &= ~DVB_USB_STATE_REMOTE;
+ 	return 0;
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb.h b/drivers/media/dvb/dvb-usb/dvb-usb.h
+index 76f9724..bcfbf9a 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb.h
++++ b/drivers/media/dvb/dvb-usb/dvb-usb.h
+@@ -14,7 +14,7 @@
+ #include <linux/usb.h>
+ #include <linux/firmware.h>
+ #include <linux/mutex.h>
+-#include <media/rc-map.h>
++#include <media/ir-core.h>
+ 
+ #include "dvb_frontend.h"
+ #include "dvb_demux.h"
+@@ -177,6 +177,34 @@ struct dvb_rc_legacy {
  };
  
-+void cx23885_irq_add(struct cx23885_dev *dev, u32 mask)
-+{
-+	unsigned long flags;
-+	spin_lock_irqsave(&dev->pci_irqmask_lock, flags);
+ /**
++ * struct dvb_rc properties of remote controller, using rc-core
++ * @rc_codes: name of rc codes table
++ * @rc_query: called to query an event event.
++ * @rc_interval: time in ms between two queries.
++ * @rc_props: remote controller properties
++ * @bulk_mode: device supports bulk mode for RC (disable polling mode)
++ */
++struct dvb_rc {
++	char *rc_codes;
++	char *module_name;
++	int (*rc_query) (struct dvb_usb_device *d);
++	int rc_interval;
++	struct ir_dev_props rc_props;
++	bool bulk_mode;				/* uses bulk mode */
++};
 +
-+	dev->pci_irqmask |= mask;
++/**
++ * enum dvb_usb_mode - Specifies if it is using a legacy driver or a new one
++ *		       based on rc-core
++ * This is initialized/used only inside dvb-usb-remote.c.
++ * It shouldn't be set by the drivers.
++ */
++enum dvb_usb_mode {
++	DVB_RC_LEGACY,
++	DVB_RC_CORE,
++};
 +
-+	spin_unlock_irqrestore(&dev->pci_irqmask_lock, flags);
-+}
-+
-+void cx23885_irq_add_enable(struct cx23885_dev *dev, u32 mask)
-+{
-+	unsigned long flags;
-+	spin_lock_irqsave(&dev->pci_irqmask_lock, flags);
-+
-+	dev->pci_irqmask |= mask;
-+	cx_set(PCI_INT_MSK, mask);
-+
-+	spin_unlock_irqrestore(&dev->pci_irqmask_lock, flags);
-+}
-+
-+void cx23885_irq_enable(struct cx23885_dev *dev, u32 mask)
-+{
-+	u32 v;
-+	unsigned long flags;
-+	spin_lock_irqsave(&dev->pci_irqmask_lock, flags);
-+
-+	v = mask & dev->pci_irqmask;
-+	if (v)
-+		cx_set(PCI_INT_MSK, v);
-+
-+	spin_unlock_irqrestore(&dev->pci_irqmask_lock, flags);
-+}
-+
-+static inline void cx23885_irq_enable_all(struct cx23885_dev *dev)
-+{
-+	cx23885_irq_enable(dev, 0xffffffff);
-+}
-+
-+void cx23885_irq_disable(struct cx23885_dev *dev, u32 mask)
-+{
-+	unsigned long flags;
-+	spin_lock_irqsave(&dev->pci_irqmask_lock, flags);
-+
-+	cx_clear(PCI_INT_MSK, mask);
-+
-+	spin_unlock_irqrestore(&dev->pci_irqmask_lock, flags);
-+}
-+
-+static inline void cx23885_irq_disable_all(struct cx23885_dev *dev)
-+{
-+	cx23885_irq_disable(dev, 0xffffffff);
-+}
-+
-+void cx23885_irq_remove(struct cx23885_dev *dev, u32 mask)
-+{
-+	unsigned long flags;
-+	spin_lock_irqsave(&dev->pci_irqmask_lock, flags);
-+
-+	dev->pci_irqmask &= ~mask;
-+	cx_clear(PCI_INT_MSK, mask);
-+
-+	spin_unlock_irqrestore(&dev->pci_irqmask_lock, flags);
-+}
-+
-+static u32 cx23885_irq_get_mask(struct cx23885_dev *dev)
-+{
-+	u32 v;
-+	unsigned long flags;
-+	spin_lock_irqsave(&dev->pci_irqmask_lock, flags);
-+
-+	v = cx_read(PCI_INT_MSK);
-+
-+	spin_unlock_irqrestore(&dev->pci_irqmask_lock, flags);
-+	return v;
-+}
-+
- static int cx23885_risc_decode(u32 risc)
- {
- 	static char *instr[16] = {
-@@ -548,7 +625,7 @@ static void cx23885_shutdown(struct cx23885_dev *dev)
- 	cx_write(UART_CTL, 0);
++/**
+  * struct dvb_usb_device_properties - properties of a dvb-usb-device
+  * @usb_ctrl: which USB device-side controller is in use. Needed for firmware
+  *  download.
+@@ -238,8 +266,10 @@ struct dvb_usb_device_properties {
+ 	int (*identify_state)   (struct usb_device *, struct dvb_usb_device_properties *,
+ 			struct dvb_usb_device_description **, int *);
  
- 	/* Disable Interrupts */
--	cx_write(PCI_INT_MSK, 0);
-+	cx23885_irq_disable_all(dev);
- 	cx_write(VID_A_INT_MSK, 0);
- 	cx_write(VID_B_INT_MSK, 0);
- 	cx_write(VID_C_INT_MSK, 0);
-@@ -774,6 +851,8 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- {
- 	int i;
+-	union {
++	struct {
++		enum dvb_usb_mode mode;	/* Drivers shouldn't touch on it */
+ 		struct dvb_rc_legacy legacy;
++		struct dvb_rc core;
+ 	} rc;
  
-+	spin_lock_init(&dev->pci_irqmask_lock);
-+
- 	mutex_init(&dev->lock);
- 	mutex_init(&dev->gpio_lock);
- 
-@@ -820,9 +899,9 @@ static int cx23885_dev_setup(struct cx23885_dev *dev)
- 
- 	dev->pci_bus  = dev->pci->bus->number;
- 	dev->pci_slot = PCI_SLOT(dev->pci->devfn);
--	dev->pci_irqmask = 0x001f00;
-+	cx23885_irq_add(dev, 0x001f00);
- 	if (cx23885_boards[dev->board].cimax > 0)
--		dev->pci_irqmask |= 0x01800000; /* for CiMaxes */
-+		cx23885_irq_add(dev, 0x01800000); /* for CiMaxes */
- 
- 	/* External Master 1 Bus */
- 	dev->i2c_bus[0].nr = 0;
-@@ -1156,7 +1235,7 @@ static void cx23885_tsport_reg_dump(struct cx23885_tsport *port)
- 	dprintk(1, "%s() DEV_CNTRL2               0x%08X\n", __func__,
- 		cx_read(DEV_CNTRL2));
- 	dprintk(1, "%s() PCI_INT_MSK              0x%08X\n", __func__,
--		cx_read(PCI_INT_MSK));
-+		cx23885_irq_get_mask(dev));
- 	dprintk(1, "%s() AUD_INT_INT_MSK          0x%08X\n", __func__,
- 		cx_read(AUDIO_INT_INT_MSK));
- 	dprintk(1, "%s() AUD_INT_DMA_CTL          0x%08X\n", __func__,
-@@ -1292,7 +1371,8 @@ static int cx23885_start_dma(struct cx23885_tsport *port,
- 		dprintk(1, "%s() enabling TS int's and DMA\n", __func__);
- 		cx_set(port->reg_ts_int_msk,  port->ts_int_msk_val);
- 		cx_set(port->reg_dma_ctl, port->dma_ctl_val);
--		cx_set(PCI_INT_MSK, dev->pci_irqmask | port->pci_irqmask);
-+		cx23885_irq_add(dev, port->pci_irqmask);
-+		cx23885_irq_enable_all(dev);
- 		break;
- 	default:
- 		BUG();
-@@ -1653,7 +1733,7 @@ static irqreturn_t cx23885_irq(int irq, void *dev_id)
- 	bool subdev_handled;
- 
- 	pci_status = cx_read(PCI_INT_STAT);
--	pci_mask = cx_read(PCI_INT_MSK);
-+	pci_mask = cx23885_irq_get_mask(dev);
- 	vida_status = cx_read(VID_A_INT_STAT);
- 	vida_mask = cx_read(VID_A_INT_MSK);
- 	ts1_status = cx_read(VID_B_INT_STAT);
-@@ -1977,7 +2057,7 @@ static int __devinit cx23885_initdev(struct pci_dev *pci_dev,
- 
- 	switch (dev->board) {
- 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
--		cx_set(PCI_INT_MSK, 0x01800000); /* for NetUP */
-+		cx23885_irq_add_enable(dev, 0x01800000); /* for NetUP */
- 		break;
- 	}
- 
-diff --git a/drivers/media/video/cx23885/cx23885-vbi.c b/drivers/media/video/cx23885/cx23885-vbi.c
-index 708a8c7..c0b6038 100644
---- a/drivers/media/video/cx23885/cx23885-vbi.c
-+++ b/drivers/media/video/cx23885/cx23885-vbi.c
-@@ -74,7 +74,7 @@ static int cx23885_start_vbi_dma(struct cx23885_dev    *dev,
- 	q->count = 1;
- 
- 	/* enable irqs */
--	cx_set(PCI_INT_MSK, cx_read(PCI_INT_MSK) | 0x01);
-+	cx23885_irq_add_enable(dev, 0x01);
- 	cx_set(VID_A_INT_MSK, 0x000022);
- 
- 	/* start dma */
-diff --git a/drivers/media/video/cx23885/cx23885-video.c b/drivers/media/video/cx23885/cx23885-video.c
-index 2519455..da66e5f 100644
---- a/drivers/media/video/cx23885/cx23885-video.c
-+++ b/drivers/media/video/cx23885/cx23885-video.c
-@@ -441,7 +441,7 @@ static int cx23885_start_video_dma(struct cx23885_dev *dev,
- 	q->count = 1;
- 
- 	/* enable irq */
--	cx_set(PCI_INT_MSK, cx_read(PCI_INT_MSK) | 0x01);
-+	cx23885_irq_add_enable(dev, 0x01);
- 	cx_set(VID_A_INT_MSK, 0x000011);
- 
- 	/* start dma */
-@@ -1465,7 +1465,7 @@ static const struct v4l2_file_operations radio_fops = {
- void cx23885_video_unregister(struct cx23885_dev *dev)
- {
- 	dprintk(1, "%s()\n", __func__);
--	cx_clear(PCI_INT_MSK, 1);
-+	cx23885_irq_remove(dev, 0x01);
- 
- 	if (dev->video_dev) {
- 		if (video_is_registered(dev->video_dev))
-@@ -1502,7 +1502,8 @@ int cx23885_video_register(struct cx23885_dev *dev)
- 		VID_A_DMA_CTL, 0x11, 0x00);
- 
- 	/* Don't enable VBI yet */
--	cx_set(PCI_INT_MSK, 1);
-+
-+	cx23885_irq_add_enable(dev, 0x01);
- 
- 	if (TUNER_ABSENT != dev->tuner_type) {
- 		struct v4l2_subdev *sd = NULL;
-diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
-index 460f430..5bf6ed0 100644
---- a/drivers/media/video/cx23885/cx23885.h
-+++ b/drivers/media/video/cx23885/cx23885.h
-@@ -325,6 +325,7 @@ struct cx23885_dev {
- 	u32                        __iomem *lmmio;
- 	u8                         __iomem *bmmio;
- 	int                        pci_irqmask;
-+	spinlock_t		   pci_irqmask_lock; /* protects mask reg too */
- 	int                        hwrevision;
- 
- 	/* This valud is board specific and is used to configure the
-@@ -485,6 +486,10 @@ extern u32 cx23885_gpio_get(struct cx23885_dev *dev, u32 mask);
- extern void cx23885_gpio_enable(struct cx23885_dev *dev, u32 mask,
- 	int asoutput);
- 
-+extern void cx23885_irq_add_enable(struct cx23885_dev *dev, u32 mask);
-+extern void cx23885_irq_enable(struct cx23885_dev *dev, u32 mask);
-+extern void cx23885_irq_disable(struct cx23885_dev *dev, u32 mask);
-+extern void cx23885_irq_remove(struct cx23885_dev *dev, u32 mask);
- 
- /* ----------------------------------------------------------- */
- /* cx23885-cards.c                                             */
+ 	struct i2c_algorithm *i2c_algo;
 -- 
-1.7.1.1
+1.7.1
 
 
