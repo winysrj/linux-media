@@ -1,266 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:42683 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751631Ab0HBNNU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 09:13:20 -0400
-From: raja_mani@ti.com
-To: olbpdev@list.ti.com, linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, Raja-Mani <x0102026@ti.com>,
-	Pramodh AG <pramodh_ag@ti.com>
-Subject: [RFC 4/4] drivers:staging:ti-st: Sources for FM common header
-Date: Mon,  2 Aug 2010 08:13:12 -0500
-Message-Id: <1280754792-14943-5-git-send-email-raja_mani@ti.com>
-In-Reply-To: <1280754792-14943-4-git-send-email-raja_mani@ti.com>
-References: <1280754792-14943-1-git-send-email-raja_mani@ti.com>
- <1280754792-14943-2-git-send-email-raja_mani@ti.com>
- <1280754792-14943-3-git-send-email-raja_mani@ti.com>
- <1280754792-14943-4-git-send-email-raja_mani@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:46841 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751310Ab0HAUU5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Aug 2010 16:20:57 -0400
+Date: Sun, 1 Aug 2010 17:21:22 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Udi Atar <udia@siano-ms.com>
+Subject: [PATCH 5/6] V4L/DVB: sms: properly initialize IR phys and IR name
+Message-ID: <20100801172122.01dfc9ec@pedra>
+In-Reply-To: <cover.1280693675.git.mchehab@redhat.com>
+References: <cover.1280693675.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Raja-Mani <x0102026@ti.com>
+sms were using a non-compliant nomenclature for the USB devices. Fix it.
 
-This is a common header used in all FM submodules
-(FM V4L2,FM common,FM Rx).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
-Signed-off-by: Raja-Mani <x0102026@ti.com>
----
- drivers/staging/ti-st/fmdrv.h |  225 +++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 225 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/ti-st/fmdrv.h
-
-diff --git a/drivers/staging/ti-st/fmdrv.h b/drivers/staging/ti-st/fmdrv.h
-new file mode 100644
-index 0000000..d560570
---- /dev/null
-+++ b/drivers/staging/ti-st/fmdrv.h
-@@ -0,0 +1,225 @@
-+/*
-+ *  FM Driver for Connectivity chip of Texas Instruments.
-+ *
-+ *  Common header for all FM driver sub-modules.
-+ *
-+ *  Copyright (C) 2009 Texas Instruments
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 as
-+ *  published by the Free Software Foundation.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ */
+diff --git a/drivers/media/dvb/siano/smsir.c b/drivers/media/dvb/siano/smsir.c
+index a56eac7..f8a4fd6 100644
+--- a/drivers/media/dvb/siano/smsir.c
++++ b/drivers/media/dvb/siano/smsir.c
+@@ -22,6 +22,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/input.h>
++#include <media/ir-core.h>
+ 
+ #include "smscoreapi.h"
+ #include "smsir.h"
+@@ -247,6 +248,7 @@ void sms_ir_event(struct smscore_device_t *coredev, const char *buf, int len)
+ int sms_ir_init(struct smscore_device_t *coredev)
+ {
+ 	struct input_dev *input_dev;
++	int board_id = smscore_get_board_id(coredev);
+ 
+ 	sms_log("Allocating input device");
+ 	input_dev = input_allocate_device();
+@@ -256,8 +258,7 @@ int sms_ir_init(struct smscore_device_t *coredev)
+ 	}
+ 
+ 	coredev->ir.input_dev = input_dev;
+-	coredev->ir.ir_kb_type =
+-		sms_get_board(smscore_get_board_id(coredev))->ir_kb_type;
++	coredev->ir.ir_kb_type = sms_get_board(board_id)->ir_kb_type;
+ 	coredev->ir.keyboard_layout_map =
+ 		keyboard_layout_maps[coredev->ir.ir_kb_type].
+ 				keyboard_layout_map;
+@@ -269,11 +270,15 @@ int sms_ir_init(struct smscore_device_t *coredev)
+ 			coredev->ir.controller, coredev->ir.timeout);
+ 
+ 	snprintf(coredev->ir.name,
+-				IR_DEV_NAME_MAX_LEN,
+-				"SMS IR w/kbd type %d",
+-				coredev->ir.ir_kb_type);
++				sizeof(coredev->ir.name),
++				"SMS IR (%s)",
++				sms_get_board(board_id)->name);
 +
-+#ifndef _FM_DRV_H
-+#define _FM_DRV_H
++	strlcpy(coredev->ir.phys, coredev->devpath, sizeof(coredev->ir.phys));
++	strlcat(coredev->ir.phys, "/ir0", sizeof(coredev->ir.phys));
 +
-+#include <linux/skbuff.h>
-+#include <linux/interrupt.h>
-+#include <sound/core.h>
-+#include <sound/initval.h>
-+#include <linux/timer.h>
-+#include <linux/version.h>
-+
-+#define FM_DRV_VERSION            "0.01"
-+/* Should match with FM_DRV_VERSION */
-+#define FM_DRV_RADIO_VERSION      KERNEL_VERSION(0, 0, 1)
-+#define FM_DRV_NAME               "ti_fmdrv"
-+#define FM_DRV_CARD_SHORT_NAME    "TI FM Radio"
-+#define FM_DRV_CARD_LONG_NAME     "Texas Instruments FM Radio"
-+
-+/* Flag info */
-+#define FM_INTTASK_RUNNING            0
-+#define FM_INTTASK_SCHEDULE_PENDING   1
-+#define FM_FIRMWARE_DW_INPROGRESS     2
-+#define FM_CORE_READY                 3
-+#define FM_CORE_TRANSPORT_READY       4
-+#define FM_AF_SWITCH_INPROGRESS	      5
-+#define FM_CORE_TX_XMITING	      6
-+
-+#define FM_DRV_TX_TIMEOUT      (5*HZ)	/* 5 seconds */
-+#define FM_DRV_RX_SEEK_TIMEOUT (20*HZ)	/* 20 seconds */
-+
-+#define NO_OF_ENTRIES_IN_ARRAY(array) (sizeof(array) / sizeof(array[0]))
-+
-+enum {
-+	FM_MODE_OFF,
-+	FM_MODE_TX,
-+	FM_MODE_RX,
-+	FM_MODE_ENTRY_MAX
-+};
-+
-+#define FM_RX_RDS_INFO_FIELD_MAX	8	/* 4 Group * 2 Bytes */
-+
-+/* RX RDS data format */
-+struct fm_rdsdata_format {
-+	union {
-+		struct {
-+			unsigned char rdsbuff[FM_RX_RDS_INFO_FIELD_MAX];
-+		} groupdatabuff;
-+		struct {
-+			unsigned short pidata;
-+			unsigned char block_b_byte1;
-+			unsigned char block_b_byte2;
-+			unsigned char block_c_byte1;
-+			unsigned char block_c_byte2;
-+			unsigned char block_d_byte1;
-+			unsigned char block_d_byte2;
-+		} groupgeneral;
-+		struct {
-+			unsigned short pidata;
-+			unsigned char block_b_byte1;
-+			unsigned char block_b_byte2;
-+			unsigned char firstaf;
-+			unsigned char secondaf;
-+			unsigned char firstpsbyte;
-+			unsigned char secondpsbyte;
-+		} group0A;
-+
-+		struct {
-+			unsigned short pidata;
-+			unsigned char block_b_byte1;
-+			unsigned char block_b_byte2;
-+			unsigned short pidata2;
-+			unsigned char firstpsbyte;
-+			unsigned char secondpsbyte;
-+		} group0B;
-+	} rdsdata;
-+};
-+
-+/* FM region (Europe/US, Japan) info */
-+struct region_info {
-+	unsigned int channel_spacing;
-+	unsigned int bottom_frequency;
-+	unsigned int top_frequency;
-+	unsigned char region_index;
-+};
-+
-+typedef void (*int_handler_prototype) (void *);
-+
-+/* FM Interrupt processing related info */
-+struct fm_irq {
-+	unsigned char stage_index;
-+	unsigned short flag;	/* FM interrupt flag */
-+	unsigned short mask;	/* FM interrupt mask */
-+	/* Interrupt process timeout handler */
-+	struct timer_list int_timeout_timer;
-+	unsigned char irq_service_timeout_retry;
-+	int_handler_prototype *fm_int_handlers;
-+};
-+
-+/* RDS info */
-+struct fm_rds {
-+	unsigned char flag;	/* RX RDS on/off status */
-+	unsigned char last_block_index;	/* Last received RDS block */
-+
-+	/* RDS buffer */
-+	wait_queue_head_t read_queue;
-+	unsigned int buf_size;	/* Size is always multiple of 3 */
-+	unsigned int wr_index;
-+	unsigned int rd_index;
-+	unsigned char *buffer;
-+};
-+
-+#define FM_RDS_MAX_AF_LIST		25
-+
-+/* Current RX channel Alternate Frequency cache.
-+ * This info is used to switch to other freq (AF)
-+ * when current channel signal strengh is below RSSI threshold.
-+ */
-+struct tuned_station_info {
-+	unsigned short picode;
-+	unsigned int af_cache[FM_RDS_MAX_AF_LIST];
-+	unsigned char no_of_items_in_afcache;
-+	unsigned char af_list_max;
-+};
-+
-+/* FM RX mode info */
-+struct fm_rx {
-+	struct region_info region;	/* Current selected band */
-+	unsigned int curr_freq;	/* Current RX frquency */
-+	unsigned char curr_mute_mode;	/* Current mute mode */
-+	/* RF dependent soft mute mode */
-+	unsigned char curr_rf_depend_mute;
-+	unsigned short curr_volume;	/* Current volume level */
-+	short curr_rssi_threshold;	/* Current RSSI threshold level */
-+	/* Holds the index of the current AF jump */
-+	unsigned char cur_afjump_index;
-+	/* Will hold the frequency before the jump */
-+	unsigned int freq_before_jump;
-+	unsigned char rds_mode;	/* RDS operation mode (RDS/RDBS) */
-+	unsigned char af_mode;	/* Alternate frequency on/off */
-+	struct tuned_station_info cur_station_info;
-+	struct fm_rds rds;
-+};
-+
-+/*
-+ * FM TX RDS data
-+ *
-+ * @ text_type: is the text following PS or RT
-+ * @ text: radio text string which could either be PS or RT
-+ * @ af_freq: alternate frequency for Tx
-+ * TODO: to be declared in application
-+ */
-+struct tx_rds {
-+	unsigned char text_type;
-+	unsigned char text[25];
-+	unsigned int af_freq;
-+};
-+/*
-+ * FM TX global data
-+ *
-+ * @ pwr_lvl: Power Level of the Transmission from mixer control
-+ * @ xmit_state: Transmission state = Updated locally upon Start/Stop
-+ * @ audio_io: i2S/Analog
-+ * @ tx_frq: Transmission frequency
-+ */
-+struct fmtx_data {
-+	unsigned char pwr_lvl;
-+	unsigned char xmit_state;
-+	unsigned char audio_io;
-+	unsigned long tx_frq;
-+	struct tx_rds rds;
-+};
-+
-+/* FM driver operation structure */
-+struct fmdrv_ops {
-+	struct video_device *radio_dev;	/* V4L2 video device pointer */
-+	struct snd_card *card;	/* Card which holds FM mixer controls */
-+	unsigned short asci_id;
-+	spinlock_t rds_buff_lock; /* To protect access to RDS buffer */
-+	spinlock_t resp_skb_lock; /* To protect access to received SKB */
-+
-+	long flag;		/*  FM driver state machine info */
-+	char streg_cbdata; /* status of ST registration */
-+
-+	struct sk_buff_head rx_q;	/* RX queue */
-+	struct tasklet_struct rx_task;	/* RX Tasklet */
-+
-+	struct sk_buff_head tx_q;	/* TX queue */
-+	struct tasklet_struct tx_task;	/* TX Tasklet */
-+	unsigned long last_tx_jiffies;	/* Timestamp of last pkt sent */
-+	atomic_t tx_cnt;	/* Number of packets can send at a time */
-+
-+	struct sk_buff *response_skb;	/* Response from the chip */
-+	/* Main task completion handler */
-+	struct completion maintask_completion;
-+	/* Opcode of last command sent to the chip */
-+	unsigned char last_sent_pkt_opcode;
-+	/* Handler used for wakeup when response packet is received */
-+	struct completion *response_completion;
-+	struct fm_irq irq_info;
-+	unsigned char curr_fmmode; /* Current FM chip mode (TX, RX, OFF) */
-+	struct fm_rx rx;	/* FM receiver info */
-+	struct fmtx_data tx_data;
-+};
-+#endif
+ 	input_dev->name = coredev->ir.name;
+-	input_dev->phys = coredev->ir.name;
++	input_dev->phys = coredev->ir.phys;
+ 	input_dev->dev.parent = coredev->device;
+ 
+ 	/* Key press events only */
+diff --git a/drivers/media/dvb/siano/smsir.h b/drivers/media/dvb/siano/smsir.h
+index b7d703e..77e6505 100644
+--- a/drivers/media/dvb/siano/smsir.h
++++ b/drivers/media/dvb/siano/smsir.h
+@@ -24,7 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ 
+ #include <linux/input.h>
+ 
+-#define IR_DEV_NAME_MAX_LEN		23 /* "SMS IR kbd type nn\0" */
++#define IR_DEV_NAME_MAX_LEN		40
+ #define IR_KEYBOARD_LAYOUT_SIZE	64
+ #define IR_DEFAULT_TIMEOUT		100
+ 
+@@ -78,7 +78,8 @@ struct smscore_device_t;
+ struct ir_t {
+ 	struct input_dev *input_dev;
+ 	enum ir_kb_type ir_kb_type;
+-	char name[IR_DEV_NAME_MAX_LEN+1];
++	char name[IR_DEV_NAME_MAX_LEN + 1];
++	char phys[32];
+ 	u16 *keyboard_layout_map;
+ 	u32 timeout;
+ 	u32 controller;
+diff --git a/drivers/media/dvb/siano/smsusb.c b/drivers/media/dvb/siano/smsusb.c
+index a9c27fb..50d4338 100644
+--- a/drivers/media/dvb/siano/smsusb.c
++++ b/drivers/media/dvb/siano/smsusb.c
+@@ -352,8 +352,7 @@ static int smsusb_init_device(struct usb_interface *intf, int board_id)
+ 	params.num_buffers = MAX_BUFFERS;
+ 	params.sendrequest_handler = smsusb_sendrequest;
+ 	params.context = dev;
+-	snprintf(params.devpath, sizeof(params.devpath),
+-		 "usb\\%d-%s", dev->udev->bus->busnum, dev->udev->devpath);
++	usb_make_path(dev->udev, params.devpath, sizeof(params.devpath));
+ 
+ 	/* register in smscore */
+ 	rc = smscore_register_device(&params, &dev->coredev);
 -- 
-1.5.6.3
+1.7.1
+
 
