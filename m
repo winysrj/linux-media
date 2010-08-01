@@ -1,121 +1,176 @@
-Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:54574 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750699Ab0HZDEn convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 23:04:43 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1811 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753390Ab0HALdB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 07:33:01 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v3 03/10] media: Entities, pads and links
+Date: Sun, 1 Aug 2010 13:32:50 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com> <1280419616-7658-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1280419616-7658-4-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTinPaq+0MbdW81uoc5_OZ=1Gy_mVYEBnwv8zgOBd@mail.gmail.com>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	<1282310110.2605.976.camel@laptop>
-	<20100825155814.25c783c7.akpm@linux-foundation.org>
-	<20100825173125.0855a6b0@bike.lwn.net>
-	<AANLkTinPaq+0MbdW81uoc5_OZ=1Gy_mVYEBnwv8zgOBd@mail.gmail.com>
-Date: Thu, 26 Aug 2010 12:04:42 +0900
-Message-ID: <AANLkTimofo3WyaWyTCBegVqpzoDLq0NXxC7+JuVPMQGr@mail.gmail.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-From: Minchan Kim <minchan.kim@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008011332.50872.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, Aug 26, 2010 at 11:49 AM, Minchan Kim <minchan.kim@gmail.com> wrote:
-> On Thu, Aug 26, 2010 at 8:31 AM, Jonathan Corbet <corbet@lwn.net> wrote:
->> On Wed, 25 Aug 2010 15:58:14 -0700
->> Andrew Morton <akpm@linux-foundation.org> wrote:
->>
->>> > If you want guarantees you can free stuff, why not add constraints to
->>> > the page allocation type and only allow MIGRATE_MOVABLE pages inside a
->>> > certain region, those pages are easily freed/moved aside to satisfy
->>> > large contiguous allocations.
->>>
->>> That would be good.  Although I expect that the allocation would need
->>> to be 100% rock-solid reliable, otherwise the end user has a
->>> non-functioning device.  Could generic core VM provide the required level
->>> of service?
->>
->> The original OLPC has a camera controller which requires three contiguous,
->> image-sized buffers in memory.  That system is a little memory constrained
->> (OK, it's desperately short of memory), so, in the past, the chances of
->> being able to allocate those buffers anytime some kid decides to start
->> taking pictures was poor.  Thus, cafe_ccic.c has an option to snag the
->> memory at initialization time and never let go even if you threaten its
->> family.  Hell hath no fury like a little kid whose new toy^W educational
->> tool stops taking pictures.
->>
->> That, of course, is not a hugely efficient use of memory on a
->> memory-constrained system.  If the VM could reliably satisfy those
->> allocation requestss, life would be wonderful.  Seems difficult.  But it
->> would be a nicer solution than CMA, which, to a great extent, is really
->> just a standardized mechanism for grabbing memory and never letting go.
->>
->>> It would help (a lot) if we could get more attention and buyin and
->>> fedback from the potential clients of this code.  rmk's feedback is
->>> valuable.  Have we heard from the linux-media people?  What other
->>> subsystems might use it?  ieee1394 perhaps?  Please help identify
->>> specific subsystems and I can perhaps help to wake people up.
->>
->> If this code had been present when I did the Cafe driver, I would have used
->> it.  I think it could be made useful to a number of low-end camera drivers
->> if the videobuf layer were made to talk to it in a way which Just Works.
->>
->> With a bit of tweaking, I think it could be made useful in other
->> situations: the viafb driver, for example, really needs an allocator for
->> framebuffer memory and it seems silly to create one from scratch.  Of
->> course, there might be other possible solutions, like adding a "zones"
->> concept to LMB^W memblock.
->>
->> The problem which is being addressed here is real.
->>
->> That said, the complexity of the solution still bugs me a bit, and the core
->> idea is still to take big chunks of memory out of service for specific
->> needs.  It would be far better if the VM could just provide big chunks on
->> demand.  Perhaps compaction and the pressures of making transparent huge
->> pages work will get us there, but I'm not sure we're there yet.
->>
->> jon
->
-> I agree. compaction and movable zone will be one of good solutions.
->
-> If some driver needs big contiguous chunk to work, it should make sure
-> to be allowable to have memory size for it before going. To make sure
-> it, we have to consider compaction of ZONE_MOVABLE zone. But one of
-> problems is anonymous page which can be has a role of pinned page in
-> non-swapsystem. Even most of embedded system has no swap.
-> But it's not hard to solve it.
->
-> We needs Mel's opinion, too.
+On Thursday 29 July 2010 18:06:36 Laurent Pinchart wrote:
 
-I elaborates my statement for preventing confusing due to using _pinned page_.
-I means that anon pages isn't not a fragment problem but space problem
-for the devices.
-It would be better to move the pages into !ZONE_MOVABLE zone.
+<snip>
 
->
-> --
-> Kind regards,
-> Minchan Kim
->
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index bd559b0..ac96847 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -23,8 +23,10 @@
+>  
+>  #include <linux/device.h>
+>  #include <linux/list.h>
+> +#include <linux/spinlock.h>
+>  
+>  #include <media/media-devnode.h>
+> +#include <media/media-entity.h>
+>  
+>  /* Each instance of a media device should create the media_device struct,
+>   * either stand-alone or embedded in a larger struct.
+> @@ -40,9 +42,23 @@ struct media_device {
+>  	 */
+>  	struct device *dev;
+>  	struct media_devnode devnode;
+> +
+> +	u32 entity_id;
+> +	struct list_head entities;
+> +
+> +	/* Protects the entities list */
+> +	spinlock_t lock;
+>  };
+>  
+>  int __must_check media_device_register(struct media_device *mdev);
+>  void media_device_unregister(struct media_device *mdev);
+>  
+> +int __must_check media_device_register_entity(struct media_device *mdev,
+> +					      struct media_entity *entity);
+> +void media_device_unregister_entity(struct media_entity *entity);
+> +
+> +/* Iterate over all entities. */
+> +#define media_device_for_each_entity(entity, mdev)			\
+> +	list_for_each_entry(entity, &(mdev)->entities, list)
+> +
+>  #endif
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> new file mode 100644
+> index 0000000..37a25bf
+> --- /dev/null
+> +++ b/include/media/media-entity.h
+> @@ -0,0 +1,85 @@
+> +#ifndef _MEDIA_ENTITY_H
+> +#define _MEDIA_ENTITY_H
+> +
+> +#include <linux/list.h>
+> +
+> +#define MEDIA_ENTITY_TYPE_NODE			(1 << 16)
 
+I agree with Sakari that '16' should be a define.
 
+> +#define MEDIA_ENTITY_TYPE_NODE_V4L		(MEDIA_ENTITY_TYPE_NODE + 1)
+> +#define MEDIA_ENTITY_TYPE_NODE_FB		(MEDIA_ENTITY_TYPE_NODE + 2)
+> +#define MEDIA_ENTITY_TYPE_NODE_ALSA		(MEDIA_ENTITY_TYPE_NODE + 3)
+> +#define MEDIA_ENTITY_TYPE_NODE_DVB		(MEDIA_ENTITY_TYPE_NODE + 4)
+> +
+> +#define MEDIA_ENTITY_TYPE_SUBDEV		(2 << 16)
+> +#define MEDIA_ENTITY_TYPE_SUBDEV_VID_DECODER	(MEDIA_ENTITY_TYPE_SUBDEV + 1)
+> +#define MEDIA_ENTITY_TYPE_SUBDEV_VID_ENCODER	(MEDIA_ENTITY_TYPE_SUBDEV + 2)
+> +#define MEDIA_ENTITY_TYPE_SUBDEV_MISC		(MEDIA_ENTITY_TYPE_SUBDEV + 3)
+> +
+> +#define MEDIA_LINK_FLAG_ACTIVE			(1 << 0)
+> +#define MEDIA_LINK_FLAG_IMMUTABLE		(1 << 1)
+> +
+> +#define MEDIA_PAD_FLAG_INPUT			(1 << 0)
+> +#define MEDIA_PAD_FLAG_OUTPUT			(1 << 1)
+> +
+> +struct media_link {
+> +	struct media_pad *source;	/* Source pad */
+> +	struct media_pad *sink;		/* Sink pad  */
+> +	struct media_link *other;	/* Link in the reverse direction */
+
+Why not rename 'other' to 'back' or 'backlink'? 'other' is not a good name IMHO.
+
+> +	unsigned long flags;		/* Link flags (MEDIA_LINK_FLAG_*) */
+> +};
+> +
+> +struct media_pad {
+> +	struct media_entity *entity;	/* Entity this pad belongs to */
+> +	u16 index;			/* Pad index in the entity pads array */
+> +	unsigned long flags;		/* Pad flags (MEDIA_PAD_FLAG_*) */
+> +};
+> +
+> +struct media_entity {
+> +	struct list_head list;
+> +	struct media_device *parent;	/* Media device this entity belongs to*/
+> +	u32 id;				/* Entity ID, unique in the parent media
+> +					 * device context */
+> +	const char *name;		/* Entity name */
+> +	u32 type;			/* Entity type (MEDIA_ENTITY_TYPE_*) */
+> +
+> +	u8 num_pads;			/* Number of input and output pads */
+> +	u8 num_links;			/* Number of existing links, both active
+> +					 * and inactive */
+> +	u8 num_backlinks;		/* Number of backlinks */
+> +	u8 max_links;			/* Maximum number of links */
+> +
+> +	struct media_pad *pads;		/* Pads array (num_pads elements) */
+> +	struct media_link *links;	/* Links array (max_links elements)*/
+> +
+> +	union {
+> +		/* Node specifications */
+> +		struct {
+> +			u32 major;
+> +			u32 minor;
+> +		} v4l;
+> +		struct {
+> +			u32 major;
+> +			u32 minor;
+> +		} fb;
+> +		int alsa;
+> +		int dvb;
+> +
+> +		/* Sub-device specifications */
+> +		/* Nothing needed yet */
+> +	};
+> +};
+> +
+> +#define MEDIA_ENTITY_TYPE_MASK		0xffff0000
+> +#define MEDIA_ENTITY_SUBTYPE_MASK	0x0000ffff
+> +
+> +#define media_entity_type(entity) \
+> +	((entity)->type & MEDIA_ENTITY_TYPE_MASK)
+> +#define media_entity_subtype(entity) \
+> +	((entity)->type & MEDIA_ENTITY_SUBTYPE_MASK)
+
+Make these inline functions to ensure correct typechecking.
+Since bit 31 of the entity ID is reserved for MEDIA_ENTITY_ID_FLAG_NEXT you
+probably should change the TYPE_MASK to 0x7fff0000. Actually, I would
+change the type mask to 0x00ff0000, that way all top 8 bits are available
+for the future.
+
+> +
+> +int media_entity_init(struct media_entity *entity, u8 num_pads,
+> +		struct media_pad *pads, u8 extra_links);
+> +void media_entity_cleanup(struct media_entity *entity);
+> +int media_entity_create_link(struct media_entity *source, u8 source_pad,
+> +		struct media_entity *sink, u8 sink_pad, u32 flags);
+> +
+> +#endif
+> 
+
+Regards,
+
+	Hans
 
 -- 
-Kind regards,
-Minchan Kim
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
