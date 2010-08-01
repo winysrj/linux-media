@@ -1,52 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27970 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751310Ab0HAUS0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Aug 2010 16:18:26 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o71KIQYh022900
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 1 Aug 2010 16:18:26 -0400
-Received: from pedra (vpn-10-244.rdu.redhat.com [10.11.10.244])
-	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o71KIMmb018029
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES128-SHA bits=128 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 1 Aug 2010 16:18:25 -0400
-Date: Sun, 1 Aug 2010 17:17:21 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/6] More patches for Remote Controllers
-Message-ID: <20100801171721.668d52db@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3863 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753865Ab0HAMAr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 08:00:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 2/2] v4l: Add a v4l2_subdev host private data field
+Date: Sun, 1 Aug 2010 14:00:34 +0200
+Cc: linux-media@vger.kernel.org
+References: <1280521495-19922-1-git-send-email-laurent.pinchart@ideasonboard.com> <1280521495-19922-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1280521495-19922-3-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Message-Id: <201008011400.34741.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series contain basically two groups of changes:
-	1) some fixes for dib0700 IR handling;
-	2) rewrite of siano IR implementation to use rc-core.
+On Friday 30 July 2010 22:24:55 Laurent Pinchart wrote:
+> The existing priv field stores subdev private data owned by the subdev
+> driver. Host (bridge) drivers might need to store per-subdev
+> host-specific data, such as a pointer to platform data.
+> 
+> Add a v4l2_subdev host_priv field to store host-specific data, and
+> rename the existing priv field to dev_priv.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Mauro Carvalho Chehab (6):
-  V4L/DVB: dib0700: properly implement IR change_protocol
-  V4L/DVB: dib0700: Fix RC protocol logic to properly handle NEC/NECx
-    and RC-5
-  V4L/DVB: smsusb: enable IR port for Hauppauge WinTV MiniStick
-  V4L/DVB: standardize names at rc-dib0700 tables
-  V4L/DVB: sms: properly initialize IR phys and IR name
-  V4L/DVB: sms: Convert IR support to use the Remote Controller core
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
- drivers/media/IR/ir-keytable.c              |    5 +-
- drivers/media/IR/keymaps/rc-dib0700-nec.c   |   12 +-
- drivers/media/IR/keymaps/rc-dib0700-rc5.c   |   12 +-
- drivers/media/dvb/dvb-usb/dib0700.h         |    1 +
- drivers/media/dvb/dvb-usb/dib0700_core.c    |  115 +++++++-----
- drivers/media/dvb/dvb-usb/dib0700_devices.c |  118 ++++++++++--
- drivers/media/dvb/dvb-usb/dvb-usb.h         |    2 +
- drivers/media/dvb/siano/sms-cards.c         |    2 +
- drivers/media/dvb/siano/sms-cards.h         |    2 +-
- drivers/media/dvb/siano/smsir.c             |  267 ++++-----------------------
- drivers/media/dvb/siano/smsir.h             |   63 ++-----
- drivers/media/dvb/siano/smsusb.c            |    3 +-
- 12 files changed, 244 insertions(+), 358 deletions(-)
+> ---
+>  Documentation/video4linux/v4l2-framework.txt |    5 +++++
+>  include/media/v4l2-subdev.h                  |   20 ++++++++++++++++----
+>  2 files changed, 21 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+> index e831aac..f5fdb39 100644
+> --- a/Documentation/video4linux/v4l2-framework.txt
+> +++ b/Documentation/video4linux/v4l2-framework.txt
+> @@ -192,6 +192,11 @@ You also need a way to go from the low-level struct to v4l2_subdev. For the
+>  common i2c_client struct the i2c_set_clientdata() call is used to store a
+>  v4l2_subdev pointer, for other busses you may have to use other methods.
+>  
+> +Bridges might also need to store per-subdev private data, such as a pointer to
+> +bridge-specific per-subdev private data. The v4l2_subdev structure provides
+> +host private data for that purpose that can be accessed with
+> +v4l2_get_subdev_hostdata() and v4l2_set_subdev_hostdata().
+> +
+>  From the bridge driver perspective you load the sub-device module and somehow
+>  obtain the v4l2_subdev pointer. For i2c devices this is easy: you call
+>  i2c_get_clientdata(). For other busses something similar needs to be done.
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 02c6f4d..fcdd247 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -420,17 +420,28 @@ struct v4l2_subdev {
+>  	/* can be used to group similar subdevs, value is driver-specific */
+>  	u32 grp_id;
+>  	/* pointer to private data */
+> -	void *priv;
+> +	void *dev_priv;
+> +	void *host_priv;
+>  };
+>  
+>  static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+>  {
+> -	sd->priv = p;
+> +	sd->dev_priv = p;
+>  }
+>  
+>  static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
+>  {
+> -	return sd->priv;
+> +	return sd->dev_priv;
+> +}
+> +
+> +static inline void v4l2_set_subdev_hostdata(struct v4l2_subdev *sd, void *p)
+> +{
+> +	sd->host_priv = p;
+> +}
+> +
+> +static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
+> +{
+> +	return sd->host_priv;
+>  }
+>  
+>  static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
+> @@ -444,7 +455,8 @@ static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
+>  	sd->flags = 0;
+>  	sd->name[0] = '\0';
+>  	sd->grp_id = 0;
+> -	sd->priv = NULL;
+> +	sd->dev_priv = NULL;
+> +	sd->host_priv = NULL;
+>  }
+>  
+>  /* Call an ops of a v4l2_subdev, doing the right checks against
+> 
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
