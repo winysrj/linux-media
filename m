@@ -1,63 +1,107 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:58205 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761746Ab0HMPrg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Aug 2010 11:47:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: Must omap34xxcam be a module?
-Date: Fri, 13 Aug 2010 17:47:30 +0200
-Cc: "sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org
-References: <4C655A01.7010807@matrix-vision.de>
-In-Reply-To: <4C655A01.7010807@matrix-vision.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.171]:55663 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756289Ab0HAPOZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 11:14:25 -0400
+Date: 01 Aug 2010 17:13:00 +0200
+From: lirc@bartelmus.de (Christoph Bartelmus)
+To: jonsmirl@gmail.com
+Cc: awalls@md.metrocast.net
+Cc: linux-input@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Cc: lirc-list@lists.sourceforge.net
+Cc: mchehab@redhat.com
+Message-ID: <BU0OmdJJjFB@christoph>
+References: <AANLkTi=c4pNtjPQ9OYL-uxXFFnPUJStUjU26TgpzpL+a@mail.gmail.com>
+Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable  it.
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008131747.31412.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Michael,
+Hi!
 
-On Friday 13 August 2010 16:43:13 Michael Jones wrote:
-> Hi Laurent & Sakari,
-> 
-> Regarding the omap3camera/devel branch:
-> 
-> In v4l2-common.c:v4l2_i2c_new_subdev_board(), request_module() is called to
-> ensure that the sensor driver is already registered before registering the
-> sensor device.  When I compile-in both my sensor driver and omap34xxcam
-> with the kernel, this call to request_module() fails, and indeed
-> omap34xxcam is initialized before my sensor driver, causing the
-> omap34xxcam device registration to fail.
->
-> When I leave omap34xxcam compiled-in and try to just let it load the sensor
-> module when needed on bootup, request_module() fails.  I haven't managed to
-> track down why that is.
+Jon Smirl "jonsmirl@gmail.com" wrote:
 
-That's because userspace isn't available yet when the omap34xxcam driver is 
-initialized, so there's no way to load a module at that time.
+> On Sun, Aug 1, 2010 at 5:50 AM, Christoph Bartelmus <lirc@bartelmus.de>
+> wrote:
+>> Hi Jon,
+>>
+>> on 31 Jul 10 at 14:14, Jon Smirl wrote:
+>>> On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de>
+>>> wrote:
+>>>> Hi Jon,
+>>>>
+>>>> on 31 Jul 10 at 12:25, Jon Smirl wrote:
+>>>>> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
+>>>>> wrote:
+>>>>>> I think you won't be able to fix the problem conclusively either way.
+>>>>>>  A lot of how the chip's clocks should be programmed depends on how the
+>>>>>> GPIOs are used and what crystal is used.
+>>>>>>
+>>>>>> I suspect many designers will use some reference design layout from
+>>>>>> ENE, but it won't be good in every case.  The wire-up of the ENE of
+>>>>>> various motherboards is likely something you'll have to live with as
+>>>>>> unknowns.
+>>>>>>
+>>>>>> This is a case where looser tolerances in the in kernel decoders could
+>>>>>> reduce this driver's complexity and/or get rid of arbitrary fudge
+>>>>>> factors in the driver.
+>>>>
+>>>>> The tolerances are as loose as they can be. The NEC protocol uses
+>>>>> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
+>>>>> (50% of 4%).  The crystals used in electronics are accurate to
+>>>>> 0.0001%+.
+>>>>
+>>>> But the standard IR receivers are far from being accurate enough to allow
+>>>> tolerance windows of only 2%.
+>>>> I'm surprised that this works for you. LIRC uses a standard tolerance of
+>>>> 30% / 100 us and even this is not enough sometimes.
+>>>>
+>>>> For the NEC protocol one signal consists of 22 individual pulses at
+>>>> 38kHz.. If the receiver just misses one pulse, you already have an error
+>>>> of 1/22
+>>>>> 4%.
+>>
+>>> There are different types of errors. The decoders can take large
+>>> variations in bit times. The problem is with cumulative errors. In
+>>> this case the error had accumulated up to 450us in the lead pulse.
+>>> That's just too big of an error and caused the JVC code to be
+>>> misclassified as NEC.
+>>>
+>>> I think he said lirc was misclassifying it too. So we both did the same
+>>> thing.
+>>
+>> No way. JVC is a 16 bit code. NEC uses 32 bits. How can you ever confuse
+>> JVC with NEC signals?
+>>
+>> LIRC will work if there is a 4% or 40% or 400% error. Because irrecord
+>> generates the config file using your receiver it will compensate for any
 
-> When I compile both omap34xxcam and my sensor driver as modules, and
-> load them after boot-up, registration succeeds.
-> 
-> Is it neccessary for omap34xxcam and its subdevices to be modules?  How are
-> you guys building these?
+> At the end of the process we can build a record and match raw mode if
+> we have to.
 
-At the moment it's indeed necessary. It's a V4L2 core issue, not specific to 
-omap34xxcam. I'm not aware of plans to fix this, but a proposal is welcome :-)
+I'm not talking about raw mode here. lircd will happily decode the signals  
+despite of any timing error as long it's consistent.
 
-> Full disclosure: my sensor is actually an SPI device, but the
-> v4l2_spi_new_subdev() function I'm actually using seems to be _very_
-> analogous to its I2C counterpart, so I'm assuming SPI is not responsible.
+I'm still interested how JVC can be confused with NEC codes.
 
-The same issue exists with I2C, SPI is not responsible.
+>> timing error. It will work with pulses cut down to 50 us like IrDA
+>> hardware does and it will work when half of the bits are swallowed like
+>> the IgorPlug USB receiver does.
 
--- 
-Regards,
+> The code for fixing IrDA and IgorPLug should live inside their low
+> level device drivers.  The characteristics of the errors produced by
+> this hardware are known so a fix can be written to compensate.
 
-Laurent Pinchart
+The function f(x) = 50 is not bijective. No way to compensate.
+
+Missing bits cannot be magically regenerated by the driver.
+
+> The
+> IgorPlug people might find it easier to fix their firmware.
+
+There is a firmware patch available? Do you have a pointer?
+
+Christoph
