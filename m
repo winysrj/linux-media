@@ -1,48 +1,123 @@
-Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:35564 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757423Ab0HKXLM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 19:11:12 -0400
-Subject: Re: [linux-dvb] Looking for an analogic TV tuner card
-From: Andy Walls <awalls@md.metrocast.net>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3052 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751018Ab0HATdS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 15:33:18 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o71JXGRG018667
+	for <linux-media@vger.kernel.org>; Sun, 1 Aug 2010 21:33:17 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 1 Aug 2010 21:33:16 +0200 (CEST)
+Message-Id: <201008011933.o71JXGRG018667@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <201008102103.39852.henry.nicolas@tourneur.be>
-References: <201008102103.39852.henry.nicolas@tourneur.be>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 11 Aug 2010 19:11:49 -0400
-Message-ID: <1281568309.2419.57.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Tue, 2010-08-10 at 21:03 +0200, Tourneur Henry-Nicolas wrote:
-> Hello everybody,
-> 
-> I'm looking for an analogic, PAL compatible, TV tuner card (PCI or PCI express) that should work out of the box
-> with Linux kernel (version doesn't matter if it's stable release).
-> 
-> A great plus would be a card with 2 tuners, more if it exists.
-> 
-> Could you please give me some feedback, informations ?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Given no other information: PVR-500
+Results of the daily build of v4l-dvb:
 
-The PVR-500 is PCI, has 2 analog tuners, two CX23416 MPEG encoding
-engines, and is well supported by the ivtv driver.  Finding new units
-with NTSC tuners will be hard, due to FCC rules in North America.  I do
-not know about the availability of new units with PAL tuners, but I
-suspect they may be easier to obtain.
+date:        Sun Aug  1 19:00:11 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-You did not specify the userspace application you use.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Regards,
-Andy
+Detailed results are available here:
 
-> Kind regards,
-> 
-> Henry-Nicolas
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
