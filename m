@@ -1,261 +1,133 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2928 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095Ab0H1J7O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Aug 2010 05:59:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: Re: [PATCH v8 4/5] V4L2: WL1273 FM Radio: Controls for the FM radio.
-Date: Sat, 28 Aug 2010 11:58:46 +0200
-Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com,
-	mchehab@redhat.com
-References: <1282813338-13882-1-git-send-email-matti.j.aaltonen@nokia.com> <1282813338-13882-4-git-send-email-matti.j.aaltonen@nokia.com> <1282813338-13882-5-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1282813338-13882-5-git-send-email-matti.j.aaltonen@nokia.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:56010 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754887Ab0HAOFb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 10:05:31 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008281158.46115.hverkuil@xs4all.nl>
+In-Reply-To: <AANLkTi=c4pNtjPQ9OYL-uxXFFnPUJStUjU26TgpzpL+a@mail.gmail.com>
+References: <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
+	<BU0Ob6WojFB@christoph>
+	<AANLkTi=c4pNtjPQ9OYL-uxXFFnPUJStUjU26TgpzpL+a@mail.gmail.com>
+Date: Sun, 1 Aug 2010 10:05:30 -0400
+Message-ID: <AANLkTi=7p1WaJYu5WM373XZQM-iQpoAsvYfiXJaw8A3N@mail.gmail.com>
+Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable
+	it.
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: awalls@md.metrocast.net, jarod@wilsonet.com,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, maximlevitsky@gmail.com,
+	mchehab@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thursday, August 26, 2010 11:02:17 Matti J. Aaltonen wrote:
-> This driver implements V4L2 controls for the Texas Instruments
-> WL1273 FM Radio.
-> 
-> Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
-> ---
->  drivers/media/radio/Kconfig        |   15 +
->  drivers/media/radio/Makefile       |    1 +
->  drivers/media/radio/radio-wl1273.c | 1947 ++++++++++++++++++++++++++++++++++++
->  drivers/mfd/Kconfig                |    5 +
->  drivers/mfd/Makefile               |    2 +
->  5 files changed, 1970 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/radio/radio-wl1273.c
+On Sun, Aug 1, 2010 at 10:00 AM, Jon Smirl <jonsmirl@gmail.com> wrote:
+> On Sun, Aug 1, 2010 at 5:50 AM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
+>> Hi Jon,
+>>
+>> on 31 Jul 10 at 14:14, Jon Smirl wrote:
+>>> On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de>
+>>> wrote:
+>>>> Hi Jon,
+>>>>
+>>>> on 31 Jul 10 at 12:25, Jon Smirl wrote:
+>>>>> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
+>>>>> wrote:
+>>>>>> I think you won't be able to fix the problem conclusively either way.  A
+>>>>>> lot of how the chip's clocks should be programmed depends on how the
+>>>>>> GPIOs are used and what crystal is used.
+>>>>>>
+>>>>>> I suspect many designers will use some reference design layout from ENE,
+>>>>>> but it won't be good in every case.  The wire-up of the ENE of various
+>>>>>> motherboards is likely something you'll have to live with as unknowns.
+>>>>>>
+>>>>>> This is a case where looser tolerances in the in kernel decoders could
+>>>>>> reduce this driver's complexity and/or get rid of arbitrary fudge
+>>>>>> factors in the driver.
+>>>>
+>>>>> The tolerances are as loose as they can be. The NEC protocol uses
+>>>>> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
+>>>>> (50% of 4%).  The crystals used in electronics are accurate to
+>>>>> 0.0001%+.
+>>>>
+>>>> But the standard IR receivers are far from being accurate enough to allow
+>>>> tolerance windows of only 2%.
+>>>> I'm surprised that this works for you. LIRC uses a standard tolerance of
+>>>> 30% / 100 us and even this is not enough sometimes.
+>>>>
+>>>> For the NEC protocol one signal consists of 22 individual pulses at 38kHz..
+>>>> If the receiver just misses one pulse, you already have an error of 1/22
+>>>>> 4%.
+>>
+>>> There are different types of errors. The decoders can take large
+>>> variations in bit times. The problem is with cumulative errors. In
+>>> this case the error had accumulated up to 450us in the lead pulse.
+>>> That's just too big of an error and caused the JVC code to be
+>>> misclassified as NEC.
+>>>
+>>> I think he said lirc was misclassifying it too. So we both did the same
+>>> thing.
+>>
+>> No way. JVC is a 16 bit code. NEC uses 32 bits. How can you ever confuse
+>> JVC with NEC signals?
+>>
+>> LIRC will work if there is a 4% or 40% or 400% error. Because irrecord
+>> generates the config file using your receiver it will compensate for any
+>
+> At the end of the process we can build a record and match raw mode if
+> we have to.
+>
+>> timing error. It will work with pulses cut down to 50 us like IrDA
+>> hardware does and it will work when half of the bits are swallowed like
+>> the IgorPlug USB receiver does.
+>
+> The code for fixing IrDA and IgorPLug should live inside their low
+> level device drivers.  The characteristics of the errors produced by
+> this hardware are known so a fix can be written to compensate.  The
+> IgorPlug people might find it easier to fix their firmware. You don't
+> have to get the timing exactly right for the protocol engines to work,
+> you just need to get the big systematic errors out.
 
-<skip>
+There is a real benefit to strict protocol engines. If the IgorPlus
+people had strict protocol engines to test against they would have
+discovered their firmware bugs during the initial development process.
 
-> +static int wl1273_fm_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct wl1273_device *radio = ctrl->priv;
-> +	struct wl1273_core *core = radio->core;
-> +
-> +	dev_dbg(radio->dev, "%s\n", __func__);
-> +
-> +	if (mutex_lock_interruptible(&core->lock))
-> +		return -EINTR;
-> +
-> +	switch (ctrl->id) {
-> +	case  V4L2_CID_TUNE_ANTENNA_CAPACITOR:
-> +		ctrl->val = wl1273_fm_get_tx_ctune(core);
-> +		break;
-> +
-> +	default:
-> +		dev_warn(radio->dev, "%s: Unknown IOCTL: %d\n",
-> +			 __func__, ctrl->id);
-> +		break;
-> +	}
-> +
-> +	mutex_unlock(&core->lock);
-> +
-> +	return 0;
-> +}
-> +
-> +#define WL1273_MUTE_SOFT_ENABLE    (1 << 0)
-> +#define WL1273_MUTE_AC             (1 << 1)
-> +#define WL1273_MUTE_HARD_LEFT      (1 << 2)
-> +#define WL1273_MUTE_HARD_RIGHT     (1 << 3)
-> +#define WL1273_MUTE_SOFT_FORCE     (1 << 4)
-> +
-> +static int wl1273_fm_vidioc_s_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct wl1273_device *radio = ctrl->priv;
+>
+> Before doing raw the low level IR drivers should be fixed to provide
+> the most accurate data possible. I don't think it is good design for a
+> low level driver to be injecting systematic errors and then have the
+> next layer of code remove them.  The source of the systematic errors
+> should be characterized and fixed in the low level driver. That also
+> allows the fixed to be constrained to fixing data from only a single
+> receiver type.
+>
+> I have been burnt twice in the past from fixing errors in a low level
+> driver higher in the stack. I have learned the hard way that it is a
+> bad thing to do. As the fixes accumulate in the higher layers you will
+> reach a point where they conflict and no solution is possible. Bugs in
+> the low level drivers need to be fixed in that driver.
+>
+> Show me a case that can't be fixed in the low level driver and we can
+> explore the options.
+>
+>>
+>> But of course the driver should try to generate timings as accurate as
+>> possible.
+>>
+>> Christoph
+>>
+>
+>
+>
+> --
+> Jon Smirl
+> jonsmirl@gmail.com
+>
 
-No need to use priv for this. You can use this instead:
 
-static inline struct wl1273_device *to_radio(struct v4l2_ctrl *ctrl)
-{
-        return container_of(ctrl->handler, struct wl1273_device, ctrl_handler);
-}
-
-struct wl1273_device *radio = to_radio(ctrl);
-
-> +	struct wl1273_core *core = radio->core;
-> +	int r = 0;
-> +
-> +	dev_dbg(radio->dev, "%s\n", __func__);
-> +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_AUDIO_MUTE:
-> +		if (mutex_lock_interruptible(&core->lock))
-> +			return -EINTR;
-> +
-> +		if (core->mode == WL1273_MODE_RX && ctrl->val)
-> +			r = wl1273_fm_write_cmd(core,
-> +						WL1273_MUTE_STATUS_SET,
-> +						WL1273_MUTE_HARD_LEFT |
-> +						WL1273_MUTE_HARD_RIGHT);
-> +		else if (core->mode == WL1273_MODE_RX)
-> +			r = wl1273_fm_write_cmd(core,
-> +						WL1273_MUTE_STATUS_SET, 0x0);
-> +		else if (core->mode == WL1273_MODE_TX && ctrl->val)
-> +			r = wl1273_fm_write_cmd(core, WL1273_MUTE, 1);
-> +		else if (core->mode == WL1273_MODE_TX)
-> +			r = wl1273_fm_write_cmd(core, WL1273_MUTE, 0);
-> +
-> +		mutex_unlock(&core->lock);
-> +		break;
-> +
-> +	case V4L2_CID_AUDIO_VOLUME:
-> +		if (ctrl->val == 0)
-> +			r = wl1273_fm_set_mode(core, WL1273_MODE_OFF);
-> +		else
-> +			r =  wl1273_fm_set_volume(core, core->volume);
-> +		break;
-> +
-> +	case V4L2_CID_TUNE_PREEMPHASIS:
-> +		r = wl1273_fm_set_preemphasis(core, ctrl->val);
-> +		break;
-> +
-> +	case V4L2_CID_TUNE_POWER_LEVEL:
-> +		r = wl1273_fm_set_tx_power(core, ctrl->val);
-> +		break;
-> +
-> +	case V4L2_CID_FM_BAND:
-> +		r = wl1273_fm_set_band(core, ctrl->val);
-> +		break;
-> +
-> +	default:
-> +		dev_warn(radio->dev, "%s: Unknown IOCTL: %d\n",
-> +			 __func__, ctrl->id);
-> +		break;
-> +	}
-> +
-> +	dev_dbg(radio->dev, "%s\n", __func__);
-> +	return r;
-> +}
-
-Was the documentation on the control handler understandable enough? Any
-comments on how to improve the API or documentation? It's very new, so
-I'm interested in hearing about your experiences implementing this API.
-
-<skip>
-
-> +static int __devinit wl1273_fm_radio_probe(struct platform_device *pdev)
-> +{
-> +	struct wl1273_core **pdata = pdev->dev.platform_data;
-> +	struct wl1273_device *radio;
-> +	struct v4l2_ctrl *ctrl;
-> +	int r = 0;
-> +
-> +	dev_dbg(&pdev->dev, "%s\n", __func__);
-> +
-> +	if (!pdata) {
-> +		dev_err(&pdev->dev, "No platform data.\n");
-> +		r = -EINVAL;
-> +		goto pdata_err;
-> +	}
-> +
-> +	radio = kzalloc(sizeof(*radio), GFP_KERNEL);
-> +	if (!radio) {
-> +		r = -ENOMEM;
-> +		goto pdata_err;
-> +	}
-> +
-> +	radio->write_buf = kmalloc(256, GFP_KERNEL);
-> +	if (!radio->write_buf) {
-> +		r = -ENOMEM;
-> +		goto write_buf_err;
-> +	}
-> +
-> +	radio->core = *pdata;
-> +	radio->dev = &pdev->dev;
-> +	radio->v4l2dev.ctrl_handler = &radio->ctrl_handler;
-> +	radio->rds_users = 0;
-> +
-> +	r = v4l2_device_register(&pdev->dev, &radio->v4l2dev);
-> +	if (r) {
-> +		dev_err(&pdev->dev, "Cannot register v4l2_device.\n");
-> +		goto device_register_err;
-> +	}
-> +
-> +	/* V4L2 configuration */
-> +	memcpy(&radio->videodev, &wl1273_viddev_template,
-> +	       sizeof(wl1273_viddev_template));
-> +
-> +	radio->videodev.v4l2_dev = &radio->v4l2dev;
-> +
-> +	/* register video device */
-> +	r = video_register_device(&radio->videodev, VFL_TYPE_RADIO, radio_nr);
-> +	if (r) {
-> +		dev_err(&pdev->dev, WL1273_FM_DRIVER_NAME
-> +			": Could not register video device\n");
-> +		goto video_register_err;
-> +	}
-> +
-> +	v4l2_ctrl_handler_init(&radio->ctrl_handler, 7);
-> +	/* add in ascending ID order */
-> +	ctrl = v4l2_ctrl_new_std(&radio->ctrl_handler, &wl1273_ctrl_ops,
-> +				 V4L2_CID_AUDIO_VOLUME, 0, WL1273_MAX_VOLUME, 1,
-> +				 WL1273_DEFAULT_VOLUME);
-> +	if (ctrl)
-> +		ctrl->priv = radio;
-
-No need to use priv.
-
-> +
-> +	ctrl = v4l2_ctrl_new_std(&radio->ctrl_handler, &wl1273_ctrl_ops,
-> +				 V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-> +	if (ctrl)
-> +		ctrl->priv = radio;
-> +
-> +	v4l2_ctrl_new_std(&radio->ctrl_handler, &wl1273_ctrl_ops,
-> +			  V4L2_CID_TUNE_PREEMPHASIS, V4L2_PREEMPHASIS_DISABLED,
-> +			  V4L2_PREEMPHASIS_75_uS, 1, V4L2_PREEMPHASIS_50_uS);
-> +	if (ctrl)
-> +		ctrl->priv = radio;
-> +
-> +	ctrl = v4l2_ctrl_new_std(&radio->ctrl_handler, &wl1273_ctrl_ops,
-> +				 V4L2_CID_TUNE_POWER_LEVEL, 91, 122, 1, 118);
-> +	if (ctrl)
-> +		ctrl->priv = radio;
-> +
-> +	ctrl = v4l2_ctrl_new_std(&radio->ctrl_handler, &wl1273_ctrl_ops,
-> +				 V4L2_CID_FM_BAND, V4L2_FM_BAND_OTHER,
-
-First V4L2_CID_FM_BAND using new_std instead of new_std_menu (which it should
-be).
-
-> +				 V4L2_FM_BAND_JAPAN, 1, V4L2_FM_BAND_OTHER);
-> +	if (ctrl)
-> +		ctrl->priv = radio;
-> +
-> +	ctrl = v4l2_ctrl_new_std(&radio->ctrl_handler, &wl1273_ctrl_ops,
-> +				 V4L2_CID_TUNE_ANTENNA_CAPACITOR,
-> +				 0, 255, 1, 255);
-> +	if (ctrl)
-> +		ctrl->priv = radio;
-> +
-> +	ctrl = v4l2_ctrl_new_std_menu(&radio->ctrl_handler, &wl1273_ctrl_ops,
-> +				      V4L2_CID_FM_BAND, V4L2_FM_BAND_JAPAN, 0,
-> +				      V4L2_FM_BAND_OTHER);
-
-And a second?!
-
-> +	if (ctrl) {
-> +		ctrl->is_volatile = 1;
-> +		ctrl->priv = radio;
-> +	}
-
-And it is volatile? I thought that the ANTENNA_CAPACITOR was volatile.
-Something is messed up here.
-
-See also my other email on writing raw RDS data.
-
-Regards,
-
-	Hans
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Jon Smirl
+jonsmirl@gmail.com
