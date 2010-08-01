@@ -1,55 +1,34 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:35117 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752758Ab0H0Txd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 15:53:33 -0400
-From: Toralf =?iso-8859-15?q?F=F6rster?= <toralf.foerster@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: new kmemleak in kernel 2.6.35.4
-Date: Fri, 27 Aug 2010 21:53:30 +0200
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from auth-1.ukservers.net ([217.10.138.154]:37058 "EHLO
+	auth-1.ukservers.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751417Ab0HAWHM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 18:07:12 -0400
+Message-ID: <6C14F26AEE154C61B43A699ABC57CE67@telstraclear.tclad>
+From: "Simon Baxter" <linuxtv@nzbaxters.com>
+To: <linux-media@vger.kernel.org>, <linux-dvb@linuxtv.org>
+References: <B17A774B76B64B25A20875E6A0F875A0@telstraclear.tclad>
+Subject: Re: [linux-dvb] dvb-apps testing conditional interface
+Date: Mon, 2 Aug 2010 10:00:24 +1200
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201008272153.30664.toralf.foerster@gmx.de>
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=response
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello,
-
-compared to  2.6.34.x this kmemleak seems to be new at my ThinkPad T400 under 
-an almost stable Gentoo Linux w/ a 'Terratec Cinergy T USB XXS (HD)/ T3' :
-
-tfoerste@n22 ~ $ cat /sys/kernel/debug/kmemleak
-unreferenced object 0xcabeb320 (size 32):
-  comm "modprobe", pid 9285, jiffies 16386098 (age 7416.020s)
-  hex dump (first 32 bytes):
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-    00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00  ................
-  backtrace:
-    [<c122f8d7>] kmemleak_alloc+0x27/0x50
-    [<c109c34f>] kmem_cache_alloc+0x9f/0xe0
-    [<fcb8d91d>] dib0700_rc_setup+0x7d/0x120 [dvb_usb_dib0700]
-    [<fcb8da54>] dib0700_probe+0x94/0xb0 [dvb_usb_dib0700]
-    [<f86385b4>] usb_probe_interface+0xf4/0x1c0 [usbcore]
-    [<c11892cb>] driver_probe_device+0x7b/0x190
-    [<c1189471>] __driver_attach+0x91/0xa0
-    [<c1188b88>] bus_for_each_dev+0x48/0x70
-    [<c1189159>] driver_attach+0x19/0x20
-    [<c1188567>] bus_add_driver+0x187/0x250
-    [<c1189705>] driver_register+0x65/0x120
-    [<f863829c>] usb_register_driver+0x7c/0x140 [usbcore]
-    [<fcb9c030>] 0xfcb9c030
-    [<c100112d>] do_one_initcall+0x2d/0x180
-    [<c105ecf9>] sys_init_module+0x99/0x1e0
-    [<c1002d97>] sysenter_do_call+0x12/0x26
+> I'm having a problem with the s2-liplianin drivers (and vdr-1.7.15) and my 
+> TT-1500/TT-2300 cards.   I've also tried the bundled dvb drivers in Fedora 
+> 13 2.6.32 kernel with the same results.
 
 
+> Can someone please tell me how to test this outside of VDR?  How do I zap 
+> and receive a channel, which has to go through the CAM?
 
--- 
-MfG/Kind regards
-Toralf Förster
+Thought it might be an option, but I can't get Kaffeine to work with my 
+CI/CAM.
 
-pgp finger print: 7B1A 07F4 EC82 0F90 D4C2 8936 872A E508 7DB6 9DA3
+It scans all the channels but won't give a liveTV picture.  All channels are 
+scrambled - I thought this worked in Kaffeine now? 
 
