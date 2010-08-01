@@ -1,84 +1,74 @@
-Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.105.134]:22577 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751633Ab0HJKTE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Aug 2010 06:19:04 -0400
-Subject: Re: [PATCH v7 1/5] V4L2: Add seek spacing and FM RX class.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-In-Reply-To: <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
-	 <201008091838.13247.hverkuil@xs4all.nl>
-	 <1281425501.14489.7.camel@masi.mnp.nokia.com>
-	 <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 10 Aug 2010 13:18:29 +0300
-Message-ID: <1281435509.14489.11.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.22]:53647 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1750905Ab0HATia (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Aug 2010 15:38:30 -0400
+Date: Sun, 1 Aug 2010 21:38:25 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <m.grzeschik@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>, p.wiesner@phytec.de
+Subject: Re: [PATCH 12/20] mt9m111: s_crop add calculation of output size
+In-Reply-To: <1280501618-23634-13-git-send-email-m.grzeschik@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1008012132290.2643@axis700.grange>
+References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
+ <1280501618-23634-13-git-send-email-m.grzeschik@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Tue, 2010-08-10 at 10:04 +0200, ext Hans Verkuil wrote:
-> > On Mon, 2010-08-09 at 18:38 +0200, ext Hans Verkuil wrote:
-> >> On Monday 02 August 2010 16:06:39 Matti J. Aaltonen wrote:
-> >> > Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
-> >> > control classes.
-> >>
-> >> This will no longer apply now that the control framework has been
-> >> merged.
-> >>
-> >> I strongly recommend converting the driver to use that framework. If
-> >> nothing else, you get support for the g/s/try_ext_ctrls ioctls for free.
-> >>
-> >> See the file Documentation/video4linux/v4l2-controls.txt.
-> >
-> > I can't find that file.  Should it be in some branch of the development
-> > tree?
-> 
-> It's in the new development tree, branch staging/v2.6.36:
-> 
-> http://git.linuxtv.org/media_tree.git
+On Fri, 30 Jul 2010, Michael Grzeschik wrote:
 
-The tree address is actually:
+> Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> ---
+>  drivers/media/video/mt9m111.c |    8 ++++++++
+>  1 files changed, 8 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> index cc0f996..2758a97 100644
+> --- a/drivers/media/video/mt9m111.c
+> +++ b/drivers/media/video/mt9m111.c
+> @@ -472,11 +472,19 @@ static int mt9m111_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
+>  	struct mt9m111 *mt9m111 = to_mt9m111(client);
+>  	struct mt9m111_format format;
+>  	struct v4l2_mbus_framefmt *mf = &format.mf;
+> +	s32 rectwidth	= mt9m111->format.rect.width;
+> +	s32 rectheight	= mt9m111->format.rect.height;
+> +	u32 pixwidth	= mt9m111->format.mf.width;
+> +	u32 pixheight	= mt9m111->format.mf.height;
+>  	int ret;
+>  
+>  	format.rect	= a->c;
+>  	format.mf	= mt9m111->format.mf;
+>  
+> +	/* calculate output size, maintain current scaling factors */
+> +	format.mf.width = pixwidth / rectwidth * format.mf.width;
+> +	format.mf.height = pixheight / rectheight * format.mf.height;
 
-http://linuxtv.org/git/media_tree.git
+Again - don't understand:
 
-B.R.
-Matti.
+	u32 pixwidth    = mt9m111->format.mf.width;
+	format.mf       = mt9m111->format.mf;
+	format.mf.width = pixwidth / rectwidth * format.mf.width;
 
-> 
-> This replaced the v4l-dvb.git tree.
-> 
-> Regards,
-> 
->          Hans
-> 
-> >
-> > I've updated my tree....:
-> >
-> > [remote "origin"]
-> >         url =
-> > http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> >         fetch = +refs/heads/*:refs/remotes/origin/*
-> > [remote "linuxtv"]
-> >         url = http://linuxtv.org/git/v4l-dvb.git
-> >         fetch = +refs/heads/*:refs/remotes/linuxtv/*
-> >
-> > The closest file I have name-wise is
-> > Documentation/video4linux/v4l2-framework.txt
-> >
-> > Thanks,
-> > Matti A.
-> >
-> >
-> 
-> 
+this means
 
+	format.mf.width = mt9m111->format.mf.width / rectwidth * mt9m111->format.mf.width;
 
+which makes no sense to me. Can you explain?
+
+> +
+>  	dev_dbg(&client->dev, "%s: rect: left=%d top=%d width=%d height=%d\n",
+>  		__func__, a->c.left, a->c.top, a->c.width, a->c.height);
+>  	dev_dbg(&client->dev, "%s: mf: width=%d height=%d pixelcode=%d "
+> -- 
+> 1.7.1
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
