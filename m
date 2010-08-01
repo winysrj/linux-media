@@ -1,57 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:33178 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757715Ab0GGWTZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Jul 2010 18:19:25 -0400
-Received: by fxm14 with SMTP id 14so67075fxm.19
-        for <linux-media@vger.kernel.org>; Wed, 07 Jul 2010 15:19:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1274978356-25836-1-git-send-email-david@identd.dyndns.org>
-References: <1274978356-25836-1-git-send-email-david@identd.dyndns.org>
-Date: Wed, 7 Jul 2010 18:19:21 -0400
-Message-ID: <AANLkTilEe37y6jG5cO7XGdcQMcbLxcojMQbk2Ld5Cwrw@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2 0/8] dsbr100: driver cleanup and fixes
-From: David Ellingsworth <david@identd.dyndns.org>
-To: linux-media@vger.kernel.org
-Cc: Markus Demleitner <msdemlei@tucana.harvard.edu>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:13626 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754720Ab0HACzI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Jul 2010 22:55:08 -0400
+Date: Sat, 31 Jul 2010 23:54:09 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Patrick Boettcher <patrick.boettcher@desy.de>,
+	Luca Olivetti <luca@ventoso.org>,
+	Antti Palosaari <crope@iki.fi>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	"Igor M. Liplianin" <liplianin@me.by>,
+	Aapo Tahkola <aet@rasterburn.org>,
+	Chris Pascoe <c.pascoe@itee.uq.edu.au>
+Subject: [PATCH 0/7] Port dvb-usb to ir-core
+Message-ID: <20100731235409.7ce7b9df@pedra>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 27, 2010 at 12:39 PM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> This patch series addresses several issues in the dsbr100 driver.
-> This series is based on the v4l-dvb master git branch and has been
-> compile tested only. It should be tested before applying.
->
-> This is the second version of this series. An additional patch has
-> been added to cleanup/clarify the return values from dsbr100_start
-> and dsbr100_stop.
->
-> The following patches are included in this series:
->   [PATCH/RFC v2 1/8] dsbr100: implement proper locking
->   [PATCH/RFC v2 2/8] dsbr100: fix potential use after free
->   [PATCH/RFC v2 3/8] dsbr100: only change frequency upon success
->   [PATCH/RFC v2 4/8] dsbr100: remove disconnected indicator
->   [PATCH/RFC v2 5/8] dsbr100: cleanup return value of start/stop handlers
->   [PATCH/RFC v2 6/8] dsbr100: properly initialize the radio
->   [PATCH/RFC v2 7/8] dsbr100: cleanup usb probe routine
->   [PATCH/RFC v2 8/8] dsbr100: simplify access to radio device
->
+This patch series starts the proccess of moving dvb-usb drivers to use
+the new Remote Controller core. It adds support for rc-core at dvb-usb
+core, while keeping support for the legacy mode.
 
-Mauro,
+One driver (dib0700) were ported to the new rc-core mode, as an example
+for the low-level driver maintainers to port their drivers.
 
-This series has not received any comments and the original author
-seems to have abandoned this driver. Please review these patches for
-approval. All changes are relatively straight forward. The second
-patch in this series is a bug fix for the normal case where the device
-is unplugged while closed. The current implementation will cause a
-NULL pointer dereference. The fact that no one has reported this bug
-is probably due to the lack of people using this driver. The rest of
-the changes mainly provide general cleanups and reduced overhead.
+There are still some space for improvements on this port, like breaking
+the dib0700 table into smaller ones, implementing protocol switch via
+rc-core API, etc.
 
-Regards,
+Ah, the first patch on this series fixes a problem caused on a
+previous commit.
 
-David Ellingsworth
+Mauro Carvalho Chehab (7):
+  V4L/DVB: Partially revert commit da7251dd0bca6c17571be2bd4434b9779dea72d8
+  V4L/DVB: dvb-usb: get rid of struct dvb_usb_rc_key
+  V4L/DVB: dvb-usb: prepare drivers for using rc-core
+  V4L/DVB: dvb-usb: add support for rc-core mode
+  V4L/DVB: Add a keymap file with dib0700 table
+  V4L/DVB: Port dib0700 to rc-core
+  V4L/DVB: dib0700: avoid bad repeat
+
+ drivers/media/IR/ir-sysfs.c                 |  155 ++++-----
+ drivers/media/IR/keymaps/Makefile           |    1 +
+ drivers/media/IR/keymaps/rc-dib0700-big.c   |  314 +++++++++++++++++
+ drivers/media/dvb/dvb-usb/a800.c            |   12 +-
+ drivers/media/dvb/dvb-usb/af9005-remote.c   |    4 +-
+ drivers/media/dvb/dvb-usb/af9005.c          |   16 +-
+ drivers/media/dvb/dvb-usb/af9005.h          |    2 +-
+ drivers/media/dvb/dvb-usb/af9015.c          |   34 ++-
+ drivers/media/dvb/dvb-usb/af9015.h          |   18 +-
+ drivers/media/dvb/dvb-usb/anysee.c          |   18 +-
+ drivers/media/dvb/dvb-usb/az6027.c          |   13 +-
+ drivers/media/dvb/dvb-usb/cinergyT2-core.c  |   12 +-
+ drivers/media/dvb/dvb-usb/cxusb.c           |  128 ++++---
+ drivers/media/dvb/dvb-usb/dib0700_core.c    |   87 +----
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |  485 ++++++---------------------
+ drivers/media/dvb/dvb-usb/dibusb-common.c   |    2 +-
+ drivers/media/dvb/dvb-usb/dibusb-mb.c       |   40 ++-
+ drivers/media/dvb/dvb-usb/dibusb-mc.c       |   10 +-
+ drivers/media/dvb/dvb-usb/dibusb.h          |    2 +-
+ drivers/media/dvb/dvb-usb/digitv.c          |   20 +-
+ drivers/media/dvb/dvb-usb/dtt200u.c         |   42 ++-
+ drivers/media/dvb/dvb-usb/dvb-usb-remote.c  |  198 ++++++++----
+ drivers/media/dvb/dvb-usb/dvb-usb.h         |   90 ++++--
+ drivers/media/dvb/dvb-usb/dw2102.c          |   67 ++--
+ drivers/media/dvb/dvb-usb/m920x.c           |   44 ++-
+ drivers/media/dvb/dvb-usb/nova-t-usb2.c     |   14 +-
+ drivers/media/dvb/dvb-usb/opera1.c          |   16 +-
+ drivers/media/dvb/dvb-usb/vp702x.c          |   14 +-
+ drivers/media/dvb/dvb-usb/vp7045.c          |   14 +-
+ include/media/rc-map.h                      |    4 +
+ 30 files changed, 1026 insertions(+), 850 deletions(-)
+ create mode 100644 drivers/media/IR/keymaps/rc-dib0700-big.c
+
