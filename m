@@ -1,50 +1,75 @@
-Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:48669 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753234Ab0HZBWD convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 21:22:03 -0400
-Date: Thu, 26 Aug 2010 03:20:57 +0200
-From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
-Subject: Re: [PATCH/RFCv4 3/6] mm: cma: Added SysFS support
-In-reply-to: <20100825203707.GB5318@phenom.dumpdata.com>
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	linux-kernel@vger.kernel.org,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <op.vh0t07om7p4s8u@localhost>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-transfer-encoding: 8BIT
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
- <0b02e05fc21e70a3af39e65e628d117cd89d70a1.1282286941.git.m.nazarewicz@samsung.com>
- <343f4b0edf9b5eef598831700cb459cd428d3f2e.1282286941.git.m.nazarewicz@samsung.com>
- <9883433f103cc84e55db150806d2270200c74c6b.1282286941.git.m.nazarewicz@samsung.com>
- <20100825203707.GB5318@phenom.dumpdata.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:42017 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753137Ab0HBRNY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 13:13:24 -0400
+MIME-Version: 1.0
+In-Reply-To: <BU4OxfMZjFB@christoph>
+References: <AANLkTi=F4CQ2_pCDno1SNGS6w=7wERk1FwjezkwC=nS5@mail.gmail.com>
+	<BU4OxfMZjFB@christoph>
+Date: Mon, 2 Aug 2010 13:13:22 -0400
+Message-ID: <AANLkTimXULCDLw6=kcFC2Kddbm4kuO4nqtXL6ozftMQj@mail.gmail.com>
+Subject: Re: Remote that breaks current system
+From: Jon Smirl <jonsmirl@gmail.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>,
+	Jarod Wilson <jarod@wilsonet.com>
+Cc: awalls@md.metrocast.net, jarod@redhat.com,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, mchehab@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wed, 25 Aug 2010 22:37:08 +0200, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
-> Whats the rationale for having those #ifdef CONFIG_CMA_SYSFS sprinkled
-> in the C code? Is SysFS not used on StrongARM? Why not implicitly include
-> the SysFS support?
+On Mon, Aug 2, 2010 at 12:42 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
+> Hi!
+>
+> Jon Smirl "jonsmirl@gmail.com" wrote:
+> [...]
+>>> Got one. The Streamzap PC Remote. Its 14-bit RC5. Can't get it to properly
+>>> decode in-kernel for the life of me. I got lirc_streamzap 99% of the way
+>>> ported over the weekend, but this remote just won't decode correctly w/the
+>>> in-kernel RC5 decoder.
+>
+>> Manchester encoding may need a decoder that waits to get 2-3 edge
+>> changes before deciding what the first bit. As you decode the output
+>> is always a couple bits behind the current input data.
+>>
+>> You can build of a table of states
+>> L0 S1 S0 L1 †- emit a 1, move forward an edge
+>> S0 S1 L0 L1 - emit a 0, move forward an edge
+>>
+>> By doing it that way you don't have to initially figure out the bit clock.
+>>
+>> The current decoder code may not be properly tracking the leading
+>> zero. In Manchester encoding it is illegal for a bit to be 11 or 00.
+>> They have to be 01 or 10. If you get a 11 or 00 bit, your decoding is
+>> off by 1/2 a bit cycle.
+>>
+>> Did you note the comment that Extended RC-5 has only a single start
+>> bit instead of two?
+>
+> It has nothing to do with start bits.
+> The Streamzap remote just sends 14 (sic!) bits instead of 13.
+> The decoder expects 13 bits.
+> Yes, the Streamzap remote does _not_ use standard RC-5.
+> Did I mention this already? Yes. ;-)
 
-The SysFS CMA interface is meant for development only and because of that
-I decided to separate it form the core in a separate patch and enable it
-only when explicitly requested.
+If the remote is sending a weird protocol then there are several choices:
+  1) implement raw mode
+  2) make a Stream-Zap protocol engine (it would be a 14b version of
+RC-5). Standard RC5 engine will still reject the messages.
+  3) throw away your Stream-Zap remotes
+
+I'd vote for #3, but #2 will probably make people happier.
+
+
+>
+> Christoph
+>
+
+
 
 -- 
-Best regards,                                        _     _
-| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
-| Computer Science,  Micha≈Ç "mina86" Nazarewicz       (o o)
-+----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
-
+Jon Smirl
+jonsmirl@gmail.com
