@@ -1,100 +1,355 @@
-Return-path: <mchehab@pedra>
-Received: from gateway16.websitewelcome.com ([69.56.180.14]:58578 "HELO
-	gateway16.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754350Ab0HKQFY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 12:05:24 -0400
-Subject: Re: [2.6.35] usb 2.0 em28xx kernel panic general protection fault:
- 0000 [#1] SMP RIP: 0010:[<ffffffffa004fbc5>] [<ffffffffa004fbc5>]
- em28xx_isoc_copy_vbi+0x62e/0x812 [em28xx]
-From: Pete Eberlein <pete@sensoray.com>
-To: Sander Eikelenboom <linux@eikelenboom.it>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	mchehab@infradead.org, mrechberger@gmail.com, gregkh@suse.de,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
-In-Reply-To: <1843123111.20100811092547@eikelenboom.it>
-References: <61936849.20100811001257@eikelenboom.it>
-	 <AANLkTinVNms-vdfG-VZzkOadogaCRV+HyDAY5yhYOJSK@mail.gmail.com>
-	 <1117369508.20100811005719@eikelenboom.it>
-	 <AANLkTikPffMQLXcPF4-xPeZfkaAtnu7xEP0TMzYVrkgE@mail.gmail.com>
-	 <1843123111.20100811092547@eikelenboom.it>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:46670 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751852Ab0HBKtU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 06:49:20 -0400
+Subject: Re: [PATCH 09/13] IR: add helper function for hardware with small
+ o/b buffer.
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+In-Reply-To: <1280715061.19666.47.camel@localhost>
+References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+	 <1280588366-26101-10-git-send-email-maximlevitsky@gmail.com>
+	 <1280715061.19666.47.camel@localhost>
 Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 11 Aug 2010 08:58:45 -0700
-Message-ID: <1281542325.2360.86.camel@pete-desktop>
+Date: Mon, 02 Aug 2010 13:49:13 +0300
+Message-ID: <1280746153.24628.33.camel@maxim-laptop>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wed, 2010-08-11 at 09:25 +0200, Sander Eikelenboom wrote:
-> Hello Devin,
+On Sun, 2010-08-01 at 22:11 -0400, Andy Walls wrote: 
+> On Sat, 2010-07-31 at 17:59 +0300, Maxim Levitsky wrote:
+> > Some ir input devices have small buffer, and interrupt the host
+> > each time it is full (or half full)
+> > 
+> > Add a helper that automaticly handles timeouts, and also
+> > automaticly merges samples of same time (space-space)
+> > Such samples might be placed by hardware because size of
+> > sample in the buffer is small (a byte for example).
+> > 
+> > Also remove constness from ir_dev_props, because it now contains timeout
+> > settings that driver might want to change
+> > 
+> > Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+> > Acked-by: Jarod Wilson <jarod@redhat.com>
 > 
-> Yes it's completely reproducible for a change:
+> Hi Maxim and Jarod,
 > 
-> ffmpeg -f video4linux -r 25 -s 720x576 -i /dev/video0 out.flv
-> gave an error:
+> I've started looking at this patch, and patch 10/13, to work with them
+> and build upon them.  I have some comments, below:
+> 
+> 
+> > ---
+> >  drivers/media/IR/ir-core-priv.h |    1 +
+> >  drivers/media/IR/ir-keytable.c  |    2 +-
+> >  drivers/media/IR/ir-raw-event.c |   84 +++++++++++++++++++++++++++++++++++++++
+> >  include/media/ir-core.h         |   23 +++++++++-
+> >  4 files changed, 106 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+> > index be68172..8053e3b 100644
+> > --- a/drivers/media/IR/ir-core-priv.h
+> > +++ b/drivers/media/IR/ir-core-priv.h
+> > @@ -41,6 +41,7 @@ struct ir_raw_event_ctrl {
+> >  
+> >  	/* raw decoder state follows */
+> >  	struct ir_raw_event prev_ev;
+> > +	struct ir_raw_event this_ev;
+> >  	struct nec_dec {
+> >  		int state;
+> >  		unsigned count;
+> > diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+> > index 94a8577..34b9c07 100644
+> > --- a/drivers/media/IR/ir-keytable.c
+> > +++ b/drivers/media/IR/ir-keytable.c
+> > @@ -428,7 +428,7 @@ static void ir_close(struct input_dev *input_dev)
+> >   */
+> >  int __ir_input_register(struct input_dev *input_dev,
+> >  		      const struct ir_scancode_table *rc_tab,
+> > -		      const struct ir_dev_props *props,
+> > +		      struct ir_dev_props *props,
+> >  		      const char *driver_name)
+> >  {
+> >  	struct ir_input_dev *ir_dev;
+> > diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+> > index d0c18db..43094e7 100644
+> > --- a/drivers/media/IR/ir-raw-event.c
+> > +++ b/drivers/media/IR/ir-raw-event.c
+> > @@ -140,6 +140,90 @@ int ir_raw_event_store_edge(struct input_dev *input_dev, enum raw_event_type typ
+> >  EXPORT_SYMBOL_GPL(ir_raw_event_store_edge);
+> >  
+> >  /**
+> > + * ir_raw_event_store_with_filter() - pass next pulse/space to decoders with some processing
+> > + * @input_dev:	the struct input_dev device descriptor
+> > + * @type:	the type of the event that has occurred
+> > + *
+> > + * This routine (which may be called from an interrupt context) works
+> > + * in similiar manner to ir_raw_event_store_edge.
+> > + * This routine is intended for devices with limited internal buffer
+> > + * It automerges samples of same type, and handles timeouts
+> > + */
+> 
+> I think this comment might need to explain the filtering being performed
+> a little more explicitly, because "handles timeouts" wasn't enough to go
+> on.
+> 
+> >From what I can tell, it performs
+> 
+> 	a. space aggrregation
+> 	b. auto "idle" of the receiver and some state
+> 	c. gap measurment and gap space event generation
+> 	d, decoder reset at the end of the gap
+> 
+> (For my needs, c. is very useful, and a. & d. don't hurt.)
+> 
+> What is idle supposed to do for hardware that provides interrupts?
+In my case, I can program hardware not to interrupt host until it has
+a sample that isn't a overflow sample
+Exaplanation what overflow sample is:
+Hardware stores samples in small 8 bytes buffer, and has a  flag which
+half of this buffer to read.
+Each sample is 8 bits, out of which 7 are timing and 8th is pulse/space.
+So larger sample is sample period * 127.
+If hardware wants to send larger sample, it sends this sample, and
+another.
+When I enable idle mode, it won't send sample with 127 within them.
+Note that this is only supported on my receiver. Newer receivers don't
+have that function, but rather stop sending samples on their own after
+about 250 ms.
 
-Use -f video4linux2.
-
-The -f video4linux option uses the old video4linux1 API.  I have seen
-similar strange behavior when I used that ffmpeg option with a v4l2
-driver I am developing.  Also, ffmpeg does not use libv4l.
 
 
-> serveerstertje:/mnt/software/software# ffmpeg -f video4linux -r 25 -s 720x576 -i  /dev/video0 out.flv
-> FFmpeg version r11872+debian_0.svn20080206-18+lenny1, Copyright (c) 2000-2008 Fa brice Bellard, et al.
->   configuration: --enable-gpl --enable-libfaad --enable-pp --enable-swscaler --e nable-x11grab --prefix=/usr --enable-libgsm --enable-libtheora --enable-libvorbi s --enable-pthreads --disable-strip --enable-libdc1394 --enable-shared --disable -static
->   libavutil version: 49.6.0
->   libavcodec version: 51.50.0
->   libavformat version: 52.7.0
->   libavdevice version: 52.0.0
->   built on Jan 25 2010 18:27:39, gcc: 4.3.2
-> Input #0, video4linux, from '/dev/video0':
->   Duration: N/A, start: 1281511364.644674, bitrate: 165888 kb/s
->     Stream #0.0: Video: rawvideo, yuyv422, 720x576 [PAR 0:1 DAR 0:1], 165888 kb/ s, 25.00 tb(r)
-> File 'out.flv' already exists. Overwrite ? [y/N] y
-> Output #0, flv, to 'out.flv':
->     Stream #0.0: Video: flv, yuv420p, 720x576 [PAR 0:1 DAR 0:1], q=2-31, 200 kb/ s, 25.00 tb(c)
-> Stream mapping:
->   Stream #0.0 -> #0.0
-> Press [q] to stop encoding
-> VIDIOCMCAPTURE: Invalid argument
-> frame=    1 fps=  0 q=3.0 Lsize=      38kB time=0.0 bitrate=7687.6kbits/s
-> video:37kB audio:0kB global headers:0kB muxing overhead 0.530927%
+> 
+> Aside from asking the hardware driver to do something, idle otherwise
+> appears to be used to keep track of being in a gap or not.
+> Did I get that all right?
+Yes of course.
+
+> 
+> > +int ir_raw_event_store_with_filter(struct input_dev *input_dev,
+> > +						struct ir_raw_event *ev)
+> > +{
+> > +	struct ir_input_dev *ir = input_get_drvdata(input_dev);
+> > +	struct ir_raw_event_ctrl *raw = ir->raw;
+> > +
+> > +	if (!raw || !ir->props)
+> > +		return -EINVAL;
+> > +
+> > +	/* Ignore spaces in idle mode */
+> > +	if (ir->idle && !ev->pulse)
+> > +		return 0;
+> > +	else if (ir->idle)
+> > +		ir_raw_event_set_idle(input_dev, 0);
+> > +
+> > +	if (!raw->this_ev.duration) {
+> > +		raw->this_ev = *ev;
+> > +	} else if (ev->pulse == raw->this_ev.pulse) {
+> > +		raw->this_ev.duration += ev->duration;
+> > +	} else {
+> > +		ir_raw_event_store(input_dev, &raw->this_ev);
+> > +		raw->this_ev = *ev;
+> > +	}
+> > +
+> > +	/* Enter idle mode if nessesary */
+> > +	if (!ev->pulse && ir->props->timeout &&
+> > +		raw->this_ev.duration >= ir->props->timeout)
+> > +		ir_raw_event_set_idle(input_dev, 1);
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL_GPL(ir_raw_event_store_with_filter);
+> > +
+> > +void ir_raw_event_set_idle(struct input_dev *input_dev, int idle)
+> > +{
+> > +	struct ir_input_dev *ir = input_get_drvdata(input_dev);
+> > +	struct ir_raw_event_ctrl *raw = ir->raw;
+> > +	ktime_t now;
+> > +	u64 delta;
+> > +
+> > +	if (!ir->props)
+> > +		return;
+> > +
+> > +	if (!ir->raw)
+> > +		goto out;
+> > +
+> > +	if (idle) {
+> > +		IR_dprintk(2, "enter idle mode\n");
+> > +		raw->last_event = ktime_get();
+> > +	} else {
+> > +		IR_dprintk(2, "exit idle mode\n");
+> > +
+> > +		now = ktime_get();
+> > +		delta = ktime_to_ns(ktime_sub(now, ir->raw->last_event));
+> > +
+> > +		WARN_ON(raw->this_ev.pulse);
+> > +
+> > +		raw->this_ev.duration =
+> > +			min(raw->this_ev.duration + delta,
+> > +						(u64)IR_MAX_DURATION);
+> > +
+> > +		ir_raw_event_store(input_dev, &raw->this_ev);
+> > +
+> > +		if (raw->this_ev.duration == IR_MAX_DURATION)
+> > +			ir_raw_event_reset(input_dev);
+> > +
+> > +		raw->this_ev.duration = 0;
+> > +	}
+> > +out:
+> > +	if (ir->props->s_idle)
+> > +		ir->props->s_idle(ir->props->priv, idle);
+> > +	ir->idle = idle;
+> > +}
+> > +EXPORT_SYMBOL_GPL(ir_raw_event_set_idle);
+> > +
+> > +/**
+> >   * ir_raw_event_handle() - schedules the decoding of stored ir data
+> >   * @input_dev:	the struct input_dev device descriptor
+> >   *
+> > diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+> > index 197d05a..a781045 100644
+> > --- a/include/media/ir-core.h
+> > +++ b/include/media/ir-core.h
+> > @@ -41,6 +41,9 @@ enum rc_driver_type {
+> >   *	anything with it. Yet, as the same keycode table can be used with other
+> >   *	devices, a mask is provided to allow its usage. Drivers should generally
+> >   *	leave this field in blank
+> > + * @timeout: optional time after which device stops sending data
+> > + * @min_timeout: minimum timeout supported by device
+> > + * @max_timeout: maximum timeout supported by device
+> >   * @priv: driver-specific data, to be used on the callbacks
+> >   * @change_protocol: allow changing the protocol used on hardware decoders
+> >   * @open: callback to allow drivers to enable polling/irq when IR input device
+> > @@ -50,11 +53,19 @@ enum rc_driver_type {
+> >   * @s_tx_mask: set transmitter mask (for devices with multiple tx outputs)
+> >   * @s_tx_carrier: set transmit carrier frequency
+> >   * @tx_ir: transmit IR
+> > + * @s_idle: optional: enable/disable hardware idle mode, upon which,
+> > + *	device doesn't interrupt host untill it sees IR data
+> >   */
+> >  struct ir_dev_props {
+> >  	enum rc_driver_type	driver_type;
+> >  	unsigned long		allowed_protos;
+> >  	u32			scanmask;
+> > +
+> > +	u32			timeout;
+> > +	u32			min_timeout;
+> > +	u32			max_timeout;
+> > +
+> > +
+> >  	void			*priv;
+> >  	int			(*change_protocol)(void *priv, u64 ir_type);
+> >  	int			(*open)(void *priv);
+> > @@ -62,6 +73,7 @@ struct ir_dev_props {
+> >  	int			(*s_tx_mask)(void *priv, u32 mask);
+> >  	int			(*s_tx_carrier)(void *priv, u32 carrier);
+> >  	int			(*tx_ir)(void *priv, int *txbuf, u32 n);
+> > +	void			(*s_idle)(void *priv, int enable);
+> >  };
+> 
+> As I begin to look at using these changes for setting parameters and
+> storing them, I realize I've been down this road before with the struct
+> v4l2_subdev_ir_ops found here:
+> 
+> http://git.linuxtv.org/awalls/v4l-dvb.git?a=blob;f=include/media/v4l2-subdev.h;h=08880dd15d2fe6582865633f297a5e0293becf82;hb=wilson-levitsky#l391
+> http://git.linuxtv.org/awalls/v4l-dvb.git?a=blob;f=include/media/v4l2-subdev.h;h=08880dd15d2fe6582865633f297a5e0293becf82;hb=wilson-levitsky#l339
+> 
+> and struct v4l2_subdev_ir_params found here:
+> 
+> http://git.linuxtv.org/awalls/v4l-dvb.git?a=blob;f=include/media/v4l2-subdev.h;h=08880dd15d2fe6582865633f297a5e0293becf82;hb=wilson-levitsky#l366
+> 
+> I had originally started with an approach of adding a specialized
+> callback for everything.  However, besides being large and clumsy, Hans
+> and Mauro shot it down.  
+> 
+> In retrospect I'm glad they did - the final implementation was 7 simple
+> callbacks (3 for Rx, 3 for Tx and 1 for IRQ handling) and one parameter
+> form.
+> 
+> Example parameter setting can be found here:
+> 
+> http://git.linuxtv.org/awalls/v4l-dvb.git?a=blob;f=drivers/media/video/cx23885/cx23885-input.c;h=bb61870b8d6ed39d25c11aa676b55bd0a94dc235;hb=wilson-levitsky#l105
+> http://git.linuxtv.org/awalls/v4l-dvb.git?a=blob;f=drivers/media/video/cx23885/cx23885-input.c;h=bb61870b8d6ed39d25c11aa676b55bd0a94dc235;hb=wilson-levitsky#l135
+> 
+> The parameter form can also be used to hold the state of the transmitter
+> and receiver internal to the driver:
+> 
+> http://git.linuxtv.org/awalls/v4l-dvb.git?a=blob;f=drivers/media/video/cx23885/cx23888-ir.c;h=2502a0a6709783b8c01d5de639d759d097f0f1cd;hb=wilson-levitsky#l130
+> 
+>  
+> >  struct ir_input_dev {
+> > @@ -69,9 +81,10 @@ struct ir_input_dev {
+> >  	char				*driver_name;	/* Name of the driver module */
+> >  	struct ir_scancode_table	rc_tab;		/* scan/key table */
+> >  	unsigned long			devno;		/* device number */
+> > -	const struct ir_dev_props	*props;		/* Device properties */
+> > +	struct ir_dev_props		*props;		/* Device properties */
+> 
+> So I don't think the struct ir_dev_props structure is the right place to
+> be storing current operating parameters. IMO, operating parameters
+> stored in the ir_dev_props are "too far" from the lower level driver,
+> and are essentially mirroring what the low level driver should be
+> tracking internally as it's own state anyway.
 > 
 > 
-> 
-> So I tried just:
-> 
-> ffmpeg -i /dev/video0 out.flv
-> 
-> That makes it oops allways and instantly.
-> 
-> --
-> 
-> Sander
-> 
-> 
-> 
-> 
-> Wednesday, August 11, 2010, 4:33:28 AM, you wrote:
-> 
-> > On Tue, Aug 10, 2010 at 6:57 PM, Sander Eikelenboom
-> > <linux@eikelenboom.it> wrote:
-> >> Hello Devin,
-> >>
-> >> It's a k-world, which used to work fine (altough with another program, but I can't use that since it seems at least 2 other bugs prevent me from using my VM's :-)
-> >> It's this model  http://global.kworld-global.com/main/prod_in.aspx?mnuid=1248&modid=6&pcid=47&ifid=17&prodid=104
-> >>
-> >> Tried to grab with ffmpeg.
-> 
-> > Is it reproducible?  Or did it just happen once?  If you have a
-> > sequence to reproduce, can you provide the command line you used, etc?
-> 
-> > Devin
+> So in summary, I think we need to keep the opertions in struct
+> ir_dev_props simple using ,get_parameters() and .set_parameters() to
+> contol the lower level driver and to fetch, retrieve, and store
+> parameters.
+There is one thing that callbacks are better that one large .set_param.
+if callback is set to NULL, it obvious  that driver doesn't support the
+feature....
+Otherwise we will need some 'feature' bitmask, will need to translate it
+into lirc features...
+Mario, Hans, what objections did you have against that?
+
+
+Best regards,
+Maxim Levitsky
+
+
 > 
 > 
+> Regards,
+> Andy
+> 
+> 
+> >  	struct ir_raw_event_ctrl	*raw;		/* for raw pulse/space events */
+> >  	struct input_dev		*input_dev;	/* the input device associated with this device */
+> > +	bool				idle;
+> >  
+> >  	/* key info - needed by IR keycode handlers */
+> >  	spinlock_t			keylock;	/* protects the below members */
+> > @@ -95,12 +108,12 @@ enum raw_event_type {
+> >  /* From ir-keytable.c */
+> >  int __ir_input_register(struct input_dev *dev,
+> >  		      const struct ir_scancode_table *ir_codes,
+> > -		      const struct ir_dev_props *props,
+> > +		      struct ir_dev_props *props,
+> >  		      const char *driver_name);
+> >  
+> >  static inline int ir_input_register(struct input_dev *dev,
+> >  		      const char *map_name,
+> > -		      const struct ir_dev_props *props,
+> > +		      struct ir_dev_props *props,
+> >  		      const char *driver_name) {
+> >  	struct ir_scancode_table *ir_codes;
+> >  	struct ir_input_dev *ir_dev;
+> > @@ -148,6 +161,10 @@ struct ir_raw_event {
+> >  void ir_raw_event_handle(struct input_dev *input_dev);
+> >  int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev);
+> >  int ir_raw_event_store_edge(struct input_dev *input_dev, enum raw_event_type type);
+> > +int ir_raw_event_store_with_filter(struct input_dev *input_dev,
+> > +				struct ir_raw_event *ev);
+> > +void ir_raw_event_set_idle(struct input_dev *input_dev, int idle);
+> > +
+> >  static inline void ir_raw_event_reset(struct input_dev *input_dev)
+> >  {
+> >  	struct ir_raw_event ev = { .pulse = false, .duration = 0 };
 > 
 > 
 
