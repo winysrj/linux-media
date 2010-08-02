@@ -1,62 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31751 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:40760 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751207Ab0HCCB3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Aug 2010 22:01:29 -0400
-Message-ID: <4C577888.30408@redhat.com>
-Date: Mon, 02 Aug 2010 23:01:44 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1752054Ab0HBSDU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Aug 2010 14:03:20 -0400
+Date: Mon, 2 Aug 2010 13:51:27 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Christoph Bartelmus <lirc@bartelmus.de>
+Cc: jonsmirl@gmail.com, awalls@md.metrocast.net,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, mchehab@redhat.com
+Subject: Re: Remote that breaks current system
+Message-ID: <20100802175127.GE2296@redhat.com>
+References: <AANLkTi=F4CQ2_pCDno1SNGS6w=7wERk1FwjezkwC=nS5@mail.gmail.com>
+ <BU4OxfMZjFB@christoph>
 MIME-Version: 1.0
-To: Richard Zidlicky <rz@linux-m68k.org>
-CC: linux-media@vger.kernel.org, udia@siano-ms.com,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge	WinTV
- MiniStick
-References: <cover.1280693675.git.mchehab@redhat.com> <20100801171718.5ad62978@pedra> <20100802072711.GA5852@linux-m68k.org>
-In-Reply-To: <20100802072711.GA5852@linux-m68k.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <BU4OxfMZjFB@christoph>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Richard,
-
-Em 02-08-2010 04:27, Richard Zidlicky escreveu:
-> On Sun, Aug 01, 2010 at 05:17:18PM -0300, Mauro Carvalho Chehab wrote:
->> Add the proper gpio port for WinTV MiniStick, with the information provided
->> by Michael.
->>
->> Thanks-to: Michael Krufky <mkrufky@kernellabs.com>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
->> index cff77e2..dcde606 100644
->> --- a/drivers/media/dvb/siano/sms-cards.c
->> +++ b/drivers/media/dvb/siano/sms-cards.c
->> @@ -67,6 +67,7 @@ static struct sms_board sms_boards[] = {
->>  		.board_cfg.leds_power = 26,
->>  		.board_cfg.led0 = 27,
->>  		.board_cfg.led1 = 28,
->> +		.board_cfg.ir = 9,
->                                ^^^^
+On Mon, Aug 02, 2010 at 06:42:00PM +0200, Christoph Bartelmus wrote:
+> Hi!
 > 
-> are you sure about this?
+> Jon Smirl "jonsmirl@gmail.com" wrote:
+> [...]
+> >> Got one. The Streamzap PC Remote. Its 14-bit RC5. Can't get it to properly
+> >> decode in-kernel for the life of me. I got lirc_streamzap 99% of the way
+> >> ported over the weekend, but this remote just won't decode correctly w/the
+> >> in-kernel RC5 decoder.
 > 
-> I am using the value of 4 for the ir port and it definitely works.. confused.
-
-I got this from a reliable source, and that worked perfectly  my with a Model 55009 
-LF Rev B1F7. What's the model of your device?
-
-> Thanks for looking at it, will test the patches as soon as I can.
-
-I'd appreciate if you could test those patches, as the new implementation is feature-rich,
-as it uses the in-kernel decoders via RC subsystem.
+> > Manchester encoding may need a decoder that waits to get 2-3 edge
+> > changes before deciding what the first bit. As you decode the output
+> > is always a couple bits behind the current input data.
+> >
+> > You can build of a table of states
+> > L0 S1 S0 L1  - emit a 1, move forward an edge
+> > S0 S1 L0 L1 - emit a 0, move forward an edge
+> >
+> > By doing it that way you don't have to initially figure out the bit clock.
+> >
+> > The current decoder code may not be properly tracking the leading
+> > zero. In Manchester encoding it is illegal for a bit to be 11 or 00.
+> > They have to be 01 or 10. If you get a 11 or 00 bit, your decoding is
+> > off by 1/2 a bit cycle.
+> >
+> > Did you note the comment that Extended RC-5 has only a single start
+> > bit instead of two?
 > 
-> Richard
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It has nothing to do with start bits.
+> The Streamzap remote just sends 14 (sic!) bits instead of 13.
+> The decoder expects 13 bits.
+> Yes, the Streamzap remote does _not_ use standard RC-5.
+> Did I mention this already? Yes. ;-)
 
-Cheers,
-Mauro
+D'oh, yeah, sorry, completely forgot you already mentioned this. That
+would certainly explain why the rc5 decoder isn't happy with it. So the
+*receiver* itself is perfectly functional, its just a goofy IR protocol
+sent by its default remote. Blah. So yet another reason having ongoing
+lirc compatibility is a Good Thing. ;)
+
+-- 
+Jarod Wilson
+jarod@redhat.com
+
