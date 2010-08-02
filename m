@@ -1,134 +1,108 @@
-Return-path: <mchehab@pedra>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:34158 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752028Ab0HJWpV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Aug 2010 18:45:21 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:53061 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750954Ab0HBVCF convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 17:02:05 -0400
+Received: by iwn7 with SMTP id 7so4407776iwn.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 14:02:04 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <61936849.20100811001257@eikelenboom.it>
-References: <61936849.20100811001257@eikelenboom.it>
-Date: Tue, 10 Aug 2010 18:45:20 -0400
-Message-ID: <AANLkTinVNms-vdfG-VZzkOadogaCRV+HyDAY5yhYOJSK@mail.gmail.com>
-Subject: Re: [2.6.35] usb 2.0 em28xx kernel panic general protection fault:
-	0000 [#1] SMP RIP: 0010:[<ffffffffa004fbc5>] [<ffffffffa004fbc5>]
-	em28xx_isoc_copy_vbi+0x62e/0x812 [em28xx]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Sander Eikelenboom <linux@eikelenboom.it>
-Cc: mchehab@infradead.org, mrechberger@gmail.com, gregkh@suse.de,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
+In-Reply-To: <1280750394.1361.87.camel@gagarin>
+References: <AANLkTimD-BCmN+3YUykUCH0fdNagw=wcUu1g+Z87N_5W@mail.gmail.com>
+	<1280741544.1361.17.camel@gagarin>
+	<AANLkTinHK8mVwrCnOZTUMsHVGTykj8bNdkKwcbMQ8LK_@mail.gmail.com>
+	<AANLkTi=M2wVY3vL8nGBg-YqUtRidBahpE5OXbjr5k96X@mail.gmail.com>
+	<1280750394.1361.87.camel@gagarin>
+Date: Tue, 3 Aug 2010 09:02:04 +1200
+Message-ID: <AANLkTi=V3eKuJ1jXPcBuSxUy6djCoK4q2pR-V0zo_cMS@mail.gmail.com>
+Subject: Re: Fwd: No audio in HW Compressed MPEG2 container on HVR-1300
+From: Shane Harrison <shane.harrison@paragon.co.nz>
+To: lawrence rust <lawrence@softsystem.co.uk>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello Sander,
+On Mon, Aug 2, 2010 at 11:59 PM, lawrence rust
+<lawrence@softsystem.co.uk> wrote:
+> On Mon, 2010-08-02 at 22:19 +1200, Shane Harrison wrote:
+> [snip]
 
-Which application were you using, and specifically which em28xx based
-product do you have?
+>> I am not ruling out initialisation problems with the WM8775 but I do
+>> always seem to get an I2S output from it that has data in it that
+>> reflects the input.  However it could be the wrong variant of I2S or
+>> some other configuration that isn't set right.
+>
+> Currently in wm8775.c line 223, R11 is set to 0x21 which is 24-bit left
+> justified mode.  This is wrong, it should be i2s mode (0x22).  My patch
+> correctly sets this register and also disables ALC mode which is
+> irrelevant when setting input level via ALSA and can cause hiss during
+> quiet sections.
+>
+>> Strange how eventually
+>> I do get audio (albeit mixed with the TV source it appears) simply by
+>> looping thru and changing input sources with v4l2-ctl.
+>
+> Probably switching glitches eventually hit the right data
+> synchronisation format.
+>
+>> I note that the Nova-S doesn't have the hardware MPEG encoding
+>
+> Correct.
+>
+>>  so
+>> still hoping someone can enlighten me on the audio path when using
+>> that chip.
+>
+> When a Blackbird cx23416 MPEG encoder is fitted, i2s audio data from the
+> wm8775 is routed through the cx23883.  The i2s output of the cx23883 is
+> enabled by the function set_audio_finish() in cx88-tvaudio.c line 148.
+> The cx23416 can accept stereo Sony I2S format audio data when quoting
+> from the Conexant datasheet "running its AILR sync signal through an
+> inverting flip-flop, clocked by an inverted AICKIN".
+>
+> -- Lawrence Rust
+>
+>
+>
+Yes we had noticed that the WM8775 was in left justified rather than
+I2S and had corrected that already.
 
-Devin
+Thanks for the audio path info.  While you are on a roll, a few more questions ?
+1) So do you know how the I2S input (from WM8775) is looped back to
+the I2S output that is fed to the MPEG encoder?  I can only assume in
+software?  I note that the driver has a comment re. using passthrough
+mode in the CX2388x but actually uses normal mode which isn't a
+loopback.  Hence something else must generate the I2S output source.
+2)  I interpreted the following note in the CX23416 datasheet slightly
+differently than you:
+       "The CX23416 audio input interface is designed to work with most commonly
+       available audio analog-to-digital converters (ADCs) that are
+compatible with the Sony
+       I2S data format. An I2S-compatible audio part can be supported
+by running its AILR
+       sync signal through an inverting flip-flop, clocked by an
+inverted AICKIN, before
+       passing it to the CX23416.
+I assumed it was saying it accepted standard Sony variant but you
+could connect to Philips I2S if you used a flip-flop to invert and
+synchronise with the AICKIN.  I did notice that the HVR1300 board has
+a footprint for an IC that is connected to the I2S outputs in some
+manner.  I wondered what this was - does something need to be fitted
+then to make these two devices talk directly?  I also note that the
+driver sets the I2S input to be Philips (as output by the WM8775) and
+the I2S output as Sony which seems like an attempt to talk directly.
+A bit confused here.....
+3) Given I am getting audio sometimes in the MPEG2 stream, is it using
+another path into the CX23416.  The idea of getting lucky on switching
+glitches seems improbable on the I2S interface since once I get audio
+I continue to have it until a hard reboot.  Switching glitches and
+race conditions on the control interfaces being successful every so
+often I could buy.
 
-On Tue, Aug 10, 2010 at 6:12 PM, Sander Eikelenboom
-<linux@eikelenboom.it> wrote:
-> Hi,
->
-> While trying to test try and report about some other bugs,  i ran into this kernel panic when trying to grab video from my usb 2.0 em28xx videgrabber connected to a usb 2.0 port.
-> Complete serial log attachted.
->
->
-> [  279.680018] general protection fault: 0000 [#1] SMP
-> [  279.683901] last sysfs file: /sys/devices/pci0000:00/0000:00:12.2/usb1/1-5/i2c-0/name
-> [  279.683901] CPU 5
-> [  279.683901] Modules linked in: xt_multiport ipt_REJECT xt_recent xt_limit xt_tcpudp powernow_k8 mperf xt_state ipt_MA
-> SQUERADE ipt_LOG iptable_mangle iptable_filter iptable_nat ip_tables nf_nat x_tables nf_conntrack_ipv4 nf_conntrack nf_d
-> efrag_ipv4 fuse hwmon_vid loop saa7115 snd_cmipci gameport snd_opl3_lib snd_hwdep snd_mpu401_uart snd_rawmidi em28xx v4l
-> 2_common snd_hda_codec_atihdmi snd_hda_intel snd_hda_codec snd_pcm snd_seq_device videodev snd_timer snd v4l1_compat v4l
-> 2_compat_ioctl32 videobuf_vmalloc videobuf_core psmouse tpm_tis joydev evdev tveeprom serio_raw shpchp edac_core i2c_pii
-> x4 soundcore pcspkr i2c_core pci_hotplug wmi snd_page_alloc processor button sd_mod r8169 thermal fan thermal_sys [last
-> unloaded: scsi_wait_scan]
-> [  279.683901]
-> [  279.683901] Pid: 0, comm: swapper Not tainted 2.6.352.6.35-vanilla-xhci-isoc+ #6 890FXA-GD70 (MS-7640)  /MS-7640
-> [  279.683901] RIP: 0010:[<ffffffffa004fbc5>]  [<ffffffffa004fbc5>] em28xx_isoc_copy_vbi+0x62e/0x812 [em28xx]
-> [  279.683901] RSP: 0018:ffff880001b43c68  EFLAGS: 00010082
-> [  279.683901] RAX: dead000000200200 RBX: 0000000000000804 RCX: ffff880229625818
-> [  279.683901] RDX: dead000000100100 RSI: 0000000000000003 RDI: ffff880229625868
-> [  279.683901] RBP: ffff880001b43d08 R08: 0000000000000000 R09: 0000000000000804
-> [  279.683901] R10: ffff880229597000 R11: 0000000000000000 R12: 0000000000000000
-> [  279.683901] R13: ffff88022f158820 R14: ffff880229597000 R15: 0000000000000344
-> [  279.683901] FS:  00007fa4bd3706e0(0000) GS:ffff880001b40000(0000) knlGS:0000000000000000
-> [  279.683901] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-> [  279.683901] CR2: 00007fa4bd35f000 CR3: 000000022a9ad000 CR4: 00000000000006e0
-> [  279.683901] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-> [  279.683901] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-> [  279.683901] Process swapper (pid: 0, threadinfo ffff880237d4a000, task ffff880237d2f7a0)
-> [  279.683901] Stack:
-> [  279.683901]  ffffffff8103d7a3 ffff880001b43cb0 0000000000000082 ffff8802375e2188
-> [  279.683901] <0> 0000000000000804 ffff880229625818 ffff880229597a40 ffff880229597a90
-> [  279.683901] <0> ffffc90010b72000 0000000000000000 0000002237d20000 ffff880229597000
-> [  279.683901] Call Trace:
-> [  279.683901]  <IRQ>
-> [  279.683901]  [<ffffffff8103d7a3>] ? enqueue_task+0x77/0x87
-> [  279.683901]  [<ffffffffa0053398>] em28xx_irq_callback+0x7e/0xfe [em28xx]
-> [  279.683901]  [<ffffffff81359415>] usb_hcd_giveback_urb+0x84/0xb8
-> [  279.683901]  [<ffffffff8136b51b>] ehci_urb_done+0xcf/0xe4
-> [  279.683901]  [<ffffffff8136cd15>] ehci_work+0x504/0x8da
-> [  279.683901]  [<ffffffff81370fda>] ehci_irq+0x19c/0x1ce
-> [  279.683901]  [<ffffffff81358bd1>] usb_hcd_irq+0x3e/0x83
-> [  279.683901]  [<ffffffff8108782c>] handle_IRQ_event+0x58/0x136
-> [  279.683901]  [<ffffffff81089414>] handle_fasteoi_irq+0x92/0xd2
-> [  279.683901]  [<ffffffff8100b241>] handle_irq+0x1f/0x2a
-> [  279.683901]  [<ffffffff8100a884>] do_IRQ+0x5a/0xc1
-> [  279.683901]  [<ffffffff8146c953>] ret_from_intr+0x0/0x11
-> [  279.683901]  <EOI>
-> [  279.683901]  [<ffffffffa0044740>] ? acpi_idle_enter_simple+0x130/0x168 [processor]
-> [  279.683901]  [<ffffffffa004473c>] ? acpi_idle_enter_simple+0x12c/0x168 [processor]
-> [  279.683901]  [<ffffffff813ad822>] cpuidle_idle_call+0x9b/0xfd
-> [  279.683901]  [<ffffffff81007868>] cpu_idle+0x51/0x84
-> [  279.683901]  [<ffffffff81466d1b>] start_secondary+0x1c0/0x1c5
-> [  279.683901] Code: 83 ef 80 e8 69 39 01 e1 48 8b 4d 88 49 c7 86 18 0b 00 00 00 00 00 00 be 03 00 00 00 48 8b 51 40 48
-> 8b 41 48 48 89 cf 48 83 c7 50 <48> 89 42 08 48 89 10 48 b8 00 01 10 00 00 00 ad de 48 89 41 40
-> [  279.683901] RIP  [<ffffffffa004fbc5>] em28xx_isoc_copy_vbi+0x62e/0x812 [em28xx]
-> [  279.683901]  RSP <ffff880001b43c68>
-> [  279.683901] ---[ end trace 0f55a03076b067cf ]---
-> [  279.683901] Kernel panic - not syncing: Fatal exception in interrupt
-> [  279.683901] Pid: 0, comm: swapper Tainted: G      D     2.6.352.6.35-vanilla-xhci-isoc+ #6
-> [  279.683901] Call Trace:
-> [  279.683901]  <IRQ>  [<ffffffff81469cf9>] panic+0xb1/0x12a
-> [  279.683901]  [<ffffffff81043b90>] ? kmsg_dump+0x126/0x140
-> [  279.683901]  [<ffffffff8100c354>] oops_end+0x89/0x96
-> [  279.683901]  [<ffffffff8100c534>] die+0x55/0x5e
-> [  279.683901]  [<ffffffff8100a26f>] do_general_protection+0x130/0x138
-> [  279.683901]  [<ffffffff8146cc05>] general_protection+0x25/0x30
-> [  279.683901]  [<ffffffffa004fbc5>] ? em28xx_isoc_copy_vbi+0x62e/0x812 [em28xx]
-> [  279.683901]  [<ffffffffa004fba2>] ? em28xx_isoc_copy_vbi+0x60b/0x812 [em28xx]
-> [  279.683901]  [<ffffffff8103d7a3>] ? enqueue_task+0x77/0x87
-> [  279.683901]  [<ffffffffa0053398>] em28xx_irq_callback+0x7e/0xfe [em28xx]
-> [  279.683901]  [<ffffffff81359415>] usb_hcd_giveback_urb+0x84/0xb8
-> [  279.683901]  [<ffffffff8136b51b>] ehci_urb_done+0xcf/0xe4
-> [  279.683901]  [<ffffffff8136cd15>] ehci_work+0x504/0x8da
-> [  279.683901]  [<ffffffff81370fda>] ehci_irq+0x19c/0x1ce
-> [  279.683901]  [<ffffffff81358bd1>] usb_hcd_irq+0x3e/0x83
-> [  279.683901]  [<ffffffff8108782c>] handle_IRQ_event+0x58/0x136
-> [  279.683901]  [<ffffffff81089414>] handle_fasteoi_irq+0x92/0xd2
-> [  279.683901]  [<ffffffff8100b241>] handle_irq+0x1f/0x2a
-> [  279.683901]  [<ffffffff8100a884>] do_IRQ+0x5a/0xc1
-> [  279.683901]  [<ffffffff8146c953>] ret_from_intr+0x0/0x11
-> [  279.683901]  <EOI>  [<ffffffffa0044740>] ? acpi_idle_enter_simple+0x130/0x168 [processor]
-> [  279.683901]  [<ffffffffa004473c>] ? acpi_idle_enter_simple+0x12c/0x168 [processor]
-> [  279.683901]  [<ffffffff813ad822>] cpuidle_idle_call+0x9b/0xfd
-> [  279.683901]  [<ffffffff81007868>] cpu_idle+0x51/0x84
-> [  279.683901]  [<ffffffff81466d1b>] start_secondary+0x1c0/0x1c5
->
->
->
->
->
-> --
-> Sander
+Still to try the patch - will let you know.  Unfortunately our
+HVR-1300 is in the process of being swapped out since the supplier
+wanted to try swapping boards first :-(
 
-
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Cheers
+Shane
