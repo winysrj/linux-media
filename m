@@ -1,51 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:42747 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970Ab0HDTho (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 15:37:44 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v3 1/7] v4l: Share code between video_usercopy and video_ioctl2
-Date: Wed, 4 Aug 2010 21:37:37 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278948352-17892-2-git-send-email-laurent.pinchart@ideasonboard.com> <201008042030.06872.hverkuil@xs4all.nl>
-In-Reply-To: <201008042030.06872.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
+Received: from smtp22.services.sfr.fr ([93.17.128.12]:59501 "EHLO
+	smtp22.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751827Ab0HBL75 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 07:59:57 -0400
+Received: from filter.sfr.fr (localhost [127.0.0.1])
+	by msfrf2213.sfr.fr (SMTP Server) with ESMTP id 411D9700008D
+	for <linux-media@vger.kernel.org>; Mon,  2 Aug 2010 13:59:56 +0200 (CEST)
+Received: from smtp-in.softsystem.co.uk (81.148.200-77.rev.gaoland.net [77.200.148.81])
+	by msfrf2213.sfr.fr (SMTP Server) with SMTP id E704D700008B
+	for <linux-media@vger.kernel.org>; Mon,  2 Aug 2010 13:59:55 +0200 (CEST)
+Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
+	BY smtp-in.softsystem.co.uk [77.200.148.81] (SoftMail 1.0.5, www.softsystem.co.uk) WITH ESMTP
+	FOR <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 13:59:54 +0200
+Subject: Re: Fwd: No audio in HW Compressed MPEG2 container on HVR-1300
+From: lawrence rust <lawrence@softsystem.co.uk>
+To: Shane Harrison <shane.harrison@paragon.co.nz>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTi=M2wVY3vL8nGBg-YqUtRidBahpE5OXbjr5k96X@mail.gmail.com>
+References: <AANLkTimD-BCmN+3YUykUCH0fdNagw=wcUu1g+Z87N_5W@mail.gmail.com>
+	 <1280741544.1361.17.camel@gagarin>
+	 <AANLkTinHK8mVwrCnOZTUMsHVGTykj8bNdkKwcbMQ8LK_@mail.gmail.com>
+	 <AANLkTi=M2wVY3vL8nGBg-YqUtRidBahpE5OXbjr5k96X@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 02 Aug 2010 13:59:54 +0200
+Message-ID: <1280750394.1361.87.camel@gagarin>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201008042137.37780.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Wednesday 04 August 2010 20:30:06 Hans Verkuil wrote:
-> On Monday 12 July 2010 17:25:46 Laurent Pinchart wrote:
-> > The two functions are mostly identical. They handle the copy_from_user
-> > and copy_to_user operations related with V4L2 ioctls and call the real
-> > ioctl handler.
-> > 
-> > Create a __video_usercopy function that implements the core of
-> > video_usercopy and video_ioctl2, and call that function from both.
+On Mon, 2010-08-02 at 22:19 +1200, Shane Harrison wrote:
+[snip]
+> Thanks Lawrence, will give that a whirl tomorrow and the muting idea
+> might be important in this case as well.  Wierd you posted Saturday
+> the day after I last worked on this and looked at the archives :-)
 > 
-> Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+> I am not ruling out initialisation problems with the WM8775 but I do
+> always seem to get an I2S output from it that has data in it that
+> reflects the input.  However it could be the wrong variant of I2S or
+> some other configuration that isn't set right.
 
-Thanks for the acks.
+Currently in wm8775.c line 223, R11 is set to 0x21 which is 24-bit left
+justified mode.  This is wrong, it should be i2s mode (0x22).  My patch
+correctly sets this register and also disables ALC mode which is
+irrelevant when setting input level via ALSA and can cause hiss during
+quiet sections.
 
-> Two notes:
-> 
-> 1) This change will clash with the multiplane patches.
+> Strange how eventually
+> I do get audio (albeit mixed with the TV source it appears) simply by
+> looping thru and changing input sources with v4l2-ctl.
 
-Obviously, for this patch and the others, I will keep rebasing the code until 
-it gets merged.
+Probably switching glitches eventually hit the right data
+synchronisation format.
 
-> 2) Perhaps it is time that we remove the __OLD_VIDIOC_ support?
+> I note that the Nova-S doesn't have the hardware MPEG encoding
 
-Fine with me. We need to list that in feature-removal-schedule.txt.
+Correct.
 
--- 
-Regards,
+>  so
+> still hoping someone can enlighten me on the audio path when using
+> that chip.
 
-Laurent Pinchart
+When a Blackbird cx23416 MPEG encoder is fitted, i2s audio data from the
+wm8775 is routed through the cx23883.  The i2s output of the cx23883 is
+enabled by the function set_audio_finish() in cx88-tvaudio.c line 148.
+The cx23416 can accept stereo Sony I2S format audio data when quoting
+from the Conexant datasheet "running its AILR sync signal through an
+inverting flip-flop, clocked by an inverted AICKIN".
+
+-- Lawrence Rust
+
+
