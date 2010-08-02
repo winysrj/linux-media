@@ -1,89 +1,57 @@
-Return-path: <mchehab@pedra>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:24321 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751326Ab0HKLpL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 07:45:11 -0400
-Subject: Re: A problem with http://git.linuxtv.org/media_tree.git
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: ext Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
-In-Reply-To: <1281526453.14489.50.camel@masi.mnp.nokia.com>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
-	 <201008091838.13247.hverkuil@xs4all.nl>
-	 <1281425501.14489.7.camel@masi.mnp.nokia.com>
-	 <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
-	 <1281441830.14489.27.camel@masi.mnp.nokia.com>
-	 <4C614294.7080101@redhat.com>
-	 <1281518486.14489.43.camel@masi.mnp.nokia.com>
-	 <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
-	 <1281526453.14489.50.camel@masi.mnp.nokia.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:45615 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753438Ab0HBPKf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 11:10:35 -0400
+Received: by pxi14 with SMTP id 14so1377727pxi.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 08:10:35 -0700 (PDT)
+Subject: Re: [PATCH v2]Resend:videobuf_dma_sg: a new implementation for mmap
+From: "Figo.zhang" <figo1802@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1280489980.2648.12.camel@localhost.localdomain>
+References: <1280448482.2648.2.camel@localhost.localdomain>
+	 <201007301131.17638.laurent.pinchart@ideasonboard.com>
+	 <1280489980.2648.12.camel@localhost.localdomain>
 Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 11 Aug 2010 14:44:33 +0300
-Message-ID: <1281527073.14489.59.camel@masi.mnp.nokia.com>
+Date: Mon, 02 Aug 2010 23:08:51 +0800
+Message-ID: <1280761731.2664.12.camel@localhost.localdomain>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi again.
+On Fri, 2010-07-30 at 19:39 +0800, Figo.zhang wrote:
+> On Fri, 2010-07-30 at 11:31 +0200, Laurent Pinchart wrote:
+> > Hi,
+> > 
+> > On Friday 30 July 2010 02:08:02 Figo.zhang wrote:
+> > > a mmap issue for videobuf-dma-sg: it will alloc a new page for mmaping when
+> > > it encounter page fault at video_vm_ops->fault(). pls see
+> > > http://www.spinics.net/lists/linux-media/msg21243.html
+> > > 
+> > > a new implementation for mmap, it translate to vmalloc to page at
+> > > video_vm_ops->fault().
+> > > 
+> > > in v2, if mem->dma.vmalloc is NULL at video_vm_ops->fault(), it will alloc
+> > > memory by vmlloc_32().
+> > 
+> > You're replacing allocation in videobuf_vm_fault by allocationg in 
+> > videobuf_vm_fault. I don't see the point. videobuf_vm_fault needs to go away 
+> > completely.
+> in now videobuf code, the mmap alloc a new buf, the capture dma buffer
+> using vmalloc() alloc buffer, how is
+> relationship with them? in usrspace , the mmap region will not the
+> actual capture dma data, how is work? 
 
-On Wed, 2010-08-11 at 14:34 +0300, Matti J. Aaltonen wrote:
-> Hello.
-> 
-> On Wed, 2010-08-11 at 12:56 +0200, ext Hans Verkuil wrote:
-> > > Hi.
-> > >
-> > > I cloned your tree at 	http://linuxtv.org/git/media_tree.git and checked
-> > > out the origin/staging/v2.6.37 branch and the
-> > > Documentation/video4linux/v4l2-controls.txt  just isn't there. I asked
-> > > one of my colleagues to do the same and the result was also the same.
-> > 
-> > The file is in the v2.6.36 branch. It hasn't been merged yet in the
-> > v2.6.37 branch.
-> 
-> 37 above was a typo, sorry. My point was that we couldn't find it in the
-> origin/staging/v2.6.36 branch... and that the branch lags behind of what
-> can be seen via the git web interface...
-> 
-> B.R.
-> Matti
 
-I'd suggest - if that's not too much trouble - that you'd clone the tree
-using http (from http://linuxtv.org/git/media_tree.git) and then checked
-out the 36 branch and see that it works for you and then post the
-command you used and then I'll admit what I did wrong - if necessary:-)
+hmm, I understand with some mistake before.for mmap in videobuf-sg, it
+is not call vmalloc_32() to alloc memory, it call
+videobuf_dma_init_user_locked()->get_user_pages(), and the end, it will
+handle_mm_fault()-> vm_ops->fault(). Because in mmap(), it have assigned
+vaule for "baddr" variable.
 
-Cheers,
-Matti
-
-> 
-> > 
-> > Regards,
-> > 
-> >         Hans
-> > 
-> > >
-> > > The latest commit in this branch is:
-> > >
-> > > commit 80f1bb8ad61b56597ef2557cc7c67d8876247e6d
-> > > Merge: 2763aca... fc1caf6...
-> > > Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > > Date:   Fri Aug 6 10:50:25 2010 -0300
-> > >
-> > > Please check what's wrong...
-> > >
-> > > Thanks,
-> > > Matti A.
-> > >
-> > >
-> > >
-> > 
-> > 
-> 
+it is too obscure for videobuf-sg, hope for videbuf2. ~~
 
 
