@@ -1,71 +1,71 @@
-Return-path: <mchehab@pedra>
-Received: from sh.osrg.net ([192.16.179.4]:45680 "EHLO sh.osrg.net"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:36527 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753607Ab0H0FBg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 01:01:36 -0400
-Date: Fri, 27 Aug 2010 14:00:17 +0900
-To: u.kleine-koenig@pengutronix.de
-Cc: fujita.tomonori@lab.ntt.co.jp, g.liakhovetski@gmx.de,
-	mitov@issp.bas.bg, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	linux-arm-kernel@lists.infradead.org, linux-sh@vger.kernel.org,
-	philippe.retornaz@epfl.ch, gregkh@suse.de, jkrzyszt@tis.icnet.pl
-Subject: Re: [RFC][PATCH] add
-	dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <20100827044142.GB31863@pengutronix.de>
-References: <20100826095311.GA13051@pengutronix.de>
-	<20100826185938A.fujita.tomonori@lab.ntt.co.jp>
-	<20100827044142.GB31863@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-2022-jp-2
+	id S1754861Ab0HBV1i (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Aug 2010 17:27:38 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o72LRbY0014057
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 2 Aug 2010 17:27:38 -0400
+Received: from [10.11.10.146] (vpn-10-146.rdu.redhat.com [10.11.10.146])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o72LRYJr020705
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Mon, 2 Aug 2010 17:27:36 -0400
+Message-ID: <4C57386B.7050103@redhat.com>
+Date: Mon, 02 Aug 2010 18:28:11 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [announce]  changes on my git tree
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <20100827140005Y.fujita.tomonori@lab.ntt.co.jp>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, 27 Aug 2010 06:41:42 +0200
-Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
+Dear developers and users,
 
-> Hello,
-> 
-> On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
-> > On Thu, 26 Aug 2010 11:53:11 +0200
-> > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
-> > 
-> > > > > We have currently a number of boards broken in the mainline. They must be 
-> > > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
-> > > > > as I suggested earlier, we need either this or my patch series
-> > > > > 
-> > > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
-> > > > > 
-> > > > > for 2.6.36.
-> > > > 
-> > > > Why can't you revert a commit that causes the regression?
-> > > > 
-> > > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
-> > > > responsible for the regression. And the patchset even exnteds the
-> > > > definition of the DMA API (dma_declare_coherent_memory). Such change
-> > > > shouldn't applied after rc1. I think that DMA-API.txt says that
-> > > > dma_declare_coherent_memory() handles coherent memory for a particular
-> > > > device. It's not for the API that reserves coherent memory that can be
-> > > > used for any device for a single device.
-> > > The patch that made the problem obvious for ARM is
-> > > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
-> > > So this went in before v2.6.36-rc1.  One of the "architectures which
-> > > similar restrictions" is x86 BTW.
-> > > 
-> > > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
-> > > addresses a hardware restriction.
-> > 
-> > How these drivers were able to work without hitting the hardware restriction?
-> In my case the machine in question is an ARMv5, the hardware restriction
-> is on ARMv6+ only.  You could argue that so the breaking patch for arm
-> should only break ARMv6, but I don't think this is sensible from a
-> maintainers POV.  We need an API that works independant of the machine
-> that runs the code.
+After merging patches directly on my git tree, I was impressed by the number
+of things I discovered that I should not do when handling it ;) 
+Living and learning :)
 
-Agreed. But insisting that the DMA API needs to be extended wrongly
-after rc2 to fix the regression is not sensible too. The related DMA
-API wasn't changed in 2.6.36-rc1. The API isn't responsible for the
-regression at all.
+There are lots of trash there, due to the way patches get merged back from
+upstream.
+
+As reverting a patch there will break things for everybody that clones from
+my tree, I decided to go to an easier way: let's start from scratch.
+
+I've created a new tree, at:
+	http://git.linuxtv.org/media_tree.git
+
+Currently, it is just a clone of Linus tree, all pointing to v2.6.35. I'll soon
+be adding more patches there.
+
+In order to avoid the same kind of troubles I had in the past, I intend to
+use the following guidelines:
+
+1) branch "master" - will have the contents of Linus tree.
+2) branch "staging/2.6.35" - will have patches for the current stable kernel;
+2) branch "staging/2.6.36" - will have patches for the current development cycle;
+3) branch "staging/2.6.37" - will have patches for linux-next
+
+On every new kernel release, I'll create another branch.
+
+No branches will be rebased, but I won't merge from a staging branch into
+master. If needed, I'll just update master to from Linus tree after having
+a changeset pulled there.
+
+As need arises, I'll be adding some development branches there with stuff that
+are already accepted, but there are still pending patches that are needed before
+sending that patch set upstream (for example, new internal/external API's
+added, while there's no driver actually using them).
+
+For those that already sent me pull requests, and for a few weeks, there's no
+action need. I'll be manually handling the tree differences for a while. Yet,
+the better is to rebase your trees using the new one as the basis.
+
+Except when needed (like depending on a third-party patch applied on my tree), 
+the better is to have your local git trees always based on master.
+
+Cheers,
+Mauro.
+
