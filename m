@@ -1,81 +1,79 @@
-Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:63522 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750735Ab0HPEE7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Aug 2010 00:04:59 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:58421 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751827Ab0HBCPn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 22:15:43 -0400
+Received: by iwn7 with SMTP id 7so3633553iwn.19
+        for <linux-media@vger.kernel.org>; Sun, 01 Aug 2010 19:15:42 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <BUhP+pZ3jFB@christoph>
-References: <AANLkTimz2eLSEy+U1NdMVsQ=af7v67omPntwMQs+8jno@mail.gmail.com>
-	<BUhP+pZ3jFB@christoph>
-Date: Mon, 16 Aug 2010 00:04:58 -0400
-Message-ID: <AANLkTik7pPs6Bs6Pgq_MG00ONcZWEKFnfUqrTZtgwQRa@mail.gmail.com>
-Subject: Re: Remote that breaks current system
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Christoph Bartelmus <lirc@bartelmus.de>
-Cc: awalls@md.metrocast.net, jarod@redhat.com, jonsmirl@gmail.com,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	mchehab@redhat.com
+Date: Mon, 2 Aug 2010 14:15:42 +1200
+Message-ID: <AANLkTimD-BCmN+3YUykUCH0fdNagw=wcUu1g+Z87N_5W@mail.gmail.com>
+Subject: No audio in HW Compressed MPEG2 container on HVR-1300
+From: Shane Harrison <shane.harrison@paragon.co.nz>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, Aug 12, 2010 at 2:46 AM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
-...
->> So I spent a while beating on things the past few nights for giggles
->> (and for a sanity break from "vacation" with too many kids...). I
->> ended up doing a rather large amount of somewhat invasive work to the
->> streamzap driver itself, but the end result is functional in-kernel
->> decoding, and lirc userspace decode continues to behave correctly. RFC
->> patch here:
->>
->> http://wilsonet.com/jarod/ir-core/IR-streamzap-in-kernel-decode.patch
->>
->> Core changes to streamzap.c itself:
->>
->> - had to enable reporting of a long space at the conclusion of each
->> signal (which is what the lirc driver would do w/timeout_enabled set),
->> otherwise I kept having issues with key bounce and/or old data being
->> buffered (i.e., press up, cursor moves up. push down, cursor moves up
->> then down, press left, it moves down, then left, etc.). Still not
->> quite sure what the real problem is there, the lirc userspace decoder
->> has no problems with it either way.
->>
->> - removed streamzap's internal delay buffer, as the ir-core kfifo
->> seems to provide the necessary signal buffering just fine by itself.
->> Can't see any significant difference in decode performance either
->> in-kernel or via lirc with it removed, anyway. (Christoph, can you
->> perhaps expand a bit on why the delay buffer was originally needed/how
->> to reproduce the problem it was intended to solve? Maybe I'm just not
->> triggering it yet.)
->
-> Should be fine. Current lircd with timeout support shouldn't have a
-> problem with that anymore. I was already thinking of suggesting to remove
-> the delay buffer.
+Hi There,
 
-Cool, sounds like a plan then, I'll go ahead with it.
+I am having a problem with getting an audio stream present in the
+MPEG2 stream from an HVR-1300 card.
 
->> Other fun stuff to note:
->>
->> - currently, loading up an rc5-sz decoder unconditionally, have
->> considered only auto-loading it from the streamzap driver itself. Its
->> a copy of the rc5 decoder with relatively minor tweaks to deal with
->> the extra bit and resulting slightly different bit layout. Might
->> actually be possible to merge back into the rc5 decoder itself,
->> haven't really looked into that yet (should be entirely doable if
->> there's an easy way to figure out early on if we need to grab 14
->> bits).
->
-> There is no way until you see the 14th bit.
+Background
+~~~~~~~~~
+I am using an HVR-1300 card in a Linux system running 2.6.28.6 vanilla
+kernel and using latest v4l2 drivers from the repository.  We are
+trying to use the onboard MPEG H/W encoder CX23416 to deliver an
+MPEG-2 stream with both audio and video.
 
-Hm. Was afraid of that. I gave it a shot to see if I could make that
-work, pretty shaky results. About 2/3 of the keys get decoded as
-15-bit streamzap, the other 1/3 get decoded as 14-bit RC5, and don't
-match anything in the keytable (and often duplicate one another). So
-it looks like at least for the time being, a separate parallel decoder
-is the way to go. I'm thinking that I like the approach of only
-explicitly loading it from the streamzap driver though.
+To test I capture using "cat /dev/video1 > test.mpg" and I am using
+mplayer to play the subsequently captured stream.
+Problem
+~~~~~~
+The delivered MPEG-2 stream generally has no audio component. Mplayer
+reports "no audio found".
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+The same problem exists for both TV input and composite input.  By
+repeatedly switching between the TV input and the Composite input we
+can eventually get an audio component in the MPEG-2 stream.
+Thereafter we always get the audio component until a power off and
+restart.  Simply rebooting (no power off) seems to still leave things
+in a state where the audio component is in the MPEG-2 stream.
+
+There is a second problem, the audio stream always contains white
+noise (I assume TV tuner noise - we don't have it tuned nor an aerial
+attached) mixed with the signal applied to the analog in ports.
+
+Analysis
+~~~~~~
+The most likely scenario is that the hardware is not being initialised
+correctly most of the time, once it is initialised correctly then it
+works thereafter.  Unfortunately it is difficult to determine the
+actual audio path being used.  Clearly the audio comes into the WM8775
+(DAC) via a bus switch that switches between the composite/audio on
+the back panel and the white header.  It then enters the CX2388x via
+the I2S input pins.  We initially assumed that the audio was then
+routed through to the CX23416 (MPEG Encoder) via the I2S output pins
+of the CX2388x, but we have begun to doubt this assumption since the
+CX2388x is set in normal mode by the drivers and the captured audio
+doesn't reflect the bit patterns we see on the I2S Data Out line using
+an oscilloscope.  That is, when we apply *no* signal to the analog
+input, the I2S Dout line is "quiet" yet we hear white noise.
+
+Questions
+~~~~~~~~
+1) Anyone have any similar experiences?
+2) Does anyone have more information on the "blackbird reference
+design", in particular can the CX2388x be configured into passthrough
+mode so the I2S from the WM8775 goes directly to the CX23416.  I think
+the current wiring configuration of the CX23416 to the CX2388x
+precludes this?
+3) How might the analog signal be being routed to the CX23416 for
+encoding if not via the I2S input?
+
+
+Kind regards
+Shane Harrison
+Paragon Electronic Design
+NZ
