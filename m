@@ -1,81 +1,40 @@
-Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:53832 "EHLO mail.issp.bas.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751100Ab0HNEt0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Aug 2010 00:49:26 -0400
-From: Marin Mitov <mitov@issp.bas.bg>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera interface
-Date: Sat, 14 Aug 2010 07:47:56 +0300
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:42781 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752511Ab0HBKfq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 06:35:46 -0400
+Date: Mon, 2 Aug 2010 12:35:45 +0200
+From: Michael Grzeschik <mgr@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <201008131211.53101.mitov@issp.bas.bg> <201008132113.10147.jkrzyszt@tis.icnet.pl>
-In-Reply-To: <201008132113.10147.jkrzyszt@tis.icnet.pl>
+	Robert Jarzmik <robert.jarzmik@free.fr>, p.wiesner@phytec.de
+Subject: Re: [PATCH 00/20] MT9M111/MT9M131
+Message-ID: <20100802103545.GC14799@pengutronix.de>
+References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de> <Pine.LNX.4.64.1007301734540.7194@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201008140747.57140.mitov@issp.bas.bg>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1007301734540.7194@axis700.grange>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Friday, August 13, 2010 10:13:08 pm Janusz Krzysztofik wrote:
-> Friday 13 August 2010 11:11:52 Marin Mitov napisał(a):
-> > On Friday, August 13, 2010 11:52:41 am Guennadi Liakhovetski wrote:
-> > > On Fri, 13 Aug 2010, Janusz Krzysztofik wrote:
-> > > > Thursday 12 August 2010 23:38:17 Guennadi Liakhovetski napisał(a):
-> > > > > 1. We've discussed this dynamic switching a bit on IRC today. The
-> > > > > first reaction was - you probably should concentrate on getting the
-> > > > > contiguous version to work reliably. I.e., to reserve the memory in
-> > > > > the board init code similar, how other contig users currently do it.
-> > > >
-> > > > I already tried before to find out how I could allocate memory at init
-> > > > without reinventing a new videobuf-dma-contig implementation. Since in
-> > > > the Documentation/video4linux/videobuf I've read that videobuf does not
-> > > > currently play well with drivers that play tricks by allocating DMA
-> > > > space at system boot time, I've implemented the alternate sg path.
-> > > >
-> > > > If it's not quite true what the documentation says and you can give me
-> > > > a hint how this could be done, I might try again.
-> > >
-> > > For an example look at
-> > > arch/arm/mach-mx3/mach-pcm037.c::pcm037_camera_alloc_dma().
-> 
-> Yes, this is the solution that suffers from the already discussed limitation 
-> of not being able to remap a memory with different attributes, which affects 
-> OMAP1 as well.
-> 
-> > For preallocating dma-coherent memory for device personal use during device
-> > probe() time (when the memory is less fragmented compared to open() time)
-> > see also dt3155_alloc_coherent/dt3155_free_coherent in
-> > drivers/staging/dt3155v4l/dt3155vfl.c (for x86 arch, I do not know if it
-> > works for arm arch)
-> 
-> With this workaround applied, I get much better results, thank you Marin. 
-> However, it seems not bullet proof, since mmap still happens to fail for a 
-> reason not quite clear to me:
-> 
+Hey Guennadi, Robert
 
-This is just a preallocation of coherent memory kept for further private driver use, 
-should not be connected to mmap problem.
+sorry for that lack of information to those patches. I also just have
+been slicing one big patch into several canonical and tried to get rid
+of most tofu. You see the result in that patchseries. But since some big
+changes i could not figure out correctly, i left them in the stack for
+review. I should have adding an RFC to the Subject on those. Since i
+still have no response from the original author of these patches and you
+also see no sense in some changes i will condense the stack to a
+managable amount and will repost this v2 series in short time.
 
-> 
-> Maybe I should preallocate a few more pages than will be actually used by the 
-> driver?
-> 
-> Anyways, I'm not sure if this piece of code could be accepted for inclusion 
-> into the mainline tree, perhaps only under drivers/staging.
+Thanks for your time,
+Michael
 
-The idea for the piece of code I have proposed to you is taken from the functions
-dma_declare_coherent_memory()/dma_release_declared_memory() in mainline 
-drivers/base/dma-coherent.c
-
-> 
-> Thanks,
-> Janusz
-> 
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
