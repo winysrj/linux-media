@@ -1,98 +1,125 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:62307 "EHLO mx1.redhat.com"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:34786 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751420Ab0HIRkZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Aug 2010 13:40:25 -0400
-Message-ID: <4C603DB1.9030706@redhat.com>
-Date: Mon, 09 Aug 2010 14:41:05 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751490Ab0HBPYK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Aug 2010 11:24:10 -0400
+Date: Mon, 2 Aug 2010 11:12:25 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Jon Smirl <jonsmirl@gmail.com>
+Cc: Andy Walls <awalls@md.metrocast.net>,
+	Christoph Bartelmus <lirc@bartelmus.de>, jarod@wilsonet.com,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	lirc-list@lists.sourceforge.net, maximlevitsky@gmail.com,
+	mchehab@redhat.com
+Subject: Remote that breaks current system (was: IR: Port ene driver...) it.
+Message-ID: <20100802151225.GA2296@redhat.com>
+References: <AANLkTimaut1mMUXwbJAgjNjmQkxgsf-GOCTXmKYNm1Lz@mail.gmail.com>
+ <BTtOJbzJjFB@christoph>
+ <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
+ <1280602281.20879.76.camel@localhost>
+ <AANLkTi=tZaSGp3V8+4FHupzegmVrgM4-dzJb-y8YazOh@mail.gmail.com>
 MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: linux-media@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for August 7 (IR)
-References: <20100807160710.b7c8d838.sfr@canb.auug.org.au>	<20100807203920.83134a60.randy.dunlap@oracle.com>	<20100808135511.269f670c.randy.dunlap@oracle.com>	<4C5F9C2E.50001@redhat.com> <20100809075255.97d18a66.randy.dunlap@oracle.com>
-In-Reply-To: <20100809075255.97d18a66.randy.dunlap@oracle.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTi=tZaSGp3V8+4FHupzegmVrgM4-dzJb-y8YazOh@mail.gmail.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 09-08-2010 11:52, Randy Dunlap escreveu:
-> On Mon, 09 Aug 2010 03:11:58 -0300 Mauro Carvalho Chehab wrote:
+On Sat, Jul 31, 2010 at 05:53:33PM -0400, Jon Smirl wrote:
+> On Sat, Jul 31, 2010 at 2:51 PM, Andy Walls <awalls@md.metrocast.net> wrote:
+...
+> > Since these two protocols have such close timings that systematic errors
+> > can cause misclassification when using simple mark or space measurements
+> > against fixed thresholds, it indicates that a more sophisticated
+> > discrimination mechanism would be needed.  Perhaps one that takes multiple
+> > successive measurements into account?
 > 
->> Em 08-08-2010 17:55, Randy Dunlap escreveu:
->>> On Sat, 7 Aug 2010 20:39:20 -0700 Randy Dunlap wrote:
->>>
->>> [adding linux-media]
->>>
->>>> On Sat, 7 Aug 2010 16:07:10 +1000 Stephen Rothwell wrote:
->>>>
->>>>> Hi all,
->>>>>
->>>>> As the merge window is open, please do not add 2.6.37 material to your
->>>>> linux-next included trees until after 2.6.36-rc1.
->>>>>
->>>>> Changes since 20100806:
->>>>
->>>> 2 sets of IR build errors (2 .config files attached):
->>>>
->>>> #5091:
->>>> ERROR: "ir_keydown" [drivers/media/video/ir-kbd-i2c.ko] undefined!
->>>> ERROR: "__ir_input_register" [drivers/media/video/ir-kbd-i2c.ko] undefined!
->>>> ERROR: "get_rc_map" [drivers/media/video/ir-kbd-i2c.ko] undefined!
->>>> ERROR: "ir_input_unregister" [drivers/media/video/ir-kbd-i2c.ko] undefined!
->>>> ERROR: "get_rc_map" [drivers/media/video/cx88/cx88xx.ko] undefined!
->>>> ERROR: "ir_repeat" [drivers/media/video/cx88/cx88xx.ko] undefined!
->>>> ERROR: "ir_input_unregister" [drivers/media/video/cx88/cx88xx.ko] undefined!
->>>> ERROR: "ir_keydown" [drivers/media/video/cx88/cx88xx.ko] undefined!
->>>> ERROR: "__ir_input_register" [drivers/media/video/cx88/cx88xx.ko] undefined!
->>>> ERROR: "get_rc_map" [drivers/media/video/bt8xx/bttv.ko] undefined!
->>>> ERROR: "ir_input_unregister" [drivers/media/video/bt8xx/bttv.ko] undefined!
->>>> ERROR: "__ir_input_register" [drivers/media/video/bt8xx/bttv.ko] undefined!
->>>> ERROR: "ir_g_keycode_from_table" [drivers/media/IR/ir-common.ko] undefined!
->>>>
->>>>
->>>> #5101:
->>>> (.text+0x8306e2): undefined reference to `ir_core_debug'
->>>> (.text+0x830729): undefined reference to `ir_core_debug'
->>>> ir-functions.c:(.text+0x830906): undefined reference to `ir_core_debug'
->>>> (.text+0x8309d8): undefined reference to `ir_g_keycode_from_table'
->>>> (.text+0x830acf): undefined reference to `ir_core_debug'
->>>> (.text+0x830b92): undefined reference to `ir_core_debug'
->>>> (.text+0x830bef): undefined reference to `ir_core_debug'
->>>> (.text+0x830c6a): undefined reference to `ir_core_debug'
->>>> (.text+0x830cf7): undefined reference to `ir_core_debug'
->>>> budget-ci.c:(.text+0x89f5c8): undefined reference to `ir_keydown'
->>>> budget-ci.c:(.text+0x8a0c58): undefined reference to `get_rc_map'
->>>> budget-ci.c:(.text+0x8a0c80): undefined reference to `__ir_input_register'
->>>> budget-ci.c:(.text+0x8a0ee0): undefined reference to `get_rc_map'
->>>> budget-ci.c:(.text+0x8a11cd): undefined reference to `ir_input_unregister'
->>>> (.text+0x8a8adb): undefined reference to `ir_input_unregister'
->>>> dvb-usb-remote.c:(.text+0x8a9188): undefined reference to `get_rc_map'
->>>> dvb-usb-remote.c:(.text+0x8a91b1): undefined reference to `__ir_input_register'
->>>> dvb-usb-remote.c:(.text+0x8a9238): undefined reference to `get_rc_map'
->>>> dib0700_core.c:(.text+0x8b04ca): undefined reference to `ir_keydown'
->>>> dib0700_devices.c:(.text+0x8b2ea8): undefined reference to `ir_keydown'
->>>> dib0700_devices.c:(.text+0x8b2ef0): undefined reference to `ir_keydown'
->>
->> Hmm... clearly, there are some bad dependencies at the Kconfig. Maybe ir-core were compiled
->> as module, while some drivers as built-in.
->>
->> Could you please pass the .config file for this build?
+> If we get to the point where we need more sophisticated
+> classifications we can build it. But are we at that point yet? I'd
+> prefer to initially leave everything pretty strict as a way of
+> flushing out driver implementation bugs.
 > 
-> 
-> Sorry, config-r5101 is now attached.
+> Find some remotes and receivers that break the current system.
 
-Hmm... when building it, I'm getting an interesting warning:
+Got one. The Streamzap PC Remote. Its 14-bit RC5. Can't get it to properly
+decode in-kernel for the life of me. I got lirc_streamzap 99% of the way
+ported over the weekend, but this remote just won't decode correctly w/the
+in-kernel RC5 decoder.
 
-warning: (VIDEO_BT848 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_DEV && PCI && I2C && VIDEO_V4L2 && INPUT || VIDEO_SAA7134 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_CX88 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_IVTV && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && PCI && I2C && INPUT || VIDEO_CX18 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL && INPUT || VIDEO_EM28XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || VIDEO_TLG2300 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT && SND && DVB_CORE || VIDEO_CX231XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || DVB_BUDGET_CI && MEDIA_SUPPORT && DVB_CAPT
-URE_DRIVERS && DVB_CORE && DVB_BUDGET_CORE && I2C && INPUT || DVB_DM1105 && MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && DVB_CORE && PCI && I2C && INPUT || VIDEO_GO7007 && STAGING && !STAGING_EXCLUDE_BUILD && VIDEO_DEV && PCI && I2C && INPUT && SND || VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
+Working:
+Streamzap receiver + RC6 (MCE) remote, in-kernel decoding
+Streamzap receiver + RC5 (Streamzap) remote, lirc decoding
 
-This warning seems to explain what's going wrong.
+Not working:
+Streamzap receiver + RC5 (Streamzap) remote, in-kernel decoding
+MCE transceiver + RC5 (Streamzap) remote, in-kernel decoding
 
-I'll make patch(es) to address this issue.
+Failure mode is identical between the two, leading me to believe my
+streamzap port is good to go, we just have an issue to track down with rc5
+decoding.
 
-Thanks,
-Mauro.
+Said failure mode is that RC5 fails at STATE_INACTIVE (0) with the initial
+space provided by both receivers, then gets rolling with (I believe) the
+first pulse. It then gets all the way to STATE_FINISHED, and bails,
+because it should be on a space there, but its on a pulse.
+
+I've twiddled the decoder to proceed even if its a pulse, but the
+resulting decoding is still no good, as multiple adjacent keys (which have
+proper decoded values that only differ by 1, per lirc decoding) get
+decoded to the same value as one another.
+
+Still poking around trying to figure out the problem, but here's what the
+(slightly modified to not bail when it gets to STATE_FINISHED with a
+pulse) rc5 decoder is seeing/doing:
+
+ir_rc5_decode: RC5(x) decode started at state 0 (4292819813us space)
+ir_rc5_decode: RC5(x) decode failed at state 0 (4292819813us space)
+ir_rc5_decode: RC5(x) decode started at state 0 (896us pulse)
+ir_rc5_decode: RC5(x) decode started at state 1 (7us pulse)
+ir_rc5_decode: RC5(x) decode started at state 1 (896us space)
+ir_rc5_decode: RC5(x) decode started at state 2 (1920us pulse)
+ir_rc5_decode: RC5(x) decode started at state 1 (1031us pulse)
+ir_rc5_decode: RC5(x) decode started at state 2 (1664us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (775us space)
+ir_rc5_decode: RC5(x) decode started at state 2 (1664us pulse)
+ir_rc5_decode: RC5(x) decode started at state 1 (775us pulse)
+ir_rc5_decode: RC5(x) decode started at state 2 (896us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (7us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (896us pulse)
+ir_rc5_decode: RC5(x) decode started at state 2 (896us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (7us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (896us pulse)
+ir_rc5_decode: RC5(x) decode started at state 2 (1664us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (775us space)
+ir_rc5_decode: RC5(x) decode started at state 2 (896us pulse)
+ir_rc5_decode: RC5(x) decode started at state 3 (7us pulse)
+ir_rc5_decode: RC5(x) decode started at state 3 (896us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (896us space)
+ir_rc5_decode: RC5(x) decode started at state 2 (1920us pulse)
+ir_rc5_decode: RC5(x) decode started at state 1 (1031us pulse)
+ir_rc5_decode: RC5(x) decode started at state 2 (1664us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (775us space)
+ir_rc5_decode: RC5(x) decode started at state 2 (1664us pulse)
+ir_rc5_decode: RC5(x) decode started at state 1 (775us pulse)
+ir_rc5_decode: RC5(x) decode started at state 2 (896us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (7us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (896us pulse)
+ir_rc5_decode: RC5(x) decode started at state 2 (1664us space)
+ir_rc5_decode: RC5(x) decode started at state 1 (775us space)
+ir_rc5_decode: RC5(x) decode started at state 2 (1920us pulse)
+ir_rc5_decode: RC5(x) decode started at state 4 (1031us pulse)
+ir_rc5_decode: RC5 usually ends w/space, wtf?
+ir_rc5_decode: RC5 scancode 0x1129 (toggle: 0)
+ir_getkeycode: unknown key for scancode 0x1129
+
+This was for the OK button on the remote, which in lircd, decodes to
+scancode 0x12 in the lower 6 bits, high 8 bits are 0xa3 for all buttons.
+At least, I think I'm decoding lircd.conf correctly. See here to be sure:
+
+http://lirc.sourceforge.net/remotes/streamzap/lircd.conf.streamzap
+
+-- 
+Jarod Wilson
+jarod@redhat.com
+
