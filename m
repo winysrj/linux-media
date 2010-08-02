@@ -1,58 +1,150 @@
-Return-path: <mchehab@localhost>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41548 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756832Ab0HaHqH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Aug 2010 03:46:07 -0400
-Date: Tue, 31 Aug 2010 09:46:05 +0200
-From: Michael Grzeschik <mgr@pengutronix.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Philipp Wiesner <p.wiesner@phytec.de>
-Subject: Re: [PATCH v2 10/11] mt9m111: rewrite set_pixfmt
-Message-ID: <20100831074605.GC15967@pengutronix.de>
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de> <1280833069-26993-11-git-send-email-m.grzeschik@pengutronix.de> <Pine.LNX.4.64.1008271335200.28043@axis700.grange> <871v9hmdoz.fsf@free.fr>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from perceval.irobotique.be ([92.243.18.41]:50392 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752760Ab0HBOTN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 10:19:13 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v3 03/10] media: Entities, pads and links
+Date: Mon, 2 Aug 2010 16:19:08 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com> <1280419616-7658-4-git-send-email-laurent.pinchart@ideasonboard.com> <201008011332.50872.hverkuil@xs4all.nl>
+In-Reply-To: <201008011332.50872.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <871v9hmdoz.fsf@free.fr>
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008021619.11314.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-Hi Robert and Guennadi
+Hi Hans,
 
-On Sun, Aug 29, 2010 at 09:17:00PM +0200, Robert Jarzmik wrote:
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> > Robert, I'll need your ack / tested by on this one too. It actually 
-> > changes behaviour, for example, it sets MT9M111_OUTFMT_FLIP_BAYER_ROW in 
-> > the OUTPUT_FORMAT_CTRL register for the V4L2_MBUS_FMT_SBGGR8_1X8 8 bit 
-> > Bayer format. Maybe other things too - please have a look.
-> 
-> For the YUV and RGB formats, tested and acked.
-> For the bayer, I don't use it. With row switch, that gives back:
-> byte offset: 0 1 2 3
->              B G B G
->              G R G R
-> 
-> Without the switch:
-> byte offset: 0 1 2 3
->              G R G R
->              B G B G
-> 
-> I would have expected the second version (ie. without the switch, ie. the
-> original version of mt9m111 driver) to be correct, but I might be wrong. Maybe
-> Michael can enlighten me here.
-Yes this seems odd, i normaly expect the first line to be BGBG.
-I will search for the cause and reply a little later, perhaps end of
-the week, since i am also short on time at this moment.
+On Sunday 01 August 2010 13:32:50 Hans Verkuil wrote:
+> On Thursday 29 July 2010 18:06:36 Laurent Pinchart wrote:
 
-Michael
+<snip>
+
+> > diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> > new file mode 100644
+> > index 0000000..37a25bf
+> > --- /dev/null
+> > +++ b/include/media/media-entity.h
+> > @@ -0,0 +1,85 @@
+> > +#ifndef _MEDIA_ENTITY_H
+> > +#define _MEDIA_ENTITY_H
+> > +
+> > +#include <linux/list.h>
+> > +
+> > +#define MEDIA_ENTITY_TYPE_NODE			(1 << 16)
+> 
+> I agree with Sakari that '16' should be a define.
+
+Will do.
+
+> > +#define MEDIA_ENTITY_TYPE_NODE_V4L		(MEDIA_ENTITY_TYPE_NODE + 1)
+> > +#define MEDIA_ENTITY_TYPE_NODE_FB		(MEDIA_ENTITY_TYPE_NODE + 2)
+> > +#define MEDIA_ENTITY_TYPE_NODE_ALSA		(MEDIA_ENTITY_TYPE_NODE + 3)
+> > +#define MEDIA_ENTITY_TYPE_NODE_DVB		(MEDIA_ENTITY_TYPE_NODE + 4)
+> > +
+> > +#define MEDIA_ENTITY_TYPE_SUBDEV		(2 << 16)
+> > +#define MEDIA_ENTITY_TYPE_SUBDEV_VID_DECODER	(MEDIA_ENTITY_TYPE_SUBDEV +
+> > 1)
+> > +#define MEDIA_ENTITY_TYPE_SUBDEV_VID_ENCODER	(MEDIA_ENTITY_TYPE_SUBDEV +
+> > 2)
+> > +#define MEDIA_ENTITY_TYPE_SUBDEV_MISC		(MEDIA_ENTITY_TYPE_SUBDEV + 3) 
++
+> > +#define MEDIA_LINK_FLAG_ACTIVE			(1 << 0)
+> > +#define MEDIA_LINK_FLAG_IMMUTABLE		(1 << 1)
+> > +
+> > +#define MEDIA_PAD_FLAG_INPUT			(1 << 0)
+> > +#define MEDIA_PAD_FLAG_OUTPUT			(1 << 1)
+> > +
+> > +struct media_link {
+> > +	struct media_pad *source;	/* Source pad */
+> > +	struct media_pad *sink;		/* Sink pad  */
+> > +	struct media_link *other;	/* Link in the reverse direction */
+> 
+> Why not rename 'other' to 'back' or 'backlink'? 'other' is not a good name
+> IMHO.
+
+For forward links other is the backlink, but for backlinks other is the 
+forward link. I'll rename it to reverse.
+
+> > +	unsigned long flags;		/* Link flags (MEDIA_LINK_FLAG_*) */
+> > +};
+> > +
+> > +struct media_pad {
+> > +	struct media_entity *entity;	/* Entity this pad belongs to */
+> > +	u16 index;			/* Pad index in the entity pads array */
+> > +	unsigned long flags;		/* Pad flags (MEDIA_PAD_FLAG_*) */
+> > +};
+> > +
+> > +struct media_entity {
+> > +	struct list_head list;
+> > +	struct media_device *parent;	/* Media device this entity belongs to*/
+> > +	u32 id;				/* Entity ID, unique in the parent media
+> > +					 * device context */
+> > +	const char *name;		/* Entity name */
+> > +	u32 type;			/* Entity type (MEDIA_ENTITY_TYPE_*) */
+> > +
+> > +	u8 num_pads;			/* Number of input and output pads */
+> > +	u8 num_links;			/* Number of existing links, both active
+> > +					 * and inactive */
+> > +	u8 num_backlinks;		/* Number of backlinks */
+> > +	u8 max_links;			/* Maximum number of links */
+> > +
+> > +	struct media_pad *pads;		/* Pads array (num_pads elements) */
+> > +	struct media_link *links;	/* Links array (max_links elements)*/
+> > +
+> > +	union {
+> > +		/* Node specifications */
+> > +		struct {
+> > +			u32 major;
+> > +			u32 minor;
+> > +		} v4l;
+> > +		struct {
+> > +			u32 major;
+> > +			u32 minor;
+> > +		} fb;
+> > +		int alsa;
+> > +		int dvb;
+> > +
+> > +		/* Sub-device specifications */
+> > +		/* Nothing needed yet */
+> > +	};
+> > +};
+> > +
+> > +#define MEDIA_ENTITY_TYPE_MASK		0xffff0000
+> > +#define MEDIA_ENTITY_SUBTYPE_MASK	0x0000ffff
+> > +
+> > +#define media_entity_type(entity) \
+> > +	((entity)->type & MEDIA_ENTITY_TYPE_MASK)
+> > +#define media_entity_subtype(entity) \
+> > +	((entity)->type & MEDIA_ENTITY_SUBTYPE_MASK)
+> 
+> Make these inline functions to ensure correct typechecking.
+
+OK.
+
+> Since bit 31 of the entity ID is reserved for MEDIA_ENTITY_ID_FLAG_NEXT you
+> probably should change the TYPE_MASK to 0x7fff0000. Actually, I would
+> change the type mask to 0x00ff0000, that way all top 8 bits are available
+> for the future.
+
+Agreed.
+
+> > +
+> > +int media_entity_init(struct media_entity *entity, u8 num_pads,
+> > +		struct media_pad *pads, u8 extra_links);
+> > +void media_entity_cleanup(struct media_entity *entity);
+> > +int media_entity_create_link(struct media_entity *source, u8 source_pad,
+> > +		struct media_entity *sink, u8 sink_pad, u32 flags);
+> > +
+> > +#endif
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Regards,
+
+Laurent Pinchart
