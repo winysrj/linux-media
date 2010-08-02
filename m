@@ -1,123 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4983 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965697Ab0HFTdf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Aug 2010 15:33:35 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id o76JXXJF033844
-	for <linux-media@vger.kernel.org>; Fri, 6 Aug 2010 21:33:34 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 6 Aug 2010 21:33:33 +0200 (CEST)
-Message-Id: <201008061933.o76JXXJF033844@smtp-vbr16.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:63029 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751575Ab0HBKTs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 06:19:48 -0400
+Received: by iwn7 with SMTP id 7so4032741iwn.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 03:19:48 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTinHK8mVwrCnOZTUMsHVGTykj8bNdkKwcbMQ8LK_@mail.gmail.com>
+References: <AANLkTimD-BCmN+3YUykUCH0fdNagw=wcUu1g+Z87N_5W@mail.gmail.com>
+	<1280741544.1361.17.camel@gagarin>
+	<AANLkTinHK8mVwrCnOZTUMsHVGTykj8bNdkKwcbMQ8LK_@mail.gmail.com>
+Date: Mon, 2 Aug 2010 22:19:48 +1200
+Message-ID: <AANLkTi=M2wVY3vL8nGBg-YqUtRidBahpE5OXbjr5k96X@mail.gmail.com>
+Subject: Fwd: No audio in HW Compressed MPEG2 container on HVR-1300
+From: Shane Harrison <shane.harrison@paragon.co.nz>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, Aug 2, 2010 at 9:32 PM, lawrence rust <lawrence@softsystem.co.uk> wrote:
+>
+> On Mon, 2010-08-02 at 14:15 +1200, Shane Harrison wrote:
+> > Hi There,
+> >
+> > I am having a problem with getting an audio stream present in the
+> > MPEG2 stream from an HVR-1300 card.
+>
+> [snip]
+>
+> > Problem
+> > ~~~~~~
+> > The delivered MPEG-2 stream generally has no audio component. Mplayer
+> > reports "no audio found".
+> >
+> > The same problem exists for both TV input and composite input.  By
+> > repeatedly switching between the TV input and the Composite input we
+> > can eventually get an audio component in the MPEG-2 stream.
+> > Thereafter we always get the audio component until a power off and
+> > restart.  Simply rebooting (no power off) seems to still leave things
+> > in a state where the audio component is in the MPEG-2 stream.
+> >
+> > There is a second problem, the audio stream always contains white
+> > noise (I assume TV tuner noise - we don't have it tuned nor an aerial
+> > attached) mixed with the signal applied to the analog in ports.
+> >
+> > Analysis
+> > ~~~~~~
+> > The most likely scenario is that the hardware is not being initialised
+> > correctly most of the time, once it is initialised correctly then it
+> > works thereafter.  Unfortunately it is difficult to determine the
+> > actual audio path being used.  Clearly the audio comes into the WM8775
+> > (DAC) via a bus switch that switches between the composite/audio on
+> > the back panel and the white header.  It then enters the CX2388x via
+> > the I2S input pins.  We initially assumed that the audio was then
+> > routed through to the CX23416 (MPEG Encoder) via the I2S output pins
+> > of the CX2388x, but we have begun to doubt this assumption since the
+> > CX2388x is set in normal mode by the drivers and the captured audio
+> > doesn't reflect the bit patterns we see on the I2S Data Out line using
+> > an oscilloscope.  That is, when we apply *no* signal to the analog
+> > input, the I2S Dout line is "quiet" yet we hear white noise.
+> >
+> > Questions
+> > ~~~~~~~~
+> > 1) Anyone have any similar experiences?
+>
+> This sounds very much like the problems that I had with my Nova-S-plus
+> card while developing a patch to capture line-in audio with composite
+> video.  Looking at the docs for the wm8775 it appeared that it wasn't
+> being correctly initialised.  I also found need to change the cx88 code
+> to mute/un-mute audio in.  Maybe you should try applying this patch, I
+> posted it to this group on Saturday - see.
+>
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg21030.html
+>
+> -- Lawrence Rust
+>
+>
+Thanks Lawrence, will give that a whirl tomorrow and the muting idea
+might be important in this case as well.  Wierd you posted Saturday
+the day after I last worked on this and looked at the archives :-)
 
-Results of the daily build of v4l-dvb:
+I am not ruling out initialisation problems with the WM8775 but I do
+always seem to get an I2S output from it that has data in it that
+reflects the input.  However it could be the wrong variant of I2S or
+some other configuration that isn't set right.  Strange how eventually
+I do get audio (albeit mixed with the TV source it appears) simply by
+looping thru and changing input sources with v4l2-ctl.
 
-date:        Fri Aug  6 19:00:22 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14994:a14d56c730c4
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+I note that the Nova-S doesn't have the hardware MPEG encoding so
+still hoping someone can enlighten me on the audio path when using
+that chip.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Cheers
+Shane
