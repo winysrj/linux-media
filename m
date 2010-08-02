@@ -1,43 +1,37 @@
-Return-path: <mchehab@pedra>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:39180 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757928Ab0HKCd3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Aug 2010 22:33:29 -0400
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:62946 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753912Ab0HBTlh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 15:41:37 -0400
+Received: by qwh6 with SMTP id 6so1798963qwh.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 12:41:36 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1117369508.20100811005719@eikelenboom.it>
-References: <61936849.20100811001257@eikelenboom.it>
-	<AANLkTinVNms-vdfG-VZzkOadogaCRV+HyDAY5yhYOJSK@mail.gmail.com>
-	<1117369508.20100811005719@eikelenboom.it>
-Date: Tue, 10 Aug 2010 22:33:28 -0400
-Message-ID: <AANLkTikPffMQLXcPF4-xPeZfkaAtnu7xEP0TMzYVrkgE@mail.gmail.com>
-Subject: Re: [2.6.35] usb 2.0 em28xx kernel panic general protection fault:
-	0000 [#1] SMP RIP: 0010:[<ffffffffa004fbc5>] [<ffffffffa004fbc5>]
-	em28xx_isoc_copy_vbi+0x62e/0x812 [em28xx]
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Sander Eikelenboom <linux@eikelenboom.it>
-Cc: mchehab@infradead.org, mrechberger@gmail.com, gregkh@suse.de,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-usb@vger.kernel.org
+In-Reply-To: <20100731235403.1210e666@pedra>
+References: <cover.1280630041.git.mchehab@redhat.com>
+	<20100731235403.1210e666@pedra>
+Date: Mon, 2 Aug 2010 15:41:35 -0400
+Message-ID: <AANLkTim1WPhYA0_LZDWe_LKrUiZg=S7czaQy4JFtUXUH@mail.gmail.com>
+Subject: Re: [PATCH 2/7] V4L/DVB: dvb-usb: get rid of struct dvb_usb_rc_key
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Tue, Aug 10, 2010 at 6:57 PM, Sander Eikelenboom
-<linux@eikelenboom.it> wrote:
-> Hello Devin,
+On Sat, Jul 31, 2010 at 10:54 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> dvb-usb has its own IR handle code. Now that we have a Remote
+> Controller subsystem, we should start using it. So, remove this
+> struct, in favor of the similar struct defined at the RC subsystem.
 >
-> It's a k-world, which used to work fine (altough with another program, but I can't use that since it seems at least 2 other bugs prevent me from using my VM's :-)
-> It's this model  http://global.kworld-global.com/main/prod_in.aspx?mnuid=1248&modid=6&pcid=47&ifid=17&prodid=104
+> This is a big, but trivial patch. It is a 3 line delect, plus
+> lots of rename on several dvb-usb files.
 >
-> Tried to grab with ffmpeg.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Is it reproducible?  Or did it just happen once?  If you have a
-sequence to reproduce, can you provide the command line you used, etc?
-
-Devin
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Jarod Wilson
+jarod@wilsonet.com
