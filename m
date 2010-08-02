@@ -1,114 +1,143 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3478 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755621Ab0H3SzB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Aug 2010 14:55:01 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7UIsxUs055828
-	for <linux-media@vger.kernel.org>; Mon, 30 Aug 2010 20:55:00 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 30 Aug 2010 20:54:59 +0200 (CEST)
-Message-Id: <201008301855.o7UIsxUs055828@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.122.230]:60870 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751028Ab0HBOH1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 10:07:27 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com, mchehab@redhat.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v7 5/5] Documentation: v4l: Add hw_seek spacing and FM_RX class
+Date: Mon,  2 Aug 2010 17:06:43 +0300
+Message-Id: <1280758003-16118-6-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1280758003-16118-5-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+ <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+ <1280758003-16118-3-git-send-email-matti.j.aaltonen@nokia.com>
+ <1280758003-16118-4-git-send-email-matti.j.aaltonen@nokia.com>
+ <1280758003-16118-5-git-send-email-matti.j.aaltonen@nokia.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Add a couple of words about the spacing field in ithe HW seek struct and
+about the new FM RX control class.
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ Documentation/DocBook/v4l/controls.xml             |   71 ++++++++++++++++++++
+ .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 ++-
+ 2 files changed, 79 insertions(+), 2 deletions(-)
 
-date:        Mon Aug 30 19:00:05 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15138:a4c762698bcb
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+index e1bdbb6..bba3f4d 100644
+--- a/Documentation/DocBook/v4l/controls.xml
++++ b/Documentation/DocBook/v4l/controls.xml
+@@ -2062,6 +2062,77 @@ manually or automatically if set to zero. Unit, range and step are driver-specif
+ <para>For more details about RDS specification, refer to
+ <xref linkend="en50067" /> document, from CENELEC.</para>
+     </section>
++    <section id="fm-rx-controls">
++      <title>FM Tuner Control Reference</title>
++
++      <para>The FM Tuner (FM_RX) class includes controls for common features of
++devices that are capable of receiving FM transmissions. Currently this class includes a parameter
++defining the FM radio band being used.</para>
++
++      <table pgwide="1" frame="none" id="fm-rx-control-id">
++      <title>FM_RX Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*" />
++	<colspec colname="c2" colwidth="6*" />
++	<colspec colname="c3" colwidth="2*" />
++	<colspec colname="c4" colwidth="6*" />
++	<spanspec namest="c1" nameend="c2" spanname="id" />
++	<spanspec namest="c2" nameend="c4" spanname="descr" />
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FM_RX_CLASS</constant>&nbsp;</entry>
++	    <entry>class</entry>
++	  </row><row><entry spanname="descr">The FM_RX class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FM_RX_BAND</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row id="v4l2-fm_rx_band"><entry spanname="descr">Configures the FM radio
++frequency range being used. Currently there are three bands in use, see  <ulink
++url="http://en.wikipedia.org/wiki/FM_broadcasting">Wikipedia</ulink>.
++Usually 87.5 to 108.0 MHz is used, or some portion thereof, with a few exceptions:
++In Japan, the band 76-90 MHz is used and in the former Soviet republics
++and some Eastern European countries, the older 65-74 MHz band,
++referred also to as the OIRT band, is still used.
++
++The enum&nbsp; v4l2_fm_rx_band defines possible values for the FM band. They are:</entry>
++	</row><row>
++	<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_FM_BAND_OTHER</constant>&nbsp;</entry>
++		      <entry>Frequencies from 87.5 to 108.0 MHz</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FM_BAND_JAPAN</constant>&nbsp;</entry>
++		      <entry>from 65 to 74 MHz</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FM_BAND_OIRT</constant>&nbsp;</entry>
++		      <entry>from 65 to 74 MHz</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++
++    </section>
+ </section>
+ 
+   <!--
+diff --git a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+index 14b3ec7..c30dcc4 100644
+--- a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
++++ b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+@@ -51,7 +51,8 @@
+ 
+     <para>Start a hardware frequency seek from the current frequency.
+ To do this applications initialize the <structfield>tuner</structfield>,
+-<structfield>type</structfield>, <structfield>seek_upward</structfield> and
++<structfield>type</structfield>, <structfield>seek_upward</structfield>,
++<structfield>spacing</structfield> and
+ <structfield>wrap_around</structfield> fields, and zero out the
+ <structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
+ call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
+@@ -89,7 +90,12 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry><structfield>spacing</structfield></entry>
++	    <entry>If non-zero, defines the hardware seek resolution in Hz. The driver selects the nearest value that is supported by the device. If spacing is zero a reasonable default value is used.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[7]</entry>
+ 	    <entry>Reserved for future extensions. Drivers and
+ 	    applications must set the array to zero.</entry>
+ 	  </row>
+-- 
+1.6.1.3
 
-linux-2.6.32.6-armv5: ERRORS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: ERRORS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
