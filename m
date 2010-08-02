@@ -1,93 +1,67 @@
-Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:52252 "EHLO mail.issp.bas.bg"
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:53231 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752239Ab0HZHEM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 03:04:12 -0400
-From: Marin Mitov <mitov@issp.bas.bg>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Date: Thu, 26 Aug 2010 10:01:52 +0300
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	akpm@linux-foundation.org
-References: <201008201450.12585.mitov@issp.bas.bg> <201008260904.19973.mitov@issp.bas.bg> <20100826152333K.fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <20100826152333K.fujita.tomonori@lab.ntt.co.jp>
+	id S1751310Ab0HBLuy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Aug 2010 07:50:54 -0400
+Message-ID: <4C56B12A.3080808@redhat.com>
+Date: Mon, 02 Aug 2010 08:51:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+CC: Pawel Osciak <p.osciak@samsung.com>,
+	"'Kukjin Kim'" <kgene.kim@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com,
+	linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH v3 1/8] ARM: Samsung: Add register definitions for	Samsung
+ S5P SoC camera interface
+References: <1279902083-21250-1-git-send-email-s.nawrocki@samsung.com> <1279902083-21250-2-git-send-email-s.nawrocki@samsung.com> <00ba01cb2c8f$02fc8480$08f58d80$%kim@samsung.com> <003001cb322d$fc976b10$f5c64130$%osciak@samsung.com> <20100802105216.GD30670@n2100.arm.linux.org.uk>
+In-Reply-To: <20100802105216.GD30670@n2100.arm.linux.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201008261001.57678.mitov@issp.bas.bg>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thursday, August 26, 2010 09:24:19 am FUJITA Tomonori wrote:
-> On Thu, 26 Aug 2010 09:04:14 +0300
-> Marin Mitov <mitov@issp.bas.bg> wrote:
+Em 02-08-2010 07:52, Russell King - ARM Linux escreveu:
+> On Mon, Aug 02, 2010 at 12:32:20PM +0200, Pawel Osciak wrote:
+>> Well, some of them are indeed unused, but it's not an uncommon practice in
+>> kernel and might help future developers.
 > 
-> > On Thursday, August 26, 2010 08:40:47 am FUJITA Tomonori wrote:
-> > > On Fri, 20 Aug 2010 14:50:12 +0300
-> > > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > > 
-> > > > On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
-> > > > > On Fri, 20 Aug 2010 11:13:45 +0300
-> > > > > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > > > > 
-> > > > > > > > This tric is already used in drivers/staging/dt3155v4l.c
-> > > > > > > > dt3155_alloc_coherent()/dt3155_free_coherent()
-> > > > > > > > 
-> > > > > > > > Here proposed for general use by popular demand from video4linux folks.
-> > > > > > > > Helps for videobuf-dma-contig framework.
-> > > > > > > 
-> > > > > > > What you guys exactly want to do? If you just want to pre-allocate
-> > > > > > > coherent memory for latter usage,
-> > > > > > 
-> > > > > > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
-> > > > > > We use coherent memory because it turns out to be contiguous.
-> > > > > 
-> > > > > Hmm, you don't care about coherency? You just need contiguous memory?
-> > > > 
-> > > > Yes. We just need contiguous memory. Coherency is important as far as when dma
-> > > > transfer finishes user land is able to see the new data. Could be done by something like
-> > > > dma_{,un}map_single()
-> > > 
-> > > Then, we should avoid using coherent memory as I exaplained before. In
-> > > addition, dma_alloc_coherent can't provide large enough contigous
-> > > memory for some drivers so this patch doesn't help much.
-> > 
-> > Please, look at drivers/media/video/videobuf-dma-contig.c. Using coherent memory
-> > is inavoidable for now, there is no alternative for it for now. The two new functions,
-> > which I propose are just helpers for those of us who already use coherent memory
-> > (via videobuf-dma-contig API). May be adding these two functions to 
-> > drivers/media/video/videobuf-dma-contig.c will be better solution?
+> On the other hand, arch/arm is getting soo big that we need to do
+> something about this - and one solution is to avoid unnecessary
+> definitions that we're not using.
 > 
-> If you add something to the videobuf-dma-contig API, that's fine by me
-> because drivers/media/video/videobuf-dma-contig.c uses the own
-> structure and plays with dma_alloc_coherent. As long as a driver
-> doesn't touch device->dma_mem directly, it's fine, 
+> Another good idea is to put definitions along side the drivers which
+> they're relevant to - maybe in a local driver-name.h file which
+> driver-name.c includes, or maybe even within driver-name.c if they're
+> not excessive.  This has the advantage of distributing the "bloat" to
+> where its actually used, and means that the driver isn't dependent so
+> much on arch/arm or even the SoC itself.
 
-Why, my understanding is that device->dma_mem is designed exactly for keeping 
-some chunk of coherent memory for device's private use via dma_alloc_from_coherent()
-(and that is what dt3155v4l driver is using it for).
+Very much appreciated from my side. It is very hard to sync changes that
+happen via arm trees when merging from my tree. There were several cases
+in the past were I needed to coordinate with an ARM maintainer about when
+he would merge from his tree, as the patches I had on media tree were
+highly dependent on the patches at arch.
 
-> I think (that is, dt3155v4l driver is broken). 
+On several cases, I suspect that we had git bisect breakages (compilation
+or driver miss-functioning) due to those sync issues between two trees.
 
-If you mean that allocating some coherent memory (4MB in case of dt3155v4l) during
-pci probe() (during system booting) for device's latter use (that is dead for the rest
-of the system) you are right. But this gives me at least 8 full size buffers warranted for 
-latter use. Without this hack the hardware will not work on strongly fragmented system.
-With this hack even if the system is strongly fragmented, this chunk of 4MB is available 
-for use (though videobuf-dma-contig APIs and dma_alloc_from_coherent()) __transparently__
-for users of videobuf-dma-contig (that is the gain - the transparency).
+A per-driver *.h file makes things easier, as such header file can be
+merged/maintained together with the subsystem tree where the driver belongs.
 
-> There are already some workarounds for
-> contigous memory in several drivers anyway.
+> Take a look at arch/arm/mach-vexpress/include/mach/ct-ca9x4.h and
+> arch/arm/mach-vexpress/include/mach/motherboard.h - these are the only
+> two files which contain platform definitions which are actually used
+> for Versatile Express.  Compare that with
+> arch/arm/mach-realview/include/mach/platform.h which contains lots
+> more...
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Sure, can these workarounds be exposed as API for general use?
-
-Thanks,
-
-Marin Mitov
-
-> 
-> We will have the proper API for contiguous memory. I don't think that
-> adding such workaround to the DMA API is a good idea.
-> 
+Cheers,
+Mauro
