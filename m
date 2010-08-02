@@ -1,43 +1,56 @@
-Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:50033 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754781Ab0H3Iwk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Aug 2010 04:52:40 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Many fixes for in-kernel decoding + ENE driver
-Date: Mon, 30 Aug 2010 11:52:20 +0300
-Message-Id: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:48737 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751152Ab0HBNNT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Aug 2010 09:13:19 -0400
+From: raja_mani@ti.com
+To: olbpdev@list.ti.com, linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, Raja-Mani <x0102026@ti.com>
+Subject: [RFC 0/4] FM V4L2 driver for WL128x
+Date: Mon,  2 Aug 2010 08:13:08 -0500
+Message-Id: <1280754792-14943-1-git-send-email-raja_mani@ti.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi,
+From: Raja-Mani <x0102026@ti.com>
 
-I did a lot of debug work on this, including a debug session with two users.
-I was able to test and fix support for all features ene driver supports.
+The following patches are FM V4L2-Radio drivers for WL128x
+(backward compatible for WL127x).
+This driver makes use of TI Shared Transport driver for its
+transport via UART/TTY.
 
-The patch #1 fixes a bug I introduced
-The patch #2 fixes a nasty bug that crashes the system
-The patch #3 fixes another small bug in my code
-The patch #4 fixes a nasty but that appears as a stuck down forever key
+Only FM Rx is supported as of now. Any FM V4L2 Radio standard application
+can make use of the '/dev/radioX' interface exposed by this driver to
+communicate with the TI FM chip.
 
-The patch #5 adds a lot of bugfixes, refactoring and support for latest firmware
-that without it driver dosn't work.
-Driver is fully tested, and works.
+This doesn't include the handling of audio path and has support for
+RDS, FM firmware download, HW Seek, Tune, Volume control,etc.
 
-in the patch #6 I finally decided to extend ir_raw_event, and encode additional
-flags to it. This way I can signal the decoders about last space and yet not
-show it up on lirc interface.
-Timeout hangling is now moved in lirc bridge where it belongs.
-While at it, I also added support for carrier report events,
-and patch #6 adds that support to ene driver (tested too).
+Tested with internal FM app and as well as with open source gnome-radio
+application and verified on SDP4430, kernel 2.6.35-rc5.
 
-Best regards,
-	Maxim Levitsky
+Note: The patches however are re-based to the Stephen Rothwell's linux-next's
+drivers/staging/ti-st since the latest version of ST drivers exist there.
 
+Raja-Mani (4):
+  drivers:staging:ti-st: sources for FM common interfaces
+  drivers:staging:ti-st: Sources for FM RX
+  drivers:staging:ti-st: Sources for FM V4L2 interfaces
+  drivers:staging:ti-st: Sources for FM common header
+
+ drivers/staging/ti-st/fmdrv.h        |  225 ++++
+ drivers/staging/ti-st/fmdrv_common.c | 2127 ++++++++++++++++++++++++++++++++++
+ drivers/staging/ti-st/fmdrv_common.h |  459 ++++++++
+ drivers/staging/ti-st/fmdrv_rx.c     |  805 +++++++++++++
+ drivers/staging/ti-st/fmdrv_rx.h     |   56 +
+ drivers/staging/ti-st/fmdrv_v4l2.c   |  550 +++++++++
+ drivers/staging/ti-st/fmdrv_v4l2.h   |   32 +
+ 7 files changed, 4254 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/ti-st/fmdrv.h
+ create mode 100644 drivers/staging/ti-st/fmdrv_common.c
+ create mode 100644 drivers/staging/ti-st/fmdrv_common.h
+ create mode 100644 drivers/staging/ti-st/fmdrv_rx.c
+ create mode 100644 drivers/staging/ti-st/fmdrv_rx.h
+ create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.c
+ create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.h
 
