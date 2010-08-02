@@ -1,124 +1,58 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3217 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756493Ab0HPToR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Aug 2010 15:44:17 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7GJiCUt002385
-	for <linux-media@vger.kernel.org>; Mon, 16 Aug 2010 21:44:16 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 16 Aug 2010 21:44:12 +0200 (CEST)
-Message-Id: <201008161944.o7GJiCUt002385@smtp-vbr16.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:19605 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753533Ab0HBQFs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Aug 2010 12:05:48 -0400
+Date: Mon, 2 Aug 2010 11:54:05 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>,
+	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+Subject: Re: [PATCH 09/13] IR: add helper function for hardware with small
+ o/b buffer.
+Message-ID: <20100802155405.GD2296@redhat.com>
+References: <1280588366-26101-1-git-send-email-maximlevitsky@gmail.com>
+ <1280588366-26101-10-git-send-email-maximlevitsky@gmail.com>
+ <1280715061.19666.47.camel@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1280715061.19666.47.camel@localhost>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sun, Aug 01, 2010 at 10:11:01PM -0400, Andy Walls wrote:
+> On Sat, 2010-07-31 at 17:59 +0300, Maxim Levitsky wrote:
+...
+> >  struct ir_input_dev {
+> > @@ -69,9 +81,10 @@ struct ir_input_dev {
+> >  	char				*driver_name;	/* Name of the driver module */
+> >  	struct ir_scancode_table	rc_tab;		/* scan/key table */
+> >  	unsigned long			devno;		/* device number */
+> > -	const struct ir_dev_props	*props;		/* Device properties */
+> > +	struct ir_dev_props		*props;		/* Device properties */
+> 
+> So I don't think the struct ir_dev_props structure is the right place to
+> be storing current operating parameters. IMO, operating parameters
+> stored in the ir_dev_props are "too far" from the lower level driver,
+> and are essentially mirroring what the low level driver should be
+> tracking internally as it's own state anyway.
+> 
+> 
+> So in summary, I think we need to keep the opertions in struct
+> ir_dev_props simple using ,get_parameters() and .set_parameters() to
+> contol the lower level driver and to fetch, retrieve, and store
+> parameters.
 
-Results of the daily build of v4l-dvb:
+Yeah, I neglected to consider this change the first pass through an
+earlier revision. Making props modifiable on the fly does feel like we're
+mixing up hardware features with hardware state, and perhaps the
+on-the-fly-modifiable state bits should be stored somewhere else.
 
-date:        Mon Aug 16 19:00:22 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15067:ab433502e041
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: WARNINGS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: WARNINGS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: WARNINGS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: WARNINGS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: WARNINGS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: WARNINGS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: WARNINGS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: WARNINGS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: WARNINGS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
