@@ -1,90 +1,54 @@
-Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:41211 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754112Ab0HZPih convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 11:38:37 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nataraju, Kiran" <knataraju@ti.com>
-Date: Thu, 26 Aug 2010 10:38:33 -0500
-Subject: RE: [omap3camera] How does a lens subdevice get powered up?
-Message-ID: <A24693684029E5489D1D202277BE894463BA861E@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE894463BA7E30@dlee02.ent.ti.com>
- <201008261704.05834.laurent.pinchart@ideasonboard.com>
- <A24693684029E5489D1D202277BE894463BA8603@dlee02.ent.ti.com>
- <201008261736.17915.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201008261736.17915.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58895 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755796Ab0HCJik (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 05:38:40 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: baruch@tkos.co.il, g.liakhovetski@gmx.de, s.hauer@pengutronix.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: [PATCH 2/5] mx2_camera: remove emma limitation for RGB565
+Date: Tue,  3 Aug 2010 11:37:53 +0200
+Message-Id: <1280828276-483-3-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Laurent,
+In the current source status the emma has no limitation for any PIXFMT
+since the data is parsed raw and unprocessed into the memory.
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Thursday, August 26, 2010 10:36 AM
-> To: Aguirre, Sergio
-> Cc: linux-media@vger.kernel.org; Nataraju, Kiran
-> Subject: Re: [omap3camera] How does a lens subdevice get powered up?
-> 
-> Hi Sergio,
-> 
-> On Thursday 26 August 2010 17:33:28 Aguirre, Sergio wrote:
-> > On Thursday, August 26, 2010 10:04 AM Laurent Pinchart wrote:
-> > >
-> > > Even if not part of the image pipeline, the lens controller is still
-> part
-> > > of the media device. I think it makes sense to expose it as an entity
-> and
-> > > a V4L2 subdevice.
-> >
-> > Hmm... I don't know what I was thinking... you're right. :)
-> >
-> > Now that I rethink what I just said vs your answer, I think you have a
-> > point, so I'll drop that thought...
-> >
-> > However, I think still there's something that could be done here...
-> >
-> > Imagine a scenario in which you have 2 sensors, each one with a
-> different
-> > Coil motor driver to control each sensor's lens position.
-> >
-> > Should we have a way to register some sort of association between
-> > Sensor and lens subdevices? That way, by querying the media device, an
-> app
-> > can know which lens is associated with what sensor, without any
-> hardcoding.
-> >
-> > That would be very similar to the case in which you would want to
-> associate
-> > an audio capturing subdev with a video capturing subdev. They are not
-> > technically sharing the same data, but they are related.
-> >
-> > Is this kind of association considered in the Media Controller framework
-> > implementation currently?
-> 
-> It's implemented in the latest media controller RFC :-)
-> 
-> Entities now have a group ID that the driver can set to report
-> associations
-> such as sensor-coil-flash or video-audio.
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+---
+ drivers/media/video/mx2_camera.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
-Oh ok, I see.
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index c77a673..ae27640 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -897,10 +897,6 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+ 		return -EINVAL;
+ 	}
+ 
+-	/* eMMA can only do RGB565 */
+-	if (mx27_camera_emma(pcdev) && pix->pixelformat != V4L2_PIX_FMT_RGB565)
+-		return -EINVAL;
+-
+ 	mf.width	= pix->width;
+ 	mf.height	= pix->height;
+ 	mf.field	= pix->field;
+@@ -944,10 +940,6 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+ 
+ 	/* FIXME: implement MX27 limits */
+ 
+-	/* eMMA can only do RGB565 */
+-	if (mx27_camera_emma(pcdev) && pixfmt != V4L2_PIX_FMT_RGB565)
+-		return -EINVAL;
+-
+ 	/* limit to MX25 hardware capabilities */
+ 	if (cpu_is_mx25()) {
+ 		if (xlate->host_fmt->bits_per_sample <= 8)
+-- 
+1.7.1
 
-Perfect!
-
-Thanks for clarifying that.
-
-Regards,
-Sergio
-
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
