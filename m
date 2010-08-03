@@ -1,38 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:48645 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750984Ab0HBKJF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 06:09:05 -0400
-Received: by ewy23 with SMTP id 23so1248688ewy.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 03:09:04 -0700 (PDT)
-Date: Mon, 2 Aug 2010 13:09:52 +0300
-From: Jarkko Nikula <jhnikula@gmail.com>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-Cc: Eduardo Valentin <eduardo.valentin@nokia.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] V4L/DVB: radio-si4713: Release i2c adapter in
- driver cleanup paths
-Message-Id: <20100802130952.bc968de6.jhnikula@gmail.com>
-In-Reply-To: <4C32325E.1060903@gmail.com>
-References: <1276452568-16366-1-git-send-email-jhnikula@gmail.com>
-	<4C32325E.1060903@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58896 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755784Ab0HCJik (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 05:38:40 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: baruch@tkos.co.il, g.liakhovetski@gmx.de, s.hauer@pengutronix.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: [PATCH 1/5] mx2_camera: change to register and probe
+Date: Tue,  3 Aug 2010 11:37:52 +0200
+Message-Id: <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 05 Jul 2010 16:28:30 -0300
-Mauro Carvalho Chehab <maurochehab@gmail.com> wrote:
+change this driver back to register and probe, since some platforms
+first have to initialize an already registered power regulator to switch
+on the camera.
 
-> Hi Eduardo,
-> 
-> Could you please review those two patches?
-> 
-Hmm.. are these two patches already late for 2.6.36? I have two another
-patches to arch/arm/mach-omap2/board-rx51-peripherals.c and
-sound/soc/omap/rx51.c that are pending from patch 2/2.
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+---
+ drivers/media/video/mx2_camera.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 98c93fa..c77a673 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -1491,13 +1491,15 @@ static struct platform_driver mx2_camera_driver = {
+ 	.driver 	= {
+ 		.name	= MX2_CAM_DRV_NAME,
+ 	},
++
++	.probe          = mx2_camera_probe,
+ 	.remove		= __devexit_p(mx2_camera_remove),
+ };
+ 
+ 
+ static int __init mx2_camera_init(void)
+ {
+-	return platform_driver_probe(&mx2_camera_driver, &mx2_camera_probe);
++	return platform_driver_register(&mx2_camera_driver);
+ }
+ 
+ static void __exit mx2_camera_exit(void)
 -- 
-Jarkko
+1.7.1
+
