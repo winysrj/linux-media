@@ -1,46 +1,37 @@
-Return-path: <mchehab@pedra>
-Received: from keetweej.vanheusden.com ([83.163.219.98]:56440 "EHLO
-	keetweej.vanheusden.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754923Ab0HJNbH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Aug 2010 09:31:07 -0400
-Date: Tue, 10 Aug 2010 15:31:05 +0200
-From: folkert <folkert@vanheusden.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51789 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755917Ab0HCK5y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 06:57:54 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 &
-	/dev/dvb
-Message-ID: <20100810133104.GU6126@belle.intranet.vanheusden.com>
-References: <20100809133252.GW6126@belle.intranet.vanheusden.com> <AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>
+Subject: [PATCH 07/11] mt9m111: added current colorspace at g_fmt
+Date: Tue,  3 Aug 2010 12:57:45 +0200
+Message-Id: <1280833069-26993-8-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-> > I have a:
-> > Bus 001 Device 006: ID 2304:0226 Pinnacle Systems, Inc. PCTV 330e
-> > inserted in a system with kernel 2.6.34.
-> 
-> The PCTV 330e support for digital hasn't been merged upstream yet.
-> See here:
-> http://www.kernellabs.com/blog/?cat=35
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+---
+ drivers/media/video/mt9m111.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-To get it compile I had to add
-	#include <linux/slab.h>
-to a couple of files.
-
-Had to remove makefile references to firedtv* as it wants to include all
-kinds of headerfiles that exist nowhere in the kernel 2.6.34 sources.
-
-
-Folkert van Heusden
-
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 89c3f89..48c63bc 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -498,6 +498,7 @@ static int mt9m111_g_fmt(struct v4l2_subdev *sd,
+ 	mf->width	= mt9m111->rect.width;
+ 	mf->height	= mt9m111->rect.height;
+ 	mf->code	= mt9m111->fmt->code;
++	mf->colorspace	= mt9m111->fmt->colorspace;
+ 	mf->field	= V4L2_FIELD_NONE;
+ 
+ 	return 0;
 -- 
-MultiTail er et flexible tool for å kontrolere Logfiles og commandoer.
-Med filtrer, farger, sammenføringer, forskeliger ansikter etc.
-http://www.vanheusden.com/multitail/
-----------------------------------------------------------------------
-Phone: +31-6-41278122, PGP-key: 1F28D8AE, www.vanheusden.com
+1.7.1
+
