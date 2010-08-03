@@ -1,258 +1,990 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51792 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756005Ab0HCK5y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 06:57:54 -0400
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Philipp Wiesner <p.wiesner@phytec.de>
-Subject: [PATCH v2 10/11] mt9m111: rewrite set_pixfmt
-Date: Tue,  3 Aug 2010 12:57:48 +0200
-Message-Id: <1280833069-26993-11-git-send-email-m.grzeschik@pengutronix.de>
-In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:41333 "EHLO
+	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932148Ab0HCPZ1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 11:25:27 -0400
+Subject: [PATCH 2/3 v2] media: Add timberdale video-in driver
+From: Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Samuel Ortiz <sameo@linux.intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 03 Aug 2010 17:19:12 +0200
+Message-ID: <1280848752.19898.164.camel@debian>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-added more supported BE colour formats
-and also support BGR565 swapped pixel formats
+This patch adds the timberdale video-in driver.
 
-removed pixfmt helper functions and option flags
-setting the configuration register directly in set_pixfmt
+The video IP of timberdale delivers the video data via DMA.
+The driver uses the DMA api to handle DMA transfers, and make use
+of the V4L2 video buffers to handle buffers against user space.
 
-Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Due to poor performance using uncached buffers, it uses cached buffers,
+added in the previous patch.
+
+If available the driver uses an encoder to get/set the video standard
+
+Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
 ---
-Changes v1 -> v2
-	* removed unrelated OPMODE handling in this function
-
- drivers/media/video/mt9m111.c |  143 ++++++++++++++++-------------------------
- 1 files changed, 56 insertions(+), 87 deletions(-)
-
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index e865938..25b2317 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -101,7 +101,8 @@
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index bdbc9d3..43c3277 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -969,6 +969,15 @@ config VIDEO_OMAP2
+ 	---help---
+ 	  This is a v4l2 driver for the TI OMAP2 camera capture interface
  
- #define MT9M111_OPMODE_AUTOEXPO_EN	(1 << 14)
- #define MT9M111_OPMODE_AUTOWHITEBAL_EN	(1 << 1)
--
-+#define MT9M111_OUTFMT_FLIP_BAYER_COL  (1 << 9)
-+#define MT9M111_OUTFMT_FLIP_BAYER_ROW  (1 << 8)
- #define MT9M111_OUTFMT_PROCESSED_BAYER	(1 << 14)
- #define MT9M111_OUTFMT_BYPASS_IFP	(1 << 10)
- #define MT9M111_OUTFMT_INV_PIX_CLOCK	(1 << 9)
-@@ -119,6 +120,7 @@
- #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y	(1 << 1)
- #define MT9M111_OUTFMT_SWAP_RGB_EVEN	(1 << 1)
- #define MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr	(1 << 0)
-+#define MT9M111_OUTFMT_SWAP_RGB_R_B	(1 << 0)
- 
- /*
-  * Camera control register addresses (0x200..0x2ff not implemented)
-@@ -161,7 +163,11 @@ static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
- 	{V4L2_MBUS_FMT_YUYV8_2X8_BE, V4L2_COLORSPACE_JPEG},
- 	{V4L2_MBUS_FMT_YVYU8_2X8_BE, V4L2_COLORSPACE_JPEG},
- 	{V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
-+	{V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE, V4L2_COLORSPACE_SRGB},
- 	{V4L2_MBUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
-+	{V4L2_MBUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB},
-+	{V4L2_MBUS_FMT_BGR565_2X8_LE, V4L2_COLORSPACE_SRGB},
-+	{V4L2_MBUS_FMT_BGR565_2X8_BE, V4L2_COLORSPACE_SRGB},
- 	{V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_COLORSPACE_SRGB},
- 	{V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
- };
-@@ -184,10 +190,6 @@ struct mt9m111 {
- 	unsigned int powered:1;
- 	unsigned int hflip:1;
- 	unsigned int vflip:1;
--	unsigned int swap_rgb_even_odd:1;
--	unsigned int swap_rgb_red_blue:1;
--	unsigned int swap_yuv_y_chromas:1;
--	unsigned int swap_yuv_cb_cr:1;
- 	unsigned int autowhitebalance:1;
- };
- 
-@@ -329,68 +331,6 @@ static int mt9m111_setup_rect(struct i2c_client *client,
- 	return ret;
- }
- 
--static int mt9m111_setup_pixfmt(struct i2c_client *client, u16 outfmt)
--{
--	int ret;
--
--	ret = reg_write(OUTPUT_FORMAT_CTRL2_A, outfmt);
--	if (!ret)
--		ret = reg_write(OUTPUT_FORMAT_CTRL2_B, outfmt);
--	return ret;
--}
--
--static int mt9m111_setfmt_bayer8(struct i2c_client *client)
--{
--	return mt9m111_setup_pixfmt(client, MT9M111_OUTFMT_PROCESSED_BAYER |
--				    MT9M111_OUTFMT_RGB);
--}
--
--static int mt9m111_setfmt_bayer10(struct i2c_client *client)
--{
--	return mt9m111_setup_pixfmt(client, MT9M111_OUTFMT_BYPASS_IFP);
--}
--
--static int mt9m111_setfmt_rgb565(struct i2c_client *client)
--{
--	struct mt9m111 *mt9m111 = to_mt9m111(client);
--	int val = 0;
--
--	if (mt9m111->swap_rgb_red_blue)
--		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
--	if (mt9m111->swap_rgb_even_odd)
--		val |= MT9M111_OUTFMT_SWAP_RGB_EVEN;
--	val |= MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
--
--	return mt9m111_setup_pixfmt(client, val);
--}
--
--static int mt9m111_setfmt_rgb555(struct i2c_client *client)
--{
--	struct mt9m111 *mt9m111 = to_mt9m111(client);
--	int val = 0;
--
--	if (mt9m111->swap_rgb_red_blue)
--		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
--	if (mt9m111->swap_rgb_even_odd)
--		val |= MT9M111_OUTFMT_SWAP_RGB_EVEN;
--	val |= MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB555;
--
--	return mt9m111_setup_pixfmt(client, val);
--}
--
--static int mt9m111_setfmt_yuv(struct i2c_client *client)
--{
--	struct mt9m111 *mt9m111 = to_mt9m111(client);
--	int val = 0;
--
--	if (mt9m111->swap_yuv_cb_cr)
--		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
--	if (mt9m111->swap_yuv_y_chromas)
--		val |= MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
--
--	return mt9m111_setup_pixfmt(client, val);
--}
--
- static int mt9m111_enable(struct i2c_client *client)
- {
- 	struct mt9m111 *mt9m111 = to_mt9m111(client);
-@@ -518,41 +458,54 @@ static int mt9m111_g_fmt(struct v4l2_subdev *sd,
- static int mt9m111_set_pixfmt(struct i2c_client *client,
- 			      enum v4l2_mbus_pixelcode code)
- {
--	struct mt9m111 *mt9m111 = to_mt9m111(client);
-+	u16 data_outfmt1 = 0, data_outfmt2 = 0, mask_outfmt1, mask_outfmt2;
- 	int ret;
- 
- 	switch (code) {
- 	case V4L2_MBUS_FMT_SBGGR8_1X8:
--		ret = mt9m111_setfmt_bayer8(client);
-+		data_outfmt1 = MT9M111_OUTFMT_FLIP_BAYER_ROW;
-+		data_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
-+			MT9M111_OUTFMT_RGB;
- 		break;
- 	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
--		ret = mt9m111_setfmt_bayer10(client);
-+		data_outfmt2 = MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB;
- 		break;
- 	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
--		ret = mt9m111_setfmt_rgb555(client);
-+		data_outfmt2 = MT9M111_OUTFMT_SWAP_RGB_EVEN |
-+			MT9M111_OUTFMT_RGB |
-+			MT9M111_OUTFMT_RGB555;
-+		break;
-+	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
-+		data_outfmt2 = MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB555;
- 		break;
- 	case V4L2_MBUS_FMT_RGB565_2X8_LE:
--		ret = mt9m111_setfmt_rgb565(client);
-+		data_outfmt2 = MT9M111_OUTFMT_SWAP_RGB_EVEN |
-+			MT9M111_OUTFMT_RGB |
-+			MT9M111_OUTFMT_RGB565;
-+		break;
-+	case V4L2_MBUS_FMT_RGB565_2X8_BE:
-+		data_outfmt2 = MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
-+		break;
-+	case V4L2_MBUS_FMT_BGR565_2X8_LE:
-+		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
-+			MT9M111_OUTFMT_SWAP_RGB_EVEN |
-+			MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
-+		break;
-+	case V4L2_MBUS_FMT_BGR565_2X8_BE:
-+		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
-+			MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
- 		break;
- 	case V4L2_MBUS_FMT_YUYV8_2X8_BE:
--		mt9m111->swap_yuv_y_chromas = 0;
--		mt9m111->swap_yuv_cb_cr = 0;
--		ret = mt9m111_setfmt_yuv(client);
- 		break;
- 	case V4L2_MBUS_FMT_YVYU8_2X8_BE:
--		mt9m111->swap_yuv_y_chromas = 0;
--		mt9m111->swap_yuv_cb_cr = 1;
--		ret = mt9m111_setfmt_yuv(client);
-+		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
- 		break;
- 	case V4L2_MBUS_FMT_YUYV8_2X8_LE:
--		mt9m111->swap_yuv_y_chromas = 1;
--		mt9m111->swap_yuv_cb_cr = 0;
--		ret = mt9m111_setfmt_yuv(client);
-+		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
- 		break;
- 	case V4L2_MBUS_FMT_YVYU8_2X8_LE:
--		mt9m111->swap_yuv_y_chromas = 1;
--		mt9m111->swap_yuv_cb_cr = 1;
--		ret = mt9m111_setfmt_yuv(client);
-+		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_C_Y |
-+			MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
- 		break;
- 	default:
- 		dev_err(&client->dev, "Pixel format not handled : %x\n",
-@@ -560,6 +513,25 @@ static int mt9m111_set_pixfmt(struct i2c_client *client,
- 		ret = -EINVAL;
- 	}
- 
-+	mask_outfmt1 = MT9M111_OUTFMT_FLIP_BAYER_COL |
-+		MT9M111_OUTFMT_FLIP_BAYER_ROW;
++config VIDEO_TIMBERDALE
++	tristate "Support for timberdale Video In/LogiWIN"
++	depends on VIDEO_V4L2 && I2C
++	select TIMB_DMA
++	select VIDEO_ADV7180
++	select VIDEOBUF_DMA_CONTIG
++	---help---
++	Add support for the Video In peripherial of the timberdale FPGA.
 +
-+	mask_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
-+		MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB |
-+		MT9M111_OUTFMT_RGB565 | MT9M111_OUTFMT_RGB555 |
-+		MT9M111_OUTFMT_RGB444x | MT9M111_OUTFMT_RGBx444 |
-+		MT9M111_OUTFMT_SWAP_YCbCr_C_Y | MT9M111_OUTFMT_SWAP_RGB_EVEN |
-+		MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr | MT9M111_OUTFMT_SWAP_RGB_R_B;
-+
-+	ret = reg_mask(OUTPUT_FORMAT_CTRL, data_outfmt1, mask_outfmt1);
-+
-+	if (!ret)
-+		ret = reg_mask(OUTPUT_FORMAT_CTRL2_A, data_outfmt2,
-+			mask_outfmt2);
-+	if (!ret)
-+		ret = reg_mask(OUTPUT_FORMAT_CTRL2_B, data_outfmt2,
-+			mask_outfmt2);
-+
- 	return ret;
- }
+ #
+ # USB Multimedia device configuration
+ #
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index cc93859..39750e0 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -110,6 +110,7 @@ obj-$(CONFIG_VIDEO_CPIA2) += cpia2/
+ obj-$(CONFIG_VIDEO_MXB) += mxb.o
+ obj-$(CONFIG_VIDEO_HEXIUM_ORION) += hexium_orion.o
+ obj-$(CONFIG_VIDEO_HEXIUM_GEMINI) += hexium_gemini.o
++obj-$(CONFIG_VIDEO_TIMBERDALE)	+= timblogiw.o
  
-@@ -989,9 +961,6 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
- 	mt9m111->autoexposure = 1;
- 	mt9m111->autowhitebalance = 1;
- 
--	mt9m111->swap_rgb_even_odd = 1;
--	mt9m111->swap_rgb_red_blue = 1;
--
- 	data = reg_read(CHIP_VERSION);
- 
- 	switch (data) {
--- 
-1.7.1
+ obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
+ obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
+diff --git a/drivers/media/video/timblogiw.c b/drivers/media/video/timblogiw.c
+new file mode 100644
+index 0000000..2bef159
+--- /dev/null
++++ b/drivers/media/video/timblogiw.c
+@@ -0,0 +1,878 @@
++/*
++ * timblogiw.c timberdale FPGA LogiWin Video In driver
++ * Copyright (c) 2009-2010 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++/* Supports:
++ * Timberdale FPGA LogiWin Video In
++ */
++
++#include <linux/version.h>
++#include <linux/platform_device.h>
++#include <linux/slab.h>
++#include <linux/dmaengine.h>
++#include <linux/scatterlist.h>
++#include <linux/interrupt.h>
++#include <linux/list.h>
++#include <linux/i2c.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-device.h>
++#include <media/videobuf-dma-contig.h>
++#include <media/timb_video.h>
++
++#define DRIVER_NAME			"timb-video"
++
++#define TIMBLOGIWIN_NAME		"Timberdale Video-In"
++#define TIMBLOGIW_VERSION_CODE		0x04
++
++#define TIMBLOGIW_LINES_PER_DESC	44
++#define TIMBLOGIW_MAX_VIDEO_MEM		16
++
++#define TIMBLOGIW_VIDEO_FORMAT		V4L2_PIX_FMT_UYVY
++
++#define TIMBLOGIW_HAS_DECODER(lw)	(lw->pdata.encoder.module_name)
++
++
++struct timblogiw {
++	struct video_device		video_dev;
++	struct v4l2_device		v4l2_dev; /* mutual exclusion */
++	struct mutex			lock;
++	struct device			*dev;
++	struct timb_video_platform_data pdata;
++	struct v4l2_subdev		*sd_enc;	/* encoder */
++	bool				opened;
++};
++
++struct timblogiw_tvnorm {
++	v4l2_std_id std;
++	u16     width;
++	u16     height;
++	u8	fps;
++};
++
++struct timblogiw_fh {
++	struct videobuf_queue		vb_vidq;
++	struct timblogiw_tvnorm const	*cur_norm;
++	struct list_head		capture;
++	struct dma_chan			*chan;
++	spinlock_t			queue_lock; /* mutual exclusion */
++	unsigned int			frame_count;
++};
++
++struct timblogiw_buffer {
++	/* common v4l buffer stuff -- must be first */
++	struct videobuf_buffer	vb;
++	struct scatterlist	sg[16];
++	dma_cookie_t		cookie;
++	struct timblogiw_fh	*fh;
++};
++
++const struct timblogiw_tvnorm timblogiw_tvnorms[] = {
++	{
++		.std			= V4L2_STD_PAL,
++		.width			= 720,
++		.height			= 576,
++		.fps			= 25
++	},
++	{
++		.std			= V4L2_STD_NTSC,
++		.width			= 720,
++		.height			= 480,
++		.fps			= 26
++	}
++};
++
++static int timblogiw_bytes_per_line(const struct timblogiw_tvnorm *norm)
++{
++	return norm->width * 2;
++}
++
++
++static int timblogiw_frame_size(const struct timblogiw_tvnorm *norm)
++{
++	return norm->height * timblogiw_bytes_per_line(norm);
++}
++
++static const struct timblogiw_tvnorm *timblogiw_get_norm(const v4l2_std_id std)
++{
++	int i;
++	for (i = 0; i < ARRAY_SIZE(timblogiw_tvnorms); i++)
++		if (timblogiw_tvnorms[i].std & std)
++			return timblogiw_tvnorms + i;
++
++	/* default to first element */
++	return timblogiw_tvnorms;
++}
++
++static void timblogiw_dma_cb(void *data)
++{
++	struct timblogiw_buffer *buf = data;
++	struct timblogiw_fh *fh = buf->fh;
++	struct videobuf_buffer *vb = &buf->vb;
++
++	spin_lock(&fh->queue_lock);
++
++	/* mark the transfer done */
++	buf->cookie = -1;
++
++	fh->frame_count++;
++
++	if (vb->state != VIDEOBUF_ERROR) {
++		list_del(&vb->queue);
++		do_gettimeofday(&vb->ts);
++		vb->field_count = fh->frame_count * 2;
++		vb->state = VIDEOBUF_DONE;
++
++		wake_up(&vb->done);
++	}
++
++	if (!list_empty(&fh->capture)) {
++		vb = list_entry(fh->capture.next, struct videobuf_buffer,
++			queue);
++		vb->state = VIDEOBUF_ACTIVE;
++	}
++
++	spin_unlock(&fh->queue_lock);
++}
++
++static bool timblogiw_dma_filter_fn(struct dma_chan *chan, void *filter_param)
++{
++	return chan->chan_id == (int)filter_param;
++}
++
++/* IOCTL functions */
++
++static int timblogiw_g_fmt(struct file *file, void  *priv,
++	struct v4l2_format *format)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s entry\n", __func__);
++
++	if (format->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	format->fmt.pix.width = fh->cur_norm->width;
++	format->fmt.pix.height = fh->cur_norm->height;
++	format->fmt.pix.pixelformat = TIMBLOGIW_VIDEO_FORMAT;
++	format->fmt.pix.bytesperline = timblogiw_bytes_per_line(fh->cur_norm);
++	format->fmt.pix.sizeimage = timblogiw_frame_size(fh->cur_norm);
++	format->fmt.pix.field = V4L2_FIELD_NONE;
++	return 0;
++}
++
++static int timblogiw_try_fmt(struct file *file, void  *priv,
++	struct v4l2_format *format)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct v4l2_pix_format *pix = &format->fmt.pix;
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev,
++		"%s - width=%d, height=%d, pixelformat=%d, field=%d\n"
++		"bytes per line %d, size image: %d, colorspace: %d\n",
++		__func__,
++		pix->width, pix->height, pix->pixelformat, pix->field,
++		pix->bytesperline, pix->sizeimage, pix->colorspace);
++
++	if (format->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	if (pix->field != V4L2_FIELD_NONE)
++		return -EINVAL;
++
++	if (pix->pixelformat != TIMBLOGIW_VIDEO_FORMAT)
++		return -EINVAL;
++
++	if ((fh->cur_norm->height != pix->height) ||
++		(fh->cur_norm->width != pix->width)) {
++		pix->width = fh->cur_norm->width;
++		pix->height = fh->cur_norm->height;
++	}
++
++	return 0;
++}
++
++static int timblogiw_s_fmt(struct file *file, void  *priv,
++	struct v4l2_format *format)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++	int err;
++
++	err = timblogiw_try_fmt(file, priv, format);
++	if (err)
++		return err;
++
++	if (videobuf_queue_is_busy(&fh->vb_vidq)) {
++		dev_err(&vdev->dev, "%s queue busy\n", __func__);
++		return -EBUSY;
++	}
++
++	return 0;
++}
++
++static int timblogiw_querycap(struct file *file, void  *priv,
++	struct v4l2_capability *cap)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
++	memset(cap, 0, sizeof(*cap));
++	strncpy(cap->card, TIMBLOGIWIN_NAME, sizeof(cap->card)-1);
++	strncpy(cap->driver, DRIVER_NAME, sizeof(cap->card)-1);
++	strlcpy(cap->bus_info, vdev->name, sizeof(cap->bus_info));
++	cap->version = TIMBLOGIW_VERSION_CODE;
++	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++		V4L2_CAP_READWRITE;
++
++	return 0;
++}
++
++static int timblogiw_enum_fmt(struct file *file, void  *priv,
++	struct v4l2_fmtdesc *fmt)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	dev_dbg(&vdev->dev, "%s, index: %d\n",  __func__, fmt->index);
++
++	if (fmt->index != 0)
++		return -EINVAL;
++	memset(fmt, 0, sizeof(*fmt));
++	fmt->index = 0;
++	fmt->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	strncpy(fmt->description, "4:2:2, packed, YUYV",
++		sizeof(fmt->description)-1);
++	fmt->pixelformat = TIMBLOGIW_VIDEO_FORMAT;
++
++	return 0;
++}
++
++static int timblogiw_g_parm(struct file *file, void *priv,
++	struct v4l2_streamparm *sp)
++{
++	struct timblogiw_fh *fh = priv;
++	struct v4l2_captureparm *cp = &sp->parm.capture;
++
++	cp->capability = V4L2_CAP_TIMEPERFRAME;
++	cp->timeperframe.numerator = 1;
++	cp->timeperframe.denominator = fh->cur_norm->fps;
++
++	return 0;
++}
++
++static int timblogiw_reqbufs(struct file *file, void  *priv,
++	struct v4l2_requestbuffers *rb)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_reqbufs(&fh->vb_vidq, rb);
++}
++
++static int timblogiw_querybuf(struct file *file, void  *priv,
++	struct v4l2_buffer *b)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_querybuf(&fh->vb_vidq, b);
++}
++
++static int timblogiw_qbuf(struct file *file, void  *priv, struct v4l2_buffer *b)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_qbuf(&fh->vb_vidq, b);
++}
++
++static int timblogiw_dqbuf(struct file *file, void  *priv,
++	struct v4l2_buffer *b)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_dqbuf(&fh->vb_vidq, b, file->f_flags & O_NONBLOCK);
++}
++
++static int timblogiw_g_std(struct file *file, void  *priv, v4l2_std_id *std)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	*std = fh->cur_norm->std;
++	return 0;
++}
++
++static int timblogiw_s_std(struct file *file, void  *priv, v4l2_std_id *std)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_fh *fh = priv;
++	int err = 0;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	if (TIMBLOGIW_HAS_DECODER(lw))
++		err = v4l2_subdev_call(lw->sd_enc, core, s_std, *std);
++
++	if (!err)
++		fh->cur_norm = timblogiw_get_norm(*std);
++
++	return err;
++}
++
++static int timblogiw_enuminput(struct file *file, void  *priv,
++	struct v4l2_input *inp)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
++
++	if (inp->index != 0)
++		return -EINVAL;
++
++	memset(inp, 0, sizeof(*inp));
++	inp->index = 0;
++
++	strncpy(inp->name, "Timb input 1", sizeof(inp->name) - 1);
++	inp->type = V4L2_INPUT_TYPE_CAMERA;
++	inp->std = V4L2_STD_ALL;
++
++	return 0;
++}
++
++static int timblogiw_g_input(struct file *file, void  *priv,
++	unsigned int *input)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
++
++	*input = 0;
++
++	return 0;
++}
++
++static int timblogiw_s_input(struct file *file, void  *priv, unsigned int input)
++{
++	struct video_device *vdev = video_devdata(file);
++
++	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
++
++	if (input != 0)
++		return -EINVAL;
++	return 0;
++}
++
++static int timblogiw_streamon(struct file *file, void  *priv, unsigned int type)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE) {
++		dev_dbg(&vdev->dev, "%s - No capture device\n", __func__);
++		return -EINVAL;
++	}
++
++	fh->frame_count = 0;
++	return videobuf_streamon(&fh->vb_vidq);
++}
++
++static int timblogiw_streamoff(struct file *file, void  *priv,
++	unsigned int type)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s entry\n",  __func__);
++
++	if (type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++		return -EINVAL;
++
++	return videobuf_streamoff(&fh->vb_vidq);
++}
++
++static int timblogiw_querystd(struct file *file, void  *priv, v4l2_std_id *std)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s entry\n",  __func__);
++
++	if (TIMBLOGIW_HAS_DECODER(lw))
++		return v4l2_subdev_call(lw->sd_enc, video, querystd, std);
++	else {
++		*std = fh->cur_norm->std;
++		return 0;
++	}
++}
++
++static int timblogiw_enum_framesizes(struct file *file, void  *priv,
++	struct v4l2_frmsizeenum *fsize)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = priv;
++
++	dev_dbg(&vdev->dev, "%s - index: %d, format: %d\n",  __func__,
++		fsize->index, fsize->pixel_format);
++
++	if ((fsize->index != 0) ||
++		(fsize->pixel_format != TIMBLOGIW_VIDEO_FORMAT))
++		return -EINVAL;
++
++	fsize->type = V4L2_FRMSIZE_TYPE_DISCRETE;
++	fsize->discrete.width = fh->cur_norm->width;
++	fsize->discrete.height = fh->cur_norm->height;
++
++	return 0;
++}
++
++/* Video buffer functions */
++
++static int buffer_setup(struct videobuf_queue *vq, unsigned int *count,
++	unsigned int *size)
++{
++	struct timblogiw_fh *fh = vq->priv_data;
++
++	*size = timblogiw_frame_size(fh->cur_norm);
++
++	if (!*count)
++		*count = 32;
++
++	while (*size * *count > TIMBLOGIW_MAX_VIDEO_MEM * 1024 * 1024)
++		(*count)--;
++
++	return 0;
++}
++
++static int buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
++	enum v4l2_field field)
++{
++	struct timblogiw_fh *fh = vq->priv_data;
++	struct timblogiw_buffer *buf = container_of(vb, struct timblogiw_buffer,
++		vb);
++	unsigned int data_size = timblogiw_frame_size(fh->cur_norm);
++	int err = 0;
++
++	if (vb->baddr && vb->bsize < data_size)
++		/* User provided buffer, but it is too small */
++		return -ENOMEM;
++
++	vb->size = data_size;
++	vb->width = fh->cur_norm->width;
++	vb->height = fh->cur_norm->height;
++	vb->field = field;
++
++	if (vb->state == VIDEOBUF_NEEDS_INIT) {
++		int i;
++		unsigned int size;
++		unsigned int bytes_per_desc = TIMBLOGIW_LINES_PER_DESC *
++			timblogiw_bytes_per_line(fh->cur_norm);
++		dma_addr_t addr;
++
++		sg_init_table(buf->sg, ARRAY_SIZE(buf->sg));
++
++		err = videobuf_iolock(vq, vb, NULL);
++		if (err)
++			goto err;
++
++		addr = videobuf_to_dma_contig(vb);
++		for (i = 0, size = 0; size < data_size; i++) {
++			sg_dma_address(buf->sg + i) = addr + size;
++			size += bytes_per_desc;
++			sg_dma_len(buf->sg + i) = (size > data_size) ?
++				(bytes_per_desc - (size - data_size)) :
++				bytes_per_desc;
++		}
++
++		vb->state = VIDEOBUF_PREPARED;
++		buf->cookie = -1;
++		buf->fh = fh;
++	}
++
++	return 0;
++
++err:
++	videobuf_dma_contig_free(vq, vb);
++	vb->state = VIDEOBUF_NEEDS_INIT;
++	return err;
++}
++
++static void buffer_queue(struct videobuf_queue *vq, struct videobuf_buffer *vb)
++{
++	struct timblogiw_fh *fh = vq->priv_data;
++	struct timblogiw_buffer *buf = container_of(vb, struct timblogiw_buffer,
++		vb);
++	struct dma_async_tx_descriptor *desc;
++	int sg_elems;
++	int bytes_per_desc = TIMBLOGIW_LINES_PER_DESC *
++		timblogiw_bytes_per_line(fh->cur_norm);
++
++	sg_elems = timblogiw_frame_size(fh->cur_norm) / bytes_per_desc;
++	sg_elems +=
++		(timblogiw_frame_size(fh->cur_norm) % bytes_per_desc) ? 1 : 0;
++
++	if (list_empty(&fh->capture))
++		vb->state = VIDEOBUF_ACTIVE;
++	else
++		vb->state = VIDEOBUF_QUEUED;
++
++	list_add_tail(&vb->queue, &fh->capture);
++
++	spin_unlock_irq(&fh->queue_lock);
++
++	desc = fh->chan->device->device_prep_slave_sg(fh->chan,
++		buf->sg, sg_elems, DMA_FROM_DEVICE,
++		DMA_PREP_INTERRUPT | DMA_COMPL_SKIP_SRC_UNMAP);
++	if (!desc) {
++		spin_lock_irq(&fh->queue_lock);
++		list_del_init(&vb->queue);
++		vb->state = VIDEOBUF_PREPARED;
++		return;
++	}
++
++	desc->callback_param = buf;
++	desc->callback = timblogiw_dma_cb;
++
++	buf->cookie = desc->tx_submit(desc);
++
++	spin_lock_irq(&fh->queue_lock);
++}
++
++static void buffer_release(struct videobuf_queue *vq,
++	struct videobuf_buffer *vb)
++{
++	struct timblogiw_fh *fh = vq->priv_data;
++	struct timblogiw_buffer *buf = container_of(vb, struct timblogiw_buffer,
++		vb);
++
++	videobuf_waiton(vb, 0, 0);
++	if (buf->cookie >= 0)
++		dma_sync_wait(fh->chan, buf->cookie);
++
++	videobuf_dma_contig_free(vq, vb);
++	vb->state = VIDEOBUF_NEEDS_INIT;
++}
++
++static struct videobuf_queue_ops timblogiw_video_qops = {
++	.buf_setup      = buffer_setup,
++	.buf_prepare    = buffer_prepare,
++	.buf_queue      = buffer_queue,
++	.buf_release    = buffer_release,
++};
++
++/* Device Operations functions */
++
++static int timblogiw_open(struct file *file)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_fh *fh;
++	v4l2_std_id std;
++	dma_cap_mask_t mask;
++	int err = 0;
++
++	dev_dbg(&vdev->dev, "%s: entry\n", __func__);
++
++	mutex_lock(&lw->lock);
++	if (lw->opened) {
++		err = -EBUSY;
++		goto out;
++	}
++
++	if (TIMBLOGIW_HAS_DECODER(lw) && !lw->sd_enc) {
++		struct i2c_adapter *adapt;
++
++		/* find the video decoder */
++		adapt = i2c_get_adapter(lw->pdata.i2c_adapter);
++		if (!adapt) {
++			dev_err(&vdev->dev, "No I2C bus #%d\n",
++				lw->pdata.i2c_adapter);
++			err = -ENODEV;
++			goto out;
++		}
++
++		/* now find the encoder */
++		lw->sd_enc = v4l2_i2c_new_subdev_board(&lw->v4l2_dev, adapt,
++			lw->pdata.encoder.module_name, lw->pdata.encoder.info,
++			NULL);
++
++		i2c_put_adapter(adapt);
++
++		if (!lw->sd_enc) {
++			dev_err(&vdev->dev, "Failed to get encoder: %s\n",
++				lw->pdata.encoder.module_name);
++			err = -ENODEV;
++			goto out;
++		}
++	}
++
++	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
++	if (!fh) {
++		err = -ENOMEM;
++		goto out;
++	}
++
++	fh->cur_norm = timblogiw_tvnorms;
++	timblogiw_querystd(file, fh, &std);
++	fh->cur_norm = timblogiw_get_norm(std);
++
++	INIT_LIST_HEAD(&fh->capture);
++	spin_lock_init(&fh->queue_lock);
++
++	dma_cap_zero(mask);
++	dma_cap_set(DMA_SLAVE, mask);
++	dma_cap_set(DMA_PRIVATE, mask);
++
++	/* find the DMA channel */
++	fh->chan = dma_request_channel(mask, timblogiw_dma_filter_fn,
++			(void *)lw->pdata.dma_channel);
++	if (!fh->chan) {
++		dev_err(&vdev->dev, "Failed to get DMA channel\n");
++		kfree(fh);
++		err = -ENODEV;
++		goto out;
++	}
++
++	file->private_data = fh;
++	videobuf_queue_dma_contig_init_cached(&fh->vb_vidq,
++		&timblogiw_video_qops, lw->dev, &fh->queue_lock,
++		V4L2_BUF_TYPE_VIDEO_CAPTURE, V4L2_FIELD_NONE,
++		sizeof(struct timblogiw_buffer), fh);
++
++	lw->opened = true;
++out:
++	mutex_unlock(&lw->lock);
++
++	return err;
++}
++
++static int timblogiw_close(struct file *file)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw *lw = video_get_drvdata(vdev);
++	struct timblogiw_fh *fh = file->private_data;
++
++	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
++
++	videobuf_stop(&fh->vb_vidq);
++	videobuf_mmap_free(&fh->vb_vidq);
++
++	dma_release_channel(fh->chan);
++
++	kfree(fh);
++
++	mutex_lock(&lw->lock);
++	lw->opened = false;
++	mutex_unlock(&lw->lock);
++	return 0;
++}
++
++static ssize_t timblogiw_read(struct file *file, char __user *data,
++	size_t count, loff_t *ppos)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = file->private_data;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_read_stream(&fh->vb_vidq, data, count, ppos, 0,
++		file->f_flags & O_NONBLOCK);
++}
++
++static unsigned int timblogiw_poll(struct file *file,
++	struct poll_table_struct *wait)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = file->private_data;
++
++	dev_dbg(&vdev->dev, "%s: entry\n",  __func__);
++
++	return videobuf_poll_stream(file, &fh->vb_vidq, wait);
++}
++
++static int timblogiw_mmap(struct file *file, struct vm_area_struct *vma)
++{
++	struct video_device *vdev = video_devdata(file);
++	struct timblogiw_fh *fh = file->private_data;
++
++	dev_dbg(&vdev->dev, "%s: entry\n", __func__);
++
++	return videobuf_mmap_mapper(&fh->vb_vidq, vma);
++}
++
++/* Platform device functions */
++
++static const __devinitdata struct v4l2_ioctl_ops timblogiw_ioctl_ops = {
++	.vidioc_querycap		= timblogiw_querycap,
++	.vidioc_enum_fmt_vid_cap	= timblogiw_enum_fmt,
++	.vidioc_g_fmt_vid_cap		= timblogiw_g_fmt,
++	.vidioc_try_fmt_vid_cap		= timblogiw_try_fmt,
++	.vidioc_s_fmt_vid_cap		= timblogiw_s_fmt,
++	.vidioc_g_parm			= timblogiw_g_parm,
++	.vidioc_reqbufs			= timblogiw_reqbufs,
++	.vidioc_querybuf		= timblogiw_querybuf,
++	.vidioc_qbuf			= timblogiw_qbuf,
++	.vidioc_dqbuf			= timblogiw_dqbuf,
++	.vidioc_g_std			= timblogiw_g_std,
++	.vidioc_s_std			= timblogiw_s_std,
++	.vidioc_enum_input		= timblogiw_enuminput,
++	.vidioc_g_input			= timblogiw_g_input,
++	.vidioc_s_input			= timblogiw_s_input,
++	.vidioc_streamon		= timblogiw_streamon,
++	.vidioc_streamoff		= timblogiw_streamoff,
++	.vidioc_querystd		= timblogiw_querystd,
++	.vidioc_enum_framesizes		= timblogiw_enum_framesizes,
++};
++
++static const __devinitdata struct v4l2_file_operations timblogiw_fops = {
++	.owner		= THIS_MODULE,
++	.open		= timblogiw_open,
++	.release	= timblogiw_close,
++	.ioctl		= video_ioctl2, /* V4L2 ioctl handler */
++	.mmap		= timblogiw_mmap,
++	.read		= timblogiw_read,
++	.poll		= timblogiw_poll,
++};
++
++static const __devinitdata struct video_device timblogiw_template = {
++	.name		= TIMBLOGIWIN_NAME,
++	.fops		= &timblogiw_fops,
++	.ioctl_ops	= &timblogiw_ioctl_ops,
++	.release	= video_device_release_empty,
++	.minor		= -1,
++	.tvnorms	= V4L2_STD_PAL | V4L2_STD_NTSC
++};
++
++static int __devinit timblogiw_probe(struct platform_device *pdev)
++{
++	int err;
++	struct timblogiw *lw = NULL;
++	struct timb_video_platform_data *pdata = pdev->dev.platform_data;
++
++	if (!pdata) {
++		dev_err(&pdev->dev, "No platform data\n");
++		err = -EINVAL;
++		goto err;
++	}
++
++	if (!pdata->encoder.module_name)
++		dev_info(&pdev->dev, "Running without decoder\n");
++
++	lw = kzalloc(sizeof(*lw), GFP_KERNEL);
++	if (!lw) {
++		err = -ENOMEM;
++		goto err;
++	}
++
++	if (pdev->dev.parent)
++		lw->dev = pdev->dev.parent;
++	else
++		lw->dev = &pdev->dev;
++
++	memcpy(&lw->pdata, pdata, sizeof(lw->pdata));
++
++	mutex_init(&lw->lock);
++
++	lw->video_dev = timblogiw_template;
++
++	strlcpy(lw->v4l2_dev.name, DRIVER_NAME, sizeof(lw->v4l2_dev.name));
++	err = v4l2_device_register(NULL, &lw->v4l2_dev);
++	if (err)
++		goto err_register;
++
++	lw->video_dev.v4l2_dev = &lw->v4l2_dev;
++
++	err = video_register_device(&lw->video_dev, VFL_TYPE_GRABBER, 0);
++	if (err) {
++		dev_err(&pdev->dev, "Error reg video: %d\n", err);
++		goto err_request;
++	}
++
++	platform_set_drvdata(pdev, lw);
++	video_set_drvdata(&lw->video_dev, lw);
++
++	return 0;
++
++err_request:
++	v4l2_device_unregister(&lw->v4l2_dev);
++err_register:
++	kfree(lw);
++err:
++	dev_err(&pdev->dev, "Failed to register: %d\n", err);
++
++	return err;
++}
++
++static int __devexit timblogiw_remove(struct platform_device *pdev)
++{
++	struct timblogiw *lw = platform_get_drvdata(pdev);
++
++	video_unregister_device(&lw->video_dev);
++
++	v4l2_device_unregister(&lw->v4l2_dev);
++
++	kfree(lw);
++
++	platform_set_drvdata(pdev, NULL);
++
++	return 0;
++}
++
++static struct platform_driver timblogiw_platform_driver = {
++	.driver = {
++		.name	= DRIVER_NAME,
++		.owner	= THIS_MODULE,
++	},
++	.probe		= timblogiw_probe,
++	.remove		= __devexit_p(timblogiw_remove),
++};
++
++/* Module functions */
++
++static int __init timblogiw_init(void)
++{
++	return platform_driver_register(&timblogiw_platform_driver);
++}
++
++static void __exit timblogiw_exit(void)
++{
++	platform_driver_unregister(&timblogiw_platform_driver);
++}
++
++module_init(timblogiw_init);
++module_exit(timblogiw_exit);
++
++MODULE_DESCRIPTION(TIMBLOGIWIN_NAME);
++MODULE_AUTHOR("Pelagicore AB <info@pelagicore.com>");
++MODULE_LICENSE("GPL v2");
++MODULE_ALIAS("platform:"DRIVER_NAME);
+diff --git a/include/media/timb_video.h b/include/media/timb_video.h
+new file mode 100644
+index 0000000..70ae439
+--- /dev/null
++++ b/include/media/timb_video.h
+@@ -0,0 +1,33 @@
++/*
++ * timb_video.h Platform struct for the Timberdale video driver
++ * Copyright (c) 2009-2010 Intel Corporation
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ */
++
++#ifndef _TIMB_VIDEO_
++#define _TIMB_VIDEO_ 1
++
++#include <linux/i2c.h>
++
++struct timb_video_platform_data {
++	int dma_channel;
++	int i2c_adapter; /* The I2C adapter where the encoder is attached */
++	struct {
++		const char *module_name;
++		struct i2c_board_info *info;
++	} encoder;
++};
++
++#endif
 
