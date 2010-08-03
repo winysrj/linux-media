@@ -1,52 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2648 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751881Ab0HDSal (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 14:30:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH v3 2/7] v4l: subdev: Don't require core operations
-Date: Wed, 4 Aug 2010 20:30:27 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278948352-17892-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1278948352-17892-3-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008042030.27796.hverkuil@xs4all.nl>
+Received: from mail179.messagelabs.com ([85.158.139.35]:22003 "HELO
+	mail179.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754710Ab0HCITB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 04:19:01 -0400
+From: mats.randgaard@tandberg.com
+To: linux-media@vger.kernel.org
+Cc: sudhakar.raj@ti.com, Mats Randgaard <mats.randgaard@tandberg.com>
+Subject: [PATCH 1/2] TVP7002: Return V4L2_DV_INVALID if any of the errors occur.
+Date: Tue,  3 Aug 2010 10:18:03 +0200
+Message-Id: <1280823484-21664-2-git-send-email-mats.randgaard@tandberg.com>
+In-Reply-To: <1280823484-21664-1-git-send-email-mats.randgaard@tandberg.com>
+References: <1280823484-21664-1-git-send-email-mats.randgaard@tandberg.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 12 July 2010 17:25:47 Laurent Pinchart wrote:
-> There's no reason to require subdevices to implement the core
-> operations. Remove the check for non-NULL core operations when
-> initializing the subdev.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+From: Mats Randgaard <mats.randgaard@tandberg.com>
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Mats Randgaard <mats.randgaard@tandberg.com>
+---
+ drivers/media/video/tvp7002.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-> ---
->  include/media/v4l2-subdev.h |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 02c6f4d..6088316 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -437,8 +437,7 @@ static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
->  					const struct v4l2_subdev_ops *ops)
->  {
->  	INIT_LIST_HEAD(&sd->list);
-> -	/* ops->core MUST be set */
-> -	BUG_ON(!ops || !ops->core);
-> +	BUG_ON(!ops);
->  	sd->ops = ops;
->  	sd->v4l2_dev = NULL;
->  	sd->flags = 0;
-> 
-
+diff --git a/drivers/media/video/tvp7002.c b/drivers/media/video/tvp7002.c
+index 48f5c76..8116cd4 100644
+--- a/drivers/media/video/tvp7002.c
++++ b/drivers/media/video/tvp7002.c
+@@ -796,6 +796,9 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+ 	u8 cpl_msb;
+ 	int index;
+ 
++	/* Return invalid preset if no active input is detected */
++	qpreset->preset = V4L2_DV_INVALID;
++
+ 	device = to_tvp7002(sd);
+ 
+ 	/* Read standards from device registers */
+@@ -829,8 +832,6 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
+ 	if (index == NUM_PRESETS) {
+ 		v4l2_dbg(1, debug, sd, "detection failed: lpf = %x, cpl = %x\n",
+ 								lpfr, cpln);
+-		/* Could not detect a signal, so return the 'invalid' preset */
+-		qpreset->preset = V4L2_DV_INVALID;
+ 		return 0;
+ 	}
+ 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+1.6.4.2
+
