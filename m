@@ -1,69 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:14489 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933059Ab0HFNUq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Aug 2010 09:20:46 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 06 Aug 2010 15:22:07 +0200
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCH/RFCv3 1/6] lib: rbtree: rb_root_init() function added
-In-reply-to: <cover.1281100495.git.m.nazarewicz@samsung.com>
-To: linux-mm@kvack.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Hiremath Vaibhav <hvaibhav@ti.com>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>
-Message-id: <743102607e2c5fb20e3c0676fadbcb93d501a78e.1281100495.git.m.nazarewicz@samsung.com>
-References: <cover.1281100495.git.m.nazarewicz@samsung.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:41064 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1756924Ab0HCSVz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Aug 2010 14:21:55 -0400
+Date: Tue, 3 Aug 2010 20:22:13 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <m.grzeschik@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	baruch@tkos.co.il, Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH 1/5] mx2_camera: change to register and probe
+In-Reply-To: <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1008032016340.10845@axis700.grange>
+References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
+ <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added a rb_root_init() function which initialises a rb_root
-structure as a red-black tree with at most one element.  The
-rationale is that using rb_root_init(root, node) is more
-straightforward and cleaner then first initialising and
-empty tree followed by an insert operation.
+On Tue, 3 Aug 2010, Michael Grzeschik wrote:
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> change this driver back to register and probe, since some platforms
+> first have to initialize an already registered power regulator to switch
+> on the camera.
+
+Sorry, don't see a difference. Can you give an example of two call 
+sequences, where this change changes the behaviour?
+
+Thanks
+Guennadi
+
+> 
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> ---
+>  drivers/media/video/mx2_camera.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index 98c93fa..c77a673 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -1491,13 +1491,15 @@ static struct platform_driver mx2_camera_driver = {
+>  	.driver 	= {
+>  		.name	= MX2_CAM_DRV_NAME,
+>  	},
+> +
+> +	.probe          = mx2_camera_probe,
+>  	.remove		= __devexit_p(mx2_camera_remove),
+>  };
+>  
+>  
+>  static int __init mx2_camera_init(void)
+>  {
+> -	return platform_driver_probe(&mx2_camera_driver, &mx2_camera_probe);
+> +	return platform_driver_register(&mx2_camera_driver);
+>  }
+>  
+>  static void __exit mx2_camera_exit(void)
+> -- 
+> 1.7.1
+> 
+> 
+
 ---
- include/linux/rbtree.h |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/rbtree.h b/include/linux/rbtree.h
-index 7066acb..5b6dc66 100644
---- a/include/linux/rbtree.h
-+++ b/include/linux/rbtree.h
-@@ -130,6 +130,17 @@ static inline void rb_set_color(struct rb_node *rb, int color)
- }
- 
- #define RB_ROOT	(struct rb_root) { NULL, }
-+
-+static inline void rb_root_init(struct rb_root *root, struct rb_node *node)
-+{
-+	root->rb_node = node;
-+	if (node) {
-+		node->rb_parent_color = RB_BLACK; /* black, no parent */
-+		node->rb_left  = NULL;
-+		node->rb_right = NULL;
-+	}
-+}
-+
- #define	rb_entry(ptr, type, member) container_of(ptr, type, member)
- 
- #define RB_EMPTY_ROOT(root)	((root)->rb_node == NULL)
--- 
-1.7.1
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
