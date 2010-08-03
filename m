@@ -1,94 +1,44 @@
-Return-path: <mchehab@pedra>
-Received: from mx5.orcon.net.nz ([219.88.242.55]:48594 "EHLO mx5.orcon.net.nz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754845Ab0H3KiS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Aug 2010 06:38:18 -0400
-Received: from Debian-exim by mx5.orcon.net.nz with local (Exim 4.69)
-	(envelope-from <mcree@orcon.net.nz>)
-	id 1Oq0xo-0006G7-LB
-	for linux-media@vger.kernel.org; Mon, 30 Aug 2010 21:47:40 +1200
-Message-ID: <4C7B7E3B.2060205@orcon.net.nz>
-Date: Mon, 30 Aug 2010 21:47:39 +1200
-From: Michael Cree <mcree@orcon.net.nz>
-MIME-Version: 1.0
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51801 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756004Ab0HCK5y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 06:57:54 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
 To: linux-media@vger.kernel.org
-CC: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Oops seen in dvb_usb_dib0700 when running 2.6.36-rc3
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: [PATCH 04/11] mt9m111: added new bit offset defines
+Date: Tue,  3 Aug 2010 12:57:42 +0200
+Message-Id: <1280833069-26993-5-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Just got up the courage to try the 2.6.36 series (indeed 2.6.36-rc3) and 
-saw an oops from the dvb_usb_dib0700 module on startup.  This is a 
-Hauppauge Nova-T 500 card in a Compaq Alpha.  Have never seen this when 
-running 2.6.35 series or prior kernels.
+Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+---
+ drivers/media/video/mt9m111.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-[   29.259750] dib0700: loaded with support for 15 different device-types
-[   29.261703] dvb-usb: found a 'Hauppauge Nova-T 500 Dual DVB-T' in 
-warm state.
-[   29.261703] dvb-usb: will pass the complete MPEG2 transport stream to 
-the software demuxer.
-[   29.263656] DVB: registering new adapter (Hauppauge Nova-T 500 Dual 
-DVB-T)
-[   29.290024] PCI: Setting latency timer of device 0000:01:00.1 to 64
-[   29.374008] DVB: registering adapter 0 frontend 0 (DiBcom 3000MC/P)...
-[   29.416000] MT2060: successfully identified (IF1 = 1217)
-[   29.898422] dvb-usb: will pass the complete MPEG2 transport stream to 
-the software demuxer.
-[   29.899398] DVB: registering new adapter (Hauppauge Nova-T 500 Dual 
-DVB-T)
-[   29.910140] DVB: registering adapter 1 frontend 0 (DiBcom 3000MC/P)...
-[   29.916000] MT2060: successfully identified (IF1 = 1226)
-[   30.107406] ieee1394: Host added: ID:BUS[0-00:1023] 
-GUID[0000303c0009c6d0]
-[   30.423812] dvb-usb: Hauppauge Nova-T 500 Dual DVB-T successfully 
-initialized and connected.
-[   30.423812] Unable to handle kernel paging request at virtual address 
-0000000000000138
-[   30.423812] modprobe(617): Oops 1
-[   30.423812] pc = [<fffffffc00976d70>]  ra = [<fffffffc00976d34>]  ps 
-= 0000    Not tainted
-[   30.423812] pc is at dib0700_probe+0xf0/0x150 [dvb_usb_dib0700]
-[   30.423812] ra is at dib0700_probe+0xb4/0x150 [dvb_usb_dib0700]
-[   30.423812] v0 = 0000000000000010  t0 = 0000000000000000  t1 = 
-00000000000001f4
-[   30.423812] t2 = 0000000000000000  t3 = 0000000000000000  t4 = 
-000000000000a9ba
-[   30.423812] t5 = 0000000000000000  t6 = 0000000000000000  t7 = 
-fffffc003e260000
-[   30.424789] s0 = fffffc003e1ee340  s1 = fffffffc0098a27c  s2 = 
-fffffc003f592000
-[   30.424789] s3 = fffffffc0097c430  s4 = fffffc003e263d38  s5 = 
-fffffffc0097d368
-[   30.424789] s6 = 0000000120022080
-[   30.424789] a0 = 0000000000000000  a1 = fffffc00010c87a8  a2 = 
-fffffc003e047a60
-[   30.424789] a3 = fffffffc0031902c  a4 = fffffc003e10c068  a5 = 
-0000000000000000
-[   30.424789] t8 = ffffffffffffffff  t9 = 0000000000000000  t10= 
-0000000000000010
-[   30.424789] t11= 0000000000000000  pv = fffffc00003a3e90  at = 
-0000000000000003
-[   30.424789] gp = fffffffc00982d42  sp = fffffc003e263ce8
-[   30.424789] Disabling lock debugging due to kernel taint
-[   30.424789] Trace:
-[   30.424789] [<fffffc0000513534>] driver_probe_device+0xa4/0x220
-[   30.425765] [<fffffc00005137ac>] __driver_attach+0xfc/0x100
-[   30.425765] [<fffffc00005125e8>] bus_for_each_dev+0x78/0xd0
-[   30.425765] [<fffffc00005136b0>] __driver_attach+0x0/0x100
-[   30.425765] [<fffffc00005132dc>] driver_attach+0x2c/0x40
-[   30.425765] [<fffffc00005129c8>] bus_add_driver+0xe8/0x350
-[   30.425765] [<fffffc00004783b0>] kobj_bcast_filter+0x0/0xa0
-[   30.426742] [<fffffc0000513bd8>] driver_register+0x78/0x1b0
-[   30.426742] [<fffffc00004783b0>] kobj_bcast_filter+0x0/0xa0
-[   30.426742] [<fffffc0000310088>] do_one_initcall+0x38/0x200
-[   30.426742] [<fffffc000035efdc>] SyS_init_module+0xfc/0x2b0
-[   30.426742] [<fffffc0000310c24>] entSys+0xa4/0xc0
-[   30.426742]
-[   30.427718] Code: a43e0050  205f0001  384101c0  a43e0050  205f01f4 
-a4211c58 <b0410138> a61e0050
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 8c076e5..1b21522 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -63,6 +63,12 @@
+ #define MT9M111_RESET_RESTART_FRAME	(1 << 1)
+ #define MT9M111_RESET_RESET_MODE	(1 << 0)
+ 
++#define MT9M111_RM_FULL_POWER_RD	(0 << 10)
++#define MT9M111_RM_LOW_POWER_RD		(1 << 10)
++#define MT9M111_RM_COL_SKIP_4X		(1 << 5)
++#define MT9M111_RM_ROW_SKIP_4X		(1 << 4)
++#define MT9M111_RM_COL_SKIP_2X		(1 << 3)
++#define MT9M111_RM_ROW_SKIP_2X		(1 << 2)
+ #define MT9M111_RMB_MIRROR_COLS		(1 << 1)
+ #define MT9M111_RMB_MIRROR_ROWS		(1 << 0)
+ #define MT9M111_CTXT_CTRL_RESTART	(1 << 15)
+-- 
+1.7.1
 
-Cheers
-Michael.
