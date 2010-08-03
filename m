@@ -1,72 +1,92 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:39643 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752824Ab0HTPZP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 11:25:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [RFC/PATCH v3 00/10] Media controller (core and V4L2)
-Date: Fri, 20 Aug 2010 17:25:08 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE89445718FC0B@dlee02.ent.ti.com> <201008192112.12673.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201008192112.12673.laurent.pinchart@ideasonboard.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from emh01.mail.saunalahti.fi ([62.142.5.107]:54232 "EHLO
+	emh01.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932341Ab0HCQDR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 12:03:17 -0400
+Message-ID: <4C583DC0.9090405@kolumbus.fi>
+Date: Tue, 03 Aug 2010 19:03:12 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008201725.09455.laurent.pinchart@ideasonboard.com>
+To: Emmanuel <eallaud@gmail.com>
+CC: VDR User <user.vdr@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: [Q]: any DVB-S2 card which is 45MS/s capable?
+References: <4C4C475E.5060500@gmail.com>	<E1OdF5a-0006r0-00.goga777-bk-ru@f154.mail.ru>	<4C4DDB83.9040009@gmail.com>	<AANLkTikwZ4eB+z5WpTLZmg1HyrNWQuk+tmc1+wymw6CZ@mail.gmail.com>	<4C4ED694.5010505@gmail.com> <AANLkTikMTmaeLKuaAv66tG+3Yhr7ZrmTnrYai+bh70Vt@mail.gmail.com> <4C56CE4D.2060206@kolumbus.fi> <4C578AFF.2030804@gmail.com>
+In-Reply-To: <4C578AFF.2030804@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8BIT
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Sergio,
+  03.08.2010 06:20, Emmanuel wrote:
+> Marko Ristola a écrit :
+>>
+>> Hi.
+>>
+>> I have written some Mantis bandwidth related
+>> DMA transfer optimizations on June/July this year.
+>> They are now waiting for approval by Manu Abraham.
+>>
+>> Those reduce CPU pressure, increasing the bandwidth
+>> that can be received from the DVB card. 45MS/s bandwidth
+>> support will surely benefit from those patches.
+>>
+>> Main features:
+>> 1. Do one CPU interrupt per 16KB data instead per 4KB data.
+>> My implementation benefits only Mantis cards.
+>> https://patchwork.kernel.org/patch/107036/
+>>
+>> 2. Remove unnecessary big CPU overhead, when data is delivered
+>> from the DVB card's DMA buffer into Linux kernel's DVB subsystem.
+>> Number 2 reduces the CPU pressure by almost 50%.
+>> This implementation benefits many other Linux supported DVB cards too.
+>> http://patchwork.kernel.org/patch/108274/
+>>
+>> Those helped with my older single CPU Core computer with 256-QAM,
+>> delivering HDTV channel into the network and watching the
+>> HDTV channel with a faster computer.
+>>
+>> The performance bottlenecks could be seen on the
+>> command line with "perf top".
+>>
+>> I had to increase PCI bus latency setting into 64 too from the BIOS.
+>> Moving DVB device into separate IRQ line with Ethernet card helped too,
+>> because Ethernet card did an interrupt per ethernet packet.
+>>
+>> So if the hardware can deliver 45MS/s data fast enough, software side 
+>> can be optimized up
+>> to some point. My patches contain the most easy major optimizations 
+>> that I found.
+>> If you can test some of those patches, it might help to get them into 
+>> Linux kernel
+>> faster.
+>>
+>> Best regards,
+>> Marko Ristola
+>>
+> OK these optimizations look like a step into the good direction. I 
+> guess what is also missing is a tuner which can handle that in DVB-S2, 
+> which does not seem obvious. The mantis card  can do that?
+According to Internet shops it can.
+Manu Abraham has implemented the DVB-S2 support earlier than this summer,
+so with my small improvements it could perform better.
 
-On Thursday 19 August 2010 21:12:12 Laurent Pinchart wrote:
-> On Thursday 19 August 2010 21:09:30 Aguirre, Sergio wrote:
-> > > -----Original Message-----
-> > > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > > owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> > > Sent: Thursday, July 29, 2010 11:07 AM
-> > > To: linux-media@vger.kernel.org
-> > > Cc: sakari.ailus@maxwell.research.nokia.com
-> > > Subject: [RFC/PATCH v3 00/10] Media controller (core and V4L2)
-> > > 
-> > > Hi everybody,
-> > > 
-> > > Here's the third version of the media controller patches. All comments
-> > > received on the first and second versions have (hopefully) been
-> > > incorporated.
-> > > 
-> > > The rebased V4L2 API additions and OMAP3 ISP patches will follow. Once
-> > > again please consider them as sample code only.
-> > > 
-> > > Laurent Pinchart (8):
-> > >   media: Media device node support
-> > >   media: Media device
-> > >   media: Entities, pads and links
-> > >   media: Entities, pads and links enumeration
-> > >   media: Links setup
-> > >   v4l: Add a media_device pointer to the v4l2_device structure
-> > >   v4l: Make video_device inherit from media_entity
-> > >   v4l: Make v4l2_subdev inherit from media_entity
-> > 
-> > This patch (#0010) doesn't apply to mainline, after this commit:
-> > 
-> > http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit
-> > ;h =b74c0aac357e5c71ee6de98b9887fe478bc73cf4
-> > 
-> > Am I missing something here?
-> 
-> Yes, you're missing the next version of the patches :-) I'll probably send
-> them tomorrow.
+Here is a page about DVB-S2 cards that work somehow with Linux:
 
-On second thought, you're probably missing the V4L2 subdev device node 
-patches. b74c0aac357e5c71ee6de98b9887fe478bc73cf4 is very old (between 2.6.29 
-and 2.6.30) and isn't related.
+http://www.linuxtv.org/wiki/index.php/DVB-S2_PCI_Cards
 
--- 
+I myself have been testing only with 9600 MS/s with terrestial DVB-C,
+so I have no experience with DVB-S2.
+
+With 9600 MS/s and HDTV, the whole system must work, including VDR with 
+it's components,
+not only the PCI DVB card.
+With SDTV, any hardware will do.
+
 Regards,
+Marko Ristola
 
-Laurent Pinchart
+> Thx
+> Bye
+> Manu
+>
+
