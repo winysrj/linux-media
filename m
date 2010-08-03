@@ -1,60 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55359 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758457Ab0HDHhI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 03:37:08 -0400
-Received: by bwz1 with SMTP id 1so2240769bwz.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Aug 2010 00:37:06 -0700 (PDT)
-Date: Wed, 4 Aug 2010 09:30:19 +0200
-From: Richard Zidlicky <rz@linux-m68k.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, udia@siano-ms.com,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge
-	WinTV MiniStick
-Message-ID: <20100804073019.GA5692@linux-m68k.org>
-References: <cover.1280693675.git.mchehab@redhat.com> <20100801171718.5ad62978@pedra> <20100802072711.GA5852@linux-m68k.org> <4C577888.30408@redhat.com> <20100803130552.GA9954@linux-m68k.org> <4C581A5F.5020403@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:61992 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755291Ab0HCGoc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 02:44:32 -0400
+Received: by iwn7 with SMTP id 7so4865393iwn.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 23:44:32 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C581A5F.5020403@redhat.com>
+In-Reply-To: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
+References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
+Date: Mon, 2 Aug 2010 23:44:32 -0700
+Message-ID: <AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
+Subject: Re: V4L hg tree fails to compile against latest stable kernel 2.6.35
+From: VDR User <user.vdr@gmail.com>
+To: "mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, Aug 2, 2010 at 11:36 PM, VDR User <user.vdr@gmail.com> wrote:
+> Any idea when this will be fixed?
 
-not much success.. no key events appear in userspace, not sure if the hardware receives
-anything. Tried both 4 and 9 ports which does not seem to make any difference. 
-lshal does list the IR port, as it did with the siano specific code.
+Sorry, forgot to paste in the details:
 
-Could be my fault, I have cherrypicked patches and applied them on top of Linus 2.6.35.
-Is there an easy way to get a diff from your version against Linus 2.6.35? I would
-rather not fetch the whole repo over my mobile connection;)
-
-Aug  4 09:04:50 localhost kernel: [  260.142019] usb 5-5: new high speed USB device using ehci_hcd and address 3
-Aug  4 09:04:50 localhost kernel: [  260.256894] usb 5-5: New USB device found, idVendor=2040, idProduct=5500
-Aug  4 09:04:50 localhost kernel: [  260.256896] usb 5-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-Aug  4 09:04:50 localhost kernel: [  260.256899] usb 5-5: Product: WinTV MiniStick
-Aug  4 09:04:50 localhost kernel: [  260.256901] usb 5-5: Manufacturer: Hauppauge Computer Works
-Aug  4 09:04:50 localhost kernel: [  260.256903] usb 5-5: SerialNumber: f069684c
-Aug  4 09:04:50 localhost kernel: [  260.308378] IR NEC protocol handler initialized
-Aug  4 09:04:50 localhost kernel: [  260.322270] IR RC5(x) protocol handler initialized
-Aug  4 09:04:50 localhost kernel: [  260.332901] IR RC6 protocol handler initialized
-Aug  4 09:04:50 localhost kernel: [  260.363497] IR JVC protocol handler initialized
-Aug  4 09:04:50 localhost kernel: [  260.407230] IR Sony protocol handler initialized
-Aug  4 09:04:51 localhost kernel: [  260.958061] smscore_set_device_mode: firmware download success: sms1xxx-hcw-55xxx-dvbt-02.fw
-Aug  4 09:04:51 localhost kernel: [  260.958400] sms_ir_init: Allocating input device
-Aug  4 09:04:51 localhost kernel: [  260.958416] sms_ir_init: IR port 0, timeout 100 ms
-Aug  4 09:04:51 localhost kernel: [  260.958419] sms_ir_init: Input device (IR) SMS IR (Hauppauge WinTV MiniStick) is set for key 
-events
-Aug  4 09:04:51 localhost kernel: [  261.010020] Registered IR keymap rc-rc5-hauppauge-new
-Aug  4 09:04:51 localhost kernel: [  261.010571] input: SMS IR (Hauppauge WinTV MiniStick) as /devices/pci0000:00/0000:00:1d.7/usb
-5/5-5/rc/rc0/input5
-Aug  4 09:04:51 localhost kernel: [  261.010797] rc0: SMS IR (Hauppauge WinTV MiniStick) as /devices/pci0000:00/0000:00:1d.7/usb5/
-5-5/rc/rc0
-Aug  4 09:04:51 localhost kernel: [  261.037230] DVB: registering new adapter (Hauppauge WinTV MiniStick)
-Aug  4 09:04:51 localhost kernel: [  261.039296] DVB: registering adapter 0 frontend 0 (Siano Mobile Digital MDTV Receiver)...
-Aug  4 09:04:51 localhost kernel: [  261.044846] usbcore: registered new interface driver smsusb
-
-
-Richard
+make -C /lib/modules/2.6.35.amd.080210.2/build
+SUBDIRS=/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l  modules
+make[2]: Entering directory `/usr/src/linux-2.6.35'
+  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvbdev.o
+  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dmxdev.o
+  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_demux.o
+  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_filter.o
+  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_ca_en50221.o
+  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_frontend.o
+  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.o
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1190:
+warning: 'struct dev_mc_list' declared inside parameter list
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1190:
+warning: its scope is only this definition or declaration, which is
+probably not what you want
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c: In
+function 'dvb_set_mc_filter':
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1197:
+error: dereferencing pointer to incomplete type
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c: In
+function 'wq_set_multicast_list':
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1247:
+error: 'struct net_device' has no member named 'mc_list'
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1249:
+error: dereferencing pointer to incomplete type
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1249:
+warning: left-hand operand of comma expression has no effect
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1249:
+warning: value computed is not used
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1250:
+warning: passing argument 2 of 'dvb_set_mc_filter' from incompatible
+pointer type
+/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1190:
+note: expected 'struct dev_mc_list *' but argument is of type 'struct
+dev_mc_list *'
+make[3]: *** [/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.o]
+Error 1
+make[2]: *** [_module_/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l]
+Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.35'
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l'
+make: *** [all] Error 2
