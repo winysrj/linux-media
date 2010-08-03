@@ -1,138 +1,168 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2116 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756838Ab0HIQie (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 12:38:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: Re: [PATCH v7 1/5] V4L2: Add seek spacing and FM RX class.
-Date: Mon, 9 Aug 2010 18:38:13 +0200
-Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com,
-	mchehab@redhat.com
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com> <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mga14.intel.com ([143.182.124.37]:2823 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756377Ab0HCQFS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Aug 2010 12:05:18 -0400
+Date: Tue, 3 Aug 2010 18:05:19 +0200
+From: Samuel Ortiz <sameo@linux.intel.com>
+To: Richard =?iso-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Subject: Re: [PATCH 3/3 v2] mfd: Add timberdale video-in driver to
+ timberdale
+Message-ID: <20100803160518.GA10451@sortiz-mobl>
+References: <1280848772.19898.165.camel@debian>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008091838.13247.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1280848772.19898.165.camel@debian>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Monday 02 August 2010 16:06:39 Matti J. Aaltonen wrote:
-> Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
-> control classes.
-
-This will no longer apply now that the control framework has been merged.
-
-I strongly recommend converting the driver to use that framework. If
-nothing else, you get support for the g/s/try_ext_ctrls ioctls for free.
-
-See the file Documentation/video4linux/v4l2-controls.txt.
-
-Regards,
-
-	Hans
-
+On Tue, Aug 03, 2010 at 05:19:32PM +0200, Richard Röjfors wrote:
+> This patch defines platform data for the video-in driver
+> and adds it to all configurations of timberdale.
 > 
-> Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+> Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+Mauro, I suppose this series should go through your tree. If you agree, then
+please add:
+Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
+
+to this patch.
+
+Cheers,
+Samuel.
+
 > ---
->  drivers/media/video/v4l2-common.c |   12 ++++++++++++
->  include/linux/videodev2.h         |   15 ++++++++++++++-
->  2 files changed, 26 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-> index cd1f21d..41b1bb2 100644
-> --- a/drivers/media/video/v4l2-common.c
-> +++ b/drivers/media/video/v4l2-common.c
-> @@ -351,6 +351,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
->  		"75 useconds",
->  		NULL,
->  	};
-> +	static const char *fm_band[] = {
-> +		"87.5 - 108. MHz",
-> +		"76. - 90. MHz, Japan",
-> +		"65. - 74. MHz, OIRT",
-> +		NULL,
-> +	};
+> diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+> index ac59950..d4a95bd 100644
+> --- a/drivers/mfd/timberdale.c
+> +++ b/drivers/mfd/timberdale.c
+> @@ -40,6 +40,7 @@
+>  #include <linux/spi/mc33880.h>
 >  
->  	switch (id) {
->  		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
-> @@ -391,6 +397,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
->  			return colorfx;
->  		case V4L2_CID_TUNE_PREEMPHASIS:
->  			return tune_preemphasis;
-> +		case V4L2_CID_FM_BAND:
-> +			return fm_band;
->  		default:
->  			return NULL;
->  	}
-> @@ -515,6 +523,8 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_TUNE_PREEMPHASIS:	return "Pre-emphasis settings";
->  	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
->  	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
-> +	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Tuner Controls";
-> +	case V4L2_CID_FM_BAND:			return "FM Band";
+>  #include <media/timb_radio.h>
+> +#include <media/timb_video.h>
 >  
->  	default:
->  		return NULL;
-> @@ -580,6 +590,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
->  	case V4L2_CID_EXPOSURE_AUTO:
->  	case V4L2_CID_COLORFX:
->  	case V4L2_CID_TUNE_PREEMPHASIS:
-> +	case V4L2_CID_FM_BAND:
->  		qctrl->type = V4L2_CTRL_TYPE_MENU;
->  		step = 1;
->  		break;
-> @@ -591,6 +602,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
->  	case V4L2_CID_CAMERA_CLASS:
->  	case V4L2_CID_MPEG_CLASS:
->  	case V4L2_CID_FM_TX_CLASS:
-> +	case V4L2_CID_FM_RX_CLASS:
->  		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
->  		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
->  		min = max = step = def = 0;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 418dacf..26522cb 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -935,6 +935,7 @@ struct v4l2_ext_controls {
->  #define V4L2_CTRL_CLASS_MPEG 0x00990000	/* MPEG-compression controls */
->  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
->  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
-> +#define V4L2_CTRL_CLASS_FM_RX 0x009c0000	/* FM Tuner control class */
+>  #include <linux/timb_dma.h>
 >  
->  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
->  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-> @@ -1313,6 +1314,17 @@ enum v4l2_preemphasis {
->  #define V4L2_CID_TUNE_POWER_LEVEL		(V4L2_CID_FM_TX_CLASS_BASE + 113)
->  #define V4L2_CID_TUNE_ANTENNA_CAPACITOR		(V4L2_CID_FM_TX_CLASS_BASE + 114)
->  
-> +/* FM Tuner class control IDs */
-> +#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
-> +#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
-> +
-> +#define V4L2_CID_FM_BAND			(V4L2_CID_FM_RX_CLASS_BASE + 1)
-> +enum v4l2_fm_band {
-> +	V4L2_FM_BAND_OTHER		= 0,
-> +	V4L2_FM_BAND_JAPAN		= 1,
-> +	V4L2_FM_BAND_OIRT		= 2
-> +};
-> +
->  /*
->   *	T U N I N G
->   */
-> @@ -1377,7 +1389,8 @@ struct v4l2_hw_freq_seek {
->  	enum v4l2_tuner_type  type;
->  	__u32		      seek_upward;
->  	__u32		      wrap_around;
-> -	__u32		      reserved[8];
-> +	__u32		      spacing;
-> +	__u32		      reserved[7];
+> @@ -238,6 +239,22 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
+>  	},
 >  };
 >  
->  /*
+> +static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
+> +	/* Requires jumper JP9 to be off */
+> +	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
+> +	.irq = IRQ_TIMBERDALE_ADV7180
+> +};
+> +
+> +static __devinitdata struct timb_video_platform_data
+> +	timberdale_video_platform_data = {
+> +	.dma_channel = DMA_VIDEO_RX,
+> +	.i2c_adapter = 0,
+> +	.encoder = {
+> +		.module_name = "adv7180",
+> +		.info = &timberdale_adv7180_i2c_board_info
+> +	}
+> +};
+> +
+>  static const __devinitconst struct resource timberdale_radio_resources[] = {
+>  	{
+>  		.start	= RDSOFFSET,
+> @@ -272,6 +289,18 @@ static __devinitdata struct timb_radio_platform_data
+>  	}
+>  };
+>  
+> +static const __devinitconst struct resource timberdale_video_resources[] = {
+> +	{
+> +		.start	= LOGIWOFFSET,
+> +		.end	= LOGIWEND,
+> +		.flags	= IORESOURCE_MEM,
+> +	},
+> +	/*
+> +	note that the "frame buffer" is located in DMA area
+> +	starting at 0x1200000
+> +	*/
+> +};
+> +
+>  static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
+>  	.nr_channels = 10,
+>  	.channels = {
+> @@ -372,6 +401,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
+>  		.data_size = sizeof(timberdale_gpio_platform_data),
+>  	},
+>  	{
+> +		.name = "timb-video",
+> +		.num_resources = ARRAY_SIZE(timberdale_video_resources),
+> +		.resources = timberdale_video_resources,
+> +		.platform_data = &timberdale_video_platform_data,
+> +		.data_size = sizeof(timberdale_video_platform_data),
+> +	},
+> +	{
+>  		.name = "timb-radio",
+>  		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+>  		.resources = timberdale_radio_resources,
+> @@ -430,6 +466,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
+>  		.resources = timberdale_mlogicore_resources,
+>  	},
+>  	{
+> +		.name = "timb-video",
+> +		.num_resources = ARRAY_SIZE(timberdale_video_resources),
+> +		.resources = timberdale_video_resources,
+> +		.platform_data = &timberdale_video_platform_data,
+> +		.data_size = sizeof(timberdale_video_platform_data),
+> +	},
+> +	{
+>  		.name = "timb-radio",
+>  		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+>  		.resources = timberdale_radio_resources,
+> @@ -478,6 +521,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
+>  		.data_size = sizeof(timberdale_gpio_platform_data),
+>  	},
+>  	{
+> +		.name = "timb-video",
+> +		.num_resources = ARRAY_SIZE(timberdale_video_resources),
+> +		.resources = timberdale_video_resources,
+> +		.platform_data = &timberdale_video_platform_data,
+> +		.data_size = sizeof(timberdale_video_platform_data),
+> +	},
+> +	{
+>  		.name = "timb-radio",
+>  		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+>  		.resources = timberdale_radio_resources,
+> @@ -521,6 +571,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
+>  		.data_size = sizeof(timberdale_gpio_platform_data),
+>  	},
+>  	{
+> +		.name = "timb-video",
+> +		.num_resources = ARRAY_SIZE(timberdale_video_resources),
+> +		.resources = timberdale_video_resources,
+> +		.platform_data = &timberdale_video_platform_data,
+> +		.data_size = sizeof(timberdale_video_platform_data),
+> +	},
+> +	{
+>  		.name = "timb-radio",
+>  		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+>  		.resources = timberdale_radio_resources,
+> diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
+> index c11bf6e..4412acd 100644
+> --- a/drivers/mfd/timberdale.h
+> +++ b/drivers/mfd/timberdale.h
+> @@ -23,7 +23,7 @@
+>  #ifndef MFD_TIMBERDALE_H
+>  #define MFD_TIMBERDALE_H
+>  
+> -#define DRV_VERSION		"0.2"
+> +#define DRV_VERSION		"0.3"
+>  
+>  /* This driver only support versions >= 3.8 and < 4.0  */
+>  #define TIMB_SUPPORTED_MAJOR	3
 > 
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Intel Open Source Technology Centre
+http://oss.intel.com/
