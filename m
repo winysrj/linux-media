@@ -1,89 +1,40 @@
-Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.105.134]:31267 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752252Ab0HJMEU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Aug 2010 08:04:20 -0400
-Subject: Re: [PATCH v7 1/5] V4L2: Add seek spacing and FM RX class.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-In-Reply-To: <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
-	 <201008091838.13247.hverkuil@xs4all.nl>
-	 <1281425501.14489.7.camel@masi.mnp.nokia.com>
-	 <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 10 Aug 2010 15:03:50 +0300
-Message-ID: <1281441830.14489.27.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51810 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756006Ab0HCK5y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 06:57:54 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: [PATCH 09/11] v4l2-mediabus: Add pixelcodes for BGR565 formats
+Date: Tue,  3 Aug 2010 12:57:47 +0200
+Message-Id: <1280833069-26993-10-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Tue, 2010-08-10 at 10:04 +0200, ext Hans Verkuil wrote:
-> > On Mon, 2010-08-09 at 18:38 +0200, ext Hans Verkuil wrote:
-> >> On Monday 02 August 2010 16:06:39 Matti J. Aaltonen wrote:
-> >> > Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
-> >> > control classes.
-> >>
-> >> This will no longer apply now that the control framework has been
-> >> merged.
-> >>
-> >> I strongly recommend converting the driver to use that framework. If
-> >> nothing else, you get support for the g/s/try_ext_ctrls ioctls for free.
-> >>
-> >> See the file Documentation/video4linux/v4l2-controls.txt.
-> >
-> > I can't find that file.  Should it be in some branch of the development
-> > tree?
-> 
-> It's in the new development tree, branch staging/v2.6.36:
-> 
-> http://git.linuxtv.org/media_tree.git
-> 
-> This replaced the v4l-dvb.git tree.
-> 
-> Regards,
+From: Sascha Hauer <s.hauer@pengutronix.de>
 
-This mainly FYI:
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+---
+ include/media/v4l2-mediabus.h |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-I can read the v4l2-controls.txt file through your git web system... but
-after cloning etc. I can't see it...
-
-By looking at the git log the cloned tree lags behind three or four
-days.
-
-
-Cheers,
-Matti A.
-
-> 
->          Hans
-> 
-> >
-> > I've updated my tree....:
-> >
-> > [remote "origin"]
-> >         url =
-> > http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-> >         fetch = +refs/heads/*:refs/remotes/origin/*
-> > [remote "linuxtv"]
-> >         url = http://linuxtv.org/git/v4l-dvb.git
-> >         fetch = +refs/heads/*:refs/remotes/linuxtv/*
-> >
-> > The closest file I have name-wise is
-> > Documentation/video4linux/v4l2-framework.txt
-> >
-> > Thanks,
-> > Matti A.
-> >
-> >
-> 
-> 
-
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 0dbe02a..d0b7340 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -32,6 +32,8 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
+ 	V4L2_MBUS_FMT_RGB565_2X8_LE,
+ 	V4L2_MBUS_FMT_RGB565_2X8_BE,
++	V4L2_MBUS_FMT_BGR565_2X8_LE,
++	V4L2_MBUS_FMT_BGR565_2X8_BE,
+ 	V4L2_MBUS_FMT_SBGGR8_1X8,
+ 	V4L2_MBUS_FMT_SBGGR10_1X10,
+ 	V4L2_MBUS_FMT_GREY8_1X8,
+-- 
+1.7.1
 
