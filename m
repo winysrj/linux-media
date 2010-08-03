@@ -1,136 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1693 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752618Ab0HGJGe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Aug 2010 05:06:34 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH/RFC] V4L2: add a generic function to find the nearest discrete format
-Date: Sat, 7 Aug 2010 11:06:30 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.1008051959330.26127@axis700.grange> <201008061525.30646.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1008062207470.18408@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1008062207470.18408@axis700.grange>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:38306 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755865Ab0HCNLp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 09:11:45 -0400
+Received: by fxm14 with SMTP id 14so1973345fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 03 Aug 2010 06:11:44 -0700 (PDT)
+Date: Tue, 3 Aug 2010 15:05:52 +0200
+From: Richard Zidlicky <rz@linux-m68k.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, udia@siano-ms.com,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge WinTV
+	MiniStick
+Message-ID: <20100803130552.GA9954@linux-m68k.org>
+References: <cover.1280693675.git.mchehab@redhat.com> <20100801171718.5ad62978@pedra> <20100802072711.GA5852@linux-m68k.org> <4C577888.30408@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008071106.30955.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4C577888.30408@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 06 August 2010 22:21:36 Guennadi Liakhovetski wrote:
-> On Fri, 6 Aug 2010, Laurent Pinchart wrote:
-> 
-> > Hi Guennadi,
+Hi,
+
+> Em 02-08-2010 04:27, Richard Zidlicky escreveu:
+> > On Sun, Aug 01, 2010 at 05:17:18PM -0300, Mauro Carvalho Chehab wrote:
+> >> Add the proper gpio port for WinTV MiniStick, with the information provided
+> >> by Michael.
+> >>
+> >> Thanks-to: Michael Krufky <mkrufky@kernellabs.com>
+> >> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >>
+> >> diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
+> >> index cff77e2..dcde606 100644
+> >> --- a/drivers/media/dvb/siano/sms-cards.c
+> >> +++ b/drivers/media/dvb/siano/sms-cards.c
+> >> @@ -67,6 +67,7 @@ static struct sms_board sms_boards[] = {
+> >>  		.board_cfg.leds_power = 26,
+> >>  		.board_cfg.led0 = 27,
+> >>  		.board_cfg.led1 = 28,
+> >> +		.board_cfg.ir = 9,
+> >                                ^^^^
 > > 
-> > On Thursday 05 August 2010 20:03:46 Guennadi Liakhovetski wrote:
-> > > Many video drivers implement a discrete set of frame formats and thus face
-> > > a task of finding the best match for a user-requested format. Implementing
-> > > this in a generic function has also an advantage, that different drivers
-> > > with similar supported format sets will select the same format for the
-> > > user, which improves consistency across drivers.
-> > > 
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > ---
-> > > 
-> > > I'm currently away from my hardware, so, this is only compile tested and
-> > > run-time tested with a test application. In any case, reviews and
-> > > suggestions welcome.
-> > > 
-> > >  drivers/media/video/v4l2-common.c |   26 ++++++++++++++++++++++++++
-> > >  include/linux/videodev2.h         |   10 ++++++++++
-> > >  2 files changed, 36 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/v4l2-common.c
-> > > b/drivers/media/video/v4l2-common.c index 4e53b0b..90727e6 100644
-> > > --- a/drivers/media/video/v4l2-common.c
-> > > +++ b/drivers/media/video/v4l2-common.c
-> > > @@ -1144,3 +1144,29 @@ int v4l_fill_dv_preset_info(u32 preset, struct
-> > > v4l2_dv_enum_preset *info) return 0;
-> > >  }
-> > >  EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-> > > +
-> > > +struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct
-> > > v4l2_discrete_probe *probe, +						       s32 width, s32 height)
-> > > +{
-> > > +	int i;
-> > > +	u32 error, min_error = ~0;
-> > > +	struct v4l2_frmsize_discrete *size, *best = NULL;
-> > > +
-> > > +	if (!probe)
-> > > +		return best;
-> > > +
-> > > +	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
-> > > +		if (probe->probe && !probe->probe(probe))
+> > are you sure about this?
 > > 
-> > What's this call for ?
+> > I am using the value of 4 for the ir port and it definitely works.. confused.
 > 
-> Well, atm, I don't think I have a specific case right now, but I think, it 
-> can well be the case, that not all frame sizes are always usable in the 
-> driver, depending on other circumstances. E.g., depending on the pixel / 
-> fourcc code. So, in this case the driver just provides a probe method to 
-> filter out inapplicable sizes.
+> I got this from a reliable source, and that worked perfectly  my with a Model 55009 
+> LF Rev B1F7. What's the model of your device?
 
-Never add code just because you think it might be needed in the future. Especially
-not for kernel internal code that you can change anyway if needed.
+mine says 
 
-In this case you just want to give a simple const array with width and height
-pairs ending at 0, 0 or pass in the length of the array, whatever you prefer,
-and return the array index for the closest match.
+Aug  3 14:58:10 localhost kernel: [149778.591862] usb 5-5: New USB device found, idVendor=2040, idProduct=5500
+Aug  3 14:58:10 localhost kernel: [149778.591865] usb 5-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+Aug  3 14:58:10 localhost kernel: [149778.591868] usb 5-5: Product: WinTV MiniStick
+Aug  3 14:58:10 localhost kernel: [149778.591870] usb 5-5: Manufacturer: Hauppauge Computer Works
+Aug  3 14:58:10 localhost kernel: [149778.591872] usb 5-5: SerialNumber: f069684c
 
-Keep it simple.
+not sure what else to report. 
 
-Regards,
+I will compile and try a new kernel tonight.
 
-	Hans
+Wondering - is this 
+  http://git.sliepen.org/browse?p=inputlirc
+usefull to feed the input events to LIRC when trying the new driver with a slightly older 
+LIRC based distro?
 
-> 
-> Thanks
-> Guennadi
-> 
-> > 
-> > > +			continue;
-> > > +		error = abs(size->width - width) + abs(size->height - height);
-> > > +		if (error < min_error) {
-> > > +			min_error = error;
-> > > +			best = size;
-> > > +		}
-> > > +		if (!error)
-> > > +			break;
-> > > +	}
-> > > +
-> > > +	return best;
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(v4l2_find_nearest_format);
-> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > index 047f7e6..f622bba 100644
-> > > --- a/include/linux/videodev2.h
-> > > +++ b/include/linux/videodev2.h
-> > > @@ -394,6 +394,16 @@ struct v4l2_frmsize_discrete {
-> > >  	__u32			height;		/* Frame height [pixel] */
-> > >  };
-> > > 
-> > > +struct v4l2_discrete_probe {
-> > > +	struct v4l2_frmsize_discrete	*sizes;
-> > > +	int				num_sizes;
-> > > +	void				*priv;
-> > > +	bool				(*probe)(struct v4l2_discrete_probe *);
-> > > +};
-> > > +
-> > > +struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct
-> > > v4l2_discrete_probe *probe, +						       s32 width, s32 height);
-> > > +
-> > >  struct v4l2_frmsize_stepwise {
-> > >  	__u32			min_width;	/* Minimum frame width [pixel] */
-> > >  	__u32			max_width;	/* Maximum frame width [pixel] */
-> > 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Richard
