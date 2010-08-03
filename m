@@ -1,161 +1,54 @@
-Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:41864 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751888Ab0HTUFg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 16:05:36 -0400
-Date: Fri, 20 Aug 2010 22:05:30 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Marin Mitov <mitov@issp.bas.bg>
-cc: linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Greg KH <greg@kroah.com>, linux-arm-kernel@lists.infradead.org,
-	linux-sh@vger.kernel.org,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory()
- API
-In-Reply-To: <201008191818.36068.mitov@issp.bas.bg>
-Message-ID: <Pine.LNX.4.64.1008202148110.6103@axis700.grange>
-References: <201008191818.36068.mitov@issp.bas.bg>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51794 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755926Ab0HCK5y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 06:57:54 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: [PATCH 03/11] mt9m111: register cleanup hex to dec bitoffset
+Date: Tue,  3 Aug 2010 12:57:41 +0200
+Message-Id: <1280833069-26993-4-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 19 Aug 2010, Marin Mitov wrote:
-
-> Hi all,
-> 
-> struct device contains a member: struct dma_coherent_mem *dma_mem;
-> to hold information for a piece of memory declared dma-coherent.
-> Alternatively the same member could also be used to hold preallocated
-> dma-coherent memory for latter per-device use.
-> 
-> This tric is already used in drivers/staging/dt3155v4l.c
-> dt3155_alloc_coherent()/dt3155_free_coherent()
-> 
-> Here proposed for general use by popular demand from video4linux folks.
-> Helps for videobuf-dma-contig framework.
-
-Ok, so, we've got two solutions to this problem submitted on the same 
-day;) Following this thread:
-
-http://marc.info/?t=128128236400002&r=1&w=2
-
-on the ARM Linux kernel ML, I submitted a patch series
-
-http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
-
-with a couple of fixes and improvements, the actual new API and a use 
-example. My approach is slightly different, in that instead of requiring 
-drivers to issue two calls - one to reserve RAM (usually 
-dma_alloc_coherent()) and one to assign it to a device, my patch follows 
-the suggestion from Russell King from the first thread and unites these 
-two operations. So, now we have a choice;) Unfortunately, these two patch 
-series went to orthogonal sets of recepients, I'm trying to fix this by 
-adding a couple of CC entries.
-
-Thanks
-Guennadi
-
-> 
-> Signed-off-by: Marin Mitov <mitov@issp.bas.bg>
-> 
-> ======================================================================
-> --- a/drivers/base/dma-coherent.c	2010-08-19 15:50:42.000000000 +0300
-> +++ b/drivers/base/dma-coherent.c	2010-08-19 17:27:56.000000000 +0300
-> @@ -93,6 +93,83 @@ void *dma_mark_declared_memory_occupied(
->  EXPORT_SYMBOL(dma_mark_declared_memory_occupied);
->  
->  /**
-> + * dma_reserve_coherent_memory() - reserve coherent memory for per-device use
-> + *
-> + * @dev:	device from which we allocate memory
-> + * @size:	size of requested memory area in bytes
-> + * @flags:	same as in dma_declare_coherent_memory()
-> + *
-> + * This function reserves coherent memory allocating it early (during probe())
-> + * to support latter allocations from per-device coherent memory pools.
-> + * For a given device one could use either dma_declare_coherent_memory() or
-> + * dma_reserve_coherent_memory(), but not both, becase the result of these
-> + * functions is stored in a single struct device member - dma_mem
-> + *
-> + * Returns DMA_MEMORY_MAP on success, or 0 if failed.
-> + * (same as dma_declare_coherent_memory()
-> + */
-> +int dma_reserve_coherent_memory(struct device *dev, size_t size, int flags)
-> +{
-> +	struct dma_coherent_mem *mem;
-> +	dma_addr_t dev_base;
-> +	int pages = size >> PAGE_SHIFT;
-> +	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
-> +
-> +	if ((flags & DMA_MEMORY_MAP) == 0)
-> +		goto out;
-> +	if (!size)
-> +		goto out;
-> +	if (dev->dma_mem)
-> +		goto out;
-> +
-> +	mem = kzalloc(sizeof(*mem), GFP_KERNEL);
-> +	if (!mem)
-> +		goto out;
-> +	mem->virt_base = dma_alloc_coherent(dev, size, &dev_base,
-> +							DT3155_COH_FLAGS);
-> +	if (!mem->virt_base)
-> +		goto err_alloc_coherent;
-> +	mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
-> +	if (!mem->bitmap)
-> +		goto err_bitmap;
-> +
-> +	mem->device_base = dev_base;
-> +	mem->size = pages;
-> +	mem->flags = flags;
-> +	dev->dma_mem = mem;
-> +	return DMA_MEMORY_MAP;
-> +
-> +err_bitmap:
-> +	dma_free_coherent(dev, size, mem->virt_base, dev_base);
-> +err_alloc_coherent:
-> +	kfree(mem);
-> +out:
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(dma_reserve_coherent_memory);
-> +
-> +/**
-> + * dma_free_reserved_memory() - free the reserved dma-coherent memoty
-> + *
-> + * @dev:	device for which we free the dma-coherent memory
-> + *
-> + * same as dma_release_declared_memory()
-> + */
-> +void dma_free_reserved_memory(struct device *dev)
-> +{
-> +	struct dma_coherent_mem *mem = dev->dma_mem;
-> +
-> +	if (!mem)
-> +		return;
-> +	dev->dma_mem = NULL;
-> +	dma_free_coherent(dev, mem->size << PAGE_SHIFT,
-> +					mem->virt_base, mem->device_base);
-> +	kfree(mem->bitmap);
-> +	kfree(mem);
-> +}
-> +EXPORT_SYMBOL(dma_free_reserved_memory);
-> +
-> +/**
->   * dma_alloc_from_coherent() - try to allocate memory from the per-device coherent area
->   *
->   * @dev:	device from which we allocate memory
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
-
+Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/mt9m111.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index e7618da..8c076e5 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -100,14 +100,14 @@
+ #define MT9M111_OUTFMT_BYPASS_IFP	(1 << 10)
+ #define MT9M111_OUTFMT_INV_PIX_CLOCK	(1 << 9)
+ #define MT9M111_OUTFMT_RGB		(1 << 8)
+-#define MT9M111_OUTFMT_RGB565		(0x0 << 6)
+-#define MT9M111_OUTFMT_RGB555		(0x1 << 6)
+-#define MT9M111_OUTFMT_RGB444x		(0x2 << 6)
+-#define MT9M111_OUTFMT_RGBx444		(0x3 << 6)
+-#define MT9M111_OUTFMT_TST_RAMP_OFF	(0x0 << 4)
+-#define MT9M111_OUTFMT_TST_RAMP_COL	(0x1 << 4)
+-#define MT9M111_OUTFMT_TST_RAMP_ROW	(0x2 << 4)
+-#define MT9M111_OUTFMT_TST_RAMP_FRAME	(0x3 << 4)
++#define MT9M111_OUTFMT_RGB565		(0 << 6)
++#define MT9M111_OUTFMT_RGB555		(1 << 6)
++#define MT9M111_OUTFMT_RGB444x		(2 << 6)
++#define MT9M111_OUTFMT_RGBx444		(3 << 6)
++#define MT9M111_OUTFMT_TST_RAMP_OFF	(0 << 4)
++#define MT9M111_OUTFMT_TST_RAMP_COL	(1 << 4)
++#define MT9M111_OUTFMT_TST_RAMP_ROW	(2 << 4)
++#define MT9M111_OUTFMT_TST_RAMP_FRAME	(3 << 4)
+ #define MT9M111_OUTFMT_SHIFT_3_UP	(1 << 3)
+ #define MT9M111_OUTFMT_AVG_CHROMA	(1 << 2)
+ #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y	(1 << 1)
+-- 
+1.7.1
+
