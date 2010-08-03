@@ -1,54 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51794 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755926Ab0HCK5y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 06:57:54 -0400
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Philipp Wiesner <p.wiesner@phytec.de>
-Subject: [PATCH 03/11] mt9m111: register cleanup hex to dec bitoffset
-Date: Tue,  3 Aug 2010 12:57:41 +0200
-Message-Id: <1280833069-26993-4-git-send-email-m.grzeschik@pengutronix.de>
-In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+Received: from mx1.redhat.com ([209.132.183.28]:31751 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751207Ab0HCCB3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Aug 2010 22:01:29 -0400
+Message-ID: <4C577888.30408@redhat.com>
+Date: Mon, 02 Aug 2010 23:01:44 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Richard Zidlicky <rz@linux-m68k.org>
+CC: linux-media@vger.kernel.org, udia@siano-ms.com,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge	WinTV
+ MiniStick
+References: <cover.1280693675.git.mchehab@redhat.com> <20100801171718.5ad62978@pedra> <20100802072711.GA5852@linux-m68k.org>
+In-Reply-To: <20100802072711.GA5852@linux-m68k.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
----
- drivers/media/video/mt9m111.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+Hi Richard,
 
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index e7618da..8c076e5 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -100,14 +100,14 @@
- #define MT9M111_OUTFMT_BYPASS_IFP	(1 << 10)
- #define MT9M111_OUTFMT_INV_PIX_CLOCK	(1 << 9)
- #define MT9M111_OUTFMT_RGB		(1 << 8)
--#define MT9M111_OUTFMT_RGB565		(0x0 << 6)
--#define MT9M111_OUTFMT_RGB555		(0x1 << 6)
--#define MT9M111_OUTFMT_RGB444x		(0x2 << 6)
--#define MT9M111_OUTFMT_RGBx444		(0x3 << 6)
--#define MT9M111_OUTFMT_TST_RAMP_OFF	(0x0 << 4)
--#define MT9M111_OUTFMT_TST_RAMP_COL	(0x1 << 4)
--#define MT9M111_OUTFMT_TST_RAMP_ROW	(0x2 << 4)
--#define MT9M111_OUTFMT_TST_RAMP_FRAME	(0x3 << 4)
-+#define MT9M111_OUTFMT_RGB565		(0 << 6)
-+#define MT9M111_OUTFMT_RGB555		(1 << 6)
-+#define MT9M111_OUTFMT_RGB444x		(2 << 6)
-+#define MT9M111_OUTFMT_RGBx444		(3 << 6)
-+#define MT9M111_OUTFMT_TST_RAMP_OFF	(0 << 4)
-+#define MT9M111_OUTFMT_TST_RAMP_COL	(1 << 4)
-+#define MT9M111_OUTFMT_TST_RAMP_ROW	(2 << 4)
-+#define MT9M111_OUTFMT_TST_RAMP_FRAME	(3 << 4)
- #define MT9M111_OUTFMT_SHIFT_3_UP	(1 << 3)
- #define MT9M111_OUTFMT_AVG_CHROMA	(1 << 2)
- #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y	(1 << 1)
--- 
-1.7.1
+Em 02-08-2010 04:27, Richard Zidlicky escreveu:
+> On Sun, Aug 01, 2010 at 05:17:18PM -0300, Mauro Carvalho Chehab wrote:
+>> Add the proper gpio port for WinTV MiniStick, with the information provided
+>> by Michael.
+>>
+>> Thanks-to: Michael Krufky <mkrufky@kernellabs.com>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
+>> index cff77e2..dcde606 100644
+>> --- a/drivers/media/dvb/siano/sms-cards.c
+>> +++ b/drivers/media/dvb/siano/sms-cards.c
+>> @@ -67,6 +67,7 @@ static struct sms_board sms_boards[] = {
+>>  		.board_cfg.leds_power = 26,
+>>  		.board_cfg.led0 = 27,
+>>  		.board_cfg.led1 = 28,
+>> +		.board_cfg.ir = 9,
+>                                ^^^^
+> 
+> are you sure about this?
+> 
+> I am using the value of 4 for the ir port and it definitely works.. confused.
 
+I got this from a reliable source, and that worked perfectly  my with a Model 55009 
+LF Rev B1F7. What's the model of your device?
+
+> Thanks for looking at it, will test the patches as soon as I can.
+
+I'd appreciate if you could test those patches, as the new implementation is feature-rich,
+as it uses the in-kernel decoders via RC subsystem.
+> 
+> Richard
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Cheers,
+Mauro
