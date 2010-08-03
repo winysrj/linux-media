@@ -1,62 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from d1.icnet.pl ([212.160.220.21]:56291 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753283Ab0HAPwH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 11:52:07 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera interface
-Date: Sun, 1 Aug 2010 17:51:15 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1007291043380.16266@axis700.grange> <201007302049.09085.jkrzyszt@tis.icnet.pl>
-In-Reply-To: <201007302049.09085.jkrzyszt@tis.icnet.pl>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:35525 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932148Ab0HCP0x (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 11:26:53 -0400
+Received: by fxm14 with SMTP id 14so2037920fxm.19
+        for <linux-media@vger.kernel.org>; Tue, 03 Aug 2010 08:26:52 -0700 (PDT)
+Message-ID: <4C583538.8060504@gmail.com>
+Date: Tue, 03 Aug 2010 09:26:48 -0600
+From: Lane Brooks <lane@brooks.nu>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201008011751.17294.jkrzyszt@tis.icnet.pl>
+To: linux-media@vger.kernel.org
+Subject: OMAP3 Bridge Problems
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Friday 30 July 2010 20:49:05 Janusz Krzysztofik napisał(a):
-> Friday 30 July 2010 13:07:42 Guennadi Liakhovetski napisał(a):
-> > On Sun, 18 Jul 2010, Janusz Krzysztofik wrote:
-> > > This is a V4L2 driver for TI OMAP1 SoC camera interface.
-> > >
-> > > Two versions of the driver are provided, using either
-> > > videobuf-dma-contig or videobuf-dma-sg. The former uses less processing
-> > > power, but often fails to allocate contignuous buffer memory. The
-> > > latter is free of this problem, but generates tens of DMA interrupts
-> > > per frame.
-> >
-> > Hm, would it be difficult to first try contig, and if it fails - fall
-> > back to sg?
->
-> Hmm, let me think about it.
+Laurent and team,
 
-Hi Gennadi,
+I am using the OMAP3 ISP code from the devel branch on gitorious that I 
+back ported to a 2.6.31 kernel. Raw bayer streaming to the CCDC output 
+works fine. I am using parallel input with the bridge disabled in that mode.
 
-For me, your idea of frist trying contig and then falling back to sg if it 
-fails, sounds great. However, I'm not sure if implementing it at a specific 
-hardware driver level is a good solution. Nor soc_camera framework seems the 
-right place for it either.
+I am having a problem when I switch the sensor to output YUV422 data. 
+The YUV422 stream is a 8x2. If I only switch the sensor to YUV422 mode, 
+then I can get the YUV422 data at the CCDC output, but the CCDC pads an 
+extra zero byte in there and I only get half the image. So that works as 
+expected. I was then hoping all I would have to do is enable the bridge 
+to get the YUV422_8x2 data packed into the YUV422_16x1 automatically, 
+but instead I get select timeouts.
 
-I think the right way would be if implemented at the videobuf-core level. 
-Then, drivers should be able to initialize both paths, providing queue 
-callbacks for both sets of methods, contig and sg, for videobuf sole use.
+My question:
 
-I'm not sure if I have enough skills to implement this idea. However, if there 
-is a consensus on its general usfullness as a videobuf extension, I can have 
-a look at it in my spare time.
-
-For now, I'd propose limiting my changes for v2 to splitting both methods into 
-separate sections, not interleaved with #ifdefs like they are now, as you've 
-already suggested.
+- Are there other things I need to when I enable the parallel bridge? 
+For example, do I need to change a clock rate somewhere? From the TRM, 
+it seems like it should just work without any changes, but maybe I am 
+missing something.
 
 Thanks,
-Janusz
+Lane
