@@ -1,48 +1,55 @@
-Return-path: <mchehab@pedra>
-Received: from keetweej.vanheusden.com ([83.163.219.98]:44540 "EHLO
-	keetweej.vanheusden.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751257Ab0HKM3t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 08:29:49 -0400
-Date: Wed, 11 Aug 2010 14:29:47 +0200
-From: folkert <folkert@vanheusden.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 &
-	/dev/dvb
-Message-ID: <20100811122947.GQ6126@belle.intranet.vanheusden.com>
-References: <20100809133252.GW6126@belle.intranet.vanheusden.com> <AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com> <20100809143550.GZ6126@belle.intranet.vanheusden.com> <AANLkTinJbdrHQPk9mudEAPtB7L_S11hS_ArX+DDsnBD6@mail.gmail.com> <20100810112258.GK6126@belle.intranet.vanheusden.com> <AANLkTin-eXj-78iDkU=FYTiuzRH1_qwRwYQskO2=g19B@mail.gmail.com> <20100810145841.GX6126@belle.intranet.vanheusden.com> <AANLkTikd+Ls-EDU7zSbsLU6hg6FvCwF4GtpXwtvJcDkW@mail.gmail.com> <20100811090745.GD6126@belle.intranet.vanheusden.com> <AANLkTimg2bkNgoqs_2ZUkFYHVgnLONoHjv=LyZ54eYYU@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <AANLkTimg2bkNgoqs_2ZUkFYHVgnLONoHjv=LyZ54eYYU@mail.gmail.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51800 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755967Ab0HCK5y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 06:57:54 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: [PATCH 02/11] mt9m111: init chip after read CHIP_VERSION
+Date: Tue,  3 Aug 2010 12:57:40 +0200
+Message-Id: <1280833069-26993-3-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-> >> > Fyi: since I upgraded the modules by the mercurial tree you mentioned a
-> >> > few mails ago, my "18b4:1689 e3C Technologies DUTV009" significally has
-> >> > more signal locks. Coincidence?
-> >>
-> >> I don't know.  The tree I pointed you to is several months old, but
-> >> may be newer than whatever version of the drivers you had in your base
-> >> Linux distribution.
-> >
-> > teletext with that version of the driver with the pinnacle pctv 330e
-> > works perfect by the way
-> 
-> I'm sorry, but which version of the driver are you referring to?  It
-> works perfectly with the tree I pointed you to?  Or it works perfectly
-> with whatever you had in your base distribution?
+Moved mt9m111_init after the chip version detection passage: I
+don't like the idea of writing on a device we haven't identified
+yet.
 
-It works fine with base 2.6.34 kernel with the tree applied you pointed
-to.
+Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+---
+ drivers/media/video/mt9m111.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-
-Folkert van Heusden
-
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 68f3df6..e7618da 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -969,10 +969,6 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
+ 	mt9m111->swap_rgb_even_odd = 1;
+ 	mt9m111->swap_rgb_red_blue = 1;
+ 
+-	ret = mt9m111_init(client);
+-	if (ret)
+-		goto ei2c;
+-
+ 	data = reg_read(CHIP_VERSION);
+ 
+ 	switch (data) {
+@@ -993,6 +989,8 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
+ 		goto ei2c;
+ 	}
+ 
++	ret = mt9m111_init(client);
++
+ ei2c:
+ 	return ret;
+ }
 -- 
-Looking for a cheap but fast webhoster with an excellent helpdesk?
-http://keetweej.vanheusden.com/redir.php?id=1001
-----------------------------------------------------------------------
-Phone: +31-6-41278122, PGP-key: 1F28D8AE, www.vanheusden.com
+1.7.1
+
