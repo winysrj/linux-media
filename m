@@ -1,245 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4428 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245Ab0HDShc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 14:37:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH v3 7/7] v4l: subdev: Events support
-Date: Wed, 4 Aug 2010 20:37:28 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278948352-17892-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1278948352-17892-8-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:49874 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756360Ab0HCOVI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 10:21:08 -0400
+Received: by qyk7 with SMTP id 7so726009qyk.19
+        for <linux-media@vger.kernel.org>; Tue, 03 Aug 2010 07:21:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008042037.28968.hverkuil@xs4all.nl>
+In-Reply-To: <4C581A5F.5020403@redhat.com>
+References: <cover.1280693675.git.mchehab@redhat.com>
+	<20100801171718.5ad62978@pedra>
+	<20100802072711.GA5852@linux-m68k.org>
+	<4C577888.30408@redhat.com>
+	<20100803130552.GA9954@linux-m68k.org>
+	<4C581A5F.5020403@redhat.com>
+Date: Tue, 3 Aug 2010 10:21:03 -0400
+Message-ID: <AANLkTi=SH9U16muauwQ-TSzJ4Z2=L4Oq-e=KdT0vmPxp@mail.gmail.com>
+Subject: Re: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge WinTV
+	MiniStick
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Richard Zidlicky <rz@linux-m68k.org>, linux-media@vger.kernel.org,
+	udia@siano-ms.com, Michael Krufky <mkrufky@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 12 July 2010 17:25:52 Laurent Pinchart wrote:
-> From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> 
-> Provide v4l2_subdevs with v4l2_event support. Subdev drivers only need very
-> little to support events.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> Signed-off-by: David Cohen <david.cohen@nokia.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+On Tue, Aug 3, 2010 at 9:32 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em 03-08-2010 10:05, Richard Zidlicky escreveu:
+>> Hi,
+>>
+>>> Em 02-08-2010 04:27, Richard Zidlicky escreveu:
+>>>> On Sun, Aug 01, 2010 at 05:17:18PM -0300, Mauro Carvalho Chehab wrote:
+>>>>> Add the proper gpio port for WinTV MiniStick, with the information provided
+>>>>> by Michael.
+>>>>>
+>>>>> Thanks-to: Michael Krufky <mkrufky@kernellabs.com>
+>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>>>
+>>>>> diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
+>>>>> index cff77e2..dcde606 100644
+>>>>> --- a/drivers/media/dvb/siano/sms-cards.c
+>>>>> +++ b/drivers/media/dvb/siano/sms-cards.c
+>>>>> @@ -67,6 +67,7 @@ static struct sms_board sms_boards[] = {
+>>>>>            .board_cfg.leds_power = 26,
+>>>>>            .board_cfg.led0 = 27,
+>>>>>            .board_cfg.led1 = 28,
+>>>>> +          .board_cfg.ir = 9,
+>>>>                                ^^^^
+>>>>
+>>>> are you sure about this?
+>>>>
+>>>> I am using the value of 4 for the ir port and it definitely works.. confused.
+>>>
+>>> I got this from a reliable source, and that worked perfectly  my with a Model 55009
+>>> LF Rev B1F7. What's the model of your device?
+>>
+>> mine says
+>>
+>> Aug  3 14:58:10 localhost kernel: [149778.591862] usb 5-5: New USB device found, idVendor=2040, idProduct=5500
+>> Aug  3 14:58:10 localhost kernel: [149778.591865] usb 5-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+>> Aug  3 14:58:10 localhost kernel: [149778.591868] usb 5-5: Product: WinTV MiniStick
+>> Aug  3 14:58:10 localhost kernel: [149778.591870] usb 5-5: Manufacturer: Hauppauge Computer Works
+>> Aug  3 14:58:10 localhost kernel: [149778.591872] usb 5-5: SerialNumber: f069684c
+>>
+>> not sure what else to report.
+>
+> The model number is on a label at the back of the stick (at least, mine have it).
+>
+>> I will compile and try a new kernel tonight.
+>>
+>> Wondering - is this
+>>   http://git.sliepen.org/browse?p=inputlirc
+>> usefull to feed the input events to LIRC when trying the new driver with a slightly older
+>> LIRC based distro?
+>
+> The in-kernel lirc support need a new version of LIRC since a few ioctls numbers were changed,
+> to avoid needing to write a code in kernel to handle compatibility between 32 and 64 bit kernels.
+> If you're running a 32 bits kernel, it may work.
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Should also be able to skirt around the issue if you don't use the
+/dev/lircX interface to get data out of the receiver. For example, one
+could use the lircd devinput driver, a la "lircd -H devinput -d
+/dev/input/by-id/<my-remote's-input-device>", and I don't think the
+ioctl changes should matter.
 
-> ---
->  Documentation/video4linux/v4l2-framework.txt |   18 ++++++
->  drivers/media/video/v4l2-subdev.c            |   75 +++++++++++++++++++++++++-
->  include/media/v4l2-subdev.h                  |   10 ++++
->  3 files changed, 102 insertions(+), 1 deletions(-)
-> 
-> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-> index 9c3f33c..89bd881 100644
-> --- a/Documentation/video4linux/v4l2-framework.txt
-> +++ b/Documentation/video4linux/v4l2-framework.txt
-> @@ -347,6 +347,24 @@ VIDIOC_TRY_EXT_CTRLS
->  	controls can be also be accessed through one (or several) V4L2 device
->  	nodes.
->  
-> +VIDIOC_DQEVENT
-> +VIDIOC_SUBSCRIBE_EVENT
-> +VIDIOC_UNSUBSCRIBE_EVENT
-> +
-> +	The events ioctls are identical to the ones defined in V4L2. They
-> +	behave identically, with the only exception that they deal only with
-> +	events generated by the sub-device. Depending on the driver, those
-> +	events can also be reported by one (or several) V4L2 device nodes.
-> +
-> +	Sub-device drivers that want to use events need to set the
-> +	V4L2_SUBDEV_USES_EVENTS v4l2_subdev::flags and initialize
-> +	v4l2_subdev::nevents to events queue depth before registering the
-> +	sub-device. After registration events can be queued as usual on the
-> +	v4l2_subdev::devnode device node.
-> +
-> +	To properly support events, the poll() file operation is also
-> +	implemented.
-> +
->  
->  I2C sub-device drivers
->  ----------------------
-> diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-> index ea3941a..b063195 100644
-> --- a/drivers/media/video/v4l2-subdev.c
-> +++ b/drivers/media/video/v4l2-subdev.c
-> @@ -18,26 +18,68 @@
->   *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
->   */
->  
-> -#include <linux/types.h>
->  #include <linux/ioctl.h>
-> +#include <linux/slab.h>
-> +#include <linux/types.h>
->  #include <linux/videodev2.h>
->  
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-fh.h>
-> +#include <media/v4l2-event.h>
->  
->  static int subdev_open(struct file *file)
->  {
->  	struct video_device *vdev = video_devdata(file);
->  	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-> +	struct v4l2_fh *vfh;
-> +	int ret;
->  
->  	if (!sd->initialized)
->  		return -EAGAIN;
->  
-> +	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
-> +		vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
-> +		if (vfh == NULL)
-> +			return -ENOMEM;
-> +
-> +		ret = v4l2_fh_init(vfh, vdev);
-> +		if (ret)
-> +			goto err;
-> +
-> +		ret = v4l2_event_init(vfh);
-> +		if (ret)
-> +			goto err;
-> +
-> +		ret = v4l2_event_alloc(vfh, sd->nevents);
-> +		if (ret)
-> +			goto err;
-> +
-> +		v4l2_fh_add(vfh);
-> +		file->private_data = vfh;
-> +	}
-> +
->  	return 0;
-> +
-> +err:
-> +	if (vfh != NULL) {
-> +		v4l2_fh_exit(vfh);
-> +		kfree(vfh);
-> +	}
-> +
-> +	return ret;
->  }
->  
->  static int subdev_close(struct file *file)
->  {
-> +	struct v4l2_fh *vfh = file->private_data;
-> +
-> +	if (vfh != NULL) {
-> +		v4l2_fh_del(vfh);
-> +		v4l2_fh_exit(vfh);
-> +		kfree(vfh);
-> +	}
-> +
->  	return 0;
->  }
->  
-> @@ -45,6 +87,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  {
->  	struct video_device *vdev = video_devdata(file);
->  	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-> +	struct v4l2_fh *fh = file->private_data;
->  
->  	switch (cmd) {
->  	case VIDIOC_QUERYCTRL:
-> @@ -68,6 +111,18 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  	case VIDIOC_TRY_EXT_CTRLS:
->  		return v4l2_subdev_call(sd, core, try_ext_ctrls, arg);
->  
-> +	case VIDIOC_DQEVENT:
-> +		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
-> +			return -ENOIOCTLCMD;
-> +
-> +		return v4l2_event_dequeue(fh, arg, file->f_flags & O_NONBLOCK);
-> +
-> +	case VIDIOC_SUBSCRIBE_EVENT:
-> +		return v4l2_subdev_call(sd, core, subscribe_event, fh, arg);
-> +
-> +	case VIDIOC_UNSUBSCRIBE_EVENT:
-> +		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
-> +
->  	default:
->  		return -ENOIOCTLCMD;
->  	}
-> @@ -81,11 +136,29 @@ static long subdev_ioctl(struct file *file, unsigned int cmd,
->  	return __video_usercopy(file, cmd, arg, subdev_do_ioctl);
->  }
->  
-> +static unsigned int subdev_poll(struct file *file, poll_table *wait)
-> +{
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-> +	struct v4l2_fh *fh = file->private_data;
-> +
-> +	if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
-> +		return POLLERR;
-> +
-> +	poll_wait(file, &fh->events->wait, wait);
-> +
-> +	if (v4l2_event_pending(fh))
-> +		return POLLPRI;
-> +
-> +	return 0;
-> +}
-> +
->  const struct v4l2_file_operations v4l2_subdev_fops = {
->  	.owner = THIS_MODULE,
->  	.open = subdev_open,
->  	.unlocked_ioctl = subdev_ioctl,
->  	.release = subdev_close,
-> +	.poll = subdev_poll,
->  };
->  
->  void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 9ee45c8..55a8c93 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -36,6 +36,8 @@
->  #define V4L2_SUBDEV_IR_TX_FIFO_SERVICE_REQ	0x00000001
->  
->  struct v4l2_device;
-> +struct v4l2_event_subscription;
-> +struct v4l2_fh;
->  struct v4l2_subdev;
->  struct tuner_setup;
->  
-> @@ -134,6 +136,10 @@ struct v4l2_subdev_core_ops {
->  	int (*s_register)(struct v4l2_subdev *sd, struct v4l2_dbg_register *reg);
->  #endif
->  	int (*s_power)(struct v4l2_subdev *sd, int on);
-> +	int (*subscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-> +			       struct v4l2_event_subscription *sub);
-> +	int (*unsubscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-> +				 struct v4l2_event_subscription *sub);
->  };
->  
->  /* s_mode: switch the tuner to a specific tuner mode. Replacement of s_radio.
-> @@ -408,6 +414,8 @@ struct v4l2_subdev_ops {
->  #define V4L2_SUBDEV_FL_IS_SPI			(1U << 1)
->  /* Set this flag if this subdev needs a device node. */
->  #define V4L2_SUBDEV_FL_HAS_DEVNODE		(1U << 2)
-> +/* Set this flag if this subdev generates events. */
-> +#define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
->  
->  /* Each instance of a subdev driver should create this struct, either
->     stand-alone or embedded in a larger struct.
-> @@ -427,6 +435,8 @@ struct v4l2_subdev {
->  	/* subdev device node */
->  	struct video_device devnode;
->  	unsigned int initialized;
-> +	/* number of events to be allocated on open */
-> +	unsigned int nevents;
->  };
->  
->  #define vdev_to_v4l2_subdev(vdev) \
-> 
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Jarod Wilson
+jarod@wilsonet.com
