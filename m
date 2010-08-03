@@ -1,121 +1,258 @@
-Return-path: <mchehab@pedra>
-Received: from server.klug.on.ca ([205.189.48.131]:2497 "EHLO
-	server.klug.on.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751523Ab0HWE6I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Aug 2010 00:58:08 -0400
-Received: from linux.interlinx.bc.ca (d67-193-197-208.home3.cgocable.net [67.193.197.208])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by server.klug.on.ca (Postfix) with ESMTP id 199C32803
-	for <linux-media@vger.kernel.org>; Mon, 23 Aug 2010 00:32:34 -0400 (EDT)
-Received: from [10.75.22.1] (pc.ilinx [10.75.22.1])
-	by linux.interlinx.bc.ca (Postfix) with ESMTP id F0201920B
-	for <linux-media@vger.kernel.org>; Mon, 23 Aug 2010 00:32:32 -0400 (EDT)
-Subject: hvr950q stopped working: read of drv0 never returns
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51792 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756005Ab0HCK5y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 06:57:54 -0400
+From: Michael Grzeschik <m.grzeschik@pengutronix.de>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-fJpX0mDNNvkQyMrr2eXL"
-Date: Mon, 23 Aug 2010 00:32:31 -0400
-Message-ID: <1282537951.32217.3874.camel@pc.interlinx.bc.ca>
-Mime-Version: 1.0
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: [PATCH v2 10/11] mt9m111: rewrite set_pixfmt
+Date: Tue,  3 Aug 2010 12:57:48 +0200
+Message-Id: <1280833069-26993-11-git-send-email-m.grzeschik@pengutronix.de>
+In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
+added more supported BE colour formats
+and also support BGR565 swapped pixel formats
 
---=-fJpX0mDNNvkQyMrr2eXL
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+removed pixfmt helper functions and option flags
+setting the configuration register directly in set_pixfmt
 
-Hi,
+Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+---
+Changes v1 -> v2
+	* removed unrelated OPMODE handling in this function
 
-I have an HVR 950Q on my Ubuntu 2.6.32 kernel.  I have in fact tried
-several kernel versions on a couple of different machines with the same
-behaviour.
+ drivers/media/video/mt9m111.c |  143 ++++++++++++++++-------------------------
+ 1 files changed, 56 insertions(+), 87 deletions(-)
 
-What seems to be happening is that /dev/dvb/adapter0/dvr0 can be opened:
-
-open("/dev/dvb/adapter0/dvr0", O_RDONLY|O_LARGEFILE) =3D 0
-
-but a read from it never seems to return any data:
-
-read(0,=20
-[ process blocks waiting ]
-
-Nothing abnormal in dmesg:
-
-[916870.612154] usb 1-2: new high speed USB device using ehci_hcd and addre=
-ss 27
-[916870.772818] usb 1-2: configuration #1 chosen from 1 choice
-[916876.064150] au0828 driver loaded
-[916876.424163] au0828: i2c bus registered
-[916876.747481] tveeprom 4-0050: Hauppauge model 72001, rev B3F0, serial# 6=
-922999
-[916876.747487] tveeprom 4-0050: MAC address is 00-0D-FE-69-A2-F7
-[916876.747490] tveeprom 4-0050: tuner model is Xceive XC5000 (idx 150, typ=
-e 76)
-[916876.747494] tveeprom 4-0050: TV standards NTSC(M) ATSC/DVB Digital (eep=
-rom 0x88)
-[916876.747497] tveeprom 4-0050: audio processor is AU8522 (idx 44)
-[916876.747500] tveeprom 4-0050: decoder processor is AU8522 (idx 42)
-[916876.747503] tveeprom 4-0050: has no radio, has IR receiver, has no IR t=
-ransmitter
-[916876.747506] hauppauge_eeprom: hauppauge eeprom: model=3D72001
-[916876.798021] au8522 4-0047: creating new instance
-[916876.798025] au8522_decoder creating new instance...
-[916877.127635] tuner 4-0061: chip found @ 0xc2 (au0828)
-[916877.282505] xc5000 4-0061: creating new instance
-[916877.287331] xc5000: Successfully identified at address 0x61
-[916877.287336] xc5000: Firmware has not been loaded previously
-[916877.287791] au8522 4-0047: attaching existing instance
-[916877.296083] xc5000 4-0061: attaching existing instance
-[916877.300826] xc5000: Successfully identified at address 0x61
-[916877.300830] xc5000: Firmware has not been loaded previously
-[916877.300835] DVB: registering new adapter (au0828)
-[916877.300840] DVB: registering adapter 0 frontend 0 (Auvitek AU8522 QAM/8=
-VSB Frontend)...
-[916877.301421] Registered device AU0828 [Hauppauge HVR950Q]
-[916877.302825] usbcore: registered new interface driver au0828
-[916925.988585] xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.=
-fw)...
-[916925.988595] usb 1-2: firmware: requesting dvb-fe-xc5000-1.6.114.fw
-[916926.076234] xc5000: firmware read 12401 bytes.
-[916926.076238] xc5000: firmware uploading...
-[916934.265042] xc5000: firmware upload complete...
-[916934.972117] xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.=
-fw)...
-[916934.972128] usb 1-2: firmware: requesting dvb-fe-xc5000-1.6.114.fw
-[916934.994581] xc5000: firmware read 12401 bytes.
-[916934.994586] xc5000: firmware uploading...
-[916943.981063] xc5000: firmware upload complete...
-[917101.354372] xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.=
-fw)...
-[917101.354388] usb 1-2: firmware: requesting dvb-fe-xc5000-1.6.114.fw
-[917101.394161] xc5000: firmware read 12401 bytes.
-[917101.394165] xc5000: firmware uploading...
-[917110.813119] xc5000: firmware upload complete...
-
-This device was working just fine until I rebooted the machine it's
-usually connected to earlier today.  Now I can't seem to get it working
-anywhere.
-
-I'm at a loss where to go from here in debugging.  Any hints?
-
-Thanx,
-b.
-
-
---=-fJpX0mDNNvkQyMrr2eXL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEABECAAYFAkxx+dwACgkQl3EQlGLyuXAusQCg2yarDrcR0PinijwRexPL4sMH
-ohEAoJVbTKvj7bbq5JDSEUGns73JrWzh
-=+0Eq
------END PGP SIGNATURE-----
-
---=-fJpX0mDNNvkQyMrr2eXL--
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index e865938..25b2317 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -101,7 +101,8 @@
+ 
+ #define MT9M111_OPMODE_AUTOEXPO_EN	(1 << 14)
+ #define MT9M111_OPMODE_AUTOWHITEBAL_EN	(1 << 1)
+-
++#define MT9M111_OUTFMT_FLIP_BAYER_COL  (1 << 9)
++#define MT9M111_OUTFMT_FLIP_BAYER_ROW  (1 << 8)
+ #define MT9M111_OUTFMT_PROCESSED_BAYER	(1 << 14)
+ #define MT9M111_OUTFMT_BYPASS_IFP	(1 << 10)
+ #define MT9M111_OUTFMT_INV_PIX_CLOCK	(1 << 9)
+@@ -119,6 +120,7 @@
+ #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y	(1 << 1)
+ #define MT9M111_OUTFMT_SWAP_RGB_EVEN	(1 << 1)
+ #define MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr	(1 << 0)
++#define MT9M111_OUTFMT_SWAP_RGB_R_B	(1 << 0)
+ 
+ /*
+  * Camera control register addresses (0x200..0x2ff not implemented)
+@@ -161,7 +163,11 @@ static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
+ 	{V4L2_MBUS_FMT_YUYV8_2X8_BE, V4L2_COLORSPACE_JPEG},
+ 	{V4L2_MBUS_FMT_YVYU8_2X8_BE, V4L2_COLORSPACE_JPEG},
+ 	{V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
++	{V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE, V4L2_COLORSPACE_SRGB},
+ 	{V4L2_MBUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
++	{V4L2_MBUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB},
++	{V4L2_MBUS_FMT_BGR565_2X8_LE, V4L2_COLORSPACE_SRGB},
++	{V4L2_MBUS_FMT_BGR565_2X8_BE, V4L2_COLORSPACE_SRGB},
+ 	{V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_COLORSPACE_SRGB},
+ 	{V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
+ };
+@@ -184,10 +190,6 @@ struct mt9m111 {
+ 	unsigned int powered:1;
+ 	unsigned int hflip:1;
+ 	unsigned int vflip:1;
+-	unsigned int swap_rgb_even_odd:1;
+-	unsigned int swap_rgb_red_blue:1;
+-	unsigned int swap_yuv_y_chromas:1;
+-	unsigned int swap_yuv_cb_cr:1;
+ 	unsigned int autowhitebalance:1;
+ };
+ 
+@@ -329,68 +331,6 @@ static int mt9m111_setup_rect(struct i2c_client *client,
+ 	return ret;
+ }
+ 
+-static int mt9m111_setup_pixfmt(struct i2c_client *client, u16 outfmt)
+-{
+-	int ret;
+-
+-	ret = reg_write(OUTPUT_FORMAT_CTRL2_A, outfmt);
+-	if (!ret)
+-		ret = reg_write(OUTPUT_FORMAT_CTRL2_B, outfmt);
+-	return ret;
+-}
+-
+-static int mt9m111_setfmt_bayer8(struct i2c_client *client)
+-{
+-	return mt9m111_setup_pixfmt(client, MT9M111_OUTFMT_PROCESSED_BAYER |
+-				    MT9M111_OUTFMT_RGB);
+-}
+-
+-static int mt9m111_setfmt_bayer10(struct i2c_client *client)
+-{
+-	return mt9m111_setup_pixfmt(client, MT9M111_OUTFMT_BYPASS_IFP);
+-}
+-
+-static int mt9m111_setfmt_rgb565(struct i2c_client *client)
+-{
+-	struct mt9m111 *mt9m111 = to_mt9m111(client);
+-	int val = 0;
+-
+-	if (mt9m111->swap_rgb_red_blue)
+-		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+-	if (mt9m111->swap_rgb_even_odd)
+-		val |= MT9M111_OUTFMT_SWAP_RGB_EVEN;
+-	val |= MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+-
+-	return mt9m111_setup_pixfmt(client, val);
+-}
+-
+-static int mt9m111_setfmt_rgb555(struct i2c_client *client)
+-{
+-	struct mt9m111 *mt9m111 = to_mt9m111(client);
+-	int val = 0;
+-
+-	if (mt9m111->swap_rgb_red_blue)
+-		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+-	if (mt9m111->swap_rgb_even_odd)
+-		val |= MT9M111_OUTFMT_SWAP_RGB_EVEN;
+-	val |= MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB555;
+-
+-	return mt9m111_setup_pixfmt(client, val);
+-}
+-
+-static int mt9m111_setfmt_yuv(struct i2c_client *client)
+-{
+-	struct mt9m111 *mt9m111 = to_mt9m111(client);
+-	int val = 0;
+-
+-	if (mt9m111->swap_yuv_cb_cr)
+-		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+-	if (mt9m111->swap_yuv_y_chromas)
+-		val |= MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
+-
+-	return mt9m111_setup_pixfmt(client, val);
+-}
+-
+ static int mt9m111_enable(struct i2c_client *client)
+ {
+ 	struct mt9m111 *mt9m111 = to_mt9m111(client);
+@@ -518,41 +458,54 @@ static int mt9m111_g_fmt(struct v4l2_subdev *sd,
+ static int mt9m111_set_pixfmt(struct i2c_client *client,
+ 			      enum v4l2_mbus_pixelcode code)
+ {
+-	struct mt9m111 *mt9m111 = to_mt9m111(client);
++	u16 data_outfmt1 = 0, data_outfmt2 = 0, mask_outfmt1, mask_outfmt2;
+ 	int ret;
+ 
+ 	switch (code) {
+ 	case V4L2_MBUS_FMT_SBGGR8_1X8:
+-		ret = mt9m111_setfmt_bayer8(client);
++		data_outfmt1 = MT9M111_OUTFMT_FLIP_BAYER_ROW;
++		data_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
++			MT9M111_OUTFMT_RGB;
+ 		break;
+ 	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
+-		ret = mt9m111_setfmt_bayer10(client);
++		data_outfmt2 = MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB;
+ 		break;
+ 	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
+-		ret = mt9m111_setfmt_rgb555(client);
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_RGB_EVEN |
++			MT9M111_OUTFMT_RGB |
++			MT9M111_OUTFMT_RGB555;
++		break;
++	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
++		data_outfmt2 = MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB555;
+ 		break;
+ 	case V4L2_MBUS_FMT_RGB565_2X8_LE:
+-		ret = mt9m111_setfmt_rgb565(client);
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_RGB_EVEN |
++			MT9M111_OUTFMT_RGB |
++			MT9M111_OUTFMT_RGB565;
++		break;
++	case V4L2_MBUS_FMT_RGB565_2X8_BE:
++		data_outfmt2 = MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
++		break;
++	case V4L2_MBUS_FMT_BGR565_2X8_LE:
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
++			MT9M111_OUTFMT_SWAP_RGB_EVEN |
++			MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
++		break;
++	case V4L2_MBUS_FMT_BGR565_2X8_BE:
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
++			MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+ 		break;
+ 	case V4L2_MBUS_FMT_YUYV8_2X8_BE:
+-		mt9m111->swap_yuv_y_chromas = 0;
+-		mt9m111->swap_yuv_cb_cr = 0;
+-		ret = mt9m111_setfmt_yuv(client);
+ 		break;
+ 	case V4L2_MBUS_FMT_YVYU8_2X8_BE:
+-		mt9m111->swap_yuv_y_chromas = 0;
+-		mt9m111->swap_yuv_cb_cr = 1;
+-		ret = mt9m111_setfmt_yuv(client);
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+ 		break;
+ 	case V4L2_MBUS_FMT_YUYV8_2X8_LE:
+-		mt9m111->swap_yuv_y_chromas = 1;
+-		mt9m111->swap_yuv_cb_cr = 0;
+-		ret = mt9m111_setfmt_yuv(client);
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
+ 		break;
+ 	case V4L2_MBUS_FMT_YVYU8_2X8_LE:
+-		mt9m111->swap_yuv_y_chromas = 1;
+-		mt9m111->swap_yuv_cb_cr = 1;
+-		ret = mt9m111_setfmt_yuv(client);
++		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_C_Y |
++			MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+ 		break;
+ 	default:
+ 		dev_err(&client->dev, "Pixel format not handled : %x\n",
+@@ -560,6 +513,25 @@ static int mt9m111_set_pixfmt(struct i2c_client *client,
+ 		ret = -EINVAL;
+ 	}
+ 
++	mask_outfmt1 = MT9M111_OUTFMT_FLIP_BAYER_COL |
++		MT9M111_OUTFMT_FLIP_BAYER_ROW;
++
++	mask_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
++		MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB |
++		MT9M111_OUTFMT_RGB565 | MT9M111_OUTFMT_RGB555 |
++		MT9M111_OUTFMT_RGB444x | MT9M111_OUTFMT_RGBx444 |
++		MT9M111_OUTFMT_SWAP_YCbCr_C_Y | MT9M111_OUTFMT_SWAP_RGB_EVEN |
++		MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr | MT9M111_OUTFMT_SWAP_RGB_R_B;
++
++	ret = reg_mask(OUTPUT_FORMAT_CTRL, data_outfmt1, mask_outfmt1);
++
++	if (!ret)
++		ret = reg_mask(OUTPUT_FORMAT_CTRL2_A, data_outfmt2,
++			mask_outfmt2);
++	if (!ret)
++		ret = reg_mask(OUTPUT_FORMAT_CTRL2_B, data_outfmt2,
++			mask_outfmt2);
++
+ 	return ret;
+ }
+ 
+@@ -989,9 +961,6 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
+ 	mt9m111->autoexposure = 1;
+ 	mt9m111->autowhitebalance = 1;
+ 
+-	mt9m111->swap_rgb_even_odd = 1;
+-	mt9m111->swap_rgb_red_blue = 1;
+-
+ 	data = reg_read(CHIP_VERSION);
+ 
+ 	switch (data) {
+-- 
+1.7.1
 
