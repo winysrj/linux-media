@@ -1,119 +1,79 @@
-Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:43873 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751305Ab0HSSdM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Aug 2010 14:33:12 -0400
-Subject: RE: [PATCH] Fixes field names that changed
-From: Henrique Camargo <henrique@henriquecamargo.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-In-Reply-To: <A24693684029E5489D1D202277BE89445718F57D@dlee02.ent.ti.com>
-References: <1282055682.1883.5.camel@lemming>
-	 <A24693684029E5489D1D202277BE89445718F57A@dlee02.ent.ti.com>
-	 <A24693684029E5489D1D202277BE89445718F57D@dlee02.ent.ti.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 19 Aug 2010 15:33:02 -0300
-Message-ID: <1282242782.2213.8.camel@lemming>
-Mime-Version: 1.0
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:1614 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755809Ab0HCNcD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Aug 2010 09:32:03 -0400
+Message-ID: <4C581A5F.5020403@redhat.com>
+Date: Tue, 03 Aug 2010 10:32:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Richard Zidlicky <rz@linux-m68k.org>
+CC: linux-media@vger.kernel.org, udia@siano-ms.com,
+	Michael Krufky <mkrufky@kernellabs.com>
+Subject: Re: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge WinTV
+ MiniStick
+References: <cover.1280693675.git.mchehab@redhat.com> <20100801171718.5ad62978@pedra> <20100802072711.GA5852@linux-m68k.org> <4C577888.30408@redhat.com> <20100803130552.GA9954@linux-m68k.org>
+In-Reply-To: <20100803130552.GA9954@linux-m68k.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Thank you Sergio for your help, I resent the patch a couple of minutes
-ago taking your changes into account.
-
-Best Regards,
-Henrique Camargo
-
-On Wed, 2010-08-18 at 19:18 -0500, Aguirre, Sergio wrote:
-> Oops, fixing my own typo below:
+Em 03-08-2010 10:05, Richard Zidlicky escreveu:
+> Hi,
 > 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Aguirre, Sergio
-> > Sent: Wednesday, August 18, 2010 7:16 PM
-> > To: henrique@henriquecamargo.com; Mauro Carvalho Chehab
-> > Cc: Guennadi Liakhovetski; Karicheri, Muralidharan; linux-
-> > media@vger.kernel.org; linux-kernel@vger.kernel.org
-> > Subject: RE: [PATCH] Fixes field names that changed
-> > 
-> > Hi Henrique,
-> > 
-> > Just some minor comments about the patch description below:
-> > 
-> > > -----Original Message-----
-> > > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > > owner@vger.kernel.org] On Behalf Of Henrique Camargo
-> > > Sent: Tuesday, August 17, 2010 9:35 AM
-> > > To: Mauro Carvalho Chehab
-> > > Cc: Guennadi Liakhovetski; Karicheri, Muralidharan; linux-
-> > > media@vger.kernel.org; linux-kernel@vger.kernel.org
-> > > Subject: [PATCH] Fixes field names that changed
-> > 
-> > Add missing subject prefix to quickly describe the affected driver:
-> > 
-> > Subject: [PATCH] mt9t032: Fixes field names that changed
+>> Em 02-08-2010 04:27, Richard Zidlicky escreveu:
+>>> On Sun, Aug 01, 2010 at 05:17:18PM -0300, Mauro Carvalho Chehab wrote:
+>>>> Add the proper gpio port for WinTV MiniStick, with the information provided
+>>>> by Michael.
+>>>>
+>>>> Thanks-to: Michael Krufky <mkrufky@kernellabs.com>
+>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>>
+>>>> diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
+>>>> index cff77e2..dcde606 100644
+>>>> --- a/drivers/media/dvb/siano/sms-cards.c
+>>>> +++ b/drivers/media/dvb/siano/sms-cards.c
+>>>> @@ -67,6 +67,7 @@ static struct sms_board sms_boards[] = {
+>>>>  		.board_cfg.leds_power = 26,
+>>>>  		.board_cfg.led0 = 27,
+>>>>  		.board_cfg.led1 = 28,
+>>>> +		.board_cfg.ir = 9,
+>>>                                ^^^^
+>>>
+>>> are you sure about this?
+>>>
+>>> I am using the value of 4 for the ir port and it definitely works.. confused.
+>>
+>> I got this from a reliable source, and that worked perfectly  my with a Model 55009 
+>> LF Rev B1F7. What's the model of your device?
 > 
-> mt9t032 -> mt9t031.
+> mine says 
 > 
-> Sorry...
+> Aug  3 14:58:10 localhost kernel: [149778.591862] usb 5-5: New USB device found, idVendor=2040, idProduct=5500
+> Aug  3 14:58:10 localhost kernel: [149778.591865] usb 5-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> Aug  3 14:58:10 localhost kernel: [149778.591868] usb 5-5: Product: WinTV MiniStick
+> Aug  3 14:58:10 localhost kernel: [149778.591870] usb 5-5: Manufacturer: Hauppauge Computer Works
+> Aug  3 14:58:10 localhost kernel: [149778.591872] usb 5-5: SerialNumber: f069684c
 > 
-> Regards,
-> Sergio
-> > 
-> > >
-> > > If CONFIG_VIDEO_ADV_DEBUG was set, the driver failed to compile because
-> > > the fields get_register and set_register changed names to s_register and
-> > > s_register in the struct v4l2_subdev_core_ops.
-> > 
-> > Please break down this comment to 70 chars max.
-> > 
-> > Also, you said "s_register" twice.
-> > 
-> > Regards,
-> > Sergio
-> > 
-> > >
-> > > Signed-off-by: Henrique Camargo <henrique@henriquecamargo.com>
-> > > ---
-> > >  drivers/media/video/mt9t031.c |    4 ++--
-> > >  1 files changed, 2 insertions(+), 2 deletions(-)
-> > >
-> > > diff --git a/drivers/media/video/mt9t031.c
-> > b/drivers/media/video/mt9t031.c
-> > > index 716fea6..f3d1995 100644
-> > > --- a/drivers/media/video/mt9t031.c
-> > > +++ b/drivers/media/video/mt9t031.c
-> > > @@ -499,8 +499,8 @@ static const struct v4l2_subdev_core_ops
-> > > mt9t031_core_ops = {
-> > >  	.g_ctrl	= mt9t031_get_control,
-> > >  	.s_ctrl	= mt9t031_set_control,
-> > >  #ifdef CONFIG_VIDEO_ADV_DEBUG
-> > > -	.get_register = mt9t031_get_register,
-> > > -	.set_register = mt9t031_set_register,
-> > > +	.g_register = mt9t031_get_register,
-> > > +	.s_register = mt9t031_set_register,
-> > >  #endif
-> > >  };
-> > >
-> > > --
-> > > 1.7.0.4
-> > >
-> > >
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media"
-> > in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> not sure what else to report.
 
+The model number is on a label at the back of the stick (at least, mine have it).
+ 
+> I will compile and try a new kernel tonight.
+> 
+> Wondering - is this 
+>   http://git.sliepen.org/browse?p=inputlirc
+> usefull to feed the input events to LIRC when trying the new driver with a slightly older 
+> LIRC based distro?
 
+The in-kernel lirc support need a new version of LIRC since a few ioctls numbers were changed,
+to avoid needing to write a code in kernel to handle compatibility between 32 and 64 bit kernels.
+If you're running a 32 bits kernel, it may work.
+
+Btw, you don't need to use lirc if all you want is to replace the IR keycodes. You can use, instead,
+the ir-keycode program, available at http://git.linuxtv.org/v4l-utils.git. There are several keycode
+tables already mapped there. Of course, lirc offers some extra features.
+
+Cheers,
+Mauro.
