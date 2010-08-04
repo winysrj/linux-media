@@ -1,67 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:61992 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755291Ab0HCGoc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 02:44:32 -0400
-Received: by iwn7 with SMTP id 7so4865393iwn.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 23:44:32 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
-References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
-Date: Mon, 2 Aug 2010 23:44:32 -0700
-Message-ID: <AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
-Subject: Re: V4L hg tree fails to compile against latest stable kernel 2.6.35
-From: VDR User <user.vdr@gmail.com>
-To: "mailing list: linux-media" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:60853 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752332Ab0HDH5B convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 03:57:01 -0400
+Date: Wed, 04 Aug 2010 09:55:16 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: [PATCH 1/3 v2] media: Add a cached version of the contiguous video
+ buffers
+In-reply-to: <1280848711.19898.161.camel@debian>
+To: =?utf-8?Q?'Richard_R=C3=B6jfors'?= <richard.rojfors@pelagicore.com>,
+	'Linux Media Mailing List' <linux-media@vger.kernel.org>
+Cc: 'Linux Kernel Mailing List' <linux-kernel@vger.kernel.org>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Douglas Schilling Landgraf' <dougsland@gmail.com>,
+	'Samuel Ortiz' <sameo@linux.intel.com>
+Message-id: <000d01cb33aa$606faee0$214f0ca0$%osciak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: pl
+Content-transfer-encoding: 8BIT
+References: <1280848711.19898.161.camel@debian>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Aug 2, 2010 at 11:36 PM, VDR User <user.vdr@gmail.com> wrote:
-> Any idea when this will be fixed?
+Hi Richard,
 
-Sorry, forgot to paste in the details:
+>Richard Röjfors wrote:
+>This patch adds another init functions in the videobuf-dma-contig
+>which is named _cached in the end. It creates a buffer factory
+>which allocates buffers using kmalloc and the buffers are cached.
+>
 
-make -C /lib/modules/2.6.35.amd.080210.2/build
-SUBDIRS=/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l  modules
-make[2]: Entering directory `/usr/src/linux-2.6.35'
-  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvbdev.o
-  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dmxdev.o
-  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_demux.o
-  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_filter.o
-  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_ca_en50221.o
-  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_frontend.o
-  CC [M]  /usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.o
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1190:
-warning: 'struct dev_mc_list' declared inside parameter list
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1190:
-warning: its scope is only this definition or declaration, which is
-probably not what you want
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c: In
-function 'dvb_set_mc_filter':
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1197:
-error: dereferencing pointer to incomplete type
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c: In
-function 'wq_set_multicast_list':
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1247:
-error: 'struct net_device' has no member named 'mc_list'
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1249:
-error: dereferencing pointer to incomplete type
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1249:
-warning: left-hand operand of comma expression has no effect
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1249:
-warning: value computed is not used
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1250:
-warning: passing argument 2 of 'dvb_set_mc_filter' from incompatible
-pointer type
-/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.c:1190:
-note: expected 'struct dev_mc_list *' but argument is of type 'struct
-dev_mc_list *'
-make[3]: *** [/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l/dvb_net.o]
-Error 1
-make[2]: *** [_module_/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l]
-Error 2
-make[2]: Leaving directory `/usr/src/linux-2.6.35'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/usr/local/dvb/v4l.source/v4l.20100802/v4l-dvb/v4l'
-make: *** [all] Error 2
+Before I review this in more detail, could you elaborate more on
+this? How large are your buffers, can kmalloc really allocate them
+for you? I am not convinced how this is supposed to work reliably,
+especially in a long-running systems.
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
+
+
+
+
