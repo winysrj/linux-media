@@ -1,63 +1,66 @@
-Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:33037 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752653Ab0H1OQh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Aug 2010 10:16:37 -0400
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-From: Peter Zijlstra <peterz@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
-In-Reply-To: <201008281558.23501.hverkuil@xs4all.nl>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	 <201008281508.19756.hverkuil@xs4all.nl> <1283002486.1975.3479.camel@laptop>
-	 <201008281558.23501.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Sat, 28 Aug 2010 16:16:09 +0200
-Message-ID: <1283004969.1975.3530.camel@laptop>
-Mime-Version: 1.0
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:12663 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932199Ab0HDKgl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 06:36:41 -0400
+Received: from eu_spt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L6M00HBAIT24D@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Aug 2010 11:36:38 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L6M00E9CIT1SW@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Aug 2010 11:36:38 +0100 (BST)
+Date: Wed, 04 Aug 2010 12:34:57 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: [PATCH 1/3 v2] media: Add a cached version of the contiguous video
+ buffers
+In-reply-to: <4C593AF7.3060506@pelagicore.com>
+To: =?utf-8?Q?'Richard_R=C3=B6jfors'?= <richard.rojfors@pelagicore.com>
+Cc: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Douglas Schilling Landgraf' <dougsland@gmail.com>,
+	'Samuel Ortiz' <sameo@linux.intel.com>
+Message-id: <001201cb33c0$af683290$0e3897b0$%osciak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: pl
+Content-transfer-encoding: 8BIT
+References: <1280848711.19898.161.camel@debian>
+ <000d01cb33aa$606faee0$214f0ca0$%osciak@samsung.com>
+ <4C593586.6030804@pelagicore.com>
+ <000e01cb33ba$796f44e0$6c4dcea0$%osciak@samsung.com>
+ <4C593AF7.3060506@pelagicore.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sat, 2010-08-28 at 15:58 +0200, Hans Verkuil wrote:
-> > Isn't the proposed CMA thing vulnerable to the exact same problem? If
-> > you allow sharing of regions and plug some allocator in there you get
-> > the same problem. If you can solve it there, you can solve it for any
-> > kind of reservation scheme.
-> 
-> Since with cma you can assign a region exclusively to a driver you can ensure
-> that this problem does not occur. Of course, if you allow sharing then you will
-> end up with the same type of problem unless you know that there is only one
-> driver at a time that will use that memory.
+>Richard Röjfors <richard.rojfors@pelagicore.com> wrote:
+>On 08/04/2010 11:50 AM, Pawel Osciak wrote:
+>>>
+>>> How do you propose to allocate the buffers? They need to be contiguous
+>>> and using uncached memory gave really bad performance.
+>>
+>> 829440 bytes is a quite a lot and one can't reliably depend on kmalloc
+>> to be able to allocate such big chunks of contiguous memory. Were you
+>> testing this on a freshly rebooted system?
+>
+>The systems have been running for a while, but not days.
+>I don't see why would dma_alloc_coherent work better than kmalloc?
+>
 
-I think you could do the same thing, the proposed page allocator
-solutions still needs to manage pageblock state, you can manage those
-the same as you would your cma regions -- the difference is that you get
-the option of letting the rest of the system use the memory in a
-transparent manner if you don't need it.
+In principle it wouldn't. It's just it's much less intensively used and
+allocates from a special area. Not really a bullet-proof solution either
+though, I agree.
 
 
-> There is obviously a trade-off. I was just wondering how costly it is.
-> E.g. would it be a noticeable delay making 64 MB memory available in this
-> way on a, say, 600 MHz ARM. 
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
-Right, dunno really, rather depends on the memory bandwidth of your arm
-device I suspect. It is something you'd have to test. 
 
-In case the machine isn't fast enough, there really isn't anything you
-can do but keep the memory empty at all times; unless of course the
-device in question needs it.
+
+
+
