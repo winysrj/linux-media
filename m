@@ -1,98 +1,39 @@
-Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40891 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753961Ab0HZPdc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 11:33:32 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nataraju, Kiran" <knataraju@ti.com>
-Date: Thu, 26 Aug 2010 10:33:28 -0500
-Subject: RE: [omap3camera] How does a lens subdevice get powered up?
-Message-ID: <A24693684029E5489D1D202277BE894463BA8603@dlee02.ent.ti.com>
-References: <A24693684029E5489D1D202277BE894463BA7E30@dlee02.ent.ti.com>
- <201008260930.43141.laurent.pinchart@ideasonboard.com>
- <A24693684029E5489D1D202277BE894463BA852B@dlee02.ent.ti.com>
- <201008261704.05834.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201008261704.05834.laurent.pinchart@ideasonboard.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:36794 "EHLO
+	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756983Ab0HDKDo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 06:03:44 -0400
+Message-ID: <4C593AF7.3060506@pelagicore.com>
+Date: Wed, 04 Aug 2010 12:03:35 +0200
+From: =?UTF-8?B?UmljaGFyZCBSw7ZqZm9ycw==?=
+	<richard.rojfors@pelagicore.com>
 MIME-Version: 1.0
+To: Pawel Osciak <p.osciak@samsung.com>
+CC: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Douglas Schilling Landgraf' <dougsland@gmail.com>,
+	'Samuel Ortiz' <sameo@linux.intel.com>
+Subject: Re: [PATCH 1/3 v2] media: Add a cached version of the contiguous
+ video buffers
+References: <1280848711.19898.161.camel@debian> <000d01cb33aa$606faee0$214f0ca0$%osciak@samsung.com> <4C593586.6030804@pelagicore.com> <000e01cb33ba$796f44e0$6c4dcea0$%osciak@samsung.com>
+In-Reply-To: <000e01cb33ba$796f44e0$6c4dcea0$%osciak@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Laurent,
+On 08/04/2010 11:50 AM, Pawel Osciak wrote:
+>>
+>> How do you propose to allocate the buffers? They need to be contiguous
+>> and using uncached memory gave really bad performance.
+>
+> 829440 bytes is a quite a lot and one can't reliably depend on kmalloc
+> to be able to allocate such big chunks of contiguous memory. Were you
+> testing this on a freshly rebooted system?
 
-> -----Original Message-----
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: Thursday, August 26, 2010 10:04 AM
-> To: Aguirre, Sergio
-> Cc: linux-media@vger.kernel.org; Nataraju, Kiran
-> Subject: Re: [omap3camera] How does a lens subdevice get powered up?
-> 
-> Hi Sergio,
-> 
-> On Thursday 26 August 2010 16:54:37 Aguirre, Sergio wrote:
-> > On Thursday, August 26, 2010 2:31 AM Laurent Pinchart wrote:
-> > > On Wednesday 25 August 2010 22:15:36 Aguirre, Sergio wrote:
-> > > >
-> > > > I see that usually a sensor is powered up on attempting a
-> > > > VIDIOC_STREAMON at the capture endpoint of the pipeline, in which
-> the
-> > > > sensor is linked.
-> > > >
-> > > > Now, what I don't understand quite well is, the Lens driver is a
-> > > > separate subdevice, BUT it's obviously not linked to the sensor, nor
-> the
-> > > > pipeline.
-> > > >
-> > > > How would the lens driver know when to power up?
-> > >
-> > > At the moment a userspace application needs to keep the lens subdev
-> open
-> > > to power-up the lens controller.
-> >
-> > I see... So in that case, does it make sense to consider it as a media
-> > entity?
-> >
-> > I mean, there's no link, nor pad operations involved, so it doesn't
-> really
-> > add any value...
-> >
-> > What do you think?
-> 
-> Even if not part of the image pipeline, the lens controller is still part
-> of
-> the media device. I think it makes sense to expose it as an entity and a
-> V4L2
-> subdevice.
+The systems have been running for a while, but not days.
+I don't see why would dma_alloc_coherent work better than kmalloc?
 
-Hmm... I don't know what I was thinking... you're right. :)
+I suppose bootmem could be used, or allocate the buffers at startup before memory gets fragmented.
 
-Now that I rethink what I just said vs your answer, I think you have a point, so I'll drop that thought...
-
-However, I think still there's something that could be done here...
-
-Imagine a scenario in which you have 2 sensors, each one with a different
-Coil motor driver to control each sensor's lens position.
-
-Should we have a way to register some sort of association between
-Sensor and lens subdevices? That way, by querying the media device, an app
-can know which lens is associated with what sensor, without any hardcoding.
-
-That would be very similar to the case in which you would want to associate
-an audio capturing subdev with a video capturing subdev. They are not technically sharing the same data, but they are related.
-
-Is this kind of association considered in the Media Controller framework
-implementation currently?
-
-Regards,
-Sergio
-
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
+--Richard
