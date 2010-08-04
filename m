@@ -1,74 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp23.services.sfr.fr ([93.17.128.22]:15699 "EHLO
-	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753102Ab0HGJyY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Aug 2010 05:54:24 -0400
-Received: from filter.sfr.fr (localhost [127.0.0.1])
-	by msfrf2316.sfr.fr (SMTP Server) with ESMTP id 239687000095
-	for <linux-media@vger.kernel.org>; Sat,  7 Aug 2010 11:54:23 +0200 (CEST)
-Received: from smtp-in.softsystem.co.uk (81.148.200-77.rev.gaoland.net [77.200.148.81])
-	by msfrf2316.sfr.fr (SMTP Server) with SMTP id CAA8B7000094
-	for <linux-media@vger.kernel.org>; Sat,  7 Aug 2010 11:54:22 +0200 (CEST)
-Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
-	BY smtp-in.softsystem.co.uk [77.200.148.81] (SoftMail 1.0.5, www.softsystem.co.uk) WITH ESMTP
-	FOR <linux-media@vger.kernel.org>; Sat, 07 Aug 2010 11:54:20 +0200
-Subject: Re: Fwd: No audio in HW Compressed MPEG2 container on HVR-1300
-From: lawrence rust <lawrence@softsystem.co.uk>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Shane Harrison <shane.harrison@paragon.co.nz>,
-	linux-media@vger.kernel.org
-In-Reply-To: <1281097339.2052.17.camel@morgan.silverblock.net>
-References: <AANLkTimD-BCmN+3YUykUCH0fdNagw=wcUu1g+Z87N_5W@mail.gmail.com>
-	 <1280741544.1361.17.camel@gagarin>
-	 <AANLkTinHK8mVwrCnOZTUMsHVGTykj8bNdkKwcbMQ8LK_@mail.gmail.com>
-	 <AANLkTi=M2wVY3vL8nGBg-YqUtRidBahpE5OXbjr5k96X@mail.gmail.com>
-	 <1280750394.1361.87.camel@gagarin>
-	 <AANLkTi=V3eKuJ1jXPcBuSxUy6djCoK4q2pR-V0zo_cMS@mail.gmail.com>
-	 <1280843299.1492.127.camel@gagarin>
-	 <AANLkTik0UZmf5b4nTi1AgFiKQAGkvU47_dN0gUSw3urs@mail.gmail.com>
-	 <1281087650.1332.26.camel@gagarin>
-	 <1281097339.2052.17.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sat, 07 Aug 2010 11:54:20 +0200
-Message-ID: <1281174860.1363.112.camel@gagarin>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout-de.gmx.net ([213.165.64.22]:33342 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753479Ab0HDIYw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Aug 2010 04:24:52 -0400
+Date: Wed, 4 Aug 2010 10:24:50 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+cc: Michael Grzeschik <mgr@pengutronix.de>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	baruch@tkos.co.il
+Subject: Re: [PATCH 1/5] mx2_camera: change to register and probe
+In-Reply-To: <20100804070949.GR14113@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1008041020280.29386@axis700.grange>
+References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
+ <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de>
+ <Pine.LNX.4.64.1008032016340.10845@axis700.grange> <20100803195727.GB12367@pengutronix.de>
+ <Pine.LNX.4.64.1008040039550.10845@axis700.grange> <20100804070949.GR14113@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-08-06 at 08:22 -0400, Andy Walls wrote:
-> On Fri, 2010-08-06 at 11:40 +0200, lawrence rust wrote:
-> > On Fri, 2010-08-06 at 11:49 +1200, Shane Harrison wrote:
+On Wed, 4 Aug 2010, Sascha Hauer wrote:
+
+> On Wed, Aug 04, 2010 at 01:01:34AM +0200, Guennadi Liakhovetski wrote:
+> > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
+> > 
+> > > On Tue, Aug 03, 2010 at 08:22:13PM +0200, Guennadi Liakhovetski wrote:
+> > > > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
+> > > > 
+> > > > > change this driver back to register and probe, since some platforms
+> > > > > first have to initialize an already registered power regulator to switch
+> > > > > on the camera.
+> > > > 
+> > > > Sorry, don't see a difference. Can you give an example of two call 
+> > > > sequences, where this change changes the behaviour?
+> > > >
+> > > 
+> > > Yes, when you look at the today posted patch [1] you find the function
+> > > pcm970_baseboard_init_late as an late_initcall. It uses an already
+> > > registred regulator device to turn on the power of the camera before the
+> > > cameras device registration.
+> > > 
+> > > [1] [PATCH 1/2] ARM: i.MX27 pcm970: Add camera support
+> > > http://lists.infradead.org/pipermail/linux-arm-kernel/2010-August/022317.html
+> > 
+> > Sorry again, still don't understand. What I mean is the following: take 
+> > two cases - before and after your patch. What is the difference? As far as 
+> > I know, the difference between platform_driver_probe() and 
+> > platform_driver_register() is just that the probe method gets discarded in 
+> > an __init section, which is suitable for non hotpluggable devices. I don't 
+> > know what the difference this should make for call order. So, that's what 
+> > I am asking about. Can you explain, how this patch changes the call order 
+> > in your case? Can you tell, that in the unpatches case the probe is called 
+> > at that moment, and in the patched case it is called at a different point 
+> > of time and that fixes the problem.
 > 
-> > > Well still no luck this end.  Have done the following:
 > 
-> > > 2) Applied the patch - no change (we were detecting the WM8775 OK
+> The following is above platform_driver_probe:
 > 
-> BTW, I forgot to mention the ivtv driver uses the WM8775 module for the
-> PVR-150 card.  Changes to that module that affect the default setting
-> needs to be done in a way that doesn't break the PVR-150.
+>  * Use this instead of platform_driver_register() when you know the device
+>  * is not hotpluggable and has already been registered, and you want to
+>  * remove its run-once probe() infrastructure from memory after the
+>  * driver has bound to the device.
 > 
+> So platform_driver_probe will only call the probe function when the device
+> is already there when this function runs. This is not the case on our board.
+> We have to register the camera in late_initcall (to make sure the needed
+> regulators are already there). During late_initcall time the
+> platform_driver_probe has already run.
 
-I believe that the patch that I posted for wm8775.c preserves the
-original functionality (for ivtv and other dependants) although it
-clearly achieves this through a different sequence of register writes.
-The only major change to function is from ALC to manual level control
-using the ALSA mixer API - which generally gives a better audio
-experience.
+Ok, now I see. I missed the key-phrase: "before the cameras device 
+registration." Ok, in this case, it's certainly a valid reason for the 
+change. Just one more question: wouldn't calling 
+pcm970_baseboard_init_late() from device_initcall fix the problem without 
+requiring to change the driver?
 
-> Maybe a .s_config() method in the WM8775 v4l2_subdev_core_ops would be
-> the way to do that, or by passing parameters in struct i2c_board_info
-> (according to a recent post by Hans Verkuil).
+> I don't really like the trend to platform_driver_probe, because this
+> makes cases like camera needs regulator which in turn needs SPI even
+> more complicated.
 
-Good idea. If my current method breaks any existing code then I'll do
-that, but for the moment I believe that they can co-exist.
+Well, you can always change to using the platform_driver_register() if 
+platform_driver_probe() causes problems, otherwise it does have its 
+advantages, as described in the comment, you quoted above.
 
-Comments, criticisms and errata much appreciated.
-
-> 
-> Regards,
-> Andy
-
--- Lawrence
-
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
