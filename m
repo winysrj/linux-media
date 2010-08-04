@@ -1,45 +1,47 @@
-Return-path: <mchehab@pedra>
-Received: from davee.hu ([195.228.74.82]:45833 "EHLO mail.davee.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757065Ab0HNNc2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Aug 2010 09:32:28 -0400
-Received: from [IPv6:2a01:270:dd00:e101:6c71:ca9f:b48a:6fa3] (2a010270dd00e1016c71ca9fb48a6fa3.rdns.inet6.hu [IPv6:2a01:270:dd00:e101:6c71:ca9f:b48a:6fa3])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mail.davee.hu (Postfix) with ESMTP id 6ED8F181598F3
-	for <linux-media@vger.kernel.org>; Sat, 14 Aug 2010 15:05:43 +0200 (CEST)
-Message-ID: <4C6694C7.6020203@davee.hu>
-Date: Sat, 14 Aug 2010 15:06:15 +0200
-From: Kelemen Soma <soma@davee.hu>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.22]:35088 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1757407Ab0HDJry (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Aug 2010 05:47:54 -0400
+Date: Wed, 4 Aug 2010 11:48:04 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <mgr@pengutronix.de>
+cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	baruch@tkos.co.il
+Subject: Re: [PATCH 1/5] mx2_camera: change to register and probe
+In-Reply-To: <20100804085326.GA10780@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1008041133440.29386@axis700.grange>
+References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
+ <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de>
+ <Pine.LNX.4.64.1008032016340.10845@axis700.grange> <20100803195727.GB12367@pengutronix.de>
+ <Pine.LNX.4.64.1008040039550.10845@axis700.grange> <20100804070949.GR14113@pengutronix.de>
+ <Pine.LNX.4.64.1008041020280.29386@axis700.grange> <20100804085326.GA10780@pengutronix.de>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: bttv id
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-  [  789.209449] bttv0: subsystem: ff01:a132 (UNKNOWN)
-[  789.209453] please mail id, board name and the correct card= insmod 
-option to linux-media@vger.kernel.org
-[  789.209460] bttv0: using: IVC-100 [card=110,insmod option]
+On Wed, 4 Aug 2010, Michael Grzeschik wrote:
 
-05:00.0 Multimedia video controller [0400]: Brooktree Corporation Bt878 
-Video Capture [109e:036e] (rev 11)
-         Subsystem: Device [ff01:a132]
-         Flags: bus master, medium devsel, latency 32, IRQ 21
-         Memory at f0101000 (32-bit, prefetchable) [size=4K]
-         Capabilities: [44] Vital Product Data
-         Capabilities: [4c] Power Management version 2
-         Kernel driver in use: bttv
+> No, sorry but this doesn't solve the problem. I tested it and get an
+> "unable to get regulator: -19" when i hit on that. The problem is the
+> device init order. The pcm970_baseboard_init_late comes first and
+> then the regulator. So i think we should keep that patch.
 
-05:00.1 Multimedia controller [0480]: Brooktree Corporation Bt878 Audio 
-Capture [109e:0878] (rev 11)
-         Subsystem: Device [ff01:a132]
-         Flags: bus master, medium devsel, latency 32, IRQ 10
-         Memory at f0100000 (32-bit, prefetchable) [size=4K]
-         Capabilities: [44] Vital Product Data
-         Capabilities: [4c] Power Management version 2
+Ok, you could register a bus-notifier on the soc-camera bus 
+(http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/21364/focus=8520), 
+watching out for a BUS_NOTIFY_ADD_DEVICE event. I think, that would be a 
+more elegant solution, with it we still preserve the ability to clean up 
+the probe function. Although, for that, I think, we'd need to make it 
+__init instead of __devinit. In any case, I would prefer that solution, 
+however, if for some reason you cannot or do not want to do it, I'll take 
+this patch.
 
-this is an IVC-100 card like ff00:a132
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
