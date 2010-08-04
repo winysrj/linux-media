@@ -1,73 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp22.services.sfr.fr ([93.17.128.12]:59501 "EHLO
-	smtp22.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827Ab0HBL75 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 07:59:57 -0400
-Received: from filter.sfr.fr (localhost [127.0.0.1])
-	by msfrf2213.sfr.fr (SMTP Server) with ESMTP id 411D9700008D
-	for <linux-media@vger.kernel.org>; Mon,  2 Aug 2010 13:59:56 +0200 (CEST)
-Received: from smtp-in.softsystem.co.uk (81.148.200-77.rev.gaoland.net [77.200.148.81])
-	by msfrf2213.sfr.fr (SMTP Server) with SMTP id E704D700008B
-	for <linux-media@vger.kernel.org>; Mon,  2 Aug 2010 13:59:55 +0200 (CEST)
-Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
-	BY smtp-in.softsystem.co.uk [77.200.148.81] (SoftMail 1.0.5, www.softsystem.co.uk) WITH ESMTP
-	FOR <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 13:59:54 +0200
-Subject: Re: Fwd: No audio in HW Compressed MPEG2 container on HVR-1300
-From: lawrence rust <lawrence@softsystem.co.uk>
-To: Shane Harrison <shane.harrison@paragon.co.nz>
+Received: from perceval.irobotique.be ([92.243.18.41]:49552 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934831Ab0HDU5X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 16:57:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Lane Brooks <lane@brooks.nu>
+Subject: Re: OMAP3 Bridge Problems
+Date: Wed, 4 Aug 2010 22:57:12 +0200
 Cc: linux-media@vger.kernel.org
-In-Reply-To: <AANLkTi=M2wVY3vL8nGBg-YqUtRidBahpE5OXbjr5k96X@mail.gmail.com>
-References: <AANLkTimD-BCmN+3YUykUCH0fdNagw=wcUu1g+Z87N_5W@mail.gmail.com>
-	 <1280741544.1361.17.camel@gagarin>
-	 <AANLkTinHK8mVwrCnOZTUMsHVGTykj8bNdkKwcbMQ8LK_@mail.gmail.com>
-	 <AANLkTi=M2wVY3vL8nGBg-YqUtRidBahpE5OXbjr5k96X@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 02 Aug 2010 13:59:54 +0200
-Message-ID: <1280750394.1361.87.camel@gagarin>
-Mime-Version: 1.0
+References: <4C583538.8060504@gmail.com>
+In-Reply-To: <4C583538.8060504@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201008042257.13290.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2010-08-02 at 22:19 +1200, Shane Harrison wrote:
-[snip]
-> Thanks Lawrence, will give that a whirl tomorrow and the muting idea
-> might be important in this case as well.  Wierd you posted Saturday
-> the day after I last worked on this and looked at the archives :-)
+Hi Lane,
+
+On Tuesday 03 August 2010 17:26:48 Lane Brooks wrote:
+> Laurent and team,
+
+Could you please CC me when sending a mail that requires my attention ? I 
+follow the linux-media mailing list, but sometimes mails can slip by.
+
+> I am using the OMAP3 ISP code from the devel branch on gitorious that I
+> back ported to a 2.6.31 kernel. Raw bayer streaming to the CCDC output
+> works fine. I am using parallel input with the bridge disabled in that
+> mode.
 > 
-> I am not ruling out initialisation problems with the WM8775 but I do
-> always seem to get an I2S output from it that has data in it that
-> reflects the input.  However it could be the wrong variant of I2S or
-> some other configuration that isn't set right.
+> I am having a problem when I switch the sensor to output YUV422 data.
+> The YUV422 stream is a 8x2. If I only switch the sensor to YUV422 mode,
+> then I can get the YUV422 data at the CCDC output, but the CCDC pads an
+> extra zero byte in there and I only get half the image. So that works as
+> expected. I was then hoping all I would have to do is enable the bridge
+> to get the YUV422_8x2 data packed into the YUV422_16x1 automatically,
+> but instead I get select timeouts.
+> 
+> My question:
+> 
+> - Are there other things I need to when I enable the parallel bridge?
+> For example, do I need to change a clock rate somewhere? From the TRM,
+> it seems like it should just work without any changes, but maybe I am
+> missing something.
 
-Currently in wm8775.c line 223, R11 is set to 0x21 which is 24-bit left
-justified mode.  This is wrong, it should be i2s mode (0x22).  My patch
-correctly sets this register and also disables ALC mode which is
-irrelevant when setting input level via ALSA and can cause hiss during
-quiet sections.
+Good question. ISP bridge and YUV modes support are not implemented in the 
+driver, but you're probably already aware of that.
 
-> Strange how eventually
-> I do get audio (albeit mixed with the TV source it appears) simply by
-> looping thru and changing input sources with v4l2-ctl.
+I unfortunately have no straightforward answer. Try tracing the ISP interrupts 
+and monitoring the CCDC SBL busy bits to see if the CCDC writes images to 
+memory correctly.
 
-Probably switching glitches eventually hit the right data
-synchronisation format.
+-- 
+Regards,
 
-> I note that the Nova-S doesn't have the hardware MPEG encoding
-
-Correct.
-
->  so
-> still hoping someone can enlighten me on the audio path when using
-> that chip.
-
-When a Blackbird cx23416 MPEG encoder is fitted, i2s audio data from the
-wm8775 is routed through the cx23883.  The i2s output of the cx23883 is
-enabled by the function set_audio_finish() in cx88-tvaudio.c line 148.
-The cx23416 can accept stereo Sony I2S format audio data when quoting
-from the Conexant datasheet "running its AILR sync signal through an
-inverting flip-flop, clocked by an inverted AICKIN".
-
--- Lawrence Rust
-
-
+Laurent Pinchart
