@@ -1,57 +1,80 @@
-Return-path: <mchehab@pedra>
-Received: from smtp8.mail.ru ([94.100.176.53]:47459 "EHLO smtp8.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755695Ab0HXQoP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Aug 2010 12:44:15 -0400
-Received: from [92.101.155.238] (port=2064 helo=localhost.localdomain)
-	by smtp8.mail.ru with asmtp
-	id 1Onwbd-00030w-00
-	for linux-media@vger.kernel.org; Tue, 24 Aug 2010 20:44:13 +0400
-Date: Tue, 24 Aug 2010 20:52:57 +0400
-From: Goga777 <goga777@bk.ru>
-Cc: linux-media@vger.kernel.org
-Subject: Re: SkyStar S2 on an embedded Linux
-Message-ID: <20100824205257.47407821@bk.ru>
-In-Reply-To: <AANLkTimvTUsqDtsyKytktwcAp49xcez71eROKh5BsAt8@mail.gmail.com>
-References: <AANLkTi=OTqzA41=H-=M7Vmrq=uY=Av-bjVNDHpQ=LRv1@mail.gmail.com>
-	<20100817211027.1ffee6ea@list.ru>
-	<AANLkTi=T0dCRCHfr9tsQe-fVBwo+x1SehaZKA-VPmPAj@mail.gmail.com>
-	<20100818185354.177c4c07@bk.ru>
-	<AANLkTi=TXpy8da2KF_1-+B3Wjx4OQK7eH0KkG-+if9mQ@mail.gmail.com>
-	<AANLkTimvTUsqDtsyKytktwcAp49xcez71eROKh5BsAt8@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:9429 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757428Ab0HDJwO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 05:52:14 -0400
+Received: from eu_spt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L6M00HE1GQY4D@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Aug 2010 10:52:10 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L6M00KTBGQYPM@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Aug 2010 10:52:10 +0100 (BST)
+Date: Wed, 04 Aug 2010 11:50:30 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: RE: [PATCH 1/3 v2] media: Add a cached version of the contiguous video
+ buffers
+In-reply-to: <4C593586.6030804@pelagicore.com>
+To: =?utf-8?Q?'Richard_R=C3=B6jfors'?= <richard.rojfors@pelagicore.com>
+Cc: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Douglas Schilling Landgraf' <dougsland@gmail.com>,
+	'Samuel Ortiz' <sameo@linux.intel.com>
+Message-id: <000e01cb33ba$796f44e0$6c4dcea0$%osciak@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-language: pl
+Content-transfer-encoding: 8BIT
+References: <1280848711.19898.161.camel@debian>
+ <000d01cb33aa$606faee0$214f0ca0$%osciak@samsung.com>
+ <4C593586.6030804@pelagicore.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-> Sorry, my bad!
-> You were right. The channels on FEC 3/4 and 8PSK modulation can't be
-> locked. Is there any solution to this problem?
-> I noticed you've quoted my email on a forum:
-> http://linuxdvb.org.ru/wbb/index.php?page=Thread&postID=16173#post16173
+> Richard Röjfors <richard.rojfors@pelagicore.com> wrote:
+>On 08/04/2010 09:55 AM, Pawel Osciak wrote:
+>> Hi Richard,
+>>
+>>> Richard Röjfors wrote:
+>>> This patch adds another init functions in the videobuf-dma-contig
+>>> which is named _cached in the end. It creates a buffer factory
+>>> which allocates buffers using kmalloc and the buffers are cached.
+>>>
+>>
+>> Before I review this in more detail, could you elaborate more on
+>> this? How large are your buffers, can kmalloc really allocate them
+>> for you? I am not convinced how this is supposed to work reliably,
+>> especially in a long-running systems.
+>
+>The buffers are normally 829440 bytes and yes kmalloc can allocate them.
+>Normally userspace apps seem to request two buffers of this size.
+>
+>How do you propose to allocate the buffers? They need to be contiguous
+>and using uncached memory gave really bad performance.
 
-yes,  we discussed such issue, but solution still doesn't exist 
-Custler is very busy to fix it :(
+829440 bytes is a quite a lot and one can't reliably depend on kmalloc
+to be able to allocate such big chunks of contiguous memory. Were you
+testing this on a freshly rebooted system?
+
+What you are asking for is actually a memory management holy grail, there
+is no ideal solution for contiguous memory allocation. There are and have
+been attempts at creating such an allocator, but there is no such thing
+in the kernel as of yet. One very recent proposal for a contiguous memory
+allocator can be found on this list, look for  "The Contiguous Memory
+Allocator" topic from Jul, 26th.
+
+One solution to have cached buffers is to use bootmem allocation and
+map those areas as cached manually.
+
+Best regards
+--
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
 
 
-> 
-> On Wed, Aug 18, 2010 at 11:21 PM, Nima Mohammadi <nima.irt@gmail.com> wrote:
-> > On Wed, Aug 18, 2010 at 7:23 PM, Goga777 <goga777@bk.ru> wrote:
-> >>
-> >> would you re-check please again - have you luck with 8PSK-FEC 3/4 dvb-s2 channels ?
-> >>
-> >> Goga
-> >
-> > Yes, except MTVNHD and Suisse HD (which use QPSK modulation), almost
-> > all other HD channels on Hotbird are on 8PSK and I can watch them
-> > without any problem.
-> >
-> > Actually, I managed to solve my problem. I was using a lightweight
-> > implementation of udev called mdev. Today I tried installing udev on
-> > my embedded system. And although it works fine now, I prefer to use
-> > mdev and I'd be more than happy if anyone could point out what the
-> > problem with mdev is. As the documentation of busybox states, mdev can
-> > load firmwares from the /lib/firmware/ directory.
-> >
+
+
+
