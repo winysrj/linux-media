@@ -1,65 +1,40 @@
-Return-path: <mchehab@pedra>
-Received: from bombadil.infradead.org ([18.85.46.34]:58296 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751998Ab0HYU0z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 16:26:55 -0400
-Message-ID: <4C757C9B.5090902@infradead.org>
-Date: Wed, 25 Aug 2010 17:27:07 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from perceval.irobotique.be ([92.243.18.41]:52783 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932720Ab0HDMqb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 08:46:31 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: Re: [RFC/PATCH v3 0/7] V4L2 subdev userspace API
+Date: Wed, 4 Aug 2010 14:46:24 +0200
+Cc: sakari.ailus@maxwell.research.nokia.com,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [ANOUNCE] removal of backport for versions older than 2.6.26
-References: <AANLkTimzPXc=xGXL8ZS1tOAfa1W=qD-DPZeqtxkmiC5s@mail.gmail.com>
-In-Reply-To: <AANLkTimzPXc=xGXL8ZS1tOAfa1W=qD-DPZeqtxkmiC5s@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201008041446.24894.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 25-08-2010 17:01, Douglas Schilling Landgraf escreveu:
-> Hello folks,
+Hi,
+
+On Monday 12 July 2010 17:25:45 Laurent Pinchart wrote:
+> Hi everybody,
 > 
-> I would like to share that I will just keep the maintain of
-> compatibility of hg  from 2.6.26 until lastest upstream kernel.
-> I am writing this because we have errors from IR to lowest kernels
-> from a lot of time and just
-> 1 person pinged me about it which also claims that he is moving to new
-> versions. So, if you are looking for a backport until 2.6.26 I can
-> help.
-> Otherwise, I will work on keeping hg synced with git, backporting and
-> continuing helping on drivers at upstream.
-> 
-> I have selected 2.6.26 because between all free distros available out
-> there the lowest kernel used is 2.6.26.
-> 
-> Finally, the next cut for backport version can happen probably based
-> on 2.6.32 since most of free distros will be using
-> kernel >= 2.6.32.
+> Here's the third version of the V4L2 subdev userspace API patches. Comments
+> received on the first and second versions have been incorporated, including
+> the video_usercopy usage. The generic ioctls support patch has been
+> dropped and will be resubmitted later with a use case.
 
-Seems OK to me. I would just move to 2.6.32, since on all major distros, people
-can get a compiled 2.6.32 kernel for testing.
+Mauro, is there a chance those patches could get in 2.6.36 ?
 
-> If someone, would like to maintain a backport tree to < 2.6.26 fell
-> free to contact me/send patches or contact Mauro.
+Hans, you mentioned you had no more comments, could you ack them ?
 
-> This increased can keep occurring (not frequently) but of course
-> according with kernel evolution.
+-- 
+Regards,
 
-Just to be clear to everybody: except if Douglas decide later otherwise, the backport
-tree primary objective is to allow users with older kernels to test new
-unstable/experimental features without needing to replace the entire kernel.
-
-The drivers and patches generally go there before even reaching upstream, so
-they may have bad side effects. So, use at your own risk. Also, even allowing
-compilation against older vanilla kernels (that's basically what Douglas tries
-to maintain along the time), no real tests are done when doing the backports.
-So, a driver may work against the latest upstream kernel and may compile but
-fail, against a legacy kernel.
-
-So, there's no explicit or implicit type of support at all using the backport
-tree.
-
-Mauro.
+Laurent Pinchart
