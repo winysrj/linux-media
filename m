@@ -1,288 +1,104 @@
-Return-path: <mchehab@pedra>
-Received: from r02s01.colo.vollmar.net ([83.151.24.194]:59798 "EHLO
-	holzeisen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752309Ab0HZPl6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 11:41:58 -0400
-Message-ID: <4C768B43.9080403@holzeisen.de>
-Date: Thu, 26 Aug 2010 17:41:55 +0200
-From: Thomas Holzeisen <thomas@holzeisen.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3565 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751245Ab0HDShS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 14:37:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v3 6/7] v4l: subdev: Control ioctls support
+Date: Wed, 4 Aug 2010 20:37:08 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278948352-17892-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1278948352-17892-7-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: dvb_usb_rtl2831u module cause "oops" on kernel 2.6.32 when loading
-References: <4C1D1228.1090702@holzeisen.de> <4C5BA16C.7060808@hoogenraad.net> <5a5511b4767b245485b150836b1526f0.squirrel@holzeisen.de> <4C760DBC.5000605@hoogenraad.net>
-In-Reply-To: <4C760DBC.5000605@hoogenraad.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201008042037.08922.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Jan,
+On Monday 12 July 2010 17:25:51 Laurent Pinchart wrote:
+> Pass the control-related ioctls to the subdev driver through the core
+> operations.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-this looks great. At first the checkout did not build throwing me this error:
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-> /usr/src/rtl2831-r2/v4l/ir-sysfs.c: In function 'store_protocols':
-> /usr/src/rtl2831-r2/v4l/ir-sysfs.c:137: error: implicit declaration of function 'skip_spaces'
-> /usr/src/rtl2831-r2/v4l/ir-sysfs.c:137: warning: assignment makes pointer from integer without a cast
-> /usr/src/rtl2831-r2/v4l/ir-sysfs.c:178: warning: assignment makes pointer from integer without a cast
+Note: if the control framework is merged first, then this code will
+no doubt have to change.
 
-i replaced the file by an older version from a previous checkout and then it build perfectly. It 
-also gets initialized without a flaw:
+> ---
+>  Documentation/video4linux/v4l2-framework.txt |   16 ++++++++++++++++
+>  drivers/media/video/v4l2-subdev.c            |   24 ++++++++++++++++++++++++
+>  2 files changed, 40 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+> index 164bb0f..9c3f33c 100644
+> --- a/Documentation/video4linux/v4l2-framework.txt
+> +++ b/Documentation/video4linux/v4l2-framework.txt
+> @@ -331,6 +331,22 @@ argument to 0. Setting the argument to 1 will only enable device node
+>  registration if the sub-device driver has set the V4L2_SUBDEV_FL_HAS_DEVNODE
+>  flag.
+>  
+> +The device node handles a subset of the V4L2 API.
+> +
+> +VIDIOC_QUERYCTRL
+> +VIDIOC_QUERYMENU
+> +VIDIOC_G_CTRL
+> +VIDIOC_S_CTRL
+> +VIDIOC_G_EXT_CTRLS
+> +VIDIOC_S_EXT_CTRLS
+> +VIDIOC_TRY_EXT_CTRLS
+> +
+> +	The controls ioctls are identical to the ones defined in V4L2. They
+> +	behave identically, with the only exception that they deal only with
+> +	controls implemented in the sub-device. Depending on the driver, those
+> +	controls can be also be accessed through one (or several) V4L2 device
+> +	nodes.
+> +
+>  
+>  I2C sub-device drivers
+>  ----------------------
+> diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+> index 052dc9c..ea3941a 100644
+> --- a/drivers/media/video/v4l2-subdev.c
+> +++ b/drivers/media/video/v4l2-subdev.c
+> @@ -43,7 +43,31 @@ static int subdev_close(struct file *file)
+>  
+>  static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+>  {
+> +	struct video_device *vdev = video_devdata(file);
+> +	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+> +
+>  	switch (cmd) {
+> +	case VIDIOC_QUERYCTRL:
+> +		return v4l2_subdev_call(sd, core, queryctrl, arg);
+> +
+> +	case VIDIOC_QUERYMENU:
+> +		return v4l2_subdev_call(sd, core, querymenu, arg);
+> +
+> +	case VIDIOC_G_CTRL:
+> +		return v4l2_subdev_call(sd, core, g_ctrl, arg);
+> +
+> +	case VIDIOC_S_CTRL:
+> +		return v4l2_subdev_call(sd, core, s_ctrl, arg);
+> +
+> +	case VIDIOC_G_EXT_CTRLS:
+> +		return v4l2_subdev_call(sd, core, g_ext_ctrls, arg);
+> +
+> +	case VIDIOC_S_EXT_CTRLS:
+> +		return v4l2_subdev_call(sd, core, s_ext_ctrls, arg);
+> +
+> +	case VIDIOC_TRY_EXT_CTRLS:
+> +		return v4l2_subdev_call(sd, core, try_ext_ctrls, arg);
+> +
+>  	default:
+>  		return -ENOIOCTLCMD;
+>  	}
+> 
 
-> [   18.434911] dvb-usb: found a 'Freecom USB 2.0 DVB-T Device' in warm state.
-> [   18.434933] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> [   18.435197] DVB: registering new adapter (Freecom USB 2.0 DVB-T Device)
-> [   18.435976] DVB: registering adapter 0 frontend 0 (Realtek RTL2831 DVB-T)...
-> [   18.436315] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:06.1/usb4/4-2/input/input4
-> [   18.436333] dvb-usb: schedule remote query interval to 300 msecs.
-> [   18.436343] dvb-usb: Freecom USB 2.0 DVB-T Device successfully initialized and connected.
-> [   18.436396] usbcore: registered new interface driver dvb_usb_rtd2831u
-
-I am normally not using the included IR, but testing revealed its working as well.
-
-Best Regards
-Thomas
-
-
-
-Jan Hoogenraad wrote:
-> Thomas:
->
-> Douglas has put a lot of backports into this development branch.
-> Also, I fixed a bug that may have caused part of the problem.
->
-> Can you check again with the current status ?
->
->
->
-> thomas@holzeisen.de wrote:
->> I did a fresh compile with this version, but it didnt do the trick. I am
->> still getting the same trace. The adapter gets initialized, the input
->> device didnt. Since I am not using the input anyway, can i comment it out
->> somewhere for testing purpose?
->>
->> [ 66.932029] usb 4-2: new high speed USB device using ehci_hcd and
->> address 3
->> [ 67.070544] usb 4-2: New USB device found, idVendor=14aa, idProduct=0160
->> [ 67.076729] usb 4-2: New USB device strings: Mfr=1, Product=2,
->> SerialNumber=3
->> [ 67.082760] usb 4-2: Product: DTV Receiver
->> [ 67.088546] usb 4-2: Manufacturer: DTV Receiver
->> [ 67.094379] usb 4-2: SerialNumber: 0000000000067936
->> [ 67.102038] usb 4-2: configuration #1 chosen from 1 choice
->> [ 67.779405] dvb-usb: found a 'Freecom USB 2.0 DVB-T Device' in warm
->> state.
->> [ 67.786059] dvb-usb: will pass the complete MPEG2 transport stream to
->> the software demuxer.
->> [ 67.792714] DVB: registering new adapter (Freecom USB 2.0 DVB-T Device)
->> [ 67.800044] DVB: registering adapter 0 frontend 0 (Realtek RTL2831
->> DVB-T)...
->> [ 67.809412] BUG: unable to handle kernel paging request at 02f77c40
->> [ 67.813129] IP: [<f9e1a3ba>] dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
->> [ 67.813129] *pde = 00000000
->> [ 67.813129] Oops: 0002 [#1] SMP
->> [ 67.813129] last sysfs file:
->> /sys/devices/pci0000:00/0000:00:06.1/usb4/idVendor
->> [ 67.813129] Modules linked in: dvb_usb_rtl2831u(+)
->> dvb_usb_dibusb_common dvb_usb dvb_core dib3000mc dibx000_common loop
->> snd_hda_codec_nvhdmi snd_hda_codec_realtek ir_sony_decoder snd_hda_intel
->> ir_jvc_decoder evdev ir_rc6_decoder ir_rc5_decoder snd_hda_codec
->> ir_nec_decoder snd_hwdep snd_pcm snd_seq snd_timer snd_seq_device imon
->> ir_core usbhid hid tpm_tis lirc_imon shpchp wmi tpm serio_raw tpm_bios
->> psmouse snd button pci_hotplug pcspkr nvidia(P) lirc_dev i2c_nforce2
->> processor soundcore snd_page_alloc i2c_core ext3 jbd mbcache raid1 md_mod
->> usb_storage sg sr_mod cdrom sd_mod crc_t10dif ahci ata_generic libata
->> scsi_mod ehci_hcd ohci_hcd forcedeth usbcore nls_base thermal fan
->> thermal_sys [last unloaded: scsi_wait_scan]
->> [ 67.813129]
->> [ 67.813129] Pid: 2341, comm: modprobe Tainted: P (2.6.32-bpo.5-686
->> #1) Point of View
->> [ 67.813129] EIP: 0060:[<f9e1a3ba>] EFLAGS: 00010246 CPU: 0
->> [ 67.813129] EIP is at dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
->> [ 67.813129] EAX: 69656148 EBX: f5cad000 ECX: c14c18e4 EDX: f5cad018
->> [ 67.813129] ESI: f6034000 EDI: 000003b8 EBP: 00000077 ESP: f6363e88
->> [ 67.813129] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
->> [ 67.813129] Process modprobe (pid: 2341, ti=f6362000 task=f6524840
->> task.ti=f6362000)
->> [ 67.813129] Stack:
->> [ 67.813129] f5cad018 f6034000 f6034000 f6034864 00000001 f9e19945
->> f6034418 f9e5c8d0
->> [ 67.813129] <0> f6067600 f64ddc00 f9e5bd88 00000000 f9e5bd88 00000000
->> f6067600 00000000
->> [ 67.813129] <0> f9e5c894 f9e5b970 f9e5986d 00000000 f9e5b960 f6067600
->> f80b3c98 f606761c
->> [ 67.813129] Call Trace:
->> [ 67.813129] [<f9e19945>] ? dvb_usb_device_init+0x515/0x51c [dvb_usb]
->> [ 67.813129] [<f9e5986d>] ? rtd2831u_usb_probe+0x19/0x48
->> [dvb_usb_rtl2831u]
->> [ 67.813129] [<f80b3c98>] ? usb_probe_interface+0xe7/0x130 [usbcore]
->> [ 67.813129] [<c11b2c22>] ? driver_probe_device+0x8a/0x11e
->> [ 67.813129] [<c11b2cf6>] ? __driver_attach+0x40/0x5b
->> [ 67.813129] [<c11b2667>] ? bus_for_each_dev+0x37/0x5f
->> [ 67.813129] [<c11b2af5>] ? driver_attach+0x11/0x13
->> [ 67.813129] [<c11b2cb6>] ? __driver_attach+0x0/0x5b
->> [ 67.813129] [<c11b2135>] ? bus_add_driver+0x99/0x1c2
->> [ 67.813129] [<c11b2f2b>] ? driver_register+0x87/0xe0
->> [ 67.813129] [<f80b3aa6>] ? usb_register_driver+0x5d/0xb4 [usbcore]
->> [ 67.813129] [<f9e61000>] ? rtd2831u_usb_module_init+0x0/0x2c
->> [dvb_usb_rtl2831u]
->> [ 67.813129] [<f9e61015>] ? rtd2831u_usb_module_init+0x15/0x2c
->> [dvb_usb_rtl2831u]
->> [ 67.813129] [<c100113e>] ? do_one_initcall+0x55/0x155
->> [ 67.813129] [<c1057dd7>] ? sys_init_module+0xa7/0x1d7
->> [ 67.813129] [<c10030fb>] ? sysenter_do_call+0x12/0x28
->> [ 67.813129] Code: be e1 f9 20 74 18 8b 86 a0 00 00 00 55 ff 74 38 04 68
->> 59 b8 e1 f9 e8 1b 21 45 c7 83 c4 0c 8b 86 a0 00 00 00 8b 14 24 8b 44
->> 38 04
->> <f0> 0f ab 02 45 83 c7 08 3b ae a4 00 00 00 7c c2 83 be ac 00 00
->> [ 67.813129] EIP: [<f9e1a3ba>] dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
->> SS:ESP 0068:f6363e88
->> [ 67.813129] CR2: 0000000002f77c40
->> [ 68.235926] ---[ end trace b14c844e3eed98d4 ]---
->>
->>
->>> Can you test the current version ?
->>>
->>> Thomas Holzeisen wrote:
->>>> Hi,
->>>>
->>>> i am using a DVB-T USB-Stick with Realtek RTL2831 chip (14aa:0160) on
->>>> Debian Lenny having the lastest Backport kernel 2.6.32.
->>>>
->>>>> $ uname -a
->>>>> Linux xbmc 2.6.32-bpo.5-686 #1 SMP Fri Jun 11 22:20:29 UTC 2010 i686
->>>>> GNU/Linux
->>>> For v4l I took the drivers from here:
->>>>
->>>>> http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/
->>>> The checked out source compile and installs fine. I compiled them
->>>> starting with "make distclean". But when plugging the DVB-Stick this
->>>> happens:
->>>>
->>>>> [ 229.524028] usb 4-2: new high speed USB device using ehci_hcd and
->>>>> address 3
->>>>> [ 229.658591] usb 4-2: New USB device found, idVendor=14aa,
->>>>> idProduct=0160
->>>>> [ 229.661204] usb 4-2: New USB device strings: Mfr=1, Product=2,
->>>>> SerialNumber=3
->>>>> [ 229.663841] usb 4-2: Product: DTV Receiver
->>>>> [ 229.666308] usb 4-2: Manufacturer: DTV Receiver
->>>>> [ 229.668826] usb 4-2: SerialNumber: 0000000000067936
->>>>> [ 229.671609] usb 4-2: configuration #1 chosen from 1 choice
->>>>> [ 230.266960] dvb-usb: found a 'Freecom USB 2.0 DVB-T Device' in warm
->>>>> state.
->>>>> [ 230.270314] dvb-usb: will pass the complete MPEG2 transport stream
->>>>> to the software demuxer.
->>>>> [ 230.273641] DVB: registering new adapter (Freecom USB 2.0 DVB-T
->>>>> Device)
->>>>> [ 230.277461] DVB: registering adapter 0 frontend 0 (Realtek RTL2831
->>>>> DVB-T)...
->>>>> [ 230.282081] BUG: unable to handle kernel paging request at 02b65c40
->>>>> [ 230.285794] IP: [<f7c623ba>] dvb_usb_remote_init+0x12e/0x209
->>>>> [dvb_usb]
->>>>> [ 230.291463] *pde = 00000000
->>>>> [ 230.293969] Oops: 0002 [#1] SMP
->>>>> [ 230.293969] last sysfs file:
->>>>> /sys/devices/pci0000:00/0000:00:06.1/usb4/4-2/bmAttributes
->>>>> [ 230.293969] Modules linked in: dvb_usb_rtl2831u(+)
->>>>> dvb_usb_dibusb_common dvb_usb dib3000mc dibx000_common dvb_ttpci
->>>>> dvb_core saa7146_vv videodev v4l1_compat saa7146 videobuf_dma_sg
->>>>> videobuf_core ttpci_eeprom iscsi_trgt crc32c loop snd_hda_codec_nvhdmi
->>>>> snd_hda_codec_realtek snd_hda_intel snd_hda_codec snd_hwdep snd_pcm
->>>>> snd_seq snd_timer snd_seq_device snd tpm_tis soundcore tpm shpchp
->>>>> psmouse wmi serio_raw tpm_bios snd_page_alloc pcspkr pci_hotplug
->>>>> processor evdev button ir_core nvidia(P) lirc_imon i2c_nforce2
->>>>> i2c_core lirc_dev ext3 jbd mbcache raid1 md_mod usbhid hid sg sr_mod
->>>>> cdrom sd_mod crc_t10dif usb_storage ahci ata_generic libata ehci_hcd
->>>>> ohci_hcd scsi_mod usbcore nls_base forcedeth thermal fan thermal_sys
->>>>> [last unloaded: scsi_wait_scan]
->>>>> [ 230.293969]
->>>>> [ 230.293969] Pid: 3279, comm: modprobe Tainted: P
->>>>> (2.6.32-bpo.5-686 #1) Point of View
->>>>> [ 230.293969] EIP: 0060:[<f7c623ba>] EFLAGS: 00010246 CPU: 0
->>>>> [ 230.293969] EIP is at dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
->>>>> [ 230.293969] EAX: 69656148 EBX: f589b000 ECX: c14c18e4 EDX: f589b018
->>>>> [ 230.293969] ESI: f5904000 EDI: 000003b8 EBP: 00000077 ESP: f5851e88
->>>>> [ 230.293969] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
->>>>> [ 230.293969] Process modprobe (pid: 3279, ti=f5850000 task=f5cd4400
->>>>> task.ti=f5850000)
->>>>> [ 230.293969] Stack:
->>>>> [ 230.293969] f589b018 f5904000 f5904000 f5904864 00000001 f7c61945
->>>>> f5904418 f80bb8d0
->>>>> [ 230.293969] <0> f5912000 f5b8f800 f80bad88 00000000 f80bad88
->>>>> 00000000 f5912000 00000000
->>>>> [ 230.293969] <0> f80bb894 f80ba970 f80b886d 00000000 f80ba960
->>>>> f5912000 f80c8c98 f591201c
->>>>> [ 230.293969] Call Trace:
->>>>> [ 230.293969] [<f7c61945>] ? dvb_usb_device_init+0x515/0x51c
->>>>> [dvb_usb]
->>>>> [ 230.293969] [<f80b886d>] ? rtd2831u_usb_probe+0x19/0x48
->>>>> [dvb_usb_rtl2831u]
->>>>> [ 230.293969] [<f80c8c98>] ? usb_probe_interface+0xe7/0x130 [usbcore]
->>>>> [ 230.293969] [<c11b2c22>] ? driver_probe_device+0x8a/0x11e
->>>>> [ 230.293969] [<c11b2cf6>] ? __driver_attach+0x40/0x5b
->>>>> [ 230.293969] [<c11b2667>] ? bus_for_each_dev+0x37/0x5f
->>>>> [ 230.293969] [<c11b2af5>] ? driver_attach+0x11/0x13
->>>>> [ 230.293969] [<c11b2cb6>] ? __driver_attach+0x0/0x5b
->>>>> [ 230.293969] [<c11b2135>] ? bus_add_driver+0x99/0x1c2
->>>>> [ 230.293969] [<c11b2f2b>] ? driver_register+0x87/0xe0
->>>>> [ 230.293969] [<f80c8aa6>] ? usb_register_driver+0x5d/0xb4 [usbcore]
->>>>> [ 230.293969] [<f80f6000>] ? rtd2831u_usb_module_init+0x0/0x2c
->>>>> [dvb_usb_rtl2831u]
->>>>> [ 230.293969] [<f80f6015>] ? rtd2831u_usb_module_init+0x15/0x2c
->>>>> [dvb_usb_rtl2831u]
->>>>> [ 230.293969] [<c100113e>] ? do_one_initcall+0x55/0x155
->>>>> [ 230.293969] [<c1057dd7>] ? sys_init_module+0xa7/0x1d7
->>>>> [ 230.293969] [<c10030fb>] ? sysenter_do_call+0x12/0x28
->>>>> [ 230.293969] Code: 3e c6 f7 20 74 18 8b 86 a0 00 00 00 55 ff 74 38
->>>>> 04 68 59 38 c6 f7 e8 1b a1 60 c9 83 c4 0c 8b 86 a0 00 00 00 8b 14 24
->>>>> 8b 44 38 04 <f0> 0f ab 02 45 83 c7 08 3b ae a4 00 00 00 7c c2 83 be ac
->>>>> 00 00
->>>>> [ 230.293969] EIP: [<f7c623ba>] dvb_usb_remote_init+0x12e/0x209
->>>>> [dvb_usb] SS:ESP 0068:f5851e88
->>>>> [ 230.293969] CR2: 0000000002b65c40
->>>>> [ 230.663846] ---[ end trace e2ebfa1976bffdae ]---
->>>> Mostly interesting, the modules are still getting loaded:
->>>>
->>>>> $ lsmod | grep dvb
->>>>> dvb_usb_rtl2831u 89189 15
->>>>> dvb_usb_dibusb_common 4578 1 dvb_usb_rtl2831u
->>>>> dvb_usb 13320 2 dvb_usb_rtl2831u,dvb_usb_dibusb_common
->>>>> dib3000mc 8544 1 dvb_usb_dibusb_common
->>>>> dvb_ttpci 70046 0
->>>>> dvb_core 63034 2 dvb_usb,dvb_ttpci
->>>>> saa7146_vv 31312 1 dvb_ttpci
->>>>> saa7146 9911 2 dvb_ttpci,saa7146_vv
->>>>> ttpci_eeprom 1224 1 dvb_ttpci
->>>>> i2c_core 12700 8
->>>>> dvb_usb,dib3000mc,dibx000_common,dvb_ttpci,videodev,ttpci_eeprom,nvidia,i2c_nforce2
->>>>>
->>>>>
->>>>> usbcore 98466 10
->>>>> dvb_usb_rtl2831u,dvb_usb,lirc_imon,usbhid,usb_storage,ehci_hcd,ohci_hcd
->>>>>
->>>> When plugging the usb-stick after boot I am able to use it as intend.
->>>> But when having it inserted during boot the system hangs up. Calling
->>>> lsusb from console causes the used console to hang up as well. Would be
->>>> great if anyone got a solution for this problem.
->>>>
->>>> Best regards,
->>>> Thomas
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
->>>> in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>>>
->>>
->>> --
->>> Jan Hoogenraad
->>> Hoogenraad Interface Services
->>> Postbus 2717
->>> 3500 GS Utrecht
->>>
->>
->>
->
->
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
