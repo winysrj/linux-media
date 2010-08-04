@@ -1,107 +1,90 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:44796 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751150Ab0HSQ0f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Aug 2010 12:26:35 -0400
-Received: from int-mx03.intmail.prod.int.phx2.redhat.com (int-mx03.intmail.prod.int.phx2.redhat.com [10.5.11.16])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o7JGQZU7024296
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 19 Aug 2010 12:26:35 -0400
-Received: from [10.3.233.181] (vpn-233-181.phx2.redhat.com [10.3.233.181])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o7JGQWJS030140
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 19 Aug 2010 12:26:34 -0400
-Message-ID: <4C6D5B67.30808@redhat.com>
-Date: Thu, 19 Aug 2010 13:27:19 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:44062 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751309Ab0HDIx1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 04:53:27 -0400
+Date: Wed, 4 Aug 2010 10:53:26 +0200
+From: Michael Grzeschik <mgr@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	baruch@tkos.co.il
+Subject: Re: [PATCH 1/5] mx2_camera: change to register and probe
+Message-ID: <20100804085326.GA10780@pengutronix.de>
+References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de> <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de> <Pine.LNX.4.64.1008032016340.10845@axis700.grange> <20100803195727.GB12367@pengutronix.de> <Pine.LNX.4.64.1008040039550.10845@axis700.grange> <20100804070949.GR14113@pengutronix.de> <Pine.LNX.4.64.1008041020280.29386@axis700.grange>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Linux Plumber's Conference: Call for Working Session Submissions
-References: <4C4B5077.3020509@redhat.com>
-In-Reply-To: <4C4B5077.3020509@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1008041020280.29386@axis700.grange>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 24-07-2010 17:43, Mauro Carvalho Chehab escreveu:
-> CFP dead line for submitting proposals to LPC/2010 is approaching.
-> For those that intends to submit proposals for it, please do it quickly,
-> as the official dead line is July, 26.
+On Wed, Aug 04, 2010 at 10:24:50AM +0200, Guennadi Liakhovetski wrote:
+> On Wed, 4 Aug 2010, Sascha Hauer wrote:
+> 
+> > On Wed, Aug 04, 2010 at 01:01:34AM +0200, Guennadi Liakhovetski wrote:
+> > > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
+> > > 
+> > > > On Tue, Aug 03, 2010 at 08:22:13PM +0200, Guennadi Liakhovetski wrote:
+> > > > > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
+> > > > > 
+> > > > > > change this driver back to register and probe, since some platforms
+> > > > > > first have to initialize an already registered power regulator to switch
+> > > > > > on the camera.
+> > > > > 
+> > > > > Sorry, don't see a difference. Can you give an example of two call 
+> > > > > sequences, where this change changes the behaviour?
+> > > > >
+> > > > 
+> > > > Yes, when you look at the today posted patch [1] you find the function
+> > > > pcm970_baseboard_init_late as an late_initcall. It uses an already
+> > > > registred regulator device to turn on the power of the camera before the
+> > > > cameras device registration.
+> > > > 
+> > > > [1] [PATCH 1/2] ARM: i.MX27 pcm970: Add camera support
+> > > > http://lists.infradead.org/pipermail/linux-arm-kernel/2010-August/022317.html
+> > > 
+> > > Sorry again, still don't understand. What I mean is the following: take 
+> > > two cases - before and after your patch. What is the difference? As far as 
+> > > I know, the difference between platform_driver_probe() and 
+> > > platform_driver_register() is just that the probe method gets discarded in 
+> > > an __init section, which is suitable for non hotpluggable devices. I don't 
+> > > know what the difference this should make for call order. So, that's what 
+> > > I am asking about. Can you explain, how this patch changes the call order 
+> > > in your case? Can you tell, that in the unpatches case the probe is called 
+> > > at that moment, and in the patched case it is called at a different point 
+> > > of time and that fixes the problem.
+> > 
+> > 
+> > The following is above platform_driver_probe:
+> > 
+> >  * Use this instead of platform_driver_register() when you know the device
+> >  * is not hotpluggable and has already been registered, and you want to
+> >  * remove its run-once probe() infrastructure from memory after the
+> >  * driver has bound to the device.
+> > 
+> > So platform_driver_probe will only call the probe function when the device
+> > is already there when this function runs. This is not the case on our board.
+> > We have to register the camera in late_initcall (to make sure the needed
+> > regulators are already there). During late_initcall time the
+> > platform_driver_probe has already run.
+> 
+> Ok, now I see. I missed the key-phrase: "before the cameras device 
+> registration." Ok, in this case, it's certainly a valid reason for the 
+> change. Just one more question: wouldn't calling 
+> pcm970_baseboard_init_late() from device_initcall fix the problem without 
+> requiring to change the driver?
 
-Guys,
+No, sorry but this doesn't solve the problem. I tested it and get an
+"unable to get regulator: -19" when i hit on that. The problem is the
+device init order. The pcm970_baseboard_init_late comes first and
+then the regulator. So i think we should keep that patch.
 
-We're trying to close the track definitions and start organizing it, but, so far,
-we received very few proposals for the media track. So, if you're interested
-on speaking there, please send a proposal at the Plumbers site and ping me
-urgently.
+Michael
 
-Thanks!
-Mauro
-> 
-> 
-> ---
-> 
-> The Planning Committee for the Linux Plumbers Conference (LPC) is happy
-> to announce that submissions to the "micro-conferences" portion of the
-> conference is now open.  The micro-conferences are working session
-> focused on specific infrastructural "plumbing" in the Linux system --
-> kernel subsystems, core libraries, windowing system, etc. -- which are
-> half-day in length.
-> 
-> The potential topics for the working sessions can be found at the Topics
-> page[1] of the LPC wiki and include:
-> 
-> 	* Power Management
-> 	* Virtualization
-> 	* Mono
-> 	* Desktop
-> 	* Tracing
-> 	* Real-time response for full FOSS/Linux stack
-> 	* User-visible Problems in Networking
-> 	* Media Infrastructure
-> 	* Audio
-> 	* HA Clustering
-> 	* Legal Hygiene
-> 	* Embedded Topics
-> 	* Boot/init
-> 
-> [1] http://wiki.linuxplumbersconf.org/2010:topics
-> 
-> The topics that will actually have working sessions scheduled at the LPC
-> will depend on the submissions to the microconference and on the ability
-> of its respective community to organize a successful working session;
-> see "Responsibility of a working session leader"[2] page on the LPC
-> wiki for more details.
-> 
-> [2] http://wiki.linuxplumbersconf.org/2010:responsibilities_of_a_working_session_leader
-> 
-> Microconference submissions do not have to reflect finished work.  In
-> fact, proposals or proof-of-concepts of potential solutions to important
-> problems are encouraged, so they can be discussed and debated during the
-> microconference.  Proposals for presentations at a microconference may
-> be submitted here [3]:
-> 
-> [3] http://www.linuxplumbersconf.org/2010/ocw/events/LPC2010MC/proposals
-> 
-> In addition to the micro conference, the Linux Plumbers Conference has
-> open calls for papers[4] and BOF's[5].
-> 
-> [4] http://www.linuxplumbersconf.org/2010/ocw/events/LPC2010/proposals
-> [5] http://www.linuxplumbersconf.org/2010/ocw/events/LPC2010BOFS/proposals
-> 
-> For further announcements about LPC, please watch our blog[6] or
-> subscribe to our LPC announcements mailing list[7].
-> 
-> [6] http://www.linuxplumbersconf.org/2010/feed/rss
-> [7] http://lists.linuxplumbersconf.org/mailman/listinfo/lpc-announce
-> 
-> _______________________________________________
-> Lpc-session-leads mailing list
-> Lpc-session-leads@lists.linuxplumbersconf.org
-> http://lists.linuxplumbersconf.org/mailman/listinfo/lpc-session-leads
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
