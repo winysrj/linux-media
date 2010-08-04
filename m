@@ -1,63 +1,52 @@
-Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:64942 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753963Ab0HYXh6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 19:37:58 -0400
-Received: by iwn5 with SMTP id 5so1006890iwn.19
-        for <linux-media@vger.kernel.org>; Wed, 25 Aug 2010 16:37:57 -0700 (PDT)
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2648 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881Ab0HDSal (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 14:30:41 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v3 2/7] v4l: subdev: Don't require core operations
+Date: Wed, 4 Aug 2010 20:30:27 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278948352-17892-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1278948352-17892-3-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Date: Wed, 25 Aug 2010 19:37:57 -0400
-Message-ID: <AANLkTi=JP+eOyx2V4MEQw6ntZFM7djfp_twZPCp0cxPh@mail.gmail.com>
-Subject: firmware / i2c bug in hdpvr
-From: martin forget <mforget0@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-6"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008042030.27796.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-issue (device lockup) on hauppage hdpvr
+On Monday 12 July 2010 17:25:47 Laurent Pinchart wrote:
+> There's no reason to require subdevices to implement the core
+> operations. Remove the check for non-NULL core operations when
+> initializing the subdev.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-symptoms:   the hdpvr stays in encoding mode (blue light on) , but
-cat /dev/video0 results in input/output error after 5-15minutes of
-encoding 480i(front-input) or 480p(back input) video.
+Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
 
-this issue is not hapenning when encoding 720p or 1080i video.
+> ---
+>  include/media/v4l2-subdev.h |    3 +--
+>  1 files changed, 1 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 02c6f4d..6088316 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -437,8 +437,7 @@ static inline void v4l2_subdev_init(struct v4l2_subdev *sd,
+>  					const struct v4l2_subdev_ops *ops)
+>  {
+>  	INIT_LIST_HEAD(&sd->list);
+> -	/* ops->core MUST be set */
+> -	BUG_ON(!ops || !ops->core);
+> +	BUG_ON(!ops);
+>  	sd->ops = ops;
+>  	sd->v4l2_dev = NULL;
+>  	sd->flags = 0;
+> 
 
-context:
-hdpvr running firmware 1.5.7  (latest from hauppage)
-i have tried on multiple systems , running different distros (fedora,
-ubuntu jaunty,karmic,lucid) and with multiple hdpvr units and the bug
-is consistent.
-
-my system (one of the test systems)
-ubuntu karmic, with a v4l-dvb git from 2010-08-19
-
-how to replicate:
-have a hdpvr running, connect the front-input to a regular composite  input
-
-v4l2-ctl --set-input=1 --set-audio-input=2  (composite input, 480i)
-dd if=/dev/video0 of=/somewhere.ts
-(leave it running for 10-15 minutes)
-
-(note: this will not happen when using the component input at 720p or
-1080x, only with a resolution of 480i(composite)  or 480p(component) )
-
-the dd will die (in/out error)
-then the device blue light will be light and there is no way to reset
-the device other than a power-cycle on the hdpvr.
-
-when the hdpvr is locked,
-
-cat /dev/video results in input/output error
-v4l2-ctl --list-video-fmt will result in bad-address
-lsusb -v will take 5-10 seconds and report "connection lost" when
-trying to give details about the hdpvr.
-
-rmmod hdpvr/ modprobe hdpvr will not correct the lock-up. ,
-but reports "device init failed"   (when hdpvr_debug=1)
-
-physically power-cycling the device will correct the problem .
-
--thanks
--martin
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
