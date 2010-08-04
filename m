@@ -1,75 +1,55 @@
-Return-path: <mchehab@pedra>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:42571 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756725Ab0HIOW2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 10:22:28 -0400
-Date: Mon, 9 Aug 2010 16:22:27 +0200
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: baruch@tkos.co.il, g.liakhovetski@gmx.de, s.hauer@pengutronix.de
-Subject: [PATCH v2] mx2_camera: remove emma limitation for RGB565
-Message-ID: <20100809142227.GA32168@pengutronix.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([18.85.46.34]:59440 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750830Ab0HDPhX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 11:37:23 -0400
+Message-ID: <4C59895C.5090709@infradead.org>
+Date: Wed, 04 Aug 2010 12:38:04 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1008052112440.26127@axis700.grange>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v3 0/7] V4L2 subdev userspace API
+References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com> <201008041446.24894.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201008041446.24894.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-X-Uptime: 16:20:11 up 37 days,  5:31, 61 users,  load average: 0.68, 0.32,
-	0.30
+Em 04-08-2010 09:46, Laurent Pinchart escreveu:
+> Hi,
+> 
+> On Monday 12 July 2010 17:25:45 Laurent Pinchart wrote:
+>> Hi everybody,
+>>
+>> Here's the third version of the V4L2 subdev userspace API patches. Comments
+>> received on the first and second versions have been incorporated, including
+>> the video_usercopy usage. The generic ioctls support patch has been
+>> dropped and will be resubmitted later with a use case.
+> 
+> Mauro, is there a chance those patches could get in 2.6.36 ?
 
-In the current source status the emma has no limitation for any PIXFMT
-since the data is parsed raw and unprocessed into the memory.
+Unfortunately, the changes are not high. 
 
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
----
-v1 -> v2
-        Changed Comment in emma_buf_init as recommended
+I still have lots of patches ready to merge that I received before the start of the 
+merge window waiting for me to handle. As you know, we should first send the patches 
+to linux-next, and wait for a while, before sending them upstream. I won't doubt that 
+this time, we'll have only a 7-days window before -rc1.
 
- drivers/media/video/mx2_camera.c |   15 +++++----------
- 1 files changed, 5 insertions(+), 10 deletions(-)
+There are also some other dead lines for this week, including the review of LPC proposals.
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index e859c7f..ccd121f 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -712,8 +712,11 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 	/*
- 	 * We only use the EMMA engine to get rid of the broken
- 	 * DMA Engine. No color space consversion at the moment.
--	 * We adjust incoming and outgoing pixelformat to rgb16
--	 * and adjust the bytesperline accordingly.
-+	 * We set the incomming and outgoing pixelformat to an
-+	 * 16 Bit wide format and adjust the bytesperline
-+	 * accordingly. With this configuration the inputdata
-+	 * will not be changed by the emma and could be any type
-+	 * of 16 Bit Pixelformat.
- 	 */
- 	writel(PRP_CNTL_CH1EN |
- 			PRP_CNTL_CSIEN |
-@@ -897,10 +900,6 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
- 		return -EINVAL;
- 	}
- 
--	/* eMMA can only do RGB565 */
--	if (mx27_camera_emma(pcdev) && pix->pixelformat != V4L2_PIX_FMT_RGB565)
--		return -EINVAL;
--
- 	mf.width	= pix->width;
- 	mf.height	= pix->height;
- 	mf.field	= pix->field;
-@@ -944,10 +943,6 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 
- 	/* FIXME: implement MX27 limits */
- 
--	/* eMMA can only do RGB565 */
--	if (mx27_camera_emma(pcdev) && pixfmt != V4L2_PIX_FMT_RGB565)
--		return -EINVAL;
--
- 	/* limit to MX25 hardware capabilities */
- 	if (cpu_is_mx25()) {
- 		if (xlate->host_fmt->bits_per_sample <= 8)
--- 
-1.7.1
+Finally, one requirement for merging API additions is to have a driver using it. 
+In the past, we had bad experiences of adding things at the kernel API, but waiting
+for a very long time for a kernel driver using it, as the ones that pushed hard for
+adding the new API's didn't submitted their drivers timely (on some cased it ended by 
+having a driver using the new API's several kernel versions later).
+So, even considering that subdev API is ready, we still need to wait for drivers needing
+it to be submitted. So, the better is to analyse and apply it after the end of the merge window,
+on a separate branch, merging it at the main branch after receiving a driver needing
+the new API.
 
+Cheers,
+Mauro.
