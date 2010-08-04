@@ -1,82 +1,86 @@
-Return-path: <mchehab@pedra>
-Received: from mgw2.diku.dk ([130.225.96.92]:34747 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754722Ab0HPQ0Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Aug 2010 12:26:16 -0400
-Date: Mon, 16 Aug 2010 18:26:13 +0200 (CEST)
-From: Julia Lawall <julia@diku.dk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: [PATCH 6/16] drivers/media: Use available error codes
-Message-ID: <Pine.LNX.4.64.1008161825570.19313@ask.diku.dk>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from emh07.mail.saunalahti.fi ([62.142.5.117]:49852 "EHLO
+	emh07.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933427Ab0HDT23 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 15:28:29 -0400
+Message-ID: <4C59BF56.903@kolumbus.fi>
+Date: Wed, 04 Aug 2010 22:28:22 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [RFC/PATCH v3 06/10] media: Entities, pads and links enumeration
+References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com> <201008021635.57216.laurent.pinchart@ideasonboard.com> <201008022301.55396.hverkuil@xs4all.nl> <201008031122.55036.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201008031122.55036.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-6; format=flowed
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-From: Julia Lawall <julia@diku.dk>
 
-In each case, error codes are stored in rc, but the return value is always
-0.  Return rc instead.
+Hi Hans and Laurent.
 
-The semantic match that finds this problem is as follows:
-(http://coccinelle.lip6.fr/)
+I hope my thoughts help you further.
 
-// <smpl>
-@r@
-local idexpression x;
-constant C;
-@@
+03.08.2010 12:22, Laurent Pinchart wrote:
+> Hi Hans,
+>
+> On Monday 02 August 2010 23:01:55 Hans Verkuil wrote:
+>> On Monday 02 August 2010 16:35:54 Laurent Pinchart wrote:
+>>> On Sunday 01 August 2010 13:58:20 Hans Verkuil wrote:
+>>>> On Thursday 29 July 2010 18:06:39 Laurent Pinchart wrote:
+>>> [snip]
+>>>
+[snip]
+>> It's a possibility, but it's always a bit of a hassle in an application to
+>> work with group IDs. I wonder if there is a more elegant method.
+> The problem is a bit broader than just showing relationships between video
+> nodes and ALSA devices. We also need to show relationships between lens/flash
+> controllers and sensors for instance. Group IDs sound easy, but I'm open to
+> suggestions.
 
-if (...) { ...
-  x = -C
-  ... when != x
-(
-  return <+...x...+>;
-|
-  return NULL;
-|
-  return;
-|
-* return ...;
-)
-}
-// </smpl>
+Low level example
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
+DVB I2C bus is easy: get all I2C devices from an entity (DVB demuxer).
+Some external chip (entity, the tuner) might be behind some I2C bridge 
+device.
 
----
-The changes change the semantics and are not tested.  In the second case,
-the function is used in only one place and the return value is igored.
+With I2C you need to know the characteristics, how you talk with
+the destination device via the bus (extra sleeps, clock speed,
+quiesce the whole bus for 50ms after talking to the slave device).
+I'd like that each device would describe how it should be
+talked to via the bus.
 
- drivers/media/dvb/frontends/drx397xD.c |    2 +-
- drivers/media/video/s2255drv.c         |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+On i2c_transfer you could hide opening and closing the I2C bridge, and hide
+the callbacks for extra sleeps so that the main driver and core 
+framework code is free from such ugly details.
+By storing entity's special requirements inside of it, you could reuse 
+the callbacks with another product variant.
 
-diff --git a/drivers/media/dvb/frontends/drx397xD.c b/drivers/media/dvb/frontends/drx397xD.c
-index f74cca6..a05007c 100644
---- a/drivers/media/dvb/frontends/drx397xD.c
-+++ b/drivers/media/dvb/frontends/drx397xD.c
-@@ -232,7 +232,7 @@ static int write_fw(struct drx397xD_state *s, enum blob_ix ix)
- exit_rc:
- 	read_unlock(&fw[s->chip_rev].lock);
- 
--	return 0;
-+	return rc;
- }
- 
- /* Function is not endian safe, use the RD16 wrapper below */
-diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
-index 8ec7c9a..8f74341 100644
---- a/drivers/media/video/s2255drv.c
-+++ b/drivers/media/video/s2255drv.c
-@@ -600,7 +600,7 @@ static int s2255_got_frame(struct s2255_channel *channel, int jpgsize)
- 	dprintk(2, "%s: [buf/i] [%p/%d]\n", __func__, buf, buf->vb.i);
- unlock:
- 	spin_unlock_irqrestore(&dev->slock, flags);
--	return 0;
-+	return rc;
- }
- 
- static const struct s2255_fmt *format_by_fourcc(int fourcc)
+With I2C, an array of I2C slave devices that are reachable via I2C bus 
+would work for controlling the device
+rather nicely.
+
+Higher abstraction level
+
+So detailed descriptions and bus knowledge is needed for controlling 
+each entity and pad.
+That hierarchy is a bit different than optimal hierarchy of how the 
+streams can flow
+into, within and out from the entity (the driver). Buses are the 
+gateways for the data stream flows,
+shared by two or more entities/pads by links.
+
+Thus I'd suggest to separate these two hierarchies (initialization time 
+hierarchy and
+stream flow capability hierarchy) at necessary points, and use buses
+to bind the entities/pads by links to each other.
+
+A single wire with just two end points can also be thought like a bus.
+
+Regards,
+Marko Ristola
+
+[ snip ]
+
