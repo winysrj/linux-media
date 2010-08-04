@@ -1,48 +1,26 @@
-Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:39329 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752966Ab0HZBin convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 21:38:43 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Date: Thu, 26 Aug 2010 03:38:11 +0200
-From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-In-reply-to: <1282778794.13797.15.camel@c-dwalke-linux.qualcomm.com>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Daniel Walker <dwalker@codeaurora.org>
-Cc: Peter Zijlstra <peterz@infradead.org>, linux-mm@kvack.org,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
-Message-id: <op.vh0utxl87p4s8u@localhost>
-Content-transfer-encoding: 8BIT
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
- <1282310110.2605.976.camel@laptop>
- <20100825155814.25c783c7.akpm@linux-foundation.org>
- <1282778794.13797.15.camel@c-dwalke-linux.qualcomm.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:53054 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754004Ab0HDPpp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 11:45:45 -0400
+Received: by qwh6 with SMTP id 6so3098355qwh.19
+        for <linux-media@vger.kernel.org>; Wed, 04 Aug 2010 08:45:44 -0700 (PDT)
+Subject: dvbt siano sms1140
+From: hmd <tambatux@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 04 Aug 2010 20:15:32 +0430
+Message-ID: <1280936732.7266.2.camel@HDtv>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 26 Aug 2010 01:26:34 +0200, Daniel Walker <dwalker@codeaurora.org> wrote:
-> If Michal is active, and follows community comments (including Zach's,
-> but I haven't seen any) then we can defer to that solution ..
+Hi all 
+i have a dvbt madule with sms1140 siano chip
+i try to download  its firmware from
+http://www.steventoth.net/linux/sms1xxx/sms1xxx-hcw-55xxx-dvbt-03.fw
 
-Comments are always welcome. :)
-
--- 
-Best regards,                                        _     _
-| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
-| Computer Science,  Michał "mina86" Nazarewicz       (o o)
-+----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
+but seems the link is not working
+can anyone send it to me?
 
