@@ -1,276 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:42669 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1751110Ab0HAQsV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Aug 2010 12:48:21 -0400
-Date: Sun, 1 Aug 2010 18:48:36 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <m.grzeschik@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>, p.wiesner@phytec.de
-Subject: Re: [PATCH 11/20] mt9m111: added mt9m111 format structure
-In-Reply-To: <1280501618-23634-12-git-send-email-m.grzeschik@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1008011843310.1909@axis700.grange>
-References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
- <1280501618-23634-12-git-send-email-m.grzeschik@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1505 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751970Ab0HDTdZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 15:33:25 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o74JXOWd059057
+	for <linux-media@vger.kernel.org>; Wed, 4 Aug 2010 21:33:24 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 4 Aug 2010 21:33:24 +0200 (CEST)
+Message-Id: <201008041933.o74JXOWd059057@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 30 Jul 2010, Michael Grzeschik wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> removed unused rect and fmt structs from mt9m111 struct
+Results of the daily build of v4l-dvb:
 
-Don't understand. Both rect and fmt do seem to be used to me. If they were 
-unused, you could have _just_ removed them. Instead you add a new struct 
-mt9m111_format. Why? So, I don't understand this patch. If you find some 
-unused data / code - it is ok to remove it, this is one patch. If you want 
-to change default data format:
+date:        Wed Aug  4 19:00:20 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14993:9652f85e688a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-> set default values for mf.colorspace and mf.code to the common raw
-> format V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-This is a separate patch too. From this patch description I don't 
-understand how these two changes are connected and why you need them and 
-why you put them in one patch.
+Detailed results are available here:
 
-Thanks
-Guennadi
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-> 
-> rewrote following functions to make use the new format structure:
-> 
-> * restore_state,
-> * g_fmt,
-> * s_fmt,
-> * g_crop,
-> * s_crop,
-> * setup_rect
-> 
-> Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> ---
->  drivers/media/video/mt9m111.c |   99 ++++++++++++++++++++++-------------------
->  1 files changed, 53 insertions(+), 46 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> index db5ac32..cc0f996 100644
-> --- a/drivers/media/video/mt9m111.c
-> +++ b/drivers/media/video/mt9m111.c
-> @@ -173,13 +173,17 @@ enum mt9m111_context {
->  	LOWPOWER,
->  };
->  
-> +struct mt9m111_format {
-> +     struct v4l2_rect rect;
-> +     struct v4l2_mbus_framefmt mf;
-> +};
-> +
->  struct mt9m111 {
->  	struct v4l2_subdev subdev;
->  	int model;	/* V4L2_IDENT_MT9M111 or V4L2_IDENT_MT9M112 code */
->  			/* from v4l2-chip-ident.h */
->  	enum mt9m111_context context;
-> -	struct v4l2_rect rect;
-> -	const struct mt9m111_datafmt *fmt;
-> +	struct mt9m111_format format;
->  	unsigned int gain;
->  	unsigned char autoexposure;
->  	unsigned char datawidth;
-> @@ -278,15 +282,15 @@ static int mt9m111_set_context(struct i2c_client *client,
->  }
->  
->  static int mt9m111_setup_rect(struct i2c_client *client,
-> -			      struct v4l2_rect *rect)
-> +			      struct mt9m111_format *format)
->  {
-> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> +	struct v4l2_rect *rect = &format->rect;
->  	int ret, is_raw_format;
->  	int width = rect->width;
->  	int height = rect->height;
->  
-> -	if (mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
-> -	    mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE)
-> +	if (format->mf.code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
-> +	    format->mf.code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE)
->  		is_raw_format = 1;
->  	else
->  		is_raw_format = 0;
-> @@ -425,10 +429,10 @@ static int mt9m111_set_bus_param(struct soc_camera_device *icd, unsigned long f)
->  }
->  
->  static int mt9m111_make_rect(struct i2c_client *client,
-> -			     struct v4l2_rect *rect)
-> +			     struct mt9m111_format *format)
->  {
-> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> -	enum v4l2_mbus_pixelcode code = mt9m111->fmt->code;
-> +	struct v4l2_rect *rect = &format->rect;
-> +	enum v4l2_mbus_pixelcode code = format->mf.code;
->  
->  	/* FIXME: the datasheet doesn't specify minimum sizes */
->  	soc_camera_limit_side(&rect->left, &rect->width,
-> @@ -459,22 +463,30 @@ static int mt9m111_make_rect(struct i2c_client *client,
->  		"mf: pixelcode=%d\n", __func__, rect->left, rect->top,
->  		rect->width, rect->height, code);
->  
-> -	return mt9m111_setup_rect(client, rect);
-> +	return mt9m111_setup_rect(client, format);
->  }
->  
->  static int mt9m111_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  {
-> -	struct v4l2_rect rect = a->c;
->  	struct i2c_client *client = sd->priv;
->  	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> +	struct mt9m111_format format;
-> +	struct v4l2_mbus_framefmt *mf = &format.mf;
->  	int ret;
->  
-> -	dev_dbg(&client->dev, "%s left=%d, top=%d, width=%d, height=%d\n",
-> -		__func__, rect.left, rect.top, rect.width, rect.height);
-> +	format.rect	= a->c;
-> +	format.mf	= mt9m111->format.mf;
-> +
-> +	dev_dbg(&client->dev, "%s: rect: left=%d top=%d width=%d height=%d\n",
-> +		__func__, a->c.left, a->c.top, a->c.width, a->c.height);
-> +	dev_dbg(&client->dev, "%s: mf: width=%d height=%d pixelcode=%d "
-> +		"field=%x colorspace=%x\n", __func__, mf->width, mf->height,
-> +		mf->code, mf->field, mf->colorspace);
->  
-> -	ret = mt9m111_make_rect(client, &rect);
-> +	ret = mt9m111_make_rect(client, &format);
->  	if (!ret)
-> -		mt9m111->rect = rect;
-> +		mt9m111->format = format;
-> +
->  	return ret;
->  }
->  
-> @@ -483,7 +495,7 @@ static int mt9m111_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  	struct i2c_client *client = sd->priv;
->  	struct mt9m111 *mt9m111 = to_mt9m111(client);
->  
-> -	a->c	= mt9m111->rect;
-> +	a->c	= mt9m111->format.rect;
->  	a->type	= V4L2_BUF_TYPE_VIDEO_CAPTURE;
->  
->  	return 0;
-> @@ -514,10 +526,7 @@ static int mt9m111_g_fmt(struct v4l2_subdev *sd,
->  	struct i2c_client *client = sd->priv;
->  	struct mt9m111 *mt9m111 = to_mt9m111(client);
->  
-> -	mf->width	= mt9m111->rect.width;
-> -	mf->height	= mt9m111->rect.height;
-> -	mf->code	= mt9m111->fmt->code;
-> -	mf->field	= V4L2_FIELD_NONE;
-> +	*mf = mt9m111->format.mf;
->  
->  	return 0;
->  }
-> @@ -576,12 +585,8 @@ static int mt9m111_s_fmt(struct v4l2_subdev *sd,
->  	struct i2c_client *client = sd->priv;
->  	const struct mt9m111_datafmt *fmt;
->  	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> -	struct v4l2_rect rect = {
-> -		.left	= mt9m111->rect.left,
-> -		.top	= mt9m111->rect.top,
-> -		.width	= mf->width,
-> -		.height	= mf->height,
-> -	};
-> +	struct v4l2_rect *rect;
-> +	struct mt9m111_format format;
->  	int ret;
->  
->  	fmt = mt9m111_find_datafmt(mf->code, mt9m111_colour_fmts,
-> @@ -589,18 +594,19 @@ static int mt9m111_s_fmt(struct v4l2_subdev *sd,
->  	if (!fmt)
->  		return -EINVAL;
->  
-> +	format.rect	= mt9m111->format.rect;
-> +	format.mf	= *mf;
-> +	rect		= &format.rect;
-> +
->  	dev_dbg(&client->dev,
->  		"%s code=%x left=%d, top=%d, width=%d, height=%d\n", __func__,
-> -		mf->code, rect.left, rect.top, rect.width, rect.height);
-> +		mf->code, rect->left, rect->top, rect->width, rect->height);
->  
-> -	ret = mt9m111_make_rect(client, &rect);
-> +	ret = mt9m111_make_rect(client, &format);
->  	if (!ret)
-> -		ret = mt9m111_set_pixfmt(client, mf->code);
-> -	if (!ret) {
-> -		mt9m111->rect	= rect;
-> -		mt9m111->fmt	= fmt;
-> -		mf->colorspace	= fmt->colorspace;
-> -	}
-> +		ret = mt9m111_set_pixfmt(client, format.mf.code);
-> +	if (!ret)
-> +		mt9m111->format = format;
->  
->  	return ret;
->  }
-> @@ -609,17 +615,14 @@ static int mt9m111_try_fmt(struct v4l2_subdev *sd,
->  			   struct v4l2_mbus_framefmt *mf)
->  {
->  	struct i2c_client *client = sd->priv;
-> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
->  	const struct mt9m111_datafmt *fmt;
->  	bool bayer = mf->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
->  		mf->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE;
->  
->  	fmt = mt9m111_find_datafmt(mf->code, mt9m111_colour_fmts,
->  				   ARRAY_SIZE(mt9m111_colour_fmts));
-> -	if (!fmt) {
-> -		fmt = mt9m111->fmt;
-> -		mf->code = fmt->code;
-> -	}
-> +	if (!fmt)
-> +		return -EINVAL;
->  
->  	/*
->  	 * With Bayer format enforce even side lengths, but let the user play
-> @@ -930,8 +933,8 @@ static int mt9m111_restore_state(struct i2c_client *client)
->  	struct mt9m111 *mt9m111 = to_mt9m111(client);
->  
->  	mt9m111_set_context(client, mt9m111->context);
-> -	mt9m111_set_pixfmt(client, mt9m111->fmt->code);
-> -	mt9m111_setup_rect(client, &mt9m111->rect);
-> +	mt9m111_set_pixfmt(client, mt9m111->format.mf.code);
-> +	mt9m111_setup_rect(client, &mt9m111->format);
->  	mt9m111_set_flip(client, mt9m111->hflip, MT9M111_RMB_MIRROR_COLS);
->  	mt9m111_set_flip(client, mt9m111->vflip, MT9M111_RMB_MIRROR_ROWS);
->  	mt9m111_set_global_gain(client, mt9m111->gain);
-> @@ -1096,11 +1099,15 @@ static int mt9m111_probe(struct i2c_client *client,
->  	/* Second stage probe - when a capture adapter is there */
->  	icd->ops		= &mt9m111_ops;
->  
-> -	mt9m111->rect.left	= MT9M111_MIN_DARK_COLS;
-> -	mt9m111->rect.top	= MT9M111_MIN_DARK_ROWS;
-> -	mt9m111->rect.width	= MT9M111_MAX_WIDTH;
-> -	mt9m111->rect.height	= MT9M111_MAX_HEIGHT;
-> -	mt9m111->fmt		= &mt9m111_colour_fmts[0];
-> +	mt9m111->format.rect.left       = MT9M111_DEF_DARK_COLS;
-> +	mt9m111->format.rect.top        = MT9M111_DEF_DARK_ROWS;
-> +	mt9m111->format.rect.width      = MT9M111_DEF_WIDTH;
-> +	mt9m111->format.rect.height     = MT9M111_DEF_HEIGHT;
-> +	mt9m111->format.mf.width        = MT9M111_DEF_WIDTH;
-> +	mt9m111->format.mf.height       = MT9M111_DEF_HEIGHT;
-> +	mt9m111->format.mf.code         = mt9m111_colour_fmts[2].code;
-> +	mt9m111->format.mf.field        = V4L2_FIELD_NONE;
-> +	mt9m111->format.mf.colorspace   = mt9m111_colour_fmts[2].colorspace;
->  
->  	ret = mt9m111_video_probe(icd, client);
->  	if (ret) {
-> -- 
-> 1.7.1
-> 
-> 
+Full logs are available here:
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
