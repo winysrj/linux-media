@@ -1,116 +1,139 @@
-Return-path: <mchehab@pedra>
-Received: from bombadil.infradead.org ([18.85.46.34]:56708 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753609Ab0H2PoE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Aug 2010 11:44:04 -0400
-Message-ID: <4C7A8056.4070901@infradead.org>
-Date: Sun, 29 Aug 2010 12:44:22 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mgw2.diku.dk ([130.225.96.92]:55606 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932990Ab0HEUWr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Aug 2010 16:22:47 -0400
+Date: Thu, 5 Aug 2010 22:22:44 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 19/42] drivers/media/video: Adjust confusing if indentation
+Message-ID: <Pine.LNX.4.64.1008052222220.31692@ask.diku.dk>
 MIME-Version: 1.0
-To: Anton Blanchard <anton@samba.org>
-CC: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: Re: IR code autorepeat issue?
-References: <20100829064036.GB22853@kryten>
-In-Reply-To: <20100829064036.GB22853@kryten>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 29-08-2010 03:40, Anton Blanchard escreveu:
-> 
-> I'm seeing double IR events on 2.6.36-rc2 and a DViCO FusionHDTV DVB-T Dual
-> Express. I enabled some debug and it looks like we are only getting one IR
-> event from the device as expected:
-> 
-> [ 1351.032084] ir_keydown: i2c IR (FusionHDTV): key down event, key 0x0067, scancode 0x0051
-> [ 1351.281284] ir_keyup: keyup key 0x0067
-> 
-> ie one key down event and one key up event 250ms later. I wonder if the input
-> layer software autorepeat is the culprit. It seems to set autorepeat to start
-> at 250ms:
-> 
->         /*
->          * If delay and period are pre-set by the driver, then autorepeating
->          * is handled by the driver itself and we don't do it in input.c.
->          */
->         init_timer(&dev->timer);
->         if (!dev->rep[REP_DELAY] && !dev->rep[REP_PERIOD]) {
->                 dev->timer.data = (long) dev;
->                 dev->timer.function = input_repeat_key;
->                 dev->rep[REP_DELAY] = 250;
->                 dev->rep[REP_PERIOD] = 33;
->         }
-> 
-> If I shorten the IR key up events to 100ms via the patch below the problem
-> goes away. I guess the other option would be to initialise REP_DELAY and
-> REP_PERIOD so the input layer autorepeat doesn't cut in at all. Thoughts?
+From: Julia Lawall <julia@diku.dk>
 
-> Anton
-> --
-> 
-> diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-> index 7e82a9d..cf44d5a 100644
-> --- a/drivers/media/IR/ir-keytable.c
-> +++ b/drivers/media/IR/ir-keytable.c
-> @@ -22,7 +22,7 @@
->  #define IR_TAB_MAX_SIZE	8192
->  
->  /* FIXME: IR_KEYPRESS_TIMEOUT should be protocol specific */
-> -#define IR_KEYPRESS_TIMEOUT 250
-> +#define IR_KEYPRESS_TIMEOUT 100
+In cx23885/cx23885-video.c, cx88/cx88-video.c, davinci/vpif_capture.c, and
+davinci/vpif_display.c, group the aligned code into a single if branch.
 
-Yes, 250ms is too high, if we want to use REP_DELAY = 250ms.
+In saa7134/saa7134-video.c, outdent the code following the if.
 
-There's one issue on touching on this constant: it is currently just one global 
-timeout value that will be used by all protocols. This timeout should be enough to
-retrieve and proccess the repeat key event on all protocols, and on all devices, or 
-we'll need to do a per-protocol (and eventually per device) timeout init. From 
-http://www.sbprojects.com/knowledge/ir/ir.htm, we see that NEC prococol uses 110 ms
-for repeat code, and we need some aditional time to wake up the decoding task. I'd
-say that anything lower than 150-180ms would risk to not decode repeat events with
-NEC.
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-I got exactly the same problem when adding RC CORE support at the dib0700 driver. At
-that driver, there's an additional time of sending/receiving URB's from USB. So, we
-probably need a higher timeout. Even so, I tried to reduce the timeout to 200ms or 150ms 
-(not sure), but it didn't work. So, I ended by just patching the dibcom driver to do 
-dev->rep[REP_DELAY] = 500:
+// <smpl>
+@r disable braces4@
+position p1,p2;
+statement S1,S2;
+@@
 
-commit 8dc09004978538d211ccc36b5046919489e30a55
-Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date:   Sat Jul 31 23:37:19 2010 -0300
+(
+if (...) { ... }
+|
+if (...) S1@p1 S2@p2
+)
 
-    V4L/DVB: dib0700: avoid bad repeat
-    
-    a 250ms delay is too low for this device. It ends by producing false
-    repeat events. Increase the delay time to 500 ms to avoid troubles.
-    
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
 
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
-index 164fa9c..a05d955 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
-@@ -648,6 +648,9 @@ static int dib0700_probe(struct usb_interface *intf,
-                        else
-                                dev->props.rc.core.bulk_mode = false;
+if (p1[0].column == p2[0].column):
+  cocci.print_main("branch",p1)
+  cocci.print_secs("after",p2)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+The patch changes the semantics for the first four files, and might not be
+what is intended.
+
+ drivers/media/video/cx23885/cx23885-video.c |    3 ++-
+ drivers/media/video/cx88/cx88-video.c       |    3 ++-
+ drivers/media/video/davinci/vpif_capture.c  |    3 ++-
+ drivers/media/video/davinci/vpif_display.c  |    3 ++-
+ drivers/media/video/saa7134/saa7134-video.c |    2 +-
+ 5 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/video/cx23885/cx23885-video.c b/drivers/media/video/cx23885/cx23885-video.c
+index 4e44dcd..0f48967 100644
+--- a/drivers/media/video/cx23885/cx23885-video.c
++++ b/drivers/media/video/cx23885/cx23885-video.c
+@@ -1165,9 +1165,10 @@ static int cx23885_enum_input(struct cx23885_dev *dev, struct v4l2_input *i)
+ 	i->type  = V4L2_INPUT_TYPE_CAMERA;
+ 	strcpy(i->name, iname[INPUT(n)->type]);
+ 	if ((CX23885_VMUX_TELEVISION == INPUT(n)->type) ||
+-		(CX23885_VMUX_CABLE == INPUT(n)->type))
++		(CX23885_VMUX_CABLE == INPUT(n)->type)) {
+ 		i->type = V4L2_INPUT_TYPE_TUNER;
+ 		i->std = CX23885_NORMS;
++	}
+ 	return 0;
+ }
  
-+                 /* Need a higher delay, to avoid wrong repeat */
-+                 dev->rc_input_dev->rep[REP_DELAY] = 500;
-+
-                        dib0700_rc_setup(dev);
-
-Maybe the better solution is to use, by default:
-	rc_input_dev->rep[REP_DELAY] = 500;
-	#define IR_KEYPRESS_TIMEOUT 250
-
-And, eventually, adding a patch to allow changing it per device.
-
-That's said, IMHO, 500ms is a very reasonable time for starting repeat with remotes. 
-Opinions?
-
-Cheers,
-Mauro.
+diff --git a/drivers/media/video/cx88/cx88-video.c b/drivers/media/video/cx88/cx88-video.c
+index 0fab65c..4fba913 100644
+--- a/drivers/media/video/cx88/cx88-video.c
++++ b/drivers/media/video/cx88/cx88-video.c
+@@ -1267,9 +1267,10 @@ int cx88_enum_input (struct cx88_core  *core,struct v4l2_input *i)
+ 	i->type  = V4L2_INPUT_TYPE_CAMERA;
+ 	strcpy(i->name,iname[INPUT(n).type]);
+ 	if ((CX88_VMUX_TELEVISION == INPUT(n).type) ||
+-	    (CX88_VMUX_CABLE      == INPUT(n).type))
++	    (CX88_VMUX_CABLE      == INPUT(n).type)) {
+ 		i->type = V4L2_INPUT_TYPE_TUNER;
+ 		i->std = CX88_NORMS;
++	}
+ 	return 0;
+ }
+ EXPORT_SYMBOL(cx88_enum_input);
+diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+index a7f48b5..2b42473 100644
+--- a/drivers/media/video/davinci/vpif_capture.c
++++ b/drivers/media/video/davinci/vpif_capture.c
+@@ -1030,9 +1030,10 @@ static int vpif_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 			goto qbuf_exit;
+ 
+ 		if ((VIDEOBUF_NEEDS_INIT != buf1->state)
+-			    && (buf1->baddr != tbuf.m.userptr))
++			    && (buf1->baddr != tbuf.m.userptr)) {
+ 			vpif_buffer_release(&common->buffer_queue, buf1);
+ 			buf1->baddr = tbuf.m.userptr;
++		}
+ 		break;
+ 
+ 	default:
+diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+index da07607..4770fda 100644
+--- a/drivers/media/video/davinci/vpif_display.c
++++ b/drivers/media/video/davinci/vpif_display.c
+@@ -935,9 +935,10 @@ static int vpif_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ 			goto qbuf_exit;
+ 
+ 		if ((VIDEOBUF_NEEDS_INIT != buf1->state)
+-			    && (buf1->baddr != tbuf.m.userptr))
++			    && (buf1->baddr != tbuf.m.userptr)) {
+ 			vpif_buffer_release(&common->buffer_queue, buf1);
+ 			buf1->baddr = tbuf.m.userptr;
++		}
+ 		break;
+ 
+ 	default:
+diff --git a/drivers/media/video/saa7134/saa7134-video.c b/drivers/media/video/saa7134/saa7134-video.c
+index 45f0ac8..645224c 100644
+--- a/drivers/media/video/saa7134/saa7134-video.c
++++ b/drivers/media/video/saa7134/saa7134-video.c
+@@ -1825,7 +1825,7 @@ static int saa7134_querycap(struct file *file, void  *priv,
+ 
+ 	if ((tuner_type == TUNER_ABSENT) || (tuner_type == UNSET))
+ 		cap->capabilities &= ~V4L2_CAP_TUNER;
+-		return 0;
++	return 0;
+ }
+ 
+ int saa7134_s_std_internal(struct saa7134_dev *dev, struct saa7134_fh *fh, v4l2_std_id *id)
