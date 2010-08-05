@@ -1,57 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:45615 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753438Ab0HBPKf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 11:10:35 -0400
-Received: by pxi14 with SMTP id 14so1377727pxi.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 08:10:35 -0700 (PDT)
-Subject: Re: [PATCH v2]Resend:videobuf_dma_sg: a new implementation for mmap
-From: "Figo.zhang" <figo1802@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1280489980.2648.12.camel@localhost.localdomain>
-References: <1280448482.2648.2.camel@localhost.localdomain>
-	 <201007301131.17638.laurent.pinchart@ideasonboard.com>
-	 <1280489980.2648.12.camel@localhost.localdomain>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 02 Aug 2010 23:08:51 +0800
-Message-ID: <1280761731.2664.12.camel@localhost.localdomain>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:34112 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756655Ab0HEFo6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 01:44:58 -0400
+Received: by yxg6 with SMTP id 6so2356077yxg.19
+        for <linux-media@vger.kernel.org>; Wed, 04 Aug 2010 22:44:57 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
+References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
+	<AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
+	<4C581BB6.7000303@redhat.com>
+	<AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
+Date: Wed, 4 Aug 2010 22:44:55 -0700
+Message-ID: <AANLkTi=KQPhNgYvCbwNaOqW+k73uYcfaHYAj_N2Yvmvn@mail.gmail.com>
+Subject: Re: V4L hg tree fails to compile against latest stable kernel 2.6.35
+From: VDR User <user.vdr@gmail.com>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2010-07-30 at 19:39 +0800, Figo.zhang wrote:
-> On Fri, 2010-07-30 at 11:31 +0200, Laurent Pinchart wrote:
-> > Hi,
-> > 
-> > On Friday 30 July 2010 02:08:02 Figo.zhang wrote:
-> > > a mmap issue for videobuf-dma-sg: it will alloc a new page for mmaping when
-> > > it encounter page fault at video_vm_ops->fault(). pls see
-> > > http://www.spinics.net/lists/linux-media/msg21243.html
-> > > 
-> > > a new implementation for mmap, it translate to vmalloc to page at
-> > > video_vm_ops->fault().
-> > > 
-> > > in v2, if mem->dma.vmalloc is NULL at video_vm_ops->fault(), it will alloc
-> > > memory by vmlloc_32().
-> > 
-> > You're replacing allocation in videobuf_vm_fault by allocationg in 
-> > videobuf_vm_fault. I don't see the point. videobuf_vm_fault needs to go away 
-> > completely.
-> in now videobuf code, the mmap alloc a new buf, the capture dma buffer
-> using vmalloc() alloc buffer, how is
-> relationship with them? in usrspace , the mmap region will not the
-> actual capture dma data, how is work? 
+On Wed, Aug 4, 2010 at 10:19 PM, Douglas Schilling Landgraf
+<dougsland@gmail.com> wrote:
+> Hello Derek,
+>
+> On Tue, Aug 3, 2010 at 10:37 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 03-08-2010 03:44, VDR User escreveu:
+>>> On Mon, Aug 2, 2010 at 11:36 PM, VDR User <user.vdr@gmail.com> wrote:
+>>>> Any idea when this will be fixed?
+>>
+>> It is up to Douglas to do the backport, but you can just use the latest
+>> git tree, where those patches are applied already at 2.6.35, at the
+>> branch staging/v2.6.36.
+>
+> I am already working to give a full update to hg tree. Sorry this problem.
 
+Hi Douglas, thanks for the update!  I'll pass the word along to other
+users I know who are wondering as well but who don't use the mailing
+list.
 
-hmm, I understand with some mistake before.for mmap in videobuf-sg, it
-is not call vmalloc_32() to alloc memory, it call
-videobuf_dma_init_user_locked()->get_user_pages(), and the end, it will
-handle_mm_fault()-> vm_ops->fault(). Because in mmap(), it have assigned
-vaule for "baddr" variable.
-
-it is too obscure for videobuf-sg, hope for videbuf2. ~~
-
-
+A little off topic but IIRC wasn't there some talk about writing new
+scripts to main keep hg more up-to-date?  If so, was that ever
+started?  Otherwise, my apologies if I'm not remembering correctly.
