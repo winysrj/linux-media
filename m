@@ -1,93 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:33322 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753538Ab0HESD2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Aug 2010 14:03:28 -0400
-Date: Thu, 5 Aug 2010 20:03:46 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH/RFC] V4L2: add a generic function to find the nearest discrete
- format
-Message-ID: <Pine.LNX.4.64.1008051959330.26127@axis700.grange>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:53511 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932155Ab0HEUvN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 16:51:13 -0400
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <Pine.LNX.4.64.1008052229390.31692@ask.diku.dk>
+References: <Pine.LNX.4.64.1008052229390.31692@ask.diku.dk>
+Date: Thu, 5 Aug 2010 22:51:12 +0200
+Message-ID: <AANLkTi=YauQBWyZnGpuBtQpNq=Re8WUXY9mH6FSFMP+7@mail.gmail.com>
+Subject: Re: [PATCH 42/42] drivers/media/video/bt8xx: Adjust confusing if
+	indentation
+From: Luca Tettamanti <kronos.it@gmail.com>
+To: Julia Lawall <julia@diku.dk>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Many video drivers implement a discrete set of frame formats and thus face 
-a task of finding the best match for a user-requested format. Implementing 
-this in a generic function has also an advantage, that different drivers 
-with similar supported format sets will select the same format for the 
-user, which improves consistency across drivers.
+Hi,
+one minor comment:
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+On Thu, Aug 5, 2010 at 10:29 PM, Julia Lawall <julia@diku.dk> wrote:
+> From: Julia Lawall <julia@diku.dk>
+>
+> Indent the branch of an if.
+[...]
+> diff --git a/drivers/media/video/bt8xx/bttv-i2c.c b/drivers/media/video/bt8xx/bttv-i2c.c
+> index 685d659..695765c 100644
+> --- a/drivers/media/video/bt8xx/bttv-i2c.c
+> +++ b/drivers/media/video/bt8xx/bttv-i2c.c
+> @@ -123,7 +123,7 @@ bttv_i2c_wait_done(struct bttv *btv)
+>        if (wait_event_interruptible_timeout(btv->i2c_queue,
+>                btv->i2c_done, msecs_to_jiffies(85)) == -ERESTARTSYS)
+>
+> -       rc = -EIO;
+> +               rc = -EIO;
 
-I'm currently away from my hardware, so, this is only compile tested and 
-run-time tested with a test application. In any case, reviews and 
-suggestions welcome.
+I'd also remove the empty line before the indented statement, it's confusing...
 
- drivers/media/video/v4l2-common.c |   26 ++++++++++++++++++++++++++
- include/linux/videodev2.h         |   10 ++++++++++
- 2 files changed, 36 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 4e53b0b..90727e6 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -1144,3 +1144,29 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-+
-+struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct v4l2_discrete_probe *probe,
-+						       s32 width, s32 height)
-+{
-+	int i;
-+	u32 error, min_error = ~0;
-+	struct v4l2_frmsize_discrete *size, *best = NULL;
-+
-+	if (!probe)
-+		return best;
-+
-+	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
-+		if (probe->probe && !probe->probe(probe))
-+			continue;
-+		error = abs(size->width - width) + abs(size->height - height);
-+		if (error < min_error) {
-+			min_error = error;
-+			best = size;
-+		}
-+		if (!error)
-+			break;
-+	}
-+
-+	return best;
-+}
-+EXPORT_SYMBOL_GPL(v4l2_find_nearest_format);
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 047f7e6..f622bba 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -394,6 +394,16 @@ struct v4l2_frmsize_discrete {
- 	__u32			height;		/* Frame height [pixel] */
- };
- 
-+struct v4l2_discrete_probe {
-+	struct v4l2_frmsize_discrete	*sizes;
-+	int				num_sizes;
-+	void				*priv;
-+	bool				(*probe)(struct v4l2_discrete_probe *);
-+};
-+
-+struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct v4l2_discrete_probe *probe,
-+						       s32 width, s32 height);
-+
- struct v4l2_frmsize_stepwise {
- 	__u32			min_width;	/* Minimum frame width [pixel] */
- 	__u32			max_width;	/* Maximum frame width [pixel] */
--- 
-1.5.6
-
+Luca
