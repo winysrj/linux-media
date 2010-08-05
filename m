@@ -1,52 +1,50 @@
-Return-path: <dheitmueller@kernellabs.com>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:48415 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754950Ab0HHX6T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Aug 2010 19:58:19 -0400
-Received: by pwj7 with SMTP id 7so1106878pwj.19
-        for <linux-media@vger.kernel.org>; Sun, 08 Aug 2010 16:58:19 -0700 (PDT)
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:58000 "EHLO
+	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932255Ab0HEUZd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 16:25:33 -0400
+Message-ID: <4C5B1E35.7050407@pelagicore.com>
+Date: Thu, 05 Aug 2010 22:25:25 +0200
+From: =?UTF-8?B?UmljaGFyZCBSw7ZqZm9ycw==?=
+	<richard.rojfors@pelagicore.com>
 MIME-Version: 1.0
-In-Reply-To: <1281311584.2803.6.camel@ray-desktop-linux>
-References: <1281311584.2803.6.camel@ray-desktop-linux>
-Date: Sun, 8 Aug 2010 19:58:19 -0400
-Message-ID: <AANLkTimyGMSFQyLyKYBhmmdop3ApEuekFOwue==4xVMF@mail.gmail.com>
-Subject: Re: pinnacle 801e help please!
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ray Bullins <bbullins@triad.rr.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Pawel Osciak <p.osciak@samsung.com>
+CC: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Douglas Schilling Landgraf' <dougsland@gmail.com>,
+	'Samuel Ortiz' <sameo@linux.intel.com>
+Subject: Re: [PATCH 1/3 v2] media: Add a cached version of the contiguous
+ video buffers
+References: <1280848711.19898.161.camel@debian> <000d01cb33aa$606faee0$214f0ca0$%osciak@samsung.com> <4C593586.6030804@pelagicore.com> <000e01cb33ba$796f44e0$6c4dcea0$%osciak@samsung.com> <4C593AF7.3060506@pelagicore.com> <001201cb33c0$af683290$0e3897b0$%osciak@samsung.com>
+In-Reply-To: <001201cb33c0$af683290$0e3897b0$%osciak@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Aug 8, 2010 at 7:53 PM, Ray Bullins <bbullins@triad.rr.com> wrote:
-> I am new to Linux (somewhat) and I am running Linux mint 9. So far so
-> good, I have replaced dreamweaver with NVU, office with open office.
-> Outlook with evolution and so on. Everything is now perfect no looking
-> back to windows except I just spent about 1.5 hours going through
-> configuring mythtv only to find it doesn't think my pinnacle usb hd
-> stick is a dvb device. So i did more research and stumbled upon all of
-> your hard work and tried downloading the tar for my device but it
-> wouldn't download. 2 questions 1) will this device work now 2) how do I
-> implement all of you fixes in mint Linux 9 gnome running mythtv?
+On 08/04/2010 12:34 PM, Pawel Osciak wrote:
+>> Richard Röjfors<richard.rojfors@pelagicore.com>  wrote:
+>> On 08/04/2010 11:50 AM, Pawel Osciak wrote:
+>>>>
+>>>> How do you propose to allocate the buffers? They need to be contiguous
+>>>> and using uncached memory gave really bad performance.
+>>>
+>>> 829440 bytes is a quite a lot and one can't reliably depend on kmalloc
+>>> to be able to allocate such big chunks of contiguous memory. Were you
+>>> testing this on a freshly rebooted system?
+>>
+>> The systems have been running for a while, but not days.
+>> I don't see why would dma_alloc_coherent work better than kmalloc?
+>>
 >
-> thanks for any help
-> Ray
+> In principle it wouldn't. It's just it's much less intensively used and
+> allocates from a special area. Not really a bullet-proof solution either
+> though, I agree.
 
-The 801e driver only has support currently for ATSC/ClearQAM (which is
-why it appears as a DVB device).  The driver does not have any support
-for analog (e.g. the analog tuner or the composite/s-video inputs).
+So how do we move forward? I would like to see this kind of patch go in, it
+obviously makes our video driver useful.
 
-Run "ls /dev/dvb/adapter0/frontend0" and if you see an entry then the
-driver loaded successfully.  Also, you may need to load firmware (it's
-bundled by default with a number of distributions but I don't know
-about Mint).  If you don't have it, you can get it here:
+I could change and verify the patch using dma_alloc_noncoherent instead of
+kmalloc. It would have the same "limitations" as todays' uncached  buffers.
 
-http://kernellabs.com/firmware/dib0700/
-
-Cheers,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+--Richard
