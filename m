@@ -1,49 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail179.messagelabs.com ([85.158.139.35]:22003 "HELO
-	mail179.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754710Ab0HCITB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 04:19:01 -0400
-From: mats.randgaard@tandberg.com
-To: linux-media@vger.kernel.org
-Cc: sudhakar.raj@ti.com, Mats Randgaard <mats.randgaard@tandberg.com>
-Subject: [PATCH 1/2] TVP7002: Return V4L2_DV_INVALID if any of the errors occur.
-Date: Tue,  3 Aug 2010 10:18:03 +0200
-Message-Id: <1280823484-21664-2-git-send-email-mats.randgaard@tandberg.com>
-In-Reply-To: <1280823484-21664-1-git-send-email-mats.randgaard@tandberg.com>
-References: <1280823484-21664-1-git-send-email-mats.randgaard@tandberg.com>
+Received: from emh05.mail.saunalahti.fi ([62.142.5.111]:49404 "EHLO
+	emh05.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757548Ab0HETpM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 15:45:12 -0400
+Message-ID: <4C5B14C1.6050503@kolumbus.fi>
+Date: Thu, 05 Aug 2010 22:45:05 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [RFC/PATCH v3 06/10] media: Entities, pads and links enumeration
+References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com> <201008031122.55036.laurent.pinchart@ideasonboard.com> <4C59BF56.903@kolumbus.fi> <201008051138.23378.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201008051138.23378.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-6; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mats Randgaard <mats.randgaard@tandberg.com>
+  05.08.2010 12:38, Laurent Pinchart wrote:
+> Hi Marko,
+>
+> On Wednesday 04 August 2010 21:28:22 Marko Ristola wrote:
+>> Hi Hans and Laurent.
+>>
+>> I hope my thoughts help you further.
+> Thank you for sharing them.
+Thank you for taking time to answer for me.
 
-Signed-off-by: Mats Randgaard <mats.randgaard@tandberg.com>
----
- drivers/media/video/tvp7002.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+[ snip ]
 
-diff --git a/drivers/media/video/tvp7002.c b/drivers/media/video/tvp7002.c
-index 48f5c76..8116cd4 100644
---- a/drivers/media/video/tvp7002.c
-+++ b/drivers/media/video/tvp7002.c
-@@ -796,6 +796,9 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
- 	u8 cpl_msb;
- 	int index;
- 
-+	/* Return invalid preset if no active input is detected */
-+	qpreset->preset = V4L2_DV_INVALID;
-+
- 	device = to_tvp7002(sd);
- 
- 	/* Read standards from device registers */
-@@ -829,8 +832,6 @@ static int tvp7002_query_dv_preset(struct v4l2_subdev *sd,
- 	if (index == NUM_PRESETS) {
- 		v4l2_dbg(1, debug, sd, "detection failed: lpf = %x, cpl = %x\n",
- 								lpfr, cpln);
--		/* Could not detect a signal, so return the 'invalid' preset */
--		qpreset->preset = V4L2_DV_INVALID;
- 		return 0;
- 	}
- 
--- 
-1.6.4.2
+> There's probably some confusion here.
+>
+> The media controller aims at giving userspace the ability to discover the
+> internal device topology. This includes various information about the
+> entities, such as a name, a version number, ...
+>
+> The I2C data you mention are low-level information required by the kernel to
+> talk to the I2C device, but I don't think they're useful to userspace at all.
+> That kind of information come either from platform data or from the I2C device
+> driver and get used internally in the kernel.
+>
+> Do you see any need to expose such information to userspace ?
+>
+I don't see any needs to expose such information into userspace.
+I have some thoughts about I2C hardware problems,
+but that is of course off topic. I wrote them here only
+because I tried to draw some bigger picture how this entity, pads
+and links thing relates to the whole driver.
+
+[ snip ]
+
+>> With I2C, an array of I2C slave devices that are reachable via I2C bus
+>> would work for controlling the device rather nicely.
+>>
+>> Higher abstraction level
+>>
+>> So detailed descriptions and bus knowledge is needed for controlling each
+>> entity and pad.
+> It's needed to control them inside the kernel, but I don't think it's needed
+> in userspace.
+>
+I agree: The detailed information needs to be internal to the driver,
+and userspace needs only the information that is needed for being
+able to decide how to configure the streams over many drivers,
+and how each driver must be asked to do the configuration for it,
+without driver needing knowledge about other related drivers.
+
+Maybe a pad could have a list of pads that it can connect to.
+Each destination pad reference could have a link as a property
+if the link is mandatory for binding the pads together.
+
+A list of open links without pads might be usable too, enabling binding
+different drivers to pass data to each other with pad->link->pad binding.
+Driver could be a property of a pad for being able to do binding over 
+drivers.
+
+You have of course a better picture and understanding about these,
+and you will need to come up with the best solution together on your own.
+
+Maybe I just need to do something else and go and buy another motherboard
+from Helsinki Ruoholahti to replace my overheated one, walking by some
+Nokia Research Center buildings.
+
+Best regards from the summerish Finland.
+Marko Ristola
 
