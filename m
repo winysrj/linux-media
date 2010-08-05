@@ -1,38 +1,93 @@
-Return-path: <mchehab@pedra>
-Received: from mail-in-02.arcor-online.net ([151.189.21.42]:43127 "EHLO
-	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751717Ab0HXTgQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Aug 2010 15:36:16 -0400
-From: stefan.ringel@arcor.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <stefan.ringel@arcor.de>
-Subject: [PATCH 1/2] tm6000: bugfix param string
-Date: Tue, 24 Aug 2010 21:36:09 +0200
-Message-Id: <1282678570-13462-1-git-send-email-stefan.ringel@arcor.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.23]:33322 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753538Ab0HESD2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Aug 2010 14:03:28 -0400
+Date: Thu, 5 Aug 2010 20:03:46 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH/RFC] V4L2: add a generic function to find the nearest discrete
+ format
+Message-ID: <Pine.LNX.4.64.1008051959330.26127@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-From: Stefan Ringel <stefan.ringel@arcor.de>
+Many video drivers implement a discrete set of frame formats and thus face 
+a task of finding the best match for a user-requested format. Implementing 
+this in a generic function has also an advantage, that different drivers 
+with similar supported format sets will select the same format for the 
+user, which improves consistency across drivers.
 
-Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/staging/tm6000/tm6000-input.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/staging/tm6000/tm6000-input.c b/drivers/staging/tm6000/tm6000-input.c
-index 32f7a0a..7b07096 100644
---- a/drivers/staging/tm6000/tm6000-input.c
-+++ b/drivers/staging/tm6000/tm6000-input.c
-@@ -36,7 +36,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug message [IR]");
+I'm currently away from my hardware, so, this is only compile tested and 
+run-time tested with a test application. In any case, reviews and 
+suggestions welcome.
+
+ drivers/media/video/v4l2-common.c |   26 ++++++++++++++++++++++++++
+ include/linux/videodev2.h         |   10 ++++++++++
+ 2 files changed, 36 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 4e53b0b..90727e6 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -1144,3 +1144,29 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
++
++struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct v4l2_discrete_probe *probe,
++						       s32 width, s32 height)
++{
++	int i;
++	u32 error, min_error = ~0;
++	struct v4l2_frmsize_discrete *size, *best = NULL;
++
++	if (!probe)
++		return best;
++
++	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
++		if (probe->probe && !probe->probe(probe))
++			continue;
++		error = abs(size->width - width) + abs(size->height - height);
++		if (error < min_error) {
++			min_error = error;
++			best = size;
++		}
++		if (!error)
++			break;
++	}
++
++	return best;
++}
++EXPORT_SYMBOL_GPL(v4l2_find_nearest_format);
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 047f7e6..f622bba 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -394,6 +394,16 @@ struct v4l2_frmsize_discrete {
+ 	__u32			height;		/* Frame height [pixel] */
+ };
  
- static unsigned int enable_ir = 1;
- module_param(enable_ir, int, 0644);
--MODULE_PARM_DESC(enable_ir, "enable ir (default is enable");
-+MODULE_PARM_DESC(enable_ir, "enable ir (default is enable)");
- 
- #undef dprintk
- 
++struct v4l2_discrete_probe {
++	struct v4l2_frmsize_discrete	*sizes;
++	int				num_sizes;
++	void				*priv;
++	bool				(*probe)(struct v4l2_discrete_probe *);
++};
++
++struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct v4l2_discrete_probe *probe,
++						       s32 width, s32 height);
++
+ struct v4l2_frmsize_stepwise {
+ 	__u32			min_width;	/* Minimum frame width [pixel] */
+ 	__u32			max_width;	/* Maximum frame width [pixel] */
 -- 
-1.7.1
+1.5.6
 
