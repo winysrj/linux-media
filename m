@@ -1,255 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:33344 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756577Ab0HCOSr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 10:18:47 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L6K00BUKYF7YZ70@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Aug 2010 15:18:44 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L6K009OEYF7R5@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Aug 2010 15:18:43 +0100 (BST)
-Date: Tue, 03 Aug 2010 16:18:24 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH v6 1/3] v4l: Add multi-planar API definitions to the V4L2 API
-In-reply-to: <1280845106-5761-1-git-send-email-p.osciak@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, t.fujak@samsung.com
-Message-id: <1280845106-5761-2-git-send-email-p.osciak@samsung.com>
-References: <1280845106-5761-1-git-send-email-p.osciak@samsung.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:56655 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933244Ab0HETBa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 15:01:30 -0400
+Received: by vws3 with SMTP id 3so5362643vws.19
+        for <linux-media@vger.kernel.org>; Thu, 05 Aug 2010 12:01:29 -0700 (PDT)
+Message-ID: <4C5B0A85.1050909@brooks.nu>
+Date: Thu, 05 Aug 2010 13:01:25 -0600
+From: Lane Brooks <lane@brooks.nu>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: OMAP3 Bridge Problems
+References: <4C583538.8060504@gmail.com> <201008042257.13290.laurent.pinchart@ideasonboard.com> <4C5AE19B.50609@brooks.nu>
+In-Reply-To: <4C5AE19B.50609@brooks.nu>
+Content-Type: multipart/mixed;
+ boundary="------------090106030507080502010401"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Multi-planar API is as a backwards-compatible extension of the V4L2 API,
-which allows video buffers to consist of one or more planes. Planes are
-separate memory buffers; each has its own mapping, backed by usually
-separate physical memory buffers.
+This is a multi-part message in MIME format.
+--------------090106030507080502010401
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Many different uses for the multi-planar API are possible, examples
-include:
-- embedded devices requiring video components to be placed in physically
-separate buffers, e.g. for Samsung S3C/S5P SoC series' video codec,
-Y and interleaved Cb/Cr components reside in buffers in different
-memory banks;
-- applications may receive (or choose to store) video data of one video
-buffer in separate memory buffers; such data would have to be temporarily
-copied together into one buffer before passing it to a V4L2 device;
-- applications or drivers may want to pass metadata related to a buffer and
-it may not be possible to place it in the same buffer, together with video
-data.
+  On 08/05/2010 10:06 AM, Lane Brooks wrote:
+>  On 08/04/2010 02:57 PM, Laurent Pinchart wrote:
+>> Hi Lane,
+>>
+>> On Tuesday 03 August 2010 17:26:48 Lane Brooks wrote:
+> [snip]
+>>
+>>> My question:
+>>>
+>>> - Are there other things I need to when I enable the parallel bridge?
+>>> For example, do I need to change a clock rate somewhere? From the TRM,
+>>> it seems like it should just work without any changes, but maybe I am
+>>> missing something.
+>> Good question. ISP bridge and YUV modes support are not implemented 
+>> in the
+>> driver, but you're probably already aware of that.
+>>
+>> I unfortunately have no straightforward answer. Try tracing the ISP 
+>> interrupts
+>> and monitoring the CCDC SBL busy bits to see if the CCDC writes 
+>> images to
+>> memory correctly.
+>
+[snip]
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/v4l2-ioctl.c |    2 +
- include/linux/videodev2.h        |  124 +++++++++++++++++++++++++++++++++++++-
- 2 files changed, 124 insertions(+), 2 deletions(-)
+Laurent,
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index 0eeceae..a830bbd 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -168,6 +168,8 @@ const char *v4l2_type_names[] = {
- 	[V4L2_BUF_TYPE_SLICED_VBI_CAPTURE] = "sliced-vbi-cap",
- 	[V4L2_BUF_TYPE_SLICED_VBI_OUTPUT]  = "sliced-vbi-out",
- 	[V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY] = "vid-out-overlay",
-+	[V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE] = "vid-cap-mplane",
-+	[V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE] = "vid-out-mplane",
- };
- EXPORT_SYMBOL(v4l2_type_names);
- 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 047f7e6..03ba59c 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -70,6 +70,7 @@
-  * Moved from videodev.h
+I was able to get CCDC capture of YUV data working with rather minimal 
+effort. Attached is a patch with the initial work. Can you comment?
+
+Thanks,
+Lane
+
+--------------090106030507080502010401
+Content-Type: text/plain;
+ name="ispyuv.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="ispyuv.patch"
+
+diff --git a/drivers/media/video/isp/ispccdc.c b/drivers/media/video/isp/ispccdc.c
+index 90bcc6c..9226406 100644
+--- a/drivers/media/video/isp/ispccdc.c
++++ b/drivers/media/video/isp/ispccdc.c
+@@ -1563,6 +1563,15 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+  * @pad: Pad number
+  * @fmt: Format
   */
- #define VIDEO_MAX_FRAME               32
-+#define VIDEO_MAX_PLANES               8
- 
- #ifndef __KERNEL__
- 
-@@ -157,9 +158,23 @@ enum v4l2_buf_type {
- 	/* Experimental */
- 	V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
- #endif
-+	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 9,
-+	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 10,
- 	V4L2_BUF_TYPE_PRIVATE              = 0x80,
- };
- 
-+#define V4L2_TYPE_IS_MULTIPLANAR(type)			\
-+	((type) == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE	\
-+	 || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
 +
-+#define V4L2_TYPE_IS_OUTPUT(type)				\
-+	((type) == V4L2_BUF_TYPE_VIDEO_OUTPUT			\
-+	 || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE		\
-+	 || (type) == V4L2_BUF_TYPE_VIDEO_OVERLAY		\
-+	 || (type) == V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY	\
-+	 || (type) == V4L2_BUF_TYPE_VBI_OUTPUT			\
-+	 || (type) == V4L2_BUF_TYPE_SLICED_VBI_OUTPUT)
-+
- enum v4l2_tuner_type {
- 	V4L2_TUNER_RADIO	     = 1,
- 	V4L2_TUNER_ANALOG_TV	     = 2,
-@@ -245,6 +260,11 @@ struct v4l2_capability {
- #define V4L2_CAP_HW_FREQ_SEEK		0x00000400  /* Can do hardware frequency seek  */
- #define V4L2_CAP_RDS_OUTPUT		0x00000800  /* Is an RDS encoder */
- 
-+/* Is a video capture device that supports multiplanar formats */
-+#define V4L2_CAP_VIDEO_CAPTURE_MPLANE	0x00001000
-+/* Is a video output device that supports multiplanar formats */
-+#define V4L2_CAP_VIDEO_OUTPUT_MPLANE	0x00002000
-+
- #define V4L2_CAP_TUNER			0x00010000  /* has a tuner */
- #define V4L2_CAP_AUDIO			0x00020000  /* has audio support */
- #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
-@@ -514,6 +534,62 @@ struct v4l2_requestbuffers {
- 	__u32			reserved[2];
- };
- 
-+/**
-+ * struct v4l2_plane - plane info for multi-planar buffers
-+ * @bytesused:		number of bytes occupied by data in the plane (payload)
-+ * @length:		size of this plane (NOT the payload) in bytes
-+ * @mem_offset:		when memory in the associated struct v4l2_buffer is
-+ * 			V4L2_MEMORY_MMAP, equals the offset from the start of
-+ * 			the device memory for this plane (or is a "cookie" that
-+ * 			should be passed to mmap() called on the video node)
-+ * @userptr:		when memory is V4L2_MEMORY_USERPTR, a userspace pointer
-+ * 			pointing to this plane
-+ * @data_offset:	offset in the plane to the start of data; usually 0,
-+ * 			unless there is a header in front of the data
-+ *
-+ * Multi-planar buffers consist of one or more planes, e.g. an YCbCr buffer
-+ * with two planes can have one plane for Y, and another for interleaved CbCr
-+ * components. Each plane can reside in a separate memory buffer, or even in
-+ * a completely separate memory node (e.g. in embedded devices).
-+ */
-+struct v4l2_plane {
-+	__u32			bytesused;
-+	__u32			length;
-+	union {
-+		__u32		mem_offset;
-+		unsigned long	userptr;
-+	} m;
-+	__u32			data_offset;
-+	__u32			reserved[11];
++static enum v4l2_mbus_pixelcode sink_fmts[] = {
++	V4L2_MBUS_FMT_SGRBG10_1X10,
++	V4L2_MBUS_FMT_YUYV16_1X16,
++	V4L2_MBUS_FMT_UYVY16_1X16,
++	V4L2_MBUS_FMT_YVYU16_1X16,
++	V4L2_MBUS_FMT_VYUY16_1X16,
 +};
 +
-+/**
-+ * struct v4l2_buffer - video buffer info
-+ * @index:	id number of the buffer
-+ * @type:	buffer type (type == *_MPLANE for multiplanar buffers)
-+ * @bytesused:	number of bytes occupied by data in the buffer (payload);
-+ * 		unused (set to 0) for multiplanar buffers
-+ * @flags:	buffer informational flags
-+ * @field:	field order of the image in the buffer
-+ * @timestamp:	frame timestamp
-+ * @timecode:	frame timecode
-+ * @sequence:	sequence count of this frame
-+ * @memory:	the method, in which the actual video data is passed
-+ * @offset:	for non-multiplanar buffers with memory == V4L2_MEMORY_MMAP;
-+ * 		offset from the start of the device memory for this plane,
-+ * 		(or a "cookie" that should be passed to mmap() as offset)
-+ * @userptr:	for non-multiplanar buffers with memory == V4L2_MEMORY_USERPTR;
-+ * 		a userspace pointer pointing to this buffer
-+ * @planes:	for multiplanar buffers; userspace pointer to the array of plane
-+ * 		info structs for this buffer
-+ * @length:	size in bytes of the buffer (NOT its payload) for single-plane
-+ * 		buffers (when type != *_MPLANE); number of elements in the
-+ * 		planes array for multi-plane buffers
-+ * @input:	input number from which the video data has has been captured
-+ *
-+ * Contains data exchanged by application and driver using one of the Streaming
-+ * I/O methods.
-+ */
- struct v4l2_buffer {
- 	__u32			index;
- 	enum v4l2_buf_type      type;
-@@ -529,6 +605,7 @@ struct v4l2_buffer {
- 	union {
- 		__u32           offset;
- 		unsigned long   userptr;
-+		struct v4l2_plane *planes;
- 	} m;
- 	__u32			length;
- 	__u32			input;
-@@ -1613,12 +1690,56 @@ struct v4l2_mpeg_vbi_fmt_ivtv {
-  *	A G G R E G A T E   S T R U C T U R E S
-  */
- 
--/*	Stream data format
-+/**
-+ * struct v4l2_plane_pix_format - additional, per-plane format definition
-+ * @sizeimage:		maximum size in bytes required for data, for which
-+ * 			this plane will be used
-+ * @bytesperline:	distance in bytes between the leftmost pixels in two
-+ * 			adjacent lines
-+ */
-+struct v4l2_plane_pix_format {
-+	__u32		sizeimage;
-+	__u16		bytesperline;
-+	__u16		reserved[7];
-+} __attribute__ ((packed));
-+
-+/**
-+ * struct v4l2_pix_format_mplane - multiplanar format definition
-+ * @width:		image width in pixels
-+ * @height:		image height in pixels
-+ * @pixelformat:	little endian four character code (fourcc)
-+ * @field:		field order (for interlaced video)
-+ * @colorspace:		supplemental to pixelformat
-+ * @plane_fmt:		per-plane information
-+ * @num_planes:		number of planes for this format
-+ */
-+struct v4l2_pix_format_mplane {
-+	__u32				width;
-+	__u32				height;
-+	__u32				pixelformat;
-+	enum v4l2_field			field;
-+	enum v4l2_colorspace		colorspace;
-+
-+	struct v4l2_plane_pix_format	plane_fmt[VIDEO_MAX_PLANES];
-+	__u8				num_planes;
-+	__u8				reserved[11];
-+} __attribute__ ((packed));
-+
-+/**
-+ * struct v4l2_format - stream data format
-+ * @type:	type of the data stream
-+ * @pix:	definition of an image format
-+ * @pix_mp:	definition of a multiplanar image format
-+ * @win:	definition of an overlaid image
-+ * @vbi:	raw VBI capture or output parameters
-+ * @sliced:	sliced VBI capture or output parameters
-+ * @raw_data:	placeholder for future extensions and custom formats
-  */
- struct v4l2_format {
- 	enum v4l2_buf_type type;
- 	union {
- 		struct v4l2_pix_format		pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
-+		struct v4l2_pix_format_mplane	pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
- 		struct v4l2_window		win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
- 		struct v4l2_vbi_format		vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
- 		struct v4l2_sliced_vbi_format	sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
-@@ -1626,7 +1747,6 @@ struct v4l2_format {
- 	} fmt;
- };
- 
+ static void
+ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+ 		unsigned int pad, struct v4l2_mbus_framefmt *fmt,
+@@ -1571,14 +1580,22 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+ 	struct v4l2_mbus_framefmt *format;
+ 	unsigned int width = fmt->width;
+ 	unsigned int height = fmt->height;
 -
- /*	Stream type-dependent parameters
-  */
- struct v4l2_streamparm {
--- 
-1.7.1.569.g6f426
++	int i;
+ 	switch (pad) {
+ 	case CCDC_PAD_SINK:
+ 		/* Check if the requested pixel format is supported.
+ 		 * TODO: If the CCDC output formatter pad is connected directly
+ 		 * to the resizer, only YUV formats can be used.
+ 		 */
+-		fmt->code = V4L2_MBUS_FMT_SGRBG10_1X10;
++		for(i=0; i<ARRAY_SIZE(sink_fmts); ++i) {
++			if(sink_fmts[i] == fmt->code) 
++				break;
++		}
++		/* if the requested type is not in the list of
++		 * supported types, then change it to the first format
++		 * code in the list of supported. */
++		if(i==ARRAY_SIZE(sink_fmts)) 
++			fmt->code = sink_fmts[0];
+ 
+ 		/* Clamp the input size. */
+ 		fmt->width = clamp_t(u32, width, 32, 4096);
+@@ -1630,10 +1647,10 @@ static int ccdc_enum_mbus_code(struct v4l2_subdev *sd,
+ 			       struct v4l2_subdev_fh *fh,
+ 			       struct v4l2_subdev_pad_mbus_code_enum *code)
+ {
+-	if (code->index != 0)
++	if (code->index >= ARRAY_SIZE(sink_fmts))
+ 		return -EINVAL;
+ 
+-	code->code = V4L2_MBUS_FMT_SGRBG10_1X10;
++	code->code = sink_fmts[code->index];
+ 
+ 	return 0;
+ }
+@@ -1719,6 +1736,44 @@ static int ccdc_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 
+ 	/* Propagate the format from sink to source */
+ 	if (pad == CCDC_PAD_SINK) {
++		u32 syn_mode, ispctrl_val;
++		struct isp_device *isp = to_isp_device(ccdc);
++		if (!isp_get(isp))
++			return -EBUSY;
++
++		syn_mode    = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, 
++					    ISPCCDC_SYN_MODE);
++		ispctrl_val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, 
++					    ISP_CTRL);
++		syn_mode    &= ISPCCDC_SYN_MODE_INPMOD_MASK;
++		ispctrl_val &= ~ISPCTRL_PAR_BRIDGE_MASK;
++		switch(format->code) {
++		case V4L2_MBUS_FMT_YUYV16_1X16:
++		case V4L2_MBUS_FMT_UYVY16_1X16:
++		case V4L2_MBUS_FMT_YVYU16_1X16:
++		case V4L2_MBUS_FMT_VYUY16_1X16:
++			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
++
++			/* TODO: In YCBCR16 mode, the bridge has to be
++			 * enabled, so we enable it here and force it
++			 * big endian. Whether to do big or little endian
++			 * should somehow come from the platform data.*/
++			ispctrl_val |= ISPCTRL_PAR_BRIDGE_BENDIAN 
++				<< ISPCTRL_PAR_BRIDGE_SHIFT;
++			break;
++		default:
++			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_RAW;
++			ispctrl_val |= isp->pdata->parallel.bridge
++				<< ISPCTRL_PAR_BRIDGE_SHIFT;
++			break;
++		}
++		isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, 
++			       ISPCCDC_SYN_MODE);
++		isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN, 
++			       ISP_CTRL);
++		isp_put(isp);
++
++
+ 		format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SOURCE_OF, which);
+ 		memcpy(format, fmt, sizeof(*format));
+ 		ccdc_try_format(ccdc, fh, CCDC_PAD_SOURCE_OF, format, which);
+diff --git a/drivers/media/video/isp/ispreg.h b/drivers/media/video/isp/ispreg.h
+index 7efcfaa..9bbeb9b 100644
+--- a/drivers/media/video/isp/ispreg.h
++++ b/drivers/media/video/isp/ispreg.h
+@@ -732,9 +732,9 @@
+ #define ISPCTRL_PAR_SER_CLK_SEL_MASK		0xFFFFFFFC
+ 
+ #define ISPCTRL_PAR_BRIDGE_SHIFT		2
+-#define ISPCTRL_PAR_BRIDGE_DISABLE		(0x0 << 2)
+-#define ISPCTRL_PAR_BRIDGE_LENDIAN		(0x2 << 2)
+-#define ISPCTRL_PAR_BRIDGE_BENDIAN		(0x3 << 2)
++#define ISPCTRL_PAR_BRIDGE_DISABLE		0x0
++#define ISPCTRL_PAR_BRIDGE_LENDIAN		0x2
++#define ISPCTRL_PAR_BRIDGE_BENDIAN		0x3
+ #define ISPCTRL_PAR_BRIDGE_MASK			(0x3 << 2)
+ 
+ #define ISPCTRL_PAR_CLK_POL_SHIFT		4
 
+--------------090106030507080502010401--
