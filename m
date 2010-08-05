@@ -1,56 +1,62 @@
-Return-path: <mchehab@pedra>
-Received: from n5-vm1.bullet.mail.in.yahoo.com ([202.86.4.130]:43487 "HELO
-	n5-vm1.bullet.mail.in.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1759801Ab0HLMRR convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Aug 2010 08:17:17 -0400
-Message-ID: <239550.42715.qm@web95111.mail.in2.yahoo.com>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com> <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com> <1280758003-16118-3-git-send-email-matti.j.aaltonen@nokia.com> <1280758003-16118-4-git-send-email-matti.j.aaltonen@nokia.com> <1280758003-16118-5-git-send-email-matti.j.aaltonen@nokia.com>
-Date: Thu, 12 Aug 2010 17:40:34 +0530 (IST)
-From: pramodh ag <pramodhag@yahoo.co.in>
-Subject: Re: [PATCH v7 4/5] V4L2: WL1273 FM Radio: Controls for the FM radio.
-To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	eduardo.valentin@nokia.com, mchehab@redhat.com
-In-Reply-To: <1280758003-16118-5-git-send-email-matti.j.aaltonen@nokia.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.23]:42899 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S933008Ab0HEUan (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Aug 2010 16:30:43 -0400
+Date: Thu, 5 Aug 2010 22:30:39 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <m.grzeschik@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	baruch@tkos.co.il, Sascha Hauer <s.hauer@pengutronix.de>,
+	Teresa Gamez <T.Gamez@phytec.de>
+Subject: Re: [PATCH 5/5] mx2_camera: add informative camera clock frequency
+ printout
+In-Reply-To: <1280828276-483-6-git-send-email-m.grzeschik@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1008052228280.26127@axis700.grange>
+References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
+ <1280828276-483-6-git-send-email-m.grzeschik@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Matti,
+On Tue, 3 Aug 2010, Michael Grzeschik wrote:
 
-> +/**
-> + * wl1273_fm_set_tx_power() -    Set the transmission power value.
-> + * @core:            A pointer to the device struct.
-> + * @power:            The new power value.
-> + */
-> +static int wl1273_fm_set_tx_power(struct wl1273_core *core, u16 power)
-> +{
-> +    int r;
+> ported mx27_camera to 2.6.33.2
+
+Sorry, do not understand what this description has to do with the contents 
+- adding a printk to a driver? I don't think this is something critical 
+enough to be handled urgently now for 2.6.36, right?
+
+Thanks
+Guennadi
+
+> Signed-off-by: Teresa Gamez <T.Gamez@phytec.de>
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> ---
+>  drivers/media/video/mx2_camera.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index 7f27492..fb1b1cb 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -1360,6 +1360,9 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  			goto exit_dma_free;
+>  	}
+>  
+> +	dev_info(&pdev->dev, "Camera clock frequency: %ld\n",
+> +			clk_get_rate(pcdev->clk_csi));
 > +
-> +    if (core->mode == WL1273_MODE_OFF ||
-> +        core->mode == WL1273_MODE_SUSPENDED)
-> +        return -EPERM;
-> +
-> +    mutex_lock(&core->lock);
-> +
-> +    r = wl1273_fm_write_cmd(core, WL1273_POWER_LEV_SET, power);
+>  	INIT_LIST_HEAD(&pcdev->capture);
+>  	INIT_LIST_HEAD(&pcdev->active_bufs);
+>  	spin_lock_init(&pcdev->lock);
+> -- 
+> 1.7.1
+> 
+> 
 
-Output power level is specified in units of dBuV (as explained at 
-http://www.linuxtv.org/downloads/v4l-dvb-apis/ch01s09.html#fm-tx-controls).
-Shouldn't it be converted to WL1273 specific power level value?
-
-My understanding:
-If output power level specified using "V4L2_CID_TUNE_POWER_LEVEL" is 122 
-(dB/uV), then
-power level value to be passed for WL1273 should be '0'.
-Please correct me, if I got this conversion wrong.
-
-Thanks and regards,
-Pramodh
-
-
-
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
