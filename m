@@ -1,103 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:40869 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752982Ab0HGNL7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Aug 2010 09:11:59 -0400
-Date: Sat, 7 Aug 2010 15:12:13 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH/RFC] V4L2: add a generic function to find the nearest
- discrete format
-In-Reply-To: <201008071106.30955.hverkuil@xs4all.nl>
-Message-ID: <Pine.LNX.4.64.1008071505410.3798@axis700.grange>
-References: <Pine.LNX.4.64.1008051959330.26127@axis700.grange>
- <201008061525.30646.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1008062207470.18408@axis700.grange> <201008071106.30955.hverkuil@xs4all.nl>
+Received: from mgw2.diku.dk ([130.225.96.92]:39125 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934404Ab0HEU35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Aug 2010 16:29:57 -0400
+Date: Thu, 5 Aug 2010 22:29:55 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 42/42] drivers/media/video/bt8xx: Adjust confusing if
+ indentation
+Message-ID: <Pine.LNX.4.64.1008052229390.31692@ask.diku.dk>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 7 Aug 2010, Hans Verkuil wrote:
+From: Julia Lawall <julia@diku.dk>
 
-> On Friday 06 August 2010 22:21:36 Guennadi Liakhovetski wrote:
-> > On Fri, 6 Aug 2010, Laurent Pinchart wrote:
-> > 
-> > > Hi Guennadi,
-> > > 
-> > > On Thursday 05 August 2010 20:03:46 Guennadi Liakhovetski wrote:
-> > > > Many video drivers implement a discrete set of frame formats and thus face
-> > > > a task of finding the best match for a user-requested format. Implementing
-> > > > this in a generic function has also an advantage, that different drivers
-> > > > with similar supported format sets will select the same format for the
-> > > > user, which improves consistency across drivers.
-> > > > 
-> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > ---
-> > > > 
-> > > > I'm currently away from my hardware, so, this is only compile tested and
-> > > > run-time tested with a test application. In any case, reviews and
-> > > > suggestions welcome.
-> > > > 
-> > > >  drivers/media/video/v4l2-common.c |   26 ++++++++++++++++++++++++++
-> > > >  include/linux/videodev2.h         |   10 ++++++++++
-> > > >  2 files changed, 36 insertions(+), 0 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/video/v4l2-common.c
-> > > > b/drivers/media/video/v4l2-common.c index 4e53b0b..90727e6 100644
-> > > > --- a/drivers/media/video/v4l2-common.c
-> > > > +++ b/drivers/media/video/v4l2-common.c
-> > > > @@ -1144,3 +1144,29 @@ int v4l_fill_dv_preset_info(u32 preset, struct
-> > > > v4l2_dv_enum_preset *info) return 0;
-> > > >  }
-> > > >  EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-> > > > +
-> > > > +struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct
-> > > > v4l2_discrete_probe *probe, +						       s32 width, s32 height)
-> > > > +{
-> > > > +	int i;
-> > > > +	u32 error, min_error = ~0;
-> > > > +	struct v4l2_frmsize_discrete *size, *best = NULL;
-> > > > +
-> > > > +	if (!probe)
-> > > > +		return best;
-> > > > +
-> > > > +	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
-> > > > +		if (probe->probe && !probe->probe(probe))
-> > > 
-> > > What's this call for ?
-> > 
-> > Well, atm, I don't think I have a specific case right now, but I think, it 
-> > can well be the case, that not all frame sizes are always usable in the 
-> > driver, depending on other circumstances. E.g., depending on the pixel / 
-> > fourcc code. So, in this case the driver just provides a probe method to 
-> > filter out inapplicable sizes.
-> 
-> Never add code just because you think it might be needed in the future. Especially
-> not for kernel internal code that you can change anyway if needed.
+Indent the branch of an if.
 
-Yes and no. If it's pretty obvious, that a certain extension is going to 
-be needed in the future, then it can be better to prepare for it, because 
-otherwise developers can start implementing (ugly custom) local 
-workarounds and extensions, before someone comes up with the idea to 
-extend the API, and then you have to convert all those special solutions. 
-Whereas if you prepare such an API, even if it is not perfect, people are 
-more likely to modify and fix it, than to extend an "established API."
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-But if in this case noone says - yes, my driver will need to be able to 
-filter certain sizes out, we can as well drop this callback.
+// <smpl>
+@r disable braces4@
+position p1,p2;
+statement S1,S2;
+@@
 
-> In this case you just want to give a simple const array with width and height
-> pairs ending at 0, 0 or pass in the length of the array, whatever you prefer,
-> and return the array index for the closest match.
-> 
-> Keep it simple.
+(
+if (...) { ... }
+|
+if (...) S1@p1 S2@p2
+)
 
-Thanks
-Guennadi
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
+
+if (p1[0].column == p2[0].column):
+  cocci.print_main("branch",p1)
+  cocci.print_secs("after",p2)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/bt8xx/bttv-i2c.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/video/bt8xx/bttv-i2c.c b/drivers/media/video/bt8xx/bttv-i2c.c
+index 685d659..695765c 100644
+--- a/drivers/media/video/bt8xx/bttv-i2c.c
++++ b/drivers/media/video/bt8xx/bttv-i2c.c
+@@ -123,7 +123,7 @@ bttv_i2c_wait_done(struct bttv *btv)
+ 	if (wait_event_interruptible_timeout(btv->i2c_queue,
+ 		btv->i2c_done, msecs_to_jiffies(85)) == -ERESTARTSYS)
+ 
+-	rc = -EIO;
++		rc = -EIO;
+ 
+ 	if (btv->i2c_done & BT848_INT_RACK)
+ 		rc = 1;
