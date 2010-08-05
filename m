@@ -1,61 +1,123 @@
-Return-path: <mchehab@pedra>
-Received: from mp1-smtp-5.eutelia.it ([62.94.10.165]:45651 "EHLO
-	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752774Ab0HPIoa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Aug 2010 04:44:30 -0400
-Message-ID: <4C68FA61.1040305@gmail.com>
-Date: Mon, 16 Aug 2010 10:44:17 +0200
-From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
-MIME-Version: 1.0
-To: Douglas Schilling Landgraf <dougsland@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Error building v4l
-References: <4C664723.9070303@gmail.com> <AANLkTine4xDHhTqeEWUNypCc0t0MksUpKeLuFCJ+-EW-@mail.gmail.com>
-In-Reply-To: <AANLkTine4xDHhTqeEWUNypCc0t0MksUpKeLuFCJ+-EW-@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4328 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758656Ab0HETdh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 15:33:37 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o75JXZWL098322
+	for <linux-media@vger.kernel.org>; Thu, 5 Aug 2010 21:33:35 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 5 Aug 2010 21:33:35 +0200 (CEST)
+Message-Id: <201008051933.o75JXZWL098322@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Ok!
-Now it works!
-Thank you very much,
-Xwang
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Il 16/08/2010 04:59, Douglas Schilling Landgraf ha scritto:
-> Hello,
->
-> On Sat, Aug 14, 2010 at 3:34 AM, Andrea.Amorosi76@gmail.com
-> <Andrea.Amorosi76@gmail.com>  wrote:
->> Building the v4l, I obtain the following error:
->>
->>
->> home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c: In function
->> 'mceusb_dev_probe':
->> /home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:923: error:
->> implicit declaration of function 'usb_alloc_coherent'
->> /home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:923:
->> warning: assignment makes pointer from integer without a cast
->> /home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:1003: error:
->> implicit declaration of function 'usb_free_coherent'
->> make[3]: ***
->> [/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.o] Error 1
->> make[2]: ***
->> [_module_/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l] Error 2
->> make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-24-generic'
->> make[1]: *** [default] Errore 2
->> make[1]: uscita dalla directory
->> «/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l»
->> make: *** [all] Errore 2
->>
->> My system is a Kubuntu 10.04 amd64 with kernel 2.6.32-24-generic #39-Ubuntu
->> SMP Wed Jul 28 05:14:15 UTC 2010 x86_64 GNU/Linux
->>
->> How can I solve?
->
-> Please download the new patches available and try again.
->
-> Cheers
-> Douglas
->
+Results of the daily build of v4l-dvb:
+
+date:        Thu Aug  5 19:00:33 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14994:a14d56c730c4
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
