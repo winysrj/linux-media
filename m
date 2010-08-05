@@ -1,77 +1,70 @@
-Return-path: <mchehab@pedra>
-Received: from fgwmail5.fujitsu.co.jp ([192.51.44.35]:47445 "EHLO
-	fgwmail5.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750983Ab0HZEfw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 00:35:52 -0400
-Date: Thu, 26 Aug 2010 13:30:28 +0900
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-To: Minchan Kim <minchan.kim@gmail.com>
-Cc: =?UTF-8?B?TWljaGHFgg==?= Nazarewicz <m.nazarewicz@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	linux-kernel@vger.kernel.org,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mel Gorman <mel@csn.ul.ie>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-Message-Id: <20100826133028.39d731da.kamezawa.hiroyu@jp.fujitsu.com>
-In-Reply-To: <AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	<1282310110.2605.976.camel@laptop>
-	<20100825155814.25c783c7.akpm@linux-foundation.org>
-	<20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
-	<op.vh0wektv7p4s8u@localhost>
-	<20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
-	<20100826124434.6089630d.kamezawa.hiroyu@jp.fujitsu.com>
-	<AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout-de.gmx.net ([213.165.64.22]:52096 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S932382Ab0HEURO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Aug 2010 16:17:14 -0400
+Date: Thu, 5 Aug 2010 22:17:11 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <m.grzeschik@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	baruch@tkos.co.il, Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH 1/5] mx2_camera: change to register and probe
+In-Reply-To: <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1008052211560.26127@axis700.grange>
+References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
+ <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 26 Aug 2010 13:06:28 +0900
-Minchan Kim <minchan.kim@gmail.com> wrote:
+On Tue, 3 Aug 2010, Michael Grzeschik wrote:
 
-> On Thu, Aug 26, 2010 at 12:44 PM, KAMEZAWA Hiroyuki
-> <kamezawa.hiroyu@jp.fujitsu.com> wrote:
-> > On Thu, 26 Aug 2010 11:50:17 +0900
-> > KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
-> >
-> >> 128MB...too big ? But it's depend on config.
-> >>
-> >> IBM's ppc guys used 16MB section, and recently, a new interface to shrink
-> >> the number of /sys files are added, maybe usable.
-> >>
-> >> Something good with this approach will be you can create "cma" memory
-> >> before installing driver.
-> >>
-> >> But yes, complicated and need some works.
-> >>
-> > Ah, I need to clarify what I want to say.
-> >
-> > With compaction, it's helpful, but you can't get contiguous memory larger
-> > than MAX_ORDER, I think. To get memory larger than MAX_ORDER on demand,
-> > memory hot-plug code has almost all necessary things.
+> change this driver back to register and probe, since some platforms
+> first have to initialize an already registered power regulator to switch
+> on the camera.
+
+I shall be preparing a pull-request for 2.6.36-rc1 #2, but since we 
+haven't finished discussing this and when this is ready, this will be a 
+fix - without this your platform doesn't work, right? So, we can push it 
+after rc1.
+
+Thanks
+Guennadi
+
 > 
-> True. Doesn't patch's idea of Christoph helps this ?
-> http://lwn.net/Articles/200699/
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> ---
+>  drivers/media/video/mx2_camera.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index 98c93fa..c77a673 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -1491,13 +1491,15 @@ static struct platform_driver mx2_camera_driver = {
+>  	.driver 	= {
+>  		.name	= MX2_CAM_DRV_NAME,
+>  	},
+> +
+> +	.probe          = mx2_camera_probe,
+>  	.remove		= __devexit_p(mx2_camera_remove),
+>  };
+>  
+>  
+>  static int __init mx2_camera_init(void)
+>  {
+> -	return platform_driver_probe(&mx2_camera_driver, &mx2_camera_probe);
+> +	return platform_driver_register(&mx2_camera_driver);
+>  }
+>  
+>  static void __exit mx2_camera_exit(void)
+> -- 
+> 1.7.1
+> 
 > 
 
-yes, I think so. But, IIRC,  it's own purpose of Chirstoph's work is
-for removing zones. please be careful what's really necessary.
-
-Thanks,
--Kame
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
