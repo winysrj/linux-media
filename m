@@ -1,158 +1,85 @@
-Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:61758 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751673Ab0HTJwW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 05:52:22 -0400
-Date: Fri, 20 Aug 2010 11:50:46 +0200
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCH/RFCv4 6/6] arm: Added CMA to Aquila and Goni
-In-reply-to: <2e2a3d55b07cf8ce852e0d02e6fd77dc1fcbf275.1282286941.git.m.nazarewicz@samsung.com>
-To: linux-mm@kvack.org
-Cc: Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Message-id: <360303f5fb76d6544e4fb78537da07a096d904a7.1282286941.git.m.nazarewicz@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
- <0b02e05fc21e70a3af39e65e628d117cd89d70a1.1282286941.git.m.nazarewicz@samsung.com>
- <343f4b0edf9b5eef598831700cb459cd428d3f2e.1282286941.git.m.nazarewicz@samsung.com>
- <9883433f103cc84e55db150806d2270200c74c6b.1282286941.git.m.nazarewicz@samsung.com>
- <8fa83f632d8198f98b232b96c848eece44e33f83.1282286941.git.m.nazarewicz@samsung.com>
- <2e2a3d55b07cf8ce852e0d02e6fd77dc1fcbf275.1282286941.git.m.nazarewicz@samsung.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp23.services.sfr.fr ([93.17.128.22]:6563 "EHLO
+	smtp23.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755317Ab0HFJlF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Aug 2010 05:41:05 -0400
+Received: from filter.sfr.fr (localhost [127.0.0.1])
+	by msfrf2317.sfr.fr (SMTP Server) with ESMTP id 919527000087
+	for <linux-media@vger.kernel.org>; Fri,  6 Aug 2010 11:40:59 +0200 (CEST)
+Received: from smtp-in.softsystem.co.uk (81.148.200-77.rev.gaoland.net [77.200.148.81])
+	by msfrf2317.sfr.fr (SMTP Server) with SMTP id 441DD7000086
+	for <linux-media@vger.kernel.org>; Fri,  6 Aug 2010 11:40:59 +0200 (CEST)
+Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
+	BY smtp-in.softsystem.co.uk [77.200.148.81] (SoftMail 1.0.5, www.softsystem.co.uk) WITH ESMTP
+	FOR <linux-media@vger.kernel.org>; Fri, 06 Aug 2010 11:40:57 +0200
+Subject: Re: Fwd: No audio in HW Compressed MPEG2 container on HVR-1300
+From: lawrence rust <lawrence@softsystem.co.uk>
+To: Shane Harrison <shane.harrison@paragon.co.nz>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTik0UZmf5b4nTi1AgFiKQAGkvU47_dN0gUSw3urs@mail.gmail.com>
+References: <AANLkTimD-BCmN+3YUykUCH0fdNagw=wcUu1g+Z87N_5W@mail.gmail.com>
+	 <1280741544.1361.17.camel@gagarin>
+	 <AANLkTinHK8mVwrCnOZTUMsHVGTykj8bNdkKwcbMQ8LK_@mail.gmail.com>
+	 <AANLkTi=M2wVY3vL8nGBg-YqUtRidBahpE5OXbjr5k96X@mail.gmail.com>
+	 <1280750394.1361.87.camel@gagarin>
+	 <AANLkTi=V3eKuJ1jXPcBuSxUy6djCoK4q2pR-V0zo_cMS@mail.gmail.com>
+	 <1280843299.1492.127.camel@gagarin>
+	 <AANLkTik0UZmf5b4nTi1AgFiKQAGkvU47_dN0gUSw3urs@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 06 Aug 2010 11:40:50 +0200
+Message-ID: <1281087650.1332.26.camel@gagarin>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Added the CMA initialisation code to two Samsung platforms.
+On Fri, 2010-08-06 at 11:49 +1200, Shane Harrison wrote:
+[snip]
+> Well still no luck this end.  Have done the following:
+> 1) Swapped boards - no change
+> 2) Applied the patch - no change (we were detecting the WM8775 OK
+> anyway and the other changes were either non HVR-1300 or we had
+> already tried them so probably not too surprising
+> 3) Made sure I2SINPUT is enabled - no change
+> 
+> So still have the following strange observations:
+> 1) Repeatedly swapping between inputs eventually gives us audio
+> 2) Once fixed it survives a warm reboot but not power cycle
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/mach-s5pv210/mach-aquila.c |   31 +++++++++++++++++++++++++++++++
- arch/arm/mach-s5pv210/mach-goni.c   |   31 +++++++++++++++++++++++++++++++
- 2 files changed, 62 insertions(+), 0 deletions(-)
+Because of the the warm boot survival I'm tempted to think that this is
+a cx23416 firmware problem.
 
-diff --git a/arch/arm/mach-s5pv210/mach-aquila.c b/arch/arm/mach-s5pv210/mach-aquila.c
-index 0dda801..3561859 100644
---- a/arch/arm/mach-s5pv210/mach-aquila.c
-+++ b/arch/arm/mach-s5pv210/mach-aquila.c
-@@ -19,6 +19,7 @@
- #include <linux/gpio_keys.h>
- #include <linux/input.h>
- #include <linux/gpio.h>
-+#include <linux/cma.h>
- 
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-@@ -493,6 +494,35 @@ static void __init aquila_map_io(void)
- 	s3c24xx_init_uarts(aquila_uartcfgs, ARRAY_SIZE(aquila_uartcfgs));
- }
- 
-+static void __init aquila_reserve(void)
-+{
-+	static struct cma_region regions[] = {
-+		{
-+			.name		= "fw",
-+			.size		=   1 << 20,
-+			{ .alignment	= 128 << 10 },
-+		},
-+		{
-+			.name		= "b1",
-+			.size		=  32 << 20,
-+			.asterisk	= 1,
-+		},
-+		{
-+			.name		= "b2",
-+			.size		=  16 << 20,
-+			.start		= 0x40000000,
-+			.asterisk	= 1,
-+		},
-+		{ }
-+	};
-+
-+	static const char map[] __initconst =
-+		"s3c-mfc5/f=fw;s3c-mfc5/a=b1;s3c-mfc5/b=b2";
-+
-+	cma_set_defaults(regions, map);
-+	cma_early_regions_reserve(NULL);
-+}
-+
- static void __init aquila_machine_init(void)
- {
- 	/* PMIC */
-@@ -523,4 +553,5 @@ MACHINE_START(AQUILA, "Aquila")
- 	.map_io		= aquila_map_io,
- 	.init_machine	= aquila_machine_init,
- 	.timer		= &s3c24xx_timer,
-+	.reserve	= aquila_reserve,
- MACHINE_END
-diff --git a/arch/arm/mach-s5pv210/mach-goni.c b/arch/arm/mach-s5pv210/mach-goni.c
-index 53754d7..edeb93f 100644
---- a/arch/arm/mach-s5pv210/mach-goni.c
-+++ b/arch/arm/mach-s5pv210/mach-goni.c
-@@ -19,6 +19,7 @@
- #include <linux/gpio_keys.h>
- #include <linux/input.h>
- #include <linux/gpio.h>
-+#include <linux/cma.h>
- 
- #include <asm/mach/arch.h>
- #include <asm/mach/map.h>
-@@ -474,6 +475,35 @@ static void __init goni_map_io(void)
- 	s3c24xx_init_uarts(goni_uartcfgs, ARRAY_SIZE(goni_uartcfgs));
- }
- 
-+static void __init goni_reserve(void)
-+{
-+	static struct cma_region regions[] = {
-+		{
-+			.name		= "fw",
-+			.size		=   1 << 20,
-+			{ .alignment	= 128 << 10 },
-+		},
-+		{
-+			.name		= "b1",
-+			.size		=  32 << 20,
-+			.asterisk	= 1,
-+		},
-+		{
-+			.name		= "b2",
-+			.size		=  16 << 20,
-+			.start		= 0x40000000,
-+			.asterisk	= 1,
-+		},
-+		{ }
-+	};
-+
-+	static const char map[] __initconst =
-+		"s3c-mfc5/f=fw;s3c-mfc5/a=b1;s3c-mfc5/b=b2";
-+
-+	cma_set_defaults(regions, map);
-+	cma_early_regions_reserve(NULL);
-+}
-+
- static void __init goni_machine_init(void)
- {
- 	/* PMIC */
-@@ -498,4 +528,5 @@ MACHINE_START(GONI, "GONI")
- 	.map_io		= goni_map_io,
- 	.init_machine	= goni_machine_init,
- 	.timer		= &s3c24xx_timer,
-+	.reserve	= goni_reserve,
- MACHINE_END
--- 
-1.7.1
+I don't have any experience with cx23416 programming but from looking at
+cx88-blackbird.c it appears that the firmware is only loaded from the
+function blackbird_initialize_codec() if the chip doesn't respond to a
+'ping' command.  blackbird_initialize_codec() is called during probing,
+during the first open and whenever the tuner frequency is changed - i.e.
+when inputs are changed.  I would be tempted to set this module's debug
+parameter and see if there's a coincidence of resetting/reloading the
+firmware and the audio path being enabled.
+
+> 3) Putting a scope on the I2S line out of the CX2388x shows noise when
+> TV input selected and no noise for Composite (unless inject a tone).
+
+This confirms that the cx2388x is setup OK
+
+> However MPEG-2 audio always contains hiss or hiss plus injected tone.
+
+This tells me that the cx23416 is not configured right.
+
+> So looks like two issues to me.  I'll try and modify the driver so
+> that when switching inputs we only config the WM8775 or the CX2388x or
+> the MPEG encoder and see if I can determine which item has the
+> configuration issue.
+
+Seems like a good idea, but I would put money on the cx23416.
+
+I would recommend looking at the debug output from cx88-blackbird and if
+there's anything unusual then temporarily disable the ping test in
+blackbird_initialize_codec() and always reset and re-load the firmware.
+If this helps then maybe add some delays around the reset for a long
+term fix.
+
+-- Lawrence Rust
 
 
