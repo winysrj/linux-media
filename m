@@ -1,80 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:42006 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1755823Ab0HETZ5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Aug 2010 15:25:57 -0400
-Date: Thu, 5 Aug 2010 21:25:52 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <mgr@pengutronix.de>
-cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	baruch@tkos.co.il, Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH 2/5] mx2_camera: remove emma limitation for RGB565
-In-Reply-To: <20100804102727.GB10780@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1008052112440.26127@axis700.grange>
-References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
- <1280828276-483-3-git-send-email-m.grzeschik@pengutronix.de>
- <Pine.LNX.4.64.1008041149470.29386@axis700.grange> <20100804102727.GB10780@pengutronix.de>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44379 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935107Ab0HFVGv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Aug 2010 17:06:51 -0400
+Date: Fri, 6 Aug 2010 22:56:29 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: Re: Handling of large keycodes
+Message-ID: <20100806205629.GA24488@hardeman.nu>
+References: <20100731091936.GA22253@core.coreip.homeip.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20100731091936.GA22253@core.coreip.homeip.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 4 Aug 2010, Michael Grzeschik wrote:
+On Sat, Jul 31, 2010 at 02:19:36AM -0700, Dmitry Torokhov wrote:
+> +/**
+> + * struct keymap_entry - used by EVIOCGKEYCODE/EVIOCSKEYCODE ioctls
+> + * @scancode: scancode represented in machine-endian form.
+> + * @len: length of the scancode that resides in @scancode buffer.
+> + * @index: index in the keymap, may be used instead of scancode
+> + * @by_index: boolean value indicating that kernel should perform
+> + *	lookup in keymap by @index instead of @scancode
+> + * @keycode: key code assigned to this scancode
+> + *
+> + * The structure is used to retrieve and modify keymap data. Users have
 
-> On Wed, Aug 04, 2010 at 11:55:39AM +0200, Guennadi Liakhovetski wrote:
-> > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
-> > 
-> > > In the current source status the emma has no limitation for any PIXFMT
-> > > since the data is parsed raw and unprocessed into the memory.
-> > 
-> > I'd like some explanation for this one too, please. What about
-> > 
-> > +	/*
-> > +	 * We only use the EMMA engine to get rid of the broken
-> > +	 * DMA Engine. No color space consversion at the moment.
-> > +	 * We adjust incoming and outgoing pixelformat to rgb16
-> > +	 * and adjust the bytesperline accordingly.
-> > +	 */
-> > +	writel(PRP_CNTL_CH1EN |
-> > +			PRP_CNTL_CSIEN |
-> > +			PRP_CNTL_DATA_IN_RGB16 |
-> > +			PRP_CNTL_CH1_OUT_RGB16 |
-> > +			PRP_CNTL_CH1_LEN |
-> > +			PRP_CNTL_CH1BYP |
-> > +			PRP_CNTL_CH1_TSKIP(0) |
-> > +			PRP_CNTL_IN_TSKIP(0),
-> > +			pcdev->base_emma + PRP_CNTL);
-> > +
-> > +	writel(((bytesperline >> 1) << 16) | icd->user_height,
-> > +			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
-> > +	writel(((bytesperline >> 1) << 16) | icd->user_height,
-> > +			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
-> > +	writel(bytesperline,
-> > +			pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
-> > +	writel(0x2ca00565, /* RGB565 */
-> > +			pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
-> > +	writel(0x2ca00565, /* RGB565 */
-> > +			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
-> > 
-> > To me it looks like the eMMA is configured for RGB565. What's the trick?
-> > 
-> 
-> Yes, it seems to be an indication, but the emma currently does not touch
-> any pixels, since the SRC_PIXEL_FORMAT and CH1_PIXEL_FORMAT are
-> identical. It will be needed in the future when we are going to do some
-> resizing operations with the emma or the SRC_PIXEL_FORMAT will differ to
-> the output channels. But at that time, the simple condition check for
-> RGB565 wouldn't be enough. So we should better remove them now.
+missing "the option" here?
 
-Then at least, please fix the above comment:
+> + * of performing lookup either by @scancode itself or by @index in
+> + * keymap entry. EVIOCGKEYCODE will also return scancode or index
+> + * (depending on which element was used to perform lookup).
+> + */
+> +struct keymap_entry {
+> +	__u8  len;
+> +	__u8  by_index;
+> +	__u16 index;
+> +	__u32 keycode;
+> +	__u8  scancode[32];
+>  };
 
-> > +	 * We adjust incoming and outgoing pixelformat to rgb16
-> > +	 * and adjust the bytesperline accordingly.
+Perhaps it would be a good idea to add a flags member to the struct, 
+either as an additional member or by replacing:
+	__u8 by_index;
+with:
+	__u32 flags;
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+to help with any future extensions/changes/additions to the interface?
+
+
+-- 
+David Härdeman
