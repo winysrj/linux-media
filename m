@@ -1,112 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11613 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751310Ab0HAUUp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Aug 2010 16:20:45 -0400
-Date: Sun, 1 Aug 2010 17:21:10 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Udi Atar <udia@siano-ms.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 4/6] V4L/DVB: standardize names at rc-dib0700 tables
-Message-ID: <20100801172110.3c1da080@pedra>
-In-Reply-To: <cover.1280693675.git.mchehab@redhat.com>
-References: <cover.1280693675.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:14489 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933059Ab0HFNUq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Aug 2010 09:20:46 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 06 Aug 2010 15:22:07 +0200
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [PATCH/RFCv3 1/6] lib: rbtree: rb_root_init() function added
+In-reply-to: <cover.1281100495.git.m.nazarewicz@samsung.com>
+To: linux-mm@kvack.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Hiremath Vaibhav <hvaibhav@ti.com>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>, jaeryul.oh@samsung.com,
+	kgene.kim@samsung.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>
+Message-id: <743102607e2c5fb20e3c0676fadbcb93d501a78e.1281100495.git.m.nazarewicz@samsung.com>
+References: <cover.1281100495.git.m.nazarewicz@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use a more standard way to name those tables, as they're currently used
-by the script that coverts those tables to be loaded via userspace.
+Added a rb_root_init() function which initialises a rb_root
+structure as a red-black tree with at most one element.  The
+rationale is that using rb_root_init(root, node) is more
+straightforward and cleaner then first initialising and
+empty tree followed by an insert operation.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/rbtree.h |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/IR/keymaps/rc-dib0700-nec.c b/drivers/media/IR/keymaps/rc-dib0700-nec.c
-index f5809f4..ae18320 100644
---- a/drivers/media/IR/keymaps/rc-dib0700-nec.c
-+++ b/drivers/media/IR/keymaps/rc-dib0700-nec.c
-@@ -17,7 +17,7 @@
- 
- #include <media/rc-map.h>
- 
--static struct ir_scancode dib0700_table[] = {
-+static struct ir_scancode dib0700_nec_table[] = {
- 	/* Key codes for the Pixelview SBTVD remote */
- 	{ 0x8613, KEY_MUTE },
- 	{ 0x8612, KEY_POWER },
-@@ -98,10 +98,10 @@ static struct ir_scancode dib0700_table[] = {
- 	{ 0x4542, KEY_SELECT }, /* Select video input, 'Select' for Teletext */
- };
- 
--static struct rc_keymap dib0700_map = {
-+static struct rc_keymap dib0700_nec_map = {
- 	.map = {
--		.scan    = dib0700_table,
--		.size    = ARRAY_SIZE(dib0700_table),
-+		.scan    = dib0700_nec_table,
-+		.size    = ARRAY_SIZE(dib0700_nec_table),
- 		.ir_type = IR_TYPE_NEC,
- 		.name    = RC_MAP_DIB0700_NEC_TABLE,
- 	}
-@@ -109,12 +109,12 @@ static struct rc_keymap dib0700_map = {
- 
- static int __init init_rc_map(void)
- {
--	return ir_register_map(&dib0700_map);
-+	return ir_register_map(&dib0700_nec_map);
+diff --git a/include/linux/rbtree.h b/include/linux/rbtree.h
+index 7066acb..5b6dc66 100644
+--- a/include/linux/rbtree.h
++++ b/include/linux/rbtree.h
+@@ -130,6 +130,17 @@ static inline void rb_set_color(struct rb_node *rb, int color)
  }
  
- static void __exit exit_rc_map(void)
- {
--	ir_unregister_map(&dib0700_map);
-+	ir_unregister_map(&dib0700_nec_map);
- }
+ #define RB_ROOT	(struct rb_root) { NULL, }
++
++static inline void rb_root_init(struct rb_root *root, struct rb_node *node)
++{
++	root->rb_node = node;
++	if (node) {
++		node->rb_parent_color = RB_BLACK; /* black, no parent */
++		node->rb_left  = NULL;
++		node->rb_right = NULL;
++	}
++}
++
+ #define	rb_entry(ptr, type, member) container_of(ptr, type, member)
  
- module_init(init_rc_map)
-diff --git a/drivers/media/IR/keymaps/rc-dib0700-rc5.c b/drivers/media/IR/keymaps/rc-dib0700-rc5.c
-index e2d0fd2..4a4797c 100644
---- a/drivers/media/IR/keymaps/rc-dib0700-rc5.c
-+++ b/drivers/media/IR/keymaps/rc-dib0700-rc5.c
-@@ -17,7 +17,7 @@
- 
- #include <media/rc-map.h>
- 
--static struct ir_scancode dib0700_table[] = {
-+static struct ir_scancode dib0700_rc5_table[] = {
- 	/* Key codes for the tiny Pinnacle remote*/
- 	{ 0x0700, KEY_MUTE },
- 	{ 0x0701, KEY_MENU }, /* Pinnacle logo */
-@@ -209,10 +209,10 @@ static struct ir_scancode dib0700_table[] = {
- 	{ 0x1d3d, KEY_POWER },
- };
- 
--static struct rc_keymap dib0700_map = {
-+static struct rc_keymap dib0700_rc5_map = {
- 	.map = {
--		.scan    = dib0700_table,
--		.size    = ARRAY_SIZE(dib0700_table),
-+		.scan    = dib0700_rc5_table,
-+		.size    = ARRAY_SIZE(dib0700_rc5_table),
- 		.ir_type = IR_TYPE_RC5,
- 		.name    = RC_MAP_DIB0700_RC5_TABLE,
- 	}
-@@ -220,12 +220,12 @@ static struct rc_keymap dib0700_map = {
- 
- static int __init init_rc_map(void)
- {
--	return ir_register_map(&dib0700_map);
-+	return ir_register_map(&dib0700_rc5_map);
- }
- 
- static void __exit exit_rc_map(void)
- {
--	ir_unregister_map(&dib0700_map);
-+	ir_unregister_map(&dib0700_rc5_map);
- }
- 
- module_init(init_rc_map)
+ #define RB_EMPTY_ROOT(root)	((root)->rb_node == NULL)
 -- 
 1.7.1
-
 
