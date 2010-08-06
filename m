@@ -1,51 +1,37 @@
-Return-path: <mchehab@pedra>
-Received: from mail.mlh-server.de ([188.40.95.206]:54517 "EHLO
-	mail.mlh-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754225Ab0HXHP7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Aug 2010 03:15:59 -0400
-Received: from [172.16.12.167] (188-193-154-144-dynip.superkabel.de [188.193.154.144])
-	(Authenticated sender: mail@matthias-larisch.de)
-	by mail.mlh-server.de (Postfix) with ESMTPSA id 35ABF3D40F1
-	for <linux-media@vger.kernel.org>; Tue, 24 Aug 2010 08:56:21 +0200 (CEST)
-Message-ID: <4C736D15.9000000@matthias-larisch.de>
-Date: Tue, 24 Aug 2010 08:56:21 +0200
-From: Matthias Larisch <mail@matthias-larisch.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:39269 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752900Ab0HFGbb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Aug 2010 02:31:31 -0400
+Date: Fri, 6 Aug 2010 08:31:00 +0200
+From: Dan Carpenter <error27@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] media: ir-keytable: null dereference in debug code
+Message-ID: <20100806063059.GN9031@bicker>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: MSI DigiVox Trio (Analog, DVB-C, DVB-T)
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello!
+"ir_dev->props" can be NULL.  We only use raw mode if "ir_dev->props" is
+non-NULL and "ir_dev->props->driver_type == RC_DRIVER_IR_RAW".
 
-I recently bought a DigiVox Trio by MSI. This card contains the
-following chips:
+Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-nxp tda18271hdc2 (tuner)
-micronas drx 3926ka3 (demodulator, 3in1)
-em2884
-atmlh946 64c (eeprom)
-micronas avf 4910ba1
-
-so it is comparable to the Terratec Cinergy HTC USB XS HD and the
-TerraTec H5.
-
-There is basically everything missing:
--EM2884 Support
--DRX 3926 Support
--AVF 4910 Support
-
-Is anyone working on any of them? I would really like to help to get
-some of this stuff working! I know how to code and have much interest in
-hardware/technology but no know how in linux-driver programming or
-tv-card programming. If there is anything I could do just tell me.
-
-So far I'm using this card in a Windows VM and it works (more or less
-good...)
-
-Best regards,
-
-Matthias
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 15a0f19..cf97427 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -499,7 +499,8 @@ int __ir_input_register(struct input_dev *input_dev,
+ 
+ 	IR_dprintk(1, "Registered input device on %s for %s remote%s.\n",
+ 		   driver_name, rc_tab->name,
+-		   ir_dev->props->driver_type == RC_DRIVER_IR_RAW ? " in raw mode" : "");
++		   (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_IR_RAW) ?
++			" in raw mode" : "");
+ 
+ 	return 0;
+ 
