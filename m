@@ -1,52 +1,123 @@
-Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:46784 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752461Ab0H0GB3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 02:01:29 -0400
-Received: by iwn5 with SMTP id 5so2286244iwn.19
-        for <linux-media@vger.kernel.org>; Thu, 26 Aug 2010 23:01:29 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C76C662.3070003@hoogenraad.net>
-References: <4C1D1228.1090702@holzeisen.de>
-	<4C5BA16C.7060808@hoogenraad.net>
-	<5a5511b4767b245485b150836b1526f0.squirrel@holzeisen.de>
-	<4C760DBC.5000605@hoogenraad.net>
-	<4C768B43.9080403@holzeisen.de>
-	<4C76C662.3070003@hoogenraad.net>
-Date: Fri, 27 Aug 2010 03:01:28 -0300
-Message-ID: <AANLkTikQV03w6MBOVdirrg3kLBw52HbnJmC4BLfeUObO@mail.gmail.com>
-Subject: Re: HG has errors on kernel 2.6.32
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Cc: linux-media@vger.kernel.org, Thomas Holzeisen <thomas@holzeisen.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4592 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181Ab0HGTdb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Aug 2010 15:33:31 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o77JXPqS017030
+	for <linux-media@vger.kernel.org>; Sat, 7 Aug 2010 21:33:29 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 7 Aug 2010 21:33:25 +0200 (CEST)
+Message-Id: <201008071933.o77JXPqS017030@smtp-vbr2.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Jan,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On Thu, Aug 26, 2010 at 4:54 PM, Jan Hoogenraad
-<jan-conceptronic@hoogenraad.net> wrote:
-> Douglas:
->
-> I see on that
-> http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-> that building linux-2.6.32 yields ERRORS
->
-> skip_spaces has only been included in string.h starting from linux-2.6.33.
->
-> Should I have a look on how to fix this, or do you want to do this ?
+Results of the daily build of v4l-dvb:
 
-It's up to you.  I can fix it, easily.
+date:        Sat Aug  7 19:00:24 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   14994:a14d56c730c4
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-> --
->
-> second request: can we do some small changes to avoid the compiler warnings
-> ?
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: OK
+linux-2.6.33-armv5-davinci: OK
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: OK
+linux-2.6.33-armv5-omap2: OK
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: WARNINGS
+linux-2.6.25.20-i686: WARNINGS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: OK
+linux-2.6.32.6-i686: OK
+linux-2.6.33-i686: OK
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: OK
+linux-2.6.33-mips: OK
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: OK
+linux-2.6.33-powerpc64: OK
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: WARNINGS
+linux-2.6.25.20-x86_64: WARNINGS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: OK
+linux-2.6.32.6-x86_64: OK
+linux-2.6.33-x86_64: OK
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-I will check on the git tree which patch touch on this and commit it. As
-backport tree, I cannot commit anything besides on existing source of git tree.
+Detailed results are available here:
 
-Thanks
-Douglas
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
