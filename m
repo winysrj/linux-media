@@ -1,122 +1,136 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:64748 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755485Ab0HXVoY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Aug 2010 17:44:24 -0400
-Message-ID: <4C743D2E.7090803@redhat.com>
-Date: Tue, 24 Aug 2010 18:44:14 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1693 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752618Ab0HGJGe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Aug 2010 05:06:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC] V4L2: add a generic function to find the nearest discrete format
+Date: Sat, 7 Aug 2010 11:06:30 +0200
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1008051959330.26127@axis700.grange> <201008061525.30646.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1008062207470.18408@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1008062207470.18408@axis700.grange>
 MIME-Version: 1.0
-To: Ingo Molnar <mingo@elte.hu>
-CC: Randy Dunlap <randy.dunlap@oracle.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] V4L/DVB: mantis: Fix IR_CORE dependency
-References: <4C643A08.3000605@redhat.com> <20100824084528.GA26618@elte.hu> <4C73E46B.8050203@oracle.com> <20100824193039.GA20425@elte.hu>
-In-Reply-To: <20100824193039.GA20425@elte.hu>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201008071106.30955.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 24-08-2010 16:30, Ingo Molnar escreveu:
+On Friday 06 August 2010 22:21:36 Guennadi Liakhovetski wrote:
+> On Fri, 6 Aug 2010, Laurent Pinchart wrote:
 > 
-> * Randy Dunlap <randy.dunlap@oracle.com> wrote:
+> > Hi Guennadi,
+> > 
+> > On Thursday 05 August 2010 20:03:46 Guennadi Liakhovetski wrote:
+> > > Many video drivers implement a discrete set of frame formats and thus face
+> > > a task of finding the best match for a user-requested format. Implementing
+> > > this in a generic function has also an advantage, that different drivers
+> > > with similar supported format sets will select the same format for the
+> > > user, which improves consistency across drivers.
+> > > 
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > > 
+> > > I'm currently away from my hardware, so, this is only compile tested and
+> > > run-time tested with a test application. In any case, reviews and
+> > > suggestions welcome.
+> > > 
+> > >  drivers/media/video/v4l2-common.c |   26 ++++++++++++++++++++++++++
+> > >  include/linux/videodev2.h         |   10 ++++++++++
+> > >  2 files changed, 36 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/v4l2-common.c
+> > > b/drivers/media/video/v4l2-common.c index 4e53b0b..90727e6 100644
+> > > --- a/drivers/media/video/v4l2-common.c
+> > > +++ b/drivers/media/video/v4l2-common.c
+> > > @@ -1144,3 +1144,29 @@ int v4l_fill_dv_preset_info(u32 preset, struct
+> > > v4l2_dv_enum_preset *info) return 0;
+> > >  }
+> > >  EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
+> > > +
+> > > +struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct
+> > > v4l2_discrete_probe *probe, +						       s32 width, s32 height)
+> > > +{
+> > > +	int i;
+> > > +	u32 error, min_error = ~0;
+> > > +	struct v4l2_frmsize_discrete *size, *best = NULL;
+> > > +
+> > > +	if (!probe)
+> > > +		return best;
+> > > +
+> > > +	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
+> > > +		if (probe->probe && !probe->probe(probe))
+> > 
+> > What's this call for ?
 > 
->> On 08/24/10 01:45, Ingo Molnar wrote:
->>>
->>> * Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->>>
->>>> Linus,
->>>>
->>>> Please pull from:
->>>>   ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
->>>>
->>>> For 3 build fixes.
->>>>
->>>> Cheers,
->>>> Mauro.
->>>>
->>>> The following changes since commit ad41a1e0cab07c5125456e8d38e5b1ab148d04aa:
->>>>
->>>>   Merge branch 'io_remap_pfn_range' of git://www.jni.nu/cris (2010-08-12 10:17:19 -0700)
->>>>
->>>> are available in the git repository at:
->>>>
->>>>   ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
->>>>
->>>> Mauro Carvalho Chehab (2):
->>>>       V4L/DVB: Fix IR_CORE dependencies
->>>>       V4L/DVB: fix Kconfig to depends on VIDEO_IR
->>>>
->>>> Randy Dunlap (1):
->>>>       V4L/DVB: v4l2-ctrls.c: needs to include slab.h
->>>
->>> FYI, there's one more IR_CORE related build bug which triggers 
->>> frequently in randconfig tests - see the fix below.
->>>
->>> Thanks,
->>>
->>> 	Ingo
->>>
->>> ------------------->
->>> From c56aef270d7ec01564c632c1f7ebab6b8f9f032c Mon Sep 17 00:00:00 2001
->>> From: Ingo Molnar <mingo@elte.hu>
->>> Date: Tue, 24 Aug 2010 10:41:33 +0200
->>> Subject: [PATCH] V4L/DVB: mantis: Fix IR_CORE dependency
->>>
->>> This build bug triggers:
->>>
->>>  drivers/built-in.o: In function `mantis_exit':
->>>  (.text+0x377413): undefined reference to `ir_input_unregister'
->>>  drivers/built-in.o: In function `mantis_input_init':
->>>  (.text+0x3774ff): undefined reference to `__ir_input_register'
->>>
->>> If MANTIS_CORE is enabled but IR_CORE is not. Add the correct
->>> dependency.
->>>
->>> Signed-off-by: Ingo Molnar <mingo@elte.hu>
->>> ---
->>>  drivers/media/dvb/mantis/Kconfig |    2 +-
->>>  1 files changed, 1 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/drivers/media/dvb/mantis/Kconfig b/drivers/media/dvb/mantis/Kconfig
->>> index decdeda..fd0830e 100644
->>> --- a/drivers/media/dvb/mantis/Kconfig
->>> +++ b/drivers/media/dvb/mantis/Kconfig
->>> @@ -1,6 +1,6 @@
->>>  config MANTIS_CORE
->>>  	tristate "Mantis/Hopper PCI bridge based devices"
->>> -	depends on PCI && I2C && INPUT
->>> +	depends on PCI && I2C && INPUT && IR_CORE
->>>  
->>>  	help
->>>  	  Support for PCI cards based on the Mantis and Hopper PCi bridge.
->>
->>
->> Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
->> http://lkml.org/lkml/2010/8/17/341
-> 
-> Your patch came first :-)
-> 
-> Btw., the reason i missed your patch is that i grepped lkml for the 
-> static build failure - while your changelog contained the modular one. 
-> Oh well :)
+> Well, atm, I don't think I have a specific case right now, but I think, it 
+> can well be the case, that not all frame sizes are always usable in the 
+> driver, depending on other circumstances. E.g., depending on the pixel / 
+> fourcc code. So, in this case the driver just provides a probe method to 
+> filter out inapplicable sizes.
 
-I've added this patch earlier today on my tree:
+Never add code just because you think it might be needed in the future. Especially
+not for kernel internal code that you can change anyway if needed.
 
-http://git.linuxtv.org/media_tree.git?a=commit;h=3a057c36346f60bd0fb4fe7d7a68c4d931d8768f
+In this case you just want to give a simple const array with width and height
+pairs ending at 0, 0 or pass in the length of the array, whatever you prefer,
+and return the array index for the closest match.
 
-and the other IR_CORE fixup at staging/tm6000:
-http://git.linuxtv.org/media_tree.git?a=commit;h=926a2496438f44268130f72f5e102dcac484573d
+Keep it simple.
 
-I'll be sending them today to my linux-next tree and likely tomorrow to upstream,
-together with a few other fixes.
+Regards,
+
+	Hans
 
 > 
-> Thanks,
+> Thanks
+> Guennadi
 > 
-> 	Ingo
+> > 
+> > > +			continue;
+> > > +		error = abs(size->width - width) + abs(size->height - height);
+> > > +		if (error < min_error) {
+> > > +			min_error = error;
+> > > +			best = size;
+> > > +		}
+> > > +		if (!error)
+> > > +			break;
+> > > +	}
+> > > +
+> > > +	return best;
+> > > +}
+> > > +EXPORT_SYMBOL_GPL(v4l2_find_nearest_format);
+> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > > index 047f7e6..f622bba 100644
+> > > --- a/include/linux/videodev2.h
+> > > +++ b/include/linux/videodev2.h
+> > > @@ -394,6 +394,16 @@ struct v4l2_frmsize_discrete {
+> > >  	__u32			height;		/* Frame height [pixel] */
+> > >  };
+> > > 
+> > > +struct v4l2_discrete_probe {
+> > > +	struct v4l2_frmsize_discrete	*sizes;
+> > > +	int				num_sizes;
+> > > +	void				*priv;
+> > > +	bool				(*probe)(struct v4l2_discrete_probe *);
+> > > +};
+> > > +
+> > > +struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct
+> > > v4l2_discrete_probe *probe, +						       s32 width, s32 height);
+> > > +
+> > >  struct v4l2_frmsize_stepwise {
+> > >  	__u32			min_width;	/* Minimum frame width [pixel] */
+> > >  	__u32			max_width;	/* Maximum frame width [pixel] */
+> > 
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
