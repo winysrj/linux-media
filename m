@@ -1,91 +1,58 @@
-Return-path: <mchehab@pedra>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:44674 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751190Ab0HXIpw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Aug 2010 04:45:52 -0400
-Date: Tue, 24 Aug 2010 10:45:28 +0200
-From: Ingo Molnar <mingo@elte.hu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH] V4L/DVB: mantis: Fix IR_CORE dependency
-Message-ID: <20100824084528.GA26618@elte.hu>
-References: <4C643A08.3000605@redhat.com>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2991 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752513Ab0HGQMv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Aug 2010 12:12:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Riffard <laurent.riffard@free.fr>
+Subject: Re: [PATCH for linux-next] V4L/DVB: v4l2: v4l2-ctrls.c needs kzalloc/kfree prototype
+Date: Sat, 7 Aug 2010 18:12:45 +0200
+Cc: linux-media@vger.kernel.org
+References: <alpine.DEB.2.00.1008071734460.5908@calimero>
+In-Reply-To: <alpine.DEB.2.00.1008071734460.5908@calimero>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C643A08.3000605@redhat.com>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201008071812.45208.hverkuil@xs4all.nl>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-
-* Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-
-> Linus,
+On Saturday 07 August 2010 17:47:57 Laurent Riffard wrote:
+> linux-next 20100807 failed to compile:
 > 
-> Please pull from:
->   ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+> drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_ctrl_handler_init’:
+> drivers/media/video/v4l2-ctrls.c:766: error: implicit declaration of function ‘kzalloc’
+> drivers/media/video/v4l2-ctrls.c:767: warning: assignment makes pointer from integer without a cast
+> drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_ctrl_handler_free’:
+> drivers/media/video/v4l2-ctrls.c:786: error: implicit declaration of function ‘kfree’
+
+Thanks for the notification, but I discovered it myself already and posted a
+pull request fixing this yesterday.
+
+Regards,
+
+	Hans
+
+> ...
 > 
-> For 3 build fixes.
+> ---
+>   drivers/media/video/v4l2-ctrls.c |    1 +
+>   1 files changed, 1 insertions(+), 0 deletions(-)
 > 
-> Cheers,
-> Mauro.
+> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+> index 84c1a53..951c8c6 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -19,6 +19,7 @@
+>    */
 > 
-> The following changes since commit ad41a1e0cab07c5125456e8d38e5b1ab148d04aa:
+>   #include <linux/ctype.h>
+> +#include <linux/slab.h>         /* for kzalloc/kfree */
+>   #include <media/v4l2-ioctl.h>
+>   #include <media/v4l2-device.h>
+>   #include <media/v4l2-ctrls.h>
 > 
->   Merge branch 'io_remap_pfn_range' of git://www.jni.nu/cris (2010-08-12 10:17:19 -0700)
-> 
-> are available in the git repository at:
-> 
->   ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
-> 
-> Mauro Carvalho Chehab (2):
->       V4L/DVB: Fix IR_CORE dependencies
->       V4L/DVB: fix Kconfig to depends on VIDEO_IR
-> 
-> Randy Dunlap (1):
->       V4L/DVB: v4l2-ctrls.c: needs to include slab.h
 
-FYI, there's one more IR_CORE related build bug which triggers 
-frequently in randconfig tests - see the fix below.
-
-Thanks,
-
-	Ingo
-
-------------------->
->From c56aef270d7ec01564c632c1f7ebab6b8f9f032c Mon Sep 17 00:00:00 2001
-From: Ingo Molnar <mingo@elte.hu>
-Date: Tue, 24 Aug 2010 10:41:33 +0200
-Subject: [PATCH] V4L/DVB: mantis: Fix IR_CORE dependency
-
-This build bug triggers:
-
- drivers/built-in.o: In function `mantis_exit':
- (.text+0x377413): undefined reference to `ir_input_unregister'
- drivers/built-in.o: In function `mantis_input_init':
- (.text+0x3774ff): undefined reference to `__ir_input_register'
-
-If MANTIS_CORE is enabled but IR_CORE is not. Add the correct
-dependency.
-
-Signed-off-by: Ingo Molnar <mingo@elte.hu>
----
- drivers/media/dvb/mantis/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/dvb/mantis/Kconfig b/drivers/media/dvb/mantis/Kconfig
-index decdeda..fd0830e 100644
---- a/drivers/media/dvb/mantis/Kconfig
-+++ b/drivers/media/dvb/mantis/Kconfig
-@@ -1,6 +1,6 @@
- config MANTIS_CORE
- 	tristate "Mantis/Hopper PCI bridge based devices"
--	depends on PCI && I2C && INPUT
-+	depends on PCI && I2C && INPUT && IR_CORE
- 
- 	help
- 	  Support for PCI cards based on the Mantis and Hopper PCi bridge.
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
