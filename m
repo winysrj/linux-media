@@ -1,41 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:35525 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932148Ab0HCP0x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 11:26:53 -0400
-Received: by fxm14 with SMTP id 14so2037920fxm.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Aug 2010 08:26:52 -0700 (PDT)
-Message-ID: <4C583538.8060504@gmail.com>
-Date: Tue, 03 Aug 2010 09:26:48 -0600
-From: Lane Brooks <lane@brooks.nu>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: OMAP3 Bridge Problems
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from joan.kewl.org ([212.161.35.248]:53810 "EHLO joan.kewl.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753486Ab0HGQjV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Aug 2010 12:39:21 -0400
+From: Darron Broad <darron@kewl.org>
+To: Andy Walls <awalls@md.metrocast.net>
+cc: lawrence rust <lawrence@softsystem.co.uk>,
+	linux-media@vger.kernel.org, Darron Broad <darron@kewl.org>
+Subject: Re: [PATCH] Nova-S-Plus audio line input
+In-reply-to: <1281191356.2400.91.camel@localhost>
+References: <1280587062.1395.37.camel@gagarin> <1281191356.2400.91.camel@localhost>
+Date: Sat, 07 Aug 2010 17:16:37 +0100
+Message-ID: <12627.1281197797@joan>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent and team,
+In message <1281191356.2400.91.camel@localhost>, Andy Walls wrote:
 
-I am using the OMAP3 ISP code from the devel branch on gitorious that I 
-back ported to a 2.6.31 kernel. Raw bayer streaming to the CCDC output 
-works fine. I am using parallel input with the bridge disabled in that mode.
+LO
 
-I am having a problem when I switch the sensor to output YUV422 data. 
-The YUV422 stream is a 8x2. If I only switch the sensor to YUV422 mode, 
-then I can get the YUV422 data at the CCDC output, but the CCDC pads an 
-extra zero byte in there and I only get half the image. So that works as 
-expected. I was then hoping all I would have to do is enable the bridge 
-to get the YUV422_8x2 data packed into the YUV422_16x1 automatically, 
-but instead I get select timeouts.
+>On Sat, 2010-07-31 at 16:37 +0200, lawrence rust wrote:
+<SNIP>
 
-My question:
+Sorry for the major snip but I am just filling you in
+with some history on this thread nothing more. I have no
+intention of contributing anything new.
 
-- Are there other things I need to when I enable the parallel bridge? 
-For example, do I need to change a clock rate somewhere? From the TRM, 
-it seems like it should just work without any changes, but maybe I am 
-missing something.
+The patch by Lawrence contains some ideas from here:
+http://hg.kewl.org/pub/v4l-dvb-20081120/rev/c1d603af3bef
 
-Thanks,
-Lane
+As you may read, this is a copy/paste of the wm8739.c
+codec for the wm8775.c. There is no major effort or
+work involved there and makes the wm8775 behave
+similarly to the 8739 if I recall correctly. This was
+20 months ago so I cannot recall much.
+
+Another component is from here:
+http://hg.kewl.org/pub/v4l-dvb-20081120/rev/302d51bf2baf
+
+It should be understood that this is also very old and
+i2c has had major reworking since so it should be
+updated if possible Lawrence and I am sure Andy has
+put on the right path.
+
+One other part is probably this:
+http://hg.kewl.org/pub/v4l-dvb-20081120/rev/8b24b8211fc9
+
+But I can't tell really, as like Andy says there is
+far too much in that patchset to really consume at
+once.
+
+All the best, good luck
+darron
+
+
+
+--
+
+ // /
+{:)==={ Darron Broad <darron@kewl.org>
+ \\ \ 
+
