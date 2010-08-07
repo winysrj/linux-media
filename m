@@ -1,124 +1,45 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2791 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675Ab0HKSSS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 14:18:18 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7BIIGSv014576
-	for <linux-media@vger.kernel.org>; Wed, 11 Aug 2010 20:18:16 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 11 Aug 2010 20:18:16 +0200 (CEST)
-Message-Id: <201008111818.o7BIIGSv014576@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:38139 "EHLO
+	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752367Ab0HGLWm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Aug 2010 07:22:42 -0400
+Received: from saunalahti-vams (vs3-11.mail.saunalahti.fi [62.142.5.95])
+	by emh03-2.mail.saunalahti.fi (Postfix) with SMTP id 09144EBFDE
+	for <linux-media@vger.kernel.org>; Sat,  7 Aug 2010 14:22:41 +0300 (EEST)
+Message-ID: <4C5D41FE.8070808@kolumbus.fi>
+Date: Sat, 07 Aug 2010 14:22:38 +0300
+From: Marko Ristola <marko.ristola@kolumbus.fi>
+MIME-Version: 1.0
+To: Marko Ristola <marko.ristola@kolumbus.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Avoid unnecessary data copying inside dvb_dmx_swfilter_204()
+ function
+References: <4C5D2BA1.60804@kolumbus.fi>
+In-Reply-To: <4C5D2BA1.60804@kolumbus.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
 
-Results of the daily build of v4l-dvb:
+Hi
 
-date:        Wed Aug 11 19:00:24 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15029:2dd0872c7c1d
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+The old patch with broken spaces is https://patchwork.kernel.org/patch/108274/
+The one with good patch and bad introduction is https://patchwork.kernel.org/patch/118147/
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: ERRORS
-linux-2.6.31.12-i686: ERRORS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: ERRORS
-linux-2.6.34-i686: ERRORS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: ERRORS
-linux-2.6.34-mips: ERRORS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: ERRORS
-linux-2.6.34-powerpc64: ERRORS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: ERRORS
-linux-2.6.31.12-x86_64: ERRORS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: ERRORS
-linux-2.6.34-x86_64: ERRORS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+Regards,
+Marko Ristola
 
-Detailed results are available here:
+07.08.2010 12:47, Marko Ristola wrote:
+> 
+> Hi.
+> 
+> This patch is like the original, but without mangled spaces.
+> I found Documentation/email-clients.txt to be useful for tuning Thunderbird.
+> 
+> DVB-S2 users with high volume stream data are interested in trying this patch too.
+> 
+> Signed-off-by: Marko Ristola <marko.ristola@kolumbus.fi>
+> 
+[ snip ]
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
