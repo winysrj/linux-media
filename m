@@ -1,58 +1,84 @@
-Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:34835 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754130Ab0HMHhx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Aug 2010 03:37:53 -0400
-Message-ID: <4C64F648.2090105@iki.fi>
-Date: Fri, 13 Aug 2010 10:37:44 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org, Simon Kenyon <simon@koala.ie>,
-	Nikola Pajkovsky <npajkovs@redhat.com>
-Subject: [GIT PULL] NXP TDA18218 silicon tuner driver
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:48480 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753799Ab0HHUzf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Aug 2010 16:55:35 -0400
+Date: Sun, 8 Aug 2010 13:55:11 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
+To: Randy Dunlap <randy.dunlap@oracle.com>, linux-media@vger.kernel.org
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for August 7 (IR)
+Message-Id: <20100808135511.269f670c.randy.dunlap@oracle.com>
+In-Reply-To: <20100807203920.83134a60.randy.dunlap@oracle.com>
+References: <20100807160710.b7c8d838.sfr@canb.auug.org.au>
+	<20100807203920.83134a60.randy.dunlap@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Moikka Mauro,
+On Sat, 7 Aug 2010 20:39:20 -0700 Randy Dunlap wrote:
 
-Here is new silicon tuner driver. I hope all those GIT procedures are 
-done correctly, it was rather pain to learn GIT and in-Kernel-tree 
-compilation. Hoping I can still see old kind of out-Kernel-tree...
+[adding linux-media]
 
-Special thanks goes to Simon Kenyon <simon@koala.ie> for stick donate.
+> On Sat, 7 Aug 2010 16:07:10 +1000 Stephen Rothwell wrote:
+> 
+> > Hi all,
+> > 
+> > As the merge window is open, please do not add 2.6.37 material to your
+> > linux-next included trees until after 2.6.36-rc1.
+> > 
+> > Changes since 20100806:
+> 
+> 2 sets of IR build errors (2 .config files attached):
+> 
+> #5091:
+> ERROR: "ir_keydown" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+> ERROR: "__ir_input_register" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+> ERROR: "get_rc_map" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+> ERROR: "ir_input_unregister" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+> ERROR: "get_rc_map" [drivers/media/video/cx88/cx88xx.ko] undefined!
+> ERROR: "ir_repeat" [drivers/media/video/cx88/cx88xx.ko] undefined!
+> ERROR: "ir_input_unregister" [drivers/media/video/cx88/cx88xx.ko] undefined!
+> ERROR: "ir_keydown" [drivers/media/video/cx88/cx88xx.ko] undefined!
+> ERROR: "__ir_input_register" [drivers/media/video/cx88/cx88xx.ko] undefined!
+> ERROR: "get_rc_map" [drivers/media/video/bt8xx/bttv.ko] undefined!
+> ERROR: "ir_input_unregister" [drivers/media/video/bt8xx/bttv.ko] undefined!
+> ERROR: "__ir_input_register" [drivers/media/video/bt8xx/bttv.ko] undefined!
+> ERROR: "ir_g_keycode_from_table" [drivers/media/IR/ir-common.ko] undefined!
+> 
+> 
+> #5101:
+> (.text+0x8306e2): undefined reference to `ir_core_debug'
+> (.text+0x830729): undefined reference to `ir_core_debug'
+> ir-functions.c:(.text+0x830906): undefined reference to `ir_core_debug'
+> (.text+0x8309d8): undefined reference to `ir_g_keycode_from_table'
+> (.text+0x830acf): undefined reference to `ir_core_debug'
+> (.text+0x830b92): undefined reference to `ir_core_debug'
+> (.text+0x830bef): undefined reference to `ir_core_debug'
+> (.text+0x830c6a): undefined reference to `ir_core_debug'
+> (.text+0x830cf7): undefined reference to `ir_core_debug'
+> budget-ci.c:(.text+0x89f5c8): undefined reference to `ir_keydown'
+> budget-ci.c:(.text+0x8a0c58): undefined reference to `get_rc_map'
+> budget-ci.c:(.text+0x8a0c80): undefined reference to `__ir_input_register'
+> budget-ci.c:(.text+0x8a0ee0): undefined reference to `get_rc_map'
+> budget-ci.c:(.text+0x8a11cd): undefined reference to `ir_input_unregister'
+> (.text+0x8a8adb): undefined reference to `ir_input_unregister'
+> dvb-usb-remote.c:(.text+0x8a9188): undefined reference to `get_rc_map'
+> dvb-usb-remote.c:(.text+0x8a91b1): undefined reference to `__ir_input_register'
+> dvb-usb-remote.c:(.text+0x8a9238): undefined reference to `get_rc_map'
+> dib0700_core.c:(.text+0x8b04ca): undefined reference to `ir_keydown'
+> dib0700_devices.c:(.text+0x8b2ea8): undefined reference to `ir_keydown'
+> dib0700_devices.c:(.text+0x8b2ef0): undefined reference to `ir_keydown'
+> 
+> 
+> ---
+> ~Randy
+> *** Remember to use Documentation/SubmitChecklist when testing your code ***
 
 
-
-The following changes since commit 9fe6206f400646a2322096b56c59891d530e8d51:
-
-   Linux 2.6.35 (2010-08-01 15:11:14 -0700)
-
-are available in the git repository at:
-   git://linuxtv.org/anttip/media_tree.git tda18218
-
-Antti Palosaari (3):
-       NXP TDA18218 silicon tuner driver
-       af9013: add support for tda18218 silicon tuner
-       af9015: add support for tda18218 silicon tuner
-
-  drivers/media/common/tuners/Kconfig         |    7 +
-  drivers/media/common/tuners/Makefile        |    1 +
-  drivers/media/common/tuners/tda18218.c      |  334 
-+++++++++++++++++++++++++++
-  drivers/media/common/tuners/tda18218.h      |   45 ++++
-  drivers/media/common/tuners/tda18218_priv.h |  106 +++++++++
-  drivers/media/dvb/dvb-usb/af9015.c          |   14 +-
-  drivers/media/dvb/frontends/af9013.c        |   14 ++
-  drivers/media/dvb/frontends/af9013_priv.h   |    5 +-
-  8 files changed, 521 insertions(+), 5 deletions(-)
-  create mode 100644 drivers/media/common/tuners/tda18218.c
-  create mode 100644 drivers/media/common/tuners/tda18218.h
-  create mode 100644 drivers/media/common/tuners/tda18218_priv.h
-
-
-t. Antti
--- 
-http://palosaari.fi/
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
