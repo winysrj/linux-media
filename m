@@ -1,102 +1,155 @@
-Return-path: <mchehab@pedra>
-Received: from tango.tkos.co.il ([62.219.50.35]:33678 "EHLO tango.tkos.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751404Ab0H2H4w (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Aug 2010 03:56:52 -0400
-Date: Sun, 29 Aug 2010 10:56:27 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH 4/4] mx2_camera: implement forced termination of active
- buffer for mx25
-Message-ID: <20100829075627.GB8285@jasper.tkos.co.il>
-References: <cover.1280229966.git.baruch@tkos.co.il>
- <967af81dac1c4c7627b18b5eec23a258ac7d9cd2.1280229966.git.baruch@tkos.co.il>
- <Pine.LNX.4.64.1008271054060.28043@axis700.grange>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from perceval.irobotique.be ([92.243.18.41]:51671 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751569Ab0HHW1r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Aug 2010 18:27:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Lane Brooks <lane@brooks.nu>
+Subject: Re: OMAP3 Bridge Problems
+Date: Mon, 9 Aug 2010 00:29:03 +0200
+Cc: linux-media@vger.kernel.org
+References: <4C583538.8060504@gmail.com> <4C5AE19B.50609@brooks.nu> <4C5B08BE.8080709@brooks.nu>
+In-Reply-To: <4C5B08BE.8080709@brooks.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1008271054060.28043@axis700.grange>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008090029.04455.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Guennadi,
+Hi Lane,
 
-On Fri, Aug 27, 2010 at 11:07:31AM +0200, Guennadi Liakhovetski wrote:
-> On Tue, 27 Jul 2010, Baruch Siach wrote:
-> > This allows userspace to terminate a capture without waiting for the 
-> > current
-> > frame to complete.
-> 
-> This is an improvement, not a fix, right? Without this patch the 
-> termination just have to wait a couple of ms longer? so, it is ok to 
-> schedule it for 2.6.37?
+Thanks for the patch.
 
-In my situation the image data source may stop sending data in the middle of a 
-frame.  In this case userspace is stuck forever. So, this is a real fix for 
-me. This is not the usual use case, I guess, so I leave it for you to decide.
+On Thursday 05 August 2010 20:53:50 Lane Brooks wrote:
 
-baruch
+[snip]
 
-> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> > ---
-> >  drivers/media/video/mx2_camera.c |   20 ++++++++++++++++----
-> >  1 files changed, 16 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> > index d327d11..396542b 100644
-> > --- a/drivers/media/video/mx2_camera.c
-> > +++ b/drivers/media/video/mx2_camera.c
-> > @@ -648,15 +648,27 @@ static void mx2_videobuf_release(struct videobuf_queue *vq,
-> >  	 * Terminate only queued but inactive buffers. Active buffers are
-> >  	 * released when they become inactive after videobuf_waiton().
-> >  	 *
-> > -	 * FIXME: implement forced termination of active buffers, so that the
-> > -	 * user won't get stuck in an uninterruptible state. This requires a
-> > -	 * specific handling for each of the three DMA types that this driver
-> > -	 * supports.
-> > +	 * FIXME: implement forced termination of active buffers for mx27 and 
-> > +	 * mx27 eMMA, so that the user won't get stuck in an uninterruptible
-> > +	 * state. This requires a specific handling for each of the these DMA
-> > +	 * types.
-> >  	 */
-> >  	spin_lock_irqsave(&pcdev->lock, flags);
-> >  	if (vb->state == VIDEOBUF_QUEUED) {
-> >  		list_del(&vb->queue);
-> >  		vb->state = VIDEOBUF_ERROR;
-> > +	} else if (cpu_is_mx25() && vb->state == VIDEOBUF_ACTIVE) {
-> > +		if (pcdev->fb1_active == buf) {
-> > +			pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
-> > +			writel(0, pcdev->base_csi + CSIDMASA_FB1);
-> > +			pcdev->fb1_active = NULL;
-> > +		} else if (pcdev->fb2_active == buf) {
-> > +			pcdev->csicr1 &= ~CSICR1_FB2_DMA_INTEN;
-> > +			writel(0, pcdev->base_csi + CSIDMASA_FB2);
-> > +			pcdev->fb2_active = NULL;
-> > +		}
-> > +		writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
-> > +		vb->state = VIDEOBUF_ERROR;
-> >  	}
-> >  	spin_unlock_irqrestore(&pcdev->lock, flags);
-> >  
-> > -- 
-> > 1.7.1
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+> I was able to get YUV CCDC capture mode working with rather minimal
+> effort. Attached is a patch with the initial effort. Can you comment?
+
+When sending patches for review, please send them inline instead of attaching 
+them to the mail. It makes the review easier.
+
+> diff --git a/drivers/media/video/isp/ispccdc.c 
+b/drivers/media/video/isp/ispccdc.c
+> index 90bcc6c..cc91fa1 100644
+> --- a/drivers/media/video/isp/ispccdc.c
+> +++ b/drivers/media/video/isp/ispccdc.c
+> @@ -1563,6 +1563,15 @@ __ccdc_get_format(struct isp_ccdc_device *ccdc, 
+struct v4l2_subdev_fh *fh,
+>   * @pad: Pad number
+>   * @fmt: Format
+>   */
+> +
+> +static enum v4l2_mbus_pixelcode sink_fmts[] = {
+> +	V4L2_MBUS_FMT_SGRBG10_1X10,
+> +	V4L2_MBUS_FMT_YUYV16_1X16,
+> +	V4L2_MBUS_FMT_UYVY16_1X16,
+> +	V4L2_MBUS_FMT_YVYU16_1X16,
+> +	V4L2_MBUS_FMT_VYUY16_1X16,
+> +};
+> +
+>  static void
+>  ccdc_try_format(struct isp_ccdc_device *ccdc, struct v4l2_subdev_fh *fh,
+>  		unsigned int pad, struct v4l2_mbus_framefmt *fmt,
+
+There's a very similar patch that is currently pending in my queue. It adds 
+support for other Bayer patterns. Your overall approach is good, but the two 
+patches will conflict.
+
+Once the other one will get committed, your patch will become much simpler. I 
+thus won't comment on the parts that will disappear then.
+
+> @@ -1719,6 +1736,45 @@ static int ccdc_set_format(struct v4l2_subdev *sd, 
+struct v4l2_subdev_fh *fh,
+>  
+>  	/* Propagate the format from sink to source */
+>  	if (pad == CCDC_PAD_SINK) {
+> +		u32 syn_mode, ispctrl_val;
+> +		struct isp_device *isp = to_isp_device(ccdc);
+> +		if (!isp_get(isp))
+> +			return -EBUSY;
+> +
+> +		syn_mode    = isp_reg_readl(isp, OMAP3_ISP_IOMEM_CCDC, 
+> +					    ISPCCDC_SYN_MODE);
+> +		ispctrl_val = isp_reg_readl(isp, OMAP3_ISP_IOMEM_MAIN, 
+> +					    ISP_CTRL);
+> +		syn_mode    &= ISPCCDC_SYN_MODE_INPMOD_MASK;
+> +		ispctrl_val &= ~(ISPCTRL_PAR_BRIDGE_MASK 
+> +				 << ISPCTRL_PAR_BRIDGE_SHIFT);
+> +		switch(format->code) {
+
+Documentation/CodingStyle requires a space after the switch keyword. Please 
+run scripts/checkpatch.pl before submitting patches.
+
+> +		case V4L2_MBUS_FMT_YUYV16_1X16:
+> +		case V4L2_MBUS_FMT_UYVY16_1X16:
+> +		case V4L2_MBUS_FMT_YVYU16_1X16:
+> +		case V4L2_MBUS_FMT_VYUY16_1X16:
+> +			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_YCBCR16;
+> +
+> +			/* TODO: In YCBCR16 mode, the bridge has to be
+> +			 * enabled, so we enable it here and force it
+> +			 * big endian. Whether to do big or little endian
+> +			 * should somehow come from the platform data.*/
+> +			ispctrl_val |= ISPCTRL_PAR_BRIDGE_BENDIAN 
+> +				<< ISPCTRL_PAR_BRIDGE_SHIFT;
+> +			break;
+> +		default:
+> +			syn_mode |= ISPCCDC_SYN_MODE_INPMOD_RAW;
+> +			ispctrl_val |= isp->pdata->parallel.bridge
+> +				<< ISPCTRL_PAR_BRIDGE_SHIFT;
+> +			break;
+> +		}
+> +		isp_reg_writel(isp, syn_mode, OMAP3_ISP_IOMEM_CCDC, 
+> +			       ISPCCDC_SYN_MODE);
+
+Writing to the ISPCCDC_SYN_MODE register should be moved to ccdc_configure(). 
+Just move the switch statement there right after the
+
+	format = &ccdc->formats[CCDC_PAD_SINK];
+
+line (without the ispctrl_val settings), it should be enough.
+
+> +		isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN, 
+> +			       ISP_CTRL);
+
+The ISP_CTRL register should be written in isp_select_bridge_input() only. As 
+you correctly mention, whether the data is in little endian or big endian 
+format should come from platform data, so I think it's fine to force board 
+files to set the isp->pdata->parallel.bridge field to the correct value.
+
+> +		isp_put(isp);
+> +
+> +
+>  		format = __ccdc_get_format(ccdc, fh, CCDC_PAD_SOURCE_OF, which);
+>  		memcpy(format, fmt, sizeof(*format));
+>  		ccdc_try_format(ccdc, fh, CCDC_PAD_SOURCE_OF, format, which);
+> diff --git a/drivers/media/video/isp/ispreg.h 
+b/drivers/media/video/isp/ispreg.h
+> index 7efcfaa..4c191af 100644
+> --- a/drivers/media/video/isp/ispreg.h
+> +++ b/drivers/media/video/isp/ispreg.h
+> @@ -732,10 +732,10 @@
+>  #define ISPCTRL_PAR_SER_CLK_SEL_MASK		0xFFFFFFFC
+>  
+>  #define ISPCTRL_PAR_BRIDGE_SHIFT		2
+> -#define ISPCTRL_PAR_BRIDGE_DISABLE		(0x0 << 2)
+> -#define ISPCTRL_PAR_BRIDGE_LENDIAN		(0x2 << 2)
+> -#define ISPCTRL_PAR_BRIDGE_BENDIAN		(0x3 << 2)
+> -#define ISPCTRL_PAR_BRIDGE_MASK			(0x3 << 2)
+> +#define ISPCTRL_PAR_BRIDGE_DISABLE		0x0
+> +#define ISPCTRL_PAR_BRIDGE_LENDIAN		0x2
+> +#define ISPCTRL_PAR_BRIDGE_BENDIAN		0x3
+> +#define ISPCTRL_PAR_BRIDGE_MASK			0x3
+
+You should remove the shift in isp_select_bridge_input() instead. Could you 
+please submit a patch that does just that ? Don't forget to sign it and 
+include a meaningful commit message.
 
 -- 
-                                                     ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
+Regards,
+
+Laurent Pinchart
