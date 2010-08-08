@@ -1,121 +1,48 @@
-Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:56572 "EHLO mail.issp.bas.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754008Ab0HSPUF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Aug 2010 11:20:05 -0400
-From: Marin Mitov <mitov@issp.bas.bg>
-To: linux-kernel@vger.kernel.org
-Subject: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Date: Thu, 19 Aug 2010 18:18:35 +0300
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mailout09.t-online.de ([194.25.134.84]:59041 "EHLO
+	mailout09.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755085Ab0HHP5s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Aug 2010 11:57:48 -0400
+Date: Sun, 8 Aug 2010 17:40:28 +0200
+From: Halim Sahin <halim.sahin@t-online.de>
+To: linux-media@vger.kernel.org
+Subject: knc1 dvb-c card frequently looses CAM when switching channels
+ quickly
+Message-ID: <20100808154028.GA30216@gentoo.local>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008191818.36068.mitov@issp.bas.bg>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi all,
+Hello,
+I have experienced the following on my vdr machine:
 
-struct device contains a member: struct dma_coherent_mem *dma_mem;
-to hold information for a piece of memory declared dma-coherent.
-Alternatively the same member could also be used to hold preallocated
-dma-coherent memory for latter per-device use.
+When changing channels quickly between encrypted channels, the card
+loosses cam and I get the following in my /var/log/messages:
 
-This tric is already used in drivers/staging/dt3155v4l.c
-dt3155_alloc_coherent()/dt3155_free_coherent()
 
-Here proposed for general use by popular demand from video4linux folks.
-Helps for videobuf-dma-contig framework.
+[   67.645354] dvb_ca adapter 0: DVB CAM detected and initialised successfully
+[   84.659047] budget-av: cam inserted A
+[   85.656855] dvb_ca adapter 0: DVB CAM detected and initialised successfully
+[60706.931218] budget-av: cam inserted A
+[60707.485891] dvb_ca adapter 0: DVB CAM detected and initialised
+successfully
 
-Signed-off-by: Marin Mitov <mitov@issp.bas.bg>
 
-======================================================================
---- a/drivers/base/dma-coherent.c	2010-08-19 15:50:42.000000000 +0300
-+++ b/drivers/base/dma-coherent.c	2010-08-19 17:27:56.000000000 +0300
-@@ -93,6 +93,83 @@ void *dma_mark_declared_memory_occupied(
- EXPORT_SYMBOL(dma_mark_declared_memory_occupied);
- 
- /**
-+ * dma_reserve_coherent_memory() - reserve coherent memory for per-device use
-+ *
-+ * @dev:	device from which we allocate memory
-+ * @size:	size of requested memory area in bytes
-+ * @flags:	same as in dma_declare_coherent_memory()
-+ *
-+ * This function reserves coherent memory allocating it early (during probe())
-+ * to support latter allocations from per-device coherent memory pools.
-+ * For a given device one could use either dma_declare_coherent_memory() or
-+ * dma_reserve_coherent_memory(), but not both, becase the result of these
-+ * functions is stored in a single struct device member - dma_mem
-+ *
-+ * Returns DMA_MEMORY_MAP on success, or 0 if failed.
-+ * (same as dma_declare_coherent_memory()
-+ */
-+int dma_reserve_coherent_memory(struct device *dev, size_t size, int flags)
-+{
-+	struct dma_coherent_mem *mem;
-+	dma_addr_t dev_base;
-+	int pages = size >> PAGE_SHIFT;
-+	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
-+
-+	if ((flags & DMA_MEMORY_MAP) == 0)
-+		goto out;
-+	if (!size)
-+		goto out;
-+	if (dev->dma_mem)
-+		goto out;
-+
-+	mem = kzalloc(sizeof(*mem), GFP_KERNEL);
-+	if (!mem)
-+		goto out;
-+	mem->virt_base = dma_alloc_coherent(dev, size, &dev_base,
-+							DT3155_COH_FLAGS);
-+	if (!mem->virt_base)
-+		goto err_alloc_coherent;
-+	mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
-+	if (!mem->bitmap)
-+		goto err_bitmap;
-+
-+	mem->device_base = dev_base;
-+	mem->size = pages;
-+	mem->flags = flags;
-+	dev->dma_mem = mem;
-+	return DMA_MEMORY_MAP;
-+
-+err_bitmap:
-+	dma_free_coherent(dev, size, mem->virt_base, dev_base);
-+err_alloc_coherent:
-+	kfree(mem);
-+out:
-+	return 0;
-+}
-+EXPORT_SYMBOL(dma_reserve_coherent_memory);
-+
-+/**
-+ * dma_free_reserved_memory() - free the reserved dma-coherent memoty
-+ *
-+ * @dev:	device for which we free the dma-coherent memory
-+ *
-+ * same as dma_release_declared_memory()
-+ */
-+void dma_free_reserved_memory(struct device *dev)
-+{
-+	struct dma_coherent_mem *mem = dev->dma_mem;
-+
-+	if (!mem)
-+		return;
-+	dev->dma_mem = NULL;
-+	dma_free_coherent(dev, mem->size << PAGE_SHIFT,
-+					mem->virt_base, mem->device_base);
-+	kfree(mem->bitmap);
-+	kfree(mem);
-+}
-+EXPORT_SYMBOL(dma_free_reserved_memory);
-+
-+/**
-  * dma_alloc_from_coherent() - try to allocate memory from the per-device coherent area
-  *
-  * @dev:	device from which we allocate memory
+lspci -vvv
+
+03:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+	Subsystem: KNC One Device 0022
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 64 (3750ns min, 9500ns max)
+	Interrupt: pin A routed to IRQ 19
+	Region 0: Memory at f9fffc00 (32-bit, non-prefetchable) [size=512]
+	Kernel driver in use: budget_av
+
+I am using drivers from kernel 2.6.34.
+Any Ideas for solving this issue?
+Thx.
+Halim
+
