@@ -1,71 +1,75 @@
-Return-path: <mchehab@pedra>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35192 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754187Ab0HQNRn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Aug 2010 09:17:43 -0400
-Date: Tue, 17 Aug 2010 15:17:42 +0200
-From: Michael Grzeschik <mgr@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de
-Subject: Re: [PATCH v2 00/11] MT9M111/MT9M131
-Message-ID: <20100817131742.GB16061@pengutronix.de>
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:61250 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751569Ab0HHWe3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Aug 2010 18:34:29 -0400
+Received: by pzk26 with SMTP id 26so3425754pzk.19
+        for <linux-media@vger.kernel.org>; Sun, 08 Aug 2010 15:34:28 -0700 (PDT)
+Message-ID: <4C5F30F0.1060802@brooks.nu>
+Date: Sun, 08 Aug 2010 16:34:24 -0600
+From: Lane Brooks <lane@brooks.nu>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: OMAP3 Bridge Problems
+References: <4C583538.8060504@gmail.com> <201008042257.13290.laurent.pinchart@ideasonboard.com> <4C5AE19B.50609@brooks.nu> <201008090013.58188.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201008090013.58188.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Robert, Guennadi,
-
-after the messed up previous patchseries, this v2 series is left
-without any feedback. Hopefully not forgotten. :-)
-
-Btw: The first two patches are already applied.
-
-Thanks,
-Michael
-
-On Tue, Aug 03, 2010 at 12:57:38PM +0200, Michael Grzeschik wrote:
-> Hey everyone,
-> 
-> here is v2 of the previous (a little messy) patchseries. After i
-> figured out that the biggest part of the patches were cutted into
-> unrelated and unneeded pieces here hopefully comes a cleaner patchstack.
-> 
-> The rest of the patches i send last time is living in my git repo for
-> review, until i figured out that the code is mostly needed for the
-> softcropping feature of the camera.
-> 
-> But first things first, here are my changes:
-> 
-> Michael Grzeschik (9):
->   mt9m111: init chip after read CHIP_VERSION
->   mt9m111: register cleanup hex to dec bitoffset
->   mt9m111: added new bit offset defines
->   mt9m111: changed MIN_DARK_COLS to MT9M131 spec count
->   mt9m111: cropcap and s_crop check if type is VIDEO_CAPTURE
->   mt9m111: added current colorspace at g_fmt
->   mt9m111: added reg_mask function
->   mt9m111: rewrite set_pixfmt
->   mt9m111: make use of testpattern
-> 
-> Philipp Wiesner (1):
->   mt9m111: Added indication that MT9M131 is supported by this driver
-> 
-> Sascha Hauer (1):
->   v4l2-mediabus: Add pixelcodes for BGR565 formats
-> 
->  drivers/media/video/Kconfig   |    5 +-
->  drivers/media/video/mt9m111.c |  283 ++++++++++++++++++++++++-----------------
->  include/media/v4l2-mediabus.h |    2 +
->  3 files changed, 174 insertions(+), 116 deletions(-)
-> 
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+  On 08/08/2010 04:13 PM, Laurent Pinchart wrote:
+> Hi Lane,
+>
+> On Thursday 05 August 2010 18:06:51 Lane Brooks wrote:
+>>    On 08/04/2010 02:57 PM, Laurent Pinchart wrote:
+>>> On Tuesday 03 August 2010 17:26:48 Lane Brooks wrote:
+>> [snip]
+>>
+>>>> My question:
+>>>>
+>>>> - Are there other things I need to when I enable the parallel bridge?
+>>>> For example, do I need to change a clock rate somewhere? From the TRM,
+>>>> it seems like it should just work without any changes, but maybe I am
+>>>> missing something.
+>>> Good question. ISP bridge and YUV modes support are not implemented in
+>>> the driver, but you're probably already aware of that.
+>>>
+>>> I unfortunately have no straightforward answer. Try tracing the ISP
+>>> interrupts and monitoring the CCDC SBL busy bits to see if the CCDC
+>>> writes images to memory correctly.
+>> I found at least some of the problem. In my platform data I was enabling
+>> the bridge using the #defines in ispreg.h as in
+>>
+>>
+>> static struct isp_platform_data bmi_isp_platform_data = {
+>>       .parallel = {
+>>           .data_lane_shift    = 3,
+>>           .clk_pol            = 0,
+>>           .bridge             = ISPCTRL_PAR_BRIDGE_LENDIAN,
+>>       },
+>>       .subdevs = bmi_camera_subdevs,
+>> };
+>>
+>> The bridge related #defines in ispreg.h, however, have a shift of 2
+>> applied to them. The problem is that the shift is applied again in isp.c
+>> when the options are actually applied. In other words, the bridge
+>> parameters are being shifted up twice, which is causing corruption to
+>> the control register and causing my hanging problems when I try to
+>> enable the bridge. It seems there are several other such cases in the
+>> ispreg.h where double shifting might occur if the user tries to use them
+>> in the platform data.
+>>
+>> My question:
+>> Is this an oversight or is it this way on purpose? Am I not supposed to
+>> be using these defines in my platform definitions? It seems that *some*
+>> of the parameters in ispreg.h should not be shifted up (like the bridge
+>> options).
+> It's a bug, thanks for pointing it out. The value shouldn't be shifted again
+> in isp_select_bridge_input(). Do you want to submit a patch ?
+>
+The isp_parallel_platform_data struct specifies the bridge definition as 
+2 bits, so if the shift is removed from isp_select_bridge instead of 
+from the ispreg.h file, then the platform_data definition needs modified 
+as well. Is that what you want?
