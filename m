@@ -1,65 +1,52 @@
-Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:39980 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752474Ab0HYT0z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 15:26:55 -0400
-Received: by iwn5 with SMTP id 5so829066iwn.19
-        for <linux-media@vger.kernel.org>; Wed, 25 Aug 2010 12:26:54 -0700 (PDT)
+Return-path: <dheitmueller@kernellabs.com>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:48415 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754950Ab0HHX6T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Aug 2010 19:58:19 -0400
+Received: by pwj7 with SMTP id 7so1106878pwj.19
+        for <linux-media@vger.kernel.org>; Sun, 08 Aug 2010 16:58:19 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <4C74B78B.3020101@hoogenraad.net>
-References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
-	<AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
-	<4C581BB6.7000303@redhat.com>
-	<AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
-	<AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
-	<AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
-	<AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com>
-	<4C7425C9.1010908@hoogenraad.net>
-	<AANLkTinA1r87W+4J=MRV5i6M6BD-c+KTWnYqyBd7WCQA@mail.gmail.com>
-	<4C74B78B.3020101@hoogenraad.net>
-Date: Wed, 25 Aug 2010 16:26:54 -0300
-Message-ID: <AANLkTim3bq6h-oFY+TKoog-TKOzQ-w4MR0CVdcL4OjcD@mail.gmail.com>
-Subject: Re: V4L hg tree fails to compile against kernel 2.6.28
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	VDR User <user.vdr@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <1281311584.2803.6.camel@ray-desktop-linux>
+References: <1281311584.2803.6.camel@ray-desktop-linux>
+Date: Sun, 8 Aug 2010 19:58:19 -0400
+Message-ID: <AANLkTimyGMSFQyLyKYBhmmdop3ApEuekFOwue==4xVMF@mail.gmail.com>
+Subject: Re: pinnacle 801e help please!
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Ray Bullins <bbullins@triad.rr.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello Jan,
-
-On Wed, Aug 25, 2010 at 3:26 AM, Jan Hoogenraad
-<jan-conceptronic@hoogenraad.net> wrote:
-> Thanks for your help. I pulled the code
+On Sun, Aug 8, 2010 at 7:53 PM, Ray Bullins <bbullins@triad.rr.com> wrote:
+> I am new to Linux (somewhat) and I am running Linux mint 9. So far so
+> good, I have replaced dreamweaver with NVU, office with open office.
+> Outlook with evolution and so on. Everything is now perfect no looking
+> back to windows except I just spent about 1.5 hours going through
+> configuring mythtv only to find it doesn't think my pinnacle usb hd
+> stick is a dvb device. So i did more research and stumbled upon all of
+> your hard work and tried downloading the tar for my device but it
+> wouldn't download. 2 questions 1) will this device work now 2) how do I
+> implement all of you fixes in mint Linux 9 gnome running mythtv?
 >
-> Actually, now the function definition in compat.h causes a compilation
-> error: see first text below.
->
-> I fixed that by inserting
-> #include <linux/err.h>
-> at line 38 in compat.h in my local branch
->
-> After that, compilation succeeds.
+> thanks for any help
+> Ray
 
+The 801e driver only has support currently for ATSC/ClearQAM (which is
+why it appears as a DVB device).  The driver does not have any support
+for analog (e.g. the analog tuner or the composite/s-video inputs).
 
-Thanks, applied.
+Run "ls /dev/dvb/adapter0/frontend0" and if you see an entry then the
+driver loaded successfully.  Also, you may need to load firmware (it's
+bundled by default with a number of distributions but I don't know
+about Mint).  If you don't have it, you can get it here:
 
-> Now, the device will not install, as dvb_usb cannot install anymore.
-> see second text below.
->
-> Therefore, I have replaced the __kmalloc_track_caller with kmalloc (as it
-> was in dvb_demux.c before the change 2ceef3d75547 at line 49
->
-> can you make both changes in the hg branch ?
+http://kernellabs.com/firmware/dib0700/
 
-This one won't be required because the idea is support until kernel 2.6.26.
-Please check my next email about hg x announcement.
+Cheers,
 
-Thanks for checking it, your help is appreciate.
+Devin
 
-Cheers
-Douglas
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
