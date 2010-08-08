@@ -1,110 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:45474 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759509Ab0HEJhU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 05:37:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-Subject: Re: [RFC/PATCH v3 06/10] media: Entities, pads and links enumeration
-Date: Thu, 5 Aug 2010 11:38:22 +0200
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com> <201008031122.55036.laurent.pinchart@ideasonboard.com> <4C59BF56.903@kolumbus.fi>
-In-Reply-To: <4C59BF56.903@kolumbus.fi>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:61708 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754414Ab0HHQQg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Aug 2010 12:16:36 -0400
+Date: Sun, 8 Aug 2010 18:10:22 +0200
+From: Richard Zidlicky <rz@linux-m68k.org>
+To: Jiri Slaby <jirislaby@gmail.com>
+Cc: Kulikov Vasiliy <segooon@gmail.com>,
+	kernel-janitors@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	Jiri Kosina <jkosina@suse.cz>,
+	Roel Kluin <roel.kluin@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] dvb: siano: free spinlock before schedule()
+Message-ID: <20100808161022.GB5594@linux-m68k.org>
+References: <1280256161-7971-1-git-send-email-segooon@gmail.com> <4C4F5CA7.1030706@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008051138.23378.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4C4F5CA7.1030706@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marko,
+On Wed, Jul 28, 2010 at 12:24:39AM +0200, Jiri Slaby wrote:
 
-On Wednesday 04 August 2010 21:28:22 Marko Ristola wrote:
-> Hi Hans and Laurent.
-> 
-> I hope my thoughts help you further.
+sorry for seeing this so late, was flooded with email lately.
 
-Thank you for sharing them.
+> There is a better fix (which fixes the potential NULL dereference):
+> http://lkml.org/lkml/2010/6/7/175
 
-> 03.08.2010 12:22, Laurent Pinchart wrote:
-> > On Monday 02 August 2010 23:01:55 Hans Verkuil wrote:
-> >> On Monday 02 August 2010 16:35:54 Laurent Pinchart wrote:
-> >>> On Sunday 01 August 2010 13:58:20 Hans Verkuil wrote:
-> >>>> On Thursday 29 July 2010 18:06:39 Laurent Pinchart wrote:
-> >>> [snip]
-> 
-> [snip]
-> 
-> >> It's a possibility, but it's always a bit of a hassle in an application
-> >> to work with group IDs. I wonder if there is a more elegant method.
-> > 
-> > The problem is a bit broader than just showing relationships between
-> > video nodes and ALSA devices. We also need to show relationships between
-> > lens/flash controllers and sensors for instance. Group IDs sound easy,
-> > but I'm open to suggestions.
-> 
-> Low level example
-> 
-> DVB I2C bus is easy: get all I2C devices from an entity (DVB demuxer).
-> Some external chip (entity, the tuner) might be behind some I2C bridge
-> device.
-> 
-> With I2C you need to know the characteristics, how you talk with
-> the destination device via the bus (extra sleeps, clock speed,
-> quiesce the whole bus for 50ms after talking to the slave device).
-> I'd like that each device would describe how it should be
-> talked to via the bus.
+> Richard, could you address the comments there and resend?
 
-There's probably some confusion here.
+I am running this patch since many weeks (after fixing the compile error obviously). 
+Did not implement your beautification suggestion yet, was doing all kinds of experiments
+with IR and had plenty of unrelated issues.
 
-The media controller aims at giving userspace the ability to discover the 
-internal device topology. This includes various information about the 
-entities, such as a name, a version number, ...
+Richard
 
-The I2C data you mention are low-level information required by the kernel to 
-talk to the I2C device, but I don't think they're useful to userspace at all. 
-That kind of information come either from platform data or from the I2C device 
-driver and get used internally in the kernel.
 
-Do you see any need to expose such information to userspace ?
+--- linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c.rz	2010-06-03 21:58:11.000000000 +0200
++++ linux-2.6.34/drivers/media/dvb/siano/smscoreapi.c	2010-06-07 14:32:06.000000000 +0200
+@@ -1100,31 +1100,26 @@
+  *
+  * @return pointer to descriptor on success, NULL on error.
+  */
+-struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
++
++struct smscore_buffer_t *get_entry(struct smscore_device_t *coredev)
+ {
+ 	struct smscore_buffer_t *cb = NULL;
+ 	unsigned long flags;
+ 
+-	DEFINE_WAIT(wait);
+-
+ 	spin_lock_irqsave(&coredev->bufferslock, flags);
+-
+-	/* This function must return a valid buffer, since the buffer list is
+-	 * finite, we check that there is an available buffer, if not, we wait
+-	 * until such buffer become available.
+-	 */
+-
+-	prepare_to_wait(&coredev->buffer_mng_waitq, &wait, TASK_INTERRUPTIBLE);
+-
+-	if (list_empty(&coredev->buffers))
+-		schedule();
+-
+-	finish_wait(&coredev->buffer_mng_waitq, &wait);
+-
++	if (!list_empty(&coredev->buffers)) {
+ 	cb = (struct smscore_buffer_t *) coredev->buffers.next;
+ 	list_del(&cb->entry);
+-
++	}
+ 	spin_unlock_irqrestore(&coredev->bufferslock, flags);
++	return cb;
++}
++
++struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
++{
++	struct smscore_buffer_t *cb = NULL;
++
++	wait_event(coredev->buffer_mng_waitq, (cb = get_entry(coredev)));
+ 
+ 	return cb;
+ }
 
-> On i2c_transfer you could hide opening and closing the I2C bridge, and hide
-> the callbacks for extra sleeps so that the main driver and core framework
-> code is free from such ugly details. By storing entity's special
-> requirements inside of it, you could reuse the callbacks with another
-> product variant.
 
-The callbacks are implemented by I2C device drivers that should know about the 
-specific device requirements (either hardcoded in the driver, or provided 
-through platform data). I'm not sure to understand the exact problem here.
-
-> With I2C, an array of I2C slave devices that are reachable via I2C bus
-> would work for controlling the device rather nicely.
-> 
-> Higher abstraction level
-> 
-> So detailed descriptions and bus knowledge is needed for controlling each
-> entity and pad.
-
-It's needed to control them inside the kernel, but I don't think it's needed 
-in userspace.
-
-> That hierarchy is a bit different than optimal hierarchy of how the streams
-> can flow into, within and out from the entity (the driver). Buses are the
-> gateways for the data stream flows, shared by two or more entities/pads by
-> links.
-> 
-> Thus I'd suggest to separate these two hierarchies (initialization time
-> hierarchy and stream flow capability hierarchy) at necessary points, and use
-> buses to bind the entities/pads by links to each other.
-
-I don't get it, sorry.
-
-> A single wire with just two end points can also be thought like a bus.
-
--- 
-Regards,
-
-Laurent Pinchart
