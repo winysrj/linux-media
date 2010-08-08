@@ -1,123 +1,76 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1280 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750869Ab0HISSV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 14:18:21 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o79II5WP049750
-	for <linux-media@vger.kernel.org>; Mon, 9 Aug 2010 20:18:19 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 9 Aug 2010 20:18:05 +0200 (CEST)
-Message-Id: <201008091818.o79II5WP049750@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from perceval.irobotique.be ([92.243.18.41]:53735 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751569Ab0HHWMl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Aug 2010 18:12:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Lane Brooks <lane@brooks.nu>
+Subject: Re: OMAP3 Bridge Problems
+Date: Mon, 9 Aug 2010 00:13:57 +0200
+Cc: linux-media@vger.kernel.org
+References: <4C583538.8060504@gmail.com> <201008042257.13290.laurent.pinchart@ideasonboard.com> <4C5AE19B.50609@brooks.nu>
+In-Reply-To: <4C5AE19B.50609@brooks.nu>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008090013.58188.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Lane,
 
-Results of the daily build of v4l-dvb:
+On Thursday 05 August 2010 18:06:51 Lane Brooks wrote:
+>   On 08/04/2010 02:57 PM, Laurent Pinchart wrote:
+> > On Tuesday 03 August 2010 17:26:48 Lane Brooks wrote:
+> [snip]
+> 
+> >> My question:
+> >> 
+> >> - Are there other things I need to when I enable the parallel bridge?
+> >> For example, do I need to change a clock rate somewhere? From the TRM,
+> >> it seems like it should just work without any changes, but maybe I am
+> >> missing something.
+> > 
+> > Good question. ISP bridge and YUV modes support are not implemented in
+> > the driver, but you're probably already aware of that.
+> > 
+> > I unfortunately have no straightforward answer. Try tracing the ISP
+> > interrupts and monitoring the CCDC SBL busy bits to see if the CCDC
+> > writes images to memory correctly.
+> 
+> I found at least some of the problem. In my platform data I was enabling
+> the bridge using the #defines in ispreg.h as in
+> 
+> 
+> static struct isp_platform_data bmi_isp_platform_data = {
+>      .parallel = {
+>          .data_lane_shift    = 3,
+>          .clk_pol            = 0,
+>          .bridge             = ISPCTRL_PAR_BRIDGE_LENDIAN,
+>      },
+>      .subdevs = bmi_camera_subdevs,
+> };
+> 
+> The bridge related #defines in ispreg.h, however, have a shift of 2
+> applied to them. The problem is that the shift is applied again in isp.c
+> when the options are actually applied. In other words, the bridge
+> parameters are being shifted up twice, which is causing corruption to
+> the control register and causing my hanging problems when I try to
+> enable the bridge. It seems there are several other such cases in the
+> ispreg.h where double shifting might occur if the user tries to use them
+> in the platform data.
+> 
+> My question:
+> Is this an oversight or is it this way on purpose? Am I not supposed to
+> be using these defines in my platform definitions? It seems that *some*
+> of the parameters in ispreg.h should not be shifted up (like the bridge
+> options).
 
-date:        Mon Aug  9 19:00:22 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15026:637236a060d6
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+It's a bug, thanks for pointing it out. The value shouldn't be shifted again 
+in isp_select_bridge_input(). Do you want to submit a patch ?
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: ERRORS
-linux-2.6.31.12-i686: ERRORS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: ERRORS
-linux-2.6.34-i686: ERRORS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: ERRORS
-linux-2.6.34-mips: ERRORS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: ERRORS
-linux-2.6.34-powerpc64: ERRORS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: ERRORS
-linux-2.6.31.12-x86_64: ERRORS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: ERRORS
-linux-2.6.34-x86_64: ERRORS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+-- 
+Regards,
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Laurent Pinchart
