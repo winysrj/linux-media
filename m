@@ -1,150 +1,89 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:44760 "EHLO
-	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756676Ab0HIOfc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 10:35:32 -0400
-Subject: [PATCH 2/2 v3] mfd: Add timberdale video-in driver to timberdale
-From: Richard =?ISO-8859-1?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 09 Aug 2010 16:35:29 +0200
-Message-ID: <1281364529.5762.30.camel@debian>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Return-path: <laurent.pinchart@ideasonboard.com>
+Received: from perceval.irobotique.be ([92.243.18.41]:36824 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755862Ab0HIJYh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 05:24:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Lane Brooks <lane@brooks.nu>
+Subject: Re: OMAP3 Bridge Problems
+Date: Mon, 9 Aug 2010 11:25:55 +0200
+Cc: linux-media@vger.kernel.org
+References: <4C583538.8060504@gmail.com> <201008090029.04455.laurent.pinchart@ideasonboard.com> <4C5F361B.10202@brooks.nu>
+In-Reply-To: <4C5F361B.10202@brooks.nu>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008091125.56159.laurent.pinchart@ideasonboard.com>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This patch defines platform data for the video-in driver
-and adds it to all configurations of timberdale.
+Hi Lane,
 
-Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
----
-diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
-index ac59950..d4a95bd 100644
---- a/drivers/mfd/timberdale.c
-+++ b/drivers/mfd/timberdale.c
-@@ -40,6 +40,7 @@
- #include <linux/spi/mc33880.h>
- 
- #include <media/timb_radio.h>
-+#include <media/timb_video.h>
- 
- #include <linux/timb_dma.h>
- 
-@@ -238,6 +239,22 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
- 	},
- };
- 
-+static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
-+	/* Requires jumper JP9 to be off */
-+	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
-+	.irq = IRQ_TIMBERDALE_ADV7180
-+};
-+
-+static __devinitdata struct timb_video_platform_data
-+	timberdale_video_platform_data = {
-+	.dma_channel = DMA_VIDEO_RX,
-+	.i2c_adapter = 0,
-+	.encoder = {
-+		.module_name = "adv7180",
-+		.info = &timberdale_adv7180_i2c_board_info
-+	}
-+};
-+
- static const __devinitconst struct resource timberdale_radio_resources[] = {
- 	{
- 		.start	= RDSOFFSET,
-@@ -272,6 +289,18 @@ static __devinitdata struct timb_radio_platform_data
- 	}
- };
- 
-+static const __devinitconst struct resource timberdale_video_resources[] = {
-+	{
-+		.start	= LOGIWOFFSET,
-+		.end	= LOGIWEND,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	/*
-+	note that the "frame buffer" is located in DMA area
-+	starting at 0x1200000
-+	*/
-+};
-+
- static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
- 	.nr_channels = 10,
- 	.channels = {
-@@ -372,6 +401,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -430,6 +466,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
- 		.resources = timberdale_mlogicore_resources,
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -478,6 +521,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-@@ -521,6 +571,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
- 		.data_size = sizeof(timberdale_gpio_platform_data),
- 	},
- 	{
-+		.name = "timb-video",
-+		.num_resources = ARRAY_SIZE(timberdale_video_resources),
-+		.resources = timberdale_video_resources,
-+		.platform_data = &timberdale_video_platform_data,
-+		.data_size = sizeof(timberdale_video_platform_data),
-+	},
-+	{
- 		.name = "timb-radio",
- 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
- 		.resources = timberdale_radio_resources,
-diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
-index c11bf6e..4412acd 100644
---- a/drivers/mfd/timberdale.h
-+++ b/drivers/mfd/timberdale.h
-@@ -23,7 +23,7 @@
- #ifndef MFD_TIMBERDALE_H
- #define MFD_TIMBERDALE_H
- 
--#define DRV_VERSION		"0.2"
-+#define DRV_VERSION		"0.3"
- 
- /* This driver only support versions >= 3.8 and < 4.0  */
- #define TIMB_SUPPORTED_MAJOR	3
+On Monday 09 August 2010 00:56:27 Lane Brooks wrote:
+> On 08/08/2010 04:29 PM, Laurent Pinchart wrote:
+> > Hi Lane,
+> > 
+> > Thanks for the patch.
+> > 
+> > On Thursday 05 August 2010 20:53:50 Lane Brooks wrote:
+> > 
+> > [snip]
+> > 
+> >> I was able to get YUV CCDC capture mode working with rather minimal
+> >> effort. Attached is a patch with the initial effort. Can you comment?
+> > 
+> > Writing to the ISPCCDC_SYN_MODE register should be moved to
+> > ccdc_configure(). Just move the switch statement there right after the
+> > 
+> > 	format =&ccdc->formats[CCDC_PAD_SINK];
+> > 
+> > line (without the ispctrl_val settings), it should be enough.
+> > 
+> >> +		isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN,
+> >> +			       ISP_CTRL);
+> > 
+> > The ISP_CTRL register should be written in isp_select_bridge_input()
+> > only. As you correctly mention, whether the data is in little endian or
+> > big endian format should come from platform data, so I think it's fine
+> > to force board files to set the isp->pdata->parallel.bridge field to the
+> > correct value.
+> 
+> Putting the bridge settings in the platform data is tricky because they
+> need to change depending on the selected format. For example, for my
+> board, when in SGRBG mode, the bridge needs disabled. When in YUV16
+> mode, however, I need need to select BIG/LITTLE endian depending on
+> whether it is YUYV or UYVY or ...
 
+Ah right... So your sensor can output both Bayer and YUV data ? What sensor is 
+that BTW ?
+
+> I am not quite sure how to capture that in the platform data without
+> enumerating every supported format code in the platform data. The current
+> patch knows (based on the OMAP TRM) that YUV16 mode requires the bridge to
+> be enabled. So in the platform data I specify the bridge state for SGBRG
+> mode and force the bridge to BIG endian in YUV16 mode. This leaves the
+> sensor to switch the phasing based on YUYV, YVYU, etc. mode.  I am not sure
+> who should be in charge of doing byte swapping in general, but if the input
+> and output modes are the same, then big endian should be used to avoid a
+> byte swap. In other words, the mode is completely determinable based on the
+> formats, so perhaps I should implement it that way. If the input and output
+> port require a byte swap, then go little endian, otherwise go big endian.
+
+OK I understand. The best solution (for now) would then be to modify 
+isp_configure_bridge(). I wrote a few patches that modify how platform data is 
+handled, but I can't commit them at the moment (they depend on other patches 
+that I still need to clean up).
+
+> The reason why I put both writes to the ISPCTRL and SYN_MODE registers
+> where I did. Moving them to other places will require querying the
+> selected format code. Is that what you want as well?
+
+For SYN_MODE, definitely. For ISPCTRL, you can hack isp_configure_bridge() to 
+retrieve the current CCDC input format, and we'll write a proper fix right 
+after I commit my platform data restructuring patches.
+
+-- 
+Regards,
+
+Laurent Pinchart
