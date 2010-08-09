@@ -1,73 +1,84 @@
-Return-path: <mchehab@pedra>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51602 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753298Ab0H0EmL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 00:42:11 -0400
-Date: Fri, 27 Aug 2010 06:41:42 +0200
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Cc: g.liakhovetski@gmx.de, mitov@issp.bas.bg,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org,
-	linux-sh@vger.kernel.org, philippe.retornaz@epfl.ch,
-	gregkh@suse.de, jkrzyszt@tis.icnet.pl
-Subject: Re: [RFC][PATCH] add
-	dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Message-ID: <20100827044142.GB31863@pengutronix.de>
-References: <Pine.LNX.4.64.1008261100150.14167@axis700.grange> <20100826182915S.fujita.tomonori@lab.ntt.co.jp> <20100826095311.GA13051@pengutronix.de> <20100826185938A.fujita.tomonori@lab.ntt.co.jp>
+Return-path: <baruch@tkos.co.il>
+Received: from tango.tkos.co.il ([62.219.50.35]:49754 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756029Ab0HILqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Aug 2010 07:46:32 -0400
+Date: Mon, 9 Aug 2010 14:46:11 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 2/4] mx2_camera: return IRQ_NONE when doing nothing
+Message-ID: <20100809114611.GD2894@jasper.tkos.co.il>
+References: <cover.1280229966.git.baruch@tkos.co.il>
+ <49da2476310a921b19226d572503b7c04175204d.1280229966.git.baruch@tkos.co.il>
+ <Pine.LNX.4.64.1007281317400.23907@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100826185938A.fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <Pine.LNX.4.64.1007281317400.23907@axis700.grange>
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello,
+Hi Guennadi,
 
-On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
-> On Thu, 26 Aug 2010 11:53:11 +0200
-> Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
+On Wed, Jul 28, 2010 at 01:25:27PM +0200, Guennadi Liakhovetski wrote:
+> A general comment to your patches: the actual driver is going to be merged 
+> via the ARM tree, all other your incremental patches should rather go via 
+> the v4l tree. So, we'll have to synchronise with ARM, let's hope ARM 
+> patches go in early enough.
+
+Since the driver is now merged upstream this series can go via the v4l tree.
+
+> On Tue, 27 Jul 2010, Baruch Siach wrote:
 > 
-> > > > We have currently a number of boards broken in the mainline. They must be 
-> > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
-> > > > as I suggested earlier, we need either this or my patch series
-> > > > 
-> > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
-> > > > 
-> > > > for 2.6.36.
-> > > 
-> > > Why can't you revert a commit that causes the regression?
-> > > 
-> > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
-> > > responsible for the regression. And the patchset even exnteds the
-> > > definition of the DMA API (dma_declare_coherent_memory). Such change
-> > > shouldn't applied after rc1. I think that DMA-API.txt says that
-> > > dma_declare_coherent_memory() handles coherent memory for a particular
-> > > device. It's not for the API that reserves coherent memory that can be
-> > > used for any device for a single device.
-> > The patch that made the problem obvious for ARM is
-> > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
-> > So this went in before v2.6.36-rc1.  One of the "architectures which
-> > similar restrictions" is x86 BTW.
+> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> > ---
+> >  drivers/media/video/mx2_camera.c |    8 +++++---
+> >  1 files changed, 5 insertions(+), 3 deletions(-)
 > > 
-> > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
-> > addresses a hardware restriction.
+> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> > index 1536bd4..b42ad8d 100644
+> > --- a/drivers/media/video/mx2_camera.c
+> > +++ b/drivers/media/video/mx2_camera.c
+> > @@ -420,15 +420,17 @@ static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
+> >  	struct mx2_camera_dev *pcdev = data;
+> >  	u32 status = readl(pcdev->base_csi + CSISR);
+> >  
+> > -	if (status & CSISR_DMA_TSF_FB1_INT)
+> > +	writel(status, pcdev->base_csi + CSISR);
+> > +
+> > +	if (!(status & (CSISR_DMA_TSF_FB1_INT | CSISR_DMA_TSF_FB2_INT)))
+> > +		return IRQ_NONE;
+> > +	else if (status & CSISR_DMA_TSF_FB1_INT)
+> >  		mx25_camera_frame_done(pcdev, 1, VIDEOBUF_DONE);
+> >  	else if (status & CSISR_DMA_TSF_FB2_INT)
+> >  		mx25_camera_frame_done(pcdev, 2, VIDEOBUF_DONE);
+> >  
+> >  	/* FIXME: handle CSISR_RFF_OR_INT */
+> >  
+> > -	writel(status, pcdev->base_csi + CSISR);
+> > -
+> >  	return IRQ_HANDLED;
+> >  }
 > 
-> How these drivers were able to work without hitting the hardware restriction?
-In my case the machine in question is an ARMv5, the hardware restriction
-is on ARMv6+ only.  You could argue that so the breaking patch for arm
-should only break ARMv6, but I don't think this is sensible from a
-maintainers POV.  We need an API that works independant of the machine
-that runs the code.  And it's good to let developers that don't have the full
-range of machines supported by the kernel at hand notice when they
-introduce an incompatibility.
+> I don't think this is correct. You should return IRQ_NONE if this is not 
+> an interrupt from your device at all. In this case you don't have to ack 
+> your interrupts, which, I presume, is what the write to CSISR is doing. 
+> OTOH, if this is an interrupt from your device, but you're just not 
+> interested in it, you should ack it and return IRQ_HANDLED. So, the 
+> original behaviour was more correct, than what this your patch is doing. 
+> The only improvement I can think of is, that you can return IRQ_NONE if 
+> status is 0, but then you don't have to ack it.
 
-Best regards
-Uwe
+OK. Drop this one, then. Patches in this series are independent from each 
+other, so the others can go in.
+
+baruch
 
 -- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
