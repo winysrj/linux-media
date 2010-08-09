@@ -1,108 +1,150 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:57976 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753831Ab0H0Wye convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 18:54:34 -0400
-Received: by qyk33 with SMTP id 33so3406894qyk.19
-        for <linux-media@vger.kernel.org>; Fri, 27 Aug 2010 15:54:34 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C3070A4.6040702@redhat.com>
-References: <4C3070A4.6040702@redhat.com>
-From: Jonathan Isom <jeisom@gmail.com>
-Date: Fri, 27 Aug 2010 17:54:14 -0500
-Message-ID: <AANLkTinXb=TeSGO_6Mr6jhzaUOUZ3yZL5+oAP2GP0GG5@mail.gmail.com>
-Subject: Re: ibmcam (xrilink_cit) and konica webcam driver porting to gspca update
-To: Hans de Goede <hdegoede@redhat.com>
+Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:44760 "EHLO
+	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756676Ab0HIOfc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 10:35:32 -0400
+Subject: [PATCH 2/2 v3] mfd: Add timberdale video-in driver to timberdale
+From: Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Patryk Biela <patryk.biela@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 09 Aug 2010 16:35:29 +0200
+Message-ID: <1281364529.5762.30.camel@debian>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sun, Jul 4, 2010 at 6:29 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi all,
->
-> I've finished porting the usbvideo v4l1 ibmcam and
-> konicawc drivers to gspcav2.
->
-> The ibmcam driver is replaced by gspca_xirlink_cit, which also
-> adds support for 2 new models (it turned out my testing cams
-> where not supported by the old driver). This one could use
-> more testing.
+This patch defines platform data for the video-in driver
+and adds it to all configurations of timberdale.
 
-I just tried using your driver. I get no video.  using 2.6.35.3.  Had
-to patch usb_buffer_[alloc & free]
-otherwise no changes to your tree.
+Signed-off-by: Richard RÃ¶jfors <richard.rojfors@pelagicore.com>
+---
+diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+index ac59950..d4a95bd 100644
+--- a/drivers/mfd/timberdale.c
++++ b/drivers/mfd/timberdale.c
+@@ -40,6 +40,7 @@
+ #include <linux/spi/mc33880.h>
+ 
+ #include <media/timb_radio.h>
++#include <media/timb_video.h>
+ 
+ #include <linux/timb_dma.h>
+ 
+@@ -238,6 +239,22 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
+ 	},
+ };
+ 
++static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
++	/* Requires jumper JP9 to be off */
++	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
++	.irq = IRQ_TIMBERDALE_ADV7180
++};
++
++static __devinitdata struct timb_video_platform_data
++	timberdale_video_platform_data = {
++	.dma_channel = DMA_VIDEO_RX,
++	.i2c_adapter = 0,
++	.encoder = {
++		.module_name = "adv7180",
++		.info = &timberdale_adv7180_i2c_board_info
++	}
++};
++
+ static const __devinitconst struct resource timberdale_radio_resources[] = {
+ 	{
+ 		.start	= RDSOFFSET,
+@@ -272,6 +289,18 @@ static __devinitdata struct timb_radio_platform_data
+ 	}
+ };
+ 
++static const __devinitconst struct resource timberdale_video_resources[] = {
++	{
++		.start	= LOGIWOFFSET,
++		.end	= LOGIWEND,
++		.flags	= IORESOURCE_MEM,
++	},
++	/*
++	note that the "frame buffer" is located in DMA area
++	starting at 0x1200000
++	*/
++};
++
+ static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
+ 	.nr_channels = 10,
+ 	.channels = {
+@@ -372,6 +401,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -430,6 +466,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
+ 		.resources = timberdale_mlogicore_resources,
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -478,6 +521,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -521,6 +571,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
+index c11bf6e..4412acd 100644
+--- a/drivers/mfd/timberdale.h
++++ b/drivers/mfd/timberdale.h
+@@ -23,7 +23,7 @@
+ #ifndef MFD_TIMBERDALE_H
+ #define MFD_TIMBERDALE_H
+ 
+-#define DRV_VERSION		"0.2"
++#define DRV_VERSION		"0.3"
+ 
+ /* This driver only support versions >= 3.8 and < 4.0  */
+ #define TIMB_SUPPORTED_MAJOR	3
 
-> /usr/bin/qv4l2 /dev/video2
-Start Capture: Input/output error
-VIDIOC_STREAMON: Input/output error
-Start Capture: Input/output error
-VIDIOC_STREAMON: Input/output error
-
--- info
-Model 2	
-KSX-X9903	
-0x0545
-0x8080
-3.0a
-Old, cheaper model	Xirlink C-It
-
-/usr/sbin/v4l2-dbg -d /dev/video2 -D
-Driver info:
-        Driver name   : xirlink-cit
-        Card type     : USB IMAGING DEVICE
-        Bus info      : usb-0000:00:12.2-6.1
-        Driver version: 133376
-        Capabilities  : 0x05000001
-                Video Capture
-                Read/Write
-                Streaming
-
-Any Ideas
-
-Jonathan
-
-
-
-
-
-> The konicawc driver is replaced by gspca_konica which is
-> pretty much finished.
->
-> You can get them both here:
-> http://linuxtv.org/hg/~hgoede/ibmcam
->
-> Once Douglas updates the hg v4l-dvb tree to be up2date with
-> the latest and greatest from Mauro, then I'll rebase my
-> tree (the ibmcam driver needs a very recent gspca core patch),
-> and send a pull request.
->
-> Regards,
->
-> Hans
->
->
-> p.s.
->
-> 1) Many thanks to Patryk Biela for providing me a konica
->   driver using camera.
-> 2) Still to do the se401 driver.
-> 3) I'll be on vacation the coming week and not reading email.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
-
--- 
-ASUS m3a78 motherboard
-AMD Athlon64 X2 Dual Core Processor 6000+ 3.1Ghz
-2 Gigabytes of DDR2-800
-Gigabyte nVidia 9400gt  Graphics adapter
-KWorld ATSC 110 TV Capture Card
-KWorld ATSC 115 TV Capture Card
