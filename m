@@ -1,26 +1,18 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <tomlohave@gmail.com>) id 1Onn6l-00026M-EE
-	for linux-dvb@linuxtv.org; Tue, 24 Aug 2010 08:35:43 +0200
-Received: from mail-wy0-f182.google.com ([74.125.82.182])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-c) with esmtp
+	(envelope-from <sicoe_alex@yahoo.com>) id 1OiTaD-0001l8-8H
+	for linux-dvb@linuxtv.org; Mon, 09 Aug 2010 16:44:10 +0200
+Received: from web35807.mail.mud.yahoo.com ([66.163.179.176])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with smtp
 	for <linux-dvb@linuxtv.org>
-	id 1Onn6l-00014z-3E; Tue, 24 Aug 2010 08:35:43 +0200
-Received: by wyj26 with SMTP id 26so9558678wyj.41
-	for <linux-dvb@linuxtv.org>; Mon, 23 Aug 2010 23:35:42 -0700 (PDT)
-Message-ID: <4C73683B.2080505@gmail.com>
-Date: Tue, 24 Aug 2010 08:35:39 +0200
-From: "tomlohave@gmail.com" <tomlohave@gmail.com>
+	id 1OiTaC-0004Dn-0l; Mon, 09 Aug 2010 16:44:08 +0200
+Message-ID: <148821.41041.qm@web35807.mail.mud.yahoo.com>
+Date: Mon, 9 Aug 2010 07:44:05 -0700 (PDT)
+From: Sicoe Alexandru Dan <sicoe_alex@yahoo.com>
+To: linux-dvb@linuxtv.org
 MIME-Version: 1.0
-To: hermann pitton <hermann-pitton@arcor.de>, jpnews13@free.fr,
-	linux-dvb@linuxtv.org
-References: <4C67790D.3060600@gmail.com>	
-	<1282004685.8749.50.camel@pc07.localdom.local>
-	<4C72804F.1090201@gmail.com>
-	<1282607361.15990.41.camel@pc07.localdom.local>
-In-Reply-To: <1282607361.15990.41.camel@pc07.localdom.local>
-Subject: Re: [linux-dvb] patch for lifeview hybrid mini
+Subject: [linux-dvb] model code for a driver for TV tuner
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -29,41 +21,51 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: base64
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
+Content-Type: multipart/mixed; boundary="===============1655337416=="
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-TGUgMjQvMDgvMjAxMCAwMTo0OSwgaGVybWFubiBwaXR0b24gYSDDqWNyaXQgOgo+IEhlbGxvIFRo
-b21hcywKPgo+ICAgIApIaSBoZXJtYW5uCj4gdGhlIGFzc3VtcHRpb24gaXMgZ29vZCB0aGVuLgo+
-Cj4gTGF0ZXN0IHJldmlzaW9ucyBvZiB0aGUgTGlmZXZpZXcgY2FyZHMgZG8gc3dpdGNoIHRvIHJh
-ZGlvIG1vZGUgd2l0aAo+IGdwaW8yMSBoaWdoIGFuZCBsZXQgaXQgbG93IGZvciBUVi4gKGl0IHdh
-cyB0aGUgb3RoZXIgd2F5IHJvdW5kCj4gcHJldmlvdXNseSkKPgo+IEkgd2FzIGp1c3Qgd29uZGVy
-aW5nLCBpZiBpdCBtaWdodCBoYXZlIHJhZGlvIHN1cHBvcnQgYXQgYWxsLCBzaW5jZQo+IGdwaW8y
-MSBpcyBub3Qgc2V0IGluIHRoZSBtJCBncGlvIG1hc2sgYW5kIHlvdSBzYXkgaXQgZG9lcyBub3Qg
-Y29tZSB3aXRoCj4gcmFkaW8gc29mdHdhcmUuCj4gICAgCj4gVGhlIGdwaW8xOCBhbmQgMTYgY2Fu
-IHRyaWdnZXIgSVJRcyBhbmQgYXJlIHVzdWFsbHkgaW4gdXNlIG9uIHN1Y2gKPiByZW1vdGVzIGZv
-ciB0aGUgYnV0dG9uIHVwL2Rvd24gc2lnbmFsIGFuZCByZWxhdGVkIElSUSBzYW1wbGluZy4KPgo+
-IEFsbCBzYWE3MTMzLzM1LzMxZSB3aXRoIHRkYTgyNzVhYyBhbmQgcmFkaW8gSUYgc3VwcG9ydCB1
-c2UgYSBzcGVjaWFsCj4gNy41TUh6IGNlcmFtaWMgZmlsdGVyLCB1c3VhbGx5IGEgaHVnZSB3ZWxs
-IHZpc2libGUgcGFydCBpbiBibHVlIG9yCj4gb3JhbmdlIGNvbG9yLCBidXQgb24gbGF0ZXN0IGRl
-c2lnbnMgdGhleSBhcmUgaGFyZCB0byBpZGVudGlmeSwgc2luY2UKPiB0aGV5IG1pZ2h0IGFwcGVh
-ciBhcyBTTUQgZGlzY3JldHMgbm93IHRvby4KPiAgICAKaXQncyBoYXJkIHRvIGxvb2sgYmVjYXVz
-ZSB0aGUgY2FyZCBpcyBjb3ZlcmVkIGJ5IGEgbWV0YWwgcGxhdGUKYW5kIHdlIGRvbid0IHdhbnQg
-dG8gYnJlYWsgaXQuCj4gVGhlIHN3aXRjaCB0byB0aGlzIGZpbHRlciBpcyBvZnRlbiByZWxhdGVk
-IHRvIGEgYW4gYW50ZW5uYSBjb25uZWN0b3IgUkYKPiBpbnB1dCBzd2l0Y2ggdHJpZ2dlcmVkIGJ5
-IHRoZSBzYW1lIGdwaW8sIGJ1dCBub3QgbmVjZXNzYXJpbHkuIEFsbCBzb3J0Cj4gb2YgY29tYmlu
-YXRpb25zIGRvIGV4aXN0Lgo+Cj4gICAgCmdvb2QgbmV3cyA6KAo+IEFueXdheSwgd2UgZGVtb2R1
-bGF0ZSB0aGUgcmFkaW8gSUYgZnJvbSBzdWNoIHR1bmVycyBvbiB0aGUKPiBzYWE3MTMzLzM1LzMx
-ZSBvbiB0aGUgc2FhIGNoaXAgYW5kIGRvIGFsc28gdGhlIHN0ZXJlbyBzZXBhcmF0aW9uIGFuZAo+
-IGRldGVjdGlvbiB0aGVyZS4gSGFydG11dCBhZGRlZCB0aGUgbmVlZGVkIGNvZGUgaW4gc2FhNzEz
-NC10dmF1ZGlvIGFuZCBpdAo+IGlzIHZhbGlkIGZvciBhbGwgdHVuZXI9NTQuCj4KPiBUbyBhY2hp
-ZXZlIHRoYXQsIHlvdSBuZWVkIHRvIHVzZSBhbXV4ID0gVFYgZm9yIHJhZGlvIGFuZCBsaWtlbHkg
-YWxzbwo+IHNvbWUgZ3BpbyBpcyBpbnZvbHZlZCBmb3IgdGhlIFJGIHJvdXRpbmcuCj4KPiAgICAK
-V2lsbCBsb29rIGF0IHRoaXMuCk1hbnkgdGhhbmtzLgo+IENoZWVycywKPiBIZXJtYW5uCj4KPgo+
-Cj4gICAgCgpCZXN0IHJlZ2FyZHMsCgp0aG9tYXMKCl9fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWR2YiB1c2VycyBtYWlsaW5nIGxpc3QKRm9yIFY0
-TC9EVkIgZGV2ZWxvcG1lbnQsIHBsZWFzZSB1c2UgaW5zdGVhZCBsaW51eC1tZWRpYUB2Z2VyLmtl
-cm5lbC5vcmcKbGludXgtZHZiQGxpbnV4dHYub3JnCmh0dHA6Ly93d3cubGludXh0di5vcmcvY2dp
-LWJpbi9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWR2Yg==
+--===============1655337416==
+Content-Type: multipart/alternative; boundary="0-2036932072-1281365045=:41041"
+
+--0-2036932072-1281365045=:41041
+Content-Type: text/plain; charset=us-ascii
+
+Hi,
+ I want to build a QNX USB driver for AVerTV USB2.0 PLUS M036 tuner ( made by 
+www.avermedia.com). The problem is that I did not succeed in getting any 
+technical information from Avermedia and someone suggested I try to build my 
+driver from looking at the model of a driver written for Linux.
+ Can anyone offer me any help or information or place where I am likely to get 
+help about this?
+
+Thanks,
+Alex
+
+
+      
+--0-2036932072-1281365045=:41041
+Content-Type: text/html; charset=us-ascii
+
+<html><head><style type="text/css"><!-- DIV {margin:0px;} --></style></head><body><div style="font-family:'times new roman', 'new york', times, serif;font-size:12pt;color:#000000;"><div>Hi,</div><div><span>&nbsp;I want to build a QNX USB driver for AVerTV USB2.0 PLUS M036 tuner ( made by <a target="_blank" href="http://www.avermedia.com">www.avermedia.com</a>). The problem is that I did not succeed in getting any technical information from Avermedia and someone suggested I try to build my driver from looking at the model of a driver written for Linux.</span></div><div>&nbsp;Can anyone offer me any help or information or place where I am likely to get help about this?</div><div><br></div><div>Thanks,</div><div>Alex</div><div>&nbsp;</div><div style="position:fixed"></div>
+
+
+</div><br>
+
+      </body></html>
+--0-2036932072-1281365045=:41041--
+
+
+--===============1655337416==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--===============1655337416==--
