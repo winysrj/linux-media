@@ -1,38 +1,95 @@
-Return-path: <mchehab@pedra>
-Received: from smtp2.it.da.ut.ee ([193.40.5.67]:37573 "EHLO smtp2.it.da.ut.ee"
+Return-path: <mchehab@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:52638 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753401Ab0HLSMI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Aug 2010 14:12:08 -0400
-Date: Thu, 12 Aug 2010 20:46:07 +0300 (EEST)
-From: Meelis Roos <mroos@linux.ee>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: linux-media@vger.kernel.org,
-	Linux Kernel list <linux-kernel@vger.kernel.org>
-Subject: [PATCH] fix v4l2-ctrls compilation
-Message-ID: <alpine.SOC.1.00.1008122042270.24365@math.ut.ee>
+	id S1753519Ab0HIGLX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Aug 2010 02:11:23 -0400
+Message-ID: <4C5F9C2E.50001@redhat.com>
+Date: Mon, 09 Aug 2010 03:11:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Randy Dunlap <randy.dunlap@oracle.com>
+CC: linux-media@vger.kernel.org,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
+Subject: Re: linux-next: Tree for August 7 (IR)
+References: <20100807160710.b7c8d838.sfr@canb.auug.org.au>	<20100807203920.83134a60.randy.dunlap@oracle.com> <20100808135511.269f670c.randy.dunlap@oracle.com>
+In-Reply-To: <20100808135511.269f670c.randy.dunlap@oracle.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Current git has broken v4l2-ctrls compilation - kzalloc et al are 
-missing prototypes. Fix it by including linux/slab.h that contains the 
-definitions.
+Em 08-08-2010 17:55, Randy Dunlap escreveu:
+> On Sat, 7 Aug 2010 20:39:20 -0700 Randy Dunlap wrote:
+> 
+> [adding linux-media]
+> 
+>> On Sat, 7 Aug 2010 16:07:10 +1000 Stephen Rothwell wrote:
+>>
+>>> Hi all,
+>>>
+>>> As the merge window is open, please do not add 2.6.37 material to your
+>>> linux-next included trees until after 2.6.36-rc1.
+>>>
+>>> Changes since 20100806:
+>>
+>> 2 sets of IR build errors (2 .config files attached):
+>>
+>> #5091:
+>> ERROR: "ir_keydown" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+>> ERROR: "__ir_input_register" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+>> ERROR: "get_rc_map" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+>> ERROR: "ir_input_unregister" [drivers/media/video/ir-kbd-i2c.ko] undefined!
+>> ERROR: "get_rc_map" [drivers/media/video/cx88/cx88xx.ko] undefined!
+>> ERROR: "ir_repeat" [drivers/media/video/cx88/cx88xx.ko] undefined!
+>> ERROR: "ir_input_unregister" [drivers/media/video/cx88/cx88xx.ko] undefined!
+>> ERROR: "ir_keydown" [drivers/media/video/cx88/cx88xx.ko] undefined!
+>> ERROR: "__ir_input_register" [drivers/media/video/cx88/cx88xx.ko] undefined!
+>> ERROR: "get_rc_map" [drivers/media/video/bt8xx/bttv.ko] undefined!
+>> ERROR: "ir_input_unregister" [drivers/media/video/bt8xx/bttv.ko] undefined!
+>> ERROR: "__ir_input_register" [drivers/media/video/bt8xx/bttv.ko] undefined!
+>> ERROR: "ir_g_keycode_from_table" [drivers/media/IR/ir-common.ko] undefined!
+>>
+>>
+>> #5101:
+>> (.text+0x8306e2): undefined reference to `ir_core_debug'
+>> (.text+0x830729): undefined reference to `ir_core_debug'
+>> ir-functions.c:(.text+0x830906): undefined reference to `ir_core_debug'
+>> (.text+0x8309d8): undefined reference to `ir_g_keycode_from_table'
+>> (.text+0x830acf): undefined reference to `ir_core_debug'
+>> (.text+0x830b92): undefined reference to `ir_core_debug'
+>> (.text+0x830bef): undefined reference to `ir_core_debug'
+>> (.text+0x830c6a): undefined reference to `ir_core_debug'
+>> (.text+0x830cf7): undefined reference to `ir_core_debug'
+>> budget-ci.c:(.text+0x89f5c8): undefined reference to `ir_keydown'
+>> budget-ci.c:(.text+0x8a0c58): undefined reference to `get_rc_map'
+>> budget-ci.c:(.text+0x8a0c80): undefined reference to `__ir_input_register'
+>> budget-ci.c:(.text+0x8a0ee0): undefined reference to `get_rc_map'
+>> budget-ci.c:(.text+0x8a11cd): undefined reference to `ir_input_unregister'
+>> (.text+0x8a8adb): undefined reference to `ir_input_unregister'
+>> dvb-usb-remote.c:(.text+0x8a9188): undefined reference to `get_rc_map'
+>> dvb-usb-remote.c:(.text+0x8a91b1): undefined reference to `__ir_input_register'
+>> dvb-usb-remote.c:(.text+0x8a9238): undefined reference to `get_rc_map'
+>> dib0700_core.c:(.text+0x8b04ca): undefined reference to `ir_keydown'
+>> dib0700_devices.c:(.text+0x8b2ea8): undefined reference to `ir_keydown'
+>> dib0700_devices.c:(.text+0x8b2ef0): undefined reference to `ir_keydown'
 
-Signed-off-by: Meelis Roos <mroos@linux.ee>
+Hmm... clearly, there are some bad dependencies at the Kconfig. Maybe ir-core were compiled
+as module, while some drivers as built-in.
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 84c1a53..ea8d32c 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -19,6 +19,7 @@
-  */
- 
- #include <linux/ctype.h>
-+#include <linux/slab.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
+Could you please pass the .config file for this build?
+>>
+>>
+>> ---
+>> ~Randy
+>> *** Remember to use Documentation/SubmitChecklist when testing your code ***
+> 
+> 
+> ---
+> ~Randy
+> *** Remember to use Documentation/SubmitChecklist when testing your code ***
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--- 
-Meelis Roos <mroos@linux.ee>
