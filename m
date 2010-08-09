@@ -1,78 +1,46 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35494 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932155Ab0HEUyq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 16:54:46 -0400
-Date: Thu, 5 Aug 2010 22:54:45 +0200
-From: Michael Grzeschik <mgr@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	baruch@tkos.co.il, Sascha Hauer <s.hauer@pengutronix.de>,
-	Teresa Gamez <T.Gamez@phytec.de>
-Subject: Re: [PATCH 5/5] mx2_camera: add informative camera clock frequency
-	printout
-Message-ID: <20100805205445.GG23884@pengutronix.de>
-References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de> <1280828276-483-6-git-send-email-m.grzeschik@pengutronix.de> <Pine.LNX.4.64.1008052228280.26127@axis700.grange>
+Return-path: <mchehab@pedra>
+Received: from keetweej.vanheusden.com ([83.163.219.98]:49644 "EHLO
+	keetweej.vanheusden.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756622Ab0HIOfw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 10:35:52 -0400
+Date: Mon, 9 Aug 2010 16:35:51 +0200
+From: folkert <folkert@vanheusden.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 &
+	/dev/dvb
+Message-ID: <20100809143550.GZ6126@belle.intranet.vanheusden.com>
+References: <20100809133252.GW6126@belle.intranet.vanheusden.com> <AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1008052228280.26127@axis700.grange>
-Sender: linux-media-owner@vger.kernel.org
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, Aug 05, 2010 at 10:30:39PM +0200, Guennadi Liakhovetski wrote:
-> On Tue, 3 Aug 2010, Michael Grzeschik wrote:
-> 
-> > ported mx27_camera to 2.6.33.2
-> 
-> Sorry, do not understand what this description has to do with the contents 
-The Description is of topic from a previous patchseries from Teresa
-Gamez and has nothin to do with the content, right!
+Hi Devin,
 
-> - adding a printk to a driver? I don't think this is something critical 
-> enough to be handled urgently now for 2.6.36, right?
-Yes you are right, this one isn't urgent.
+> > I have a:
+> > Bus 001 Device 006: ID 2304:0226 Pinnacle Systems, Inc. PCTV 330e
+> > inserted in a system with kernel 2.6.34.
+> 
+> The PCTV 330e support for digital hasn't been merged upstream yet.
+> See here:
+> http://www.kernellabs.com/blog/?cat=35
 
-Michael
+Does that mean teletext won't work either?
 
-> 
-> Thanks
-> Guennadi
-> 
-> > Signed-off-by: Teresa Gamez <T.Gamez@phytec.de>
-> > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> > ---
-> >  drivers/media/video/mx2_camera.c |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> > index 7f27492..fb1b1cb 100644
-> > --- a/drivers/media/video/mx2_camera.c
-> > +++ b/drivers/media/video/mx2_camera.c
-> > @@ -1360,6 +1360,9 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
-> >  			goto exit_dma_free;
-> >  	}
-> >  
-> > +	dev_info(&pdev->dev, "Camera clock frequency: %ld\n",
-> > +			clk_get_rate(pcdev->clk_csi));
-> > +
-> >  	INIT_LIST_HEAD(&pcdev->capture);
-> >  	INIT_LIST_HEAD(&pcdev->active_bufs);
-> >  	spin_lock_init(&pcdev->lock);
-> > -- 
-> > 1.7.1
-> > 
-> > 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
+Any USB dvb-t devices out there for which teletext does work under
+Linux?
+
+
+Folkert van Heusden
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Multitail est un outil permettant la visualisation de fichiers de
+journalisation et/ou le suivi de l'exécution de commandes. Filtrage,
+mise en couleur de mot-clé, fusions, visualisation de différences
+(diff-view), etc.  http://www.vanheusden.com/multitail/
+----------------------------------------------------------------------
+Phone: +31-6-41278122, PGP-key: 1F28D8AE, www.vanheusden.com
