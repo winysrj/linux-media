@@ -1,50 +1,45 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:33012 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752304Ab0HZJpz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 05:45:55 -0400
-Date: Thu, 26 Aug 2010 11:45:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-cc: mitov@issp.bas.bg, linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-sh@vger.kernel.org,
-	u.kleine-koenig@pengutronix.de, philippe.retornaz@epfl.ch,
-	gregkh@suse.de, jkrzyszt@tis.icnet.pl
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory()
- API
-In-Reply-To: <20100826182915S.fujita.tomonori@lab.ntt.co.jp>
-Message-ID: <Pine.LNX.4.64.1008261140390.14167@axis700.grange>
-References: <201008260904.19973.mitov@issp.bas.bg> <20100826152333K.fujita.tomonori@lab.ntt.co.jp>
- <Pine.LNX.4.64.1008261100150.14167@axis700.grange>
- <20100826182915S.fujita.tomonori@lab.ntt.co.jp>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:57740 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757008Ab0HIPBl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 11:01:41 -0400
+Received: by pzk26 with SMTP id 26so3635986pzk.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Aug 2010 08:01:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <20100809145621.GB6126@belle.intranet.vanheusden.com>
+References: <20100809133252.GW6126@belle.intranet.vanheusden.com>
+	<AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
+	<20100809143550.GZ6126@belle.intranet.vanheusden.com>
+	<AANLkTinJbdrHQPk9mudEAPtB7L_S11hS_ArX+DDsnBD6@mail.gmail.com>
+	<20100809145621.GB6126@belle.intranet.vanheusden.com>
+Date: Mon, 9 Aug 2010 11:01:38 -0400
+Message-ID: <AANLkTikV=pGB4Ea=bf+oc-aFvE+S_8wFxtTmmX8sfuOZ@mail.gmail.com>
+Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 & /dev/dvb
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: folkert <folkert@vanheusden.com>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 26 Aug 2010, FUJITA Tomonori wrote:
+On Mon, Aug 9, 2010 at 10:56 AM, folkert <folkert@vanheusden.com> wrote:
+> Ah and I see in the code that you are the maintainer :-)
 
-> Why can't you revert a commit that causes the regression?
+I'm not sure I would call myself the maintainer, but I did do the VBI
+support for both NTSC and PAL (including teletext).
 
-See this reply, and the complete thread too.
+> Something seems to be odd with the vbi support:
+> mauer:~# alevt -vbi /dev/vbi0
+> DMX_SET_FILTER: Invalid argument
+> alevt: v4l2: broken vbi format specification
+> alevt: cannot open device: /dev/vbi0
 
-http://marc.info/?l=linux-sh&m=128130485208262&w=2
+I'll have to look at the source code to alevt and see what exactly it
+considers to be invalid.  The teletext support was tested with mtt,
+but not alevt.
 
-> The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
-> responsible for the regression. And the patchset even exnteds the
-> definition of the DMA API (dma_declare_coherent_memory). Such change
-> shouldn't applied after rc1. I think that DMA-API.txt says that
-> dma_declare_coherent_memory() handles coherent memory for a particular
-> device. It's not for the API that reserves coherent memory that can be
-> used for any device for a single device.
+Devin
 
-Anyway, we need a way to fix the regression.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
