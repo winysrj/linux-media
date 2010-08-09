@@ -1,74 +1,52 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:53647 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1750905Ab0HATia (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Aug 2010 15:38:30 -0400
-Date: Sun, 1 Aug 2010 21:38:25 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <m.grzeschik@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>, p.wiesner@phytec.de
-Subject: Re: [PATCH 12/20] mt9m111: s_crop add calculation of output size
-In-Reply-To: <1280501618-23634-13-git-send-email-m.grzeschik@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1008012132290.2643@axis700.grange>
-References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
- <1280501618-23634-13-git-send-email-m.grzeschik@pengutronix.de>
+Return-path: <hverkuil@xs4all.nl>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1493 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754793Ab0HIIFe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 04:05:34 -0400
+Message-ID: <b003fbb16bb40c1d0dca94cdf77b89a9.squirrel@webmail.xs4all.nl>
+In-Reply-To: <1281339235.2296.17.camel@masi.mnp.nokia.com>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+    <1281339235.2296.17.camel@masi.mnp.nokia.com>
+Date: Mon, 9 Aug 2010 10:05:16 +0200
+Subject: Re: [PATCH v7 0/5] TI WL1273 FM Radio driver.
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: matti.j.aaltonen@nokia.com
+Cc: linux-media@vger.kernel.org,
+	"Valentin Eduardo" <eduardo.valentin@nokia.com>, mchehab@redhat.com
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 30 Jul 2010, Michael Grzeschik wrote:
 
-> Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> ---
->  drivers/media/video/mt9m111.c |    8 ++++++++
->  1 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> index cc0f996..2758a97 100644
-> --- a/drivers/media/video/mt9m111.c
-> +++ b/drivers/media/video/mt9m111.c
-> @@ -472,11 +472,19 @@ static int mt9m111_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
->  	struct mt9m111 *mt9m111 = to_mt9m111(client);
->  	struct mt9m111_format format;
->  	struct v4l2_mbus_framefmt *mf = &format.mf;
-> +	s32 rectwidth	= mt9m111->format.rect.width;
-> +	s32 rectheight	= mt9m111->format.rect.height;
-> +	u32 pixwidth	= mt9m111->format.mf.width;
-> +	u32 pixheight	= mt9m111->format.mf.height;
->  	int ret;
->  
->  	format.rect	= a->c;
->  	format.mf	= mt9m111->format.mf;
->  
-> +	/* calculate output size, maintain current scaling factors */
-> +	format.mf.width = pixwidth / rectwidth * format.mf.width;
-> +	format.mf.height = pixheight / rectheight * format.mf.height;
+> Hello.
+>
+> It starts to look like the ALSA codec could be
+> accepted on the ALSA list pretty soon.
+> So I'd be very interested to hear from you if
+> the rest of the driver still needs fixes...
 
-Again - don't understand:
+Thanks for reminding me. I'll do a final review this evening.
 
-	u32 pixwidth    = mt9m111->format.mf.width;
-	format.mf       = mt9m111->format.mf;
-	format.mf.width = pixwidth / rectwidth * format.mf.width;
 
-this means
+> By the way, now the newest wl1273 firmware supports
+> a special form of hardware seek,  they call it the
+> 'bulk search' mode. It can be used to search for all
+> stations that are available and at first the number of found
+> stations is returned. Then the frequencies can be fetched
+> one by one. Should we add a 'seek mode' field to hardware
+> seek? Or do you have a vision of how it should be handled?
 
-	format.mf.width = mt9m111->format.mf.width / rectwidth * mt9m111->format.mf.width;
+It sounds very hardware specific. We should postpone support for this
+until we have support for subdev device nodes. That will make it possible
+to create custom ioctls for hw specific features. This should be merged
+if all goes well for 2.6.37.
 
-which makes no sense to me. Can you explain?
+Regards,
 
-> +
->  	dev_dbg(&client->dev, "%s: rect: left=%d top=%d width=%d height=%d\n",
->  		__func__, a->c.left, a->c.top, a->c.width, a->c.height);
->  	dev_dbg(&client->dev, "%s: mf: width=%d height=%d pixelcode=%d "
-> -- 
-> 1.7.1
+         Hans
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
