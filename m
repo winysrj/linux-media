@@ -1,19 +1,23 @@
-Return-path: <mchehab@pedra>
+Return-path: <folkert@vanheusden.com>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <matthiaz.weber@gmx.de>) id 1OjaZZ-0002gX-3q
-	for linux-dvb@linuxtv.org; Thu, 12 Aug 2010 18:24:05 +0200
-Received: from mailout-de.gmx.net ([213.165.64.23] helo=mail.gmx.net)
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with smtp
-	for <linux-dvb@linuxtv.org>
-	id 1OjaZY-0003f3-Bl; Thu, 12 Aug 2010 18:24:04 +0200
-Message-ID: <4C642024.5070905@gmx.de>
-Date: Thu, 12 Aug 2010 18:24:04 +0200
-From: Matthias Weber <matthiaz.weber@gmx.de>
-MIME-Version: 1.0
+	(envelope-from <folkert@vanheusden.com>) id 1OiSTH-0007Wt-Uw
+	for linux-dvb@linuxtv.org; Mon, 09 Aug 2010 15:32:56 +0200
+Received: from keetweej.vanheusden.com ([83.163.219.98])
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with esmtps
+	[TLSv1:AES256-SHA:256] for <linux-dvb@linuxtv.org>
+	id 1OiSTG-0005HP-Cr; Mon, 09 Aug 2010 15:32:55 +0200
+Received: from belle.intranet.vanheusden.com (belle.intranet.vanheusden.com
+	[192.168.64.100])
+	by keetweej.vanheusden.com (Postfix) with ESMTP id 35B0F829E
+	for <linux-dvb@linuxtv.org>; Mon,  9 Aug 2010 15:32:53 +0200 (CEST)
+Date: Mon, 9 Aug 2010 15:32:52 +0200
+From: folkert <folkert@vanheusden.com>
 To: linux-dvb@linuxtv.org
-Cc: abraham.manu@gmail.com
-Subject: [linux-dvb] libdvbsec - trying to control DiSEqC positioner
+Message-ID: <20100809133252.GW6126@belle.intranet.vanheusden.com>
+MIME-Version: 1.0
+Content-Disposition: inline
+Subject: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 & /dev/dvb
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -22,93 +26,130 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="iso-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
-Hi.
+Hi,
 
-We are trying to use the libdvbsec-api from the dvb-apps package
-(/dvb_apps/lib/libdvbsec) to build our own DiSEqC positioner control.
-It's going to implement a kind of USALS/GotoX/GotoXX/DiSEqC1.3, whatever
-you want to call it (there's no hardware receiver provided atm).
+I have a:
+Bus 001 Device 006: ID 2304:0226 Pinnacle Systems, Inc. PCTV 330e
+inserted in a system with kernel 2.6.34.
+When plugged in, I get:
+[3639480.291662] em28xx: New device Pinnacle Systems PCTV 330e @ 480 Mbps (2304:0226, interface 0, class 0)
+[3639480.291870] em28xx #0: chip ID is em2882/em2883
+[3639480.500623] em28xx #0: i2c eeprom 00: 1a eb 67 95 04 23 26 02 d0 12 5c 03 8e 16 a4 1c
+[3639480.501148] em28xx #0: i2c eeprom 10: 6a 24 27 57 46 07 01 00 00 00 00 00 00 00 00 00
+[3639480.501696] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 02 00 b8 00 00 00 5b e0 00 00
+[3639480.502241] em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00 00 00
+[3639480.502739] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[3639480.503311] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[3639480.503839] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 24 03 50 00 69 00
+[3639480.504279] em28xx #0: i2c eeprom 70: 6e 00 6e 00 61 00 63 00 6c 00 65 00 20 00 53 00
+[3639480.504730] em28xx #0: i2c eeprom 80: 79 00 73 00 74 00 65 00 6d 00 73 00 00 00 16 03
+[3639480.505182] em28xx #0: i2c eeprom 90: 50 00 43 00 54 00 56 00 20 00 33 00 33 00 30 00
+[3639480.505628] em28xx #0: i2c eeprom a0: 65 00 00 00 1c 03 30 00 38 00 30 00 33 00 30 00
+[3639480.506081] em28xx #0: i2c eeprom b0: 31 00 32 00 37 00 38 00 34 00 37 00 37 00 00 00
+[3639480.506567] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[3639480.507060] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[3639480.507532] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[3639480.508003] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[3639480.508607] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x18b3a0bf
+[3639480.508692] em28xx #0: EEPROM info:
+[3639480.508769] em28xx #0:	AC97 audio (5 sample rates)
+[3639480.508835] em28xx #0:	500mA max power
+[3639480.508898] em28xx #0:	Table at 0x27, strings=0x168e, 0x1ca4, 0x246a
+[3639480.518750] em28xx #0: Identified as Pinnacle Hybrid Pro (2) (card=56)
+[3639480.518812] em28xx #0: 
+[3639480.518813] 
+[3639480.518900] em28xx #0: The support for this board weren't valid yet.
+[3639480.518950] em28xx #0: Please send a report of having this working
+[3639480.519003] em28xx #0: not to V4L mailing list (and/or to other addresses)
+[3639480.519005] 
+[3639480.530412] tvp5150 1-005c: chip found @ 0xb8 (em28xx #0)
+[3639480.553938] tuner 1-0061: chip found @ 0xc2 (em28xx #0)
+[3639480.574022] xc2028 1-0061: creating new instance
+[3639480.574082] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
+[3639480.574148] usb 1-1: firmware: requesting xc3028-v27.fw
+[3639480.602064] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type: xc2028 firmware, ver 2.7
+[3639480.661299] xc2028 1-0061: Loading firmware for type=BASE MTS (5), id 0000000000000000.
+[3639481.581015] xc2028 1-0061: Loading firmware for type=MTS (4), id 000000000000b700.
+[3639481.595642] xc2028 1-0061: Loading SCODE for type=MTS LCD NOGD MONO IF SCODE HAS_IF_4500 (6002b004), id 000000000000b700.
+[3639481.811392] em28xx #0: Config register raw data: 0xd0
+[3639481.812138] em28xx #0: AC97 vendor ID = 0xffffffff
+[3639481.812513] em28xx #0: AC97 features = 0x6a90
+[3639481.812579] em28xx #0: Empia 202 AC97 audio processor detected
+[3639481.981768] tvp5150 1-005c: tvp5150am1 detected.
+[3639482.082272] em28xx #0: v4l2 driver version 0.1.2
+[3639482.188623] em28xx #0: V4L2 video device registered as video1
+[3639482.188700] em28xx #0: V4L2 VBI device registered as vbi0
+[3639482.201320] usbcore: registered new interface driver em28xx
+[3639482.201419] em28xx driver loaded
+[3639482.203450] Em28xx: Initialized (Em28xx dvb Extension) extension
+[3639482.229668] em28xx-audio.c: probing for em28x1 non standard usbaudio
+[3639482.229731] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+[3639482.230065] Em28xx: Initialized (Em28xx Audio Extension) extension
+[3639482.341779] tvp5150 1-005c: tvp5150am1 detected.
+[3639482.561905] tvp5150 1-005c: tvp5150am1 detected.
 
-But at the moment there are a few problems with the positioner:
+Now all kinds of devices appear then:
+crw-rw----   1 root video    81,   2 Jul 28 20:59 vbi0
+crw-rw-rw-   1 root video    81,   1 Jul 28 20:59 video1
+crw-------   1 root root    189,   5 Jul 28 20:59 usbdev1.6
+drwxr-xr-x   2 root root         240 Jul 28 20:59 snd
+crw-rw----   1 root audio    14,  36 Jul 28 20:59 audio2
+crw-rw----   1 root audio    14,  35 Jul 28 20:59 dsp2
+crw-rw----   1 root audio    14,  32 Jul 28 20:59 mixer2
+
+but one important thing is missing: /dev/dvb !
+Also:
+mauer:/var/spool/sms# alevt -vbi /dev/vbi0 
+DMX_SET_FILTER: Invalid argument
+alevt: v4l2: broken vbi format specification
+alevt: cannot open device: /dev/vbi0
+
+I think all appropriate modules are loaded:
+em28xx_alsa             5606  0 
+em28xx_dvb              6740  0 
+tuner_xc2028           16229  1 
+em28xx                 77411  2 em28xx_alsa,em28xx_dvb
+dvb_ttusb_budget       14285  0 
+saa7115                11969  0 
+saa7134_dvb            19581  0 
+videobuf_dvb            4282  1 saa7134_dvb
+saa7134               142683  1 saa7134_dvb
+videobuf_dma_sg         8315  2 saa7134_dvb,saa7134
+dvb_usb                12569  0 
+dvb_core               78791  4
+em28xx_dvb,dvb_ttusb_budget,videobuf_dvb,dvb_usb
+tuner                  17086  1 
+tvp5150                13455  1 
+v4l2_common            12320  5 em28xx,saa7115,saa7134,tuner,tvp5150
+ir_common              27718  2 em28xx,saa7134
+videobuf_vmalloc        4832  1 em28xx
+videobuf_core          12156  5
+em28xx,videobuf_dvb,saa7134,videobuf_dma_sg,videobuf_vmalloc
+ir_core                 5021  3 em28xx,saa7134,ir_common
+tveeprom               12225  2 em28xx,saa7134
+
+and the firmware was also in place:
+-rw-r--r-- 1 root root 66220 Jul 28 20:31 /lib/firmware/xc3028-v27.fw
+
+So what can be going wrong? Do I need to tweak something in udev or so?
 
 
-For getting started I took a look at /util/gotox/gotox.c.
-In this file the function dvbsec_diseqc_goto_rotator_bearing is used.
-This function is for turning to a specific angle. (using 0x6E as command
-byte)
+Thank you,
 
-For any reason our rotor/motor/positioner only wants to turn to western
-degrees (but in the full range of 75=B0W..0=B0).
+Folkert van Heusden
 
-The positioner: JAEGER Genuine SG-2500A DiSEqC 1.2 H-H MOUNT
-I think this seems to be an OEM product as I compared several positioners.
-They all have the same instruction manual, pictures, ...
-
-I checked the hardware limits; they were not set. So theoretically the
-range of movement is 75=B0W..0=B0..75=B0E.
-
-I also tried to delete theoretical software limits by
-- calling the dvbsec_diseqc_disable_satpos_limits command before calling
-the dvbsec_diseqc_goto_rotator_bearing command
-- tried the same sending the "raw" DiSEqC command message (command byte
-0x63)
-
-The positioner can manually be rotated in the complete range of movement
-of 75=B0W..0=B0..75=B0E.
-
-As I don't really want to manually control the motor any time and the
-dvbsec_diseqc_goto_rotator_bearing function doesn't work for me,
-I tried using the dvbsec_diseqc_goto_satpos_preset function. This works
-quite well, also for satellite with eastern longitude.
-The problem is: when choosing Astra (19.2E) for example, the motor of
-course turns to 19.2=B0E. This only works for your own position when you
-live at longitude 0=B0.
-
-This is why these motors provide something called
-recalculation/resynchronization. You go to the preset satellite position
-and correct the difference in longitude by manually turning the
-positioner. Afterwards you have to tell the positioner to correct all
-the satellite positions. This normally only has to be done once. Here
-the lib also offers a command:
-dvbsec_diseqc_recalculate_satpos_positions. I tried using it after
-calling the dvbsec_diseqc_goto_satpos_preset function. Unfortunately I
-am not quite sure which arguments to deliver. I once tried -1, -1 and
-then 0x00 0x00 and the the index number of the builtin satellite table
-entry. I am not sure how to use it correctly, but all in all it didn't work.
-
-Coming back to the dvbsec_diseqc_goto_rotator_bearing function:
-I am not sure if the specifications/ application notes which were made
-public are too old (I directly downloaded the files from EUTELSAT[1]),
-the implementation in the positioner differs, code in the lib is wrong
-or something else doesn't work correctly:
-
-If the angle delivered to the function is negative, the high nibble of
-byte 3 (the 4th byte) of the DiSEqC message is set to 0xD, else it's set
-to 0xE.
-The positioner application note (v1.0) says the high nibble of byte 3 is
-0x0, 0x1 or 0xF.
-
-Are there any further documents, implementations,... experience with
-positioners?
-
-Any help provided will be great! Thanks!
-
-Cheers,
-Matthias
-
-
-[1] http://www.eutelsat.com/satellites/4_5_5.html
-    Bus Specification, Positioner Application Note, etc
-
-
-PS: Not quite sure if I should use this list or linux-media, but as it
-seems this message is also automatically forwarded to this list, isn't it?
+-- 
+MultiTail is a versatile tool for watching logfiles and output of
+commands. Filtering, coloring, merging, diff-view, etc.
+http://www.vanheusden.com/multitail/
+----------------------------------------------------------------------
+Phone: +31-6-41278122, PGP-key: 1F28D8AE, www.vanheusden.com
 
 _______________________________________________
 linux-dvb users mailing list
