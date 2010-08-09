@@ -1,34 +1,37 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from auth-1.ukservers.net ([217.10.138.154]:37058 "EHLO
-	auth-1.ukservers.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417Ab0HAWHM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 18:07:12 -0400
-Message-ID: <6C14F26AEE154C61B43A699ABC57CE67@telstraclear.tclad>
-From: "Simon Baxter" <linuxtv@nzbaxters.com>
-To: <linux-media@vger.kernel.org>, <linux-dvb@linuxtv.org>
-References: <B17A774B76B64B25A20875E6A0F875A0@telstraclear.tclad>
-Subject: Re: [linux-dvb] dvb-apps testing conditional interface
-Date: Mon, 2 Aug 2010 10:00:24 +1200
-MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=response
+Return-path: <mchehab@pedra>
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:46477 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756451Ab0HIOfS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 10:35:18 -0400
+Subject: [PATCH 0/2 v3] media, mfd: Add timberdale video-in driver
+From: Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	p.osciak@samsung.com
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 09 Aug 2010 16:35:14 +0200
+Message-ID: <1281364514.5762.28.camel@debian>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-> I'm having a problem with the s2-liplianin drivers (and vdr-1.7.15) and my 
-> TT-1500/TT-2300 cards.   I've also tried the bundled dvb drivers in Fedora 
-> 13 2.6.32 kernel with the same results.
+To follow are three patches.
 
+Since last patch I removed the uncached buffers patch, it
+needs to be investigated further.
 
-> Can someone please tell me how to test this outside of VDR?  How do I zap 
-> and receive a channel, which has to go through the CAM?
+The first adds the timberdale video-in driver to the media tree.
 
-Thought it might be an option, but I can't get Kaffeine to work with my 
-CI/CAM.
+The second adds it to the timberdale MFD driver.
 
-It scans all the channels but won't give a liveTV picture.  All channels are 
-scrambled - I thought this worked in Kaffeine now? 
+Samuel and Mauro hope you can support and solve the potential merge
+issue between your two trees.
+
+Thanks
+--Richard
 
