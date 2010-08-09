@@ -1,727 +1,174 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.122.233]:51363 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753533Ab0HZJCh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 05:02:37 -0400
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	eduardo.valentin@nokia.com, mchehab@redhat.com
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH v8 3/5] ASoC: WL1273 FM Radio Digital audio codec.
-Date: Thu, 26 Aug 2010 12:02:16 +0300
-Message-Id: <1282813338-13882-4-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1282813338-13882-3-git-send-email-matti.j.aaltonen@nokia.com>
-References: <1282813338-13882-1-git-send-email-matti.j.aaltonen@nokia.com>
- <1282813338-13882-2-git-send-email-matti.j.aaltonen@nokia.com>
- <1282813338-13882-3-git-send-email-matti.j.aaltonen@nokia.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:63132 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752393Ab0HIUwR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 16:52:17 -0400
+Received: by gxk23 with SMTP id 23so3568799gxk.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Aug 2010 13:52:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTin1sY6U3WPmG9XKPKK5wKmpPJkpWOL4bbQG0=b_@mail.gmail.com>
+References: <AANLkTin1sY6U3WPmG9XKPKK5wKmpPJkpWOL4bbQG0=b_@mail.gmail.com>
+From: Lars Sarauw Hansen <sarauw76@gmail.com>
+Date: Mon, 9 Aug 2010 22:51:56 +0200
+Message-ID: <AANLkTikFaZxZDnuseLZH97UuPENd91RKj=ArJiE3Gzht@mail.gmail.com>
+Subject: Unknown EM2750/28xx video grabber - dmesg output
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-The codec handles digital audio input to and output from the
-WL1273 FM radio.
+As requested, I'm sending my dmesg output when connecting an external
+TV-grabber box.
+I got the box from my dad and he really can't remember how he got it.
+It seems to be quite decent quality - yet it is only labeled "USB 2.0
+TV BOX". IMHO a truly no-name grabber :-)
 
-Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
----
- sound/soc/codecs/Kconfig  |    6 +
- sound/soc/codecs/Makefile |    2 +
- sound/soc/codecs/wl1273.c |  593 +++++++++++++++++++++++++++++++++++++++++++++
- sound/soc/codecs/wl1273.h |   42 ++++
- 4 files changed, 643 insertions(+), 0 deletions(-)
- create mode 100644 sound/soc/codecs/wl1273.c
- create mode 100644 sound/soc/codecs/wl1273.h
+Hopefully it can be identified as one of the existing cards from the
+list in dmesg.
 
-diff --git a/sound/soc/codecs/Kconfig b/sound/soc/codecs/Kconfig
-index 83f5c67..4b6b7d8 100644
---- a/sound/soc/codecs/Kconfig
-+++ b/sound/soc/codecs/Kconfig
-@@ -41,6 +41,7 @@ config SND_SOC_ALL_CODECS
- 	select SND_SOC_UDA134X
- 	select SND_SOC_UDA1380 if I2C
- 	select SND_SOC_WM2000 if I2C
-+	select SND_SOC_WL1273 if I2C
- 	select SND_SOC_WM8350 if MFD_WM8350
- 	select SND_SOC_WM8400 if MFD_WM8400
- 	select SND_SOC_WM8510 if SND_SOC_I2C_AND_SPI
-@@ -188,6 +189,11 @@ config SND_SOC_UDA134X
- config SND_SOC_UDA1380
-         tristate
- 
-+config SND_SOC_WL1273
-+	tristate
-+	select WL1273_CORE
-+	default n
-+
- config SND_SOC_WM8350
- 	tristate
- 
-diff --git a/sound/soc/codecs/Makefile b/sound/soc/codecs/Makefile
-index 5352409..54eed56 100644
---- a/sound/soc/codecs/Makefile
-+++ b/sound/soc/codecs/Makefile
-@@ -26,6 +26,7 @@ snd-soc-twl4030-objs := twl4030.o
- snd-soc-twl6040-objs := twl6040.o
- snd-soc-uda134x-objs := uda134x.o
- snd-soc-uda1380-objs := uda1380.o
-+snd-soc-wl1273-objs := wl1273.o
- snd-soc-wm8350-objs := wm8350.o
- snd-soc-wm8400-objs := wm8400.o
- snd-soc-wm8510-objs := wm8510.o
-@@ -95,6 +96,7 @@ obj-$(CONFIG_SND_SOC_TWL4030)	+= snd-soc-twl4030.o
- obj-$(CONFIG_SND_SOC_TWL6040)	+= snd-soc-twl6040.o
- obj-$(CONFIG_SND_SOC_UDA134X)	+= snd-soc-uda134x.o
- obj-$(CONFIG_SND_SOC_UDA1380)	+= snd-soc-uda1380.o
-+obj-$(CONFIG_SND_SOC_WL1273)	+= snd-soc-wl1273.o
- obj-$(CONFIG_SND_SOC_WM8350)	+= snd-soc-wm8350.o
- obj-$(CONFIG_SND_SOC_WM8400)	+= snd-soc-wm8400.o
- obj-$(CONFIG_SND_SOC_WM8510)	+= snd-soc-wm8510.o
-diff --git a/sound/soc/codecs/wl1273.c b/sound/soc/codecs/wl1273.c
-new file mode 100644
-index 0000000..2e324ef
---- /dev/null
-+++ b/sound/soc/codecs/wl1273.c
-@@ -0,0 +1,593 @@
-+/*
-+ * ALSA SoC WL1273 codec driver
-+ *
-+ * Author:      Matti Aaltonen, <matti.j.aaltonen@nokia.com>
-+ *
-+ * Copyright:   (C) 2010 Nokia Corporation
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#undef DEBUG
-+
-+#include <linux/mfd/wl1273-core.h>
-+#include <linux/slab.h>
-+#include <sound/pcm.h>
-+#include <sound/pcm_params.h>
-+#include <sound/soc-dapm.h>
-+#include <sound/initval.h>
-+
-+#include "wl1273.h"
-+
-+static int snd_wl1273_fm_set_i2s_mode(struct wl1273_core *core,
-+				      int rate, int width)
-+{
-+	struct device *dev = &core->i2c_dev->dev;
-+	int r = 0;
-+	u16 mode;
-+
-+	dev_dbg(dev, "rate: %d\n", rate);
-+	dev_dbg(dev, "width: %d\n", width);
-+
-+	mutex_lock(&core->lock);
-+
-+	mode = core->i2s_mode & ~WL1273_IS2_WIDTH & ~WL1273_IS2_RATE;
-+
-+	switch (rate) {
-+	case 48000:
-+		mode |= WL1273_IS2_RATE_48K;
-+		break;
-+	case 44100:
-+		mode |= WL1273_IS2_RATE_44_1K;
-+		break;
-+	case 32000:
-+		mode |= WL1273_IS2_RATE_32K;
-+		break;
-+	case 22050:
-+		mode |= WL1273_IS2_RATE_22_05K;
-+		break;
-+	case 16000:
-+		mode |= WL1273_IS2_RATE_16K;
-+		break;
-+	case 12000:
-+		mode |= WL1273_IS2_RATE_12K;
-+		break;
-+	case 11025:
-+		mode |= WL1273_IS2_RATE_11_025;
-+		break;
-+	case 8000:
-+		mode |= WL1273_IS2_RATE_8K;
-+		break;
-+	default:
-+		dev_err(dev, "Sampling rate: %d not supported\n", rate);
-+		r = -EINVAL;
-+		goto out;
-+	}
-+
-+	switch (width) {
-+	case 16:
-+		mode |= WL1273_IS2_WIDTH_32;
-+		break;
-+	case 20:
-+		mode |= WL1273_IS2_WIDTH_40;
-+		break;
-+	case 24:
-+		mode |= WL1273_IS2_WIDTH_48;
-+		break;
-+	case 25:
-+		mode |= WL1273_IS2_WIDTH_50;
-+		break;
-+	case 30:
-+		mode |= WL1273_IS2_WIDTH_60;
-+		break;
-+	case 32:
-+		mode |= WL1273_IS2_WIDTH_64;
-+		break;
-+	case 40:
-+		mode |= WL1273_IS2_WIDTH_80;
-+		break;
-+	case 48:
-+		mode |= WL1273_IS2_WIDTH_96;
-+		break;
-+	case 64:
-+		mode |= WL1273_IS2_WIDTH_128;
-+		break;
-+	default:
-+		dev_err(dev, "Data width: %d not supported\n", width);
-+		r = -EINVAL;
-+		goto out;
-+	}
-+
-+	dev_dbg(dev, "WL1273_I2S_DEF_MODE: 0x%04x\n",  WL1273_I2S_DEF_MODE);
-+	dev_dbg(dev, "core->i2s_mode: 0x%04x\n", core->i2s_mode);
-+	dev_dbg(dev, "mode: 0x%04x\n", mode);
-+
-+	if (core->i2s_mode != mode) {
-+		r = wl1273_fm_write_cmd(core, WL1273_I2S_MODE_CONFIG_SET,
-+					mode);
-+		if (!r)
-+			core->i2s_mode = mode;
-+
-+		r = wl1273_fm_write_cmd(core, WL1273_AUDIO_ENABLE,
-+					WL1273_AUDIO_ENABLE_I2S);
-+		if (r)
-+			goto out;
-+	}
-+out:
-+	mutex_unlock(&core->lock);
-+
-+	return r;
-+}
-+
-+static int snd_wl1273_fm_set_channel_number(struct wl1273_core *core,
-+					    int channel_number)
-+{
-+	struct i2c_client *client = core->i2c_dev;
-+	struct device *dev = &client->dev;
-+	int r = 0;
-+
-+	dev_dbg(dev, "%s\n", __func__);
-+
-+	mutex_lock(&core->lock);
-+
-+	if (core->channel_number == channel_number)
-+		goto out;
-+
-+	if (channel_number == 1 && core->mode == WL1273_MODE_RX)
-+		r = wl1273_fm_write_cmd(core, WL1273_MOST_MODE_SET,
-+					WL1273_RX_MONO);
-+	else if (channel_number == 1 && core->mode == WL1273_MODE_TX)
-+		r = wl1273_fm_write_cmd(core, WL1273_MONO_SET,
-+					WL1273_TX_MONO);
-+	else if (channel_number == 2 && core->mode == WL1273_MODE_RX)
-+		r = wl1273_fm_write_cmd(core, WL1273_MOST_MODE_SET,
-+					WL1273_RX_STEREO);
-+	else if (channel_number == 2 && core->mode == WL1273_MODE_TX)
-+		r = wl1273_fm_write_cmd(core, WL1273_MONO_SET,
-+					WL1273_TX_STEREO);
-+	else
-+		r = -EINVAL;
-+out:
-+	mutex_unlock(&core->lock);
-+
-+	return r;
-+}
-+
-+static int snd_wl1273_get_audio_route(struct snd_kcontrol *kcontrol,
-+				      struct snd_ctl_elem_value *ucontrol)
-+{
-+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-+	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
-+
-+	ucontrol->value.integer.value[0] = wl1273->mode;
-+
-+	return 0;
-+}
-+
-+static int snd_wl1273_set_audio_route(struct snd_kcontrol *kcontrol,
-+				      struct snd_ctl_elem_value *ucontrol)
-+{
-+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-+	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
-+
-+	/* Do not allow changes while stream is running */
-+	if (codec->active)
-+		return -EPERM;
-+
-+	wl1273->mode = ucontrol->value.integer.value[0];
-+
-+	return 1;
-+}
-+
-+static const char *wl1273_audio_route[] = { "Bt", "FmRx", "FmTx" };
-+
-+static const struct soc_enum wl1273_enum[] = {
-+	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(wl1273_audio_route), wl1273_audio_route),
-+};
-+
-+static int snd_wl1273_fm_audio_get(struct snd_kcontrol *kcontrol,
-+				   struct snd_ctl_elem_value *ucontrol)
-+{
-+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-+	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
-+
-+	dev_dbg(codec->dev, "%s: enter.\n", __func__);
-+
-+	ucontrol->value.integer.value[0] = wl1273->core->audio_mode;
-+
-+	return 0;
-+}
-+
-+static int snd_wl1273_fm_audio_put(struct snd_kcontrol *kcontrol,
-+				   struct snd_ctl_elem_value *ucontrol)
-+{
-+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-+	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
-+	int val, r = 0;
-+
-+	dev_dbg(codec->dev, "%s: enter.\n", __func__);
-+
-+	val = ucontrol->value.integer.value[0];
-+	if (wl1273->core->audio_mode == val)
-+		return 0;
-+
-+	r = wl1273_fm_set_audio(wl1273->core, val);
-+	if (r < 0)
-+		return r;
-+
-+	return 1;
-+}
-+
-+static const char *wl1273_audio_strings[] = { "Digital", "Analog" };
-+
-+static const struct soc_enum wl1273_audio_enum[] = {
-+	SOC_ENUM_SINGLE_EXT(ARRAY_SIZE(wl1273_audio_strings),
-+			    wl1273_audio_strings),
-+};
-+
-+static int snd_wl1273_fm_volume_get(struct snd_kcontrol *kcontrol,
-+				    struct snd_ctl_elem_value *ucontrol)
-+{
-+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-+	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
-+
-+	dev_dbg(codec->dev, "%s: enter.\n", __func__);
-+
-+	ucontrol->value.integer.value[0] = wl1273->core->volume;
-+
-+	return 0;
-+}
-+
-+static int snd_wl1273_fm_volume_put(struct snd_kcontrol *kcontrol,
-+				    struct snd_ctl_elem_value *ucontrol)
-+{
-+	struct snd_soc_codec *codec = snd_kcontrol_chip(kcontrol);
-+	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
-+	int r;
-+
-+	dev_dbg(codec->dev, "%s: enter.\n", __func__);
-+
-+	r = wl1273_fm_set_volume(wl1273->core,
-+				 ucontrol->value.integer.value[0]);
-+	if (r)
-+		return r;
-+
-+	return 1;
-+}
-+
-+static const struct snd_kcontrol_new wl1273_controls[] = {
-+	SOC_ENUM_EXT("Codec Mode", wl1273_enum[0],
-+		     snd_wl1273_get_audio_route, snd_wl1273_set_audio_route),
-+	SOC_ENUM_EXT("Audio Switch", wl1273_audio_enum[0],
-+		     snd_wl1273_fm_audio_get,  snd_wl1273_fm_audio_put),
-+	SOC_SINGLE_EXT("Volume", 0, 0, WL1273_MAX_VOLUME, 0,
-+		       snd_wl1273_fm_volume_get, snd_wl1273_fm_volume_put),
-+};
-+
-+static int wl1273_add_controls(struct snd_soc_codec *codec)
-+{
-+	return snd_soc_add_controls(codec, wl1273_controls,
-+				    ARRAY_SIZE(wl1273_controls));
-+}
-+
-+static int wl1273_startup(struct snd_pcm_substream *substream,
-+			  struct snd_soc_dai *dai)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_device *socdev = rtd->socdev;
-+	struct snd_pcm *pcm = socdev->card->dai_link->pcm;
-+	struct snd_soc_codec *codec = socdev->card->codec;
-+	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
-+
-+	switch (wl1273->mode) {
-+	case WL1273_MODE_BT:
-+		pcm->info_flags &= ~SNDRV_PCM_INFO_HALF_DUPLEX;
-+		break;
-+	case WL1273_MODE_FM_RX:
-+		if (substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-+			pr_err("Cannot play in RX mode.\n");
-+			return -EINVAL;
-+		}
-+		pcm->info_flags |= SNDRV_PCM_INFO_HALF_DUPLEX;
-+		break;
-+	case WL1273_MODE_FM_TX:
-+		if (substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
-+			pr_err("Cannot capture in TX mode.\n");
-+			return -EINVAL;
-+		}
-+		pcm->info_flags |= SNDRV_PCM_INFO_HALF_DUPLEX;
-+		break;
-+	default:
-+		return -EINVAL;
-+		break;
-+	}
-+
-+	return 0;
-+}
-+
-+static int wl1273_hw_params(struct snd_pcm_substream *substream,
-+			    struct snd_pcm_hw_params *params,
-+			    struct snd_soc_dai *dai)
-+{
-+	struct snd_soc_pcm_runtime *rtd = substream->private_data;
-+	struct snd_soc_device *socdev = rtd->socdev;
-+	struct snd_soc_codec *codec = socdev->card->codec;
-+	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
-+	struct wl1273_core *core = wl1273->core;
-+	unsigned int rate, width, r;
-+
-+	if (params_format(params) != SNDRV_PCM_FORMAT_S16_LE) {
-+		pr_err("Only SNDRV_PCM_FORMAT_S16_LE supported.\n");
-+		return -EINVAL;
-+	}
-+
-+	rate = params_rate(params);
-+	width =  hw_param_interval(params, SNDRV_PCM_HW_PARAM_SAMPLE_BITS)->min;
-+
-+	if (wl1273->mode == WL1273_MODE_BT) {
-+		if (rate != 8000) {
-+			pr_err("Rate %d not supported.\n", params_rate(params));
-+			return -EINVAL;
-+		}
-+
-+		if (params_channels(params) != 1) {
-+			pr_err("Only mono supported.\n");
-+			return -EINVAL;
-+		}
-+
-+		return 0;
-+	}
-+
-+	if (wl1273->mode == WL1273_MODE_FM_TX &&
-+	    substream->stream == SNDRV_PCM_STREAM_CAPTURE) {
-+		pr_err("Only playback supported with TX.\n");
-+		return -EINVAL;
-+	}
-+
-+	if (wl1273->mode == WL1273_MODE_FM_RX  &&
-+	    substream->stream == SNDRV_PCM_STREAM_PLAYBACK) {
-+		pr_err("Only capture supported with RX.\n");
-+		return -EINVAL;
-+	}
-+
-+	if (wl1273->mode != WL1273_MODE_FM_RX  &&
-+	    wl1273->mode != WL1273_MODE_FM_TX) {
-+		pr_err("Unexpected mode: %d.\n", wl1273->mode);
-+		return -EINVAL;
-+	}
-+
-+	r = snd_wl1273_fm_set_i2s_mode(core, rate, width);
-+	if (r)
-+		return r;
-+
-+	r = snd_wl1273_fm_set_channel_number(core, (params_channels(params)));
-+	if (r)
-+		return r;
-+
-+	return 0;
-+}
-+
-+static int wl1273_set_dai_fmt(struct snd_soc_dai *codec_dai,
-+			      unsigned int fmt)
-+{
-+	return 0;
-+}
-+
-+static struct snd_soc_dai_ops wl1273_dai_ops = {
-+	.startup	= wl1273_startup,
-+	.hw_params	= wl1273_hw_params,
-+	.set_fmt	= wl1273_set_dai_fmt,
-+};
-+
-+struct snd_soc_dai wl1273_dai = {
-+	.name = "WL1273 BT/FM codec",
-+	.playback = {
-+		.stream_name = "Playback",
-+		.channels_min = 1,
-+		.channels_max = 2,
-+		.rates = SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_48000,
-+		.formats = SNDRV_PCM_FMTBIT_S16_LE},
-+	.capture = {
-+		.stream_name = "Capture",
-+		.channels_min = 1,
-+		.channels_max = 2,
-+		.rates = SNDRV_PCM_RATE_8000 | SNDRV_PCM_RATE_48000,
-+		.formats = SNDRV_PCM_FMTBIT_S16_LE},
-+	.ops = &wl1273_dai_ops,
-+};
-+EXPORT_SYMBOL_GPL(wl1273_dai);
-+
-+enum wl1273_mode wl1273_get_codec_mode(struct snd_soc_codec *codec)
-+{
-+	struct wl1273_priv *wl1273 = snd_soc_codec_get_drvdata(codec);
-+	return wl1273->mode;
-+}
-+EXPORT_SYMBOL_GPL(wl1273_get_codec_mode);
-+
-+static int wl1273_soc_suspend(struct platform_device *pdev, pm_message_t state)
-+{
-+	return 0;
-+}
-+
-+static int wl1273_soc_resume(struct platform_device *pdev)
-+{
-+	return 0;
-+}
-+
-+static struct snd_soc_codec *wl1273_codec;
-+
-+/*
-+ * initialize the driver
-+ * register the mixer and dsp interfaces with the kernel
-+ */
-+static int wl1273_soc_probe(struct platform_device *pdev)
-+{
-+	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
-+	struct snd_soc_codec *codec;
-+	struct wl1273_priv *wl1273;
-+	int r = 0;
-+
-+	dev_dbg(&pdev->dev, "%s.\n", __func__);
-+
-+	codec = wl1273_codec;
-+	wl1273 = snd_soc_codec_get_drvdata(codec);
-+	socdev->card->codec = codec;
-+
-+	codec->name = "wl1273";
-+	codec->owner = THIS_MODULE;
-+	codec->dai = &wl1273_dai;
-+	codec->num_dai = 1;
-+
-+	/* register pcms */
-+	r = snd_soc_new_pcms(socdev, SNDRV_DEFAULT_IDX1, SNDRV_DEFAULT_STR1);
-+	if (r < 0) {
-+		dev_err(&pdev->dev, "Wl1273: failed to create pcms.\n");
-+		goto err2;
-+	}
-+
-+	r = wl1273_add_controls(codec);
-+	if (r < 0) {
-+		dev_err(&pdev->dev, "Wl1273: failed to add contols.\n");
-+		goto err1;
-+	}
-+
-+	return r;
-+err1:
-+	snd_soc_free_pcms(socdev);
-+err2:
-+	return r;
-+}
-+
-+static int wl1273_soc_remove(struct platform_device *pdev)
-+{
-+	struct snd_soc_device *socdev = platform_get_drvdata(pdev);
-+
-+	snd_soc_free_pcms(socdev);
-+
-+	return 0;
-+}
-+
-+static int __devinit wl1273_codec_probe(struct platform_device *pdev)
-+{
-+	struct wl1273_core **pdata = pdev->dev.platform_data;
-+	struct snd_soc_codec *codec;
-+	struct wl1273_priv *wl1273;
-+	int r;
-+
-+	dev_dbg(&pdev->dev, "%s.\n", __func__);
-+
-+	if (!pdata) {
-+		dev_err(&pdev->dev, "Platform data is missing.\n");
-+		return -EINVAL;
-+	}
-+
-+	wl1273 = kzalloc(sizeof(struct wl1273_priv), GFP_KERNEL);
-+	if (wl1273 == NULL) {
-+		dev_err(&pdev->dev, "Cannot allocate memory.\n");
-+		return -ENOMEM;
-+	}
-+
-+	wl1273->mode = WL1273_MODE_BT;
-+	wl1273->core = *pdata;
-+
-+	codec = &wl1273->codec;
-+	snd_soc_codec_set_drvdata(codec, wl1273);
-+	codec->dev = &pdev->dev;
-+	wl1273_dai.dev = &pdev->dev;
-+
-+	mutex_init(&codec->mutex);
-+	INIT_LIST_HEAD(&codec->dapm_widgets);
-+	INIT_LIST_HEAD(&codec->dapm_paths);
-+
-+	codec->name = "wl1273";
-+	codec->owner = THIS_MODULE;
-+	codec->dai = &wl1273_dai;
-+	codec->num_dai = 1;
-+
-+	platform_set_drvdata(pdev, wl1273);
-+	wl1273_codec = codec;
-+
-+	codec->bias_level = SND_SOC_BIAS_OFF;
-+
-+	r = snd_soc_register_codec(codec);
-+	if (r != 0) {
-+		dev_err(codec->dev, "Failed to register codec: %d\n", r);
-+		goto err2;
-+	}
-+
-+	r = snd_soc_register_dai(&wl1273_dai);
-+	if (r != 0) {
-+		dev_err(codec->dev, "Failed to register DAIs: %d\n", r);
-+		goto err1;
-+	}
-+
-+	return 0;
-+
-+err1:
-+	snd_soc_unregister_codec(codec);
-+err2:
-+	kfree(wl1273);
-+	return r;
-+}
-+
-+static int __devexit wl1273_codec_remove(struct platform_device *pdev)
-+{
-+	struct wl1273_priv *wl1273 = platform_get_drvdata(pdev);
-+
-+	dev_dbg(&pdev->dev, "%s\n", __func__);
-+
-+	snd_soc_unregister_dai(&wl1273_dai);
-+	snd_soc_unregister_codec(&wl1273->codec);
-+
-+	kfree(wl1273);
-+	wl1273_codec = NULL;
-+
-+	return 0;
-+}
-+
-+MODULE_ALIAS("platform:wl1273_codec_audio");
-+
-+static struct platform_driver wl1273_codec_driver = {
-+	.probe		= wl1273_codec_probe,
-+	.remove		= __devexit_p(wl1273_codec_remove),
-+	.driver		= {
-+		.name	= "wl1273_codec_audio",
-+		.owner	= THIS_MODULE,
-+	},
-+};
-+
-+static int __init wl1273_modinit(void)
-+{
-+	return platform_driver_register(&wl1273_codec_driver);
-+}
-+module_init(wl1273_modinit);
-+
-+static void __exit wl1273_exit(void)
-+{
-+	platform_driver_unregister(&wl1273_codec_driver);
-+}
-+module_exit(wl1273_exit);
-+
-+struct snd_soc_codec_device soc_codec_dev_wl1273 = {
-+	.probe = wl1273_soc_probe,
-+	.remove = wl1273_soc_remove,
-+	.suspend = wl1273_soc_suspend,
-+	.resume = wl1273_soc_resume};
-+EXPORT_SYMBOL_GPL(soc_codec_dev_wl1273);
-+
-+MODULE_AUTHOR("Matti Aaltonen <matti.j.aaltonen@nokia.com>");
-+MODULE_DESCRIPTION("ASoC WL1273 codec driver");
-+MODULE_LICENSE("GPL");
-diff --git a/sound/soc/codecs/wl1273.h b/sound/soc/codecs/wl1273.h
-new file mode 100644
-index 0000000..8fb50ab
---- /dev/null
-+++ b/sound/soc/codecs/wl1273.h
-@@ -0,0 +1,42 @@
-+/*
-+ * sound/soc/codec/wl1273.h
-+ *
-+ * ALSA SoC WL1273 codec driver
-+ *
-+ * Copyright (C) Nokia Corporation
-+ * Author: Matti Aaltonen <matti.j.aaltonen@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#ifndef __WL1273_CODEC_H__
-+#define __WL1273_CODEC_H__
-+
-+enum wl1273_mode { WL1273_MODE_BT, WL1273_MODE_FM_RX, WL1273_MODE_FM_TX };
-+
-+/* codec private data */
-+struct wl1273_priv {
-+	struct snd_soc_codec codec;
-+	enum wl1273_mode mode;
-+	struct wl1273_core *core;
-+};
-+
-+extern struct snd_soc_dai wl1273_dai;
-+extern struct snd_soc_codec_device soc_codec_dev_wl1273;
-+
-+enum wl1273_mode wl1273_get_codec_mode(struct snd_soc_codec *codec);
-+
-+#endif	/* End of __WL1273_CODEC_H__ */
--- 
-1.6.1.3
+Here goes:
+[249160.380080] usb 1-4: new high speed USB device using ehci_hcd and address 7
+[249160.530722] usb 1-4: configuration #1 chosen from 1 choice
+[249160.615476] Linux video capture interface: v2.00
+[249160.635939] em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, class 0)
+[249160.636101] em28xx #0: chip ID is em2820 (or em2710)
+[249160.794940] em28xx #0: i2c eeprom 00: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794947] em28xx #0: i2c eeprom 10: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794952] em28xx #0: i2c eeprom 20: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794958] em28xx #0: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794963] em28xx #0: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794968] em28xx #0: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794973] em28xx #0: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794977] em28xx #0: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794982] em28xx #0: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794987] em28xx #0: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794992] em28xx #0: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.794997] em28xx #0: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.795002] em28xx #0: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.795007] em28xx #0: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.795012] em28xx #0: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.795017] em28xx #0: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[249160.795023] em28xx #0: EEPROM ID= 0xffffffff, EEPROM hash = 0x00000000
+[249160.795024] em28xx #0: EEPROM info:
+[249160.795025] em28xx #0:	I2S audio, 3 sample rates
+[249160.795026] em28xx #0:	USB Remote wakeup capable
+[249160.795027] em28xx #0:	USB Self power capable
+[249160.795028] em28xx #0:	200mA max power
+[249160.795030] em28xx #0:	Table at 0xff, strings=0xffff, 0xffff, 0xffff
+[249160.811443] Unknown Micron Sensor 0x00ff
+[249160.811445] em28xx #0: Identified as Unknown EM2750/28xx video
+grabber (card=1)
+[249160.825687] em28xx #0: found i2c device @ 0x4a [saa7113h]
+[249160.841817] em28xx #0: found i2c device @ 0xa0 [eeprom]
+[249160.846685] em28xx #0: found i2c device @ 0xba [webcam sensor or tvp5150a]
+[249160.848931] em28xx #0: found i2c device @ 0xc6 [tuner (analog)]
+[249160.859431] em28xx #0: Your board has no unique USB ID and thus
+need a hint to be detected.
+[249160.859433] em28xx #0: You may try to use card=<n> insmod option
+to workaround that.
+[249160.859435] em28xx #0: Please send an email with this log to:
+[249160.859436] em28xx #0: 	V4L Mailing List <linux-media@vger.kernel.org>
+[249160.859437] em28xx #0: Board eeprom hash is 0x00000000
+[249160.859439] em28xx #0: Board i2c devicelist hash is 0x156500e3
+[249160.859440] em28xx #0: Here is a list of valid choices for the
+card=<n> insmod option:
+[249160.859442] em28xx #0:     card=0 -> Unknown EM2800 video grabber
+[249160.859443] em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
+[249160.859445] em28xx #0:     card=2 -> Terratec Cinergy 250 USB
+[249160.859446] em28xx #0:     card=3 -> Pinnacle PCTV USB 2
+[249160.859448] em28xx #0:     card=4 -> Hauppauge WinTV USB 2
+[249160.859449] em28xx #0:     card=5 -> MSI VOX USB 2.0
+[249160.859450] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
+[249160.859452] em28xx #0:     card=7 -> Leadtek Winfast USB II
+[249160.859453] em28xx #0:     card=8 -> Kworld USB2800
+[249160.859455] em28xx #0:     card=9 -> Pinnacle Dazzle DVC
+90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2
+[249160.859457] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
+[249160.859458] em28xx #0:     card=11 -> Terratec Hybrid XS
+[249160.859460] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
+[249160.859461] em28xx #0:     card=13 -> Terratec Prodigy XS
+[249160.859462] em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview
+Prolink PlayTV USB 2.0
+[249160.859464] em28xx #0:     card=15 -> V-Gear PocketTV
+[249160.859465] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
+[249160.859467] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
+[249160.859468] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
+[249160.859470] em28xx #0:     card=19 -> EM2860/SAA711X Reference Design
+[249160.859471] em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
+[249160.859473] em28xx #0:     card=21 -> eMPIA Technology, Inc.
+GrabBeeX+ Video Encoder
+[249160.859474] em28xx #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber
+[249160.859476] em28xx #0:     card=23 -> Huaqi DLCW-130
+[249160.859477] em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
+[249160.859478] em28xx #0:     card=25 -> Gadmei UTV310
+[249160.859480] em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
+[249160.859481] em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips FM1216ME)
+[249160.859483] em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
+[249160.859484] em28xx #0:     card=29 -> <NULL>
+[249160.859486] em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
+[249160.859487] em28xx #0:     card=31 -> Usbgear VD204v9
+[249160.859488] em28xx #0:     card=32 -> Supercomp USB 2.0 TV
+[249160.859490] em28xx #0:     card=33 -> <NULL>
+[249160.859491] em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS
+[249160.859492] em28xx #0:     card=35 -> Typhoon DVD Maker
+[249160.859493] em28xx #0:     card=36 -> NetGMBH Cam
+[249160.859495] em28xx #0:     card=37 -> Gadmei UTV330
+[249160.859496] em28xx #0:     card=38 -> Yakumo MovieMixer
+[249160.859497] em28xx #0:     card=39 -> KWorld PVRTV 300U
+[249160.859499] em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U
+[249160.859500] em28xx #0:     card=41 -> Kworld 350 U DVB-T
+[249160.859501] em28xx #0:     card=42 -> Kworld 355 U DVB-T
+[249160.859503] em28xx #0:     card=43 -> Terratec Cinergy T XS
+[249160.859504] em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
+[249160.859506] em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
+[249160.859507] em28xx #0:     card=46 -> Compro, VideoMate U3
+[249160.859508] em28xx #0:     card=47 -> KWorld DVB-T 305U
+[249160.859510] em28xx #0:     card=48 -> KWorld DVB-T 310U
+[249160.859511] em28xx #0:     card=49 -> MSI DigiVox A/D
+[249160.859512] em28xx #0:     card=50 -> MSI DigiVox A/D II
+[249160.859514] em28xx #0:     card=51 -> Terratec Hybrid XS Secam
+[249160.859515] em28xx #0:     card=52 -> DNT DA2 Hybrid
+[249160.859516] em28xx #0:     card=53 -> Pinnacle Hybrid Pro
+[249160.859518] em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
+[249160.859519] em28xx #0:     card=55 -> Terratec Hybrid XS (em2882)
+[249160.859521] em28xx #0:     card=56 -> Pinnacle Hybrid Pro (2)
+[249160.859522] em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
+[249160.859523] em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
+[249160.859525] em28xx #0:     card=59 -> <NULL>
+[249160.859526] em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
+[249160.859527] em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
+[249160.859529] em28xx #0:     card=62 -> Gadmei TVR200
+[249160.859530] em28xx #0:     card=63 -> Kaiomy TVnPC U2
+[249160.859531] em28xx #0:     card=64 -> Easy Cap Capture DC-60
+[249160.859533] em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
+[249160.859534] em28xx #0:     card=66 -> Empire dual TV
+[249160.859535] em28xx #0:     card=67 -> Terratec Grabby
+[249160.859537] em28xx #0:     card=68 -> Terratec AV350
+[249160.859538] em28xx #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
+[249160.859539] em28xx #0:     card=70 -> Evga inDtube
+[249160.859541] em28xx #0:     card=71 -> Silvercrest Webcam 1.3mpix
+[249160.859542] em28xx #0:     card=72 -> Gadmei UTV330+
+[249160.859543] em28xx #0:     card=73 -> Reddo DVB-C USB TV Box
+[249160.859681] em28xx #0: Config register raw data: 0x00
+[249160.859683] em28xx #0: v4l2 driver version 0.1.2
+[249161.520906] em28xx #0: V4L2 video device registered as /dev/video0
+[249161.520925] usbcore: registered new interface driver em28xx
+[249161.520927] em28xx driver loaded
 
+BR Lars
