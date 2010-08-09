@@ -1,67 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:39442 "EHLO mail.issp.bas.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751771Ab0HZGGK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 02:06:10 -0400
-From: Marin Mitov <mitov@issp.bas.bg>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Date: Thu, 26 Aug 2010 09:04:14 +0300
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	akpm@linux-foundation.org
-References: <201008201113.46036.mitov@issp.bas.bg> <201008201450.12585.mitov@issp.bas.bg> <20100826144000C.fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <20100826144000C.fujita.tomonori@lab.ntt.co.jp>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:54821 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756424Ab0HIO2w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 10:28:52 -0400
+Received: by pvg2 with SMTP id 2so721294pvg.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Aug 2010 07:28:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008260904.19973.mitov@issp.bas.bg>
+In-Reply-To: <20100809133252.GW6126@belle.intranet.vanheusden.com>
+References: <20100809133252.GW6126@belle.intranet.vanheusden.com>
+Date: Mon, 9 Aug 2010 10:28:51 -0400
+Message-ID: <AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
+Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 & /dev/dvb
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thursday, August 26, 2010 08:40:47 am FUJITA Tomonori wrote:
-> On Fri, 20 Aug 2010 14:50:12 +0300
-> Marin Mitov <mitov@issp.bas.bg> wrote:
-> 
-> > On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
-> > > On Fri, 20 Aug 2010 11:13:45 +0300
-> > > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > > 
-> > > > > > This tric is already used in drivers/staging/dt3155v4l.c
-> > > > > > dt3155_alloc_coherent()/dt3155_free_coherent()
-> > > > > > 
-> > > > > > Here proposed for general use by popular demand from video4linux folks.
-> > > > > > Helps for videobuf-dma-contig framework.
-> > > > > 
-> > > > > What you guys exactly want to do? If you just want to pre-allocate
-> > > > > coherent memory for latter usage,
-> > > > 
-> > > > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
-> > > > We use coherent memory because it turns out to be contiguous.
-> > > 
-> > > Hmm, you don't care about coherency? You just need contiguous memory?
-> > 
-> > Yes. We just need contiguous memory. Coherency is important as far as when dma
-> > transfer finishes user land is able to see the new data. Could be done by something like
-> > dma_{,un}map_single()
-> 
-> Then, we should avoid using coherent memory as I exaplained before. In
-> addition, dma_alloc_coherent can't provide large enough contigous
-> memory for some drivers so this patch doesn't help much.
+On Mon, Aug 9, 2010 at 9:32 AM, folkert <folkert@vanheusden.com> wrote:
+> Hi,
+>
+> I have a:
+> Bus 001 Device 006: ID 2304:0226 Pinnacle Systems, Inc. PCTV 330e
+> inserted in a system with kernel 2.6.34.
 
-Please, look at drivers/media/video/videobuf-dma-contig.c. Using coherent memory
-is inavoidable for now, there is no alternative for it for now. The two new functions,
-which I propose are just helpers for those of us who already use coherent memory
-(via videobuf-dma-contig API). May be adding these two functions to 
-drivers/media/video/videobuf-dma-contig.c will be better solution?
+The PCTV 330e support for digital hasn't been merged upstream yet.
 
-Thanks.
+See here:
 
-Marin Mitov
+http://www.kernellabs.com/blog/?cat=35
 
-> 
-> We need the proper API for contiguous memory. Seem that we could have
-> something:
-> 
-> http://lkml.org/lkml/2010/8/20/167
-> 
+Cheers,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
