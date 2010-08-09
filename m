@@ -1,164 +1,88 @@
-Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:52278 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753234Ab0HZBXG convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 21:23:06 -0400
-Date: Thu, 26 Aug 2010 03:22:37 +0200
-From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
-Subject: Re: [PATCH/RFCv4 2/6] mm: cma: Contiguous Memory Allocator added
-In-reply-to: <20100825203237.GA5318@phenom.dumpdata.com>
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	linux-kernel@vger.kernel.org,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <op.vh0t3z2m7p4s8u@localhost>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-transfer-encoding: 8BIT
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
- <0b02e05fc21e70a3af39e65e628d117cd89d70a1.1282286941.git.m.nazarewicz@samsung.com>
- <343f4b0edf9b5eef598831700cb459cd428d3f2e.1282286941.git.m.nazarewicz@samsung.com>
- <20100825203237.GA5318@phenom.dumpdata.com>
+Return-path: <lane@brooks.nu>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:37590 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756567Ab0HINjA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 09:39:00 -0400
+Received: by pwj7 with SMTP id 7so1256425pwj.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Aug 2010 06:39:00 -0700 (PDT)
+Message-ID: <4C6004F0.9080305@brooks.nu>
+Date: Mon, 09 Aug 2010 07:38:56 -0600
+From: Lane Brooks <lane@brooks.nu>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: OMAP3 Bridge Problems
+References: <4C583538.8060504@gmail.com> <201008090029.04455.laurent.pinchart@ideasonboard.com> <4C5F361B.10202@brooks.nu> <201008091125.56159.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201008091125.56159.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wed, 25 Aug 2010 22:32:37 +0200, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
-
-> On Fri, Aug 20, 2010 at 11:50:42AM +0200, Michal Nazarewicz wrote:
->> The Contiguous Memory Allocator framework is a set of APIs for
->> allocating physically contiguous chunks of memory.
->>
->> Various chips require contiguous blocks of memory to operate.  Those
->> chips include devices such as cameras, hardware video decoders and
->> encoders, etc.
+  On 08/09/2010 03:25 AM, Laurent Pinchart wrote:
+> Hi Lane,
 >
-> I am not that familiar with how StrongARM works, and I took a bit look
-> at the arch/arm/mach-s* and then some of the
-> drivers/video/media/video/cx88 to get an idea how the hardware video
-> decoders would work this.
+> On Monday 09 August 2010 00:56:27 Lane Brooks wrote:
+>> On 08/08/2010 04:29 PM, Laurent Pinchart wrote:
+>>> Hi Lane,
+>>>
+>>> Thanks for the patch.
+>>>
+>>> On Thursday 05 August 2010 20:53:50 Lane Brooks wrote:
+>>>
+>>> [snip]
+>>>
+>>>> I was able to get YUV CCDC capture mode working with rather minimal
+>>>> effort. Attached is a patch with the initial effort. Can you comment?
+>>> Writing to the ISPCCDC_SYN_MODE register should be moved to
+>>> ccdc_configure(). Just move the switch statement there right after the
+>>>
+>>> 	format =&ccdc->formats[CCDC_PAD_SINK];
+>>>
+>>> line (without the ispctrl_val settings), it should be enough.
+>>>
+>>>> +		isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN,
+>>>> +			       ISP_CTRL);
+>>> The ISP_CTRL register should be written in isp_select_bridge_input()
+>>> only. As you correctly mention, whether the data is in little endian or
+>>> big endian format should come from platform data, so I think it's fine
+>>> to force board files to set the isp->pdata->parallel.bridge field to the
+>>> correct value.
+>> Putting the bridge settings in the platform data is tricky because they
+>> need to change depending on the selected format. For example, for my
+>> board, when in SGRBG mode, the bridge needs disabled. When in YUV16
+>> mode, however, I need need to select BIG/LITTLE endian depending on
+>> whether it is YUYV or UYVY or ...
+> Ah right... So your sensor can output both Bayer and YUV data ? What sensor is
+> that BTW ?
 >
-> What I got from this patch review is that you are writting an IOMMU
 
-No.  CMA's designed for systems without IOMMU.  If system has IOMMU then
-there is no need for contiguous memory blocks since all discontiguousnesses
-can be hidden by the IOMMU.
+Aptina MT9T111. It can even output JPEG.
 
-> that is on steroids. It essentially knows that this device and that
-> device can both share the same region, and it has fancy plugin system
-> to deal with fragmentation and offers an simple API for other to
-> write their own "allocators".
 
-Dunno if the plugin system is "fancy" but essentially the above is true. ;)
 
-> Even better, during init, the sub-platform can use
-> cma_early_regions_reserve(<func>) to register their own function
-> for reserving large regions of memory. Which from my experience (with
-> Xen) means that there is a mechanism in place to have it setup
-> contingous regions using sub-platform code.
-
-Essentially that's the idea.  Platform init code adds early regions and later
-on reserves memory for all of the early regions.  For the former some
-additional helper functions are provided which can be used.
-
-> This is how I think it works, but I am not sure if I got it right. From
-> looking at 'cma_alloc' and 'cma_alloc_from_region' - both return
-> an dma_addr_t, which is what is usually feed in the DMA API. And looking
-> at the cx88 driver I see it using that API..
+>> I am not quite sure how to capture that in the platform data without
+>> enumerating every supported format code in the platform data. The current
+>> patch knows (based on the OMAP TRM) that YUV16 mode requires the bridge to
+>> be enabled. So in the platform data I specify the bridge state for SGBRG
+>> mode and force the bridge to BIG endian in YUV16 mode. This leaves the
+>> sensor to switch the phasing based on YUYV, YVYU, etc. mode.  I am not sure
+>> who should be in charge of doing byte swapping in general, but if the input
+>> and output modes are the same, then big endian should be used to avoid a
+>> byte swap. In other words, the mode is completely determinable based on the
+>> formats, so perhaps I should implement it that way. If the input and output
+>> port require a byte swap, then go little endian, otherwise go big endian.
+> OK I understand. The best solution (for now) would then be to modify
+> isp_configure_bridge(). I wrote a few patches that modify how platform data is
+> handled, but I can't commit them at the moment (they depend on other patches
+> that I still need to clean up).
 >
-> I do understand that under ARM platform you might not have a need for
-> DMA at all, and you use the 'dma_addr_t' just as handles, but for
-> other platforms this would be used.
+>> The reason why I put both writes to the ISPCTRL and SYN_MODE registers
+>> where I did. Moving them to other places will require querying the
+>> selected format code. Is that what you want as well?
+> For SYN_MODE, definitely. For ISPCTRL, you can hack isp_configure_bridge() to
+> retrieve the current CCDC input format, and we'll write a proper fix right
+> after I commit my platform data restructuring patches.
+I'll wait for your patches then. Let me know.
 
-In the first version I've used unsigned long as return type but then it
-was suggested that maybe dma_addr_t would be better.  This is easily
-changed at this stage so I'd be more then happy to hear any comments.
-
-> So here is the bit where I am confused. Why not have this
-> as Software IOMMU that would utilize the IOMMU API? There would be some
-> technical questions to be answered (such as, what to do when you have
-> another IOMMU and can you stack them on top of each other).
-
-If I understood you correctly this is something I'm thinking about.  I'm
-actually thinking of ways to integrate CMA with Zach's IOMMU proposal posted
-some time ago.  The idea would be to define a subset of functionalities
-of the IOMMU API that would work on systems with and without hardware IOMMU.
-If platform had no IOMMU CMA would be used.
-
-I'm currently trying to fully understand Zach's proposal to see how such an
-approach could be pursued.
-
-> A light review below:
-
-Thanks!  Greatly appreciated.
-
->> + * cma_alloc_from - allocates contiguous chunk of memory from named regions.
->> + * @regions:	Comma separated list of region names.  Terminated by NUL
->
-> I think you mean 'NULL'
-
-No, a NUL byte, ie. '\0'.
-
->> + *		byte or a semicolon.
->
-> Uh, really? Why? Why not just simplify your life and make it \0?
-
-This is a consequence of how map is stored.  It's stored as a single string
-with entries separated by semicolons.
-
->> + * The cma_allocator::alloc() operation need to set only the @start
->                       ^^- C++, eh?
-
-Well, I'm unaware of a C way to reference "methods" so I just borrowed C++ style.
-
->> +int __init cma_early_region_reserve(struct cma_region *reg)
->> +{
-[...]
->> +#ifndef CONFIG_NO_BOOTMEM
-[...]
->> +#endif
->> +
->> +#ifdef CONFIG_HAVE_MEMBLOCK
-[...]
->> +#endif
-
-> Those two #ifdefs are pretty ugly. What if you defined in a header
-> something along this:
->
-> #ifdef CONFIG_HAVE_MEMBLOCK
-> int __init default_early_region_reserve(struct cma_region *reg) {
->    .. do it using memblock
-> }
-> #endif
-> #ifdef CONFIG_NO_BOOTMEM
-> int __init default_early_region_reserve(struct cma_region *reg) {
->    .. do it using bootmem
-> }
-> #endif
-
-I wanted the function to try all possible allocators.  As a matter of fact,
-both APIs (memblock and bootmem) can be supported at the same time.
-
-> and you would cut the API by one function, the
-> cma_early_regions_reserve(struct cma_region *reg)
-
-Actually, I would prefer to leave it.  It may be useful for platform
-initialisation code.  Especially if platform has some special regions
-which are allocated in a different but for the rest wants to use the
-default CMA's reserve call.
-
--- 
-Best regards,                                        _     _
-| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
-| Computer Science,  Michał "mina86" Nazarewicz       (o o)
-+----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
 
