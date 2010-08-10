@@ -1,114 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1120 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753911Ab0H2SzE (ORCPT
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:48315 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752490Ab0HJMal (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Aug 2010 14:55:04 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7TIt1V4057968
-	for <linux-media@vger.kernel.org>; Sun, 29 Aug 2010 20:55:02 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 29 Aug 2010 20:55:01 +0200 (CEST)
-Message-Id: <201008291855.o7TIt1V4057968@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+	Tue, 10 Aug 2010 08:30:41 -0400
+Subject: Re: [PATCH v7 1/5] V4L2: Add seek spacing and FM RX class.
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: ext Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
+In-Reply-To: <4C614294.7080101@redhat.com>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <201008091838.13247.hverkuil@xs4all.nl>
+	 <1281425501.14489.7.camel@masi.mnp.nokia.com>
+	 <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
+	 <1281441830.14489.27.camel@masi.mnp.nokia.com>
+	 <4C614294.7080101@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 10 Aug 2010 15:30:06 +0300
+Message-ID: <1281443406.14489.35.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Tue, 2010-08-10 at 14:14 +0200, ext Mauro Carvalho Chehab wrote:
+> Em 10-08-2010 09:03, Matti J. Aaltonen escreveu:
+> > On Tue, 2010-08-10 at 10:04 +0200, ext Hans Verkuil wrote:
+> >>> On Mon, 2010-08-09 at 18:38 +0200, ext Hans Verkuil wrote:
+> >>>> On Monday 02 August 2010 16:06:39 Matti J. Aaltonen wrote:
+> >>>>> Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
+> >>>>> control classes.
+> >>>>
+> >>>> This will no longer apply now that the control framework has been
+> >>>> merged.
+> >>>>
+> >>>> I strongly recommend converting the driver to use that framework. If
+> >>>> nothing else, you get support for the g/s/try_ext_ctrls ioctls for free.
+> >>>>
+> >>>> See the file Documentation/video4linux/v4l2-controls.txt.
+> >>>
+> >>> I can't find that file.  Should it be in some branch of the development
+> >>> tree?
+> >>
+> >> It's in the new development tree, branch staging/v2.6.36:
+> >>
+> >> http://git.linuxtv.org/media_tree.git
+> >>
+> >> This replaced the v4l-dvb.git tree.
+> >>
+> >> Regards,
+> > 
+> > This mainly FYI:
+> > 
+> > I can read the v4l2-controls.txt file through your git web system... but
+> > after cloning etc. I can't see it...
+> 
+> You're probably at the wrong branch. you'll need to do something like:
+> 	$ git checkout -b my_working_branch remotes/staging/v2.6.36
+> 
+> in order to create a new branch based on it.
 
-Results of the daily build of v4l-dvb:
+Referring to a remote branch like that is new to me, also it doesn't
+work:
 
-date:        Sun Aug 29 19:00:12 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15138:a4c762698bcb
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+git branch -a
+  master
+* v2636
+  origin/HEAD
+  origin/master
+  origin/staging/v2.6.35
+  origin/staging/v2.6.36
+  origin/staging/v2.6.37
 
-linux-2.6.32.6-armv5: ERRORS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: ERRORS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
+git checkout -b my_working_branch remotes/staging/v2.6.36
+fatal: git checkout: updating paths is incompatible with switching
+branches.
+Did you intend to checkout 'remotes/staging/v2.6.36' which can not be
+resolved as commit?
 
-Detailed results are available here:
+more .git/config
+[core]
+        repositoryformatversion = 0
+        filemode = true
+        bare = false
+        logallrefupdates = true
+[remote "origin"]
+        url = http://linuxtv.org/git/media_tree.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "master"]
+        remote = origin
+        merge = refs/heads/master
+[branch "v2636"]
+        remote = origin
+        merge = refs/heads/staging/v2.6.36
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Full logs are available here:
+git --version
+git version 1.6.1.3
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-The V4L-DVB specification from this daily build is here:
+> 
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+
