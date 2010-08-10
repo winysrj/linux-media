@@ -1,80 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:53626 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753607Ab0HZKV4 (ORCPT
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:23658 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753473Ab0HJHbv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 06:21:56 -0400
-MIME-Version: 1.0
-In-Reply-To: <1282817160.1975.476.camel@laptop>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	<1282310110.2605.976.camel@laptop>
-	<20100825155814.25c783c7.akpm@linux-foundation.org>
-	<20100825173125.0855a6b0@bike.lwn.net>
-	<AANLkTinPaq+0MbdW81uoc5_OZ=1Gy_mVYEBnwv8zgOBd@mail.gmail.com>
-	<1282810811.1975.246.camel@laptop>
-	<AANLkTin7EBZw0-WY=NGOmYzZT5Cfy7oWVFBaT2cjK+vZ@mail.gmail.com>
-	<1282817160.1975.476.camel@laptop>
-Date: Thu, 26 Aug 2010 19:21:55 +0900
-Message-ID: <AANLkTikS9Bc1NmCCO5w=pT+LBLaeSyk2PBnAry+oDxM8@mail.gmail.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-From: Minchan Kim <minchan.kim@gmail.com>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 10 Aug 2010 03:31:51 -0400
+Subject: Re: [PATCH v7 1/5] V4L2: Add seek spacing and FM RX class.
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>
+In-Reply-To: <201008091838.13247.hverkuil@xs4all.nl>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <201008091838.13247.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 10 Aug 2010 10:31:40 +0300
+Message-ID: <1281425501.14489.7.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, Aug 26, 2010 at 7:06 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Thu, 2010-08-26 at 18:29 +0900, Minchan Kim wrote:
->> As I said following mail, I said about free space problem.
->> Of course, compaction could move anon pages into somewhere.
->> What's is somewhere? At last, it's same zone.
->> It can prevent fragment problem but not size of free space.
->> So I mean it would be better to move it into another zone(ex, HIGHMEM)
->> rather than OOM kill.
->
-> Real machines don't have highmem, highmem sucks!! /me runs
+On Mon, 2010-08-09 at 18:38 +0200, ext Hans Verkuil wrote:
+> On Monday 02 August 2010 16:06:39 Matti J. Aaltonen wrote:
+> > Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
+> > control classes.
+> 
+> This will no longer apply now that the control framework has been merged.
+> 
+> I strongly recommend converting the driver to use that framework. If
+> nothing else, you get support for the g/s/try_ext_ctrls ioctls for free.
+> 
+> See the file Documentation/video4linux/v4l2-controls.txt.
 
-It's another topic.
-I agree highmem isn't a gorgeous. But my desktop isn't real machine?
-Important thing is that we already have a highmem and many guys
-include you(kmap stacking patch :))try to improve highmem problems. :)
+I can't find that file.  Should it be in some branch of the development
+tree?
 
->
-> Does cross zone movement really matter, I though these crappy devices
-> were mostly used on crappy hardware with very limited memory, so pretty
-> much everything would be in zone_normal.. no?
+I've updated my tree....:
 
-No. Until now, many embedded devices have used to small memory. In
-that case, only there is a DMA zone in system. But as I know, mobile
-phone starts to use big(?) memory like 1G or above sooner or later. So
-they starts to use HIGHMEM. Otherwise, 2G/2G space configuration.
-Some embedded device uses many thread model to port easily from RTOS.
-In that case, they don't have enough address space for application if
-it uses 2G/2G model.
+[remote "origin"]
+        url =
+http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
+        fetch = +refs/heads/*:refs/remotes/origin/*
+[remote "linuxtv"]
+        url = http://linuxtv.org/git/v4l-dvb.git
+        fetch = +refs/heads/*:refs/remotes/linuxtv/*
 
-So we should care of HIGHMEM in embedded system from now on.
+The closest file I have name-wise is
+Documentation/video4linux/v4l2-framework.txt
 
->
-> But sure, if there's really a need we can look at maybe doing cross zone
-> movement.
->
+Thanks,
+Matti A.
 
-
--- 
-Kind regards,
-Minchan Kim
