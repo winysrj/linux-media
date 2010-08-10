@@ -1,69 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from mailout4.samsung.com ([203.254.224.34]:20312 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752518Ab0HYIsa (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4858 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932349Ab0HJSSN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 04:48:30 -0400
-Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Sun Java(tm) System Messaging Server 7u3-15.01 64bit (built Feb 12 2010))
- with ESMTP id <0L7P00BQU9SQC2C0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 Aug 2010 17:48:26 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0L7P0094Y9SQBQ@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 Aug 2010 17:48:26 +0900 (KST)
-Date: Wed, 25 Aug 2010 17:48:48 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: [PATCH 2/3] radio-si470x: Remove ifdef for RDS
-In-reply-to: <1282726129-28408-1-git-send-email-jy0922.shim@samsung.com>
+	Tue, 10 Aug 2010 14:18:13 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7AIIC6t022268
+	for <linux-media@vger.kernel.org>; Tue, 10 Aug 2010 20:18:12 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 10 Aug 2010 20:18:12 +0200 (CEST)
+Message-Id: <201008101818.o7AIIC6t022268@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, tobias.lorenz@gmx.net,
-	kyungmin.park@samsung.com
-Message-id: <1282726129-28408-2-git-send-email-jy0922.shim@samsung.com>
-Content-transfer-encoding: 7BIT
-References: <1282726129-28408-1-git-send-email-jy0922.shim@samsung.com>
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-The si470x i2c and usb driver support the RDS, so this ifdef statement
-doesn't need more.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Joonyoung Shim <jy0922.shim@samsung.com>
----
- drivers/media/radio/si470x/radio-si470x-common.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/media/radio/si470x/radio-si470x-common.c b/drivers/media/radio/si470x/radio-si470x-common.c
-index 7585566..5c80df8 100644
---- a/drivers/media/radio/si470x/radio-si470x-common.c
-+++ b/drivers/media/radio/si470x/radio-si470x-common.c
-@@ -679,12 +679,8 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
- 	/* driver constants */
- 	strcpy(tuner->name, "FM");
- 	tuner->type = V4L2_TUNER_RADIO;
--#if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
- 	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO |
- 			    V4L2_TUNER_CAP_RDS;
--#else
--	tuner->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
--#endif
- 
- 	/* range limits */
- 	switch ((radio->registers[SYSCONFIG2] & SYSCONFIG2_BAND) >> 6) {
-@@ -710,12 +706,10 @@ static int si470x_vidioc_g_tuner(struct file *file, void *priv,
- 		tuner->rxsubchans = V4L2_TUNER_SUB_MONO;
- 	else
- 		tuner->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
--#if defined(CONFIG_USB_SI470X) || defined(CONFIG_USB_SI470X_MODULE)
- 	/* If there is a reliable method of detecting an RDS channel,
- 	   then this code should check for that before setting this
- 	   RDS subchannel. */
- 	tuner->rxsubchans |= V4L2_TUNER_SUB_RDS;
--#endif
- 
- 	/* mono/stereo selector */
- 	if ((radio->registers[POWERCFG] & POWERCFG_MONO) == 0)
--- 
-1.7.0.4
+date:        Tue Aug 10 19:00:22 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15029:2dd0872c7c1d
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: ERRORS
+linux-2.6.34-i686: ERRORS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: ERRORS
+linux-2.6.34-mips: ERRORS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: ERRORS
+linux-2.6.34-powerpc64: ERRORS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: ERRORS
+linux-2.6.34-x86_64: ERRORS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
