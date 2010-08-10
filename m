@@ -1,136 +1,70 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:34932 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752555Ab0HBIiy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 04:38:54 -0400
-Received: from eu_spt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L6I00DL7O0SX0@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 02 Aug 2010 09:38:52 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L6I006GUO0RSG@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 02 Aug 2010 09:38:52 +0100 (BST)
-Date: Mon, 02 Aug 2010 10:37:14 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: [PATCH v5 1/3] v4l: Add multi-planar API definitions to the V4L2
- API
-In-reply-to: <201008011414.49302.hverkuil@xs4all.nl>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Fujak <t.fujak@samsung.com>
-Message-id: <002801cb321d$e85ed300$b91c7900$%osciak@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1280479783-23945-1-git-send-email-p.osciak@samsung.com>
- <1280479783-23945-2-git-send-email-p.osciak@samsung.com>
- <201008011414.49302.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from as-10.de ([212.112.241.2]:49391 "EHLO mail.as-10.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751422Ab0HJI0j (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Aug 2010 04:26:39 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.as-10.de (Postfix) with ESMTP id E04D033A6D3
+	for <linux-media@vger.kernel.org>; Tue, 10 Aug 2010 10:26:37 +0200 (CEST)
+Received: from mail.as-10.de ([127.0.0.1])
+	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id HAiqae1RgYDA for <linux-media@vger.kernel.org>;
+	Tue, 10 Aug 2010 10:26:37 +0200 (CEST)
+Received: from gentoo.local (pD9E3E9E6.dip.t-dialin.net [217.227.233.230])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: web11p28)
+	by mail.as-10.de (Postfix) with ESMTPSA id ADF7433A6CD
+	for <linux-media@vger.kernel.org>; Tue, 10 Aug 2010 10:26:37 +0200 (CEST)
+Date: Tue, 10 Aug 2010 10:26:41 +0200
+From: Halim Sahin <halim.sahin@t-online.de>
+To: linux-media@vger.kernel.org
+Subject: knc1 dvb-c card frequently looses CAM when switching channels
+ quickly
+Message-ID: <20100810082640.GA13226@gentoo.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Hans,
-thank you for the review.
+Hi,
+Really no idea?
+BR.
+halim
 
->Hans Verkuil <hverkuil@xs4all.nl> wrote:
->On Friday 30 July 2010 10:49:41 Pawel Osciak wrote:
+Hello,
+I have experienced the following on my vdr machine:
 
-<snip>
-
->> @@ -157,9 +158,23 @@ enum v4l2_buf_type {
->>  	/* Experimental */
->>  	V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
->>  #endif
->> +	V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE = 17,
->> +	V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE  = 18,
->
->Why 17 and 18 instead of 9 and 10?
->
-
-To be able to test for "mplane" versions with a bit operation,
-(type & 0x10), and to leave some space for future extensions
-to "old" formats. I can go back to 9, 10 though if you prefer.
+When changing channels quickly between encrypted channels, the card
+loosses cam and I get the following in my /var/log/messages:
 
 
->> + *
->> + * Multi-planar buffers consist of one or more planes, e.g. an YCbCr
->buffer
->> + * with two planes can have one plane for Y, and another for interleaved
->CbCr
->> + * components. Each plane can reside in a separate memory buffer, or even
->in
->> + * a completely separate memory node (e.g. in embedded devices).
->> + */
->> +struct v4l2_plane {
->> +	__u32			bytesused;
->> +	__u32			length;
->> +	union {
->> +		__u32		mem_offset;
->> +		unsigned long	userptr;
->> +	} m;
->> +	__u32			data_offset;
->> +	__u32			reserved[11];
->> +};
->> +
->> +/**
->> + * struct v4l2_buffer - video buffer info
->> + * @index:	id number of the buffer
->> + * @type:	buffer type (type == *_MPLANE for multiplanar buffers)
->> + * @bytesused:	number of bytes occupied by data in the buffer (payload);
->> + * 		unused (set to 0) for multiplanar buffers
->> + * @flags:	buffer informational flags
->> + * @field:	field order of the image in the buffer
->> + * @timestamp:	frame timestamp
->> + * @timecode:	frame timecode
->> + * @sequence:	sequence count of this frame
->> + * @memory:	the method, in which the actual video data is passed
->> + * @offset:	for non-multiplanar buffers with memory ==
->V4L2_MEMORY_MMAP;
->> + * 		offset from the start of the device memory for this plane,
->> + * 		(or a "cookie" that should be passed to mmap() as offset)
->> + * @userptr:	for non-multiplanar buffers with memory ==
->V4L2_MEMORY_USERPTR;
->> + * 		a userspace pointer pointing to this buffer
->> + * @planes:	for multiplanar buffers; userspace pointer to the array
->of plane
->> + * 		info structs for this buffer
->> + * @length:	size in bytes of the buffer (NOT its payload) for single-
->plane
->> + * 		buffers (when type != *_MPLANE); number of planes (and number
->> + * 		of elements in the planes array) for multi-plane buffers
->
->This is confusing. Just write "number of elements in the planes array".
->
->> + * @input:	input number from which the video data has has been captured
->> + *
->> + * Contains data exchanged by application and driver using one of the
->Streaming
->> + * I/O methods.
->> + */
->>  struct v4l2_buffer {
->>  	__u32			index;
->>  	enum v4l2_buf_type      type;
->> @@ -529,6 +606,7 @@ struct v4l2_buffer {
->>  	union {
->>  		__u32           offset;
->>  		unsigned long   userptr;
->> +		struct v4l2_plane *planes;
->
->Should use the __user attribute.
->
+[   67.645354] dvb_ca adapter 0: DVB CAM detected and initialised successfully
+[   84.659047] budget-av: cam inserted A
+[   85.656855] dvb_ca adapter 0: DVB CAM detected and initialised successfully
+[60706.931218] budget-av: cam inserted A
+[60707.485891] dvb_ca adapter 0: DVB CAM detected and initialised
+successfully
 
-We discussed this already, just for others: since we use the "planes" pointer
-both as __user and kernel pointer, it's not worth it. We'd have to do some
-obscure #ifdef magic and redefine the struct for parts of kernel code.
-The same thing goes for controls pointer in v4l2_ext_controls.
 
-Best regards
+lspci -vvv
+
+03:00.0 Multimedia controller: Philips Semiconductors SAA7146 (rev 01)
+	Subsystem: KNC One Device 0022
+	Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+	Status: Cap- 66MHz- UDF- FastB2B+ ParErr- DEVSEL=medium >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+	Latency: 64 (3750ns min, 9500ns max)
+	Interrupt: pin A routed to IRQ 19
+	Region 0: Memory at f9fffc00 (32-bit, non-prefetchable) [size=512]
+	Kernel driver in use: budget_av
+
+I am using drivers from kernel 2.6.34.
+Any Ideas for solving this issue?
+Thx.
+Halim
+
 --
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
-
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
