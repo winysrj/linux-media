@@ -1,51 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:51956 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750882Ab0HOR5g convert rfc822-to-8bit (ORCPT
+Received: from keetweej.vanheusden.com ([83.163.219.98]:56440 "EHLO
+	keetweej.vanheusden.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754923Ab0HJNbH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Aug 2010 13:57:36 -0400
-Received: by iwn7 with SMTP id 7so844432iwn.19
-        for <linux-media@vger.kernel.org>; Sun, 15 Aug 2010 10:57:35 -0700 (PDT)
+	Tue, 10 Aug 2010 09:31:07 -0400
+Date: Tue, 10 Aug 2010 15:31:05 +0200
+From: folkert <folkert@vanheusden.com>
+To: linux-media@vger.kernel.org
+Cc: linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 &
+	/dev/dvb
+Message-ID: <20100810133104.GU6126@belle.intranet.vanheusden.com>
+References: <20100809133252.GW6126@belle.intranet.vanheusden.com> <AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
-References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
-	<AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
-	<4C581BB6.7000303@redhat.com>
-	<AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
-	<AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
-	<AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
-Date: Sun, 15 Aug 2010 14:57:35 -0300
-Message-ID: <AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com>
-Subject: Re: V4L hg tree fails to compile against latest stable kernel 2.6.35
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"mailing list: linux-media" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello Derek,
+> > I have a:
+> > Bus 001 Device 006: ID 2304:0226 Pinnacle Systems, Inc. PCTV 330e
+> > inserted in a system with kernel 2.6.34.
+> 
+> The PCTV 330e support for digital hasn't been merged upstream yet.
+> See here:
+> http://www.kernellabs.com/blog/?cat=35
 
-On Sun, Aug 15, 2010 at 2:22 AM, Douglas Schilling Landgraf
-<dougsland@gmail.com> wrote:
-> Hello Derek,
->
-> On Sat, Aug 14, 2010 at 12:46 PM, VDR User <user.vdr@gmail.com> wrote:
->> On Wed, Aug 4, 2010 at 10:19 PM, Douglas Schilling Landgraf
->> <dougsland@gmail.com> wrote:
->>> I am already working to give a full update to hg tree. Sorry this problem.
->>
->> Hi Douglas.  Any estimate when this will be fixed?  Was hoping it was
->> already since new stable kernel 2.6.35.2 is out now but still the same
->> problem when I tried just now.
->
-> I am already working on it this weekend. I will reply this thread when finished.
+To get it compile I had to add
+	#include <linux/slab.h>
+to a couple of files.
 
-2.6.35 should be working, let me know if not. Now, I need to backport
-the changes to old kernels
-and commit other patches in my pending list.
+Had to remove makefile references to firedtv* as it wants to include all
+kinds of headerfiles that exist nowhere in the kernel 2.6.34 sources.
 
-Cheers
-Douglas
+
+Folkert van Heusden
+
+-- 
+MultiTail er et flexible tool for å kontrolere Logfiles og commandoer.
+Med filtrer, farger, sammenføringer, forskeliger ansikter etc.
+http://www.vanheusden.com/multitail/
+----------------------------------------------------------------------
+Phone: +31-6-41278122, PGP-key: 1F28D8AE, www.vanheusden.com
