@@ -1,45 +1,54 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:57880 "EHLO
-	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932075Ab0HDJka (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 05:40:30 -0400
-Message-ID: <4C593586.6030804@pelagicore.com>
-Date: Wed, 04 Aug 2010 11:40:22 +0200
-From: =?UTF-8?B?UmljaGFyZCBSw7ZqZm9ycw==?=
-	<richard.rojfors@pelagicore.com>
+Return-path: <mchehab@pedra>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35026 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752872Ab0HJKZi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Aug 2010 06:25:38 -0400
+Date: Tue, 10 Aug 2010 12:25:36 +0200
+From: Michael Grzeschik <mgr@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	baruch@tkos.co.il, Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH 1/5] mx2_camera: change to register and probe
+Message-ID: <20100810102536.GA13418@pengutronix.de>
+References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de> <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de> <Pine.LNX.4.64.1008052211560.26127@axis700.grange>
 MIME-Version: 1.0
-To: Pawel Osciak <p.osciak@samsung.com>
-CC: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Douglas Schilling Landgraf' <dougsland@gmail.com>,
-	'Samuel Ortiz' <sameo@linux.intel.com>
-Subject: Re: [PATCH 1/3 v2] media: Add a cached version of the contiguous
- video buffers
-References: <1280848711.19898.161.camel@debian> <000d01cb33aa$606faee0$214f0ca0$%osciak@samsung.com>
-In-Reply-To: <000d01cb33aa$606faee0$214f0ca0$%osciak@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1008052211560.26127@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On 08/04/2010 09:55 AM, Pawel Osciak wrote:
-> Hi Richard,
->
->> Richard Röjfors wrote:
->> This patch adds another init functions in the videobuf-dma-contig
->> which is named _cached in the end. It creates a buffer factory
->> which allocates buffers using kmalloc and the buffers are cached.
->>
->
-> Before I review this in more detail, could you elaborate more on
-> this? How large are your buffers, can kmalloc really allocate them
-> for you? I am not convinced how this is supposed to work reliably,
-> especially in a long-running systems.
+Hi Guennadi,
 
-The buffers are normally 829440 bytes and yes kmalloc can allocate them.
-Normally userspace apps seem to request two buffers of this size.
+On Thu, Aug 05, 2010 at 10:17:11PM +0200, Guennadi Liakhovetski wrote:
+> On Tue, 3 Aug 2010, Michael Grzeschik wrote:
+> 
+> > change this driver back to register and probe, since some platforms
+> > first have to initialize an already registered power regulator to switch
+> > on the camera.
+> 
+> I shall be preparing a pull-request for 2.6.36-rc1 #2, but since we 
+> haven't finished discussing this and when this is ready, this will be a 
+> fix - without this your platform doesn't work, right? So, we can push it 
+> after rc1.
 
-How do you propose to allocate the buffers? They need to be contiguous
-and using uncached memory gave really bad performance.
+The issue is, that we cannot change the platform code from the
+late_initcall structure. For me there is no other solution than that,
+because we have to enable the regulator before the camera chip to
+communicate over i2c. If we would move to the notify way we would
+first listen for the i2c enabled clients but for that we would still
+have to first enable the regulator. At this moment i don't see a
+solution in this way.
 
---Richard
+The safest way would still be to use the patch as is.
+
+Thanks,
+Michael
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
