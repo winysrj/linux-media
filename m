@@ -1,67 +1,40 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:52966 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751393Ab0HGOyF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Aug 2010 10:54:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH/RFC] V4L2: add a generic function to find the nearest discrete format
-Date: Sat, 7 Aug 2010 16:55:12 +0200
-Cc: lawrence rust <lawrence@softsystem.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <Pine.LNX.4.64.1008051959330.26127@axis700.grange> <1281174446.1363.104.camel@gagarin> <Pine.LNX.4.64.1008071512470.3798@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1008071512470.3798@axis700.grange>
+Return-path: <mchehab@pedra>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:41652 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757571Ab0HJMRO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Aug 2010 08:17:14 -0400
+Received: by pwj7 with SMTP id 7so1708479pwj.19
+        for <linux-media@vger.kernel.org>; Tue, 10 Aug 2010 05:17:13 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008071655.13146.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+In-Reply-To: <20100810112258.GK6126@belle.intranet.vanheusden.com>
+References: <20100809133252.GW6126@belle.intranet.vanheusden.com>
+	<AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
+	<20100809143550.GZ6126@belle.intranet.vanheusden.com>
+	<AANLkTinJbdrHQPk9mudEAPtB7L_S11hS_ArX+DDsnBD6@mail.gmail.com>
+	<20100810112258.GK6126@belle.intranet.vanheusden.com>
+Date: Tue, 10 Aug 2010 08:17:13 -0400
+Message-ID: <AANLkTin-eXj-78iDkU=FYTiuzRH1_qwRwYQskO2=g19B@mail.gmail.com>
+Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 & /dev/dvb
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: folkert <folkert@vanheusden.com>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Guennadi,
+On Tue, Aug 10, 2010 at 7:22 AM, folkert <folkert@vanheusden.com> wrote:
+>> Teletext support is completely different that digital (DVB) support.
+>> VBI support (including teletext) was added to the in-kernel em28xx
+>> driver back in January.
+>
+> That'll be the analogue interface probably? e.g. /dev/vbi0
+> Because a.f.a.i.k. the dvb interface is /dev/dvb/adapter0/demux0 ?
 
-On Saturday 07 August 2010 15:20:58 Guennadi Liakhovetski wrote:
-> On Sat, 7 Aug 2010, lawrence rust wrote:
+Yes, VBI is an analog interface, and the teletext is provided via /dev/vbi0.
 
-[snip]
-
-> > A mean squared error metric such as hypot() could be better but requires
-> > FP.  An integer only version wouldn't be too difficult.
-> 
-> No FP in the kernel. And I don't think this simple task justifies any
-> numerical acrobatic. But we can just compare x^2 + y^2 - without an sqrt.
-> Is it worth it?
-
-What about comparing areas ? The uvcvideo driver does (rw and rh are the 
-request width and request height, format is a structure containing an array of 
-supported sizes)
-
-        /* Find the closest image size. The distance between image sizes is
-         * the size in pixels of the non-overlapping regions between the
-         * requested size and the frame-specified size.
-         */
-        rw = fmt->fmt.pix.width;
-        rh = fmt->fmt.pix.height;
-        maxd = (unsigned int)-1;
-
-        for (i = 0; i < format->nframes; ++i) {
-                __u16 w = format->frame[i].wWidth;
-                __u16 h = format->frame[i].wHeight;
-
-                d = min(w, rw) * min(h, rh);
-                d = w*h + rw*rh - 2*d;
-                if (d < maxd) {
-                        maxd = d;
-                        frame = &format->frame[i];
-                }
-
-                if (maxd == 0)
-                        break;
-        }
+Devin
 
 -- 
-Regards,
-
-Laurent Pinchart
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
