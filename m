@@ -1,48 +1,34 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:47928 "EHLO
-	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932679Ab0HDLho (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 07:37:44 -0400
-Message-ID: <4C5950FF.4010705@pelagicore.com>
-Date: Wed, 04 Aug 2010 13:37:35 +0200
-From: =?UTF-8?B?UmljaGFyZCBSw7ZqZm9ycw==?=
-	<richard.rojfors@pelagicore.com>
+Return-path: <mchehab@pedra>
+Received: from keetweej.vanheusden.com ([83.163.219.98]:46835 "EHLO
+	keetweej.vanheusden.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932158Ab0HJO6n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Aug 2010 10:58:43 -0400
+Date: Tue, 10 Aug 2010 16:58:41 +0200
+From: folkert <folkert@vanheusden.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 &
+	/dev/dvb
+Message-ID: <20100810145841.GX6126@belle.intranet.vanheusden.com>
+References: <20100809133252.GW6126@belle.intranet.vanheusden.com> <AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com> <20100809143550.GZ6126@belle.intranet.vanheusden.com> <AANLkTinJbdrHQPk9mudEAPtB7L_S11hS_ArX+DDsnBD6@mail.gmail.com> <20100810112258.GK6126@belle.intranet.vanheusden.com> <AANLkTin-eXj-78iDkU=FYTiuzRH1_qwRwYQskO2=g19B@mail.gmail.com>
 MIME-Version: 1.0
-To: Pawel Osciak <p.osciak@samsung.com>
-CC: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Douglas Schilling Landgraf' <dougsland@gmail.com>,
-	'Samuel Ortiz' <sameo@linux.intel.com>
-Subject: Re: [PATCH 1/3 v2] media: Add a cached version of the contiguous
- video buffers
-References: <1280848711.19898.161.camel@debian> <000d01cb33aa$606faee0$214f0ca0$%osciak@samsung.com> <4C593586.6030804@pelagicore.com> <000e01cb33ba$796f44e0$6c4dcea0$%osciak@samsung.com> <4C593AF7.3060506@pelagicore.com> <001201cb33c0$af683290$0e3897b0$%osciak@samsung.com>
-In-Reply-To: <001201cb33c0$af683290$0e3897b0$%osciak@samsung.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTin-eXj-78iDkU=FYTiuzRH1_qwRwYQskO2=g19B@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On 08/04/2010 12:34 PM, Pawel Osciak wrote:
->> Richard Röjfors<richard.rojfors@pelagicore.com>  wrote:
->> On 08/04/2010 11:50 AM, Pawel Osciak wrote:
->>>>
->>>> How do you propose to allocate the buffers? They need to be contiguous
->>>> and using uncached memory gave really bad performance.
->>>
->>> 829440 bytes is a quite a lot and one can't reliably depend on kmalloc
->>> to be able to allocate such big chunks of contiguous memory. Were you
->>> testing this on a freshly rebooted system?
->>
->> The systems have been running for a while, but not days.
->> I don't see why would dma_alloc_coherent work better than kmalloc?
->>
->
-> In principle it wouldn't. It's just it's much less intensively used and
-> allocates from a special area. Not really a bullet-proof solution either
-> though, I agree.
+Fyi: since I upgraded the modules by the mercurial tree you mentioned a
+few mails ago, my "18b4:1689 e3C Technologies DUTV009" significally has
+more signal locks. Coincidence?
 
-So what is your proposal given the current situation?
-Using dma_alloc_noncoherent instead of kmalloc and use dma_cache_sync
-instead of dma_sync_single_for_cpu?
 
---Richard
+Folkert van Heusden
+
+-- 
+MultiTail is een flexibele tool voor het volgen van logfiles en
+uitvoer van commando's. Filteren, van kleur voorzien, mergen,
+'diff-view', etc. http://www.vanheusden.com/multitail/
+----------------------------------------------------------------------
+Phone: +31-6-41278122, PGP-key: 1F28D8AE, www.vanheusden.com
