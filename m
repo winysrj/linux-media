@@ -1,60 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:39115 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753115Ab0HYN64 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 09:58:56 -0400
-Message-ID: <4C752197.5000704@iki.fi>
-Date: Wed, 25 Aug 2010 16:58:47 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from keetweej.vanheusden.com ([83.163.219.98]:54718 "EHLO
+	keetweej.vanheusden.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753044Ab0HKJHr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Aug 2010 05:07:47 -0400
+Date: Wed, 11 Aug 2010 11:07:46 +0200
+From: folkert <folkert@vanheusden.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 &
+	/dev/dvb
+Message-ID: <20100811090745.GD6126@belle.intranet.vanheusden.com>
+References: <20100809133252.GW6126@belle.intranet.vanheusden.com> <AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com> <20100809143550.GZ6126@belle.intranet.vanheusden.com> <AANLkTinJbdrHQPk9mudEAPtB7L_S11hS_ArX+DDsnBD6@mail.gmail.com> <20100810112258.GK6126@belle.intranet.vanheusden.com> <AANLkTin-eXj-78iDkU=FYTiuzRH1_qwRwYQskO2=g19B@mail.gmail.com> <20100810145841.GX6126@belle.intranet.vanheusden.com> <AANLkTikd+Ls-EDU7zSbsLU6hg6FvCwF4GtpXwtvJcDkW@mail.gmail.com>
 MIME-Version: 1.0
-To: Stefan Lippers-Hollmann <s.L-H@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] af9015: add USB ID for Terratec Cinergy T Stick RC MKII
-References: <201008251508.51379.s.L-H@gmx.de>
-In-Reply-To: <201008251508.51379.s.L-H@gmx.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTikd+Ls-EDU7zSbsLU6hg6FvCwF4GtpXwtvJcDkW@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Heissan Stefan,
+> > Fyi: since I upgraded the modules by the mercurial tree you mentioned a
+> > few mails ago, my "18b4:1689 e3C Technologies DUTV009" significally has
+> > more signal locks. Coincidence?
+> 
+> I don't know.  The tree I pointed you to is several months old, but
+> may be newer than whatever version of the drivers you had in your base
+> Linux distribution.
 
-On 08/25/2010 04:08 PM, Stefan Lippers-Hollmann wrote:
-> Adding the USB ID for my TerraTec Electronic GmbH Cinergy T RC MKII
-> [0ccd:0097] and hooking it up into af9015, on top of your new NXP TDA18218
-> patches, makes it work for me.
+teletext with that version of the driver with the pinnacle pctv 330e
+works perfect by the way
 
-Patch is OK, I have just similar patch waiting here...
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-
-I have been waiting Mauro commit for TDA18218 driver which I send about 
-2 weeks ago. And few others too for the MXL5007T based devices. Mauro 
-when you will commit TDA18218?
-
-> Just the shipped IR remote control doesn't seem to create keycode events
-> yet (tested with different remote=%d parameters), are there any hints to
-> add support for that?
-
-My next plan is to move that remote controller to the new remote core 
-system. I have done some tests and I can now read out raw remote codes 
-from the device. Before that you can add keymap for that remote. There 
-is many ways to get keycodes; 1) USB-sniff, 2) dump from Windows driver, 
-3) read from af9015 memory, 4) use some other IR receiver...
-
-regards
-Antti
-
-> Signed-off-by: Stefan Lippers-Hollmann<s.l-h@gmx.de>
-> ---
->
-> This depends on the git pull request "NXP TDA18218 silicon tuner driver"
-> from Antti Palosaari<crope@iki.fi>  and does not apply to -stable:
->   * NXP TDA18218 silicon tuner driver
->   * af9013: add support for tda18218 silicon tuner
->   * af9015: add support for tda18218 silicon tuner
+Folkert van Heusden
 
 -- 
-http://palosaari.fi/
+MultiTail cok yonlu kullanimli bir program, loglari okumak, verilen
+kommandolari yerine getirebilen. Filter, renk verme, merge, 'diff-
+view', vs.  http://www.vanheusden.com/multitail/
+----------------------------------------------------------------------
+Phone: +31-6-41278122, PGP-key: 1F28D8AE, www.vanheusden.com
