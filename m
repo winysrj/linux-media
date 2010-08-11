@@ -1,55 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:57016 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751540Ab0HSShA (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:38220 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756889Ab0HKCJ1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Aug 2010 14:37:00 -0400
-Subject: [PATCH] mt9t031: Fixes field names that changed
-From: Henrique Camargo <henrique@henriquecamargo.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 19 Aug 2010 15:36:55 -0300
-Message-ID: <1282243015.2213.13.camel@lemming>
+	Tue, 10 Aug 2010 22:09:27 -0400
+Subject: [PATCH] V4L/DVB: v4l2-ctrls: add inclusion of slab.h
+From: Christoph Fritz <chf.fritz@googlemail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	kernel-janitors <kernel-janitors@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"
+Date: Wed, 11 Aug 2010 04:12:56 +0200
+Message-ID: <1281492776.4423.14.camel@lovely.krouter>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-If CONFIG_VIDEO_ADV_DEBUG was set, the driver failed to compile 
-because the fields get_register and set_register changed names to 
-g_register and s_register in the struct v4l2_subdev_core_ops.
+This patch adds inclusion of slab.h to get kzalloc, kfree and kmalloc
+to work.
 
-Signed-off-by: Henrique Camargo <henrique@henriquecamargo.com>
+Signed-off-by: Christoph Fritz <chf.fritz@googlemail.com>
 ---
- drivers/media/video/mt9t031.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/video/v4l2-ctrls.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-index 716fea6..f3d1995 100644
---- a/drivers/media/video/mt9t031.c
-+++ b/drivers/media/video/mt9t031.c
-@@ -499,8 +499,8 @@ static const struct v4l2_subdev_core_ops mt9t031_core_ops = {
- 	.g_ctrl	= mt9t031_get_control,
- 	.s_ctrl	= mt9t031_set_control,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
--	.get_register = mt9t031_get_register,
--	.set_register = mt9t031_set_register,
-+	.g_register = mt9t031_get_register,
-+	.s_register = mt9t031_set_register,
- #endif
- };
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 84c1a53..ea8d32c 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -19,6 +19,7 @@
+  */
  
+ #include <linux/ctype.h>
++#include <linux/slab.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
 -- 
-1.7.0.4
-
-
-
-
+1.7.1
 
 
 
