@@ -1,85 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:56823 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750977Ab0HSAQe convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.122.230]:47696 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755578Ab0HKJVo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Aug 2010 20:16:34 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: "henrique@henriquecamargo.com" <henrique@henriquecamargo.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	Wed, 11 Aug 2010 05:21:44 -0400
+Subject: A problem with http://git.linuxtv.org/media_tree.git
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: ext Hans Verkuil <hverkuil@xs4all.nl>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Date: Wed, 18 Aug 2010 19:16:28 -0500
-Subject: RE: [PATCH] Fixes field names that changed
-Message-ID: <A24693684029E5489D1D202277BE89445718F57A@dlee02.ent.ti.com>
-References: <1282055682.1883.5.camel@lemming>
-In-Reply-To: <1282055682.1883.5.camel@lemming>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
+In-Reply-To: <4C614294.7080101@redhat.com>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <201008091838.13247.hverkuil@xs4all.nl>
+	 <1281425501.14489.7.camel@masi.mnp.nokia.com>
+	 <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
+	 <1281441830.14489.27.camel@masi.mnp.nokia.com>
+	 <4C614294.7080101@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 11 Aug 2010 12:21:26 +0300
+Message-ID: <1281518486.14489.43.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Henrique,
+Hi.
 
-Just some minor comments about the patch description below:
+I cloned your tree at 	http://linuxtv.org/git/media_tree.git and checked
+out the origin/staging/v2.6.37 branch and the
+Documentation/video4linux/v4l2-controls.txt  just isn't there. I asked
+one of my colleagues to do the same and the result was also the same.
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Henrique Camargo
-> Sent: Tuesday, August 17, 2010 9:35 AM
-> To: Mauro Carvalho Chehab
-> Cc: Guennadi Liakhovetski; Karicheri, Muralidharan; linux-
-> media@vger.kernel.org; linux-kernel@vger.kernel.org
-> Subject: [PATCH] Fixes field names that changed
+The latest commit in this branch is:
 
-Add missing subject prefix to quickly describe the affected driver:
+commit 80f1bb8ad61b56597ef2557cc7c67d8876247e6d
+Merge: 2763aca... fc1caf6...
+Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date:   Fri Aug 6 10:50:25 2010 -0300
 
-Subject: [PATCH] mt9t032: Fixes field names that changed
+Please check what's wrong...
 
-> 
-> If CONFIG_VIDEO_ADV_DEBUG was set, the driver failed to compile because
-> the fields get_register and set_register changed names to s_register and
-> s_register in the struct v4l2_subdev_core_ops.
+Thanks,
+Matti A.
 
-Please break down this comment to 70 chars max.
 
-Also, you said "s_register" twice.
-
-Regards,
-Sergio
-
-> 
-> Signed-off-by: Henrique Camargo <henrique@henriquecamargo.com>
-> ---
->  drivers/media/video/mt9t031.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-> index 716fea6..f3d1995 100644
-> --- a/drivers/media/video/mt9t031.c
-> +++ b/drivers/media/video/mt9t031.c
-> @@ -499,8 +499,8 @@ static const struct v4l2_subdev_core_ops
-> mt9t031_core_ops = {
->  	.g_ctrl	= mt9t031_get_control,
->  	.s_ctrl	= mt9t031_set_control,
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
-> -	.get_register = mt9t031_get_register,
-> -	.set_register = mt9t031_set_register,
-> +	.g_register = mt9t031_get_register,
-> +	.s_register = mt9t031_set_register,
->  #endif
->  };
-> 
-> --
-> 1.7.0.4
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
