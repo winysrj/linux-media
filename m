@@ -1,84 +1,51 @@
-Return-path: <baruch@tkos.co.il>
-Received: from tango.tkos.co.il ([62.219.50.35]:49754 "EHLO tango.tkos.co.il"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756029Ab0HILqc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Aug 2010 07:46:32 -0400
-Date: Mon, 9 Aug 2010 14:46:11 +0300
-From: Baruch Siach <baruch@tkos.co.il>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH 2/4] mx2_camera: return IRQ_NONE when doing nothing
-Message-ID: <20100809114611.GD2894@jasper.tkos.co.il>
-References: <cover.1280229966.git.baruch@tkos.co.il>
- <49da2476310a921b19226d572503b7c04175204d.1280229966.git.baruch@tkos.co.il>
- <Pine.LNX.4.64.1007281317400.23907@axis700.grange>
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com (ext-mx03.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.7])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o7BKo4pJ011323
+	for <video4linux-list@redhat.com>; Wed, 11 Aug 2010 16:50:04 -0400
+Received: from smtp.nexicom.net (dell.nexicom.net [216.168.96.13])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o7BKnquW031967
+	for <video4linux-list@redhat.com>; Wed, 11 Aug 2010 16:49:53 -0400
+Received: from mail.lockie.ca (dyn-dsl-lh-98-124-36-146.nexicom.net
+	[98.124.36.146])
+	by smtp.nexicom.net (8.13.6/8.13.4) with ESMTP id o7BKnplC008035
+	for <video4linux-list@redhat.com>; Wed, 11 Aug 2010 16:49:52 -0400
+Received: from [127.0.0.1] (unknown [192.168.1.1])
+	by mail.lockie.ca (Postfix) with ESMTP id 098FA98303
+	for <video4linux-list@redhat.com>; Wed, 11 Aug 2010 16:49:51 -0400 (EDT)
+Message-ID: <4C630CEE.7000200@lockie.ca>
+Date: Wed, 11 Aug 2010 16:49:50 -0400
+From: James <bjlockie@lockie.ca>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1007281317400.23907@axis700.grange>
-Sender: linux-media-owner@vger.kernel.org
-List-ID: <linux-media.vger.kernel.org>
+To: Video 4 Linux Mailing List <video4linux-list@redhat.com>
+Subject: upgraded software and audio stopped working
+List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
+List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
+List-Post: <mailto:video4linux-list@redhat.com>
+List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
+List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
+	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Errors-To: video4linux-list-bounces@redhat.com
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
+List-ID: <video4linux-list@redhat.com>
 
-Hi Guennadi,
+ It could just be coincidental that the audio stopped working after I
+upgrade software.
+I didn't try it right after I upgraded the system software so it could
+be the hardware just failed.
+I can still tune channels, I just don't get audio.
 
-On Wed, Jul 28, 2010 at 01:25:27PM +0200, Guennadi Liakhovetski wrote:
-> A general comment to your patches: the actual driver is going to be merged 
-> via the ARM tree, all other your incremental patches should rather go via 
-> the v4l tree. So, we'll have to synchronise with ARM, let's hope ARM 
-> patches go in early enough.
+bttv0: Hauppauge/Voodoo msp34xx: reset line init [5]
+bttv0: Hauppauge eeprom indicates model#44981
+bttv0: tuner type=50
+bttv0: audio absent, no audio device found!
+tuner 2-0061: chip found @ 0xc2 (bt878 #0 [sw])
 
-Since the driver is now merged upstream this series can go via the v4l tree.
-
-> On Tue, 27 Jul 2010, Baruch Siach wrote:
-> 
-> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
-> > ---
-> >  drivers/media/video/mx2_camera.c |    8 +++++---
-> >  1 files changed, 5 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> > index 1536bd4..b42ad8d 100644
-> > --- a/drivers/media/video/mx2_camera.c
-> > +++ b/drivers/media/video/mx2_camera.c
-> > @@ -420,15 +420,17 @@ static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
-> >  	struct mx2_camera_dev *pcdev = data;
-> >  	u32 status = readl(pcdev->base_csi + CSISR);
-> >  
-> > -	if (status & CSISR_DMA_TSF_FB1_INT)
-> > +	writel(status, pcdev->base_csi + CSISR);
-> > +
-> > +	if (!(status & (CSISR_DMA_TSF_FB1_INT | CSISR_DMA_TSF_FB2_INT)))
-> > +		return IRQ_NONE;
-> > +	else if (status & CSISR_DMA_TSF_FB1_INT)
-> >  		mx25_camera_frame_done(pcdev, 1, VIDEOBUF_DONE);
-> >  	else if (status & CSISR_DMA_TSF_FB2_INT)
-> >  		mx25_camera_frame_done(pcdev, 2, VIDEOBUF_DONE);
-> >  
-> >  	/* FIXME: handle CSISR_RFF_OR_INT */
-> >  
-> > -	writel(status, pcdev->base_csi + CSISR);
-> > -
-> >  	return IRQ_HANDLED;
-> >  }
-> 
-> I don't think this is correct. You should return IRQ_NONE if this is not 
-> an interrupt from your device at all. In this case you don't have to ack 
-> your interrupts, which, I presume, is what the write to CSISR is doing. 
-> OTOH, if this is an interrupt from your device, but you're just not 
-> interested in it, you should ack it and return IRQ_HANDLED. So, the 
-> original behaviour was more correct, than what this your patch is doing. 
-> The only improvement I can think of is, that you can return IRQ_NONE if 
-> status is 0, but then you don't have to ack it.
-
-OK. Drop this one, then. Patches in this series are independent from each 
-other, so the others can go in.
-
-baruch
-
--- 
-                                                     ~. .~   Tk Open Systems
-=}------------------------------------------------ooO--U--Ooo------------{=
-   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
