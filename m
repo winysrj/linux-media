@@ -1,92 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:53599 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751564Ab0H0RJZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 13:09:25 -0400
-Date: Fri, 27 Aug 2010 19:09:24 +0200
-From: Michael Grzeschik <mgr@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Philipp Wiesner <p.wiesner@phytec.de>
-Subject: Re: [PATCH 04/11] mt9m111: added new bit offset defines
-Message-ID: <20100827170924.GB15967@pengutronix.de>
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de> <1280833069-26993-5-git-send-email-m.grzeschik@pengutronix.de> <Pine.LNX.4.64.1008271710400.28043@axis700.grange> <20100827153512.GA15967@pengutronix.de> <Pine.LNX.4.64.1008271824180.28043@axis700.grange>
+Received: from mx1.redhat.com ([209.132.183.28]:22738 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751503Ab0HKNQZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Aug 2010 09:16:25 -0400
+Message-ID: <4C62A2AF.9070805@redhat.com>
+Date: Wed, 11 Aug 2010 10:16:31 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1008271824180.28043@axis700.grange>
+To: matti.j.aaltonen@nokia.com
+CC: ext Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
+Subject: Re: A problem with http://git.linuxtv.org/media_tree.git
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>	 <201008091838.13247.hverkuil@xs4all.nl>	 <1281425501.14489.7.camel@masi.mnp.nokia.com>	 <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>	 <1281441830.14489.27.camel@masi.mnp.nokia.com>	 <4C614294.7080101@redhat.com>	 <1281518486.14489.43.camel@masi.mnp.nokia.com>	 <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>	 <1281526453.14489.50.camel@masi.mnp.nokia.com> <1281527073.14489.59.camel@masi.mnp.nokia.com>
+In-Reply-To: <1281527073.14489.59.camel@masi.mnp.nokia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, Aug 27, 2010 at 06:30:28PM +0200, Guennadi Liakhovetski wrote:
-> On Fri, 27 Aug 2010, Michael Grzeschik wrote:
+Em 11-08-2010 08:44, Matti J. Aaltonen escreveu:
+> Hi again.
 > 
-> > On Fri, Aug 27, 2010 at 05:11:18PM +0200, Guennadi Liakhovetski wrote:
-> > > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
-> > > 
-> > > > Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-> > > > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> > > 
-> > > I don't see these being used in any of your patches...
-> > Yes, these are not used. They are a left over from the previous patchstack.
-> > But they are checked against the datasheet and are correct.
-> > Is it a problem to take them anyway?
+> On Wed, 2010-08-11 at 14:34 +0300, Matti J. Aaltonen wrote:
+>> Hello.
+>>
+>> On Wed, 2010-08-11 at 12:56 +0200, ext Hans Verkuil wrote:
+>>>> Hi.
+>>>>
+>>>> I cloned your tree at 	http://linuxtv.org/git/media_tree.git and checked
+>>>> out the origin/staging/v2.6.37 branch and the
+>>>> Documentation/video4linux/v4l2-controls.txt  just isn't there. I asked
+>>>> one of my colleagues to do the same and the result was also the same.
+>>>
+>>> The file is in the v2.6.36 branch. It hasn't been merged yet in the
+>>> v2.6.37 branch.
+>>
+>> 37 above was a typo, sorry. My point was that we couldn't find it in the
+>> origin/staging/v2.6.36 branch... and that the branch lags behind of what
+>> can be seen via the git web interface...
+>>
+>> B.R.
+>> Matti
 > 
-> It is not a problem, it is unneeded. You do not want to add all registers 
-> and all their fields to every driver, do you? There are some drivers in 
-> the kernel, that define more registers, than are used. Of course, say, if 
-> you use bits 0, 1, 2, and 4 of a register, you might as well define bit 3 
-> - especially, if they are logically related. But this patch adds a whole 
-> family of parameters, none of which is used, so, I personally would avoid 
-> that.
+> I'd suggest - if that's not too much trouble - that you'd clone the tree
+> using http (from http://linuxtv.org/git/media_tree.git) and then checked
+> out the 36 branch and see that it works for you and then post the
+> command you used and then I'll admit what I did wrong - if necessary:-)
 
-Ok, no big deal. Personally i don't have a problem with additional
-inexpensive registers and fields. As they often can be a good hint to
-some functionality of a chip before you begin to scroll through the,
-sometimes not so easy to find, datasheets. But that is probably a pure
-matter of taste.
+You should try to avoid using http method for clone/fetch. It depends on some 
+files that are created by running "git update-server-info". There's a script to
+run it automatically after each push. Yet, the better is to use git.
 
-Regards,
-Michael
+I've just ran it right now. Maybe this solved the issue.
 
-> > 
-> > > > ---
-> > > >  drivers/media/video/mt9m111.c |    6 ++++++
-> > > >  1 files changed, 6 insertions(+), 0 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> > > > index 8c076e5..1b21522 100644
-> > > > --- a/drivers/media/video/mt9m111.c
-> > > > +++ b/drivers/media/video/mt9m111.c
-> > > > @@ -63,6 +63,12 @@
-> > > >  #define MT9M111_RESET_RESTART_FRAME	(1 << 1)
-> > > >  #define MT9M111_RESET_RESET_MODE	(1 << 0)
-> > > >  
-> > > > +#define MT9M111_RM_FULL_POWER_RD	(0 << 10)
-> > > > +#define MT9M111_RM_LOW_POWER_RD		(1 << 10)
-> > > > +#define MT9M111_RM_COL_SKIP_4X		(1 << 5)
-> > > > +#define MT9M111_RM_ROW_SKIP_4X		(1 << 4)
-> > > > +#define MT9M111_RM_COL_SKIP_2X		(1 << 3)
-> > > > +#define MT9M111_RM_ROW_SKIP_2X		(1 << 2)
-> > > >  #define MT9M111_RMB_MIRROR_COLS		(1 << 1)
-> > > >  #define MT9M111_RMB_MIRROR_ROWS		(1 << 0)
-> > > >  #define MT9M111_CTXT_CTRL_RESTART	(1 << 15)
-> > > > -- 
-> > > > 1.7.1
-> > > > 
-> > > > 
-> > 
-> > -- 
-> > Pengutronix e.K.                           |                             |
-> > Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-> > Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-> > Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
-> > 
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Cheers,
+Mauro
