@@ -1,90 +1,39 @@
 Return-path: <mchehab@pedra>
-Received: from vs244178.vserver.de ([62.75.244.178]:37387 "EHLO
-	smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753018Ab0HKH2M convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 03:28:12 -0400
-Date: Wed, 11 Aug 2010 09:25:47 +0200
-From: Sander Eikelenboom <linux@eikelenboom.it>
-Message-ID: <1843123111.20100811092547@eikelenboom.it>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: mchehab@infradead.org, mrechberger@gmail.com, gregkh@suse.de,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>
-Subject: Re: [2.6.35] usb 2.0 em28xx kernel panic general protection fault:  0000 [#1] SMP RIP: 0010:[<ffffffffa004fbc5>] [<ffffffffa004fbc5>]  em28xx_isoc_copy_vbi+0x62e/0x812 [em28xx]
-In-Reply-To: <AANLkTikPffMQLXcPF4-xPeZfkaAtnu7xEP0TMzYVrkgE@mail.gmail.com>
-References: <61936849.20100811001257@eikelenboom.it> <AANLkTinVNms-vdfG-VZzkOadogaCRV+HyDAY5yhYOJSK@mail.gmail.com> <1117369508.20100811005719@eikelenboom.it> <AANLkTikPffMQLXcPF4-xPeZfkaAtnu7xEP0TMzYVrkgE@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:21679 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751503Ab0HKMtI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Aug 2010 08:49:08 -0400
+Message-ID: <4C629C4C.2080509@redhat.com>
+Date: Wed, 11 Aug 2010 09:49:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: matti.j.aaltonen@nokia.com,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Valentin Eduardo <eduardo.valentin@nokia.com>
+Subject: Re: A problem with http://git.linuxtv.org/media_tree.git
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>    <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>    <201008091838.13247.hverkuil@xs4all.nl>    <1281425501.14489.7.camel@masi.mnp.nokia.com>    <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>    <1281441830.14489.27.camel@masi.mnp.nokia.com>    <4C614294.7080101@redhat.com>    <1281518486.14489.43.camel@masi.mnp.nokia.com> <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
+In-Reply-To: <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello Devin,
-
-Yes it's completely reproducible for a change:
-
-ffmpeg -f video4linux -r 25 -s 720x576 -i /dev/video0 out.flv
-gave an error:
-
-
-
-serveerstertje:/mnt/software/software# ffmpeg -f video4linux -r 25 -s 720x576 -i  /dev/video0 out.flv
-FFmpeg version r11872+debian_0.svn20080206-18+lenny1, Copyright (c) 2000-2008 Fa brice Bellard, et al.
-  configuration: --enable-gpl --enable-libfaad --enable-pp --enable-swscaler --e nable-x11grab --prefix=/usr --enable-libgsm --enable-libtheora --enable-libvorbi s --enable-pthreads --disable-strip --enable-libdc1394 --enable-shared --disable -static
-  libavutil version: 49.6.0
-  libavcodec version: 51.50.0
-  libavformat version: 52.7.0
-  libavdevice version: 52.0.0
-  built on Jan 25 2010 18:27:39, gcc: 4.3.2
-Input #0, video4linux, from '/dev/video0':
-  Duration: N/A, start: 1281511364.644674, bitrate: 165888 kb/s
-    Stream #0.0: Video: rawvideo, yuyv422, 720x576 [PAR 0:1 DAR 0:1], 165888 kb/ s, 25.00 tb(r)
-File 'out.flv' already exists. Overwrite ? [y/N] y
-Output #0, flv, to 'out.flv':
-    Stream #0.0: Video: flv, yuv420p, 720x576 [PAR 0:1 DAR 0:1], q=2-31, 200 kb/ s, 25.00 tb(c)
-Stream mapping:
-  Stream #0.0 -> #0.0
-Press [q] to stop encoding
-VIDIOCMCAPTURE: Invalid argument
-frame=    1 fps=  0 q=3.0 Lsize=      38kB time=0.0 bitrate=7687.6kbits/s
-video:37kB audio:0kB global headers:0kB muxing overhead 0.530927%
-
-
-
-So I tried just:
-
-ffmpeg -i /dev/video0 out.flv
-
-That makes it oops allways and instantly.
-
---
-
-Sander
-
-
-
-
-Wednesday, August 11, 2010, 4:33:28 AM, you wrote:
-
-> On Tue, Aug 10, 2010 at 6:57 PM, Sander Eikelenboom
-> <linux@eikelenboom.it> wrote:
->> Hello Devin,
+Em 11-08-2010 07:56, Hans Verkuil escreveu:
+> 
+>> Hi.
 >>
->> It's a k-world, which used to work fine (altough with another program, but I can't use that since it seems at least 2 other bugs prevent me from using my VM's :-)
->> It's this model  http://global.kworld-global.com/main/prod_in.aspx?mnuid=1248&modid=6&pcid=47&ifid=17&prodid=104
->>
->> Tried to grab with ffmpeg.
+>> I cloned your tree at 	http://linuxtv.org/git/media_tree.git and checked
+>> out the origin/staging/v2.6.37 branch and the
+>> Documentation/video4linux/v4l2-controls.txt  just isn't there. I asked
+>> one of my colleagues to do the same and the result was also the same.
+> 
+> The file is in the v2.6.36 branch. It hasn't been merged yet in the
+> v2.6.37 branch.
 
-> Is it reproducible?  Or did it just happen once?  If you have a
-> sequence to reproduce, can you provide the command line you used, etc?
+I'll start working with v2.6.37 branch after the end of the merge window, pulling
+2.6.36-rc1 there.
 
-> Devin
-
-
-
-
--- 
-Best regards,
- Sander                            mailto:linux@eikelenboom.it
+Cheers,
+Mauro
 
