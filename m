@@ -1,25 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mx33.mail.ru ([94.100.176.47]:51500 "EHLO mx33.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752509Ab0HWTb7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Aug 2010 15:31:59 -0400
-Received: from [92.101.153.219] (port=55502 helo=localhost.localdomain)
-	by mx33.mail.ru with asmtp
-	id 1OnckP-0002qi-00
-	for linux-media@vger.kernel.org; Mon, 23 Aug 2010 23:31:57 +0400
-Date: Mon, 23 Aug 2010 23:40:37 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-media@vger.kernel.org
-Subject: Hauppauge PCTV DVB-S2 STICK 460E USB 2.0
-Message-ID: <20100823234037.2ab0a413@bk.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from bombadil.infradead.org ([18.85.46.34]:46919 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754824Ab0HKQq2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Aug 2010 12:46:28 -0400
+Message-ID: <4C62D3EE.5000907@infradead.org>
+Date: Wed, 11 Aug 2010 13:46:38 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Pete Eberlein <pete@sensoray.com>
+CC: Sander Eikelenboom <linux@eikelenboom.it>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	mrechberger@gmail.com, gregkh@suse.de,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-usb@vger.kernel.org
+Subject: Re: [2.6.35] usb 2.0 em28xx kernel panic general protection fault:
+ 0000 [#1] SMP RIP: 0010:[<ffffffffa004fbc5>] [<ffffffffa004fbc5>]  em28xx_isoc_copy_vbi+0x62e/0x812
+ [em28xx]
+References: <61936849.20100811001257@eikelenboom.it>	 <AANLkTinVNms-vdfG-VZzkOadogaCRV+HyDAY5yhYOJSK@mail.gmail.com>	 <1117369508.20100811005719@eikelenboom.it>	 <AANLkTikPffMQLXcPF4-xPeZfkaAtnu7xEP0TMzYVrkgE@mail.gmail.com>	 <1843123111.20100811092547@eikelenboom.it> <1281542325.2360.86.camel@pete-desktop>
+In-Reply-To: <1281542325.2360.86.camel@pete-desktop>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-hi
+Em 11-08-2010 12:58, Pete Eberlein escreveu:
+> On Wed, 2010-08-11 at 09:25 +0200, Sander Eikelenboom wrote:
+>> Hello Devin,
+>>
+>> Yes it's completely reproducible for a change:
+>>
+>> ffmpeg -f video4linux -r 25 -s 720x576 -i /dev/video0 out.flv
+>> gave an error:
+> 
+> Use -f video4linux2.
+> 
+> The -f video4linux option uses the old video4linux1 API.  I have seen
+> similar strange behavior when I used that ffmpeg option with a v4l2
+> driver I am developing.  Also, ffmpeg does not use libv4l.
 
-does somebody work under Linux drivers for this dvb-s2 stick ?
+Still, we have a bug to fix. The driver shouldn't generating a PANIC if accessed
+via V4L1 API.
 
-Goga
+Cheers,
+Mauro.
