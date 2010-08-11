@@ -1,78 +1,51 @@
-Return-path: <p.osciak@samsung.com>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:12895 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484Ab0HIIwd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 04:52:33 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L6V00C28NBJT6@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 09 Aug 2010 09:52:31 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L6V002UZNBIPO@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 09 Aug 2010 09:52:31 +0100 (BST)
-Date: Mon, 09 Aug 2010 10:50:46 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: [PATCH 1/3 v2] media: Add a cached version of the contiguous video
- buffers
-In-reply-to: <4C5B1E35.7050407@pelagicore.com>
-To: =?UTF-8?Q?'Richard_R=C3=B6jfors'?= <richard.rojfors@pelagicore.com>
-Cc: 'Linux Media Mailing List' <linux-media@vger.kernel.org>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Douglas Schilling Landgraf' <dougsland@gmail.com>,
-	'Samuel Ortiz' <sameo@linux.intel.com>
-Message-id: <001401cb379f$f59b6240$e0d226c0$%osciak@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-language: pl
-Content-transfer-encoding: 8BIT
-References: <1280848711.19898.161.camel@debian>
- <000d01cb33aa$606faee0$214f0ca0$%osciak@samsung.com>
- <4C593586.6030804@pelagicore.com>
- <000e01cb33ba$796f44e0$6c4dcea0$%osciak@samsung.com>
- <4C593AF7.3060506@pelagicore.com>
- <001201cb33c0$af683290$0e3897b0$%osciak@samsung.com>
- <4C5B1E35.7050407@pelagicore.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mail.ammma.de ([213.83.39.131]:26889 "EHLO ammma.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751257Ab0HKMpl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Aug 2010 08:45:41 -0400
+Received: from mail.ammma.net (hydra.ammma.mil [192.168.110.1])
+	by ammma.de (8.11.6/8.11.6/AMMMa AG) with ESMTP id o7BCBBS24322
+	for <linux-media@vger.kernel.org>; Wed, 11 Aug 2010 14:11:11 +0200
+Received: from neo.wg.de (hydra.ammma.mil [192.168.110.1])
+	by mail.ammma.net (Postfix) with ESMTP id D8BA34D1C025
+	for <linux-media@vger.kernel.org>; Wed, 11 Aug 2010 14:15:43 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by neo.wg.de (Postfix) with ESMTP id 290D95295C4
+	for <linux-media@vger.kernel.org>; Wed, 11 Aug 2010 14:15:43 +0200 (CEST)
+Received: from neo.wg.de ([127.0.0.1])
+	by localhost (neo.wg.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id fZl19K-Lg4-c for <linux-media@vger.kernel.org>;
+	Wed, 11 Aug 2010 14:15:42 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by neo.wg.de (Postfix) with ESMTP id 5A172529330
+	for <linux-media@vger.kernel.org>; Wed, 11 Aug 2010 14:15:42 +0200 (CEST)
+Message-ID: <20100811141542.20288il5ge6xlu28@neo.wg.de>
+Date: Wed, 11 Aug 2010 14:15:42 +0200
+From: Jan Schneider <jan@horde.org>
+To: linux-media@vger.kernel.org
+Subject: SATELCO EasyWatch PCI (DVB-C) not waking up
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
->Richard Röjfors <richard.rojfors@pelagicore.com> wrote:
->On 08/04/2010 12:34 PM, Pawel Osciak wrote:
->>> Richard Röjfors<richard.rojfors@pelagicore.com>  wrote:
->>> On 08/04/2010 11:50 AM, Pawel Osciak wrote:
->>>>>
->>>>> How do you propose to allocate the buffers? They need to be contiguous
->>>>> and using uncached memory gave really bad performance.
->>>>
->>>> 829440 bytes is a quite a lot and one can't reliably depend on kmalloc
->>>> to be able to allocate such big chunks of contiguous memory. Were you
->>>> testing this on a freshly rebooted system?
->>>
->>> The systems have been running for a while, but not days.
->>> I don't see why would dma_alloc_coherent work better than kmalloc?
->>>
->>
->> In principle it wouldn't. It's just it's much less intensively used and
->> allocates from a special area. Not really a bullet-proof solution either
->> though, I agree.
->
->So how do we move forward? I would like to see this kind of patch go in, it
->obviously makes our video driver useful.
->
->I could change and verify the patch using dma_alloc_noncoherent instead of
->kmalloc. It would have the same "limitations" as todays' uncached  buffers.
+Hi,
 
-By the way, I am only vaguely familiar with it, but isn't the memory
-always coherent on Atom?
+I have the DVB-C card mentioned in the subject. Unfortunately it's not  
+properly waking up from standby or suspend. The card doesn't tune  
+anymore after resuming.
+This is with Ubuntu's 2.6.32-24 kernel.
+I could need any pointers how to collect more information about the  
+failing resume, so that you might be able to help me fixing this.
 
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+Jan.
 
-
-
-
+-- 
+Do you need professional PHP or Horde consulting?
+http://horde.org/consulting/
 
