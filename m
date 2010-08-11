@@ -1,24 +1,21 @@
-Return-path: <davemilici@sbcglobal.net>
-Received: from mx1.redhat.com (ext-mx01.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.5])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o795xFxU028508
-	for <video4linux-list@redhat.com>; Mon, 9 Aug 2010 01:59:15 -0400
-Received: from smtp127.sbc.mail.sp1.yahoo.com (smtp127.sbc.mail.sp1.yahoo.com
-	[69.147.65.186])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o795x5k6010196
-	for <video4linux-list@redhat.com>; Mon, 9 Aug 2010 01:59:05 -0400
-Message-Id: <A4D0C08D-D0BF-44C8-A880-6B130901EE7A@sbcglobal.net>
-From: Dave Milici <davemilici@sbcglobal.net>
-To: Vikram Ivatury <vikramivatury@gmail.com>
-In-Reply-To: <AANLkTik1sHzJ74WHDck85QpLNOkniVargrn720+phYSX@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v936)
-Subject: Re: V4L2 Output Format
-Date: Sun, 8 Aug 2010 22:59:03 -0700
-References: <AANLkTinGD4TB9MxbyYqYpfeDmsejhLSkzt0qB6CfQYWd@mail.gmail.com>
-	<F3493459-FAEC-47CE-862A-E66123E83AE2@sbcglobal.net>
-	<AANLkTik1sHzJ74WHDck85QpLNOkniVargrn720+phYSX@mail.gmail.com>
-Cc: video4linux-list@redhat.com
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o7BJpnKR028085
+	for <video4linux-list@redhat.com>; Wed, 11 Aug 2010 15:51:49 -0400
+Received: from partygirl.tmr.com (mail.tmr.com [64.65.253.246])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o7BJpRTq023160
+	for <video4linux-list@redhat.com>; Wed, 11 Aug 2010 15:51:29 -0400
+Message-ID: <4C62FF3E.4060300@tmr.com>
+Date: Wed, 11 Aug 2010 15:51:26 -0400
+From: Bill Davidsen <davidsen@tmr.com>
+MIME-Version: 1.0
+To: Bill Davidsen <davidsen@posidon.tmr.com>,
+        video4linux M/L <video4linux-list@redhat.com>
+Subject: VIDEO: [FFmpeg-user] question about adding video stream from one
+	still	image
+Content-Type: multipart/mixed; boundary="------------080505000209030208010103"
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,78 +23,113 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"; DelSp="yes"
-Sender: video4linux-list-bounces@redhat.com
 Errors-To: video4linux-list-bounces@redhat.com
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-It sounds like the video buffer is not being rendered into or filled in.
-
-A zeroed buffer in YUV format will appear green in RGB space, since U  
-and V = 0 indicate no red or blue color difference values.
-
-This wikipedia article describes the relationship between YUV and RGB  
-graphically and algebraically.
-
-http://en.wikipedia.org/wiki/YUV
+This is a multi-part message in MIME format.
+--------------080505000209030208010103
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
-On Aug 6, 2010, at 3:49 PM, Vikram Ivatury wrote:
+-- 
+Bill Davidsen <davidsen@tmr.com>
+  "We can't solve today's problems by using the same thinking we
+   used in creating them." - Einstein
 
-> Hi Dave,
->
-> Thanks for the quick reply. I will go ahead and use the YUYV packed  
-> format. When I used the VYUY format, my output image was all green -  
-> any reasons you think this might happen?
->
-> I am assuming that nothing is bring written to the image (all 0's in  
-> YUV format) and then when it is converted to RGB that 0 is converted  
-> to a green color value in RGB?
->
-> Thanks,
-> Vikram
->
-> On Fri, Aug 6, 2010 at 11:17 AM, Dave Milici  
-> <davemilici@sbcglobal.net> wrote:
->
-> On Aug 5, 2010, at 3:46 PM, Vikram Ivatury wrote:
->
->> I am using the .pixfmt = ATMEL_ISI_PIXFMT_CrYCbY and I am wondering  
->> what my
->> .capture_v4l2_fmt should be. Right now I have my .capture_v4l2_fmt =
->> V4L2_PIX_FMT_VYUY but I think it should be V4L2_PIX_FMT_YUYV? Is  
->> there a
->> difference?
->
-> The difference is in the physical ordering of the Y vs U and V data  
-> as to which byte comes first (lowest in memory). Some graphics  
-> devices are able to offer the YUV packed formats with either  
-> ordering which is why this would be exposed. YUYV ordering is the  
-> most commonly used packed format.
->
->> I am looking at Table 3-4 in the Atmel ISI datasheet and there is  
->> nothing
->> listed under the V4L format for my specific ISI input of CrYCbY. I  
->> do not
->> want a wrong .capture_v4l2_fmt to lead to a color corruption in the  
->> preview
->> path. I am using a YUV to RGB conversion in my capture.c program.
->
-> It will be obvious if you chose the wrong pixel format order. The  
-> colors will be all wrong and super-saturated intensity (like really  
-> bright orange).
->
->
->
-> -- 
-> University of Michigan, Aerospace Engineering
-> Multi-Disciplinary Design - Space Systems Engineering
-> M-Cubed Payload Team Lead
-> Student Space Systems Fabrication Laboratory
->
+
+--------------080505000209030208010103
+Content-Type: message/rfc822;
+	name="Re: [FFmpeg-user] question about adding video stream from one
+	still	image.eml"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+	filename*0="Re: [FFmpeg-user] question about adding video stream from
+	on"; filename*1="e still	image.eml"
+
+X-Account-Key: account8
+X-Mozilla-Keys: $label5 
+Return-Path: <ffmpeg-user-bounces@mplayerhq.hu>
+Received: from natsuki.mplayerhq.hu (natsuki.mplayerhq.hu [213.144.138.186])
+	by firewall2.tmr.com (8.13.6/8.12.8) with ESMTP id o7BGBU35026046
+	for <davidsen@tmr.com>; Wed, 11 Aug 2010 12:11:31 -0400
+Received: from natsuki.mplayerhq.hu (localhost.localdomain [127.0.0.1])
+	by natsuki.mplayerhq.hu (Postfix) with ESMTP id B4C913B4CF;
+	Wed, 11 Aug 2010 18:11:29 +0200 (CEST)
+X-Original-To: ffmpeg-user@mplayerhq.hu
+Delivered-To: ffmpeg-user@mplayerhq.hu
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by natsuki.mplayerhq.hu (Postfix) with ESMTP id 2A7C43B4CC
+	for <ffmpeg-user@mplayerhq.hu>; Wed, 11 Aug 2010 18:11:27 +0200 (CEST)
+X-Virus-Scanned: Debian amavisd-new at mplayerhq.hu
+Received: from natsuki.mplayerhq.hu ([127.0.0.1])
+	by localhost (natsuki.mplayerhq.hu [127.0.0.1]) (amavisd-new,
+	port 10024) with LMTP id iChl57a5XdEF for <ffmpeg-user@mplayerhq.hu>;
+	Wed, 11 Aug 2010 18:11:27 +0200 (CEST)
+Received: from mail-qw0-f47.google.com (mail-qw0-f47.google.com
+	[209.85.216.47])
+	by natsuki.mplayerhq.hu (Postfix) with ESMTP id CC9433B4CB
+	for <ffmpeg-user@mplayerhq.hu>; Wed, 11 Aug 2010 18:11:26 +0200 (CEST)
+Received: by qwg8 with SMTP id 8so295192qwg.6
+	for <ffmpeg-user@mplayerhq.hu>; Wed, 11 Aug 2010 09:11:26 -0700 (PDT)
+DKIM-Signature: v=1; a=rsa-sha256; c=relaxed/relaxed; d=gmail.com; s=gamma;
+	h=domainkey-signature:mime-version:received:received:in-reply-to
+	:references:date:message-id:subject:from:to:content-type;
+	bh=nhs1r+BiJJ66jL2ybSYdBr36bprgE1zDbAcQcFkitUE=;
+	b=cewe5fq8p2LEpF+PIgP237QHJ+w9X+yQho3sBchdO3mxyE2oKS91gorLToQRzveo7D
+	lvMHFLL6RgjRmg+FFbfgQHGQMDv/QxcK6/BCjZVzx1VzsRvzYwQTPM97xKJkURX9AkpD
+	4B4dMQzaC3kUh2vgYJHI+flDRdT4xxdGddE9w=
+DomainKey-Signature: a=rsa-sha1; c=nofws; d=gmail.com; s=gamma;
+	h=mime-version:in-reply-to:references:date:message-id:subject:from:to
+	:content-type;
+	b=fZurXBGrN5QmrNBHFupepFqM5T9X4/1lumQOhe5XUCqrJZUvGfwKD5HjcWEoFgQG8w
+	3wL8jUPLhTyI/cIabWshUjZUmvsDOa+PVUCV1D5R49SqDboLk1i32J1DfNCJtEiDg7yp
+	9KU3DARwSAhVHDm8CwGh187HR87YSZwfLnkAQ=
+MIME-Version: 1.0
+Received: by 10.224.28.209 with SMTP id n17mr511045qac.34.1281543086050; Wed,
+	11 Aug 2010 09:11:26 -0700 (PDT)
+Received: by 10.229.17.11 with HTTP; Wed, 11 Aug 2010 09:11:26 -0700 (PDT)
+In-Reply-To: <20100811174520.GB3683@laptop.gs>
+References: <20100811174520.GB3683@laptop.gs>
+Date: Wed, 11 Aug 2010 18:11:26 +0200
+Message-ID: <AANLkTikfK5+qZNyLtsUikYkbpGU8yDB+7x_mdMvmNf5D@mail.gmail.com>
+From: James Darnley <james.darnley@gmail.com>
+To: FFmpeg user questions and RTFMs <ffmpeg-user@mplayerhq.hu>
+Subject: Re: [FFmpeg-user] question about adding video stream from one still
+	image
+X-BeenThere: ffmpeg-user@mplayerhq.hu
+X-Mailman-Version: 2.1.11
+Precedence: list
+Reply-To: FFmpeg user questions and RTFMs <ffmpeg-user@mplayerhq.hu>
+List-Id: FFmpeg user questions and RTFMs <ffmpeg-user.mplayerhq.hu>
+List-Unsubscribe: <https://lists.mplayerhq.hu/mailman/options/ffmpeg-user>,
+	<mailto:ffmpeg-user-request@mplayerhq.hu?subject=unsubscribe>
+List-Archive: <http://lists.mplayerhq.hu/pipermail/ffmpeg-user>
+List-Post: <mailto:ffmpeg-user@mplayerhq.hu>
+List-Help: <mailto:ffmpeg-user-request@mplayerhq.hu?subject=help>
+List-Subscribe: <https://lists.mplayerhq.hu/mailman/listinfo/ffmpeg-user>,
+	<mailto:ffmpeg-user-request@mplayerhq.hu?subject=subscribe>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Sender: ffmpeg-user-bounces@mplayerhq.hu
+Errors-To: ffmpeg-user-bounces@mplayerhq.hu
+
+Perhaps you want -shortest
+_______________________________________________
+ffmpeg-user mailing list
+ffmpeg-user@mplayerhq.hu
+https://lists.mplayerhq.hu/mailman/listinfo/ffmpeg-user
+
+
+--------------080505000209030208010103
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 --
 video4linux-list mailing list
 Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
+--------------080505000209030208010103--
