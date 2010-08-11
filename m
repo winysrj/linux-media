@@ -1,178 +1,90 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:55453 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1752185Ab0HGNUo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Aug 2010 09:20:44 -0400
-Date: Sat, 7 Aug 2010 15:20:58 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: lawrence rust <lawrence@softsystem.co.uk>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH/RFC] V4L2: add a generic function to find the nearest
- discrete format
-In-Reply-To: <1281174446.1363.104.camel@gagarin>
-Message-ID: <Pine.LNX.4.64.1008071512470.3798@axis700.grange>
-References: <Pine.LNX.4.64.1008051959330.26127@axis700.grange>
- <201008061525.30646.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1008062207470.18408@axis700.grange> <1281174446.1363.104.camel@gagarin>
+Return-path: <mchehab@pedra>
+Received: from vs244178.vserver.de ([62.75.244.178]:37387 "EHLO
+	smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753018Ab0HKH2M convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Aug 2010 03:28:12 -0400
+Date: Wed, 11 Aug 2010 09:25:47 +0200
+From: Sander Eikelenboom <linux@eikelenboom.it>
+Message-ID: <1843123111.20100811092547@eikelenboom.it>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: mchehab@infradead.org, mrechberger@gmail.com, gregkh@suse.de,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>
+Subject: Re: [2.6.35] usb 2.0 em28xx kernel panic general protection fault:  0000 [#1] SMP RIP: 0010:[<ffffffffa004fbc5>] [<ffffffffa004fbc5>]  em28xx_isoc_copy_vbi+0x62e/0x812 [em28xx]
+In-Reply-To: <AANLkTikPffMQLXcPF4-xPeZfkaAtnu7xEP0TMzYVrkgE@mail.gmail.com>
+References: <61936849.20100811001257@eikelenboom.it> <AANLkTinVNms-vdfG-VZzkOadogaCRV+HyDAY5yhYOJSK@mail.gmail.com> <1117369508.20100811005719@eikelenboom.it> <AANLkTikPffMQLXcPF4-xPeZfkaAtnu7xEP0TMzYVrkgE@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sat, 7 Aug 2010, lawrence rust wrote:
+Hello Devin,
 
-> On Fri, 2010-08-06 at 22:21 +0200, Guennadi Liakhovetski wrote:
-> > On Fri, 6 Aug 2010, Laurent Pinchart wrote:
-> > 
-> > > Hi Guennadi,
-> > > 
-> > > On Thursday 05 August 2010 20:03:46 Guennadi Liakhovetski wrote:
-> > > > Many video drivers implement a discrete set of frame formats and thus face
-> > > > a task of finding the best match for a user-requested format. Implementing
-> > > > this in a generic function has also an advantage, that different drivers
-> > > > with similar supported format sets will select the same format for the
-> > > > user, which improves consistency across drivers.
-> > > > 
-> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > ---
-> > > > 
-> > > > I'm currently away from my hardware, so, this is only compile tested and
-> > > > run-time tested with a test application. In any case, reviews and
-> > > > suggestions welcome.
-> > > > 
-> > > >  drivers/media/video/v4l2-common.c |   26 ++++++++++++++++++++++++++
-> > > >  include/linux/videodev2.h         |   10 ++++++++++
-> > > >  2 files changed, 36 insertions(+), 0 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/video/v4l2-common.c
-> > > > b/drivers/media/video/v4l2-common.c index 4e53b0b..90727e6 100644
-> > > > --- a/drivers/media/video/v4l2-common.c
-> > > > +++ b/drivers/media/video/v4l2-common.c
-> > > > @@ -1144,3 +1144,29 @@ int v4l_fill_dv_preset_info(u32 preset, struct
-> > > > v4l2_dv_enum_preset *info) return 0;
-> > > >  }
-> > > >  EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-> > > > +
-> > > > +struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct
-> > > > v4l2_discrete_probe *probe, +						       s32 width, s32 height)
-> > > > +{
-> > > > +	int i;
-> > > > +	u32 error, min_error = ~0;
-> > > > +	struct v4l2_frmsize_discrete *size, *best = NULL;
-> > > > +
-> > > > +	if (!probe)
-> > > > +		return best;
-> > > > +
-> > > > +	for (i = 0, size = probe->sizes; i < probe->num_sizes; i++, size++) {
-> > > > +		if (probe->probe && !probe->probe(probe))
-> > > 
-> > > What's this call for ?
-> > 
-> > Well, atm, I don't think I have a specific case right now, but I think, it 
-> > can well be the case, that not all frame sizes are always usable in the 
-> > driver, depending on other circumstances. E.g., depending on the pixel / 
-> > fourcc code. So, in this case the driver just provides a probe method to 
-> > filter out inapplicable sizes.
-> 
-> To be useful as a filter callback function the arguments need to include
-> either the current size or the index i.e.
-> 
-> 		if (probe->probe && !probe->probe(probe->priv, size))
-> 
-> Maybe renaming probe->probe to probe->filter would give more idea of
-> functionality.
+Yes it's completely reproducible for a change:
 
-Yes, I thought about "filter" too.
+ffmpeg -f video4linux -r 25 -s 720x576 -i /dev/video0 out.flv
+gave an error:
 
-> > > > +			continue;
-> > > > +		error = abs(size->width - width) + abs(size->height - height);
-> 
-> In c99, abs is declared:
-> int abs( int);
-> 
-> but you are passing in the difference of a __u32 and a s32, which is a
-> s32, which may or may not fit an int. 
 
-It doesn't have to. Those widths and heights are 32 bit in V4L2, so, we 
-don't have to handle ints.
 
-> To accommodate all architectures
-> I think this might be better:
-> 
-> 	#include <limits.h>
-> 	...
-> 	long error, min_error = LONG_MAX;
-> 	...
-> 		error = labs( (long)size->width - (long)width) + labs( (long)size->height - (long)height);
-> 
-> Since long is guaranteed to be at least 31 bits + sign.
+serveerstertje:/mnt/software/software# ffmpeg -f video4linux -r 25 -s 720x576 -i  /dev/video0 out.flv
+FFmpeg version r11872+debian_0.svn20080206-18+lenny1, Copyright (c) 2000-2008 Fa brice Bellard, et al.
+  configuration: --enable-gpl --enable-libfaad --enable-pp --enable-swscaler --e nable-x11grab --prefix=/usr --enable-libgsm --enable-libtheora --enable-libvorbi s --enable-pthreads --disable-strip --enable-libdc1394 --enable-shared --disable -static
+  libavutil version: 49.6.0
+  libavcodec version: 51.50.0
+  libavformat version: 52.7.0
+  libavdevice version: 52.0.0
+  built on Jan 25 2010 18:27:39, gcc: 4.3.2
+Input #0, video4linux, from '/dev/video0':
+  Duration: N/A, start: 1281511364.644674, bitrate: 165888 kb/s
+    Stream #0.0: Video: rawvideo, yuyv422, 720x576 [PAR 0:1 DAR 0:1], 165888 kb/ s, 25.00 tb(r)
+File 'out.flv' already exists. Overwrite ? [y/N] y
+Output #0, flv, to 'out.flv':
+    Stream #0.0: Video: flv, yuv420p, 720x576 [PAR 0:1 DAR 0:1], q=2-31, 200 kb/ s, 25.00 tb(c)
+Stream mapping:
+  Stream #0.0 -> #0.0
+Press [q] to stop encoding
+VIDIOCMCAPTURE: Invalid argument
+frame=    1 fps=  0 q=3.0 Lsize=      38kB time=0.0 bitrate=7687.6kbits/s
+video:37kB audio:0kB global headers:0kB muxing overhead 0.530927%
 
-no casts, please.
 
-> A mean squared error metric such as hypot() could be better but requires
-> FP.  An integer only version wouldn't be too difficult.
 
-No FP in the kernel. And I don't think this simple task justifies any 
-numerical acrobatic. But we can just compare x^2 + y^2 - without an sqrt. 
-Is it worth it?
+So I tried just:
 
-> > > > +		if (error < min_error) {
-> > > > +			min_error = error;
-> > > > +			best = size;
-> > > > +		}
-> > > > +		if (!error)
-> > > > +			break;
-> > > > +	}
-> > > > +
-> > > > +	return best;
-> > > > +}
-> > > > +EXPORT_SYMBOL_GPL(v4l2_find_nearest_format);
-> > > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > > index 047f7e6..f622bba 100644
-> > > > --- a/include/linux/videodev2.h
-> > > > +++ b/include/linux/videodev2.h
-> > > > @@ -394,6 +394,16 @@ struct v4l2_frmsize_discrete {
-> > > >  	__u32			height;		/* Frame height [pixel] */
-> > > >  };
-> > > > 
-> > > > +struct v4l2_discrete_probe {
-> > > > +	struct v4l2_frmsize_discrete	*sizes;
-> 
-> This gives the compiler more scope for optimising:
-> 
-> 	const struct v4l2_frmsize_discrete *sizes;
+ffmpeg -i /dev/video0 out.flv
 
-Yes, this makes sense, thanks.
+That makes it oops allways and instantly.
 
-> 
-> > > > +	int				num_sizes;
-> > > > +	void				*priv;
-> > > > +	bool				(*probe)(struct v4l2_discrete_probe *);
-> 
-> Re. comment about the filter callback above, this becomes:
-> 
-> 	int				(*filter)( void*, const struct v4l2_frmsize_discrete*);
-> 
-> IMHO an int return is preferred since it is ANSI c89, whereas _Bool is
-> c99 and bool is c++/gnuc.
+--
 
-kernel is gnuc...
+Sander
 
-> 
-> > > > +};
-> > > > +
-> > > > +struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct
-> > > > v4l2_discrete_probe *probe, +						       s32 width, s32 height);
-> > > > +
-> > > >  struct v4l2_frmsize_stepwise {
-> > > >  	__u32			min_width;	/* Minimum frame width [pixel] */
-> > > >  	__u32			max_width;	/* Maximum frame width [pixel] */
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+
+Wednesday, August 11, 2010, 4:33:28 AM, you wrote:
+
+> On Tue, Aug 10, 2010 at 6:57 PM, Sander Eikelenboom
+> <linux@eikelenboom.it> wrote:
+>> Hello Devin,
+>>
+>> It's a k-world, which used to work fine (altough with another program, but I can't use that since it seems at least 2 other bugs prevent me from using my VM's :-)
+>> It's this model  http://global.kworld-global.com/main/prod_in.aspx?mnuid=1248&modid=6&pcid=47&ifid=17&prodid=104
+>>
+>> Tried to grab with ffmpeg.
+
+> Is it reproducible?  Or did it just happen once?  If you have a
+> sequence to reproduce, can you provide the command line you used, etc?
+
+> Devin
+
+
+
+
+-- 
+Best regards,
+ Sander                            mailto:linux@eikelenboom.it
+
