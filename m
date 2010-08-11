@@ -1,56 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from n5.bullet.mail.gq1.yahoo.com ([67.195.9.85]:35172 "HELO
-	n5.bullet.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752055Ab0HUT2C (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:54523 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757546Ab0HKJ1s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Aug 2010 15:28:02 -0400
-Message-ID: <970079.51877.qm@web112502.mail.gq1.yahoo.com>
-Date: Sat, 21 Aug 2010 12:28:01 -0700 (PDT)
-From: dave garello <davegarello@yahoo.com>
-Subject: em28xx: new board id [1f71:3301]
-To: linux-media@vger.kernel.org
-In-Reply-To: <S1752033Ab0HUTQq/20100821191646Z+154@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	Wed, 11 Aug 2010 05:27:48 -0400
+Subject: Re: [PATCH v7 4/5] V4L2: WL1273 FM Radio: Controls for the FM
+ radio.
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Alexey Klimov <klimov.linux@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>
+In-Reply-To: <AANLkTin_55zYQoJ3zzMtiJtSS7bnPv4CB6hjggeez23a@mail.gmail.com>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-3-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-4-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-5-git-send-email-matti.j.aaltonen@nokia.com>
+	 <AANLkTin_55zYQoJ3zzMtiJtSS7bnPv4CB6hjggeez23a@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 11 Aug 2010 12:27:05 +0300
+Message-ID: <1281518825.14489.47.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-I'm testing with ubuntu 10.4 LTS on Dell Mini 10V
+Hello Alexey
 
-Model: Gadmei UTV330 USB 2.0
-Vendor/Product id:  [1f71:3301].
+On Wed, 2010-08-11 at 10:06 +0200, ext Alexey Klimov wrote:
+> > +
+> > +       radio = kzalloc(sizeof(*radio), GFP_KERNEL);
+> > +       if (!radio)
+> > +               return -ENOMEM;
+> > +
+> > +       radio->write_buf = kmalloc(256, GFP_KERNEL);
+> > +       if (!radio->write_buf)
+> > +               return -ENOMEM;
+> 
+> I'm not sure but it looks like possible memory leak. Shouldn't you
+> call to kfree(radio) before returning ENOMEM?
 
-Tests Made:
--Compile em28xx no error [work]
--Cannot make /dev/video1 (/devvideo0 occupied by webcam)
+Yes you're right...
 
-$ lsusb
-Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 004 Device 002: ID 413c:02b0 Dell Computer Corp. 
-Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 002 Device 002: ID 1bcf:0007 Sunplus Innovation Technology Inc. 
-Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 001 Device 007: ID 1f71:3301  
-Bus 001 Device 004: ID 0bda:0158 Realtek Semiconductor Corp. Mass Storage Device
-Bus 001 Device 003: ID 064e:a129 Suyin Corp. 
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+> et_drvdata(&radio->videodev, radio);
+> > +       platform_set_drvdata(pdev, radio);
+> > +
+> > +       return 0;
+> > +
+> > +err_video_register:
+> > +       v4l2_device_unregister(&radio->v4l2dev);
+> > +err_device_alloc:
+> > +       kfree(radio);
+> 
+> And i'm not sure about this error path.. Before kfree(radio) it's
+> needed to call kfree(radio->write_buf), rigth?
+> Looks like all erorr paths in this probe function have to be checked.
 
-$ cat /proc/modules | grep em28xx
-em28xx 85730 0 - Live 0xf844e000
-v4l2_common 17381 1 em28xx, Live 0xf86f7000
-videobuf_vmalloc 4575 1 em28xx, Live 0xf84f2000
-videobuf_core 16681 2 em28xx,videobuf_vmalloc, Live 0xf84e2000
-ir_common 5123 1 em28xx, Live 0xf8378000
-ir_core 13322 7 ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,em28xx,ir_rc5_decoder,ir_common,ir_nec_decoder, Live 0xf82a7000
-tveeprom 11038 1 em28xx, Live 0xf8075000
-videodev 42138 3 em28xx,v4l2_common,uvcvideo, Live 0xf827d000
+Yes, I'll the the error handling here...
 
-[   13.431225] usbcore: registered new interface driver em28xx
-[   13.431238] em28xx driver loaded
+Thanks,
+Matti
 
-
-
-
-      
 
