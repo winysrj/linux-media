@@ -1,22 +1,20 @@
-Return-path: <video4linux-list-bounces@redhat.com>
-Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.12])
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.13])
 	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o76FIDtJ024503
-	for <video4linux-list@redhat.com>; Fri, 6 Aug 2010 11:18:13 -0400
-Received: from smtp109.sbc.mail.gq1.yahoo.com (smtp109.sbc.mail.gq1.yahoo.com
-	[67.195.14.39])
-	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o76FHw5o013791
-	for <video4linux-list@redhat.com>; Fri, 6 Aug 2010 11:17:58 -0400
-Message-Id: <F3493459-FAEC-47CE-862A-E66123E83AE2@sbcglobal.net>
-From: Dave Milici <davemilici@sbcglobal.net>
-To: Vikram Ivatury <vikramivatury@gmail.com>
-In-Reply-To: <AANLkTinGD4TB9MxbyYqYpfeDmsejhLSkzt0qB6CfQYWd@mail.gmail.com>
-Mime-Version: 1.0 (Apple Message framework v936)
-Subject: Re: V4L2 Output Format
-Date: Fri, 6 Aug 2010 08:17:56 -0700
-References: <AANLkTinGD4TB9MxbyYqYpfeDmsejhLSkzt0qB6CfQYWd@mail.gmail.com>
-Cc: video4linux-list@redhat.com
+	id o7BKpfQC007114
+	for <video4linux-list@redhat.com>; Wed, 11 Aug 2010 16:51:41 -0400
+Received: from web35307.mail.mud.yahoo.com (web35307.mail.mud.yahoo.com
+	[66.163.179.101])
+	by mx1.redhat.com (8.13.8/8.13.8) with SMTP id o7BKpWLs015931
+	for <video4linux-list@redhat.com>; Wed, 11 Aug 2010 16:51:32 -0400
+Message-ID: <757323.81341.qm@web35307.mail.mud.yahoo.com>
+Date: Wed, 11 Aug 2010 13:51:31 -0700 (PDT)
+From: Curtis Schroeder <cstarjewel@yahoo.com>
+Subject: Re: Philips SPC 900NC PC Camera via usb with v4l
+To: video4linux-list@redhat.com, maddin2010 <martin.moors@smail.inf.h-brs.de>
+In-Reply-To: <1279620753610-5316010.post@n2.nabble.com>
+MIME-Version: 1.0
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -24,40 +22,110 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"; DelSp="yes"
-Sender: video4linux-list-bounces@redhat.com
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: video4linux-list-bounces@redhat.com
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
+Hi Martin,
 
-On Aug 5, 2010, at 3:46 PM, Vikram Ivatury wrote:
 
-> I am using the .pixfmt = ATMEL_ISI_PIXFMT_CrYCbY and I am wondering  
-> what my
-> .capture_v4l2_fmt should be. Right now I have my .capture_v4l2_fmt =
-> V4L2_PIX_FMT_VYUY but I think it should be V4L2_PIX_FMT_YUYV? Is  
-> there a
-> difference?
 
-The difference is in the physical ordering of the Y vs U and V data as  
-to which byte comes first (lowest in memory). Some graphics devices  
-are able to offer the YUV packed formats with either ordering which is  
-why this would be exposed. YUYV ordering is the most commonly used  
-packed format.
+I'm not an expert on this, but with some help from this list I was able =
 
-> I am looking at Table 3-4 in the Atmel ISI datasheet and there is  
-> nothing
-> listed under the V4L format for my specific ISI input of CrYCbY. I  
-> do not
-> want a wrong .capture_v4l2_fmt to lead to a color corruption in the  
-> preview
-> path. I am using a YUV to RGB conversion in my capture.c program.
+to get my SPC 600 NC working.=A0 Let's start with some of the same =
 
-It will be obvious if you chose the wrong pixel format order. The  
-colors will be all wrong and super-saturated intensity (like really  
-bright orange).
+diagnostics.
+
+
+
+Is there an entry for your web cam when you execute the following command?
+
+
+lsusb
+
+
+
+One of my problems with the SPC 600 NC was the sn9c102 module was being =
+
+erroneously loaded.=A0 What do you get when you execute the following =
+
+command?
+
+lsmod | grep sn9c
+
+
+
+In the case of the SPC 600 NC, I needed the system to use the gspca =
+
+module.=A0 I had to remove the sn9c102 module and then blacklist it so =
+
+future kernel updates wouldn't reload it.
+
+
+
+Let us know what you find,
+
+
+
+Curt
+
+--- On Tue, 7/20/10, maddin2010 <martin.moors@smail.inf.h-brs.de> wrote:
+
+From: maddin2010 <martin.moors@smail.inf.h-brs.de>
+Subject: Philips SPC 900NC PC Camera via usb with v4l
+To: video4linux-list@redhat.com
+Date: Tuesday, July 20, 2010, 11:12 AM
+
+
+Hi,
+
+Iam trying to capture a video or an image from the Philips SPC 900NC PC
+Camera - Webcam.
+
+I downloded the capture.c file and changed following lines.
+
+...
+//had to be replaced from - fmt.fmt.pix.pixelformat =3D V4L2_PIX_FMT_YUYV; =
+to
+fmt.fmt.pix.pixelformat =3D V4L2_PIX_FMT_YUV420;
+fmt.fmt.pix.field=A0 =A0 =A0=A0=A0=3D V4L2_FIELD_INTERLACED;
+...
+
+than after compiling and executing I get an output of dots.
+
+Do I have to download somewhere a headerfile, becaue in the Spec is a header
+file which is not on the homepage.
+
+What I need is a little push, so I maybe see an image or an video from the
+webcam, so that I can begin experimenting with it.
+
+Is the video somewhere in the Memmory in form of a stream ?
+
+Hopefully you can help me a bit,
+
+Thx in advance,
+
+Martin
+
+
+-- =
+
+View this message in context: http://video4linux-list.1448896.n2.nabble.com=
+/Philips-SPC-900NC-PC-Camera-via-usb-with-v4l-tp5316010p5316010.html
+Sent from the video4linux-list mailing list archive at Nabble.com.
+
 --
 video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
+https://www.redhat.com/mailman/listinfo/video4linux-list
+
+
+
+      =
+
+--
+video4linux-list mailing list
+Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
 https://www.redhat.com/mailman/listinfo/video4linux-list
