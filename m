@@ -1,60 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mx4.orcon.net.nz ([219.88.242.54]:36209 "EHLO mx4.orcon.net.nz"
+Received: from mx33.mail.ru ([94.100.176.47]:53868 "EHLO mx33.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751373Ab0HUGkZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Aug 2010 02:40:25 -0400
-Received: from Debian-exim by mx4.orcon.net.nz with local (Exim 4.69)
-	(envelope-from <lists@whitehouse.org.nz>)
-	id 1Omh6M-0004x3-7f
-	for linux-media@vger.kernel.org; Sat, 21 Aug 2010 17:58:46 +1200
-Received: from [121.98.204.64] (helo=[192.168.0.103])
-	by mx4.orcon.net.nz with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <lists@whitehouse.org.nz>)
-	id 1Omh6M-0004wq-3r
-	for linux-media@vger.kernel.org; Sat, 21 Aug 2010 17:58:46 +1200
-Message-ID: <4C6F6B15.8000603@whitehouse.org.nz>
-Date: Sat, 21 Aug 2010 17:58:45 +1200
-From: Aaron Whitehouse <lists@whitehouse.org.nz>
-MIME-Version: 1.0
+	id S1755682Ab0HKWWN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Aug 2010 18:22:13 -0400
+Received: from [95.53.178.138] (port=29594 helo=localhost.localdomain)
+	by mx33.mail.ru with asmtp
+	id 1OjJga-000HfO-00
+	for linux-media@vger.kernel.org; Thu, 12 Aug 2010 02:22:12 +0400
+Date: Thu, 12 Aug 2010 02:29:19 +0400
+From: Goga777 <goga777@bk.ru>
 To: linux-media@vger.kernel.org
-Subject: Hauppauge hvr-2200 stops working when Hauppauge hvr-1110 is connected
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: 2.6.35 and current v4l-dvb - error: implicit declaration of
+ function 'usb_buffer_free'
+Message-ID: <20100812022919.7ce6dace@bk.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello,
+Hi
 
-I am using Mythbuntu 10.04 and have linux-firmware-nonfree from:
-https://bugs.launchpad.net/ubuntu/+source/linux-firmware-nonfree/+bug/579783
+I can't compile current v4l-dvb with new 2.6.35 kernel 
 
-I have been happily using Mythbuntu with a Hauppauge hvr-2200 dual tuner
-DVB-T for many months (thanks Steven Toth!) and it records all my TV in
-MythTV.
+arvdr:/usr/src/v4l-dvb# make
+make -C /usr/src/v4l-dvb/v4l
+make[1]: Entering directory `/usr/src/v4l-dvb/v4l'
+creating symbolic links...
+make -C firmware prep
+make[2]: Entering directory `/usr/src/v4l-dvb/v4l/firmware'
+make[2]: Leaving directory `/usr/src/v4l-dvb/v4l/firmware'
+make -C firmware
+make[2]: Entering directory `/usr/src/v4l-dvb/v4l/firmware'
+make[2]: Nothing to be done for `default'.
+make[2]: Leaving directory `/usr/src/v4l-dvb/v4l/firmware'
+Kernel build directory is /lib/modules/2.6.35-tux/build
+make -C /lib/modules/2.6.35-tux/build SUBDIRS=/usr/src/v4l-dvb/v4l  modules
+make[2]: Entering directory `/usr/src/linux-2.6.35'
+  CC [M]  /usr/src/v4l-dvb/v4l/au0828-video.o
+/usr/src/v4l-dvb/v4l/au0828-video.c: In function 'au0828_uninit_isoc':
+/usr/src/v4l-dvb/v4l/au0828-video.c:185: error: implicit declaration of function 'usb_buffer_free'
+/usr/src/v4l-dvb/v4l/au0828-video.c: In function 'au0828_init_isoc':
+/usr/src/v4l-dvb/v4l/au0828-video.c:255: error: implicit declaration of function 'usb_buffer_alloc'
+/usr/src/v4l-dvb/v4l/au0828-video.c:256: warning: assignment makes pointer from integer without a cast
+make[3]: *** [/usr/src/v4l-dvb/v4l/au0828-video.o] Ошибка 1
+make[2]: *** [_module_/usr/src/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.35'
+make[1]: *** [default] Ошибка 2
+make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
+make: *** [all] Ошибка 2
 
-NZ has three DVB-T multiplexes, so I bought a second single-tuner DVB-T
-card, a Hauppauge hvr-1110, to cover the third multiplex and mean that,
-with multirec, I can record all channels and never hit a conflict.
 
-As I say, the hvr-2200 works really well. When I put the hvr-1110 in
-(and install the non-free firmware linked above), the hvr-1110 registers
-as an adapter and plays TV well as well.
-
-Unfortunately, when I have both cards in with their firmware, the
-hvr-1110 stops the hvr-2220 registering its two adapters. Dmesg is
-attached to my Launchpad bug here:
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/621578
-I have now (before reporting the bug) removed the hvr-1110 so that I am
-back to my working dual-tuner hvr-2200 configuration.
-
-Interestingly to me, when I only have the hvr-2200 firmware installed,
-but with both cards in the machine, all three adapters register (create
-/dev/dvb/ nodes), but clearly only the hvr-2200 adapters actually work.
-
-Any suggestions would be greatly appreciated. I saw some things in dmesg
-about IRQ conflicts, but I really have no idea.
-
-Regards,
-
-Aaron
