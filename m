@@ -1,86 +1,115 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh07.mail.saunalahti.fi ([62.142.5.117]:49852 "EHLO
-	emh07.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933427Ab0HDT23 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 15:28:29 -0400
-Message-ID: <4C59BF56.903@kolumbus.fi>
-Date: Wed, 04 Aug 2010 22:28:22 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [RFC/PATCH v3 06/10] media: Entities, pads and links enumeration
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com> <201008021635.57216.laurent.pinchart@ideasonboard.com> <201008022301.55396.hverkuil@xs4all.nl> <201008031122.55036.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201008031122.55036.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-6; format=flowed
+Return-path: <mchehab@pedra>
+Received: from smtp.nokia.com ([192.100.105.134]:36814 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759702Ab0HLJqA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Aug 2010 05:46:00 -0400
+Subject: Re: A problem with http://git.linuxtv.org/media_tree.git
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: ext Hans Verkuil <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
+In-Reply-To: <4C62A2AF.9070805@redhat.com>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <201008091838.13247.hverkuil@xs4all.nl>
+	 <1281425501.14489.7.camel@masi.mnp.nokia.com>
+	 <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
+	 <1281441830.14489.27.camel@masi.mnp.nokia.com>
+	 <4C614294.7080101@redhat.com>
+	 <1281518486.14489.43.camel@masi.mnp.nokia.com>
+	 <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
+	 <1281526453.14489.50.camel@masi.mnp.nokia.com>
+	 <1281527073.14489.59.camel@masi.mnp.nokia.com>
+	 <4C62A2AF.9070805@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 12 Aug 2010 12:45:26 +0300
+Message-ID: <1281606326.14489.66.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
+
+On Wed, 2010-08-11 at 15:16 +0200, ext Mauro Carvalho Chehab wrote:
+> Em 11-08-2010 08:44, Matti J. Aaltonen escreveu:
+> > Hi again.
+> > 
+> > On Wed, 2010-08-11 at 14:34 +0300, Matti J. Aaltonen wrote:
+> >> Hello.
+> >>
+> >> On Wed, 2010-08-11 at 12:56 +0200, ext Hans Verkuil wrote:
+> >>>> Hi.
+> >>>>
+> >>>> I cloned your tree at 	http://linuxtv.org/git/media_tree.git and checked
+> >>>> out the origin/staging/v2.6.37 branch and the
+> >>>> Documentation/video4linux/v4l2-controls.txt  just isn't there. I asked
+> >>>> one of my colleagues to do the same and the result was also the same.
+> >>>
+> >>> The file is in the v2.6.36 branch. It hasn't been merged yet in the
+> >>> v2.6.37 branch.
+> >>
+> >> 37 above was a typo, sorry. My point was that we couldn't find it in the
+> >> origin/staging/v2.6.36 branch... and that the branch lags behind of what
+> >> can be seen via the git web interface...
+> >>
+> >> B.R.
+> >> Matti
+> > 
+> > I'd suggest - if that's not too much trouble - that you'd clone the tree
+> > using http (from http://linuxtv.org/git/media_tree.git) and then checked
+> > out the 36 branch and see that it works for you and then post the
+> > command you used and then I'll admit what I did wrong - if necessary:-)
+> 
+> You should try to avoid using http method for clone/fetch. It depends on some 
+> files that are created by running "git update-server-info". There's a script to
+> run it automatically after each push. Yet, the better is to use git.
+
+I guess I didn't emphasize my point enough... I would avoid using http
+if it wasn't the only protocol I can use to access your site... And if
+you have serious problems with it I think it would be fair to mention
+that on your git web page...
+
+Anyway, I tried it again just a moment ago and got:
+
+......
+
+got f08c0c2dab44348919ec296254c3cc39d34e9f85
+walk a63ecd835f075b21d7d5cef9580447f5fbb36263
+error: Unable to find 4648030cc15d5a0ab19505774abe2a042c7d9ee3 under
+http://linuxtv.org/git/media_tree.git
+Cannot obtain needed tree 4648030cc15d5a0ab19505774abe2a042c7d9ee3
+while processing commit a63ecd835f075b21d7d5cef9580447f5fbb36263.
+fatal: Fetch failed.
 
 
-Hi Hans and Laurent.
+Cheers,
+Matti
 
-I hope my thoughts help you further.
 
-03.08.2010 12:22, Laurent Pinchart wrote:
-> Hi Hans,
->
-> On Monday 02 August 2010 23:01:55 Hans Verkuil wrote:
->> On Monday 02 August 2010 16:35:54 Laurent Pinchart wrote:
->>> On Sunday 01 August 2010 13:58:20 Hans Verkuil wrote:
->>>> On Thursday 29 July 2010 18:06:39 Laurent Pinchart wrote:
->>> [snip]
->>>
-[snip]
->> It's a possibility, but it's always a bit of a hassle in an application to
->> work with group IDs. I wonder if there is a more elegant method.
-> The problem is a bit broader than just showing relationships between video
-> nodes and ALSA devices. We also need to show relationships between lens/flash
-> controllers and sensors for instance. Group IDs sound easy, but I'm open to
-> suggestions.
 
-Low level example
 
-DVB I2C bus is easy: get all I2C devices from an entity (DVB demuxer).
-Some external chip (entity, the tuner) might be behind some I2C bridge 
-device.
 
-With I2C you need to know the characteristics, how you talk with
-the destination device via the bus (extra sleeps, clock speed,
-quiesce the whole bus for 50ms after talking to the slave device).
-I'd like that each device would describe how it should be
-talked to via the bus.
 
-On i2c_transfer you could hide opening and closing the I2C bridge, and hide
-the callbacks for extra sleeps so that the main driver and core 
-framework code is free from such ugly details.
-By storing entity's special requirements inside of it, you could reuse 
-the callbacks with another product variant.
 
-With I2C, an array of I2C slave devices that are reachable via I2C bus 
-would work for controlling the device
-rather nicely.
 
-Higher abstraction level
 
-So detailed descriptions and bus knowledge is needed for controlling 
-each entity and pad.
-That hierarchy is a bit different than optimal hierarchy of how the 
-streams can flow
-into, within and out from the entity (the driver). Buses are the 
-gateways for the data stream flows,
-shared by two or more entities/pads by links.
 
-Thus I'd suggest to separate these two hierarchies (initialization time 
-hierarchy and
-stream flow capability hierarchy) at necessary points, and use buses
-to bind the entities/pads by links to each other.
 
-A single wire with just two end points can also be thought like a bus.
 
-Regards,
-Marko Ristola
 
-[ snip ]
+
+
+
+> 
+> I've just ran it right now. Maybe this solved the issue.
+> 
+> Cheers,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 
