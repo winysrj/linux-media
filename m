@@ -1,58 +1,193 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:60508 "HELO mail.gmx.net"
+Received: from mailout-de.gmx.net ([213.165.64.22]:51090 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1754002Ab0HWWF2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Aug 2010 18:05:28 -0400
-Date: Tue, 24 Aug 2010 00:05:26 +0200 (CEST)
+	id S1752800Ab0HLUQE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Aug 2010 16:16:04 -0400
+Date: Thu, 12 Aug 2010 22:16:00 +0200 (CEST)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Baruch Siach <baruch@tkos.co.il>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	linux-arm-kernel@lists.infradead.org,
-	Sascha Hauer <kernel@pengutronix.de>
-Subject: Re: [PATCH 0/4] mx2_camera: mx25 fixes and enhancements
-In-Reply-To: <20100823041117.GA20026@jasper.tkos.co.il>
-Message-ID: <Pine.LNX.4.64.1008240002130.13536@axis700.grange>
-References: <cover.1280229966.git.baruch@tkos.co.il> <20100823041117.GA20026@jasper.tkos.co.il>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH v2] V4L2: avoid name conflicts in macros
+Message-ID: <Pine.LNX.4.64.1008122026450.17224@axis700.grange>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Baruch
+"sd" and "err" are too common names to be used in macros for local variables.
+Prefix them with an underscore to avoid name clashing.
 
-On Mon, 23 Aug 2010, Baruch Siach wrote:
-
-> Hi Guennadi,
-> 
-> On Tue, Jul 27, 2010 at 03:06:06PM +0300, Baruch Siach wrote:
-> > The first 3 pathces in this series are fixes for the mx2_camera driver which is 
-> > going upstream via the imx git tree. The last patch implements forced active 
-> > buffer termination on mx25.
-> 
-> Ping?
-
-Sorry for taking a bit long to push your patches, but, I think, we still 
-have a bit of time. Fixes are ok to go in after -rc2 (or even -rc3, or 
--rc4...), with features we're anyway late for 2.6.36, so, they will have 
-to wait until 2.6.37, for which we have some time too. So, I think we're 
-doing fine so far. Of the four patches below patch two was unclear, 
-whether we want it or not, patches one and three were ok, AFAIR, will have 
-to double-check, patch 4 I'll have to decide whether that's a fix or a 
-feature;)
-
-> > Baruch Siach (4):
-> >   mx2_camera: fix a race causing NULL dereference
-> >   mx2_camera: return IRQ_NONE when doing nothing
-> >   mx2_camera: fix comment typo
-> >   mx2_camera: implement forced termination of active buffer for mx25
-> > 
-> >  drivers/media/video/mx2_camera.c |   34 ++++++++++++++++++++++++++--------
-> >  1 files changed, 26 insertions(+), 8 deletions(-)
-
-Thanks
-Guennadi
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+v2:
+
+as suggested by Mauro, also patched v4l2_device_call_all and 
+v4l2_device_call_until_err, as well as ivtv and cx18 specific macros
+
+ drivers/media/video/cx18/cx18-driver.h |   19 +++++++---
+ drivers/media/video/ivtv/ivtv-driver.h |   14 ++++++--
+ include/media/v4l2-device.h            |   57 ++++++++++++++++++++++----------
+ 3 files changed, 63 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
+index 9bc51a9..7e43c7b 100644
+--- a/drivers/media/video/cx18/cx18-driver.h
++++ b/drivers/media/video/cx18/cx18-driver.h
+@@ -674,18 +674,25 @@ static inline int cx18_raw_vbi(const struct cx18 *cx)
+ 
+ /* Call the specified callback for all subdevs with a grp_id bit matching the
+  * mask in hw (if 0, then match them all). Ignore any errors. */
+-#define cx18_call_hw(cx, hw, o, f, args...) \
+-	__v4l2_device_call_subdevs(&(cx)->v4l2_dev, \
+-				   !(hw) || (sd->grp_id & (hw)), o, f , ##args)
++#define cx18_call_hw(cx, hw, o, f, args...)				\
++	do {								\
++		struct v4l2_subdev *__sd; 				\
++		__v4l2_device_call_subdevs_p(&(cx)->v4l2_dev, __sd,	\
++			!(hw) || (__sd->grp_id & (hw)), o, f , ##args);	\
++	} while (0)
+ 
+ #define cx18_call_all(cx, o, f, args...) cx18_call_hw(cx, 0, o, f , ##args)
+ 
+ /* Call the specified callback for all subdevs with a grp_id bit matching the
+  * mask in hw (if 0, then match them all). If the callback returns an error
+  * other than 0 or -ENOIOCTLCMD, then return with that error code. */
+-#define cx18_call_hw_err(cx, hw, o, f, args...) \
+-	__v4l2_device_call_subdevs_until_err( \
+-		   &(cx)->v4l2_dev, !(hw) || (sd->grp_id & (hw)), o, f , ##args)
++#define cx18_call_hw_err(cx, hw, o, f, args...)				\
++({									\
++	struct v4l2_subdev *__sd;					\
++	__v4l2_device_call_subdevs_until_err_p(&(cx)->v4l2_dev,		\
++			__sd, !(hw) || (__sd->grp_id & (hw)), o, f,	\
++			##args);					\
++})
+ 
+ #define cx18_call_all_err(cx, o, f, args...) \
+ 	cx18_call_hw_err(cx, 0, o, f , ##args)
+diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
+index 7580314..e61252c 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.h
++++ b/drivers/media/video/ivtv/ivtv-driver.h
+@@ -811,15 +811,23 @@ static inline int ivtv_raw_vbi(const struct ivtv *itv)
+ /* Call the specified callback for all subdevs matching hw (if 0, then
+    match them all). Ignore any errors. */
+ #define ivtv_call_hw(itv, hw, o, f, args...) 				\
+-	__v4l2_device_call_subdevs(&(itv)->v4l2_dev, !(hw) || (sd->grp_id & (hw)), o, f , ##args)
++	do {								\
++		struct v4l2_subdev *__sd; 				\
++		__v4l2_device_call_subdevs_p(&(itv)->v4l2_dev, __sd,	\
++			!(hw) || (__sd->grp_id & (hw)), o, f , ##args);	\
++	} while (0)
+ 
+ #define ivtv_call_all(itv, o, f, args...) ivtv_call_hw(itv, 0, o, f , ##args)
+ 
+ /* Call the specified callback for all subdevs matching hw (if 0, then
+    match them all). If the callback returns an error other than 0 or
+    -ENOIOCTLCMD, then return with that error code. */
+-#define ivtv_call_hw_err(itv, hw, o, f, args...)  		\
+-	__v4l2_device_call_subdevs_until_err(&(itv)->v4l2_dev, !(hw) || (sd->grp_id & (hw)), o, f , ##args)
++#define ivtv_call_hw_err(itv, hw, o, f, args...)			\
++({									\
++	struct v4l2_subdev *__sd;					\
++	__v4l2_device_call_subdevs_until_err_p(&(itv)->v4l2_dev, __sd,	\
++		!(hw) || (__sd->grp_id & (hw)), o, f , ##args);		\
++})
+ 
+ #define ivtv_call_all_err(itv, o, f, args...) ivtv_call_hw_err(itv, 0, o, f , ##args)
+ 
+diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+index 8bcbd7a..fe10464 100644
+--- a/include/media/v4l2-device.h
++++ b/include/media/v4l2-device.h
+@@ -101,46 +101,67 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
+ /* Call the specified callback for all subdevs matching the condition.
+    Ignore any errors. Note that you cannot add or delete a subdev
+    while walking the subdevs list. */
+-#define __v4l2_device_call_subdevs(v4l2_dev, cond, o, f, args...) 	\
++#define __v4l2_device_call_subdevs_p(v4l2_dev, sd, cond, o, f, args...)	\
+ 	do { 								\
+-		struct v4l2_subdev *sd; 				\
++		list_for_each_entry((sd), &(v4l2_dev)->subdevs, list)	\
++			if ((cond) && (sd)->ops->o && (sd)->ops->o->f)	\
++				(sd)->ops->o->f((sd) , ##args);		\
++	} while (0)
++
++#define __v4l2_device_call_subdevs(v4l2_dev, cond, o, f, args...)	\
++	do {								\
++		struct v4l2_subdev *__sd; 				\
+ 									\
+-		list_for_each_entry(sd, &(v4l2_dev)->subdevs, list)   	\
+-			if ((cond) && sd->ops->o && sd->ops->o->f) 	\
+-				sd->ops->o->f(sd , ##args); 		\
++		__v4l2_device_call_subdevs_p(v4l2_dev, __sd, cond, o,	\
++						f , ##args);		\
+ 	} while (0)
+ 
+ /* Call the specified callback for all subdevs matching the condition.
+    If the callback returns an error other than 0 or -ENOIOCTLCMD, then
+    return with that error code. Note that you cannot add or delete a
+    subdev while walking the subdevs list. */
+-#define __v4l2_device_call_subdevs_until_err(v4l2_dev, cond, o, f, args...) \
++#define __v4l2_device_call_subdevs_until_err_p(v4l2_dev, sd, cond, o, f, args...) \
+ ({ 									\
+-	struct v4l2_subdev *sd; 					\
+-	long err = 0; 							\
++	long __err = 0;							\
+ 									\
+-	list_for_each_entry(sd, &(v4l2_dev)->subdevs, list) { 		\
+-		if ((cond) && sd->ops->o && sd->ops->o->f) 		\
+-			err = sd->ops->o->f(sd , ##args); 		\
+-		if (err && err != -ENOIOCTLCMD)				\
++	list_for_each_entry((sd), &(v4l2_dev)->subdevs, list) {		\
++		if ((cond) && (sd)->ops->o && (sd)->ops->o->f) 		\
++			__err = (sd)->ops->o->f((sd) , ##args);		\
++		if (__err && __err != -ENOIOCTLCMD)			\
+ 			break; 						\
+ 	} 								\
+-	(err == -ENOIOCTLCMD) ? 0 : err; 				\
++	(__err == -ENOIOCTLCMD) ? 0 : __err; 				\
++})
++
++#define __v4l2_device_call_subdevs_until_err(v4l2_dev, cond, o, f, args...) \
++({ 									\
++	struct v4l2_subdev *__sd; 					\
++	__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd, cond, o,	\
++						f, args...);		\
+ })
+ 
+ /* Call the specified callback for all subdevs matching grp_id (if 0, then
+    match them all). Ignore any errors. Note that you cannot add or delete
+    a subdev while walking the subdevs list. */
+-#define v4l2_device_call_all(v4l2_dev, grpid, o, f, args...) 		\
+-	__v4l2_device_call_subdevs(v4l2_dev, 				\
+-			!(grpid) || sd->grp_id == (grpid), o, f , ##args)
++#define v4l2_device_call_all(v4l2_dev, grpid, o, f, args...)		\
++	do {								\
++		struct v4l2_subdev *__sd; 				\
++									\
++		__v4l2_device_call_subdevs_p(v4l2_dev, __sd,		\
++			!(grpid) || __sd->grp_id == (grpid), o, f ,	\
++			##args);					\
++	} while (0)
+ 
+ /* Call the specified callback for all subdevs matching grp_id (if 0, then
+    match them all). If the callback returns an error other than 0 or
+    -ENOIOCTLCMD, then return with that error code. Note that you cannot
+    add or delete a subdev while walking the subdevs list. */
+ #define v4l2_device_call_until_err(v4l2_dev, grpid, o, f, args...) 	\
+-	__v4l2_device_call_subdevs_until_err(v4l2_dev,			\
+-		       !(grpid) || sd->grp_id == (grpid), o, f , ##args)
++({ 									\
++	struct v4l2_subdev *__sd; 					\
++	__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd,		\
++			!(grpid) || __sd->grp_id == (grpid), o, f ,	\
++			##args);					\
++})
+ 
+ #endif
+-- 
+1.7.2
+
