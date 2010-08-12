@@ -1,94 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:57724 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750881Ab0HZJga convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:44432 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759754Ab0HLKeg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 05:36:30 -0400
-MIME-Version: 1.0
-In-Reply-To: <20100826133028.39d731da.kamezawa.hiroyu@jp.fujitsu.com>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	<1282310110.2605.976.camel@laptop>
-	<20100825155814.25c783c7.akpm@linux-foundation.org>
-	<20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
-	<op.vh0wektv7p4s8u@localhost>
-	<20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
-	<20100826124434.6089630d.kamezawa.hiroyu@jp.fujitsu.com>
-	<AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
-	<20100826133028.39d731da.kamezawa.hiroyu@jp.fujitsu.com>
-Date: Thu, 26 Aug 2010 18:36:24 +0900
-Message-ID: <AANLkTimB+s0tO=wrODAU4qCaZnCBoLZ2A9pGjR_jheOj@mail.gmail.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-From: Minchan Kim <minchan.kim@gmail.com>
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: =?ISO-8859-2?Q?Micha=B3_Nazarewicz?= <m.nazarewicz@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	linux-kernel@vger.kernel.org,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mel Gorman <mel@csn.ul.ie>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 12 Aug 2010 06:34:36 -0400
+Subject: Re: A problem with http://git.linuxtv.org/media_tree.git
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: ext Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
+In-Reply-To: <3d84baeb117bdf02fa44a883e3ae05cf.squirrel@webmail.xs4all.nl>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <201008091838.13247.hverkuil@xs4all.nl>
+	 <1281425501.14489.7.camel@masi.mnp.nokia.com>
+	 <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
+	 <1281441830.14489.27.camel@masi.mnp.nokia.com>
+	 <4C614294.7080101@redhat.com>
+	 <1281518486.14489.43.camel@masi.mnp.nokia.com>
+	 <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
+	 <1281526453.14489.50.camel@masi.mnp.nokia.com>
+	 <1281527073.14489.59.camel@masi.mnp.nokia.com>
+	 <4C62A2AF.9070805@redhat.com>
+	 <1281606326.14489.66.camel@masi.mnp.nokia.com>
+	 <3d84baeb117bdf02fa44a883e3ae05cf.squirrel@webmail.xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 12 Aug 2010 13:34:08 +0300
+Message-ID: <1281609248.14489.71.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, Aug 26, 2010 at 1:30 PM, KAMEZAWA Hiroyuki
-<kamezawa.hiroyu@jp.fujitsu.com> wrote:
-> On Thu, 26 Aug 2010 13:06:28 +0900
-> Minchan Kim <minchan.kim@gmail.com> wrote:
->
->> On Thu, Aug 26, 2010 at 12:44 PM, KAMEZAWA Hiroyuki
->> <kamezawa.hiroyu@jp.fujitsu.com> wrote:
->> > On Thu, 26 Aug 2010 11:50:17 +0900
->> > KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
->> >
->> >> 128MB...too big ? But it's depend on config.
->> >>
->> >> IBM's ppc guys used 16MB section, and recently, a new interface to shrink
->> >> the number of /sys files are added, maybe usable.
->> >>
->> >> Something good with this approach will be you can create "cma" memory
->> >> before installing driver.
->> >>
->> >> But yes, complicated and need some works.
->> >>
->> > Ah, I need to clarify what I want to say.
->> >
->> > With compaction, it's helpful, but you can't get contiguous memory larger
->> > than MAX_ORDER, I think. To get memory larger than MAX_ORDER on demand,
->> > memory hot-plug code has almost all necessary things.
->>
->> True. Doesn't patch's idea of Christoph helps this ?
->> http://lwn.net/Articles/200699/
->>
->
-> yes, I think so. But, IIRC,  it's own purpose of Chirstoph's work is
-> for removing zones. please be careful what's really necessary.
+On Thu, 2010-08-12 at 12:29 +0200, ext Hans Verkuil wrote:
+> > On Wed, 2010-08-11 at 15:16 +0200, ext Mauro Carvalho Chehab wrote:
+> >> Em 11-08-2010 08:44, Matti J. Aaltonen escreveu:
+> >> > Hi again.
+> >> >
+> >> > On Wed, 2010-08-11 at 14:34 +0300, Matti J. Aaltonen wrote:
+> >> >> Hello.
+> >> >>
+> >> >> On Wed, 2010-08-11 at 12:56 +0200, ext Hans Verkuil wrote:
+> >> >>>> Hi.
+> >> >>>>
+> >> >>>> I cloned your tree at 	http://linuxtv.org/git/media_tree.git and
+> >> checked
+> >> >>>> out the origin/staging/v2.6.37 branch and the
+> >> >>>> Documentation/video4linux/v4l2-controls.txt  just isn't there. I
+> >> asked
+> >> >>>> one of my colleagues to do the same and the result was also the
+> >> same.
+> >> >>>
+> >> >>> The file is in the v2.6.36 branch. It hasn't been merged yet in the
+> >> >>> v2.6.37 branch.
+> >> >>
+> >> >> 37 above was a typo, sorry. My point was that we couldn't find it in
+> >> the
+> >> >> origin/staging/v2.6.36 branch... and that the branch lags behind of
+> >> what
+> >> >> can be seen via the git web interface...
+> >> >>
+> >> >> B.R.
+> >> >> Matti
+> >> >
+> >> > I'd suggest - if that's not too much trouble - that you'd clone the
+> >> tree
+> >> > using http (from http://linuxtv.org/git/media_tree.git) and then
+> >> checked
+> >> > out the 36 branch and see that it works for you and then post the
+> >> > command you used and then I'll admit what I did wrong - if
+> >> necessary:-)
+> >>
+> >> You should try to avoid using http method for clone/fetch. It depends on
+> >> some
+> >> files that are created by running "git update-server-info". There's a
+> >> script to
+> >> run it automatically after each push. Yet, the better is to use git.
+> >
+> > I guess I didn't emphasize my point enough... I would avoid using http
+> > if it wasn't the only protocol I can use to access your site... And if
+> > you have serious problems with it I think it would be fair to mention
+> > that on your git web page...
+> 
+> FYI: the control framework has been merged into the mainline, so you can
+> get it from there as well.
 
-Ahh. Sorry for missing point.
-You're right. The patch can't help our problem.
+OK, good, the mainline tree can be cloned over http...
 
-How about changing following this?
-The thing is MAX_ORDER is static. But we want to avoid too big
-MAX_ORDER of whole zones to support devices which requires big
-allocation chunk.
-So let's add MAX_ORDER into each zone and then, each zone can have
-different max order.
-For example, while DMA[32], NORMAL, HIGHMEM can have normal size 11,
-MOVABLE zone could have a 15.
+Thanks,
+Matti
 
-This approach has a big side effect?
+> 
+> Regards,
+> 
+>         Hans
+> 
 
--- 
-Kind regards,
-Minchan Kim
+
