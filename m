@@ -1,88 +1,133 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:56972 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753516Ab0H0QaM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 12:30:12 -0400
-Date: Fri, 27 Aug 2010 18:30:28 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <mgr@pengutronix.de>
-cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Philipp Wiesner <p.wiesner@phytec.de>
-Subject: Re: [PATCH 04/11] mt9m111: added new bit offset defines
-In-Reply-To: <20100827153512.GA15967@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1008271824180.28043@axis700.grange>
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
- <1280833069-26993-5-git-send-email-m.grzeschik@pengutronix.de>
- <Pine.LNX.4.64.1008271710400.28043@axis700.grange> <20100827153512.GA15967@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:55985 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753875Ab0HLOfL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Aug 2010 10:35:11 -0400
+Subject: Re: [patch] IR: ene_ir: problems in unwinding on probe
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Dan Carpenter <error27@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <20100812074611.GI645@bicker>
+References: <20100812074611.GI645@bicker>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 12 Aug 2010 17:35:04 +0300
+Message-ID: <1281623704.10393.2.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, 27 Aug 2010, Michael Grzeschik wrote:
+On Thu, 2010-08-12 at 09:46 +0200, Dan Carpenter wrote: 
+> There were a couple issues here.  If the allocation failed for "dev"
+> then it would lead to a NULL dereference.  If request_irq() or
+> request_region() failed it would release the irq and the region even
+> though they were not successfully aquired.
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
 
-> On Fri, Aug 27, 2010 at 05:11:18PM +0200, Guennadi Liakhovetski wrote:
-> > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
-> > 
-> > > Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-> > > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> > 
-> > I don't see these being used in any of your patches...
-> Yes, these are not used. They are a left over from the previous patchstack.
-> But they are checked against the datasheet and are correct.
-> Is it a problem to take them anyway?
+I don't think this is needed.
+I just alloc all the stuff, and if one of allocations fail, I free them
+all. {k}free on NULL pointer is perfectly legal.
 
-It is not a problem, it is unneeded. You do not want to add all registers 
-and all their fields to every driver, do you? There are some drivers in 
-the kernel, that define more registers, than are used. Of course, say, if 
-you use bits 0, 1, 2, and 4 of a register, you might as well define bit 3 
-- especially, if they are logically related. But this patch adds a whole 
-family of parameters, none of which is used, so, I personally would avoid 
-that.
+Same about IO and IRQ.
+IRQ0 and IO 0 isn't valid, and I do test that in error path.
 
-Thanks
-Guennadi
+
+Best regards,
+Maxim Levitsky
+
 
 > 
-> Thanks,
-> Michael
-> 
-> > > ---
-> > >  drivers/media/video/mt9m111.c |    6 ++++++
-> > >  1 files changed, 6 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> > > index 8c076e5..1b21522 100644
-> > > --- a/drivers/media/video/mt9m111.c
-> > > +++ b/drivers/media/video/mt9m111.c
-> > > @@ -63,6 +63,12 @@
-> > >  #define MT9M111_RESET_RESTART_FRAME	(1 << 1)
-> > >  #define MT9M111_RESET_RESET_MODE	(1 << 0)
-> > >  
-> > > +#define MT9M111_RM_FULL_POWER_RD	(0 << 10)
-> > > +#define MT9M111_RM_LOW_POWER_RD		(1 << 10)
-> > > +#define MT9M111_RM_COL_SKIP_4X		(1 << 5)
-> > > +#define MT9M111_RM_ROW_SKIP_4X		(1 << 4)
-> > > +#define MT9M111_RM_COL_SKIP_2X		(1 << 3)
-> > > +#define MT9M111_RM_ROW_SKIP_2X		(1 << 2)
-> > >  #define MT9M111_RMB_MIRROR_COLS		(1 << 1)
-> > >  #define MT9M111_RMB_MIRROR_ROWS		(1 << 0)
-> > >  #define MT9M111_CTXT_CTRL_RESTART	(1 << 15)
-> > > -- 
-> > > 1.7.1
-> > > 
-> > > 
-> 
-> -- 
-> Pengutronix e.K.                           |                             |
-> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
-> 
+> diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
+> index 5447750..8e5e964 100644
+> --- a/drivers/media/IR/ene_ir.c
+> +++ b/drivers/media/IR/ene_ir.c
+> @@ -781,21 +781,24 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+>  
+>  	/* allocate memory */
+>  	input_dev = input_allocate_device();
+> +	if (!input_dev)
+> +		goto err_out;
+>  	ir_props = kzalloc(sizeof(struct ir_dev_props), GFP_KERNEL);
+> +	if (!ir_props)
+> +		goto err_input_dev;
+>  	dev = kzalloc(sizeof(struct ene_device), GFP_KERNEL);
+> -
+> -	if (!input_dev || !ir_props || !dev)
+> -		goto error;
+> +	if (!dev)
+> +		goto err_ir_props;
+>  
+>  	/* validate resources */
+>  	error = -ENODEV;
+>  
+>  	if (!pnp_port_valid(pnp_dev, 0) ||
+>  	    pnp_port_len(pnp_dev, 0) < ENE_MAX_IO)
+> -		goto error;
+> +		goto err_dev;
+>  
+>  	if (!pnp_irq_valid(pnp_dev, 0))
+> -		goto error;
+> +		goto err_dev;
+>  
+>  	dev->hw_io = pnp_port_start(pnp_dev, 0);
+>  	dev->irq = pnp_irq(pnp_dev, 0);
+> @@ -804,11 +807,11 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+>  	/* claim the resources */
+>  	error = -EBUSY;
+>  	if (!request_region(dev->hw_io, ENE_MAX_IO, ENE_DRIVER_NAME))
+> -		goto error;
+> +		goto err_dev;
+>  
+>  	if (request_irq(dev->irq, ene_isr,
+>  			IRQF_SHARED, ENE_DRIVER_NAME, (void *)dev))
+> -		goto error;
+> +		goto err_region;
+>  
+>  	pnp_set_drvdata(pnp_dev, dev);
+>  	dev->pnp_dev = pnp_dev;
+> @@ -816,7 +819,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+>  	/* detect hardware version and features */
+>  	error = ene_hw_detect(dev);
+>  	if (error)
+> -		goto error;
+> +		goto err_irq;
+>  
+>  	ene_setup_settings(dev);
+>  
+> @@ -889,20 +892,22 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+>  	error = -ENODEV;
+>  	if (ir_input_register(input_dev, RC_MAP_RC6_MCE, ir_props,
+>  							ENE_DRIVER_NAME))
+> -		goto error;
+> -
+> +		goto err_irq;
+>  
+>  	ene_printk(KERN_NOTICE, "driver has been succesfully loaded\n");
+>  	return 0;
+> -error:
+> -	if (dev->irq)
+> -		free_irq(dev->irq, dev);
+> -	if (dev->hw_io)
+> -		release_region(dev->hw_io, ENE_MAX_IO);
+>  
+> -	input_free_device(input_dev);
+> -	kfree(ir_props);
+> +err_irq:
+> +	free_irq(dev->irq, dev);
+> +err_region:
+> +	release_region(dev->hw_io, ENE_MAX_IO);
+> +err_dev:
+>  	kfree(dev);
+> +err_ir_props:
+> +	kfree(ir_props);
+> +err_input_dev:
+> +	input_free_device(input_dev);
+> +err_out:
+>  	return error;
+>  }
+>  
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
