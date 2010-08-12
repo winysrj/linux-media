@@ -1,66 +1,105 @@
-Return-path: <mchehab@localhost>
-Received: from perceval.irobotique.be ([92.243.18.41]:56138 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755737Ab0HaVT0 (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:61992 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752458Ab0HLQmZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Aug 2010 17:19:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH/RFC] V4L2: add a generic function to find the nearest discrete format
-Date: Tue, 31 Aug 2010 23:19:24 +0200
-Cc: lawrence rust <lawrence@softsystem.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-References: <Pine.LNX.4.64.1008051959330.26127@axis700.grange> <201008071655.13146.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1008272110000.28043@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1008272110000.28043@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Thu, 12 Aug 2010 12:42:25 -0400
+Subject: Re: [patch] IR: ene_ir: problems in unwinding on probe
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Dan Carpenter <error27@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <20100812161927.GQ645@bicker>
+References: <20100812074611.GI645@bicker>
+	 <1281623704.10393.2.camel@maxim-laptop>  <20100812161927.GQ645@bicker>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 12 Aug 2010 19:42:18 +0300
+Message-ID: <1281631338.10393.7.camel@maxim-laptop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201008312319.25169.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Guennadi,
-
-On Friday 27 August 2010 21:16:26 Guennadi Liakhovetski wrote:
-> On Sat, 7 Aug 2010, Laurent Pinchart wrote:
-> > On Saturday 07 August 2010 15:20:58 Guennadi Liakhovetski wrote:
-> > > On Sat, 7 Aug 2010, lawrence rust wrote:
-> > [snip]
-> > 
-> > > > A mean squared error metric such as hypot() could be better but
-> > > > requires FP.  An integer only version wouldn't be too difficult.
+On Thu, 2010-08-12 at 18:19 +0200, Dan Carpenter wrote: 
+> On Thu, Aug 12, 2010 at 05:35:04PM +0300, Maxim Levitsky wrote:
+> > On Thu, 2010-08-12 at 09:46 +0200, Dan Carpenter wrote: 
+> > > There were a couple issues here.  If the allocation failed for "dev"
+> > > then it would lead to a NULL dereference.  If request_irq() or
+> > > request_region() failed it would release the irq and the region even
+> > > though they were not successfully aquired.
 > > > 
-> > > No FP in the kernel. And I don't think this simple task justifies any
-> > > numerical acrobatic. But we can just compare x^2 + y^2 - without an
-> > > sqrt. Is it worth it?
+> > > Signed-off-by: Dan Carpenter <error27@gmail.com>
 > > 
-> > What about comparing areas ? The uvcvideo driver does (rw and rh are the
-> > request width and request height, format is a structure containing an
-> > array of supported sizes)
+> > I don't think this is needed.
+> > I just alloc all the stuff, and if one of allocations fail, I free them
+> > all. {k}free on NULL pointer is perfectly legal.
 > > 
-> >         /* Find the closest image size. The distance between image sizes
-> >         is
-> >         
-> >          * the size in pixels of the non-overlapping regions between the
-> >          * requested size and the frame-specified size.
-> >          */
+> > Same about IO and IRQ.
+> > IRQ0 and IO 0 isn't valid, and I do test that in error path.
+> > 
+> >
 > 
-> Well, nice, but, tbh, I have no idea what's better. With your metric
-> 640x489 is further from 640x480 than 650x480, with my it's the other way
-> round. Which one is better?
+> Here is the original code:
+> 
+> Here is where we set "dev".
+> 
+>    785          dev = kzalloc(sizeof(struct ene_device), GFP_KERNEL);
+>    786  
+>    787          if (!input_dev || !ir_props || !dev)
+>    788                  goto error;
+> 
+> 	[snip]
+> 
+> Here is where we set the IO and IRQ:
+> 
+>    800          dev->hw_io = pnp_port_start(pnp_dev, 0);
+>    801          dev->irq = pnp_irq(pnp_dev, 0);
+> 
+> 	[snip]
+> 
+> Here is where the request_region() and request_irq() are.
+> 
+>    806          if (!request_region(dev->hw_io, ENE_MAX_IO, ENE_DRIVER_NAME))
+>    807                  goto error;
+>    808  
+>    809          if (request_irq(dev->irq, ene_isr, 
+>    810                          IRQF_SHARED, ENE_DRIVER_NAME, (void *)dev))
+>    811                  goto error;
+> 
+> 	[snip]
+> 
+> Here is the error label:
+> 
+>    897  error:
+>    898          if (dev->irq)
+> 		    ^^^^^^^^
+> 
+> 	Oops!  The allocation of dev failed and this is a NULL
+> 	dereference.
+> 
+>    899                  free_irq(dev->irq, dev);
+> 
+> 	Oops!  Request region failed and dev->irq is non-zero but
+> 	request_irq() hasn't been called.
+> 
+>    900          if (dev->hw_io)
+>    901                  release_region(dev->hw_io, ENE_MAX_IO);
+> 
+> 	Oops! dev->hw_io is non-zero but request_region() failed and so
+> 	we just released someone else's region.
 
-Mine of course ;-) It's a good question... Your method minimizes the 
-width/height cumulative difference while mine minimizes the area difference. 
-What's better ? Or maybe the right question is does it matter ?
 
-> What we can do, if this really is important, we could make a callback for
-> user-provided metric function... Shall we?
+Ok, this is something different.
+To be honest I was in hurry when I prepared the patch, so I didn't look
+at this.
+The intent was correct, and untill you pointed that out I somehow
+assumed that error patch does what I supposed it to do... well...
+In few days I will switch back to this driver and fix this problem.
+I also have quite a lot of work to do in this driver now that I have
+some hardware documentation (register renames are the fun part...).
 
-That sounds too complex for such a simple problem.
+So thanks for catching this.
 
--- 
-Regards,
+Best regards,
+Maxim Levitsky
 
-Laurent Pinchart
