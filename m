@@ -1,88 +1,124 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh05.mail.saunalahti.fi ([62.142.5.111]:49404 "EHLO
-	emh05.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757548Ab0HETpM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 15:45:12 -0400
-Message-ID: <4C5B14C1.6050503@kolumbus.fi>
-Date: Thu, 05 Aug 2010 22:45:05 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-Subject: Re: [RFC/PATCH v3 06/10] media: Entities, pads and links enumeration
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com> <201008031122.55036.laurent.pinchart@ideasonboard.com> <4C59BF56.903@kolumbus.fi> <201008051138.23378.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201008051138.23378.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-6; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3073 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753401Ab0HLSSN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Aug 2010 14:18:13 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7CII895000278
+	for <linux-media@vger.kernel.org>; Thu, 12 Aug 2010 20:18:12 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 12 Aug 2010 20:18:08 +0200 (CEST)
+Message-Id: <201008121818.o7CII895000278@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-  05.08.2010 12:38, Laurent Pinchart wrote:
-> Hi Marko,
->
-> On Wednesday 04 August 2010 21:28:22 Marko Ristola wrote:
->> Hi Hans and Laurent.
->>
->> I hope my thoughts help you further.
-> Thank you for sharing them.
-Thank you for taking time to answer for me.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-[ snip ]
+Results of the daily build of v4l-dvb:
 
-> There's probably some confusion here.
->
-> The media controller aims at giving userspace the ability to discover the
-> internal device topology. This includes various information about the
-> entities, such as a name, a version number, ...
->
-> The I2C data you mention are low-level information required by the kernel to
-> talk to the I2C device, but I don't think they're useful to userspace at all.
-> That kind of information come either from platform data or from the I2C device
-> driver and get used internally in the kernel.
->
-> Do you see any need to expose such information to userspace ?
->
-I don't see any needs to expose such information into userspace.
-I have some thoughts about I2C hardware problems,
-but that is of course off topic. I wrote them here only
-because I tried to draw some bigger picture how this entity, pads
-and links thing relates to the whole driver.
+date:        Thu Aug 12 19:00:22 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15029:2dd0872c7c1d
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-[ snip ]
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: ERRORS
+linux-2.6.34-i686: ERRORS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: ERRORS
+linux-2.6.34-mips: ERRORS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: ERRORS
+linux-2.6.34-powerpc64: ERRORS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: ERRORS
+linux-2.6.34-x86_64: ERRORS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
->> With I2C, an array of I2C slave devices that are reachable via I2C bus
->> would work for controlling the device rather nicely.
->>
->> Higher abstraction level
->>
->> So detailed descriptions and bus knowledge is needed for controlling each
->> entity and pad.
-> It's needed to control them inside the kernel, but I don't think it's needed
-> in userspace.
->
-I agree: The detailed information needs to be internal to the driver,
-and userspace needs only the information that is needed for being
-able to decide how to configure the streams over many drivers,
-and how each driver must be asked to do the configuration for it,
-without driver needing knowledge about other related drivers.
+Detailed results are available here:
 
-Maybe a pad could have a list of pads that it can connect to.
-Each destination pad reference could have a link as a property
-if the link is mandatory for binding the pads together.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-A list of open links without pads might be usable too, enabling binding
-different drivers to pass data to each other with pad->link->pad binding.
-Driver could be a property of a pad for being able to do binding over 
-drivers.
+Full logs are available here:
 
-You have of course a better picture and understanding about these,
-and you will need to come up with the best solution together on your own.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-Maybe I just need to do something else and go and buy another motherboard
-from Helsinki Ruoholahti to replace my overheated one, walking by some
-Nokia Research Center buildings.
+The V4L-DVB specification from this daily build is here:
 
-Best regards from the summerish Finland.
-Marko Ristola
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
