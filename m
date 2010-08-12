@@ -1,18 +1,19 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <tampoco@126.com>) id 1OnMgm-0002GR-Qm
-	for linux-dvb@linuxtv.org; Mon, 23 Aug 2010 04:23:09 +0200
-Received: from m15-29.126.com ([220.181.15.29])
-	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
+	(envelope-from <matthiaz.weber@gmx.de>) id 1OjaZZ-0002gX-3q
+	for linux-dvb@linuxtv.org; Thu, 12 Aug 2010 18:24:05 +0200
+Received: from mailout-de.gmx.net ([213.165.64.23] helo=mail.gmx.net)
+	by mail.tu-berlin.de (exim-4.69/mailfrontend-a) with smtp
 	for <linux-dvb@linuxtv.org>
-	id 1OnMgk-0006A3-2a; Mon, 23 Aug 2010 04:23:08 +0200
-Date: Mon, 23 Aug 2010 10:22:58 +0800 (CST)
-From: yb <tampoco@126.com>
-To: linux-dvb@linuxtv.org
-Message-ID: <4ab97ca2.3883.12a9cc173e7.Coremail.tampoco@126.com>
+	id 1OjaZY-0003f3-Bl; Thu, 12 Aug 2010 18:24:04 +0200
+Message-ID: <4C642024.5070905@gmx.de>
+Date: Thu, 12 Aug 2010 18:24:04 +0200
+From: Matthias Weber <matthiaz.weber@gmx.de>
 MIME-Version: 1.0
-Subject: [linux-dvb] Driver use reference count becomes -2
+To: linux-dvb@linuxtv.org
+Cc: abraham.manu@gmail.com
+Subject: [linux-dvb] libdvbsec - trying to control DiSEqC positioner
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -21,57 +22,96 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1523814828=="
+Content-Type: text/plain; charset="iso-8859-15"
+Content-Transfer-Encoding: quoted-printable
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
---===============1523814828==
-Content-Type: multipart/alternative;
-	boundary="----=_Part_37504_1368525335.1282530178022"
+Hi.
 
-------=_Part_37504_1368525335.1282530178022
-Content-Type: text/plain; charset=gbk
-Content-Transfer-Encoding: base64
+We are trying to use the libdvbsec-api from the dvb-apps package
+(/dvb_apps/lib/libdvbsec) to build our own DiSEqC positioner control.
+It's going to implement a kind of USALS/GotoX/GotoXX/DiSEqC1.3, whatever
+you want to call it (there's no hardware receiver provided atm).
 
-SGkgYWxsLApJIGZvdW5kIHRoYXQgd2hlbiBJIGxvYWQgdGhlIGRyaXZlciBmb3IgdnA3MDQ1IGFu
-ZCB1bnBsdWcgZGV2aWNlIGZyb20gVVNCIHBvcnQsIHRoZSBkcml2ZXIncyB1c2UgcmVmZXJlbmNl
-IGNvdW50IHJlYWNoZXMgYSBiaWcgd2VpcmQgbnVtYmVyIChFeDogNDI5NDk2NzI5NCwgaW4gaGV4
-IGl0IGlzIEZGRkZGRkZFLCBtZWFucy0yIEkgZ3Vlc3MpLiBUaGlzIGNhbiBiZSBzZWVuIGJ5IGNv
-bW1hbmQgImxzbW9kfGdyZXAgdnA3MDQ1Ii4KClRoZSBMaW51eCBrZXJuZWwgdmVyc2lvbiBpcyAy
-LjYuMjguIFRoZSBzb3VyY2UgY29kZSBpcyBmZXRjaGVkIGZyb20gaGcgc2VydmVyIG9mIExpbnV4
-VFYgbGF0ZWx5LgoKRG9lcyBhbnlvbmUga25vdyB0aGlzIGJ1Zz8gSSBndWVzcyBzb21ld2hlcmUg
-bWlzaGFuZGxlZCB0aGUgdXNlIGNvdW50IGJ5IGFjY2lkZW50YWxseSBkZWNyZW1lbnRlZC4KClRo
-YW5rIHlvdSEKQm9iCg==
-------=_Part_37504_1368525335.1282530178022
-Content-Type: text/html; charset=gbk
-Content-Transfer-Encoding: base64
-
-SGkgYWxsLDxicj5JIGZvdW5kIHRoYXQgd2hlbiBJIGxvYWQgdGhlIGRyaXZlciBmb3IgdnA3MDQ1
-IGFuZCB1bnBsdWcgZGV2aWNlIGZyb20gVVNCIHBvcnQsIHRoZSBkcml2ZXIncyB1c2UgcmVmZXJl
-bmNlIGNvdW50IHJlYWNoZXMgYSBiaWcgd2VpcmQgbnVtYmVyIChFeDogNDI5NDk2NzI5NCwgaW4g
-aGV4IGl0IGlzIEZGRkZGRkZFLCBtZWFucy0yIEkgZ3Vlc3MpLiBUaGlzIGNhbiBiZSBzZWVuIGJ5
-IGNvbW1hbmQgImxzbW9kfGdyZXAgdnA3MDQ1Ii48YnI+PGJyPlRoZSBMaW51eCBrZXJuZWwgdmVy
-c2lvbiBpcyAyLjYuMjguIFRoZSBzb3VyY2UgY29kZSBpcyBmZXRjaGVkIGZyb20gaGcgc2VydmVy
-IG9mIExpbnV4VFYgbGF0ZWx5Ljxicj48YnI+RG9lcyBhbnlvbmUga25vdyB0aGlzIGJ1Zz8gSSBn
-dWVzcyBzb21ld2hlcmUgbWlzaGFuZGxlZCB0aGUgdXNlIGNvdW50IGJ5IGFjY2lkZW50YWxseSBk
-ZWNyZW1lbnRlZC48YnI+PGJyPlRoYW5rIHlvdSE8YnI+Qm9iPGJyPjxicj48YnI+PHNwYW4gdGl0
-bGU9Im5ldGVhc2Vmb290ZXIiLz48aHIvPgo8YSBocmVmPSJodHRwOi8vcWl5ZS4xNjMuY29tLz8x
-NjMiIHRhcmdldD0iX2JsYW5rIj7E+s/r07XT0LrNzfjS18Pit9HTys/k0rvR+ce/tPO1xMjtvP7C
-8KO/PC9hPgo8L3NwYW4+
-------=_Part_37504_1368525335.1282530178022--
+But at the moment there are a few problems with the positioner:
 
 
+For getting started I took a look at /util/gotox/gotox.c.
+In this file the function dvbsec_diseqc_goto_rotator_bearing is used.
+This function is for turning to a specific angle. (using 0x6E as command
+byte)
 
---===============1523814828==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+For any reason our rotor/motor/positioner only wants to turn to western
+degrees (but in the full range of 75=B0W..0=B0).
+
+The positioner: JAEGER Genuine SG-2500A DiSEqC 1.2 H-H MOUNT
+I think this seems to be an OEM product as I compared several positioners.
+They all have the same instruction manual, pictures, ...
+
+I checked the hardware limits; they were not set. So theoretically the
+range of movement is 75=B0W..0=B0..75=B0E.
+
+I also tried to delete theoretical software limits by
+- calling the dvbsec_diseqc_disable_satpos_limits command before calling
+the dvbsec_diseqc_goto_rotator_bearing command
+- tried the same sending the "raw" DiSEqC command message (command byte
+0x63)
+
+The positioner can manually be rotated in the complete range of movement
+of 75=B0W..0=B0..75=B0E.
+
+As I don't really want to manually control the motor any time and the
+dvbsec_diseqc_goto_rotator_bearing function doesn't work for me,
+I tried using the dvbsec_diseqc_goto_satpos_preset function. This works
+quite well, also for satellite with eastern longitude.
+The problem is: when choosing Astra (19.2E) for example, the motor of
+course turns to 19.2=B0E. This only works for your own position when you
+live at longitude 0=B0.
+
+This is why these motors provide something called
+recalculation/resynchronization. You go to the preset satellite position
+and correct the difference in longitude by manually turning the
+positioner. Afterwards you have to tell the positioner to correct all
+the satellite positions. This normally only has to be done once. Here
+the lib also offers a command:
+dvbsec_diseqc_recalculate_satpos_positions. I tried using it after
+calling the dvbsec_diseqc_goto_satpos_preset function. Unfortunately I
+am not quite sure which arguments to deliver. I once tried -1, -1 and
+then 0x00 0x00 and the the index number of the builtin satellite table
+entry. I am not sure how to use it correctly, but all in all it didn't work.
+
+Coming back to the dvbsec_diseqc_goto_rotator_bearing function:
+I am not sure if the specifications/ application notes which were made
+public are too old (I directly downloaded the files from EUTELSAT[1]),
+the implementation in the positioner differs, code in the lib is wrong
+or something else doesn't work correctly:
+
+If the angle delivered to the function is negative, the high nibble of
+byte 3 (the 4th byte) of the DiSEqC message is set to 0xD, else it's set
+to 0xE.
+The positioner application note (v1.0) says the high nibble of byte 3 is
+0x0, 0x1 or 0xF.
+
+Are there any further documents, implementations,... experience with
+positioners?
+
+Any help provided will be great! Thanks!
+
+Cheers,
+Matthias
+
+
+[1] http://www.eutelsat.com/satellites/4_5_5.html
+    Bus Specification, Positioner Application Note, etc
+
+
+PS: Not quite sure if I should use this list or linux-media, but as it
+seems this message is also automatically forwarded to this list, isn't it?
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1523814828==--
