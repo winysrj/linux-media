@@ -1,48 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:53106 "EHLO smtp6-g21.free.fr"
+Received: from smtp8.mail.ru ([94.100.176.53]:52226 "EHLO smtp8.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753591Ab0H2TUP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Aug 2010 15:20:15 -0400
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Michael Grzeschik <mgr@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 00/11] MT9M111/MT9M131
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
-	<20100817131742.GB16061@pengutronix.de>
-	<Pine.LNX.4.64.1008171521210.1364@axis700.grange>
-From: Robert Jarzmik <robert.jarzmik@free.fr>
-Date: Sun, 29 Aug 2010 21:20:06 +0200
-In-Reply-To: <Pine.LNX.4.64.1008171521210.1364@axis700.grange> (Guennadi Liakhovetski's message of "Tue\, 17 Aug 2010 15\:21\:57 +0200 \(CEST\)")
-Message-ID: <87wrr9kyzd.fsf@free.fr>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+	id S1750742Ab0HLIZ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Aug 2010 04:25:26 -0400
+Received: from [95.53.178.138] (port=30418 helo=localhost.localdomain)
+	by smtp8.mail.ru with asmtp
+	id 1OjT6K-0006AO-00
+	for linux-media@vger.kernel.org; Thu, 12 Aug 2010 12:25:24 +0400
+Date: Thu, 12 Aug 2010 12:32:32 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-media@vger.kernel.org
+Subject: dvb_net.c:1237: error: =?UTF-8?B?4oCYc3RydWN0IG5ldF9kZXZpY2XigJk=?=
+ has no member
+Message-ID: <20100812123232.6339408c@bk.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+hi
 
-> On Tue, 17 Aug 2010, Michael Grzeschik wrote:
->
->> Hi Robert, Guennadi,
->> 
->> after the messed up previous patchseries, this v2 series is left
->> without any feedback. Hopefully not forgotten. :-)
->
-> No, it is not forgotten, please, give me some more time.
+with 2.6.35 kernel and current v4l-dvb I have other errors as described here is
+http://www.kernellabs.com/blog/?p=1397
 
-Hi,
 
-As you may have noticed, I'm very busy and my reviews are very slow lately. I'm
-sorry for that, as my work pumps out every bit of energy I have.
+CC [M] /home/fabio/src/v4l-dvb-drxd/v4l/dvb_filter.o
+CC [M] /home/fabio/src/v4l-dvb-drxd/v4l/dvb_ca_en50221.o
+CC [M] /home/fabio/src/v4l-dvb-drxd/v4l/dvb_frontend.o
+CC [M] /home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.o
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1179: warning: ‘struct dev_mc_list’ declared inside parameter list
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1179: warning: its scope is only this definition or declaration, which is probably not what you want
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c: In function ‘dvb_set_mc_filter’:
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1186: error: dereferencing pointer to incomplete type
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c: In function ‘wq_set_multicast_list’:
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1226: error: ‘struct net_device’ has no member named ‘mc_count’
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1230: error: ‘struct net_device’ has no member named ‘mc_count’
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1236: error: ‘struct net_device’ has no member named ‘mc_list’
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1237: error: ‘struct net_device’ has no member named ‘mc_count’
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1238: error: dereferencing pointer to incomplete type
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1238: warning: left-hand operand of comma expression has no effect
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1238: warning: value computed is not used
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1239: warning: passing argument 2 of ‘dvb_set_mc_filter’ from incompatible pointer type
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1179: note: expected ‘struct dev_mc_list *’ but argument is of type ‘struct dev_mc_list *’
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c: In function ‘dvb_net_setup’:
+/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1363: error: ‘struct net_device’ has no member named ‘mc_count’
+make[3]: *** [/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.o] Error 1
+make[2]: *** [_module_/home/fabio/src/v4l-dvb-drxd/v4l] Error 2
+make[2]: Leaving directory `/usr/src/kernels/2.6.35-kal.i686′
+make[1]: *** [default] Error 2
+make[1]: Leaving directory `/home/fabio/src/v4l-dvb-drxd/v4l’
+make: *** [all] Error 2
 
-Except for patch 11 where I'd like a little amendment, I have tested the full
-serie, and my feeling is that things work at least as well as before, and
-probably even better.
+hope that it will fix soon
 
-Therefore, as I won't have much time ahead, please find my ack, for the full serie:
-Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+Goga
 
-Cheers.
 
--- 
-Robert
