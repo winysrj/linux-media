@@ -1,124 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1591 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753184Ab0HMS5B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Aug 2010 14:57:01 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7DIux7w056520
-	for <linux-media@vger.kernel.org>; Fri, 13 Aug 2010 20:56:59 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 13 Aug 2010 20:56:59 +0200 (CEST)
-Message-Id: <201008131856.o7DIux7w056520@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Received: from n5-vm1.bullet.mail.in.yahoo.com ([202.86.4.130]:43487 "HELO
+	n5-vm1.bullet.mail.in.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1759801Ab0HLMRR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Aug 2010 08:17:17 -0400
+Message-ID: <239550.42715.qm@web95111.mail.in2.yahoo.com>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com> <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com> <1280758003-16118-3-git-send-email-matti.j.aaltonen@nokia.com> <1280758003-16118-4-git-send-email-matti.j.aaltonen@nokia.com> <1280758003-16118-5-git-send-email-matti.j.aaltonen@nokia.com>
+Date: Thu, 12 Aug 2010 17:40:34 +0530 (IST)
+From: pramodh ag <pramodhag@yahoo.co.in>
+Subject: Re: [PATCH v7 4/5] V4L2: WL1273 FM Radio: Controls for the FM radio.
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com, mchehab@redhat.com
+In-Reply-To: <1280758003-16118-5-git-send-email-matti.j.aaltonen@nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Matti,
 
-Results of the daily build of v4l-dvb:
+> +/**
+> + * wl1273_fm_set_tx_power() -    Set the transmission power value.
+> + * @core:            A pointer to the device struct.
+> + * @power:            The new power value.
+> + */
+> +static int wl1273_fm_set_tx_power(struct wl1273_core *core, u16 power)
+> +{
+> +    int r;
+> +
+> +    if (core->mode == WL1273_MODE_OFF ||
+> +        core->mode == WL1273_MODE_SUSPENDED)
+> +        return -EPERM;
+> +
+> +    mutex_lock(&core->lock);
+> +
+> +    r = wl1273_fm_write_cmd(core, WL1273_POWER_LEV_SET, power);
 
-date:        Fri Aug 13 19:00:25 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15048:4fb6ae9057ea
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Output power level is specified in units of dBuV (as explained at 
+http://www.linuxtv.org/downloads/v4l-dvb-apis/ch01s09.html#fm-tx-controls).
+Shouldn't it be converted to WL1273 specific power level value?
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: ERRORS
-linux-2.6.31.12-i686: ERRORS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: ERRORS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: ERRORS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: ERRORS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: ERRORS
-linux-2.6.31.12-x86_64: ERRORS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: ERRORS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+My understanding:
+If output power level specified using "V4L2_CID_TUNE_POWER_LEVEL" is 122 
+(dB/uV), then
+power level value to be passed for WL1273 should be '0'.
+Please correct me, if I got this conversion wrong.
 
-Detailed results are available here:
+Thanks and regards,
+Pramodh
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
