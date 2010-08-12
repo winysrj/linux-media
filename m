@@ -1,42 +1,94 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58900 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755798Ab0HCJik (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 05:38:40 -0400
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: baruch@tkos.co.il, g.liakhovetski@gmx.de, s.hauer@pengutronix.de,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Teresa Gamez <T.Gamez@phytec.de>
-Subject: [PATCH 5/5] mx2_camera: add informative camera clock frequency printout
-Date: Tue,  3 Aug 2010 11:37:56 +0200
-Message-Id: <1280828276-483-6-git-send-email-m.grzeschik@pengutronix.de>
-In-Reply-To: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
-References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2635 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759472Ab0HLKaJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Aug 2010 06:30:09 -0400
+Message-ID: <3d84baeb117bdf02fa44a883e3ae05cf.squirrel@webmail.xs4all.nl>
+In-Reply-To: <1281606326.14489.66.camel@masi.mnp.nokia.com>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+    <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+    <201008091838.13247.hverkuil@xs4all.nl>
+    <1281425501.14489.7.camel@masi.mnp.nokia.com>
+    <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
+    <1281441830.14489.27.camel@masi.mnp.nokia.com>
+    <4C614294.7080101@redhat.com>
+    <1281518486.14489.43.camel@masi.mnp.nokia.com>
+    <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
+    <1281526453.14489.50.camel@masi.mnp.nokia.com>
+    <1281527073.14489.59.camel@masi.mnp.nokia.com>
+    <4C62A2AF.9070805@redhat.com>
+    <1281606326.14489.66.camel@masi.mnp.nokia.com>
+Date: Thu, 12 Aug 2010 12:29:55 +0200
+Subject: Re: A problem with http://git.linuxtv.org/media_tree.git
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: matti.j.aaltonen@nokia.com
+Cc: "ext Mauro Carvalho Chehab" <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo" <eduardo.valentin@nokia.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-ported mx27_camera to 2.6.33.2
-Signed-off-by: Teresa Gamez <T.Gamez@phytec.de>
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
----
- drivers/media/video/mx2_camera.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 7f27492..fb1b1cb 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -1360,6 +1360,9 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 			goto exit_dma_free;
- 	}
- 
-+	dev_info(&pdev->dev, "Camera clock frequency: %ld\n",
-+			clk_get_rate(pcdev->clk_csi));
-+
- 	INIT_LIST_HEAD(&pcdev->capture);
- 	INIT_LIST_HEAD(&pcdev->active_bufs);
- 	spin_lock_init(&pcdev->lock);
+> On Wed, 2010-08-11 at 15:16 +0200, ext Mauro Carvalho Chehab wrote:
+>> Em 11-08-2010 08:44, Matti J. Aaltonen escreveu:
+>> > Hi again.
+>> >
+>> > On Wed, 2010-08-11 at 14:34 +0300, Matti J. Aaltonen wrote:
+>> >> Hello.
+>> >>
+>> >> On Wed, 2010-08-11 at 12:56 +0200, ext Hans Verkuil wrote:
+>> >>>> Hi.
+>> >>>>
+>> >>>> I cloned your tree at 	http://linuxtv.org/git/media_tree.git and
+>> checked
+>> >>>> out the origin/staging/v2.6.37 branch and the
+>> >>>> Documentation/video4linux/v4l2-controls.txt  just isn't there. I
+>> asked
+>> >>>> one of my colleagues to do the same and the result was also the
+>> same.
+>> >>>
+>> >>> The file is in the v2.6.36 branch. It hasn't been merged yet in the
+>> >>> v2.6.37 branch.
+>> >>
+>> >> 37 above was a typo, sorry. My point was that we couldn't find it in
+>> the
+>> >> origin/staging/v2.6.36 branch... and that the branch lags behind of
+>> what
+>> >> can be seen via the git web interface...
+>> >>
+>> >> B.R.
+>> >> Matti
+>> >
+>> > I'd suggest - if that's not too much trouble - that you'd clone the
+>> tree
+>> > using http (from http://linuxtv.org/git/media_tree.git) and then
+>> checked
+>> > out the 36 branch and see that it works for you and then post the
+>> > command you used and then I'll admit what I did wrong - if
+>> necessary:-)
+>>
+>> You should try to avoid using http method for clone/fetch. It depends on
+>> some
+>> files that are created by running "git update-server-info". There's a
+>> script to
+>> run it automatically after each push. Yet, the better is to use git.
+>
+> I guess I didn't emphasize my point enough... I would avoid using http
+> if it wasn't the only protocol I can use to access your site... And if
+> you have serious problems with it I think it would be fair to mention
+> that on your git web page...
+
+FYI: the control framework has been merged into the mainline, so you can
+get it from there as well.
+
+Regards,
+
+        Hans
+
 -- 
-1.7.1
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
 
