@@ -1,40 +1,70 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta1.srv.hcvlny.cv.net ([167.206.4.196]:33090 "EHLO
-	mta1.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753893Ab0HDPq5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 11:46:57 -0400
-Received: from TheShoveller.local
- (ool-18bfe781.dyn.optonline.net [24.191.231.129]) by mta1.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0L6M00EK4X664A20@mta1.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Wed, 04 Aug 2010 11:46:55 -0400 (EDT)
-Date: Wed, 04 Aug 2010 11:46:54 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: dvbt siano sms1140
-In-reply-to: <1280936732.7266.2.camel@HDtv>
-To: hmd <tambatux@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>
-Message-id: <4C598B6E.6010303@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1280936732.7266.2.camel@HDtv>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mgw-sa02.nokia.com ([147.243.1.48]:49220 "EHLO
+	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754628Ab0HLKp4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Aug 2010 06:45:56 -0400
+Subject: Re: [PATCH v7 4/5] V4L2: WL1273 FM Radio: Controls for the FM
+ radio.
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Alexey Klimov <klimov.linux@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>
+In-Reply-To: <AANLkTin_55zYQoJ3zzMtiJtSS7bnPv4CB6hjggeez23a@mail.gmail.com>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-3-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-4-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-5-git-send-email-matti.j.aaltonen@nokia.com>
+	 <AANLkTin_55zYQoJ3zzMtiJtSS7bnPv4CB6hjggeez23a@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 12 Aug 2010 13:45:17 +0300
+Message-ID: <1281609917.14489.73.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On 8/4/10 11:45 AM, hmd wrote:
-> Hi all
-> i have a dvbt madule with sms1140 siano chip
-> i try to download  its firmware from
-> http://www.steventoth.net/linux/sms1xxx/sms1xxx-hcw-55xxx-dvbt-03.fw
->
-> but seems the link is not working
-> can anyone send it to me?
+Hello Alexey
 
-Just worked for me.
+On Wed, 2010-08-11 at 10:06 +0200, ext Alexey Klimov wrote: 
+> > +
+> > +       radio = kzalloc(sizeof(*radio), GFP_KERNEL);
+> > +       if (!radio)
+> > +               return -ENOMEM;
+> > +
+> > +       radio->write_buf = kmalloc(256, GFP_KERNEL);
+> > +       if (!radio->write_buf)
+> > +               return -ENOMEM;
+> 
+> I'm not sure but it looks like possible memory leak. Shouldn't you
+> call to kfree(radio) before returning ENOMEM?
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Yes you're right...
+
+> et_drvdata(&radio->videodev, radio);
+> > +       platform_set_drvdata(pdev, radio);
+> > +
+> > +       return 0;
+> > +
+> > +err_video_register:
+> > +       v4l2_device_unregister(&radio->v4l2dev);
+> > +err_device_alloc:
+> > +       kfree(radio);
+> 
+> And i'm not sure about this error path.. Before kfree(radio) it's
+> needed to call kfree(radio->write_buf), rigth?
+> Looks like all erorr paths in this probe function have to be checked.
+
+Yes, I'll the the error handling here...
+
+Thanks,
+Matti 
+> --
+> Best regards, Klimov 
+
 
 
