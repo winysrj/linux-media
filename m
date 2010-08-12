@@ -1,121 +1,100 @@
 Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:34022 "EHLO mail.issp.bas.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750774Ab0H1GRz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Aug 2010 02:17:55 -0400
-From: Marin Mitov <mitov@issp.bas.bg>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Date: Sat, 28 Aug 2010 09:14:25 +0300
-Cc: u.kleine-koenig@pengutronix.de, g.liakhovetski@gmx.de,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org,
-	linux-sh@vger.kernel.org, philippe.retornaz@epfl.ch,
-	gregkh@suse.de, jkrzyszt@tis.icnet.pl
-References: <20100827051907.GA17521@pengutronix.de> <201008270923.30297.mitov@issp.bas.bg> <20100827153204A.fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <20100827153204A.fujita.tomonori@lab.ntt.co.jp>
+Received: from mailout-de.gmx.net ([213.165.64.23]:60685 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753570Ab0HLQ1S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Aug 2010 12:27:18 -0400
+Message-ID: <4C6420E4.1040007@gmx.de>
+Date: Thu, 12 Aug 2010 18:27:16 +0200
+From: Matthias Weber <matthiaz.weber@gmx.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008280914.34233.mitov@issp.bas.bg>
+To: linux-media@vger.kernel.org
+CC: abraham.manu@gmail.com, adq_dvb@lidskialf.net
+Subject: Re: libdvbsec - trying to control DiSEqC positioner
+References: <4C642024.5070905@gmx.de>
+In-Reply-To: <4C642024.5070905@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Friday, August 27, 2010 09:32:14 am FUJITA Tomonori wrote:
-> On Fri, 27 Aug 2010 09:23:21 +0300
-> Marin Mitov <mitov@issp.bas.bg> wrote:
-> 
-> > On Friday, August 27, 2010 08:57:59 am FUJITA Tomonori wrote:
-> > > On Fri, 27 Aug 2010 07:19:07 +0200
-> > > Uwe Kleine-K$(D+S(Bnig <u.kleine-koenig@pengutronix.de> wrote:
-> > > 
-> > > > Hey,
-> > > > 
-> > > > On Fri, Aug 27, 2010 at 02:00:17PM +0900, FUJITA Tomonori wrote:
-> > > > > On Fri, 27 Aug 2010 06:41:42 +0200
-> > > > > Uwe Kleine-K$(D+S(Bnig <u.kleine-koenig@pengutronix.de> wrote:
-> > > > > > On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
-> > > > > > > On Thu, 26 Aug 2010 11:53:11 +0200
-> > > > > > > Uwe Kleine-K$(D+S(Bnig <u.kleine-koenig@pengutronix.de> wrote:
-> > > > > > > 
-> > > > > > > > > > We have currently a number of boards broken in the mainline. They must be 
-> > > > > > > > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
-> > > > > > > > > > as I suggested earlier, we need either this or my patch series
-> > > > > > > > > > 
-> > > > > > > > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
-> > > > > > > > > > 
-> > > > > > > > > > for 2.6.36.
-> > > > > > > > > 
-> > > > > > > > > Why can't you revert a commit that causes the regression?
-> > > > > > > > > 
-> > > > > > > > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
-> > > > > > > > > responsible for the regression. And the patchset even exnteds the
-> > > > > > > > > definition of the DMA API (dma_declare_coherent_memory). Such change
-> > > > > > > > > shouldn't applied after rc1. I think that DMA-API.txt says that
-> > > > > > > > > dma_declare_coherent_memory() handles coherent memory for a particular
-> > > > > > > > > device. It's not for the API that reserves coherent memory that can be
-> > > > > > > > > used for any device for a single device.
-> > > > > > > > The patch that made the problem obvious for ARM is
-> > > > > > > > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
-> > > > > > > > So this went in before v2.6.36-rc1.  One of the "architectures which
-> > > > > > > > similar restrictions" is x86 BTW.
-> > > > > > > > 
-> > > > > > > > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
-> > > > > > > > addresses a hardware restriction.
-> > > > > > > 
-> > > > > > > How these drivers were able to work without hitting the hardware restriction?
-> > > > > > In my case the machine in question is an ARMv5, the hardware restriction
-> > > > > > is on ARMv6+ only.  You could argue that so the breaking patch for arm
-> > > > > > should only break ARMv6, but I don't think this is sensible from a
-> > > > > > maintainers POV.  We need an API that works independant of the machine
-> > > > > > that runs the code.
-> > > > > 
-> > > > > Agreed. But insisting that the DMA API needs to be extended wrongly
-> > > > > after rc2 to fix the regression is not sensible too. The related DMA
-> > > > > API wasn't changed in 2.6.36-rc1. The API isn't responsible for the
-> > > > > regression at all.
-> > > > I think this isn't about "responsiblity".  Someone in arm-land found
-> > > > that the way dma memory allocation worked for some time doesn't work
-> > > > anymore on new generation chips.  As pointing out this problem was
-> > > > expected to find some matches it was merged in the merge window.  One
-> > > > such match is the current usage of the DMA API that doesn't currently
-> > > > offer a way to do it right, so it needs a patch, no?
-> > > 
-> > > No, I don't think so. We are talking about a regression, right?
-> > > 
-> > > On new generation chips, something often doesn't work (which have
-> > > worked on old chips for some time). It's not a regresiion. I don't
-> > > think that it's sensible to make large change (especially after rc1)
-> > > to fix such issue. If you say that the DMA API doesn't work on new
-> > > chips and proposes a patch for the next merge window, it's sensible, I
-> > > suppose.
-> > > 
-> > > Btw, the patch isn't a fix for the DMA API. It tries to extend the DMA
-> > > API (and IMO in the wrong way). 
-> > > In addition, the patch might break the
-> > > current code. 
-> > 
-> > To "break the current code" is simply not possible. Sorry to oppose. As you have written it 
-> > "extend the DMA API", so if you do not use the new API (and no current code is using it)
-> > you cannot "break the current code". 
-> 
-> Looks like that the patch adds the new API that touches the exisitng
-> code. It means the existing code could break. So the exsising API
-> could break too.
-> 
-> http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+Hi.
 
-The above reference is not my patch. I am speaking for my patch:
+We are trying to use the libdvbsec-api from the dvb-apps package
+(/dvb_apps/lib/libdvbsec) to build our own DiSEqC positioner control.
+It's going to implement a kind of USALS/GotoX/GotoXX/DiSEqC1.3, whatever
+you want to call it (there's no hardware receiver provided atm).
 
-http://lkml.org/lkml/2010/8/19/200
+But at the moment there are a few problems with the positioner:
 
-The only point my patch touches the existing code is struct device's member dma_mem
-and that is in condition you __use__ the new API, so you could decide yourself if it 
-could break the current code. As far as one does not use the new API - nothing is touched,
-nothing can break. If one uses the new API, only the user can suffer if the new API have
-bugs.
 
-Thanks,
+For getting started I took a look at /util/gotox/gotox.c.
+In this file the function dvbsec_diseqc_goto_rotator_bearing is used.
+This function is for turning to a specific angle. (using 0x6E as command
+byte)
 
-Marin Mitov
+For any reason our rotor/motor/positioner only wants to turn to western
+degrees (but in the full range of 75°W..0°).
+
+The positioner: JAEGER Genuine SG-2500A DiSEqC 1.2 H-H MOUNT
+I think this seems to be an OEM product as I compared several positioners.
+They all have the same instruction manual, pictures, ...
+
+I checked the hardware limits; they were not set. So theoretically the
+range of movement is 75°W..0°..75°E.
+
+I also tried to delete theoretical software limits by
+- calling the dvbsec_diseqc_disable_satpos_limits command before calling
+the dvbsec_diseqc_goto_rotator_bearing command
+- tried the same sending the "raw" DiSEqC command message (command byte
+0x63)
+
+The positioner can manually be rotated in the complete range of movement
+of 75°W..0°..75°E.
+
+As I don't really want to manually control the motor any time and the
+dvbsec_diseqc_goto_rotator_bearing function doesn't work for me,
+I tried using the dvbsec_diseqc_goto_satpos_preset function. This works
+quite well, also for satellite with eastern longitude.
+The problem is: when choosing Astra (19.2E) for example, the motor of
+course turns to 19.2°E. This only works for your own position when you
+live at longitude 0°.
+
+This is why these motors provide something called
+recalculation/resynchronization. You go to the preset satellite position
+and correct the difference in longitude by manually turning the
+positioner. Afterwards you have to tell the positioner to correct all
+the satellite positions. This normally only has to be done once. Here
+the lib also offers a command:
+dvbsec_diseqc_recalculate_satpos_positions. I tried using it after
+calling the dvbsec_diseqc_goto_satpos_preset function. Unfortunately I
+am not quite sure which arguments to deliver. I once tried -1, -1 and
+then 0x00 0x00 and the the index number of the builtin satellite table
+entry. I am not sure how to use it correctly, but all in all it didn't work.
+
+Coming back to the dvbsec_diseqc_goto_rotator_bearing function:
+I am not sure if the specifications/ application notes which were made
+public are too old (I directly downloaded the files from EUTELSAT[1]),
+the implementation in the positioner differs, code in the lib is wrong
+or something else doesn't work correctly:
+
+If the angle delivered to the function is negative, the high nibble of
+byte 3 (the 4th byte) of the DiSEqC message is set to 0xD, else it's set
+to 0xE.
+The positioner application note (v1.0) says the high nibble of byte 3 is
+0x0, 0x1 or 0xF.
+
+Are there any further documents, implementations,... experience with
+positioners?
+
+Any help provided will be great! Thanks!
+
+Cheers,
+Matthias
+
+
+[1] http://www.eutelsat.com/satellites/4_5_5.html
+    Bus Specification, Positioner Application Note, etc
+
+
+PS: Not quite sure if this mail was also sent to linux-dvb as I got a
+mail saying "deprecated"?
