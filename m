@@ -1,78 +1,124 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh02.mail.saunalahti.fi ([62.142.5.108]:60804 "EHLO
-	emh02.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751273Ab0HBNza convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 09:55:30 -0400
-Message-ID: <4C56CE4D.2060206@kolumbus.fi>
-Date: Mon, 02 Aug 2010 16:55:25 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: VDR User <user.vdr@gmail.com>
-CC: Emmanuel <eallaud@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [Q]: any DVB-S2 card which is 45MS/s capable?
-References: <4C4C475E.5060500@gmail.com>	<E1OdF5a-0006r0-00.goga777-bk-ru@f154.mail.ru>	<4C4DDB83.9040009@gmail.com>	<AANLkTikwZ4eB+z5WpTLZmg1HyrNWQuk+tmc1+wymw6CZ@mail.gmail.com>	<4C4ED694.5010505@gmail.com> <AANLkTikMTmaeLKuaAv66tG+3Yhr7ZrmTnrYai+bh70Vt@mail.gmail.com>
-In-Reply-To: <AANLkTikMTmaeLKuaAv66tG+3Yhr7ZrmTnrYai+bh70Vt@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1591 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753184Ab0HMS5B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Aug 2010 14:57:01 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7DIux7w056520
+	for <linux-media@vger.kernel.org>; Fri, 13 Aug 2010 20:56:59 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 13 Aug 2010 20:56:59 +0200 (CEST)
+Message-Id: <201008131856.o7DIux7w056520@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi.
+Results of the daily build of v4l-dvb:
 
-I have written some Mantis bandwidth related
-DMA transfer optimizations on June/July this year.
-They are now waiting for approval by Manu Abraham.
+date:        Fri Aug 13 19:00:25 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15048:4fb6ae9057ea
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Those reduce CPU pressure, increasing the bandwidth
-that can be received from the DVB card. 45MS/s bandwidth
-support will surely benefit from those patches.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: ERRORS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: ERRORS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: ERRORS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: ERRORS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Main features:
-1. Do one CPU interrupt per 16KB data instead per 4KB data.
-My implementation benefits only Mantis cards.
-https://patchwork.kernel.org/patch/107036/
+Detailed results are available here:
 
-2. Remove unnecessary big CPU overhead, when data is delivered
-from the DVB card's DMA buffer into Linux kernel's DVB subsystem.
-Number 2 reduces the CPU pressure by almost 50%.
-This implementation benefits many other Linux supported DVB cards too.
-http://patchwork.kernel.org/patch/108274/
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
-Those helped with my older single CPU Core computer with 256-QAM,
-delivering HDTV channel into the network and watching the
-HDTV channel with a faster computer.
+Full logs are available here:
 
-The performance bottlenecks could be seen on the
-command line with "perf top".
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
 
-I had to increase PCI bus latency setting into 64 too from the BIOS.
-Moving DVB device into separate IRQ line with Ethernet card helped too,
-because Ethernet card did an interrupt per ethernet packet.
+The V4L-DVB specification from this daily build is here:
 
-So if the hardware can deliver 45MS/s data fast enough, software side 
-can be optimized up
-to some point. My patches contain the most easy major optimizations that 
-I found.
-If you can test some of those patches, it might help to get them into 
-Linux kernel
-faster.
-
-Best regards,
-Marko Ristola
-
-27.07.2010 18:11, VDR User wrote:
-> On Tue, Jul 27, 2010 at 5:52 AM, Emmanuel<eallaud@gmail.com>  wrote:
->> VDR User a écrit :
->>> Look at the vp-1041 I think.
->>  From what I gathered it is not able to do 45MS/s for DVB-S2.
->> Thanks anyway,
-> You may want to ask Manu Abraham (author of the mantis driver) about
-> that to be sure.  It seems I recall him telling me it could quite some
-> time ago.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
