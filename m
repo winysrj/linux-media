@@ -1,226 +1,234 @@
 Return-path: <mchehab@pedra>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:20983 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753769Ab0H0Qqc (ORCPT
+Received: from smtp24.services.sfr.fr ([93.17.128.81]:51687 "EHLO
+	smtp24.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752909Ab0HMJ36 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 12:46:32 -0400
-Date: Fri, 27 Aug 2010 09:45:53 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for August 7 (IR)
-Message-Id: <20100827094553.f1c9a95d.randy.dunlap@oracle.com>
-In-Reply-To: <4C604196.6060100@redhat.com>
-References: <20100807160710.b7c8d838.sfr@canb.auug.org.au>
-	<20100807203920.83134a60.randy.dunlap@oracle.com>
-	<20100808135511.269f670c.randy.dunlap@oracle.com>
-	<4C5F9C2E.50001@redhat.com>
-	<20100809075255.97d18a66.randy.dunlap@oracle.com>
-	<4C603DB1.9030706@redhat.com>
-	<4C604196.6060100@redhat.com>
+	Fri, 13 Aug 2010 05:29:58 -0400
+Received: from filter.sfr.fr (localhost [127.0.0.1])
+	by msfrf2402.sfr.fr (SMTP Server) with ESMTP id B1D497000087
+	for <linux-media@vger.kernel.org>; Fri, 13 Aug 2010 11:29:54 +0200 (CEST)
+Received: from smtp-in.softsystem.co.uk (unknown [86.67.29.169])
+	by msfrf2402.sfr.fr (SMTP Server) with SMTP id 521CD7000086
+	for <linux-media@vger.kernel.org>; Fri, 13 Aug 2010 11:29:54 +0200 (CEST)
+Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
+	BY smtp-in.softsystem.co.uk [86.67.29.169] (SoftMail 1.0.5, www.softsystem.co.uk) WITH ESMTP
+	FOR <linux-media@vger.kernel.org>; Fri, 13 Aug 2010 11:29:52 +0200
+Subject: Re: [PATCH v2] V4L2: avoid name conflicts in macros
+From: lawrence rust <lawrence@softsystem.co.uk>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.1008122026450.17224@axis700.grange>
+References: <Pine.LNX.4.64.1008122026450.17224@axis700.grange>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 13 Aug 2010 11:29:52 +0200
+Message-ID: <1281691792.1375.76.camel@gagarin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, 09 Aug 2010 14:57:42 -0300 Mauro Carvalho Chehab wrote:
+On Thu, 2010-08-12 at 22:16 +0200, Guennadi Liakhovetski wrote:
+> "sd" and "err" are too common names to be used in macros for local variables.
+> Prefix them with an underscore to avoid name clashing.
 
-> Em 09-08-2010 14:41, Mauro Carvalho Chehab escreveu:
-> > Em 09-08-2010 11:52, Randy Dunlap escreveu:
-> >>> Hmm... clearly, there are some bad dependencies at the Kconfig. Maybe ir-core were compiled
-> >>> as module, while some drivers as built-in.
-> >>>
-> >>> Could you please pass the .config file for this build?
-> >>
-> >>
-> >> Sorry, config-r5101 is now attached.
-> > 
-> > Hmm... when building it, I'm getting an interesting warning:
-> > 
-> > warning: (VIDEO_BT848 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_DEV && PCI && I2C && VIDEO_V4L2 && INPUT || VIDEO_SAA7134 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_CX88 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_IVTV && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && PCI && I2C && INPUT || VIDEO_CX18 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL && INPUT || VIDEO_EM28XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || VIDEO_TLG2300 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT && SND && DVB_CORE || VIDEO_CX231XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || DVB_BUDGET_CI && MEDIA_SUPPORT && DVB!
- _CA
-> PT
-> > URE_DRIVERS && DVB_CORE && DVB_BUDGET_CORE && I2C && INPUT || DVB_DM1105 && MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && DVB_CORE && PCI && I2C && INPUT || VIDEO_GO7007 && STAGING && !STAGING_EXCLUDE_BUILD && VIDEO_DEV && PCI && I2C && INPUT && SND || VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
-> > 
-> > This warning seems to explain what's going wrong.
-> > 
-> > I'll make patch(es) to address this issue.
-> 
-> 
-> Ok, This patch (together with the previous one) seemed to solve the issue.
-> 
+Identifiers that begin with a double underscore (as you have used) are
+reserved for standard headers and defining them invokes undefined
+behaviour.
 
-Hi Mauro,
+>From the C99 standard para 7.1.3
+http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1124.pdf :
 
-Have you merged these 2 patches?
-I'm seeing very similar build errors in linux-next 20100827:
+"All identifiers that begin with an underscore and either an uppercase
+letter or another underscore are always reserved for any use."
+...
+"No other identifiers are reserved. If the program declares or defines
+an identifier in a context in which it is reserved (other than as
+allowed by 7.1.4), or defines a reserved identifier as a macro name, the
+behavior is undefined."
 
+It is preferable to use a single underscore and a lowercase prefix such
+as the library or header name e.g. _v4l_sd, _v4l_err, etc.
 
-ERROR: "get_rc_map" [drivers/media/video/saa7134/saa7134.ko] undefined!
-ERROR: "ir_input_unregister" [drivers/media/video/saa7134/saa7134.ko] undefined!
-ERROR: "ir_raw_event_store_edge" [drivers/media/video/saa7134/saa7134.ko] undefined!
-ERROR: "__ir_input_register" [drivers/media/video/saa7134/saa7134.ko] undefined!
-ERROR: "ir_raw_event_handle" [drivers/media/video/saa7134/saa7134.ko] undefined!
-ERROR: "get_rc_map" [drivers/media/video/cx88/cx88xx.ko] undefined!
-ERROR: "ir_repeat" [drivers/media/video/cx88/cx88xx.ko] undefined!
-ERROR: "ir_input_unregister" [drivers/media/video/cx88/cx88xx.ko] undefined!
-ERROR: "ir_keydown" [drivers/media/video/cx88/cx88xx.ko] undefined!
-ERROR: "__ir_input_register" [drivers/media/video/cx88/cx88xx.ko] undefined!
-ERROR: "get_rc_map" [drivers/media/video/bt8xx/bttv.ko] undefined!
-ERROR: "ir_input_unregister" [drivers/media/video/bt8xx/bttv.ko] undefined!
-ERROR: "__ir_input_register" [drivers/media/video/bt8xx/bttv.ko] undefined!
-ERROR: "ir_g_keycode_from_table" [drivers/media/IR/ir-common.ko] undefined!
+Aside - the copious use of macros encourages leakage of identifiers and
+often breaks encapsulation as here, where the implementation details of
+subdevs are exported.  A range of inline accessor/mutator functions
+would be preferable.
 
+-- Lawrence Rust
 
 > 
-> commit 0a706cf23aee2f6349f4b076f966038efb788a49
-> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:   Mon Aug 9 14:45:02 2010 -0300
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
 > 
->     V4L/DVB: fix Kconfig to depends on VIDEO_IR
->     
->     warning: (VIDEO_BT848 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_DEV && PCI && I2C && VIDEO_V4L2 && INPUT || VIDEO_SAA7134 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_CX88 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_IVTV && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && PCI && I2C && INPUT || VIDEO_CX18 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL && INPUT || VIDEO_EM28XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || VIDEO_TLG2300 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT && SND && DVB_CORE || VIDEO_CX231XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || DVB_BUDGET_CI && MEDIA_SUPPORT && D!
- VB_
-> CAPTURE_DRIVERS && DVB_CORE && DVB_BUDGET_CORE && I2C && INPUT || DVB_DM1105 && MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && DVB_CORE && PCI && I2C && INPUT || VIDEO_GO7007 && STAGING && !STAGING_EXCLUDE_BUILD && VIDEO_DEV && PCI && I2C && INPUT && SND || VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
->     
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> v2:
 > 
-> diff --git a/drivers/media/dvb/dm1105/Kconfig b/drivers/media/dvb/dm1105/Kconfig
-> index 6952392..a6ceb08 100644
-> --- a/drivers/media/dvb/dm1105/Kconfig
-> +++ b/drivers/media/dvb/dm1105/Kconfig
-> @@ -9,7 +9,7 @@ config DVB_DM1105
->  	select DVB_CX24116 if !DVB_FE_CUSTOMISE
->  	select DVB_SI21XX if !DVB_FE_CUSTOMISE
->  	select DVB_DS3000 if !DVB_FE_CUSTOMISE
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	help
->  	  Support for cards based on the SDMC DM1105 PCI chip like
->  	  DvbWorld 2002
-> diff --git a/drivers/media/dvb/ttpci/Kconfig b/drivers/media/dvb/ttpci/Kconfig
-> index 32a7ec6..debea8d 100644
-> --- a/drivers/media/dvb/ttpci/Kconfig
-> +++ b/drivers/media/dvb/ttpci/Kconfig
-> @@ -98,7 +98,7 @@ config DVB_BUDGET_CI
->  	select DVB_LNBP21 if !DVB_FE_CUSTOMISE
->  	select DVB_TDA10023 if !DVB_FE_CUSTOMISE
->  	select MEDIA_TUNER_TDA827X if !MEDIA_TUNER_CUSTOMISE
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	help
->  	  Support for simple SAA7146 based DVB cards
->  	  (so called Budget- or Nova-PCI cards) without onboard
-> diff --git a/drivers/media/video/bt8xx/Kconfig b/drivers/media/video/bt8xx/Kconfig
-> index 3077c45..1a4a89f 100644
-> --- a/drivers/media/video/bt8xx/Kconfig
-> +++ b/drivers/media/video/bt8xx/Kconfig
-> @@ -4,7 +4,7 @@ config VIDEO_BT848
->  	select I2C_ALGOBIT
->  	select VIDEO_BTCX
->  	select VIDEOBUF_DMA_SG
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	select VIDEO_MSP3400 if VIDEO_HELPER_CHIPS_AUTO
-> diff --git a/drivers/media/video/cx18/Kconfig b/drivers/media/video/cx18/Kconfig
-> index baf7e91..76c054d 100644
-> --- a/drivers/media/video/cx18/Kconfig
-> +++ b/drivers/media/video/cx18/Kconfig
-> @@ -3,7 +3,7 @@ config VIDEO_CX18
->  	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL
->  	depends on INPUT	# due to VIDEO_IR
->  	select I2C_ALGOBIT
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	select VIDEO_CX2341X
-> diff --git a/drivers/media/video/cx231xx/Kconfig b/drivers/media/video/cx231xx/Kconfig
-> index 477d4ab..5ac7ece 100644
-> --- a/drivers/media/video/cx231xx/Kconfig
-> +++ b/drivers/media/video/cx231xx/Kconfig
-> @@ -3,7 +3,7 @@ config VIDEO_CX231XX
->  	depends on VIDEO_DEV && I2C && INPUT
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEOBUF_VMALLOC
->  	select VIDEO_CX25840
+> as suggested by Mauro, also patched v4l2_device_call_all and 
+> v4l2_device_call_until_err, as well as ivtv and cx18 specific macros
+> 
+>  drivers/media/video/cx18/cx18-driver.h |   19 +++++++---
+>  drivers/media/video/ivtv/ivtv-driver.h |   14 ++++++--
+>  include/media/v4l2-device.h            |   57 ++++++++++++++++++++++----------
+>  3 files changed, 63 insertions(+), 27 deletions(-)
+> 
+> diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
+> index 9bc51a9..7e43c7b 100644
+> --- a/drivers/media/video/cx18/cx18-driver.h
+> +++ b/drivers/media/video/cx18/cx18-driver.h
+> @@ -674,18 +674,25 @@ static inline int cx18_raw_vbi(const struct cx18 *cx)
 >  
-> diff --git a/drivers/media/video/cx88/Kconfig b/drivers/media/video/cx88/Kconfig
-> index c7e5851..99dbae1 100644
-> --- a/drivers/media/video/cx88/Kconfig
-> +++ b/drivers/media/video/cx88/Kconfig
-> @@ -6,7 +6,7 @@ config VIDEO_CX88
->  	select VIDEOBUF_DMA_SG
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEO_WM8775 if VIDEO_HELPER_CHIPS_AUTO
->  	---help---
->  	  This is a video4linux driver for Conexant 2388x based
-> diff --git a/drivers/media/video/em28xx/Kconfig b/drivers/media/video/em28xx/Kconfig
-> index c7be0e0..66aefd6 100644
-> --- a/drivers/media/video/em28xx/Kconfig
-> +++ b/drivers/media/video/em28xx/Kconfig
-> @@ -3,7 +3,7 @@ config VIDEO_EM28XX
->  	depends on VIDEO_DEV && I2C && INPUT
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEOBUF_VMALLOC
->  	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
->  	select VIDEO_TVP5150 if VIDEO_HELPER_CHIPS_AUTO
-> diff --git a/drivers/media/video/ivtv/Kconfig b/drivers/media/video/ivtv/Kconfig
-> index c46bfb1..be4af1f 100644
-> --- a/drivers/media/video/ivtv/Kconfig
-> +++ b/drivers/media/video/ivtv/Kconfig
-> @@ -3,7 +3,7 @@ config VIDEO_IVTV
->  	depends on VIDEO_V4L2 && PCI && I2C
->  	depends on INPUT   # due to VIDEO_IR
->  	select I2C_ALGOBIT
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	select VIDEO_CX2341X
-> diff --git a/drivers/media/video/saa7134/Kconfig b/drivers/media/video/saa7134/Kconfig
-> index 22bfd62..fda005e 100644
-> --- a/drivers/media/video/saa7134/Kconfig
-> +++ b/drivers/media/video/saa7134/Kconfig
-> @@ -2,7 +2,7 @@ config VIDEO_SAA7134
->  	tristate "Philips SAA7134 support"
->  	depends on VIDEO_DEV && PCI && I2C && INPUT
->  	select VIDEOBUF_DMA_SG
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	select CRC32
-> diff --git a/drivers/media/video/tlg2300/Kconfig b/drivers/media/video/tlg2300/Kconfig
-> index 2c29ec6..1686ebf 100644
-> --- a/drivers/media/video/tlg2300/Kconfig
-> +++ b/drivers/media/video/tlg2300/Kconfig
-> @@ -3,7 +3,7 @@ config VIDEO_TLG2300
->  	depends on VIDEO_DEV && I2C && INPUT && SND && DVB_CORE
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEOBUF_VMALLOC
->  	select SND_PCM
->  	select VIDEOBUF_DVB
-> --
+>  /* Call the specified callback for all subdevs with a grp_id bit matching the
+>   * mask in hw (if 0, then match them all). Ignore any errors. */
+> -#define cx18_call_hw(cx, hw, o, f, args...) \
+> -	__v4l2_device_call_subdevs(&(cx)->v4l2_dev, \
+> -				   !(hw) || (sd->grp_id & (hw)), o, f , ##args)
+> +#define cx18_call_hw(cx, hw, o, f, args...)				\
+> +	do {								\
+> +		struct v4l2_subdev *__sd; 				\
+> +		__v4l2_device_call_subdevs_p(&(cx)->v4l2_dev, __sd,	\
+> +			!(hw) || (__sd->grp_id & (hw)), o, f , ##args);	\
+> +	} while (0)
+>  
+>  #define cx18_call_all(cx, o, f, args...) cx18_call_hw(cx, 0, o, f , ##args)
+>  
+>  /* Call the specified callback for all subdevs with a grp_id bit matching the
+>   * mask in hw (if 0, then match them all). If the callback returns an error
+>   * other than 0 or -ENOIOCTLCMD, then return with that error code. */
+> -#define cx18_call_hw_err(cx, hw, o, f, args...) \
+> -	__v4l2_device_call_subdevs_until_err( \
+> -		   &(cx)->v4l2_dev, !(hw) || (sd->grp_id & (hw)), o, f , ##args)
+> +#define cx18_call_hw_err(cx, hw, o, f, args...)				\
+> +({									\
+> +	struct v4l2_subdev *__sd;					\
+> +	__v4l2_device_call_subdevs_until_err_p(&(cx)->v4l2_dev,		\
+> +			__sd, !(hw) || (__sd->grp_id & (hw)), o, f,	\
+> +			##args);					\
+> +})
+>  
+>  #define cx18_call_all_err(cx, o, f, args...) \
+>  	cx18_call_hw_err(cx, 0, o, f , ##args)
+> diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
+> index 7580314..e61252c 100644
+> --- a/drivers/media/video/ivtv/ivtv-driver.h
+> +++ b/drivers/media/video/ivtv/ivtv-driver.h
+> @@ -811,15 +811,23 @@ static inline int ivtv_raw_vbi(const struct ivtv *itv)
+>  /* Call the specified callback for all subdevs matching hw (if 0, then
+>     match them all). Ignore any errors. */
+>  #define ivtv_call_hw(itv, hw, o, f, args...) 				\
+> -	__v4l2_device_call_subdevs(&(itv)->v4l2_dev, !(hw) || (sd->grp_id & (hw)), o, f , ##args)
+> +	do {								\
+> +		struct v4l2_subdev *__sd; 				\
+> +		__v4l2_device_call_subdevs_p(&(itv)->v4l2_dev, __sd,	\
+> +			!(hw) || (__sd->grp_id & (hw)), o, f , ##args);	\
+> +	} while (0)
+>  
+>  #define ivtv_call_all(itv, o, f, args...) ivtv_call_hw(itv, 0, o, f , ##args)
+>  
+>  /* Call the specified callback for all subdevs matching hw (if 0, then
+>     match them all). If the callback returns an error other than 0 or
+>     -ENOIOCTLCMD, then return with that error code. */
+> -#define ivtv_call_hw_err(itv, hw, o, f, args...)  		\
+> -	__v4l2_device_call_subdevs_until_err(&(itv)->v4l2_dev, !(hw) || (sd->grp_id & (hw)), o, f , ##args)
+> +#define ivtv_call_hw_err(itv, hw, o, f, args...)			\
+> +({									\
+> +	struct v4l2_subdev *__sd;					\
+> +	__v4l2_device_call_subdevs_until_err_p(&(itv)->v4l2_dev, __sd,	\
+> +		!(hw) || (__sd->grp_id & (hw)), o, f , ##args);		\
+> +})
+>  
+>  #define ivtv_call_all_err(itv, o, f, args...) ivtv_call_hw_err(itv, 0, o, f , ##args)
+>  
+> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+> index 8bcbd7a..fe10464 100644
+> --- a/include/media/v4l2-device.h
+> +++ b/include/media/v4l2-device.h
+> @@ -101,46 +101,67 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
+>  /* Call the specified callback for all subdevs matching the condition.
+>     Ignore any errors. Note that you cannot add or delete a subdev
+>     while walking the subdevs list. */
+> -#define __v4l2_device_call_subdevs(v4l2_dev, cond, o, f, args...) 	\
+> +#define __v4l2_device_call_subdevs_p(v4l2_dev, sd, cond, o, f, args...)	\
+>  	do { 								\
+> -		struct v4l2_subdev *sd; 				\
+> +		list_for_each_entry((sd), &(v4l2_dev)->subdevs, list)	\
+> +			if ((cond) && (sd)->ops->o && (sd)->ops->o->f)	\
+> +				(sd)->ops->o->f((sd) , ##args);		\
+> +	} while (0)
+> +
+> +#define __v4l2_device_call_subdevs(v4l2_dev, cond, o, f, args...)	\
+> +	do {								\
+> +		struct v4l2_subdev *__sd; 				\
+>  									\
+> -		list_for_each_entry(sd, &(v4l2_dev)->subdevs, list)   	\
+> -			if ((cond) && sd->ops->o && sd->ops->o->f) 	\
+> -				sd->ops->o->f(sd , ##args); 		\
+> +		__v4l2_device_call_subdevs_p(v4l2_dev, __sd, cond, o,	\
+> +						f , ##args);		\
+>  	} while (0)
+>  
+>  /* Call the specified callback for all subdevs matching the condition.
+>     If the callback returns an error other than 0 or -ENOIOCTLCMD, then
+>     return with that error code. Note that you cannot add or delete a
+>     subdev while walking the subdevs list. */
+> -#define __v4l2_device_call_subdevs_until_err(v4l2_dev, cond, o, f, args...) \
+> +#define __v4l2_device_call_subdevs_until_err_p(v4l2_dev, sd, cond, o, f, args...) \
+>  ({ 									\
+> -	struct v4l2_subdev *sd; 					\
+> -	long err = 0; 							\
+> +	long __err = 0;							\
+>  									\
+> -	list_for_each_entry(sd, &(v4l2_dev)->subdevs, list) { 		\
+> -		if ((cond) && sd->ops->o && sd->ops->o->f) 		\
+> -			err = sd->ops->o->f(sd , ##args); 		\
+> -		if (err && err != -ENOIOCTLCMD)				\
+> +	list_for_each_entry((sd), &(v4l2_dev)->subdevs, list) {		\
+> +		if ((cond) && (sd)->ops->o && (sd)->ops->o->f) 		\
+> +			__err = (sd)->ops->o->f((sd) , ##args);		\
+> +		if (__err && __err != -ENOIOCTLCMD)			\
+>  			break; 						\
+>  	} 								\
+> -	(err == -ENOIOCTLCMD) ? 0 : err; 				\
+> +	(__err == -ENOIOCTLCMD) ? 0 : __err; 				\
+> +})
+> +
+> +#define __v4l2_device_call_subdevs_until_err(v4l2_dev, cond, o, f, args...) \
+> +({ 									\
+> +	struct v4l2_subdev *__sd; 					\
+> +	__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd, cond, o,	\
+> +						f, args...);		\
+>  })
+>  
+>  /* Call the specified callback for all subdevs matching grp_id (if 0, then
+>     match them all). Ignore any errors. Note that you cannot add or delete
+>     a subdev while walking the subdevs list. */
+> -#define v4l2_device_call_all(v4l2_dev, grpid, o, f, args...) 		\
+> -	__v4l2_device_call_subdevs(v4l2_dev, 				\
+> -			!(grpid) || sd->grp_id == (grpid), o, f , ##args)
+> +#define v4l2_device_call_all(v4l2_dev, grpid, o, f, args...)		\
+> +	do {								\
+> +		struct v4l2_subdev *__sd; 				\
+> +									\
+> +		__v4l2_device_call_subdevs_p(v4l2_dev, __sd,		\
+> +			!(grpid) || __sd->grp_id == (grpid), o, f ,	\
+> +			##args);					\
+> +	} while (0)
+>  
+>  /* Call the specified callback for all subdevs matching grp_id (if 0, then
+>     match them all). If the callback returns an error other than 0 or
+>     -ENOIOCTLCMD, then return with that error code. Note that you cannot
+>     add or delete a subdev while walking the subdevs list. */
+>  #define v4l2_device_call_until_err(v4l2_dev, grpid, o, f, args...) 	\
+> -	__v4l2_device_call_subdevs_until_err(v4l2_dev,			\
+> -		       !(grpid) || sd->grp_id == (grpid), o, f , ##args)
+> +({ 									\
+> +	struct v4l2_subdev *__sd; 					\
+> +	__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd,		\
+> +			!(grpid) || __sd->grp_id == (grpid), o, f ,	\
+> +			##args);					\
+> +})
+>  
+>  #endif
 
 
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+
