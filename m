@@ -1,65 +1,89 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:63962 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab0HBMKX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 08:10:23 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Date: Mon, 02 Aug 2010 14:08:42 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: RE: [PATCH v3 1/8] ARM: Samsung: Add register definitions for	Samsung
- S5P SoC camera interface
-In-reply-to: <20100802105216.GD30670@n2100.arm.linux.org.uk>
-To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>
-Cc: 'Kukjin Kim' <kgene.kim@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <003201cb323b$72f32df0$58d989d0$%osciak@samsung.com>
-Content-language: pl
-References: <1279902083-21250-1-git-send-email-s.nawrocki@samsung.com>
- <1279902083-21250-2-git-send-email-s.nawrocki@samsung.com>
- <00ba01cb2c8f$02fc8480$08f58d80$%kim@samsung.com>
- <003001cb322d$fc976b10$f5c64130$%osciak@samsung.com>
- <20100802105216.GD30670@n2100.arm.linux.org.uk>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:35232 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755051Ab0HMMxn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Aug 2010 08:53:43 -0400
+Received: by ywh1 with SMTP id 1so910135ywh.19
+        for <linux-media@vger.kernel.org>; Fri, 13 Aug 2010 05:53:43 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201008131338.11647.liplianin@me.by>
+References: <20100812022919.7ce6dace@bk.ru>
+	<AANLkTi=m7YinFKg8pdYCuVTfQyNAvEM7dkVF8WLkOEAb@mail.gmail.com>
+	<201008131338.11647.liplianin@me.by>
+Date: Fri, 13 Aug 2010 09:53:43 -0300
+Message-ID: <AANLkTikC6+UETp7GBnzrqAEQhGoDsgrh3hmi0TyP374Q@mail.gmail.com>
+Subject: Re: 2.6.35 and current v4l-dvb - error: implicit declaration of
+ function 'usb_buffer_free'
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: Goga777 <goga777@bk.ru>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
->Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
->On Mon, Aug 02, 2010 at 12:32:20PM +0200, Pawel Osciak wrote:
->> Well, some of them are indeed unused, but it's not an uncommon practice in
->> kernel and might help future developers.
+Hello,
+
+2010/8/13 Igor M. Liplianin <liplianin@me.by>:
+> ÷ ÓÏÏÂÝÅÎÉÉ ÏÔ 13 Á×ÇÕÓÔÁ 2010 05:19:49 Á×ÔÏÒ Douglas Schilling Landgraf ÎÁÐÉÓÁÌ:
+>> Hello,
+>>
+>> 2010/8/11 Goga777 <goga777@bk.ru>:
+>> > Hi
+>> >
+>> > I can't compile current v4l-dvb with new 2.6.35 kernel
+>> >
+>> > arvdr:/usr/src/v4l-dvb# make
+>> > make -C /usr/src/v4l-dvb/v4l
+>> > make[1]: Entering directory `/usr/src/v4l-dvb/v4l'
+>> > creating symbolic links...
+>> > make -C firmware prep
+>> > make[2]: Entering directory `/usr/src/v4l-dvb/v4l/firmware'
+>> > make[2]: Leaving directory `/usr/src/v4l-dvb/v4l/firmware'
+>> > make -C firmware
+>> > make[2]: Entering directory `/usr/src/v4l-dvb/v4l/firmware'
+>> > make[2]: Nothing to be done for `default'.
+>> > make[2]: Leaving directory `/usr/src/v4l-dvb/v4l/firmware'
+>> > Kernel build directory is /lib/modules/2.6.35-tux/build
+>> > make -C /lib/modules/2.6.35-tux/build SUBDIRS=/usr/src/v4l-dvb/v4l
+>> > šmodules make[2]: Entering directory `/usr/src/linux-2.6.35'
+>> > šCC [M] š/usr/src/v4l-dvb/v4l/au0828-video.o
+>> > /usr/src/v4l-dvb/v4l/au0828-video.c: In function 'au0828_uninit_isoc':
+>> > /usr/src/v4l-dvb/v4l/au0828-video.c:185: error: implicit declaration of
+>> > function 'usb_buffer_free' /usr/src/v4l-dvb/v4l/au0828-video.c: In
+>> > function 'au0828_init_isoc': /usr/src/v4l-dvb/v4l/au0828-video.c:255:
+>> > error: implicit declaration of function 'usb_buffer_alloc'
+>> > /usr/src/v4l-dvb/v4l/au0828-video.c:256: warning: assignment makes
+>> > pointer from integer without a cast make[3]: ***
+>> > [/usr/src/v4l-dvb/v4l/au0828-video.o] ïÛÉÂËÁ 1
+>> > make[2]: *** [_module_/usr/src/v4l-dvb/v4l] Error 2
+>> > make[2]: Leaving directory `/usr/src/linux-2.6.35'
+>> > make[1]: *** [default] ïÛÉÂËÁ 2
+>> > make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
+>> > make: *** [all] ïÛÉÂËÁ 2
+>>
+>> Both functions were renamed in upstream, backport created and
+>> commited, please try again.
+>>
+>> Cheers
+>> Douglas
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at šhttp://vger.kernel.org/majordomo-info.html
+> Is it better other way round, to rename all appearances of functions and define a macro?
+> Like this:
 >
->On the other hand, arch/arm is getting soo big that we need to do
->something about this - and one solution is to avoid unnecessary
->definitions that we're not using.
+> #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,35)
+> #define usb_alloc_coherent(a, b, c, d) usb_buffer_alloc(a, b, c, d)
+> #define usb_free_coherent(a, b, c, d) usb_buffer_free(a, b, c, d)
+> #endif
 >
->Another good idea is to put definitions along side the drivers which
->they're relevant to - maybe in a local driver-name.h file which
->driver-name.c includes, or maybe even within driver-name.c if they're
->not excessive.  This has the advantage of distributing the "bloat" to
->where its actually used, and means that the driver isn't dependent so
->much on arch/arm or even the SoC itself.
->
->Take a look at arch/arm/mach-vexpress/include/mach/ct-ca9x4.h and
->arch/arm/mach-vexpress/include/mach/motherboard.h - these are the only
->two files which contain platform definitions which are actually used
->for Versatile Express.  Compare that with
->arch/arm/mach-realview/include/mach/platform.h which contains lots
->more...
+> In the end it will be more similar in code to the last kernel :)
 
-So basically, what you and Mauro are recommending is that we move the *.h
-file with register definitions to drivers/media?
+Yes, agreed but all drivers must be renamed with the new function name first.
+Otherwise, it will keep breaking. Thanks for looking it.
 
-
-Best regards
---
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
-
-
-
+Cheers
+Douglas
