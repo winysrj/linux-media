@@ -1,75 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from sh.osrg.net ([192.16.179.4]:44127 "EHLO sh.osrg.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751042Ab0HTDNt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Aug 2010 23:13:49 -0400
-Date: Fri, 20 Aug 2010 12:12:50 +0900
-To: m.nazarewicz@samsung.com
-Cc: kyungmin.park@samsung.com, fujita.tomonori@lab.ntt.co.jp,
-	linux-mm@kvack.org, dwalker@codeaurora.org, linux@arm.linux.org.uk,
-	corbet@lwn.net, p.osciak@samsung.com,
-	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
-	hvaibhav@ti.com, hverkuil@xs4all.nl, kgene.kim@samsung.com,
-	zpfeffer@codeaurora.org, jaeryul.oh@samsung.com,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com
-Subject: Re: [PATCH/RFCv3 0/6] The Contiguous Memory Allocator framework
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <op.vhppgaxq7p4s8u@localhost>
-References: <AANLkTikp49oOny-vrtRTsJvA3Sps08=w7__JjdA3FE8t@mail.gmail.com>
-	<20100820001339N.fujita.tomonori@lab.ntt.co.jp>
-	<op.vhppgaxq7p4s8u@localhost>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-Id: <20100820121124Z.fujita.tomonori@lab.ntt.co.jp>
+Received: from mailout-de.gmx.net ([213.165.64.23]:49843 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1761355Ab0HMIwd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Aug 2010 04:52:33 -0400
+Date: Fri, 13 Aug 2010 10:52:41 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Discussion of the Amstrad E3 emailer hardware/software
+	<e3-hacking@earth.li>
+Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera
+ interface
+In-Reply-To: <201008130924.04660.jkrzyszt@tis.icnet.pl>
+Message-ID: <Pine.LNX.4.64.1008131016100.31714@axis700.grange>
+References: <201007180618.08266.jkrzyszt@tis.icnet.pl>
+ <201008011751.17294.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1008111339190.32197@axis700.grange>
+ <201008130924.04660.jkrzyszt@tis.icnet.pl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-> >> We hope this method included at mainline kernel if possible.
-> >> It's really needed feature for our multimedia frameworks.
+On Fri, 13 Aug 2010, Janusz Krzysztofik wrote:
+
+> Thursday 12 August 2010 23:38:17 Guennadi Liakhovetski napisał(a):
+> > On Sun, 1 Aug 2010, Janusz Krzysztofik wrote:
+> > > Friday 30 July 2010 20:49:05 Janusz Krzysztofik napisaÅ(a):
+> > >
+> > > I think the right way would be if implemented at the videobuf-core level.
+> > > Then, drivers should be able to initialize both paths, providing queue
+> > > callbacks for both sets of methods, contig and sg, for videobuf sole use.
 > >
-> > You got any comments from mm people?
+> > Ok, here're my thoughts about this:
 > >
-> > Virtually, this adds a new memory allocator implementation that steals
-> > some memory from memory allocator during boot process. Its API looks
-> > completely different from the API for memory allocator. That doesn't
-> > sound appealing to me much. This stuff couldn't be integrated well
-> > into memory allocator?
+> > 1. We've discussed this dynamic switching a bit on IRC today. The first
+> > reaction was - you probably should concentrate on getting the contiguous
+> > version to work reliably. I.e., to reserve the memory in the board init
+> > code similar, how other contig users currently do it. 
 > 
-> What kind of integration do you mean?  I see three levels:
+> I already tried before to find out how I could allocate memory at init without 
+> reinventing a new videobuf-dma-contig implementation. Since in the 
+> Documentation/video4linux/videobuf I've read that videobuf does not currently 
+> play well with drivers that play tricks by allocating DMA space at system 
+> boot time, I've implemented the alternate sg path.
 > 
-> 1. Integration on API level meaning that some kind of existing API is used
->     instead of new cma_*() calls.  CMA adds notion of devices and memory
->     types which is new to all the other APIs (coherent has notion of devices
->     but that's not enough).  This basically means that no existing API can be
->     used for CMA.  On the other hand, removing notion of devices and memory
->     types would defeat the whole purpose of CMA thus destroying the solution
->     that CMA provides.
+> If it's not quite true what the documentation says and you can give me a hint 
+> how this could be done, I might try again.
 
-You can create something similar to the existing API for memory
-allocator.
+For an example look at 
+arch/arm/mach-mx3/mach-pcm037.c::pcm037_camera_alloc_dma().
 
-For example, blk_kmalloc/blk_alloc_pages was proposed as memory
-allocator API with notion of an address range for allocated memory. It
-wasn't merged for other reasons though.
-
-I don't mean that this is necessary for the inclusion (I'm not the
-person to ack or nack this). I just expect the similarity of memory
-allocator API.
-
-
-> 2. Reuse of memory pools meaning that memory reserved by CMA can then be
->     used by other allocation mechanisms.  This is of course possible.  For
->     instance coherent could easily be implemented as a wrapper to CMA.
->     This is doable and can be done in the future after CMA gets more
->     recognition.
+> > But given problems 
+> > with this aproach in the current ARM tree [1], this might be a bit
+> > difficult. Still, those problems have to be and will be fixed somehow
+> > eventually, so, you might prefer to still just go that route.
 > 
-> 3. Reuse of algorithms meaning that allocation algorithms used by other
->     allocators will be used with CMA regions.  This is doable as well and
->     can be done in the future.
+> My board uses two drivers that allocate dma memory at boot time: 
+> drivers/video/omap/lcdc.c and sounc/soc/omap/omap-pcm.c. Both use 
+> alloc_dma_writecombine() for this and work without problems.
 
-Well, why can't we do the above before the inclusion?
+dma_alloc_writecombine() also allocates contiguous RAM, right? And it 
+doesn't use device "local" memory. So, it's chances to fail are the same 
+as those of dma_alloc_coherent() in the absence of device own memory. I 
+guess, the sound driver doesn't need much RAM, but if you build your LCDC 
+driver as a module and load it later after startup, it might get problems 
+allocating RAM for the framebuffer.
 
-Anyway, I think that comments from mm people would be helpful to merge
-this.
+> > 2. If you do want to do the switching - we also discussed, how forthcoming
+> > changes to the videobuf subsystem will affest this work. I do not think it
+> > would be possible to implement this switching in the videobuf core.
+> 
+> OK, I should have probably said that it looked not possible for me to do it 
+> without any additional support implemented at videobuf-core (or soc_camera) 
+> level.
+> 
+> > Remember, with the videobuf API you first call the respective
+> > implementation init method, which doesn't fail. Then, in REQBUFS ioctl you
+> > call videobuf_reqbufs(), which might already fail but normally doesn't.
+> > The biggest problem is the mmap call with the contig videobuf
+> > implementation. This one is likely to fail. So, you would have to catch
+> > the failing mmap, call videobuf_mmap_free(), then init the SG videobuf,
+> > request buffers and mmap them... 
+> 
+> That's what I've already discovered, but failed to identify a place in my code 
+> where I could intercept this failing mmap without replacing parts of the 
+> videobuf code.
+
+Right, ATM soc-camera just calls videobuf_mmap_mapper() directly in its 
+mmap method. I could add a callback to struct soc_camera_host_ops like
+
+	int (*mmap)(struct soc_camera_device *, struct vm_area_struct *)
+
+and modify soc_camera_mmap() to check, whether the host driver has 
+implemented it. If so - call it, otherwise call videobuf_mmap_mapper() 
+directly just like now. So, other drivers would not have to be modified. 
+And you could implement that .mmap() method, call videobuf_mmap_mapper() 
+yourself, and if it fails for contig, fall back to SG.
+
+> > With my 2 patches from today, there is 
+> > only one process (file descriptor, to be precise), that manages the
+> > videobuf queue. So, this all can only be implemented in your driver.
+> 
+> The only way I'm yet able to invent is replacing the 
+> videobuf_queue->int_ops->mmap_mapper() callback with my own wrapper that 
+> would intercept a failing videobuf-dma-contig version of mmap_mapper(). This 
+> could be done in my soc_camera_host->ops->init_videobuf() after the 
+> videobuf-dma-contig.c version of the videobuf_queue->int_ops->mmap_mapper() 
+> is installed with the videobuf_queue_dma_contig_init().
+> 
+> Is this method close to what you have on mind?
+
+See, if the above idea would suit your needs.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
