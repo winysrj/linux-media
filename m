@@ -1,106 +1,95 @@
 Return-path: <mchehab@pedra>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:35851 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906Ab0HZEpK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 00:45:10 -0400
-Date: Thu, 26 Aug 2010 13:39:54 +0900
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-To: =?UTF-8?B?TWljaGHFgg==?= Nazarewicz <m.nazarewicz@samsung.com>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	linux-kernel@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-mm@kvack.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-Message-Id: <20100826133954.4433fdf2.kamezawa.hiroyu@jp.fujitsu.com>
-In-Reply-To: <op.vh01hi2m7p4s8u@localhost>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	<1282310110.2605.976.camel@laptop>
-	<20100825155814.25c783c7.akpm@linux-foundation.org>
-	<20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
-	<op.vh0wektv7p4s8u@localhost>
-	<20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
-	<20100826124434.6089630d.kamezawa.hiroyu@jp.fujitsu.com>
-	<op.vh01hi2m7p4s8u@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from mx1.redhat.com ([209.132.183.28]:41849 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934468Ab0HMOIl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Aug 2010 10:08:41 -0400
+Message-ID: <4C6551F7.8010506@redhat.com>
+Date: Fri, 13 Aug 2010 11:08:55 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+CC: "Igor M. Liplianin" <liplianin@me.by>, Goga777 <goga777@bk.ru>,
+	linux-media@vger.kernel.org
+Subject: Re: 2.6.35 and current v4l-dvb - error: implicit declaration of function
+ 'usb_buffer_free'
+References: <20100812022919.7ce6dace@bk.ru>	<AANLkTi=m7YinFKg8pdYCuVTfQyNAvEM7dkVF8WLkOEAb@mail.gmail.com>	<201008131338.11647.liplianin@me.by> <AANLkTikC6+UETp7GBnzrqAEQhGoDsgrh3hmi0TyP374Q@mail.gmail.com>
+In-Reply-To: <AANLkTikC6+UETp7GBnzrqAEQhGoDsgrh3hmi0TyP374Q@mail.gmail.com>
+Content-Type: text/plain; charset=KOI8-R
 Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 26 Aug 2010 06:01:56 +0200
-Michaе┌ Nazarewicz <m.nazarewicz@samsung.com> wrote:
-
-> KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
-> > 128MB...too big ? But it's depend on config.
+Em 13-08-2010 09:53, Douglas Schilling Landgraf escreveu:
+> Hello,
 > 
-> On embedded systems it may be like half of the RAM.  Or a quarter.  So bigger
-> granularity could be desired on some platforms.
+> 2010/8/13 Igor M. Liplianin <liplianin@me.by>:
+>> В сообщении от 13 августа 2010 05:19:49 автор Douglas Schilling Landgraf написал:
+>>> Hello,
+>>>
+>>> 2010/8/11 Goga777 <goga777@bk.ru>:
+>>>> Hi
+>>>>
+>>>> I can't compile current v4l-dvb with new 2.6.35 kernel
+>>>>
+>>>> arvdr:/usr/src/v4l-dvb# make
+>>>> make -C /usr/src/v4l-dvb/v4l
+>>>> make[1]: Entering directory `/usr/src/v4l-dvb/v4l'
+>>>> creating symbolic links...
+>>>> make -C firmware prep
+>>>> make[2]: Entering directory `/usr/src/v4l-dvb/v4l/firmware'
+>>>> make[2]: Leaving directory `/usr/src/v4l-dvb/v4l/firmware'
+>>>> make -C firmware
+>>>> make[2]: Entering directory `/usr/src/v4l-dvb/v4l/firmware'
+>>>> make[2]: Nothing to be done for `default'.
+>>>> make[2]: Leaving directory `/usr/src/v4l-dvb/v4l/firmware'
+>>>> Kernel build directory is /lib/modules/2.6.35-tux/build
+>>>> make -C /lib/modules/2.6.35-tux/build SUBDIRS=/usr/src/v4l-dvb/v4l
+>>>>  modules make[2]: Entering directory `/usr/src/linux-2.6.35'
+>>>>  CC [M]  /usr/src/v4l-dvb/v4l/au0828-video.o
+>>>> /usr/src/v4l-dvb/v4l/au0828-video.c: In function 'au0828_uninit_isoc':
+>>>> /usr/src/v4l-dvb/v4l/au0828-video.c:185: error: implicit declaration of
+>>>> function 'usb_buffer_free' /usr/src/v4l-dvb/v4l/au0828-video.c: In
+>>>> function 'au0828_init_isoc': /usr/src/v4l-dvb/v4l/au0828-video.c:255:
+>>>> error: implicit declaration of function 'usb_buffer_alloc'
+>>>> /usr/src/v4l-dvb/v4l/au0828-video.c:256: warning: assignment makes
+>>>> pointer from integer without a cast make[3]: ***
+>>>> [/usr/src/v4l-dvb/v4l/au0828-video.o] Ошибка 1
+>>>> make[2]: *** [_module_/usr/src/v4l-dvb/v4l] Error 2
+>>>> make[2]: Leaving directory `/usr/src/linux-2.6.35'
+>>>> make[1]: *** [default] Ошибка 2
+>>>> make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
+>>>> make: *** [all] Ошибка 2
+>>>
+>>> Both functions were renamed in upstream, backport created and
+>>> commited, please try again.
+>>>
+>>> Cheers
+>>> Douglas
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Is it better other way round, to rename all appearances of functions and define a macro?
+>> Like this:
+>>
+>> #if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,35)
+>> #define usb_alloc_coherent(a, b, c, d) usb_buffer_alloc(a, b, c, d)
+>> #define usb_free_coherent(a, b, c, d) usb_buffer_free(a, b, c, d)
+>> #endif
+>>
+>> In the end it will be more similar in code to the last kernel :)
 > 
-> > IBM's ppc guys used 16MB section, and recently, a new interface to shrink
-> > the number of /sys files are added, maybe usable.
-> >
-> > Something good with this approach will be you can create "cma" memory
-> > before installing driver.
+> Yes, agreed but all drivers must be renamed with the new function name first.
+> Otherwise, it will keep breaking. Thanks for looking it.
+
+That's the reason why I used to first backport all upstream patches, and then work
+on a fix. An upstream patchset already did such change.
+
 > 
-> That's how CMA works at the moment.  But if I understand you correctly, what
-> you are proposing would allow to reserve memory *at* *runtime* long after system
-> has booted.  This would be a nice feature as well though.
-> 
-Yes, my proposal is that. 
-
-> > But yes, complicated and need some works.
-> 
-> > Ah, I need to clarify what I want to say.
-> >
-> > With compaction, it's helpful, but you can't get contiguous memory larger
-> > than MAX_ORDER, I think. To get memory larger than MAX_ORDER on demand,
-> > memory hot-plug code has almost all necessary things.
-> 
-> I'll try to look at it then.
-> 
-
-mm/memory_hotplug.c::offline_pages() does
-
-	1. disallow new allocation of memory in [start_pfn...end_pfn)
-	2. move all LRU pages to other regions than [start_pfn...end_pfn)
-	3. finally, mark all pages as PG_reserved (see __offline_isolated_pages())
-
-What's required for cma will be
-	a. remove _section_ limitation, which is done as BUG_ON().
-	b. replace 'step 3' with cma code.
-
-Maybe you can do similar just using compaction logic. The biggest difference will
-be 'step 1'.
-
-> > BTW, just curious...the memory for cma need not to be saved at
-> > hibernation ? Or drivers has to write its own hibernation ops by driver suspend
-> > udev or some ?
-> 
-> Hibernation was not considered as of yet but I think it's device driver's
-> responsibility more then CMA's especially since it may make little sense to save
-> some of the buffers -- ie. no need to keep a frame from camera since it'll be
-> overwritten just after system wakes up from hibernation.  It may also be better
-> to stop playback and resume it later on rather than trying to save decoder's
-> state.  Again though, I haven't thought about hibernation as of yet.
-> 
-
-Hmm, ok, use-case dependent and it's a job of a driver.
-
-Thanks,
--Kame
-
-
- 
+> Cheers
+> Douglas
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
