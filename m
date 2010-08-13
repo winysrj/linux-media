@@ -1,48 +1,63 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:57452 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754219Ab0HENIB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 09:08:01 -0400
-Message-ID: <4C5AB7DB.7030306@infradead.org>
-Date: Thu, 05 Aug 2010 10:08:43 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Return-path: <mchehab@pedra>
+Received: from perceval.irobotique.be ([92.243.18.41]:58205 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761746Ab0HMPrg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Aug 2010 11:47:36 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: Must omap34xxcam be a module?
+Date: Fri, 13 Aug 2010 17:47:30 +0200
+Cc: "sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>,
+	linux-media@vger.kernel.org
+References: <4C655A01.7010807@matrix-vision.de>
+In-Reply-To: <4C655A01.7010807@matrix-vision.de>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: V4L Kconfig defaults
-References: <Pine.LNX.4.64.1008051214310.19691@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1008051214310.19691@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <201008131747.31412.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 05-08-2010 07:32, Guennadi Liakhovetski escreveu:
-> Hi Mauro
+Hi Michael,
+
+On Friday 13 August 2010 16:43:13 Michael Jones wrote:
+> Hi Laurent & Sakari,
 > 
-> At some point the usefullness of the VIDEO_HELPER_CHIPS_AUTO option has 
-> been questioned and a patch has even been submitted to disable this on 
-> embedded systems [1], which, somehow, doesn't seem to have been 
-> successful, even though there haven't been any objections. Or was I 
-> expected to push it via my tree?
-
-I always expect patches from you via your tree.
-
-> Now, since a few kernel versions there are _many_ more of "default y" 
-> options in drivers/media/*/Kconfig around IR / remote drivers. Can we kill 
-> them (defaults, of course, not drivers), please?
-
-Hmm... those IR default's should be changed. Yet, the decoders should default to y,
-if IR_CORE is selected, as otherwise remote controllers that outputs data in raw
-mode won't work (and most drivers that have IR support have some models that use
-raw mode). Maybe we can create a IR_CORE_RAW to do the trick. We need to 
-think a little more about that.
-
+> Regarding the omap3camera/devel branch:
 > 
-> Thanks
-> Guennadi
-> 
-> [1] http://article.gmane.org/gmane.linux.kernel.embedded/2721
+> In v4l2-common.c:v4l2_i2c_new_subdev_board(), request_module() is called to
+> ensure that the sensor driver is already registered before registering the
+> sensor device.  When I compile-in both my sensor driver and omap34xxcam
+> with the kernel, this call to request_module() fails, and indeed
+> omap34xxcam is initialized before my sensor driver, causing the
+> omap34xxcam device registration to fail.
+>
+> When I leave omap34xxcam compiled-in and try to just let it load the sensor
+> module when needed on bootup, request_module() fails.  I haven't managed to
+> track down why that is.
 
-Cheers,
-Mauro
+That's because userspace isn't available yet when the omap34xxcam driver is 
+initialized, so there's no way to load a module at that time.
+
+> When I compile both omap34xxcam and my sensor driver as modules, and
+> load them after boot-up, registration succeeds.
+> 
+> Is it neccessary for omap34xxcam and its subdevices to be modules?  How are
+> you guys building these?
+
+At the moment it's indeed necessary. It's a V4L2 core issue, not specific to 
+omap34xxcam. I'm not aware of plans to fix this, but a proposal is welcome :-)
+
+> Full disclosure: my sensor is actually an SPI device, but the
+> v4l2_spi_new_subdev() function I'm actually using seems to be _very_
+> analogous to its I2C counterpart, so I'm assuming SPI is not responsible.
+
+The same issue exists with I2C, SPI is not responsible.
+
+-- 
+Regards,
+
+Laurent Pinchart
