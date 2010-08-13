@@ -1,57 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:47330 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012Ab0HZPEH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 11:04:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Subject: Re: [omap3camera] How does a lens subdevice get powered up?
-Date: Thu, 26 Aug 2010 17:04:05 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Nataraju, Kiran" <knataraju@ti.com>
-References: <A24693684029E5489D1D202277BE894463BA7E30@dlee02.ent.ti.com> <201008260930.43141.laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE894463BA852B@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE894463BA852B@dlee02.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008261704.05834.laurent.pinchart@ideasonboard.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:43382 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934396Ab0HMN4Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Aug 2010 09:56:25 -0400
+From: raja_mani@ti.com
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: mchehab@infradead.org, pavan_savoy@sify.com,
+	Raja-Mani <x0102026@ti.com>, Pramodh AG <pramodh_ag@ti.com>,
+	Pavan Savoy <pavan_savoy@ti.com>
+Subject: [PATCH/RFC 5/6] Staging: ti-st: update Kconfig and Makefile for FM driver
+Date: Fri, 13 Aug 2010 10:14:43 -0400
+Message-Id: <1281708884-15462-6-git-send-email-raja_mani@ti.com>
+In-Reply-To: <1281708884-15462-5-git-send-email-raja_mani@ti.com>
+References: <1281708884-15462-1-git-send-email-raja_mani@ti.com>
+ <1281708884-15462-2-git-send-email-raja_mani@ti.com>
+ <1281708884-15462-3-git-send-email-raja_mani@ti.com>
+ <1281708884-15462-4-git-send-email-raja_mani@ti.com>
+ <1281708884-15462-5-git-send-email-raja_mani@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Sergio,
+From: Raja-Mani <x0102026@ti.com>
 
-On Thursday 26 August 2010 16:54:37 Aguirre, Sergio wrote:
-> On Thursday, August 26, 2010 2:31 AM Laurent Pinchart wrote:
-> > On Wednesday 25 August 2010 22:15:36 Aguirre, Sergio wrote:
-> > > 
-> > > I see that usually a sensor is powered up on attempting a
-> > > VIDIOC_STREAMON at the capture endpoint of the pipeline, in which the
-> > > sensor is linked.
-> > > 
-> > > Now, what I don't understand quite well is, the Lens driver is a
-> > > separate subdevice, BUT it's obviously not linked to the sensor, nor the
-> > > pipeline.
-> > >
-> > > How would the lens driver know when to power up?
-> > 
-> > At the moment a userspace application needs to keep the lens subdev open
-> > to power-up the lens controller.
-> 
-> I see... So in that case, does it make sense to consider it as a media
-> entity?
-> 
-> I mean, there's no link, nor pad operations involved, so it doesn't really
-> add any value...
-> 
-> What do you think?
+Add new menu option in Kconfig and compilation option in
+Makefile for FM driver.
 
-Even if not part of the image pipeline, the lens controller is still part of 
-the media device. I think it makes sense to expose it as an entity and a V4L2 
-subdevice.
+Signed-off-by: Raja-Mani <x0102026@ti.com>
+Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
+Signed-off-by: Pavan Savoy <pavan_savoy@ti.com>
+---
+ drivers/staging/ti-st/Kconfig  |    8 ++++++++
+ drivers/staging/ti-st/Makefile |    2 ++
+ 2 files changed, 10 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/staging/ti-st/Kconfig b/drivers/staging/ti-st/Kconfig
+index 68ad3d0..4019c15 100644
+--- a/drivers/staging/ti-st/Kconfig
++++ b/drivers/staging/ti-st/Kconfig
+@@ -22,4 +22,12 @@ config ST_BT
+ 	  This enables the Bluetooth driver for TI BT/FM/GPS combo devices.
+ 	  This makes use of shared transport line discipline core driver to
+ 	  communicate with the BT core of the combo chip.
++
++config ST_FM
++	tristate "fm driver for ST"
++	select TI_ST
++	help
++	  This enables the FM driver for TI BT/FM/GPS combo devices
++	  This makes use of shared transport line discipline core driver to
++	  communicate with the FM core of the combo chip.
+ endmenu
+diff --git a/drivers/staging/ti-st/Makefile b/drivers/staging/ti-st/Makefile
+index 0167d1d..e6af3f1 100644
+--- a/drivers/staging/ti-st/Makefile
++++ b/drivers/staging/ti-st/Makefile
+@@ -5,3 +5,5 @@
+ obj-$(CONFIG_TI_ST) 		+= st_drv.o
+ st_drv-objs			:= st_core.o st_kim.o st_ll.o
+ obj-$(CONFIG_ST_BT) 		+= bt_drv.o
++obj-$(CONFIG_ST_FM) 		+= fm_drv.o
++fm_drv-objs     		:= fmdrv_common.o fmdrv_rx.o fmdrv_v4l2.o
 -- 
-Regards,
+1.5.6.3
 
-Laurent Pinchart
