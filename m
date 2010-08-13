@@ -1,62 +1,52 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:40390 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752221Ab0HBKON (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 06:14:13 -0400
-Received: by bwz1 with SMTP id 1so1368011bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 03:14:12 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTik3M-qoNRqrQmFWF6kTMFLhLZJp5uznznwFWPfY@mail.gmail.com>
-References: <AANLkTik3M-qoNRqrQmFWF6kTMFLhLZJp5uznznwFWPfY@mail.gmail.com>
-Date: Mon, 2 Aug 2010 12:14:12 +0200
-Message-ID: <AANLkTimbCeEsJU+T4hscNO_oPkBaQPaeDo-ge9K6UJw3@mail.gmail.com>
-Subject: STK7700D id is 1164:0871 on Toshiba A660 laptops, conflicts with Yuan
-	MC770
-From: Olivier Poulet <unineurone@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp8.mail.ru ([94.100.176.53]:40625 "EHLO smtp8.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934113Ab0HMJhb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Aug 2010 05:37:31 -0400
+Received: from [92.101.158.175] (port=4956 helo=localhost.localdomain)
+	by smtp8.mail.ru with psmtp
+	id 1Ojqhd-00032p-00
+	for linux-media@vger.kernel.org; Fri, 13 Aug 2010 13:37:29 +0400
+Date: Fri, 13 Aug 2010 13:44:54 +0400
+From: Goga777 <goga777@list.ru>
+To: <linux-media@vger.kernel.org>
+Subject: Re: 2.6.35 and current v4l-dvb - error: implicit declaration of
+ function 'usb_buffer_free'
+Message-ID: <20100813134454.3783794c@list.ru>
+In-Reply-To: <20100813123714.288571a4@list.ru>
+References: <20100812022919.7ce6dace@bk.ru>
+	<AANLkTi=m7YinFKg8pdYCuVTfQyNAvEM7dkVF8WLkOEAb@mail.gmail.com>
+	<20100813123714.288571a4@list.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello all,
+> > Both functions were renamed in upstream, backport created and
+> > commited, please try again.
 
-I am running Ubuntu 10.04 on a Toshiba A660-14x laptop. The hybrid
-tuner is being reported in Windows 7 as based on the STK7700D. Both
-tuners (dvb & analog) work correctly there.
+ 
+yes, I don't have more such errors, but still have other one which I reported early
 
-However, it's usb vendor & device strings are 1164:0871, see the
-output of hwinfo below. This makes the dvb modules configure it as if
-it where a "Yuan High-Tech MC770"
+ 
+>   CC [M]  /usr/src/v4l-dvb/v4l/dvb_net.o
+> /usr/src/v4l-dvb/v4l/dvb_net.c:1190: warning: 'struct dev_mc_list' declared inside parameter list
+> /usr/src/v4l-dvb/v4l/dvb_net.c:1190: warning: its scope is only this definition or declaration, which is
+>   probably not what you want /usr/src/v4l-dvb/v4l/dvb_net.c: In function 'dvb_set_mc_filter':
+> /usr/src/v4l-dvb/v4l/dvb_net.c:1197: error: dereferencing pointer to incomplete type
+> /usr/src/v4l-dvb/v4l/dvb_net.c:1197: error: dereferencing pointer to incomplete type
+> /usr/src/v4l-dvb/v4l/dvb_net.c: In function 'wq_set_multicast_list':
+> /usr/src/v4l-dvb/v4l/dvb_net.c:1247: error: 'struct net_device' has no member named 'mc_list'
+> /usr/src/v4l-dvb/v4l/dvb_net.c:1249: error: dereferencing pointer to incomplete type
+> /usr/src/v4l-dvb/v4l/dvb_net.c:1249: warning: left-hand operand of comma expression has no effect
+> /usr/src/v4l-dvb/v4l/dvb_net.c:1249: warning: value computed is not used
+> /usr/src/v4l-dvb/v4l/dvb_net.c:1250: warning: passing argument 2 of 'dvb_set_mc_filter' from incompatible
+>   pointer type /usr/src/v4l-dvb/v4l/dvb_net.c:1190: note: expected 'struct dev_mc_list *' but argument is
+>   of type 'struct dev_mc_list *' make[3]: *** [/usr/src/v4l-dvb/v4l/dvb_net.o] Ошибка 1
+> make[2]: *** [_module_/usr/src/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/linux-2.6.35'
+> make[1]: *** [default] Ошибка 2
+> make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
+> make: *** [all] Ошибка 2
 
-This results in Linux only seeing the DVB tuner, which works fine. The
-analog one isn't used, so I am missing all the analog channels (there
-are still some :-) ) I can catch from my location.
-
-Is there any module options I could pass to "force" it to be seen as a STK770D ?
-
-Best regards,
-Olivier
-
-09: USB 00.0: 0000 Unclassified device
-[Created at usb.122]
-UDI: /org/freedesktop/Hal/devices/usb_device_1164_871_0000000001_if0
-Unique ID: VBUu.DOCYvzmCULD
-Parent ID: ADDn.0j9+vWlqL56
-SysFS ID: /devices/pci0000:00/0000:00:1a.0/usb1/1-1/1-1.5/1-1.5:1.0
-SysFS BusID: 1-1.5:1.0
-Hardware Class: unknown
-Model: "YUAN High-Tech Development STK7700D"
-Hotplug: USB
-Vendor: usb 0x1164 "YUAN High-Tech Development Co., Ltd"
-Device: usb 0x0871 "STK7700D"
-Revision: "1.00"
-Serial ID: "0000000001"
-Driver: "dvb_usb_dib0700"
-Driver Modules: "dvb_usb_dib0700"
-Speed: 480 Mbps
-Module Alias: "usb:v1164p0871d0100dc00dsc00dp00icFFisc00ip00"
-Driver Info #0:
-  Driver Status: dvb_usb_dib0700 is active
-  Driver Activation Cmd: "modprobe dvb_usb_dib0700"
-Config Status: cfg=new, avail=yes, need=no, active=unknown
-Attached to: #5 (Hub)
