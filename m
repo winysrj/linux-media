@@ -1,238 +1,267 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:53935 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751129Ab0HWAET (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Aug 2010 20:04:19 -0400
-Received: by fxm13 with SMTP id 13so2626588fxm.19
-        for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 17:04:18 -0700 (PDT)
-From: Marek Vasut <marek.vasut@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC] [PATCH 3/6] SoC Camera: add driver for OV6650 sensor
-Date: Mon, 23 Aug 2010 02:03:37 +0200
-Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <201008222145.40942.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1008222201140.872@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1008222201140.872@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008230203.37762.marek.vasut@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:60888 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934362Ab0HMN4W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Aug 2010 09:56:22 -0400
+From: raja_mani@ti.com
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: mchehab@infradead.org, pavan_savoy@sify.com,
+	Raja-Mani <x0102026@ti.com>, Pramodh AG <pramodh_ag@ti.com>,
+	Pavan Savoy <pavan_savoy@ti.com>
+Subject: [PATCH/RFC 3/6] drivers:staging:ti-st: Sources for FM common header
+Date: Fri, 13 Aug 2010 10:14:41 -0400
+Message-Id: <1281708884-15462-4-git-send-email-raja_mani@ti.com>
+In-Reply-To: <1281708884-15462-3-git-send-email-raja_mani@ti.com>
+References: <1281708884-15462-1-git-send-email-raja_mani@ti.com>
+ <1281708884-15462-2-git-send-email-raja_mani@ti.com>
+ <1281708884-15462-3-git-send-email-raja_mani@ti.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Dne Ne 22. srpna 2010 22:30:10 Guennadi Liakhovetski napsal(a):
-> On Sun, 22 Aug 2010, Janusz Krzysztofik wrote:
-> > Hi Guennadi,
-> > Thanks for your review time.
-> > 
-> > Sunday 22 August 2010 18:40:13 Guennadi Liakhovetski wrote:
-> > > On Sun, 18 Jul 2010, Janusz Krzysztofik wrote:
-> > > > This patch provides a V4L2 SoC Camera driver for OV6650 camera
-> > > > sensor, found on OMAP1 SoC based Amstrad Delta videophone.
-> > > 
-> > > Have you also had a look at drivers/media/video/gspca/sonixb.c - in
-> > > also supports ov6650 among other sensors.
-> > 
-> > Yes, I have, but given up for now since:
-> > 1. the gspca seems using the sensor in "Bayer 8 BGGR" mode only, which I
-> > was
-> > 
-> >    not even able to select using mplayer to test my drivers with,
-> > 
-> > 2. not all settings used there are clear for me, so I've decided to
-> > revisit
-> > 
-> >    them later, when I first get a stable, even if not perfect, working
-> >    driver version accepted, instead of following them blindly.
-> 
-> But good that you've looked at it.
-> 
-> > > > +	unsigned char data[2] = { reg, val };
-> > > > +	struct i2c_msg msg = {
-> > > > +		.addr	= client->addr,
-> > > > +		.flags	= 0,
-> > > > +		.len	= 2,
-> > > > +		.buf	= data,
-> > > > +	};
-> > > > +
-> > > > +	ret = i2c_transfer(client->adapter, &msg, 1);
-> > > > +	if (ret < 0) {
-> > > > +		dev_err(&client->dev, "Failed writing register 0x%02x!
-\n", reg);
-> > > > +		return ret;
-> > > > +	}
-> > > > +	msleep(1);
-> > > 
-> > > Hm, interesting... Is this really needed?
-> > 
-> > If you mean msleep(1) - yes, the sensor didn't work correctly for me
-> > without that msleep().
-> 
-> Yes, I meant msleep(1).
+From: Raja-Mani <x0102026@ti.com>
 
-Doesn't surprise me at all actually. Check how this is done on ov9640 and also 
-NOTE I had to use gpio-spi module instead of pxa-spi to get the communication 
-running at all ... might be your case.
+This is a common header used in all FM submodules
+(FM V4L2,FM common,FM Rx).
 
-Cheers
-> 
-> > I you mean reading the register back - I've not tried without, will do.
-> 
-> Ok.
-> 
-> > > > +	case V4L2_CID_HUE_AUTO:
-> > > > +		if (ctrl->value) {
-> > > > +			ret = ov6650_reg_rmw(client, REG_HUE,
-> > > > +					SET_HUE(DEF_HUE), 
-SET_HUE(HUE_MASK));
-> > > > +			if (ret)
-> > > > +				break;
-> > > > +			priv->hue = DEF_HUE;
-> > > > +		} else {
-> > > > +			ret = ov6650_reg_rmw(client, REG_HUE, HUE_EN, 
-0);
-> > > > +		}
-> > > > +		if (ret)
-> > > > +			break;
-> > > > +		priv->hue_auto = ctrl->value;
-> > > 
-> > > Hm, sorry, don't understand. If the user sets auto-hue to ON, you set
-> > > the hue enable bit and hue value to default.
-> > 
-> > No, I reset the hue enable bit here, which I understand is used for
-> > applying a non-default hue value if set rather than enabling auto hue.
-> > Maybe my understanding of this bit function is wrong.
-> > 
-> > > If the user sets auto-hue to OFF,
-> > > you just set the hue enable bit on and don't change the value. Does
-> > > ov6650 actually support auto-hue?
-> > 
-> > All I was able to find out was the HUE register bits described like this:
-> > 
-> > Bit[7:6]: Reserved
-> > Bit[5]: Hue Enable
-> > Bit[4:0]: Hue setting
-> > 
-> > and the register default value: 0x10.
-> > 
-> > What do you think the bit[5] meaning is?
-> 
-> Well, from how I interpret, what you say, I think, there is no auto-hue
-> implemented by this sensor, at least, not by this register. Maybe drop
-> auto-hue support completely? It seems to me just a manual hue value can be
-> set.
-> 
-> > > > +/* select nearest higher resolution for capture */
-> > > > +static void ov6650_res_roundup(u32 *width, u32 *height)
-> > > > +{
-> > > > +	int i;
-> > > > +	enum { QCIF, CIF };
-> > > > +	int res_x[] = { 176, 352 };
-> > > > +	int res_y[] = { 144, 288 };
-> > > > +
-> > > > +	for (i = 0; i < ARRAY_SIZE(res_x); i++) {
-> > > > +		if (res_x[i] >= *width && res_y[i] >= *height) {
-> > > > +			*width = res_x[i];
-> > > > +			*height = res_y[i];
-> > > > +			return;
-> > > > +		}
-> > > > +	}
-> > > > +
-> > > > +	*width = res_x[CIF];
-> > > > +	*height = res_y[CIF];
-> > > > +}
-> > > 
-> > > This can be replaced by a version of
-> > > 
-> > > http://www.spinics.net/lists/linux-media/msg21893.html
-> > > 
-> > > when it is fixed and accepted;) I'll try to send an updated version of
-> > > that patch tomorrow.
-> > 
-> > Fine, I'll use this instead of my dirty workarounds.
-> 
-> /me has to update that patch... Will try to do that asap.
-> 
-> > > > +
-> > > > +/* program default register values */
-> > > > +static int ov6650_prog_dflt(struct i2c_client *client)
-> > > > +{
-> > > > +	int i, ret;
-> > > > +
-> > > > +	dev_dbg(&client->dev, "reinitializing\n");
-> > > > +
-> > > > +	for (i = 0; i < ARRAY_SIZE(ov6650_regs_dflt); i++) {
-> > > > +		ret = ov6650_reg_write(client, ov6650_regs_dflt[i].reg,
-> > > > +						
-ov6650_regs_dflt[i].val);
-> > > > +		if (ret)
-> > > > +			return ret;
-> > > > +	}
-> > > 
-> > > Hm, please, don't. I generally don't like such register - value array
-> > > magic for a number of reasons, and in your case it's just one (!)
-> > > register write operation - please, remove this array and just write
-> > > the register explicitly.
-> > 
-> > OK (with a reservation that I can probably end up with more than just
-> > one, non-default settings written explicitly).
-> 
-> Thas's ok. I find a sequence of explicit register writes nicer, e.g.,
-> because then you can insert comments / delays / meaningful debugging /
-> other branching between them. Pushing an array of register values to the
-> hardware looks like "no idea what this stuff is good for, I just copied
-> this from vendor's example / sniffed from the hardware..."
-> 
-> > > > +	ret = ov6650_reg_write(client, REG_HSTRT, hstrt);
-> > > > +	if (!ret)
-> > > > +		ret = ov6650_reg_write(client, REG_HSTOP, hstop);
-> > > > +	if (!ret)
-> > > > +		ret = ov6650_reg_write(client, REG_VSTRT, vstrt);
-> > > > +	if (!ret)
-> > > > +		ret = ov6650_reg_write(client, REG_VSTOP, vstop);
-> > > 
-> > > Are cropping and scaling on this camera absolutely independent? I.e.,
-> > > you can set any output format (CIF or QCIF) and it will just scale
-> > > whatever rectangle has been configured? And the other way round - you
-> > > set arbitrary cropping and output format stays the same?
-> > 
-> > I believe it works like I have put it here, but will try to recheck to
-> > make sure. Simply using v4l2-debug for this seems insufficient, since
-> > changing a frame format on the fly will get DMA out of sync immediately.
-> > What tool or utility could you advise for testing?
-> 
-> firstly, soc-camera is quite restrictive about s_crop ATM: it disallows
-> changes to the cropping sizes (only position can be changed). Whereby, now
-> that I think about it again, perhaps this wasn't a very good idea:
-> effectively this kills live zooming. Maybe we can lift that restriction
-> again. In any case, I don't know any existing programs, that can stream
-> video and simultaneously allow the user to issue crop and scale commands.
-> I just hacked mplayer and gstreamer for that. Or, to test changing left
-> and top offsets, I had mplayer running and issued crops and scales from
-> another window with a command-line tool like v4l2-dbg.
-> 
-> > > > +static struct v4l2_subdev_video_ops ov6650_video_ops = {
-> > > > +	.s_stream	= ov6650_s_stream,
-> > > > +	.s_mbus_fmt	= ov6650_s_fmt,
-> > > > +	.try_mbus_fmt	= ov6650_try_fmt,
-> > > 
-> > > Please, implement.g_mbus_fmt.
-> > 
-> > OK (in addition to what I've already implemented, I guess).
-> 
-> Of course
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Raja-Mani <x0102026@ti.com>
+Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
+Signed-off-by: Pavan Savoy <pavan_savoy@ti.com>
+---
+ drivers/staging/ti-st/fmdrv.h |  225 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 225 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/ti-st/fmdrv.h
+
+diff --git a/drivers/staging/ti-st/fmdrv.h b/drivers/staging/ti-st/fmdrv.h
+new file mode 100644
+index 0000000..d560570
+--- /dev/null
++++ b/drivers/staging/ti-st/fmdrv.h
+@@ -0,0 +1,225 @@
++/*
++ *  FM Driver for Connectivity chip of Texas Instruments.
++ *
++ *  Common header for all FM driver sub-modules.
++ *
++ *  Copyright (C) 2009 Texas Instruments
++ *
++ *  This program is free software; you can redistribute it and/or modify
++ *  it under the terms of the GNU General Public License version 2 as
++ *  published by the Free Software Foundation.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++ *
++ */
++
++#ifndef _FM_DRV_H
++#define _FM_DRV_H
++
++#include <linux/skbuff.h>
++#include <linux/interrupt.h>
++#include <sound/core.h>
++#include <sound/initval.h>
++#include <linux/timer.h>
++#include <linux/version.h>
++
++#define FM_DRV_VERSION            "0.01"
++/* Should match with FM_DRV_VERSION */
++#define FM_DRV_RADIO_VERSION      KERNEL_VERSION(0, 0, 1)
++#define FM_DRV_NAME               "ti_fmdrv"
++#define FM_DRV_CARD_SHORT_NAME    "TI FM Radio"
++#define FM_DRV_CARD_LONG_NAME     "Texas Instruments FM Radio"
++
++/* Flag info */
++#define FM_INTTASK_RUNNING            0
++#define FM_INTTASK_SCHEDULE_PENDING   1
++#define FM_FIRMWARE_DW_INPROGRESS     2
++#define FM_CORE_READY                 3
++#define FM_CORE_TRANSPORT_READY       4
++#define FM_AF_SWITCH_INPROGRESS	      5
++#define FM_CORE_TX_XMITING	      6
++
++#define FM_DRV_TX_TIMEOUT      (5*HZ)	/* 5 seconds */
++#define FM_DRV_RX_SEEK_TIMEOUT (20*HZ)	/* 20 seconds */
++
++#define NO_OF_ENTRIES_IN_ARRAY(array) (sizeof(array) / sizeof(array[0]))
++
++enum {
++	FM_MODE_OFF,
++	FM_MODE_TX,
++	FM_MODE_RX,
++	FM_MODE_ENTRY_MAX
++};
++
++#define FM_RX_RDS_INFO_FIELD_MAX	8	/* 4 Group * 2 Bytes */
++
++/* RX RDS data format */
++struct fm_rdsdata_format {
++	union {
++		struct {
++			unsigned char rdsbuff[FM_RX_RDS_INFO_FIELD_MAX];
++		} groupdatabuff;
++		struct {
++			unsigned short pidata;
++			unsigned char block_b_byte1;
++			unsigned char block_b_byte2;
++			unsigned char block_c_byte1;
++			unsigned char block_c_byte2;
++			unsigned char block_d_byte1;
++			unsigned char block_d_byte2;
++		} groupgeneral;
++		struct {
++			unsigned short pidata;
++			unsigned char block_b_byte1;
++			unsigned char block_b_byte2;
++			unsigned char firstaf;
++			unsigned char secondaf;
++			unsigned char firstpsbyte;
++			unsigned char secondpsbyte;
++		} group0A;
++
++		struct {
++			unsigned short pidata;
++			unsigned char block_b_byte1;
++			unsigned char block_b_byte2;
++			unsigned short pidata2;
++			unsigned char firstpsbyte;
++			unsigned char secondpsbyte;
++		} group0B;
++	} rdsdata;
++};
++
++/* FM region (Europe/US, Japan) info */
++struct region_info {
++	unsigned int channel_spacing;
++	unsigned int bottom_frequency;
++	unsigned int top_frequency;
++	unsigned char region_index;
++};
++
++typedef void (*int_handler_prototype) (void *);
++
++/* FM Interrupt processing related info */
++struct fm_irq {
++	unsigned char stage_index;
++	unsigned short flag;	/* FM interrupt flag */
++	unsigned short mask;	/* FM interrupt mask */
++	/* Interrupt process timeout handler */
++	struct timer_list int_timeout_timer;
++	unsigned char irq_service_timeout_retry;
++	int_handler_prototype *fm_int_handlers;
++};
++
++/* RDS info */
++struct fm_rds {
++	unsigned char flag;	/* RX RDS on/off status */
++	unsigned char last_block_index;	/* Last received RDS block */
++
++	/* RDS buffer */
++	wait_queue_head_t read_queue;
++	unsigned int buf_size;	/* Size is always multiple of 3 */
++	unsigned int wr_index;
++	unsigned int rd_index;
++	unsigned char *buffer;
++};
++
++#define FM_RDS_MAX_AF_LIST		25
++
++/* Current RX channel Alternate Frequency cache.
++ * This info is used to switch to other freq (AF)
++ * when current channel signal strengh is below RSSI threshold.
++ */
++struct tuned_station_info {
++	unsigned short picode;
++	unsigned int af_cache[FM_RDS_MAX_AF_LIST];
++	unsigned char no_of_items_in_afcache;
++	unsigned char af_list_max;
++};
++
++/* FM RX mode info */
++struct fm_rx {
++	struct region_info region;	/* Current selected band */
++	unsigned int curr_freq;	/* Current RX frquency */
++	unsigned char curr_mute_mode;	/* Current mute mode */
++	/* RF dependent soft mute mode */
++	unsigned char curr_rf_depend_mute;
++	unsigned short curr_volume;	/* Current volume level */
++	short curr_rssi_threshold;	/* Current RSSI threshold level */
++	/* Holds the index of the current AF jump */
++	unsigned char cur_afjump_index;
++	/* Will hold the frequency before the jump */
++	unsigned int freq_before_jump;
++	unsigned char rds_mode;	/* RDS operation mode (RDS/RDBS) */
++	unsigned char af_mode;	/* Alternate frequency on/off */
++	struct tuned_station_info cur_station_info;
++	struct fm_rds rds;
++};
++
++/*
++ * FM TX RDS data
++ *
++ * @ text_type: is the text following PS or RT
++ * @ text: radio text string which could either be PS or RT
++ * @ af_freq: alternate frequency for Tx
++ * TODO: to be declared in application
++ */
++struct tx_rds {
++	unsigned char text_type;
++	unsigned char text[25];
++	unsigned int af_freq;
++};
++/*
++ * FM TX global data
++ *
++ * @ pwr_lvl: Power Level of the Transmission from mixer control
++ * @ xmit_state: Transmission state = Updated locally upon Start/Stop
++ * @ audio_io: i2S/Analog
++ * @ tx_frq: Transmission frequency
++ */
++struct fmtx_data {
++	unsigned char pwr_lvl;
++	unsigned char xmit_state;
++	unsigned char audio_io;
++	unsigned long tx_frq;
++	struct tx_rds rds;
++};
++
++/* FM driver operation structure */
++struct fmdrv_ops {
++	struct video_device *radio_dev;	/* V4L2 video device pointer */
++	struct snd_card *card;	/* Card which holds FM mixer controls */
++	unsigned short asci_id;
++	spinlock_t rds_buff_lock; /* To protect access to RDS buffer */
++	spinlock_t resp_skb_lock; /* To protect access to received SKB */
++
++	long flag;		/*  FM driver state machine info */
++	char streg_cbdata; /* status of ST registration */
++
++	struct sk_buff_head rx_q;	/* RX queue */
++	struct tasklet_struct rx_task;	/* RX Tasklet */
++
++	struct sk_buff_head tx_q;	/* TX queue */
++	struct tasklet_struct tx_task;	/* TX Tasklet */
++	unsigned long last_tx_jiffies;	/* Timestamp of last pkt sent */
++	atomic_t tx_cnt;	/* Number of packets can send at a time */
++
++	struct sk_buff *response_skb;	/* Response from the chip */
++	/* Main task completion handler */
++	struct completion maintask_completion;
++	/* Opcode of last command sent to the chip */
++	unsigned char last_sent_pkt_opcode;
++	/* Handler used for wakeup when response packet is received */
++	struct completion *response_completion;
++	struct fm_irq irq_info;
++	unsigned char curr_fmmode; /* Current FM chip mode (TX, RX, OFF) */
++	struct fm_rx rx;	/* FM receiver info */
++	struct fmtx_data tx_data;
++};
++#endif
+-- 
+1.5.6.3
+
