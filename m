@@ -1,96 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:54838 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753445Ab0HZJGO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 05:06:14 -0400
-Date: Thu, 26 Aug 2010 11:06:20 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-cc: mitov@issp.bas.bg, linux-kernel@vger.kernel.org,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-sh@vger.kernel.org,
-	=?ISO-8859-15?Q?Uwe_Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>,
-	=?ISO-8859-15?Q?Philippe_R=E9tornaz?= <philippe.retornaz@epfl.ch>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory()
- API
-In-Reply-To: <20100826152333K.fujita.tomonori@lab.ntt.co.jp>
-Message-ID: <Pine.LNX.4.64.1008261100150.14167@axis700.grange>
-References: <201008201450.12585.mitov@issp.bas.bg> <20100826144000C.fujita.tomonori@lab.ntt.co.jp>
- <201008260904.19973.mitov@issp.bas.bg> <20100826152333K.fujita.tomonori@lab.ntt.co.jp>
+Received: from bear.ext.ti.com ([192.94.94.41]:48298 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761870Ab0HMRUI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Aug 2010 13:20:08 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>,
+	"Nataraju, Kiran" <knataraju@ti.com>,
+	"Hiremath, Vaibhav" <hvaibhav@ti.com>
+Date: Fri, 13 Aug 2010 12:20:02 -0500
+Subject: [ANNOUNCE] OMAP3 Camera ISP driver wiki in omappedia.org
+Message-ID: <A24693684029E5489D1D202277BE894456FC4E3B@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 26 Aug 2010, FUJITA Tomonori wrote:
+Hi all,
 
-> On Thu, 26 Aug 2010 09:04:14 +0300
-> Marin Mitov <mitov@issp.bas.bg> wrote:
-> 
-> > On Thursday, August 26, 2010 08:40:47 am FUJITA Tomonori wrote:
-> > > On Fri, 20 Aug 2010 14:50:12 +0300
-> > > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > > 
-> > > > On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
-> > > > > On Fri, 20 Aug 2010 11:13:45 +0300
-> > > > > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > > > > 
-> > > > > > > > This tric is already used in drivers/staging/dt3155v4l.c
-> > > > > > > > dt3155_alloc_coherent()/dt3155_free_coherent()
-> > > > > > > > 
-> > > > > > > > Here proposed for general use by popular demand from video4linux folks.
-> > > > > > > > Helps for videobuf-dma-contig framework.
-> > > > > > > 
-> > > > > > > What you guys exactly want to do? If you just want to pre-allocate
-> > > > > > > coherent memory for latter usage,
-> > > > > > 
-> > > > > > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
-> > > > > > We use coherent memory because it turns out to be contiguous.
-> > > > > 
-> > > > > Hmm, you don't care about coherency? You just need contiguous memory?
-> > > > 
-> > > > Yes. We just need contiguous memory. Coherency is important as far as when dma
-> > > > transfer finishes user land is able to see the new data. Could be done by something like
-> > > > dma_{,un}map_single()
-> > > 
-> > > Then, we should avoid using coherent memory as I exaplained before. In
-> > > addition, dma_alloc_coherent can't provide large enough contigous
-> > > memory for some drivers so this patch doesn't help much.
-> > 
-> > Please, look at drivers/media/video/videobuf-dma-contig.c. Using coherent memory
-> > is inavoidable for now, there is no alternative for it for now. The two new functions,
-> > which I propose are just helpers for those of us who already use coherent memory
-> > (via videobuf-dma-contig API). May be adding these two functions to 
-> > drivers/media/video/videobuf-dma-contig.c will be better solution?
-> 
-> If you add something to the videobuf-dma-contig API, that's fine by me
-> because drivers/media/video/videobuf-dma-contig.c uses the own
-> structure and plays with dma_alloc_coherent. As long as a driver
-> doesn't touch device->dma_mem directly, it's fine, I think (that is,
-> dt3155v4l driver is broken). There are already some workarounds for
-> contigous memory in several drivers anyway.
+I'll like to announce a new wikipage entry in http://omappedia.org site for
+OMAP3 Camera-ISP progress and details. Please find it here.
 
-No, this will not work - this API has to be used from board code and 
-videobuf can be built modular.
+http://omappedia.org/wiki/Camera-ISP_Driver
 
-> We will have the proper API for contiguous memory. I don't think that
-> adding such workaround to the DMA API is a good idea.
+The intention is to provide an online documentation of the work and progress
+of the patches submission, and its dependencies (Media Controller Framework,
+specifically).
 
-We have currently a number of boards broken in the mainline. They must be 
-fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
-as I suggested earlier, we need either this or my patch series
+If you're interested to contribute/experiment with the driver, this is intended to
+be a good start point for that, and also feel free to update it aswell.
 
-http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+The more people trying the driver, the better, so we can have as much platforms
+running with it as possible, and we can claim that the driver is flexible enough
+for all.
 
-for 2.6.36.
+Have a great weekend!
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+Sergio
