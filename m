@@ -1,67 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.105.134]:54523 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757546Ab0HKJ1s (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:52923 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752572Ab0HMSkv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 05:27:48 -0400
-Subject: Re: [PATCH v7 4/5] V4L2: WL1273 FM Radio: Controls for the FM
- radio.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Alexey Klimov <klimov.linux@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-In-Reply-To: <AANLkTin_55zYQoJ3zzMtiJtSS7bnPv4CB6hjggeez23a@mail.gmail.com>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1280758003-16118-3-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1280758003-16118-4-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1280758003-16118-5-git-send-email-matti.j.aaltonen@nokia.com>
-	 <AANLkTin_55zYQoJ3zzMtiJtSS7bnPv4CB6hjggeez23a@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 11 Aug 2010 12:27:05 +0300
-Message-ID: <1281518825.14489.47.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 13 Aug 2010 14:40:51 -0400
+Message-ID: <4C6591C7.7010300@infradead.org>
+Date: Fri, 13 Aug 2010 15:41:11 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
+CC: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Subject: Re: commpile error in function  =?UTF-8?B?4oCYdjRsMl9jdHJsX2hhbmQ=?=
+ =?UTF-8?B?bGVyX2luaXTigJk=?=
+References: <201008132022.42925.toralf.foerster@gmx.de>
+In-Reply-To: <201008132022.42925.toralf.foerster@gmx.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello Alexey
-
-On Wed, 2010-08-11 at 10:06 +0200, ext Alexey Klimov wrote:
-> > +
-> > +       radio = kzalloc(sizeof(*radio), GFP_KERNEL);
-> > +       if (!radio)
-> > +               return -ENOMEM;
-> > +
-> > +       radio->write_buf = kmalloc(256, GFP_KERNEL);
-> > +       if (!radio->write_buf)
-> > +               return -ENOMEM;
+Em 13-08-2010 15:22, Toralf Förster escreveu:
+> Hello,
 > 
-> I'm not sure but it looks like possible memory leak. Shouldn't you
-> call to kfree(radio) before returning ENOMEM?
+> I get this with current git :
+>   CC [M]  drivers/media/video/v4l2-ctrls.o
+> drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_ctrl_handler_init’:
+> drivers/media/video/v4l2-ctrls.c:766: error: implicit declaration of function 
+> ‘kzalloc’
+> drivers/media/video/v4l2-ctrls.c:767: warning: assignment makes pointer from 
+> integer without a cast
+> drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_ctrl_handler_free’:
+> drivers/media/video/v4l2-ctrls.c:786: error: implicit declaration of function 
+> ‘kfree’
+> drivers/media/video/v4l2-ctrls.c: In function ‘handler_new_ref’:
+> drivers/media/video/v4l2-ctrls.c:896: warning: assignment makes pointer from 
+> integer without a cast
+> drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_ctrl_new’:
+> drivers/media/video/v4l2-ctrls.c:975: warning: assignment makes pointer from 
+> integer without a cast
+> drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_g_ext_ctrls’:
+> drivers/media/video/v4l2-ctrls.c:1528: error: implicit declaration of function 
+> ‘kmalloc’
+> drivers/media/video/v4l2-ctrls.c:1528: warning: assignment makes pointer from 
+> integer without a cast
+> drivers/media/video/v4l2-ctrls.c: In function ‘try_set_ext_ctrls’:
+> drivers/media/video/v4l2-ctrls.c:1752: warning: assignment makes pointer from 
+> integer without a cast
+> make[3]: *** [drivers/media/video/v4l2-ctrls.o] Error 1
+> make[2]: *** [drivers/media/video] Error 2
+> make[1]: *** [drivers/media] Error 2
+> make: *** [drivers] Error 2
+> make: *** Waiting for unfinished jobs....
 
-Yes you're right...
+It should be solved by this commit:
+ 
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=1547ac893acbf87738ded0b470e2735fdfba6947
 
-> et_drvdata(&radio->videodev, radio);
-> > +       platform_set_drvdata(pdev, radio);
-> > +
-> > +       return 0;
-> > +
-> > +err_video_register:
-> > +       v4l2_device_unregister(&radio->v4l2dev);
-> > +err_device_alloc:
-> > +       kfree(radio);
-> 
-> And i'm not sure about this error path.. Before kfree(radio) it's
-> needed to call kfree(radio->write_buf), rigth?
-> Looks like all erorr paths in this probe function have to be checked.
-
-Yes, I'll the the error handling here...
-
-Thanks,
-Matti
-
-
+Cheers,
+Mauro.
