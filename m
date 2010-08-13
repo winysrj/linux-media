@@ -1,56 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:65508 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750710Ab0H0CmL convert rfc822-to-8bit (ORCPT
+Received: from fallback1.mail.ru ([94.100.176.18]:42441 "EHLO
+	fallback1.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934288Ab0HMOIG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 22:42:11 -0400
-Date: Fri, 27 Aug 2010 04:41:36 +0200
-From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-In-reply-to: <1282810627.1975.237.camel@laptop>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-mm@kvack.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Message-id: <op.vh2sfmqt7p4s8u@localhost>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-transfer-encoding: 8BIT
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
- <1282310110.2605.976.camel@laptop> <op.vh0ud3rg7p4s8u@localhost>
- <1282810627.1975.237.camel@laptop>
+	Fri, 13 Aug 2010 10:08:06 -0400
+Received: from mx38.mail.ru (mx38.mail.ru [94.100.176.52])
+	by fallback1.mail.ru (mPOP.Fallback_MX) with ESMTP id 2125B46E8BD
+	for <linux-media@vger.kernel.org>; Fri, 13 Aug 2010 12:31:43 +0400 (MSD)
+Received: from [92.101.158.175] (port=33452 helo=localhost.localdomain)
+	by mx38.mail.ru with psmtp
+	id 1OjpeA-000BmX-00
+	for linux-media@vger.kernel.org; Fri, 13 Aug 2010 12:29:50 +0400
+Date: Fri, 13 Aug 2010 12:37:14 +0400
+From: Goga777 <goga777@list.ru>
+To: <linux-media@vger.kernel.org>
+Subject: Re: 2.6.35 and current v4l-dvb - error: implicit declaration of
+ function 'usb_buffer_free'
+Message-ID: <20100813123714.288571a4@list.ru>
+In-Reply-To: <AANLkTi=m7YinFKg8pdYCuVTfQyNAvEM7dkVF8WLkOEAb@mail.gmail.com>
+References: <20100812022919.7ce6dace@bk.ru>
+	<AANLkTi=m7YinFKg8pdYCuVTfQyNAvEM7dkVF8WLkOEAb@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 26 Aug 2010 10:17:07 +0200, Peter Zijlstra <peterz@infradead.org> wrote:
-> So why not work on the page allocator to improve its contiguous
-> allocation behaviour. If you look at the thing you'll find pageblocks
-> and migration types. If you change it so that you pin the migration type
-> of one or a number of contiguous pageblocks to say MIGRATE_MOVABLE, so
-> that they cannot be used for anything but movable pages you're pretty
-> much there.
+> Both functions were renamed in upstream, backport created and
+> commited, please try again.
 
-And that's exactly where I'm headed.  I've created API that seems to be
-usable and meat mine and others requirements (not that I'm not saying it
-cannot be improved -- I'm always happy to hear comments) and now I'm
-starting to concentrate on the reusing of the grabbed memory.  At first
-I wasn't sure how this can be managed but thanks to many comments
-(including yours, thanks!) I have an idea of how the thing should work
-and what I should do from now.
+yes, I don't have more such errors, but still have other one which I reported early
 
--- 
-Best regards,                                        _     _
-| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
-| Computer Science,  Micha≈Ç "mina86" Nazarewicz       (o o)
-+----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
-
+  CC [M]  /usr/src/v4l-dvb/v4l/dvb_net.o
+/usr/src/v4l-dvb/v4l/dvb_net.c:1190: warning: 'struct dev_mc_list' declared inside parameter list
+/usr/src/v4l-dvb/v4l/dvb_net.c:1190: warning: its scope is only this definition or declaration, which is
+  probably not what you want /usr/src/v4l-dvb/v4l/dvb_net.c: In function 'dvb_set_mc_filter':
+/usr/src/v4l-dvb/v4l/dvb_net.c:1197: error: dereferencing pointer to incomplete type
+/usr/src/v4l-dvb/v4l/dvb_net.c:1197: error: dereferencing pointer to incomplete type
+/usr/src/v4l-dvb/v4l/dvb_net.c: In function 'wq_set_multicast_list':
+/usr/src/v4l-dvb/v4l/dvb_net.c:1247: error: 'struct net_device' has no member named 'mc_list'
+/usr/src/v4l-dvb/v4l/dvb_net.c:1249: error: dereferencing pointer to incomplete type
+/usr/src/v4l-dvb/v4l/dvb_net.c:1249: warning: left-hand operand of comma expression has no effect
+/usr/src/v4l-dvb/v4l/dvb_net.c:1249: warning: value computed is not used
+/usr/src/v4l-dvb/v4l/dvb_net.c:1250: warning: passing argument 2 of 'dvb_set_mc_filter' from incompatible
+  pointer type /usr/src/v4l-dvb/v4l/dvb_net.c:1190: note: expected 'struct dev_mc_list *' but argument is
+  of type 'struct dev_mc_list *' make[3]: *** [/usr/src/v4l-dvb/v4l/dvb_net.o] Ô€…¬À¡ 1
+make[2]: *** [_module_/usr/src/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-2.6.35'
+make[1]: *** [default] Ô€…¬À¡ 2
+make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
+make: *** [all] Ô€…¬À¡ 2
