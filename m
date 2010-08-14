@@ -1,15 +1,15 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2219 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750847Ab0HOS4y (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2750 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753910Ab0HNS4w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Aug 2010 14:56:54 -0400
+	Sat, 14 Aug 2010 14:56:52 -0400
 Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7FIuqSN029765
-	for <linux-media@vger.kernel.org>; Sun, 15 Aug 2010 20:56:53 +0200 (CEST)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7EIulZv060430
+	for <linux-media@vger.kernel.org>; Sat, 14 Aug 2010 20:56:51 +0200 (CEST)
 	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 15 Aug 2010 20:56:52 +0200 (CEST)
-Message-Id: <201008151856.o7FIuqSN029765@smtp-vbr11.xs4all.nl>
+Date: Sat, 14 Aug 2010 20:56:47 +0200 (CEST)
+Message-Id: <201008141856.o7EIulZv060430@smtp-vbr1.xs4all.nl>
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
@@ -21,7 +21,7 @@ the kernels and architectures in the list below.
 
 Results of the daily build of v4l-dvb:
 
-date:        Sun Aug 15 19:00:21 CEST 2010
+date:        Sat Aug 14 19:00:19 CEST 2010
 path:        http://www.linuxtv.org/hg/v4l-dvb
 changeset:   15048:4fb6ae9057ea
 git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
@@ -113,11 +113,11 @@ linux-2.6.21.7-x86_64: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
 The V4L-DVB specification from this daily build is here:
 
