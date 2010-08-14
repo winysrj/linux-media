@@ -1,43 +1,45 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37345 "EHLO mx1.redhat.com"
+Return-path: <mchehab@pedra>
+Received: from davee.hu ([195.228.74.82]:45833 "EHLO mail.davee.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751310Ab0HAUSh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Aug 2010 16:18:37 -0400
-Date: Sun, 1 Aug 2010 17:17:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Udi Atar <udia@siano-ms.com>
-Subject: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge WinTV
- MiniStick
-Message-ID: <20100801171718.5ad62978@pedra>
-In-Reply-To: <cover.1280693675.git.mchehab@redhat.com>
-References: <cover.1280693675.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	id S1757065Ab0HNNc2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Aug 2010 09:32:28 -0400
+Received: from [IPv6:2a01:270:dd00:e101:6c71:ca9f:b48a:6fa3] (2a010270dd00e1016c71ca9fb48a6fa3.rdns.inet6.hu [IPv6:2a01:270:dd00:e101:6c71:ca9f:b48a:6fa3])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.davee.hu (Postfix) with ESMTP id 6ED8F181598F3
+	for <linux-media@vger.kernel.org>; Sat, 14 Aug 2010 15:05:43 +0200 (CEST)
+Message-ID: <4C6694C7.6020203@davee.hu>
+Date: Sat, 14 Aug 2010 15:06:15 +0200
+From: Kelemen Soma <soma@davee.hu>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: bttv id
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Add the proper gpio port for WinTV MiniStick, with the information provided
-by Michael.
+  [  789.209449] bttv0: subsystem: ff01:a132 (UNKNOWN)
+[  789.209453] please mail id, board name and the correct card= insmod 
+option to linux-media@vger.kernel.org
+[  789.209460] bttv0: using: IVC-100 [card=110,insmod option]
 
-Thanks-to: Michael Krufky <mkrufky@kernellabs.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+05:00.0 Multimedia video controller [0400]: Brooktree Corporation Bt878 
+Video Capture [109e:036e] (rev 11)
+         Subsystem: Device [ff01:a132]
+         Flags: bus master, medium devsel, latency 32, IRQ 21
+         Memory at f0101000 (32-bit, prefetchable) [size=4K]
+         Capabilities: [44] Vital Product Data
+         Capabilities: [4c] Power Management version 2
+         Kernel driver in use: bttv
 
-diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
-index cff77e2..dcde606 100644
---- a/drivers/media/dvb/siano/sms-cards.c
-+++ b/drivers/media/dvb/siano/sms-cards.c
-@@ -67,6 +67,7 @@ static struct sms_board sms_boards[] = {
- 		.board_cfg.leds_power = 26,
- 		.board_cfg.led0 = 27,
- 		.board_cfg.led1 = 28,
-+		.board_cfg.ir = 9,
- 		.led_power = 26,
- 		.led_lo    = 27,
- 		.led_hi    = 28,
--- 
-1.7.1
+05:00.1 Multimedia controller [0480]: Brooktree Corporation Bt878 Audio 
+Capture [109e:0878] (rev 11)
+         Subsystem: Device [ff01:a132]
+         Flags: bus master, medium devsel, latency 32, IRQ 10
+         Memory at f0100000 (32-bit, prefetchable) [size=4K]
+         Capabilities: [44] Vital Product Data
+         Capabilities: [4c] Power Management version 2
 
+this is an IVC-100 card like ff00:a132
 
