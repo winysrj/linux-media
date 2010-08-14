@@ -1,143 +1,225 @@
 Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:37889 "EHLO mail.issp.bas.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751925Ab0H1HWr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Aug 2010 03:22:47 -0400
-From: Marin Mitov <mitov@issp.bas.bg>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Date: Sat, 28 Aug 2010 10:19:43 +0300
-Cc: u.kleine-koenig@pengutronix.de, g.liakhovetski@gmx.de,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org,
-	linux-sh@vger.kernel.org, philippe.retornaz@epfl.ch,
-	gregkh@suse.de, jkrzyszt@tis.icnet.pl
-References: <201008270923.30297.mitov@issp.bas.bg> <201008280914.34233.mitov@issp.bas.bg> <20100828160921U.fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <20100828160921U.fujita.tomonori@lab.ntt.co.jp>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:34731 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754539Ab0HNPDV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Aug 2010 11:03:21 -0400
+Subject: Re: [PATCH v2] V4L2: avoid name conflicts in macros
+From: Andy Walls <awalls@md.metrocast.net>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+In-Reply-To: <Pine.LNX.4.64.1008122026450.17224@axis700.grange>
+References: <Pine.LNX.4.64.1008122026450.17224@axis700.grange>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 14 Aug 2010 11:03:51 -0400
+Message-ID: <1281798231.2474.37.camel@localhost>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201008281019.52515.mitov@issp.bas.bg>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Saturday, August 28, 2010 10:10:28 am FUJITA Tomonori wrote:
-> On Sat, 28 Aug 2010 09:14:25 +0300
-> Marin Mitov <mitov@issp.bas.bg> wrote:
+On Thu, 2010-08-12 at 22:16 +0200, Guennadi Liakhovetski wrote:
+> "sd" and "err" are too common names to be used in macros for local variables.
+> Prefix them with an underscore to avoid name clashing.
 > 
-> > On Friday, August 27, 2010 09:32:14 am FUJITA Tomonori wrote:
-> > > On Fri, 27 Aug 2010 09:23:21 +0300
-> > > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > > 
-> > > > On Friday, August 27, 2010 08:57:59 am FUJITA Tomonori wrote:
-> > > > > On Fri, 27 Aug 2010 07:19:07 +0200
-> > > > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
-> > > > > 
-> > > > > > Hey,
-> > > > > > 
-> > > > > > On Fri, Aug 27, 2010 at 02:00:17PM +0900, FUJITA Tomonori wrote:
-> > > > > > > On Fri, 27 Aug 2010 06:41:42 +0200
-> > > > > > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
-> > > > > > > > On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
-> > > > > > > > > On Thu, 26 Aug 2010 11:53:11 +0200
-> > > > > > > > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
-> > > > > > > > > 
-> > > > > > > > > > > > We have currently a number of boards broken in the mainline. They must be 
-> > > > > > > > > > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
-> > > > > > > > > > > > as I suggested earlier, we need either this or my patch series
-> > > > > > > > > > > > 
-> > > > > > > > > > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
-> > > > > > > > > > > > 
-> > > > > > > > > > > > for 2.6.36.
-> > > > > > > > > > > 
-> > > > > > > > > > > Why can't you revert a commit that causes the regression?
-> > > > > > > > > > > 
-> > > > > > > > > > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
-> > > > > > > > > > > responsible for the regression. And the patchset even exnteds the
-> > > > > > > > > > > definition of the DMA API (dma_declare_coherent_memory). Such change
-> > > > > > > > > > > shouldn't applied after rc1. I think that DMA-API.txt says that
-> > > > > > > > > > > dma_declare_coherent_memory() handles coherent memory for a particular
-> > > > > > > > > > > device. It's not for the API that reserves coherent memory that can be
-> > > > > > > > > > > used for any device for a single device.
-> > > > > > > > > > The patch that made the problem obvious for ARM is
-> > > > > > > > > > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
-> > > > > > > > > > So this went in before v2.6.36-rc1.  One of the "architectures which
-> > > > > > > > > > similar restrictions" is x86 BTW.
-> > > > > > > > > > 
-> > > > > > > > > > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
-> > > > > > > > > > addresses a hardware restriction.
-> > > > > > > > > 
-> > > > > > > > > How these drivers were able to work without hitting the hardware restriction?
-> > > > > > > > In my case the machine in question is an ARMv5, the hardware restriction
-> > > > > > > > is on ARMv6+ only.  You could argue that so the breaking patch for arm
-> > > > > > > > should only break ARMv6, but I don't think this is sensible from a
-> > > > > > > > maintainers POV.  We need an API that works independant of the machine
-> > > > > > > > that runs the code.
-> > > > > > > 
-> > > > > > > Agreed. But insisting that the DMA API needs to be extended wrongly
-> > > > > > > after rc2 to fix the regression is not sensible too. The related DMA
-> > > > > > > API wasn't changed in 2.6.36-rc1. The API isn't responsible for the
-> > > > > > > regression at all.
-> > > > > > I think this isn't about "responsiblity".  Someone in arm-land found
-> > > > > > that the way dma memory allocation worked for some time doesn't work
-> > > > > > anymore on new generation chips.  As pointing out this problem was
-> > > > > > expected to find some matches it was merged in the merge window.  One
-> > > > > > such match is the current usage of the DMA API that doesn't currently
-> > > > > > offer a way to do it right, so it needs a patch, no?
-> > > > > 
-> > > > > No, I don't think so. We are talking about a regression, right?
-> > > > > 
-> > > > > On new generation chips, something often doesn't work (which have
-> > > > > worked on old chips for some time). It's not a regresiion. I don't
-> > > > > think that it's sensible to make large change (especially after rc1)
-> > > > > to fix such issue. If you say that the DMA API doesn't work on new
-> > > > > chips and proposes a patch for the next merge window, it's sensible, I
-> > > > > suppose.
-> > > > > 
-> > > > > Btw, the patch isn't a fix for the DMA API. It tries to extend the DMA
-> > > > > API (and IMO in the wrong way). 
-> > > > > In addition, the patch might break the
-> > > > > current code. 
-> > > > 
-> > > > To "break the current code" is simply not possible. Sorry to oppose. As you have written it 
-> > > > "extend the DMA API", so if you do not use the new API (and no current code is using it)
-> > > > you cannot "break the current code". 
-> > > 
-> > > Looks like that the patch adds the new API that touches the exisitng
-> > > code. It means the existing code could break. So the exsising API
-> > > could break too.
-> > > 
-> > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
-> > 
-> > The above reference is not my patch. I am speaking for my patch:
-> > 
-> > http://lkml.org/lkml/2010/8/19/200
-> 
-> I think that I already NACK'ed the patch.
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-OK.
+I've reviewed these but not tetsed them.  The functionally look OK.
 
-Thanks,
+I share Lawrence's concern about "__err" being considered a reserved
+library symbol somewhere in the kernel sometime in the future, and still
+having a good probability for name clashing  
 
-Marin Mitov
+However
 
+"git grep __err" reveals that "__err" is used in a few places as a local
+variable with block scope in a macro: the same manner as it is used in
+this patch.  I didn't find a global declaration of "__err" in the
+kernel.
+
+"git grep '[^_a-zA-Z0-9]_err[^_a-z:]' | grep -v goto"  also shows that
+"_err" is popular in macros, but also with no apparent global
+declaration in the kernel.
+
+"git grep '[^_a-zA-Z0-9]_err_[^a-z]' | grep -v goto" shows that "_err_"
+is not used anywhere in the kernel.
+
+
+Reviewed-by: Andy Walls <awalls@md.metrocast.net>
+
+Regards,
+Andy
+
+> ---
 > 
-> 1) drivers/media/videobuf-dma-contig.c should not use
-> dma_alloc_coherent. We shouldn't support the proposed API.
+> v2:
 > 
-> 2) I don't think that the DMA API (drivers/base/dma-mapping.c) is not
-> for creating "cache". Generally, the kernel uses "pool" concept for
-> something like that.
+> as suggested by Mauro, also patched v4l2_device_call_all and 
+> v4l2_device_call_until_err, as well as ivtv and cx18 specific macros
 > 
-> IMHO, reverting the commit 309caa9cc6ff39d261264ec4ff10e29489afc8f8
-> temporary (or temporary disabling it for systems that had worked) is
-> the most reasonable approach. I don't think that breaking systems that
-> had worked is a good idea even if the patch does the right thing. I
-> believe that we need to fix the broken solution
-> (videobuf-dma-contig.c) before the commit.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  drivers/media/video/cx18/cx18-driver.h |   19 +++++++---
+>  drivers/media/video/ivtv/ivtv-driver.h |   14 ++++++--
+>  include/media/v4l2-device.h            |   57 ++++++++++++++++++++++----------
+>  3 files changed, 63 insertions(+), 27 deletions(-)
 > 
+> diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
+> index 9bc51a9..7e43c7b 100644
+> --- a/drivers/media/video/cx18/cx18-driver.h
+> +++ b/drivers/media/video/cx18/cx18-driver.h
+> @@ -674,18 +674,25 @@ static inline int cx18_raw_vbi(const struct cx18 *cx)
+>  
+>  /* Call the specified callback for all subdevs with a grp_id bit matching the
+>   * mask in hw (if 0, then match them all). Ignore any errors. */
+> -#define cx18_call_hw(cx, hw, o, f, args...) \
+> -	__v4l2_device_call_subdevs(&(cx)->v4l2_dev, \
+> -				   !(hw) || (sd->grp_id & (hw)), o, f , ##args)
+> +#define cx18_call_hw(cx, hw, o, f, args...)				\
+> +	do {								\
+> +		struct v4l2_subdev *__sd; 				\
+> +		__v4l2_device_call_subdevs_p(&(cx)->v4l2_dev, __sd,	\
+> +			!(hw) || (__sd->grp_id & (hw)), o, f , ##args);	\
+> +	} while (0)
+>  
+>  #define cx18_call_all(cx, o, f, args...) cx18_call_hw(cx, 0, o, f , ##args)
+>  
+>  /* Call the specified callback for all subdevs with a grp_id bit matching the
+>   * mask in hw (if 0, then match them all). If the callback returns an error
+>   * other than 0 or -ENOIOCTLCMD, then return with that error code. */
+> -#define cx18_call_hw_err(cx, hw, o, f, args...) \
+> -	__v4l2_device_call_subdevs_until_err( \
+> -		   &(cx)->v4l2_dev, !(hw) || (sd->grp_id & (hw)), o, f , ##args)
+> +#define cx18_call_hw_err(cx, hw, o, f, args...)				\
+> +({									\
+> +	struct v4l2_subdev *__sd;					\
+> +	__v4l2_device_call_subdevs_until_err_p(&(cx)->v4l2_dev,		\
+> +			__sd, !(hw) || (__sd->grp_id & (hw)), o, f,	\
+> +			##args);					\
+> +})
+>  
+>  #define cx18_call_all_err(cx, o, f, args...) \
+>  	cx18_call_hw_err(cx, 0, o, f , ##args)
+> diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
+> index 7580314..e61252c 100644
+> --- a/drivers/media/video/ivtv/ivtv-driver.h
+> +++ b/drivers/media/video/ivtv/ivtv-driver.h
+> @@ -811,15 +811,23 @@ static inline int ivtv_raw_vbi(const struct ivtv *itv)
+>  /* Call the specified callback for all subdevs matching hw (if 0, then
+>     match them all). Ignore any errors. */
+>  #define ivtv_call_hw(itv, hw, o, f, args...) 				\
+> -	__v4l2_device_call_subdevs(&(itv)->v4l2_dev, !(hw) || (sd->grp_id & (hw)), o, f , ##args)
+> +	do {								\
+> +		struct v4l2_subdev *__sd; 				\
+> +		__v4l2_device_call_subdevs_p(&(itv)->v4l2_dev, __sd,	\
+> +			!(hw) || (__sd->grp_id & (hw)), o, f , ##args);	\
+> +	} while (0)
+>  
+>  #define ivtv_call_all(itv, o, f, args...) ivtv_call_hw(itv, 0, o, f , ##args)
+>  
+>  /* Call the specified callback for all subdevs matching hw (if 0, then
+>     match them all). If the callback returns an error other than 0 or
+>     -ENOIOCTLCMD, then return with that error code. */
+> -#define ivtv_call_hw_err(itv, hw, o, f, args...)  		\
+> -	__v4l2_device_call_subdevs_until_err(&(itv)->v4l2_dev, !(hw) || (sd->grp_id & (hw)), o, f , ##args)
+> +#define ivtv_call_hw_err(itv, hw, o, f, args...)			\
+> +({									\
+> +	struct v4l2_subdev *__sd;					\
+> +	__v4l2_device_call_subdevs_until_err_p(&(itv)->v4l2_dev, __sd,	\
+> +		!(hw) || (__sd->grp_id & (hw)), o, f , ##args);		\
+> +})
+>  
+>  #define ivtv_call_all_err(itv, o, f, args...) ivtv_call_hw_err(itv, 0, o, f , ##args)
+>  
+> diff --git a/include/media/v4l2-device.h b/include/media/v4l2-device.h
+> index 8bcbd7a..fe10464 100644
+> --- a/include/media/v4l2-device.h
+> +++ b/include/media/v4l2-device.h
+> @@ -101,46 +101,67 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd);
+>  /* Call the specified callback for all subdevs matching the condition.
+>     Ignore any errors. Note that you cannot add or delete a subdev
+>     while walking the subdevs list. */
+> -#define __v4l2_device_call_subdevs(v4l2_dev, cond, o, f, args...) 	\
+> +#define __v4l2_device_call_subdevs_p(v4l2_dev, sd, cond, o, f, args...)	\
+>  	do { 								\
+> -		struct v4l2_subdev *sd; 				\
+> +		list_for_each_entry((sd), &(v4l2_dev)->subdevs, list)	\
+> +			if ((cond) && (sd)->ops->o && (sd)->ops->o->f)	\
+> +				(sd)->ops->o->f((sd) , ##args);		\
+> +	} while (0)
+> +
+> +#define __v4l2_device_call_subdevs(v4l2_dev, cond, o, f, args...)	\
+> +	do {								\
+> +		struct v4l2_subdev *__sd; 				\
+>  									\
+> -		list_for_each_entry(sd, &(v4l2_dev)->subdevs, list)   	\
+> -			if ((cond) && sd->ops->o && sd->ops->o->f) 	\
+> -				sd->ops->o->f(sd , ##args); 		\
+> +		__v4l2_device_call_subdevs_p(v4l2_dev, __sd, cond, o,	\
+> +						f , ##args);		\
+>  	} while (0)
+>  
+>  /* Call the specified callback for all subdevs matching the condition.
+>     If the callback returns an error other than 0 or -ENOIOCTLCMD, then
+>     return with that error code. Note that you cannot add or delete a
+>     subdev while walking the subdevs list. */
+> -#define __v4l2_device_call_subdevs_until_err(v4l2_dev, cond, o, f, args...) \
+> +#define __v4l2_device_call_subdevs_until_err_p(v4l2_dev, sd, cond, o, f, args...) \
+>  ({ 									\
+> -	struct v4l2_subdev *sd; 					\
+> -	long err = 0; 							\
+> +	long __err = 0;							\
+>  									\
+> -	list_for_each_entry(sd, &(v4l2_dev)->subdevs, list) { 		\
+> -		if ((cond) && sd->ops->o && sd->ops->o->f) 		\
+> -			err = sd->ops->o->f(sd , ##args); 		\
+> -		if (err && err != -ENOIOCTLCMD)				\
+> +	list_for_each_entry((sd), &(v4l2_dev)->subdevs, list) {		\
+> +		if ((cond) && (sd)->ops->o && (sd)->ops->o->f) 		\
+> +			__err = (sd)->ops->o->f((sd) , ##args);		\
+> +		if (__err && __err != -ENOIOCTLCMD)			\
+>  			break; 						\
+>  	} 								\
+> -	(err == -ENOIOCTLCMD) ? 0 : err; 				\
+> +	(__err == -ENOIOCTLCMD) ? 0 : __err; 				\
+> +})
+> +
+> +#define __v4l2_device_call_subdevs_until_err(v4l2_dev, cond, o, f, args...) \
+> +({ 									\
+> +	struct v4l2_subdev *__sd; 					\
+> +	__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd, cond, o,	\
+> +						f, args...);		\
+>  })
+>  
+>  /* Call the specified callback for all subdevs matching grp_id (if 0, then
+>     match them all). Ignore any errors. Note that you cannot add or delete
+>     a subdev while walking the subdevs list. */
+> -#define v4l2_device_call_all(v4l2_dev, grpid, o, f, args...) 		\
+> -	__v4l2_device_call_subdevs(v4l2_dev, 				\
+> -			!(grpid) || sd->grp_id == (grpid), o, f , ##args)
+> +#define v4l2_device_call_all(v4l2_dev, grpid, o, f, args...)		\
+> +	do {								\
+> +		struct v4l2_subdev *__sd; 				\
+> +									\
+> +		__v4l2_device_call_subdevs_p(v4l2_dev, __sd,		\
+> +			!(grpid) || __sd->grp_id == (grpid), o, f ,	\
+> +			##args);					\
+> +	} while (0)
+>  
+>  /* Call the specified callback for all subdevs matching grp_id (if 0, then
+>     match them all). If the callback returns an error other than 0 or
+>     -ENOIOCTLCMD, then return with that error code. Note that you cannot
+>     add or delete a subdev while walking the subdevs list. */
+>  #define v4l2_device_call_until_err(v4l2_dev, grpid, o, f, args...) 	\
+> -	__v4l2_device_call_subdevs_until_err(v4l2_dev,			\
+> -		       !(grpid) || sd->grp_id == (grpid), o, f , ##args)
+> +({ 									\
+> +	struct v4l2_subdev *__sd; 					\
+> +	__v4l2_device_call_subdevs_until_err_p(v4l2_dev, __sd,		\
+> +			!(grpid) || __sd->grp_id == (grpid), o, f ,	\
+> +			##args);					\
+> +})
+>  
+>  #endif
+
+
