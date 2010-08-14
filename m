@@ -1,65 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43382 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934396Ab0HMN4Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Aug 2010 09:56:25 -0400
-From: raja_mani@ti.com
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: mchehab@infradead.org, pavan_savoy@sify.com,
-	Raja-Mani <x0102026@ti.com>, Pramodh AG <pramodh_ag@ti.com>,
-	Pavan Savoy <pavan_savoy@ti.com>
-Subject: [PATCH/RFC 5/6] Staging: ti-st: update Kconfig and Makefile for FM driver
-Date: Fri, 13 Aug 2010 10:14:43 -0400
-Message-Id: <1281708884-15462-6-git-send-email-raja_mani@ti.com>
-In-Reply-To: <1281708884-15462-5-git-send-email-raja_mani@ti.com>
-References: <1281708884-15462-1-git-send-email-raja_mani@ti.com>
- <1281708884-15462-2-git-send-email-raja_mani@ti.com>
- <1281708884-15462-3-git-send-email-raja_mani@ti.com>
- <1281708884-15462-4-git-send-email-raja_mani@ti.com>
- <1281708884-15462-5-git-send-email-raja_mani@ti.com>
+Received: from mp1-smtp-6.eutelia.it ([62.94.10.166]:57753 "EHLO
+	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933471Ab0HNIAO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Aug 2010 04:00:14 -0400
+Received: from [192.168.1.170] (ip-132-14.sn-213-198.eutelia.it [213.198.132.14])
+	by smtp.eutelia.it (Eutelia) with ESMTP id 4164D5D257D
+	for <linux-media@vger.kernel.org>; Sat, 14 Aug 2010 09:34:59 +0200 (CEST)
+Message-ID: <4C664723.9070303@gmail.com>
+Date: Sat, 14 Aug 2010 09:34:59 +0200
+From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Error building v4l
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-From: Raja-Mani <x0102026@ti.com>
+Building the v4l, I obtain the following error:
 
-Add new menu option in Kconfig and compilation option in
-Makefile for FM driver.
 
-Signed-off-by: Raja-Mani <x0102026@ti.com>
-Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
-Signed-off-by: Pavan Savoy <pavan_savoy@ti.com>
----
- drivers/staging/ti-st/Kconfig  |    8 ++++++++
- drivers/staging/ti-st/Makefile |    2 ++
- 2 files changed, 10 insertions(+), 0 deletions(-)
+home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c: In 
+function 'mceusb_dev_probe':
+/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:923: 
+error: implicit declaration of function 'usb_alloc_coherent'
+/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:923: 
+warning: assignment makes pointer from integer without a cast
+/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:1003: 
+error: implicit declaration of function 'usb_free_coherent'
+make[3]: *** 
+[/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.o] Error 1
+make[2]: *** 
+[_module_/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l] Error 2
+make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-24-generic'
+make[1]: *** [default] Errore 2
+make[1]: uscita dalla directory 
+«/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l»
+make: *** [all] Errore 2
 
-diff --git a/drivers/staging/ti-st/Kconfig b/drivers/staging/ti-st/Kconfig
-index 68ad3d0..4019c15 100644
---- a/drivers/staging/ti-st/Kconfig
-+++ b/drivers/staging/ti-st/Kconfig
-@@ -22,4 +22,12 @@ config ST_BT
- 	  This enables the Bluetooth driver for TI BT/FM/GPS combo devices.
- 	  This makes use of shared transport line discipline core driver to
- 	  communicate with the BT core of the combo chip.
-+
-+config ST_FM
-+	tristate "fm driver for ST"
-+	select TI_ST
-+	help
-+	  This enables the FM driver for TI BT/FM/GPS combo devices
-+	  This makes use of shared transport line discipline core driver to
-+	  communicate with the FM core of the combo chip.
- endmenu
-diff --git a/drivers/staging/ti-st/Makefile b/drivers/staging/ti-st/Makefile
-index 0167d1d..e6af3f1 100644
---- a/drivers/staging/ti-st/Makefile
-+++ b/drivers/staging/ti-st/Makefile
-@@ -5,3 +5,5 @@
- obj-$(CONFIG_TI_ST) 		+= st_drv.o
- st_drv-objs			:= st_core.o st_kim.o st_ll.o
- obj-$(CONFIG_ST_BT) 		+= bt_drv.o
-+obj-$(CONFIG_ST_FM) 		+= fm_drv.o
-+fm_drv-objs     		:= fmdrv_common.o fmdrv_rx.o fmdrv_v4l2.o
--- 
-1.5.6.3
+My system is a Kubuntu 10.04 amd64 with kernel 2.6.32-24-generic 
+#39-Ubuntu SMP Wed Jul 28 05:14:15 UTC 2010 x86_64 GNU/Linux
+
+How can I solve?
+Thank you,
+Xwang
 
