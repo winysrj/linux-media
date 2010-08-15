@@ -1,82 +1,124 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:56687 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755557Ab0HAJvj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 05:51:39 -0400
-Date: 01 Aug 2010 11:50:00 +0200
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: jonsmirl@gmail.com
-Cc: awalls@md.metrocast.net
-Cc: jarod@wilsonet.com
-Cc: linux-input@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: lirc-list@lists.sourceforge.net
-Cc: maximlevitsky@gmail.com
-Cc: mchehab@redhat.com
-Message-ID: <BU0Ob6WojFB@christoph>
-In-Reply-To: <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable  it.
-MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2219 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750847Ab0HOS4y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Aug 2010 14:56:54 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7FIuqSN029765
+	for <linux-media@vger.kernel.org>; Sun, 15 Aug 2010 20:56:53 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 15 Aug 2010 20:56:52 +0200 (CEST)
+Message-Id: <201008151856.o7FIuqSN029765@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Jon,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-on 31 Jul 10 at 14:14, Jon Smirl wrote:
-> On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de>
-> wrote:
->> Hi Jon,
->>
->> on 31 Jul 10 at 12:25, Jon Smirl wrote:
->>> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
->>> wrote:
->>>> I think you won't be able to fix the problem conclusively either way.  A
->>>> lot of how the chip's clocks should be programmed depends on how the
->>>> GPIOs are used and what crystal is used.
->>>>
->>>> I suspect many designers will use some reference design layout from ENE,
->>>> but it won't be good in every case.  The wire-up of the ENE of various
->>>> motherboards is likely something you'll have to live with as unknowns.
->>>>
->>>> This is a case where looser tolerances in the in kernel decoders could
->>>> reduce this driver's complexity and/or get rid of arbitrary fudge
->>>> factors in the driver.
->>
->>> The tolerances are as loose as they can be. The NEC protocol uses
->>> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
->>> (50% of 4%).  The crystals used in electronics are accurate to
->>> 0.0001%+.
->>
->> But the standard IR receivers are far from being accurate enough to allow
->> tolerance windows of only 2%.
->> I'm surprised that this works for you. LIRC uses a standard tolerance of
->> 30% / 100 us and even this is not enough sometimes.
->>
->> For the NEC protocol one signal consists of 22 individual pulses at 38kHz..
->> If the receiver just misses one pulse, you already have an error of 1/22
->>> 4%.
+Results of the daily build of v4l-dvb:
 
-> There are different types of errors. The decoders can take large
-> variations in bit times. The problem is with cumulative errors. In
-> this case the error had accumulated up to 450us in the lead pulse.
-> That's just too big of an error and caused the JVC code to be
-> misclassified as NEC.
->
-> I think he said lirc was misclassifying it too. So we both did the same
-> thing.
+date:        Sun Aug 15 19:00:21 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15048:4fb6ae9057ea
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-No way. JVC is a 16 bit code. NEC uses 32 bits. How can you ever confuse  
-JVC with NEC signals?
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: ERRORS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: ERRORS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: ERRORS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: ERRORS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-LIRC will work if there is a 4% or 40% or 400% error. Because irrecord  
-generates the config file using your receiver it will compensate for any  
-timing error. It will work with pulses cut down to 50 us like IrDA  
-hardware does and it will work when half of the bits are swollowed like  
-the IgorPlug USB receiver does.
+Detailed results are available here:
 
-But of course the driver should try to generate timings as accurate as  
-possible.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-Christoph
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
