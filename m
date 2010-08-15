@@ -1,61 +1,42 @@
 Return-path: <mchehab@pedra>
-Received: from bombadil.infradead.org ([18.85.46.34]:52923 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752572Ab0HMSkv (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:42870 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750771Ab0HOFWG convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Aug 2010 14:40:51 -0400
-Message-ID: <4C6591C7.7010300@infradead.org>
-Date: Fri, 13 Aug 2010 15:41:11 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Sun, 15 Aug 2010 01:22:06 -0400
+Received: by iwn7 with SMTP id 7so425185iwn.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Aug 2010 22:22:06 -0700 (PDT)
 MIME-Version: 1.0
-To: =?UTF-8?B?VG9yYWxmIEbDtnJzdGVy?= <toralf.foerster@gmx.de>
-CC: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, linux-media@vger.kernel.org
-Subject: Re: commpile error in function  =?UTF-8?B?4oCYdjRsMl9jdHJsX2hhbmQ=?=
- =?UTF-8?B?bGVyX2luaXTigJk=?=
-References: <201008132022.42925.toralf.foerster@gmx.de>
-In-Reply-To: <201008132022.42925.toralf.foerster@gmx.de>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
+References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
+	<AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
+	<4C581BB6.7000303@redhat.com>
+	<AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
+	<AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
+Date: Sun, 15 Aug 2010 01:22:05 -0400
+Message-ID: <AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
+Subject: Re: V4L hg tree fails to compile against latest stable kernel 2.6.35
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: VDR User <user.vdr@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 13-08-2010 15:22, Toralf Förster escreveu:
-> Hello,
-> 
-> I get this with current git :
->   CC [M]  drivers/media/video/v4l2-ctrls.o
-> drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_ctrl_handler_init’:
-> drivers/media/video/v4l2-ctrls.c:766: error: implicit declaration of function 
-> ‘kzalloc’
-> drivers/media/video/v4l2-ctrls.c:767: warning: assignment makes pointer from 
-> integer without a cast
-> drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_ctrl_handler_free’:
-> drivers/media/video/v4l2-ctrls.c:786: error: implicit declaration of function 
-> ‘kfree’
-> drivers/media/video/v4l2-ctrls.c: In function ‘handler_new_ref’:
-> drivers/media/video/v4l2-ctrls.c:896: warning: assignment makes pointer from 
-> integer without a cast
-> drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_ctrl_new’:
-> drivers/media/video/v4l2-ctrls.c:975: warning: assignment makes pointer from 
-> integer without a cast
-> drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_g_ext_ctrls’:
-> drivers/media/video/v4l2-ctrls.c:1528: error: implicit declaration of function 
-> ‘kmalloc’
-> drivers/media/video/v4l2-ctrls.c:1528: warning: assignment makes pointer from 
-> integer without a cast
-> drivers/media/video/v4l2-ctrls.c: In function ‘try_set_ext_ctrls’:
-> drivers/media/video/v4l2-ctrls.c:1752: warning: assignment makes pointer from 
-> integer without a cast
-> make[3]: *** [drivers/media/video/v4l2-ctrls.o] Error 1
-> make[2]: *** [drivers/media/video] Error 2
-> make[1]: *** [drivers/media] Error 2
-> make: *** [drivers] Error 2
-> make: *** Waiting for unfinished jobs....
+Hello Derek,
 
-It should be solved by this commit:
- 
-http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=1547ac893acbf87738ded0b470e2735fdfba6947
+On Sat, Aug 14, 2010 at 12:46 PM, VDR User <user.vdr@gmail.com> wrote:
+> On Wed, Aug 4, 2010 at 10:19 PM, Douglas Schilling Landgraf
+> <dougsland@gmail.com> wrote:
+>> I am already working to give a full update to hg tree. Sorry this problem.
+>
+> Hi Douglas. �Any estimate when this will be fixed? �Was hoping it was
+> already since new stable kernel 2.6.35.2 is out now but still the same
+> problem when I tried just now.
 
-Cheers,
-Mauro.
+I am already working on it this weekend. I will reply this thread when finished.
+
+Cheers
+Douglas
