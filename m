@@ -1,55 +1,51 @@
-Return-path: <mchehab@localhost>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:54164 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756918Ab0HaIEt (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:51956 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750882Ab0HOR5g convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Aug 2010 04:04:49 -0400
-Date: Tue, 31 Aug 2010 10:04:48 +0200
-From: Michael Grzeschik <mgr@pengutronix.de>
-To: Robert Jarzmik <robert.jarzmik@free.fr>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 00/11] MT9M111/MT9M131
-Message-ID: <20100831080447.GD15967@pengutronix.de>
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de> <20100817131742.GB16061@pengutronix.de> <Pine.LNX.4.64.1008171521210.1364@axis700.grange> <87wrr9kyzd.fsf@free.fr>
+	Sun, 15 Aug 2010 13:57:36 -0400
+Received: by iwn7 with SMTP id 7so844432iwn.19
+        for <linux-media@vger.kernel.org>; Sun, 15 Aug 2010 10:57:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <87wrr9kyzd.fsf@free.fr>
+In-Reply-To: <AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
+References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
+	<AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
+	<4C581BB6.7000303@redhat.com>
+	<AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
+	<AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
+	<AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
+Date: Sun, 15 Aug 2010 14:57:35 -0300
+Message-ID: <AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com>
+Subject: Re: V4L hg tree fails to compile against latest stable kernel 2.6.35
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: VDR User <user.vdr@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"mailing list: linux-media" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi,
+Hello Derek,
 
-On Sun, Aug 29, 2010 at 09:20:06PM +0200, Robert Jarzmik wrote:
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
-> 
-> > On Tue, 17 Aug 2010, Michael Grzeschik wrote:
-> >
-> >> Hi Robert, Guennadi,
-> >> 
-> >> after the messed up previous patchseries, this v2 series is left
-> >> without any feedback. Hopefully not forgotten. :-)
-> >
-> > No, it is not forgotten, please, give me some more time.
-
-> As you may have noticed, I'm very busy and my reviews are very slow lately. I'm
-> sorry for that, as my work pumps out every bit of energy I have.
-Perhaps not so bad, but other priorities at the moment here.
-
-> Except for patch 11 where I'd like a little amendment, I have tested the full
-> serie, and my feeling is that things work at least as well as before, and
-> probably even better.
+On Sun, Aug 15, 2010 at 2:22 AM, Douglas Schilling Landgraf
+<dougsland@gmail.com> wrote:
+> Hello Derek,
 >
-> Therefore, as I won't have much time ahead, please find my ack, for the full serie:
-> Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
-Anyway, thanks for your time and work so far.
+> On Sat, Aug 14, 2010 at 12:46 PM, VDR User <user.vdr@gmail.com> wrote:
+>> On Wed, Aug 4, 2010 at 10:19 PM, Douglas Schilling Landgraf
+>> <dougsland@gmail.com> wrote:
+>>> I am already working to give a full update to hg tree. Sorry this problem.
+>>
+>> Hi Douglas.  Any estimate when this will be fixed?  Was hoping it was
+>> already since new stable kernel 2.6.35.2 is out now but still the same
+>> problem when I tried just now.
+>
+> I am already working on it this weekend. I will reply this thread when finished.
 
-Greetings,
-Michael
+2.6.35 should be working, let me know if not. Now, I need to backport
+the changes to old kernels
+and commit other patches in my pending list.
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Cheers
+Douglas
