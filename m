@@ -1,73 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:53058 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752293Ab0HZBtl convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 21:49:41 -0400
-Date: Thu, 26 Aug 2010 03:49:00 +0200
-From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-In-reply-to: <20100825173125.0855a6b0@bike.lwn.net>
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Jonathan Corbet <corbet@lwn.net>
-Cc: Peter Zijlstra <peterz@infradead.org>, linux-mm@kvack.org,
-	Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
-Message-id: <op.vh0vbys97p4s8u@localhost>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-transfer-encoding: 8BIT
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
- <1282310110.2605.976.camel@laptop>
- <20100825155814.25c783c7.akpm@linux-foundation.org>
- <20100825173125.0855a6b0@bike.lwn.net>
+Received: from mgw2.diku.dk ([130.225.96.92]:34721 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754990Ab0HPQZl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Aug 2010 12:25:41 -0400
+Date: Mon, 16 Aug 2010 18:25:39 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [PATCH 4/16] drivers/media/video/zoran: Use available error codes
+Message-ID: <Pine.LNX.4.64.1008161825220.19313@ask.diku.dk>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 26 Aug 2010 01:31:25 +0200, Jonathan Corbet <corbet@lwn.net> wrote:
-> The original OLPC has a camera controller which requires three contiguous,
-> image-sized buffers in memory.  That system is a little memory constrained
-> (OK, it's desperately short of memory), so, in the past, the chances of
-> being able to allocate those buffers anytime some kid decides to start
-> taking pictures was poor.  Thus, cafe_ccic.c has an option to snag the
-> memory at initialization time and never let go even if you threaten its
-> family.  Hell hath no fury like a little kid whose new toy^W educational
-> tool stops taking pictures.
->
-> That, of course, is not a hugely efficient use of memory on a
-> memory-constrained system.  If the VM could reliably satisfy those
-> allocation requestss, life would be wonderful.  Seems difficult.  But it
-> would be a nicer solution than CMA, which, to a great extent, is really
-> just a standardized mechanism for grabbing memory and never letting go.
+From: Julia Lawall <julia@diku.dk>
 
-At this moment it seems nothing more then that but they way I see it
-is that with a common, standardised, centrally-managed mechanism for
-grabbing memory we can start thinking about the ways to reuse the memory.
+Error codes are stored in res, but the return value is always 0.  Return
+res instead.
 
-If each driver were to grab it's own memory in a way know to itself only
-the memory is truly lost but with CMA not only regions can be reused among
-devices but also the framework can manage the unallocated memory and try to
-utilize it in other ways (movable pages? cache? buffers? some kind of
-compressed memory swap?).
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-What I'm trying to say is that I totally agree with your and other's comments
-about CMA essentially grabbing memory and never releasing it but I believe
-this can be combat with time when overall idea of haw the CMA API should look
-like is agreed upon.
+// <smpl>
+@r@
+local idexpression x;
+constant C;
+@@
 
--- 
-Best regards,                                        _     _
-| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
-| Computer Science,  Michał "mina86" Nazarewicz       (o o)
-+----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
+if (...) { ...
+  x = -C
+  ... when != x
+(
+  return <+...x...+>;
+|
+  return NULL;
+|
+  return;
+|
+* return ...;
+)
+}
+// </smpl>
 
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+This changes the semantics and has not been tested.
+
+ drivers/media/video/zoran/zoran_driver.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/video/zoran/zoran_driver.c b/drivers/media/video/zoran/zoran_driver.c
+index 6f89d0a..c155ddf 100644
+--- a/drivers/media/video/zoran/zoran_driver.c
++++ b/drivers/media/video/zoran/zoran_driver.c
+@@ -3322,7 +3322,7 @@ zoran_mmap (struct file           *file,
+ mmap_unlock_and_return:
+ 	mutex_unlock(&zr->resource_lock);
+ 
+-	return 0;
++	return res;
+ }
+ 
+ static const struct v4l2_ioctl_ops zoran_ioctl_ops = {
