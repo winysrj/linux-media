@@ -1,47 +1,44 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:52991 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932594Ab0HEVJ0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 17:09:26 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Luca Tettamanti <kronos.it@gmail.com>
-Subject: Re: [PATCH 42/42] drivers/media/video/bt8xx: Adjust confusing if indentation
-Date: Thu, 5 Aug 2010 23:08:56 +0200
-Cc: Julia Lawall <julia@diku.dk>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-References: <Pine.LNX.4.64.1008052229390.31692@ask.diku.dk> <AANLkTi=YauQBWyZnGpuBtQpNq=Re8WUXY9mH6FSFMP+7@mail.gmail.com>
-In-Reply-To: <AANLkTi=YauQBWyZnGpuBtQpNq=Re8WUXY9mH6FSFMP+7@mail.gmail.com>
+Return-path: <mchehab@pedra>
+Received: from mail2.matrix-vision.com ([85.214.244.251]:51951 "EHLO
+	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754293Ab0HPPq5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Aug 2010 11:46:57 -0400
+Message-ID: <4C695B83.90405@matrix-vision.de>
+Date: Mon, 16 Aug 2010 17:38:43 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: laurent.pinchart@ideasonboard.com
+CC: "sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>,
+	linux-media@vger.kernel.org
+Subject: CCP2 on OMAP35x
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201008052308.56592.arnd@arndb.de>
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thursday 05 August 2010 22:51:12 Luca Tettamanti wrote:
-> > diff --git a/drivers/media/video/bt8xx/bttv-i2c.c b/drivers/media/video/bt8xx/bttv-i2c.c
-> > index 685d659..695765c 100644
-> > --- a/drivers/media/video/bt8xx/bttv-i2c.c
-> > +++ b/drivers/media/video/bt8xx/bttv-i2c.c
-> > @@ -123,7 +123,7 @@ bttv_i2c_wait_done(struct bttv *btv)
-> >        if (wait_event_interruptible_timeout(btv->i2c_queue,
-> >                btv->i2c_done, msecs_to_jiffies(85)) == -ERESTARTSYS)
-> >
-> > -       rc = -EIO;
-> > +               rc = -EIO;
-> 
-> I'd also remove the empty line before the indented statement, it's confusing...
-> 
+Hi Laurent,
 
-The entire function looks a bit weird to me. If you look at the caller,
-you'll notice that -EIO is treated in the same way as if the function had
-returned zero, so the entire if() clause is pointless (the wait_event_*
-probably is not).
+I'm working on a sensor driver with a parallel interface to the ISP.  In my OMAP35x TRM (spruf98h.pdf), I only find 2 occurrences of "CCP2", with no discussion or description, whereas in the ISP sources on omap3camera/devel I see that it is a building block of the ISP.  From the sources, I'm guessing that it is involved in interfacing a serial sensor data stream to the CCDC, and would be uninvolved in parallel data from a sensor.
 
-Moreover, returning -ERESTARTSYS is probably the right action here,
-why else would you make the wait interruptible?
+Is the CCP2 indeed documented somewhere for the OMAP35x?  Or is this perhaps only available in the OMAP34x?
 
-	Arnd
+In omap34xxcam_video_init(), the media_entity links are activated.  In this if/else there,
+
+if (vdev->vdev_sensor->entity.links[0].sink->entity ==
+    &isp->isp_csi2a.subdev.entity) {...} else {...}
+
+the assumption is made that a sensor is either connected
+A. (sensor->)CSI2A->CCDC or
+B. sensor->CCP2->CCDC
+
+but if I'm correct that the CCP2 is related to serial data, there is an option (C) missing for parallel data: sensor->CCDC.  In fact, this is the link that is created in omap34xxcam_probe() if 'case ISP_INTERFACE_PARALLEL'.  Is this correct, that I would need to add an 'else if' to get parallel data working?
+
+sincerely,
+Michael
+
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Hans-Joachim Reich
