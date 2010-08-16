@@ -1,101 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41149 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750954Ab0HUFoU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Aug 2010 01:44:20 -0400
-Received: by fxm13 with SMTP id 13so2170902fxm.19
-        for <linux-media@vger.kernel.org>; Fri, 20 Aug 2010 22:44:19 -0700 (PDT)
-Message-ID: <4C6F67AF.2090700@gmail.com>
-Date: Sat, 21 Aug 2010 07:44:15 +0200
-From: poma <pomidorabelisima@gmail.com>
+Received: from mgw2.diku.dk ([130.225.96.92]:34747 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754722Ab0HPQ0Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Aug 2010 12:26:16 -0400
+Date: Mon, 16 Aug 2010 18:26:13 +0200 (CEST)
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [PATCH 6/16] drivers/media: Use available error codes
+Message-ID: <Pine.LNX.4.64.1008161825570.19313@ask.diku.dk>
 MIME-Version: 1.0
-To: itesupport@ite.com.tw
-CC: info@maxlinear.com, briefkasten@terratec.de, TerraTux@terratec.de,
-	help@lifeview.com.cn, europe@lifeview.it, support@lifeview.hk,
-	sales@lifeview.hk, marketing@lifeview.hk, soporte@lifeview.es,
-	ventas@lifeview.es, linux-media@vger.kernel.org, crope@iki.fi
-Subject: Afatech AF9015 & MaxLinear MXL5007T dual tuner
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
+From: Julia Lawall <julia@diku.dk>
 
-Hi There,
+In each case, error codes are stored in rc, but the return value is always
+0.  Return rc instead.
 
-This email is carbon copied to:
-ITE:
-itesupport@ite.com.tw
-MaxLinear:
-info@maxlinear.com
-TerraTec:
-briefkasten@terratec.de
-TerraTux@terratec.de
-Lifeview:
-help@lifeview.com.cn
-europe@lifeview.it
-support@lifeview.hk
-sales@lifeview.hk
-marketing@lifeview.hk
-soporte@lifeview.es
-ventas@lifeview.es
-Linux Media:
-linux-media@vger.kernel.org
-Antti Palosaari:
-crope@iki.fi
-http://palosaari.fi/linux/
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
+// <smpl>
+@r@
+local idexpression x;
+constant C;
+@@
 
-Devices:
-TerraTec
-http://www.terratec.net/en/products/Cinergy_T_Stick_Dual_RC_102261.html
-Lifeview
-http://www.notonlytv.net/p_lv52t.html
+if (...) { ...
+  x = -C
+  ... when != x
+(
+  return <+...x...+>;
+|
+  return NULL;
+|
+  return;
+|
+* return ...;
+)
+}
+// </smpl>
 
-ICs:
-Demodulators:
-ITE-Afatech:
-http://www.ite.com.tw/EN/products_more.aspx?CategoryID=6&ID=15,62
-AF9015A-N1
-AF9013-N1
-Tuners:
-MaxLinear:
-http://www.maxlinear.com/assets/pdfs/MxL5007T.pdf
-MXL5007T
-MXL5007T
+Signed-off-by: Julia Lawall <julia@diku.dk>
 
-lsusb:
-Bus 002 Device 002: ID 15a4:9016 Afatech Technologies, Inc. AF9015 DVB-T 
-USB2.0 stick
+---
+The changes change the semantics and are not tested.  In the second case,
+the function is used in only one place and the return value is igored.
 
-dmesg:
-af9015_usb_probe: interface:0
-00000000: 2b a5 9b 0b 00 00 00 00 a4 15 16 90 00 02 01 02  +...............
-00000010: 03 80 00 fa fa 0a 40 ef 01 30 31 30 31 30 39 32  ......@..0101092
-00000020: 31 30 39 30 30 30 30 31 ff ff ff ff ff ff ff ff  10900001........
-00000030: 00 01 3a 01 00 08 02 00 da 11 00 00 b1 ff ff ff  ..:.............
-00000040: ff ff ff ff ff 08 02 00 da 11 c4 04 b1 ff ff ff  ................
-00000050: ff ff ff ff 10 26 00 00 04 03 09 04 10 03 41 00  .....&........A.
-00000060: 66 00 61 00 74 00 65 00 63 00 68 00 10 03 44 00  f.a.t.e.c.h...D.
-00000070: 56 00 42 00 2d 00 54 00 20 00 32 00 20 03 30 00  V.B.-.T. .2. .0.
-00000080: 31 00 30 00 31 00 30 00 31 00 30 00 31 00 30 00  1.0.1.0.1.0.1.0.
-00000090: 36 00 30 00 30 00 30 00 30 00 31 00 00 ff ff ff  6.0.0.0.0.1.....
-000000a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  ................
-000000b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  ................
-000000c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  ................
-000000d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  ................
-000000e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  ................
-000000f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff  ................
-af9015_eeprom_hash: eeprom sum=403c71e6
-af9015_read_config: IR mode:1
-af9015_read_config: TS mode:1
-af9015_read_config: [0] xtal:2 set adc_clock:28000
-af9015_read_config: [0] IF1:4570
-af9015_read_config: [0] MT2060 IF1:0
-af9015: tuner id:177 not supported, please report!
-usbcore: registered new interface driver dvb_usb_af9015
+ drivers/media/dvb/frontends/drx397xD.c |    2 +-
+ drivers/media/video/s2255drv.c         |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Tanks for any help
-poma
-
+diff --git a/drivers/media/dvb/frontends/drx397xD.c b/drivers/media/dvb/frontends/drx397xD.c
+index f74cca6..a05007c 100644
+--- a/drivers/media/dvb/frontends/drx397xD.c
++++ b/drivers/media/dvb/frontends/drx397xD.c
+@@ -232,7 +232,7 @@ static int write_fw(struct drx397xD_state *s, enum blob_ix ix)
+ exit_rc:
+ 	read_unlock(&fw[s->chip_rev].lock);
+ 
+-	return 0;
++	return rc;
+ }
+ 
+ /* Function is not endian safe, use the RD16 wrapper below */
+diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
+index 8ec7c9a..8f74341 100644
+--- a/drivers/media/video/s2255drv.c
++++ b/drivers/media/video/s2255drv.c
+@@ -600,7 +600,7 @@ static int s2255_got_frame(struct s2255_channel *channel, int jpgsize)
+ 	dprintk(2, "%s: [buf/i] [%p/%d]\n", __func__, buf, buf->vb.i);
+ unlock:
+ 	spin_unlock_irqrestore(&dev->slock, flags);
+-	return 0;
++	return rc;
+ }
+ 
+ static const struct s2255_fmt *format_by_fourcc(int fourcc)
