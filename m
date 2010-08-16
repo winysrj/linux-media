@@ -1,111 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:56885 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750903Ab0HSASo convert rfc822-to-8bit (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:43720 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab0HPC75 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Aug 2010 20:18:44 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>,
-	"henrique@henriquecamargo.com" <henrique@henriquecamargo.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Date: Wed, 18 Aug 2010 19:18:38 -0500
-Subject: RE: [PATCH] Fixes field names that changed
-Message-ID: <A24693684029E5489D1D202277BE89445718F57D@dlee02.ent.ti.com>
-References: <1282055682.1883.5.camel@lemming>
- <A24693684029E5489D1D202277BE89445718F57A@dlee02.ent.ti.com>
-In-Reply-To: <A24693684029E5489D1D202277BE89445718F57A@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Sun, 15 Aug 2010 22:59:57 -0400
+Received: by iwn7 with SMTP id 7so1202182iwn.19
+        for <linux-media@vger.kernel.org>; Sun, 15 Aug 2010 19:59:56 -0700 (PDT)
 MIME-Version: 1.0
+In-Reply-To: <4C664723.9070303@gmail.com>
+References: <4C664723.9070303@gmail.com>
+Date: Sun, 15 Aug 2010 22:59:56 -0400
+Message-ID: <AANLkTine4xDHhTqeEWUNypCc0t0MksUpKeLuFCJ+-EW-@mail.gmail.com>
+Subject: Re: Error building v4l
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Oops, fixing my own typo below:
+Hello,
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Aguirre, Sergio
-> Sent: Wednesday, August 18, 2010 7:16 PM
-> To: henrique@henriquecamargo.com; Mauro Carvalho Chehab
-> Cc: Guennadi Liakhovetski; Karicheri, Muralidharan; linux-
-> media@vger.kernel.org; linux-kernel@vger.kernel.org
-> Subject: RE: [PATCH] Fixes field names that changed
-> 
-> Hi Henrique,
-> 
-> Just some minor comments about the patch description below:
-> 
-> > -----Original Message-----
-> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> > owner@vger.kernel.org] On Behalf Of Henrique Camargo
-> > Sent: Tuesday, August 17, 2010 9:35 AM
-> > To: Mauro Carvalho Chehab
-> > Cc: Guennadi Liakhovetski; Karicheri, Muralidharan; linux-
-> > media@vger.kernel.org; linux-kernel@vger.kernel.org
-> > Subject: [PATCH] Fixes field names that changed
-> 
-> Add missing subject prefix to quickly describe the affected driver:
-> 
-> Subject: [PATCH] mt9t032: Fixes field names that changed
+On Sat, Aug 14, 2010 at 3:34 AM, Andrea.Amorosi76@gmail.com
+<Andrea.Amorosi76@gmail.com> wrote:
+> Building the v4l, I obtain the following error:
+>
+>
+> home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c: In function
+> 'mceusb_dev_probe':
+> /home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:923: error:
+> implicit declaration of function 'usb_alloc_coherent'
+> /home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:923:
+> warning: assignment makes pointer from integer without a cast
+> /home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:1003: error:
+> implicit declaration of function 'usb_free_coherent'
+> make[3]: ***
+> [/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.o] Error 1
+> make[2]: ***
+> [_module_/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l] Error 2
+> make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-24-generic'
+> make[1]: *** [default] Errore 2
+> make[1]: uscita dalla directory
+> «/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l»
+> make: *** [all] Errore 2
+>
+> My system is a Kubuntu 10.04 amd64 with kernel 2.6.32-24-generic #39-Ubuntu
+> SMP Wed Jul 28 05:14:15 UTC 2010 x86_64 GNU/Linux
+>
+> How can I solve?
 
-mt9t032 -> mt9t031.
+Please download the new patches available and try again.
 
-Sorry...
-
-Regards,
-Sergio
-> 
-> >
-> > If CONFIG_VIDEO_ADV_DEBUG was set, the driver failed to compile because
-> > the fields get_register and set_register changed names to s_register and
-> > s_register in the struct v4l2_subdev_core_ops.
-> 
-> Please break down this comment to 70 chars max.
-> 
-> Also, you said "s_register" twice.
-> 
-> Regards,
-> Sergio
-> 
-> >
-> > Signed-off-by: Henrique Camargo <henrique@henriquecamargo.com>
-> > ---
-> >  drivers/media/video/mt9t031.c |    4 ++--
-> >  1 files changed, 2 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/media/video/mt9t031.c
-> b/drivers/media/video/mt9t031.c
-> > index 716fea6..f3d1995 100644
-> > --- a/drivers/media/video/mt9t031.c
-> > +++ b/drivers/media/video/mt9t031.c
-> > @@ -499,8 +499,8 @@ static const struct v4l2_subdev_core_ops
-> > mt9t031_core_ops = {
-> >  	.g_ctrl	= mt9t031_get_control,
-> >  	.s_ctrl	= mt9t031_set_control,
-> >  #ifdef CONFIG_VIDEO_ADV_DEBUG
-> > -	.get_register = mt9t031_get_register,
-> > -	.set_register = mt9t031_set_register,
-> > +	.g_register = mt9t031_get_register,
-> > +	.s_register = mt9t031_set_register,
-> >  #endif
-> >  };
-> >
-> > --
-> > 1.7.0.4
-> >
-> >
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Cheers
+Douglas
