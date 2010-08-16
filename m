@@ -1,107 +1,61 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:55663 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756289Ab0HAPOZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 11:14:25 -0400
-Date: 01 Aug 2010 17:13:00 +0200
-From: lirc@bartelmus.de (Christoph Bartelmus)
-To: jonsmirl@gmail.com
-Cc: awalls@md.metrocast.net
-Cc: linux-input@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: lirc-list@lists.sourceforge.net
-Cc: mchehab@redhat.com
-Message-ID: <BU0OmdJJjFB@christoph>
-References: <AANLkTi=c4pNtjPQ9OYL-uxXFFnPUJStUjU26TgpzpL+a@mail.gmail.com>
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable  it.
+Return-path: <mchehab@pedra>
+Received: from mp1-smtp-5.eutelia.it ([62.94.10.165]:45651 "EHLO
+	smtp.eutelia.it" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752774Ab0HPIoa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Aug 2010 04:44:30 -0400
+Message-ID: <4C68FA61.1040305@gmail.com>
+Date: Mon, 16 Aug 2010 10:44:17 +0200
+From: "Andrea.Amorosi76@gmail.com" <Andrea.Amorosi76@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Error building v4l
+References: <4C664723.9070303@gmail.com> <AANLkTine4xDHhTqeEWUNypCc0t0MksUpKeLuFCJ+-EW-@mail.gmail.com>
+In-Reply-To: <AANLkTine4xDHhTqeEWUNypCc0t0MksUpKeLuFCJ+-EW-@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi!
+Ok!
+Now it works!
+Thank you very much,
+Xwang
 
-Jon Smirl "jonsmirl@gmail.com" wrote:
-
-> On Sun, Aug 1, 2010 at 5:50 AM, Christoph Bartelmus <lirc@bartelmus.de>
-> wrote:
->> Hi Jon,
+Il 16/08/2010 04:59, Douglas Schilling Landgraf ha scritto:
+> Hello,
+>
+> On Sat, Aug 14, 2010 at 3:34 AM, Andrea.Amorosi76@gmail.com
+> <Andrea.Amorosi76@gmail.com>  wrote:
+>> Building the v4l, I obtain the following error:
 >>
->> on 31 Jul 10 at 14:14, Jon Smirl wrote:
->>> On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de>
->>> wrote:
->>>> Hi Jon,
->>>>
->>>> on 31 Jul 10 at 12:25, Jon Smirl wrote:
->>>>> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
->>>>> wrote:
->>>>>> I think you won't be able to fix the problem conclusively either way.
->>>>>>  A lot of how the chip's clocks should be programmed depends on how the
->>>>>> GPIOs are used and what crystal is used.
->>>>>>
->>>>>> I suspect many designers will use some reference design layout from
->>>>>> ENE, but it won't be good in every case.  The wire-up of the ENE of
->>>>>> various motherboards is likely something you'll have to live with as
->>>>>> unknowns.
->>>>>>
->>>>>> This is a case where looser tolerances in the in kernel decoders could
->>>>>> reduce this driver's complexity and/or get rid of arbitrary fudge
->>>>>> factors in the driver.
->>>>
->>>>> The tolerances are as loose as they can be. The NEC protocol uses
->>>>> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
->>>>> (50% of 4%).  The crystals used in electronics are accurate to
->>>>> 0.0001%+.
->>>>
->>>> But the standard IR receivers are far from being accurate enough to allow
->>>> tolerance windows of only 2%.
->>>> I'm surprised that this works for you. LIRC uses a standard tolerance of
->>>> 30% / 100 us and even this is not enough sometimes.
->>>>
->>>> For the NEC protocol one signal consists of 22 individual pulses at
->>>> 38kHz.. If the receiver just misses one pulse, you already have an error
->>>> of 1/22
->>>>> 4%.
 >>
->>> There are different types of errors. The decoders can take large
->>> variations in bit times. The problem is with cumulative errors. In
->>> this case the error had accumulated up to 450us in the lead pulse.
->>> That's just too big of an error and caused the JVC code to be
->>> misclassified as NEC.
->>>
->>> I think he said lirc was misclassifying it too. So we both did the same
->>> thing.
+>> home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c: In function
+>> 'mceusb_dev_probe':
+>> /home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:923: error:
+>> implicit declaration of function 'usb_alloc_coherent'
+>> /home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:923:
+>> warning: assignment makes pointer from integer without a cast
+>> /home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.c:1003: error:
+>> implicit declaration of function 'usb_free_coherent'
+>> make[3]: ***
+>> [/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l/mceusb.o] Error 1
+>> make[2]: ***
+>> [_module_/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l] Error 2
+>> make[2]: Leaving directory `/usr/src/linux-headers-2.6.32-24-generic'
+>> make[1]: *** [default] Errore 2
+>> make[1]: uscita dalla directory
+>> «/home/andreak/src/v4l-dvb-src/v4l-dvb-main/v4l-dvb/v4l»
+>> make: *** [all] Errore 2
 >>
->> No way. JVC is a 16 bit code. NEC uses 32 bits. How can you ever confuse
->> JVC with NEC signals?
+>> My system is a Kubuntu 10.04 amd64 with kernel 2.6.32-24-generic #39-Ubuntu
+>> SMP Wed Jul 28 05:14:15 UTC 2010 x86_64 GNU/Linux
 >>
->> LIRC will work if there is a 4% or 40% or 400% error. Because irrecord
->> generates the config file using your receiver it will compensate for any
-
-> At the end of the process we can build a record and match raw mode if
-> we have to.
-
-I'm not talking about raw mode here. lircd will happily decode the signals  
-despite of any timing error as long it's consistent.
-
-I'm still interested how JVC can be confused with NEC codes.
-
->> timing error. It will work with pulses cut down to 50 us like IrDA
->> hardware does and it will work when half of the bits are swallowed like
->> the IgorPlug USB receiver does.
-
-> The code for fixing IrDA and IgorPLug should live inside their low
-> level device drivers.  The characteristics of the errors produced by
-> this hardware are known so a fix can be written to compensate.
-
-The function f(x) = 50 is not bijective. No way to compensate.
-
-Missing bits cannot be magically regenerated by the driver.
-
-> The
-> IgorPlug people might find it easier to fix their firmware.
-
-There is a firmware patch available? Do you have a pointer?
-
-Christoph
+>> How can I solve?
+>
+> Please download the new patches available and try again.
+>
+> Cheers
+> Douglas
+>
