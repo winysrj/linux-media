@@ -1,320 +1,194 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:40627 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167Ab0HTP3P (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:43107 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751584Ab0HPK0Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 11:29:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v4 02/11] media: Media device
-Date: Fri, 20 Aug 2010 17:29:04 +0200
-Message-Id: <1282318153-18885-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 16 Aug 2010 06:26:16 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L78002UBQBPW960@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 16 Aug 2010 11:26:14 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L78007RCQBPFX@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 16 Aug 2010 11:26:13 +0100 (BST)
+Date: Mon, 16 Aug 2010 12:24:22 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: RE: [PATCH] mediabus: add MIPI CSI-2 pixel format codes
+In-reply-to: <Pine.LNX.4.64.1007231209410.22677@axis700.grange>
+To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
+Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Linux Media Mailing List' <linux-media@vger.kernel.org>,
+	'Hans Verkuil' <hverkuil@xs4all.nl>
+Message-id: <000001cb3d2d$31a1a190$94e4e4b0$%nawrocki@samsung.com>
+Content-language: en-us
+References: <Pine.LNX.4.64.1007231010370.22677@axis700.grange>
+ <201007231035.31462.laurent.pinchart@ideasonboard.com>
+ <000001cb2a49$db5151f0$91f3f5d0$%nawrocki@samsung.com>
+ <Pine.LNX.4.64.1007231209410.22677@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-The media_device structure abstracts functions common to all kind of
-media devices (v4l2, dvb, alsa, ...). It manages media entities and
-offers a userspace API to discover and configure the media device
-internal topology.
+Hi Guennadi,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/media-framework.txt |   91 ++++++++++++++++++++++++++++++++++
- drivers/media/Makefile            |    2 +-
- drivers/media/media-device.c      |   98 +++++++++++++++++++++++++++++++++++++
- include/media/media-device.h      |   64 ++++++++++++++++++++++++
- 4 files changed, 254 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/media-framework.txt
- create mode 100644 drivers/media/media-device.c
- create mode 100644 include/media/media-device.h
+Just reviving an ancient thread.
+While working on porting the camera sensor and the camera bridge 
+drivers to Media Bus I ran into trouble while trying to translate
+V4L2_PIX_FMT_JPEG user fourcc to appropriate v4l2_mbus_pixelcode.
+I was going to change V4L2_PIX_FMT_JPEG in the old sensor driver to
+some v4l2_mbus_pixelcode, but didn't find anything relevant.
+When user requests JPEG format in the camera bridge driver I need 
+to setup the bridge to DMA transparently data from the MIPI CSI 
+interface, configure MIPI interface to RAW8 and setup the sensor 
+driver to output JPEG data.
 
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-new file mode 100644
-index 0000000..89dc7ad
---- /dev/null
-+++ b/Documentation/media-framework.txt
-@@ -0,0 +1,91 @@
-+Linux kernel media framework
-+============================
-+
-+This document describes the Linux kernel media framework, its data structures,
-+functions and their usage.
-+
-+
-+Introduction
-+------------
-+
-+Media devices increasingly handle multiple related functions. Many USB cameras
-+include microphones, video capture hardware can also output video, or SoC
-+camera interfaces also perform memory-to-memory operations similar to video
-+codecs.
-+
-+Independent functions, even when implemented in the same hardware, can be
-+modeled by separate devices. A USB camera with a microphone will be presented
-+to userspace applications as V4L2 and ALSA capture devices. The devices
-+relationships (when using a webcam, end-users shouldn't have to manually
-+select the associated USB microphone), while not made available directly to
-+applications by the drivers, can usually be retrieved from sysfs.
-+
-+With more and more advanced SoC devices being introduced, the current approach
-+will not scale. Device topologies are getting increasingly complex and can't
-+always be represented by a tree structure. Hardware blocks are shared between
-+different functions, creating dependencies between seemingly unrelated
-+devices.
-+
-+Kernel abstraction APIs such as V4L2 and ALSA provide means for applications
-+to access hardware parameters. As newer hardware expose an increasingly high
-+number of those parameters, drivers need to guess what applications really
-+require based on limited information, thereby implementing policies that
-+belong to userspace.
-+
-+The media kernel API aims at solving those problems.
-+
-+
-+Media device
-+------------
-+
-+A media device is represented by a struct media_device instance, defined in
-+include/media/media-device.h. Allocation of the structure is handled by the
-+media device driver, usually by embedding the media_device instance in a
-+larger driver-specific structure.
-+
-+Drivers register media device instances by calling
-+
-+	media_device_register(struct media_device *mdev);
-+
-+The caller is responsible for initializing the media_device structure before
-+registration. The following fields must be set:
-+
-+ - dev must point to the parent device (usually a pci_dev, usb_interface or
-+   platform_device instance).
-+
-+ - model must be filled with the device model name as a NUL-terminated UTF-8
-+   string. The device/model revision must not be stored in this field.
-+
-+The following fields are optional:
-+
-+ - serial is a unique serial number stored as an ASCII string. The string must
-+   be NUL-terminated unless exactly 32 characters long. This allows storing
-+   GUIDs in a text form. If the hardware doesn't provide a unique serial
-+   number this field must be left empty.
-+
-+ - bus_info represents the location of the device in the system as a
-+   NUL-terminated ASCII string. For PCI/PCIe devices bus_info must be set to
-+   "PCI:" (or "PCIe:") followed by the value of pci_name(). For USB devices,
-+   the usb_make_path() function must be used. This field is used by
-+   applications to distinguish between otherwise identical devices that don't
-+   provide a serial number.
-+
-+ - device_version is the hardware device version number in a driver-specific
-+   format. When possible the version should be formatted with the
-+   KERNEL_VERSION macro.
-+
-+ - driver_version is formatted with the KERNEL_VERSION macro. The version
-+   minor must be incremented when new features are added to the userspace API
-+   without breaking binary compatibility. The version major must be
-+   incremented when binary compatibility is broken.
-+
-+Upon successful registration a character device named media[0-9]+ is created.
-+The device major and minor numbers are dynamic. The model name is exported as
-+a sysfs attribute.
-+
-+Drivers unregister media device instances by calling
-+
-+	media_device_unregister(struct media_device *mdev);
-+
-+Unregistering a media device that hasn't been registered is *NOT* safe.
-+
-diff --git a/drivers/media/Makefile b/drivers/media/Makefile
-index c1b5938..f8d8dcb 100644
---- a/drivers/media/Makefile
-+++ b/drivers/media/Makefile
-@@ -2,7 +2,7 @@
- # Makefile for the kernel multimedia device drivers.
- #
- 
--media-objs	:= media-devnode.o
-+media-objs	:= media-device.o media-devnode.o
- 
- obj-$(CONFIG_MEDIA_SUPPORT)	+= media.o
- 
-diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
-new file mode 100644
-index 0000000..781c641
---- /dev/null
-+++ b/drivers/media/media-device.c
-@@ -0,0 +1,98 @@
-+/*
-+ *  Media device support.
-+ *
-+ *  Copyright (C) 2010  Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/ioctl.h>
-+
-+#include <media/media-device.h>
-+#include <media/media-devnode.h>
-+
-+static const struct media_file_operations media_device_fops = {
-+	.owner = THIS_MODULE,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * sysfs
-+ */
-+
-+static ssize_t show_model(struct device *cd,
-+			  struct device_attribute *attr, char *buf)
-+{
-+	struct media_device *mdev = to_media_device(to_media_devnode(cd));
-+
-+	return sprintf(buf, "%.*s\n", (int)sizeof(mdev->model), mdev->model);
-+}
-+
-+static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
-+
-+/* -----------------------------------------------------------------------------
-+ * Registration/unregistration
-+ */
-+
-+static void media_device_release(struct media_devnode *mdev)
-+{
-+}
-+
-+/**
-+ * media_device_register - register a media device
-+ * @mdev:	The media device
-+ *
-+ * The caller is responsible for initializing the media device before
-+ * registration. The following fields must be set:
-+ *
-+ * - dev must point to the parent device
-+ * - model must be filled with the device model name
-+ */
-+int __must_check media_device_register(struct media_device *mdev)
-+{
-+	int ret;
-+
-+	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
-+		return 0;
-+
-+	/* Register the device node. */
-+	mdev->devnode.fops = &media_device_fops;
-+	mdev->devnode.parent = mdev->dev;
-+	mdev->devnode.release = media_device_release;
-+	ret = media_devnode_register(&mdev->devnode);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
-+	if (ret < 0) {
-+		media_devnode_unregister(&mdev->devnode);
-+		return ret;
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(media_device_register);
-+
-+/**
-+ * media_device_unregister - unregister a media device
-+ * @mdev:	The media device
-+ *
-+ */
-+void media_device_unregister(struct media_device *mdev)
-+{
-+	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
-+	media_devnode_unregister(&mdev->devnode);
-+}
-+EXPORT_SYMBOL_GPL(media_device_unregister);
-diff --git a/include/media/media-device.h b/include/media/media-device.h
-new file mode 100644
-index 0000000..4fe949e
---- /dev/null
-+++ b/include/media/media-device.h
-@@ -0,0 +1,64 @@
-+/*
-+ *  Media device support header.
-+ *
-+ *  Copyright (C) 2010  Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License as published by
-+ *  the Free Software Foundation; either version 2 of the License, or
-+ *  (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#ifndef _MEDIA_DEVICE_H
-+#define _MEDIA_DEVICE_H
-+
-+#include <linux/device.h>
-+#include <linux/list.h>
-+
-+#include <media/media-devnode.h>
-+
-+/**
-+ * struct media_device - Media device
-+ * @dev:	Parent device
-+ * @devnode:	Media device node
-+ * @model:	Device model name
-+ * @serial:	Device serial number (optional)
-+ * @bus_info:	Unique and stable device location identifier
-+ * @device_version: Hardware device version
-+ * @driver_version: Device driver version
-+ *
-+ * This structure represents an abstract high-level media device. It allows easy
-+ * access to entities and provides basic media device-level support. The
-+ * structure can be allocated directly or embedded in a larger structure.
-+ *
-+ * The parent @dev is a physical device. It must be set before registering the
-+ * media device.
-+ *
-+ * @model is a descriptive model name exported through sysfs. It doesn't have to
-+ * be unique.
-+ */
-+struct media_device {
-+	/* dev->driver_data points to this struct. */
-+	struct device *dev;
-+	struct media_devnode devnode;
-+
-+	u8 model[32];
-+	u8 serial[32];
-+	u8 bus_info[32];
-+	u32 device_version;
-+	u32 driver_version;
-+};
-+
-+int __must_check media_device_register(struct media_device *mdev);
-+void media_device_unregister(struct media_device *mdev);
-+
-+#endif
--- 
-1.7.1
+Would it be reasonable to add something like 
+V4L2_MBUS_FMT_JPEG_1X8 to the list of Media Bus pixel codes?
+
+Would anybody have some better ideas?
+
+Regards,
+Sylwester
+
+
+--
+Sylwester Nawrocki
+Linux Platform Group
+Samsung Poland R&D Center
+
+> -----Original Message-----
+> From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> Sent: Friday, July 23, 2010 12:43 PM
+> To: Sylwester Nawrocki
+> Cc: 'Laurent Pinchart'; 'Linux Media Mailing List'; 'Hans Verkuil'
+> Subject: RE: [PATCH] mediabus: add MIPI CSI-2 pixel format codes
+> 
+> Hi Sylwester
+> 
+> On Fri, 23 Jul 2010, Sylwester Nawrocki wrote:
+> 
+> > Hi Laurent,
+> >
+> > > -----Original Message-----
+> > > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > > owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> > > Sent: Friday, July 23, 2010 10:35 AM
+> > > To: Guennadi Liakhovetski
+> > > Cc: Linux Media Mailing List; Hans Verkuil
+> > > Subject: Re: [PATCH] mediabus: add MIPI CSI-2 pixel format codes
+> > >
+> > > Hi Guennadi,
+> > >
+> > > On Friday 23 July 2010 10:13:37 Guennadi Liakhovetski wrote:
+> > > > Add pixel format codes, defined in the MIPI CSI-2 specification.
+> > > >
+> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > > ---
+> > > >
+> > > > Even though it affects the same enum as my patch from yesterday,
+> they
+> > > are
+> > > > independent, Hans and Laurent CCed just to avoid possible
+> conflicts,
+> > > when
+> > > > further patching this file.
+> > > >
+> > > >  include/media/v4l2-mediabus.h |   26 ++++++++++++++++++++++++++
+> > > >  1 files changed, 26 insertions(+), 0 deletions(-)
+> > > >
+> > > > diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-
+> > > mediabus.h
+> > > > index a870965..b0dcace 100644
+> > > > --- a/include/media/v4l2-mediabus.h
+> > > > +++ b/include/media/v4l2-mediabus.h
+> > > > @@ -41,6 +41,32 @@ enum v4l2_mbus_pixelcode {
+> > > >  	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
+> > > >  	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
+> > > >  	V4L2_MBUS_FMT_SGRBG8_1X8,
+> > > > +	/* MIPI CSI-2 codes */
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8_L,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_10,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_8_CSPS,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV420_10_CSPS,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV422_8,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_YUV422_10,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RGB888,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RGB666,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RGB565,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RGB555,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RGB444,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW6,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW7,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW8,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW10,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW12,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_RAW14,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_GEN_NULL,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_GEN_BLANKING,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_GEN_EMBEDDED8,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_USER_1,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_USER_2,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_USER_3,
+> > > > +	V4L2_MBUS_FMT_MIPI_CSI2_USER_4,
+> > >
+> > > I don't think I like this. Take the raw formats for instance,
+> they're
+> > > used for
+> > > Bayer RGB. V4L2_MBUS_FMT_MIPI_CSI2_RAW8 could map to any Bayer
+> format
+> > > (GRBG,
+> > > RGGB, ...). Why don't we just use "standard" pixel codes ?
+> >
+> > As far as I understand on some media buses exact pixel formats are
+> not
+> > defined,
+> > although we still need information to configure the bus.
+> > MIPI CSI-2 seem an example of such to me, e.g. we do configure MIPI
+> > interface
+> > to "*_USER_1" format but over the bus is transferred JPEG data.
+> > I guess we could try to use "standard" pixel codes but then we would
+> > probably have
+> > to map from "any" format to specific MIPI format code to configure
+> the
+> > hardware.
+> > Moreover MIPI formats are quite specific, for instance for RAW12 in
+> 32-bit
+> > sample
+> > (from MSb to LSb) we have dummy 8-bits, then 12-bit of actual data
+> and
+> > remaining
+> > 12 dummy bits.
+> 
+> I think, we have to approach this problem from the other side - from
+> the
+> user perspective. A "RAW8" format tells nothing to mplayer or
+> gstreamer,
+> whereas they shall understand 8-bit Bayer. Similarly, the sensor will
+> know, that for sending of 8-bit Bayer data it'll use RAW8. So, on the
+> receiver side, as you correctly point out, you will have to configure
+> which data format to receive. If 8-bit Bayer is sent by the sensor, you
+> will guess, that it should be RAW8. If RGB565 is expected you'll know
+> what
+> to set too. The problem arises with USER? formats. Only the sensor will
+> know, that when requested JPEG, it will user USER1, for MPEG-4 it will
+> use
+> USER2. And there's currently no way to know this in the bridge / host
+> driver... So, at latest, when we get such a sensor, we'll have to
+> decide
+> how to map those. Until then I would just propose to continue using the
+> existing mediabus formats and hope, that their mapping to CSI formats
+> is
+> of a many-to-one nature...
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+
 
