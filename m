@@ -1,52 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from smtp8.mail.ru ([94.100.176.53]:40625 "EHLO smtp8.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934113Ab0HMJhb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Aug 2010 05:37:31 -0400
-Received: from [92.101.158.175] (port=4956 helo=localhost.localdomain)
-	by smtp8.mail.ru with psmtp
-	id 1Ojqhd-00032p-00
-	for linux-media@vger.kernel.org; Fri, 13 Aug 2010 13:37:29 +0400
-Date: Fri, 13 Aug 2010 13:44:54 +0400
-From: Goga777 <goga777@list.ru>
-To: <linux-media@vger.kernel.org>
-Subject: Re: 2.6.35 and current v4l-dvb - error: implicit declaration of
- function 'usb_buffer_free'
-Message-ID: <20100813134454.3783794c@list.ru>
-In-Reply-To: <20100813123714.288571a4@list.ru>
-References: <20100812022919.7ce6dace@bk.ru>
-	<AANLkTi=m7YinFKg8pdYCuVTfQyNAvEM7dkVF8WLkOEAb@mail.gmail.com>
-	<20100813123714.288571a4@list.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: 8bit
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35192 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754187Ab0HQNRn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Aug 2010 09:17:43 -0400
+Date: Tue, 17 Aug 2010 15:17:42 +0200
+From: Michael Grzeschik <mgr@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de
+Subject: Re: [PATCH v2 00/11] MT9M111/MT9M131
+Message-ID: <20100817131742.GB16061@pengutronix.de>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-> > Both functions were renamed in upstream, backport created and
-> > commited, please try again.
+Hi Robert, Guennadi,
 
- 
-yes, I don't have more such errors, but still have other one which I reported early
+after the messed up previous patchseries, this v2 series is left
+without any feedback. Hopefully not forgotten. :-)
 
- 
->   CC [M]  /usr/src/v4l-dvb/v4l/dvb_net.o
-> /usr/src/v4l-dvb/v4l/dvb_net.c:1190: warning: 'struct dev_mc_list' declared inside parameter list
-> /usr/src/v4l-dvb/v4l/dvb_net.c:1190: warning: its scope is only this definition or declaration, which is
->   probably not what you want /usr/src/v4l-dvb/v4l/dvb_net.c: In function 'dvb_set_mc_filter':
-> /usr/src/v4l-dvb/v4l/dvb_net.c:1197: error: dereferencing pointer to incomplete type
-> /usr/src/v4l-dvb/v4l/dvb_net.c:1197: error: dereferencing pointer to incomplete type
-> /usr/src/v4l-dvb/v4l/dvb_net.c: In function 'wq_set_multicast_list':
-> /usr/src/v4l-dvb/v4l/dvb_net.c:1247: error: 'struct net_device' has no member named 'mc_list'
-> /usr/src/v4l-dvb/v4l/dvb_net.c:1249: error: dereferencing pointer to incomplete type
-> /usr/src/v4l-dvb/v4l/dvb_net.c:1249: warning: left-hand operand of comma expression has no effect
-> /usr/src/v4l-dvb/v4l/dvb_net.c:1249: warning: value computed is not used
-> /usr/src/v4l-dvb/v4l/dvb_net.c:1250: warning: passing argument 2 of 'dvb_set_mc_filter' from incompatible
->   pointer type /usr/src/v4l-dvb/v4l/dvb_net.c:1190: note: expected 'struct dev_mc_list *' but argument is
->   of type 'struct dev_mc_list *' make[3]: *** [/usr/src/v4l-dvb/v4l/dvb_net.o] ïÛÉÂËÁ 1
-> make[2]: *** [_module_/usr/src/v4l-dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-2.6.35'
-> make[1]: *** [default] ïÛÉÂËÁ 2
-> make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
-> make: *** [all] ïÛÉÂËÁ 2
+Btw: The first two patches are already applied.
 
+Thanks,
+Michael
+
+On Tue, Aug 03, 2010 at 12:57:38PM +0200, Michael Grzeschik wrote:
+> Hey everyone,
+> 
+> here is v2 of the previous (a little messy) patchseries. After i
+> figured out that the biggest part of the patches were cutted into
+> unrelated and unneeded pieces here hopefully comes a cleaner patchstack.
+> 
+> The rest of the patches i send last time is living in my git repo for
+> review, until i figured out that the code is mostly needed for the
+> softcropping feature of the camera.
+> 
+> But first things first, here are my changes:
+> 
+> Michael Grzeschik (9):
+>   mt9m111: init chip after read CHIP_VERSION
+>   mt9m111: register cleanup hex to dec bitoffset
+>   mt9m111: added new bit offset defines
+>   mt9m111: changed MIN_DARK_COLS to MT9M131 spec count
+>   mt9m111: cropcap and s_crop check if type is VIDEO_CAPTURE
+>   mt9m111: added current colorspace at g_fmt
+>   mt9m111: added reg_mask function
+>   mt9m111: rewrite set_pixfmt
+>   mt9m111: make use of testpattern
+> 
+> Philipp Wiesner (1):
+>   mt9m111: Added indication that MT9M131 is supported by this driver
+> 
+> Sascha Hauer (1):
+>   v4l2-mediabus: Add pixelcodes for BGR565 formats
+> 
+>  drivers/media/video/Kconfig   |    5 +-
+>  drivers/media/video/mt9m111.c |  283 ++++++++++++++++++++++++-----------------
+>  include/media/v4l2-mediabus.h |    2 +
+>  3 files changed, 174 insertions(+), 116 deletions(-)
+> 
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
