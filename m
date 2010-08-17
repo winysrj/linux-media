@@ -1,53 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from sh.osrg.net ([192.16.179.4]:37447 "EHLO sh.osrg.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751582Ab0HZJnl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 05:43:41 -0400
-Date: Thu, 26 Aug 2010 18:43:22 +0900
-To: mitov@issp.bas.bg
-Cc: fujita.tomonori@lab.ntt.co.jp, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, akpm@linux-foundation.org
-Subject: Re: [RFC][PATCH] add
- dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <201008261001.57678.mitov@issp.bas.bg>
-References: <201008260904.19973.mitov@issp.bas.bg>
-	<20100826152333K.fujita.tomonori@lab.ntt.co.jp>
-	<201008261001.57678.mitov@issp.bas.bg>
+Received: from mail-in-01.arcor-online.net ([151.189.21.41]:58031 "EHLO
+	mail-in-01.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753518Ab0HQA1c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Aug 2010 20:27:32 -0400
+Subject: Re: patch for lifeview hybrid mini
+From: hermann pitton <hermann-pitton@arcor.de>
+To: "tomlohave@gmail.com" <tomlohave@gmail.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4C67790D.3060600@gmail.com>
+References: <4C67790D.3060600@gmail.com>
+Content-Type: text/plain
+Date: Tue, 17 Aug 2010 02:24:45 +0200
+Message-Id: <1282004685.8749.50.camel@pc07.localdom.local>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Message-Id: <20100826184231J.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 26 Aug 2010 10:01:52 +0300
-Marin Mitov <mitov@issp.bas.bg> wrote:
+Hi,
 
-> > If you add something to the videobuf-dma-contig API, that's fine by me
-> > because drivers/media/video/videobuf-dma-contig.c uses the own
-> > structure and plays with dma_alloc_coherent. As long as a driver
-> > doesn't touch device->dma_mem directly, it's fine, 
+Am Sonntag, den 15.08.2010, 07:20 +0200 schrieb tomlohave@gmail.com:
+> Hi,
 > 
-> Why, my understanding is that device->dma_mem is designed exactly for keeping 
-> some chunk of coherent memory for device's private use via dma_alloc_from_coherent()
-> (and that is what dt3155v4l driver is using it for).
-
-I don't think so. device->dma_mem can be accessed only via the
-DMA-API. I think that the DMA-API says that
-dma_declare_coherent_memory declares coherent memory that can be
-access exclusively by a certain device. It's not for reserving
-coherent memory that can be used for any device for a device.
-
-Anway, you don't need coherent memory. So using the API for coherent
-memory isn't a good idea.
-
-
-> > There are already some workarounds for
-> > contigous memory in several drivers anyway.
+> the proposed patch is 6 month old and the owner of the card does not 
+> give any more sign of life for the support of the radio.
+> can someone review it and push it as is?
 > 
-> Sure, can these workarounds be exposed as API for general use?
+> Cheers,
+> 
+> Signed-off-by: thomas genty<tomlohave@gmail.com>
+> 
 
-I don't think that's a good idea. Adding temporary workaround to the
-generic API and removing it soon after that doesn't sound a good
-developing maner.
+Thomas, just some quick notes, since nobody else cares.
+
+The m$ regspy gpio logs do show only gpio22 changing for analog and
+DVB-T and this should be the out of reference AGC control on a hopefully
+single hybrid tuner on that device called DUO.
+
+Remember, gpios not set in the mask of the analog part of the device do
+not change/switch anything, but those set there will change to zero even
+without explicit gpio define for that specific analog input.
+
+Out of historical reasons, we don't have this in our logs for DVB, also
+else they would be littered by the changing gpios for the TS/MPEG
+interface, but should be OK. We don't need to mark DVB related gpio
+stuff in the analog gpio mask, since we need to use some sort of hack to
+switch gpios on saa713x in DVB mode.
+
+dvb and v4l still don't know much about what each other subsystem does
+on that, but we have some progress.
+
+So, for now, I don't know for what gpio21 high in analog TV mode should
+be good, since the m$ driver seems not to do anything on that one, for
+what we have so far. Also it is common on later LifeView stuff (arrgh),
+but always is present in related logs then too.
+
+If ever needed,
+
+despite of that line inputs and muxes are also totally unconfirmed, and
+radio is plain madness ...
+
+drop the radio support for now, mark the external inputs as untested and
+I give some reviewed by so far with headaches.
+
+If we can't get more from here anymore, we must let it bounce.
+
+Cheers,
+Hermann
+
+
+
+
+
+
+
+
+
+
+
+
