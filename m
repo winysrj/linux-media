@@ -1,56 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:23658 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753473Ab0HJHbv (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:54618 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751958Ab0HQReU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Aug 2010 03:31:51 -0400
-Subject: Re: [PATCH v7 1/5] V4L2: Add seek spacing and FM RX class.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-In-Reply-To: <201008091838.13247.hverkuil@xs4all.nl>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
-	 <201008091838.13247.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 10 Aug 2010 10:31:40 +0300
-Message-ID: <1281425501.14489.7.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 17 Aug 2010 13:34:20 -0400
+Received: by ywh1 with SMTP id 1so2605874ywh.19
+        for <linux-media@vger.kernel.org>; Tue, 17 Aug 2010 10:34:20 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 17 Aug 2010 10:34:19 -0700
+Message-ID: <AANLkTinkYSHB5cLav2jw1snWa=1mYWL2+DmUb4ckgZHT@mail.gmail.com>
+Subject: [PATCH] gp8psk: fix tuner delay
+From: VDR User <user.vdr@gmail.com>
+To: "mailing list: linux-media" <linux-media@vger.kernel.org>,
+	Alan Nisota <alannisota@gmail.com>
+Content-Type: multipart/mixed; boundary=000e0cd2c2d4e76c17048e085b47
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, 2010-08-09 at 18:38 +0200, ext Hans Verkuil wrote:
-> On Monday 02 August 2010 16:06:39 Matti J. Aaltonen wrote:
-> > Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
-> > control classes.
-> 
-> This will no longer apply now that the control framework has been merged.
-> 
-> I strongly recommend converting the driver to use that framework. If
-> nothing else, you get support for the g/s/try_ext_ctrls ioctls for free.
-> 
-> See the file Documentation/video4linux/v4l2-controls.txt.
+--000e0cd2c2d4e76c17048e085b47
+Content-Type: text/plain; charset=ISO-8859-1
 
-I can't find that file.  Should it be in some branch of the development
-tree?
+This patches adjusts the tuner delay to be longer in response to
+several users experiencing tuner timeouts.  This change fixes that
+problem and allows those users to be able to tune.
 
-I've updated my tree....:
+Signed-off-by: Derek Kelly <user.vdr@gmail.com>
+----------
+--- v4l-dvb.orig/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+2010-08-17 09:53:27.000000000 -0700
++++ v4l-dvb/linux/drivers/media/dvb/dvb-usb/gp8psk-fe.c 2010-08-17
+10:00:28.000000000 -0700
+@@ -109,7 +109,7 @@ static int gp8psk_fe_read_signal_strengt
 
-[remote "origin"]
-        url =
-http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-        fetch = +refs/heads/*:refs/remotes/origin/*
-[remote "linuxtv"]
-        url = http://linuxtv.org/git/v4l-dvb.git
-        fetch = +refs/heads/*:refs/remotes/linuxtv/*
+ static int gp8psk_fe_get_tune_settings(struct dvb_frontend* fe,
+struct dvb_frontend_tune_settings *tune)
+ {
+-       tune->min_delay_ms = 200;
++       tune->min_delay_ms = 800;
+        return 0;
+ }
 
-The closest file I have name-wise is
-Documentation/video4linux/v4l2-framework.txt
+--000e0cd2c2d4e76c17048e085b47
+Content-Type: application/octet-stream; name="gp8psk-fix_tuner_delay.diff"
+Content-Disposition: attachment; filename="gp8psk-fix_tuner_delay.diff"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gcz184270
 
-Thanks,
-Matti A.
-
+ZGlmZiAtcHJ1TiB2NGwtZHZiLm9yaWcvbGludXgvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9n
+cDhwc2stZmUuYyB2NGwtZHZiL2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZ3A4cHNr
+LWZlLmMKLS0tIHY0bC1kdmIub3JpZy9saW51eC9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2dw
+OHBzay1mZS5jCTIwMTAtMDgtMTcgMDk6NTM6MjcuMDAwMDAwMDAwIC0wNzAwCisrKyB2NGwtZHZi
+L2xpbnV4L2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZ3A4cHNrLWZlLmMJMjAxMC0wOC0xNyAx
+MDowMDoyOC4wMDAwMDAwMDAgLTA3MDAKQEAgLTEwOSw3ICsxMDksNyBAQCBzdGF0aWMgaW50IGdw
+OHBza19mZV9yZWFkX3NpZ25hbF9zdHJlbmd0CiAKIHN0YXRpYyBpbnQgZ3A4cHNrX2ZlX2dldF90
+dW5lX3NldHRpbmdzKHN0cnVjdCBkdmJfZnJvbnRlbmQqIGZlLCBzdHJ1Y3QgZHZiX2Zyb250ZW5k
+X3R1bmVfc2V0dGluZ3MgKnR1bmUpCiB7Ci0JdHVuZS0+bWluX2RlbGF5X21zID0gMjAwOworCXR1
+bmUtPm1pbl9kZWxheV9tcyA9IDgwMDsKIAlyZXR1cm4gMDsKIH0KIAo=
+--000e0cd2c2d4e76c17048e085b47--
