@@ -1,55 +1,124 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:59440 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830Ab0HDPhX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 11:37:23 -0400
-Message-ID: <4C59895C.5090709@infradead.org>
-Date: Wed, 04 Aug 2010 12:38:04 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v3 0/7] V4L2 subdev userspace API
-References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com> <201008041446.24894.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201008041446.24894.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2367 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562Ab0HQTny (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Aug 2010 15:43:54 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7HJhqWD066917
+	for <linux-media@vger.kernel.org>; Tue, 17 Aug 2010 21:43:53 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 17 Aug 2010 21:43:52 +0200 (CEST)
+Message-Id: <201008171943.o7HJhqWD066917@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 04-08-2010 09:46, Laurent Pinchart escreveu:
-> Hi,
-> 
-> On Monday 12 July 2010 17:25:45 Laurent Pinchart wrote:
->> Hi everybody,
->>
->> Here's the third version of the V4L2 subdev userspace API patches. Comments
->> received on the first and second versions have been incorporated, including
->> the video_usercopy usage. The generic ioctls support patch has been
->> dropped and will be resubmitted later with a use case.
-> 
-> Mauro, is there a chance those patches could get in 2.6.36 ?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Unfortunately, the changes are not high. 
+Results of the daily build of v4l-dvb:
 
-I still have lots of patches ready to merge that I received before the start of the 
-merge window waiting for me to handle. As you know, we should first send the patches 
-to linux-next, and wait for a while, before sending them upstream. I won't doubt that 
-this time, we'll have only a 7-days window before -rc1.
+date:        Tue Aug 17 19:00:09 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15067:ab433502e041
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-There are also some other dead lines for this week, including the review of LPC proposals.
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-Finally, one requirement for merging API additions is to have a driver using it. 
-In the past, we had bad experiences of adding things at the kernel API, but waiting
-for a very long time for a kernel driver using it, as the ones that pushed hard for
-adding the new API's didn't submitted their drivers timely (on some cased it ended by 
-having a driver using the new API's several kernel versions later).
-So, even considering that subdev API is ready, we still need to wait for drivers needing
-it to be submitted. So, the better is to analyse and apply it after the end of the merge window,
-on a separate branch, merging it at the main branch after receiving a driver needing
-the new API.
+Detailed results are available here:
 
-Cheers,
-Mauro.
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
