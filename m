@@ -1,73 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:32828 "EHLO d1.icnet.pl"
+Received: from mx38.mail.ru ([94.100.176.52]:53640 "EHLO mx38.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752701Ab0HSROz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Aug 2010 13:14:55 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Marin Mitov <mitov@issp.bas.bg>
-Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera interface
-Date: Thu, 19 Aug 2010 19:09:27 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1008191336290.26145@axis700.grange> <201008191516.21910.mitov@issp.bas.bg>
-In-Reply-To: <201008191516.21910.mitov@issp.bas.bg>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201008191909.28697.jkrzyszt@tis.icnet.pl>
+	id S1753148Ab0HROpu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Aug 2010 10:45:50 -0400
+Received: from [95.53.176.251] (port=44062 helo=localhost.localdomain)
+	by mx38.mail.ru with asmtp
+	id 1Oljtk-000KyH-00
+	for linux-media@vger.kernel.org; Wed, 18 Aug 2010 18:45:48 +0400
+Date: Wed, 18 Aug 2010 18:53:54 +0400
+From: Goga777 <goga777@bk.ru>
+Cc: linux-media@vger.kernel.org
+Subject: Re: SkyStar S2 on an embedded Linux
+Message-ID: <20100818185354.177c4c07@bk.ru>
+In-Reply-To: <AANLkTi=T0dCRCHfr9tsQe-fVBwo+x1SehaZKA-VPmPAj@mail.gmail.com>
+References: <AANLkTi=OTqzA41=H-=M7Vmrq=uY=Av-bjVNDHpQ=LRv1@mail.gmail.com>
+	<20100817211027.1ffee6ea@list.ru>
+	<AANLkTi=T0dCRCHfr9tsQe-fVBwo+x1SehaZKA-VPmPAj@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Thursday 19 August 2010 14:16:21 Marin Mitov napisał(a):
-> On Thursday, August 19, 2010 02:39:47 pm Guennadi Liakhovetski wrote:
-> >
-> > No, I don't think you should go to the next power of 2 - that's too
-> > crude. Try rounding your buffer size to the page size, that should
-> > suffice.
-
-Guennadi,
-If you have a look at how a device reserved memory is next allocated to a 
-driver with drivers/base/dma-coherent.c::dma_alloc_from_coherent(), then than 
-you may find my conclusion on a power of 2 as true:
-
-int dma_alloc_from_coherent(struct device *dev, ssize_t size,
-					dma_addr_t *dma_handle, void **ret)
-{
-...
-        int order = get_order(size);
-...
-	pageno = bitmap_find_free_region(mem->bitmap, mem->size, order);
-...
-}
+> > did you patch something ?
+> > did you test your card with dvb-s2 channels ?
+> 
+> Yep! After I extracted the s2-liplianin archive, I patched the files
+> using a file I've found on a Russian website. The link to the file
+> (SVT-SkyStarS2-driver-install.run) can be found at the link below:
+> 
+> http://www.forum.free-x.de/wbb/index.php?page=Thread&postID=8170#post8170
+> 
+> I'm currently using it and I can scan, tune and watch S2 transponders.
+> The problem is that when I copy the /lib directory to the root fs of
+> target system (an embedded system with the same kernel), the modules
+> don't get loaded correctly.
 
 
-> Allocated coherent memory is always a power of 2.
+would you re-check please again - have you luck with 8PSK-FEC 3/4 dvb-s2 channels ?
 
-Marin,
-For ARM, this seems true as long as allocated with the above from a device 
-assigned pool, but not true for a (pre)allocation from a generic system RAM. 
-See arch/arm/mm/dma-mapping.c::__dma_alloc_buffer(), where it looks like extra 
-pages are freed:
-
-static struct page *__dma_alloc_buffer(struct device *dev, size_t size, gfp_t gfp)
-{
-	unsigned long order = get_order(size);
-...
-	page = alloc_pages(gfp, order);
-...
-	split_page(page, order);
-        for (p = page + (size >> PAGE_SHIFT), e = page + (1 << order); p < e; p++)
-                __free_page(p);
-...
-}	
-
-
-Thanks,
-Janusz
+Goga
