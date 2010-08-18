@@ -1,152 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:63863 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752525Ab0H2BtY convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3094 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751069Ab0HRTn5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Aug 2010 21:49:24 -0400
-Date: Sun, 29 Aug 2010 03:48:16 +0200
-From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
-Subject: Re: [PATCH/RFCv4 2/6] mm: cma: Contiguous Memory Allocator added
-In-reply-to: <201008281437.11830.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>
-Message-id: <op.vh6faqnl7p4s8u@localhost>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-transfer-encoding: 8BIT
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
- <0b02e05fc21e70a3af39e65e628d117cd89d70a1.1282286941.git.m.nazarewicz@samsung.com>
- <343f4b0edf9b5eef598831700cb459cd428d3f2e.1282286941.git.m.nazarewicz@samsung.com>
- <201008281437.11830.hverkuil@xs4all.nl>
+	Wed, 18 Aug 2010 15:43:57 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7IJhq5Q026067
+	for <linux-media@vger.kernel.org>; Wed, 18 Aug 2010 21:43:56 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 18 Aug 2010 21:43:52 +0200 (CEST)
+Message-Id: <201008181943.o7IJhq5Q026067@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-> On Friday, August 20, 2010 11:50:42 Michal Nazarewicz wrote:
->> +**** Regions
->> +
->> +     Regions is a list of regions terminated by a region with size
->> +     equal zero.  The following fields may be set:
->> +
->> +     - size       -- size of the region (required, must not be zero)
->> +     - alignment  -- alignment of the region; must be power of two or
->> +                     zero (optional)
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On Sat, 28 Aug 2010 14:37:11 +0200, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Just wondering: is alignment really needed since we already align to the
-> PAGE_SIZE? Do you know of hardware with alignment requirements > PAGE_SIZE?
+Results of the daily build of v4l-dvb:
 
-Our video coder needs its firmware aligned to 128K plus it has to be located
-before any other buffers allocated for the chip.  Because of those, we have
-defined a separate region just for the coder's firmware which is small (256K
-IIRC) and aligned to 128K.
+date:        Wed Aug 18 19:00:13 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15074:eff98a88caf3
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
->> +     - start      -- where the region has to start (optional)
->> +     - alloc_name -- the name of allocator to use (optional)
->> +     - alloc      -- allocator to use (optional; and besides
->> +                     alloc_name is probably is what you want)
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
-> I would make this field internal only. At least for now.
+Detailed results are available here:
 
-OK.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
->> +*** The device and types of memory
->> +
->> +    The name of the device is taken from the device structure.  It is
->> +    not possible to use CMA if driver does not register a device
->> +    (actually this can be overcome if a fake device structure is
->> +    provided with at least the name set).
->> +
->> +    The type of memory is an optional argument provided by the device
->> +    whenever it requests memory chunk.  In many cases this can be
->> +    ignored but sometimes it may be required for some devices.
->
-> This really should not be optional but compulsory. 'type' has the same function
-> as the GFP flags with kmalloc. They tell the kernel where the memory should be
-> allocated. Only if you do not care at all can you pass in NULL. But in almost
-> all cases the memory should be at least DMA-able (and yes, for a lot of SoCs that
-> is the same as any memory -- for now).
+Full logs are available here:
 
-At this moment, if type is NULL "common" is assumed.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-> Memory types should be defined in the platform code. Some can be generic
-> like 'dma' (i.e. any DMAable memory), 'dma32' (32-bit DMA) and 'common' (any
-> memory). Others are platform specific like 'banka' and 'bankb'.
+The V4L-DVB specification from this daily build is here:
 
-Yes, that's the idea.
-
-> A memory type definition can either be a start address/size pair but it can
-> perhaps also be a GFP type (e.g. .name = "dma32", .gfp = GFP_DMA32).
->
-> Regions should be of a single memory type. So when you define the region it
-> should have a memory type field.
->
-> Drivers request memory of whatever type they require. The mapping just maps
-> one or more regions to the driver and the cma allocator will pick only those
-> regions with the required type and ignore those that do not match.
->
->> +    For instance, let's say that there are two memory banks and for
->> +    performance reasons a device uses buffers in both of them.
->> +    Platform defines a memory types "a" and "b" for regions in both
->> +    banks.  The device driver would use those two types then to
->> +    request memory chunks from different banks.  CMA attributes could
->> +    look as follows:
->> +
->> +         static struct cma_region regions[] = {
->> +                 { .name = "a", .size = 32 << 20 },
->> +                 { .name = "b", .size = 32 << 20, .start = 512 << 20 },
->> +                 { }
->> +         }
->> +         static const char map[] __initconst = "foo/a=a;foo/b=b;*=a,b";
->
-> So this would become something like this:
->
->          static struct cma_memtype types[] = {
->                  { .name = "a", .size = 32 << 20 },
->                  { .name = "b", .size = 32 << 20, .start = 512 << 20 },
->                  // For example:
->                  { .name = "dma", .gfp = GFP_DMA },
->                  { }
->          }
->          static struct cma_region regions[] = {
->                  // size may of course be smaller than the memtype size.
->                  { .name = "a", type = "a", .size = 32 << 20 },
->                  { .name = "b", type = "b", .size = 32 << 20 },
->                  { }
->          }
->          static const char map[] __initconst = "*=a,b";
->
-> No need to do anything special for driver foo here: cma_alloc will pick the
-> correct region based on the memory type requested by the driver.
->
-> It is probably no longer needed to specify the memory type in the mapping when
-> this is in place.
-
-I'm not entirely happy with such scheme.
-
-For one, types may overlap: ie. the whole "banka" may be "dma" as well.
-This means that a single region could be of several different types.
-
-Moreover, as I've mentioned the video coder needs to allocate buffers from
-different banks.  However, on never platform there's only one bank (actually
-two but they are interlaced) so allocations from different banks no longer
-make sense.  Instead of changing the driver though I'd prefer to only change
-the mapping in the platform.
-
--- 
-Best regards,                                        _     _
-| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
-| Computer Science,  Michał "mina86" Nazarewicz       (o o)
-+----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
