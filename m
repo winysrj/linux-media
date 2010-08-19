@@ -1,39 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:63484 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751255Ab0HULtF convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Aug 2010 07:49:05 -0400
-Received: by ewy23 with SMTP id 23so2684192ewy.19
-        for <linux-media@vger.kernel.org>; Sat, 21 Aug 2010 04:49:04 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sat, 21 Aug 2010 16:19:03 +0430
-Message-ID: <AANLkTikM_Fn_kdjYkkyBZpn8yE9KbGwZu14Wu+RaGbmm@mail.gmail.com>
-Subject: Both Skystar 2 rev 2.8 and Skystar S2 on the same box
-From: mehdi karamnejad <mehdi.karamnejad@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from cnc.isely.net ([64.81.146.143]:54381 "EHLO cnc.isely.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751553Ab0HSOHn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Aug 2010 10:07:43 -0400
+Date: Thu, 19 Aug 2010 09:07:42 -0500 (CDT)
+From: Mike Isely <isely@isely.net>
+To: Dan Carpenter <error27@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	Mike Isely <isely@isely.net>
+Subject: Re: [patch] V4L/DVB: pvrusb2: remove unneeded NULL checks
+In-Reply-To: <20100819095004.GN645@bicker>
+Message-ID: <alpine.DEB.1.10.1008190905480.17258@cnc.isely.net>
+References: <20100819095004.GN645@bicker>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-I have a Skystar S2 card up and running using  s2-liplianin driver , I
-recently have obtained a skystar 2 rev2.8 card and I'm plannig to use
-both of the cards on the same box , but  when I add the skystar 2 rev
-2.8 card it doesn't get detected by linux and no entry is created for
-it in /dev/dvb folder (skystar S2 card is still functional) , here is
-the dmesg output of my system when both cards are inserted:
-http://pastebin.com/VAGaBg75
-my guess is that since both cards share some kernel modules, their
-shared modules should separated to  function properly, am I right? if
-yes how can I for example separate cx24123 module used by Skystar S2
-from the one used by  skystar 2 rev 2.8 card.
-or are there any other approaches to make this work?
 
-link to my skystar 2 rev 2.8 card:
-http://cvs.linuxtv.org/wiki/index.php/TechniSat_SkyStar_2_TV_PCI_/_Sky2PC_PCI#Technisat_SkyStar_2_TV_PCI_with_FlexCopIII_Rev_2.8
-link to my skystar S2 card:
-http://www.linuxtv.org/wiki/index.php/TechniSat_SkyStar_S2
---
-:-----:
-> Mehdi Karamnejad
+Based on the surrounding code (the unconditional dereference), I agree 
+that this particular bit of coding paranoia is not doing much good.
+
+Acked-by: Mike Isely <isely@pobox.com>
+
+On Thu, 19 Aug 2010, Dan Carpenter wrote:
+
+> We dereference "maskptr" unconditionally at the start of the function
+> and also inside the call to parse_tlist() towards the end of the
+> function.  This function is called from store_val_any() and it always
+> passes a non-NULL pointer. 
+> 
+> Signed-off-by: Dan Carpenter <error27@gmail.com>
+> 
+> diff --git a/drivers/media/video/pvrusb2/pvrusb2-ctrl.c b/drivers/media/video/pvrusb2/pvrusb2-ctrl.c
+> index 1b992b8..55ea914 100644
+> --- a/drivers/media/video/pvrusb2/pvrusb2-ctrl.c
+> +++ b/drivers/media/video/pvrusb2/pvrusb2-ctrl.c
+> @@ -513,7 +513,7 @@ int pvr2_ctrl_sym_to_value(struct pvr2_ctrl *cptr,
+>  			if (ret >= 0) {
+>  				ret = pvr2_ctrl_range_check(cptr,*valptr);
+>  			}
+> -			if (maskptr) *maskptr = ~0;
+> +			*maskptr = ~0;
+>  		} else if (cptr->info->type == pvr2_ctl_bool) {
+>  			ret = parse_token(ptr,len,valptr,boolNames,
+>  					  ARRAY_SIZE(boolNames));
+> @@ -522,7 +522,7 @@ int pvr2_ctrl_sym_to_value(struct pvr2_ctrl *cptr,
+>  			} else if (ret == 0) {
+>  				*valptr = (*valptr & 1) ? !0 : 0;
+>  			}
+> -			if (maskptr) *maskptr = 1;
+> +			*maskptr = 1;
+>  		} else if (cptr->info->type == pvr2_ctl_enum) {
+>  			ret = parse_token(
+>  				ptr,len,valptr,
+> @@ -531,7 +531,7 @@ int pvr2_ctrl_sym_to_value(struct pvr2_ctrl *cptr,
+>  			if (ret >= 0) {
+>  				ret = pvr2_ctrl_range_check(cptr,*valptr);
+>  			}
+> -			if (maskptr) *maskptr = ~0;
+> +			*maskptr = ~0;
+>  		} else if (cptr->info->type == pvr2_ctl_bitmask) {
+>  			ret = parse_tlist(
+>  				ptr,len,maskptr,valptr,
+> 
+
+-- 
+
+Mike Isely
+isely @ isely (dot) net
+PGP: 03 54 43 4D 75 E5 CC 92 71 16 01 E2 B5 F5 C1 E8
