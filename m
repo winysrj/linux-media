@@ -1,101 +1,122 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.122.233]:44432 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759754Ab0HLKeg (ORCPT
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:40169 "HELO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750927Ab0HSJcx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Aug 2010 06:34:36 -0400
-Subject: Re: A problem with http://git.linuxtv.org/media_tree.git
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: ext Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
-In-Reply-To: <3d84baeb117bdf02fa44a883e3ae05cf.squirrel@webmail.xs4all.nl>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
-	 <201008091838.13247.hverkuil@xs4all.nl>
-	 <1281425501.14489.7.camel@masi.mnp.nokia.com>
-	 <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
-	 <1281441830.14489.27.camel@masi.mnp.nokia.com>
-	 <4C614294.7080101@redhat.com>
-	 <1281518486.14489.43.camel@masi.mnp.nokia.com>
-	 <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
-	 <1281526453.14489.50.camel@masi.mnp.nokia.com>
-	 <1281527073.14489.59.camel@masi.mnp.nokia.com>
-	 <4C62A2AF.9070805@redhat.com>
-	 <1281606326.14489.66.camel@masi.mnp.nokia.com>
-	 <3d84baeb117bdf02fa44a883e3ae05cf.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 12 Aug 2010 13:34:08 +0300
-Message-ID: <1281609248.14489.71.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 19 Aug 2010 05:32:53 -0400
+Received: by wwb34 with SMTP id 34so1793717wwb.29
+        for <linux-media@vger.kernel.org>; Thu, 19 Aug 2010 02:32:51 -0700 (PDT)
+MIME-Version: 1.0
+From: Martin Rubli <mrubligbox@gmail.com>
+Date: Thu, 19 Aug 2010 17:25:10 +0800
+Message-ID: <AANLkTikawoE4LpDUSxd8richdau4ySc63=AeNiJx2473@mail.gmail.com>
+Subject: [RFC] Media controller addition: MEDIA_IOC_ENTITY_INFO
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 2010-08-12 at 12:29 +0200, ext Hans Verkuil wrote:
-> > On Wed, 2010-08-11 at 15:16 +0200, ext Mauro Carvalho Chehab wrote:
-> >> Em 11-08-2010 08:44, Matti J. Aaltonen escreveu:
-> >> > Hi again.
-> >> >
-> >> > On Wed, 2010-08-11 at 14:34 +0300, Matti J. Aaltonen wrote:
-> >> >> Hello.
-> >> >>
-> >> >> On Wed, 2010-08-11 at 12:56 +0200, ext Hans Verkuil wrote:
-> >> >>>> Hi.
-> >> >>>>
-> >> >>>> I cloned your tree at 	http://linuxtv.org/git/media_tree.git and
-> >> checked
-> >> >>>> out the origin/staging/v2.6.37 branch and the
-> >> >>>> Documentation/video4linux/v4l2-controls.txt  just isn't there. I
-> >> asked
-> >> >>>> one of my colleagues to do the same and the result was also the
-> >> same.
-> >> >>>
-> >> >>> The file is in the v2.6.36 branch. It hasn't been merged yet in the
-> >> >>> v2.6.37 branch.
-> >> >>
-> >> >> 37 above was a typo, sorry. My point was that we couldn't find it in
-> >> the
-> >> >> origin/staging/v2.6.36 branch... and that the branch lags behind of
-> >> what
-> >> >> can be seen via the git web interface...
-> >> >>
-> >> >> B.R.
-> >> >> Matti
-> >> >
-> >> > I'd suggest - if that's not too much trouble - that you'd clone the
-> >> tree
-> >> > using http (from http://linuxtv.org/git/media_tree.git) and then
-> >> checked
-> >> > out the 36 branch and see that it works for you and then post the
-> >> > command you used and then I'll admit what I did wrong - if
-> >> necessary:-)
-> >>
-> >> You should try to avoid using http method for clone/fetch. It depends on
-> >> some
-> >> files that are created by running "git update-server-info". There's a
-> >> script to
-> >> run it automatically after each push. Yet, the better is to use git.
-> >
-> > I guess I didn't emphasize my point enough... I would avoid using http
-> > if it wasn't the only protocol I can use to access your site... And if
-> > you have serious problems with it I think it would be fair to mention
-> > that on your git web page...
-> 
-> FYI: the control framework has been merged into the mainline, so you can
-> get it from there as well.
+Hi all,
 
-OK, good, the mainline tree can be cloned over http...
+Following some discussion with Laurent Pinchart I'd like to suggest
+the addition of a new ioctl to the media controller API:
+MEDIA_IOC_ENTITY_INFO.
 
-Thanks,
-Matti
+The purpose of the ioctl is to allow applications to retrieve advanced
+information on a given entity. There are two parts: a generic one and
+a driver-specific one. The latter allows drivers to make
+driver-specific entity information available to applications.
 
-> 
-> Regards,
-> 
->         Hans
-> 
+To mention one example: The UVC driver exposes a device's
+units/terminals as entities. Each of these entities has a unit ID and
+some particular units (extension units for vendor-specific controls)
+have a GUID that uniquely identifies their interface. These two pieces
+of information are very interesting for apps because it allows them to
+generically access all these controls.
+
+At the moment there isn't a lot of generic information in the
+media_entity_info struct. Only a generic bus ID that can e.g. be used
+to differentiate I2C chips. Suggestions for further generic fields are
+welcome, and so is more general feedback.
+
+Cheers,
+Martin
 
 
+
+	MEDIA_IOC_ENTITY_INFO - Obtain detailed information on a given entity
+	---------------------------------------------------------------------
+
+	ioctl(int fd, int request, struct media_entity_info *argp);
+
+Applications can retrieve detailed information about a given entity using this
+ioctl. This entity information contains both, a generic part, as well as a
+driver specific part. While the size, fields, and format of the former one are
+defined by the media kernel API the latter one is defined by the driver behind
+the entity's device and can be of arbitrary size.
+
+Querying the driver specific entity information is optional. To only query the
+generic part the application sets drvinfo_size to 0 and drvinfo to NULL. The
+function returns either success (if no driver specific information is available)
+or ENOBUFS (if driver specific information would be available). In both cases
+the generic entity information is properly returned.
+
+In order to query the driver specific part the application sets drvinfo_size to
+the correct size of the driver specific structure, and points drvinfo to a
+pre-allocated structure of the same size.
+
+To maintain maximum flexibility a method to query the size of the driver
+specific entity information is provided. If the number provided in drvinfo_size
+is smaller than the size of the driver specific structure the correct size is
+stored in the drvinfo_size field and the function returns with ENOBUFS. The
+drvinfo pointer is ignored in that case. Therefore the suggested way to query
+all available entity information is as follows:
+
+  1. Call the function with drvinfo_size set to 0 and drvinfo to NULL.
+  2. Verify that the error code is ENOBUFS. In case of success, no driver
+     specific information is available and the remaining steps can be skipped.
+  3. Allocate a buffer of size drvinfo_size and point drvinfo to it.
+  4. Call the function again.
+  5. Verify that the return value indicates success.
+
+Note for driver developers: Driver specific entity information structures are to
+start with a header field of type media_entity_drvinfo.
+
+The media_entity_info and related structures are defined as
+
+- struct media_entity_drvinfo
+
+__u32		magic		A magic number identifying the type of the
+				structure.
+__u8		data[0]		Driver specific data of arbitrary size.
+
+The magic number allows for an application to verify that the type of the
+obtained driver specific information indeed corresponds to what it expects to
+process. Newer versions of a driver can use different magic numbers to indicate
+that the data structure has changed. Drivers are free to choose the format of
+the magic number.
+
+- struct media_entity_info
+
+__u32		entity		Entity id, set by the application.
+char		bus_id[32]	A bus ID of undefined format.
+__u32		reserved[8]	Reserved for future extensions.
+__u32		drvinfo_size	Size of the data pointed to by 'drvinfo', set by
+				both application and driver.
+struct media_entity_drvinfo
+		*drvinfo	A pointer to a pre-allocated structure of driver
+				specific format, set by the application.
+
+Return values:
+
+  EINVAL	A parameter is invalid. This can indicate that the entity id is
+		invalid or that the drvinfo pointer is NULL despite a correct
+		drvinfo_size value.
+
+  EFAULT	A pointer is invalid, either argp itself or the drvinfo field.
+
+  ENOENT	There is no information available about the given entity.
+
+  ENOBUFS	The buffer size specified in drvinfo_size is not big enough to
+		hold the driver specific entity information structure. The
+		correct size is being returned in drvinfo_size.
