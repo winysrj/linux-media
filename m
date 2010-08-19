@@ -1,69 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from gold.linx.net ([195.66.232.40]:34708 "EHLO gold.linx.net"
+Received: from d1.icnet.pl ([212.160.220.21]:32828 "EHLO d1.icnet.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755139Ab0HKSvI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 14:51:08 -0400
-Subject: Re: [PATCH -next] v4l2-ctrls.c: needs to include slab.h
-From: Tony Vroon <tony@linx.net>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-In-Reply-To: <20100809105635.4208c7ac.randy.dunlap@oracle.com>
-References: <20100809132314.789e13f3.sfr@canb.auug.org.au>
-	 <20100809105635.4208c7ac.randy.dunlap@oracle.com>
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-ndn/uexTQsPRW6cROLJg"
-Date: Wed, 11 Aug 2010 19:45:42 +0100
-Message-ID: <1281552342.5092.9.camel@localhost>
-Mime-Version: 1.0
+	id S1752701Ab0HSROz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Aug 2010 13:14:55 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Marin Mitov <mitov@issp.bas.bg>
+Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera interface
+Date: Thu, 19 Aug 2010 19:09:27 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1008191336290.26145@axis700.grange> <201008191516.21910.mitov@issp.bas.bg>
+In-Reply-To: <201008191516.21910.mitov@issp.bas.bg>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Content-Disposition: inline
+Message-Id: <201008191909.28697.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
+Thursday 19 August 2010 14:16:21 Marin Mitov napisał(a):
+> On Thursday, August 19, 2010 02:39:47 pm Guennadi Liakhovetski wrote:
+> >
+> > No, I don't think you should go to the next power of 2 - that's too
+> > crude. Try rounding your buffer size to the page size, that should
+> > suffice.
 
---=-ndn/uexTQsPRW6cROLJg
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Guennadi,
+If you have a look at how a device reserved memory is next allocated to a 
+driver with drivers/base/dma-coherent.c::dma_alloc_from_coherent(), then than 
+you may find my conclusion on a power of 2 as true:
 
-On Mon, 2010-08-09 at 10:56 -0700, Randy Dunlap wrote:
-> From: Randy Dunlap <randy.dunlap@oracle.com>
-> v4l2-ctrls.c needs to include slab.h to prevent build errors:
+int dma_alloc_from_coherent(struct device *dev, ssize_t size,
+					dma_addr_t *dma_handle, void **ret)
+{
+...
+        int order = get_order(size);
+...
+	pageno = bitmap_find_free_region(mem->bitmap, mem->size, order);
+...
+}
 
-This appears to have been missed. Running mainline git:
-Linux amalthea 2.6.35-06998-g3d30701 #1 SMP Wed Aug 11 15:33:16 BST 2010
-x86_64 Intel(R) Core(TM)2 Duo CPU T9400 @ 2.53GHz GenuineIntel GNU/Linux
 
-Enabling Video 4 Linux results in the breakage promised by Randy:
-> drivers/media/video/v4l2-ctrls.c:766: error: implicit declaration of func=
-tion 'kzalloc'
-> drivers/media/video/v4l2-ctrls.c:786: error: implicit declaration of func=
-tion 'kfree'
-> drivers/media/video/v4l2-ctrls.c:1528: error: implicit declaration of fun=
-ction 'kmalloc'
+> Allocated coherent memory is always a power of 2.
 
-Please apply.
+Marin,
+For ARM, this seems true as long as allocated with the above from a device 
+assigned pool, but not true for a (pre)allocation from a generic system RAM. 
+See arch/arm/mm/dma-mapping.c::__dma_alloc_buffer(), where it looks like extra 
+pages are freed:
 
-Regards,
---=20
-Tony Vroon
-UNIX systems administrator
-London Internet Exchange Ltd, Trinity Court, Trinity Street,
-Peterborough, PE1 1DA
-Registered in England number 3137929
-E-Mail: tony@linx.net
+static struct page *__dma_alloc_buffer(struct device *dev, size_t size, gfp_t gfp)
+{
+	unsigned long order = get_order(size);
+...
+	page = alloc_pages(gfp, order);
+...
+	split_page(page, order);
+        for (p = page + (size >> PAGE_SHIFT), e = page + (1 << order); p < e; p++)
+                __free_page(p);
+...
+}	
 
---=-ndn/uexTQsPRW6cROLJg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.16 (GNU/Linux)
-
-iEYEABECAAYFAkxi79YACgkQp5vW4rUFj5rqzACfTKpzexak+mpOUTP6P8Lqp97s
-b4wAnRK+uucSDuRX8Gj2l5oiH2pp5DL2
-=R0eM
------END PGP SIGNATURE-----
-
---=-ndn/uexTQsPRW6cROLJg--
-
+Thanks,
+Janusz
