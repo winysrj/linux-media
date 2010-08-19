@@ -1,41 +1,79 @@
 Return-path: <mchehab@pedra>
-Received: from lo.gmane.org ([80.91.229.12]:41758 "EHLO lo.gmane.org"
+Received: from mail.issp.bas.bg ([195.96.236.10]:48818 "EHLO mail.issp.bas.bg"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751486Ab0HUTLs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Aug 2010 15:11:48 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1OmtTk-0006hs-8K
-	for linux-media@vger.kernel.org; Sat, 21 Aug 2010 21:11:44 +0200
-Received: from 003-189-045-062.dynamic.caiway.nl ([62.45.189.3])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 21 Aug 2010 21:11:44 +0200
-Received: from gandalf by 003-189-045-062.dynamic.caiway.nl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 21 Aug 2010 21:11:44 +0200
-To: linux-media@vger.kernel.org
-From: Hans van den Bogert <gandalf@unit-westland.nl>
-Subject: Re: mantis crashes
-Date: Sat, 21 Aug 2010 19:11:35 +0000 (UTC)
-Message-ID: <loom.20100821T210808-680@post.gmane.org>
-References: <20100413150153.GB11631@mail.tyldum.com> <87ochne35i.fsf@nemi.mork.no> <20100413165616.GC11631@mail.tyldum.com> <loom.20100414T133315-652@post.gmane.org> <20100417054749.GA6067@mail.tyldum.com> <87aat1dc9r.fsf@nemi.mork.no> <20100418045106.GA7741@mail.tyldum.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	id S1751641Ab0HSR1T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Aug 2010 13:27:19 -0400
+From: Marin Mitov <mitov@issp.bas.bg>
+To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera interface
+Date: Thu, 19 Aug 2010 20:25:31 +0300
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <201008191516.21910.mitov@issp.bas.bg> <201008191909.28697.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201008191909.28697.jkrzyszt@tis.icnet.pl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201008192025.31660.mitov@issp.bas.bg>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Vidar Tyldum Hansen <vidar <at> tyldum.com> writes:
-
-> So now I will revert to stock Lucid kernel and give your patch a go. But
-> I have a feeling this has something might be some incompatibility or bug
-> between the card and the motherboard (Asus P5N7A-VM). This, though is
-> beyond me...
+On Thursday, August 19, 2010 08:09:27 pm Janusz Krzysztofik wrote:
+> Thursday 19 August 2010 14:16:21 Marin Mitov napisał(a):
+> > On Thursday, August 19, 2010 02:39:47 pm Guennadi Liakhovetski wrote:
+> > >
+> > > No, I don't think you should go to the next power of 2 - that's too
+> > > crude. Try rounding your buffer size to the page size, that should
+> > > suffice.
 > 
+> Guennadi,
+> If you have a look at how a device reserved memory is next allocated to a 
+> driver with drivers/base/dma-coherent.c::dma_alloc_from_coherent(), then than 
+> you may find my conclusion on a power of 2 as true:
+> 
+> int dma_alloc_from_coherent(struct device *dev, ssize_t size,
+> 					dma_addr_t *dma_handle, void **ret)
+> {
+> ...
+>         int order = get_order(size);
+> ...
+> 	pageno = bitmap_find_free_region(mem->bitmap, mem->size, order);
+> ...
+> }
+> 
+> 
+> > Allocated coherent memory is always a power of 2.
+> 
+> Marin,
+> For ARM, this seems true as long as allocated with the above from a device 
+> assigned pool, but not true for a (pre)allocation from a generic system RAM. 
+> See arch/arm/mm/dma-mapping.c::__dma_alloc_buffer(), where it looks like extra 
+> pages are freed:
+> 
+> static struct page *__dma_alloc_buffer(struct device *dev, size_t size, gfp_t gfp)
+> {
+> 	unsigned long order = get_order(size);
+> ...
+> 	page = alloc_pages(gfp, order);
+> ...
+> 	split_page(page, order);
+>         for (p = page + (size >> PAGE_SHIFT), e = page + (1 << order); p < e; p++)
+>                 __free_page(p);
+> ...
+> }	
 
-Late reply, but
-Probably is nvidia/bios/asus incompatibility, I used a M3N78-pro
+Thanks for the clarification.
 
-No further luck getting this to work?
+Marin Mitov
 
+> 
+> 
+> Thanks,
+> Janusz
+> 
