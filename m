@@ -1,88 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:57965 "EHLO mail.issp.bas.bg"
+Received: from mail.issp.bas.bg ([195.96.236.10]:56572 "EHLO mail.issp.bas.bg"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752431Ab0HTLv3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 07:51:29 -0400
+	id S1754008Ab0HSPUF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Aug 2010 11:20:05 -0400
 From: Marin Mitov <mitov@issp.bas.bg>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Date: Fri, 20 Aug 2010 14:50:12 +0300
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-References: <201008191818.36068.mitov@issp.bas.bg> <201008201113.46036.mitov@issp.bas.bg> <20100820173349E.fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <20100820173349E.fujita.tomonori@lab.ntt.co.jp>
+To: linux-kernel@vger.kernel.org
+Subject: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+Date: Thu, 19 Aug 2010 18:18:35 +0300
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201008201450.12585.mitov@issp.bas.bg>
+Message-Id: <201008191818.36068.mitov@issp.bas.bg>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
-> On Fri, 20 Aug 2010 11:13:45 +0300
-> Marin Mitov <mitov@issp.bas.bg> wrote:
-> 
-> > > > This tric is already used in drivers/staging/dt3155v4l.c
-> > > > dt3155_alloc_coherent()/dt3155_free_coherent()
-> > > > 
-> > > > Here proposed for general use by popular demand from video4linux folks.
-> > > > Helps for videobuf-dma-contig framework.
-> > > 
-> > > What you guys exactly want to do? If you just want to pre-allocate
-> > > coherent memory for latter usage,
-> > 
-> > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
-> > We use coherent memory because it turns out to be contiguous.
-> 
-> Hmm, you don't care about coherency? You just need contiguous memory?
+Hi all,
 
-Yes. We just need contiguous memory. Coherency is important as far as when dma
-transfer finishes user land is able to see the new data. Could be done by something like
-dma_{,un}map_single()
+struct device contains a member: struct dma_coherent_mem *dma_mem;
+to hold information for a piece of memory declared dma-coherent.
+Alternatively the same member could also be used to hold preallocated
+dma-coherent memory for latter per-device use.
 
-> 
-> Then, I prefer to invent the API to allocate contiguous
-> memory. Coherent memory is precious on some arches.
+This tric is already used in drivers/staging/dt3155v4l.c
+dt3155_alloc_coherent()/dt3155_free_coherent()
 
-Sure, but in any case videobuf-dma-contig framework in drivers/media/video
-is already built around dma-coherent (nevertheless it is precious), so the two new
-functions are just a helpful extension to the existing use of dma-coherent memory.
+Here proposed for general use by popular demand from video4linux folks.
+Helps for videobuf-dma-contig framework.
 
-In any case, as far as these two functions will be mainly used by media/video folks
-they could be added not to the drivers/base/dma-coherent.c (where I see their place),
-but to drivers/media/video/videobuf-dma-contig.c. In that case the disadvantage will be
-that if someone out of the media tree will need this functionality he(she) will need to
-compile media/videobuf-dma-contig.c
-> 
-> 
-> > > why dma_pool API (mm/dmapool.c) doesn't work?
-> > 
-> > I do not know why dma_pool API doesn't work for frame grabber buffers.
-> > May be they are too big ~400KB. I have tried dma_pool APIs without success 
-> > some time ago, so I had to find some other way to solve my problem leading to 
-> > the proposed dma_reserve_coherent_memory()/dma_free_reserved_memory().
-> 
-> I think that dma_pool API is for small coherent memory (smaller than
-> PAGE_SIZE) 
+Signed-off-by: Marin Mitov <mitov@issp.bas.bg>
 
-Yes.
-
-> so it might not work for you. However, the purpose of
-> dma_pool API is exactly for what you want to do, creating a pool for
-> coherent memory per device for drivers.
-> 
-> I don't see any reason why we can't extend the dma_pool API for your
-> case. And it looks better to me rather than inventing the new API.
-
-That will help. I will be happy if someone can do it. I am inpaciently waiting for 
-alloc_huhepages()/free_hugepages() API - (transparent hugepages patches, may be)
-That also could be a solution for media/video folks with hardware that cannot do 
-scatter/gatter. Another solution will be an IOMMU that could present a scattered
-user land buffer as contiguous dma address range (I have played in the past with 
-AGP-GART without great success).
-
-Thanks.
-
-Marin Mitov
-
+======================================================================
+--- a/drivers/base/dma-coherent.c	2010-08-19 15:50:42.000000000 +0300
++++ b/drivers/base/dma-coherent.c	2010-08-19 17:27:56.000000000 +0300
+@@ -93,6 +93,83 @@ void *dma_mark_declared_memory_occupied(
+ EXPORT_SYMBOL(dma_mark_declared_memory_occupied);
  
+ /**
++ * dma_reserve_coherent_memory() - reserve coherent memory for per-device use
++ *
++ * @dev:	device from which we allocate memory
++ * @size:	size of requested memory area in bytes
++ * @flags:	same as in dma_declare_coherent_memory()
++ *
++ * This function reserves coherent memory allocating it early (during probe())
++ * to support latter allocations from per-device coherent memory pools.
++ * For a given device one could use either dma_declare_coherent_memory() or
++ * dma_reserve_coherent_memory(), but not both, becase the result of these
++ * functions is stored in a single struct device member - dma_mem
++ *
++ * Returns DMA_MEMORY_MAP on success, or 0 if failed.
++ * (same as dma_declare_coherent_memory()
++ */
++int dma_reserve_coherent_memory(struct device *dev, size_t size, int flags)
++{
++	struct dma_coherent_mem *mem;
++	dma_addr_t dev_base;
++	int pages = size >> PAGE_SHIFT;
++	int bitmap_size = BITS_TO_LONGS(pages) * sizeof(long);
++
++	if ((flags & DMA_MEMORY_MAP) == 0)
++		goto out;
++	if (!size)
++		goto out;
++	if (dev->dma_mem)
++		goto out;
++
++	mem = kzalloc(sizeof(*mem), GFP_KERNEL);
++	if (!mem)
++		goto out;
++	mem->virt_base = dma_alloc_coherent(dev, size, &dev_base,
++							DT3155_COH_FLAGS);
++	if (!mem->virt_base)
++		goto err_alloc_coherent;
++	mem->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
++	if (!mem->bitmap)
++		goto err_bitmap;
++
++	mem->device_base = dev_base;
++	mem->size = pages;
++	mem->flags = flags;
++	dev->dma_mem = mem;
++	return DMA_MEMORY_MAP;
++
++err_bitmap:
++	dma_free_coherent(dev, size, mem->virt_base, dev_base);
++err_alloc_coherent:
++	kfree(mem);
++out:
++	return 0;
++}
++EXPORT_SYMBOL(dma_reserve_coherent_memory);
++
++/**
++ * dma_free_reserved_memory() - free the reserved dma-coherent memoty
++ *
++ * @dev:	device for which we free the dma-coherent memory
++ *
++ * same as dma_release_declared_memory()
++ */
++void dma_free_reserved_memory(struct device *dev)
++{
++	struct dma_coherent_mem *mem = dev->dma_mem;
++
++	if (!mem)
++		return;
++	dev->dma_mem = NULL;
++	dma_free_coherent(dev, mem->size << PAGE_SHIFT,
++					mem->virt_base, mem->device_base);
++	kfree(mem->bitmap);
++	kfree(mem);
++}
++EXPORT_SYMBOL(dma_free_reserved_memory);
++
++/**
+  * dma_alloc_from_coherent() - try to allocate memory from the per-device coherent area
+  *
+  * @dev:	device from which we allocate memory
