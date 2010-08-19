@@ -1,46 +1,111 @@
 Return-path: <mchehab@pedra>
-Received: from mta6.srv.hcvlny.cv.net ([167.206.4.212]:36540 "EHLO
-	mta6.srv.hcvlny.cv.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754125Ab0HZPqS (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:56885 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750903Ab0HSASo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 11:46:18 -0400
-Received: from TheShoveller.local
- (ool-18bfe781.dyn.optonline.net [24.191.231.129]) by mta6.srv.hcvlny.cv.net
- (Sun Java System Messaging Server 6.2-8.04 (built Feb 28 2007))
- with ESMTP id <0L7R00JP9NT44C00@mta6.srv.hcvlny.cv.net> for
- linux-media@vger.kernel.org; Thu, 26 Aug 2010 11:46:17 -0400 (EDT)
-Date: Thu, 26 Aug 2010 11:46:16 -0400
-From: Steven Toth <stoth@kernellabs.com>
-Subject: Re: saa7164 analog driver crash
-In-reply-to: <AANLkTi=w7BuKe1T7e4Tb20+HoBE6a+6ai2h8Mex0inv+@mail.gmail.com>
-To: James Crow <crow.jamesm@gmail.com>
-Cc: linux-media@vger.kernel.org
-Message-id: <4C768C48.30007@kernellabs.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <AANLkTi=w7BuKe1T7e4Tb20+HoBE6a+6ai2h8Mex0inv+@mail.gmail.com>
+	Wed, 18 Aug 2010 20:18:44 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>,
+	"henrique@henriquecamargo.com" <henrique@henriquecamargo.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Date: Wed, 18 Aug 2010 19:18:38 -0500
+Subject: RE: [PATCH] Fixes field names that changed
+Message-ID: <A24693684029E5489D1D202277BE89445718F57D@dlee02.ent.ti.com>
+References: <1282055682.1883.5.camel@lemming>
+ <A24693684029E5489D1D202277BE89445718F57A@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89445718F57A@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On 8/26/10 11:23 AM, James Crow wrote:
-> First of all I would like to thank Steven Toth for working on the
-> driver for the HVR-2250 cards. I bought one some time ago as an
-> eventual replacement for mt PVR-500 and it seems that time may be
-> approaching. I noticed that analog support had been added and wanted
-> to try it out.
->
-> Second, I hope this is the correct list for problems with this driver.
+Oops, fixing my own typo below:
 
-Thanks for the bug report James.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Aguirre, Sergio
+> Sent: Wednesday, August 18, 2010 7:16 PM
+> To: henrique@henriquecamargo.com; Mauro Carvalho Chehab
+> Cc: Guennadi Liakhovetski; Karicheri, Muralidharan; linux-
+> media@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: RE: [PATCH] Fixes field names that changed
+> 
+> Hi Henrique,
+> 
+> Just some minor comments about the patch description below:
+> 
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Henrique Camargo
+> > Sent: Tuesday, August 17, 2010 9:35 AM
+> > To: Mauro Carvalho Chehab
+> > Cc: Guennadi Liakhovetski; Karicheri, Muralidharan; linux-
+> > media@vger.kernel.org; linux-kernel@vger.kernel.org
+> > Subject: [PATCH] Fixes field names that changed
+> 
+> Add missing subject prefix to quickly describe the affected driver:
+> 
+> Subject: [PATCH] mt9t032: Fixes field names that changed
 
-I've got a couple of issues on the 7164 todo list, I'll add your email to the mix.
+mt9t032 -> mt9t031.
 
-I hope to get back to the driver shortly.
+Sorry...
 
-- Steve
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
-
+Regards,
+Sergio
+> 
+> >
+> > If CONFIG_VIDEO_ADV_DEBUG was set, the driver failed to compile because
+> > the fields get_register and set_register changed names to s_register and
+> > s_register in the struct v4l2_subdev_core_ops.
+> 
+> Please break down this comment to 70 chars max.
+> 
+> Also, you said "s_register" twice.
+> 
+> Regards,
+> Sergio
+> 
+> >
+> > Signed-off-by: Henrique Camargo <henrique@henriquecamargo.com>
+> > ---
+> >  drivers/media/video/mt9t031.c |    4 ++--
+> >  1 files changed, 2 insertions(+), 2 deletions(-)
+> >
+> > diff --git a/drivers/media/video/mt9t031.c
+> b/drivers/media/video/mt9t031.c
+> > index 716fea6..f3d1995 100644
+> > --- a/drivers/media/video/mt9t031.c
+> > +++ b/drivers/media/video/mt9t031.c
+> > @@ -499,8 +499,8 @@ static const struct v4l2_subdev_core_ops
+> > mt9t031_core_ops = {
+> >  	.g_ctrl	= mt9t031_get_control,
+> >  	.s_ctrl	= mt9t031_set_control,
+> >  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> > -	.get_register = mt9t031_get_register,
+> > -	.set_register = mt9t031_set_register,
+> > +	.g_register = mt9t031_get_register,
+> > +	.s_register = mt9t031_set_register,
+> >  #endif
+> >  };
+> >
+> > --
+> > 1.7.0.4
+> >
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
