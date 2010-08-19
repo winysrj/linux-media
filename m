@@ -1,82 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:61557 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751116Ab0HZEOI (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:56823 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750977Ab0HSAQe convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 00:14:08 -0400
+	Wed, 18 Aug 2010 20:16:34 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: "henrique@henriquecamargo.com" <henrique@henriquecamargo.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Date: Wed, 18 Aug 2010 19:16:28 -0500
+Subject: RE: [PATCH] Fixes field names that changed
+Message-ID: <A24693684029E5489D1D202277BE89445718F57A@dlee02.ent.ti.com>
+References: <1282055682.1883.5.camel@lemming>
+In-Reply-To: <1282055682.1883.5.camel@lemming>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	<1282310110.2605.976.camel@laptop>
-	<20100825155814.25c783c7.akpm@linux-foundation.org>
-	<20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
-	<op.vh0wektv7p4s8u@localhost>
-	<20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
-	<20100826124434.6089630d.kamezawa.hiroyu@jp.fujitsu.com>
-	<AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
-Date: Thu, 26 Aug 2010 13:14:07 +0900
-Message-ID: <AANLkTimatyb6cONqH319-xYmXTBb_jQuTLCmU_M6jYPa@mail.gmail.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-From: Minchan Kim <minchan.kim@gmail.com>
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: =?ISO-8859-2?Q?Micha=B3_Nazarewicz?= <m.nazarewicz@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	linux-kernel@vger.kernel.org,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mel Gorman <mel@csn.ul.ie>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, Aug 26, 2010 at 1:06 PM, Minchan Kim <minchan.kim@gmail.com> wrote:
-> On Thu, Aug 26, 2010 at 12:44 PM, KAMEZAWA Hiroyuki
-> <kamezawa.hiroyu@jp.fujitsu.com> wrote:
->> On Thu, 26 Aug 2010 11:50:17 +0900
->> KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
->>
->>> 128MB...too big ? But it's depend on config.
->>>
->>> IBM's ppc guys used 16MB section, and recently, a new interface to shrink
->>> the number of /sys files are added, maybe usable.
->>>
->>> Something good with this approach will be you can create "cma" memory
->>> before installing driver.
->>>
->>> But yes, complicated and need some works.
->>>
->> Ah, I need to clarify what I want to say.
->>
->> With compaction, it's helpful, but you can't get contiguous memory larger
->> than MAX_ORDER, I think. To get memory larger than MAX_ORDER on demand,
->> memory hot-plug code has almost all necessary things.
->
-> True. Doesn't patch's idea of Christoph helps this ?
-> http://lwn.net/Articles/200699/
+Hi Henrique,
 
-Of course, It itself can't meet our requirement but idea of range
-allocation seem to be good.
-I think it can be start point.
+Just some minor comments about the patch description below:
 
->
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Henrique Camargo
+> Sent: Tuesday, August 17, 2010 9:35 AM
+> To: Mauro Carvalho Chehab
+> Cc: Guennadi Liakhovetski; Karicheri, Muralidharan; linux-
+> media@vger.kernel.org; linux-kernel@vger.kernel.org
+> Subject: [PATCH] Fixes field names that changed
+
+Add missing subject prefix to quickly describe the affected driver:
+
+Subject: [PATCH] mt9t032: Fixes field names that changed
+
+> 
+> If CONFIG_VIDEO_ADV_DEBUG was set, the driver failed to compile because
+> the fields get_register and set_register changed names to s_register and
+> s_register in the struct v4l2_subdev_core_ops.
+
+Please break down this comment to 70 chars max.
+
+Also, you said "s_register" twice.
+
+Regards,
+Sergio
+
+> 
+> Signed-off-by: Henrique Camargo <henrique@henriquecamargo.com>
+> ---
+>  drivers/media/video/mt9t031.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+> index 716fea6..f3d1995 100644
+> --- a/drivers/media/video/mt9t031.c
+> +++ b/drivers/media/video/mt9t031.c
+> @@ -499,8 +499,8 @@ static const struct v4l2_subdev_core_ops
+> mt9t031_core_ops = {
+>  	.g_ctrl	= mt9t031_get_control,
+>  	.s_ctrl	= mt9t031_set_control,
+>  #ifdef CONFIG_VIDEO_ADV_DEBUG
+> -	.get_register = mt9t031_get_register,
+> -	.set_register = mt9t031_set_register,
+> +	.g_register = mt9t031_get_register,
+> +	.s_register = mt9t031_set_register,
+>  #endif
+>  };
+> 
 > --
-> Kind regards,
-> Minchan Kim
->
-
-
-
--- 
-Kind regards,
-Minchan Kim
+> 1.7.0.4
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
