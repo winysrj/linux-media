@@ -1,126 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4726 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423Ab0HKMN2 (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:45022 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754405Ab0HSTMQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 08:13:28 -0400
-Message-ID: <e64c07d2a8c6abcb42728db301d21b3c.squirrel@webmail.xs4all.nl>
-In-Reply-To: <1281527073.14489.59.camel@masi.mnp.nokia.com>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
-    <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
-    <201008091838.13247.hverkuil@xs4all.nl>
-    <1281425501.14489.7.camel@masi.mnp.nokia.com>
-    <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
-    <1281441830.14489.27.camel@masi.mnp.nokia.com>
-    <4C614294.7080101@redhat.com>
-    <1281518486.14489.43.camel@masi.mnp.nokia.com>
-    <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
-    <1281526453.14489.50.camel@masi.mnp.nokia.com>
-    <1281527073.14489.59.camel@masi.mnp.nokia.com>
-Date: Wed, 11 Aug 2010 14:13:14 +0200
-Subject: Re: A problem with http://git.linuxtv.org/media_tree.git
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: matti.j.aaltonen@nokia.com
-Cc: "ext Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo" <eduardo.valentin@nokia.com>
+	Thu, 19 Aug 2010 15:12:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [RFC/PATCH v3 00/10] Media controller (core and V4L2)
+Date: Thu, 19 Aug 2010 21:12:12 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"sakari.ailus@maxwell.research.nokia.com"
+	<sakari.ailus@maxwell.research.nokia.com>
+References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE89445718FC0B@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE89445718FC0B@dlee02.ent.ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008192112.12673.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
+Hi Sergio,
 
-> Hi again.
->
-> On Wed, 2010-08-11 at 14:34 +0300, Matti J. Aaltonen wrote:
->> Hello.
->>
->> On Wed, 2010-08-11 at 12:56 +0200, ext Hans Verkuil wrote:
->> > > Hi.
->> > >
->> > > I cloned your tree at 	http://linuxtv.org/git/media_tree.git and
->> checked
->> > > out the origin/staging/v2.6.37 branch and the
->> > > Documentation/video4linux/v4l2-controls.txt  just isn't there. I
->> asked
->> > > one of my colleagues to do the same and the result was also the
->> same.
->> >
->> > The file is in the v2.6.36 branch. It hasn't been merged yet in the
->> > v2.6.37 branch.
->>
->> 37 above was a typo, sorry. My point was that we couldn't find it in the
->> origin/staging/v2.6.36 branch... and that the branch lags behind of what
->> can be seen via the git web interface...
+On Thursday 19 August 2010 21:09:30 Aguirre, Sergio wrote:
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> > Sent: Thursday, July 29, 2010 11:07 AM
+> > To: linux-media@vger.kernel.org
+> > Cc: sakari.ailus@maxwell.research.nokia.com
+> > Subject: [RFC/PATCH v3 00/10] Media controller (core and V4L2)
+> > 
+> > Hi everybody,
+> > 
+> > Here's the third version of the media controller patches. All comments
+> > received on the first and second versions have (hopefully) been
+> > incorporated.
+> > 
+> > The rebased V4L2 API additions and OMAP3 ISP patches will follow. Once
+> > again please consider them as sample code only.
+> > 
+> > Laurent Pinchart (8):
+> >   media: Media device node support
+> >   media: Media device
+> >   media: Entities, pads and links
+> >   media: Entities, pads and links enumeration
+> >   media: Links setup
+> >   v4l: Add a media_device pointer to the v4l2_device structure
+> >   v4l: Make video_device inherit from media_entity
+> >   v4l: Make v4l2_subdev inherit from media_entity
+> 
+> This patch (#0010) doesn't apply to mainline, after this commit:
+> 
+> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commit;h
+> =b74c0aac357e5c71ee6de98b9887fe478bc73cf4
+> 
+> Am I missing something here?
 
-I use this sequence:
-
-git clone
-git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
-v4l-dvb
-
-cd v4l-dvb
-
-git remote add media git://linuxtv.org/media_tree.git
-
-git remote update
-
-git checkout -b v2.6.36 media/staging/v2.6.36
-
-$ ls -l Documentation/video4linux/v4l2-controls.txt
--rw-r--r-- 1 hve users 23441 Aug 11 14:08
-Documentation/video4linux/v4l2-controls.txt
-
-Regards,
-
-          Hans
-
->>
->> B.R.
->> Matti
->
-> I'd suggest - if that's not too much trouble - that you'd clone the tree
-> using http (from http://linuxtv.org/git/media_tree.git) and then checked
-> out the 36 branch and see that it works for you and then post the
-> command you used and then I'll admit what I did wrong - if necessary:-)
->
-> Cheers,
-> Matti
->
->>
->> >
->> > Regards,
->> >
->> >         Hans
->> >
->> > >
->> > > The latest commit in this branch is:
->> > >
->> > > commit 80f1bb8ad61b56597ef2557cc7c67d8876247e6d
->> > > Merge: 2763aca... fc1caf6...
->> > > Author: Mauro Carvalho Chehab <mchehab@redhat.com>
->> > > Date:   Fri Aug 6 10:50:25 2010 -0300
->> > >
->> > > Please check what's wrong...
->> > >
->> > > Thanks,
->> > > Matti A.
->> > >
->> > >
->> > >
->> >
->> >
->>
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+Yes, you're missing the next version of the patches :-) I'll probably send 
+them tomorrow.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Regards,
 
+Laurent Pinchart
