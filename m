@@ -1,59 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mail.ammma.de ([213.83.39.131]:6006 "EHLO ammma.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752005Ab0HVLFn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 22 Aug 2010 07:05:43 -0400
-Received: from mail.ammma.net (hydra.ammma.mil [192.168.110.1])
-	by ammma.de (8.11.6/8.11.6/AMMMa AG) with ESMTP id o7MB0nS01876
-	for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 13:00:49 +0200
-Received: from neo.wg.de (hydra.ammma.mil [192.168.110.1])
-	by mail.ammma.net (Postfix) with ESMTP id 16A114D1C025
-	for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 13:05:40 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by neo.wg.de (Postfix) with ESMTP id AB35552661E
-	for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 13:05:38 +0200 (CEST)
-Received: from neo.wg.de ([127.0.0.1])
-	by localhost (neo.wg.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 42-uYAik7hc1 for <linux-media@vger.kernel.org>;
-	Sun, 22 Aug 2010 13:05:37 +0200 (CEST)
-Received: from localhost (localhost [127.0.0.1])
-	by neo.wg.de (Postfix) with ESMTP id 9D7965265B7
-	for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 13:05:37 +0200 (CEST)
-Message-ID: <20100822130537.121732rl2ot7msg0@neo.wg.de>
-Date: Sun, 22 Aug 2010 13:05:37 +0200
-From: Jan Schneider <jan@horde.org>
-To: linux-media@vger.kernel.org
-Subject: Re: SATELCO EasyWatch PCI (DVB-C) not waking up
-References: <20100811141542.20288il5ge6xlu28@neo.wg.de>
-In-Reply-To: <20100811141542.20288il5ge6xlu28@neo.wg.de>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Disposition: inline
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:57016 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751540Ab0HSShA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Aug 2010 14:37:00 -0400
+Subject: [PATCH] mt9t031: Fixes field names that changed
+From: Henrique Camargo <henrique@henriquecamargo.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 19 Aug 2010 15:36:55 -0300
+Message-ID: <1282243015.2213.13.camel@lemming>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Zitat von Jan Schneider <jan@horde.org>:
+If CONFIG_VIDEO_ADV_DEBUG was set, the driver failed to compile 
+because the fields get_register and set_register changed names to 
+g_register and s_register in the struct v4l2_subdev_core_ops.
 
-> Hi,
->
-> I have the DVB-C card mentioned in the subject. Unfortunately it's  
-> not properly waking up from standby or suspend. The card doesn't  
-> tune anymore after resuming.
-> This is with Ubuntu's 2.6.32-24 kernel.
-> I could need any pointers how to collect more information about the  
-> failing resume, so that you might be able to help me fixing this.
+Signed-off-by: Henrique Camargo <henrique@henriquecamargo.com>
+---
+ drivers/media/video/mt9t031.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-Attached is the syslog from the suspend/resume cycle. There are  
-several errors regarding the DVB-C adapter and the CAM. Maybe this  
-helps?
-
-Jan.
-
+diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
+index 716fea6..f3d1995 100644
+--- a/drivers/media/video/mt9t031.c
++++ b/drivers/media/video/mt9t031.c
+@@ -499,8 +499,8 @@ static const struct v4l2_subdev_core_ops mt9t031_core_ops = {
+ 	.g_ctrl	= mt9t031_get_control,
+ 	.s_ctrl	= mt9t031_set_control,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+-	.get_register = mt9t031_get_register,
+-	.set_register = mt9t031_set_register,
++	.g_register = mt9t031_get_register,
++	.s_register = mt9t031_set_register,
+ #endif
+ };
+ 
 -- 
-Do you need professional PHP or Horde consulting?
-http://horde.org/consulting/
+1.7.0.4
+
+
+
+
+
+
 
