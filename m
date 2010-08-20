@@ -1,44 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:48705 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756710Ab0HIOnP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 10:43:15 -0400
-Received: by pvg2 with SMTP id 2so731698pvg.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Aug 2010 07:43:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20100809143550.GZ6126@belle.intranet.vanheusden.com>
-References: <20100809133252.GW6126@belle.intranet.vanheusden.com>
-	<AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
-	<20100809143550.GZ6126@belle.intranet.vanheusden.com>
-Date: Mon, 9 Aug 2010 10:43:09 -0400
-Message-ID: <AANLkTinJbdrHQPk9mudEAPtB7L_S11hS_ArX+DDsnBD6@mail.gmail.com>
-Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 & /dev/dvb
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:61686 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751346Ab0HTJvw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Aug 2010 05:51:52 -0400
+Date: Fri, 20 Aug 2010 11:50:41 +0200
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [PATCH/RFCv4 1/6] lib: rbtree: rb_root_init() function added
+In-reply-to: <cover.1282286941.git.m.nazarewicz@samsung.com>
+To: linux-mm@kvack.org
+Cc: Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Message-id: <0b02e05fc21e70a3af39e65e628d117cd89d70a1.1282286941.git.m.nazarewicz@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, Aug 9, 2010 at 10:35 AM, folkert <folkert@vanheusden.com> wrote:
-> Hi Devin,
->
->> > I have a:
->> > Bus 001 Device 006: ID 2304:0226 Pinnacle Systems, Inc. PCTV 330e
->> > inserted in a system with kernel 2.6.34.
->>
->> The PCTV 330e support for digital hasn't been merged upstream yet.
->> See here:
->> http://www.kernellabs.com/blog/?cat=35
->
-> Does that mean teletext won't work either?
+Added a rb_root_init() function which initialises a rb_root
+structure as a red-black tree with at most one element.  The
+rationale is that using rb_root_init(root, node) is more
+straightforward and cleaner then first initialising and
+empty tree followed by an insert operation.
 
-Teletext support is completely different that digital (DVB) support.
-VBI support (including teletext) was added to the in-kernel em28xx
-driver back in January.
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/rbtree.h |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-Devin
-
+diff --git a/include/linux/rbtree.h b/include/linux/rbtree.h
+index 7066acb..5b6dc66 100644
+--- a/include/linux/rbtree.h
++++ b/include/linux/rbtree.h
+@@ -130,6 +130,17 @@ static inline void rb_set_color(struct rb_node *rb, int color)
+ }
+ 
+ #define RB_ROOT	(struct rb_root) { NULL, }
++
++static inline void rb_root_init(struct rb_root *root, struct rb_node *node)
++{
++	root->rb_node = node;
++	if (node) {
++		node->rb_parent_color = RB_BLACK; /* black, no parent */
++		node->rb_left  = NULL;
++		node->rb_right = NULL;
++	}
++}
++
+ #define	rb_entry(ptr, type, member) container_of(ptr, type, member)
+ 
+ #define RB_EMPTY_ROOT(root)	((root)->rb_node == NULL)
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.1
+
+
