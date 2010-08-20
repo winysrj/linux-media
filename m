@@ -1,55 +1,72 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51800 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755967Ab0HCK5y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 06:57:54 -0400
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: robert.jarzmik@free.fr, g.liakhovetski@gmx.de,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Philipp Wiesner <p.wiesner@phytec.de>
-Subject: [PATCH 02/11] mt9m111: init chip after read CHIP_VERSION
-Date: Tue,  3 Aug 2010 12:57:40 +0200
-Message-Id: <1280833069-26993-3-git-send-email-m.grzeschik@pengutronix.de>
-In-Reply-To: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from sh.osrg.net ([192.16.179.4]:51817 "EHLO sh.osrg.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752510Ab0HTKgj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Aug 2010 06:36:39 -0400
+Date: Fri, 20 Aug 2010 19:35:01 +0900
+To: m.nazarewicz@samsung.com
+Cc: fujita.tomonori@lab.ntt.co.jp, hverkuil@xs4all.nl,
+	dwalker@codeaurora.org, linux@arm.linux.org.uk, corbet@lwn.net,
+	p.osciak@samsung.com, broonie@opensource.wolfsonmicro.com,
+	linux-kernel@vger.kernel.org, hvaibhav@ti.com, linux-mm@kvack.org,
+	kyungmin.park@samsung.com, kgene.kim@samsung.com,
+	zpfeffer@codeaurora.org, jaeryul.oh@samsung.com,
+	m.szyprowski@samsung.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH/RFCv3 0/6] The Contiguous Memory Allocator framework
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <op.vhp7rxz77p4s8u@localhost>
+References: <op.vhp4pws27p4s8u@localhost>
+	<20100820155617S.fujita.tomonori@lab.ntt.co.jp>
+	<op.vhp7rxz77p4s8u@localhost>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-Id: <20100820193328P.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Moved mt9m111_init after the chip version detection passage: I
-don't like the idea of writing on a device we haven't identified
-yet.
+On Fri, 20 Aug 2010 10:10:45 +0200
+**UNKNOWN CHARSET** <m.nazarewicz@samsung.com> wrote:
 
-Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
----
- drivers/media/video/mt9m111.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+> > I wrote "similar to the existing API', not "reuse the existing API".
+> 
+> Yes, but I don't really know what you have in mind.  CMA is similar to various
+> APIs in various ways: it's similar to any allocator since it takes
+> size in bytes,
 
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index 68f3df6..e7618da 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -969,10 +969,6 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
- 	mt9m111->swap_rgb_even_odd = 1;
- 	mt9m111->swap_rgb_red_blue = 1;
- 
--	ret = mt9m111_init(client);
--	if (ret)
--		goto ei2c;
--
- 	data = reg_read(CHIP_VERSION);
- 
- 	switch (data) {
-@@ -993,6 +989,8 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
- 		goto ei2c;
- 	}
- 
-+	ret = mt9m111_init(client);
-+
- ei2c:
- 	return ret;
- }
--- 
-1.7.1
+why don't take gfp_t flags?
 
+Something like dev_alloc_page is more appropriate name?
+
+Or something similar to dmapool API (mm/dmapool.c) might work
+better. The purpose of dmapool API is creating a pool for consistent
+memory per device. It's similar to yours, creating a pool for
+contiguous memory per device(s)?
+
+
+> it's similar to coherent since it takes device, it's similar to bootmem/memblock/etc
+> since it takes alignment.
+
+I don't think that bootmem/memblock matters here since it's not the
+API for drivers.
+
+
+> > 4k to 40k? I'm not sure. But If I see something like the following, I
+> > suspect that there is a better way to integrate this into the existing
+> > infrastructure.
+> >
+> > mm/cma-best-fit.c                   |  407 +++++++++++++++
+> 
+> Ah, sorry.  I misunderstood you.  I thought you were replying to both 2. and 3.
+> above.
+> 
+> If we only take allocating algorithm then you're right.  Reusing existing one
+> should not increase the patch size plus it would be probably a better solution.
+> 
+> No matter, I would rather first work and core CMA without worrying about reusing
+> kmalloc()/coherent/etc. code especially since providing a plugable allocator API
+> integration with existing allocating algorithms can be made later on.  To put it
+> short I want first to make it work and then improve it.
+
+I'm not sure that's how a new feature is merged.
