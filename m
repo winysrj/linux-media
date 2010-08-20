@@ -1,51 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.122.233]:40098 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751621Ab0HZHkB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 03:40:01 -0400
-Subject: Re: [PATCH v4 2/5] MFD: WL1273 FM Radio: MFD driver for the FM
- radio.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Pavan Savoy <pavan_savoy@yahoo.co.in>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
-In-Reply-To: <676453.10169.qm@web94907.mail.in2.yahoo.com>
-References: <676453.10169.qm@web94907.mail.in2.yahoo.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 26 Aug 2010 10:39:45 +0300
-Message-ID: <1282808385.14489.247.camel@masi.mnp.nokia.com>
+Received: from sh.osrg.net ([192.16.179.4]:55245 "EHLO sh.osrg.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751202Ab0HTG6d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Aug 2010 02:58:33 -0400
+Date: Fri, 20 Aug 2010 15:57:51 +0900
+To: m.nazarewicz@samsung.com
+Cc: fujita.tomonori@lab.ntt.co.jp, kyungmin.park@samsung.com,
+	linux-mm@kvack.org, dwalker@codeaurora.org, linux@arm.linux.org.uk,
+	corbet@lwn.net, p.osciak@samsung.com,
+	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
+	hvaibhav@ti.com, hverkuil@xs4all.nl, kgene.kim@samsung.com,
+	zpfeffer@codeaurora.org, jaeryul.oh@samsung.com,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	m.szyprowski@samsung.com
+Subject: Re: [PATCH/RFCv3 0/6] The Contiguous Memory Allocator framework
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <op.vhp4pws27p4s8u@localhost>
+References: <op.vhppgaxq7p4s8u@localhost>
+	<20100820121124Z.fujita.tomonori@lab.ntt.co.jp>
+	<op.vhp4pws27p4s8u@localhost>
 Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Message-Id: <20100820155617S.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi.
+On Fri, 20 Aug 2010 08:38:10 +0200
+**UNKNOWN CHARSET** <m.nazarewicz@samsung.com> wrote:
 
-On Wed, 2010-08-25 at 23:20 +0200, ext Pavan Savoy wrote:
+> On Fri, 20 Aug 2010 05:12:50 +0200, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
+> >> 1. Integration on API level meaning that some kind of existing API is used
+> >>     instead of new cma_*() calls.  CMA adds notion of devices and memory
+> >>     types which is new to all the other APIs (coherent has notion of devices
+> >>     but that's not enough).  This basically means that no existing API can be
+> >>     used for CMA.  On the other hand, removing notion of devices and memory
+> >>     types would defeat the whole purpose of CMA thus destroying the solution
+> >>     that CMA provides.
+> >
+> > You can create something similar to the existing API for memory
+> > allocator.
 > 
-> > I'm sorry for not answering to you earlier. But I don't
-> > have my own
-> > public repository. But to create the whole thing is
-> > extremely simple:
-> > just take the current mainline tree and apply my patches on
-> > top of it...
+> That may be tricky.  cma_alloc() takes four parameters each of which is
+> required for CMA.  No other existing set of API uses all those arguments.
+> This means, CMA needs it's own, somehow unique API.  I don't quite see
+> how the APIs may be unified or "made similar".  Of course, I'm gladly
+> accepting suggestions.
+
+Have you even tried to search 'blk_kmalloc' on google? I wrote
+"similar to the existing API', not "reuse the existing API".
+
+
+> >> 2. Reuse of memory pools meaning that memory reserved by CMA can then be
+> >>     used by other allocation mechanisms.  This is of course possible.  For
+> >>     instance coherent could easily be implemented as a wrapper to CMA.
+> >>     This is doable and can be done in the future after CMA gets more
+> >>     recognition.
+> >>
+> >> 3. Reuse of algorithms meaning that allocation algorithms used by other
+> >>     allocators will be used with CMA regions.  This is doable as well and
+> >>     can be done in the future.
+> >
+> > Well, why can't we do the above before the inclusion?
 > 
-> Yep, that I can do, the reason I asked for was, we've pushed a few patches of our own for WL1283 over shared transport/UART (Not HCI-VS, but I2C like commands, packed in a CH8 protocol format).
-> The FM register set in both chip are a match, with only transport being the difference (i2c vs. UART).
-> Also we have the Tx version of driver ready too, it just needs a bit of cleanup and more conformance to already existing V4L2 TX Class..
-> 
-> So I was wondering, although there is no problem with WL1273 with I2C and WL1283 with UART being there on the kernel (whenever that happens), but it would be way more cooler if the transport was say abstracted out ..
-> 
-> what do you say? just an idea...
+> Because it's quite a bit of work and instead of diverting my attention I'd
+> prefer to make CMA as good as possible and then integrate it with other
+> subsystems.  Also, adding the integration would change the patch from being
+> 4k lines to being like 40k lines.
 
-I think it's a good idea. And the WL1273 ship can also used with a UART
-connection, we just chose I2C when the driver development started etc...
+4k to 40k? I'm not sure. But If I see something like the following, I
+suspect that there is a better way to integrate this into the existing
+infrastructure.
 
-B.R.
-Matti A.
-
-
+mm/cma-best-fit.c                   |  407 +++++++++++++++
