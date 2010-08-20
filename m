@@ -1,155 +1,228 @@
 Return-path: <mchehab@pedra>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:54789 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752250Ab0HZBEH (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:40627 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753275Ab0HTP3U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 21:04:07 -0400
-Date: Thu, 26 Aug 2010 09:58:57 +0900
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Peter Zijlstra <peterz@infradead.org>,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-Message-Id: <20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
-In-Reply-To: <20100825155814.25c783c7.akpm@linux-foundation.org>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	<1282310110.2605.976.camel@laptop>
-	<20100825155814.25c783c7.akpm@linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Fri, 20 Aug 2010 11:29:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v4 10/11] v4l: Make video_device inherit from media_entity
+Date: Fri, 20 Aug 2010 17:29:12 +0200
+Message-Id: <1282318153-18885-11-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wed, 25 Aug 2010 15:58:14 -0700
-Andrew Morton <akpm@linux-foundation.org> wrote:
+V4L2 devices are media entities. As such they need to inherit from
+(include) the media_entity structure.
 
-> On Fri, 20 Aug 2010 15:15:10 +0200
-> Peter Zijlstra <peterz@infradead.org> wrote:
-> 
-> > On Fri, 2010-08-20 at 11:50 +0200, Michal Nazarewicz wrote:
-> > > Hello everyone,
-> > > 
-> > > The following patchset implements a Contiguous Memory Allocator.  For
-> > > those who have not yet stumbled across CMA an excerpt from
-> > > documentation:
-> > > 
-> > >    The Contiguous Memory Allocator (CMA) is a framework, which allows
-> > >    setting up a machine-specific configuration for physically-contiguous
-> > >    memory management. Memory for devices is then allocated according
-> > >    to that configuration.
-> > > 
-> > >    The main role of the framework is not to allocate memory, but to
-> > >    parse and manage memory configurations, as well as to act as an
-> > >    in-between between device drivers and pluggable allocators. It is
-> > >    thus not tied to any memory allocation method or strategy.
-> > > 
-> > > For more information please refer to the second patch from the
-> > > patchset which contains the documentation.
-> > 
-> > So the idea is to grab a large chunk of memory at boot time and then
-> > later allow some device to use it?
-> > 
-> > I'd much rather we'd improve the regular page allocator to be smarter
-> > about this. We recently added a lot of smarts to it like memory
-> > compaction, which allows large gobs of contiguous memory to be freed for
-> > things like huge pages.
-> > 
-> > If you want guarantees you can free stuff, why not add constraints to
-> > the page allocation type and only allow MIGRATE_MOVABLE pages inside a
-> > certain region, those pages are easily freed/moved aside to satisfy
-> > large contiguous allocations.
-> 
-> That would be good.  Although I expect that the allocation would need
-> to be 100% rock-solid reliable, otherwise the end user has a
-> non-functioning device.  Could generic core VM provide the required level
-> of service?
-> 
-> Anyway, these patches are going to be hard to merge but not impossible.
-> Keep going.  Part of the problem is cultural, really: the consumers of
-> this interface are weird dinky little devices which the core MM guys
-> tend not to work with a lot, and it adds code which they wouldn't use.
-> 
-> I agree that having two "contiguous memory allocators" floating about
-> on the list is distressing.  Are we really all 100% diligently certain
-> that there is no commonality here with Zach's work?
-> 
-> I agree that Peter's above suggestion would be the best thing to do. 
-> Please let's take a look at that without getting into sunk cost
-> fallacies with existing code!
-> 
-> It would help (a lot) if we could get more attention and buyin and
-> fedback from the potential clients of this code.  rmk's feedback is
-> valuable.  Have we heard from the linux-media people?  What other
-> subsystems might use it?  ieee1394 perhaps?  Please help identify
-> specific subsystems and I can perhaps help to wake people up.
-> 
-> And I agree that this code (or one of its alternatives!) would benefit
-> from having a core MM person take a close interest.  Any volunteers?
-> 
-> Please cc me on future emails on this topic?
-> 
+When registering/unregistering the device, the media entity is
+automatically registered/unregistered. The entity is acquired on device
+open and released on device close.
 
-Hmm, you may not like this..but how about following kind of interface ?
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ Documentation/video4linux/v4l2-framework.txt |   38 +++++++++++++++++++++++--
+ drivers/media/video/v4l2-dev.c               |   35 ++++++++++++++++++++++-
+ include/media/v4l2-dev.h                     |    6 ++++
+ 3 files changed, 74 insertions(+), 5 deletions(-)
 
-Now, memoyr hotplug supports following operation to free and _isolate_
-memory region.
-	# echo offline > /sys/devices/system/memory/memoryX/state
-
-Then, a region of memory will be isolated. (This succeeds if there are free
-memory.)
-
-Add a new interface.
-
-	% echo offline > /sys/devices/system/memory/memoryX/state
-	# extract memory from System RAM and make them invisible from buddy allocator.
-
-	% echo cma > /sys/devices/system/memory/memoryX/state
-	# move invisible memory to cma.
-
-Then, a chunk of memory will be moved into contiguous-memory-allocator.
-
-To move "cma" region as usual region,
-	# echo offline > /sys/devices/system/memory/memoryX/state
-	# echo online > /sys/devices/system/memory/memoryX/state
-
-Maybe "used-for-cma" memory are can be populated via /proc/iomem
-As,
-	100000000-63fffffff : System RAM
-	640000000-800000000 : Contiguous RAM (Used for drivers)
-(And you have to skip small memory holes by seeing this file)
-
-Of course, cma guys can keep continue to use their own boot option.
-With memory hotplug, kernelcore=xxxM interface can be used for creating
-ZONE_MOVABLE. Some complicated work may be needed as
-
-	# echo movable > /sys/devices/system/memory/memoryX/state
-	(online pages and move them into ZONE_MOVABLE)
-
-If anyone interested in, I may be able to offer some help.
-
-Thanks,
--Kame
-
-
-
-
-
-
-
-
-
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 8a3f14e..7ff4016 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -71,6 +71,10 @@ sub-device instances, the video_device struct stores V4L2 device node data
+ and in the future a v4l2_fh struct will keep track of filehandle instances
+ (this is not yet implemented).
+ 
++The V4L2 framework also optionally integrates with the media framework. If a
++driver sets the struct v4l2_device mdev field, sub-devices and video nodes
++will automatically appear in the media framework as entities.
++
+ 
+ struct v4l2_device
+ ------------------
+@@ -84,11 +88,14 @@ You must register the device instance:
+ 	v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
+ 
+ Registration will initialize the v4l2_device struct. If the dev->driver_data
+-field is NULL, it will be linked to v4l2_dev. Drivers that use the media
+-device framework in addition to the V4L2 framework need to set
++field is NULL, it will be linked to v4l2_dev.
++
++Drivers that want integration with the media device framework need to set
+ dev->driver_data manually to point to the driver-specific device structure
+ that embed the struct v4l2_device instance. This is achieved by a
+-dev_set_drvdata() call before registering the V4L2 device instance.
++dev_set_drvdata() call before registering the V4L2 device instance. They must
++also set the struct v4l2_device mdev field to point to a properly initialized
++and registered media_device instance.
+ 
+ If v4l2_dev->name is empty then it will be set to a value derived from dev
+ (driver name followed by the bus_id, to be precise). If you set it up before
+@@ -523,6 +530,21 @@ If you use v4l2_ioctl_ops, then you should set either .unlocked_ioctl or
+ The v4l2_file_operations struct is a subset of file_operations. The main
+ difference is that the inode argument is omitted since it is never used.
+ 
++If integration with the media framework is needed, you must initialize the
++media_entity struct embedded in the video_device struct (entity field) by
++calling media_entity_init():
++
++	struct media_pad *pad = &my_vdev->pad;
++	int err;
++
++	err = media_entity_init(&vdev->entity, 1, pad, 0);
++
++The pads array must have been previously initialized. There is no need to
++manually set the struct media_entity type and name fields.
++
++A reference to the entity will be automatically acquired/released when the
++video device is opened/closed.
++
+ 
+ video_device registration
+ -------------------------
+@@ -536,6 +558,9 @@ for you.
+ 		return err;
+ 	}
+ 
++If the v4l2_device parent device has a non-NULL mdev field, the video device
++entity will be automatically registered with the media device.
++
+ Which device is registered depends on the type argument. The following
+ types exist:
+ 
+@@ -613,6 +638,13 @@ those will still be passed on since some buffer ioctls may still be needed.
+ When the last user of the video device node exits, then the vdev->release()
+ callback is called and you can do the final cleanup there.
+ 
++Don't forget to cleanup the media entity associated with the video device if
++it has been initialized:
++
++	media_entity_cleanup(&vdev->entity);
++
++This can be done from the release callback.
++
+ 
+ video_device helper functions
+ -----------------------------
+diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
+index bcd47a0..0cbd3e6 100644
+--- a/drivers/media/video/v4l2-dev.c
++++ b/drivers/media/video/v4l2-dev.c
+@@ -269,6 +269,7 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
+ static int v4l2_open(struct inode *inode, struct file *filp)
+ {
+ 	struct video_device *vdev;
++	struct media_entity *entity = NULL;
+ 	int ret = 0;
+ 
+ 	/* Check if the video device is available */
+@@ -283,12 +284,23 @@ static int v4l2_open(struct inode *inode, struct file *filp)
+ 	/* and increase the device refcount */
+ 	video_get(vdev);
+ 	mutex_unlock(&videodev_lock);
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
++		entity = media_entity_get(&vdev->entity);
++		if (!entity) {
++			ret = -EBUSY;
++			video_put(vdev);
++			return ret;
++		}
++	}
+ 	if (vdev->fops->open)
+ 		ret = vdev->fops->open(filp);
+ 
+ 	/* decrease the refcount in case of an error */
+-	if (ret)
++	if (ret) {
++		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
++			media_entity_put(entity);
+ 		video_put(vdev);
++	}
+ 	return ret;
+ }
+ 
+@@ -301,6 +313,9 @@ static int v4l2_release(struct inode *inode, struct file *filp)
+ 	if (vdev->fops->release)
+ 		vdev->fops->release(filp);
+ 
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
++		media_entity_put(&vdev->entity);
++
+ 	/* decrease the refcount unconditionally since the release()
+ 	   return value is ignored. */
+ 	video_put(vdev);
+@@ -563,11 +578,24 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
+ 		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
+ 			name_base, nr, video_device_node_name(vdev));
+ 
+-	/* Part 5: Activate this minor. The char device can now be used. */
++	/* Part 5: Register the entity. */
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
++		vdev->entity.type = MEDIA_ENTITY_TYPE_NODE_V4L;
++		vdev->entity.name = vdev->name;
++		vdev->entity.v4l.major = VIDEO_MAJOR;
++		vdev->entity.v4l.minor = vdev->minor;
++		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
++			&vdev->entity);
++		if (ret < 0)
++			printk(KERN_ERR "error\n"); /* TODO */
++	}
++
++	/* Part 6: Activate this minor. The char device can now be used. */
+ 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
+ 	mutex_lock(&videodev_lock);
+ 	video_device[vdev->minor] = vdev;
+ 	mutex_unlock(&videodev_lock);
++
+ 	return 0;
+ 
+ cleanup:
+@@ -595,6 +623,9 @@ void video_unregister_device(struct video_device *vdev)
+ 	if (!vdev || !video_is_registered(vdev))
+ 		return;
+ 
++	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
++		media_device_unregister_entity(&vdev->entity);
++
+ 	clear_bit(V4L2_FL_REGISTERED, &vdev->flags);
+ 	device_unregister(&vdev->dev);
+ }
+diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+index 195fa56..447b154 100644
+--- a/include/media/v4l2-dev.h
++++ b/include/media/v4l2-dev.h
+@@ -16,6 +16,8 @@
+ #include <linux/mutex.h>
+ #include <linux/videodev2.h>
+ 
++#include <media/media-entity.h>
++
+ #define VIDEO_MAJOR	81
+ 
+ #define VFL_TYPE_GRABBER	0
+@@ -57,6 +59,8 @@ struct v4l2_file_operations {
+ 
+ struct video_device
+ {
++	struct media_entity entity;
++
+ 	/* device ops */
+ 	const struct v4l2_file_operations *fops;
+ 
+@@ -96,6 +100,8 @@ struct video_device
+ 	const struct v4l2_ioctl_ops *ioctl_ops;
+ };
+ 
++#define media_entity_to_video_device(entity) \
++	container_of(entity, struct video_device, entity)
+ /* dev to video-device */
+ #define to_video_device(cd) container_of(cd, struct video_device, dev)
+ 
+-- 
+1.7.1
 
