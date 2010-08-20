@@ -1,70 +1,47 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:61686 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751346Ab0HTJvw (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:15300 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751052Ab0HTAux convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 05:51:52 -0400
-Date: Fri, 20 Aug 2010 11:50:41 +0200
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCH/RFCv4 1/6] lib: rbtree: rb_root_init() function added
-In-reply-to: <cover.1282286941.git.m.nazarewicz@samsung.com>
-To: linux-mm@kvack.org
-Cc: Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Message-id: <0b02e05fc21e70a3af39e65e628d117cd89d70a1.1282286941.git.m.nazarewicz@samsung.com>
+	Thu, 19 Aug 2010 20:50:53 -0400
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Date: Fri, 20 Aug 2010 02:50:06 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [PATCH/RFCv3 0/6] The Contiguous Memory Allocator framework
+In-reply-to: <20100819144756.GA9485@phenom.dumpdata.com>
+To: Kyungmin Park <kyungmin.park@samsung.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: linux-mm@kvack.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	linux-kernel@vger.kernel.org, Hiremath Vaibhav <hvaibhav@ti.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, kgene.kim@samsung.com,
+	Zach Pfeffer <zpfeffer@codeaurora.org>, jaeryul.oh@samsung.com,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <op.vhpolsnn7p4s8u@localhost>
+Content-transfer-encoding: 8BIT
+References: <cover.1281100495.git.m.nazarewicz@samsung.com>
+ <AANLkTikp49oOny-vrtRTsJvA3Sps08=w7__JjdA3FE8t@mail.gmail.com>
+ <20100819144756.GA9485@phenom.dumpdata.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Added a rb_root_init() function which initialises a rb_root
-structure as a red-black tree with at most one element.  The
-rationale is that using rb_root_init(root, node) is more
-straightforward and cleaner then first initialising and
-empty tree followed by an insert operation.
+On Thu, 19 Aug 2010 16:47:56 +0200, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com> wrote:
+> Is there a git tree and/or link to the latest version that is based on
+> top 2.6.36-rc1?? I somehow seem to have lost the v3 of these patches.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/linux/rbtree.h |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+I'm currently working on a v4 of the patchset after some comments from
+Hans Verkuil on the #v4l.  I should manage to post it today (Korean time).
 
-diff --git a/include/linux/rbtree.h b/include/linux/rbtree.h
-index 7066acb..5b6dc66 100644
---- a/include/linux/rbtree.h
-+++ b/include/linux/rbtree.h
-@@ -130,6 +130,17 @@ static inline void rb_set_color(struct rb_node *rb, int color)
- }
- 
- #define RB_ROOT	(struct rb_root) { NULL, }
-+
-+static inline void rb_root_init(struct rb_root *root, struct rb_node *node)
-+{
-+	root->rb_node = node;
-+	if (node) {
-+		node->rb_parent_color = RB_BLACK; /* black, no parent */
-+		node->rb_left  = NULL;
-+		node->rb_right = NULL;
-+	}
-+}
-+
- #define	rb_entry(ptr, type, member) container_of(ptr, type, member)
- 
- #define RB_EMPTY_ROOT(root)	((root)->rb_node == NULL)
 -- 
-1.7.1
-
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
 
