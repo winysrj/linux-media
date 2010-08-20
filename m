@@ -1,114 +1,88 @@
-Return-path: <mchehab@localhost>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2563 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720Ab0HaSzx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Aug 2010 14:55:53 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7VItmwa023798
-	for <linux-media@vger.kernel.org>; Tue, 31 Aug 2010 20:55:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 31 Aug 2010 20:55:48 +0200 (CEST)
-Message-Id: <201008311855.o7VItmwa023798@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Return-path: <mchehab@pedra>
+Received: from mail.issp.bas.bg ([195.96.236.10]:57965 "EHLO mail.issp.bas.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752431Ab0HTLv3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Aug 2010 07:51:29 -0400
+From: Marin Mitov <mitov@issp.bas.bg>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+Date: Fri, 20 Aug 2010 14:50:12 +0300
+Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+References: <201008191818.36068.mitov@issp.bas.bg> <201008201113.46036.mitov@issp.bas.bg> <20100820173349E.fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <20100820173349E.fujita.tomonori@lab.ntt.co.jp>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008201450.12585.mitov@issp.bas.bg>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
+> On Fri, 20 Aug 2010 11:13:45 +0300
+> Marin Mitov <mitov@issp.bas.bg> wrote:
+> 
+> > > > This tric is already used in drivers/staging/dt3155v4l.c
+> > > > dt3155_alloc_coherent()/dt3155_free_coherent()
+> > > > 
+> > > > Here proposed for general use by popular demand from video4linux folks.
+> > > > Helps for videobuf-dma-contig framework.
+> > > 
+> > > What you guys exactly want to do? If you just want to pre-allocate
+> > > coherent memory for latter usage,
+> > 
+> > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
+> > We use coherent memory because it turns out to be contiguous.
+> 
+> Hmm, you don't care about coherency? You just need contiguous memory?
 
-Results of the daily build of v4l-dvb:
+Yes. We just need contiguous memory. Coherency is important as far as when dma
+transfer finishes user land is able to see the new data. Could be done by something like
+dma_{,un}map_single()
 
-date:        Tue Aug 31 19:00:05 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15138:a4c762698bcb
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+> 
+> Then, I prefer to invent the API to allocate contiguous
+> memory. Coherent memory is precious on some arches.
 
-linux-2.6.32.6-armv5: ERRORS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: ERRORS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
+Sure, but in any case videobuf-dma-contig framework in drivers/media/video
+is already built around dma-coherent (nevertheless it is precious), so the two new
+functions are just a helpful extension to the existing use of dma-coherent memory.
 
-Detailed results are available here:
+In any case, as far as these two functions will be mainly used by media/video folks
+they could be added not to the drivers/base/dma-coherent.c (where I see their place),
+but to drivers/media/video/videobuf-dma-contig.c. In that case the disadvantage will be
+that if someone out of the media tree will need this functionality he(she) will need to
+compile media/videobuf-dma-contig.c
+> 
+> 
+> > > why dma_pool API (mm/dmapool.c) doesn't work?
+> > 
+> > I do not know why dma_pool API doesn't work for frame grabber buffers.
+> > May be they are too big ~400KB. I have tried dma_pool APIs without success 
+> > some time ago, so I had to find some other way to solve my problem leading to 
+> > the proposed dma_reserve_coherent_memory()/dma_free_reserved_memory().
+> 
+> I think that dma_pool API is for small coherent memory (smaller than
+> PAGE_SIZE) 
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+Yes.
 
-Full logs are available here:
+> so it might not work for you. However, the purpose of
+> dma_pool API is exactly for what you want to do, creating a pool for
+> coherent memory per device for drivers.
+> 
+> I don't see any reason why we can't extend the dma_pool API for your
+> case. And it looks better to me rather than inventing the new API.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+That will help. I will be happy if someone can do it. I am inpaciently waiting for 
+alloc_huhepages()/free_hugepages() API - (transparent hugepages patches, may be)
+That also could be a solution for media/video folks with hardware that cannot do 
+scatter/gatter. Another solution will be an IOMMU that could present a scattered
+user land buffer as contiguous dma address range (I have played in the past with 
+AGP-GART without great success).
 
-The V4L-DVB specification from this daily build is here:
+Thanks.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Marin Mitov
+
+ 
