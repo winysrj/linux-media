@@ -1,679 +1,490 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:33990 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756777Ab0HCOSr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 10:18:47 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L6K004OHYF8TW00@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Aug 2010 15:18:44 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L6K002SLYF75P@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Aug 2010 15:18:44 +0100 (BST)
-Date: Tue, 03 Aug 2010 16:18:25 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH v6 2/3] v4l: Add multi-planar ioctl handling code
-In-reply-to: <1280845106-5761-1-git-send-email-p.osciak@samsung.com>
+Return-path: <mchehab@pedra>
+Received: from perceval.irobotique.be ([92.243.18.41]:40627 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753190Ab0HTP3T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Aug 2010 11:29:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, t.fujak@samsung.com
-Message-id: <1280845106-5761-3-git-send-email-p.osciak@samsung.com>
-References: <1280845106-5761-1-git-send-email-p.osciak@samsung.com>
-Sender: linux-media-owner@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v4 08/11] media: Links setup
+Date: Fri, 20 Aug 2010 17:29:10 +0200
+Message-Id: <1282318153-18885-9-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Add multi-planar API core ioctl handling and conversion functions.
+Create the following ioctl and implement it at the media device level to
+setup links.
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Reviewed-by: Marek Szyprowski <m.szyprowski@samsung.com>
+- MEDIA_IOC_SETUP_LINK: Modify the properties of a given link
+
+The only property that can currently be modified is the ACTIVE link flag
+to activate/deactivate a link. Links marked with the IMMUTABLE link flag
+can not be activated or deactivated.
+
+Activating and deactivating a link has effects on entities' use count.
+Those changes are automatically propagated through the graph.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- drivers/media/video/v4l2-ioctl.c |  418 ++++++++++++++++++++++++++++++++++----
- include/media/v4l2-ioctl.h       |   16 ++
- 2 files changed, 390 insertions(+), 44 deletions(-)
+ Documentation/media-framework.txt |   81 ++++++++++++++-
+ drivers/media/media-device.c      |   45 ++++++++
+ drivers/media/media-entity.c      |  208 +++++++++++++++++++++++++++++++++++++
+ include/linux/media.h             |    1 +
+ include/media/media-entity.h      |    8 ++
+ 5 files changed, 340 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index a830bbd..193392d 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -476,20 +476,33 @@ static void dbgbuf(unsigned int cmd, struct video_device *vfd,
- 					struct v4l2_buffer *p)
- {
- 	struct v4l2_timecode *tc = &p->timecode;
-+	struct v4l2_plane *plane;
-+	int i;
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index 74a137d..7894ef3 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -278,6 +278,16 @@ When the graph traversal is complete the function will return NULL.
+ Graph traversal can be interrupted at any moment. No cleanup function call is
+ required and the graph structure can be freed normally.
  
- 	dbgarg(cmd, "%02ld:%02d:%02d.%08ld index=%d, type=%s, "
--		"bytesused=%d, flags=0x%08d, "
--		"field=%0d, sequence=%d, memory=%s, offset/userptr=0x%08lx, length=%d\n",
-+		"flags=0x%08d, field=%0d, sequence=%d, memory=%s\n",
- 			p->timestamp.tv_sec / 3600,
- 			(int)(p->timestamp.tv_sec / 60) % 60,
- 			(int)(p->timestamp.tv_sec % 60),
- 			(long)p->timestamp.tv_usec,
- 			p->index,
- 			prt_names(p->type, v4l2_type_names),
--			p->bytesused, p->flags,
--			p->field, p->sequence,
--			prt_names(p->memory, v4l2_memory_names),
--			p->m.userptr, p->length);
-+			p->flags, p->field, p->sequence,
-+			prt_names(p->memory, v4l2_memory_names));
++Helper functions can be used to find a link between two given pads, or a pad
++connected to another pad through an active link
 +
-+	if (V4L2_TYPE_IS_MULTIPLANAR(p->type) && p->m.planes) {
-+		for (i = 0; i < p->length; ++i) {
-+			plane = &p->m.planes[i];
-+			dbgarg2("plane %d: bytesused=%d, data_offset=0x%08x "
-+				"offset/userptr=0x%08lx, length=%d\n",
-+				i, plane->bytesused, plane->data_offset,
-+				plane->m.userptr, plane->length);
-+		}
-+	} else {
-+		dbgarg2("bytesused=%d, offset/userptr=0x%08lx, length=%d\n",
-+			p->bytesused, p->m.userptr, p->length);
-+	}
++	media_entity_find_link(struct media_pad *source,
++			       struct media_pad *sink);
 +
- 	dbgarg2("timecode=%02d:%02d:%02d type=%d, "
- 		"flags=0x%08d, frames=%d, userbits=0x%08x\n",
- 			tc->hours, tc->minutes, tc->seconds,
-@@ -517,6 +530,27 @@ static inline void v4l_print_pix_fmt(struct video_device *vfd,
- 		fmt->bytesperline, fmt->sizeimage, fmt->colorspace);
- };
++	media_entity_remote_pad(struct media_pad *pad);
++
++Refer to the kerneldoc documentation for more information.
++
  
-+static inline void v4l_print_pix_fmt_mplane(struct video_device *vfd,
-+					    struct v4l2_pix_format_mplane *fmt)
-+{
-+	int i;
-+
-+	dbgarg2("width=%d, height=%d, format=%c%c%c%c, field=%s, "
-+		"colorspace=%d, num_planes=%d\n",
-+		fmt->width, fmt->height,
-+		(fmt->pixelformat & 0xff),
-+		(fmt->pixelformat >>  8) & 0xff,
-+		(fmt->pixelformat >> 16) & 0xff,
-+		(fmt->pixelformat >> 24) & 0xff,
-+		prt_names(fmt->field, v4l2_field_names),
-+		fmt->colorspace, fmt->num_planes);
-+
-+	for (i = 0; i < fmt->num_planes; ++i)
-+		dbgarg2("plane %d: bytesperline=%d sizeimage=%d\n", i,
-+			fmt->plane_fmt[i].bytesperline,
-+			fmt->plane_fmt[i].sizeimage);
-+}
-+
- static inline void v4l_print_ext_ctrls(unsigned int cmd,
- 	struct video_device *vfd, struct v4l2_ext_controls *c, int show_vals)
- {
-@@ -570,7 +604,12 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
+ Reference counting and power handling
+ -------------------------------------
+@@ -316,6 +326,46 @@ is allowed to fail when turning power on, in which case the media_entity_get
+ function will return NULL.
  
- 	switch (type) {
- 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
--		if (ops->vidioc_g_fmt_vid_cap)
-+		if (ops->vidioc_g_fmt_vid_cap ||
-+				ops->vidioc_g_fmt_vid_cap_mplane)
-+			return 0;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+		if (ops->vidioc_g_fmt_vid_cap_mplane)
- 			return 0;
- 		break;
- 	case V4L2_BUF_TYPE_VIDEO_OVERLAY:
-@@ -578,7 +617,12 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
- 			return 0;
- 		break;
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
--		if (ops->vidioc_g_fmt_vid_out)
-+		if (ops->vidioc_g_fmt_vid_out ||
-+				ops->vidioc_g_fmt_vid_out_mplane)
-+			return 0;
-+		break;
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		if (ops->vidioc_g_fmt_vid_out_mplane)
- 			return 0;
- 		break;
- 	case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
-@@ -609,12 +653,70 @@ static int check_fmt(const struct v4l2_ioctl_ops *ops, enum v4l2_buf_type type)
- 	return -EINVAL;
+ 
++Links setup
++-----------
++
++Link properties can be modified at runtime by calling
++
++	media_entity_setup_link(struct media_link *link, u32 flags);
++
++The flags argument contains the requested new link flags.
++
++The only configurable property is the ACTIVE link flag to activate/deactivate
++a link. Links marked with the IMMUTABLE link flag can not be activated or
++deactivated.
++
++When a link is activated or deactivated, the media framework calls the
++link_setup operation for the two entities at the source and sink of the link,
++in that order. If the second link_setup call fails, another link_setup call is
++made on the first entity to restore the original link flags.
++
++Entity drivers must implement the link_setup operation if any of their links
++is non-immutable. The operation must either configure the hardware or store
++the configuration information to be applied later.
++
++Link activation must not have any side effect on other links. If an active
++link at a sink pad prevents another link at the same pad from being
++deactivated, the link_setup operation must return -EBUSY and can't implicitly
++deactivate the first active link.
++
++Activating and deactivating a link has effects on entities' reference counts.
++When two sub-graphs are connected, the reference count of each of them is
++incremented by the total reference count of all node entities in the other
++sub-graph. When two sub-graphs are disconnected, the reverse operation is
++performed. In both cases the set_power operations are called accordingly,
++ensuring that the link_setup calls are made with power active on the source
++and sink entities.
++
++In other words, activating or deactivating a link propagates reference count
++changes through the graph, and the final state is identical to what it would
++have been if the link had been active or inactive from the start.
++
++
+ Userspace application API
+ -------------------------
+ 
+@@ -439,9 +489,6 @@ Valid entity flags are
+ 
+ 	ioctl(int fd, int request, struct media_links_enum *argp);
+ 
+-Only forward links that originate at one of the entity's source pads are
+-returned during the enumeration process.
+-
+ To enumerate pads and/or links for a given entity, applications set the entity
+ field of a media_links_enum structure and initialize the media_pad_desc and
+ media_link_desc structure arrays pointed by the pads and links fields. They then
+@@ -457,6 +504,9 @@ information about the entity's outbound links. The array must have enough room
+ to store all the entity's outbound links. The number of outbound links can be
+ retrieved with the MEDIA_IOC_ENUM_ENTITIES ioctl.
+ 
++Only outbound (forward) links that originate at one of the entity's source
++pads are returned during the enumeration process.
++
+ The media_pad_desc, media_link_desc and media_links_enum structures are defined
+ as
+ 
+@@ -497,3 +547,28 @@ struct media_pad_desc	*pads	Pointer to a pads array allocated by the
+ 				application. Ignored if NULL.
+ struct media_link_desc	*links	Pointer to a links array allocated by the
+ 				application. Ignored if NULL.
++
++
++	MEDIA_IOC_SETUP_LINK - Modify the properties of a link
++	------------------------------------------------------
++
++	ioctl(int fd, int request, struct media_link_desc *argp);
++
++To change link properties applications fill a media_link_desc structure with
++link identification information (source and sink pad) and the new requested link
++flags. They then call the MEDIA_IOC_SETUP_LINK ioctl with a pointer to that
++structure.
++
++The only configurable property is the ACTIVE link flag to activate/deactivate
++a link. Links marked with the IMMUTABLE link flag can not be activated or
++deactivated.
++
++Link activation has no side effect on other links. If an active link at the
++sink pad prevents the link from being activated, the driver returns with a
++EBUSY error code.
++
++If the specified link can't be found the driver returns with a EINVAL error
++code.
++
++The media_pad_desc and media_link_desc structures are described in the
++MEDIA_IOC_ENUM_LINKS ioctl documentation.
+diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+index 7e020f9..06655d9 100644
+--- a/drivers/media/media-device.c
++++ b/drivers/media/media-device.c
+@@ -170,6 +170,44 @@ static long media_device_enum_links(struct media_device *mdev,
+ 	return 0;
  }
  
-+/**
-+ * fmt_sp_to_mp() - Convert a single-plane format to its multi-planar 1-plane
-+ * equivalent
-+ */
-+static int fmt_sp_to_mp(const struct v4l2_format *f_sp,
-+			struct v4l2_format *f_mp)
++static long media_device_setup_link(struct media_device *mdev,
++				    struct media_link_desc __user *_ulink)
 +{
-+	struct v4l2_pix_format_mplane *pix_mp = &f_mp->fmt.pix_mp;
-+	const struct v4l2_pix_format *pix = &f_sp->fmt.pix;
++	struct media_link *link = NULL;
++	struct media_link_desc ulink;
++	struct media_entity *source;
++	struct media_entity *sink;
++	int ret;
 +
-+	if (f_sp->type == V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		f_mp->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+	else if (f_sp->type == V4L2_BUF_TYPE_VIDEO_OUTPUT)
-+		f_mp->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	else
++	if (copy_from_user(&ulink, _ulink, sizeof(ulink)))
++		return -EFAULT;
++
++	/* Find the source and sink entities and link.
++	 */
++	source = find_entity(mdev, ulink.source.entity);
++	sink = find_entity(mdev, ulink.sink.entity);
++
++	if (source == NULL || sink == NULL)
 +		return -EINVAL;
 +
-+	pix_mp->width = pix->width;
-+	pix_mp->height = pix->height;
-+	pix_mp->pixelformat = pix->pixelformat;
-+	pix_mp->field = pix->field;
-+	pix_mp->colorspace = pix->colorspace;
-+	pix_mp->num_planes = 1;
-+	pix_mp->plane_fmt[0].sizeimage = pix->sizeimage;
-+	pix_mp->plane_fmt[0].bytesperline = pix->bytesperline;
-+
-+	return 0;
-+}
-+
-+/**
-+ * fmt_mp_to_sp() - Convert a multi-planar 1-plane format to its single-planar
-+ * equivalent
-+ */
-+static int fmt_mp_to_sp(const struct v4l2_format *f_mp,
-+			struct v4l2_format *f_sp)
-+{
-+	const struct v4l2_pix_format_mplane *pix_mp = &f_mp->fmt.pix_mp;
-+	struct v4l2_pix_format *pix = &f_sp->fmt.pix;
-+
-+	if (f_mp->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		f_sp->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+	else if (f_mp->type == V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE)
-+		f_sp->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+	else
++	if (ulink.source.index >= source->num_pads ||
++	    ulink.sink.index >= sink->num_pads)
 +		return -EINVAL;
 +
-+	pix->width = pix_mp->width;
-+	pix->height = pix_mp->height;
-+	pix->pixelformat = pix_mp->pixelformat;
-+	pix->field = pix_mp->field;
-+	pix->colorspace = pix_mp->colorspace;
-+	pix->sizeimage = pix_mp->plane_fmt[0].sizeimage;
-+	pix->bytesperline = pix_mp->plane_fmt[0].bytesperline;
++	link = media_entity_find_link(&source->pads[ulink.source.index],
++				      &sink->pads[ulink.sink.index]);
++	if (link == NULL)
++		return -EINVAL;
 +
-+	return 0;
-+}
++	/* Setup the link on both entities. */
++	ret = __media_entity_setup_link(link, ulink.flags);
 +
- static long __video_do_ioctl(struct file *file,
- 		unsigned int cmd, void *arg)
- {
- 	struct video_device *vfd = video_devdata(file);
- 	const struct v4l2_ioctl_ops *ops = vfd->ioctl_ops;
- 	void *fh = file->private_data;
-+	struct v4l2_format f_copy;
- 	long ret = -EINVAL;
- 
- 	if (ops == NULL) {
-@@ -720,6 +822,11 @@ static long __video_do_ioctl(struct file *file,
- 			if (ops->vidioc_enum_fmt_vid_cap)
- 				ret = ops->vidioc_enum_fmt_vid_cap(file, fh, f);
- 			break;
-+		case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+			if (ops->vidioc_enum_fmt_vid_cap_mplane)
-+				ret = ops->vidioc_enum_fmt_vid_cap_mplane(file,
-+									fh, f);
-+			break;
- 		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 			if (ops->vidioc_enum_fmt_vid_overlay)
- 				ret = ops->vidioc_enum_fmt_vid_overlay(file,
-@@ -729,6 +836,11 @@ static long __video_do_ioctl(struct file *file,
- 			if (ops->vidioc_enum_fmt_vid_out)
- 				ret = ops->vidioc_enum_fmt_vid_out(file, fh, f);
- 			break;
-+		case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+			if (ops->vidioc_enum_fmt_vid_out_mplane)
-+				ret = ops->vidioc_enum_fmt_vid_out_mplane(file,
-+									fh, f);
-+			break;
- 		case V4L2_BUF_TYPE_PRIVATE:
- 			if (ops->vidioc_enum_fmt_type_private)
- 				ret = ops->vidioc_enum_fmt_type_private(file,
-@@ -757,22 +869,79 @@ static long __video_do_ioctl(struct file *file,
- 
- 		switch (f->type) {
- 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
--			if (ops->vidioc_g_fmt_vid_cap)
-+			if (ops->vidioc_g_fmt_vid_cap) {
- 				ret = ops->vidioc_g_fmt_vid_cap(file, fh, f);
-+			} else if (ops->vidioc_g_fmt_vid_cap_mplane) {
-+				if (fmt_sp_to_mp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_g_fmt_vid_cap_mplane(file, fh,
-+								       &f_copy);
-+				/* Driver is currently in multi-planar format,
-+				 * we can't return it in single-planar API*/
-+				if (!ret && f_copy.fmt.pix_mp.num_planes > 1) {
-+					ret = -EBUSY;
-+					break;
-+				}
-+
-+				ret = fmt_mp_to_sp(&f_copy, f);
-+			}
- 			if (!ret)
- 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
- 			break;
-+		case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+			if (ops->vidioc_g_fmt_vid_cap_mplane) {
-+				ret = ops->vidioc_g_fmt_vid_cap_mplane(file,
-+									fh, f);
-+			} else if (ops->vidioc_g_fmt_vid_cap) {
-+				if (fmt_mp_to_sp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_g_fmt_vid_cap(file,
-+								fh, &f_copy);
-+				ret = fmt_sp_to_mp(&f_copy, f);
-+			}
-+			if (!ret)
-+				v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
-+			break;
- 		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 			if (ops->vidioc_g_fmt_vid_overlay)
- 				ret = ops->vidioc_g_fmt_vid_overlay(file,
- 								    fh, f);
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
--			if (ops->vidioc_g_fmt_vid_out)
-+			if (ops->vidioc_g_fmt_vid_out) {
- 				ret = ops->vidioc_g_fmt_vid_out(file, fh, f);
-+			} else if (ops->vidioc_g_fmt_vid_out_mplane) {
-+				if (fmt_sp_to_mp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_g_fmt_vid_out_mplane(file, fh,
-+									&f_copy);
-+				/* Driver is currently in multi-planar format,
-+				 * we can't return it in single-planar API*/
-+				if (!ret && f_copy.fmt.pix_mp.num_planes > 1) {
-+					ret = -EBUSY;
-+					break;
-+				}
-+
-+				ret = fmt_mp_to_sp(&f_copy, f);
-+			}
- 			if (!ret)
- 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
- 			break;
-+		case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+			if (ops->vidioc_g_fmt_vid_out_mplane) {
-+				ret = ops->vidioc_g_fmt_vid_out_mplane(file,
-+									fh, f);
-+			} else if (ops->vidioc_g_fmt_vid_out) {
-+				if (fmt_mp_to_sp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_g_fmt_vid_out(file,
-+								fh, &f_copy);
-+				ret = fmt_sp_to_mp(&f_copy, f);
-+
-+			}
-+			if (!ret)
-+				v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
-+			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 			if (ops->vidioc_g_fmt_vid_out_overlay)
- 				ret = ops->vidioc_g_fmt_vid_out_overlay(file,
-@@ -816,8 +985,38 @@ static long __video_do_ioctl(struct file *file,
- 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 			CLEAR_AFTER_FIELD(f, fmt.pix);
- 			v4l_print_pix_fmt(vfd, &f->fmt.pix);
--			if (ops->vidioc_s_fmt_vid_cap)
-+			if (ops->vidioc_s_fmt_vid_cap) {
- 				ret = ops->vidioc_s_fmt_vid_cap(file, fh, f);
-+			} else if (ops->vidioc_s_fmt_vid_cap_mplane) {
-+				if (fmt_sp_to_mp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_s_fmt_vid_cap_mplane(file, fh,
-+									&f_copy);
-+				if (!ret && f_copy.fmt.pix_mp.num_planes > 1) {
-+					/* Drivers shouldn't adjust from 1-plane
-+					 * to more than 1-plane formats */
-+					ret = -EBUSY;
-+					WARN_ON(1);
-+					break;
-+				}
-+
-+				ret = fmt_mp_to_sp(&f_copy, f);
-+			}
-+			break;
-+		case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+			CLEAR_AFTER_FIELD(f, fmt.pix_mp);
-+			v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
-+			if (ops->vidioc_s_fmt_vid_cap_mplane) {
-+				ret = ops->vidioc_s_fmt_vid_cap_mplane(file,
-+									fh, f);
-+			} else if (ops->vidioc_s_fmt_vid_cap &&
-+					f->fmt.pix_mp.num_planes == 1) {
-+				if (fmt_mp_to_sp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_s_fmt_vid_cap(file,
-+								fh, &f_copy);
-+				ret = fmt_sp_to_mp(&f_copy, f);
-+			}
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 			CLEAR_AFTER_FIELD(f, fmt.win);
-@@ -828,8 +1027,38 @@ static long __video_do_ioctl(struct file *file,
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
- 			CLEAR_AFTER_FIELD(f, fmt.pix);
- 			v4l_print_pix_fmt(vfd, &f->fmt.pix);
--			if (ops->vidioc_s_fmt_vid_out)
-+			if (ops->vidioc_s_fmt_vid_out) {
- 				ret = ops->vidioc_s_fmt_vid_out(file, fh, f);
-+			} else if (ops->vidioc_s_fmt_vid_out_mplane) {
-+				if (fmt_sp_to_mp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_s_fmt_vid_out_mplane(file, fh,
-+									&f_copy);
-+				if (!ret && f_copy.fmt.pix_mp.num_planes > 1) {
-+					/* Drivers shouldn't adjust from 1-plane
-+					 * to more than 1-plane formats */
-+					ret = -EBUSY;
-+					WARN_ON(1);
-+					break;
-+				}
-+
-+				ret = fmt_mp_to_sp(&f_copy, f);
-+			}
-+			break;
-+		case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+			CLEAR_AFTER_FIELD(f, fmt.pix_mp);
-+			v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
-+			if (ops->vidioc_s_fmt_vid_out_mplane) {
-+				ret = ops->vidioc_s_fmt_vid_out_mplane(file,
-+									fh, f);
-+			} else if (ops->vidioc_s_fmt_vid_out &&
-+					f->fmt.pix_mp.num_planes == 1) {
-+				if (fmt_mp_to_sp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_s_fmt_vid_out(file,
-+								fh, &f_copy);
-+				ret = fmt_mp_to_sp(&f_copy, f);
-+			}
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 			CLEAR_AFTER_FIELD(f, fmt.win);
-@@ -878,11 +1107,41 @@ static long __video_do_ioctl(struct file *file,
- 		switch (f->type) {
- 		case V4L2_BUF_TYPE_VIDEO_CAPTURE:
- 			CLEAR_AFTER_FIELD(f, fmt.pix);
--			if (ops->vidioc_try_fmt_vid_cap)
-+			if (ops->vidioc_try_fmt_vid_cap) {
- 				ret = ops->vidioc_try_fmt_vid_cap(file, fh, f);
-+			} else if (ops->vidioc_try_fmt_vid_cap_mplane) {
-+				if (fmt_sp_to_mp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_try_fmt_vid_cap_mplane(file,
-+								fh, &f_copy);
-+				if (!ret && f_copy.fmt.pix_mp.num_planes > 1) {
-+					/* Drivers shouldn't adjust from 1-plane
-+					 * to more than 1-plane formats */
-+					ret = -EBUSY;
-+					WARN_ON(1);
-+					break;
-+				}
-+				ret = fmt_mp_to_sp(&f_copy, f);
-+			}
- 			if (!ret)
- 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
- 			break;
-+		case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+			CLEAR_AFTER_FIELD(f, fmt.pix_mp);
-+			if (ops->vidioc_try_fmt_vid_cap_mplane) {
-+				ret = ops->vidioc_try_fmt_vid_cap_mplane(file,
-+									 fh, f);
-+			} else if (ops->vidioc_try_fmt_vid_cap &&
-+					f->fmt.pix_mp.num_planes == 1) {
-+				if (fmt_mp_to_sp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_try_fmt_vid_cap(file,
-+								  fh, &f_copy);
-+				ret = fmt_sp_to_mp(&f_copy, f);
-+			}
-+			if (!ret)
-+				v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
-+			break;
- 		case V4L2_BUF_TYPE_VIDEO_OVERLAY:
- 			CLEAR_AFTER_FIELD(f, fmt.win);
- 			if (ops->vidioc_try_fmt_vid_overlay)
-@@ -891,11 +1150,41 @@ static long __video_do_ioctl(struct file *file,
- 			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT:
- 			CLEAR_AFTER_FIELD(f, fmt.pix);
--			if (ops->vidioc_try_fmt_vid_out)
-+			if (ops->vidioc_try_fmt_vid_out) {
- 				ret = ops->vidioc_try_fmt_vid_out(file, fh, f);
-+			} else if (ops->vidioc_try_fmt_vid_out_mplane) {
-+				if (fmt_sp_to_mp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_try_fmt_vid_out_mplane(file,
-+								fh, &f_copy);
-+				if (!ret && f_copy.fmt.pix_mp.num_planes > 1) {
-+					/* Drivers shouldn't adjust from 1-plane
-+					 * to more than 1-plane formats */
-+					ret = -EBUSY;
-+					WARN_ON(1);
-+					break;
-+				}
-+				ret = fmt_mp_to_sp(&f_copy, f);
-+			}
- 			if (!ret)
- 				v4l_print_pix_fmt(vfd, &f->fmt.pix);
- 			break;
-+		case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+			CLEAR_AFTER_FIELD(f, fmt.pix_mp);
-+			if (ops->vidioc_try_fmt_vid_out_mplane) {
-+				ret = ops->vidioc_try_fmt_vid_out_mplane(file,
-+									 fh, f);
-+			} else if (ops->vidioc_try_fmt_vid_out &&
-+					f->fmt.pix_mp.num_planes == 1) {
-+				if (fmt_mp_to_sp(f, &f_copy))
-+					break;
-+				ret = ops->vidioc_try_fmt_vid_out(file,
-+								  fh, &f_copy);
-+				ret = fmt_sp_to_mp(&f_copy, f);
-+			}
-+			if (!ret)
-+				v4l_print_pix_fmt_mplane(vfd, &f->fmt.pix_mp);
-+			break;
- 		case V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY:
- 			CLEAR_AFTER_FIELD(f, fmt.win);
- 			if (ops->vidioc_try_fmt_vid_out_overlay)
-@@ -2037,7 +2326,7 @@ static unsigned long cmd_input_size(unsigned int cmd)
- 	switch (cmd) {
- 		CMDINSIZE(ENUM_FMT,		fmtdesc,	type);
- 		CMDINSIZE(G_FMT,		format,		type);
--		CMDINSIZE(QUERYBUF,		buffer,		type);
-+		CMDINSIZE(QUERYBUF,		buffer,		length);
- 		CMDINSIZE(G_PARM,		streamparm,	type);
- 		CMDINSIZE(ENUMSTD,		standard,	index);
- 		CMDINSIZE(ENUMINPUT,		input,		index);
-@@ -2062,6 +2351,49 @@ static unsigned long cmd_input_size(unsigned int cmd)
- 	}
- }
- 
-+static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
-+			    void * __user *user_ptr, void ***kernel_ptr)
-+{
-+	int ret = 0;
-+
-+	switch(cmd) {
-+	case VIDIOC_QUERYBUF:
-+	case VIDIOC_QBUF:
-+	case VIDIOC_DQBUF: {
-+		struct v4l2_buffer *buf = parg;
-+
-+		if (V4L2_TYPE_IS_MULTIPLANAR(buf->type) && buf->length > 0) {
-+			if (buf->length > VIDEO_MAX_PLANES) {
-+				ret = -EINVAL;
-+				break;
-+			}
-+			*user_ptr = (void __user *)buf->m.planes;
-+			*kernel_ptr = (void **)&buf->m.planes;
-+			*array_size = sizeof(struct v4l2_plane) * buf->length;
-+			ret = 1;
-+		}
-+		break;
-+	}
-+
-+	case VIDIOC_S_EXT_CTRLS:
-+	case VIDIOC_G_EXT_CTRLS:
-+	case VIDIOC_TRY_EXT_CTRLS: {
-+		struct v4l2_ext_controls *ctrls = parg;
-+
-+		if (ctrls->count != 0) {
-+			*user_ptr = (void __user *)ctrls->controls;
-+			*kernel_ptr = (void **)&ctrls->controls;
-+			*array_size = sizeof(struct v4l2_ext_control)
-+				    * ctrls->count;
-+			ret = 1;
-+		}
-+		break;
-+	}
-+	}
++	if (copy_to_user(_ulink, &ulink, sizeof(ulink)))
++		return -EFAULT;
 +
 +	return ret;
 +}
 +
- long video_ioctl2(struct file *file,
- 	       unsigned int cmd, unsigned long arg)
+ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 			       unsigned long arg)
  {
-@@ -2069,16 +2401,14 @@ long video_ioctl2(struct file *file,
- 	void    *mbuf = NULL;
- 	void	*parg = (void *)arg;
- 	long	err  = -EINVAL;
--	int     is_ext_ctrl;
--	size_t  ctrls_size = 0;
-+	bool	has_array_args;
-+	size_t  array_size = 0;
- 	void __user *user_ptr = NULL;
-+	void	**kernel_ptr = NULL;
+@@ -195,6 +233,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+ 		mutex_unlock(&dev->graph_mutex);
+ 		break;
  
- #ifdef __OLD_VIDIOC_
- 	cmd = video_fix_command(cmd);
- #endif
--	is_ext_ctrl = (cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_G_EXT_CTRLS ||
--		       cmd == VIDIOC_TRY_EXT_CTRLS);
--
- 	/*  Copy arguments into temp kernel buffer  */
- 	if (_IOC_DIR(cmd) != _IOC_NONE) {
- 		if (_IOC_SIZE(cmd) <= sizeof(sbuf)) {
-@@ -2107,43 +2437,43 @@ long video_ioctl2(struct file *file,
- 		}
++	case MEDIA_IOC_SETUP_LINK:
++		mutex_lock(&dev->graph_mutex);
++		ret = media_device_setup_link(dev,
++				(struct media_link_desc __user *)arg);
++		mutex_unlock(&dev->graph_mutex);
++		break;
++
+ 	default:
+ 		ret = -ENOIOCTLCMD;
  	}
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index da4fef6..bc97b78 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -198,6 +198,25 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
+  * Power state handling
+  */
  
--	if (is_ext_ctrl) {
--		struct v4l2_ext_controls *p = parg;
-+	err = check_array_args(cmd, parg, &array_size, &user_ptr, &kernel_ptr);
-+	if (err < 0)
-+		goto out;
-+	has_array_args = err;
++/*
++ * Return power count of nodes directly or indirectly connected to
++ * a given entity.
++ */
++static int media_entity_count_node(struct media_entity *entity)
++{
++	struct media_entity_graph graph;
++	int use = 0;
++
++	media_entity_graph_walk_start(&graph, entity);
++
++	while ((entity = media_entity_graph_walk_next(&graph))) {
++		if (media_entity_type(entity) == MEDIA_ENTITY_TYPE_NODE)
++			use += entity->use_count;
++	}
++
++	return use;
++}
++
+ /* Apply use count to an entity. */
+ static void media_entity_use_apply_one(struct media_entity *entity, int change)
+ {
+@@ -261,6 +280,32 @@ static int media_entity_power_apply(struct media_entity *entity, int change)
+ 	return ret;
+ }
  
--		/* In case of an error, tell the caller that it wasn't
--		   a specific control that caused it. */
--		p->error_idx = p->count;
--		user_ptr = (void __user *)p->controls;
--		if (p->count) {
--			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
--			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
--			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
--			err = -ENOMEM;
--			if (NULL == mbuf)
--				goto out_ext_ctrl;
--			err = -EFAULT;
--			if (copy_from_user(mbuf, user_ptr, ctrls_size))
--				goto out_ext_ctrl;
--			p->controls = mbuf;
--		}
-+	if (has_array_args) {
-+		/*
-+		 * When adding new types of array args, make sure that the
-+		 * parent argument to ioctl (which contains the pointer to the
-+		 * array) fits into sbuf (so that mbuf will still remain
-+		 * unused up to here).
-+		 */
-+		mbuf = kmalloc(array_size, GFP_KERNEL);
-+		err = -ENOMEM;
-+		if (NULL == mbuf)
-+			goto out_array_args;
-+		err = -EFAULT;
-+		if (copy_from_user(mbuf, user_ptr, array_size))
-+			goto out_array_args;
-+		*kernel_ptr = mbuf;
- 	}
++/* Apply the power state changes when connecting two entities. */
++static int media_entity_power_connect(struct media_entity *one,
++				      struct media_entity *theother)
++{
++	int power_one = media_entity_count_node(one);
++	int power_theother = media_entity_count_node(theother);
++	int ret = 0;
++
++	ret = media_entity_power_apply(one, power_theother);
++	if (ret < 0)
++		return ret;
++
++	return media_entity_power_apply(theother, power_one);
++}
++
++static void media_entity_power_disconnect(struct media_entity *one,
++					  struct media_entity *theother)
++{
++	int power_one = media_entity_count_node(one);
++	int power_theother = media_entity_count_node(theother);
++
++	/* Powering off entities is assumed to never fail. */
++	media_entity_power_apply(one, -power_theother);
++	media_entity_power_apply(theother, -power_one);
++}
++
+ /*
+  * Apply use count change to graph and change power state of entities
+  * accordingly.
+@@ -404,3 +449,166 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
+ 	return 0;
+ }
+ EXPORT_SYMBOL(media_entity_create_link);
++
++static int __media_entity_setup_link_notify(struct media_link *link, u32 flags)
++{
++	const u32 mask = MEDIA_LINK_FLAG_ACTIVE;
++	int ret;
++
++	/* Notify both entities. */
++	ret = media_entity_call(link->source->entity, link_setup,
++				link->source, link->sink, flags);
++	if (ret < 0 && ret != -ENOIOCTLCMD)
++		return ret;
++
++	ret = media_entity_call(link->sink->entity, link_setup,
++				link->sink, link->source, flags);
++	if (ret < 0 && ret != -ENOIOCTLCMD) {
++		media_entity_call(link->source->entity, link_setup,
++				  link->source, link->sink, link->flags);
++		return ret;
++	}
++
++	link->flags = (link->flags & ~mask) | (flags & mask);
++	link->reverse->flags = link->flags;
++
++	return 0;
++}
++
++/**
++ * __media_entity_setup_link - Configure a media link
++ * @link: The link being configured
++ * @flags: Link configuration flags
++ *
++ * The bulk of link setup is handled by the two entities connected through the
++ * link. This function notifies both entities of the link configuration change.
++ *
++ * If the link is immutable or if the current and new configuration are
++ * identical, return immediately.
++ *
++ * The user is expected to hold link->source->parent->mutex. If not,
++ * media_entity_setup_link() should be used instead.
++ */
++int __media_entity_setup_link(struct media_link *link, u32 flags)
++{
++	struct media_entity *source, *sink;
++	int ret = -EBUSY;
++
++	if (link == NULL)
++		return -EINVAL;
++
++	if (link->flags & MEDIA_LINK_FLAG_IMMUTABLE)
++		return link->flags == flags ? 0 : -EINVAL;
++
++	if (link->flags == flags)
++		return 0;
++
++	source = __media_entity_get(link->source->entity);
++	if (!source)
++		return ret;
++
++	sink = __media_entity_get(link->sink->entity);
++	if (!sink)
++		goto err___media_entity_get;
++
++	if (flags & MEDIA_LINK_FLAG_ACTIVE) {
++		ret = media_entity_power_connect(source, sink);
++		if (ret < 0)
++			goto err_media_entity_power_connect;
++	}
++
++	ret = __media_entity_setup_link_notify(link, flags);
++	if (ret < 0)
++		goto err___media_entity_setup_link_notify;
++
++	if (!(flags & MEDIA_LINK_FLAG_ACTIVE))
++		media_entity_power_disconnect(source, sink);
++
++	__media_entity_put(sink);
++	__media_entity_put(source);
++
++	return 0;
++
++err___media_entity_setup_link_notify:
++	if (flags & MEDIA_LINK_FLAG_ACTIVE)
++		media_entity_power_disconnect(source, sink);
++err_media_entity_power_connect:
++	__media_entity_put(sink);
++err___media_entity_get:
++	__media_entity_put(source);
++
++	return ret;
++}
++
++int media_entity_setup_link(struct media_link *link, u32 flags)
++{
++	int ret;
++
++	mutex_lock(&link->source->entity->parent->graph_mutex);
++	ret = __media_entity_setup_link(link, flags);
++	mutex_unlock(&link->source->entity->parent->graph_mutex);
++
++	return ret;
++}
++EXPORT_SYMBOL_GPL(media_entity_setup_link);
++
++/**
++ * media_entity_find_link - Find a link between two pads
++ * @source: Source pad
++ * @sink: Sink pad
++ *
++ * Return a pointer to the link between the two entities. If no such link
++ * exists, return NULL.
++ */
++struct media_link *
++media_entity_find_link(struct media_pad *source, struct media_pad *sink)
++{
++	struct media_link *link;
++	unsigned int i;
++
++	for (i = 0; i < source->entity->num_links; ++i) {
++		link = &source->entity->links[i];
++
++		if (link->source->entity == source->entity &&
++		    link->source->index == source->index &&
++		    link->sink->entity == sink->entity &&
++		    link->sink->index == sink->index)
++			return link;
++	}
++
++	return NULL;
++}
++EXPORT_SYMBOL_GPL(media_entity_find_link);
++
++/**
++ * media_entity_remote_pad - Locate the pad at the remote end of a link
++ * @entity: Local entity
++ * @pad: Pad at the local end of the link
++ *
++ * Search for a remote pad connected to the given pad by iterating over all
++ * links originating or terminating at that pad until an active link is found.
++ *
++ * Return a pointer to the pad at the remote end of the first found active link,
++ * or NULL if no active link has been found.
++ */
++struct media_pad *media_entity_remote_pad(struct media_pad *pad)
++{
++	unsigned int i;
++
++	for (i = 0; i < pad->entity->num_links; i++) {
++		struct media_link *link = &pad->entity->links[i];
++
++		if (!(link->flags & MEDIA_LINK_FLAG_ACTIVE))
++			continue;
++
++		if (link->source == pad)
++			return link->sink;
++
++		if (link->sink == pad)
++			return link->source;
++	}
++
++	return NULL;
++
++}
++EXPORT_SYMBOL_GPL(media_entity_remote_pad);
+diff --git a/include/linux/media.h b/include/linux/media.h
+index 542509b..edb53c2 100644
+--- a/include/linux/media.h
++++ b/include/linux/media.h
+@@ -100,5 +100,6 @@ struct media_links_enum {
+ #define MEDIA_IOC_DEVICE_INFO		_IOWR('M', 1, struct media_device_info)
+ #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('M', 2, struct media_entity_desc)
+ #define MEDIA_IOC_ENUM_LINKS		_IOWR('M', 3, struct media_links_enum)
++#define MEDIA_IOC_SETUP_LINK		_IOWR('M', 4, struct media_link_desc)
  
- 	/* Handles IOCTL */
- 	err = __video_do_ioctl(file, cmd, parg);
- 	if (err == -ENOIOCTLCMD)
- 		err = -EINVAL;
--	if (is_ext_ctrl) {
--		struct v4l2_ext_controls *p = parg;
+ #endif /* __LINUX_MEDIA_H */
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 8c40d5e..0f0697b 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -18,6 +18,9 @@ struct media_pad {
+ };
  
--		p->controls = (void *)user_ptr;
--		if (p->count && err == 0 && copy_to_user(user_ptr, mbuf, ctrls_size))
-+	if (has_array_args) {
-+		*kernel_ptr = user_ptr;
-+		if (copy_to_user(user_ptr, mbuf, array_size))
- 			err = -EFAULT;
--		goto out_ext_ctrl;
-+		goto out_array_args;
- 	}
- 	if (err < 0)
- 		goto out;
+ struct media_entity_operations {
++	int (*link_setup)(struct media_entity *entity,
++			  const struct media_pad *local,
++			  const struct media_pad *remote, u32 flags);
+ 	int (*set_power)(struct media_entity *entity, int power);
+ };
  
--out_ext_ctrl:
-+out_array_args:
- 	/*  Copy results into user buffer  */
- 	switch (_IOC_DIR(cmd)) {
- 	case _IOC_READ:
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 06daa6e..9ea2b0e 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -42,6 +42,10 @@ struct v4l2_ioctl_ops {
- 					    struct v4l2_fmtdesc *f);
- 	int (*vidioc_enum_fmt_vid_out)     (struct file *file, void *fh,
- 					    struct v4l2_fmtdesc *f);
-+	int (*vidioc_enum_fmt_vid_cap_mplane)(struct file *file, void *fh,
-+					      struct v4l2_fmtdesc *f);
-+	int (*vidioc_enum_fmt_vid_out_mplane)(struct file *file, void *fh,
-+					      struct v4l2_fmtdesc *f);
- 	int (*vidioc_enum_fmt_type_private)(struct file *file, void *fh,
- 					    struct v4l2_fmtdesc *f);
+@@ -88,6 +91,11 @@ int media_entity_init(struct media_entity *entity, u16 num_pads,
+ void media_entity_cleanup(struct media_entity *entity);
+ int media_entity_create_link(struct media_entity *source, u16 source_pad,
+ 		struct media_entity *sink, u16 sink_pad, u32 flags);
++int __media_entity_setup_link(struct media_link *link, u32 flags);
++int media_entity_setup_link(struct media_link *link, u32 flags);
++struct media_link *media_entity_find_link(struct media_pad *source,
++		struct media_pad *sink);
++struct media_pad *media_entity_remote_pad(struct media_pad *pad);
  
-@@ -62,6 +66,10 @@ struct v4l2_ioctl_ops {
- 					struct v4l2_format *f);
- 	int (*vidioc_g_fmt_sliced_vbi_out)(struct file *file, void *fh,
- 					struct v4l2_format *f);
-+	int (*vidioc_g_fmt_vid_cap_mplane)(struct file *file, void *fh,
-+					   struct v4l2_format *f);
-+	int (*vidioc_g_fmt_vid_out_mplane)(struct file *file, void *fh,
-+					   struct v4l2_format *f);
- 	int (*vidioc_g_fmt_type_private)(struct file *file, void *fh,
- 					struct v4l2_format *f);
- 
-@@ -82,6 +90,10 @@ struct v4l2_ioctl_ops {
- 					struct v4l2_format *f);
- 	int (*vidioc_s_fmt_sliced_vbi_out)(struct file *file, void *fh,
- 					struct v4l2_format *f);
-+	int (*vidioc_s_fmt_vid_cap_mplane)(struct file *file, void *fh,
-+					   struct v4l2_format *f);
-+	int (*vidioc_s_fmt_vid_out_mplane)(struct file *file, void *fh,
-+					   struct v4l2_format *f);
- 	int (*vidioc_s_fmt_type_private)(struct file *file, void *fh,
- 					struct v4l2_format *f);
- 
-@@ -102,6 +114,10 @@ struct v4l2_ioctl_ops {
- 					  struct v4l2_format *f);
- 	int (*vidioc_try_fmt_sliced_vbi_out)(struct file *file, void *fh,
- 					  struct v4l2_format *f);
-+	int (*vidioc_try_fmt_vid_cap_mplane)(struct file *file, void *fh,
-+					     struct v4l2_format *f);
-+	int (*vidioc_try_fmt_vid_out_mplane)(struct file *file, void *fh,
-+					     struct v4l2_format *f);
- 	int (*vidioc_try_fmt_type_private)(struct file *file, void *fh,
- 					  struct v4l2_format *f);
- 
+ struct media_entity *media_entity_get(struct media_entity *entity);
+ void media_entity_put(struct media_entity *entity);
 -- 
-1.7.1.569.g6f426
+1.7.1
 
