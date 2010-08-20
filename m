@@ -1,43 +1,240 @@
 Return-path: <mchehab@pedra>
-Received: from mx38.mail.ru ([94.100.176.52]:53640 "EHLO mx38.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753148Ab0HROpu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Aug 2010 10:45:50 -0400
-Received: from [95.53.176.251] (port=44062 helo=localhost.localdomain)
-	by mx38.mail.ru with asmtp
-	id 1Oljtk-000KyH-00
-	for linux-media@vger.kernel.org; Wed, 18 Aug 2010 18:45:48 +0400
-Date: Wed, 18 Aug 2010 18:53:54 +0400
-From: Goga777 <goga777@bk.ru>
-Cc: linux-media@vger.kernel.org
-Subject: Re: SkyStar S2 on an embedded Linux
-Message-ID: <20100818185354.177c4c07@bk.ru>
-In-Reply-To: <AANLkTi=T0dCRCHfr9tsQe-fVBwo+x1SehaZKA-VPmPAj@mail.gmail.com>
-References: <AANLkTi=OTqzA41=H-=M7Vmrq=uY=Av-bjVNDHpQ=LRv1@mail.gmail.com>
-	<20100817211027.1ffee6ea@list.ru>
-	<AANLkTi=T0dCRCHfr9tsQe-fVBwo+x1SehaZKA-VPmPAj@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Received: from perceval.irobotique.be ([92.243.18.41]:40627 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752549Ab0HTP3Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Aug 2010 11:29:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@maxwell.research.nokia.com
+Subject: [RFC/PATCH v4 04/11] media: Entity graph traversal
+Date: Fri, 20 Aug 2010 17:29:06 +0200
+Message-Id: <1282318153-18885-5-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-> > did you patch something ?
-> > did you test your card with dvb-s2 channels ?
-> 
-> Yep! After I extracted the s2-liplianin archive, I patched the files
-> using a file I've found on a Russian website. The link to the file
-> (SVT-SkyStarS2-driver-install.run) can be found at the link below:
-> 
-> http://www.forum.free-x.de/wbb/index.php?page=Thread&postID=8170#post8170
-> 
-> I'm currently using it and I can scan, tune and watch S2 transponders.
-> The problem is that when I copy the /lib directory to the root fs of
-> target system (an embedded system with the same kernel), the modules
-> don't get loaded correctly.
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
+Add media entity graph traversal. The traversal follows active links by
+depth first. Traversing graph backwards is prevented by comparing the next
+possible entity in the graph with the previous one. Multiply connected
+graphs are thus not supported.
 
-would you re-check please again - have you luck with 8PSK-FEC 3/4 dvb-s2 channels ?
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
+---
+ Documentation/media-framework.txt |   40 +++++++++++++
+ drivers/media/media-entity.c      |  115 +++++++++++++++++++++++++++++++++++++
+ include/media/media-entity.h      |   15 +++++
+ 3 files changed, 170 insertions(+), 0 deletions(-)
 
-Goga
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index 35d74e4..a599824 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -238,3 +238,43 @@ Links have flags that describe the link capabilities and state.
+ 	MEDIA_LINK_FLAG_ACTIVE must also be set since an immutable link is
+ 	always active.
+ 
++
++Graph traversal
++---------------
++
++The media framework provides APIs to iterate over entities in a graph.
++
++To iterate over all entities belonging to a media device, drivers can use the
++media_device_for_each_entity macro, defined in include/media/media-device.h.
++
++	struct media_entity *entity;
++
++	media_device_for_each_entity(entity, mdev) {
++		/* entity will point to each entity in turn */
++		...
++	}
++
++Drivers might also need to iterate over all entities in a graph that can be
++reached only through active links starting at a given entity. The media
++framework provides a depth-first graph traversal API for that purpose.
++
++Note that graphs with cycles (whether directed or undirected) are *NOT*
++supported by the graph traversal API.
++
++Drivers initiate a graph traversal by calling
++
++	media_entity_graph_walk_start(struct media_entity_graph *graph,
++				      struct media_entity *entity);
++
++The graph structure, provided by the caller, is initialized to start graph
++traversal at the given entity.
++
++Drivers can then retrieve the next entity by calling
++
++	media_entity_graph_walk_next(struct media_entity_graph *graph);
++
++When the graph traversal is complete the function will return NULL.
++
++Graph traversal can be interrupted at any moment. No cleanup function call is
++required and the graph structure can be freed normally.
++
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 541063b..c277c18 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -82,6 +82,121 @@ media_entity_cleanup(struct media_entity *entity)
+ }
+ EXPORT_SYMBOL(media_entity_cleanup);
+ 
++/* -----------------------------------------------------------------------------
++ * Graph traversal
++ */
++
++static struct media_entity *
++media_entity_other(struct media_entity *entity, struct media_link *link)
++{
++	if (link->source->entity == entity)
++		return link->sink->entity;
++	else
++		return link->source->entity;
++}
++
++/* push an entity to traversal stack */
++static void stack_push(struct media_entity_graph *graph,
++		       struct media_entity *entity)
++{
++	if (graph->top == MEDIA_ENTITY_ENUM_MAX_DEPTH - 1) {
++		WARN_ON(1);
++		return;
++	}
++	graph->top++;
++	graph->stack[graph->top].link = 0;
++	graph->stack[graph->top].entity = entity;
++}
++
++static struct media_entity *stack_pop(struct media_entity_graph *graph)
++{
++	struct media_entity *entity;
++
++	entity = graph->stack[graph->top].entity;
++	graph->top--;
++
++	return entity;
++}
++
++#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
++#define link_top(en)	((en)->stack[(en)->top].link)
++#define stack_top(en)	((en)->stack[(en)->top].entity)
++
++/**
++ * media_entity_graph_walk_start - Start walking the media graph at a given entity
++ * @graph: Media graph structure that will be used to walk the graph
++ * @entity: Starting entity
++ *
++ * This function initializes the graph traversal structure to walk the entities
++ * graph starting at the given entity. The traversal structure must not be
++ * modified by the caller during graph traversal. When done the structure can
++ * safely be freed.
++ */
++void media_entity_graph_walk_start(struct media_entity_graph *graph,
++				   struct media_entity *entity)
++{
++	graph->top = 0;
++	graph->stack[graph->top].entity = NULL;
++	stack_push(graph, entity);
++}
++EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
++
++/**
++ * media_entity_graph_walk_next - Get the next entity in the graph
++ * @graph: Media graph structure
++ *
++ * Perform a depth-first traversal of the given media entities graph.
++ *
++ * The graph structure must have been previously initialized with a call to
++ * media_entity_graph_walk_start().
++ *
++ * Return the next entity in the graph or NULL if the whole graph have been
++ * traversed.
++ */
++struct media_entity *
++media_entity_graph_walk_next(struct media_entity_graph *graph)
++{
++	if (stack_top(graph) == NULL)
++		return NULL;
++
++	/*
++	 * Depth first search. Push entity to stack and continue from
++	 * top of the stack until no more entities on the level can be
++	 * found.
++	 */
++	while (link_top(graph) < stack_top(graph)->num_links) {
++		struct media_entity *entity = stack_top(graph);
++		struct media_link *link = &entity->links[link_top(graph)];
++		struct media_entity *next;
++
++		/* The link is not active so we do not follow. */
++		if (!(link->flags & MEDIA_LINK_FLAG_ACTIVE)) {
++			link_top(graph)++;
++			continue;
++		}
++
++		/* Get the entity in the other end of the link . */
++		next = media_entity_other(entity, link);
++
++		/* Was it the entity we came here from? */
++		if (next == stack_peek(graph)) {
++			link_top(graph)++;
++			continue;
++		}
++
++		/* Push the new entity to stack and start over. */
++		link_top(graph)++;
++		stack_push(graph, next);
++	}
++
++	return stack_pop(graph);
++}
++EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
++
++/* -----------------------------------------------------------------------------
++ * Links management
++ */
++
+ static struct media_link *media_entity_add_link(struct media_entity *entity)
+ {
+ 	if (entity->num_links >= entity->max_links) {
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 32bb20a..3a7c74d 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -87,10 +87,25 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
+ 	return entity->type & MEDIA_ENTITY_SUBTYPE_MASK;
+ }
+ 
++#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
++
++struct media_entity_graph {
++	struct {
++		struct media_entity *entity;
++		int link;
++	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
++	int top;
++};
++
+ int media_entity_init(struct media_entity *entity, u16 num_pads,
+ 		struct media_pad *pads, u16 extra_links);
+ void media_entity_cleanup(struct media_entity *entity);
+ int media_entity_create_link(struct media_entity *source, u16 source_pad,
+ 		struct media_entity *sink, u16 sink_pad, u32 flags);
+ 
++void media_entity_graph_walk_start(struct media_entity_graph *graph,
++		struct media_entity *entity);
++struct media_entity *
++media_entity_graph_walk_next(struct media_entity_graph *graph);
++
+ #endif
+-- 
+1.7.1
+
