@@ -1,65 +1,73 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rouge.crans.org ([138.231.136.3]:56195 "EHLO rouge.crans.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753799Ab0HHVbQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Aug 2010 17:31:16 -0400
-Message-ID: <4C5F2747.1010806@crans.ens-cachan.fr>
-Date: Sun, 08 Aug 2010 23:53:11 +0200
-From: DUBOST Brice <dubost@crans.ens-cachan.fr>
-MIME-Version: 1.0
-To: Stephan Trebels <stephan@trebels.com>
-CC: linux-media@vger.kernel.org, adq_dvb@lidskialf.net
-Subject: Re: [libdvben50221] stack leaks resources on non-MMI session reconnect.
-References: <1279200014.14890.33.camel@stephan-laptop>
-In-Reply-To: <1279200014.14890.33.camel@stephan-laptop>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:14554 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750883Ab0HTBJP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Aug 2010 21:09:15 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Date: Fri, 20 Aug 2010 03:08:24 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [PATCH/RFCv3 0/6] The Contiguous Memory Allocator framework
+In-reply-to: <20100820001339N.fujita.tomonori@lab.ntt.co.jp>
+To: kyungmin.park@samsung.com,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: linux-mm@kvack.org, dwalker@codeaurora.org, linux@arm.linux.org.uk,
+	corbet@lwn.net, p.osciak@samsung.com,
+	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
+	hvaibhav@ti.com, hverkuil@xs4all.nl, kgene.kim@samsung.com,
+	zpfeffer@codeaurora.org, jaeryul.oh@samsung.com,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	m.szyprowski@samsung.com
+Message-id: <op.vhppgaxq7p4s8u@localhost>
+Content-transfer-encoding: 8BIT
+References: <cover.1281100495.git.m.nazarewicz@samsung.com>
+ <AANLkTikp49oOny-vrtRTsJvA3Sps08=w7__JjdA3FE8t@mail.gmail.com>
+ <20100820001339N.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On 15/07/2010 15:20, Stephan Trebels wrote:
+On Thu, 19 Aug 2010 17:15:12 +0200, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
+
+> On Wed, 18 Aug 2010 12:01:35 +0900
+> Kyungmin Park <kyungmin.park@samsung.com> wrote:
 >
-> The issue was, that LIBDVBEN50221 did not allow a CAM to re-establish
-> the session holding non-MMI resources if using the lowlevel interface.
-> The session_number was recorded on open, but not freed on close (which
-> IMO is an bug in the code, I attach the scaled down hg changeset). With
-> this change, the SMIT CAM with a showtime card works fine according to
-> tests so far.
+>> Are there any comments or ack?
+>>
+>> We hope this method included at mainline kernel if possible.
+>> It's really needed feature for our multimedia frameworks.
 >
-> The effect was, that the CAM tried to constantly close and re-open the
-> session and the LIBDVBEN50221 kept telling it, that the resource is
-> already allocated to a different session.  Additionally this caused the
-> library to use the _old_ session number in communications with the CAM,
-> which did not even exist anymore, so caused all writes of CA PMTs to
-> fail with EINTR.
+> You got any comments from mm people?
 >
-> Stephan
->
+> Virtually, this adds a new memory allocator implementation that steals
+> some memory from memory allocator during boot process. Its API looks
+> completely different from the API for memory allocator. That doesn't
+> sound appealing to me much. This stuff couldn't be integrated well
+> into memory allocator?
 
-Hello
+What kind of integration do you mean?  I see three levels:
 
-Just to inform that this patch solves problems with CAM PowerCAM v4.3, 
-so I think it can interest more people.
+1. Integration on API level meaning that some kind of existing API is used
+    instead of new cma_*() calls.  CMA adds notion of devices and memory
+    types which is new to all the other APIs (coherent has notion of devices
+    but that's not enough).  This basically means that no existing API can be
+    used for CMA.  On the other hand, removing notion of devices and memory
+    types would defeat the whole purpose of CMA thus destroying the solution
+    that CMA provides.
 
-Before gnutv -cammenu (and other applications using libdvben50221) was 
-returning ti;eout (-3) errors constantly after the display of the system 
-IDs.
+2. Reuse of memory pools meaning that memory reserved by CMA can then be
+    used by other allocation mechanisms.  This is of course possible.  For
+    instance coherent could easily be implemented as a wrapper to CMA.
+    This is doable and can be done in the future after CMA gets more
+    recognition.
 
-Now, the menu is working flawlessly
-
-I cannot test the descrambling for the moment but it improved quite a 
-lot the situation (communication with th CAM is now possible).
-
-One note concerning the patch itself, the last "else if (resource_id == 
-EN50221_APP_MMI_RESOURCEID)" is useless.
-
-Best regards
-
+3. Reuse of algorithms meaning that allocation algorithms used by other
+    allocators will be used with CMA regions.  This is doable as well and
+    can be done in the future.
 
 -- 
-Brice
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
 
-A: Yes.
- >Q: Are you sure?
- >>A: Because it reverses the logical flow of conversation.
- >>>Q: Why is top posting annoying in email?
