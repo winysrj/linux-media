@@ -1,86 +1,124 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56210 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751792Ab0H0PpB (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2966 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616Ab0HTTm6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 11:45:01 -0400
-Date: Fri, 27 Aug 2010 11:44:07 -0400
-Subject: Re: [PATCH 0/3] Proposed ir-core (rc-core) changes
-Message-ID: <auca8ov58plwryjrdf7pr5ip.1282923846255@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jarod@redhat.com>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+	Fri, 20 Aug 2010 15:42:58 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7KJguIo078726
+	for <linux-media@vger.kernel.org>; Fri, 20 Aug 2010 21:42:56 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Fri, 20 Aug 2010 21:42:56 +0200 (CEST)
+Message-Id: <201008201942.o7KJguIo078726@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-CgpEYXZpZCBIw6RyZGVtYW4gPGRhdmlkQGhhcmRlbWFuLm51PiB3cm90ZToKCj5PbiBUaHUsIEF1
-Z3VzdCAyNiwgMjAxMCAyMToxNCwgSmFyb2QgV2lsc29uIHdyb3RlOgo+PiBPbiBXZWQsIEF1ZyAy
-NSwgMjAxMCBhdCAwMTowMTo1N0FNICswMjAwLCBEYXZpZCBIw6RyZGVtYW4gd3JvdGU6Cj4+PiBU
-aGUgZm9sbG93aW5nIHNlcmllcyBtZXJnZXMgdGhlIGRpZmZlcmVudCBmaWxlcyB0aGF0IGN1cnJl
-bnRseSBtYWtlIHVwCj4+PiB0aGUgaXItY29yZSBtb2R1bGUgaW50byBhIHNpbmdsZS1maWxlIHJj
-LWNvcmUgbW9kdWxlLgo+Pj4KPj4+IEluIGFkZGl0aW9uLCB0aGUgaXJfaW5wdXRfZGV2IGFuZCBp
-cl9kZXZfcHJvcHMgc3RydWN0cyBhcmUgcmVwbGFjZWQKPj4+IGJ5IGEgc2luZ2xlIHJjX2RldiBz
-dHJ1Y3Qgd2l0aCBhbiBBUEkgc2ltaWxhciB0byB0aGF0IG9mIHRoZSBpbnB1dAo+Pj4gc3Vic3lz
-dGVtLgo+Pj4KPj4+IFRoaXMgYWxsb3dzIHRoZSByZW1vdmFsIG9mIGFsbCBrbm93bGVkZ2Ugb2Yg
-YW55IGlucHV0IGRldmljZXMgZnJvbSB0aGUKPj4+IHJjIGRyaXZlcnMgYW5kIHBhdmVzIHRoZSB3
-YXkgZm9yIGFsbG93aW5nIG11bHRpcGxlIGlucHV0IGRldmljZXMgcGVyCj4+PiByYyBkZXZpY2Ug
-aW4gdGhlIGZ1dHVyZS4gVGhlIG5hbWVzcGFjZSBjb252ZXJzaW9uIGZyb20gaXJfKiB0byByY18q
-Cj4+PiBzaG91bGQgbW9zdGx5IGJlIGRvbmUgZm9yIHRoZSBkcml2ZXJzIHdpdGggdGhpcyBwYXRj
-aHNldC4KPj4+Cj4+PiBJIGhhdmUgaW50ZW50aW9uYWxseSBub3Qgc2lnbmVkIG9mZiBvbiB0aGUg
-cGF0Y2hlcyB5ZXQgc2luY2UgdGhleQo+Pj4gaGF2ZW4ndAo+Pj4gYmVlbiB0ZXN0ZWQuIEknZCBs
-aWtlIHlvdXIgZmVlZGJhY2sgb24gdGhlIGdlbmVyYWwgYXBwcm9hY2ggYmVmb3JlIEkKPj4+IHNw
-ZW5kCj4+PiB0aGUgdGltZSB0byBwcm9wZXJseSB0ZXN0IHRoZSByZXN1bHQuCj4+Pgo+Pj4gQWxz
-bywgdGhlIGltb24gZHJpdmVyIGlzIG5vdCBjb252ZXJ0ZWQgKGFuZCB3aWxsIHRodXMgYnJlYWsg
-d2l0aCB0aGlzCj4+PiBwYXRjaHNldCkuIFRoZSByZWFzb24gaXMgdGhhdCB0aGUgaW1vbiBkcml2
-ZXIgd2FudHMgdG8gZ2VuZXJhdGUgbW91c2UKPj4+IGV2ZW50cyBvbiB0aGUgaW5wdXQgZGV2IHVu
-ZGVyIHRoZSBjb250cm9sIG9mIHJjLWNvcmUuIEkgd2FzIGhvcGluZyB0aGF0Cj4+PiBKYXJvZCB3
-b3VsZCBiZSB3aWxsaW5nIHRvIGNvbnZlcnQgdGhlIGltb24gZHJpdmVyIHRvIGNyZWF0ZSBhIHNl
-cGFyYXRlCj4+PiBpbnB1dCBkZXZpY2UgZm9yIHNlbmRpbmcgbW91c2UgZXZlbnRzIHRvIHVzZXJz
-cGFjZSA6KQo+Pgo+PiBZZWFoLCBJIGNvdWxkIGJlIHBlcnN1YWRlZCB0byBkbyB0aGF0LiBNZWFu
-cyB0aGF0IHRoZSBpbW9uIGRyaXZlciwgd2hlbgo+PiBkcml2aW5nIG9uZSBvZiB0aGUgdG91Y2hz
-Y3JlZW4gZGV2aWNlcywgd2lsbCBicmluZyB1cCAzIHNlcGFyYXRlIGlucHV0Cj4+IGRldmljZXMs
-IGJ1dCBvaCB3ZWxsLiAoSSdkIGFjdHVhbGx5IGNvbnNpZGVyZWQgZG9pbmcgdGhhdCB3aGVuIHBv
-cnRpbmcgdG8KPj4gaXItY29yZSBpbiB0aGUgZmlyc3QgcGxhY2UsIGJ1dCB3ZW50IHRoZSBsYXp5
-IHJvdXRlLiA7KQo+Cj5UaGF0IHdvdWxkIGJlIGdvb2QuIEknbSBwcmV0dHkgY2VydGFpbiB0aGF0
-IHRoZSBzcGxpdCB3aWxsIGJlIG5lY2Vzc2FyeQo+c29vbmVyIG9yIGxhdGVyLgo+Cj4+PiBDb21t
-ZW50cyBwbGVhc2UuLi4KPj4KPj4gSGF2ZW4ndCB0cmllZCBpdCBvdXQgYXQgYWxsIHlldCBvciBk
-b25lIG1vcmUgdGhhbiBhIHF1aWNrIHNraW0gdGhyb3VnaCB0aGUKPj4gcGF0Y2hlcywgYnV0IGF0
-IGZpcnN0IGdsYW5jZSwgSSBkbyBsaWtlIHRoZSBpZGVhIG9mIGZ1cnRoZXIgYWJzdHJhY3RpbmcK
-Pj4gYXdheSB0aGUgaW5wdXQgbGF5ZXIuIEkga25vdyBJIHRhbmtlZCBhIGZldyB0aGluZ3MgdGhl
-IGZpcnN0IGdvICdyb3VuZCwKPj4gdGhpbmtpbmcgSSBuZWVkZWQgdG8gZG8gYm90aCBzb21lIHJj
-LWxheWVyIGFuZCBpbnB1dC1sYXllciBzZXR1cCBhbmQvb3IKPj4gdGVhcmRvd24uIEl0IGJlY29t
-ZXMgbW9yZSBjdXQgYW5kIGRyeSBpZiB5b3UgZG9uJ3Qgc2VlIGFueXRoaW5nCj4+IGlucHV0LXJl
-bGF0ZWQgYW55d2hlcmUgYXQgYWxsLgo+Cj5Ob3QgdG8gbWVudGlvbiB3ZSB3aWxsIGhhdmUgYSBt
-b3JlIGNvbnNpc3RlbnQgdXNlciBleHBlcmllbmNlLiBGb3IKPmV4YW1wbGU6IHNvbWUgb2YgdGhl
-IGN1cnJlbnQgaGFyZHdhcmUgZHJpdmVycyBhcmUgZmlkZGxpbmcgd2l0aCB0aGUgcmVwZWF0Cj52
-YWx1ZXMgb2YgdGhlIGlucHV0IGRldi4uLnNvbWV0aGluZyB3aGljaCBzaG91bGQgYmUgdGhlIHNh
-bWUgYWNyb3NzIHRoZQo+ZW50aXJlIHN1YnN5c3RlbSAoeW91IHdvdWxkbid0IGV4cGVjdCB0aGUg
-cmVwZXRpdGlvbiByYXRlIGZvciB0aGUgZXhhY3QKPnNhbWUgcmVtb3RlIGNvbnRyb2wgdG8gY2hh
-bmdlIGp1c3QgYmVjYXVzZSB5b3UgY2hhbmdlIHRoZSByZWNlaXZlcikuCj4KPkFsc28sIGl0J3Mg
-bmVjZXNzYXJ5IGZvciBhbnkgZnV0dXJlIHN1cHBvcnQgb2YgbXVsdGlwbGUgaW5wdXQgZGV2aWNl
-cyAob25lCj5wZXIgcGh5c2ljYWwgcmVtb3RlIGNvbnRyb2wgYmVpbmcgb25lIGV4YW1wbGUpLi4u
-YW5kIGl0IGdpdmVzIHVzIG1vcmUKPmZsZXhpYmlsaXR5IHRvIG1ha2UgY2hhbmdlcyBpbiByYy1j
-b3JlIHdoZW4gZHJpdmVycyBkbyBub3QgbXVjayBhcm91bmQgaW4KPnN1YmRldmljZXMgKGlucHV0
-IGRldmljZXMgdGhhdCBpcykuCj4KPj4gT25lIHRoaW5nIEkgZGlkIG5vdGUgd2l0aCB0aGUgcGF0
-Y2hlcyBpcyB0aGF0IGEgbG90IG9mIGJpdHMgd2VyZSBhbHRlcmVkCj4+IGZyb20gaXItZm9vIHRv
-IHJjLWZvbywgYnV0IG5vdCBhbGwgb2YgdGhlbS4uLiBJZiB3ZSdyZSBnb2luZyB0byBtYWtlIHRo
-ZQo+PiBjaGFuZ2UsIHdoeSBubyBnbyB3aG9sZSBob2c/IChPciB3YXMgaXQgb25seSB0aGluZ3Mg
-cmVsZXZhbnQgdG8gaXIKPj4gc3BlY2lmaWNhbGx5IHJpZ2h0IG5vdyB0aGF0IGRpZG4ndCBnZXQg
-cmVuYW1lZD8pCj4KPlRoZSBydWxlIG9mIHRodW1iIEkgZm9sbG93ZWQgd2FzIHRvIHJlbmFtZSBz
-dHVmZiB0aGF0IEkgdG91Y2hlZCBidXQgbGVhdmUKPnVuY2hhbmdlZCBjb2RlIGFsb25lLiBSZW5h
-bWluZyB0aGUgcmVtYWluaW5nIGZ1bmN0aW9ucyBjYW4gYmUgZG9uZSBpbgo+bGF0ZXIsIHNlcGFy
-YXRlLCBwYXRjaGVzIChzb21lIG9mIHRoZW0gd2lsbCBiZSBtb3JlIGludmFzaXZlIGFzIGZpbGUg
-bmFtZXMKPm5lZWQgY2hhbmdpbmcgYXMgd2VsbCkuCj4KPk9uIGEgcmVsYXRlZCBub3RlLCBJJ20g
-Z2V0dGluZyBjb25mdXNlZCB3cnQgZ2l0IHRoZSB2NGwtZHZiIGdpdCBicmFuY2hlcy4KPlRoZSBj
-dXJyZW50IHBhdGNoZXMgYXJlIGFnYWluc3Qgc3RhZ2luZy9yYyB3aGljaCBoYXNuJ3Qgc2VlbiBt
-dWNoIGFjdGl2aXR5Cj5pbiBhIG1vbnRoIG9yIHR3byBidXQgc3RhZ2luZy9vdGhlciBzZWVtcyB0
-byBjYXJyeSBzb21lIG1vcmUgcmVjZW50Cj5yYy1yZWxhdGVkIHBhdGNoZXMuLi53aGljaCBvbmUg
-YW0gSSBzdXBwb3NlZCB0byBiYXNlIG15IHdvcmsgb24/Cj4KPi0tIAo+RGF2aWQgSMOkcmRlbWFu
-Cj4KPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5z
-dWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jk
-b21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIu
-a2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
+Results of the daily build of v4l-dvb:
+
+date:        Fri Aug 20 19:00:12 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15074:eff98a88caf3
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
