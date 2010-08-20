@@ -1,66 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:50815 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755392Ab0HQDkO (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:45924 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751184Ab0HTKys convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Aug 2010 23:40:14 -0400
-MIME-Version: 1.0
-In-Reply-To: <4C6A026B.3030808@redhat.com>
-References: <AANLkTimz2eLSEy+U1NdMVsQ=af7v67omPntwMQs+8jno@mail.gmail.com>
-	<BUhP+pZ3jFB@christoph>
-	<AANLkTik7pPs6Bs6Pgq_MG00ONcZWEKFnfUqrTZtgwQRa@mail.gmail.com>
-	<1281991312.3661.2.camel@maxim-laptop>
-	<AANLkTimJtCWv-QyKy8HQXWm8BTv8SerO9Qo_0EDY1+LP@mail.gmail.com>
-	<4C6A026B.3030808@redhat.com>
-Date: Mon, 16 Aug 2010 23:40:12 -0400
-Message-ID: <AANLkTikwHLutYQVUhzY1GWrWM0gt46uR-TeJAdUYr2XC@mail.gmail.com>
-Subject: Re: Remote that breaks current system
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	awalls@md.metrocast.net, jarod@redhat.com, jonsmirl@gmail.com,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 20 Aug 2010 06:54:48 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Date: Fri, 20 Aug 2010 12:54:02 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [PATCH/RFCv3 0/6] The Contiguous Memory Allocator framework
+In-reply-to: <20100820193328P.fujita.tomonori@lab.ntt.co.jp>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: hverkuil@xs4all.nl, dwalker@codeaurora.org, linux@arm.linux.org.uk,
+	corbet@lwn.net, p.osciak@samsung.com,
+	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
+	hvaibhav@ti.com, linux-mm@kvack.org, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, zpfeffer@codeaurora.org,
+	jaeryul.oh@samsung.com, m.szyprowski@samsung.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Message-id: <op.vhqgkcgj7p4s8u@localhost>
+Content-transfer-encoding: 8BIT
+References: <op.vhp4pws27p4s8u@localhost>
+ <20100820155617S.fujita.tomonori@lab.ntt.co.jp> <op.vhp7rxz77p4s8u@localhost>
+ <20100820193328P.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, Aug 16, 2010 at 11:30 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 16-08-2010 21:14, Jarod Wilson escreveu:
->
->>> Just one minor nitpick.
->>> You could 'use' the original RC5 decoder, but add a knob to it to make
->>> it accept 15 bits instead of 14.
->>> However, this will require some interface changes.
->>
->> Well, I think that still falls down if someone, for some reason, wants
->> to use both an old RC5 remote and the Streamzap remote at the same
->> time. I think a parallel decoder is probably the best situation for
->> the moment, as both 14-bit RC5 and Streamzap RC5 can be decoded
->> simultaneously.
->
-> One option could be to change rc5 decoder to work with 3 different modes,
-> controlled by a sysfs node:
-> 1) just 14 bits code;
-> 2) just 15 bits code;
-> 3) both 14 and 15 bits code.
->
-> For (3), it will need a timeout logic for a short period (like 2T), for the
-> 15th bit. If nothing happens, it will assume it is 14 bits, producing a code
-> and resetting the finite-state machine.
->
-> By default, it would be working on 14-bits mode for normal RC decoders, and
-> on 15-bits mode for Streamzap.
->
-> Yet, IMHO, the better is to commit what you have currently. Just my 2 cents.
+On Fri, 20 Aug 2010 12:35:01 +0200, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
 
-Yeah, I don't doubt that we *could* come up with some way to make them
-coexist in the same decoder, but I think its probably not worth the
-effort or added complexity over simply having a separate parallel
-decoder (which is only loaded by default if the receiver bundled with
-the funky remote is plugged in).
+> On Fri, 20 Aug 2010 10:10:45 +0200
+> **UNKNOWN CHARSET** <m.nazarewicz@samsung.com> wrote:
+>
+>> > I wrote "similar to the existing API', not "reuse the existing API".
+>>
+>> Yes, but I don't really know what you have in mind.  CMA is similar to various
+>> APIs in various ways: it's similar to any allocator since it takes
+>> size in bytes,
+>
+> why don't take gfp_t flags?
+
+Because they are insufficient.  Either that or I don't understand gfp_t.
+
+With CMA, platform can define many memory types.  For instance, if there are
+two memory bans there can be two memory types for the two banks.  For at least one
+of the device I'm in contact with, another type for it's firmware is also needed.
+Bottom line is that there may be possibly many types which won't map to gfp_t.
+
+> Something like dev_alloc_page is more appropriate name?
+
+Two things: I'd prefer a "cma" prefix rather then "dev" and I think it should
+be "pages", right? Then, size should be given in pages rather then bytes.
+
+Nonetheless, I don't really see at the moment why this should be better.
+
+> Or something similar to dmapool API (mm/dmapool.c) might work
+> better. The purpose of dmapool API is creating a pool for consistent
+> memory per device. It's similar to yours, creating a pool for
+> contiguous memory per device(s)?
+
+I'll try to look at it later on and think about it.  I'm still somehow reluctant
+to change the names but still, thank you for suggestions.
 
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
+
