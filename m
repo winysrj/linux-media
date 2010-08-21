@@ -1,65 +1,60 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw0-f66.google.com ([74.125.83.66]:60024 "EHLO
-	mail-gw0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933450Ab0HEPHE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 11:07:04 -0400
-Received: by gwb11 with SMTP id 11so1168281gwb.1
-        for <linux-media@vger.kernel.org>; Thu, 05 Aug 2010 08:07:01 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from mx4.orcon.net.nz ([219.88.242.54]:44009 "EHLO mx4.orcon.net.nz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751211Ab0HUG4d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Aug 2010 02:56:33 -0400
+Received: from Debian-exim by mx4.orcon.net.nz with local (Exim 4.69)
+	(envelope-from <aaron@whitehouse.org.nz>)
+	id 1Omgwp-0003a4-Ly
+	for linux-media@vger.kernel.org; Sat, 21 Aug 2010 17:48:55 +1200
+Received: from [121.98.204.64] (helo=[192.168.0.103])
+	by mx4.orcon.net.nz with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <aaron@whitehouse.org.nz>)
+	id 1Omgwp-0003Zv-I6
+	for linux-media@vger.kernel.org; Sat, 21 Aug 2010 17:48:55 +1200
+Message-ID: <4C6F68C6.4080007@whitehouse.org.nz>
+Date: Sat, 21 Aug 2010 17:48:54 +1200
+From: Aaron Whitehouse <aaron@whitehouse.org.nz>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTi=KQPhNgYvCbwNaOqW+k73uYcfaHYAj_N2Yvmvn@mail.gmail.com>
-References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
-	<AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
-	<4C581BB6.7000303@redhat.com>
-	<AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
-	<AANLkTi=KQPhNgYvCbwNaOqW+k73uYcfaHYAj_N2Yvmvn@mail.gmail.com>
-Date: Thu, 5 Aug 2010 12:07:00 -0300
-Message-ID: <AANLkTi=Nq-+WmGdTFfqxrOKD9sNrnEhqh5=f2ubEukLg@mail.gmail.com>
-Subject: Re: V4L hg tree fails to compile against latest stable kernel 2.6.35
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"mailing list: linux-media" <linux-media@vger.kernel.org>
+To: linux-media@vger.kernel.org
+Subject: Hauppauge hvr-2200 stops working when Hauppauge hvr-1110 is connected
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
 Hello,
 
-On Thu, Aug 5, 2010 at 2:44 AM, VDR User <user.vdr@gmail.com> wrote:
-> On Wed, Aug 4, 2010 at 10:19 PM, Douglas Schilling Landgraf
-> <dougsland@gmail.com> wrote:
->> Hello Derek,
->>
->> On Tue, Aug 3, 2010 at 10:37 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>> Em 03-08-2010 03:44, VDR User escreveu:
->>>> On Mon, Aug 2, 2010 at 11:36 PM, VDR User <user.vdr@gmail.com> wrote:
->>>>> Any idea when this will be fixed?
->>>
->>> It is up to Douglas to do the backport, but you can just use the latest
->>> git tree, where those patches are applied already at 2.6.35, at the
->>> branch staging/v2.6.36.
->>
->> I am already working to give a full update to hg tree. Sorry this problem.
->
-> Hi Douglas, thanks for the update!  I'll pass the word along to other
-> users I know who are wondering as well but who don't use the mailing
-> list.
->
-> A little off topic but IIRC wasn't there some talk about writing new
-> scripts to main keep hg more up-to-date?  If so, was that ever
-> started?  Otherwise, my apologies if I'm not remembering correctly.
+I am using Mythbuntu 10.04 and have linux-firmware-nonfree from:
+https://bugs.launchpad.net/ubuntu/+source/linux-firmware-nonfree/+bug/579783
 
-We have a script to check if hg is synced to git tree, to extract
-sequence of patches
-from git tree, etc.. but not like this yet. Some time ago I and Mauro
-discussed about create a script
-to apply patches automatically (of course, those witch doesn't break
-and need a backport manually) but I think it will
-became true with this new git tree schema that Mauro implemented a few
-days ago which reduces the number of branches
-to follow.
+I have been happily using Mythbuntu with a Hauppauge hvr-2200 dual tuner
+DVB-T for many months (thanks Steven Toth!) and it records all my TV in
+MythTV.
 
-Cheers
-Douglas
+NZ has three DVB-T multiplexes, so I bought a second single-tuner DVB-T
+card, a Hauppauge hvr-1110, to cover the third multiplex and mean that,
+with multirec, I can record all channels and never hit a conflict.
+
+As I say, the hvr-2200 works really well. When I put the hvr-1110 in
+(and install the non-free firmware linked above), the hvr-1110 registers
+as an adapter and plays TV well as well.
+
+Unfortunately, when I have both cards in with their firmware, the
+hvr-1110 stops the hvr-2220 registering its two adapters. Dmesg is
+attached to my Launchpad bug here:
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/621578
+I have now (before reporting the bug) removed the hvr-1110 so that I am
+back to my working dual-tuner hvr-2200 configuration.
+
+Interestingly to me, when I only have the hvr-2200 firmware installed,
+but with both cards in the machine, all three adapters register (create
+/dev/dvb/ nodes), but clearly only the hvr-2200 adapters actually work.
+
+Any suggestions would be greatly appreciated. I saw some things in dmesg
+about IRQ conflicts, but I really have no idea.
+
+Regards,
+
+Aaron
