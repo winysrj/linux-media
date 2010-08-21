@@ -1,98 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:61120 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753732Ab0HWOQC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Aug 2010 10:16:02 -0400
-Received: by wwe15 with SMTP id 15so155311wwe.1
-        for <linux-media@vger.kernel.org>; Mon, 23 Aug 2010 07:16:01 -0700 (PDT)
-Message-ID: <4C72829F.7040207@gmail.com>
-Date: Mon, 23 Aug 2010 16:15:59 +0200
-From: "tomlohave@gmail.com" <tomlohave@gmail.com>
+Received: from mx4.orcon.net.nz ([219.88.242.54]:36209 "EHLO mx4.orcon.net.nz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751373Ab0HUGkZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Aug 2010 02:40:25 -0400
+Received: from Debian-exim by mx4.orcon.net.nz with local (Exim 4.69)
+	(envelope-from <lists@whitehouse.org.nz>)
+	id 1Omh6M-0004x3-7f
+	for linux-media@vger.kernel.org; Sat, 21 Aug 2010 17:58:46 +1200
+Received: from [121.98.204.64] (helo=[192.168.0.103])
+	by mx4.orcon.net.nz with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <lists@whitehouse.org.nz>)
+	id 1Omh6M-0004wq-3r
+	for linux-media@vger.kernel.org; Sat, 21 Aug 2010 17:58:46 +1200
+Message-ID: <4C6F6B15.8000603@whitehouse.org.nz>
+Date: Sat, 21 Aug 2010 17:58:45 +1200
+From: Aaron Whitehouse <lists@whitehouse.org.nz>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: Re: patch for lifeview hybrid mini
-References: <4C67790D.3060600@gmail.com> <1282004685.8749.50.camel@pc07.localdom.local>
-In-Reply-To: <1282004685.8749.50.camel@pc07.localdom.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Subject: Hauppauge hvr-2200 stops working when Hauppauge hvr-1110 is connected
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Le 17/08/2010 02:24, hermann pitton a écrit :
-> Hi,
->
-> Am Sonntag, den 15.08.2010, 07:20 +0200 schriebtomlohave@gmail.com:
->    
->> Hi,
->>
->> the proposed patch is 6 month old and the owner of the card does not
->> give any more sign of life for the support of the radio.
->> can someone review it and push it as is?
->>
->> Cheers,
->>
->> Signed-off-by: thomas genty<tomlohave@gmail.com>
->>
->>      
-> Thomas, just some quick notes, since nobody else cares.
->
-> The m$ regspy gpio logs do show only gpio22 changing for analog and
-> DVB-T and this should be the out of reference AGC control on a hopefully
-> single hybrid tuner on that device called DUO.
->
-> Remember, gpios not set in the mask of the analog part of the device do
-> not change/switch anything, but those set there will change to zero even
-> without explicit gpio define for that specific analog input.
->
-> Out of historical reasons, we don't have this in our logs for DVB, also
-> else they would be littered by the changing gpios for the TS/MPEG
-> interface, but should be OK. We don't need to mark DVB related gpio
-> stuff in the analog gpio mask, since we need to use some sort of hack to
-> switch gpios on saa713x in DVB mode.
->
-> dvb and v4l still don't know much about what each other subsystem does
-> on that, but we have some progress.
->
-> So, for now, I don't know for what gpio21 high in analog TV mode should
-> be good, since the m$ driver seems not to do anything on that one, for
-> what we have so far. Also it is common on later LifeView stuff (arrgh),
-> but always is present in related logs then too.
->
-> If ever needed,
->
-> despite of that line inputs and muxes are also totally unconfirmed, and
-> radio is plain madness ...
->
-> drop the radio support for now, mark the external inputs as untested and
-> I give some reviewed by so far with headaches.
->
-> If we can't get more from here anymore, we must let it bounce.
->
-> Cheers,
-> Hermann
->
->
->
->    
+Hello,
 
-Hi Hermann,
+I am using Mythbuntu 10.04 and have linux-firmware-nonfree from:
+https://bugs.launchpad.net/ubuntu/+source/linux-firmware-nonfree/+bug/579783
 
-thanks for you response
+I have been happily using Mythbuntu with a Hauppauge hvr-2200 dual tuner
+DVB-T for many months (thanks Steven Toth!) and it records all my TV in
+MythTV.
 
-for gpios : there is no software bundled with this card to listen to the 
-radio so there is maybe a gpio not showed
-in regspy when trying to listen music. Is this a bad assumption?
-anyway gpios 22 and 16 are hight in regspy
-with gpiomask 410 000 :
-dvb, analog tv and svideo work fine
-only radio remains :
-you can hear the results for radio here (2 Mo):
-http://perso.orange.fr/tomlohave/linux/radio.test
-we can clearly hear the sound of a song but it is broken and 
-interrupted, the question is why
-have you a suggestion ?
+NZ has three DVB-T multiplexes, so I bought a second single-tuner DVB-T
+card, a Hauppauge hvr-1110, to cover the third multiplex and mean that,
+with multirec, I can record all channels and never hit a conflict.
 
-Cheers
+As I say, the hvr-2200 works really well. When I put the hvr-1110 in
+(and install the non-free firmware linked above), the hvr-1110 registers
+as an adapter and plays TV well as well.
 
-T.G
+Unfortunately, when I have both cards in with their firmware, the
+hvr-1110 stops the hvr-2220 registering its two adapters. Dmesg is
+attached to my Launchpad bug here:
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/621578
+I have now (before reporting the bug) removed the hvr-1110 so that I am
+back to my working dual-tuner hvr-2200 configuration.
+
+Interestingly to me, when I only have the hvr-2200 firmware installed,
+but with both cards in the machine, all three adapters register (create
+/dev/dvb/ nodes), but clearly only the hvr-2200 adapters actually work.
+
+Any suggestions would be greatly appreciated. I saw some things in dmesg
+about IRQ conflicts, but I really have no idea.
+
+Regards,
+
+Aaron
