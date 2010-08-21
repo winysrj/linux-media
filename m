@@ -1,104 +1,124 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3565 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751245Ab0HDShS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 14:37:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH v3 6/7] v4l: subdev: Control ioctls support
-Date: Wed, 4 Aug 2010 20:37:08 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278948352-17892-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1278948352-17892-7-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008042037.08922.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2479 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751241Ab0HUTos (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Aug 2010 15:44:48 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7LJiVv5031720
+	for <linux-media@vger.kernel.org>; Sat, 21 Aug 2010 21:44:47 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 21 Aug 2010 21:44:31 +0200 (CEST)
+Message-Id: <201008211944.o7LJiVv5031720@smtp-vbr12.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Monday 12 July 2010 17:25:51 Laurent Pinchart wrote:
-> Pass the control-related ioctls to the subdev driver through the core
-> operations.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+Results of the daily build of v4l-dvb:
 
-Note: if the control framework is merged first, then this code will
-no doubt have to change.
+date:        Sat Aug 21 19:00:22 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15074:eff98a88caf3
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-> ---
->  Documentation/video4linux/v4l2-framework.txt |   16 ++++++++++++++++
->  drivers/media/video/v4l2-subdev.c            |   24 ++++++++++++++++++++++++
->  2 files changed, 40 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-> index 164bb0f..9c3f33c 100644
-> --- a/Documentation/video4linux/v4l2-framework.txt
-> +++ b/Documentation/video4linux/v4l2-framework.txt
-> @@ -331,6 +331,22 @@ argument to 0. Setting the argument to 1 will only enable device node
->  registration if the sub-device driver has set the V4L2_SUBDEV_FL_HAS_DEVNODE
->  flag.
->  
-> +The device node handles a subset of the V4L2 API.
-> +
-> +VIDIOC_QUERYCTRL
-> +VIDIOC_QUERYMENU
-> +VIDIOC_G_CTRL
-> +VIDIOC_S_CTRL
-> +VIDIOC_G_EXT_CTRLS
-> +VIDIOC_S_EXT_CTRLS
-> +VIDIOC_TRY_EXT_CTRLS
-> +
-> +	The controls ioctls are identical to the ones defined in V4L2. They
-> +	behave identically, with the only exception that they deal only with
-> +	controls implemented in the sub-device. Depending on the driver, those
-> +	controls can be also be accessed through one (or several) V4L2 device
-> +	nodes.
-> +
->  
->  I2C sub-device drivers
->  ----------------------
-> diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-> index 052dc9c..ea3941a 100644
-> --- a/drivers/media/video/v4l2-subdev.c
-> +++ b/drivers/media/video/v4l2-subdev.c
-> @@ -43,7 +43,31 @@ static int subdev_close(struct file *file)
->  
->  static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
->  {
-> +	struct video_device *vdev = video_devdata(file);
-> +	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-> +
->  	switch (cmd) {
-> +	case VIDIOC_QUERYCTRL:
-> +		return v4l2_subdev_call(sd, core, queryctrl, arg);
-> +
-> +	case VIDIOC_QUERYMENU:
-> +		return v4l2_subdev_call(sd, core, querymenu, arg);
-> +
-> +	case VIDIOC_G_CTRL:
-> +		return v4l2_subdev_call(sd, core, g_ctrl, arg);
-> +
-> +	case VIDIOC_S_CTRL:
-> +		return v4l2_subdev_call(sd, core, s_ctrl, arg);
-> +
-> +	case VIDIOC_G_EXT_CTRLS:
-> +		return v4l2_subdev_call(sd, core, g_ext_ctrls, arg);
-> +
-> +	case VIDIOC_S_EXT_CTRLS:
-> +		return v4l2_subdev_call(sd, core, s_ext_ctrls, arg);
-> +
-> +	case VIDIOC_TRY_EXT_CTRLS:
-> +		return v4l2_subdev_call(sd, core, try_ext_ctrls, arg);
-> +
->  	default:
->  		return -ENOIOCTLCMD;
->  	}
-> 
+linux-2.6.32.6-armv5: OK
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35-rc1-armv5: WARNINGS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35-rc1-armv5-davinci: WARNINGS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35-rc1-armv5-ixp: WARNINGS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35-rc1-armv5-omap2: WARNINGS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35-rc1-i686: WARNINGS
+linux-2.6.32.6-m32r: OK
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35-rc1-m32r: WARNINGS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35-rc1-mips: WARNINGS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35-rc1-powerpc64: WARNINGS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35-rc1-x86_64: WARNINGS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
