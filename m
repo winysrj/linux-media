@@ -1,83 +1,124 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:25694 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752930Ab0HCAqt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 20:46:49 -0400
-Date: Tue, 03 Aug 2010 09:46:53 +0900
-From: Kukjin Kim <kgene.kim@samsung.com>
-Subject: RE: [PATCH v3 1/8] ARM: Samsung: Add register definitions for	Samsung
- S5P SoC camera interface
-In-reply-to: <20100802165852.GA6671@n2100.arm.linux.org.uk>
-To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
-	'Pawel Osciak' <p.osciak@samsung.com>
-Cc: 'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, kyungmin.park@samsung.com,
-	linux-media@vger.kernel.org,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>
-Message-id: <00e601cb32a5$61f4d8e0$25de8aa0$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-language: ko
-Content-transfer-encoding: 7BIT
-References: <1279902083-21250-1-git-send-email-s.nawrocki@samsung.com>
- <1279902083-21250-2-git-send-email-s.nawrocki@samsung.com>
- <00ba01cb2c8f$02fc8480$08f58d80$%kim@samsung.com>
- <003001cb322d$fc976b10$f5c64130$%osciak@samsung.com>
- <20100802105216.GD30670@n2100.arm.linux.org.uk>
- <003201cb323b$72f32df0$58d989d0$%osciak@samsung.com>
- <20100802165852.GA6671@n2100.arm.linux.org.uk>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4437 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751196Ab0HVStU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Aug 2010 14:49:20 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7MInE1i066498
+	for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 20:49:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 22 Aug 2010 20:49:14 +0200 (CEST)
+Message-Id: <201008221849.o7MInE1i066498@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Russell King wrote:
-> 
-> On Mon, Aug 02, 2010 at 02:08:42PM +0200, Pawel Osciak wrote:
-> > >Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
-> > >On Mon, Aug 02, 2010 at 12:32:20PM +0200, Pawel Osciak wrote:
-> > >> Well, some of them are indeed unused, but it's not an uncommon
-practice in
-> > >> kernel and might help future developers.
-> > >
-> > >On the other hand, arch/arm is getting soo big that we need to do
-> > >something about this - and one solution is to avoid unnecessary
-> > >definitions that we're not using.
-> > >
-> > >Another good idea is to put definitions along side the drivers which
-> > >they're relevant to - maybe in a local driver-name.h file which
-> > >driver-name.c includes, or maybe even within driver-name.c if they're
-> > >not excessive.  This has the advantage of distributing the "bloat" to
-> > >where its actually used, and means that the driver isn't dependent so
-> > >much on arch/arm or even the SoC itself.
-> > >
-> > >Take a look at arch/arm/mach-vexpress/include/mach/ct-ca9x4.h and
-> > >arch/arm/mach-vexpress/include/mach/motherboard.h - these are the only
-> > >two files which contain platform definitions which are actually used
-> > >for Versatile Express.  Compare that with
-> > >arch/arm/mach-realview/include/mach/platform.h which contains lots
-> > >more...
-> >
-> > So basically, what you and Mauro are recommending is that we move the
-*.h
-> > file with register definitions to drivers/media?
-> 
-> What I'm suggesting is what's been pretty standard in Linux for a long
-> time.  Take a look at: drivers/net/3c503.[ch], or for a more recent
-> driver, drivers/net/e1000/*.[ch].  Or drivers/mmc/host/mmci.[ch]
-> 
-I agree with Russell's opinion.
-I don't want to add unnecessary(or unavailable in arch/arm) definitions in
-arch/arm/*/include
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Putting definitions which are only used by one driver in
-arch/arm/*/include
-> is silly.
+Results of the daily build of v4l-dvb:
 
-Thanks.
+date:        Sun Aug 22 19:00:22 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15085:9295d36ab66e
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Best regards,
-Kgene.
---
-Kukjin Kim <kgene.kim@samsung.com>, Senior Engineer,
-SW Solution Development Team, Samsung Electronics Co., Ltd.
+linux-2.6.32.6-armv5: ERRORS
+linux-2.6.33-armv5: ERRORS
+linux-2.6.34-armv5: ERRORS
+linux-2.6.35-rc1-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35-rc1-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35-rc1-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35-rc1-armv5-omap2: ERRORS
+linux-2.6.22.19-i686: ERRORS
+linux-2.6.23.17-i686: ERRORS
+linux-2.6.24.7-i686: ERRORS
+linux-2.6.25.20-i686: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: ERRORS
+linux-2.6.34-i686: ERRORS
+linux-2.6.35-rc1-i686: ERRORS
+linux-2.6.32.6-m32r: ERRORS
+linux-2.6.33-m32r: ERRORS
+linux-2.6.34-m32r: ERRORS
+linux-2.6.35-rc1-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: ERRORS
+linux-2.6.34-mips: ERRORS
+linux-2.6.35-rc1-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: ERRORS
+linux-2.6.34-powerpc64: ERRORS
+linux-2.6.35-rc1-powerpc64: ERRORS
+linux-2.6.22.19-x86_64: ERRORS
+linux-2.6.23.17-x86_64: ERRORS
+linux-2.6.24.7-x86_64: ERRORS
+linux-2.6.25.20-x86_64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: ERRORS
+linux-2.6.34-x86_64: ERRORS
+linux-2.6.35-rc1-x86_64: ERRORS
+linux-git-armv5: WARNINGS
+linux-git-armv5-davinci: WARNINGS
+linux-git-armv5-ixp: WARNINGS
+linux-git-armv5-omap2: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-x86_64: WARNINGS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+linux-2.6.16.62-i686: ERRORS
+linux-2.6.17.14-i686: ERRORS
+linux-2.6.18.8-i686: ERRORS
+linux-2.6.19.7-i686: ERRORS
+linux-2.6.20.21-i686: ERRORS
+linux-2.6.21.7-i686: ERRORS
+linux-2.6.16.62-x86_64: ERRORS
+linux-2.6.17.14-x86_64: ERRORS
+linux-2.6.18.8-x86_64: ERRORS
+linux-2.6.19.7-x86_64: ERRORS
+linux-2.6.20.21-x86_64: ERRORS
+linux-2.6.21.7-x86_64: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
