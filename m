@@ -1,83 +1,69 @@
 Return-path: <mchehab@gaivota>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2601 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752104Ab0L2LYo (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:62090 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750988Ab0LaFcH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Dec 2010 06:24:44 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Deti Fliegl <deti@fliegl.de>
-Subject: Re: [PATCH] [media] dabusb: Move it to staging to be deprecated
-Date: Wed, 29 Dec 2010 12:24:25 +0100
-Cc: Felipe Sanches <juca@members.fsf.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4D19037B.6060904@redhat.com> <201012291137.49153.hverkuil@xs4all.nl> <4D1B1532.60606@fliegl.de>
-In-Reply-To: <4D1B1532.60606@fliegl.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201012291224.25864.hverkuil@xs4all.nl>
+	Fri, 31 Dec 2010 00:32:07 -0500
+Message-ID: <4d1d6ad5.857a0e0a.45e5.ffffd91a@mx.google.com>
+From: Abylay Ospan <liplianin@me.by>
+Date: Sun, 22 Aug 2010 14:32:21 +0300
+Subject: [PATCH 08/18] cx23885: Altera FPGA CI interface reworked.
+To: <mchehab@infradead.org>, linux-media@vger.kernel.org,
+	<linux-kernel@vger.kernel.org>, <aospan@netup.ru>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Wednesday, December 29, 2010 12:02:10 Deti Fliegl wrote:
-> On 12/29/10 11:37 AM, Hans Verkuil wrote:
-> > On Tuesday, December 28, 2010 20:10:17 Felipe Sanches wrote:
-> >> Wait!
-> >>
-> >> It supports the DRBox1 DAB sold by Terratec:
-> >> http://www.baycom.de/wiki/index.php/Products::dabusbhw
-> >
-> > No, it doesn't. The driver in the kernel only supports the prototype board.
-> > The driver on baycom.de *does* support the Terratec product, but that's not
-> > in the kernel.
-> No, it should support the Terratec hardware as well but it's outdated 
-> and unstable. Therefor I agreed to remove the driver from the current 
-> kernel as I am not willing to continue support for the code.
+It decreases I2C traffic.
 
-I don't think it supports the Terratec hardware since the list of USB ids
-doesn't include the Terratec products:
+Signed-off-by: Abylay Ospan <aospan@netup.ru>
+Signed-off-by: Igor M. Liplianin <liplianin@netup.ru>
+---
+ drivers/media/video/cx23885/cx23885-dvb.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-static struct usb_device_id dabusb_ids [] = {
-        // { USB_DEVICE(0x0547, 0x2131) },      /* An2131 chip, no boot ROM */
-        { USB_DEVICE(0x0547, 0x9999) },
-        { }                                             /* Terminating entry */
-};
-
-So this driver will never be loaded when a Terratec USB device is connected.
-
-Correct?
-
-> >> I've been working on a free firmware for this device:
-> >> http://libreplanet.org/wiki/LinuxLibre:USB_DABUSB
-> >
-> > I don't mind having support for DAB in the kernel, but any DAB API needs to
-> > be properly discussed, designed and documented. And it should probably be a
-> > part of the V4L2 API (since that already supports analog radio and RDS).
-> >
-> > By removing this driver from the kernel we open the way for a new DAB API
-> > without breaking support for any existing end-users since the current driver
-> > doesn't support any sold products.
-> >
-> > Frankly, I'm quite interested to see support for this and I'd be happy to
-> > work with someone on designing an API for it. Sounds interesting :-)
-> Attached to this mail you will find our latest sources of the dabusb 
-> driver and the 8051 code running on the DR-Box 1 itself. Feel free to 
-> continue development or to forget about everything.
-
-Unless someone will pick up this source code and starts to work with us on
-designing an API it will probably be forgotten :-(
-
-As far as I can tell (please correct me if I am wrong) the hardware either no
-longer available or very hard to get hold off.
-
-I did see that Terratec still sells some DAB receivers, but they are all based
-on different hardware.
-
-Regards,
-
-	Hans
-
+diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
+index 6c144f7..53c2b6d 100644
+--- a/drivers/media/video/cx23885/cx23885-dvb.c
++++ b/drivers/media/video/cx23885/cx23885-dvb.c
+@@ -620,29 +620,29 @@ int netup_altera_fpga_rw(void *device, int flag, int data, int read)
+ {
+ 	struct cx23885_dev *dev = (struct cx23885_dev *)device;
+ 	unsigned long timeout = jiffies + msecs_to_jiffies(1);
+-	int mem = 0;
++	uint32_t mem = 0;
+ 
+-	cx_set(MC417_RWD, ALT_RD | ALT_WR | ALT_CS);
++	mem = cx_read(MC417_RWD);
+ 	if (read)
+ 		cx_set(MC417_OEN, ALT_DATA);
+ 	else {
+ 		cx_clear(MC417_OEN, ALT_DATA);/* D0-D7 out */
+-		mem = cx_read(MC417_RWD);
+ 		mem &= ~ALT_DATA;
+ 		mem |= (data & ALT_DATA);
+-		cx_write(MC417_RWD, mem);
+ 	}
+ 
+ 	if (flag)
+-		cx_set(MC417_RWD, ALT_AD_RG);/* ADDR */
++		mem |= ALT_AD_RG;
+ 	else
+-		cx_clear(MC417_RWD, ALT_AD_RG);/* VAL */
++		mem &= ~ALT_AD_RG;
+ 
+-	cx_clear(MC417_RWD, ALT_CS);/* ~CS */
++	mem &= ~ALT_CS;
+ 	if (read)
+-		cx_clear(MC417_RWD, ALT_RD);
++		mem = (mem & ~ALT_RD) | ALT_WR;
+ 	else
+-		cx_clear(MC417_RWD, ALT_WR);
++		mem = (mem & ~ALT_WR) | ALT_RD;
++
++	cx_write(MC417_RWD, mem);  /* start RW cycle */
+ 
+ 	for (;;) {
+ 		mem = cx_read(MC417_RWD);
 -- 
-Hans Verkuil - video4linux developer - sponsored by Cisco
+1.7.1
+
