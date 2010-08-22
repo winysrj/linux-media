@@ -1,56 +1,59 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48737 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751152Ab0HBNNT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Aug 2010 09:13:19 -0400
-From: raja_mani@ti.com
-To: olbpdev@list.ti.com, linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, Raja-Mani <x0102026@ti.com>
-Subject: [RFC 0/4] FM V4L2 driver for WL128x
-Date: Mon,  2 Aug 2010 08:13:08 -0500
-Message-Id: <1280754792-14943-1-git-send-email-raja_mani@ti.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mail.ammma.de ([213.83.39.131]:6006 "EHLO ammma.de"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752005Ab0HVLFn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Aug 2010 07:05:43 -0400
+Received: from mail.ammma.net (hydra.ammma.mil [192.168.110.1])
+	by ammma.de (8.11.6/8.11.6/AMMMa AG) with ESMTP id o7MB0nS01876
+	for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 13:00:49 +0200
+Received: from neo.wg.de (hydra.ammma.mil [192.168.110.1])
+	by mail.ammma.net (Postfix) with ESMTP id 16A114D1C025
+	for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 13:05:40 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by neo.wg.de (Postfix) with ESMTP id AB35552661E
+	for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 13:05:38 +0200 (CEST)
+Received: from neo.wg.de ([127.0.0.1])
+	by localhost (neo.wg.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id 42-uYAik7hc1 for <linux-media@vger.kernel.org>;
+	Sun, 22 Aug 2010 13:05:37 +0200 (CEST)
+Received: from localhost (localhost [127.0.0.1])
+	by neo.wg.de (Postfix) with ESMTP id 9D7965265B7
+	for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 13:05:37 +0200 (CEST)
+Message-ID: <20100822130537.121732rl2ot7msg0@neo.wg.de>
+Date: Sun, 22 Aug 2010 13:05:37 +0200
+From: Jan Schneider <jan@horde.org>
+To: linux-media@vger.kernel.org
+Subject: Re: SATELCO EasyWatch PCI (DVB-C) not waking up
+References: <20100811141542.20288il5ge6xlu28@neo.wg.de>
+In-Reply-To: <20100811141542.20288il5ge6xlu28@neo.wg.de>
+MIME-Version: 1.0
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-From: Raja-Mani <x0102026@ti.com>
+Zitat von Jan Schneider <jan@horde.org>:
 
-The following patches are FM V4L2-Radio drivers for WL128x
-(backward compatible for WL127x).
-This driver makes use of TI Shared Transport driver for its
-transport via UART/TTY.
+> Hi,
+>
+> I have the DVB-C card mentioned in the subject. Unfortunately it's  
+> not properly waking up from standby or suspend. The card doesn't  
+> tune anymore after resuming.
+> This is with Ubuntu's 2.6.32-24 kernel.
+> I could need any pointers how to collect more information about the  
+> failing resume, so that you might be able to help me fixing this.
 
-Only FM Rx is supported as of now. Any FM V4L2 Radio standard application
-can make use of the '/dev/radioX' interface exposed by this driver to
-communicate with the TI FM chip.
+Attached is the syslog from the suspend/resume cycle. There are  
+several errors regarding the DVB-C adapter and the CAM. Maybe this  
+helps?
 
-This doesn't include the handling of audio path and has support for
-RDS, FM firmware download, HW Seek, Tune, Volume control,etc.
+Jan.
 
-Tested with internal FM app and as well as with open source gnome-radio
-application and verified on SDP4430, kernel 2.6.35-rc5.
-
-Note: The patches however are re-based to the Stephen Rothwell's linux-next's
-drivers/staging/ti-st since the latest version of ST drivers exist there.
-
-Raja-Mani (4):
-  drivers:staging:ti-st: sources for FM common interfaces
-  drivers:staging:ti-st: Sources for FM RX
-  drivers:staging:ti-st: Sources for FM V4L2 interfaces
-  drivers:staging:ti-st: Sources for FM common header
-
- drivers/staging/ti-st/fmdrv.h        |  225 ++++
- drivers/staging/ti-st/fmdrv_common.c | 2127 ++++++++++++++++++++++++++++++++++
- drivers/staging/ti-st/fmdrv_common.h |  459 ++++++++
- drivers/staging/ti-st/fmdrv_rx.c     |  805 +++++++++++++
- drivers/staging/ti-st/fmdrv_rx.h     |   56 +
- drivers/staging/ti-st/fmdrv_v4l2.c   |  550 +++++++++
- drivers/staging/ti-st/fmdrv_v4l2.h   |   32 +
- 7 files changed, 4254 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/ti-st/fmdrv.h
- create mode 100644 drivers/staging/ti-st/fmdrv_common.c
- create mode 100644 drivers/staging/ti-st/fmdrv_common.h
- create mode 100644 drivers/staging/ti-st/fmdrv_rx.c
- create mode 100644 drivers/staging/ti-st/fmdrv_rx.h
- create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.c
- create mode 100644 drivers/staging/ti-st/fmdrv_v4l2.h
+-- 
+Do you need professional PHP or Horde consulting?
+http://horde.org/consulting/
 
