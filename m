@@ -1,72 +1,98 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:49429 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753654Ab0HCDQR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 23:16:17 -0400
-Received: by yxg6 with SMTP id 6so1464941yxg.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 20:16:16 -0700 (PDT)
-Message-ID: <4C578AFF.2030804@gmail.com>
-Date: Mon, 02 Aug 2010 23:20:31 -0400
-From: Emmanuel <eallaud@gmail.com>
+Return-path: <mchehab@pedra>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:61120 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753732Ab0HWOQC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Aug 2010 10:16:02 -0400
+Received: by wwe15 with SMTP id 15so155311wwe.1
+        for <linux-media@vger.kernel.org>; Mon, 23 Aug 2010 07:16:01 -0700 (PDT)
+Message-ID: <4C72829F.7040207@gmail.com>
+Date: Mon, 23 Aug 2010 16:15:59 +0200
+From: "tomlohave@gmail.com" <tomlohave@gmail.com>
 MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-CC: VDR User <user.vdr@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [Q]: any DVB-S2 card which is 45MS/s capable?
-References: <4C4C475E.5060500@gmail.com>	<E1OdF5a-0006r0-00.goga777-bk-ru@f154.mail.ru>	<4C4DDB83.9040009@gmail.com>	<AANLkTikwZ4eB+z5WpTLZmg1HyrNWQuk+tmc1+wymw6CZ@mail.gmail.com>	<4C4ED694.5010505@gmail.com> <AANLkTikMTmaeLKuaAv66tG+3Yhr7ZrmTnrYai+bh70Vt@mail.gmail.com> <4C56CE4D.2060206@kolumbus.fi>
-In-Reply-To: <4C56CE4D.2060206@kolumbus.fi>
+To: linux-media@vger.kernel.org
+Subject: Re: patch for lifeview hybrid mini
+References: <4C67790D.3060600@gmail.com> <1282004685.8749.50.camel@pc07.localdom.local>
+In-Reply-To: <1282004685.8749.50.camel@pc07.localdom.local>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 8bit
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Marko Ristola a écrit :
+Le 17/08/2010 02:24, hermann pitton a écrit :
+> Hi,
 >
-> Hi.
+> Am Sonntag, den 15.08.2010, 07:20 +0200 schriebtomlohave@gmail.com:
+>    
+>> Hi,
+>>
+>> the proposed patch is 6 month old and the owner of the card does not
+>> give any more sign of life for the support of the radio.
+>> can someone review it and push it as is?
+>>
+>> Cheers,
+>>
+>> Signed-off-by: thomas genty<tomlohave@gmail.com>
+>>
+>>      
+> Thomas, just some quick notes, since nobody else cares.
 >
-> I have written some Mantis bandwidth related
-> DMA transfer optimizations on June/July this year.
-> They are now waiting for approval by Manu Abraham.
+> The m$ regspy gpio logs do show only gpio22 changing for analog and
+> DVB-T and this should be the out of reference AGC control on a hopefully
+> single hybrid tuner on that device called DUO.
 >
-> Those reduce CPU pressure, increasing the bandwidth
-> that can be received from the DVB card. 45MS/s bandwidth
-> support will surely benefit from those patches.
+> Remember, gpios not set in the mask of the analog part of the device do
+> not change/switch anything, but those set there will change to zero even
+> without explicit gpio define for that specific analog input.
 >
-> Main features:
-> 1. Do one CPU interrupt per 16KB data instead per 4KB data.
-> My implementation benefits only Mantis cards.
-> https://patchwork.kernel.org/patch/107036/
+> Out of historical reasons, we don't have this in our logs for DVB, also
+> else they would be littered by the changing gpios for the TS/MPEG
+> interface, but should be OK. We don't need to mark DVB related gpio
+> stuff in the analog gpio mask, since we need to use some sort of hack to
+> switch gpios on saa713x in DVB mode.
 >
-> 2. Remove unnecessary big CPU overhead, when data is delivered
-> from the DVB card's DMA buffer into Linux kernel's DVB subsystem.
-> Number 2 reduces the CPU pressure by almost 50%.
-> This implementation benefits many other Linux supported DVB cards too.
-> http://patchwork.kernel.org/patch/108274/
+> dvb and v4l still don't know much about what each other subsystem does
+> on that, but we have some progress.
 >
-> Those helped with my older single CPU Core computer with 256-QAM,
-> delivering HDTV channel into the network and watching the
-> HDTV channel with a faster computer.
+> So, for now, I don't know for what gpio21 high in analog TV mode should
+> be good, since the m$ driver seems not to do anything on that one, for
+> what we have so far. Also it is common on later LifeView stuff (arrgh),
+> but always is present in related logs then too.
 >
-> The performance bottlenecks could be seen on the
-> command line with "perf top".
+> If ever needed,
 >
-> I had to increase PCI bus latency setting into 64 too from the BIOS.
-> Moving DVB device into separate IRQ line with Ethernet card helped too,
-> because Ethernet card did an interrupt per ethernet packet.
+> despite of that line inputs and muxes are also totally unconfirmed, and
+> radio is plain madness ...
 >
-> So if the hardware can deliver 45MS/s data fast enough, software side 
-> can be optimized up
-> to some point. My patches contain the most easy major optimizations 
-> that I found.
-> If you can test some of those patches, it might help to get them into 
-> Linux kernel
-> faster.
+> drop the radio support for now, mark the external inputs as untested and
+> I give some reviewed by so far with headaches.
 >
-> Best regards,
-> Marko Ristola
+> If we can't get more from here anymore, we must let it bounce.
 >
-OK these optimizations look like a step into the good direction. I guess 
-what is also missing is a tuner which can handle that in DVB-S2, which 
-does not seem obvious. The mantis card  can do that?
-Thx
-Bye
-Manu
+> Cheers,
+> Hermann
+>
+>
+>
+>    
+
+Hi Hermann,
+
+thanks for you response
+
+for gpios : there is no software bundled with this card to listen to the 
+radio so there is maybe a gpio not showed
+in regspy when trying to listen music. Is this a bad assumption?
+anyway gpios 22 and 16 are hight in regspy
+with gpiomask 410 000 :
+dvb, analog tv and svideo work fine
+only radio remains :
+you can hear the results for radio here (2 Mo):
+http://perso.orange.fr/tomlohave/linux/radio.test
+we can clearly hear the sound of a song but it is broken and 
+interrupted, the question is why
+have you a suggestion ?
+
+Cheers
+
+T.G
