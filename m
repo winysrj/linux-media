@@ -1,69 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:37308 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751724Ab0HTNQe convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 09:16:34 -0400
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-From: Peter Zijlstra <peterz@infradead.org>
-To: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Cc: linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
-In-Reply-To: <cover.1282286941.git.m.nazarewicz@samsung.com>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Fri, 20 Aug 2010 15:15:10 +0200
-Message-ID: <1282310110.2605.976.camel@laptop>
-Mime-Version: 1.0
+Received: from tango.tkos.co.il ([62.219.50.35]:46812 "EHLO tango.tkos.co.il"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751033Ab0HWELo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Aug 2010 00:11:44 -0400
+Date: Mon, 23 Aug 2010 07:11:18 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 0/4] mx2_camera: mx25 fixes and enhancements
+Message-ID: <20100823041117.GA20026@jasper.tkos.co.il>
+References: <cover.1280229966.git.baruch@tkos.co.il>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <cover.1280229966.git.baruch@tkos.co.il>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, 2010-08-20 at 11:50 +0200, Michal Nazarewicz wrote:
-> Hello everyone,
+Hi Guennadi,
+
+On Tue, Jul 27, 2010 at 03:06:06PM +0300, Baruch Siach wrote:
+> The first 3 pathces in this series are fixes for the mx2_camera driver which is 
+> going upstream via the imx git tree. The last patch implements forced active 
+> buffer termination on mx25.
+
+Ping?
+
+> Baruch Siach (4):
+>   mx2_camera: fix a race causing NULL dereference
+>   mx2_camera: return IRQ_NONE when doing nothing
+>   mx2_camera: fix comment typo
+>   mx2_camera: implement forced termination of active buffer for mx25
 > 
-> The following patchset implements a Contiguous Memory Allocator.  For
-> those who have not yet stumbled across CMA an excerpt from
-> documentation:
-> 
->    The Contiguous Memory Allocator (CMA) is a framework, which allows
->    setting up a machine-specific configuration for physically-contiguous
->    memory management. Memory for devices is then allocated according
->    to that configuration.
-> 
->    The main role of the framework is not to allocate memory, but to
->    parse and manage memory configurations, as well as to act as an
->    in-between between device drivers and pluggable allocators. It is
->    thus not tied to any memory allocation method or strategy.
-> 
-> For more information please refer to the second patch from the
-> patchset which contains the documentation.
+>  drivers/media/video/mx2_camera.c |   34 ++++++++++++++++++++++++++--------
+>  1 files changed, 26 insertions(+), 8 deletions(-)
 
-So the idea is to grab a large chunk of memory at boot time and then
-later allow some device to use it?
+baruch
 
-I'd much rather we'd improve the regular page allocator to be smarter
-about this. We recently added a lot of smarts to it like memory
-compaction, which allows large gobs of contiguous memory to be freed for
-things like huge pages.
-
-If you want guarantees you can free stuff, why not add constraints to
-the page allocation type and only allow MIGRATE_MOVABLE pages inside a
-certain region, those pages are easily freed/moved aside to satisfy
-large contiguous allocations.
-
-Also, please remove --chain-reply-to from your git config. You're using
-1.7 which should do the right thing (--no-chain-reply-to) by default.
-
-
+-- 
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
