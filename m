@@ -1,46 +1,25 @@
 Return-path: <mchehab@pedra>
-Received: from bear.ext.ti.com ([192.94.94.41]:48298 "EHLO bear.ext.ti.com"
+Received: from mx33.mail.ru ([94.100.176.47]:51500 "EHLO mx33.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761870Ab0HMRUI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Aug 2010 13:20:08 -0400
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"sakari.ailus@maxwell.research.nokia.com"
-	<sakari.ailus@maxwell.research.nokia.com>,
-	"Nataraju, Kiran" <knataraju@ti.com>,
-	"Hiremath, Vaibhav" <hvaibhav@ti.com>
-Date: Fri, 13 Aug 2010 12:20:02 -0500
-Subject: [ANNOUNCE] OMAP3 Camera ISP driver wiki in omappedia.org
-Message-ID: <A24693684029E5489D1D202277BE894456FC4E3B@dlee02.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	id S1752509Ab0HWTb7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Aug 2010 15:31:59 -0400
+Received: from [92.101.153.219] (port=55502 helo=localhost.localdomain)
+	by mx33.mail.ru with asmtp
+	id 1OnckP-0002qi-00
+	for linux-media@vger.kernel.org; Mon, 23 Aug 2010 23:31:57 +0400
+Date: Mon, 23 Aug 2010 23:40:37 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-media@vger.kernel.org
+Subject: Hauppauge PCTV DVB-S2 STICK 460E USB 2.0
+Message-ID: <20100823234037.2ab0a413@bk.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi all,
+hi
 
-I'll like to announce a new wikipage entry in http://omappedia.org site for
-OMAP3 Camera-ISP progress and details. Please find it here.
+does somebody work under Linux drivers for this dvb-s2 stick ?
 
-http://omappedia.org/wiki/Camera-ISP_Driver
-
-The intention is to provide an online documentation of the work and progress
-of the patches submission, and its dependencies (Media Controller Framework,
-specifically).
-
-If you're interested to contribute/experiment with the driver, this is intended to
-be a good start point for that, and also feel free to update it aswell.
-
-The more people trying the driver, the better, so we can have as much platforms
-running with it as possible, and we can claim that the driver is flexible enough
-for all.
-
-Have a great weekend!
-
-Regards,
-Sergio
+Goga
