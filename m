@@ -1,71 +1,238 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36527 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754861Ab0HBV1i (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Aug 2010 17:27:38 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o72LRbY0014057
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 2 Aug 2010 17:27:38 -0400
-Received: from [10.11.10.146] (vpn-10-146.rdu.redhat.com [10.11.10.146])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o72LRYJr020705
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Mon, 2 Aug 2010 17:27:36 -0400
-Message-ID: <4C57386B.7050103@redhat.com>
-Date: Mon, 02 Aug 2010 18:28:11 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:53935 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751129Ab0HWAET (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Aug 2010 20:04:19 -0400
+Received: by fxm13 with SMTP id 13so2626588fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 22 Aug 2010 17:04:18 -0700 (PDT)
+From: Marek Vasut <marek.vasut@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC] [PATCH 3/6] SoC Camera: add driver for OV6650 sensor
+Date: Mon, 23 Aug 2010 02:03:37 +0200
+Cc: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <201008222145.40942.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1008222201140.872@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1008222201140.872@axis700.grange>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [announce]  changes on my git tree
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <201008230203.37762.marek.vasut@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Dear developers and users,
+Dne Ne 22. srpna 2010 22:30:10 Guennadi Liakhovetski napsal(a):
+> On Sun, 22 Aug 2010, Janusz Krzysztofik wrote:
+> > Hi Guennadi,
+> > Thanks for your review time.
+> > 
+> > Sunday 22 August 2010 18:40:13 Guennadi Liakhovetski wrote:
+> > > On Sun, 18 Jul 2010, Janusz Krzysztofik wrote:
+> > > > This patch provides a V4L2 SoC Camera driver for OV6650 camera
+> > > > sensor, found on OMAP1 SoC based Amstrad Delta videophone.
+> > > 
+> > > Have you also had a look at drivers/media/video/gspca/sonixb.c - in
+> > > also supports ov6650 among other sensors.
+> > 
+> > Yes, I have, but given up for now since:
+> > 1. the gspca seems using the sensor in "Bayer 8 BGGR" mode only, which I
+> > was
+> > 
+> >    not even able to select using mplayer to test my drivers with,
+> > 
+> > 2. not all settings used there are clear for me, so I've decided to
+> > revisit
+> > 
+> >    them later, when I first get a stable, even if not perfect, working
+> >    driver version accepted, instead of following them blindly.
+> 
+> But good that you've looked at it.
+> 
+> > > > +	unsigned char data[2] = { reg, val };
+> > > > +	struct i2c_msg msg = {
+> > > > +		.addr	= client->addr,
+> > > > +		.flags	= 0,
+> > > > +		.len	= 2,
+> > > > +		.buf	= data,
+> > > > +	};
+> > > > +
+> > > > +	ret = i2c_transfer(client->adapter, &msg, 1);
+> > > > +	if (ret < 0) {
+> > > > +		dev_err(&client->dev, "Failed writing register 0x%02x!
+\n", reg);
+> > > > +		return ret;
+> > > > +	}
+> > > > +	msleep(1);
+> > > 
+> > > Hm, interesting... Is this really needed?
+> > 
+> > If you mean msleep(1) - yes, the sensor didn't work correctly for me
+> > without that msleep().
+> 
+> Yes, I meant msleep(1).
 
-After merging patches directly on my git tree, I was impressed by the number
-of things I discovered that I should not do when handling it ;) 
-Living and learning :)
+Doesn't surprise me at all actually. Check how this is done on ov9640 and also 
+NOTE I had to use gpio-spi module instead of pxa-spi to get the communication 
+running at all ... might be your case.
 
-There are lots of trash there, due to the way patches get merged back from
-upstream.
-
-As reverting a patch there will break things for everybody that clones from
-my tree, I decided to go to an easier way: let's start from scratch.
-
-I've created a new tree, at:
-	http://git.linuxtv.org/media_tree.git
-
-Currently, it is just a clone of Linus tree, all pointing to v2.6.35. I'll soon
-be adding more patches there.
-
-In order to avoid the same kind of troubles I had in the past, I intend to
-use the following guidelines:
-
-1) branch "master" - will have the contents of Linus tree.
-2) branch "staging/2.6.35" - will have patches for the current stable kernel;
-2) branch "staging/2.6.36" - will have patches for the current development cycle;
-3) branch "staging/2.6.37" - will have patches for linux-next
-
-On every new kernel release, I'll create another branch.
-
-No branches will be rebased, but I won't merge from a staging branch into
-master. If needed, I'll just update master to from Linus tree after having
-a changeset pulled there.
-
-As need arises, I'll be adding some development branches there with stuff that
-are already accepted, but there are still pending patches that are needed before
-sending that patch set upstream (for example, new internal/external API's
-added, while there's no driver actually using them).
-
-For those that already sent me pull requests, and for a few weeks, there's no
-action need. I'll be manually handling the tree differences for a while. Yet,
-the better is to rebase your trees using the new one as the basis.
-
-Except when needed (like depending on a third-party patch applied on my tree), 
-the better is to have your local git trees always based on master.
-
-Cheers,
-Mauro.
-
+Cheers
+> 
+> > I you mean reading the register back - I've not tried without, will do.
+> 
+> Ok.
+> 
+> > > > +	case V4L2_CID_HUE_AUTO:
+> > > > +		if (ctrl->value) {
+> > > > +			ret = ov6650_reg_rmw(client, REG_HUE,
+> > > > +					SET_HUE(DEF_HUE), 
+SET_HUE(HUE_MASK));
+> > > > +			if (ret)
+> > > > +				break;
+> > > > +			priv->hue = DEF_HUE;
+> > > > +		} else {
+> > > > +			ret = ov6650_reg_rmw(client, REG_HUE, HUE_EN, 
+0);
+> > > > +		}
+> > > > +		if (ret)
+> > > > +			break;
+> > > > +		priv->hue_auto = ctrl->value;
+> > > 
+> > > Hm, sorry, don't understand. If the user sets auto-hue to ON, you set
+> > > the hue enable bit and hue value to default.
+> > 
+> > No, I reset the hue enable bit here, which I understand is used for
+> > applying a non-default hue value if set rather than enabling auto hue.
+> > Maybe my understanding of this bit function is wrong.
+> > 
+> > > If the user sets auto-hue to OFF,
+> > > you just set the hue enable bit on and don't change the value. Does
+> > > ov6650 actually support auto-hue?
+> > 
+> > All I was able to find out was the HUE register bits described like this:
+> > 
+> > Bit[7:6]: Reserved
+> > Bit[5]: Hue Enable
+> > Bit[4:0]: Hue setting
+> > 
+> > and the register default value: 0x10.
+> > 
+> > What do you think the bit[5] meaning is?
+> 
+> Well, from how I interpret, what you say, I think, there is no auto-hue
+> implemented by this sensor, at least, not by this register. Maybe drop
+> auto-hue support completely? It seems to me just a manual hue value can be
+> set.
+> 
+> > > > +/* select nearest higher resolution for capture */
+> > > > +static void ov6650_res_roundup(u32 *width, u32 *height)
+> > > > +{
+> > > > +	int i;
+> > > > +	enum { QCIF, CIF };
+> > > > +	int res_x[] = { 176, 352 };
+> > > > +	int res_y[] = { 144, 288 };
+> > > > +
+> > > > +	for (i = 0; i < ARRAY_SIZE(res_x); i++) {
+> > > > +		if (res_x[i] >= *width && res_y[i] >= *height) {
+> > > > +			*width = res_x[i];
+> > > > +			*height = res_y[i];
+> > > > +			return;
+> > > > +		}
+> > > > +	}
+> > > > +
+> > > > +	*width = res_x[CIF];
+> > > > +	*height = res_y[CIF];
+> > > > +}
+> > > 
+> > > This can be replaced by a version of
+> > > 
+> > > http://www.spinics.net/lists/linux-media/msg21893.html
+> > > 
+> > > when it is fixed and accepted;) I'll try to send an updated version of
+> > > that patch tomorrow.
+> > 
+> > Fine, I'll use this instead of my dirty workarounds.
+> 
+> /me has to update that patch... Will try to do that asap.
+> 
+> > > > +
+> > > > +/* program default register values */
+> > > > +static int ov6650_prog_dflt(struct i2c_client *client)
+> > > > +{
+> > > > +	int i, ret;
+> > > > +
+> > > > +	dev_dbg(&client->dev, "reinitializing\n");
+> > > > +
+> > > > +	for (i = 0; i < ARRAY_SIZE(ov6650_regs_dflt); i++) {
+> > > > +		ret = ov6650_reg_write(client, ov6650_regs_dflt[i].reg,
+> > > > +						
+ov6650_regs_dflt[i].val);
+> > > > +		if (ret)
+> > > > +			return ret;
+> > > > +	}
+> > > 
+> > > Hm, please, don't. I generally don't like such register - value array
+> > > magic for a number of reasons, and in your case it's just one (!)
+> > > register write operation - please, remove this array and just write
+> > > the register explicitly.
+> > 
+> > OK (with a reservation that I can probably end up with more than just
+> > one, non-default settings written explicitly).
+> 
+> Thas's ok. I find a sequence of explicit register writes nicer, e.g.,
+> because then you can insert comments / delays / meaningful debugging /
+> other branching between them. Pushing an array of register values to the
+> hardware looks like "no idea what this stuff is good for, I just copied
+> this from vendor's example / sniffed from the hardware..."
+> 
+> > > > +	ret = ov6650_reg_write(client, REG_HSTRT, hstrt);
+> > > > +	if (!ret)
+> > > > +		ret = ov6650_reg_write(client, REG_HSTOP, hstop);
+> > > > +	if (!ret)
+> > > > +		ret = ov6650_reg_write(client, REG_VSTRT, vstrt);
+> > > > +	if (!ret)
+> > > > +		ret = ov6650_reg_write(client, REG_VSTOP, vstop);
+> > > 
+> > > Are cropping and scaling on this camera absolutely independent? I.e.,
+> > > you can set any output format (CIF or QCIF) and it will just scale
+> > > whatever rectangle has been configured? And the other way round - you
+> > > set arbitrary cropping and output format stays the same?
+> > 
+> > I believe it works like I have put it here, but will try to recheck to
+> > make sure. Simply using v4l2-debug for this seems insufficient, since
+> > changing a frame format on the fly will get DMA out of sync immediately.
+> > What tool or utility could you advise for testing?
+> 
+> firstly, soc-camera is quite restrictive about s_crop ATM: it disallows
+> changes to the cropping sizes (only position can be changed). Whereby, now
+> that I think about it again, perhaps this wasn't a very good idea:
+> effectively this kills live zooming. Maybe we can lift that restriction
+> again. In any case, I don't know any existing programs, that can stream
+> video and simultaneously allow the user to issue crop and scale commands.
+> I just hacked mplayer and gstreamer for that. Or, to test changing left
+> and top offsets, I had mplayer running and issued crops and scales from
+> another window with a command-line tool like v4l2-dbg.
+> 
+> > > > +static struct v4l2_subdev_video_ops ov6650_video_ops = {
+> > > > +	.s_stream	= ov6650_s_stream,
+> > > > +	.s_mbus_fmt	= ov6650_s_fmt,
+> > > > +	.try_mbus_fmt	= ov6650_try_fmt,
+> > > 
+> > > Please, implement.g_mbus_fmt.
+> > 
+> > OK (in addition to what I've already implemented, I guess).
+> 
+> Of course
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
