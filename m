@@ -1,138 +1,121 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:50033 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754819Ab0H3IxG (ORCPT
+Received: from server.klug.on.ca ([205.189.48.131]:2497 "EHLO
+	server.klug.on.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751523Ab0HWE6I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Aug 2010 04:53:06 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 7/7] ENE: add support for carrier reports
-Date: Mon, 30 Aug 2010 11:52:27 +0300
-Message-Id: <1283158348-7429-8-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
-References: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
+	Mon, 23 Aug 2010 00:58:08 -0400
+Received: from linux.interlinx.bc.ca (d67-193-197-208.home3.cgocable.net [67.193.197.208])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by server.klug.on.ca (Postfix) with ESMTP id 199C32803
+	for <linux-media@vger.kernel.org>; Mon, 23 Aug 2010 00:32:34 -0400 (EDT)
+Received: from [10.75.22.1] (pc.ilinx [10.75.22.1])
+	by linux.interlinx.bc.ca (Postfix) with ESMTP id F0201920B
+	for <linux-media@vger.kernel.org>; Mon, 23 Aug 2010 00:32:32 -0400 (EDT)
+Subject: hvr950q stopped working: read of drv0 never returns
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-fJpX0mDNNvkQyMrr2eXL"
+Date: Mon, 23 Aug 2010 00:32:31 -0400
+Message-ID: <1282537951.32217.3874.camel@pc.interlinx.bc.ca>
+Mime-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/ene_ir.c |   47 +++++++++++++++++++++++++++++++++++---------
- 1 files changed, 37 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
-index c7bbbca..dfb822b 100644
---- a/drivers/media/IR/ene_ir.c
-+++ b/drivers/media/IR/ene_ir.c
-@@ -224,6 +224,7 @@ void ene_rx_sense_carrier(struct ene_device *dev)
- {
- 	int period = ene_read_reg(dev, ENE_CIRCAR_PRD);
- 	int hperiod = ene_read_reg(dev, ENE_CIRCAR_HPRD);
-+	struct ir_raw_event ev = ir_new_event;
- 	int carrier, duty_cycle;
- 
- 
-@@ -238,19 +239,23 @@ void ene_rx_sense_carrier(struct ene_device *dev)
- 	dbg("RX: hardware carrier period = %02x", period);
- 	dbg("RX: hardware carrier pulse period = %02x", hperiod);
- 
--
- 	carrier = 2000000 / period;
- 	duty_cycle = (hperiod * 100) / period;
- 	dbg("RX: sensed carrier = %d Hz, duty cycle %d%%",
--							carrier, duty_cycle);
--
--	/* TODO: Send carrier & duty cycle to IR layer */
-+						carrier, duty_cycle);
-+	if (dev->carrier_detect_enabled) {
-+		ev.carrier_report = true;
-+		ev.carrier = carrier;
-+		ev.duty_cycle = duty_cycle;
-+		ir_raw_event_store(dev->idev, &ev);
-+	}
- }
- 
- /* determine which input to use*/
- static void ene_rx_set_inputs(struct ene_device *dev)
- {
--	int learning_mode = dev->learning_enabled;
-+	int learning_mode = dev->learning_enabled ||
-+					dev->carrier_detect_enabled;
- 
- 	dbg("RX: setup receiver, learning mode = %d", learning_mode);
- 
-@@ -281,9 +286,17 @@ static void ene_rx_set_inputs(struct ene_device *dev)
- 		ene_enable_cir_engine(dev, true);
- 		ene_select_rx_input(dev, !dev->hw_use_gpio_0a);
- 
--		/* Enable carrier detection & demodulation */
-+		/* Enable demodulation */
- 		ene_set_reg_mask(dev, ENE_CIRCFG, ENE_CIRCFG_CARR_DEMOD);
--		ene_set_reg_mask(dev, ENE_CIRCFG2, ENE_CIRCFG2_CARR_DETECT);
-+
-+		/* Enable carrier detect if asked to */
-+		if (dev->carrier_detect_enabled || debug)
-+			ene_set_reg_mask(dev, ENE_CIRCFG2,
-+						ENE_CIRCFG2_CARR_DETECT);
-+		else
-+			ene_clear_reg_mask(dev, ENE_CIRCFG2,
-+						ENE_CIRCFG2_CARR_DETECT);
-+
- 
- 
- 	/* disable learning mode */
-@@ -726,7 +739,7 @@ static irqreturn_t ene_isr(int irq, void *data)
- 
- 	dbg_verbose("RX interrupt");
- 
--	if (dev->carrier_detect_enabled || debug)
-+	if (dev->hw_learning_and_tx_capable)
- 		ene_rx_sense_carrier(dev);
- 
- 	/* On hardware that don't support extra buffer we need to trust
-@@ -796,7 +809,6 @@ static void ene_setup_settings(struct ene_device *dev)
- 		let user set it with LIRC_SET_REC_CARRIER */
- 	dev->learning_enabled =
- 		(learning_mode && dev->hw_learning_and_tx_capable);
--
- }
- 
- /* outside interface: called on first open*/
-@@ -902,6 +914,21 @@ static int ene_set_learning_mode(void *data, int enable)
- 	return 0;
- }
- 
-+static int ene_set_carrier_report(void *data, int enable)
-+{
-+	struct ene_device *dev = (struct ene_device *)data;
-+	unsigned long flags;
-+
-+	if (enable == dev->carrier_detect_enabled)
-+		return 0;
-+
-+	spin_lock_irqsave(&dev->hw_lock, flags);
-+	dev->carrier_detect_enabled = enable;
-+	ene_rx_set_inputs(dev);
-+	spin_unlock_irqrestore(&dev->hw_lock, flags);
-+	return 0;
-+}
-+
- /* outside interface: enable or disable idle mode */
- static void ene_rx_set_idle(void *data, int idle)
- {
-@@ -1043,7 +1070,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
- 		ir_props->s_tx_carrier = ene_set_tx_carrier;
- 		ir_props->s_tx_duty_cycle = ene_set_tx_duty_cycle;
- 		ir_props->tx_resolution = sample_period * 1000;
--		/* ir_props->s_carrier_report = ene_set_carrier_report; */
-+		ir_props->s_carrier_report = ene_set_carrier_report;
- 	}
- 
- 
--- 
-1.7.0.4
+--=-fJpX0mDNNvkQyMrr2eXL
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hi,
+
+I have an HVR 950Q on my Ubuntu 2.6.32 kernel.  I have in fact tried
+several kernel versions on a couple of different machines with the same
+behaviour.
+
+What seems to be happening is that /dev/dvb/adapter0/dvr0 can be opened:
+
+open("/dev/dvb/adapter0/dvr0", O_RDONLY|O_LARGEFILE) =3D 0
+
+but a read from it never seems to return any data:
+
+read(0,=20
+[ process blocks waiting ]
+
+Nothing abnormal in dmesg:
+
+[916870.612154] usb 1-2: new high speed USB device using ehci_hcd and addre=
+ss 27
+[916870.772818] usb 1-2: configuration #1 chosen from 1 choice
+[916876.064150] au0828 driver loaded
+[916876.424163] au0828: i2c bus registered
+[916876.747481] tveeprom 4-0050: Hauppauge model 72001, rev B3F0, serial# 6=
+922999
+[916876.747487] tveeprom 4-0050: MAC address is 00-0D-FE-69-A2-F7
+[916876.747490] tveeprom 4-0050: tuner model is Xceive XC5000 (idx 150, typ=
+e 76)
+[916876.747494] tveeprom 4-0050: TV standards NTSC(M) ATSC/DVB Digital (eep=
+rom 0x88)
+[916876.747497] tveeprom 4-0050: audio processor is AU8522 (idx 44)
+[916876.747500] tveeprom 4-0050: decoder processor is AU8522 (idx 42)
+[916876.747503] tveeprom 4-0050: has no radio, has IR receiver, has no IR t=
+ransmitter
+[916876.747506] hauppauge_eeprom: hauppauge eeprom: model=3D72001
+[916876.798021] au8522 4-0047: creating new instance
+[916876.798025] au8522_decoder creating new instance...
+[916877.127635] tuner 4-0061: chip found @ 0xc2 (au0828)
+[916877.282505] xc5000 4-0061: creating new instance
+[916877.287331] xc5000: Successfully identified at address 0x61
+[916877.287336] xc5000: Firmware has not been loaded previously
+[916877.287791] au8522 4-0047: attaching existing instance
+[916877.296083] xc5000 4-0061: attaching existing instance
+[916877.300826] xc5000: Successfully identified at address 0x61
+[916877.300830] xc5000: Firmware has not been loaded previously
+[916877.300835] DVB: registering new adapter (au0828)
+[916877.300840] DVB: registering adapter 0 frontend 0 (Auvitek AU8522 QAM/8=
+VSB Frontend)...
+[916877.301421] Registered device AU0828 [Hauppauge HVR950Q]
+[916877.302825] usbcore: registered new interface driver au0828
+[916925.988585] xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.=
+fw)...
+[916925.988595] usb 1-2: firmware: requesting dvb-fe-xc5000-1.6.114.fw
+[916926.076234] xc5000: firmware read 12401 bytes.
+[916926.076238] xc5000: firmware uploading...
+[916934.265042] xc5000: firmware upload complete...
+[916934.972117] xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.=
+fw)...
+[916934.972128] usb 1-2: firmware: requesting dvb-fe-xc5000-1.6.114.fw
+[916934.994581] xc5000: firmware read 12401 bytes.
+[916934.994586] xc5000: firmware uploading...
+[916943.981063] xc5000: firmware upload complete...
+[917101.354372] xc5000: waiting for firmware upload (dvb-fe-xc5000-1.6.114.=
+fw)...
+[917101.354388] usb 1-2: firmware: requesting dvb-fe-xc5000-1.6.114.fw
+[917101.394161] xc5000: firmware read 12401 bytes.
+[917101.394165] xc5000: firmware uploading...
+[917110.813119] xc5000: firmware upload complete...
+
+This device was working just fine until I rebooted the machine it's
+usually connected to earlier today.  Now I can't seem to get it working
+anywhere.
+
+I'm at a loss where to go from here in debugging.  Any hints?
+
+Thanx,
+b.
+
+
+--=-fJpX0mDNNvkQyMrr2eXL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iEYEABECAAYFAkxx+dwACgkQl3EQlGLyuXAusQCg2yarDrcR0PinijwRexPL4sMH
+ohEAoJVbTKvj7bbq5JDSEUGns73JrWzh
+=+0Eq
+-----END PGP SIGNATURE-----
+
+--=-fJpX0mDNNvkQyMrr2eXL--
 
