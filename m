@@ -1,30 +1,76 @@
-Return-path: <bbullins@triad.rr.com>
-Received: from hrndva-omtalb.mail.rr.com ([71.74.56.122]:49729 "EHLO
-	hrndva-omtalb.mail.rr.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720Ab0HHXxJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Aug 2010 19:53:09 -0400
-Subject: pinnacle 801e help please!
-From: Ray Bullins <bbullins@triad.rr.com>
-To: linux-media@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp.nokia.com ([192.100.122.233]:39139 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753339Ab0HWGxv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Aug 2010 02:53:51 -0400
+Subject: Re: [PATCH v7 4/5] V4L2: WL1273 FM Radio: Controls for the FM
+ radio.
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext pramodh ag <pramodhag@yahoo.co.in>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>
+In-Reply-To: <555961.26177.qm@web95110.mail.in2.yahoo.com>
+References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-3-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-4-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1280758003-16118-5-git-send-email-matti.j.aaltonen@nokia.com>
+	 <555961.26177.qm@web95110.mail.in2.yahoo.com>
 Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 08 Aug 2010 19:53:04 -0400
-Message-ID: <1281311584.2803.6.camel@ray-desktop-linux>
+Date: Mon, 23 Aug 2010 09:53:37 +0300
+Message-ID: <1282546417.14489.191.camel@masi.mnp.nokia.com>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-I am new to Linux (somewhat) and I am running Linux mint 9. So far so
-good, I have replaced dreamweaver with NVU, office with open office.
-Outlook with evolution and so on. Everything is now perfect no looking
-back to windows except I just spent about 1.5 hours going through
-configuring mythtv only to find it doesn't think my pinnacle usb hd
-stick is a dvb device. So i did more research and stumbled upon all of
-your hard work and tried downloading the tar for my device but it
-wouldn't download. 2 questions 1) will this device work now 2) how do I
-implement all of you fixes in mint Linux 9 gnome running mythtv?
+Hi.
 
-thanks for any help
-Ray 
+On Fri, 2010-08-20 at 14:04 +0200, ext pramodh ag wrote:
+> Hello,
+> 
+> > +static ssize_t wl1273_fm_fops_write(struct file *file, const char __user 
+> *buf,
+> > +                    size_t count, loff_t *ppos)
+> > +{
+> > +    struct wl1273_device *radio = video_get_drvdata(video_devdata(file));
+> > +    u16 val;
+> > +    int r;
+> > +
+> > +    dev_dbg(radio->dev, "%s\n", __func__);
+> > +
+> > +    if (radio->core->mode != WL1273_MODE_TX)
+> > +        return count;
+> > +
+> > +    if (!radio->rds_on) {
+> > +        dev_warn(radio->dev, "%s: RDS not on.\n", __func__);
+> > +        return 0;
+> > +    }
+> 
+> Aren't you planning to use extended controls "V4L2_CID_RDS_TX_RADIO_TEXT", 
+> "V4L2_CID_RDS_TX_PI", etc to handle FM TX RDS data?
+
+In principle yes, but we haven't yet decided to implement those now, at
+the moment the RDS interpretation is left completely to user space
+applications.
+
+Best Regards,
+Matti
+
+> 
+> Thanks and regards,
+> Pramodh
+> 
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
