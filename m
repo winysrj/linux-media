@@ -1,39 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:62291 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752693Ab0HLHmv (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:39904 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751739Ab0HWLTl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Aug 2010 03:42:51 -0400
-Date: Thu, 12 Aug 2010 09:41:58 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Pawel Osciak <p.osciak@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] V4L/DVB: unlock on error path
-Message-ID: <20100812074158.GH645@bicker>
+	Mon, 23 Aug 2010 07:19:41 -0400
+Received: by iwn5 with SMTP id 5so3496237iwn.19
+        for <linux-media@vger.kernel.org>; Mon, 23 Aug 2010 04:19:41 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <1282537951.32217.3874.camel@pc.interlinx.bc.ca>
+References: <1282537951.32217.3874.camel@pc.interlinx.bc.ca>
+Date: Mon, 23 Aug 2010 07:19:40 -0400
+Message-ID: <AANLkTim0Gn8F9bjsnykOkfn54dajtnJRryhRQdJ76thw@mail.gmail.com>
+Subject: Re: hvr950q stopped working: read of drv0 never returns
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-If we return directly here then we miss out on some mutex_unlock()s
+On Mon, Aug 23, 2010 at 12:32 AM, Brian J. Murrell
+<brian@interlinx.bc.ca> wrote:
+> Hi,
+>
+> I have an HVR 950Q on my Ubuntu 2.6.32 kernel.  I have in fact tried
+> several kernel versions on a couple of different machines with the same
+> behaviour.
+>
+> What seems to be happening is that /dev/dvb/adapter0/dvr0 can be opened:
+>
+> open("/dev/dvb/adapter0/dvr0", O_RDONLY|O_LARGEFILE) = 0
+>
+> but a read from it never seems to return any data:
+>
+> read(0,
+> [ process blocks waiting ]
 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
+Hi Brian,
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index b151c7b..1beb226 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -822,7 +822,8 @@ static int fimc_m2m_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	} else {
- 		v4l2_err(&ctx->fimc_dev->m2m.v4l2_dev,
- 			 "Wrong buffer/video queue type (%d)\n", f->type);
--		return -EINVAL;
-+		ret = -EINVAL;
-+		goto s_fmt_out;
- 	}
- 
- 	pix = &f->fmt.pix;
+What command are you using to control the frontend?  If it's "azap",
+did you remember to specify the "-r" argument?
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
