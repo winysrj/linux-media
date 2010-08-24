@@ -1,51 +1,111 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:50491 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754809Ab0H3Iw4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Aug 2010 04:52:56 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 4/7] IR: fix keys beeing stuck down forever.
-Date: Mon, 30 Aug 2010 11:52:24 +0300
-Message-Id: <1283158348-7429-5-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
-References: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
+Received: from mx2.mail.elte.hu ([157.181.151.9]:36096 "EHLO mx2.mail.elte.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751717Ab0HXTbA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Aug 2010 15:31:00 -0400
+Date: Tue, 24 Aug 2010 21:30:39 +0200
+From: Ingo Molnar <mingo@elte.hu>
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] V4L/DVB: mantis: Fix IR_CORE dependency
+Message-ID: <20100824193039.GA20425@elte.hu>
+References: <4C643A08.3000605@redhat.com>
+ <20100824084528.GA26618@elte.hu>
+ <4C73E46B.8050203@oracle.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4C73E46B.8050203@oracle.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-The logic in ir_timer_keyup was inverted.
 
-In case that values aren't equal,
-the meaning of the time_is_after_eq_jiffies(ir->keyup_jiffies) is that
-ir->keyup_jiffies is after the the jiffies or equally that
-that jiffies are before the the ir->keyup_jiffies which is
-exactly the situation we want to avoid (that the timeout is in the future)
-Confusing Eh?
+* Randy Dunlap <randy.dunlap@oracle.com> wrote:
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/ir-keytable.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> On 08/24/10 01:45, Ingo Molnar wrote:
+> > 
+> > * Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> > 
+> >> Linus,
+> >>
+> >> Please pull from:
+> >>   ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+> >>
+> >> For 3 build fixes.
+> >>
+> >> Cheers,
+> >> Mauro.
+> >>
+> >> The following changes since commit ad41a1e0cab07c5125456e8d38e5b1ab148d04aa:
+> >>
+> >>   Merge branch 'io_remap_pfn_range' of git://www.jni.nu/cris (2010-08-12 10:17:19 -0700)
+> >>
+> >> are available in the git repository at:
+> >>
+> >>   ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+> >>
+> >> Mauro Carvalho Chehab (2):
+> >>       V4L/DVB: Fix IR_CORE dependencies
+> >>       V4L/DVB: fix Kconfig to depends on VIDEO_IR
+> >>
+> >> Randy Dunlap (1):
+> >>       V4L/DVB: v4l2-ctrls.c: needs to include slab.h
+> > 
+> > FYI, there's one more IR_CORE related build bug which triggers 
+> > frequently in randconfig tests - see the fix below.
+> > 
+> > Thanks,
+> > 
+> > 	Ingo
+> > 
+> > ------------------->
+> > From c56aef270d7ec01564c632c1f7ebab6b8f9f032c Mon Sep 17 00:00:00 2001
+> > From: Ingo Molnar <mingo@elte.hu>
+> > Date: Tue, 24 Aug 2010 10:41:33 +0200
+> > Subject: [PATCH] V4L/DVB: mantis: Fix IR_CORE dependency
+> > 
+> > This build bug triggers:
+> > 
+> >  drivers/built-in.o: In function `mantis_exit':
+> >  (.text+0x377413): undefined reference to `ir_input_unregister'
+> >  drivers/built-in.o: In function `mantis_input_init':
+> >  (.text+0x3774ff): undefined reference to `__ir_input_register'
+> > 
+> > If MANTIS_CORE is enabled but IR_CORE is not. Add the correct
+> > dependency.
+> > 
+> > Signed-off-by: Ingo Molnar <mingo@elte.hu>
+> > ---
+> >  drivers/media/dvb/mantis/Kconfig |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/dvb/mantis/Kconfig b/drivers/media/dvb/mantis/Kconfig
+> > index decdeda..fd0830e 100644
+> > --- a/drivers/media/dvb/mantis/Kconfig
+> > +++ b/drivers/media/dvb/mantis/Kconfig
+> > @@ -1,6 +1,6 @@
+> >  config MANTIS_CORE
+> >  	tristate "Mantis/Hopper PCI bridge based devices"
+> > -	depends on PCI && I2C && INPUT
+> > +	depends on PCI && I2C && INPUT && IR_CORE
+> >  
+> >  	help
+> >  	  Support for PCI cards based on the Mantis and Hopper PCi bridge.
+> 
+> 
+> Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+> http://lkml.org/lkml/2010/8/17/341
 
-diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-index 3f0dd80..b5addb8 100644
---- a/drivers/media/IR/ir-keytable.c
-+++ b/drivers/media/IR/ir-keytable.c
-@@ -319,7 +319,7 @@ static void ir_timer_keyup(unsigned long cookie)
- 	 * a keyup event might follow immediately after the keydown.
- 	 */
- 	spin_lock_irqsave(&ir->keylock, flags);
--	if (time_is_after_eq_jiffies(ir->keyup_jiffies))
-+	if (time_is_before_eq_jiffies(ir->keyup_jiffies))
- 		ir_keyup(ir);
- 	spin_unlock_irqrestore(&ir->keylock, flags);
- }
--- 
-1.7.0.4
+Your patch came first :-)
 
+Btw., the reason i missed your patch is that i grepped lkml for the 
+static build failure - while your changelog contained the modular one. 
+Oh well :)
+
+Thanks,
+
+	Ingo
