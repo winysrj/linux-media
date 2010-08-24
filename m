@@ -1,54 +1,41 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58895 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755796Ab0HCJik (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 05:38:40 -0400
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: baruch@tkos.co.il, g.liakhovetski@gmx.de, s.hauer@pengutronix.de,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>
-Subject: [PATCH 2/5] mx2_camera: remove emma limitation for RGB565
-Date: Tue,  3 Aug 2010 11:37:53 +0200
-Message-Id: <1280828276-483-3-git-send-email-m.grzeschik@pengutronix.de>
-In-Reply-To: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
-References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mx34.mail.ru ([94.100.176.48]:63591 "EHLO mx34.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753283Ab0HXNeE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Aug 2010 09:34:04 -0400
+Received: from [92.101.155.238] (port=50975 helo=localhost.localdomain)
+	by mx34.mail.ru with asmtp
+	id 1OntdZ-000ODE-00
+	for linux-media@vger.kernel.org; Tue, 24 Aug 2010 17:34:01 +0400
+Date: Tue, 24 Aug 2010 17:42:44 +0400
+From: Goga777 <goga777@bk.ru>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Hauppauge PCTV DVB-S2 STICK 460E USB 2.0
+Message-ID: <20100824174244.0d43e333@bk.ru>
+In-Reply-To: <AANLkTinWOx5vAqOqkt0-jP56rcxqy4HZ4534gb5B6CJb@mail.gmail.com>
+References: <20100823234037.2ab0a413@bk.ru>
+	<AANLkTinWOx5vAqOqkt0-jP56rcxqy4HZ4534gb5B6CJb@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-In the current source status the emma has no limitation for any PIXFMT
-since the data is parsed raw and unprocessed into the memory.
+> > does somebody work under Linux drivers for this dvb-s2 stick ?
+> >
+> 
+> Although we are not working on that one, we are about to release
+> another DVB-S/S2 USB Stick with full
+> Linux support at around the end of september.
+> 
+> http://www.sundtek.de/images/kaffeine-dvbs2.png
+> 
+> Including, MIPS (eg. Dreambox, Netgear WNDR3700, etc), ARM (various
+> NAS and Linux Router systems), PPC, X86/32/64 support and network
+> streaming capability plus official Linux support.
 
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
----
- drivers/media/video/mx2_camera.c |    8 --------
- 1 files changed, 0 insertions(+), 8 deletions(-)
+which tuner and demodulator using ?
+have you any photos ?
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index c77a673..ae27640 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -897,10 +897,6 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
- 		return -EINVAL;
- 	}
- 
--	/* eMMA can only do RGB565 */
--	if (mx27_camera_emma(pcdev) && pix->pixelformat != V4L2_PIX_FMT_RGB565)
--		return -EINVAL;
--
- 	mf.width	= pix->width;
- 	mf.height	= pix->height;
- 	mf.field	= pix->field;
-@@ -944,10 +940,6 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 
- 	/* FIXME: implement MX27 limits */
- 
--	/* eMMA can only do RGB565 */
--	if (mx27_camera_emma(pcdev) && pixfmt != V4L2_PIX_FMT_RGB565)
--		return -EINVAL;
--
- 	/* limit to MX25 hardware capabilities */
- 	if (cpu_is_mx25()) {
- 		if (xlate->host_fmt->bits_per_sample <= 8)
--- 
-1.7.1
-
+Goga
