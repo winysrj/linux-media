@@ -1,70 +1,51 @@
 Return-path: <mchehab@pedra>
-Received: from vs244178.vserver.de ([62.75.244.178]:33655 "EHLO
-	smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757191Ab0HKU4P convert rfc822-to-8bit (ORCPT
+Received: from mail.mlh-server.de ([188.40.95.206]:54517 "EHLO
+	mail.mlh-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754225Ab0HXHP7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 16:56:15 -0400
-Date: Wed, 11 Aug 2010 22:56:09 +0200
-From: Sander Eikelenboom <linux@eikelenboom.it>
-Message-ID: <1718769257.20100811225609@eikelenboom.it>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Pete Eberlein <pete@sensoray.com>, <mrechberger@gmail.com>,
-	<gregkh@suse.de>, <linux-kernel@vger.kernel.org>,
-	<linux-media@vger.kernel.org>, <linux-usb@vger.kernel.org>
-Subject: Re: [2.6.35] usb 2.0 em28xx kernel panic general protection fault:  0000 [#1] SMP RIP: 0010:[<ffffffffa004fbc5>] [<ffffffffa004fbc5>]  em28xx_isoc_copy_vbi+0x62e/0x812 [em28xx]
-In-Reply-To: <AANLkTin7JxN81tpM+=rmN6jjnOBkd6c+Cy9tx5vruSZ7@mail.gmail.com>
-References: <61936849.20100811001257@eikelenboom.it> <AANLkTinVNms-vdfG-VZzkOadogaCRV+HyDAY5yhYOJSK@mail.gmail.com> <1117369508.20100811005719@eikelenboom.it> <AANLkTikPffMQLXcPF4-xPeZfkaAtnu7xEP0TMzYVrkgE@mail.gmail.com> <1843123111.20100811092547@eikelenboom.it> <1281542325.2360.86.camel@pete-desktop> <4C62D3EE.5000907@infradead.org> <AANLkTin7JxN81tpM+=rmN6jjnOBkd6c+Cy9tx5vruSZ7@mail.gmail.com>
+	Tue, 24 Aug 2010 03:15:59 -0400
+Received: from [172.16.12.167] (188-193-154-144-dynip.superkabel.de [188.193.154.144])
+	(Authenticated sender: mail@matthias-larisch.de)
+	by mail.mlh-server.de (Postfix) with ESMTPSA id 35ABF3D40F1
+	for <linux-media@vger.kernel.org>; Tue, 24 Aug 2010 08:56:21 +0200 (CEST)
+Message-ID: <4C736D15.9000000@matthias-larisch.de>
+Date: Tue, 24 Aug 2010 08:56:21 +0200
+From: Matthias Larisch <mail@matthias-larisch.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: MSI DigiVox Trio (Analog, DVB-C, DVB-T)
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello Devin,
+Hello!
 
-Yes i can confirm it was my mistake, with video4linux2 it works.
+I recently bought a DigiVox Trio by MSI. This card contains the
+following chips:
 
---
-Sander
+nxp tda18271hdc2 (tuner)
+micronas drx 3926ka3 (demodulator, 3in1)
+em2884
+atmlh946 64c (eeprom)
+micronas avf 4910ba1
 
-Wednesday, August 11, 2010, 8:31:56 PM, you wrote:
+so it is comparable to the Terratec Cinergy HTC USB XS HD and the
+TerraTec H5.
 
-> On Wed, Aug 11, 2010 at 12:46 PM, Mauro Carvalho Chehab
-> <mchehab@infradead.org> wrote:
->> Em 11-08-2010 12:58, Pete Eberlein escreveu:
->>> On Wed, 2010-08-11 at 09:25 +0200, Sander Eikelenboom wrote:
->>>> Hello Devin,
->>>>
->>>> Yes it's completely reproducible for a change:
->>>>
->>>> ffmpeg -f video4linux -r 25 -s 720x576 -i /dev/video0 out.flv
->>>> gave an error:
->>>
->>> Use -f video4linux2.
->>>
->>> The -f video4linux option uses the old video4linux1 API.  I have seen
->>> similar strange behavior when I used that ffmpeg option with a v4l2
->>> driver I am developing.  Also, ffmpeg does not use libv4l.
->>
->> Still, we have a bug to fix. The driver shouldn't generating a PANIC if accessed
->> via V4L1 API.
+There is basically everything missing:
+-EM2884 Support
+-DRX 3926 Support
+-AVF 4910 Support
 
-> I agree with Mauro completely.  There is nothing userland should be
-> able to do which results in a panic (and I have no reason to believe
-> Pete was suggesting otherwise).  That said, it's really useful to know
-> that this is some sort of v4l1 backward compatibility problem.
+Is anyone working on any of them? I would really like to help to get
+some of this stuff working! I know how to code and have much interest in
+hardware/technology but no know how in linux-driver programming or
+tv-card programming. If there is anything I could do just tell me.
 
-> I'll see if I can reproduce this here.
+So far I'm using this card in a Windows VM and it works (more or less
+good...)
 
-> Thanks,
-
-> Devin
-
-
-
-
--- 
 Best regards,
- Sander                            mailto:linux@eikelenboom.it
 
+Matthias
