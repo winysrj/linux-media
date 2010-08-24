@@ -1,100 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:14184 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754391Ab0H3B1M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Aug 2010 21:27:12 -0400
-Date: Sun, 29 Aug 2010 21:26:37 -0400
-Subject: Re: IR code autorepeat issue?
-Message-ID: <e5clffplcfofw16tg9fp5t77.1283131265736@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Anton Blanchard <anton@samba.org>
-Cc: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Received: from as-10.de ([212.112.241.2]:36099 "EHLO mail.as-10.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751190Ab0HXIpR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Aug 2010 04:45:17 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.as-10.de (Postfix) with ESMTP id 67FDC33A687
+	for <linux-media@vger.kernel.org>; Tue, 24 Aug 2010 10:45:15 +0200 (CEST)
+Received: from mail.as-10.de ([127.0.0.1])
+	by localhost (as-10.de [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id kp9VsYbuVaKt for <linux-media@vger.kernel.org>;
+	Tue, 24 Aug 2010 10:45:15 +0200 (CEST)
+Received: from gentoo.local (pD9E3C096.dip.t-dialin.net [217.227.192.150])
+	(using TLSv1 with cipher ADH-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: web11p28)
+	by mail.as-10.de (Postfix) with ESMTPSA id 176AE33A669
+	for <linux-media@vger.kernel.org>; Tue, 24 Aug 2010 10:45:15 +0200 (CEST)
+Date: Tue, 24 Aug 2010 10:45:21 +0200
+From: Halim Sahin <halim.sahin@t-online.de>
+To: linux-media@vger.kernel.org
+Subject: bugreport: strange issues in tda8261 frontend (missing symbols
+ etc).
+Message-ID: <20100824084521.GB8417@gentoo.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-SG93IGFib3V0IGEga2V5Y29kZSBzZW5zaXRpdmUgcmVwZWF0IGRlbGF5PwpBIHNob3J0IGRlbGF5
-IGZvciB2b2wrLy0sIGNoKy8tLCBldGMuCkEgbWVkaXVtIGRlbGF5IGZvciBkaWdpdHMsIGZhc3Qg
-Zm9yd2FyZCwgcmV3aW5kLCBwYXVzZSwgcGxheSwgc3RvcCwgZXRjLgpBIGxvbmcgZGVsYXkgZm9y
-IHBvd2VyLCBtdXRlLCBldGMuCgpSZWdhcmRzLApBbmR5CgpNYXVybyBDYXJ2YWxobyBDaGVoYWIg
-PG1jaGVoYWJAaW5mcmFkZWFkLm9yZz4gd3JvdGU6Cgo+RW0gMjktMDgtMjAxMCAwMzo0MCwgQW50
-b24gQmxhbmNoYXJkIGVzY3JldmV1Ogo+PiAKPj4gSSdtIHNlZWluZyBkb3VibGUgSVIgZXZlbnRz
-IG9uIDIuNi4zNi1yYzIgYW5kIGEgRFZpQ08gRnVzaW9uSERUViBEVkItVCBEdWFsCj4+IEV4cHJl
-c3MuIEkgZW5hYmxlZCBzb21lIGRlYnVnIGFuZCBpdCBsb29rcyBsaWtlIHdlIGFyZSBvbmx5IGdl
-dHRpbmcgb25lIElSCj4+IGV2ZW50IGZyb20gdGhlIGRldmljZSBhcyBleHBlY3RlZDoKPj4gCj4+
-IFsgMTM1MS4wMzIwODRdIGlyX2tleWRvd246IGkyYyBJUiAoRnVzaW9uSERUVik6IGtleSBkb3du
-IGV2ZW50LCBrZXkgMHgwMDY3LCBzY2FuY29kZSAweDAwNTEKPj4gWyAxMzUxLjI4MTI4NF0gaXJf
-a2V5dXA6IGtleXVwIGtleSAweDAwNjcKPj4gCj4+IGllIG9uZSBrZXkgZG93biBldmVudCBhbmQg
-b25lIGtleSB1cCBldmVudCAyNTBtcyBsYXRlci4gSSB3b25kZXIgaWYgdGhlIGlucHV0Cj4+IGxh
-eWVyIHNvZnR3YXJlIGF1dG9yZXBlYXQgaXMgdGhlIGN1bHByaXQuIEl0IHNlZW1zIHRvIHNldCBh
-dXRvcmVwZWF0IHRvIHN0YXJ0Cj4+IGF0IDI1MG1zOgo+PiAKPj4gICAgICAgICAvKgo+PiAgICAg
-ICAgICAqIElmIGRlbGF5IGFuZCBwZXJpb2QgYXJlIHByZS1zZXQgYnkgdGhlIGRyaXZlciwgdGhl
-biBhdXRvcmVwZWF0aW5nCj4+ICAgICAgICAgICogaXMgaGFuZGxlZCBieSB0aGUgZHJpdmVyIGl0
-c2VsZiBhbmQgd2UgZG9uJ3QgZG8gaXQgaW4gaW5wdXQuYy4KPj4gICAgICAgICAgKi8KPj4gICAg
-ICAgICBpbml0X3RpbWVyKCZkZXYtPnRpbWVyKTsKPj4gICAgICAgICBpZiAoIWRldi0+cmVwW1JF
-UF9ERUxBWV0gJiYgIWRldi0+cmVwW1JFUF9QRVJJT0RdKSB7Cj4+ICAgICAgICAgICAgICAgICBk
-ZXYtPnRpbWVyLmRhdGEgPSAobG9uZykgZGV2Owo+PiAgICAgICAgICAgICAgICAgZGV2LT50aW1l
-ci5mdW5jdGlvbiA9IGlucHV0X3JlcGVhdF9rZXk7Cj4+ICAgICAgICAgICAgICAgICBkZXYtPnJl
-cFtSRVBfREVMQVldID0gMjUwOwo+PiAgICAgICAgICAgICAgICAgZGV2LT5yZXBbUkVQX1BFUklP
-RF0gPSAzMzsKPj4gICAgICAgICB9Cj4+IAo+PiBJZiBJIHNob3J0ZW4gdGhlIElSIGtleSB1cCBl
-dmVudHMgdG8gMTAwbXMgdmlhIHRoZSBwYXRjaCBiZWxvdyB0aGUgcHJvYmxlbQo+PiBnb2VzIGF3
-YXkuIEkgZ3Vlc3MgdGhlIG90aGVyIG9wdGlvbiB3b3VsZCBiZSB0byBpbml0aWFsaXNlIFJFUF9E
-RUxBWSBhbmQKPj4gUkVQX1BFUklPRCBzbyB0aGUgaW5wdXQgbGF5ZXIgYXV0b3JlcGVhdCBkb2Vz
-bid0IGN1dCBpbiBhdCBhbGwuIFRob3VnaHRzPwo+Cj4+IEFudG9uCj4+IC0tCj4+IAo+PiBkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9JUi9pci1rZXl0YWJsZS5jIGIvZHJpdmVycy9tZWRpYS9J
-Ui9pci1rZXl0YWJsZS5jCj4+IGluZGV4IDdlODJhOWQuLmNmNDRkNWEgMTAwNjQ0Cj4+IC0tLSBh
-L2RyaXZlcnMvbWVkaWEvSVIvaXIta2V5dGFibGUuYwo+PiArKysgYi9kcml2ZXJzL21lZGlhL0lS
-L2lyLWtleXRhYmxlLmMKPj4gQEAgLTIyLDcgKzIyLDcgQEAKPj4gICNkZWZpbmUgSVJfVEFCX01B
-WF9TSVpFCTgxOTIKPj4gIAo+PiAgLyogRklYTUU6IElSX0tFWVBSRVNTX1RJTUVPVVQgc2hvdWxk
-IGJlIHByb3RvY29sIHNwZWNpZmljICovCj4+IC0jZGVmaW5lIElSX0tFWVBSRVNTX1RJTUVPVVQg
-MjUwCj4+ICsjZGVmaW5lIElSX0tFWVBSRVNTX1RJTUVPVVQgMTAwCj4KPlllcywgMjUwbXMgaXMg
-dG9vIGhpZ2gsIGlmIHdlIHdhbnQgdG8gdXNlIFJFUF9ERUxBWSA9IDI1MG1zLgo+Cj5UaGVyZSdz
-IG9uZSBpc3N1ZSBvbiB0b3VjaGluZyBvbiB0aGlzIGNvbnN0YW50OiBpdCBpcyBjdXJyZW50bHkg
-anVzdCBvbmUgZ2xvYmFsIAo+dGltZW91dCB2YWx1ZSB0aGF0IHdpbGwgYmUgdXNlZCBieSBhbGwg
-cHJvdG9jb2xzLiBUaGlzIHRpbWVvdXQgc2hvdWxkIGJlIGVub3VnaCB0bwo+cmV0cmlldmUgYW5k
-IHByb2NjZXNzIHRoZSByZXBlYXQga2V5IGV2ZW50IG9uIGFsbCBwcm90b2NvbHMsIGFuZCBvbiBh
-bGwgZGV2aWNlcywgb3IgCj53ZSdsbCBuZWVkIHRvIGRvIGEgcGVyLXByb3RvY29sIChhbmQgZXZl
-bnR1YWxseSBwZXIgZGV2aWNlKSB0aW1lb3V0IGluaXQuIEZyb20gCj5odHRwOi8vd3d3LnNicHJv
-amVjdHMuY29tL2tub3dsZWRnZS9pci9pci5odG0sIHdlIHNlZSB0aGF0IE5FQyBwcm9jb2NvbCB1
-c2VzIDExMCBtcwo+Zm9yIHJlcGVhdCBjb2RlLCBhbmQgd2UgbmVlZCBzb21lIGFkaXRpb25hbCB0
-aW1lIHRvIHdha2UgdXAgdGhlIGRlY29kaW5nIHRhc2suIEknZAo+c2F5IHRoYXQgYW55dGhpbmcg
-bG93ZXIgdGhhbiAxNTAtMTgwbXMgd291bGQgcmlzayB0byBub3QgZGVjb2RlIHJlcGVhdCBldmVu
-dHMgd2l0aAo+TkVDLgo+Cj5JIGdvdCBleGFjdGx5IHRoZSBzYW1lIHByb2JsZW0gd2hlbiBhZGRp
-bmcgUkMgQ09SRSBzdXBwb3J0IGF0IHRoZSBkaWIwNzAwIGRyaXZlci4gQXQKPnRoYXQgZHJpdmVy
-LCB0aGVyZSdzIGFuIGFkZGl0aW9uYWwgdGltZSBvZiBzZW5kaW5nL3JlY2VpdmluZyBVUkIncyBm
-cm9tIFVTQi4gU28sIHdlCj5wcm9iYWJseSBuZWVkIGEgaGlnaGVyIHRpbWVvdXQuIEV2ZW4gc28s
-IEkgdHJpZWQgdG8gcmVkdWNlIHRoZSB0aW1lb3V0IHRvIDIwMG1zIG9yIDE1MG1zIAo+KG5vdCBz
-dXJlKSwgYnV0IGl0IGRpZG4ndCB3b3JrLiBTbywgSSBlbmRlZCBieSBqdXN0IHBhdGNoaW5nIHRo
-ZSBkaWJjb20gZHJpdmVyIHRvIGRvIAo+ZGV2LT5yZXBbUkVQX0RFTEFZXSA9IDUwMDoKPgo+Y29t
-bWl0IDhkYzA5MDA0OTc4NTM4ZDIxMWNjYzM2YjUwNDY5MTk0ODllMzBhNTUKPkF1dGhvcjogTWF1
-cm8gQ2FydmFsaG8gQ2hlaGFiIDxtY2hlaGFiQHJlZGhhdC5jb20+Cj5EYXRlOiAgIFNhdCBKdWwg
-MzEgMjM6Mzc6MTkgMjAxMCAtMDMwMAo+Cj4gICAgVjRML0RWQjogZGliMDcwMDogYXZvaWQgYmFk
-IHJlcGVhdAo+ICAgIAo+ICAgIGEgMjUwbXMgZGVsYXkgaXMgdG9vIGxvdyBmb3IgdGhpcyBkZXZp
-Y2UuIEl0IGVuZHMgYnkgcHJvZHVjaW5nIGZhbHNlCj4gICAgcmVwZWF0IGV2ZW50cy4gSW5jcmVh
-c2UgdGhlIGRlbGF5IHRpbWUgdG8gNTAwIG1zIHRvIGF2b2lkIHRyb3VibGVzLgo+ICAgIAo+ICAg
-IFNpZ25lZC1vZmYtYnk6IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bWNoZWhhYkByZWRoYXQuY29t
-Pgo+Cj5kaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIwNzAwX2NvcmUu
-YyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGliMDcwMF9jb3JlLmMKPmluZGV4IDE2NGZh
-OWMuLmEwNWQ5NTUgMTAwNjQ0Cj4tLS0gYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3
-MDBfY29yZS5jCj4rKysgYi9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfY29yZS5j
-Cj5AQCAtNjQ4LDYgKzY0OCw5IEBAIHN0YXRpYyBpbnQgZGliMDcwMF9wcm9iZShzdHJ1Y3QgdXNi
-X2ludGVyZmFjZSAqaW50ZiwKPiAgICAgICAgICAgICAgICAgICAgICAgIGVsc2UKPiAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgZGV2LT5wcm9wcy5yYy5jb3JlLmJ1bGtfbW9kZSA9IGZh
-bHNlOwo+IAo+KyAgICAgICAgICAgICAgICAgLyogTmVlZCBhIGhpZ2hlciBkZWxheSwgdG8gYXZv
-aWQgd3JvbmcgcmVwZWF0ICovCj4rICAgICAgICAgICAgICAgICBkZXYtPnJjX2lucHV0X2Rldi0+
-cmVwW1JFUF9ERUxBWV0gPSA1MDA7Cj4rCj4gICAgICAgICAgICAgICAgICAgICAgICBkaWIwNzAw
-X3JjX3NldHVwKGRldik7Cj4KPk1heWJlIHRoZSBiZXR0ZXIgc29sdXRpb24gaXMgdG8gdXNlLCBi
-eSBkZWZhdWx0Ogo+CXJjX2lucHV0X2Rldi0+cmVwW1JFUF9ERUxBWV0gPSA1MDA7Cj4JI2RlZmlu
-ZSBJUl9LRVlQUkVTU19USU1FT1VUIDI1MAo+Cj5BbmQsIGV2ZW50dWFsbHksIGFkZGluZyBhIHBh
-dGNoIHRvIGFsbG93IGNoYW5naW5nIGl0IHBlciBkZXZpY2UuCj4KPlRoYXQncyBzYWlkLCBJTUhP
-LCA1MDBtcyBpcyBhIHZlcnkgcmVhc29uYWJsZSB0aW1lIGZvciBzdGFydGluZyByZXBlYXQgd2l0
-aCByZW1vdGVzLiAKPk9waW5pb25zPwo+Cj5DaGVlcnMsCj5NYXVyby4KPi0tCj5UbyB1bnN1YnNj
-cmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVk
-aWEiIGluCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9y
-Zwo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRv
-bW8taW5mby5odG1sCg==
+Hi List,
+1. The module adds 
+MODULE_PARM_DESC(verbose, "Set verbosity level");
+but doesn't declare the needed variables or uses this parameter
+somewhere.
+This ends in missing symbol when trying to specify that parameter when
+loading the frontend.
+
+2. The module logs many lines when tuning to a new channel.
+This results in fast growing big logs in /var/log (several mb's ad a
+day).
+
+Here some lines of the log:
+Aug 24 07:23:57 vdr kernel: [44045.944177] tda8261_get_frequency: Frequency=1880000
+Aug 24 07:23:57 vdr kernel: [44045.952037] tda8261_get_bandwidth: Bandwidth=40000000
+Aug 24 07:24:04 vdr kernel: [44052.132637] tda8261_get_bandwidth: Bandwidth=40000000
+Aug 24 07:24:04 vdr kernel: [44052.136747] tda8261_get_bandwidth: Bandwidth=40000000
+Aug 24 07:24:04 vdr kernel: [44052.138596] tda8261_set_state: Step size=1, Divider=1000, PG=0x798 (1944)
+Aug 24 07:24:04 vdr kernel: [44052.138883] tda8261_set_state: Waiting to Phase LOCK
+Aug 24 07:24:04 vdr kernel: [44052.160156] tda8261_get_status: Tuner Phase Locked
+Aug 24 07:24:04 vdr kernel: [44052.160163] tda8261_set_state: Tuner Phase locked: status=1
+Aug 24 07:24:04 vdr kernel: [44052.160168] tda8261_set_frequency: Frequency=1944000
+Aug 24 07:24:04 vdr kernel: [44052.160173] tda8261_get_frequency: Frequency=1944000
+Aug 24 07:24:04 vdr kernel: [44052.168031] tda8261_get_bandwidth: Bandwidth=40000000
+Aug 24 07:24:09 vdr kernel: [44057.016717] tda8261_get_bandwidth: Bandwidth=40000000
+Aug 24 07:24:09 vdr kernel: [44057.021165] tda8261_get_bandwidth: Bandwidth=40000000
+Aug 24 07:24:09 vdr kernel: [44057.023052] tda8261_set_state: Step size=1, Divider=1000, PG=0x60c (1548)
+Aug 24 07:24:09 vdr kernel: [44057.023305] tda8261_set_state: Waiting to Phase LOCK
+Aug 24 07:24:09 vdr kernel: [44057.044169] tda8261_get_status: Tuner Phase Locked
+Aug 24 07:24:09 vdr kernel: [44057.044177] tda8261_set_state: Tuner Phase locked: status=1
+Aug 24 07:24:09 vdr kernel: [44057.044182] tda8261_set_frequency: Frequency=1548000
+Aug 24 07:24:09 vdr kernel: [44057.044187] tda8261_get_frequency: Frequency=1548000
+Aug 24 07:24:09 vdr kernel: [44057.053034] tda8261_get_bandwidth: Bandwidth=40000000
+
+Kernel 2.6.34 was used on that system.
+Thx.
+Halim
+
 
