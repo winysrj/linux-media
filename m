@@ -1,124 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2757 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751556Ab0HWSRd (ORCPT
+Received: from smtp22.services.sfr.fr ([93.17.128.12]:61299 "EHLO
+	smtp22.services.sfr.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754621Ab0HXJu6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Aug 2010 14:17:33 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7NIHWU5045589
-	for <linux-media@vger.kernel.org>; Mon, 23 Aug 2010 20:17:32 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 23 Aug 2010 20:17:32 +0200 (CEST)
-Message-Id: <201008231817.o7NIHWU5045589@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Tue, 24 Aug 2010 05:50:58 -0400
+Received: from filter.sfr.fr (localhost [127.0.0.1])
+	by msfrf2211.sfr.fr (SMTP Server) with ESMTP id D32C570000A1
+	for <linux-media@vger.kernel.org>; Tue, 24 Aug 2010 11:50:53 +0200 (CEST)
+Received: from smtp-in.softsystem.co.uk (unknown [93.5.34.224])
+	by msfrf2211.sfr.fr (SMTP Server) with SMTP id 45DB670000A2
+	for <linux-media@vger.kernel.org>; Tue, 24 Aug 2010 11:50:49 +0200 (CEST)
+Received: FROM [192.168.1.62] (gagarin [192.168.1.62])
+	BY smtp-in.softsystem.co.uk [93.5.34.224] (SoftMail 1.0.5, www.softsystem.co.uk) WITH ESMTP
+	FOR <linux-media@vger.kernel.org>; Tue, 24 Aug 2010 11:50:49 +0200
+Subject: [PATCH] cx88: Kconfig: Remove EXPERIMENTAL dependency from
+ VIDEO_CX88_ALSA
+From: lawrence rust <lawrence@softsystem.co.uk>
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 24 Aug 2010 11:50:48 +0200
+Message-ID: <1282643448.1381.15.camel@gagarin>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+The cx88-alsa module has been around since January 2006 and has seen no
+significant changes since September 2007.  It is stable in operation
+and so I believe that the 'experimental' tag is no longer warranted.
+---
+ drivers/media/video/cx88/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Results of the daily build of v4l-dvb:
+diff --git a/drivers/media/video/cx88/Kconfig b/drivers/media/video/cx88/Kconfig
+index c7e5851..f5e64f1 100644
+--- a/drivers/media/video/cx88/Kconfig
++++ b/drivers/media/video/cx88/Kconfig
+@@ -17,7 +17,7 @@ config VIDEO_CX88
+ 
+ config VIDEO_CX88_ALSA
+ 	tristate "Conexant 2388x DMA audio support"
+-	depends on VIDEO_CX88 && SND && EXPERIMENTAL
++	depends on VIDEO_CX88 && SND
+ 	select SND_PCM
+ 	---help---
+ 	  This is a video4linux driver for direct (DMA) audio on
+-- 
+1.7.0.4
 
-date:        Mon Aug 23 19:00:22 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15127:9ac667311552
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
 
-linux-2.6.32.6-armv5: ERRORS
-linux-2.6.33-armv5: ERRORS
-linux-2.6.34-armv5: ERRORS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: ERRORS
-linux-2.6.25.20-i686: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: ERRORS
-linux-2.6.31.12-i686: ERRORS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: ERRORS
-linux-2.6.34-i686: ERRORS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: ERRORS
-linux-2.6.33-m32r: ERRORS
-linux-2.6.34-m32r: ERRORS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: ERRORS
-linux-2.6.34-mips: ERRORS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: ERRORS
-linux-2.6.34-powerpc64: ERRORS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: ERRORS
-linux-2.6.25.20-x86_64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: ERRORS
-linux-2.6.31.12-x86_64: ERRORS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: ERRORS
-linux-2.6.34-x86_64: ERRORS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
 
-Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
