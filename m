@@ -1,41 +1,28 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:35897 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932070Ab0HCOv6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 10:51:58 -0400
-Received: by fxm14 with SMTP id 14so2017507fxm.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Aug 2010 07:51:57 -0700 (PDT)
-Date: Tue, 3 Aug 2010 16:46:16 +0200
-From: Richard Zidlicky <rz@linux-m68k.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, udia@siano-ms.com,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge
-	WinTV MiniStick
-Message-ID: <20100803144616.GA14809@linux-m68k.org>
-References: <cover.1280693675.git.mchehab@redhat.com> <20100801171718.5ad62978@pedra> <20100802072711.GA5852@linux-m68k.org> <4C577888.30408@redhat.com> <20100803130552.GA9954@linux-m68k.org> <4C581A5F.5020403@redhat.com>
-MIME-Version: 1.0
+Return-path: <mchehab@pedra>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:40943 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752232Ab0HXA1n convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Aug 2010 20:27:43 -0400
+Received: by qyk9 with SMTP id 9so3220086qyk.19
+        for <linux-media@vger.kernel.org>; Mon, 23 Aug 2010 17:27:42 -0700 (PDT)
+From: Tiago Pierezan Camargo <tcamargo@gmail.com>
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C581A5F.5020403@redhat.com>
-Sender: linux-media-owner@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Subject: Hauppauge WinTV HVR-1200 dvb-c?
+Date: Mon, 23 Aug 2010 21:27:35 -0300
+Message-Id: <34C88E37-B6AD-4DEC-91E4-7B666E8380EE@gmail.com>
+To: linux-media@vger.kernel.org
+Mime-Version: 1.0 (Apple Message framework v1081)
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Tue, Aug 03, 2010 at 10:32:15AM -0300, Mauro Carvalho Chehab wrote:
+Hi,
 
-> The model number is on a label at the back of the stick (at least, mine have it).
+Does anybody know if the Hauppauge WinTV HVR-1200 supports dvb-c?
+The wiki says so, but it is listed as a dvb-t only device on hauppauge website.
 
-ah.. I was wondering whichever magical tool you are using. So here is my number:
-55009 LF Rev A1F7
+http://linuxtv.org/wiki/index.php/DVB-C_PCIe_Cards#Card_Fully_Supported:
 
-
-> Btw, you don't need to use lirc if all you want is to replace the IR keycodes. You can use, instead,
-> the ir-keycode program, available at http://git.linuxtv.org/v4l-utils.git. There are several keycode
-> tables already mapped there. Of course, lirc offers some extra features.
-
-thanks for the tipps.. the userspace configuration seems more confusing than the kernel
-internals. So far I get keycodes that work nicely in an xterm and for controling firefox
-but not much else.
-
-
-Richard
+Thanks
+Tiago
