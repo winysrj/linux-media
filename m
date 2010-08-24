@@ -1,85 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:38111 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1755306Ab0H0TQH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 15:16:07 -0400
-Date: Fri, 27 Aug 2010 21:16:26 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: lawrence rust <lawrence@softsystem.co.uk>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH/RFC] V4L2: add a generic function to find the nearest
- discrete format
-In-Reply-To: <201008071655.13146.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1008272110000.28043@axis700.grange>
-References: <Pine.LNX.4.64.1008051959330.26127@axis700.grange>
- <1281174446.1363.104.camel@gagarin> <Pine.LNX.4.64.1008071512470.3798@axis700.grange>
- <201008071655.13146.laurent.pinchart@ideasonboard.com>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:50464 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933399Ab0HXXCD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Aug 2010 19:02:03 -0400
+Subject: [PATCH 0/3] Proposed ir-core (rc-core) changes
+To: mchehab@infradead.org
+From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
+Cc: jarod@redhat.com, linux-media@vger.kernel.org
+Date: Wed, 25 Aug 2010 01:01:57 +0200
+Message-ID: <20100824225427.13006.57226.stgit@localhost.localdomain>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sat, 7 Aug 2010, Laurent Pinchart wrote:
+The following series merges the different files that currently make up
+the ir-core module into a single-file rc-core module.
 
-> Hi Guennadi,
-> 
-> On Saturday 07 August 2010 15:20:58 Guennadi Liakhovetski wrote:
-> > On Sat, 7 Aug 2010, lawrence rust wrote:
-> 
-> [snip]
-> 
-> > > A mean squared error metric such as hypot() could be better but requires
-> > > FP.  An integer only version wouldn't be too difficult.
-> > 
-> > No FP in the kernel. And I don't think this simple task justifies any
-> > numerical acrobatic. But we can just compare x^2 + y^2 - without an sqrt.
-> > Is it worth it?
-> 
-> What about comparing areas ? The uvcvideo driver does (rw and rh are the 
-> request width and request height, format is a structure containing an array of 
-> supported sizes)
-> 
->         /* Find the closest image size. The distance between image sizes is
->          * the size in pixels of the non-overlapping regions between the
->          * requested size and the frame-specified size.
->          */
+In addition, the ir_input_dev and ir_dev_props structs are replaced
+by a single rc_dev struct with an API similar to that of the input
+subsystem.
 
-Well, nice, but, tbh, I have no idea what's better. With your metric 
-640x489 is further from 640x480 than 650x480, with my it's the other way 
-round. Which one is better? What we can do, if this really is important, 
-we could make a callback for user-provided metric function... Shall we?
+This allows the removal of all knowledge of any input devices from the
+rc drivers and paves the way for allowing multiple input devices per
+rc device in the future. The namespace conversion from ir_* to rc_*
+should mostly be done for the drivers with this patchset.
 
-Thanks
-Guennadi
+I have intentionally not signed off on the patches yet since they haven't
+been tested. I'd like your feedback on the general approach before I spend
+the time to properly test the result.
 
->         rw = fmt->fmt.pix.width;
->         rh = fmt->fmt.pix.height;
->         maxd = (unsigned int)-1;
-> 
->         for (i = 0; i < format->nframes; ++i) {
->                 __u16 w = format->frame[i].wWidth;
->                 __u16 h = format->frame[i].wHeight;
-> 
->                 d = min(w, rw) * min(h, rh);
->                 d = w*h + rw*rh - 2*d;
->                 if (d < maxd) {
->                         maxd = d;
->                         frame = &format->frame[i];
->                 }
-> 
->                 if (maxd == 0)
->                         break;
->         }
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
+Also, the imon driver is not converted (and will thus break with this
+patchset). The reason is that the imon driver wants to generate mouse
+events on the input dev under the control of rc-core. I was hoping that
+Jarod would be willing to convert the imon driver to create a separate
+input device for sending mouse events to userspace :)
+
+Comments please...
 
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+David Härdeman (3):
+      merge rc-core
+      remove remaining users of the ir-functions keyhandlers
+      make rc_dev the primary interface for remote control drivers
+
+
+ drivers/media/IR/Makefile                   |    3 
+ drivers/media/IR/ir-core-priv.h             |   26 -
+ drivers/media/IR/ir-functions.c             |   96 --
+ drivers/media/IR/ir-jvc-decoder.c           |   13 
+ drivers/media/IR/ir-keytable.c              |  552 ------------
+ drivers/media/IR/ir-lirc-codec.c            |   75 +-
+ drivers/media/IR/ir-nec-decoder.c           |   13 
+ drivers/media/IR/ir-raw-event.c             |  270 ------
+ drivers/media/IR/ir-rc5-decoder.c           |   13 
+ drivers/media/IR/ir-rc6-decoder.c           |   17 
+ drivers/media/IR/ir-sony-decoder.c          |   11 
+ drivers/media/IR/ir-sysfs.c                 |  354 --------
+ drivers/media/IR/mceusb.c                   |   99 +-
+ drivers/media/IR/rc-core.c                  | 1206 +++++++++++++++++++++++++++
+ drivers/media/IR/rc-map.c                   |   84 --
+ drivers/media/dvb/dm1105/dm1105.c           |   45 +
+ drivers/media/dvb/mantis/mantis_common.h    |    4 
+ drivers/media/dvb/mantis/mantis_input.c     |   61 +
+ drivers/media/dvb/ttpci/budget-ci.c         |   49 -
+ drivers/media/video/bt8xx/bttv-input.c      |   67 +-
+ drivers/media/video/bt8xx/bttvp.h           |    1 
+ drivers/media/video/cx18/cx18-i2c.c         |    1 
+ drivers/media/video/cx23885/cx23885-input.c |   93 --
+ drivers/media/video/cx88/cx88-input.c       |   86 +-
+ drivers/media/video/em28xx/em28xx-input.c   |   71 +-
+ drivers/media/video/ir-kbd-i2c.c            |   41 -
+ drivers/media/video/ivtv/ivtv-i2c.c         |    3 
+ drivers/media/video/saa7134/saa7134-input.c |  121 +--
+ include/media/ir-common.h                   |   32 -
+ include/media/ir-core.h                     |  155 ++-
+ include/media/ir-kbd-i2c.h                  |    5 
+ 31 files changed, 1655 insertions(+), 2012 deletions(-)
+ delete mode 100644 drivers/media/IR/ir-keytable.c
+ delete mode 100644 drivers/media/IR/ir-raw-event.c
+ delete mode 100644 drivers/media/IR/ir-sysfs.c
+ create mode 100644 drivers/media/IR/rc-core.c
+ delete mode 100644 drivers/media/IR/rc-map.c
+
