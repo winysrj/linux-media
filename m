@@ -1,26 +1,38 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:53054 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754004Ab0HDPpp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 11:45:45 -0400
-Received: by qwh6 with SMTP id 6so3098355qwh.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Aug 2010 08:45:44 -0700 (PDT)
-Subject: dvbt siano sms1140
-From: hmd <tambatux@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 04 Aug 2010 20:15:32 +0430
-Message-ID: <1280936732.7266.2.camel@HDtv>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mail-in-02.arcor-online.net ([151.189.21.42]:43127 "EHLO
+	mail-in-02.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751717Ab0HXTgQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Aug 2010 15:36:16 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH 1/2] tm6000: bugfix param string
+Date: Tue, 24 Aug 2010 21:36:09 +0200
+Message-Id: <1282678570-13462-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi all 
-i have a dvbt madule with sms1140 siano chip
-i try to download  its firmware from
-http://www.steventoth.net/linux/sms1xxx/sms1xxx-hcw-55xxx-dvbt-03.fw
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-but seems the link is not working
-can anyone send it to me?
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-input.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/staging/tm6000/tm6000-input.c b/drivers/staging/tm6000/tm6000-input.c
+index 32f7a0a..7b07096 100644
+--- a/drivers/staging/tm6000/tm6000-input.c
++++ b/drivers/staging/tm6000/tm6000-input.c
+@@ -36,7 +36,7 @@ MODULE_PARM_DESC(ir_debug, "enable debug message [IR]");
+ 
+ static unsigned int enable_ir = 1;
+ module_param(enable_ir, int, 0644);
+-MODULE_PARM_DESC(enable_ir, "enable ir (default is enable");
++MODULE_PARM_DESC(enable_ir, "enable ir (default is enable)");
+ 
+ #undef dprintk
+ 
+-- 
+1.7.1
 
