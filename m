@@ -1,47 +1,89 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:35378 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090Ab0HBHaT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 03:30:19 -0400
-Received: by bwz1 with SMTP id 1so1300416bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Aug 2010 00:30:18 -0700 (PDT)
-Date: Mon, 2 Aug 2010 09:27:11 +0200
-From: Richard Zidlicky <rz@linux-m68k.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, udia@siano-ms.com
-Subject: Re: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge
-	WinTV MiniStick
-Message-ID: <20100802072711.GA5852@linux-m68k.org>
-References: <cover.1280693675.git.mchehab@redhat.com> <20100801171718.5ad62978@pedra>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100801171718.5ad62978@pedra>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from psmtp31.wxs.nl ([195.121.247.33]:37833 "EHLO psmtp31.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752664Ab0HXUEb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Aug 2010 16:04:31 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp31.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L7O00DY0AFFTR@psmtp31.wxs.nl> for linux-media@vger.kernel.org;
+ Tue, 24 Aug 2010 22:04:28 +0200 (CEST)
+Date: Tue, 24 Aug 2010 22:04:25 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: V4L hg tree fails to compile against kernel 2.6.28
+In-reply-to: <AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Cc: VDR User <user.vdr@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-id: <4C7425C9.1010908@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
+ <AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
+ <4C581BB6.7000303@redhat.com>
+ <AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
+ <AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
+ <AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
+ <AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sun, Aug 01, 2010 at 05:17:18PM -0300, Mauro Carvalho Chehab wrote:
-> Add the proper gpio port for WinTV MiniStick, with the information provided
-> by Michael.
+Douglas:
+
+On compiling with  Linux  2.6.28-19-generic #62-Ubuntu
+
+I now get:
+
+dvb_demux.c: In function 'dvbdmx_write':
+dvb_demux.c:1137: error: implicit declaration of function 'memdup_user'
+dvb_demux.c:1137: warning: assignment makes pointer from integer without 
+a cast
+
+This is probably due to changeset 2ceef3d75547
+
+which introduced the use of this function:
+http://linuxtv.org/hg/v4l-dvb/diff/2ceef3d75547/linux/drivers/media/dvb/dvb-core/dvb_demux.c
+
+This function is not available in linux/string.h in kernel 2.6.29 and lower.
+
+http://lxr.free-electrons.com/source/include/linux/string.h?v=2.6.28
+
+Could you please advise me on what to do ?
+
+
+Douglas Schilling Landgraf wrote:
+> Hello Derek,
 > 
-> Thanks-to: Michael Krufky <mkrufky@kernellabs.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> On Sun, Aug 15, 2010 at 2:22 AM, Douglas Schilling Landgraf
+> <dougsland@gmail.com> wrote:
+>> Hello Derek,
+>>
+>> On Sat, Aug 14, 2010 at 12:46 PM, VDR User <user.vdr@gmail.com> wrote:
+>>> On Wed, Aug 4, 2010 at 10:19 PM, Douglas Schilling Landgraf
+>>> <dougsland@gmail.com> wrote:
+>>>> I am already working to give a full update to hg tree. Sorry this problem.
+>>> Hi Douglas.  Any estimate when this will be fixed?  Was hoping it was
+>>> already since new stable kernel 2.6.35.2 is out now but still the same
+>>> problem when I tried just now.
+>> I am already working on it this weekend. I will reply this thread when finished.
 > 
-> diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
-> index cff77e2..dcde606 100644
-> --- a/drivers/media/dvb/siano/sms-cards.c
-> +++ b/drivers/media/dvb/siano/sms-cards.c
-> @@ -67,6 +67,7 @@ static struct sms_board sms_boards[] = {
->  		.board_cfg.leds_power = 26,
->  		.board_cfg.led0 = 27,
->  		.board_cfg.led1 = 28,
-> +		.board_cfg.ir = 9,
-                               ^^^^
+> 2.6.35 should be working, let me know if not. Now, I need to backport
+> the changes to old kernels
+> and commit other patches in my pending list.
+> 
+> Cheers
+> Douglas
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-are you sure about this?
 
-I am using the value of 4 for the ir port and it definitely works.. confused.
-
-Thanks for looking at it, will test the patches as soon as I can.
-
-Richard
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
