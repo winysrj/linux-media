@@ -1,121 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.105.134]:54840 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753509Ab0HZJCn (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:39980 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752474Ab0HYT0z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 05:02:43 -0400
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	eduardo.valentin@nokia.com, mchehab@redhat.com
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH v8 0/5] TI WL1273 FM Radio driver.
-Date: Thu, 26 Aug 2010 12:02:13 +0300
-Message-Id: <1282813338-13882-1-git-send-email-matti.j.aaltonen@nokia.com>
+	Wed, 25 Aug 2010 15:26:55 -0400
+Received: by iwn5 with SMTP id 5so829066iwn.19
+        for <linux-media@vger.kernel.org>; Wed, 25 Aug 2010 12:26:54 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4C74B78B.3020101@hoogenraad.net>
+References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
+	<AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
+	<4C581BB6.7000303@redhat.com>
+	<AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
+	<AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
+	<AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
+	<AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com>
+	<4C7425C9.1010908@hoogenraad.net>
+	<AANLkTinA1r87W+4J=MRV5i6M6BD-c+KTWnYqyBd7WCQA@mail.gmail.com>
+	<4C74B78B.3020101@hoogenraad.net>
+Date: Wed, 25 Aug 2010 16:26:54 -0300
+Message-ID: <AANLkTim3bq6h-oFY+TKoog-TKOzQ-w4MR0CVdcL4OjcD@mail.gmail.com>
+Subject: Re: V4L hg tree fails to compile against kernel 2.6.28
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	VDR User <user.vdr@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello,
+Hello Jan,
 
-and thank you for the comments.
-
-The audio codec has been accepted on the ALSA list...
-
-I've converted the driver to the new control framework
-as Hans strongly suggested. 
-
-P.S. I thought that I sent the patches on the day I created them,
-but something clearly went wrong here...
-
-Hans wrote:
-> Use ERANGE instead of EDOM. EDOM is for math functions only.
-
-Changed EDOM to ERANGE.
-
->> +     if (r)
->> +             core->mode = old_mode ;
+On Wed, Aug 25, 2010 at 3:26 AM, Jan Hoogenraad
+<jan-conceptronic@hoogenraad.net> wrote:
+> Thanks for your help. I pulled the code
 >
-> Remove space before ';'.
-
-Space removed...
-
-
->> +     if (radio->rds_on) {
->> +             if (mutex_lock_interruptible(&core->lock))
->> +                     return -EINTR;
->> +
->> +             core->irq_flags &= ~WL1273_RDS_EVENT;
+> Actually, now the function definition in compat.h causes a compilation
+> error: see first text below.
 >
-> This is dangerous: you probably want to use a usecount instead. With this
-> code opening the device one will turn on the RDS events, but opening and
-> closing it via another application (e.g. v4l2-ctl) will disable it while
-> the first still needs it.
+> I fixed that by inserting
+> #include <linux/err.h>
+> at line 38 in compat.h in my local branch
+>
+> After that, compilation succeeds.
 
-Replaced the bool variable with a usage counter.
 
+Thanks, applied.
 
-Alexey wrote:
-> > +       if (!radio->write_buf)
-> > +               return -ENOMEM;
-> 
-> I'm not sure but it looks like possible memory leak. Shouldn't you
-> call to kfree(radio) before returning ENOMEM?
+> Now, the device will not install, as dvb_usb cannot install anymore.
+> see second text below.
+>
+> Therefore, I have replaced the __kmalloc_track_caller with kmalloc (as it
+> was in dvb_demux.c before the change 2ceef3d75547 at line 49
+>
+> can you make both changes in the hg branch ?
 
-and
+This one won't be required because the idea is support until kernel 2.6.26.
+Please check my next email about hg x announcement.
 
-> > +err_device_alloc:
-> > +       kfree(radio);
-> 
-> And i'm not sure about this error path.. Before kfree(radio) it's
-> needed to call kfree(radio->write_buf), rigth?
-> Looks like all erorr paths in this probe function have to be checked.
+Thanks for checking it, your help is appreciate.
 
-Rewrote the error handling in the probe function.
-
-Pramodh wrote:
-> > +    r = wl1273_fm_write_cmd(core, WL1273_POWER_LEV_SET, power);
-> 
-> Output power level is specified in units of dBuV (as explained at 
-> http://www.linuxtv.org/downloads/v4l-dvb-apis/ch01s09.html#fm-tx-controls).
-> Shouldn't it be converted to WL1273 specific power level value?
-> 
-> My understanding:
-> If output power level specified using "V4L2_CID_TUNE_POWER_LEVEL" is 122 
-> (dB/uV), then
-> power level value to be passed for WL1273 should be '0'.
-> Please correct me, if I got this conversion wrong.
-
-Fixed the TX power level handling...
-
-Thanks
-
-Matti
-
-Matti J. Aaltonen (5):
-  V4L2: Add seek spacing and FM RX class.
-  MFD: WL1273 FM Radio: MFD driver for the FM radio.
-  ASoC: WL1273 FM Radio Digital audio codec.
-  V4L2: WL1273 FM Radio: Controls for the FM radio.
-  Documentation: v4l: Add hw_seek spacing and FM_RX class
-
- Documentation/DocBook/v4l/controls.xml             |   71 +
- .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 +-
- drivers/media/radio/Kconfig                        |   15 +
- drivers/media/radio/Makefile                       |    1 +
- drivers/media/radio/radio-wl1273.c                 | 1947 ++++++++++++++++++++
- drivers/media/video/v4l2-ctrls.c                   |   12 +
- drivers/mfd/Kconfig                                |    5 +
- drivers/mfd/Makefile                               |    2 +
- drivers/mfd/wl1273-core.c                          |  612 ++++++
- include/linux/mfd/wl1273-core.h                    |  314 ++++
- include/linux/videodev2.h                          |   15 +-
- sound/soc/codecs/Kconfig                           |    6 +
- sound/soc/codecs/Makefile                          |    2 +
- sound/soc/codecs/wl1273.c                          |  593 ++++++
- sound/soc/codecs/wl1273.h                          |   42 +
- 15 files changed, 3644 insertions(+), 3 deletions(-)
- create mode 100644 drivers/media/radio/radio-wl1273.c
- create mode 100644 drivers/mfd/wl1273-core.c
- create mode 100644 include/linux/mfd/wl1273-core.h
- create mode 100644 sound/soc/codecs/wl1273.c
- create mode 100644 sound/soc/codecs/wl1273.h
-
+Cheers
+Douglas
