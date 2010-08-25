@@ -1,88 +1,60 @@
-Return-path: <lane@brooks.nu>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:37590 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756567Ab0HINjA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 09:39:00 -0400
-Received: by pwj7 with SMTP id 7so1256425pwj.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Aug 2010 06:39:00 -0700 (PDT)
-Message-ID: <4C6004F0.9080305@brooks.nu>
-Date: Mon, 09 Aug 2010 07:38:56 -0600
-From: Lane Brooks <lane@brooks.nu>
+Return-path: <mchehab@pedra>
+Received: from mail.kapsi.fi ([217.30.184.167]:39115 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753115Ab0HYN64 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Aug 2010 09:58:56 -0400
+Message-ID: <4C752197.5000704@iki.fi>
+Date: Wed, 25 Aug 2010 16:58:47 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: OMAP3 Bridge Problems
-References: <4C583538.8060504@gmail.com> <201008090029.04455.laurent.pinchart@ideasonboard.com> <4C5F361B.10202@brooks.nu> <201008091125.56159.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201008091125.56159.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+To: Stefan Lippers-Hollmann <s.L-H@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] af9015: add USB ID for Terratec Cinergy T Stick RC MKII
+References: <201008251508.51379.s.L-H@gmx.de>
+In-Reply-To: <201008251508.51379.s.L-H@gmx.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-  On 08/09/2010 03:25 AM, Laurent Pinchart wrote:
-> Hi Lane,
+Heissan Stefan,
+
+On 08/25/2010 04:08 PM, Stefan Lippers-Hollmann wrote:
+> Adding the USB ID for my TerraTec Electronic GmbH Cinergy T RC MKII
+> [0ccd:0097] and hooking it up into af9015, on top of your new NXP TDA18218
+> patches, makes it work for me.
+
+Patch is OK, I have just similar patch waiting here...
+
+Acked-by: Antti Palosaari <crope@iki.fi>
+
+I have been waiting Mauro commit for TDA18218 driver which I send about 
+2 weeks ago. And few others too for the MXL5007T based devices. Mauro 
+when you will commit TDA18218?
+
+> Just the shipped IR remote control doesn't seem to create keycode events
+> yet (tested with different remote=%d parameters), are there any hints to
+> add support for that?
+
+My next plan is to move that remote controller to the new remote core 
+system. I have done some tests and I can now read out raw remote codes 
+from the device. Before that you can add keymap for that remote. There 
+is many ways to get keycodes; 1) USB-sniff, 2) dump from Windows driver, 
+3) read from af9015 memory, 4) use some other IR receiver...
+
+regards
+Antti
+
+> Signed-off-by: Stefan Lippers-Hollmann<s.l-h@gmx.de>
+> ---
 >
-> On Monday 09 August 2010 00:56:27 Lane Brooks wrote:
->> On 08/08/2010 04:29 PM, Laurent Pinchart wrote:
->>> Hi Lane,
->>>
->>> Thanks for the patch.
->>>
->>> On Thursday 05 August 2010 20:53:50 Lane Brooks wrote:
->>>
->>> [snip]
->>>
->>>> I was able to get YUV CCDC capture mode working with rather minimal
->>>> effort. Attached is a patch with the initial effort. Can you comment?
->>> Writing to the ISPCCDC_SYN_MODE register should be moved to
->>> ccdc_configure(). Just move the switch statement there right after the
->>>
->>> 	format =&ccdc->formats[CCDC_PAD_SINK];
->>>
->>> line (without the ispctrl_val settings), it should be enough.
->>>
->>>> +		isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN,
->>>> +			       ISP_CTRL);
->>> The ISP_CTRL register should be written in isp_select_bridge_input()
->>> only. As you correctly mention, whether the data is in little endian or
->>> big endian format should come from platform data, so I think it's fine
->>> to force board files to set the isp->pdata->parallel.bridge field to the
->>> correct value.
->> Putting the bridge settings in the platform data is tricky because they
->> need to change depending on the selected format. For example, for my
->> board, when in SGRBG mode, the bridge needs disabled. When in YUV16
->> mode, however, I need need to select BIG/LITTLE endian depending on
->> whether it is YUYV or UYVY or ...
-> Ah right... So your sensor can output both Bayer and YUV data ? What sensor is
-> that BTW ?
->
+> This depends on the git pull request "NXP TDA18218 silicon tuner driver"
+> from Antti Palosaari<crope@iki.fi>  and does not apply to -stable:
+>   * NXP TDA18218 silicon tuner driver
+>   * af9013: add support for tda18218 silicon tuner
+>   * af9015: add support for tda18218 silicon tuner
 
-Aptina MT9T111. It can even output JPEG.
-
-
-
->> I am not quite sure how to capture that in the platform data without
->> enumerating every supported format code in the platform data. The current
->> patch knows (based on the OMAP TRM) that YUV16 mode requires the bridge to
->> be enabled. So in the platform data I specify the bridge state for SGBRG
->> mode and force the bridge to BIG endian in YUV16 mode. This leaves the
->> sensor to switch the phasing based on YUYV, YVYU, etc. mode.  I am not sure
->> who should be in charge of doing byte swapping in general, but if the input
->> and output modes are the same, then big endian should be used to avoid a
->> byte swap. In other words, the mode is completely determinable based on the
->> formats, so perhaps I should implement it that way. If the input and output
->> port require a byte swap, then go little endian, otherwise go big endian.
-> OK I understand. The best solution (for now) would then be to modify
-> isp_configure_bridge(). I wrote a few patches that modify how platform data is
-> handled, but I can't commit them at the moment (they depend on other patches
-> that I still need to clean up).
->
->> The reason why I put both writes to the ISPCTRL and SYN_MODE registers
->> where I did. Moving them to other places will require querying the
->> selected format code. Is that what you want as well?
-> For SYN_MODE, definitely. For ISPCTRL, you can hack isp_configure_bridge() to
-> retrieve the current CCDC input format, and we'll write a proper fix right
-> after I commit my platform data restructuring patches.
-I'll wait for your patches then. Let me know.
-
-
+-- 
+http://palosaari.fi/
