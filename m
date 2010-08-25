@@ -1,72 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:40439 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752346Ab0H0IiZ convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([18.85.46.34]:58296 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751998Ab0HYU0z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 04:38:25 -0400
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-From: Peter Zijlstra <peterz@infradead.org>
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>,
-	=?UTF-8?Q?Micha=C5=82?= Nazarewicz <m.nazarewicz@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	linux-kernel@vger.kernel.org,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mel Gorman <mel@csn.ul.ie>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-In-Reply-To: <20100827171639.83c8642c.kamezawa.hiroyu@jp.fujitsu.com>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	 <1282310110.2605.976.camel@laptop>
-	 <20100825155814.25c783c7.akpm@linux-foundation.org>
-	 <20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
-	 <op.vh0wektv7p4s8u@localhost>
-	 <20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
-	 <20100826124434.6089630d.kamezawa.hiroyu@jp.fujitsu.com>
-	 <AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
-	 <20100826133028.39d731da.kamezawa.hiroyu@jp.fujitsu.com>
-	 <AANLkTimB+s0tO=wrODAU4qCaZnCBoLZ2A9pGjR_jheOj@mail.gmail.com>
-	 <20100827171639.83c8642c.kamezawa.hiroyu@jp.fujitsu.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Fri, 27 Aug 2010 10:37:40 +0200
-Message-ID: <1282898260.1975.1844.camel@laptop>
-Mime-Version: 1.0
+	Wed, 25 Aug 2010 16:26:55 -0400
+Message-ID: <4C757C9B.5090902@infradead.org>
+Date: Wed, 25 Aug 2010 17:27:07 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+MIME-Version: 1.0
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [ANOUNCE] removal of backport for versions older than 2.6.26
+References: <AANLkTimzPXc=xGXL8ZS1tOAfa1W=qD-DPZeqtxkmiC5s@mail.gmail.com>
+In-Reply-To: <AANLkTimzPXc=xGXL8ZS1tOAfa1W=qD-DPZeqtxkmiC5s@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, 2010-08-27 at 17:16 +0900, KAMEZAWA Hiroyuki wrote:
-> > How about changing following this?
-> > The thing is MAX_ORDER is static. But we want to avoid too big
-> > MAX_ORDER of whole zones to support devices which requires big
-> > allocation chunk.
-> > So let's add MAX_ORDER into each zone and then, each zone can have
-> > different max order.
-> > For example, while DMA[32], NORMAL, HIGHMEM can have normal size 11,
-> > MOVABLE zone could have a 15.
-> > 
-> > This approach has a big side effect?
+Em 25-08-2010 17:01, Douglas Schilling Landgraf escreveu:
+> Hello folks,
+> 
+> I would like to share that I will just keep the maintain of
+> compatibility of hg  from 2.6.26 until lastest upstream kernel.
+> I am writing this because we have errors from IR to lowest kernels
+> from a lot of time and just
+> 1 person pinged me about it which also claims that he is moving to new
+> versions. So, if you are looking for a backport until 2.6.26 I can
+> help.
+> Otherwise, I will work on keeping hg synced with git, backporting and
+> continuing helping on drivers at upstream.
+> 
+> I have selected 2.6.26 because between all free distros available out
+> there the lowest kernel used is 2.6.26.
+> 
+> Finally, the next cut for backport version can happen probably based
+> on 2.6.32 since most of free distros will be using
+> kernel >= 2.6.32.
 
-The side effect of increasing MAX_ORDER is that page allocations get
-more expensive since the buddy tree gets larger, yielding more
-splits/merges.
+Seems OK to me. I would just move to 2.6.32, since on all major distros, people
+can get a compiled 2.6.32 kernel for testing.
 
-> Hm...need to check hard coded MAX_ORDER usages...I don't think
-> side-effect is big. Hmm. But I think enlarging MAX_ORDER isn't an
-> important thing. A code which strips contiguous chunks of pages from
-> buddy allocator is a necessaty thing, as..
+> If someone, would like to maintain a backport tree to < 2.6.26 fell
+> free to contact me/send patches or contact Mauro.
 
-Right, once we can explicitly free the pages we want, crossing MAX_ORDER
-isn't too hard like you say, we can simply continue with freeing the
-next in order page.
+> This increased can keep occurring (not frequently) but of course
+> according with kernel evolution.
 
+Just to be clear to everybody: except if Douglas decide later otherwise, the backport
+tree primary objective is to allow users with older kernels to test new
+unstable/experimental features without needing to replace the entire kernel.
 
+The drivers and patches generally go there before even reaching upstream, so
+they may have bad side effects. So, use at your own risk. Also, even allowing
+compilation against older vanilla kernels (that's basically what Douglas tries
+to maintain along the time), no real tests are done when doing the backports.
+So, a driver may work against the latest upstream kernel and may compile but
+fail, against a legacy kernel.
+
+So, there's no explicit or implicit type of support at all using the backport
+tree.
+
+Mauro.
