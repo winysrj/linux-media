@@ -1,59 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:22471 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752252Ab0HJMOM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Aug 2010 08:14:12 -0400
-Message-ID: <4C614294.7080101@redhat.com>
-Date: Tue, 10 Aug 2010 09:14:12 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:46567 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755634Ab0HYFV3 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Aug 2010 01:21:29 -0400
+Received: by iwn5 with SMTP id 5so275353iwn.19
+        for <linux-media@vger.kernel.org>; Tue, 24 Aug 2010 22:21:29 -0700 (PDT)
 MIME-Version: 1.0
-To: matti.j.aaltonen@nokia.com
-CC: ext Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
-Subject: Re: [PATCH v7 1/5] V4L2: Add seek spacing and FM RX class.
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>	 <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>	 <201008091838.13247.hverkuil@xs4all.nl>	 <1281425501.14489.7.camel@masi.mnp.nokia.com>	 <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl> <1281441830.14489.27.camel@masi.mnp.nokia.com>
-In-Reply-To: <1281441830.14489.27.camel@masi.mnp.nokia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <AANLkTinA1r87W+4J=MRV5i6M6BD-c+KTWnYqyBd7WCQA@mail.gmail.com>
+References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
+	<AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
+	<4C581BB6.7000303@redhat.com>
+	<AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
+	<AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
+	<AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
+	<AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com>
+	<4C7425C9.1010908@hoogenraad.net>
+	<AANLkTinA1r87W+4J=MRV5i6M6BD-c+KTWnYqyBd7WCQA@mail.gmail.com>
+Date: Wed, 25 Aug 2010 01:21:29 -0400
+Message-ID: <AANLkTimwWj0sw0NKgaGBJmpKzjvwM1-U16+vToOg_Pyc@mail.gmail.com>
+Subject: Re: V4L hg tree fails to compile against kernel 2.6.28
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	VDR User <user.vdr@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 10-08-2010 09:03, Matti J. Aaltonen escreveu:
-> On Tue, 2010-08-10 at 10:04 +0200, ext Hans Verkuil wrote:
->>> On Mon, 2010-08-09 at 18:38 +0200, ext Hans Verkuil wrote:
->>>> On Monday 02 August 2010 16:06:39 Matti J. Aaltonen wrote:
->>>>> Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
->>>>> control classes.
->>>>
->>>> This will no longer apply now that the control framework has been
->>>> merged.
->>>>
->>>> I strongly recommend converting the driver to use that framework. If
->>>> nothing else, you get support for the g/s/try_ext_ctrls ioctls for free.
->>>>
->>>> See the file Documentation/video4linux/v4l2-controls.txt.
->>>
->>> I can't find that file.  Should it be in some branch of the development
->>> tree?
->>
->> It's in the new development tree, branch staging/v2.6.36:
->>
->> http://git.linuxtv.org/media_tree.git
->>
->> This replaced the v4l-dvb.git tree.
->>
->> Regards,
-> 
-> This mainly FYI:
-> 
-> I can read the v4l2-controls.txt file through your git web system... but
-> after cloning etc. I can't see it...
+Hi,
 
-You're probably at the wrong branch. you'll need to do something like:
-	$ git checkout -b my_working_branch remotes/staging/v2.6.36
+On Tue, Aug 24, 2010 at 11:45 PM, Douglas Schilling Landgraf
+<dougsland@gmail.com> wrote:
+> Hello Jan,
+>
+> On Tue, Aug 24, 2010 at 5:04 PM, Jan Hoogenraad
+> <jan-conceptronic@hoogenraad.net> wrote:
+>> Douglas:
+>>
+>> On compiling with  Linux  2.6.28-19-generic #62-Ubuntu
+>>
+>> I now get:
+>>
+>> dvb_demux.c: In function 'dvbdmx_write':
+>> dvb_demux.c:1137: error: implicit declaration of function 'memdup_user'
+>> dvb_demux.c:1137: warning: assignment makes pointer from integer without a
+>> cast
+>>
+>> This is probably due to changeset 2ceef3d75547
+>>
+>> which introduced the use of this function:
+>> http://linuxtv.org/hg/v4l-dvb/diff/2ceef3d75547/linux/drivers/media/dvb/dvb-core/dvb_demux.c
+>>
+>> This function is not available in linux/string.h in kernel 2.6.29 and lower.
+>>
+>> http://lxr.free-electrons.com/source/include/linux/string.h?v=2.6.28
+>>
+>> Could you please advise me on what to do ?
+>
+> For this issue, I have fixed right now, please try again with a
+> updated repository. But since I have commited several patches
+> yesterday,
+> we have another one that probably will reach your compilantion (the
+> kfifo one). I will work to fix this one too.
+>
+> Thanks for the report.
 
-in order to create a new branch based on it.
 
-Cheers,
-Mauro
+Ok, should be working right now, I have made the backports
+needed/adjusts to compile agains 2.6.29. Let me know if you have any
+problem.
+Tomorrow I will continue commiting patches to get hg synced with git.
+
+Thanks
+Douglas
