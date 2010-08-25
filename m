@@ -1,63 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:42310 "EHLO
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:39734 "EHLO
 	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761255Ab0HMCTu convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1752469Ab0HYUBU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Aug 2010 22:19:50 -0400
-Received: by gyg10 with SMTP id 10so689030gyg.19
-        for <linux-media@vger.kernel.org>; Thu, 12 Aug 2010 19:19:49 -0700 (PDT)
+	Wed, 25 Aug 2010 16:01:20 -0400
+Received: by gyd8 with SMTP id 8so347694gyd.19
+        for <linux-media@vger.kernel.org>; Wed, 25 Aug 2010 13:01:19 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20100812022919.7ce6dace@bk.ru>
-References: <20100812022919.7ce6dace@bk.ru>
-Date: Thu, 12 Aug 2010 23:19:49 -0300
-Message-ID: <AANLkTi=m7YinFKg8pdYCuVTfQyNAvEM7dkVF8WLkOEAb@mail.gmail.com>
-Subject: Re: 2.6.35 and current v4l-dvb - error: implicit declaration of
- function 'usb_buffer_free'
+Date: Wed, 25 Aug 2010 17:01:06 -0300
+Message-ID: <AANLkTimzPXc=xGXL8ZS1tOAfa1W=qD-DPZeqtxkmiC5s@mail.gmail.com>
+Subject: [ANOUNCE] removal of backport for versions older than 2.6.26
 From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Goga777 <goga777@bk.ru>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: 8BIT
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello,
+Hello folks,
 
-2010/8/11 Goga777 <goga777@bk.ru>:
-> Hi
->
-> I can't compile current v4l-dvb with new 2.6.35 kernel
->
-> arvdr:/usr/src/v4l-dvb# make
-> make -C /usr/src/v4l-dvb/v4l
-> make[1]: Entering directory `/usr/src/v4l-dvb/v4l'
-> creating symbolic links...
-> make -C firmware prep
-> make[2]: Entering directory `/usr/src/v4l-dvb/v4l/firmware'
-> make[2]: Leaving directory `/usr/src/v4l-dvb/v4l/firmware'
-> make -C firmware
-> make[2]: Entering directory `/usr/src/v4l-dvb/v4l/firmware'
-> make[2]: Nothing to be done for `default'.
-> make[2]: Leaving directory `/usr/src/v4l-dvb/v4l/firmware'
-> Kernel build directory is /lib/modules/2.6.35-tux/build
-> make -C /lib/modules/2.6.35-tux/build SUBDIRS=/usr/src/v4l-dvb/v4l šmodules
-> make[2]: Entering directory `/usr/src/linux-2.6.35'
-> šCC [M] š/usr/src/v4l-dvb/v4l/au0828-video.o
-> /usr/src/v4l-dvb/v4l/au0828-video.c: In function 'au0828_uninit_isoc':
-> /usr/src/v4l-dvb/v4l/au0828-video.c:185: error: implicit declaration of function 'usb_buffer_free'
-> /usr/src/v4l-dvb/v4l/au0828-video.c: In function 'au0828_init_isoc':
-> /usr/src/v4l-dvb/v4l/au0828-video.c:255: error: implicit declaration of function 'usb_buffer_alloc'
-> /usr/src/v4l-dvb/v4l/au0828-video.c:256: warning: assignment makes pointer from integer without a cast
-> make[3]: *** [/usr/src/v4l-dvb/v4l/au0828-video.o] ïÛÉÂËÁ 1
-> make[2]: *** [_module_/usr/src/v4l-dvb/v4l] Error 2
-> make[2]: Leaving directory `/usr/src/linux-2.6.35'
-> make[1]: *** [default] ïÛÉÂËÁ 2
-> make[1]: Leaving directory `/usr/src/v4l-dvb/v4l'
-> make: *** [all] ïÛÉÂËÁ 2
->
+I would like to share that I will just keep the maintain of
+compatibility of hg  from 2.6.26 until lastest upstream kernel.
+I am writing this because we have errors from IR to lowest kernels
+from a lot of time and just
+1 person pinged me about it which also claims that he is moving to new
+versions. So, if you are looking for a backport until 2.6.26 I can
+help.
+Otherwise, I will work on keeping hg synced with git, backporting and
+continuing helping on drivers at upstream.
 
-Both functions were renamed in upstream, backport created and
-commited, please try again.
+I have selected 2.6.26 because between all free distros available out
+there the lowest kernel used is 2.6.26.
 
-Cheers
+Finally, the next cut for backport version can happen probably based
+on 2.6.32 since most of free distros will be using
+kernel >= 2.6.32.
+
+If someone, would like to maintain a backport tree to < 2.6.26 fell
+free to contact me/send patches or contact Mauro.
+This increased can keep occurring (not frequently) but of course
+according with kernel evolution.
+
+Hans, could you please adjust your emails scripts?
+
+Thanks
 Douglas
