@@ -1,187 +1,134 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:16561 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756861Ab0HFNuy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Aug 2010 09:50:54 -0400
+Return-path: <mchehab@pedra>
+Received: from psmtp13.wxs.nl ([195.121.247.25]:58024 "EHLO psmtp13.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752168Ab0HYG0X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Aug 2010 02:26:23 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp13.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L7P003QG37WG6@psmtp13.wxs.nl> for linux-media@vger.kernel.org;
+ Wed, 25 Aug 2010 08:26:21 +0200 (MEST)
+Date: Wed, 25 Aug 2010 08:26:19 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: Re: V4L hg tree fails to compile against kernel 2.6.28
+In-reply-to: <AANLkTinA1r87W+4J=MRV5i6M6BD-c+KTWnYqyBd7WCQA@mail.gmail.com>
+To: Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	VDR User <user.vdr@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-id: <4C74B78B.3020101@hoogenraad.net>
 MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
 Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L6Q009T7H4SY180@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 06 Aug 2010 14:50:52 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L6Q00FHCH4SCP@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 06 Aug 2010 14:50:52 +0100 (BST)
-Date: Fri, 06 Aug 2010 15:50:46 +0200
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [PATCH] v4l: s5p-fimc: Fix coding style issues
-To: linux-media@vger.kernel.org
-Cc: p.osciak@samsung.com, kyungmin.park@samsung.com,
-	s.nawrocki@samsung.com
-Message-id: <1281102646-2250-1-git-send-email-p.osciak@samsung.com>
-Sender: linux-media-owner@vger.kernel.org
+References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
+ <AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
+ <4C581BB6.7000303@redhat.com>
+ <AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
+ <AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
+ <AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
+ <AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com>
+ <4C7425C9.1010908@hoogenraad.net>
+ <AANLkTinA1r87W+4J=MRV5i6M6BD-c+KTWnYqyBd7WCQA@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |   36 +++++++++++++++++++++--------
- drivers/media/video/s5p-fimc/fimc-core.h |   30 +++++++++++++++----------
- 2 files changed, 44 insertions(+), 22 deletions(-)
+Thanks for your help. I pulled the code
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 6558a2e..b151c7b 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -303,7 +303,9 @@ static int fimc_prepare_addr(struct fimc_ctx *ctx,
- 	u32 pix_size;
- 	int ret = 0;
- 
--	ctx_m2m_get_frame(frame, ctx, type);
-+	frame = ctx_m2m_get_frame(ctx, type);
-+	if (IS_ERR(frame))
-+		return PTR_ERR(frame);
- 	paddr = &frame->paddr;
- 
- 	if (!buf)
-@@ -555,8 +557,10 @@ dma_unlock:
- 	spin_unlock_irqrestore(&ctx->slock, flags);
- }
- 
--/* Nothing done in job_abort. */
--static void fimc_job_abort(void *priv) {}
-+static void fimc_job_abort(void *priv)
-+{
-+	/* Nothing done in job_abort. */
-+}
- 
- static void fimc_buf_release(struct videobuf_queue *vq,
- 				    struct videobuf_buffer *vb)
-@@ -571,7 +575,9 @@ static int fimc_buf_setup(struct videobuf_queue *vq, unsigned int *count,
- 	struct fimc_ctx *ctx = vq->priv_data;
- 	struct fimc_frame *frame;
- 
--	ctx_m2m_get_frame(frame, ctx, vq->type);
-+	frame = ctx_m2m_get_frame(ctx, vq->type);
-+	if (IS_ERR(frame))
-+		return PTR_ERR(frame);
- 
- 	*size = (frame->width * frame->height * frame->fmt->depth) >> 3;
- 	if (0 == *count)
-@@ -587,7 +593,9 @@ static int fimc_buf_prepare(struct videobuf_queue *vq,
- 	struct fimc_frame *frame;
- 	int ret;
- 
--	ctx_m2m_get_frame(frame, ctx, vq->type);
-+	frame = ctx_m2m_get_frame(ctx, vq->type);
-+	if (IS_ERR(frame))
-+		return PTR_ERR(frame);
- 
- 	if (vb->baddr) {
- 		if (vb->bsize < frame->size) {
-@@ -628,7 +636,7 @@ static void fimc_buf_queue(struct videobuf_queue *vq,
- 	v4l2_m2m_buf_queue(ctx->m2m_ctx, vq, vb);
- }
- 
--struct videobuf_queue_ops fimc_qops = {
-+static struct videobuf_queue_ops fimc_qops = {
- 	.buf_setup	= fimc_buf_setup,
- 	.buf_prepare	= fimc_buf_prepare,
- 	.buf_queue	= fimc_buf_queue,
-@@ -670,7 +678,9 @@ static int fimc_m2m_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	struct fimc_ctx *ctx = priv;
- 	struct fimc_frame *frame;
- 
--	ctx_m2m_get_frame(frame, ctx, f->type);
-+	frame = ctx_m2m_get_frame(ctx, f->type);
-+	if (IS_ERR(frame))
-+		return PTR_ERR(frame);
- 
- 	f->fmt.pix.width	= frame->width;
- 	f->fmt.pix.height	= frame->height;
-@@ -1003,7 +1013,9 @@ static int fimc_m2m_cropcap(struct file *file, void *fh,
- 	struct fimc_frame *frame;
- 	struct fimc_ctx *ctx = fh;
- 
--	ctx_m2m_get_frame(frame, ctx, cr->type);
-+	frame = ctx_m2m_get_frame(ctx, cr->type);
-+	if (IS_ERR(frame))
-+		return PTR_ERR(frame);
- 
- 	cr->bounds.left = 0;
- 	cr->bounds.top = 0;
-@@ -1021,7 +1033,9 @@ static int fimc_m2m_g_crop(struct file *file, void *fh, struct v4l2_crop *cr)
- 	struct fimc_frame *frame;
- 	struct fimc_ctx *ctx = file->private_data;
- 
--	ctx_m2m_get_frame(frame, ctx, cr->type);
-+	frame = ctx_m2m_get_frame(ctx, cr->type);
-+	if (IS_ERR(frame))
-+		return PTR_ERR(frame);
- 
- 	cr->c.left = frame->offs_h;
- 	cr->c.top = frame->offs_v;
-@@ -1052,7 +1066,9 @@ static int fimc_m2m_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
- 		return -EINVAL;
- 	}
- 
--	ctx_m2m_get_frame(f, ctx, cr->type);
-+	f = ctx_m2m_get_frame(ctx, cr->type);
-+	if (IS_ERR(f))
-+		return PTR_ERR(f);
- 
- 	/* Adjust to required pixel boundary. */
- 	min_size = (cr->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) ?
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index f121b93..6b3e0cd 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -28,18 +28,6 @@
- #define dbg(fmt, args...)
- #endif
- 
--#define ctx_m2m_get_frame(frame, ctx, type) do { \
--	if (V4L2_BUF_TYPE_VIDEO_OUTPUT == (type)) { \
--		frame = &(ctx)->s_frame; \
--	} else if (V4L2_BUF_TYPE_VIDEO_CAPTURE == (type)) { \
--		frame = &(ctx)->d_frame; \
--	} else { \
--		v4l2_err(&(ctx)->fimc_dev->m2m.v4l2_dev,\
--			"Wrong buffer/video queue type (%d)\n", type); \
--		return -EINVAL; \
--	} \
--} while (0)
--
- #define NUM_FIMC_CLOCKS		2
- #define MODULE_NAME		"s5p-fimc"
- #define FIMC_MAX_DEVS		3
-@@ -444,6 +432,24 @@ static inline void fimc_hw_stop_in_dma(struct fimc_dev *dev)
- 	writel(cfg, dev->regs + S5P_MSCTRL);
- }
- 
-+static inline struct fimc_frame *ctx_m2m_get_frame(struct fimc_ctx *ctx,
-+						   enum v4l2_buf_type type)
-+{
-+	struct fimc_frame *frame;
-+
-+	if (V4L2_BUF_TYPE_VIDEO_OUTPUT == type) {
-+		frame = &ctx->s_frame;
-+	} else if (V4L2_BUF_TYPE_VIDEO_CAPTURE == type) {
-+		frame = &ctx->d_frame;
-+	} else {
-+		v4l2_err(&ctx->fimc_dev->m2m.v4l2_dev,
-+			"Wrong buffer/video queue type (%d)\n", type);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	return frame;
-+}
-+
- /* -----------------------------------------------------*/
- /* fimc-reg.c						*/
- void fimc_hw_reset(struct fimc_dev *dev);
+Actually, now the function definition in compat.h causes a compilation 
+error: see first text below.
+
+I fixed that by inserting
+#include <linux/err.h>
+at line 38 in compat.h in my local branch
+
+After that, compilation succeeds.
+
+Now, the device will not install, as dvb_usb cannot install anymore.
+see second text below.
+
+Therefore, I have replaced the __kmalloc_track_caller with kmalloc (as 
+it was in dvb_demux.c before the change 2ceef3d75547 at line 49
+
+can you make both changes in the hg branch ?
+-----
+
+make[2]: Entering directory `/usr/src/linux-headers-2.6.28-19-generic'
+   CC [M]  tuner-xc2028.o
+In file included from tuner-xc2028.c:19:
+compat.h: In function 'memdup_user':
+compat.h:50: error: implicit declaration of function 'ERR_PTR'
+compat.h:50: warning: return makes pointer from integer without a cast
+compat.h:54: warning: return makes pointer from integer without a cast
+In file included from include/linux/fs.h:1891,
+                  from include/linux/poll.h:11,
+                  from dvbdev.h:27,
+                  from dvb_frontend.h:43,
+                  from tuner-xc2028.h:10,
+                  from tuner-xc2028.c:22:
+include/linux/err.h: At top level:
+include/linux/err.h:22: error: conflicting types for 'ERR_PTR'
+----
+sudo modprobe dvb-usb-rtl2831u ir_protocol=2
+WARNING: Error inserting dvb_usb 
+(/lib/modules/2.6.28-19-generic/kernel/drivers/media/dvb/dvb-usb/dvb-usb.ko): 
+Unknown symbol in module, or unknown parameter (see dmesg)
+WARNING: Error inserting dvb_usb_dibusb_common 
+(/lib/modules/2.6.28-19-generic/kernel/drivers/media/dvb/dvb-usb/dvb-usb-dibusb-common.ko): 
+Unknown symbol in module, or unknown parameter (see dmesg)
+FATAL: Error inserting dvb_usb_rtl2831u 
+(/lib/modules/2.6.28-19-generic/kernel/drivers/media/dvb/rtl2831/dvb-usb-rtl2831u.ko): 
+Unknown symbol in module, or unknown parameter (see dmesg)
+
+in the system log, I find:
+
+dvb_core: Unknown symbol __kmalloc_track_caller
+dvb_core: Unknown symbol __kmalloc_track_caller
+
+
+
+
+Douglas Schilling Landgraf wrote:
+> Hello Jan,
+> 
+> On Tue, Aug 24, 2010 at 5:04 PM, Jan Hoogenraad
+> <jan-conceptronic@hoogenraad.net> wrote:
+>> Douglas:
+>>
+>> On compiling with  Linux  2.6.28-19-generic #62-Ubuntu
+>>
+>> I now get:
+>>
+>> dvb_demux.c: In function 'dvbdmx_write':
+>> dvb_demux.c:1137: error: implicit declaration of function 'memdup_user'
+>> dvb_demux.c:1137: warning: assignment makes pointer from integer without a
+>> cast
+>>
+>> This is probably due to changeset 2ceef3d75547
+>>
+>> which introduced the use of this function:
+>> http://linuxtv.org/hg/v4l-dvb/diff/2ceef3d75547/linux/drivers/media/dvb/dvb-core/dvb_demux.c
+>>
+>> This function is not available in linux/string.h in kernel 2.6.29 and lower.
+>>
+>> http://lxr.free-electrons.com/source/include/linux/string.h?v=2.6.28
+>>
+>> Could you please advise me on what to do ?
+> 
+> For this issue, I have fixed right now, please try again with a
+> updated repository. But since I have commited several patches
+> yesterday,
+> we have another one that probably will reach your compilantion (the
+> kfifo one). I will work to fix this one too.
+> 
+> Thanks for the report.
+> 
+> Cheers
+> Douglas
+> 
+
+
 -- 
-1.7.1.569.g6f426
-
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
