@@ -1,49 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:39904 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751739Ab0HWLTl convert rfc822-to-8bit (ORCPT
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:3315 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751464Ab0HYX0u (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Aug 2010 07:19:41 -0400
-Received: by iwn5 with SMTP id 5so3496237iwn.19
-        for <linux-media@vger.kernel.org>; Mon, 23 Aug 2010 04:19:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1282537951.32217.3874.camel@pc.interlinx.bc.ca>
-References: <1282537951.32217.3874.camel@pc.interlinx.bc.ca>
-Date: Mon, 23 Aug 2010 07:19:40 -0400
-Message-ID: <AANLkTim0Gn8F9bjsnykOkfn54dajtnJRryhRQdJ76thw@mail.gmail.com>
-Subject: Re: hvr950q stopped working: read of drv0 never returns
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: "Brian J. Murrell" <brian@interlinx.bc.ca>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 25 Aug 2010 19:26:50 -0400
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+From: Daniel Walker <dwalker@codeaurora.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	linux-mm@kvack.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
+In-Reply-To: <20100825155814.25c783c7.akpm@linux-foundation.org>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+	 <1282310110.2605.976.camel@laptop>
+	 <20100825155814.25c783c7.akpm@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 25 Aug 2010 16:26:34 -0700
+Message-ID: <1282778794.13797.15.camel@c-dwalke-linux.qualcomm.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, Aug 23, 2010 at 12:32 AM, Brian J. Murrell
-<brian@interlinx.bc.ca> wrote:
-> Hi,
->
-> I have an HVR 950Q on my Ubuntu 2.6.32 kernel.  I have in fact tried
-> several kernel versions on a couple of different machines with the same
-> behaviour.
->
-> What seems to be happening is that /dev/dvb/adapter0/dvr0 can be opened:
->
-> open("/dev/dvb/adapter0/dvr0", O_RDONLY|O_LARGEFILE) = 0
->
-> but a read from it never seems to return any data:
->
-> read(0,
-> [ process blocks waiting ]
+On Wed, 2010-08-25 at 15:58 -0700, Andrew Morton wrote:
+> That would be good.  Although I expect that the allocation would need
+> to be 100% rock-solid reliable, otherwise the end user has a
+> non-functioning device.  Could generic core VM provide the required
+> level
+> of service?
+> 
+> Anyway, these patches are going to be hard to merge but not
+> impossible.
+> Keep going.  Part of the problem is cultural, really: the consumers of
+> this interface are weird dinky little devices which the core MM guys
+> tend not to work with a lot, and it adds code which they wouldn't use.
+> 
+> I agree that having two "contiguous memory allocators" floating about
+> on the list is distressing.  Are we really all 100% diligently certain
+> that there is no commonality here with Zach's work?
 
-Hi Brian,
+There is some commonality with Zach's work, but Zach should be following
+all of this development .. So presumably he has no issues with Michal's
+changes. I think Zach's solution has a similar direction to this.
 
-What command are you using to control the frontend?  If it's "azap",
-did you remember to specify the "-r" argument?
+If Michal is active (he seems more so than Zach), and follows community
+comments (including Zach's , but I haven't seen any) then we can defer
+to that solution ..
 
-Devin
+Daniel
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+
+Sent by a consultant of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+
