@@ -1,52 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from cinke.fazekas.hu ([195.199.244.225]:56445 "EHLO
-	cinke.fazekas.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932161Ab0HORaJ (ORCPT
+Received: from perceval.irobotique.be ([92.243.18.41]:36878 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751377Ab0HYJ0G (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Aug 2010 13:30:09 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by cinke.fazekas.hu (Postfix) with ESMTP id 8640198139
-	for <linux-media@vger.kernel.org>; Sun, 15 Aug 2010 14:43:26 +0200 (CEST)
-Received: from cinke.fazekas.hu ([127.0.0.1])
-	by localhost (cinke.fazekas.hu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id NF4Jw6eCdpTY for <linux-media@vger.kernel.org>;
-	Sun, 15 Aug 2010 14:43:26 +0200 (CEST)
-Received: from roadrunner.athome (localhost [127.0.0.1])
-	by cinke.fazekas.hu (Postfix) with ESMTP id 341542C033
-	for <linux-media@vger.kernel.org>; Sun, 15 Aug 2010 14:43:26 +0200 (CEST)
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 25 Aug 2010 05:26:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Lane Brooks <lane@brooks.nu>
+Subject: Re: OMAP ISP and Overlay
+Date: Wed, 25 Aug 2010 11:26:04 +0200
+Cc: linux-media@vger.kernel.org
+References: <4C73CBB1.4090605@brooks.nu>
+In-Reply-To: <4C73CBB1.4090605@brooks.nu>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Subject: [PATCH] update DVB-C scan files for hu-Digikabel
-Message-Id: <7c8fa4a65634e5cab19a.1281876184@roadrunner.athome>
-Date: Sun, 15 Aug 2010 12:43:04 -0000
-From: Marton Balint <cus@fazekas.hu>
-To: linux-media@vger.kernel.org
+Message-Id: <201008251126.05905.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-# HG changeset patch
-# User Marton Balint <cus@fazekas.hu>
-# Date 1281875940 -7200
-# Node ID 7c8fa4a65634e5cab19ace3a17d15c29e31d07e4
-# Parent  16157edcb447ec50184ccb9dcefc8c6c3da88aa5
-update DVB-C scan files for hu-Digikabel
+Hi Lane,
 
-Signed-off-by: Marton Balint <cus@fazekas.hu>
+On Tuesday 24 August 2010 15:40:01 Lane Brooks wrote:
+> 
+> So far I have the everything working with the OMAP ISP to where I can stream
+> video on our custom board.
 
-diff -r 16157edcb447 -r 7c8fa4a65634 util/scan/dvb-c/hu-Digikabel
---- a/util/scan/dvb-c/hu-Digikabel	Tue Aug 03 13:24:24 2010 +0200
-+++ b/util/scan/dvb-c/hu-Digikabel	Sun Aug 15 14:39:00 2010 +0200
-@@ -14,11 +14,8 @@
- C 394000000 6900000 NONE QAM256
- C 402000000 6900000 NONE QAM256
- C 410000000 6900000 NONE QAM256
-+C 762000000 6900000 NONE QAM256
- C 770000000 6900000 NONE QAM256
- C 778000000 6900000 NONE QAM256
- C 786000000 6900000 NONE QAM256
- C 794000000 6900000 NONE QAM256
--C 834000000 6900000 NONE QAM256
--C 842000000 6900000 NONE QAM256
--C 850000000 6900000 NONE QAM256
--C 858000000 6900000 NONE QAM256
+Great news.
+
+A new version of the ISP driver will soon be published with all the legacy 
+code removed. We need a few days to setup the repository properly. You can 
+already get a preview at http://git.linuxtv.org/pinchartl/media.git (omap3isp-
+rx51 branch).
+
+> On a previous generation of hardware with a completely different processor
+> and sensor, we used the V4L2 overlay feature to stream directly to our LCD
+> for preview. I am wondering what the plans are for overlay support in the
+> omap ISP? How does the overlay feature fit into the new media bus feature?
+
+The OMAP3 ISP driver won't support V4L2 overlay directly. However, you can use 
+the USERPTR streaming mode and pass framebuffer memory directly to the ISP 
+driver, resulting in DMA to the framebuffer and improved efficiency.
+
+-- 
+Regards,
+
+Laurent Pinchart
