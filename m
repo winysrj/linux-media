@@ -1,123 +1,87 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4328 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758656Ab0HETdh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 15:33:37 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id o75JXZWL098322
-	for <linux-media@vger.kernel.org>; Thu, 5 Aug 2010 21:33:35 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 5 Aug 2010 21:33:35 +0200 (CEST)
-Message-Id: <201008051933.o75JXZWL098322@smtp-vbr2.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.22 and up: ERRORS, 2.6.16-2.6.21: ERRORS
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from tex.lwn.net ([70.33.254.29]:53961 "EHLO vena.lwn.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752508Ab0HYXb2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Aug 2010 19:31:28 -0400
+Date: Wed, 25 Aug 2010 17:31:25 -0600
+From: Jonathan Corbet <corbet@lwn.net>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+Message-ID: <20100825173125.0855a6b0@bike.lwn.net>
+In-Reply-To: <20100825155814.25c783c7.akpm@linux-foundation.org>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+	<1282310110.2605.976.camel@laptop>
+	<20100825155814.25c783c7.akpm@linux-foundation.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wed, 25 Aug 2010 15:58:14 -0700
+Andrew Morton <akpm@linux-foundation.org> wrote:
 
-Results of the daily build of v4l-dvb:
+> > If you want guarantees you can free stuff, why not add constraints to
+> > the page allocation type and only allow MIGRATE_MOVABLE pages inside a
+> > certain region, those pages are easily freed/moved aside to satisfy
+> > large contiguous allocations.  
+> 
+> That would be good.  Although I expect that the allocation would need
+> to be 100% rock-solid reliable, otherwise the end user has a
+> non-functioning device.  Could generic core VM provide the required level
+> of service?
 
-date:        Thu Aug  5 19:00:33 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   14994:a14d56c730c4
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+The original OLPC has a camera controller which requires three contiguous,
+image-sized buffers in memory.  That system is a little memory constrained
+(OK, it's desperately short of memory), so, in the past, the chances of
+being able to allocate those buffers anytime some kid decides to start
+taking pictures was poor.  Thus, cafe_ccic.c has an option to snag the
+memory at initialization time and never let go even if you threaten its
+family.  Hell hath no fury like a little kid whose new toy^W educational
+tool stops taking pictures.
 
-linux-2.6.32.6-armv5: OK
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35-rc1-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: OK
-linux-2.6.33-armv5-davinci: OK
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35-rc1-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35-rc1-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: OK
-linux-2.6.33-armv5-omap2: OK
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35-rc1-armv5-omap2: ERRORS
-linux-2.6.22.19-i686: ERRORS
-linux-2.6.23.17-i686: ERRORS
-linux-2.6.24.7-i686: WARNINGS
-linux-2.6.25.20-i686: WARNINGS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: OK
-linux-2.6.32.6-i686: OK
-linux-2.6.33-i686: OK
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35-rc1-i686: ERRORS
-linux-2.6.32.6-m32r: OK
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35-rc1-m32r: ERRORS
-linux-2.6.32.6-mips: OK
-linux-2.6.33-mips: OK
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35-rc1-mips: ERRORS
-linux-2.6.32.6-powerpc64: OK
-linux-2.6.33-powerpc64: OK
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35-rc1-powerpc64: ERRORS
-linux-2.6.22.19-x86_64: ERRORS
-linux-2.6.23.17-x86_64: ERRORS
-linux-2.6.24.7-x86_64: WARNINGS
-linux-2.6.25.20-x86_64: WARNINGS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: OK
-linux-2.6.32.6-x86_64: OK
-linux-2.6.33-x86_64: OK
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35-rc1-x86_64: ERRORS
-linux-git-armv5: WARNINGS
-linux-git-armv5-davinci: WARNINGS
-linux-git-armv5-ixp: WARNINGS
-linux-git-armv5-omap2: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-x86_64: WARNINGS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
-linux-2.6.16.62-i686: ERRORS
-linux-2.6.17.14-i686: ERRORS
-linux-2.6.18.8-i686: ERRORS
-linux-2.6.19.7-i686: ERRORS
-linux-2.6.20.21-i686: ERRORS
-linux-2.6.21.7-i686: ERRORS
-linux-2.6.16.62-x86_64: ERRORS
-linux-2.6.17.14-x86_64: ERRORS
-linux-2.6.18.8-x86_64: ERRORS
-linux-2.6.19.7-x86_64: ERRORS
-linux-2.6.20.21-x86_64: ERRORS
-linux-2.6.21.7-x86_64: ERRORS
+That, of course, is not a hugely efficient use of memory on a
+memory-constrained system.  If the VM could reliably satisfy those
+allocation requestss, life would be wonderful.  Seems difficult.  But it
+would be a nicer solution than CMA, which, to a great extent, is really
+just a standardized mechanism for grabbing memory and never letting go.
 
-Detailed results are available here:
+> It would help (a lot) if we could get more attention and buyin and
+> fedback from the potential clients of this code.  rmk's feedback is
+> valuable.  Have we heard from the linux-media people?  What other
+> subsystems might use it?  ieee1394 perhaps?  Please help identify
+> specific subsystems and I can perhaps help to wake people up.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+If this code had been present when I did the Cafe driver, I would have used
+it.  I think it could be made useful to a number of low-end camera drivers
+if the videobuf layer were made to talk to it in a way which Just Works.
 
-Full logs are available here:
+With a bit of tweaking, I think it could be made useful in other
+situations: the viafb driver, for example, really needs an allocator for
+framebuffer memory and it seems silly to create one from scratch.  Of
+course, there might be other possible solutions, like adding a "zones"
+concept to LMB^W memblock.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+The problem which is being addressed here is real.
 
-The V4L-DVB specification from this daily build is here:
+That said, the complexity of the solution still bugs me a bit, and the core
+idea is still to take big chunks of memory out of service for specific
+needs.  It would be far better if the VM could just provide big chunks on
+demand.  Perhaps compaction and the pressures of making transparent huge
+pages work will get us there, but I'm not sure we're there yet.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+jon
