@@ -1,52 +1,76 @@
-Return-path: <hverkuil@xs4all.nl>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1493 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754793Ab0HIIFe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 04:05:34 -0400
-Message-ID: <b003fbb16bb40c1d0dca94cdf77b89a9.squirrel@webmail.xs4all.nl>
-In-Reply-To: <1281339235.2296.17.camel@masi.mnp.nokia.com>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
-    <1281339235.2296.17.camel@masi.mnp.nokia.com>
-Date: Mon, 9 Aug 2010 10:05:16 +0200
-Subject: Re: [PATCH v7 0/5] TI WL1273 FM Radio driver.
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: matti.j.aaltonen@nokia.com
-Cc: linux-media@vger.kernel.org,
-	"Valentin Eduardo" <eduardo.valentin@nokia.com>, mchehab@redhat.com
+Return-path: <mchehab@pedra>
+Received: from v-smtp-auth-relay-6.gradwell.net ([79.135.125.112]:34747 "EHLO
+	v-smtp-auth-relay-6.gradwell.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751536Ab0HYUFY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Aug 2010 16:05:24 -0400
+Received: from zntrx-gw.adsl.newnet.co.uk ([80.175.181.245] helo=echelon.upsilon.org.uk country=GB ident=dave$pop3#upsilon*org^uk)
+          by v-smtp-auth-relay-6.gradwell.net with esmtpa (Gradwell gwh-smtpd 1.290) id 4c757557.66f3.2c
+          for linux-media@vger.kernel.org; Wed, 25 Aug 2010 20:56:07 +0100
+          (envelope-sender <news004@upsilon.org.uk>)
+Message-ID: <+ay15VCWVXdMFw1S@echelon.upsilon.org.uk>
+Date: Wed, 25 Aug 2010 20:56:06 +0100
+To: linux-media@vger.kernel.org
+From: dave cunningham <news004@upsilon.org.uk>
+Subject: Problems with Freecom USB DVB-T dongles
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain;charset=us-ascii;format=flowed
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
+Hi,
 
-> Hello.
->
-> It starts to look like the ALSA codec could be
-> accepted on the ALSA list pretty soon.
-> So I'd be very interested to hear from you if
-> the rest of the driver still needs fixes...
+I'm having problems with a pair of Freecom USB dongles and am wondering 
+if anyone has any pointers?
 
-Thanks for reminding me. I'll do a final review this evening.
+The dongles appear identical, Freecom Art No. 25452. and have the same 
+USB descriptors, ID 14aa:0221.
 
+In the boot log they show as "WideView WT-220U PenType Receiver 
+(Typhoon/Freecom)", using firmware dvb-usb-wt220u-02.fw.
 
-> By the way, now the newest wl1273 firmware supports
-> a special form of hardware seek,  they call it the
-> 'bulk search' mode. It can be used to search for all
-> stations that are available and at first the number of found
-> stations is returned. Then the frequencies can be fetched
-> one by one. Should we add a 'seek mode' field to hardware
-> seek? Or do you have a vision of how it should be handled?
+I have been using these dongles in a Via Epia 15000 system, running 
+Debian Lenny i686 for the last 18ish months without issue.
 
-It sounds very hardware specific. We should postpone support for this
-until we have support for subdev device nodes. That will make it possible
-to create custom ioctls for hw specific features. This should be merged
-if all goes well for 2.6.37.
+I've just moved them to an AMD 760 based motherboard (Sempron processor) 
+running Debian Squeeze x86_64.
 
-Regards,
+The dongles do function up to a point.
 
-         Hans
+In dmesg at boot I see one message for each device
+"dvb-usb: recv bulk message failed: -110"
+
+Other than this everything seems OK.
+
+The system is running MythTV Backend (0.23) and I can have them both 
+recording simultaneously as I would expect.
+
+At some point however I start to get floods of messages to the console 
+(repeats of "dvb-usb: recv bulk message failed: -110") and the system 
+slows down to a crawl.
+
+The only way I've found to recover from this is to shutdown mythbackend 
+and physically remove the dongles from the system. At this point I get a 
+few messages "dvb-usb: recv bulk message failed: -23" then I guess the 
+driver is unloaded and the system appears to recover fully.
+
+I can now plug the dongles back in and they appear to function again 
+until the next time.
+
+I've tried unloading the dvb_usb_dtt200u when I get the flood but I get 
+an error saying the device is in use.
+
+I'm not sure what's triggering the problem - sometimes it'll kick in 
+after 10 minutes, the last fail came after ~10 hours.
+
+I've tried a few versions of the V4L code base but am seeing the same in 
+each.
+
+ From googling it seems that various people have experienced similar 
+issues but I've yet to find anyone offering a solution.
+
+Any ideas?
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
-
+Dave Cunningham                                  dave at upsilon org uk
+                                                  PGP KEY ID: 0xA78636DC
