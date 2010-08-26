@@ -1,53 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:23953 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751344Ab0HQDa3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Aug 2010 23:30:29 -0400
-Message-ID: <4C6A026B.3030808@redhat.com>
-Date: Tue, 17 Aug 2010 00:30:51 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:33012 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752304Ab0HZJpz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 05:45:55 -0400
+Date: Thu, 26 Aug 2010 11:45:58 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+cc: mitov@issp.bas.bg, linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-sh@vger.kernel.org,
+	u.kleine-koenig@pengutronix.de, philippe.retornaz@epfl.ch,
+	gregkh@suse.de, jkrzyszt@tis.icnet.pl
+Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory()
+ API
+In-Reply-To: <20100826182915S.fujita.tomonori@lab.ntt.co.jp>
+Message-ID: <Pine.LNX.4.64.1008261140390.14167@axis700.grange>
+References: <201008260904.19973.mitov@issp.bas.bg> <20100826152333K.fujita.tomonori@lab.ntt.co.jp>
+ <Pine.LNX.4.64.1008261100150.14167@axis700.grange>
+ <20100826182915S.fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
-To: Jarod Wilson <jarod@wilsonet.com>
-CC: Maxim Levitsky <maximlevitsky@gmail.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	awalls@md.metrocast.net, jarod@redhat.com, jonsmirl@gmail.com,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: Remote that breaks current system
-References: <AANLkTimz2eLSEy+U1NdMVsQ=af7v67omPntwMQs+8jno@mail.gmail.com>	<BUhP+pZ3jFB@christoph>	<AANLkTik7pPs6Bs6Pgq_MG00ONcZWEKFnfUqrTZtgwQRa@mail.gmail.com>	<1281991312.3661.2.camel@maxim-laptop> <AANLkTimJtCWv-QyKy8HQXWm8BTv8SerO9Qo_0EDY1+LP@mail.gmail.com>
-In-Reply-To: <AANLkTimJtCWv-QyKy8HQXWm8BTv8SerO9Qo_0EDY1+LP@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 16-08-2010 21:14, Jarod Wilson escreveu:
+On Thu, 26 Aug 2010, FUJITA Tomonori wrote:
 
->> Just one minor nitpick.
->> You could 'use' the original RC5 decoder, but add a knob to it to make
->> it accept 15 bits instead of 14.
->> However, this will require some interface changes.
-> 
-> Well, I think that still falls down if someone, for some reason, wants
-> to use both an old RC5 remote and the Streamzap remote at the same
-> time. I think a parallel decoder is probably the best situation for
-> the moment, as both 14-bit RC5 and Streamzap RC5 can be decoded
-> simultaneously.
+> Why can't you revert a commit that causes the regression?
 
-One option could be to change rc5 decoder to work with 3 different modes,
-controlled by a sysfs node:
-1) just 14 bits code;
-2) just 15 bits code;
-3) both 14 and 15 bits code.
+See this reply, and the complete thread too.
 
-For (3), it will need a timeout logic for a short period (like 2T), for the
-15th bit. If nothing happens, it will assume it is 14 bits, producing a code
-and resetting the finite-state machine.
+http://marc.info/?l=linux-sh&m=128130485208262&w=2
 
-By default, it would be working on 14-bits mode for normal RC decoders, and
-on 15-bits mode for Streamzap.
+> The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
+> responsible for the regression. And the patchset even exnteds the
+> definition of the DMA API (dma_declare_coherent_memory). Such change
+> shouldn't applied after rc1. I think that DMA-API.txt says that
+> dma_declare_coherent_memory() handles coherent memory for a particular
+> device. It's not for the API that reserves coherent memory that can be
+> used for any device for a single device.
 
-Yet, IMHO, the better is to commit what you have currently. Just my 2 cents.
+Anyway, we need a way to fix the regression.
 
-Cheers,
-Mauro.
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
