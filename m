@@ -1,41 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mx34.mail.ru ([94.100.176.48]:63591 "EHLO mx34.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753283Ab0HXNeE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Aug 2010 09:34:04 -0400
-Received: from [92.101.155.238] (port=50975 helo=localhost.localdomain)
-	by mx34.mail.ru with asmtp
-	id 1OntdZ-000ODE-00
-	for linux-media@vger.kernel.org; Tue, 24 Aug 2010 17:34:01 +0400
-Date: Tue, 24 Aug 2010 17:42:44 +0400
-From: Goga777 <goga777@bk.ru>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Hauppauge PCTV DVB-S2 STICK 460E USB 2.0
-Message-ID: <20100824174244.0d43e333@bk.ru>
-In-Reply-To: <AANLkTinWOx5vAqOqkt0-jP56rcxqy4HZ4534gb5B6CJb@mail.gmail.com>
-References: <20100823234037.2ab0a413@bk.ru>
-	<AANLkTinWOx5vAqOqkt0-jP56rcxqy4HZ4534gb5B6CJb@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from perceval.irobotique.be ([92.243.18.41]:59392 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752079Ab0HZPg1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 11:36:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Subject: Re: [omap3camera] How does a lens subdevice get powered up?
+Date: Thu, 26 Aug 2010 17:36:15 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nataraju, Kiran" <knataraju@ti.com>
+References: <A24693684029E5489D1D202277BE894463BA7E30@dlee02.ent.ti.com> <201008261704.05834.laurent.pinchart@ideasonboard.com> <A24693684029E5489D1D202277BE894463BA8603@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894463BA8603@dlee02.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
+Message-Id: <201008261736.17915.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-> > does somebody work under Linux drivers for this dvb-s2 stick ?
+Hi Sergio,
+
+On Thursday 26 August 2010 17:33:28 Aguirre, Sergio wrote:
+> On Thursday, August 26, 2010 10:04 AM Laurent Pinchart wrote:
 > >
+> > Even if not part of the image pipeline, the lens controller is still part
+> > of the media device. I think it makes sense to expose it as an entity and
+> > a V4L2 subdevice.
 > 
-> Although we are not working on that one, we are about to release
-> another DVB-S/S2 USB Stick with full
-> Linux support at around the end of september.
+> Hmm... I don't know what I was thinking... you're right. :)
 > 
-> http://www.sundtek.de/images/kaffeine-dvbs2.png
+> Now that I rethink what I just said vs your answer, I think you have a
+> point, so I'll drop that thought...
 > 
-> Including, MIPS (eg. Dreambox, Netgear WNDR3700, etc), ARM (various
-> NAS and Linux Router systems), PPC, X86/32/64 support and network
-> streaming capability plus official Linux support.
+> However, I think still there's something that could be done here...
+> 
+> Imagine a scenario in which you have 2 sensors, each one with a different
+> Coil motor driver to control each sensor's lens position.
+> 
+> Should we have a way to register some sort of association between
+> Sensor and lens subdevices? That way, by querying the media device, an app
+> can know which lens is associated with what sensor, without any hardcoding.
+> 
+> That would be very similar to the case in which you would want to associate
+> an audio capturing subdev with a video capturing subdev. They are not
+> technically sharing the same data, but they are related.
+> 
+> Is this kind of association considered in the Media Controller framework
+> implementation currently?
 
-which tuner and demodulator using ?
-have you any photos ?
+It's implemented in the latest media controller RFC :-)
 
-Goga
+Entities now have a group ID that the driver can set to report associations 
+such as sensor-coil-flash or video-audio.
+
+-- 
+Regards,
+
+Laurent Pinchart
