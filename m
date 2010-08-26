@@ -1,79 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:48818 "EHLO mail.issp.bas.bg"
+Received: from bear.ext.ti.com ([192.94.94.41]:55822 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751641Ab0HSR1T convert rfc822-to-8bit (ORCPT
+	id S1753678Ab0HZQzh convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Aug 2010 13:27:19 -0400
-From: Marin Mitov <mitov@issp.bas.bg>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera interface
-Date: Thu, 19 Aug 2010 20:25:31 +0300
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl> <201008191516.21910.mitov@issp.bas.bg> <201008191909.28697.jkrzyszt@tis.icnet.pl>
-In-Reply-To: <201008191909.28697.jkrzyszt@tis.icnet.pl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+	Thu, 26 Aug 2010 12:55:37 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Lane Brooks <lane@brooks.nu>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Thu, 26 Aug 2010 22:25:23 +0530
+Subject: RE: OMAP ISP and Overlay
+Message-ID: <19F8576C6E063C45BE387C64729E7394046836C4A1@dbde02.ent.ti.com>
+References: <4C73CBB1.4090605@brooks.nu>
+ <201008251126.05905.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201008251126.05905.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201008192025.31660.mitov@issp.bas.bg>
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thursday, August 19, 2010 08:09:27 pm Janusz Krzysztofik wrote:
-> Thursday 19 August 2010 14:16:21 Marin Mitov napisał(a):
-> > On Thursday, August 19, 2010 02:39:47 pm Guennadi Liakhovetski wrote:
-> > >
-> > > No, I don't think you should go to the next power of 2 - that's too
-> > > crude. Try rounding your buffer size to the page size, that should
-> > > suffice.
-> 
-> Guennadi,
-> If you have a look at how a device reserved memory is next allocated to a 
-> driver with drivers/base/dma-coherent.c::dma_alloc_from_coherent(), then than 
-> you may find my conclusion on a power of 2 as true:
-> 
-> int dma_alloc_from_coherent(struct device *dev, ssize_t size,
-> 					dma_addr_t *dma_handle, void **ret)
-> {
-> ...
->         int order = get_order(size);
-> ...
-> 	pageno = bitmap_find_free_region(mem->bitmap, mem->size, order);
-> ...
-> }
-> 
-> 
-> > Allocated coherent memory is always a power of 2.
-> 
-> Marin,
-> For ARM, this seems true as long as allocated with the above from a device 
-> assigned pool, but not true for a (pre)allocation from a generic system RAM. 
-> See arch/arm/mm/dma-mapping.c::__dma_alloc_buffer(), where it looks like extra 
-> pages are freed:
-> 
-> static struct page *__dma_alloc_buffer(struct device *dev, size_t size, gfp_t gfp)
-> {
-> 	unsigned long order = get_order(size);
-> ...
-> 	page = alloc_pages(gfp, order);
-> ...
-> 	split_page(page, order);
->         for (p = page + (size >> PAGE_SHIFT), e = page + (1 << order); p < e; p++)
->                 __free_page(p);
-> ...
-> }	
 
-Thanks for the clarification.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> Sent: Wednesday, August 25, 2010 2:56 PM
+> To: Lane Brooks
+> Cc: linux-media@vger.kernel.org
+> Subject: Re: OMAP ISP and Overlay
+> 
+> Hi Lane,
+> 
+> On Tuesday 24 August 2010 15:40:01 Lane Brooks wrote:
+> >
+> > So far I have the everything working with the OMAP ISP to where I can
+> stream
+> > video on our custom board.
+> 
+> Great news.
+> 
+> A new version of the ISP driver will soon be published with all the legacy
+> code removed. We need a few days to setup the repository properly. You can
+> already get a preview at http://git.linuxtv.org/pinchartl/media.git
+> (omap3isp-
+> rx51 branch).
+> 
+> > On a previous generation of hardware with a completely different
+> processor
+> > and sensor, we used the V4L2 overlay feature to stream directly to our
+> LCD
+> > for preview. I am wondering what the plans are for overlay support in
+> the
+> > omap ISP? How does the overlay feature fit into the new media bus
+> feature?
+> 
+> The OMAP3 ISP driver won't support V4L2 overlay directly. However, you can
+> use
+> the USERPTR streaming mode and pass framebuffer memory directly to the ISP
+> driver, resulting in DMA to the framebuffer and improved efficiency.
+> 
 
-Marin Mitov
+Sorry for late reply,
 
+Just wanted to add on top of this, you could use V4L2 Display driver here which supports 2 video planes (over /dev/video0 & /dev/video1) along with both User pointer mode and MMAP mode of operation.
+
+Thanks,
+Vaibhav
+
+> --
+> Regards,
 > 
-> 
-> Thanks,
-> Janusz
-> 
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
