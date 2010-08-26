@@ -1,78 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:46567 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755634Ab0HYFV3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 01:21:29 -0400
-Received: by iwn5 with SMTP id 5so275353iwn.19
-        for <linux-media@vger.kernel.org>; Tue, 24 Aug 2010 22:21:29 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTinA1r87W+4J=MRV5i6M6BD-c+KTWnYqyBd7WCQA@mail.gmail.com>
-References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
-	<AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
-	<4C581BB6.7000303@redhat.com>
-	<AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
-	<AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
-	<AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
-	<AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com>
-	<4C7425C9.1010908@hoogenraad.net>
-	<AANLkTinA1r87W+4J=MRV5i6M6BD-c+KTWnYqyBd7WCQA@mail.gmail.com>
-Date: Wed, 25 Aug 2010 01:21:29 -0400
-Message-ID: <AANLkTimwWj0sw0NKgaGBJmpKzjvwM1-U16+vToOg_Pyc@mail.gmail.com>
-Subject: Re: V4L hg tree fails to compile against kernel 2.6.28
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	VDR User <user.vdr@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from sh.osrg.net ([192.16.179.4]:39689 "EHLO sh.osrg.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752045Ab0HZKCE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 06:02:04 -0400
+Date: Thu, 26 Aug 2010 19:00:24 +0900
+To: u.kleine-koenig@pengutronix.de
+Cc: fujita.tomonori@lab.ntt.co.jp, g.liakhovetski@gmx.de,
+	mitov@issp.bas.bg, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	linux-arm-kernel@lists.infradead.org, linux-sh@vger.kernel.org,
+	philippe.retornaz@epfl.ch, gregkh@suse.de, jkrzyszt@tis.icnet.pl
+Subject: Re: [RFC][PATCH] add
+	dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <20100826095311.GA13051@pengutronix.de>
+References: <Pine.LNX.4.64.1008261100150.14167@axis700.grange>
+	<20100826182915S.fujita.tomonori@lab.ntt.co.jp>
+	<20100826095311.GA13051@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-2022-jp-2
+Content-Transfer-Encoding: 7bit
+Message-Id: <20100826185938A.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi,
+On Thu, 26 Aug 2010 11:53:11 +0200
+Uwe Kleine-K$(D+S(Bnig <u.kleine-koenig@pengutronix.de> wrote:
 
-On Tue, Aug 24, 2010 at 11:45 PM, Douglas Schilling Landgraf
-<dougsland@gmail.com> wrote:
-> Hello Jan,
->
-> On Tue, Aug 24, 2010 at 5:04 PM, Jan Hoogenraad
-> <jan-conceptronic@hoogenraad.net> wrote:
->> Douglas:
->>
->> On compiling with  Linux  2.6.28-19-generic #62-Ubuntu
->>
->> I now get:
->>
->> dvb_demux.c: In function 'dvbdmx_write':
->> dvb_demux.c:1137: error: implicit declaration of function 'memdup_user'
->> dvb_demux.c:1137: warning: assignment makes pointer from integer without a
->> cast
->>
->> This is probably due to changeset 2ceef3d75547
->>
->> which introduced the use of this function:
->> http://linuxtv.org/hg/v4l-dvb/diff/2ceef3d75547/linux/drivers/media/dvb/dvb-core/dvb_demux.c
->>
->> This function is not available in linux/string.h in kernel 2.6.29 and lower.
->>
->> http://lxr.free-electrons.com/source/include/linux/string.h?v=2.6.28
->>
->> Could you please advise me on what to do ?
->
-> For this issue, I have fixed right now, please try again with a
-> updated repository. But since I have commited several patches
-> yesterday,
-> we have another one that probably will reach your compilantion (the
-> kfifo one). I will work to fix this one too.
->
-> Thanks for the report.
+> > > We have currently a number of boards broken in the mainline. They must be 
+> > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
+> > > as I suggested earlier, we need either this or my patch series
+> > > 
+> > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+> > > 
+> > > for 2.6.36.
+> > 
+> > Why can't you revert a commit that causes the regression?
+> > 
+> > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
+> > responsible for the regression. And the patchset even exnteds the
+> > definition of the DMA API (dma_declare_coherent_memory). Such change
+> > shouldn't applied after rc1. I think that DMA-API.txt says that
+> > dma_declare_coherent_memory() handles coherent memory for a particular
+> > device. It's not for the API that reserves coherent memory that can be
+> > used for any device for a single device.
+> The patch that made the problem obvious for ARM is
+> 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
+> So this went in before v2.6.36-rc1.  One of the "architectures which
+> similar restrictions" is x86 BTW.
+> 
+> And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
+> addresses a hardware restriction.
 
-
-Ok, should be working right now, I have made the backports
-needed/adjusts to compile agains 2.6.29. Let me know if you have any
-problem.
-Tomorrow I will continue commiting patches to get hg synced with git.
-
-Thanks
-Douglas
+How these drivers were able to work without hitting the hardware restriction?
