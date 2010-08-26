@@ -1,133 +1,90 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:56010 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754887Ab0HAOFb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 10:05:31 -0400
-MIME-Version: 1.0
-In-Reply-To: <AANLkTi=c4pNtjPQ9OYL-uxXFFnPUJStUjU26TgpzpL+a@mail.gmail.com>
-References: <AANLkTikRBupAsSSk5QmudHrpEccMSOjmK2bT+xg8CocK@mail.gmail.com>
-	<BU0Ob6WojFB@christoph>
-	<AANLkTi=c4pNtjPQ9OYL-uxXFFnPUJStUjU26TgpzpL+a@mail.gmail.com>
-Date: Sun, 1 Aug 2010 10:05:30 -0400
-Message-ID: <AANLkTi=7p1WaJYu5WM373XZQM-iQpoAsvYfiXJaw8A3N@mail.gmail.com>
-Subject: Re: [PATCH 13/13] IR: Port ene driver to new IR subsystem and enable
-	it.
-From: Jon Smirl <jonsmirl@gmail.com>
-To: Christoph Bartelmus <lirc@bartelmus.de>
-Cc: awalls@md.metrocast.net, jarod@wilsonet.com,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	lirc-list@lists.sourceforge.net, maximlevitsky@gmail.com,
-	mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <mchehab@pedra>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:41211 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754112Ab0HZPih convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 11:38:37 -0400
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Nataraju, Kiran" <knataraju@ti.com>
+Date: Thu, 26 Aug 2010 10:38:33 -0500
+Subject: RE: [omap3camera] How does a lens subdevice get powered up?
+Message-ID: <A24693684029E5489D1D202277BE894463BA861E@dlee02.ent.ti.com>
+References: <A24693684029E5489D1D202277BE894463BA7E30@dlee02.ent.ti.com>
+ <201008261704.05834.laurent.pinchart@ideasonboard.com>
+ <A24693684029E5489D1D202277BE894463BA8603@dlee02.ent.ti.com>
+ <201008261736.17915.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201008261736.17915.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sun, Aug 1, 2010 at 10:00 AM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> On Sun, Aug 1, 2010 at 5:50 AM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
->> Hi Jon,
->>
->> on 31 Jul 10 at 14:14, Jon Smirl wrote:
->>> On Sat, Jul 31, 2010 at 1:47 PM, Christoph Bartelmus <lirc@bartelmus.de>
->>> wrote:
->>>> Hi Jon,
->>>>
->>>> on 31 Jul 10 at 12:25, Jon Smirl wrote:
->>>>> On Sat, Jul 31, 2010 at 11:12 AM, Andy Walls <awalls@md.metrocast.net>
->>>>> wrote:
->>>>>> I think you won't be able to fix the problem conclusively either way.  A
->>>>>> lot of how the chip's clocks should be programmed depends on how the
->>>>>> GPIOs are used and what crystal is used.
->>>>>>
->>>>>> I suspect many designers will use some reference design layout from ENE,
->>>>>> but it won't be good in every case.  The wire-up of the ENE of various
->>>>>> motherboards is likely something you'll have to live with as unknowns.
->>>>>>
->>>>>> This is a case where looser tolerances in the in kernel decoders could
->>>>>> reduce this driver's complexity and/or get rid of arbitrary fudge
->>>>>> factors in the driver.
->>>>
->>>>> The tolerances are as loose as they can be. The NEC protocol uses
->>>>> pulses that are 4% longer than JVC. The decoders allow errors up to 2%
->>>>> (50% of 4%).  The crystals used in electronics are accurate to
->>>>> 0.0001%+.
->>>>
->>>> But the standard IR receivers are far from being accurate enough to allow
->>>> tolerance windows of only 2%.
->>>> I'm surprised that this works for you. LIRC uses a standard tolerance of
->>>> 30% / 100 us and even this is not enough sometimes.
->>>>
->>>> For the NEC protocol one signal consists of 22 individual pulses at 38kHz..
->>>> If the receiver just misses one pulse, you already have an error of 1/22
->>>>> 4%.
->>
->>> There are different types of errors. The decoders can take large
->>> variations in bit times. The problem is with cumulative errors. In
->>> this case the error had accumulated up to 450us in the lead pulse.
->>> That's just too big of an error and caused the JVC code to be
->>> misclassified as NEC.
->>>
->>> I think he said lirc was misclassifying it too. So we both did the same
->>> thing.
->>
->> No way. JVC is a 16 bit code. NEC uses 32 bits. How can you ever confuse
->> JVC with NEC signals?
->>
->> LIRC will work if there is a 4% or 40% or 400% error. Because irrecord
->> generates the config file using your receiver it will compensate for any
->
-> At the end of the process we can build a record and match raw mode if
-> we have to.
->
->> timing error. It will work with pulses cut down to 50 us like IrDA
->> hardware does and it will work when half of the bits are swallowed like
->> the IgorPlug USB receiver does.
->
-> The code for fixing IrDA and IgorPLug should live inside their low
-> level device drivers.  The characteristics of the errors produced by
-> this hardware are known so a fix can be written to compensate.  The
-> IgorPlug people might find it easier to fix their firmware. You don't
-> have to get the timing exactly right for the protocol engines to work,
-> you just need to get the big systematic errors out.
+Hi Laurent,
 
-There is a real benefit to strict protocol engines. If the IgorPlus
-people had strict protocol engines to test against they would have
-discovered their firmware bugs during the initial development process.
+> -----Original Message-----
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: Thursday, August 26, 2010 10:36 AM
+> To: Aguirre, Sergio
+> Cc: linux-media@vger.kernel.org; Nataraju, Kiran
+> Subject: Re: [omap3camera] How does a lens subdevice get powered up?
+> 
+> Hi Sergio,
+> 
+> On Thursday 26 August 2010 17:33:28 Aguirre, Sergio wrote:
+> > On Thursday, August 26, 2010 10:04 AM Laurent Pinchart wrote:
+> > >
+> > > Even if not part of the image pipeline, the lens controller is still
+> part
+> > > of the media device. I think it makes sense to expose it as an entity
+> and
+> > > a V4L2 subdevice.
+> >
+> > Hmm... I don't know what I was thinking... you're right. :)
+> >
+> > Now that I rethink what I just said vs your answer, I think you have a
+> > point, so I'll drop that thought...
+> >
+> > However, I think still there's something that could be done here...
+> >
+> > Imagine a scenario in which you have 2 sensors, each one with a
+> different
+> > Coil motor driver to control each sensor's lens position.
+> >
+> > Should we have a way to register some sort of association between
+> > Sensor and lens subdevices? That way, by querying the media device, an
+> app
+> > can know which lens is associated with what sensor, without any
+> hardcoding.
+> >
+> > That would be very similar to the case in which you would want to
+> associate
+> > an audio capturing subdev with a video capturing subdev. They are not
+> > technically sharing the same data, but they are related.
+> >
+> > Is this kind of association considered in the Media Controller framework
+> > implementation currently?
+> 
+> It's implemented in the latest media controller RFC :-)
+> 
+> Entities now have a group ID that the driver can set to report
+> associations
+> such as sensor-coil-flash or video-audio.
 
->
-> Before doing raw the low level IR drivers should be fixed to provide
-> the most accurate data possible. I don't think it is good design for a
-> low level driver to be injecting systematic errors and then have the
-> next layer of code remove them.  The source of the systematic errors
-> should be characterized and fixed in the low level driver. That also
-> allows the fixed to be constrained to fixing data from only a single
-> receiver type.
->
-> I have been burnt twice in the past from fixing errors in a low level
-> driver higher in the stack. I have learned the hard way that it is a
-> bad thing to do. As the fixes accumulate in the higher layers you will
-> reach a point where they conflict and no solution is possible. Bugs in
-> the low level drivers need to be fixed in that driver.
->
-> Show me a case that can't be fixed in the low level driver and we can
-> explore the options.
->
->>
->> But of course the driver should try to generate timings as accurate as
->> possible.
->>
->> Christoph
->>
->
->
->
+Oh ok, I see.
+
+Perfect!
+
+Thanks for clarifying that.
+
+Regards,
+Sergio
+
+> 
 > --
-> Jon Smirl
-> jonsmirl@gmail.com
->
-
-
-
--- 
-Jon Smirl
-jonsmirl@gmail.com
+> Regards,
+> 
+> Laurent Pinchart
