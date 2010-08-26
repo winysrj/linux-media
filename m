@@ -1,144 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.122.233]:51360 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295Ab0HZJCg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 05:02:36 -0400
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	eduardo.valentin@nokia.com, mchehab@redhat.com
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH v8 5/5] Documentation: v4l: Add hw_seek spacing and FM_RX class
-Date: Thu, 26 Aug 2010 12:02:18 +0300
-Message-Id: <1282813338-13882-6-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1282813338-13882-5-git-send-email-matti.j.aaltonen@nokia.com>
-References: <1282813338-13882-1-git-send-email-matti.j.aaltonen@nokia.com>
- <1282813338-13882-2-git-send-email-matti.j.aaltonen@nokia.com>
- <1282813338-13882-3-git-send-email-matti.j.aaltonen@nokia.com>
- <1282813338-13882-4-git-send-email-matti.j.aaltonen@nokia.com>
- <1282813338-13882-5-git-send-email-matti.j.aaltonen@nokia.com>
+Received: from gir.skynet.ie ([193.1.99.77]:59410 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752035Ab0HZKMn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 06:12:43 -0400
+Date: Thu, 26 Aug 2010 11:12:28 +0100
+From: Mel Gorman <mel@csn.ul.ie>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Michal Nazarewicz <m.nazarewicz@samsung.com>, linux-mm@kvack.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+Message-ID: <20100826101227.GE20944@csn.ul.ie>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com> <1282310110.2605.976.camel@laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <1282310110.2605.976.camel@laptop>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Add a couple of words about the spacing field in ithe HW seek struct and
-about the new FM RX control class.
+On Fri, Aug 20, 2010 at 03:15:10PM +0200, Peter Zijlstra wrote:
+> On Fri, 2010-08-20 at 11:50 +0200, Michal Nazarewicz wrote:
+> > Hello everyone,
+> > 
+> > The following patchset implements a Contiguous Memory Allocator.  For
+> > those who have not yet stumbled across CMA an excerpt from
+> > documentation:
+> > 
+> >    The Contiguous Memory Allocator (CMA) is a framework, which allows
+> >    setting up a machine-specific configuration for physically-contiguous
+> >    memory management. Memory for devices is then allocated according
+> >    to that configuration.
+> > 
+> >    The main role of the framework is not to allocate memory, but to
+> >    parse and manage memory configurations, as well as to act as an
+> >    in-between between device drivers and pluggable allocators. It is
+> >    thus not tied to any memory allocation method or strategy.
+> > 
+> > For more information please refer to the second patch from the
+> > patchset which contains the documentation.
+> 
 
-Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
----
- Documentation/DocBook/v4l/controls.xml             |   71 ++++++++++++++++++++
- .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 ++-
- 2 files changed, 79 insertions(+), 2 deletions(-)
+I'm only taking a quick look at this - slow as ever so pardon me if I
+missed anything.
 
-diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
-index 8408caa..e9512eb 100644
---- a/Documentation/DocBook/v4l/controls.xml
-+++ b/Documentation/DocBook/v4l/controls.xml
-@@ -2088,6 +2088,77 @@ manually or automatically if set to zero. Unit, range and step are driver-specif
- <para>For more details about RDS specification, refer to
- <xref linkend="en50067" /> document, from CENELEC.</para>
-     </section>
-+    <section id="fm-rx-controls">
-+      <title>FM Tuner Control Reference</title>
-+
-+      <para>The FM Tuner (FM_RX) class includes controls for common features of
-+devices that are capable of receiving FM transmissions. Currently this class includes a parameter
-+defining the FM radio band being used.</para>
-+
-+      <table pgwide="1" frame="none" id="fm-rx-control-id">
-+      <title>FM_RX Control IDs</title>
-+
-+      <tgroup cols="4">
-+	<colspec colname="c1" colwidth="1*" />
-+	<colspec colname="c2" colwidth="6*" />
-+	<colspec colname="c3" colwidth="2*" />
-+	<colspec colname="c4" colwidth="6*" />
-+	<spanspec namest="c1" nameend="c2" spanname="id" />
-+	<spanspec namest="c2" nameend="c4" spanname="descr" />
-+	<thead>
-+	  <row>
-+	    <entry spanname="id" align="left">ID</entry>
-+	    <entry align="left">Type</entry>
-+	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FM_RX_CLASS</constant>&nbsp;</entry>
-+	    <entry>class</entry>
-+	  </row><row><entry spanname="descr">The FM_RX class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FM_RX_BAND</constant>&nbsp;</entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row id="v4l2-fm_rx_band"><entry spanname="descr">Configures the FM radio
-+frequency range being used. Currently there are three bands in use, see  <ulink
-+url="http://en.wikipedia.org/wiki/FM_broadcasting">Wikipedia</ulink>.
-+Usually 87.5 to 108.0 MHz is used, or some portion thereof, with a few exceptions:
-+In Japan, the band 76-90 MHz is used and in the former Soviet republics
-+and some Eastern European countries, the older 65-74 MHz band,
-+referred also to as the OIRT band, is still used.
-+
-+The enum&nbsp; v4l2_fm_rx_band defines possible values for the FM band. They are:</entry>
-+	</row><row>
-+	<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_FM_BAND_OTHER</constant>&nbsp;</entry>
-+		      <entry>Frequencies from 87.5 to 108.0 MHz</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_FM_BAND_JAPAN</constant>&nbsp;</entry>
-+		      <entry>from 65 to 74 MHz</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_FM_BAND_OIRT</constant>&nbsp;</entry>
-+		      <entry>from 65 to 74 MHz</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+
-+	  </row>
-+	  <row><entry></entry></row>
-+	</tbody>
-+      </tgroup>
-+      </table>
-+
-+    </section>
- </section>
- 
-   <!--
-diff --git a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
-index 14b3ec7..c30dcc4 100644
---- a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
-+++ b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
-@@ -51,7 +51,8 @@
- 
-     <para>Start a hardware frequency seek from the current frequency.
- To do this applications initialize the <structfield>tuner</structfield>,
--<structfield>type</structfield>, <structfield>seek_upward</structfield> and
-+<structfield>type</structfield>, <structfield>seek_upward</structfield>,
-+<structfield>spacing</structfield> and
- <structfield>wrap_around</structfield> fields, and zero out the
- <structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
- call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
-@@ -89,7 +90,12 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[8]</entry>
-+	    <entry><structfield>spacing</structfield></entry>
-+	    <entry>If non-zero, defines the hardware seek resolution in Hz. The driver selects the nearest value that is supported by the device. If spacing is zero a reasonable default value is used.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[7]</entry>
- 	    <entry>Reserved for future extensions. Drivers and
- 	    applications must set the array to zero.</entry>
- 	  </row>
+> So the idea is to grab a large chunk of memory at boot time and then
+> later allow some device to use it?
+>
+> I'd much rather we'd improve the regular page allocator to be smarter
+> about this. We recently added a lot of smarts to it like memory
+> compaction, which allows large gobs of contiguous memory to be freed for
+> things like huge pages.
+> 
+
+Quick glance tells me that buffer sizes of 20MB are being thrown about
+which the core page allocator doesn't handle very well (and couldn't
+without major modification). Fragmentation avoidance only works well on
+sizes < MAX_ORDER_NR_PAGES which likely will be 2MB or 4MB.
+
+That said, there are things the core VM can do to help. One is related
+to ZONE_MOVABLE and the second is on the use of MIGRATE_ISOLATE.
+
+ZONE_MOVABLE is setup when the command line has kernelcore= or movablecore=
+specified. In ZONE_MOVABLE only pages that can be migrated are allocated
+(or huge pages if specifically configured to be allowed).  The zone is setup
+during initialisation by slicing pieces from the end of existing zones and
+for various reasons, it would be best to maintain that behaviour unless CMA
+had a specific requirement for memory in the middle of an existing zone.
+
+So lets say the maximum amount of contiguous memory required by all
+devices is 64M and ZONE_MOVABLE is 64M. During normal operation, normal
+order-0 pages can be allocated from this zone meaning the memory is not
+pinned and unusable by anybody else. This avoids wasting memory. When a
+device needs a new buffer, compaction would need some additional smarts
+to compact or reclaim the size of memory needed by the driver but
+because all the pages in the zone are movable, it should be possible.
+Ideally it would have swap to reclaim because if not, compaction needs
+to know how to move pages outside a zone (something it currently
+avoids).
+
+Essentially, cma_alloc() would be a normal alloc_pages that uses
+ZONE_MOVABLE for buffers < MAX_ORDER_NR_PAGES but would need additional
+compaction smarts for the larger buffers. I think it would reuse as much
+of the existing VM as possible but without reviewing the code, I don't
+know for sure how useful the suggestion is.
+
+> If you want guarantees you can free stuff, why not add constraints to
+> the page allocation type and only allow MIGRATE_MOVABLE pages inside a
+> certain region, those pages are easily freed/moved aside to satisfy
+> large contiguous allocations.
+> 
+
+Relatively handy to do something like this. It can also be somewhat
+contrained by doing something similar to MIGRATE_ISOLATE to have
+contiguous regions of memory in a zone unusable by non-movable
+allocationos. It would be a lot trickier when interacting with reclaim
+though so using ZONE_MOVABLE would have less gotchas.
+
 -- 
-1.6.1.3
-
+Mel Gorman
+Part-time Phd Student                          Linux Technology Center
+University of Limerick                         IBM Dublin Software Lab
