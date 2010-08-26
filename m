@@ -1,51 +1,80 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54790 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756911Ab0HCPXL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Aug 2010 11:23:11 -0400
-Message-ID: <4C583473.3080700@redhat.com>
-Date: Tue, 03 Aug 2010 12:23:31 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@pedra>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:53626 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753607Ab0HZKV4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 06:21:56 -0400
 MIME-Version: 1.0
-To: Richard Zidlicky <rz@linux-m68k.org>
-CC: linux-media@vger.kernel.org, udia@siano-ms.com,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge	WinTV
- MiniStick
-References: <cover.1280693675.git.mchehab@redhat.com> <20100801171718.5ad62978@pedra> <20100802072711.GA5852@linux-m68k.org> <4C577888.30408@redhat.com> <20100803130552.GA9954@linux-m68k.org> <4C581A5F.5020403@redhat.com> <20100803144616.GA14809@linux-m68k.org>
-In-Reply-To: <20100803144616.GA14809@linux-m68k.org>
+In-Reply-To: <1282817160.1975.476.camel@laptop>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+	<1282310110.2605.976.camel@laptop>
+	<20100825155814.25c783c7.akpm@linux-foundation.org>
+	<20100825173125.0855a6b0@bike.lwn.net>
+	<AANLkTinPaq+0MbdW81uoc5_OZ=1Gy_mVYEBnwv8zgOBd@mail.gmail.com>
+	<1282810811.1975.246.camel@laptop>
+	<AANLkTin7EBZw0-WY=NGOmYzZT5Cfy7oWVFBaT2cjK+vZ@mail.gmail.com>
+	<1282817160.1975.476.camel@laptop>
+Date: Thu, 26 Aug 2010 19:21:55 +0900
+Message-ID: <AANLkTikS9Bc1NmCCO5w=pT+LBLaeSyk2PBnAry+oDxM8@mail.gmail.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+From: Minchan Kim <minchan.kim@gmail.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 03-08-2010 11:46, Richard Zidlicky escreveu:
-> On Tue, Aug 03, 2010 at 10:32:15AM -0300, Mauro Carvalho Chehab wrote:
-> 
->> The model number is on a label at the back of the stick (at least, mine have it).
-> 
-> ah.. I was wondering whichever magical tool you are using. So here is my number:
-> 55009 LF Rev A1F7
+On Thu, Aug 26, 2010 at 7:06 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+> On Thu, 2010-08-26 at 18:29 +0900, Minchan Kim wrote:
+>> As I said following mail, I said about free space problem.
+>> Of course, compaction could move anon pages into somewhere.
+>> What's is somewhere? At last, it's same zone.
+>> It can prevent fragment problem but not size of free space.
+>> So I mean it would be better to move it into another zone(ex, HIGHMEM)
+>> rather than OOM kill.
+>
+> Real machines don't have highmem, highmem sucks!! /me runs
 
-Ok, so it is close to mine. 
+It's another topic.
+I agree highmem isn't a gorgeous. But my desktop isn't real machine?
+Important thing is that we already have a highmem and many guys
+include you(kmap stacking patch :))try to improve highmem problems. :)
 
->> Btw, you don't need to use lirc if all you want is to replace the IR keycodes. You can use, instead,
->> the ir-keycode program, available at http://git.linuxtv.org/v4l-utils.git. There are several keycode
->> tables already mapped there. Of course, lirc offers some extra features.
-> 
-> thanks for the tipps.. the userspace configuration seems more confusing than the kernel
-> internals. So far I get keycodes that work nicely in an xterm and for controling firefox
-> but not much else.
+>
+> Does cross zone movement really matter, I though these crappy devices
+> were mostly used on crappy hardware with very limited memory, so pretty
+> much everything would be in zone_normal.. no?
 
-Yes, that's the expected results without lirc. It will just use the RC as if it were a keyboard.
-You can play with the IR, via ir-keycode, to use a different remote controller, or to reassign a
-different keycode to a key. For example, reassigning the scancode for channel up as KEY_UP.
+No. Until now, many embedded devices have used to small memory. In
+that case, only there is a DMA zone in system. But as I know, mobile
+phone starts to use big(?) memory like 1G or above sooner or later. So
+they starts to use HIGHMEM. Otherwise, 2G/2G space configuration.
+Some embedded device uses many thread model to port easily from RTOS.
+In that case, they don't have enough address space for application if
+it uses 2G/2G model.
+
+So we should care of HIGHMEM in embedded system from now on.
+
+>
+> But sure, if there's really a need we can look at maybe doing cross zone
+> movement.
+>
 
 
-With lirc, you can also associate a keycode to an specific application, using for example, one key
-to open your favorite TV application. There are some discussions about having a similar support
-directly into X window managers, and direct support for RC into media applications, but, there's
-no current patches for that, afaik.
-
-Cheers,
-Mauro.
+-- 
+Kind regards,
+Minchan Kim
