@@ -1,59 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from smtp8.mail.ru ([94.100.176.53]:52226 "EHLO smtp8.mail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750742Ab0HLIZ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Aug 2010 04:25:26 -0400
-Received: from [95.53.178.138] (port=30418 helo=localhost.localdomain)
-	by smtp8.mail.ru with asmtp
-	id 1OjT6K-0006AO-00
-	for linux-media@vger.kernel.org; Thu, 12 Aug 2010 12:25:24 +0400
-Date: Thu, 12 Aug 2010 12:32:32 +0400
-From: Goga777 <goga777@bk.ru>
-To: linux-media@vger.kernel.org
-Subject: dvb_net.c:1237: error: =?UTF-8?B?4oCYc3RydWN0IG5ldF9kZXZpY2XigJk=?=
- has no member
-Message-ID: <20100812123232.6339408c@bk.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:41219 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751833Ab0HZCNM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Aug 2010 22:13:12 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Date: Thu, 26 Aug 2010 04:12:10 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+In-reply-to: <20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	linux-kernel@vger.kernel.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Mel Gorman <mel@csn.ul.ie>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <op.vh0wektv7p4s8u@localhost>
+Content-transfer-encoding: 8BIT
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+ <1282310110.2605.976.camel@laptop>
+ <20100825155814.25c783c7.akpm@linux-foundation.org>
+ <20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-hi
+On Thu, 26 Aug 2010 02:58:57 +0200, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
+> Hmm, you may not like this..but how about following kind of interface ?
+>
+> Now, memoyr hotplug supports following operation to free and _isolate_
+> memory region.
+> 	# echo offline > /sys/devices/system/memory/memoryX/state
+>
+> Then, a region of memory will be isolated. (This succeeds if there are free
+> memory.)
+>
+> Add a new interface.
+>
+> 	% echo offline > /sys/devices/system/memory/memoryX/state
+> 	# extract memory from System RAM and make them invisible from buddy allocator.
+>
+> 	% echo cma > /sys/devices/system/memory/memoryX/state
+> 	# move invisible memory to cma.
 
-with 2.6.35 kernel and current v4l-dvb I have other errors as described here is
-http://www.kernellabs.com/blog/?p=1397
+At this point I need to say that I have no experience with hotplug memory but
+I think that for this to make sense the regions of memory would have to be
+smaller.  Unless I'm misunderstanding something, the above would convert
+a region of sizes in order of GiBs to use for CMA.
 
-
-CC [M] /home/fabio/src/v4l-dvb-drxd/v4l/dvb_filter.o
-CC [M] /home/fabio/src/v4l-dvb-drxd/v4l/dvb_ca_en50221.o
-CC [M] /home/fabio/src/v4l-dvb-drxd/v4l/dvb_frontend.o
-CC [M] /home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.o
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1179: warning: ‘struct dev_mc_list’ declared inside parameter list
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1179: warning: its scope is only this definition or declaration, which is probably not what you want
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c: In function ‘dvb_set_mc_filter’:
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1186: error: dereferencing pointer to incomplete type
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c: In function ‘wq_set_multicast_list’:
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1226: error: ‘struct net_device’ has no member named ‘mc_count’
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1230: error: ‘struct net_device’ has no member named ‘mc_count’
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1236: error: ‘struct net_device’ has no member named ‘mc_list’
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1237: error: ‘struct net_device’ has no member named ‘mc_count’
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1238: error: dereferencing pointer to incomplete type
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1238: warning: left-hand operand of comma expression has no effect
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1238: warning: value computed is not used
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1239: warning: passing argument 2 of ‘dvb_set_mc_filter’ from incompatible pointer type
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1179: note: expected ‘struct dev_mc_list *’ but argument is of type ‘struct dev_mc_list *’
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c: In function ‘dvb_net_setup’:
-/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.c:1363: error: ‘struct net_device’ has no member named ‘mc_count’
-make[3]: *** [/home/fabio/src/v4l-dvb-drxd/v4l/dvb_net.o] Error 1
-make[2]: *** [_module_/home/fabio/src/v4l-dvb-drxd/v4l] Error 2
-make[2]: Leaving directory `/usr/src/kernels/2.6.35-kal.i686′
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/home/fabio/src/v4l-dvb-drxd/v4l’
-make: *** [all] Error 2
-
-hope that it will fix soon
-
-Goga
-
+-- 
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
 
