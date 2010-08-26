@@ -1,81 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from cpoproxy1-pub.bluehost.com ([69.89.21.11]:33709 "HELO
-	cpoproxy1-pub.bluehost.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752147Ab0H3QbK (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2648 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751536Ab0HZS4V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Aug 2010 12:31:10 -0400
-Date: Mon, 30 Aug 2010 09:31:04 -0700
-From: Jesse Barnes <jbarnes@virtuousgeek.org>
-To: Kees Cook <kees.cook@canonical.com>
-Cc: linux-kernel@vger.kernel.org, Dave Airlie <airlied@redhat.com>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH] drm, video: fix use-before-NULL-check
-Message-ID: <20100830093104.5aa22a0a@jbarnes-desktop>
-In-Reply-To: <20100827210719.GD4703@outflux.net>
-References: <20100827210719.GD4703@outflux.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Thu, 26 Aug 2010 14:56:21 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7QIuJiS034126
+	for <linux-media@vger.kernel.org>; Thu, 26 Aug 2010 20:56:19 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 26 Aug 2010 20:56:19 +0200 (CEST)
+Message-Id: <201008261856.o7QIuJiS034126@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, 27 Aug 2010 14:07:19 -0700
-Kees Cook <kees.cook@canonical.com> wrote:
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-> Fix potential crashes due to use-before-NULL situations.
-> 
-> Signed-off-by: Kees Cook <kees.cook@canonical.com>
-> ---
->  drivers/gpu/drm/drm_fb_helper.c           |    3 ++-
->  drivers/media/video/em28xx/em28xx-video.c |    3 ++-
->  2 files changed, 4 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
-> index de82e20..8dd7e6f 100644
-> --- a/drivers/gpu/drm/drm_fb_helper.c
-> +++ b/drivers/gpu/drm/drm_fb_helper.c
-> @@ -94,10 +94,11 @@ static bool drm_fb_helper_connector_parse_command_line(struct drm_fb_helper_conn
->  	int i;
->  	enum drm_connector_force force = DRM_FORCE_UNSPECIFIED;
->  	struct drm_fb_helper_cmdline_mode *cmdline_mode;
-> -	struct drm_connector *connector = fb_helper_conn->connector;
-> +	struct drm_connector *connector;
->  
->  	if (!fb_helper_conn)
->  		return false;
-> +	connector = fb_helper_conn->connector;
->  
->  	cmdline_mode = &fb_helper_conn->cmdline_mode;
->  	if (!mode_option)
-> diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-> index 7b9ec6e..95a4b60 100644
-> --- a/drivers/media/video/em28xx/em28xx-video.c
-> +++ b/drivers/media/video/em28xx/em28xx-video.c
-> @@ -277,12 +277,13 @@ static void em28xx_copy_vbi(struct em28xx *dev,
->  {
->  	void *startwrite, *startread;
->  	int  offset;
-> -	int bytesperline = dev->vbi_width;
-> +	int bytesperline;
->  
->  	if (dev == NULL) {
->  		em28xx_isocdbg("dev is null\n");
->  		return;
->  	}
-> +	bytesperline = dev->vbi_width;
->  
->  	if (dma_q == NULL) {
->  		em28xx_isocdbg("dma_q is null\n");
+Results of the daily build of v4l-dvb:
 
-Look fine to me.
+date:        Thu Aug 26 19:00:24 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15138:a4c762698bcb
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Reviewed-by: Jesse Barnes <jbarnes@virtuousgeek.org>
+linux-2.6.32.6-armv5: ERRORS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: ERRORS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
 
--- 
-Jesse Barnes, Intel Open Source Technology Center
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
