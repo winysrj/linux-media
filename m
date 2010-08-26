@@ -1,54 +1,67 @@
-Return-path: <mchehab@localhost>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:51500 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757370Ab0HaNz2 (ORCPT
+Return-path: <mchehab@pedra>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:49285 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751628Ab0HZRvb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Aug 2010 09:55:28 -0400
-Message-ID: <bbcd88f59eac5ebc87692eff16a9b6fc.squirrel@www.hardeman.nu>
-In-Reply-To: <4C7BA933.2020303@infradead.org>
-References: <e5clffplcfofw16tg9fp5t77.1283131265736@email.android.com>
-    <4C7BA933.2020303@infradead.org>
-Date: Tue, 31 Aug 2010 15:55:26 +0200 (CEST)
-Subject: Re: IR code autorepeat issue?
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
-Cc: "Andy Walls" <awalls@md.metrocast.net>,
-	"Anton Blanchard" <anton@samba.org>, linux-media@vger.kernel.org
+	Thu, 26 Aug 2010 13:51:31 -0400
+Date: Thu, 26 Aug 2010 18:49:09 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: g.liakhovetski@gmx.de, mitov@issp.bas.bg, linux-sh@vger.kernel.org,
+	gregkh@suse.de, linux-kernel@vger.kernel.org,
+	u.kleine-koenig@pengutronix.de, jkrzyszt@tis.icnet.pl,
+	philippe.retornaz@epfl.ch, akpm@linux-foundation.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RFC][PATCH] add
+	dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+Message-ID: <20100826174909.GA13224@n2100.arm.linux.org.uk>
+References: <Pine.LNX.4.64.1008261100150.14167@axis700.grange> <20100826182915S.fujita.tomonori@lab.ntt.co.jp> <Pine.LNX.4.64.1008261140390.14167@axis700.grange> <20100826185102I.fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100826185102I.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, August 30, 2010 14:50, Mauro Carvalho Chehab wrote:
-> Em 29-08-2010 22:26, Andy Walls escreveu:
->> How about a keycode sensitive repeat delay?
->> A short delay for vol+/-, ch+/-, etc.
->> A medium delay for digits, fast forward, rewind, pause, play, stop, etc.
->> A long delay for power, mute, etc.
->
-> There are two separate things here:
->
-> 1) we need to fix a bug introduced for some remotes;
-> 2) We may improve the repeat code at rc subsystem.
->
-> For (1), a simple trivial patch is enough/desired. Let's first fix it, and
-> then think on improvements.
+On Thu, Aug 26, 2010 at 06:51:48PM +0900, FUJITA Tomonori wrote:
+> On Thu, 26 Aug 2010 11:45:58 +0200 (CEST)
+> Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> 
+> > On Thu, 26 Aug 2010, FUJITA Tomonori wrote:
+> > 
+> > > Why can't you revert a commit that causes the regression?
+> > 
+> > See this reply, and the complete thread too.
+> > 
+> > http://marc.info/?l=linux-sh&m=128130485208262&w=2
+> > 
+> > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
+> > > responsible for the regression. And the patchset even exnteds the
+> > > definition of the DMA API (dma_declare_coherent_memory). Such change
+> > > shouldn't applied after rc1. I think that DMA-API.txt says that
+> > > dma_declare_coherent_memory() handles coherent memory for a particular
+> > > device. It's not for the API that reserves coherent memory that can be
+> > > used for any device for a single device.
+> > 
+> > Anyway, we need a way to fix the regression.
+> 
+> Needs to find a different way.
 
-I agree, and I think setting REP_DELAY = 500 is a good fix for now (note
-that it needs to be set after registering the input device). We can tweak
-the repeat handling further once rc_core has settled down.
+No.  ioremap on memory mapped by the kernel is just plain not permitted
+with ARMv6 and ARMv7 architectures.
 
-> About a keycode sensitive delay, it might be a good idea, but
-> there are some aspects to consider:
-*snip*
-> IMHO, this would add too much complexity for not much gain.
+It's not something you can say "oh, need to find another way" because there
+is _no_ software solution to having physical regions mapped multiple times
+with different attributes.  It's an architectural restriction.
 
-Agreed, the per-keycode-delay lists would probably not be welcome
-in-kernel (as it's basically putting policy in the kernel) and even if we
-implemented APIs to let userspace control it, I think it's unlikely that
-the vast majority would ever use it (meaning we add useless complexity).
+We can't unmap the kernel's memory mapping either, as I've already explained
+several times this month - and I'm getting frustrated at having to keep
+on explaining that point.
 
--- 
-David Härdeman
+Just accept the plain fact that multiple mappings of the same physical
+regions have become illegal.
 
+What we need is another alternative other than using ioremap on memory
+already mapped by the kernel - eg, by reserving a certain chunk of
+memory for this purpose at boot time which his _never_ mapped by the
+kernel, except via ioremap.
