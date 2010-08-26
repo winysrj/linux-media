@@ -1,94 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:53070 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933958Ab0HLQTm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Aug 2010 12:19:42 -0400
-Date: Thu, 12 Aug 2010 18:19:27 +0200
-From: Dan Carpenter <error27@gmail.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] IR: ene_ir: problems in unwinding on probe
-Message-ID: <20100812161927.GQ645@bicker>
-References: <20100812074611.GI645@bicker> <1281623704.10393.2.camel@maxim-laptop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1281623704.10393.2.camel@maxim-laptop>
+Received: from psmtp04.wxs.nl ([195.121.247.13]:35402 "EHLO psmtp04.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754000Ab0HZTyW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 15:54:22 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp04.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L7R002EYZAIFP@psmtp04.wxs.nl> for linux-media@vger.kernel.org;
+ Thu, 26 Aug 2010 21:54:21 +0200 (MEST)
+Date: Thu, 26 Aug 2010 21:54:10 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: HG has errors on kernel 2.6.32
+In-reply-to: <4C768B43.9080403@holzeisen.de>
+To: linux-media@vger.kernel.org,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Cc: Thomas Holzeisen <thomas@holzeisen.de>
+Message-id: <4C76C662.3070003@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
+References: <4C1D1228.1090702@holzeisen.de> <4C5BA16C.7060808@hoogenraad.net>
+ <5a5511b4767b245485b150836b1526f0.squirrel@holzeisen.de>
+ <4C760DBC.5000605@hoogenraad.net> <4C768B43.9080403@holzeisen.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, Aug 12, 2010 at 05:35:04PM +0300, Maxim Levitsky wrote:
-> On Thu, 2010-08-12 at 09:46 +0200, Dan Carpenter wrote: 
-> > There were a couple issues here.  If the allocation failed for "dev"
-> > then it would lead to a NULL dereference.  If request_irq() or
-> > request_region() failed it would release the irq and the region even
-> > though they were not successfully aquired.
-> > 
-> > Signed-off-by: Dan Carpenter <error27@gmail.com>
+Douglas:
+
+I see on that
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+that building linux-2.6.32 yields ERRORS
+
+skip_spaces has only been included in string.h starting from linux-2.6.33.
+
+Should I have a look on how to fix this, or do you want to do this ?
+
+--
+
+second request: can we do some small changes to avoid the compiler 
+warnings ?
+
+include the line
+         rc=0;
+at line 187 of linux/drivers/media/IR/ir-raw-event.c
+
+
+and change
+static  void jpeg_set_qual(u8 *jpeg_hdr,
+into
+static __attribute__ (( unused )) void jpeg_set_qual(u8 *jpeg_hdr,
+
+at line 152 of linux/drivers/media/video/gspca/jpeg.h
+
+Yours,
+		Jan
+
+Thomas Holzeisen wrote:
+> Hi Jan,
 > 
-> I don't think this is needed.
-> I just alloc all the stuff, and if one of allocations fail, I free them
-> all. {k}free on NULL pointer is perfectly legal.
+> this looks great. At first the checkout did not build throwing me this 
+> error:
 > 
-> Same about IO and IRQ.
-> IRQ0 and IO 0 isn't valid, and I do test that in error path.
+>> /usr/src/rtl2831-r2/v4l/ir-sysfs.c: In function 'store_protocols':
+>> /usr/src/rtl2831-r2/v4l/ir-sysfs.c:137: error: implicit declaration of 
+>> function 'skip_spaces'
+>> /usr/src/rtl2831-r2/v4l/ir-sysfs.c:137: warning: assignment makes 
+>> pointer from integer without a cast
+>> /usr/src/rtl2831-r2/v4l/ir-sysfs.c:178: warning: assignment makes 
+>> pointer from integer without a cast
 > 
->
-
-Here is the original code:
-
-Here is where we set "dev".
-
-   785          dev = kzalloc(sizeof(struct ene_device), GFP_KERNEL);
-   786  
-   787          if (!input_dev || !ir_props || !dev)
-   788                  goto error;
-
-	[snip]
-
-Here is where we set the IO and IRQ:
-
-   800          dev->hw_io = pnp_port_start(pnp_dev, 0);
-   801          dev->irq = pnp_irq(pnp_dev, 0);
-
-	[snip]
-
-Here is where the request_region() and request_irq() are.
-
-   806          if (!request_region(dev->hw_io, ENE_MAX_IO, ENE_DRIVER_NAME))
-   807                  goto error;
-   808  
-   809          if (request_irq(dev->irq, ene_isr, 
-   810                          IRQF_SHARED, ENE_DRIVER_NAME, (void *)dev))
-   811                  goto error;
-
-	[snip]
-
-Here is the error label:
-
-   897  error:
-   898          if (dev->irq)
-		    ^^^^^^^^
-
-	Oops!  The allocation of dev failed and this is a NULL
-	dereference.
-
-   899                  free_irq(dev->irq, dev);
-
-	Oops!  Request region failed and dev->irq is non-zero but
-	request_irq() hasn't been called.
-
-   900          if (dev->hw_io)
-   901                  release_region(dev->hw_io, ENE_MAX_IO);
-
-	Oops! dev->hw_io is non-zero but request_region() failed and so
-	we just released someone else's region.
+> i replaced the file by an older version from a previous checkout and 
+> then it build perfectly. It also gets initialized without a flaw:
+> 
 
 
-Hehe.  :P
-
-regards,
-dan carpenter
-
+-- 
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
