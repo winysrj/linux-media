@@ -1,122 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:40169 "HELO
-	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750927Ab0HSJcx (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:61557 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751116Ab0HZEOI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Aug 2010 05:32:53 -0400
-Received: by wwb34 with SMTP id 34so1793717wwb.29
-        for <linux-media@vger.kernel.org>; Thu, 19 Aug 2010 02:32:51 -0700 (PDT)
+	Thu, 26 Aug 2010 00:14:08 -0400
 MIME-Version: 1.0
-From: Martin Rubli <mrubligbox@gmail.com>
-Date: Thu, 19 Aug 2010 17:25:10 +0800
-Message-ID: <AANLkTikawoE4LpDUSxd8richdau4ySc63=AeNiJx2473@mail.gmail.com>
-Subject: [RFC] Media controller addition: MEDIA_IOC_ENTITY_INFO
-To: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+	<1282310110.2605.976.camel@laptop>
+	<20100825155814.25c783c7.akpm@linux-foundation.org>
+	<20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
+	<op.vh0wektv7p4s8u@localhost>
+	<20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
+	<20100826124434.6089630d.kamezawa.hiroyu@jp.fujitsu.com>
+	<AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
+Date: Thu, 26 Aug 2010 13:14:07 +0900
+Message-ID: <AANLkTimatyb6cONqH319-xYmXTBb_jQuTLCmU_M6jYPa@mail.gmail.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+From: Minchan Kim <minchan.kim@gmail.com>
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: =?ISO-8859-2?Q?Micha=B3_Nazarewicz?= <m.nazarewicz@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	linux-kernel@vger.kernel.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Mel Gorman <mel@csn.ul.ie>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi all,
+On Thu, Aug 26, 2010 at 1:06 PM, Minchan Kim <minchan.kim@gmail.com> wrote:
+> On Thu, Aug 26, 2010 at 12:44 PM, KAMEZAWA Hiroyuki
+> <kamezawa.hiroyu@jp.fujitsu.com> wrote:
+>> On Thu, 26 Aug 2010 11:50:17 +0900
+>> KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
+>>
+>>> 128MB...too big ? But it's depend on config.
+>>>
+>>> IBM's ppc guys used 16MB section, and recently, a new interface to shrink
+>>> the number of /sys files are added, maybe usable.
+>>>
+>>> Something good with this approach will be you can create "cma" memory
+>>> before installing driver.
+>>>
+>>> But yes, complicated and need some works.
+>>>
+>> Ah, I need to clarify what I want to say.
+>>
+>> With compaction, it's helpful, but you can't get contiguous memory larger
+>> than MAX_ORDER, I think. To get memory larger than MAX_ORDER on demand,
+>> memory hot-plug code has almost all necessary things.
+>
+> True. Doesn't patch's idea of Christoph helps this ?
+> http://lwn.net/Articles/200699/
 
-Following some discussion with Laurent Pinchart I'd like to suggest
-the addition of a new ioctl to the media controller API:
-MEDIA_IOC_ENTITY_INFO.
+Of course, It itself can't meet our requirement but idea of range
+allocation seem to be good.
+I think it can be start point.
 
-The purpose of the ioctl is to allow applications to retrieve advanced
-information on a given entity. There are two parts: a generic one and
-a driver-specific one. The latter allows drivers to make
-driver-specific entity information available to applications.
-
-To mention one example: The UVC driver exposes a device's
-units/terminals as entities. Each of these entities has a unit ID and
-some particular units (extension units for vendor-specific controls)
-have a GUID that uniquely identifies their interface. These two pieces
-of information are very interesting for apps because it allows them to
-generically access all these controls.
-
-At the moment there isn't a lot of generic information in the
-media_entity_info struct. Only a generic bus ID that can e.g. be used
-to differentiate I2C chips. Suggestions for further generic fields are
-welcome, and so is more general feedback.
-
-Cheers,
-Martin
+>
+> --
+> Kind regards,
+> Minchan Kim
+>
 
 
 
-	MEDIA_IOC_ENTITY_INFO - Obtain detailed information on a given entity
-	---------------------------------------------------------------------
-
-	ioctl(int fd, int request, struct media_entity_info *argp);
-
-Applications can retrieve detailed information about a given entity using this
-ioctl. This entity information contains both, a generic part, as well as a
-driver specific part. While the size, fields, and format of the former one are
-defined by the media kernel API the latter one is defined by the driver behind
-the entity's device and can be of arbitrary size.
-
-Querying the driver specific entity information is optional. To only query the
-generic part the application sets drvinfo_size to 0 and drvinfo to NULL. The
-function returns either success (if no driver specific information is available)
-or ENOBUFS (if driver specific information would be available). In both cases
-the generic entity information is properly returned.
-
-In order to query the driver specific part the application sets drvinfo_size to
-the correct size of the driver specific structure, and points drvinfo to a
-pre-allocated structure of the same size.
-
-To maintain maximum flexibility a method to query the size of the driver
-specific entity information is provided. If the number provided in drvinfo_size
-is smaller than the size of the driver specific structure the correct size is
-stored in the drvinfo_size field and the function returns with ENOBUFS. The
-drvinfo pointer is ignored in that case. Therefore the suggested way to query
-all available entity information is as follows:
-
-  1. Call the function with drvinfo_size set to 0 and drvinfo to NULL.
-  2. Verify that the error code is ENOBUFS. In case of success, no driver
-     specific information is available and the remaining steps can be skipped.
-  3. Allocate a buffer of size drvinfo_size and point drvinfo to it.
-  4. Call the function again.
-  5. Verify that the return value indicates success.
-
-Note for driver developers: Driver specific entity information structures are to
-start with a header field of type media_entity_drvinfo.
-
-The media_entity_info and related structures are defined as
-
-- struct media_entity_drvinfo
-
-__u32		magic		A magic number identifying the type of the
-				structure.
-__u8		data[0]		Driver specific data of arbitrary size.
-
-The magic number allows for an application to verify that the type of the
-obtained driver specific information indeed corresponds to what it expects to
-process. Newer versions of a driver can use different magic numbers to indicate
-that the data structure has changed. Drivers are free to choose the format of
-the magic number.
-
-- struct media_entity_info
-
-__u32		entity		Entity id, set by the application.
-char		bus_id[32]	A bus ID of undefined format.
-__u32		reserved[8]	Reserved for future extensions.
-__u32		drvinfo_size	Size of the data pointed to by 'drvinfo', set by
-				both application and driver.
-struct media_entity_drvinfo
-		*drvinfo	A pointer to a pre-allocated structure of driver
-				specific format, set by the application.
-
-Return values:
-
-  EINVAL	A parameter is invalid. This can indicate that the entity id is
-		invalid or that the drvinfo pointer is NULL despite a correct
-		drvinfo_size value.
-
-  EFAULT	A pointer is invalid, either argp itself or the drvinfo field.
-
-  ENOENT	There is no information available about the given entity.
-
-  ENOBUFS	The buffer size specified in drvinfo_size is not big enough to
-		hold the driver specific entity information structure. The
-		correct size is being returned in drvinfo_size.
+-- 
+Kind regards,
+Minchan Kim
