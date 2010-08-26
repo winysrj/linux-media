@@ -1,124 +1,148 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.23]:49843 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1761355Ab0HMIwd convert rfc822-to-8bit (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:38873 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753960Ab0HZBXN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Aug 2010 04:52:33 -0400
-Date: Fri, 13 Aug 2010 10:52:41 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
-Subject: Re: [RFC] [PATCH 1/6] SoC Camera: add driver for OMAP1 camera
- interface
-In-Reply-To: <201008130924.04660.jkrzyszt@tis.icnet.pl>
-Message-ID: <Pine.LNX.4.64.1008131016100.31714@axis700.grange>
-References: <201007180618.08266.jkrzyszt@tis.icnet.pl>
- <201008011751.17294.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1008111339190.32197@axis700.grange>
- <201008130924.04660.jkrzyszt@tis.icnet.pl>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 25 Aug 2010 21:23:13 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Date: Thu, 26 Aug 2010 10:22:08 +0900
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+In-reply-to: <20100825155814.25c783c7.akpm@linux-foundation.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Peter Zijlstra <peterz@infradead.org>,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
+Message-id: <4C75C1C0.8050805@samsung.com>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+ <1282310110.2605.976.camel@laptop>
+ <20100825155814.25c783c7.akpm@linux-foundation.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, 13 Aug 2010, Janusz Krzysztofik wrote:
+Hi Andrew,
 
-> Thursday 12 August 2010 23:38:17 Guennadi Liakhovetski napisał(a):
-> > On Sun, 1 Aug 2010, Janusz Krzysztofik wrote:
-> > > Friday 30 July 2010 20:49:05 Janusz Krzysztofik napisaÅ(a):
-> > >
-> > > I think the right way would be if implemented at the videobuf-core level.
-> > > Then, drivers should be able to initialize both paths, providing queue
-> > > callbacks for both sets of methods, contig and sg, for videobuf sole use.
-> >
-> > Ok, here're my thoughts about this:
-> >
-> > 1. We've discussed this dynamic switching a bit on IRC today. The first
-> > reaction was - you probably should concentrate on getting the contiguous
-> > version to work reliably. I.e., to reserve the memory in the board init
-> > code similar, how other contig users currently do it. 
-> 
-> I already tried before to find out how I could allocate memory at init without 
-> reinventing a new videobuf-dma-contig implementation. Since in the 
-> Documentation/video4linux/videobuf I've read that videobuf does not currently 
-> play well with drivers that play tricks by allocating DMA space at system 
-> boot time, I've implemented the alternate sg path.
-> 
-> If it's not quite true what the documentation says and you can give me a hint 
-> how this could be done, I might try again.
+Thank you for your comments and interest in this!
 
-For an example look at 
-arch/arm/mach-mx3/mach-pcm037.c::pcm037_camera_alloc_dma().
+On 08/26/2010 07:58 AM, Andrew Morton wrote:
+> On Fri, 20 Aug 2010 15:15:10 +0200
+> Peter Zijlstra<peterz@infradead.org>  wrote:
+>
+>    
+>> On Fri, 2010-08-20 at 11:50 +0200, Michal Nazarewicz wrote:
+>>      
+>>> Hello everyone,
+>>>
+>>> The following patchset implements a Contiguous Memory Allocator.  For
+>>> those who have not yet stumbled across CMA an excerpt from
+>>> documentation:
+>>>
+>>>     The Contiguous Memory Allocator (CMA) is a framework, which allows
+>>>     setting up a machine-specific configuration for physically-contiguous
+>>>     memory management. Memory for devices is then allocated according
+>>>     to that configuration.
+>>>
+>>>     The main role of the framework is not to allocate memory, but to
+>>>     parse and manage memory configurations, as well as to act as an
+>>>     in-between between device drivers and pluggable allocators. It is
+>>>     thus not tied to any memory allocation method or strategy.
+>>>
+>>> For more information please refer to the second patch from the
+>>> patchset which contains the documentation.
+>>>        
+>> So the idea is to grab a large chunk of memory at boot time and then
+>> later allow some device to use it?
+>>
+>> I'd much rather we'd improve the regular page allocator to be smarter
+>> about this. We recently added a lot of smarts to it like memory
+>> compaction, which allows large gobs of contiguous memory to be freed for
+>> things like huge pages.
+>>
+>> If you want guarantees you can free stuff, why not add constraints to
+>> the page allocation type and only allow MIGRATE_MOVABLE pages inside a
+>> certain region, those pages are easily freed/moved aside to satisfy
+>> large contiguous allocations.
+>>      
+> That would be good.  Although I expect that the allocation would need
+> to be 100% rock-solid reliable, otherwise the end user has a
+> non-functioning device.  Could generic core VM provide the required level
+> of service?
+>
+> Anyway, these patches are going to be hard to merge but not impossible.
+> Keep going.  Part of the problem is cultural, really: the consumers of
+> this interface are weird dinky little devices which the core MM guys
+> tend not to work with a lot, and it adds code which they wouldn't use.
+>    
 
-> > But given problems 
-> > with this aproach in the current ARM tree [1], this might be a bit
-> > difficult. Still, those problems have to be and will be fixed somehow
-> > eventually, so, you might prefer to still just go that route.
-> 
-> My board uses two drivers that allocate dma memory at boot time: 
-> drivers/video/omap/lcdc.c and sounc/soc/omap/omap-pcm.c. Both use 
-> alloc_dma_writecombine() for this and work without problems.
+This is encouraging, thanks. Merging a contiguous allocator seems like a 
+lost cause, with a relative disinterest of non-embedded people, and on 
+the other hand because of the difficulty to satisfy those actually 
+interested. With virtually everybody having their own, custom solutions, 
+agreeing on one is nearly impossible.
 
-dma_alloc_writecombine() also allocates contiguous RAM, right? And it 
-doesn't use device "local" memory. So, it's chances to fail are the same 
-as those of dma_alloc_coherent() in the absence of device own memory. I 
-guess, the sound driver doesn't need much RAM, but if you build your LCDC 
-driver as a module and load it later after startup, it might get problems 
-allocating RAM for the framebuffer.
+> I agree that having two "contiguous memory allocators" floating about
+> on the list is distressing.  Are we really all 100% diligently certain
+> that there is no commonality here with Zach's work?
+>    
 
-> > 2. If you do want to do the switching - we also discussed, how forthcoming
-> > changes to the videobuf subsystem will affest this work. I do not think it
-> > would be possible to implement this switching in the videobuf core.
-> 
-> OK, I should have probably said that it looked not possible for me to do it 
-> without any additional support implemented at videobuf-core (or soc_camera) 
-> level.
-> 
-> > Remember, with the videobuf API you first call the respective
-> > implementation init method, which doesn't fail. Then, in REQBUFS ioctl you
-> > call videobuf_reqbufs(), which might already fail but normally doesn't.
-> > The biggest problem is the mmap call with the contig videobuf
-> > implementation. This one is likely to fail. So, you would have to catch
-> > the failing mmap, call videobuf_mmap_free(), then init the SG videobuf,
-> > request buffers and mmap them... 
-> 
-> That's what I've already discovered, but failed to identify a place in my code 
-> where I could intercept this failing mmap without replacing parts of the 
-> videobuf code.
+I think Zach's work is more focused on IOMMU and on unifying virtual 
+memory handling. As far as I understand, any physical allocator can be 
+plugged into it, including CMA. CMA solves a different set of problems.
 
-Right, ATM soc-camera just calls videobuf_mmap_mapper() directly in its 
-mmap method. I could add a callback to struct soc_camera_host_ops like
+> I agree that Peter's above suggestion would be the best thing to do.
+> Please let's take a look at that without getting into sunk cost
+> fallacies with existing code!
+>
+> It would help (a lot) if we could get more attention and buyin and
+> fedback from the potential clients of this code.  rmk's feedback is
+> valuable.  Have we heard from the linux-media people?  What other
+> subsystems might use it?  ieee1394 perhaps?  Please help identify
+> specific subsystems and I can perhaps help to wake people up.
+>    
 
-	int (*mmap)(struct soc_camera_device *, struct vm_area_struct *)
+As a media developer myself, I talked with people and many have 
+expressed their interest. Among them were developers from ST-Ericsson, 
+Intel and TI, to name a few. Their SoCs, like ours at Samsung, require 
+contiguous memory allocation schemes as well.
 
-and modify soc_camera_mmap() to check, whether the host driver has 
-implemented it. If so - call it, otherwise call videobuf_mmap_mapper() 
-directly just like now. So, other drivers would not have to be modified. 
-And you could implement that .mmap() method, call videobuf_mmap_mapper() 
-yourself, and if it fails for contig, fall back to SG.
 
-> > With my 2 patches from today, there is 
-> > only one process (file descriptor, to be precise), that manages the
-> > videobuf queue. So, this all can only be implemented in your driver.
-> 
-> The only way I'm yet able to invent is replacing the 
-> videobuf_queue->int_ops->mmap_mapper() callback with my own wrapper that 
-> would intercept a failing videobuf-dma-contig version of mmap_mapper(). This 
-> could be done in my soc_camera_host->ops->init_videobuf() after the 
-> videobuf-dma-contig.c version of the videobuf_queue->int_ops->mmap_mapper() 
-> is installed with the videobuf_queue_dma_contig_init().
-> 
-> Is this method close to what you have on mind?
+I am working on a driver framework for media for memory management (on 
+the logical, not physical level). One of the goals is to allow plugging 
+in custom allocators and memory handling functions (cache management, 
+etc.). CMA is intended to be used as one of the pluggable allocators for 
+it. Right now, many media drivers have to provide their own, more or 
+less complicated, memory handling, which is of course undesirable. Some 
+of those make it to the kernel, many are maintained outside the mainline.
 
-See, if the above idea would suit your needs.
+The problem is that, as far as I am aware, there have already been quite 
+a few proposals for such allocators and none made it to the mainline. So 
+companies develop their own solutions and maintain them outside the 
+mainline.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+I think that the interest is definitely there, but people have their 
+deadlines and assume that it is close to impossible to have a contiguous 
+allocator merged.
+
+Your help and support would be very much appreciated. Working in 
+embedded Linux for some time now, I feel that the need is definitely 
+there and is quite substantial.
+
+-- 
+Best regards,
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
+
