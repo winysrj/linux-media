@@ -1,60 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:43385 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934402Ab0HMN4Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Aug 2010 09:56:25 -0400
-From: raja_mani@ti.com
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: mchehab@infradead.org, pavan_savoy@sify.com,
-	Raja-Mani <x0102026@ti.com>, Pramodh AG <pramodh_ag@ti.com>,
-	Pavan Savoy <pavan_savoy@ti.com>
-Subject: [PATCH/RFC 6/6] Staging: ti-st: Add TODO file for FM
-Date: Fri, 13 Aug 2010 10:14:44 -0400
-Message-Id: <1281708884-15462-7-git-send-email-raja_mani@ti.com>
-In-Reply-To: <1281708884-15462-6-git-send-email-raja_mani@ti.com>
-References: <1281708884-15462-1-git-send-email-raja_mani@ti.com>
- <1281708884-15462-2-git-send-email-raja_mani@ti.com>
- <1281708884-15462-3-git-send-email-raja_mani@ti.com>
- <1281708884-15462-4-git-send-email-raja_mani@ti.com>
- <1281708884-15462-5-git-send-email-raja_mani@ti.com>
- <1281708884-15462-6-git-send-email-raja_mani@ti.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:39329 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752966Ab0HZBin convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Aug 2010 21:38:43 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Date: Thu, 26 Aug 2010 03:38:11 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+In-reply-to: <1282778794.13797.15.camel@c-dwalke-linux.qualcomm.com>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>
+Cc: Peter Zijlstra <peterz@infradead.org>, linux-mm@kvack.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
+Message-id: <op.vh0utxl87p4s8u@localhost>
+Content-transfer-encoding: 8BIT
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+ <1282310110.2605.976.camel@laptop>
+ <20100825155814.25c783c7.akpm@linux-foundation.org>
+ <1282778794.13797.15.camel@c-dwalke-linux.qualcomm.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-From: Raja-Mani <x0102026@ti.com>
+On Thu, 26 Aug 2010 01:26:34 +0200, Daniel Walker <dwalker@codeaurora.org> wrote:
+> If Michal is active, and follows community comments (including Zach's,
+> but I haven't seen any) then we can defer to that solution ..
 
-fm_TODO file lists the things to be done in FM driver.
+Comments are always welcome. :)
 
-Signed-off-by: Raja-Mani <x0102026@ti.com>
-Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
-Signed-off-by: Pavan Savoy <pavan_savoy@ti.com>
----
- drivers/staging/ti-st/fm_TODO |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/ti-st/fm_TODO
-
-diff --git a/drivers/staging/ti-st/fm_TODO b/drivers/staging/ti-st/fm_TODO
-new file mode 100644
-index 0000000..0b36db0
---- /dev/null
-+++ b/drivers/staging/ti-st/fm_TODO
-@@ -0,0 +1,16 @@
-+FM-TODO:
-+
-+01. Support FM TX functionality
-+
-+02. Support FM TX features like set/get region, set/get RSSI threshold,
-+    and set/get AF switch state
-+
-+03. Step up and maintain this driver to ensure that it continues to work.
-+    Having the hardware for this is pretty much a requirement.
-+
-+    If this does not happen, the driver will be removed in the 2.6.35 kernel
-+    release.
-+
-+    Please send patches to Greg Kroah-Hartman <greg@kroah.com> and
-+    inux-media list <linux-media@vger.kernel.org>.
-+
 -- 
-1.5.6.3
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
 
