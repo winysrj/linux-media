@@ -1,47 +1,59 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:20174 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759313Ab0HFMWo (ORCPT
+Return-path: <mchehab@pedra>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:33637 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750712Ab0HZJ3W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Aug 2010 08:22:44 -0400
-Subject: Re: Fwd: No audio in HW Compressed MPEG2 container on HVR-1300
-From: Andy Walls <awalls@md.metrocast.net>
-To: lawrence rust <lawrence@softsystem.co.uk>
-Cc: Shane Harrison <shane.harrison@paragon.co.nz>,
-	linux-media@vger.kernel.org
-In-Reply-To: <1281087650.1332.26.camel@gagarin>
-References: <AANLkTimD-BCmN+3YUykUCH0fdNagw=wcUu1g+Z87N_5W@mail.gmail.com>
-	 <1280741544.1361.17.camel@gagarin>
-	 <AANLkTinHK8mVwrCnOZTUMsHVGTykj8bNdkKwcbMQ8LK_@mail.gmail.com>
-	 <AANLkTi=M2wVY3vL8nGBg-YqUtRidBahpE5OXbjr5k96X@mail.gmail.com>
-	 <1280750394.1361.87.camel@gagarin>
-	 <AANLkTi=V3eKuJ1jXPcBuSxUy6djCoK4q2pR-V0zo_cMS@mail.gmail.com>
-	 <1280843299.1492.127.camel@gagarin>
-	 <AANLkTik0UZmf5b4nTi1AgFiKQAGkvU47_dN0gUSw3urs@mail.gmail.com>
-	 <1281087650.1332.26.camel@gagarin>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 06 Aug 2010 08:22:19 -0400
-Message-ID: <1281097339.2052.17.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+	Thu, 26 Aug 2010 05:29:22 -0400
+MIME-Version: 1.0
+In-Reply-To: <1282810811.1975.246.camel@laptop>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+	<1282310110.2605.976.camel@laptop>
+	<20100825155814.25c783c7.akpm@linux-foundation.org>
+	<20100825173125.0855a6b0@bike.lwn.net>
+	<AANLkTinPaq+0MbdW81uoc5_OZ=1Gy_mVYEBnwv8zgOBd@mail.gmail.com>
+	<1282810811.1975.246.camel@laptop>
+Date: Thu, 26 Aug 2010 18:29:21 +0900
+Message-ID: <AANLkTin7EBZw0-WY=NGOmYzZT5Cfy7oWVFBaT2cjK+vZ@mail.gmail.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+From: Minchan Kim <minchan.kim@gmail.com>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, 2010-08-06 at 11:40 +0200, lawrence rust wrote:
-> On Fri, 2010-08-06 at 11:49 +1200, Shane Harrison wrote:
+On Thu, Aug 26, 2010 at 5:20 PM, Peter Zijlstra <peterz@infradead.org> wrote:
+> On Thu, 2010-08-26 at 11:49 +0900, Minchan Kim wrote:
+>> But one of
+>> problems is anonymous page which can be has a role of pinned page in
+>> non-swapsystem.
+>
+> Well, compaction can move those around, but if you've got too many of
+> them its a simple matter of over-commit and for that we've got the
+> OOM-killer ;-)
+>
 
-> > Well still no luck this end.  Have done the following:
+As I said following mail, I said about free space problem.
+Of course, compaction could move anon pages into somewhere.
+What's is somewhere? At last, it's same zone.
+It can prevent fragment problem but not size of free space.
+So I mean it would be better to move it into another zone(ex, HIGHMEM)
+rather than OOM kill.
 
-> > 2) Applied the patch - no change (we were detecting the WM8775 OK
-
-BTW, I forgot to mention the ivtv driver uses the WM8775 module for the
-PVR-150 card.  Changes to that module that affect the default setting
-needs to be done in a way that doesn't break the PVR-150.
-
-Maybe a .s_config() method in the WM8775 v4l2_subdev_core_ops would be
-the way to do that, or by passing parameters in struct i2c_board_info
-(according to a recent post by Hans Verkuil).
-
-Regards,
-Andy
-
+-- 
+Kind regards,
+Minchan Kim
