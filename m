@@ -1,35 +1,98 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:47159 "EHLO
-	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932163Ab0HCPYm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 11:24:42 -0400
-Subject: [PATCH 0/3 v2] media, mfd: Add timberdale video-in driver
-From: Richard =?ISO-8859-1?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Tue, 03 Aug 2010 17:18:03 +0200
-Message-ID: <1280848684.19898.160.camel@debian>
+Return-path: <mchehab@pedra>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:59666 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751307Ab0HZCz3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Aug 2010 22:55:29 -0400
+Date: Thu, 26 Aug 2010 11:50:17 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: =?UTF-8?B?TWljaGHFgg==?= Nazarewicz <m.nazarewicz@samsung.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	linux-kernel@vger.kernel.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Mel Gorman <mel@csn.ul.ie>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+Message-Id: <20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <op.vh0wektv7p4s8u@localhost>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+	<1282310110.2605.976.camel@laptop>
+	<20100825155814.25c783c7.akpm@linux-foundation.org>
+	<20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
+	<op.vh0wektv7p4s8u@localhost>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-To follow are three patches.
+On Thu, 26 Aug 2010 04:12:10 +0200
+Michał Nazarewicz <m.nazarewicz@samsung.com> wrote:
 
-The first adds in a cached version of the DMA contiguous video buffers.
+> On Thu, 26 Aug 2010 02:58:57 +0200, KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
+> > Hmm, you may not like this..but how about following kind of interface ?
+> >
+> > Now, memoyr hotplug supports following operation to free and _isolate_
+> > memory region.
+> > 	# echo offline > /sys/devices/system/memory/memoryX/state
+> >
+> > Then, a region of memory will be isolated. (This succeeds if there are free
+> > memory.)
+> >
+> > Add a new interface.
+> >
+> > 	% echo offline > /sys/devices/system/memory/memoryX/state
+> > 	# extract memory from System RAM and make them invisible from buddy allocator.
+> >
+> > 	% echo cma > /sys/devices/system/memory/memoryX/state
+> > 	# move invisible memory to cma.
+> 
+> At this point I need to say that I have no experience with hotplug memory but
+> I think that for this to make sense the regions of memory would have to be
+> smaller.  Unless I'm misunderstanding something, the above would convert
+> a region of sizes in order of GiBs to use for CMA.
+> 
 
-The second adds the timberdale video-in driver to the media tree.
+Now, x86's section size is 
+==
+#ifdef CONFIG_X86_32
+# ifdef CONFIG_X86_PAE
+#  define SECTION_SIZE_BITS     29
+#  define MAX_PHYSADDR_BITS     36
+#  define MAX_PHYSMEM_BITS      36
+# else
+#  define SECTION_SIZE_BITS     26
+#  define MAX_PHYSADDR_BITS     32
+#  define MAX_PHYSMEM_BITS      32
+# endif
+#else /* CONFIG_X86_32 */
+# define SECTION_SIZE_BITS      27 /* matt - 128 is convenient right now */
+# define MAX_PHYSADDR_BITS      44
+# define MAX_PHYSMEM_BITS       46
+#endif
+==
 
-The third adds it to the timberdale MFD driver.
+128MB...too big ? But it's depend on config.
 
-Samuel and Mauro hope you can support and solve the potential merge
-issue between your two trees.
+IBM's ppc guys used 16MB section, and recently, a new interface to shrink
+the number of /sys files are added, maybe usable.
 
-Thanks
---Richard
+Something good with this approach will be you can create "cma" memory
+before installing driver.
+
+But yes, complicated and need some works.
+
+Bye,
+-Kame
 
