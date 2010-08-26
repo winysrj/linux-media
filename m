@@ -1,56 +1,106 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:55540 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751302Ab0HTIbu (ORCPT
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:35851 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906Ab0HZEpK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 04:31:50 -0400
-Received: from eu_spt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0L7F007SQZP0C8@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 20 Aug 2010 09:31:48 +0100 (BST)
-Received: from [IPv6:::1] ([10.89.53.95])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L7F009B0ZOR6I@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 20 Aug 2010 09:31:48 +0100 (BST)
-Date: Fri, 20 Aug 2010 17:31:37 +0900
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: Re: Linux Plumber's Conference: Call for Working Session Submissions
-In-reply-to: <4C6D5B67.30808@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	kyungmin.park@samsung.com, Tomasz Fujak <t.fujak@samsung.com>
-Message-id: <4C6E3D69.6080207@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <4C4B5077.3020509@redhat.com> <4C6D5B67.30808@redhat.com>
+	Thu, 26 Aug 2010 00:45:10 -0400
+Date: Thu, 26 Aug 2010 13:39:54 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: =?UTF-8?B?TWljaGHFgg==?= Nazarewicz <m.nazarewicz@samsung.com>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	linux-kernel@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-mm@kvack.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+Message-Id: <20100826133954.4433fdf2.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <op.vh01hi2m7p4s8u@localhost>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+	<1282310110.2605.976.camel@laptop>
+	<20100825155814.25c783c7.akpm@linux-foundation.org>
+	<20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
+	<op.vh0wektv7p4s8u@localhost>
+	<20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
+	<20100826124434.6089630d.kamezawa.hiroyu@jp.fujitsu.com>
+	<op.vh01hi2m7p4s8u@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On 08/20/2010 01:27 AM, Mauro Carvalho Chehab wrote:
-> Em 24-07-2010 17:43, Mauro Carvalho Chehab escreveu:
->    
->> CFP dead line for submitting proposals to LPC/2010 is approaching.
->> For those that intends to submit proposals for it, please do it quickly,
->> as the official dead line is July, 26.
->>      
-> Guys,
->
-> We're trying to close the track definitions and start organizing it, but, so far,
-> we received very few proposals for the media track. So, if you're interested
-> on speaking there, please send a proposal at the Plumbers site and ping me
-> urgently.
+On Thu, 26 Aug 2010 06:01:56 +0200
+Michał Nazarewicz <m.nazarewicz@samsung.com> wrote:
 
-Hi Mauro,
-I have added a proposal for a topic about videobuf. If you think it 
-needs any changes/corrections, please let me know.
+> KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
+> > 128MB...too big ? But it's depend on config.
+> 
+> On embedded systems it may be like half of the RAM.  Or a quarter.  So bigger
+> granularity could be desired on some platforms.
+> 
+> > IBM's ppc guys used 16MB section, and recently, a new interface to shrink
+> > the number of /sys files are added, maybe usable.
+> >
+> > Something good with this approach will be you can create "cma" memory
+> > before installing driver.
+> 
+> That's how CMA works at the moment.  But if I understand you correctly, what
+> you are proposing would allow to reserve memory *at* *runtime* long after system
+> has booted.  This would be a nice feature as well though.
+> 
+Yes, my proposal is that. 
 
-http://www.linuxplumbersconf.org/2010/ocw/proposals/915
+> > But yes, complicated and need some works.
+> 
+> > Ah, I need to clarify what I want to say.
+> >
+> > With compaction, it's helpful, but you can't get contiguous memory larger
+> > than MAX_ORDER, I think. To get memory larger than MAX_ORDER on demand,
+> > memory hot-plug code has almost all necessary things.
+> 
+> I'll try to look at it then.
+> 
 
--- 
-Best regards,
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+mm/memory_hotplug.c::offline_pages() does
+
+	1. disallow new allocation of memory in [start_pfn...end_pfn)
+	2. move all LRU pages to other regions than [start_pfn...end_pfn)
+	3. finally, mark all pages as PG_reserved (see __offline_isolated_pages())
+
+What's required for cma will be
+	a. remove _section_ limitation, which is done as BUG_ON().
+	b. replace 'step 3' with cma code.
+
+Maybe you can do similar just using compaction logic. The biggest difference will
+be 'step 1'.
+
+> > BTW, just curious...the memory for cma need not to be saved at
+> > hibernation ? Or drivers has to write its own hibernation ops by driver suspend
+> > udev or some ?
+> 
+> Hibernation was not considered as of yet but I think it's device driver's
+> responsibility more then CMA's especially since it may make little sense to save
+> some of the buffers -- ie. no need to keep a frame from camera since it'll be
+> overwritten just after system wakes up from hibernation.  It may also be better
+> to stop playback and resume it later on rather than trying to save decoder's
+> state.  Again though, I haven't thought about hibernation as of yet.
+> 
+
+Hmm, ok, use-case dependent and it's a job of a driver.
+
+Thanks,
+-Kame
+
+
+ 
 
