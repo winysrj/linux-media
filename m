@@ -1,53 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from blu0-omc2-s19.blu0.hotmail.com ([65.55.111.94]:44721 "EHLO
-	blu0-omc2-s19.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934340Ab0HMNvr (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:53058 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293Ab0HZBtl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Aug 2010 09:51:47 -0400
-Message-ID: <BLU0-SMTP664E69E794AD6D8EAB4A1BD8980@phx.gbl>
-From: Stefan <tuxoholic@hotmail.de>
-Reply-To: tuxoholic@hotmail.de
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt
-Date: Fri, 13 Aug 2010 15:51:41 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+	Wed, 25 Aug 2010 21:49:41 -0400
+Date: Thu, 26 Aug 2010 03:49:00 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+In-reply-to: <20100825173125.0855a6b0@bike.lwn.net>
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Jonathan Corbet <corbet@lwn.net>
+Cc: Peter Zijlstra <peterz@infradead.org>, linux-mm@kvack.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
+Message-id: <op.vh0vbys97p4s8u@localhost>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Content-transfer-encoding: 8BIT
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+ <1282310110.2605.976.camel@laptop>
+ <20100825155814.25c783c7.akpm@linux-foundation.org>
+ <20100825173125.0855a6b0@bike.lwn.net>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello Marko
-
-I confirm this patch reduces the amount of interrupts to nearly one third:
-
-[*] v4l mercurial wo patch: about 600 calls/sec over a 10 seconds interval
-[*] v4l mercurial with patch: about 160 calls/sec over a 10 seconds interval
-
-Measured using powertop -t 10
-Tuning a Twinhan/Azurewave AD SP400 CI (VP-1041) with szap
-
-The same ratio using vdr 1.7.15 + xineliboutput + vdr-sfxe:
-
-[*] wo patch: about 1100 calls/sec over a 10 seconds interval
-[*] with patch: about 320 calls/sec over a 10 seconds interval
-
-Regards,
-Stefan
-
+On Thu, 26 Aug 2010 01:31:25 +0200, Jonathan Corbet <corbet@lwn.net> wrote:
+> The original OLPC has a camera controller which requires three contiguous,
+> image-sized buffers in memory.  That system is a little memory constrained
+> (OK, it's desperately short of memory), so, in the past, the chances of
+> being able to allocate those buffers anytime some kid decides to start
+> taking pictures was poor.  Thus, cafe_ccic.c has an option to snag the
+> memory at initialization time and never let go even if you threaten its
+> family.  Hell hath no fury like a little kid whose new toy^W educational
+> tool stops taking pictures.
 >
-> This patch obsoletes patch with broken spaces
-> https://patchwork.kernel.org/patch/107036/
-> 
-> With VDR streaming HDTV into network, generating an interrupt once per 16kb,
-> implemented in this patch, seems to support more robust throughput with 
-> HDTV.
-> Fix leaking almost 64kb data from the previous TS after changing the TS.
-> One effect of the old version was, that the DMA transfer and driver's
-> DMA buffer access might happen at the same time - a race condition.
-> 
-> Signed-off-by: Marko M. Ristola <marko.ristola@xxxxxxxxxxxx>
-> 
-> Regards,
-> Marko Ristola
->
+> That, of course, is not a hugely efficient use of memory on a
+> memory-constrained system.  If the VM could reliably satisfy those
+> allocation requestss, life would be wonderful.  Seems difficult.  But it
+> would be a nicer solution than CMA, which, to a great extent, is really
+> just a standardized mechanism for grabbing memory and never letting go.
+
+At this moment it seems nothing more then that but they way I see it
+is that with a common, standardised, centrally-managed mechanism for
+grabbing memory we can start thinking about the ways to reuse the memory.
+
+If each driver were to grab it's own memory in a way know to itself only
+the memory is truly lost but with CMA not only regions can be reused among
+devices but also the framework can manage the unallocated memory and try to
+utilize it in other ways (movable pages? cache? buffers? some kind of
+compressed memory swap?).
+
+What I'm trying to say is that I totally agree with your and other's comments
+about CMA essentially grabbing memory and never releasing it but I believe
+this can be combat with time when overall idea of haw the CMA API should look
+like is agreed upon.
+
+-- 
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
+
