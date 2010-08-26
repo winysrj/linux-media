@@ -1,81 +1,71 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:40852 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758411Ab0HDHJu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 03:09:50 -0400
-Date: Wed, 4 Aug 2010 09:09:49 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Michael Grzeschik <mgr@pengutronix.de>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	baruch@tkos.co.il
-Subject: Re: [PATCH 1/5] mx2_camera: change to register and probe
-Message-ID: <20100804070949.GR14113@pengutronix.de>
-References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de> <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de> <Pine.LNX.4.64.1008032016340.10845@axis700.grange> <20100803195727.GB12367@pengutronix.de> <Pine.LNX.4.64.1008040039550.10845@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1008040039550.10845@axis700.grange>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from psmtp31.wxs.nl ([195.121.247.33]:43483 "EHLO psmtp31.wxs.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750874Ab0HZGxV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 02:53:21 -0400
+Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
+ by psmtp31.wxs.nl
+ (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
+ with ESMTP id <0L7Q00ARIZ4WQX@psmtp31.wxs.nl> for linux-media@vger.kernel.org;
+ Thu, 26 Aug 2010 08:53:21 +0200 (CEST)
+Date: Thu, 26 Aug 2010 08:53:19 +0200
+From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Subject: ir_codes_dibusb_table : please make table length a constant
+In-reply-to: <4C75FF0B.3060500@hoogenraad.net>
+To: linux-media <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Message-id: <4C760F5F.8000801@hoogenraad.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
+ <AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
+ <4C581BB6.7000303@redhat.com>
+ <AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
+ <AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com>
+ <AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com>
+ <AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com>
+ <4C7425C9.1010908@hoogenraad.net>
+ <AANLkTinA1r87W+4J=MRV5i6M6BD-c+KTWnYqyBd7WCQA@mail.gmail.com>
+ <4C74B78B.3020101@hoogenraad.net>
+ <AANLkTim3bq6h-oFY+TKoog-TKOzQ-w4MR0CVdcL4OjcD@mail.gmail.com>
+ <4C75FF0B.3060500@hoogenraad.net>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wed, Aug 04, 2010 at 01:01:34AM +0200, Guennadi Liakhovetski wrote:
-> On Tue, 3 Aug 2010, Michael Grzeschik wrote:
-> 
-> > On Tue, Aug 03, 2010 at 08:22:13PM +0200, Guennadi Liakhovetski wrote:
-> > > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
-> > > 
-> > > > change this driver back to register and probe, since some platforms
-> > > > first have to initialize an already registered power regulator to switch
-> > > > on the camera.
-> > > 
-> > > Sorry, don't see a difference. Can you give an example of two call 
-> > > sequences, where this change changes the behaviour?
-> > >
-> > 
-> > Yes, when you look at the today posted patch [1] you find the function
-> > pcm970_baseboard_init_late as an late_initcall. It uses an already
-> > registred regulator device to turn on the power of the camera before the
-> > cameras device registration.
-> > 
-> > [1] [PATCH 1/2] ARM: i.MX27 pcm970: Add camera support
-> > http://lists.infradead.org/pipermail/linux-arm-kernel/2010-August/022317.html
-> 
-> Sorry again, still don't understand. What I mean is the following: take 
-> two cases - before and after your patch. What is the difference? As far as 
-> I know, the difference between platform_driver_probe() and 
-> platform_driver_register() is just that the probe method gets discarded in 
-> an __init section, which is suitable for non hotpluggable devices. I don't 
-> know what the difference this should make for call order. So, that's what 
-> I am asking about. Can you explain, how this patch changes the call order 
-> in your case? Can you tell, that in the unpatches case the probe is called 
-> at that moment, and in the patched case it is called at a different point 
-> of time and that fixes the problem.
+During debugging a driver, I found that at least in
 
+linux/drivers/media/dvb/dvb-usb/dibusb-mc.c	
+the length of ir_codes_dibusb_table was referring to an older version.
+This may have caused memory overrun problems
 
-The following is above platform_driver_probe:
+I have fixed this in my branch in
+linux/drivers/media/dvb/dvb-usb/dibusb.h
+  with a
+#define IR_CODES_DIBUSB_TABLE_LEN 111
 
- * Use this instead of platform_driver_register() when you know the device
- * is not hotpluggable and has already been registered, and you want to
- * remove its run-once probe() infrastructure from memory after the
- * driver has bound to the device.
+http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/rev/549b40b69fa4
 
-So platform_driver_probe will only call the probe function when the device
-is already there when this function runs. This is not the case on our board.
-We have to register the camera in late_initcall (to make sure the needed
-regulators are already there). During late_initcall time the
-platform_driver_probe has already run.
+I agree this is not the nicest solution, but at at least would reduce 
+some problems.
+I am not sure on how to create a patch for this ?
+Should I make a new branch in the HG archive ?
 
-I don't really like the trend to platform_driver_probe, because this
-makes cases like camera needs regulator which in turn needs SPI even
-more complicated.
+I suggest to replate the 111-s into IR_CODES_DIBUSB_TABLE_LEN in the 
+files below as well:
 
-Sascha
-
+     * drivers/media/dvb/dvb-usb/dibusb-common.c:
+           o line 330
+           o line 459
+     * drivers/media/dvb/dvb-usb/dibusb-mb.c:
+           o line 215
+           o line 299
+           o line 363
+           o line 420
+     * drivers/media/dvb/dvb-usb/dibusb.h, line 127
 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Jan Hoogenraad
+Hoogenraad Interface Services
+Postbus 2717
+3500 GS Utrecht
