@@ -1,79 +1,96 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:58421 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751827Ab0HBCPn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Aug 2010 22:15:43 -0400
-Received: by iwn7 with SMTP id 7so3633553iwn.19
-        for <linux-media@vger.kernel.org>; Sun, 01 Aug 2010 19:15:42 -0700 (PDT)
-MIME-Version: 1.0
-Date: Mon, 2 Aug 2010 14:15:42 +1200
-Message-ID: <AANLkTimD-BCmN+3YUykUCH0fdNagw=wcUu1g+Z87N_5W@mail.gmail.com>
-Subject: No audio in HW Compressed MPEG2 container on HVR-1300
-From: Shane Harrison <shane.harrison@paragon.co.nz>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:42024 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751742Ab0HZClh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Aug 2010 22:41:37 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Date: Thu, 26 Aug 2010 04:40:46 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+In-reply-to: <20100825155814.25c783c7.akpm@linux-foundation.org>
+To: Peter Zijlstra <peterz@infradead.org>,
+	Andrew Morton <akpm@linux-foundation.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	linux-kernel@vger.kernel.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <op.vh0xp8ix7p4s8u@localhost>
+Content-transfer-encoding: 8BIT
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+ <1282310110.2605.976.camel@laptop>
+ <20100825155814.25c783c7.akpm@linux-foundation.org>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi There,
+Hello Andrew,
 
-I am having a problem with getting an audio stream present in the
-MPEG2 stream from an HVR-1300 card.
+I think Pawel has replied to most of your comments, so I'll just add my own
+0.02 KRW. ;)
 
-Background
-~~~~~~~~~
-I am using an HVR-1300 card in a Linux system running 2.6.28.6 vanilla
-kernel and using latest v4l2 drivers from the repository.  We are
-trying to use the onboard MPEG H/W encoder CX23416 to deliver an
-MPEG-2 stream with both audio and video.
+> Peter Zijlstra <peterz@infradead.org> wrote:
+>> So the idea is to grab a large chunk of memory at boot time and then
+>> later allow some device to use it?
+>>
+>> I'd much rather we'd improve the regular page allocator to be smarter
+>> about this. We recently added a lot of smarts to it like memory
+>> compaction, which allows large gobs of contiguous memory to be freed for
+>> things like huge pages.
+>>
+>> If you want guarantees you can free stuff, why not add constraints to
+>> the page allocation type and only allow MIGRATE_MOVABLE pages inside a
+>> certain region, those pages are easily freed/moved aside to satisfy
+>> large contiguous allocations.
 
-To test I capture using "cat /dev/video1 > test.mpg" and I am using
-mplayer to play the subsequently captured stream.
-Problem
-~~~~~~
-The delivered MPEG-2 stream generally has no audio component. Mplayer
-reports "no audio found".
+On Thu, 26 Aug 2010 00:58:14 +0200, Andrew Morton <akpm@linux-foundation.org> wrote:
+> That would be good.  Although I expect that the allocation would need
+> to be 100% rock-solid reliable, otherwise the end user has a
+> non-functioning device.  Could generic core VM provide the required level
+> of service?
 
-The same problem exists for both TV input and composite input.  By
-repeatedly switching between the TV input and the Composite input we
-can eventually get an audio component in the MPEG-2 stream.
-Thereafter we always get the audio component until a power off and
-restart.  Simply rebooting (no power off) seems to still leave things
-in a state where the audio component is in the MPEG-2 stream.
+I think that the biggest problem is fragmentation here.  For instance,
+I think that a situation where there is enough free space but it's
+fragmented so no single contiguous chunk can be allocated is a serious
+problem.  However, I would argue that if there's simply no space left,
+a multimedia device could fail and even though it's not desirable, it
+would not be such a big issue in my eyes.
 
-There is a second problem, the audio stream always contains white
-noise (I assume TV tuner noise - we don't have it tuned nor an aerial
-attached) mixed with the signal applied to the analog in ports.
+So, if only movable or discardable pages are allocated in CMA managed
+regions all should work well.  When a device needs memory discardable
+pages would get freed and movable moved unless there is no space left
+on the device in which case allocation would fail.
 
-Analysis
-~~~~~~
-The most likely scenario is that the hardware is not being initialised
-correctly most of the time, once it is initialised correctly then it
-works thereafter.  Unfortunately it is difficult to determine the
-actual audio path being used.  Clearly the audio comes into the WM8775
-(DAC) via a bus switch that switches between the composite/audio on
-the back panel and the white header.  It then enters the CX2388x via
-the I2S input pins.  We initially assumed that the audio was then
-routed through to the CX23416 (MPEG Encoder) via the I2S output pins
-of the CX2388x, but we have begun to doubt this assumption since the
-CX2388x is set in normal mode by the drivers and the captured audio
-doesn't reflect the bit patterns we see on the I2S Data Out line using
-an oscilloscope.  That is, when we apply *no* signal to the analog
-input, the I2S Dout line is "quiet" yet we hear white noise.
+Critical devices (just a hypothetical entities) could have separate
+regions on which only discardable pages can be allocated so that memory
+can always be allocated for them.
 
-Questions
-~~~~~~~~
-1) Anyone have any similar experiences?
-2) Does anyone have more information on the "blackbird reference
-design", in particular can the CX2388x be configured into passthrough
-mode so the I2S from the WM8775 goes directly to the CX23416.  I think
-the current wiring configuration of the CX23416 to the CX2388x
-precludes this?
-3) How might the analog signal be being routed to the CX23416 for
-encoding if not via the I2S input?
+> I agree that having two "contiguous memory allocators" floating about
+> on the list is distressing.  Are we really all 100% diligently certain
+> that there is no commonality here with Zach's work?
 
+As Pawel said, I think Zach's trying to solve a different problem.  No
+matter, as I've said in response to Konrad's message, I have thought
+about unifying Zach's IOMMU and CMA in such a way that devices could
+work on both systems with and without IOMMU if only they would limit
+the usage of the API to some subset which always works.
 
-Kind regards
-Shane Harrison
-Paragon Electronic Design
-NZ
+> Please cc me on future emails on this topic?
+
+Not a problem.
+
+-- 
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
+
