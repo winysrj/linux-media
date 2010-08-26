@@ -1,39 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:21679 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751503Ab0HKMtI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 08:49:08 -0400
-Message-ID: <4C629C4C.2080509@redhat.com>
-Date: Wed, 11 Aug 2010 09:49:16 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:57135 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752254Ab0HZR4X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 13:56:23 -0400
+Date: Thu, 26 Aug 2010 18:54:40 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: u.kleine-koenig@pengutronix.de, mitov@issp.bas.bg,
+	linux-sh@vger.kernel.org, gregkh@suse.de,
+	linux-kernel@vger.kernel.org, jkrzyszt@tis.icnet.pl,
+	philippe.retornaz@epfl.ch, akpm@linux-foundation.org,
+	g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC][PATCH] add
+	dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+Message-ID: <20100826175440.GB13224@n2100.arm.linux.org.uk>
+References: <Pine.LNX.4.64.1008261100150.14167@axis700.grange> <20100826182915S.fujita.tomonori@lab.ntt.co.jp> <20100826095311.GA13051@pengutronix.de> <20100826185938A.fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: matti.j.aaltonen@nokia.com,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Valentin Eduardo <eduardo.valentin@nokia.com>
-Subject: Re: A problem with http://git.linuxtv.org/media_tree.git
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>    <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>    <201008091838.13247.hverkuil@xs4all.nl>    <1281425501.14489.7.camel@masi.mnp.nokia.com>    <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>    <1281441830.14489.27.camel@masi.mnp.nokia.com>    <4C614294.7080101@redhat.com>    <1281518486.14489.43.camel@masi.mnp.nokia.com> <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
-In-Reply-To: <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20100826185938A.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 11-08-2010 07:56, Hans Verkuil escreveu:
+On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
+> On Thu, 26 Aug 2010 11:53:11 +0200
+> Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
 > 
->> Hi.
->>
->> I cloned your tree at 	http://linuxtv.org/git/media_tree.git and checked
->> out the origin/staging/v2.6.37 branch and the
->> Documentation/video4linux/v4l2-controls.txt  just isn't there. I asked
->> one of my colleagues to do the same and the result was also the same.
+> > > > We have currently a number of boards broken in the mainline. They must be 
+> > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
+> > > > as I suggested earlier, we need either this or my patch series
+> > > > 
+> > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+> > > > 
+> > > > for 2.6.36.
+> > > 
+> > > Why can't you revert a commit that causes the regression?
+> > > 
+> > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
+> > > responsible for the regression. And the patchset even exnteds the
+> > > definition of the DMA API (dma_declare_coherent_memory). Such change
+> > > shouldn't applied after rc1. I think that DMA-API.txt says that
+> > > dma_declare_coherent_memory() handles coherent memory for a particular
+> > > device. It's not for the API that reserves coherent memory that can be
+> > > used for any device for a single device.
+> > The patch that made the problem obvious for ARM is
+> > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
+> > So this went in before v2.6.36-rc1.  One of the "architectures which
+> > similar restrictions" is x86 BTW.
+> > 
+> > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
+> > addresses a hardware restriction.
 > 
-> The file is in the v2.6.36 branch. It hasn't been merged yet in the
-> v2.6.37 branch.
+> How these drivers were able to work without hitting the hardware restriction?
 
-I'll start working with v2.6.37 branch after the end of the merge window, pulling
-2.6.36-rc1 there.
+Well, OMAP processors have experienced lock-ups due to multiple mappings of
+memory, so the restriction in the architecture manual is for real.
 
-Cheers,
-Mauro
+But more the issue is that the behaviour you get from a region is _totally_
+unpredictable (as the arch manual says).  With the VIPT caches, they can
+be searched irrespective of whether the page tabkes indicate that it's
+supposed to be cached or not - which means you can still hit cache lines
+for an ioremap'd region.
 
+And if you do, how do you know that the cached data is still valid - what
+if it's some critical data that results in corruption - how do you know
+whether that's happened or not?  It might not even cause a kernel
+exception.
+
+We have to adhere to the restrictions placed upon us by the architecture
+at hand, and if that means device drivers break, so be it - at least we
+get to know what needs to be fixed for these restrictions.
