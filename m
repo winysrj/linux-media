@@ -1,85 +1,144 @@
 Return-path: <mchehab@pedra>
-Received: from casper.infradead.org ([85.118.1.10]:43035 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751328Ab0H1Nfw convert rfc822-to-8bit (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:51360 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753295Ab0HZJCg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Aug 2010 09:35:52 -0400
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-From: Peter Zijlstra <peterz@infradead.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
-In-Reply-To: <201008281508.19756.hverkuil@xs4all.nl>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	 <1282310110.2605.976.camel@laptop>
-	 <20100825155814.25c783c7.akpm@linux-foundation.org>
-	 <201008281508.19756.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Sat, 28 Aug 2010 15:34:46 +0200
-Message-ID: <1283002486.1975.3479.camel@laptop>
-Mime-Version: 1.0
+	Thu, 26 Aug 2010 05:02:36 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com, mchehab@redhat.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v8 5/5] Documentation: v4l: Add hw_seek spacing and FM_RX class
+Date: Thu, 26 Aug 2010 12:02:18 +0300
+Message-Id: <1282813338-13882-6-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1282813338-13882-5-git-send-email-matti.j.aaltonen@nokia.com>
+References: <1282813338-13882-1-git-send-email-matti.j.aaltonen@nokia.com>
+ <1282813338-13882-2-git-send-email-matti.j.aaltonen@nokia.com>
+ <1282813338-13882-3-git-send-email-matti.j.aaltonen@nokia.com>
+ <1282813338-13882-4-git-send-email-matti.j.aaltonen@nokia.com>
+ <1282813338-13882-5-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sat, 2010-08-28 at 15:08 +0200, Hans Verkuil wrote:
+Add a couple of words about the spacing field in ithe HW seek struct and
+about the new FM RX control class.
 
-> > That would be good.  Although I expect that the allocation would need
-> > to be 100% rock-solid reliable, otherwise the end user has a
-> > non-functioning device.
-> 
-> Yes, indeed. And you have to be careful as well how you move pages around.
-> Say that you have a capture and an output v4l device: the first one needs
-> 64 MB contiguous memory and so it allocates that amount, moving pages around
-> as needed. Once allocated that memory is pinned in place since it is needed
-> for DMA. So if the output device also needs 64 MB, then you must have a
-> guarantee that the first allocation didn't fragment the available contiguous
-> memory.
+Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
+---
+ Documentation/DocBook/v4l/controls.xml             |   71 ++++++++++++++++++++
+ .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 ++-
+ 2 files changed, 79 insertions(+), 2 deletions(-)
 
-Isn't the proposed CMA thing vulnerable to the exact same problem? If
-you allow sharing of regions and plug some allocator in there you get
-the same problem. If you can solve it there, you can solve it for any
-kind of reservation scheme.
-
-> I also wonder how expensive it is to move all the pages around. E.g. if you
-> have a digital camera and want to make a hires picture, then it wouldn't
-> do if it takes a second to move all the pages around making room for the
-> captured picture. The CPUs in many SoCs are not very powerful compared to
-> your average desktop.
-
-Well, that's a trade-off, if you want to have the memory be usable for
-anything else (which I understood people did want) then you have to pay
-for cleaning it up when you need to use it.
-
-As for the cost of compaction vs regular page-out of random page-cache
-memory, compaction is actually cheaper, since it doesn't need to write
-out dirty data, and page-out driven writeback sucks due to the
-non-linear nature of it.
-
-> And how would memory allocations in specific memory ranges (e.g. memory
-> banks) work?
-
-Make sure you reserve pageblocks in the desired range.
-
-> Note also that these issues are not limited to embedded systems, also PCI(e)
-> boards can sometimes require massive amounts of DMA-able memory. I have had
-> this happen in the past with the ivtv driver with customers that had 15 or so
-> capture cards in one box. And I'm sure it will happen in the future as well,
-> esp. with upcoming 4k video formats.
-
-I would sincerely hope PCI(e) devices come with an IOMMU (and all memory
-lines wired up), really, any hardware that doesn't isn't worth the
-silicon its engraved in. Just don't buy it.
+diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+index 8408caa..e9512eb 100644
+--- a/Documentation/DocBook/v4l/controls.xml
++++ b/Documentation/DocBook/v4l/controls.xml
+@@ -2088,6 +2088,77 @@ manually or automatically if set to zero. Unit, range and step are driver-specif
+ <para>For more details about RDS specification, refer to
+ <xref linkend="en50067" /> document, from CENELEC.</para>
+     </section>
++    <section id="fm-rx-controls">
++      <title>FM Tuner Control Reference</title>
++
++      <para>The FM Tuner (FM_RX) class includes controls for common features of
++devices that are capable of receiving FM transmissions. Currently this class includes a parameter
++defining the FM radio band being used.</para>
++
++      <table pgwide="1" frame="none" id="fm-rx-control-id">
++      <title>FM_RX Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*" />
++	<colspec colname="c2" colwidth="6*" />
++	<colspec colname="c3" colwidth="2*" />
++	<colspec colname="c4" colwidth="6*" />
++	<spanspec namest="c1" nameend="c2" spanname="id" />
++	<spanspec namest="c2" nameend="c4" spanname="descr" />
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FM_RX_CLASS</constant>&nbsp;</entry>
++	    <entry>class</entry>
++	  </row><row><entry spanname="descr">The FM_RX class
++descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
++description of this control class.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_FM_RX_BAND</constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row id="v4l2-fm_rx_band"><entry spanname="descr">Configures the FM radio
++frequency range being used. Currently there are three bands in use, see  <ulink
++url="http://en.wikipedia.org/wiki/FM_broadcasting">Wikipedia</ulink>.
++Usually 87.5 to 108.0 MHz is used, or some portion thereof, with a few exceptions:
++In Japan, the band 76-90 MHz is used and in the former Soviet republics
++and some Eastern European countries, the older 65-74 MHz band,
++referred also to as the OIRT band, is still used.
++
++The enum&nbsp; v4l2_fm_rx_band defines possible values for the FM band. They are:</entry>
++	</row><row>
++	<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_FM_BAND_OTHER</constant>&nbsp;</entry>
++		      <entry>Frequencies from 87.5 to 108.0 MHz</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FM_BAND_JAPAN</constant>&nbsp;</entry>
++		      <entry>from 65 to 74 MHz</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_FM_BAND_OIRT</constant>&nbsp;</entry>
++		      <entry>from 65 to 74 MHz</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++
++    </section>
+ </section>
+ 
+   <!--
+diff --git a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+index 14b3ec7..c30dcc4 100644
+--- a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
++++ b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
+@@ -51,7 +51,8 @@
+ 
+     <para>Start a hardware frequency seek from the current frequency.
+ To do this applications initialize the <structfield>tuner</structfield>,
+-<structfield>type</structfield>, <structfield>seek_upward</structfield> and
++<structfield>type</structfield>, <structfield>seek_upward</structfield>,
++<structfield>spacing</structfield> and
+ <structfield>wrap_around</structfield> fields, and zero out the
+ <structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
+ call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
+@@ -89,7 +90,12 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+-	    <entry><structfield>reserved</structfield>[8]</entry>
++	    <entry><structfield>spacing</structfield></entry>
++	    <entry>If non-zero, defines the hardware seek resolution in Hz. The driver selects the nearest value that is supported by the device. If spacing is zero a reasonable default value is used.</entry>
++	  </row>
++	  <row>
++	    <entry>__u32</entry>
++	    <entry><structfield>reserved</structfield>[7]</entry>
+ 	    <entry>Reserved for future extensions. Drivers and
+ 	    applications must set the array to zero.</entry>
+ 	  </row>
+-- 
+1.6.1.3
 
