@@ -1,107 +1,63 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:61264 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753313Ab0HXPxj (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:48889 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753668Ab0HZB3O convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Aug 2010 11:53:39 -0400
-Date: Tue, 24 Aug 2010 17:43:18 +0200
-From: Richard Zidlicky <rz@linux-m68k.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jiri Slaby <jirislaby@gmail.com>,
-	Kulikov Vasiliy <segooon@gmail.com>,
-	kernel-janitors@vger.kernel.org,
-	Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Roel Kluin <roel.kluin@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] dvb: siano: free spinlock before schedule()
-Message-ID: <20100824154318.GA12175@linux-m68k.org>
-References: <1280256161-7971-1-git-send-email-segooon@gmail.com> <4C4F5CA7.1030706@gmail.com> <20100808161022.GB5594@linux-m68k.org> <4C73C094.1000101@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C73C094.1000101@infradead.org>
+	Wed, 25 Aug 2010 21:29:14 -0400
+Date: Thu, 26 Aug 2010 03:28:41 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+In-reply-to: <1282310110.2605.976.camel@laptop>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <op.vh0ud3rg7p4s8u@localhost>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Content-transfer-encoding: 8BIT
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+ <1282310110.2605.976.camel@laptop>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Tue, Aug 24, 2010 at 09:52:36AM -0300, Mauro Carvalho Chehab wrote:
-> Em 08-08-2010 13:10, Richard Zidlicky escreveu:
-> > On Wed, Jul 28, 2010 at 12:24:39AM +0200, Jiri Slaby wrote:
-> > 
-> > sorry for seeing this so late, was flooded with email lately.
-> > 
-> >> There is a better fix (which fixes the potential NULL dereference):
-> >> http://lkml.org/lkml/2010/6/7/175
-> > 
-> >> Richard, could you address the comments there and resend?
-> > 
-> > I am running this patch since many weeks (after fixing the compile error obviously). 
-> > Did not implement your beautification suggestion yet, was doing all kinds of experiments
-> > with IR and had plenty of unrelated issues.
-> 
-> This patch seems a way better than the previous patch. I've rebased it against
-> the current tree (and fixed the identation).
+On Fri, 20 Aug 2010 15:15:10 +0200, Peter Zijlstra <peterz@infradead.org> wrote:
+> So the idea is to grab a large chunk of memory at boot time and then
+> later allow some device to use it?
+>
+> I'd much rather we'd improve the regular page allocator to be smarter
+> about this. We recently added a lot of smarts to it like memory
+> compaction, which allows large gobs of contiguous memory to be freed for
+> things like huge pages.
+>
+> If you want guarantees you can free stuff, why not add constraints to
+> the page allocation type and only allow MIGRATE_MOVABLE pages inside a
+> certain region, those pages are easily freed/moved aside to satisfy
+> large contiguous allocations.
 
-thanks for looking at it.
+I'm aware that grabbing a large chunk at boot time is a bit of waste of
+space and because of it I'm hoping to came up with a way of reusing the
+space when it's not used by CMA-aware devices.  My current idea was to
+use it for easily discardable data (page cache?).
 
-> The only missing issue on it is the lack of your Signed-off-by. Richard, could you
-> please send it to us?
+> Also, please remove --chain-reply-to from your git config. You're using
+> 1.7 which should do the right thing (--no-chain-reply-to) by default.
 
+OK.
 
-Signed-off-by: Richard Zidlicky <rz@linux-m68k.org>
+-- 
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
 
-PS: I will be away for a while.
-
-> 
-> ---
->  drivers/media/dvb/siano/smscoreapi.c |   31 +++++++++++++------------------
->  1 file changed, 13 insertions(+), 18 deletions(-)
-> 
-> --- patchwork.orig/drivers/media/dvb/siano/smscoreapi.c
-> +++ patchwork/drivers/media/dvb/siano/smscoreapi.c
-> @@ -1098,31 +1098,26 @@ EXPORT_SYMBOL_GPL(smscore_onresponse);
->   *
->   * @return pointer to descriptor on success, NULL on error.
->   */
-> -struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
-> +
-> +struct smscore_buffer_t *get_entry(struct smscore_device_t *coredev)
->  {
->  	struct smscore_buffer_t *cb = NULL;
->  	unsigned long flags;
->  
-> -	DEFINE_WAIT(wait);
-> -
->  	spin_lock_irqsave(&coredev->bufferslock, flags);
-> +	if (!list_empty(&coredev->buffers)) {
-> +		cb = (struct smscore_buffer_t *) coredev->buffers.next;
-> +		list_del(&cb->entry);
-> +	}
-> +	spin_unlock_irqrestore(&coredev->bufferslock, flags);
-> +	return cb;
-> +}
->  
-> -	/* This function must return a valid buffer, since the buffer list is
-> -	 * finite, we check that there is an available buffer, if not, we wait
-> -	 * until such buffer become available.
-> -	 */
-> -
-> -	prepare_to_wait(&coredev->buffer_mng_waitq, &wait, TASK_INTERRUPTIBLE);
-> -
-> -	if (list_empty(&coredev->buffers))
-> -		schedule();
-> -
-> -	finish_wait(&coredev->buffer_mng_waitq, &wait);
-> -
-> -	cb = (struct smscore_buffer_t *) coredev->buffers.next;
-> -	list_del(&cb->entry);
-> +struct smscore_buffer_t *smscore_getbuffer(struct smscore_device_t *coredev)
-> +{
-> +	struct smscore_buffer_t *cb = NULL;
->  
-> -	spin_unlock_irqrestore(&coredev->bufferslock, flags);
-> +	wait_event(coredev->buffer_mng_waitq, (cb = get_entry(coredev)));
->  
->  	return cb;
->  }
