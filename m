@@ -1,327 +1,121 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2923 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751306Ab0HDSaU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 14:30:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH v3 1/7] v4l: Share code between video_usercopy and video_ioctl2
-Date: Wed, 4 Aug 2010 20:30:06 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1278948352-17892-1-git-send-email-laurent.pinchart@ideasonboard.com> <1278948352-17892-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1278948352-17892-2-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008042030.06872.hverkuil@xs4all.nl>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp.nokia.com ([192.100.105.134]:54840 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753509Ab0HZJCn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 05:02:43 -0400
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	eduardo.valentin@nokia.com, mchehab@redhat.com
+Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: [PATCH v8 0/5] TI WL1273 FM Radio driver.
+Date: Thu, 26 Aug 2010 12:02:13 +0300
+Message-Id: <1282813338-13882-1-git-send-email-matti.j.aaltonen@nokia.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Monday 12 July 2010 17:25:46 Laurent Pinchart wrote:
-> The two functions are mostly identical. They handle the copy_from_user
-> and copy_to_user operations related with V4L2 ioctls and call the real
-> ioctl handler.
+Hello,
+
+and thank you for the comments.
+
+The audio codec has been accepted on the ALSA list...
+
+I've converted the driver to the new control framework
+as Hans strongly suggested. 
+
+P.S. I thought that I sent the patches on the day I created them,
+but something clearly went wrong here...
+
+Hans wrote:
+> Use ERANGE instead of EDOM. EDOM is for math functions only.
+
+Changed EDOM to ERANGE.
+
+>> +     if (r)
+>> +             core->mode = old_mode ;
+>
+> Remove space before ';'.
+
+Space removed...
+
+
+>> +     if (radio->rds_on) {
+>> +             if (mutex_lock_interruptible(&core->lock))
+>> +                     return -EINTR;
+>> +
+>> +             core->irq_flags &= ~WL1273_RDS_EVENT;
+>
+> This is dangerous: you probably want to use a usecount instead. With this
+> code opening the device one will turn on the RDS events, but opening and
+> closing it via another application (e.g. v4l2-ctl) will disable it while
+> the first still needs it.
+
+Replaced the bool variable with a usage counter.
+
+
+Alexey wrote:
+> > +       if (!radio->write_buf)
+> > +               return -ENOMEM;
 > 
-> Create a __video_usercopy function that implements the core of
-> video_usercopy and video_ioctl2, and call that function from both.
+> I'm not sure but it looks like possible memory leak. Shouldn't you
+> call to kfree(radio) before returning ENOMEM?
 
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
+and
 
-Two notes:
-
-1) This change will clash with the multiplane patches.
-2) Perhaps it is time that we remove the __OLD_VIDIOC_ support?
-
-Regards,
-
-	Hans
-
+> > +err_device_alloc:
+> > +       kfree(radio);
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/v4l2-ioctl.c |  218 ++++++++++++-------------------------
->  1 files changed, 71 insertions(+), 147 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index 0eeceae..486eaba 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -373,35 +373,62 @@ video_fix_command(unsigned int cmd)
->  }
->  #endif
->  
-> -/*
-> - * Obsolete usercopy function - Should be removed soon
-> - */
-> -long
-> -video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
-> +/* In some cases, only a few fields are used as input, i.e. when the app sets
-> + * "index" and then the driver fills in the rest of the structure for the thing
-> + * with that index.  We only need to copy up the first non-input field.  */
-> +static unsigned long cmd_input_size(unsigned int cmd)
-> +{
-> +	/* Size of structure up to and including 'field' */
-> +#define CMDINSIZE(cmd, type, field)				\
-> +	case VIDIOC_##cmd:					\
-> +		return offsetof(struct v4l2_##type, field) +	\
-> +			sizeof(((struct v4l2_##type *)0)->field);
-> +
-> +	switch (cmd) {
-> +		CMDINSIZE(ENUM_FMT,		fmtdesc,	type);
-> +		CMDINSIZE(G_FMT,		format,		type);
-> +		CMDINSIZE(QUERYBUF,		buffer,		type);
-> +		CMDINSIZE(G_PARM,		streamparm,	type);
-> +		CMDINSIZE(ENUMSTD,		standard,	index);
-> +		CMDINSIZE(ENUMINPUT,		input,		index);
-> +		CMDINSIZE(G_CTRL,		control,	id);
-> +		CMDINSIZE(G_TUNER,		tuner,		index);
-> +		CMDINSIZE(QUERYCTRL,		queryctrl,	id);
-> +		CMDINSIZE(QUERYMENU,		querymenu,	index);
-> +		CMDINSIZE(ENUMOUTPUT,		output,		index);
-> +		CMDINSIZE(G_MODULATOR,		modulator,	index);
-> +		CMDINSIZE(G_FREQUENCY,		frequency,	tuner);
-> +		CMDINSIZE(CROPCAP,		cropcap,	type);
-> +		CMDINSIZE(G_CROP,		crop,		type);
-> +		CMDINSIZE(ENUMAUDIO,		audio,		index);
-> +		CMDINSIZE(ENUMAUDOUT,		audioout,	index);
-> +		CMDINSIZE(ENCODER_CMD,		encoder_cmd,	flags);
-> +		CMDINSIZE(TRY_ENCODER_CMD,	encoder_cmd,	flags);
-> +		CMDINSIZE(G_SLICED_VBI_CAP,	sliced_vbi_cap,	type);
-> +		CMDINSIZE(ENUM_FRAMESIZES,	frmsizeenum,	pixel_format);
-> +		CMDINSIZE(ENUM_FRAMEINTERVALS,	frmivalenum,	height);
-> +	default:
-> +		return _IOC_SIZE(cmd);
-> +	}
-> +}
-> +
-> +static long
-> +__video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
->  		v4l2_kioctl func)
->  {
->  	char	sbuf[128];
->  	void    *mbuf = NULL;
-> -	void	*parg = NULL;
-> +	void	*parg = (void *)arg;
->  	long	err  = -EINVAL;
->  	int     is_ext_ctrl;
->  	size_t  ctrls_size = 0;
->  	void __user *user_ptr = NULL;
->  
-> -#ifdef __OLD_VIDIOC_
-> -	cmd = video_fix_command(cmd);
-> -#endif
->  	is_ext_ctrl = (cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_G_EXT_CTRLS ||
->  		       cmd == VIDIOC_TRY_EXT_CTRLS);
->  
->  	/*  Copy arguments into temp kernel buffer  */
-> -	switch (_IOC_DIR(cmd)) {
-> -	case _IOC_NONE:
-> -		parg = NULL;
-> -		break;
-> -	case _IOC_READ:
-> -	case _IOC_WRITE:
-> -	case (_IOC_WRITE | _IOC_READ):
-> +	if (_IOC_DIR(cmd) != _IOC_NONE) {
->  		if (_IOC_SIZE(cmd) <= sizeof(sbuf)) {
->  			parg = sbuf;
->  		} else {
-> @@ -413,11 +440,21 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
->  		}
->  
->  		err = -EFAULT;
-> -		if (_IOC_DIR(cmd) & _IOC_WRITE)
-> -			if (copy_from_user(parg, (void __user *)arg, _IOC_SIZE(cmd)))
-> +		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-> +			unsigned long n = cmd_input_size(cmd);
-> +
-> +			if (copy_from_user(parg, (void __user *)arg, n))
->  				goto out;
-> -		break;
-> +
-> +			/* zero out anything we don't copy from userspace */
-> +			if (n < _IOC_SIZE(cmd))
-> +				memset((u8 *)parg + n, 0, _IOC_SIZE(cmd) - n);
-> +		} else {
-> +			/* read-only ioctl */
-> +			memset(parg, 0, _IOC_SIZE(cmd));
-> +		}
->  	}
-> +
->  	if (is_ext_ctrl) {
->  		struct v4l2_ext_controls *p = parg;
->  
-> @@ -439,7 +476,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
->  		}
->  	}
->  
-> -	/* call driver */
-> +	/* Handles IOCTL */
->  	err = func(file, cmd, parg);
->  	if (err == -ENOIOCTLCMD)
->  		err = -EINVAL;
-> @@ -468,6 +505,19 @@ out:
->  	kfree(mbuf);
->  	return err;
->  }
-> +
-> +/*
-> + * Obsolete usercopy function - Should be removed soon
-> + */
-> +long
-> +video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
-> +		v4l2_kioctl func)
-> +{
-> +#ifdef __OLD_VIDIOC_
-> +	cmd = video_fix_command(cmd);
-> +#endif
-> +	return __video_usercopy(file, cmd, arg, func);
-> +}
->  EXPORT_SYMBOL(video_usercopy);
->  
->  static void dbgbuf(unsigned int cmd, struct video_device *vfd,
-> @@ -2021,138 +2071,12 @@ static long __video_do_ioctl(struct file *file,
->  	return ret;
->  }
->  
-> -/* In some cases, only a few fields are used as input, i.e. when the app sets
-> - * "index" and then the driver fills in the rest of the structure for the thing
-> - * with that index.  We only need to copy up the first non-input field.  */
-> -static unsigned long cmd_input_size(unsigned int cmd)
-> -{
-> -	/* Size of structure up to and including 'field' */
-> -#define CMDINSIZE(cmd, type, field) 				\
-> -	case VIDIOC_##cmd: 					\
-> -		return offsetof(struct v4l2_##type, field) + 	\
-> -			sizeof(((struct v4l2_##type *)0)->field);
-> -
-> -	switch (cmd) {
-> -		CMDINSIZE(ENUM_FMT,		fmtdesc,	type);
-> -		CMDINSIZE(G_FMT,		format,		type);
-> -		CMDINSIZE(QUERYBUF,		buffer,		type);
-> -		CMDINSIZE(G_PARM,		streamparm,	type);
-> -		CMDINSIZE(ENUMSTD,		standard,	index);
-> -		CMDINSIZE(ENUMINPUT,		input,		index);
-> -		CMDINSIZE(G_CTRL,		control,	id);
-> -		CMDINSIZE(G_TUNER,		tuner,		index);
-> -		CMDINSIZE(QUERYCTRL,		queryctrl,	id);
-> -		CMDINSIZE(QUERYMENU,		querymenu,	index);
-> -		CMDINSIZE(ENUMOUTPUT,		output,		index);
-> -		CMDINSIZE(G_MODULATOR,		modulator,	index);
-> -		CMDINSIZE(G_FREQUENCY,		frequency,	tuner);
-> -		CMDINSIZE(CROPCAP,		cropcap,	type);
-> -		CMDINSIZE(G_CROP,		crop,		type);
-> -		CMDINSIZE(ENUMAUDIO,		audio, 		index);
-> -		CMDINSIZE(ENUMAUDOUT,		audioout, 	index);
-> -		CMDINSIZE(ENCODER_CMD,		encoder_cmd,	flags);
-> -		CMDINSIZE(TRY_ENCODER_CMD,	encoder_cmd,	flags);
-> -		CMDINSIZE(G_SLICED_VBI_CAP,	sliced_vbi_cap,	type);
-> -		CMDINSIZE(ENUM_FRAMESIZES,	frmsizeenum,	pixel_format);
-> -		CMDINSIZE(ENUM_FRAMEINTERVALS,	frmivalenum,	height);
-> -	default:
-> -		return _IOC_SIZE(cmd);
-> -	}
-> -}
-> -
->  long video_ioctl2(struct file *file,
->  	       unsigned int cmd, unsigned long arg)
->  {
-> -	char	sbuf[128];
-> -	void    *mbuf = NULL;
-> -	void	*parg = (void *)arg;
-> -	long	err  = -EINVAL;
-> -	int     is_ext_ctrl;
-> -	size_t  ctrls_size = 0;
-> -	void __user *user_ptr = NULL;
-> -
->  #ifdef __OLD_VIDIOC_
->  	cmd = video_fix_command(cmd);
->  #endif
-> -	is_ext_ctrl = (cmd == VIDIOC_S_EXT_CTRLS || cmd == VIDIOC_G_EXT_CTRLS ||
-> -		       cmd == VIDIOC_TRY_EXT_CTRLS);
-> -
-> -	/*  Copy arguments into temp kernel buffer  */
-> -	if (_IOC_DIR(cmd) != _IOC_NONE) {
-> -		if (_IOC_SIZE(cmd) <= sizeof(sbuf)) {
-> -			parg = sbuf;
-> -		} else {
-> -			/* too big to allocate from stack */
-> -			mbuf = kmalloc(_IOC_SIZE(cmd), GFP_KERNEL);
-> -			if (NULL == mbuf)
-> -				return -ENOMEM;
-> -			parg = mbuf;
-> -		}
-> -
-> -		err = -EFAULT;
-> -		if (_IOC_DIR(cmd) & _IOC_WRITE) {
-> -			unsigned long n = cmd_input_size(cmd);
-> -
-> -			if (copy_from_user(parg, (void __user *)arg, n))
-> -				goto out;
-> -
-> -			/* zero out anything we don't copy from userspace */
-> -			if (n < _IOC_SIZE(cmd))
-> -				memset((u8 *)parg + n, 0, _IOC_SIZE(cmd) - n);
-> -		} else {
-> -			/* read-only ioctl */
-> -			memset(parg, 0, _IOC_SIZE(cmd));
-> -		}
-> -	}
-> -
-> -	if (is_ext_ctrl) {
-> -		struct v4l2_ext_controls *p = parg;
-> -
-> -		/* In case of an error, tell the caller that it wasn't
-> -		   a specific control that caused it. */
-> -		p->error_idx = p->count;
-> -		user_ptr = (void __user *)p->controls;
-> -		if (p->count) {
-> -			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
-> -			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
-> -			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
-> -			err = -ENOMEM;
-> -			if (NULL == mbuf)
-> -				goto out_ext_ctrl;
-> -			err = -EFAULT;
-> -			if (copy_from_user(mbuf, user_ptr, ctrls_size))
-> -				goto out_ext_ctrl;
-> -			p->controls = mbuf;
-> -		}
-> -	}
-> -
-> -	/* Handles IOCTL */
-> -	err = __video_do_ioctl(file, cmd, parg);
-> -	if (err == -ENOIOCTLCMD)
-> -		err = -EINVAL;
-> -	if (is_ext_ctrl) {
-> -		struct v4l2_ext_controls *p = parg;
-> -
-> -		p->controls = (void *)user_ptr;
-> -		if (p->count && err == 0 && copy_to_user(user_ptr, mbuf, ctrls_size))
-> -			err = -EFAULT;
-> -		goto out_ext_ctrl;
-> -	}
-> -	if (err < 0)
-> -		goto out;
-> -
-> -out_ext_ctrl:
-> -	/*  Copy results into user buffer  */
-> -	switch (_IOC_DIR(cmd)) {
-> -	case _IOC_READ:
-> -	case (_IOC_WRITE | _IOC_READ):
-> -		if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
-> -			err = -EFAULT;
-> -		break;
-> -	}
-> -
-> -out:
-> -	kfree(mbuf);
-> -	return err;
-> +	return __video_usercopy(file, cmd, arg, __video_do_ioctl);
->  }
->  EXPORT_SYMBOL(video_ioctl2);
-> 
+> And i'm not sure about this error path.. Before kfree(radio) it's
+> needed to call kfree(radio->write_buf), rigth?
+> Looks like all erorr paths in this probe function have to be checked.
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Rewrote the error handling in the probe function.
+
+Pramodh wrote:
+> > +    r = wl1273_fm_write_cmd(core, WL1273_POWER_LEV_SET, power);
+> 
+> Output power level is specified in units of dBuV (as explained at 
+> http://www.linuxtv.org/downloads/v4l-dvb-apis/ch01s09.html#fm-tx-controls).
+> Shouldn't it be converted to WL1273 specific power level value?
+> 
+> My understanding:
+> If output power level specified using "V4L2_CID_TUNE_POWER_LEVEL" is 122 
+> (dB/uV), then
+> power level value to be passed for WL1273 should be '0'.
+> Please correct me, if I got this conversion wrong.
+
+Fixed the TX power level handling...
+
+Thanks
+
+Matti
+
+Matti J. Aaltonen (5):
+  V4L2: Add seek spacing and FM RX class.
+  MFD: WL1273 FM Radio: MFD driver for the FM radio.
+  ASoC: WL1273 FM Radio Digital audio codec.
+  V4L2: WL1273 FM Radio: Controls for the FM radio.
+  Documentation: v4l: Add hw_seek spacing and FM_RX class
+
+ Documentation/DocBook/v4l/controls.xml             |   71 +
+ .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 +-
+ drivers/media/radio/Kconfig                        |   15 +
+ drivers/media/radio/Makefile                       |    1 +
+ drivers/media/radio/radio-wl1273.c                 | 1947 ++++++++++++++++++++
+ drivers/media/video/v4l2-ctrls.c                   |   12 +
+ drivers/mfd/Kconfig                                |    5 +
+ drivers/mfd/Makefile                               |    2 +
+ drivers/mfd/wl1273-core.c                          |  612 ++++++
+ include/linux/mfd/wl1273-core.h                    |  314 ++++
+ include/linux/videodev2.h                          |   15 +-
+ sound/soc/codecs/Kconfig                           |    6 +
+ sound/soc/codecs/Makefile                          |    2 +
+ sound/soc/codecs/wl1273.c                          |  593 ++++++
+ sound/soc/codecs/wl1273.h                          |   42 +
+ 15 files changed, 3644 insertions(+), 3 deletions(-)
+ create mode 100644 drivers/media/radio/radio-wl1273.c
+ create mode 100644 drivers/mfd/wl1273-core.c
+ create mode 100644 include/linux/mfd/wl1273-core.h
+ create mode 100644 sound/soc/codecs/wl1273.c
+ create mode 100644 sound/soc/codecs/wl1273.h
+
