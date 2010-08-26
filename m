@@ -1,174 +1,288 @@
 Return-path: <mchehab@pedra>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:63132 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752393Ab0HIUwR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 16:52:17 -0400
-Received: by gxk23 with SMTP id 23so3568799gxk.19
-        for <linux-media@vger.kernel.org>; Mon, 09 Aug 2010 13:52:17 -0700 (PDT)
+Received: from r02s01.colo.vollmar.net ([83.151.24.194]:59798 "EHLO
+	holzeisen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752309Ab0HZPl6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 11:41:58 -0400
+Message-ID: <4C768B43.9080403@holzeisen.de>
+Date: Thu, 26 Aug 2010 17:41:55 +0200
+From: Thomas Holzeisen <thomas@holzeisen.de>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTin1sY6U3WPmG9XKPKK5wKmpPJkpWOL4bbQG0=b_@mail.gmail.com>
-References: <AANLkTin1sY6U3WPmG9XKPKK5wKmpPJkpWOL4bbQG0=b_@mail.gmail.com>
-From: Lars Sarauw Hansen <sarauw76@gmail.com>
-Date: Mon, 9 Aug 2010 22:51:56 +0200
-Message-ID: <AANLkTikFaZxZDnuseLZH97UuPENd91RKj=ArJiE3Gzht@mail.gmail.com>
-Subject: Unknown EM2750/28xx video grabber - dmesg output
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: dvb_usb_rtl2831u module cause "oops" on kernel 2.6.32 when loading
+References: <4C1D1228.1090702@holzeisen.de> <4C5BA16C.7060808@hoogenraad.net> <5a5511b4767b245485b150836b1526f0.squirrel@holzeisen.de> <4C760DBC.5000605@hoogenraad.net>
+In-Reply-To: <4C760DBC.5000605@hoogenraad.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-As requested, I'm sending my dmesg output when connecting an external
-TV-grabber box.
-I got the box from my dad and he really can't remember how he got it.
-It seems to be quite decent quality - yet it is only labeled "USB 2.0
-TV BOX". IMHO a truly no-name grabber :-)
+Hi Jan,
 
-Hopefully it can be identified as one of the existing cards from the
-list in dmesg.
+this looks great. At first the checkout did not build throwing me this error:
 
-Here goes:
-[249160.380080] usb 1-4: new high speed USB device using ehci_hcd and address 7
-[249160.530722] usb 1-4: configuration #1 chosen from 1 choice
-[249160.615476] Linux video capture interface: v2.00
-[249160.635939] em28xx: New device @ 480 Mbps (eb1a:2820, interface 0, class 0)
-[249160.636101] em28xx #0: chip ID is em2820 (or em2710)
-[249160.794940] em28xx #0: i2c eeprom 00: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794947] em28xx #0: i2c eeprom 10: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794952] em28xx #0: i2c eeprom 20: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794958] em28xx #0: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794963] em28xx #0: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794968] em28xx #0: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794973] em28xx #0: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794977] em28xx #0: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794982] em28xx #0: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794987] em28xx #0: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794992] em28xx #0: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.794997] em28xx #0: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.795002] em28xx #0: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.795007] em28xx #0: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.795012] em28xx #0: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.795017] em28xx #0: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
-ff ff ff ff ff ff ff
-[249160.795023] em28xx #0: EEPROM ID= 0xffffffff, EEPROM hash = 0x00000000
-[249160.795024] em28xx #0: EEPROM info:
-[249160.795025] em28xx #0:	I2S audio, 3 sample rates
-[249160.795026] em28xx #0:	USB Remote wakeup capable
-[249160.795027] em28xx #0:	USB Self power capable
-[249160.795028] em28xx #0:	200mA max power
-[249160.795030] em28xx #0:	Table at 0xff, strings=0xffff, 0xffff, 0xffff
-[249160.811443] Unknown Micron Sensor 0x00ff
-[249160.811445] em28xx #0: Identified as Unknown EM2750/28xx video
-grabber (card=1)
-[249160.825687] em28xx #0: found i2c device @ 0x4a [saa7113h]
-[249160.841817] em28xx #0: found i2c device @ 0xa0 [eeprom]
-[249160.846685] em28xx #0: found i2c device @ 0xba [webcam sensor or tvp5150a]
-[249160.848931] em28xx #0: found i2c device @ 0xc6 [tuner (analog)]
-[249160.859431] em28xx #0: Your board has no unique USB ID and thus
-need a hint to be detected.
-[249160.859433] em28xx #0: You may try to use card=<n> insmod option
-to workaround that.
-[249160.859435] em28xx #0: Please send an email with this log to:
-[249160.859436] em28xx #0: 	V4L Mailing List <linux-media@vger.kernel.org>
-[249160.859437] em28xx #0: Board eeprom hash is 0x00000000
-[249160.859439] em28xx #0: Board i2c devicelist hash is 0x156500e3
-[249160.859440] em28xx #0: Here is a list of valid choices for the
-card=<n> insmod option:
-[249160.859442] em28xx #0:     card=0 -> Unknown EM2800 video grabber
-[249160.859443] em28xx #0:     card=1 -> Unknown EM2750/28xx video grabber
-[249160.859445] em28xx #0:     card=2 -> Terratec Cinergy 250 USB
-[249160.859446] em28xx #0:     card=3 -> Pinnacle PCTV USB 2
-[249160.859448] em28xx #0:     card=4 -> Hauppauge WinTV USB 2
-[249160.859449] em28xx #0:     card=5 -> MSI VOX USB 2.0
-[249160.859450] em28xx #0:     card=6 -> Terratec Cinergy 200 USB
-[249160.859452] em28xx #0:     card=7 -> Leadtek Winfast USB II
-[249160.859453] em28xx #0:     card=8 -> Kworld USB2800
-[249160.859455] em28xx #0:     card=9 -> Pinnacle Dazzle DVC
-90/100/101/107 / Kaiser Baas Video to DVD maker / Kworld DVD Maker 2
-[249160.859457] em28xx #0:     card=10 -> Hauppauge WinTV HVR 900
-[249160.859458] em28xx #0:     card=11 -> Terratec Hybrid XS
-[249160.859460] em28xx #0:     card=12 -> Kworld PVR TV 2800 RF
-[249160.859461] em28xx #0:     card=13 -> Terratec Prodigy XS
-[249160.859462] em28xx #0:     card=14 -> SIIG AVTuner-PVR / Pixelview
-Prolink PlayTV USB 2.0
-[249160.859464] em28xx #0:     card=15 -> V-Gear PocketTV
-[249160.859465] em28xx #0:     card=16 -> Hauppauge WinTV HVR 950
-[249160.859467] em28xx #0:     card=17 -> Pinnacle PCTV HD Pro Stick
-[249160.859468] em28xx #0:     card=18 -> Hauppauge WinTV HVR 900 (R2)
-[249160.859470] em28xx #0:     card=19 -> EM2860/SAA711X Reference Design
-[249160.859471] em28xx #0:     card=20 -> AMD ATI TV Wonder HD 600
-[249160.859473] em28xx #0:     card=21 -> eMPIA Technology, Inc.
-GrabBeeX+ Video Encoder
-[249160.859474] em28xx #0:     card=22 -> EM2710/EM2750/EM2751 webcam grabber
-[249160.859476] em28xx #0:     card=23 -> Huaqi DLCW-130
-[249160.859477] em28xx #0:     card=24 -> D-Link DUB-T210 TV Tuner
-[249160.859478] em28xx #0:     card=25 -> Gadmei UTV310
-[249160.859480] em28xx #0:     card=26 -> Hercules Smart TV USB 2.0
-[249160.859481] em28xx #0:     card=27 -> Pinnacle PCTV USB 2 (Philips FM1216ME)
-[249160.859483] em28xx #0:     card=28 -> Leadtek Winfast USB II Deluxe
-[249160.859484] em28xx #0:     card=29 -> <NULL>
-[249160.859486] em28xx #0:     card=30 -> Videology 20K14XUSB USB2.0
-[249160.859487] em28xx #0:     card=31 -> Usbgear VD204v9
-[249160.859488] em28xx #0:     card=32 -> Supercomp USB 2.0 TV
-[249160.859490] em28xx #0:     card=33 -> <NULL>
-[249160.859491] em28xx #0:     card=34 -> Terratec Cinergy A Hybrid XS
-[249160.859492] em28xx #0:     card=35 -> Typhoon DVD Maker
-[249160.859493] em28xx #0:     card=36 -> NetGMBH Cam
-[249160.859495] em28xx #0:     card=37 -> Gadmei UTV330
-[249160.859496] em28xx #0:     card=38 -> Yakumo MovieMixer
-[249160.859497] em28xx #0:     card=39 -> KWorld PVRTV 300U
-[249160.859499] em28xx #0:     card=40 -> Plextor ConvertX PX-TV100U
-[249160.859500] em28xx #0:     card=41 -> Kworld 350 U DVB-T
-[249160.859501] em28xx #0:     card=42 -> Kworld 355 U DVB-T
-[249160.859503] em28xx #0:     card=43 -> Terratec Cinergy T XS
-[249160.859504] em28xx #0:     card=44 -> Terratec Cinergy T XS (MT2060)
-[249160.859506] em28xx #0:     card=45 -> Pinnacle PCTV DVB-T
-[249160.859507] em28xx #0:     card=46 -> Compro, VideoMate U3
-[249160.859508] em28xx #0:     card=47 -> KWorld DVB-T 305U
-[249160.859510] em28xx #0:     card=48 -> KWorld DVB-T 310U
-[249160.859511] em28xx #0:     card=49 -> MSI DigiVox A/D
-[249160.859512] em28xx #0:     card=50 -> MSI DigiVox A/D II
-[249160.859514] em28xx #0:     card=51 -> Terratec Hybrid XS Secam
-[249160.859515] em28xx #0:     card=52 -> DNT DA2 Hybrid
-[249160.859516] em28xx #0:     card=53 -> Pinnacle Hybrid Pro
-[249160.859518] em28xx #0:     card=54 -> Kworld VS-DVB-T 323UR
-[249160.859519] em28xx #0:     card=55 -> Terratec Hybrid XS (em2882)
-[249160.859521] em28xx #0:     card=56 -> Pinnacle Hybrid Pro (2)
-[249160.859522] em28xx #0:     card=57 -> Kworld PlusTV HD Hybrid 330
-[249160.859523] em28xx #0:     card=58 -> Compro VideoMate ForYou/Stereo
-[249160.859525] em28xx #0:     card=59 -> <NULL>
-[249160.859526] em28xx #0:     card=60 -> Hauppauge WinTV HVR 850
-[249160.859527] em28xx #0:     card=61 -> Pixelview PlayTV Box 4 USB 2.0
-[249160.859529] em28xx #0:     card=62 -> Gadmei TVR200
-[249160.859530] em28xx #0:     card=63 -> Kaiomy TVnPC U2
-[249160.859531] em28xx #0:     card=64 -> Easy Cap Capture DC-60
-[249160.859533] em28xx #0:     card=65 -> IO-DATA GV-MVP/SZ
-[249160.859534] em28xx #0:     card=66 -> Empire dual TV
-[249160.859535] em28xx #0:     card=67 -> Terratec Grabby
-[249160.859537] em28xx #0:     card=68 -> Terratec AV350
-[249160.859538] em28xx #0:     card=69 -> KWorld ATSC 315U HDTV TV Box
-[249160.859539] em28xx #0:     card=70 -> Evga inDtube
-[249160.859541] em28xx #0:     card=71 -> Silvercrest Webcam 1.3mpix
-[249160.859542] em28xx #0:     card=72 -> Gadmei UTV330+
-[249160.859543] em28xx #0:     card=73 -> Reddo DVB-C USB TV Box
-[249160.859681] em28xx #0: Config register raw data: 0x00
-[249160.859683] em28xx #0: v4l2 driver version 0.1.2
-[249161.520906] em28xx #0: V4L2 video device registered as /dev/video0
-[249161.520925] usbcore: registered new interface driver em28xx
-[249161.520927] em28xx driver loaded
+> /usr/src/rtl2831-r2/v4l/ir-sysfs.c: In function 'store_protocols':
+> /usr/src/rtl2831-r2/v4l/ir-sysfs.c:137: error: implicit declaration of function 'skip_spaces'
+> /usr/src/rtl2831-r2/v4l/ir-sysfs.c:137: warning: assignment makes pointer from integer without a cast
+> /usr/src/rtl2831-r2/v4l/ir-sysfs.c:178: warning: assignment makes pointer from integer without a cast
 
-BR Lars
+i replaced the file by an older version from a previous checkout and then it build perfectly. It 
+also gets initialized without a flaw:
+
+> [   18.434911] dvb-usb: found a 'Freecom USB 2.0 DVB-T Device' in warm state.
+> [   18.434933] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> [   18.435197] DVB: registering new adapter (Freecom USB 2.0 DVB-T Device)
+> [   18.435976] DVB: registering adapter 0 frontend 0 (Realtek RTL2831 DVB-T)...
+> [   18.436315] input: IR-receiver inside an USB DVB receiver as /devices/pci0000:00/0000:00:06.1/usb4/4-2/input/input4
+> [   18.436333] dvb-usb: schedule remote query interval to 300 msecs.
+> [   18.436343] dvb-usb: Freecom USB 2.0 DVB-T Device successfully initialized and connected.
+> [   18.436396] usbcore: registered new interface driver dvb_usb_rtd2831u
+
+I am normally not using the included IR, but testing revealed its working as well.
+
+Best Regards
+Thomas
+
+
+
+Jan Hoogenraad wrote:
+> Thomas:
+>
+> Douglas has put a lot of backports into this development branch.
+> Also, I fixed a bug that may have caused part of the problem.
+>
+> Can you check again with the current status ?
+>
+>
+>
+> thomas@holzeisen.de wrote:
+>> I did a fresh compile with this version, but it didnt do the trick. I am
+>> still getting the same trace. The adapter gets initialized, the input
+>> device didnt. Since I am not using the input anyway, can i comment it out
+>> somewhere for testing purpose?
+>>
+>> [ 66.932029] usb 4-2: new high speed USB device using ehci_hcd and
+>> address 3
+>> [ 67.070544] usb 4-2: New USB device found, idVendor=14aa, idProduct=0160
+>> [ 67.076729] usb 4-2: New USB device strings: Mfr=1, Product=2,
+>> SerialNumber=3
+>> [ 67.082760] usb 4-2: Product: DTV Receiver
+>> [ 67.088546] usb 4-2: Manufacturer: DTV Receiver
+>> [ 67.094379] usb 4-2: SerialNumber: 0000000000067936
+>> [ 67.102038] usb 4-2: configuration #1 chosen from 1 choice
+>> [ 67.779405] dvb-usb: found a 'Freecom USB 2.0 DVB-T Device' in warm
+>> state.
+>> [ 67.786059] dvb-usb: will pass the complete MPEG2 transport stream to
+>> the software demuxer.
+>> [ 67.792714] DVB: registering new adapter (Freecom USB 2.0 DVB-T Device)
+>> [ 67.800044] DVB: registering adapter 0 frontend 0 (Realtek RTL2831
+>> DVB-T)...
+>> [ 67.809412] BUG: unable to handle kernel paging request at 02f77c40
+>> [ 67.813129] IP: [<f9e1a3ba>] dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
+>> [ 67.813129] *pde = 00000000
+>> [ 67.813129] Oops: 0002 [#1] SMP
+>> [ 67.813129] last sysfs file:
+>> /sys/devices/pci0000:00/0000:00:06.1/usb4/idVendor
+>> [ 67.813129] Modules linked in: dvb_usb_rtl2831u(+)
+>> dvb_usb_dibusb_common dvb_usb dvb_core dib3000mc dibx000_common loop
+>> snd_hda_codec_nvhdmi snd_hda_codec_realtek ir_sony_decoder snd_hda_intel
+>> ir_jvc_decoder evdev ir_rc6_decoder ir_rc5_decoder snd_hda_codec
+>> ir_nec_decoder snd_hwdep snd_pcm snd_seq snd_timer snd_seq_device imon
+>> ir_core usbhid hid tpm_tis lirc_imon shpchp wmi tpm serio_raw tpm_bios
+>> psmouse snd button pci_hotplug pcspkr nvidia(P) lirc_dev i2c_nforce2
+>> processor soundcore snd_page_alloc i2c_core ext3 jbd mbcache raid1 md_mod
+>> usb_storage sg sr_mod cdrom sd_mod crc_t10dif ahci ata_generic libata
+>> scsi_mod ehci_hcd ohci_hcd forcedeth usbcore nls_base thermal fan
+>> thermal_sys [last unloaded: scsi_wait_scan]
+>> [ 67.813129]
+>> [ 67.813129] Pid: 2341, comm: modprobe Tainted: P (2.6.32-bpo.5-686
+>> #1) Point of View
+>> [ 67.813129] EIP: 0060:[<f9e1a3ba>] EFLAGS: 00010246 CPU: 0
+>> [ 67.813129] EIP is at dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
+>> [ 67.813129] EAX: 69656148 EBX: f5cad000 ECX: c14c18e4 EDX: f5cad018
+>> [ 67.813129] ESI: f6034000 EDI: 000003b8 EBP: 00000077 ESP: f6363e88
+>> [ 67.813129] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
+>> [ 67.813129] Process modprobe (pid: 2341, ti=f6362000 task=f6524840
+>> task.ti=f6362000)
+>> [ 67.813129] Stack:
+>> [ 67.813129] f5cad018 f6034000 f6034000 f6034864 00000001 f9e19945
+>> f6034418 f9e5c8d0
+>> [ 67.813129] <0> f6067600 f64ddc00 f9e5bd88 00000000 f9e5bd88 00000000
+>> f6067600 00000000
+>> [ 67.813129] <0> f9e5c894 f9e5b970 f9e5986d 00000000 f9e5b960 f6067600
+>> f80b3c98 f606761c
+>> [ 67.813129] Call Trace:
+>> [ 67.813129] [<f9e19945>] ? dvb_usb_device_init+0x515/0x51c [dvb_usb]
+>> [ 67.813129] [<f9e5986d>] ? rtd2831u_usb_probe+0x19/0x48
+>> [dvb_usb_rtl2831u]
+>> [ 67.813129] [<f80b3c98>] ? usb_probe_interface+0xe7/0x130 [usbcore]
+>> [ 67.813129] [<c11b2c22>] ? driver_probe_device+0x8a/0x11e
+>> [ 67.813129] [<c11b2cf6>] ? __driver_attach+0x40/0x5b
+>> [ 67.813129] [<c11b2667>] ? bus_for_each_dev+0x37/0x5f
+>> [ 67.813129] [<c11b2af5>] ? driver_attach+0x11/0x13
+>> [ 67.813129] [<c11b2cb6>] ? __driver_attach+0x0/0x5b
+>> [ 67.813129] [<c11b2135>] ? bus_add_driver+0x99/0x1c2
+>> [ 67.813129] [<c11b2f2b>] ? driver_register+0x87/0xe0
+>> [ 67.813129] [<f80b3aa6>] ? usb_register_driver+0x5d/0xb4 [usbcore]
+>> [ 67.813129] [<f9e61000>] ? rtd2831u_usb_module_init+0x0/0x2c
+>> [dvb_usb_rtl2831u]
+>> [ 67.813129] [<f9e61015>] ? rtd2831u_usb_module_init+0x15/0x2c
+>> [dvb_usb_rtl2831u]
+>> [ 67.813129] [<c100113e>] ? do_one_initcall+0x55/0x155
+>> [ 67.813129] [<c1057dd7>] ? sys_init_module+0xa7/0x1d7
+>> [ 67.813129] [<c10030fb>] ? sysenter_do_call+0x12/0x28
+>> [ 67.813129] Code: be e1 f9 20 74 18 8b 86 a0 00 00 00 55 ff 74 38 04 68
+>> 59 b8 e1 f9 e8 1b 21 45 c7 83 c4 0c 8b 86 a0 00 00 00 8b 14 24 8b 44
+>> 38 04
+>> <f0> 0f ab 02 45 83 c7 08 3b ae a4 00 00 00 7c c2 83 be ac 00 00
+>> [ 67.813129] EIP: [<f9e1a3ba>] dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
+>> SS:ESP 0068:f6363e88
+>> [ 67.813129] CR2: 0000000002f77c40
+>> [ 68.235926] ---[ end trace b14c844e3eed98d4 ]---
+>>
+>>
+>>> Can you test the current version ?
+>>>
+>>> Thomas Holzeisen wrote:
+>>>> Hi,
+>>>>
+>>>> i am using a DVB-T USB-Stick with Realtek RTL2831 chip (14aa:0160) on
+>>>> Debian Lenny having the lastest Backport kernel 2.6.32.
+>>>>
+>>>>> $ uname -a
+>>>>> Linux xbmc 2.6.32-bpo.5-686 #1 SMP Fri Jun 11 22:20:29 UTC 2010 i686
+>>>>> GNU/Linux
+>>>> For v4l I took the drivers from here:
+>>>>
+>>>>> http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/
+>>>> The checked out source compile and installs fine. I compiled them
+>>>> starting with "make distclean". But when plugging the DVB-Stick this
+>>>> happens:
+>>>>
+>>>>> [ 229.524028] usb 4-2: new high speed USB device using ehci_hcd and
+>>>>> address 3
+>>>>> [ 229.658591] usb 4-2: New USB device found, idVendor=14aa,
+>>>>> idProduct=0160
+>>>>> [ 229.661204] usb 4-2: New USB device strings: Mfr=1, Product=2,
+>>>>> SerialNumber=3
+>>>>> [ 229.663841] usb 4-2: Product: DTV Receiver
+>>>>> [ 229.666308] usb 4-2: Manufacturer: DTV Receiver
+>>>>> [ 229.668826] usb 4-2: SerialNumber: 0000000000067936
+>>>>> [ 229.671609] usb 4-2: configuration #1 chosen from 1 choice
+>>>>> [ 230.266960] dvb-usb: found a 'Freecom USB 2.0 DVB-T Device' in warm
+>>>>> state.
+>>>>> [ 230.270314] dvb-usb: will pass the complete MPEG2 transport stream
+>>>>> to the software demuxer.
+>>>>> [ 230.273641] DVB: registering new adapter (Freecom USB 2.0 DVB-T
+>>>>> Device)
+>>>>> [ 230.277461] DVB: registering adapter 0 frontend 0 (Realtek RTL2831
+>>>>> DVB-T)...
+>>>>> [ 230.282081] BUG: unable to handle kernel paging request at 02b65c40
+>>>>> [ 230.285794] IP: [<f7c623ba>] dvb_usb_remote_init+0x12e/0x209
+>>>>> [dvb_usb]
+>>>>> [ 230.291463] *pde = 00000000
+>>>>> [ 230.293969] Oops: 0002 [#1] SMP
+>>>>> [ 230.293969] last sysfs file:
+>>>>> /sys/devices/pci0000:00/0000:00:06.1/usb4/4-2/bmAttributes
+>>>>> [ 230.293969] Modules linked in: dvb_usb_rtl2831u(+)
+>>>>> dvb_usb_dibusb_common dvb_usb dib3000mc dibx000_common dvb_ttpci
+>>>>> dvb_core saa7146_vv videodev v4l1_compat saa7146 videobuf_dma_sg
+>>>>> videobuf_core ttpci_eeprom iscsi_trgt crc32c loop snd_hda_codec_nvhdmi
+>>>>> snd_hda_codec_realtek snd_hda_intel snd_hda_codec snd_hwdep snd_pcm
+>>>>> snd_seq snd_timer snd_seq_device snd tpm_tis soundcore tpm shpchp
+>>>>> psmouse wmi serio_raw tpm_bios snd_page_alloc pcspkr pci_hotplug
+>>>>> processor evdev button ir_core nvidia(P) lirc_imon i2c_nforce2
+>>>>> i2c_core lirc_dev ext3 jbd mbcache raid1 md_mod usbhid hid sg sr_mod
+>>>>> cdrom sd_mod crc_t10dif usb_storage ahci ata_generic libata ehci_hcd
+>>>>> ohci_hcd scsi_mod usbcore nls_base forcedeth thermal fan thermal_sys
+>>>>> [last unloaded: scsi_wait_scan]
+>>>>> [ 230.293969]
+>>>>> [ 230.293969] Pid: 3279, comm: modprobe Tainted: P
+>>>>> (2.6.32-bpo.5-686 #1) Point of View
+>>>>> [ 230.293969] EIP: 0060:[<f7c623ba>] EFLAGS: 00010246 CPU: 0
+>>>>> [ 230.293969] EIP is at dvb_usb_remote_init+0x12e/0x209 [dvb_usb]
+>>>>> [ 230.293969] EAX: 69656148 EBX: f589b000 ECX: c14c18e4 EDX: f589b018
+>>>>> [ 230.293969] ESI: f5904000 EDI: 000003b8 EBP: 00000077 ESP: f5851e88
+>>>>> [ 230.293969] DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
+>>>>> [ 230.293969] Process modprobe (pid: 3279, ti=f5850000 task=f5cd4400
+>>>>> task.ti=f5850000)
+>>>>> [ 230.293969] Stack:
+>>>>> [ 230.293969] f589b018 f5904000 f5904000 f5904864 00000001 f7c61945
+>>>>> f5904418 f80bb8d0
+>>>>> [ 230.293969] <0> f5912000 f5b8f800 f80bad88 00000000 f80bad88
+>>>>> 00000000 f5912000 00000000
+>>>>> [ 230.293969] <0> f80bb894 f80ba970 f80b886d 00000000 f80ba960
+>>>>> f5912000 f80c8c98 f591201c
+>>>>> [ 230.293969] Call Trace:
+>>>>> [ 230.293969] [<f7c61945>] ? dvb_usb_device_init+0x515/0x51c
+>>>>> [dvb_usb]
+>>>>> [ 230.293969] [<f80b886d>] ? rtd2831u_usb_probe+0x19/0x48
+>>>>> [dvb_usb_rtl2831u]
+>>>>> [ 230.293969] [<f80c8c98>] ? usb_probe_interface+0xe7/0x130 [usbcore]
+>>>>> [ 230.293969] [<c11b2c22>] ? driver_probe_device+0x8a/0x11e
+>>>>> [ 230.293969] [<c11b2cf6>] ? __driver_attach+0x40/0x5b
+>>>>> [ 230.293969] [<c11b2667>] ? bus_for_each_dev+0x37/0x5f
+>>>>> [ 230.293969] [<c11b2af5>] ? driver_attach+0x11/0x13
+>>>>> [ 230.293969] [<c11b2cb6>] ? __driver_attach+0x0/0x5b
+>>>>> [ 230.293969] [<c11b2135>] ? bus_add_driver+0x99/0x1c2
+>>>>> [ 230.293969] [<c11b2f2b>] ? driver_register+0x87/0xe0
+>>>>> [ 230.293969] [<f80c8aa6>] ? usb_register_driver+0x5d/0xb4 [usbcore]
+>>>>> [ 230.293969] [<f80f6000>] ? rtd2831u_usb_module_init+0x0/0x2c
+>>>>> [dvb_usb_rtl2831u]
+>>>>> [ 230.293969] [<f80f6015>] ? rtd2831u_usb_module_init+0x15/0x2c
+>>>>> [dvb_usb_rtl2831u]
+>>>>> [ 230.293969] [<c100113e>] ? do_one_initcall+0x55/0x155
+>>>>> [ 230.293969] [<c1057dd7>] ? sys_init_module+0xa7/0x1d7
+>>>>> [ 230.293969] [<c10030fb>] ? sysenter_do_call+0x12/0x28
+>>>>> [ 230.293969] Code: 3e c6 f7 20 74 18 8b 86 a0 00 00 00 55 ff 74 38
+>>>>> 04 68 59 38 c6 f7 e8 1b a1 60 c9 83 c4 0c 8b 86 a0 00 00 00 8b 14 24
+>>>>> 8b 44 38 04 <f0> 0f ab 02 45 83 c7 08 3b ae a4 00 00 00 7c c2 83 be ac
+>>>>> 00 00
+>>>>> [ 230.293969] EIP: [<f7c623ba>] dvb_usb_remote_init+0x12e/0x209
+>>>>> [dvb_usb] SS:ESP 0068:f5851e88
+>>>>> [ 230.293969] CR2: 0000000002b65c40
+>>>>> [ 230.663846] ---[ end trace e2ebfa1976bffdae ]---
+>>>> Mostly interesting, the modules are still getting loaded:
+>>>>
+>>>>> $ lsmod | grep dvb
+>>>>> dvb_usb_rtl2831u 89189 15
+>>>>> dvb_usb_dibusb_common 4578 1 dvb_usb_rtl2831u
+>>>>> dvb_usb 13320 2 dvb_usb_rtl2831u,dvb_usb_dibusb_common
+>>>>> dib3000mc 8544 1 dvb_usb_dibusb_common
+>>>>> dvb_ttpci 70046 0
+>>>>> dvb_core 63034 2 dvb_usb,dvb_ttpci
+>>>>> saa7146_vv 31312 1 dvb_ttpci
+>>>>> saa7146 9911 2 dvb_ttpci,saa7146_vv
+>>>>> ttpci_eeprom 1224 1 dvb_ttpci
+>>>>> i2c_core 12700 8
+>>>>> dvb_usb,dib3000mc,dibx000_common,dvb_ttpci,videodev,ttpci_eeprom,nvidia,i2c_nforce2
+>>>>>
+>>>>>
+>>>>> usbcore 98466 10
+>>>>> dvb_usb_rtl2831u,dvb_usb,lirc_imon,usbhid,usb_storage,ehci_hcd,ohci_hcd
+>>>>>
+>>>> When plugging the usb-stick after boot I am able to use it as intend.
+>>>> But when having it inserted during boot the system hangs up. Calling
+>>>> lsusb from console causes the used console to hang up as well. Would be
+>>>> great if anyone got a solution for this problem.
+>>>>
+>>>> Best regards,
+>>>> Thomas
+>>>> --
+>>>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>>>> in
+>>>> the body of a message to majordomo@vger.kernel.org
+>>>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>
+>>> --
+>>> Jan Hoogenraad
+>>> Hoogenraad Interface Services
+>>> Postbus 2717
+>>> 3500 GS Utrecht
+>>>
+>>
+>>
+>
+>
+
