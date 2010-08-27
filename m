@@ -1,96 +1,80 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:42024 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751742Ab0HZClh convert rfc822-to-8bit (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:57208 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751643Ab0H0O5U convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 22:41:37 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Date: Thu, 26 Aug 2010 04:40:46 +0200
-From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-In-reply-to: <20100825155814.25c783c7.akpm@linux-foundation.org>
-To: Peter Zijlstra <peterz@infradead.org>,
-	Andrew Morton <akpm@linux-foundation.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	linux-kernel@vger.kernel.org,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Message-id: <op.vh0xp8ix7p4s8u@localhost>
-Content-transfer-encoding: 8BIT
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
- <1282310110.2605.976.camel@laptop>
- <20100825155814.25c783c7.akpm@linux-foundation.org>
+	Fri, 27 Aug 2010 10:57:20 -0400
+Received: from dlep36.itg.ti.com ([157.170.170.91])
+	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id o7REvJGu027956
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 27 Aug 2010 09:57:19 -0500
+Received: from dlep26.itg.ti.com (localhost [127.0.0.1])
+	by dlep36.itg.ti.com (8.13.8/8.13.8) with ESMTP id o7REvJFi019027
+	for <linux-media@vger.kernel.org>; Fri, 27 Aug 2010 09:57:19 -0500 (CDT)
+Received: from dlee73.ent.ti.com (localhost [127.0.0.1])
+	by dlep26.itg.ti.com (8.13.8/8.13.8) with ESMTP id o7REvJZP004116
+	for <linux-media@vger.kernel.org>; Fri, 27 Aug 2010 09:57:19 -0500 (CDT)
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: "Warren, Christina" <cawarren@ti.com>,
+	"Boateng, Akwasi" <akwasi.boateng@ti.com>
+Date: Fri, 27 Aug 2010 09:57:17 -0500
+Subject: [Query][videobuf-dma-sg] Pages in Highmem handling
+Message-ID: <A24693684029E5489D1D202277BE8944719829DB@dlee02.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello Andrew,
+Hi,
 
-I think Pawel has replied to most of your comments, so I'll just add my own
-0.02 KRW. ;)
+I see that in current videobuf library, for DMA SG code, these functions fail when
+Detecting a page in Highmem region:
 
-> Peter Zijlstra <peterz@infradead.org> wrote:
->> So the idea is to grab a large chunk of memory at boot time and then
->> later allow some device to use it?
->>
->> I'd much rather we'd improve the regular page allocator to be smarter
->> about this. We recently added a lot of smarts to it like memory
->> compaction, which allows large gobs of contiguous memory to be freed for
->> things like huge pages.
->>
->> If you want guarantees you can free stuff, why not add constraints to
->> the page allocation type and only allow MIGRATE_MOVABLE pages inside a
->> certain region, those pages are easily freed/moved aside to satisfy
->> large contiguous allocations.
+- videobuf_pages_to_sg
+- videobuf_vmalloc_to_sg
 
-On Thu, 26 Aug 2010 00:58:14 +0200, Andrew Morton <akpm@linux-foundation.org> wrote:
-> That would be good.  Although I expect that the allocation would need
-> to be 100% rock-solid reliable, otherwise the end user has a
-> non-functioning device.  Could generic core VM provide the required level
-> of service?
+Now, what's the real reason to not allow handling of Highmem pages?
+Is it an assumption that _always_ HighMem is not reachable by DMA?
 
-I think that the biggest problem is fragmentation here.  For instance,
-I think that a situation where there is enough free space but it's
-fragmented so no single contiguous chunk can be allocated is a serious
-problem.  However, I would argue that if there's simply no space left,
-a multimedia device could fail and even though it's not desirable, it
-would not be such a big issue in my eyes.
+I guess my point is, OMAP platform (and maybe other platforms) can handle
+Highmem pages without any problem. I commented these validations:
 
-So, if only movable or discardable pages are allocated in CMA managed
-regions all should work well.  When a device needs memory discardable
-pages would get freed and movable moved unless there is no space left
-on the device in which case allocation would fail.
+65 static struct scatterlist *videobuf_vmalloc_to_sg(unsigned char *virt,
+66                                                   int nr_pages)
+67 {
 
-Critical devices (just a hypothetical entities) could have separate
-regions on which only discardable pages can be allocated so that memory
-can always be allocated for them.
+...
 
-> I agree that having two "contiguous memory allocators" floating about
-> on the list is distressing.  Are we really all 100% diligently certain
-> that there is no commonality here with Zach's work?
+77         for (i = 0; i < nr_pages; i++, virt += PAGE_SIZE) {
+78                 pg = vmalloc_to_page(virt);
+79                 if (NULL == pg)
+80                         goto err;
+81                 /* BUG_ON(PageHighMem(pg)); */
 
-As Pawel said, I think Zach's trying to solve a different problem.  No
-matter, as I've said in response to Konrad's message, I have thought
-about unifying Zach's IOMMU and CMA in such a way that devices could
-work on both systems with and without IOMMU if only they would limit
-the usage of the API to some subset which always works.
+...
 
-> Please cc me on future emails on this topic?
+96 static struct scatterlist *videobuf_pages_to_sg(struct page **pages,
+97                                                 int nr_pages, int offset)
+98 {
 
-Not a problem.
+...
 
--- 
-Best regards,                                        _     _
-| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
-| Computer Science,  Michał "mina86" Nazarewicz       (o o)
-+----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
+109         /* if (PageHighMem(pages[0])) */
+110                 /* DMA to highmem pages might not work */
+111                 /* goto highmem; */
+112         sg_set_page(&sglist[0], pages[0], PAGE_SIZE - offset, offset);
+113         for (i = 1; i < nr_pages; i++) {
+114                 if (NULL == pages[i])
+115                         goto nopage;
+116                 /* if (PageHighMem(pages[i]))
+117                         goto highmem; */
+118                 sg_set_page(&sglist[i], pages[i], PAGE_SIZE, 0);
+119         }
 
+Can somebody shed any light on this?
+
+Regards,
+Sergio
