@@ -1,66 +1,277 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2405 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455Ab0H1J32 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Aug 2010 05:29:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: matti.j.aaltonen@nokia.com
-Subject: Re: [PATCH v4 2/5] MFD: WL1273 FM Radio: MFD driver for the FM radio.
-Date: Sat, 28 Aug 2010 11:29:02 +0200
-Cc: ext Pavan Savoy <pavan_savoy@yahoo.co.in>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
-References: <676453.10169.qm@web94907.mail.in2.yahoo.com> <1282808385.14489.247.camel@masi.mnp.nokia.com>
-In-Reply-To: <1282808385.14489.247.camel@masi.mnp.nokia.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:44204 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1750983Ab0H0LmM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Aug 2010 07:42:12 -0400
+Date: Fri, 27 Aug 2010 13:42:24 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <m.grzeschik@pengutronix.de>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: Re: [PATCH v2 10/11] mt9m111: rewrite set_pixfmt
+In-Reply-To: <1280833069-26993-11-git-send-email-m.grzeschik@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1008271335200.28043@axis700.grange>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+ <1280833069-26993-11-git-send-email-m.grzeschik@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008281129.04602.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thursday, August 26, 2010 09:39:45 Matti J. Aaltonen wrote:
-> Hi.
+Robert, I'll need your ack / tested by on this one too. It actually 
+changes behaviour, for example, it sets MT9M111_OUTFMT_FLIP_BAYER_ROW in 
+the OUTPUT_FORMAT_CTRL register for the V4L2_MBUS_FMT_SBGGR8_1X8 8 bit 
+Bayer format. Maybe other things too - please have a look.
+
+Thanks
+Guennadi
+
+On Tue, 3 Aug 2010, Michael Grzeschik wrote:
+
+> added more supported BE colour formats
+> and also support BGR565 swapped pixel formats
 > 
-> On Wed, 2010-08-25 at 23:20 +0200, ext Pavan Savoy wrote:
-> > 
-> > > I'm sorry for not answering to you earlier. But I don't
-> > > have my own
-> > > public repository. But to create the whole thing is
-> > > extremely simple:
-> > > just take the current mainline tree and apply my patches on
-> > > top of it...
-> > 
-> > Yep, that I can do, the reason I asked for was, we've pushed a few patches of our own for WL1283 over shared transport/UART (Not HCI-VS, but I2C like commands, packed in a CH8 protocol format).
-> > The FM register set in both chip are a match, with only transport being the difference (i2c vs. UART).
-> > Also we have the Tx version of driver ready too, it just needs a bit of cleanup and more conformance to already existing V4L2 TX Class..
-> > 
-> > So I was wondering, although there is no problem with WL1273 with I2C and WL1283 with UART being there on the kernel (whenever that happens), but it would be way more cooler if the transport was say abstracted out ..
-> > 
-> > what do you say? just an idea...
+> removed pixfmt helper functions and option flags
+> setting the configuration register directly in set_pixfmt
 > 
-> I think it's a good idea. And the WL1273 ship can also used with a UART
-> connection, we just chose I2C when the driver development started etc...
+> Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> ---
+> Changes v1 -> v2
+> 	* removed unrelated OPMODE handling in this function
+> 
+>  drivers/media/video/mt9m111.c |  143 ++++++++++++++++-------------------------
+>  1 files changed, 56 insertions(+), 87 deletions(-)
+> 
+> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> index e865938..25b2317 100644
+> --- a/drivers/media/video/mt9m111.c
+> +++ b/drivers/media/video/mt9m111.c
+> @@ -101,7 +101,8 @@
+>  
+>  #define MT9M111_OPMODE_AUTOEXPO_EN	(1 << 14)
+>  #define MT9M111_OPMODE_AUTOWHITEBAL_EN	(1 << 1)
+> -
+> +#define MT9M111_OUTFMT_FLIP_BAYER_COL  (1 << 9)
+> +#define MT9M111_OUTFMT_FLIP_BAYER_ROW  (1 << 8)
+>  #define MT9M111_OUTFMT_PROCESSED_BAYER	(1 << 14)
+>  #define MT9M111_OUTFMT_BYPASS_IFP	(1 << 10)
+>  #define MT9M111_OUTFMT_INV_PIX_CLOCK	(1 << 9)
+> @@ -119,6 +120,7 @@
+>  #define MT9M111_OUTFMT_SWAP_YCbCr_C_Y	(1 << 1)
+>  #define MT9M111_OUTFMT_SWAP_RGB_EVEN	(1 << 1)
+>  #define MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr	(1 << 0)
+> +#define MT9M111_OUTFMT_SWAP_RGB_R_B	(1 << 0)
+>  
+>  /*
+>   * Camera control register addresses (0x200..0x2ff not implemented)
+> @@ -161,7 +163,11 @@ static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
+>  	{V4L2_MBUS_FMT_YUYV8_2X8_BE, V4L2_COLORSPACE_JPEG},
+>  	{V4L2_MBUS_FMT_YVYU8_2X8_BE, V4L2_COLORSPACE_JPEG},
+>  	{V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
+> +	{V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE, V4L2_COLORSPACE_SRGB},
+>  	{V4L2_MBUS_FMT_RGB565_2X8_LE, V4L2_COLORSPACE_SRGB},
+> +	{V4L2_MBUS_FMT_RGB565_2X8_BE, V4L2_COLORSPACE_SRGB},
+> +	{V4L2_MBUS_FMT_BGR565_2X8_LE, V4L2_COLORSPACE_SRGB},
+> +	{V4L2_MBUS_FMT_BGR565_2X8_BE, V4L2_COLORSPACE_SRGB},
+>  	{V4L2_MBUS_FMT_SBGGR8_1X8, V4L2_COLORSPACE_SRGB},
+>  	{V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
+>  };
+> @@ -184,10 +190,6 @@ struct mt9m111 {
+>  	unsigned int powered:1;
+>  	unsigned int hflip:1;
+>  	unsigned int vflip:1;
+> -	unsigned int swap_rgb_even_odd:1;
+> -	unsigned int swap_rgb_red_blue:1;
+> -	unsigned int swap_yuv_y_chromas:1;
+> -	unsigned int swap_yuv_cb_cr:1;
+>  	unsigned int autowhitebalance:1;
+>  };
+>  
+> @@ -329,68 +331,6 @@ static int mt9m111_setup_rect(struct i2c_client *client,
+>  	return ret;
+>  }
+>  
+> -static int mt9m111_setup_pixfmt(struct i2c_client *client, u16 outfmt)
+> -{
+> -	int ret;
+> -
+> -	ret = reg_write(OUTPUT_FORMAT_CTRL2_A, outfmt);
+> -	if (!ret)
+> -		ret = reg_write(OUTPUT_FORMAT_CTRL2_B, outfmt);
+> -	return ret;
+> -}
+> -
+> -static int mt9m111_setfmt_bayer8(struct i2c_client *client)
+> -{
+> -	return mt9m111_setup_pixfmt(client, MT9M111_OUTFMT_PROCESSED_BAYER |
+> -				    MT9M111_OUTFMT_RGB);
+> -}
+> -
+> -static int mt9m111_setfmt_bayer10(struct i2c_client *client)
+> -{
+> -	return mt9m111_setup_pixfmt(client, MT9M111_OUTFMT_BYPASS_IFP);
+> -}
+> -
+> -static int mt9m111_setfmt_rgb565(struct i2c_client *client)
+> -{
+> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> -	int val = 0;
+> -
+> -	if (mt9m111->swap_rgb_red_blue)
+> -		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+> -	if (mt9m111->swap_rgb_even_odd)
+> -		val |= MT9M111_OUTFMT_SWAP_RGB_EVEN;
+> -	val |= MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+> -
+> -	return mt9m111_setup_pixfmt(client, val);
+> -}
+> -
+> -static int mt9m111_setfmt_rgb555(struct i2c_client *client)
+> -{
+> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> -	int val = 0;
+> -
+> -	if (mt9m111->swap_rgb_red_blue)
+> -		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+> -	if (mt9m111->swap_rgb_even_odd)
+> -		val |= MT9M111_OUTFMT_SWAP_RGB_EVEN;
+> -	val |= MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB555;
+> -
+> -	return mt9m111_setup_pixfmt(client, val);
+> -}
+> -
+> -static int mt9m111_setfmt_yuv(struct i2c_client *client)
+> -{
+> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> -	int val = 0;
+> -
+> -	if (mt9m111->swap_yuv_cb_cr)
+> -		val |= MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+> -	if (mt9m111->swap_yuv_y_chromas)
+> -		val |= MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
+> -
+> -	return mt9m111_setup_pixfmt(client, val);
+> -}
+> -
+>  static int mt9m111_enable(struct i2c_client *client)
+>  {
+>  	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> @@ -518,41 +458,54 @@ static int mt9m111_g_fmt(struct v4l2_subdev *sd,
+>  static int mt9m111_set_pixfmt(struct i2c_client *client,
+>  			      enum v4l2_mbus_pixelcode code)
+>  {
+> -	struct mt9m111 *mt9m111 = to_mt9m111(client);
+> +	u16 data_outfmt1 = 0, data_outfmt2 = 0, mask_outfmt1, mask_outfmt2;
+>  	int ret;
+>  
+>  	switch (code) {
+>  	case V4L2_MBUS_FMT_SBGGR8_1X8:
+> -		ret = mt9m111_setfmt_bayer8(client);
+> +		data_outfmt1 = MT9M111_OUTFMT_FLIP_BAYER_ROW;
+> +		data_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
+> +			MT9M111_OUTFMT_RGB;
+>  		break;
+>  	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
+> -		ret = mt9m111_setfmt_bayer10(client);
+> +		data_outfmt2 = MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB;
+>  		break;
+>  	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE:
+> -		ret = mt9m111_setfmt_rgb555(client);
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_RGB_EVEN |
+> +			MT9M111_OUTFMT_RGB |
+> +			MT9M111_OUTFMT_RGB555;
+> +		break;
+> +	case V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE:
+> +		data_outfmt2 = MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB555;
+>  		break;
+>  	case V4L2_MBUS_FMT_RGB565_2X8_LE:
+> -		ret = mt9m111_setfmt_rgb565(client);
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_RGB_EVEN |
+> +			MT9M111_OUTFMT_RGB |
+> +			MT9M111_OUTFMT_RGB565;
+> +		break;
+> +	case V4L2_MBUS_FMT_RGB565_2X8_BE:
+> +		data_outfmt2 = MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+> +		break;
+> +	case V4L2_MBUS_FMT_BGR565_2X8_LE:
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
+> +			MT9M111_OUTFMT_SWAP_RGB_EVEN |
+> +			MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+> +		break;
+> +	case V4L2_MBUS_FMT_BGR565_2X8_BE:
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr |
+> +			MT9M111_OUTFMT_RGB | MT9M111_OUTFMT_RGB565;
+>  		break;
+>  	case V4L2_MBUS_FMT_YUYV8_2X8_BE:
+> -		mt9m111->swap_yuv_y_chromas = 0;
+> -		mt9m111->swap_yuv_cb_cr = 0;
+> -		ret = mt9m111_setfmt_yuv(client);
+>  		break;
+>  	case V4L2_MBUS_FMT_YVYU8_2X8_BE:
+> -		mt9m111->swap_yuv_y_chromas = 0;
+> -		mt9m111->swap_yuv_cb_cr = 1;
+> -		ret = mt9m111_setfmt_yuv(client);
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+>  		break;
+>  	case V4L2_MBUS_FMT_YUYV8_2X8_LE:
+> -		mt9m111->swap_yuv_y_chromas = 1;
+> -		mt9m111->swap_yuv_cb_cr = 0;
+> -		ret = mt9m111_setfmt_yuv(client);
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_C_Y;
+>  		break;
+>  	case V4L2_MBUS_FMT_YVYU8_2X8_LE:
+> -		mt9m111->swap_yuv_y_chromas = 1;
+> -		mt9m111->swap_yuv_cb_cr = 1;
+> -		ret = mt9m111_setfmt_yuv(client);
+> +		data_outfmt2 = MT9M111_OUTFMT_SWAP_YCbCr_C_Y |
+> +			MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr;
+>  		break;
+>  	default:
+>  		dev_err(&client->dev, "Pixel format not handled : %x\n",
+> @@ -560,6 +513,25 @@ static int mt9m111_set_pixfmt(struct i2c_client *client,
+>  		ret = -EINVAL;
+>  	}
+>  
+> +	mask_outfmt1 = MT9M111_OUTFMT_FLIP_BAYER_COL |
+> +		MT9M111_OUTFMT_FLIP_BAYER_ROW;
+> +
+> +	mask_outfmt2 = MT9M111_OUTFMT_PROCESSED_BAYER |
+> +		MT9M111_OUTFMT_BYPASS_IFP | MT9M111_OUTFMT_RGB |
+> +		MT9M111_OUTFMT_RGB565 | MT9M111_OUTFMT_RGB555 |
+> +		MT9M111_OUTFMT_RGB444x | MT9M111_OUTFMT_RGBx444 |
+> +		MT9M111_OUTFMT_SWAP_YCbCr_C_Y | MT9M111_OUTFMT_SWAP_RGB_EVEN |
+> +		MT9M111_OUTFMT_SWAP_YCbCr_Cb_Cr | MT9M111_OUTFMT_SWAP_RGB_R_B;
+> +
+> +	ret = reg_mask(OUTPUT_FORMAT_CTRL, data_outfmt1, mask_outfmt1);
+> +
+> +	if (!ret)
+> +		ret = reg_mask(OUTPUT_FORMAT_CTRL2_A, data_outfmt2,
+> +			mask_outfmt2);
+> +	if (!ret)
+> +		ret = reg_mask(OUTPUT_FORMAT_CTRL2_B, data_outfmt2,
+> +			mask_outfmt2);
+> +
+>  	return ret;
+>  }
+>  
+> @@ -989,9 +961,6 @@ static int mt9m111_video_probe(struct soc_camera_device *icd,
+>  	mt9m111->autoexposure = 1;
+>  	mt9m111->autowhitebalance = 1;
+>  
+> -	mt9m111->swap_rgb_even_odd = 1;
+> -	mt9m111->swap_rgb_red_blue = 1;
+> -
+>  	data = reg_read(CHIP_VERSION);
+>  
+>  	switch (data) {
+> -- 
+> 1.7.1
+> 
+> 
 
-Making a completely bus-independent driver is actually possible. It would require
-that the driver uses the subdev API (include/media/v4l2-subdev.h). Any register
-read or writes can be done by calling the v4l2_device notify() callback and the
-bridge/host driver can then translate the callback to either i2c or uart read
-or writes.
-
-Both v4l2_device and v4l2_subdev structs are completely abstract structs (i.e.
-they do not rely on any particular bus), so it should be possible to implement
-this.
-
-I had this scenario in the back of my mind when I designed these APIs, but this
-would be the first driver where this would actually apply to.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
