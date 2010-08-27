@@ -1,65 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mgw2.diku.dk ([130.225.96.92]:59068 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752284Ab0H0F5n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 01:57:43 -0400
-From: Julia Lawall <julia@diku.dk>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH 1/3] drivers/media/video/em28xx: Remove potential NULL dereference
-Date: Fri, 27 Aug 2010 07:57:18 +0200
-Message-Id: <1282888640-27042-2-git-send-email-julia@diku.dk>
-In-Reply-To: <1282888640-27042-1-git-send-email-julia@diku.dk>
-References: <1282888640-27042-1-git-send-email-julia@diku.dk>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:65508 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750710Ab0H0CmL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 22:42:11 -0400
+Date: Fri, 27 Aug 2010 04:41:36 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+In-reply-to: <1282810627.1975.237.camel@laptop>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-mm@kvack.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Message-id: <op.vh2sfmqt7p4s8u@localhost>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Content-transfer-encoding: 8BIT
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+ <1282310110.2605.976.camel@laptop> <op.vh0ud3rg7p4s8u@localhost>
+ <1282810627.1975.237.camel@laptop>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-If the NULL test is necessary, the initialization involving a dereference of
-the tested value should be moved after the NULL test.
+On Thu, 26 Aug 2010 10:17:07 +0200, Peter Zijlstra <peterz@infradead.org> wrote:
+> So why not work on the page allocator to improve its contiguous
+> allocation behaviour. If you look at the thing you'll find pageblocks
+> and migration types. If you change it so that you pin the migration type
+> of one or a number of contiguous pageblocks to say MIGRATE_MOVABLE, so
+> that they cannot be used for anything but movable pages you're pretty
+> much there.
 
-The sematic patch that fixes this problem is as follows:
-(http://coccinelle.lip6.fr/)
+And that's exactly where I'm headed.  I've created API that seems to be
+usable and meat mine and others requirements (not that I'm not saying it
+cannot be improved -- I'm always happy to hear comments) and now I'm
+starting to concentrate on the reusing of the grabbed memory.  At first
+I wasn't sure how this can be managed but thanks to many comments
+(including yours, thanks!) I have an idea of how the thing should work
+and what I should do from now.
 
-// <smpl>
-@@
-type T;
-expression E;
-identifier i,fld;
-statement S;
-@@
-
-- T i = E->fld;
-+ T i;
-  ... when != E
-      when != i
-  if (E == NULL) S
-+ i = E->fld;
-// </smpl>
-
-Signed-off-by: Julia Lawall <julia@diku.dk>
-
----
- drivers/media/video/em28xx/em28xx-video.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-index 7b9ec6e..95a4b60 100644
---- a/drivers/media/video/em28xx/em28xx-video.c
-+++ b/drivers/media/video/em28xx/em28xx-video.c
-@@ -277,12 +277,13 @@ static void em28xx_copy_vbi(struct em28xx *dev,
- {
- 	void *startwrite, *startread;
- 	int  offset;
--	int bytesperline = dev->vbi_width;
-+	int bytesperline;
- 
- 	if (dev == NULL) {
- 		em28xx_isocdbg("dev is null\n");
- 		return;
- 	}
-+	bytesperline = dev->vbi_width;
- 
- 	if (dma_q == NULL) {
- 		em28xx_isocdbg("dma_q is null\n");
+-- 
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
 
