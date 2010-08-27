@@ -1,133 +1,112 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:32471 "EHLO mx1.redhat.com"
+Received: from mail.issp.bas.bg ([195.96.236.10]:59760 "EHLO mail.issp.bas.bg"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752302Ab0H1P0D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Aug 2010 11:26:03 -0400
-Message-ID: <4C792BE1.6090001@redhat.com>
-Date: Sat, 28 Aug 2010 17:31:45 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1751392Ab0H0HF0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Aug 2010 03:05:26 -0400
+From: Marin Mitov <mitov@issp.bas.bg>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+Date: Fri, 27 Aug 2010 10:02:20 +0300
+Cc: u.kleine-koenig@pengutronix.de, g.liakhovetski@gmx.de,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org,
+	linux-sh@vger.kernel.org, philippe.retornaz@epfl.ch,
+	gregkh@suse.de, jkrzyszt@tis.icnet.pl
+References: <20100827051907.GA17521@pengutronix.de> <201008270923.30297.mitov@issp.bas.bg> <20100827153204A.fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <20100827153204A.fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
-To: Jonathan Isom <jeisom@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Patryk Biela <patryk.biela@gmail.com>
-Subject: Re: ibmcam (xrilink_cit) and konica webcam driver porting to gspca
- update
-References: <4C3070A4.6040702@redhat.com> <AANLkTinXb=TeSGO_6Mr6jhzaUOUZ3yZL5+oAP2GP0GG5@mail.gmail.com>
-In-Reply-To: <AANLkTinXb=TeSGO_6Mr6jhzaUOUZ3yZL5+oAP2GP0GG5@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201008271002.29297.mitov@issp.bas.bg>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi,
-
-On 08/28/2010 12:54 AM, Jonathan Isom wrote:
-> On Sun, Jul 4, 2010 at 6:29 AM, Hans de Goede<hdegoede@redhat.com>  wrote:
->> Hi all,
->>
->> I've finished porting the usbvideo v4l1 ibmcam and
->> konicawc drivers to gspcav2.
->>
->> The ibmcam driver is replaced by gspca_xirlink_cit, which also
->> adds support for 2 new models (it turned out my testing cams
->> where not supported by the old driver). This one could use
->> more testing.
->
-> I just tried using your driver. I get no video.  using 2.6.35.3.  Had
-> to patch usb_buffer_[alloc&  free]
-> otherwise no changes to your tree.
->
->> /usr/bin/qv4l2 /dev/video2
-> Start Capture: Input/output error
-> VIDIOC_STREAMON: Input/output error
-> Start Capture: Input/output error
-> VIDIOC_STREAMON: Input/output error
->
-
-Thanks for testing!
-
-Ok, so a couple of things:
-1) For the new xirlink cit driver to work you need the latest libv4l
-from v4l-utils (use the just released 0.8.1 for example), but that
-does not explain the io errors.
-
-2) Make sure you the old usbvideo ibmcam driver is no used (remove the
-.ko file from /lib/modules/...
-
-3) Do
-echo 63 > /sys/module/gspca_main/parameters/debug
-(as root, note sudo does not work with redirects)
-
-And then try some application again and after trying do
-dmesg > dmesg.txt and attach dmesg.txt to your next reply.
-
-4) What did you need to change exactly, can you share the changes
-in question with me in the form of a patch ? (I'm waiting for
-Douglas to sync the main hg v4l-dvb tree with the latest upstream /
-mauro's tree and then I'll rebase my ibmcam tree.
-
-5) Do
-lsusb -v > lsusb.log and attach that to your next mail too.
-
-Thanks & Regards,
-
-Hans
-
-
-> -- info
-> Model 2	
-> KSX-X9903	
-> 0x0545
-> 0x8080
-> 3.0a
-> Old, cheaper model	Xirlink C-It
->
-> /usr/sbin/v4l2-dbg -d /dev/video2 -D
-> Driver info:
->          Driver name   : xirlink-cit
->          Card type     : USB IMAGING DEVICE
->          Bus info      : usb-0000:00:12.2-6.1
->          Driver version: 133376
->          Capabilities  : 0x05000001
->                  Video Capture
->                  Read/Write
->                  Streaming
->
-> Any Ideas
->
-> Jonathan
->
->
->
->
->
->> The konicawc driver is replaced by gspca_konica which is
->> pretty much finished.
->>
->> You can get them both here:
->> http://linuxtv.org/hg/~hgoede/ibmcam
->>
->> Once Douglas updates the hg v4l-dvb tree to be up2date with
->> the latest and greatest from Mauro, then I'll rebase my
->> tree (the ibmcam driver needs a very recent gspca core patch),
->> and send a pull request.
->>
->> Regards,
->>
->> Hans
->>
->>
->> p.s.
->>
->> 1) Many thanks to Patryk Biela for providing me a konica
->>    driver using camera.
->> 2) Still to do the se401 driver.
->> 3) I'll be on vacation the coming week and not reading email.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
->
->
+On Friday, August 27, 2010 09:32:14 am FUJITA Tomonori wrote:
+> On Fri, 27 Aug 2010 09:23:21 +0300
+> Marin Mitov <mitov@issp.bas.bg> wrote:
+> 
+> > On Friday, August 27, 2010 08:57:59 am FUJITA Tomonori wrote:
+> > > On Fri, 27 Aug 2010 07:19:07 +0200
+> > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
+> > > 
+> > > > Hey,
+> > > > 
+> > > > On Fri, Aug 27, 2010 at 02:00:17PM +0900, FUJITA Tomonori wrote:
+> > > > > On Fri, 27 Aug 2010 06:41:42 +0200
+> > > > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
+> > > > > > On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
+> > > > > > > On Thu, 26 Aug 2010 11:53:11 +0200
+> > > > > > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
+> > > > > > > 
+> > > > > > > > > > We have currently a number of boards broken in the mainline. They must be 
+> > > > > > > > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
+> > > > > > > > > > as I suggested earlier, we need either this or my patch series
+> > > > > > > > > > 
+> > > > > > > > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+> > > > > > > > > > 
+> > > > > > > > > > for 2.6.36.
+> > > > > > > > > 
+> > > > > > > > > Why can't you revert a commit that causes the regression?
+> > > > > > > > > 
+> > > > > > > > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
+> > > > > > > > > responsible for the regression. And the patchset even exnteds the
+> > > > > > > > > definition of the DMA API (dma_declare_coherent_memory). Such change
+> > > > > > > > > shouldn't applied after rc1. I think that DMA-API.txt says that
+> > > > > > > > > dma_declare_coherent_memory() handles coherent memory for a particular
+> > > > > > > > > device. It's not for the API that reserves coherent memory that can be
+> > > > > > > > > used for any device for a single device.
+> > > > > > > > The patch that made the problem obvious for ARM is
+> > > > > > > > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
+> > > > > > > > So this went in before v2.6.36-rc1.  One of the "architectures which
+> > > > > > > > similar restrictions" is x86 BTW.
+> > > > > > > > 
+> > > > > > > > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
+> > > > > > > > addresses a hardware restriction.
+> > > > > > > 
+> > > > > > > How these drivers were able to work without hitting the hardware restriction?
+> > > > > > In my case the machine in question is an ARMv5, the hardware restriction
+> > > > > > is on ARMv6+ only.  You could argue that so the breaking patch for arm
+> > > > > > should only break ARMv6, but I don't think this is sensible from a
+> > > > > > maintainers POV.  We need an API that works independant of the machine
+> > > > > > that runs the code.
+> > > > > 
+> > > > > Agreed. But insisting that the DMA API needs to be extended wrongly
+> > > > > after rc2 to fix the regression is not sensible too. The related DMA
+> > > > > API wasn't changed in 2.6.36-rc1. The API isn't responsible for the
+> > > > > regression at all.
+> > > > I think this isn't about "responsiblity".  Someone in arm-land found
+> > > > that the way dma memory allocation worked for some time doesn't work
+> > > > anymore on new generation chips.  As pointing out this problem was
+> > > > expected to find some matches it was merged in the merge window.  One
+> > > > such match is the current usage of the DMA API that doesn't currently
+> > > > offer a way to do it right, so it needs a patch, no?
+> > > 
+> > > No, I don't think so. We are talking about a regression, right?
+> > > 
+> > > On new generation chips, something often doesn't work (which have
+> > > worked on old chips for some time). It's not a regresiion. I don't
+> > > think that it's sensible to make large change (especially after rc1)
+> > > to fix such issue. If you say that the DMA API doesn't work on new
+> > > chips and proposes a patch for the next merge window, it's sensible, I
+> > > suppose.
+> > > 
+> > > Btw, the patch isn't a fix for the DMA API. It tries to extend the DMA
+> > > API (and IMO in the wrong way). 
+> > > In addition, the patch might break the
+> > > current code. 
+> > 
+> > To "break the current code" is simply not possible. Sorry to oppose. As you have written it 
+> > "extend the DMA API", so if you do not use the new API (and no current code is using it)
+> > you cannot "break the current code". 
+> 
+> Looks like that the patch adds the new API that touches the exisitng
+> code. It means the existing code could break. So the exsising API
+> could break too.
+> 
+> http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
