@@ -1,56 +1,20 @@
 Return-path: <mchehab@pedra>
-Received: from bombadil.infradead.org ([18.85.46.34]:50171 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751401Ab0HZKGe convert rfc822-to-8bit (ORCPT
+Received: from ironport8-2T.isc.cl ([200.91.27.128]:42247 "EHLO
+	ironport8-2T.isc.cl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751726Ab0H0Ww6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 06:06:34 -0400
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-From: Peter Zijlstra <peterz@infradead.org>
-To: Minchan Kim <minchan.kim@gmail.com>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
-In-Reply-To: <AANLkTin7EBZw0-WY=NGOmYzZT5Cfy7oWVFBaT2cjK+vZ@mail.gmail.com>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	 <1282310110.2605.976.camel@laptop>
-	 <20100825155814.25c783c7.akpm@linux-foundation.org>
-	 <20100825173125.0855a6b0@bike.lwn.net>
-	 <AANLkTinPaq+0MbdW81uoc5_OZ=1Gy_mVYEBnwv8zgOBd@mail.gmail.com>
-	 <1282810811.1975.246.camel@laptop>
-	 <AANLkTin7EBZw0-WY=NGOmYzZT5Cfy7oWVFBaT2cjK+vZ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Date: Thu, 26 Aug 2010 12:06:00 +0200
-Message-ID: <1282817160.1975.476.camel@laptop>
-Mime-Version: 1.0
+	Fri, 27 Aug 2010 18:52:58 -0400
+Date: Fri, 27 Aug 2010 15:46:34 -0700
+Message-ID: <4C6C53C2000033CC@ms3.isc.cl>
+From: "omar hasan" <aeirodrigo@tie.cl>
+Reply-To: mr.omarhasan00@w.cn
+MIME-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 2010-08-26 at 18:29 +0900, Minchan Kim wrote:
-> As I said following mail, I said about free space problem.
-> Of course, compaction could move anon pages into somewhere.
-> What's is somewhere? At last, it's same zone.
-> It can prevent fragment problem but not size of free space.
-> So I mean it would be better to move it into another zone(ex, HIGHMEM)
-> rather than OOM kill. 
+My name is Omar Hasan a merchant from Dubai , i have an urgent proposal to
+share with you please get back to me for more details.
 
-Real machines don't have highmem, highmem sucks!! /me runs
-
-Does cross zone movement really matter, I though these crappy devices
-were mostly used on crappy hardware with very limited memory, so pretty
-much everything would be in zone_normal.. no?
-
-But sure, if there's really a need we can look at maybe doing cross zone
-movement.
