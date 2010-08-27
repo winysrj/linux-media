@@ -1,40 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from mailout1.samsung.com ([203.254.224.24]:10272 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752518Ab0HYIse (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 04:48:34 -0400
-Received: from epmmp1 (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Sun Java(tm) System Messaging Server 7u3-15.01 64bit (built Feb 12 2010))
- with ESMTP id <0L7P00C3E9SESLD0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 Aug 2010 17:48:14 +0900 (KST)
-Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
- by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0L7P007X99SEIA@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 Aug 2010 17:48:14 +0900 (KST)
-Date: Wed, 25 Aug 2010 17:48:14 +0900
-From: Joonyoung Shim <jy0922.shim@samsung.com>
-Subject: [PATCH 0/3] Fix bug of radio-si470x
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, tobias.lorenz@gmx.net,
-	kyungmin.park@samsung.com
-Message-id: <4C74D8CE.5060207@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
+Received: from sh.osrg.net ([192.16.179.4]:46975 "EHLO sh.osrg.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753645Ab0H0A14 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 20:27:56 -0400
+Date: Fri, 27 Aug 2010 09:26:20 +0900
+To: linux@arm.linux.org.uk
+Cc: fujita.tomonori@lab.ntt.co.jp, u.kleine-koenig@pengutronix.de,
+	mitov@issp.bas.bg, linux-sh@vger.kernel.org, gregkh@suse.de,
+	linux-kernel@vger.kernel.org, jkrzyszt@tis.icnet.pl,
+	philippe.retornaz@epfl.ch, akpm@linux-foundation.org,
+	g.liakhovetski@gmx.de, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+Subject: Re: [RFC][PATCH] add
+	dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <20100826175440.GB13224@n2100.arm.linux.org.uk>
+References: <20100826095311.GA13051@pengutronix.de>
+	<20100826185938A.fujita.tomonori@lab.ntt.co.jp>
+	<20100826175440.GB13224@n2100.arm.linux.org.uk>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-2022-jp-2
+Content-Transfer-Encoding: 7bit
+Message-Id: <20100827092457G.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This patch set is to fix bug of si470x common part and i2c driver.
+On Thu, 26 Aug 2010 18:54:40 +0100
+Russell King - ARM Linux <linux@arm.linux.org.uk> wrote:
 
-Thanks.
+> On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
+> > On Thu, 26 Aug 2010 11:53:11 +0200
+> > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
+> > 
+> > > > > We have currently a number of boards broken in the mainline. They must be 
+> > > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
+> > > > > as I suggested earlier, we need either this or my patch series
+> > > > > 
+> > > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+> > > > > 
+> > > > > for 2.6.36.
+> > > > 
+> > > > Why can't you revert a commit that causes the regression?
+> > > > 
+> > > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
+> > > > responsible for the regression. And the patchset even exnteds the
+> > > > definition of the DMA API (dma_declare_coherent_memory). Such change
+> > > > shouldn't applied after rc1. I think that DMA-API.txt says that
+> > > > dma_declare_coherent_memory() handles coherent memory for a particular
+> > > > device. It's not for the API that reserves coherent memory that can be
+> > > > used for any device for a single device.
+> > > The patch that made the problem obvious for ARM is
+> > > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
+> > > So this went in before v2.6.36-rc1.  One of the "architectures which
+> > > similar restrictions" is x86 BTW.
+> > > 
+> > > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
+> > > addresses a hardware restriction.
+> > 
+> > How these drivers were able to work without hitting the hardware restriction?
+> 
+> Well, OMAP processors have experienced lock-ups due to multiple mappings of
+> memory, so the restriction in the architecture manual is for real.
+> 
+> But more the issue is that the behaviour you get from a region is _totally_
+> unpredictable (as the arch manual says).  With the VIPT caches, they can
+> be searched irrespective of whether the page tabkes indicate that it's
+> supposed to be cached or not - which means you can still hit cache lines
+> for an ioremap'd region.
+> 
+> And if you do, how do you know that the cached data is still valid - what
+> if it's some critical data that results in corruption - how do you know
+> whether that's happened or not?  It might not even cause a kernel
+> exception.
+> 
+> We have to adhere to the restrictions placed upon us by the architecture
+> at hand, and if that means device drivers break, so be it - at least we
+> get to know what needs to be fixed for these restrictions.
 
-Joonyoung Shim (3):
-       radio-si470x: Fix setting of de-emphasis
-       radio-si470x: Remove ifdef for RDS
-       radio-si470x: Fix error handling of si470x i2c driver
+I didn't say the commit is technically wrong. I simply meant that the
+commit broke some of working systems (so some complain, I guess).
 
-  drivers/media/radio/si470x/radio-si470x-common.c |    8 +-------
-  drivers/media/radio/si470x/radio-si470x-i2c.c    |    2 +-
-  2 files changed, 2 insertions(+), 8 deletions(-)
+As I wrote, the related DMA API wasn't changed in 2.6.36-rc1. It's not
+related with the regression at all. As long as nobody tries to extend
+the API wrongly after rc2, I have no complaint.
+
+btw, Marin Mitov said that these drivers don't need coherent memory,
+they just want contiguous memory. Telling the page allocater to
+reserve some memory at boot time is enough, I guess.
