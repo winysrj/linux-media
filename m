@@ -1,161 +1,92 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:14489 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934289Ab0HFNUt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Aug 2010 09:20:49 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 06 Aug 2010 15:22:06 +0200
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCH/RFCv3 0/6] The Contiguous Memory Allocator framework
-To: linux-mm@kvack.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Hiremath Vaibhav <hvaibhav@ti.com>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>, jaeryul.oh@samsung.com,
-	kgene.kim@samsung.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>
-Message-id: <cover.1281100495.git.m.nazarewicz@samsung.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:53599 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751564Ab0H0RJZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Aug 2010 13:09:25 -0400
+Date: Fri, 27 Aug 2010 19:09:24 +0200
+From: Michael Grzeschik <mgr@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: Re: [PATCH 04/11] mt9m111: added new bit offset defines
+Message-ID: <20100827170924.GB15967@pengutronix.de>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de> <1280833069-26993-5-git-send-email-m.grzeschik@pengutronix.de> <Pine.LNX.4.64.1008271710400.28043@axis700.grange> <20100827153512.GA15967@pengutronix.de> <Pine.LNX.4.64.1008271824180.28043@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1008271824180.28043@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello everyone,
+On Fri, Aug 27, 2010 at 06:30:28PM +0200, Guennadi Liakhovetski wrote:
+> On Fri, 27 Aug 2010, Michael Grzeschik wrote:
+> 
+> > On Fri, Aug 27, 2010 at 05:11:18PM +0200, Guennadi Liakhovetski wrote:
+> > > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
+> > > 
+> > > > Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+> > > > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+> > > 
+> > > I don't see these being used in any of your patches...
+> > Yes, these are not used. They are a left over from the previous patchstack.
+> > But they are checked against the datasheet and are correct.
+> > Is it a problem to take them anyway?
+> 
+> It is not a problem, it is unneeded. You do not want to add all registers 
+> and all their fields to every driver, do you? There are some drivers in 
+> the kernel, that define more registers, than are used. Of course, say, if 
+> you use bits 0, 1, 2, and 4 of a register, you might as well define bit 3 
+> - especially, if they are logically related. But this patch adds a whole 
+> family of parameters, none of which is used, so, I personally would avoid 
+> that.
 
-The following patchset implements a Contiguous Memory Allocator.  For
-those who have not yet stumbled across CMA an excerpt from
-documentation:
+Ok, no big deal. Personally i don't have a problem with additional
+inexpensive registers and fields. As they often can be a good hint to
+some functionality of a chip before you begin to scroll through the,
+sometimes not so easy to find, datasheets. But that is probably a pure
+matter of taste.
 
-   The Contiguous Memory Allocator (CMA) is a framework, which allows
-   setting up a machine-specific configuration for physically-contiguous
-   memory management. Memory for devices is then allocated according
-   to that configuration.
+Regards,
+Michael
 
-   The main role of the framework is not to allocate memory, but to
-   parse and manage memory configurations, as well as to act as an
-   in-between between device drivers and pluggable allocators. It is
-   thus not tied to any memory allocation method or strategy.
+> > 
+> > > > ---
+> > > >  drivers/media/video/mt9m111.c |    6 ++++++
+> > > >  1 files changed, 6 insertions(+), 0 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> > > > index 8c076e5..1b21522 100644
+> > > > --- a/drivers/media/video/mt9m111.c
+> > > > +++ b/drivers/media/video/mt9m111.c
+> > > > @@ -63,6 +63,12 @@
+> > > >  #define MT9M111_RESET_RESTART_FRAME	(1 << 1)
+> > > >  #define MT9M111_RESET_RESET_MODE	(1 << 0)
+> > > >  
+> > > > +#define MT9M111_RM_FULL_POWER_RD	(0 << 10)
+> > > > +#define MT9M111_RM_LOW_POWER_RD		(1 << 10)
+> > > > +#define MT9M111_RM_COL_SKIP_4X		(1 << 5)
+> > > > +#define MT9M111_RM_ROW_SKIP_4X		(1 << 4)
+> > > > +#define MT9M111_RM_COL_SKIP_2X		(1 << 3)
+> > > > +#define MT9M111_RM_ROW_SKIP_2X		(1 << 2)
+> > > >  #define MT9M111_RMB_MIRROR_COLS		(1 << 1)
+> > > >  #define MT9M111_RMB_MIRROR_ROWS		(1 << 0)
+> > > >  #define MT9M111_CTXT_CTRL_RESTART	(1 << 15)
+> > > > -- 
+> > > > 1.7.1
+> > > > 
+> > > > 
+> > 
+> > -- 
+> > Pengutronix e.K.                           |                             |
+> > Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+> > Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+> > Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> > 
 
-For more information please refer to the second patch from the
-patchset which contains the documentation.
-
-
-Links to the previous versions of the patchsets:
-v2: <http://article.gmane.org/gmane.linux.kernel.mm/50986/>
-v1: <http://article.gmane.org/gmane.linux.kernel.mm/50669/>
-
-
-This is the third version of the patchset.  All of the changes are
-concentrated in the second, the third and the fourth patch -- the
-other patches are almost identical.
-
-
-Major observable changes between the second (the previous) and the
-third (this) versions are:
-
-1. The command line parameters have been removed (and moved to
-   a separate patch, the fourth one).  As a consequence, the
-   cma_set_defaults() function has been changed -- it no longer
-   accepts a string with list of regions but an array of regions.
-
-2. The "asterisk" attribute has been removed.  Now, each region has an
-   "asterisk" flag which lets one specify whether this region should
-   by considered "asterisk" region.
-
-3. SysFS support has been moved to a separate patch (the third one in
-   the series) and now also includes list of regions.
-
-
-Major observable changes between the first and the second versions
-are:
-
-1. The "cma_map" command line have been removed.  In exchange, a SysFS
-   entry has been created under kernel/mm/contiguous.
-   
-   The intended way of specifying the attributes is
-   a cma_set_defaults() function called by platform initialisation
-   code.  "regions" attribute (the string specified by "cma" command
-   line parameter) can be overwritten with command line parameter; the
-   other attributes can be changed during run-time using the SysFS
-   entries.
-
-2. The behaviour of the "map" attribute has been modified slightly.
-   Currently, if no rule matches given device it is assigned regions
-   specified by the "asterisk" attribute.  It is by default built from
-   the region names given in "regions" attribute.
-
-3. Devices can register private regions as well as regions that can be
-   shared but are not reserved using standard CMA mechanisms.
-   A private region has no name and can be accessed only by devices
-   that have the pointer to it.
-
-4. The way allocators are registered has changed.  Currently,
-   a cma_allocator_register() function is used for that purpose.
-   Moreover, allocators are attached to regions the first time memory
-   is registered from the region or when allocator is registered which
-   means that allocators can be dynamic modules that are loaded after
-   the kernel booted (of course, it won't be possible to allocate
-   a chunk of memory from a region if allocator is not loaded).
-
-5. Index of new functions:
-
-+static inline dma_addr_t __must_check
-+cma_alloc_from(const char *regions, size_t size, dma_addr_t alignment)
-
-+static inline int
-+cma_info_about(struct cma_info *info, const const char *regions)
-
-+int __must_check cma_region_register(struct cma_region *reg);
-
-+dma_addr_t __must_check
-+cma_alloc_from_region(struct cma_region *reg,
-+		      size_t size, dma_addr_t alignment);
-
-+static inline dma_addr_t __must_check
-+cma_alloc_from(const char *regions,
-+               size_t size, dma_addr_t alignment);
-
-+int cma_allocator_register(struct cma_allocator *alloc);
-
-
-Michal Nazarewicz (6):
-  lib: rbtree: rb_root_init() function added
-  mm: cma: Contiguous Memory Allocator added
-  mm: cma: Added SysFS support
-  mm: cma: Added command line parameters support
-  mm: cma: Test device and application added
-  arm: Added CMA to Aquila and Goni
-
- Documentation/00-INDEX                             |    2 +
- .../ABI/testing/sysfs-kernel-mm-contiguous         |   58 +
- Documentation/contiguous-memory.txt                |  651 +++++++++
- Documentation/kernel-parameters.txt                |    4 +
- arch/arm/mach-s5pv210/mach-aquila.c                |   31 +
- arch/arm/mach-s5pv210/mach-goni.c                  |   31 +
- drivers/misc/Kconfig                               |    8 +
- drivers/misc/Makefile                              |    1 +
- drivers/misc/cma-dev.c                             |  184 +++
- include/linux/cma.h                                |  475 +++++++
- include/linux/rbtree.h                             |   11 +
- mm/Kconfig                                         |   54 +
- mm/Makefile                                        |    2 +
- mm/cma-best-fit.c                                  |  407 ++++++
- mm/cma.c                                           | 1446 ++++++++++++++++++++
- tools/cma/cma-test.c                               |  373 +++++
- 16 files changed, 3738 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-kernel-mm-contiguous
- create mode 100644 Documentation/contiguous-memory.txt
- create mode 100644 drivers/misc/cma-dev.c
- create mode 100644 include/linux/cma.h
- create mode 100644 mm/cma-best-fit.c
- create mode 100644 mm/cma.c
- create mode 100644 tools/cma/cma-test.c
-
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
