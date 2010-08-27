@@ -1,125 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from web94908.mail.in2.yahoo.com ([203.104.17.164]:28434 "HELO
-	web94908.mail.in2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755834Ab0H3QAh convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Aug 2010 12:00:37 -0400
-Message-ID: <155949.32925.qm@web94908.mail.in2.yahoo.com>
-Date: Mon, 30 Aug 2010 21:30:30 +0530 (IST)
-From: Pavan Savoy <pavan_savoy@yahoo.co.in>
-Subject: Re: [PATCH v4 2/5] MFD: WL1273 FM Radio: MFD driver for the FM radio.
-To: ext Hans Verkuil <hverkuil@xs4all.nl>, matti.j.aaltonen@nokia.com
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo \(Nokia-MS/Helsinki\)" <eduardo.valentin@nokia.com>,
-	petri.karhula@nokia.com
-In-Reply-To: <1283168697.14489.290.camel@masi.mnp.nokia.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from sh.osrg.net ([192.16.179.4]:45680 "EHLO sh.osrg.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753607Ab0H0FBg (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Aug 2010 01:01:36 -0400
+Date: Fri, 27 Aug 2010 14:00:17 +0900
+To: u.kleine-koenig@pengutronix.de
+Cc: fujita.tomonori@lab.ntt.co.jp, g.liakhovetski@gmx.de,
+	mitov@issp.bas.bg, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, akpm@linux-foundation.org,
+	linux-arm-kernel@lists.infradead.org, linux-sh@vger.kernel.org,
+	philippe.retornaz@epfl.ch, gregkh@suse.de, jkrzyszt@tis.icnet.pl
+Subject: Re: [RFC][PATCH] add
+	dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <20100827044142.GB31863@pengutronix.de>
+References: <20100826095311.GA13051@pengutronix.de>
+	<20100826185938A.fujita.tomonori@lab.ntt.co.jp>
+	<20100827044142.GB31863@pengutronix.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=iso-2022-jp-2
+Content-Transfer-Encoding: 7bit
+Message-Id: <20100827140005Y.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Matti/Hans,
+On Fri, 27 Aug 2010 06:41:42 +0200
+Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
 
---- On Mon, 30/8/10, Matti J. Aaltonen <matti.j.aaltonen@nokia.com> wrote:
-
-> From: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
-> Subject: Re: [PATCH v4 2/5] MFD: WL1273 FM Radio: MFD driver for the FM radio.
-> To: "ext Hans Verkuil" <hverkuil@xs4all.nl>
-> Cc: "ext Pavan Savoy" <pavan_savoy@yahoo.co.in>, "Mauro Carvalho Chehab" <mchehab@redhat.com>, "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>, "Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>, petri.karhula@nokia.com
-> Date: Monday, 30 August, 2010, 5:14 PM
-> Hello.
+> Hello,
 > 
-> On Sat, 2010-08-28 at 11:29 +0200, ext Hans Verkuil wrote:
-> > On Thursday, August 26, 2010 09:39:45 Matti J.
-> Aaltonen wrote:
-> > > Hi.
+> On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
+> > On Thu, 26 Aug 2010 11:53:11 +0200
+> > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
+> > 
+> > > > > We have currently a number of boards broken in the mainline. They must be 
+> > > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
+> > > > > as I suggested earlier, we need either this or my patch series
+> > > > > 
+> > > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+> > > > > 
+> > > > > for 2.6.36.
+> > > > 
+> > > > Why can't you revert a commit that causes the regression?
+> > > > 
+> > > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
+> > > > responsible for the regression. And the patchset even exnteds the
+> > > > definition of the DMA API (dma_declare_coherent_memory). Such change
+> > > > shouldn't applied after rc1. I think that DMA-API.txt says that
+> > > > dma_declare_coherent_memory() handles coherent memory for a particular
+> > > > device. It's not for the API that reserves coherent memory that can be
+> > > > used for any device for a single device.
+> > > The patch that made the problem obvious for ARM is
+> > > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
+> > > So this went in before v2.6.36-rc1.  One of the "architectures which
+> > > similar restrictions" is x86 BTW.
 > > > 
-> > > On Wed, 2010-08-25 at 23:20 +0200, ext Pavan
-> Savoy wrote:
-> > > > 
-> > > > > I'm sorry for not answering to you
-> earlier. But I don't
-> > > > > have my own
-> > > > > public repository. But to create the
-> whole thing is
-> > > > > extremely simple:
-> > > > > just take the current mainline tree and
-> apply my patches on
-> > > > > top of it...
-> > > > 
-> > > > Yep, that I can do, the reason I asked for
-> was, we've pushed a few patches of our own for WL1283 over
-> shared transport/UART (Not HCI-VS, but I2C like commands,
-> packed in a CH8 protocol format).
-> > > > The FM register set in both chip are a
-> match, with only transport being the difference (i2c vs.
-> UART).
-> > > > Also we have the Tx version of driver ready
-> too, it just needs a bit of cleanup and more conformance to
-> already existing V4L2 TX Class..
-> > > > 
-> > > > So I was wondering, although there is no
-> problem with WL1273 with I2C and WL1283 with UART being
-> there on the kernel (whenever that happens), but it would be
-> way more cooler if the transport was say abstracted out ..
-> > > > 
-> > > > what do you say? just an idea...
-> > > 
-> > > I think it's a good idea. And the WL1273 ship can
-> also used with a UART
-> > > connection, we just chose I2C when the driver
-> development started etc...
+> > > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
+> > > addresses a hardware restriction.
 > > 
-> > Making a completely bus-independent driver is actually
-> possible. It would require
-> > that the driver uses the subdev API
-> (include/media/v4l2-subdev.h). Any register
-> > read or writes can be done by calling the v4l2_device
-> notify() callback and the
-> > bridge/host driver can then translate the callback to
-> either i2c or uart read
-> > or writes.
-> > 
-> > Both v4l2_device and v4l2_subdev structs are
-> completely abstract structs (i.e.
-> > they do not rely on any particular bus), so it should
-> be possible to implement
-> > this.
-> > 
-> > I had this scenario in the back of my mind when I
-> designed these APIs, but this
-> > would be the first driver where this would actually
-> apply to.
-> > 
-> 
-> That sounds interesting. I think that after the driver gets
-> accepted in
-> its current form we can start to work according to the
-> above scenario...
+> > How these drivers were able to work without hitting the hardware restriction?
+> In my case the machine in question is an ARMv5, the hardware restriction
+> is on ARMv6+ only.  You could argue that so the breaking patch for arm
+> should only break ARMv6, but I don't think this is sensible from a
+> maintainers POV.  We need an API that works independant of the machine
+> that runs the code.
 
-Please have a look at the patches at
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg21477.html
-
-which are for Wl128x/UART transport.
-
-also here's a tree where the other set of patches would come from,
-http://git.omapzoom.org/?p=kernel/omap.git;a=tree;f=drivers/misc/ti-st;h=028ff4a739d7b59b94d0c613b5ef510ff338b65d;hb=refs/heads/p-android-omap-2.6.32
-
-We are trying to make the drivers listed above conform to other V4L2 drivers and then post patches.
-
-Please comment ...
-Thanks in advance...
-
-> Cheers,
-> Matti
-> 
-> 
-> 
-> 
-> 
-> 
-> 
-
-
+Agreed. But insisting that the DMA API needs to be extended wrongly
+after rc2 to fix the regression is not sensible too. The related DMA
+API wasn't changed in 2.6.36-rc1. The API isn't responsible for the
+regression at all.
