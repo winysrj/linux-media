@@ -1,61 +1,65 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:57926 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1755767Ab0HXWXX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Aug 2010 18:23:23 -0400
-Date: Wed, 25 Aug 2010 00:23:20 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Henrique Camargo <henrique@henriquecamargo.com>
-cc: "Aguirre, Sergio" <saaguirre@ti.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Karicheri, Muralidharan" <m-karicheri2@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] mt9t031: Fixes field names that changed
-In-Reply-To: <1282243015.2213.13.camel@lemming>
-Message-ID: <Pine.LNX.4.64.1008250020540.19669@axis700.grange>
-References: <1282243015.2213.13.camel@lemming>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mgw2.diku.dk ([130.225.96.92]:59068 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752284Ab0H0F5n (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Aug 2010 01:57:43 -0400
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 1/3] drivers/media/video/em28xx: Remove potential NULL dereference
+Date: Fri, 27 Aug 2010 07:57:18 +0200
+Message-Id: <1282888640-27042-2-git-send-email-julia@diku.dk>
+In-Reply-To: <1282888640-27042-1-git-send-email-julia@diku.dk>
+References: <1282888640-27042-1-git-send-email-julia@diku.dk>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 19 Aug 2010, Henrique Camargo wrote:
+If the NULL test is necessary, the initialization involving a dereference of
+the tested value should be moved after the NULL test.
 
-> If CONFIG_VIDEO_ADV_DEBUG was set, the driver failed to compile 
-> because the fields get_register and set_register changed names to 
-> g_register and s_register in the struct v4l2_subdev_core_ops.
-> 
-> Signed-off-by: Henrique Camargo <henrique@henriquecamargo.com>
-> ---
->  drivers/media/video/mt9t031.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9t031.c b/drivers/media/video/mt9t031.c
-> index 716fea6..f3d1995 100644
-> --- a/drivers/media/video/mt9t031.c
-> +++ b/drivers/media/video/mt9t031.c
-> @@ -499,8 +499,8 @@ static const struct v4l2_subdev_core_ops mt9t031_core_ops = {
->  	.g_ctrl	= mt9t031_get_control,
->  	.s_ctrl	= mt9t031_set_control,
->  #ifdef CONFIG_VIDEO_ADV_DEBUG
-> -	.get_register = mt9t031_get_register,
-> -	.set_register = mt9t031_set_register,
-> +	.g_register = mt9t031_get_register,
-> +	.s_register = mt9t031_set_register,
->  #endif
->  };
->  
-> -- 
-> 1.7.0.4
+The sematic patch that fixes this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-I might be missing something obvious, but I do not understand against 
-which tree / version is this patch? I don't see this problem in the 
-mainline.
+// <smpl>
+@@
+type T;
+expression E;
+identifier i,fld;
+statement S;
+@@
 
-Thanks
-Guennadi
+- T i = E->fld;
++ T i;
+  ... when != E
+      when != i
+  if (E == NULL) S
++ i = E->fld;
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/em28xx/em28xx-video.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+index 7b9ec6e..95a4b60 100644
+--- a/drivers/media/video/em28xx/em28xx-video.c
++++ b/drivers/media/video/em28xx/em28xx-video.c
+@@ -277,12 +277,13 @@ static void em28xx_copy_vbi(struct em28xx *dev,
+ {
+ 	void *startwrite, *startread;
+ 	int  offset;
+-	int bytesperline = dev->vbi_width;
++	int bytesperline;
+ 
+ 	if (dev == NULL) {
+ 		em28xx_isocdbg("dev is null\n");
+ 		return;
+ 	}
++	bytesperline = dev->vbi_width;
+ 
+ 	if (dma_q == NULL) {
+ 		em28xx_isocdbg("dma_q is null\n");
+
