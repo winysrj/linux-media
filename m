@@ -1,179 +1,86 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.irobotique.be ([92.243.18.41]:55690 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750954Ab0HBOgC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Aug 2010 10:36:02 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v3 06/10] media: Entities, pads and links enumeration
-Date: Mon, 2 Aug 2010 16:35:54 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1280419616-7658-1-git-send-email-laurent.pinchart@ideasonboard.com> <1280419616-7658-7-git-send-email-laurent.pinchart@ideasonboard.com> <201008011358.20459.hverkuil@xs4all.nl>
-In-Reply-To: <201008011358.20459.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-6"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008021635.57216.laurent.pinchart@ideasonboard.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:56210 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751792Ab0H0PpB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Aug 2010 11:45:01 -0400
+Date: Fri, 27 Aug 2010 11:44:07 -0400
+Subject: Re: [PATCH 0/3] Proposed ir-core (rc-core) changes
+Message-ID: <auca8ov58plwryjrdf7pr5ip.1282923846255@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jarod@redhat.com>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Hans,
+CgpEYXZpZCBIw6RyZGVtYW4gPGRhdmlkQGhhcmRlbWFuLm51PiB3cm90ZToKCj5PbiBUaHUsIEF1
+Z3VzdCAyNiwgMjAxMCAyMToxNCwgSmFyb2QgV2lsc29uIHdyb3RlOgo+PiBPbiBXZWQsIEF1ZyAy
+NSwgMjAxMCBhdCAwMTowMTo1N0FNICswMjAwLCBEYXZpZCBIw6RyZGVtYW4gd3JvdGU6Cj4+PiBU
+aGUgZm9sbG93aW5nIHNlcmllcyBtZXJnZXMgdGhlIGRpZmZlcmVudCBmaWxlcyB0aGF0IGN1cnJl
+bnRseSBtYWtlIHVwCj4+PiB0aGUgaXItY29yZSBtb2R1bGUgaW50byBhIHNpbmdsZS1maWxlIHJj
+LWNvcmUgbW9kdWxlLgo+Pj4KPj4+IEluIGFkZGl0aW9uLCB0aGUgaXJfaW5wdXRfZGV2IGFuZCBp
+cl9kZXZfcHJvcHMgc3RydWN0cyBhcmUgcmVwbGFjZWQKPj4+IGJ5IGEgc2luZ2xlIHJjX2RldiBz
+dHJ1Y3Qgd2l0aCBhbiBBUEkgc2ltaWxhciB0byB0aGF0IG9mIHRoZSBpbnB1dAo+Pj4gc3Vic3lz
+dGVtLgo+Pj4KPj4+IFRoaXMgYWxsb3dzIHRoZSByZW1vdmFsIG9mIGFsbCBrbm93bGVkZ2Ugb2Yg
+YW55IGlucHV0IGRldmljZXMgZnJvbSB0aGUKPj4+IHJjIGRyaXZlcnMgYW5kIHBhdmVzIHRoZSB3
+YXkgZm9yIGFsbG93aW5nIG11bHRpcGxlIGlucHV0IGRldmljZXMgcGVyCj4+PiByYyBkZXZpY2Ug
+aW4gdGhlIGZ1dHVyZS4gVGhlIG5hbWVzcGFjZSBjb252ZXJzaW9uIGZyb20gaXJfKiB0byByY18q
+Cj4+PiBzaG91bGQgbW9zdGx5IGJlIGRvbmUgZm9yIHRoZSBkcml2ZXJzIHdpdGggdGhpcyBwYXRj
+aHNldC4KPj4+Cj4+PiBJIGhhdmUgaW50ZW50aW9uYWxseSBub3Qgc2lnbmVkIG9mZiBvbiB0aGUg
+cGF0Y2hlcyB5ZXQgc2luY2UgdGhleQo+Pj4gaGF2ZW4ndAo+Pj4gYmVlbiB0ZXN0ZWQuIEknZCBs
+aWtlIHlvdXIgZmVlZGJhY2sgb24gdGhlIGdlbmVyYWwgYXBwcm9hY2ggYmVmb3JlIEkKPj4+IHNw
+ZW5kCj4+PiB0aGUgdGltZSB0byBwcm9wZXJseSB0ZXN0IHRoZSByZXN1bHQuCj4+Pgo+Pj4gQWxz
+bywgdGhlIGltb24gZHJpdmVyIGlzIG5vdCBjb252ZXJ0ZWQgKGFuZCB3aWxsIHRodXMgYnJlYWsg
+d2l0aCB0aGlzCj4+PiBwYXRjaHNldCkuIFRoZSByZWFzb24gaXMgdGhhdCB0aGUgaW1vbiBkcml2
+ZXIgd2FudHMgdG8gZ2VuZXJhdGUgbW91c2UKPj4+IGV2ZW50cyBvbiB0aGUgaW5wdXQgZGV2IHVu
+ZGVyIHRoZSBjb250cm9sIG9mIHJjLWNvcmUuIEkgd2FzIGhvcGluZyB0aGF0Cj4+PiBKYXJvZCB3
+b3VsZCBiZSB3aWxsaW5nIHRvIGNvbnZlcnQgdGhlIGltb24gZHJpdmVyIHRvIGNyZWF0ZSBhIHNl
+cGFyYXRlCj4+PiBpbnB1dCBkZXZpY2UgZm9yIHNlbmRpbmcgbW91c2UgZXZlbnRzIHRvIHVzZXJz
+cGFjZSA6KQo+Pgo+PiBZZWFoLCBJIGNvdWxkIGJlIHBlcnN1YWRlZCB0byBkbyB0aGF0LiBNZWFu
+cyB0aGF0IHRoZSBpbW9uIGRyaXZlciwgd2hlbgo+PiBkcml2aW5nIG9uZSBvZiB0aGUgdG91Y2hz
+Y3JlZW4gZGV2aWNlcywgd2lsbCBicmluZyB1cCAzIHNlcGFyYXRlIGlucHV0Cj4+IGRldmljZXMs
+IGJ1dCBvaCB3ZWxsLiAoSSdkIGFjdHVhbGx5IGNvbnNpZGVyZWQgZG9pbmcgdGhhdCB3aGVuIHBv
+cnRpbmcgdG8KPj4gaXItY29yZSBpbiB0aGUgZmlyc3QgcGxhY2UsIGJ1dCB3ZW50IHRoZSBsYXp5
+IHJvdXRlLiA7KQo+Cj5UaGF0IHdvdWxkIGJlIGdvb2QuIEknbSBwcmV0dHkgY2VydGFpbiB0aGF0
+IHRoZSBzcGxpdCB3aWxsIGJlIG5lY2Vzc2FyeQo+c29vbmVyIG9yIGxhdGVyLgo+Cj4+PiBDb21t
+ZW50cyBwbGVhc2UuLi4KPj4KPj4gSGF2ZW4ndCB0cmllZCBpdCBvdXQgYXQgYWxsIHlldCBvciBk
+b25lIG1vcmUgdGhhbiBhIHF1aWNrIHNraW0gdGhyb3VnaCB0aGUKPj4gcGF0Y2hlcywgYnV0IGF0
+IGZpcnN0IGdsYW5jZSwgSSBkbyBsaWtlIHRoZSBpZGVhIG9mIGZ1cnRoZXIgYWJzdHJhY3RpbmcK
+Pj4gYXdheSB0aGUgaW5wdXQgbGF5ZXIuIEkga25vdyBJIHRhbmtlZCBhIGZldyB0aGluZ3MgdGhl
+IGZpcnN0IGdvICdyb3VuZCwKPj4gdGhpbmtpbmcgSSBuZWVkZWQgdG8gZG8gYm90aCBzb21lIHJj
+LWxheWVyIGFuZCBpbnB1dC1sYXllciBzZXR1cCBhbmQvb3IKPj4gdGVhcmRvd24uIEl0IGJlY29t
+ZXMgbW9yZSBjdXQgYW5kIGRyeSBpZiB5b3UgZG9uJ3Qgc2VlIGFueXRoaW5nCj4+IGlucHV0LXJl
+bGF0ZWQgYW55d2hlcmUgYXQgYWxsLgo+Cj5Ob3QgdG8gbWVudGlvbiB3ZSB3aWxsIGhhdmUgYSBt
+b3JlIGNvbnNpc3RlbnQgdXNlciBleHBlcmllbmNlLiBGb3IKPmV4YW1wbGU6IHNvbWUgb2YgdGhl
+IGN1cnJlbnQgaGFyZHdhcmUgZHJpdmVycyBhcmUgZmlkZGxpbmcgd2l0aCB0aGUgcmVwZWF0Cj52
+YWx1ZXMgb2YgdGhlIGlucHV0IGRldi4uLnNvbWV0aGluZyB3aGljaCBzaG91bGQgYmUgdGhlIHNh
+bWUgYWNyb3NzIHRoZQo+ZW50aXJlIHN1YnN5c3RlbSAoeW91IHdvdWxkbid0IGV4cGVjdCB0aGUg
+cmVwZXRpdGlvbiByYXRlIGZvciB0aGUgZXhhY3QKPnNhbWUgcmVtb3RlIGNvbnRyb2wgdG8gY2hh
+bmdlIGp1c3QgYmVjYXVzZSB5b3UgY2hhbmdlIHRoZSByZWNlaXZlcikuCj4KPkFsc28sIGl0J3Mg
+bmVjZXNzYXJ5IGZvciBhbnkgZnV0dXJlIHN1cHBvcnQgb2YgbXVsdGlwbGUgaW5wdXQgZGV2aWNl
+cyAob25lCj5wZXIgcGh5c2ljYWwgcmVtb3RlIGNvbnRyb2wgYmVpbmcgb25lIGV4YW1wbGUpLi4u
+YW5kIGl0IGdpdmVzIHVzIG1vcmUKPmZsZXhpYmlsaXR5IHRvIG1ha2UgY2hhbmdlcyBpbiByYy1j
+b3JlIHdoZW4gZHJpdmVycyBkbyBub3QgbXVjayBhcm91bmQgaW4KPnN1YmRldmljZXMgKGlucHV0
+IGRldmljZXMgdGhhdCBpcykuCj4KPj4gT25lIHRoaW5nIEkgZGlkIG5vdGUgd2l0aCB0aGUgcGF0
+Y2hlcyBpcyB0aGF0IGEgbG90IG9mIGJpdHMgd2VyZSBhbHRlcmVkCj4+IGZyb20gaXItZm9vIHRv
+IHJjLWZvbywgYnV0IG5vdCBhbGwgb2YgdGhlbS4uLiBJZiB3ZSdyZSBnb2luZyB0byBtYWtlIHRo
+ZQo+PiBjaGFuZ2UsIHdoeSBubyBnbyB3aG9sZSBob2c/IChPciB3YXMgaXQgb25seSB0aGluZ3Mg
+cmVsZXZhbnQgdG8gaXIKPj4gc3BlY2lmaWNhbGx5IHJpZ2h0IG5vdyB0aGF0IGRpZG4ndCBnZXQg
+cmVuYW1lZD8pCj4KPlRoZSBydWxlIG9mIHRodW1iIEkgZm9sbG93ZWQgd2FzIHRvIHJlbmFtZSBz
+dHVmZiB0aGF0IEkgdG91Y2hlZCBidXQgbGVhdmUKPnVuY2hhbmdlZCBjb2RlIGFsb25lLiBSZW5h
+bWluZyB0aGUgcmVtYWluaW5nIGZ1bmN0aW9ucyBjYW4gYmUgZG9uZSBpbgo+bGF0ZXIsIHNlcGFy
+YXRlLCBwYXRjaGVzIChzb21lIG9mIHRoZW0gd2lsbCBiZSBtb3JlIGludmFzaXZlIGFzIGZpbGUg
+bmFtZXMKPm5lZWQgY2hhbmdpbmcgYXMgd2VsbCkuCj4KPk9uIGEgcmVsYXRlZCBub3RlLCBJJ20g
+Z2V0dGluZyBjb25mdXNlZCB3cnQgZ2l0IHRoZSB2NGwtZHZiIGdpdCBicmFuY2hlcy4KPlRoZSBj
+dXJyZW50IHBhdGNoZXMgYXJlIGFnYWluc3Qgc3RhZ2luZy9yYyB3aGljaCBoYXNuJ3Qgc2VlbiBt
+dWNoIGFjdGl2aXR5Cj5pbiBhIG1vbnRoIG9yIHR3byBidXQgc3RhZ2luZy9vdGhlciBzZWVtcyB0
+byBjYXJyeSBzb21lIG1vcmUgcmVjZW50Cj5yYy1yZWxhdGVkIHBhdGNoZXMuLi53aGljaCBvbmUg
+YW0gSSBzdXBwb3NlZCB0byBiYXNlIG15IHdvcmsgb24/Cj4KPi0tIAo+RGF2aWQgSMOkcmRlbWFu
+Cj4KPi0tCj5UbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5z
+dWJzY3JpYmUgbGludXgtbWVkaWEiIGluCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jk
+b21vQHZnZXIua2VybmVsLm9yZwo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIu
+a2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCg==
 
-On Sunday 01 August 2010 13:58:20 Hans Verkuil wrote:
-> On Thursday 29 July 2010 18:06:39 Laurent Pinchart wrote:
-
-[snip]
-
-> > diff --git a/Documentation/media-framework.txt
-> > b/Documentation/media-framework.txt index 6d680c6..1192feb 100644
-> > --- a/Documentation/media-framework.txt
-> > +++ b/Documentation/media-framework.txt
-> > @@ -273,3 +273,134 @@ required, drivers don't need to provide a set_power
-
-[snip]
-
-> > +- struct media_entity_desc
-> > +
-> > +__u32	id		Entity id, set by the application. When the id is
-> > +			or'ed with MEDIA_ENTITY_ID_FLAG_NEXT, the driver
-> > +			clears the flag and returns the first entity with a
-> > +			larger id.
-> > +char	name[32]	Entity name. UTF-8 NULL-terminated string.
-> > +__u32	type		Entity type.
-> > +__u8	pads		Number of pads.
-> 
-> Should be u16.
-
-Thanks. Will fix.
-
-[snip]
-
-> > diff --git a/include/linux/media.h b/include/linux/media.h
-> > new file mode 100644
-> > index 0000000..9b8acc0
-> > --- /dev/null
-> > +++ b/include/linux/media.h
-> > @@ -0,0 +1,77 @@
-
-[snip]
-
-> > +struct media_entity_desc {
-> > +	__u32 id;
-> > +	char name[32];
-> > +	__u32 type;
-> > +	__u8 pads;
-> 
-> u16.
-
-Thanks. Will fix.
-
-[snip]
-
-> 
-> > +	__u32 links;
-> > +
-> > +	__u32 reserved[4];
-> > +
-> > +	union {
-> > +		/* Node specifications */
-> > +		struct {
-> > +			__u32 major;
-> > +			__u32 minor;
-> > +		} v4l;
-> > +		struct {
-> > +			__u32 major;
-> > +			__u32 minor;
-> > +		} fb;
-> > +		int alsa;
-> > +		int dvb;
-> > +
-> > +		/* Sub-device specifications */
-> > +		/* Nothing needed yet */
-> > +		__u8 raw[64];
-> > +	};
-> > +};
-> 
-> Would there be anything else that we want to describe with these pad_desc
-> and entity_desc structs?
-
-Definitely. Thanks for reminding me :-)
-
-> For subdevs you want to return a chip ident and revision field (same as
-> VIDIOC_DBG_G_CHIP_IDENT does).
-
-Do we still need a chip ID when we now have a name ? Keeping the chip ID 
-registry updated is painful, it would be nice if we could do away with it.
-
-A revision field is a very good idea, I'll add it.
-
-> Should we allow (possibly optional) names for pads? Or 'tooltip'-type
-> descriptions that can be a lot longer than 32 chars? (Just brainstorming
-> here).
->
-> I am of course thinking of apps where the user can setup the media flow
-> using a GUI. If the driver can provide more extensive descriptions of the
-> various entities/pads, then that would make it much easier for the user to
-> experiment.
-
-It would be nice to have, yes. Some kind of pad capabilities would be 
-interesting too.
-
-> Note that I also think that obtaining such detailed information might be
-> better done through separate ioctls (e.g. MEDIA_IOC_G_PAD_INFO, etc.).
-
-I agree. So we can leave the additional pad information out for now and add it 
-later if needed :-)
- 
-> What is definitely missing and *must* be added is a QUERYCAP type ioctl
-> that provides driver/versioning info.
-
-I'll create one.
-
-> Another thing that we need to figure out is how to tell the application
-> which audio and video nodes belong together.
-
-What about adding a group ID field in media_entity ?
-
-> Not only that, but we need to be able to inform the driver how audio is
-> hooked up: through an audio loopback cable, an alsa device,
-
-Doesn't the loopback cable connect the audio signal to audio hardware that 
-exposes an ALSA device ? How will drivers be able to tell if the user has 
-connected a loopback cable and what he has connected it to ?
-
-> part of an mpeg stream,
-
-In that case there will be no audio device.
-
-> or as a V4L2 audio device (ivtv can do that, and I think pvrusb2 does the
-> same for radio). I'm not entirely sure we want to expose that last option as
-> it is not really spec compliant.
-
-I'm not sure either :-) Why doesn't ivtv use an ALSA device ?
-
-> Other things we may want to expose: is the video stream raw or compressed?
-
-I think that belongs to V4L2.
-
-> What are the default video/audio/vbi streams? (That allows an app to find
-> the default video device node if a driver has lots of them).
-
-What about adding a __u32 flags field to media_entity, and defining a 
-MEDIA_ENTITY_FLAG_DEFAULT bit ?
-
-> Some of this information should perhaps be exposed through the v4l2 API,
-> but other parts definitely belong here.
-> 
-> I've not thought about this in detail, but we need to set some time aside
-> to brainstorm on how to provide this information in a logical and
-> consistent manner.
-
-IRC ? A real meeting would be better, but the next scheduled one is in 
-November and that's a bit too far away.
-
--- 
-Regards,
-
-Laurent Pinchart
