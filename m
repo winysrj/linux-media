@@ -1,106 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:35631 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751307Ab0HZCt1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Aug 2010 22:49:27 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:6973 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752758Ab0H0BcZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Aug 2010 21:32:25 -0400
+Message-ID: <4C7715B6.2060308@redhat.com>
+Date: Thu, 26 Aug 2010 22:32:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <20100825173125.0855a6b0@bike.lwn.net>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	<1282310110.2605.976.camel@laptop>
-	<20100825155814.25c783c7.akpm@linux-foundation.org>
-	<20100825173125.0855a6b0@bike.lwn.net>
-Date: Thu, 26 Aug 2010 11:49:26 +0900
-Message-ID: <AANLkTinPaq+0MbdW81uoc5_OZ=1Gy_mVYEBnwv8zgOBd@mail.gmail.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-From: Minchan Kim <minchan.kim@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Michal Nazarewicz <m.nazarewicz@samsung.com>,
-	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: ir_codes_dibusb_table : please make table length a constant
+References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com> <AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com> <4C581BB6.7000303@redhat.com> <AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com> <AANLkTikMHF6pjqznLi5qWHtc9kFk7jb1G1KmeKsvfLKg@mail.gmail.com> <AANLkTim=ggkFgLZPqAKOzUv54NCMzxXYCropm_2XYXeX@mail.gmail.com> <AANLkTik7sWGM+x0uOr734=M=Ux1KsXQ9JJNqF98oN7-t@mail.gmail.com> <4C7425C9.1010908@hoogenraad.net> <AANLkTinA1r87W+4J=MRV5i6M6BD-c+KTWnYqyBd7WCQA@mail.gmail.com> <4C74B78B.3020101@hoogenraad.net> <AANLkTim3bq6h-oFY+TKoog-TKOzQ-w4MR0CVdcL4OjcD@mail.gmail.com> <4C75FF0B.3060500@hoogenraad.net> <4C760F5F.8000801@hoogenraad.net>
+In-Reply-To: <4C760F5F.8000801@hoogenraad.net>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, Aug 26, 2010 at 8:31 AM, Jonathan Corbet <corbet@lwn.net> wrote:
-> On Wed, 25 Aug 2010 15:58:14 -0700
-> Andrew Morton <akpm@linux-foundation.org> wrote:
->
->> > If you want guarantees you can free stuff, why not add constraints to
->> > the page allocation type and only allow MIGRATE_MOVABLE pages inside a
->> > certain region, those pages are easily freed/moved aside to satisfy
->> > large contiguous allocations.
->>
->> That would be good.  Although I expect that the allocation would need
->> to be 100% rock-solid reliable, otherwise the end user has a
->> non-functioning device.  Could generic core VM provide the required level
->> of service?
->
-> The original OLPC has a camera controller which requires three contiguous,
-> image-sized buffers in memory.  That system is a little memory constrained
-> (OK, it's desperately short of memory), so, in the past, the chances of
-> being able to allocate those buffers anytime some kid decides to start
-> taking pictures was poor.  Thus, cafe_ccic.c has an option to snag the
-> memory at initialization time and never let go even if you threaten its
-> family.  Hell hath no fury like a little kid whose new toy^W educational
-> tool stops taking pictures.
->
-> That, of course, is not a hugely efficient use of memory on a
-> memory-constrained system.  If the VM could reliably satisfy those
-> allocation requestss, life would be wonderful.  Seems difficult.  But it
-> would be a nicer solution than CMA, which, to a great extent, is really
-> just a standardized mechanism for grabbing memory and never letting go.
->
->> It would help (a lot) if we could get more attention and buyin and
->> fedback from the potential clients of this code.  rmk's feedback is
->> valuable.  Have we heard from the linux-media people?  What other
->> subsystems might use it?  ieee1394 perhaps?  Please help identify
->> specific subsystems and I can perhaps help to wake people up.
->
-> If this code had been present when I did the Cafe driver, I would have used
-> it.  I think it could be made useful to a number of low-end camera drivers
-> if the videobuf layer were made to talk to it in a way which Just Works.
->
-> With a bit of tweaking, I think it could be made useful in other
-> situations: the viafb driver, for example, really needs an allocator for
-> framebuffer memory and it seems silly to create one from scratch.  Of
-> course, there might be other possible solutions, like adding a "zones"
-> concept to LMB^W memblock.
->
-> The problem which is being addressed here is real.
->
-> That said, the complexity of the solution still bugs me a bit, and the core
-> idea is still to take big chunks of memory out of service for specific
-> needs.  It would be far better if the VM could just provide big chunks on
-> demand.  Perhaps compaction and the pressures of making transparent huge
-> pages work will get us there, but I'm not sure we're there yet.
->
-> jon
+Em 26-08-2010 03:53, Jan Hoogenraad escreveu:
+> During debugging a driver, I found that at least in
+> 
+> linux/drivers/media/dvb/dvb-usb/dibusb-mc.c   
+> the length of ir_codes_dibusb_table was referring to an older version.
+> This may have caused memory overrun problems
+> 
+> I have fixed this in my branch in
+> linux/drivers/media/dvb/dvb-usb/dibusb.h
+>  with a
+> #define IR_CODES_DIBUSB_TABLE_LEN 111
+> 
+> http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/rev/549b40b69fa4
+> 
+> I agree this is not the nicest solution, but at at least would reduce some problems.
+> I am not sure on how to create a patch for this ?
+> Should I make a new branch in the HG archive ?
+> 
+> I suggest to replate the 111-s into IR_CODES_DIBUSB_TABLE_LEN in the files below as well:
+> 
+>     * drivers/media/dvb/dvb-usb/dibusb-common.c:
+>           o line 330
+>           o line 459
+>     * drivers/media/dvb/dvb-usb/dibusb-mb.c:
+>           o line 215
+>           o line 299
+>           o line 363
+>           o line 420
+>     * drivers/media/dvb/dvb-usb/dibusb.h, line 127
+> 
+The proper solution is to migrate dibusb to use the new ir-core way, just like we did at
+drivers/media/dvb/dvb-usb/dib0700_devices.c:
 
-I agree. compaction and movable zone will be one of good solutions.
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=d700226902a62a3b6f3563782d569c0e2af74397
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=5af935cc96a291f90799bf6a2587d87329a91699
+http://git.linuxtv.org/media_tree.git?a=commitdiff;h=72b393106bddc9f0a1ab502b4c8c5793a0441a30
 
-If some driver needs big contiguous chunk to work, it should make sure
-to be allowable to have memory size for it before going. To make sure
-it, we have to consider compaction of ZONE_MOVABLE zone. But one of
-problems is anonymous page which can be has a role of pinned page in
-non-swapsystem. Even most of embedded system has no swap.
-But it's not hard to solve it.
-
-We needs Mel's opinion, too.
-
--- 
-Kind regards,
-Minchan Kim
+Cheers,
+Mauro
