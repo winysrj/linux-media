@@ -1,88 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4226 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095Ab0H1JoR (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55272 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753469Ab0H0PfP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Aug 2010 05:44:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: matti.j.aaltonen@nokia.com
-Subject: Re: [PATCH v7 4/5] V4L2: WL1273 FM Radio: Controls for the FM radio.
-Date: Sat, 28 Aug 2010 11:43:52 +0200
-Cc: ext pramodh ag <pramodhag@yahoo.co.in>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com> <555961.26177.qm@web95110.mail.in2.yahoo.com> <1282546417.14489.191.camel@masi.mnp.nokia.com>
-In-Reply-To: <1282546417.14489.191.camel@masi.mnp.nokia.com>
+	Fri, 27 Aug 2010 11:35:15 -0400
+Date: Fri, 27 Aug 2010 17:35:12 +0200
+From: Michael Grzeschik <mgr@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Robert Jarzmik <robert.jarzmik@free.fr>,
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: Re: [PATCH 04/11] mt9m111: added new bit offset defines
+Message-ID: <20100827153512.GA15967@pengutronix.de>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de> <1280833069-26993-5-git-send-email-m.grzeschik@pengutronix.de> <Pine.LNX.4.64.1008271710400.28043@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008281143.52387.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1008271710400.28043@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Monday, August 23, 2010 08:53:37 Matti J. Aaltonen wrote:
-> Hi.
+On Fri, Aug 27, 2010 at 05:11:18PM +0200, Guennadi Liakhovetski wrote:
+> On Tue, 3 Aug 2010, Michael Grzeschik wrote:
 > 
-> On Fri, 2010-08-20 at 14:04 +0200, ext pramodh ag wrote:
-> > Hello,
-> > 
-> > > +static ssize_t wl1273_fm_fops_write(struct file *file, const char __user 
-> > *buf,
-> > > +                    size_t count, loff_t *ppos)
-> > > +{
-> > > +    struct wl1273_device *radio = video_get_drvdata(video_devdata(file));
-> > > +    u16 val;
-> > > +    int r;
-> > > +
-> > > +    dev_dbg(radio->dev, "%s\n", __func__);
-> > > +
-> > > +    if (radio->core->mode != WL1273_MODE_TX)
-> > > +        return count;
-> > > +
-> > > +    if (!radio->rds_on) {
-> > > +        dev_warn(radio->dev, "%s: RDS not on.\n", __func__);
-> > > +        return 0;
-> > > +    }
-> > 
-> > Aren't you planning to use extended controls "V4L2_CID_RDS_TX_RADIO_TEXT", 
-> > "V4L2_CID_RDS_TX_PI", etc to handle FM TX RDS data?
+> > Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+> > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
 > 
-> In principle yes, but we haven't yet decided to implement those now, at
-> the moment the RDS interpretation is left completely to user space
-> applications.
+> I don't see these being used in any of your patches...
+Yes, these are not used. They are a left over from the previous patchstack.
+But they are checked against the datasheet and are correct.
+Is it a problem to take them anyway?
 
-Matti, is it even possible to use the current FM TX RDS API for this chip?
-That API expects that the chip can generate the correct RDS packets based on
-high-level data. If the chip can only handle 'raw' RDS packets (requiring a
-userspace RDS encoder), then that API will never work.
+Thanks,
+Michael
 
-But if this chip can indeed handle raw RDS only, then we need to add some
-capability flags to signal that to userspace.
-
-Regards,
-
-	Hans
-
-> 
-> Best Regards,
-> Matti
-> 
+> > ---
+> >  drivers/media/video/mt9m111.c |    6 ++++++
+> >  1 files changed, 6 insertions(+), 0 deletions(-)
 > > 
-> > Thanks and regards,
-> > Pramodh
+> > diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+> > index 8c076e5..1b21522 100644
+> > --- a/drivers/media/video/mt9m111.c
+> > +++ b/drivers/media/video/mt9m111.c
+> > @@ -63,6 +63,12 @@
+> >  #define MT9M111_RESET_RESTART_FRAME	(1 << 1)
+> >  #define MT9M111_RESET_RESET_MODE	(1 << 0)
+> >  
+> > +#define MT9M111_RM_FULL_POWER_RD	(0 << 10)
+> > +#define MT9M111_RM_LOW_POWER_RD		(1 << 10)
+> > +#define MT9M111_RM_COL_SKIP_4X		(1 << 5)
+> > +#define MT9M111_RM_ROW_SKIP_4X		(1 << 4)
+> > +#define MT9M111_RM_COL_SKIP_2X		(1 << 3)
+> > +#define MT9M111_RM_ROW_SKIP_2X		(1 << 2)
+> >  #define MT9M111_RMB_MIRROR_COLS		(1 << 1)
+> >  #define MT9M111_RMB_MIRROR_ROWS		(1 << 0)
+> >  #define MT9M111_CTXT_CTRL_RESTART	(1 << 15)
+> > -- 
+> > 1.7.1
 > > 
 > > 
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-> 
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
