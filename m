@@ -1,94 +1,108 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2635 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759472Ab0HLKaJ (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45624 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754082Ab0H0GOW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Aug 2010 06:30:09 -0400
-Message-ID: <3d84baeb117bdf02fa44a883e3ae05cf.squirrel@webmail.xs4all.nl>
-In-Reply-To: <1281606326.14489.66.camel@masi.mnp.nokia.com>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
-    <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
-    <201008091838.13247.hverkuil@xs4all.nl>
-    <1281425501.14489.7.camel@masi.mnp.nokia.com>
-    <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
-    <1281441830.14489.27.camel@masi.mnp.nokia.com>
-    <4C614294.7080101@redhat.com>
-    <1281518486.14489.43.camel@masi.mnp.nokia.com>
-    <757d559ab06463d8b5e662b9aeeec701.squirrel@webmail.xs4all.nl>
-    <1281526453.14489.50.camel@masi.mnp.nokia.com>
-    <1281527073.14489.59.camel@masi.mnp.nokia.com>
-    <4C62A2AF.9070805@redhat.com>
-    <1281606326.14489.66.camel@masi.mnp.nokia.com>
-Date: Thu, 12 Aug 2010 12:29:55 +0200
-Subject: Re: A problem with http://git.linuxtv.org/media_tree.git
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: matti.j.aaltonen@nokia.com
-Cc: "ext Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo" <eduardo.valentin@nokia.com>
+	Fri, 27 Aug 2010 02:14:22 -0400
+Date: Fri, 27 Aug 2010 08:13:55 +0200
+From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
+	<u.kleine-koenig@pengutronix.de>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Cc: g.liakhovetski@gmx.de, mitov@issp.bas.bg,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org,
+	linux-sh@vger.kernel.org, philippe.retornaz@epfl.ch,
+	gregkh@suse.de, jkrzyszt@tis.icnet.pl
+Subject: Re: [RFC][PATCH] add
+	dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+Message-ID: <20100827061355.GA938@pengutronix.de>
+References: <20100827044142.GB31863@pengutronix.de> <20100827140005Y.fujita.tomonori@lab.ntt.co.jp> <20100827051907.GA17521@pengutronix.de> <20100827145712Z.fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20100827145712Z.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
+Hello,
 
-> On Wed, 2010-08-11 at 15:16 +0200, ext Mauro Carvalho Chehab wrote:
->> Em 11-08-2010 08:44, Matti J. Aaltonen escreveu:
->> > Hi again.
->> >
->> > On Wed, 2010-08-11 at 14:34 +0300, Matti J. Aaltonen wrote:
->> >> Hello.
->> >>
->> >> On Wed, 2010-08-11 at 12:56 +0200, ext Hans Verkuil wrote:
->> >>>> Hi.
->> >>>>
->> >>>> I cloned your tree at 	http://linuxtv.org/git/media_tree.git and
->> checked
->> >>>> out the origin/staging/v2.6.37 branch and the
->> >>>> Documentation/video4linux/v4l2-controls.txt  just isn't there. I
->> asked
->> >>>> one of my colleagues to do the same and the result was also the
->> same.
->> >>>
->> >>> The file is in the v2.6.36 branch. It hasn't been merged yet in the
->> >>> v2.6.37 branch.
->> >>
->> >> 37 above was a typo, sorry. My point was that we couldn't find it in
->> the
->> >> origin/staging/v2.6.36 branch... and that the branch lags behind of
->> what
->> >> can be seen via the git web interface...
->> >>
->> >> B.R.
->> >> Matti
->> >
->> > I'd suggest - if that's not too much trouble - that you'd clone the
->> tree
->> > using http (from http://linuxtv.org/git/media_tree.git) and then
->> checked
->> > out the 36 branch and see that it works for you and then post the
->> > command you used and then I'll admit what I did wrong - if
->> necessary:-)
->>
->> You should try to avoid using http method for clone/fetch. It depends on
->> some
->> files that are created by running "git update-server-info". There's a
->> script to
->> run it automatically after each push. Yet, the better is to use git.
->
-> I guess I didn't emphasize my point enough... I would avoid using http
-> if it wasn't the only protocol I can use to access your site... And if
-> you have serious problems with it I think it would be fair to mention
-> that on your git web page...
+On Fri, Aug 27, 2010 at 02:57:59PM +0900, FUJITA Tomonori wrote:
+> On Fri, 27 Aug 2010 07:19:07 +0200
+> Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
+> 
+> > Hey,
+> > 
+> > On Fri, Aug 27, 2010 at 02:00:17PM +0900, FUJITA Tomonori wrote:
+> > > On Fri, 27 Aug 2010 06:41:42 +0200
+> > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
+> > > > On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
+> > > > > On Thu, 26 Aug 2010 11:53:11 +0200
+> > > > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
+> > > > > 
+> > > > > > > > We have currently a number of boards broken in the mainline. They must be 
+> > > > > > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
+> > > > > > > > as I suggested earlier, we need either this or my patch series
+> > > > > > > > 
+> > > > > > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+> > > > > > > > 
+> > > > > > > > for 2.6.36.
+> > > > > > > 
+> > > > > > > Why can't you revert a commit that causes the regression?
+> > > > > > > 
+> > > > > > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
+> > > > > > > responsible for the regression. And the patchset even exnteds the
+> > > > > > > definition of the DMA API (dma_declare_coherent_memory). Such change
+> > > > > > > shouldn't applied after rc1. I think that DMA-API.txt says that
+> > > > > > > dma_declare_coherent_memory() handles coherent memory for a particular
+> > > > > > > device. It's not for the API that reserves coherent memory that can be
+> > > > > > > used for any device for a single device.
+> > > > > > The patch that made the problem obvious for ARM is
+> > > > > > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
+> > > > > > So this went in before v2.6.36-rc1.  One of the "architectures which
+> > > > > > similar restrictions" is x86 BTW.
+> > > > > > 
+> > > > > > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
+> > > > > > addresses a hardware restriction.
+> > > > > 
+> > > > > How these drivers were able to work without hitting the hardware restriction?
+> > > > In my case the machine in question is an ARMv5, the hardware restriction
+> > > > is on ARMv6+ only.  You could argue that so the breaking patch for arm
+> > > > should only break ARMv6, but I don't think this is sensible from a
+> > > > maintainers POV.  We need an API that works independant of the machine
+> > > > that runs the code.
+> > > 
+> > > Agreed. But insisting that the DMA API needs to be extended wrongly
+> > > after rc2 to fix the regression is not sensible too. The related DMA
+> > > API wasn't changed in 2.6.36-rc1. The API isn't responsible for the
+> > > regression at all.
+> > I think this isn't about "responsiblity".  Someone in arm-land found
+> > that the way dma memory allocation worked for some time doesn't work
+> > anymore on new generation chips.  As pointing out this problem was
+> > expected to find some matches it was merged in the merge window.  One
+> > such match is the current usage of the DMA API that doesn't currently
+> > offer a way to do it right, so it needs a patch, no?
+> 
+> No, I don't think so. We are talking about a regression, right?
+> 
+> On new generation chips, something often doesn't work (which have
+> worked on old chips for some time). It's not a regresiion. I don't
+> think that it's sensible to make large change (especially after rc1)
+> to fix such issue. If you say that the DMA API doesn't work on new
+> chips and proposes a patch for the next merge window, it's sensible, I
+> suppose.
+> 
+> Btw, the patch isn't a fix for the DMA API. It tries to extend the DMA
+> API (and IMO in the wrong way). In addition, the patch might break the
+> current code. I really don't think that applying such patch after rc1
+> is senseble.
+So you suggest to revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 or at
+least restrict it to ARMv6+ and fix the problem during the next merge
+window?  Russell?
 
-FYI: the control framework has been merged into the mainline, so you can
-get it from there as well.
-
-Regards,
-
-        Hans
+Best regards
+Uwe
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
-
+Pengutronix e.K.                           | Uwe Kleine-König            |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
