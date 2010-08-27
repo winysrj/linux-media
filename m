@@ -1,53 +1,50 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:59445 "EHLO smtp1-g21.free.fr"
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:30853 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752407Ab0HGPsG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Aug 2010 11:48:06 -0400
-Date: Sat, 7 Aug 2010 17:47:57 +0200 (CEST)
-From: Laurent Riffard <laurent.riffard@free.fr>
+	id S1751034Ab0H0VgF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Aug 2010 17:36:05 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o7RLa4p1030472
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 27 Aug 2010 17:36:04 -0400
+Received: from xavier.bos.redhat.com (xavier.bos.redhat.com [10.16.16.50])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o7RLa41C023210
+	for <linux-media@vger.kernel.org>; Fri, 27 Aug 2010 17:36:04 -0400
+Date: Fri, 27 Aug 2010 17:19:50 -0400
+From: Jarod Wilson <jarod@redhat.com>
 To: linux-media@vger.kernel.org
-cc: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH for linux-next] V4L/DVB: v4l2: v4l2-ctrls.c needs kzalloc/kfree
- prototype
-Message-ID: <alpine.DEB.2.00.1008071734460.5908@calimero>
+Subject: [PATCH] IR/mceusb: add an ASUS device ID
+Message-ID: <20100827211950.GL22542@redhat.com>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323329-1439989009-1281196079=:5908"
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Reported in lirc sf.net tracker
 
---8323329-1439989009-1281196079=:5908
-Content-Type: TEXT/PLAIN; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8BIT
-
-linux-next 20100807 failed to compile:
-
-drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_ctrl_handler_init’:
-drivers/media/video/v4l2-ctrls.c:766: error: implicit declaration of function ‘kzalloc’
-drivers/media/video/v4l2-ctrls.c:767: warning: assignment makes pointer from integer without a cast
-drivers/media/video/v4l2-ctrls.c: In function ‘v4l2_ctrl_handler_free’:
-drivers/media/video/v4l2-ctrls.c:786: error: implicit declaration of function ‘kfree’
-...
-
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
 ---
-  drivers/media/video/v4l2-ctrls.c |    1 +
-  1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/media/IR/mceusb.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 84c1a53..951c8c6 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -19,6 +19,7 @@
-   */
-
-  #include <linux/ctype.h>
-+#include <linux/slab.h>         /* for kzalloc/kfree */
-  #include <media/v4l2-ioctl.h>
-  #include <media/v4l2-device.h>
-  #include <media/v4l2-ctrls.h>
+diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
+index ac6bb2c..f0b7e42 100644
+--- a/drivers/media/IR/mceusb.c
++++ b/drivers/media/IR/mceusb.c
+@@ -120,6 +120,8 @@ static struct usb_device_id mceusb_dev_table[] = {
+ 	{ USB_DEVICE(VENDOR_PHILIPS, 0x0613) },
+ 	/* Philips eHome Infrared Transceiver */
+ 	{ USB_DEVICE(VENDOR_PHILIPS, 0x0815) },
++	/* Philips/Spinel plus IR transceiver for ASUS */
++	{ USB_DEVICE(VENDOR_PHILIPS, 0x2088) },
+ 	/* Realtek MCE IR Receiver */
+ 	{ USB_DEVICE(VENDOR_REALTEK, 0x0161) },
+ 	/* SMK/Toshiba G83C0004D410 */
 -- 
-1.7.2.1.26.gbb89e
+1.7.2.2
 
---8323329-1439989009-1281196079=:5908--
+-- 
+Jarod Wilson
+jarod@redhat.com
+
