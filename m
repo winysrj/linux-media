@@ -1,73 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:40624 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752916Ab0HTP3O (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:46784 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752461Ab0H0GB3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 11:29:14 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v4 00/11] Media controller (core and V4L2)
-Date: Fri, 20 Aug 2010 17:29:02 +0200
-Message-Id: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 27 Aug 2010 02:01:29 -0400
+Received: by iwn5 with SMTP id 5so2286244iwn.19
+        for <linux-media@vger.kernel.org>; Thu, 26 Aug 2010 23:01:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4C76C662.3070003@hoogenraad.net>
+References: <4C1D1228.1090702@holzeisen.de>
+	<4C5BA16C.7060808@hoogenraad.net>
+	<5a5511b4767b245485b150836b1526f0.squirrel@holzeisen.de>
+	<4C760DBC.5000605@hoogenraad.net>
+	<4C768B43.9080403@holzeisen.de>
+	<4C76C662.3070003@hoogenraad.net>
+Date: Fri, 27 Aug 2010 03:01:28 -0300
+Message-ID: <AANLkTikQV03w6MBOVdirrg3kLBw52HbnJmC4BLfeUObO@mail.gmail.com>
+Subject: Re: HG has errors on kernel 2.6.32
+From: Douglas Schilling Landgraf <dougsland@gmail.com>
+To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
+Cc: linux-media@vger.kernel.org, Thomas Holzeisen <thomas@holzeisen.de>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi everybody,
+Hi Jan,
 
-Here's the fourth version of the media controller patches. All comments received
-so far have hopefully been incorporated.
+On Thu, Aug 26, 2010 at 4:54 PM, Jan Hoogenraad
+<jan-conceptronic@hoogenraad.net> wrote:
+> Douglas:
+>
+> I see on that
+> http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> that building linux-2.6.32 yields ERRORS
+>
+> skip_spaces has only been included in string.h starting from linux-2.6.33.
+>
+> Should I have a look on how to fix this, or do you want to do this ?
 
-Compared to the previous version, the patches have been rebased on top of 2.6.35
-and a MEDIA_IOC_DEVICE_INFO ioctl has been added.
+It's up to you.  I can fix it, easily.
 
-I won't submit a rebased version of the V4L2 API additions and OMAP3 ISP patches
-right now. I will first clean up (and document) the V4L2 API additions patches,
-and I will submit them as a proper RFC instead of sample code.
+> --
+>
+> second request: can we do some small changes to avoid the compiler warnings
+> ?
 
-Laurent Pinchart (9):
-  media: Media device node support
-  media: Media device
-  media: Entities, pads and links
-  media: Media device information query
-  media: Entities, pads and links enumeration
-  media: Links setup
-  v4l: Add a media_device pointer to the v4l2_device structure
-  v4l: Make video_device inherit from media_entity
-  v4l: Make v4l2_subdev inherit from media_entity
+I will check on the git tree which patch touch on this and commit it. As
+backport tree, I cannot commit anything besides on existing source of git tree.
 
-Sakari Ailus (2):
-  media: Entity graph traversal
-  media: Reference count and power handling
-
- Documentation/media-framework.txt            |  574 ++++++++++++++++++++++++
- Documentation/video4linux/v4l2-framework.txt |   72 +++-
- drivers/media/Makefile                       |    8 +-
- drivers/media/media-device.c                 |  377 ++++++++++++++++
- drivers/media/media-devnode.c                |  310 +++++++++++++
- drivers/media/media-entity.c                 |  614 ++++++++++++++++++++++++++
- drivers/media/video/v4l2-dev.c               |   35 ++-
- drivers/media/video/v4l2-device.c            |   45 ++-
- drivers/media/video/v4l2-subdev.c            |   27 ++-
- include/linux/media.h                        |  105 +++++
- include/media/media-device.h                 |   90 ++++
- include/media/media-devnode.h                |   78 ++++
- include/media/media-entity.h                 |  112 +++++
- include/media/v4l2-dev.h                     |    6 +
- include/media/v4l2-device.h                  |    2 +
- include/media/v4l2-subdev.h                  |    7 +
- 16 files changed, 2440 insertions(+), 22 deletions(-)
- create mode 100644 Documentation/media-framework.txt
- create mode 100644 drivers/media/media-device.c
- create mode 100644 drivers/media/media-devnode.c
- create mode 100644 drivers/media/media-entity.c
- create mode 100644 include/linux/media.h
- create mode 100644 include/media/media-device.h
- create mode 100644 include/media/media-devnode.h
- create mode 100644 include/media/media-entity.h
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks
+Douglas
