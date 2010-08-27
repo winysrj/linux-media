@@ -1,76 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:39555 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751662Ab0H3Hxp (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:40439 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752346Ab0H0IiZ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Aug 2010 03:53:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Lane Brooks <lane@brooks.nu>
-Subject: Re: Snapshot with the OMAP
-Date: Mon, 30 Aug 2010 09:53:46 +0200
-Cc: linux-media@vger.kernel.org
-References: <4C79EF0F.2090401@brooks.nu>
-In-Reply-To: <4C79EF0F.2090401@brooks.nu>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008300953.47420.laurent.pinchart@ideasonboard.com>
+	Fri, 27 Aug 2010 04:38:25 -0400
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+From: Peter Zijlstra <peterz@infradead.org>
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>,
+	=?UTF-8?Q?Micha=C5=82?= Nazarewicz <m.nazarewicz@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	linux-kernel@vger.kernel.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Mel Gorman <mel@csn.ul.ie>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+In-Reply-To: <20100827171639.83c8642c.kamezawa.hiroyu@jp.fujitsu.com>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+	 <1282310110.2605.976.camel@laptop>
+	 <20100825155814.25c783c7.akpm@linux-foundation.org>
+	 <20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
+	 <op.vh0wektv7p4s8u@localhost>
+	 <20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
+	 <20100826124434.6089630d.kamezawa.hiroyu@jp.fujitsu.com>
+	 <AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
+	 <20100826133028.39d731da.kamezawa.hiroyu@jp.fujitsu.com>
+	 <AANLkTimB+s0tO=wrODAU4qCaZnCBoLZ2A9pGjR_jheOj@mail.gmail.com>
+	 <20100827171639.83c8642c.kamezawa.hiroyu@jp.fujitsu.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Fri, 27 Aug 2010 10:37:40 +0200
+Message-ID: <1282898260.1975.1844.camel@laptop>
+Mime-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Lane,
+On Fri, 2010-08-27 at 17:16 +0900, KAMEZAWA Hiroyuki wrote:
+> > How about changing following this?
+> > The thing is MAX_ORDER is static. But we want to avoid too big
+> > MAX_ORDER of whole zones to support devices which requires big
+> > allocation chunk.
+> > So let's add MAX_ORDER into each zone and then, each zone can have
+> > different max order.
+> > For example, while DMA[32], NORMAL, HIGHMEM can have normal size 11,
+> > MOVABLE zone could have a 15.
+> > 
+> > This approach has a big side effect?
 
-On Sunday 29 August 2010 07:24:31 Lane Brooks wrote:
->   Laurent,
-> 
-> Suppose I am streaming 2048x1536 YUV images from a sensor into the OMAP.
-> I am piping it through the resizer to drop it to 640x480 for display. So
-> I am reading from /dev/video6 (resizer) and have the media bus links
-> setup appropriately. Now the user presses the shutter button. What is
-> the recommended way to read a single full resolution image?
-> 
-> It seems there are several options:
-> 
-> 1. Reconfigure the media bus and read a single single full resolution
-> image out of the CCDC output on /dev/video2 and then
-> reconfigure it back to video mode.
-> 
-> 2. Reconfigure the resizer to stop downsampling but instead output the
-> full resolution image for a single frame.
-> 
-> Do I need to stop the stream while doing either option?
+The side effect of increasing MAX_ORDER is that page allocations get
+more expensive since the buddy tree gets larger, yielding more
+splits/merges.
 
-Both options require you to stop the stream. Reconfiguring the pipeline or 
-changing formats can't be done during streaming (for completeness' sake, note 
-that changing the crop rectangle at the resizer input can be done during 
-streaming, but that won't solve your problem).
+> Hm...need to check hard coded MAX_ORDER usages...I don't think
+> side-effect is big. Hmm. But I think enlarging MAX_ORDER isn't an
+> important thing. A code which strips contiguous chunks of pages from
+> buddy allocator is a necessaty thing, as..
 
-> These seem like clunky and slow options, though.
-> 
-> Is there a way to setup the media bus links so that I can actually have
-> handles to /dev/video2 and /dev/video6 open simultaneously? Then I can
-> normally read from /dev/video6 and then read single frames from
-> /dev/video2 whenever the user presses the shutter button?
+Right, once we can explicitly free the pages we want, crossing MAX_ORDER
+isn't too hard like you say, we can simply continue with freeing the
+next in order page.
 
-Not at the moment, but I'd be very happy to receive a patch that implements 
-that feature :-)
 
-> I have noticed there is a some ISP_PIPELINE_STREAM_SINGLESHOT streaming
-> states in the isp code, but I don't what it is for or how to use it. Is
-> it related to my questions at all?
-
-No. They're used for memory-to-memory operation that requires the ISP to 
-operate in single-shot mode.
-
-> It gets even more complex if I want the streaming the video out of the
-> sensor at a lower resolution (for higher video rates) and want to change
-> the resolution of the sensor for the snapshot.
-
-You will need to stop the pipeline, change the formats and restart it. There's 
-no alternative at the moment.
-
--- 
-Regards,
-
-Laurent Pinchart
