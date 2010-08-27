@@ -1,569 +1,91 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:41377 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751451Ab0HTJwF (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36266 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751034Ab0H0P43 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 05:52:05 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 20 Aug 2010 11:50:43 +0200
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCH/RFCv4 3/6] mm: cma: Added SysFS support
-In-reply-to: <343f4b0edf9b5eef598831700cb459cd428d3f2e.1282286941.git.m.nazarewicz@samsung.com>
-To: linux-mm@kvack.org
-Cc: Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Message-id: <9883433f103cc84e55db150806d2270200c74c6b.1282286941.git.m.nazarewicz@samsung.com>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
- <0b02e05fc21e70a3af39e65e628d117cd89d70a1.1282286941.git.m.nazarewicz@samsung.com>
- <343f4b0edf9b5eef598831700cb459cd428d3f2e.1282286941.git.m.nazarewicz@samsung.com>
+	Fri, 27 Aug 2010 11:56:29 -0400
+Date: Fri, 27 Aug 2010 11:55:47 -0400
+Subject: Re: [PATCH 0/3] Proposed ir-core (rc-core) changes
+Message-ID: <83gjmv84flgq1rq9qxi1bamr.1282924547360@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	Jarod Wilson <jarod@redhat.com>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-The SysFS development interface lets one change the map attribute
-at run time as well as observe what regions have been reserved.
-
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- .../ABI/testing/sysfs-kernel-mm-contiguous         |   53 +++
- Documentation/contiguous-memory.txt                |    4 +
- include/linux/cma.h                                |    7 +
- mm/Kconfig                                         |   18 +-
- mm/cma.c                                           |  345 +++++++++++++++++++-
- 5 files changed, 423 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/ABI/testing/sysfs-kernel-mm-contiguous
-
-diff --git a/Documentation/ABI/testing/sysfs-kernel-mm-contiguous b/Documentation/ABI/testing/sysfs-kernel-mm-contiguous
-new file mode 100644
-index 0000000..8df15bc
---- /dev/null
-+++ b/Documentation/ABI/testing/sysfs-kernel-mm-contiguous
-@@ -0,0 +1,53 @@
-+What:		/sys/kernel/mm/contiguous/
-+Date:		August 2010
-+Contact:	Michal Nazarewicz <m.nazarewicz@samsung.com>
-+Description:
-+		If CMA has been built with SysFS support,
-+		/sys/kernel/mm/contiguous/ contains a file called
-+		"map", a file called "allocators" and a directory
-+		called "regions".
-+
-+		The "map" file lets one change the CMA's map attribute
-+		at run-time.
-+
-+		The "allocators" file list all registered allocators.
-+		Allocators with no name are listed as a single minus
-+		sign.
-+
-+		The "regions" directory list all reserved regions.
-+
-+		For more details see
-+		Documentation/contiguous-memory.txt.
-+
-+What:		/sys/kernel/mm/contiguous/regions/
-+Date:		August 2010
-+Contact:	Michal Nazarewicz <m.nazarewicz@samsung.com>
-+Description:
-+		The /sys/kernel/mm/contiguous/regions/ directory
-+		contain directories for each registered CMA region.
-+		The name of the directory is the same as the start
-+		address of the region.
-+
-+		If region is named there is also a symbolic link named
-+		like the region pointing to the region's directory.
-+
-+		Such directory contains the following files:
-+
-+		* "name"  -- the name of the region or an empty file
-+		* "start" -- starting address of the region (formatted
-+		            with %p, ie. hex).
-+		* "size"  -- size of the region (in bytes).
-+		* "free"  -- free space in the region (in bytes).
-+		* "users" -- number of chunks allocated in the region.
-+		* "alloc" -- name of the allocator.
-+
-+		If allocator is not attached to the region, "alloc" is
-+		either the name of desired allocator in square
-+		brackets (ie. "[foo]") or an empty file if region is
-+		to be attached to default allocator.  If an allocator
-+		is attached to the region. "alloc" is either its name
-+		or "-" if attached allocator has no name.
-+
-+		If there are no chunks allocated in given region
-+		("users" is "0") then a name of desired allocator can
-+		be written to "alloc".
-diff --git a/Documentation/contiguous-memory.txt b/Documentation/contiguous-memory.txt
-index 8fc2400..8d189b8 100644
---- a/Documentation/contiguous-memory.txt
-+++ b/Documentation/contiguous-memory.txt
-@@ -256,6 +256,10 @@
-      iff it matched in previous pattern.  If the second part is
-      omitted it will mach any type of memory requested by device.
- 
-+     If SysFS support is enabled, this attribute is accessible via
-+     SysFS and can be changed at run-time by writing to
-+     /sys/kernel/mm/contiguous/map.
-+
-      Some examples (whitespace added for better readability):
- 
-          cma_map = foo/quaz = r1;
-diff --git a/include/linux/cma.h b/include/linux/cma.h
-index cd63f52..eede28d 100644
---- a/include/linux/cma.h
-+++ b/include/linux/cma.h
-@@ -17,6 +17,9 @@
- 
- #include <linux/rbtree.h>
- #include <linux/list.h>
-+#if defined CONFIG_CMA_SYSFS
-+#  include <linux/kobject.h>
-+#endif
- 
- 
- struct device;
-@@ -203,6 +206,10 @@ struct cma_region {
- 	unsigned users;
- 	struct list_head list;
- 
-+#if defined CONFIG_CMA_SYSFS
-+	struct kobject kobj;
-+#endif
-+
- 	unsigned used:1;
- 	unsigned registered:1;
- 	unsigned reserved:1;
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 3e9317c..ac0bb08 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -319,12 +319,26 @@ config CMA
- 	  To make use of CMA you need to specify the regions and
- 	  driver->region mapping on command line when booting the kernel.
- 
--config CMA_DEBUG
--	bool "CMA debug messages (DEVELOPEMENT)"
-+config CMA_DEVELOPEMENT
-+	bool "Include CMA developement features"
- 	depends on CMA
- 	help
-+	  This lets you enable some developement features of the CMA
-+	  freamework.
-+
-+config CMA_DEBUG
-+	bool "CMA debug messages"
-+	depends on CMA_DEVELOPEMENT
-+	help
- 	  Enable debug messages in CMA code.
- 
-+config CMA_SYSFS
-+	bool "CMA SysFS interface support"
-+	depends on CMA_DEVELOPEMENT
-+	help
-+	  Enable support for SysFS interface.
-+
-+config CMA_CMDLINE
- config CMA_BEST_FIT
- 	bool "CMA best-fit allocator"
- 	depends on CMA
-diff --git a/mm/cma.c b/mm/cma.c
-index 401399c..561d817 100644
---- a/mm/cma.c
-+++ b/mm/cma.c
-@@ -38,8 +38,8 @@
- 
- 
- /*
-- * Protects cma_regions, cma_allocators, cma_map, cma_map_length, and
-- * cma_chunks_by_start.
-+ * Protects cma_regions, cma_allocators, cma_map, cma_map_length,
-+ * cma_kobj, cma_sysfs_regions and cma_chunks_by_start.
-  */
- static DEFINE_MUTEX(cma_mutex);
- 
-@@ -143,7 +143,11 @@ int __init __must_check cma_early_region_register(struct cma_region *reg)
- 
- /************************* Regions & Allocators *************************/
- 
-+static void __cma_sysfs_region_add(struct cma_region *reg);
-+
- static int __cma_region_attach_alloc(struct cma_region *reg);
-+static void __maybe_unused __cma_region_detach_alloc(struct cma_region *reg);
-+
- 
- /* List of all regions.  Named regions are kept before unnamed. */
- static LIST_HEAD(cma_regions);
-@@ -226,6 +230,8 @@ int __must_check cma_region_register(struct cma_region *reg)
- 	else
- 		list_add_tail(&reg->list, &cma_regions);
- 
-+	__cma_sysfs_region_add(reg);
-+
- done:
- 	mutex_unlock(&cma_mutex);
- 
-@@ -483,6 +489,329 @@ subsys_initcall(cma_init);
- 
- 
- 
-+/************************* SysFS *************************/
-+
-+#if defined CONFIG_CMA_SYSFS
-+
-+static struct kobject cma_sysfs_regions;
-+static int cma_sysfs_regions_ready;
-+
-+
-+#define CMA_ATTR_INLINE(_type, _name)					\
-+	(&((struct cma_ ## _type ## _attribute){			\
-+		.attr	= {						\
-+			.name	= __stringify(_name),			\
-+			.mode	= 0644,					\
-+		},							\
-+		.show	= cma_sysfs_ ## _type ## _ ## _name ## _show,	\
-+		.store	= cma_sysfs_ ## _type ## _ ## _name ## _store,	\
-+	}).attr)
-+
-+#define CMA_ATTR_RO_INLINE(_type, _name)				\
-+	(&((struct cma_ ## _type ## _attribute){			\
-+		.attr	= {						\
-+			.name	= __stringify(_name),			\
-+			.mode	= 0444,					\
-+		},							\
-+		.show	= cma_sysfs_ ## _type ## _ ## _name ## _show,	\
-+	}).attr)
-+
-+
-+struct cma_root_attribute {
-+	struct attribute attr;
-+	ssize_t (*show)(char *buf);
-+	int (*store)(const char *buf);
-+};
-+
-+static ssize_t cma_sysfs_root_map_show(char *page)
-+{
-+	ssize_t len;
-+
-+	len = cma_map_length;
-+	if (!len) {
-+		*page = 0;
-+		len = 0;
-+	} else {
-+		if (len > (size_t)PAGE_SIZE - 1)
-+			len = (size_t)PAGE_SIZE - 1;
-+		memcpy(page, cma_map, len);
-+		page[len++] = '\n';
-+	}
-+
-+	return len;
-+}
-+
-+static int cma_sysfs_root_map_store(const char *page)
-+{
-+	ssize_t len = cma_map_validate(page);
-+	char *val = NULL;
-+
-+	if (len < 0)
-+		return len;
-+
-+	if (len) {
-+		val = kmemdup(page, len + 1, GFP_KERNEL);
-+		if (!val)
-+			return -ENOMEM;
-+		val[len] = '\0';
-+	}
-+
-+	kfree(cma_map);
-+	cma_map = val;
-+	cma_map_length = len;
-+
-+	return 0;
-+}
-+
-+static ssize_t cma_sysfs_root_allocators_show(char *page)
-+{
-+	struct cma_allocator *alloc;
-+	size_t left = PAGE_SIZE;
-+	char *ch = page;
-+
-+	cma_foreach_allocator(alloc) {
-+		ssize_t l = snprintf(ch, left, "%s ", alloc->name ?: "-");
-+		ch   += l;
-+		left -= l;
-+	}
-+
-+	if (ch != page)
-+		ch[-1] = '\n';
-+	return ch - page;
-+}
-+
-+static ssize_t
-+cma_sysfs_root_show(struct kobject *kobj, struct attribute *attr, char *buf)
-+{
-+	struct cma_root_attribute *rattr =
-+		container_of(attr, struct cma_root_attribute, attr);
-+	ssize_t ret;
-+
-+	mutex_lock(&cma_mutex);
-+	ret = rattr->show(buf);
-+	mutex_unlock(&cma_mutex);
-+
-+	return ret;
-+}
-+
-+static ssize_t
-+cma_sysfs_root_store(struct kobject *kobj, struct attribute *attr,
-+		       const char *buf, size_t count)
-+{
-+	struct cma_root_attribute *rattr =
-+		container_of(attr, struct cma_root_attribute, attr);
-+	int ret;
-+
-+	mutex_lock(&cma_mutex);
-+	ret = rattr->store(buf);
-+	mutex_unlock(&cma_mutex);
-+
-+	return ret < 0 ? ret : count;
-+}
-+
-+static struct kobj_type cma_sysfs_root_type = {
-+	.sysfs_ops	= &(const struct sysfs_ops){
-+		.show	= cma_sysfs_root_show,
-+		.store	= cma_sysfs_root_store,
-+	},
-+	.default_attrs	= (struct attribute * []) {
-+		CMA_ATTR_INLINE(root, map),
-+		CMA_ATTR_RO_INLINE(root, allocators),
-+		NULL
-+	},
-+};
-+
-+static int __init cma_sysfs_init(void)
-+{
-+	static struct kobject root;
-+	static struct kobj_type fake_type;
-+
-+	struct cma_region *reg;
-+	int ret;
-+
-+	/* Root */
-+	ret = kobject_init_and_add(&root, &cma_sysfs_root_type,
-+				   mm_kobj, "contiguous");
-+	if (unlikely(ret < 0)) {
-+		pr_err("init: unable to add root kobject: %d\n", ret);
-+		return ret;
-+	}
-+
-+	/* Regions */
-+	ret = kobject_init_and_add(&cma_sysfs_regions, &fake_type,
-+				   &root, "regions");
-+	if (unlikely(ret < 0)) {
-+		pr_err("init: unable to add regions kobject: %d\n", ret);
-+		return ret;
-+	}
-+
-+	mutex_lock(&cma_mutex);
-+	cma_sysfs_regions_ready = 1;
-+	cma_foreach_region(reg)
-+		__cma_sysfs_region_add(reg);
-+	mutex_unlock(&cma_mutex);
-+
-+	return 0;
-+}
-+device_initcall(cma_sysfs_init);
-+
-+
-+
-+struct cma_region_attribute {
-+	struct attribute attr;
-+	ssize_t (*show)(struct cma_region *reg, char *buf);
-+	int (*store)(struct cma_region *reg, const char *buf);
-+};
-+
-+
-+static ssize_t cma_sysfs_region_name_show(struct cma_region *reg, char *page)
-+{
-+	return reg->name ? snprintf(page, PAGE_SIZE, "%s\n", reg->name) : 0;
-+}
-+
-+static ssize_t cma_sysfs_region_start_show(struct cma_region *reg, char *page)
-+{
-+	return snprintf(page, PAGE_SIZE, "%p\n", (void *)reg->start);
-+}
-+
-+static ssize_t cma_sysfs_region_size_show(struct cma_region *reg, char *page)
-+{
-+	return snprintf(page, PAGE_SIZE, "%zu\n", reg->size);
-+}
-+
-+static ssize_t cma_sysfs_region_free_show(struct cma_region *reg, char *page)
-+{
-+	return snprintf(page, PAGE_SIZE, "%zu\n", reg->free_space);
-+}
-+
-+static ssize_t cma_sysfs_region_users_show(struct cma_region *reg, char *page)
-+{
-+	return snprintf(page, PAGE_SIZE, "%u\n", reg->users);
-+}
-+
-+static ssize_t cma_sysfs_region_alloc_show(struct cma_region *reg, char *page)
-+{
-+	if (reg->alloc)
-+		return snprintf(page, PAGE_SIZE, "%s\n",
-+				reg->alloc->name ?: "-");
-+	else if (reg->alloc_name)
-+		return snprintf(page, PAGE_SIZE, "[%s]\n", reg->alloc_name);
-+	else
-+		return 0;
-+}
-+
-+static int
-+cma_sysfs_region_alloc_store(struct cma_region *reg, const char *page)
-+{
-+	char *s;
-+
-+	if (reg->alloc && reg->users)
-+		return -EBUSY;
-+
-+	if (!*page || *page == '\n') {
-+		s = NULL;
-+	} else {
-+		size_t len;
-+
-+		for (s = (char *)page; *++s && *s != '\n'; )
-+			/* nop */;
-+
-+		len = s - page;
-+		s = kmemdup(page, len + 1, GFP_KERNEL);
-+		if (!s)
-+			return -ENOMEM;
-+		s[len] = '\0';
-+	}
-+
-+	if (reg->alloc)
-+		__cma_region_detach_alloc(reg);
-+
-+	if (reg->free_alloc_name)
-+		kfree(reg->alloc_name);
-+
-+	reg->alloc_name = s;
-+	reg->free_alloc_name = !!s;
-+
-+	return 0;
-+}
-+
-+
-+static ssize_t
-+cma_sysfs_region_show(struct kobject *kobj, struct attribute *attr,
-+		      char *buf)
-+{
-+	struct cma_region *reg = container_of(kobj, struct cma_region, kobj);
-+	struct cma_region_attribute *rattr =
-+		container_of(attr, struct cma_region_attribute, attr);
-+	ssize_t ret;
-+
-+	mutex_lock(&cma_mutex);
-+	ret = rattr->show(reg, buf);
-+	mutex_unlock(&cma_mutex);
-+
-+	return ret;
-+}
-+
-+static int
-+cma_sysfs_region_store(struct kobject *kobj, struct attribute *attr,
-+		       const char *buf, size_t count)
-+{
-+	struct cma_region *reg = container_of(kobj, struct cma_region, kobj);
-+	struct cma_region_attribute *rattr =
-+		container_of(attr, struct cma_region_attribute, attr);
-+	int ret;
-+
-+	mutex_lock(&cma_mutex);
-+	ret = rattr->store(reg, buf);
-+	mutex_unlock(&cma_mutex);
-+
-+	return ret < 0 ? ret : count;
-+}
-+
-+static struct kobj_type cma_sysfs_region_type = {
-+	.sysfs_ops	= &(const struct sysfs_ops){
-+		.show	= cma_sysfs_region_show,
-+		.store	= cma_sysfs_region_store,
-+	},
-+	.default_attrs	= (struct attribute * []) {
-+		CMA_ATTR_RO_INLINE(region, name),
-+		CMA_ATTR_RO_INLINE(region, start),
-+		CMA_ATTR_RO_INLINE(region, size),
-+		CMA_ATTR_RO_INLINE(region, free),
-+		CMA_ATTR_RO_INLINE(region, users),
-+		CMA_ATTR_INLINE(region, alloc),
-+		NULL
-+	},
-+};
-+
-+static void __cma_sysfs_region_add(struct cma_region *reg)
-+{
-+	int ret;
-+
-+	if (!cma_sysfs_regions_ready)
-+		return;
-+
-+	memset(&reg->kobj, 0, sizeof reg->kobj);
-+
-+	ret = kobject_init_and_add(&reg->kobj, &cma_sysfs_region_type,
-+				   &cma_sysfs_regions,
-+				   "%p", (void *)reg->start);
-+
-+	if (reg->name &&
-+	    sysfs_create_link(&cma_sysfs_regions, &reg->kobj, reg->name) < 0)
-+		/* Ignore any errors. */;
-+}
-+
-+#else
-+
-+static void __cma_sysfs_region_add(struct cma_region *reg)
-+{
-+	/* nop */
-+}
-+
-+#endif
-+
-+
- /************************* Chunks *************************/
- 
- /* All chunks sorted by start address. */
-@@ -784,6 +1113,18 @@ static int __cma_region_attach_alloc(struct cma_region *reg)
- 	return ret;
- }
- 
-+static void __cma_region_detach_alloc(struct cma_region *reg)
-+{
-+	if (!reg->alloc)
-+		return;
-+
-+	if (reg->alloc->cleanup)
-+		reg->alloc->cleanup(reg);
-+
-+	reg->alloc = NULL;
-+	reg->used = 1;
-+}
-+
- 
- /*
-  * s            ::= rules
--- 
-1.7.1
-
+SGVoLiAgQmV0d2VlbiAid2hlcmUncyB0aGUgY3VycmVudCBiYXNlPyIsID4gMSBob3VyIHJlYnVp
+bGQgdGltZXMgZm9yIHRoZSB3aG9sZSBrZXJuZWwsIGFuZCBjb250aW51YWwgcmV0b29saW5nIG9m
+IHRoZSBJUiBjb3JlIHN0dWZmLCBJIGNhbid0IGtlZXAgdXAgd2l0aCB0aGUgdGltZSBJIGhhdmUg
+YXZhaWxhYmxlLgoKTWF1cm8gZGlkIG1ha2UgYW4gYW5ub3VuY2VtZW50IGEgZmV3IHdlZWtzIGJh
+Y2suICBJIHRob3VnaHQgaXQgd2FzIHRoZSBtZWRpYS5naXQgdHJlZS4KClIsCkFuZHkKCkRhdmlk
+IEjDpHJkZW1hbiA8ZGF2aWRAaGFyZGVtYW4ubnU+IHdyb3RlOgoKPk9uIFRodSwgQXVndXN0IDI2
+LCAyMDEwIDIxOjE0LCBKYXJvZCBXaWxzb24gd3JvdGU6Cj4+IE9uIFdlZCwgQXVnIDI1LCAyMDEw
+IGF0IDAxOjAxOjU3QU0gKzAyMDAsIERhdmlkIEjDpHJkZW1hbiB3cm90ZToKPj4+IFRoZSBmb2xs
+b3dpbmcgc2VyaWVzIG1lcmdlcyB0aGUgZGlmZmVyZW50IGZpbGVzIHRoYXQgY3VycmVudGx5IG1h
+a2UgdXAKPj4+IHRoZSBpci1jb3JlIG1vZHVsZSBpbnRvIGEgc2luZ2xlLWZpbGUgcmMtY29yZSBt
+b2R1bGUuCj4+Pgo+Pj4gSW4gYWRkaXRpb24sIHRoZSBpcl9pbnB1dF9kZXYgYW5kIGlyX2Rldl9w
+cm9wcyBzdHJ1Y3RzIGFyZSByZXBsYWNlZAo+Pj4gYnkgYSBzaW5nbGUgcmNfZGV2IHN0cnVjdCB3
+aXRoIGFuIEFQSSBzaW1pbGFyIHRvIHRoYXQgb2YgdGhlIGlucHV0Cj4+PiBzdWJzeXN0ZW0uCj4+
+Pgo+Pj4gVGhpcyBhbGxvd3MgdGhlIHJlbW92YWwgb2YgYWxsIGtub3dsZWRnZSBvZiBhbnkgaW5w
+dXQgZGV2aWNlcyBmcm9tIHRoZQo+Pj4gcmMgZHJpdmVycyBhbmQgcGF2ZXMgdGhlIHdheSBmb3Ig
+YWxsb3dpbmcgbXVsdGlwbGUgaW5wdXQgZGV2aWNlcyBwZXIKPj4+IHJjIGRldmljZSBpbiB0aGUg
+ZnV0dXJlLiBUaGUgbmFtZXNwYWNlIGNvbnZlcnNpb24gZnJvbSBpcl8qIHRvIHJjXyoKPj4+IHNo
+b3VsZCBtb3N0bHkgYmUgZG9uZSBmb3IgdGhlIGRyaXZlcnMgd2l0aCB0aGlzIHBhdGNoc2V0Lgo+
+Pj4KPj4+IEkgaGF2ZSBpbnRlbnRpb25hbGx5IG5vdCBzaWduZWQgb2ZmIG9uIHRoZSBwYXRjaGVz
+IHlldCBzaW5jZSB0aGV5Cj4+PiBoYXZlbid0Cj4+PiBiZWVuIHRlc3RlZC4gSSdkIGxpa2UgeW91
+ciBmZWVkYmFjayBvbiB0aGUgZ2VuZXJhbCBhcHByb2FjaCBiZWZvcmUgSQo+Pj4gc3BlbmQKPj4+
+IHRoZSB0aW1lIHRvIHByb3Blcmx5IHRlc3QgdGhlIHJlc3VsdC4KPj4+Cj4+PiBBbHNvLCB0aGUg
+aW1vbiBkcml2ZXIgaXMgbm90IGNvbnZlcnRlZCAoYW5kIHdpbGwgdGh1cyBicmVhayB3aXRoIHRo
+aXMKPj4+IHBhdGNoc2V0KS4gVGhlIHJlYXNvbiBpcyB0aGF0IHRoZSBpbW9uIGRyaXZlciB3YW50
+cyB0byBnZW5lcmF0ZSBtb3VzZQo+Pj4gZXZlbnRzIG9uIHRoZSBpbnB1dCBkZXYgdW5kZXIgdGhl
+IGNvbnRyb2wgb2YgcmMtY29yZS4gSSB3YXMgaG9waW5nIHRoYXQKPj4+IEphcm9kIHdvdWxkIGJl
+IHdpbGxpbmcgdG8gY29udmVydCB0aGUgaW1vbiBkcml2ZXIgdG8gY3JlYXRlIGEgc2VwYXJhdGUK
+Pj4+IGlucHV0IGRldmljZSBmb3Igc2VuZGluZyBtb3VzZSBldmVudHMgdG8gdXNlcnNwYWNlIDop
+Cj4+Cj4+IFllYWgsIEkgY291bGQgYmUgcGVyc3VhZGVkIHRvIGRvIHRoYXQuIE1lYW5zIHRoYXQg
+dGhlIGltb24gZHJpdmVyLCB3aGVuCj4+IGRyaXZpbmcgb25lIG9mIHRoZSB0b3VjaHNjcmVlbiBk
+ZXZpY2VzLCB3aWxsIGJyaW5nIHVwIDMgc2VwYXJhdGUgaW5wdXQKPj4gZGV2aWNlcywgYnV0IG9o
+IHdlbGwuIChJJ2QgYWN0dWFsbHkgY29uc2lkZXJlZCBkb2luZyB0aGF0IHdoZW4gcG9ydGluZyB0
+bwo+PiBpci1jb3JlIGluIHRoZSBmaXJzdCBwbGFjZSwgYnV0IHdlbnQgdGhlIGxhenkgcm91dGUu
+IDspCj4KPlRoYXQgd291bGQgYmUgZ29vZC4gSSdtIHByZXR0eSBjZXJ0YWluIHRoYXQgdGhlIHNw
+bGl0IHdpbGwgYmUgbmVjZXNzYXJ5Cj5zb29uZXIgb3IgbGF0ZXIuCj4KPj4+IENvbW1lbnRzIHBs
+ZWFzZS4uLgo+Pgo+PiBIYXZlbid0IHRyaWVkIGl0IG91dCBhdCBhbGwgeWV0IG9yIGRvbmUgbW9y
+ZSB0aGFuIGEgcXVpY2sgc2tpbSB0aHJvdWdoIHRoZQo+PiBwYXRjaGVzLCBidXQgYXQgZmlyc3Qg
+Z2xhbmNlLCBJIGRvIGxpa2UgdGhlIGlkZWEgb2YgZnVydGhlciBhYnN0cmFjdGluZwo+PiBhd2F5
+IHRoZSBpbnB1dCBsYXllci4gSSBrbm93IEkgdGFua2VkIGEgZmV3IHRoaW5ncyB0aGUgZmlyc3Qg
+Z28gJ3JvdW5kLAo+PiB0aGlua2luZyBJIG5lZWRlZCB0byBkbyBib3RoIHNvbWUgcmMtbGF5ZXIg
+YW5kIGlucHV0LWxheWVyIHNldHVwIGFuZC9vcgo+PiB0ZWFyZG93bi4gSXQgYmVjb21lcyBtb3Jl
+IGN1dCBhbmQgZHJ5IGlmIHlvdSBkb24ndCBzZWUgYW55dGhpbmcKPj4gaW5wdXQtcmVsYXRlZCBh
+bnl3aGVyZSBhdCBhbGwuCj4KPk5vdCB0byBtZW50aW9uIHdlIHdpbGwgaGF2ZSBhIG1vcmUgY29u
+c2lzdGVudCB1c2VyIGV4cGVyaWVuY2UuIEZvcgo+ZXhhbXBsZTogc29tZSBvZiB0aGUgY3VycmVu
+dCBoYXJkd2FyZSBkcml2ZXJzIGFyZSBmaWRkbGluZyB3aXRoIHRoZSByZXBlYXQKPnZhbHVlcyBv
+ZiB0aGUgaW5wdXQgZGV2Li4uc29tZXRoaW5nIHdoaWNoIHNob3VsZCBiZSB0aGUgc2FtZSBhY3Jv
+c3MgdGhlCj5lbnRpcmUgc3Vic3lzdGVtICh5b3Ugd291bGRuJ3QgZXhwZWN0IHRoZSByZXBldGl0
+aW9uIHJhdGUgZm9yIHRoZSBleGFjdAo+c2FtZSByZW1vdGUgY29udHJvbCB0byBjaGFuZ2UganVz
+dCBiZWNhdXNlIHlvdSBjaGFuZ2UgdGhlIHJlY2VpdmVyKS4KPgo+QWxzbywgaXQncyBuZWNlc3Nh
+cnkgZm9yIGFueSBmdXR1cmUgc3VwcG9ydCBvZiBtdWx0aXBsZSBpbnB1dCBkZXZpY2VzIChvbmUK
+PnBlciBwaHlzaWNhbCByZW1vdGUgY29udHJvbCBiZWluZyBvbmUgZXhhbXBsZSkuLi5hbmQgaXQg
+Z2l2ZXMgdXMgbW9yZQo+ZmxleGliaWxpdHkgdG8gbWFrZSBjaGFuZ2VzIGluIHJjLWNvcmUgd2hl
+biBkcml2ZXJzIGRvIG5vdCBtdWNrIGFyb3VuZCBpbgo+c3ViZGV2aWNlcyAoaW5wdXQgZGV2aWNl
+cyB0aGF0IGlzKS4KPgo+PiBPbmUgdGhpbmcgSSBkaWQgbm90ZSB3aXRoIHRoZSBwYXRjaGVzIGlz
+IHRoYXQgYSBsb3Qgb2YgYml0cyB3ZXJlIGFsdGVyZWQKPj4gZnJvbSBpci1mb28gdG8gcmMtZm9v
+LCBidXQgbm90IGFsbCBvZiB0aGVtLi4uIElmIHdlJ3JlIGdvaW5nIHRvIG1ha2UgdGhlCj4+IGNo
+YW5nZSwgd2h5IG5vIGdvIHdob2xlIGhvZz8gKE9yIHdhcyBpdCBvbmx5IHRoaW5ncyByZWxldmFu
+dCB0byBpcgo+PiBzcGVjaWZpY2FsbHkgcmlnaHQgbm93IHRoYXQgZGlkbid0IGdldCByZW5hbWVk
+PykKPgo+VGhlIHJ1bGUgb2YgdGh1bWIgSSBmb2xsb3dlZCB3YXMgdG8gcmVuYW1lIHN0dWZmIHRo
+YXQgSSB0b3VjaGVkIGJ1dCBsZWF2ZQo+dW5jaGFuZ2VkIGNvZGUgYWxvbmUuIFJlbmFtaW5nIHRo
+ZSByZW1haW5pbmcgZnVuY3Rpb25zIGNhbiBiZSBkb25lIGluCj5sYXRlciwgc2VwYXJhdGUsIHBh
+dGNoZXMgKHNvbWUgb2YgdGhlbSB3aWxsIGJlIG1vcmUgaW52YXNpdmUgYXMgZmlsZSBuYW1lcwo+
+bmVlZCBjaGFuZ2luZyBhcyB3ZWxsKS4KPgo+T24gYSByZWxhdGVkIG5vdGUsIEknbSBnZXR0aW5n
+IGNvbmZ1c2VkIHdydCBnaXQgdGhlIHY0bC1kdmIgZ2l0IGJyYW5jaGVzLgo+VGhlIGN1cnJlbnQg
+cGF0Y2hlcyBhcmUgYWdhaW5zdCBzdGFnaW5nL3JjIHdoaWNoIGhhc24ndCBzZWVuIG11Y2ggYWN0
+aXZpdHkKPmluIGEgbW9udGggb3IgdHdvIGJ1dCBzdGFnaW5nL290aGVyIHNlZW1zIHRvIGNhcnJ5
+IHNvbWUgbW9yZSByZWNlbnQKPnJjLXJlbGF0ZWQgcGF0Y2hlcy4uLndoaWNoIG9uZSBhbSBJIHN1
+cHBvc2VkIHRvIGJhc2UgbXkgd29yayBvbj8KPgo+LS0gCj5EYXZpZCBIw6RyZGVtYW4KPgo+LS0K
+PlRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmli
+ZSBsaW51eC1tZWRpYSIgaW4KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdl
+ci5rZXJuZWwub3JnCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwu
+b3JnL21ham9yZG9tby1pbmZvLmh0bWwK
 
