@@ -1,93 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:38654 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752480Ab0H0KuO (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3729 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753430Ab0H1Sy7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 06:50:14 -0400
-Message-ID: <48433ffada5b997854daf1f31898b1e9.squirrel@www.hardeman.nu>
-In-Reply-To: <20100826191450.GA11951@redhat.com>
-References: <20100824225427.13006.57226.stgit@localhost.localdomain>
-    <20100826191450.GA11951@redhat.com>
-Date: Fri, 27 Aug 2010 12:50:11 +0200 (CEST)
-Subject: Re: [PATCH 0/3] Proposed ir-core (rc-core) changes
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: "Jarod Wilson" <jarod@redhat.com>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
+	Sat, 28 Aug 2010 14:54:59 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7SIsoNj000765
+	for <linux-media@vger.kernel.org>; Sat, 28 Aug 2010 20:54:58 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 28 Aug 2010 20:54:50 +0200 (CEST)
+Message-Id: <201008281854.o7SIsoNj000765@smtp-vbr6.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, August 26, 2010 21:14, Jarod Wilson wrote:
-> On Wed, Aug 25, 2010 at 01:01:57AM +0200, David Härdeman wrote:
->> The following series merges the different files that currently make up
->> the ir-core module into a single-file rc-core module.
->>
->> In addition, the ir_input_dev and ir_dev_props structs are replaced
->> by a single rc_dev struct with an API similar to that of the input
->> subsystem.
->>
->> This allows the removal of all knowledge of any input devices from the
->> rc drivers and paves the way for allowing multiple input devices per
->> rc device in the future. The namespace conversion from ir_* to rc_*
->> should mostly be done for the drivers with this patchset.
->>
->> I have intentionally not signed off on the patches yet since they
->> haven't
->> been tested. I'd like your feedback on the general approach before I
->> spend
->> the time to properly test the result.
->>
->> Also, the imon driver is not converted (and will thus break with this
->> patchset). The reason is that the imon driver wants to generate mouse
->> events on the input dev under the control of rc-core. I was hoping that
->> Jarod would be willing to convert the imon driver to create a separate
->> input device for sending mouse events to userspace :)
->
-> Yeah, I could be persuaded to do that. Means that the imon driver, when
-> driving one of the touchscreen devices, will bring up 3 separate input
-> devices, but oh well. (I'd actually considered doing that when porting to
-> ir-core in the first place, but went the lazy route. ;)
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-That would be good. I'm pretty certain that the split will be necessary
-sooner or later.
+Results of the daily build of v4l-dvb:
 
->> Comments please...
->
-> Haven't tried it out at all yet or done more than a quick skim through the
-> patches, but at first glance, I do like the idea of further abstracting
-> away the input layer. I know I tanked a few things the first go 'round,
-> thinking I needed to do both some rc-layer and input-layer setup and/or
-> teardown. It becomes more cut and dry if you don't see anything
-> input-related anywhere at all.
+date:        Sat Aug 28 19:00:06 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15138:a4c762698bcb
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Not to mention we will have a more consistent user experience. For
-example: some of the current hardware drivers are fiddling with the repeat
-values of the input dev...something which should be the same across the
-entire subsystem (you wouldn't expect the repetition rate for the exact
-same remote control to change just because you change the receiver).
+linux-2.6.32.6-armv5: ERRORS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: ERRORS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
 
-Also, it's necessary for any future support of multiple input devices (one
-per physical remote control being one example)...and it gives us more
-flexibility to make changes in rc-core when drivers do not muck around in
-subdevices (input devices that is).
+Detailed results are available here:
 
-> One thing I did note with the patches is that a lot of bits were altered
-> from ir-foo to rc-foo, but not all of them... If we're going to make the
-> change, why no go whole hog? (Or was it only things relevant to ir
-> specifically right now that didn't get renamed?)
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-The rule of thumb I followed was to rename stuff that I touched but leave
-unchanged code alone. Renaming the remaining functions can be done in
-later, separate, patches (some of them will be more invasive as file names
-need changing as well).
+Full logs are available here:
 
-On a related note, I'm getting confused wrt git the v4l-dvb git branches.
-The current patches are against staging/rc which hasn't seen much activity
-in a month or two but staging/other seems to carry some more recent
-rc-related patches...which one am I supposed to base my work on?
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
--- 
-David Härdeman
+The V4L-DVB specification from this daily build is here:
 
+http://www.xs4all.nl/~hverkuil/spec/media.html
