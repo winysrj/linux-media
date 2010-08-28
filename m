@@ -1,44 +1,133 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:53511 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932155Ab0HEUvN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 16:51:13 -0400
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:32471 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752302Ab0H1P0D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Aug 2010 11:26:03 -0400
+Message-ID: <4C792BE1.6090001@redhat.com>
+Date: Sat, 28 Aug 2010 17:31:45 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1008052229390.31692@ask.diku.dk>
-References: <Pine.LNX.4.64.1008052229390.31692@ask.diku.dk>
-Date: Thu, 5 Aug 2010 22:51:12 +0200
-Message-ID: <AANLkTi=YauQBWyZnGpuBtQpNq=Re8WUXY9mH6FSFMP+7@mail.gmail.com>
-Subject: Re: [PATCH 42/42] drivers/media/video/bt8xx: Adjust confusing if
-	indentation
-From: Luca Tettamanti <kronos.it@gmail.com>
-To: Julia Lawall <julia@diku.dk>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
-Sender: linux-media-owner@vger.kernel.org
+To: Jonathan Isom <jeisom@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Patryk Biela <patryk.biela@gmail.com>
+Subject: Re: ibmcam (xrilink_cit) and konica webcam driver porting to gspca
+ update
+References: <4C3070A4.6040702@redhat.com> <AANLkTinXb=TeSGO_6Mr6jhzaUOUZ3yZL5+oAP2GP0GG5@mail.gmail.com>
+In-Reply-To: <AANLkTinXb=TeSGO_6Mr6jhzaUOUZ3yZL5+oAP2GP0GG5@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
 Hi,
-one minor comment:
 
-On Thu, Aug 5, 2010 at 10:29 PM, Julia Lawall <julia@diku.dk> wrote:
-> From: Julia Lawall <julia@diku.dk>
+On 08/28/2010 12:54 AM, Jonathan Isom wrote:
+> On Sun, Jul 4, 2010 at 6:29 AM, Hans de Goede<hdegoede@redhat.com>  wrote:
+>> Hi all,
+>>
+>> I've finished porting the usbvideo v4l1 ibmcam and
+>> konicawc drivers to gspcav2.
+>>
+>> The ibmcam driver is replaced by gspca_xirlink_cit, which also
+>> adds support for 2 new models (it turned out my testing cams
+>> where not supported by the old driver). This one could use
+>> more testing.
 >
-> Indent the branch of an if.
-[...]
-> diff --git a/drivers/media/video/bt8xx/bttv-i2c.c b/drivers/media/video/bt8xx/bttv-i2c.c
-> index 685d659..695765c 100644
-> --- a/drivers/media/video/bt8xx/bttv-i2c.c
-> +++ b/drivers/media/video/bt8xx/bttv-i2c.c
-> @@ -123,7 +123,7 @@ bttv_i2c_wait_done(struct bttv *btv)
->        if (wait_event_interruptible_timeout(btv->i2c_queue,
->                btv->i2c_done, msecs_to_jiffies(85)) == -ERESTARTSYS)
+> I just tried using your driver. I get no video.  using 2.6.35.3.  Had
+> to patch usb_buffer_[alloc&  free]
+> otherwise no changes to your tree.
 >
-> -       rc = -EIO;
-> +               rc = -EIO;
+>> /usr/bin/qv4l2 /dev/video2
+> Start Capture: Input/output error
+> VIDIOC_STREAMON: Input/output error
+> Start Capture: Input/output error
+> VIDIOC_STREAMON: Input/output error
+>
 
-I'd also remove the empty line before the indented statement, it's confusing...
+Thanks for testing!
 
-Luca
+Ok, so a couple of things:
+1) For the new xirlink cit driver to work you need the latest libv4l
+from v4l-utils (use the just released 0.8.1 for example), but that
+does not explain the io errors.
+
+2) Make sure you the old usbvideo ibmcam driver is no used (remove the
+.ko file from /lib/modules/...
+
+3) Do
+echo 63 > /sys/module/gspca_main/parameters/debug
+(as root, note sudo does not work with redirects)
+
+And then try some application again and after trying do
+dmesg > dmesg.txt and attach dmesg.txt to your next reply.
+
+4) What did you need to change exactly, can you share the changes
+in question with me in the form of a patch ? (I'm waiting for
+Douglas to sync the main hg v4l-dvb tree with the latest upstream /
+mauro's tree and then I'll rebase my ibmcam tree.
+
+5) Do
+lsusb -v > lsusb.log and attach that to your next mail too.
+
+Thanks & Regards,
+
+Hans
+
+
+> -- info
+> Model 2	
+> KSX-X9903	
+> 0x0545
+> 0x8080
+> 3.0a
+> Old, cheaper model	Xirlink C-It
+>
+> /usr/sbin/v4l2-dbg -d /dev/video2 -D
+> Driver info:
+>          Driver name   : xirlink-cit
+>          Card type     : USB IMAGING DEVICE
+>          Bus info      : usb-0000:00:12.2-6.1
+>          Driver version: 133376
+>          Capabilities  : 0x05000001
+>                  Video Capture
+>                  Read/Write
+>                  Streaming
+>
+> Any Ideas
+>
+> Jonathan
+>
+>
+>
+>
+>
+>> The konicawc driver is replaced by gspca_konica which is
+>> pretty much finished.
+>>
+>> You can get them both here:
+>> http://linuxtv.org/hg/~hgoede/ibmcam
+>>
+>> Once Douglas updates the hg v4l-dvb tree to be up2date with
+>> the latest and greatest from Mauro, then I'll rebase my
+>> tree (the ibmcam driver needs a very recent gspca core patch),
+>> and send a pull request.
+>>
+>> Regards,
+>>
+>> Hans
+>>
+>>
+>> p.s.
+>>
+>> 1) Many thanks to Patryk Biela for providing me a konica
+>>    driver using camera.
+>> 2) Still to do the se401 driver.
+>> 3) I'll be on vacation the coming week and not reading email.
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+>
