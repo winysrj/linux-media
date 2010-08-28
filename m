@@ -1,79 +1,85 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1614 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755809Ab0HCNcD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Aug 2010 09:32:03 -0400
-Message-ID: <4C581A5F.5020403@redhat.com>
-Date: Tue, 03 Aug 2010 10:32:15 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Richard Zidlicky <rz@linux-m68k.org>
-CC: linux-media@vger.kernel.org, udia@siano-ms.com,
-	Michael Krufky <mkrufky@kernellabs.com>
-Subject: Re: [PATCH 3/6] V4L/DVB: smsusb: enable IR port for Hauppauge WinTV
- MiniStick
-References: <cover.1280693675.git.mchehab@redhat.com> <20100801171718.5ad62978@pedra> <20100802072711.GA5852@linux-m68k.org> <4C577888.30408@redhat.com> <20100803130552.GA9954@linux-m68k.org>
-In-Reply-To: <20100803130552.GA9954@linux-m68k.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from casper.infradead.org ([85.118.1.10]:43035 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751328Ab0H1Nfw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Aug 2010 09:35:52 -0400
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+From: Peter Zijlstra <peterz@infradead.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Michal Nazarewicz <m.nazarewicz@samsung.com>,
+	linux-mm@kvack.org, Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Mel Gorman <mel@csn.ul.ie>
+In-Reply-To: <201008281508.19756.hverkuil@xs4all.nl>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+	 <1282310110.2605.976.camel@laptop>
+	 <20100825155814.25c783c7.akpm@linux-foundation.org>
+	 <201008281508.19756.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Date: Sat, 28 Aug 2010 15:34:46 +0200
+Message-ID: <1283002486.1975.3479.camel@laptop>
+Mime-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 03-08-2010 10:05, Richard Zidlicky escreveu:
-> Hi,
-> 
->> Em 02-08-2010 04:27, Richard Zidlicky escreveu:
->>> On Sun, Aug 01, 2010 at 05:17:18PM -0300, Mauro Carvalho Chehab wrote:
->>>> Add the proper gpio port for WinTV MiniStick, with the information provided
->>>> by Michael.
->>>>
->>>> Thanks-to: Michael Krufky <mkrufky@kernellabs.com>
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>>>
->>>> diff --git a/drivers/media/dvb/siano/sms-cards.c b/drivers/media/dvb/siano/sms-cards.c
->>>> index cff77e2..dcde606 100644
->>>> --- a/drivers/media/dvb/siano/sms-cards.c
->>>> +++ b/drivers/media/dvb/siano/sms-cards.c
->>>> @@ -67,6 +67,7 @@ static struct sms_board sms_boards[] = {
->>>>  		.board_cfg.leds_power = 26,
->>>>  		.board_cfg.led0 = 27,
->>>>  		.board_cfg.led1 = 28,
->>>> +		.board_cfg.ir = 9,
->>>                                ^^^^
->>>
->>> are you sure about this?
->>>
->>> I am using the value of 4 for the ir port and it definitely works.. confused.
->>
->> I got this from a reliable source, and that worked perfectly  my with a Model 55009 
->> LF Rev B1F7. What's the model of your device?
-> 
-> mine says 
-> 
-> Aug  3 14:58:10 localhost kernel: [149778.591862] usb 5-5: New USB device found, idVendor=2040, idProduct=5500
-> Aug  3 14:58:10 localhost kernel: [149778.591865] usb 5-5: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> Aug  3 14:58:10 localhost kernel: [149778.591868] usb 5-5: Product: WinTV MiniStick
-> Aug  3 14:58:10 localhost kernel: [149778.591870] usb 5-5: Manufacturer: Hauppauge Computer Works
-> Aug  3 14:58:10 localhost kernel: [149778.591872] usb 5-5: SerialNumber: f069684c
-> 
-> not sure what else to report.
+On Sat, 2010-08-28 at 15:08 +0200, Hans Verkuil wrote:
 
-The model number is on a label at the back of the stick (at least, mine have it).
- 
-> I will compile and try a new kernel tonight.
+> > That would be good.  Although I expect that the allocation would need
+> > to be 100% rock-solid reliable, otherwise the end user has a
+> > non-functioning device.
 > 
-> Wondering - is this 
->   http://git.sliepen.org/browse?p=inputlirc
-> usefull to feed the input events to LIRC when trying the new driver with a slightly older 
-> LIRC based distro?
+> Yes, indeed. And you have to be careful as well how you move pages around.
+> Say that you have a capture and an output v4l device: the first one needs
+> 64 MB contiguous memory and so it allocates that amount, moving pages around
+> as needed. Once allocated that memory is pinned in place since it is needed
+> for DMA. So if the output device also needs 64 MB, then you must have a
+> guarantee that the first allocation didn't fragment the available contiguous
+> memory.
 
-The in-kernel lirc support need a new version of LIRC since a few ioctls numbers were changed,
-to avoid needing to write a code in kernel to handle compatibility between 32 and 64 bit kernels.
-If you're running a 32 bits kernel, it may work.
+Isn't the proposed CMA thing vulnerable to the exact same problem? If
+you allow sharing of regions and plug some allocator in there you get
+the same problem. If you can solve it there, you can solve it for any
+kind of reservation scheme.
 
-Btw, you don't need to use lirc if all you want is to replace the IR keycodes. You can use, instead,
-the ir-keycode program, available at http://git.linuxtv.org/v4l-utils.git. There are several keycode
-tables already mapped there. Of course, lirc offers some extra features.
+> I also wonder how expensive it is to move all the pages around. E.g. if you
+> have a digital camera and want to make a hires picture, then it wouldn't
+> do if it takes a second to move all the pages around making room for the
+> captured picture. The CPUs in many SoCs are not very powerful compared to
+> your average desktop.
 
-Cheers,
-Mauro.
+Well, that's a trade-off, if you want to have the memory be usable for
+anything else (which I understood people did want) then you have to pay
+for cleaning it up when you need to use it.
+
+As for the cost of compaction vs regular page-out of random page-cache
+memory, compaction is actually cheaper, since it doesn't need to write
+out dirty data, and page-out driven writeback sucks due to the
+non-linear nature of it.
+
+> And how would memory allocations in specific memory ranges (e.g. memory
+> banks) work?
+
+Make sure you reserve pageblocks in the desired range.
+
+> Note also that these issues are not limited to embedded systems, also PCI(e)
+> boards can sometimes require massive amounts of DMA-able memory. I have had
+> this happen in the past with the ivtv driver with customers that had 15 or so
+> capture cards in one box. And I'm sure it will happen in the future as well,
+> esp. with upcoming 4k video formats.
+
+I would sincerely hope PCI(e) devices come with an IOMMU (and all memory
+lines wired up), really, any hardware that doesn't isn't worth the
+silicon its engraved in. Just don't buy it.
+
