@@ -1,45 +1,510 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh03.mail.saunalahti.fi ([62.142.5.109]:38139 "EHLO
-	emh03.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752367Ab0HGLWm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Aug 2010 07:22:42 -0400
-Received: from saunalahti-vams (vs3-11.mail.saunalahti.fi [62.142.5.95])
-	by emh03-2.mail.saunalahti.fi (Postfix) with SMTP id 09144EBFDE
-	for <linux-media@vger.kernel.org>; Sat,  7 Aug 2010 14:22:41 +0300 (EEST)
-Message-ID: <4C5D41FE.8070808@kolumbus.fi>
-Date: Sat, 07 Aug 2010 14:22:38 +0300
-From: Marko Ristola <marko.ristola@kolumbus.fi>
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3202 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752858Ab0H1LOZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Aug 2010 07:14:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v4 08/11] media: Links setup
+Date: Sat, 28 Aug 2010 13:14:18 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-9-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1282318153-18885-9-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Avoid unnecessary data copying inside dvb_dmx_swfilter_204()
- function
-References: <4C5D2BA1.60804@kolumbus.fi>
-In-Reply-To: <4C5D2BA1.60804@kolumbus.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <201008281314.18698.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
+On Friday, August 20, 2010 17:29:10 Laurent Pinchart wrote:
+> Create the following ioctl and implement it at the media device level to
+> setup links.
+> 
+> - MEDIA_IOC_SETUP_LINK: Modify the properties of a given link
+> 
+> The only property that can currently be modified is the ACTIVE link flag
+> to activate/deactivate a link. Links marked with the IMMUTABLE link flag
+> can not be activated or deactivated.
+> 
+> Activating and deactivating a link has effects on entities' use count.
+> Those changes are automatically propagated through the graph.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  Documentation/media-framework.txt |   81 ++++++++++++++-
+>  drivers/media/media-device.c      |   45 ++++++++
+>  drivers/media/media-entity.c      |  208 +++++++++++++++++++++++++++++++++++++
+>  include/linux/media.h             |    1 +
+>  include/media/media-entity.h      |    8 ++
+>  5 files changed, 340 insertions(+), 3 deletions(-)
+> 
+> diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+> index 74a137d..7894ef3 100644
+> --- a/Documentation/media-framework.txt
+> +++ b/Documentation/media-framework.txt
+> @@ -278,6 +278,16 @@ When the graph traversal is complete the function will return NULL.
+>  Graph traversal can be interrupted at any moment. No cleanup function call is
+>  required and the graph structure can be freed normally.
+>  
+> +Helper functions can be used to find a link between two given pads, or a pad
+> +connected to another pad through an active link
+> +
+> +	media_entity_find_link(struct media_pad *source,
+> +			       struct media_pad *sink);
+> +
+> +	media_entity_remote_pad(struct media_pad *pad);
+> +
+> +Refer to the kerneldoc documentation for more information.
+> +
+>  
+>  Reference counting and power handling
+>  -------------------------------------
+> @@ -316,6 +326,46 @@ is allowed to fail when turning power on, in which case the media_entity_get
+>  function will return NULL.
+>  
+>  
+> +Links setup
+> +-----------
+> +
+> +Link properties can be modified at runtime by calling
+> +
+> +	media_entity_setup_link(struct media_link *link, u32 flags);
+> +
+> +The flags argument contains the requested new link flags.
+> +
+> +The only configurable property is the ACTIVE link flag to activate/deactivate
+> +a link. Links marked with the IMMUTABLE link flag can not be activated or
+> +deactivated.
+> +
+> +When a link is activated or deactivated, the media framework calls the
+> +link_setup operation for the two entities at the source and sink of the link,
+> +in that order. If the second link_setup call fails, another link_setup call is
+> +made on the first entity to restore the original link flags.
+> +
+> +Entity drivers must implement the link_setup operation if any of their links
+> +is non-immutable. The operation must either configure the hardware or store
+> +the configuration information to be applied later.
+> +
+> +Link activation must not have any side effect on other links. If an active
+> +link at a sink pad prevents another link at the same pad from being
+> +deactivated, the link_setup operation must return -EBUSY and can't implicitly
+> +deactivate the first active link.
+> +
+> +Activating and deactivating a link has effects on entities' reference counts.
+> +When two sub-graphs are connected, the reference count of each of them is
+> +incremented by the total reference count of all node entities in the other
+> +sub-graph. When two sub-graphs are disconnected, the reverse operation is
+> +performed. In both cases the set_power operations are called accordingly,
+> +ensuring that the link_setup calls are made with power active on the source
+> +and sink entities.
+> +
+> +In other words, activating or deactivating a link propagates reference count
+> +changes through the graph, and the final state is identical to what it would
+> +have been if the link had been active or inactive from the start.
+> +
+> +
+>  Userspace application API
+>  -------------------------
+>  
+> @@ -439,9 +489,6 @@ Valid entity flags are
+>  
+>  	ioctl(int fd, int request, struct media_links_enum *argp);
+>  
+> -Only forward links that originate at one of the entity's source pads are
+> -returned during the enumeration process.
+> -
+>  To enumerate pads and/or links for a given entity, applications set the entity
+>  field of a media_links_enum structure and initialize the media_pad_desc and
+>  media_link_desc structure arrays pointed by the pads and links fields. They then
+> @@ -457,6 +504,9 @@ information about the entity's outbound links. The array must have enough room
+>  to store all the entity's outbound links. The number of outbound links can be
+>  retrieved with the MEDIA_IOC_ENUM_ENTITIES ioctl.
+>  
+> +Only outbound (forward) links that originate at one of the entity's source
+> +pads are returned during the enumeration process.
+> +
+>  The media_pad_desc, media_link_desc and media_links_enum structures are defined
+>  as
+>  
+> @@ -497,3 +547,28 @@ struct media_pad_desc	*pads	Pointer to a pads array allocated by the
+>  				application. Ignored if NULL.
+>  struct media_link_desc	*links	Pointer to a links array allocated by the
+>  				application. Ignored if NULL.
+> +
+> +
+> +	MEDIA_IOC_SETUP_LINK - Modify the properties of a link
+> +	------------------------------------------------------
+> +
+> +	ioctl(int fd, int request, struct media_link_desc *argp);
+> +
+> +To change link properties applications fill a media_link_desc structure with
+> +link identification information (source and sink pad) and the new requested link
+> +flags. They then call the MEDIA_IOC_SETUP_LINK ioctl with a pointer to that
+> +structure.
+> +
+> +The only configurable property is the ACTIVE link flag to activate/deactivate
+> +a link. Links marked with the IMMUTABLE link flag can not be activated or
+> +deactivated.
+> +
+> +Link activation has no side effect on other links. If an active link at the
+> +sink pad prevents the link from being activated, the driver returns with a
+> +EBUSY error code.
+> +
+> +If the specified link can't be found the driver returns with a EINVAL error
+> +code.
+> +
+> +The media_pad_desc and media_link_desc structures are described in the
+> +MEDIA_IOC_ENUM_LINKS ioctl documentation.
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index 7e020f9..06655d9 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -170,6 +170,44 @@ static long media_device_enum_links(struct media_device *mdev,
+>  	return 0;
+>  }
+>  
+> +static long media_device_setup_link(struct media_device *mdev,
+> +				    struct media_link_desc __user *_ulink)
+> +{
+> +	struct media_link *link = NULL;
+> +	struct media_link_desc ulink;
+> +	struct media_entity *source;
+> +	struct media_entity *sink;
+> +	int ret;
+> +
+> +	if (copy_from_user(&ulink, _ulink, sizeof(ulink)))
+> +		return -EFAULT;
+> +
+> +	/* Find the source and sink entities and link.
+> +	 */
+> +	source = find_entity(mdev, ulink.source.entity);
+> +	sink = find_entity(mdev, ulink.sink.entity);
+> +
+> +	if (source == NULL || sink == NULL)
+> +		return -EINVAL;
+> +
+> +	if (ulink.source.index >= source->num_pads ||
+> +	    ulink.sink.index >= sink->num_pads)
+> +		return -EINVAL;
+> +
+> +	link = media_entity_find_link(&source->pads[ulink.source.index],
+> +				      &sink->pads[ulink.sink.index]);
+> +	if (link == NULL)
+> +		return -EINVAL;
+> +
+> +	/* Setup the link on both entities. */
+> +	ret = __media_entity_setup_link(link, ulink.flags);
+> +
+> +	if (copy_to_user(_ulink, &ulink, sizeof(ulink)))
+> +		return -EFAULT;
+> +
+> +	return ret;
+> +}
+> +
+>  static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  			       unsigned long arg)
+>  {
+> @@ -195,6 +233,13 @@ static long media_device_ioctl(struct file *filp, unsigned int cmd,
+>  		mutex_unlock(&dev->graph_mutex);
+>  		break;
+>  
+> +	case MEDIA_IOC_SETUP_LINK:
+> +		mutex_lock(&dev->graph_mutex);
+> +		ret = media_device_setup_link(dev,
+> +				(struct media_link_desc __user *)arg);
+> +		mutex_unlock(&dev->graph_mutex);
+> +		break;
+> +
+>  	default:
+>  		ret = -ENOIOCTLCMD;
+>  	}
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index da4fef6..bc97b78 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -198,6 +198,25 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
+>   * Power state handling
+>   */
+>  
+> +/*
+> + * Return power count of nodes directly or indirectly connected to
+> + * a given entity.
+> + */
+> +static int media_entity_count_node(struct media_entity *entity)
+> +{
+> +	struct media_entity_graph graph;
+> +	int use = 0;
+> +
+> +	media_entity_graph_walk_start(&graph, entity);
+> +
+> +	while ((entity = media_entity_graph_walk_next(&graph))) {
+> +		if (media_entity_type(entity) == MEDIA_ENTITY_TYPE_NODE)
+> +			use += entity->use_count;
+> +	}
+> +
+> +	return use;
+> +}
+> +
+>  /* Apply use count to an entity. */
+>  static void media_entity_use_apply_one(struct media_entity *entity, int change)
+>  {
+> @@ -261,6 +280,32 @@ static int media_entity_power_apply(struct media_entity *entity, int change)
+>  	return ret;
+>  }
+>  
+> +/* Apply the power state changes when connecting two entities. */
+> +static int media_entity_power_connect(struct media_entity *one,
+> +				      struct media_entity *theother)
+> +{
+> +	int power_one = media_entity_count_node(one);
+> +	int power_theother = media_entity_count_node(theother);
+> +	int ret = 0;
+> +
+> +	ret = media_entity_power_apply(one, power_theother);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	return media_entity_power_apply(theother, power_one);
+> +}
+> +
+> +static void media_entity_power_disconnect(struct media_entity *one,
+> +					  struct media_entity *theother)
+> +{
+> +	int power_one = media_entity_count_node(one);
+> +	int power_theother = media_entity_count_node(theother);
+> +
+> +	/* Powering off entities is assumed to never fail. */
+> +	media_entity_power_apply(one, -power_theother);
+> +	media_entity_power_apply(theother, -power_one);
+> +}
+> +
+>  /*
+>   * Apply use count change to graph and change power state of entities
+>   * accordingly.
+> @@ -404,3 +449,166 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
+>  	return 0;
+>  }
+>  EXPORT_SYMBOL(media_entity_create_link);
+> +
+> +static int __media_entity_setup_link_notify(struct media_link *link, u32 flags)
+> +{
+> +	const u32 mask = MEDIA_LINK_FLAG_ACTIVE;
+> +	int ret;
+> +
+> +	/* Notify both entities. */
+> +	ret = media_entity_call(link->source->entity, link_setup,
+> +				link->source, link->sink, flags);
+> +	if (ret < 0 && ret != -ENOIOCTLCMD)
+> +		return ret;
+> +
+> +	ret = media_entity_call(link->sink->entity, link_setup,
+> +				link->sink, link->source, flags);
+> +	if (ret < 0 && ret != -ENOIOCTLCMD) {
+> +		media_entity_call(link->source->entity, link_setup,
+> +				  link->source, link->sink, link->flags);
+> +		return ret;
+> +	}
+> +
+> +	link->flags = (link->flags & ~mask) | (flags & mask);
+> +	link->reverse->flags = link->flags;
+> +
+> +	return 0;
+> +}
+> +
+> +/**
+> + * __media_entity_setup_link - Configure a media link
+> + * @link: The link being configured
+> + * @flags: Link configuration flags
+> + *
+> + * The bulk of link setup is handled by the two entities connected through the
+> + * link. This function notifies both entities of the link configuration change.
+> + *
+> + * If the link is immutable or if the current and new configuration are
+> + * identical, return immediately.
+> + *
+> + * The user is expected to hold link->source->parent->mutex. If not,
+> + * media_entity_setup_link() should be used instead.
+> + */
+> +int __media_entity_setup_link(struct media_link *link, u32 flags)
+> +{
+> +	struct media_entity *source, *sink;
+> +	int ret = -EBUSY;
+> +
+> +	if (link == NULL)
+> +		return -EINVAL;
+> +
+> +	if (link->flags & MEDIA_LINK_FLAG_IMMUTABLE)
+> +		return link->flags == flags ? 0 : -EINVAL;
+> +
+> +	if (link->flags == flags)
+> +		return 0;
+> +
+> +	source = __media_entity_get(link->source->entity);
+> +	if (!source)
+> +		return ret;
+> +
+> +	sink = __media_entity_get(link->sink->entity);
+> +	if (!sink)
+> +		goto err___media_entity_get;
+> +
+> +	if (flags & MEDIA_LINK_FLAG_ACTIVE) {
+> +		ret = media_entity_power_connect(source, sink);
+> +		if (ret < 0)
+> +			goto err_media_entity_power_connect;
+> +	}
+> +
+> +	ret = __media_entity_setup_link_notify(link, flags);
+> +	if (ret < 0)
+> +		goto err___media_entity_setup_link_notify;
+> +
+> +	if (!(flags & MEDIA_LINK_FLAG_ACTIVE))
+> +		media_entity_power_disconnect(source, sink);
+> +
+> +	__media_entity_put(sink);
+> +	__media_entity_put(source);
+> +
+> +	return 0;
+> +
+> +err___media_entity_setup_link_notify:
+> +	if (flags & MEDIA_LINK_FLAG_ACTIVE)
+> +		media_entity_power_disconnect(source, sink);
+> +err_media_entity_power_connect:
+> +	__media_entity_put(sink);
+> +err___media_entity_get:
+> +	__media_entity_put(source);
+> +
+> +	return ret;
+> +}
+> +
+> +int media_entity_setup_link(struct media_link *link, u32 flags)
+> +{
+> +	int ret;
+> +
+> +	mutex_lock(&link->source->entity->parent->graph_mutex);
+> +	ret = __media_entity_setup_link(link, flags);
+> +	mutex_unlock(&link->source->entity->parent->graph_mutex);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(media_entity_setup_link);
+> +
+> +/**
+> + * media_entity_find_link - Find a link between two pads
+> + * @source: Source pad
+> + * @sink: Sink pad
+> + *
+> + * Return a pointer to the link between the two entities. If no such link
+> + * exists, return NULL.
+> + */
+> +struct media_link *
+> +media_entity_find_link(struct media_pad *source, struct media_pad *sink)
+> +{
+> +	struct media_link *link;
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < source->entity->num_links; ++i) {
+> +		link = &source->entity->links[i];
+> +
+> +		if (link->source->entity == source->entity &&
+> +		    link->source->index == source->index &&
+> +		    link->sink->entity == sink->entity &&
+> +		    link->sink->index == sink->index)
+> +			return link;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(media_entity_find_link);
+> +
+> +/**
+> + * media_entity_remote_pad - Locate the pad at the remote end of a link
+> + * @entity: Local entity
+> + * @pad: Pad at the local end of the link
+> + *
+> + * Search for a remote pad connected to the given pad by iterating over all
+> + * links originating or terminating at that pad until an active link is found.
+> + *
+> + * Return a pointer to the pad at the remote end of the first found active link,
+> + * or NULL if no active link has been found.
+> + */
+> +struct media_pad *media_entity_remote_pad(struct media_pad *pad)
+> +{
+> +	unsigned int i;
+> +
+> +	for (i = 0; i < pad->entity->num_links; i++) {
+> +		struct media_link *link = &pad->entity->links[i];
+> +
+> +		if (!(link->flags & MEDIA_LINK_FLAG_ACTIVE))
+> +			continue;
+> +
+> +		if (link->source == pad)
+> +			return link->sink;
+> +
+> +		if (link->sink == pad)
+> +			return link->source;
+> +	}
+> +
+> +	return NULL;
+> +
+> +}
 
-Hi
+Why is this needed? Esp. since there can be multiple active remote pads if
+you have multiple active outgoing links. Something this function doesn't deal
+with.
 
-The old patch with broken spaces is https://patchwork.kernel.org/patch/108274/
-The one with good patch and bad introduction is https://patchwork.kernel.org/patch/118147/
+> +EXPORT_SYMBOL_GPL(media_entity_remote_pad);
+> diff --git a/include/linux/media.h b/include/linux/media.h
+> index 542509b..edb53c2 100644
+> --- a/include/linux/media.h
+> +++ b/include/linux/media.h
+> @@ -100,5 +100,6 @@ struct media_links_enum {
+>  #define MEDIA_IOC_DEVICE_INFO		_IOWR('M', 1, struct media_device_info)
+>  #define MEDIA_IOC_ENUM_ENTITIES		_IOWR('M', 2, struct media_entity_desc)
+>  #define MEDIA_IOC_ENUM_LINKS		_IOWR('M', 3, struct media_links_enum)
+> +#define MEDIA_IOC_SETUP_LINK		_IOWR('M', 4, struct media_link_desc)
+>  
+>  #endif /* __LINUX_MEDIA_H */
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 8c40d5e..0f0697b 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -18,6 +18,9 @@ struct media_pad {
+>  };
+>  
+>  struct media_entity_operations {
+> +	int (*link_setup)(struct media_entity *entity,
+> +			  const struct media_pad *local,
+> +			  const struct media_pad *remote, u32 flags);
+>  	int (*set_power)(struct media_entity *entity, int power);
+>  };
+>  
+> @@ -88,6 +91,11 @@ int media_entity_init(struct media_entity *entity, u16 num_pads,
+>  void media_entity_cleanup(struct media_entity *entity);
+>  int media_entity_create_link(struct media_entity *source, u16 source_pad,
+>  		struct media_entity *sink, u16 sink_pad, u32 flags);
+> +int __media_entity_setup_link(struct media_link *link, u32 flags);
+> +int media_entity_setup_link(struct media_link *link, u32 flags);
+> +struct media_link *media_entity_find_link(struct media_pad *source,
+> +		struct media_pad *sink);
+> +struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+>  
+>  struct media_entity *media_entity_get(struct media_entity *entity);
+>  void media_entity_put(struct media_entity *entity);
+> 
+
+This patch made me wonder about something else: how is power management handled 
+for immutable links? They are by definition active, so they should be powered on
+automatically as well. I'm not sure whether that happens right now.
 
 Regards,
-Marko Ristola
 
-07.08.2010 12:47, Marko Ristola wrote:
-> 
-> Hi.
-> 
-> This patch is like the original, but without mangled spaces.
-> I found Documentation/email-clients.txt to be useful for tuning Thunderbird.
-> 
-> DVB-S2 users with high volume stream data are interested in trying this patch too.
-> 
-> Signed-off-by: Marko Ristola <marko.ristola@kolumbus.fi>
-> 
-[ snip ]
+	Hans
 
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
