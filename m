@@ -1,931 +1,241 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16981 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756317Ab0HAN1k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Aug 2010 09:27:40 -0400
-Date: Sun, 1 Aug 2010 10:27:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: patrick.boettcher@desy.de,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] V4L/DVB: dib0700: break keytable into NEC and RC-5
- variants
-Message-ID: <20100801102743.02fcb835@pedra>
-In-Reply-To: <cover.1280669072.git.mchehab@redhat.com>
-References: <cover.1280669072.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2681 "EHLO
+	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752095Ab0H1KoY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Aug 2010 06:44:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v4 06/11] media: Media device information query
+Date: Sat, 28 Aug 2010 12:44:15 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1282318153-18885-7-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Sender: linux-media-owner@vger.kernel.org
+Message-Id: <201008281244.15380.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Instead of having one big keytable with 2 protocols inside, break it
-into two separate tables, being one for NEC and another for RC-5 variants,
-and properly identify what variant should be used at the boards entries.
+On Friday, August 20, 2010 17:29:08 Laurent Pinchart wrote:
+> Create the following ioctl and implement it at the media device level to
+> query device information.
+> 
+> - MEDIA_IOC_DEVICE_INFO: Query media device information
+> 
+> The ioctl and its data structure are defined in the new kernel header
+> linux/media.h available to userspace applications.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  Documentation/media-framework.txt |   42 +++++++++++++++++++++++++++
+>  drivers/media/media-device.c      |   57 +++++++++++++++++++++++++++++++++++++
+>  include/linux/media.h             |   23 +++++++++++++++
+>  include/media/media-device.h      |    3 ++
+>  4 files changed, 125 insertions(+), 0 deletions(-)
+>  create mode 100644 include/linux/media.h
+> 
+> diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+> index 59649e9..66f7f6c 100644
+> --- a/Documentation/media-framework.txt
+> +++ b/Documentation/media-framework.txt
+> @@ -315,3 +315,45 @@ required, drivers don't need to provide a set_power operation. The operation
+>  is allowed to fail when turning power on, in which case the media_entity_get
+>  function will return NULL.
+>  
+> +
+> +Userspace application API
+> +-------------------------
+> +
+> +Media devices offer an API to userspace application to query device information
+> +through ioctls.
+> +
+> +	MEDIA_IOC_DEVICE_INFO - Get device information
+> +	----------------------------------------------
+> +
+> +	ioctl(int fd, int request, struct media_device_info *argp);
+> +
+> +To query device information, call the MEDIA_IOC_ENUM_ENTITIES ioctl with a
+> +pointer to a media_device_info structure. The driver fills the structure and
+> +returns the information to the application. The ioctl never fails.
+> +
+> +The media_device_info structure is defined as
+> +
+> +- struct media_device_info
+> +
+> +__u8	driver[16]	Driver name as a NUL-terminated ASCII string. The
+> +			driver version is stored in the driver_version field.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Proposed improvement: "Name of the driver implementing the media API
+as a NUL-terminated ASCII string."
 
- delete mode 100644 drivers/media/IR/keymaps/rc-dib0700-big.c
- create mode 100644 drivers/media/IR/keymaps/rc-dib0700-nec.c
- create mode 100644 drivers/media/IR/keymaps/rc-dib0700-rc5.c
+The media API overarches multiple drivers, so it's probably useful to say
+which driver name should be filled in here.
 
-diff --git a/drivers/media/IR/keymaps/Makefile b/drivers/media/IR/keymaps/Makefile
-index 85330d1..cbee062 100644
---- a/drivers/media/IR/keymaps/Makefile
-+++ b/drivers/media/IR/keymaps/Makefile
-@@ -14,7 +14,8 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
- 			rc-budget-ci-old.o \
- 			rc-cinergy-1400.o \
- 			rc-cinergy.o \
--			rc-dib0700-big.o \
-+			rc-dib0700-nec.o \
-+			rc-dib0700-rc5.o \
- 			rc-dm1105-nec.o \
- 			rc-dntv-live-dvb-t.o \
- 			rc-dntv-live-dvbt-pro.o \
-diff --git a/drivers/media/IR/keymaps/rc-dib0700-big.c b/drivers/media/IR/keymaps/rc-dib0700-big.c
-deleted file mode 100644
-index 2e83820..0000000
---- a/drivers/media/IR/keymaps/rc-dib0700-big.c
-+++ /dev/null
-@@ -1,314 +0,0 @@
--/* rc-dvb0700-big.c - Keytable for devices in dvb0700
-- *
-- * Copyright (c) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-- *
-- * TODO: This table is a real mess, as it merges RC codes from several
-- * devices into a big table. It also has both RC-5 and NEC codes inside.
-- * It should be broken into small tables, and the protocols should properly
-- * be indentificated.
-- *
-- * The table were imported from dib0700_devices.c.
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License as published by
-- * the Free Software Foundation; either version 2 of the License, or
-- * (at your option) any later version.
-- */
--
--#include <media/rc-map.h>
--
--static struct ir_scancode dib0700_table[] = {
--	/* Key codes for the tiny Pinnacle remote*/
--	{ 0x0700, KEY_MUTE },
--	{ 0x0701, KEY_MENU }, /* Pinnacle logo */
--	{ 0x0739, KEY_POWER },
--	{ 0x0703, KEY_VOLUMEUP },
--	{ 0x0709, KEY_VOLUMEDOWN },
--	{ 0x0706, KEY_CHANNELUP },
--	{ 0x070c, KEY_CHANNELDOWN },
--	{ 0x070f, KEY_1 },
--	{ 0x0715, KEY_2 },
--	{ 0x0710, KEY_3 },
--	{ 0x0718, KEY_4 },
--	{ 0x071b, KEY_5 },
--	{ 0x071e, KEY_6 },
--	{ 0x0711, KEY_7 },
--	{ 0x0721, KEY_8 },
--	{ 0x0712, KEY_9 },
--	{ 0x0727, KEY_0 },
--	{ 0x0724, KEY_SCREEN }, /* 'Square' key */
--	{ 0x072a, KEY_TEXT },   /* 'T' key */
--	{ 0x072d, KEY_REWIND },
--	{ 0x0730, KEY_PLAY },
--	{ 0x0733, KEY_FASTFORWARD },
--	{ 0x0736, KEY_RECORD },
--	{ 0x073c, KEY_STOP },
--	{ 0x073f, KEY_CANCEL }, /* '?' key */
--	/* Key codes for the Terratec Cinergy DT XS Diversity, similar to cinergyT2.c */
--	{ 0xeb01, KEY_POWER },
--	{ 0xeb02, KEY_1 },
--	{ 0xeb03, KEY_2 },
--	{ 0xeb04, KEY_3 },
--	{ 0xeb05, KEY_4 },
--	{ 0xeb06, KEY_5 },
--	{ 0xeb07, KEY_6 },
--	{ 0xeb08, KEY_7 },
--	{ 0xeb09, KEY_8 },
--	{ 0xeb0a, KEY_9 },
--	{ 0xeb0b, KEY_VIDEO },
--	{ 0xeb0c, KEY_0 },
--	{ 0xeb0d, KEY_REFRESH },
--	{ 0xeb0f, KEY_EPG },
--	{ 0xeb10, KEY_UP },
--	{ 0xeb11, KEY_LEFT },
--	{ 0xeb12, KEY_OK },
--	{ 0xeb13, KEY_RIGHT },
--	{ 0xeb14, KEY_DOWN },
--	{ 0xeb16, KEY_INFO },
--	{ 0xeb17, KEY_RED },
--	{ 0xeb18, KEY_GREEN },
--	{ 0xeb19, KEY_YELLOW },
--	{ 0xeb1a, KEY_BLUE },
--	{ 0xeb1b, KEY_CHANNELUP },
--	{ 0xeb1c, KEY_VOLUMEUP },
--	{ 0xeb1d, KEY_MUTE },
--	{ 0xeb1e, KEY_VOLUMEDOWN },
--	{ 0xeb1f, KEY_CHANNELDOWN },
--	{ 0xeb40, KEY_PAUSE },
--	{ 0xeb41, KEY_HOME },
--	{ 0xeb42, KEY_MENU }, /* DVD Menu */
--	{ 0xeb43, KEY_SUBTITLE },
--	{ 0xeb44, KEY_TEXT }, /* Teletext */
--	{ 0xeb45, KEY_DELETE },
--	{ 0xeb46, KEY_TV },
--	{ 0xeb47, KEY_DVD },
--	{ 0xeb48, KEY_STOP },
--	{ 0xeb49, KEY_VIDEO },
--	{ 0xeb4a, KEY_AUDIO }, /* Music */
--	{ 0xeb4b, KEY_SCREEN }, /* Pic */
--	{ 0xeb4c, KEY_PLAY },
--	{ 0xeb4d, KEY_BACK },
--	{ 0xeb4e, KEY_REWIND },
--	{ 0xeb4f, KEY_FASTFORWARD },
--	{ 0xeb54, KEY_PREVIOUS },
--	{ 0xeb58, KEY_RECORD },
--	{ 0xeb5c, KEY_NEXT },
--
--	/* Key codes for the Haupauge WinTV Nova-TD, copied from nova-t-usb2.c (Nova-T USB2) */
--	{ 0x1e00, KEY_0 },
--	{ 0x1e01, KEY_1 },
--	{ 0x1e02, KEY_2 },
--	{ 0x1e03, KEY_3 },
--	{ 0x1e04, KEY_4 },
--	{ 0x1e05, KEY_5 },
--	{ 0x1e06, KEY_6 },
--	{ 0x1e07, KEY_7 },
--	{ 0x1e08, KEY_8 },
--	{ 0x1e09, KEY_9 },
--	{ 0x1e0a, KEY_KPASTERISK },
--	{ 0x1e0b, KEY_RED },
--	{ 0x1e0c, KEY_RADIO },
--	{ 0x1e0d, KEY_MENU },
--	{ 0x1e0e, KEY_GRAVE }, /* # */
--	{ 0x1e0f, KEY_MUTE },
--	{ 0x1e10, KEY_VOLUMEUP },
--	{ 0x1e11, KEY_VOLUMEDOWN },
--	{ 0x1e12, KEY_CHANNEL },
--	{ 0x1e14, KEY_UP },
--	{ 0x1e15, KEY_DOWN },
--	{ 0x1e16, KEY_LEFT },
--	{ 0x1e17, KEY_RIGHT },
--	{ 0x1e18, KEY_VIDEO },
--	{ 0x1e19, KEY_AUDIO },
--	{ 0x1e1a, KEY_MEDIA },
--	{ 0x1e1b, KEY_EPG },
--	{ 0x1e1c, KEY_TV },
--	{ 0x1e1e, KEY_NEXT },
--	{ 0x1e1f, KEY_BACK },
--	{ 0x1e20, KEY_CHANNELUP },
--	{ 0x1e21, KEY_CHANNELDOWN },
--	{ 0x1e24, KEY_LAST }, /* Skip backwards */
--	{ 0x1e25, KEY_OK },
--	{ 0x1e29, KEY_BLUE},
--	{ 0x1e2e, KEY_GREEN },
--	{ 0x1e30, KEY_PAUSE },
--	{ 0x1e32, KEY_REWIND },
--	{ 0x1e34, KEY_FASTFORWARD },
--	{ 0x1e35, KEY_PLAY },
--	{ 0x1e36, KEY_STOP },
--	{ 0x1e37, KEY_RECORD },
--	{ 0x1e38, KEY_YELLOW },
--	{ 0x1e3b, KEY_GOTO },
--	{ 0x1e3d, KEY_POWER },
--
--	/* Key codes for the Leadtek Winfast DTV Dongle */
--	{ 0x0042, KEY_POWER },
--	{ 0x077c, KEY_TUNER },
--	{ 0x0f4e, KEY_PRINT }, /* PREVIEW */
--	{ 0x0840, KEY_SCREEN }, /* full screen toggle*/
--	{ 0x0f71, KEY_DOT }, /* frequency */
--	{ 0x0743, KEY_0 },
--	{ 0x0c41, KEY_1 },
--	{ 0x0443, KEY_2 },
--	{ 0x0b7f, KEY_3 },
--	{ 0x0e41, KEY_4 },
--	{ 0x0643, KEY_5 },
--	{ 0x097f, KEY_6 },
--	{ 0x0d7e, KEY_7 },
--	{ 0x057c, KEY_8 },
--	{ 0x0a40, KEY_9 },
--	{ 0x0e4e, KEY_CLEAR },
--	{ 0x047c, KEY_CHANNEL }, /* show channel number */
--	{ 0x0f41, KEY_LAST }, /* recall */
--	{ 0x0342, KEY_MUTE },
--	{ 0x064c, KEY_RESERVED }, /* PIP button*/
--	{ 0x0172, KEY_SHUFFLE }, /* SNAPSHOT */
--	{ 0x0c4e, KEY_PLAYPAUSE }, /* TIMESHIFT */
--	{ 0x0b70, KEY_RECORD },
--	{ 0x037d, KEY_VOLUMEUP },
--	{ 0x017d, KEY_VOLUMEDOWN },
--	{ 0x0242, KEY_CHANNELUP },
--	{ 0x007d, KEY_CHANNELDOWN },
--
--	/* Key codes for Nova-TD "credit card" remote control. */
--	{ 0x1d00, KEY_0 },
--	{ 0x1d01, KEY_1 },
--	{ 0x1d02, KEY_2 },
--	{ 0x1d03, KEY_3 },
--	{ 0x1d04, KEY_4 },
--	{ 0x1d05, KEY_5 },
--	{ 0x1d06, KEY_6 },
--	{ 0x1d07, KEY_7 },
--	{ 0x1d08, KEY_8 },
--	{ 0x1d09, KEY_9 },
--	{ 0x1d0a, KEY_TEXT },
--	{ 0x1d0d, KEY_MENU },
--	{ 0x1d0f, KEY_MUTE },
--	{ 0x1d10, KEY_VOLUMEUP },
--	{ 0x1d11, KEY_VOLUMEDOWN },
--	{ 0x1d12, KEY_CHANNEL },
--	{ 0x1d14, KEY_UP },
--	{ 0x1d15, KEY_DOWN },
--	{ 0x1d16, KEY_LEFT },
--	{ 0x1d17, KEY_RIGHT },
--	{ 0x1d1c, KEY_TV },
--	{ 0x1d1e, KEY_NEXT },
--	{ 0x1d1f, KEY_BACK },
--	{ 0x1d20, KEY_CHANNELUP },
--	{ 0x1d21, KEY_CHANNELDOWN },
--	{ 0x1d24, KEY_LAST },
--	{ 0x1d25, KEY_OK },
--	{ 0x1d30, KEY_PAUSE },
--	{ 0x1d32, KEY_REWIND },
--	{ 0x1d34, KEY_FASTFORWARD },
--	{ 0x1d35, KEY_PLAY },
--	{ 0x1d36, KEY_STOP },
--	{ 0x1d37, KEY_RECORD },
--	{ 0x1d3b, KEY_GOTO },
--	{ 0x1d3d, KEY_POWER },
--
--	/* Key codes for the Pixelview SBTVD remote (proto NEC) */
--	{ 0x8613, KEY_MUTE },
--	{ 0x8612, KEY_POWER },
--	{ 0x8601, KEY_1 },
--	{ 0x8602, KEY_2 },
--	{ 0x8603, KEY_3 },
--	{ 0x8604, KEY_4 },
--	{ 0x8605, KEY_5 },
--	{ 0x8606, KEY_6 },
--	{ 0x8607, KEY_7 },
--	{ 0x8608, KEY_8 },
--	{ 0x8609, KEY_9 },
--	{ 0x8600, KEY_0 },
--	{ 0x860d, KEY_CHANNELUP },
--	{ 0x8619, KEY_CHANNELDOWN },
--	{ 0x8610, KEY_VOLUMEUP },
--	{ 0x860c, KEY_VOLUMEDOWN },
--
--	{ 0x860a, KEY_CAMERA },
--	{ 0x860b, KEY_ZOOM },
--	{ 0x861b, KEY_BACKSPACE },
--	{ 0x8615, KEY_ENTER },
--
--	{ 0x861d, KEY_UP },
--	{ 0x861e, KEY_DOWN },
--	{ 0x860e, KEY_LEFT },
--	{ 0x860f, KEY_RIGHT },
--
--	{ 0x8618, KEY_RECORD },
--	{ 0x861a, KEY_STOP },
--
--	/* Key codes for the EvolutePC TVWay+ remote (proto NEC) */
--	{ 0x7a00, KEY_MENU },
--	{ 0x7a01, KEY_RECORD },
--	{ 0x7a02, KEY_PLAY },
--	{ 0x7a03, KEY_STOP },
--	{ 0x7a10, KEY_CHANNELUP },
--	{ 0x7a11, KEY_CHANNELDOWN },
--	{ 0x7a12, KEY_VOLUMEUP },
--	{ 0x7a13, KEY_VOLUMEDOWN },
--	{ 0x7a40, KEY_POWER },
--	{ 0x7a41, KEY_MUTE },
--
--	/* Key codes for the Elgato EyeTV Diversity silver remote,
--	   set dvb_usb_dib0700_ir_proto=0 */
--	{ 0x4501, KEY_POWER },
--	{ 0x4502, KEY_MUTE },
--	{ 0x4503, KEY_1 },
--	{ 0x4504, KEY_2 },
--	{ 0x4505, KEY_3 },
--	{ 0x4506, KEY_4 },
--	{ 0x4507, KEY_5 },
--	{ 0x4508, KEY_6 },
--	{ 0x4509, KEY_7 },
--	{ 0x450a, KEY_8 },
--	{ 0x450b, KEY_9 },
--	{ 0x450c, KEY_LAST },
--	{ 0x450d, KEY_0 },
--	{ 0x450e, KEY_ENTER },
--	{ 0x450f, KEY_RED },
--	{ 0x4510, KEY_CHANNELUP },
--	{ 0x4511, KEY_GREEN },
--	{ 0x4512, KEY_VOLUMEDOWN },
--	{ 0x4513, KEY_OK },
--	{ 0x4514, KEY_VOLUMEUP },
--	{ 0x4515, KEY_YELLOW },
--	{ 0x4516, KEY_CHANNELDOWN },
--	{ 0x4517, KEY_BLUE },
--	{ 0x4518, KEY_LEFT }, /* Skip backwards */
--	{ 0x4519, KEY_PLAYPAUSE },
--	{ 0x451a, KEY_RIGHT }, /* Skip forward */
--	{ 0x451b, KEY_REWIND },
--	{ 0x451c, KEY_L }, /* Live */
--	{ 0x451d, KEY_FASTFORWARD },
--	{ 0x451e, KEY_STOP }, /* 'Reveal' for Teletext */
--	{ 0x451f, KEY_MENU }, /* KEY_TEXT for Teletext */
--	{ 0x4540, KEY_RECORD }, /* Font 'Size' for Teletext */
--	{ 0x4541, KEY_SCREEN }, /*  Full screen toggle, 'Hold' for Teletext */
--	{ 0x4542, KEY_SELECT }, /* Select video input, 'Select' for Teletext */
--};
--
--static struct rc_keymap dib0700_map = {
--	.map = {
--		.scan    = dib0700_table,
--		.size    = ARRAY_SIZE(dib0700_table),
--		.ir_type = IR_TYPE_UNKNOWN,	/* Legacy IR type */
--		.name    = RC_MAP_DIB0700_BIG_TABLE,
--	}
--};
--
--static int __init init_rc_map(void)
--{
--	return ir_register_map(&dib0700_map);
--}
--
--static void __exit exit_rc_map(void)
--{
--	ir_unregister_map(&dib0700_map);
--}
--
--module_init(init_rc_map)
--module_exit(exit_rc_map)
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
-diff --git a/drivers/media/IR/keymaps/rc-dib0700-nec.c b/drivers/media/IR/keymaps/rc-dib0700-nec.c
-new file mode 100644
-index 0000000..f5809f4
---- /dev/null
-+++ b/drivers/media/IR/keymaps/rc-dib0700-nec.c
-@@ -0,0 +1,124 @@
-+/* rc-dvb0700-big.c - Keytable for devices in dvb0700
-+ *
-+ * Copyright (c) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-+ *
-+ * TODO: This table is a real mess, as it merges RC codes from several
-+ * devices into a big table. It also has both RC-5 and NEC codes inside.
-+ * It should be broken into small tables, and the protocols should properly
-+ * be indentificated.
-+ *
-+ * The table were imported from dib0700_devices.c.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/rc-map.h>
-+
-+static struct ir_scancode dib0700_table[] = {
-+	/* Key codes for the Pixelview SBTVD remote */
-+	{ 0x8613, KEY_MUTE },
-+	{ 0x8612, KEY_POWER },
-+	{ 0x8601, KEY_1 },
-+	{ 0x8602, KEY_2 },
-+	{ 0x8603, KEY_3 },
-+	{ 0x8604, KEY_4 },
-+	{ 0x8605, KEY_5 },
-+	{ 0x8606, KEY_6 },
-+	{ 0x8607, KEY_7 },
-+	{ 0x8608, KEY_8 },
-+	{ 0x8609, KEY_9 },
-+	{ 0x8600, KEY_0 },
-+	{ 0x860d, KEY_CHANNELUP },
-+	{ 0x8619, KEY_CHANNELDOWN },
-+	{ 0x8610, KEY_VOLUMEUP },
-+	{ 0x860c, KEY_VOLUMEDOWN },
-+
-+	{ 0x860a, KEY_CAMERA },
-+	{ 0x860b, KEY_ZOOM },
-+	{ 0x861b, KEY_BACKSPACE },
-+	{ 0x8615, KEY_ENTER },
-+
-+	{ 0x861d, KEY_UP },
-+	{ 0x861e, KEY_DOWN },
-+	{ 0x860e, KEY_LEFT },
-+	{ 0x860f, KEY_RIGHT },
-+
-+	{ 0x8618, KEY_RECORD },
-+	{ 0x861a, KEY_STOP },
-+
-+	/* Key codes for the EvolutePC TVWay+ remote */
-+	{ 0x7a00, KEY_MENU },
-+	{ 0x7a01, KEY_RECORD },
-+	{ 0x7a02, KEY_PLAY },
-+	{ 0x7a03, KEY_STOP },
-+	{ 0x7a10, KEY_CHANNELUP },
-+	{ 0x7a11, KEY_CHANNELDOWN },
-+	{ 0x7a12, KEY_VOLUMEUP },
-+	{ 0x7a13, KEY_VOLUMEDOWN },
-+	{ 0x7a40, KEY_POWER },
-+	{ 0x7a41, KEY_MUTE },
-+
-+	/* Key codes for the Elgato EyeTV Diversity silver remote */
-+	{ 0x4501, KEY_POWER },
-+	{ 0x4502, KEY_MUTE },
-+	{ 0x4503, KEY_1 },
-+	{ 0x4504, KEY_2 },
-+	{ 0x4505, KEY_3 },
-+	{ 0x4506, KEY_4 },
-+	{ 0x4507, KEY_5 },
-+	{ 0x4508, KEY_6 },
-+	{ 0x4509, KEY_7 },
-+	{ 0x450a, KEY_8 },
-+	{ 0x450b, KEY_9 },
-+	{ 0x450c, KEY_LAST },
-+	{ 0x450d, KEY_0 },
-+	{ 0x450e, KEY_ENTER },
-+	{ 0x450f, KEY_RED },
-+	{ 0x4510, KEY_CHANNELUP },
-+	{ 0x4511, KEY_GREEN },
-+	{ 0x4512, KEY_VOLUMEDOWN },
-+	{ 0x4513, KEY_OK },
-+	{ 0x4514, KEY_VOLUMEUP },
-+	{ 0x4515, KEY_YELLOW },
-+	{ 0x4516, KEY_CHANNELDOWN },
-+	{ 0x4517, KEY_BLUE },
-+	{ 0x4518, KEY_LEFT }, /* Skip backwards */
-+	{ 0x4519, KEY_PLAYPAUSE },
-+	{ 0x451a, KEY_RIGHT }, /* Skip forward */
-+	{ 0x451b, KEY_REWIND },
-+	{ 0x451c, KEY_L }, /* Live */
-+	{ 0x451d, KEY_FASTFORWARD },
-+	{ 0x451e, KEY_STOP }, /* 'Reveal' for Teletext */
-+	{ 0x451f, KEY_MENU }, /* KEY_TEXT for Teletext */
-+	{ 0x4540, KEY_RECORD }, /* Font 'Size' for Teletext */
-+	{ 0x4541, KEY_SCREEN }, /*  Full screen toggle, 'Hold' for Teletext */
-+	{ 0x4542, KEY_SELECT }, /* Select video input, 'Select' for Teletext */
-+};
-+
-+static struct rc_keymap dib0700_map = {
-+	.map = {
-+		.scan    = dib0700_table,
-+		.size    = ARRAY_SIZE(dib0700_table),
-+		.ir_type = IR_TYPE_NEC,
-+		.name    = RC_MAP_DIB0700_NEC_TABLE,
-+	}
-+};
-+
-+static int __init init_rc_map(void)
-+{
-+	return ir_register_map(&dib0700_map);
-+}
-+
-+static void __exit exit_rc_map(void)
-+{
-+	ir_unregister_map(&dib0700_map);
-+}
-+
-+module_init(init_rc_map)
-+module_exit(exit_rc_map)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
-diff --git a/drivers/media/IR/keymaps/rc-dib0700-rc5.c b/drivers/media/IR/keymaps/rc-dib0700-rc5.c
-new file mode 100644
-index 0000000..e2d0fd2
---- /dev/null
-+++ b/drivers/media/IR/keymaps/rc-dib0700-rc5.c
-@@ -0,0 +1,235 @@
-+/* rc-dvb0700-big.c - Keytable for devices in dvb0700
-+ *
-+ * Copyright (c) 2010 by Mauro Carvalho Chehab <mchehab@redhat.com>
-+ *
-+ * TODO: This table is a real mess, as it merges RC codes from several
-+ * devices into a big table. It also has both RC-5 and NEC codes inside.
-+ * It should be broken into small tables, and the protocols should properly
-+ * be indentificated.
-+ *
-+ * The table were imported from dib0700_devices.c.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/rc-map.h>
-+
-+static struct ir_scancode dib0700_table[] = {
-+	/* Key codes for the tiny Pinnacle remote*/
-+	{ 0x0700, KEY_MUTE },
-+	{ 0x0701, KEY_MENU }, /* Pinnacle logo */
-+	{ 0x0739, KEY_POWER },
-+	{ 0x0703, KEY_VOLUMEUP },
-+	{ 0x0709, KEY_VOLUMEDOWN },
-+	{ 0x0706, KEY_CHANNELUP },
-+	{ 0x070c, KEY_CHANNELDOWN },
-+	{ 0x070f, KEY_1 },
-+	{ 0x0715, KEY_2 },
-+	{ 0x0710, KEY_3 },
-+	{ 0x0718, KEY_4 },
-+	{ 0x071b, KEY_5 },
-+	{ 0x071e, KEY_6 },
-+	{ 0x0711, KEY_7 },
-+	{ 0x0721, KEY_8 },
-+	{ 0x0712, KEY_9 },
-+	{ 0x0727, KEY_0 },
-+	{ 0x0724, KEY_SCREEN }, /* 'Square' key */
-+	{ 0x072a, KEY_TEXT },   /* 'T' key */
-+	{ 0x072d, KEY_REWIND },
-+	{ 0x0730, KEY_PLAY },
-+	{ 0x0733, KEY_FASTFORWARD },
-+	{ 0x0736, KEY_RECORD },
-+	{ 0x073c, KEY_STOP },
-+	{ 0x073f, KEY_CANCEL }, /* '?' key */
-+
-+	/* Key codes for the Terratec Cinergy DT XS Diversity, similar to cinergyT2.c */
-+	{ 0xeb01, KEY_POWER },
-+	{ 0xeb02, KEY_1 },
-+	{ 0xeb03, KEY_2 },
-+	{ 0xeb04, KEY_3 },
-+	{ 0xeb05, KEY_4 },
-+	{ 0xeb06, KEY_5 },
-+	{ 0xeb07, KEY_6 },
-+	{ 0xeb08, KEY_7 },
-+	{ 0xeb09, KEY_8 },
-+	{ 0xeb0a, KEY_9 },
-+	{ 0xeb0b, KEY_VIDEO },
-+	{ 0xeb0c, KEY_0 },
-+	{ 0xeb0d, KEY_REFRESH },
-+	{ 0xeb0f, KEY_EPG },
-+	{ 0xeb10, KEY_UP },
-+	{ 0xeb11, KEY_LEFT },
-+	{ 0xeb12, KEY_OK },
-+	{ 0xeb13, KEY_RIGHT },
-+	{ 0xeb14, KEY_DOWN },
-+	{ 0xeb16, KEY_INFO },
-+	{ 0xeb17, KEY_RED },
-+	{ 0xeb18, KEY_GREEN },
-+	{ 0xeb19, KEY_YELLOW },
-+	{ 0xeb1a, KEY_BLUE },
-+	{ 0xeb1b, KEY_CHANNELUP },
-+	{ 0xeb1c, KEY_VOLUMEUP },
-+	{ 0xeb1d, KEY_MUTE },
-+	{ 0xeb1e, KEY_VOLUMEDOWN },
-+	{ 0xeb1f, KEY_CHANNELDOWN },
-+	{ 0xeb40, KEY_PAUSE },
-+	{ 0xeb41, KEY_HOME },
-+	{ 0xeb42, KEY_MENU }, /* DVD Menu */
-+	{ 0xeb43, KEY_SUBTITLE },
-+	{ 0xeb44, KEY_TEXT }, /* Teletext */
-+	{ 0xeb45, KEY_DELETE },
-+	{ 0xeb46, KEY_TV },
-+	{ 0xeb47, KEY_DVD },
-+	{ 0xeb48, KEY_STOP },
-+	{ 0xeb49, KEY_VIDEO },
-+	{ 0xeb4a, KEY_AUDIO }, /* Music */
-+	{ 0xeb4b, KEY_SCREEN }, /* Pic */
-+	{ 0xeb4c, KEY_PLAY },
-+	{ 0xeb4d, KEY_BACK },
-+	{ 0xeb4e, KEY_REWIND },
-+	{ 0xeb4f, KEY_FASTFORWARD },
-+	{ 0xeb54, KEY_PREVIOUS },
-+	{ 0xeb58, KEY_RECORD },
-+	{ 0xeb5c, KEY_NEXT },
-+
-+	/* Key codes for the Haupauge WinTV Nova-TD, copied from nova-t-usb2.c (Nova-T USB2) */
-+	{ 0x1e00, KEY_0 },
-+	{ 0x1e01, KEY_1 },
-+	{ 0x1e02, KEY_2 },
-+	{ 0x1e03, KEY_3 },
-+	{ 0x1e04, KEY_4 },
-+	{ 0x1e05, KEY_5 },
-+	{ 0x1e06, KEY_6 },
-+	{ 0x1e07, KEY_7 },
-+	{ 0x1e08, KEY_8 },
-+	{ 0x1e09, KEY_9 },
-+	{ 0x1e0a, KEY_KPASTERISK },
-+	{ 0x1e0b, KEY_RED },
-+	{ 0x1e0c, KEY_RADIO },
-+	{ 0x1e0d, KEY_MENU },
-+	{ 0x1e0e, KEY_GRAVE }, /* # */
-+	{ 0x1e0f, KEY_MUTE },
-+	{ 0x1e10, KEY_VOLUMEUP },
-+	{ 0x1e11, KEY_VOLUMEDOWN },
-+	{ 0x1e12, KEY_CHANNEL },
-+	{ 0x1e14, KEY_UP },
-+	{ 0x1e15, KEY_DOWN },
-+	{ 0x1e16, KEY_LEFT },
-+	{ 0x1e17, KEY_RIGHT },
-+	{ 0x1e18, KEY_VIDEO },
-+	{ 0x1e19, KEY_AUDIO },
-+	{ 0x1e1a, KEY_MEDIA },
-+	{ 0x1e1b, KEY_EPG },
-+	{ 0x1e1c, KEY_TV },
-+	{ 0x1e1e, KEY_NEXT },
-+	{ 0x1e1f, KEY_BACK },
-+	{ 0x1e20, KEY_CHANNELUP },
-+	{ 0x1e21, KEY_CHANNELDOWN },
-+	{ 0x1e24, KEY_LAST }, /* Skip backwards */
-+	{ 0x1e25, KEY_OK },
-+	{ 0x1e29, KEY_BLUE},
-+	{ 0x1e2e, KEY_GREEN },
-+	{ 0x1e30, KEY_PAUSE },
-+	{ 0x1e32, KEY_REWIND },
-+	{ 0x1e34, KEY_FASTFORWARD },
-+	{ 0x1e35, KEY_PLAY },
-+	{ 0x1e36, KEY_STOP },
-+	{ 0x1e37, KEY_RECORD },
-+	{ 0x1e38, KEY_YELLOW },
-+	{ 0x1e3b, KEY_GOTO },
-+	{ 0x1e3d, KEY_POWER },
-+
-+	/* Key codes for the Leadtek Winfast DTV Dongle */
-+	{ 0x0042, KEY_POWER },
-+	{ 0x077c, KEY_TUNER },
-+	{ 0x0f4e, KEY_PRINT }, /* PREVIEW */
-+	{ 0x0840, KEY_SCREEN }, /* full screen toggle*/
-+	{ 0x0f71, KEY_DOT }, /* frequency */
-+	{ 0x0743, KEY_0 },
-+	{ 0x0c41, KEY_1 },
-+	{ 0x0443, KEY_2 },
-+	{ 0x0b7f, KEY_3 },
-+	{ 0x0e41, KEY_4 },
-+	{ 0x0643, KEY_5 },
-+	{ 0x097f, KEY_6 },
-+	{ 0x0d7e, KEY_7 },
-+	{ 0x057c, KEY_8 },
-+	{ 0x0a40, KEY_9 },
-+	{ 0x0e4e, KEY_CLEAR },
-+	{ 0x047c, KEY_CHANNEL }, /* show channel number */
-+	{ 0x0f41, KEY_LAST }, /* recall */
-+	{ 0x0342, KEY_MUTE },
-+	{ 0x064c, KEY_RESERVED }, /* PIP button*/
-+	{ 0x0172, KEY_SHUFFLE }, /* SNAPSHOT */
-+	{ 0x0c4e, KEY_PLAYPAUSE }, /* TIMESHIFT */
-+	{ 0x0b70, KEY_RECORD },
-+	{ 0x037d, KEY_VOLUMEUP },
-+	{ 0x017d, KEY_VOLUMEDOWN },
-+	{ 0x0242, KEY_CHANNELUP },
-+	{ 0x007d, KEY_CHANNELDOWN },
-+
-+	/* Key codes for Nova-TD "credit card" remote control. */
-+	{ 0x1d00, KEY_0 },
-+	{ 0x1d01, KEY_1 },
-+	{ 0x1d02, KEY_2 },
-+	{ 0x1d03, KEY_3 },
-+	{ 0x1d04, KEY_4 },
-+	{ 0x1d05, KEY_5 },
-+	{ 0x1d06, KEY_6 },
-+	{ 0x1d07, KEY_7 },
-+	{ 0x1d08, KEY_8 },
-+	{ 0x1d09, KEY_9 },
-+	{ 0x1d0a, KEY_TEXT },
-+	{ 0x1d0d, KEY_MENU },
-+	{ 0x1d0f, KEY_MUTE },
-+	{ 0x1d10, KEY_VOLUMEUP },
-+	{ 0x1d11, KEY_VOLUMEDOWN },
-+	{ 0x1d12, KEY_CHANNEL },
-+	{ 0x1d14, KEY_UP },
-+	{ 0x1d15, KEY_DOWN },
-+	{ 0x1d16, KEY_LEFT },
-+	{ 0x1d17, KEY_RIGHT },
-+	{ 0x1d1c, KEY_TV },
-+	{ 0x1d1e, KEY_NEXT },
-+	{ 0x1d1f, KEY_BACK },
-+	{ 0x1d20, KEY_CHANNELUP },
-+	{ 0x1d21, KEY_CHANNELDOWN },
-+	{ 0x1d24, KEY_LAST },
-+	{ 0x1d25, KEY_OK },
-+	{ 0x1d30, KEY_PAUSE },
-+	{ 0x1d32, KEY_REWIND },
-+	{ 0x1d34, KEY_FASTFORWARD },
-+	{ 0x1d35, KEY_PLAY },
-+	{ 0x1d36, KEY_STOP },
-+	{ 0x1d37, KEY_RECORD },
-+	{ 0x1d3b, KEY_GOTO },
-+	{ 0x1d3d, KEY_POWER },
-+};
-+
-+static struct rc_keymap dib0700_map = {
-+	.map = {
-+		.scan    = dib0700_table,
-+		.size    = ARRAY_SIZE(dib0700_table),
-+		.ir_type = IR_TYPE_RC5,
-+		.name    = RC_MAP_DIB0700_RC5_TABLE,
-+	}
-+};
-+
-+static int __init init_rc_map(void)
-+{
-+	return ir_register_map(&dib0700_map);
-+}
-+
-+static void __exit exit_rc_map(void)
-+{
-+	ir_unregister_map(&dib0700_map);
-+}
-+
-+module_init(init_rc_map)
-+module_exit(exit_rc_map)
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-index 6e587cd..ee2a84b 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-@@ -1872,7 +1872,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
- 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-@@ -1902,7 +1902,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
- 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-@@ -1957,7 +1957,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
- 	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-@@ -1994,7 +1994,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.module_name	  = "dib0700",
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
-@@ -2066,7 +2066,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.module_name	  = "dib0700",
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
-@@ -2106,7 +2106,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.module_name	  = "dib0700",
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
-@@ -2139,7 +2139,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 			}
- 		},
- 
--		.num_device_descs = 7,
-+		.num_device_descs = 6,
- 		.devices = {
- 			{   "DiBcom STK7070PD reference design",
- 				{ &dib0700_usb_id_table[17], NULL },
-@@ -2166,6 +2166,45 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 				{ &dib0700_usb_id_table[44], NULL },
- 				{ NULL },
- 			},
-+		},
-+
-+		.rc.core = {
-+			.rc_interval      = DEFAULT_RC_INTERVAL,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
-+			.module_name	  = "dib0700",
-+			.rc_query         = dib0700_rc_query_old_firmware
-+		},
-+	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-+
-+		.num_adapters = 2,
-+		.adapter = {
-+			{
-+				.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-+				.pid_filter_count = 32,
-+				.pid_filter       = stk70x0p_pid_filter,
-+				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
-+				.frontend_attach  = stk7070pd_frontend_attach0,
-+				.tuner_attach     = dib7070p_tuner_attach,
-+
-+				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
-+
-+				.size_of_priv     = sizeof(struct dib0700_adapter_state),
-+			}, {
-+				.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-+				.pid_filter_count = 32,
-+				.pid_filter       = stk70x0p_pid_filter,
-+				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
-+				.frontend_attach  = stk7070pd_frontend_attach1,
-+				.tuner_attach     = dib7070p_tuner_attach,
-+
-+				DIB0700_DEFAULT_STREAMING_CONFIG(0x03),
-+
-+				.size_of_priv     = sizeof(struct dib0700_adapter_state),
-+			}
-+		},
-+
-+		.num_device_descs = 1,
-+		.devices = {
- 			{   "Elgato EyeTV Diversity",
- 				{ &dib0700_usb_id_table[68], NULL },
- 				{ NULL },
-@@ -2174,7 +2213,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_NEC_TABLE,
- 			.module_name	  = "dib0700",
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
-@@ -2239,7 +2278,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.module_name	  = "dib0700",
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
-@@ -2271,7 +2310,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.module_name	  = "dib0700",
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
-@@ -2335,7 +2374,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.module_name	  = "dib0700",
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
-@@ -2375,7 +2414,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_NEC_TABLE,
- 			.module_name	  = "dib0700",
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
-@@ -2420,7 +2459,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.module_name	  = "dib0700",
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
-@@ -2453,7 +2492,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 
- 		.rc.core = {
- 			.rc_interval      = DEFAULT_RC_INTERVAL,
--			.rc_codes         = RC_MAP_DIB0700_BIG_TABLE,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
- 			.module_name	  = "dib0700",
- 			.rc_query         = dib0700_rc_query_old_firmware
- 		},
-diff --git a/include/media/rc-map.h b/include/media/rc-map.h
-index adbcccb..9569d08 100644
---- a/include/media/rc-map.h
-+++ b/include/media/rc-map.h
-@@ -69,9 +69,8 @@ void rc_map_init(void);
- #define RC_MAP_BUDGET_CI_OLD             "rc-budget-ci-old"
- #define RC_MAP_CINERGY_1400              "rc-cinergy-1400"
- #define RC_MAP_CINERGY                   "rc-cinergy"
--/* Temporary table - should be broken into smaller tables */
--#define RC_MAP_DIB0700_BIG_TABLE         "rc-dib0700-big"
--
-+#define RC_MAP_DIB0700_NEC_TABLE         "rc-dib0700-nec"
-+#define RC_MAP_DIB0700_RC5_TABLE         "rc-dib0700-rc5"
- #define RC_MAP_DM1105_NEC                "rc-dm1105-nec"
- #define RC_MAP_DNTV_LIVE_DVBT_PRO        "rc-dntv-live-dvbt-pro"
- #define RC_MAP_DNTV_LIVE_DVB_T           "rc-dntv-live-dvb-t"
+> +__u8	model[32]	Device model name as a NUL-terminated UTF-8 string. The
+> +			device version is stored in the device_version field and
+> +			is not be appended to the model name.
+
+Why UTF-8 instead of ASCII?
+
+> +__u8	serial[32]	Serial number as an ASCII string. The string is
+> +			NUL-terminated unless the serial number is exactly 32
+> +			characters long.
+> +__u8	bus_info[32]	Location of the device in the system as a NUL-terminated
+> +			ASCII string. This includes the bus type name (PCI, USB,
+> +			...) and a bus-specific identifier.
+> +__u32	media_version	Media API version, formatted with the KERNEL_VERSION
+> +			macro.
+> +__u32	device_version	Media device driver version in a driver-specific format.
+> +__u32	driver_version	Media device driver version, formatted with the
+> +			KERNEL_VERSION macro.
+
+These last two are very confusing. Does device_version actually refer to the
+hardware revision? In that case the description next to it is really wrong.
+And I also think it should be renamed to hw_revision.
+
+> +
+> +The serial and bus_info fields can be used to distinguish between multiple
+> +instances of otherwise identical hardware. The serial number takes precedence
+> +when provided and can be assumed to be unique. If the serial number is an
+> +empty string, the bus_info field can be used instead. The bus_info field is
+> +guaranteed to be unique, but can vary across reboots or device unplug/replug.
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> index c309d3c..1415ebd 100644
+> --- a/drivers/media/media-device.c
+> +++ b/drivers/media/media-device.c
+> @@ -20,13 +20,70 @@
+>  
+>  #include <linux/types.h>
+>  #include <linux/ioctl.h>
+> +#include <linux/media.h>
+>  
+>  #include <media/media-device.h>
+>  #include <media/media-devnode.h>
+>  #include <media/media-entity.h>
+>  
+> +/* -----------------------------------------------------------------------------
+> + * Userspace API
+> + */
+> +
+> +static int media_device_open(struct file *filp)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int media_device_close(struct file *filp)
+> +{
+> +	return 0;
+> +}
+> +
+> +static int media_device_get_info(struct media_device *dev,
+> +				 struct media_device_info __user *__info)
+> +{
+> +	struct media_device_info info;
+> +
+> +	memset(&info, 0, sizeof(info));
+
+No need to zero the whole struct. info.reserved would be enough.
+
+> +
+> +	strlcpy(info.driver, dev->dev->driver->name, sizeof(info.driver));
+> +	strlcpy(info.model, dev->model, sizeof(info.model));
+> +	strncpy(info.serial, dev->serial, sizeof(info.serial));
+
+Why not strlcpy?
+
+> +	strlcpy(info.bus_info, dev->bus_info, sizeof(info.bus_info));
+> +
+> +	info.media_version = MEDIA_API_VERSION;
+> +	info.device_version = dev->device_version;
+> +	info.driver_version = dev->driver_version;
+> +
+> +	return copy_to_user(__info, &info, sizeof(*__info));
+> +}
+> +
+> +static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> +			       unsigned long arg)
+> +{
+> +	struct media_devnode *devnode = media_devnode_data(filp);
+> +	struct media_device *dev = to_media_device(devnode);
+> +	long ret;
+> +
+> +	switch (cmd) {
+> +	case MEDIA_IOC_DEVICE_INFO:
+> +		ret = media_device_get_info(dev,
+> +				(struct media_device_info __user *)arg);
+> +		break;
+> +
+> +	default:
+> +		ret = -ENOIOCTLCMD;
+> +	}
+> +
+> +	return ret;
+> +}
+> +
+>  static const struct media_file_operations media_device_fops = {
+>  	.owner = THIS_MODULE,
+> +	.open = media_device_open,
+> +	.unlocked_ioctl = media_device_ioctl,
+> +	.release = media_device_close,
+>  };
+>  
+>  /* -----------------------------------------------------------------------------
+> diff --git a/include/linux/media.h b/include/linux/media.h
+> new file mode 100644
+> index 0000000..bca08a7
+> --- /dev/null
+> +++ b/include/linux/media.h
+> @@ -0,0 +1,23 @@
+> +#ifndef __LINUX_MEDIA_H
+> +#define __LINUX_MEDIA_H
+> +
+> +#include <linux/ioctl.h>
+> +#include <linux/types.h>
+> +#include <linux/version.h>
+> +
+> +#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
+> +
+> +struct media_device_info {
+> +	__u8 driver[16];
+> +	__u8 model[32];
+> +	__u8 serial[32];
+> +	__u8 bus_info[32];
+> +	__u32 media_version;
+> +	__u32 device_version;
+> +	__u32 driver_version;
+> +	__u32 reserved[5];
+
+I'd increase this to reserved[33] as [5] seems very low to me.
+Total struct size is then 256 bytes.
+
+> +};
+> +
+> +#define MEDIA_IOC_DEVICE_INFO		_IOWR('M', 1, struct media_device_info)
+> +
+> +#endif /* __LINUX_MEDIA_H */
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index 3c9a5e0..6f57f41 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -73,6 +73,9 @@ struct media_device {
+>  	struct mutex graph_mutex;
+>  };
+>  
+> +/* media_devnode to media_device */
+> +#define to_media_device(node) container_of(node, struct media_device, devnode)
+> +
+>  int __must_check media_device_register(struct media_device *mdev);
+>  void media_device_unregister(struct media_device *mdev);
+>  
+> 
+
+Regards,
+
+	Hans
+
 -- 
-1.7.1
-
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
