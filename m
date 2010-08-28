@@ -1,693 +1,336 @@
 Return-path: <mchehab@pedra>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:41401 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561Ab0HTJwQ (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3036 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752095Ab0H1K0f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 05:52:16 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 20 Aug 2010 11:50:45 +0200
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [PATCH/RFCv4 5/6] mm: cma: Test device and application added
-In-reply-to: <8fa83f632d8198f98b232b96c848eece44e33f83.1282286941.git.m.nazarewicz@samsung.com>
-To: linux-mm@kvack.org
-Cc: Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Message-id: <2e2a3d55b07cf8ce852e0d02e6fd77dc1fcbf275.1282286941.git.m.nazarewicz@samsung.com>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
- <0b02e05fc21e70a3af39e65e628d117cd89d70a1.1282286941.git.m.nazarewicz@samsung.com>
- <343f4b0edf9b5eef598831700cb459cd428d3f2e.1282286941.git.m.nazarewicz@samsung.com>
- <9883433f103cc84e55db150806d2270200c74c6b.1282286941.git.m.nazarewicz@samsung.com>
- <8fa83f632d8198f98b232b96c848eece44e33f83.1282286941.git.m.nazarewicz@samsung.com>
+	Sat, 28 Aug 2010 06:26:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v4 02/11] media: Media device
+Date: Sat, 28 Aug 2010 12:26:15 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1282318153-18885-3-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008281226.15619.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This patch adds a "cma" misc device which lets user space use the
-CMA API.  This device is meant for testing.  A testing application
-is also provided.
+On Friday, August 20, 2010 17:29:04 Laurent Pinchart wrote:
+> The media_device structure abstracts functions common to all kind of
+> media devices (v4l2, dvb, alsa, ...). It manages media entities and
+> offers a userspace API to discover and configure the media device
+> internal topology.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  Documentation/media-framework.txt |   91 ++++++++++++++++++++++++++++++++++
+>  drivers/media/Makefile            |    2 +-
+>  drivers/media/media-device.c      |   98 +++++++++++++++++++++++++++++++++++++
+>  include/media/media-device.h      |   64 ++++++++++++++++++++++++
+>  4 files changed, 254 insertions(+), 1 deletions(-)
+>  create mode 100644 Documentation/media-framework.txt
+>  create mode 100644 drivers/media/media-device.c
+>  create mode 100644 include/media/media-device.h
+> 
+> diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+> new file mode 100644
+> index 0000000..89dc7ad
+> --- /dev/null
+> +++ b/Documentation/media-framework.txt
+> @@ -0,0 +1,91 @@
+> +Linux kernel media framework
+> +============================
+> +
+> +This document describes the Linux kernel media framework, its data structures,
+> +functions and their usage.
+> +
+> +
+> +Introduction
+> +------------
+> +
+> +Media devices increasingly handle multiple related functions. Many USB cameras
+> +include microphones, video capture hardware can also output video, or SoC
+> +camera interfaces also perform memory-to-memory operations similar to video
+> +codecs.
+> +
+> +Independent functions, even when implemented in the same hardware, can be
+> +modeled by separate devices. A USB camera with a microphone will be presented
+> +to userspace applications as V4L2 and ALSA capture devices. The devices
+> +relationships (when using a webcam, end-users shouldn't have to manually
+> +select the associated USB microphone), while not made available directly to
+> +applications by the drivers, can usually be retrieved from sysfs.
+> +
+> +With more and more advanced SoC devices being introduced, the current approach
+> +will not scale. Device topologies are getting increasingly complex and can't
+> +always be represented by a tree structure. Hardware blocks are shared between
+> +different functions, creating dependencies between seemingly unrelated
+> +devices.
+> +
+> +Kernel abstraction APIs such as V4L2 and ALSA provide means for applications
+> +to access hardware parameters. As newer hardware expose an increasingly high
+> +number of those parameters, drivers need to guess what applications really
+> +require based on limited information, thereby implementing policies that
+> +belong to userspace.
+> +
+> +The media kernel API aims at solving those problems.
+> +
+> +
+> +Media device
+> +------------
+> +
+> +A media device is represented by a struct media_device instance, defined in
+> +include/media/media-device.h. Allocation of the structure is handled by the
+> +media device driver, usually by embedding the media_device instance in a
+> +larger driver-specific structure.
+> +
+> +Drivers register media device instances by calling
+> +
+> +	media_device_register(struct media_device *mdev);
+> +
+> +The caller is responsible for initializing the media_device structure before
+> +registration. The following fields must be set:
+> +
+> + - dev must point to the parent device (usually a pci_dev, usb_interface or
+> +   platform_device instance).
+> +
+> + - model must be filled with the device model name as a NUL-terminated UTF-8
+> +   string. The device/model revision must not be stored in this field.
+> +
+> +The following fields are optional:
+> +
+> + - serial is a unique serial number stored as an ASCII string. The string must
+> +   be NUL-terminated unless exactly 32 characters long. This allows storing
+> +   GUIDs in a text form. If the hardware doesn't provide a unique serial
+> +   number this field must be left empty.
+> +
+> + - bus_info represents the location of the device in the system as a
+> +   NUL-terminated ASCII string. For PCI/PCIe devices bus_info must be set to
+> +   "PCI:" (or "PCIe:") followed by the value of pci_name(). For USB devices,
+> +   the usb_make_path() function must be used. This field is used by
+> +   applications to distinguish between otherwise identical devices that don't
+> +   provide a serial number.
+> +
+> + - device_version is the hardware device version number in a driver-specific
+> +   format. When possible the version should be formatted with the
+> +   KERNEL_VERSION macro.
+> +
+> + - driver_version is formatted with the KERNEL_VERSION macro. The version
+> +   minor must be incremented when new features are added to the userspace API
+> +   without breaking binary compatibility. The version major must be
+> +   incremented when binary compatibility is broken.
+> +
+> +Upon successful registration a character device named media[0-9]+ is created.
+> +The device major and minor numbers are dynamic. The model name is exported as
+> +a sysfs attribute.
+> +
+> +Drivers unregister media device instances by calling
+> +
+> +	media_device_unregister(struct media_device *mdev);
+> +
+> +Unregistering a media device that hasn't been registered is *NOT* safe.
+> +
+> diff --git a/drivers/media/Makefile b/drivers/media/Makefile
+> index c1b5938..f8d8dcb 100644
+> --- a/drivers/media/Makefile
+> +++ b/drivers/media/Makefile
+> @@ -2,7 +2,7 @@
+>  # Makefile for the kernel multimedia device drivers.
+>  #
+>  
+> -media-objs	:= media-devnode.o
+> +media-objs	:= media-device.o media-devnode.o
+>  
+>  obj-$(CONFIG_MEDIA_SUPPORT)	+= media.o
+>  
+> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> new file mode 100644
+> index 0000000..781c641
+> --- /dev/null
+> +++ b/drivers/media/media-device.c
+> @@ -0,0 +1,98 @@
+> +/*
+> + *  Media device support.
+> + *
+> + *  Copyright (C) 2010  Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or
+> + *  (at your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License
+> + *  along with this program; if not, write to the Free Software
+> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> + */
+> +
+> +#include <linux/types.h>
+> +#include <linux/ioctl.h>
+> +
+> +#include <media/media-device.h>
+> +#include <media/media-devnode.h>
+> +
+> +static const struct media_file_operations media_device_fops = {
+> +	.owner = THIS_MODULE,
+> +};
+> +
+> +/* -----------------------------------------------------------------------------
+> + * sysfs
+> + */
+> +
+> +static ssize_t show_model(struct device *cd,
+> +			  struct device_attribute *attr, char *buf)
+> +{
+> +	struct media_device *mdev = to_media_device(to_media_devnode(cd));
+> +
+> +	return sprintf(buf, "%.*s\n", (int)sizeof(mdev->model), mdev->model);
+> +}
+> +
+> +static DEVICE_ATTR(model, S_IRUGO, show_model, NULL);
+> +
+> +/* -----------------------------------------------------------------------------
+> + * Registration/unregistration
+> + */
+> +
+> +static void media_device_release(struct media_devnode *mdev)
+> +{
+> +}
+> +
+> +/**
+> + * media_device_register - register a media device
+> + * @mdev:	The media device
+> + *
+> + * The caller is responsible for initializing the media device before
+> + * registration. The following fields must be set:
+> + *
+> + * - dev must point to the parent device
+> + * - model must be filled with the device model name
+> + */
+> +int __must_check media_device_register(struct media_device *mdev)
+> +{
+> +	int ret;
+> +
+> +	if (WARN_ON(mdev->dev == NULL || mdev->model[0] == 0))
+> +		return 0;
+> +
+> +	/* Register the device node. */
+> +	mdev->devnode.fops = &media_device_fops;
+> +	mdev->devnode.parent = mdev->dev;
+> +	mdev->devnode.release = media_device_release;
+> +	ret = media_devnode_register(&mdev->devnode);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	ret = device_create_file(&mdev->devnode.dev, &dev_attr_model);
+> +	if (ret < 0) {
+> +		media_devnode_unregister(&mdev->devnode);
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(media_device_register);
+> +
+> +/**
+> + * media_device_unregister - unregister a media device
+> + * @mdev:	The media device
+> + *
+> + */
+> +void media_device_unregister(struct media_device *mdev)
+> +{
+> +	device_remove_file(&mdev->devnode.dev, &dev_attr_model);
+> +	media_devnode_unregister(&mdev->devnode);
+> +}
+> +EXPORT_SYMBOL_GPL(media_device_unregister);
+> diff --git a/include/media/media-device.h b/include/media/media-device.h
+> new file mode 100644
+> index 0000000..4fe949e
+> --- /dev/null
+> +++ b/include/media/media-device.h
+> @@ -0,0 +1,64 @@
+> +/*
+> + *  Media device support header.
+> + *
+> + *  Copyright (C) 2010  Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> + *
+> + *  This program is free software; you can redistribute it and/or modify
+> + *  it under the terms of the GNU General Public License as published by
+> + *  the Free Software Foundation; either version 2 of the License, or
+> + *  (at your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License
+> + *  along with this program; if not, write to the Free Software
+> + *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+> + */
+> +
+> +#ifndef _MEDIA_DEVICE_H
+> +#define _MEDIA_DEVICE_H
+> +
+> +#include <linux/device.h>
+> +#include <linux/list.h>
+> +
+> +#include <media/media-devnode.h>
+> +
+> +/**
+> + * struct media_device - Media device
+> + * @dev:	Parent device
+> + * @devnode:	Media device node
+> + * @model:	Device model name
+> + * @serial:	Device serial number (optional)
+> + * @bus_info:	Unique and stable device location identifier
+> + * @device_version: Hardware device version
+> + * @driver_version: Device driver version
+> + *
+> + * This structure represents an abstract high-level media device. It allows easy
+> + * access to entities and provides basic media device-level support. The
+> + * structure can be allocated directly or embedded in a larger structure.
+> + *
+> + * The parent @dev is a physical device. It must be set before registering the
+> + * media device.
+> + *
+> + * @model is a descriptive model name exported through sysfs. It doesn't have to
+> + * be unique.
+> + */
+> +struct media_device {
+> +	/* dev->driver_data points to this struct. */
+> +	struct device *dev;
+> +	struct media_devnode devnode;
+> +
+> +	u8 model[32];
+> +	u8 serial[32];
+> +	u8 bus_info[32];
+> +	u32 device_version;
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/misc/Kconfig   |    8 +
- drivers/misc/Makefile  |    1 +
- drivers/misc/cma-dev.c |  185 ++++++++++++++++++++++++
- include/linux/cma.h    |   30 ++++
- tools/cma/cma-test.c   |  373 ++++++++++++++++++++++++++++++++++++++++++++++++
- 5 files changed, 597 insertions(+), 0 deletions(-)
- create mode 100644 drivers/misc/cma-dev.c
- create mode 100644 tools/cma/cma-test.c
+I prefer hw_revision or possibly hw_device_revision. 'device' is too ambiguous.
+And 'revision' is more applicable to hardware than 'version' IMHO.
 
-diff --git a/drivers/misc/Kconfig b/drivers/misc/Kconfig
-index 0b591b6..f93e812 100644
---- a/drivers/misc/Kconfig
-+++ b/drivers/misc/Kconfig
-@@ -395,4 +395,12 @@ source "drivers/misc/eeprom/Kconfig"
- source "drivers/misc/cb710/Kconfig"
- source "drivers/misc/iwmc3200top/Kconfig"
- 
-+config CMA_DEVICE
-+	tristate "CMA misc device (DEVELOPEMENT)"
-+	depends on CMA_DEVELOPEMENT
-+	help
-+	  The CMA misc device allows allocating contiguous memory areas
-+	  from user space.  This is mostly for testing of the CMA
-+	  framework.
-+
- endif # MISC_DEVICES
-diff --git a/drivers/misc/Makefile b/drivers/misc/Makefile
-index 255a80d..2e82898 100644
---- a/drivers/misc/Makefile
-+++ b/drivers/misc/Makefile
-@@ -35,3 +35,4 @@ obj-y				+= eeprom/
- obj-y				+= cb710/
- obj-$(CONFIG_VMWARE_BALLOON)	+= vmware_balloon.o
- obj-$(CONFIG_ARM_CHARLCD)	+= arm-charlcd.o
-+obj-$(CONFIG_CMA_DEVICE)	+= cma-dev.o
-diff --git a/drivers/misc/cma-dev.c b/drivers/misc/cma-dev.c
-new file mode 100644
-index 0000000..de534f0
---- /dev/null
-+++ b/drivers/misc/cma-dev.c
-@@ -0,0 +1,185 @@
-+/*
-+ * Contiguous Memory Allocator userspace driver
-+ * Copyright (c) 2010 by Samsung Electronics.
-+ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of the
-+ * License or (at your optional) any later version of the license.
-+ */
-+
-+#define pr_fmt(fmt) "cma: " fmt
-+
-+#ifdef CONFIG_CMA_DEBUG
-+#  define DEBUG
-+#endif
-+
-+#include <linux/errno.h>       /* Error numbers */
-+#include <linux/err.h>         /* IS_ERR_VALUE() */
-+#include <linux/fs.h>          /* struct file */
-+#include <linux/mm.h>          /* Memory stuff */
-+#include <linux/mman.h>
-+#include <linux/slab.h>
-+#include <linux/module.h>      /* Standard module stuff */
-+#include <linux/device.h>      /* struct device, dev_dbg() */
-+#include <linux/types.h>       /* Just to be safe ;) */
-+#include <linux/uaccess.h>     /* __copy_{to,from}_user */
-+#include <linux/miscdevice.h>  /* misc_register() and company */
-+
-+#include <linux/cma.h>
-+
-+static int  cma_file_open(struct inode *inode, struct file *file);
-+static int  cma_file_release(struct inode *inode, struct file *file);
-+static long cma_file_ioctl(struct file *file, unsigned cmd, unsigned long arg);
-+static int  cma_file_mmap(struct file *file, struct vm_area_struct *vma);
-+
-+
-+static struct miscdevice cma_miscdev = {
-+	.minor = MISC_DYNAMIC_MINOR,
-+	.name  = "cma",
-+	.fops  = &(const struct file_operations) {
-+		.owner          = THIS_MODULE,
-+		.open           = cma_file_open,
-+		.release        = cma_file_release,
-+		.unlocked_ioctl = cma_file_ioctl,
-+		.mmap           = cma_file_mmap,
-+	},
-+};
-+#define cma_dev (cma_miscdev.this_device)
-+
-+
-+#define cma_file_start(file) (((dma_addr_t *)(file)->private_data)[0])
-+#define cma_file_size(file)  (((dma_addr_t *)(file)->private_data)[1])
-+
-+
-+static int  cma_file_open(struct inode *inode, struct file *file)
-+{
-+	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
-+
-+	file->private_data = NULL;
-+
-+	return 0;
-+}
-+
-+
-+static int  cma_file_release(struct inode *inode, struct file *file)
-+{
-+	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
-+
-+	if (file->private_data) {
-+		cma_free(cma_file_start(file));
-+		kfree(file->private_data);
-+	}
-+
-+	return 0;
-+}
-+
-+
-+static long cma_file_ioctl(struct file *file, unsigned cmd, unsigned long arg)
-+{
-+	struct cma_alloc_request req;
-+	struct device fake_device;
-+	unsigned long addr;
-+	long ret;
-+
-+	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
-+
-+	if (cmd != IOCTL_CMA_ALLOC)
-+		return -ENOTTY;
-+
-+	if (!arg)
-+		return -EINVAL;
-+
-+	if (file->private_data) /* Already allocated */
-+		return -EBADFD;
-+
-+	if (copy_from_user(&req, (void *)arg, sizeof req))
-+		return -EFAULT;
-+
-+	if (req.magic != CMA_MAGIC)
-+		return -ENOTTY;
-+
-+	/* May happen on 32 bit system. */
-+	if (req.size > ~(typeof(req.size))0 ||
-+	    req.alignment > ~(typeof(req.alignment))0)
-+		return -EINVAL;
-+
-+	if (strnlen(req.name, sizeof req.name) >= sizeof req.name
-+	 || strnlen(req.kind, sizeof req.kind) >= sizeof req.kind)
-+		return -EINVAL;
-+
-+	file->private_data = kmalloc(2 * sizeof(dma_addr_t), GFP_KERNEL);
-+	if (!file->private_data)
-+		return -ENOMEM;
-+
-+	fake_device.init_name = req.name;
-+	fake_device.kobj.name = req.name;
-+	addr = cma_alloc(&fake_device, req.kind, req.size, req.alignment);
-+	if (IS_ERR_VALUE(addr)) {
-+		ret = addr;
-+		goto error_priv;
-+	}
-+
-+	if (put_user(addr, (typeof(req.start) *)(arg + offsetof(typeof(req),
-+								start)))) {
-+		ret = -EFAULT;
-+		goto error_put;
-+	}
-+
-+	cma_file_start(file) = addr;
-+	cma_file_size(file) = req.size;
-+
-+	dev_dbg(cma_dev, "allocated %p@%p\n",
-+		(void *)(dma_addr_t)req.size, (void *)addr);
-+
-+	return 0;
-+
-+error_put:
-+	cma_free(addr);
-+error_priv:
-+	kfree(file->private_data);
-+	file->private_data = NULL;
-+	return ret;
-+}
-+
-+
-+static int  cma_file_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	unsigned long pgoff, offset, length;
-+
-+	dev_dbg(cma_dev, "%s(%p)\n", __func__, (void *)file);
-+
-+	if (!file->private_data)
-+		return -EBADFD;
-+
-+	pgoff  = vma->vm_pgoff;
-+	offset = pgoff << PAGE_SHIFT;
-+	length = vma->vm_end - vma->vm_start;
-+
-+	if (offset          >= cma_file_size(file)
-+	 || length          >  cma_file_size(file)
-+	 || offset + length >  cma_file_size(file))
-+		return -ENOSPC;
-+
-+	return remap_pfn_range(vma, vma->vm_start,
-+			       __phys_to_pfn(cma_file_start(file) + offset),
-+			       length, vma->vm_page_prot);
-+}
-+
-+
-+
-+static int __init cma_dev_init(void)
-+{
-+	int ret = misc_register(&cma_miscdev);
-+	pr_debug("miscdev: register returned: %d\n", ret);
-+	return ret;
-+}
-+module_init(cma_dev_init);
-+
-+static void __exit cma_dev_exit(void)
-+{
-+	dev_dbg(cma_dev, "deregisterring\n");
-+	misc_deregister(&cma_miscdev);
-+}
-+module_exit(cma_dev_exit);
-diff --git a/include/linux/cma.h b/include/linux/cma.h
-index eede28d..4334bb8 100644
---- a/include/linux/cma.h
-+++ b/include/linux/cma.h
-@@ -11,6 +11,36 @@
-  * See Documentation/contiguous-memory.txt for details.
-  */
- 
-+#include <linux/ioctl.h>
-+#include <linux/types.h>
-+
-+
-+#define CMA_MAGIC (('c' << 24) | ('M' << 16) | ('a' << 8) | 0x42)
-+
-+/**
-+ * An information about area exportable to user space.
-+ * @magic:	must always be CMA_MAGIC.
-+ * @name:	name of the device to allocate as.
-+ * @kind:	kind of the memory.
-+ * @_pad:	reserved.
-+ * @size:	size of the chunk to allocate.
-+ * @alignment:	desired alignment of the chunk (must be power of two or zero).
-+ * @start:	when ioctl() finishes this stores physical address of the chunk.
-+ */
-+struct cma_alloc_request {
-+	__u32 magic;
-+	char  name[17];
-+	char  kind[17];
-+	__u16 pad;
-+	/* __u64 to be compatible accross 32 and 64 bit systems. */
-+	__u64 size;
-+	__u64 alignment;
-+	__u64 start;
-+};
-+
-+#define IOCTL_CMA_ALLOC    _IOWR('p', 0, struct cma_alloc_request)
-+
-+
- /***************************** Kernel lever API *****************************/
- 
- #ifdef __KERNEL__
-diff --git a/tools/cma/cma-test.c b/tools/cma/cma-test.c
-new file mode 100644
-index 0000000..567c57b
---- /dev/null
-+++ b/tools/cma/cma-test.c
-@@ -0,0 +1,373 @@
-+/*
-+ * cma-test.c -- CMA testing application
-+ *
-+ * Copyright (C) 2010 Samsung Electronics
-+ *                    Author: Michal Nazarewicz <m.nazarewicz@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+/* $(CROSS_COMPILE)gcc -Wall -Wextra -g -o cma-test cma-test.c  */
-+
-+#include <linux/cma.h>
-+
-+#include <sys/ioctl.h>
-+#include <sys/stat.h>
-+#include <sys/types.h>
-+
-+#include <fcntl.h>
-+#include <unistd.h>
-+
-+#include <ctype.h>
-+#include <errno.h>
-+#include <limits.h>
-+#include <stdio.h>
-+#include <stdlib.h>
-+#include <string.h>
-+
-+
-+static void handle_command(char *line);
-+
-+int main(void)
-+{
-+	unsigned no = 1;
-+	char line[1024];
-+	int skip = 0;
-+
-+	fputs("commands:\n"
-+	      " l or list                                list allocated chunks\n"
-+	      " a or alloc  <name> <size>[/<alignment>]  allocate chunk\n"
-+	      " f or free   [<num>]                      free an chunk\n"
-+	      " # ...                                    comment\n"
-+	      " <empty line>                             repeat previous\n"
-+	      "\n", stderr);
-+
-+	while (fgets(line, sizeof line, stdin)) {
-+		char *nl = strchr(line, '\n');
-+		if (nl) {
-+			if (skip) {
-+				fprintf(stderr, "cma: %d: line too long\n", no);
-+				skip = 0;
-+			} else {
-+				*nl = '\0';
-+				handle_command(line);
-+			}
-+			++no;
-+		} else {
-+			skip = 1;
-+		}
-+	}
-+
-+	if (skip)
-+		fprintf(stderr, "cma: %d: no new line at EOF\n", no);
-+	return 0;
-+}
-+
-+
-+
-+static void cmd_list(char *name, char *line);
-+static void cmd_alloc(char *name, char *line);
-+static void cmd_free(char *name, char *line);
-+
-+static const struct command {
-+	const char name[8];
-+	void (*handle)(char *name, char *line);
-+} commands[] = {
-+	{ "list",  cmd_list  },
-+	{ "l",     cmd_list  },
-+	{ "alloc", cmd_alloc },
-+	{ "a",     cmd_alloc },
-+	{ "free",  cmd_free  },
-+	{ "f",     cmd_free  },
-+	{ "",      NULL      }
-+};
-+
-+
-+#define SKIP_SPACE(ch) do while (isspace(*(ch))) ++(ch); while (0)
-+
-+
-+static void handle_command(char *line)
-+{
-+	static char last_line[1024];
-+
-+	const struct command *cmd;
-+	char *name;
-+
-+	SKIP_SPACE(line);
-+	if (*line == '#')
-+		return;
-+
-+	if (!*line)
-+		strcpy(line, last_line);
-+	else
-+		strcpy(last_line, line);
-+
-+	name = line;
-+	while (*line && !isspace(*line))
-+		++line;
-+
-+	if (*line) {
-+		*line = '\0';
-+		++line;
-+	}
-+
-+	for (cmd = commands; *(cmd->name); ++cmd)
-+		if (!strcmp(name, cmd->name)) {
-+			cmd->handle(name, line);
-+			return;
-+		}
-+
-+	fprintf(stderr, "%s: unknown command\n", name);
-+}
-+
-+
-+
-+struct chunk {
-+	struct chunk *next, *prev;
-+	int fd;
-+	unsigned long size;
-+	unsigned long start;
-+};
-+
-+static struct chunk root = {
-+	.next = &root,
-+	.prev = &root,
-+};
-+
-+#define for_each(a) for (a = root.next; a != &root; a = a->next)
-+
-+static struct chunk *chunk_create(const char *prefix);
-+static void chunk_destroy(struct chunk *chunk);
-+static void chunk_add(struct chunk *chunk);
-+
-+static int memparse(char *ptr, char **retptr, unsigned long *ret);
-+
-+
-+static void cmd_list(char *name, char *line)
-+{
-+	struct chunk *chunk;
-+
-+	(void)name; (void)line;
-+
-+	for_each(chunk)
-+		printf("%3d: %p@%p\n", chunk->fd,
-+		       (void *)chunk->size, (void *)chunk->start);
-+}
-+
-+
-+static void cmd_alloc(char *name, char *line)
-+{
-+	unsigned long size, alignment = 0;
-+	struct cma_alloc_request req;
-+	char *dev, *kind = NULL;
-+	struct chunk *chunk;
-+	int ret;
-+
-+	SKIP_SPACE(line);
-+	if (!*line) {
-+		fprintf(stderr, "%s: expecting name\n", name);
-+		return;
-+	}
-+
-+	for (dev = line; *line && !isspace(*line); ++line)
-+		if (*line == '/')
-+			kind = line;
-+
-+	if (!*line) {
-+		fprintf(stderr, "%s: expecting size after name\n", name);
-+		return;
-+	}
-+
-+	if (kind)
-+		*kind++ = '\0';
-+	*line++ = '\0';
-+
-+	if (( kind && (size_t)(kind - dev ) > sizeof req.name)
-+	 || (!kind && (size_t)(line - dev ) > sizeof req.name)
-+	 || ( kind && (size_t)(line - kind) > sizeof req.kind)) {
-+		fprintf(stderr, "%s: name or kind too long\n", name);
-+		return;
-+	}
-+
-+
-+	if (memparse(line, &line, &size) < 0 || !size) {
-+		fprintf(stderr, "%s: invalid size\n", name);
-+		return;
-+	}
-+
-+	if (*line == '/')
-+		if (memparse(line, &line, &alignment) < 0) {
-+			fprintf(stderr, "%s: invalid alignment\n", name);
-+			return;
-+		}
-+
-+	SKIP_SPACE(line);
-+	if (*line) {
-+		fprintf(stderr, "%s: unknown arguments at the end: %s\n",
-+			name, line);
-+		return;
-+	}
-+
-+
-+	chunk = chunk_create(name);
-+	if (!chunk)
-+		return;
-+
-+	fprintf(stderr, "%s: allocating %p/%p\n", name,
-+		(void *)size, (void *)alignment);
-+
-+	req.magic     = CMA_MAGIC;
-+	req.size      = size;
-+	req.alignment = alignment;
-+
-+	strcpy(req.name, dev);
-+	if (kind)
-+		strcpy(req.kind, kind);
-+	else
-+		req.kind[0] = '\0';
-+
-+
-+	ret = ioctl(chunk->fd, IOCTL_CMA_ALLOC, &req);
-+	if (ret < 0) {
-+		fprintf(stderr, "%s: cma_alloc: %s\n", name, strerror(errno));
-+		chunk_destroy(chunk);
-+	} else {
-+		chunk_add(chunk);
-+		chunk->size  = req.size;
-+		chunk->start = req.start;
-+
-+		printf("%3d: %p@%p\n", chunk->fd,
-+		       (void *)chunk->size, (void *)chunk->start);
-+	}
-+}
-+
-+
-+static void cmd_free(char *name, char *line)
-+{
-+	struct chunk *chunk;
-+
-+	SKIP_SPACE(line);
-+
-+	if (*line) {
-+		unsigned long num;
-+
-+		errno = 0;
-+		num = strtoul(line, &line, 10);
-+
-+		if (errno || num > INT_MAX) {
-+			fprintf(stderr, "%s: invalid number\n", name);
-+			return;
-+		}
-+
-+		SKIP_SPACE(line);
-+		if (*line) {
-+			fprintf(stderr, "%s: unknown arguments at the end: %s\n",
-+				name, line);
-+			return;
-+		}
-+
-+		for_each(chunk)
-+			if (chunk->fd == (int)num)
-+				goto ok;
-+		fprintf(stderr, "%s: no chunk %3lu\n", name, num);
-+		return;
-+
-+	} else {
-+		chunk = root.prev;
-+		if (chunk == &root) {
-+			fprintf(stderr, "%s: no chunks\n", name);
-+			return;
-+		}
-+	}
-+
-+ok:
-+	fprintf(stderr, "%s: freeing %p@%p\n", name,
-+		(void *)chunk->size, (void *)chunk->start);
-+	chunk_destroy(chunk);
-+}
-+
-+
-+static struct chunk *chunk_create(const char *prefix)
-+{
-+	struct chunk *chunk;
-+	int fd;
-+
-+	chunk = malloc(sizeof *chunk);
-+	if (!chunk) {
-+		fprintf(stderr, "%s: %s\n", prefix, strerror(errno));
-+		return NULL;
-+	}
-+
-+	fd = open("/dev/cma", O_RDWR);
-+	if (fd < 0) {
-+		fprintf(stderr, "%s: /dev/cma: %s\n", prefix, strerror(errno));
-+		return NULL;
-+	}
-+
-+	chunk->prev = chunk;
-+	chunk->next = chunk;
-+	chunk->fd   = fd;
-+	return chunk;
-+}
-+
-+static void chunk_destroy(struct chunk *chunk)
-+{
-+	chunk->prev->next = chunk->next;
-+	chunk->next->prev = chunk->prev;
-+	close(chunk->fd);
-+}
-+
-+static void chunk_add(struct chunk *chunk)
-+{
-+	chunk->next = &root;
-+	chunk->prev = root.prev;
-+	root.prev->next = chunk;
-+	root.prev = chunk;
-+}
-+
-+
-+
-+static int memparse(char *ptr, char **retptr, unsigned long *ret)
-+{
-+	unsigned long val;
-+
-+	SKIP_SPACE(ptr);
-+
-+	errno = 0;
-+	val = strtoul(ptr, &ptr, 0);
-+	if (errno)
-+		return -1;
-+
-+	switch (*ptr) {
-+	case 'G':
-+	case 'g':
-+		val <<= 10;
-+	case 'M':
-+	case 'm':
-+		val <<= 10;
-+	case 'K':
-+	case 'k':
-+		val <<= 10;
-+		++ptr;
-+	}
-+
-+	if (retptr) {
-+		SKIP_SPACE(ptr);
-+		*retptr = ptr;
-+	}
-+
-+	*ret = val;
-+	return 0;
-+}
+
+Regards,
+
+	Hans
+
+> +	u32 driver_version;
+> +};
+> +
+> +int __must_check media_device_register(struct media_device *mdev);
+> +void media_device_unregister(struct media_device *mdev);
+> +
+> +#endif
+> 
+
 -- 
-1.7.1
-
-
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
