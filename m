@@ -1,42 +1,41 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:58891 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755698Ab0HCJik (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 05:38:40 -0400
-From: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Return-path: <mchehab@pedra>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:36974 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752422Ab0H1VTG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Aug 2010 17:19:06 -0400
+Received: by wwb28 with SMTP id 28so5370386wwb.1
+        for <linux-media@vger.kernel.org>; Sat, 28 Aug 2010 14:19:03 -0700 (PDT)
+Subject: [PATCH]STV0288 Incorrect bit sample for Vitterbi status.
+From: tvbox <tvboxspy@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: baruch@tkos.co.il, g.liakhovetski@gmx.de, s.hauer@pengutronix.de,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>
-Subject: [PATCH 3/5] mx2_camera: fix for list bufnum in frame_done_emma
-Date: Tue,  3 Aug 2010 11:37:54 +0200
-Message-Id: <1280828276-483-4-git-send-email-m.grzeschik@pengutronix.de>
-In-Reply-To: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
-References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 28 Aug 2010 22:18:45 +0100
+Message-ID: <1283030325.2708.22.camel@canaries-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-The emma uses bufnum 1 and 0. This patch tells the bufqueue to change
-the next buffer to the next one and not the current one.
-Otherwise the BUG_ON above will trigger everytime.
+bit 3(LK) indicates that the Vstatus is locked.
+Currently using bit 7(CF) which is usually present, results in early
+aborted search in FEC_AUTO and missing channels.
 
-Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
----
- drivers/media/video/mx2_camera.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index ae27640..cf9a604 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -1193,7 +1193,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 	buf = list_entry(pcdev->capture.next,
- 			struct mx2_buffer, vb.queue);
+
+
+diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
+index 2930a5d..bc9b47e 100644
+--- a/drivers/media/dvb/frontends/stv0288.c
++++ b/drivers/media/dvb/frontends/stv0288.c
+@@ -486,7 +486,7 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
+ 	tda[2] = 0x0; /* CFRL */
+ 	for (tm = -6; tm < 7;) {
+ 		/* Viterbi status */
+-		if (stv0288_readreg(state, 0x24) & 0x80)
++		if (stv0288_readreg(state, 0x24) & 0x8)
+ 			break;
  
--	buf->bufnum = bufnum;
-+	buf->bufnum = !bufnum;
- 
- 	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
- 
--- 
-1.7.1
+ 		tda[2] += 40;
 
