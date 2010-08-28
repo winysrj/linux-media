@@ -1,60 +1,61 @@
 Return-path: <mchehab@gaivota>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:59254 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753105Ab0L3XIz (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:62090 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752075Ab0LaFcO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Dec 2010 18:08:55 -0500
-From: "Justin P. Mattock" <justinmattock@gmail.com>
-To: trivial@kernel.org
-Cc: linux-m68k@lists.linux-m68k.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-scsi@vger.kernel.org,
-	spi-devel-general@lists.sourceforge.net,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
-	"Justin P. Mattock" <justinmattock@gmail.com>
-Subject: [PATCH 14/15]include:media:davinci:vpss.h Typo change diable to disable.
-Date: Thu, 30 Dec 2010 15:08:03 -0800
-Message-Id: <1293750484-1161-14-git-send-email-justinmattock@gmail.com>
-In-Reply-To: <1293750484-1161-13-git-send-email-justinmattock@gmail.com>
-References: <1293750484-1161-1-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-2-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-3-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-4-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-5-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-6-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-7-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-8-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-9-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-10-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-11-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-12-git-send-email-justinmattock@gmail.com>
- <1293750484-1161-13-git-send-email-justinmattock@gmail.com>
+	Fri, 31 Dec 2010 00:32:14 -0500
+Message-ID: <4d1d6adc.857a0e0a.45e5.ffffd91e@mx.google.com>
+From: Abylay Ospan <liplianin@me.by>
+Date: Sat, 28 Aug 2010 16:06:25 +0300
+Subject: [PATCH 12/18] stv0367: implement uncorrected blocks counter.
+To: <mchehab@infradead.org>, linux-media@vger.kernel.org,
+	<linux-kernel@vger.kernel.org>, <aospan@netup.ru>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The below patch fixes a typo "diable" to "disable". Please let me know if this 
-is correct or not.
-
-Signed-off-by: Justin P. Mattock <justinmattock@gmail.com>
-
+Signed-off-by: Abylay Ospan <aospan@netup.ru>
 ---
- include/media/davinci/vpss.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/dvb/frontends/stv0367.c |   20 +++++++++++++++++++-
+ 1 files changed, 19 insertions(+), 1 deletions(-)
 
-diff --git a/include/media/davinci/vpss.h b/include/media/davinci/vpss.h
-index c59cc02..b586495 100644
---- a/include/media/davinci/vpss.h
-+++ b/include/media/davinci/vpss.h
-@@ -44,7 +44,7 @@ struct vpss_pg_frame_size {
- 	short pplen;
+diff --git a/drivers/media/dvb/frontends/stv0367.c b/drivers/media/dvb/frontends/stv0367.c
+index 9439388..aaa2b44 100644
+--- a/drivers/media/dvb/frontends/stv0367.c
++++ b/drivers/media/dvb/frontends/stv0367.c
+@@ -3327,6 +3327,24 @@ static int stv0367cab_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	return 0;
+ }
+ 
++static int stv0367cab_read_ucblcks(struct dvb_frontend *fe, u32 *ucblocks)
++{
++	struct stv0367_state *state = fe->demodulator_priv;
++	int corrected, tscount;
++
++	*ucblocks = (stv0367_readreg(state, R367CAB_RS_COUNTER_5) << 8)
++			| stv0367_readreg(state, R367CAB_RS_COUNTER_4);
++	corrected = (stv0367_readreg(state, R367CAB_RS_COUNTER_3) << 8)
++			| stv0367_readreg(state, R367CAB_RS_COUNTER_2);
++	tscount = (stv0367_readreg(state, R367CAB_RS_COUNTER_2) << 8)
++			| stv0367_readreg(state, R367CAB_RS_COUNTER_1);
++
++	dprintk("%s: uncorrected blocks=%d corrected blocks=%d tscount=%d\n",
++				__func__, *ucblocks, corrected, tscount);
++
++	return 0;
++};
++
+ static struct dvb_frontend_ops stv0367cab_ops = {
+ 	.info = {
+ 		.name = "ST STV0367 DVB-C",
+@@ -3351,7 +3369,7 @@ static struct dvb_frontend_ops stv0367cab_ops = {
+ /* 	.read_ber				= stv0367cab_read_ber,*/
+ 	.read_signal_strength			= stv0367cab_read_strength,
+ 	.read_snr				= stv0367cab_read_snr,
+-/* 	.read_ucblocks				= stv0367cab_read_ucblcks,*/
++	.read_ucblocks				= stv0367cab_read_ucblcks,
+ 	.get_tune_settings			= stv0367_get_tune_settings,
  };
  
--/* Used for enable/diable VPSS Clock */
-+/* Used for enable/disable VPSS Clock */
- enum vpss_clock_sel {
- 	/* DM355/DM365 */
- 	VPSS_CCDC_CLOCK,
 -- 
-1.6.5.2.180.gc5b3e
+1.7.1
 
