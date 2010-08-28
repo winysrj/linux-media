@@ -1,75 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from sh.osrg.net ([192.16.179.4]:55245 "EHLO sh.osrg.net"
+Received: from mx1.redhat.com ([209.132.183.28]:8062 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751202Ab0HTG6d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 02:58:33 -0400
-Date: Fri, 20 Aug 2010 15:57:51 +0900
-To: m.nazarewicz@samsung.com
-Cc: fujita.tomonori@lab.ntt.co.jp, kyungmin.park@samsung.com,
-	linux-mm@kvack.org, dwalker@codeaurora.org, linux@arm.linux.org.uk,
-	corbet@lwn.net, p.osciak@samsung.com,
-	broonie@opensource.wolfsonmicro.com, linux-kernel@vger.kernel.org,
-	hvaibhav@ti.com, hverkuil@xs4all.nl, kgene.kim@samsung.com,
-	zpfeffer@codeaurora.org, jaeryul.oh@samsung.com,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com
-Subject: Re: [PATCH/RFCv3 0/6] The Contiguous Memory Allocator framework
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <op.vhp4pws27p4s8u@localhost>
-References: <op.vhppgaxq7p4s8u@localhost>
-	<20100820121124Z.fujita.tomonori@lab.ntt.co.jp>
-	<op.vhp4pws27p4s8u@localhost>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+	id S1751224Ab0H1O7Z (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Aug 2010 10:59:25 -0400
+Message-ID: <4C7925A4.2020601@redhat.com>
+Date: Sat, 28 Aug 2010 17:05:08 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Announcing v4l-utils-0.8.1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <20100820155617S.fujita.tomonori@lab.ntt.co.jp>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, 20 Aug 2010 08:38:10 +0200
-**UNKNOWN CHARSET** <m.nazarewicz@samsung.com> wrote:
+Hi,
 
-> On Fri, 20 Aug 2010 05:12:50 +0200, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp> wrote:
-> >> 1. Integration on API level meaning that some kind of existing API is used
-> >>     instead of new cma_*() calls.  CMA adds notion of devices and memory
-> >>     types which is new to all the other APIs (coherent has notion of devices
-> >>     but that's not enough).  This basically means that no existing API can be
-> >>     used for CMA.  On the other hand, removing notion of devices and memory
-> >>     types would defeat the whole purpose of CMA thus destroying the solution
-> >>     that CMA provides.
-> >
-> > You can create something similar to the existing API for memory
-> > allocator.
-> 
-> That may be tricky.  cma_alloc() takes four parameters each of which is
-> required for CMA.  No other existing set of API uses all those arguments.
-> This means, CMA needs it's own, somehow unique API.  I don't quite see
-> how the APIs may be unified or "made similar".  Of course, I'm gladly
-> accepting suggestions.
+I'm happy to announce the second stable release of v4l-utils, with
+as highlight that libv4l1 no longer needs the kernel v4l1 compat
+code, so that can be removed from the kernel (jay!).
 
-Have you even tried to search 'blk_kmalloc' on google? I wrote
-"similar to the existing API', not "reuse the existing API".
+New this release:
 
+v4l-utils-0.8.1
+---------------
+* Utils changes:
+   * Various v4l-keytable improvements (mchehab)
+   * Various qv4l2 fixes (hverkuil)
+   * v4l2-ctl: Added support for s/g_dv_timings (Mats Randgaard)
+* libv4l changes (hdegoede):
+   * Add many more laptop models to the upside down devices table
+   * Detect short frames (and retry upto 3 times to get a non short frame)
+   * Support (uvc) cameras with more then 16 framesizes properly (Balint Reczey)
+   * libv4l1 no longer relies on the kernel v4l1 compat ioctl handling, many
+     thanks to Huzaifa Sidhpurwala for his work on this!
+   * Add support for Xirlink C-It YYVYUY
+   * Add support for konica yuv420 format
 
-> >> 2. Reuse of memory pools meaning that memory reserved by CMA can then be
-> >>     used by other allocation mechanisms.  This is of course possible.  For
-> >>     instance coherent could easily be implemented as a wrapper to CMA.
-> >>     This is doable and can be done in the future after CMA gets more
-> >>     recognition.
-> >>
-> >> 3. Reuse of algorithms meaning that allocation algorithms used by other
-> >>     allocators will be used with CMA regions.  This is doable as well and
-> >>     can be done in the future.
-> >
-> > Well, why can't we do the above before the inclusion?
-> 
-> Because it's quite a bit of work and instead of diverting my attention I'd
-> prefer to make CMA as good as possible and then integrate it with other
-> subsystems.  Also, adding the integration would change the patch from being
-> 4k lines to being like 40k lines.
+Go get it here:
+http://linuxtv.org/downloads/v4l-utils/v4l-utils-0.8.1.tar.bz2
 
-4k to 40k? I'm not sure. But If I see something like the following, I
-suspect that there is a better way to integrate this into the existing
-infrastructure.
+You can always find the latest developments here:
+http://git.linuxtv.org/v4l-utils.git
 
-mm/cma-best-fit.c                   |  407 +++++++++++++++
+Regards,
+
+Hans
