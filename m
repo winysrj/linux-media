@@ -1,61 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from mailout-de.gmx.net ([213.165.64.22]:60903 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753016Ab0H0PLB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Aug 2010 11:11:01 -0400
-Date: Fri, 27 Aug 2010 17:11:18 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <m.grzeschik@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>,
-	Philipp Wiesner <p.wiesner@phytec.de>
-Subject: Re: [PATCH 04/11] mt9m111: added new bit offset defines
-In-Reply-To: <1280833069-26993-5-git-send-email-m.grzeschik@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1008271710400.28043@axis700.grange>
-References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
- <1280833069-26993-5-git-send-email-m.grzeschik@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:50193 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752119Ab0H1Uul (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Aug 2010 16:50:41 -0400
+Received: by wwb28 with SMTP id 28so5347253wwb.1
+        for <linux-media@vger.kernel.org>; Sat, 28 Aug 2010 13:50:40 -0700 (PDT)
+Subject: [PATCH]STV0288 Incorrect bit sample for Vitterbi status.
+From: tvbox <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 28 Aug 2010 21:50:25 +0100
+Message-ID: <1283028625.2708.6.camel@canaries-desktop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Tue, 3 Aug 2010, Michael Grzeschik wrote:
+bit 3(LK) indicates that the Vstatus is locked.
+Currently using bit 7(CF) which is usually present, results in early
+aborted search in FEC_AUTO and missing channels.
 
-> Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 
-I don't see these being used in any of your patches...
 
-Thanks
-Guennadi
 
-> ---
->  drivers/media/video/mt9m111.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> index 8c076e5..1b21522 100644
-> --- a/drivers/media/video/mt9m111.c
-> +++ b/drivers/media/video/mt9m111.c
-> @@ -63,6 +63,12 @@
->  #define MT9M111_RESET_RESTART_FRAME	(1 << 1)
->  #define MT9M111_RESET_RESET_MODE	(1 << 0)
->  
-> +#define MT9M111_RM_FULL_POWER_RD	(0 << 10)
-> +#define MT9M111_RM_LOW_POWER_RD		(1 << 10)
-> +#define MT9M111_RM_COL_SKIP_4X		(1 << 5)
-> +#define MT9M111_RM_ROW_SKIP_4X		(1 << 4)
-> +#define MT9M111_RM_COL_SKIP_2X		(1 << 3)
-> +#define MT9M111_RM_ROW_SKIP_2X		(1 << 2)
->  #define MT9M111_RMB_MIRROR_COLS		(1 << 1)
->  #define MT9M111_RMB_MIRROR_ROWS		(1 << 0)
->  #define MT9M111_CTXT_CTRL_RESTART	(1 << 15)
-> -- 
-> 1.7.1
-> 
-> 
+diff --git a/linux/drivers/media/dvb/frontends/stv0288.c b/linux/drivers/media/dvb/frontends/stv0288.c
+index 2930a5d..bc9b47e 100644
+--- a/linux/drivers/media/dvb/frontends/stv0288.c
++++ b/linux/drivers/media/dvb/frontends/stv0288.c
+@@ -486,7 +486,7 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
+ 	tda[2] = 0x0; /* CFRL */
+ 	for (tm = -6; tm < 7;) {
+ 		/* Viterbi status */
+-		if (stv0288_readreg(state, 0x24) & 0x80)
++		if (stv0288_readreg(state, 0x24) & 0x8)
+ 			break;
+ 
+ 		tda[2] += 40;
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
