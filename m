@@ -1,60 +1,42 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44379 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935107Ab0HFVGv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Aug 2010 17:06:51 -0400
-Date: Fri, 6 Aug 2010 22:56:29 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: Re: Handling of large keycodes
-Message-ID: <20100806205629.GA24488@hardeman.nu>
-References: <20100731091936.GA22253@core.coreip.homeip.net>
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2476 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752095Ab0H1Kbg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Aug 2010 06:31:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH v4 03/11] media: Entities, pads and links
+Date: Sat, 28 Aug 2010 12:31:29 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-4-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1282318153-18885-4-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100731091936.GA22253@core.coreip.homeip.net>
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008281231.29930.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sat, Jul 31, 2010 at 02:19:36AM -0700, Dmitry Torokhov wrote:
-> +/**
-> + * struct keymap_entry - used by EVIOCGKEYCODE/EVIOCSKEYCODE ioctls
-> + * @scancode: scancode represented in machine-endian form.
-> + * @len: length of the scancode that resides in @scancode buffer.
-> + * @index: index in the keymap, may be used instead of scancode
-> + * @by_index: boolean value indicating that kernel should perform
-> + *	lookup in keymap by @index instead of @scancode
-> + * @keycode: key code assigned to this scancode
-> + *
-> + * The structure is used to retrieve and modify keymap data. Users have
+> +#define MEDIA_ENTITY_TYPE_NODE			(1 << MEDIA_ENTITY_TYPE_SHIFT)
+> +#define MEDIA_ENTITY_TYPE_NODE_V4L		(MEDIA_ENTITY_TYPE_NODE + 1)
+> +#define MEDIA_ENTITY_TYPE_NODE_FB		(MEDIA_ENTITY_TYPE_NODE + 2)
+> +#define MEDIA_ENTITY_TYPE_NODE_ALSA		(MEDIA_ENTITY_TYPE_NODE + 3)
+> +#define MEDIA_ENTITY_TYPE_NODE_DVB		(MEDIA_ENTITY_TYPE_NODE + 4)
 
-missing "the option" here?
+During discussions at work I realized that another type that might be needed
+in the future (not needed in the first version, I think) is NODE_MTB for flash
+memory. There are devices that have flash memory on board (basically a kind of
+BIOS) and it would be handy for a flash utility to find the corresponding mtd
+device.
 
-> + * of performing lookup either by @scancode itself or by @index in
-> + * keymap entry. EVIOCGKEYCODE will also return scancode or index
-> + * (depending on which element was used to perform lookup).
-> + */
-> +struct keymap_entry {
-> +	__u8  len;
-> +	__u8  by_index;
-> +	__u16 index;
-> +	__u32 keycode;
-> +	__u8  scancode[32];
->  };
+It shouldn't be hard to add this when needed.
 
-Perhaps it would be a good idea to add a flags member to the struct, 
-either as an additional member or by replacing:
-	__u8 by_index;
-with:
-	__u32 flags;
+Regards,
 
-to help with any future extensions/changes/additions to the interface?
-
+	Hans
 
 -- 
-David Härdeman
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
