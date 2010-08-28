@@ -1,126 +1,143 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:49057 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752581Ab0HKOih convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 10:38:37 -0400
+Received: from mail.issp.bas.bg ([195.96.236.10]:37889 "EHLO mail.issp.bas.bg"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751925Ab0H1HWr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 28 Aug 2010 03:22:47 -0400
+From: Marin Mitov <mitov@issp.bas.bg>
+To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
+Date: Sat, 28 Aug 2010 10:19:43 +0300
+Cc: u.kleine-koenig@pengutronix.de, g.liakhovetski@gmx.de,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	akpm@linux-foundation.org, linux-arm-kernel@lists.infradead.org,
+	linux-sh@vger.kernel.org, philippe.retornaz@epfl.ch,
+	gregkh@suse.de, jkrzyszt@tis.icnet.pl
+References: <201008270923.30297.mitov@issp.bas.bg> <201008280914.34233.mitov@issp.bas.bg> <20100828160921U.fujita.tomonori@lab.ntt.co.jp>
+In-Reply-To: <20100828160921U.fujita.tomonori@lab.ntt.co.jp>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTin9+s_AbKst+ZsY6CfzeRYCh=V7kjseut5sbO23@mail.gmail.com>
-References: <AANLkTi=F4CQ2_pCDno1SNGS6w=7wERk1FwjezkwC=nS5@mail.gmail.com>
-	<BU4OxfMZjFB@christoph>
-	<AANLkTimXULCDLw6=kcFC2Kddbm4kuO4nqtXL6ozftMQj@mail.gmail.com>
-	<20100802180940.GF2296@redhat.com>
-	<AANLkTin9+s_AbKst+ZsY6CfzeRYCh=V7kjseut5sbO23@mail.gmail.com>
-Date: Wed, 11 Aug 2010 10:38:35 -0400
-Message-ID: <AANLkTimz2eLSEy+U1NdMVsQ=af7v67omPntwMQs+8jno@mail.gmail.com>
-Subject: Re: Remote that breaks current system
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Jon Smirl <jonsmirl@gmail.com>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>,
-	awalls@md.metrocast.net, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org, mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008281019.52515.mitov@issp.bas.bg>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, Aug 2, 2010 at 4:42 PM, Jon Smirl <jonsmirl@gmail.com> wrote:
-> On Mon, Aug 2, 2010 at 2:09 PM, Jarod Wilson <jarod@redhat.com> wrote:
->> On Mon, Aug 02, 2010 at 01:13:22PM -0400, Jon Smirl wrote:
->>> On Mon, Aug 2, 2010 at 12:42 PM, Christoph Bartelmus <lirc@bartelmus.de> wrote:
-...
->>> > It has nothing to do with start bits.
->>> > The Streamzap remote just sends 14 (sic!) bits instead of 13.
->>> > The decoder expects 13 bits.
->>> > Yes, the Streamzap remote does _not_ use standard RC-5.
->>> > Did I mention this already? Yes. ;-)
->>>
->>> If the remote is sending a weird protocol then there are several choices:
->>>   1) implement raw mode
->>>   2) make a Stream-Zap protocol engine (it would be a 14b version of
->>> RC-5). Standard RC5 engine will still reject the messages.
->>>   3) throw away your Stream-Zap remotes
->>>
->>> I'd vote for #3, but #2 will probably make people happier.
->>
->> Hm. Yeah, I know a few people who are quite attached to their Streamzap
->> remotes. I'm not a particularly big fan of it, I only got the thing off
->> ebay to have the hardware so I could work on the driver. :) So yeah, #3 is
->> probably not the best route. But I don't know that I'm a huge fan of #2
->> either. Another decoder engine just for one quirky remote seems excessive,
->> and there's an option #4:
->>
->> 4) just keep passing data out to lirc by default.
->
-> That's a decent idea. Implement the mainstream, standard protocols in
-> the kernel and kick the weird stuff out to LIRC. We can avoid the
-> whole world of raw mode, config files, etc. Let LIRC deal with all
-> that. If the weird stuff gets enough users bring it in-kernel.  Maybe
-> StreamZap will suddenly sell a million units, you never know.
->
-> It is easy to implement a StreamZap engine. Just copy the RC5 one.
-> Rename everything and adjust it to require one more bit. You'll have
-> to modify the RC5 to wait for a bit interval (timeout) before sending
-> the data up. If you want to get fancy use a weak symbol in the
-> StrreamZap engine to tell the RC5 engine if Stream Zap is loaded. Then
-> you can decide to wait the extra bit interval or not.
+On Saturday, August 28, 2010 10:10:28 am FUJITA Tomonori wrote:
+> On Sat, 28 Aug 2010 09:14:25 +0300
+> Marin Mitov <mitov@issp.bas.bg> wrote:
+> 
+> > On Friday, August 27, 2010 09:32:14 am FUJITA Tomonori wrote:
+> > > On Fri, 27 Aug 2010 09:23:21 +0300
+> > > Marin Mitov <mitov@issp.bas.bg> wrote:
+> > > 
+> > > > On Friday, August 27, 2010 08:57:59 am FUJITA Tomonori wrote:
+> > > > > On Fri, 27 Aug 2010 07:19:07 +0200
+> > > > > Uwe Kleine-K$(D+S(Bnig <u.kleine-koenig@pengutronix.de> wrote:
+> > > > > 
+> > > > > > Hey,
+> > > > > > 
+> > > > > > On Fri, Aug 27, 2010 at 02:00:17PM +0900, FUJITA Tomonori wrote:
+> > > > > > > On Fri, 27 Aug 2010 06:41:42 +0200
+> > > > > > > Uwe Kleine-K$(D+S(Bnig <u.kleine-koenig@pengutronix.de> wrote:
+> > > > > > > > On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
+> > > > > > > > > On Thu, 26 Aug 2010 11:53:11 +0200
+> > > > > > > > > Uwe Kleine-K$(D+S(Bnig <u.kleine-koenig@pengutronix.de> wrote:
+> > > > > > > > > 
+> > > > > > > > > > > > We have currently a number of boards broken in the mainline. They must be 
+> > > > > > > > > > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
+> > > > > > > > > > > > as I suggested earlier, we need either this or my patch series
+> > > > > > > > > > > > 
+> > > > > > > > > > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+> > > > > > > > > > > > 
+> > > > > > > > > > > > for 2.6.36.
+> > > > > > > > > > > 
+> > > > > > > > > > > Why can't you revert a commit that causes the regression?
+> > > > > > > > > > > 
+> > > > > > > > > > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
+> > > > > > > > > > > responsible for the regression. And the patchset even exnteds the
+> > > > > > > > > > > definition of the DMA API (dma_declare_coherent_memory). Such change
+> > > > > > > > > > > shouldn't applied after rc1. I think that DMA-API.txt says that
+> > > > > > > > > > > dma_declare_coherent_memory() handles coherent memory for a particular
+> > > > > > > > > > > device. It's not for the API that reserves coherent memory that can be
+> > > > > > > > > > > used for any device for a single device.
+> > > > > > > > > > The patch that made the problem obvious for ARM is
+> > > > > > > > > > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
+> > > > > > > > > > So this went in before v2.6.36-rc1.  One of the "architectures which
+> > > > > > > > > > similar restrictions" is x86 BTW.
+> > > > > > > > > > 
+> > > > > > > > > > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
+> > > > > > > > > > addresses a hardware restriction.
+> > > > > > > > > 
+> > > > > > > > > How these drivers were able to work without hitting the hardware restriction?
+> > > > > > > > In my case the machine in question is an ARMv5, the hardware restriction
+> > > > > > > > is on ARMv6+ only.  You could argue that so the breaking patch for arm
+> > > > > > > > should only break ARMv6, but I don't think this is sensible from a
+> > > > > > > > maintainers POV.  We need an API that works independant of the machine
+> > > > > > > > that runs the code.
+> > > > > > > 
+> > > > > > > Agreed. But insisting that the DMA API needs to be extended wrongly
+> > > > > > > after rc2 to fix the regression is not sensible too. The related DMA
+> > > > > > > API wasn't changed in 2.6.36-rc1. The API isn't responsible for the
+> > > > > > > regression at all.
+> > > > > > I think this isn't about "responsiblity".  Someone in arm-land found
+> > > > > > that the way dma memory allocation worked for some time doesn't work
+> > > > > > anymore on new generation chips.  As pointing out this problem was
+> > > > > > expected to find some matches it was merged in the merge window.  One
+> > > > > > such match is the current usage of the DMA API that doesn't currently
+> > > > > > offer a way to do it right, so it needs a patch, no?
+> > > > > 
+> > > > > No, I don't think so. We are talking about a regression, right?
+> > > > > 
+> > > > > On new generation chips, something often doesn't work (which have
+> > > > > worked on old chips for some time). It's not a regresiion. I don't
+> > > > > think that it's sensible to make large change (especially after rc1)
+> > > > > to fix such issue. If you say that the DMA API doesn't work on new
+> > > > > chips and proposes a patch for the next merge window, it's sensible, I
+> > > > > suppose.
+> > > > > 
+> > > > > Btw, the patch isn't a fix for the DMA API. It tries to extend the DMA
+> > > > > API (and IMO in the wrong way). 
+> > > > > In addition, the patch might break the
+> > > > > current code. 
+> > > > 
+> > > > To "break the current code" is simply not possible. Sorry to oppose. As you have written it 
+> > > > "extend the DMA API", so if you do not use the new API (and no current code is using it)
+> > > > you cannot "break the current code". 
+> > > 
+> > > Looks like that the patch adds the new API that touches the exisitng
+> > > code. It means the existing code could break. So the exsising API
+> > > could break too.
+> > > 
+> > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+> > 
+> > The above reference is not my patch. I am speaking for my patch:
+> > 
+> > http://lkml.org/lkml/2010/8/19/200
+> 
+> I think that I already NACK'ed the patch.
 
-The other thought I had was to not load the engine by default, and
-only auto-load it from the streamzap driver itself.
+OK.
 
->> Let lircd handle the default remote in this case. If you want to use
->> another remote that actually uses a standard protocol, and want to use
->> in-kernel decoding for that, its just an ir-keytable call away.
->>
->> For giggles, I may tinker with implementing another decoder engine though,
->> if only to force myself to actually pay more attention to protocol
->> specifics. For the moment, I'm inclined to go ahead with the streamzap
->> port as it is right now, and include either an empty or not-empty, but
->> not-functional key table.
+Thanks,
 
-So I spent a while beating on things the past few nights for giggles
-(and for a sanity break from "vacation" with too many kids...). I
-ended up doing a rather large amount of somewhat invasive work to the
-streamzap driver itself, but the end result is functional in-kernel
-decoding, and lirc userspace decode continues to behave correctly. RFC
-patch here:
+Marin Mitov
 
-http://wilsonet.com/jarod/ir-core/IR-streamzap-in-kernel-decode.patch
-
-Core changes to streamzap.c itself:
-
-- had to enable reporting of a long space at the conclusion of each
-signal (which is what the lirc driver would do w/timeout_enabled set),
-otherwise I kept having issues with key bounce and/or old data being
-buffered (i.e., press up, cursor moves up. push down, cursor moves up
-then down, press left, it moves down, then left, etc.). Still not
-quite sure what the real problem is there, the lirc userspace decoder
-has no problems with it either way.
-
-- removed streamzap's internal delay buffer, as the ir-core kfifo
-seems to provide the necessary signal buffering just fine by itself.
-Can't see any significant difference in decode performance either
-in-kernel or via lirc with it removed, anyway. (Christoph, can you
-perhaps expand a bit on why the delay buffer was originally needed/how
-to reproduce the problem it was intended to solve? Maybe I'm just not
-triggering it yet.)
-
-Other fun stuff to note:
-
-- currently, loading up an rc5-sz decoder unconditionally, have
-considered only auto-loading it from the streamzap driver itself. Its
-a copy of the rc5 decoder with relatively minor tweaks to deal with
-the extra bit and resulting slightly different bit layout. Might
-actually be possible to merge back into the rc5 decoder itself,
-haven't really looked into that yet (should be entirely doable if
-there's an easy way to figure out early on if we need to grab 15
-bits).
-
-- not sure the decoder is 100% correct, but it does get to the same
-scancodes as the lirc userspace now (with both a streamzap and mceusb
-receiver).
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
+> 
+> 1) drivers/media/videobuf-dma-contig.c should not use
+> dma_alloc_coherent. We shouldn't support the proposed API.
+> 
+> 2) I don't think that the DMA API (drivers/base/dma-mapping.c) is not
+> for creating "cache". Generally, the kernel uses "pool" concept for
+> something like that.
+> 
+> IMHO, reverting the commit 309caa9cc6ff39d261264ec4ff10e29489afc8f8
+> temporary (or temporary disabling it for systems that had worked) is
+> the most reasonable approach. I don't think that breaking systems that
+> had worked is a good idea even if the patch does the right thing. I
+> believe that we need to fix the broken solution
+> (videobuf-dma-contig.c) before the commit.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
