@@ -1,132 +1,102 @@
 Return-path: <mchehab@pedra>
-Received: from sh.osrg.net ([192.16.179.4]:48963 "EHLO sh.osrg.net"
+Received: from tango.tkos.co.il ([62.219.50.35]:33678 "EHLO tango.tkos.co.il"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751341Ab0H1HML (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Aug 2010 03:12:11 -0400
-Date: Sat, 28 Aug 2010 16:10:28 +0900
-To: mitov@issp.bas.bg
-Cc: fujita.tomonori@lab.ntt.co.jp, u.kleine-koenig@pengutronix.de,
-	g.liakhovetski@gmx.de, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, akpm@linux-foundation.org,
-	linux-arm-kernel@lists.infradead.org, linux-sh@vger.kernel.org,
-	philippe.retornaz@epfl.ch, gregkh@suse.de, jkrzyszt@tis.icnet.pl
-Subject: Re: [RFC][PATCH] add
- dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-From: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <201008280914.34233.mitov@issp.bas.bg>
-References: <201008270923.30297.mitov@issp.bas.bg>
-	<20100827153204A.fujita.tomonori@lab.ntt.co.jp>
-	<201008280914.34233.mitov@issp.bas.bg>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Message-Id: <20100828160921U.fujita.tomonori@lab.ntt.co.jp>
+	id S1751404Ab0H2H4w (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Aug 2010 03:56:52 -0400
+Date: Sun, 29 Aug 2010 10:56:27 +0300
+From: Baruch Siach <baruch@tkos.co.il>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	linux-arm-kernel@lists.infradead.org,
+	Sascha Hauer <kernel@pengutronix.de>
+Subject: Re: [PATCH 4/4] mx2_camera: implement forced termination of active
+ buffer for mx25
+Message-ID: <20100829075627.GB8285@jasper.tkos.co.il>
+References: <cover.1280229966.git.baruch@tkos.co.il>
+ <967af81dac1c4c7627b18b5eec23a258ac7d9cd2.1280229966.git.baruch@tkos.co.il>
+ <Pine.LNX.4.64.1008271054060.28043@axis700.grange>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1008271054060.28043@axis700.grange>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sat, 28 Aug 2010 09:14:25 +0300
-Marin Mitov <mitov@issp.bas.bg> wrote:
+Hi Guennadi,
 
-> On Friday, August 27, 2010 09:32:14 am FUJITA Tomonori wrote:
-> > On Fri, 27 Aug 2010 09:23:21 +0300
-> > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > 
-> > > On Friday, August 27, 2010 08:57:59 am FUJITA Tomonori wrote:
-> > > > On Fri, 27 Aug 2010 07:19:07 +0200
-> > > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
-> > > > 
-> > > > > Hey,
-> > > > > 
-> > > > > On Fri, Aug 27, 2010 at 02:00:17PM +0900, FUJITA Tomonori wrote:
-> > > > > > On Fri, 27 Aug 2010 06:41:42 +0200
-> > > > > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
-> > > > > > > On Thu, Aug 26, 2010 at 07:00:24PM +0900, FUJITA Tomonori wrote:
-> > > > > > > > On Thu, 26 Aug 2010 11:53:11 +0200
-> > > > > > > > Uwe Kleine-König <u.kleine-koenig@pengutronix.de> wrote:
-> > > > > > > > 
-> > > > > > > > > > > We have currently a number of boards broken in the mainline. They must be 
-> > > > > > > > > > > fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
-> > > > > > > > > > > as I suggested earlier, we need either this or my patch series
-> > > > > > > > > > > 
-> > > > > > > > > > > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
-> > > > > > > > > > > 
-> > > > > > > > > > > for 2.6.36.
-> > > > > > > > > > 
-> > > > > > > > > > Why can't you revert a commit that causes the regression?
-> > > > > > > > > > 
-> > > > > > > > > > The related DMA API wasn't changed in 2.6.36-rc1. The DMA API is not
-> > > > > > > > > > responsible for the regression. And the patchset even exnteds the
-> > > > > > > > > > definition of the DMA API (dma_declare_coherent_memory). Such change
-> > > > > > > > > > shouldn't applied after rc1. I think that DMA-API.txt says that
-> > > > > > > > > > dma_declare_coherent_memory() handles coherent memory for a particular
-> > > > > > > > > > device. It's not for the API that reserves coherent memory that can be
-> > > > > > > > > > used for any device for a single device.
-> > > > > > > > > The patch that made the problem obvious for ARM is
-> > > > > > > > > 309caa9cc6ff39d261264ec4ff10e29489afc8f8 aka v2.6.36-rc1~591^2~2^4~12.
-> > > > > > > > > So this went in before v2.6.36-rc1.  One of the "architectures which
-> > > > > > > > > similar restrictions" is x86 BTW.
-> > > > > > > > > 
-> > > > > > > > > And no, we won't revert 309caa9cc6ff39d261264ec4ff10e29489afc8f8 as it
-> > > > > > > > > addresses a hardware restriction.
-> > > > > > > > 
-> > > > > > > > How these drivers were able to work without hitting the hardware restriction?
-> > > > > > > In my case the machine in question is an ARMv5, the hardware restriction
-> > > > > > > is on ARMv6+ only.  You could argue that so the breaking patch for arm
-> > > > > > > should only break ARMv6, but I don't think this is sensible from a
-> > > > > > > maintainers POV.  We need an API that works independant of the machine
-> > > > > > > that runs the code.
-> > > > > > 
-> > > > > > Agreed. But insisting that the DMA API needs to be extended wrongly
-> > > > > > after rc2 to fix the regression is not sensible too. The related DMA
-> > > > > > API wasn't changed in 2.6.36-rc1. The API isn't responsible for the
-> > > > > > regression at all.
-> > > > > I think this isn't about "responsiblity".  Someone in arm-land found
-> > > > > that the way dma memory allocation worked for some time doesn't work
-> > > > > anymore on new generation chips.  As pointing out this problem was
-> > > > > expected to find some matches it was merged in the merge window.  One
-> > > > > such match is the current usage of the DMA API that doesn't currently
-> > > > > offer a way to do it right, so it needs a patch, no?
-> > > > 
-> > > > No, I don't think so. We are talking about a regression, right?
-> > > > 
-> > > > On new generation chips, something often doesn't work (which have
-> > > > worked on old chips for some time). It's not a regresiion. I don't
-> > > > think that it's sensible to make large change (especially after rc1)
-> > > > to fix such issue. If you say that the DMA API doesn't work on new
-> > > > chips and proposes a patch for the next merge window, it's sensible, I
-> > > > suppose.
-> > > > 
-> > > > Btw, the patch isn't a fix for the DMA API. It tries to extend the DMA
-> > > > API (and IMO in the wrong way). 
-> > > > In addition, the patch might break the
-> > > > current code. 
-> > > 
-> > > To "break the current code" is simply not possible. Sorry to oppose. As you have written it 
-> > > "extend the DMA API", so if you do not use the new API (and no current code is using it)
-> > > you cannot "break the current code". 
-> > 
-> > Looks like that the patch adds the new API that touches the exisitng
-> > code. It means the existing code could break. So the exsising API
-> > could break too.
-> > 
-> > http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
+On Fri, Aug 27, 2010 at 11:07:31AM +0200, Guennadi Liakhovetski wrote:
+> On Tue, 27 Jul 2010, Baruch Siach wrote:
+> > This allows userspace to terminate a capture without waiting for the 
+> > current
+> > frame to complete.
 > 
-> The above reference is not my patch. I am speaking for my patch:
+> This is an improvement, not a fix, right? Without this patch the 
+> termination just have to wait a couple of ms longer? so, it is ok to 
+> schedule it for 2.6.37?
+
+In my situation the image data source may stop sending data in the middle of a 
+frame.  In this case userspace is stuck forever. So, this is a real fix for 
+me. This is not the usual use case, I guess, so I leave it for you to decide.
+
+baruch
+
+> > Signed-off-by: Baruch Siach <baruch@tkos.co.il>
+> > ---
+> >  drivers/media/video/mx2_camera.c |   20 ++++++++++++++++----
+> >  1 files changed, 16 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> > index d327d11..396542b 100644
+> > --- a/drivers/media/video/mx2_camera.c
+> > +++ b/drivers/media/video/mx2_camera.c
+> > @@ -648,15 +648,27 @@ static void mx2_videobuf_release(struct videobuf_queue *vq,
+> >  	 * Terminate only queued but inactive buffers. Active buffers are
+> >  	 * released when they become inactive after videobuf_waiton().
+> >  	 *
+> > -	 * FIXME: implement forced termination of active buffers, so that the
+> > -	 * user won't get stuck in an uninterruptible state. This requires a
+> > -	 * specific handling for each of the three DMA types that this driver
+> > -	 * supports.
+> > +	 * FIXME: implement forced termination of active buffers for mx27 and 
+> > +	 * mx27 eMMA, so that the user won't get stuck in an uninterruptible
+> > +	 * state. This requires a specific handling for each of the these DMA
+> > +	 * types.
+> >  	 */
+> >  	spin_lock_irqsave(&pcdev->lock, flags);
+> >  	if (vb->state == VIDEOBUF_QUEUED) {
+> >  		list_del(&vb->queue);
+> >  		vb->state = VIDEOBUF_ERROR;
+> > +	} else if (cpu_is_mx25() && vb->state == VIDEOBUF_ACTIVE) {
+> > +		if (pcdev->fb1_active == buf) {
+> > +			pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
+> > +			writel(0, pcdev->base_csi + CSIDMASA_FB1);
+> > +			pcdev->fb1_active = NULL;
+> > +		} else if (pcdev->fb2_active == buf) {
+> > +			pcdev->csicr1 &= ~CSICR1_FB2_DMA_INTEN;
+> > +			writel(0, pcdev->base_csi + CSIDMASA_FB2);
+> > +			pcdev->fb2_active = NULL;
+> > +		}
+> > +		writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+> > +		vb->state = VIDEOBUF_ERROR;
+> >  	}
+> >  	spin_unlock_irqrestore(&pcdev->lock, flags);
+> >  
+> > -- 
+> > 1.7.1
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
 > 
-> http://lkml.org/lkml/2010/8/19/200
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
 
-I think that I already NACK'ed the patch.
-
-1) drivers/media/videobuf-dma-contig.c should not use
-dma_alloc_coherent. We shouldn't support the proposed API.
-
-2) I don't think that the DMA API (drivers/base/dma-mapping.c) is not
-for creating "cache". Generally, the kernel uses "pool" concept for
-something like that.
-
-IMHO, reverting the commit 309caa9cc6ff39d261264ec4ff10e29489afc8f8
-temporary (or temporary disabling it for systems that had worked) is
-the most reasonable approach. I don't think that breaking systems that
-had worked is a good idea even if the patch does the right thing. I
-believe that we need to fix the broken solution
-(videobuf-dma-contig.c) before the commit.
+-- 
+                                                     ~. .~   Tk Open Systems
+=}------------------------------------------------ooO--U--Ooo------------{=
+   - baruch@tkos.co.il - tel: +972.2.679.5364, http://www.tkos.co.il -
