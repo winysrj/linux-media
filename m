@@ -1,51 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:46426 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751871Ab0HKMXJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Aug 2010 08:23:09 -0400
-Received: by pwj7 with SMTP id 7so17020pwj.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Aug 2010 05:23:08 -0700 (PDT)
+Received: from smtp6-g21.free.fr ([212.27.42.6]:53106 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753591Ab0H2TUP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Aug 2010 15:20:15 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Michael Grzeschik <mgr@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 00/11] MT9M111/MT9M131
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+	<20100817131742.GB16061@pengutronix.de>
+	<Pine.LNX.4.64.1008171521210.1364@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sun, 29 Aug 2010 21:20:06 +0200
+In-Reply-To: <Pine.LNX.4.64.1008171521210.1364@axis700.grange> (Guennadi Liakhovetski's message of "Tue\, 17 Aug 2010 15\:21\:57 +0200 \(CEST\)")
+Message-ID: <87wrr9kyzd.fsf@free.fr>
 MIME-Version: 1.0
-In-Reply-To: <20100811090745.GD6126@belle.intranet.vanheusden.com>
-References: <20100809133252.GW6126@belle.intranet.vanheusden.com>
-	<AANLkTimtHwW_PQ1vNQVaMKXXYdyVroZzwAfomu+Yw02C@mail.gmail.com>
-	<20100809143550.GZ6126@belle.intranet.vanheusden.com>
-	<AANLkTinJbdrHQPk9mudEAPtB7L_S11hS_ArX+DDsnBD6@mail.gmail.com>
-	<20100810112258.GK6126@belle.intranet.vanheusden.com>
-	<AANLkTin-eXj-78iDkU=FYTiuzRH1_qwRwYQskO2=g19B@mail.gmail.com>
-	<20100810145841.GX6126@belle.intranet.vanheusden.com>
-	<AANLkTikd+Ls-EDU7zSbsLU6hg6FvCwF4GtpXwtvJcDkW@mail.gmail.com>
-	<20100811090745.GD6126@belle.intranet.vanheusden.com>
-Date: Wed, 11 Aug 2010 08:23:08 -0400
-Message-ID: <AANLkTimg2bkNgoqs_2ZUkFYHVgnLONoHjv=LyZ54eYYU@mail.gmail.com>
-Subject: Re: [linux-dvb] Pinnacle Systems, Inc. PCTV 330e & 2.6.34 & /dev/dvb
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: folkert <folkert@vanheusden.com>
-Cc: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wed, Aug 11, 2010 at 5:07 AM, folkert <folkert@vanheusden.com> wrote:
->> > Fyi: since I upgraded the modules by the mercurial tree you mentioned a
->> > few mails ago, my "18b4:1689 e3C Technologies DUTV009" significally has
->> > more signal locks. Coincidence?
->>
->> I don't know.  The tree I pointed you to is several months old, but
->> may be newer than whatever version of the drivers you had in your base
->> Linux distribution.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+
+> On Tue, 17 Aug 2010, Michael Grzeschik wrote:
 >
-> teletext with that version of the driver with the pinnacle pctv 330e
-> works perfect by the way
+>> Hi Robert, Guennadi,
+>> 
+>> after the messed up previous patchseries, this v2 series is left
+>> without any feedback. Hopefully not forgotten. :-)
+>
+> No, it is not forgotten, please, give me some more time.
 
-I'm sorry, but which version of the driver are you referring to?  It
-works perfectly with the tree I pointed you to?  Or it works perfectly
-with whatever you had in your base distribution?
+Hi,
 
-Devin
+As you may have noticed, I'm very busy and my reviews are very slow lately. I'm
+sorry for that, as my work pumps out every bit of energy I have.
+
+Except for patch 11 where I'd like a little amendment, I have tested the full
+serie, and my feeling is that things work at least as well as before, and
+probably even better.
+
+Therefore, as I won't have much time ahead, please find my ack, for the full serie:
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
+
+Cheers.
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Robert
