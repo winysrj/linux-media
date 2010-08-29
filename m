@@ -1,102 +1,85 @@
 Return-path: <mchehab@pedra>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:57601 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551Ab0HZJRt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 05:17:49 -0400
-Date: Thu, 26 Aug 2010 11:17:25 +0200
-From: Uwe =?iso-8859-1?Q?Kleine-K=F6nig?=
-	<u.kleine-koenig@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>, mitov@issp.bas.bg,
-	linux-kernel@vger.kernel.org,
+Received: from mailout-de.gmx.net ([213.165.64.23]:43728 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753792Ab0H2SfB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Aug 2010 14:35:01 -0400
+Date: Sun, 29 Aug 2010 20:35:19 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Robert Jarzmik <robert.jarzmik@free.fr>
+cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-sh@vger.kernel.org,
-	Philippe =?iso-8859-1?Q?R=E9tornaz?= <philippe.retornaz@epfl.ch>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Subject: Re: [RFC][PATCH] add
-	dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Message-ID: <20100826091725.GC5355@pengutronix.de>
-References: <201008201450.12585.mitov@issp.bas.bg> <20100826144000C.fujita.tomonori@lab.ntt.co.jp> <201008260904.19973.mitov@issp.bas.bg> <20100826152333K.fujita.tomonori@lab.ntt.co.jp> <Pine.LNX.4.64.1008261100150.14167@axis700.grange>
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: Re: [PATCH v2 11/11] mt9m111: make use of testpattern
+In-Reply-To: <8762ytmk57.fsf@free.fr>
+Message-ID: <Pine.LNX.4.64.1008291954470.2987@axis700.grange>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+ <1280833069-26993-12-git-send-email-m.grzeschik@pengutronix.de>
+ <8762ytmk57.fsf@free.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <Pine.LNX.4.64.1008261100150.14167@axis700.grange>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello,
+On Sun, 29 Aug 2010, Robert Jarzmik wrote:
 
-On Thu, Aug 26, 2010 at 11:06:20AM +0200, Guennadi Liakhovetski wrote:
-> On Thu, 26 Aug 2010, FUJITA Tomonori wrote:
+> Michael Grzeschik <m.grzeschik@pengutronix.de> writes:
 > 
-> > On Thu, 26 Aug 2010 09:04:14 +0300
-> > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > 
-> > > On Thursday, August 26, 2010 08:40:47 am FUJITA Tomonori wrote:
-> > > > On Fri, 20 Aug 2010 14:50:12 +0300
-> > > > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > > > 
-> > > > > On Friday, August 20, 2010 11:35:06 am FUJITA Tomonori wrote:
-> > > > > > On Fri, 20 Aug 2010 11:13:45 +0300
-> > > > > > Marin Mitov <mitov@issp.bas.bg> wrote:
-> > > > > > 
-> > > > > > > > > This tric is already used in drivers/staging/dt3155v4l.c
-> > > > > > > > > dt3155_alloc_coherent()/dt3155_free_coherent()
-> > > > > > > > > 
-> > > > > > > > > Here proposed for general use by popular demand from video4linux folks.
-> > > > > > > > > Helps for videobuf-dma-contig framework.
-> > > > > > > > 
-> > > > > > > > What you guys exactly want to do? If you just want to pre-allocate
-> > > > > > > > coherent memory for latter usage,
-> > > > > > > 
-> > > > > > > Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
-> > > > > > > We use coherent memory because it turns out to be contiguous.
-> > > > > > 
-> > > > > > Hmm, you don't care about coherency? You just need contiguous memory?
-> > > > > 
-> > > > > Yes. We just need contiguous memory. Coherency is important as far as when dma
-> > > > > transfer finishes user land is able to see the new data. Could be done by something like
-> > > > > dma_{,un}map_single()
-> > > > 
-> > > > Then, we should avoid using coherent memory as I exaplained before. In
-> > > > addition, dma_alloc_coherent can't provide large enough contigous
-> > > > memory for some drivers so this patch doesn't help much.
-> > > 
-> > > Please, look at drivers/media/video/videobuf-dma-contig.c. Using coherent memory
-> > > is inavoidable for now, there is no alternative for it for now. The two new functions,
-> > > which I propose are just helpers for those of us who already use coherent memory
-> > > (via videobuf-dma-contig API). May be adding these two functions to 
-> > > drivers/media/video/videobuf-dma-contig.c will be better solution?
-> > 
-> > If you add something to the videobuf-dma-contig API, that's fine by me
-> > because drivers/media/video/videobuf-dma-contig.c uses the own
-> > structure and plays with dma_alloc_coherent. As long as a driver
-> > doesn't touch device->dma_mem directly, it's fine, I think (that is,
-> > dt3155v4l driver is broken). There are already some workarounds for
-> > contigous memory in several drivers anyway.
+> > Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+> > Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
 > 
-> No, this will not work - this API has to be used from board code and 
-> videobuf can be built modular.
+> I would require a small change here.
 > 
-> > We will have the proper API for contiguous memory. I don't think that
-> > adding such workaround to the DMA API is a good idea.
+> I am using the testpattern for non regression tests. This change implies that
+> the test pattern can only be set up by module parameters, and blocks the usage
+> through V4L2 debug, registers, see below:
+>         memset(&set_reg, 0, sizeof(set_reg));
+>         set_reg.match.type = V4L2_CHIP_MATCH_I2C_ADDR;
+>         set_reg.match.addr = 0x5d;
+>         set_reg.reg = 0x148;
+>         set_reg.val = test_pattern;
+>         set_reg.size = 1;
+>         if (test_pattern != -1)
+>                 if (-1 == xioctl (fd, VIDIOC_DBG_S_REGISTER, &set_reg)) {
+>                         fprintf (stderr, "%s could set test pattern %x\n",
+>                                  dev_name, test_pattern);
+>                         exit (EXIT_FAILURE);
+>                 }
 > 
-> We have currently a number of boards broken in the mainline. They must be 
-> fixed for 2.6.36. I don't think the mentioned API will do this for us. So, 
-> as I suggested earlier, we need either this or my patch series
+> But, the idea is not bad. Therefore, I'd like you to change:
+> > +	dev_dbg(&client->dev, "%s: using testpattern %d\n", __func__,
+> > +			testpattern);
+> > +
+> > +	if (!ret)
+> > +		ret = mt9m111_reg_set(client,
+> > +				MT9M111_TEST_PATTERN_GEN, pattern);
+> into
+> > +	dev_dbg(&client->dev, "%s: using testpattern %d\n", __func__,
+> > +			testpattern);
+> > +
+> > +	if (!ret && pattern)
+> > +		ret = mt9m111_reg_set(client,
+> > +				MT9M111_TEST_PATTERN_GEN, pattern);
+> > +
 > 
-> http://thread.gmane.org/gmane.linux.ports.sh.devel/8595
-this seems to be more mature to me.  The original patch in this thread
-uses a symbol DT3155_COH_FLAGS which seems misplaced in generic code and
-doesn't put the new functions in a header.
+> This way, the V4L2 debug registers usage is still allowed, and your module
+> parameter works too.
 
-Best regards
-Uwe
+Yes, but this has another disadvantage - if you do not use s_register / 
+g_register, maybe you just have CONFIG_VIDEO_ADV_DEBUG off, then, once you 
+load the module with the testpattern parameter, you cannot switch using 
+testpatterns off again (without a reboot or a power cycle). With the 
+original version you can load the driver with the parameter set, then 
+unload it, load it without the parameter and testpattern would be cleared. 
+In general, I think, using direct register access is discouraged, 
+especially if there's a way to set the same functionality using driver's 
+supported interfaces. Hm, if I'm not mistaken, it has once been mentioned, 
+that these test-patterns can be nicely implemented using the S_INPUT 
+ioctl(). Am I right? How about that? But we'd need a confirmation for 
+that, I'm not 100% sure.
 
--- 
-Pengutronix e.K.                           | Uwe Kleine-König            |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
