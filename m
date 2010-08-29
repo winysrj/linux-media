@@ -1,100 +1,66 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail179.messagelabs.com ([85.158.139.35]:51557 "HELO
-	mail179.messagelabs.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755325Ab0HCITB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Aug 2010 04:19:01 -0400
-From: mats.randgaard@tandberg.com
-To: linux-media@vger.kernel.org
-Cc: sudhakar.raj@ti.com, Mats Randgaard <mats.randgaard@tandberg.com>
-Subject: [PATCH 2/2] TVP7002: Changed register values.
-Date: Tue,  3 Aug 2010 10:18:04 +0200
-Message-Id: <1280823484-21664-3-git-send-email-mats.randgaard@tandberg.com>
-In-Reply-To: <1280823484-21664-2-git-send-email-mats.randgaard@tandberg.com>
-References: <1280823484-21664-1-git-send-email-mats.randgaard@tandberg.com>
- <1280823484-21664-2-git-send-email-mats.randgaard@tandberg.com>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from smtp6-g21.free.fr ([212.27.42.6]:35508 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753529Ab0H2Q5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Aug 2010 12:57:51 -0400
+To: Michael Grzeschik <m.grzeschik@pengutronix.de>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: Re: [PATCH v2 11/11] mt9m111: make use of testpattern
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+	<1280833069-26993-12-git-send-email-m.grzeschik@pengutronix.de>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sun, 29 Aug 2010 18:57:40 +0200
+In-Reply-To: <1280833069-26993-12-git-send-email-m.grzeschik@pengutronix.de> (Michael Grzeschik's message of "Tue\,  3 Aug 2010 12\:57\:49 +0200")
+Message-ID: <8762ytmk57.fsf@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-From: Mats Randgaard <mats.randgaard@tandberg.com>
+Michael Grzeschik <m.grzeschik@pengutronix.de> writes:
 
-Register values changed according to the data sheet and Texas Instruments DaVinci_PSP_03_02_00_37.
-	- TVP7002_RGB_COARSE_CLAMP_CTL changed to the default value in data sheet.
- 	- TVP7002_HPLL_PHASE_SEL deleted because the registers write to reserved bits. The default value works fine.
+> Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
+> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
 
-Signed-off-by: Mats Randgaard <mats.randgaard@tandberg.com>
----
- drivers/media/video/tvp7002.c |    9 +--------
- 1 files changed, 1 insertions(+), 8 deletions(-)
+I would require a small change here.
 
-diff --git a/drivers/media/video/tvp7002.c b/drivers/media/video/tvp7002.c
-index 8116cd4..0f2dc98 100644
---- a/drivers/media/video/tvp7002.c
-+++ b/drivers/media/video/tvp7002.c
-@@ -127,7 +127,7 @@ static const struct i2c_reg_value tvp7002_init_default[] = {
- 	{ TVP7002_ADC_SETUP, 0x50, TVP7002_WRITE },
- 	{ TVP7002_COARSE_CLAMP_CTL, 0x00, TVP7002_WRITE },
- 	{ TVP7002_SOG_CLAMP, 0x80, TVP7002_WRITE },
--	{ TVP7002_RGB_COARSE_CLAMP_CTL, 0x00, TVP7002_WRITE },
-+	{ TVP7002_RGB_COARSE_CLAMP_CTL, 0x8c, TVP7002_WRITE },
- 	{ TVP7002_SOG_COARSE_CLAMP_CTL, 0x04, TVP7002_WRITE },
- 	{ TVP7002_ALC_PLACEMENT, 0x5a, TVP7002_WRITE },
- 	{ 0x32, 0x18, TVP7002_RESERVED },
-@@ -181,7 +181,6 @@ static const struct i2c_reg_value tvp7002_parms_480P[] = {
- 	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x35, TVP7002_WRITE },
- 	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0xa0, TVP7002_WRITE },
- 	{ TVP7002_HPLL_CRTL, 0x02, TVP7002_WRITE },
--	{ TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_LSBS, 0x91, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_MSBS, 0x00, TVP7002_WRITE },
- 	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x0B, TVP7002_WRITE },
-@@ -203,7 +202,6 @@ static const struct i2c_reg_value tvp7002_parms_576P[] = {
- 	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x36, TVP7002_WRITE },
- 	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x00, TVP7002_WRITE },
- 	{ TVP7002_HPLL_CRTL, 0x18, TVP7002_WRITE },
--	{ TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_LSBS, 0x9B, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_MSBS, 0x00, TVP7002_WRITE },
- 	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x0F, TVP7002_WRITE },
-@@ -225,7 +223,6 @@ static const struct i2c_reg_value tvp7002_parms_1080I60[] = {
- 	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x89, TVP7002_WRITE },
- 	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x80, TVP7002_WRITE },
- 	{ TVP7002_HPLL_CRTL, 0x98, TVP7002_WRITE },
--	{ TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_LSBS, 0x06, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
- 	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x8a, TVP7002_WRITE },
-@@ -247,7 +244,6 @@ static const struct i2c_reg_value tvp7002_parms_1080P60[] = {
- 	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x89, TVP7002_WRITE },
- 	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x80, TVP7002_WRITE },
- 	{ TVP7002_HPLL_CRTL, 0xE0, TVP7002_WRITE },
--	{ TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_LSBS, 0x06, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
- 	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x8a, TVP7002_WRITE },
-@@ -269,7 +265,6 @@ static const struct i2c_reg_value tvp7002_parms_1080I50[] = {
- 	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0xa5, TVP7002_WRITE },
- 	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x00, TVP7002_WRITE },
- 	{ TVP7002_HPLL_CRTL, 0x98, TVP7002_WRITE },
--	{ TVP7002_HPLL_PHASE_SEL, 0x14, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_LSBS, 0x06, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
- 	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x8a, TVP7002_WRITE },
-@@ -291,7 +286,6 @@ static const struct i2c_reg_value tvp7002_parms_720P60[] = {
- 	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x67, TVP7002_WRITE },
- 	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0x20, TVP7002_WRITE },
- 	{ TVP7002_HPLL_CRTL, 0xa0, TVP7002_WRITE },
--	{ TVP7002_HPLL_PHASE_SEL, 0x16, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_LSBS, 0x47, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
- 	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x4B, TVP7002_WRITE },
-@@ -313,7 +307,6 @@ static const struct i2c_reg_value tvp7002_parms_720P50[] = {
- 	{ TVP7002_HPLL_FDBK_DIV_MSBS, 0x7b, TVP7002_WRITE },
- 	{ TVP7002_HPLL_FDBK_DIV_LSBS, 0xc0, TVP7002_WRITE },
- 	{ TVP7002_HPLL_CRTL, 0x98, TVP7002_WRITE },
--	{ TVP7002_HPLL_PHASE_SEL, 0x16, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_LSBS, 0x47, TVP7002_WRITE },
- 	{ TVP7002_AVID_START_PIXEL_MSBS, 0x01, TVP7002_WRITE },
- 	{ TVP7002_AVID_STOP_PIXEL_LSBS, 0x4B, TVP7002_WRITE },
--- 
-1.6.4.2
+I am using the testpattern for non regression tests. This change implies that
+the test pattern can only be set up by module parameters, and blocks the usage
+through V4L2 debug, registers, see below:
+        memset(&set_reg, 0, sizeof(set_reg));
+        set_reg.match.type = V4L2_CHIP_MATCH_I2C_ADDR;
+        set_reg.match.addr = 0x5d;
+        set_reg.reg = 0x148;
+        set_reg.val = test_pattern;
+        set_reg.size = 1;
+        if (test_pattern != -1)
+                if (-1 == xioctl (fd, VIDIOC_DBG_S_REGISTER, &set_reg)) {
+                        fprintf (stderr, "%s could set test pattern %x\n",
+                                 dev_name, test_pattern);
+                        exit (EXIT_FAILURE);
+                }
 
+But, the idea is not bad. Therefore, I'd like you to change:
+> +	dev_dbg(&client->dev, "%s: using testpattern %d\n", __func__,
+> +			testpattern);
+> +
+> +	if (!ret)
+> +		ret = mt9m111_reg_set(client,
+> +				MT9M111_TEST_PATTERN_GEN, pattern);
+into
+> +	dev_dbg(&client->dev, "%s: using testpattern %d\n", __func__,
+> +			testpattern);
+> +
+> +	if (!ret && pattern)
+> +		ret = mt9m111_reg_set(client,
+> +				MT9M111_TEST_PATTERN_GEN, pattern);
+> +
+
+This way, the V4L2 debug registers usage is still allowed, and your module
+parameter works too.
+
+Cheers.
+
+--
+Robert
