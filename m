@@ -1,93 +1,100 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:33342 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753479Ab0HDIYw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Aug 2010 04:24:52 -0400
-Date: Wed, 4 Aug 2010 10:24:50 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-cc: Michael Grzeschik <mgr@pengutronix.de>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	baruch@tkos.co.il
-Subject: Re: [PATCH 1/5] mx2_camera: change to register and probe
-In-Reply-To: <20100804070949.GR14113@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1008041020280.29386@axis700.grange>
-References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de>
- <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de>
- <Pine.LNX.4.64.1008032016340.10845@axis700.grange> <20100803195727.GB12367@pengutronix.de>
- <Pine.LNX.4.64.1008040039550.10845@axis700.grange> <20100804070949.GR14113@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:14184 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754391Ab0H3B1M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Aug 2010 21:27:12 -0400
+Date: Sun, 29 Aug 2010 21:26:37 -0400
+Subject: Re: IR code autorepeat issue?
+Message-ID: <e5clffplcfofw16tg9fp5t77.1283131265736@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Anton Blanchard <anton@samba.org>
+Cc: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wed, 4 Aug 2010, Sascha Hauer wrote:
+SG93IGFib3V0IGEga2V5Y29kZSBzZW5zaXRpdmUgcmVwZWF0IGRlbGF5PwpBIHNob3J0IGRlbGF5
+IGZvciB2b2wrLy0sIGNoKy8tLCBldGMuCkEgbWVkaXVtIGRlbGF5IGZvciBkaWdpdHMsIGZhc3Qg
+Zm9yd2FyZCwgcmV3aW5kLCBwYXVzZSwgcGxheSwgc3RvcCwgZXRjLgpBIGxvbmcgZGVsYXkgZm9y
+IHBvd2VyLCBtdXRlLCBldGMuCgpSZWdhcmRzLApBbmR5CgpNYXVybyBDYXJ2YWxobyBDaGVoYWIg
+PG1jaGVoYWJAaW5mcmFkZWFkLm9yZz4gd3JvdGU6Cgo+RW0gMjktMDgtMjAxMCAwMzo0MCwgQW50
+b24gQmxhbmNoYXJkIGVzY3JldmV1Ogo+PiAKPj4gSSdtIHNlZWluZyBkb3VibGUgSVIgZXZlbnRz
+IG9uIDIuNi4zNi1yYzIgYW5kIGEgRFZpQ08gRnVzaW9uSERUViBEVkItVCBEdWFsCj4+IEV4cHJl
+c3MuIEkgZW5hYmxlZCBzb21lIGRlYnVnIGFuZCBpdCBsb29rcyBsaWtlIHdlIGFyZSBvbmx5IGdl
+dHRpbmcgb25lIElSCj4+IGV2ZW50IGZyb20gdGhlIGRldmljZSBhcyBleHBlY3RlZDoKPj4gCj4+
+IFsgMTM1MS4wMzIwODRdIGlyX2tleWRvd246IGkyYyBJUiAoRnVzaW9uSERUVik6IGtleSBkb3du
+IGV2ZW50LCBrZXkgMHgwMDY3LCBzY2FuY29kZSAweDAwNTEKPj4gWyAxMzUxLjI4MTI4NF0gaXJf
+a2V5dXA6IGtleXVwIGtleSAweDAwNjcKPj4gCj4+IGllIG9uZSBrZXkgZG93biBldmVudCBhbmQg
+b25lIGtleSB1cCBldmVudCAyNTBtcyBsYXRlci4gSSB3b25kZXIgaWYgdGhlIGlucHV0Cj4+IGxh
+eWVyIHNvZnR3YXJlIGF1dG9yZXBlYXQgaXMgdGhlIGN1bHByaXQuIEl0IHNlZW1zIHRvIHNldCBh
+dXRvcmVwZWF0IHRvIHN0YXJ0Cj4+IGF0IDI1MG1zOgo+PiAKPj4gICAgICAgICAvKgo+PiAgICAg
+ICAgICAqIElmIGRlbGF5IGFuZCBwZXJpb2QgYXJlIHByZS1zZXQgYnkgdGhlIGRyaXZlciwgdGhl
+biBhdXRvcmVwZWF0aW5nCj4+ICAgICAgICAgICogaXMgaGFuZGxlZCBieSB0aGUgZHJpdmVyIGl0
+c2VsZiBhbmQgd2UgZG9uJ3QgZG8gaXQgaW4gaW5wdXQuYy4KPj4gICAgICAgICAgKi8KPj4gICAg
+ICAgICBpbml0X3RpbWVyKCZkZXYtPnRpbWVyKTsKPj4gICAgICAgICBpZiAoIWRldi0+cmVwW1JF
+UF9ERUxBWV0gJiYgIWRldi0+cmVwW1JFUF9QRVJJT0RdKSB7Cj4+ICAgICAgICAgICAgICAgICBk
+ZXYtPnRpbWVyLmRhdGEgPSAobG9uZykgZGV2Owo+PiAgICAgICAgICAgICAgICAgZGV2LT50aW1l
+ci5mdW5jdGlvbiA9IGlucHV0X3JlcGVhdF9rZXk7Cj4+ICAgICAgICAgICAgICAgICBkZXYtPnJl
+cFtSRVBfREVMQVldID0gMjUwOwo+PiAgICAgICAgICAgICAgICAgZGV2LT5yZXBbUkVQX1BFUklP
+RF0gPSAzMzsKPj4gICAgICAgICB9Cj4+IAo+PiBJZiBJIHNob3J0ZW4gdGhlIElSIGtleSB1cCBl
+dmVudHMgdG8gMTAwbXMgdmlhIHRoZSBwYXRjaCBiZWxvdyB0aGUgcHJvYmxlbQo+PiBnb2VzIGF3
+YXkuIEkgZ3Vlc3MgdGhlIG90aGVyIG9wdGlvbiB3b3VsZCBiZSB0byBpbml0aWFsaXNlIFJFUF9E
+RUxBWSBhbmQKPj4gUkVQX1BFUklPRCBzbyB0aGUgaW5wdXQgbGF5ZXIgYXV0b3JlcGVhdCBkb2Vz
+bid0IGN1dCBpbiBhdCBhbGwuIFRob3VnaHRzPwo+Cj4+IEFudG9uCj4+IC0tCj4+IAo+PiBkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9JUi9pci1rZXl0YWJsZS5jIGIvZHJpdmVycy9tZWRpYS9J
+Ui9pci1rZXl0YWJsZS5jCj4+IGluZGV4IDdlODJhOWQuLmNmNDRkNWEgMTAwNjQ0Cj4+IC0tLSBh
+L2RyaXZlcnMvbWVkaWEvSVIvaXIta2V5dGFibGUuYwo+PiArKysgYi9kcml2ZXJzL21lZGlhL0lS
+L2lyLWtleXRhYmxlLmMKPj4gQEAgLTIyLDcgKzIyLDcgQEAKPj4gICNkZWZpbmUgSVJfVEFCX01B
+WF9TSVpFCTgxOTIKPj4gIAo+PiAgLyogRklYTUU6IElSX0tFWVBSRVNTX1RJTUVPVVQgc2hvdWxk
+IGJlIHByb3RvY29sIHNwZWNpZmljICovCj4+IC0jZGVmaW5lIElSX0tFWVBSRVNTX1RJTUVPVVQg
+MjUwCj4+ICsjZGVmaW5lIElSX0tFWVBSRVNTX1RJTUVPVVQgMTAwCj4KPlllcywgMjUwbXMgaXMg
+dG9vIGhpZ2gsIGlmIHdlIHdhbnQgdG8gdXNlIFJFUF9ERUxBWSA9IDI1MG1zLgo+Cj5UaGVyZSdz
+IG9uZSBpc3N1ZSBvbiB0b3VjaGluZyBvbiB0aGlzIGNvbnN0YW50OiBpdCBpcyBjdXJyZW50bHkg
+anVzdCBvbmUgZ2xvYmFsIAo+dGltZW91dCB2YWx1ZSB0aGF0IHdpbGwgYmUgdXNlZCBieSBhbGwg
+cHJvdG9jb2xzLiBUaGlzIHRpbWVvdXQgc2hvdWxkIGJlIGVub3VnaCB0bwo+cmV0cmlldmUgYW5k
+IHByb2NjZXNzIHRoZSByZXBlYXQga2V5IGV2ZW50IG9uIGFsbCBwcm90b2NvbHMsIGFuZCBvbiBh
+bGwgZGV2aWNlcywgb3IgCj53ZSdsbCBuZWVkIHRvIGRvIGEgcGVyLXByb3RvY29sIChhbmQgZXZl
+bnR1YWxseSBwZXIgZGV2aWNlKSB0aW1lb3V0IGluaXQuIEZyb20gCj5odHRwOi8vd3d3LnNicHJv
+amVjdHMuY29tL2tub3dsZWRnZS9pci9pci5odG0sIHdlIHNlZSB0aGF0IE5FQyBwcm9jb2NvbCB1
+c2VzIDExMCBtcwo+Zm9yIHJlcGVhdCBjb2RlLCBhbmQgd2UgbmVlZCBzb21lIGFkaXRpb25hbCB0
+aW1lIHRvIHdha2UgdXAgdGhlIGRlY29kaW5nIHRhc2suIEknZAo+c2F5IHRoYXQgYW55dGhpbmcg
+bG93ZXIgdGhhbiAxNTAtMTgwbXMgd291bGQgcmlzayB0byBub3QgZGVjb2RlIHJlcGVhdCBldmVu
+dHMgd2l0aAo+TkVDLgo+Cj5JIGdvdCBleGFjdGx5IHRoZSBzYW1lIHByb2JsZW0gd2hlbiBhZGRp
+bmcgUkMgQ09SRSBzdXBwb3J0IGF0IHRoZSBkaWIwNzAwIGRyaXZlci4gQXQKPnRoYXQgZHJpdmVy
+LCB0aGVyZSdzIGFuIGFkZGl0aW9uYWwgdGltZSBvZiBzZW5kaW5nL3JlY2VpdmluZyBVUkIncyBm
+cm9tIFVTQi4gU28sIHdlCj5wcm9iYWJseSBuZWVkIGEgaGlnaGVyIHRpbWVvdXQuIEV2ZW4gc28s
+IEkgdHJpZWQgdG8gcmVkdWNlIHRoZSB0aW1lb3V0IHRvIDIwMG1zIG9yIDE1MG1zIAo+KG5vdCBz
+dXJlKSwgYnV0IGl0IGRpZG4ndCB3b3JrLiBTbywgSSBlbmRlZCBieSBqdXN0IHBhdGNoaW5nIHRo
+ZSBkaWJjb20gZHJpdmVyIHRvIGRvIAo+ZGV2LT5yZXBbUkVQX0RFTEFZXSA9IDUwMDoKPgo+Y29t
+bWl0IDhkYzA5MDA0OTc4NTM4ZDIxMWNjYzM2YjUwNDY5MTk0ODllMzBhNTUKPkF1dGhvcjogTWF1
+cm8gQ2FydmFsaG8gQ2hlaGFiIDxtY2hlaGFiQHJlZGhhdC5jb20+Cj5EYXRlOiAgIFNhdCBKdWwg
+MzEgMjM6Mzc6MTkgMjAxMCAtMDMwMAo+Cj4gICAgVjRML0RWQjogZGliMDcwMDogYXZvaWQgYmFk
+IHJlcGVhdAo+ICAgIAo+ICAgIGEgMjUwbXMgZGVsYXkgaXMgdG9vIGxvdyBmb3IgdGhpcyBkZXZp
+Y2UuIEl0IGVuZHMgYnkgcHJvZHVjaW5nIGZhbHNlCj4gICAgcmVwZWF0IGV2ZW50cy4gSW5jcmVh
+c2UgdGhlIGRlbGF5IHRpbWUgdG8gNTAwIG1zIHRvIGF2b2lkIHRyb3VibGVzLgo+ICAgIAo+ICAg
+IFNpZ25lZC1vZmYtYnk6IE1hdXJvIENhcnZhbGhvIENoZWhhYiA8bWNoZWhhYkByZWRoYXQuY29t
+Pgo+Cj5kaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9kdmIvZHZiLXVzYi9kaWIwNzAwX2NvcmUu
+YyBiL2RyaXZlcnMvbWVkaWEvZHZiL2R2Yi11c2IvZGliMDcwMF9jb3JlLmMKPmluZGV4IDE2NGZh
+OWMuLmEwNWQ5NTUgMTAwNjQ0Cj4tLS0gYS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3
+MDBfY29yZS5jCj4rKysgYi9kcml2ZXJzL21lZGlhL2R2Yi9kdmItdXNiL2RpYjA3MDBfY29yZS5j
+Cj5AQCAtNjQ4LDYgKzY0OCw5IEBAIHN0YXRpYyBpbnQgZGliMDcwMF9wcm9iZShzdHJ1Y3QgdXNi
+X2ludGVyZmFjZSAqaW50ZiwKPiAgICAgICAgICAgICAgICAgICAgICAgIGVsc2UKPiAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgZGV2LT5wcm9wcy5yYy5jb3JlLmJ1bGtfbW9kZSA9IGZh
+bHNlOwo+IAo+KyAgICAgICAgICAgICAgICAgLyogTmVlZCBhIGhpZ2hlciBkZWxheSwgdG8gYXZv
+aWQgd3JvbmcgcmVwZWF0ICovCj4rICAgICAgICAgICAgICAgICBkZXYtPnJjX2lucHV0X2Rldi0+
+cmVwW1JFUF9ERUxBWV0gPSA1MDA7Cj4rCj4gICAgICAgICAgICAgICAgICAgICAgICBkaWIwNzAw
+X3JjX3NldHVwKGRldik7Cj4KPk1heWJlIHRoZSBiZXR0ZXIgc29sdXRpb24gaXMgdG8gdXNlLCBi
+eSBkZWZhdWx0Ogo+CXJjX2lucHV0X2Rldi0+cmVwW1JFUF9ERUxBWV0gPSA1MDA7Cj4JI2RlZmlu
+ZSBJUl9LRVlQUkVTU19USU1FT1VUIDI1MAo+Cj5BbmQsIGV2ZW50dWFsbHksIGFkZGluZyBhIHBh
+dGNoIHRvIGFsbG93IGNoYW5naW5nIGl0IHBlciBkZXZpY2UuCj4KPlRoYXQncyBzYWlkLCBJTUhP
+LCA1MDBtcyBpcyBhIHZlcnkgcmVhc29uYWJsZSB0aW1lIGZvciBzdGFydGluZyByZXBlYXQgd2l0
+aCByZW1vdGVzLiAKPk9waW5pb25zPwo+Cj5DaGVlcnMsCj5NYXVyby4KPi0tCj5UbyB1bnN1YnNj
+cmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgtbWVk
+aWEiIGluCj50aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9y
+Zwo+TW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRv
+bW8taW5mby5odG1sCg==
 
-> On Wed, Aug 04, 2010 at 01:01:34AM +0200, Guennadi Liakhovetski wrote:
-> > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
-> > 
-> > > On Tue, Aug 03, 2010 at 08:22:13PM +0200, Guennadi Liakhovetski wrote:
-> > > > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
-> > > > 
-> > > > > change this driver back to register and probe, since some platforms
-> > > > > first have to initialize an already registered power regulator to switch
-> > > > > on the camera.
-> > > > 
-> > > > Sorry, don't see a difference. Can you give an example of two call 
-> > > > sequences, where this change changes the behaviour?
-> > > >
-> > > 
-> > > Yes, when you look at the today posted patch [1] you find the function
-> > > pcm970_baseboard_init_late as an late_initcall. It uses an already
-> > > registred regulator device to turn on the power of the camera before the
-> > > cameras device registration.
-> > > 
-> > > [1] [PATCH 1/2] ARM: i.MX27 pcm970: Add camera support
-> > > http://lists.infradead.org/pipermail/linux-arm-kernel/2010-August/022317.html
-> > 
-> > Sorry again, still don't understand. What I mean is the following: take 
-> > two cases - before and after your patch. What is the difference? As far as 
-> > I know, the difference between platform_driver_probe() and 
-> > platform_driver_register() is just that the probe method gets discarded in 
-> > an __init section, which is suitable for non hotpluggable devices. I don't 
-> > know what the difference this should make for call order. So, that's what 
-> > I am asking about. Can you explain, how this patch changes the call order 
-> > in your case? Can you tell, that in the unpatches case the probe is called 
-> > at that moment, and in the patched case it is called at a different point 
-> > of time and that fixes the problem.
-> 
-> 
-> The following is above platform_driver_probe:
-> 
->  * Use this instead of platform_driver_register() when you know the device
->  * is not hotpluggable and has already been registered, and you want to
->  * remove its run-once probe() infrastructure from memory after the
->  * driver has bound to the device.
-> 
-> So platform_driver_probe will only call the probe function when the device
-> is already there when this function runs. This is not the case on our board.
-> We have to register the camera in late_initcall (to make sure the needed
-> regulators are already there). During late_initcall time the
-> platform_driver_probe has already run.
-
-Ok, now I see. I missed the key-phrase: "before the cameras device 
-registration." Ok, in this case, it's certainly a valid reason for the 
-change. Just one more question: wouldn't calling 
-pcm970_baseboard_init_late() from device_initcall fix the problem without 
-requiring to change the driver?
-
-> I don't really like the trend to platform_driver_probe, because this
-> makes cases like camera needs regulator which in turn needs SPI even
-> more complicated.
-
-Well, you can always change to using the platform_driver_register() if 
-platform_driver_probe() causes problems, otherwise it does have its 
-advantages, as described in the comment, you quoted above.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
