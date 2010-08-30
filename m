@@ -1,45 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:54797 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753354Ab0HIR6H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 13:58:07 -0400
-Date: Mon, 9 Aug 2010 10:56:35 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: [PATCH -next] v4l2-ctrls.c: needs to include slab.h
-Message-Id: <20100809105635.4208c7ac.randy.dunlap@oracle.com>
-In-Reply-To: <20100809132314.789e13f3.sfr@canb.auug.org.au>
-References: <20100809132314.789e13f3.sfr@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from v-smtp-auth-relay-1.gradwell.net ([79.135.125.40]:56009 "EHLO
+	v-smtp-auth-relay-1.gradwell.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755689Ab0H3UqS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Aug 2010 16:46:18 -0400
+Received: from zntrx-gw.adsl.newnet.co.uk ([80.175.181.245] helo=echelon.upsilon.org.uk country=GB ident=dave$pop3$upsilon&org#uk)
+          by v-smtp-auth-relay-1.gradwell.net with esmtpa (Gradwell gwh-smtpd 1.290) id 4c7c1898.1ddb.34
+          for linux-media@vger.kernel.org; Mon, 30 Aug 2010 21:46:16 +0100
+          (envelope-sender <news004@upsilon.org.uk>)
+Message-ID: <+c0VYIBHiBfMFwln@echelon.upsilon.org.uk>
+Date: Mon, 30 Aug 2010 21:45:59 +0100
+To: linux-media@vger.kernel.org
+From: dave cunningham <news004@upsilon.org.uk>
+Subject: Re: Problems with Freecom USB DVB-T dongles
+References: <+ay15VCWVXdMFw1S@echelon.upsilon.org.uk>
+In-Reply-To: <+ay15VCWVXdMFw1S@echelon.upsilon.org.uk>
+MIME-Version: 1.0
+Content-Type: text/plain;charset=us-ascii;format=flowed
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+In message <+ay15VCWVXdMFw1S@echelon.upsilon.org.uk>, dave cunningham 
+wrote
 
-v4l2-ctrls.c needs to include slab.h to prevent build errors:
+>Hi,
+>
+>I'm having problems with a pair of Freecom USB dongles and am wondering 
+>if anyone has any pointers?
+>
 
-drivers/media/video/v4l2-ctrls.c:766: error: implicit declaration of function 'kzalloc'
-drivers/media/video/v4l2-ctrls.c:786: error: implicit declaration of function 'kfree'
-drivers/media/video/v4l2-ctrls.c:1528: error: implicit declaration of function 'kmalloc'
+<snip>
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
----
- drivers/media/video/v4l2-ctrls.c |    1 +
- 1 file changed, 1 insertion(+)
+>In dmesg at boot I see one message for each device
+>"dvb-usb: recv bulk message failed: -110"
+>
+>Other than this everything seems OK.
+>
+>The system is running MythTV Backend (0.23) and I can have them both 
+>recording simultaneously as I would expect.
+>
+>At some point however I start to get floods of messages to the console 
+>(repeats of "dvb-usb: recv bulk message failed: -110") and the system 
+>slows down to a crawl.
+>
 
---- linux-next-20100809.orig/drivers/media/video/v4l2-ctrls.c
-+++ linux-next-20100809/drivers/media/video/v4l2-ctrls.c
-@@ -19,6 +19,7 @@
-  */
- 
- #include <linux/ctype.h>
-+#include <linux/slab.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
+<snip>
+
+I'm still looking for any suggestions. From a brief look at the source 
+this message seems to be coming from a call to usb_bulk_msg.
+
+Given that the dongles are OK in a via system does this likely suggest a 
+compatibility issue with the USB host controller on the AMD 760G board?
+
+I'm I likely to get anywhere trying to debug the code or will a USB 
+analyser be required to work out what's going on?
+-- 
+Dave Cunningham                                  dave at upsilon org uk
+                                                  PGP KEY ID: 0xA78636DC
