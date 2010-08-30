@@ -1,90 +1,138 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44062 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751309Ab0HDIx1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Aug 2010 04:53:27 -0400
-Date: Wed, 4 Aug 2010 10:53:26 +0200
-From: Michael Grzeschik <mgr@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	baruch@tkos.co.il
-Subject: Re: [PATCH 1/5] mx2_camera: change to register and probe
-Message-ID: <20100804085326.GA10780@pengutronix.de>
-References: <1280828276-483-1-git-send-email-m.grzeschik@pengutronix.de> <1280828276-483-2-git-send-email-m.grzeschik@pengutronix.de> <Pine.LNX.4.64.1008032016340.10845@axis700.grange> <20100803195727.GB12367@pengutronix.de> <Pine.LNX.4.64.1008040039550.10845@axis700.grange> <20100804070949.GR14113@pengutronix.de> <Pine.LNX.4.64.1008041020280.29386@axis700.grange>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1008041020280.29386@axis700.grange>
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:50033 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754819Ab0H3IxG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Aug 2010 04:53:06 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 7/7] ENE: add support for carrier reports
+Date: Mon, 30 Aug 2010 11:52:27 +0300
+Message-Id: <1283158348-7429-8-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
+References: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wed, Aug 04, 2010 at 10:24:50AM +0200, Guennadi Liakhovetski wrote:
-> On Wed, 4 Aug 2010, Sascha Hauer wrote:
-> 
-> > On Wed, Aug 04, 2010 at 01:01:34AM +0200, Guennadi Liakhovetski wrote:
-> > > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
-> > > 
-> > > > On Tue, Aug 03, 2010 at 08:22:13PM +0200, Guennadi Liakhovetski wrote:
-> > > > > On Tue, 3 Aug 2010, Michael Grzeschik wrote:
-> > > > > 
-> > > > > > change this driver back to register and probe, since some platforms
-> > > > > > first have to initialize an already registered power regulator to switch
-> > > > > > on the camera.
-> > > > > 
-> > > > > Sorry, don't see a difference. Can you give an example of two call 
-> > > > > sequences, where this change changes the behaviour?
-> > > > >
-> > > > 
-> > > > Yes, when you look at the today posted patch [1] you find the function
-> > > > pcm970_baseboard_init_late as an late_initcall. It uses an already
-> > > > registred regulator device to turn on the power of the camera before the
-> > > > cameras device registration.
-> > > > 
-> > > > [1] [PATCH 1/2] ARM: i.MX27 pcm970: Add camera support
-> > > > http://lists.infradead.org/pipermail/linux-arm-kernel/2010-August/022317.html
-> > > 
-> > > Sorry again, still don't understand. What I mean is the following: take 
-> > > two cases - before and after your patch. What is the difference? As far as 
-> > > I know, the difference between platform_driver_probe() and 
-> > > platform_driver_register() is just that the probe method gets discarded in 
-> > > an __init section, which is suitable for non hotpluggable devices. I don't 
-> > > know what the difference this should make for call order. So, that's what 
-> > > I am asking about. Can you explain, how this patch changes the call order 
-> > > in your case? Can you tell, that in the unpatches case the probe is called 
-> > > at that moment, and in the patched case it is called at a different point 
-> > > of time and that fixes the problem.
-> > 
-> > 
-> > The following is above platform_driver_probe:
-> > 
-> >  * Use this instead of platform_driver_register() when you know the device
-> >  * is not hotpluggable and has already been registered, and you want to
-> >  * remove its run-once probe() infrastructure from memory after the
-> >  * driver has bound to the device.
-> > 
-> > So platform_driver_probe will only call the probe function when the device
-> > is already there when this function runs. This is not the case on our board.
-> > We have to register the camera in late_initcall (to make sure the needed
-> > regulators are already there). During late_initcall time the
-> > platform_driver_probe has already run.
-> 
-> Ok, now I see. I missed the key-phrase: "before the cameras device 
-> registration." Ok, in this case, it's certainly a valid reason for the 
-> change. Just one more question: wouldn't calling 
-> pcm970_baseboard_init_late() from device_initcall fix the problem without 
-> requiring to change the driver?
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ene_ir.c |   47 +++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 37 insertions(+), 10 deletions(-)
 
-No, sorry but this doesn't solve the problem. I tested it and get an
-"unable to get regulator: -19" when i hit on that. The problem is the
-device init order. The pcm970_baseboard_init_late comes first and
-then the regulator. So i think we should keep that patch.
-
-Michael
-
+diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
+index c7bbbca..dfb822b 100644
+--- a/drivers/media/IR/ene_ir.c
++++ b/drivers/media/IR/ene_ir.c
+@@ -224,6 +224,7 @@ void ene_rx_sense_carrier(struct ene_device *dev)
+ {
+ 	int period = ene_read_reg(dev, ENE_CIRCAR_PRD);
+ 	int hperiod = ene_read_reg(dev, ENE_CIRCAR_HPRD);
++	struct ir_raw_event ev = ir_new_event;
+ 	int carrier, duty_cycle;
+ 
+ 
+@@ -238,19 +239,23 @@ void ene_rx_sense_carrier(struct ene_device *dev)
+ 	dbg("RX: hardware carrier period = %02x", period);
+ 	dbg("RX: hardware carrier pulse period = %02x", hperiod);
+ 
+-
+ 	carrier = 2000000 / period;
+ 	duty_cycle = (hperiod * 100) / period;
+ 	dbg("RX: sensed carrier = %d Hz, duty cycle %d%%",
+-							carrier, duty_cycle);
+-
+-	/* TODO: Send carrier & duty cycle to IR layer */
++						carrier, duty_cycle);
++	if (dev->carrier_detect_enabled) {
++		ev.carrier_report = true;
++		ev.carrier = carrier;
++		ev.duty_cycle = duty_cycle;
++		ir_raw_event_store(dev->idev, &ev);
++	}
+ }
+ 
+ /* determine which input to use*/
+ static void ene_rx_set_inputs(struct ene_device *dev)
+ {
+-	int learning_mode = dev->learning_enabled;
++	int learning_mode = dev->learning_enabled ||
++					dev->carrier_detect_enabled;
+ 
+ 	dbg("RX: setup receiver, learning mode = %d", learning_mode);
+ 
+@@ -281,9 +286,17 @@ static void ene_rx_set_inputs(struct ene_device *dev)
+ 		ene_enable_cir_engine(dev, true);
+ 		ene_select_rx_input(dev, !dev->hw_use_gpio_0a);
+ 
+-		/* Enable carrier detection & demodulation */
++		/* Enable demodulation */
+ 		ene_set_reg_mask(dev, ENE_CIRCFG, ENE_CIRCFG_CARR_DEMOD);
+-		ene_set_reg_mask(dev, ENE_CIRCFG2, ENE_CIRCFG2_CARR_DETECT);
++
++		/* Enable carrier detect if asked to */
++		if (dev->carrier_detect_enabled || debug)
++			ene_set_reg_mask(dev, ENE_CIRCFG2,
++						ENE_CIRCFG2_CARR_DETECT);
++		else
++			ene_clear_reg_mask(dev, ENE_CIRCFG2,
++						ENE_CIRCFG2_CARR_DETECT);
++
+ 
+ 
+ 	/* disable learning mode */
+@@ -726,7 +739,7 @@ static irqreturn_t ene_isr(int irq, void *data)
+ 
+ 	dbg_verbose("RX interrupt");
+ 
+-	if (dev->carrier_detect_enabled || debug)
++	if (dev->hw_learning_and_tx_capable)
+ 		ene_rx_sense_carrier(dev);
+ 
+ 	/* On hardware that don't support extra buffer we need to trust
+@@ -796,7 +809,6 @@ static void ene_setup_settings(struct ene_device *dev)
+ 		let user set it with LIRC_SET_REC_CARRIER */
+ 	dev->learning_enabled =
+ 		(learning_mode && dev->hw_learning_and_tx_capable);
+-
+ }
+ 
+ /* outside interface: called on first open*/
+@@ -902,6 +914,21 @@ static int ene_set_learning_mode(void *data, int enable)
+ 	return 0;
+ }
+ 
++static int ene_set_carrier_report(void *data, int enable)
++{
++	struct ene_device *dev = (struct ene_device *)data;
++	unsigned long flags;
++
++	if (enable == dev->carrier_detect_enabled)
++		return 0;
++
++	spin_lock_irqsave(&dev->hw_lock, flags);
++	dev->carrier_detect_enabled = enable;
++	ene_rx_set_inputs(dev);
++	spin_unlock_irqrestore(&dev->hw_lock, flags);
++	return 0;
++}
++
+ /* outside interface: enable or disable idle mode */
+ static void ene_rx_set_idle(void *data, int idle)
+ {
+@@ -1043,7 +1070,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 		ir_props->s_tx_carrier = ene_set_tx_carrier;
+ 		ir_props->s_tx_duty_cycle = ene_set_tx_duty_cycle;
+ 		ir_props->tx_resolution = sample_period * 1000;
+-		/* ir_props->s_carrier_report = ene_set_carrier_report; */
++		ir_props->s_carrier_report = ene_set_carrier_report;
+ 	}
+ 
+ 
 -- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.0.4
+
