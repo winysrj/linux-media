@@ -1,66 +1,76 @@
 Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:60424 "EHLO mail.issp.bas.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751551Ab0HTIPE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Aug 2010 04:15:04 -0400
-From: Marin Mitov <mitov@issp.bas.bg>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Date: Fri, 20 Aug 2010 11:13:45 +0300
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-References: <201008191818.36068.mitov@issp.bas.bg> <20100820161631A.fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <20100820161631A.fujita.tomonori@lab.ntt.co.jp>
+Received: from perceval.irobotique.be ([92.243.18.41]:39555 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751662Ab0H3Hxp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Aug 2010 03:53:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Lane Brooks <lane@brooks.nu>
+Subject: Re: Snapshot with the OMAP
+Date: Mon, 30 Aug 2010 09:53:46 +0200
+Cc: linux-media@vger.kernel.org
+References: <4C79EF0F.2090401@brooks.nu>
+In-Reply-To: <4C79EF0F.2090401@brooks.nu>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201008201113.46036.mitov@issp.bas.bg>
+Message-Id: <201008300953.47420.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Friday, August 20, 2010 10:17:48 am FUJITA Tomonori wrote:
-> On Thu, 19 Aug 2010 18:18:35 +0300
-> Marin Mitov <mitov@issp.bas.bg> wrote:
+Hi Lane,
+
+On Sunday 29 August 2010 07:24:31 Lane Brooks wrote:
+>   Laurent,
 > 
-> > struct device contains a member: struct dma_coherent_mem *dma_mem;
-> > to hold information for a piece of memory declared dma-coherent.
-> > Alternatively the same member could also be used to hold preallocated
-> > dma-coherent memory for latter per-device use.
+> Suppose I am streaming 2048x1536 YUV images from a sensor into the OMAP.
+> I am piping it through the resizer to drop it to 640x480 for display. So
+> I am reading from /dev/video6 (resizer) and have the media bus links
+> setup appropriately. Now the user presses the shutter button. What is
+> the recommended way to read a single full resolution image?
 > 
-> I think that drivers/base/dma-coherent.c is for architectures to
-> implement dma_alloc_coherent(). So using it for drivers doesn't look
-> correct.
-
-It depends. Imagine your frame grabber has built-in RAM buffer on board
-just as the frame buffer RAM on graphics cards, defined in BAR. You can use
-dma_declare_coherent_memory()/dma_release_declared_memory() in
-your driver and then use dma_alloc_coherent()/dma_free_coherent()
-to allocate dma buffers from it and falling back transparently to system RAM
-when this local resource is exhausted.
-
+> It seems there are several options:
 > 
+> 1. Reconfigure the media bus and read a single single full resolution
+> image out of the CCDC output on /dev/video2 and then
+> reconfigure it back to video mode.
 > 
-> > This tric is already used in drivers/staging/dt3155v4l.c
-> > dt3155_alloc_coherent()/dt3155_free_coherent()
-> > 
-> > Here proposed for general use by popular demand from video4linux folks.
-> > Helps for videobuf-dma-contig framework.
+> 2. Reconfigure the resizer to stop downsampling but instead output the
+> full resolution image for a single frame.
 > 
-> What you guys exactly want to do? If you just want to pre-allocate
-> coherent memory for latter usage,
+> Do I need to stop the stream while doing either option?
 
-Yes, just to preallocate not coherent, but rather contiguous memory for latter usage.
-We use coherent memory because it turns out to be contiguous.
+Both options require you to stop the stream. Reconfiguring the pipeline or 
+changing formats can't be done during streaming (for completeness' sake, note 
+that changing the crop rectangle at the resizer input can be done during 
+streaming, but that won't solve your problem).
 
-> why dma_pool API (mm/dmapool.c) doesn't work?
+> These seem like clunky and slow options, though.
+> 
+> Is there a way to setup the media bus links so that I can actually have
+> handles to /dev/video2 and /dev/video6 open simultaneously? Then I can
+> normally read from /dev/video6 and then read single frames from
+> /dev/video2 whenever the user presses the shutter button?
 
-I do not know why dma_pool API doesn't work for frame grabber buffers.
-May be they are too big ~400KB. I have tried dma_pool APIs without success 
-some time ago, so I had to find some other way to solve my problem leading to 
-the proposed dma_reserve_coherent_memory()/dma_free_reserved_memory().
+Not at the moment, but I'd be very happy to receive a patch that implements 
+that feature :-)
 
-Thanks.
+> I have noticed there is a some ISP_PIPELINE_STREAM_SINGLESHOT streaming
+> states in the isp code, but I don't what it is for or how to use it. Is
+> it related to my questions at all?
 
-Marin Mitov
+No. They're used for memory-to-memory operation that requires the ISP to 
+operate in single-shot mode.
 
+> It gets even more complex if I want the streaming the video out of the
+> sensor at a lower resolution (for higher video rates) and want to change
+> the resolution of the sensor for the snapshot.
 
+You will need to stop the pipeline, change the formats and restart it. There's 
+no alternative at the moment.
+
+-- 
+Regards,
+
+Laurent Pinchart
