@@ -1,78 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from mail.issp.bas.bg ([195.96.236.10]:52530 "EHLO mail.issp.bas.bg"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752774Ab0HZKQv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 06:16:51 -0400
-From: Marin Mitov <mitov@issp.bas.bg>
-To: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-Subject: Re: [RFC][PATCH] add dma_reserve_coherent_memory()/dma_free_reserved_memory() API
-Date: Thu, 26 Aug 2010 13:14:51 +0300
-Cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	akpm@linux-foundation.org
-References: <201008260904.19973.mitov@issp.bas.bg> <201008261001.57678.mitov@issp.bas.bg> <20100826184231J.fujita.tomonori@lab.ntt.co.jp>
-In-Reply-To: <20100826184231J.fujita.tomonori@lab.ntt.co.jp>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201008261314.56782.mitov@issp.bas.bg>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:50033 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754799Ab0H3Iwz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Aug 2010 04:52:55 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 3/7] IR: fix duty cycle capability
+Date: Mon, 30 Aug 2010 11:52:23 +0300
+Message-Id: <1283158348-7429-4-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
+References: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thursday, August 26, 2010 12:43:22 pm FUJITA Tomonori wrote:
-> On Thu, 26 Aug 2010 10:01:52 +0300
-> Marin Mitov <mitov@issp.bas.bg> wrote:
-> 
-> > > If you add something to the videobuf-dma-contig API, that's fine by me
-> > > because drivers/media/video/videobuf-dma-contig.c uses the own
-> > > structure and plays with dma_alloc_coherent. As long as a driver
-> > > doesn't touch device->dma_mem directly, it's fine, 
-> > 
-> > Why, my understanding is that device->dma_mem is designed exactly for keeping 
-> > some chunk of coherent memory for device's private use via dma_alloc_from_coherent()
-> > (and that is what dt3155v4l driver is using it for).
-> 
-> I don't think so. device->dma_mem can be accessed only via the
-> DMA-API. I think that the DMA-API says that
-> dma_declare_coherent_memory declares coherent memory that can be
-> access exclusively by a certain device. 
+Due to typo lirc bridge enabled wrong capability.
 
-Here I agree with you: "that can be access exclusively by a certain device"
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ir-lirc-codec.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> It's not for reserving
-> coherent memory that can be used for any device for a device.
+diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
+index 77b5946..e63f757 100644
+--- a/drivers/media/IR/ir-lirc-codec.c
++++ b/drivers/media/IR/ir-lirc-codec.c
+@@ -267,7 +267,7 @@ static int ir_lirc_register(struct input_dev *input_dev)
+ 			features |= LIRC_CAN_SET_SEND_CARRIER;
+ 
+ 		if (ir_dev->props->s_tx_duty_cycle)
+-			features |= LIRC_CAN_SET_REC_DUTY_CYCLE;
++			features |= LIRC_CAN_SET_SEND_DUTY_CYCLE;
+ 	}
+ 
+ 	if (ir_dev->props->s_rx_carrier_range)
+-- 
+1.7.0.4
 
-Here I disagree with you: "that can be used for any device for a device".
-Reserved coherent memory can be only and exclusively used by 
-the __same__ device whose device->dma_mem is touched. No other devices 
-are influenced because their device->dma_mem are NULL. and 
-dma_alloc_from_coherent() is not invoked for them. That is why I think
-this hack is not dangerous. If some device driver decide to reserve some
-chunk of memory it is for its private use and no other device in the system
-is influenced.
-
-> 
-> Anway, you don't need coherent memory. So using the API for coherent
-> memory isn't a good idea.
-
-Here I agree with you, but for now we have no alternative in media/video
-framework.
-
-> 
-> 
-> > > There are already some workarounds for
-> > > contigous memory in several drivers anyway.
-> > 
-> > Sure, can these workarounds be exposed as API for general use?
-> 
-> I don't think that's a good idea. Adding temporary workaround to the
-> generic API and removing it soon after that doesn't sound a good
-> developing maner.
-
-Yes, it is just a temporary solution. Just enhancing an existing temporary solution.
-
-Thanks,
-
-Marin Mitov
-
-> 
