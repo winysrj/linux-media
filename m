@@ -1,200 +1,123 @@
 Return-path: <mchehab@pedra>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:20761 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753201Ab0HISRU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Aug 2010 14:17:20 -0400
-Message-ID: <4C6045EF.9010103@oracle.com>
-Date: Mon, 09 Aug 2010 11:16:15 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for August 7 (IR)
-References: <20100807160710.b7c8d838.sfr@canb.auug.org.au>	<20100807203920.83134a60.randy.dunlap@oracle.com>	<20100808135511.269f670c.randy.dunlap@oracle.com>	<4C5F9C2E.50001@redhat.com> <20100809075255.97d18a66.randy.dunlap@oracle.com> <4C603DB1.9030706@redhat.com> <4C604196.6060100@redhat.com>
-In-Reply-To: <4C604196.6060100@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:50033 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753959Ab0H3Iwp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Aug 2010 04:52:45 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 2/7] IR: make sure we register input device when it safe to do so.
+Date: Mon, 30 Aug 2010 11:52:22 +0300
+Message-Id: <1283158348-7429-3-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
+References: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On 08/09/10 10:57, Mauro Carvalho Chehab wrote:
-> Em 09-08-2010 14:41, Mauro Carvalho Chehab escreveu:
->> Em 09-08-2010 11:52, Randy Dunlap escreveu:
->>>> Hmm... clearly, there are some bad dependencies at the Kconfig. Maybe ir-core were compiled
->>>> as module, while some drivers as built-in.
->>>>
->>>> Could you please pass the .config file for this build?
->>>
->>>
->>> Sorry, config-r5101 is now attached.
->>
->> Hmm... when building it, I'm getting an interesting warning:
->>
->> warning: (VIDEO_BT848 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_DEV && PCI && I2C && VIDEO_V4L2 && INPUT || VIDEO_SAA7134 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_CX88 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_IVTV && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && PCI && I2C && INPUT || VIDEO_CX18 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL && INPUT || VIDEO_EM28XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || VIDEO_TLG2300 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT && SND && DVB_CORE || VIDEO_CX231XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || DVB_BUDGET_CI && MEDIA_SUPPORT && DVB_C
-A
-> PT
->> URE_DRIVERS && DVB_CORE && DVB_BUDGET_CORE && I2C && INPUT || DVB_DM1105 && MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && DVB_CORE && PCI && I2C && INPUT || VIDEO_GO7007 && STAGING && !STAGING_EXCLUDE_BUILD && VIDEO_DEV && PCI && I2C && INPUT && SND || VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
->>
->> This warning seems to explain what's going wrong.
->>
->> I'll make patch(es) to address this issue.
-> 
-> 
-> Ok, This patch (together with the previous one) seemed to solve the issue.
-> 
+As soon as input device is registered, it might be accessed (and it is)
+This can trigger hardware interrupts for example that in turn
+can access not yet initialized ir->raw.
+Can be reproduced by holding down a remote button and reloading the module.
+And always crashes the systems where hardware decides to send and interrupt
+right at the moment it is enabled.
 
-Yes, together they fix both build problems.  Thanks.
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ir-core-priv.h |    1 +
+ drivers/media/IR/ir-keytable.c  |    2 ++
+ drivers/media/IR/ir-sysfs.c     |   27 +++++++++++++++++----------
+ 3 files changed, 20 insertions(+), 10 deletions(-)
 
-Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-
-
-> 
-> commit 0a706cf23aee2f6349f4b076f966038efb788a49
-> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Date:   Mon Aug 9 14:45:02 2010 -0300
-> 
->     V4L/DVB: fix Kconfig to depends on VIDEO_IR
->     
->     warning: (VIDEO_BT848 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_DEV && PCI && I2C && VIDEO_V4L2 && INPUT || VIDEO_SAA7134 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_CX88 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_IVTV && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && PCI && I2C && INPUT || VIDEO_CX18 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL && INPUT || VIDEO_EM28XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || VIDEO_TLG2300 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT && SND && DVB_CORE || VIDEO_CX231XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || DVB_BUDGET_CI && MEDIA_SUPPORT && DV
-B_
-> CAPTURE_DRIVERS && DVB_CORE && DVB_BUDGET_CORE && I2C && INPUT || DVB_DM1105 && MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && DVB_CORE && PCI && I2C && INPUT || VIDEO_GO7007 && STAGING && !STAGING_EXCLUDE_BUILD && VIDEO_DEV && PCI && I2C && INPUT && SND || VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
->     
->     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/drivers/media/dvb/dm1105/Kconfig b/drivers/media/dvb/dm1105/Kconfig
-> index 6952392..a6ceb08 100644
-> --- a/drivers/media/dvb/dm1105/Kconfig
-> +++ b/drivers/media/dvb/dm1105/Kconfig
-> @@ -9,7 +9,7 @@ config DVB_DM1105
->  	select DVB_CX24116 if !DVB_FE_CUSTOMISE
->  	select DVB_SI21XX if !DVB_FE_CUSTOMISE
->  	select DVB_DS3000 if !DVB_FE_CUSTOMISE
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	help
->  	  Support for cards based on the SDMC DM1105 PCI chip like
->  	  DvbWorld 2002
-> diff --git a/drivers/media/dvb/ttpci/Kconfig b/drivers/media/dvb/ttpci/Kconfig
-> index 32a7ec6..debea8d 100644
-> --- a/drivers/media/dvb/ttpci/Kconfig
-> +++ b/drivers/media/dvb/ttpci/Kconfig
-> @@ -98,7 +98,7 @@ config DVB_BUDGET_CI
->  	select DVB_LNBP21 if !DVB_FE_CUSTOMISE
->  	select DVB_TDA10023 if !DVB_FE_CUSTOMISE
->  	select MEDIA_TUNER_TDA827X if !MEDIA_TUNER_CUSTOMISE
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	help
->  	  Support for simple SAA7146 based DVB cards
->  	  (so called Budget- or Nova-PCI cards) without onboard
-> diff --git a/drivers/media/video/bt8xx/Kconfig b/drivers/media/video/bt8xx/Kconfig
-> index 3077c45..1a4a89f 100644
-> --- a/drivers/media/video/bt8xx/Kconfig
-> +++ b/drivers/media/video/bt8xx/Kconfig
-> @@ -4,7 +4,7 @@ config VIDEO_BT848
->  	select I2C_ALGOBIT
->  	select VIDEO_BTCX
->  	select VIDEOBUF_DMA_SG
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	select VIDEO_MSP3400 if VIDEO_HELPER_CHIPS_AUTO
-> diff --git a/drivers/media/video/cx18/Kconfig b/drivers/media/video/cx18/Kconfig
-> index baf7e91..76c054d 100644
-> --- a/drivers/media/video/cx18/Kconfig
-> +++ b/drivers/media/video/cx18/Kconfig
-> @@ -3,7 +3,7 @@ config VIDEO_CX18
->  	depends on VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL
->  	depends on INPUT	# due to VIDEO_IR
->  	select I2C_ALGOBIT
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	select VIDEO_CX2341X
-> diff --git a/drivers/media/video/cx231xx/Kconfig b/drivers/media/video/cx231xx/Kconfig
-> index 477d4ab..5ac7ece 100644
-> --- a/drivers/media/video/cx231xx/Kconfig
-> +++ b/drivers/media/video/cx231xx/Kconfig
-> @@ -3,7 +3,7 @@ config VIDEO_CX231XX
->  	depends on VIDEO_DEV && I2C && INPUT
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEOBUF_VMALLOC
->  	select VIDEO_CX25840
->  
-> diff --git a/drivers/media/video/cx88/Kconfig b/drivers/media/video/cx88/Kconfig
-> index c7e5851..99dbae1 100644
-> --- a/drivers/media/video/cx88/Kconfig
-> +++ b/drivers/media/video/cx88/Kconfig
-> @@ -6,7 +6,7 @@ config VIDEO_CX88
->  	select VIDEOBUF_DMA_SG
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEO_WM8775 if VIDEO_HELPER_CHIPS_AUTO
->  	---help---
->  	  This is a video4linux driver for Conexant 2388x based
-> diff --git a/drivers/media/video/em28xx/Kconfig b/drivers/media/video/em28xx/Kconfig
-> index c7be0e0..66aefd6 100644
-> --- a/drivers/media/video/em28xx/Kconfig
-> +++ b/drivers/media/video/em28xx/Kconfig
-> @@ -3,7 +3,7 @@ config VIDEO_EM28XX
->  	depends on VIDEO_DEV && I2C && INPUT
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEOBUF_VMALLOC
->  	select VIDEO_SAA711X if VIDEO_HELPER_CHIPS_AUTO
->  	select VIDEO_TVP5150 if VIDEO_HELPER_CHIPS_AUTO
-> diff --git a/drivers/media/video/ivtv/Kconfig b/drivers/media/video/ivtv/Kconfig
-> index c46bfb1..be4af1f 100644
-> --- a/drivers/media/video/ivtv/Kconfig
-> +++ b/drivers/media/video/ivtv/Kconfig
-> @@ -3,7 +3,7 @@ config VIDEO_IVTV
->  	depends on VIDEO_V4L2 && PCI && I2C
->  	depends on INPUT   # due to VIDEO_IR
->  	select I2C_ALGOBIT
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	select VIDEO_CX2341X
-> diff --git a/drivers/media/video/saa7134/Kconfig b/drivers/media/video/saa7134/Kconfig
-> index 22bfd62..fda005e 100644
-> --- a/drivers/media/video/saa7134/Kconfig
-> +++ b/drivers/media/video/saa7134/Kconfig
-> @@ -2,7 +2,7 @@ config VIDEO_SAA7134
->  	tristate "Philips SAA7134 support"
->  	depends on VIDEO_DEV && PCI && I2C && INPUT
->  	select VIDEOBUF_DMA_SG
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
->  	select CRC32
-> diff --git a/drivers/media/video/tlg2300/Kconfig b/drivers/media/video/tlg2300/Kconfig
-> index 2c29ec6..1686ebf 100644
-> --- a/drivers/media/video/tlg2300/Kconfig
-> +++ b/drivers/media/video/tlg2300/Kconfig
-> @@ -3,7 +3,7 @@ config VIDEO_TLG2300
->  	depends on VIDEO_DEV && I2C && INPUT && SND && DVB_CORE
->  	select VIDEO_TUNER
->  	select VIDEO_TVEEPROM
-> -	select VIDEO_IR
-> +	depends on VIDEO_IR
->  	select VIDEOBUF_VMALLOC
->  	select SND_PCM
->  	select VIDEOBUF_DVB
-
-
+diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+index 761e7f4..5d7e08f 100644
+--- a/drivers/media/IR/ir-core-priv.h
++++ b/drivers/media/IR/ir-core-priv.h
+@@ -116,6 +116,7 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
+  * Routines from ir-sysfs.c - Meant to be called only internally inside
+  * ir-core
+  */
++int ir_register_input(struct input_dev *input_dev);
+ 
+ int ir_register_class(struct input_dev *input_dev);
+ void ir_unregister_class(struct input_dev *input_dev);
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 7e82a9d..3f0dd80 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -505,6 +505,8 @@ int __ir_input_register(struct input_dev *input_dev,
+ 				goto out_event;
+ 		}
+ 
++	rc = ir_register_input(input_dev);
++
+ 	IR_dprintk(1, "Registered input device on %s for %s remote%s.\n",
+ 		   driver_name, rc_tab->name,
+ 		   (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_IR_RAW) ?
+diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
+index 96dafc4..c0075f1 100644
+--- a/drivers/media/IR/ir-sysfs.c
++++ b/drivers/media/IR/ir-sysfs.c
+@@ -251,8 +251,6 @@ static struct device_type rc_dev_type = {
+  */
+ int ir_register_class(struct input_dev *input_dev)
+ {
+-	int rc;
+-	const char *path;
+ 	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+ 	int devno = find_first_zero_bit(&ir_core_dev_number,
+ 					IRRCV_NUM_DEVICES);
+@@ -261,17 +259,28 @@ int ir_register_class(struct input_dev *input_dev)
+ 		return devno;
+ 
+ 	ir_dev->dev.type = &rc_dev_type;
++	ir_dev->devno = devno;
+ 
+ 	ir_dev->dev.class = &ir_input_class;
+ 	ir_dev->dev.parent = input_dev->dev.parent;
++	input_dev->dev.parent = &ir_dev->dev;
+ 	dev_set_name(&ir_dev->dev, "rc%d", devno);
+ 	dev_set_drvdata(&ir_dev->dev, ir_dev);
+-	rc = device_register(&ir_dev->dev);
+-	if (rc)
+-		return rc;
++	return  device_register(&ir_dev->dev);
++};
++
++/**
++ * ir_register_input - registers ir input device with input subsystem
++ * @input_dev:	the struct input_dev descriptor of the device
++ */
++
++int ir_register_input(struct input_dev *input_dev)
++{
++	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
++	int rc;
++	const char *path;
+ 
+ 
+-	input_dev->dev.parent = &ir_dev->dev;
+ 	rc = input_register_device(input_dev);
+ 	if (rc < 0) {
+ 		device_del(&ir_dev->dev);
+@@ -287,11 +296,9 @@ int ir_register_class(struct input_dev *input_dev)
+ 		path ? path : "N/A");
+ 	kfree(path);
+ 
+-	ir_dev->devno = devno;
+-	set_bit(devno, &ir_core_dev_number);
+-
++	set_bit(ir_dev->devno, &ir_core_dev_number);
+ 	return 0;
+-};
++}
+ 
+ /**
+  * ir_unregister_class() - removes the sysfs for sysfs for
 -- 
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+1.7.0.4
+
