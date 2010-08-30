@@ -1,39 +1,29 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f194.google.com ([209.85.213.194]:48016 "EHLO
-	mail-yx0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759706Ab0HEHhp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Aug 2010 03:37:45 -0400
-Received: by yxi11 with SMTP id 11so1117612yxi.1
-        for <linux-media@vger.kernel.org>; Thu, 05 Aug 2010 00:37:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C581BB6.7000303@redhat.com>
-References: <AANLkTi=-ai2mZHiEmiEpKq9A-CifSPQDagrE03gDqpHv@mail.gmail.com>
-	<AANLkTikZD32LC12bT9wPBQ5+uO3Msd8Sw5Cwkq5y3bkB@mail.gmail.com>
-	<4C581BB6.7000303@redhat.com>
-Date: Thu, 5 Aug 2010 02:19:08 -0300
-Message-ID: <AANLkTi=i57wxwOEEEm4dXydpmePrhS11MYqVCW+nz=XB@mail.gmail.com>
-Subject: Re: V4L hg tree fails to compile against latest stable kernel 2.6.35
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: VDR User <user.vdr@gmail.com>,
-	"mailing list: linux-media" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Sender: linux-media-owner@vger.kernel.org
+Return-path: <mchehab@pedra>
+Received: from mailout-de.gmx.net ([213.165.64.22]:40569 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1754355Ab0H3V0I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Aug 2010 17:26:08 -0400
+Subject: cx23885: Support for IR-Remote on boad TBV-6920
+From: Simon Waid <simon_waid@gmx.net>
+To: maximlevitsky@gmail.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 30 Aug 2010 23:26:05 +0200
+Message-ID: <1283203565.5457.34.camel@simon>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello Derek,
+Hello!
 
-On Tue, Aug 3, 2010 at 10:37 AM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Em 03-08-2010 03:44, VDR User escreveu:
->> On Mon, Aug 2, 2010 at 11:36 PM, VDR User <user.vdr@gmail.com> wrote:
->>> Any idea when this will be fixed?
->
-> It is up to Douglas to do the backport, but you can just use the latest
-> git tree, where those patches are applied already at 2.6.35, at the
-> branch staging/v2.6.36.
+I am trying to get the remote control of my DVB 6920 (cx23885) to work. 
 
-I am already working to give a full update to hg tree. Sorry this problem.
+I found out that the wiring of the sensor is the same as on the TiVii
+S470, so there is little work to be done. Unfortunately, the IR part of
+cx23885 driver inside the kernel is buggy. You fixed that, right? Could
+you please give me access to your current cx23885 driver? 
 
-Cheers
-Douglas
+Best regards,
+Simon Waid
+
