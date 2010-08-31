@@ -1,66 +1,114 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:27840 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753272Ab0HZTbD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Aug 2010 15:31:03 -0400
-Date: Thu, 26 Aug 2010 15:14:50 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] Proposed ir-core (rc-core) changes
-Message-ID: <20100826191450.GA11951@redhat.com>
-References: <20100824225427.13006.57226.stgit@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100824225427.13006.57226.stgit@localhost.localdomain>
+Return-path: <mchehab@localhost>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2563 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750720Ab0HaSzx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Aug 2010 14:55:53 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o7VItmwa023798
+	for <linux-media@vger.kernel.org>; Tue, 31 Aug 2010 20:55:52 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 31 Aug 2010 20:55:48 +0200 (CEST)
+Message-Id: <201008311855.o7VItmwa023798@smtp-vbr13.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-On Wed, Aug 25, 2010 at 01:01:57AM +0200, David Härdeman wrote:
-> The following series merges the different files that currently make up
-> the ir-core module into a single-file rc-core module.
-> 
-> In addition, the ir_input_dev and ir_dev_props structs are replaced
-> by a single rc_dev struct with an API similar to that of the input
-> subsystem.
-> 
-> This allows the removal of all knowledge of any input devices from the
-> rc drivers and paves the way for allowing multiple input devices per
-> rc device in the future. The namespace conversion from ir_* to rc_*
-> should mostly be done for the drivers with this patchset.
-> 
-> I have intentionally not signed off on the patches yet since they haven't
-> been tested. I'd like your feedback on the general approach before I spend
-> the time to properly test the result.
-> 
-> Also, the imon driver is not converted (and will thus break with this
-> patchset). The reason is that the imon driver wants to generate mouse
-> events on the input dev under the control of rc-core. I was hoping that
-> Jarod would be willing to convert the imon driver to create a separate
-> input device for sending mouse events to userspace :)
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Yeah, I could be persuaded to do that. Means that the imon driver, when
-driving one of the touchscreen devices, will bring up 3 separate input
-devices, but oh well. (I'd actually considered doing that when porting to
-ir-core in the first place, but went the lazy route. ;)
+Results of the daily build of v4l-dvb:
 
-> Comments please...
+date:        Tue Aug 31 19:00:05 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15138:a4c762698bcb
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Haven't tried it out at all yet or done more than a quick skim through the
-patches, but at first glance, I do like the idea of further abstracting
-away the input layer. I know I tanked a few things the first go 'round,
-thinking I needed to do both some rc-layer and input-layer setup and/or
-teardown. It becomes more cut and dry if you don't see anything
-input-related anywhere at all.
+linux-2.6.32.6-armv5: ERRORS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: ERRORS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
 
-One thing I did note with the patches is that a lot of bits were altered
-from ir-foo to rc-foo, but not all of them... If we're going to make the
-change, why no go whole hog? (Or was it only things relevant to ir
-specifically right now that didn't get renamed?)
+Detailed results are available here:
 
--- 
-Jarod Wilson
-jarod@redhat.com
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
