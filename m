@@ -1,75 +1,66 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1524 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751048Ab0HJIEX (ORCPT
+Return-path: <mchehab@localhost>
+Received: from perceval.irobotique.be ([92.243.18.41]:56138 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755737Ab0HaVT0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Aug 2010 04:04:23 -0400
-Message-ID: <b141c1c6bfc03ce320b94add5bb5f9fc.squirrel@webmail.xs4all.nl>
-In-Reply-To: <1281425501.14489.7.camel@masi.mnp.nokia.com>
-References: <1280758003-16118-1-git-send-email-matti.j.aaltonen@nokia.com>
-    <1280758003-16118-2-git-send-email-matti.j.aaltonen@nokia.com>
-    <201008091838.13247.hverkuil@xs4all.nl>
-    <1281425501.14489.7.camel@masi.mnp.nokia.com>
-Date: Tue, 10 Aug 2010 10:04:03 +0200
-Subject: Re: [PATCH v7 1/5] V4L2: Add seek spacing and FM RX class.
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: matti.j.aaltonen@nokia.com
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
+	Tue, 31 Aug 2010 17:19:26 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH/RFC] V4L2: add a generic function to find the nearest discrete format
+Date: Tue, 31 Aug 2010 23:19:24 +0200
+Cc: lawrence rust <lawrence@softsystem.co.uk>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+References: <Pine.LNX.4.64.1008051959330.26127@axis700.grange> <201008071655.13146.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1008272110000.28043@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1008272110000.28043@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201008312319.25169.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
+Hi Guennadi,
 
-> On Mon, 2010-08-09 at 18:38 +0200, ext Hans Verkuil wrote:
->> On Monday 02 August 2010 16:06:39 Matti J. Aaltonen wrote:
->> > Add spacing field to v4l2_hw_freq_seek and also add FM RX class to
->> > control classes.
->>
->> This will no longer apply now that the control framework has been
->> merged.
->>
->> I strongly recommend converting the driver to use that framework. If
->> nothing else, you get support for the g/s/try_ext_ctrls ioctls for free.
->>
->> See the file Documentation/video4linux/v4l2-controls.txt.
->
-> I can't find that file.  Should it be in some branch of the development
-> tree?
+On Friday 27 August 2010 21:16:26 Guennadi Liakhovetski wrote:
+> On Sat, 7 Aug 2010, Laurent Pinchart wrote:
+> > On Saturday 07 August 2010 15:20:58 Guennadi Liakhovetski wrote:
+> > > On Sat, 7 Aug 2010, lawrence rust wrote:
+> > [snip]
+> > 
+> > > > A mean squared error metric such as hypot() could be better but
+> > > > requires FP.  An integer only version wouldn't be too difficult.
+> > > 
+> > > No FP in the kernel. And I don't think this simple task justifies any
+> > > numerical acrobatic. But we can just compare x^2 + y^2 - without an
+> > > sqrt. Is it worth it?
+> > 
+> > What about comparing areas ? The uvcvideo driver does (rw and rh are the
+> > request width and request height, format is a structure containing an
+> > array of supported sizes)
+> > 
+> >         /* Find the closest image size. The distance between image sizes
+> >         is
+> >         
+> >          * the size in pixels of the non-overlapping regions between the
+> >          * requested size and the frame-specified size.
+> >          */
+> 
+> Well, nice, but, tbh, I have no idea what's better. With your metric
+> 640x489 is further from 640x480 than 650x480, with my it's the other way
+> round. Which one is better?
 
-It's in the new development tree, branch staging/v2.6.36:
+Mine of course ;-) It's a good question... Your method minimizes the 
+width/height cumulative difference while mine minimizes the area difference. 
+What's better ? Or maybe the right question is does it matter ?
 
-http://git.linuxtv.org/media_tree.git
+> What we can do, if this really is important, we could make a callback for
+> user-provided metric function... Shall we?
 
-This replaced the v4l-dvb.git tree.
-
-Regards,
-
-         Hans
-
->
-> I've updated my tree....:
->
-> [remote "origin"]
->         url =
-> http://www.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git
->         fetch = +refs/heads/*:refs/remotes/origin/*
-> [remote "linuxtv"]
->         url = http://linuxtv.org/git/v4l-dvb.git
->         fetch = +refs/heads/*:refs/remotes/linuxtv/*
->
-> The closest file I have name-wise is
-> Documentation/video4linux/v4l2-framework.txt
->
-> Thanks,
-> Matti A.
->
->
-
+That sounds too complex for such a simple problem.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Regards,
 
+Laurent Pinchart
