@@ -1,97 +1,54 @@
-Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:49042 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753987Ab0HAJdZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Aug 2010 05:33:25 -0400
-Date: Sun, 1 Aug 2010 11:33:35 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Michael Grzeschik <m.grzeschik@pengutronix.de>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Robert Jarzmik <robert.jarzmik@free.fr>, p.wiesner@phytec.de
-Subject: Re: [PATCH 10/20] mt9m111: rewrite make_rect for positioning in
- debug
-In-Reply-To: <1280501618-23634-11-git-send-email-m.grzeschik@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1008011127220.310@axis700.grange>
-References: <1280501618-23634-1-git-send-email-m.grzeschik@pengutronix.de>
- <1280501618-23634-11-git-send-email-m.grzeschik@pengutronix.de>
+Return-path: <mchehab@localhost>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:51500 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757370Ab0HaNz2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Aug 2010 09:55:28 -0400
+Message-ID: <bbcd88f59eac5ebc87692eff16a9b6fc.squirrel@www.hardeman.nu>
+In-Reply-To: <4C7BA933.2020303@infradead.org>
+References: <e5clffplcfofw16tg9fp5t77.1283131265736@email.android.com>
+    <4C7BA933.2020303@infradead.org>
+Date: Tue, 31 Aug 2010 15:55:26 +0200 (CEST)
+Subject: Re: IR code autorepeat issue?
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: "Mauro Carvalho Chehab" <mchehab@infradead.org>
+Cc: "Andy Walls" <awalls@md.metrocast.net>,
+	"Anton Blanchard" <anton@samba.org>, linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Sender: linux-media-owner@vger.kernel.org
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-On Fri, 30 Jul 2010, Michael Grzeschik wrote:
+On Mon, August 30, 2010 14:50, Mauro Carvalho Chehab wrote:
+> Em 29-08-2010 22:26, Andy Walls escreveu:
+>> How about a keycode sensitive repeat delay?
+>> A short delay for vol+/-, ch+/-, etc.
+>> A medium delay for digits, fast forward, rewind, pause, play, stop, etc.
+>> A long delay for power, mute, etc.
+>
+> There are two separate things here:
+>
+> 1) we need to fix a bug introduced for some remotes;
+> 2) We may improve the repeat code at rc subsystem.
+>
+> For (1), a simple trivial patch is enough/desired. Let's first fix it, and
+> then think on improvements.
 
-> If DEBUG is defined it is possible to set upper left corner
-> 
-> Signed-off-by: Philipp Wiesner <p.wiesner@phytec.de>
-> Signed-off-by: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> ---
->  drivers/media/video/mt9m111.c |   31 +++++++++++++++++++++++--------
->  1 files changed, 23 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-> index e8d8e9b..db5ac32 100644
-> --- a/drivers/media/video/mt9m111.c
-> +++ b/drivers/media/video/mt9m111.c
-> @@ -428,14 +428,7 @@ static int mt9m111_make_rect(struct i2c_client *client,
->  			     struct v4l2_rect *rect)
->  {
->  	struct mt9m111 *mt9m111 = to_mt9m111(client);
-> -
-> -	if (mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
-> -	    mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE) {
-> -		/* Bayer format - even size lengths */
-> -		rect->width	= ALIGN(rect->width, 2);
-> -		rect->height	= ALIGN(rect->height, 2);
-> -		/* Let the user play with the starting pixel */
-> -	}
-> +	enum v4l2_mbus_pixelcode code = mt9m111->fmt->code;
->  
->  	/* FIXME: the datasheet doesn't specify minimum sizes */
->  	soc_camera_limit_side(&rect->left, &rect->width,
-> @@ -444,6 +437,28 @@ static int mt9m111_make_rect(struct i2c_client *client,
->  	soc_camera_limit_side(&rect->top, &rect->height,
->  		     MT9M111_MIN_DARK_ROWS, 2, MT9M111_MAX_HEIGHT);
->  
-> +	switch (code) {
-> +	case V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE:
-> +		/* unprocessed Bayer pattern format, IFP is bypassed */
-> +#ifndef DEBUG
-> +		/* assure that Bayer sequence is BGGR */
-> +		/* in debug mode, let user play with starting pixel */
-> +		rect->left	= ALIGN(rect->left, 2);
-> +		rect->top	= ALIGN(rect->top, 2) + 1;
-> +#endif
-> +	case V4L2_MBUS_FMT_SBGGR8_1X8:
-> +		/* processed Bayer pattern format, sequence is fixed */
-> +		/* assure even side lengths for both Bayer modes */
-> +		rect->width	= ALIGN(rect->width, 2);
-> +		rect->height	= ALIGN(rect->height, 2);
-> +	default:
+I agree, and I think setting REP_DELAY = 500 is a good fix for now (note
+that it needs to be set after registering the input device). We can tweak
+the repeat handling further once rc_core has settled down.
 
-hm, don't think I like it. First, why do you only enable it for SBGGR10 
-and not for SBGGR8? This choice has nothing to do with how many bytes per 
-pixel this format has. It allows you to select the starting _pixel_, not 
-byte. And I wouldn't bind this to DEBUG. Either enable or disable 
-completely... If you want to disable it, you would have to check for 
-regressions. I would keep it - just to make sure we don't break anything.
+> About a keycode sensitive delay, it might be a good idea, but
+> there are some aspects to consider:
+*snip*
+> IMHO, this would add too much complexity for not much gain.
 
-> +		/* needed to avoid compiler warnings */;
-> +	}
-> +
-> +	dev_dbg(&client->dev, "%s: rect: left=%d top=%d width=%d height=%d "
-> +		"mf: pixelcode=%d\n", __func__, rect->left, rect->top,
-> +		rect->width, rect->height, code);
-> +
->  	return mt9m111_setup_rect(client, rect);
->  }
->  
-> -- 
-> 1.7.1
+Agreed, the per-keycode-delay lists would probably not be welcome
+in-kernel (as it's basically putting policy in the kernel) and even if we
+implemented APIs to let userspace control it, I think it's unlikely that
+the vast majority would ever use it (meaning we add useless complexity).
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+David Härdeman
+
