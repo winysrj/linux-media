@@ -1,84 +1,86 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3418 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753708Ab0IMRGf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 13:06:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [Query] Is there a spec to request video sensor information?
-Date: Mon, 13 Sep 2010 19:06:20 +0200
-Cc: "Aguirre, Sergio" <saaguirre@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Ivan Ivanov <iivanov@mm-sol.com>
-References: <A24693684029E5489D1D202277BE894472336FC3@dlee02.ent.ti.com> <4C8E42F8.1080201@maxwell.research.nokia.com>
-In-Reply-To: <4C8E42F8.1080201@maxwell.research.nokia.com>
+Return-path: <mchehab@localhost>
+Received: from perceval.irobotique.be ([92.243.18.41]:50847 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754617Ab0IAOIa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Sep 2010 10:08:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v4 08/11] media: Links setup
+Date: Wed, 1 Sep 2010 16:08:29 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-9-git-send-email-laurent.pinchart@ideasonboard.com> <201008281314.18698.hverkuil@xs4all.nl>
+In-Reply-To: <201008281314.18698.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009131906.20757.hverkuil@xs4all.nl>
+Message-Id: <201009011608.30918.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-On Monday, September 13, 2010 17:27:52 Sakari Ailus wrote:
-> Aguirre, Sergio wrote:
-> > Hi,
-> 
-> Hi Sergio,
-> 
-> > I was wondering if there exists a current standard way to query a
-> > Imaging sensor driver for knowing things like the signal vert/horz blanking time.
-> > 
-> > In an old TI custom driver, we used to have a private IOCTL in the sensor
-> > Driver we interfaced with the omap3 ISP, which was basically reporting:
-> > 
-> > - Active resolution (Actual image size)
-> > - Full resolution (Above size + dummy pixel columns/rows representing blanking times)
-> > 
-> > However I resist to keep importing that custom interface, since I think its
-> > Something that could be already part of an standard API.
-> 
-> The N900 sensor drivers currently use private controls for this purpose.
-> That is an issue which should be resolved. I agree there should be a
-> uniform, standard way to access this information.
-> 
-> What we currently have is this, not in upstream:
-> 
-> ---
-> /* SMIA-type sensor information */
-> #define V4L2_CID_MODE_CLASS_BASE                (V4L2_CTRL_CLASS_MODE |
-> 0x900)
-> #define V4L2_CID_MODE_CLASS                     (V4L2_CTRL_CLASS_MODE | 1)
-> #define V4L2_CID_MODE_FRAME_WIDTH               (V4L2_CID_MODE_CLASS_BASE+1)
-> #define V4L2_CID_MODE_FRAME_HEIGHT              (V4L2_CID_MODE_CLASS_BASE+2)
-> #define V4L2_CID_MODE_VISIBLE_WIDTH             (V4L2_CID_MODE_CLASS_BASE+3)
-> #define V4L2_CID_MODE_VISIBLE_HEIGHT            (V4L2_CID_MODE_CLASS_BASE+4)
-> #define V4L2_CID_MODE_PIXELCLOCK                (V4L2_CID_MODE_CLASS_BASE+5)
-> #define V4L2_CID_MODE_SENSITIVITY               (V4L2_CID_MODE_CLASS_BASE+6)
-> ---
-> 
-> The pixel clock is read-only but some of the others should likely be
-> changeable.
+Hi Hans,
 
-It is very similar to the VIDIOC_G/S_DV_TIMINGS ioctls. I think we should look
-into adding an e.g. V4L2_DV_SMIA_SENSOR type or something along those lines.
+On Saturday 28 August 2010 13:14:18 Hans Verkuil wrote:
+> On Friday, August 20, 2010 17:29:10 Laurent Pinchart wrote:
 
-I'm no sensor expert, so I don't know what sort of timing information is needed
-for the various sensor types. But I'm sure there are other people who have this
-knowledge. It would be useful if someone can list the information that you need
-from the various sensor types. Based on that we can see if this ioctl is a good
-fit.
+[snip]
 
-Regards,
-
-	Hans
-
+> > +/**
+> > + * media_entity_remote_pad - Locate the pad at the remote end of a link
+> > + * @entity: Local entity
+> > + * @pad: Pad at the local end of the link
+> > + *
+> > + * Search for a remote pad connected to the given pad by iterating over
+> > all
+> > + * links originating or terminating at that pad until an active link is
+> > found.
+> > + *
+> > + * Return a pointer to the pad at the remote end of the first found
+> > active link,
+> > + * or NULL if no active link has been found.
+> > + */
+> > +struct media_pad *media_entity_remote_pad(struct media_pad *pad)
+> > +{
+> > +	unsigned int i;
+> > +
+> > +	for (i = 0; i < pad->entity->num_links; i++) {
+> > +		struct media_link *link = &pad->entity->links[i];
+> > +
+> > +		if (!(link->flags & MEDIA_LINK_FLAG_ACTIVE))
+> > +			continue;
+> > +
+> > +		if (link->source == pad)
+> > +			return link->sink;
+> > +
+> > +		if (link->sink == pad)
+> > +			return link->source;
+> > +	}
+> > +
+> > +	return NULL;
+> > +
+> > +}
 > 
-> Regards,
-> 
-> 
+> Why is this needed? Esp. since there can be multiple active remote pads if
+> you have multiple active outgoing links. Something this function doesn't
+> deal with.
+
+The function is meant to be used when only one of the links can be active. 
+It's most useful to find the entity connected to a given input pad, as input 
+pads can't be connected by multiple simultaneously active links.
+
+[snip]
+
+> This patch made me wonder about something else: how is power management
+> handled for immutable links? They are by definition active, so they should
+> be powered on automatically as well. I'm not sure whether that happens
+> right now.
+
+Links are not powered, entities are. Whether a link is immutable or not 
+doesn't make much of a difference, it will just always be considered as 
+active.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Regards,
+
+Laurent Pinchart
