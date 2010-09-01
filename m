@@ -1,222 +1,209 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:62956 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754083Ab0IPKf4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 06:35:56 -0400
-Message-ID: <4C91F301.3050508@redhat.com>
-Date: Thu, 16 Sep 2010 07:35:45 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@localhost>
+Received: from perceval.irobotique.be ([92.243.18.41]:47690 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752330Ab0IAN6o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Sep 2010 09:58:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v4 06/11] media: Media device information query
+Date: Wed, 1 Sep 2010 15:58:44 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-7-git-send-email-laurent.pinchart@ideasonboard.com> <201008281244.15380.hverkuil@xs4all.nl>
+In-Reply-To: <201008281244.15380.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [RFC/PATCH v4 05/11] media: Reference count and power handling
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <4C883127.1070003@redhat.com> <4C8BE8C9.3050905@maxwell.research.nokia.com> <201009161046.03098.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201009161046.03098.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009011558.44383.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-Em 16-09-2010 05:46, Laurent Pinchart escreveu:
-> Hi,
+Hi Hans,
+
+On Saturday 28 August 2010 12:44:15 Hans Verkuil wrote:
+> On Friday, August 20, 2010 17:29:08 Laurent Pinchart wrote:
+
+[snip]
+
+> > diff --git a/Documentation/media-framework.txt
+> > b/Documentation/media-framework.txt index 59649e9..66f7f6c 100644
+> > --- a/Documentation/media-framework.txt
+> > +++ b/Documentation/media-framework.txt
+> > @@ -315,3 +315,45 @@ required, drivers don't need to provide a set_power
+> > operation. The operation
+> > 
+> >  is allowed to fail when turning power on, in which case the
+> >  media_entity_get function will return NULL.
+> > 
+> > +
+> > +Userspace application API
+> > +-------------------------
+> > +
+> > +Media devices offer an API to userspace application to query device
+> > information +through ioctls.
+> > +
+> > +	MEDIA_IOC_DEVICE_INFO - Get device information
+> > +	----------------------------------------------
+> > +
+> > +	ioctl(int fd, int request, struct media_device_info *argp);
+> > +
+> > +To query device information, call the MEDIA_IOC_ENUM_ENTITIES ioctl with
+> > a +pointer to a media_device_info structure. The driver fills the
+> > structure and +returns the information to the application. The ioctl
+> > never fails. +
+> > +The media_device_info structure is defined as
+> > +
+> > +- struct media_device_info
+> > +
+> > +__u8	driver[16]	Driver name as a NUL-terminated ASCII string. The
+> > +			driver version is stored in the driver_version field.
 > 
-> On Saturday 11 September 2010 22:38:33 Sakari Ailus wrote:
->> Mauro Carvalho Chehab wrote:
->>> Em 20-08-2010 12:29, Laurent Pinchart escreveu:
->>>> From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
->>>>
->>>> Basically these are the interface functions:
->>>>
->>>> media_entity_get() - acquire entity
->>>> media_entity_put() - release entity
->>>>
->>>> 	If the entity is of node type, the power change is distributed to
->>>> 	all connected entities. For non-nodes it only affects that very
->>>> 	node. A mutex is used to serialise access to the entity graph.
->>>>
->>>> In the background there's a depth-first search algorithm that traverses
->>>> the active links in the graph. All these functions parse the graph to
->>>> implement whatever they're to do.
->>>>
->>>> The module counters are increased/decreased in media_entity_get/put to
->>>> prevent module unloading when an entity is referenced.
->>>>
->>>> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
->>>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->>>> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
->>>> ---
->>>>
->>>>  Documentation/media-framework.txt |   37 +++++++++
->>>>  drivers/media/media-device.c      |    1 +
->>>>  drivers/media/media-entity.c      |  146
->>>>  +++++++++++++++++++++++++++++++++++++ include/media/media-device.h    
->>>>   |    4 +
->>>>  include/media/media-entity.h      |   15 ++++
->>>>  5 files changed, 203 insertions(+), 0 deletions(-)
->>>>
->>>> diff --git a/Documentation/media-framework.txt
->>>> b/Documentation/media-framework.txt index a599824..59649e9 100644
->>>> --- a/Documentation/media-framework.txt
->>>> +++ b/Documentation/media-framework.txt
->>>> @@ -278,3 +278,40 @@ When the graph traversal is complete the function
->>>> will return NULL.
->>>>
->>>>  Graph traversal can be interrupted at any moment. No cleanup function
->>>>  call is required and the graph structure can be freed normally.
->>>>
->>>> +
->>>> +Reference counting and power handling
->>>> +-------------------------------------
->>>> +
->>>> +Before accessing type-specific entities operations (such as the V4L2
->>>> +sub-device operations), drivers must acquire a reference to the entity.
->>>> This +ensures that the entity will be powered on and ready to accept
->>>> requests. +Similarly, after being done with an entity, drivers must
->>>> release the +reference.
->>>> +
->>>> +	media_entity_get(struct media_entity *entity)
->>>> +
->>>> +The function will increase the entity reference count. If the entity is
->>>> a node +(MEDIA_ENTITY_TYPE_NODE type), the reference count of all
->>>> entities it is +connected to, both directly or indirectly, through
->>>> active links is increased. +This ensures that the whole media pipeline
->>>> will be ready to process +
->>>> +Acquiring a reference to an entity increases the media device module
->>>> reference +count to prevent module unloading when an entity is being
->>>> used. +
->>>> +media_entity_get will return a pointer to the entity if successful, or
->>>> NULL +otherwise.
->>>> +
->>>> +	media_entity_put(struct media_entity *entity)
->>>> +
->>>> +The function will decrease the entity reference count and, for node
->>>> entities, +like media_entity_get, the reference count of all connected
->>>> entities. Calling +media_entity_put with a NULL argument is valid and
->>>> will return immediately. +
->>>> +When the first reference to an entity is acquired, or the last
->>>> reference +released, the entity's set_power operation is called. Entity
->>>> drivers must +implement the operation if they need to perform any power
->>>> management task, +such as turning powers or clocks on or off. If no
->>>> power management is +required, drivers don't need to provide a
->>>> set_power operation. The operation +is allowed to fail when turning
->>>> power on, in which case the media_entity_get +function will return
->>>> NULL.
->>>
->>> The idea of doing power management via media entity get/put doesn't seem
->>> right. The mediabus interface and its usage should be optional, and only
->>> specialized applications will likely implement it. If a refcount 0 means
->>> power off, it ends that a device implementing the media bus will not
->>> work with V4L2 applications.
->>
->> The Media controller does handle the power through reference count but
->> this does not limit to subdev entities. The reference count is also
->> applied recursively to all entities which are connected through active
->> links.
->>
->> There are two cases:
->>
->> 1. The user application opens a subdev node. The subdev entity use count
->> will be incremented and the subdev will be powered up.
->>
->> 2. The user application opens a video node. The reference count for all
->> entities connected to the video node entity through active links will be
->> incremented. Subdevs will be powered up as well (if they are not already
->> because of (1) above). The same works if the entities connected through
->> a video node are connected to another entity and the link to that entity
->> is activated. In this case the use_counts of the entity sets are applied
->> across the both sets.
->>
->> The user application does not need to use the Media controller interface
->> to get this functionality.
+> Proposed improvement: "Name of the driver implementing the media API
+> as a NUL-terminated ASCII string."
 > 
-> That's correct. The subdev s_power operation is still there and can be called 
-> directly by non-MC bridge drivers as required.
+> The media API overarches multiple drivers, so it's probably useful to say
+> which driver name should be filled in here.
 
-It is clear that non-MC bridge devices will not be affected by MC.
+OK I'll change this.
 
-My concern is about MC bridge drivers. Userspace may not be implementing MC.
-Yet, the device needs to fully work. If you're relying at MC to power up parts
-of the device, this means that a pure V4L2 application won't work anymore.
-
-I didn't see any patch on this series addressing this case.
-
->> Another thing is that the user likely wants to use the device through
->> libv4l most likely, at least in the case of OMAP 3 ISP case. The link
->> configuration can be made by libv4l so that the regular V4L2
->> applications will work as expected.
->>
->>>> +
->>>> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
->>>> index eeb002e..c309d3c 100644
->>>> --- a/drivers/media/media-device.c
->>>> +++ b/drivers/media/media-device.c
->>>> @@ -71,6 +71,7 @@ int __must_check media_device_register(struct
->>>> media_device *mdev)
->>>>
->>>>  	mdev->entity_id = 1;
->>>>  	INIT_LIST_HEAD(&mdev->entities);
->>>>  	spin_lock_init(&mdev->lock);
->>>>
->>>> +	mutex_init(&mdev->graph_mutex);
->>>>
->>>>  	/* Register the device node. */
->>>>  	mdev->devnode.fops = &media_device_fops;
->>>>
->>>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
->>>> index c277c18..da4fef6 100644
->>>> --- a/drivers/media/media-entity.c
->>>> +++ b/drivers/media/media-entity.c
->>>> @@ -21,6 +21,7 @@
->>>>
->>>>  #include <linux/module.h>
->>>>  #include <linux/slab.h>
->>>>  #include <media/media-entity.h>
->>>>
->>>> +#include <media/media-device.h>
->>>>
->>>>  /**
->>>>  
->>>>   * media_entity_init - Initialize a media entity
->>>>
->>>> @@ -194,6 +195,151 @@ media_entity_graph_walk_next(struct
->>>> media_entity_graph *graph)
->>>>
->>>>  EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
->>>>  
->>>>  /*
->>>>  ----------------------------------------------------------------------
->>>>  -------
->>>>
->>>> + * Power state handling
->>>> + */
->>>> +
->>>> +/* Apply use count to an entity. */
->>>> +static void media_entity_use_apply_one(struct media_entity *entity, int
->>>> change) +{
->>>> +	entity->use_count += change;
->>>> +	WARN_ON(entity->use_count < 0);
->>>
->>> Instead of producing a warning, just deny it to have usage bellow zero.
->>> As this will be called from userspace, the entire interface should be
->>> reliable enough to avoid dumb applications to miss-use it.
->>
->> This WARN_ON() always indicates a driver (or MC) bug. The entity
->> use_count should never be under 0, thus the warning.
->>
->> The calls to this function should be always related to an open file
->> handle in a way or another. There is no direct user influence over this.
->>
->>> Also: what happens if an userspace application dies or suffer any
->>> troubles? You need to reset all use_count's at release() callback.
->>
->> Yes, this is true. media_entity_{get,put} should always be called when
->> file handles are open()ed or release()d.
+> > +__u8	model[32]	Device model name as a NUL-terminated UTF-8 string. The
+> > +			device version is stored in the device_version field and
+> > +			is not be appended to the model name.
 > 
-> media_entity_{get,put} are already called on open() and release(). There's not 
-> explicit call to media_entity_{get,put} from userspace.
+> Why UTF-8 instead of ASCII?
 
-Ok.
+Because the model name could contain non-ASCII characters.
 
-Cheers,
-Mauro
+> > +__u8	serial[32]	Serial number as an ASCII string. The string is
+> > +			NUL-terminated unless the serial number is exactly 32
+> > +			characters long.
+> > +__u8	bus_info[32]	Location of the device in the system as a
+> > NUL-terminated
+> > +			ASCII string. This includes the bus type name (PCI, USB,
+> > +			...) and a bus-specific identifier.
+> > +__u32	media_version	Media API version, formatted with the
+> > KERNEL_VERSION
+> > +			macro.
+> > +__u32	device_version	Media device driver version in a driver-specific
+> > format.
+> > +__u32	driver_version	Media device driver version, formatted with the
+> > +			KERNEL_VERSION macro.
+> 
+> These last two are very confusing. Does device_version actually refer to
+> the hardware revision? In that case the description next to it is really
+> wrong. And I also think it should be renamed to hw_revision.
+
+My bad. I'll rename device_version to hw_revision.
+
+[snip]
+
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index c309d3c..1415ebd 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -20,13 +20,70 @@
+
+[snip]
+
+> > +static int media_device_get_info(struct media_device *dev,
+> > +				 struct media_device_info __user *__info)
+> > +{
+> > +	struct media_device_info info;
+> > +
+> > +	memset(&info, 0, sizeof(info));
+> 
+> No need to zero the whole struct. info.reserved would be enough.
+
+The strings should be zeroed, otherwise we could leak information to userspace 
+by copying uninitialized stack data.
+
+> > +
+> > +	strlcpy(info.driver, dev->dev->driver->name, sizeof(info.driver));
+> > +	strlcpy(info.model, dev->model, sizeof(info.model));
+> > +	strncpy(info.serial, dev->serial, sizeof(info.serial));
+> 
+> Why not strlcpy?
+
+Because the serial number can be 32 bytes long, and thus not NULL-terminated.
+
+> > +	strlcpy(info.bus_info, dev->bus_info, sizeof(info.bus_info));
+> > +
+> > +	info.media_version = MEDIA_API_VERSION;
+> > +	info.device_version = dev->device_version;
+> > +	info.driver_version = dev->driver_version;
+> > +
+> > +	return copy_to_user(__info, &info, sizeof(*__info));
+> > +}
+> > +
+> > +static long media_device_ioctl(struct file *filp, unsigned int cmd,
+> > +			       unsigned long arg)
+> > +{
+> > +	struct media_devnode *devnode = media_devnode_data(filp);
+> > +	struct media_device *dev = to_media_device(devnode);
+> > +	long ret;
+> > +
+> > +	switch (cmd) {
+> > +	case MEDIA_IOC_DEVICE_INFO:
+> > +		ret = media_device_get_info(dev,
+> > +				(struct media_device_info __user *)arg);
+> > +		break;
+> > +
+> > +	default:
+> > +		ret = -ENOIOCTLCMD;
+> > +	}
+> > +
+> > +	return ret;
+> > +}
+> > +
+> > 
+> >  static const struct media_file_operations media_device_fops = {
+> >  
+> >  	.owner = THIS_MODULE,
+> > 
+> > +	.open = media_device_open,
+> > +	.unlocked_ioctl = media_device_ioctl,
+> > +	.release = media_device_close,
+> > 
+> >  };
+> >  
+> >  /*
+> >  -----------------------------------------------------------------------
+> >  ------
+> > 
+> > diff --git a/include/linux/media.h b/include/linux/media.h
+> > new file mode 100644
+> > index 0000000..bca08a7
+> > --- /dev/null
+> > +++ b/include/linux/media.h
+> > @@ -0,0 +1,23 @@
+> > +#ifndef __LINUX_MEDIA_H
+> > +#define __LINUX_MEDIA_H
+> > +
+> > +#include <linux/ioctl.h>
+> > +#include <linux/types.h>
+> > +#include <linux/version.h>
+> > +
+> > +#define MEDIA_API_VERSION	KERNEL_VERSION(0, 1, 0)
+> > +
+> > +struct media_device_info {
+> > +	__u8 driver[16];
+> > +	__u8 model[32];
+> > +	__u8 serial[32];
+> > +	__u8 bus_info[32];
+> > +	__u32 media_version;
+> > +	__u32 device_version;
+> > +	__u32 driver_version;
+> > +	__u32 reserved[5];
+> 
+> I'd increase this to reserved[33] as [5] seems very low to me.
+> Total struct size is then 256 bytes.
+
+OK.
+
+[snip]
+
+-- 
+Regards,
+
+Laurent Pinchart
