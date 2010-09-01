@@ -1,43 +1,48 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:6400 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751461Ab0ISFeJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 01:34:09 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8J5Y9i5015780
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 01:34:09 -0400
-Message-ID: <4C959E98.2060409@redhat.com>
-Date: Sun, 19 Sep 2010 02:24:40 -0300
-From: Douglas Schilling Landgraf <dougsland@redhat.com>
-Reply-To: dougsland@redhat.com
+Return-path: <mchehab@localhost>
+Received: from perceval.irobotique.be ([92.243.18.41]:39524 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755504Ab0IANvn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Sep 2010 09:51:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC/PATCH v4 02/11] media: Media device
+Date: Wed, 1 Sep 2010 15:51:32 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-3-git-send-email-laurent.pinchart@ideasonboard.com> <201008281226.15619.hverkuil@xs4all.nl>
+In-Reply-To: <201008281226.15619.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH -hg] Warn user that driver is backported and might not
- work as expected
-References: <4C938158.9020604@redhat.com>
-In-Reply-To: <4C938158.9020604@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009011551.33190.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-Hi,
+Hi Hans,
 
-Mauro Carvalho Chehab wrote:
-> Since the migration to -git, less developers are using the -hg tree. Also, some
-> changes are happening upstream that would require much more than just compiling
-> the tree with an older version, to be sure that the backport won't break anything,
-> like the removal of BKL.
+On Saturday 28 August 2010 12:26:15 Hans Verkuil wrote:
+> On Friday, August 20, 2010 17:29:04 Laurent Pinchart wrote:
+
+[snip]
+
+> > +struct media_device {
+> > +	/* dev->driver_data points to this struct. */
+> > +	struct device *dev;
+> > +	struct media_devnode devnode;
+> > +
+> > +	u8 model[32];
+> > +	u8 serial[32];
+> > +	u8 bus_info[32];
+> > +	u32 device_version;
 > 
-> As normal users might not be aware of those issues, and bug reports may be sent
-> based on a backported tree, add some messages to warn about the usage of a
-> backported experimental (unsupported) tree.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> I prefer hw_revision or possibly hw_device_revision. 'device' is too
+> ambiguous. And 'revision' is more applicable to hardware than 'version'
+> IMHO.
 
-Applied, thanks!
+Agreed.
 
-Cheers
-Douglas
+-- 
+Regards,
+
+Laurent Pinchart
