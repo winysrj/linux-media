@@ -1,54 +1,56 @@
-Return-path: <mchehab@gaivota>
-Received: from kroah.org ([198.145.64.141]:57495 "EHLO coco.kroah.org"
+Return-path: <mchehab@localhost>
+Received: from comal.ext.ti.com ([198.47.26.152]:36616 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755386Ab0IFVQe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Sep 2010 17:16:34 -0400
-Date: Mon, 6 Sep 2010 14:09:05 -0700
-From: Greg KH <greg@kroah.com>
-To: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Minchan Kim <minchan.kim@gmail.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [RFCv5 0/9] CMA + VCMM integration
-Message-ID: <20100906210905.GB5863@kroah.com>
-References: <cover.1283749231.git.mina86@mina86.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <cover.1283749231.git.mina86@mina86.com>
+	id S1751108Ab0IBOqQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Sep 2010 10:46:16 -0400
+From: raja_mani@ti.com
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	mchehab@infradead.org
+Cc: matti.j.aaltonen@nokia.com, Raja Mani <raja_mani@ti.com>
+Subject: [RFC/PATCH 0/8] Add FM TX support for TI WL127x and TI WL128x.
+Date: Thu,  2 Sep 2010 11:57:52 -0400
+Message-Id: <1283443080-30644-1-git-send-email-raja_mani@ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-On Mon, Sep 06, 2010 at 08:33:50AM +0200, Michal Nazarewicz wrote:
-> Hello everyone,
-> 
-> This patchset introduces a draft of a redesign of Zach Pfeffer's
-> VCMM.
+From: Raja Mani <raja_mani@ti.com>
 
-What is a VCMM?
+  This is second set patches for TI FM driver. This adds FM TX support 
+  for TI WL128x and TI Wl127x chipsets. Also , extends V4L2 control IDs (CID)
+  to support few FM RX features.
 
-What is a CMA?
+  First set of TI FM driver patches are submitted for review in linux-media 
+  & LKML and available under this link:
 
-> Not all of the functionality of the original VCMM has been
-> ported into this patchset.  This is mostly meant as RFC.  Moreover,
-> the code for VCMM implementation in this RFC has not been tested.
+   http://www.spinics.net/lists/linux-media/msg22096.html
+   http://lkml.org/lkml/2010/8/13/122
 
-If you haven't even tested it, why should we review it?
+  TI FM driver makes use of TI Shared Transport (solution for BT/FM/GPS combo chip)
+  and Shared Transport driver is available in mainline kernel staging 
+  directory (/drivers/staging/ti-st).    
+   
+Raja Mani (8):
+  drivers:media:video: Adding new CIDs for FM RX ctls
+  include:linux:videodev2: Define new CIDs for FM RX ctls
+  drivers:staging:ti-st: Sources for FM TX
+  drivers:staging:ti-st: Move get region func to FM RX module.
+  drivers:staging:ti-st: Code cleanup in FM Common module
+  drivers:staging:ti-st: Extend FM TX global data structure.
+  drivers:staging:ti-st: Link FM TX module API with FM V4L2 module
+  drivers:staging:ti-st: Include FM TX module in Makefile
 
-thanks,
+ drivers/media/video/v4l2-common.c    |   16 ++
+ drivers/staging/ti-st/Makefile       |    2 +-
+ drivers/staging/ti-st/fmdrv.h        |    4 +
+ drivers/staging/ti-st/fmdrv_common.c |   39 ++--
+ drivers/staging/ti-st/fmdrv_common.h |   23 ++-
+ drivers/staging/ti-st/fmdrv_rx.c     |    7 +
+ drivers/staging/ti-st/fmdrv_rx.h     |    1 +
+ drivers/staging/ti-st/fmdrv_tx.c     |  391 ++++++++++++++++++++++++++++++++++
+ drivers/staging/ti-st/fmdrv_tx.h     |   37 ++++
+ drivers/staging/ti-st/fmdrv_v4l2.c   |  243 +++++++++++++++++++--
+ include/linux/videodev2.h            |   18 ++
+ 11 files changed, 733 insertions(+), 48 deletions(-)
+ create mode 100644 drivers/staging/ti-st/fmdrv_tx.c
+ create mode 100644 drivers/staging/ti-st/fmdrv_tx.h
 
-greg k-h
