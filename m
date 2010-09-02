@@ -1,41 +1,61 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:55243 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754637Ab0IPOyW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 10:54:22 -0400
-Received: by eyb6 with SMTP id 6so596195eyb.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Sep 2010 07:54:21 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1284646990.2917.14.camel@i7.private.net>
-References: <1284646990.2917.14.camel@i7.private.net>
-Date: Thu, 16 Sep 2010 10:54:21 -0400
-Message-ID: <AANLkTin0hz7Job6NO+x-_CRphCo18K09ZHaLxUR6gtQj@mail.gmail.com>
-Subject: Re: Hauppauge WinTV-HVR1800 dual tuner help needed
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jack Snodgrass <jacksnodgrass@mylinuxguy.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@localhost>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:33036 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754458Ab0IBVVD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 17:21:03 -0400
+Subject: Re: [PATCH 6/7] IR: extend ir_raw_event and do refactoring
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Christoph Bartelmus <lirc@bartelmus.de>
+In-Reply-To: <20100902205607.GB3886@hardeman.nu>
+References: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
+	 <1283158348-7429-7-git-send-email-maximlevitsky@gmail.com>
+	 <20100902205607.GB3886@hardeman.nu>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 03 Sep 2010 00:20:54 +0300
+Message-ID: <1283462454.3306.15.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-On Thu, Sep 16, 2010 at 10:23 AM, Jack Snodgrass
-<jacksnodgrass@mylinuxguy.net> wrote:
-> I can use  1 input on the card with mythtv
-> using /dev/dvb/adapter0/frontend0
-> but I can't figure out how to use the 2nd tuner.... I'm not sure if the
-> 2nd tuner is getting
-> detected correctly... or if the 2nd tuner is just an analog tuner and
-> not a digital tuner....
-> or what exactly...
+On Thu, 2010-09-02 at 22:56 +0200, David HÃ¤rdeman wrote: 
+> On Mon, Aug 30, 2010 at 11:52:26AM +0300, Maxim Levitsky wrote:
+> > Add new event types for timeout & carrier report
+> > Move timeout handling from ir_raw_event_store_with_filter to
+> > ir-lirc-codec, where it is really needed.
+> 
+> Yes, but it still might make more sense to keep the timeout handling in 
+> ir_raw_event_store_with_filter so that all decoders get the same data 
+> from rc-core?
+I don't want any timeouts in rc-core. There is just an IR packet that
+starts optionally with a reset and ends with a timeout bit.
+I have also nothing against renaming reset/timeout to start/stop.
 
-The HVR-1800 doesn't have two digital tuners.  It has an analog tuner
-and a digital tuner.  If you need dual ClearQAM, you need a card like
-the HVR-2250.
+rc-core really shouldn't care about consistent pulse/space ordering.
+Its lirc that needs it.
 
-Devin
+Also in the future I think I should make the
+ir_raw_event_store_with_filter the default submit function for all
+drivers, and then I could drop that silly '_with_filter" thing
+(Couldn't think for a better name for this function...)
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+> 
+> > Now lirc bridge ensures proper gap handling.
+> > Extend lirc bridge for carrier & timeout reports
+> > 
+> > Note: all new ir_raw_event variables now should be initialized
+> > like that:
+> > struct ir_raw_event ev = ir_new_event;
+> 
+> Wouldn't DEFINE_RAW_EVENT(ev); be more in line with the kernel coding 
+> style? (cf. DEFINE_MUTEX, DEFINE_SPINLOCK, etc).
+Of course, nothing against that.
+
+
+Best regards,
+Maxim Levitsky
+
