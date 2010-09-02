@@ -1,113 +1,59 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4965 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752433Ab0ICTH5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Sep 2010 15:07:57 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o83J7ufH056810
-	for <linux-media@vger.kernel.org>; Fri, 3 Sep 2010 21:07:56 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Fri, 3 Sep 2010 21:07:56 +0200 (CEST)
-Message-Id: <201009031907.o83J7ufH056810@smtp-vbr11.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Return-path: <mchehab@localhost>
+Received: from devils.ext.ti.com ([198.47.26.153]:42283 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755573Ab0IBOq2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 10:46:28 -0400
+From: raja_mani@ti.com
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	mchehab@infradead.org
+Cc: matti.j.aaltonen@nokia.com, Raja Mani <raja_mani@ti.com>,
+	Pramodh AG <pramodh_ag@ti.com>
+Subject: [RFC/PATCH 6/8] drivers:staging:ti-st: Extend FM TX global data structure.
+Date: Thu,  2 Sep 2010 11:57:58 -0400
+Message-Id: <1283443080-30644-7-git-send-email-raja_mani@ti.com>
+In-Reply-To: <1283443080-30644-6-git-send-email-raja_mani@ti.com>
+References: <1283443080-30644-1-git-send-email-raja_mani@ti.com>
+ <1283443080-30644-2-git-send-email-raja_mani@ti.com>
+ <1283443080-30644-3-git-send-email-raja_mani@ti.com>
+ <1283443080-30644-4-git-send-email-raja_mani@ti.com>
+ <1283443080-30644-5-git-send-email-raja_mani@ti.com>
+ <1283443080-30644-6-git-send-email-raja_mani@ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+From: Raja Mani <raja_mani@ti.com>
 
-Results of the daily build of v4l-dvb:
+ Add new members in FM TX global data structure (struct fmtx_data)
+ to track current Audio mode, Reemphasis and Region setting in TX mode.
 
-date:        Fri Sep  3 19:00:07 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15139:6e0befab696a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Signed-off-by: Raja Mani <raja_mani@ti.com>
+Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
+---
+ drivers/staging/ti-st/fmdrv.h |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
+diff --git a/drivers/staging/ti-st/fmdrv.h b/drivers/staging/ti-st/fmdrv.h
+index d560570..f8a4ce3 100644
+--- a/drivers/staging/ti-st/fmdrv.h
++++ b/drivers/staging/ti-st/fmdrv.h
+@@ -173,6 +173,7 @@ struct fm_rx {
+ struct tx_rds {
+ 	unsigned char text_type;
+ 	unsigned char text[25];
++	unsigned char flag;
+ 	unsigned int af_freq;
+ };
+ /*
+@@ -187,6 +188,9 @@ struct fmtx_data {
+ 	unsigned char pwr_lvl;
+ 	unsigned char xmit_state;
+ 	unsigned char audio_io;
++	unsigned char region;
++	unsigned short aud_mode;
++	unsigned int preemph;
+ 	unsigned long tx_frq;
+ 	struct tx_rds rds;
+ };
+-- 
+1.5.6.3
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
