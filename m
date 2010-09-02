@@ -1,109 +1,113 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:57693 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755709Ab0IFV0n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 17:26:43 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org,
-	Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 8/8] IR: ene_ir: add support for carrier reports
-Date: Tue,  7 Sep 2010 00:26:13 +0300
-Message-Id: <1283808373-27876-9-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
-References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+Return-path: <mchehab@localhost>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2302 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752783Ab0IBSzK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 14:55:10 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o82It9fJ050239
+	for <linux-media@vger.kernel.org>; Thu, 2 Sep 2010 20:55:09 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 2 Sep 2010 20:55:09 +0200 (CEST)
+Message-Id: <201009021855.o82It9fJ050239@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/IR/ene_ir.c |   37 +++++++++++++++++++++++++++++--------
- 1 files changed, 29 insertions(+), 8 deletions(-)
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
-index dc32509..f1ee153 100644
---- a/drivers/media/IR/ene_ir.c
-+++ b/drivers/media/IR/ene_ir.c
-@@ -192,10 +192,11 @@ static int ene_hw_detect(struct ene_device *dev)
- /* Sense current received carrier */
- void ene_rx_sense_carrier(struct ene_device *dev)
- {
-+	DEFINE_IR_RAW_EVENT(ev);
-+
-+	int carrier, duty_cycle;
- 	int period = ene_read_reg(dev, ENE_CIRCAR_PRD);
- 	int hperiod = ene_read_reg(dev, ENE_CIRCAR_HPRD);
--	int carrier, duty_cycle;
--
- 
- 	if (!(period & ENE_CIRCAR_PRD_VALID))
- 		return;
-@@ -208,13 +209,16 @@ void ene_rx_sense_carrier(struct ene_device *dev)
- 	dbg("RX: hardware carrier period = %02x", period);
- 	dbg("RX: hardware carrier pulse period = %02x", hperiod);
- 
--
- 	carrier = 2000000 / period;
- 	duty_cycle = (hperiod * 100) / period;
- 	dbg("RX: sensed carrier = %d Hz, duty cycle %d%%",
--							carrier, duty_cycle);
--
--	/* TODO: Send carrier & duty cycle to IR layer */
-+						carrier, duty_cycle);
-+	if (dev->carrier_detect_enabled) {
-+		ev.carrier_report = true;
-+		ev.carrier = carrier;
-+		ev.duty_cycle = duty_cycle;
-+		ir_raw_event_store(dev->idev, &ev);
-+	}
- }
- 
- /* this enables/disables the CIR RX engine */
-@@ -728,7 +732,7 @@ static irqreturn_t ene_isr(int irq, void *data)
- 
- 	dbg_verbose("RX interrupt");
- 
--	if (dev->carrier_detect_enabled || debug)
-+	if (dev->hw_learning_and_tx_capable)
- 		ene_rx_sense_carrier(dev);
- 
- 	/* On hardware that don't support extra buffer we need to trust
-@@ -903,6 +907,23 @@ static int ene_set_learning_mode(void *data, int enable)
- 	return 0;
- }
- 
-+static int ene_set_carrier_report(void *data, int enable)
-+{
-+	struct ene_device *dev = (struct ene_device *)data;
-+	unsigned long flags;
-+
-+	if (enable == dev->carrier_detect_enabled)
-+		return 0;
-+
-+	spin_lock_irqsave(&dev->hw_lock, flags);
-+	dev->carrier_detect_enabled = enable;
-+	ene_rx_disable(dev);
-+	ene_rx_setup(dev);
-+	ene_rx_enable(dev);
-+	spin_unlock_irqrestore(&dev->hw_lock, flags);
-+	return 0;
-+}
-+
- /* outside interface: enable or disable idle mode */
- static void ene_rx_set_idle(void *data, bool idle)
- {
-@@ -1032,7 +1053,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
- 		ir_props->s_tx_mask = ene_set_tx_mask;
- 		ir_props->s_tx_carrier = ene_set_tx_carrier;
- 		ir_props->s_tx_duty_cycle = ene_set_tx_duty_cycle;
--		/* ir_props->s_carrier_report = ene_set_carrier_report; */
-+		ir_props->s_carrier_report = ene_set_carrier_report;
- 	}
- 
- 	ene_setup_hw_buffer(dev);
--- 
-1.7.0.4
+Results of the daily build of v4l-dvb:
 
+date:        Thu Sep  2 19:00:06 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15138:a4c762698bcb
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: ERRORS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: ERRORS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
