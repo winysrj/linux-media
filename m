@@ -1,108 +1,155 @@
-Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:42065 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932639Ab0I0Dsh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 23:48:37 -0400
-Received: by ewy23 with SMTP id 23so1164101ewy.19
-        for <linux-media@vger.kernel.org>; Sun, 26 Sep 2010 20:48:35 -0700 (PDT)
-Date: Mon, 27 Sep 2010 13:49:04 -0400
-From: Dmitri Belimov <d.belimov@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@localhost>
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:36687 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754374Ab0IBL4i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 07:56:38 -0400
+Subject: [RESEND][PATCH 2/2] mfd: Add timberdale video-in driver to
+ timberdale
+From: Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Felipe Sanches <juca@members.fsf.org>,
-	Stefan Ringel <stefan.ringel@arcor.de>,
-	Bee Hock Goh <beehock@gmail.com>,
-	Luis Henrique Fagundes <lhfagundes@hacklab.com.br>
-Subject: Re: [PATCH v2] tm6000+audio
-Message-ID: <20100927134904.0ee9ca5b@glory.local>
-In-Reply-To: <4C9ADEF6.4040809@redhat.com>
-References: <20100622180521.614eb85d@glory.loctelecom.ru>
-	<4C20D91F.500@redhat.com>
-	<4C212A90.7070707@arcor.de>
-	<4C213257.6060101@redhat.com>
-	<4C222561.4040605@arcor.de>
-	<4C224753.2090109@redhat.com>
-	<4C225A5C.7050103@arcor.de>
-	<20100716161623.2f3314df@glory.loctelecom.ru>
-	<4C4C4DCA.1050505@redhat.com>
-	<20100728113158.0f1495c0@glory.loctelecom.ru>
-	<4C4FD659.9050309@arcor.de>
-	<20100729140936.5bddd275@glory.loctelecom.ru>
-	<4C51ADB5.7010906@redhat.com>
-	<20100731122428.4ee569b4@glory.loctelecom.ru>
-	<4C53A837.3070700@redhat.com>
-	<20100825043746.225a352a@glory.local>
-	<4C7543DA.1070307@redhat.com>
-	<AANLkTimr3=1QHzX3BzUVyo6uqLdCKt8SS9sDtHfZtHGZ@mail.gmail.com>
-	<4C767302.7070506@redhat.com>
-	<20100920160715.7594ee2e@glory.local>
-	<4C99177F.9060100@redhat.com>
-	<20100923124524.73a28b0c@glory.local>
-	<4C9ADEF6.4040809@redhat.com>
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 02 Sep 2010 13:56:37 +0200
+Message-ID: <1283428597.23309.26.camel@debian>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-Hi
+This patch defines platform data for the video-in driver
+and adds it to all configurations of timberdale.
 
-> Em 23-09-2010 13:45, Dmitri Belimov escreveu:
-> > Hi
-> > 
-> >> Em 20-09-2010 17:07, Dmitri Belimov escreveu:
-> >>> Hi 
-> >>>
-> >>> I rework my last patch for audio and now audio works well. This
-> >>> patch can be submited to GIT tree Quality of audio now is good for
-> >>> SECAM-DK. For other standard I set some value from datasheet need
-> >>> some tests.
-> >>>
-> >>> 1. Fix pcm buffer overflow
-> >>> 2. Rework pcm buffer fill method
-> >>> 3. Swap bytes in audio stream
-> >>> 4. Change some registers value for TM6010
-> >>> 5. Change pcm buffer size
-> >>> --- a/drivers/staging/tm6000/tm6000-stds.c
-> >>> +++ b/drivers/staging/tm6000/tm6000-stds.c
-> >>> @@ -96,6 +96,7 @@ static struct tm6000_std_tv_settings tv_stds[]
-> >>> = { 
-> >>>  			{TM6010_REQ07_R04_LUMA_HAGC_CONTROL,
-> >>> 0xdc}, {TM6010_REQ07_R0D_CHROMA_KILL_LEVEL, 0x07},
-> >>> +			{TM6010_REQ08_R05_A_STANDARD_MOD,
-> >>> 0x21}, /* FIXME */
-> >>
-> >> This didn't seem to work for PAL-M. Probably, the right value for
-> >> it is 0x22, to follow NTSC/M, since both uses the same audio
-> >> standard.
-> >>
-> >> On some tests, I was able to receive some audio there, at the
-> >> proper rate, with a tm6010-based device. It died when I tried to
-> >> change the channel, so I didn't rear yet the real audio, but I
-> >> suspect it will work on my next tests.
-> >>
-> >> Yet, is being hard to test, as the driver has a some spinlock logic
-> >> broken. I'm enclosing the logs.
-> > 
-> > Yes. I have some as crash from mplayer and arecord.
-> > 
-> >> I was able to test only when using a monitor on the same machine.
-> >> All trials of using vnc and X11 export ended by not receiving any
-> >> audio and hanging the machine.
-> >>
-> >> I suspect that we need to fix the spinlock issue, in order to
-> >> better test it.
-> > 
-> > Who can fix it?
-> 
-> Well, any of us ;)
-> 
-> I did a BKL lock fix series of patches, and hverkuil is improving
-> them. They'll make easier to avoid problems inside tm6000. We just
-> need to make sure that we'll hold/release the proper locks at
-> tm6000-alsa, after applying it at the mainstream.
+Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+---
+diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+index ac59950..52a651b 100644
+--- a/drivers/mfd/timberdale.c
++++ b/drivers/mfd/timberdale.c
+@@ -40,6 +40,7 @@
+ #include <linux/spi/mc33880.h>
+ 
+ #include <media/timb_radio.h>
++#include <media/timb_video.h>
+ 
+ #include <linux/timb_dma.h>
+ 
+@@ -238,7 +239,24 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
+ 	},
+ };
+ 
+-static const __devinitconst struct resource timberdale_radio_resources[] = {
++static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
++	/* Requires jumper JP9 to be off */
++	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
++	.irq = IRQ_TIMBERDALE_ADV7180
++};
++
++static __devinitdata struct timb_video_platform_data
++	timberdale_video_platform_data = {
++	.dma_channel = DMA_VIDEO_RX,
++	.i2c_adapter = 0,
++	.encoder = {
++		.module_name = "adv7180",
++		.info = &timberdale_adv7180_i2c_board_info
++	}
++};
++
++static const __devinitconst struct resource
++timberdale_radio_resources[] = {
+ 	{
+ 		.start	= RDSOFFSET,
+ 		.end	= RDSEND,
+@@ -272,6 +290,18 @@ static __devinitdata struct timb_radio_platform_data
+ 	}
+ };
+ 
++static const __devinitconst struct resource timberdale_video_resources[] = {
++	{
++		.start	= LOGIWOFFSET,
++		.end	= LOGIWEND,
++		.flags	= IORESOURCE_MEM,
++	},
++	/*
++	note that the "frame buffer" is located in DMA area
++	starting at 0x1200000
++	*/
++};
++
+ static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
+ 	.nr_channels = 10,
+ 	.channels = {
+@@ -372,6 +402,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -430,6 +467,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
+ 		.resources = timberdale_mlogicore_resources,
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -478,6 +522,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -521,6 +572,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
+index c11bf6e..4412acd 100644
+--- a/drivers/mfd/timberdale.h
++++ b/drivers/mfd/timberdale.h
+@@ -23,7 +23,7 @@
+ #ifndef MFD_TIMBERDALE_H
+ #define MFD_TIMBERDALE_H
+ 
+-#define DRV_VERSION		"0.2"
++#define DRV_VERSION		"0.3"
+ 
+ /* This driver only support versions >= 3.8 and < 4.0  */
+ #define TIMB_SUPPORTED_MAJOR	3
 
-I found that mplayer crashed when call usb_control_msg and kfree functions.
-
-With my best regards, Dmitry.
