@@ -1,46 +1,90 @@
-Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:48104 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754142Ab0IHVQU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 17:16:20 -0400
-Date: Wed, 8 Sep 2010 23:16:17 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
-Subject: Re: [PATCH 4/6] Input: winbond-cir - switch to using new keycode
- interface
-Message-ID: <20100908211617.GB13938@hardeman.nu>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
- <20100908074200.32365.98120.stgit@hammer.corenet.prv>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100908074200.32365.98120.stgit@hammer.corenet.prv>
+Return-path: <mchehab@localhost>
+Received: from devils.ext.ti.com ([198.47.26.153]:42264 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754590Ab0IBOqV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 10:46:21 -0400
+From: raja_mani@ti.com
+To: hverkuil@xs4all.nl, linux-media@vger.kernel.org,
+	mchehab@infradead.org
+Cc: matti.j.aaltonen@nokia.com, Raja Mani <raja_mani@ti.com>,
+	Pramodh AG <pramodh_ag@ti.com>
+Subject: [RFC/PATCH 1/8] drivers:media:video: Adding new CIDs for FM RX ctls
+Date: Thu,  2 Sep 2010 11:57:53 -0400
+Message-Id: <1283443080-30644-2-git-send-email-raja_mani@ti.com>
+In-Reply-To: <1283443080-30644-1-git-send-email-raja_mani@ti.com>
+References: <1283443080-30644-1-git-send-email-raja_mani@ti.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-On Wed, Sep 08, 2010 at 12:42:00AM -0700, Dmitry Torokhov wrote:
-> Switch the code to use new style of getkeycode and setkeycode
-> methods to allow retrieving and setting keycodes not only by
-> their scancodes but also by index.
-> 
-> Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> ---
-> 
->  drivers/input/misc/winbond-cir.c |  248 +++++++++++++++++++++++++-------------
->  1 files changed, 163 insertions(+), 85 deletions(-)
+From: Raja Mani <raja_mani@ti.com>
 
-Thanks for doing the conversion for me, but I think you can skip this 
-patch. The driver will (if I understood your patchset correctly) still 
-work with the old get/setkeycode ioctls and I have a patch lined up that 
-converts winbond-cir.c to use ir-core which means all of the input 
-related code is removed.
+Add support for the following new Control IDs (CID)
+   V4L2_CID_FM_RX_CLASS    - FM RX Tuner controls
+   V4L2_CID_FM_BAND        - FM band
+   V4L2_CID_RSSI_THRESHOLD - RSSI Threshold
+   V4L2_CID_TUNE_AF        - Alternative Frequency
 
+Signed-off-by: Raja Mani <raja_mani@ti.com>
+Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
+---
+ drivers/media/video/v4l2-common.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
+index 4e53b0b..33c3037 100644
+--- a/drivers/media/video/v4l2-common.c
++++ b/drivers/media/video/v4l2-common.c
+@@ -354,6 +354,12 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 		"75 useconds",
+ 		NULL,
+ 	};
++	static const char *fm_band[] = {
++		"87.5 - 108. MHz",
++		"76. - 90. MHz, Japan",
++		"65. - 74. MHz, OIRT",
++		NULL,
++	};
+ 
+ 	switch (id) {
+ 		case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+@@ -394,6 +400,8 @@ const char **v4l2_ctrl_get_menu(u32 id)
+ 			return colorfx;
+ 		case V4L2_CID_TUNE_PREEMPHASIS:
+ 			return tune_preemphasis;
++		case V4L2_CID_FM_BAND:
++			return fm_band;
+ 		default:
+ 			return NULL;
+ 	}
+@@ -520,6 +528,10 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_TUNE_PREEMPHASIS:	return "Pre-emphasis settings";
+ 	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
+ 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
++	case V4L2_CID_FM_RX_CLASS:	return "FM Radio Tuner Controls";
++	case V4L2_CID_FM_BAND:		return "FM Band";
++	case V4L2_CID_RSSI_THRESHOLD:	return "RSSI Threshold";
++	case V4L2_CID_TUNE_AF:		return "Alternative Frequency";
+ 
+ 	default:
+ 		return NULL;
+@@ -585,6 +597,9 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
++	case V4L2_CID_FM_BAND:
++	case V4L2_CID_RSSI_THRESHOLD:
++	case V4L2_CID_TUNE_AF:
+ 		qctrl->type = V4L2_CTRL_TYPE_MENU;
+ 		step = 1;
+ 		break;
+@@ -596,6 +611,7 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
+ 	case V4L2_CID_CAMERA_CLASS:
+ 	case V4L2_CID_MPEG_CLASS:
+ 	case V4L2_CID_FM_TX_CLASS:
++	case V4L2_CID_FM_RX_CLASS:
+ 		qctrl->type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		qctrl->flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		min = max = step = def = 0;
 -- 
-David Härdeman
+1.5.6.3
+
