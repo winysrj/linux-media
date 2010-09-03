@@ -1,56 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2249 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754910Ab0IMLvu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 07:51:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: matti.j.aaltonen@nokia.com
-Subject: Re: [PATCH v9 0/4] FM Radio driver.
-Date: Mon, 13 Sep 2010 13:51:35 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com> <201009131332.15287.hverkuil@xs4all.nl> <1284378271.12913.42.camel@masi.mnp.nokia.com>
-In-Reply-To: <1284378271.12913.42.camel@masi.mnp.nokia.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009131351.35487.hverkuil@xs4all.nl>
+Received: from mail.windriver.com ([147.11.1.11]:63650 "EHLO
+	mail.windriver.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751138Ab0ICJyL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Sep 2010 05:54:11 -0400
+From: Jason Wang <jason77.wang@gmail.com>
+To: mchehab@redhat.com, moinejf@free.fr
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] V4L/DVB: gspca - main: add urb buffer flags
+Date: Fri,  3 Sep 2010 17:57:19 +0800
+Message-Id: <1283507839-4162-1-git-send-email-jason77.wang@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Monday, September 13, 2010 13:44:31 Matti J. Aaltonen wrote:
-> On Mon, 2010-09-13 at 13:32 +0200, ext Hans Verkuil wrote:
-> > > Anyway the difference between the "completely raw bits" and the "raw"
-> > > blocks is small. And I doubt the usefulness of supporting the
-> > > "completely raw" format.
-> > 
-> > I don't intend to support it now. But we need to realize that it exists and
-> > we have to plan for it.
-> 
-> OK. So we can have RDS_RAW_READWRITE and also RDS_RAW_BLOCK_READWRITE
-> (or something to the same effect)?
+When i plug a ZC3xx usb webcam to the host port of fsl_imx51pdk(arm),
+the system crashes like this:
 
-In theory, yes. My proposed API additions allow for this to be added in the
-future. Frankly, I don't think it is likely that it will be needed, but you
-never know.
+usb 1-1: new full speed USB device using fsl-ehci and address 2
+gspca: probing 0ac8:301b
+zc3xx: probe sensor -> 000a
+zc3xx: Find Sensor PB0330. Chip revision 0
+input: zc3xx as /devices/platform/fsl-ehci.0/usb1/1-1/input/input0
+gspca: video1 created
+gspca: found int in endpoint: 0x82, buffer_len=8, interval=10
+kernel BUG at /home/hwang4/work/build/51/build/linux/arch/arm/mm/\
+dma-mapping.c:411!
+Unable to handle kernel NULL pointer dereference at virtual address \
+00000000
+pgd = c0004000
+[00000000] *pgd=00000000
+Internal error: Oops: 817 [#1] PREEMPT
 
-Regards,
+This is because we alloc buffer for an urb through usb_buffer_alloc,
+the alloced buffer is already in DMA coherent region, so we should
+set the flag of this urb to URB_NO_TRANSFER_DMA_MAP, otherwise when
+we submit this urb, the hcd core will handle this address as an
+non-DMA address and call dma_map_single/sg to map it. On arm
+architecture, dma_map_single a DMA coherent address will be catched
+by a BUG_ON().
 
-	Hans
+Signed-off-by: Jason Wang <jason77.wang@gmail.com>
+---
+ drivers/media/video/gspca/gspca.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> 
-> B.R.
-> Matti
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+diff --git a/drivers/media/video/gspca/gspca.c b/drivers/media/video/gspca/gspca.c
+index b984610..78abc1c 100644
+--- a/drivers/media/video/gspca/gspca.c
++++ b/drivers/media/video/gspca/gspca.c
+@@ -223,6 +223,7 @@ static int alloc_and_submit_int_urb(struct gspca_dev *gspca_dev,
+ 		usb_rcvintpipe(dev, ep->bEndpointAddress),
+ 		buffer, buffer_len,
+ 		int_irq, (void *)gspca_dev, interval);
++	urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+ 	gspca_dev->int_urb = urb;
+ 	ret = usb_submit_urb(urb, GFP_KERNEL);
+ 	if (ret < 0) {
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+1.5.6.5
+
