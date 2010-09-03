@@ -1,82 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:54574 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752965Ab0IRSj2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Sep 2010 14:39:28 -0400
-Received: by fxm3 with SMTP id 3so92957fxm.19
-        for <linux-media@vger.kernel.org>; Sat, 18 Sep 2010 11:39:26 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:43011 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752969Ab0ICNsV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Sep 2010 09:48:21 -0400
+Message-ID: <4C80FCA1.7050309@iki.fi>
+Date: Fri, 03 Sep 2010 16:48:17 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTi=Mw-G=rCjVkpoCCpphs-pp6Yt8hakGWaFPsVC+@mail.gmail.com>
-References: <4C3070A4.6040702@redhat.com>
-	<AANLkTinXb=TeSGO_6Mr6jhzaUOUZ3yZL5+oAP2GP0GG5@mail.gmail.com>
-	<4C792BE1.6090001@redhat.com>
-	<AANLkTik8jg1K_54dJ5nsnCydJzpwRNt-BzctwA1Spgq8@mail.gmail.com>
-	<4C835BC7.5000209@redhat.com>
-	<AANLkTi=Mw-G=rCjVkpoCCpphs-pp6Yt8hakGWaFPsVC+@mail.gmail.com>
-Date: Sat, 18 Sep 2010 14:39:25 -0400
-Message-ID: <AANLkTi=z-E6onqhR9g1j_ZncRAFovU=9Ud8KLVpRxOkB@mail.gmail.com>
-Subject: Re: ibmcam (xrilink_cit) and konica webcam driver porting to gspca update
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jonathan Isom <jeisom@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Patryk Biela <patryk.biela@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Fernando Cassia <fcassia@gmail.com>
+CC: Dagur Ammendrup <dagurp@gmail.com>,
+	Joel Wiramu Pauling <joel@aenertia.net>,
+	linux-media@vger.kernel.org
+Subject: Re: Gigabyte 8300
+References: <AANLkTi=SY9xWCjp_0q6US7XN6XYoTWnGHA2=6EfjuWK-@mail.gmail.com>	<AANLkTikg79zui71Xz8r-Lg3zut0jkSk-BGEpBpXfWz5Y@mail.gmail.com>	<AANLkTimc2TTQQogO8Q6ih6Bv3j_oOcVMux3cg-CJPGsw@mail.gmail.com>	<AANLkTim_mU7ayxjeE2HQz57UsPqHU46dPC3Ys600RJAD@mail.gmail.com> <AANLkTi=Lf2R8c51zYyjKc4Dh+S0KjOZmSH90zghOdOn1@mail.gmail.com>
+In-Reply-To: <AANLkTi=Lf2R8c51zYyjKc4Dh+S0KjOZmSH90zghOdOn1@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, Sep 13, 2010 at 2:02 PM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> On Sun, Sep 5, 2010 at 4:58 AM, Hans de Goede <hdegoede@redhat.com> wrote:
->> Hi,
->>
->> On 08/31/2010 11:43 PM, David Ellingsworth wrote:
->>>
->>> Hans,
->>>
->>> I haven't had any success with this driver as of yet. My camera is
->>> shown here: http://www.amazon.com/IBM-Net-Camera-Pro-camera/dp/B0009MH25U
->>> The part number listed on the bottom is 22P5086. It's also labeled as
->>> being an IBM Net Camera Pro.
->>
->> Ah ok, so you have the same one as I have, that model was never supported
->> by the old ibmcam driver, so I take it you never had it working with the
->> old ibmcam driver ?
->>
->>> When I plug the camera in, it is detected
->>>
->>> by the driver but it does not seem to function in this mode. Every
->>> attempt to obtain video from it using qv4l2 results in a black or
->>> green image.
->>>
->>> If I use the ibm_netcam_pro module option
->>
->> Given that is the same camera as I have using the ibm_netcam_pro module
->> option is definitely the right thing to do.
->>
->> I noticed in your lsusb -v output that you're doing this from within vmware?
+On 09/03/2010 02:42 PM, Fernando Cassia wrote:
+> Just FYI there´s two parts on that string, the "vid" (vendor ID) and
+> the "pid" (product id)
 >
-> Correct I was using vmware workstation's usb pass through to test the camera.
+> Vendor ID "1b80" is listed at the usb device id database
+> as "Afatech" although the product ID is not listed (although all the
+> products on that section seem to be Digital TV tuners).
 >
->>
->> I think that is the cause of things not working. This camera will not
->> even work when connected through a real hub, let alone through a
->> virtual one. The only way this camera works for me is when it is
->> connected to a usb port directly on the motherboard, running Linux
->> directly on the hardware, can you please try that ?
+> http://www.linux-usb.org/usb.ids
 >
-> Unfortunately, I'm unable to test with real hardware at the moment. My
-> laptop, which has Linux installed on it is currently out of commission
-> until I can find time to repair it's power adapter. Once I get it
-> fixed, I'll try to retest and we'll go from there.
 >
+> --------------
+> 1b80  Afatech
+> 	c810  MC810 [af9015]
+> 	d393  DVB-T receiver [RTL2832U]
+> 	d396  UB396-T [RTL2832U]
+> 	d397  DVB-T receiver [RTL2832U]
+> 	d398  DVB-T receiver [RTL2832U]
+> 	d700  FM Radio SnapMusic Mobile 700 (FM700)
+> 	e383  DVB-T UB383-T [af9015]
+> 	e385  DVB-T UB385-T [af9015]
+> 	e386  DVB-T UB385-T [af9015]
+> 	e39a  DVB-T395U [af9015]
+> 	e39b  DVB-T395U [af9015]
+>
+>
+> Someone please correct me if Im wrong.
 
-I just tested this driver with my camera using real hardware and it
-works wonderfully. Thanks for all the hard work. The only thing left
-to do with this camera is to reverse engineer the compressed video
-stream in order to improve the frame rate at higher resolutions.
+You are correct. Someone added this wrong name about year back. In my 
+understanding it should be KWorld instead of Afatech. I am not even 100% 
+if it is KWorld since that VID is seen very many designs...
 
-Regards,
+IIRC it was me who added this to the dvb-usb-ids.h:
+#define USB_VID_KWORLD_2			0x1b80
 
-David Ellingsworth
+
+Antti
+-- 
+http://palosaari.fi/
