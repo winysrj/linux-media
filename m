@@ -1,256 +1,533 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:21464 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754803Ab0IFGfT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 02:35:19 -0400
-Date: Mon, 06 Sep 2010 08:33:58 +0200
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [RFCv5 8/9] mm: vcm: Sample driver added
-In-reply-to: <cover.1283749231.git.mina86@mina86.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+Return-path: <mchehab@pedra>
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:49942 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757427Ab0ICKe7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Sep 2010 06:34:59 -0400
+Date: Fri, 3 Sep 2010 19:29:43 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Cc: Minchan Kim <minchan.kim@gmail.com>,
+	=?UTF-8?B?TWljaGHFgg==?= Nazarewicz <m.nazarewicz@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Minchan Kim <minchan.kim@gmail.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Peter Zijlstra <peterz@infradead.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
 	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	linux-kernel@vger.kernel.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
 	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-kernel@vger.kernel.org
-Message-id: <262a5a5019c1f1a44d5793f7e69776e56f27af06.1283749231.git.mina86@mina86.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <cover.1283749231.git.mina86@mina86.com>
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Mel Gorman <mel@csn.ul.ie>, linux-media@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
+Message-Id: <20100903192943.f4f74136.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <20100902175424.5849c197.kamezawa.hiroyu@jp.fujitsu.com>
+References: <cover.1282286941.git.m.nazarewicz@samsung.com>
+	<1282310110.2605.976.camel@laptop>
+	<20100825155814.25c783c7.akpm@linux-foundation.org>
+	<20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
+	<op.vh0wektv7p4s8u@localhost>
+	<20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
+	<20100826124434.6089630d.kamezawa.hiroyu@jp.fujitsu.com>
+	<AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
+	<20100826133028.39d731da.kamezawa.hiroyu@jp.fujitsu.com>
+	<AANLkTimB+s0tO=wrODAU4qCaZnCBoLZ2A9pGjR_jheOj@mail.gmail.com>
+	<20100827171639.83c8642c.kamezawa.hiroyu@jp.fujitsu.com>
+	<20100902175424.5849c197.kamezawa.hiroyu@jp.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This commit adds a sample Virtual Contiguous Memory framework
-driver.  It handles no real hardware and is there only for
-demonstrating purposes.
+On Thu, 2 Sep 2010 17:54:24 +0900
+KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Here is a rough code for this.
+
+here is a _tested_ one. 
+If I tested correctly, I allocated 40MB of contigous pages by the new funciton.
+I'm grad this can be some hints for people.
+
+Thanks,
+-Kame
+==
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+
+This patch as a memory allocator for contiguous memory larger than MAX_ORDER.
+
+  alloc_contig_pages(hint, size, list);
+
+  This function allocates 'size' of contigoues pages, whose physical address
+  is higher than 'hint'. size is specicied in byte unit.
+  Allocated pages are all linked into the list and all of their page_count()
+  are set to 1. Return value is the top page. 
+
+ free_contig_pages(list)
+ returns all pages in the list.
+
+This patch does
+  - find an area which can be ISOLATED.
+  - migrate remaining pages in the area.
+  - steal chunk of pages from allocator.
+
+Limitation is:
+  - retruned pages will be aligend to MAX_ORDER.
+  - returned length of page will be aligned to MAX_ORDER.
+    (so, the caller may have to return tails of pages by itself.)
+  - may allocate contiguous pages which overlap node/zones.
+
+This is fully experimental and written as example.
+(Maybe need more patches to make this complete.)
+
+This patch moves some amount of codes from memory_hotplug.c to
+page_isolation.c and based on page-offline technique used by
+memory_hotplug.c 
+
+Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 ---
- Documentation/virtual-contiguous-memory.txt |    3 +
- include/linux/vcm-sample.h                  |   30 +++++++
- mm/Kconfig                                  |    9 ++
- mm/Makefile                                 |    1 +
- mm/vcm-sample.c                             |  120 +++++++++++++++++++++++++++
- 5 files changed, 163 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/vcm-sample.h
- create mode 100644 mm/vcm-sample.c
+ include/linux/page-isolation.h |   10 +
+ mm/memory_hotplug.c            |   84 --------------
+ mm/page_alloc.c                |   32 +++++
+ mm/page_isolation.c            |  244 +++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 287 insertions(+), 83 deletions(-)
 
-diff --git a/Documentation/virtual-contiguous-memory.txt b/Documentation/virtual-contiguous-memory.txt
-index 0c0e90c..6d1014c 100644
---- a/Documentation/virtual-contiguous-memory.txt
-+++ b/Documentation/virtual-contiguous-memory.txt
-@@ -730,6 +730,9 @@ already there.
- If you want to use this wrapper, you need to select VCM_MMU Kconfig
- option.
+Index: mmotm-0827/mm/page_isolation.c
+===================================================================
+--- mmotm-0827.orig/mm/page_isolation.c
++++ mmotm-0827/mm/page_isolation.c
+@@ -3,8 +3,11 @@
+  */
  
-+There is a sample driver provided which provides a template for real
-+drivers.  It can be found in [[file:../mm/vcm-sample.c][mm/vcm-sample.c]] file.
-+
- *** Context creation
+ #include <linux/mm.h>
++#include <linux/swap.h>
+ #include <linux/page-isolation.h>
+ #include <linux/pageblock-flags.h>
++#include <linux/mm_inline.h>
++#include <linux/migrate.h>
+ #include "internal.h"
  
- Similarly to normal drivers, MMU driver needs to provide a context
-diff --git a/include/linux/vcm-sample.h b/include/linux/vcm-sample.h
-new file mode 100644
-index 0000000..9a79403
---- /dev/null
-+++ b/include/linux/vcm-sample.h
-@@ -0,0 +1,30 @@
-+/*
-+ * Virtual Contiguous Memory driver driver template header
-+ * Copyright (c) 2010 by Samsung Electronics.
-+ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of the
-+ * License or (at your optional) any later version of the license.
-+ */
+ static inline struct page *
+@@ -140,3 +143,244 @@ int test_pages_isolated(unsigned long st
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ 	return ret ? 0 : -EBUSY;
+ }
++
++#define CONTIG_ALLOC_MIGRATION_RETRY	(5)
 +
 +/*
-+ * See Documentation/virtual-contiguous-memory.txt for details.
++ * Scanning pfn is much easier than scanning lru list.
++ * Scan pfn from start to end and Find LRU page.
 + */
-+
-+#ifndef __LINUX_VCM_SAMPLE_H
-+#define __LINUX_VCM_SAMPLE_H
-+
-+#include <linux/vcm.h>
-+
-+struct vcm;
-+
-+/**
-+ * vcm_samp_create() - creates a VCM context
-+ *
-+ * ... Documentation goes here ...
-+ */
-+struct vcm *__must_check vcm_samp_create(/* ... */);
-+
-+#endif
-diff --git a/mm/Kconfig b/mm/Kconfig
-index 0445f68..be040e7 100644
---- a/mm/Kconfig
-+++ b/mm/Kconfig
-@@ -401,3 +401,12 @@ config VCM_O2O
- # Select if you need vcm_phys_alloc() or vcm_phys_walk() functions
- config VCM_PHYS
- 	bool
-+
-+config VCM_SAMP
-+	bool "VCM sample driver"
-+	depends on VCM
-+	select VCM_MMU
-+	help
-+	  This enables a sample driver for the VCM framework.  This driver
-+	  does not handle any real harwdare.  It's merely an template of
-+	  how for real drivers.
-diff --git a/mm/Makefile b/mm/Makefile
-index e908202..c465dfa 100644
---- a/mm/Makefile
-+++ b/mm/Makefile
-@@ -50,3 +50,4 @@ obj-$(CONFIG_DEBUG_KMEMLEAK_TEST) += kmemleak-test.o
- obj-$(CONFIG_CMA) += cma.o
- obj-$(CONFIG_CMA_BEST_FIT) += cma-best-fit.o
- obj-$(CONFIG_VCM) += vcm.o
-+obj-$(CONFIG_VCM_SAMPLE) += vcm-sample.o
-diff --git a/mm/vcm-sample.c b/mm/vcm-sample.c
-new file mode 100644
-index 0000000..e265a73
---- /dev/null
-+++ b/mm/vcm-sample.c
-@@ -0,0 +1,120 @@
-+/*
-+ * Virtual Contiguous Memory driver template
-+ * Copyright (c) 2010 by Samsung Electronics.
-+ * Written by Michal Nazarewicz (m.nazarewicz@samsung.com)
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License as
-+ * published by the Free Software Foundation; either version 2 of the
-+ * License or (at your optional) any later version of the license.
-+ */
-+
-+/*
-+ * This is just a sample code.  It does nothing useful other then
-+ * presenting a template for VCM driver.
-+ */
-+
-+/*
-+ * See Documentation/virtual-contiguous-memory.txt for details.
-+ */
-+
-+#include <linux/vcm-drv.h>
-+#include <linux/vcm-sample.h>
-+
-+struct vcm_samp {
-+	struct vcm_mmu	mmu;
-+	/* ... */
-+};
-+
-+static const unsigned vcm_samp_orders[] = {
-+	4 + 20 - PAGES_SHIFT,	/* 16MiB pages */
-+	0 + 20 - PAGES_SHIFT,	/*  1MiB pages */
-+	6 + 10 - PAGES_SHIFT,	/* 64KiB pages */
-+	2 + 10 - PAGES_SHIFT,	/*  4KiB pages */
-+};
-+
-+static int vcm_samp_activate_page(dma_addr_t vaddr, dma_addr_t paddr,
-+				  unsigned order, void *priv)
++unsigned long scan_lru_pages(unsigned long start, unsigned long end)
 +{
-+	struct vcm_samp *samp =
-+		container_of((struct vcm *)priv, struct vcm_samp, mmu.vcm);
-+
-+	/*
-+	 * Handle adding a mapping from virtual page at @vaddr to
-+	 * physical page ad @paddr.  The page is of order @order which
-+	 * means that it's (PAGE_SIZE << @order) bytes.
-+	 */
-+
-+	return -EOPNOTSUPP;
-+}
-+
-+static int vcm_samp_deactivate_page(dma_addr_t vaddr, dma_addr_t paddr,
-+				    unsigned order, void *priv)
-+{
-+	struct vcm_samp *samp =
-+		container_of((struct vcm *)priv, struct vcm_samp, mmu.vcm);
-+
-+	/*
-+	 * Handle removing a mapping from virtual page at @vaddr to
-+	 * physical page ad @paddr.  The page is of order @order which
-+	 * means that it's (PAGE_SIZE << @order) bytes.
-+	 */
-+
-+	/* It's best not to fail here */
++	unsigned long pfn;
++	struct page *page;
++	for (pfn = start; pfn < end; pfn++) {
++		if (pfn_valid(pfn)) {
++			page = pfn_to_page(pfn);
++			if (PageLRU(page))
++				return pfn;
++		}
++	}
 +	return 0;
 +}
 +
-+static void vcm_samp_cleanup(struct vcm *vcm)
++/* Migrate all LRU pages in the range to somewhere else */
++static struct page *
++hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
 +{
-+	struct vcm_samp *samp =
-+		container_of(res->vcm, struct vcm_samp, mmu.vcm);
-+
-+	/* Clean ups ... */
-+
-+	kfree(samp);
++	/* This should be improooooved!! */
++	return alloc_page(GFP_HIGHUSER_MOVABLE);
 +}
 +
-+struct vcm *__must_check vcm_samp_create(/* ... */)
++#define NR_MOVE_AT_ONCE_PAGES	(256)
++int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
 +{
-+	static const struct vcm_mmu_driver driver = {
-+		.order           = vcm_samp_orders,
-+		.cleanup         = vcm_samp_cleanup,
-+		.activate_page   = vcm_samp_activate_page,
-+		.deactivate_page = vcm_samp_deactivate_page,
-+	};
++	unsigned long pfn;
++	struct page *page;
++	int move_pages = NR_MOVE_AT_ONCE_PAGES;
++	int not_managed = 0;
++	int ret = 0;
++	LIST_HEAD(source);
 +
-+	struct vcm_samp *samp;
-+	struct vcm *vcm;
-+
-+	switch (0) {
-+	case 0:
-+	case PAGE_SHIFT == 12:
++	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
++		if (!pfn_valid(pfn))
++			continue;
++		page = pfn_to_page(pfn);
++		if (!page_count(page))
++			continue;
 +		/*
-+		 * If you have a compilation error here it means you
-+		 * are compiling for a very strange platfrom where
-+		 * PAGE_SHIFT is not 12 (ie. PAGE_SIZE is not 4KiB).
-+		 * This driver assumes PAGE_SHIFT is 12.
++		 * We can skip free pages. And we can only deal with pages on
++		 * LRU.
 +		 */
-+	};
++		ret = isolate_lru_page(page);
++		if (!ret) { /* Success */
++			list_add_tail(&page->lru, &source);
++			move_pages--;
++			inc_zone_page_state(page, NR_ISOLATED_ANON +
++					    page_is_file_cache(page));
 +
-+	samp = kzalloc(sizeof *samp, GFP_KERNEL);
-+	if (!samp)
-+		return ERR_PTR(-ENOMEM);
++		} else {
++			/* Becasue we don't have big zone->lock. we should
++			   check this again here. */
++			if (page_count(page))
++				not_managed++;
++#ifdef CONFIG_DEBUG_VM
++			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
++			       pfn);
++			dump_page(page);
++#endif
++		}
++	}
++	ret = -EBUSY;
++	if (not_managed) {
++		if (!list_empty(&source))
++			putback_lru_pages(&source);
++		goto out;
++	}
++	ret = 0;
++	if (list_empty(&source))
++		goto out;
++	/* this function returns # of failed pages */
++	ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
 +
-+	/* ... Set things up ... */
-+
-+	samp->mmu.driver    = &driver;
-+	/* skip first 64K so that zero address will be a NULL pointer */
-+	samp->mmu.vcm.start =  (64 << 10);
-+	samp->mmu.vcm.size  = -(64 << 10);
-+
-+	vcm = vcm_mmu_init(&samp->mmu);
-+	if (!IS_ERR(vcm))
-+		return vcm;
-+
-+	/* ... Error recovery ... */
-+
-+	kfree(samp);
-+	return vcm;
++out:
++	return ret;
 +}
-+EXPORT_SYMBOL_GPL(vcm_samp_create);
--- 
-1.7.1
++
++
++/*
++ * An interface to isolate pages in specified size and range.
++ * Purpose is to return contigous free pages larger than MAX_ORDER.
++ * Below codes are very slow and sleeps, please never call this under
++ * performance critical codes.
++ */
++
++struct page_range {
++	unsigned long base, end, pages;
++};
++
++int __get_contig_block(unsigned long pfn, unsigned long nr_pages, void *arg)
++{
++	struct page_range *blockinfo = arg;
++	unsigned long end;
++
++	end = pfn + nr_pages;
++	pfn = ALIGN(pfn, MAX_ORDER_NR_PAGES);
++	end = end & ~(MAX_ORDER_NR_PAGES - 1);
++	if (end < pfn)
++		return 0;
++	if (end - pfn > blockinfo->pages) {
++		blockinfo->base = pfn;
++		blockinfo->end = end;
++		return 1;
++	}
++	return 0;
++}
++
++
++unsigned long __find_contig_block(unsigned long base,
++		unsigned long end, unsigned long pages)
++{
++	unsigned long pfn;
++	struct page_range blockinfo;
++	int ret;
++
++	/* Skip memory holes */
++retry:
++	blockinfo.base = base;
++	blockinfo.end = end;
++	blockinfo.pages = pages;
++	ret = walk_system_ram_range(base, end - base, &blockinfo,
++		__get_contig_block);
++	if (!ret)
++		return 0;
++	/* Ok, we gound contiguous memory chunk of size. Isolate it.*/
++	for (pfn = blockinfo.base;
++	     pfn + pages < blockinfo.end;
++	     pfn += MAX_ORDER_NR_PAGES) {
++		/*
++		 * Now, we know [base,end) of a contiguous chunk.
++		 * Don't need to take care of memory holes.
++		 */
++		if (!start_isolate_page_range(pfn, pfn + pages))
++			return pfn;
++	}
++	/* failed ? */
++	if (blockinfo.end + pages < end) {
++		/* Move base address and find the next block of RAM. */
++		base = blockinfo.end;
++		goto retry;
++	}
++	return 0;
++}
++
++struct page *alloc_contig_pages(unsigned long long hint,
++		unsigned long size, struct list_head *list)
++{
++	unsigned long base, found, end, pages, start;
++	struct page *ret = NULL;
++	int nid, retry;
++
++	if (hint)
++		hint = ALIGN(hint, MAX_ORDER_NR_PAGES);
++	/* request size should be aligned to pageblock */
++	size >>= PAGE_SHIFT;
++	pages = ALIGN(size, MAX_ORDER_NR_PAGES);
++	found = 0;
++retry:
++	for_each_node_state(nid, N_HIGH_MEMORY) {
++		unsigned long node_end;
++		pg_data_t *node = NODE_DATA(nid);
++
++		node_end = node->node_start_pfn + node->node_spanned_pages;
++		/* does this node have proper range of memory ? */
++		if (node_end < hint + pages)
++			continue;
++		base = hint;
++		if (base < node->node_start_pfn)
++			base = node->node_start_pfn;
++
++		base = ALIGN(base, MAX_ORDER_NR_PAGES);
++		found = 0;
++		end = node_end & ~(MAX_ORDER_NR_PAGES -1);
++		/* Maybe we can use this Node */
++		if (base + pages < end)
++			found = __find_contig_block(base, end, pages);
++		if (found) /* Found ? */
++			break;
++		base = hint;
++	}
++	if (!found)
++		goto out;
++	/*
++	 * Ok, here, we have contiguous pageblock marked as "isolated"
++	 * try migration.
++ 	 */
++	retry = CONTIG_ALLOC_MIGRATION_RETRY;
++	end = found + pages;
++	for (start = scan_lru_pages(found, end); start < end;) {
++
++		if (do_migrate_range(found, end)) {
++			/* migration failure ... */
++			if (retry-- < 0)
++				break;
++			/* take a rest and synchronize LRU etc. */
++			lru_add_drain_all();
++			flush_scheduled_work();
++			cond_resched();
++			drain_all_pages();
++		}
++		start = scan_lru_pages(start, end);
++		if (!start)
++			break;
++	}
++	lru_add_drain_all();
++	flush_scheduled_work();
++	drain_all_pages();
++	if (test_pages_isolated(found, found+pages))
++		goto retry; /* goto next chunk */
++	/*
++	 * Ok, here, [found...found+pages) memory are isolated.
++	 * All pages in the range will be moved into the list with
++	 * page_count(page)=1.
++	 */
++	alloc_contig_freed_pages(found, found + pages, list);
++	/* unset ISOLATE */
++	undo_isolate_page_range(found, pages);
++	ret = pfn_to_page(found);
++out:
++	return ret;
++}
++
++
++void free_contig_pages(struct list_head *list)
++{
++	struct page *page, *tmp;
++
++	list_for_each_entry_safe(page, tmp, list, lru)
++		__free_page(page);
++	return;
++}
++
++EXPORT_SYMBOL_GPL(alloc_contig_pages);
++EXPORT_SYMBOL_GPL(free_contig_pages);
+Index: mmotm-0827/include/linux/page-isolation.h
+===================================================================
+--- mmotm-0827.orig/include/linux/page-isolation.h
++++ mmotm-0827/include/linux/page-isolation.h
+@@ -33,5 +33,15 @@ test_pages_isolated(unsigned long start_
+ extern int set_migratetype_isolate(struct page *page);
+ extern void unset_migratetype_isolate(struct page *page);
+ 
++/* For contiguous memory alloc */
++extern int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
++extern void alloc_contig_freed_pages(unsigned long pfn,  unsigned long end,
++        struct list_head *list);
++extern unsigned long scan_lru_pages(unsigned long start, unsigned long end);
++
++
++extern struct page *alloc_contig_pages(unsigned long long hint,
++			unsigned long size, struct list_head *list);
++extern void free_contig_pages(struct list_head *list);
+ 
+ #endif
+Index: mmotm-0827/mm/memory_hotplug.c
+===================================================================
+--- mmotm-0827.orig/mm/memory_hotplug.c
++++ mmotm-0827/mm/memory_hotplug.c
+@@ -568,7 +568,7 @@ out:
+ }
+ EXPORT_SYMBOL_GPL(add_memory);
+ 
+-#ifdef CONFIG_MEMORY_HOTREMOVE
++#if defined(CONFIG_MEMORY_HOTREMOVE) || defined(CONFIG_CONTIG_ALLOC)
+ /*
+  * A free page on the buddy free lists (not the per-cpu lists) has PageBuddy
+  * set and the size of the free page is given by page_order(). Using this,
+@@ -643,87 +643,6 @@ static int test_pages_in_a_zone(unsigned
+ }
+ 
+ /*
+- * Scanning pfn is much easier than scanning lru list.
+- * Scan pfn from start to end and Find LRU page.
+- */
+-int scan_lru_pages(unsigned long start, unsigned long end)
+-{
+-	unsigned long pfn;
+-	struct page *page;
+-	for (pfn = start; pfn < end; pfn++) {
+-		if (pfn_valid(pfn)) {
+-			page = pfn_to_page(pfn);
+-			if (PageLRU(page))
+-				return pfn;
+-		}
+-	}
+-	return 0;
+-}
+-
+-static struct page *
+-hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
+-{
+-	/* This should be improooooved!! */
+-	return alloc_page(GFP_HIGHUSER_MOVABLE);
+-}
+-
+-#define NR_OFFLINE_AT_ONCE_PAGES	(256)
+-static int
+-do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
+-{
+-	unsigned long pfn;
+-	struct page *page;
+-	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
+-	int not_managed = 0;
+-	int ret = 0;
+-	LIST_HEAD(source);
+-
+-	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
+-		if (!pfn_valid(pfn))
+-			continue;
+-		page = pfn_to_page(pfn);
+-		if (!page_count(page))
+-			continue;
+-		/*
+-		 * We can skip free pages. And we can only deal with pages on
+-		 * LRU.
+-		 */
+-		ret = isolate_lru_page(page);
+-		if (!ret) { /* Success */
+-			list_add_tail(&page->lru, &source);
+-			move_pages--;
+-			inc_zone_page_state(page, NR_ISOLATED_ANON +
+-					    page_is_file_cache(page));
+-
+-		} else {
+-			/* Becasue we don't have big zone->lock. we should
+-			   check this again here. */
+-			if (page_count(page))
+-				not_managed++;
+-#ifdef CONFIG_DEBUG_VM
+-			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
+-			       pfn);
+-			dump_page(page);
+-#endif
+-		}
+-	}
+-	ret = -EBUSY;
+-	if (not_managed) {
+-		if (!list_empty(&source))
+-			putback_lru_pages(&source);
+-		goto out;
+-	}
+-	ret = 0;
+-	if (list_empty(&source))
+-		goto out;
+-	/* this function returns # of failed pages */
+-	ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
+-
+-out:
+-	return ret;
+-}
+-
+-/*
+  * remove from free_area[] and mark all as Reserved.
+  */
+ static int
+@@ -740,7 +659,6 @@ offline_isolated_pages(unsigned long sta
+ 	walk_system_ram_range(start_pfn, end_pfn - start_pfn, NULL,
+ 				offline_isolated_pages_cb);
+ }
+-
+ /*
+  * Check all pages in range, recoreded as memory resource, are isolated.
+  */
+Index: mmotm-0827/mm/page_alloc.c
+===================================================================
+--- mmotm-0827.orig/mm/page_alloc.c
++++ mmotm-0827/mm/page_alloc.c
+@@ -5393,6 +5393,38 @@ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+ 
++void alloc_contig_freed_pages(unsigned long pfn,  unsigned long end,
++	struct list_head *list)
++{
++	struct page *page;
++	struct zone *zone;
++	int i, order;
++
++	zone = page_zone(pfn_to_page(pfn));
++	spin_lock_irq(&zone->lock);
++	while (pfn < end) {
++		VM_BUG_ON(!pfn_valid(pfn));
++		page = pfn_to_page(pfn);
++		VM_BUG_ON(page_count(page));
++		VM_BUG_ON(!PageBuddy(page));
++		list_del(&page->lru);
++		order = page_order(page);
++		zone->free_area[order].nr_free--;
++		rmv_page_order(page);
++		__mod_zone_page_state(zone, NR_FREE_PAGES, - (1UL << order));
++		for (i = 0;i < (1 << order); i++) {
++			struct page *x = page + i;
++			list_add(&x->lru, list);
++		}
++		page += 1 << order;
++	}
++	spin_unlock_irq(&zone->lock);
++
++	/*After this, pages on the list can be freed one be one */
++	list_for_each_entry(page, list, lru)
++		prep_new_page(page, 0, 0);
++}
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+  * All pages in the range must be isolated before calling this.
 
