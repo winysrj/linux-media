@@ -1,89 +1,101 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2469 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754765Ab0IVUGi (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:27087 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753465Ab0ICQCG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Sep 2010 16:06:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR 2.6.37] V4L documentation fixes
-Date: Wed, 22 Sep 2010 22:06:11 +0200
-Cc: linux-media@vger.kernel.org
-References: <201009150923.50132.hverkuil@xs4all.nl> <4C9A5C0B.3040506@redhat.com>
-In-Reply-To: <4C9A5C0B.3040506@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009222206.11694.hverkuil@xs4all.nl>
+	Fri, 3 Sep 2010 12:02:06 -0400
+Subject: Re: Gigabyte 8300
+From: Andy Walls <awalls@md.metrocast.net>
+To: Dagur Ammendrup <dagurp@gmail.com>
+Cc: Joel Wiramu Pauling <joel@aenertia.net>,
+	linux-media@vger.kernel.org
+In-Reply-To: <AANLkTim_mU7ayxjeE2HQz57UsPqHU46dPC3Ys600RJAD@mail.gmail.com>
+References: <AANLkTi=SY9xWCjp_0q6US7XN6XYoTWnGHA2=6EfjuWK-@mail.gmail.com>
+	 <AANLkTikg79zui71Xz8r-Lg3zut0jkSk-BGEpBpXfWz5Y@mail.gmail.com>
+	 <AANLkTimc2TTQQogO8Q6ih6Bv3j_oOcVMux3cg-CJPGsw@mail.gmail.com>
+	 <AANLkTim_mU7ayxjeE2HQz57UsPqHU46dPC3Ys600RJAD@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 03 Sep 2010 12:01:53 -0400
+Message-ID: <1283529713.12583.84.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wednesday, September 22, 2010 21:42:03 Mauro Carvalho Chehab wrote:
-> Em 15-09-2010 04:23, Hans Verkuil escreveu:
-> > The following changes since commit 57fef3eb74a04716a8dd18af0ac510ec4f71bc05:
-> >   Richard Zidlicky (1):
-> >         V4L/DVB: dvb: fix smscore_getbuffer() logic
-> > 
-> > are available in the git repository at:
-> > 
-> >   ssh://linuxtv.org/git/hverkuil/v4l-dvb.git misc2
-> > 
-> > Hans Verkuil (6):
-> >       V4L Doc: removed duplicate link
-> 
-> This doesn't seem right. the entry for V4L2-PIX-FMT-BGR666 seems to be duplicated.
-> We should remove the duplication, instead of just dropping the ID.
+On Fri, 2010-09-03 at 10:55 +0000, Dagur Ammendrup wrote:
+> I tried it on a windows machine where it's identified as "Conextant
+> Polaris Video Capture"  or
+> "oem17.inf:Conexant.NTx86:POLARIS.DVBTX.x86:6.113.1125.1210:usb\vid_1b80&pid_d416&mi_01"
+> if that tells you anything.
 
-No, this patch is correct. This section really duplicates the formats due to
-confusion about the byte order in memory. But only one of these format tables
-should have a valid ID.
 
-See table 2.4 and 2.5 here:
+Polaris refers to the series of CX2310[012] chips IIRC.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html#packed-rgb
-
-As you can see here there is no BGR666 entry in either table since the docbook
-generation has been failing on this docbook error for some time now.
-
-> 
-> >       V4L Doc: fix DocBook syntax errors.
-> >       V4L Doc: document V4L2_CAP_RDS_OUTPUT capability.
-> >       V4L Doc: correct the documentation for VIDIOC_QUERYMENU.
-> 
-> Applied, thanks.
-> 
-> >       V4L Doc: rewrite the Device Naming section
-> 
-> The new text is incomplete, as it assumes only the old non-dynamic device node
-> creation. Also, some distros actually create /dev/v4l, as recommended. IMHO, we
-> need to improve this section, proposing a better way to name devices. This may
-> be an interesting theme for this year's LPC.
-
-No, the major is still 81 and the minors are still between 0 and 255. But the minor
-ranges are gone (unless you turn that on explicitly). So this text is really correct
-and way more understandable than the old text.
-
-> 
-> >       V4L Doc: clarify the V4L spec.
-> 
-> This is a mix of several changes on the same patch. I want to do comments about it,
-> but no time right now to write an email about that. It is a way harder to comment
-> Docbook changes than patches, as the diff output is not user-friendly.
-> I'll postpone this patch for a better analysis.
-
-No problem.
+Support would need changes to the cx231xx driver, and possibly changes
+to the cx25480 module, depending on how far the board differs from
+Conexant reference designs.
 
 Regards,
+Andy
 
-	Hans
- 
-> I don't want to postpone the DocBook correction patches due to that, so I'm applying
-> the patches I'm ok.
 > 
-> Cheers,
-> Mauro
 > 
+> 
+> 2010/9/3 Dagur Ammendrup <dagurp@gmail.com>:
+> > I thought "Conexant CX23102" was the chip. How can I find this out? I
+> > have access to a windows machine if that helps.
+> >
+> >
+> >
+> >
+> > 2010/9/3 Joel Wiramu Pauling <joel@aenertia.net>:
+> >> What sort of afatech chip?
+> >>
+> >> af9035 are not supported at all. Only af9015's which are in the older devices.
+> >>
+> >> On 3 September 2010 12:55, Dagur Ammendrup <dagurp@gmail.com> wrote:
+> >>> Hi,
+> >>>
+> >>> I bought a Gigabyte U8300 today which is a hybrid USB tuner. These are
+> >>> the specifications according to the manufacturer:
+> >>>
+> >>> Analog: TVPAL / SECAM / NTSC
+> >>> Decoder chip: Conexant CX23102
+> >>> Digital TV: DVB-T
+> >>> Interface: USB 2.0
+> >>> Others Support: Microsoft® Windows 2000, XP, MCE and Windows Vista MCE
+> >>> / Win 7 32/ 64bits
+> >>> Remote sensor Interface: IR
+> >>> Tuner: NXP TDA18271
+> >>>
+> >>> Now I know that the decoder chip is supported in other USB sticks but
+> >>> mine is not recognised. Here is my lsusb output:
+> >>>
+> >>> Bus 001 Device 004: ID 1b80:d416 Afatech
+> >>>
+> >>> And here is the dmesg info I get when I plug it in:
+> >>>
+> >>> [ 2981.693805] usb 1-2: USB disconnect, address 2
+> >>> [ 2991.760091] usb 1-2: new high speed USB device using ehci_hcd and address 4
+> >>> [ 2991.916044] usb 1-2: configuration #1 chosen from 1 choice
+> >>>
+> >>>
+> >>> Is there anyone out there who might be interested in adding support
+> >>> for this (or guide me through it)?
+> >>>
+> >>>
+> >>> thanks,
+> >>> Dagur
+> >>> --
+> >>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >>> the body of a message to majordomo@vger.kernel.org
+> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>>
+> >>
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
