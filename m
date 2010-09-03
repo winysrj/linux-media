@@ -1,113 +1,87 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2627 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753157Ab0I3TL0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Sep 2010 15:11:26 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8UJBO98021721
-	for <linux-media@vger.kernel.org>; Thu, 30 Sep 2010 21:11:24 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 30 Sep 2010 21:11:24 +0200 (CEST)
-Message-Id: <201009301911.o8UJBO98021721@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from mailout-de.gmx.net ([213.165.64.22]:42982 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753348Ab0ICUGw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Sep 2010 16:06:52 -0400
+Date: Fri, 3 Sep 2010 22:06:44 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Poyo VL <poyo_vl@yahoo.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Patch drivers/media/video/mt9v022.c
+In-Reply-To: <934905.16227.qm@web45811.mail.sp1.yahoo.com>
+Message-ID: <Pine.LNX.4.64.1009032201180.8788@axis700.grange>
+References: <666098.4241.qm@web45811.mail.sp1.yahoo.com>
+ <Pine.LNX.4.64.1008312227240.25720@axis700.grange> <934905.16227.qm@web45811.mail.sp1.yahoo.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wed, 1 Sep 2010, Poyo VL wrote:
 
-Results of the daily build of v4l-dvb:
+> Of course, I attached the patch. 
+> 
+> Thanks for your time and sorry because I didn't read the documentation. 
 
-date:        Thu Sep 30 19:00:05 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: e847bbbf9273533c15c6e8aab204ba62c238cf42
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Thanks, but still not quite right. Most importantly three compulsory 
+things are missing: (1) a descriptive subject like
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec-git: OK
-sparse: ERRORS
+[PATCH] mt9v022: short description of your patch
 
-Detailed results are available here:
+(2) then in the body a longer description like:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+This patch fixes a compiler warning in driver X by removing dead code.
 
-Full logs are available here:
+And your "Signed-off-by:" line is also missing. Without these three things 
+no patch can be accepted in the kernel (ok, (2) is missing sometimes, if a 
+patch is really trivial and the subject explains sufficiently, but (1) and 
+(3) must be there). All this is described in the referred document, so, 
+looks like you still haven't read it very attentively.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Thanks
+Guennadi
 
-The V4L-DVB specification from this daily build is here:
+> ----- Original Message ----
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> To: Poyo VL <poyo_vl@yahoo.com>
+> Sent: Tue, August 31, 2010 11:34:50 PM
+> Subject: Re: Patch
+> 
+> Hi!
+> 
+> On Tue, 31 Aug 2010, Poyo VL wrote:
+> 
+> > Kernel: 2.6.35.4
+> > File: include/media/v4l2-mediabus.h
+> > 
+> > Patch:
+> > 
+> > -    V4L2_MBUS_FMT_FIXED = 1,
+> > +    V4L2_MBUS_FMT_NO_FORMAT = 0,
+> > +    V4L2_MBUS_FMT_FIXED,
+> > 
+> > Added a 0 value to the v4l2_mbus_pixelcode structure, it is used on 
+> > drivers/media/video/mt9v022.c on line 405 in a switch(mf->code) where code 
+> > cannot be 0, so I get warning.
+> > 
+> > I know it is not extremly important... 
+> 
+> Thanks for your report and your patch! Fixing compiler warnings is 
+> important too, so, this does deserve a patch. However, I think, we have to 
+> patch not the generic code, but rather the mt9v022 driver. That "case 0:" 
+> has been left there by accident since the very first version, whereas it 
+> had to be killed a long time ago. So, the correct fix would be to just 
+> kill these three lines there:
+> 
+> -    case 0:
+> -        /* No format change, only geometry */
+> -        break;
+> 
+> If you like, you can submit a patch to do that. But please follow patch 
+> submission guidelines, as outlined in Documentation/SubmittingPatches in 
+> your kernel tree. And don't forget to CC the linux-media mailing list.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
