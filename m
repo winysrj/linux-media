@@ -1,44 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:38167 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932849Ab0I0NFX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 09:05:23 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 11so3244338bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Sep 2010 06:05:22 -0700 (PDT)
-From: Ruslan Pisarev <ruslanpisarev@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: ruslan@rpisarev.org.ua
-Subject: [PATCH 08/13] Staging: cx25821: fix tabs and space coding style issue in cx25821-reg.h
-Date: Mon, 27 Sep 2010 16:05:14 +0300
-Message-Id: <1285592714-32563-1-git-send-email-ruslan@rpisarev.org.ua>
-In-Reply-To: <y>
-References: <y>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:45021 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755882Ab0ICIil convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Sep 2010 04:38:41 -0400
+Date: Fri, 3 Sep 2010 10:38:38 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: linux-media@vger.kernel.org, Hans de Goede <hdgoede@redhat.com>
+Subject: Re: [PATCH] gspca_cpia1: Add lamp control for Intel Play QX3
+ microscope
+Message-ID: <20100903103838.23d759c9@tele>
+In-Reply-To: <1283476182.17527.4.camel@morgan.silverblock.net>
+References: <1283476182.17527.4.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This is a patch to the cx25821-reg.h file that fixed up a macros errors found by the checkpatch.pl tools.
+On Thu, 02 Sep 2010 21:09:42 -0400
+Andy Walls <awalls@md.metrocast.net> wrote:
+	[snip]
+> Add a v4l2 control to get the lamp control code working for the Intel
+> Play QX3 microscope.  My daughter in middle school thought it was
+> cool, and is now examining the grossest specimens she can find.
+	[snip]
+> -		u8 toplight;            /* top light lit , R/W */
+> -		u8 bottomlight;         /* bottom light lit, R/W */
+> +		u8 toplamp;             /* top lamp lit , R/W */
+> +		u8 bottomlamp;          /* bottom lamp lit, R/W */
+	[snip]
+> +#define V4L2_CID_LAMPS (V4L2_CID_PRIVATE_BASE+1)
+	[snip]
 
-Signed-off-by: Ruslan Pisarev <ruslan@rpisarev.org.ua>
----
- drivers/staging/cx25821/cx25821-reg.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Hi Andy,
 
-diff --git a/drivers/staging/cx25821/cx25821-reg.h b/drivers/staging/cx25821/cx25821-reg.h
-index cfe0f32..a3fc25a 100644
---- a/drivers/staging/cx25821/cx25821-reg.h
-+++ b/drivers/staging/cx25821/cx25821-reg.h
-@@ -163,8 +163,8 @@
- #define  FLD_VID_DST_RISC2         0x00000010
- #define  FLD_VID_SRC_RISC1         0x00000002
- #define  FLD_VID_DST_RISC1         0x00000001
--#define  FLD_VID_SRC_ERRORS		FLD_VID_SRC_OPC_ERR | FLD_VID_SRC_SYNC | FLD_VID_SRC_UF
--#define  FLD_VID_DST_ERRORS		FLD_VID_DST_OPC_ERR | FLD_VID_DST_SYNC | FLD_VID_DST_OF
-+#define  FLD_VID_SRC_ERRORS		(FLD_VID_SRC_OPC_ERR | FLD_VID_SRC_SYNC | FLD_VID_SRC_UF)
-+#define  FLD_VID_DST_ERRORS		(FLD_VID_DST_OPC_ERR | FLD_VID_DST_SYNC | FLD_VID_DST_OF)
- 
- /* ***************************************************************************** */
- #define  AUD_A_INT_MSK             0x0400C0	/* Audio Int interrupt mask */
+First, I do not see why you changed the name 'light' to 'lamp' while
+'light' is used in the other cpia driver (cpia2).
+
+Then, you used a private control ID, and linux-media people don't like
+that.
+
+As many gspca users are waiting for a light/LED/illuminator/lamp
+control, I tried to define a standard one in March 2009:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/3095
+
+A second, but more restrictive, attempt was done by Németh Márton in
+February 2010:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/16705
+
+The main objection to that proposals was that the sysfs LED interface
+should be used instead:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/3114
+
+A patch in this way was done by Németh Márton in February 2010:
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/16670
+
+but it was rather complex, and there was no consensus
+http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/17111
+
+So, I don't think that your patch could be accepted...
+
+Best regards.
+
 -- 
-1.7.0.4
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
