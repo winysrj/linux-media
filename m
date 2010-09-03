@@ -1,158 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:24182 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751344Ab0ICPfm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Sep 2010 11:35:42 -0400
-Subject: Re: [PATCH] gspca_cpia1: Add lamp control for Intel Play QX3
- microscope
-From: Andy Walls <awalls@md.metrocast.net>
-To: Jean-Francois Moine <moinejf@free.fr>
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdgoede@redhat.com>
-In-Reply-To: <20100903103838.23d759c9@tele>
-References: <1283476182.17527.4.camel@morgan.silverblock.net>
-	 <20100903103838.23d759c9@tele>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 03 Sep 2010 11:35:26 -0400
-Message-ID: <1283528126.12583.80.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:55654 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756415Ab0ICKzh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Sep 2010 06:55:37 -0400
+Received: by qyk36 with SMTP id 36so3124136qyk.19
+        for <linux-media@vger.kernel.org>; Fri, 03 Sep 2010 03:55:36 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <AANLkTimc2TTQQogO8Q6ih6Bv3j_oOcVMux3cg-CJPGsw@mail.gmail.com>
+References: <AANLkTi=SY9xWCjp_0q6US7XN6XYoTWnGHA2=6EfjuWK-@mail.gmail.com>
+	<AANLkTikg79zui71Xz8r-Lg3zut0jkSk-BGEpBpXfWz5Y@mail.gmail.com>
+	<AANLkTimc2TTQQogO8Q6ih6Bv3j_oOcVMux3cg-CJPGsw@mail.gmail.com>
+Date: Fri, 3 Sep 2010 10:55:36 +0000
+Message-ID: <AANLkTim_mU7ayxjeE2HQz57UsPqHU46dPC3Ys600RJAD@mail.gmail.com>
+Subject: Re: Gigabyte 8300
+From: Dagur Ammendrup <dagurp@gmail.com>
+To: Joel Wiramu Pauling <joel@aenertia.net>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, 2010-09-03 at 10:38 +0200, Jean-Francois Moine wrote:
-> On Thu, 02 Sep 2010 21:09:42 -0400
-> Andy Walls <awalls@md.metrocast.net> wrote:
-> 	[snip]
-> > Add a v4l2 control to get the lamp control code working for the Intel
-> > Play QX3 microscope.  My daughter in middle school thought it was
-> > cool, and is now examining the grossest specimens she can find.
-> 	[snip]
-> > -		u8 toplight;            /* top light lit , R/W */
-> > -		u8 bottomlight;         /* bottom light lit, R/W */
-> > +		u8 toplamp;             /* top lamp lit , R/W */
-> > +		u8 bottomlamp;          /* bottom lamp lit, R/W */
-> 	[snip]
-> > +#define V4L2_CID_LAMPS (V4L2_CID_PRIVATE_BASE+1)
-> 	[snip]
-> 
-> Hi Andy,
-> 
-> First, I do not see why you changed the name 'light' to 'lamp' while
-> 'light' is used in the other cpia driver (cpia2).
-
-Hi Jean-Francois,
-
-My primary reason was slightly easier maintenance of gspca_cpia1.
-
-A case-insensitive search for "lamp" will find only the code related to
-controlling the lamps.  The string "light" is used in at least one other
-context in the driver.
-
-Other reasons for using "lamp":
-
-The QX3 actually uses incandescent bulbs with slow turn on circuitry to
-meet USB surge limit requirements.  The light sources really are lamps
-in that sense, not just lights.
-
-"Illuminator" seems to be the proper microscopy term for the assembly
-that provides light from below/behind the specimen, but it is harder to
-type than "lamp". ;)   I'm not sure what term applies to light sources
-above/afore the specimen.
+I tried it on a windows machine where it's identified as "Conextant
+Polaris Video Capture"  or
+"oem17.inf:Conexant.NTx86:POLARIS.DVBTX.x86:6.113.1125.1210:usb\vid_1b80&pid_d416&mi_01"
+if that tells you anything.
 
 
 
 
-> Then, you used a private control ID, and linux-media people don't like
-> that.
-
-I knew that going in, however:
-
-The gspca_cpia module already uses a private control.
-
-The cpia2 driver uses 7 private controls, one of which is
-CPIA2_CID_LIGHTS for controlling the lamps, er, lights. ;)
-
-The cpia2 driver used the same menu labels I did -
-"Off", "Top", "Bottom", "Both" - just in a slightly different order.
-
-So the QX5 microscope can use a private control, but the QX3 microscope
-can't use a private control?
-
-It seems like there's a strong precedent here, since such an API is
-already presented to user-space for controlling a device, the QX5, that
-is functionally and physically nearly identical to the QX3.
-
-
-I don't quite understand the aversion to well written private controls.
-A private control under V4L2 appears to mean "not used by another bridge
-driver", but what end user cares about that? 
-
-The V4L2 Control API is so well specified, that user space needs no
-apriori knowledge of a driver's controls, and yet applications can still
-present a GUI for every control useful for a user to manipulate. I put
-forward 'v4l2-ctl -L' and 'qv4l2' as examples of how users need not ever
-care if a control is private or not.
-
-V4L2 applications that would be capturing video or stills from
-microscopes already know how to manipulate V4L2 controls, so why not let
-them control the illumination with the same interface.  Why make them
-rummage around with some other API?
- 
-Using V4L2 controls to control the image processing, but prohibiting
-applications from using them to control the subject matter environment,
-doesn't make a lot of sense from an application writing perspective.
-
-We're tying our hands behind our back for the sake of "API idealism".
-So we have a flexible, well specified V4L2 control API and then don't
-let people use it, because we haven't figured out how to make lighting
-controls common across 200 video capture implementations and a crappy
-LED interface exists somewhere else in the kernel?  Does that make sense
-to anyone?  What are the benefits?
-
-
-
-
-> As many gspca users are waiting for a light/LED/illuminator/lamp
-> control, I tried to define a standard one in March 2009:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/3095
-> 
-> A second, but more restrictive, attempt was done by Németh Márton in
-> February 2010:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/16705
-> 
-> The main objection to that proposals was that the sysfs LED interface
-> should be used instead:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/3114
-> 
-> A patch in this way was done by Németh Márton in February 2010:
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/16670
-> 
-> but it was rather complex, and there was no consensus
-> http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/17111
-
-I see I'm preaching to the choir then.
-
-I do not have time, nor desire to play the "bring m a rock" game for the
-API for controlling lights - especially when multiple people have been
-playing it already.
-
-It's a shame.  The Intel Play QX3 is a nice microscope and is readily
-found on eBay.  My daughter absolutely loves it.  However, the unit is
-close to useless without control of the lights.
-
-If users are losing out because of inability to agree on an
-implementation, then something is wrong with the process.
-
-
-</rant>
-
-Regards,
-Andy
-
-> So, I don't think that your patch could be accepted...
-> 
-> Best regards.
-> 
-
-
+2010/9/3 Dagur Ammendrup <dagurp@gmail.com>:
+> I thought "Conexant CX23102" was the chip. How can I find this out? I
+> have access to a windows machine if that helps.
+>
+>
+>
+>
+> 2010/9/3 Joel Wiramu Pauling <joel@aenertia.net>:
+>> What sort of afatech chip?
+>>
+>> af9035 are not supported at all. Only af9015's which are in the older devices.
+>>
+>> On 3 September 2010 12:55, Dagur Ammendrup <dagurp@gmail.com> wrote:
+>>> Hi,
+>>>
+>>> I bought a Gigabyte U8300 today which is a hybrid USB tuner. These are
+>>> the specifications according to the manufacturer:
+>>>
+>>> Analog: TVPAL / SECAM / NTSC
+>>> Decoder chip: Conexant CX23102
+>>> Digital TV: DVB-T
+>>> Interface: USB 2.0
+>>> Others Support: Microsoft� Windows 2000, XP, MCE and Windows Vista MCE
+>>> / Win 7 32/ 64bits
+>>> Remote sensor Interface: IR
+>>> Tuner: NXP TDA18271
+>>>
+>>> Now I know that the decoder chip is supported in other USB sticks but
+>>> mine is not recognised. Here is my lsusb output:
+>>>
+>>> Bus 001 Device 004: ID 1b80:d416 Afatech
+>>>
+>>> And here is the dmesg info I get when I plug it in:
+>>>
+>>> [ 2981.693805] usb 1-2: USB disconnect, address 2
+>>> [ 2991.760091] usb 1-2: new high speed USB device using ehci_hcd and address 4
+>>> [ 2991.916044] usb 1-2: configuration #1 chosen from 1 choice
+>>>
+>>>
+>>> Is there anyone out there who might be interested in adding support
+>>> for this (or guide me through it)?
+>>>
+>>>
+>>> thanks,
+>>> Dagur
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at �http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>
