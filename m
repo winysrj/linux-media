@@ -1,86 +1,176 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:38883 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752546Ab0INN7Z (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:24801 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750773Ab0ICBJ5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 09:59:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFC/PATCH v4 04/11] media: Entity graph traversal
-Date: Tue, 14 Sep 2010 15:59:23 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-5-git-send-email-laurent.pinchart@ideasonboard.com> <4C882E75.8060906@redhat.com>
-In-Reply-To: <4C882E75.8060906@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Thu, 2 Sep 2010 21:09:57 -0400
+Subject: [PATCH] gspca_cpia1: Add lamp control for Intel Play QX3 microscope
+From: Andy Walls <awalls@md.metrocast.net>
+To: linux-media@vger.kernel.org
+Cc: Hans de Goede <hdgoede@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 02 Sep 2010 21:09:42 -0400
+Message-ID: <1283476182.17527.4.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009141559.24358.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Mauro,
+# HG changeset patch
+# User Andy Walls <awalls@radix.net>
+# Date 1283475832 14400
+# Node ID 0d251a2976b46e11cc817207de191896718b93a3
+# Parent  a4c762698bcb138982b81cf59e5bc4b7155866a9
+gspca_cpia1: Add lamp cotrol for Intel Play QX3 microscope
 
-On Thursday 09 September 2010 02:46:45 Mauro Carvalho Chehab wrote:
-> Em 20-08-2010 12:29, Laurent Pinchart escreveu:
-> > From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> > 
-> > Add media entity graph traversal. The traversal follows active links by
-> > depth first. Traversing graph backwards is prevented by comparing the
-> > next possible entity in the graph with the previous one. Multiply
-> > connected graphs are thus not supported.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
-> > ---
-> > 
-> >  Documentation/media-framework.txt |   40 +++++++++++++
-> >  drivers/media/media-entity.c      |  115
-> >  +++++++++++++++++++++++++++++++++++++ include/media/media-entity.h     
-> >  |   15 +++++
-> >  3 files changed, 170 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/Documentation/media-framework.txt
-> > b/Documentation/media-framework.txt index 35d74e4..a599824 100644
-> > --- a/Documentation/media-framework.txt
-> > +++ b/Documentation/media-framework.txt
-> > @@ -238,3 +238,43 @@ Links have flags that describe the link capabilities
-> > and state.
-> > 
-> >  	MEDIA_LINK_FLAG_ACTIVE must also be set since an immutable link is
-> >  	always active.
-> > 
-> > +
-> > +Graph traversal
-> > +---------------
-> > +
-> > +The media framework provides APIs to iterate over entities in a graph.
-> > +
-> > +To iterate over all entities belonging to a media device, drivers can
-> > use the +media_device_for_each_entity macro, defined in
-> > include/media/media-device.h. +
-> > +	struct media_entity *entity;
-> > +
-> > +	media_device_for_each_entity(entity, mdev) {
-> > +		/* entity will point to each entity in turn */
-> > +		...
-> > +	}
-> > +
-> > +Drivers might also need to iterate over all entities in a graph that can
-> > be +reached only through active links starting at a given entity. The
-> > media +framework provides a depth-first graph traversal API for that
-> > purpose. +
-> > +Note that graphs with cycles (whether directed or undirected) are *NOT*
-> > +supported by the graph traversal API.
-> 
-> Please document that a maximum depth exists to prevent loops, currently
-> defined as 16 (MEDIA_ENTITY_ENUM_MAX_DEPTH).
+From: Andy Walls <awalls@md.metrocast.net>
 
-Good idea, will do.
+Add a v4l2 control to get the lamp control code working for the Intel Play
+QX3 microscope.  My daughter in middle school thought it was cool, and is now
+examining the grossest specimens she can find.
 
--- 
-Regards,
+Priority: normal
 
-Laurent Pinchart
+Signed-off-by: Andy Walls <awalls@md.metrocast.net>
+
+diff -r a4c762698bcb -r 0d251a2976b4 linux/drivers/media/video/gspca/cpia1.c
+--- a/linux/drivers/media/video/gspca/cpia1.c	Wed Aug 25 16:13:54 2010 -0300
++++ b/linux/drivers/media/video/gspca/cpia1.c	Thu Sep 02 21:03:52 2010 -0400
+@@ -333,8 +333,8 @@
+ 	} format;
+ 	struct {                        /* Intel QX3 specific data */
+ 		u8 qx3_detected;        /* a QX3 is present */
+-		u8 toplight;            /* top light lit , R/W */
+-		u8 bottomlight;         /* bottom light lit, R/W */
++		u8 toplamp;             /* top lamp lit , R/W */
++		u8 bottomlamp;          /* bottom lamp lit, R/W */
+ 		u8 button;              /* snapshot button pressed (R/O) */
+ 		u8 cradled;             /* microscope is in cradle (R/O) */
+ 	} qx3;
+@@ -373,6 +373,8 @@
+ static int sd_getfreq(struct gspca_dev *gspca_dev, __s32 *val);
+ static int sd_setcomptarget(struct gspca_dev *gspca_dev, __s32 val);
+ static int sd_getcomptarget(struct gspca_dev *gspca_dev, __s32 *val);
++static int sd_setlamps(struct gspca_dev *gspca_dev, __s32 val);
++static int sd_getlamps(struct gspca_dev *gspca_dev, __s32 *val);
+ 
+ static const struct ctrl sd_ctrls[] = {
+ 	{
+@@ -447,6 +449,20 @@
+ 		.set = sd_setcomptarget,
+ 		.get = sd_getcomptarget,
+ 	},
++	{
++		{
++#define V4L2_CID_LAMPS (V4L2_CID_PRIVATE_BASE+1)
++			.id	 = V4L2_CID_LAMPS,
++			.type    = V4L2_CTRL_TYPE_MENU,
++			.name    = "Lamps",
++			.minimum = 0,
++			.maximum = 3,
++			.step    = 1,
++			.default_value = 0,
++		},
++		.set = sd_setlamps,
++		.get = sd_getlamps,
++	},
+ };
+ 
+ static const struct v4l2_pix_format mode[] = {
+@@ -766,8 +782,8 @@
+ 	params->compressionTarget.targetQ = 5; /* From windows driver */
+ 
+ 	params->qx3.qx3_detected = 0;
+-	params->qx3.toplight = 0;
+-	params->qx3.bottomlight = 0;
++	params->qx3.toplamp = 0;
++	params->qx3.bottomlamp = 0;
+ 	params->qx3.button = 0;
+ 	params->qx3.cradled = 0;
+ }
+@@ -1059,17 +1075,16 @@
+ 			  0, sd->params.streamStartLine, 0, 0);
+ }
+ 
+-#if 0 /* Currently unused */ /* keep */
+-static int command_setlights(struct gspca_dev *gspca_dev)
++static int command_setlamps(struct gspca_dev *gspca_dev)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+-	int ret, p1, p2;
++	int ret, p;
+ 
+ 	if (!sd->params.qx3.qx3_detected)
+ 		return 0;
+ 
+-	p1 = (sd->params.qx3.bottomlight == 0) << 1;
+-	p2 = (sd->params.qx3.toplight == 0) << 3;
++	p  = (sd->params.qx3.toplamp    == 0) ? 0x8 : 0;
++	p |= (sd->params.qx3.bottomlamp == 0) ? 0x2 : 0;
+ 
+ 	ret = do_command(gspca_dev, CPIA_COMMAND_WriteVCReg,
+ 			 0x90, 0x8F, 0x50, 0);
+@@ -1077,9 +1092,8 @@
+ 		return ret;
+ 
+ 	return do_command(gspca_dev, CPIA_COMMAND_WriteMCPort, 2, 0,
+-			  p1 | p2 | 0xE0, 0);
++			  p | 0xE0, 0);
+ }
+-#endif
+ 
+ static int set_flicker(struct gspca_dev *gspca_dev, int on, int apply)
+ {
+@@ -1932,6 +1946,27 @@
+ 	return 0;
+ }
+ 
++static int sd_setlamps(struct gspca_dev *gspca_dev, __s32 val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	sd->params.qx3.toplamp    = (val & 0x2) ? 1 : 0;
++	sd->params.qx3.bottomlamp = (val & 0x1) ? 1 : 0;
++
++	if (sd->params.qx3.qx3_detected)
++		return command_setlamps(gspca_dev);
++
++	return 0;
++}
++
++static int sd_getlamps(struct gspca_dev *gspca_dev, __s32 *val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	*val = (sd->params.qx3.toplamp << 1) | (sd->params.qx3.bottomlamp << 0);
++	return 0;
++}
++
+ static int sd_querymenu(struct gspca_dev *gspca_dev,
+ 			struct v4l2_querymenu *menu)
+ {
+@@ -1959,6 +1994,22 @@
+ 			return 0;
+ 		}
+ 		break;
++	case V4L2_CID_LAMPS:
++		switch (menu->index) {
++		case 0:
++			strcpy((char *) menu->name, "Off");
++			return 0;
++		case 1:
++			strcpy((char *) menu->name, "Bottom");
++			return 0;
++		case 2:
++			strcpy((char *) menu->name, "Top");
++			return 0;
++		case 3:
++			strcpy((char *) menu->name, "Both");
++			return 0;
++		}
++		break;
+ 	}
+ 	return -EINVAL;
+ }
+
+
