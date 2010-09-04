@@ -1,51 +1,48 @@
-Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:51789 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752751Ab0IPLcJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 07:32:09 -0400
-Message-ID: <d1cd45c6d862e80252cf82047455e9b6.squirrel@www.hardeman.nu>
-In-Reply-To: <20100916052245.GC23299@redhat.com>
-References: <20100916051932.GA23299@redhat.com>
-    <20100916052245.GC23299@redhat.com>
-Date: Thu, 16 Sep 2010 13:32:07 +0200 (CEST)
-Subject: Re: [PATCH 2/4] imon: split mouse events to a separate input dev
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: "Jarod Wilson" <jarod@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	"Dmitry Torokhov" <dmitry.torokhov@gmail.com>,
-	"Anders Eriksson" <aeriksson@fastmail.fm>,
-	"Anssi Hannula" <anssi.hannula@iki.fi>
+Return-path: <mchehab@localhost>
+Received: from tichy.grunau.be ([85.131.189.73]:35423 "EHLO tichy.grunau.be"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754300Ab0IDRf2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Sep 2010 13:35:28 -0400
+Date: Sat, 4 Sep 2010 19:29:59 +0200
+From: Janne Grunau <j@jannau.net>
+To: James MacLaren <jm.maclaren@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: PATCH to hdpvr-video.c solves DMA allocation problems on arm
+ processsors.
+Message-ID: <20100904172959.GC13521@aniel.lan>
+References: <AANLkTim=Gy=hdePJBiA0M_+nvR9Netc2KXPdJCK8ZZi4@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <AANLkTim=Gy=hdePJBiA0M_+nvR9Netc2KXPdJCK8ZZi4@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-On Thu, September 16, 2010 07:22, Jarod Wilson wrote:
-> This is a stab at separating the mouse (and front panel/knob) events
-> out to a separate input device. This is necessary in preparation for
-> the next patch which makes the rc-core input dev opaque to rc
-> drivers.
->
-> I can't verify the correctness of the patch beyond the fact that it
-> compiles without warnings. The driver has resisted most of my
-> attempts at understanding it properly...for example, the double calls
-> to le64_to_cpu() and be64_to_cpu() which are applied in
-> imon_incoming_packet() and imon_panel_key_lookup() would amount
-> to a bswab64() call, irregardless of the cpu endianness, and I think
-> the code wouldn't have worked on a big-endian machine...
->
-> Signed-off-by: David Härdeman <david@hardeman.nu>
->
-> - Minor alterations to apply with minimal core IR changes
-> - Use timer for imon keys too, since its entirely possible for the
->   receiver to miss release codes (either by way of another key being
->   pressed while the first is held or by the remote pointing away from
->   the recevier when the key is release. yes, I know, its ugly).
+On Fri, Sep 03, 2010 at 11:19:00AM -0500, James MacLaren wrote:
+> I needed to patch hdpvr-video.c to capture on my dockstar arm
+> processor.  I see that this patch has been noted on a number of other
+> usb drivers on this list.
+> 
+> diff -Naur hdpvr-video.c hdpvr-video-jmm.c
+> 
+> --- hdpvr-video.c       2010-08-29 09:28:57.126133063 -0500
+> +++ hdpvr-video-jmm.c   2010-09-03 08:41:37.854129338 -0500
+> @@ -157,6 +157,7 @@
+> 
+>                                   mem, dev->bulk_in_size,
+>                                   hdpvr_read_bulk_callback, buf);
+> 
+> +                buf->urb->transfer_flags |= URB_NO_TRANSFER_DMA_MAP;
+> // added JMM
+>                 buf->status = BUFSTAT_AVAILABLE;
+>                 list_add_tail(&buf->buff_list, &dev->free_buff_list);
+>         }
+> 
+> 
+> Hopefully this patch can be applied.
 
-Where's the additional timer usage exactly? I can't see any in the patch...
+yes, it can and should. Please resend the patch without the '// added JMM'
+comment and your sign-off
 
--- 
-David Härdeman
-
+Janne
