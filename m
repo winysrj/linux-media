@@ -1,99 +1,46 @@
-Return-path: <mchehab@pedra>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:64515 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755640Ab0I0TMt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 15:12:49 -0400
-Received: by pxi10 with SMTP id 10so1527456pxi.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Sep 2010 12:12:48 -0700 (PDT)
-Message-ID: <4CA0ECA9.30208@gmail.com>
-Date: Mon, 27 Sep 2010 16:12:41 -0300
-From: Mauro Carvalho Chehab <maurochehab@gmail.com>
+Return-path: <mchehab@localhost>
+Received: from mailout-de.gmx.net ([213.165.64.22]:46983 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753096Ab0IDUEG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Sep 2010 16:04:06 -0400
+Date: Sat, 4 Sep 2010 22:04:00 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PULL] soc-camera 2.6.36 fixes
+Message-ID: <Pine.LNX.4.64.1009042202470.24729@axis700.grange>
 MIME-Version: 1.0
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-CC: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	"Ole W. Saastad" <olewsaa@online.no>, linux-media@vger.kernel.org
-Subject: Re: updated make_kconfig.pl for Ubuntu
-References: <1284493110.1801.57.camel@sofia> <4C924EB8.9070500@hoogenraad.net> <4C93364C.3040606@hoogenraad.net> <4C934806.7050503@gmail.com> <4C934C10.2060801@hoogenraad.net> <4C93800B.8070902@gmail.com> <4C9F7267.7000707@hoogenraad.net> <4CA018C4.9000507@gmail.com> <4CA0E554.40406@hoogenraad.net>
-In-Reply-To: <4CA0E554.40406@hoogenraad.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-Em 27-09-2010 15:41, Jan Hoogenraad escreveu:
-> I have updated launchpad bug
-> 
-> https://bugs.launchpad.net/ubuntu/+source/linux-kernel-headers/+bug/134222
-> 
-> I also created an updated make_kconfig.pl
-> 
-> http://linuxtv.org/hg/~jhoogenraad/rtl2831-r2/file/cb34ee1c29fc/v4l/scripts/make_kconfig.pl
-> 
-> Unfortunately, I forgot to commit changes to the main archive the first time. I do not know how to make a patch file for this one file, without have all other changes in the two commits as well.
-> I cannot find a hg export command to make a patch for this one file between versions spanning two commits.
+Hi Mauro
 
-You can just do a diff with upstream. Anyway, I'm enclosing the merged patch.
+The following changes since commit 2bfc96a127bc1cc94d26bfaa40159966064f9c8c:
 
-There's one problem on it:
+  Linux 2.6.36-rc3 (2010-08-29 08:36:04 -0700)
 
-$dmahplace="/usr/src/linux-headers-$dmahplace/include/config/ieee1394/dma.h";
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-2.6.36
 
-Don't use absolute names here. -hg build system is smart enough to get the directory
-where the kernel is installed, depending on what version you're compiling against
-(you may change it with "make release").
+Baruch Siach (1):
+      mx2_camera: fix a race causing NULL dereference
 
-Based on sub kernelcheck(), were we have:
-	my $fullkernel="$kernsrc/fs/fcntl.c";
+Ionut Gabriel Popescu (1):
+      mt9v022.c: Fixed compilation warning
 
-I suspect that using:
-	$dmahplace="$kernelsrc/include/config/ieee1394/dma.h";
+Michael Grzeschik (2):
+      mt9m111: cropcap and s_crop check if type is VIDEO_CAPTURE
+      mt9m111: added current colorspace at g_fmt
 
-should work properly.
+ drivers/media/video/mt9m111.c    |    8 +++++++-
+ drivers/media/video/mt9v022.c    |    3 ---
+ drivers/media/video/mx2_camera.c |    4 ++++
+ 3 files changed, 11 insertions(+), 4 deletions(-)
 
+Thanks
+Guennadi
 ---
-
-FYI, this is the diff from the master -hg:
-
-diff -r 1da5fed5c8b2 v4l/scripts/make_kconfig.pl
---- a/v4l/scripts/make_kconfig.pl	Sun Sep 19 02:23:09 2010 -0300
-+++ b/v4l/scripts/make_kconfig.pl	Mon Sep 27 16:04:50 2010 -0300
-@@ -597,6 +597,9 @@
- disable_config('STAGING_BROKEN');
- $intopt { "DVB_MAX_ADAPTERS" } = 8;
- 
-+#check broken Ubuntu headers
-+dmahcheck();
-+
- # Check dependencies
- my %newconfig = checkdeps();
- 
-@@ -681,3 +684,27 @@
- EOF3
- 	sleep 5;
- }
-+
-+# Check for full kernel sources and print a warning
-+sub dmahcheck()
-+{
-+	my $dmahplace= "".$kernsrc;
-+	$dmahplace =~ s-^/lib/modules/--g;
-+	$dmahplace =~ s-/.*$--g;
-+	$dmahplace="/usr/src/linux-headers-$dmahplace/include/config/ieee1394/dma.h";
-+	if (! -e $dmahplace) {
-+		print <<"EOF2";
-+
-+***WARNING:*** File $dmahplace not present.
-+This problem is at least present on Ubuntu systems:
-+https://bugs.launchpad.net/ubuntu/+source/linux-kernel-headers/+bug/134222
-+
-+Therefore disabling FIREDTV driver.
-+
-+EOF2
-+
-+	disable_config('DVB_FIREDTV');
-+
-+	}
-+	sleep 5;
-+}
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
