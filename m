@@ -1,242 +1,113 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:42704 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754615Ab0IWLfP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 07:35:15 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@localhost>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1455 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751960Ab0IDTHo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Sep 2010 15:07:44 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o84J7dL9003497
+	for <linux-media@vger.kernel.org>; Sat, 4 Sep 2010 21:07:43 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sat, 4 Sep 2010 21:07:39 +0200 (CEST)
+Message-Id: <201009041907.o84J7dL9003497@smtp-vbr15.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v5 04/12] media: Entity graph traversal
-Date: Thu, 23 Sep 2010 13:34:48 +0200
-Message-Id: <1285241696-16826-5-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285241696-16826-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285241696-16826-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Add media entity graph traversal. The traversal follows active links by
-depth first. Traversing graph backwards is prevented by comparing the next
-possible entity in the graph with the previous one. Multiply connected
-graphs are thus not supported.
+Results of the daily build of v4l-dvb:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Vimarsh Zutshi <vimarsh.zutshi@nokia.com>
----
- Documentation/media-framework.txt |   42 +++++++++++++
- drivers/media/media-entity.c      |  115 +++++++++++++++++++++++++++++++++++++
- include/media/media-entity.h      |   15 +++++
- 3 files changed, 172 insertions(+), 0 deletions(-)
+date:        Sat Sep  4 19:00:05 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15139:6e0befab696a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
-index 0332162..27a38a1 100644
---- a/Documentation/media-framework.txt
-+++ b/Documentation/media-framework.txt
-@@ -215,3 +215,45 @@ Links have flags that describe the link capabilities and state.
- 	MEDIA_LINK_FLAG_ACTIVE must also be set since an immutable link is
- 	always active.
- 
-+
-+Graph traversal
-+---------------
-+
-+The media framework provides APIs to iterate over entities in a graph.
-+
-+To iterate over all entities belonging to a media device, drivers can use the
-+media_device_for_each_entity macro, defined in include/media/media-device.h.
-+
-+	struct media_entity *entity;
-+
-+	media_device_for_each_entity(entity, mdev) {
-+		/* entity will point to each entity in turn */
-+		...
-+	}
-+
-+Drivers might also need to iterate over all entities in a graph that can be
-+reached only through active links starting at a given entity. The media
-+framework provides a depth-first graph traversal API for that purpose.
-+
-+Note that graphs with cycles (whether directed or undirected) are *NOT*
-+supported by the graph traversal API. To prevent infinite loops, the graph
-+traversal code limits the maximum depth to MEDIA_ENTITY_ENUM_MAX_DEPTH,
-+currently defined as 16.
-+
-+Drivers initiate a graph traversal by calling
-+
-+	media_entity_graph_walk_start(struct media_entity_graph *graph,
-+				      struct media_entity *entity);
-+
-+The graph structure, provided by the caller, is initialized to start graph
-+traversal at the given entity.
-+
-+Drivers can then retrieve the next entity by calling
-+
-+	media_entity_graph_walk_next(struct media_entity_graph *graph);
-+
-+When the graph traversal is complete the function will return NULL.
-+
-+Graph traversal can be interrupted at any moment. No cleanup function call is
-+required and the graph structure can be freed normally.
-+
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index fcc4169..401c396 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -82,6 +82,121 @@ media_entity_cleanup(struct media_entity *entity)
- }
- EXPORT_SYMBOL_GPL(media_entity_cleanup);
- 
-+/* -----------------------------------------------------------------------------
-+ * Graph traversal
-+ */
-+
-+static struct media_entity *
-+media_entity_other(struct media_entity *entity, struct media_link *link)
-+{
-+	if (link->source->entity == entity)
-+		return link->sink->entity;
-+	else
-+		return link->source->entity;
-+}
-+
-+/* push an entity to traversal stack */
-+static void stack_push(struct media_entity_graph *graph,
-+		       struct media_entity *entity)
-+{
-+	if (graph->top == MEDIA_ENTITY_ENUM_MAX_DEPTH - 1) {
-+		WARN_ON(1);
-+		return;
-+	}
-+	graph->top++;
-+	graph->stack[graph->top].link = 0;
-+	graph->stack[graph->top].entity = entity;
-+}
-+
-+static struct media_entity *stack_pop(struct media_entity_graph *graph)
-+{
-+	struct media_entity *entity;
-+
-+	entity = graph->stack[graph->top].entity;
-+	graph->top--;
-+
-+	return entity;
-+}
-+
-+#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
-+#define link_top(en)	((en)->stack[(en)->top].link)
-+#define stack_top(en)	((en)->stack[(en)->top].entity)
-+
-+/**
-+ * media_entity_graph_walk_start - Start walking the media graph at a given entity
-+ * @graph: Media graph structure that will be used to walk the graph
-+ * @entity: Starting entity
-+ *
-+ * This function initializes the graph traversal structure to walk the entities
-+ * graph starting at the given entity. The traversal structure must not be
-+ * modified by the caller during graph traversal. When done the structure can
-+ * safely be freed.
-+ */
-+void media_entity_graph_walk_start(struct media_entity_graph *graph,
-+				   struct media_entity *entity)
-+{
-+	graph->top = 0;
-+	graph->stack[graph->top].entity = NULL;
-+	stack_push(graph, entity);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-+
-+/**
-+ * media_entity_graph_walk_next - Get the next entity in the graph
-+ * @graph: Media graph structure
-+ *
-+ * Perform a depth-first traversal of the given media entities graph.
-+ *
-+ * The graph structure must have been previously initialized with a call to
-+ * media_entity_graph_walk_start().
-+ *
-+ * Return the next entity in the graph or NULL if the whole graph have been
-+ * traversed.
-+ */
-+struct media_entity *
-+media_entity_graph_walk_next(struct media_entity_graph *graph)
-+{
-+	if (stack_top(graph) == NULL)
-+		return NULL;
-+
-+	/*
-+	 * Depth first search. Push entity to stack and continue from
-+	 * top of the stack until no more entities on the level can be
-+	 * found.
-+	 */
-+	while (link_top(graph) < stack_top(graph)->num_links) {
-+		struct media_entity *entity = stack_top(graph);
-+		struct media_link *link = &entity->links[link_top(graph)];
-+		struct media_entity *next;
-+
-+		/* The link is not active so we do not follow. */
-+		if (!(link->flags & MEDIA_LINK_FLAG_ACTIVE)) {
-+			link_top(graph)++;
-+			continue;
-+		}
-+
-+		/* Get the entity in the other end of the link . */
-+		next = media_entity_other(entity, link);
-+
-+		/* Was it the entity we came here from? */
-+		if (next == stack_peek(graph)) {
-+			link_top(graph)++;
-+			continue;
-+		}
-+
-+		/* Push the new entity to stack and start over. */
-+		link_top(graph)++;
-+		stack_push(graph, next);
-+	}
-+
-+	return stack_pop(graph);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
-+
-+/* -----------------------------------------------------------------------------
-+ * Links management
-+ */
-+
- static struct media_link *media_entity_add_link(struct media_entity *entity)
- {
- 	if (entity->num_links >= entity->max_links) {
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 32bb20a..3a7c74d 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -87,10 +87,25 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
- 	return entity->type & MEDIA_ENTITY_SUBTYPE_MASK;
- }
- 
-+#define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-+
-+struct media_entity_graph {
-+	struct {
-+		struct media_entity *entity;
-+		int link;
-+	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-+	int top;
-+};
-+
- int media_entity_init(struct media_entity *entity, u16 num_pads,
- 		struct media_pad *pads, u16 extra_links);
- void media_entity_cleanup(struct media_entity *entity);
- int media_entity_create_link(struct media_entity *source, u16 source_pad,
- 		struct media_entity *sink, u16 sink_pad, u32 flags);
- 
-+void media_entity_graph_walk_start(struct media_entity_graph *graph,
-+		struct media_entity *entity);
-+struct media_entity *
-+media_entity_graph_walk_next(struct media_entity_graph *graph);
-+
- #endif
--- 
-1.7.2.2
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
