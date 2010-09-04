@@ -1,105 +1,67 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:33252 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759048Ab0I0MZf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 08:25:35 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH 3/6] V4L/DVB: v4l: Add a v4l2_subdev host private data field
-Date: Mon, 27 Sep 2010 14:25:39 +0200
-Message-Id: <1285590342-5199-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285590342-5199-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285590342-5199-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@localhost>
+Received: from mailout-de.gmx.net ([213.165.64.22]:34025 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1751966Ab0IDUfi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Sep 2010 16:35:38 -0400
+Date: Sat, 4 Sep 2010 22:35:35 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Michael Grzeschik <mgr@pengutronix.de>
+cc: Robert Jarzmik <robert.jarzmik@free.fr>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: Re: [PATCH v2 10/11] mt9m111: rewrite set_pixfmt
+In-Reply-To: <20100831074605.GC15967@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1009042234400.24729@axis700.grange>
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+ <1280833069-26993-11-git-send-email-m.grzeschik@pengutronix.de>
+ <Pine.LNX.4.64.1008271335200.28043@axis700.grange> <871v9hmdoz.fsf@free.fr>
+ <20100831074605.GC15967@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-The existing priv field stores subdev private data owned by the subdev
-driver. Host (bridge) drivers might need to store per-subdev
-host-specific data, such as a pointer to platform data.
+On Tue, 31 Aug 2010, Michael Grzeschik wrote:
 
-Add a v4l2_subdev host_priv field to store host-specific data, and
-rename the existing priv field to dev_priv.
+> Hi Robert and Guennadi
+> 
+> On Sun, Aug 29, 2010 at 09:17:00PM +0200, Robert Jarzmik wrote:
+> > Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
+> > 
+> > > Robert, I'll need your ack / tested by on this one too. It actually 
+> > > changes behaviour, for example, it sets MT9M111_OUTFMT_FLIP_BAYER_ROW in 
+> > > the OUTPUT_FORMAT_CTRL register for the V4L2_MBUS_FMT_SBGGR8_1X8 8 bit 
+> > > Bayer format. Maybe other things too - please have a look.
+> > 
+> > For the YUV and RGB formats, tested and acked.
+> > For the bayer, I don't use it. With row switch, that gives back:
+> > byte offset: 0 1 2 3
+> >              B G B G
+> >              G R G R
+> > 
+> > Without the switch:
+> > byte offset: 0 1 2 3
+> >              G R G R
+> >              B G B G
+> > 
+> > I would have expected the second version (ie. without the switch, ie. the
+> > original version of mt9m111 driver) to be correct, but I might be wrong. Maybe
+> > Michael can enlighten me here.
+> Yes this seems odd, i normaly expect the first line to be BGBG.
+> I will search for the cause and reply a little later, perhaps end of
+> the week, since i am also short on time at this moment.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Hans Verkuil <hverkuil@xs4all.nl>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Ok, _if_ you have to redo this patch, maybe you could also merge
+
+[PATCH 04/11] mt9m111: added new bit offset defines
+[PATCH 08/11] mt9m111: added reg_mask function
+
+into it, otherwise their purpose is unclear.
+
+Thanks
+Guennadi
 ---
- Documentation/video4linux/v4l2-framework.txt |    5 +++++
- drivers/media/video/v4l2-subdev.c            |    3 ++-
- include/media/v4l2-subdev.h                  |   17 ++++++++++++++---
- 3 files changed, 21 insertions(+), 4 deletions(-)
-
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 21bb837..9127a28 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -206,6 +206,11 @@ You also need a way to go from the low-level struct to v4l2_subdev. For the
- common i2c_client struct the i2c_set_clientdata() call is used to store a
- v4l2_subdev pointer, for other busses you may have to use other methods.
- 
-+Bridges might also need to store per-subdev private data, such as a pointer to
-+bridge-specific per-subdev private data. The v4l2_subdev structure provides
-+host private data for that purpose that can be accessed with
-+v4l2_get_subdev_hostdata() and v4l2_set_subdev_hostdata().
-+
- From the bridge driver perspective you load the sub-device module and somehow
- obtain the v4l2_subdev pointer. For i2c devices this is easy: you call
- i2c_get_clientdata(). For other busses something similar needs to be done.
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index ecbdaca..497eea4 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -308,7 +308,8 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
- 	sd->flags = 0;
- 	sd->name[0] = '\0';
- 	sd->grp_id = 0;
--	sd->priv = NULL;
-+	sd->dev_priv = NULL;
-+	sd->host_priv = NULL;
- 	sd->initialized = 1;
- 	sd->entity.name = sd->name;
- 	sd->entity.type = MEDIA_ENTITY_TYPE_SUBDEV;
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 3b947ed..8c25f10 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -485,7 +485,8 @@ struct v4l2_subdev {
- 	/* can be used to group similar subdevs, value is driver-specific */
- 	u32 grp_id;
- 	/* pointer to private data */
--	void *priv;
-+	void *dev_priv;
-+	void *host_priv;
- 	/* subdev device node */
- 	struct video_device devnode;
- 	unsigned int initialized;
-@@ -526,12 +527,22 @@ extern const struct v4l2_file_operations v4l2_subdev_fops;
- 
- static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
- {
--	sd->priv = p;
-+	sd->dev_priv = p;
- }
- 
- static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
- {
--	return sd->priv;
-+	return sd->dev_priv;
-+}
-+
-+static inline void v4l2_set_subdev_hostdata(struct v4l2_subdev *sd, void *p)
-+{
-+	sd->host_priv = p;
-+}
-+
-+static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
-+{
-+	return sd->host_priv;
- }
- 
- void v4l2_subdev_init(struct v4l2_subdev *sd,
--- 
-1.7.2.2
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
