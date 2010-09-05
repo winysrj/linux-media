@@ -1,53 +1,49 @@
-Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:51039 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754697Ab0I0NHN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 09:07:13 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 11so3246776bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Sep 2010 06:07:13 -0700 (PDT)
-From: Ruslan Pisarev <ruslanpisarev@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: ruslan@rpisarev.org.ua
-Subject: [PATCH 11/13] Staging: cx25821: fix tabs and space coding style issue in cx25821-video-upstream.h
-Date: Mon, 27 Sep 2010 16:07:02 +0300
-Message-Id: <1285592822-311-1-git-send-email-ruslan@rpisarev.org.ua>
-In-Reply-To: <y>
-References: <y>
+Return-path: <mchehab@localhost>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:59977 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754099Ab0IEVow (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Sep 2010 17:44:52 -0400
+Received: by fxm13 with SMTP id 13so2211994fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 05 Sep 2010 14:44:51 -0700 (PDT)
+Subject: Re: [PATCH 0/8 V3] Many fixes for in-kernel decoding and for the
+ ENE driver
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-media@vger.kernel.org, mchehab@infradead.org
+In-Reply-To: <20100905210602.GA26715@hardeman.nu>
+References: <1283642583-13102-1-git-send-email-maximlevitsky@gmail.com>
+	 <20100905210602.GA26715@hardeman.nu>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 06 Sep 2010 00:44:47 +0300
+Message-ID: <1283723087.7534.1.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-This is a patch to the cx25821-video-upstream.h file that fixed up
-a space errors found by the checkpatch.pl tools.
+On Sun, 2010-09-05 at 23:06 +0200, David Härdeman wrote: 
+> On Sun, Sep 05, 2010 at 02:22:55AM +0300, Maxim Levitsky wrote:
+> > Hi,
+> > 
+> > This is next version of my patchset.
+> > I addressed the comments from David Härdeman,                   
+> > And in addition to that did a lot of cleanups in the ENE driver.
+> > This includes new idle mode support that doesn't need 75 ms sample period.
+> > Timeouts are now handled in much cleaner way.
+> > Refactoring, even better register names, stale comments updated, some spelling errors
+> > were fixed.
+> > 
+> > Any comments are welcome!
+> 
+> Out patchsets conflict. Depending on which order Mauro wishes to merge 
+> them one of us will have to rebase. If mine is merged first, patch 2/8 
+> in your set should not be necessary.
+Btw, I really welcome your patches.
+Indeed we need to resolve this.
+I hope to see this patchset in 2.6.36, because without it there are just
+too many bugs.
 
-Signed-off-by: Ruslan Pisarev <ruslan@rpisarev.org.ua>
----
- drivers/staging/cx25821/cx25821-video-upstream.h |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/staging/cx25821/cx25821-video-upstream.h b/drivers/staging/cx25821/cx25821-video-upstream.h
-index 10dee5c..f0b3ac0 100644
---- a/drivers/staging/cx25821/cx25821-video-upstream.h
-+++ b/drivers/staging/cx25821/cx25821-video-upstream.h
-@@ -97,13 +97,13 @@
- #define PAL_RISC_BUF_SIZE           (2 * PAL_US_VID_PROG_SIZE)
- 
- #define PAL_VID_PROG_SIZE           ((PAL_FIELD_HEIGHT*2) * 3 * DWORD_SIZE + 2*RISC_SYNC_INSTRUCTION_SIZE + \
--				      RISC_WRITECR_INSTRUCTION_SIZE + JUMP_INSTRUCTION_SIZE )
-+				      RISC_WRITECR_INSTRUCTION_SIZE + JUMP_INSTRUCTION_SIZE)
- 
--#define ODD_FLD_PAL_PROG_SIZE       ((PAL_FIELD_HEIGHT) * 3 * DWORD_SIZE + RISC_SYNC_INSTRUCTION_SIZE + RISC_WRITECR_INSTRUCTION_SIZE )
--#define ODD_FLD_NTSC_PROG_SIZE      ((NTSC_ODD_FLD_LINES) * 3 * DWORD_SIZE + RISC_SYNC_INSTRUCTION_SIZE + RISC_WRITECR_INSTRUCTION_SIZE )
-+#define ODD_FLD_PAL_PROG_SIZE       ((PAL_FIELD_HEIGHT) * 3 * DWORD_SIZE + RISC_SYNC_INSTRUCTION_SIZE + RISC_WRITECR_INSTRUCTION_SIZE)
-+#define ODD_FLD_NTSC_PROG_SIZE      ((NTSC_ODD_FLD_LINES) * 3 * DWORD_SIZE + RISC_SYNC_INSTRUCTION_SIZE + RISC_WRITECR_INSTRUCTION_SIZE)
- 
- #define NTSC_US_VID_PROG_SIZE       ((NTSC_ODD_FLD_LINES + 1) * 3 * DWORD_SIZE + RISC_WRITECR_INSTRUCTION_SIZE + JUMP_INSTRUCTION_SIZE)
--#define NTSC_RISC_BUF_SIZE          ( 2 * (RISC_SYNC_INSTRUCTION_SIZE + NTSC_US_VID_PROG_SIZE) )
-+#define NTSC_RISC_BUF_SIZE          (2 * (RISC_SYNC_INSTRUCTION_SIZE + NTSC_US_VID_PROG_SIZE))
- #define FRAME1_VID_PROG_SIZE        ((NTSC_ODD_FLD_LINES + NTSC_FIELD_HEIGHT) * 3 * DWORD_SIZE + 2*RISC_SYNC_INSTRUCTION_SIZE + \
--				      RISC_WRITECR_INSTRUCTION_SIZE + JUMP_INSTRUCTION_SIZE )
-+				      RISC_WRITECR_INSTRUCTION_SIZE + JUMP_INSTRUCTION_SIZE)
- #endif
--- 
-1.7.0.4
+Best regards,
+Maxim Levitsky
 
