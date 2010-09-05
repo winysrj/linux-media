@@ -1,113 +1,68 @@
 Return-path: <mchehab@localhost>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2302 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752783Ab0IBSzK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 14:55:10 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id o82It9fJ050239
-	for <linux-media@vger.kernel.org>; Thu, 2 Sep 2010 20:55:09 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Thu, 2 Sep 2010 20:55:09 +0200 (CEST)
-Message-Id: <201009021855.o82It9fJ050239@smtp-vbr15.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from bear.ext.ti.com ([192.94.94.41]:55952 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753834Ab0IETOk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Sep 2010 15:14:40 -0400
+From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
+To: "Taneja, Archit" <archit@ti.com>
+CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Mon, 6 Sep 2010 00:44:33 +0530
+Subject: RE: [PATCH 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
+ without VRFB
+Message-ID: <19F8576C6E063C45BE387C64729E739404687B222E@dbde02.ent.ti.com>
+References: <1283589705-6723-1-git-send-email-archit@ti.com>
+In-Reply-To: <1283589705-6723-1-git-send-email-archit@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+> -----Original Message-----
+> From: Taneja, Archit
+> Sent: Saturday, September 04, 2010 2:12 PM
+> To: Hiremath, Vaibhav
+> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org; Taneja,
+> Archit
+> Subject: [PATCH 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build without
+> VRFB
+> 
+> This lets omap_vout driver build and run without VRFB. It works along the
+> lines of the following patch series:
+> OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
+> https://patchwork.kernel.org/patch/105371/
+> 
+> A variable rotation_type is introduced in omapvideo_info like the way in
+> omapfb_info to make both vrfb and non vrfb rotation possible.
+> 
+[Hiremath, Vaibhav] Archit,
 
-Results of the daily build of v4l-dvb:
+Currently omap_vout driver only supports VRFB based rotation, it doesn't support SDMA based rotation (unlike OMAPFB) and neither you patch adds it.
 
-date:        Thu Sep  2 19:00:06 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15138:a4c762698bcb
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Thanks,
+Vaibhav
 
-linux-2.6.32.6-armv5: ERRORS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: ERRORS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
+> Since VRFB is tightly coupled with the omap_vout driver, a handful of
+> vrfb-specific functions have been defined and placed in omap_vout_vrfb.c
+> 
+> This series applies along with the previously submitted patch:
+> https://patchwork.kernel.org/patch/146401/
+> 
+> Archit Taneja (2):
+>   V4L/DVB: OMAP_VOUT: Create a seperate vrfb functions library
+>   V4L/DVB: OMAP_VOUT: Use rotation_type to choose between vrfb and
+>     sdram rotation
+> 
+>  drivers/media/video/omap/Kconfig          |    1 -
+>  drivers/media/video/omap/Makefile         |    1 +
+>  drivers/media/video/omap/omap_vout.c      |  502 ++++++------------------
+> -----
+>  drivers/media/video/omap/omap_vout_vrfb.c |  417 ++++++++++++++++++++++++
+>  drivers/media/video/omap/omap_vout_vrfb.h |   40 +++
+>  drivers/media/video/omap/omap_voutdef.h   |   26 ++
+>  6 files changed, 582 insertions(+), 405 deletions(-)
+>  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
+>  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
