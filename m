@@ -1,92 +1,51 @@
-Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:51282 "EHLO mail.kapsi.fi"
+Return-path: <mchehab@localhost>
+Received: from smtp6-g21.free.fr ([212.27.42.6]:38796 "EHLO smtp6-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753652Ab0IOUOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 16:14:48 -0400
-Message-ID: <4C912935.7010109@iki.fi>
-Date: Wed, 15 Sep 2010 23:14:45 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1751533Ab0IEQoo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Sep 2010 12:44:44 -0400
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Philipp Wiesner <p.wiesner@phytec.de>
+Subject: Re: [PATCH v2 11/11] mt9m111: make use of testpattern
+References: <1280833069-26993-1-git-send-email-m.grzeschik@pengutronix.de>
+	<1280833069-26993-12-git-send-email-m.grzeschik@pengutronix.de>
+	<8762ytmk57.fsf@free.fr>
+	<Pine.LNX.4.64.1008291954470.2987@axis700.grange>
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+Date: Sun, 05 Sep 2010 18:44:35 +0200
+In-Reply-To: <Pine.LNX.4.64.1008291954470.2987@axis700.grange> (Guennadi Liakhovetski's message of "Sun\, 29 Aug 2010 20\:35\:19 +0200 \(CEST\)")
+Message-ID: <87d3ssw364.fsf@free.fr>
 MIME-Version: 1.0
-To: Gregory Orange <gregory.orange@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Leadtek DTV2000DS remote
-References: <AANLkTi=1cucc=LrMEp44xpWs=_f75C7iAgXfkC+r5dPP@mail.gmail.com> <AANLkTi=zhzZ9RJwRzUt_Ftg9sHDzBhuw7cUss-dXQoSs@mail.gmail.com>
-In-Reply-To: <AANLkTi=zhzZ9RJwRzUt_Ftg9sHDzBhuw7cUss-dXQoSs@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-Leadtek WinFast DTV2000DS remote is not supported at all. Leadtek 
-WinFast DTV Dongle Gold remote is. If you can compile and install latest 
-drivers from http://git.linuxtv.org/anttip/media_tree.git af9015 tree I 
-can add support for that remote rather easily.
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-Antti
+> Yes, but this has another disadvantage - if you do not use s_register / 
+> g_register, maybe you just have CONFIG_VIDEO_ADV_DEBUG off, then, once you 
+> load the module with the testpattern parameter, you cannot switch using 
+> testpatterns off again (without a reboot or a power cycle). With the 
+> original version you can load the driver with the parameter set, then 
+> unload it, load it without the parameter and testpattern would be cleared. 
+> In general, I think, using direct register access is discouraged, 
+> especially if there's a way to set the same functionality using driver's 
+> supported interfaces.
 
+I agree. If there is a way without debug registers, let's use it.
 
+> Hm, if I'm not mistaken, it has once been mentioned, that these test-patterns
+> can be nicely implemented using the S_INPUT ioctl(). Am I right? How about
+> that? But we'd need a confirmation for that, I'm not 100% sure.
+I can't remember that. But if there is a standard ioctl (as seems to show
+videodev2.h), and that its use could mean "camera's input is a testpattern" or
+"camera input is the normal optical flow", then we should use it.
+If not, the old way with debug registers is the only alternative I see without
+having to unload/reload the module (if it's a module and not statically embedded
+in the kernel).
 
-On 09/15/2010 10:45 AM, Gregory Orange wrote:
-> Shall I assume that noone has had any experience with one of these
-> devices? From some input from other sources, I'm now not sure if I
-> lack a kernel module, or perhaps the firmware for this device isn't
-> supported (or somesuch - a bit confused on that).
->
-> In any case, pretty well everything is now working including EIT at
-> last. The remote is all I lack. I have no idea who else to ask or what
-> to try, so I may try borrowing a different remote. I'm all Googled out
-> (:
->
-> Regards,
-> Greg.
->
-> On 9 September 2010 22:11, Gregory Orange<gregory.orange@gmail.com>  wrote:
->> Hi all, first post.
->>
->> I have a newly purchased Leadtek DTV2000DS dual tuner card in my
->> machine, configured and running in Mythbuntu 10.04 (after installing
->> latest v4l-dvb from source). I am having a bit of trouble getting the
->> supplied remote control working. Is anyone here able to assist? I
->> asked on the LIRC sf.net list and after a bit of back and forth I was
->> directed to see if you guys can help me. In particular I wonder if the
->> author of dvb_usb_af9015 and af9013 is around - hmm, seems to be Antti
->> Palosaari, who seems to be a fairly recent poster. Don't get me wrong
->> though - anyone who can assist would be great (:
->>
->> I have confirmed that the hardware works - I installed the drivers in
->> a Windows boot, and the remote works.
->>
->> In terms of driver support I'm not sure exactly what I'm looking for,
->> but there is this line in dmesg:
->> [   22.263721] input: IR-receiver inside an USB DVB receiver as
->> /devices/pci0000:00/0000:00:0e.0/0000:02:0a.2/usb2/2-1/input/input5
->>
->> cat /proc/bus/input/devices yields
->> I: Bus=0003 Vendor=0413 Product=6a04 Version=0200
->> N: Name="IR-receiver inside an USB DVB receiver"
->> P: Phys=usb-0000:02:0a.2-1/ir0
->> S: Sysfs=/devices/pci0000:00/0000:00:0e.0/0000:02:0a.2/usb2/2-1/input/input5
->> U: Uniq=
->> H: Handlers=kbd event5
->> B: EV=3
->> B: KEY=108fc310 2802891 0 0 0 0 118000 200180 4803 e1680 0 100000 ffe
->>
->> So I've been using /dev/input/event5 in my tests. I have tried using
->> evtest, mode2, and irw to no avail. I get no indication of any signal
->> coming from the remote. Am I missing a kernel driver module? Any
->> further advice or specific experience with this device would be
->> gratefully welcomed.
->>
->> Cheers,
->> Greg.
->>
->> --
->> Gregory Orange
->>
->
->
->
+Cheers.
 
-
--- 
-http://palosaari.fi/
+--
+Robert
