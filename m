@@ -1,906 +1,583 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3537 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369Ab0IYO1q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Sep 2010 10:27:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Pawel Osciak <p.osciak@samsung.com>
-Subject: Re: [PATCH v1 1/7] v4l: add videobuf2 Video for Linux 2 driver framework
-Date: Sat, 25 Sep 2010 16:27:33 +0200
-Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	m.szyprowski@samsung.com, t.fujak@samsung.com
-References: <1284023988-23351-1-git-send-email-p.osciak@samsung.com> <1284023988-23351-2-git-send-email-p.osciak@samsung.com>
-In-Reply-To: <1284023988-23351-2-git-send-email-p.osciak@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009251627.33193.hverkuil@xs4all.nl>
+Return-path: <mchehab@localhost>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:58021 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754264Ab0IEVsv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Sep 2010 17:48:51 -0400
+Received: by fxm13 with SMTP id 13so2212827fxm.19
+        for <linux-media@vger.kernel.org>; Sun, 05 Sep 2010 14:48:50 -0700 (PDT)
+Subject: Re: [PATCH 7/8] IR: extend ir_raw_event and do refactoring
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	linux-media@vger.kernel.org, mchehab@infradead.org
+In-Reply-To: <20100905212333.GB26715@hardeman.nu>
+References: <1283642583-13102-1-git-send-email-maximlevitsky@gmail.com>
+	 <1283642583-13102-8-git-send-email-maximlevitsky@gmail.com>
+	 <20100905212333.GB26715@hardeman.nu>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 06 Sep 2010 00:48:46 +0300
+Message-ID: <1283723326.7534.5.camel@maxim-laptop>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-Hi Pawel,
-
-I finally had some time for a code review:
-
-On Thursday, September 09, 2010 11:19:42 Pawel Osciak wrote:
-> Videobuf2 is a Video for Linux 2 API-compatible driver framework for
-> multimedia devices. It acts as an intermediate layer between userspace
-> applications and device drivers. It also provides low-level, modular
-> memory management functions for drivers.
+On Sun, 2010-09-05 at 23:23 +0200, David Härdeman wrote: 
+> Comments inline...
 > 
-> Videobuf2 eases driver development, reduces drivers' code size and aids in
-> proper and consistent implementation of V4L2 API in drivers.
+> On Sun, Sep 05, 2010 at 02:23:02AM +0300, Maxim Levitsky wrote:
+> > Add new event types for timeout & carrier report
+> > Move timeout handling from ir_raw_event_store_with_filter to
+> > ir-lirc-codec, where it is really needed.
+> > Now lirc bridge ensures proper gap handling.
+> > Extend lirc bridge for carrier & timeout reports
+> > 
+> > Note: all new ir_raw_event variables now should be initialized
+> > like that: DEFINE_RC_RAW_EVENT(ev);
+> > 
+> > To clean an existing event, use init_ir_raw_event(&ev);
+> > 
+> > Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+> > ---
+> >  drivers/media/IR/ene_ir.c          |    2 +-
+> >  drivers/media/IR/ir-core-priv.h    |   11 +++++-
+> >  drivers/media/IR/ir-jvc-decoder.c  |    5 +-
+> >  drivers/media/IR/ir-lirc-codec.c   |   78 +++++++++++++++++++++++++++++++-----
+> >  drivers/media/IR/ir-nec-decoder.c  |    5 +-
+> >  drivers/media/IR/ir-raw-event.c    |   43 +++++++-------------
+> >  drivers/media/IR/ir-rc5-decoder.c  |    5 +-
+> >  drivers/media/IR/ir-rc6-decoder.c  |    5 +-
+> >  drivers/media/IR/ir-sony-decoder.c |    5 +-
+> >  drivers/media/IR/mceusb.c          |    3 +-
+> >  drivers/media/IR/streamzap.c       |    8 ++-
+> >  include/media/ir-core.h            |   35 ++++++++++++++--
+> >  12 files changed, 146 insertions(+), 59 deletions(-)
+> > 
+> > diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
+> > index 7880d9c..5ebafb5 100644
+> > --- a/drivers/media/IR/ene_ir.c
+> > +++ b/drivers/media/IR/ene_ir.c
+> > @@ -701,7 +701,7 @@ static irqreturn_t ene_isr(int irq, void *data)
+> >  	unsigned long flags;
+> >  	irqreturn_t retval = IRQ_NONE;
+> >  	struct ene_device *dev = (struct ene_device *)data;
+> > -	struct ir_raw_event ev;
+> > +	DEFINE_RC_RAW_EVENT(ev);
+> >  
+> >  	spin_lock_irqsave(&dev->hw_lock, flags);
+> >  
+> > diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
+> > index 5d7e08f..a287373 100644
+> > --- a/drivers/media/IR/ir-core-priv.h
+> > +++ b/drivers/media/IR/ir-core-priv.h
+> > @@ -82,6 +82,10 @@ struct ir_raw_event_ctrl {
+> >  		struct ir_input_dev *ir_dev;
+> >  		struct lirc_driver *drv;
+> >  		int carrier_low;
+> > +		ktime_t timeout_start;
+> > +		bool timeout;
+> > +		bool send_timeout_reports;
+> > +
+> >  	} lirc;
+> >  };
+> >  
+> > @@ -109,9 +113,14 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
+> >  		ev->duration -= duration;
+> >  }
+> >  
+> > +/* Returns true if event is normal pulse/space event */
+> > +static inline bool is_timing_event(struct ir_raw_event ev)
+> > +{
+> > +	return !ev.carrier_report && !ev.reset;
+> > +}
+> > +
+> >  #define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
+> >  #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
+> > -#define IS_RESET(ev)			(ev.duration == 0)
+> >  /*
+> >   * Routines from ir-sysfs.c - Meant to be called only internally inside
+> >   * ir-core
+> > diff --git a/drivers/media/IR/ir-jvc-decoder.c b/drivers/media/IR/ir-jvc-decoder.c
+> > index 77a89c4..63dca6e 100644
+> > --- a/drivers/media/IR/ir-jvc-decoder.c
+> > +++ b/drivers/media/IR/ir-jvc-decoder.c
+> > @@ -50,8 +50,9 @@ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+> >  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_JVC))
+> >  		return 0;
+> >  
+> > -	if (IS_RESET(ev)) {
+> > -		data->state = STATE_INACTIVE;
+> > +	if (!is_timing_event(ev)) {
+> > +		if (ev.reset)
+> > +			data->state = STATE_INACTIVE;
+> >  		return 0;
+> >  	}
+> >  
+> > diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
+> > index e63f757..15112db 100644
+> > --- a/drivers/media/IR/ir-lirc-codec.c
+> > +++ b/drivers/media/IR/ir-lirc-codec.c
+> > @@ -32,6 +32,7 @@
+> >  static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+> >  {
+> >  	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
+> > +	struct lirc_codec *lirc = &ir_dev->raw->lirc;
+> >  	int sample;
+> >  
+> >  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_LIRC))
+> > @@ -40,21 +41,57 @@ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+> >  	if (!ir_dev->raw->lirc.drv || !ir_dev->raw->lirc.drv->rbuf)
+> >  		return -EINVAL;
+> >  
+> > -	if (IS_RESET(ev))
+> > +	/* Packet start */
+> > +	if (ev.reset)
+> >  		return 0;
+> >  
+> > -	IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
+> > -		   TO_US(ev.duration), TO_STR(ev.pulse));
+> > +	/* Carrier reports */
+> > +	if (ev.carrier_report) {
+> > +		sample = LIRC_FREQUENCY(ev.carrier);
+> > +
+> > +	/* Packet end */
+> > +	} else if (ev.timeout) {
+> > +
+> > +		if (lirc->timeout)
+> > +			return 0;
+> > +
+> > +		lirc->timeout_start = ktime_get();
+> > +		lirc->timeout = true;
+> > +
+> > +		if (!lirc->send_timeout_reports)
+> > +			return 0;
+> > +
+> > +		sample = LIRC_TIMEOUT(ev.duration / 1000);
+> >  
+> > -	sample = ev.duration / 1000;
+> > -	if (ev.pulse)
+> > -		sample |= PULSE_BIT;
+> > +	/* Normal sample */
+> > +	} else {
+> > +
+> > +		if (lirc->timeout) {
+> > +
+> > +			int gap_sample;
+> > +
+> > +			u64 total_duration = ktime_to_ns(ktime_sub(ktime_get(),
+> > +				lirc->timeout_start))
+> > +					+ ir_dev->raw->prev_ev.duration;
+> > +
+> > +			/* Convert to ms and cap by LIRC_VALUE_MASK */
+> > +			do_div(total_duration, 1000);
+> > +			total_duration = min(total_duration,
+> > +							(u64)LIRC_VALUE_MASK);
+> > +
+> > +			gap_sample = LIRC_SPACE(total_duration);
+> > +			lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
+> > +						(unsigned char *) &gap_sample);
+> > +			lirc->timeout = false;
+> > +		}
+> > +		sample = ev.pulse ? LIRC_PULSE(ev.duration / 1000) :
+> > +					LIRC_SPACE(ev.duration / 1000);
+> > +	}
+> >  
+> >  	lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
+> >  			  (unsigned char *) &sample);
+> >  	wake_up(&ir_dev->raw->lirc.drv->rbuf->wait_poll);
+> >  
+> > -
+> >  	return 0;
+> >  }
+> >  
+> > @@ -103,6 +140,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+> >  	int ret = 0;
+> >  	void *drv_data;
+> >  	unsigned long val = 0;
+> > +	u32 tmp;
+> >  
+> >  	lirc = lirc_get_pdata(filep);
+> >  	if (!lirc)
+> > @@ -201,12 +239,26 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
+> >  		break;
+> >  
+> >  	case LIRC_SET_REC_TIMEOUT:
+> > -		if (val < ir_dev->props->min_timeout ||
+> > -		    val > ir_dev->props->max_timeout)
+> > -			return -EINVAL;
+> > -		ir_dev->props->timeout = val * 1000;
+> > +		tmp = val * 1000;
+> > +
+> > +		if (tmp < ir_dev->props->min_timeout ||
+> > +			tmp > ir_dev->props->max_timeout)
+> > +				return -EINVAL;
+> > +
+> > +		ir_dev->props->timeout = tmp;
+> > +		break;
+> > +
+> > +	case LIRC_SET_REC_TIMEOUT_REPORTS:
+> > +		lirc->send_timeout_reports = !!val;
+> >  		break;
+> >  
+> > +	case LIRC_SET_MEASURE_CARRIER_MODE:
+> > +
+> > +		if (!ir_dev->props->s_carrier_report)
+> > +			return -ENOSYS;
+> > +		return ir_dev->props->s_carrier_report(
+> > +			ir_dev->props->priv, !!val);
+> > +
+> >  	default:
+> >  		return lirc_dev_fop_ioctl(filep, cmd, arg);
+> >  	}
+> > @@ -277,6 +329,10 @@ static int ir_lirc_register(struct input_dev *input_dev)
+> >  	if (ir_dev->props->s_learning_mode)
+> >  		features |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
+> >  
+> > +	if (ir_dev->props->s_carrier_report)
+> > +		features |= LIRC_CAN_MEASURE_CARRIER;
+> > +
+> > +
+> >  	if (ir_dev->props->max_timeout)
+> >  		features |= LIRC_CAN_SET_REC_TIMEOUT;
+> >  
+> > diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
+> > index d597421..70993f7 100644
+> > --- a/drivers/media/IR/ir-nec-decoder.c
+> > +++ b/drivers/media/IR/ir-nec-decoder.c
+> > @@ -54,8 +54,9 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+> >  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_NEC))
+> >  		return 0;
+> >  
+> > -	if (IS_RESET(ev)) {
+> > -		data->state = STATE_INACTIVE;
+> > +	if (!is_timing_event(ev)) {
+> > +		if (ev.reset)
+> > +			data->state = STATE_INACTIVE;
+> >  		return 0;
+> >  	}
+> >  
+> > diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
+> > index 56797be..b40a575 100644
+> > --- a/drivers/media/IR/ir-raw-event.c
+> > +++ b/drivers/media/IR/ir-raw-event.c
+> > @@ -174,7 +174,7 @@ int ir_raw_event_store_with_filter(struct input_dev *input_dev,
+> >  	if (ir->idle && !ev->pulse)
+> >  		return 0;
+> >  	else if (ir->idle)
+> > -		ir_raw_event_set_idle(input_dev, 0);
+> > +		ir_raw_event_set_idle(input_dev, false);
+> >  
+> >  	if (!raw->this_ev.duration) {
+> >  		raw->this_ev = *ev;
+> > @@ -187,48 +187,35 @@ int ir_raw_event_store_with_filter(struct input_dev *input_dev,
+> >  
+> >  	/* Enter idle mode if nessesary */
+> >  	if (!ev->pulse && ir->props->timeout &&
+> > -		raw->this_ev.duration >= ir->props->timeout)
+> > -		ir_raw_event_set_idle(input_dev, 1);
+> > +		raw->this_ev.duration >= ir->props->timeout) {
+> > +		ir_raw_event_set_idle(input_dev, true);
+> > +	}
+> >  	return 0;
+> >  }
+> >  EXPORT_SYMBOL_GPL(ir_raw_event_store_with_filter);
+> >  
+> > +/**
+> > + * ir_raw_event_set_idle() - hint the ir core if device is receiving
+> > + * IR data or not
+> > + * @input_dev: the struct input_dev device descriptor
+> > + * @idle: the hint value
+> > + */
+> >  void ir_raw_event_set_idle(struct input_dev *input_dev, int idle)
 > 
-> Videobuf2 memory management backend is fully modular. This allows custom
-> memory management routines for devices and platforms with non-standard
-> memory management requirements to be plugged in, without changing the
-> high-level buffer management functions and API.
+> bool idle?
+
+This is leftover from my wrong thinking that bool isn't defined in
+kernel.
+Don't mind fixing that as well.
+
+
 > 
-> The framework provides:
-> - implementations of streaming I/O V4L2 ioctls and file operations
-> - high-level video buffer, video queue and state management functions
-> - video buffer memory allocation and management
+> >  {
+> >  	struct ir_input_dev *ir = input_get_drvdata(input_dev);
+> >  	struct ir_raw_event_ctrl *raw = ir->raw;
+> > -	ktime_t now;
+> > -	u64 delta;
+> >  
+> > -	if (!ir->props)
+> > +	if (!ir->props || !ir->raw)
+> >  		return;
+> >  
+> > -	if (!ir->raw)
+> > -		goto out;
+> > +	IR_dprintk(2, "%s idle mode\n", idle ? "enter" : "leave");
+> >  
+> >  	if (idle) {
+> > -		IR_dprintk(2, "enter idle mode\n");
+> > -		raw->last_event = ktime_get();
+> > -	} else {
+> > -		IR_dprintk(2, "exit idle mode\n");
+> > -
+> > -		now = ktime_get();
+> > -		delta = ktime_to_ns(ktime_sub(now, ir->raw->last_event));
+> > -
+> > -		WARN_ON(raw->this_ev.pulse);
+> > -
+> > -		raw->this_ev.duration =
+> > -			min(raw->this_ev.duration + delta,
+> > -						(u64)IR_MAX_DURATION);
+> > -
+> > +		raw->this_ev.timeout = true;
+> >  		ir_raw_event_store(input_dev, &raw->this_ev);
+> > -
+> > -		if (raw->this_ev.duration == IR_MAX_DURATION)
+> > -			ir_raw_event_reset(input_dev);
+> > -
+> > -		raw->this_ev.duration = 0;
+> > +		init_ir_raw_event(&raw->this_ev);
+> >  	}
+> > -out:
+> > +
+> >  	if (ir->props->s_idle)
+> >  		ir->props->s_idle(ir->props->priv, idle);
+> >  	ir->idle = idle;
+> > diff --git a/drivers/media/IR/ir-rc5-decoder.c b/drivers/media/IR/ir-rc5-decoder.c
+> > index df4770d..572ed4c 100644
+> > --- a/drivers/media/IR/ir-rc5-decoder.c
+> > +++ b/drivers/media/IR/ir-rc5-decoder.c
+> > @@ -55,8 +55,9 @@ static int ir_rc5_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+> >          if (!(ir_dev->raw->enabled_protocols & IR_TYPE_RC5))
+> >                  return 0;
+> >  
+> > -	if (IS_RESET(ev)) {
+> > -		data->state = STATE_INACTIVE;
+> > +	if (!is_timing_event(ev)) {
+> > +		if (ev.reset)
+> > +			data->state = STATE_INACTIVE;
+> >  		return 0;
+> >  	}
+> >  
+> > diff --git a/drivers/media/IR/ir-rc6-decoder.c b/drivers/media/IR/ir-rc6-decoder.c
+> > index f1624b8..d25da91 100644
+> > --- a/drivers/media/IR/ir-rc6-decoder.c
+> > +++ b/drivers/media/IR/ir-rc6-decoder.c
+> > @@ -85,8 +85,9 @@ static int ir_rc6_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+> >  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_RC6))
+> >  		return 0;
+> >  
+> > -	if (IS_RESET(ev)) {
+> > -		data->state = STATE_INACTIVE;
+> > +	if (!is_timing_event(ev)) {
+> > +		if (ev.reset)
+> > +			data->state = STATE_INACTIVE;
+> >  		return 0;
+> >  	}
+> >  
+> > diff --git a/drivers/media/IR/ir-sony-decoder.c b/drivers/media/IR/ir-sony-decoder.c
+> > index b9074f0..2d15730 100644
+> > --- a/drivers/media/IR/ir-sony-decoder.c
+> > +++ b/drivers/media/IR/ir-sony-decoder.c
+> > @@ -48,8 +48,9 @@ static int ir_sony_decode(struct input_dev *input_dev, struct ir_raw_event ev)
+> >  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_SONY))
+> >  		return 0;
+> >  
+> > -	if (IS_RESET(ev)) {
+> > -		data->state = STATE_INACTIVE;
+> > +	if (!is_timing_event(ev)) {
+> > +		if (ev.reset)
+> > +			data->state = STATE_INACTIVE;
+> >  		return 0;
+> >  	}
+> >  
+> > diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
+> > index ac6bb2c..43445b9 100644
+> > --- a/drivers/media/IR/mceusb.c
+> > +++ b/drivers/media/IR/mceusb.c
+> > @@ -656,7 +656,7 @@ static int mceusb_set_tx_carrier(void *priv, u32 carrier)
+> >  
+> >  static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
+> >  {
+> > -	struct ir_raw_event rawir = { .pulse = false, .duration = 0 };
+> > +	DEFINE_RC_RAW_EVENT(rawir);
+> >  	int i, start_index = 0;
+> >  	u8 hdr = MCE_CONTROL_HEADER;
+> >  
+> > @@ -993,6 +993,7 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
+> >  	ir->len_in = maxp;
+> >  	ir->flags.microsoft_gen1 = is_microsoft_gen1;
+> >  	ir->flags.tx_mask_inverted = tx_mask_inverted;
+> > +	init_ir_raw_event(&ir->rawir);
+> >  
+> >  	/* Saving usb interface data for use by the transmitter routine */
+> >  	ir->usb_ep_in = ep_in;
+> > diff --git a/drivers/media/IR/streamzap.c b/drivers/media/IR/streamzap.c
+> > index 058e29f..4bba180 100644
+> > --- a/drivers/media/IR/streamzap.c
+> > +++ b/drivers/media/IR/streamzap.c
+> > @@ -170,7 +170,7 @@ static void streamzap_flush_timeout(unsigned long arg)
+> >  static void streamzap_delay_timeout(unsigned long arg)
+> >  {
+> >  	struct streamzap_ir *sz = (struct streamzap_ir *)arg;
+> > -	struct ir_raw_event rawir = { .pulse = false, .duration = 0 };
+> > +	DEFINE_RC_RAW_EVENT(rawir);
+> >  	unsigned long flags;
+> >  	int len, ret;
+> >  	static unsigned long delay;
+> > @@ -215,7 +215,7 @@ static void streamzap_delay_timeout(unsigned long arg)
+> >  
+> >  static void streamzap_flush_delay_buffer(struct streamzap_ir *sz)
+> >  {
+> > -	struct ir_raw_event rawir = { .pulse = false, .duration = 0 };
+> > +	DEFINE_RC_RAW_EVENT(rawir);
+> >  	bool wake = false;
+> >  	int ret;
+> >  
+> > @@ -233,7 +233,7 @@ static void streamzap_flush_delay_buffer(struct streamzap_ir *sz)
+> >  
+> >  static void sz_push(struct streamzap_ir *sz)
+> >  {
+> > -	struct ir_raw_event rawir = { .pulse = false, .duration = 0 };
+> > +	DEFINE_RC_RAW_EVENT(rawir);
+> >  	unsigned long flags;
+> >  	int ret;
+> >  
+> > @@ -512,6 +512,8 @@ static int __devinit streamzap_probe(struct usb_interface *intf,
+> >  	if (!sz)
+> >  		return -ENOMEM;
+> >  
+> > +	init_ir_raw_event(&sz->rawir);
+> > +
+> >  	sz->usbdev = usbdev;
+> >  	sz->interface = intf;
+> >  
+> > diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+> > index eb7fddf..4dde415 100644
+> > --- a/include/media/ir-core.h
+> > +++ b/include/media/ir-core.h
+> > @@ -60,6 +60,7 @@ enum rc_driver_type {
+> >   * @s_idle: optional: enable/disable hardware idle mode, upon which,
+> >  	device doesn't interrupt host until it sees IR pulses
+> >   * @s_learning_mode: enable wide band receiver used for learning
+> > + * @s_carrier_report: enable carrier reports
+> >   */
+> >  struct ir_dev_props {
+> >  	enum rc_driver_type	driver_type;
+> > @@ -84,6 +85,7 @@ struct ir_dev_props {
+> >  	int			(*tx_ir)(void *priv, int *txbuf, u32 n);
+> >  	void			(*s_idle)(void *priv, int enable);
+> >  	int			(*s_learning_mode)(void *priv, int enable);
+> > +	int			(*s_carrier_report) (void *priv, int enable);
+> >  };
+> >  
+> >  struct ir_input_dev {
+> > @@ -162,11 +164,34 @@ u32 ir_g_keycode_from_table(struct input_dev *input_dev, u32 scancode);
+> >  /* From ir-raw-event.c */
+> >  
+> >  struct ir_raw_event {
+> > -	unsigned                        pulse:1;
+> > -	unsigned                        duration:31;
+> > +	union {
+> > +		u32             duration;
+> > +
+> > +		struct {
+> > +			u32     carrier;
+> > +			u8      duty_cycle;
+> > +		};
+> > +	};
+> > +
+> > +	unsigned                pulse:1;
+> > +	unsigned                reset:1;
+> > +	unsigned                timeout:1;
+> > +	unsigned                carrier_report:1;
+> >  };
 > 
-> Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/Kconfig          |    3 +
->  drivers/media/video/Makefile         |    2 +
->  drivers/media/video/videobuf2-core.c | 1457 ++++++++++++++++++++++++++++++++++
->  include/media/videobuf2-core.h       |  337 ++++++++
->  4 files changed, 1799 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/videobuf2-core.c
->  create mode 100644 include/media/videobuf2-core.h
+> Perhaps it would be a good idea to merge the last four boolean values 
+> into one value? Something like:
+> 
+> enum ir_raw_event_type {
+> 	IR_RAW_EVENT_PULSE = 0,
+> 	IR_RAW_EVENT_SPACE,
+> 	IR_RAW_EVENT_RESET,
+> 	IR_RAW_EVENT_TIMEOUT,
+> 	IR_RAW_EVENT_CARRIER
+> };
+> 
+> struct ir_raw_event {
+> 	...
+> 	enum ir_raw_event_type	type:8;
+> };
+
+
+I thought about that.
+I did it this way to minimize code changes.
+Post 2.6.36 I don't mind doing it this way.
+
+
+> 
+> That way it's impossible to get weird situations like ev.reset == true 
+> && ev.carrier == true && ev.duration == true.
+> 
+> >  
+> > -#define IR_MAX_DURATION                 0x7FFFFFFF      /* a bit more than 2 seconds */
+> > +#define DEFINE_RC_RAW_EVENT(event) \
+> > +	struct ir_raw_event event = { \
+> > +		.pulse = 0, \
+> > +		.reset = 0, \
+> > +		.timeout = 0, \
+> > +		.carrier_report = 0 }
+> 
+> Not setting duration to zero might bite driver writers in the ass if 
+> they do something seemingly reasonable like:
+Oops, forgot about that one.
+
+> 
+> 	DEFINE_RC_RAW_EVENT(foo)
+> 	...
+> 	for (i = 0; i < something; i++) {
+> 		...
+> 		foo.duration += bar[i];
+> 		...
+> 	}
+> 
+> > +
+> > +static inline void init_ir_raw_event(struct ir_raw_event *ev)
+> > +{
+> > +	memset(ev, 0, sizeof(*ev));
+> > +}
+> 
+> init_ir_raw_event() <-> DEFINE_RC_RAW_EVENT() is confusing, they should 
+> be consistent. Either init_rc_raw_event() and DEFINE_RC_RAW_EVENT() or 
+> init_ir_raw_event() and DEFINE_IR_RAW_EVENT(). Given that struct 
+> ir_raw_event should be renamed rc_raw_event at some point, this might be 
+> a good occasion? (which means our patchsets will conflict even more :))
+> 
+> > +
+> > +#define IR_MAX_DURATION         0xFFFFFFFF      /* a bit more than 2 seconds */
+> 
+> The comment is misleading now that duration is 32 bits rather than 31
+Indeed, will fix.
+
+> 
+> >  
+> >  void ir_raw_event_handle(struct input_dev *input_dev);
+> >  int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev);
+> > @@ -177,7 +202,9 @@ void ir_raw_event_set_idle(struct input_dev *input_dev, int idle);
+> >  
+> >  static inline void ir_raw_event_reset(struct input_dev *input_dev)
+> >  {
+> > -	struct ir_raw_event ev = { .pulse = false, .duration = 0 };
+> > +	DEFINE_RC_RAW_EVENT(ev);
+> > +	ev.reset = true;
+> > +
+> >  	ir_raw_event_store(input_dev, &ev);
+> >  	ir_raw_event_handle(input_dev);
+> >  }
+> > -- 
+> > 1.7.0.4
+> > 
 > 
 
-<snip>
+Best regards,
+Maxim Levitsky
 
-> +/**
-> + * vb2_reqbufs() - Initiate streaming
-> + * @q:		videobuf2 queue
-> + * @req:	struct passed from userspace to vidioc_reqbufs handler in driver
-> + *
-> + * Should be called from vidioc_reqbufs ioctl handler of a driver.
-> + * This function:
-> + * 1) verifies streaming parameters passed from the userspace,
-> + * 2) sets up the queue,
-> + * 3) negotiates number of buffers and planes per buffer with the driver
-> + *    to be used during streaming,
-> + * 4) allocates internal buffer structures (struct vb2_buffer), according to
-> + *    the agreed parameters,
-> + * 5) for MMAP memory type, allocates actual video memory, using the
-> + *    memory handling/allocation routines provided during queue initialization
-> + *
-> + * If req->count is 0, all the memory will be freed instead.
-> + * If the queue has been allocated previously (by a previous vb2_reqbufs) call
-> + * and the queue is not busy, memory will be reallocated.
-> + *
-> + * The return values from this function are intended to be directly returned
-> + * from vidioc_reqbufs handler in driver.
-> + */
-> +int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
-> +{
-> +	unsigned int num_buffers, num_planes;
-> +	int ret = 0;
-> +
-> +	if (req->memory != V4L2_MEMORY_MMAP
-> +			&& req->memory != V4L2_MEMORY_USERPTR) {
-> +		dprintk(1, "reqbufs: unsupported memory type\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	mutex_lock(&q->vb_lock);
-> +
-> +	if (req->type != q->type) {
-> +		dprintk(1, "reqbufs: queue type invalid\n");
-> +		ret = -EINVAL;
-> +		goto end;
-> +	}
-> +
-> +	if (q->streaming) {
-> +		dprintk(1, "reqbufs: streaming active\n");
-> +		ret = -EBUSY;
-> +		goto end;
-> +	}
-> +
-> +	if (req->count == 0) {
-> +		/* Free/release memory for count = 0, but only if unused */
-> +		if (q->memory == V4L2_MEMORY_MMAP && __buffers_in_use(q)) {
-> +			dprintk(1, "reqbufs: memory in use, cannot free\n");
-> +			ret = -EBUSY;
-> +			goto end;
-> +		}
-> +
-> +		ret = __vb2_queue_free(q);
-> +		goto end;
-> +	}
-> +
-> +	if (q->num_buffers != 0) {
-> +		/*
-> +		 * We already have buffers allocated, so a reallocation is
-> +		 * required, but only if the buffers are not in use.
-> +		 */
-> +		if (q->memory == V4L2_MEMORY_MMAP && __buffers_in_use(q)) {
-> +			dprintk(1, "reqbufs: memory in use, "
-> +					"cannot reallocate\n");
-> +			ret = -EBUSY;
-> +			goto end;
-> +		}
-> +
-> +		ret = __vb2_queue_free(q);
 
-Hmmm, __vb2_queue_free can't fail: it always returns 0. If you make __vb2_queue_free
-a void function, then there is no need to test for any error code.
-
-> +		if (ret)
-> +			goto end;
-> +	}
-> +
-> +	num_buffers = min_t(unsigned int, req->count, VIDEO_MAX_FRAME);
-> +
-> +	/* Ask the driver how many buffers and planes per buffer it requires */
-> +	ret = q->ops->queue_negotiate(q, &num_buffers, &num_planes);
-> +	if (ret)
-> +		goto end;
-> +
-> +	/*
-> +	 * Make sure all the required memory ops for given memory type
-> +	 * are available.
-> +	 */
-> +	if (req->memory == V4L2_MEMORY_MMAP
-> +			&& __verify_mmap_ops(q, num_planes)) {
-> +		dprintk(1, "reqbufs: MMAP for current setup unsupported\n");
-> +		ret = -EINVAL;
-> +		goto end;
-> +	} else if (req->memory == V4L2_MEMORY_USERPTR
-> +			&& __verify_userptr_ops(q, num_planes)) {
-> +		dprintk(1, "reqbufs: USERPTR for current setup unsupported\n");
-> +		ret = -EINVAL;
-> +		goto end;
-> +	}
-> +
-> +	/* Finally, allocate buffers and video memory */
-> +	ret = __vb2_queue_alloc(q, req->memory, num_buffers, num_planes);
-> +	if (ret < 0) {
-> +		dprintk(1, "Memory allocation failed with error: %d\n", ret);
-> +	} else {
-> +		/*
-> +		 * Return the number of successfully allocated buffers
-> +		 * to the userspace.
-> +		 */
-> +		req->count = ret;
-> +		ret = 0;
-> +	}
-> +
-> +	q->memory = req->memory;
-> +
-> +end:
-> +	mutex_unlock(&q->vb_lock);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_reqbufs);
-> +
-> +/**
-> + * vb2_plane_vaddr() - Return a kernel virtual address of a given plane
-> + * @vb:		vb2_buffer to which the plane in question belongs to
-> + * @plane_no:	plane number for which the address is to be returned
-> + *
-> + * This function returns a kernel virtual address of a given plane if
-> + * such a mapping exist, NULL otherwise.
-> + */
-> +void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
-> +{
-> +	struct vb2_queue *q = vb->vb2_queue;
-> +
-> +	if (plane_no > vb->num_planes)
-> +		return NULL;
-> +
-> +	return call_memop(q, plane_no, vaddr, vb->planes[plane_no].mem_priv);
-> +
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_plane_vaddr);
-> +
-> +/**
-> + * vb2_plane_paddr() - Return the physical address of a given plane
-> + * @vb:		vb2_buffer to which the plane in question belongs to
-> + * @plane_no:	plane number for which the address is to be returned
-> + *
-> + * This function returns a physical address of a given plane if available,
-> + * NULL otherwise.
-> + */
-> +unsigned long vb2_plane_paddr(struct vb2_buffer *vb, unsigned int plane_no)
-
-Shouldn't this return phys_addr_t? That seems more appropriate.
-
-> +{
-> +	struct vb2_queue *q = vb->vb2_queue;
-> +
-> +	if (plane_no > vb->num_planes)
-> +		return 0UL;
-> +
-> +	return call_memop(q, plane_no, paddr, vb->planes[plane_no].mem_priv);
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_plane_paddr);
-> +
-> +/**
-> + * vb2_buffer_done() - inform videobuf that an operation on a buffer is finished
-> + * @vb:		vb2_buffer returned from the driver
-> + * @state:	either VB2_BUF_STATE_DONE if the operation finished successfully
-> + *		or VB2_BUF_STATE_ERROR if the operation finished with an error
-> + *
-> + * This function should be called by the driver after a hardware operation on
-> + * a buffer is finished and the buffer may be returned to userspace. The driver
-> + * cannot use this buffer anymore until it is queued back to it by videobuf
-> + * by the means of buf_queue callback. Only buffers previously queued to the
-> + * driver by buf_queue can be passed to this function.
-> + */
-> +void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
-> +{
-> +	struct vb2_queue *q = vb->vb2_queue;
-> +	unsigned long flags;
-> +
-> +	if (vb->state != VB2_BUF_STATE_ACTIVE)
-> +		return;
-> +
-> +	if (state != VB2_BUF_STATE_DONE && state != VB2_BUF_STATE_ERROR)
-> +		return;
-
-These two checks should call WARN() to clearly signal a driver bug.
-
-> +
-> +	dprintk(4, "Done processing on buffer %d, state: %d\n",
-> +			vb->v4l2_buf.index, vb->state);
-> +
-> +	/* Add the buffer to the done buffers list */
-> +	spin_lock_irqsave(&q->done_lock, flags);
-> +	vb->state = state;
-> +	list_add_tail(&vb->done_entry, &q->done_list);
-> +	spin_unlock_irqrestore(&q->done_lock, flags);
-> +
-> +	/* Inform any processes that may be waiting for buffers */
-> +	wake_up_interruptible(&q->done_wq);
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_buffer_done);
-> +
-> +/**
-> + * __fill_vb2_buffer() - fill a vb2_buffer with information provided in
-> + * a v4l2_buffer by the userspace
-> + */
-> +static int __fill_vb2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b,
-> +				struct v4l2_plane *v4l2_planes)
-> +{
-> +	unsigned int plane;
-> +	int ret;
-> +
-> +	if (V4L2_TYPE_IS_MULTIPLANAR(b->type)) {
-> +		/*
-> +		 * Verify that the userspace gave us a valid array for
-> +		 * plane information.
-> +		 */
-> +		ret = __verify_planes_array(vb, b);
-> +		if (ret)
-> +			return ret;
-> +
-> +		/* Fill in driver-provided information for OUTPUT types */
-> +		if (V4L2_TYPE_IS_OUTPUT(b->type)) {
-> +			/*
-> +			 * Will have to go up to b->length when API starts
-> +			 * accepting variable number of planes.
-> +			 */
-> +			for (plane = 0; plane < vb->num_planes; ++plane) {
-> +				v4l2_planes[plane].bytesused =
-> +					b->m.planes[plane].bytesused;
-> +				v4l2_planes[plane].data_offset =
-> +					b->m.planes[plane].data_offset;
-> +			}
-> +		}
-> +
-> +		if (b->memory == V4L2_MEMORY_USERPTR) {
-> +			for (plane = 0; plane < vb->num_planes; ++plane) {
-> +				v4l2_planes[plane].m.userptr =
-> +					b->m.planes[plane].m.userptr;
-> +				v4l2_planes[plane].length =
-> +					b->m.planes[plane].length;
-> +			}
-> +		}
-> +	} else {
-> +		/*
-> +		 * Single-planar buffers do not use planes array,
-> +		 * so fill in relevant v4l2_buffer struct fields instead.
-> +		 * In videobuf we use our internal V4l2_planes struct for
-> +		 * single-planar buffers as well, for simplicity.
-> +		 */
-> +		if (V4L2_TYPE_IS_OUTPUT(b->type))
-> +			v4l2_planes[0].bytesused = b->bytesused;
-> +
-> +		if (b->memory == V4L2_MEMORY_USERPTR) {
-> +			v4l2_planes[0].m.userptr = b->m.userptr;
-> +			v4l2_planes[0].length = b->length;
-> +		}
-> +	}
-> +
-> +	vb->v4l2_buf.field = b->field;
-> +	vb->v4l2_buf.timestamp = b->timestamp;
-> +
-> +	return 0;
-> +}
-> +
-> +/**
-> + * __qbuf_userptr() - handle qbuf of a USERPTR buffer
-> + */
-> +static int __qbuf_userptr(struct vb2_buffer *vb, struct v4l2_buffer *b)
-> +{
-> +	struct v4l2_plane planes[VIDEO_MAX_PLANES];
-> +	struct vb2_queue *q = vb->vb2_queue;
-> +	void *mem_priv = NULL;
-> +	unsigned int plane;
-> +	int ret;
-> +
-> +	/* Verify and copy relevant information provided by the userspace */
-> +	ret = __fill_vb2_buffer(vb, b, planes);
-> +	if (ret)
-> +		return ret;
-> +
-> +	for (plane = 0; plane < vb->num_planes; ++plane) {
-> +		/* Skip the plane if already verified */
-> +		if (vb->v4l2_planes[plane].m.userptr == planes[plane].m.userptr
-> +		    && vb->v4l2_planes[plane].length == planes[plane].length)
-> +			continue;
-> +
-> +		dprintk(3, "qbuf: userspace address for plane %d changed, "
-> +				"reacquiring memory\n", plane);
-> +
-> +		/* Release previously acquired memory if present */
-> +		if (vb->planes[plane].mem_priv)
-> +			call_memop(q, plane, put_userptr,
-> +					vb->planes[plane].mem_priv);
-> +
-> +		vb->planes[plane].mem_priv = NULL;
-> +
-> +		/* Acquire each plane's memory */
-> +		if (mem_ops(q, plane)->get_userptr) {
-> +			mem_priv = mem_ops(q, plane)->get_userptr(
-> +							planes[plane].m.userptr,
-> +							planes[plane].length);
-> +			if (IS_ERR(mem_priv)) {
-> +				dprintk(1, "qbuf: failed acquiring userspace "
-> +						"memory for plane %d\n", plane);
-> +				goto err;
-> +			}
-
-Just to verify my understanding: get_userptr is responsible for locking the
-pages into memory and to increase a use count on that memory. So if the app
-would do a QBUF, then free the memory and allocate a new buffer, then the
-original buffer memory is not released until put_userptr is called, and the
-pointer of the new buffer that the app allocated will always be different from
-the original buffer (since it was still in use when the app allocated the new
-one).
-
-I've always wondered if something nasty like this was handled correctly. I never
-had the time to dive into the mm core, though.
-
-> +
-> +			vb->planes[plane].mem_priv = mem_priv;
-> +		}
-> +	}
-> +
-> +	/*
-> +	 * Call driver-specific initialization on the newly acquired buffer,
-> +	 * if provided.
-> +	 */
-> +	if (q->ops->buf_init) {
-> +		ret = q->ops->buf_init(vb);
-> +		if (ret) {
-> +			dprintk(1, "qbuf: buffer initialization failed\n");
-> +			goto err;
-> +		}
-> +	}
-> +
-> +	/*
-> +	 * Now that everything is in order, copy relevant information
-> +	 * provided by userspace.
-> +	 */
-> +	for (plane = 0; plane < vb->num_planes; ++plane)
-> +		vb->v4l2_planes[plane] = planes[plane];
-> +
-> +	return 0;
-> +err:
-> +	/* In case of errors, release planes that were already acquired */
-> +	for (; plane > 0; --plane) {
-> +		call_memop(q, plane, put_userptr,
-> +				vb->planes[plane - 1].mem_priv);
-> +		vb->planes[plane - 1].mem_priv = NULL;
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +/**
-> + * __qbuf_mmap() - handle qbuf of an MMAP buffer
-> + */
-> +static int __qbuf_mmap(struct vb2_buffer *vb, struct v4l2_buffer *b)
-> +{
-> +	return __fill_vb2_buffer(vb, b, vb->v4l2_planes);
-> +}
-> +
-> +/**
-> + * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
-> + */
-> +static void __enqueue_in_driver(struct vb2_buffer *vb)
-> +{
-> +	struct vb2_queue *q = vb->vb2_queue;
-> +	unsigned long flags;
-> +
-> +	spin_lock_irqsave(q->drv_lock, flags);
-> +	vb->state = VB2_BUF_STATE_ACTIVE;
-> +	q->ops->buf_queue(vb);
-> +	spin_unlock_irqrestore(q->drv_lock, flags);
-> +}
-> +
-> +/**
-> + * vb2_qbuf() - Queue a buffer from userspace
-> + * @q:		videobuf2 queue
-> + * @b:		buffer structure passed from userspace to vidioc_qbuf handler
-> + *		in driver
-> + *
-> + * Should be called from vidioc_qbuf ioctl handler of a driver.
-> + * This function:
-> + * 1) verifies the passed buffer,
-> + * 2) calls buf_prepare callback in the driver (if provided), in which
-> + *    driver-specific buffer initialization can be performed,
-> + * 3) if streaming is on, queues the buffer in driver by the means of buf_queue
-> + *    callback for processing.
-> + *
-> + * The return values from this function are intended to be directly returned
-> + * from vidioc_qbuf handler in driver.
-> + */
-> +int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b)
-> +{
-> +	struct vb2_buffer *vb;
-> +	int ret;
-> +
-> +	mutex_lock(&q->vb_lock);
-> +
-> +	ret = -EINVAL;
-> +	if (b->type != q->type) {
-> +		dprintk(1, "qbuf: invalid buffer type\n");
-> +		goto done;
-> +	}
-> +	if (b->index >= q->num_buffers) {
-> +		dprintk(1, "qbuf: buffer index out of range\n");
-> +		goto done;
-> +	}
-> +
-> +	vb = q->bufs[b->index];
-> +	if (NULL == vb) {
-> +		/* Should never happen */
-> +		dprintk(1, "qbuf: buffer is NULL\n");
-> +		goto done;
-> +	}
-> +
-> +	if (b->memory != q->memory) {
-> +		dprintk(1, "qbuf: invalid memory type\n");
-> +		goto done;
-> +	}
-> +
-> +	if (vb->state != VB2_BUF_STATE_DEQUEUED) {
-> +		dprintk(1, "qbuf: buffer already in use\n");
-> +		goto done;
-> +	}
-> +
-> +	if (q->memory == V4L2_MEMORY_MMAP)
-> +		ret = __qbuf_mmap(vb, b);
-> +	else if (q->memory == V4L2_MEMORY_USERPTR)
-> +		ret = __qbuf_userptr(vb, b);
-> +	if (ret)
-> +		goto done;
-> +
-> +	if (q->ops->buf_prepare) {
-> +		ret = q->ops->buf_prepare(vb);
-> +		if (ret) {
-> +			dprintk(1, "qbuf: buffer preparation failed\n");
-> +			goto done;
-> +		}
-> +	}
-> +
-> +	/*
-> +	 * Add to the queued buffers list, a buffer will stay on it until
-> +	 * dequeued in dqbuf.
-> +	 */
-> +	list_add_tail(&vb->queued_entry, &q->queued_list);
-> +	vb->state = VB2_BUF_STATE_QUEUED;
-> +
-> +	/*
-> +	 * If already streaming, give the buffer to driver for processing.
-> +	 * If not, the buffer will be given to driver on next streamon.
-> +	 */
-> +	if (q->streaming)
-> +		__enqueue_in_driver(vb);
-> +
-> +	dprintk(1, "qbuf of buffer %d succeeded\n", vb->v4l2_buf.index);
-> +	ret = 0;
-> +done:
-> +	mutex_unlock(&q->vb_lock);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_qbuf);
-> +
-> +/**
-> + * __vb2_wait_for_done_vb() - wait for a buffer to become available
-> + * for dequeuing
-> + *
-> + * Will sleep if required for nonblocking == false.
-> + */
-> +static int __vb2_wait_for_done_vb(struct vb2_queue *q, int nonblocking)
-> +{
-> +	int retval = 0;
-> +
-> +checks:
-> +	if (!q->streaming) {
-> +		dprintk(1, "Streaming off, will not wait for buffers\n");
-> +		retval = -EINVAL;
-> +		goto end;
-> +	}
-> +
-> +	/*
-> +	 * Buffers may be added to vb_done_list without holding the vb_lock,
-> +	 * but removal is performed only while holding both vb_lock and the
-> +	 * vb_done_lock spinlock. Thus we can be sure that as long as we hold
-> +	 * vb_lock, the list will remain not empty if this check succeeds.
-> +	 */
-> +	if (list_empty(&q->done_list)) {
-> +		if (nonblocking) {
-> +			dprintk(1, "Nonblocking and no buffers to dequeue, "
-> +					"will not wait\n");
-> +			retval = -EAGAIN;
-> +			goto end;
-> +		}
-> +
-> +		/*
-> +		 * We are streaming and nonblocking, wait for another buffer to
-> +		 * become ready or for streamoff. vb_lock is released to allow
-> +		 * streamoff or qbuf to be called while waiting.
-> +		 */
-> +		mutex_unlock(&q->vb_lock);
-> +		/*
-> +		 * Although the mutex is released here, we will be reevaluating
-> +		 * both conditions again after reacquiring it.
-> +		 */
-> +		dprintk(3, "Will sleep waiting for buffers\n");
-> +		retval = wait_event_interruptible(q->done_wq,
-> +				!list_empty(&q->done_list) || !q->streaming);
-> +		mutex_lock(&q->vb_lock);
-> +
-> +		if (retval)
-> +			goto end;
-> +
-> +		goto checks;
-> +	}
-> +
-> +end:
-> +	return retval;
-> +}
-> +
-> +/**
-> + * __vb2_get_done_vb() - get a buffer ready for dequeuing
-> + *
-> + * Will sleep if required for nonblocking == false.
-> + */
-> +static int __vb2_get_done_vb(struct vb2_queue *q, struct vb2_buffer **vb,
-> +				int nonblocking)
-> +{
-> +	unsigned long flags;
-> +	int ret = 0;
-> +
-> +	/*
-> +	 * Wait for at least one buffer to become available on the done_list.
-> +	 */
-> +	ret = __vb2_wait_for_done_vb(q, nonblocking);
-> +	if (ret)
-> +		goto end;
-> +
-> +	/*
-> +	 * vb_lock has been held since we last verified that done_list is
-> +	 * not empty, so no need for another list_empty(done_list) check.
-> +	 */
-> +	spin_lock_irqsave(&q->done_lock, flags);
-> +	*vb = list_first_entry(&q->done_list, struct vb2_buffer, done_entry);
-> +	list_del(&(*vb)->done_entry);
-> +	spin_unlock_irqrestore(&q->done_lock, flags);
-> +
-> +end:
-> +	return ret;
-> +}
-> +
-> +
-> +/**
-> + * vb2_dqbuf() - Dequeue a buffer to the userspace
-> + * @q:		videobuf2 queue
-> + * @b:		buffer structure passed from userspace to vidioc_dqbuf handler
-> + *		in driver
-> + * @nonblocking: if true, this call will not sleep waiting for a buffer if no
-> + *		 buffers ready for dequeuing are present. Normally the driver
-> + *		 would be passing (file->f_flags & O_NONBLOCK) here
-> + *
-> + * Should be called from vidioc_dqbuf ioctl handler of a driver.
-> + * This function:
-> + * 1) verifies the passed buffer,
-> + * 2) calls buf_finish callback in the driver (if provided), in which
-> + *    driver can perform any additional operations that may be required before
-> + *    returning the buffer to userspace, such as cache sync,
-> + * 3) the buffer struct members are filled with relevant information for
-> + *    the userspace.
-> + *
-> + * The return values from this function are intended to be directly returned
-> + * from vidioc_dqbuf handler in driver.
-> + */
-> +int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
-> +{
-> +	struct vb2_buffer *vb = NULL;
-> +	int ret;
-> +
-> +	mutex_lock(&q->vb_lock);
-> +
-> +	if (b->type != q->type) {
-> +		dprintk(1, "dqbuf: invalid buffer type\n");
-> +		ret = -EINVAL;
-> +		goto done;
-> +	}
-> +
-> +	ret = __vb2_get_done_vb(q, &vb, nonblocking);
-> +	if (ret < 0) {
-> +		dprintk(1, "dqbuf: error getting next done buffer\n");
-> +		goto done;
-> +	}
-> +
-> +	if (q->ops->buf_finish) {
-> +		ret = q->ops->buf_finish(vb);
-> +		if (ret) {
-> +			dprintk(1, "dqbuf: buffer finish failed\n");
-> +			goto done;
-> +		}
-> +	}
-> +
-> +	switch (vb->state) {
-> +	case VB2_BUF_STATE_DONE:
-> +		dprintk(3, "dqbuf: Returning done buffer\n");
-> +		break;
-> +	case VB2_BUF_STATE_ERROR:
-> +		dprintk(3, "dqbuf: Returning done buffer with errors\n");
-> +		break;
-> +	default:
-> +		dprintk(1, "dqbuf: Invalid buffer state\n");
-
-Isn't it a driver bug if we get here? In that case we need a WARN.
-
-> +		ret = -EINVAL;
-> +		goto done;
-> +	}
-> +
-> +	/* Fill buffer information for the userspace */
-> +	__fill_v4l2_buffer(vb, b);
-> +	/* Remove from videobuf queue */
-> +	list_del(&vb->queued_entry);
-> +
-> +	dprintk(1, "dqbuf of buffer %d, with state %d\n",
-> +			vb->v4l2_buf.index, vb->state);
-> +
-> +	vb->state = VB2_BUF_STATE_DEQUEUED;
-> +
-> +done:
-> +	mutex_unlock(&q->vb_lock);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_dqbuf);
-> +
-> +/**
-> + * vb2_streamon - start streaming
-> + * @q:		videobuf2 queue
-> + * @type:	type argument passed from userspace to vidioc_streamon handler
-> + *
-> + * Should be called from vidioc_streamon handler of a driver.
-> + * This function:
-> + * 1) verifies current state
-> + * 2) starts streaming and passes any previously queued buffers to the driver
-> + *
-> + * The return values from this function are intended to be directly returned
-> + * from vidioc_streamon handler in the driver.
-> + */
-> +int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type)
-> +{
-> +	struct vb2_buffer *vb;
-> +	int ret = 0;
-> +
-> +	mutex_lock(&q->vb_lock);
-> +
-> +	if (type != q->type) {
-> +		dprintk(1, "streamon: invalid stream type\n");
-> +		ret = -EINVAL;
-> +		goto done;
-> +	}
-> +
-> +	if (q->streaming) {
-> +		dprintk(1, "streamon: already streaming\n");
-> +		ret = -EBUSY;
-> +		goto done;
-> +	}
-> +
-> +	/*
-> +	 * Cannot start streaming on an OUTPUT device if no buffers have
-> +	 * been queued yet.
-> +	 */
-> +	if (V4L2_TYPE_IS_OUTPUT(q->type)) {
-> +		if (list_empty(&q->queued_list)) {
-> +			dprintk(1, "streamon: no output buffers queued\n");
-> +			ret = -EINVAL;
-> +			goto done;
-> +		}
-> +	}
-> +
-> +	q->streaming = 1;
-> +
-> +	/*
-> +	 * If any buffers were queued before streamon,
-> +	 * we can now pass them to driver for processing.
-> +	 */
-> +	list_for_each_entry(vb, &q->queued_list, queued_entry)
-> +		__enqueue_in_driver(vb);
-> +
-> +	dprintk(3, "Streamon successful\n");
-> +done:
-> +	mutex_unlock(&q->vb_lock);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_streamon);
-> +
-> +/**
-> + * __vb2_queue_cancel() - cancel and stop (pause) streaming
-> + *
-> + * Removes all queued buffers from driver's queue and all buffers queued by
-> + * userspace from videobuf's queue. Returns to state after reqbufs.
-> + */
-> +static void __vb2_queue_cancel(struct vb2_queue *q)
-> +{
-> +	unsigned long flags = 0;
-> +	int i;
-> +
-> +	q->streaming = 0;
-> +
-> +	/*
-> +	 * Remove buffers from driver's queue. If a hardware operation
-> +	 * is currently underway, drv_lock should be claimed and we will
-> +	 * have to wait for it to finish before taking back buffers.
-> +	 */
-> +	spin_lock_irqsave(q->drv_lock, flags);
-> +	for (i = 0; i < q->num_buffers; ++i) {
-> +		if (q->bufs[i]->state == VB2_BUF_STATE_ACTIVE)
-> +			list_del(&q->bufs[i]->drv_entry);
-> +		q->bufs[i]->state = VB2_BUF_STATE_DEQUEUED;
-> +	}
-> +	spin_unlock_irqrestore(q->drv_lock, flags);
-
-I feel that this spinlock is too simplistic. I think we need a new op:
-stop_streaming() or something like that. The driver will stop any streaming
-and dequeue any active buffers. And if necessary it has to wait for any DMA
-in progress to finish first.
-
-That will also make it possible to remove the drv_lock altogether and make the
-driver responsible for proper locking in buf_queue and stop_streaming.
-
-Actually, it might also be an idea to implement a start_streaming op for symmetry.
-
-> +
-> +	/*
-> +	 * Remove all buffers from videobuf's list...
-> +	 */
-> +	INIT_LIST_HEAD(&q->queued_list);
-> +	/*
-> +	 * ...and done list; userspace will not receive any buffers it
-> +	 * has not already dequeued before initiating cancel.
-> +	 */
-> +	INIT_LIST_HEAD(&q->done_list);
-
-Is this correct? Shouldn't put_userptr be called for all queued and done buffers?
-
-> +	wake_up_interruptible_all(&q->done_wq);
-> +}
-> +
-> +/**
-> + * vb2_streamoff - stop streaming
-> + * @q:		videobuf2 queue
-> + * @type:	type argument passed from userspace to vidioc_streamoff handler
-> + *
-> + * Should be called from vidioc_streamoff handler of a driver.
-> + * This function:
-> + * 1) verifies current state,
-> + * 2) stop streaming and dequeues any queued buffers, including those previously
-> + *    passed to the driver (after waiting for the driver to finish).
-> + *
-> + * This call can be used for pausing playback.
-> + * The return values from this function are intended to be directly returned
-> + * from vidioc_streamoff handler in the driver
-> + */
-> +int vb2_streamoff(struct vb2_queue *q, enum v4l2_buf_type type)
-> +{
-> +	int ret = 0;
-> +
-> +	mutex_lock(&q->vb_lock);
-> +
-> +	if (type != q->type) {
-> +		dprintk(1, "streamoff: invalid stream type\n");
-> +		ret = -EINVAL;
-> +		goto end;
-> +	}
-> +
-> +	if (!q->streaming) {
-> +		dprintk(1, "streamoff: not streaming\n");
-> +		ret = -EINVAL;
-> +		goto end;
-> +	}
-> +
-> +	/*
-> +	 * Cancel will pause streaming and remove all buffers from the driver
-> +	 * and videobuf, effectively returning control over them to userspace.
-> +	 */
-> +	__vb2_queue_cancel(q);
-> +
-> +	dprintk(3, "Streamoff successful\n");
-> +end:
-> +	mutex_unlock(&q->vb_lock);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(vb2_streamoff);
-
-<snip>
-
-Some general remarks:
-
-1) It is probably useful to add a simply inline function like this:
-
-static inline bool vb2_is_streaming(struct vb2_queue *q)
-{
-       return q->streaming;
-}
-
-2) We need very clear documentation detailing:
-
-   - where the struct vb2_queue has to be stored (it should be associated with the
-     video_device struct or the v4l2_device struct if there is only one queue).
-   - when to call vb2_queue_init (before registering the device node, I think).
-   - when to call vb2_queue_release (after unregistering the device node? Does that
-     also work well with USB devices after a disconnect? I think it is OK, but I'm
-     not 100% certain.)
-   - how does it work if multiple file handles are open? If fh A calls REQBUFS, is fh
-     B allowed to call it again? My feeling is that once a fh calls REQBUFS, the
-     queue is associated with that fh until REQBUFS with count == 0 is called, or
-     until the fh is closed. All the other streaming ioctls should be called from
-     that fh. To implement this reqbufs should be passed a struct file (or a v4l2_fh?).
-     And for the others we either need this as well or we add a simple inline function
-     checking this that drivers can call.
-
-3) Read/write will have its own issues: if the driver supports read/write, then
-   some internal checks are needed: once reqbufs was called on a fh, read/write
-   should not be allowed (until REQBUFS(0), that is). The same is true vice versa,
-   except that once you've started reading or writing the only way to go back to
-   streaming I/O is by closing the fh first.
-
-4) If poll is called without a preceding reqbufs or read, then it should initiate
-   streaming and mark the queue as being in read (or write) mode. It's the way poll
-   is supposed to work for read or write.
-  
-5) Allowing mixing of read/write and streaming I/O. I am very much opposed to this.
-   First of all it will cause skipped frames since read will steal from dqbuf (or
-   vice versa, depending on how you look at it). Once you start to read it will also
-   be impossible to use REQBUFS(0), and the internal administration will be a nightmare.
-   Frankly, I don't think there is a way to implement this in a way that makes sense.
-   We should probably investigate those utilities that are supposed to do this.
-   I understand that they are xawtv and xdtv.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
