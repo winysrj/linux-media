@@ -1,57 +1,80 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:57693 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752310Ab0IFV0V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 17:26:21 -0400
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: lirc-list@lists.sourceforge.net
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH 0/8 V5] Many fixes for in-kernel decoding and for the ENE driver
-Date: Tue,  7 Sep 2010 00:26:05 +0300
-Message-Id: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+Return-path: <mchehab@localhost>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43963 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754226Ab0IESbB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Sep 2010 14:31:01 -0400
+Subject: Re: [PATCH] gspca_cpia1: Add lamp control for Intel Play QX3
+ microscope
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4C8353D3.3050708@redhat.com>
+References: <1283476182.17527.4.camel@morgan.silverblock.net>
+	 <4C8353D3.3050708@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 05 Sep 2010 14:30:41 -0400
+Message-ID: <1283711441.2057.65.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-Hi,
+On Sun, 2010-09-05 at 10:24 +0200, Hans de Goede wrote:
+> Hi,
+> 
+> p.s. (forgot to mention this in my previous mail)
+> 
+> On 09/03/2010 03:09 AM, Andy Walls wrote:
+> 
+> <snip>
+> 
+> > @@ -447,6 +449,20 @@
+> >   		.set = sd_setcomptarget,
+> >   		.get = sd_getcomptarget,
+> >   	},
+> > +	{
+> > +		{
+> > +#define V4L2_CID_LAMPS (V4L2_CID_PRIVATE_BASE+1)
+> > +			.id	 = V4L2_CID_LAMPS,
+> > +			.type    = V4L2_CTRL_TYPE_MENU,
+> > +			.name    = "Lamps",
+> > +			.minimum = 0,
+> > +			.maximum = 3,
+> > +			.step    = 1,
+> > +			.default_value = 0,
+> > +		},
+> > +		.set = sd_setlamps,
+> > +		.get = sd_getlamps,
+> > +	},
+> >   };
+> >
+> >   static const struct v4l2_pix_format mode[] = {
+> 
+> We only want this control to be available on the qx3 and not on
+> all cpia1 devices,
 
-Here is full overview of my patches:
-
-Patch #1 fixes races in ir thread.
-It fixes the case when ktherad_stop waits forever for the thread.
-This happens on module unload and therefore it never finishes.
-Sorry for introducing this bug.
-
-Patch #2, fixes a crash on my module load.
-It happens because ir core initializes the input device a bit early,
-therefore it could be accessed while still not set up.
-
-Patch #3 fixes a small typo in lirc code that makes it impossible to use tx duty cycle setting.
-
-Patch #4 fixes a problem seen on my system that results in stuck down forever key.
-
-Patch #5 adds few keys to MCE keymap that were found on laptop of an user I tested this driver with
-
-Patch #6, is a combined update ti my driver. It contains lot of refactoring thanks to docs I have now,
-and lot of fixes, and supports latest version of firmware (and I have 4 users asking for that)
-It is quite huge, but it would be a tedios job to break it up. This can't introduce regressions
-because the ene_ir was never released. In addition to that it was tested by me and another two users.
-
-Patch #7 the really only patch that touches drivers I don't have does touch the ir-core.
-It is quite small, and it adds a proper solution to dilema about what to do with huge space between keypresses.
-Now this space is just truncated by the driver with timeout flag.
-The lirc codec then ensures that right sample is send to the lircd.
-Please review and test it.
-
-Patch #8 is very simple. It just builds on top of patch #7 and adds carrier reports to ene driver.
+Yes, I though about that, but couldn't think up a clean way of doing it
+in the short amount of time I had available.  I did know that the
+control was essentially a NoOp, so I wasn't too concerned at the time. 
 
 
-Best regards,
-	Maxim Levitsky
+>  so you need to add something like the following to
+> sd_config:
+> 
+> 	if (!(id->idVendor == 0x0813 && id->idProduct == 0x0001))
+> 		gspca_dev->ctrl_dis = 1 << LAMPS_IDX;
+> 
+> Where LAMPS_IDX is a define giving the index of V4L2_CID_LAMPS in the
+> sd_ctrls array, see the ov519 gspca driver for example.
 
+Thanks for the pointer, I'll have a look.
 
+Regards,
+Andy
 
+> Regards,
+> 
+> Hans
 
 
