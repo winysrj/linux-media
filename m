@@ -1,68 +1,58 @@
-Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.122.233]:46025 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308Ab0IMMBS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 08:01:18 -0400
-Subject: Re: [PATCH v9 0/4] FM Radio driver.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-In-Reply-To: <201009131351.35487.hverkuil@xs4all.nl>
-References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <201009131332.15287.hverkuil@xs4all.nl>
-	 <1284378271.12913.42.camel@masi.mnp.nokia.com>
-	 <201009131351.35487.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 13 Sep 2010 14:59:30 +0300
-Message-ID: <1284379170.12913.50.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:16205 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751835Ab0IEHvM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Sep 2010 03:51:12 -0400
+Message-ID: <4C834D46.5030801@redhat.com>
+Date: Sun, 05 Sep 2010 09:56:54 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] LED control
+References: <20100904131048.6ca207d1@tele>
+In-Reply-To: <20100904131048.6ca207d1@tele>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-On Mon, 2010-09-13 at 13:51 +0200, ext Hans Verkuil wrote:
-> On Monday, September 13, 2010 13:44:31 Matti J. Aaltonen wrote:
-> > On Mon, 2010-09-13 at 13:32 +0200, ext Hans Verkuil wrote:
-> > > > Anyway the difference between the "completely raw bits" and the "raw"
-> > > > blocks is small. And I doubt the usefulness of supporting the
-> > > > "completely raw" format.
-> > > 
-> > > I don't intend to support it now. But we need to realize that it exists and
-> > > we have to plan for it.
-> > 
-> > OK. So we can have RDS_RAW_READWRITE and also RDS_RAW_BLOCK_READWRITE
-> > (or something to the same effect)?
-> 
-> In theory, yes. My proposed API additions allow for this to be added in the
-> future. Frankly, I don't think it is likely that it will be needed, but you
-> never know.
+Hi all,
 
-Yes but I would like to add the RDS_RAW_BLOCK_READWRITE possibility
-right away because that's what the wl1273 driver does now... I guess
-that's OK?
+On 09/04/2010 01:10 PM, Jean-Francois Moine wrote:
+> Some media devices may have one or many lights (LEDs, illuminators,
+> lamps..). This patch makes them controlable by the applications.
+>
+> Signed-off-by: Jean-Francois Moine<moinejf@free.fr>
+>
+> -- Ken ar c'hentañ | ** Breizh ha Linux atav! ** Jef | http://moinejf.free.fr/
+>
+>
+> led.patch
+>
+>
+> diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+> index 8408caa..c9b8ca5 100644
+> --- a/Documentation/DocBook/v4l/controls.xml
+> +++ b/Documentation/DocBook/v4l/controls.xml
+> @@ -312,6 +312,13 @@ minimum value disables backlight compensation.</entry>
+>   	information and bits 24-31 must be zero.</entry>
+>   	</row>
+>   	<row>
+> +	<entry><constant>V4L2_CID_LEDS</constant></entry>
+> +	<entry>integer</entry>
+> +	<entry>Switch on or off the LED(s) or illuminator(s) of the device.
+> +	    The control type and values depend on the driver and may be either
+> +	    a single boolean (0: off, 1:on) or the index in a menu type.</entry>
+> +	</row>
 
-B.R.
-Matti
+I think that using one control for both status leds (which is what we are usually
+talking about) and illuminator(s) is a bad idea. I'm fine with standardizing these,
+but can we please have 2 CID's one for status lights and one for the led. Esp, as I
+can easily see us supporting a microscope in the future where the microscope itself
+or other devices with the same bridge will have a status led, so then we will need
+2 separate controls anyways.
 
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > 
-> > B.R.
-> > Matti
-> > 
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
+Regards,
 
-
+Hans
