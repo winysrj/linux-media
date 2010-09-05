@@ -1,83 +1,74 @@
-Return-path: <mchehab@pedra>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:55654 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756415Ab0ICKzh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Sep 2010 06:55:37 -0400
-Received: by qyk36 with SMTP id 36so3124136qyk.19
-        for <linux-media@vger.kernel.org>; Fri, 03 Sep 2010 03:55:36 -0700 (PDT)
+Return-path: <mchehab@localhost>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:45439 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753193Ab0IEQUY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Sep 2010 12:20:24 -0400
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimc2TTQQogO8Q6ih6Bv3j_oOcVMux3cg-CJPGsw@mail.gmail.com>
-References: <AANLkTi=SY9xWCjp_0q6US7XN6XYoTWnGHA2=6EfjuWK-@mail.gmail.com>
-	<AANLkTikg79zui71Xz8r-Lg3zut0jkSk-BGEpBpXfWz5Y@mail.gmail.com>
-	<AANLkTimc2TTQQogO8Q6ih6Bv3j_oOcVMux3cg-CJPGsw@mail.gmail.com>
-Date: Fri, 3 Sep 2010 10:55:36 +0000
-Message-ID: <AANLkTim_mU7ayxjeE2HQz57UsPqHU46dPC3Ys600RJAD@mail.gmail.com>
-Subject: Re: Gigabyte 8300
-From: Dagur Ammendrup <dagurp@gmail.com>
-To: Joel Wiramu Pauling <joel@aenertia.net>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <AANLkTimYS+EqyGm=Bur4De3HDg+spNHLHejp0QJTcft_@mail.gmail.com>
+References: <AANLkTimXP-3OkoNCjTgrQmo29F0t-TmA9p4utAG2M3Qp@mail.gmail.com>
+	<AANLkTim_HujYzL5SyotRb7w6-ZTc3_BtO=+YhCpnSzBT@mail.gmail.com>
+	<AANLkTimpDh36-edV9UkRyn-9Z0o1o7T4wFZFBVQje1Y9@mail.gmail.com>
+	<AANLkTimYS+EqyGm=Bur4De3HDg+spNHLHejp0QJTcft_@mail.gmail.com>
+Date: Sun, 5 Sep 2010 12:20:23 -0400
+Message-ID: <AANLkTimi_Wbb414yxEfz57tjd0BkN9_oUhPLJLKzyc8a@mail.gmail.com>
+Subject: Re: some question about
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: loody <miloody@gmail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-usb@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-I tried it on a windows machine where it's identified as "Conextant
-Polaris Video Capture"  or
-"oem17.inf:Conexant.NTx86:POLARIS.DVBTX.x86:6.113.1125.1210:usb\vid_1b80&pid_d416&mi_01"
-if that tells you anything.
-
-
-
-
-2010/9/3 Dagur Ammendrup <dagurp@gmail.com>:
-> I thought "Conexant CX23102" was the chip. How can I find this out? I
-> have access to a windows machine if that helps.
+On Sun, Sep 5, 2010 at 12:06 PM, loody <miloody@gmail.com> wrote:
+> hi:
 >
->
->
->
-> 2010/9/3 Joel Wiramu Pauling <joel@aenertia.net>:
->> What sort of afatech chip?
+> 2010/9/5 Devin Heitmueller <dheitmueller@kernellabs.com>:
+>> On Sun, Sep 5, 2010 at 11:48 AM, Devin Heitmueller
+>> <dheitmueller@kernellabs.com> wrote:
+>>> On Sun, Sep 5, 2010 at 11:36 AM, loody <miloody@gmail.com> wrote:
+>>>> WinTV-HVR-1950 high performance USB TV tuner
+>>>> WinTV-HVR-950Q for laptop and notebooks
+>>>
+>>> Both these devices are supported under Linux, and in fact are unlikely
+>>> to work properly with only Full Speed USB.  At least the 950q
+>>> definitely requires High speed (I put a check in there to specifically
+>>> not load the driver otherwise).
 >>
->> af9035 are not supported at all. Only af9015's which are in the older devices.
+>> I perhaps misread your original email.  While the 950q does present
+>> itself as a USB audio class device, the 1950 does not.  It only
+>> provides MPEG encoded output (containing both the audio and video),
+>> and is not a USB audio class device.
 >>
->> On 3 September 2010 12:55, Dagur Ammendrup <dagurp@gmail.com> wrote:
->>> Hi,
->>>
->>> I bought a Gigabyte U8300 today which is a hybrid USB tuner. These are
->>> the specifications according to the manufacturer:
->>>
->>> Analog: TVPAL / SECAM / NTSC
->>> Decoder chip: Conexant CX23102
->>> Digital TV: DVB-T
->>> Interface: USB 2.0
->>> Others Support: Microsoft® Windows 2000, XP, MCE and Windows Vista MCE
->>> / Win 7 32/ 64bits
->>> Remote sensor Interface: IR
->>> Tuner: NXP TDA18271
->>>
->>> Now I know that the decoder chip is supported in other USB sticks but
->>> mine is not recognised. Here is my lsusb output:
->>>
->>> Bus 001 Device 004: ID 1b80:d416 Afatech
->>>
->>> And here is the dmesg info I get when I plug it in:
->>>
->>> [ 2981.693805] usb 1-2: USB disconnect, address 2
->>> [ 2991.760091] usb 1-2: new high speed USB device using ehci_hcd and address 4
->>> [ 2991.916044] usb 1-2: configuration #1 chosen from 1 choice
->>>
->>>
->>> Is there anyone out there who might be interested in adding support
->>> for this (or guide me through it)?
->>>
->>>
->>> thanks,
->>> Dagur
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
+>> So while both these devices will work under Linux on a high speed
+>> interface, if you specifically require the device to identify itself
+>> as a USB audio class device, only the 950q does this.
 >>
->
+>> Devin
+> would you mind to send me the device descriptors for me?
+> I want to check whether the input/output unit and audio/video format
+> does meet the spec.
+> BTW, will the device support mp3 output?
+> since the spec define mp3 as one of input/output format.
+> that means if I put the raw data of mp3 to that device, it should
+> play/record well.
+
+The device descriptors can be found here:
+
+http://linuxtv.org/wiki/index.php/Hauppauge_WinTV-HVR-950Q#Identification
+
+The device does not support MP3 output (virtually no devices do as far
+as I know).  It only provides raw 16-bit two channel PCM.
+
+The video format would not be in the spec you mentioned.  It does work
+as a standard V4L2 device though, providing raw YUYV video frames.
+
+Perhaps if I better understood your intended application, I might be
+able to give better advice.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
