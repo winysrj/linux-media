@@ -1,43 +1,113 @@
-Return-path: <mchehab@pedra>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:55462
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756130Ab0IPUIF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 16:08:05 -0400
-Date: Thu, 16 Sep 2010 13:08:23 -0700 (PDT)
-Message-Id: <20100916.130823.67906066.davem@davemloft.net>
-To: alan@lxorguk.ukuu.org.uk
-Cc: arnd@arndb.de, codalist@TELEMANN.coda.cs.cmu.edu,
-	autofs@linux.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, hch@infradead.org,
-	mikulas@artax.karlin.mff.cuni.cz, Trond.Myklebust@netapp.com,
-	vandrove@vc.cvut.cz, al@alarsen.net, jack@suse.cz,
-	dushistov@mail.ru, mingo@elte.hu, netdev@vger.kernel.org,
-	samuel@sortiz.org, acme@ghostprotocols.net,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	andrew.hendry@gmail.com
-Subject: Re: Remaining BKL users, what to do
-From: David Miller <davem@davemloft.net>
-In-Reply-To: <20100916160759.4411786c@lxorguk.ukuu.org.uk>
-References: <201009161632.59210.arnd@arndb.de>
-	<20100916160759.4411786c@lxorguk.ukuu.org.uk>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@localhost>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2273 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754459Ab0IETHx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Sep 2010 15:07:53 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o85J7m8F048476
+	for <linux-media@vger.kernel.org>; Sun, 5 Sep 2010 21:07:52 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Sun, 5 Sep 2010 21:07:48 +0200 (CEST)
+Message-Id: <201009051907.o85J7m8F048476@smtp-vbr5.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Date: Thu, 16 Sep 2010 16:07:59 +0100
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
->> net/appletalk:
->> net/ipx/af_ipx.c:
->> net/irda/af_irda.c:
->> 	Can probably be saved from retirement in drivers/staging if the
->> 	maintainers still care.
-> 
-> IPX and Appletalk both have active users. They also look fairly fixable
-> as the lock_kernel just maps to a stack private mutex, or in several
-> cases can simply be dropped - its just a push down legacy.
+Results of the daily build of v4l-dvb:
 
-I'll take a stab at IPX and Appletalk.
+date:        Sun Sep  5 19:00:05 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15139:6e0befab696a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
+
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
