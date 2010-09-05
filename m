@@ -1,266 +1,281 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:39824 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751015Ab0ISUU3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 16:20:29 -0400
-Message-ID: <4C967082.3040405@redhat.com>
-Date: Sun, 19 Sep 2010 17:20:18 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-Subject: Re: RFC: BKL, locking and ioctls
-References: <201009191229.35800.hverkuil@xs4all.nl> <201009191658.11346.hverkuil@xs4all.nl> <4C9656A6.80303@redhat.com> <201009192106.47601.hverkuil@xs4all.nl>
-In-Reply-To: <201009192106.47601.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <mchehab@localhost>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:50057 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752024Ab0IESDB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Sep 2010 14:03:01 -0400
+Subject: Re: [PATCH] gspca_cpia1: Add lamp control for Intel Play QX3
+ microscope
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <4C834EDE.6050703@redhat.com>
+References: <1283476182.17527.4.camel@morgan.silverblock.net>
+	 <4C834EDE.6050703@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 05 Sep 2010 14:02:42 -0400
+Message-ID: <1283709762.2057.41.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@localhost>
 
-Em 19-09-2010 16:06, Hans Verkuil escreveu:
-> On Sunday, September 19, 2010 20:29:58 Mauro Carvalho Chehab wrote:
->> Em 19-09-2010 11:58, Hans Verkuil escreveu:
->>> On Sunday, September 19, 2010 13:43:43 Mauro Carvalho Chehab wrote:
->>
->>>> A per-dev lock may not be good on devices where you have lots of interfaces, and that allows
->>>> more than one stream per interface.
->>>
->>> My proposal is actually a lock per device node, not per device (although that's
->>> what many simple drivers probably will use).
->>
->> Yes, that's what I meant. However, V4L2 API allows multiple opens and multiple streams per
->> device node (and this is actually in use by several drivers).
+On Sun, 2010-09-05 at 10:03 +0200, Hans de Goede wrote:
+> Hi,
 > 
-> Just to be clear: multiple opens is a V4L2 requirement. Some older drivers had exclusive
-> access, but those are gradually fixed.
+> On 09/03/2010 03:09 AM, Andy Walls wrote:
+> > # HG changeset patch
+> > # User Andy Walls<awalls@radix.net>
+> > # Date 1283475832 14400
+> > # Node ID 0d251a2976b46e11cc817207de191896718b93a3
+> > # Parent  a4c762698bcb138982b81cf59e5bc4b7155866a9
+> > gspca_cpia1: Add lamp cotrol for Intel Play QX3 microscope
+> >
+> > From: Andy Walls<awalls@md.metrocast.net>
+> >
+> > Add a v4l2 control to get the lamp control code working for the Intel Play
+> > QX3 microscope.  My daughter in middle school thought it was cool, and is now
+> > examining the grossest specimens she can find.
+> >
 > 
-> Multiple stream per device node: if you are talking about allowing e.g. both VBI streaming
-> and video streaming from one device node, then that is indeed allowed by the current spec.
-> Few drivers support this though, and it is a really bad idea. During the Helsinki meeting we
-> agreed to remove this from the spec (point 10a in the mini summit report).
+> Hehe, cool I'm very happy to hear the cpia1 driver actually being used in a
+> "productive" manner, that shows it is worth all the time and effort I've put into
+> cleaning up / rewriting old v4l1 drivers :)
 
-I'm talking about read(), overlay and mmap(). The spec says, at "Multiple Opens" [1]:
-	"When a device supports multiple functions like capturing and overlay simultaneously,
-	 multiple opens allow concurrent use of the device by forked processes or specialized applications."
+Yes, thank you.
 
-[1] http://linuxtv.org/downloads/v4l-dvb-apis/ch01.html#id2717880
+Now I have 10x, 60x, and 200x images of pencils, hair, dead skin,
+fingernails, and insects.  As soon as my kids figure out the microscope
+body still works when removed from the base, I'm sure to have 10x, 60x,
+and 200x images of eyes, mouths, ears, and nostrils... :P
 
-So, it is allowed by the spec. What is forbidden is to have some copy logic in kernel to duplicate data.
 
+
+
+> About the patch: first of all thanks. wrt lamps versus lights I'm indifferent.
+
+I don't care much either.  Illuminator appears to be the correct term
+for microscopy.  The cpia2 (QX5) and gspca_cpia1 (QX3) drivers should
+probably try to match on any user visible terminology such as the string
+presented as the name of the control.  The cpia2 driver has presented
+the user with a "Lights" control.
+
+I don't know much about photography or film, so I don't know what
+artificial light sources that illuminate subject matter are called in
+those fields.
+
+
+
+> The only thing I've notices is that you've made the controls instand apply. Normally
+> controls setting changes when not streaming are just remembered and then applied
+> when the stream is initialized.
 > 
->>>> So, I did a different implementation, implementing the mutex pointer per file handler.
->>>> On devices that a simple lock is possible, all you need to do is to use the same locking
->>>> for all file handles, but if drivers want a finer control, they can use a per-file handler
->>>> lock.
->>>
->>> I am rather unhappy about this. First of all, per-filehandle locks are pretty pointless. If
->>> you need to serialize for a single filehandle (which would only be needed for multithreaded
->>> applications where the threads use the same filehandle), then you definitely need to serialize
->>> between multiple file handles that are open on the same device node.
->>
->> On multithread apps, they'll share the same file handle, so, there's no issue. Some applications
->> like xawtv and xdtv allows recording a video by starting another proccess that will use the read() 
->> interface for one stream, while the other stream is using mmap() (or overlay) will have two different
->> file handlers, one for each app. That's said, a driver using per-fh locks will likely need to
->> have an additional lock for global resources. I didn't start porting cx88 driver, but I suspect
->> that it will need to use it.
+> However your code sends the lamp settings to the device as soon as they are
+> changed, and does not send them on sd_start. The sending as soon as changes
+> makes sense. But did you check that this actually works,
+
+After a few minutes of playing with the microscope one realizes that one
+must be able to change the illumination on-the-fly.  Trying to get the
+best image possible from a microscope is easiest when one can tweak as
+much as possible in real-time: lighting, positioning, focus, etc.
+
+Changing the illuminator settings does work during a capture, with no
+apparent ill effects.  Then again, one is usually starting from bad
+illumination conditions searching for good illumination conditions, so
+who cares about glitching a frame that doesn't look good.
+
+
+
+>  iow did you play with
+> the lamps control while not streaming ? and then tried to stream and see if
+> the settings stuck.
+
+Yes they do.  'v4l2-ctl -c lamps=n' was used to manipulate the control,
+Cheese was use for streaming.
+
+The lamps will stay in the last state commanded, regardless of when
+streaming is started and stopped.
+
+
+> Also the not sending at sd_start, nor sd_init means that you assume that the
+> defaults in the driver (both lamps off) ar the same as of the device as you
+> never force that the device <-> driver settings are synced on driver load
+> or stream start. This may not be the case when resuming from suspend or
+> the driver is rmmod-ed insmod-ed.
+
+1. manual `modprobe -r` followed by `modprobe` is not a case that the
+normal end user cares about.
+
+2. when this USB device is unplugged and plugged back in, its lights are
+always off and the driver, as you note, always assumes they are off as
+well.
+
+3. suspend/resume: well, yes that case probably matters. :)
+
+
+
+>  So assuming that the instant apply
+> of this control does not cause issues, you should add a call to
+> command_setlamps(gspca_dev); at the end of sd_init.
+
+Easy enough.
+
+Regards,
+Andy
+
+> Regards,
 > 
-> That read/mmap construct was discussed as well in Helsinki (also point 10a). I quote from the report:
+> Hans
 > 
-> "Mixed read() and mmap() streaming. Allow or disallow? bttv allows it, which is against the spec since
-> it only has one buffer queue so a read() will steal a frame. No conclusion was reached. Everyone thought
-> it was very ugly but some apps apparently use this. Even though few drivers actually support this functionality."
 > 
-> Applications must be able to work without this 'feature' since so few drivers allow this. And it
-> is against the spec as well. Perhaps we should try to remove this 'feature' and see if the apps
-> still work. If they do, then kill it. It's truly horrible. And it is definitely not a reason to
-> choose a overly complex locking scheme just so that some old apps can do a read and dqbuf at the
-> same time.
+> > Priority: normal
+> >
+> > Signed-off-by: Andy Walls<awalls@md.metrocast.net>
+> >
+> > diff -r a4c762698bcb -r 0d251a2976b4 linux/drivers/media/video/gspca/cpia1.c
+> > --- a/linux/drivers/media/video/gspca/cpia1.c	Wed Aug 25 16:13:54 2010 -0300
+> > +++ b/linux/drivers/media/video/gspca/cpia1.c	Thu Sep 02 21:03:52 2010 -0400
+> > @@ -333,8 +333,8 @@
+> >   	} format;
+> >   	struct {                        /* Intel QX3 specific data */
+> >   		u8 qx3_detected;        /* a QX3 is present */
+> > -		u8 toplight;            /* top light lit , R/W */
+> > -		u8 bottomlight;         /* bottom light lit, R/W */
+> > +		u8 toplamp;             /* top lamp lit , R/W */
+> > +		u8 bottomlamp;          /* bottom lamp lit, R/W */
+> >   		u8 button;              /* snapshot button pressed (R/O) */
+> >   		u8 cradled;             /* microscope is in cradle (R/O) */
+> >   	} qx3;
+> > @@ -373,6 +373,8 @@
+> >   static int sd_getfreq(struct gspca_dev *gspca_dev, __s32 *val);
+> >   static int sd_setcomptarget(struct gspca_dev *gspca_dev, __s32 val);
+> >   static int sd_getcomptarget(struct gspca_dev *gspca_dev, __s32 *val);
+> > +static int sd_setlamps(struct gspca_dev *gspca_dev, __s32 val);
+> > +static int sd_getlamps(struct gspca_dev *gspca_dev, __s32 *val);
+> >
+> >   static const struct ctrl sd_ctrls[] = {
+> >   	{
+> > @@ -447,6 +449,20 @@
+> >   		.set = sd_setcomptarget,
+> >   		.get = sd_getcomptarget,
+> >   	},
+> > +	{
+> > +		{
+> > +#define V4L2_CID_LAMPS (V4L2_CID_PRIVATE_BASE+1)
+> > +			.id	 = V4L2_CID_LAMPS,
+> > +			.type    = V4L2_CTRL_TYPE_MENU,
+> > +			.name    = "Lamps",
+> > +			.minimum = 0,
+> > +			.maximum = 3,
+> > +			.step    = 1,
+> > +			.default_value = 0,
+> > +		},
+> > +		.set = sd_setlamps,
+> > +		.get = sd_getlamps,
+> > +	},
+> >   };
+> >
+> >   static const struct v4l2_pix_format mode[] = {
+> > @@ -766,8 +782,8 @@
+> >   	params->compressionTarget.targetQ = 5; /* From windows driver */
+> >
+> >   	params->qx3.qx3_detected = 0;
+> > -	params->qx3.toplight = 0;
+> > -	params->qx3.bottomlight = 0;
+> > +	params->qx3.toplamp = 0;
+> > +	params->qx3.bottomlamp = 0;
+> >   	params->qx3.button = 0;
+> >   	params->qx3.cradled = 0;
+> >   }
+> > @@ -1059,17 +1075,16 @@
+> >   			  0, sd->params.streamStartLine, 0, 0);
+> >   }
+> >
+> > -#if 0 /* Currently unused */ /* keep */
+> > -static int command_setlights(struct gspca_dev *gspca_dev)
+> > +static int command_setlamps(struct gspca_dev *gspca_dev)
+> >   {
+> >   	struct sd *sd = (struct sd *) gspca_dev;
+> > -	int ret, p1, p2;
+> > +	int ret, p;
+> >
+> >   	if (!sd->params.qx3.qx3_detected)
+> >   		return 0;
+> >
+> > -	p1 = (sd->params.qx3.bottomlight == 0)<<  1;
+> > -	p2 = (sd->params.qx3.toplight == 0)<<  3;
+> > +	p  = (sd->params.qx3.toplamp    == 0) ? 0x8 : 0;
+> > +	p |= (sd->params.qx3.bottomlamp == 0) ? 0x2 : 0;
+> >
+> >   	ret = do_command(gspca_dev, CPIA_COMMAND_WriteVCReg,
+> >   			 0x90, 0x8F, 0x50, 0);
+> > @@ -1077,9 +1092,8 @@
+> >   		return ret;
+> >
+> >   	return do_command(gspca_dev, CPIA_COMMAND_WriteMCPort, 2, 0,
+> > -			  p1 | p2 | 0xE0, 0);
+> > +			  p | 0xE0, 0);
+> >   }
+> > -#endif
+> >
+> >   static int set_flicker(struct gspca_dev *gspca_dev, int on, int apply)
+> >   {
+> > @@ -1932,6 +1946,27 @@
+> >   	return 0;
+> >   }
+> >
+> > +static int sd_setlamps(struct gspca_dev *gspca_dev, __s32 val)
+> > +{
+> > +	struct sd *sd = (struct sd *) gspca_dev;
+> > +
+> > +	sd->params.qx3.toplamp    = (val&  0x2) ? 1 : 0;
+> > +	sd->params.qx3.bottomlamp = (val&  0x1) ? 1 : 0;
+> > +
+> > +	if (sd->params.qx3.qx3_detected)
+> > +		return command_setlamps(gspca_dev);
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static int sd_getlamps(struct gspca_dev *gspca_dev, __s32 *val)
+> > +{
+> > +	struct sd *sd = (struct sd *) gspca_dev;
+> > +
+> > +	*val = (sd->params.qx3.toplamp<<  1) | (sd->params.qx3.bottomlamp<<  0);
+> > +	return 0;
+> > +}
+> > +
+> >   static int sd_querymenu(struct gspca_dev *gspca_dev,
+> >   			struct v4l2_querymenu *menu)
+> >   {
+> > @@ -1959,6 +1994,22 @@
+> >   			return 0;
+> >   		}
+> >   		break;
+> > +	case V4L2_CID_LAMPS:
+> > +		switch (menu->index) {
+> > +		case 0:
+> > +			strcpy((char *) menu->name, "Off");
+> > +			return 0;
+> > +		case 1:
+> > +			strcpy((char *) menu->name, "Bottom");
+> > +			return 0;
+> > +		case 2:
+> > +			strcpy((char *) menu->name, "Top");
+> > +			return 0;
+> > +		case 3:
+> > +			strcpy((char *) menu->name, "Both");
+> > +			return 0;
+> > +		}
+> > +		break;
+> >   	}
+> >   	return -EINVAL;
+> >   }
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-xawtv will stop working in record mode. It is one of the applications we added on our list that
-we should use as reference.
 
-I'm not against patching it to implement a different logic for record. Patches are welcome.
-
-Considering that, currently, very few applications allow recording (I think only xawtv/xdtv, both using
-ffmpeg or mencoder for record) and mythtv are the only ones, I don't think we should remove it, without
-having it implemented on more places.
-
-Besides that, not all device drivers will work with all applications or provide the complete set of
-functionalities. For example, there are only three drivers (ivtv, cx18 and pvrusb2), as far as I remember, 
-that only implements read() method. By using your logic that "only a few drivers allow feature X", maybe
-we should deprecate read() as well ;)
-
-> 
->>> The device node is the right place for this IMHO.
->>>
->>> Regarding creating v4l2_fh structs in the core: many simple drivers do not need a v4l2_fh
->>> at all, and the more complex drivers often need to embed it in a larger struct.
->>>
->>> The lookup get_v4l2_fh function also is unnecessary if we do not create these structs and
->>> so is the *really* ugly reinit_v4l2_fh.
->>
->> The reinit_v4l2_fh() is a temporary workaround, to avoid the need of rewriting the v4l2_fh
->> implementation at ivtv, while keeping it work properly.
->>
->> There are other ways to allow drivers to embed a per-fh data for the more complex devices, like
->> adding a void *priv pointer, and letting the drivers to do whatever they want.
-> 
-> I've become a big fan of embedded data structures. It's the standard way the kernel structs
-> operate and it is the correct one as well. I don't like those void pointers. You loose all
-> type checking that way, and it makes managing the memory harder as well. It's the last
-> resort for me.
-
-void *priv is also the standard way to support embeed data. So, it is also a valid approach.
-
->> The problem with the current implementation of v4l2_fh() is that there's no way for the core
->> to get per-fh info.
-> 
-> You mean how to get from a struct file to a v4l2_fh? That should be done through
-> filp->private_data, but since many driver still put other things there, that is not
-> really usable at the moment without changing all those drivers first.
-
-It should be drivers decision to put whatever they want on a "priv_data". If you want to have
-core data, then you need to use embeed for the core, but keeping priv_data for private driver's
-internal usage. That's the standard way used on Linux. You're doing just the reverse ;)
-
->>>> We could need to do some changes there to cover the case where videobuf sleeps, maybe using
->>>> mutex_lock_interruptible at core, in order to allow abort userspace, if the driver fails
->>>> to fill the buffers (tests are needed).
->>>
->>> Regarding the (very courageous!) videobuf patches: I'm impressed. But videobuf must really
->>> release the lock in waiton. 
->>
->> Well, mutex is allowed to be locked while scheduling. That's why it uses a mutex, instead of a
->> spinlock. So, it seems to be safe. Yet, I agree that it should be releasing it at waiton, 
->> in order to avoid troubles with some kernel threads that may be needing to lock to access
->> the same data. So, the code will likely need to be changed in order to work with some drivers.
-> 
-> It's safe, sure, but a major blocker in the literal sense. If for some reason no new frames
-> arrive, then the whole system grinds to a halt because everyone is waiting for that mutex to
-> be release.
-
-This need to be fixed, that's for sure, but only the userspace app and the driver will be blocked,
-while the buffer timeout doesn't happen. AFAIK, all drivers have a timeout to return error if
-the stream stops.
-
->>> Right now no other access can be done while it is waiting. That
->>> is not acceptable. The same issue appears in the VIDIOC_DQEVENT core handler, although it
->>> is easy to solve there.
->>>
->>> For videobuf it might be better to pass a pointer to the serializing mutex as an argument.
->>> Then videobuf can use that to unlock/relock when it has to wait. Not elegant, but hopefully
->>> we can do better in vb2.
->>
->> Having two mutexes passing as parameter for vb would be a confusing interface. Maybe the better is
->> to postpone such change to happen after having all drivers ported to the new locking schema.
-> 
-> I'm OK with that as a temporary measure during developing the patch series, but what enters
-> the mainline should be working correctly in this respect. I.e. no mutex should be held when
-> the driver has to wait for a new frame (or a new event for that matter). Other apps must be
-> able to open/read/ioctl/whatever during that time.
-
-If we'll be fast enough to write the entire series, that would be the better. I'm afraid that
-there are too many drivers using it nowadays. Perhaps we could create a new videobuf init call
-for the new mutex.
-
->>> My suggestion would be to use your videobuf patches, but use my idea for the mutex pointer
->>> in struct video_device. Best of both worlds :-)
->>
->> Maybe.
-> 
-> Hmmm. I need to do more work to convince you :-)
-
-:)
-
->>>>> One other thing that I do not like is this:
->>>>>
->>>>>         /* Allow ioctl to continue even if the device was unregistered.
->>>>>            Things like dequeueing buffers might still be useful. */
->>>>>         return vdev->fops->unlocked_ioctl(filp, cmd, arg);
->>>>>
->>>>> I do not believe drivers can do anything useful once the device is unregistered
->>>>> except just close the file handle. There are two exceptions to this: poll()
->>>>> and VIDIOC_DQEVENT.
->>>>>
->>>>> Right now drivers have no way of detecting that a disconnect happened. It would
->>>>> be easy to add a disconnect event and let the core issue it automatically. The
->>>>> only thing needed is that VIDIOC_DQEVENT ioctls are passed on and that poll
->>>>> raises an exception. Since all the information regarding events is available in
->>>>> the core framework it is easy to do this transparently.
->>>>>
->>>>> So effectively, once a driver unregistered a device node it will never get
->>>>> called again on that device node except for the release call. That is very
->>>>> useful for a driver.
->>>>>
->>>>> And since we can do this in the core, it will also be consistent for all
->>>>> drivers.
->>>>
->>>> I think we should implement a way to detect disconnections. This will allow simplifying the
->>>> code at the drivers. Yet, I don't think that the solution is (only) to create an
->>>> event. Instead, we need to see how this information could be retrieved from the bus.
->>>> As the normal case for disconnections is for USB devices, we basically need to implement
->>>> a callback when a diconnection happens. The USB core knows about that, but I don't know
->>>> if it provides a callback for it.
->>>
->>> Well, USB drivers have a disconnect callback. All V4L2 USB drivers hook into that.
->>> What they are supposed to do is to unregister all video nodes. That sets the 'unregistered'
->>> in the core preventing any further access.
->>
->> I don't think all drivers implement it. I need to double check.
-> 
-> If a USB driver doesn't, then that's a driver bug. It will almost certainly crash if
-> you disconnect unexpectedly. Not that the presence of that callback gives you any
-> guarantees: usbvision has the callback but crashes spectacularly when you disconnect
-> while capturing :-(
->  
->>>> If it provides, drivers may just implement the callback,
->>>> calling buffer_release, and saying to V4L2 core that the device is disconnected. V4L2 core
->>>> can then properly handle any new fops to that device, passing to the device just the
->>>> close() events, returning -ENODEV and POLLERR for userspace.
->>>
->>> That basically is what happens right now. Except for passing on the ioctls which is a bad
->>> idea IMHO.
->>
->> Yeah. If core already knows that the device got disconnected, it can just use a default handler
->> for disconnected devices, instead of passing ioctls to the drivers.
->>
->>> BTW: one other thing I've worked on today is a global release callback in v4l2_device.
->>> Right now we have proper refcounting for struct video_device, but if a driver has multiple
->>> device nodes, then it can be hard to tell when all of them are properly released and it
->>> is safe to release the full device instance.
->>>
->>> I made a fairly straightforward implementation available here:
->>>
->>> http://git.linuxtv.org/hverkuil/v4l-dvb.git?a=shortlog;h=refs/heads/v4l2core
->>>
->>> Without a global release it is almost impossible to cleanup a driver like usbvision
->>> correctly.
->>
->> It seems interesting. Not sure how we can use it on drivers like cx88, but it is probably ok
->> for most of the drivers. In the case of cx88, the refcount should be done at cx88 core struct,
->> that it is used by 4 different drivers (3 of them opening V4L devices: cx88, cx88-mpeg, cx88-blackbird,
->> plust cx88-alsa).
-> 
-> This actually will work correctly. When a device node is registered in cx88, it is already
-> hooked into the v4l2_device of the core struct. This was needed to handle the i2c subdevs
-> in the right place: the cx88 core struct. So refcounting will also be done in the core struct.
-
-No. Look at the actual code. For example, this is what cx88-mpeg does:
-
-struct cx8802_dev *dev = pci_get_drvdata(pci_dev);
-
-cx88 core is at dev->core.
-
-The same happens with cx88-video, using struct cx8800:
-
-struct cx8800_dev *dev = pci_get_drvdata(pci_dev);
-
-cx88 core is also at dev->core.
-
-This device is implemented using multiple PCI devices, one for each function. Function 0 (video) and Function 2
-(used for TS devices, like mpeg encoders) can be used independently, but there are some data that are concurrent.
-So, drivers will likely need to use two locks, one for the core and one for the function.
-
-Cheers,
-Mauro.
