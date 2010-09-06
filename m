@@ -1,224 +1,130 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:36175 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757452Ab0IZQN1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 12:13:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@gaivota>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:26102 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752940Ab0IFGx4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 02:53:56 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L8B0072HCHTIF20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Sep 2010 07:53:53 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L8B00L4OCHSQN@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Sep 2010 07:53:52 +0100 (BST)
+Date: Mon, 06 Sep 2010 08:53:45 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 3/8] v4l: s5p-fimc: Register definition cleanup
+In-reply-to: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
-Subject: [RFC/PATCH 5/9] v4l: Create v4l2 subdev file handle structure
-Date: Sun, 26 Sep 2010 18:13:28 +0200
-Message-Id: <1285517612-20230-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	p.osciak@samsung.com, s.nawrocki@samsung.com
+Message-id: <1283756030-28634-4-git-send-email-m.szyprowski@samsung.com>
+References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-From: Stanimir Varbanov <svarbanov@mm-sol.com>
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Used for storing subdev information per file handle and hold V4L2 file
-handle.
+Prepare DMA address definitions for interlaced input frame mode.
 
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Antti Koskipaa <antti.koskipaa@nokia.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/video/v4l2-subdev.c |   82 +++++++++++++++++++++++++------------
- include/media/v4l2-subdev.h       |   25 +++++++++++
- 2 files changed, 80 insertions(+), 27 deletions(-)
+ drivers/media/video/s5p-fimc/fimc-reg.c  |    6 ++--
+ drivers/media/video/s5p-fimc/regs-fimc.h |   38 ++++++-----------------------
+ 2 files changed, 11 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 731dc12..d2891c1 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -30,38 +30,66 @@
- #include <media/v4l2-fh.h>
- #include <media/v4l2-event.h>
+diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
+index 5570f1c..70f29c5 100644
+--- a/drivers/media/video/s5p-fimc/fimc-reg.c
++++ b/drivers/media/video/s5p-fimc/fimc-reg.c
+@@ -507,9 +507,9 @@ void fimc_hw_set_input_addr(struct fimc_dev *dev, struct fimc_addr *paddr)
+ 	cfg |= S5P_CIREAL_ISIZE_ADDR_CH_DIS;
+ 	writel(cfg, dev->regs + S5P_CIREAL_ISIZE);
  
-+static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
-+{
-+	/* Allocate probe format and crop in the same memory block */
-+	fh->probe_fmt = kzalloc((sizeof(*fh->probe_fmt) +
-+				sizeof(*fh->probe_crop)) * sd->entity.num_pads,
-+				GFP_KERNEL);
-+	if (fh->probe_fmt == NULL)
-+		return -ENOMEM;
-+
-+	fh->probe_crop = (struct v4l2_rect *)
-+		(fh->probe_fmt + sd->entity.num_pads);
-+
-+	return 0;
-+}
-+
-+static void subdev_fh_free(struct v4l2_subdev_fh *fh)
-+{
-+	kfree(fh->probe_fmt);
-+	fh->probe_fmt = NULL;
-+	fh->probe_crop = NULL;
-+}
-+
- static int subdev_open(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
-+	struct v4l2_subdev_fh *subdev_fh;
- 	struct media_entity *entity;
--	struct v4l2_fh *vfh = NULL;
- 	int ret;
+-	writel(paddr->y, dev->regs + S5P_CIIYSA0);
+-	writel(paddr->cb, dev->regs + S5P_CIICBSA0);
+-	writel(paddr->cr, dev->regs + S5P_CIICRSA0);
++	writel(paddr->y, dev->regs + S5P_CIIYSA(0));
++	writel(paddr->cb, dev->regs + S5P_CIICBSA(0));
++	writel(paddr->cr, dev->regs + S5P_CIICRSA(0));
  
- 	if (!sd->initialized)
- 		return -EAGAIN;
+ 	cfg &= ~S5P_CIREAL_ISIZE_ADDR_CH_DIS;
+ 	writel(cfg, dev->regs + S5P_CIREAL_ISIZE);
+diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
+index a3cfe82..df8cdfb 100644
+--- a/drivers/media/video/s5p-fimc/regs-fimc.h
++++ b/drivers/media/video/s5p-fimc/regs-fimc.h
+@@ -11,10 +11,6 @@
+ #ifndef REGS_FIMC_H_
+ #define REGS_FIMC_H_
  
--	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
--		vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
--		if (vfh == NULL)
--			return -ENOMEM;
-+	subdev_fh = kzalloc(sizeof(*subdev_fh), GFP_KERNEL);
-+	if (subdev_fh == NULL)
-+		return -ENOMEM;
- 
--		ret = v4l2_fh_init(vfh, vdev);
--		if (ret)
--			goto err;
-+	ret = subdev_fh_init(subdev_fh, sd);
-+	if (ret) {
-+		kfree(subdev_fh);
-+		return ret;
-+	}
-+
-+	ret = v4l2_fh_init(&subdev_fh->vfh, vdev);
-+	if (ret)
-+		goto err;
- 
--		ret = v4l2_event_init(vfh);
-+	if (sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS) {
-+		ret = v4l2_event_init(&subdev_fh->vfh);
- 		if (ret)
- 			goto err;
- 
--		ret = v4l2_event_alloc(vfh, sd->nevents);
-+		ret = v4l2_event_alloc(&subdev_fh->vfh, sd->nevents);
- 		if (ret)
- 			goto err;
+-#define S5P_CIOYSA(__x)			(0x18 + (__x) * 4)
+-#define S5P_CIOCBSA(__x)		(0x28 + (__x) * 4)
+-#define S5P_CIOCRSA(__x)		(0x38 + (__x) * 4)
 -
--		v4l2_fh_add(vfh);
--		file->private_data = vfh;
- 	}
+ /* Input source format */
+ #define S5P_CISRCFMT			0x00
+ #define S5P_CISRCFMT_ITU601_8BIT	(1 << 31)
+@@ -72,23 +68,10 @@
+ #define S5P_CIWDOFST2_HOROFF(x)		((x) << 16)
+ #define S5P_CIWDOFST2_VEROFF(x)		((x) << 0)
  
-+	v4l2_fh_add(&subdev_fh->vfh);
-+	file->private_data = &subdev_fh->vfh;
-+
- 	if (sd->v4l2_dev->mdev) {
- 		entity = media_entity_get(&sd->entity);
- 		if (!entity) {
-@@ -73,11 +101,10 @@ static int subdev_open(struct file *file)
- 	return 0;
+-/* Output DMA Y plane start address */
+-#define S5P_CIOYSA1			0x18
+-#define S5P_CIOYSA2			0x1c
+-#define S5P_CIOYSA3			0x20
+-#define S5P_CIOYSA4			0x24
+-
+-/* Output DMA Cb plane start address */
+-#define S5P_CIOCBSA1			0x28
+-#define S5P_CIOCBSA2			0x2c
+-#define S5P_CIOCBSA3			0x30
+-#define S5P_CIOCBSA4			0x34
+-
+-/* Output DMA Cr plane start address */
+-#define S5P_CIOCRSA1			0x38
+-#define S5P_CIOCRSA2			0x3c
+-#define S5P_CIOCRSA3			0x40
+-#define S5P_CIOCRSA4			0x44
++/* Output DMA Y/Cb/Cr plane start addresses */
++#define S5P_CIOYSA(n)			(0x18 + (n) * 4)
++#define S5P_CIOCBSA(n)			(0x28 + (n) * 4)
++#define S5P_CIOCRSA(n)			(0x38 + (n) * 4)
  
- err:
--	if (vfh != NULL) {
--		v4l2_fh_del(vfh);
--		v4l2_fh_exit(vfh);
--		kfree(vfh);
--	}
-+	v4l2_fh_del(&subdev_fh->vfh);
-+	v4l2_fh_exit(&subdev_fh->vfh);
-+	subdev_fh_free(subdev_fh);
-+	kfree(subdev_fh);
+ /* Target image format */
+ #define S5P_CITRGFMT			0x48
+@@ -206,10 +189,10 @@
+ #define S5P_CIIMGEFF_PAT_CB(x)		((x) << 13)
+ #define S5P_CIIMGEFF_PAT_CR(x)		((x) << 0)
  
- 	return ret;
- }
-@@ -87,15 +114,16 @@ static int subdev_close(struct file *file)
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
- 	struct v4l2_fh *vfh = file->private_data;
-+	struct v4l2_subdev_fh *subdev_fh = to_v4l2_subdev_fh(vfh);
+-/* Input DMA Y/Cb/Cr plane start address 0 */
+-#define S5P_CIIYSA0			0xd4
+-#define S5P_CIICBSA0			0xd8
+-#define S5P_CIICRSA0			0xdc
++/* Input DMA Y/Cb/Cr plane start address 0/1 */
++#define S5P_CIIYSA(n)			(0xd4 + (n) * 0x70)
++#define S5P_CIICBSA(n)			(0xd8 + (n) * 0x70)
++#define S5P_CIICRSA(n)			(0xdc + (n) * 0x70)
  
- 	if (sd->v4l2_dev->mdev)
- 		media_entity_put(&sd->entity);
+ /* Real input DMA image size */
+ #define S5P_CIREAL_ISIZE		0xf8
+@@ -250,11 +233,6 @@
+ #define S5P_MSCTRL_ENVID		(1 << 0)
+ #define S5P_MSCTRL_FRAME_COUNT(x)	((x) << 24)
  
--	if (vfh != NULL) {
--		v4l2_fh_del(vfh);
--		v4l2_fh_exit(vfh);
--		kfree(vfh);
--	}
-+	v4l2_fh_del(vfh);
-+	v4l2_fh_exit(vfh);
-+	subdev_fh_free(subdev_fh);
-+	kfree(subdev_fh);
-+	file->private_data = NULL;
- 
- 	return 0;
- }
-@@ -104,7 +132,7 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
--	struct v4l2_fh *fh = file->private_data;
-+	struct v4l2_fh *vfh = file->private_data;
- 
- 	switch (cmd) {
- 	case VIDIOC_QUERYCTRL:
-@@ -132,13 +160,13 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (!(sd->flags & V4L2_SUBDEV_FL_HAS_EVENTS))
- 			return -ENOIOCTLCMD;
- 
--		return v4l2_event_dequeue(fh, arg, file->f_flags & O_NONBLOCK);
-+		return v4l2_event_dequeue(vfh, arg, file->f_flags & O_NONBLOCK);
- 
- 	case VIDIOC_SUBSCRIBE_EVENT:
--		return v4l2_subdev_call(sd, core, subscribe_event, fh, arg);
-+		return v4l2_subdev_call(sd, core, subscribe_event, vfh, arg);
- 
- 	case VIDIOC_UNSUBSCRIBE_EVENT:
--		return v4l2_subdev_call(sd, core, unsubscribe_event, fh, arg);
-+		return v4l2_subdev_call(sd, core, unsubscribe_event, vfh, arg);
- 
- 	default:
- 		return -ENOIOCTLCMD;
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 57ef74f..212fc54 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -24,6 +24,7 @@
- #include <media/media-entity.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-fh.h>
- #include <media/v4l2-mediabus.h>
- 
- /* generic v4l2_device notify callback notification values */
-@@ -469,6 +470,30 @@ struct v4l2_subdev {
- #define vdev_to_v4l2_subdev(vdev) \
- 	container_of(vdev, struct v4l2_subdev, devnode)
- 
-+/*
-+ * Used for storing subdev information per file handle
-+ */
-+struct v4l2_subdev_fh {
-+	struct v4l2_fh vfh;
-+	struct v4l2_mbus_framefmt *probe_fmt;
-+	struct v4l2_rect *probe_crop;
-+};
-+
-+#define to_v4l2_subdev_fh(fh)	\
-+	container_of(fh, struct v4l2_subdev_fh, vfh)
-+
-+static inline struct v4l2_mbus_framefmt *
-+v4l2_subdev_get_probe_format(struct v4l2_subdev_fh *fh, unsigned int pad)
-+{
-+	return &fh->probe_fmt[pad];
-+}
-+
-+static inline struct v4l2_rect *
-+v4l2_subdev_get_probe_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
-+{
-+	return &fh->probe_crop[pad];
-+}
-+
- extern const struct v4l2_file_operations v4l2_subdev_fops;
- 
- static inline void v4l2_set_subdevdata(struct v4l2_subdev *sd, void *p)
+-/* Input DMA Y/Cb/Cr plane start address 1 */
+-#define S5P_CIIYSA1			0x144
+-#define S5P_CIICBSA1			0x148
+-#define S5P_CIICRSA1			0x14c
+-
+ /* Output DMA Y/Cb/Cr offset */
+ #define S5P_CIOYOFF			0x168
+ #define S5P_CIOCBOFF			0x16c
 -- 
 1.7.2.2
 
