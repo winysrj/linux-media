@@ -1,115 +1,101 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:33820 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759623Ab0I0QFs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 12:05:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [RFC/PATCH 1/9] v4l: Move the media/v4l2-mediabus.h header to include/linux
-Date: Mon, 27 Sep 2010 18:05:55 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com> <1285517612-20230-2-git-send-email-laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1009270959100.16377@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1009270959100.16377@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009271805.56330.laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@gaivota>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:44776 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754908Ab0IFSLC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Sep 2010 14:11:02 -0400
+Received: from tele (unknown [82.245.201.222])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 81147D480ED
+	for <linux-media@vger.kernel.org>; Mon,  6 Sep 2010 20:10:56 +0200 (CEST)
+Date: Mon, 6 Sep 2010 20:11:05 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Illuminators and status LED controls
+Message-ID: <20100906201105.4029d7e7@tele>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/39OnR3hd2Fo.DqfGaHIW880"
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Guennadi,
+--MP_/39OnR3hd2Fo.DqfGaHIW880
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Thanks for the review.
+Hi,
 
-On Monday 27 September 2010 10:20:57 Guennadi Liakhovetski wrote:
-> On Sun, 26 Sep 2010, Laurent Pinchart wrote:
-> > The header defines the v4l2_mbus_framefmt structure which will be used
-> > by the V4L2 subdevs userspace API.
-> > 
-> > Change the type of the v4l2_mbus_framefmt::code field to __u32, as enum
-> > sizes can differ between different ABIs on the same architectures.
-> > 
-> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > ---
-> > 
-> >  include/linux/Kbuild          |    1 +
-> >  include/linux/v4l2-mediabus.h |   70
-> >  +++++++++++++++++++++++++++++++++++++++++ include/media/soc_mediabus.h 
-> >  |    3 +-
-> >  include/media/v4l2-mediabus.h |   53 +------------------------------
-> 
-> Hm, yeah... I guess, you have to move them to make available to the
-> user-space...
+This new proposal cancels the previous 'LED control' patch.
 
-Yes, that's why.
+Cheers.
 
-> >  4 files changed, 73 insertions(+), 54 deletions(-)
-> >  create mode 100644 include/linux/v4l2-mediabus.h
-> > 
-> > diff --git a/include/linux/Kbuild b/include/linux/Kbuild
-> > index f836ee4..38127c2 100644
-> > --- a/include/linux/Kbuild
-> > +++ b/include/linux/Kbuild
-> > @@ -369,6 +369,7 @@ header-y += unistd.h
-> > 
-> >  header-y += usbdevice_fs.h
-> >  header-y += utime.h
-> >  header-y += utsname.h
-> > 
-> > +header-y += v4l2-mediabus.h
-> > 
-> >  header-y += veth.h
-> >  header-y += vhost.h
-> >  header-y += videodev.h
-> > 
-> > diff --git a/include/linux/v4l2-mediabus.h
-> > b/include/linux/v4l2-mediabus.h new file mode 100644
-> > index 0000000..127512a
-> > --- /dev/null
-> > +++ b/include/linux/v4l2-mediabus.h
-> > @@ -0,0 +1,70 @@
-> > +/*
-> > + * Media Bus API header
-> > + *
-> > + * Copyright (C) 2009, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#ifndef __LINUX_V4L2_MEDIABUS_H
-> > +#define __LINUX_V4L2_MEDIABUS_H
-> > +
-> > +#include <linux/types.h>
-> > +#include <linux/videodev2.h>
-> > +
-> > +/*
-> > + * These pixel codes uniquely identify data formats on the media bus.
-> > Mostly + * they correspond to similarly named V4L2_PIX_FMT_* formats,
-> > format 0 is + * reserved, V4L2_MBUS_FMT_FIXED shall be used by
-> > host-client pairs, where the + * data format is fixed. Additionally,
-> > "2X8" means that one pixel is transferred + * in two 8-bit samples, "BE"
-> > or "LE" specify in which order those samples are + * transferred over
-> > the bus: "LE" means that the least significant bits are + * transferred
-> > first, "BE" means that the most significant bits are transferred + *
-> > first, and "PADHI" and "PADLO" define which bits - low or high, in the +
-> > * incomplete high byte, are filled with padding bits.
-> > + */
-> > +enum v4l2_mbus_pixelcode {
-> 
-> If you now do not want to use this enum in the API, maybe better make it
-> unnamed and switch all users to __u32 for consistency? I'm not sure this
-> would be an advantage, just something to maybe think about...
+--=20
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
 
-I think it makes sense to keep the enumeration type for type checking reasons 
-(both in kernel space and user space). Unfortunately it can't be used in the 
-kernel <-> user API because of ABI incompatibilities.
+--MP_/39OnR3hd2Fo.DqfGaHIW880
+Content-Type: text/x-patch
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=led.patch
 
--- 
-Regards,
+Some media devices (microscopes) may have one or many illuminators,
+and most webcams have a status LED which is normally on when capture is active.
+This patch makes them controlable by the applications.
 
-Laurent Pinchart
+Signed-off-by: Jean-Francois Moine <moinejf@free.fr>
+
+diff --git a/Documentation/DocBook/v4l/controls.xml b/Documentation/DocBook/v4l/controls.xml
+index 8408caa..77f87ad 100644
+--- a/Documentation/DocBook/v4l/controls.xml
++++ b/Documentation/DocBook/v4l/controls.xml
+@@ -312,10 +312,27 @@ minimum value disables backlight compensation.</entry>
+ 	    information and bits 24-31 must be zero.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CID_ILLUMINATORS</constant></entry>
++	    <entry>integer</entry>
++	    <entry>Switch on or off the illuminator(s) of the device
++		(usually a microscope).
++	    The control type and values depend on the driver and may be either
++	    a single boolean (0: off, 1:on) or defined by a menu type.</entry>
++	  </row>
++	  <row id="v4l2_status_led">
++	    <entry><constant>V4L2_CID_STATUS_LED</constant></entry>
++	    <entry>integer</entry>
++	    <entry>Set the status LED behaviour. Possible values for
++<constant>enum v4l2_status_led</constant> are:
++<constant>V4L2_STATUS_LED_AUTO</constant> (0),
++<constant>V4L2_STATUS_LED_ON</constant> (1),
++<constant>V4L2_STATUS_LED_OFF</constant> (2).</entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CID_LASTP1</constant></entry>
+ 	    <entry></entry>
+ 	    <entry>End of the predefined control IDs (currently
+-<constant>V4L2_CID_BG_COLOR</constant> + 1).</entry>
++<constant>V4L2_CID_STATUS_LED</constant> + 1).</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry><constant>V4L2_CID_PRIVATE_BASE</constant></entry>
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 61490c6..75e8869 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1045,8 +1045,16 @@ enum v4l2_colorfx {
+ 
+ #define V4L2_CID_CHROMA_GAIN                    (V4L2_CID_BASE+36)
+ 
++#define V4L2_CID_ILLUMINATORS			(V4L2_CID_BASE+37)
++#define V4L2_CID_STATUS_LED			(V4L2_CID_BASE+38)
++enum v4l2_status_led {
++	V4L2_STATUS_LED_AUTO	= 0,
++	V4L2_STATUS_LED_ON	= 1,
++	V4L2_STATUS_LED_OFF	= 2,
++};
++
+ /* last CID + 1 */
+-#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+37)
++#define V4L2_CID_LASTP1                         (V4L2_CID_BASE+39)
+ 
+ /*  MPEG-class control IDs defined by V4L2 */
+ #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
+
+--MP_/39OnR3hd2Fo.DqfGaHIW880--
