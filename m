@@ -1,88 +1,178 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4649 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751221Ab0I1LML (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 07:12:11 -0400
-Message-ID: <f2f80506fee89bd174661947a5a6016f.squirrel@webmail.xs4all.nl>
-In-Reply-To: <AANLkTi=wMWjiY2eNR9wSkWxjKX6d_Awm4J1v57tUDB=s@mail.gmail.com>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF3604CAE3BABC@bssrvexch01.BS.local>
-    <AANLkTi=wMWjiY2eNR9wSkWxjKX6d_Awm4J1v57tUDB=s@mail.gmail.com>
-Date: Tue, 28 Sep 2010 13:12:00 +0200
-Subject: Re: RFC: Introduction of M2M capability and buffer types
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Kyungmin Park" <kmpark@infradead.org>
-Cc: "Kamil Debski" <k.debski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	pawel@osciak.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Return-path: <mchehab@gaivota>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:25805 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752584Ab0IFGxz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 02:53:55 -0400
+Received: from eu_spt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L8B00297CHS60@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Sep 2010 07:53:52 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L8B00E31CHS32@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Sep 2010 07:53:52 +0100 (BST)
+Date: Mon, 06 Sep 2010 08:53:44 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 2/8] v4l: s5p-fimc: Fix 3-planar formats handling and pixel
+ offset error on S5PV210 SoCs
+In-reply-to: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	p.osciak@samsung.com, s.nawrocki@samsung.com
+Message-id: <1283756030-28634-3-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-> Any comments?
+Fix DMA engine pixel offset calculation for 3-planar YUV formats.
+On S5PV210 SoCs horizontal offset is applied as number of pixels,
+not bytes per line.
 
-No, other than what has been discussed on irc:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-core.c |   87 +++++++++++++-----------------
+ 1 files changed, 37 insertions(+), 50 deletions(-)
 
-- Add a new V4L2_CAP_VIDEO_M2M capability instead of ORing CAPTURE and
-OUTPUT.
-- Don't add aliases, just document better if needed.
-- The spec has to change so that M2M devices do not need buffers to be
-queued before calling STREAMON. It's an exception to the rule.
-
-I hope I got this right, it's from memory :-)
-
-Regards,
-
-        Hans
-
->
-> On Tue, Sep 14, 2010 at 11:29 PM, Kamil Debski <k.debski@samsung.com>
-> wrote:
->> Hello,
->>
->> Mem2mem devices currently use V4L2_CAP_VIDEO_CAPTURE and
->> V4L2_CAP_VIDEO_OUTPUT capabilities. One might expect that a capture
->> device is a camera and an output device can display images. If I
->> remember correct our discussion during the Helsinki v4l2 summit, Hans de
->> Goede has pointed that such devices are listed in applications and can
->> confuse users. The user expects a camera and he has to choose from a
->> long list of devices.
->>
->> The solution to this would be the introduction of two new capability
->> V4L2_CAP_VIDEO_M2M. Such devices would not be listed when user is
->> expected to choose which webcam or TV tuner device to use.
->>
->> Another thing about m2m devices is the naming of buffers:
->> V4L2_BUF_TYPE_VIDEO_CAPTURE means the destination buffer and
->> V4L2_BUF_TYPE_VIDEO_OUTPUT means source. This indeed is confusing, so I
->> think the introduction of two new buffer types is justified. I would
->> recommend V4L2_BUF_TYPE_M2M_SOURCE and V4L2_BUF_TYPE_M2M_DESTINATION to
->> clearly state what is the buffer's purpose.
->>
->> I would be grateful for your comments to this RFC.
->>
->> Best wishes,
->> --
->> Kamil Debski
->> Linux Platform Group
->> Samsung Poland R&D Center
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media"
->> in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
+index b03b856..e00026b 100644
+--- a/drivers/media/video/s5p-fimc/fimc-core.c
++++ b/drivers/media/video/s5p-fimc/fimc-core.c
+@@ -393,6 +393,37 @@ static void fimc_set_yuv_order(struct fimc_ctx *ctx)
+ 	dbg("ctx->out_order_1p= %d", ctx->out_order_1p);
+ }
+ 
++static void fimc_prepare_dma_offset(struct fimc_ctx *ctx, struct fimc_frame *f)
++{
++	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
++
++	f->dma_offset.y_h = f->offs_h;
++	if (!variant->pix_hoff)
++		f->dma_offset.y_h *= (f->fmt->depth >> 3);
++
++	f->dma_offset.y_v = f->offs_v;
++
++	f->dma_offset.cb_h = f->offs_h;
++	f->dma_offset.cb_v = f->offs_v;
++
++	f->dma_offset.cr_h = f->offs_h;
++	f->dma_offset.cr_v = f->offs_v;
++
++	if (!variant->pix_hoff) {
++		if(f->fmt->planes_cnt == 3) {
++			f->dma_offset.cb_h >>= 1;
++			f->dma_offset.cr_h >>= 1;
++		}
++		if(f->fmt->color == S5P_FIMC_YCBCR420) {
++			f->dma_offset.cb_v >>= 1;
++			f->dma_offset.cr_v >>= 1;
++		}
++	}
++
++	dbg("in_offset: color= %d, y_h= %d, y_v= %d",
++	    f->fmt->color, f->dma_offset.y_h, f->dma_offset.y_v);
++}
++
+ /**
+  * fimc_prepare_config - check dimensions, operation and color mode
+  *			 and pre-calculate offset and the scaling coefficients.
+@@ -406,7 +437,6 @@ static int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags)
+ {
+ 	struct fimc_frame *s_frame, *d_frame;
+ 	struct fimc_vid_buffer *buf = NULL;
+-	struct samsung_fimc_variant *variant = ctx->fimc_dev->variant;
+ 	int ret = 0;
+ 
+ 	s_frame = &ctx->s_frame;
+@@ -419,61 +449,16 @@ static int fimc_prepare_config(struct fimc_ctx *ctx, u32 flags)
+ 			swap(d_frame->width, d_frame->height);
+ 		}
+ 
+-		/* Prepare the output offset ratios for scaler. */
+-		d_frame->dma_offset.y_h = d_frame->offs_h;
+-		if (!variant->pix_hoff)
+-			d_frame->dma_offset.y_h *= (d_frame->fmt->depth >> 3);
+-
+-		d_frame->dma_offset.y_v = d_frame->offs_v;
++		/* Prepare the DMA offset ratios for scaler. */
++		fimc_prepare_dma_offset(ctx, &ctx->s_frame);
++		fimc_prepare_dma_offset(ctx, &ctx->d_frame);
+ 
+-		d_frame->dma_offset.cb_h = d_frame->offs_h;
+-		d_frame->dma_offset.cb_v = d_frame->offs_v;
+-
+-		d_frame->dma_offset.cr_h = d_frame->offs_h;
+-		d_frame->dma_offset.cr_v = d_frame->offs_v;
+-
+-		if (!variant->pix_hoff && d_frame->fmt->planes_cnt == 3) {
+-			d_frame->dma_offset.cb_h >>= 1;
+-			d_frame->dma_offset.cb_v >>= 1;
+-			d_frame->dma_offset.cr_h >>= 1;
+-			d_frame->dma_offset.cr_v >>= 1;
+-		}
+-
+-		dbg("out offset: color= %d, y_h= %d, y_v= %d",
+-			d_frame->fmt->color,
+-			d_frame->dma_offset.y_h, d_frame->dma_offset.y_v);
+-
+-		/* Prepare the input offset ratios for scaler. */
+-		s_frame->dma_offset.y_h = s_frame->offs_h;
+-		if (!variant->pix_hoff)
+-			s_frame->dma_offset.y_h *= (s_frame->fmt->depth >> 3);
+-		s_frame->dma_offset.y_v = s_frame->offs_v;
+-
+-		s_frame->dma_offset.cb_h = s_frame->offs_h;
+-		s_frame->dma_offset.cb_v = s_frame->offs_v;
+-
+-		s_frame->dma_offset.cr_h = s_frame->offs_h;
+-		s_frame->dma_offset.cr_v = s_frame->offs_v;
+-
+-		if (!variant->pix_hoff && s_frame->fmt->planes_cnt == 3) {
+-			s_frame->dma_offset.cb_h >>= 1;
+-			s_frame->dma_offset.cb_v >>= 1;
+-			s_frame->dma_offset.cr_h >>= 1;
+-			s_frame->dma_offset.cr_v >>= 1;
+-		}
+-
+-		dbg("in offset: color= %d, y_h= %d, y_v= %d",
+-			s_frame->fmt->color, s_frame->dma_offset.y_h,
+-			s_frame->dma_offset.y_v);
+-
+-		fimc_set_yuv_order(ctx);
+-
+-		/* Check against the scaler ratio. */
+ 		if (s_frame->height > (SCALER_MAX_VRATIO * d_frame->height) ||
+ 		    s_frame->width > (SCALER_MAX_HRATIO * d_frame->width)) {
+ 			err("out of scaler range");
+ 			return -EINVAL;
+ 		}
++		fimc_set_yuv_order(ctx);
+ 	}
+ 
+ 	/* Input DMA mode is not allowed when the scaler is disabled. */
+@@ -1494,6 +1479,7 @@ static struct samsung_fimc_variant fimc2_variant_s5p = {
+ };
+ 
+ static struct samsung_fimc_variant fimc01_variant_s5pv210 = {
++	.pix_hoff	= 1,
+ 	.has_inp_rot	= 1,
+ 	.has_out_rot	= 1,
+ 	.min_inp_pixsize = 16,
+@@ -1508,6 +1494,7 @@ static struct samsung_fimc_variant fimc01_variant_s5pv210 = {
+ };
+ 
+ static struct samsung_fimc_variant fimc2_variant_s5pv210 = {
++	.pix_hoff	 = 1,
+ 	.min_inp_pixsize = 16,
+ 	.min_out_pixsize = 32,
+ 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+1.7.2.2
 
