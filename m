@@ -1,109 +1,60 @@
-Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:3823 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754020Ab0IJNdu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 09:33:50 -0400
-Date: Fri, 10 Sep 2010 15:33:42 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Steven Toth <stoth@kernellabs.com>
-Subject: [PATCH 3/5] cx22702: Avoid duplicating code in branches
-Message-ID: <20100910153342.62f90f73@hyperion.delvare>
-In-Reply-To: <20100910151943.103f7423@hyperion.delvare>
-References: <20100910151943.103f7423@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@gaivota>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:26102 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752940Ab0IFGx6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 02:53:58 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L8B0072HCHTIF20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Sep 2010 07:53:54 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L8B001CCCHSA4@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Sep 2010 07:53:53 +0100 (BST)
+Date: Mon, 06 Sep 2010 08:53:49 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 7/8] v4l: Add EBUSY error description for VIDIOC_STREAMON
+In-reply-to: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	p.osciak@samsung.com, s.nawrocki@samsung.com
+Message-id: <1283756030-28634-8-git-send-email-m.szyprowski@samsung.com>
+References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Calling the same functions in if/else or switch/case branches is
-inefficient. Refactor the code for a smaller binary and increased
-readability.
+From: Pawel Osciak <p.osciak@samsung.com>
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Steven Toth <stoth@kernellabs.com>
+VIDIOC_STREAMON should return EBUSY if streaming is already active.
+
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/dvb/frontends/cx22702.c |   31 ++++++++++++++++---------------
- 1 file changed, 16 insertions(+), 15 deletions(-)
+ Documentation/DocBook/v4l/vidioc-streamon.xml |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
---- linux-2.6.32-rc5.orig/drivers/media/dvb/frontends/cx22702.c	2009-10-24 16:12:18.000000000 +0200
-+++ linux-2.6.32-rc5/drivers/media/dvb/frontends/cx22702.c	2009-10-24 16:27:04.000000000 +0200
-@@ -128,19 +128,20 @@ static int cx22702_set_inversion(struct
- {
- 	u8 val;
- 
-+	val = cx22702_readreg(state, 0x0C);
- 	switch (inversion) {
- 	case INVERSION_AUTO:
- 		return -EOPNOTSUPP;
- 	case INVERSION_ON:
--		val = cx22702_readreg(state, 0x0C);
--		return cx22702_writereg(state, 0x0C, val | 0x01);
-+		val |= 0x01;
-+		break;
- 	case INVERSION_OFF:
--		val = cx22702_readreg(state, 0x0C);
--		return cx22702_writereg(state, 0x0C, val & 0xfe);
-+		val &= 0xfe;
-+		break;
- 	default:
- 		return -EINVAL;
- 	}
--
-+	return cx22702_writereg(state, 0x0C, val);
- }
- 
- /* Retrieve the demod settings */
-@@ -247,13 +248,15 @@ static int cx22702_get_tps(struct cx2270
- static int cx22702_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- {
- 	struct cx22702_state *state = fe->demodulator_priv;
-+	u8 val;
-+
- 	dprintk("%s(%d)\n", __func__, enable);
-+	val = cx22702_readreg(state, 0x0D);
- 	if (enable)
--		return cx22702_writereg(state, 0x0D,
--			cx22702_readreg(state, 0x0D) & 0xfe);
-+		val &= 0xfe;
- 	else
--		return cx22702_writereg(state, 0x0D,
--			cx22702_readreg(state, 0x0D) | 1);
-+		val |= 0x01;
-+	return cx22702_writereg(state, 0x0D, val);
- }
- 
- /* Talk to the demod, set the FEC, GUARD, QAM settings etc */
-@@ -273,23 +276,21 @@ static int cx22702_set_tps(struct dvb_fr
- 	cx22702_set_inversion(state, p->inversion);
- 
- 	/* set bandwidth */
-+	val = cx22702_readreg(state, 0x0C) & 0xcf;
- 	switch (p->u.ofdm.bandwidth) {
- 	case BANDWIDTH_6_MHZ:
--		cx22702_writereg(state, 0x0C,
--			(cx22702_readreg(state, 0x0C) & 0xcf) | 0x20);
-+		val |= 0x20;
- 		break;
- 	case BANDWIDTH_7_MHZ:
--		cx22702_writereg(state, 0x0C,
--			(cx22702_readreg(state, 0x0C) & 0xcf) | 0x10);
-+		val |= 0x10;
- 		break;
- 	case BANDWIDTH_8_MHZ:
--		cx22702_writereg(state, 0x0C,
--			cx22702_readreg(state, 0x0C) & 0xcf);
- 		break;
- 	default:
- 		dprintk("%s: invalid bandwidth\n", __func__);
- 		return -EINVAL;
- 	}
-+	cx22702_writereg(state, 0x0C, val);
- 
- 	p->u.ofdm.code_rate_LP = FEC_AUTO; /* temp hack as manual not working */
- 
-
+diff --git a/Documentation/DocBook/v4l/vidioc-streamon.xml b/Documentation/DocBook/v4l/vidioc-streamon.xml
+index e42bff1..fdbd8d8 100644
+--- a/Documentation/DocBook/v4l/vidioc-streamon.xml
++++ b/Documentation/DocBook/v4l/vidioc-streamon.xml
+@@ -93,6 +93,13 @@ synchronize with other events.</para>
+ been allocated (memory mapping) or enqueued (output) yet.</para>
+ 	</listitem>
+       </varlistentry>
++      <varlistentry>
++	<term><errorcode>EBUSY</errorcode></term>
++	<listitem>
++	  <para><constant>VIDIOC_STREAMON</constant> called, but
++	  streaming I/O already active.</para>
++	</listitem>
++      </varlistentry>
+     </variablelist>
+   </refsect1>
+ </refentry>
 -- 
-Jean Delvare
+1.7.2.2
+
