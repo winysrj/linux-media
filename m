@@ -1,86 +1,113 @@
-Return-path: <mchehab@pedra>
-Received: from mail-in-14.arcor-online.net ([151.189.21.54]:57740 "EHLO
-	mail-in-14.arcor-online.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750795Ab0IUX1Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Sep 2010 19:27:24 -0400
-Subject: Re: [linux-dvb] Asus MyCinema P7131 Dual support
-From: hermann pitton <hermann-pitton@arcor.de>
+Return-path: <mchehab@gaivota>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3142 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750999Ab0IFTIk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 15:08:40 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o86J8ZT5093567
+	for <linux-media@vger.kernel.org>; Mon, 6 Sep 2010 21:08:39 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 6 Sep 2010 21:08:35 +0200 (CEST)
+Message-Id: <201009061908.o86J8ZT5093567@smtp-vbr4.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-In-Reply-To: <AANLkTikf0hp8nXzovvdn0j_80Dcirr1a-EMH9sDDGEoX@mail.gmail.com>
-References: <AANLkTikf0hp8nXzovvdn0j_80Dcirr1a-EMH9sDDGEoX@mail.gmail.com>
-Content-Type: text/plain
-Date: Wed, 22 Sep 2010 01:13:00 +0200
-Message-Id: <1285110780.5561.18.camel@pc07.localdom.local>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Dejan,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Am Dienstag, den 21.09.2010, 10:07 +0200 schrieb Dejan Rodiger:
-> Hi,
-> 
-> I am using Ubuntu linux 10.10 with the latest kernel 2.6.35-22-generic
-> on x86_64. I have installed nonfree firmware which should support this
-> card, but to be sure, can somebody confirm that my TV card is
-> supported in Analog or DVB mode?
-> 
-> sudo lspci -vnn
-> 01:06.0 Multimedia controller [0480]: Philips Semiconductors
-> SAA7131/SAA7133/SAA7135 Video Broadcast Decoder [1131:7133] (rev d1)
->         Subsystem: ASUSTeK Computer Inc. My Cinema-P7131 Hybrid
-> [1043:4876]
->         Flags: bus master, medium devsel, latency 32, IRQ 18
->         Memory at fdeff000 (32-bit, non-prefetchable) [size=2K]
->         Capabilities: [40] Power Management version 2
->         Kernel driver in use: saa7134
->         Kernel modules: saa7134
-> 
-> It says Hybrid, but I put the following in
-> the /etc/modprobe.d/saa7134.conf
-> options saa7134 card=78 tuner=54
-> 
-> 
-> Thanks
-> -- 
-> Dejan Rodiger
-> S: callto://drodiger
+Results of the daily build of v4l-dvb:
 
-don't have time to follow this closely anymore.
+date:        Mon Sep  6 19:00:05 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15139:6e0befab696a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-But forcing it to card=78 is plain wrong. It has an early additional LNA
-in confirmed config = 2 status.
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
 
-Your card should be auto detected and previously always was, based on
-what we have in saa7134-cards.c and further for it. (saa7134-dvb and
-related tuner/demod stuff)
+Detailed results are available here:
 
-	}, {
-		.vendor       = PCI_VENDOR_ID_PHILIPS,
-		.device       = PCI_DEVICE_ID_PHILIPS_SAA7133,
-		.subvendor    = 0x1043,
-		.subdevice    = 0x4876,
-		.driver_data  = SAA7134_BOARD_ASUSTeK_P7131_HYBRID_LNA,
-	},{
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
 
-I remember for sure, that this card was fully functional for all use
-cases and it was not easy to get it there. I don't have it.
+Full logs are available here:
 
-Please provide the "dmesg" for failing auto detection without forcing
-some card = number as a starting point.
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
 
-I for sure want to see this board fully functional again.
+The V4L-DVB specification from this daily build is here:
 
-Cheers,
-Hermann
-
-
-
-
-
-
-
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
