@@ -1,57 +1,68 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:65532 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758276Ab0I1S5r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 14:57:47 -0400
-Date: Tue, 28 Sep 2010 15:47:02 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
-	dheitmueller@kernellabs.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 00/10] Several fixes for cx231xx
-Message-ID: <20100928154702.52871362@pedra>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@gaivota>
+Received: from mailout4.samsung.com ([203.254.224.34]:62505 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858Ab0IFHOV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 03:14:21 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Received: from epmmp1 (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Sun Java(tm) System Messaging Server 7u3-15.01 64bit (built Feb 12 2010))
+ with ESMTP id <0L8B006LPDFVUNC0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Sep 2010 16:14:19 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0L8B000HUDFVD0@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 06 Sep 2010 16:14:19 +0900 (KST)
+Date: Mon, 06 Sep 2010 16:14:19 +0900
+From: Joonyoung Shim <jy0922.shim@samsung.com>
+Subject: Re: [PATCH 8/8] v4l: radio: si470x: fix unneeded free_irq() call
+In-reply-to: <1283756030-28634-9-git-send-email-m.szyprowski@samsung.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	p.osciak@samsung.com, s.nawrocki@samsung.com,
+	Tobias Lorenz <tobias.lorenz@gmx.net>,
+	Douglas Schilling Landgraf <dougsland@redhat.com>,
+	Jean Delvare <khali@linux-fr.org>
+Message-id: <4C8494CB.4020007@samsung.com>
+Content-transfer-encoding: 8BIT
+References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
+ <1283756030-28634-9-git-send-email-m.szyprowski@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Those patches do several fixes needed on cx231xx for it to properly work
-with some new devices. They are meant to be applied after Devin's patches on
-his tree:
-	https://www.kernellabs.com/hg/~dheitmueller/polaris4/
+On 2010-09-06 오후 3:53, Marek Szyprowski wrote:
+> In case of error during probe() the driver calls free_irq() function
+> on not yet allocated irq. This patches fixes the call sequence in case of
+> the error.
+>
 
-I've applied his patch (fixing some merge conflicts) on a temporary git
-tree at:
-	http://git.linuxtv.org/mchehab/cx231xx.git
+I sent this fix patch but it didn't go to linux-media ML by certain
+reason. Anyway this is good catch.
 
-I have a few more patches adding experimental support for PixelView SBTVD
-Hybrid, in analog mode, that needs a few more adjustments before pushing
-at my tree, and I should start working on a driver for digital mode soon.
+Acked-by: Joonyoung Shim <jy0922.shim@samsung.com>
 
-Mauro Carvalho Chehab (10):
-  V4L/DVB: cx231xx: remove a printk warning at -avcore and at -417
-  V4L/DVB: cx231xx: fix Kconfig dependencies
-  V4L/DVB: tda18271: Add some hint about what tda18217 reg ID returned
-  V4L/DVB: cx231xx: properly implement URB control messages log
-  V4L/DVB: cx231xx: properly use the right tuner i2c address
-  V4L/DVB: cx231xx: better handle the master port enable command
-  V4L/DVB: cx231xx: Only change gpio direction when needed
-  V4L/DVB: tda18271: allow restricting max out to 4 bytes
-  V4L/DVB: tda18271: Add debug message with frequency divisor
-  V4L/DVB: cx231xx-audio: fix some locking issues
-
- drivers/media/common/tuners/tda18271-common.c |   66 ++++++----
- drivers/media/common/tuners/tda18271-fe.c     |    2 +-
- drivers/media/common/tuners/tda18271.h        |    5 +-
- drivers/media/video/cx231xx/Kconfig           |    1 +
- drivers/media/video/cx231xx/cx231xx-417.c     |    2 +-
- drivers/media/video/cx231xx/cx231xx-audio.c   |   95 ++++++------
- drivers/media/video/cx231xx/cx231xx-avcore.c  |   91 +++++-------
- drivers/media/video/cx231xx/cx231xx-cards.c   |    7 +-
- drivers/media/video/cx231xx/cx231xx-core.c    |  192 +++++++++++--------------
- drivers/media/video/cx231xx/cx231xx-dvb.c     |   32 ++--
- drivers/media/video/cx231xx/cx231xx.h         |   17 ++-
- drivers/media/video/tuner-core.c              |    2 +-
- 12 files changed, 243 insertions(+), 269 deletions(-)
+> Signed-off-by: Marek Szyprowski<m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+> CC: Tobias Lorenz<tobias.lorenz@gmx.net>
+> CC: Joonyoung Shim<jy0922.shim@samsung.com>
+> CC: Douglas Schilling Landgraf<dougsland@redhat.com>
+> CC: Jean Delvare<khali@linux-fr.org>
+> ---
+>   drivers/media/radio/si470x/radio-si470x-i2c.c |    2 +-
+>   1 files changed, 1 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/radio/si470x/radio-si470x-i2c.c b/drivers/media/radio/si470x/radio-si470x-i2c.c
+> index 67a4ec8..4ce541a 100644
+> --- a/drivers/media/radio/si470x/radio-si470x-i2c.c
+> +++ b/drivers/media/radio/si470x/radio-si470x-i2c.c
+> @@ -395,7 +395,7 @@ static int __devinit si470x_i2c_probe(struct i2c_client *client,
+>   	radio->registers[POWERCFG] = POWERCFG_ENABLE;
+>   	if (si470x_set_register(radio, POWERCFG)<  0) {
+>   		retval = -EIO;
+> -		goto err_all;
+> +		goto err_video;
+>   	}
+>   	msleep(110);
+>
 
