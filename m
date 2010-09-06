@@ -1,125 +1,72 @@
-Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:60405 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932303Ab0IXOOi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Sep 2010 10:14:38 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean Delvare <khali@linux-fr.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pete Eberlein <pete@sensoray.com>,
-	Mike Isely <isely@pobox.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Muralidharan Karicheri <mkaricheri@gmail.com>
-Subject: [PATCH 03/16] go7007: Add MODULE_DEVICE_TABLE to the go7007 I2C modules
-Date: Fri, 24 Sep 2010 16:14:01 +0200
-Message-Id: <1285337654-5044-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Return-path: <mchehab@gaivota>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:24570 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752746Ab0IFGe2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 02:34:28 -0400
+Date: Mon, 06 Sep 2010 08:33:51 +0200
+From: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Subject: [RFCv5 1/9] lib: rbtree: rb_root_init() function added
+In-reply-to: <cover.1283749231.git.mina86@mina86.com>
+To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jonathan Corbet <corbet@lwn.net>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Minchan Kim <minchan.kim@gmail.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-kernel@vger.kernel.org
+Message-id: <77e08b611d45c8b830d59a7d111105d3a597fc5c.1283749231.git.mina86@mina86.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <cover.1283749231.git.mina86@mina86.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The device table is required to load modules based on modaliases.
+Added a rb_root_init() function which initialises a rb_root
+structure as a red-black tree with at most one element.  The
+rationale is that using rb_root_init(root, node) is more
+straightforward and cleaner then first initialising and
+empty tree followed by an insert operation.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/staging/go7007/wis-ov7640.c     |    1 +
- drivers/staging/go7007/wis-saa7113.c    |    1 +
- drivers/staging/go7007/wis-saa7115.c    |    1 +
- drivers/staging/go7007/wis-sony-tuner.c |    1 +
- drivers/staging/go7007/wis-tw2804.c     |    1 +
- drivers/staging/go7007/wis-tw9903.c     |    1 +
- drivers/staging/go7007/wis-uda1342.c    |    1 +
- 7 files changed, 7 insertions(+), 0 deletions(-)
+ include/linux/rbtree.h |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/staging/go7007/wis-ov7640.c b/drivers/staging/go7007/wis-ov7640.c
-index 4f0cbdd..6bc9470 100644
---- a/drivers/staging/go7007/wis-ov7640.c
-+++ b/drivers/staging/go7007/wis-ov7640.c
-@@ -81,6 +81,7 @@ static const struct i2c_device_id wis_ov7640_id[] = {
- 	{ "wis_ov7640", 0 },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(i2c, wis_ov7640_id);
+diff --git a/include/linux/rbtree.h b/include/linux/rbtree.h
+index 7066acb..5b6dc66 100644
+--- a/include/linux/rbtree.h
++++ b/include/linux/rbtree.h
+@@ -130,6 +130,17 @@ static inline void rb_set_color(struct rb_node *rb, int color)
+ }
  
- static struct i2c_driver wis_ov7640_driver = {
- 	.driver = {
-diff --git a/drivers/staging/go7007/wis-saa7113.c b/drivers/staging/go7007/wis-saa7113.c
-index 72f5c1f..05e0e10 100644
---- a/drivers/staging/go7007/wis-saa7113.c
-+++ b/drivers/staging/go7007/wis-saa7113.c
-@@ -308,6 +308,7 @@ static const struct i2c_device_id wis_saa7113_id[] = {
- 	{ "wis_saa7113", 0 },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(i2c, wis_saa7113_id);
+ #define RB_ROOT	(struct rb_root) { NULL, }
++
++static inline void rb_root_init(struct rb_root *root, struct rb_node *node)
++{
++	root->rb_node = node;
++	if (node) {
++		node->rb_parent_color = RB_BLACK; /* black, no parent */
++		node->rb_left  = NULL;
++		node->rb_right = NULL;
++	}
++}
++
+ #define	rb_entry(ptr, type, member) container_of(ptr, type, member)
  
- static struct i2c_driver wis_saa7113_driver = {
- 	.driver = {
-diff --git a/drivers/staging/go7007/wis-saa7115.c b/drivers/staging/go7007/wis-saa7115.c
-index cd950b6..46cff59 100644
---- a/drivers/staging/go7007/wis-saa7115.c
-+++ b/drivers/staging/go7007/wis-saa7115.c
-@@ -441,6 +441,7 @@ static const struct i2c_device_id wis_saa7115_id[] = {
- 	{ "wis_saa7115", 0 },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(i2c, wis_saa7115_id);
- 
- static struct i2c_driver wis_saa7115_driver = {
- 	.driver = {
-diff --git a/drivers/staging/go7007/wis-sony-tuner.c b/drivers/staging/go7007/wis-sony-tuner.c
-index 981c9b3..8f1b7d4 100644
---- a/drivers/staging/go7007/wis-sony-tuner.c
-+++ b/drivers/staging/go7007/wis-sony-tuner.c
-@@ -692,6 +692,7 @@ static const struct i2c_device_id wis_sony_tuner_id[] = {
- 	{ "wis_sony_tuner", 0 },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(i2c, wis_sony_tuner_id);
- 
- static struct i2c_driver wis_sony_tuner_driver = {
- 	.driver = {
-diff --git a/drivers/staging/go7007/wis-tw2804.c b/drivers/staging/go7007/wis-tw2804.c
-index ee28a99..5b218c5 100644
---- a/drivers/staging/go7007/wis-tw2804.c
-+++ b/drivers/staging/go7007/wis-tw2804.c
-@@ -331,6 +331,7 @@ static const struct i2c_device_id wis_tw2804_id[] = {
- 	{ "wis_tw2804", 0 },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(i2c, wis_tw2804_id);
- 
- static struct i2c_driver wis_tw2804_driver = {
- 	.driver = {
-diff --git a/drivers/staging/go7007/wis-tw9903.c b/drivers/staging/go7007/wis-tw9903.c
-index 80d4726..9230f4a 100644
---- a/drivers/staging/go7007/wis-tw9903.c
-+++ b/drivers/staging/go7007/wis-tw9903.c
-@@ -313,6 +313,7 @@ static const struct i2c_device_id wis_tw9903_id[] = {
- 	{ "wis_tw9903", 0 },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(i2c, wis_tw9903_id);
- 
- static struct i2c_driver wis_tw9903_driver = {
- 	.driver = {
-diff --git a/drivers/staging/go7007/wis-uda1342.c b/drivers/staging/go7007/wis-uda1342.c
-index 5c4eb49..0127be2 100644
---- a/drivers/staging/go7007/wis-uda1342.c
-+++ b/drivers/staging/go7007/wis-uda1342.c
-@@ -86,6 +86,7 @@ static const struct i2c_device_id wis_uda1342_id[] = {
- 	{ "wis_uda1342", 0 },
- 	{ }
- };
-+MODULE_DEVICE_TABLE(i2c, wis_uda1342_id);
- 
- static struct i2c_driver wis_uda1342_driver = {
- 	.driver = {
+ #define RB_EMPTY_ROOT(root)	((root)->rb_node == NULL)
 -- 
-1.7.2.2
+1.7.1
 
