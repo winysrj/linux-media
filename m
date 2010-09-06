@@ -1,130 +1,54 @@
-Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:40898 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753217Ab0IKBXj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 21:23:39 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: [PATCH v2 2/6] OMAP1: Add support for SoC camera interface
-Date: Sat, 11 Sep 2010 03:23:08 +0200
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Tony Lindgren <tony@atomide.com>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
-In-Reply-To: <201009110317.54899.jkrzyszt@tis.icnet.pl>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201009110323.12250.jkrzyszt@tis.icnet.pl>
+Return-path: <mchehab@gaivota>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:33533 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755685Ab0IFV0d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 17:26:33 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 5/8] IR: extend MCE keymap.
+Date: Tue,  7 Sep 2010 00:26:10 +0300
+Message-Id: <1283808373-27876-6-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-This patch adds support for SoC camera interface to OMAP1 devices.
+These keys are found on remote bundled with
+Toshiba Qosmio F50-10q.
 
-Created and tested against linux-2.6.36-rc3 on Amstrad Delta.
+Found and tested by, Sami R <maesesami@gmail.com>
 
-For successfull compilation, requires a header file provided by PATCH 1/6 from 
-this series, "SoC Camera: add driver for OMAP1 camera interface".
-
-Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
 ---
-v1->v2 changes:
-- no functional changes,
-- refreshed against linux-2.6.36-rc3
+ drivers/media/IR/keymaps/rc-rc6-mce.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/media/IR/keymaps/rc-rc6-mce.c b/drivers/media/IR/keymaps/rc-rc6-mce.c
+index 64264f7..39557ad 100644
+--- a/drivers/media/IR/keymaps/rc-rc6-mce.c
++++ b/drivers/media/IR/keymaps/rc-rc6-mce.c
+@@ -19,6 +19,7 @@ static struct ir_scancode rc6_mce[] = {
+ 
+ 	{ 0x800f0416, KEY_PLAY },
+ 	{ 0x800f0418, KEY_PAUSE },
++	{ 0x800f046e, KEY_PLAYPAUSE },
+ 	{ 0x800f0419, KEY_STOP },
+ 	{ 0x800f0417, KEY_RECORD },
+ 
+@@ -37,6 +38,8 @@ static struct ir_scancode rc6_mce[] = {
+ 	{ 0x800f0411, KEY_VOLUMEDOWN },
+ 	{ 0x800f0412, KEY_CHANNELUP },
+ 	{ 0x800f0413, KEY_CHANNELDOWN },
++	{ 0x800f043a, KEY_BRIGHTNESSUP },
++	{ 0x800f0480, KEY_BRIGHTNESSDOWN },
+ 
+ 	{ 0x800f0401, KEY_NUMERIC_1 },
+ 	{ 0x800f0402, KEY_NUMERIC_2 },
+-- 
+1.7.0.4
 
- arch/arm/mach-omap1/devices.c             |   43 
-++++++++++++++++++++++++++++++
- arch/arm/mach-omap1/include/mach/camera.h |    8 +++++
- 2 files changed, 51 insertions(+)
-
-
-diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/devices.c 
-linux-2.6.36-rc3/arch/arm/mach-omap1/devices.c
---- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/devices.c	2010-09-03 
-22:29:00.000000000 +0200
-+++ linux-2.6.36-rc3/arch/arm/mach-omap1/devices.c	2010-09-09 
-18:42:30.000000000 +0200
-@@ -15,6 +15,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/spi/spi.h>
-+#include <linux/dma-mapping.h>
- 
- #include <mach/hardware.h>
- #include <asm/mach/map.h>
-@@ -25,6 +26,7 @@
- #include <mach/gpio.h>
- #include <plat/mmc.h>
- #include <plat/omap7xx.h>
-+#include <mach/camera.h>
- 
- /*-------------------------------------------------------------------------*/
- 
-@@ -191,6 +193,47 @@ static inline void omap_init_spi100k(voi
- }
- #endif
- 
-+
-+#define OMAP1_CAMERA_BASE	0xfffb6800
-+
-+static struct resource omap1_camera_resources[] = {
-+	[0] = {
-+		.start	= OMAP1_CAMERA_BASE,
-+		.end	= OMAP1_CAMERA_BASE + OMAP1_CAMERA_IOSIZE - 1,
-+		.flags	= IORESOURCE_MEM,
-+	},
-+	[1] = {
-+		.start	= INT_CAMERA,
-+		.flags	= IORESOURCE_IRQ,
-+	},
-+};
-+
-+static u64 omap1_camera_dma_mask = DMA_BIT_MASK(32);
-+
-+static struct platform_device omap1_camera_device = {
-+	.name		= "omap1-camera",
-+	.id		= 0, /* This is used to put cameras on this interface */
-+	.dev		= {
-+		.dma_mask		= &omap1_camera_dma_mask,
-+		.coherent_dma_mask	= DMA_BIT_MASK(32),
-+	},
-+	.num_resources	= ARRAY_SIZE(omap1_camera_resources),
-+	.resource	= omap1_camera_resources,
-+};
-+
-+void __init omap1_set_camera_info(struct omap1_cam_platform_data *info)
-+{
-+	struct platform_device *dev = &omap1_camera_device;
-+	int ret;
-+
-+	dev->dev.platform_data = info;
-+
-+	ret = platform_device_register(dev);
-+	if (ret)
-+		dev_err(&dev->dev, "unable to register device: %d\n", ret);
-+}
-+
-+
- /*-------------------------------------------------------------------------*/
- 
- static inline void omap_init_sti(void) {}
-diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h 
-linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h
---- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/include/mach/camera.h	2010-09-03 
-22:34:03.000000000 +0200
-+++ linux-2.6.36-rc3/arch/arm/mach-omap1/include/mach/camera.h	2010-09-09 
-18:42:30.000000000 +0200
-@@ -0,0 +1,8 @@
-+#ifndef __ASM_ARCH_CAMERA_H_
-+#define __ASM_ARCH_CAMERA_H_
-+
-+#include <media/omap1_camera.h>
-+
-+extern void omap1_set_camera_info(struct omap1_cam_platform_data *);
-+
-+#endif /* __ASM_ARCH_CAMERA_H_ */
