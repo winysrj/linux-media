@@ -1,58 +1,109 @@
-Return-path: <mchehab@pedra>
-Received: from mo-p05-ob.rzone.de ([81.169.146.180]:53515 "EHLO
-	mo-p05-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751435Ab0IQJAt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Sep 2010 05:00:49 -0400
-Message-ID: <4C932E3F.4040208@linuxtv.org>
-Date: Fri, 17 Sep 2010 11:00:47 +0200
-From: Marek Pikarski <mass@linuxtv.org>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: linux-dvb@linuxtv.org
-Subject: Re: [linux-dvb] DSM-CC question
-References: <618132.61670.qm@web55408.mail.re4.yahoo.com>
-In-Reply-To: <618132.61670.qm@web55408.mail.re4.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@gaivota>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:57693 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755709Ab0IFV0n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 17:26:43 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 8/8] IR: ene_ir: add support for carrier reports
+Date: Tue,  7 Sep 2010 00:26:13 +0300
+Message-Id: <1283808373-27876-9-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi,
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/IR/ene_ir.c |   37 +++++++++++++++++++++++++++++--------
+ 1 files changed, 29 insertions(+), 8 deletions(-)
 
-Suchita Gupta wrote:
-> Hi,
->
-> First of all, I am new to this list, so I am not sire if this is right place for 
-> this question.
-> If not, please forgive me and point me to right list.
->
-> I am writing a DSMCC decoding implementation to persist it to local filesystem.
-> I am unable to understand few thiings related to "srg"
->
-> I know, it represents the top level directory. But how do I get the name of this 
-> directory?
-> I can extract the names of subdirs and files using name components but where is 
-> the name of top level directory?
->   
-
-The SRG component defines the carousel's root directory "/" which you
-are going to
-mount somewhere to an absolute path on your local filesystem.
-
-> Also, as far as I understand it, I can't start writing to the local filesystem 
-> until I have acquired the whole carousel.
->   
-
-The referenced ObjectKey's data gets delivered with modules, at the
-latest from
-this point you can store the FIL objects to disk, as these are then
-really available.
-The directory structure can be created immediately, of course.
-
-> Can, anyone please provide me some guidance.
->   
-Don't hesitate to ask more detailed questions, thats the right place here!
-
-Regards, Marek
+diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
+index dc32509..f1ee153 100644
+--- a/drivers/media/IR/ene_ir.c
++++ b/drivers/media/IR/ene_ir.c
+@@ -192,10 +192,11 @@ static int ene_hw_detect(struct ene_device *dev)
+ /* Sense current received carrier */
+ void ene_rx_sense_carrier(struct ene_device *dev)
+ {
++	DEFINE_IR_RAW_EVENT(ev);
++
++	int carrier, duty_cycle;
+ 	int period = ene_read_reg(dev, ENE_CIRCAR_PRD);
+ 	int hperiod = ene_read_reg(dev, ENE_CIRCAR_HPRD);
+-	int carrier, duty_cycle;
+-
+ 
+ 	if (!(period & ENE_CIRCAR_PRD_VALID))
+ 		return;
+@@ -208,13 +209,16 @@ void ene_rx_sense_carrier(struct ene_device *dev)
+ 	dbg("RX: hardware carrier period = %02x", period);
+ 	dbg("RX: hardware carrier pulse period = %02x", hperiod);
+ 
+-
+ 	carrier = 2000000 / period;
+ 	duty_cycle = (hperiod * 100) / period;
+ 	dbg("RX: sensed carrier = %d Hz, duty cycle %d%%",
+-							carrier, duty_cycle);
+-
+-	/* TODO: Send carrier & duty cycle to IR layer */
++						carrier, duty_cycle);
++	if (dev->carrier_detect_enabled) {
++		ev.carrier_report = true;
++		ev.carrier = carrier;
++		ev.duty_cycle = duty_cycle;
++		ir_raw_event_store(dev->idev, &ev);
++	}
+ }
+ 
+ /* this enables/disables the CIR RX engine */
+@@ -728,7 +732,7 @@ static irqreturn_t ene_isr(int irq, void *data)
+ 
+ 	dbg_verbose("RX interrupt");
+ 
+-	if (dev->carrier_detect_enabled || debug)
++	if (dev->hw_learning_and_tx_capable)
+ 		ene_rx_sense_carrier(dev);
+ 
+ 	/* On hardware that don't support extra buffer we need to trust
+@@ -903,6 +907,23 @@ static int ene_set_learning_mode(void *data, int enable)
+ 	return 0;
+ }
+ 
++static int ene_set_carrier_report(void *data, int enable)
++{
++	struct ene_device *dev = (struct ene_device *)data;
++	unsigned long flags;
++
++	if (enable == dev->carrier_detect_enabled)
++		return 0;
++
++	spin_lock_irqsave(&dev->hw_lock, flags);
++	dev->carrier_detect_enabled = enable;
++	ene_rx_disable(dev);
++	ene_rx_setup(dev);
++	ene_rx_enable(dev);
++	spin_unlock_irqrestore(&dev->hw_lock, flags);
++	return 0;
++}
++
+ /* outside interface: enable or disable idle mode */
+ static void ene_rx_set_idle(void *data, bool idle)
+ {
+@@ -1032,7 +1053,7 @@ static int ene_probe(struct pnp_dev *pnp_dev, const struct pnp_device_id *id)
+ 		ir_props->s_tx_mask = ene_set_tx_mask;
+ 		ir_props->s_tx_carrier = ene_set_tx_carrier;
+ 		ir_props->s_tx_duty_cycle = ene_set_tx_duty_cycle;
+-		/* ir_props->s_carrier_report = ene_set_carrier_report; */
++		ir_props->s_carrier_report = ene_set_carrier_report;
+ 	}
+ 
+ 	ene_setup_hw_buffer(dev);
+-- 
+1.7.0.4
 
