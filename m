@@ -1,132 +1,50 @@
-Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.17.10]:50284 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753418Ab0IQSq5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Sep 2010 14:46:57 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Jens Axboe <jaxboe@fusionio.com>
-Subject: Re: Remaining BKL users, what to do
-Date: Fri, 17 Sep 2010 20:46:10 +0200
-Cc: Steven Rostedt <rostedt@goodmis.org>,
-	"codalist@coda.cs.cmu.edu" <codalist@coda.cs.cmu.edu>,
-	"autofs@linux.kernel.org" <autofs@linux.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	Christoph Hellwig <hch@infradead.org>,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	Trond Myklebust <Trond.Myklebust@netapp.com>,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Anders Larsen <al@alarsen.net>, Jan Kara <jack@suse.cz>,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Samuel Ortiz <samuel@sortiz.org>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
-	Andrew Hendry <andrew.hendry@gmail.com>
-References: <201009161632.59210.arnd@arndb.de> <1284648549.23787.26.camel@gandalf.stny.rr.com> <4C9262C4.9050006@fusionio.com>
-In-Reply-To: <4C9262C4.9050006@fusionio.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009172046.11378.arnd@arndb.de>
+Return-path: <mchehab@gaivota>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:57693 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755680Ab0IFV0c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 17:26:32 -0400
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: lirc-list@lists.sourceforge.net
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	=?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 4/8] IR: fix keys beeing stuck down forever.
+Date: Tue,  7 Sep 2010 00:26:09 +0300
+Message-Id: <1283808373-27876-5-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thursday 16 September 2010 20:32:36 Jens Axboe wrote:
-> On 2010-09-16 16:49, Steven Rostedt wrote:
-> > Git blame shows this to be your code (copied from block/blktrace.c from
-> > years past).
-> > 
-> > Is the lock_kernel() needed here? (although Arnd did add it in 62c2a7d9)
-> 
-> It isn't, it can be removed.
+The logic in ir_timer_keyup was inverted.
 
-Ok, I queued up this patch now. Thanks!
+In case that values aren't equal,
+the meaning of the time_is_after_eq_jiffies(ir->keyup_jiffies) is that
+ir->keyup_jiffies is after the the jiffies or equally that
+that jiffies are before the the ir->keyup_jiffies which is
+exactly the situation we want to avoid (that the timeout is in the future)
+Confusing Eh?
 
-	Arnd
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
 ---
-Subject: [PATCH] blktrace: remove the big kernel lock
+ drivers/media/IR/ir-keytable.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-According to Jens, this code does not need the BKL at all,
-it is sufficiently serialized by bd_mutex.
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 0917535..a8fd777 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -319,7 +319,7 @@ static void ir_timer_keyup(unsigned long cookie)
+ 	 * a keyup event might follow immediately after the keydown.
+ 	 */
+ 	spin_lock_irqsave(&ir->keylock, flags);
+-	if (time_is_after_eq_jiffies(ir->keyup_jiffies))
++	if (time_is_before_eq_jiffies(ir->keyup_jiffies))
+ 		ir_keyup(ir);
+ 	spin_unlock_irqrestore(&ir->keylock, flags);
+ }
+-- 
+1.7.0.4
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-Cc: Jens Axboe <jaxboe@fusionio.com>
-Cc: Steven Rostedt <rostedt@goodmis.org>
-
-diff --git a/kernel/trace/blktrace.c b/kernel/trace/blktrace.c
-index 959f8d6..5328e87 100644
---- a/kernel/trace/blktrace.c
-+++ b/kernel/trace/blktrace.c
-@@ -23,7 +23,6 @@
- #include <linux/mutex.h>
- #include <linux/slab.h>
- #include <linux/debugfs.h>
--#include <linux/smp_lock.h>
- #include <linux/time.h>
- #include <linux/uaccess.h>
- 
-@@ -639,7 +638,6 @@ int blk_trace_ioctl(struct block_device *bdev, unsigned cmd, char __user *arg)
- 	if (!q)
- 		return -ENXIO;
- 
--	lock_kernel();
- 	mutex_lock(&bdev->bd_mutex);
- 
- 	switch (cmd) {
-@@ -667,7 +665,6 @@ int blk_trace_ioctl(struct block_device *bdev, unsigned cmd, char __user *arg)
- 	}
- 
- 	mutex_unlock(&bdev->bd_mutex);
--	unlock_kernel();
- 	return ret;
- }
- 
-@@ -1652,10 +1649,9 @@ static ssize_t sysfs_blk_trace_attr_show(struct device *dev,
- 	struct block_device *bdev;
- 	ssize_t ret = -ENXIO;
- 
--	lock_kernel();
- 	bdev = bdget(part_devt(p));
- 	if (bdev == NULL)
--		goto out_unlock_kernel;
-+		goto out;
- 
- 	q = blk_trace_get_queue(bdev);
- 	if (q == NULL)
-@@ -1683,8 +1679,7 @@ out_unlock_bdev:
- 	mutex_unlock(&bdev->bd_mutex);
- out_bdput:
- 	bdput(bdev);
--out_unlock_kernel:
--	unlock_kernel();
-+out:
- 	return ret;
- }
- 
-@@ -1714,11 +1709,10 @@ static ssize_t sysfs_blk_trace_attr_store(struct device *dev,
- 
- 	ret = -ENXIO;
- 
--	lock_kernel();
- 	p = dev_to_part(dev);
- 	bdev = bdget(part_devt(p));
- 	if (bdev == NULL)
--		goto out_unlock_kernel;
-+		goto out;
- 
- 	q = blk_trace_get_queue(bdev);
- 	if (q == NULL)
-@@ -1753,8 +1747,6 @@ out_unlock_bdev:
- 	mutex_unlock(&bdev->bd_mutex);
- out_bdput:
- 	bdput(bdev);
--out_unlock_kernel:
--	unlock_kernel();
- out:
- 	return ret ? ret : count;
- }
