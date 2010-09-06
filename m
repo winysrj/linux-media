@@ -1,77 +1,56 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1627 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751982Ab0I3M3b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Sep 2010 08:29:31 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/v2.6.37] V4L/DVB: V4L2: add a generic function to find the nearest discrete format to the required one
-Date: Thu, 30 Sep 2010 14:29:10 +0200
-References: <E1P1Hj6-0007m4-4n@www.linuxtv.org>
-In-Reply-To: <E1P1Hj6-0007m4-4n@www.linuxtv.org>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@gaivota>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:35203 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751175Ab0IFL4t convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 07:56:49 -0400
+Received: by wyf22 with SMTP id 22so2859128wyf.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Sep 2010 04:56:48 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009301429.10897.hverkuil@xs4all.nl>
+In-Reply-To: <AANLkTikpre0t4pc854q6sRC4f-=Qx8DLHfd=ZaVnm8Bf@mail.gmail.com>
+References: <AANLkTikpre0t4pc854q6sRC4f-=Qx8DLHfd=ZaVnm8Bf@mail.gmail.com>
+From: Joel Wiramu Pauling <joel@aenertia.net>
+Date: Mon, 6 Sep 2010 23:56:28 +1200
+Message-ID: <AANLkTik_vyuG2bayBuZjCsA_wChUnAyELcJFuHaq-7Uj@mail.gmail.com>
+Subject: Re: Some info about the AverTV A835
+To: Jordi Verdugo <sagman.staredsi@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Thursday, September 30, 2010 13:50:00 Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the 
-> http://git.linuxtv.org/media-tree.git tree:
-> 
-> Subject: V4L/DVB: V4L2: add a generic function to find the nearest discrete format to the required one
-> Author:  Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Date:    Fri Aug 27 13:41:44 2010 -0300
-> 
-> Many video drivers implement a fixed set of frame formats and thus face a task
-> of finding the best match for a user-requested format. Implementing this in a
-> generic function has also an advantage, that different drivers with similar
-> supported format sets will select the same format for the user, which improves
-> consistency across drivers.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
->  drivers/media/video/v4l2-common.c |   24 ++++++++++++++++++++++++
->  include/linux/videodev2.h         |    8 ++++++++
->  2 files changed, 32 insertions(+), 0 deletions(-)
+it is an af9035, there are some, buggy and old 3rd party vendor
+drivers floating around that had up to 2.6.28 kernel targets in the
+make files, and can be hacked to sorta work with .31 kernels.
 
-<snip>
+They are buggy and unstable however, as the af9035 chip and the tuners
+that are commonly packaged with it are undocumented and afatech have
+stopped playing ball with the community. The old af9015 chip that many
+of the vendors who make tunner products were packaging is supported
+and has been in mainlive dvb-v4l tree for a while now. These are
+getting harder to find tho.
 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index b06479f..957d5b0 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -397,6 +397,14 @@ struct v4l2_frmsize_discrete {
->  	__u32			height;		/* Frame height [pixel] */
->  };
->  
-> +struct v4l2_discrete_probe {
-> +	const struct v4l2_frmsize_discrete	*sizes;
-> +	int					num_sizes;
-> +};
-> +
-> +struct v4l2_frmsize_discrete *v4l2_find_nearest_format(struct v4l2_discrete_probe *probe,
-> +						       s32 width, s32 height);
-> +
->  struct v4l2_frmsize_stepwise {
->  	__u32			min_width;	/* Minimum frame width [pixel] */
->  	__u32			max_width;	/* Maximum frame width [pixel] */
+Kind regards
 
-??? What is this doing in videodev2.h? This belongs in v4l2-common.h!
-Both the return pointer and the probe pointer can be const as well.
+-JoelW
 
-I'll make a patch for this since I've forgotten to adjust several videobuf_queue_*_init
-functions as well in my bkl patch :-(
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+On 6 September 2010 22:02, Jordi Verdugo <sagman.staredsi@gmail.com> wrote:
+> Hello all.
+>
+> I have an Avermedia Volar HD Pro (A835). Since 2 month ago I was
+> searching info and news about the support of this device on Linux and
+> now I found a spanish forum[0] that seems to explain how you can get
+> this device working. I will try it with my AverTV, but my device its
+> the Pro model and have the following ID:
+> ID 07ca:a835 AVerMedia Technologies, Inc.
+>
+> Someone had tried to get working this device? I will try this and I
+> will explain soon my experience if i get succesfully working my
+> avermedia.
+>
+> [0] - http://comunidad.fotolibre.net/index.php/topic,5707.msg64719.html#msg64719
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
