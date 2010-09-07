@@ -1,90 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([192.100.122.233]:36815 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751893Ab0I2MlL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Sep 2010 08:41:11 -0400
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, eduardo.valentin@nokia.com
-Cc: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Subject: [PATCH v11 4/4] Documentation: v4l: Add hw_seek spacing and two TUNER_RDS_CAP flags.
-Date: Wed, 29 Sep 2010 15:40:39 +0300
-Message-Id: <1285764039-5767-5-git-send-email-matti.j.aaltonen@nokia.com>
-In-Reply-To: <1285764039-5767-4-git-send-email-matti.j.aaltonen@nokia.com>
-References: <1285764039-5767-1-git-send-email-matti.j.aaltonen@nokia.com>
- <1285764039-5767-2-git-send-email-matti.j.aaltonen@nokia.com>
- <1285764039-5767-3-git-send-email-matti.j.aaltonen@nokia.com>
- <1285764039-5767-4-git-send-email-matti.j.aaltonen@nokia.com>
+Received: from mx1.redhat.com ([209.132.183.28]:53470 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756707Ab0IGNxd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Sep 2010 09:53:33 -0400
+Message-ID: <4C862917.5050903@redhat.com>
+Date: Tue, 07 Sep 2010 13:59:19 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Illuminators and status LED controls
+References: <20100906201105.4029d7e7@tele> <4C860903.10002@redhat.com> <4C860972.6020602@redhat.com> <201009071147.22643.hverkuil@xs4all.nl>
+In-Reply-To: <201009071147.22643.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Add a couple of words about the spacing field in the HW seek struct,
-also a few words about the new RDS tuner capability flags
-V4L2_TUNER_CAP_RDS_BLOCK-IO and V4L2_TUNER_CAP_RDS_CONTROLS.
+Hi all,
 
-Signed-off-by: Matti J. Aaltonen <matti.j.aaltonen@nokia.com>
----
- Documentation/DocBook/v4l/dev-rds.xml              |   10 +++++++++-
- .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 ++++++++--
- 2 files changed, 17 insertions(+), 3 deletions(-)
+On 09/07/2010 11:47 AM, Hans Verkuil wrote:
+> On Tuesday, September 07, 2010 11:44:18 Hans de Goede wrote:
+>> Replying to myself.
+>>
+>> On 09/07/2010 11:42 AM, Hans de Goede wrote:
+>>> Hi,
+>>>
+>>> On 09/07/2010 09:30 AM, Hans Verkuil wrote:
+>>>> On Monday, September 06, 2010 20:11:05 Jean-Francois Moine wrote:
+>>>>> Hi,
+>>>>>
+>>>>> This new proposal cancels the previous 'LED control' patch.
+>>>>>
+>>>>> Cheers.
+>>>>>
+>>>>>
+>>>>
+>>>> Hi Jean-Francois,
+>>>>
+>>>> You must also add support for these new controls in v4l2-ctrls.c in
+>>>> v4l2_ctrl_get_menu(), v4l2_ctrl_get_name() and v4l2_ctrl_fill().
+>>>>
+>>>> How is CID_ILLUMINATORS supposed to work in the case of multiple lights?
+>>>> Wouldn't a bitmask type be more suitable to this than a menu type? There
+>>>> isn't a bitmask type at the moment, but this seems to be a pretty good
+>>>> candidate for a type like that.
+>>>>
+>>>> Actually, for the status led I would also use a bitmask since there may be
+>>>> multiple leds. I guess you would need two bitmasks: one to select auto vs
+>>>> manual, and one for the manual settings.
+>>>>
+>>>
+>>> So far I've not seen cameras with multiple status leds, I do have seen camera
+>>> which have the following settings for their 1 led (logitech uvc cams):
+>>> auto
+>>> on
+>>> off
+>>> blinking
+>>>
+>>> So I think a menu type is better suited, and that is what the current (private)
+>>> uvc control uses.
+>>
+>> The same argument more or less goes for the CID_ILLIMUNATORS controls. Also given
+>> that we currently don't have a bitmask type I think introducing one without a really
+>> really good reason is a bad idea as any exiting apps won't know how to deal with it.
+>
+> But I can guarantee that we will get video devices with multiple leds in the
+> future. So we need to think *now* about how to do this. One simple option is of course
+> to name the controls CID_ILLUMINATOR0 and CID_LED0. That way we can easily add LED1,
+> LED2, etc. later without running into weird inconsistent control names.
+>
 
-diff --git a/Documentation/DocBook/v4l/dev-rds.xml b/Documentation/DocBook/v4l/dev-rds.xml
-index 0869d70..e7be392 100644
---- a/Documentation/DocBook/v4l/dev-rds.xml
-+++ b/Documentation/DocBook/v4l/dev-rds.xml
-@@ -28,6 +28,10 @@ returned by the &VIDIOC-QUERYCAP; ioctl.
- Any tuner that supports RDS will set the
- <constant>V4L2_TUNER_CAP_RDS</constant> flag in the <structfield>capability</structfield>
- field of &v4l2-tuner;.
-+If the driver only passes RDS blocks without interpreting the data
-+the <constant>V4L2_TUNER_SUB_RDS_BLOCK_IO</constant> flag has to be set. If the
-+tuner is capable of handling RDS entities like program identication codes and radio
-+text the flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> should be set.
- Whether an RDS signal is present can be detected by looking at
- the <structfield>rxsubchans</structfield> field of &v4l2-tuner;: the
- <constant>V4L2_TUNER_SUB_RDS</constant> will be set if RDS data was detected.</para>
-@@ -40,7 +44,11 @@ Any modulator that supports RDS will set the
- <constant>V4L2_TUNER_CAP_RDS</constant> flag in the <structfield>capability</structfield>
- field of &v4l2-modulator;.
- In order to enable the RDS transmission one must set the <constant>V4L2_TUNER_SUB_RDS</constant>
--bit in the <structfield>txsubchans</structfield> field of &v4l2-modulator;.</para>
-+bit in the <structfield>txsubchans</structfield> field of &v4l2-modulator;.
-+If the driver only passes RDS blocks without interpreting the data
-+the <constant>V4L2_TUNER_SUB_RDS_BLOCK_IO</constant> flag has to be set. If the
-+tuner is capable of handling RDS entities like program identication codes and radio
-+text the flag <constant>V4L2_TUNER_SUB_RDS_CONTROLS</constant> should be set.</para>
- 
-   </section>
- 
-diff --git a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
-index 14b3ec7..c30dcc4 100644
---- a/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
-+++ b/Documentation/DocBook/v4l/vidioc-s-hw-freq-seek.xml
-@@ -51,7 +51,8 @@
- 
-     <para>Start a hardware frequency seek from the current frequency.
- To do this applications initialize the <structfield>tuner</structfield>,
--<structfield>type</structfield>, <structfield>seek_upward</structfield> and
-+<structfield>type</structfield>, <structfield>seek_upward</structfield>,
-+<structfield>spacing</structfield> and
- <structfield>wrap_around</structfield> fields, and zero out the
- <structfield>reserved</structfield> array of a &v4l2-hw-freq-seek; and
- call the <constant>VIDIOC_S_HW_FREQ_SEEK</constant> ioctl with a pointer
-@@ -89,7 +90,12 @@ field and the &v4l2-tuner; <structfield>index</structfield> field.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
--	    <entry><structfield>reserved</structfield>[8]</entry>
-+	    <entry><structfield>spacing</structfield></entry>
-+	    <entry>If non-zero, defines the hardware seek resolution in Hz. The driver selects the nearest value that is supported by the device. If spacing is zero a reasonable default value is used.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[7]</entry>
- 	    <entry>Reserved for future extensions. Drivers and
- 	    applications must set the array to zero.</entry>
- 	  </row>
--- 
-1.6.1.3
+Naming them LED0 and ILLUMINATOR0 works for me. Note about the illuminator one,
+if you look at the patch it made the illuminator control a menu with the following
+options:
+
+Both off
+Top on, Bottom off
+Top off, Bottom on
+Both on
+
+Which raises the question do we leave this as is, or do we make this 2 boolean
+controls. I personally would like to vote for keeping it as is, as both lamps
+illuminate the same substrate in this case, and esp. switching between
+Top on, Bottom off to Top off, Bottom on in one go is a good feature to have
+UI wise (iow switch from top to bottom lighting or visa versa.
+
+Regards,
+
+Hans
+
 
