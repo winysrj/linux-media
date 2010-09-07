@@ -1,108 +1,56 @@
-Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:29967 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753581Ab0ILRpl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Sep 2010 13:45:41 -0400
-Subject: [PATCH v2 3/3] gspca_cpia1: Disable illuminator controls if not an
- Intel Play QX3
-From: Andy Walls <awalls@md.metrocast.net>
+Return-path: <mchehab@gaivota>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:47789 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752844Ab0IGHt7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 03:49:59 -0400
+Received: by vws3 with SMTP id 3so3965039vws.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Sep 2010 00:49:58 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <49DF401F028D33458430FF037B31B0190258BB@postserver.artvise.se>
+References: <49DF401F028D33458430FF037B31B0190258BB@postserver.artvise.se>
+Date: Tue, 7 Sep 2010 08:49:53 +0100
+Message-ID: <AANLkTimhUDNu=0XoriuymVmBGjx77-6NhzE8b5FyCu=W@mail.gmail.com>
+Subject: Re: [linux-dvb] Help needed
+From: Another Sillyname <anothersname@googlemail.com>
 To: linux-media@vger.kernel.org
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 12 Sep 2010 13:45:21 -0400
-Message-ID: <1284313521.2027.32.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-The illuminator controls should only be available to the user for the Intel
-Play QX3 microscope.  The implementation to inhibit the controls is intended to
-be consistent with the other gspca driver implementations.
+On 7 September 2010 07:33, Jimmy Öhlin <jimmy.ohlin@artvise.se> wrote:
+> Hello,
+>
+>
+>
+> Hope that you can help me with the following questions.
+>
+> I need a dvb-t and dvb-s2 card that work with Common Interface (Swedish
+> Boxer and Canal Digital).
+>
+>
+>
+> I have looked at different dvb cards but… still not found a DVB-T and DVB-S2
+> card that will work under linux with CI support.
+>
+> I will use mplayer with ca_zap  as frontend for my dvb application.
+>
+>
+>
+>
+>
+> Kind Regards,
+>
+> Jimmy Ohlin
+>
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+Are you saying you need a single card with both interfaces?
 
-Signed-off-by: Andy Walls <awalls@md.metrocast.net>
-
-diff -r 5e576066eeaf -r 8a9732bd1548 linux/drivers/media/video/gspca/cpia1.c
---- a/linux/drivers/media/video/gspca/cpia1.c	Sun Sep 12 12:47:00 2010 -0400
-+++ b/linux/drivers/media/video/gspca/cpia1.c	Sun Sep 12 13:13:33 2010 -0400
-@@ -380,6 +380,7 @@
- 
- static const struct ctrl sd_ctrls[] = {
- 	{
-+#define BRIGHTNESS_IDX 0
- 	    {
- 		.id      = V4L2_CID_BRIGHTNESS,
- 		.type    = V4L2_CTRL_TYPE_INTEGER,
-@@ -394,6 +395,7 @@
- 	    .set = sd_setbrightness,
- 	    .get = sd_getbrightness,
- 	},
-+#define CONTRAST_IDX 1
- 	{
- 	    {
- 		.id      = V4L2_CID_CONTRAST,
-@@ -408,6 +410,7 @@
- 	    .set = sd_setcontrast,
- 	    .get = sd_getcontrast,
- 	},
-+#define SATURATION_IDX 2
- 	{
- 	    {
- 		.id      = V4L2_CID_SATURATION,
-@@ -422,6 +425,7 @@
- 	    .set = sd_setsaturation,
- 	    .get = sd_getsaturation,
- 	},
-+#define POWER_LINE_FREQUENCY_IDX 3
- 	{
- 		{
- 			.id	 = V4L2_CID_POWER_LINE_FREQUENCY,
-@@ -436,6 +440,7 @@
- 		.set = sd_setfreq,
- 		.get = sd_getfreq,
- 	},
-+#define ILLUMINATORS_1_IDX 4
- 	{
- 		{
- 			.id	 = V4L2_CID_ILLUMINATORS_1,
-@@ -450,6 +455,7 @@
- 		.set = sd_setilluminator1,
- 		.get = sd_getilluminator1,
- 	},
-+#define ILLUMINATORS_2_IDX 5
- 	{
- 		{
- 			.id	 = V4L2_CID_ILLUMINATORS_2,
-@@ -464,6 +470,7 @@
- 		.set = sd_setilluminator2,
- 		.get = sd_getilluminator2,
- 	},
-+#define COMP_TARGET_IDX 6
- 	{
- 		{
- #define V4L2_CID_COMP_TARGET V4L2_CID_PRIVATE_BASE
-@@ -1756,9 +1763,13 @@
- 	if (ret)
- 		return ret;
- 
--	/* Ensure the QX3 illuminators' states are restored upon resume */
-+	/* Ensure the QX3 illuminators' states are restored upon resume,
-+	   or disable the illuminator controls, if this isn't a QX3 */
- 	if (sd->params.qx3.qx3_detected)
- 		command_setlights(gspca_dev);
-+	else
-+		gspca_dev->ctrl_dis |=
-+			((1 << ILLUMINATORS_1_IDX) | (1 << ILLUMINATORS_2_IDX));
- 
- 	sd_stopN(gspca_dev);
- 
-
-
-
-
-
-
-
-
+Are you happy being able to record on only DVB-T or DVB-S2 one at a time?
