@@ -1,73 +1,75 @@
-Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:28438 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750964Ab0IJNu0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 09:50:26 -0400
-Subject: Re: [PATCH/RFC v1 0/7] Videobuf2 framework
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
+Return-path: <mchehab@gaivota>
+Received: from kroah.org ([198.145.64.141]:36181 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755758Ab0IGCgY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Sep 2010 22:36:24 -0400
+Date: Mon, 6 Sep 2010 19:34:31 -0700
+From: Greg KH <greg@kroah.com>
+To: Micha?? Nazarewicz <m.nazarewicz@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jonathan Corbet <corbet@lwn.net>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Minchan Kim <minchan.kim@gmail.com>,
 	Pawel Osciak <p.osciak@samsung.com>,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	t.fujak@samsung.com
-In-Reply-To: <201009101022.22832.hverkuil@xs4all.nl>
-References: <1284023988-23351-1-git-send-email-p.osciak@samsung.com>
-	 <4C89B3AD.1010404@redhat.com> <4C89E084.6090203@samsung.com>
-	 <201009101022.22832.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 10 Sep 2010 09:50:06 -0400
-Message-ID: <1284126606.2123.98.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Peter Zijlstra <peterz@infradead.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [RFCv5 0/9] CMA + VCMM integration
+Message-ID: <20100907023431.GB11972@kroah.com>
+References: <cover.1283749231.git.mina86@mina86.com> <20100906210905.GB5863@kroah.com> <op.vim2x8i87p4s8u@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <op.vim2x8i87p4s8u@localhost>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-On Fri, 2010-09-10 at 10:22 +0200, Hans Verkuil wrote:
-> On Friday, September 10, 2010 09:38:44 Marek Szyprowski wrote:
-> > Hello,
-> > 
-> > On 2010-09-10 13:27, Mauro Carvalho Chehab wrote:
-> > 
-> > >>> 1) it lacks implementation of read() method. This means that vivi driver
-> > >>> has a regression, as it currently supports it.
-> > >>
-> > >> Yes, read() is not yet implemented. I guess it is not a feature that would
-> > >> be deprecated, right?
-> > >
-> > > Yes, there are no plans to deprecate it. Also, some devices like cx88 and bttv
-> > > allows receiving simultaneous streams, one via mmap, and another via read().
-> > > This is used by some applications to allow recording video via ffmpeg/mencoder
-> > > using read(), while the main application is displaying video using mmap.
-> > 
-> > Well, in my opinion such devices should provide two separate /dev/videoX 
-> > nodes rather than hacking with mmap and read access types.
-> 
-> 1) It is in use so you can't just drop it.
-> 2) The read() API is actually very useful for video devices that deal with
->    compressed video streams. E.g. you can do things like 'cat /dev/video0 >foo.mpg'
-> 
-> It's been a long standing wish to convert the ivtv and cx18 drivers to videobuf,
-> but it's always been too complex. With a new vb2 implementation it may become
-> actually possible.
+On Tue, Sep 07, 2010 at 03:40:46AM +0200, Micha?? Nazarewicz wrote:
+> On Mon, 06 Sep 2010 23:09:05 +0200, Greg KH <greg@kroah.com> wrote:
+>
+>> On Mon, Sep 06, 2010 at 08:33:50AM +0200, Michal Nazarewicz wrote:
+>>> Hello everyone,
+>>>
+>>> This patchset introduces a draft of a redesign of Zach Pfeffer's
+>>> VCMM.
+>>
+>> What is a VCMM?
+>
+> Virtual Contiguous Memory Manager.  The version posted by Zach can
+> be found at: <http://article.gmane.org/gmane.linux.kernel.mm/50090>.
+> It is an API for managing IO MMU and IO MMU mappings.
+>
+>> What is a CMA?
+>
+> Contiguous Memory Manager.  The v4 version can be found at
+> <http://marc.info/?l=linux-mm&m=128229799415817&w=2>.  It is an API for
+> allocating large, physically contiguous blocks of memory.
+>
+> I haven't expected that anyone who haven't already participated in the
+> discussion about CMA and VCMM will get interested by this patchset
+> so I was a bit vague in the cover letter.  Sorry about that.
+>
+>>> Not all of the functionality of the original VCMM has been
+>>> ported into this patchset.  This is mostly meant as RFC.  Moreover,
+>>> the code for VCMM implementation in this RFC has not been tested.
+>
+>> If you haven't even tested it, why should we review it?
+>
+> Ignore the code then and look just at the documentation, please.
+> I wanted to post what I have to receive comments about the general
+> idea and not necessarily the code itself.  Code is just a mean to show
+> how I see the implementation of the idea described in the documentation.
+> Because of all that, I marked the patchset as a RFC rather than a PATCH.
 
-Steven has mmap() mostly done for the cx18 YUV stream:
+Oops, I looked at the code, sorry :)
 
-http://www.kernellabs.com/hg/~stoth/cx18-videobuf/
-
-I provided him a slew of comments on the patchset,  The comments were
-mostly just grunt work to move things around and clean it up than any
-major flaws.  I only saw one problem that must be fixed before it is
-usable for the masses, IIRC.
-
-Maybe if there's a test case for trying out videobuf2, it's the cx18
-driver where we want to use mmap() for YUV and read() for MPEG.  Note
-Steven's changes allow one to tell the CX23418 to send YUV data in YUYV
-format vs. HM12.
-
-Regards,
-Andy
-
-
-
+greg k-h
