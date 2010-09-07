@@ -1,53 +1,78 @@
-Return-path: <mchehab@pedra>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:38737 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755266Ab0IJIXf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 04:23:35 -0400
+Return-path: <mchehab@gaivota>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:31917 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756012Ab0IGBln convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 21:41:43 -0400
+Date: Tue, 07 Sep 2010 03:40:46 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [RFCv5 0/9] CMA + VCMM integration
+In-reply-to: <20100906210905.GB5863@kroah.com>
+To: Greg KH <greg@kroah.com>
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Jonathan Corbet <corbet@lwn.net>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Minchan Kim <minchan.kim@gmail.com>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	linux-kernel@vger.kernel.org
+Message-id: <op.vim2x8i87p4s8u@localhost>
 MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8; format=flowed
-Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L8I00456VAPUT80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Sep 2010 09:23:13 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L8I007NXVAOAL@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Sep 2010 09:23:12 +0100 (BST)
-Received: from [10.89.8.202] (unknown [106.116.37.23])
-	by linux.samsung.com (Postfix) with ESMTP id E2E6B27007C	for
- <linux-media@vger.kernel.org>; Fri, 10 Sep 2010 10:19:47 +0200 (CEST)
-Date: Fri, 10 Sep 2010 17:21:10 +0900
-From: Pawel Osciak <p.osciak@samsung.com>
-Subject: [GIT FIXES FOR 2.6.36] mem2mem_testdev fixes
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Message-id: <4C89EA76.1020704@samsung.com>
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Content-transfer-encoding: 8BIT
+References: <cover.1283749231.git.mina86@mina86.com>
+ <20100906210905.GB5863@kroah.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Hi Mauro,
-please pull the below fixes for 2.6.36:
+On Mon, 06 Sep 2010 23:09:05 +0200, Greg KH <greg@kroah.com> wrote:
 
-The following changes since commit 7e0e8c4f78e93136a2fb44cf46366e868fb75a10:
+> On Mon, Sep 06, 2010 at 08:33:50AM +0200, Michal Nazarewicz wrote:
+>> Hello everyone,
+>>
+>> This patchset introduces a draft of a redesign of Zach Pfeffer's
+>> VCMM.
+>
+> What is a VCMM?
 
-   v4l: radio: si470x: fix unneeded free_irq() call (2010-09-06 15:24:33 
-+0900)
+Virtual Contiguous Memory Manager.  The version posted by Zach can
+be found at: <http://article.gmane.org/gmane.linux.kernel.mm/50090>.
+It is an API for managing IO MMU and IO MMU mappings.
 
-are available in the git repository at:
-   git://git.infradead.org/users/kmpark/linux-2.6-samsung 
-v4l/fixes_for_v2.6.36
+> What is a CMA?
 
-Pawel Osciak (2):
-       v4l: mem2mem_testdev: fix errorenous comparison
-       v4l: mem2mem_testdev: add missing release for video_device
+Contiguous Memory Manager.  The v4 version can be found at
+<http://marc.info/?l=linux-mm&m=128229799415817&w=2>.  It is an API for
+allocating large, physically contiguous blocks of memory.
 
-  drivers/media/video/mem2mem_testdev.c |    3 ++-
-  1 files changed, 2 insertions(+), 1 deletions(-)
+I haven't expected that anyone who haven't already participated in the
+discussion about CMA and VCMM will get interested by this patchset
+so I was a bit vague in the cover letter.  Sorry about that.
 
+>> Not all of the functionality of the original VCMM has been
+>> ported into this patchset.  This is mostly meant as RFC.  Moreover,
+>> the code for VCMM implementation in this RFC has not been tested.
+
+> If you haven't even tested it, why should we review it?
+
+Ignore the code then and look just at the documentation, please.
+I wanted to post what I have to receive comments about the general
+idea and not necessarily the code itself.  Code is just a mean to show
+how I see the implementation of the idea described in the documentation.
+Because of all that, I marked the patchset as a RFC rather than a PATCH.
 
 -- 
-Best regards,
-Pawel Osciak
-Linux Platform Group
-Samsung Poland R&D Center
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
+
