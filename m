@@ -1,204 +1,181 @@
-Return-path: <mchehab@localhost>
-Received: from smtp-out05.msg.oleane.net ([62.161.7.3]:51308 "EHLO
-	smtp-out05.msg.oleane.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754246Ab0IBT36 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 15:29:58 -0400
-Received: from smtp01.msg.oleane.net (smtp01.mail.priv [172.17.20.110])
-	by smtp-out05.msg.oleane.net with ESMTP id o82Dn4dO010121
-	for <linux-media@vger.kernel.org>; Thu, 2 Sep 2010 15:49:04 +0200
-Message-ID: <4C7FA634.6060407@cioinfoindus.fr>
-Date: Thu, 02 Sep 2010 15:27:16 +0200
-From: Laurent Epinat <laurent.epinat@cioinfoindus.fr>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Aguirre@smtp01.msg.oleane.net, Sergio <saaguirre@ti.com>,
+Return-path: <mchehab@pedra>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2732 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755558Ab0IGPas (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 11:30:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH] Illuminators and status LED controls
+Date: Tue, 7 Sep 2010 17:30:33 +0200
+Cc: "Jean-Francois Moine" <moinejf@free.fr>,
 	linux-media@vger.kernel.org
-Subject: media entities and other stuff
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+References: <20100906201105.4029d7e7@tele> <201009071650.21029.hverkuil@xs4all.nl> <4C863877.3000005@redhat.com>
+In-Reply-To: <4C863877.3000005@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009071730.33642.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello All
+On Tuesday, September 07, 2010 15:04:55 Hans de Goede wrote:
+> Hi,
+> 
+> On 09/07/2010 04:50 PM, Hans Verkuil wrote:
+> > On Tuesday, September 07, 2010 13:59:19 Hans de Goede wrote:
+> >> Hi all,
+> >>
+> >> On 09/07/2010 11:47 AM, Hans Verkuil wrote:
+> >>> On Tuesday, September 07, 2010 11:44:18 Hans de Goede wrote:
+> >>>> Replying to myself.
+> >>>>
+> >>>> On 09/07/2010 11:42 AM, Hans de Goede wrote:
+> >>>>> Hi,
+> >>>>>
+> >>>>> On 09/07/2010 09:30 AM, Hans Verkuil wrote:
+> >>>>>> On Monday, September 06, 2010 20:11:05 Jean-Francois Moine wrote:
+> >>>>>>> Hi,
+> >>>>>>>
+> >>>>>>> This new proposal cancels the previous 'LED control' patch.
+> >>>>>>>
+> >>>>>>> Cheers.
+> >>>>>>>
+> >>>>>>>
+> >>>>>>
+> >>>>>> Hi Jean-Francois,
+> >>>>>>
+> >>>>>> You must also add support for these new controls in v4l2-ctrls.c in
+> >>>>>> v4l2_ctrl_get_menu(), v4l2_ctrl_get_name() and v4l2_ctrl_fill().
+> >>>>>>
+> >>>>>> How is CID_ILLUMINATORS supposed to work in the case of multiple lights?
+> >>>>>> Wouldn't a bitmask type be more suitable to this than a menu type? There
+> >>>>>> isn't a bitmask type at the moment, but this seems to be a pretty good
+> >>>>>> candidate for a type like that.
+> >>>>>>
+> >>>>>> Actually, for the status led I would also use a bitmask since there may be
+> >>>>>> multiple leds. I guess you would need two bitmasks: one to select auto vs
+> >>>>>> manual, and one for the manual settings.
+> >>>>>>
+> >>>>>
+> >>>>> So far I've not seen cameras with multiple status leds, I do have seen camera
+> >>>>> which have the following settings for their 1 led (logitech uvc cams):
+> >>>>> auto
+> >>>>> on
+> >>>>> off
+> >>>>> blinking
+> >>>>>
+> >>>>> So I think a menu type is better suited, and that is what the current (private)
+> >>>>> uvc control uses.
+> >>>>
+> >>>> The same argument more or less goes for the CID_ILLIMUNATORS controls. Also given
+> >>>> that we currently don't have a bitmask type I think introducing one without a really
+> >>>> really good reason is a bad idea as any exiting apps won't know how to deal with it.
+> >>>
+> >>> But I can guarantee that we will get video devices with multiple leds in the
+> >>> future. So we need to think *now* about how to do this. One simple option is of course
+> >>> to name the controls CID_ILLUMINATOR0 and CID_LED0. That way we can easily add LED1,
+> >>> LED2, etc. later without running into weird inconsistent control names.
+> >>>
+> >>
+> >> Naming them LED0 and ILLUMINATOR0 works for me. Note about the illuminator one,
+> >> if you look at the patch it made the illuminator control a menu with the following
+> >> options:
+> >
+> > Where in the patch? Am I missing something?
+> >
+> >>
+> >> Both off
+> >> Top on, Bottom off
+> >> Top off, Bottom on
+> >> Both on
+> >>
+> >> Which raises the question do we leave this as is, or do we make this 2 boolean
+> >> controls. I personally would like to vote for keeping it as is, as both lamps
+> >> illuminate the same substrate in this case, and esp. switching between
+> >> Top on, Bottom off to Top off, Bottom on in one go is a good feature to have
+> >> UI wise (iow switch from top to bottom lighting or visa versa.
+> >
+> > The problem with having one control is that while this makes sense for this
+> > particular microscope, it doesn't make sense in general.
+> >
+> 
+> Actual it does atleast for microscopes in general a substrate under a microscope
+> usually is either illuminated from above or below.
+> 
+> > Standard controls such as proposed by this patch should have a fixed type
+> 
+> Although I agree with that sentiment in general I don't see this as an absolute
+> need, apps should get the type by doing a query ctrl not by assuming they
+> know it based on the cid.
+> 
+> And esp. for menu controls this is not true, for example
+> most devices have a light freq filter menu of:
+> off
+> 50 hz
+> 60 hz
+> 
+> Which matches what is documented in videodev2.h
+> 
+> Where as some have:
+> off
+> 50 hz
+> 60 hz
+> auto hz
+> 
+> Because they can (and default to) detect the light frequency automatically.
 
-I'm a new on media and camera things.
+The v4l2 api allows drivers to selectively enable items from a menu. So this
+control has a fixed menu type and a fixed menu contents. Some of the menu
+choices are just not available for some drivers.
 
-I try to use the isp cam port on omap3550 with media framework
+There are several advantages of sticking to one standard menu for standard
+controls:
 
-we had a tvp5150 connected on isp port through the parallele interface on own custom board.
-I had ported the tvp5150 driver on media framework like im046 and 8et8ek8,
-and I'm quiet lost
+1) The contents of the menu can be defined centrally in v4l2-ctrls.c, which
+   ensures consistency. Not only of the menu texts, but also of how the
+   control behaves in various drivers.
+2) It makes it possible to set the control directly from within a program.
+   This is currently true for *all* standard controls and breaking this for no
+   good reason is something that needs to be avoided. I don't think this
+   is a requirement in the spec at the moment, but I think it should be.
 
-questions:
-The node /dev/media0 is used only the parameters ?
-if yes do i need to configure and how to do it (the media-ctl is not easy to used)
+Just the fact that you can in theory put anything you want into a control,
+doesn't mean that you should. 
 
-and the video frame comes from /dev/video2
-(I try to capture the frame comes from CCDC output) ?
+This looks pretty decent IMHO:
 
+enum v4l2_illuminator {
+        V4L2_ILLUMINATOR_OFF = 0,
+        V4L2_ILLUMINATOR_ON = 1,
+};
+#define V4L2_CID_ILLUMINATOR_0              (V4L2_CID_BASE+37)
+#define V4L2_CID_ILLUMINATOR_1              (V4L2_CID_BASE+38)
 
-Il try (tvp5150 -> CCDC in, and try to read CCDC out I not sure about my thinking)
+enum v4l2_led {
+        V4L2_LED_AUTO = 0,
+        V4L2_LED_OFF = 1,
+        V4L2_LED_ON = 2,
+};
+#define V4L2_CID_LED_0              (V4L2_CID_BASE+39)
 
-  ./media-ctl -l 16:0'->'5:0[1]
+Simple and straightforward.
 
-and the  entity 16 changed
+> 
+> > consistent behavior. Note that I am also wondering whether it wouldn't be a
+> > good idea to use a menu for this, just as for the LEDs.
+> 
+> I do agree that the illuminator ctrls should be a menu, that way the driver
+> author can also choose wether to group 2 together in a single control or not
+> we simply should not specify the menu values in the spec (the same can
+> be said for the led case).
 
-- entity 16: tvp5150 3-005d (1 pad, 1 link)
-              type V4L2 subdev subtype Unknown
-         pad0: Output v4l2_subdev_open: Failed to open subdev device node
+See above. Just because you can do it, doesn't mean you should. In this case
+I think it is a bad idea. Standard controls should have standard behavior.
 
-                 -> 'OMAP3 ISP CCDC':pad0 [ACTIVE]
+Regards,
 
-
-if I'm right
-I can't understand how it works exactly and what appended on the different symptom
-
-The format.pix strcture is empty after called VIDIOC_G_FORMAT ?
-
-If I force the size in the code it's ok for that ioctl
-but I can't swith the stream on,
-
-Unable to start streaming: 32
-
-
-in the isp_video_validate_pipeline() the
-isp_video_remote_subdev() return null ptr
-
-of cause, in media_entity_remote_pad(), it check
-MEDIA_LINK_FLAG_ACTIVE and in my case, is not active,
-
-because, in func isp_register_entities()
-the flag is set to 0 on case ISP_INTERFACE_PARALLEL:
-
-
-
-here my media topologie
-
-Opening media device /dev/media0
-Enumerating entities
-Found 16 entities
-Enumerating pads and links
-Device topology
-- entity 1: OMAP3 ISP CCP2 (2 pads, 1 link)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/subdev0
-	pad0: Input [unknown 0x0]
-	pad1: Output [unknown 0x0]
-		-> 'OMAP3 ISP CCDC':pad0 []
-
-- entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video0
-	pad0: Output
-		-> 'OMAP3 ISP CCP2':pad0 []
-
-- entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-	pad1: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP CSI2a output':pad0 []
-		-> 'OMAP3 ISP CCDC':pad0 []
-
-- entity 4: OMAP3 ISP CSI2a output (1 pad, 0 link)
-             type Node subtype V4L
-             device node name /dev/video1
-	pad0: Input
-
-- entity 5: OMAP3 ISP CCDC (3 pads, 6 links)
-             type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-	pad1: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP CCDC output':pad0 []
-		-> 'OMAP3 ISP resizer':pad0 []
-	pad2: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP preview':pad0 []
-		-> 'OMAP3 ISP AEWB':pad0 []
-		-> 'OMAP3 ISP AF':pad0 []
-		-> 'OMAP3 ISP histogram':pad0 []
-
-- entity 6: OMAP3 ISP CCDC output (1 pad, 0 link)
-             type Node subtype V4L
-             device node name /dev/video2
-	pad0: Input
-
-- entity 7: OMAP3 ISP preview (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-	pad1: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP preview output':pad0 []
-		-> 'OMAP3 ISP resizer':pad0 []
-
-- entity 8: OMAP3 ISP preview input (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video3
-	pad0: Output
-		-> 'OMAP3 ISP preview':pad0 []
-
-- entity 9: OMAP3 ISP preview output (1 pad, 0 link)
-             type Node subtype V4L
-             device node name /dev/video4
-	pad0: Input
-
-- entity 10: OMAP3 ISP resizer (2 pads, 1 link)
-              type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-	pad1: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP resizer output':pad0 []
-
-- entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
-              type Node subtype V4L
-              device node name /dev/video5
-	pad0: Output
-		-> 'OMAP3 ISP resizer':pad0 []
-
-- entity 12: OMAP3 ISP resizer output (1 pad, 0 link)
-              type Node subtype V4L
-              device node name /dev/video6
-	pad0: Input
-
-- entity 13: OMAP3 ISP AEWB (1 pad, 0 link)
-              type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-
-- entity 14: OMAP3 ISP AF (1 pad, 0 link)
-              type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-
-- entity 15: OMAP3 ISP histogram (1 pad, 0 link)
-              type V4L2 subdev subtype Unknown
-	pad0: Input v4l2_subdev_open: Failed to open subdev device node
-
-
-- entity 16: tvp5150 3-005d (1 pad, 1 link)
-              type V4L2 subdev subtype Unknown
-	pad0: Output v4l2_subdev_open: Failed to open subdev device node
-
-		-> 'OMAP3 ISP CCDC':pad0 []
-
-
-
+	Hans
 
 -- 
-
-Salutations
-Laurent Epinat -> mailto:laurent.epinat@cioinfoindus.fr
-
-CIO Informatique
-Le millenium
-1, rue de Presse - BP 710
-42950 Saint-Etienne Cedex 9
-
-Tel    33 (0) 477 93 34 32
-Tcopie 33 (0) 477 79 75 55
-WWW : http://www.cioinfoindus.fr/
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
