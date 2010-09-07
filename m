@@ -1,533 +1,156 @@
 Return-path: <mchehab@pedra>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:49942 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757427Ab0ICKe7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Sep 2010 06:34:59 -0400
-Date: Fri, 3 Sep 2010 19:29:43 +0900
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-To: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Cc: Minchan Kim <minchan.kim@gmail.com>,
-	=?UTF-8?B?TWljaGHFgg==?= Nazarewicz <m.nazarewicz@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	linux-kernel@vger.kernel.org,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mel Gorman <mel@csn.ul.ie>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [PATCH/RFCv4 0/6] The Contiguous Memory Allocator framework
-Message-Id: <20100903192943.f4f74136.kamezawa.hiroyu@jp.fujitsu.com>
-In-Reply-To: <20100902175424.5849c197.kamezawa.hiroyu@jp.fujitsu.com>
-References: <cover.1282286941.git.m.nazarewicz@samsung.com>
-	<1282310110.2605.976.camel@laptop>
-	<20100825155814.25c783c7.akpm@linux-foundation.org>
-	<20100826095857.5b821d7f.kamezawa.hiroyu@jp.fujitsu.com>
-	<op.vh0wektv7p4s8u@localhost>
-	<20100826115017.04f6f707.kamezawa.hiroyu@jp.fujitsu.com>
-	<20100826124434.6089630d.kamezawa.hiroyu@jp.fujitsu.com>
-	<AANLkTi=T1y+sQuqVTYgOkYvqrxdYB1bZmCpKafN5jPqi@mail.gmail.com>
-	<20100826133028.39d731da.kamezawa.hiroyu@jp.fujitsu.com>
-	<AANLkTimB+s0tO=wrODAU4qCaZnCBoLZ2A9pGjR_jheOj@mail.gmail.com>
-	<20100827171639.83c8642c.kamezawa.hiroyu@jp.fujitsu.com>
-	<20100902175424.5849c197.kamezawa.hiroyu@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4945 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755729Ab0IGTK2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 15:10:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: Re: [PATCH v9 0/4] FM Radio driver.
+Date: Tue, 7 Sep 2010 21:10:12 +0200
+Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com,
+	mchehab@redhat.com
+References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009072110.12405.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, 2 Sep 2010 17:54:24 +0900
-KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com> wrote:
+On Monday, August 30, 2010 13:38:18 Matti J. Aaltonen wrote:
+> Hi again,
+> 
+> and thanks for the comments.
+> I've left the audio codec out of this patch set.
+> 
+> Hans wrote:
+> > > In principle yes, but we haven't yet decided to implement those now, at
+> > > the moment the RDS interpretation is left completely to user space
+> > > applications.
+> > 
+> > Matti, is it even possible to use the current FM TX RDS API for this chip?
+> > That API expects that the chip can generate the correct RDS packets based on
+> > high-level data. If the chip can only handle 'raw' RDS packets (requiring a
+> > userspace RDS encoder), then that API will never work.
+> > 
+> > But if this chip can indeed handle raw RDS only, then we need to add some
+> > capability flags to signal that to userspace.
+> 
+> It is possible to use the current FM TX RDS API, the chip supports at least
+> most of it. I just haven't implemented the support into the driver yet,
+> for a multiple of reasons. I'm planning of adding that in the relatively 
+> near future.
 
-> Here is a rough code for this.
+OK, good to know.
 
-here is a _tested_ one. 
-If I tested correctly, I allocated 40MB of contigous pages by the new funciton.
-I'm grad this can be some hints for people.
+> Anyhow, I've now added a way of telling that only raw RDS is supported.
+> Can we use one bit it the capability field for that?
 
-Thanks,
--Kame
-==
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+I need to research this a bit. I intended to do that last weekend, but Real
+Life (tm) interfered. I hope to get around it in the upcoming weekend.
 
-This patch as a memory allocator for contiguous memory larger than MAX_ORDER.
+I'm really sorry about the long delays on my side. Believe me, it's not
+intentional.
 
-  alloc_contig_pages(hint, size, list);
+> > > +     struct wl1273_device *radio = ctrl->priv;
+> > 
+> > No need to use priv for this. You can use this instead:
+> > 
+> > static inline struct wl1273_device *to_radio(struct v4l2_ctrl *ctrl)
+> > {
+> >         return container_of(ctrl->handler, struct wl1273_device, ctrl_handler);
+> > }
+> 
+> Fixed. I just didn't come to think that it can be done like this. 
+> 
+> > > +     dev_dbg(radio->dev, "%s\n", __func__);
+> > > +     return r;
+> > > +}
+> > 
+> > Was the documentation on the control handler understandable enough? Any
+> > comments on how to improve the API or documentation? It's very new, so
+> > I'm interested in hearing about your experiences implementing this API.
+> 
+> I think the documentation is OK. But I didn't have time to dwell on it,
+> but on the other hand I remember thinking that the new API is better
+> than the previous one...
 
-  This function allocates 'size' of contigoues pages, whose physical address
-  is higher than 'hint'. size is specicied in byte unit.
-  Allocated pages are all linked into the list and all of their page_count()
-  are set to 1. Return value is the top page. 
-
- free_contig_pages(list)
- returns all pages in the list.
-
-This patch does
-  - find an area which can be ISOLATED.
-  - migrate remaining pages in the area.
-  - steal chunk of pages from allocator.
-
-Limitation is:
-  - retruned pages will be aligend to MAX_ORDER.
-  - returned length of page will be aligned to MAX_ORDER.
-    (so, the caller may have to return tails of pages by itself.)
-  - may allocate contiguous pages which overlap node/zones.
-
-This is fully experimental and written as example.
-(Maybe need more patches to make this complete.)
-
-This patch moves some amount of codes from memory_hotplug.c to
-page_isolation.c and based on page-offline technique used by
-memory_hotplug.c 
-
-Signed-off-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
----
- include/linux/page-isolation.h |   10 +
- mm/memory_hotplug.c            |   84 --------------
- mm/page_alloc.c                |   32 +++++
- mm/page_isolation.c            |  244 +++++++++++++++++++++++++++++++++++++++++
- 4 files changed, 287 insertions(+), 83 deletions(-)
-
-Index: mmotm-0827/mm/page_isolation.c
-===================================================================
---- mmotm-0827.orig/mm/page_isolation.c
-+++ mmotm-0827/mm/page_isolation.c
-@@ -3,8 +3,11 @@
-  */
+That's good news :-)
  
- #include <linux/mm.h>
-+#include <linux/swap.h>
- #include <linux/page-isolation.h>
- #include <linux/pageblock-flags.h>
-+#include <linux/mm_inline.h>
-+#include <linux/migrate.h>
- #include "internal.h"
- 
- static inline struct page *
-@@ -140,3 +143,244 @@ int test_pages_isolated(unsigned long st
- 	spin_unlock_irqrestore(&zone->lock, flags);
- 	return ret ? 0 : -EBUSY;
- }
-+
-+#define CONTIG_ALLOC_MIGRATION_RETRY	(5)
-+
-+/*
-+ * Scanning pfn is much easier than scanning lru list.
-+ * Scan pfn from start to end and Find LRU page.
-+ */
-+unsigned long scan_lru_pages(unsigned long start, unsigned long end)
-+{
-+	unsigned long pfn;
-+	struct page *page;
-+	for (pfn = start; pfn < end; pfn++) {
-+		if (pfn_valid(pfn)) {
-+			page = pfn_to_page(pfn);
-+			if (PageLRU(page))
-+				return pfn;
-+		}
-+	}
-+	return 0;
-+}
-+
-+/* Migrate all LRU pages in the range to somewhere else */
-+static struct page *
-+hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
-+{
-+	/* This should be improooooved!! */
-+	return alloc_page(GFP_HIGHUSER_MOVABLE);
-+}
-+
-+#define NR_MOVE_AT_ONCE_PAGES	(256)
-+int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	unsigned long pfn;
-+	struct page *page;
-+	int move_pages = NR_MOVE_AT_ONCE_PAGES;
-+	int not_managed = 0;
-+	int ret = 0;
-+	LIST_HEAD(source);
-+
-+	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
-+		if (!pfn_valid(pfn))
-+			continue;
-+		page = pfn_to_page(pfn);
-+		if (!page_count(page))
-+			continue;
-+		/*
-+		 * We can skip free pages. And we can only deal with pages on
-+		 * LRU.
-+		 */
-+		ret = isolate_lru_page(page);
-+		if (!ret) { /* Success */
-+			list_add_tail(&page->lru, &source);
-+			move_pages--;
-+			inc_zone_page_state(page, NR_ISOLATED_ANON +
-+					    page_is_file_cache(page));
-+
-+		} else {
-+			/* Becasue we don't have big zone->lock. we should
-+			   check this again here. */
-+			if (page_count(page))
-+				not_managed++;
-+#ifdef CONFIG_DEBUG_VM
-+			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
-+			       pfn);
-+			dump_page(page);
-+#endif
-+		}
-+	}
-+	ret = -EBUSY;
-+	if (not_managed) {
-+		if (!list_empty(&source))
-+			putback_lru_pages(&source);
-+		goto out;
-+	}
-+	ret = 0;
-+	if (list_empty(&source))
-+		goto out;
-+	/* this function returns # of failed pages */
-+	ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
-+
-+out:
-+	return ret;
-+}
-+
-+
-+/*
-+ * An interface to isolate pages in specified size and range.
-+ * Purpose is to return contigous free pages larger than MAX_ORDER.
-+ * Below codes are very slow and sleeps, please never call this under
-+ * performance critical codes.
-+ */
-+
-+struct page_range {
-+	unsigned long base, end, pages;
-+};
-+
-+int __get_contig_block(unsigned long pfn, unsigned long nr_pages, void *arg)
-+{
-+	struct page_range *blockinfo = arg;
-+	unsigned long end;
-+
-+	end = pfn + nr_pages;
-+	pfn = ALIGN(pfn, MAX_ORDER_NR_PAGES);
-+	end = end & ~(MAX_ORDER_NR_PAGES - 1);
-+	if (end < pfn)
-+		return 0;
-+	if (end - pfn > blockinfo->pages) {
-+		blockinfo->base = pfn;
-+		blockinfo->end = end;
-+		return 1;
-+	}
-+	return 0;
-+}
-+
-+
-+unsigned long __find_contig_block(unsigned long base,
-+		unsigned long end, unsigned long pages)
-+{
-+	unsigned long pfn;
-+	struct page_range blockinfo;
-+	int ret;
-+
-+	/* Skip memory holes */
-+retry:
-+	blockinfo.base = base;
-+	blockinfo.end = end;
-+	blockinfo.pages = pages;
-+	ret = walk_system_ram_range(base, end - base, &blockinfo,
-+		__get_contig_block);
-+	if (!ret)
-+		return 0;
-+	/* Ok, we gound contiguous memory chunk of size. Isolate it.*/
-+	for (pfn = blockinfo.base;
-+	     pfn + pages < blockinfo.end;
-+	     pfn += MAX_ORDER_NR_PAGES) {
-+		/*
-+		 * Now, we know [base,end) of a contiguous chunk.
-+		 * Don't need to take care of memory holes.
-+		 */
-+		if (!start_isolate_page_range(pfn, pfn + pages))
-+			return pfn;
-+	}
-+	/* failed ? */
-+	if (blockinfo.end + pages < end) {
-+		/* Move base address and find the next block of RAM. */
-+		base = blockinfo.end;
-+		goto retry;
-+	}
-+	return 0;
-+}
-+
-+struct page *alloc_contig_pages(unsigned long long hint,
-+		unsigned long size, struct list_head *list)
-+{
-+	unsigned long base, found, end, pages, start;
-+	struct page *ret = NULL;
-+	int nid, retry;
-+
-+	if (hint)
-+		hint = ALIGN(hint, MAX_ORDER_NR_PAGES);
-+	/* request size should be aligned to pageblock */
-+	size >>= PAGE_SHIFT;
-+	pages = ALIGN(size, MAX_ORDER_NR_PAGES);
-+	found = 0;
-+retry:
-+	for_each_node_state(nid, N_HIGH_MEMORY) {
-+		unsigned long node_end;
-+		pg_data_t *node = NODE_DATA(nid);
-+
-+		node_end = node->node_start_pfn + node->node_spanned_pages;
-+		/* does this node have proper range of memory ? */
-+		if (node_end < hint + pages)
-+			continue;
-+		base = hint;
-+		if (base < node->node_start_pfn)
-+			base = node->node_start_pfn;
-+
-+		base = ALIGN(base, MAX_ORDER_NR_PAGES);
-+		found = 0;
-+		end = node_end & ~(MAX_ORDER_NR_PAGES -1);
-+		/* Maybe we can use this Node */
-+		if (base + pages < end)
-+			found = __find_contig_block(base, end, pages);
-+		if (found) /* Found ? */
-+			break;
-+		base = hint;
-+	}
-+	if (!found)
-+		goto out;
-+	/*
-+	 * Ok, here, we have contiguous pageblock marked as "isolated"
-+	 * try migration.
-+ 	 */
-+	retry = CONTIG_ALLOC_MIGRATION_RETRY;
-+	end = found + pages;
-+	for (start = scan_lru_pages(found, end); start < end;) {
-+
-+		if (do_migrate_range(found, end)) {
-+			/* migration failure ... */
-+			if (retry-- < 0)
-+				break;
-+			/* take a rest and synchronize LRU etc. */
-+			lru_add_drain_all();
-+			flush_scheduled_work();
-+			cond_resched();
-+			drain_all_pages();
-+		}
-+		start = scan_lru_pages(start, end);
-+		if (!start)
-+			break;
-+	}
-+	lru_add_drain_all();
-+	flush_scheduled_work();
-+	drain_all_pages();
-+	if (test_pages_isolated(found, found+pages))
-+		goto retry; /* goto next chunk */
-+	/*
-+	 * Ok, here, [found...found+pages) memory are isolated.
-+	 * All pages in the range will be moved into the list with
-+	 * page_count(page)=1.
-+	 */
-+	alloc_contig_freed_pages(found, found + pages, list);
-+	/* unset ISOLATE */
-+	undo_isolate_page_range(found, pages);
-+	ret = pfn_to_page(found);
-+out:
-+	return ret;
-+}
-+
-+
-+void free_contig_pages(struct list_head *list)
-+{
-+	struct page *page, *tmp;
-+
-+	list_for_each_entry_safe(page, tmp, list, lru)
-+		__free_page(page);
-+	return;
-+}
-+
-+EXPORT_SYMBOL_GPL(alloc_contig_pages);
-+EXPORT_SYMBOL_GPL(free_contig_pages);
-Index: mmotm-0827/include/linux/page-isolation.h
-===================================================================
---- mmotm-0827.orig/include/linux/page-isolation.h
-+++ mmotm-0827/include/linux/page-isolation.h
-@@ -33,5 +33,15 @@ test_pages_isolated(unsigned long start_
- extern int set_migratetype_isolate(struct page *page);
- extern void unset_migratetype_isolate(struct page *page);
- 
-+/* For contiguous memory alloc */
-+extern int do_migrate_range(unsigned long start_pfn, unsigned long end_pfn);
-+extern void alloc_contig_freed_pages(unsigned long pfn,  unsigned long end,
-+        struct list_head *list);
-+extern unsigned long scan_lru_pages(unsigned long start, unsigned long end);
-+
-+
-+extern struct page *alloc_contig_pages(unsigned long long hint,
-+			unsigned long size, struct list_head *list);
-+extern void free_contig_pages(struct list_head *list);
- 
- #endif
-Index: mmotm-0827/mm/memory_hotplug.c
-===================================================================
---- mmotm-0827.orig/mm/memory_hotplug.c
-+++ mmotm-0827/mm/memory_hotplug.c
-@@ -568,7 +568,7 @@ out:
- }
- EXPORT_SYMBOL_GPL(add_memory);
- 
--#ifdef CONFIG_MEMORY_HOTREMOVE
-+#if defined(CONFIG_MEMORY_HOTREMOVE) || defined(CONFIG_CONTIG_ALLOC)
- /*
-  * A free page on the buddy free lists (not the per-cpu lists) has PageBuddy
-  * set and the size of the free page is given by page_order(). Using this,
-@@ -643,87 +643,6 @@ static int test_pages_in_a_zone(unsigned
- }
- 
- /*
-- * Scanning pfn is much easier than scanning lru list.
-- * Scan pfn from start to end and Find LRU page.
-- */
--int scan_lru_pages(unsigned long start, unsigned long end)
--{
--	unsigned long pfn;
--	struct page *page;
--	for (pfn = start; pfn < end; pfn++) {
--		if (pfn_valid(pfn)) {
--			page = pfn_to_page(pfn);
--			if (PageLRU(page))
--				return pfn;
--		}
--	}
--	return 0;
--}
--
--static struct page *
--hotremove_migrate_alloc(struct page *page, unsigned long private, int **x)
--{
--	/* This should be improooooved!! */
--	return alloc_page(GFP_HIGHUSER_MOVABLE);
--}
--
--#define NR_OFFLINE_AT_ONCE_PAGES	(256)
--static int
--do_migrate_range(unsigned long start_pfn, unsigned long end_pfn)
--{
--	unsigned long pfn;
--	struct page *page;
--	int move_pages = NR_OFFLINE_AT_ONCE_PAGES;
--	int not_managed = 0;
--	int ret = 0;
--	LIST_HEAD(source);
--
--	for (pfn = start_pfn; pfn < end_pfn && move_pages > 0; pfn++) {
--		if (!pfn_valid(pfn))
--			continue;
--		page = pfn_to_page(pfn);
--		if (!page_count(page))
--			continue;
--		/*
--		 * We can skip free pages. And we can only deal with pages on
--		 * LRU.
--		 */
--		ret = isolate_lru_page(page);
--		if (!ret) { /* Success */
--			list_add_tail(&page->lru, &source);
--			move_pages--;
--			inc_zone_page_state(page, NR_ISOLATED_ANON +
--					    page_is_file_cache(page));
--
--		} else {
--			/* Becasue we don't have big zone->lock. we should
--			   check this again here. */
--			if (page_count(page))
--				not_managed++;
--#ifdef CONFIG_DEBUG_VM
--			printk(KERN_ALERT "removing pfn %lx from LRU failed\n",
--			       pfn);
--			dump_page(page);
--#endif
--		}
--	}
--	ret = -EBUSY;
--	if (not_managed) {
--		if (!list_empty(&source))
--			putback_lru_pages(&source);
--		goto out;
--	}
--	ret = 0;
--	if (list_empty(&source))
--		goto out;
--	/* this function returns # of failed pages */
--	ret = migrate_pages(&source, hotremove_migrate_alloc, 0, 1);
--
--out:
--	return ret;
--}
--
--/*
-  * remove from free_area[] and mark all as Reserved.
-  */
- static int
-@@ -740,7 +659,6 @@ offline_isolated_pages(unsigned long sta
- 	walk_system_ram_range(start_pfn, end_pfn - start_pfn, NULL,
- 				offline_isolated_pages_cb);
- }
--
- /*
-  * Check all pages in range, recoreded as memory resource, are isolated.
-  */
-Index: mmotm-0827/mm/page_alloc.c
-===================================================================
---- mmotm-0827.orig/mm/page_alloc.c
-+++ mmotm-0827/mm/page_alloc.c
-@@ -5393,6 +5393,38 @@ out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
-+void alloc_contig_freed_pages(unsigned long pfn,  unsigned long end,
-+	struct list_head *list)
-+{
-+	struct page *page;
-+	struct zone *zone;
-+	int i, order;
-+
-+	zone = page_zone(pfn_to_page(pfn));
-+	spin_lock_irq(&zone->lock);
-+	while (pfn < end) {
-+		VM_BUG_ON(!pfn_valid(pfn));
-+		page = pfn_to_page(pfn);
-+		VM_BUG_ON(page_count(page));
-+		VM_BUG_ON(!PageBuddy(page));
-+		list_del(&page->lru);
-+		order = page_order(page);
-+		zone->free_area[order].nr_free--;
-+		rmv_page_order(page);
-+		__mod_zone_page_state(zone, NR_FREE_PAGES, - (1UL << order));
-+		for (i = 0;i < (1 << order); i++) {
-+			struct page *x = page + i;
-+			list_add(&x->lru, list);
-+		}
-+		page += 1 << order;
-+	}
-+	spin_unlock_irq(&zone->lock);
-+
-+	/*After this, pages on the list can be freed one be one */
-+	list_for_each_entry(page, list, lru)
-+		prep_new_page(page, 0, 0);
-+}
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-  * All pages in the range must be isolated before calling this.
+> But what's the motivation behind having subdevices? You'll hardly
+> have several FM radios and want to do the same things on each
+> one at the same time?
 
+Right now this driver is a platform device if I'm not mistaken. But what if
+someone would stick this wl1273 on a USB stick? Or on some PCI board?
+
+Implementing the core wl1273 driver as a subdevice makes it independent from
+how it is assembled in the final product.
+
+There are other reasons as well, but it all boils down to creating an abstract
+interface towards hardware devices so that you no longer have to care about
+how they are hooked up physically to your platform/board/SoC/whatever.
+
+> > No need to use priv.
+> ...
+> > First V4L2_CID_FM_BAND using new_std instead of new_std_menu (which it should
+> be).
+> ...
+> > And a second?!
+> > 
+> > > +     if (ctrl) {
+> > > +             ctrl->is_volatile = 1;
+> > > +             ctrl->priv = radio;
+> > > +     }
+> > 
+> > And it is volatile? I thought that the ANTENNA_CAPACITOR was volatile.
+> > Something is messed up here.
+> 
+> Fixed. Yes, that was completely messed up...
+
+I hope to have the final comments ready this weekend. It's high time to get
+this out of the door.
+
+Regards,
+
+	Hans
+
+> 
+> Thanks...
+> 
+> Matti
+> 
+> Matti J. Aaltonen (4):
+>   V4L2: Add seek spacing and FM RX class.
+>   MFD: WL1273 FM Radio: MFD driver for the FM radio.
+>   V4L2: WL1273 FM Radio: Controls for the FM radio.
+>   Documentation: v4l: Add hw_seek spacing and FM_RX class
+> 
+>  Documentation/DocBook/v4l/controls.xml             |   71 +
+>  Documentation/DocBook/v4l/dev-rds.xml              |    5 +
+>  .../DocBook/v4l/vidioc-s-hw-freq-seek.xml          |   10 +-
+>  drivers/media/radio/Kconfig                        |   15 +
+>  drivers/media/radio/Makefile                       |    1 +
+>  drivers/media/radio/radio-wl1273.c                 | 1935 ++++++++++++++++++++
+>  drivers/media/video/v4l2-ctrls.c                   |   12 +
+>  drivers/mfd/Kconfig                                |    5 +
+>  drivers/mfd/Makefile                               |    2 +
+>  drivers/mfd/wl1273-core.c                          |  612 +++++++
+>  include/linux/mfd/wl1273-core.h                    |  314 ++++
+>  include/linux/videodev2.h                          |   16 +-
+>  12 files changed, 2995 insertions(+), 3 deletions(-)
+>  create mode 100644 drivers/media/radio/radio-wl1273.c
+>  create mode 100644 drivers/mfd/wl1273-core.c
+>  create mode 100644 include/linux/mfd/wl1273-core.h
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
