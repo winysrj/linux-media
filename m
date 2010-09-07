@@ -1,92 +1,73 @@
-Return-path: <mchehab@localhost>
-Received: from web45811.mail.sp1.yahoo.com ([68.180.199.56]:48174 "HELO
-	web45811.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751786Ab0IANdJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Sep 2010 09:33:09 -0400
-Message-ID: <934905.16227.qm@web45811.mail.sp1.yahoo.com>
-References: <666098.4241.qm@web45811.mail.sp1.yahoo.com> <Pine.LNX.4.64.1008312227240.25720@axis700.grange>
-Date: Wed, 1 Sep 2010 06:26:26 -0700 (PDT)
-From: Poyo VL <poyo_vl@yahoo.com>
-Subject: Patch drivers/media/video/mt9v022.c
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.64.1008312227240.25720@axis700.grange>
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="0-493678757-1283347586=:16227"
+Return-path: <mchehab@gaivota>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:40777 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750775Ab0IGG4D convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 02:56:03 -0400
+Date: Tue, 07 Sep 2010 08:55:12 +0200
+From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
+Subject: Re: [RFCv5 3/9] mm: cma: Added SysFS support
+In-reply-to: <20100907060818.GA2609@kroah.com>
+To: Greg KH <greg@kroah.com>
+Cc: linux-arm-kernel@lists.infradead.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	linux-kernel@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	Minchan Kim <minchan.kim@gmail.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Message-id: <op.vinhiabu7p4s8u@localhost>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Content-transfer-encoding: 8BIT
+References: <cover.1283749231.git.mina86@mina86.com>
+ <9771a9c07874a642bb587f4c0ebf886d720332b6.1283749231.git.mina86@mina86.com>
+ <20100906210747.GA5863@kroah.com> <op.vindmsj07p4s8u@localhost>
+ <20100907060818.GA2609@kroah.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
---0-493678757-1283347586=:16227
-Content-Type: text/plain; charset=us-ascii
+> On Tue, Sep 07, 2010 at 07:31:30AM +0200, Micha?? Nazarewicz wrote:
+>> Thanks for reviewing the sysfs part.  Actually, I was never really sure
+>> if I shouldn't rather put this code to debugfs and you got me convinced
+>> that I should.  Sysfs somehow looked more appealing from kernel's API
+>> point of view -- things seem to be more organised in sysfs than in
+>> debugfs.  It seems I'll have to port it to debugfs after all
 
-Of course, I attached the patch. 
+On Tue, 07 Sep 2010 08:08:18 +0200, Greg KH <greg@kroah.com> wrote:
+> Yes, debugfs looks like a much better place for this.
 
-Thanks for your time and sorry because I didn't read the documentation. 
+I'll fix that in v6 then.
 
+>>>> +static ssize_t cma_sysfs_region_name_show(struct cma_region *reg, char *page)
+>>>> +{
+>>>> +	return reg->name ? snprintf(page, PAGE_SIZE, "%s\n", reg->name) : 0;
+>>>> +}
 
+>>> Is a name field ever really going to be bigger than a page?
 
------ Original Message ----
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Poyo VL <poyo_vl@yahoo.com>
-Sent: Tue, August 31, 2010 11:34:50 PM
-Subject: Re: Patch
+>> For numeric values you are right that snprintf() is a bit paranoid,
+>> still I see no good reason why not to use it.
 
-Hi!
+> Same goes for no good reason to use it :)
 
-On Tue, 31 Aug 2010, Poyo VL wrote:
+I somehow prefer to always use "safe" versions of the string manipulation
+functions -- it's better to use it everywhere then to forget it in one
+place.  Call to sprintf() is translated to vsnprintf() anyway so there's
+no performance gain.
 
-> Kernel: 2.6.35.4
-> File: include/media/v4l2-mediabus.h
-> 
-> Patch:
-> 
-> -    V4L2_MBUS_FMT_FIXED = 1,
-> +    V4L2_MBUS_FMT_NO_FORMAT = 0,
-> +    V4L2_MBUS_FMT_FIXED,
-> 
-> Added a 0 value to the v4l2_mbus_pixelcode structure, it is used on 
-> drivers/media/video/mt9v022.c on line 405 in a switch(mf->code) where code 
-> cannot be 0, so I get warning.
-> 
-> I know it is not extremly important... 
+-- 
+Best regards,                                        _     _
+| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
+| Computer Science,  Michał "mina86" Nazarewicz       (o o)
++----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
 
-Thanks for your report and your patch! Fixing compiler warnings is 
-important too, so, this does deserve a patch. However, I think, we have to 
-patch not the generic code, but rather the mt9v022 driver. That "case 0:" 
-has been left there by accident since the very first version, whereas it 
-had to be killed a long time ago. So, the correct fix would be to just 
-kill these three lines there:
-
--    case 0:
--        /* No format change, only geometry */
--        break;
-
-If you like, you can submit a patch to do that. But please follow patch 
-submission guidelines, as outlined in Documentation/SubmittingPatches in 
-your kernel tree. And don't forget to CC the linux-media mailing list.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
-
-
-
-      
---0-493678757-1283347586=:16227
-Content-Type: application/octet-stream; name="patch_mt9v022.diff"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="patch_mt9v022.diff"
-
-LS0tIG10OXYwMjIuYwkyMDEwLTA4LTI3IDAyOjQ3OjEyLjAwMDAwMDAwMCAr
-MDMwMAorKysgbXQ5djAyMl8yLmMJMjAxMC0wOS0wMSAxNjoxMjowMC43MDQ1
-MDU4NTEgKzAzMDAKQEAgLTQwMiw5ICs0MDIsNiBAQAogCQlpZiAobXQ5djAy
-Mi0+bW9kZWwgIT0gVjRMMl9JREVOVF9NVDlWMDIySVg3QVRDKQogCQkJcmV0
-dXJuIC1FSU5WQUw7CiAJCWJyZWFrOwotCWNhc2UgMDoKLQkJLyogTm8gZm9y
-bWF0IGNoYW5nZSwgb25seSBnZW9tZXRyeSAqLwotCQlicmVhazsKIAlkZWZh
-dWx0OgogCQlyZXR1cm4gLUVJTlZBTDsKIAl9Cg==
-
---0-493678757-1283347586=:16227--
