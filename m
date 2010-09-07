@@ -1,78 +1,57 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:46717 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752604Ab0IOOlW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 10:41:22 -0400
-Date: Wed, 15 Sep 2010 10:41:15 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Brian Rogers <brian@xyzw.org>
-Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	jarod@wilsonet.com, linux-media@vger.kernel.org,
-	mchehab@redhat.com, linux-input@vger.kernel.org
-Subject: Re: [PATCH] ir-core: Fix null dereferences in the protocols sysfs
- interface
-Message-ID: <20100915144115.GD13030@redhat.com>
-References: <20100613202718.6044.29599.stgit@localhost.localdomain>
- <20100613202930.6044.97940.stgit@localhost.localdomain>
- <4C8797D3.1060606@xyzw.org>
- <20100908141613.GB22323@redhat.com>
- <4C90C2A6.1010408@xyzw.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:54492 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752933Ab0IGP62 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 11:58:28 -0400
+Received: by ewy23 with SMTP id 23so2426976ewy.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Sep 2010 08:58:27 -0700 (PDT)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/2] V4L/DVB: dib7770: enable the current mirror
+Date: Tue, 7 Sep 2010 17:58:24 +0200
+Cc: linux-media@vger.kernel.org
+References: <1283874646-20770-1-git-send-email-Patrick.Boettcher@dibcom.fr>
+In-Reply-To: <1283874646-20770-1-git-send-email-Patrick.Boettcher@dibcom.fr>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C90C2A6.1010408@xyzw.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009071758.24178.pboettcher@kernellabs.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wed, Sep 15, 2010 at 05:57:10AM -0700, Brian Rogers wrote:
->  On 09/08/2010 07:16 AM, Jarod Wilson wrote:
-> >On Wed, Sep 08, 2010 at 07:04:03AM -0700, Brian Rogers wrote:
-> >>ir_dev->raw is also null. If I check these pointers before using
-> >>them, and bail out if both are null, then I get a working lircd, but
-> >>of course the file /sys/devices/virtual/rc/rc0/protocols no longer
-> >>does anything. On 2.6.35.4, the system never creates the
-> >>/sys/class/rc/rc0/current_protocol file. Is it the case that the
-> >>'protocols' file should never appear, because my card can't support
-> >>this feature?
-> >Hm... So protocols is indeed intended for hardware that handles raw IR, as
-> >its a list of raw IR decoders available/enabled/disabled for the receiver.
-> >But some devices that do onboard decoding and deal with scancodes still
-> >need to support changing protocols, as they can be told "decode rc5" or
-> >"decode nec", etc... My memory is currently foggy on how it was exactly
-> >that it was supposed to be donee though. :) (Yet another reason I really
-> >need to poke at the imon driver code again).
-> 
-> How about the attached patch? Does this look like a reasonable
-> solution for 2.6.36?
-> 
-> Brian
-> 
+Hi Mauro,
 
-> From 7937051c5e2c8b5b0410172d48e62d54bd1906ee Mon Sep 17 00:00:00 2001
-> From: Brian Rogers <brian@xyzw.org>
-> Date: Wed, 8 Sep 2010 05:33:34 -0700
-> Subject: [PATCH] ir-core: Fix null dereferences in the protocols sysfs interface
+On Tuesday 07 September 2010 17:50:45 pboettcher@kernellabs.com wrote:
+> From: Olivier Grenie <olivier.grenie@dibcom.fr>
 > 
-> For some cards, ir_dev->props and ir_dev->raw are both NULL. These cards are
-> using built-in IR decoding instead of raw, and can't easily be made to switch
-> protocols.
+> To improve performance on DiB7770-devices enabling the current mirror
+> is needed.
 > 
-> So upon reading /sys/class/rc/rc?/protocols on such a card, return 'builtin' as
-> the supported and enabled protocol. Return -EINVAL on any attempts to change
-> the protocol. And most important of all, don't crash.
+> This patch adds an option to the dib7000p-driver to do that and it
+> creates a separate device-entry in dib0700-device to use those changes
+> on hardware which is using the DiB7770.
 > 
-> Signed-off-by: Brian Rogers <brian@xyzw.org>
+> Cc: stable@kernel.org
+> 
+> Signed-off-by: Olivier Grenie <olivier.grenie@dibcom.fr>
+> Signed-off-by: Patrick Boettcher <patrick.boettcher@dibcom.fr>
 > ---
->  drivers/media/IR/ir-sysfs.c |   17 +++++++++++------
->  1 files changed, 11 insertions(+), 6 deletions(-)
+>  drivers/media/dvb/dvb-usb/dib0700_devices.c |   53
+> ++++++++++++++++++++++++++- drivers/media/dvb/frontends/dib7000p.c      | 
+>   2 +
+>  drivers/media/dvb/frontends/dib7000p.h      |    3 ++
+>  3 files changed, 57 insertions(+), 1 deletions(-)
 
-Yeah, this looks pretty sane for 2.6.36, would just be a short-lived panic
-preventer until David's interface changes get merged after 2.6.37-rc1.
+This is the patch I was talking to you about in my last Email. This one needs 
+to be quickly applied to 2.6.35. Well ... quickly ... as soon as possible in  
+sense of when you have a free time slot.
 
-Acked-by: Jarod Wilson <jarod@redhat.com>
+This patch help to optimize the performance of the DiB7770-chip which can be 
+found in several devices out there right now.
 
+It was tested and applied on 2.6.36-rc3, It should apply cleanly on 2.6.35.
 
--- 
-Jarod Wilson
-jarod@redhat.com
+Thanks in advance for your help,
 
+Patrick.
