@@ -1,60 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:43011 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752969Ab0ICNsV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Sep 2010 09:48:21 -0400
-Message-ID: <4C80FCA1.7050309@iki.fi>
-Date: Fri, 03 Sep 2010 16:48:17 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2470 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757995Ab0IGSmV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 14:42:21 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Jean-Francois Moine" <moinejf@free.fr>
+Subject: Re: [PATCH] Illuminators and status LED controls
+Date: Tue, 7 Sep 2010 20:42:07 +0200
+Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
+References: <20100906201105.4029d7e7@tele> <201009071730.33642.hverkuil@xs4all.nl> <20100907195718.066b2986@tele>
+In-Reply-To: <20100907195718.066b2986@tele>
 MIME-Version: 1.0
-To: Fernando Cassia <fcassia@gmail.com>
-CC: Dagur Ammendrup <dagurp@gmail.com>,
-	Joel Wiramu Pauling <joel@aenertia.net>,
-	linux-media@vger.kernel.org
-Subject: Re: Gigabyte 8300
-References: <AANLkTi=SY9xWCjp_0q6US7XN6XYoTWnGHA2=6EfjuWK-@mail.gmail.com>	<AANLkTikg79zui71Xz8r-Lg3zut0jkSk-BGEpBpXfWz5Y@mail.gmail.com>	<AANLkTimc2TTQQogO8Q6ih6Bv3j_oOcVMux3cg-CJPGsw@mail.gmail.com>	<AANLkTim_mU7ayxjeE2HQz57UsPqHU46dPC3Ys600RJAD@mail.gmail.com> <AANLkTi=Lf2R8c51zYyjKc4Dh+S0KjOZmSH90zghOdOn1@mail.gmail.com>
-In-Reply-To: <AANLkTi=Lf2R8c51zYyjKc4Dh+S0KjOZmSH90zghOdOn1@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009072042.07487.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On 09/03/2010 02:42 PM, Fernando Cassia wrote:
-> Just FYI there´s two parts on that string, the "vid" (vendor ID) and
-> the "pid" (product id)
->
-> Vendor ID "1b80" is listed at the usb device id database
-> as "Afatech" although the product ID is not listed (although all the
-> products on that section seem to be Digital TV tuners).
->
-> http://www.linux-usb.org/usb.ids
->
->
-> --------------
-> 1b80  Afatech
-> 	c810  MC810 [af9015]
-> 	d393  DVB-T receiver [RTL2832U]
-> 	d396  UB396-T [RTL2832U]
-> 	d397  DVB-T receiver [RTL2832U]
-> 	d398  DVB-T receiver [RTL2832U]
-> 	d700  FM Radio SnapMusic Mobile 700 (FM700)
-> 	e383  DVB-T UB383-T [af9015]
-> 	e385  DVB-T UB385-T [af9015]
-> 	e386  DVB-T UB385-T [af9015]
-> 	e39a  DVB-T395U [af9015]
-> 	e39b  DVB-T395U [af9015]
->
->
-> Someone please correct me if Im wrong.
+On Tuesday, September 07, 2010 19:57:18 Jean-Francois Moine wrote:
+> On Tue, 7 Sep 2010 17:30:33 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> 
+> > enum v4l2_illuminator {
+> >         V4L2_ILLUMINATOR_OFF = 0,
+> >         V4L2_ILLUMINATOR_ON = 1,
+> > };
+> > #define V4L2_CID_ILLUMINATOR_0              (V4L2_CID_BASE+37)
+> > #define V4L2_CID_ILLUMINATOR_1              (V4L2_CID_BASE+38)
+> > 
+> > enum v4l2_led {
+> >         V4L2_LED_AUTO = 0,
+> >         V4L2_LED_OFF = 1,
+> >         V4L2_LED_ON = 2,
+> > };
+> > #define V4L2_CID_LED_0              (V4L2_CID_BASE+39)
+> > 
+> > Simple and straightforward.
+> 
+> Hi,
+> 
+> Hans (de Goede), is this OK for you? I think that if we find more
+> illuminators or LEDs on some devices, we may add more V4L2_CID_xxx_n
+> controls.
+> 
+> Hans (Verkuil), may we have the same enum's for both light types?
+> Something like:
+> 
+> enum v4l2_light {
+> 	V4L2_LIGHT_OFF = 0,
+> 	V4L2_LIGHT_ON = 1,
+> 	V4L2_LIGHT_AUTO = 2,
+> 	V4L2_LIGHT_BLINK = 3,
+> };
 
-You are correct. Someone added this wrong name about year back. In my 
-understanding it should be KWorld instead of Afatech. I am not even 100% 
-if it is KWorld since that VID is seen very many designs...
+I'm OK with that. Although 'blink' shouldn't be added yet unless we have a
+driver that will actually make use of it.
 
-IIRC it was me who added this to the dvb-usb-ids.h:
-#define USB_VID_KWORLD_2			0x1b80
+Regards,
 
+	Hans
 
-Antti
+> 
+> Regards.
+> 
+> 
+
 -- 
-http://palosaari.fi/
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
