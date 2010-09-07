@@ -1,24 +1,23 @@
 Return-path: <mchehab@pedra>
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.69)
-	(envelope-from <linuxtv@nzbaxters.com>) id 1OzyNX-0000Pz-80
-	for linux-dvb@linuxtv.org; Sun, 26 Sep 2010 23:03:24 +0200
-Received: from auth-1.ukservers.net ([217.10.138.154])
+	(envelope-from <vincent.labie75@gmail.com>) id 1Ot59V-0006Y5-HP
+	for linux-dvb@linuxtv.org; Tue, 07 Sep 2010 22:52:26 +0200
+Received: from smtp1-g21.free.fr ([212.27.42.1])
 	by mail.tu-berlin.de (exim-4.69/mailfrontend-d) with esmtp
 	for <linux-dvb@linuxtv.org>
-	id 1OzyNW-0000OW-1y; Sun, 26 Sep 2010 23:03:23 +0200
-Received: from wlgl04017 (unknown [203.98.18.214])
-	by auth-1.ukservers.net (Postfix smtp) with ESMTPA id B6452358A31
-	for <linux-dvb@linuxtv.org>; Sun, 26 Sep 2010 22:03:15 +0100 (BST)
-Message-ID: <9ADA2BCD7EA744D584D4F5E1B5E232ED@telstraclear.tclad>
-From: "Simon Baxter" <linuxtv@nzbaxters.com>
-To: <linux-dvb@linuxtv.org>
-References: <25861669.1285195582100.JavaMail.ngmail@webmail18.arcor-online.net>
-	<1537BE75D4274CAF8A375A44B7F1B2E2@telstraclear.tclad>
-Date: Mon, 27 Sep 2010 10:02:16 +1300
+	id 1Ot59U-0005Wz-2t; Tue, 07 Sep 2010 22:52:25 +0200
+Received: from grimmy.home.org (unknown [82.230.61.207])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 544479400AF
+	for <linux-dvb@linuxtv.org>; Tue,  7 Sep 2010 22:52:18 +0200 (CEST)
+To: linux-dvb@linuxtv.org
+From: Vincent Labie <vincent.labie75@gmail.com>
+Date: Tue, 7 Sep 2010 22:52:16 +0200
 MIME-Version: 1.0
-Subject: Re: [linux-dvb] dm1105 scan but won't tune? (anyone have one of
-	theseworking?)
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_BYqhMHtCmQdcA0x"
+Message-Id: <201009072252.17004.vincent.labie75@gmail.com>
+Subject: [linux-dvb] [PATCH] DVB-T NOVA-T USB stick Kernel oops patch
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -27,150 +26,109 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Errors-To: linux-dvb-bounces+mchehab=infradead.org@linuxtv.org
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 List-ID: <linux-dvb@linuxtv.org>
 
->> Simon Baxter wrote:
->> Hi. I've got a new dm1105 dvb-s card which I can't get to work. I can
->> scan and get transponders etc, but can't tune or get a front end lock.
->
->> I see there's been some work on this - does anyone have one of these
->> dvb-s cards working?
->
->> I've just pulled the latest from
->> http://mercurial.intuxication.org/hg/s2-liplianin
->
->> I can scan and get info:
->> ./scan dvb-s/OptusB1-NZ -l 11300 -x 0
->> scanning dvb-s/OptusB1-NZ
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> initial transponder 12456000 H 22500000 9
->>>>> tune to: 12456:h:0:22500
->> DVB-S IF freq is 1156000
->> <snip>
->> 0x0000 0x0781: pmt_pid 0x010b TV Works -- C4 (running)
->> <snip>
->> C4:12456:h:0:22500:513:651:1921
->
->> But I can't get a lock on szap:
->> ./szap -c channels-conf/dvb-s/OptusD1E160 C4
->> reading channels from file 'channels-conf/dvb-s/OptusD1E160'
->> zapping to 2 'C4':
->> sat 0, frequency = 12456 MHz H, symbolrate 22500000, vpid = 0x0201,
->> apid = 0x028b sid = 0x0781
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> status 03 | signal 9ae2 | snr 7170 | ber 0000ff07 | unc fffffffe |
->> status 03 | signal 9c2a | snr 719a | ber 0000ff05 | unc fffffffe |
->> status 03 | signal 9b07 | snr 71d9 | ber 0000ff05 | unc fffffffe |
->> status 03 | signal 9ace | snr 7200 | ber 0000ff05 | unc fffffffe |
->
->> Or in VDR -
->> Sep 23 13:49:45 localhost vdr: [2105] frontend 0/0 timed out while
->> tuning to channel 1, tp 112456
->> Sep 23 13:50:06 localhost vdr: [2105] frontend 0/0 timed out while
->> tuning to channel 16, tp 112483
->> Sep 23 13:50:26 localhost vdr: [2105] frontend 0/0 timed out while
->> tuning to channel 1, tp 112456
->
->
->> Although dvbtune says:
->> ./dvbtune -f 1245600 -s 22500 -p h -m -tone 0 -x
->> Using DVB card "ST STV0299 DVB-S"
->> tuning DVB-S to L-Band:3, Pol:H Srate=22500000, 22kHz=off
->> polling....
->> Getting frontend event
->> FE_STATUS:
->> polling....
->> Getting frontend event
->> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
->> polling....
->> Getting frontend event
->> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
->> FE_HAS_SYNC
->> Event: Frequency: 10995803
->> SymbolRate: 22500000
->> FEC_inner: 3
->
->> Bit error rate: 65285
->> Signal strength: 53063
->> SNR: 48522
->> FE_STATUS: FE_HAS_SIGNAL FE_HAS_LOCK FE_HAS_CARRIER FE_HAS_VITERBI
->> FE_HAS_SYNC
->> <?xml version="1.0" encoding="iso-8859-1"?>
->> <satellite>
->> <descriptor tag="0x01"
->> data="4b59204469676974616c20536174656c6c697465205456f3ae000100a9f042413303eb0103ed0103f10103f401040201041101043801043d01044501044c02046002046102046202232983238d8a23f18426ad"
->> text="KY.Digital.Satellite.TV.......BA3...................8.....E..L.....a..b............"
->> />
->> Nothing to read from fd_nit
->> Scanning 12407000V 30000000
->> Using DVB card "ST STV0299 DVB-S"
->> tuning DVB-S to L-Band:774218352, Pol:V Srate=30000000, 22kHz=off
->> polling....
->> Getting frontend event
->> FE_STATUS:
->> polling....
->> Getting frontend event
->> FE_STATUS: FE_HAS_SIGNAL FE_HAS_CARRIER
->> polling....
->> polling....
->
->
->> Any suggestions?
->
->> _______________________________________________
->> linux-dvb users mailing list
->> For V4L/DVB development, please use instead linux-media@xxxxxxxxxxxxxxx
->> linux-dvb@xxxxxxxxxxx
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->
-> Hi,
->
-> Please, try set parameter card=<number>> at dm1105 module loading.
->
-> Best reagrds,
-> Vladimir Monchenko.
+--Boundary-00=_BYqhMHtCmQdcA0x
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 
-I've tried:
-modprobe dm1105 card=1
-modprobe dm1105 card=2
-modprobe dm1105 card=3
-modprobe dm1105 card=4
-modprobe dm1105 card=5
-modprobe dm1105 card=6
+Hi,
 
-but still can't tune the front end.  Any ideas?
+During this summer, I tried to run a Hauppauge NOVA-T USB stick which used to work previously.
+I tried with the Fedora13 default 2.6.33.x kernel v4l-dvb drivers and with the latest v4l-dvb cvs drivers with the same kernel oops result.
 
-lspci -vvv has:
-01:06.0 Ethernet controller: Device 195d:1105 (rev 10)
-        Subsystem: Device 195d:1105
-        Control: I/O+ Mem- BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr-
-Stepping- SERR- FastB2B- DisINTx-
-        Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium >TAbort-
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-        Latency: 64 (4000ns min, 8000ns max), Cache Line Size: 4 bytes
-        Interrupt: pin A routed to IRQ 16
-        Region 0: I/O ports at bc00 [size=256]
-        Kernel driver in use: dm1105
-        Kernel modules: dm1105
+I appears that the issue come from a unaligned shared struct between the dib7000m and dib7000p driver, both struct beeing used by shared functions.
+The patch to solve this issue is attached to this message (the solution is to put dismatching fields at the end of the struct).
 
-lsmod:
-rc_dm1105_nec           1199  0
-dm1105                  9896  0
-dvb_core               86607  2 dm1105,stv0299
-ir_core                13013  8
-rc_dm1105_nec,dm1105,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,ir_rc5_decoder,ir_nec_decoder
-i2c_core               24507  7
-dm1105,ds3000,cx24116,dvb_pll,stv0299,nvidia,i2c_nforce2
+Could someone with cvs access include this small patch in the v4l-dvb kernel and devel tree?
+
+Thank you,
+Vincent Labie
 
 
 
+--Boundary-00=_BYqhMHtCmQdcA0x
+Content-Type: text/x-patch;
+  charset="utf-8";
+  name="v4l-dvb-c9cb8918dcb2.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="v4l-dvb-c9cb8918dcb2.diff"
+
+diff -Naur v4l-dvb-c9cb8918dcb2.orig/linux/drivers/media/dvb/frontends/dib7000m.h v4l-dvb-c9cb8918dcb2/linux/drivers/media/dvb/frontends/dib7000m.h
+--- v4l-dvb-c9cb8918dcb2.orig/linux/drivers/media/dvb/frontends/dib7000m.h	2010-06-01 17:47:42.000000000 +0200
++++ v4l-dvb-c9cb8918dcb2/linux/drivers/media/dvb/frontends/dib7000m.h	2010-08-09 00:00:34.000000000 +0200
+@@ -3,17 +3,15 @@
+ 
+ #include "dibx000_common.h"
+ 
++	/* 100808 VLabie: Must match the dib7000p.h struct */
+ struct dib7000m_config {
+-	u8 dvbt_mode;
+ 	u8 output_mpeg2_in_188_bytes;
+ 	u8 hostbus_diversity;
+ 	u8 tuner_is_baseband;
+-	u8 mobile_mode;
+ 	int (*update_lna) (struct dvb_frontend *, u16 agc_global);
+ 
+ 	u8 agc_config_count;
+ 	struct dibx000_agc_config *agc;
+-
+ 	struct dibx000_bandwidth_config *bw;
+ 
+ #define DIB7000M_GPIO_DEFAULT_DIRECTIONS 0xffff
+@@ -31,9 +29,11 @@
+ 
+ 	u8 quartz_direct;
+ 
+-	u8 input_clk_is_div_2;
+-
+ 	int (*agc_control) (struct dvb_frontend *, u8 before);
++
++	u8 input_clk_is_div_2;
++	u8 mobile_mode;
++	u8 dvbt_mode;
+ };
+ 
+ #define DEFAULT_DIB7000M_I2C_ADDRESS 18
+diff -Naur v4l-dvb-c9cb8918dcb2.orig/linux/drivers/media/dvb/frontends/dib7000p.h v4l-dvb-c9cb8918dcb2/linux/drivers/media/dvb/frontends/dib7000p.h
+--- v4l-dvb-c9cb8918dcb2.orig/linux/drivers/media/dvb/frontends/dib7000p.h	2010-06-01 17:47:42.000000000 +0200
++++ v4l-dvb-c9cb8918dcb2/linux/drivers/media/dvb/frontends/dib7000p.h	2010-08-09 00:00:18.000000000 +0200
+@@ -3,6 +3,7 @@
+ 
+ #include "dibx000_common.h"
+ 
++	/* 100808 VLabie: Must match the dib7000m.h struct */
+ struct dib7000p_config {
+ 	u8 output_mpeg2_in_188_bytes;
+ 	u8 hostbus_diversity;
+@@ -28,11 +29,11 @@
+ 
+ 	u8 quartz_direct;
+ 
+-	u8 spur_protect;
+-
+ 	int (*agc_control) (struct dvb_frontend *, u8 before);
+ 
++	u8 spur_protect;
+ 	u8 output_mode;
++	u8 pad;
+ };
+ 
+ #define DEFAULT_DIB7000P_I2C_ADDRESS 18
+
+--Boundary-00=_BYqhMHtCmQdcA0x
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
 _______________________________________________
 linux-dvb users mailing list
 For V4L/DVB development, please use instead linux-media@vger.kernel.org
 linux-dvb@linuxtv.org
 http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+--Boundary-00=_BYqhMHtCmQdcA0x--
