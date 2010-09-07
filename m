@@ -1,115 +1,98 @@
-Return-path: <mchehab@pedra>
-Received: from psmtp04.wxs.nl ([195.121.247.13]:42906 "EHLO psmtp04.wxs.nl"
+Return-path: <mchehab@gaivota>
+Received: from kroah.org ([198.145.64.141]:57428 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753013Ab0IPRHM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 13:07:12 -0400
-Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
- by psmtp04.wxs.nl
- (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
- with ESMTP id <0L8U00HEZNJUQ9@psmtp04.wxs.nl> for linux-media@vger.kernel.org;
- Thu, 16 Sep 2010 19:07:06 +0200 (MEST)
-Date: Thu, 16 Sep 2010 19:07:04 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Subject: Re: Trouble building v4l-dvb
-In-reply-to: <1284493110.1801.57.camel@sofia>
-To: "Ole W. Saastad" <olewsaa@online.no>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>
-Cc: linux-media@vger.kernel.org
-Message-id: <4C924EB8.9070500@hoogenraad.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1284493110.1801.57.camel@sofia>
+	id S1751175Ab0IGGKy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Sep 2010 02:10:54 -0400
+Date: Mon, 6 Sep 2010 23:08:18 -0700
+From: Greg KH <greg@kroah.com>
+To: Micha?? Nazarewicz <m.nazarewicz@samsung.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Pawel Osciak <p.osciak@samsung.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	linux-kernel@vger.kernel.org,
+	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
+	linux-mm@kvack.org, Kyungmin Park <kyungmin.park@samsung.com>,
+	Minchan Kim <minchan.kim@gmail.com>,
+	Zach Pfeffer <zpfeffer@codeaurora.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RFCv5 3/9] mm: cma: Added SysFS support
+Message-ID: <20100907060818.GA2609@kroah.com>
+References: <cover.1283749231.git.mina86@mina86.com> <9771a9c07874a642bb587f4c0ebf886d720332b6.1283749231.git.mina86@mina86.com> <20100906210747.GA5863@kroah.com> <op.vindmsj07p4s8u@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <op.vindmsj07p4s8u@localhost>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@gaivota>
 
-Douglas;
+On Tue, Sep 07, 2010 at 07:31:30AM +0200, Micha?? Nazarewicz wrote:
+> Hello Greg,
+>
+> Thanks for reviewing the sysfs part.  Actually, I was never really sure
+> if I shouldn't rather put this code to debugfs and you got me convinced
+> that I should.  Sysfs somehow looked more appealing from kernel's API
+> point of view -- things seem to be more organised in sysfs than in
+> debugfs.  It seems I'll have to port it to debugfs after all
 
-Could you please check your last putback ?
+Yes, debugfs looks like a much better place for this.  You can do
+whatever you want in debugfs as long as you follow the one rule for it:
+	There are no rules for debugfs.
 
-the build is broken.
+> Nonetheless, a few responses to your comments:
+>
+>> On Mon, Sep 06, 2010 at 08:33:53AM +0200, Michal Nazarewicz wrote:
+>>> +		The "allocators" file list all registered allocators.
+>>> +		Allocators with no name are listed as a single minus
+>>> +		sign.
+>
+> On Mon, 06 Sep 2010 23:07:47 +0200, Greg KH <greg@kroah.com> wrote:
+>> So this returns more than one value?
+>
+> Aren't thing like cpufreq governors listed in a single sysfs file?
 
-see:
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Yeah, but I don't like it :)
 
-and the mail
-[cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+> I remember there was such a file somewhere.  Has that been made
+> deprecated? I cannot seem to find any information on that.
 
-Yours,
-		Jan
+It's best if you really don't do this, but it does happen as it is the
+best way to show the information.  If that's the case, fine.
 
-Ole W. Saastad wrote:
-> Trouble building v4l-dvb
-> Asus eee netbook, running EasyPeasy.
-> 
-> ole@ole-eee:~$ cat /etc/issue
-> Ubuntu 9.04 \n \l
-> ole@ole-eee:~$ uname -a
-> Linux ole-eee 2.6.30.5-ep0 #10 SMP PREEMPT Thu Aug 27 19:45:06 CEST 2009
-> i686 GNU/Linux
-> 
-> Rationale for building from source: 
-> I have bought a USB TV with mpg4 support from Sandberg, Mini DVB-T
-> dongle. I also received an archive with driver routines for this from
-> Sandberg. These should be copied into the v4l-dvd three and just rebuild
-> with make. 
-> 
-> I have installed the kernel headers:
-> apt-get install mercurial linux-headers-$(uname -r) build-essential
-> 
-> Then I have downloaded the v4l-dvb source (assuming this is a stable
-> release): hg clone http://linuxtv.org/hg/v4l-dvb
-> 
-> 
-> I wanted to try to build before applying the patch from Sandberg. 
-> Issuing make yield the following :
-> 
-> LIRC: Requires at least kernel 2.6.36
-> IR_LIRC_CODEC: Requires at least kernel 2.6.36
-> IR_IMON: Requires at least kernel 2.6.36
-> IR_MCEUSB: Requires at least kernel 2.6.36
-> VIDEOBUF_DMA_CONTIG: Requires at least kernel 2.6.31
-> V4L2_MEM2MEM_DEV: Requires at least kernel 2.6.33
-> and a few more lines....
-> 
-> Ignoring these and just continuing :
-> 
->   CC [M]  /home/ole/work/v4l-dvb/v4l/firedtv-dvb.o
->   CC [M]  /home/ole/work/v4l-dvb/v4l/firedtv-fe.o
->   CC [M]  /home/ole/work/v4l-dvb/v4l/firedtv-1394.o
-> /home/ole/work/v4l-dvb/v4l/firedtv-1394.c:22:17: error: dma.h: No such
-> file or directory
-> /home/ole/work/v4l-dvb/v4l/firedtv-1394.c:23:21: error: csr1212.h: No
-> such file or directory
-> /home/ole/work/v4l-dvb/v4l/firedtv-1394.c:24:23: error: highlevel.h: No
-> such file or directory
-> and many many more similar errors.
-> 
-> After some time the make bails out.
-> 
-> 
-> I assume this have some connection with the 9.04 being too old. 
-> 
-> 
-> Hints ?
-> 
-> 
-> 
-> Regards,
-> Ole W. Saastad
-> 
-> 
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>>> +		The "regions" directory list all reserved regions.
+>>
+>> Same here?
+>
+> regions is actually a directory with subdirectories for each
+> region. ;)
 
+Ah.
 
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+>>> +static ssize_t cma_sysfs_region_name_show(struct cma_region *reg, char *page)
+>>> +{
+>>> +	return reg->name ? snprintf(page, PAGE_SIZE, "%s\n", reg->name) : 0;
+>>> +}
+>
+>> Is a name field ever really going to be bigger than a page?
+>
+> I prefer being on the safe side -- I have no idea what user will provide
+> as region name so I assume as little as possible.
+
+By "user" do you mean userspace, or another kernel driver file?  If it's
+a kernel driver, you can assume that they will be sane.  if userspace,
+assume it's insane and do some checking of the name before you use it.
+
+> For numeric values you are right that snprintf() is a bit paranoid,
+> still I see no good reason why not to use it.
+
+Same goes for no good reason to use it :)
+
+thanks,
+
+greg k-h
