@@ -1,113 +1,86 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2788 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757011Ab0IGTHp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 15:07:45 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o87J7hX6034536
-	for <linux-media@vger.kernel.org>; Tue, 7 Sep 2010 21:07:44 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 7 Sep 2010 21:07:43 +0200 (CEST)
-Message-Id: <201009071907.o87J7hX6034536@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:33475 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078Ab0IGPvF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 11:51:05 -0400
+Received: by wyf22 with SMTP id 22so4384130wyf.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Sep 2010 08:51:03 -0700 (PDT)
+From: pboettcher@kernellabs.com
 To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Cc: Olivier Grenie <olivier.grenie@dibcom.fr>,
+	Patrick Boettcher <patrick.boettcher@dibcom.fr>
+Subject: [PATCH 2/2] V4L/DVB: dib7000p: add disable sample and hold, and diversity delay parameter
+Date: Tue,  7 Sep 2010 17:50:46 +0200
+Message-Id: <1283874646-20770-2-git-send-email-Patrick.Boettcher@dibcom.fr>
+In-Reply-To: <1283874646-20770-1-git-send-email-Patrick.Boettcher@dibcom.fr>
+References: <1283874646-20770-1-git-send-email-Patrick.Boettcher@dibcom.fr>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+From: Olivier Grenie <olivier.grenie@dibcom.fr>
 
-Results of the daily build of v4l-dvb:
+This patch improves the overall driver performance in
+diversity-reception scenarios.
 
-date:        Tue Sep  7 19:00:05 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15139:6e0befab696a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Signed-off-by: Olivier Grenie <olivier.grenie@dibcom.fr>
+Signed-off-by: Patrick Boettcher <patrick.boettcher@dibcom.fr>
+---
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |    1 +
+ drivers/media/dvb/frontends/dib7000p.c      |    6 +++++-
+ drivers/media/dvb/frontends/dib7000p.h      |    2 ++
+ 3 files changed, 8 insertions(+), 1 deletions(-)
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+index f9766c7..6015cfd 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -956,6 +956,7 @@ static struct dib7000p_config dib7770p_dib7000p_config = {
+ 
+ 	.hostbus_diversity = 1,
+ 	.enable_current_mirror = 1,
++	.disable_sample_and_hold = 0,
+ };
+ 
+ static int stk7770p_frontend_attach(struct dvb_usb_adapter *adap)
+diff --git a/drivers/media/dvb/frontends/dib7000p.c b/drivers/media/dvb/frontends/dib7000p.c
+index 73f59ab..3aed0d4 100644
+--- a/drivers/media/dvb/frontends/dib7000p.c
++++ b/drivers/media/dvb/frontends/dib7000p.c
+@@ -260,6 +260,7 @@ static void dib7000p_set_adc_state(struct dib7000p_state *state, enum dibx000_ad
+ 
+ //	dprintk( "908: %x, 909: %x\n", reg_908, reg_909);
+ 
++	reg_909 |= (state->cfg.disable_sample_and_hold & 1) << 4;
+ 	reg_908 |= (state->cfg.enable_current_mirror & 1) << 7;
+ 
+ 	dib7000p_write_word(state, 908, reg_908);
+@@ -780,7 +781,10 @@ static void dib7000p_set_channel(struct dib7000p_state *state, struct dvb_fronte
+ 		default:
+ 		case GUARD_INTERVAL_1_32: value *= 1; break;
+ 	}
+-	state->div_sync_wait = (value * 3) / 2 + 32; // add 50% SFN margin + compensate for one DVSY-fifo TODO
++	if (state->cfg.diversity_delay == 0)
++		state->div_sync_wait = (value * 3) / 2 + 48; // add 50% SFN margin + compensate for one DVSY-fifo
++	else
++		state->div_sync_wait = (value * 3) / 2 + state->cfg.diversity_delay; // add 50% SFN margin + compensate for one DVSY-fifo
+ 
+ 	/* deactive the possibility of diversity reception if extended interleaver */
+ 	state->div_force_off = !1 && ch->u.ofdm.transmission_mode != TRANSMISSION_MODE_8K;
+diff --git a/drivers/media/dvb/frontends/dib7000p.h b/drivers/media/dvb/frontends/dib7000p.h
+index 04a7449..da17345 100644
+--- a/drivers/media/dvb/frontends/dib7000p.h
++++ b/drivers/media/dvb/frontends/dib7000p.h
+@@ -33,8 +33,10 @@ struct dib7000p_config {
+ 	int (*agc_control) (struct dvb_frontend *, u8 before);
+ 
+ 	u8 output_mode;
++	u8 disable_sample_and_hold : 1;
+ 
+ 	u8 enable_current_mirror : 1;
++	u8 diversity_delay;
+ 
+ };
+ 
+-- 
+1.7.0.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
