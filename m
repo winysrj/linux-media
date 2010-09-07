@@ -1,264 +1,190 @@
-Return-path: <mchehab@gaivota>
-Received: from mail02do.versatel.de ([89.245.129.22]:65274 "EHLO
-	mail02do.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751369Ab0IGI6D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 04:58:03 -0400
-Received: from webmail01do.versatel-west.de (gensfam@versanet.de@[89.245.129.37])
-          (envelope-sender <gensfam@versanet.de>)
-          by mail02do.versatel.de (qmail-ldap-1.03) with ESMTPA
-          for <linux-media@vger.kernel.org>; 7 Sep 2010 08:57:58 -0000
-Date: Tue, 7 Sep 2010 10:57:56 +0200 (CEST)
-From: "gensfam@versanet.de" <gensfam@versanet.de>
-To: linux-media@vger.kernel.org
-Message-ID: <882172556.278707.1283849878972.JavaMail.open-xchange@webmail01do>
-Subject: DVB-T, TV scan not successful: Cinergy Hybrid T USB XS
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:22981 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754833Ab0IGXIX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Sep 2010 19:08:23 -0400
+Message-ID: <4C86AB22.7020206@redhat.com>
+Date: Tue, 07 Sep 2010 23:14:10 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] Illuminators and status LED controls
+References: <20100906201105.4029d7e7@tele> <201009071650.21029.hverkuil@xs4all.nl> <4C863877.3000005@redhat.com> <201009071730.33642.hverkuil@xs4all.nl>
+In-Reply-To: <201009071730.33642.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hello!
+Hi,
 
-After the new installation of openSuSE 11.3 (kernel 2.6.34-12-desktop) I tried
-to install my Cinergy Hybrid T USB XS. This stick already worked under openSuSE
-10.3.
+On 09/07/2010 05:30 PM, Hans Verkuil wrote:
+> On Tuesday, September 07, 2010 15:04:55 Hans de Goede wrote:
+>> Hi,
+>>
+>> On 09/07/2010 04:50 PM, Hans Verkuil wrote:
 
+<snip>
 
-If I start the Kaffeine scan for TV channels following happens (roughly):
+>>>> Both off
+>>>> Top on, Bottom off
+>>>> Top off, Bottom on
+>>>> Both on
+>>>>
+>>>> Which raises the question do we leave this as is, or do we make this 2 boolean
+>>>> controls. I personally would like to vote for keeping it as is, as both lamps
+>>>> illuminate the same substrate in this case, and esp. switching between
+>>>> Top on, Bottom off to Top off, Bottom on in one go is a good feature to have
+>>>> UI wise (iow switch from top to bottom lighting or visa versa.
+>>>
+>>> The problem with having one control is that while this makes sense for this
+>>> particular microscope, it doesn't make sense in general.
+>>>
+>>
+>> Actual it does atleast for microscopes in general a substrate under a microscope
+>> usually is either illuminated from above or below.
+>>
+>>> Standard controls such as proposed by this patch should have a fixed type
+>>
+>> Although I agree with that sentiment in general I don't see this as an absolute
+>> need, apps should get the type by doing a query ctrl not by assuming they
+>> know it based on the cid.
+>>
+>> And esp. for menu controls this is not true, for example
+>> most devices have a light freq filter menu of:
+>> off
+>> 50 hz
+>> 60 hz
+>>
+>> Which matches what is documented in videodev2.h
+>>
+>> Where as some have:
+>> off
+>> 50 hz
+>> 60 hz
+>> auto hz
+>>
+>> Because they can (and default to) detect the light frequency automatically.
+>
+> The v4l2 api allows drivers to selectively enable items from a menu. So this
+> control has a fixed menu type and a fixed menu contents. Some of the menu
+> choices are just not available for some drivers.
 
-Signal/SNR/Tuned: 60%/31%/light green, 0%
-...
-Singal/SNR/Tuned: 60%/73%/green, 11 %
-Signal/SNR/Tuned: 100%/0%/green, 11% ... 100%
+This is not possible:
 
-While SNR 73% scan made some weird wrong entries in column Scan Results.
+Quoting from:
+http://www.linuxtv.org/downloads/v4l-dvb-apis/re61.html
+"Menu items are enumerated by calling VIDIOC_QUERYMENU with successive index values from struct v4l2_queryctrl minimum (0) to maximum, inclusive."
 
-I do not know what I am doing wrong. I hope so much that anybody can help.
+And many apps are coded this way, so we cannot simply skip values in a
+menu enum just because a driver does not support them, this would
+break apps as they (rightfully) don't expect an error when
+calling VIDIOC_QUERYMENU with an index between minimum and
+maximum, so given for example:
 
+enum v4l2_led {
+          V4L2_LED_AUTO = 0,
+	 V4L2_LED_BLINK = 1,
+          V4L2_LED_OFF = 2,
+          V4L2_LED_ON = 3,
+};
 
-Some system data and collected information:
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-kaffeine-1.0-25.1.x86_64
-kaffeine-lang-1.0-1.pm.2.1.noarch
+Drivers which do not support blink would still need to report a minimum
+and maximum of 0 and 3, making any control apps expect 4 menu items not
+3 !
 
-kdebase4-runtime-xine-4.4.4-2.4.x86_64, ...
-vdr-plugin-xine-0.9.3-7.2.x86_64
+And this example is exactly why I'm arguing against defining standard
+meanings for standard controls with a menu type.
 
-kdebase4-runtime-4.4.4-2.4.x86_64, ...
----------------------
-kaffeine, configure TV:
-device 1: Zarlink ZL10353 DVB-T
-----------------------
-invoking kaffeine with:
+Also note that at least with the uvc driver that due to how extension
+unit controls are working (the uvcvideo driver gets told about these
+vendor specific controls from a userspace helper), the menu index is
+the value which gets written to the hardware! So one cannot simply
+make this match some random enum.
 
-kaffeine --dumpdvb: (while scanning for channels)
+>
+> There are several advantages of sticking to one standard menu for standard
+> controls:
+>
+> 1) The contents of the menu can be defined centrally in v4l2-ctrls.c, which
+>     ensures consistency. Not only of the menu texts, but also of how the
+>     control behaves in various drivers.
 
-kaffeine(14378) DvbScanFilter::timerEvent: timeout while reading section; type =
-2 pid = 17
-kaffeine(14378) DvbScanFilter::timerEvent: timeout while reading section; type =
-1 pid = 240
-kaffeine(14378) DvbScanFilter::timerEvent: timeout while reading section; type =
-0 pid = 0
-kaffeine(14378) DvbScanFilter::timerEvent: timeout while reading section; type =
-2 pid = 17
-kaffeine(14378) DvbScanFilter::timerEvent: timeout while reading section; type =
-4 pid = 16
-kaffeine(14378) DvbDevice::frontendEvent: tuning failed
-kaffeine(14378) DvbDevice::frontendEvent: tuning failed
-kaffeine(14378) DvbDevice::frontendEvent: tuning failed
-kaffeine(14378) DvbDevice::frontendEvent: tuning failed
-kaffeine(14378) DvbDevice::frontendEvent: tuning failed
-kaffeine(14378) DvbDevice::frontendEvent: tuning failed
-kaffeine(14378) DvbDevice::frontendEvent: tuning failed
+No they cannot as v4l2-ctrls.c will not know when to return -EINVAL to
+indicate that in the example case the driver does not support blink, and
+moreover an app will not expect this and maybe decide to not show the
+menu at all, or ...
 
---------------------------------
+> 2) It makes it possible to set the control directly from within a program.
+>     This is currently true for *all* standard controls
 
-dmesg:
-[ 17.299642] em28xx: New device TerraTec Electronic GmbH Cinergy Hybrid T USB XS
-(2882) @ 480 Mbps (0ccd:005e, interface 0, class 0)
-[ 17.299757] em28xx #0: chip ID is em2882/em2883
-...
-[ 17.344047] VIA 82xx Audio 0000:00:11.5: PCI INT C -> GSI 22 (level, low) ->
-IRQ 22
-[ 17.344235] VIA 82xx Audio 0000:00:11.5: setting latency timer to 64
-...
-[ 17.458267] em28xx #0: i2c eeprom 00: 1a eb 67 95 cd 0c 5e 00 d0 12 5c 03 9e 40
-de 1c
-[ 17.458284] em28xx #0: i2c eeprom 10: 6a 34 27 57 46 07 01 00 00 00 00 00 00 00
-00 00
-[ 17.458297] em28xx #0: i2c eeprom 20: 46 00 01 00 f0 10 31 00 b8 00 14 00 5b 1e
-00 00
-[ 17.458309] em28xx #0: i2c eeprom 30: 00 00 20 40 20 6e 02 20 10 01 00 00 00 00
-00 00
-[ 17.458321] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-00 00
-[ 17.458332] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-00 00
-[ 17.458343] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 34 03 54 00
-65 00
-[ 17.458355] em28xx #0: i2c eeprom 70: 72 00 72 00 61 00 54 00 65 00 63 00 20 00
-45 00
-[ 17.458366] em28xx #0: i2c eeprom 80: 6c 00 65 00 63 00 74 00 72 00 6f 00 6e 00
-69 00
-[ 17.458378] em28xx #0: i2c eeprom 90: 63 00 20 00 47 00 6d 00 62 00 48 00 00 00
-40 03
-[ 17.458390] em28xx #0: i2c eeprom a0: 43 00 69 00 6e 00 65 00 72 00 67 00 79 00
-20 00
-[ 17.458401] em28xx #0: i2c eeprom b0: 48 00 79 00 62 00 72 00 69 00 64 00 20 00
-54 00
-[ 17.458413] em28xx #0: i2c eeprom c0: 20 00 55 00 53 00 42 00 20 00 58 00 53 00
-20 00
-[ 17.458424] em28xx #0: i2c eeprom d0: 28 00 32 00 38 00 38 00 32 00 29 00 00 00
-1c 03
-[ 17.458436] em28xx #0: i2c eeprom e0: 30 00 37 00 30 00 39 00 30 00 32 00 30 00
-30 00
-[ 17.458447] em28xx #0: i2c eeprom f0: 31 00 36 00 30 00 32 00 00 00 00 00 00 00
-00 00
-[ 17.458460] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0xb213b0be
-[ 17.458463] em28xx #0: EEPROM info:
-[ 17.458465] em28xx #0: AC97 audio (5 sample rates)
-[ 17.458467] em28xx #0: 500mA max power
-[ 17.458469] em28xx #0: Table at 0x27, strings=0x409e, 0x1cde, 0x346a
-[ 17.459515] em28xx #0: Identified as Terratec Hybrid XS (em2882) (card=55)
-[ 17.779888] tvp5150 1-005c: chip found @ 0xb8 (em28xx #0)
-[ 18.030350] tuner 1-0061: chip found @ 0xc2 (em28xx #0)
-[ 18.077720] xc2028 1-0061: creating new instance
-[ 18.077725] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-[ 18.077734] usb 1-3: firmware: requesting xc3028-v27.fw
-[ 18.080251] xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw, type:
-xc2028 firmware, ver 2.7
-[ 18.115013] xc2028 1-0061: Loading firmware for type=BASE MTS (5), id
-0000000000000000.
-[ 19.018857] xc2028 1-0061: Loading firmware for type=MTS (4), id
-000000000000b700.
-[ 19.034231] xc2028 1-0061: Loading SCODE for type=MTS LCD NOGD MONO IF SCODE
-HAS_IF_4500 (6002b004), id 000000000000b700.
-[ 19.197366] input: em28xx IR (em28xx #0) as
-/devices/pci0000:00/0000:00:10.4/usb1/1-3/input/input5
-[ 19.197552] Creating IR device irrcv0
-[ 19.197867] em28xx #0: Config register raw data: 0xd0
-[ 19.199035] em28xx #0: AC97 vendor ID = 0xffffffff
-[ 19.199397] em28xx #0: AC97 features = 0x6a90
-[ 19.199402] em28xx #0: Empia 202 AC97 audio processor detected
-[ 19.295412] tvp5150 1-005c: tvp5150am1 detected.
-[ 19.386808] em28xx #0: v4l2 driver version 0.1.2
-[ 19.453330] em28xx #0: V4L2 video device registered as video0
-[ 19.453335] em28xx #0: V4L2 VBI device registered as vbi0
-[ 19.465050] usbcore: registered new interface driver em28xx
-[ 19.465055] em28xx driver loaded
-[ 19.487476] em28xx-audio.c: probing for em28x1 non standard usbaudio
-[ 19.487482] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-[ 19.488338] Em28xx: Initialized (Em28xx Audio Extension) extension
-[ 19.619061] xc2028 1-0061: attaching existing instance
-[ 19.619066] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
-[ 19.619069] em28xx #0: em28xx #0/2: xc3028 attached
-[ 19.619072] DVB: registering new adapter (em28xx #0)
-[ 19.619076] DVB: registering adapter 0 frontend 0 (Zarlink ZL10353 DVB-T)...
-[ 19.619596] em28xx #0: Successfully loaded em28xx-dvb
-[ 19.619601] Em28xx: Initialized (Em28xx dvb Extension) extension
+No this is not true, programs still need to know minimum and maximum values
+for all integer standard controls, brightness may be 0-15 on one device
+and 0-65535 on another, so they cannot simply bang in any value they need to
+take into account the query ctrl results.
 
-...
+> This looks pretty decent IMHO:
+>
+> enum v4l2_illuminator {
+>          V4L2_ILLUMINATOR_OFF = 0,
+>          V4L2_ILLUMINATOR_ON = 1,
+> };
+> #define V4L2_CID_ILLUMINATOR_0              (V4L2_CID_BASE+37)
+> #define V4L2_CID_ILLUMINATOR_1              (V4L2_CID_BASE+38)
+>
 
-xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[ 1639.728880] xc2028 1-0061: Loading firmware for type=D2633 DTV7 (90), id
-0000000000000000.
-[ 1639.742253] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[ 1668.606752] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[ 1668.620516] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[ 2702.705040] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[ 2703.606849] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[ 2703.620225] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[ 2870.779014] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[ 2871.680784] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[ 2871.694157] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[ 2911.394027] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[ 2912.295811] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[ 2912.309191] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[ 3023.057018] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[ 3023.958807] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[ 3023.972182] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[ 5716.667021] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[ 5717.568879] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[ 5717.582253] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[ 5756.846016] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[ 5757.747812] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[ 5757.761307] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[ 6118.278033] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[ 6119.180893] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[ 6119.194266] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-...
-[ 7735.631017] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[ 7736.533816] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[ 7736.547191] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[11068.099023] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[11069.000906] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[11069.014280] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[13282.522033] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[13283.424822] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[13283.438198] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[13354.001040] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[13354.909766] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[13354.923143] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[13459.296676] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[13460.202016] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[13460.215523] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-...
-[15032.829016] xc2028 1-0061: Loading firmware for type=BASE F8MHZ MTS (7), id
-0000000000000000.
-[15033.731844] xc2028 1-0061: Loading firmware for type=D2633 DTV78 (110), id
-0000000000000000.
-[15033.745217] xc2028 1-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78 DTV8
-ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+I don't like this, as explained before most microscopes have a top
+and a bottom light, and you want to switch between them, or to
+all off, or to all on. So having a menu with 4 options for this
+makes a lot more sense then having 2 separate controls. Defining
+these values as standard values would take away the option for drivers
+to do something other then a simple on / off control here. Again
+what is wrong with with not defining standard meanings for standard
+controls with a menu type. This means less stuff in videodev2.h
+and more flexibility wrt using these control ids.
 
 
-Thank you very much in advance for your help!!
+I think we should not even define a type for this one. If we
+get microscopes with pwm control for the lights we will want this
+to be an integer using one control per light.
 
-Michael 
- 
- 
- 
+We have this excellent infrastructure to automatically discover
+control types, ranges and menu item meaning. Why would it be
+forbidden to use this for standard controls.
 
+Either we need to drop our aversion for private controls, or
+allow somewhat more flexible standard controls!
 
- 
+> enum v4l2_led {
+>          V4L2_LED_AUTO = 0,
+>          V4L2_LED_OFF = 1,
+>          V4L2_LED_ON = 2,
+> };
+> #define V4L2_CID_LED_0              (V4L2_CID_BASE+39)
+>
+> Simple and straightforward.
+
+Until a cam comes along which only supports auto and on, and
+we have a whole in our menu range with the standard does not
+allow!
+
+>>> consistent behavior. Note that I am also wondering whether it wouldn't be a
+>>> good idea to use a menu for this, just as for the LEDs.
+>>
+>> I do agree that the illuminator ctrls should be a menu, that way the driver
+>> author can also choose wether to group 2 together in a single control or not
+>> we simply should not specify the menu values in the spec (the same can
+>> be said for the led case).
+>
+> See above. Just because you can do it, doesn't mean you should. In this case
+> I think it is a bad idea. Standard controls should have standard behavior.
+
+How about a compromise, we add a set of standard defines for menu
+index meanings, with a note that these are present as a way to standardize
+things between drivers, but that some drivers may deviate and that
+apps should always use VIDIOC_QUERYMENU ?
+
+Regards,
+
+Hans
