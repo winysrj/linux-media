@@ -1,88 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:35304 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751567Ab0IPJCF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 05:02:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v4 08/11] media: Links setup
-Date: Thu, 16 Sep 2010 11:02:06 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <201009011608.30918.laurent.pinchart@ideasonboard.com> <201009061909.20882.hverkuil@xs4all.nl>
-In-Reply-To: <201009061909.20882.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009161102.07853.laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2788 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757011Ab0IGTHp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 15:07:45 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o87J7hX6034536
+	for <linux-media@vger.kernel.org>; Tue, 7 Sep 2010 21:07:44 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 7 Sep 2010 21:07:43 +0200 (CEST)
+Message-Id: <201009071907.o87J7hX6034536@smtp-vbr14.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Hans,
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-On Monday 06 September 2010 19:09:20 Hans Verkuil wrote:
-> On Wednesday, September 01, 2010 16:08:29 Laurent Pinchart wrote:
-> > On Saturday 28 August 2010 13:14:18 Hans Verkuil wrote:
-> > > On Friday, August 20, 2010 17:29:10 Laurent Pinchart wrote:
-> > [snip]
-> > 
-> > > > +/**
-> > > > + * media_entity_remote_pad - Locate the pad at the remote end of a
-> > > > link + * @entity: Local entity
-> > > > + * @pad: Pad at the local end of the link
-> > > > + *
-> > > > + * Search for a remote pad connected to the given pad by iterating
-> > > > over all
-> > > > + * links originating or terminating at that pad until an active link
-> > > > is found.
-> > > > + *
-> > > > + * Return a pointer to the pad at the remote end of the first found
-> > > > active link,
-> > > > + * or NULL if no active link has been found.
-> > > > + */
-> > > > +struct media_pad *media_entity_remote_pad(struct media_pad *pad)
-> > > > +{
-> > > > +	unsigned int i;
-> > > > +
-> > > > +	for (i = 0; i < pad->entity->num_links; i++) {
-> > > > +		struct media_link *link = &pad->entity->links[i];
-> > > > +
-> > > > +		if (!(link->flags & MEDIA_LINK_FLAG_ACTIVE))
-> > > > +			continue;
-> > > > +
-> > > > +		if (link->source == pad)
-> > > > +			return link->sink;
-> > > > +
-> > > > +		if (link->sink == pad)
-> > > > +			return link->source;
-> > > > +	}
-> > > > +
-> > > > +	return NULL;
-> > > > +
-> > > > +}
-> > > 
-> > > Why is this needed? Esp. since there can be multiple active remote pads
-> > > if you have multiple active outgoing links. Something this function
-> > > doesn't deal with.
-> > 
-> > The function is meant to be used when only one of the links can be
-> > active. It's most useful to find the entity connected to a given input
-> > pad, as input pads can't be connected by multiple simultaneously active
-> > links.
-> 
-> In that case I would rename it media_entity_remote_source to match the use
-> case (and only look for remote sources).
+Results of the daily build of v4l-dvb:
 
-OK, I'll rename the function.
+date:        Tue Sep  7 19:00:05 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15139:6e0befab696a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-> Alternatively you could add an index for the nth active link, then it would
-> be truly generic.
-> 
-> Right now the function either does too much or too little :-)
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
 
--- 
-Regards,
+Detailed results are available here:
 
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
