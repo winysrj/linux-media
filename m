@@ -1,50 +1,92 @@
 Return-path: <mchehab@pedra>
-Received: from bombadil.infradead.org ([18.85.46.34]:41831 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753140Ab0IHXtG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 19:49:06 -0400
-Message-ID: <4C8820ED.4070402@infradead.org>
-Date: Wed, 08 Sep 2010 20:49:01 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Jarod Wilson <jarod@redhat.com>, Jarod Wilson <jarod@wilsonet.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	lirc-list@lists.sourceforge.net,
-	=?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 7/8] IR: extend ir_raw_event and do refactoring
-References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>	 <1283808373-27876-8-git-send-email-maximlevitsky@gmail.com>	 <AANLkTinr6mN=t=vNnR3pSBxXb0ud=Ymrqn_WyDNkUJTz@mail.gmail.com>	 <1283964646.6372.90.camel@morgan.silverblock.net>	 <20100908172708.GH22323@redhat.com> <1283986953.29812.24.camel@morgan.silverblock.net>
-In-Reply-To: <1283986953.29812.24.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59622 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757895Ab0IGQfg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Sep 2010 12:35:36 -0400
+Date: Tue, 07 Sep 2010 12:35:25 -0400
+Subject: Re: [PATCH] Illuminators and status LED controls
+Message-ID: <a6fpy0pkri5xkcmoahjx6t5o.1283877325952@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 08-09-2010 20:02, Andy Walls escreveu:
-> On Wed, 2010-09-08 at 13:27 -0400, Jarod Wilson wrote:
- 
->>>>  I'd be inclined to
->>>> simply move duty_cycle out of the union and leave just duration and
->>>> carrier in it.
->>>
->>> That's not necessary and it could be confusing depending on where you
->>> put duty_cycle.
->>
->> There's that. But without having code that actually uses duty_cycle in a
->> meaningful way yet, its hard to say for sure. If carrier and duty_cycle
->> were only being sent out in their own events, you might actually want a
->> union of duration, carrier and duty_cycle. Though I suspect we'll probably
->> want to pass along carrier and duty_cycle at the same time.
-> 
-> I suspect you're right on that.  I don't have any experience with
-> hardware that can actually estimate carrier freq or duty cycle.  I
-> suspect they can be measured together using edge detection on both
-> rising and falling edges.
+TG9vayBmb3IgYSByZWNlbnQgcGF0Y2ggSSBzZW50IHRvIHRoZSBsaXN0IGZvciBnc3BjYV9jcGlh
+IGZvciB0aGUgSW50ZWwgUGxheSBRWDMgbWljcm9zY29wZS4gKFRoZSBjcGlhMiBkcml2ZXIgaGFu
+ZGxlcyB0aGUgUVg1KQoKSWxsdW1pbmF0b3Igc2VlbXMgdG8gYmUgdGhlIHN0YW5kYXJkIHRlcm0g
+aW4gYm90aCBtaWNyb3Njb3B5IGFuZCBJUiBwaG90Z3JhcGh5LiAgSSBhbHNvIHNhdyBpdCBpbiBw
+bGFpbiBwaG90b2dyYXBoeSBjb250ZXh0cy4gIEp1c3QgYXNrIHRoZSBHb29nbGUuLi4KClJlZ2Fy
+ZHMsCkFuZHkKCkhhbnMgVmVya3VpbCA8aHZlcmt1aWxAeHM0YWxsLm5sPiB3cm90ZToKCj5PbiBU
+dWVzZGF5LCBTZXB0ZW1iZXIgMDcsIDIwMTAgMTM6NTk6MTkgSGFucyBkZSBHb2VkZSB3cm90ZToK
+Pj4gSGkgYWxsLAo+PiAKPj4gT24gMDkvMDcvMjAxMCAxMTo0NyBBTSwgSGFucyBWZXJrdWlsIHdy
+b3RlOgo+PiA+IE9uIFR1ZXNkYXksIFNlcHRlbWJlciAwNywgMjAxMCAxMTo0NDoxOCBIYW5zIGRl
+IEdvZWRlIHdyb3RlOgo+PiA+PiBSZXBseWluZyB0byBteXNlbGYuCj4+ID4+Cj4+ID4+IE9uIDA5
+LzA3LzIwMTAgMTE6NDIgQU0sIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4+ID4+PiBIaSwKPj4gPj4+
+Cj4+ID4+PiBPbiAwOS8wNy8yMDEwIDA5OjMwIEFNLCBIYW5zIFZlcmt1aWwgd3JvdGU6Cj4+ID4+
+Pj4gT24gTW9uZGF5LCBTZXB0ZW1iZXIgMDYsIDIwMTAgMjA6MTE6MDUgSmVhbi1GcmFuY29pcyBN
+b2luZSB3cm90ZToKPj4gPj4+Pj4gSGksCj4+ID4+Pj4+Cj4+ID4+Pj4+IFRoaXMgbmV3IHByb3Bv
+c2FsIGNhbmNlbHMgdGhlIHByZXZpb3VzICdMRUQgY29udHJvbCcgcGF0Y2guCj4+ID4+Pj4+Cj4+
+ID4+Pj4+IENoZWVycy4KPj4gPj4+Pj4KPj4gPj4+Pj4KPj4gPj4+Pgo+PiA+Pj4+IEhpIEplYW4t
+RnJhbmNvaXMsCj4+ID4+Pj4KPj4gPj4+PiBZb3UgbXVzdCBhbHNvIGFkZCBzdXBwb3J0IGZvciB0
+aGVzZSBuZXcgY29udHJvbHMgaW4gdjRsMi1jdHJscy5jIGluCj4+ID4+Pj4gdjRsMl9jdHJsX2dl
+dF9tZW51KCksIHY0bDJfY3RybF9nZXRfbmFtZSgpIGFuZCB2NGwyX2N0cmxfZmlsbCgpLgo+PiA+
+Pj4+Cj4+ID4+Pj4gSG93IGlzIENJRF9JTExVTUlOQVRPUlMgc3VwcG9zZWQgdG8gd29yayBpbiB0
+aGUgY2FzZSBvZiBtdWx0aXBsZSBsaWdodHM/Cj4+ID4+Pj4gV291bGRuJ3QgYSBiaXRtYXNrIHR5
+cGUgYmUgbW9yZSBzdWl0YWJsZSB0byB0aGlzIHRoYW4gYSBtZW51IHR5cGU/IFRoZXJlCj4+ID4+
+Pj4gaXNuJ3QgYSBiaXRtYXNrIHR5cGUgYXQgdGhlIG1vbWVudCwgYnV0IHRoaXMgc2VlbXMgdG8g
+YmUgYSBwcmV0dHkgZ29vZAo+PiA+Pj4+IGNhbmRpZGF0ZSBmb3IgYSB0eXBlIGxpa2UgdGhhdC4K
+Pj4gPj4+Pgo+PiA+Pj4+IEFjdHVhbGx5LCBmb3IgdGhlIHN0YXR1cyBsZWQgSSB3b3VsZCBhbHNv
+IHVzZSBhIGJpdG1hc2sgc2luY2UgdGhlcmUgbWF5IGJlCj4+ID4+Pj4gbXVsdGlwbGUgbGVkcy4g
+SSBndWVzcyB5b3Ugd291bGQgbmVlZCB0d28gYml0bWFza3M6IG9uZSB0byBzZWxlY3QgYXV0byB2
+cwo+PiA+Pj4+IG1hbnVhbCwgYW5kIG9uZSBmb3IgdGhlIG1hbnVhbCBzZXR0aW5ncy4KPj4gPj4+
+Pgo+PiA+Pj4KPj4gPj4+IFNvIGZhciBJJ3ZlIG5vdCBzZWVuIGNhbWVyYXMgd2l0aCBtdWx0aXBs
+ZSBzdGF0dXMgbGVkcywgSSBkbyBoYXZlIHNlZW4gY2FtZXJhCj4+ID4+PiB3aGljaCBoYXZlIHRo
+ZSBmb2xsb3dpbmcgc2V0dGluZ3MgZm9yIHRoZWlyIDEgbGVkIChsb2dpdGVjaCB1dmMgY2Ftcyk6
+Cj4+ID4+PiBhdXRvCj4+ID4+PiBvbgo+PiA+Pj4gb2ZmCj4+ID4+PiBibGlua2luZwo+PiA+Pj4K
+Pj4gPj4+IFNvIEkgdGhpbmsgYSBtZW51IHR5cGUgaXMgYmV0dGVyIHN1aXRlZCwgYW5kIHRoYXQg
+aXMgd2hhdCB0aGUgY3VycmVudCAocHJpdmF0ZSkKPj4gPj4+IHV2YyBjb250cm9sIHVzZXMuCj4+
+ID4+Cj4+ID4+IFRoZSBzYW1lIGFyZ3VtZW50IG1vcmUgb3IgbGVzcyBnb2VzIGZvciB0aGUgQ0lE
+X0lMTElNVU5BVE9SUyBjb250cm9scy4gQWxzbyBnaXZlbgo+PiA+PiB0aGF0IHdlIGN1cnJlbnRs
+eSBkb24ndCBoYXZlIGEgYml0bWFzayB0eXBlIEkgdGhpbmsgaW50cm9kdWNpbmcgb25lIHdpdGhv
+dXQgYSByZWFsbHkKPj4gPj4gcmVhbGx5IGdvb2QgcmVhc29uIGlzIGEgYmFkIGlkZWEgYXMgYW55
+IGV4aXRpbmcgYXBwcyB3b24ndCBrbm93IGhvdyB0byBkZWFsIHdpdGggaXQuCj4+ID4KPj4gPiBC
+dXQgSSBjYW4gZ3VhcmFudGVlIHRoYXQgd2Ugd2lsbCBnZXQgdmlkZW8gZGV2aWNlcyB3aXRoIG11
+bHRpcGxlIGxlZHMgaW4gdGhlCj4+ID4gZnV0dXJlLiBTbyB3ZSBuZWVkIHRvIHRoaW5rICpub3cq
+IGFib3V0IGhvdyB0byBkbyB0aGlzLiBPbmUgc2ltcGxlIG9wdGlvbiBpcyBvZiBjb3Vyc2UKPj4g
+PiB0byBuYW1lIHRoZSBjb250cm9scyBDSURfSUxMVU1JTkFUT1IwIGFuZCBDSURfTEVEMC4gVGhh
+dCB3YXkgd2UgY2FuIGVhc2lseSBhZGQgTEVEMSwKPj4gPiBMRUQyLCBldGMuIGxhdGVyIHdpdGhv
+dXQgcnVubmluZyBpbnRvIHdlaXJkIGluY29uc2lzdGVudCBjb250cm9sIG5hbWVzLgo+PiA+Cj4+
+IAo+PiBOYW1pbmcgdGhlbSBMRUQwIGFuZCBJTExVTUlOQVRPUjAgd29ya3MgZm9yIG1lLiBOb3Rl
+IGFib3V0IHRoZSBpbGx1bWluYXRvciBvbmUsCj4+IGlmIHlvdSBsb29rIGF0IHRoZSBwYXRjaCBp
+dCBtYWRlIHRoZSBpbGx1bWluYXRvciBjb250cm9sIGEgbWVudSB3aXRoIHRoZSBmb2xsb3dpbmcK
+Pj4gb3B0aW9uczoKPgo+V2hlcmUgaW4gdGhlIHBhdGNoPyBBbSBJIG1pc3Npbmcgc29tZXRoaW5n
+Pwo+Cj4+IAo+PiBCb3RoIG9mZgo+PiBUb3Agb24sIEJvdHRvbSBvZmYKPj4gVG9wIG9mZiwgQm90
+dG9tIG9uCj4+IEJvdGggb24KPj4gCj4+IFdoaWNoIHJhaXNlcyB0aGUgcXVlc3Rpb24gZG8gd2Ug
+bGVhdmUgdGhpcyBhcyBpcywgb3IgZG8gd2UgbWFrZSB0aGlzIDIgYm9vbGVhbgo+PiBjb250cm9s
+cy4gSSBwZXJzb25hbGx5IHdvdWxkIGxpa2UgdG8gdm90ZSBmb3Iga2VlcGluZyBpdCBhcyBpcywg
+YXMgYm90aCBsYW1wcwo+PiBpbGx1bWluYXRlIHRoZSBzYW1lIHN1YnN0cmF0ZSBpbiB0aGlzIGNh
+c2UsIGFuZCBlc3AuIHN3aXRjaGluZyBiZXR3ZWVuCj4+IFRvcCBvbiwgQm90dG9tIG9mZiB0byBU
+b3Agb2ZmLCBCb3R0b20gb24gaW4gb25lIGdvIGlzIGEgZ29vZCBmZWF0dXJlIHRvIGhhdmUKPj4g
+VUkgd2lzZSAoaW93IHN3aXRjaCBmcm9tIHRvcCB0byBib3R0b20gbGlnaHRpbmcgb3IgdmlzYSB2
+ZXJzYS4KPgo+VGhlIHByb2JsZW0gd2l0aCBoYXZpbmcgb25lIGNvbnRyb2wgaXMgdGhhdCB3aGls
+ZSB0aGlzIG1ha2VzIHNlbnNlIGZvciB0aGlzCj5wYXJ0aWN1bGFyIG1pY3Jvc2NvcGUsIGl0IGRv
+ZXNuJ3QgbWFrZSBzZW5zZSBpbiBnZW5lcmFsLgo+Cj5TdGFuZGFyZCBjb250cm9scyBzdWNoIGFz
+IHByb3Bvc2VkIGJ5IHRoaXMgcGF0Y2ggc2hvdWxkIGhhdmUgYSBmaXhlZCB0eXBlIGFuZAo+Y29u
+c2lzdGVudCBiZWhhdmlvci4gTm90ZSB0aGF0IEkgYW0gYWxzbyB3b25kZXJpbmcgd2hldGhlciBp
+dCB3b3VsZG4ndCBiZSBhCj5nb29kIGlkZWEgdG8gdXNlIGEgbWVudSBmb3IgdGhpcywganVzdCBh
+cyBmb3IgdGhlIExFRHMuIEluIGZhY3QsIHBlcmhhcHMgdGhleQo+c2hvdWxkIHVzZSB0aGUgc2Ft
+ZSBtZW51LiBXaGlsZSB0aGVpciBwdXJwb3NlIGlzIGRpZmZlcmVudCwgdGhleSBhcmUgcXVpdGUg
+c2ltaWxhcgo+aW4gYmVoYXZpb3IuCj4KPkJUVywgbG92ZWx5IHdvcmQ6ICdpbGx1bWluYXRvcicu
+Cj4KPlJlZ2FyZHMsCj4KPglIYW5zCj4KPj4gCj4+IFJlZ2FyZHMsCj4+IAo+PiBIYW5zCj4+IAo+
+PiAKPj4gCj4KPi0tIAo+SGFucyBWZXJrdWlsIC0gdmlkZW80bGludXggZGV2ZWxvcGVyIC0gc3Bv
+bnNvcmVkIGJ5IFRBTkRCRVJHLCBwYXJ0IG9mIENpc2NvCj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJv
+bSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+
+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUg
+bWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
+aHRtbAo=
 
-As duty cycle is not currently used, the better is to just remove it from
-the struct, adding it on a separate patch, together with a code that will
-need it.
-
-Cheers,
-Mauro
