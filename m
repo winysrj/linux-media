@@ -1,49 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:48799 "EHLO
-	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959Ab0IHK2n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 06:28:43 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by stevekerrison.com (Postfix) with ESMTP id 68CF210200D
-	for <linux-media@vger.kernel.org>; Wed,  8 Sep 2010 11:28:42 +0100 (BST)
-Received: from stevekerrison.com ([127.0.0.1])
-	by localhost (stevekez.vm.bytemark.co.uk [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id X6XTOFoSTvd8 for <linux-media@vger.kernel.org>;
-	Wed,  8 Sep 2010 11:28:34 +0100 (BST)
-Received: from [192.168.1.10] (94-193-106-123.zone7.bethere.co.uk [94.193.106.123])
-	(Authenticated sender: steve@stevekerrison.com)
-	by stevekerrison.com (Postfix) with ESMTPSA id D62EA8A019
-	for <linux-media@vger.kernel.org>; Wed,  8 Sep 2010 11:28:34 +0100 (BST)
-Subject: First DVB-T2 tuner announced - Hauppauge PCTV Nanostick T2 290e
-From: Steve Kerrison <steve@stevekerrison.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 08 Sep 2010 11:28:34 +0100
-Message-ID: <1283941714.3425.17.camel@goliath-lin>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.1.47]:55628 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932138Ab0IGUCV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Sep 2010 16:02:21 -0400
+Date: Tue, 7 Sep 2010 22:15:38 +0300
+From: Eduardo Valentin <eduardo.valentin@nokia.com>
+To: ext Jarkko Nikula <jhnikula@gmail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-D/Helsinki)" <eduardo.valentin@nokia.com>
+Subject: Re: [PATCH 1/2] V4L/DVB: radio-si4713: Release i2c adapter in
+ driver cleanup paths
+Message-ID: <20100907191538.GB10360@besouro.research.nokia.com>
+Reply-To: eduardo.valentin@nokia.com
+References: <1276452568-16366-1-git-send-email-jhnikula@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1276452568-16366-1-git-send-email-jhnikula@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hauppauge has released details of its first DVB-T2 tuner at IFA. Some
-scarce details are here:
+Jarkko and Mauro,
 
-http://www.wegotserved.com/2010/09/04/ifa-2010-hauppauge-announces-freeview-hd-dvbt2-tuner-pc/
+Apologies for the long delay.
 
-along with a "datasheet" (without very much data) here:
+On Sun, Jun 13, 2010 at 08:09:27PM +0200, Jarkko Nikula wrote:
+> Call to i2c_put_adapter was missing in radio_si4713_pdriver_probe and
+> radio_si4713_pdriver_remove.
+> 
+> Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
+> Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-http://www.wegotserved.com/2010/09/06/ifa-2010-pctv-nanostick-t2-290e-freeview-hd-tuner-full-specs-data-sheet/
+Acked-by: Eduardo Valentin <eduardo.valentin@nokia.com>
 
-Only 720p video support is claimed, but that can't be anything to do
-with receiving the mux so I suspect that's a software limitation in the
-bundled player.
+> ---
+>  drivers/media/radio/radio-si4713.c |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
+> index 13554ab..0a9fc4d 100644
+> --- a/drivers/media/radio/radio-si4713.c
+> +++ b/drivers/media/radio/radio-si4713.c
+> @@ -296,14 +296,14 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
+>  	if (!sd) {
+>  		dev_err(&pdev->dev, "Cannot get v4l2 subdevice\n");
+>  		rval = -ENODEV;
+> -		goto unregister_v4l2_dev;
+> +		goto put_adapter;
+>  	}
+>  
+>  	rsdev->radio_dev = video_device_alloc();
+>  	if (!rsdev->radio_dev) {
+>  		dev_err(&pdev->dev, "Failed to alloc video device.\n");
+>  		rval = -ENOMEM;
+> -		goto unregister_v4l2_dev;
+> +		goto put_adapter;
+>  	}
+>  
+>  	memcpy(rsdev->radio_dev, &radio_si4713_vdev_template,
+> @@ -320,6 +320,8 @@ static int radio_si4713_pdriver_probe(struct platform_device *pdev)
+>  
+>  free_vdev:
+>  	video_device_release(rsdev->radio_dev);
+> +put_adapter:
+> +	i2c_put_adapter(adapter);
+>  unregister_v4l2_dev:
+>  	v4l2_device_unregister(&rsdev->v4l2_dev);
+>  free_rsdev:
+> @@ -335,8 +337,12 @@ static int __exit radio_si4713_pdriver_remove(struct platform_device *pdev)
+>  	struct radio_si4713_device *rsdev = container_of(v4l2_dev,
+>  						struct radio_si4713_device,
+>  						v4l2_dev);
+> +	struct v4l2_subdev *sd = list_entry(v4l2_dev->subdevs.next,
+> +					    struct v4l2_subdev, list);
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+>  	video_unregister_device(rsdev->radio_dev);
+> +	i2c_put_adapter(client->adapter);
+>  	v4l2_device_unregister(&rsdev->v4l2_dev);
+>  	kfree(rsdev);
+>  
+> -- 
+> 1.7.1
 
-Does anyone have (or have a means of getting) more info on the internals
-of this stick to aid Linux development? I will be attempting to acquire
-one of these at first release in October, and will do what I can, from
-USB snooping through to module development - as far as my time and skill
-can muster.
-
-Regards,
-Steve Kerrison.
-
+-- 
+---
+Eduardo Valentin
