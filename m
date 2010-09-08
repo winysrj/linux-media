@@ -1,39 +1,60 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:59457 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755316Ab0IHOrf convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 10:47:35 -0400
+Received: from mx1.redhat.com ([209.132.183.28]:48032 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755571Ab0IHQJV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 12:09:21 -0400
+Date: Wed, 8 Sep 2010 12:09:08 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Ville Syrjala <syrjala@sci.fi>
+Subject: Re: [PATCH 0/6] Large scancode handling
+Message-ID: <20100908160908.GF22323@redhat.com>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+ <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz>
+ <20100908142418.GC22323@redhat.com>
+ <4C87A87A.4060102@redhat.com>
+ <20100908152234.GE22323@redhat.com>
+ <alpine.LNX.2.00.1009081723400.26813@pobox.suse.cz>
 MIME-Version: 1.0
-In-Reply-To: <1283808373-27876-6-git-send-email-maximlevitsky@gmail.com>
-References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
-	<1283808373-27876-6-git-send-email-maximlevitsky@gmail.com>
-Date: Wed, 8 Sep 2010 10:47:26 -0400
-Message-ID: <AANLkTi=EFZys7NnxixmQL3hqqGfin_VOV7XAWCm0BkwT@mail.gmail.com>
-Subject: Re: [PATCH 5/8] IR: extend MCE keymap.
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: lirc-list@lists.sourceforge.net,
-	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.00.1009081723400.26813@pobox.suse.cz>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, Sep 6, 2010 at 5:26 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> These keys are found on remote bundled with
-> Toshiba Qosmio F50-10q.
->
-> Found and tested by, Sami R <maesesami@gmail.com>
->
-> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-> ---
->  drivers/media/IR/keymaps/rc-rc6-mce.c |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
+On Wed, Sep 08, 2010 at 05:25:13PM +0200, Jiri Kosina wrote:
+> On Wed, 8 Sep 2010, Jarod Wilson wrote:
+> 
+> > > > It'll conflict a little bith with the tivo slide patch I posted yesterday,
+> > > > but mostly just minor context changes. I can redo that patch on top of
+> > > > these changes if that's preferred.
+> > > 
+> > > I can handle those context changes when merging the patches at linux-next and
+> > > when merging upstream. We just need to sync in a way that Dmitry send his patch
+> > > series before mine when sending them to Linus, and I'll take care of fixing the
+> > > merge conflicts.
+> > 
+> > Ah, the specific conflicts I was referring here are confined to
+> > drivers/hid/hid-input.c, and I sent the patch thinking it would go in via
+> > the hid tree. It *is* for a remote, but its a pure HID device in this
+> > case.
+> 
+> Umm, what patch are you talking about please? I don't seem to have 
+> anything from you in my queue.
 
-Acked-by: Jarod Wilson <jarod@redhat.com>
+Gah. I suck. Forgot to cc you on it.
+
+http://www.spinics.net/lists/linux-input/msg11007.html
+
+Can resend and/or bounce you a copy if need be.
 
 -- 
 Jarod Wilson
-jarod@wilsonet.com
+jarod@redhat.com
+
