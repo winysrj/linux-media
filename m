@@ -1,123 +1,60 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from mx1.redhat.com ([209.132.183.28]:51327 "EHLO mx1.redhat.com"
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:5514 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752901Ab0IMHTb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 03:19:31 -0400
-Message-ID: <4C8DD07A.5070308@redhat.com>
-Date: Mon, 13 Sep 2010 09:19:22 +0200
-From: Hans de Goede <hdegoede@redhat.com>
+	id S1751568Ab0IHOKd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 10:10:33 -0400
+Date: Wed, 8 Sep 2010 10:10:24 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/5] rc-code: merge and rename ir-core
+Message-ID: <20100908141024.GA22323@redhat.com>
+References: <20100907214943.30935.29895.stgit@localhost.localdomain>
+ <20100907215143.30935.71857.stgit@localhost.localdomain>
+ <4C8792B2.2010809@infradead.org>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>
-Subject: Re: [PATCH v2 3/3] gspca_cpia1: Disable illuminator controls if not
- an Intel Play QX3
-References: <1284313521.2027.32.camel@morgan.silverblock.net>
-In-Reply-To: <1284313521.2027.32.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <4C8792B2.2010809@infradead.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Ack,
+On Wed, Sep 08, 2010 at 10:42:10AM -0300, Mauro Carvalho Chehab wrote:
+> Em 07-09-2010 18:51, David Härdeman escreveu:
+> > This patch merges the files which makes up ir-core and renames the
+> > resulting module to rc-core. IMHO this makes it much easier to hack
+> > on the core module since all code is in one file.
+> > 
+> > This also allows some simplification of ir-core-priv.h as fewer internal
+> > functions need to be exposed.
+> 
+> I'm not sure about this patch. Big files tend to be harder to maintain,
+> as it takes more time to find the right functions inside it. Also, IMO, 
+> it makes sense to keep the raw-event code on a separate file.
 
-Acked-by: Hans de Goede <hdegoede@redhat.com>
+There's definitely a balance to be struck between file size and file
+count. Having all the relevant code in one file definitely has its
+advantage in that its easier to jump around from function to function and
+trace code paths taken, but I can see the argument for isolating the raw
+event handling code a bit too, especially if its going to be further
+expanded, which I believe is likely the case. So I guess I'm on the
+fence here. :)
 
-p.s.
+> Anyway, if we apply this patch right now, it will cause merge conflicts with
+> the input tree, due to the get/setkeycodebig patches, and with some other
+> patches that are pending merge/review. The better is to apply such patch
+> just after the release of 2.6.37-rc1, after having all those conflicts
+> solved.
 
-Jean-Francois, since your tree also has the needed videodev2.h changes I assume
-you'll take these patches in your tree and thus I won't add them to mine.
+The imon patch that moves mouse/panel/knob input to its own input device
+should be possible to take in advance of everything else, more or less,
+though I need to finish actually testing it out (and should probably make
+some further imon fixes for issues listed in a kernel.org bugzilla, the
+number of which escapes me at the moment).
 
-Regards,
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-Hans
-
-
-On 09/12/2010 07:45 PM, Andy Walls wrote:
-> The illuminator controls should only be available to the user for the Intel
-> Play QX3 microscope.  The implementation to inhibit the controls is intended to
-> be consistent with the other gspca driver implementations.
->
-> Signed-off-by: Andy Walls<awalls@md.metrocast.net>
->
-> diff -r 5e576066eeaf -r 8a9732bd1548 linux/drivers/media/video/gspca/cpia1.c
-> --- a/linux/drivers/media/video/gspca/cpia1.c	Sun Sep 12 12:47:00 2010 -0400
-> +++ b/linux/drivers/media/video/gspca/cpia1.c	Sun Sep 12 13:13:33 2010 -0400
-> @@ -380,6 +380,7 @@
->
->   static const struct ctrl sd_ctrls[] = {
->   	{
-> +#define BRIGHTNESS_IDX 0
->   	    {
->   		.id      = V4L2_CID_BRIGHTNESS,
->   		.type    = V4L2_CTRL_TYPE_INTEGER,
-> @@ -394,6 +395,7 @@
->   	    .set = sd_setbrightness,
->   	    .get = sd_getbrightness,
->   	},
-> +#define CONTRAST_IDX 1
->   	{
->   	    {
->   		.id      = V4L2_CID_CONTRAST,
-> @@ -408,6 +410,7 @@
->   	    .set = sd_setcontrast,
->   	    .get = sd_getcontrast,
->   	},
-> +#define SATURATION_IDX 2
->   	{
->   	    {
->   		.id      = V4L2_CID_SATURATION,
-> @@ -422,6 +425,7 @@
->   	    .set = sd_setsaturation,
->   	    .get = sd_getsaturation,
->   	},
-> +#define POWER_LINE_FREQUENCY_IDX 3
->   	{
->   		{
->   			.id	 = V4L2_CID_POWER_LINE_FREQUENCY,
-> @@ -436,6 +440,7 @@
->   		.set = sd_setfreq,
->   		.get = sd_getfreq,
->   	},
-> +#define ILLUMINATORS_1_IDX 4
->   	{
->   		{
->   			.id	 = V4L2_CID_ILLUMINATORS_1,
-> @@ -450,6 +455,7 @@
->   		.set = sd_setilluminator1,
->   		.get = sd_getilluminator1,
->   	},
-> +#define ILLUMINATORS_2_IDX 5
->   	{
->   		{
->   			.id	 = V4L2_CID_ILLUMINATORS_2,
-> @@ -464,6 +470,7 @@
->   		.set = sd_setilluminator2,
->   		.get = sd_getilluminator2,
->   	},
-> +#define COMP_TARGET_IDX 6
->   	{
->   		{
->   #define V4L2_CID_COMP_TARGET V4L2_CID_PRIVATE_BASE
-> @@ -1756,9 +1763,13 @@
->   	if (ret)
->   		return ret;
->
-> -	/* Ensure the QX3 illuminators' states are restored upon resume */
-> +	/* Ensure the QX3 illuminators' states are restored upon resume,
-> +	   or disable the illuminator controls, if this isn't a QX3 */
->   	if (sd->params.qx3.qx3_detected)
->   		command_setlights(gspca_dev);
-> +	else
-> +		gspca_dev->ctrl_dis |=
-> +			((1<<  ILLUMINATORS_1_IDX) | (1<<  ILLUMINATORS_2_IDX));
->
->   	sd_stopN(gspca_dev);
->
->
->
->
->
->
->
->
->
