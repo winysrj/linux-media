@@ -1,113 +1,206 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1231 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752087Ab0I2TLZ (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:13846 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752126Ab0IHQhx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Sep 2010 15:11:25 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8TJBNCr042424
-	for <linux-media@vger.kernel.org>; Wed, 29 Sep 2010 21:11:24 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 29 Sep 2010 21:11:23 +0200 (CEST)
-Message-Id: <201009291911.o8TJBNCr042424@smtp-vbr13.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+	Wed, 8 Sep 2010 12:37:53 -0400
+Subject: Re: [PATCH] Illuminators and status LED controls
+From: Andy Walls <awalls@md.metrocast.net>
+To: eduardo.valentin@nokia.com
+Cc: ext Eino-Ville Talvala <talvala@stanford.edu>,
+	ext Jean-Francois Moine <moinejf@free.fr>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <20100908075903.GE29776@besouro.research.nokia.com>
+References: <b7de5li57kosi2uhdxrgxyq9.1283891610189@email.android.com>
+	 <4C86F210.2060605@stanford.edu>
+	 <20100908075903.GE29776@besouro.research.nokia.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 08 Sep 2010 12:37:38 -0400
+Message-ID: <1283963858.6372.81.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Wed, 2010-09-08 at 10:59 +0300, Eduardo Valentin wrote:
+> Hello,
+> 
+> On Wed, Sep 08, 2010 at 04:16:48AM +0200, ext Eino-Ville Talvala wrote:
+> > 
+> >  This is probably a bit OT, but these sorts of indicator LEDs can get quite complicated.
+> > 
+> > As part of our FCamera sample program on the Nokia N900 (which uses
+> V4L2 way down there), we wanted to reprogram the front indicator LED
+> to flash exactly when a picture is taken.
+>   The N900 front LED is quite a programmable beast [1], with a
+> dedicated microcontroller (the lp5521) that runs little programs that
+> define the blink patterns for the RGB LED.
+> > 
+> > I'm not really suggesting that the V4L2 control should be able to
+> handle this sort of an LED, but as these sorts of things get cheaper,
+> it may become a case of 'why not?' for manufacturers putting in more
+> complex RGB LEDs.   And if you don't want to encapsulate all that in
+> V4L2, it may be better to leave it to other APIs at some point of
+> complexity (the current lp5521 driver seems to have a sysfs-only
+> interface for now for the programmable patterns, and the standard LED
+> API otherwise)
+> > 
+> > [1] http://wiki.maemo.org/LED_patterns
+> 
+> Well, that's exactly why duplicating API's is usually a bad idea. If
+> the thing start to get complex, having only one place to hold
+> the mess is better than keeping it into two (or more) different
+> places. This will become worst and worst. I mean, why do we want two
+> different APIs to control same stuff?
 
-Results of the daily build of v4l-dvb:
+For the case when requiring an application to use two separate APIs adds
+more complexity for application developer than it alleviates.
 
-date:        Wed Sep 29 19:00:10 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: dace3857de7a16b83ae7d4e13c94de8e4b267d2a
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Let's be more specific about "stuff" that may need to be controlled:
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec-git: OK
-sparse: ERRORS
+1. Illuminators with control lines directly tied to a camera's bridge or
+sensor chip
 
-Detailed results are available here:
+2. Simple status LEDs tied directly to a camera's bridge or sensor chip
+(maybe with a simple hardware assisted blink)
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+3. Generically connected LEDs (some platform GPIO chip or
+microcontroller somewhere) with blinking or PWM intensity under CPU or
+microcontroller control.
 
-Full logs are available here:
+Number 1 & 2 above certainly apply to consumer desktop devices.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Number 3 is likely common on embedded devices.
 
-The V4L-DVB specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+
+Incandescent and Halogen lamps that effect an image coming into a camera
+are *not* LEDs that blink or flash automatically based on driver or
+system trigger events.  They are components of a video capture system
+with which a human attempts to adjust the appearance of an image of a
+subject by changing the subject's environment.  These illuminators are
+not some generically connected device, but controlled by GPIO's on the
+camera's bridge or sensor chip itself.  Such an illuminator will
+essentially be used only in conjunction with the camera.
+
+Status LEDs integrated into webcam devices that are not generically
+connected devices but controlled with GPIOs on the camera's bridge or
+sensor chip will also essentially be used only in conjunction with the
+camera.
+
+Turning these sorts camera specific illuminators and LEDs on an off
+should be as simple to implement for an application developer as it is
+to grasp the concept of turning a light bulb on and off.
+
+
+The LED interface seems more appropriate to use when the LEDs are
+connected more generically and will likely be used more generically,
+such as in an embedded system.
+
+
+
+> And yes, application developers must use the correct API to control
+> stuff.
+
+>  Why should kernel duplicate interfaces just because
+> user land don't want to use two different interfaces? Doesn't this sound a bit ... strange at least?
+
+Why should the kernel push multiple APIs on application developers to
+control a complex federation of small devices all connected behind a
+single bridge chip, which the user perceives as a single device?  (BTW a
+USB microscope is such a federation which doesn't work at all without
+proper subject illumination.)
+
+V4L2 controls are how desktop V4L2 applications currently control
+aspects of a incoming image.  Forcing the use of the LED interface in
+sysfs to control one aspect of that would be a departure from the norm
+for the existing V4L2 desktop applications.
+
+Forcing the use of the LED interface also brings along the complication
+of proper association of the illuminator or LED sysfs control node to
+the proper video capture/control device node.  I have a laptop with a
+built in webcam with a status LED and a USB connected microscope with
+two illuminators.  What are the steps for an application to discover the
+correct light for the video device and what settings that light is
+capable of: using V4L2 controls? using the LED interface?
+
+With the V4L2 controls, association to the correct video devices is no
+effort, and current v4l2 control handling code in applications like
+v4l2-ctl and qv4l2 can discover the controls and their metadata and
+present the control in a UI with no changes to the application.
+
+How does one go about associating LEDs and Illuminators to video device
+nodes using the LED sysfs interface?  I'm betting it's not as simple for
+applications that use V4L2 controls.
+
+What you suggest is a separate API, and all the burdens it brings, just
+to accomplish a simple task of turning a few switches on and off.
+
+That to me is analogous to insisting to use a few bolts made to SI
+units, on a vehicle otherwise made with fasteners made to English units.
+
+
+I do not see how forcing applications to use a second control API, with
+no clear video device node<->led sysfs node association semantics,
+reduces application complexity, when those applications already support
+the V4L2 control API from which application can generically discover
+controls and their metadata and automatically know the associated video
+device.
+
+
+Regards,
+Andy
+
+> > 
+> > Eino-Ville Talvala
+> > Computer Graphics Lab
+> > Stanford University
+> > 
+> > On 9/7/2010 1:33 PM, Andy Walls wrote:
+> > > It has already been discussed.  Please check the list archives for the past few days.
+> 
+> 
+> OK, will search the logs. But you should probably add some sort of reasoning in your patch
+> description, explaining why you are duplicating interfaces.
+> 
+> > >
+> > > Do you know of any V4L2 application developer or development team that prefers to use a separate API just to turn lights on and off, when all other aspects of the incoming video are controlled with the V4L2 control API?
+> > >
+> > > (That question is mostly rhetorical, but I'd still actually be interested from video app developers.)
+> > >
+> > > Regards,
+> > > Andy
+> > >
+> > > Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+> > >
+> > >> Hello,
+> > >>
+> > >> On Mon, Sep 06, 2010 at 08:11:05PM +0200, ext Jean-Francois Moine wrote:
+> > >>> Hi,
+> > >>>
+> > >>> This new proposal cancels the previous 'LED control' patch.
+> > >>>
+> > >>> Cheers.
+> > >>>
+> > >>> -- 
+> > >>> Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+> > >>> Jef		|		http://moinejf.free.fr/
+> > >> Apologies if this has been already discussed but,
+> > >> doesn't this patch duplicates the same feature present
+> > >> nowadays under include/linux/leds.h ??
+> > >>
+> > >> I mean, if you want to control leds, I think we already have that API, no?
+> > >>
+> > >> BR,
+> > >>
+> > >> ---
+> > >> Eduardo Valentin
+> > >> --
+> > >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > >> the body of a message to majordomo@vger.kernel.org
+> > >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > N�����r��y���b�X��ǧv�^�)޺{.n�+����{���bj)���w*jg��������ݢj/���z�ޖ��2�ޙ���&�)ߡ�a�����G���h��j:+v���w�٥
+> > 
+> 
+
+
