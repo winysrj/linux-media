@@ -1,93 +1,165 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:60405 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932313Ab0IXOOl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Sep 2010 10:14:41 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean Delvare <khali@linux-fr.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pete Eberlein <pete@sensoray.com>,
-	Mike Isely <isely@pobox.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Muralidharan Karicheri <mkaricheri@gmail.com>
-Subject: [PATCH 08/16] sh_vou: Don't use module names to load I2C modules
-Date: Fri, 24 Sep 2010 16:14:06 +0200
-Message-Id: <1285337654-5044-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:57028 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756622Ab0IHHlx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 03:41:53 -0400
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH 2/6] Input: sparse-keymap - switch to using new keycode
+	interface
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
+Date: Wed, 08 Sep 2010 00:41:49 -0700
+Message-ID: <20100908074149.32365.21481.stgit@hammer.corenet.prv>
+In-Reply-To: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-With the v4l2_i2c_new_subdev* functions now supporting loading modules
-based on modaliases, remove the module names hardcoded in platform data
-and pass a NULL module name to those functions.
+Switch sparse keymap library to use new style of getkeycode and
+setkeycode methods to allow retrieving and setting keycodes not
+only by their scancodes but also by index.
 
-All corresponding I2C modules have been checked, and all of them include
-a module aliases table with names corresponding to what the sh_vou
-platform data uses.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
 ---
- arch/sh/boards/mach-ecovec24/setup.c |    1 -
- arch/sh/boards/mach-se/7724/setup.c  |    1 -
- drivers/media/video/sh_vou.c         |    2 +-
- include/media/sh_vou.h               |    1 -
- 4 files changed, 1 insertions(+), 4 deletions(-)
 
-diff --git a/arch/sh/boards/mach-ecovec24/setup.c b/arch/sh/boards/mach-ecovec24/setup.c
-index 1d7b495..4a9fa5d 100644
---- a/arch/sh/boards/mach-ecovec24/setup.c
-+++ b/arch/sh/boards/mach-ecovec24/setup.c
-@@ -793,7 +793,6 @@ static struct sh_vou_pdata sh_vou_pdata = {
- 	.flags		= SH_VOU_HSYNC_LOW | SH_VOU_VSYNC_LOW,
- 	.board_info	= &ak8813,
- 	.i2c_adap	= 0,
--	.module_name	= "ak881x",
- };
+ drivers/input/sparse-keymap.c |   81 +++++++++++++++++++++++++++++++++--------
+ 1 files changed, 65 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/input/sparse-keymap.c b/drivers/input/sparse-keymap.c
+index 0142483..a29a7812 100644
+--- a/drivers/input/sparse-keymap.c
++++ b/drivers/input/sparse-keymap.c
+@@ -22,6 +22,37 @@ MODULE_DESCRIPTION("Generic support for sparse keymaps");
+ MODULE_LICENSE("GPL v2");
+ MODULE_VERSION("0.1");
  
- static struct resource sh_vou_resources[] = {
-diff --git a/arch/sh/boards/mach-se/7724/setup.c b/arch/sh/boards/mach-se/7724/setup.c
-index 552ebd9..8cc1d72 100644
---- a/arch/sh/boards/mach-se/7724/setup.c
-+++ b/arch/sh/boards/mach-se/7724/setup.c
-@@ -550,7 +550,6 @@ static struct sh_vou_pdata sh_vou_pdata = {
- 	.flags		= SH_VOU_HSYNC_LOW | SH_VOU_VSYNC_LOW,
- 	.board_info	= &ak8813,
- 	.i2c_adap	= 0,
--	.module_name	= "ak881x",
- };
++static unsigned int sparse_keymap_get_key_index(struct input_dev *dev,
++						const struct key_entry *k)
++{
++	struct key_entry *key;
++	unsigned int idx = 0;
++
++	for (key = dev->keycode; key->type != KE_END; key++) {
++		if (key->type == KE_KEY) {
++			if (key == k)
++				break;
++			idx++;
++		}
++	}
++
++	return idx;
++}
++
++static struct key_entry *sparse_keymap_entry_by_index(struct input_dev *dev,
++						      unsigned int index)
++{
++	struct key_entry *key;
++	unsigned int key_cnt = 0;
++
++	for (key = dev->keycode; key->type != KE_END; key++)
++		if (key->type == KE_KEY)
++			if (key_cnt++ == index)
++				return key;
++
++	return NULL;
++}
++
+ /**
+  * sparse_keymap_entry_from_scancode - perform sparse keymap lookup
+  * @dev: Input device using sparse keymap
+@@ -64,16 +95,36 @@ struct key_entry *sparse_keymap_entry_from_keycode(struct input_dev *dev,
+ }
+ EXPORT_SYMBOL(sparse_keymap_entry_from_keycode);
  
- static struct resource sh_vou_resources[] = {
-diff --git a/drivers/media/video/sh_vou.c b/drivers/media/video/sh_vou.c
-index d394187..6e35eaa 100644
---- a/drivers/media/video/sh_vou.c
-+++ b/drivers/media/video/sh_vou.c
-@@ -1405,7 +1405,7 @@ static int __devinit sh_vou_probe(struct platform_device *pdev)
- 		goto ereset;
++static struct key_entry *sparse_keymap_locate(struct input_dev *dev,
++					const struct input_keymap_entry *ke)
++{
++	struct key_entry *key;
++	unsigned int scancode;
++
++	if (ke->flags & INPUT_KEYMAP_BY_INDEX)
++		key = sparse_keymap_entry_by_index(dev, ke->index);
++	else if (input_scancode_to_scalar(ke, &scancode) == 0)
++		key = sparse_keymap_entry_from_scancode(dev, scancode);
++	else
++		key = NULL;
++
++	return key;
++}
++
+ static int sparse_keymap_getkeycode(struct input_dev *dev,
+-				    unsigned int scancode,
+-				    unsigned int *keycode)
++				    struct input_keymap_entry *ke)
+ {
+ 	const struct key_entry *key;
  
- 	subdev = v4l2_i2c_new_subdev_board(&vou_dev->v4l2_dev, i2c_adap,
--			vou_pdata->module_name, vou_pdata->board_info, NULL);
-+			NULL, vou_pdata->board_info, NULL);
- 	if (!subdev) {
- 		ret = -ENOMEM;
- 		goto ei2cnd;
-diff --git a/include/media/sh_vou.h b/include/media/sh_vou.h
-index a3ef302..ec3ba9a 100644
---- a/include/media/sh_vou.h
-+++ b/include/media/sh_vou.h
-@@ -28,7 +28,6 @@ struct sh_vou_pdata {
- 	int i2c_adap;
- 	struct i2c_board_info *board_info;
- 	unsigned long flags;
--	char *module_name;
- };
+ 	if (dev->keycode) {
+-		key = sparse_keymap_entry_from_scancode(dev, scancode);
++		key = sparse_keymap_locate(dev, ke);
+ 		if (key && key->type == KE_KEY) {
+-			*keycode = key->keycode;
++			ke->keycode = key->keycode;
++			if (!(ke->flags & INPUT_KEYMAP_BY_INDEX))
++				ke->index =
++					sparse_keymap_get_key_index(dev, key);
++			ke->len = sizeof(key->code);
++			memcpy(ke->scancode, &key->code, sizeof(key->code));
+ 			return 0;
+ 		}
+ 	}
+@@ -82,20 +133,19 @@ static int sparse_keymap_getkeycode(struct input_dev *dev,
+ }
  
- #endif
--- 
-1.7.2.2
+ static int sparse_keymap_setkeycode(struct input_dev *dev,
+-				    unsigned int scancode,
+-				    unsigned int keycode)
++				    const struct input_keymap_entry *ke,
++				    unsigned int *old_keycode)
+ {
+ 	struct key_entry *key;
+-	int old_keycode;
+ 
+ 	if (dev->keycode) {
+-		key = sparse_keymap_entry_from_scancode(dev, scancode);
++		key = sparse_keymap_locate(dev, ke);
+ 		if (key && key->type == KE_KEY) {
+-			old_keycode = key->keycode;
+-			key->keycode = keycode;
+-			set_bit(keycode, dev->keybit);
+-			if (!sparse_keymap_entry_from_keycode(dev, old_keycode))
+-				clear_bit(old_keycode, dev->keybit);
++			*old_keycode = key->keycode;
++			key->keycode = ke->keycode;
++			set_bit(ke->keycode, dev->keybit);
++			if (!sparse_keymap_entry_from_keycode(dev, *old_keycode))
++				clear_bit(*old_keycode, dev->keybit);
+ 			return 0;
+ 		}
+ 	}
+@@ -159,15 +209,14 @@ int sparse_keymap_setup(struct input_dev *dev,
+ 
+ 	dev->keycode = map;
+ 	dev->keycodemax = map_size;
+-	dev->getkeycode = sparse_keymap_getkeycode;
+-	dev->setkeycode = sparse_keymap_setkeycode;
++	dev->getkeycode_new = sparse_keymap_getkeycode;
++	dev->setkeycode_new = sparse_keymap_setkeycode;
+ 
+ 	return 0;
+ 
+  err_out:
+ 	kfree(map);
+ 	return error;
+-
+ }
+ EXPORT_SYMBOL(sparse_keymap_setup);
+ 
 
