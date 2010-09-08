@@ -1,58 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:40092 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932076Ab0I3TDJ convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:16107 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755415Ab0IHPKw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Sep 2010 15:03:09 -0400
-Received: by bwz11 with SMTP id 11so1658026bwz.19
-        for <linux-media@vger.kernel.org>; Thu, 30 Sep 2010 12:03:08 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20100928154700.59362453@pedra>
-References: <cover.1285699057.git.mchehab@redhat.com>
-	<20100928154700.59362453@pedra>
-Date: Thu, 30 Sep 2010 15:03:07 -0400
-Message-ID: <AANLkTi=8xbFTz5edMjJRXGD7UD6j4jzyOJibgZomKCCB@mail.gmail.com>
-Subject: Re: [PATCH 09/10] V4L/DVB: tda18271: Add debug message with frequency divisor
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
-	dheitmueller@kernellabs.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Wed, 8 Sep 2010 11:10:52 -0400
+Date: Wed, 08 Sep 2010 11:10:40 -0400
+Subject: Re: [PATCH 1/5] rc-code: merge and rename ir-core
+Message-ID: <dciu6r836199wbxqd3ppo8xr.1283957431820@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Tue, Sep 28, 2010 at 2:47 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->
-> diff --git a/drivers/media/common/tuners/tda18271-common.c b/drivers/media/common/tuners/tda18271-common.c
-> index 195b30e..7ba3ba3 100644
-> --- a/drivers/media/common/tuners/tda18271-common.c
-> +++ b/drivers/media/common/tuners/tda18271-common.c
-> @@ -549,6 +549,13 @@ int tda18271_calc_main_pll(struct dvb_frontend *fe, u32 freq)
->        regs[R_MD1]   = 0x7f & (div >> 16);
->        regs[R_MD2]   = 0xff & (div >> 8);
->        regs[R_MD3]   = 0xff & div;
-> +
-> +       if (tda18271_debug & DBG_REG) {
-> +               tda_reg("MAIN_DIV_BYTE_1    = 0x%02x\n", 0xff & regs[R_MD1]);
-> +               tda_reg("MAIN_DIV_BYTE_2    = 0x%02x\n", 0xff & regs[R_MD2]);
-> +               tda_reg("MAIN_DIV_BYTE_3    = 0x%02x\n", 0xff & regs[R_MD3]);
-> +       }
-> +
->  fail:
->        return ret;
->  }
+VGFnIGZpbGVzIGFuZCBhIGRlY2VudCBlZGl0b3IgYXJlIGFsbCBvbmUgbmVlZHMgZm9yIGZ1bGwg
+Y29kZSBuYXZpZ2F0aW9uLiAgVGhlIGtlcm5lbCBtYWtlZmlsZSBhbHJlYWR5IGhhcyBhIHRhZ3Mg
+dGFyZ2V0IHRvIG1ha2UgdGhlIHRhZ3MgZmlsZS4gIAoKU21hbGxlciBmaWxlcyBtYWtlIGZvciBi
+ZXR0ZXIgbG9naWNhbCBpc29sYXRpb24gb2YgZnVuY3Rpb25zLCBsaW1pdGluZyB2aXNpYmlsdHkv
+c2NvcGUsIGFuZCBmYXN0ZXIgY29tcGlsYXRpb24gb2YgYSBmaWxlIChidXQgbWF5YmUgYXQgdGhl
+IGV4cGVuc2Ugb2YgbGluayB0aW1lKS4gIFRoYXQgc29ydCBvZiBpc29sYXRpb24gb2YgZnVuY3Rp
+b25hbGl0eSBpbnRvIHNtYWxsZXIgZmlsZXMgYWxzbyBtYWtlcyB0aGUgY29kZSBtb3JlIGRpZ2Vz
+dGFibGUgZm9yIHNvbWVvbmUgbmV3IGxvb2tpbmcgYXQgaXQsIElNTy4gCgpMYXJnZSBmaWxlcyBh
+cmUgZ29vZCBmb3IgYSBwaWxlIG9mIHN0dWZmIG5vIG9uZSBldmVyIG5lZWRzIHRvIGxvb2sgYXQg
+YWdhaW46IHdlbGwgdGVzdGVkIGNvZGUgdGhhdCBoYXMgYW4gZXhwZWN0ZWQgbG93IHJhdGUgb2Yg
+Y2hhbmdlIGluIHRoZSBmdXR1cmUuCgpSZWdhcmRzLApBbmR5CgoKSmFyb2QgV2lsc29uIDxqYXJv
+ZEByZWRoYXQuY29tPiB3cm90ZToKCj5PbiBXZWQsIFNlcCAwOCwgMjAxMCBhdCAxMDo0MjoxMEFN
+IC0wMzAwLCBNYXVybyBDYXJ2YWxobyBDaGVoYWIgd3JvdGU6Cj4+IEVtIDA3LTA5LTIwMTAgMTg6
+NTEsIERhdmlkIEjDpHJkZW1hbiBlc2NyZXZldToKPj4gPiBUaGlzIHBhdGNoIG1lcmdlcyB0aGUg
+ZmlsZXMgd2hpY2ggbWFrZXMgdXAgaXItY29yZSBhbmQgcmVuYW1lcyB0aGUKPj4gPiByZXN1bHRp
+bmcgbW9kdWxlIHRvIHJjLWNvcmUuIElNSE8gdGhpcyBtYWtlcyBpdCBtdWNoIGVhc2llciB0byBo
+YWNrCj4+ID4gb24gdGhlIGNvcmUgbW9kdWxlIHNpbmNlIGFsbCBjb2RlIGlzIGluIG9uZSBmaWxl
+Lgo+PiA+IAo+PiA+IFRoaXMgYWxzbyBhbGxvd3Mgc29tZSBzaW1wbGlmaWNhdGlvbiBvZiBpci1j
+b3JlLXByaXYuaCBhcyBmZXdlciBpbnRlcm5hbAo+PiA+IGZ1bmN0aW9ucyBuZWVkIHRvIGJlIGV4
+cG9zZWQuCj4+IAo+PiBJJ20gbm90IHN1cmUgYWJvdXQgdGhpcyBwYXRjaC4gQmlnIGZpbGVzIHRl
+bmQgdG8gYmUgaGFyZGVyIHRvIG1haW50YWluLAo+PiBhcyBpdCB0YWtlcyBtb3JlIHRpbWUgdG8g
+ZmluZCB0aGUgcmlnaHQgZnVuY3Rpb25zIGluc2lkZSBpdC4gQWxzbywgSU1PLCAKPj4gaXQgbWFr
+ZXMgc2Vuc2UgdG8ga2VlcCB0aGUgcmF3LWV2ZW50IGNvZGUgb24gYSBzZXBhcmF0ZSBmaWxlLgo+
+Cj5UaGVyZSdzIGRlZmluaXRlbHkgYSBiYWxhbmNlIHRvIGJlIHN0cnVjayBiZXR3ZWVuIGZpbGUg
+c2l6ZSBhbmQgZmlsZQo+Y291bnQuIEhhdmluZyBhbGwgdGhlIHJlbGV2YW50IGNvZGUgaW4gb25l
+IGZpbGUgZGVmaW5pdGVseSBoYXMgaXRzCj5hZHZhbnRhZ2UgaW4gdGhhdCBpdHMgZWFzaWVyIHRv
+IGp1bXAgYXJvdW5kIGZyb20gZnVuY3Rpb24gdG8gZnVuY3Rpb24gYW5kCj50cmFjZSBjb2RlIHBh
+dGhzIHRha2VuLCBidXQgSSBjYW4gc2VlIHRoZSBhcmd1bWVudCBmb3IgaXNvbGF0aW5nIHRoZSBy
+YXcKPmV2ZW50IGhhbmRsaW5nIGNvZGUgYSBiaXQgdG9vLCBlc3BlY2lhbGx5IGlmIGl0cyBnb2lu
+ZyB0byBiZSBmdXJ0aGVyCj5leHBhbmRlZCwgd2hpY2ggSSBiZWxpZXZlIGlzIGxpa2VseSB0aGUg
+Y2FzZS4gU28gSSBndWVzcyBJJ20gb24gdGhlCj5mZW5jZSBoZXJlLiA6KQo+Cj4+IEFueXdheSwg
+aWYgd2UgYXBwbHkgdGhpcyBwYXRjaCByaWdodCBub3csIGl0IHdpbGwgY2F1c2UgbWVyZ2UgY29u
+ZmxpY3RzIHdpdGgKPj4gdGhlIGlucHV0IHRyZWUsIGR1ZSB0byB0aGUgZ2V0L3NldGtleWNvZGVi
+aWcgcGF0Y2hlcywgYW5kIHdpdGggc29tZSBvdGhlcgo+PiBwYXRjaGVzIHRoYXQgYXJlIHBlbmRp
+bmcgbWVyZ2UvcmV2aWV3LiBUaGUgYmV0dGVyIGlzIHRvIGFwcGx5IHN1Y2ggcGF0Y2gKPj4ganVz
+dCBhZnRlciB0aGUgcmVsZWFzZSBvZiAyLjYuMzctcmMxLCBhZnRlciBoYXZpbmcgYWxsIHRob3Nl
+IGNvbmZsaWN0cwo+PiBzb2x2ZWQuCj4KPlRoZSBpbW9uIHBhdGNoIHRoYXQgbW92ZXMgbW91c2Uv
+cGFuZWwva25vYiBpbnB1dCB0byBpdHMgb3duIGlucHV0IGRldmljZQo+c2hvdWxkIGJlIHBvc3Np
+YmxlIHRvIHRha2UgaW4gYWR2YW5jZSBvZiBldmVyeXRoaW5nIGVsc2UsIG1vcmUgb3IgbGVzcywK
+PnRob3VnaCBJIG5lZWQgdG8gZmluaXNoIGFjdHVhbGx5IHRlc3RpbmcgaXQgb3V0IChhbmQgc2hv
+dWxkIHByb2JhYmx5IG1ha2UKPnNvbWUgZnVydGhlciBpbW9uIGZpeGVzIGZvciBpc3N1ZXMgbGlz
+dGVkIGluIGEga2VybmVsLm9yZyBidWd6aWxsYSwgdGhlCj5udW1iZXIgb2Ygd2hpY2ggZXNjYXBl
+cyBtZSBhdCB0aGUgbW9tZW50KS4KPgo+LS0gCj5KYXJvZCBXaWxzb24KPmphcm9kQHJlZGhhdC5j
+b20KPgo+LS0KPlRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1
+bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpv
+cmRvbW9Admdlci5rZXJuZWwub3JnCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdl
+ci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwK
 
-
-I would actually prefer NOT to merge this - it is redundant.  When
-DBG_REG is enabled, the driver will dump the contents of all
-registers, including MD1, MD2 and MD3.  With this patch applied, it
-would dump this data twice.  I do not believe this is useful at all.
-
-Regards,
-
-Mike Krufky
