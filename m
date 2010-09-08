@@ -1,48 +1,164 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1896 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752104Ab0ISVSV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 17:18:21 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: RFC: BKL, locking and ioctls
-Date: Sun, 19 Sep 2010 23:17:57 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-References: <201009191229.35800.hverkuil@xs4all.nl> <4C967082.3040405@redhat.com> <1284930151.2079.156.camel@morgan.silverblock.net>
-In-Reply-To: <1284930151.2079.156.camel@morgan.silverblock.net>
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:58167 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758025Ab0IHHmL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 03:42:11 -0400
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH 5/6] Input: ati-remote2 - switch to using new keycode interface
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
+Date: Wed, 08 Sep 2010 00:42:05 -0700
+Message-ID: <20100908074205.32365.68835.stgit@hammer.corenet.prv>
+In-Reply-To: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009192317.57761.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sunday, September 19, 2010 23:02:31 Andy Walls wrote:
-> Hans,
-> 
-> On an somewhat related note, but off-topic: what is the proper way to
-> implement VIDIOC_QUERYCAP for a driver that implements read()
-> on /dev/video0 (MPEG) and mmap() streaming on /dev/video32 (YUV)?
-> 
-> I'm assuming the right way is for VIDIOC_QUERYCAP to return different
-> caps based on which device node was queried.
+Switch the code to use new style of getkeycode and setkeycode
+methods to allow retrieving and setting keycodes not only by
+their scancodes but also by index.
 
-The spec is not really clear about this. It would be the right thing to do
-IMHO, but the spec would need a change.
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
 
-The caps that are allowed to change between device nodes would have to be
-clearly documented. Basically only the last three in the list, and the phrase
-'The device supports the...' should be replaced with 'The device node supports
-the...'.
+ drivers/input/misc/ati_remote2.c |   93 +++++++++++++++++++++++++++-----------
+ 1 files changed, 65 insertions(+), 28 deletions(-)
 
-It would need some analysis and an RFC as well.
+diff --git a/drivers/input/misc/ati_remote2.c b/drivers/input/misc/ati_remote2.c
+index 2325765..b2e0d82 100644
+--- a/drivers/input/misc/ati_remote2.c
++++ b/drivers/input/misc/ati_remote2.c
+@@ -483,51 +483,88 @@ static void ati_remote2_complete_key(struct urb *urb)
+ }
+ 
+ static int ati_remote2_getkeycode(struct input_dev *idev,
+-				  unsigned int scancode, unsigned int *keycode)
++				  struct input_keymap_entry *ke)
+ {
+ 	struct ati_remote2 *ar2 = input_get_drvdata(idev);
+ 	unsigned int mode;
+-	int index;
++	int offset;
++	unsigned int index;
++	unsigned int scancode;
++
++	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
++		index = ke->index;
++		if (index >= (ATI_REMOTE2_MODES - 1) *
++				ARRAY_SIZE(ati_remote2_key_table))
++			return -EINVAL;
++
++		mode = ke->index / ARRAY_SIZE(ati_remote2_key_table);
++		offset = ke->index % ARRAY_SIZE(ati_remote2_key_table);
++		scancode = (mode << 8) + ati_remote2_key_table[offset].hw_code;
++	} else {
++		if (input_scancode_to_scalar(ke, &scancode))
++			return -EINVAL;
++
++		mode = scancode >> 8;
++		if (mode > ATI_REMOTE2_PC)
++			return -EINVAL;
++
++		offset = ati_remote2_lookup(scancode & 0xff);
++		if (offset < 0)
++			return -EINVAL;
++
++		index = mode * ARRAY_SIZE(ati_remote2_key_table) + offset;
++	}
+ 
+-	mode = scancode >> 8;
+-	if (mode > ATI_REMOTE2_PC || !((1 << mode) & ar2->mode_mask))
+-		return -EINVAL;
++	ke->keycode = ar2->keycode[mode][offset];
++	ke->len = sizeof(scancode);
++	memcpy(&ke->scancode, &scancode, sizeof(scancode));
++	ke->index = index;
+ 
+-	index = ati_remote2_lookup(scancode & 0xFF);
+-	if (index < 0)
+-		return -EINVAL;
+-
+-	*keycode = ar2->keycode[mode][index];
+ 	return 0;
+ }
+ 
+ static int ati_remote2_setkeycode(struct input_dev *idev,
+-				  unsigned int scancode, unsigned int keycode)
++				  const struct input_keymap_entry *ke,
++				  unsigned int *old_keycode)
+ {
+ 	struct ati_remote2 *ar2 = input_get_drvdata(idev);
+-	unsigned int mode, old_keycode;
+-	int index;
+-
+-	mode = scancode >> 8;
+-	if (mode > ATI_REMOTE2_PC || !((1 << mode) & ar2->mode_mask))
+-		return -EINVAL;
+-
+-	index = ati_remote2_lookup(scancode & 0xFF);
+-	if (index < 0)
+-		return -EINVAL;
++	unsigned int mode;
++	int offset;
++	unsigned int index;
++	unsigned int scancode;
++
++	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
++		if (ke->index >= (ATI_REMOTE2_MODES - 1) *
++				ARRAY_SIZE(ati_remote2_key_table))
++			return -EINVAL;
++
++		mode = ke->index / ARRAY_SIZE(ati_remote2_key_table);
++		offset = ke->index % ARRAY_SIZE(ati_remote2_key_table);
++	} else {
++		if (input_scancode_to_scalar(ke, &scancode))
++			return -EINVAL;
++
++		mode = scancode >> 8;
++		if (mode > ATI_REMOTE2_PC)
++			return -EINVAL;
++
++		offset = ati_remote2_lookup(scancode & 0xff);
++		if (offset < 0)
++			return -EINVAL;
++	}
+ 
+-	old_keycode = ar2->keycode[mode][index];
+-	ar2->keycode[mode][index] = keycode;
+-	__set_bit(keycode, idev->keybit);
++	*old_keycode = ar2->keycode[mode][offset];
++	ar2->keycode[mode][offset] = ke->keycode;
++	__set_bit(ke->keycode, idev->keybit);
+ 
+ 	for (mode = 0; mode < ATI_REMOTE2_MODES; mode++) {
+ 		for (index = 0; index < ARRAY_SIZE(ati_remote2_key_table); index++) {
+-			if (ar2->keycode[mode][index] == old_keycode)
++			if (ar2->keycode[mode][index] == *old_keycode)
+ 				return 0;
+ 		}
+ 	}
+ 
+-	__clear_bit(old_keycode, idev->keybit);
++	__clear_bit(*old_keycode, idev->keybit);
+ 
+ 	return 0;
+ }
+@@ -575,8 +612,8 @@ static int ati_remote2_input_init(struct ati_remote2 *ar2)
+ 	idev->open = ati_remote2_open;
+ 	idev->close = ati_remote2_close;
+ 
+-	idev->getkeycode = ati_remote2_getkeycode;
+-	idev->setkeycode = ati_remote2_setkeycode;
++	idev->getkeycode_new = ati_remote2_getkeycode;
++	idev->setkeycode_new = ati_remote2_setkeycode;
+ 
+ 	idev->name = ar2->name;
+ 	idev->phys = ar2->phys;
 
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
