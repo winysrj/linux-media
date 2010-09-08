@@ -1,583 +1,197 @@
-Return-path: <mchehab@localhost>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:58021 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754264Ab0IEVsv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Sep 2010 17:48:51 -0400
-Received: by fxm13 with SMTP id 13so2212827fxm.19
-        for <linux-media@vger.kernel.org>; Sun, 05 Sep 2010 14:48:50 -0700 (PDT)
-Subject: Re: [PATCH 7/8] IR: extend ir_raw_event and do refactoring
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-media@vger.kernel.org, mchehab@infradead.org
-In-Reply-To: <20100905212333.GB26715@hardeman.nu>
-References: <1283642583-13102-1-git-send-email-maximlevitsky@gmail.com>
-	 <1283642583-13102-8-git-send-email-maximlevitsky@gmail.com>
-	 <20100905212333.GB26715@hardeman.nu>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 06 Sep 2010 00:48:46 +0300
-Message-ID: <1283723326.7534.5.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+Return-path: <mchehab@pedra>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:47164 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758025Ab0IHHl7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 03:41:59 -0400
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH 3/6] Input: hid-input - switch to using new keycode interface
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
+Date: Wed, 08 Sep 2010 00:41:55 -0700
+Message-ID: <20100908074155.32365.15268.stgit@hammer.corenet.prv>
+In-Reply-To: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sun, 2010-09-05 at 23:23 +0200, David Härdeman wrote: 
-> Comments inline...
-> 
-> On Sun, Sep 05, 2010 at 02:23:02AM +0300, Maxim Levitsky wrote:
-> > Add new event types for timeout & carrier report
-> > Move timeout handling from ir_raw_event_store_with_filter to
-> > ir-lirc-codec, where it is really needed.
-> > Now lirc bridge ensures proper gap handling.
-> > Extend lirc bridge for carrier & timeout reports
-> > 
-> > Note: all new ir_raw_event variables now should be initialized
-> > like that: DEFINE_RC_RAW_EVENT(ev);
-> > 
-> > To clean an existing event, use init_ir_raw_event(&ev);
-> > 
-> > Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-> > ---
-> >  drivers/media/IR/ene_ir.c          |    2 +-
-> >  drivers/media/IR/ir-core-priv.h    |   11 +++++-
-> >  drivers/media/IR/ir-jvc-decoder.c  |    5 +-
-> >  drivers/media/IR/ir-lirc-codec.c   |   78 +++++++++++++++++++++++++++++++-----
-> >  drivers/media/IR/ir-nec-decoder.c  |    5 +-
-> >  drivers/media/IR/ir-raw-event.c    |   43 +++++++-------------
-> >  drivers/media/IR/ir-rc5-decoder.c  |    5 +-
-> >  drivers/media/IR/ir-rc6-decoder.c  |    5 +-
-> >  drivers/media/IR/ir-sony-decoder.c |    5 +-
-> >  drivers/media/IR/mceusb.c          |    3 +-
-> >  drivers/media/IR/streamzap.c       |    8 ++-
-> >  include/media/ir-core.h            |   35 ++++++++++++++--
-> >  12 files changed, 146 insertions(+), 59 deletions(-)
-> > 
-> > diff --git a/drivers/media/IR/ene_ir.c b/drivers/media/IR/ene_ir.c
-> > index 7880d9c..5ebafb5 100644
-> > --- a/drivers/media/IR/ene_ir.c
-> > +++ b/drivers/media/IR/ene_ir.c
-> > @@ -701,7 +701,7 @@ static irqreturn_t ene_isr(int irq, void *data)
-> >  	unsigned long flags;
-> >  	irqreturn_t retval = IRQ_NONE;
-> >  	struct ene_device *dev = (struct ene_device *)data;
-> > -	struct ir_raw_event ev;
-> > +	DEFINE_RC_RAW_EVENT(ev);
-> >  
-> >  	spin_lock_irqsave(&dev->hw_lock, flags);
-> >  
-> > diff --git a/drivers/media/IR/ir-core-priv.h b/drivers/media/IR/ir-core-priv.h
-> > index 5d7e08f..a287373 100644
-> > --- a/drivers/media/IR/ir-core-priv.h
-> > +++ b/drivers/media/IR/ir-core-priv.h
-> > @@ -82,6 +82,10 @@ struct ir_raw_event_ctrl {
-> >  		struct ir_input_dev *ir_dev;
-> >  		struct lirc_driver *drv;
-> >  		int carrier_low;
-> > +		ktime_t timeout_start;
-> > +		bool timeout;
-> > +		bool send_timeout_reports;
-> > +
-> >  	} lirc;
-> >  };
-> >  
-> > @@ -109,9 +113,14 @@ static inline void decrease_duration(struct ir_raw_event *ev, unsigned duration)
-> >  		ev->duration -= duration;
-> >  }
-> >  
-> > +/* Returns true if event is normal pulse/space event */
-> > +static inline bool is_timing_event(struct ir_raw_event ev)
-> > +{
-> > +	return !ev.carrier_report && !ev.reset;
-> > +}
-> > +
-> >  #define TO_US(duration)			DIV_ROUND_CLOSEST((duration), 1000)
-> >  #define TO_STR(is_pulse)		((is_pulse) ? "pulse" : "space")
-> > -#define IS_RESET(ev)			(ev.duration == 0)
-> >  /*
-> >   * Routines from ir-sysfs.c - Meant to be called only internally inside
-> >   * ir-core
-> > diff --git a/drivers/media/IR/ir-jvc-decoder.c b/drivers/media/IR/ir-jvc-decoder.c
-> > index 77a89c4..63dca6e 100644
-> > --- a/drivers/media/IR/ir-jvc-decoder.c
-> > +++ b/drivers/media/IR/ir-jvc-decoder.c
-> > @@ -50,8 +50,9 @@ static int ir_jvc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
-> >  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_JVC))
-> >  		return 0;
-> >  
-> > -	if (IS_RESET(ev)) {
-> > -		data->state = STATE_INACTIVE;
-> > +	if (!is_timing_event(ev)) {
-> > +		if (ev.reset)
-> > +			data->state = STATE_INACTIVE;
-> >  		return 0;
-> >  	}
-> >  
-> > diff --git a/drivers/media/IR/ir-lirc-codec.c b/drivers/media/IR/ir-lirc-codec.c
-> > index e63f757..15112db 100644
-> > --- a/drivers/media/IR/ir-lirc-codec.c
-> > +++ b/drivers/media/IR/ir-lirc-codec.c
-> > @@ -32,6 +32,7 @@
-> >  static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
-> >  {
-> >  	struct ir_input_dev *ir_dev = input_get_drvdata(input_dev);
-> > +	struct lirc_codec *lirc = &ir_dev->raw->lirc;
-> >  	int sample;
-> >  
-> >  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_LIRC))
-> > @@ -40,21 +41,57 @@ static int ir_lirc_decode(struct input_dev *input_dev, struct ir_raw_event ev)
-> >  	if (!ir_dev->raw->lirc.drv || !ir_dev->raw->lirc.drv->rbuf)
-> >  		return -EINVAL;
-> >  
-> > -	if (IS_RESET(ev))
-> > +	/* Packet start */
-> > +	if (ev.reset)
-> >  		return 0;
-> >  
-> > -	IR_dprintk(2, "LIRC data transfer started (%uus %s)\n",
-> > -		   TO_US(ev.duration), TO_STR(ev.pulse));
-> > +	/* Carrier reports */
-> > +	if (ev.carrier_report) {
-> > +		sample = LIRC_FREQUENCY(ev.carrier);
-> > +
-> > +	/* Packet end */
-> > +	} else if (ev.timeout) {
-> > +
-> > +		if (lirc->timeout)
-> > +			return 0;
-> > +
-> > +		lirc->timeout_start = ktime_get();
-> > +		lirc->timeout = true;
-> > +
-> > +		if (!lirc->send_timeout_reports)
-> > +			return 0;
-> > +
-> > +		sample = LIRC_TIMEOUT(ev.duration / 1000);
-> >  
-> > -	sample = ev.duration / 1000;
-> > -	if (ev.pulse)
-> > -		sample |= PULSE_BIT;
-> > +	/* Normal sample */
-> > +	} else {
-> > +
-> > +		if (lirc->timeout) {
-> > +
-> > +			int gap_sample;
-> > +
-> > +			u64 total_duration = ktime_to_ns(ktime_sub(ktime_get(),
-> > +				lirc->timeout_start))
-> > +					+ ir_dev->raw->prev_ev.duration;
-> > +
-> > +			/* Convert to ms and cap by LIRC_VALUE_MASK */
-> > +			do_div(total_duration, 1000);
-> > +			total_duration = min(total_duration,
-> > +							(u64)LIRC_VALUE_MASK);
-> > +
-> > +			gap_sample = LIRC_SPACE(total_duration);
-> > +			lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
-> > +						(unsigned char *) &gap_sample);
-> > +			lirc->timeout = false;
-> > +		}
-> > +		sample = ev.pulse ? LIRC_PULSE(ev.duration / 1000) :
-> > +					LIRC_SPACE(ev.duration / 1000);
-> > +	}
-> >  
-> >  	lirc_buffer_write(ir_dev->raw->lirc.drv->rbuf,
-> >  			  (unsigned char *) &sample);
-> >  	wake_up(&ir_dev->raw->lirc.drv->rbuf->wait_poll);
-> >  
-> > -
-> >  	return 0;
-> >  }
-> >  
-> > @@ -103,6 +140,7 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
-> >  	int ret = 0;
-> >  	void *drv_data;
-> >  	unsigned long val = 0;
-> > +	u32 tmp;
-> >  
-> >  	lirc = lirc_get_pdata(filep);
-> >  	if (!lirc)
-> > @@ -201,12 +239,26 @@ static long ir_lirc_ioctl(struct file *filep, unsigned int cmd,
-> >  		break;
-> >  
-> >  	case LIRC_SET_REC_TIMEOUT:
-> > -		if (val < ir_dev->props->min_timeout ||
-> > -		    val > ir_dev->props->max_timeout)
-> > -			return -EINVAL;
-> > -		ir_dev->props->timeout = val * 1000;
-> > +		tmp = val * 1000;
-> > +
-> > +		if (tmp < ir_dev->props->min_timeout ||
-> > +			tmp > ir_dev->props->max_timeout)
-> > +				return -EINVAL;
-> > +
-> > +		ir_dev->props->timeout = tmp;
-> > +		break;
-> > +
-> > +	case LIRC_SET_REC_TIMEOUT_REPORTS:
-> > +		lirc->send_timeout_reports = !!val;
-> >  		break;
-> >  
-> > +	case LIRC_SET_MEASURE_CARRIER_MODE:
-> > +
-> > +		if (!ir_dev->props->s_carrier_report)
-> > +			return -ENOSYS;
-> > +		return ir_dev->props->s_carrier_report(
-> > +			ir_dev->props->priv, !!val);
-> > +
-> >  	default:
-> >  		return lirc_dev_fop_ioctl(filep, cmd, arg);
-> >  	}
-> > @@ -277,6 +329,10 @@ static int ir_lirc_register(struct input_dev *input_dev)
-> >  	if (ir_dev->props->s_learning_mode)
-> >  		features |= LIRC_CAN_USE_WIDEBAND_RECEIVER;
-> >  
-> > +	if (ir_dev->props->s_carrier_report)
-> > +		features |= LIRC_CAN_MEASURE_CARRIER;
-> > +
-> > +
-> >  	if (ir_dev->props->max_timeout)
-> >  		features |= LIRC_CAN_SET_REC_TIMEOUT;
-> >  
-> > diff --git a/drivers/media/IR/ir-nec-decoder.c b/drivers/media/IR/ir-nec-decoder.c
-> > index d597421..70993f7 100644
-> > --- a/drivers/media/IR/ir-nec-decoder.c
-> > +++ b/drivers/media/IR/ir-nec-decoder.c
-> > @@ -54,8 +54,9 @@ static int ir_nec_decode(struct input_dev *input_dev, struct ir_raw_event ev)
-> >  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_NEC))
-> >  		return 0;
-> >  
-> > -	if (IS_RESET(ev)) {
-> > -		data->state = STATE_INACTIVE;
-> > +	if (!is_timing_event(ev)) {
-> > +		if (ev.reset)
-> > +			data->state = STATE_INACTIVE;
-> >  		return 0;
-> >  	}
-> >  
-> > diff --git a/drivers/media/IR/ir-raw-event.c b/drivers/media/IR/ir-raw-event.c
-> > index 56797be..b40a575 100644
-> > --- a/drivers/media/IR/ir-raw-event.c
-> > +++ b/drivers/media/IR/ir-raw-event.c
-> > @@ -174,7 +174,7 @@ int ir_raw_event_store_with_filter(struct input_dev *input_dev,
-> >  	if (ir->idle && !ev->pulse)
-> >  		return 0;
-> >  	else if (ir->idle)
-> > -		ir_raw_event_set_idle(input_dev, 0);
-> > +		ir_raw_event_set_idle(input_dev, false);
-> >  
-> >  	if (!raw->this_ev.duration) {
-> >  		raw->this_ev = *ev;
-> > @@ -187,48 +187,35 @@ int ir_raw_event_store_with_filter(struct input_dev *input_dev,
-> >  
-> >  	/* Enter idle mode if nessesary */
-> >  	if (!ev->pulse && ir->props->timeout &&
-> > -		raw->this_ev.duration >= ir->props->timeout)
-> > -		ir_raw_event_set_idle(input_dev, 1);
-> > +		raw->this_ev.duration >= ir->props->timeout) {
-> > +		ir_raw_event_set_idle(input_dev, true);
-> > +	}
-> >  	return 0;
-> >  }
-> >  EXPORT_SYMBOL_GPL(ir_raw_event_store_with_filter);
-> >  
-> > +/**
-> > + * ir_raw_event_set_idle() - hint the ir core if device is receiving
-> > + * IR data or not
-> > + * @input_dev: the struct input_dev device descriptor
-> > + * @idle: the hint value
-> > + */
-> >  void ir_raw_event_set_idle(struct input_dev *input_dev, int idle)
-> 
-> bool idle?
+Switch HID code to use new style of getkeycode and setkeycode
+methods to allow retrieving and setting keycodes not only by
+their scancodes but also by index.
 
-This is leftover from my wrong thinking that bool isn't defined in
-kernel.
-Don't mind fixing that as well.
+Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+---
 
+ drivers/hid/hid-input.c |  103 ++++++++++++++++++++++++++++++++---------------
+ 1 files changed, 70 insertions(+), 33 deletions(-)
 
-> 
-> >  {
-> >  	struct ir_input_dev *ir = input_get_drvdata(input_dev);
-> >  	struct ir_raw_event_ctrl *raw = ir->raw;
-> > -	ktime_t now;
-> > -	u64 delta;
-> >  
-> > -	if (!ir->props)
-> > +	if (!ir->props || !ir->raw)
-> >  		return;
-> >  
-> > -	if (!ir->raw)
-> > -		goto out;
-> > +	IR_dprintk(2, "%s idle mode\n", idle ? "enter" : "leave");
-> >  
-> >  	if (idle) {
-> > -		IR_dprintk(2, "enter idle mode\n");
-> > -		raw->last_event = ktime_get();
-> > -	} else {
-> > -		IR_dprintk(2, "exit idle mode\n");
-> > -
-> > -		now = ktime_get();
-> > -		delta = ktime_to_ns(ktime_sub(now, ir->raw->last_event));
-> > -
-> > -		WARN_ON(raw->this_ev.pulse);
-> > -
-> > -		raw->this_ev.duration =
-> > -			min(raw->this_ev.duration + delta,
-> > -						(u64)IR_MAX_DURATION);
-> > -
-> > +		raw->this_ev.timeout = true;
-> >  		ir_raw_event_store(input_dev, &raw->this_ev);
-> > -
-> > -		if (raw->this_ev.duration == IR_MAX_DURATION)
-> > -			ir_raw_event_reset(input_dev);
-> > -
-> > -		raw->this_ev.duration = 0;
-> > +		init_ir_raw_event(&raw->this_ev);
-> >  	}
-> > -out:
-> > +
-> >  	if (ir->props->s_idle)
-> >  		ir->props->s_idle(ir->props->priv, idle);
-> >  	ir->idle = idle;
-> > diff --git a/drivers/media/IR/ir-rc5-decoder.c b/drivers/media/IR/ir-rc5-decoder.c
-> > index df4770d..572ed4c 100644
-> > --- a/drivers/media/IR/ir-rc5-decoder.c
-> > +++ b/drivers/media/IR/ir-rc5-decoder.c
-> > @@ -55,8 +55,9 @@ static int ir_rc5_decode(struct input_dev *input_dev, struct ir_raw_event ev)
-> >          if (!(ir_dev->raw->enabled_protocols & IR_TYPE_RC5))
-> >                  return 0;
-> >  
-> > -	if (IS_RESET(ev)) {
-> > -		data->state = STATE_INACTIVE;
-> > +	if (!is_timing_event(ev)) {
-> > +		if (ev.reset)
-> > +			data->state = STATE_INACTIVE;
-> >  		return 0;
-> >  	}
-> >  
-> > diff --git a/drivers/media/IR/ir-rc6-decoder.c b/drivers/media/IR/ir-rc6-decoder.c
-> > index f1624b8..d25da91 100644
-> > --- a/drivers/media/IR/ir-rc6-decoder.c
-> > +++ b/drivers/media/IR/ir-rc6-decoder.c
-> > @@ -85,8 +85,9 @@ static int ir_rc6_decode(struct input_dev *input_dev, struct ir_raw_event ev)
-> >  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_RC6))
-> >  		return 0;
-> >  
-> > -	if (IS_RESET(ev)) {
-> > -		data->state = STATE_INACTIVE;
-> > +	if (!is_timing_event(ev)) {
-> > +		if (ev.reset)
-> > +			data->state = STATE_INACTIVE;
-> >  		return 0;
-> >  	}
-> >  
-> > diff --git a/drivers/media/IR/ir-sony-decoder.c b/drivers/media/IR/ir-sony-decoder.c
-> > index b9074f0..2d15730 100644
-> > --- a/drivers/media/IR/ir-sony-decoder.c
-> > +++ b/drivers/media/IR/ir-sony-decoder.c
-> > @@ -48,8 +48,9 @@ static int ir_sony_decode(struct input_dev *input_dev, struct ir_raw_event ev)
-> >  	if (!(ir_dev->raw->enabled_protocols & IR_TYPE_SONY))
-> >  		return 0;
-> >  
-> > -	if (IS_RESET(ev)) {
-> > -		data->state = STATE_INACTIVE;
-> > +	if (!is_timing_event(ev)) {
-> > +		if (ev.reset)
-> > +			data->state = STATE_INACTIVE;
-> >  		return 0;
-> >  	}
-> >  
-> > diff --git a/drivers/media/IR/mceusb.c b/drivers/media/IR/mceusb.c
-> > index ac6bb2c..43445b9 100644
-> > --- a/drivers/media/IR/mceusb.c
-> > +++ b/drivers/media/IR/mceusb.c
-> > @@ -656,7 +656,7 @@ static int mceusb_set_tx_carrier(void *priv, u32 carrier)
-> >  
-> >  static void mceusb_process_ir_data(struct mceusb_dev *ir, int buf_len)
-> >  {
-> > -	struct ir_raw_event rawir = { .pulse = false, .duration = 0 };
-> > +	DEFINE_RC_RAW_EVENT(rawir);
-> >  	int i, start_index = 0;
-> >  	u8 hdr = MCE_CONTROL_HEADER;
-> >  
-> > @@ -993,6 +993,7 @@ static int __devinit mceusb_dev_probe(struct usb_interface *intf,
-> >  	ir->len_in = maxp;
-> >  	ir->flags.microsoft_gen1 = is_microsoft_gen1;
-> >  	ir->flags.tx_mask_inverted = tx_mask_inverted;
-> > +	init_ir_raw_event(&ir->rawir);
-> >  
-> >  	/* Saving usb interface data for use by the transmitter routine */
-> >  	ir->usb_ep_in = ep_in;
-> > diff --git a/drivers/media/IR/streamzap.c b/drivers/media/IR/streamzap.c
-> > index 058e29f..4bba180 100644
-> > --- a/drivers/media/IR/streamzap.c
-> > +++ b/drivers/media/IR/streamzap.c
-> > @@ -170,7 +170,7 @@ static void streamzap_flush_timeout(unsigned long arg)
-> >  static void streamzap_delay_timeout(unsigned long arg)
-> >  {
-> >  	struct streamzap_ir *sz = (struct streamzap_ir *)arg;
-> > -	struct ir_raw_event rawir = { .pulse = false, .duration = 0 };
-> > +	DEFINE_RC_RAW_EVENT(rawir);
-> >  	unsigned long flags;
-> >  	int len, ret;
-> >  	static unsigned long delay;
-> > @@ -215,7 +215,7 @@ static void streamzap_delay_timeout(unsigned long arg)
-> >  
-> >  static void streamzap_flush_delay_buffer(struct streamzap_ir *sz)
-> >  {
-> > -	struct ir_raw_event rawir = { .pulse = false, .duration = 0 };
-> > +	DEFINE_RC_RAW_EVENT(rawir);
-> >  	bool wake = false;
-> >  	int ret;
-> >  
-> > @@ -233,7 +233,7 @@ static void streamzap_flush_delay_buffer(struct streamzap_ir *sz)
-> >  
-> >  static void sz_push(struct streamzap_ir *sz)
-> >  {
-> > -	struct ir_raw_event rawir = { .pulse = false, .duration = 0 };
-> > +	DEFINE_RC_RAW_EVENT(rawir);
-> >  	unsigned long flags;
-> >  	int ret;
-> >  
-> > @@ -512,6 +512,8 @@ static int __devinit streamzap_probe(struct usb_interface *intf,
-> >  	if (!sz)
-> >  		return -ENOMEM;
-> >  
-> > +	init_ir_raw_event(&sz->rawir);
-> > +
-> >  	sz->usbdev = usbdev;
-> >  	sz->interface = intf;
-> >  
-> > diff --git a/include/media/ir-core.h b/include/media/ir-core.h
-> > index eb7fddf..4dde415 100644
-> > --- a/include/media/ir-core.h
-> > +++ b/include/media/ir-core.h
-> > @@ -60,6 +60,7 @@ enum rc_driver_type {
-> >   * @s_idle: optional: enable/disable hardware idle mode, upon which,
-> >  	device doesn't interrupt host until it sees IR pulses
-> >   * @s_learning_mode: enable wide band receiver used for learning
-> > + * @s_carrier_report: enable carrier reports
-> >   */
-> >  struct ir_dev_props {
-> >  	enum rc_driver_type	driver_type;
-> > @@ -84,6 +85,7 @@ struct ir_dev_props {
-> >  	int			(*tx_ir)(void *priv, int *txbuf, u32 n);
-> >  	void			(*s_idle)(void *priv, int enable);
-> >  	int			(*s_learning_mode)(void *priv, int enable);
-> > +	int			(*s_carrier_report) (void *priv, int enable);
-> >  };
-> >  
-> >  struct ir_input_dev {
-> > @@ -162,11 +164,34 @@ u32 ir_g_keycode_from_table(struct input_dev *input_dev, u32 scancode);
-> >  /* From ir-raw-event.c */
-> >  
-> >  struct ir_raw_event {
-> > -	unsigned                        pulse:1;
-> > -	unsigned                        duration:31;
-> > +	union {
-> > +		u32             duration;
-> > +
-> > +		struct {
-> > +			u32     carrier;
-> > +			u8      duty_cycle;
-> > +		};
-> > +	};
-> > +
-> > +	unsigned                pulse:1;
-> > +	unsigned                reset:1;
-> > +	unsigned                timeout:1;
-> > +	unsigned                carrier_report:1;
-> >  };
-> 
-> Perhaps it would be a good idea to merge the last four boolean values 
-> into one value? Something like:
-> 
-> enum ir_raw_event_type {
-> 	IR_RAW_EVENT_PULSE = 0,
-> 	IR_RAW_EVENT_SPACE,
-> 	IR_RAW_EVENT_RESET,
-> 	IR_RAW_EVENT_TIMEOUT,
-> 	IR_RAW_EVENT_CARRIER
-> };
-> 
-> struct ir_raw_event {
-> 	...
-> 	enum ir_raw_event_type	type:8;
-> };
-
-
-I thought about that.
-I did it this way to minimize code changes.
-Post 2.6.36 I don't mind doing it this way.
-
-
-> 
-> That way it's impossible to get weird situations like ev.reset == true 
-> && ev.carrier == true && ev.duration == true.
-> 
-> >  
-> > -#define IR_MAX_DURATION                 0x7FFFFFFF      /* a bit more than 2 seconds */
-> > +#define DEFINE_RC_RAW_EVENT(event) \
-> > +	struct ir_raw_event event = { \
-> > +		.pulse = 0, \
-> > +		.reset = 0, \
-> > +		.timeout = 0, \
-> > +		.carrier_report = 0 }
-> 
-> Not setting duration to zero might bite driver writers in the ass if 
-> they do something seemingly reasonable like:
-Oops, forgot about that one.
-
-> 
-> 	DEFINE_RC_RAW_EVENT(foo)
-> 	...
-> 	for (i = 0; i < something; i++) {
-> 		...
-> 		foo.duration += bar[i];
-> 		...
-> 	}
-> 
-> > +
-> > +static inline void init_ir_raw_event(struct ir_raw_event *ev)
-> > +{
-> > +	memset(ev, 0, sizeof(*ev));
-> > +}
-> 
-> init_ir_raw_event() <-> DEFINE_RC_RAW_EVENT() is confusing, they should 
-> be consistent. Either init_rc_raw_event() and DEFINE_RC_RAW_EVENT() or 
-> init_ir_raw_event() and DEFINE_IR_RAW_EVENT(). Given that struct 
-> ir_raw_event should be renamed rc_raw_event at some point, this might be 
-> a good occasion? (which means our patchsets will conflict even more :))
-> 
-> > +
-> > +#define IR_MAX_DURATION         0xFFFFFFFF      /* a bit more than 2 seconds */
-> 
-> The comment is misleading now that duration is 32 bits rather than 31
-Indeed, will fix.
-
-> 
-> >  
-> >  void ir_raw_event_handle(struct input_dev *input_dev);
-> >  int ir_raw_event_store(struct input_dev *input_dev, struct ir_raw_event *ev);
-> > @@ -177,7 +202,9 @@ void ir_raw_event_set_idle(struct input_dev *input_dev, int idle);
-> >  
-> >  static inline void ir_raw_event_reset(struct input_dev *input_dev)
-> >  {
-> > -	struct ir_raw_event ev = { .pulse = false, .duration = 0 };
-> > +	DEFINE_RC_RAW_EVENT(ev);
-> > +	ev.reset = true;
-> > +
-> >  	ir_raw_event_store(input_dev, &ev);
-> >  	ir_raw_event_handle(input_dev);
-> >  }
-> > -- 
-> > 1.7.0.4
-> > 
-> 
-
-Best regards,
-Maxim Levitsky
-
+diff --git a/drivers/hid/hid-input.c b/drivers/hid/hid-input.c
+index 6c03dcc..b12c07e 100644
+--- a/drivers/hid/hid-input.c
++++ b/drivers/hid/hid-input.c
+@@ -68,39 +68,49 @@ static const struct {
+ #define map_key_clear(c)	hid_map_usage_clear(hidinput, usage, &bit, \
+ 		&max, EV_KEY, (c))
+ 
+-static inline int match_scancode(unsigned int code, unsigned int scancode)
++static bool match_scancode(struct hid_usage *usage,
++			   unsigned int cur_idx, unsigned int scancode)
+ {
+-	if (scancode == 0)
+-		return 1;
+-
+-	return (code & (HID_USAGE_PAGE | HID_USAGE)) == scancode;
++	return (usage->hid & (HID_USAGE_PAGE | HID_USAGE)) == scancode;
+ }
+ 
+-static inline int match_keycode(unsigned int code, unsigned int keycode)
++static bool match_keycode(struct hid_usage *usage,
++			  unsigned int cur_idx, unsigned int keycode)
+ {
+-	if (keycode == 0)
+-		return 1;
++	return usage->code == keycode;
++}
+ 
+-	return code == keycode;
++static bool match_index(struct hid_usage *usage,
++			unsigned int cur_idx, unsigned int idx)
++{
++	return cur_idx == idx;
+ }
+ 
++typedef bool (*hid_usage_cmp_t)(struct hid_usage *usage,
++				unsigned int cur_idx, unsigned int val);
++
+ static struct hid_usage *hidinput_find_key(struct hid_device *hid,
+-					   unsigned int scancode,
+-					   unsigned int keycode)
++					   hid_usage_cmp_t match,
++					   unsigned int value,
++					   unsigned int *usage_idx)
+ {
+-	int i, j, k;
++	unsigned int i, j, k, cur_idx = 0;
+ 	struct hid_report *report;
+ 	struct hid_usage *usage;
+ 
+ 	for (k = HID_INPUT_REPORT; k <= HID_OUTPUT_REPORT; k++) {
+ 		list_for_each_entry(report, &hid->report_enum[k].report_list, list) {
+ 			for (i = 0; i < report->maxfield; i++) {
+-				for ( j = 0; j < report->field[i]->maxusage; j++) {
++				for (j = 0; j < report->field[i]->maxusage; j++) {
+ 					usage = report->field[i]->usage + j;
+-					if (usage->type == EV_KEY &&
+-						match_scancode(usage->hid, scancode) &&
+-						match_keycode(usage->code, keycode))
+-						return usage;
++					if (usage->type == EV_KEY) {
++						if (match(usage, cur_idx, value)) {
++							if (usage_idx)
++								*usage_idx = cur_idx;
++							return usage;
++						}
++						cur_idx++;
++					}
+ 				}
+ 			}
+ 		}
+@@ -108,39 +118,66 @@ static struct hid_usage *hidinput_find_key(struct hid_device *hid,
+ 	return NULL;
+ }
+ 
++static struct hid_usage *hidinput_locate_usage(struct hid_device *hid,
++					const struct input_keymap_entry *ke,
++					unsigned int *index)
++{
++	struct hid_usage *usage;
++	unsigned int scancode;
++
++	if (ke->flags & INPUT_KEYMAP_BY_INDEX)
++		usage = hidinput_find_key(hid, match_index, ke->index, index);
++	else if (input_scancode_to_scalar(ke, &scancode) == 0)
++		usage = hidinput_find_key(hid, match_scancode, scancode, index);
++	else
++		usage = NULL;
++
++	return usage;
++}
++
+ static int hidinput_getkeycode(struct input_dev *dev,
+-			       unsigned int scancode, unsigned int *keycode)
++			       struct input_keymap_entry *ke)
+ {
+ 	struct hid_device *hid = input_get_drvdata(dev);
+ 	struct hid_usage *usage;
++	unsigned int scancode, index;
+ 
+-	usage = hidinput_find_key(hid, scancode, 0);
++	usage = hidinput_locate_usage(hid, ke, &index);
+ 	if (usage) {
+-		*keycode = usage->code;
++		ke->keycode = usage->code;
++		ke->index = index;
++		scancode = usage->hid & (HID_USAGE_PAGE | HID_USAGE);
++		ke->len = sizeof(scancode);
++		memcpy(ke->scancode, &scancode, sizeof(scancode));
+ 		return 0;
+ 	}
++
+ 	return -EINVAL;
+ }
+ 
+ static int hidinput_setkeycode(struct input_dev *dev,
+-			       unsigned int scancode, unsigned int keycode)
++			       const struct input_keymap_entry *ke,
++			       unsigned int *old_keycode)
+ {
+ 	struct hid_device *hid = input_get_drvdata(dev);
+ 	struct hid_usage *usage;
+-	int old_keycode;
+ 
+-	usage = hidinput_find_key(hid, scancode, 0);
++	usage = hidinput_locate_usage(hid, ke, NULL);
+ 	if (usage) {
+-		old_keycode = usage->code;
+-		usage->code = keycode;
++		*old_keycode = usage->code;
++		usage->code = ke->keycode;
+ 
+-		clear_bit(old_keycode, dev->keybit);
++		clear_bit(*old_keycode, dev->keybit);
+ 		set_bit(usage->code, dev->keybit);
+-		dbg_hid(KERN_DEBUG "Assigned keycode %d to HID usage code %x\n", keycode, scancode);
+-		/* Set the keybit for the old keycode if the old keycode is used
+-		 * by another key */
+-		if (hidinput_find_key (hid, 0, old_keycode))
+-			set_bit(old_keycode, dev->keybit);
++		dbg_hid(KERN_DEBUG "Assigned keycode %d to HID usage code %x\n",
++			usage->code, usage->hid);
++
++		/*
++		 * Set the keybit for the old keycode if the old keycode is used
++		 * by another key
++		 */
++		if (hidinput_find_key(hid, match_keycode, *old_keycode, NULL))
++			set_bit(*old_keycode, dev->keybit);
+ 
+ 		return 0;
+ 	}
+@@ -748,8 +785,8 @@ int hidinput_connect(struct hid_device *hid, unsigned int force)
+ 					hid->ll_driver->hidinput_input_event;
+ 				input_dev->open = hidinput_open;
+ 				input_dev->close = hidinput_close;
+-				input_dev->setkeycode = hidinput_setkeycode;
+-				input_dev->getkeycode = hidinput_getkeycode;
++				input_dev->setkeycode_new = hidinput_setkeycode;
++				input_dev->getkeycode_new = hidinput_getkeycode;
+ 
+ 				input_dev->name = hid->name;
+ 				input_dev->phys = hid->phys;
 
