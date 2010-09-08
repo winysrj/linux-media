@@ -1,41 +1,58 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from mgw-sa02.nokia.com ([147.243.1.48]:39499 "EHLO
-	mgw-sa02.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754861Ab0IMLqb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 07:46:31 -0400
-Subject: Re: [PATCH v9 0/4] FM Radio driver.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
-	"mchehab@redhat.com" <mchehab@redhat.com>
-In-Reply-To: <201009131332.15287.hverkuil@xs4all.nl>
-References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <201009111410.55149.hverkuil@xs4all.nl>
-	 <1284375031.12913.35.camel@masi.mnp.nokia.com>
-	 <201009131332.15287.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 13 Sep 2010 14:44:31 +0300
-Message-ID: <1284378271.12913.42.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:24675 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751446Ab0IHObd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 10:31:33 -0400
+Date: Wed, 8 Sep 2010 10:31:21 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
+Subject: Re: [PATCH 0/6] Large scancode handling
+Message-ID: <20100908143121.GD22323@redhat.com>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, 2010-09-13 at 13:32 +0200, ext Hans Verkuil wrote:
-> > Anyway the difference between the "completely raw bits" and the "raw"
-> > blocks is small. And I doubt the usefulness of supporting the
-> > "completely raw" format.
+On Wed, Sep 08, 2010 at 12:41:38AM -0700, Dmitry Torokhov wrote:
+> Hi Mauro,
 > 
-> I don't intend to support it now. But we need to realize that it exists and
-> we have to plan for it.
+> I guess I better get off my behind and commit the changes to support large
+> scancodes, or they will not make to 2.6.37 either... There isn't much
+> changes, except I followed David's suggestion and changed boolean index
+> field into u8 flags field. Still, please glance it over once again and
+> shout if you see something you do not like.
+> 
+> Jiri, how do you want to handle the changes to HID? I could either push
+> them through my tree together with the first patch or you can push through
+> yours once the first change hits mainline.
+> 
+> Mauro, the same question goes for media/IR patch.
+> 
+> David, I suppose you still have the winbond remote so you could test
+> changes to winbond-cir driver.
 
-OK. So we can have RDS_RAW_READWRITE and also RDS_RAW_BLOCK_READWRITE
-(or something to the same effect)?
+This'll be fun. :) David recently posted a patchset that among other
+things, ports winbond-cir over to {ir,rc}-core to the tune of ~700 less
+lines in winbond-cir.c. It also touches a fair amount of core bits, as
+does a patchset posted by Maxim... I suspect this series should probably
+go in first though.
 
-B.R.
-Matti
+> Ville, do you still have the hardware to try our ati_remote2 changes?
 
+If not, I've got the hardware. (Speaking of which, porting ati_remote*
+over to {ir,rc}-core is also on the TODO list, albeit with very very
+low priority at the moment).
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
