@@ -1,74 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:61195 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754843Ab0ISSiO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 14:38:14 -0400
-Subject: Re: RFC: BKL, locking and ioctls
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-In-Reply-To: <201009191810.34189.hverkuil@xs4all.nl>
-References: <fm127xqs7xbmiabppyr1ifai.1284910330767@email.android.com>
-	 <201009191810.34189.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 19 Sep 2010 14:38:02 -0400
-Message-ID: <1284921482.2079.57.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from web29509.mail.ird.yahoo.com ([77.238.189.136]:31877 "HELO
+	web29509.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752080Ab0IHRvI convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 13:51:08 -0400
+Message-ID: <664886.22288.qm@web29509.mail.ird.yahoo.com>
+Date: Wed, 8 Sep 2010 17:51:06 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
+Subject: Re: [linux-dvb] [Patch] Correct Signal Strength values for STB0899
+To: linux-media@vger.kernel.org
+In-Reply-To: <20100908214719.00ba623a@bk.ru>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sun, 2010-09-19 at 18:10 +0200, Hans Verkuil wrote:
-> On Sunday, September 19, 2010 17:38:18 Andy Walls wrote:
-> > The device node isn't even the right place for drivers that provide
-> multiple device nodes that can possibly access the same underlying
-> data or register sets.
+thx Goga and thx to dimka_9 for his great work.
+
+I hope those guys will include it in the driver
+
+regards
+
+Newsy
+
+--- Goga777 <goga777@bk.ru> schrieb am Mi, 8.9.2010:
+
+> Von: Goga777 <goga777@bk.ru>
+> Betreff: Re: [linux-dvb] [Patch] Correct Signal Strength values for STB0899
+> An: linux-dvb@linuxtv.org
+> CC: linux-media@vger.kernel.org
+> Datum: Mittwoch, 8. September, 2010 19:47 Uhr
+> > first of all I have to say that
+> this patch is not from me.
+> > It's from rotor-0.1.4mh-v1.2.tar.gz
+> > Thx to the author of that patch and the modified rotor
+> Plugin. I think he's a friend of Mike Booth
 > > 
-> > Any core/infrastructure approach is likely doomed in the general
-> case.  It's trying to protect data and registers in a driver it knows
-> nothing about, by protecting the *code paths* that take essentially
-> unknown actions on that data and registers. :{
+> > I think it should be included into s2-liplianin.
+> > With this patch all dvb-s and dvb-s2 signal strength
+> values are scaled correctly.
 > 
-> Just to clarify: struct video_device gets a *pointer* to a mutex. The mutex
-> itself can be either at the top-level device or associated with the actual
-> video device, depending on the requirements of the driver.
-
-OK.  Or the mutex can be NULL, where the driver does everything for
-itself.
-
-Locking at the device node level for ioctl()'s is better than the
-v4l2_fh proposal, which serializes too much in some contexts and not
-enough for others.
-
-<obvious>
-Any driver that creates ALSA, dvb, or fb device nodes, or another video
-device node, with access to the same underlying data structures or
-registers, will still need to perform proper locking.  The lock for the
-ioctl() code paths will have to apply at a higher level than the device
-node in these cases.
-</obvious>
-
-We're still preserving one of the main headaches of the BKL: "What
-exactly is this lock protecting in this driver?".  We're just adding a
-smaller scoped version to our own infrastructure.  At least maybe for
-ioctl()'s in v4l2 the answer to the question is simpler: we're generally
-protecting against concurrent access to the many and varied
-v4l2_subdev's.
-(Although that doesn't apply to VIDIOC_QUERYCAP and similar ioctl()'s.)
-
-
-> > Videobuf is the right place to protect videobuf data.
 > 
-> vb_lock is AFAIK there to protect the streaming of data. And that's definitely
-> per device node since only one filehandle per device node can do streaming.
+> FYI - this patch from Russian DVB VDR forum. Author is
+> dimka_9
+> http://linuxdvb.org.ru/wbb/index.php?page=Thread&postID=11883#post11883
 > 
-> Also remember that we are trying to get rid of the BKL, so staying bug-compatible
-> is enough for a first version :-)
+> 
+> Goga
+> 
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
 
-Sure.
-
-Regards,
-Andy
 
