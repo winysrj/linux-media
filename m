@@ -1,65 +1,70 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:14392 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757554Ab0IZMRg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 08:17:36 -0400
-Date: Sun, 26 Sep 2010 08:17:48 -0400
-Subject: Re: [RFC PATCH] Rename video_device et al to v4l2_devnode
-Message-ID: <5uc4nct73y9lci6f4qdee1ma.1285503468755@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Received: from mx1.redhat.com ([209.132.183.28]:45975 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756524Ab0IHWmp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 18:42:45 -0400
+Date: Wed, 8 Sep 2010 18:42:27 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>,
+	lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
+	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/8 V5] Many fixes for in-kernel decoding and for the ENE
+ driver
+Message-ID: <20100908224227.GL22323@redhat.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+ <4C8805FA.3060102@infradead.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4C8805FA.3060102@infradead.org>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-U291bmRzIGdvb2QgdG8gbWUuCgpJJ20gbm90IHRvIHN1cmUgd2h5IHlvdSBldmVuIGJvdGhlcmVk
-IHdpdGggdGhlIGJhY2t3YXJkIGNvbXBhdCBvbiB0aGUgbmFtZXMuICBJIHRoaW5rIGl0IGNhbiBv
-bmx5IGxlYWQgdG8gdHJvdWJsZTsgYnV0IGl0IGRvZXMgbWFrZSBtZXJnaW5nIG91dCBzdGFuZGlu
-ZyBwYXRjaHNldHMgZWFzaWVyIEkgZ3Vlc3MuCgpJIGhhdmVuJ3QgbG9va2VkIGF0IHRoZSBwYXRj
-aHNldCwgYXJlIHRoZXJlIGFueSBvdGhlciB1c2VycyBvdXRzaWRlIHRoZSBkcml2ZXJzL21lZGlh
-IHRyZWU/CgpSLApBbmR5IAoKSGFucyBWZXJrdWlsIDxodmVya3VpbEB4czRhbGwubmw+IHdyb3Rl
-OgoKPk1vc3Qgb2YgdGhlIHY0bDIgZnJhbWV3b3JrIGhhcyBwcmVmaXhlcyB0aGF0IHN0YXJ0IHdp
-dGggdjRsMl8gZXhjZXB0IGZvcgo+c3RydWN0IHZpZGVvX2RldmljZSBpbiB2NGwyLWRldi5jLiBU
-aGlzIG5hbWUgaXMgYmVjb21pbmcgdmVyeSBjb25mdXNpbmcgc2luY2UKPml0IGNsb3NlbHkgcmVz
-ZW1ibGVzIHN0cnVjdCB2NGwyX2RldmljZS4gU2luY2UgdmlkZW9fZGV2aWNlIHJlYWxseSByZXBy
-ZXNlbnRzCj5hIHY0bDIgZGV2aWNlIG5vZGUgSSBwcm9wb3NlIHRvIHJlbmFtZSBpdCB0byB2NGwy
-X2Rldm5vZGUgYW5kIHJlbmFtZSB0aGUKPnY0bDItZGV2LltjaF0gdG8gdjRsMi1kZXZub2RlLltj
-aF0uCj4gCj5UbyBtYWtlIHRoZSB0cmFuc2l0aW9uIGVhc2llciBJIGNyZWF0ZWQgYSB2NGwyLWRl
-di5oIHRoYXQgaW5jbHVkZXMgdGhlIG5ldwo+djRsMi1kZXZub2RlLmggYW5kICNkZWZpbmVzIHRo
-ZSBvbGQgbmFtZXMgdG8gdGhlIG5ldyBuYW1lcy4KPiAKPkkgYWxzbyB1cGRhdGVkIHRoZSBkb2N1
-bWVudGF0aW9uIHRvIHJlZmxlY3QgdGhlIG5ldyBoZWFkZXIgYW5kIG5hbWluZyBjb252ZW50aW9u
-Lgo+Cj5UaGUgcGF0Y2hlcyBhcmUgaGVyZToKPgo+aHR0cDovL2dpdC5saW51eHR2Lm9yZy9odmVy
-a3VpbC92NGwtZHZiLmdpdD9hPXNob3J0bG9nO2g9cmVmcy9oZWFkcy92NGwyLWRldm5vZGUKPgo+
-SGFucyBWZXJrdWlsICgxOCk6Cj4gICAgICB2NGwyLWRldm5vZGU6IHJlbmFtZWQgZnJvbSB2NGwy
-LWRldgo+ICAgICAgdmlkZW9kZXYyLmg6IHVwZGF0ZSBjb21tZW50Cj4gICAgICB2NGwyIGNvcmU6
-IHVzZSB2NGwyLWRldm5vZGUuaCBpbnN0ZWFkIG9mIHY0bDItZGV2LmgKPiAgICAgIHY0bDI6IHJl
-bmFtZSB0b192aWRlb19kZXZpY2UgdG8gdjRsMl9kZXZub2RlX2Zyb21fZGV2aWNlCj4gICAgICB2
-NGwyOiByZW5hbWUgdmlkZW9fZGV2aWNlX2FsbG9jIHRvIHY0bDJfZGV2bm9kZV9hbGxvYwo+ICAg
-ICAgdjRsMjogcmVuYW1lIHZpZGVvX2RldmljZV9yZWxlYXNlX2VtcHR5IHRvIHY0bDJfZGV2bm9k
-ZV9yZWxlYXNlX2VtcHR5Cj4gICAgICB2NGwyOiByZW5hbWUgdmlkZW9fZGV2aWNlX3JlbGVhc2Ug
-dG8gdjRsMl9kZXZub2RlX3JlbGVhc2UKPiAgICAgIHY0bDI6IHJlbmFtZSB2aWRlb19kZXZpY2Vf
-bm9kZV9uYW1lIHRvIHY0bDJfZGV2bm9kZV9uYW1lCj4gICAgICB2NGwyOiByZW5hbWUgdmlkZW9f
-cmVnaXN0ZXJfZGV2aWNlIHRvIHY0bDJfZGV2bm9kZV9yZWdpc3Rlcgo+ICAgICAgdjRsMjogcmVu
-YW1lIHZpZGVvX3VucmVnaXN0ZXJfZGV2aWNlIHRvIHY0bDJfZGV2bm9kZV91bnJlZ2lzdGVyCj4g
-ICAgICB2NGwyOiByZW5hbWUgdmlkZW9faXNfcmVnaXN0ZXJlZCB0byB2NGwyX2Rldm5vZGVfaXNf
-cmVnaXN0ZXJlZAo+ICAgICAgdjRsMjogcmVuYW1lIHZpZGVvX2dldC9zZXRfZHJ2ZGF0YSB0byB2
-NGwyX2Rldm5vZGVfZ2V0L3NldF9kcnZkYXRhCj4gICAgICB2NGwyOiByZW5hbWUgdmlkZW9fZGV2
-ZGF0YSB0byB2NGwyX2Rldm5vZGVfZnJvbV9maWxlCj4gICAgICB2NGwyOiByZW5hbWUgdmlkZW9f
-ZHJ2ZGF0YSB0byB2NGwyX2RydmRhdGFfZnJvbV9maWxlCj4gICAgICB2NGwyOiByZW5hbWUgdmlk
-ZW9fZGV2aWNlIHRvIHY0bDJfZGV2bm9kZQo+ICAgICAgdGVhNTc1eDogY29udmVydCB0byB2NGwy
-LWRldm5vZGUuaAo+ICAgICAgdjRsMjogaW5jbHVkZSB2NGwyLWRldm5vZGUuaCBpbnN0ZWFkIG9m
-IHY0bDItZGV2LmgKPiAgICAgIHY0bDI6IGlzc3VlIHdhcm5pbmcgaWYgdjRsMi1kZXYuaCBpcyBp
-bmNsdWRlZAo+Cj5BZnRlciBjb252ZXJ0aW5nIGFsbCBkcml2ZXJzIEkgYWRkZWQgYSB3YXJuaW5n
-IHRvIHY0bDItZGV2Lmggd2hlbiBpdCBpcyB1c2VkLgo+VGhpcyBoZWFkZXIgY2FuIGJlIHJlbW92
-ZWQgY29tcGxldGVseSBhZnRlciB0aGlzIHNlcmllcyBoYXMgYmVlbiBtZXJnZWQgaW4gdGhlCj5t
-YWlubGluZSAyLjYuMzcga2VybmVsLgo+Cj5JdCdzIGFsbCBwcmV0dHkgdHJpdmlhbCBidXQgSSB0
-aGluayB0aGUgbmV3IG5hbWVzIGFyZSBtdWNoIG1vcmUgdW5kZXJzdGFuZGFibGUKPmFuZCBmaXQg
-d2VsbCB3aXRoaW4gdGhlIHY0bDIgZnJhbWV3b3JrIEFQSS4KPgo+Q29tbWVudHM/Cj4KPglIYW5z
-Cj4KPi0tIAo+SGFucyBWZXJrdWlsIC0gdmlkZW80bGludXggZGV2ZWxvcGVyIC0gc3BvbnNvcmVk
-IGJ5IFRBTkRCRVJHLCBwYXJ0IG9mIENpc2NvCj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlz
-IGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+dGhlIGJv
-ZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUgbWFqb3Jk
-b21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo=
+On Wed, Sep 08, 2010 at 06:54:02PM -0300, Mauro Carvalho Chehab wrote:
+> Em 06-09-2010 18:26, Maxim Levitsky escreveu:
+> > Hi,
+> > 
+> > Here is full overview of my patches:
+> > 
+> > Patch #1 fixes races in ir thread.
+> > It fixes the case when ktherad_stop waits forever for the thread.
+> > This happens on module unload and therefore it never finishes.
+> > Sorry for introducing this bug.
+> > 
+> > Patch #2, fixes a crash on my module load.
+> > It happens because ir core initializes the input device a bit early,
+> > therefore it could be accessed while still not set up.
+> > 
+> > Patch #3 fixes a small typo in lirc code that makes it impossible to use tx duty cycle setting.
+> > 
+> > Patch #4 fixes a problem seen on my system that results in stuck down forever key.
+> > 
+> > Patch #5 adds few keys to MCE keymap that were found on laptop of an user I tested this driver with
+> > 
+> > Patch #6, is a combined update ti my driver. It contains lot of refactoring thanks to docs I have now,
+> > and lot of fixes, and supports latest version of firmware (and I have 4 users asking for that)
+> > It is quite huge, but it would be a tedios job to break it up. This can't introduce regressions
+> > because the ene_ir was never released. In addition to that it was tested by me and another two users.
+> > 
+> > Patch #7 the really only patch that touches drivers I don't have does touch the ir-core.
+> > It is quite small, and it adds a proper solution to dilema about what to do with huge space between keypresses.
+> > Now this space is just truncated by the driver with timeout flag.
+> > The lirc codec then ensures that right sample is send to the lircd.
+> > Please review and test it.
+> > 
+> > Patch #8 is very simple. It just builds on top of patch #7 and adds carrier reports to ene driver.
+> 
+> For now, I've applied patches 3, 4 and 5, as it is nice to have Jarod's review also.
+
+I've finally got them all applied atop current media_tree staging/v2.6.37,
+though none of the streamzap bits in patch 7 are applicable any longer.
+Will try to get through looking and commenting (and testing) of the rest
+of them tonight.
+
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
