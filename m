@@ -1,55 +1,39 @@
-Return-path: <mchehab@gaivota>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:56426 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042Ab0IFQ1S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 12:27:18 -0400
-Received: by qwh6 with SMTP id 6so3946886qwh.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Sep 2010 09:27:18 -0700 (PDT)
+Return-path: <mchehab@pedra>
+Received: from bombadil.infradead.org ([18.85.46.34]:44572 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984Ab0IHNmJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 09:42:09 -0400
+Message-ID: <4C8792B2.2010809@infradead.org>
+Date: Wed, 08 Sep 2010 10:42:10 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Date: Mon, 6 Sep 2010 12:27:18 -0400
-Message-ID: <AANLkTimzWfh3v8+MN2nQBQ-p_K=pc+xLYhGAoBtJO424@mail.gmail.com>
-Subject: [GIT PULL REQUEST] IR updates for 2.6.36
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: =?UTF-8?B?RGF2aWQgSMOkcmRlbWFu?= <david@hardeman.nu>
+CC: linux-media@vger.kernel.org, jarod@redhat.com
+Subject: Re: [PATCH 1/5] rc-code: merge and rename ir-core
+References: <20100907214943.30935.29895.stgit@localhost.localdomain> <20100907215143.30935.71857.stgit@localhost.localdomain>
+In-Reply-To: <20100907215143.30935.71857.stgit@localhost.localdomain>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Mauro,
+Em 07-09-2010 18:51, David Härdeman escreveu:
+> This patch merges the files which makes up ir-core and renames the
+> resulting module to rc-core. IMHO this makes it much easier to hack
+> on the core module since all code is in one file.
+> 
+> This also allows some simplification of ir-core-priv.h as fewer internal
+> functions need to be exposed.
 
-Please pull the streamzap in-kernel decoding support patch and a
-trivial mceusb driver patch that just adds two new device IDs in for
-2.6.36.
+I'm not sure about this patch. Big files tend to be harder to maintain,
+as it takes more time to find the right functions inside it. Also, IMO, 
+it makes sense to keep the raw-event code on a separate file.
 
-The following changes since commit 67ac062a5138ed446a821051fddd798a01478f85:
+Anyway, if we apply this patch right now, it will cause merge conflicts with
+the input tree, due to the get/setkeycodebig patches, and with some other
+patches that are pending merge/review. The better is to apply such patch
+just after the release of 2.6.37-rc1, after having all those conflicts
+solved.
 
-  V4L/DVB: Fix regression for BeholdTV Columbus (2010-08-24 10:39:32 -0300)
-
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/jarod/linux-2.6-lirc.git staging
-
-Jarod Wilson (2):
-      IR/streamzap: functional in-kernel decoding
-      mceusb: add two new ASUS device IDs
-
- drivers/media/IR/Kconfig                    |   12 +
- drivers/media/IR/Makefile                   |    1 +
- drivers/media/IR/ir-core-priv.h             |    6 +
- drivers/media/IR/ir-rc5-sz-decoder.c        |  153 ++++++++++++
- drivers/media/IR/ir-sysfs.c                 |    1 +
- drivers/media/IR/keymaps/Makefile           |    2 +-
- drivers/media/IR/keymaps/rc-rc5-streamzap.c |   81 ------
- drivers/media/IR/keymaps/rc-streamzap.c     |   82 ++++++
- drivers/media/IR/mceusb.c                   |    4 +
- drivers/media/IR/streamzap.c                |  358 +++++++--------------------
- include/media/rc-map.h                      |    5 +-
- 11 files changed, 356 insertions(+), 349 deletions(-)
- create mode 100644 drivers/media/IR/ir-rc5-sz-decoder.c
- delete mode 100644 drivers/media/IR/keymaps/rc-rc5-streamzap.c
- create mode 100644 drivers/media/IR/keymaps/rc-streamzap.c
-
-
--- 
-Jarod Wilson
-jarod@wilsonet.com
+Cheers,
+Mauro
