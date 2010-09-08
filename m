@@ -1,68 +1,56 @@
-Return-path: <mchehab@localhost>
-Received: from bear.ext.ti.com ([192.94.94.41]:55952 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753834Ab0IETOk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Sep 2010 15:14:40 -0400
-From: "Hiremath, Vaibhav" <hvaibhav@ti.com>
-To: "Taneja, Archit" <archit@ti.com>
-CC: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 6 Sep 2010 00:44:33 +0530
-Subject: RE: [PATCH 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build
- without VRFB
-Message-ID: <19F8576C6E063C45BE387C64729E739404687B222E@dbde02.ent.ti.com>
-References: <1283589705-6723-1-git-send-email-archit@ti.com>
-In-Reply-To: <1283589705-6723-1-git-send-email-archit@ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Return-path: <mchehab@pedra>
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:55549 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755516Ab0IHVW7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 17:22:59 -0400
+Date: Wed, 8 Sep 2010 23:22:55 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Brian Rogers <brian@xyzw.org>, jarod@wilsonet.com,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	linux-input@vger.kernel.org
+Subject: Re: [PATCH 1/2] ir-core: centralize sysfs raw decoder
+ enabling/disabling
+Message-ID: <20100908212255.GC13938@hardeman.nu>
+References: <20100613202718.6044.29599.stgit@localhost.localdomain>
+ <20100613202930.6044.97940.stgit@localhost.localdomain>
+ <4C8797D3.1060606@xyzw.org>
+ <20100908141613.GB22323@redhat.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20100908141613.GB22323@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-> -----Original Message-----
-> From: Taneja, Archit
-> Sent: Saturday, September 04, 2010 2:12 PM
-> To: Hiremath, Vaibhav
-> Cc: linux-omap@vger.kernel.org; linux-media@vger.kernel.org; Taneja,
-> Archit
-> Subject: [PATCH 0/2] V4L/DVB: OMAP_VOUT: Allow omap_vout to build without
-> VRFB
+On Wed, Sep 08, 2010 at 10:16:13AM -0400, Jarod Wilson wrote:
+> On Wed, Sep 08, 2010 at 07:04:03AM -0700, Brian Rogers wrote:
+> > ir_dev->raw is also null. If I check these pointers before using
+> > them, and bail out if both are null, then I get a working lircd, but
+> > of course the file /sys/devices/virtual/rc/rc0/protocols no longer
+> > does anything. On 2.6.35.4, the system never creates the
+> > /sys/class/rc/rc0/current_protocol file. Is it the case that the
+> > 'protocols' file should never appear, because my card can't support
+> > this feature?
 > 
-> This lets omap_vout driver build and run without VRFB. It works along the
-> lines of the following patch series:
-> OMAP: DSS2: OMAPFB: Allow FB_OMAP2 to build without VRFB
-> https://patchwork.kernel.org/patch/105371/
-> 
-> A variable rotation_type is introduced in omapvideo_info like the way in
-> omapfb_info to make both vrfb and non vrfb rotation possible.
-> 
-[Hiremath, Vaibhav] Archit,
+> Hm... So protocols is indeed intended for hardware that handles raw IR, as
+> its a list of raw IR decoders available/enabled/disabled for the receiver.
+> But some devices that do onboard decoding and deal with scancodes still
+> need to support changing protocols, as they can be told "decode rc5" or
+> "decode nec", etc... My memory is currently foggy on how it was exactly
+> that it was supposed to be donee though. :) (Yet another reason I really
+> need to poke at the imon driver code again).
 
-Currently omap_vout driver only supports VRFB based rotation, it doesn't support SDMA based rotation (unlike OMAPFB) and neither you patch adds it.
+This, and a raft of similar bugreports was one of the reasons I wrote 
+the rc_dev patch (which gets rid of ir_dev->props, the source of many 
+oopses by now).
 
-Thanks,
-Vaibhav
+Hardware decoders should work with the same sysfs file, the driver 
+should set ir_dev->props->change_protocol (current) or 
+rc->change_protocol (future) and it'll get notified when userspace 
+interacts with the sysfs file and the hardware can then react 
+accordingly. So the answer is yes - all hardware should have the file.
 
-> Since VRFB is tightly coupled with the omap_vout driver, a handful of
-> vrfb-specific functions have been defined and placed in omap_vout_vrfb.c
-> 
-> This series applies along with the previously submitted patch:
-> https://patchwork.kernel.org/patch/146401/
-> 
-> Archit Taneja (2):
->   V4L/DVB: OMAP_VOUT: Create a seperate vrfb functions library
->   V4L/DVB: OMAP_VOUT: Use rotation_type to choose between vrfb and
->     sdram rotation
-> 
->  drivers/media/video/omap/Kconfig          |    1 -
->  drivers/media/video/omap/Makefile         |    1 +
->  drivers/media/video/omap/omap_vout.c      |  502 ++++++------------------
-> -----
->  drivers/media/video/omap/omap_vout_vrfb.c |  417 ++++++++++++++++++++++++
->  drivers/media/video/omap/omap_vout_vrfb.h |   40 +++
->  drivers/media/video/omap/omap_voutdef.h   |   26 ++
->  6 files changed, 582 insertions(+), 405 deletions(-)
->  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.c
->  create mode 100644 drivers/media/video/omap/omap_vout_vrfb.h
-
+-- 
+David Härdeman
