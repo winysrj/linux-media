@@ -1,45 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:60610 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752958Ab0IBWdB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 18:33:01 -0400
-Date: Fri, 3 Sep 2010 00:32:56 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: lirc-list@lists.sourceforge.net, Jarod Wilson <jarod@wilsonet.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Christoph Bartelmus <lirc@bartelmus.de>
-Subject: Re: [PATCH 6/7] IR: extend ir_raw_event and do refactoring
-Message-ID: <20100902223256.GA2492@hardeman.nu>
-References: <1283158348-7429-1-git-send-email-maximlevitsky@gmail.com>
- <1283158348-7429-7-git-send-email-maximlevitsky@gmail.com>
- <20100902205607.GB3886@hardeman.nu>
- <1283462454.3306.15.camel@maxim-laptop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1283462454.3306.15.camel@maxim-laptop>
+Received: from stevekez.vm.bytemark.co.uk ([80.68.91.30]:48799 "EHLO
+	stevekerrison.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959Ab0IHK2n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 06:28:43 -0400
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by stevekerrison.com (Postfix) with ESMTP id 68CF210200D
+	for <linux-media@vger.kernel.org>; Wed,  8 Sep 2010 11:28:42 +0100 (BST)
+Received: from stevekerrison.com ([127.0.0.1])
+	by localhost (stevekez.vm.bytemark.co.uk [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id X6XTOFoSTvd8 for <linux-media@vger.kernel.org>;
+	Wed,  8 Sep 2010 11:28:34 +0100 (BST)
+Received: from [192.168.1.10] (94-193-106-123.zone7.bethere.co.uk [94.193.106.123])
+	(Authenticated sender: steve@stevekerrison.com)
+	by stevekerrison.com (Postfix) with ESMTPSA id D62EA8A019
+	for <linux-media@vger.kernel.org>; Wed,  8 Sep 2010 11:28:34 +0100 (BST)
+Subject: First DVB-T2 tuner announced - Hauppauge PCTV Nanostick T2 290e
+From: Steve Kerrison <steve@stevekerrison.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 08 Sep 2010 11:28:34 +0100
+Message-ID: <1283941714.3425.17.camel@goliath-lin>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, Sep 03, 2010 at 12:20:54AM +0300, Maxim Levitsky wrote:
-> Also in the future I think I should make the
-> ir_raw_event_store_with_filter the default submit function for all
-> drivers, and then I could drop that silly '_with_filter" thing
-> (Couldn't think for a better name for this function...)
+Hauppauge has released details of its first DVB-T2 tuner at IFA. Some
+scarce details are here:
 
-I agree. Perhaps it would even be possible to merge 
-ir_raw_event_store_with_filter and ir_raw_event_store. The automatic 
-merger of consecutive pulse-pulse events or space-space events should 
-help simplify some drivers...
+http://www.wegotserved.com/2010/09/04/ifa-2010-hauppauge-announces-freeview-hd-dvbt2-tuner-pc/
 
-> > Wouldn't DEFINE_RAW_EVENT(ev); be more in line with the kernel 
-> > coding style? (cf. DEFINE_MUTEX, DEFINE_SPINLOCK, etc).
-> Of course, nothing against that.
+along with a "datasheet" (without very much data) here:
 
-DEFINE_RC_RAW_EVENT() is probably better by the way...
+http://www.wegotserved.com/2010/09/06/ifa-2010-pctv-nanostick-t2-290e-freeview-hd-tuner-full-specs-data-sheet/
 
--- 
-David Härdeman
+Only 720p video support is claimed, but that can't be anything to do
+with receiving the mux so I suspect that's a software limitation in the
+bundled player.
+
+Does anyone have (or have a means of getting) more info on the internals
+of this stick to aid Linux development? I will be attempting to acquire
+one of these at first release in October, and will do what I can, from
+USB snooping through to module development - as far as my time and skill
+can muster.
+
+Regards,
+Steve Kerrison.
+
