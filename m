@@ -1,195 +1,88 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:1709 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814Ab0ITGda (ORCPT
+Received: from web29505.mail.ird.yahoo.com ([77.238.189.132]:45840 "HELO
+	web29505.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750827Ab0IHOWg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Sep 2010 02:33:30 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: RFC: BKL, locking and ioctls
-Date: Mon, 20 Sep 2010 08:33:07 +0200
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>
-References: <fm127xqs7xbmiabppyr1ifai.1284910330767@email.android.com> <201009192138.08412.hverkuil@xs4all.nl> <4C96BE5E.5050003@redhat.com>
-In-Reply-To: <4C96BE5E.5050003@redhat.com>
+	Wed, 8 Sep 2010 10:22:36 -0400
+Message-ID: <670866.16644.qm@web29505.mail.ird.yahoo.com>
+Date: Wed, 8 Sep 2010 14:15:54 +0000 (GMT)
+From: Newsy Paper <newspaperman_germany@yahoo.com>
+Subject: [Patch] Correct Signal Strength values for STB0899
+To: linux-media@vger.kernel.org, linux-dvb@linuxtv.org
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009200833.07854.hverkuil@xs4all.nl>
+Content-Type: multipart/mixed; boundary="0-490203341-1283955354=:16644"
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Monday, September 20, 2010 03:52:30 Mauro Carvalho Chehab wrote:
-> Em 19-09-2010 16:38, Hans Verkuil escreveu:
-> > On Sunday, September 19, 2010 21:10:06 Mauro Carvalho Chehab wrote:
-> >> Em 19-09-2010 15:38, Andy Walls escreveu:
-> >>> On Sun, 2010-09-19 at 18:10 +0200, Hans Verkuil wrote:
-> >>>> On Sunday, September 19, 2010 17:38:18 Andy Walls wrote:
-> >>>>> The device node isn't even the right place for drivers that provide
-> >>>> multiple device nodes that can possibly access the same underlying
-> >>>> data or register sets.
-> >>>>>
-> >>>>> Any core/infrastructure approach is likely doomed in the general
-> >>>> case.  It's trying to protect data and registers in a driver it knows
-> >>>> nothing about, by protecting the *code paths* that take essentially
-> >>>> unknown actions on that data and registers. :{
-> >>>>
-> >>>> Just to clarify: struct video_device gets a *pointer* to a mutex. The mutex
-> >>>> itself can be either at the top-level device or associated with the actual
-> >>>> video device, depending on the requirements of the driver.
-> >>>
-> >>> OK.  Or the mutex can be NULL, where the driver does everything for
-> >>> itself.
-> >>
-> >> Yes. If you don't like it, or have a better idea, you can just pass NULL
-> >> and do whatever you want on your driver.
-> >>>
-> >>> Locking at the device node level for ioctl()'s is better than the
-> >>> v4l2_fh proposal, which serializes too much in some contexts and not
-> >>> enough for others.
-> >>
-> >> The per-fh allows fine graining when needed. As it is a pointer, you can opt
-> >> to have per-device or per-fh locks (or even per-driver lock).
-> >> Open/close/mmap/read/poll need to be serialized anyway, as they generally
-> >> touch at the same data that you need to protect on ioctl.
-> >>
-> >> By having a global locking schema like that, it is better to over-protect than
-> >> to leave some race conditions.
-> > 
-> > That makes no sense. It is overly fine-grained locking schemes that lead to
-> > race conditions. Overly course-grained schemes can lead to performance issues.
-> > The problem is finding the right balance. Which to me is at the device node
-> > level. AFAIK there is not a single driver that does locking at the file handle
-> > level. It's either at the top level or at the device node level (usually through
-> > videobuf's vb_lock).
-> 
-> The discussion here is not related of being at per-device or per-fh. Andy is arguing
-> that the V4L2 core should not be locking poll() and read(), but both operations need
-> to be locked in order for it to warrant no race conditions for mmap(). The only 
-> exception is that this is not needed is for the three drivers that (still)
-> don't implement mmap().
+--0-490203341-1283955354=:16644
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: quoted-printable
 
-I think we should just start off by locking read/write/poll as well, and if
-it causes problems, then we can create flags that drivers can set to prevent
-the core from locking selected fops.
+Hi,=0A=0Afirst of all I have to say that this patch is not from me.=0AIt's =
+from rotor-0.1.4mh-v1.2.tar.gz=0AThx to the author of that patch and the mo=
+dified rotor Plugin. I think he's a friend of Mike Booth=0A=0AI think it sh=
+ould be included into s2-liplianin.=0AWith this patch all dvb-s and dvb-s2 =
+signal strength values are scaled correctly.=0A=0Akind regards=0A=0A=0ANews=
+y=0A=0A
+--0-490203341-1283955354=:16644
+Content-Type: application/octet-stream; name=STB0899_signal_strength_v3patch
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=STB0899_signal_strength_v3patch
 
-Something I've always wondered about: what's the point of the get_unmapped_area
-file op? Someone added it but not a single driver uses it. Can we get rid of this
-in v4l2_file_operations?
- 
-> > And as I said before the v4l2_fh changes are fairly major and going in a
-> > direction that I really don't like. Whereas putting the mutex pointer in struct
-> > video_device is a very minor change that's easy to review and easy to understand.
-> > A pointer to the video_device is also available almost everywhere. Whereas v4l2_fh
-> > is not needed at all by many drivers.
-> > 
-> > If a driver really wants to do locking at the file handle level, then that
-> > driver can always override the core locking and handle everything manually.
-> > 
-> > If you have unusual requirements, then that requires unusual amounts of work.
-> > No need to let all the other drivers suffer.
-> 
-> Ok, this is a good point. Could you please write a patch against the devel branch?
+LS0tIC9jb21tb24vUHJvZ3JhbW1zL3ZlcjIvc3JjL3MyLWxpcGxpYW5pbi9s
+aW51eC9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3RiMDg5OV9kcnYu
+YwkyMDA5LTEyLTMxIDE3OjE1OjM4LjExNTIwMzM0NyArMDMwMAorKysgLi9s
+aW51eC9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3RiMDg5OV9kcnYu
+YwkyMDEwLTAxLTE0IDIyOjE3OjIyLjY3MTYzNDU1MSArMDMwMApAQCAtOTgw
+LDYgKzk4MCwxNiBAQAogCiAJCQkJKnN0cmVuZ3RoID0gc3RiMDg5OV90YWJs
+ZV9sb29rdXAoc3RiMDg5OV9kdmJzcmZfdGFiLCBBUlJBWV9TSVpFKHN0YjA4
+OTlfZHZic3JmX3RhYikgLSAxLCB2YWwpOwogCQkJCSpzdHJlbmd0aCArPSA3
+NTA7CisgICAgICAgICAgICAgICAgCisgICAgICAgICAgICAgICAgY29uc3Qg
+aW50IE1JTl9TVFJFTkdUSF9EVkJTID0gMDsKKyAgICAgICAgICAgICAgICBj
+b25zdCBpbnQgTUFYX1NUUkVOR1RIX0RWQlMgPSA2ODA7CisgICAgICAgICAg
+ICAgICAgaWYgKCpzdHJlbmd0aCA8IE1JTl9TVFJFTkdUSF9EVkJTKSAgICAg
+CisgICAgICAgICAgICAgICAgICAgICpzdHJlbmd0aCA9IDA7CisgICAgICAg
+ICAgICAgICAgZWxzZSBpZigqc3RyZW5ndGggPiBNQVhfU1RSRU5HVEhfRFZC
+UykgCisgICAgICAgICAgICAgICAgICAgICpzdHJlbmd0aCA9IDB4RkZGRjsK
+KyAgICAgICAgICAgICAgICBlbHNlCisJCQkgICAgICAgICpzdHJlbmd0aCA9
+ICgqc3RyZW5ndGggLSBNSU5fU1RSRU5HVEhfRFZCUykgKiAweEZGRkYgLyAo
+TUFYX1NUUkVOR1RIX0RWQlMgLSBNSU5fU1RSRU5HVEhfRFZCUyk7IAorCiAJ
+CQkJZHByaW50ayhzdGF0ZS0+dmVyYm9zZSwgRkVfREVCVUcsIDEsICJBR0NJ
+UVZBTFVFID0gMHglMDJ4LCBDID0gJWQgKiAwLjEgZEJtIiwKIAkJCQkJdmFs
+ICYgMHhmZiwgKnN0cmVuZ3RoKTsKIAkJCX0KQEAgLTk5Miw2ICsxMDAyLDcg
+QEAKIAogCQkJKnN0cmVuZ3RoID0gc3RiMDg5OV90YWJsZV9sb29rdXAoc3Ri
+MDg5OV9kdmJzMnJmX3RhYiwgQVJSQVlfU0laRShzdGIwODk5X2R2YnMycmZf
+dGFiKSAtIDEsIHZhbCk7CiAJCQkqc3RyZW5ndGggKz0gNzUwOworCQkJKnN0
+cmVuZ3RoID0gKnN0cmVuZ3RoIDw8IDQ7CiAJCQlkcHJpbnRrKHN0YXRlLT52
+ZXJib3NlLCBGRV9ERUJVRywgMSwgIklGX0FHQ19HQUlOID0gMHglMDR4LCBD
+ID0gJWQgKiAwLjEgZEJtIiwKIAkJCQl2YWwgJiAweDNmZmYsICpzdHJlbmd0
+aCk7CiAJCX0KQEAgLTEwMjQsNiArMTAzNSwxNiBAQAogCQkJCXZhbCA9IE1B
+S0VXT1JEMTYoYnVmWzBdLCBidWZbMV0pOwogCiAJCQkJKnNuciA9IHN0YjA4
+OTlfdGFibGVfbG9va3VwKHN0YjA4OTlfY25fdGFiLCBBUlJBWV9TSVpFKHN0
+YjA4OTlfY25fdGFiKSAtIDEsIHZhbCk7CisKKyAgICAgICAgICAgICAgICBj
+b25zdCBpbnQgTUlOX1NOUl9EVkJTID0gMDsKKyAgICAgICAgICAgICAgICBj
+b25zdCBpbnQgTUFYX1NOUl9EVkJTID0gMjAwOworICAgICAgICAgICAgICAg
+IGlmICgqc25yIDwgTUlOX1NOUl9EVkJTKSAgICAgCisgICAgICAgICAgICAg
+ICAgICAgICpzbnIgPSAwOworICAgICAgICAgICAgICAgIGVsc2UgaWYoKnNu
+ciA+IE1BWF9TTlJfRFZCUykgCisgICAgICAgICAgICAgICAgICAgICpzbnIg
+PSAweEZGRkY7CisgICAgICAgICAgICAgICAgZWxzZQorCQkJICAgICAgICAq
+c25yID0gKCpzbnIgLSBNSU5fU05SX0RWQlMpICogMHhGRkZGIC8gKE1BWF9T
+TlJfRFZCUyAtIE1JTl9TTlJfRFZCUyk7IAorCiAJCQkJZHByaW50ayhzdGF0
+ZS0+dmVyYm9zZSwgRkVfREVCVUcsIDEsICJOSVIgPSAweCUwMnglMDJ4ID0g
+JXUsIEMvTiA9ICVkICogMC4xIGRCbVxuIiwKIAkJCQkJYnVmWzBdLCBidWZb
+MV0sIHZhbCwgKnNucik7CiAJCQl9CkBAIC0xMDQ4LDYgKzEwNjksMTYgQEAK
+IAkJCQl2YWwgPSAocXVhbnRuIC0gZXN0bikgLyAxMDsKIAkJCX0KIAkJCSpz
+bnIgPSB2YWw7CisKKyAgICAgICAgICAgIGNvbnN0IGludCBNSU5fU05SX0RW
+QlMyID0gMTA7CisgICAgICAgICAgICBjb25zdCBpbnQgTUFYX1NOUl9EVkJT
+MiA9IDcwOworICAgICAgICAgICAgaWYgKCpzbnIgPCBNSU5fU05SX0RWQlMy
+KSAgICAgCisgICAgICAgICAgICAgICAgKnNuciA9IDA7CisgICAgICAgICAg
+ICBlbHNlIGlmKCpzbnIgPiBNQVhfU05SX0RWQlMyKSAKKyAgICAgICAgICAg
+ICAgICAqc25yID0gMHhGRkZGOworICAgICAgICAgICAgZWxzZQorCQkJICAg
+ICpzbnIgPSAoKnNuciAtIE1JTl9TTlJfRFZCUzIpICogMHhGRkZGIC8gKE1B
+WF9TTlJfRFZCUzIgLSBNSU5fU05SX0RWQlMyKTsgCisKIAkJCWRwcmludGso
+c3RhdGUtPnZlcmJvc2UsIEZFX0RFQlVHLCAxLCAiRXMvTjAgcXVhbnQgPSAl
+ZCAoJWQpIGVzdGltYXRlID0gJXUgKCVkKSwgQy9OID0gJWQgKiAwLjEgZEJt
+IiwKIAkJCQlxdWFudCwgcXVhbnRuLCBlc3QsIGVzdG4sIHZhbCk7CiAJCX0K
 
-OK, I will do that.
 
-Is it possible for you to commit at least the vtx patches first? Those also touch
-on the core and I'd prefer not to have conflicts with that patch series. The same
-really for the pwc, cpia2, usbvision and driver deprecation patches. They are
-uncontroversial and it gives me a good starting point.
-
-For my work on implementing the control framework I would also appreciate if the
-i2c patches removing v4l2-i2c-drv.h are merged. These patches are trivial, but they
-are a prerequisite for the control framework conversions.
- 
-> Yet, we need to keep read() and poll() locked, otherwise most drivers will break.
-
-We should see if we can do better with vb2. It would be good to come up with
-a document that describes 'best practices' when it comes to locking in V4L2 and
-vb2.
-
-Other options for the future: split the big v4l2_ioctl_ops into two pieces:
-'unlocked ops' and 'locked ops'. Many of the query and enum ops do not normally
-need a lock, so by putting them in a struct of their own it will be easy for
-drivers to tell that those ops are called with the lock. It won't work to just
-document them, it needs something more explicit.
-
-> 
-> >>> <obvious>
-> >>> Any driver that creates ALSA, dvb, or fb device nodes, or another video
-> >>> device node, with access to the same underlying data structures or
-> >>> registers, will still need to perform proper locking.  The lock for the
-> >>> ioctl() code paths will have to apply at a higher level than the device
-> >>> node in these cases.
-> >>> </obvious>
-> >>
-> >> Yes. Drivers will need to take care of it. If you look at the em28xx driver I ported,
-> >> it preserves the lock at dvb and alsa.
-> >>
-> >>> We're still preserving one of the main headaches of the BKL: "What
-> >>> exactly is this lock protecting in this driver?".  We're just adding a
-> >>> smaller scoped version to our own infrastructure.  At least maybe for
-> >>> ioctl()'s in v4l2 the answer to the question is simpler: we're generally
-> >>> protecting against concurrent access to the many and varied
-> >>> v4l2_subdev's.
-> >>> (Although that doesn't apply to VIDIOC_QUERYCAP and similar ioctl()'s.)
-> >>
-> >> Even querycap might need to be protected on a few drivers, where some info are detected
-> >> at runtime.
-> >>
-> >> On the other hand, there's no practical impact on serializing querycap, as the userspace
-> >> applications already serialize the access to those enumeration ioctls.
-> >>
-> >> The performance impact for serializing will happen at QBUF/DQBUF and read()/poll() for
-> >> both vbi and video, and at alsa and dvb streaming logic.
-> >>
-> >> I agree with Hans that the additional penalty to serialize what's outside the streaming 
-> >> syscalls are not relevant and that it is better to sacrifice it in favor to a simpler 
-> >> locking schema.
-> > 
-> > And may I add to that that I think that attempting to optimize performance for
-> > apps doing really weird things (like read and streaming i/o from the same source at
-> > the same time) also falls under the header 'not relevant'?
-> 
-> This is relevant, since reverting this behavior is clearly a regression, as userspace apps
-> will break.
-
-I never said that we should break this functionality, that's not possible without changing
-apps. But it isn't a high-performance use-case either.
- 
-> > Requirements I can think of:
-> > 
-> > 1) The basic capture and output streaming (either read/write or streaming I/O) must
-> > perform well. There is no need to go to extreme measures here, since the typical
-> > control flow is to prepare a buffer, setup the DMA and then wait for the DMA to
-> > finish. So this is not terribly time sensitive and it is perfectly OK to have to
-> > wait (within reason) for another ioctl from another thread to finish first.
-> 
-> On all USB devices, you also need to do double-buffering, to remove the USB headers from
-> the video and audio information. They generally spend a considerable amount of time doing
-> it on some drivers, in order to get the beginning of the frames.
-
-In an ideal world such drivers should probably release the lock while they are doing that.
-
-> > 2) While capturing/displaying other threads must be able to control the device at the
-> > same time and gather status information. This also means that such a thread should
-> > not be blocked from controlling the device because a dqbuf ioctl happens to be waiting
-> > for the DMA to finish in the main thread.
-> 
-> True.
-> 
-> > 3) We must also make sure that the mem-to-mem drivers keep working. That might be a
-> > special case that will become more important in the future. These are the only device
-> > nodes that can do capture and output streaming at the same time.
-> 
-> Agreed.
-> 
-> Mauro.
-
-Regards,
-
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+--0-490203341-1283955354=:16644--
