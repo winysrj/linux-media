@@ -1,72 +1,62 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:24570 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752746Ab0IFGe2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 02:34:28 -0400
-Date: Mon, 06 Sep 2010 08:33:51 +0200
-From: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Subject: [RFCv5 1/9] lib: rbtree: rb_root_init() function added
-In-reply-to: <cover.1283749231.git.mina86@mina86.com>
-To: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Minchan Kim <minchan.kim@gmail.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-kernel@vger.kernel.org
-Message-id: <77e08b611d45c8b830d59a7d111105d3a597fc5c.1283749231.git.mina86@mina86.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <cover.1283749231.git.mina86@mina86.com>
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:8258 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751467Ab0IHPP3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 11:15:29 -0400
+Message-ID: <4C87A87A.4060102@redhat.com>
+Date: Wed, 08 Sep 2010 12:15:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Jarod Wilson <jarod@redhat.com>
+CC: Jiri Kosina <jkosina@suse.cz>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Ville Syrjala <syrjala@sci.fi>
+Subject: Re: [PATCH 0/6] Large scancode handling
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv> <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz> <20100908142418.GC22323@redhat.com>
+In-Reply-To: <20100908142418.GC22323@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Added a rb_root_init() function which initialises a rb_root
-structure as a red-black tree with at most one element.  The
-rationale is that using rb_root_init(root, node) is more
-straightforward and cleaner then first initialising and
-empty tree followed by an insert operation.
+Em 08-09-2010 11:24, Jarod Wilson escreveu:
+> On Wed, Sep 08, 2010 at 11:48:50AM +0200, Jiri Kosina wrote:
+>> On Wed, 8 Sep 2010, Dmitry Torokhov wrote:
+>>
+>>> Hi Mauro,
+>>>
+>>> I guess I better get off my behind and commit the changes to support large
+>>> scancodes, or they will not make to 2.6.37 either... There isn't much
+>>> changes, except I followed David's suggestion and changed boolean index
+>>> field into u8 flags field. Still, please glance it over once again and
+>>> shout if you see something you do not like.
+>>>
+>>> Jiri, how do you want to handle the changes to HID? I could either push
+>>> them through my tree together with the first patch or you can push through
+>>> yours once the first change hits mainline.
+>>
+>> I think that there will unlikely be any conflict in .37 merge window in 
+>> this area (and if there were, I'll sort it out).
+>>
+>> So please add
+>>
+>> 	Acked-by: Jiri Kosina <jkosina@suse.cz>
+>>
+>> to the hid-input.c bits and feel free to take it through your tree, if it 
+>> is convenient for you.
+> 
+> It'll conflict a little bith with the tivo slide patch I posted yesterday,
+> but mostly just minor context changes. I can redo that patch on top of
+> these changes if that's preferred.
 
-Signed-off-by: Michal Nazarewicz <m.nazarewicz@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/linux/rbtree.h |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
+I can handle those context changes when merging the patches at linux-next and
+when merging upstream. We just need to sync in a way that Dmitry send his patch
+series before mine when sending them to Linus, and I'll take care of fixing the
+merge conflicts.
 
-diff --git a/include/linux/rbtree.h b/include/linux/rbtree.h
-index 7066acb..5b6dc66 100644
---- a/include/linux/rbtree.h
-+++ b/include/linux/rbtree.h
-@@ -130,6 +130,17 @@ static inline void rb_set_color(struct rb_node *rb, int color)
- }
- 
- #define RB_ROOT	(struct rb_root) { NULL, }
-+
-+static inline void rb_root_init(struct rb_root *root, struct rb_node *node)
-+{
-+	root->rb_node = node;
-+	if (node) {
-+		node->rb_parent_color = RB_BLACK; /* black, no parent */
-+		node->rb_left  = NULL;
-+		node->rb_right = NULL;
-+	}
-+}
-+
- #define	rb_entry(ptr, type, member) container_of(ptr, type, member)
- 
- #define RB_EMPTY_ROOT(root)	((root)->rb_node == NULL)
--- 
-1.7.1
-
+Cheers,
+mauro.
