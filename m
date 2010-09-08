@@ -1,63 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from smtp5-g21.free.fr ([212.27.42.5]:34793 "EHLO smtp5-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932379Ab0IGR5P convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 13:57:15 -0400
-Date: Tue, 7 Sep 2010 19:57:18 +0200
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org
+Received: from smtp1.Stanford.EDU ([171.67.219.81]:49377 "EHLO
+	smtp.stanford.edu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751164Ab0IHC1O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 22:27:14 -0400
+Message-ID: <4C86F210.2060605@stanford.edu>
+Date: Tue, 07 Sep 2010 19:16:48 -0700
+From: Eino-Ville Talvala <talvala@stanford.edu>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: eduardo.valentin@nokia.com,
+	ext Jean-Francois Moine <moinejf@free.fr>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Subject: Re: [PATCH] Illuminators and status LED controls
-Message-ID: <20100907195718.066b2986@tele>
-In-Reply-To: <201009071730.33642.hverkuil@xs4all.nl>
-References: <20100906201105.4029d7e7@tele>
-	<201009071650.21029.hverkuil@xs4all.nl>
-	<4C863877.3000005@redhat.com>
-	<201009071730.33642.hverkuil@xs4all.nl>
-Mime-Version: 1.0
+References: <b7de5li57kosi2uhdxrgxyq9.1283891610189@email.android.com>
+In-Reply-To: <b7de5li57kosi2uhdxrgxyq9.1283891610189@email.android.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Tue, 7 Sep 2010 17:30:33 +0200
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+ This is probably a bit OT, but these sorts of indicator LEDs can get quite complicated.
 
-> enum v4l2_illuminator {
->         V4L2_ILLUMINATOR_OFF = 0,
->         V4L2_ILLUMINATOR_ON = 1,
-> };
-> #define V4L2_CID_ILLUMINATOR_0              (V4L2_CID_BASE+37)
-> #define V4L2_CID_ILLUMINATOR_1              (V4L2_CID_BASE+38)
-> 
-> enum v4l2_led {
->         V4L2_LED_AUTO = 0,
->         V4L2_LED_OFF = 1,
->         V4L2_LED_ON = 2,
-> };
-> #define V4L2_CID_LED_0              (V4L2_CID_BASE+39)
-> 
-> Simple and straightforward.
+As part of our FCamera sample program on the Nokia N900 (which uses V4L2 way down there), we wanted to reprogram the front indicator LED to flash exactly when a picture is taken.  The N900 front LED is quite a programmable beast [1], with a dedicated microcontroller (the lp5521) that runs little programs that define the blink patterns for the RGB LED.
 
-Hi,
+I'm not really suggesting that the V4L2 control should be able to handle this sort of an LED, but as these sorts of things get cheaper, it may become a case of 'why not?' for manufacturers putting in more complex RGB LEDs.   And if you don't want to encapsulate all that in V4L2, it may be better to leave it to other APIs at some point of complexity (the current lp5521 driver seems to have a sysfs-only interface for now for the programmable patterns, and the standard LED API otherwise)
 
-Hans (de Goede), is this OK for you? I think that if we find more
-illuminators or LEDs on some devices, we may add more V4L2_CID_xxx_n
-controls.
+[1] http://wiki.maemo.org/LED_patterns
 
-Hans (Verkuil), may we have the same enum's for both light types?
-Something like:
+Eino-Ville Talvala
+Computer Graphics Lab
+Stanford University
 
-enum v4l2_light {
-	V4L2_LIGHT_OFF = 0,
-	V4L2_LIGHT_ON = 1,
-	V4L2_LIGHT_AUTO = 2,
-	V4L2_LIGHT_BLINK = 3,
-};
+On 9/7/2010 1:33 PM, Andy Walls wrote:
+> It has already been discussed.  Please check the list archives for the past few days.
+>
+> Do you know of any V4L2 application developer or development team that prefers to use a separate API just to turn lights on and off, when all other aspects of the incoming video are controlled with the V4L2 control API?
+>
+> (That question is mostly rhetorical, but I'd still actually be interested from video app developers.)
+>
+> Regards,
+> Andy
+>
+> Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+>
+>> Hello,
+>>
+>> On Mon, Sep 06, 2010 at 08:11:05PM +0200, ext Jean-Francois Moine wrote:
+>>> Hi,
+>>>
+>>> This new proposal cancels the previous 'LED control' patch.
+>>>
+>>> Cheers.
+>>>
+>>> -- 
+>>> Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+>>> Jef		|		http://moinejf.free.fr/
+>> Apologies if this has been already discussed but,
+>> doesn't this patch duplicates the same feature present
+>> nowadays under include/linux/leds.h ??
+>>
+>> I mean, if you want to control leds, I think we already have that API, no?
+>>
+>> BR,
+>>
+>> ---
+>> Eduardo Valentin
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> N�����r��y���b�X��ǧv�^�)޺{.n�+����{���bj)���w*jg��������ݢj/���z�ޖ��2�ޙ���&�)ߡ�a�����G���h��j:+v���w�٥
 
-Regards.
-
--- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
