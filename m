@@ -1,49 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:51892 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753343Ab0ISDGj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Sep 2010 23:06:39 -0400
-Received: by ewy23 with SMTP id 23so1333402ewy.19
-        for <linux-media@vger.kernel.org>; Sat, 18 Sep 2010 20:06:38 -0700 (PDT)
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:61419 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931Ab0IHOrJ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 10:47:09 -0400
 MIME-Version: 1.0
-In-Reply-To: <AANLkTimAojFoi2=o=7REycqy9RowYsbZY=oB83Sb-pyV@mail.gmail.com>
-References: <AANLkTimt5bs1fNp=+36VLaTy0Kwi1rDPcpUTeN4z+c35@mail.gmail.com>
-	<1284677325.2056.17.camel@morgan.silverblock.net>
-	<AANLkTinddFfzQtaW_gUqi18OSPn437JTFiRa1HKM8Nva@mail.gmail.com>
-	<1284812434.2053.28.camel@morgan.silverblock.net>
-	<AANLkTi=HzqGW6qLxhTXprNW03LsnGjZ4Cg_PC=Wspv1A@mail.gmail.com>
-	<AANLkTimX0-oLk2j5YTE_WeU1SCz=k2dH6SsjP1PReyuK@mail.gmail.com>
-	<AANLkTimAojFoi2=o=7REycqy9RowYsbZY=oB83Sb-pyV@mail.gmail.com>
-Date: Sat, 18 Sep 2010 23:06:38 -0400
-Message-ID: <AANLkTinAdXQ0Q9a8Z2ZP91ALh65CHBO2YSRAYVqEPE9f@mail.gmail.com>
-Subject: Re: HVR 1600 Distortion
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Josh Borke <joshborke@gmail.com>
-Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+In-Reply-To: <1283808373-27876-5-git-send-email-maximlevitsky@gmail.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+	<1283808373-27876-5-git-send-email-maximlevitsky@gmail.com>
+Date: Wed, 8 Sep 2010 10:47:09 -0400
+Message-ID: <AANLkTikoT0MEQFBAPcZtVccbMa5106wipxdhmzVoacyZ@mail.gmail.com>
+Subject: Re: [PATCH 4/8] IR: fix keys beeing stuck down forever.
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: lirc-list@lists.sourceforge.net,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sat, Sep 18, 2010 at 9:09 PM, Josh Borke <joshborke@gmail.com> wrote:
-> It could be the tuner card, it is over 2 years old...Why would the
-> analog tuner stop functioning while the digital tuner continues to
-> work?  Is it because the analog portion goes through a different set
-> of chips?
+On Mon, Sep 6, 2010 at 5:26 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+> The logic in ir_timer_keyup was inverted.
+>
+> In case that values aren't equal,
+> the meaning of the time_is_after_eq_jiffies(ir->keyup_jiffies) is that
+> ir->keyup_jiffies is after the the jiffies or equally that
+> that jiffies are before the the ir->keyup_jiffies which is
+> exactly the situation we want to avoid (that the timeout is in the future)
+> Confusing Eh?
 
-Yes, the analog portion of the card has a completely separate tuner
-and demodulator.
+Yeah, seen time_is_{before,after}_jiffies use accidentally inverted a
+couple of times... Kinda hints that we could use better names and/or
+descriptions of the functions, but maybe people just need to read more
+carefully (dunno, haven't looked to see what's there for usage
+descriptions already)... Anyway.
 
-Don't get me wrong, it's possible that this is a driver issue, but
-given Andy has the exact same can tuner on his board it probably makes
-sense for you to do a sanity test of the hardware before any more time
-is spent investigating the software.
+> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+> ---
+>  drivers/media/IR/ir-keytable.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 
-Cheers,
-
-Devin
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Jarod Wilson
+jarod@wilsonet.com
