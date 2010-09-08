@@ -1,64 +1,32 @@
 Return-path: <mchehab@pedra>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:42804 "EHLO arroyo.ext.ti.com"
+Received: from smtp6.mail.ru ([94.100.176.48]:49649 "EHLO smtp6.mail.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754244Ab0IVKjK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Sep 2010 06:39:10 -0400
-Received: from dlep34.itg.ti.com ([157.170.170.115])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id o8MAdAia010384
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 22 Sep 2010 05:39:10 -0500
-From: x0130808@ti.com
-To: linux-media@vger.kernel.org
-Cc: Raja Mani <raja_mani@ti.com>, Pramodh AG <pramodh_ag@ti.com>,
-	Manjunatha Halli <x0130808@ti.com>
-Subject: [RFC/PATCH 6/9] drivers:media:video: Adding new CIDs for FM RX ctls
-Date: Wed, 22 Sep 2010 07:49:59 -0400
-Message-Id: <1285156202-28569-7-git-send-email-x0130808@ti.com>
-In-Reply-To: <1285156202-28569-6-git-send-email-x0130808@ti.com>
-References: <1285156202-28569-1-git-send-email-x0130808@ti.com>
- <1285156202-28569-2-git-send-email-x0130808@ti.com>
- <1285156202-28569-3-git-send-email-x0130808@ti.com>
- <1285156202-28569-4-git-send-email-x0130808@ti.com>
- <1285156202-28569-5-git-send-email-x0130808@ti.com>
- <1285156202-28569-6-git-send-email-x0130808@ti.com>
+	id S1752285Ab0IHRhM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 13:37:12 -0400
+Date: Wed, 8 Sep 2010 21:47:19 +0400
+From: Goga777 <goga777@bk.ru>
+To: linux-dvb@linuxtv.org
+Cc: linux-media@vger.kernel.org
+Subject: Re: [linux-dvb] [Patch] Correct Signal Strength values for STB0899
+Message-ID: <20100908214719.00ba623a@bk.ru>
+In-Reply-To: <670866.16644.qm@web29505.mail.ird.yahoo.com>
+References: <670866.16644.qm@web29505.mail.ird.yahoo.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-From: Raja Mani <raja_mani@ti.com>
+> first of all I have to say that this patch is not from me.
+> It's from rotor-0.1.4mh-v1.2.tar.gz
+> Thx to the author of that patch and the modified rotor Plugin. I think he's a friend of Mike Booth
+> 
+> I think it should be included into s2-liplianin.
+> With this patch all dvb-s and dvb-s2 signal strength values are scaled correctly.
 
-Add support for the following new Control IDs (CID)
-   V4L2_CID_RSSI_THRESHOLD - RSSI Threshold
-   V4L2_CID_TUNE_AF        - Alternative Frequency
 
-Signed-off-by: Raja Mani <raja_mani@ti.com>
-Signed-off-by: Pramodh AG <pramodh_ag@ti.com>
-Signed-off-by: Manjunatha Halli <x0130808@ti.com>
----
- drivers/media/video/v4l2-common.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+FYI - this patch from Russian DVB VDR forum. Author is dimka_9
+http://linuxdvb.org.ru/wbb/index.php?page=Thread&postID=11883#post11883
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 4e53b0b..5a8e528 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -520,6 +520,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_TUNE_PREEMPHASIS:	return "Pre-emphasis settings";
- 	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
- 	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
-+	case V4L2_CID_RSSI_THRESHOLD:	return "RSSI Threshold";
-+	case V4L2_CID_TUNE_AF:		return "Alternative Frequency";
- 
- 	default:
- 		return NULL;
-@@ -585,6 +587,8 @@ int v4l2_ctrl_query_fill(struct v4l2_queryctrl *qctrl, s32 min, s32 max, s32 ste
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
- 	case V4L2_CID_TUNE_PREEMPHASIS:
-+	case V4L2_CID_RSSI_THRESHOLD:
-+	case V4L2_CID_TUNE_AF:
- 		qctrl->type = V4L2_CTRL_TYPE_MENU;
- 		step = 1;
- 		break;
--- 
-1.5.6.3
 
+Goga
