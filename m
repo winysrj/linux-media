@@ -1,61 +1,116 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:36175 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757322Ab0IZQN0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 12:13:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
-Subject: [RFC/PATCH 3/9] v4l: Add 8-bit YUYV on 16-bit bus and SGRBG10 media bus pixel codes
-Date: Sun, 26 Sep 2010 18:13:26 +0200
-Message-Id: <1285517612-20230-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:33577 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752549Ab0IHTQG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 15:16:06 -0400
+Message-ID: <4C87E0F3.3080304@redhat.com>
+Date: Wed, 08 Sep 2010 16:16:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Josef Pavlik <josef@pavlik.it>
+CC: linux-media@vger.kernel.org, "Igor M. Liplianin" <liplianin@me.by>
+Subject: Re: [PATCH] DiSEqC bug fixed for stv0288 based interfaces
+References: <201009011435.42753.josef@pavlik.it>
+In-Reply-To: <201009011435.42753.josef@pavlik.it>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Add the following media bus format code definitions:
+Em 01-09-2010 09:35, Josef Pavlik escreveu:
+> Fixed problem with DiSEqC communication. The message was wrongly modulated, 
+> so the DiSEqC switch was not work.
+> 
+> This patch fixes DiSEqC messages, simple tone burst and tone on/off. 
+> I verified it with osciloscope against the DiSEqC documentation.
+> 
+> Interface: PCI DVB-S TV tuner TeVii S420
+> Kernel: 2.6.32-24-generic (UBUNTU 10.4)
+> 
+> Signed-off-by: Josef Pavlik <josef@pavlik.it>
 
-- V4L2_MBUS_FMT_SGRBG10_1X10 for 10-bit GRBG Bayer
-- V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 for 10-bit DPCM compressed GRBG Bayer
-- V4L2_MBUS_FMT_YUYV16_1X16 for 8-bit YUYV on 16-bit bus
-- V4L2_MBUS_FMT_UYVY16_1X16 for 8-bit UYVY on 16-bit bus
-- V4L2_MBUS_FMT_YVYU16_1X16 for 8-bit YVYU on 16-bit bus
-- V4L2_MBUS_FMT_VYUY16_1X16 for 8-bit VYUY on 16-bit bus
+Patch doesn't apply against the latest version, at my -git tree. 
+Not sure if the bugs you're pointing were already fixed.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/v4l2-mediabus.h |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
-
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index bc637a5..9096ef0 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -48,6 +48,10 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_UYVY8_2X8 = 4,
- 	V4L2_MBUS_FMT_YVYU8_2X8 = 3,
- 	V4L2_MBUS_FMT_VYUY8_2X8 = 5,
-+	V4L2_MBUS_FMT_YUYV8_1X16 = 24,
-+	V4L2_MBUS_FMT_UYVY8_1X16 = 25,
-+	V4L2_MBUS_FMT_YVYU8_1X16 = 26,
-+	V4L2_MBUS_FMT_VYUY8_1X16 = 27,
- 	/* Bayer */
- 	V4L2_MBUS_FMT_SBGGR8_1X8 = 10,
- 	V4L2_MBUS_FMT_SBGGR10_1X10 = 11,
-@@ -57,8 +61,10 @@ enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 15,
- 	V4L2_MBUS_FMT_SBGGR12_1X12 = 19,
- 	V4L2_MBUS_FMT_SGRBG8_1X8 = 18,
-+	V4L2_MBUS_FMT_SGRBG10_1X10 = 28,
-+	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 29,
- 	/* Last - Update this when adding a new pixel code */
--	V4L2_MBUS_FMT_LAST = 24,
-+	V4L2_MBUS_FMT_LAST = 30,
- };
- 
- /**
--- 
-1.7.2.2
+Cheers,
+Mauro.
+> 
+> 
+> 
+> 
+> diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
+> index 2930a5d..6a32535 100644
+> --- a/drivers/media/dvb/frontends/stv0288.c
+> +++ b/drivers/media/dvb/frontends/stv0288.c
+> @@ -6,6 +6,8 @@
+>         Copyright (C) 2008 Igor M. Liplianin <liplianin@me.by>
+>                 Removed stb6000 specific tuner code and revised some
+>                 procedures.
+> +       2010-09-01 Josef Pavlik <josef@pavlik.it>
+> +               Fixed diseqc_msg, diseqc_burst and set_tone problems
+> 
+>         This program is free software; you can redistribute it and/or modify
+>         it under the terms of the GNU General Public License as published by
+> @@ -156,14 +158,13 @@ static int stv0288_send_diseqc_msg(struct dvb_frontend *fe,
+> 
+>         stv0288_writeregI(state, 0x09, 0);
+>         msleep(30);
+> -       stv0288_writeregI(state, 0x05, 0x16);
+> +       stv0288_writeregI(state, 0x05, 0x12); /* modulated mode, single shot */
+> 
+>         for (i = 0; i < m->msg_len; i++) {
+>                 if (stv0288_writeregI(state, 0x06, m->msg[i]))
+>                         return -EREMOTEIO;
+> -               msleep(12);
+>         }
+> -
+> +       msleep(m->msg_len*12);
+>         return 0;
+>  }
+> 
+> @@ -174,13 +175,14 @@ static int stv0288_send_diseqc_burst(struct dvb_frontend *fe,
+> 
+>         dprintk("%s\n", __func__);
+> 
+> -       if (stv0288_writeregI(state, 0x05, 0x16))/* burst mode */
+> +       if (stv0288_writeregI(state, 0x05, 0x03)) /* "simple tone burst" mode, single shot */
+>                 return -EREMOTEIO;
+> 
+>         if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
+>                 return -EREMOTEIO;
+> 
+> -       if (stv0288_writeregI(state, 0x06, 0x12))
+> +       msleep(15);
+> +       if (stv0288_writeregI(state, 0x05, 0x12))
+>                 return -EREMOTEIO;
+> 
+>         return 0;
+> @@ -192,18 +194,19 @@ static int stv0288_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
+> 
+>         switch (tone) {
+>         case SEC_TONE_ON:
+> -               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode */
+> +               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode, continuous carrier */
+>                         return -EREMOTEIO;
+> -               return stv0288_writeregI(state, 0x06, 0xff);
+> +               break;
+> 
+>         case SEC_TONE_OFF:
+> -               if (stv0288_writeregI(state, 0x05, 0x13))/* burst mode */
+> +               if (stv0288_writeregI(state, 0x05, 0x12))/* burst mode off*/
+>                         return -EREMOTEIO;
+> -               return stv0288_writeregI(state, 0x06, 0x00);
+> +               break;
+> 
+>         default:
+>                 return -EINVAL;
+>         }
+> +       return 0;
+>  }
+> 
+>  static u8 stv0288_inittab[] = {
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
