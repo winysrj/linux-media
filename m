@@ -1,114 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1562 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756326Ab0IRTDQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Sep 2010 15:03:16 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8IJ3Fe6045579
-	for <linux-media@vger.kernel.org>; Sat, 18 Sep 2010 21:03:15 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sat, 18 Sep 2010 21:03:15 +0200 (CEST)
-Message-Id: <201009181903.o8IJ3Fe6045579@smtp-vbr4.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from mx1.redhat.com ([209.132.183.28]:53358 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758014Ab0IHNUs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 09:20:48 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o88DKmW6004745
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 09:20:48 -0400
+Received: from [10.11.11.235] (vpn-11-235.rdu.redhat.com [10.11.11.235])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o88DKk1d031311
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 09:20:48 -0400
+Message-ID: <4C878DB1.9030703@redhat.com>
+Date: Wed, 08 Sep 2010 10:20:49 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] V4L/DVB: cx25821: fix gcc warning when compiled with
+ allyesconfig
+References: <853aa6f8137f702beb216b3aa1d31aff604f38f5.1283951980.git.mchehab@redhat.com>
+In-Reply-To: <853aa6f8137f702beb216b3aa1d31aff604f38f5.1283951980.git.mchehab@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+drivers/staging/cx25821/cx25821-alsa.c:632: warning: ‘cx25821_audio_pci_tbl’ defined but not used
 
-Results of the daily build of v4l-dvb:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-date:        Sat Sep 18 19:00:11 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15160:60edc4bd92b7
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+diff --git a/drivers/staging/cx25821/cx25821-alsa.c b/drivers/staging/cx25821/cx25821-alsa.c
+index a43b188..095562c 100644
+--- a/drivers/staging/cx25821/cx25821-alsa.c
++++ b/drivers/staging/cx25821/cx25821-alsa.c
+@@ -629,7 +629,7 @@ static int snd_cx25821_pcm(struct cx25821_audio_dev *chip, int device,
+  * Only boards with eeprom and byte 1 at eeprom=1 have it
+  */
+ 
+-static struct pci_device_id cx25821_audio_pci_tbl[] __devinitdata = {
++static const struct pci_device_id cx25821_audio_pci_tbl[] __devinitdata = {
+ 	{0x14f1, 0x0920, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
+ 	{0,}
+ };
+-- 
+1.7.1
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: ERRORS
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The V4L-DVB specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
