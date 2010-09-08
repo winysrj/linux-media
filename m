@@ -1,47 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:46804 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754566Ab0IOPpF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 11:45:05 -0400
-Received: by qwh6 with SMTP id 6so249639qwh.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Sep 2010 08:45:04 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:25837 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751469Ab0IHQ2N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 12:28:13 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o88GSDBC017242
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 12:28:13 -0400
+Received: from [10.11.11.235] (vpn-11-235.rdu.redhat.com [10.11.11.235])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o88GSACv006503
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 12:28:12 -0400
+Message-ID: <4C87B9A0.2090308@redhat.com>
+Date: Wed, 08 Sep 2010 13:28:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-From: Christopher Friedt <chrisfriedt@gmail.com>
-Date: Wed, 15 Sep 2010 11:44:44 -0400
-Message-ID: <AANLkTinAjJ2_qxFVJuJ=TRr7+OJPtHnESKW7yHpoXev7@mail.gmail.com>
-Subject: pwc driver breakage in recent(ish) kernels (for old hardware)
-To: linux-media@vger.kernel.org
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] V4L/DVB: rc-core: increase repeat time
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi everyone,
+As reported by Anton Blanchard <anton@samba.org>, double IR events on
+2.6.36-rc2 and a DViCO FusionHDTV DVB-T Dual Express are happening:
 
-I've been using a Logitech Sphere for years on various projects. This
-model is probably from the first batch ever made. In lsusb it shows up
-as
+[ 1351.032084] ir_keydown: i2c IR (FusionHDTV): key down event, key 0x0067, scancode 0x0051
+[ 1351.281284] ir_keyup: keyup key 0x0067
 
-046d:08b5 Logitech, Inc. QuickCam Sphere
+ie one key down event and one key up event 250ms later.
 
-It's a bit troublesome, because on older kernel versions (~2.4.x,
-~2.6.2x) I never had a single issue with this hardware at all, on
-several different platforms ranging from x86 to x86_64, to arm
-(ep93xx), etc. However, somewhere between then and now, the pwc driver
-underwent some changes rendering this device unusable in any recent
-kernel. All of my old apps and new apps (including cheese, mplayer,
-etc) simply hang indefinitely waiting to read a single frame (using
-the v4l2 mmap api). The v4l2 read api also hangs indefinitely (using
-pwcgrab). A few of the very old apps that I have also use the v4l1
-api, with a 2.4.26 kernel, and that actually works.
+So, we need to increase the repeat timeout, to avoid this bug to hit.
 
-I can verify that the hardware itself is fine on windows (also using
-very old drivers from Logitech).
+As we're doing it at core, this fix is not needed anymore at dib0700 driver.
 
-Who has been working on this driver? What were the major changes that
-have been applied? I'm guessing that the bridge / sensor init sequence
-has been messed up somehow. Any ideas?
+Thanks-to: Anton Blanchard <anton@samba.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Cheers,
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 7e82a9d..d00ef19 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -510,6 +510,13 @@ int __ir_input_register(struct input_dev *input_dev,
+ 		   (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_IR_RAW) ?
+ 			" in raw mode" : "");
+ 
++	/*
++	 * Default delay of 250ms is too short for some protocols, expecially
++	 * since the timeout is currently set to 250ms. Increase it to 500ms,
++	 * to avoid wrong repetition of the keycodes.
++	 */
++	input_dev->rep[REP_DELAY] = 500;
++
+ 	return 0;
+ 
+ out_event:
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+index fe81834..48397f1 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_core.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+@@ -673,9 +673,6 @@ static int dib0700_probe(struct usb_interface *intf,
+ 			else
+ 				dev->props.rc.core.bulk_mode = false;
+ 
+-			/* Need a higher delay, to avoid wrong repeat */
+-			dev->rc_input_dev->rep[REP_DELAY] = 500;
+-
+ 			dib0700_rc_setup(dev);
+ 
+ 			return 0;
+-- 
+1.7.1
 
-Chris
