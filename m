@@ -1,70 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qy0-f181.google.com ([209.85.216.181]:60439 "EHLO
-	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754520Ab0IRL1t convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Sep 2010 07:27:49 -0400
-Received: by qyk33 with SMTP id 33so3149306qyk.19
-        for <linux-media@vger.kernel.org>; Sat, 18 Sep 2010 04:27:49 -0700 (PDT)
+Received: from mx1.redhat.com ([209.132.183.28]:41473 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750873Ab0IHPX7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 11:23:59 -0400
+Message-ID: <4C87AA7E.60200@redhat.com>
+Date: Wed, 08 Sep 2010 12:23:42 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <19604.3118.741829.592934@valen.metzler>
-References: <19593.22297.612764.560375@valen.metzler>
-	<20100914144339.GA9525@linuxtv.org>
-	<19600.3015.410234.367070@valen.metzler>
-	<AANLkTikqJoDLRbU6269HF4UD8QoiNPrjPbcNTfZ9j38u@mail.gmail.com>
-	<19604.3118.741829.592934@valen.metzler>
-Date: Sat, 18 Sep 2010 12:27:48 +0100
-Message-ID: <AANLkTinnHxHMtc+yJHtDYXFyFCdm__HRHU82owz1GQMg@mail.gmail.com>
-Subject: Re: How to handle independent CA devices
-From: James Courtier-Dutton <james.dutton@gmail.com>
-To: rjkm <rjkm@metzlerbros.de>
-Cc: Manu Abraham <abraham.manu@gmail.com>,
-	Johannes Stezenbach <js@linuxtv.org>,
-	linux-media@vger.kernel.org
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+CC: Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
+Subject: Re: [PATCH 0/6] Large scancode handling
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+In-Reply-To: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On 18 September 2010 01:47, rjkm <rjkm@metzlerbros.de> wrote:
-> Manu Abraham writes:
->
->  > > You still need a mechanism to decide which tuner gets it. First one
->  > > which opens its own ca device?
->  > > Sharing the CI (multi-stream decoding) in such an automatic way
->  > > would also be complicated.
->  > > I think I will only add such a feature if there is very high demand
->  > > and rather look into the separate API solution.
->  >
->  >
->  > It would be advantageous, if we do have just a simple input path,
->  > where it is not restricted for CA/CI alone. I have some hardware over
->  > here, where it has a DMA_TO_DEVICE channel (other than for the SG
->  > table), where it can write a TS to any post-processor connected to it,
->  > such as a CA/CI device, or even a decoder, for example. In short, it
->  > could be anything, to put short.
->  >
->  > In this case, the device can accept processed stream (muxed TS for
->  > multi-TP TS) for CA, or a single TS/PS for decode on a decoder. You
->  > can flip some registers for the device, for it to read from userspace,
->  > or for that DMA channel to read from the hardware page tables of
->  > another DMA channel which is coming from the tuner.
->  >
->  > Maybe, we just need a simple mechanism/ioctl to select the CA/CI input
->  > for the stream to the bridge. ie like a MUX: a 1:n select per adapter,
->  > where the CA/CI device has 1 input and there are 'n' sources.
->
->
-> It would be nice to have a more general output device. But I have
-> currently no plans to support something like transparent streaming
-> from one input to the output and back inside the driver.
->
+Em 08-09-2010 04:41, Dmitry Torokhov escreveu:
+> Hi Mauro,
+> 
+> I guess I better get off my behind and commit the changes to support large
+> scancodes, or they will not make to 2.6.37 either... There isn't much
+> changes, except I followed David's suggestion and changed boolean index
+> field into u8 flags field. Still, please glance it over once again and
+> shout if you see something you do not like.
+> 
+> Jiri, how do you want to handle the changes to HID? I could either push
+> them through my tree together with the first patch or you can push through
+> yours once the first change hits mainline.
+> 
+> Mauro, the same question goes for media/IR patch.
 
-Could it be handled as a transcode step?
+It seems easier if you apply them on your tree. I'm sure we won't have any
+major conflicts, if we don't apply the big ir->rc renaming patch. I'll postpone
+such patch to be applied after the merge upstream.
 
-Record the encrypted mux from the DVB card to disk first.
-Then do the decrypt step offline or during playback.
-During playback, you only wish to watch one channel at a time, and the
-CAM will handle that.
-Contra to what people think, most CAMs can decrypt the stream some
-considerably time after the broadcast of the stream.
+The patches look sane to me.
+
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+Cheers,
+Mauro
