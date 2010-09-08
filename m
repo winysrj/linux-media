@@ -1,75 +1,48 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:51063 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752169Ab0IIOBd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Sep 2010 10:01:33 -0400
-Date: Thu, 09 Sep 2010 10:01:21 -0400
-Subject: Re: [PATCH] Illuminators and status LED controls
-Message-ID: <y1el0c4vecj8x6uk04ypatvd.1284039765001@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>
-Cc: Peter Korsgaard <jacmet@sunsite.dk>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	eduardo.valentin@nokia.com,
-	ext Eino-Ville Talvala <talvala@stanford.edu>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+Received: from cantor2.suse.de ([195.135.220.15]:50278 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752126Ab0IHPZP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 11:25:15 -0400
+Date: Wed, 8 Sep 2010 17:25:13 +0200 (CEST)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Ville Syrjala <syrjala@sci.fi>
+Subject: Re: [PATCH 0/6] Large scancode handling
+In-Reply-To: <20100908152234.GE22323@redhat.com>
+Message-ID: <alpine.LNX.2.00.1009081723400.26813@pobox.suse.cz>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv> <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz> <20100908142418.GC22323@redhat.com> <4C87A87A.4060102@redhat.com> <20100908152234.GE22323@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-SGFucywKSSdsbCBoYXZlIG1vcmUgbGF0ZXIsIGJ1dCBJIGNhbiBzYXksIGlmIExFRCBBUEkgaXMg
-d2hhdCB3ZSBhZ3JlZSB0bywgd2Ugc2hvdWxkIGhhdmUgaW5mcmFzdHJ1Y3R1cmUgaW4gdjRsMiBh
-dCBhIGxldmVsIGhpZ2hlciB0aGFuIGdzcGNhIGZvciBoZWxwaW5nIGRyaXZlcnMgdXNlIHRoZSBM
-RUQgaW50ZXJmYWNlIGFuZCB0cmlnZ2Vycy4KCgpTcGVjaWZpY2FsbHkgdGhpcyBpcyBuZWVkZWQg
-dG8gbWFrZSBkaXNjb3ZlcnkgYW5kIGFzc29jaWF0aW9uIG9mIHY0bDIgZGV2aWNlcywgZXhwb3Nl
-ZCB2NGwyIExFRHMsIGFuZCB2NGwyIExFRCB0cmlnZ2VycyBlYXNpZXIgZm9yIHVzZXJzcGFjZSwg
-YW5kIHRvIHByb3ZpZGUgYSBsb2dpY2FsLCBjb25zaXN0ZW50IG5hbWluZyBzY2hlbWUuICBJdCBt
-YXkgYWxzbyBoZWxwIHdpdGggbG9naWNhbCBhc3NvY2lhdGlvbiB0byBhIHY0bDIgbWVkaWEgY29u
-dHJvbGxlciBsYXRlciBvbi4KClN5c2ZzIGVudHJ5IG93bmVyc2hpcCwgdW5peCBwZXJtaXNzaW9u
-cywgYW5kIEFDTCBwZXJtaXNzaW9ucyBjb25zaXN0ZW5jeSB3aXRoIC9kZXYvdmlkZW9OIHdpbGwg
-YmUgdGhlIGltbWVkaWF0ZSB1c2FiaWxpdHkgcHJvYmxlbSBmb3IgZW5kIHVzZXJzIGluIGFueSBj
-YXNlLiAgCgpTdWNlc3NmdWxseSBzZXR0aW5nIHVwIG9yIGRpc2FibGluZyBMRUQgdHJpZ2dlcnMg
-d2l0aG91dCBtdWNoIGRvY3VtZW50YXRpb24gd2lsbCBsaWtlbHkgYmUgdGhlIG90aGVyIGxhcmdl
-c3QgaHVyZGxlIGZvciB0aGUgYXZlcmFnZSB1c2VyLiAgKFRvIGRpc2FibGUgYW4gaW5kaWNhdG9y
-IExFRCB0aGF0IGlzIG1hbmlwdWxhdGVkIGF1dG9tYXRpY2FsbHkgYnkgYSBkcml2ZXIgdXNpbmcg
-aXRzIG93biBEZWZhdWx0IExFRCB0cmlnZ2VyLCB0aGUgZW5kIHVzZXIgbXVzdCBkaXNhYmxlIHRo
-ZSB0cmlnZ2VyIGluIGFkZGl0aW9uIHRvIHNldHRpbmcgdGhlIGJyaWdodG5lc3MgdG8gMC4pCgpJ
-IHN0aWxsIHdhbnQgdG8gYWRkIHRyaWdnZXIgdXNlIHRvIG15IHByb3RvdHlwZSB0byBkaXNjb3Zl
-ciB0aGUgbnVhbmNlcy4KCgpCVFcsIHdoYXQgZGlkIHlvdSBtZWFuIGJ5IHV2YyBkaXNjb3Zlcmlu
-ZyBhbiBMRUQgY29udHJvbD8KClJlZ2FyZHMsCkFuZHkKCkhhbnMgVmVya3VpbCA8aHZlcmt1aWxA
-eHM0YWxsLm5sPiB3cm90ZToKCj4KPj4gSGksCj4+Cj4+IE9uIDA5LzA5LzIwMTAgMDg6NTUgQU0s
-IFBldGVyIEtvcnNnYWFyZCB3cm90ZToKPj4+Pj4+Pj4gIkhhbnMiID09IEhhbnMgVmVya3VpbDxo
-dmVya3VpbEB4czRhbGwubmw+ICB3cml0ZXM6Cj4+Pgo+Pj4gSGksCj4+Pgo+Pj4gICA+PiAgLSB0
-aGUgc3RhdHVzIExFRCBzaG91bGQgYmUgY29udHJvbGxlZCBieSB0aGUgTEVEIGludGVyZmFjZS4K
-Pj4+Cj4+PiAgIEhhbnM+ICBJIG9yaWdpbmFsbHkgd2FzIGluIGZhdm9yIG9mIGNvbnRyb2xsaW5n
-IHRoZXNlIHRocm91Z2ggdjRsIGFzCj4+PiAgIEhhbnM+ICB3ZWxsLCBidXQgcGVvcGxlIG1hZGUg
-c29tZSBnb29kIGFyZ3VtZW50cyBhZ2FpbnN0IHRoYXQuIFRoZQo+Pj4gbWFpbgo+Pj4gICBIYW5z
-PiAgb25lIGJlaW5nOiB3aHkgd291bGQgeW91IHdhbnQgdG8gc2hvdyB0aGVzZSBhcyBhIGNvbnRy
-b2w/IFdoYXQKPj4+IGlzCj4+PiAgIEhhbnM+ICB0aGUgZW5kIHVzZXIgc3VwcG9zZWQgdG8gZG8g
-d2l0aCB0aGVtPyBJdCBtYWtlcyBsaXR0bGUgc2Vuc2UuCj4+Pgo+Pj4gICBIYW5zPiAgRnJhbmts
-eSwgd2h5IHdvdWxkIHlvdSB3YW50IHRvIGV4cG9zZSBMRURzIGF0IGFsbD8gU2hvdWxkbid0Cj4+
-PiB0aGlzCj4+PiAgIEhhbnM+ICBiZSBjb21wbGV0ZWx5IGhpZGRlbiBieSB0aGUgZHJpdmVyPyBO
-byBnZW5lcmljIGFwcGxpY2F0aW9uIHdpbGwKPj4+ICAgSGFucz4gIGV2ZXIgZG8gYW55dGhpbmcg
-d2l0aCBzdGF0dXMgTEVEcyBhbnl3YXkuIFNvIGl0IHNob3VsZCBiZSB0aGUKPj4+ICAgSGFucz4g
-IGRyaXZlciB0aGF0IG9wZXJhdGVzIHRoZW0gYW5kIGluIHRoYXQgY2FzZSB0aGUgTEVEcyBkbyBu
-b3QgbmVlZAo+Pj4gICBIYW5zPiAgdG8gYmUgZXhwb3NlZCBhbnl3aGVyZS4KPj4+Cj4+PiBJdCdz
-IG5vdCB0aGF0IGl0ICpIQVMqIHRvIGJlIGV4cG9zZWQgLSBCdXQgaWYgd2UgY2FuLCB0aGVuIGl0
-J3MgbmljZSB0bwo+Pj4gZG8KPj4+IHNvIGFzIGl0IGdpdmVzIGZsZXhpYmlsaXR5IHRvIHRoZSB1
-c2VyIGluc3RlYWQgb2YgaGFyZGNvZGluZyBwb2xpY3kgaW4KPj4+IHRoZSBrZXJuZWwuCj4+Pgo+
-Pgo+PiBSZWFkaW5nIHRoaXMgd2hvbGUgdGhyZWFkIEkgaGF2ZSB0byBhZ3JlZSB0aGF0IGlmIHdl
-IGFyZSBnb2luZyB0byBleHBvc2UKPj4gY2FtZXJhIHN0YXR1cyBMRURzIGl0IHdvdWxkIGJlIGRv
-bmUgdGhyb3VnaCB0aGUgc3lzZnMgQVBJLiBJIHRoaW5rIHRoaXMKPj4gY2FuIGJlIGRvbmUgbmlj
-ZWx5IGZvciBnc3BjYSBiYXNlZCBkcml2ZXJzIChhcyB3ZSBjYW4gcHV0IGFsbCB0aGUgImNydWQi
-Cj4+IGluIHRoZSBnc3BjYSBjb3JlIGhhdmluZyB0byBkbyBpdCBvbmx5IG9uY2UpLCBidXQgdGhh
-dCBpcyBhIGxvdyBwcmlvcml0eQo+PiBuaWNlIHRvIGhhdmUgdGhpbmd5Lgo+Pgo+PiBUaGlzIGRv
-ZXMgbGVhdmUgdXMgd2l0aCB0aGUgcHJvYmxlbSBvZiBsb2dpdGVjaCB1dmMgY2FtcyB3aGVyZSB0
-aGUgTEVECj4+IGN1cnJlbnRseSBpcyBleHBvc2VkIGFzIGEgdjRsMiBjb250cm9sLgo+Cj5JcyBp
-dCBwb3NzaWJsZSBmb3IgdGhlIHV2YyBkcml2ZXIgdG8gZGV0ZWN0IGFuZCB1c2UgYSBMRUQgY29u
-dHJvbD8gVGhhdCdzCj5ob3cgSSB3b3VsZCBleHBlY3QgdGhpcyB0byB3b3JrLCBidXQgSSBrbm93
-IHRoYXQgdXZjIGlzIGEgYml0IG9mIGEgc3RyYW5nZQo+YmVhc3QuCj4KPlJlZ2FyZHMsCj4KPiAg
-ICAgICAgIEhhbnMKPgo+LS0gCj5IYW5zIFZlcmt1aWwgLSB2aWRlbzRsaW51eCBkZXZlbG9wZXIg
-LSBzcG9uc29yZWQgYnkgVEFOREJFUkcsIHBhcnQgb2YgQ2lzY28KPgo=
+On Wed, 8 Sep 2010, Jarod Wilson wrote:
 
+> > > It'll conflict a little bith with the tivo slide patch I posted yesterday,
+> > > but mostly just minor context changes. I can redo that patch on top of
+> > > these changes if that's preferred.
+> > 
+> > I can handle those context changes when merging the patches at linux-next and
+> > when merging upstream. We just need to sync in a way that Dmitry send his patch
+> > series before mine when sending them to Linus, and I'll take care of fixing the
+> > merge conflicts.
+> 
+> Ah, the specific conflicts I was referring here are confined to
+> drivers/hid/hid-input.c, and I sent the patch thinking it would go in via
+> the hid tree. It *is* for a remote, but its a pure HID device in this
+> case.
+
+Umm, what patch are you talking about please? I don't seem to have 
+anything from you in my queue.
+
+Thanks,
+
+-- 
+Jiri Kosina
+SUSE Labs, Novell Inc.
