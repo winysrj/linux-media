@@ -1,91 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:62170 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752214Ab0IOVNq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 17:13:46 -0400
-Date: Wed, 15 Sep 2010 14:13:37 -0700
-From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-To: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	David Hardeman <david@hardeman.nu>,
-	Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH 5/6] Input: ati-remote2 - switch to using new keycode
- interface
-Message-ID: <20100915211337.GA12119@core.coreip.homeip.net>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
- <20100908074205.32365.68835.stgit@hammer.corenet.prv>
- <20100909124003.GT10135@sci.fi>
- <20100913162807.GA14598@core.coreip.homeip.net>
- <20100915210419.GA6052@sci.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:46032 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755279Ab0IHQQO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 12:16:14 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o88GGEwX029949
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 12:16:14 -0400
+Received: from [10.11.11.235] (vpn-11-235.rdu.redhat.com [10.11.11.235])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o88GGBNa002755
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 12:16:13 -0400
+Message-ID: <4C87B6D0.8000509@redhat.com>
+Date: Wed, 08 Sep 2010 13:16:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100915210419.GA6052@sci.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] V4L/DVB: rc-core: increase repeat time
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thu, Sep 16, 2010 at 12:04:19AM +0300, Ville Syrjälä wrote:
-> On Mon, Sep 13, 2010 at 09:28:07AM -0700, Dmitry Torokhov wrote:
-> > On Thu, Sep 09, 2010 at 03:40:04PM +0300, Ville Syrjälä wrote:
-> > > On Wed, Sep 08, 2010 at 12:42:05AM -0700, Dmitry Torokhov wrote:
-> > > > Switch the code to use new style of getkeycode and setkeycode
-> > > > methods to allow retrieving and setting keycodes not only by
-> > > > their scancodes but also by index.
-> > > > 
-> > > > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> > > > ---
-> > > > 
-> > > >  drivers/input/misc/ati_remote2.c |   93 +++++++++++++++++++++++++++-----------
-> > > >  1 files changed, 65 insertions(+), 28 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/input/misc/ati_remote2.c b/drivers/input/misc/ati_remote2.c
-> > > > index 2325765..b2e0d82 100644
-> > > > --- a/drivers/input/misc/ati_remote2.c
-> > > > +++ b/drivers/input/misc/ati_remote2.c
-> > > > @@ -483,51 +483,88 @@ static void ati_remote2_complete_key(struct urb *urb)
-> > > >  }
-> > > >  
-> > > >  static int ati_remote2_getkeycode(struct input_dev *idev,
-> > > > -				  unsigned int scancode, unsigned int *keycode)
-> > > > +				  struct input_keymap_entry *ke)
-> > > >  {
-> > > >  	struct ati_remote2 *ar2 = input_get_drvdata(idev);
-> > > >  	unsigned int mode;
-> > > > -	int index;
-> > > > +	int offset;
-> > > > +	unsigned int index;
-> > > > +	unsigned int scancode;
-> > > > +
-> > > > +	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
-> > > > +		index = ke->index;
-> > > > +		if (index >= (ATI_REMOTE2_MODES - 1) *
-> > >                                                ^^^^
-> > > That -1 looks wrong. Same in setkeycode().
-> > > 
-> > 
-> > Yes, indeed. Thanks for noticing.
-> 
-> I fixed this bug locally and gave this a short whirl with my RWII.
-> I tried both the old and new style keycode ioctls. Everything
-> worked as expected.
-> 
-> So if you want more tags feel free to add my Acked-by and Tested-by
-> for this (assuming the off-by-one fix is included)
+As reported by Anton Blanchard <anton@samba.org>, double IR events on
+2.6.36-rc2 and a DViCO FusionHDTV DVB-T Dual Express are happening:
 
-Thank you very much for reviewing and testing it Ville, I will surely
-add the tags.
+[ 1351.032084] ir_keydown: i2c IR (FusionHDTV): key down event, key 0x0067, scancode 0x0051
+[ 1351.281284] ir_keyup: keyup key 0x0067
 
- and you can add my
-> Tested-by for patch 1/6 as well.
-> 
+ie one key down event and one key up event 250ms later.
 
-This one is already in public branch; I prefer not to rewind unless
-there are compile or other major issues....
+So, we need to increase the repeat timeout, to avoid this bug to hit.
 
+As we're doing it at core, this fix is not needed anymore at dib0700 driver.
+
+Thanks-to: Anton Blanchard <anton@samba.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 7e82a9d..d00ef19 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -510,6 +510,13 @@ int __ir_input_register(struct input_dev *input_dev,
+ 		   (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_IR_RAW) ?
+ 			" in raw mode" : "");
+ 
++	/*
++	 * Default delay of 250ms is too short for some protocols, expecially
++	 * since the timeout is currently set to 250ms. Increase it to 500ms,
++	 * to avoid wrong repetition of the keycodes.
++	 */
++	input_dev->rep[REP_DELAY] = 500;
++
+ 	return 0;
+ 
+ out_event:
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
+index fe81834..48397f1 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_core.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
+@@ -673,9 +673,6 @@ static int dib0700_probe(struct usb_interface *intf,
+ 			else
+ 				dev->props.rc.core.bulk_mode = false;
+ 
+-			/* Need a higher delay, to avoid wrong repeat */
+-			dev->rc_input_dev->rep[REP_DELAY] = 500;
+-
+ 			dib0700_rc_setup(dev);
+ 
+ 			return 0;
 -- 
-Dmitry
+1.7.1
+
