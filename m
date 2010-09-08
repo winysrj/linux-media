@@ -1,46 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.187]:56531 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751948Ab0IQNu6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Sep 2010 09:50:58 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Christoph Hellwig <hch@infradead.org>
-Subject: Re: Remaining BKL users, what to do
-Date: Fri, 17 Sep 2010 15:50:49 +0200
-Cc: Anton Altaparmakov <aia21@cam.ac.uk>, Jan Kara <jack@suse.cz>,
-	codalist@coda.cs.cmu.edu, autofs@linux.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	Trond Myklebust <Trond.Myklebust@netapp.com>,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Anders Larsen <al@alarsen.net>,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>, netdev@vger.kernel.org,
-	Samuel Ortiz <samuel@sortiz.org>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	Andrew Hendry <andrew.hendry@gmail.com>
-References: <201009161632.59210.arnd@arndb.de> <201009171245.41930.arnd@arndb.de> <20100917133231.GA9411@infradead.org>
-In-Reply-To: <20100917133231.GA9411@infradead.org>
+Received: from mx1.redhat.com ([209.132.183.28]:15368 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751486Ab0IHOYn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 10:24:43 -0400
+Date: Wed, 8 Sep 2010 10:24:18 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Jiri Kosina <jkosina@suse.cz>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Ville Syrjala <syrjala@sci.fi>
+Subject: Re: [PATCH 0/6] Large scancode handling
+Message-ID: <20100908142418.GC22323@redhat.com>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+ <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009171550.49282.arnd@arndb.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Friday 17 September 2010, Christoph Hellwig wrote:
+On Wed, Sep 08, 2010 at 11:48:50AM +0200, Jiri Kosina wrote:
+> On Wed, 8 Sep 2010, Dmitry Torokhov wrote:
 > 
-> On Fri, Sep 17, 2010 at 12:45:41PM +0200, Arnd Bergmann wrote:
-> > ncpfs: replace BKL with lock_super
+> > Hi Mauro,
+> > 
+> > I guess I better get off my behind and commit the changes to support large
+> > scancodes, or they will not make to 2.6.37 either... There isn't much
+> > changes, except I followed David's suggestion and changed boolean index
+> > field into u8 flags field. Still, please glance it over once again and
+> > shout if you see something you do not like.
+> > 
+> > Jiri, how do you want to handle the changes to HID? I could either push
+> > them through my tree together with the first patch or you can push through
+> > yours once the first change hits mainline.
 > 
-> Err, no.  lock_super is just as much on it's way out as the BKL.  We've
-> managed to move it down from the VFS into a few remaining filesystems
-> and now need to get rid of those users.  Please don't add any new ones.
+> I think that there will unlikely be any conflict in .37 merge window in 
+> this area (and if there were, I'll sort it out).
+> 
+> So please add
+> 
+> 	Acked-by: Jiri Kosina <jkosina@suse.cz>
+> 
+> to the hid-input.c bits and feel free to take it through your tree, if it 
+> is convenient for you.
 
-Ok. I guess that's also a NAK for my the isofs patch I posted yesterday
-then. Do you have any suggestions for an alternative approach?
+It'll conflict a little bith with the tivo slide patch I posted yesterday,
+but mostly just minor context changes. I can redo that patch on top of
+these changes if that's preferred.
 
-	Arnd
+-- 
+Jarod Wilson
+jarod@redhat.com
+
