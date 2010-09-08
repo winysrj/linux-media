@@ -1,100 +1,44 @@
-Return-path: <mchehab@localhost>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:44500 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756900Ab0IBU3y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 16:29:54 -0400
-Subject: [PATCH 0/5] rc-core: ir-core to rc-core conversion
-To: mchehab@infradead.org
-From: David =?utf-8?b?SMOkcmRlbWFu?= <david@hardeman.nu>
-Cc: linux-media@vger.kernel.org, jarod@redhat.com
-Date: Thu, 02 Sep 2010 22:29:50 +0200
-Message-ID: <20100902202858.3671.50768.stgit@localhost.localdomain>
+Return-path: <mchehab@pedra>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:58892 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755136Ab0IHHln (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 03:41:43 -0400
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: [PATCH 0/6] Large scancode handling
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
+Date: Wed, 08 Sep 2010 00:41:38 -0700
+Message-ID: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
 MIME-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This is my current patch queue, the main change is to make struct rc_dev
-the primary interface for rc drivers and to abstract away the fact that
-there's an input device lurking in there somewhere. The first three
-patches in the set are preparations for the change.
+Hi Mauro,
 
-I've also converted winbond-cir over to rc-core.
+I guess I better get off my behind and commit the changes to support large
+scancodes, or they will not make to 2.6.37 either... There isn't much
+changes, except I followed David's suggestion and changed boolean index
+field into u8 flags field. Still, please glance it over once again and
+shout if you see something you do not like.
 
-Given the changes, these patches touch every single driver. Obviously I
-haven't tested them all due to a lack of hardware (I have made sure that
-all drivers compile without any warnings and I have tested the end result
-on mceusb and winbond-cir hardware).
+Jiri, how do you want to handle the changes to HID? I could either push
+them through my tree together with the first patch or you can push through
+yours once the first change hits mainline.
 
----
+Mauro, the same question goes for media/IR patch.
 
-David Härdeman (5):
-      rc-code: merge and rename ir-core
-      rc-core: remove remaining users of the ir-functions keyhandlers
-      imon: split mouse events to a separate input dev
-      rc-core: make struct rc_dev the primary interface for rc drivers
-      rc-core: convert winbond-cir
+David, I suppose you still have the winbond remote so you could test
+changes to winbond-cir driver.
 
+Ville, do you still have the hardware to try our ati_remote2 changes?
 
- drivers/input/misc/Kconfig                  |   18 
- drivers/input/misc/Makefile                 |    1 
- drivers/input/misc/winbond-cir.c            | 1608 ---------------------------
- drivers/media/IR/Kconfig                    |   17 
- drivers/media/IR/Makefile                   |    4 
- drivers/media/IR/ene_ir.c                   |  121 +-
- drivers/media/IR/ene_ir.h                   |    3 
- drivers/media/IR/imon.c                     |  267 +++-
- drivers/media/IR/ir-core-priv.h             |   26 
- drivers/media/IR/ir-functions.c             |   98 --
- drivers/media/IR/ir-jvc-decoder.c           |   13 
- drivers/media/IR/ir-keytable.c              |  565 ---------
- drivers/media/IR/ir-lirc-codec.c            |  111 +-
- drivers/media/IR/ir-nec-decoder.c           |   15 
- drivers/media/IR/ir-raw-event.c             |  379 ------
- drivers/media/IR/ir-rc5-decoder.c           |   13 
- drivers/media/IR/ir-rc6-decoder.c           |   17 
- drivers/media/IR/ir-sony-decoder.c          |   11 
- drivers/media/IR/ir-sysfs.c                 |  340 ------
- drivers/media/IR/mceusb.c                   |   93 +-
- drivers/media/IR/rc-core.c                  | 1316 ++++++++++++++++++++++
- drivers/media/IR/rc-map.c                   |  107 --
- drivers/media/IR/streamzap.c                |   75 +
- drivers/media/IR/winbond-cir.c              |  934 ++++++++++++++++
- drivers/media/dvb/dm1105/dm1105.c           |   40 -
- drivers/media/dvb/dvb-usb/dib0700.h         |    2 
- drivers/media/dvb/dvb-usb/dib0700_core.c    |   11 
- drivers/media/dvb/dvb-usb/dib0700_devices.c |  116 +-
- drivers/media/dvb/dvb-usb/dvb-usb-remote.c  |   78 +
- drivers/media/dvb/dvb-usb/dvb-usb.h         |   12 
- drivers/media/dvb/mantis/mantis_common.h    |    4 
- drivers/media/dvb/mantis/mantis_input.c     |   74 +
- drivers/media/dvb/siano/smscoreapi.c        |    2 
- drivers/media/dvb/siano/smsir.c             |   52 -
- drivers/media/dvb/siano/smsir.h             |    3 
- drivers/media/dvb/ttpci/budget-ci.c         |   49 -
- drivers/media/video/bt8xx/bttv-input.c      |   68 -
- drivers/media/video/bt8xx/bttvp.h           |    1 
- drivers/media/video/cx18/cx18-i2c.c         |    1 
- drivers/media/video/cx23885/cx23885-input.c |   64 +
- drivers/media/video/cx23885/cx23885.h       |    3 
- drivers/media/video/cx88/cx88-input.c       |   86 +
- drivers/media/video/em28xx/em28xx-input.c   |   72 +
- drivers/media/video/ir-kbd-i2c.c            |   39 -
- drivers/media/video/ivtv/ivtv-i2c.c         |    3 
- drivers/media/video/saa7134/saa7134-input.c |  122 +-
- drivers/staging/tm6000/tm6000-input.c       |   97 +-
- include/media/ir-common.h                   |   33 -
- include/media/ir-core.h                     |  193 +--
- include/media/ir-kbd-i2c.h                  |    6 
- 50 files changed, 3171 insertions(+), 4212 deletions(-)
- delete mode 100644 drivers/input/misc/winbond-cir.c
- delete mode 100644 drivers/media/IR/ir-keytable.c
- delete mode 100644 drivers/media/IR/ir-raw-event.c
- delete mode 100644 drivers/media/IR/ir-sysfs.c
- create mode 100644 drivers/media/IR/rc-core.c
- delete mode 100644 drivers/media/IR/rc-map.c
- create mode 100644 drivers/media/IR/winbond-cir.c
+Thanks!
 
 -- 
-David Härdeman
+Dmitry
