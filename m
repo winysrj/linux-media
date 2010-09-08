@@ -1,74 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:40938 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751721Ab0IQRBd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Sep 2010 13:01:33 -0400
-Date: Fri, 17 Sep 2010 10:01:21 -0700
-From: Randy Dunlap <randy.dunlap@oracle.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH -next] staging: cx25821 and go7007 depend on IR_CORE
-Message-Id: <20100917100121.dea03063.randy.dunlap@oracle.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:43394 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752180Ab0IHR3g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 13:29:36 -0400
+Date: Wed, 8 Sep 2010 13:29:24 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jiri Kosina <jkosina@suse.cz>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Ville Syrjala <syrjala@sci.fi>
+Subject: Re: [PATCH 0/6] Large scancode handling
+Message-ID: <20100908172924.GI22323@redhat.com>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+ <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz>
+ <20100908142418.GC22323@redhat.com>
+ <4C87A87A.4060102@redhat.com>
+ <20100908152234.GE22323@redhat.com>
+ <alpine.LNX.2.00.1009081723400.26813@pobox.suse.cz>
+ <20100908160908.GF22323@redhat.com>
+ <20100908165607.GA5424@core.coreip.homeip.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20100908165607.GA5424@core.coreip.homeip.net>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+On Wed, Sep 08, 2010 at 09:56:07AM -0700, Dmitry Torokhov wrote:
+> On Wed, Sep 08, 2010 at 12:09:08PM -0400, Jarod Wilson wrote:
+> > On Wed, Sep 08, 2010 at 05:25:13PM +0200, Jiri Kosina wrote:
+> > > On Wed, 8 Sep 2010, Jarod Wilson wrote:
+> > > 
+> > > > > > It'll conflict a little bith with the tivo slide patch I posted yesterday,
+> > > > > > but mostly just minor context changes. I can redo that patch on top of
+> > > > > > these changes if that's preferred.
+> > > > > 
+> > > > > I can handle those context changes when merging the patches at linux-next and
+> > > > > when merging upstream. We just need to sync in a way that Dmitry send his patch
+> > > > > series before mine when sending them to Linus, and I'll take care of fixing the
+> > > > > merge conflicts.
+> > > > 
+> > > > Ah, the specific conflicts I was referring here are confined to
+> > > > drivers/hid/hid-input.c, and I sent the patch thinking it would go in via
+> > > > the hid tree. It *is* for a remote, but its a pure HID device in this
+> > > > case.
+> > > 
+> > > Umm, what patch are you talking about please? I don't seem to have 
+> > > anything from you in my queue.
+> > 
+> > Gah. I suck. Forgot to cc you on it.
+> > 
+> > http://www.spinics.net/lists/linux-input/msg11007.html
+> > 
+> > Can resend and/or bounce you a copy if need be.
+> > 
+> 
+> Hmm, I do not see anything in there that would conflict with my
+> changes...
 
-Fix build errors in cx25821 and go7007.
-They both use IR functions, so they should depend on IR_CORE.
-(It's not safe to select VIDEO_IR when IR_CORE is not enabled.)
-
-(.text+0x39065a): undefined reference to `ir_core_debug'
-(.text+0x3906a4): undefined reference to `ir_core_debug'
-ir-functions.c:(.text+0x39080b): undefined reference to `ir_core_debug'
-(.text+0x390893): undefined reference to `ir_g_keycode_from_table'
-(.text+0x390942): undefined reference to `ir_core_debug'
-(.text+0x3909f5): undefined reference to `ir_core_debug'
-(.text+0x390a3a): undefined reference to `ir_core_debug'
-(.text+0x390ab1): undefined reference to `ir_core_debug'
-(.text+0x390b36): undefined reference to `ir_core_debug'
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: devel@driverdev.osuosl.org
----
- drivers/staging/cx25821/Kconfig |    2 +-
- drivers/staging/go7007/Kconfig  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
-(originally sent to lkml, linux-next, and staging mailing lists;
-now resending to linux-media)
-
-
---- linux-next-20100914.orig/drivers/staging/cx25821/Kconfig
-+++ linux-next-20100914/drivers/staging/cx25821/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_CX25821
- 	tristate "Conexant cx25821 support"
--	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT
-+	depends on DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT && IR_CORE
- 	select I2C_ALGOBIT
- 	select VIDEO_BTCX
- 	select VIDEO_TVEEPROM
---- linux-next-20100914.orig/drivers/staging/go7007/Kconfig
-+++ linux-next-20100914/drivers/staging/go7007/Kconfig
-@@ -1,6 +1,6 @@
- config VIDEO_GO7007
- 	tristate "WIS GO7007 MPEG encoder support"
--	depends on VIDEO_DEV && PCI && I2C && INPUT
-+	depends on VIDEO_DEV && PCI && I2C && INPUT && IR_CORE
- 	depends on SND
- 	select VIDEOBUF_DMA_SG
- 	select VIDEO_IR
---
-To unsubscribe from this list: send the line "unsubscribe linux-next" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sorry, yeah, it *should* be solely context conflicts due to line offsets
+and other misc drift, no functional conflicts with your changes.
 
 
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+-- 
+Jarod Wilson
+jarod@redhat.com
+
