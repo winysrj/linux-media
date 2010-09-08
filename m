@@ -1,41 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:50638 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752474Ab0IPCyB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 22:54:01 -0400
-Received: by eyb6 with SMTP id 6so431723eyb.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Sep 2010 19:54:00 -0700 (PDT)
+Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:36502 "EHLO
+	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932078Ab0IHXJu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 19:09:50 -0400
+Date: Thu, 9 Sep 2010 01:09:46 +0200
+From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
+Subject: Re: [PATCH 4/6] Input: winbond-cir - switch to using new keycode
+ interface
+Message-ID: <20100908230946.GB7121@hardeman.nu>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+ <20100908074200.32365.98120.stgit@hammer.corenet.prv>
+ <20100908211617.GB13938@hardeman.nu>
+ <20100908230003.GB9405@core.coreip.homeip.net>
 MIME-Version: 1.0
-Date: Wed, 15 Sep 2010 22:54:00 -0400
-Message-ID: <AANLkTimt5bs1fNp=+36VLaTy0Kwi1rDPcpUTeN4z+c35@mail.gmail.com>
-Subject: HVR 1600 Distortion
-From: Josh Borke <joshborke@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20100908230003.GB9405@core.coreip.homeip.net>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-I've recently noticed some distortion coming from my hvr1600 when
-viewing analog channels.  It happens to all analog channels with some
-slightly better than others.  I am running Fedora 12 linux with kernel
-version 2.6.32.21-166.
+On Wed, Sep 08, 2010 at 04:00:04PM -0700, Dmitry Torokhov wrote:
+> On Wed, Sep 08, 2010 at 11:16:17PM +0200, David Härdeman wrote:
+> > On Wed, Sep 08, 2010 at 12:42:00AM -0700, Dmitry Torokhov wrote:
+> > > Switch the code to use new style of getkeycode and setkeycode
+> > > methods to allow retrieving and setting keycodes not only by
+> > > their scancodes but also by index.
+> > > 
+> > > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+> > > ---
+> > > 
+> > >  drivers/input/misc/winbond-cir.c |  248 +++++++++++++++++++++++++-------------
+> > >  1 files changed, 163 insertions(+), 85 deletions(-)
+> > 
+> > Thanks for doing the conversion for me, but I think you can skip this 
+> > patch. The driver will (if I understood your patchset correctly) still 
+> > work with the old get/setkeycode ioctls and I have a patch lined up that 
+> > converts winbond-cir.c to use ir-core which means all of the input 
+> > related code is removed.
+> > 
+> 
+> Yes, it should still work with old get/setkeycode. What are the plans
+> for your patch? .37 or later?
 
-Output of lspci -v:
+Up to Mauro but I believe it's .37 (sometime after your input patches 
+land).
 
-02:0a.0 Multimedia video controller: Conexant Systems, Inc. CX23418
-Single-Chip MPEG-2 Encoder with Integrated Analog Video/Broadcast
-Audio Decoder
-        Subsystem: Hauppauge computer works Inc. WinTV HVR-1600
-        Flags: bus master, medium devsel, latency 64, IRQ 10
-        Memory at c0000000 (32-bit, non-prefetchable) [size=64M]
-        Capabilities: [44] Vital Product Data
-        Capabilities: [4c] Power Management version 2
-        Kernel driver in use: cx18
-        Kernel modules: cx18
-
-I know I need to include more information but I'm not sure what to
-include.  Any help would be appreciated.
-
-Thanks,
--josh
+-- 
+David Härdeman
