@@ -1,80 +1,107 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:43842 "EHLO
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:48697 "EHLO
 	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753139Ab0IMRlB (ORCPT
+	by vger.kernel.org with ESMTP id S1755941Ab0IHQvI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 13:41:01 -0400
-Date: Mon, 13 Sep 2010 13:40:56 -0400
-Subject: Re: [GIT PATCHES FOR 2.6.37] Remove V4L1 support from the pwc
- driver
-Message-ID: <j8j55cs3ngu17v1ql2qrw72r.1284399656070@email.android.com>
+	Wed, 8 Sep 2010 12:51:08 -0400
+Subject: Re: [PATCH 7/8] IR: extend ir_raw_event and do refactoring
 From: Andy Walls <awalls@md.metrocast.net>
-To: Andy Walls <awalls@md.metrocast.net>,
-	Thomas Kaiser <linux-dvb@kaiser-linux.li>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Hans de Goede <hdegoede@redhat.com>
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>,
+	lirc-list@lists.sourceforge.net,
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+In-Reply-To: <AANLkTinr6mN=t=vNnR3pSBxXb0ud=Ymrqn_WyDNkUJTz@mail.gmail.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+	 <1283808373-27876-8-git-send-email-maximlevitsky@gmail.com>
+	 <AANLkTinr6mN=t=vNnR3pSBxXb0ud=Ymrqn_WyDNkUJTz@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 08 Sep 2010 12:50:46 -0400
+Message-ID: <1283964646.6372.90.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-RnVydGhlciBpbnZlc3RpZ2F0aW9uIHJldmVhbHMgdGhhdCB0aGUgVHJhdmVsZXIgaXMgbGlrZWx5
-IGEgVVZDIGJhc2VkIHdlYmNhbSBtaWNyb3Njb3BlLiAgQXZlb3RlayBwcm92aWRlcyBjb250cm9s
-bGVyIGNoaXBzIHRvIGNhbWVyYSBtYW51ZmFjdHVyZXJzIGFuZCBoYXMgYSBnZW5lcmljIFVWQyBk
-cml2ZXIgZG93bmxvYWQgYXZhaWxhYmxlIGZvciBXaW5kb3dzLgoKSSBub3RpY2UgVHJhdmVsZXIg
-VVNBIGRvZXMgbm90IHNlbGwgdGhlaXIgbWljcm9zY29wZSBpbiB0aGUgVVMuICBJIGJlbGlldmUg
-TWF0dGVsbCwgSW5jLiBvd25zIHNvbWUgYXNwZWN0cyBvZiB0aGUgbWVjaGFuaWNhbCBkZXNpZ24g
-KHNpbmNlIHRoZSBzdGlja2VyIG9uIHRoZSBib3R0b20gb2YgbXkgUVgzIGluZGljYXRlcyBpdCB3
-YXMgbWFkZSBieSBNYXR0ZWxsKS4KClJlZ2FyZHMsCkFuZHkKCkFuZHkgV2FsbHMgPGF3YWxsc0Bt
-ZC5tZXRyb2Nhc3QubmV0PiB3cm90ZToKCj5UaGUgY3BpYTIgZHJpdmVyIGRvZXNuJ3Qga25vdyBh
-Ym91dCB0aG9zZSB1c2IgaWRzLgo+Cj5UaGUgVHJhdmVsZXIgbWljcm9zY29wZXMgbG9vayBtZWNo
-YW5pY2FsbHkgc2ltaWxhciB0byB0aGUgUVgzIGFuZCBRWDUsIGJ1dCB0aGUgcGl4ZWwgcmVzb2x1
-dGlvbiBpcyBoaWdoZXIgdGhhbiB0aGUgUVgzLgo+VGhlIFFYNSBoYXMgdGhlIHNhbWUgcHhpZWwg
-cmVzb2x1dGlvbiBhcyB0aGUgVHJhdmVsZXIgTW9kIDEsIGJ1dCB0aGUgTW9kIDIgc3VwcG9ydCBh
-IGhpZ2hlciByZXNvbHV0aW9uLgo+Cj5HaXZlbiBhbGwgdGhhdCwgSSdtIG5vdCBzdXJlIHdlIGNv
-dWxkIHVzZSB5b3VyIHVuaXQgZm9yIHJlZ3Jlc3Npb24gdGVzdGluZyBvZiBjaGFuZ2VzIHRvIHRo
-ZSBjcGlhMiBkcml2ZXIuICBJdCBtYXkgYmUgcG9zc2libGUgdG8gc3VwcG9ydCB0aGUgVHJhdnZl
-bGVyIHVuZGVyIGxpbnV4IGV2ZW50dWFsbHksIGJ1dCBhdCBhIG1pbmltdW0geW91J2xsIG5lZWQg
-dG8gcHJvdmlkZSBpbmZvcm1hdGlvbiBvbiB0aGUgY2hpcHMgdXNlZCBpbiB0aGUgdW5pdC4KPgo+
-VGhhbmtzIGZvciB0aGUgb2ZmZXIgb2YgaGVscC4KPgo+UmVnYXJkcywKPkFuZHkKPgo+Cj5UaG9t
-YXMgS2Fpc2VyIDxsaW51eC1kdmJAa2Fpc2VyLWxpbnV4LmxpPiB3cm90ZToKPgo+Pk9uIDA5LzEz
-LzIwMTAgMDM6MzAgUE0sIEFuZHkgV2FsbHMgd3JvdGU6Cj4+PiBPbiBNb24sIDIwMTAtMDktMTMg
-YXQgMDg6MjcgLTAzMDAsIE1hdXJvIENhcnZhbGhvIENoZWhhYiB3cm90ZToKPj4+PiBFbSAxMi0w
-OS0yMDEwIDE4OjI4LCBBbmR5IFdhbGxzIGVzY3JldmV1Ogo+Pj4+PiBPbiBTdW4sIDIwMTAtMDkt
-MTIgYXQgMTc6MTIgLTA0MDAsIEFuZHkgV2FsbHMgd3JvdGU6Cj4+Pj4+PiBPbiBTdW4sIDIwMTAt
-MDktMTIgYXQgMjI6MjYgKzAyMDAsIEhhbnMgVmVya3VpbCB3cm90ZToKPj4+Pj4+Cj4+Pj4+Pj4g
-QW5kIG90aGVyIG5ld3Mgb24gdGhlIFY0TDEgZnJvbnQ6Cj4+Pj4+Pgo+Pj4+Pj4+IEknbSB3YWl0
-aW5nIGZvciB0ZXN0IHJlc3VsdHMgb24gdGhlIGNwaWEyIGRyaXZlci4gSWYgaXQgd29ya3MsIHRo
-ZW4gdGhlIFY0TDEKPj4+Pj4+PiBzdXBwb3J0IGNhbiBiZSByZW1vdmVkIGZyb20gdGhhdCBkcml2
-ZXIgYXMgd2VsbC4KPj4+Pj4+Cj4+Pj4+PiBGWUksIHRoYXQgd2lsbCBicmVhayB0aGlzIDIwMDUg
-dmludGFnZSBwaWVjZSBvZiBWNEwxIHNvZnR3YXJlIHBlb3BsZSBtYXkKPj4+Pj4+IHN0aWxsIGJl
-IHVzaW5nIGZvciB0aGUgUVg1IG1pY3Jvc2NvcGU6Cj4+Pj4+Cj4+Pj4+IFNvcnJ5LCB0aGF0IGlz
-IG9mIGNvdXJzZSwgaWYgdGhlcmUgaXMgbm8gVjRMMSBjb21wYXQgbGF5ZXIgc3RpbGwgaW4KPj4+
-Pj4gcGxhY2UuCj4+Pj4+Cj4+Pj4+IEJUVywgcXg1dmlldyB1c2VzIGEgcHJpdmF0ZSBpb2N0bCgp
-IHRvIGNoYW5nZSB0aGUgbGlnaHRzIG9uIGEgUVg1IGFuZAo+Pj4+PiBub3QgdGhlIFY0TDIgY29u
-dHJvbC4KPj4+Pgo+Pj4+IFRoZSBiZXR0ZXIgd291bGQgYmUgdG8gcG9ydCBxeDV2aWV3IHRvIHVz
-ZSBsaWJ2NGwgYW5kIGltcGxlbWVudCB0aGUgbmV3Cj4+Pj4gaWxsdW1pbmF0b3IgY3RybCBvbiB0
-aGUgZHJpdmVyIGFuZCBvbiB0aGUgdXNlcnNwYXNlIGFwcC4gRG8geW91IGhhdmUKPj4+PiBoYXJk
-d2FyZSBmb3IgdGVzdGluZyB0aGlzPwo+Pj4KPj4+IE5vLiAgSSBkaWQgY2hlY2sgQW1hem9uLmNv
-bSBhbmQgZUJheSBhbmQgc2F3IGEgUVg1IGZvciBhYm91dCBVUyQ3NSBhZnRlcgo+Pj4gc2hpcHBp
-bmcgY29zdHM6Cj4+Pgo+Pj4gaHR0cDovL2NnaS5lYmF5LmNvbS93cy9lQmF5SVNBUEkuZGxsP1Zp
-ZXdJdGVtJml0ZW09MzgwMjYyNDA2OTg5JnJ2cl9pZD0xMzkxNDczNTk5NTQmY3JscD0xXzI2MzYw
-Ml8yNjM2MjImVUE9TCpGJTNGJkdVSUQ9MGIzYjUzNzQxMmIwYTBlMjAzZTYzMDA2ZmY5YmVjYjAm
-aXRlbWlkPTM4MDI2MjQwNjk4OSZmZjQ9MjYzNjAyXzI2MzYyMgo+Pj4KPj4+IEknbSBub3Qgc3Vy
-ZSBpZiBJIHdhbnQgdG8gYnV5IG9uZSBhdCB0aGF0IHByaWNlLCBzaW5jZSBJIGFscmVhZHkgaGF2
-ZSBhCj4+PiBRWDMuCj4+Pgo+Pj4gUmVnYXJkcywKPj4+IEFuZHkKPj4+Cj4+PiAtLQo+Pj4gVG8g
-dW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxp
-bnV4LW1lZGlhIiBpbgo+Pj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2Vy
-Lmtlcm5lbC5vcmcKPj4+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5l
-bC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+Pgo+PkhlbGxvIEFuZHksIE1hdXJvCj4+Cj4+SSBv
-d24gYSBVU0IgTWljcm9zY29wZSB3aGljaCBsb29rcyBxdWl0ZSB0aGUgc2FtZSBhcyB0aGUgb25l
-IGluIHlvdXIgCj4+bGluaywgYnV0IEkgZG9uJ3Qga25vdyBpZiBpdCBpcyBzaW1pbGFyIHRvIHRo
-ZSBRWDMgb3IgUVg1Lgo+Pkl0IGlzIGNhbGxlZCAiVHJhdmVsZXIgVVNCLU1pa3Jvc2tvcCIgYW5k
-IG1vZGVsIG51bWJlciBpcyAiU1UgMTA3MSIuCj4+T25lIG9mIHRoaXMgdHdvOgo+Pmh0dHA6Ly93
-d3cudHJhdmVsZXItc2VydmljZS5kZS9jbXMvaW5kZXgucGhwP2lkPXRyYXZlbGVyLW9wdGlzY2hl
-LWdlcmFldGUtZGUKPj4KPj5VU0IgSUQ6IDE4NzE6MDFiMCBBdmVvIFRlY2hub2xvZ3kgQ29ycC4K
-Pj4KPj5JdCBpcyBub3Qgd29ya2luZyBpbiBVYnVudHUgMTAuMDQsIGtlcm5lbCBBTUQ2NCAyLjYu
-MzItMjQtZ2VuZXJpYy4KPj4KPj5JZiBpdCBpcyBhIFFYNSwgSSBjYW4gaGVscCB0ZXN0aW5nLgo+
-Pgo+PlJlZ2FyZHMsCj4+VGhvbWFzCj4+Cj4+Cg==
+On Wed, 2010-09-08 at 11:26 -0400, Jarod Wilson wrote:
+> On Mon, Sep 6, 2010 at 5:26 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+> > Add new event types for timeout & carrier report
+> > Move timeout handling from ir_raw_event_store_with_filter to
+> > ir-lirc-codec, where it is really needed.
+> > Now lirc bridge ensures proper gap handling.
+> > Extend lirc bridge for carrier & timeout reports
+> >
+> > Note: all new ir_raw_event variables now should be initialized
+> > like that: DEFINE_IR_RAW_EVENT(ev);
+> >
+> > To clean an existing event, use init_ir_raw_event(&ev);
+> >
+> > Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+> > ---
+> >  drivers/media/IR/ene_ir.c          |    4 +-
+> >  drivers/media/IR/ir-core-priv.h    |   13 ++++++-
+> >  drivers/media/IR/ir-jvc-decoder.c  |    5 +-
+> >  drivers/media/IR/ir-lirc-codec.c   |   78 +++++++++++++++++++++++++++++++-----
+> >  drivers/media/IR/ir-nec-decoder.c  |    5 +-
+> >  drivers/media/IR/ir-raw-event.c    |   45 +++++++-------------
+> >  drivers/media/IR/ir-rc5-decoder.c  |    5 +-
+> >  drivers/media/IR/ir-rc6-decoder.c  |    5 +-
+> >  drivers/media/IR/ir-sony-decoder.c |    5 +-
+> >  drivers/media/IR/mceusb.c          |    3 +-
+> >  drivers/media/IR/streamzap.c       |    8 ++-
+> >  include/media/ir-core.h            |   40 ++++++++++++++++---
+> >  12 files changed, 153 insertions(+), 63 deletions(-)
+> ...
+> > @@ -162,22 +164,48 @@ u32 ir_g_keycode_from_table(struct input_dev *input_dev, u32 scancode);
+> >  /* From ir-raw-event.c */
+> >
+> >  struct ir_raw_event {
+> > -       unsigned                        pulse:1;
+> > -       unsigned                        duration:31;
+> > +       union {
+> > +               u32             duration;
+> > +
+> > +               struct {
+> > +                       u32     carrier;
+> > +                       u8      duty_cycle;
+> > +               };
+> > +       };
+> > +
+> > +       unsigned                pulse:1;
+> > +       unsigned                reset:1;
+> > +       unsigned                timeout:1;
+> > +       unsigned                carrier_report:1;
+> >  };
+> 
+> I'm generally good with this entire patch, but the union usage looks a
+> bit odd, as the members aren't of the same size, which is generally
+> what I've come to expect looking at other code.
+
+Having a union with different sized members is perfectly valid C code. 
+
+Just look at the definition of the XEvent in Xlib.h.  The "int type;" is
+smaller than everything, and the XAnyEvent is smaller than the other
+event types.
+
+The size of the union will be the size of its largest member.
+
+
+
+>  I'd be inclined to
+> simply move duty_cycle out of the union and leave just duration and
+> carrier in it.
+
+That's not necessary and it could be confusing depending on where you
+put duty_cycle.
+
+Regards,
+Andy
+
+>  However, as discussed on irc and upon looking at the
+> code, we don't actually do anything useful with duty_cycle yet, so
+> perhaps just cut it out entirely for the moment, and add it later when
+> its of use.
+> 
+
 
