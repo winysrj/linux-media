@@ -1,84 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:30999 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752018Ab0I3TM1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Sep 2010 15:12:27 -0400
-Message-ID: <4CA4E115.2080607@redhat.com>
-Date: Thu, 30 Sep 2010 16:12:21 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:63141 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752657Ab0IIT0T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 15:26:19 -0400
+Received: by wyf22 with SMTP id 22so1777313wyf.19
+        for <linux-media@vger.kernel.org>; Thu, 09 Sep 2010 12:26:18 -0700 (PDT)
+From: Peter Korsgaard <jacmet@sunsite.dk>
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: "Andy Walls" <awalls@md.metrocast.net>,
+	"Hans de Goede" <hdegoede@redhat.com>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>,
+	eduardo.valentin@nokia.com,
+	"ext Eino-Ville Talvala" <talvala@stanford.edu>
+Subject: Re: [PATCH] Illuminators and status LED controls
+References: <y1el0c4vecj8x6uk04ypatvd.1284039765001@email.android.com>
+	<275b6fc10404e9bda012060f49cdf2f3.squirrel@webmail.xs4all.nl>
+Date: Thu, 09 Sep 2010 21:26:10 +0200
+In-Reply-To: <275b6fc10404e9bda012060f49cdf2f3.squirrel@webmail.xs4all.nl>
+	(Hans Verkuil's message of "Thu, 9 Sep 2010 16:17:40 +0200")
+Message-ID: <87vd6ebtwt.fsf@macbook.be.48ers.dk>
 MIME-Version: 1.0
-To: Michael Krufky <mkrufky@kernellabs.com>
-CC: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
-	dheitmueller@kernellabs.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 08/10] V4L/DVB: tda18271: allow restricting max out to
- 4 bytes
-References: <cover.1285699057.git.mchehab@redhat.com>	<20100928154659.0e7e4147@pedra> <AANLkTik_3MSjyqokvam28g5ohhCP=bb=_uzyzK0iM8Et@mail.gmail.com>
-In-Reply-To: <AANLkTik_3MSjyqokvam28g5ohhCP=bb=_uzyzK0iM8Et@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Michael,
+>>>>> "Hans" == Hans Verkuil <hverkuil@xs4all.nl> writes:
 
-Em 30-09-2010 15:52, Michael Krufky escreveu:
-> On Tue, Sep 28, 2010 at 2:46 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> By default, tda18271 tries to optimize I2C bus by updating all registers
->> at the same time. Unfortunately, some devices doesn't support it.
->>
->> The current logic has a problem when small_i2c is equal to 8, since there
->> are some transfers using 11 + 1 bytes.
->>
->> Fix the problem by enforcing the max size at the right place, and allows
->> reducing it to max = 3 + 1.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> This looks to me as if it is working around a problem on the i2c
-> master.  I believe that a fix like this really belongs in the i2c
-> master driver, it should be able to break the i2c transactions down
-> into transactions that the i2c master can handle.
-> 
-> I wouldn't want to merge this without a better explanation of why it
-> is necessary in the tda18271 driver.  It seems to be a band-aid to
-> cover up a problem in the i2c master device driver code.
+Hi,
 
-In the specific case of cx231xx the hardware don't support any I2C transactions 
-with more than 4 bytes. It is common to find this kind of limit on other types
-of hardware as well.
+ Hans> But I feel I am missing something: who is supposed to use these LEDs?
+ Hans> Turning LEDs in e.g. webcams on or off is a job for the driver, never for
+ Hans> a userspace application.
 
-In the specific case of tda18271, the workaround for tda18271 is already there:
+Agreed - By default, the driver should just turn on the LED when the
+device is active and off again when it is not.
 
-enum tda18271_small_i2c {
-	TDA18271_39_BYTE_CHUNK_INIT = 0,
-	TDA18271_16_BYTE_CHUNK_INIT = 1,
-	TDA18271_08_BYTE_CHUNK_INIT = 2,
-};
-(from upstream tda18271.h header)
+ Hans> For that matter, if the driver handles the LEDs,
+ Hans> can we still expose the API to userspace? Wouldn't those two interfere
+ Hans> with one another? I know nothing about the LED interface in sysfs, but I
+ Hans> can imagine that will be a problem.
 
-Yet, it is currently broken. In thesis, if you use small_i2c, it should limit the 
-transactions size to a certain value, but, if you try to limit to 8, you'll still 
-see some transactions with size=11, since the code that honors small_i2c only works
-for the initial dump of the 39 registers, as there are some cases where writes to
-EP3 registers are done with:
-	tda18271_write_regs(fe, R_EP3, 11);
+Yes, you expose the LED using the LED class, and add a LED trigger per
+video device (named something like "videoX-active"). Furthermore you set
+the default trigger for that LED to be videoX-active.
 
-and the current code for tda18271_write_regs don't check it.
+So the logic of how to turn on/off the LED is seperated from the policy
+about WHEN it should be turned on/off.
 
-So, if there's a code there that allows limiting small_i2c:
-	1) this code should work for all transactions, not only to the initial init;
-	2) if there is such code, why not allow specifying a max size of 4 bytes?
+ >> Sysfs entry ownership, unix permissions, and ACL permissions consistency
+ >> with /dev/videoN will be the immediate usability problem for end users in
+ >> any case.
 
-Another aspect is that doing such kind or restriction at the i2c adapter would require
-a very ugly logic, as some devices like tda18271 have only 8 bits registers per i2c address,
-and a write (or read) with length > 1 byte update/read the next consecutive registers,
-while other devices like xc3028 have one single I2C address for multi-byte operations like
-updating the firmware.
+ Hans> Again, why would end users or application need or want to manipulate such
+ Hans> LEDs in any case?
 
-If this logic would be moved into the bridge drivers, they would need to have some ugly
-tests, checking for each specific i2c sub-driver at their core drivers.
+In most cases they don't - Not using the LED sysfs or v4l. But if they
+do, then they CAN.
 
-Cheers,
-Mauro.
+-- 
+Bye, Peter Korsgaard
