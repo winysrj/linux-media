@@ -1,45 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:35177 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753106Ab0IZO0L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 10:26:11 -0400
-Date: Sun, 26 Sep 2010 16:25:53 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] V4L/DVB: dib0700: Prevent NULL pointer dereference during
- probe
-Message-ID: <20100926162553.660281c6@endymion.delvare>
+Received: from smtp.nokia.com ([192.100.122.233]:48803 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751925Ab0IIH65 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 03:58:57 -0400
+Subject: Re: [PATCH v9 1/4] V4L2: Add seek spacing and FM RX class.
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
+In-Reply-To: <4C87D782.4030604@redhat.com>
+References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1283168302-19111-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <4C87D782.4030604@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 09 Sep 2010 10:57:28 +0300
+Message-ID: <1284019048.26985.297.camel@masi.mnp.nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Commit 8dc09004978538d211ccc36b5046919489e30a55 assumes that
-dev->rc_input_dev is always set. It is, however, NULL if dvb-usb was
-loaded with option disable_rc_polling=1.
+Hello.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/dib0700_core.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+And thanks for the comments.
 
---- linux-2.6.36-rc5.orig/drivers/media/dvb/dvb-usb/dib0700_core.c	2010-09-24 17:17:16.000000000 +0200
-+++ linux-2.6.36-rc5/drivers/media/dvb/dvb-usb/dib0700_core.c	2010-09-26 15:04:59.000000000 +0200
-@@ -674,7 +674,8 @@ static int dib0700_probe(struct usb_inte
- 				dev->props.rc.core.bulk_mode = false;
- 
- 			/* Need a higher delay, to avoid wrong repeat */
--			dev->rc_input_dev->rep[REP_DELAY] = 500;
-+			if (dev->rc_input_dev)
-+				dev->rc_input_dev->rep[REP_DELAY] = 500;
- 
- 			dib0700_rc_setup(dev);
- 
+On Wed, 2010-09-08 at 20:35 +0200, ext Mauro Carvalho 
+> >  	}
+> > @@ -386,6 +394,8 @@ const char *v4l2_ctrl_get_name(u32 id)
+> >  	case V4L2_CID_TUNE_PREEMPHASIS:		return "Pre-emphasis settings";
+> >  	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
+> >  	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna Capacitor";
+> > +	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Tuner Controls";
+> 
+> > +	case V4L2_CID_FM_BAND:			return "FM Band";
+> 
+> 
+> There's no need for a FM control, as there's already an ioctl pair that allows get/set the frequency
+> bandwidth: VIDIOC_S_TUNER and VIDIOC_G_TUNER. So, the entire patch here seems uneeded/unwanted.
 
+Sometime ago Hans said the following in his comment to v5 patches:
 
--- 
-Jean Delvare
+> Based on this article: 
+> http://en.wikipedia.org/wiki/FM_broadcasting, there
+> seem to be only three bands for FM radio in
+> practice: 87.5-108, 76-90 (Japan)
+> and 65-74 (former Soviet republics, some former
+> eastern bloc countries).
+>
+> So this should be a standard control. Since the
+> latter band is being phased
+> out I think a menu control with just the two other
+> bands is sufficient.
+>
+> And I also think this should be a control of a new
+> FM_RX class.
+>
+> I know, that's not what I said last time. So sue 
+> me :-)
+
+But if we now have a consensus when we are at v9 that's good news...
+
+Thanks,
+Matti
+
