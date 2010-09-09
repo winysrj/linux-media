@@ -1,56 +1,34 @@
 Return-path: <mchehab@pedra>
-Received: from 1-1-12-13a.han.sth.bostream.se ([82.182.30.168]:36502 "EHLO
-	palpatine.hardeman.nu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932078Ab0IHXJu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 19:09:50 -0400
-Date: Thu, 9 Sep 2010 01:09:46 +0200
-From: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
-Subject: Re: [PATCH 4/6] Input: winbond-cir - switch to using new keycode
- interface
-Message-ID: <20100908230946.GB7121@hardeman.nu>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
- <20100908074200.32365.98120.stgit@hammer.corenet.prv>
- <20100908211617.GB13938@hardeman.nu>
- <20100908230003.GB9405@core.coreip.homeip.net>
+Received: from mx1.redhat.com ([209.132.183.28]:46545 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753223Ab0IIPKz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Sep 2010 11:10:55 -0400
+Message-ID: <4C88DE3C.4000904@redhat.com>
+Date: Thu, 09 Sep 2010 15:16:44 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100908230003.GB9405@core.coreip.homeip.net>
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Illuminators and status LED controls
+References: <6m1o3xccxcun8vmp72v9wxwk.1284041675305@email.android.com>
+In-Reply-To: <6m1o3xccxcun8vmp72v9wxwk.1284041675305@email.android.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Wed, Sep 08, 2010 at 04:00:04PM -0700, Dmitry Torokhov wrote:
-> On Wed, Sep 08, 2010 at 11:16:17PM +0200, David Härdeman wrote:
-> > On Wed, Sep 08, 2010 at 12:42:00AM -0700, Dmitry Torokhov wrote:
-> > > Switch the code to use new style of getkeycode and setkeycode
-> > > methods to allow retrieving and setting keycodes not only by
-> > > their scancodes but also by index.
-> > > 
-> > > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> > > ---
-> > > 
-> > >  drivers/input/misc/winbond-cir.c |  248 +++++++++++++++++++++++++-------------
-> > >  1 files changed, 163 insertions(+), 85 deletions(-)
-> > 
-> > Thanks for doing the conversion for me, but I think you can skip this 
-> > patch. The driver will (if I understood your patchset correctly) still 
-> > work with the old get/setkeycode ioctls and I have a patch lined up that 
-> > converts winbond-cir.c to use ir-core which means all of the input 
-> > related code is removed.
-> > 
-> 
-> Yes, it should still work with old get/setkeycode. What are the plans
-> for your patch? .37 or later?
+Hi,
 
-Up to Mauro but I believe it's .37 (sometime after your input patches 
-land).
+On 09/09/2010 04:14 PM, Andy Walls wrote:
+> I'm of the mind that independent boolean illuminator controls are Ok.  I think that scales better.  Not that I could imagine many in use for 1 camera anyway, but some may be colors other than white.
+>
+> Illuminator0 should always correspond to the most common default application of the device.
 
--- 
-David Härdeman
+Ok, booleans it is then. JF can you do a new rfc / documentation + videodev2.h patch and
+then lets get the qx3 light control patch Andy did modified to match and merge it.
+
+Regards,
+
+Hans
