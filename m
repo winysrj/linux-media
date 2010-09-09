@@ -1,150 +1,56 @@
 Return-path: <mchehab@pedra>
-Received: from mail45.e.nsc.no ([193.213.115.45]:50454 "EHLO mail45.e.nsc.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754738Ab0IQRdR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Sep 2010 13:33:17 -0400
-Subject: Re: Trouble building v4l-dvb
-From: "Ole W. Saastad" <olewsaa@online.no>
-To: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Cc: Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
-In-Reply-To: <4C93364C.3040606@hoogenraad.net>
-References: <1284493110.1801.57.camel@sofia>
-	 <4C924EB8.9070500@hoogenraad.net>  <4C93364C.3040606@hoogenraad.net>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 17 Sep 2010 19:33:11 +0200
-Message-ID: <1284744791.1670.11.camel@sofia>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:34055 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751047Ab0IIElC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 00:41:02 -0400
+Received: by qyk36 with SMTP id 36so5548324qyk.19
+        for <linux-media@vger.kernel.org>; Wed, 08 Sep 2010 21:41:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20100907215159.30935.42677.stgit@localhost.localdomain>
+References: <20100907214943.30935.29895.stgit@localhost.localdomain>
+	<20100907215159.30935.42677.stgit@localhost.localdomain>
+Date: Thu, 9 Sep 2010 00:41:01 -0400
+Message-ID: <AANLkTinQg44GcG+fbx8zhPm2+4MwsJtk8kq0PpnK7tX9@mail.gmail.com>
+Subject: Re: [PATCH 4/5] rc-core: make struct rc_dev the primary interface for
+ rc drivers
+From: Jarod Wilson <jarod@wilsonet.com>
+To: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	jarod@redhat.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Thanks for all help so far.
+On Tue, Sep 7, 2010 at 5:51 PM, David Härdeman <david@hardeman.nu> wrote:
+> This patch merges the ir_input_dev and ir_dev_props structs into a single
+> struct called rc_dev. The drivers and various functions in rc-core used
+> by the drivers are also changed to use rc_dev as the primary interface
+> when dealing with rc-core.
+>
+> This means that the input_dev is abstracted away from the drivers which
+> is necessary if we ever want to support multiple input devs per rc device.
+>
+> The new API is similar to what the input subsystem uses, i.e:
+> rc_device_alloc()
+> rc_device_free()
+> rc_device_register()
+> rc_device_unregister()
+>
+> Signed-off-by: David Härdeman <david@hardeman.nu>
 
-I managed to figure out the firetv problem as soon as I discovered
-the .myconfig file.
+I've only looked at the core pieces of the patch and spot-checked the
+drivers and decoders I'm most familiar with thus far, but I'm *very*
+much in favor of this patch. The parts I've looked at are a very nice
+improvement that greatly simplifies the interface, and should
+eliminate multiple possible coding failure points and reduce
+duplication (a few sections of imon, mceusb and streamzap all looked
+pretty damned similar, this patch removes the bulk of that duplication
+and abstracts it away). With the caveat that I haven't actually
+functionally tested it yet, nor looked at every single bit of it:
 
-Including the drivers from Sandberg, for the rtl2832 chip and adding
-some lines to Makefile, Kconfig and .myconfig it compiles and install.
-Modules load and Me-TV starts, quality is poor with the small antenna.
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
-However, there is no audio. Not even for the DAB radio channels.
-
-Maybe this is Me-TV problem?
-
-The version supplied with Easy Peasy Ubuntu 9.10 is old,  0.7.16.
-
-
-Regards,
-Ole W. Saastad
-
-
-
-
-
-
-fr., 17.09.2010 kl. 11.35 +0200, skrev Jan Hoogenraad:
-> I see that the build now succeeded.
-> 
-> Ole: this is something that should have been fixed a long time ago, but 
-> isn't.
-> make allyesmod
-> should set only those divers that do actually compile.
-> Unfortunately, the FIREDTV driver has bugs for as long as I remember.
-> 
-> In the 4vl directory, edit .config
-> and change the line
-> CONFIG_DVB_FIREDTV=m
-> into
-> CONFIG_DVB_FIREDTV=n
-> 
-> It should compile fine then.
-> 
-> Jan Hoogenraad wrote:
-> > Douglas;
-> > 
-> > Could you please check your last putback ?
-> > 
-> > the build is broken.
-> > 
-> > see:
-> > http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-> > 
-> > and the mail
-> > [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
-> > 
-> > Yours,
-> >         Jan
-> > 
-> > Ole W. Saastad wrote:
-> >> Trouble building v4l-dvb
-> >> Asus eee netbook, running EasyPeasy.
-> >>
-> >> ole@ole-eee:~$ cat /etc/issue
-> >> Ubuntu 9.04 \n \l
-> >> ole@ole-eee:~$ uname -a
-> >> Linux ole-eee 2.6.30.5-ep0 #10 SMP PREEMPT Thu Aug 27 19:45:06 CEST 2009
-> >> i686 GNU/Linux
-> >>
-> >> Rationale for building from source: I have bought a USB TV with mpg4 
-> >> support from Sandberg, Mini DVB-T
-> >> dongle. I also received an archive with driver routines for this from
-> >> Sandberg. These should be copied into the v4l-dvd three and just rebuild
-> >> with make.
-> >> I have installed the kernel headers:
-> >> apt-get install mercurial linux-headers-$(uname -r) build-essential
-> >>
-> >> Then I have downloaded the v4l-dvb source (assuming this is a stable
-> >> release): hg clone http://linuxtv.org/hg/v4l-dvb
-> >>
-> >>
-> >> I wanted to try to build before applying the patch from Sandberg. 
-> >> Issuing make yield the following :
-> >>
-> >> LIRC: Requires at least kernel 2.6.36
-> >> IR_LIRC_CODEC: Requires at least kernel 2.6.36
-> >> IR_IMON: Requires at least kernel 2.6.36
-> >> IR_MCEUSB: Requires at least kernel 2.6.36
-> >> VIDEOBUF_DMA_CONTIG: Requires at least kernel 2.6.31
-> >> V4L2_MEM2MEM_DEV: Requires at least kernel 2.6.33
-> >> and a few more lines....
-> >>
-> >> Ignoring these and just continuing :
-> >>
-> >>   CC [M]  /home/ole/work/v4l-dvb/v4l/firedtv-dvb.o
-> >>   CC [M]  /home/ole/work/v4l-dvb/v4l/firedtv-fe.o
-> >>   CC [M]  /home/ole/work/v4l-dvb/v4l/firedtv-1394.o
-> >> /home/ole/work/v4l-dvb/v4l/firedtv-1394.c:22:17: error: dma.h: No such
-> >> file or directory
-> >> /home/ole/work/v4l-dvb/v4l/firedtv-1394.c:23:21: error: csr1212.h: No
-> >> such file or directory
-> >> /home/ole/work/v4l-dvb/v4l/firedtv-1394.c:24:23: error: highlevel.h: No
-> >> such file or directory
-> >> and many many more similar errors.
-> >>
-> >> After some time the make bails out.
-> >>
-> >>
-> >> I assume this have some connection with the 9.04 being too old.
-> >>
-> >> Hints ?
-> >>
-> >>
-> >>
-> >> Regards,
-> >> Ole W. Saastad
-> >>
-> >>
-> >>
-> >>
-> >> -- 
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> > 
-> > 
-> 
-> 
-
-
+-- 
+Jarod Wilson
+jarod@wilsonet.com
