@@ -1,41 +1,41 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:8898 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751625Ab0ILTz4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Sep 2010 15:55:56 -0400
-Subject: Need info to understand TeVii S470 cx23885 MSI  problem
-From: Andy Walls <awalls@md.metrocast.net>
-To: "Igor M.Liplianin" <liplianin@me.by>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 12 Sep 2010 15:56:57 -0400
-Message-ID: <1284321417.2394.10.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from mail-qy0-f181.google.com ([209.85.216.181]:56291 "EHLO
+	mail-qy0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751197Ab0IIENm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 00:13:42 -0400
+MIME-Version: 1.0
+In-Reply-To: <1283808373-27876-2-git-send-email-maximlevitsky@gmail.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+	<1283808373-27876-2-git-send-email-maximlevitsky@gmail.com>
+Date: Thu, 9 Sep 2010 00:13:41 -0400
+Message-ID: <AANLkTimKo6kotF52LPBZ5iZpEFq-BE5cBD3Q_y8idETq@mail.gmail.com>
+Subject: Re: [PATCH 1/8] IR: plug races in IR raw thread.
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: lirc-list@lists.sourceforge.net,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Igor,
+On Mon, Sep 6, 2010 at 5:26 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+> Unfortunelly (my fault) the kernel thread that now handles IR processing
+> has classical races in regard to wakeup and stop.
+> This patch hopefully closes them all.
+> Tested with module reload running in a loop, while receiver is blasted
+> with IR data for 10 minutes.
+>
+> Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
 
-To help understand the problem with the TeVii S470 CX23885 MSI not
-working after module unload and reload, could you provide the output of
+Took a while to unwind everything in ir_raw_event_thread() in my head,
+but now that I think I have it sorted out, yeah, that looks like the
+processing logic all remains the same, with the addition of locking
+that should prevent the race (also heavily supported by your testing).
 
-	# lspci -d 14f1: -xxxx -vvvv
+Acked-by: Jarod Wilson <jarod@redhat.com>
 
-as root before the cx23885 module loads, after the module loads, and
-after the module is removed and reloaded?
-
-please also provide the MSI IRQ number listed in dmesg
-(or /var/log/messages) assigned to the card.  Also the IRQ number of the
-unhandled IRQ when the module is reloaded.
-
-The linux kernel should be writing the MSI IRQ vector into the PCI
-configuration space of the CX23885.  It looks like when you unload and
-reload the cx23885 module, it is not changing the vector.
-
-Regards,
-Andy
-
-
-
+-- 
+Jarod Wilson
+jarod@wilsonet.com
