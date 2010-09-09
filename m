@@ -1,40 +1,113 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:39781 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751750Ab0I3Umn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Sep 2010 16:42:43 -0400
-Message-ID: <4CA4F640.7030206@iki.fi>
-Date: Thu, 30 Sep 2010 23:42:40 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: "Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l/dvb: add support for AVerMedia AVerTV Red HD+ (A850T)
-References: <1285795123-11046-1-git-send-email-yann.morin.1998@anciens.enib.fr> <1285795123-11046-2-git-send-email-yann.morin.1998@anciens.enib.fr> <4CA45AFC.2080807@iki.fi> <201009301956.50154.yann.morin.1998@anciens.enib.fr>
-In-Reply-To: <201009301956.50154.yann.morin.1998@anciens.enib.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4992 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752314Ab0IITHq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 15:07:46 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr16.xs4all.nl (8.13.8/8.13.8) with ESMTP id o89J7jDE045983
+	for <linux-media@vger.kernel.org>; Thu, 9 Sep 2010 21:07:45 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Thu, 9 Sep 2010 21:07:45 +0200 (CEST)
+Message-Id: <201009091907.o89J7jDE045983@smtp-vbr16.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On 09/30/2010 08:56 PM, Yann E. MORIN wrote:
-> OK. The number of supported devices is already 9 in all sections, so I guess
-> I'll have to add a new entry in the af9015_properties array, before I can
-> add a new device, right?
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Actually you are using too old code as base. You should take latest GIT 
-media tree and 2.6.37 branch. IIRC max is currently 12 devices per entry.
+Results of the daily build of v4l-dvb:
 
-> And what is the intrinsic difference between adding a new device section,
-> compared to adding a new PID to an existing device (just curious) ?
+date:        Thu Sep  9 19:00:05 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15139:6e0befab696a
+git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
+git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Not much more than a little bit different device name. Technically you 
-can add all IDs to one device, but I feel better to add new entry per 
-device. If device name is same but only ID is different it typically 
-means different hw revision and in that case I would like to put those 
-same for same entry. In that case device is also a little bit different 
-- at least case colour.
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: OK
+sparse: ERRORS
 
-Antti
--- 
-http://palosaari.fi/
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The V4L-DVB specification from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
