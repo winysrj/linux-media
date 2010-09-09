@@ -1,171 +1,154 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:42125 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754020Ab0IJNgo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 09:36:44 -0400
-Date: Fri, 10 Sep 2010 15:36:37 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Steven Toth <stoth@kernellabs.com>
-Subject: [PATCH 5/5] cx22702: Simplify cx22702_set_tps()
-Message-ID: <20100910153637.183d366a@hyperion.delvare>
-In-Reply-To: <20100910151943.103f7423@hyperion.delvare>
-References: <20100910151943.103f7423@hyperion.delvare>
-Mime-Version: 1.0
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3824 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753924Ab0IIOSF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 10:18:05 -0400
+Message-ID: <275b6fc10404e9bda012060f49cdf2f3.squirrel@webmail.xs4all.nl>
+In-Reply-To: <y1el0c4vecj8x6uk04ypatvd.1284039765001@email.android.com>
+References: <y1el0c4vecj8x6uk04ypatvd.1284039765001@email.android.com>
+Date: Thu, 9 Sep 2010 16:17:40 +0200
+Subject: Re: [PATCH] Illuminators and status LED controls
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Andy Walls" <awalls@md.metrocast.net>
+Cc: "Hans de Goede" <hdegoede@redhat.com>,
+	"Peter Korsgaard" <jacmet@sunsite.dk>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	eduardo.valentin@nokia.com,
+	"ext Eino-Ville Talvala" <talvala@stanford.edu>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Code in function cx22702_set_tps() can be slightly simplified.
-Apparently gcc was smart enough to optimize it anyway, but it can't
-hurt to make the code more readable.
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Steven Toth <stoth@kernellabs.com>
----
- drivers/media/dvb/frontends/cx22702.c |   58 ++++++++++++++-------------------
- 1 file changed, 26 insertions(+), 32 deletions(-)
+> Hans,
+> I'll have more later, but I can say, if LED API is what we agree to, we
+> should have infrastructure in v4l2 at a level higher than gspca for
+> helping drivers use the LED interface and triggers.
+>
+>
+> Specifically this is needed to make discovery and association of v4l2
+> devices, exposed v4l2 LEDs, and v4l2 LED triggers easier for userspace,
+> and to provide a logical, consistent naming scheme.  It may also help with
+> logical association to a v4l2 media controller later on.
 
---- linux-2.6.32-rc5.orig/drivers/media/dvb/frontends/cx22702.c	2009-10-17 14:50:42.000000000 +0200
-+++ linux-2.6.32-rc5/drivers/media/dvb/frontends/cx22702.c	2009-10-17 16:12:39.000000000 +0200
-@@ -316,33 +316,31 @@ static int cx22702_set_tps(struct dvb_fr
- 	}
- 
- 	/* manually programmed values */
--	val = 0;
--	switch (p->u.ofdm.constellation) {
-+	switch (p->u.ofdm.constellation) {		/* mask 0x18 */
- 	case QPSK:
--		val = (val & 0xe7);
-+		val = 0x00;
- 		break;
- 	case QAM_16:
--		val = (val & 0xe7) | 0x08;
-+		val = 0x08;
- 		break;
- 	case QAM_64:
--		val = (val & 0xe7) | 0x10;
-+		val = 0x10;
- 		break;
- 	default:
- 		dprintk("%s: invalid constellation\n", __func__);
- 		return -EINVAL;
- 	}
--	switch (p->u.ofdm.hierarchy_information) {
-+	switch (p->u.ofdm.hierarchy_information) {	/* mask 0x07 */
- 	case HIERARCHY_NONE:
--		val = (val & 0xf8);
- 		break;
- 	case HIERARCHY_1:
--		val = (val & 0xf8) | 1;
-+		val |= 0x01;
- 		break;
- 	case HIERARCHY_2:
--		val = (val & 0xf8) | 2;
-+		val |= 0x02;
- 		break;
- 	case HIERARCHY_4:
--		val = (val & 0xf8) | 3;
-+		val |= 0x03;
- 		break;
- 	default:
- 		dprintk("%s: invalid hierarchy\n", __func__);
-@@ -350,44 +348,42 @@ static int cx22702_set_tps(struct dvb_fr
- 	}
- 	cx22702_writereg(state, 0x06, val);
- 
--	val = 0;
--	switch (p->u.ofdm.code_rate_HP) {
-+	switch (p->u.ofdm.code_rate_HP) {		/* mask 0x38 */
- 	case FEC_NONE:
- 	case FEC_1_2:
--		val = (val & 0xc7);
-+		val = 0x00;
- 		break;
- 	case FEC_2_3:
--		val = (val & 0xc7) | 0x08;
-+		val = 0x08;
- 		break;
- 	case FEC_3_4:
--		val = (val & 0xc7) | 0x10;
-+		val = 0x10;
- 		break;
- 	case FEC_5_6:
--		val = (val & 0xc7) | 0x18;
-+		val = 0x18;
- 		break;
- 	case FEC_7_8:
--		val = (val & 0xc7) | 0x20;
-+		val = 0x20;
- 		break;
- 	default:
- 		dprintk("%s: invalid code_rate_HP\n", __func__);
- 		return -EINVAL;
- 	}
--	switch (p->u.ofdm.code_rate_LP) {
-+	switch (p->u.ofdm.code_rate_LP) {		/* mask 0x07 */
- 	case FEC_NONE:
- 	case FEC_1_2:
--		val = (val & 0xf8);
- 		break;
- 	case FEC_2_3:
--		val = (val & 0xf8) | 1;
-+		val |= 0x01;
- 		break;
- 	case FEC_3_4:
--		val = (val & 0xf8) | 2;
-+		val |= 0x02;
- 		break;
- 	case FEC_5_6:
--		val = (val & 0xf8) | 3;
-+		val |= 0x03;
- 		break;
- 	case FEC_7_8:
--		val = (val & 0xf8) | 4;
-+		val |= 0x04;
- 		break;
- 	default:
- 		dprintk("%s: invalid code_rate_LP\n", __func__);
-@@ -395,30 +391,28 @@ static int cx22702_set_tps(struct dvb_fr
- 	}
- 	cx22702_writereg(state, 0x07, val);
- 
--	val = 0;
--	switch (p->u.ofdm.guard_interval) {
-+	switch (p->u.ofdm.guard_interval) {		/* mask 0x0c */
- 	case GUARD_INTERVAL_1_32:
--		val = (val & 0xf3);
-+		val = 0x00;
- 		break;
- 	case GUARD_INTERVAL_1_16:
--		val = (val & 0xf3) | 0x04;
-+		val = 0x04;
- 		break;
- 	case GUARD_INTERVAL_1_8:
--		val = (val & 0xf3) | 0x08;
-+		val = 0x08;
- 		break;
- 	case GUARD_INTERVAL_1_4:
--		val = (val & 0xf3) | 0x0c;
-+		val = 0x0c;
- 		break;
- 	default:
- 		dprintk("%s: invalid guard_interval\n", __func__);
- 		return -EINVAL;
- 	}
--	switch (p->u.ofdm.transmission_mode) {
-+	switch (p->u.ofdm.transmission_mode) {		/* mask 0x03 */
- 	case TRANSMISSION_MODE_2K:
--		val = (val & 0xfc);
- 		break;
- 	case TRANSMISSION_MODE_8K:
--		val = (val & 0xfc) | 1;
-+		val |= 0x1;
- 		break;
- 	default:
- 		dprintk("%s: invalid transmission_mode\n", __func__);
+The association between a v4l device and sysfs LEDs is something that
+should be exposed in the upcoming media API (although I guess we should
+take a look first as to how that should be done exactly).
+
+But I feel I am missing something: who is supposed to use these LEDs?
+Turning LEDs in e.g. webcams on or off is a job for the driver, never for
+a userspace application. For that matter, if the driver handles the LEDs,
+can we still expose the API to userspace? Wouldn't those two interfere
+with one another? I know nothing about the LED interface in sysfs, but I
+can imagine that will be a problem.
+
+> Sysfs entry ownership, unix permissions, and ACL permissions consistency
+> with /dev/videoN will be the immediate usability problem for end users in
+> any case.
+
+Again, why would end users or application need or want to manipulate such
+LEDs in any case?
+
+> Sucessfully setting up or disabling LED triggers without much
+> documentation will likely be the other largest hurdle for the average
+> user.  (To disable an indicator LED that is manipulated automatically by a
+> driver using its own Default LED trigger, the end user must disable the
+> trigger in addition to setting the brightness to 0.)
+>
+> I still want to add trigger use to my prototype to discover the nuances.
+>
+>
+> BTW, what did you mean by uvc discovering an LED control?
+
+In order for the uvc driver to be able to turn LEDs on or off it needs to
+detect that the uvc camera actually has a LED. It is my impression that
+that is something that the driver has to discover from the uvc camera
+itself. Either that, or it is passed in from the userspace utility that
+uses the usb ID to determine the uvc extension controls and tells the
+driver about it.
+
+I'm probably not using the right terminology, but I hope I didn't make too
+much of a mess of it :-)
+
+In any case, the uvc driver has to discover somehow if there are leds and
+how to turn them on/off.
+
+Regards,
+
+        Hans
+
+>
+> Regards,
+> Andy
+>
+> Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>
+>>
+>>> Hi,
+>>>
+>>> On 09/09/2010 08:55 AM, Peter Korsgaard wrote:
+>>>>>>>>> "Hans" == Hans Verkuil<hverkuil@xs4all.nl>  writes:
+>>>>
+>>>> Hi,
+>>>>
+>>>>   >>  - the status LED should be controlled by the LED interface.
+>>>>
+>>>>   Hans>  I originally was in favor of controlling these through v4l as
+>>>>   Hans>  well, but people made some good arguments against that. The
+>>>> main
+>>>>   Hans>  one being: why would you want to show these as a control?
+>>>> What
+>>>> is
+>>>>   Hans>  the end user supposed to do with them? It makes little sense.
+>>>>
+>>>>   Hans>  Frankly, why would you want to expose LEDs at all? Shouldn't
+>>>> this
+>>>>   Hans>  be completely hidden by the driver? No generic application
+>>>> will
+>>>>   Hans>  ever do anything with status LEDs anyway. So it should be the
+>>>>   Hans>  driver that operates them and in that case the LEDs do not
+>>>> need
+>>>>   Hans>  to be exposed anywhere.
+>>>>
+>>>> It's not that it *HAS* to be exposed - But if we can, then it's nice
+>>>> to
+>>>> do
+>>>> so as it gives flexibility to the user instead of hardcoding policy in
+>>>> the kernel.
+>>>>
+>>>
+>>> Reading this whole thread I have to agree that if we are going to
+>>> expose
+>>> camera status LEDs it would be done through the sysfs API. I think this
+>>> can be done nicely for gspca based drivers (as we can put all the
+>>> "crud"
+>>> in the gspca core having to do it only once), but that is a low
+>>> priority
+>>> nice to have thingy.
+>>>
+>>> This does leave us with the problem of logitech uvc cams where the LED
+>>> currently is exposed as a v4l2 control.
+>>
+>>Is it possible for the uvc driver to detect and use a LED control? That's
+>>how I would expect this to work, but I know that uvc is a bit of a
+>> strange
+>>beast.
+>>
+>>Regards,
+>>
+>>         Hans
+>>
+>>--
+>>Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of
+>> Cisco
+>>
+>
+>
+
 
 -- 
-Jean Delvare
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
