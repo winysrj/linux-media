@@ -1,128 +1,274 @@
 Return-path: <mchehab@pedra>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:63966 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754336Ab0ITCat (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 22:30:49 -0400
-Received: by ywh1 with SMTP id 1so1184896ywh.19
-        for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 19:30:48 -0700 (PDT)
-Message-ID: <4C96C7EC.4040603@gmail.com>
-Date: Sun, 19 Sep 2010 22:33:16 -0400
-From: Emmanuel <eallaud@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:62349 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756793Ab0IIBZj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Sep 2010 21:25:39 -0400
+Message-ID: <4C883792.3080208@redhat.com>
+Date: Wed, 08 Sep 2010 22:25:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: SE <tuxoholic@hotmail.de>
-CC: linux-media@vger.kernel.org, manu@linuxtv.org
-Subject: Re: [PATCH] faster DVB-S lock with cards using stb0899 demod
-References: <BLU0-SMTP1574ECDF1FB4B418ACB34CED87D0@phx.gbl>
-In-Reply-To: <BLU0-SMTP1574ECDF1FB4B418ACB34CED87D0@phx.gbl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+Subject: Re: [RFC/PATCH v4 11/11] v4l: Make v4l2_subdev inherit from media_entity
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1282318153-18885-12-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-SE a écrit :
-> hi list
->
-> v4l-dvb still lacks fast and reliable dvb-s lock for stb08899 chipsets. This 
-> problem was adressed by Alex Betis two years ago [1]+[2]resulting in a patch 
-> [3] that made its way into s2-liplianin, not v4l-dvb.
->
-> With minor adjustments by me this patch now offers reliable dvb-s/dvb-s2 lock 
-> for v4l-dvb, most of them will lock in less than a second. Without the patch 
-> many QPSK channels won't lock at all or within a 5-20 second delay.
->
-> The algo can be tested with a modified version of szap-s2 [4], introducing:
->
-> * process a channel list sequentially (-e [number] -n [number])
-> * DiSEqC repetition (-s [number] - the default is 1 sequence + 1 repetition)
-> * faster status polling (poll instantly after tuning, then poll every 10ms
->   instead of 1 poll per second)
-> * some statistics about the tuning success while processing the list
->
-> Here are the new features of szap2-s2 explained:
->
-> ## channel lock with instant status poll [last raw still is 0]
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> status 1f|signal 27948|noise 56032|ber 0|unc -2|tim 0|FE_HAS_LOCK| 0
->
-> ## channel lock with the first status poll [last raw is 1]
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> status 0b|signal 23200|noise 40413|ber 0|unc -2|tim 0|
-> status 1b|signal 23200|noise 37136|ber 0|unc -2|tim 1|FE_HAS_LOCK| 1
->
-> ## channel lock with the second status poll [last raw is 2]
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> status 00|signal   245|noise    21|ber 0|unc -2|tim 0|
-> status 1f|signal 17347|noise 45219|ber 0|unc -2|tim 2|FE_HAS_LOCK| 2
->
-> ## no channel lock - try to lock for 10 seconds, then give up and increase 
-> lok_errs +1
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> status 00 | signal 0 | noise 4 | ber 0 | unc -2 | tim    0 |
-> status 00 | signal 0 | noise 4 | ber 0 | unc -2 | tim  100 |
-> status 00 | signal 0 | noise 4 | ber 0 | unc -2 | tim  200 |
-> status 00 | signal 0 | noise 4 | ber 0 | unc -2 | tim  300 |
-> status 00 | signal 0 | noise 4 | ber 0 | unc -2 | tim  400 |
-> status 00 | signal 0 | noise 4 | ber 0 | unc -2 | tim  500 |
-> status 00 | signal 0 | noise 4 | ber 0 | unc -2 | tim  600 |
-> status 00 | signal 0 | noise 4 | ber 0 | unc -2 | tim  700 |
-> status 00 | signal 0 | noise 4 | ber 0 | unc -2 | tim  800 |
-> status 00 | signal 0 | noise 4 | ber 0 | unc -2 | tim  900 |
->
-> ## the tuning statistics look like this:
-> lok_errs =0, runs=3035 of sequ=1207, multi=139, multi_max=2
->
-> * lok_errs = amount of lock errors
-> * runs = current channel number while processing the list
-> * sequ = the amount of channels to process you specified with "-e [number]"
-> * multi = amount of multiple polls
-> * multi_max =  the highest status poll of a channel is stored in here
->
->
-> Here are the results from ezap2 with an Astra 19.2E list and improved algo:
->
-> TOT: lok_errs =0, runs=1207 of sequ=1207, multi=48, multi_max=47
->
-> real    22m52.883s
-> user    0m0.004s
-> sys     0m20.297s
->
->
-> Here are the results from ezap2 with the same list and v4l-dvb mercurial algo:
->
-> TOT: lok_errs =233, runs=1207 of sequ=1207, multi=113361, multi_max=987
->
-> real    135m34.236s
-> user    0m0.344s
-> sys     7m52.322s
->
->
-> Similar results where reported by testers in vdr-portal.de [5]
->
-> Feel free to test the improved algo yourself like this:
->
-> time ./ezap2 -a0 -xHc Astra_only.txt -e 1207 -n 1 >> zap.log
->
-> Change adapter to 1 or higher in case stb0899 is a different adapter in your 
-> multi card setup.
->
-> Attachments are stb0899_algo.c.patch, szap-s2-to-ezap2.patch, Astra_only.txt 
-> (Astra 19.2E channels list in zap format)
->
-> Inline posted patches get word wrapped again and again in kmail, even after I 
-> followed the suggestions in email-clients.txt
->
->
-> [1] http://www.linuxtv.org/pipermail/linux-dvb/2008-September/029361.html
-> [2] http://www.linuxtv.org/pipermail/linux-dvb/2008-October/029455.html
-> [3] http://mercurial.intuxication.org/hg/s2-liplianin/rev/d423b7887ec8
-> [4] http://mercurial.intuxication.org/hg/szap-s2
-> [5] http://www.vdr-portal.de/board/thread.php?threadid=99603
->
-> Signed-off-by: SE <tuxoholic@hotmail.de>
->   
-I will try this with a TT-S2 3200 when I find some time ;-) Do I need a 
-very recent tree?
-I have a v4l-dvb tree from a year ago I think.
-Bye
-Manu
+Em 20-08-2010 12:29, Laurent Pinchart escreveu:
+> V4L2 subdevices are media entities. As such they need to inherit from
+> (include) the media_entity structure.
+> 
+> When registering/unregistering the subdevice, the media entity is
+> automatically registered/unregistered. The entity is acquired on device
+> open and released on device close.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> ---
+>  Documentation/video4linux/v4l2-framework.txt |   23 ++++++++++++++++++
+>  drivers/media/video/v4l2-device.c            |   32 +++++++++++++++++++++-----
+>  drivers/media/video/v4l2-subdev.c            |   27 +++++++++++++++++++++-
+>  include/media/v4l2-subdev.h                  |    7 +++++
+>  4 files changed, 82 insertions(+), 7 deletions(-)
+> 
+> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+> index 7ff4016..3416d93 100644
+> --- a/Documentation/video4linux/v4l2-framework.txt
+> +++ b/Documentation/video4linux/v4l2-framework.txt
+> @@ -263,6 +263,26 @@ A sub-device driver initializes the v4l2_subdev struct using:
+>  Afterwards you need to initialize subdev->name with a unique name and set the
+>  module owner. This is done for you if you use the i2c helper functions.
+>  
+> +If integration with the media framework is needed, you must initialize the
+> +media_entity struct embedded in the v4l2_subdev struct (entity field) by
+> +calling media_entity_init():
+> +
+> +	struct media_pad *pads = &my_sd->pads;
+> +	int err;
+> +
+> +	err = media_entity_init(&sd->entity, npads, pads, 0);
+> +
+> +The pads array must have been previously initialized. There is no need to
+> +manually set the struct media_entity type and name fields, but the revision
+> +field must be initialized if needed.
+> +
+> +A reference to the entity will be automatically acquired/released when the
+> +subdev device node (if any) is opened/closed.
+> +
+> +Don't forget to cleanup the media entity before the sub-device is destroyed:
+> +
+> +	media_entity_cleanup(&sd->entity);
+> +
+>  A device (bridge) driver needs to register the v4l2_subdev with the
+>  v4l2_device:
+>  
+> @@ -272,6 +292,9 @@ This can fail if the subdev module disappeared before it could be registered.
+>  After this function was called successfully the subdev->dev field points to
+>  the v4l2_device.
+>  
+> +If the v4l2_device parent device has a non-NULL mdev field, the sub-device
+> +entity will be automatically registered with the media device.
+> +
+>  You can unregister a sub-device using:
+>  
+>  	v4l2_device_unregister_subdev(sd);
+> diff --git a/drivers/media/video/v4l2-device.c b/drivers/media/video/v4l2-device.c
+> index 91452cd..4f74d01 100644
+> --- a/drivers/media/video/v4l2-device.c
+> +++ b/drivers/media/video/v4l2-device.c
+> @@ -114,10 +114,11 @@ void v4l2_device_unregister(struct v4l2_device *v4l2_dev)
+>  EXPORT_SYMBOL_GPL(v4l2_device_unregister);
+>  
+>  int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+> -						struct v4l2_subdev *sd)
+> +				struct v4l2_subdev *sd)
+>  {
+> +	struct media_entity *entity = &sd->entity;
+>  	struct video_device *vdev;
+> -	int ret = 0;
+> +	int ret;
+>  
+>  	/* Check for valid input */
+>  	if (v4l2_dev == NULL || sd == NULL || !sd->name[0])
+> @@ -129,6 +130,15 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+>  	if (!try_module_get(sd->owner))
+>  		return -ENODEV;
+>  
+> +	/* Register the entity. */
+> +	if (v4l2_dev->mdev) {
+> +		ret = media_device_register_entity(v4l2_dev->mdev, entity);
+> +		if (ret < 0) {
+> +			module_put(sd->owner);
+> +			return ret;
+> +		}
+> +	}
+> +
+>  	sd->v4l2_dev = v4l2_dev;
+>  	spin_lock(&v4l2_dev->lock);
+>  	list_add_tail(&sd->list, &v4l2_dev->subdevs);
+> @@ -143,26 +153,36 @@ int v4l2_device_register_subdev(struct v4l2_device *v4l2_dev,
+>  	if (sd->flags & V4L2_SUBDEV_FL_HAS_DEVNODE) {
+>  		ret = __video_register_device(vdev, VFL_TYPE_SUBDEV, -1, 1,
+>  					      sd->owner);
+> -		if (ret < 0)
+> +		if (ret < 0) {
+>  			v4l2_device_unregister_subdev(sd);
+> +			return ret;
+> +		}
+>  	}
+>  
+> -	return ret;
+> +	entity->v4l.major = VIDEO_MAJOR;
+> +	entity->v4l.minor = vdev->minor;
+
+Hmm... it needs to check if entity is not null.
+
+> +	return 0;
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_register_subdev);
+>  
+>  void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
+>  {
+> +	struct v4l2_device *v4l2_dev;
+> +
+>  	/* return if it isn't registered */
+>  	if (sd == NULL || sd->v4l2_dev == NULL)
+>  		return;
+>  
+> -	spin_lock(&sd->v4l2_dev->lock);
+> +	v4l2_dev = sd->v4l2_dev;
+> +
+> +	spin_lock(&v4l2_dev->lock);
+>  	list_del(&sd->list);
+> -	spin_unlock(&sd->v4l2_dev->lock);
+> +	spin_unlock(&v4l2_dev->lock);
+>  	sd->v4l2_dev = NULL;
+>  
+>  	module_put(sd->owner);
+> +	if (v4l2_dev->mdev)
+> +		media_device_unregister_entity(&sd->entity);
+>  	video_unregister_device(&sd->devnode);
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_device_unregister_subdev);
+> diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+> index b063195..1efa267 100644
+> --- a/drivers/media/video/v4l2-subdev.c
+> +++ b/drivers/media/video/v4l2-subdev.c
+> @@ -32,7 +32,8 @@ static int subdev_open(struct file *file)
+>  {
+>  	struct video_device *vdev = video_devdata(file);
+>  	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+> -	struct v4l2_fh *vfh;
+> +	struct media_entity *entity;
+> +	struct v4l2_fh *vfh = NULL;
+>  	int ret;
+>  
+>  	if (!sd->initialized)
+> @@ -59,10 +60,17 @@ static int subdev_open(struct file *file)
+>  		file->private_data = vfh;
+>  	}
+>  
+> +	entity = media_entity_get(&sd->entity);
+> +	if (!entity) {
+> +		ret = -EBUSY;
+> +		goto err;
+> +	}
+> +
+
+It needs to check if v4l2_dev->mdev is not null, as it makes no sense to get
+an entity if the driver is not using the media entity.
+
+>  	return 0;
+>  
+>  err:
+>  	if (vfh != NULL) {
+> +		v4l2_fh_del(vfh);
+>  		v4l2_fh_exit(vfh);
+>  		kfree(vfh);
+>  	}
+> @@ -72,8 +80,12 @@ err:
+>  
+>  static int subdev_close(struct file *file)
+>  {
+> +	struct video_device *vdev = video_devdata(file);
+> +	struct v4l2_subdev *sd = vdev_to_v4l2_subdev(vdev);
+>  	struct v4l2_fh *vfh = file->private_data;
+>  
+> +	media_entity_put(&sd->entity);
+
+Same here: don't put it, if v4l2_dev->mdev = NULL (I think that you're already
+checking for it at media_entity_put).
+
+> +
+>  	if (vfh != NULL) {
+>  		v4l2_fh_del(vfh);
+>  		v4l2_fh_exit(vfh);
+> @@ -172,5 +184,18 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+>  	sd->grp_id = 0;
+>  	sd->priv = NULL;
+>  	sd->initialized = 1;
+> +	sd->entity.name = sd->name;
+> +	sd->entity.type = MEDIA_ENTITY_TYPE_SUBDEV;
+>  }
+>  EXPORT_SYMBOL(v4l2_subdev_init);
+> +
+> +int v4l2_subdev_set_power(struct media_entity *entity, int power)
+> +{
+> +	struct v4l2_subdev *sd = media_entity_to_v4l2_subdev(entity);
+> +
+> +	dev_dbg(entity->parent->dev,
+> +		"%s power%s\n", entity->name, power ? "on" : "off");
+> +
+> +	return v4l2_subdev_call(sd, core, s_power, power);
+> +}
+> +EXPORT_SYMBOL_GPL(v4l2_subdev_set_power);
+
+Also, should do nothing if media entity is null. 
+
+PS.: Not sure where this function is called, as the caller is not on this patch series.
+The better would be to add this together with the patch calling v4l2_subdev_set_power().
+
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 55a8c93..f9e1897 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -21,6 +21,7 @@
+>  #ifndef _V4L2_SUBDEV_H
+>  #define _V4L2_SUBDEV_H
+>  
+> +#include <media/media-entity.h>
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-dev.h>
+>  #include <media/v4l2-mediabus.h>
+> @@ -421,6 +422,8 @@ struct v4l2_subdev_ops {
+>     stand-alone or embedded in a larger struct.
+>   */
+>  struct v4l2_subdev {
+> +	struct media_entity entity;
+> +
+>  	struct list_head list;
+>  	struct module *owner;
+>  	u32 flags;
+> @@ -439,6 +442,8 @@ struct v4l2_subdev {
+>  	unsigned int nevents;
+>  };
+>  
+> +#define media_entity_to_v4l2_subdev(ent) \
+> +	container_of(ent, struct v4l2_subdev, entity)
+>  #define vdev_to_v4l2_subdev(vdev) \
+>  	container_of(vdev, struct v4l2_subdev, devnode)
+>  
+> @@ -457,6 +462,8 @@ static inline void *v4l2_get_subdevdata(const struct v4l2_subdev *sd)
+>  void v4l2_subdev_init(struct v4l2_subdev *sd,
+>  		      const struct v4l2_subdev_ops *ops);
+>  
+> +int v4l2_subdev_set_power(struct media_entity *entity, int power);
+> +
+>  /* Call an ops of a v4l2_subdev, doing the right checks against
+>     NULL pointers.
+>  
+
