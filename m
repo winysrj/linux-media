@@ -1,69 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from gateway05.websitewelcome.com ([67.18.144.2]:50500 "HELO
-	gateway05.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1755967Ab0IWRuX (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:42586 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751259Ab0IIOOq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 13:50:23 -0400
-Received: from [66.15.212.169] (port=14207 helo=[10.140.5.17])
-	by gator886.hostgator.com with esmtpsa (SSLv3:AES256-SHA:256)
-	(Exim 4.69)
-	(envelope-from <pete@sensoray.com>)
-	id 1OyppX-0000yH-T1
-	for linux-media@vger.kernel.org; Thu, 23 Sep 2010 12:43:36 -0500
-Subject: [PATCH] go7007: MJPEG buffer overflow
-From: Pete Eberlein <pete@sensoray.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 23 Sep 2010 10:43:41 -0700
-Message-ID: <1285263821.2456.36.camel@pete-desktop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 9 Sep 2010 10:14:46 -0400
+Date: Thu, 09 Sep 2010 10:14:35 -0400
+Subject: Re: [PATCH] Illuminators and status LED controls
+Message-ID: <6m1o3xccxcun8vmp72v9wxwk.1284041675305@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Hans de Goede <hdegoede@redhat.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-The go7007 driver has a potential buffer overflow and pointer corruption
-bug which causes a crash while capturing MJPEG. The motion detection
-(MODET) active_map array can be overflowed by JPEG frame data that
-emulates a MODET start code. The active_map overflow overwrites the
-active_buf pointer, causing a crash.
-
-The JPEG data that emulated MODET start code was being removed from the
-output, resulting in garbled JPEG frames. Therefore ignore MODET start
-codes when MODET is not enabled. 
-
-Priority: normal
-
-Signed-off-by: Pete Eberlein <pete@sensoray.com>
-
-diff --git a/drivers/staging/go7007/go7007-driver.c b/drivers/staging/go7007/go7007-driver.c
-index 372a7c6..34d21e2 100644
---- a/drivers/staging/go7007/go7007-driver.c
-+++ b/drivers/staging/go7007/go7007-driver.c
-@@ -393,7 +393,8 @@ static void write_bitmap_word(struct go7007 *go)
- 	for (i = 0; i < 16; ++i) {
- 		y = (((go->parse_length - 1) << 3) + i) / (go->width >> 4);
- 		x = (((go->parse_length - 1) << 3) + i) % (go->width >> 4);
--		go->active_map[stride * y + (x >> 3)] |=
-+		if (stride * y + (x >> 3) < sizeof(go->active_map))
-+			go->active_map[stride * y + (x >> 3)] |=
- 					(go->modet_word & 1) << (x & 0x7);
- 		go->modet_word >>= 1;
- 	}
-@@ -485,6 +486,15 @@ void go7007_parse_video_stream(struct go7007 *go, u8 *buf, int length)
- 			}
- 			break;
- 		case STATE_00_00_01:
-+			if (buf[i] == 0xF8 && go->modet_enable == 0) {
-+				/* MODET start code, but MODET not enabled */
-+				store_byte(go->active_buf, 0x00);
-+				store_byte(go->active_buf, 0x00);
-+				store_byte(go->active_buf, 0x01);
-+				store_byte(go->active_buf, 0xF8);
-+				go->state = STATE_DATA;
-+				break;
-+			}
- 			/* If this is the start of a new MPEG frame,
- 			 * get a new buffer */
- 			if ((go->format == GO7007_FORMAT_MPEG1 ||
-
+SSdtIG9mIHRoZSBtaW5kIHRoYXQgaW5kZXBlbmRlbnQgYm9vbGVhbiBpbGx1bWluYXRvciBjb250
+cm9scyBhcmUgT2suICBJIHRoaW5rIHRoYXQgc2NhbGVzIGJldHRlci4gIE5vdCB0aGF0IEkgY291
+bGQgaW1hZ2luZSBtYW55IGluIHVzZSBmb3IgMSBjYW1lcmEgYW55d2F5LCBidXQgc29tZSBtYXkg
+YmUgY29sb3JzIG90aGVyIHRoYW4gd2hpdGUuCgpJbGx1bWluYXRvcjAgc2hvdWxkIGFsd2F5cyBj
+b3JyZXNwb25kIHRvIHRoZSBtb3N0IGNvbW1vbiBkZWZhdWx0IGFwcGxpY2F0aW9uIG9mIHRoZSBk
+ZXZpY2UuCgpJIHJlYWxseSBqdXN0IHdhbnQgdGhlbSB0byBzaG93IHVwIGluIGFuIGFwcC4gIChN
+YXliZSBJJ2xsIHdyaXRlIGEgTXl0aE1pY3Jvc2NvcGUgcGx1Z2luIHNvIEkgY2FuIHByZXZpZXcg
+dGhlIHN1YmplY3QgaWxsdW1pbmF0aW9uIHNldHRpbmdzIGFuZCB0aGVuIHVzZSBNeXRoVFYgc2No
+ZWR1bGluZyB0byB0dXJuIG9uIHRoZSBsaWdodHMgZXZlcnkgZmV3IGhvdXJzIGFuZCByZWNvcmQg
+YSBmZXcgZnJhbWVzIG9mIGJyZWFkIG1vbGQgZ3Jvd2luZy4uLikKClJlZ2FyZHMsCkFuZHkKCkhh
+bnMgVmVya3VpbCA8aHZlcmt1aWxAeHM0YWxsLm5sPiB3cm90ZToKCj4KPj4gSGksCj4+Cj4+IE9u
+IDA5LzA5LzIwMTAgMDg6NTUgQU0sIEhhbnMgVmVya3VpbCB3cm90ZToKPj4+IE9uIFR1ZXNkYXks
+IFNlcHRlbWJlciAwNywgMjAxMCAyMzoxNDoxMCBIYW5zIGRlIEdvZWRlIHdyb3RlOgo+Pgo+PiA8
+c25pcD4KPj4KPj4+PiBIb3cgYWJvdXQgYSBjb21wcm9taXNlLCB3ZSBhZGQgYSBzZXQgb2Ygc3Rh
+bmRhcmQgZGVmaW5lcyBmb3IgbWVudQo+Pj4+IGluZGV4IG1lYW5pbmdzLCB3aXRoIGEgbm90ZSB0
+aGF0IHRoZXNlIGFyZSBwcmVzZW50IGFzIGEgd2F5IHRvCj4+Pj4gc3RhbmRhcmRpemUKPj4+PiB0
+aGluZ3MgYmV0d2VlbiBkcml2ZXJzLCBidXQgdGhhdCBzb21lIGRyaXZlcnMgbWF5IGRldmlhdGUg
+YW5kIHRoYXQKPj4+PiBhcHBzIHNob3VsZCBhbHdheXMgdXNlIFZJRElPQ19RVUVSWU1FTlUgPwo+
+Pj4KPj4+IExldCdzIHVzZSBib29sZWFuIGZvciB0aGVzZSBpbGx1bWluYXRvciBjb250cm9scyBp
+bnN0ZWFkLiBQcm9ibGVtIHNvbHZlZAo+Pj4gOi0pCj4+Cj4+IEVybSwgbm8uIElmIHlvdSB0YWtl
+IGEgbG9vayBhdCB0aGUgY3VycmVudCBxeDUgbWljcm9zY29wZSBzdXBwb3J0IGNvZGUgaW4KPj4g
+dGhlCj4+IGNwaWEyIGRyaXZlciBpdCBjdXJyZW50bHkgaXMgYSBtZW51IHdpdGggdGhlIGZvbGxv
+d2luZyBwb3NzaWJsZSB2YWx1ZXM6Cj4+IE9mZgo+PiBUb3AKPj4gQm90dG9tCj4+IEJvdGgKPj4K
+Pj4gU28gbm93IGxldHMgc2F5IHdlIGNyZWF0ZSBzdGFuZGFyZCBjb250cm9scyBmb3IgaWxsdW1p
+bmF0b3JzIGFuZCBtYWtlIHRoZW0KPj4gYm9vbGVhbnMgYW5kIHVzZSAyIGJvb2xlYW5zLiBBbmQg
+dGhlbiBtb2RpZnkgdGhlIGNwaWEyIGRyaXZlciB0byBmb2xsb3cKPj4gdGhlCj4+IG5ldyBzdGFu
+ZGFyZC4KPj4KPj4gVGhlIHVzZXIgYmVoYXZpb3IgdGhlbiBnb2VzIGZyb206Cj4+IC0gdXNlciB0
+aGluZ3MgbGV0cyBzd2l0Y2ggZnJvbSB0b3AgdG8gYm90dG9tIGxpZ2h0aW5nCj4+IC0gZ28gdG8g
+Y29udHJvbAo+PiAtIGNsaWNrIG1lbnUgZHJvcHMgZG93biBzZWxlY3QgdG9wIC8gYm90dG9tCj4+
+IC0+IGVhc3kKPj4KPj4gVG86Cj4+IC0gdXNlciB0aGluZ3MgbGV0cyBzd2l0Y2ggZnJvbSB0b3Ag
+dG8gYm90dG9tIGxpZ2h0aW5nCj4+IC0gZ28gdG8gY29udHJvbAo+PiAtIGhldWggMiBjaGVja2Jv
+eGVzID8KPj4gLSBjbGljayBvbmUgY2hlY2sgYm94IG9mZgo+PiAtIGNsb2NrIG90aGVyIGNoZWNr
+IGJveCBvbgo+PiAtPiBub3QgZWFzeQo+Cj5TbyB0d28gY2xpY2tzIGluIHRoZSBjYXNlIG9mIGEg
+bWVudSBhbmQgdHdvIGluIHRoZSBjYXNlIG9mIGEgY2hlY2tib3guCj5QZXJzb25hbGx5IEkgZG9u
+J3Qgc2VlIHRoaXMgYXMgYSBiaWcgZGVhbC4gQnV0IGl0IHdpbGwgYmUgZ29vZCB0byBnZXQKPm90
+aGVyIHBlb3BsZSdzIG9waW5pb24gb24gdGhpcy4KPgo+Pgo+PiBJZiBJIHdlcmUgYSB1c2VyIEkg
+d291bGQgY2FsbCB0aGlzIGNoYW5nZSBhIHJlZ3Jlc3Npb24sIGFuZCBhcyBzdWNoIEkgZmluZAo+
+PiB0aGUgYm9vbGVhbiBwcm9wb3NhbCB1bmFjY2VwdGFibGUuIE1heWJlIHdlIHNob3VsZCBjYWxs
+IHRoZSBjb250cm9sCj4+IFY0TDJfQ0lEX01JQ1JPU0NPUEVfSUxMVU1JTkFUT1IKPj4KPj4gVG8g
+bWFrZSBpdCBtb3JlIGNsZWFyIHRoYXQgdGhlIG1lbnUgdmFyaWFudCBvZiB0aGlzIGlzIG1lYW50
+IGZvcgo+PiBtaWNyb3Njb3BlcyAod2hpY2ggdHlwaWNhbGx5IGhhdmUgZWl0aGVyIG9ubHkgYSBi
+b3R0b20gaWxsdW1pbmF0b3IKPj4gb3IgYm90aCBhIGJvdHRvbSBhbmQgYSB0b3Agb25lKS4gQW5k
+IGlmIHdlIHRoZW4gZXZlciBuZWVkIHRvIHN1cHBvcnQKPj4gc29tZSBvdGhlciBraW5kIG9mIGls
+bHVtaW5hdG9yIHdlIGNhbiBhZGQgYSBzZXBhcmF0ZSBjaWQgZm9yIHRoYXQvCj4+Cj4+IE90aGVy
+d2lzZSBJIHRoaW5rIGl0IG1pZ2h0IGJlIGJlc3QgdG8ganVzdCBrZWVwIHRoaXMgYXMgYSBwcml2
+YXRlIGNvbnRyb2wuCj4KPlY0TDJfQ0lEX01JQ1JPU0NPUEVfSUxMVU1JTkFUT1IgbWlnaHQgYmUg
+YW4gb3B0aW9uLCBidXQgdGhlbiB0aGUgcXVlc3Rpb24KPmlzIHdoZXRoZXIgdGhlIHRvcC9ib3R0
+b20gaWxsdW1pbmF0b3IgY29tYmluYXRpb24gaXMgc3RhbmRhcmQgZm9yIGFsbCAob3IKPmF0IGxl
+YXN0IHRoZSBtYWpvcml0eSkgb2YgbWljcm9zY29wZXMuIElmIHRoYXQgaXMgaW5kZWVkIHRoZSBj
+YXNlLCB0aGVuIHdlCj5jYW4gY29uc2lkZXIgdGhpcy4gQWx0aG91Z2ggSSBzdGlsbCB0aGluayB0
+aGF0IGNoZWNrYm94ZXMgd29yayBqdXN0IGFzCj53ZWxsLgo+Cj5CdXQgaWYgdGhpcyBhcnJhbmdl
+bWVudCBhbmQgbnVtYmVyIG9mIGlsbHVtaW5hdG9ycyBpcyBzcGVjaWZpYyB0byB0aGlzCj5yYW5n
+ZSBvZiBtaWNyb3Njb3BlcywgdGhlbiBhIHByaXZhdGUgY29udHJvbCBpcyBhbiBvcHRpb24uCj4K
+PkFuIG90aGVyIG9wdGlvbiBpcyB0byBoYXZlIElMTFVNSU5BVE9SX1RPUCBhbmQgLi4uX0JPVFRP
+TSBib29sZWFuCj5jb250cm9scy4gVGhhdCB3YXkgYXQgbGVhc3QgdGhlIG5hbWUgcHJlc2VudGVk
+IHRvIHRoZSB1c2VyIG1ha2VzIHNlbnNlIChpZgo+dGhlIHVzZXIgY2FuIHJlYWQgZW5nbGlzaCBv
+ZiBjb3Vyc2UsIGJ1dCB0aGF0J3MgYSBkaXNjdXNzaW9uIGZvciBhbm90aGVyIC0KPnZlcnkgcmFp
+bnkgLSBkYXkpLgo+Cj5SZWdhcmRzLAo+Cj4gICAgICAgIEhhbnMKPgo+LS0gCj5IYW5zIFZlcmt1
+aWwgLSB2aWRlbzRsaW51eCBkZXZlbG9wZXIgLSBzcG9uc29yZWQgYnkgVEFOREJFUkcsIHBhcnQg
+b2YgQ2lzY28KPgo+LS0KPlRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBs
+aW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0
+byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRw
+Oi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwK
 
