@@ -1,117 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from psmtp31.wxs.nl ([195.121.247.33]:63805 "EHLO psmtp31.wxs.nl"
+Received: from mx1.redhat.com ([209.132.183.28]:1026 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751411Ab0IZQSu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 12:18:50 -0400
-Received: from localhost (ip545779c6.direct-adsl.nl [84.87.121.198])
- by psmtp31.wxs.nl
- (iPlanet Messaging Server 5.2 HotFix 2.15 (built Nov 14 2006))
- with ESMTP id <0L9D00KQJ3ZC98@psmtp31.wxs.nl> for linux-media@vger.kernel.org;
- Sun, 26 Sep 2010 18:18:49 +0200 (CEST)
-Date: Sun, 26 Sep 2010 18:18:47 +0200
-From: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Subject: Re: Trouble building v4l-dvb
-In-reply-to: <4C93800B.8070902@gmail.com>
-To: Mauro Carvalho Chehab <maurochehab@gmail.com>
-Cc: "Ole W. Saastad" <olewsaa@online.no>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	linux-media@vger.kernel.org
-Message-id: <4C9F7267.7000707@hoogenraad.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1284493110.1801.57.camel@sofia> <4C924EB8.9070500@hoogenraad.net>
- <4C93364C.3040606@hoogenraad.net> <4C934806.7050503@gmail.com>
- <4C934C10.2060801@hoogenraad.net> <4C93800B.8070902@gmail.com>
+	id S1752080Ab0IINMO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Sep 2010 09:12:14 -0400
+Message-ID: <4C88C25B.70900@redhat.com>
+Date: Thu, 09 Sep 2010 13:17:47 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Peter Korsgaard <jacmet@sunsite.dk>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Andy Walls <awalls@md.metrocast.net>,
+	eduardo.valentin@nokia.com,
+	ext Eino-Ville Talvala <talvala@stanford.edu>
+Subject: Re: [PATCH] Illuminators and status LED controls
+References: <b7de5li57kosi2uhdxrgxyq9.1283891610189@email.android.com>	<87fwxkcbat.fsf@macbook.be.48ers.dk> <20100909080702.1687d29a@tele>	<201009090825.52050.hverkuil@xs4all.nl> <87aanrcsn9.fsf@macbook.be.48ers.dk>
+In-Reply-To: <87aanrcsn9.fsf@macbook.be.48ers.dk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On
-Linux 2.6.28-19-generic
-the problem is tackled already:
-DVB_FIREDTV_IEEE1394: Requires at least kernel 2.6.30
+Hi,
 
-On newer linux versions (I have tried Linux 2.6.32-24-generic) the 
-problem is NOT that the modules dma is not present, it is just that the 
-required header files are not present in
-/usr/include
-
-Another location mighte have been:
-ls -l /usr/src/linux-headers-2.6.28-19-generic/include/config/ieee1394
-
-but that only contains:
--rw-r--r-- 1 root root    0 2010-09-16 18:25 dv1394.h
-drwxr-xr-x 3 root root 4096 2010-06-15 20:12 eth1394
--rw-r--r-- 1 root root    0 2010-09-16 18:25 eth1394.h
--rw-r--r-- 1 root root    0 2010-09-16 18:25 ohci1394.h
--rw-r--r-- 1 root root    0 2010-09-16 18:25 pcilynx.h
--rw-r--r-- 1 root root    0 2010-09-16 18:25 rawio.h
--rw-r--r-- 1 root root    0 2010-09-16 18:25 sbp2.h
--rw-r--r-- 1 root root    0 2010-09-16 18:25 video1394.h
-
-Can you indicate where following files  should be located ?
-dma.h
-csr1212.h
-highlevel.h
-
-In that case checking if the dma.h file is present might be the best way 
-forward.
-
-I'll also file an ubuntu bug once I know what is missing where.
-I could not find an entry in launchpad on this issue yet.
-
-Mauro Carvalho Chehab wrote:
-> Em 17-09-2010 08:08, Jan Hoogenraad escreveu:
->> Thanks !
->>
->> Indeed, the hack so that
->> make allyesmod
->> not select firedtv would be very helpful.
->>
->> that way, it is also clear that firedtv will not work on debian-like distros.
->>
->> Is there a way I cen help with that ?
->> I have no experience with Kconfig, so it would be a learning experience for me.
+On 09/09/2010 08:55 AM, Peter Korsgaard wrote:
+>>>>>> "Hans" == Hans Verkuil<hverkuil@xs4all.nl>  writes:
 >
-> You don't need to look at Kconfig. there are some scripts under v4l/scripts
-> that will deal with Kconfig dependencies. They are meant to identify kernel versions
-> and features. Those scripts are, mainly:
+> Hi,
 >
-> 	v4l/scripts/make_config_compat.pl - Checks for "backported" features, enabling workarounds at v4l/compat.h
-> 	v4l/scripts/make_kconfig.pl - Generates a .config file that will compile with an older kernel
-> 	v4l/scripts/make_makefile.pl - Generates a Makefile that will build/install/remove the kernel modules
+>   >>  - the status LED should be controlled by the LED interface.
 >
-> Basically, you need to add some intelligence to one of the above scripts (likely make_kconfig)
-> to identify that the kernel has broken firewire headers, and disable its compilation, printing
-> a warning message to the user.
+>   Hans>  I originally was in favor of controlling these through v4l as
+>   Hans>  well, but people made some good arguments against that. The main
+>   Hans>  one being: why would you want to show these as a control? What is
+>   Hans>  the end user supposed to do with them? It makes little sense.
 >
-> You'll find a logic at make_makefile.pl to detect an Ubuntu broken kernel that stores the in-kernel
-> drivers at the wrong install place. I'm not sure if all Ubuntu kernels/versions do the same
-> thing, nor if this is broken for all distro-variants.
+>   Hans>  Frankly, why would you want to expose LEDs at all? Shouldn't this
+>   Hans>  be completely hidden by the driver? No generic application will
+>   Hans>  ever do anything with status LEDs anyway. So it should be the
+>   Hans>  driver that operates them and in that case the LEDs do not need
+>   Hans>  to be exposed anywhere.
 >
-> Perhaps you may use this logic at make_kconfig.pl. The logic assumes that broken distros
-> are the ones that store V4L/DVB files at /lib/modules/\$(KERNELRELEASE)/ubuntu/media.
-> This is probably not true for all broken distros (as Ubuntu clones - and maybe Debian - could
-> have the same problem, but storing the media files on a different place), so you may
-> need to generalize that logic, in order to cover any other distros that don't compile
-> firewire.
->
-> While you're there, the better is to also disable CONFIG_ALSA on Ubuntu, as the drivers
-> won't work anyway.
->
-> As we don't want to have complains from users about "why driver foo is not compiling for me",
-> IMO, it should be printing a warning message saying that compilation of ALSA/FIREWIRE drivers with
-> that specific kernel version is not possible, due to the back packaging of kernel headers,
-> recommending to the user to get a vanilla upstream kernel, if he needs one of the disabled
-> drivers.
->
-> Cheers,
-> Mauro
+> It's not that it *HAS* to be exposed - But if we can, then it's nice to do
+> so as it gives flexibility to the user instead of hardcoding policy in
+> the kernel.
 >
 
+Reading this whole thread I have to agree that if we are going to expose
+camera status LEDs it would be done through the sysfs API. I think this
+can be done nicely for gspca based drivers (as we can put all the "crud"
+in the gspca core having to do it only once), but that is a low priority
+nice to have thingy.
 
--- 
-Jan Hoogenraad
-Hoogenraad Interface Services
-Postbus 2717
-3500 GS Utrecht
+This does leave us with the problem of logitech uvc cams where the LED
+currently is exposed as a v4l2 control.
+
+Regards,
+
+Hans
