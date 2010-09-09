@@ -1,84 +1,50 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:52393 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752690Ab0IXLJL convert rfc822-to-8bit (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:4164 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753792Ab0IIVhn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Sep 2010 07:09:11 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v2 5/6] OMAP1: Amstrad Delta: add support for camera
-Date: Fri, 24 Sep 2010 13:08:38 +0200
-Cc: Tony Lindgren <tony@atomide.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <20100924004936.GZ4211@atomide.com> <Pine.LNX.4.64.1009240854470.14966@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1009240854470.14966@axis700.grange>
-MIME-Version: 1.0
-Content-Disposition: inline
-Message-Id: <201009241308.39948.jkrzyszt@tis.icnet.pl>
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+	Thu, 9 Sep 2010 17:37:43 -0400
+Subject: Re: [PATCH] Illuminators and status LED controls
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	eduardo.valentin@nokia.com,
+	ext Eino-Ville Talvala <talvala@stanford.edu>
+In-Reply-To: <4C88DE80.1050207@redhat.com>
+References: <e3kwq01m3v9rvkx9fdhst6mo.1284042856851@email.android.com>
+	 <4C88DE80.1050207@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Thu, 09 Sep 2010 17:37:10 -0400
+Message-ID: <1284068230.4438.1.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Friday 24 September 2010 08:57:06 Guennadi Liakhovetski napisał(a):
-> On Thu, 23 Sep 2010, Tony Lindgren wrote:
-> > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100923 16:52]:
-> > > Friday 24 September 2010 01:26:17 Tony Lindgren napisał(a):
-> > > > * Tony Lindgren <tony@atomide.com> [100923 16:06]:
-> > > > > * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100910 18:20]:
-> > > > > > This patch adds configuration data and initialization code
-> > > > > > required for camera support to the Amstrad Delta board.
-> > > > > >
-> > > > > > Three devices are declared: SoC camera, OMAP1 camera interface
-> > > > > > and OV6650 sensor.
-> > > > > >
-> > > > > > Default 12MHz clock has been selected for driving the sensor.
-> > > > > > Pixel clock has been limited to get reasonable frame rates, not
-> > > > > > exceeding the board capabilities. Since both devices (interface
-> > > > > > and sensor) support both pixel clock polarities, decision on
-> > > > > > polarity selection has been left to drivers. Interface GPIO line
-> > > > > > has been found not functional, thus not configured.
-> > > > > >
-> > > > > > Created and tested against linux-2.6.36-rc3.
-> > > > > >
-> > > > > > Works on top of previous patches from the series, at least 1/6,
-> > > > > > 2/6 and 3/6.
-> > > > >
-> > > > > Queuing these last two patches of the series (5/6 and 6/6) for the
-> > > > > upcoming merge window.
-> > > >
-> > > > BTW, these still depend on updated 2/6 to make compile happy.
-> > >
-> > > Not so simple: still depends on struct omap1_cam_platform_data
-> > > definition from <media/omap1_camera.h>, included from <mach/camera.h>.
-> > > Are you ready to accept another temporary workaround?
+On Thu, 2010-09-09 at 15:17 +0200, Hans de Goede wrote:
+> Hi,
+> 
+> On 09/09/2010 04:41 PM, Andy Walls wrote:
+> > Hans de Goede,
 > >
-> > Heh I guess so. Or do you want to queue everything via linux-media?
+> > The uvc API that creates v4l2 ctrls on behalf of userspace could intercept those calls and create an LED interface instead of, or in addition to, the v4l2 ctrl.
+> 
+> That would mean special casing certain extension controls which I
+> don't think is something which we want to do.
 
-AFAIK we can expect my arch/arm/mach-omap1/devices.c changes already resulting 
-in a confilct with some ASoC OMAP related changes going via the sound tree, 
-so the 2/6 should be better queued via the OMAP tree for Tony to keep control 
-over it, with the rest of the seriers going either way.
+I concur, it's a kludge.
 
-> Yes, we often have to select via which tree to go, then the maintainer of
-> the other tree just acks the patches. Sometimes we push them via different
-> trees and try to enforce a specific merge order...
+I was careful to word my original statement with "could".
 
-What about
+Regards,
+Andy
 
-+ void omap1_set_camera_info(struct omap1_cam_platform_data *);
 
-put temporarily into to the arch/arm/mach-omap1/board-ams-delta.c instead of 
-including <mach/camera.h>, that could be replaced with <media/omap1_camera.h> 
-then? May sound better than redefining struct omap1_cam_platform_data there, 
-and should be safe to push everything except 2/6 via the media tree.
+> Regards,
+> 
+> Hans
 
-Then, replace the above hack back with #include <mach/camera.h> as a fix after 
-both are merged.
 
-Thanks,
-Janusz
