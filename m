@@ -1,108 +1,99 @@
 Return-path: <mchehab@pedra>
-Received: from mout.perfora.net ([74.208.4.195]:54998 "EHLO mout.perfora.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933202Ab0I0SmP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 14:42:15 -0400
-Message-ID: <4CA0E451.2010902@vorgon.com>
-Date: Mon, 27 Sep 2010 11:37:05 -0700
-From: "Timothy D. Lenz" <tlenz@vorgon.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:48793 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1756279Ab0IIXTQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Sep 2010 19:19:16 -0400
+From: "Stefan Lippers-Hollmann" <s.L-H@gmx.de>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [GIT PULL FOR 2.6.37] new AF9015 devices
+Date: Fri, 10 Sep 2010 01:19:04 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, TerraTux <terratux@terratec.de>
+References: <4C894DB8.8080908@iki.fi>
+In-Reply-To: <4C894DB8.8080908@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: cx5000 default auto sleep mode
-References: <4BC5FB77.2020303@vorgon.com>	 <k2h829197381004141040n4aa69e06x7a10c7ea70be3dcf@mail.gmail.com>	 <1271303099.7643.7.camel@palomino.walls.org> <h2h829197381004142139q35705f60q61dd04b05f509af6@mail.gmail.com> <4BE8B6B9.1070605@vorgon.com>
-In-Reply-To: <4BE8B6B9.1070605@vorgon.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009100119.08993.s.L-H@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-I am seeing a problem again. driver I'm using is v4l-20100625. Don't 
-know if the tuner card is dieing again or what. I had the sleep mode 
-turned on and have been using the fusion dual along with a 1800. THe 
-1800 shows as the 3rd device. Friday I had recordings setup on 2 
-channels at the same time and one started recording the wrong channel 
-with a lot of pixiling. When I used femon to try switching through 
-tuners one tuner disapeared and then the other tuner switched to the 
-channel the other was incorectly trying to record. Ended up restarting 
-vdr and the drivers. Today I found that epg data was missing for several 
-channels. When I used femon to switch tuners, the second tuner was no 
-signal. I have turned the power save back off and restarted. Hopefully 
-all 3 tuners will work tonight. This would be the second fusion HDTV7 to 
-go bad and it is in a different computer running x63 instead of x32. So 
-ether there is a bug in the drivers or theses are really crappy tuners.
+Hi
 
-On 5/10/2010 6:45 PM, Timothy D. Lenz wrote:
->
->
-> On 4/14/2010 9:39 PM, Devin Heitmueller wrote:
->> On Wed, Apr 14, 2010 at 11:44 PM, Andy Walls<awalls@md.metrocast.net>
->> wrote:
->>> On Wed, 2010-04-14 at 13:40 -0400, Devin Heitmueller wrote:
->>>> On Wed, Apr 14, 2010 at 1:29 PM, Timothy D. Lenz<tlenz@vorgon.com>
->>>> wrote:
->>>>> Thanks to Andy Walls, found out why I kept loosing 1 tuner on a
->>>>> FusionHD7
->>>>> Dual express. Didn't know linux supported an auto sleep mode on the
->>>>> tuner
->>>>> chips and that it defaulted to on. Seems like it would be better to
->>>>> default
->>>>> to off.
->>>>
->>>> Regarding the general assertion that the power management should be
->>>> disabled by default, I disagree. The power savings is considerable,
->>>> the time to bring the tuner out of sleep is negligible, and it's
->>>> generally good policy.
->>>>
->>>> Andy, do you have any actual details regarding the nature of the
->>>> problem?
->>>
->>> Not really. DViCo Fusion dual digital tv card. One side of the card
->>> would yield "black video screen" when starting a digital capture
->>> sometime after (?) the VDR ATSC EPG plugin tried to suck off data. I'm
->>> not sure there was a causal relationship.
->>>
->>> I hypothesized that one side of the dual-tuner was going stupid or one
->>> of the two channels used in the cx23885 was getting confused. I was
->>> looking at how to narrow the problem down to cx23885 chip or xc5000
->>> tuner, or s5h14xx demod when I noted the power managment module option
->>> for the xc5000. I suggested Tim try it.
->>>
->>> It was dumb luck that my guess actually made his symptoms go away.
->>>
->>> That's all I know.
->>
->> We did have a similar issue with the PCTV 800i. Basically, the GPIO
->> definition was improperly defined for the xc5000 reset callback. As a
->> result, it was strobing the reset on both the xc5000 *and* the
->> s5h1411, which would then cause the s5h1411's hardware state to not
->> match the driver state.
->>
->> After multiple round trips with the hardware engineer at PCTV, I
->> finally concluded that there actually wasn't a way to strobe the reset
->> without screwing up the demodulator, which prompted me to disable the
->> xc5000 reset callback (see cx88-cards:2944).
->>
->> My guess is that the reset GPIO definition for that board is wrong (a
->> problem exposed by this change), or that it's resetting the s5h1411 as
->> well.
->>
->> Devin
->>
->
->
-> I replaced the single tuner with the other FusionHD7 Dual Express I had
-> so there was two of the same cards. Within a few hours Both tuners where
-> down on the original card and even restarting drivers wouldn't bring it
-> back. So I moved the new card to it's slot and put the single back in in
-> case the old card was defective. I removed the no power off switch and
-> went out for awhile. When I came back vdr had crashed which often
-> happens when it tried to tune and there is no signal as in when a tuner
-> goes down. For some reason vdr/xine/xorg/vdpau combo is very unstable
-> when signal is poor or missing. I wish we could dump xine as it seems to
-> be the cause. I never had a problem with vdr crashing when it rained
-> knocking out signal when the nexus card was providing video.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
+On Friday 10 September 2010, Antti Palosaari wrote:
+> Moikka Mauro!
+> This patch series adds support for TerraTec Cinergy T Stick Dual RC and 
+> TerraTec Cinergy T Stick RC. Also MxL5007T devices with ref. design IDs 
+> should be working. Cinergy T Stick remote is most likely not working 
+> since it seems to use different remote as Cinergy T Dual... Stefan could 
+> you test and ensure T Stick is working?
+> 
+> and thanks to TerraTec!
+[...]
+
+DVB-T is working fine with my TerraTec "Cinergy T RC MKII" 0ccd:0097 
+(branch af9015), as you expected the remote control doesn't react to 
+the generic USB_VID_TERRATEC matching and the given IR codes. No ill 
+effects though, the shipped remote just appears to be "dead" with those
+settings. So these patches are fine and aren't a regression for my device.
+
+
+I actually tried my luck with your suggestions for debugging the IR 
+support, but as the remote continued to act in a weird (bouncing keycodes 
+and no stable mappings at all), I didn't get very far. Except that the
+EEPROM hash is 0x11f6768f.
+
+A brutal first attempt to replace the predefined ir_codes_terratec/ 
+af9015_ir_terratec with my current assumptions results in very similar,
+erratic behaviour:
+
+static struct ir_scancode ir_codes_terratec[] = {
+	{ 0x0057, KEY_1 },
+	{ 0x0020, KEY_2 },
+	{ 0x0026, KEY_3 },
+	{ 0x0056, KEY_4 },
+	{ 0x0021, KEY_5 },
+	{ 0x0027, KEY_6 },
+	{ 0x004b, KEY_7 },
+	{ 0x0022, KEY_8 },
+	{ 0x0009, KEY_9 },
+	{ 0x0023, KEY_0 },
+	{ 0x0024, KEY_CHANNELUP },
+	{ 0x0025, KEY_CHANNELDOWN },
+	{ 0x004e, KEY_ZOOM },
+	{ 0x0010, KEY_MUTE },
+	{ 0x001f, KEY_VOLUMEDOWN },
+	{ 0x001e, KEY_VOLUMEUP },
+	{ 0x001c, KEY_GOTO },         /* jump */
+	{ 0x043d, KEY_POWER },
+};
+
+static u8 af9015_ir_terratec[] = {
+	0x80, 0x7f, 0x12, 0xed, 0x3d, 0x04, 0x00, /* power */
+	0x80, 0x7f, 0x01, 0xfe, 0x10, 0x00, 0x00, /* mute */
+	0x80, 0x7f, 0x1a, 0xe5, 0x57, 0x00, 0x00, /* 1 */
+	0x80, 0x7f, 0x02, 0xfd, 0x56, 0x00, 0x00, /* 4 */
+	0x80, 0x7f, 0x1e, 0xe1, 0x4b, 0x00, 0x00, /* 7 */
+	0x80, 0x7f, 0x03, 0xfc, 0x4e, 0x00, 0x00, /* zoom */
+	0x80, 0x7f, 0x04, 0xfb, 0x1e, 0x00, 0x00, /* volume up */
+	0x80, 0x7f, 0x05, 0xfa, 0x1f, 0x00, 0x00, /* volume down */
+	0x80, 0x7f, 0x06, 0xf9, 0x20, 0x00, 0x00, /* 2 */
+	0x80, 0x7f, 0x07, 0xf8, 0x21, 0x00, 0x00, /* 5 */
+	0x80, 0x7f, 0x08, 0xf7, 0x22, 0x00, 0x00, /* 8 */
+	0x80, 0x7f, 0x09, 0xf6, 0x23, 0x00, 0x00, /* 0 */
+	0x80, 0x7f, 0x0a, 0xf5, 0x24, 0x00, 0x00, /* channel up */
+	0x80, 0x7f, 0x1b, 0xe4, 0x25, 0x00, 0x00, /* channel down */
+	0x80, 0x7f, 0x1f, 0xe0, 0x26, 0x00, 0x00, /* 3 */
+	0x80, 0x7f, 0x0d, 0xf2, 0x27, 0x00, 0x00, /* 6 */
+	0x80, 0x7f, 0x0c, 0xf3, 0x09, 0x00, 0x00, /* 9 */
+	0x80, 0x7f, 0x0e, 0xf1, 0x1c, 0x00, 0x00, /* jump */
+};
+
+The numbers seem to match, the rest was mostly "guessed" from the apparent 
+strategy (top-->down. left-->right), but pressing '1' still results in 
+"111111" (repeating until terminated by ctrl-c), pressing '4' in "54444445"
+(until terminated).
+
+Regards
+	Stefan Lippers-Hollmann
