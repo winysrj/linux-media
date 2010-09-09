@@ -1,133 +1,144 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1900 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753288Ab0INNY5 (ORCPT
+Received: from mail-in-05.arcor-online.net ([151.189.21.45]:59301 "EHLO
+	mail-in-05.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750996Ab0IIRp0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 09:24:57 -0400
-Message-ID: <c7863d81c584fe789fe36bd1abc9504d.squirrel@webmail.xs4all.nl>
-In-Reply-To: <201009141425.28000.laurent.pinchart@ideasonboard.com>
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com>
-    <4C883BEF.5020504@redhat.com>
-    <201009141425.28000.laurent.pinchart@ideasonboard.com>
-Date: Tue, 14 Sep 2010 15:24:41 +0200
-Subject: Re: [RFC/PATCH v4 00/11] Media controller (core and V4L2)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: "Laurent Pinchart" <laurent.pinchart@ideasonboard.com>
-Cc: "Mauro Carvalho Chehab" <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Thu, 9 Sep 2010 13:45:26 -0400
+From: stefan.ringel@arcor.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Stefan Ringel <stefan.ringel@arcor.de>
+Subject: [PATCH] tm6000: bugfix data handling
+Date: Thu,  9 Sep 2010 19:45:22 +0200
+Message-Id: <1284054322-6020-1-git-send-email-stefan.ringel@arcor.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
+From: Stefan Ringel <stefan.ringel@arcor.de>
 
-> Hi Mauro,
->
-> On Thursday 09 September 2010 03:44:15 Mauro Carvalho Chehab wrote:
->> Em 20-08-2010 12:29, Laurent Pinchart escreveu:
->> > Hi everybody,
->> >
->> > Here's the fourth version of the media controller patches. All
->> comments
->> > received so far have hopefully been incorporated.
->> >
->> > Compared to the previous version, the patches have been rebased on top
->> of
->> > 2.6.35 and a MEDIA_IOC_DEVICE_INFO ioctl has been added.
->> >
->> > I won't submit a rebased version of the V4L2 API additions and OMAP3
->> ISP
->> > patches right now. I will first clean up (and document) the V4L2 API
->> > additions patches, and I will submit them as a proper RFC instead of
->> > sample code.
->>
->> Hi Laurent,
->>
->> Sorry for a late review on the media controller API. I got flooded by
->> patches and other work since the merge window.
->
-> No worries. I was on holidays last week anyway.
->
->> Anyway, just finished my review, and sent a per-patch comment for most
->> patches.
->
-> Thanks.
->
->> One general comment about it: the userspace API should be documented via
->> DocBook, to be consistent with V4L2 and DVB API specs.
->
-> I feared so :-) I'll work on it.
->
->> It should also be clear at the API specs there that not all media
->> drivers
->> will implement the media controller API,
->
-> I agree.
->
->> as its main focus is to allow better control of SoC devices, where there
->> are
->> needs to control some intrinsic characteristics of parts of the devices,
->> complementing the V4L2 spec.
->
-> Some consumer devices (ivtv for instance) will also benefit from the media
-> controller, the API is not specific to SoC devices only.
->
->> This means that it is needed to add some comments at the kernelspace API
->> doc, saying that the drivers implementing the media controller API are
->> required to work properly even when userspace is not using the media
->> controller API;
->
-> That's another issue. Drivers should make a best effort to allow pure V4L2
-> applications to work with a subset of the video device nodes, but they
-> will
-> only offer a subset of the hardware capabilities. For SoC devices it's
-> even
-> worse, it might be way too difficult to implement support for pure V4L2
-> applications in the kernel driver(s). In that case a device-specific
-> libv4l
-> plugin will configure the driver using the media controller API for pure
-> V4L2
-> applications.
->
->> This also means that it is needed to add some comments at the userspace
->> API
->> doc, saying that userspace applications should not assume that media
->> drivers will implement the media controller API.
->
-> Agreed. Many V4L2 drivers will not implement the media controller API.
->
->> So, userspace applications implementing the media controller and V4L2
->> API's
->> are required to work properly if the device doesn't present a media
->> controler API interface.
->
-> Applications can require support for the media controller API, but they
-> should
-> only do so for specific cases (for instance applications tied to specific
-> SoC
-> hardware, or graphical user interfaces on top of the media controller API
-> similar to qv4l2).
->
->> It should also say that no driver should just implement the media
->> controller
->> API.
->
-> I haven't thought about that, as it would be pretty useless :-)
+Signed-off-by: Stefan Ringel <stefan.ringel@arcor.de>
+---
+ drivers/staging/tm6000/tm6000-input.c |   61 +++++++++++++++++++++------------
+ 1 files changed, 39 insertions(+), 22 deletions(-)
 
-I actually think that it should be possible without too much effort to
-make the media API available automatically for those drivers that do not
-implement it themselves. For the standard drivers it basically just has to
-enumerate what is already known.
-
-It would help a lot with apps like MythTV that want to find related
-devices (e.g. audio/video/vbi).
-
-Regards,
-
-           Hans
-
+diff --git a/drivers/staging/tm6000/tm6000-input.c b/drivers/staging/tm6000/tm6000-input.c
+index 7b07096..daca3a5 100644
+--- a/drivers/staging/tm6000/tm6000-input.c
++++ b/drivers/staging/tm6000/tm6000-input.c
+@@ -46,7 +46,7 @@ MODULE_PARM_DESC(enable_ir, "enable ir (default is enable)");
+ 	}
+ 
+ struct tm6000_ir_poll_result {
+-	u8 rc_data[4];
++	u16 rc_data;
+ };
+ 
+ struct tm6000_IR {
+@@ -60,9 +60,9 @@ struct tm6000_IR {
+ 	int			polling;
+ 	struct delayed_work	work;
+ 	u8			wait:1;
++	u8			key:1;
+ 	struct urb		*int_urb;
+ 	u8			*urb_data;
+-	u8			key:1;
+ 
+ 	int (*get_key) (struct tm6000_IR *, struct tm6000_ir_poll_result *);
+ 
+@@ -122,13 +122,14 @@ static void tm6000_ir_urb_received(struct urb *urb)
+ 
+ 	if (urb->status != 0)
+ 		printk(KERN_INFO "not ready\n");
+-	else if (urb->actual_length > 0)
++	else if (urb->actual_length > 0) {
+ 		memcpy(ir->urb_data, urb->transfer_buffer, urb->actual_length);
+ 
+-	dprintk("data %02x %02x %02x %02x\n", ir->urb_data[0],
+-	ir->urb_data[1], ir->urb_data[2], ir->urb_data[3]);
++		dprintk("data %02x %02x %02x %02x\n", ir->urb_data[0],
++			ir->urb_data[1], ir->urb_data[2], ir->urb_data[3]);
+ 
+-	ir->key = 1;
++		ir->key = 1;
++	}
+ 
+ 	rc = usb_submit_urb(urb, GFP_ATOMIC);
+ }
+@@ -140,30 +141,47 @@ static int default_polling_getkey(struct tm6000_IR *ir,
+ 	int rc;
+ 	u8 buf[2];
+ 
+-	if (ir->wait && !&dev->int_in) {
+-		poll_result->rc_data[0] = 0xff;
++	if (ir->wait && !&dev->int_in)
+ 		return 0;
+-	}
+ 
+ 	if (&dev->int_in) {
+-		poll_result->rc_data[0] = ir->urb_data[0];
+-		poll_result->rc_data[1] = ir->urb_data[1];
++		if (ir->ir.ir_type == IR_TYPE_RC5)
++			poll_result->rc_data = ir->urb_data[0];
++		else
++			poll_result->rc_data = ir->urb_data[0] | ir->urb_data[1] << 8;
+ 	} else {
+ 		tm6000_set_reg(dev, REQ_04_EN_DISABLE_MCU_INT, 2, 0);
+ 		msleep(10);
+ 		tm6000_set_reg(dev, REQ_04_EN_DISABLE_MCU_INT, 2, 1);
+ 		msleep(10);
+ 
+-		rc = tm6000_read_write_usb(dev, USB_DIR_IN | USB_TYPE_VENDOR |
+-		 USB_RECIP_DEVICE, REQ_02_GET_IR_CODE, 0, 0, buf, 1);
++		if (ir->ir.ir_type == IR_TYPE_RC5) {
++			rc = tm6000_read_write_usb(dev, USB_DIR_IN |
++				USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++				REQ_02_GET_IR_CODE, 0, 0, buf, 1);
+ 
+-		msleep(10);
++			msleep(10);
+ 
+-		dprintk("read data=%02x\n", buf[0]);
+-		if (rc < 0)
+-			return rc;
++			dprintk("read data=%02x\n", buf[0]);
++			if (rc < 0)
++				return rc;
+ 
+-		poll_result->rc_data[0] = buf[0];
++			poll_result->rc_data = buf[0];
++		} else {
++			rc = tm6000_read_write_usb(dev, USB_DIR_IN |
++				USB_TYPE_VENDOR | USB_RECIP_DEVICE,
++				REQ_02_GET_IR_CODE, 0, 0, buf, 2);
++
++			msleep(10);
++
++			dprintk("read data=%04x\n", buf[0] | buf[1] << 8);
++			if (rc < 0)
++				return rc;
++
++			poll_result->rc_data = buf[0] | buf[1] << 8;
++		}
++		if ((poll_result->rc_data & 0x00ff) != 0xff)
++			ir->key = 1;
+ 	}
+ 	return 0;
+ }
+@@ -180,12 +198,11 @@ static void tm6000_ir_handle_key(struct tm6000_IR *ir)
+ 		return;
+ 	}
+ 
+-	dprintk("ir->get_key result data=%02x %02x\n",
+-		poll_result.rc_data[0], poll_result.rc_data[1]);
++	dprintk("ir->get_key result data=%04x\n", poll_result.rc_data);
+ 
+-	if (poll_result.rc_data[0] != 0xff && ir->key == 1) {
++	if (ir->key) {
+ 		ir_input_keydown(ir->input->input_dev, &ir->ir,
+-			poll_result.rc_data[0] | poll_result.rc_data[1] << 8);
++				(u32)poll_result.rc_data);
+ 
+ 		ir_input_nokey(ir->input->input_dev, &ir->ir);
+ 		ir->key = 0;
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+1.7.1
 
