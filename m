@@ -1,96 +1,293 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:53837 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754940Ab0IZBSw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Sep 2010 21:18:52 -0400
-Received: by iwn5 with SMTP id 5so3566765iwn.19
-        for <linux-media@vger.kernel.org>; Sat, 25 Sep 2010 18:18:52 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTikoLnap8WjgKU1pGi-RdqZ3FhkhDkLT6pJ8XWpX@mail.gmail.com>
-References: <AANLkTikoLnap8WjgKU1pGi-RdqZ3FhkhDkLT6pJ8XWpX@mail.gmail.com>
-From: =?ISO-8859-1?Q?Jes=FAs_Torres?= <aplatanado@gulic.org>
-Date: Sun, 26 Sep 2010 02:18:32 +0100
-Message-ID: <AANLkTi=QkLZOqm-h4ZMbgaB7cJRLZPvz1Mvt8WvHMtzL@mail.gmail.com>
-Subject: update scan file for es-Las_Palmas and new es-SC_Tenerife
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:36758 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753363Ab0IIJUP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 05:20:15 -0400
+Received: from eu_spt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0L8H001UK39JVQ@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 Sep 2010 10:20:08 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L8H00HAJ39H94@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 Sep 2010 10:20:06 +0100 (BST)
+Date: Thu, 09 Sep 2010 11:19:43 +0200
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [PATCH v1 2/7] v4l: videobuf2: add generic memory handling routines
+In-reply-to: <1284023988-23351-1-git-send-email-p.osciak@samsung.com>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=001636c92e9c110f2104911f65f1
+Cc: p.osciak@samsung.com, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, t.fujak@samsung.com
+Message-id: <1284023988-23351-3-git-send-email-p.osciak@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1284023988-23351-1-git-send-email-p.osciak@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
---001636c92e9c110f2104911f65f1
-Content-Type: text/plain; charset=ISO-8859-1
+Add generic memory handling routines for userspace pointer handling,
+contiguous memory verification and mapping.
 
-Hello,
+Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/Kconfig            |    3 +
+ drivers/media/video/Makefile           |    2 +
+ drivers/media/video/videobuf2-memops.c |  181 ++++++++++++++++++++++++++++++++
+ include/media/videobuf2-memops.h       |   27 +++++
+ 4 files changed, 213 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/videobuf2-memops.c
+ create mode 100644 include/media/videobuf2-memops.h
 
-I've attached to this mail two scan files. es-Las_Palmas is an update
-for the file with the same name that includes some new channels.
-es-SC_Tenerife is a new file for people in Santa Cruz de Tenerife,
-Spain.
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 5764443..e4ac3e2 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -51,6 +51,9 @@ config V4L2_MEM2MEM_DEV
+ config VIDEOBUF2_CORE
+ 	tristate
+ 
++config VIDEOBUF2_MEMOPS
++	tristate
++
+ 
+ #
+ # Multimedia Video device configuration
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index e66f53b..ab5b521 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -118,6 +118,8 @@ obj-$(CONFIG_VIDEOBUF_DVB) += videobuf-dvb.o
+ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
+ 
+ obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
++obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
++
+ 
+ obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
+ 
+diff --git a/drivers/media/video/videobuf2-memops.c b/drivers/media/video/videobuf2-memops.c
+new file mode 100644
+index 0000000..fa76983
+--- /dev/null
++++ b/drivers/media/video/videobuf2-memops.c
+@@ -0,0 +1,181 @@
++/*
++ * videobuf2-memops.c - generic memory handling routines for videobuf2
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <p.osciak@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/slab.h>
++#include <linux/module.h>
++#include <linux/dma-mapping.h>
++#include <linux/vmalloc.h>
++#include <linux/cma.h>
++#include <linux/mm.h>
++#include <linux/sched.h>
++#include <linux/file.h>
++
++#include <media/videobuf2-core.h>
++
++/**
++ * vb2_contig_verify_userptr() - verify contiguity of a userspace-mapped memory
++ * @vma:	virtual memory region which maps the physical memory
++ *		to be verified
++ * @vaddr:	starting virtual address of the area to be verified
++ * @size:	size of the area to be verified
++ * @paddr:	will return physical address for the given vaddr
++ *
++ * This function will go through memory area of size size mapped at vaddr and
++ * verify that the underlying physical pages are contiguous.
++ *
++ * Returns 0 on success and a physical address to the memory pointed
++ * to by vaddr in paddr.
++ */
++int vb2_contig_verify_userptr(struct vm_area_struct *vma,
++				unsigned long vaddr, unsigned long size,
++				unsigned long *paddr)
++{
++	struct mm_struct *mm = current->mm;
++	unsigned long offset;
++	unsigned long vma_size;
++	unsigned long curr_pfn, prev_pfn;
++	unsigned long num_pages;
++	int ret = -EINVAL;
++	unsigned int i;
++
++	offset = vaddr & ~PAGE_MASK;
++
++	down_read(&mm->mmap_sem);
++
++	vma = find_vma(mm, vaddr);
++	if (!vma) {
++		printk(KERN_ERR "Invalid userspace address\n");
++		goto done;
++	}
++
++	vma_size = vma->vm_end - vma->vm_start;
++
++	if (size > vma_size - offset) {
++		printk(KERN_ERR "Region too small\n");
++		goto done;
++	}
++	num_pages = (size + offset) >> PAGE_SHIFT;
++
++	ret = follow_pfn(vma, vaddr, &curr_pfn);
++	if (ret) {
++		printk(KERN_ERR "Invalid userspace address\n");
++		goto done;
++	}
++
++	*paddr = (curr_pfn << PAGE_SHIFT) + offset;
++
++	for (i = 1; i < num_pages; ++i) {
++		prev_pfn = curr_pfn;
++		vaddr += PAGE_SIZE;
++
++		ret = follow_pfn(vma, vaddr, &curr_pfn);
++		if (ret || curr_pfn != prev_pfn + 1) {
++			printk(KERN_ERR "Invalid userspace address\n");
++			ret = -EINVAL;
++			break;
++		}
++	}
++
++done:
++	up_read(&mm->mmap_sem);
++	return ret;
++}
++
++/**
++ * vb2_mmap_pfn_range() - map physical pages to userspace
++ * @vma:	virtual memory region for the mapping
++ * @paddr:	starting physical address of the memory to be mapped
++ * @size:	size of the memory to be mapped
++ * @vm_ops:	vm operations to be assigned to the created area
++ * @priv:	private data to be associated with the area
++ *
++ * Returns 0 on success.
++ */
++int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
++				unsigned long size,
++				const struct vm_operations_struct *vm_ops,
++				void *priv)
++{
++	int ret;
++
++	size = min_t(unsigned long, vma->vm_end - vma->vm_start, size);
++
++	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++	ret = remap_pfn_range(vma, vma->vm_start, paddr >> PAGE_SHIFT,
++				size, vma->vm_page_prot);
++	if (ret) {
++		printk(KERN_ERR "Remapping memory failed, error: %d\n", ret);
++		return ret;
++	}
++
++	vma->vm_flags		|= VM_DONTEXPAND | VM_RESERVED;
++	vma->vm_private_data	= priv;
++	vma->vm_ops		= vm_ops;
++
++	vm_ops->open(vma);
++
++	printk(KERN_DEBUG "%s: mapped paddr 0x%08lx at 0x%08lx, size %ld\n",
++			__func__, paddr, vma->vm_start, size);
++
++	return 0;
++}
++
++/**
++ * vb2_get_userptr() - acquire an area pointed to by userspace addres vaddr
++ * @vaddr:	virtual userspace address to the given area
++ *
++ * This function attempts to acquire an area mapped in the userspace for
++ * the duration of a hardware operation.
++ *
++ * Returns a virtual memory region associated with the given vaddr on success
++ * or NULL.
++ */
++struct vm_area_struct *vb2_get_userptr(unsigned long vaddr)
++{
++	struct mm_struct *mm = current->mm;
++	struct vm_area_struct *vma;
++
++	down_read(&mm->mmap_sem);
++
++	vma = find_vma(mm, vaddr);
++	if (!vma)
++		goto done;
++
++	if (vma->vm_ops && vma->vm_ops->open)
++		vma->vm_ops->open(vma);
++
++	if (vma->vm_file)
++		get_file(vma->vm_file);
++
++done:
++	up_read(&mm->mmap_sem);
++	return vma;
++}
++
++/**
++ * vb2_put_userptr() - release a userspace memory area
++ * @vma:	virtual memory region associated with the area to be released
++ *
++ * This function releases the previously acquired memory area after a hardware
++ * operation.
++ */
++void vb2_put_userptr(struct vm_area_struct *vma)
++{
++	if (!vma)
++		return;
++
++	if (vma->vm_file)
++		fput(vma->vm_file);
++
++	if (vma->vm_ops && vma->vm_ops->close)
++		vma->vm_ops->close(vma);
++}
+diff --git a/include/media/videobuf2-memops.h b/include/media/videobuf2-memops.h
+new file mode 100644
+index 0000000..23db249
+--- /dev/null
++++ b/include/media/videobuf2-memops.h
+@@ -0,0 +1,27 @@
++/*
++ * videobuf2-memops.h - generic memory handling routines for videobuf2
++ *
++ * Copyright (C) 2010 Samsung Electronics
++ *
++ * Author: Pawel Osciak <p.osciak@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <media/videobuf2-core.h>
++
++int vb2_contig_verify_userptr(struct vm_area_struct *vma,
++				unsigned long vaddr, unsigned long size,
++				unsigned long *paddr);
++
++int vb2_mmap_pfn_range(struct vm_area_struct *vma, unsigned long paddr,
++				unsigned long size,
++				const struct vm_operations_struct *vm_ops,
++				void *priv);
++
++struct vm_area_struct *vb2_get_userptr(unsigned long vaddr);
++
++void vb2_put_userptr(struct vm_area_struct *vma);
++
+-- 
+1.7.2.1.97.g3235b.dirty
 
-Thank you.
-
---001636c92e9c110f2104911f65f1
-Content-Type: application/octet-stream; name=es-SC_Tenerife
-Content-Disposition: attachment; filename=es-SC_Tenerife
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gej7f05k0
-
-IyBGdW5jaW9uYSBjb3JyZWN0YW1lbnRlIGVuIFNhbnRhIENydXogZGUgVGVuZXJpZmUgKDI1LTA5
-LTIwMTApCiMgCiMgUmV2aXNhZGEgeSBjb3JyZWdpZGEgcG9yIGVsIEdydXBvIGRlIFVzdWFyaW9z
-IGRlIExpbnV4IGRlIENhbmFyaWFzCiMgaHR0cDovL3d3dy5ndWxpYy5vcmcKIwojIFQgZnJlcSBi
-dyBmZWNfaGkgZmVjX2xvIG1vZCB0cmFuc21pc3Npb24tbW9kZSBndWFyZC1pbnRlcnZhbCBoaWVy
-YXJjaHkKVCA0OTAwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAgICAjIEMy
-MwpUIDQ5ODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgICMgQzI0ClQg
-NTE0MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgICAgIyBDMjYKVCA1Mzgw
-MDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAgICAjIEMyOQpUIDY2NjAwMDAw
-MCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgICMgQzQ1ClQgNzU0MDAwMDAwIDhN
-SHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgICAgIyBDNTYKVCA3NzgwMDAwMDAgOE1IeiAy
-LzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAgICAjIEM1OQpUIDc4NjAwMDAwMCA4TUh6IDIvMyBO
-T05FIFFBTTY0IDhrIDEvNCBOT05FICAgICMgQzYwClQgODM0MDAwMDAwIDhNSHogMi8zIE5PTkUg
-UUFNNjQgOGsgMS80IE5PTkUgICAgIyBDNjYKVCA4NDIwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02
-NCA4ayAxLzQgTk9ORSAgICAjIEM2NwpUIDg1MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhr
-IDEvNCBOT05FICAgICMgQzY4ClQgODU4MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80
-IE5PTkUgICAgIyBDNjkK
---001636c92e9c110f2104911f65f1
-Content-Type: application/octet-stream; name=es-Las_Palmas
-Content-Disposition: attachment; filename=es-Las_Palmas
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gej7f6f31
-
-IyBGdW5jaW9uYSBjb3JyZWN0YW1lbnRlIGVuIExhcyBQYWxtYXMgZGUgR3JhbiBDYW5hcmlhICgy
-NS0wOS0yMDEwKQojIAojIFJldmlzYWRhIHkgY29ycmVnaWRhIHBvciBlbCBHcnVwbyBkZSBVc3Vh
-cmlvcyBkZSBMaW51eCBkZSBDYW5hcmlhcwojIGh0dHA6Ly93d3cuZ3VsaWMub3JnCiMKIyBUIGZy
-ZXEgYncgZmVjX2hpIGZlY19sbyBtb2QgdHJhbnNtaXNzaW9uLW1vZGUgZ3VhcmQtaW50ZXJ2YWwg
-aGllcmFyY2h5ClQgNTMwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgICAg
-IyBDYW5hbCAyODogVFZFIEhELCBUZWxlZGVwb3J0ZSwgUk5FIENsw6FzaWNhLCBSTkUgMwpUIDU2
-MjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgICMgQ2FuYWwgMzI6IEJv
-aW5nLCBUZWxlY2luY28gSEQsIExhIDEwLCBNVFYsIFB1bnRvIFJhZGlvClQgNTg2MDAwMDAwIDhN
-SHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgICAgIyBDYW5hbCAzNTogU29nZWN1YXRybywg
-TGFTZXh0YTIsIExhU2V4dGEzClQgNjEwMDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80
-IE5PTkUgICAgIyBDYW5hbCAzODogTml0cm8sIEFudGVuYSAzIEhELCBNYXJjYSBUViwgVmVvMTMK
-VCA2NTgwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02NCA4ayAxLzQgTk9ORSAgICAjIENhbmFsIDQ0
-OiBDYW5hbCA3IEdyYW4gQ2FuYXJpYSwgVElDIENhbmFsIDgsIENhbmFsIDQsIFJUSQpUIDcyMjAw
-MDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgICMgQ2FuYWwgNTI6IExvY2Fs
-aWEsIE51ZXZlIFRWLCBOdWV2ZSBSYWRpbwpUIDc4NjAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0
-IDhrIDEvNCBOT05FICAgICMgQ2FuYWwgNjA6IFRWRTEsIFRWRTIsIDI0SCBUVkUsIENsYW4vVFZF
-LCBSTkUsIFJORUMsIFJORTMsIExhbnphZGVyYSwgRVBHLCBEaWdpdGV4dCwgTWV0ZW8sIEJvbHNh
-LCBUcmFmaWNvLCBFbXBsZWF0ClQgODI2MDAwMDAwIDhNSHogMi8zIE5PTkUgUUFNNjQgOGsgMS80
-IE5PTkUgICAgIyBDYW5hbCA2NTogVFYgQywgVFYgQzIsIEFudGVuYSAzIENhbmFyaWFzLCBQb3B1
-bGFyIFRWLCBDYW5hcmlhcyBSYWRpbywgQ29wZSwgQ2FkZW5hIDEwMCwgUmFkaW8gRUNDQSwgTGFu
-emFkZXJhLCBUaWNrZXIsIFBpbG90byBURFQKVCA4MzQwMDAwMDAgOE1IeiAyLzMgTk9ORSBRQU02
-NCA4ayAxLzQgTk9ORSAgICAjIENhbmFsIDY2OiBWZW83LCBUaWVuZGEgZW4gVmVvLCBBWE4sIElu
-dGVyZWNvbm9taWEsIFRlbGVkZXBvcnRlLCBSYWRpbyBJbnRlcmVjb25vbWlhLCBSYWRpbyBNYXJj
-YSwgZXNSYWRpbywgVmF1Z2hhbiBSYWRpbywgQ2FuYWwgSW5nZW5pZXLDrWEsIEdVSURFIFBsdXMg
-KywgQzY2R2FuY2hvLCBDNjZMYW56YWRlcmEsIEM2NkVQRywgRXBnTmV0ClQgODQyMDAwMDAwIDhN
-SHogMi8zIE5PTkUgUUFNNjQgOGsgMS80IE5PTkUgICAgIyBDYW5hbCA2NzogQ3VhdHJvLCBDTk4r
-LCBDYW5hbCsgRG9zLCBDYW5hbCBDbHViLCBsYVNleHRhLCBTRVIsIDQwIFByaW5jaXBhbGVzLCBD
-YWRlbmEgRGlhbCwgTGFuemFkZXJhLCBFUEcgVERULCBUaWNrZXIsIExhbnphZGVyYSwgTm90aWNp
-YXMsIEVQRwpUIDg1MDAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgICMg
-Q2FuYWwgNjg6IFRlbGVjaW5jbywgTGEgU2lldGUsIEZERiwgQ2luY29TaG9wLCBEaXNuZXkgQ2hh
-bm5lbCwgVDVMYW56YWRlcmEsIFQ1RGlnaXRleHQsIE5vdGljaWFzLCBUaWVtcG8sIEJvbHNhLCBU
-csOhZmljbwpUIDg1ODAwMDAwMCA4TUh6IDIvMyBOT05FIFFBTTY0IDhrIDEvNCBOT05FICAgICMg
-Q2FuYWwgNjk6IEFudGVuYSAzLCBOZW94LCBOb3ZhLCBHb2wgVGVsZXZpc2nDs24sIE9uZGEgQ2Vy
-bywgRXVyb3BhIEZNLCBPbmRhIE1lbG9kw61hLCB0dnR2IERJR0lUQUwsIEEzTGFuemFkZXJhLCBB
-M1BvcnRhbCwgQTNFUEcsIEEzVGlja2VyLCBULXNlbmlvcml0eSwgR29sIEJhcg==
---001636c92e9c110f2104911f65f1--
