@@ -1,62 +1,82 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:55655 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751284Ab0INO4o convert rfc822-to-8bit (ORCPT
+Received: from zone0.gcu-squad.org ([212.85.147.21]:23863 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753936Ab0IJN1H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 10:56:44 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 11so5565702bwz.19
-        for <linux-media@vger.kernel.org>; Tue, 14 Sep 2010 07:56:43 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1274978356-25836-1-git-send-email-david@identd.dyndns.org>
-References: <1274978356-25836-1-git-send-email-david@identd.dyndns.org>
-Date: Tue, 14 Sep 2010 10:56:43 -0400
-Message-ID: <AANLkTi=QujvRkdSLBMm14ZpOy2GCk8Ow3d87FAAz6GGY@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2 0/8] dsbr100: driver cleanup and fixes
-From: David Ellingsworth <david@identd.dyndns.org>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Alexey Klimov <klimov.linux@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 10 Sep 2010 09:27:07 -0400
+Date: Fri, 10 Sep 2010 15:27:00 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Steven Toth <stoth@kernellabs.com>
+Subject: [PATCH 1/5] cx22702: Clean up register access functions
+Message-ID: <20100910152700.69edd554@hyperion.delvare>
+In-Reply-To: <20100910151943.103f7423@hyperion.delvare>
+References: <20100910151943.103f7423@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Alexey,
+* Avoid temporary variables.
+* Optimize success paths.
+* Make error messages consistently verbose.
 
-Can you review/test this patch series? Patches 2/8, 3/8, and 5/8 are
-bug fixes the rest are mainly cleanups. Patch 2/8 should fix a crash
-in the normal case if the device is disconnected while not in use.
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Steven Toth <stoth@kernellabs.com>
+---
+ drivers/media/dvb/frontends/cx22702.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-Regards,
+--- linux-2.6.32-rc5.orig/drivers/media/dvb/frontends/cx22702.c	2009-10-16 09:47:14.000000000 +0200
++++ linux-2.6.32-rc5/drivers/media/dvb/frontends/cx22702.c	2009-10-16 09:47:45.000000000 +0200
+@@ -92,33 +92,36 @@ static int cx22702_writereg(struct cx227
+ 
+ 	ret = i2c_transfer(state->i2c, &msg, 1);
+ 
+-	if (ret != 1)
++	if (ret != 1) {
+ 		printk(KERN_ERR
+ 			"%s: error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
+ 			__func__, reg, data, ret);
++		return -1;
++	}
+ 
+-	return (ret != 1) ? -1 : 0;
++	return 0;
+ }
+ 
+ static u8 cx22702_readreg(struct cx22702_state *state, u8 reg)
+ {
+ 	int ret;
+-	u8 b0[] = { reg };
+-	u8 b1[] = { 0 };
++	u8 data;
+ 
+ 	struct i2c_msg msg[] = {
+ 		{ .addr = state->config->demod_address, .flags = 0,
+-			.buf = b0, .len = 1 },
++			.buf = &reg, .len = 1 },
+ 		{ .addr = state->config->demod_address, .flags = I2C_M_RD,
+-			.buf = b1, .len = 1 } };
++			.buf = &data, .len = 1 } };
+ 
+ 	ret = i2c_transfer(state->i2c, msg, 2);
+ 
+-	if (ret != 2)
+-		printk(KERN_ERR "%s: readreg error (ret == %i)\n",
+-			__func__, ret);
++	if (ret != 2) {
++		printk(KERN_ERR "%s: error (reg == 0x%02x, ret == %i)\n",
++			__func__, reg, ret);
++		return 0;
++	}
+ 
+-	return b1[0];
++	return data;
+ }
+ 
+ static int cx22702_set_inversion(struct cx22702_state *state, int inversion)
 
-David Ellingsworth
-
-On Thu, May 27, 2010 at 12:39 PM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> This patch series addresses several issues in the dsbr100 driver.
-> This series is based on the v4l-dvb master git branch and has been
-> compile tested only. It should be tested before applying.
->
-> This is the second version of this series. An additional patch has
-> been added to cleanup/clarify the return values from dsbr100_start
-> and dsbr100_stop.
->
-> The following patches are included in this series:
->   [PATCH/RFC v2 1/8] dsbr100: implement proper locking
->   [PATCH/RFC v2 2/8] dsbr100: fix potential use after free
->   [PATCH/RFC v2 3/8] dsbr100: only change frequency upon success
->   [PATCH/RFC v2 4/8] dsbr100: remove disconnected indicator
->   [PATCH/RFC v2 5/8] dsbr100: cleanup return value of start/stop handlers
->   [PATCH/RFC v2 6/8] dsbr100: properly initialize the radio
->   [PATCH/RFC v2 7/8] dsbr100: cleanup usb probe routine
->   [PATCH/RFC v2 8/8] dsbr100: simplify access to radio device
->
-> Regards,
->
-> David Ellingsworth
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+-- 
+Jean Delvare
