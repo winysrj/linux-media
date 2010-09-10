@@ -1,32 +1,24 @@
 Return-path: <mchehab@pedra>
 Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
 	[10.5.110.9])
-	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o897c30u010983
-	for <video4linux-list@redhat.com>; Thu, 9 Sep 2010 03:38:03 -0400
-Received: from mtatransport.andago.com (mtatransport.andago.com
-	[213.171.250.118])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o897bpS6008009
-	for <video4linux-list@redhat.com>; Thu, 9 Sep 2010 03:37:53 -0400
-Received: from localhost (antimalware.andago.com [192.168.17.224])
-	by mtatransport.andago.com (Postfix) with ESMTP id BC879364BE
-	for <video4linux-list@redhat.com>;
-	Thu,  9 Sep 2010 09:37:49 +0200 (CEST)
-Received: from mtatransport.andago.com ([192.168.17.223])
-	by localhost (antimalware.andago.com [192.168.17.224]) (amavisd-new,
-	port 10024)
-	with ESMTP id uTo+HEz890P4 for <video4linux-list@redhat.com>;
-	Thu,  9 Sep 2010 09:37:49 +0200 (CEST)
-Received: from beleg.andago.net (beleg.andago.net [192.168.17.70])
-	by mtatransport.andago.com (Postfix) with ESMTP
-	for <video4linux-list@redhat.com>;
-	Thu,  9 Sep 2010 09:37:49 +0200 (CEST)
-Message-ID: <4C888ECC.3080104@andago.com>
-Date: Thu, 09 Sep 2010 09:37:48 +0200
-From: Jorge Cabrera <jorge.cabrera@andago.com>
-MIME-Version: 1.0
-To: Video 4 Linux Mailing List <video4linux-list@redhat.com>
-Subject: Video capture device
+	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o8AD8DZ5019794
+	for <video4linux-list@redhat.com>; Fri, 10 Sep 2010 09:08:14 -0400
+Received: from stockholm.opq.se (www.opq.se [213.88.151.150])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8AD82rS021807
+	for <video4linux-list@redhat.com>; Fri, 10 Sep 2010 09:08:03 -0400
+Subject: Re: Video capture device
+From: Roger Oberholtzer <roger@opq.se>
+To: Jorge Cabrera <jorge.cabrera@andago.com>
+In-Reply-To: <4C8A29A0.1030700@andago.com>
+References: <4C888ECC.3080104@andago.com>
+	<1284023555.12548.11.camel@acme.pacific> <4C8A16BA.2060109@andago.com>
+	<1284119156.22435.51.camel@acme.pacific> <4C8A1CF3.9060402@andago.com>
+	<1284120243.22435.66.camel@acme.pacific> <4C8A29A0.1030700@andago.com>
+Date: Fri, 10 Sep 2010 15:07:55 +0200
+Message-ID: <1284124075.22435.73.camel@acme.pacific>
+Mime-Version: 1.0
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -34,64 +26,59 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Transfer-Encoding: quoted-printable
-Content-Type: text/plain; charset="iso-8859-1"; Format="flowed"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: video4linux-list-bounces@redhat.com
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-Hello,
-
-I wanted to set up a videoconference service at my company using a sony =
-
-video camera with a usb video capture device and linux (Ubuntu to be =
-
-specific). The videoconference system we're using is through webex and =
-
-megameeting. I am currently using an Avermedia video capture device but =
-
-the problem I had was that for this device the default input was "Tuner" =
-
-and even dough I could set the default input to S-Video with v4l =
-
-utilities this would only work with mplayer, vlc... but it wouldn't work =
-
-with flash or java in a browser which are the technology behind most of =
-
-online videoconference services. So after a month of banging my head =
-
-against the wall I gave up and installed another operating system. =
-
-Windows. Yes, I know.
-
-But now I want to give it another try so this time I was thinking of =
-
-trying with another video capture usb device so I wanted to ask the =
-
-members of this list if you ever made one of this devices work perfectly =
-
-under linux, specially with flash or java technologies. I think I would =
-
-have the same problems with any Avermedia device so maybe there's =
-
-something out there that works.
-
-Thanks for your help,
-
-Have a nice day
-
--- =
-
-Jorge Cabrera
-=C1ndago Ingenier=EDa - www.andago.com
-
-Tel=E9fono: +34 916 011 373
-M=F3vil: +34 637 741 034
-e-mail: jorge.cabrera@andago.com
-
-C/Alcalde =C1ngel Arroyo n.=BA10 1.=AAPl. (28904) Getafe, Madrid
-
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=3Dunsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+T24gRnJpLCAyMDEwLTA5LTEwIGF0IDE0OjUwICswMjAwLCBKb3JnZSBDYWJyZXJhIHdyb3RlOgo+
+IFJvZ2VyIE9iZXJob2x0emVyIHdyb3RlOiAKPiA+IE9uIEZyaSwgMjAxMC0wOS0xMCBhdCAxMzo1
+NiArMDIwMCwgSm9yZ2UgQ2FicmVyYSB3cm90ZToKPiA+ICAgCj4gPiA+IFJvZ2VyIE9iZXJob2x0
+emVyIHdyb3RlOiAKPiA+ID4gICAgIAo+ID4gPiA+IE9uIEZyaSwgMjAxMC0wOS0xMCBhdCAxMzoz
+MCArMDIwMCwgSm9yZ2UgQ2FicmVyYSB3cm90ZToKPiA+ID4gPiAKPiA+ID4gPiAgIAo+ID4gPiA+
+ICAgICAgIAo+ID4gPiA+ID4gVGhhbmtzIGZvciB5b3VyIHJlcGx5IGFuZCB5b3VyIGFkdmljZSBS
+b2dlci4gUHJvYmxlbSBpcyB0aGF0IHVzaW5nIGEKPiA+ID4gPiA+IHdlYmNhbSBpcyBub3QgYW4g
+b3B0aW9uIHJpZ2h0IG5vdyBiZWNhdXNlIHRoZSBzb2x1dGlvbiB0aGF0IHdlIGhhdmUgdG8KPiA+
+ID4gPiA+IHByb3ZpZGUgaXMgYnkgdXNpbmcgYSB1c2IgdmlkZW8gY2FwdHVyZSBkZXZpY2UgY29u
+bmVjdGVkIHRvIGEgY2FtZXJhLgo+ID4gPiA+ID4gSGF2ZSBhbnlvbmUgdHJpZWQgb25lIG9mIHRo
+b3NlIHdpdGggbGludXg/Cj4gPiA+ID4gPiAgICAgCj4gPiA+ID4gPiAgICAgICAgIAo+ID4gPiA+
+IFlvdSBtZWFuIHRoYXQgeW91IGhhdmUgc29tZXRoaW5nIGxpa2UgYSBEYXp6bGUgdmlkZW8gY2Fw
+dHVyZSBkZXZpY2UKPiA+ID4gPiBjb25uZWN0ZWQgdG8gdGhlIFVTQiBhbmQgYSBjYW1lcmEgYXR0
+YWNoZWQgdG8gdGhhdD8gV2hhdCB1c2IgY2FwdHVyZQo+ID4gPiA+IGRldmljZSBhcmUgeW91IHVz
+aW5nPyBNYW55IGFyZSBzdXBwb3J0ZWQuIEJ1dCBub3QgYWxsIG9mIHRoZW0uCj4gPiA+ID4gCj4g
+PiA+ID4gCj4gPiA+ID4gICAKPiA+ID4gPiAgICAgICAKPiA+ID4gWWVzIGV4YWN0bHksIEknbSB1
+c2luZyBBdmVybWVkaWEgRVpNYWtlciBVU0IgR29sZAo+ID4gPiAoaHR0cDovL3RpZW5kYS5hdmVy
+bWVkaWEuZXMvcHJvZHVjdC5hc3B4P3Byb2R1Y3RpZD04MTEyNikuIFRoZSBkZXZpY2UKPiA+ID4g
+aGF2ZSBsaW51eCBkcml2ZXJzIGFuZCBpdCBzZWVtIHRvIHdvcmsgb2sgYnV0IEknbSBoYXZpbmcg
+dGhlIHByb2JsZW1zCj4gPiA+IEkgbWVudGlvbmVkIGJlZm9yZS4KPiA+ID4gICAgIAo+ID4gCj4g
+PiBJIHVzZSB2NGxjdGwgdG8gY29uZmlndXJlIGRldmljZXMuIFRoZSBjb25maWd1cmF0aW9ucyBz
+dGF5IHVudGlsIHRoZQo+ID4gZGV2aWNlcyBhcmUgcmVwb3dlcmVkLiBIYXZlIHlvdSB0cmllZCB0
+aGlzPwo+ID4gCj4gPiAKPiA+ICAgCj4gWWVzLCBJIHRyaWVkIHRoYXQgYW5kIHY0bDJjdGwgdG9v
+IGJ1dCBzb21lIHByb2dyYW1zIGxpa2UgbXBsYXllciByZWFkCj4gdGhlIGNvbmZpZ3VyYXRpb24g
+Y2hhbmdlIGJ1dCBjaGVlc2UgZm9yIGV4YW1wbGUgb3IgZmxhc2ggZGlkbid0LiBJCj4gd291bGQg
+Y2hhbmdlIHRoZSBkZWZhdWx0IGlucHV0IGZyb20gdHVuZXIgKHRoZSBkZWZhdWx0KSB0byBzLXZp
+ZGVvIG9yCj4gYW55IG90aGVyIGtpbmQgYW5kIG5vdGhpbmcuCgpIbW0uIEl0IGlzIG5vdCBhIG1h
+dHRlciBvZiB0aGUgcHJvZ3JhbSByZWFkaW5nIHlvdXIgY2hhbmdlcy4gVGhleSBhcmUKc2V0IGlu
+IHRoZSBkcml2ZXIuIElmIHRoZXkgYXJlIG5vdCB1c2VkLCBpdCBpcyBiZWNhdXNlIGZsYXNoIGlz
+IGFjdGl2ZWx5CnNldHRpbmcgYSBkaWZmZXJlbnQgdmFsdWUgZnJvbSB3aGF0IHRoZSBkcml2ZXIg
+aGFkIHdoZW4gZmxhc2ggc3RhcnRlZC4KVGhpcyBtZWFucyB0aGF0IGZsYXNoIG11c3QgaGF2ZSBp
+dCdzIG93biB3YXkgb2Ygc3BlY2lmeWluZyB0aGVzZQpzZXR0aW5ncy4gZmxhc2ggcmVhbGx5IGlz
+IGNyYXBweS4uLgoKUGVyaGFwcyBvbmUgaGFjayB3b3VsZCBiZSB0byByZWNvbXBpbGUgdGhlIGRy
+aXZlciB3aXRoIHRoZSBkZWZhdWx0cyB5b3UKbmVlZC4gQnV0IEkgc3VzcGVjdCBldmVuIHRoYXQg
+d291bGQgZmFpbCBhcyBpdCBzZWVtcyBmbGFzaCBhY3RpdmVseSBzZXRzCnRoZSB2YWx1ZXMuIFlv
+dSBtaWdodCB0cnkgcmVtb3ZpbmcgZnJvbSB0aGUgZHJpdmVyIHRoZSBvcHRpb25zIHlvdSBkbwpu
+b3Qgd2FudCBzbyB0aGV5IGFyZSBub3QgYXZhaWxhYmxlIHRvIGZsYXNoLiBCdXQgSSBiZXQgZmxh
+c2ggaGFzIHNvbWUKYXNzdW1wdGlvbnMgdGhhdCBleHBlY3QgdGhlc2Ugc2V0dGluZ3MsIGFuZCBp
+dCB3b3VsZCBmYWlsIGlmIHRoZXkgYXJlCm5vdCBwcmVzZW50LgoKSSBkb24ndCB0aGluayBJIGNh
+biBvZmZlciBtb3JlLgo+IC0tIAo+IEpvcmdlIENhYnJlcmEKPiDDgW5kYWdvIEluZ2VuaWVyw61h
+IC0gd3d3LmFuZGFnby5jb20KPiAKPiBUZWzDqWZvbm86ICszNCA5MTYgMDExIDM3Mwo+IE3Ds3Zp
+bDogKzM0IDYzNyA3NDEgMDM0Cj4gZS1tYWlsOiBqb3JnZS5jYWJyZXJhQGFuZGFnby5jb20KPiAK
+PiBDL0FsY2FsZGUgw4FuZ2VsIEFycm95byBuLsK6MTAgMS7CqlBsLiAoMjg5MDQpIEdldGFmZSwg
+TWFkcmlkCgotLSAKUm9nZXIgT2JlcmhvbHR6ZXIKCk9QUSBTeXN0ZW1zIC8gUmFtYsO2bGwgUlNU
+CgpSYW1iw7ZsbCBTdmVyaWdlIEFCCktydWttYWthcmdhdGFuIDIxClAuTy4gQm94IDE3MDA5ClNF
+LTEwNCA2MiBTdG9ja2hvbG0sIFN3ZWRlbgoKT2ZmaWNlOiBJbnQgKzQ2IDEwLTYxNSA2MCAyMApN
+b2JpbGU6IEludCArNDYgNzAtODE1IDE2OTYKCi0tCnZpZGVvNGxpbnV4LWxpc3QgbWFpbGluZyBs
+aXN0ClVuc3Vic2NyaWJlIG1haWx0bzp2aWRlbzRsaW51eC1saXN0LXJlcXVlc3RAcmVkaGF0LmNv
+bT9zdWJqZWN0PXVuc3Vic2NyaWJlCmh0dHBzOi8vd3d3LnJlZGhhdC5jb20vbWFpbG1hbi9saXN0
+aW5mby92aWRlbzRsaW51eC1saXN0
