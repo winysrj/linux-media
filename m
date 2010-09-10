@@ -1,83 +1,52 @@
 Return-path: <mchehab@pedra>
-Received: from bar.sig21.net ([80.81.252.164]:59484 "EHLO bar.sig21.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753661Ab0INOnr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 10:43:47 -0400
-Date: Tue, 14 Sep 2010 16:43:39 +0200
-From: Johannes Stezenbach <js@linuxtv.org>
-To: rjkm <rjkm@metzlerbros.de>
+Received: from mailout-de.gmx.net ([213.165.64.23]:49870 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1753316Ab0IJLsB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Sep 2010 07:48:01 -0400
+From: "Stefan Lippers-Hollmann" <s.L-H@gmx.de>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [GIT PULL FOR 2.6.37] new AF9015 devices
+Date: Fri, 10 Sep 2010 13:47:51 +0200
 Cc: linux-media@vger.kernel.org
-Subject: Re: How to handle independent CA devices
-Message-ID: <20100914144339.GA9525@linuxtv.org>
-References: <19593.22297.612764.560375@valen.metzler>
+References: <4C894DB8.8080908@iki.fi> <201009100254.07762.s.L-H@gmx.de> <4C8A0488.9020206@iki.fi>
+In-Reply-To: <4C8A0488.9020206@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <19593.22297.612764.560375@valen.metzler>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201009101347.54116.s.L-H@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Ralph,
+Hi
 
-On Thu, Sep 09, 2010 at 11:52:25PM +0200, rjkm wrote:
+On Friday 10 September 2010, Antti Palosaari wrote:
+>  sure yet how to distinguish between the
+> > "Cinergy T Dual" and my "Cinergy T RC MKII":
 > 
-> cards like the Digital Devices DuoFlex S2, cineS2 and upcoming 
-> hardware (octuple, network, etc.) have independent CA devices.
-> This means that instead of having the stream routed from the frontend 
-> through the CI and only then into memory a stream can be sent from
-> memory through the CI and back. So, the current device model does not
-> fit this hardware.
 > 
-> One could hide this fact inside the driver and send the stream from
-> the frontend through the CI transparently to the API but this would
-> prevent people from implementing new features like decoding a stream from 
-> a different DVB card, decoding streams from hard disk or even decoding
-> several sub-streams from different transponders.
-> The latter works with the current Windows driver but I have not
-> implemented it in Linux yet. It also has to be supported by the CI
-> modules. Some can decode 12 streams (6 times video/audio) at once.
+> > Given that keys, once pressed, remain to be stuck, using both lirc's
+> > dev/input and without any dæmon trying to catch keypresses, I have not
+> > reached a functional configuration.
 > 
-> But decoding single streams already works fine. Currently, I am 
-> registering a different adapter for the CI.
-> On a CineS2 with CI attached at the IO port I then have
-> 
-> /dev/dvb/adapter[01] for the two DVB-S2 frontends and
-> /dev/dvb/adapter2 just for the ca0 device.
-> 
-> I am abusing the unused sec0 to write/read data to/from the CI module.
-> For testing I hacked zap from dvb-apps to tune on adapter0 but 
-> use adapter2/ca0 to talk to the CI module.
-> I then write the encrypted stream from adapter0/dvr0 into 
-> adapter2/sec0 and read the decoded stream back from adapter2/sec0.
-> The encrypted stream of course has to contain all the PIDs of the
-> ca_pmt. 
-> 
-> So, I would like to hear your opinions about how to handle such CA devices 
-> regarding device names/types, the DVB API and user libraries.
+> That`s known issue. Chip configures USB HID polling interval wrongly and 
+> due to that HID starts repeating usually. There is USB-ID mapped quir
 
-it looks like there isn't much interest from DVB developers
-in that topic...  I'll try...
+Yes, now I see it. A quickly hacked test seems to improve the stuck key 
+events a lot (some keys still have a tendency to get stuck, but in general 
+it works):
 
+--- a/drivers/hid/usbhid/hid-quirks.c
++++ b/drivers/hid/usbhid/hid-quirks.c
+@@ -45,6 +45,7 @@ static const struct hid_blacklist {
+ 	{ USB_VENDOR_ID_TOPMAX, USB_DEVICE_ID_TOPMAX_COBRAPAD, HID_QUIRK_BADPAD },
+ 
+ 	{ USB_VENDOR_ID_AFATECH, USB_DEVICE_ID_AFATECH_AF9016, HID_QUIRK_FULLSPEED_INTERVAL },
++	{ 0x0ccd, 0x0097, HID_QUIRK_FULLSPEED_INTERVAL },
+ 
+ 	{ USB_VENDOR_ID_ETURBOTOUCH, USB_DEVICE_ID_ETURBOTOUCH, HID_QUIRK_MULTI_INPUT },
+ 	{ USB_VENDOR_ID_PANTHERLORD, USB_DEVICE_ID_PANTHERLORD_TWIN_USB_JOYSTICK, HID_QUIRK_MULTI_INPUT | HID_QUIRK_SKIP_OUTPUT_REPORTS },
 
-IMHO there are three sub topics:
-
-1. be compatible with existing applications
-   (I guess this means: feed stream from frontend through CI transparently)
-2. create an API which would also work for CI-only
-   devices like this Hauppauge WinTV-CI USB thingy
-3. how to switch between these modes?
-
-This sec0 device is history (unused and deprecated for years), right?
-How about the following:
-Rename it to ci0.  When ci0 is closed the stream is routed
-transparently from frontend through CI, if it's opened one needs to
-read/write the stream from userspace.
-
-
-If you can't get responses here I guess you could talk to
-vdr or other application developers.  After all they'll have
-to use the API.
-
-
-Cheers,
-Johannes
+Regards
+	Stefan Lippers-Hollmann
