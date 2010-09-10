@@ -1,69 +1,53 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:32914 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753187Ab0I2M3m convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:36125 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754297Ab0IJHjH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Sep 2010 08:29:42 -0400
-Received: by ewy23 with SMTP id 23so175501ewy.19
-        for <linux-media@vger.kernel.org>; Wed, 29 Sep 2010 05:29:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20100928154655.183af4b3@pedra>
-References: <cover.1285699057.git.mchehab@redhat.com>
-	<20100928154655.183af4b3@pedra>
-Date: Wed, 29 Sep 2010 08:29:40 -0400
-Message-ID: <AANLkTimfBSGW+HhPvRWuhb_kJC3-ZQYGGuKgfVfAoqYW@mail.gmail.com>
-Subject: Re: [PATCH 03/10] V4L/DVB: tda18271: Add some hint about what
- tda18217 reg ID returned
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
+	Fri, 10 Sep 2010 03:39:07 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L8I005M8T94D030@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Sep 2010 08:39:04 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L8I005PUT930W@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Sep 2010 08:39:04 +0100 (BST)
+Date: Fri, 10 Sep 2010 16:38:44 +0900
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCH/RFC v1 0/7] Videobuf2 framework
+In-reply-to: <4C89B3AD.1010404@redhat.com>
 To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Cc: Pawel Osciak <p.osciak@samsung.com>, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, t.fujak@samsung.com
+Message-id: <4C89E084.6090203@samsung.com>
+References: <1284023988-23351-1-git-send-email-p.osciak@samsung.com>
+ <4C891F0D.2060103@redhat.com> <4C89A3EE.8040503@samsung.com>
+ <4C89B3AD.1010404@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Tue, Sep 28, 2010 at 2:46 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> Instead of doing:
->
-> [   82.581639] tda18271 4-0060: creating new instance
-> [   82.588411] Unknown device detected @ 4-0060, device not supported.
-> [   82.594695] tda18271_attach: [4-0060|M] error -22 on line 1272
-> [   82.600530] tda18271 4-0060: destroying instance
->
-> Print:
-> [  468.740392] Unknown device (0) detected @ 4-0060, device not supported.
->
-> for the error message, to help detecting what's going wrong with the
-> device.
->
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->
-> diff --git a/drivers/media/common/tuners/tda18271-fe.c b/drivers/media/common/tuners/tda18271-fe.c
-> index 7955e49..77e3642 100644
-> --- a/drivers/media/common/tuners/tda18271-fe.c
-> +++ b/drivers/media/common/tuners/tda18271-fe.c
-> @@ -1177,7 +1177,7 @@ static int tda18271_get_id(struct dvb_frontend *fe)
->                break;
->        }
->
-> -       tda_info("%s detected @ %d-%04x%s\n", name,
-> +       tda_info("%s (%i) detected @ %d-%04x%s\n", name, regs[R_ID] & 0x7f,
->                 i2c_adapter_id(priv->i2c_props.adap),
->                 priv->i2c_props.addr,
->                 (0 == ret) ? "" : ", device not supported.");
-> --
-> 1.7.1
->
->
->
+Hello,
 
-Adding the maintainer for the 18271 driver to the CC.
+On 2010-09-10 13:27, Mauro Carvalho Chehab wrote:
 
-Devin
+>>> 1) it lacks implementation of read() method. This means that vivi driver
+>>> has a regression, as it currently supports it.
+>>
+>> Yes, read() is not yet implemented. I guess it is not a feature that would
+>> be deprecated, right?
+>
+> Yes, there are no plans to deprecate it. Also, some devices like cx88 and bttv
+> allows receiving simultaneous streams, one via mmap, and another via read().
+> This is used by some applications to allow recording video via ffmpeg/mencoder
+> using read(), while the main application is displaying video using mmap.
 
+Well, in my opinion such devices should provide two separate /dev/videoX 
+nodes rather than hacking with mmap and read access types.
+
+Best regards
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Marek Szyprowski
+Samsung Poland R&D Center
