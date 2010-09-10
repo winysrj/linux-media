@@ -1,19 +1,29 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx09.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.13])
+Received: from mx1.redhat.com (ext-mx07.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.11])
 	by int-mx02.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o8PJxJum017779
-	for <video4linux-list@redhat.com>; Sat, 25 Sep 2010 15:59:19 -0400
-Received: from smtp.smtpout.orange.fr (smtp02.smtpout.orange.fr
-	[80.12.242.124])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8PJx3TS023900
-	for <video4linux-list@redhat.com>; Sat, 25 Sep 2010 15:59:04 -0400
-Message-ID: <4C9E5486.6010707@wanadoo.fr>
-Date: Sat, 25 Sep 2010 21:59:02 +0200
-From: Robert Leleu <robert.jean.leleu@wanadoo.fr>
+	id o8ADifBl030822
+	for <video4linux-list@redhat.com>; Fri, 10 Sep 2010 09:44:41 -0400
+Received: from mtatransport.andago.com (mtatransport.andago.com
+	[213.171.250.118])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8ADiVtQ011806
+	for <video4linux-list@redhat.com>; Fri, 10 Sep 2010 09:44:32 -0400
+Message-ID: <4C8A363D.8010604@andago.com>
+Date: Fri, 10 Sep 2010 15:44:29 +0200
+From: Jorge Cabrera <jorge.cabrera@andago.com>
 MIME-Version: 1.0
-To: video4linux-list@redhat.com
-Subject: (des)activate integrated videocam from script
+To: Roger Oberholtzer <roger@opq.se>
+Subject: Re: Video capture device
+References: <4C888ECC.3080104@andago.com>	
+	<1284023555.12548.11.camel@acme.pacific>
+	<4C8A16BA.2060109@andago.com>	
+	<1284119156.22435.51.camel@acme.pacific>
+	<4C8A1CF3.9060402@andago.com>	
+	<1284120243.22435.66.camel@acme.pacific>
+	<4C8A29A0.1030700@andago.com>
+	<1284124075.22435.73.camel@acme.pacific>
+In-Reply-To: <1284124075.22435.73.camel@acme.pacific>
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -21,21 +31,69 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Transfer-Encoding: 7bit
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Errors-To: video4linux-list-bounces@redhat.com
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-I have an integrated ALI Bisoncam camera on a laptop running Ubuntu 
-10.04, which is activated by a specific material pushbutton (with no 
-testlight).
-I would be able to (des)activate it from a terminal (or a script).
-
-Is it possible?
-
-Thanks
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+Um9nZXIgT2JlcmhvbHR6ZXIgd3JvdGU6Cj4gT24gRnJpLCAyMDEwLTA5LTEwIGF0IDE0OjUwICsw
+MjAwLCBKb3JnZSBDYWJyZXJhIHdyb3RlOgo+ICAgCj4+IFJvZ2VyIE9iZXJob2x0emVyIHdyb3Rl
+OiAKPj4gICAgIAo+Pj4gT24gRnJpLCAyMDEwLTA5LTEwIGF0IDEzOjU2ICswMjAwLCBKb3JnZSBD
+YWJyZXJhIHdyb3RlOgo+Pj4gICAKPj4+ICAgICAgIAo+Pj4+IFJvZ2VyIE9iZXJob2x0emVyIHdy
+b3RlOiAKPj4+PiAgICAgCj4+Pj4gICAgICAgICAKPj4+Pj4gT24gRnJpLCAyMDEwLTA5LTEwIGF0
+IDEzOjMwICswMjAwLCBKb3JnZSBDYWJyZXJhIHdyb3RlOgo+Pj4+Pgo+Pj4+PiAgIAo+Pj4+PiAg
+ICAgICAKPj4+Pj4gICAgICAgICAgIAo+Pj4+Pj4gVGhhbmtzIGZvciB5b3VyIHJlcGx5IGFuZCB5
+b3VyIGFkdmljZSBSb2dlci4gUHJvYmxlbSBpcyB0aGF0IHVzaW5nIGEKPj4+Pj4+IHdlYmNhbSBp
+cyBub3QgYW4gb3B0aW9uIHJpZ2h0IG5vdyBiZWNhdXNlIHRoZSBzb2x1dGlvbiB0aGF0IHdlIGhh
+dmUgdG8KPj4+Pj4+IHByb3ZpZGUgaXMgYnkgdXNpbmcgYSB1c2IgdmlkZW8gY2FwdHVyZSBkZXZp
+Y2UgY29ubmVjdGVkIHRvIGEgY2FtZXJhLgo+Pj4+Pj4gSGF2ZSBhbnlvbmUgdHJpZWQgb25lIG9m
+IHRob3NlIHdpdGggbGludXg/Cj4+Pj4+PiAgICAgCj4+Pj4+PiAgICAgICAgIAo+Pj4+Pj4gICAg
+ICAgICAgICAgCj4+Pj4+IFlvdSBtZWFuIHRoYXQgeW91IGhhdmUgc29tZXRoaW5nIGxpa2UgYSBE
+YXp6bGUgdmlkZW8gY2FwdHVyZSBkZXZpY2UKPj4+Pj4gY29ubmVjdGVkIHRvIHRoZSBVU0IgYW5k
+IGEgY2FtZXJhIGF0dGFjaGVkIHRvIHRoYXQ/IFdoYXQgdXNiIGNhcHR1cmUKPj4+Pj4gZGV2aWNl
+IGFyZSB5b3UgdXNpbmc/IE1hbnkgYXJlIHN1cHBvcnRlZC4gQnV0IG5vdCBhbGwgb2YgdGhlbS4K
+Pj4+Pj4KPj4+Pj4KPj4+Pj4gICAKPj4+Pj4gICAgICAgCj4+Pj4+ICAgICAgICAgICAKPj4+PiBZ
+ZXMgZXhhY3RseSwgSSdtIHVzaW5nIEF2ZXJtZWRpYSBFWk1ha2VyIFVTQiBHb2xkCj4+Pj4gKGh0
+dHA6Ly90aWVuZGEuYXZlcm1lZGlhLmVzL3Byb2R1Y3QuYXNweD9wcm9kdWN0aWQ9ODExMjYpLiBU
+aGUgZGV2aWNlCj4+Pj4gaGF2ZSBsaW51eCBkcml2ZXJzIGFuZCBpdCBzZWVtIHRvIHdvcmsgb2sg
+YnV0IEknbSBoYXZpbmcgdGhlIHByb2JsZW1zCj4+Pj4gSSBtZW50aW9uZWQgYmVmb3JlLgo+Pj4+
+ICAgICAKPj4+PiAgICAgICAgIAo+Pj4gSSB1c2UgdjRsY3RsIHRvIGNvbmZpZ3VyZSBkZXZpY2Vz
+LiBUaGUgY29uZmlndXJhdGlvbnMgc3RheSB1bnRpbCB0aGUKPj4+IGRldmljZXMgYXJlIHJlcG93
+ZXJlZC4gSGF2ZSB5b3UgdHJpZWQgdGhpcz8KPj4+Cj4+Pgo+Pj4gICAKPj4+ICAgICAgIAo+PiBZ
+ZXMsIEkgdHJpZWQgdGhhdCBhbmQgdjRsMmN0bCB0b28gYnV0IHNvbWUgcHJvZ3JhbXMgbGlrZSBt
+cGxheWVyIHJlYWQKPj4gdGhlIGNvbmZpZ3VyYXRpb24gY2hhbmdlIGJ1dCBjaGVlc2UgZm9yIGV4
+YW1wbGUgb3IgZmxhc2ggZGlkbid0LiBJCj4+IHdvdWxkIGNoYW5nZSB0aGUgZGVmYXVsdCBpbnB1
+dCBmcm9tIHR1bmVyICh0aGUgZGVmYXVsdCkgdG8gcy12aWRlbyBvcgo+PiBhbnkgb3RoZXIga2lu
+ZCBhbmQgbm90aGluZy4KPj4gICAgIAo+Cj4gSG1tLiBJdCBpcyBub3QgYSBtYXR0ZXIgb2YgdGhl
+IHByb2dyYW0gcmVhZGluZyB5b3VyIGNoYW5nZXMuIFRoZXkgYXJlCj4gc2V0IGluIHRoZSBkcml2
+ZXIuIElmIHRoZXkgYXJlIG5vdCB1c2VkLCBpdCBpcyBiZWNhdXNlIGZsYXNoIGlzIGFjdGl2ZWx5
+Cj4gc2V0dGluZyBhIGRpZmZlcmVudCB2YWx1ZSBmcm9tIHdoYXQgdGhlIGRyaXZlciBoYWQgd2hl
+biBmbGFzaCBzdGFydGVkLgo+IFRoaXMgbWVhbnMgdGhhdCBmbGFzaCBtdXN0IGhhdmUgaXQncyBv
+d24gd2F5IG9mIHNwZWNpZnlpbmcgdGhlc2UKPiBzZXR0aW5ncy4gZmxhc2ggcmVhbGx5IGlzIGNy
+YXBweS4uLgo+Cj4gUGVyaGFwcyBvbmUgaGFjayB3b3VsZCBiZSB0byByZWNvbXBpbGUgdGhlIGRy
+aXZlciB3aXRoIHRoZSBkZWZhdWx0cyB5b3UKPiBuZWVkLiBCdXQgSSBzdXNwZWN0IGV2ZW4gdGhh
+dCB3b3VsZCBmYWlsIGFzIGl0IHNlZW1zIGZsYXNoIGFjdGl2ZWx5IHNldHMKPiB0aGUgdmFsdWVz
+LiBZb3UgbWlnaHQgdHJ5IHJlbW92aW5nIGZyb20gdGhlIGRyaXZlciB0aGUgb3B0aW9ucyB5b3Ug
+ZG8KPiBub3Qgd2FudCBzbyB0aGV5IGFyZSBub3QgYXZhaWxhYmxlIHRvIGZsYXNoLiBCdXQgSSBi
+ZXQgZmxhc2ggaGFzIHNvbWUKPiBhc3N1bXB0aW9ucyB0aGF0IGV4cGVjdCB0aGVzZSBzZXR0aW5n
+cywgYW5kIGl0IHdvdWxkIGZhaWwgaWYgdGhleSBhcmUKPiBub3QgcHJlc2VudC4KPgo+IEkgZG9u
+J3QgdGhpbmsgSSBjYW4gb2ZmZXIgbW9yZS4KPiAgIApXZWxsLCBpdCdzIHdlaXJkIGJlY2F1c2Ug
+SSBhbHJlYWR5IHRyaWVkIHJlY29tcGlsaW5nIHRoZSBkcml2ZXIgYnV0IAp0aGVyZSB3YXMgbm8g
+b3B0aW9uIGZvciBjaGFuZ2luZyB0aGUgZGVmYXVsdCBpbnB1dCB0aGVyZS4gV2Ugc3RhcnRlZCB0
+byAKdGhpbmsgaGVyZSB0aGF0IGl0IGlzIHNvbWVob3cgdGhlIHdheSB0aGUgZGV2aWNlIGlzIHN1
+cHBvc2VkIHRvIHdvcmsuIApUaGF0J3Mgd2h5IEkgd2FzIHRoaW5raW5nIG9mIHRyeWluZyB3aXRo
+IGFub3RoZXIgZGV2aWNlLiBCdXQgSSdtIGFmcmFpZCAKdGhhdCBJJ2xsIGVuZCB1cCBmYWNpbmcg
+dGhlIHNhbWUgcHJvYmxlbXMuCgpUaGFua3MgYSBsb3QgZm9yIHlvdXIgaGVscCBSb2dlciBhbmQg
+aGF2ZSBhIGdvb2Qgd2Vla2VuZAo+PiAtLSAKPj4gSm9yZ2UgQ2FicmVyYQo+PiDDgW5kYWdvIElu
+Z2VuaWVyw61hIC0gd3d3LmFuZGFnby5jb20KPj4KPj4gVGVsw6lmb25vOiArMzQgOTE2IDAxMSAz
+NzMKPj4gTcOzdmlsOiArMzQgNjM3IDc0MSAwMzQKPj4gZS1tYWlsOiBqb3JnZS5jYWJyZXJhQGFu
+ZGFnby5jb20KPj4KPj4gQy9BbGNhbGRlIMOBbmdlbCBBcnJveW8gbi7CujEwIDEuwqpQbC4gKDI4
+OTA0KSBHZXRhZmUsIE1hZHJpZAo+PiAgICAgCj4KPiAgIAoKCi0tIApKb3JnZSBDYWJyZXJhCsOB
+bmRhZ28gSW5nZW5pZXLDrWEgLSB3d3cuYW5kYWdvLmNvbQoKVGVsw6lmb25vOiArMzQgOTE2IDAx
+MSAzNzMKTcOzdmlsOiArMzQgNjM3IDc0MSAwMzQKZS1tYWlsOiBqb3JnZS5jYWJyZXJhQGFuZGFn
+by5jb20KCkMvQWxjYWxkZSDDgW5nZWwgQXJyb3lvIG4uwroxMCAxLsKqUGwuICgyODkwNCkgR2V0
+YWZlLCBNYWRyaWQKCi0tCnZpZGVvNGxpbnV4LWxpc3QgbWFpbGluZyBsaXN0ClVuc3Vic2NyaWJl
+IG1haWx0bzp2aWRlbzRsaW51eC1saXN0LXJlcXVlc3RAcmVkaGF0LmNvbT9zdWJqZWN0PXVuc3Vi
+c2NyaWJlCmh0dHBzOi8vd3d3LnJlZGhhdC5jb20vbWFpbG1hbi9saXN0aW5mby92aWRlbzRsaW51
+eC1saXN0
