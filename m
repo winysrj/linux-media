@@ -1,64 +1,73 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2242 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755011Ab0IZRZq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 13:25:46 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH 5/9] v4l: Create v4l2 subdev file handle structure
-Date: Sun, 26 Sep 2010 19:25:26 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
-References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com> <1285517612-20230-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285517612-20230-6-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:7369 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754712Ab0IJCBv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Sep 2010 22:01:51 -0400
+Date: Thu, 9 Sep 2010 22:01:29 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	lirc-list@lists.sourceforge.net,
+	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/8 V5] Many fixes for in-kernel decoding and for the ENE
+ driver
+Message-ID: <20100910020129.GA26845@redhat.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+ <4C8805FA.3060102@infradead.org>
+ <20100908224227.GL22323@redhat.com>
+ <AANLkTikBVSYpD_+qomCad-OvXg6CRam4b01wSBV-pNw8@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009261925.27051.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <AANLkTikBVSYpD_+qomCad-OvXg6CRam4b01wSBV-pNw8@mail.gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sunday, September 26, 2010 18:13:28 Laurent Pinchart wrote:
-> From: Stanimir Varbanov <svarbanov@mm-sol.com>
+On Thu, Sep 09, 2010 at 12:34:27AM -0400, Jarod Wilson wrote:
+...
+> >> For now, I've applied patches 3, 4 and 5, as it is nice to have Jarod's review also.
+> >
+> > I've finally got them all applied atop current media_tree staging/v2.6.37,
+> > though none of the streamzap bits in patch 7 are applicable any longer.
+> > Will try to get through looking and commenting (and testing) of the rest
+> > of them tonight.
 > 
-> Used for storing subdev information per file handle and hold V4L2 file
-> handle.
-> 
-> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-> Signed-off-by: Antti Koskipaa <antti.koskipaa@nokia.com>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/v4l2-subdev.c |   82 +++++++++++++++++++++++++------------
->  include/media/v4l2-subdev.h       |   25 +++++++++++
->  2 files changed, 80 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-> index 731dc12..d2891c1 100644
-> --- a/drivers/media/video/v4l2-subdev.c
-> +++ b/drivers/media/video/v4l2-subdev.c
-> @@ -30,38 +30,66 @@
->  #include <media/v4l2-fh.h>
->  #include <media/v4l2-event.h>
->  
-> +static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
-> +{
-> +	/* Allocate probe format and crop in the same memory block */
-> +	fh->probe_fmt = kzalloc((sizeof(*fh->probe_fmt) +
-> +				sizeof(*fh->probe_crop)) * sd->entity.num_pads,
-> +				GFP_KERNEL);
-> +	if (fh->probe_fmt == NULL)
-> +		return -ENOMEM;
+> Also had to make a minor addition to the rc5-sz decoder (same change
+> as in the other decoders). Almost have all the requisite test kernels
+> for David's, Maxim's and Dmitry's patchsets built and installed, wish
+> my laptop was faster... Probably would have been faster to use a lab
+> box and copy data over. Oh well. So functional testing to hopefully
+> commence tomorrow morning.
 
-I really don't like the name 'probe' for this. I remember discussing it with you,
-Laurent, but I can't remember the word I came up with.
+Wuff. None of the three builds is at all stable on my laptop, but I can't
+actually point the finger at any of the three patchsets, since I'm getting
+spontaneous lockups doing nothing at all before even plugging in a
+receiver. I did however get occasional periods of a non-panicking (not
+starting X seems to help a lot). Initial results:
 
-Can you remember what it was?
+Dmitry's patchset:
+- all good for imon, streamzap and mceusb
 
-Regards,
+David's patchset:
+- all good for mceusb, as expected, since David has mce hardware himself,
+  did not try the others yet
 
-	Hans
+Maxim's patchset:
+- all good for mceusb and imon
+- streamzap decoding fails miserably. I have an inkling why, but will need
+  to get a stable testing platform before I can really properly dig into
+  it.
+
+Still working on that stable testing platform, which is "backport current
+ir-core to the latest Fedora 14 kernel", which is 2.6.35.4-based and
+rock-solid on this machine. After that, will start applying patchsets.
+
+(I have yet to really look at the lockups, they look like random memory
+corruption though).
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Jarod Wilson
+jarod@redhat.com
+
