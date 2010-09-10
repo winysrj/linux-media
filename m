@@ -1,60 +1,44 @@
 Return-path: <mchehab@pedra>
-Received: from brigitte.telenet-ops.be ([195.130.137.66]:38794 "EHLO
-	brigitte.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756501Ab0I3UAK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Sep 2010 16:00:10 -0400
-Date: Thu, 30 Sep 2010 21:55:07 +0200 (CEST)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jarod Wilson <jarod@redhat.com>
-cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Kernel Development <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] lirc: Make struct file_operations pointer const
-Message-ID: <alpine.DEB.2.00.1009302153210.2434@ayla.of.borg>
+Received: from mx1.redhat.com ([209.132.183.28]:2598 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752243Ab0IJMPA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Sep 2010 08:15:00 -0400
+Message-ID: <4C8A2154.8090401@redhat.com>
+Date: Fri, 10 Sep 2010 09:15:16 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Pawel Osciak <p.osciak@samsung.com>, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, t.fujak@samsung.com
+Subject: Re: [PATCH/RFC v1 0/7] Videobuf2 framework
+References: <1284023988-23351-1-git-send-email-p.osciak@samsung.com> <4C891F0D.2060103@redhat.com> <4C89A3EE.8040503@samsung.com> <4C89B3AD.1010404@redhat.com> <4C89E084.6090203@samsung.com>
+In-Reply-To: <4C89E084.6090203@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-struct file_operations was made const in the drivers, but not in struct
-lirc_driver:
+Em 10-09-2010 04:38, Marek Szyprowski escreveu:
+> Hello,
+> 
+> On 2010-09-10 13:27, Mauro Carvalho Chehab wrote:
+> 
+>>>> 1) it lacks implementation of read() method. This means that vivi driver
+>>>> has a regression, as it currently supports it.
+>>>
+>>> Yes, read() is not yet implemented. I guess it is not a feature that would
+>>> be deprecated, right?
+>>
+>> Yes, there are no plans to deprecate it. Also, some devices like cx88 and bttv
+>> allows receiving simultaneous streams, one via mmap, and another via read().
+>> This is used by some applications to allow recording video via ffmpeg/mencoder
+>> using read(), while the main application is displaying video using mmap.
+> 
+> Well, in my opinion such devices should provide two separate /dev/videoX nodes rather than hacking with mmap and read access types.
 
-drivers/staging/lirc/lirc_it87.c:365: warning: initialization discards qualifiers from pointer target type
-drivers/staging/lirc/lirc_parallel.c:571: warning: initialization discards qualifiers from pointer target type
-drivers/staging/lirc/lirc_serial.c:1073: warning: initialization discards qualifiers from pointer target type
-drivers/staging/lirc/lirc_sir.c:482: warning: initialization discards qualifiers from pointer target type
-drivers/staging/lirc/lirc_zilog.c:1284: warning: assignment discards qualifiers from pointer target type
+Why? V4L2 API allows to have multiple applications opening and streaming. There's nothing
+wrong with that, since it is a common practice in Unix to allow multiple opens for the same
+device.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- include/media/lirc_dev.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-index b1f6066..71a896e 100644
---- a/include/media/lirc_dev.h
-+++ b/include/media/lirc_dev.h
-@@ -139,7 +139,7 @@ struct lirc_driver {
- 	struct lirc_buffer *rbuf;
- 	int (*set_use_inc) (void *data);
- 	void (*set_use_dec) (void *data);
--	struct file_operations *fops;
-+	const struct file_operations *fops;
- 	struct device *dev;
- 	struct module *owner;
- };
--- 
-1.7.0.4
-
-Gr{oetje,eeting}s,
-
-						Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-							    -- Linus Torvalds
+Cheers,
+Mauro
