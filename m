@@ -1,78 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:44137 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752067Ab0I0NBz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 09:01:55 -0400
-Received: by bwz11 with SMTP id 11so3241947bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Sep 2010 06:01:54 -0700 (PDT)
-From: Ruslan Pisarev <ruslanpisarev@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: ruslan@rpisarev.org.ua
-Subject: [PATCH 02/13] Staging: cx25821: fix braces and space coding style issue in cx25821-audio-upstream.c This is a patch to the cx25821-audio-upstream.c file that fixed up a brace and space Errors found by the checkpatch.pl tools.
-Date: Mon, 27 Sep 2010 16:01:36 +0300
-Message-Id: <1285592496-32121-1-git-send-email-ruslan@rpisarev.org.ua>
+Received: from mx1.redhat.com ([209.132.183.28]:39614 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753901Ab0IJNVj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Sep 2010 09:21:39 -0400
+Date: Fri, 10 Sep 2010 09:21:25 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	lirc-list@lists.sourceforge.net,
+	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/8 V5] Many fixes for in-kernel decoding and for the ENE
+ driver
+Message-ID: <20100910132125.GE13554@redhat.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+ <4C8805FA.3060102@infradead.org>
+ <20100908224227.GL22323@redhat.com>
+ <AANLkTikBVSYpD_+qomCad-OvXg6CRam4b01wSBV-pNw8@mail.gmail.com>
+ <20100910020129.GA26845@redhat.com>
+ <1284107723.3498.21.camel@maxim-laptop>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1284107723.3498.21.camel@maxim-laptop>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Signed-off-by: Ruslan Pisarev <ruslan@rpisarev.org.ua>
----
- drivers/staging/cx25821/cx25821-audio-upstream.c |   13 ++++++-------
- 1 files changed, 6 insertions(+), 7 deletions(-)
+On Fri, Sep 10, 2010 at 11:35:23AM +0300, Maxim Levitsky wrote:
+> On Thu, 2010-09-09 at 22:01 -0400, Jarod Wilson wrote: 
+> > On Thu, Sep 09, 2010 at 12:34:27AM -0400, Jarod Wilson wrote:
+> > ...
+> > > >> For now, I've applied patches 3, 4 and 5, as it is nice to have Jarod's review also.
+> > > >
+> > > > I've finally got them all applied atop current media_tree staging/v2.6.37,
+> > > > though none of the streamzap bits in patch 7 are applicable any longer.
+> > > > Will try to get through looking and commenting (and testing) of the rest
+> > > > of them tonight.
+> > > 
+> > > Also had to make a minor addition to the rc5-sz decoder (same change
+> > > as in the other decoders). Almost have all the requisite test kernels
+> > > for David's, Maxim's and Dmitry's patchsets built and installed, wish
+> > > my laptop was faster... Probably would have been faster to use a lab
+> > > box and copy data over. Oh well. So functional testing to hopefully
+> > > commence tomorrow morning.
+> > 
+> > Wuff. None of the three builds is at all stable on my laptop, but I can't
+> > actually point the finger at any of the three patchsets, since I'm getting
+> > spontaneous lockups doing nothing at all before even plugging in a
+> > receiver. I did however get occasional periods of a non-panicking (not
+> > starting X seems to help a lot). Initial results:
+> > 
+> 
+> Btw, my printk blackbox patch could help you a lot.
+> I can't count how many times it helped me.
+> I just enable softlockup, hardlockup, and nmi watchdog, and let system
+> panic on oopses, and reboot. Or if you have hardware reboot button, you
+> can just use it. The point is that most BIOSES don't clear the ram, and
+> I take advantage of that.
 
-diff --git a/drivers/staging/cx25821/cx25821-audio-upstream.c b/drivers/staging/cx25821/cx25821-audio-upstream.c
-index cdff49f..6f32006 100644
---- a/drivers/staging/cx25821/cx25821-audio-upstream.c
-+++ b/drivers/staging/cx25821/cx25821-audio-upstream.c
-@@ -40,8 +40,8 @@ MODULE_AUTHOR("Hiep Huynh <hiep.huynh@conexant.com>");
- MODULE_LICENSE("GPL");
- 
- static int _intr_msk =
--    FLD_AUD_SRC_RISCI1 | FLD_AUD_SRC_OF | FLD_AUD_SRC_SYNC |
--    FLD_AUD_SRC_OPC_ERR;
-+	FLD_AUD_SRC_RISCI1 | FLD_AUD_SRC_OF | FLD_AUD_SRC_SYNC |
-+	FLD_AUD_SRC_OPC_ERR;
- 
- int cx25821_sram_channel_setup_upstream_audio(struct cx25821_dev *dev,
- 					      struct sram_channel *ch,
-@@ -506,7 +506,7 @@ int cx25821_audio_upstream_irq(struct cx25821_dev *dev, int chan_num,
- {
- 	int i = 0;
- 	u32 int_msk_tmp;
--       struct sram_channel *channel = dev->channels[chan_num].sram_channels;
-+	struct sram_channel *channel = dev->channels[chan_num].sram_channels;
- 	dma_addr_t risc_phys_jump_addr;
- 	__le32 *rp;
- 
-@@ -608,7 +608,7 @@ static irqreturn_t cx25821_upstream_irq_audio(int irq, void *dev_id)
- 	if (!dev)
- 		return -1;
- 
--       sram_ch = dev->channels[dev->_audio_upstream_channel_select].
-+	sram_ch = dev->channels[dev->_audio_upstream_channel_select].
- 				       sram_channels;
- 
- 	msk_stat = cx_read(sram_ch->int_mstat);
-@@ -733,7 +733,7 @@ int cx25821_audio_upstream_init(struct cx25821_dev *dev, int channel_select)
- 	}
- 
- 	dev->_audio_upstream_channel_select = channel_select;
--       sram_ch = dev->channels[channel_select].sram_channels;
-+	sram_ch = dev->channels[channel_select].sram_channels;
- 
- 	/* Work queue */
- 	INIT_WORK(&dev->_audio_work_entry, cx25821_audioups_handler);
-@@ -764,9 +764,8 @@ int cx25821_audio_upstream_init(struct cx25821_dev *dev, int channel_select)
- 		       str_length + 1);
- 
- 		/* Default if filename is empty string */
--		if (strcmp(dev->input_audiofilename, "") == 0) {
-+		if (strcmp(dev->input_audiofilename, "") == 0)
- 			dev->_audiofilename = "/root/audioGOOD.wav";
--		}
- 	} else {
- 		str_length = strlen(_defaultAudioName);
- 		dev->_audiofilename = kmalloc(str_length + 1, GFP_KERNEL);
+Interesting. I was thinking perhaps I'd give a go at trying kdump on my
+laptop, but I've had pretty mixed results with kdump working correctly on
+random kernels (generally works quite well in RHEL, notsomuch in Fedora).
+
+My hope is that this is something already fixed in later Linus' kernels,
+so I'll try a current Linus snap before I try looking any deeper. I'll
+file this away for consideration though!
+
+
 -- 
-1.7.0.4
+Jarod Wilson
+jarod@redhat.com
 
