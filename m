@@ -1,94 +1,172 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:48860 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755007Ab0IQOzZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Sep 2010 10:55:25 -0400
-Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8HEtOJI002840
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 17 Sep 2010 10:55:24 -0400
-Message-ID: <4C938158.9020604@redhat.com>
-Date: Fri, 17 Sep 2010 11:55:20 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Douglas Schilling Landgraf <dougsland@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH -hg] Warn user that driver is backported and might not work
- as expected
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:23813 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751558Ab0IJDWT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 23:22:19 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L8I004F9HD5UT50@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Sep 2010 04:22:17 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L8I0086FHD4U6@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Sep 2010 04:22:17 +0100 (BST)
+Date: Fri, 10 Sep 2010 12:20:14 +0900
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: Re: [PATCH/RFC v1 0/7] Videobuf2 framework
+In-reply-to: <4C891F0D.2060103@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	m.szyprowski@samsung.com, t.fujak@samsung.com
+Message-id: <4C89A3EE.8040503@samsung.com>
+References: <1284023988-23351-1-git-send-email-p.osciak@samsung.com>
+ <4C891F0D.2060103@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Since the migration to -git, less developers are using the -hg tree. Also, some
-changes are happening upstream that would require much more than just compiling
-the tree with an older version, to be sure that the backport won't break anything,
-like the removal of BKL.
+Hello Mauro,
 
-As normal users might not be aware of those issues, and bug reports may be sent
-based on a backported tree, add some messages to warn about the usage of a
-backported experimental (unsupported) tree.
+On 09/10/2010 02:53 AM, Mauro Carvalho Chehab wrote:
+> Em 09-09-2010 06:19, Pawel Osciak escreveu:
+> > Hello,
+> >
+> > These patches add a new driver framework for Video for Linux 2 driver
+> > - Videobuf2.
+>
+> I didn't test the patches, but, from a source code review, they seem
+> on a good shape. I did a few comments on some patches. There are a few
+> missing features for them to be used with real drivers:
+>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Thank you for review. I will address your in-code comments in a bit, now
+for general comments.
 
-diff -r 60edc4bd92b7 linux/drivers/media/dvb/dvb-core/dvbdev.c
---- a/linux/drivers/media/dvb/dvb-core/dvbdev.c	Sun Jun 27 17:17:06 2010 -0300
-+++ b/linux/drivers/media/dvb/dvb-core/dvbdev.c	Fri Sep 17 11:49:02 2010 -0300
-@@ -521,6 +521,12 @@
- #elif LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 31)
- 	dvb_class->devnode = dvb_devnode;
- #endif
-+#ifdef EXPERIMENTAL_TREE
-+	printk(KERN_ERR "WARNING: You're using an experimental version of the DVB stack. As the driver\n"
-+			"         is backported to an older kernel, it doesn't offer enough quality for\n"
-+			"         its usage in production.\n"
-+			"         Use it with care.\n");
-+#endif
- 	return 0;
- 
- error:
-diff -r 60edc4bd92b7 linux/drivers/media/video/v4l2-dev.c
---- a/linux/drivers/media/video/v4l2-dev.c	Sun Jun 27 17:17:06 2010 -0300
-+++ b/linux/drivers/media/video/v4l2-dev.c	Fri Sep 17 11:49:02 2010 -0300
-@@ -686,6 +686,12 @@
- 	int ret;
- 
- 	printk(KERN_INFO "Linux video capture interface: v2.00\n");
-+#ifdef EXPERIMENTAL_TREE
-+	printk(KERN_ERR "WARNING: You're using an experimental version of the V4L stack. As the driver\n"
-+			"         is backported to an older kernel, it doesn't offer enough quality for\n"
-+			"         its usage in production.\n"
-+			"         Use it with care.\n");
-+#endif
- 	ret = register_chrdev_region(dev, VIDEO_NUM_DEVICES, VIDEO_NAME);
- 	if (ret < 0) {
- 		printk(KERN_WARNING "videodev: unable to get major %d\n",
-diff -r 60edc4bd92b7 v4l/compat.h
---- a/v4l/compat.h	Sun Jun 27 17:17:06 2010 -0300
-+++ b/v4l/compat.h	Fri Sep 17 11:49:02 2010 -0300
-@@ -14,6 +14,8 @@
- #define INIT_DELAYED_WORK(a,b,c)	INIT_WORK(a,b,c)
- #endif
- 
-+#define EXPERIMENTAL_TREE
-+
- #if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 35)
- #define usb_buffer_alloc(dev, size, mem_flags, dma) usb_alloc_coherent(dev, size, mem_flags, dma)
- #define usb_buffer_free(dev, size, addr, dma) usb_free_coherent(dev, size, addr, dma)
-diff -r 60edc4bd92b7 v4l/scripts/make_kconfig.pl
---- a/v4l/scripts/make_kconfig.pl	Sun Jun 27 17:17:06 2010 -0300
-+++ b/v4l/scripts/make_kconfig.pl	Fri Sep 17 11:49:02 2010 -0300
-@@ -671,4 +671,13 @@
- 
- EOF2
- 	}
-+print << "EOF3";
-+WARNING: This is the V4L/DVB backport tree, with experimental drivers
-+	 backported to run on legacy kernels from the development tree at:
-+		http://git.linuxtv.org/media-tree.git.
-+	 It is generally safe to use it for testing a new driver or
-+	 feature, but its usage on production environments is risky.
-+	 Don't use it at production. You've being warned.
-+EOF3
-+	sleep 5;
- }
+> 1) it lacks implementation of read() method. This means that vivi driver
+> has a regression, as it currently supports it.
+
+Yes, read() is not yet implemented. I guess it is not a feature that would
+be deprecated, right? There are some problems with read that are 
+problematic:
+- not every device / memory type will be able to use it, as we need a way
+to allocate kernel memory for an operation and not every memory type may
+support it
+- there is no way to use it with multi-planar API, as it is not possible
+to read from multiple memory buffers (having multiple pointers) with read...
+
+But I guess it it could be added to work as before with single-planar 
+buffers
+only, for compatibility.
+
+Also I am thinking about where read() should be implemented. It is something
+that will have to be emulated on top of normal streaming, as it is now done
+in videobuf1. So maybe a more generic read implementation would be a good
+idea? A separate layer that would be implementing read on top of streaming?
+It would not have to be limited to videobuf only then, drivers that support
+streaming but not using videobuf would be able to use it too.
+
+> 2) it lacks OVERLAY mode. We can probably mark this feature as deprecated,
+> avoiding the need of implementing it on videobuf2, but we need a patch
+> for Documentation/feature-removal-schedule.txt,  in order to allow the
+> migration of the existing drivers like bttv and saa7134, where this 
+> feature
+> is implemented, of course if people agree that this is the better way;
+
+If you think this feature can be deprecated, it might be a good idea. If 
+not,
+I guess I will be able to take a stab at it when working with saa7134 and
+bttv, right? Should not require too much work to add. I just did not have
+a device to test it on, so I did not add it.
+
+It would be great if you could make the decision about what to do with this.
+I will try to follow your opinion and suggestions.
+
+> 3) it lacks the implementation of videobuf-dvb;
+
+Yes... I have no experience with DVB, but I guess I can just get a DVB card
+and start hacking. Could you recommend a card? Technisat SkyStar 2?
+
+> 4) it lacks an implementation for DMA S/G.
+
+Yes, I am planning to work on this next, I will be testing on saa7134 
+and maybe
+something else as well, probably a bttv. Please let me know if you have any
+suggestions or recommendations on which drivers I should be focusing.
+
+I am also hoping for Laurent's comments on this, since he was working on SG
+much more than I did.
+
+> We need to address all the above issues, in order to use it, otherwise the
+> migration of existing drivers would cause regressions, as features will be
+> missing.
+
+Right, of course. Videobuf2 is a long time effort and I hope it will be 
+evolving
+gradually. What I would like to assure you about is that I will not 
+abandon it
+and will not limit myself to working only on embedded or Samsung device 
+support.
+
+Videobuf2 is not only my in-Samsung project and I intend to be working on it
+"outside my work responsibilities" as well, supporting desktop and other
+platforms, as my time permits.
+
+I would like to address whatever you and others think is necessary and make
+videobuf2 useful for as many devices as possible. This is also why I am 
+posting
+it earlier rather than later. I hope for people to point out features 
+they would
+require and give their opinions early. I think that working together on 
+this we
+will be able to gradually come up with a solution that would be useful and
+satisfying for most people.
+
+
+I would like to ask about your idea for the strategy of its development and
+inclusion. We will be posting a few drivers based on videobuf2 soon. Do 
+you think
+it could be merged gradually, as features are added?
+
+It would be great if we could work on it and merge it gradually. Some 
+people could
+already start using it in new drivers, others could start adding 
+features to it,
+the API would be stabilizing and we would be having a solid base to work 
+on. This is
+a long-term effort for many months or maybe years. It goes without 
+saying that it
+will be harder to add everything in one go.
+
+Others might not be eager to adopt it if it is not an official effort 
+either.
+And I cannot deny it, it would also make my job easier. As I said, I do 
+not intend
+to leave it as it is now nor work on embedded support only.
+
+Also, we do not have to migrate all old drivers in one go, but that also 
+goes without
+saying. As we discussed, videobuf1 will not go away anytime soon.
+
+I think we should consider new drivers as well here. It is troublesome 
+when they
+provide their custom code instead of using a framework, as is the case 
+with some
+drivers that have been posted in the previous months and some ongoing 
+ones, but this
+is also obvious.
+
+Please let me know your opinion. It would be good if we could come up 
+with a list
+of features that have to be added before merging and others that could 
+be added
+gradually and a general plan for development of videbuf2.
+
+Thank you!
+
+-- 
+Best regards,
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
