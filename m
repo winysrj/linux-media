@@ -1,43 +1,38 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from perceval.irobotique.be ([92.243.18.41]:41026 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751434Ab0IMGqn (ORCPT
+Return-path: <mchehab@pedra>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:7024 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753673Ab0IJNTz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 02:46:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] Illuminators and status LED controls
-Date: Mon, 13 Sep 2010 08:47:24 +0200
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	"Jean-Francois Moine" <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-References: <20100906201105.4029d7e7@tele> <4C860972.6020602@redhat.com> <201009071147.22643.hverkuil@xs4all.nl>
-In-Reply-To: <201009071147.22643.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+	Fri, 10 Sep 2010 09:19:55 -0400
+Date: Fri, 10 Sep 2010 15:19:43 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Steven Toth <stoth@kernellabs.com>
+Subject: [PATCH 0/5] Clean-ups to the cx22702 frontend driver
+Message-ID: <20100910151943.103f7423@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009130847.24841.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi Hans,
+Hi all, hi Steven,
 
-On Tuesday 07 September 2010 11:47:22 Hans Verkuil wrote:
+I wrote these 5 patches cleaning up the cx22702 frontend driver a long
+time ago, I've been using them for months, so it's probably about time
+that I post them for review and, hopefully, upstream inclusion.
 
-[snip]
+Note that I unfortunately do not have access to the CX22702 datasheet,
+so my changes are based solely on analysis of the original code, and
+testing with a real chip (on my WinFast DTV1000-T.)
 
-> But I can guarantee that we will get video devices with multiple leds in
-> the future.
+[PATCH 1/5] cx22702: Clean up register access functions
+[PATCH 2/5] cx22702: Drop useless initializations to 0
+[PATCH 3/5] cx22702: Avoid duplicating code in branches
+[PATCH 4/5] cx22702: Some things never change
+[PATCH 5/5] cx22702: Simplify cx22702_set_tps()
 
-What about devices with illumination LEDs that can be dimmed ?
-
-> So we need to think *now* about how to do this. One simple
-> option is of course to name the controls CID_ILLUMINATOR0 and CID_LED0.
-> That way we can easily add LED1, LED2, etc. later without running into
-> weird inconsistent control names.
+Reviews/comments welcome, of course.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Jean Delvare
