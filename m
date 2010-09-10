@@ -1,75 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:25837 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751469Ab0IHQ2N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Sep 2010 12:28:13 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o88GSDBC017242
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 12:28:13 -0400
-Received: from [10.11.11.235] (vpn-11-235.rdu.redhat.com [10.11.11.235])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o88GSACv006503
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 12:28:12 -0400
-Message-ID: <4C87B9A0.2090308@redhat.com>
-Date: Wed, 08 Sep 2010 13:28:16 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L/DVB: rc-core: increase repeat time
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from zone0.gcu-squad.org ([212.85.147.21]:20822 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754091Ab0IJNfT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Sep 2010 09:35:19 -0400
+Date: Fri, 10 Sep 2010 15:35:12 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Steven Toth <stoth@kernellabs.com>
+Subject: [PATCH 4/5] cx22702: Some things never change
+Message-ID: <20100910153512.5850b9ed@hyperion.delvare>
+In-Reply-To: <20100910151943.103f7423@hyperion.delvare>
+References: <20100910151943.103f7423@hyperion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-As reported by Anton Blanchard <anton@samba.org>, double IR events on
-2.6.36-rc2 and a DViCO FusionHDTV DVB-T Dual Express are happening:
+The init sequence never changes so it can be marked const. Likewise,
+cx22702_ops is a template and can thus be made read-only.
 
-[ 1351.032084] ir_keydown: i2c IR (FusionHDTV): key down event, key 0x0067, scancode 0x0051
-[ 1351.281284] ir_keyup: keyup key 0x0067
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Steven Toth <stoth@kernellabs.com>
+---
+ drivers/media/dvb/frontends/cx22702.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-ie one key down event and one key up event 250ms later.
-
-So, we need to increase the repeat timeout, to avoid this bug to hit.
-
-As we're doing it at core, this fix is not needed anymore at dib0700 driver.
-
-Thanks-to: Anton Blanchard <anton@samba.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
-index 7e82a9d..d00ef19 100644
---- a/drivers/media/IR/ir-keytable.c
-+++ b/drivers/media/IR/ir-keytable.c
-@@ -510,6 +510,13 @@ int __ir_input_register(struct input_dev *input_dev,
- 		   (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_IR_RAW) ?
- 			" in raw mode" : "");
+--- linux-2.6.32-rc5.orig/drivers/media/dvb/frontends/cx22702.c	2009-10-17 14:49:50.000000000 +0200
++++ linux-2.6.32-rc5/drivers/media/dvb/frontends/cx22702.c	2009-10-18 11:44:09.000000000 +0200
+@@ -54,7 +54,7 @@ MODULE_PARM_DESC(debug, "Enable verbose
+ #define dprintk	if (debug) printk
  
-+	/*
-+	 * Default delay of 250ms is too short for some protocols, expecially
-+	 * since the timeout is currently set to 250ms. Increase it to 500ms,
-+	 * to avoid wrong repetition of the keycodes.
-+	 */
-+	input_dev->rep[REP_DELAY] = 500;
-+
- 	return 0;
+ /* Register values to initialise the demod */
+-static u8 init_tab[] = {
++static const u8 init_tab[] = {
+ 	0x00, 0x00, /* Stop aquisition */
+ 	0x0B, 0x06,
+ 	0x09, 0x01,
+@@ -576,7 +576,7 @@ static void cx22702_release(struct dvb_f
+ 	kfree(state);
+ }
  
- out_event:
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_core.c b/drivers/media/dvb/dvb-usb/dib0700_core.c
-index fe81834..48397f1 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_core.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_core.c
-@@ -673,9 +673,6 @@ static int dib0700_probe(struct usb_interface *intf,
- 			else
- 				dev->props.rc.core.bulk_mode = false;
+-static struct dvb_frontend_ops cx22702_ops;
++static const struct dvb_frontend_ops cx22702_ops;
  
--			/* Need a higher delay, to avoid wrong repeat */
--			dev->rc_input_dev->rep[REP_DELAY] = 500;
--
- 			dib0700_rc_setup(dev);
+ struct dvb_frontend *cx22702_attach(const struct cx22702_config *config,
+ 	struct i2c_adapter *i2c)
+@@ -608,7 +608,7 @@ error:
+ }
+ EXPORT_SYMBOL(cx22702_attach);
  
- 			return 0;
+-static struct dvb_frontend_ops cx22702_ops = {
++static const struct dvb_frontend_ops cx22702_ops = {
+ 
+ 	.info = {
+ 		.name			= "Conexant CX22702 DVB-T",
+
 -- 
-1.7.1
-
+Jean Delvare
