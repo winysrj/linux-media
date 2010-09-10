@@ -1,112 +1,41 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3978 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752777Ab0IWGPC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 02:15:02 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [GIT PATCHES FOR 2.6.37] Remove v4l2-i2c-drv.h and most of i2c-id.h
-Date: Thu, 23 Sep 2010 08:14:43 +0200
-Cc: linux-media@vger.kernel.org, Jean Delvare <khali@linux-fr.org>,
-	Janne Grunau <j@jannau.net>, Jarod Wilson <jarod@redhat.com>
-References: <201009152200.27132.hverkuil@xs4all.nl> <4C9AD51D.2010400@redhat.com>
-In-Reply-To: <4C9AD51D.2010400@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:36202 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754331Ab0IJAlB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 20:41:01 -0400
+Subject: Re: [PATCH 5/8] IR: extend MCE keymap.
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: lirc-list@lists.sourceforge.net,
+	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+In-Reply-To: <AANLkTi=EFZys7NnxixmQL3hqqGfin_VOV7XAWCm0BkwT@mail.gmail.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+	 <1283808373-27876-6-git-send-email-maximlevitsky@gmail.com>
+	 <AANLkTi=EFZys7NnxixmQL3hqqGfin_VOV7XAWCm0BkwT@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 10 Sep 2010 03:40:54 +0300
+Message-ID: <1284079254.4828.6.camel@maxim-laptop>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009230814.43504.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Thursday, September 23, 2010 06:18:37 Mauro Carvalho Chehab wrote:
-> Em 15-09-2010 17:00, Hans Verkuil escreveu:
-> > Mauro, Jean, Janne,
-> 
-> > After applying this patch series I get the following if I grep for
-> > I2C_HW_ in the kernel sources:
-> > 
-> > <skip some false positives in drivers/gpu>
-> > drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
-> > drivers/staging/lirc/lirc_zilog.c:              if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
-> > drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
-> > drivers/staging/lirc/lirc_zilog.c:      if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
-> 
-> Those are with Janne ;)
+On Wed, 2010-09-08 at 10:47 -0400, Jarod Wilson wrote: 
+> On Mon, Sep 6, 2010 at 5:26 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+> > These keys are found on remote bundled with
+> > Toshiba Qosmio F50-10q.
+> >
+> > Found and tested by, Sami R <maesesami@gmail.com>
+> >
+> > Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+> > ---
+> >  drivers/media/IR/keymaps/rc-rc6-mce.c |    3 +++
+> >  1 files changed, 3 insertions(+), 0 deletions(-)
 
-Since I2C_HW_B_HDPVR is not actually set anywhere and because it's staging, I'd
-propose that we just ignore this. It's under an #ifdef, so removing i2c-id.h will
-not affect this code.
+Tommorow I will resend that patch with even more scancodes.
 
-> > drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
-> 
-> No idea about this one.
+Best regards,
+Maxim Levitsky
 
-This can be removed.
-
-> 
-> > drivers/media/video/ir-kbd-i2c.c:       if (ir->c->adapter->id == I2C_HW_SAA7134 && ir->c->addr == 0x30)
-> > drivers/media/video/saa7134/saa7134-i2c.c:      .id            = I2C_HW_SAA7134,
-> 
-> Those are easy: just add the polling interval into the platform_data. If zero,
-> uses the default value. I'll write a patch for it.
-
-Nice!
-
-> > drivers/media/video/ir-kbd-i2c.c:               if (adap->id == I2C_HW_B_CX2388x) {
-> 
-> This is not hard to solve. I' ll write a patch for it.
-
-Nice!
-
-> > drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x)
-> > drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x) {
-> > drivers/media/video/cx88/cx88-i2c.c:    core->i2c_adap.id = I2C_HW_B_CX2388x;
-> > drivers/media/video/cx88/cx88-vp3054-i2c.c:     vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
-> 
-> We need to solve lirc_i2c.c issues before being able to remove those. As lirc_i2c has
-> the same implementation as ir-kbd-i2c, it is probably easier to just get rid of it,
-> and then remove those two references. Jarod is working on it.
-> 
-> While touching it, I'll move PV951 to bttv driver, and move all IR initialization code to 
-> bttv-input and cx88-input on those two drivers. This will make life easier when porting
-> the code to rc-core, as everything that needs to be changed will be at the same file.
-
-So after my pending tvaudio/tda8425 patch goes in and your patches, then the only
-remaining user of I2C_HW_B_ is lirc_i2c.c, right? Jean will like that :-)
-
-Jean, I did a grep of who is still including i2c-id.h (excluding media drivers):
-
-drivers/gpu/drm/nouveau/nouveau_i2c.h:#include <linux/i2c-id.h>
-drivers/gpu/drm/radeon/radeon_mode.h:#include <linux/i2c-id.h>
-drivers/gpu/drm/i915/intel_drv.h:#include <linux/i2c-id.h>
-drivers/gpu/drm/i915/intel_i2c.c:#include <linux/i2c-id.h>
-drivers/video/i810/i810.h:#include <linux/i2c-id.h>
-drivers/video/intelfb/intelfb_i2c.c:#include <linux/i2c-id.h>
-drivers/video/savage/savagefb.h:#include <linux/i2c-id.h>
-drivers/video/aty/radeon_i2c.c:#include <linux/i2c-id.h>
-drivers/i2c/busses/i2c-s3c2410.c:#include <linux/i2c-id.h>
-drivers/i2c/busses/i2c-pxa.c:#include <linux/i2c-id.h>
-drivers/i2c/busses/i2c-ibm_iic.c:#include <linux/i2c-id.h>
-
-AFAIK none of these actually need this include. It's probably a good idea for
-you to remove together with this obsolete I2C_HW_B_RIVA:
-
-drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
-
-Regards,
-
-	Hans
-
-> Cheers,
-> Mauro
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
