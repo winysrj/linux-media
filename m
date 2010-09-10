@@ -1,113 +1,53 @@
-Return-path: <mchehab@localhost>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2273 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754459Ab0IETHx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Sep 2010 15:07:53 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o85J7m8F048476
-	for <linux-media@vger.kernel.org>; Sun, 5 Sep 2010 21:07:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 5 Sep 2010 21:07:48 +0200 (CEST)
-Message-Id: <201009051907.o85J7m8F048476@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Return-path: <mchehab@pedra>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:38737 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755266Ab0IJIXf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Sep 2010 04:23:35 -0400
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8; format=flowed
+Received: from eu_spt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0L8I00456VAPUT80@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Sep 2010 09:23:13 +0100 (BST)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0L8I007NXVAOAL@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Sep 2010 09:23:12 +0100 (BST)
+Received: from [10.89.8.202] (unknown [106.116.37.23])
+	by linux.samsung.com (Postfix) with ESMTP id E2E6B27007C	for
+ <linux-media@vger.kernel.org>; Fri, 10 Sep 2010 10:19:47 +0200 (CEST)
+Date: Fri, 10 Sep 2010 17:21:10 +0900
+From: Pawel Osciak <p.osciak@samsung.com>
+Subject: [GIT FIXES FOR 2.6.36] mem2mem_testdev fixes
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Message-id: <4C89EA76.1020704@samsung.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi Mauro,
+please pull the below fixes for 2.6.36:
 
-Results of the daily build of v4l-dvb:
+The following changes since commit 7e0e8c4f78e93136a2fb44cf46366e868fb75a10:
 
-date:        Sun Sep  5 19:00:05 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15139:6e0befab696a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+   v4l: radio: si470x: fix unneeded free_irq() call (2010-09-06 15:24:33 
++0900)
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
+are available in the git repository at:
+   git://git.infradead.org/users/kmpark/linux-2.6-samsung 
+v4l/fixes_for_v2.6.36
 
-Detailed results are available here:
+Pawel Osciak (2):
+       v4l: mem2mem_testdev: fix errorenous comparison
+       v4l: mem2mem_testdev: add missing release for video_device
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+  drivers/media/video/mem2mem_testdev.c |    3 ++-
+  1 files changed, 2 insertions(+), 1 deletions(-)
 
-Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Best regards,
+Pawel Osciak
+Linux Platform Group
+Samsung Poland R&D Center
