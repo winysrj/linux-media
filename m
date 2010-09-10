@@ -1,56 +1,46 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:3021 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:44075 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751548Ab0ISUve (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 16:51:34 -0400
-Message-ID: <4C9677CC.50609@redhat.com>
-Date: Sun, 19 Sep 2010 17:51:24 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1751941Ab0IJKM0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Sep 2010 06:12:26 -0400
+Message-ID: <4C8A0488.9020206@iki.fi>
+Date: Fri, 10 Sep 2010 13:12:24 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Andy Walls <awalls@md.metrocast.net>
-CC: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: Re: RFC: BKL, locking and ioctls
-References: <fm127xqs7xbmiabppyr1ifai.1284910330767@email.android.com>	 <1284921482.2079.57.camel@morgan.silverblock.net>	 <4C96600E.8090905@redhat.com>  <201009192138.08412.hverkuil@xs4all.nl> <1284926220.2079.105.camel@morgan.silverblock.net>
-In-Reply-To: <1284926220.2079.105.camel@morgan.silverblock.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+To: Stefan Lippers-Hollmann <s.L-H@gmx.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR 2.6.37] new AF9015 devices
+References: <4C894DB8.8080908@iki.fi> <201009100254.07762.s.L-H@gmx.de>
+In-Reply-To: <201009100254.07762.s.L-H@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 19-09-2010 16:57, Andy Walls escreveu:
-> On Sun, 2010-09-19 at 21:38 +0200, Hans Verkuil wrote:
->> On Sunday, September 19, 2010 21:10:06 Mauro Carvalho Chehab wrote:
->>> Em 19-09-2010 15:38, Andy Walls escreveu:
->>>> On Sun, 2010-09-19 at 18:10 +0200, Hans Verkuil wrote:
->>>>> On Sunday, September 19, 2010 17:38:18 Andy Walls wrote:
-> 
->> Requirements I can think of:
->>
->> 1) The basic capture and output streaming (either read/write or streaming I/O) must
->> perform well. There is no need to go to extreme measures here, since the typical
->> control flow is to prepare a buffer, setup the DMA and then wait for the DMA to
->> finish. So this is not terribly time sensitive and it is perfectly OK to have to
->> wait (within reason) for another ioctl from another thread to finish first.
-> 
-> I'll add a data point to this one.  A sleep in read() can noticeably
-> affect application performance.  Last time I had cx18 use a mutex in
-> read(), live playback performance was really bad.  The read() call would
-> sleep for around 10 ms - not good at normal frame rates.  It was a
-> highly(?) contended mutex for the buffer queue between DMA and the
-> read() call - bad idea.
-> 
-> According to conversations on the ksummit2010 mailing list, the 10 ms
-> sleep may have been due to the default 100 HZ tick and other reasons.
-> Patches from the RT tree may be integrated soon that make mutexes
-> (mutices?) much better performers.
+On 09/10/2010 03:54 AM, Stefan Lippers-Hollmann wrote:
+> Another test and some further debugging of the IR core usedby the af9015
+> branch of this git tree led me to partial success. DVB-T functionality
+> continues to be fine and I've now found the proper values for this remote,
+> however once a key gets pressed, it is never released (unless another key
+> gets pressed which is then struck or unless I ctrl-c it (only works on
+> terminals). Likewise I'm not sure yet how to distinguish between the
+> "Cinergy T Dual" and my "Cinergy T RC MKII":
 
-If read() and poll() are not protected, almost all drivers will break, except, perhaps,
-for cx18, ivtv and pvrusb2. Streaming data need to be protected on both, when
-using mmap().
 
-Yet, having a mutex there doesn't mean that the driver will sleep. The issue you felt
-is likely due to some other trouble, and not for the mutex itself.
+> Given that keys, once pressed, remain to be stuck, using both lirc's
+> dev/input and without any dæmon trying to catch keypresses, I have not
+> reached a functional configuration.
 
-Cheers,
-Mauro
+That`s known issue. Chip configures USB HID polling interval wrongly and 
+due to that HID starts repeating usually. There is USB-ID mapped quirks 
+in HID driver to avoid that, but only for few ADF9015 IDs...
+
+I know how to fix that totally. I have been waiting new IR core merge 
+before switch remote from broken HID + polling to memory read based one. 
+But maybe I can do it just now and convert it later to IR core.
+
+Antti
+
+
+-- 
+http://palosaari.fi/
