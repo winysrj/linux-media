@@ -1,24 +1,22 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
-	by int-mx03.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o8S8IGAh023780
-	for <video4linux-list@redhat.com>; Tue, 28 Sep 2010 04:18:16 -0400
-Received: from mail-bw0-f46.google.com (mail-bw0-f46.google.com
-	[209.85.214.46])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8S8I4Uc010831
-	for <video4linux-list@redhat.com>; Tue, 28 Sep 2010 04:18:05 -0400
-Received: by bwz11 with SMTP id 11so5498690bwz.33
-	for <video4linux-list@redhat.com>; Tue, 28 Sep 2010 01:18:03 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <AANLkTimYj-W2QPK6BZdkzCaQkyoWVsGuC1EX8w3Oo9MV@mail.gmail.com>
-References: <AANLkTim6+hHaZqZNJHsQigEsy6c-mB83CKB2Dz6FmwzK@mail.gmail.com>
-	<AANLkTimYj-W2QPK6BZdkzCaQkyoWVsGuC1EX8w3Oo9MV@mail.gmail.com>
-Date: Tue, 28 Sep 2010 17:18:03 +0900
-Message-ID: <AANLkTinXEzRhO3Y_qzq4MOBCtuJeXBXwLZ=T9-QAqPga@mail.gmail.com>
-Subject: Re: TV Tuner Japan
-From: Pike <pikewb@gmail.com>
-To: Archis Bhave <archis.bhave@gmail.com>, video4linux-list@redhat.com
+Received: from mx1.redhat.com (ext-mx05.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.9])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
+	id o8ABkFSq002611
+	for <video4linux-list@redhat.com>; Fri, 10 Sep 2010 07:46:16 -0400
+Received: from stockholm.opq.se (www.opq.se [213.88.151.150])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8ABk2Rl009870
+	for <video4linux-list@redhat.com>; Fri, 10 Sep 2010 07:46:03 -0400
+Subject: Re: Video capture device
+From: Roger Oberholtzer <roger@opq.se>
+To: Jorge Cabrera <jorge.cabrera@andago.com>
+In-Reply-To: <4C8A16BA.2060109@andago.com>
+References: <4C888ECC.3080104@andago.com>
+	<1284023555.12548.11.camel@acme.pacific> <4C8A16BA.2060109@andago.com>
+Date: Fri, 10 Sep 2010 13:45:56 +0200
+Message-ID: <1284119156.22435.51.camel@acme.pacific>
+Mime-Version: 1.0
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -26,72 +24,25 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Errors-To: video4linux-list-bounces@redhat.com
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-Thank you Archis,
-
-I'm not sure about the courtesy with a mailing list, so I included v4l in
-this mail.
-
-Thank you for the quick reply!
-I picked up a monster TV HDP2 gold the other day at the pc shop, and then I
-tried to compile a linux kernel 2.16.1.1 with a patch from bytesex.org .. it
-failed (since I'm so new to linux) , but if what you're saying is right,
-then I don't need a patched kernel anyway. Other incarnations of the HDP
-have all been on the saa7115 chipset I think.
-
-Regardless, the monster HDP2 is not showing up in my system at all... not
-with a lspci, lsusb, dmesg or anything... it's like a phantom piece of
-machinery. As far as I know, if the system can't find it, then the odds of
-me being able to use it are about 0 right?
-
-Thanks for the help anyway!
-Pike
-
-On Tue, Sep 28, 2010 at 2:46 PM, Archis Bhave <archis.bhave@gmail.com>wrote:
-
-> Pike
->
-> Though some more inputs would be required (USB TV-Tuner, or PCI etc.) you
-> should be able to get a TV tuner like UTV330+ from Gadmei (USB TV Tuner)
-> working out of the box on almost all Linux distributions. I have tested it
-> on Fedora 12 and Ubuntu 10.0x.
->
-> It is usually a question of V4L driver being available for the TV tuner.
-> Almost any card based on EM2860 and SAA7115 should work properly.
-> Hope this helps.
->
-> Sincerely
->
->
-> On Sun, Sep 26, 2010 at 12:17 PM, Pike <pikewb@gmail.com> wrote:
->
->> I don't really know how to search the archives, but I'm browsing them
->> currently. In the meantime, I thought I'd ask if anyone has set-up a home
->> theatre PC in Japan recently and knows what TV tuner cards are supported
->> by
->> MythTV?
->>
->> cheers
->> --
->> video4linux-list mailing list
->> Unsubscribe mailto:video4linux-list-request@redhat.com
->> ?subject=unsubscribe
->> https://www.redhat.com/mailman/listinfo/video4linux-list
->>
->
->
->
-> --
-> Mr. Archis A. Bhave
-> [Design Engineer]
-> [IDG Product Development]
->
---
-video4linux-list mailing list
-Unsubscribe mailto:video4linux-list-request@redhat.com?subject=unsubscribe
-https://www.redhat.com/mailman/listinfo/video4linux-list
+T24gRnJpLCAyMDEwLTA5LTEwIGF0IDEzOjMwICswMjAwLCBKb3JnZSBDYWJyZXJhIHdyb3RlOgoK
+PiBUaGFua3MgZm9yIHlvdXIgcmVwbHkgYW5kIHlvdXIgYWR2aWNlIFJvZ2VyLiBQcm9ibGVtIGlz
+IHRoYXQgdXNpbmcgYQo+IHdlYmNhbSBpcyBub3QgYW4gb3B0aW9uIHJpZ2h0IG5vdyBiZWNhdXNl
+IHRoZSBzb2x1dGlvbiB0aGF0IHdlIGhhdmUgdG8KPiBwcm92aWRlIGlzIGJ5IHVzaW5nIGEgdXNi
+IHZpZGVvIGNhcHR1cmUgZGV2aWNlIGNvbm5lY3RlZCB0byBhIGNhbWVyYS4KPiBIYXZlIGFueW9u
+ZSB0cmllZCBvbmUgb2YgdGhvc2Ugd2l0aCBsaW51eD8KCllvdSBtZWFuIHRoYXQgeW91IGhhdmUg
+c29tZXRoaW5nIGxpa2UgYSBEYXp6bGUgdmlkZW8gY2FwdHVyZSBkZXZpY2UKY29ubmVjdGVkIHRv
+IHRoZSBVU0IgYW5kIGEgY2FtZXJhIGF0dGFjaGVkIHRvIHRoYXQ/IFdoYXQgdXNiIGNhcHR1cmUK
+ZGV2aWNlIGFyZSB5b3UgdXNpbmc/IE1hbnkgYXJlIHN1cHBvcnRlZC4gQnV0IG5vdCBhbGwgb2Yg
+dGhlbS4KCgotLSAKUm9nZXIgT2JlcmhvbHR6ZXIKCk9QUSBTeXN0ZW1zIC8gUmFtYsO2bGwgUlNU
+CgpSYW1iw7ZsbCBTdmVyaWdlIEFCCktydWttYWthcmdhdGFuIDIxClAuTy4gQm94IDE3MDA5ClNF
+LTEwNCA2MiBTdG9ja2hvbG0sIFN3ZWRlbgoKT2ZmaWNlOiBJbnQgKzQ2IDEwLTYxNSA2MCAyMApN
+b2JpbGU6IEludCArNDYgNzAtODE1IDE2OTYKCi0tCnZpZGVvNGxpbnV4LWxpc3QgbWFpbGluZyBs
+aXN0ClVuc3Vic2NyaWJlIG1haWx0bzp2aWRlbzRsaW51eC1saXN0LXJlcXVlc3RAcmVkaGF0LmNv
+bT9zdWJqZWN0PXVuc3Vic2NyaWJlCmh0dHBzOi8vd3d3LnJlZGhhdC5jb20vbWFpbG1hbi9saXN0
+aW5mby92aWRlbzRsaW51eC1saXN0
