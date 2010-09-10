@@ -1,57 +1,48 @@
-Return-path: <mchehab@localhost>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:17774 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753834Ab0IES54 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Sep 2010 14:57:56 -0400
-Subject: Re: [Q] camera test pattern as an alternative input?
-From: Andy Walls <awalls@md.metrocast.net>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.1009051852250.434@axis700.grange>
-References: <Pine.LNX.4.64.1009051852250.434@axis700.grange>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 05 Sep 2010 14:56:24 -0400
-Message-ID: <1283712984.2057.85.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from mx1.redhat.com ([209.132.183.28]:12625 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753673Ab0IJNSn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Sep 2010 09:18:43 -0400
+Date: Fri, 10 Sep 2010 09:18:29 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	lirc-list@lists.sourceforge.net, mchehab@infradead.org,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/8] IR: extend MCE keymap.
+Message-ID: <20100910131829.GD13554@redhat.com>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+ <1283808373-27876-6-git-send-email-maximlevitsky@gmail.com>
+ <AANLkTi=EFZys7NnxixmQL3hqqGfin_VOV7XAWCm0BkwT@mail.gmail.com>
+ <1284079254.4828.6.camel@maxim-laptop>
+ <AANLkTik4HAspKxOpH1VcT0+TnGa=H+-M2Wpxg5MefPg1@mail.gmail.com>
+ <b8a480a446ba264233deebe1e514141a.squirrel@www.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <b8a480a446ba264233deebe1e514141a.squirrel@www.hardeman.nu>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Sun, 2010-09-05 at 19:09 +0200, Guennadi Liakhovetski wrote:
-> In a currently running mt9m111 thread we're discussing ways to activate 
-> one of camera's (sensor's) test patterns. A module parameter has been 
-> proposed, earlier this has been done by just using the infamous 
-> VIDIOC_DBG_S_REGISTER. But then it occurred to me, that there has been 
-> previously such a discussion and it has been proposed to assign 
-> alternative inputs to various test patterns. So, you just issue a 
-> VIDIOC_S_INPUT to switch between the actual video input and one of test 
-> patterns. Can anyone else remember such a discussion or maybe just knows 
-> examples of such drivers?
+On Fri, Sep 10, 2010 at 10:27:02AM +0200, David Härdeman wrote:
+> On Fri, September 10, 2010 03:37, Jarod Wilson wrote:
+> > I think for mythtv, we're going to end up having a daemon process with
+> > elevated privs that reads directly from input devices to get around
+> > this annoyance, until such time as the annoyance is gone.
+> 
+> A similar approach could work for XBMC since it already has input plugins
+> (e.g. for using a Nintendo Wii controller, etc).
 
-The SAA7127 Video Encoder has a test pattern generator.  The saa7127.c
-file uses a module option to enable it a module probe time.  It also
-appears the v4l2_subdev.s_routing method of the saa7127 module can also
-be used to switch to the test signal generator as input (So
-VIDIOC_S_INPUT looks like it should work, maybe?).
+While attempting to drift off to sleep last night, it occurred to me that
+lircd already has support for attaching to input devices, so it might be
+an option to extend lircd and the lirc client library to have a "pass raw
+keycodes" mode. Both xmbc and mythtv already have options to build in lirc
+client support, so it'd just be minor extension of its use in both cases,
+at least in theory...
 
-There's your precedent.
-
-Also using VIDIOC_S_INPUT also makes a lot of sense to me.  A test
-pattern is an input; just an internal one as opposed to an external one.
-
-
-
->  A couple of grep attempts haven't revealed 
-> anything. Is this a good idea?
-
-I don't think it's bad.  Working through implementation details might
-show you if anything is really bad (VIDIOC_ENUMINPUT, etc.).
-
-Regards,
-Andy
-
-> Thanks
-> Guennadi
-
+-- 
+Jarod Wilson
+jarod@redhat.com
 
