@@ -1,113 +1,132 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2281 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757090Ab0IZTLZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 15:11:25 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8QJBNPr098864
-	for <linux-media@vger.kernel.org>; Sun, 26 Sep 2010 21:11:24 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Sun, 26 Sep 2010 21:11:23 +0200 (CEST)
-Message-Id: <201009261911.o8QJBNPr098864@smtp-vbr5.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from mailout-de.gmx.net ([213.165.64.22]:39193 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
+	id S1752854Ab0IJAyO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 20:54:14 -0400
+From: "Stefan Lippers-Hollmann" <s.L-H@gmx.de>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [GIT PULL FOR 2.6.37] new AF9015 devices
+Date: Fri, 10 Sep 2010 02:54:05 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, TerraTux <terratux@terratec.de>
+References: <4C894DB8.8080908@iki.fi>
+In-Reply-To: <4C894DB8.8080908@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201009100254.07762.s.L-H@gmx.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+Hi
 
-Results of the daily build of v4l-dvb:
+On Friday 10 September 2010, Antti Palosaari wrote:
+> Moikka Mauro!
+> This patch series adds support for TerraTec Cinergy T Stick Dual RC and 
+> TerraTec Cinergy T Stick RC. Also MxL5007T devices with ref. design IDs 
+> should be working. Cinergy T Stick remote is most likely not working 
+> since it seems to use different remote as Cinergy T Dual... Stefan could 
+> you test and ensure T Stick is working?
+> 
+> and thanks to TerraTec!
+[...]
 
-date:        Sun Sep 26 19:00:10 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: dace3857de7a16b83ae7d4e13c94de8e4b267d2a
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+Another test and some further debugging of the IR core usedby the af9015 
+branch of this git tree led me to partial success. DVB-T functionality 
+continues to be fine and I've now found the proper values for this remote,
+however once a key gets pressed, it is never released (unless another key 
+gets pressed which is then struck or unless I ctrl-c it (only works on 
+terminals). Likewise I'm not sure yet how to distinguish between the 
+"Cinergy T Dual" and my "Cinergy T RC MKII":
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec-git: OK
-sparse: ERRORS
+lsusb:		0ccd:0097 TerraTec Electronic GmbH Cinergy T RC MKII
+EEPROM hash:	0x11f6768f
 
-Detailed results are available here:
+static struct ir_scancode ir_codes_terratec[] = {
+	{ 0x001e, KEY_1 },
+	{ 0x001f, KEY_2 },
+	{ 0x0020, KEY_3 },
+	{ 0x0021, KEY_4 },
+	{ 0x0022, KEY_5 },
+	{ 0x0023, KEY_6 },
+	{ 0x0024, KEY_7 },
+	{ 0x0025, KEY_8 },
+	{ 0x0026, KEY_9 },
+	{ 0x0027, KEY_0 },
+	{ 0x004b, KEY_CHANNELUP },
+	{ 0x004e, KEY_CHANNELDOWN },
+	{ 0x0009, KEY_ZOOM },
+	{ 0x0010, KEY_MUTE },
+	{ 0x0056, KEY_VOLUMEDOWN },
+	{ 0x0057, KEY_VOLUMEUP },
+	{ 0x001c, KEY_GOTO },	/* jump */
+	{ 0x043d, KEY_POWER },
+};
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+static u8 af9015_ir_terratec[] = {
+	0x80, 0x7f, 0x12, 0xed, 0x3d, 0x04, 0x00, /* power */
+	0x80, 0x7f, 0x01, 0xfe, 0x10, 0x00, 0x00, /* mute */
+	0x80, 0x7f, 0x1a, 0xe5, 0x57, 0x00, 0x00, /* vol+ */
+	0x80, 0x7f, 0x02, 0xfd, 0x56, 0x00, 0x00, /* vol- */
+	0x80, 0x7f, 0x1e, 0xe1, 0x4b, 0x00, 0x00, /* ch+ */
+	0x80, 0x7f, 0x03, 0xfc, 0x4e, 0x00, 0x00, /* ch- */
+	0x80, 0x7f, 0x04, 0xfb, 0x1e, 0x00, 0x00, /* 1 */
+	0x80, 0x7f, 0x05, 0xfa, 0x1f, 0x00, 0x00, /* 2 */
+	0x80, 0x7f, 0x06, 0xf9, 0x20, 0x00, 0x00, /* 3 */
+	0x80, 0x7f, 0x07, 0xf8, 0x21, 0x00, 0x00, /* 4 */
+	0x80, 0x7f, 0x08, 0xf7, 0x22, 0x00, 0x00, /* 5 */
+	0x80, 0x7f, 0x09, 0xf6, 0x23, 0x00, 0x00, /* 6 */
+	0x80, 0x7f, 0x0a, 0xf5, 0x24, 0x00, 0x00, /* 7 */
+	0x80, 0x7f, 0x1b, 0xe4, 0x25, 0x00, 0x00, /* 8 */
+	0x80, 0x7f, 0x1f, 0xe0, 0x26, 0x00, 0x00, /* 9 */
+	0x80, 0x7f, 0x0d, 0xf2, 0x27, 0x00, 0x00, /* 0 */
+	0x80, 0x7f, 0x0c, 0xf3, 0x09, 0x00, 0x00, /* zoom */
+	0x80, 0x7f, 0x0e, 0xf1, 0x1c, 0x00, 0x00, /* jump */
+};
 
-Full logs are available here:
+Likewise lirc's irrecord comes up with this lircd.conf:
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+begin remote
 
-The V4L-DVB specification from this daily build is here:
+  name  lircd.conf.Cinergy-T-RC-MKII
+  bits           56
+  eps            30
+  aeps          100
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+  one             0     0
+  zero            0     0
+  pre_data_bits   8
+  pre_data       0x0
+  gap          452913
+  toggle_bit_mask 0x0
+
+      begin codes
+          KEY_1                    0x01000200000001 0x00000000000000
+          KEY_2                    0x01000300000001 0x00000000000000
+          KEY_3                    0x01000400000001 0x00000000000000
+          KEY_4                    0x01000500000001 0x00000000000000
+          KEY_5                    0x01000600000001 0x00000000000000
+          KEY_6                    0x01000700000001 0x00000000000000
+          KEY_7                    0x01000800000001 0x00000000000000
+          KEY_8                    0x01000900000001 0x00000000000000
+          KEY_9                    0x01000A00000001 0x00000000000000
+          KEY_0                    0x01000B00000001 0x00000000000000
+          KEY_CHANNELUP            0x01019200000001 0x00000000000000
+          KEY_CHANNELDOWN          0x01019300000001 0x00000000000000
+          KEY_ZOOM                 0x01017400000001 0x00000000000000
+          KEY_MUTE                 0x01007100000001 0x00000000000000
+          KEY_VOLUMEDOWN           0x01007200000001 0x00000000000000
+          KEY_VOLUMEUP             0x01007300000001 0x00000000000000
+          KEY_GOTO                 0x01016200000001 0x00000000000000
+          KEY_POWER                0x01007400000001 0x00000000000000
+      end codes
+
+end remote
+
+Given that keys, once pressed, remain to be stuck, using both lirc's 
+dev/input and without any dæmon trying to catch keypresses, I have not 
+reached a functional configuration.
+
+Regards
+	Stefan Lippers-Hollmann
