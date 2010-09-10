@@ -1,92 +1,213 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:59622 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757895Ab0IGQfg (ORCPT
+Received: from waldorf.cs.uni-dortmund.de ([129.217.4.42]:45990 "EHLO
+	waldorf.cs.uni-dortmund.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751453Ab0IJVHI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Sep 2010 12:35:36 -0400
-Date: Tue, 07 Sep 2010 12:35:25 -0400
-Subject: Re: [PATCH] Illuminators and status LED controls
-Message-ID: <a6fpy0pkri5xkcmoahjx6t5o.1283877325952@email.android.com>
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>
-Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
+	Fri, 10 Sep 2010 17:07:08 -0400
+Received: from postamt.cs.uni-dortmund.de (postamt [129.217.4.40])
+	by waldorf.cs.uni-dortmund.de with ESMTP id o8AL76Df009561
+	for <linux-media@vger.kernel.org>; Fri, 10 Sep 2010 23:07:06 +0200 (MEST)
+Received: from superstar.pleger.local (p5B00B482.dip.t-dialin.net [91.0.180.130])
+	(authenticated bits=0)
+	by postamt.cs.uni-dortmund.de (8.12.6/8.12.6) with ESMTP id o8AL75Ug015305
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
+	for <linux-media@vger.kernel.org>; Fri, 10 Sep 2010 23:07:06 +0200 (MEST)
+To: linux-media@vger.kernel.org
+Subject: Re: Kernel Oops with Kernel 2.6.32
+Content-Disposition: inline
+From: Christoph Pleger <Christoph.Pleger@cs.tu-dortmund.de>
+Date: Fri, 10 Sep 2010 23:06:54 +0200
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009102306.55019.Christoph.Pleger@cs.tu-dortmund.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-TG9vayBmb3IgYSByZWNlbnQgcGF0Y2ggSSBzZW50IHRvIHRoZSBsaXN0IGZvciBnc3BjYV9jcGlh
-IGZvciB0aGUgSW50ZWwgUGxheSBRWDMgbWljcm9zY29wZS4gKFRoZSBjcGlhMiBkcml2ZXIgaGFu
-ZGxlcyB0aGUgUVg1KQoKSWxsdW1pbmF0b3Igc2VlbXMgdG8gYmUgdGhlIHN0YW5kYXJkIHRlcm0g
-aW4gYm90aCBtaWNyb3Njb3B5IGFuZCBJUiBwaG90Z3JhcGh5LiAgSSBhbHNvIHNhdyBpdCBpbiBw
-bGFpbiBwaG90b2dyYXBoeSBjb250ZXh0cy4gIEp1c3QgYXNrIHRoZSBHb29nbGUuLi4KClJlZ2Fy
-ZHMsCkFuZHkKCkhhbnMgVmVya3VpbCA8aHZlcmt1aWxAeHM0YWxsLm5sPiB3cm90ZToKCj5PbiBU
-dWVzZGF5LCBTZXB0ZW1iZXIgMDcsIDIwMTAgMTM6NTk6MTkgSGFucyBkZSBHb2VkZSB3cm90ZToK
-Pj4gSGkgYWxsLAo+PiAKPj4gT24gMDkvMDcvMjAxMCAxMTo0NyBBTSwgSGFucyBWZXJrdWlsIHdy
-b3RlOgo+PiA+IE9uIFR1ZXNkYXksIFNlcHRlbWJlciAwNywgMjAxMCAxMTo0NDoxOCBIYW5zIGRl
-IEdvZWRlIHdyb3RlOgo+PiA+PiBSZXBseWluZyB0byBteXNlbGYuCj4+ID4+Cj4+ID4+IE9uIDA5
-LzA3LzIwMTAgMTE6NDIgQU0sIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4+ID4+PiBIaSwKPj4gPj4+
-Cj4+ID4+PiBPbiAwOS8wNy8yMDEwIDA5OjMwIEFNLCBIYW5zIFZlcmt1aWwgd3JvdGU6Cj4+ID4+
-Pj4gT24gTW9uZGF5LCBTZXB0ZW1iZXIgMDYsIDIwMTAgMjA6MTE6MDUgSmVhbi1GcmFuY29pcyBN
-b2luZSB3cm90ZToKPj4gPj4+Pj4gSGksCj4+ID4+Pj4+Cj4+ID4+Pj4+IFRoaXMgbmV3IHByb3Bv
-c2FsIGNhbmNlbHMgdGhlIHByZXZpb3VzICdMRUQgY29udHJvbCcgcGF0Y2guCj4+ID4+Pj4+Cj4+
-ID4+Pj4+IENoZWVycy4KPj4gPj4+Pj4KPj4gPj4+Pj4KPj4gPj4+Pgo+PiA+Pj4+IEhpIEplYW4t
-RnJhbmNvaXMsCj4+ID4+Pj4KPj4gPj4+PiBZb3UgbXVzdCBhbHNvIGFkZCBzdXBwb3J0IGZvciB0
-aGVzZSBuZXcgY29udHJvbHMgaW4gdjRsMi1jdHJscy5jIGluCj4+ID4+Pj4gdjRsMl9jdHJsX2dl
-dF9tZW51KCksIHY0bDJfY3RybF9nZXRfbmFtZSgpIGFuZCB2NGwyX2N0cmxfZmlsbCgpLgo+PiA+
-Pj4+Cj4+ID4+Pj4gSG93IGlzIENJRF9JTExVTUlOQVRPUlMgc3VwcG9zZWQgdG8gd29yayBpbiB0
-aGUgY2FzZSBvZiBtdWx0aXBsZSBsaWdodHM/Cj4+ID4+Pj4gV291bGRuJ3QgYSBiaXRtYXNrIHR5
-cGUgYmUgbW9yZSBzdWl0YWJsZSB0byB0aGlzIHRoYW4gYSBtZW51IHR5cGU/IFRoZXJlCj4+ID4+
-Pj4gaXNuJ3QgYSBiaXRtYXNrIHR5cGUgYXQgdGhlIG1vbWVudCwgYnV0IHRoaXMgc2VlbXMgdG8g
-YmUgYSBwcmV0dHkgZ29vZAo+PiA+Pj4+IGNhbmRpZGF0ZSBmb3IgYSB0eXBlIGxpa2UgdGhhdC4K
-Pj4gPj4+Pgo+PiA+Pj4+IEFjdHVhbGx5LCBmb3IgdGhlIHN0YXR1cyBsZWQgSSB3b3VsZCBhbHNv
-IHVzZSBhIGJpdG1hc2sgc2luY2UgdGhlcmUgbWF5IGJlCj4+ID4+Pj4gbXVsdGlwbGUgbGVkcy4g
-SSBndWVzcyB5b3Ugd291bGQgbmVlZCB0d28gYml0bWFza3M6IG9uZSB0byBzZWxlY3QgYXV0byB2
-cwo+PiA+Pj4+IG1hbnVhbCwgYW5kIG9uZSBmb3IgdGhlIG1hbnVhbCBzZXR0aW5ncy4KPj4gPj4+
-Pgo+PiA+Pj4KPj4gPj4+IFNvIGZhciBJJ3ZlIG5vdCBzZWVuIGNhbWVyYXMgd2l0aCBtdWx0aXBs
-ZSBzdGF0dXMgbGVkcywgSSBkbyBoYXZlIHNlZW4gY2FtZXJhCj4+ID4+PiB3aGljaCBoYXZlIHRo
-ZSBmb2xsb3dpbmcgc2V0dGluZ3MgZm9yIHRoZWlyIDEgbGVkIChsb2dpdGVjaCB1dmMgY2Ftcyk6
-Cj4+ID4+PiBhdXRvCj4+ID4+PiBvbgo+PiA+Pj4gb2ZmCj4+ID4+PiBibGlua2luZwo+PiA+Pj4K
-Pj4gPj4+IFNvIEkgdGhpbmsgYSBtZW51IHR5cGUgaXMgYmV0dGVyIHN1aXRlZCwgYW5kIHRoYXQg
-aXMgd2hhdCB0aGUgY3VycmVudCAocHJpdmF0ZSkKPj4gPj4+IHV2YyBjb250cm9sIHVzZXMuCj4+
-ID4+Cj4+ID4+IFRoZSBzYW1lIGFyZ3VtZW50IG1vcmUgb3IgbGVzcyBnb2VzIGZvciB0aGUgQ0lE
-X0lMTElNVU5BVE9SUyBjb250cm9scy4gQWxzbyBnaXZlbgo+PiA+PiB0aGF0IHdlIGN1cnJlbnRs
-eSBkb24ndCBoYXZlIGEgYml0bWFzayB0eXBlIEkgdGhpbmsgaW50cm9kdWNpbmcgb25lIHdpdGhv
-dXQgYSByZWFsbHkKPj4gPj4gcmVhbGx5IGdvb2QgcmVhc29uIGlzIGEgYmFkIGlkZWEgYXMgYW55
-IGV4aXRpbmcgYXBwcyB3b24ndCBrbm93IGhvdyB0byBkZWFsIHdpdGggaXQuCj4+ID4KPj4gPiBC
-dXQgSSBjYW4gZ3VhcmFudGVlIHRoYXQgd2Ugd2lsbCBnZXQgdmlkZW8gZGV2aWNlcyB3aXRoIG11
-bHRpcGxlIGxlZHMgaW4gdGhlCj4+ID4gZnV0dXJlLiBTbyB3ZSBuZWVkIHRvIHRoaW5rICpub3cq
-IGFib3V0IGhvdyB0byBkbyB0aGlzLiBPbmUgc2ltcGxlIG9wdGlvbiBpcyBvZiBjb3Vyc2UKPj4g
-PiB0byBuYW1lIHRoZSBjb250cm9scyBDSURfSUxMVU1JTkFUT1IwIGFuZCBDSURfTEVEMC4gVGhh
-dCB3YXkgd2UgY2FuIGVhc2lseSBhZGQgTEVEMSwKPj4gPiBMRUQyLCBldGMuIGxhdGVyIHdpdGhv
-dXQgcnVubmluZyBpbnRvIHdlaXJkIGluY29uc2lzdGVudCBjb250cm9sIG5hbWVzLgo+PiA+Cj4+
-IAo+PiBOYW1pbmcgdGhlbSBMRUQwIGFuZCBJTExVTUlOQVRPUjAgd29ya3MgZm9yIG1lLiBOb3Rl
-IGFib3V0IHRoZSBpbGx1bWluYXRvciBvbmUsCj4+IGlmIHlvdSBsb29rIGF0IHRoZSBwYXRjaCBp
-dCBtYWRlIHRoZSBpbGx1bWluYXRvciBjb250cm9sIGEgbWVudSB3aXRoIHRoZSBmb2xsb3dpbmcK
-Pj4gb3B0aW9uczoKPgo+V2hlcmUgaW4gdGhlIHBhdGNoPyBBbSBJIG1pc3Npbmcgc29tZXRoaW5n
-Pwo+Cj4+IAo+PiBCb3RoIG9mZgo+PiBUb3Agb24sIEJvdHRvbSBvZmYKPj4gVG9wIG9mZiwgQm90
-dG9tIG9uCj4+IEJvdGggb24KPj4gCj4+IFdoaWNoIHJhaXNlcyB0aGUgcXVlc3Rpb24gZG8gd2Ug
-bGVhdmUgdGhpcyBhcyBpcywgb3IgZG8gd2UgbWFrZSB0aGlzIDIgYm9vbGVhbgo+PiBjb250cm9s
-cy4gSSBwZXJzb25hbGx5IHdvdWxkIGxpa2UgdG8gdm90ZSBmb3Iga2VlcGluZyBpdCBhcyBpcywg
-YXMgYm90aCBsYW1wcwo+PiBpbGx1bWluYXRlIHRoZSBzYW1lIHN1YnN0cmF0ZSBpbiB0aGlzIGNh
-c2UsIGFuZCBlc3AuIHN3aXRjaGluZyBiZXR3ZWVuCj4+IFRvcCBvbiwgQm90dG9tIG9mZiB0byBU
-b3Agb2ZmLCBCb3R0b20gb24gaW4gb25lIGdvIGlzIGEgZ29vZCBmZWF0dXJlIHRvIGhhdmUKPj4g
-VUkgd2lzZSAoaW93IHN3aXRjaCBmcm9tIHRvcCB0byBib3R0b20gbGlnaHRpbmcgb3IgdmlzYSB2
-ZXJzYS4KPgo+VGhlIHByb2JsZW0gd2l0aCBoYXZpbmcgb25lIGNvbnRyb2wgaXMgdGhhdCB3aGls
-ZSB0aGlzIG1ha2VzIHNlbnNlIGZvciB0aGlzCj5wYXJ0aWN1bGFyIG1pY3Jvc2NvcGUsIGl0IGRv
-ZXNuJ3QgbWFrZSBzZW5zZSBpbiBnZW5lcmFsLgo+Cj5TdGFuZGFyZCBjb250cm9scyBzdWNoIGFz
-IHByb3Bvc2VkIGJ5IHRoaXMgcGF0Y2ggc2hvdWxkIGhhdmUgYSBmaXhlZCB0eXBlIGFuZAo+Y29u
-c2lzdGVudCBiZWhhdmlvci4gTm90ZSB0aGF0IEkgYW0gYWxzbyB3b25kZXJpbmcgd2hldGhlciBp
-dCB3b3VsZG4ndCBiZSBhCj5nb29kIGlkZWEgdG8gdXNlIGEgbWVudSBmb3IgdGhpcywganVzdCBh
-cyBmb3IgdGhlIExFRHMuIEluIGZhY3QsIHBlcmhhcHMgdGhleQo+c2hvdWxkIHVzZSB0aGUgc2Ft
-ZSBtZW51LiBXaGlsZSB0aGVpciBwdXJwb3NlIGlzIGRpZmZlcmVudCwgdGhleSBhcmUgcXVpdGUg
-c2ltaWxhcgo+aW4gYmVoYXZpb3IuCj4KPkJUVywgbG92ZWx5IHdvcmQ6ICdpbGx1bWluYXRvcicu
-Cj4KPlJlZ2FyZHMsCj4KPglIYW5zCj4KPj4gCj4+IFJlZ2FyZHMsCj4+IAo+PiBIYW5zCj4+IAo+
-PiAKPj4gCj4KPi0tIAo+SGFucyBWZXJrdWlsIC0gdmlkZW80bGludXggZGV2ZWxvcGVyIC0gc3Bv
-bnNvcmVkIGJ5IFRBTkRCRVJHLCBwYXJ0IG9mIENpc2NvCj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJv
-bSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+
-dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUg
-bWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
-aHRtbAo=
+Hello,
 
+Can really nobody give me an advice what I can do to make my Nova-T-Stick work 
+with my Debian Kernel 2.6.32? I want to add the information that I had it 
+working with my Debian Kernel 2.6.26 and sources from linuxtv.org which I 
+downloaded on April 09, 2009.
+
+Regards
+  Christoph
+
+
+Hello,
+
+I am running a Debian 2.6.32-Kernel (which by the way contains a lot of 
+unresolved symbols in many dvb modules). As this kernel does not support my 
+WinTV Nova-T USB-Stick, I downloaded the latest sources via the web interface 
+from linuxtv.org, compiled the sources and installed the resulting modules.
+
+When I now connect the USB stick, the DVB modules are loaded correctly, but 
+when I start an application to watch TV, I get a Kernel Oops.
+
+These lines from my kern.log show the kernel actions when connecting the 
+device:
+
+ Sep  8 19:51:16 superstar kernel: [ 3480.084012] usb 2-5: new high speed USB 
+device using ehci_hcd and address 3
+Sep  8 19:51:16 superstar kernel: [ 3480.217755] usb 2-5: New USB device 
+found, idVendor=2040, idProduct=7050
+Sep  8 19:51:16 superstar kernel: [ 3480.217758] usb 2-5: New USB device 
+strings: Mfr=1, Product=2, SerialNumber=3
+Sep  8 19:51:16 superstar kernel: [ 3480.217760] usb 2-5: Product: Nova-T 
+Stick
+Sep  8 19:51:16 superstar kernel: [ 3480.217761] usb 2-5: Manufacturer: 
+Hauppauge
+Sep  8 19:51:16 superstar kernel: [ 3480.217762] usb 2-5: SerialNumber: 
+0000000000
+Sep  8 19:51:16 superstar kernel: [ 3480.217849] usb 2-5: configuration #1 
+chosen from 1 choice
+Sep  8 19:51:16 superstar kernel: [ 3480.332785] dib0700: loaded with support 
+for 14 different device-types
+Sep  8 19:51:16 superstar kernel: [ 3480.333846] dvb-usb: found a 'Hauppauge 
+Nova-T Stick' in cold state, will try to load a firmware
+Sep  8 19:51:16 superstar kernel: [ 3480.333851] usb 2-5: firmware: requesting 
+dvb-usb-dib0700-1.20.fw
+Sep  8 19:51:16 superstar kernel: [ 3480.439083] dvb-usb: downloading firmware 
+from file 'dvb-usb-dib0700-1.20.fw'
+Sep  8 19:51:17 superstar kernel: [ 3480.640502] dib0700: firmware started 
+successfully.
+Sep  8 19:51:17 superstar kernel: [ 3481.144141] dvb-usb: found a 'Hauppauge 
+Nova-T Stick' in warm state.
+Sep  8 19:51:17 superstar kernel: [ 3481.144540] dvb-usb: will pass the 
+complete MPEG2 transport stream to the software demuxer.
+Sep  8 19:51:17 superstar kernel: [ 3481.144639] DVB: registering new adapter 
+(Hauppauge Nova-T Stick)
+Sep  8 19:51:17 superstar kernel: [ 3481.480505] DVB: registering adapter 0 
+frontend 0 (DiBcom 7000MA/MB/PA/PB/MC)...
+Sep  8 19:51:17 superstar kernel: [ 3481.498377] MT2060: successfully 
+identified (IF1 = 1218)
+Sep  8 19:51:18 superstar kernel: [ 3481.975455] input: IR-receiver inside an 
+USB DVB receiver as /devices/pci0000:00/0000:00:02.1/usb2/2-5/input/input6
+Sep  8 19:51:18 superstar kernel: [ 3481.975500] dvb-usb: schedule remote 
+query interval to 50 msecs.
+Sep  8 19:51:18 superstar kernel: [ 3481.975503] dvb-usb: Hauppauge Nova-T 
+Stick successfully initialized and connected.
+Sep  8 19:51:18 superstar kernel: [ 3481.975777] usbcore: registered new 
+interface driver dvb_usb_dib0700
+
+
+These lines from my kern.log show the Oops event:
+Sep  8 19:51:28 superstar kernel: [ 3492.321914] BUG: unable to handle kernel 
+NULL pointer dereference at 0000000000000012
+Sep  8 19:51:28 superstar kernel: [ 3492.321920] IP: [<ffffffffa015e3db>] 
+i2c_transfer+0x1c/0xc0 [i2c_core]
+Sep  8 19:51:28 superstar kernel: [ 3492.321928] PGD 1b8e69067 PUD 1b8e6a067 
+PMD 0
+Sep  8 19:51:28 superstar kernel: [ 3492.321932] Oops: 0000 [#1] SMP
+Sep  8 19:51:28 superstar kernel: [ 3492.321934] last sysfs 
+file: /sys/devices/pci0000:00/0000:00:02.1/usb2/2-5/input/input6/capabilities/sw
+Sep  8 19:51:28 superstar kernel: [ 3492.321936] CPU 0
+Sep  8 19:51:28 superstar kernel: [ 3492.321938] Modules linked in: mt2060 
+dvb_usb_dib0700 dib7000p dib0090 dib7000m dib0070 dvb_usb dib8000 dvb_core 
+dib30
+00mc dibx000_common fglrx(P) binfmt_misc rfcomm l2cap crc16 bluetooth rfkill 
+vboxnetadp vboxnetflt vboxdrv battery ppdev lp ext3 jbd mbcache xfs exportfs 
+r
+eiserfs hwmon_vid eeprom firewire_sbp2 firewire_core crc_itu_t loop 
+snd_hda_codec_atihdmi parport_pc parport psmouse evdev serio_raw 
+snd_emu10k1_synth snd_
+emux_synth snd_seq_virmidi snd_seq_midi_emul snd_hda_intel snd_hda_codec 
+snd_emu10k1 snd_ac97_codec ac97_bus snd_pcm_oss snd_mixer_oss snd_seq_midi 
+snd_pcm
+ snd_rawmidi snd_util_mem asus_atk0110 snd_seq_midi_event snd_hwdep snd_seq 
+snd_timer snd_seq_device emu10k1_gp pcspkr gameport snd snd_page_alloc 
+soundcor
+e k8temp edac_core edac_mce_amd button processor i2c_nforce2 i2c_core jfs 
+dm_mirror dm_region_hash dm_log dm_snapshot dm_mod sg sr_mod cdrom sd_mod 
+crc_t10
+dif ata_generic floppy fan pata_amd sata_nv ehci_hcd ohci_hcd libata thermal 
+forcedeth thermal_sys scsi_mod usbcore nls_base [last unloaded: 
+scsi_wait_scan
+]
+Sep  8 19:51:28 superstar kernel: [ 3492.321984] Pid: 26841, comm: kaffeine 
+Tainted: P           2.6.32-bpo.5-amd64 #1 System Product Name
+Sep  8 19:51:28 superstar kernel: [ 3492.321986] RIP: 0010:
+[<ffffffffa015e3db>]  [<ffffffffa015e3db>] i2c_transfer+0x1c/0xc0 [i2c_core]
+Sep  8 19:51:28 superstar kernel: [ 3492.321990] RSP: 0018:ffff8801b95d9ba8  
+EFLAGS: 00010292
+Sep  8 19:51:28 superstar kernel: [ 3492.321992] RAX: ffff8801b95d9c08 RBX: 
+0000000000000002 RCX: 0000000000000000
+Sep  8 19:51:28 superstar kernel: [ 3492.321994] RDX: 0000000000000002 RSI: 
+ffff8801b95d9be8 RDI: 0000000000000002
+Sep  8 19:51:28 superstar kernel: [ 3492.321995] RBP: 00000000ffffffa1 R08: 
+000000000e008d80 R09: ffff880037803300
+Sep  8 19:51:28 superstar kernel: [ 3492.321997] R10: ffff880037803360 R11: 
+0000000000000002 R12: ffff8802115a6800
+Sep  8 19:51:28 superstar kernel: [ 3492.321999] R13: 0000000000000001 R14: 
+0000000000000002 R15: ffff8801b95d9be8
+Sep  8 19:51:28 superstar kernel: [ 3492.322001] FS:  00007f2765d656f0(0000) 
+GS:ffff880008c00000(0000) knlGS:0000000000000000
+Sep  8 19:51:28 superstar kernel: [ 3492.322003] CS:  0010 DS: 0000 ES: 0000 
+CR0: 000000008005003b
+Sep  8 19:51:28 superstar kernel: [ 3492.322004] CR2: 0000000000000012 CR3: 
+00000001b8e68000 CR4: 00000000000006f0
+Sep  8 19:51:28 superstar kernel: [ 3492.322006] DR0: 0000000000000000 DR1: 
+0000000000000000 DR2: 0000000000000000
+Sep  8 19:51:28 superstar kernel: [ 3492.322008] DR3: 0000000000000000 DR6: 
+00000000ffff0ff0 DR7: 0000000000000400
+Sep  8 19:51:28 superstar kernel: [ 3492.322010] Process kaffeine (pid: 26841, 
+threadinfo ffff8801b95d8000, task ffff88022305b170)
+Sep  8 19:51:28 superstar kernel: [ 3492.322011] Stack:
+Sep  8 19:51:28 superstar kernel: [ 3492.322012]  ffff8801b8c09e18 
+00000000000000eb ffffc90013b0c000 ffff8802115a6800
+Sep  8 19:51:28 superstar kernel: [ 3492.322015] <0> 0000000000000001 
+ffffc90012e51000 ffff8802115650c8 ffffffffa0271109
+Sep  8 19:51:28 superstar kernel: [ 3492.322017] <0> 0000000200000010 
+ffff8801b95d9c18 0000000200010010 ffff8801b95d9c08
+Sep  8 19:51:28 superstar kernel: [ 3492.322020] Call Trace:
+Sep  8 19:51:28 superstar kernel: [ 3492.322024]  [<ffffffffa0271109>] ? 
+dib7000p_read_word+0x6e/0xbe [dib7000p]
+Sep  8 19:51:28 superstar kernel: [ 3492.322027]  [<ffffffffa01fd05e>] ? 
+usb_urb_submit+0x3f/0x81 [dvb_usb]
+Sep  8 19:51:28 superstar kernel: [ 3492.322030]  [<ffffffffa0271cdb>] ? 
+dib7000p_pid_filter_ctrl+0x1e/0x74 [dib7000p]
+Sep  8 19:51:28 superstar kernel: [ 3492.322033]  [<ffffffffa01fc354>] ? 
+dvb_usb_ctrl_feed+0x16b/0x1ca [dvb_usb]
+Sep  8 19:51:28 superstar kernel: [ 3492.322038]  [<ffffffffa0393610>] ? 
+dmx_ts_feed_start_filtering+0x72/0xc6 [dvb_core]
+Sep  8 19:51:28 superstar kernel: [ 3492.322041]  [<ffffffffa039099e>] ? 
+dvb_dmxdev_start_feed+0xbe/0xe6 [dvb_core]
+Sep  8 19:51:28 superstar kernel: [ 3492.322045]  [<ffffffffa0391ae1>] ? 
+dvb_dmxdev_filter_start+0x2a9/0x315 [dvb_core]
+Sep  8 19:51:28 superstar kernel: [ 3492.322049]  [<ffffffffa0391dcf>] ? 
+dvb_dmxdev_add_pid+0x50/0xf6 [dvb_core]
+Sep  8 19:51:28 superstar kernel: [ 3492.322052]  [<ffffffffa03920e6>] ? 
+dvb_demux_do_ioctl+0x271/0x4b7 [dvb_core]
+Sep  8 19:51:28 superstar kernel: [ 3492.322055]  [<ffffffffa0390332>] ? 
+dvb_usercopy+0xb4/0x128 [dvb_core]
+Sep  8 19:51:28 superstar kernel: [ 3492.322059]  [<ffffffffa0391e75>] ? 
+dvb_demux_do_ioctl+0x0/0x4b7 [dvb_core]
+Sep  8 19:51:28 superstar kernel: [ 3492.322063]  [<ffffffff810f6e63>] ? 
+do_filp_open+0x4e4/0x94b
+Sep  8 19:51:28 superstar kernel: [ 3492.322066]  [<ffffffff810f8b83>] ? 
+vfs_ioctl+0x56/0x6c
+Sep  8 19:51:28 superstar kernel: [ 3492.322068]  [<ffffffff810f909c>] ? 
+do_vfs_ioctl+0x48d/0x4cb
+Sep  8 19:51:28 superstar kernel: [ 3492.322072]  [<ffffffff810e3e9d>] ? 
+virt_to_head_page+0x9/0x2a
+Sep  8 19:51:28 superstar kernel: [ 3492.322074]  [<ffffffff810f912b>] ? 
+sys_ioctl+0x51/0x70
+Sep  8 19:51:28 superstar kernel: [ 3492.322078]  [<ffffffff81010b42>] ? 
+system_call_fastpath+0x16/0x1b
+Sep  8 19:51:28 superstar kernel: [ 3492.322079] Code: c2 22 e1 15 a0 e8 0b d5 
+0b e1 48 83 c4 18 c3 41 57 49 89 f7 41 56 41 89 d6 41 55 41 54 55 bd a1 ff ff 
+ff 53 48 89 fb 48 83 ec 08 <48> 8b 47 10 48 83 38 00 0f 84 87 00 00 00 65 48 
+8b 04 25 c8 cb
+Sep  8 19:51:28 superstar kernel: [ 3492.322098] RIP  [<ffffffffa015e3db>] 
+i2c_transfer+0x1c/0xc0 [i2c_core]
+Sep  8 19:51:28 superstar kernel: [ 3492.322102]  RSP <ffff8801b95d9ba8>
+Sep  8 19:51:28 superstar kernel: [ 3492.322103] CR2: 0000000000000012
+Sep  8 19:51:28 superstar kernel: [ 3492.322105] ---[ end trace 
+106578cacf144da6 ]---
+
+What can I do to solve the problem?
+
+Regards
+  Christoph
