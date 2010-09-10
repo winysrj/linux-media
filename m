@@ -1,21 +1,27 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com (ext-mx04.extmail.prod.ext.phx2.redhat.com
-	[10.5.110.8])
+Received: from mx1.redhat.com (ext-mx08.extmail.prod.ext.phx2.redhat.com
+	[10.5.110.12])
 	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP
-	id o899CwYR001953
-	for <video4linux-list@redhat.com>; Thu, 9 Sep 2010 05:12:59 -0400
-Received: from stockholm.opq.se (www.opq.se [213.88.151.150])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o899CjG7031364
-	for <video4linux-list@redhat.com>; Thu, 9 Sep 2010 05:12:46 -0400
+	id o8ACorT2004506
+	for <video4linux-list@redhat.com>; Fri, 10 Sep 2010 08:50:53 -0400
+Received: from mtatransport.andago.com (mtatransport.andago.com
+	[213.171.250.118])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o8ACog1b027947
+	for <video4linux-list@redhat.com>; Fri, 10 Sep 2010 08:50:43 -0400
+Message-ID: <4C8A29A0.1030700@andago.com>
+Date: Fri, 10 Sep 2010 14:50:40 +0200
+From: Jorge Cabrera <jorge.cabrera@andago.com>
+MIME-Version: 1.0
+To: Roger Oberholtzer <roger@opq.se>
 Subject: Re: Video capture device
-From: Roger Oberholtzer <roger@opq.se>
-To: Jorge Cabrera <jorge.cabrera@andago.com>
-In-Reply-To: <4C888ECC.3080104@andago.com>
-References: <4C888ECC.3080104@andago.com>
-Date: Thu, 09 Sep 2010 11:12:35 +0200
-Message-ID: <1284023555.12548.11.camel@acme.pacific>
-Mime-Version: 1.0
-Cc: Video 4 Linux Mailing List <video4linux-list@redhat.com>
+References: <4C888ECC.3080104@andago.com>	
+	<1284023555.12548.11.camel@acme.pacific>
+	<4C8A16BA.2060109@andago.com>	
+	<1284119156.22435.51.camel@acme.pacific>
+	<4C8A1CF3.9060402@andago.com>
+	<1284120243.22435.66.camel@acme.pacific>
+In-Reply-To: <1284120243.22435.66.camel@acme.pacific>
+Cc: video4linux-list@redhat.com
 List-Unsubscribe: <https://www.redhat.com/mailman/options/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=unsubscribe>
 List-Archive: <https://www.redhat.com/mailman/private/video4linux-list>
@@ -23,47 +29,39 @@ List-Post: <mailto:video4linux-list@redhat.com>
 List-Help: <mailto:video4linux-list-request@redhat.com?subject=help>
 List-Subscribe: <https://www.redhat.com/mailman/listinfo/video4linux-list>,
 	<mailto:video4linux-list-request@redhat.com?subject=subscribe>
-Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; Format="flowed"
 Errors-To: video4linux-list-bounces@redhat.com
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 List-ID: <video4linux-list@redhat.com>
 
-T24gVGh1LCAyMDEwLTA5LTA5IGF0IDA5OjM3ICswMjAwLCBKb3JnZSBDYWJyZXJhIHdyb3RlOiAK
-PiBIZWxsbywKPiAKPiBJIHdhbnRlZCB0byBzZXQgdXAgYSB2aWRlb2NvbmZlcmVuY2Ugc2Vydmlj
-ZSBhdCBteSBjb21wYW55IHVzaW5nIGEgc29ueSAKPiB2aWRlbyBjYW1lcmEgd2l0aCBhIHVzYiB2
-aWRlbyBjYXB0dXJlIGRldmljZSBhbmQgbGludXggKFVidW50dSB0byBiZSAKPiBzcGVjaWZpYyku
-IFRoZSB2aWRlb2NvbmZlcmVuY2Ugc3lzdGVtIHdlJ3JlIHVzaW5nIGlzIHRocm91Z2ggd2ViZXgg
-YW5kIAo+IG1lZ2FtZWV0aW5nLiBJIGFtIGN1cnJlbnRseSB1c2luZyBhbiBBdmVybWVkaWEgdmlk
-ZW8gY2FwdHVyZSBkZXZpY2UgYnV0IAo+IHRoZSBwcm9ibGVtIEkgaGFkIHdhcyB0aGF0IGZvciB0
-aGlzIGRldmljZSB0aGUgZGVmYXVsdCBpbnB1dCB3YXMgIlR1bmVyIiAKPiBhbmQgZXZlbiBkb3Vn
-aCBJIGNvdWxkIHNldCB0aGUgZGVmYXVsdCBpbnB1dCB0byBTLVZpZGVvIHdpdGggdjRsIAo+IHV0
-aWxpdGllcyB0aGlzIHdvdWxkIG9ubHkgd29yayB3aXRoIG1wbGF5ZXIsIHZsYy4uLiBidXQgaXQg
-d291bGRuJ3Qgd29yayAKPiB3aXRoIGZsYXNoIG9yIGphdmEgaW4gYSBicm93c2VyIHdoaWNoIGFy
-ZSB0aGUgdGVjaG5vbG9neSBiZWhpbmQgbW9zdCBvZiAKPiBvbmxpbmUgdmlkZW9jb25mZXJlbmNl
-IHNlcnZpY2VzLiBTbyBhZnRlciBhIG1vbnRoIG9mIGJhbmdpbmcgbXkgaGVhZCAKPiBhZ2FpbnN0
-IHRoZSB3YWxsIEkgZ2F2ZSB1cCBhbmQgaW5zdGFsbGVkIGFub3RoZXIgb3BlcmF0aW5nIHN5c3Rl
-bS4gCj4gV2luZG93cy4gWWVzLCBJIGtub3cuCj4gCj4gQnV0IG5vdyBJIHdhbnQgdG8gZ2l2ZSBp
-dCBhbm90aGVyIHRyeSBzbyB0aGlzIHRpbWUgSSB3YXMgdGhpbmtpbmcgb2YgCj4gdHJ5aW5nIHdp
-dGggYW5vdGhlciB2aWRlbyBjYXB0dXJlIHVzYiBkZXZpY2Ugc28gSSB3YW50ZWQgdG8gYXNrIHRo
-ZSAKPiBtZW1iZXJzIG9mIHRoaXMgbGlzdCBpZiB5b3UgZXZlciBtYWRlIG9uZSBvZiB0aGlzIGRl
-dmljZXMgd29yayBwZXJmZWN0bHkgCj4gdW5kZXIgbGludXgsIHNwZWNpYWxseSB3aXRoIGZsYXNo
-IG9yIGphdmEgdGVjaG5vbG9naWVzLiBJIHRoaW5rIEkgd291bGQgCj4gaGF2ZSB0aGUgc2FtZSBw
-cm9ibGVtcyB3aXRoIGFueSBBdmVybWVkaWEgZGV2aWNlIHNvIG1heWJlIHRoZXJlJ3MgCj4gc29t
-ZXRoaW5nIG91dCB0aGVyZSB0aGF0IHdvcmtzLgoKSSBhbSB1c2luZyBhIExvZ2l0ZWMgVVNCIHdl
-YmNhbSBhbmQgaXQgd29ya3Mgd2l0aCBmbGFzaC4gSSBoYXZlIG5vdGVkCnRoYXQgaXQgZG9lcyBu
-b3Qgd29yayB3aXRoIGFsbCB2ZXJzaW9ucyBvZiBmbGFzaC4gU28gSSBoYXZlIGEgc3BlY2lmaWMK
-dmVyc2lvbiB0aGF0IEkgZG8gbm90IHJlaW5zdGFsbCBhbmQgdGhlbiBpdCBjb250aW51ZXMgdG8g
-d29yay4gVGhpcyBpcwpvbiBvcGVuU1VTRS4gQnV0IEkgc3VzcGVjdCBpdCBpcyB0aGUgc2FtZSBm
-b3IgYWxsIExpbnV4IGRpc3RvcyBhcyB0aGV5CmNhbm5vdCBjaGFuZ2UgdGhlIGZsYXNoIHBhcnRz
-LgoKVGhlcmUgaXMgYW4gYXBwbGljYXRpb24gY2FsbGVkIGNoZWVzZSB0aGF0IGlzIGdyZWF0IGZv
-ciB0ZXN0aW5nIHRoZXNlCmRldmljZXMuIElmIGl0IHdvcmtzIHRoZXJlLCB0aGVuIHlvdSBjYW4g
-YmUgc3VyZSB0aGUgT1MgaXMgZG9pbmcgdGhlCnJpZ2h0IHRoaW5nLiBXaGljaCBpcyBhIGdvb2Qg
-Zmlyc3Qgc3RlcC4KCj4gCj4gVGhhbmtzIGZvciB5b3VyIGhlbHAsCj4gCj4gSGF2ZSBhIG5pY2Ug
-ZGF5Cj4gCgotLSAKUm9nZXIgT2JlcmhvbHR6ZXIKCk9QUSBTeXN0ZW1zIC8gUmFtYsO2bGwgUlNU
-CgpSYW1iw7ZsbCBTdmVyaWdlIEFCCktydWttYWthcmdhdGFuIDIxClAuTy4gQm94IDE3MDA5ClNF
-LTEwNCA2MiBTdG9ja2hvbG0sIFN3ZWRlbgoKT2ZmaWNlOiBJbnQgKzQ2IDEwLTYxNSA2MCAyMApN
-b2JpbGU6IEludCArNDYgNzAtODE1IDE2OTYKCi0tCnZpZGVvNGxpbnV4LWxpc3QgbWFpbGluZyBs
-aXN0ClVuc3Vic2NyaWJlIG1haWx0bzp2aWRlbzRsaW51eC1saXN0LXJlcXVlc3RAcmVkaGF0LmNv
-bT9zdWJqZWN0PXVuc3Vic2NyaWJlCmh0dHBzOi8vd3d3LnJlZGhhdC5jb20vbWFpbG1hbi9saXN0
-aW5mby92aWRlbzRsaW51eC1saXN0
+Um9nZXIgT2JlcmhvbHR6ZXIgd3JvdGU6Cj4gT24gRnJpLCAyMDEwLTA5LTEwIGF0IDEzOjU2ICsw
+MjAwLCBKb3JnZSBDYWJyZXJhIHdyb3RlOgo+ICAgCj4+IFJvZ2VyIE9iZXJob2x0emVyIHdyb3Rl
+OiAKPj4gICAgIAo+Pj4gT24gRnJpLCAyMDEwLTA5LTEwIGF0IDEzOjMwICswMjAwLCBKb3JnZSBD
+YWJyZXJhIHdyb3RlOgo+Pj4KPj4+ICAgCj4+PiAgICAgICAKPj4+PiBUaGFua3MgZm9yIHlvdXIg
+cmVwbHkgYW5kIHlvdXIgYWR2aWNlIFJvZ2VyLiBQcm9ibGVtIGlzIHRoYXQgdXNpbmcgYQo+Pj4+
+IHdlYmNhbSBpcyBub3QgYW4gb3B0aW9uIHJpZ2h0IG5vdyBiZWNhdXNlIHRoZSBzb2x1dGlvbiB0
+aGF0IHdlIGhhdmUgdG8KPj4+PiBwcm92aWRlIGlzIGJ5IHVzaW5nIGEgdXNiIHZpZGVvIGNhcHR1
+cmUgZGV2aWNlIGNvbm5lY3RlZCB0byBhIGNhbWVyYS4KPj4+PiBIYXZlIGFueW9uZSB0cmllZCBv
+bmUgb2YgdGhvc2Ugd2l0aCBsaW51eD8KPj4+PiAgICAgCj4+Pj4gICAgICAgICAKPj4+IFlvdSBt
+ZWFuIHRoYXQgeW91IGhhdmUgc29tZXRoaW5nIGxpa2UgYSBEYXp6bGUgdmlkZW8gY2FwdHVyZSBk
+ZXZpY2UKPj4+IGNvbm5lY3RlZCB0byB0aGUgVVNCIGFuZCBhIGNhbWVyYSBhdHRhY2hlZCB0byB0
+aGF0PyBXaGF0IHVzYiBjYXB0dXJlCj4+PiBkZXZpY2UgYXJlIHlvdSB1c2luZz8gTWFueSBhcmUg
+c3VwcG9ydGVkLiBCdXQgbm90IGFsbCBvZiB0aGVtLgo+Pj4KPj4+Cj4+PiAgIAo+Pj4gICAgICAg
+Cj4+IFllcyBleGFjdGx5LCBJJ20gdXNpbmcgQXZlcm1lZGlhIEVaTWFrZXIgVVNCIEdvbGQKPj4g
+KGh0dHA6Ly90aWVuZGEuYXZlcm1lZGlhLmVzL3Byb2R1Y3QuYXNweD9wcm9kdWN0aWQ9ODExMjYp
+LiBUaGUgZGV2aWNlCj4+IGhhdmUgbGludXggZHJpdmVycyBhbmQgaXQgc2VlbSB0byB3b3JrIG9r
+IGJ1dCBJJ20gaGF2aW5nIHRoZSBwcm9ibGVtcwo+PiBJIG1lbnRpb25lZCBiZWZvcmUuCj4+ICAg
+ICAKPgo+IEkgdXNlIHY0bGN0bCB0byBjb25maWd1cmUgZGV2aWNlcy4gVGhlIGNvbmZpZ3VyYXRp
+b25zIHN0YXkgdW50aWwgdGhlCj4gZGV2aWNlcyBhcmUgcmVwb3dlcmVkLiBIYXZlIHlvdSB0cmll
+ZCB0aGlzPwo+Cj4KPiAgIApZZXMsIEkgdHJpZWQgdGhhdCBhbmQgdjRsMmN0bCB0b28gYnV0IHNv
+bWUgcHJvZ3JhbXMgbGlrZSBtcGxheWVyIHJlYWQgCnRoZSBjb25maWd1cmF0aW9uIGNoYW5nZSBi
+dXQgY2hlZXNlIGZvciBleGFtcGxlIG9yIGZsYXNoIGRpZG4ndC4gSSB3b3VsZCAKY2hhbmdlIHRo
+ZSBkZWZhdWx0IGlucHV0IGZyb20gdHVuZXIgKHRoZSBkZWZhdWx0KSB0byBzLXZpZGVvIG9yIGFu
+eSAKb3RoZXIga2luZCBhbmQgbm90aGluZy4KCi0tIApKb3JnZSBDYWJyZXJhCsOBbmRhZ28gSW5n
+ZW5pZXLDrWEgLSB3d3cuYW5kYWdvLmNvbQoKVGVsw6lmb25vOiArMzQgOTE2IDAxMSAzNzMKTcOz
+dmlsOiArMzQgNjM3IDc0MSAwMzQKZS1tYWlsOiBqb3JnZS5jYWJyZXJhQGFuZGFnby5jb20KCkMv
+QWxjYWxkZSDDgW5nZWwgQXJyb3lvIG4uwroxMCAxLsKqUGwuICgyODkwNCkgR2V0YWZlLCBNYWRy
+aWQKCi0tCnZpZGVvNGxpbnV4LWxpc3QgbWFpbGluZyBsaXN0ClVuc3Vic2NyaWJlIG1haWx0bzp2
+aWRlbzRsaW51eC1saXN0LXJlcXVlc3RAcmVkaGF0LmNvbT9zdWJqZWN0PXVuc3Vic2NyaWJlCmh0
+dHBzOi8vd3d3LnJlZGhhdC5jb20vbWFpbG1hbi9saXN0aW5mby92aWRlbzRsaW51eC1saXN0
