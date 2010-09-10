@@ -1,56 +1,54 @@
 Return-path: <mchehab@pedra>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:38167 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932849Ab0I0NFG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 09:05:06 -0400
-Received: by mail-bw0-f46.google.com with SMTP id 11so3244338bwz.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Sep 2010 06:05:05 -0700 (PDT)
-From: Ruslan Pisarev <ruslanpisarev@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: ruslan@rpisarev.org.ua
-Subject: [PATCH 07/13] Staging: cx25821: fix tabs and space coding style issue in cx25821-medusa-video.c
-Date: Mon, 27 Sep 2010 16:04:56 +0300
-Message-Id: <1285592696-32475-1-git-send-email-ruslan@rpisarev.org.ua>
-In-Reply-To: <y>
-References: <y>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:61616 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753000Ab0IJBho convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 21:37:44 -0400
+MIME-Version: 1.0
+In-Reply-To: <1284079254.4828.6.camel@maxim-laptop>
+References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
+	<1283808373-27876-6-git-send-email-maximlevitsky@gmail.com>
+	<AANLkTi=EFZys7NnxixmQL3hqqGfin_VOV7XAWCm0BkwT@mail.gmail.com>
+	<1284079254.4828.6.camel@maxim-laptop>
+Date: Thu, 9 Sep 2010 21:37:43 -0400
+Message-ID: <AANLkTik4HAspKxOpH1VcT0+TnGa=H+-M2Wpxg5MefPg1@mail.gmail.com>
+Subject: Re: [PATCH 5/8] IR: extend MCE keymap.
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Maxim Levitsky <maximlevitsky@gmail.com>
+Cc: lirc-list@lists.sourceforge.net,
+	=?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
+	mchehab@infradead.org, linux-input@vger.kernel.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This is a patch to the cx25821-medusa-video.c file that fixed up a tabs
-    and space warnings found by the checkpatch.pl tools.
+On Thu, Sep 9, 2010 at 8:40 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+> On Wed, 2010-09-08 at 10:47 -0400, Jarod Wilson wrote:
+>> On Mon, Sep 6, 2010 at 5:26 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
+>> > These keys are found on remote bundled with
+>> > Toshiba Qosmio F50-10q.
+>> >
+>> > Found and tested by, Sami R <maesesami@gmail.com>
+>> >
+>> > Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+>> > ---
+>> >  drivers/media/IR/keymaps/rc-rc6-mce.c |    3 +++
+>> >  1 files changed, 3 insertions(+), 0 deletions(-)
+>
+> Tommorow I will resend that patch with even more scancodes.
 
-Signed-off-by: Ruslan Pisarev <ruslan@rpisarev.org.ua>
----
- drivers/staging/cx25821/cx25821-medusa-video.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+Saw the discussion on irc. Feel your pain big-time on the X server
+limitation on keycodes. Its put a big damper on efforts to add native
+support to mythtv. Peter Hutterer's libXi2 cookbook tutorials talk a
+good game about how libXi2 supports 32-bit keycodes, but neglects to
+mention that the X server still gobbles up anything above 248 or 255
+or whatever it is, and remedying that is no small task. :(
 
-diff --git a/drivers/staging/cx25821/cx25821-medusa-video.c b/drivers/staging/cx25821/cx25821-medusa-video.c
-index ef9f2b8..1e11e0c 100644
---- a/drivers/staging/cx25821/cx25821-medusa-video.c
-+++ b/drivers/staging/cx25821/cx25821-medusa-video.c
-@@ -778,9 +778,9 @@ int medusa_set_saturation(struct cx25821_dev *dev, int saturation, int decoder)
- 
- int medusa_video_init(struct cx25821_dev *dev)
- {
--       u32 value = 0, tmp = 0;
--       int ret_val = 0;
--       int i = 0;
-+	u32 value = 0, tmp = 0;
-+	int ret_val = 0;
-+	int i = 0;
- 
- 	mutex_lock(&dev->lock);
- 
-@@ -829,7 +829,7 @@ int medusa_video_init(struct cx25821_dev *dev)
- 	/* select AFE clock to output mode */
- 	value = cx25821_i2c_read(&dev->i2c_bus[0], AFE_AB_DIAG_CTRL, &tmp);
- 	value &= 0x83FFFFFF;
--       ret_val =
-+	ret_val =
- 	   cx25821_i2c_write(&dev->i2c_bus[0], AFE_AB_DIAG_CTRL,
- 			     value | 0x10000000);
- 
+I think for mythtv, we're going to end up having a daemon process with
+elevated privs that reads directly from input devices to get around
+this annoyance, until such time as the annoyance is gone.
+
 -- 
-1.7.0.4
-
+Jarod Wilson
+jarod@wilsonet.com
