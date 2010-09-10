@@ -1,95 +1,154 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:36163 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755160Ab0IZQNZ (ORCPT
+Received: from smtp-gw21.han.skanova.net ([81.236.55.21]:51197 "EHLO
+	smtp-gw21.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751343Ab0IJJ3h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 12:13:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
-Subject: [RFC/PATCH v1 0/9] Sub-device pad-level operations
-Date: Sun, 26 Sep 2010 18:13:23 +0200
-Message-Id: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Fri, 10 Sep 2010 05:29:37 -0400
+Subject: [PATCH 2/2 v2] mfd: Add timberdale video-in driver to timberdale
+From: Richard =?ISO-8859-1?Q?R=F6jfors?=
+	<richard.rojfors@pelagicore.com>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Douglas Schilling Landgraf <dougsland@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Fri, 10 Sep 2010 11:29:35 +0200
+Message-ID: <1284110975.14259.34.camel@debian>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi everybody,
+This patch defines platform data for the video-in driver
+and adds it to all configurations of timberdale.
 
-Here's the first version of the sub-device pad-level operations patches (this
-is actually not strictly true, as other versions have been posted before as
-sample code, but this one is the first version officially sent for public
-review).
-
-Anyway, try to enjoy the documentation (I've spent quite a lot of time on it,
-and it's not the most enjoyable part of kernel development, so be nice :-)).
-Guennadi, don't forget that you owe me a drink for documenting your media bus
-format codes :-)
-
-If you're careful enough during the review (I shouldn't have said that, it
-could have been a test) you will notice that the cropping behaviour on subdev
-output pads isn't defined. This one requires some brainstorming, which by
-definition I can't do alone. Comments are, as usual, more than welcome.
-
-The patches apply on top of the "RFC/PATCH v3 V4L2 subdev userspace API" and
-"RFC/PATCH v5 Media controller (core and V4L2)" patch series. They are available
-from the http://git.linuxtv.org/pinchartl/media.git git tree (media-000*
-branches).
-
-Antti Koskipaa (1):
-  v4l: v4l2_subdev userspace crop API
-
-Laurent Pinchart (7):
-  v4l: Move the media/v4l2-mediabus.h header to include/linux
-  v4l: Group media bus pixel codes by types and sort them
-    alphabetically
-  v4l: Add 8-bit YUYV on 16-bit bus and SGRBG10 media bus pixel codes
-  v4l: Add remaining RAW10 patterns w DPCM pixel code variants
-  v4l: v4l2_subdev pad-level operations
-  v4l: v4l2_subdev userspace format API
-  v4l: v4l2_subdev userspace frame interval API
-
-Stanimir Varbanov (1):
-  v4l: Create v4l2 subdev file handle structure
-
- Documentation/DocBook/Makefile                     |    5 +-
- Documentation/DocBook/media-entities.tmpl          |   26 +
- Documentation/DocBook/v4l/bayer.pdf                |  Bin 0 -> 12116 bytes
- Documentation/DocBook/v4l/bayer.png                |  Bin 0 -> 9725 bytes
- Documentation/DocBook/v4l/dev-subdev.xml           |  300 +++++
- Documentation/DocBook/v4l/pipeline.png             |  Bin 0 -> 12130 bytes
- Documentation/DocBook/v4l/subdev-formats.xml       | 1282 ++++++++++++++++++++
- Documentation/DocBook/v4l/v4l2.xml                 |    7 +
- Documentation/DocBook/v4l/vidioc-streamon.xml      |    9 +
- .../v4l/vidioc-subdev-enum-frame-interval.xml      |  147 +++
- .../DocBook/v4l/vidioc-subdev-enum-frame-size.xml  |  148 +++
- .../DocBook/v4l/vidioc-subdev-enum-mbus-code.xml   |  113 ++
- Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml |  143 +++
- Documentation/DocBook/v4l/vidioc-subdev-g-fmt.xml  |  168 +++
- .../DocBook/v4l/vidioc-subdev-g-frame-interval.xml |  135 ++
- drivers/media/video/v4l2-subdev.c                  |  175 +++-
- include/linux/Kbuild                               |    2 +
- include/linux/v4l2-mediabus.h                      |   91 ++
- include/linux/v4l2-subdev.h                        |  141 +++
- include/media/soc_mediabus.h                       |    3 +-
- include/media/v4l2-mediabus.h                      |   53 +-
- include/media/v4l2-subdev.h                        |   53 +
- 22 files changed, 2919 insertions(+), 82 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/bayer.pdf
- create mode 100644 Documentation/DocBook/v4l/bayer.png
- create mode 100644 Documentation/DocBook/v4l/dev-subdev.xml
- create mode 100644 Documentation/DocBook/v4l/pipeline.png
- create mode 100644 Documentation/DocBook/v4l/subdev-formats.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-enum-frame-interval.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-enum-frame-size.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-enum-mbus-code.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-crop.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-fmt.xml
- create mode 100644 Documentation/DocBook/v4l/vidioc-subdev-g-frame-interval.xml
- create mode 100644 include/linux/v4l2-mediabus.h
- create mode 100644 include/linux/v4l2-subdev.h
-
--- 
-Regards,
-
-Laurent Pinchart
+Signed-off-by: Richard Röjfors <richard.rojfors@pelagicore.com>
+---
+diff --git a/drivers/mfd/timberdale.c b/drivers/mfd/timberdale.c
+index ac59950..52a651b 100644
+--- a/drivers/mfd/timberdale.c
++++ b/drivers/mfd/timberdale.c
+@@ -40,6 +40,7 @@
+ #include <linux/spi/mc33880.h>
+ 
+ #include <media/timb_radio.h>
++#include <media/timb_video.h>
+ 
+ #include <linux/timb_dma.h>
+ 
+@@ -238,7 +239,24 @@ static const __devinitconst struct resource timberdale_uartlite_resources[] = {
+ 	},
+ };
+ 
+-static const __devinitconst struct resource timberdale_radio_resources[] = {
++static __devinitdata struct i2c_board_info timberdale_adv7180_i2c_board_info = {
++	/* Requires jumper JP9 to be off */
++	I2C_BOARD_INFO("adv7180", 0x42 >> 1),
++	.irq = IRQ_TIMBERDALE_ADV7180
++};
++
++static __devinitdata struct timb_video_platform_data
++	timberdale_video_platform_data = {
++	.dma_channel = DMA_VIDEO_RX,
++	.i2c_adapter = 0,
++	.encoder = {
++		.module_name = "adv7180",
++		.info = &timberdale_adv7180_i2c_board_info
++	}
++};
++
++static const __devinitconst struct resource
++timberdale_radio_resources[] = {
+ 	{
+ 		.start	= RDSOFFSET,
+ 		.end	= RDSEND,
+@@ -272,6 +290,18 @@ static __devinitdata struct timb_radio_platform_data
+ 	}
+ };
+ 
++static const __devinitconst struct resource timberdale_video_resources[] = {
++	{
++		.start	= LOGIWOFFSET,
++		.end	= LOGIWEND,
++		.flags	= IORESOURCE_MEM,
++	},
++	/*
++	note that the "frame buffer" is located in DMA area
++	starting at 0x1200000
++	*/
++};
++
+ static __devinitdata struct timb_dma_platform_data timb_dma_platform_data = {
+ 	.nr_channels = 10,
+ 	.channels = {
+@@ -372,6 +402,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg0[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -430,6 +467,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg1[] = {
+ 		.resources = timberdale_mlogicore_resources,
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -478,6 +522,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg2[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+@@ -521,6 +572,13 @@ static __devinitdata struct mfd_cell timberdale_cells_bar0_cfg3[] = {
+ 		.data_size = sizeof(timberdale_gpio_platform_data),
+ 	},
+ 	{
++		.name = "timb-video",
++		.num_resources = ARRAY_SIZE(timberdale_video_resources),
++		.resources = timberdale_video_resources,
++		.platform_data = &timberdale_video_platform_data,
++		.data_size = sizeof(timberdale_video_platform_data),
++	},
++	{
+ 		.name = "timb-radio",
+ 		.num_resources = ARRAY_SIZE(timberdale_radio_resources),
+ 		.resources = timberdale_radio_resources,
+diff --git a/drivers/mfd/timberdale.h b/drivers/mfd/timberdale.h
+index c11bf6e..4412acd 100644
+--- a/drivers/mfd/timberdale.h
++++ b/drivers/mfd/timberdale.h
+@@ -23,7 +23,7 @@
+ #ifndef MFD_TIMBERDALE_H
+ #define MFD_TIMBERDALE_H
+ 
+-#define DRV_VERSION		"0.2"
++#define DRV_VERSION		"0.3"
+ 
+ /* This driver only support versions >= 3.8 and < 4.0  */
+ #define TIMB_SUPPORTED_MAJOR	3
 
