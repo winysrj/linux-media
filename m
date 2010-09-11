@@ -1,89 +1,61 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:5113 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755081Ab0IMMtz (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:61490 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752415Ab0IKOAU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 08:49:55 -0400
-Subject: Re: [PATCH] Illuminators control
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-In-Reply-To: <201009131007.58665.hverkuil@xs4all.nl>
-References: <20100911110350.02c55173@tele>
-	 <201009130908.37133.laurent.pinchart@ideasonboard.com>
-	 <201009131007.58665.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 13 Sep 2010 08:49:32 -0400
-Message-ID: <1284382172.2031.45.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Sat, 11 Sep 2010 10:00:20 -0400
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [PATCH 1/2] dvb: mantis: use '%pM' format to print MAC address
+Date: Sat, 11 Sep 2010 16:59:58 +0300
+Message-Id: <a548f44961f97f81054fc877aaef068f936c5ca2.1284213506.git.andy.shevchenko@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, 2010-09-13 at 10:07 +0200, Hans Verkuil wrote:
-> On Monday, September 13, 2010 09:08:36 Laurent Pinchart wrote:
-> > Hi,
-> > 
-> > On Saturday 11 September 2010 11:03:50 Jean-Francois Moine wrote:
-> > 
-> > > @@ -419,6 +421,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum 
-> > v4l2_ctrl_type *type,
-> > >  	case V4L2_CID_AUDIO_LIMITER_ENABLED:
-> > >  	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-> > >  	case V4L2_CID_PILOT_TONE_ENABLED:
-> > > +	case V4L2_CID_ILLUMINATORS_1:
-> > > +	case V4L2_CID_ILLUMINATORS_2:
-> > >  		*type = V4L2_CTRL_TYPE_BOOLEAN;
-> > >  		*min = 0;
-> > >  		*max = *step = 1;
-> > 
-> > I would prefer integer controls for this, as we will need to support dimmable 
-> > illuminators.
-> > 
-> > 
-> 
-> Don't. That should be a separate control. I expect that the brightness is
-> something you touch a lot less than the on/of controls. Anyway, I think it
-> makes a lot more sense to separate these two functions.
+Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+---
+ drivers/media/dvb/mantis/mantis_core.c |    5 +----
+ drivers/media/dvb/mantis/mantis_ioc.c  |    9 +--------
+ 2 files changed, 2 insertions(+), 12 deletions(-)
 
-
-
-I would need to research what computerized microscopes today actually
-have.
-
-A quick look reveals: 
-	http://www.bodelin.com/proscopehr/how_it_works/
-	http://www.ecoscopestore.com/main.sc
-	http://www.microscopeworld.com/MSWorld/Microscope-World/Digital-Microscopes/
-
-handheld units likely have only on/off control for illumination.
-Eyepiece cameras rely on what the existing laboratory microscope already
-has for illumination.
-
-
-In my limited experience, there are some microscope controls that a
-human is going to have his hands on to get the desired image:
-magnification, focus, and specimen position.  Illumination intensity
-seems like it would fit in that group.
-
-When I had a job in college fixing medical equipment, most microscopes
-limited light using a mechanical iris controlled by hand.  The
-illuminator was simply an on/off switch.  (BTW a mechanical iris is a
-pain to take apart and rebuild.)  Light filters could be installed
-between the illuminator and the iris. 
-
-On some of the "digital microscopes" in the links above, you can see the
-iris assembly underneath the stage.  The DMBA210 microscope has both a
-manual iris and an illumination intensity knob.
-
-
-So for digital microscopes we may not see illumination intensity
-controllable by software.  Maybe for other types of cameras we will.
-
-Regards,
-Andy
-
-
+diff --git a/drivers/media/dvb/mantis/mantis_core.c b/drivers/media/dvb/mantis/mantis_core.c
+index 8113b23..0163e8e 100644
+--- a/drivers/media/dvb/mantis/mantis_core.c
++++ b/drivers/media/dvb/mantis/mantis_core.c
+@@ -91,10 +91,7 @@ static int get_mac_address(struct mantis_pci *mantis)
+ 		return err;
+ 	}
+ 	dprintk(verbose, MANTIS_ERROR, 0,
+-		"    MAC Address=[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+-		mantis->mac_address[0], mantis->mac_address[1],
+-		mantis->mac_address[2],	mantis->mac_address[3],
+-		mantis->mac_address[4], mantis->mac_address[5]);
++		"    MAC Address=[%pM]\n", &mantis->mac_address[0]);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/dvb/mantis/mantis_ioc.c b/drivers/media/dvb/mantis/mantis_ioc.c
+index de148de..8932f34 100644
+--- a/drivers/media/dvb/mantis/mantis_ioc.c
++++ b/drivers/media/dvb/mantis/mantis_ioc.c
+@@ -68,14 +68,7 @@ int mantis_get_mac(struct mantis_pci *mantis)
+ 		return err;
+ 	}
+ 
+-	dprintk(MANTIS_ERROR, 0,
+-		"    MAC Address=[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+-		mac_addr[0],
+-		mac_addr[1],
+-		mac_addr[2],
+-		mac_addr[3],
+-		mac_addr[4],
+-		mac_addr[5]);
++	dprintk(MANTIS_ERROR, 0, "    MAC Address=[%pM]\n", &mac_addr[0]);
+ 
+ 	return 0;
+ }
+-- 
+1.7.2.2
 
