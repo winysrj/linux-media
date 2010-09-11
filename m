@@ -1,113 +1,70 @@
-Return-path: <mchehab@localhost>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2353 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751383Ab0IASzc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Sep 2010 14:55:32 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o81ItUtf019842
-	for <linux-media@vger.kernel.org>; Wed, 1 Sep 2010 20:55:31 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 1 Sep 2010 20:55:30 +0200 (CEST)
-Message-Id: <201009011855.o81ItUtf019842@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Return-path: <mchehab@pedra>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57928 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752074Ab0IKOK4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Sep 2010 10:10:56 -0400
+Subject: Re: RFC: Replacing the 'Device Naming' section in the V4L spec
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <201009111549.53435.hverkuil@xs4all.nl>
+References: <201009111549.53435.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sat, 11 Sep 2010 10:10:52 -0400
+Message-ID: <1284214252.2053.72.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sat, 2010-09-11 at 15:49 +0200, Hans Verkuil wrote:
+> I'm working on the V4L2 DocBook spec and when reading through the "Device Naming"
+> subsection of the "Opening and Closing Devices" section in the first chapter I
+> realized that it is really out of date. The text is in this file:
+> 
+> Documentation/DocBook/v4l/common.xml
+> 
+> With udev pretty much everything in that section is useless (and probably confusing
+> for first-time readers).
+> 
+> I propose that we replace it with something short like this:
+> 
+> -----------------------------------------------------
+> Device Naming
+> 
+> V4L2 drivers create one or more device nodes with major number 81 and a minor number
+> between 0 and 255. Three types of devices can be created:
+> 
+> /dev/videoX	Used for video capture/output/overlay.
 
-Results of the daily build of v4l-dvb:
+PCM audio capture
+MPEG index (metadata)
 
-date:        Wed Sep  1 19:00:06 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15138:a4c762698bcb
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+> /dev/radioX	Used for radio and RDS tuning/modulating.
+> /dev/vbiX	Used for VBI capture and output.
+> -----------------------------------------------------
+> 
+> Is there anything else that should be in here?
 
-linux-2.6.32.6-armv5: ERRORS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: ERRORS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
+You may want to mention, without fully specifying, that V4L2 drivers can
+present ALSA device nodes as well.
 
-Detailed results are available here:
+I don't think the V4L2 drivers have a really uniform convention for
+their "card" name exported to ALSA nor the ALSA mixer control names.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+To document the Media Controller, the document will eventually have to
+mention ALSA, framebuffer, LED, etc. APIs anyway.
+ 
 
-Full logs are available here:
+> BTW, I'm working on editing the 'Related Devices', 'Multiple Opens' and 
+> 'Shared Data Streams' as well.
+> 
+> Regards,
+> 
+> 	Hans
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+Regards,
+Andy
 
-The V4L-DVB specification from this daily build is here:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
