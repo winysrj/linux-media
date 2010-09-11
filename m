@@ -1,91 +1,109 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:42701 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752832Ab0IWLfN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 07:35:13 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v5 00/12] Media controller (core and V4L2)
-Date: Thu, 23 Sep 2010 13:34:44 +0200
-Message-Id: <1285241696-16826-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from d1.icnet.pl ([212.160.220.21]:41717 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751542Ab0IKB3Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Sep 2010 21:29:24 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: linux-media@vger.kernel.org,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
+Subject: [PATCH v2 6/6] OMAP1: Amstrad Delta: add camera controlled LEDS trigger
+Date: Sat, 11 Sep 2010 03:28:58 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Tony Lindgren <tony@atomide.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201009110317.54899.jkrzyszt@tis.icnet.pl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201009110329.01171.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Hi everybody,
+This patch extends the Amstrad Delta camera support with LEDS trigger that can 
+be used for automatic control of the on-board camera LED. The led turns on 
+automatically on camera device open and turns off on camera device close.
 
-Fifth version of the media controller core and V4L2 patches. All comments so
-far have hopefully been incorporated.
+Created and tested against linux-2.6.36-rc3.
 
-Compared to the previous version, the main difference is the userspace API
-documentation that has been converted to DocBook. The patches have also been
-rebased on top of 2.6.36-rc4, and a new entity locking and pipeline management
-patch has been added.
+Works on top of patch 5/6, "OMAP1: Amstrad Delta: add support for on-board 
+camera"
 
-Laurent Pinchart (10):
-  media: Media device node support
-  media: Media device
-  media: Entities, pads and links
-  media: Media device information query
-  media: Entities, pads and links enumeration
-  media: Links setup
-  media: Entity locking and pipeline management
-  v4l: Add a media_device pointer to the v4l2_device structure
-  v4l: Make video_device inherit from media_entity
-  v4l: Make v4l2_subdev inherit from media_entity
+Signed-off-by: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+---
+Having no comments received on v1 of this patch, I assume nobody could see any 
+benefit if I implemented this idea at the SoC camera or OMAP1 camera level, 
+so I'm leaveing it as an Amstrad Delta only feature, as it originally was for 
+v1.
 
-Sakari Ailus (2):
-  media: Entity graph traversal
-  media: Reference count and power handling
+Thanks,
+Janusz
 
- Documentation/DocBook/media-entities.tmpl          |   24 +
- Documentation/DocBook/media.tmpl                   |    3 +
- Documentation/DocBook/v4l/media-controller.xml     |   60 ++
- Documentation/DocBook/v4l/media-func-close.xml     |   59 ++
- Documentation/DocBook/v4l/media-func-ioctl.xml     |  116 ++++
- Documentation/DocBook/v4l/media-func-open.xml      |   94 +++
- .../DocBook/v4l/media-ioc-device-info.xml          |  133 ++++
- .../DocBook/v4l/media-ioc-enum-entities.xml        |  287 +++++++++
- Documentation/DocBook/v4l/media-ioc-enum-links.xml |  202 ++++++
- Documentation/DocBook/v4l/media-ioc-setup-link.xml |   90 +++
- Documentation/media-framework.txt                  |  380 +++++++++++
- Documentation/video4linux/v4l2-framework.txt       |   72 ++-
- drivers/media/Makefile                             |    8 +-
- drivers/media/media-device.c                       |  377 +++++++++++
- drivers/media/media-devnode.c                      |  310 +++++++++
- drivers/media/media-entity.c                       |  678 ++++++++++++++++++++
- drivers/media/video/v4l2-dev.c                     |   35 +-
- drivers/media/video/v4l2-device.c                  |   43 +-
- drivers/media/video/v4l2-subdev.c                  |   30 +-
- include/linux/Kbuild                               |    1 +
- include/linux/media.h                              |  105 +++
- include/media/media-device.h                       |   90 +++
- include/media/media-devnode.h                      |   78 +++
- include/media/media-entity.h                       |  122 ++++
- include/media/v4l2-dev.h                           |    6 +
- include/media/v4l2-device.h                        |    2 +
- include/media/v4l2-subdev.h                        |    7 +
- 27 files changed, 3391 insertions(+), 21 deletions(-)
- create mode 100644 Documentation/DocBook/v4l/media-controller.xml
- create mode 100644 Documentation/DocBook/v4l/media-func-close.xml
- create mode 100644 Documentation/DocBook/v4l/media-func-ioctl.xml
- create mode 100644 Documentation/DocBook/v4l/media-func-open.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-device-info.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-entities.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-enum-links.xml
- create mode 100644 Documentation/DocBook/v4l/media-ioc-setup-link.xml
- create mode 100644 Documentation/media-framework.txt
- create mode 100644 drivers/media/media-device.c
- create mode 100644 drivers/media/media-devnode.c
- create mode 100644 drivers/media/media-entity.c
- create mode 100644 include/linux/media.h
- create mode 100644 include/media/media-device.h
- create mode 100644 include/media/media-devnode.h
- create mode 100644 include/media/media-entity.h
 
--- 
-Regards,
+v1->v2 changes:
+- no functional changes,
+- refreshed against linux-2.6.36-rc3.
 
-Laurent Pinchart
 
+ arch/arm/mach-omap1/board-ams-delta.c |   24 ++++++++++++++++++++++++
+ 1 file changed, 24 insertions(+)
+
+
+diff -upr linux-2.6.36-rc3.orig/arch/arm/mach-omap1/board-ams-delta.c 
+linux-2.6.36-rc3/arch/arm/mach-omap1/board-ams-delta.c
+--- linux-2.6.36-rc3.orig/arch/arm/mach-omap1/board-ams-delta.c	2010-09-10 22:01:24.000000000 +0200
++++ linux-2.6.36-rc3/arch/arm/mach-omap1/board-ams-delta.c	2010-09-10 22:08:29.000000000 +0200
+@@ -16,6 +16,7 @@
+ #include <linux/init.h>
+ #include <linux/input.h>
+ #include <linux/interrupt.h>
++#include <linux/leds.h>
+ #include <linux/platform_device.h>
+ #include <linux/serial_8250.h>
+ 
+@@ -222,11 +223,30 @@ static struct i2c_board_info ams_delta_c
+ 	},
+ };
+ 
++#ifdef CONFIG_LEDS_TRIGGERS
++DEFINE_LED_TRIGGER(ams_delta_camera_led_trigger);
++
++static int ams_delta_camera_power(struct device *dev, int power)
++{
++	/*
++	 * turn on camera LED
++	 */
++	if (power)
++		led_trigger_event(ams_delta_camera_led_trigger, LED_FULL);
++	else
++		led_trigger_event(ams_delta_camera_led_trigger, LED_OFF);
++	return 0;
++}
++#else
++#define ams_delta_camera_power	NULL
++#endif
++
+ static struct soc_camera_link __initdata ams_delta_iclink = {
+ 	.bus_id         = 0,	/* OMAP1 SoC camera bus */
+ 	.i2c_adapter_id = 1,
+ 	.board_info     = &ams_delta_camera_board_info[0],
+ 	.module_name    = "ov6650",
++	.power		= ams_delta_camera_power,
+ };
+ 
+ static struct platform_device ams_delta_camera_device = {
+@@ -281,6 +301,10 @@ static void __init ams_delta_init(void)
+ 
+ 	omap1_usb_init(&ams_delta_usb_config);
+ 	omap1_set_camera_info(&ams_delta_camera_platform_data);
++#ifdef CONFIG_LEDS_TRIGGERS
++	led_trigger_register_simple("ams_delta_camera",
++			&ams_delta_camera_led_trigger);
++#endif
+ 	platform_add_devices(ams_delta_devices, ARRAY_SIZE(ams_delta_devices));
+ 
+ #ifdef CONFIG_AMS_DELTA_FIQ
