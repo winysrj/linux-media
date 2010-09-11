@@ -1,113 +1,81 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3863 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755080Ab0I1TLg (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4750 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751475Ab0IKMLQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 15:11:36 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8SJBYB1003261
-	for <linux-media@vger.kernel.org>; Tue, 28 Sep 2010 21:11:34 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Tue, 28 Sep 2010 21:11:34 +0200 (CEST)
-Message-Id: <201009281911.o8SJBYB1003261@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+	Sat, 11 Sep 2010 08:11:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Subject: Re: [PATCH v9 0/4] FM Radio driver.
+Date: Sat, 11 Sep 2010 14:10:55 +0200
+Cc: linux-media@vger.kernel.org, eduardo.valentin@nokia.com,
+	mchehab@redhat.com
+References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
+In-Reply-To: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009111410.55149.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Monday, August 30, 2010 13:38:18 Matti J. Aaltonen wrote:
+> Hi again,
+> 
+> and thanks for the comments.
+> I've left the audio codec out of this patch set.
+> 
+> Hans wrote:
+> > > In principle yes, but we haven't yet decided to implement those now, at
+> > > the moment the RDS interpretation is left completely to user space
+> > > applications.
+> > 
+> > Matti, is it even possible to use the current FM TX RDS API for this chip?
+> > That API expects that the chip can generate the correct RDS packets based on
+> > high-level data. If the chip can only handle 'raw' RDS packets (requiring a
+> > userspace RDS encoder), then that API will never work.
+> > 
+> > But if this chip can indeed handle raw RDS only, then we need to add some
+> > capability flags to signal that to userspace.
+> 
+> It is possible to use the current FM TX RDS API, the chip supports at least
+> most of it. I just haven't implemented the support into the driver yet,
+> for a multiple of reasons. I'm planning of adding that in the relatively 
+> near future.
+> 
+> Anyhow, I've now added a way of telling that only raw RDS is supported.
+> Can we use one bit it the capability field for that?
 
-Results of the daily build of v4l-dvb:
+No, I don't think that is the right place. I've been thinking about this and
+I realized that the V4L2_TUNER_CAP_ bits are the best place to put this (these
+capability defines are reused by the modulator as well).
 
-date:        Tue Sep 28 19:00:17 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: dace3857de7a16b83ae7d4e13c94de8e4b267d2a
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+It is a bit unfortunate that I didn't think about it some more when the RDS
+output API was made because the current V4L2_TUNER_CAP_RDS bit is now used for
+two different RDS formats: for capture it means the read() interface with a
+stream of v4l2_rds_data blocks and for output it means using the RDS controls.
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec-git: OK
-sparse: ERRORS
+There are also up to three ways the RDS data can be received/sent: either as
+RDS blocks, or using controls, or as a completely raw bitstream. The latter is
+unlikely to be used for RDS output, but a cheap RDS receiver might just do this
+(and I believe these devices actually exist).
 
-Detailed results are available here:
+So I propose to add the following tuner capability flags:
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+V4L2_TUNER_CAP_RDS_READWRITE	0x0100	Use read()/write()
+V4L2_TUNER_CAP_RDS_CONTROLS	0x0200	Use RDS controls
 
-Full logs are available here:
+And this allows us to add a RDS_RAW_READWRITE in the future should we need it.
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+We do need to add these capability flags to the existing RDS drivers (there
+are only a few, so that's no problem) and we need to document that for RDS
+capture the READWRITE is the default if neither READWRITE or CONTROLS is set,
+and that for RDS output the CONTROLS is the default in that case.
 
-The V4L-DVB specification from this daily build is here:
+Comments?
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
