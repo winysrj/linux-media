@@ -1,83 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from qmta06.emeryville.ca.mail.comcast.net ([76.96.30.56]:37841 "EHLO
-	qmta06.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753326Ab0IVLL0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Sep 2010 07:11:26 -0400
-From: Brian Rogers <brian@xyzw.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jarod@redhat.com>, linux-media@vger.kernel.org,
-	linux-input@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Brian Rogers <brian@xyzw.org>
-Subject: [PATCH] ir-core: Fix null dereferences in the protocols sysfs interface
-Date: Wed, 22 Sep 2010 04:06:43 -0700
-Message-Id: <1285153603-1527-1-git-send-email-brian@xyzw.org>
+Received: from d1.icnet.pl ([212.160.220.21]:53762 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750970Ab0IKJdb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Sep 2010 05:33:31 -0400
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Jasmine Strong <jasmine@electronpusher.org>
+Subject: Re: [PATCH v2 1/6] SoC Camera: add driver for OMAP1 camera interface
+Date: Sat, 11 Sep 2010 11:32:47 +0200
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	Tony Lindgren <tony@atomide.com>,
+	"Discussion of the Amstrad E3 emailer hardware/software"
+	<e3-hacking@earth.li>
+References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009110321.25852.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201009110321.25852.jkrzyszt@tis.icnet.pl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201009111132.49405.jkrzyszt@tis.icnet.pl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-For some cards, ir_dev->props and ir_dev->raw are both NULL. These cards are
-using built-in IR decoding instead of raw, and can't easily be made to switch
-protocols.
+Saturday 11 September 2010 04:06:02 Jasmine Strong wrote:
+> On 10 Sep 2010, at 18:21, Janusz Krzysztofik wrote:
+> >  Both paths work stable for me, even
+> > under heavy load, on my OMAP1510 based Amstrad Delta videophone, that is
+> > the oldest, least powerfull OMAP1 implementation.
+>
+> You say that, but the ARM925 in OMAP1510 is known not to exhibit the bug 
 
-So upon reading /sys/class/rc/rc?/protocols on such a card, return 'builtin' as
-the supported and enabled protocol. Return -EINVAL on any attempts to change
-the protocol. And most important of all, don't crash.
+Then, lucky me ;)
 
-Signed-off-by: Brian Rogers <brian@xyzw.org>
-Acked-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/IR/ir-sysfs.c |   17 +++++++++++------
- 1 files changed, 11 insertions(+), 6 deletions(-)
+> in  
+> OMAP1610, which causes severe slowdown to DRAM writes when the first
+> address of an STM instruction is not aligned to a d-cache line boundary. 
+> This means that at least last time I looked, the Linux ARM memcpy()
+> implementation is often faster on 1510 than 1610.
 
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index 96dafc4..46d4246 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -67,13 +67,14 @@ static ssize_t show_protocols(struct device *d,
- 	char *tmp = buf;
- 	int i;
- 
--	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
-+	if (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
- 		enabled = ir_dev->rc_tab.ir_type;
- 		allowed = ir_dev->props->allowed_protos;
--	} else {
-+	} else if (ir_dev->raw) {
- 		enabled = ir_dev->raw->enabled_protocols;
- 		allowed = ir_raw_get_allowed_protocols();
--	}
-+	} else
-+		return sprintf(tmp, "[builtin]\n");
- 
- 	IR_dprintk(1, "allowed - 0x%llx, enabled - 0x%llx\n",
- 		   (long long)allowed,
-@@ -121,10 +122,14 @@ static ssize_t store_protocols(struct device *d,
- 	int rc, i, count = 0;
- 	unsigned long flags;
- 
--	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE)
-+	if (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_SCANCODE)
- 		type = ir_dev->rc_tab.ir_type;
--	else
-+	else if (ir_dev->raw)
- 		type = ir_dev->raw->enabled_protocols;
-+	else {
-+		IR_dprintk(1, "Protocol switching not supported\n");
-+		return -EINVAL;
-+	}
- 
- 	while ((tmp = strsep((char **) &data, " \n")) != NULL) {
- 		if (!*tmp)
-@@ -185,7 +190,7 @@ static ssize_t store_protocols(struct device *d,
- 		}
- 	}
- 
--	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
-+	if (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
- 		spin_lock_irqsave(&ir_dev->rc_tab.lock, flags);
- 		ir_dev->rc_tab.ir_type = type;
- 		spin_unlock_irqrestore(&ir_dev->rc_tab.lock, flags);
--- 
-1.7.1
+This sounds like a problem that should be solved at a machine support level 
+rather than a camera driver. I don't follow general OMAP development closely 
+enough to know if this bug has ever been addressed or is going to be.
+
+Unfortunatelly, I have no access to any OMAP machine other than Amstrad Delta, 
+so I'm not able to test the driver, including its performance, on other OMAP1 
+implementations.
+
+Anyways, I think there is always a room for improvement, either in my 
+omap1_camera or maybe in the omap24xxcam driver, if someone tries to add 
+support for a camera to an OMAP1 board other than 1510, and identifies a more 
+optimal, 1610 or higher specific way of handling the OMAP camera interface.
+
+Do you think I should rename the driver to something like "omap1510cam" rather 
+than "omap1_camera" then?
+
+Thanks,
+Janusz
+
+>
+> -J.
+> _______________________________________________
+> e3-hacking mailing list
+> e3-hacking@earth.li
+> http://www.earth.li/cgi-bin/mailman/listinfo/e3-hacking
 
