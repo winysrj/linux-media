@@ -1,101 +1,62 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:36174 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755160Ab0IZQN0 (ORCPT
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:41232 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754053Ab0IKRdq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 12:13:26 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
-Subject: [RFC/PATCH 2/9] v4l: Group media bus pixel codes by types and sort them alphabetically
-Date: Sun, 26 Sep 2010 18:13:25 +0200
-Message-Id: <1285517612-20230-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 11 Sep 2010 13:33:46 -0400
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Joe Perches <joe@perches.com>,
+	Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: [PATCHv2 1/2] dvb: mantis: use '%pM' format to print MAC address
+Date: Sat, 11 Sep 2010 20:33:27 +0300
+Message-Id: <0ffd3b30fbaa2168656dd17fbdb290cf2e0a867e.1284226281.git.andy.shevchenko@gmail.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Adding new pixel codes at the end of the enumeration will soon create a
-mess, so sort the pixel codes by type and then sort them alphabetically.
-
-As the codes are part of the kernel ABI their value can't change when a
-new code is inserted in the enumeration, so they are given an explicit
-numerical value. When inserting a new pixel code developers must use and
-update the V4L2_MBUS_FMT_LAST value.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 ---
- include/linux/v4l2-mediabus.h |   54 ++++++++++++++++++++++++----------------
- 1 files changed, 32 insertions(+), 22 deletions(-)
+ drivers/media/dvb/mantis/mantis_core.c |    5 +----
+ drivers/media/dvb/mantis/mantis_ioc.c  |    9 +--------
+ 2 files changed, 2 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 127512a..bc637a5 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -24,31 +24,41 @@
-  * transferred first, "BE" means that the most significant bits are transferred
-  * first, and "PADHI" and "PADLO" define which bits - low or high, in the
-  * incomplete high byte, are filled with padding bits.
-+ *
-+ * The pixel codes are grouped by types and (mostly) sorted alphabetically. As
-+ * their value can't change when a new pixel code is inserted in the
-+ * enumeration, they are explicitly given a numerical value. When inserting a
-+ * new pixel code use and update the V4L2_MBUS_FMT_LAST value.
-  */
- enum v4l2_mbus_pixelcode {
- 	V4L2_MBUS_FMT_FIXED = 1,
--	V4L2_MBUS_FMT_YUYV8_2X8,
--	V4L2_MBUS_FMT_YVYU8_2X8,
--	V4L2_MBUS_FMT_UYVY8_2X8,
--	V4L2_MBUS_FMT_VYUY8_2X8,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_RGB565_2X8_LE,
--	V4L2_MBUS_FMT_RGB565_2X8_BE,
--	V4L2_MBUS_FMT_SBGGR8_1X8,
--	V4L2_MBUS_FMT_SBGGR10_1X10,
--	V4L2_MBUS_FMT_GREY8_1X8,
--	V4L2_MBUS_FMT_Y10_1X10,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
--	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
--	V4L2_MBUS_FMT_SGRBG8_1X8,
--	V4L2_MBUS_FMT_SBGGR12_1X12,
--	V4L2_MBUS_FMT_YUYV8_1_5X8,
--	V4L2_MBUS_FMT_YVYU8_1_5X8,
--	V4L2_MBUS_FMT_UYVY8_1_5X8,
--	V4L2_MBUS_FMT_VYUY8_1_5X8,
-+	/* RGB */
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 7,
-+	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 6,
-+	V4L2_MBUS_FMT_RGB565_2X8_BE = 9,
-+	V4L2_MBUS_FMT_RGB565_2X8_LE = 8,
-+	/* YUV (including grey) */
-+	V4L2_MBUS_FMT_GREY8_1X8 = 12,
-+	V4L2_MBUS_FMT_Y10_1X10 = 13,
-+	V4L2_MBUS_FMT_YUYV8_1_5X8 = 20,
-+	V4L2_MBUS_FMT_YVYU8_1_5X8 = 21,
-+	V4L2_MBUS_FMT_UYVY8_1_5X8 = 22,
-+	V4L2_MBUS_FMT_VYUY8_1_5X8 = 23,
-+	V4L2_MBUS_FMT_YUYV8_2X8 = 2,
-+	V4L2_MBUS_FMT_UYVY8_2X8 = 4,
-+	V4L2_MBUS_FMT_YVYU8_2X8 = 3,
-+	V4L2_MBUS_FMT_VYUY8_2X8 = 5,
-+	/* Bayer */
-+	V4L2_MBUS_FMT_SBGGR8_1X8 = 10,
-+	V4L2_MBUS_FMT_SBGGR10_1X10 = 11,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 16,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 14,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 17,
-+	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 15,
-+	V4L2_MBUS_FMT_SBGGR12_1X12 = 19,
-+	V4L2_MBUS_FMT_SGRBG8_1X8 = 18,
-+	/* Last - Update this when adding a new pixel code */
-+	V4L2_MBUS_FMT_LAST = 24,
- };
+diff --git a/drivers/media/dvb/mantis/mantis_core.c b/drivers/media/dvb/mantis/mantis_core.c
+index 8113b23..22524a8 100644
+--- a/drivers/media/dvb/mantis/mantis_core.c
++++ b/drivers/media/dvb/mantis/mantis_core.c
+@@ -91,10 +91,7 @@ static int get_mac_address(struct mantis_pci *mantis)
+ 		return err;
+ 	}
+ 	dprintk(verbose, MANTIS_ERROR, 0,
+-		"    MAC Address=[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+-		mantis->mac_address[0], mantis->mac_address[1],
+-		mantis->mac_address[2],	mantis->mac_address[3],
+-		mantis->mac_address[4], mantis->mac_address[5]);
++		"    MAC Address=[%pM]\n", mantis->mac_address);
  
- /**
+ 	return 0;
+ }
+diff --git a/drivers/media/dvb/mantis/mantis_ioc.c b/drivers/media/dvb/mantis/mantis_ioc.c
+index de148de..fe31cfb 100644
+--- a/drivers/media/dvb/mantis/mantis_ioc.c
++++ b/drivers/media/dvb/mantis/mantis_ioc.c
+@@ -68,14 +68,7 @@ int mantis_get_mac(struct mantis_pci *mantis)
+ 		return err;
+ 	}
+ 
+-	dprintk(MANTIS_ERROR, 0,
+-		"    MAC Address=[%02x:%02x:%02x:%02x:%02x:%02x]\n",
+-		mac_addr[0],
+-		mac_addr[1],
+-		mac_addr[2],
+-		mac_addr[3],
+-		mac_addr[4],
+-		mac_addr[5]);
++	dprintk(MANTIS_ERROR, 0, "    MAC Address=[%pM]\n", mac_addr);
+ 
+ 	return 0;
+ }
 -- 
 1.7.2.2
 
