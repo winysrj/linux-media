@@ -1,78 +1,90 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:31917 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756012Ab0IGBln convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 21:41:43 -0400
-Date: Tue, 07 Sep 2010 03:40:46 +0200
-From: =?utf-8?B?TWljaGHFgiBOYXphcmV3aWN6?= <m.nazarewicz@samsung.com>
-Subject: Re: [RFCv5 0/9] CMA + VCMM integration
-In-reply-to: <20100906210905.GB5863@kroah.com>
-To: Greg KH <greg@kroah.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-mm@kvack.org, Andrew Morton <akpm@linux-foundation.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Jonathan Corbet <corbet@lwn.net>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Minchan Kim <minchan.kim@gmail.com>,
-	Pawel Osciak <p.osciak@samsung.com>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Zach Pfeffer <zpfeffer@codeaurora.org>,
-	linux-kernel@vger.kernel.org
-Message-id: <op.vim2x8i87p4s8u@localhost>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-transfer-encoding: 8BIT
-References: <cover.1283749231.git.mina86@mina86.com>
- <20100906210905.GB5863@kroah.com>
+Return-path: <mchehab@pedra>
+Received: from smtp5-g21.free.fr ([212.27.42.5]:40032 "EHLO smtp5-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754523Ab0IKIYU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Sep 2010 04:24:20 -0400
+Received: from tele (unknown [82.245.201.222])
+	by smtp5-g21.free.fr (Postfix) with ESMTP id 1D115D480BF
+	for <linux-media@vger.kernel.org>; Sat, 11 Sep 2010 10:24:13 +0200 (CEST)
+Date: Sat, 11 Sep 2010 10:24:26 +0200
+From: Jean-Francois Moine <moinejf@free.fr>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Illuminators control
+Message-ID: <20100911102426.548450b3@tele>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/pufpXaqFoujJ.9vY7lUz0uB"
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Mon, 06 Sep 2010 23:09:05 +0200, Greg KH <greg@kroah.com> wrote:
+--MP_/pufpXaqFoujJ.9vY7lUz0uB
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-> On Mon, Sep 06, 2010 at 08:33:50AM +0200, Michal Nazarewicz wrote:
->> Hello everyone,
->>
->> This patchset introduces a draft of a redesign of Zach Pfeffer's
->> VCMM.
->
-> What is a VCMM?
+Hi,
 
-Virtual Contiguous Memory Manager.  The version posted by Zach can
-be found at: <http://article.gmane.org/gmane.linux.kernel.mm/50090>.
-It is an API for managing IO MMU and IO MMU mappings.
+This new proposal cancels the previous patch 'Illuminators and status
+LED controls'.
 
-> What is a CMA?
+Cheers.
 
-Contiguous Memory Manager.  The v4 version can be found at
-<http://marc.info/?l=linux-mm&m=128229799415817&w=2>.  It is an API for
-allocating large, physically contiguous blocks of memory.
+--=20
+Ken ar c'henta=C3=B1	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
 
-I haven't expected that anyone who haven't already participated in the
-discussion about CMA and VCMM will get interested by this patchset
-so I was a bit vague in the cover letter.  Sorry about that.
+--MP_/pufpXaqFoujJ.9vY7lUz0uB
+Content-Type: application/octet-stream; name=illuminator.pat
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename=illuminator.pat
 
->> Not all of the functionality of the original VCMM has been
->> ported into this patchset.  This is mostly meant as RFC.  Moreover,
->> the code for VCMM implementation in this RFC has not been tested.
+U29tZSBtZWRpYSBkZXZpY2VzIChtaWNyb3Njb3BlcykgbWF5IGhhdmUgb25lIG9yIG1hbnkgaWxs
+dW1pbmF0b3JzLgpUaGlzIHBhdGNoIG1ha2VzIHRoZW0gY29udHJvbGFibGUgYnkgdGhlIGFwcGxp
+Y2F0aW9ucy4KClNpZ25lZC1vZmYtYnk6IEplYW4tRnJhbmNvaXMgTW9pbmUgPG1vaW5lamZAZnJl
+ZS5mcj4KCmRpZmYgLS1naXQgYS9Eb2N1bWVudGF0aW9uL0RvY0Jvb2svdjRsL2NvbnRyb2xzLnht
+bCBiL0RvY3VtZW50YXRpb24vRG9jQm9vay92NGwvY29udHJvbHMueG1sCmluZGV4IDg0MDhjYWEu
+LjQyMjZhOWUgMTAwNjQ0Ci0tLSBhL0RvY3VtZW50YXRpb24vRG9jQm9vay92NGwvY29udHJvbHMu
+eG1sCisrKyBiL0RvY3VtZW50YXRpb24vRG9jQm9vay92NGwvY29udHJvbHMueG1sCkBAIC0zMTIs
+MTAgKzMxMiwxNyBAQCBtaW5pbXVtIHZhbHVlIGRpc2FibGVzIGJhY2tsaWdodCBjb21wZW5zYXRp
+b24uPC9lbnRyeT4KIAkgICAgaW5mb3JtYXRpb24gYW5kIGJpdHMgMjQtMzEgbXVzdCBiZSB6ZXJv
+LjwvZW50cnk+CiAJICA8L3Jvdz4KIAkgIDxyb3c+CisJICAgIDxlbnRyeT48Y29uc3RhbnQ+VjRM
+Ml9DSURfSUxMVU1JTkFUT1JTXzA8L2NvbnN0YW50PgorCQk8Y29uc3RhbnQ+VjRMMl9DSURfSUxM
+VU1JTkFUT1JTXzE8L2NvbnN0YW50PjwvZW50cnk+CisJICAgIDxlbnRyeT5vb2xlYW48L2VudHJ5
+PgorCSAgICA8ZW50cnk+U3dpdGNoIG9uIG9yIG9mZiB0aGUgaWxsdW1pbmF0b3IgMCBvciAxIG9m
+IHRoZSBkZXZpY2UKKwkJKHVzdWFsbHkgYSBtaWNyb3Njb3BlKS48L2VudHJ5PgorCSAgPC9yb3c+
+CisJICA8cm93PgogCSAgICA8ZW50cnk+PGNvbnN0YW50PlY0TDJfQ0lEX0xBU1RQMTwvY29uc3Rh
+bnQ+PC9lbnRyeT4KIAkgICAgPGVudHJ5PjwvZW50cnk+CiAJICAgIDxlbnRyeT5FbmQgb2YgdGhl
+IHByZWRlZmluZWQgY29udHJvbCBJRHMgKGN1cnJlbnRseQotPGNvbnN0YW50PlY0TDJfQ0lEX0JH
+X0NPTE9SPC9jb25zdGFudD4gKyAxKS48L2VudHJ5PgorPGNvbnN0YW50PlY0TDJfQ0lEX0lMTFVN
+SU5BVE9SU18xPC9jb25zdGFudD4gKyAxKS48L2VudHJ5PgogCSAgPC9yb3c+CiAJICA8cm93Pgog
+CSAgICA8ZW50cnk+PGNvbnN0YW50PlY0TDJfQ0lEX1BSSVZBVEVfQkFTRTwvY29uc3RhbnQ+PC9l
+bnRyeT4KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vdjRsMi1jdHJscy5jIGIvZHJp
+dmVycy9tZWRpYS92aWRlby92NGwyLWN0cmxzLmMKaW5kZXggZWE4ZDMyYy4uNzA3NTJhZCAxMDA2
+NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby92NGwyLWN0cmxzLmMKKysrIGIvZHJpdmVycy9t
+ZWRpYS92aWRlby92NGwyLWN0cmxzLmMKQEAgLTMwNSw2ICszMDUsOCBAQCBjb25zdCBjaGFyICp2
+NGwyX2N0cmxfZ2V0X25hbWUodTMyIGlkKQogCWNhc2UgVjRMMl9DSURfUk9UQVRFOgkJCXJldHVy
+biAiUm90YXRlIjsKIAljYXNlIFY0TDJfQ0lEX0JHX0NPTE9SOgkJCXJldHVybiAiQmFja2dyb3Vu
+ZCBDb2xvciI7CiAJY2FzZSBWNEwyX0NJRF9DSFJPTUFfR0FJTjoJCXJldHVybiAiQ2hyb21hIEdh
+aW4iOworCWNhc2UgVjRMMl9DSURfSUxMVU1JTkFUT1JTXzA6CQlyZXR1cm4gIklsbHVtaW5hdG9y
+IDAiOworCWNhc2UgVjRMMl9DSURfSUxMVU1JTkFUT1JTXzE6CQlyZXR1cm4gIklsbHVtaW5hdG9y
+IDEiOwogCiAJLyogTVBFRyBjb250cm9scyAqLwogCS8qIEtlZXAgdGhlIG9yZGVyIG9mIHRoZSAn
+Y2FzZSdzIHRoZSBzYW1lIGFzIGluIHZpZGVvZGV2Mi5oISAqLwpAQCAtNDE5LDYgKzQyMSw4IEBA
+IHZvaWQgdjRsMl9jdHJsX2ZpbGwodTMyIGlkLCBjb25zdCBjaGFyICoqbmFtZSwgZW51bSB2NGwy
+X2N0cmxfdHlwZSAqdHlwZSwKIAljYXNlIFY0TDJfQ0lEX0FVRElPX0xJTUlURVJfRU5BQkxFRDoK
+IAljYXNlIFY0TDJfQ0lEX0FVRElPX0NPTVBSRVNTSU9OX0VOQUJMRUQ6CiAJY2FzZSBWNEwyX0NJ
+RF9QSUxPVF9UT05FX0VOQUJMRUQ6CisJY2FzZSBWNEwyX0NJRF9JTExVTUlOQVRPUlNfMDoKKwlj
+YXNlIFY0TDJfQ0lEX0lMTFVNSU5BVE9SU18xOgogCQkqdHlwZSA9IFY0TDJfQ1RSTF9UWVBFX0JP
+T0xFQU47CiAJCSptaW4gPSAwOwogCQkqbWF4ID0gKnN0ZXAgPSAxOwpkaWZmIC0tZ2l0IGEvaW5j
+bHVkZS9saW51eC92aWRlb2RldjIuaCBiL2luY2x1ZGUvbGludXgvdmlkZW9kZXYyLmgKaW5kZXgg
+NjE0OTBjNi4uMDQzMzI5NyAxMDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC92aWRlb2RldjIuaAor
+KysgYi9pbmNsdWRlL2xpbnV4L3ZpZGVvZGV2Mi5oCkBAIC0xMDQ1LDggKzEwNDUsMTIgQEAgZW51
+bSB2NGwyX2NvbG9yZnggewogCiAjZGVmaW5lIFY0TDJfQ0lEX0NIUk9NQV9HQUlOICAgICAgICAg
+ICAgICAgICAgICAoVjRMMl9DSURfQkFTRSszNikKIAorI2RlZmluZSBWNEwyX0NJRF9JTExVTUlO
+QVRPUlNfMAkJCShWNEwyX0NJRF9CQVNFKzM3KQorI2RlZmluZSBWNEwyX0NJRF9JTExVTUlOQVRP
+UlNfMQkJCShWNEwyX0NJRF9CQVNFKzM4KQorfTsKKwogLyogbGFzdCBDSUQgKyAxICovCi0jZGVm
+aW5lIFY0TDJfQ0lEX0xBU1RQMSAgICAgICAgICAgICAgICAgICAgICAgICAoVjRMMl9DSURfQkFT
+RSszNykKKyNkZWZpbmUgVjRMMl9DSURfTEFTVFAxICAgICAgICAgICAgICAgICAgICAgICAgIChW
+NEwyX0NJRF9CQVNFKzM5KQogCiAvKiAgTVBFRy1jbGFzcyBjb250cm9sIElEcyBkZWZpbmVkIGJ5
+IFY0TDIgKi8KICNkZWZpbmUgVjRMMl9DSURfTVBFR19CQVNFIAkJCShWNEwyX0NUUkxfQ0xBU1Nf
+TVBFRyB8IDB4OTAwKQo=
 
-> If you haven't even tested it, why should we review it?
-
-Ignore the code then and look just at the documentation, please.
-I wanted to post what I have to receive comments about the general
-idea and not necessarily the code itself.  Code is just a mean to show
-how I see the implementation of the idea described in the documentation.
-Because of all that, I marked the patchset as a RFC rather than a PATCH.
-
--- 
-Best regards,                                        _     _
-| Humble Liege of Serenely Enlightened Majesty of  o' \,=./ `o
-| Computer Science,  Michał "mina86" Nazarewicz       (o o)
-+----[mina86*mina86.com]---[mina86*jabber.org]----ooO--(_)--Ooo--
-
+--MP_/pufpXaqFoujJ.9vY7lUz0uB--
