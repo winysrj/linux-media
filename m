@@ -1,74 +1,203 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:39614 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753901Ab0IJNVj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 09:21:39 -0400
-Date: Fri, 10 Sep 2010 09:21:25 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Maxim Levitsky <maximlevitsky@gmail.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	lirc-list@lists.sourceforge.net,
-	David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/8 V5] Many fixes for in-kernel decoding and for the ENE
- driver
-Message-ID: <20100910132125.GE13554@redhat.com>
-References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
- <4C8805FA.3060102@infradead.org>
- <20100908224227.GL22323@redhat.com>
- <AANLkTikBVSYpD_+qomCad-OvXg6CRam4b01wSBV-pNw8@mail.gmail.com>
- <20100910020129.GA26845@redhat.com>
- <1284107723.3498.21.camel@maxim-laptop>
-MIME-Version: 1.0
+Received: from host63-43-static.30-87-b.business.telecomitalia.it ([87.30.43.63]:56514
+	"EHLO intranet.spintec.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751585Ab0ILLaL convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Sep 2010 07:30:11 -0400
+Subject: Re: [PATCH] DiSEqC bug fixed for stv0288 based interfaces
+Mime-Version: 1.0 (Apple Message framework v1081)
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1284107723.3498.21.camel@maxim-laptop>
+From: Josef Pavlik <josef@pavlik.it>
+In-Reply-To: <4C87E0F3.3080304@redhat.com>
+Date: Sun, 12 Sep 2010 13:29:54 +0200
+Cc: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Message-Id: <5A2B8715-1953-4532-9E3F-F2D5177D2A18@pavlik.it>
+References: <201009011435.42753.josef@pavlik.it> <4C87E0F3.3080304@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, Sep 10, 2010 at 11:35:23AM +0300, Maxim Levitsky wrote:
-> On Thu, 2010-09-09 at 22:01 -0400, Jarod Wilson wrote: 
-> > On Thu, Sep 09, 2010 at 12:34:27AM -0400, Jarod Wilson wrote:
-> > ...
-> > > >> For now, I've applied patches 3, 4 and 5, as it is nice to have Jarod's review also.
-> > > >
-> > > > I've finally got them all applied atop current media_tree staging/v2.6.37,
-> > > > though none of the streamzap bits in patch 7 are applicable any longer.
-> > > > Will try to get through looking and commenting (and testing) of the rest
-> > > > of them tonight.
-> > > 
-> > > Also had to make a minor addition to the rc5-sz decoder (same change
-> > > as in the other decoders). Almost have all the requisite test kernels
-> > > for David's, Maxim's and Dmitry's patchsets built and installed, wish
-> > > my laptop was faster... Probably would have been faster to use a lab
-> > > box and copy data over. Oh well. So functional testing to hopefully
-> > > commence tomorrow morning.
-> > 
-> > Wuff. None of the three builds is at all stable on my laptop, but I can't
-> > actually point the finger at any of the three patchsets, since I'm getting
-> > spontaneous lockups doing nothing at all before even plugging in a
-> > receiver. I did however get occasional periods of a non-panicking (not
-> > starting X seems to help a lot). Initial results:
-> > 
+seems that the patch was corrupted by the kmail used for the post (missing space before the last close bracket resulting corrupted patch)
+the corrected patch follows (and I'm sending it with another mail program)
+
+Signed-off-by: Josef Pavlik <josef@pavlik.it>
+
+-------------------------------------
+diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
+index 2930a5d..6cd442e 100644
+--- a/drivers/media/dvb/frontends/stv0288.c
++++ b/drivers/media/dvb/frontends/stv0288.c
+@@ -6,6 +6,8 @@
+ 	Copyright (C) 2008 Igor M. Liplianin <liplianin@me.by>
+ 		Removed stb6000 specific tuner code and revised some
+ 		procedures.
++        2010-09-01 Josef Pavlik <josef@pavlik.it>
++                Fixed diseqc_msg, diseqc_burst and set_tone problems
+ 
+ 	This program is free software; you can redistribute it and/or modify
+ 	it under the terms of the GNU General Public License as published by
+@@ -156,14 +158,13 @@ static int stv0288_send_diseqc_msg(struct dvb_frontend *fe,
+ 
+ 	stv0288_writeregI(state, 0x09, 0);
+ 	msleep(30);
+-	stv0288_writeregI(state, 0x05, 0x16);
++	stv0288_writeregI(state, 0x05, 0x12); /* modulated mode, single shot */
+ 
+ 	for (i = 0; i < m->msg_len; i++) {
+ 		if (stv0288_writeregI(state, 0x06, m->msg[i]))
+ 			return -EREMOTEIO;
+-		msleep(12);
+ 	}
+-
++    msleep(m->msg_len*12); 
+ 	return 0;
+ }
+ 
+@@ -174,13 +175,14 @@ static int stv0288_send_diseqc_burst(struct dvb_frontend *fe,
+ 
+ 	dprintk("%s\n", __func__);
+ 
+-	if (stv0288_writeregI(state, 0x05, 0x16))/* burst mode */
+-		return -EREMOTEIO;
+-
+-	if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
++    if (stv0288_writeregI(state, 0x05, 0x03)) /* simple tone burst mode, single shot */
++        return -EREMOTEIO;
++	
++    if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
+ 		return -EREMOTEIO;
+ 
+-	if (stv0288_writeregI(state, 0x06, 0x12))
++    msleep(15);
++	if (stv0288_writeregI(state, 0x05, 0x12))
+ 		return -EREMOTEIO;
+ 
+ 	return 0;
+@@ -192,18 +194,19 @@ static int stv0288_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
+ 
+ 	switch (tone) {
+ 	case SEC_TONE_ON:
+-		if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode */
++		if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode, continuous carrier */
+ 			return -EREMOTEIO;
+-		return stv0288_writeregI(state, 0x06, 0xff);
++        break;
+ 
+ 	case SEC_TONE_OFF:
+-		if (stv0288_writeregI(state, 0x05, 0x13))/* burst mode */
++		if (stv0288_writeregI(state, 0x05, 0x12))/* burst mode off*/
+ 			return -EREMOTEIO;
+-		return stv0288_writeregI(state, 0x06, 0x00);
++        break;
+ 
+ 	default:
+ 		return -EINVAL;
+ 	}
++    return 0;
+ }
+ 
+ static u8 stv0288_inittab[] = {
+-----------------------------------------------------
+
+
+
+On Sep 8, 2010, at 21:16 , Mauro Carvalho Chehab wrote:
+
+> Em 01-09-2010 09:35, Josef Pavlik escreveu:
+>> Fixed problem with DiSEqC communication. The message was wrongly modulated, 
+>> so the DiSEqC switch was not work.
+>> 
+>> This patch fixes DiSEqC messages, simple tone burst and tone on/off. 
+>> I verified it with osciloscope against the DiSEqC documentation.
+>> 
+>> Interface: PCI DVB-S TV tuner TeVii S420
+>> Kernel: 2.6.32-24-generic (UBUNTU 10.4)
+>> 
+>> Signed-off-by: Josef Pavlik <josef@pavlik.it>
 > 
-> Btw, my printk blackbox patch could help you a lot.
-> I can't count how many times it helped me.
-> I just enable softlockup, hardlockup, and nmi watchdog, and let system
-> panic on oopses, and reboot. Or if you have hardware reboot button, you
-> can just use it. The point is that most BIOSES don't clear the ram, and
-> I take advantage of that.
-
-Interesting. I was thinking perhaps I'd give a go at trying kdump on my
-laptop, but I've had pretty mixed results with kdump working correctly on
-random kernels (generally works quite well in RHEL, notsomuch in Fedora).
-
-My hope is that this is something already fixed in later Linus' kernels,
-so I'll try a current Linus snap before I try looking any deeper. I'll
-file this away for consideration though!
-
-
--- 
-Jarod Wilson
-jarod@redhat.com
+> Patch doesn't apply against the latest version, at my -git tree. 
+> Not sure if the bugs you're pointing were already fixed.
+> 
+> Cheers,
+> Mauro.
+>> 
+>> 
+>> 
+>> 
+>> diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
+>> index 2930a5d..6a32535 100644
+>> --- a/drivers/media/dvb/frontends/stv0288.c
+>> +++ b/drivers/media/dvb/frontends/stv0288.c
+>> @@ -6,6 +6,8 @@
+>>        Copyright (C) 2008 Igor M. Liplianin <liplianin@me.by>
+>>                Removed stb6000 specific tuner code and revised some
+>>                procedures.
+>> +       2010-09-01 Josef Pavlik <josef@pavlik.it>
+>> +               Fixed diseqc_msg, diseqc_burst and set_tone problems
+>> 
+>>        This program is free software; you can redistribute it and/or modify
+>>        it under the terms of the GNU General Public License as published by
+>> @@ -156,14 +158,13 @@ static int stv0288_send_diseqc_msg(struct dvb_frontend *fe,
+>> 
+>>        stv0288_writeregI(state, 0x09, 0);
+>>        msleep(30);
+>> -       stv0288_writeregI(state, 0x05, 0x16);
+>> +       stv0288_writeregI(state, 0x05, 0x12); /* modulated mode, single shot */
+>> 
+>>        for (i = 0; i < m->msg_len; i++) {
+>>                if (stv0288_writeregI(state, 0x06, m->msg[i]))
+>>                        return -EREMOTEIO;
+>> -               msleep(12);
+>>        }
+>> -
+>> +       msleep(m->msg_len*12);
+>>        return 0;
+>> }
+>> 
+>> @@ -174,13 +175,14 @@ static int stv0288_send_diseqc_burst(struct dvb_frontend *fe,
+>> 
+>>        dprintk("%s\n", __func__);
+>> 
+>> -       if (stv0288_writeregI(state, 0x05, 0x16))/* burst mode */
+>> +       if (stv0288_writeregI(state, 0x05, 0x03)) /* "simple tone burst" mode, single shot */
+>>                return -EREMOTEIO;
+>> 
+>>        if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
+>>                return -EREMOTEIO;
+>> 
+>> -       if (stv0288_writeregI(state, 0x06, 0x12))
+>> +       msleep(15);
+>> +       if (stv0288_writeregI(state, 0x05, 0x12))
+>>                return -EREMOTEIO;
+>> 
+>>        return 0;
+>> @@ -192,18 +194,19 @@ static int stv0288_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
+>> 
+>>        switch (tone) {
+>>        case SEC_TONE_ON:
+>> -               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode */
+>> +               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode, continuous carrier */
+>>                        return -EREMOTEIO;
+>> -               return stv0288_writeregI(state, 0x06, 0xff);
+>> +               break;
+>> 
+>>        case SEC_TONE_OFF:
+>> -               if (stv0288_writeregI(state, 0x05, 0x13))/* burst mode */
+>> +               if (stv0288_writeregI(state, 0x05, 0x12))/* burst mode off*/
+>>                        return -EREMOTEIO;
+>> -               return stv0288_writeregI(state, 0x06, 0x00);
+>> +               break;
+>> 
+>>        default:
+>>                return -EINVAL;
+>>        }
+>> +       return 0;
+>> }
+>> 
+>> static u8 stv0288_inittab[] = {
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
