@@ -1,136 +1,226 @@
-Return-path: <mchehab@pedra>
-Received: from web55406.mail.re4.yahoo.com ([206.190.58.200]:37479 "HELO
-	web55406.mail.re4.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750727Ab0IPH1Z convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 03:27:25 -0400
-Message-ID: <276313.51207.qm@web55406.mail.re4.yahoo.com>
-References: <521CE7BF573A436C94F0D9CDAEAF3524@MARCM.local> <E0626F02-B5EC-439B-8673-EF870AC0B5BE@marcm.co.uk> <4C909475.70000@eris.qinetiq.com>
-Date: Thu, 16 Sep 2010 00:27:24 -0700 (PDT)
-From: Suchita Gupta <suchitagupta@yahoo.com>
-Subject: Re: [linux-dvb] DSM-CC question
-To: linux-media@vger.kernel.org
-In-Reply-To: <4C909475.70000@eris.qinetiq.com>
+Return-path: <mchehab@localhost.localdomain>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:60092 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752270Ab0ILTDq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Sep 2010 15:03:46 -0400
+Received: by vws3 with SMTP id 3so4101564vws.19
+        for <linux-media@vger.kernel.org>; Sun, 12 Sep 2010 12:03:45 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
-
-Its a very good idea. I will look at it as soon as possible and may be come back 
-to you for questions.
-I have already done most of the implementation by storing blocks in memory and I 
-have to finish it as soon as possible.
-But later on I can use this idea, it to optimize memory utilization and 
-performance of my code
-
-Thanks.
-
-
------ Original Message ----
-From: Simon Kilvington <s.kilvington@eris.qinetiq.com>
+Date: Sun, 12 Sep 2010 21:03:45 +0200
+Message-ID: <AANLkTin53SY_xaed_tRfWRPOFmc65GmGzXrEt15ZyriW@mail.gmail.com>
+Subject: [PATCH] firedtv driver: support for PSK8 for S2 devices. To watch HD.
+From: Tommy Jonsson <quazzie2@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: linux-dvb@linuxtv.org
-Sent: Wed, 15 September, 2010 10:40:05
-Subject: Re: [linux-dvb] DSM-CC question
+Content-Type: text/plain; charset=ISO-8859-1
+List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@localhost.localdomain>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+This is the first i have ever developed for linux, cant really wrap my
+head around how to submit this..
+Hope im sending this correctly, diff made with 'hg diff' from latest
+"hg clone http://linuxtv.org/hg/v4l-dvb"
 
-also have a look at my rb-download code,
+It adds support for tuning with PSK8 modulation, pilot and rolloff
+with the S2 versions of firedtv.
 
-http://redbutton.sourceforge.net/
-
-this gets around the problem of having to know the directory structure
-before you download files by using symlinks - ie you download the files
-as they arrive on the carousel, then when you get a directory you create
-the directory but make all the file entries in it symlinks - if the
-files have already arrived, then the links point to them, if the files
-haven't arrived yet, you just have some dangling symlinks until they do
-
-this means you don't have to worry about trying to cache files in memory
-before you can write them to disc and so makes the whole thing a lot
-simpler to implement
-
-On 14/09/10 22:06, Marc Murphy wrote:
-> Have a look at libdsmcc. It will write by default to /tmp/cache I have modified 
->my test software to notify of a new file or updated file version. 
->
-> 
-> Hope this helps
-> 
-> Marc
-> 
-> Sent from my iPhone
-> 
-> On 14 Sep 2010, at 21:31, "Suchita Gupta" <suchitagupta@yahoo.com> wrote:
-> 
->> Hi,
->>
->> First of all, I am new to this list, so I am not sire if this is right place 
->>for 
->>
->> this question.
->> If not, please forgive me and point me to right list.
->>
->> I am writing a DSMCC decoding implementation to persist it to local 
->filesystem.
->> I am unable to understand few thiings related to "srg"
->>
->> I know, it represents the top level directory. But how do I get the name of 
->>this 
->>
->> directory?
->> I can extract the names of subdirs and files using name components but where is 
->>
->> the name of top level directory?
->>
->> Also, as far as I understand it, I can't start writing to the local filesystem 
->
->> until I have acquired the whole carousel.
->>
->> Can, anyone please provide me some guidance.
->>
->> Thanks in Advance,
->> rs
->>
->>
->>
->>
->> _______________________________________________
->> linux-dvb users mailing list
->> For V4L/DVB development, please use instead linux-media@vger.kernel.org
->> linux-dvb@linuxtv.org
->> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
->>
-> 
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
-> 
-> 
-
-- -- 
-Simon Kilvington
-
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAkyQlHUACgkQmt9ZifioJSwN7QCffyS4wY25IMysdwFcJEUS/Aaw
-JBEAoIGShJ/kxMvOT73o7vEqfXMNKr/r
-=Jf4M
------END PGP SIGNATURE-----
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+Signed-off-by: Tommy Jonsson <quazzie2@gmail.com>
 
 
 
-      
+diff -r 6e0befab696a linux/drivers/media/dvb/firewire/firedtv-avc.c
+--- a/linux/drivers/media/dvb/firewire/firedtv-avc.c	Fri Sep 03
+00:28:05 2010 -0300
++++ b/linux/drivers/media/dvb/firewire/firedtv-avc.c	Sun Sep 12
+06:52:02 2010 +0200
+@@ -4,6 +4,7 @@
+  * Copyright (C) 2004 Andreas Monitzer <andy@monitzer.com>
+  * Copyright (C) 2008 Ben Backx <ben@bbackx.com>
+  * Copyright (C) 2008 Henrik Kurelid <henrik@kurelid.se>
++ * Copyright (C) 2010 Tommy Jonsson <quazzie2@gmail.com>
+  *
+  *	This program is free software; you can redistribute it and/or
+  *	modify it under the terms of the GNU General Public License as
+@@ -318,7 +319,7 @@
+  * tuning command for setting the relative LNB frequency
+  * (not supported by the AVC standard)
+  */
+-static int avc_tuner_tuneqpsk(struct firedtv *fdtv,
++static int avc_tuner_tuneqpsk(struct dvb_frontend *fe, struct firedtv *fdtv,
+ 			      struct dvb_frontend_parameters *params)
+ {
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+@@ -368,10 +369,30 @@
+ 		c->operand[12] = 0;
+
+ 	if (fdtv->type == FIREDTV_DVB_S2) {
+-		c->operand[13] = 0x1;
+-		c->operand[14] = 0xff;
+-		c->operand[15] = 0xff;
+-
++ 		if (fe->dtv_property_cache.delivery_system == SYS_DVBS2) {
++			switch (fe->dtv_property_cache.modulation) {
++			case QAM_16:		c->operand[13] = 0x1; break;
++			case QPSK:		c->operand[13] = 0x2; break;
++			case PSK_8:		c->operand[13] = 0x3; break;
++			default:		c->operand[13] = 0x2; break;
++			}
++ 			switch (fe->dtv_property_cache.rolloff) {
++			case ROLLOFF_AUTO:	c->operand[14] = 0x2; break;
++			case ROLLOFF_35:	c->operand[14] = 0x2; break;
++			case ROLLOFF_20:	c->operand[14] = 0x0; break;
++			case ROLLOFF_25:	c->operand[14] = 0x1; break;
++			/* case ROLLOFF_NONE:	c->operand[14] = 0xff; break; */
++			}
++			switch (fe->dtv_property_cache.pilot) {
++			case PILOT_AUTO:	c->operand[15] = 0x0; break;
++			case PILOT_OFF:		c->operand[15] = 0x0; break;
++			case PILOT_ON:		c->operand[15] = 0x1; break;
++			}
++		} else {
++			c->operand[13] = 0x1;  /* auto modulation */
++			c->operand[14] = 0xff; /* disable rolloff */
++			c->operand[15] = 0xff; /* disable pilot */
++		}
+ 		return 16;
+ 	} else {
+ 		return 13;
+@@ -548,7 +569,7 @@
+ 	return 17 + add_pid_filter(fdtv, &c->operand[17]);
+ }
+
+-int avc_tuner_dsd(struct firedtv *fdtv,
++int avc_tuner_dsd(struct dvb_frontend *fe, struct firedtv *fdtv,
+ 		  struct dvb_frontend_parameters *params)
+ {
+ 	struct avc_command_frame *c = (void *)fdtv->avc_data;
+@@ -561,7 +582,7 @@
+
+ 	switch (fdtv->type) {
+ 	case FIREDTV_DVB_S:
+-	case FIREDTV_DVB_S2: pos = avc_tuner_tuneqpsk(fdtv, params); break;
++	case FIREDTV_DVB_S2: pos = avc_tuner_tuneqpsk(fe, fdtv, params); break;
+ 	case FIREDTV_DVB_C: pos = avc_tuner_dsd_dvb_c(fdtv, params); break;
+ 	case FIREDTV_DVB_T: pos = avc_tuner_dsd_dvb_t(fdtv, params); break;
+ 	default:
+diff -r 6e0befab696a linux/drivers/media/dvb/firewire/firedtv-fe.c
+--- a/linux/drivers/media/dvb/firewire/firedtv-fe.c	Fri Sep 03
+00:28:05 2010 -0300
++++ b/linux/drivers/media/dvb/firewire/firedtv-fe.c	Sun Sep 12
+06:52:02 2010 +0200
+@@ -3,6 +3,7 @@
+  *
+  * Copyright (C) 2004 Andreas Monitzer <andy@monitzer.com>
+  * Copyright (C) 2008 Henrik Kurelid <henrik@kurelid.se>
++ * Copyright (C) 2010 Tommy Jonsson <quazzie2@gmail.com>
+  *
+  *	This program is free software; you can redistribute it and/or
+  *	modify it under the terms of the GNU General Public License as
+@@ -146,7 +147,7 @@
+ {
+ 	struct firedtv *fdtv = fe->sec_priv;
+
+-	return avc_tuner_dsd(fdtv, params);
++	return avc_tuner_dsd(fe, fdtv, params);
+ }
+
+ static int fdtv_get_frontend(struct dvb_frontend *fe,
+@@ -155,6 +156,17 @@
+ 	return -EOPNOTSUPP;
+ }
+
++static int fdtv_get_property(struct dvb_frontend *fe,
++                             struct dtv_property *tvp)
++{
++	return 0;
++}
++static int fdtv_set_property(struct dvb_frontend *fe,
++                             struct dtv_property *tvp)
++{
++	return 0;
++}
++
+ void fdtv_frontend_init(struct firedtv *fdtv)
+ {
+ 	struct dvb_frontend_ops *ops = &fdtv->fe.ops;
+@@ -166,6 +178,9 @@
+ 	ops->set_frontend		= fdtv_set_frontend;
+ 	ops->get_frontend		= fdtv_get_frontend;
+
++	ops->get_property		= fdtv_get_property;
++	ops->set_property		= fdtv_set_property;
++
+ 	ops->read_status		= fdtv_read_status;
+ 	ops->read_ber			= fdtv_read_ber;
+ 	ops->read_signal_strength	= fdtv_read_signal_strength;
+@@ -179,6 +194,24 @@
+
+ 	switch (fdtv->type) {
+ 	case FIREDTV_DVB_S:
++		fi->type		= FE_QPSK;
++
++		fi->frequency_min	= 950000;
++		fi->frequency_max	= 2150000;
++		fi->frequency_stepsize	= 125;
++		fi->symbol_rate_min	= 1000000;
++		fi->symbol_rate_max	= 40000000;
++
++		fi->caps		= FE_CAN_INVERSION_AUTO |
++					  FE_CAN_FEC_1_2	|
++					  FE_CAN_FEC_2_3	|
++					  FE_CAN_FEC_3_4	|
++					  FE_CAN_FEC_5_6	|
++					  FE_CAN_FEC_7_8	|
++					  FE_CAN_FEC_AUTO	|
++					  FE_CAN_QPSK;
++		break;
++
+ 	case FIREDTV_DVB_S2:
+ 		fi->type		= FE_QPSK;
+
+@@ -188,14 +221,15 @@
+ 		fi->symbol_rate_min	= 1000000;
+ 		fi->symbol_rate_max	= 40000000;
+
+-		fi->caps 		= FE_CAN_INVERSION_AUTO	|
+-					  FE_CAN_FEC_1_2	|
+-					  FE_CAN_FEC_2_3	|
+-					  FE_CAN_FEC_3_4	|
+-					  FE_CAN_FEC_5_6	|
+-					  FE_CAN_FEC_7_8	|
+-					  FE_CAN_FEC_AUTO	|
+-					  FE_CAN_QPSK;
++		fi->caps		= FE_CAN_INVERSION_AUTO |
++					  FE_CAN_FEC_1_2        |
++					  FE_CAN_FEC_2_3        |
++					  FE_CAN_FEC_3_4        |
++					  FE_CAN_FEC_5_6        |
++					  FE_CAN_FEC_7_8        |
++					  FE_CAN_FEC_AUTO       |
++					  FE_CAN_QPSK           |
++					  FE_CAN_2G_MODULATION;
+ 		break;
+
+ 	case FIREDTV_DVB_C:
+diff -r 6e0befab696a linux/drivers/media/dvb/firewire/firedtv.h
+--- a/linux/drivers/media/dvb/firewire/firedtv.h	Fri Sep 03 00:28:05 2010 -0300
++++ b/linux/drivers/media/dvb/firewire/firedtv.h	Sun Sep 12 06:52:02 2010 +0200
+@@ -3,6 +3,7 @@
+  *
+  * Copyright (C) 2004 Andreas Monitzer <andy@monitzer.com>
+  * Copyright (C) 2008 Henrik Kurelid <henrik@kurelid.se>
++ * Copyright (C) 2010 Tommy Jonsson <quazzie2@gmail.com>
+  *
+  *	This program is free software; you can redistribute it and/or
+  *	modify it under the terms of the GNU General Public License as
+@@ -131,7 +132,7 @@
+ int avc_recv(struct firedtv *fdtv, void *data, size_t length);
+ int avc_tuner_status(struct firedtv *fdtv, struct firedtv_tuner_status *stat);
+ struct dvb_frontend_parameters;
+-int avc_tuner_dsd(struct firedtv *fdtv, struct
+dvb_frontend_parameters *params);
++int avc_tuner_dsd(struct dvb_frontend *fe, struct firedtv *fdtv,
+struct dvb_frontend_parameters *params);
+ int avc_tuner_set_pids(struct firedtv *fdtv, unsigned char pidc, u16 pid[]);
+ int avc_tuner_get_ts(struct firedtv *fdtv);
+ int avc_identify_subunit(struct firedtv *fdtv);
