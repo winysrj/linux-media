@@ -1,78 +1,46 @@
-Return-path: <mchehab@localhost>
-Received: from mx1.redhat.com ([209.132.183.28]:39356 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754124Ab0IAJ4Y (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Sep 2010 05:56:24 -0400
-Message-ID: <4C7E233D.3030002@redhat.com>
-Date: Wed, 01 Sep 2010 06:56:13 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Randy Dunlap <randy.dunlap@oracle.com>
-CC: linux-media@vger.kernel.org,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
-Subject: Re: linux-next: Tree for August 7 (IR)
-References: <20100807160710.b7c8d838.sfr@canb.auug.org.au>	<20100807203920.83134a60.randy.dunlap@oracle.com>	<20100808135511.269f670c.randy.dunlap@oracle.com>	<4C5F9C2E.50001@redhat.com>	<20100809075255.97d18a66.randy.dunlap@oracle.com>	<4C603DB1.9030706@redhat.com>	<4C604196.6060100@redhat.com> <20100827094553.f1c9a95d.randy.dunlap@oracle.com>
-In-Reply-To: <20100827094553.f1c9a95d.randy.dunlap@oracle.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:23078 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751982Ab0ILLvo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Sep 2010 07:51:44 -0400
+Date: Sun, 12 Sep 2010 07:51:45 -0400
+Subject: Re: [PATCH 3/3] gspca_cpia1: Restore QX3 illuminators' state on
+ resume
+Message-ID: <7ftlrnxqf7a8v590sajpwci3.1284292262789@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-Em 27-08-2010 13:45, Randy Dunlap escreveu:
-> On Mon, 09 Aug 2010 14:57:42 -0300 Mauro Carvalho Chehab wrote:
-> 
->> Em 09-08-2010 14:41, Mauro Carvalho Chehab escreveu:
->>> Em 09-08-2010 11:52, Randy Dunlap escreveu:
->>>>> Hmm... clearly, there are some bad dependencies at the Kconfig. Maybe ir-core were compiled
->>>>> as module, while some drivers as built-in.
->>>>>
->>>>> Could you please pass the .config file for this build?
->>>>
->>>>
->>>> Sorry, config-r5101 is now attached.
->>>
->>> Hmm... when building it, I'm getting an interesting warning:
->>>
->>> warning: (VIDEO_BT848 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_DEV && PCI && I2C && VIDEO_V4L2 && INPUT || VIDEO_SAA7134 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_CX88 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && VIDEO_DEV && PCI && I2C && INPUT || VIDEO_IVTV && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && PCI && I2C && INPUT || VIDEO_CX18 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && DVB_CORE && PCI && I2C && EXPERIMENTAL && INPUT || VIDEO_EM28XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || VIDEO_TLG2300 && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT && SND && DVB_CORE || VIDEO_CX231XX && MEDIA_SUPPORT && VIDEO_CAPTURE_DRIVERS && VIDEO_V4L2 && V4L_USB_DRIVERS && USB && VIDEO_DEV && I2C && INPUT || DVB_BUDGET_CI && MEDIA_SUPPORT && DVB!
+V2lsbCBkby4KClJlZ2FyZHMsCkFuZHkKCgoKSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVAcmVkaGF0
+LmNvbT4gd3JvdGU6Cgo+SGksCj4KPk9uIDA5LzEyLzIwMTAgMDM6NTEgQU0sIEFuZHkgV2FsbHMg
+d3JvdGU6Cj4+IGdzcGNhX2NwaWExOiBSZXN0b3JlIFFYMyBpbGx1bWluYXRvcnMnIHN0YXRlIG9u
+IHJlc3VtZQo+Pgo+PiBUdXJuIHRoZSBsaWdodHMgb2YgdGhlIFFYMyBvbiAob3Igb2ZmKSBhcyBu
+ZWVkZWQgd2hlbiByZXN1bWluZyBhbmQgYXQgbW9kdWxlCj4+IGxvYWQuCj4+Cj4+IFNpZ25lZC1v
+ZmYtYnk6IEFuZHkgV2FsbHM8YXdhbGxzQG1kLm1ldHJvY2FzdC5uZXQ+Cj4+Cj4+IGRpZmYgLXIg
+MzJkNWMzMjNjNTQxIC1yIGMyZTdmYjJkNzY4ZSBsaW51eC9kcml2ZXJzL21lZGlhL3ZpZGVvL2dz
+cGNhL2NwaWExLmMKPj4gLS0tIGEvbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9nc3BjYS9jcGlh
+MS5jCVNhdCBTZXAgMTEgMjE6MTU6MDMgMjAxMCAtMDQwMAo+PiArKysgYi9saW51eC9kcml2ZXJz
+L21lZGlhL3ZpZGVvL2dzcGNhL2NwaWExLmMJU2F0IFNlcCAxMSAyMTozMjozNSAyMDEwIC0wNDAw
+Cj4+IEBAIC0xNzcyLDYgKzE3NzIsMTAgQEAKPj4gICAJaWYgKHJldCkKPj4gICAJCXJldHVybiBy
+ZXQ7Cj4+Cj4+ICsJLyogRW5zdXJlIHRoZSBRWDMgaWxsdW1pbmF0b3JzJyBzdGF0ZXMgYXJlIHJl
+c3RvcmVkIHVwb24gcmVzdW1lICovCj4+ICsJaWYgKHNkLT5wYXJhbXMucXgzLnF4M19kZXRlY3Rl
+ZCkKPj4gKwkJY29tbWFuZF9zZXRsaWdodHMoZ3NwY2FfZGV2KTsKPj4gKwo+PiAgIAlzZF9zdG9w
+Tihnc3BjYV9kZXYpOwo+Pgo+PiAgIAlpZiAoIXNkLT5wYXJhbXMucXgzLnF4M19kZXRlY3RlZCkK
+Pgo+Cj5Ob3RpY2UgdGhlOgo+Cj4JaWYgKHNkLT5wYXJhbXMucXgzLnF4M19kZXRlY3RlZCkKPgkJ
+Y29tbWFuZF9zZXRsaWdodHMoZ3NwY2FfZGV2KTsKPgo+ICAgIAlzZF9zdG9wTihnc3BjYV9kZXYp
+Owo+Cj4JaWYgKCFzZC0+cGFyYW1zLnF4My5xeDNfZGV0ZWN0ZWQpCj4JCS4uLi4KPgo+R2l2ZW4g
+dGhhdCBhdCBsZWFzdCB0aGUgb3JkZXIgb2YgZXhlY3V0aW9uIG9mIHRoZSBzZWNvbmQgaWYgc3Rh
+dGVtZW50Cj5kb2VzIG5vdCBtYXR0ZXIgd3J0IHRvIHRoZSBzZF9zdG9wTihnc3BjYV9kZXYpLCBj
+YW4gd2UgcGxlYXNlCj5tYWtlIHRoaXM6Cj4KPglpZiAoc2QtPnBhcmFtcy5xeDMucXgzX2RldGVj
+dGVkKQo+CQljb21tYW5kX3NldGxpZ2h0cyhnc3BjYV9kZXYpOwo+CWVsc2UKPgkJLi4uLgo+Cj4g
+ICAgCXNkX3N0b3BOKGdzcGNhX2Rldik7Cj4KPlRoYW5rcywKPgo+SGFucwo+LS0KPlRvIHVuc3Vi
+c2NyaWJlIGZyb20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1t
+ZWRpYSIgaW4KPnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwu
+b3JnCj5Nb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9y
+ZG9tby1pbmZvLmh0bWwK
 
->  _CA
->> PT
->>> URE_DRIVERS && DVB_CORE && DVB_BUDGET_CORE && I2C && INPUT || DVB_DM1105 && MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && DVB_CORE && PCI && I2C && INPUT || VIDEO_GO7007 && STAGING && !STAGING_EXCLUDE_BUILD && VIDEO_DEV && PCI && I2C && INPUT && SND || VIDEO_CX25821 && STAGING && !STAGING_EXCLUDE_BUILD && DVB_CORE && VIDEO_DEV && PCI && I2C && INPUT) selects VIDEO_IR which has unmet direct dependencies (IR_CORE)
->>>
->>> This warning seems to explain what's going wrong.
->>>
->>> I'll make patch(es) to address this issue.
->>
->>
->> Ok, This patch (together with the previous one) seemed to solve the issue.
->>
-> 
-> Hi Mauro,
-> 
-> Have you merged these 2 patches?
-> I'm seeing very similar build errors in linux-next 20100827:
-> 
-> 
-> ERROR: "get_rc_map" [drivers/media/video/saa7134/saa7134.ko] undefined!
-> ERROR: "ir_input_unregister" [drivers/media/video/saa7134/saa7134.ko] undefined!
-> ERROR: "ir_raw_event_store_edge" [drivers/media/video/saa7134/saa7134.ko] undefined!
-> ERROR: "__ir_input_register" [drivers/media/video/saa7134/saa7134.ko] undefined!
-> ERROR: "ir_raw_event_handle" [drivers/media/video/saa7134/saa7134.ko] undefined!
-> ERROR: "get_rc_map" [drivers/media/video/cx88/cx88xx.ko] undefined!
-> ERROR: "ir_repeat" [drivers/media/video/cx88/cx88xx.ko] undefined!
-> ERROR: "ir_input_unregister" [drivers/media/video/cx88/cx88xx.ko] undefined!
-> ERROR: "ir_keydown" [drivers/media/video/cx88/cx88xx.ko] undefined!
-> ERROR: "__ir_input_register" [drivers/media/video/cx88/cx88xx.ko] undefined!
-> ERROR: "get_rc_map" [drivers/media/video/bt8xx/bttv.ko] undefined!
-> ERROR: "ir_input_unregister" [drivers/media/video/bt8xx/bttv.ko] undefined!
-> ERROR: "__ir_input_register" [drivers/media/video/bt8xx/bttv.ko] undefined!
-> ERROR: "ir_g_keycode_from_table" [drivers/media/IR/ir-common.ko] undefined!
-> 
-Randy,
-
-I'm out of the town for a few days due to Linuxcon Brazil. I'll double check it
-likely at the weekend.
-
-Cheers,
-Mauro
