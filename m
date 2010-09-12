@@ -1,101 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:27087 "EHLO
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:60544 "EHLO
 	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753465Ab0ICQCG (ORCPT
+	by vger.kernel.org with ESMTP id S1752014Ab0ILLyY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Sep 2010 12:02:06 -0400
-Subject: Re: Gigabyte 8300
+	Sun, 12 Sep 2010 07:54:24 -0400
+Date: Sun, 12 Sep 2010 07:54:27 -0400
+Subject: Re: [PATCH 2/3] gspca_cpia1: Disable illuminator controls if not an
+ Intel Play QX3
+Message-ID: <f7u0d4tg00rdmkt8klaqhmdu.1284292467134@email.android.com>
 From: Andy Walls <awalls@md.metrocast.net>
-To: Dagur Ammendrup <dagurp@gmail.com>
-Cc: Joel Wiramu Pauling <joel@aenertia.net>,
-	linux-media@vger.kernel.org
-In-Reply-To: <AANLkTim_mU7ayxjeE2HQz57UsPqHU46dPC3Ys600RJAD@mail.gmail.com>
-References: <AANLkTi=SY9xWCjp_0q6US7XN6XYoTWnGHA2=6EfjuWK-@mail.gmail.com>
-	 <AANLkTikg79zui71Xz8r-Lg3zut0jkSk-BGEpBpXfWz5Y@mail.gmail.com>
-	 <AANLkTimc2TTQQogO8Q6ih6Bv3j_oOcVMux3cg-CJPGsw@mail.gmail.com>
-	 <AANLkTim_mU7ayxjeE2HQz57UsPqHU46dPC3Ys600RJAD@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 03 Sep 2010 12:01:53 -0400
-Message-ID: <1283529713.12583.84.camel@morgan.silverblock.net>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 8bit
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-On Fri, 2010-09-03 at 10:55 +0000, Dagur Ammendrup wrote:
-> I tried it on a windows machine where it's identified as "Conextant
-> Polaris Video Capture"  or
-> "oem17.inf:Conexant.NTx86:POLARIS.DVBTX.x86:6.113.1125.1210:usb\vid_1b80&pid_d416&mi_01"
-> if that tells you anything.
-
-
-Polaris refers to the series of CX2310[012] chips IIRC.
-
-Support would need changes to the cx231xx driver, and possibly changes
-to the cx25480 module, depending on how far the board differs from
-Conexant reference designs.
-
-Regards,
-Andy
-
-> 
-> 
-> 
-> 2010/9/3 Dagur Ammendrup <dagurp@gmail.com>:
-> > I thought "Conexant CX23102" was the chip. How can I find this out? I
-> > have access to a windows machine if that helps.
-> >
-> >
-> >
-> >
-> > 2010/9/3 Joel Wiramu Pauling <joel@aenertia.net>:
-> >> What sort of afatech chip?
-> >>
-> >> af9035 are not supported at all. Only af9015's which are in the older devices.
-> >>
-> >> On 3 September 2010 12:55, Dagur Ammendrup <dagurp@gmail.com> wrote:
-> >>> Hi,
-> >>>
-> >>> I bought a Gigabyte U8300 today which is a hybrid USB tuner. These are
-> >>> the specifications according to the manufacturer:
-> >>>
-> >>> Analog: TVPAL / SECAM / NTSC
-> >>> Decoder chip: Conexant CX23102
-> >>> Digital TV: DVB-T
-> >>> Interface: USB 2.0
-> >>> Others Support: Microsoft® Windows 2000, XP, MCE and Windows Vista MCE
-> >>> / Win 7 32/ 64bits
-> >>> Remote sensor Interface: IR
-> >>> Tuner: NXP TDA18271
-> >>>
-> >>> Now I know that the decoder chip is supported in other USB sticks but
-> >>> mine is not recognised. Here is my lsusb output:
-> >>>
-> >>> Bus 001 Device 004: ID 1b80:d416 Afatech
-> >>>
-> >>> And here is the dmesg info I get when I plug it in:
-> >>>
-> >>> [ 2981.693805] usb 1-2: USB disconnect, address 2
-> >>> [ 2991.760091] usb 1-2: new high speed USB device using ehci_hcd and address 4
-> >>> [ 2991.916044] usb 1-2: configuration #1 chosen from 1 choice
-> >>>
-> >>>
-> >>> Is there anyone out there who might be interested in adding support
-> >>> for this (or guide me through it)?
-> >>>
-> >>>
-> >>> thanks,
-> >>> Dagur
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >>> the body of a message to majordomo@vger.kernel.org
-> >>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>>
-> >>
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+V2VsbCwgSSB3YXMgZ29pbmcgZm9yIGxvd2VyICJ0b3VjaCBsYWJvciIgaW4gdGhlIGZ1dHVyZSwg
+YnV0IHN1cmUgSSBjYW4gY2hhbmdlIGl0LgoKRG8geW91IHdhbnQgaW5kaWNlcyBkZWZpbmVkIGZv
+ciBhbGwgdGhlIGNvbnRyb2xzLCBvciBqdXN0IHRoZSBpbGx1bWluYXRvcnM/CgpSZWdhcmRzLApB
+bmR5CgpIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPiB3cm90ZToKCj5IaSwKPgo+
+T24gMDkvMTIvMjAxMCAwMzo1MSBBTSwgQW5keSBXYWxscyB3cm90ZToKPj4gZ3NwY2FfY3BpYTE6
+IERpc2FibGUgaWxsdW1pbmF0b3IgY29udHJvbHMgaWYgbm90IGFuIEludGVsIFBsYXkgUVgzCj4+
+Cj4+IFRoZSBpbGx1bWluYXRvciBjb250cm9scyBzaG91bGQgb25seSBiZSBhdmFpbGFibGUgdG8g
+dGhlIHVzZXIgZm9yIHRoZSBJbnRlbAo+PiBQbGF5IFFYMyBtaWNyb3Njb3BlLgo+Pgo+PiBTaWdu
+ZWQtb2ZmLWJ5OiBBbmR5IFdhbGxzPGF3YWxsc0BtZC5tZXRyb2Nhc3QubmV0Pgo+Pgo+PiBkaWZm
+IC1yIGQxNjU2NDljYThhMCAtciAzMmQ1YzMyM2M1NDEgbGludXgvZHJpdmVycy9tZWRpYS92aWRl
+by9nc3BjYS9jcGlhMS5jCj4+IC0tLSBhL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZ3NwY2Ev
+Y3BpYTEuYwlTYXQgU2VwIDExIDE0OjE1OjI2IDIwMTAgLTA0MDAKPj4gKysrIGIvbGludXgvZHJp
+dmVycy9tZWRpYS92aWRlby9nc3BjYS9jcGlhMS5jCVNhdCBTZXAgMTEgMjE6MTU6MDMgMjAxMCAt
+MDQwMAo+PiBAQCAtMTc0Myw2ICsxNzQzLDIyIEBACj4+ICAgCWRvX2NvbW1hbmQoZ3NwY2FfZGV2
+LCBDUElBX0NPTU1BTkRfR2V0Q2FtZXJhU3RhdHVzLCAwLCAwLCAwLCAwKTsKPj4gICB9Cj4+Cj4+
+ICtzdGF0aWMgdm9pZCBzZF9kaXNhYmxlX3F4M19jdHJscyhzdHJ1Y3QgZ3NwY2FfZGV2ICpnc3Bj
+YV9kZXYpCj4+ICt7Cj4+ICsJaW50IGksIG47Cj4+ICsJX191MzIgaWQ7Cj4+ICsKPj4gKwluID0g
+QVJSQVlfU0laRShzZF9jdHJscyk7Cj4+ICsJZm9yIChpID0gMDsgaTwgIG47IGkrKykgewo+PiAr
+CQlpZCA9IHNkX2N0cmxzW2ldLnFjdHJsLmlkOwo+PiArCj4+ICsJCWlmIChpZCA9PSBWNEwyX0NJ
+RF9JTExVTUlOQVRPUlNfMSB8fAo+PiArCQkgICAgaWQgPT0gVjRMMl9DSURfSUxMVU1JTkFUT1JT
+XzIpIHsKPj4gKwkJCWdzcGNhX2Rldi0+Y3RybF9kaXMgfD0gKDE8PCAgaSk7Cj4+ICsJCX0KPj4g
+Kwl9Cj4+ICt9Cj4+ICsKPj4gICAvKiB0aGlzIGZ1bmN0aW9uIGlzIGNhbGxlZCBhdCBwcm9iZSBh
+bmQgcmVzdW1lIHRpbWUgKi8KPj4gICBzdGF0aWMgaW50IHNkX2luaXQoc3RydWN0IGdzcGNhX2Rl
+diAqZ3NwY2FfZGV2KQo+PiAgIHsKPgo+SG1tLCB0aGlzIGRldmlhdGVzIGZyb20gaG93IGFsbCBv
+dGhlciBnc3BjYSBzdWJkcml2ZXJzIGRvIHRoaXMsIHRoZXkKPmRlZmluZSBpbmRleGVzIGZvciBj
+dHJscyB0b2dldGhlciB3aXRoIHRoZSBzZF9jdHJscyBpbnRpYWxpemVyIGFuZAo+dGhlbiB1c2Ug
+dGhlc2UsIHNvIGluc3RlYWQgb2YgdGhlIGFib3ZlIGJsdXJiIHRoZXJlIHdvdWxkIGJlCj5hCj4K
+PiNkZWZpbmUgSUxMVU1JTkFUT1JTXzFfSURYIHgKPiNkZWZpbmUgSUxMVU1JTkFUT1JTXzJfSURY
+IHgKPgo+V2hlcmUgdGhlc2UgY3RybHMgZ2V0ICJkZWZpbmVkIiAoc2VlIGZvciBleGFtcGxlIG92
+NTE5LmMpCj4KPkFuZCB0aGVuOgo+Cj4+ICsJaWYgKCFzZC0+cGFyYW1zLnF4My5xeDNfZGV0ZWN0
+ZWQpCj4+ICsJCXNkX2Rpc2FibGVfcXgzX2N0cmxzKGdzcGNhX2Rldik7Cj4+ICsKPgo+V291bGQg
+YmVjb21lOgo+Cj4JaWYgKCFzZC0+cGFyYW1zLnF4My5xeDNfZGV0ZWN0ZWQpCj4JCWdzcGNhX2Rl
+di0+Y3RybF9kaXMgfD0gKDEgPDwgSUxMVU1JTkFUT1JTXzFfSURYKSB8Cj4JCQkJICAgICAgICgx
+IDw8IElMTFVNSU5BVE9SU18yX0lEWCk7Cj4KPkkgdGhpbmsgaXQgd291bGQgYmUgZ29vZCB0byB1
+c2UgdGhlIHNhbWUgY29uc3RydWN0aW9uIGluIHRoZSBjcGlhMQo+ZHJpdmVyIGZvciBjb25zaXN0
+ZW5jeSBiZXR3ZWVuIGFsbCB0aGUgZ3NwY2Egc3ViZHJpdmVycy4KPgo+UmVnYXJkcywKPgo+SGFu
+cwo+Cj4tLQo+VG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVu
+c3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbgo+dGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9y
+ZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPk1vcmUgbWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2Vy
+Lmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo=
 
