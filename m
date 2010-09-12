@@ -1,113 +1,59 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4069 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753135Ab0IHTHt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 15:07:49 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id o88J7l92052203
-	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 21:07:47 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 8 Sep 2010 21:07:47 +0200 (CEST)
-Message-Id: <201009081907.o88J7l92052203@smtp-vbr12.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Return-path: <mchehab@localhost.localdomain>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36844 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753654Ab0ILV2H (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Sep 2010 17:28:07 -0400
+Subject: Re: [GIT PATCHES FOR 2.6.37] Remove V4L1 support from the pwc
+ driver
+From: Andy Walls <awalls@md.metrocast.net>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <1284325962.2394.24.camel@localhost>
+References: <201009122226.11970.hverkuil@xs4all.nl>
+	 <1284325962.2394.24.camel@localhost>
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 12 Sep 2010 17:28:59 -0400
+Message-ID: <1284326939.2394.29.camel@localhost>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@localhost.localdomain>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Sun, 2010-09-12 at 17:12 -0400, Andy Walls wrote:
+> On Sun, 2010-09-12 at 22:26 +0200, Hans Verkuil wrote:
+> 
+> > And other news on the V4L1 front:
+> 
+> > I'm waiting for test results on the cpia2 driver. If it works, then the V4L1
+> > support can be removed from that driver as well.
+> 
+> FYI, that will break this 2005 vintage piece of V4L1 software people may
+> still be using for the QX5 microscope:
 
-Results of the daily build of v4l-dvb:
+Sorry, that is of course, if there is no V4L1 compat layer still in
+place.
 
-date:        Wed Sep  8 19:00:12 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15139:6e0befab696a
-git master:       f6760aa024199cfbce564311dc4bc4d47b6fb349
-git media-master: 1c1371c2fe53ded8ede3a0404c9415fbf3321328
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+BTW, qx5view uses a private ioctl() to change the lights on a QX5 and
+not the V4L2 control.
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: OK
-sparse: ERRORS
+In qx5view:
 
-Detailed results are available here:
+void setlight() {
+#define CPIA2_IOC_SET_GPIO         _IOR('v', BASE_VIDIOCPRIVATE + 17, __u32)
+    ioctl(dev, CPIA2_IOC_SET_GPIO, light_setting);
+}
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-Full logs are available here:
+In the cpia2 driver:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+       /* CPIA2 extension to Video4Linux API */
+        case CPIA2_IOC_SET_GPIO:
+                retval = ioctl_set_gpio(arg, cam);
+                break;
 
-The V4L-DVB specification from this daily build is here:
+Yuck.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards,
+Andy
+
