@@ -1,55 +1,59 @@
 Return-path: <mchehab@pedra>
-Received: from mail.kapsi.fi ([217.30.184.167]:58983 "EHLO mail.kapsi.fi"
+Received: from cantor.suse.de ([195.135.220.2]:45706 "EHLO mx1.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754618Ab0I3JkP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 Sep 2010 05:40:15 -0400
-Message-ID: <4CA45AFC.2080807@iki.fi>
-Date: Thu, 30 Sep 2010 12:40:12 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S1751836Ab0IMPAt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Sep 2010 11:00:49 -0400
+Date: Mon, 13 Sep 2010 17:00:47 +0200 (CEST)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Jarod Wilson <jarod@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Ville Syrjala <syrjala@sci.fi>
+Subject: Re: [PATCH 0/6] Large scancode handling
+In-Reply-To: <20100908160908.GF22323@redhat.com>
+Message-ID: <alpine.LNX.2.00.1009131700120.26813@pobox.suse.cz>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv> <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz> <20100908142418.GC22323@redhat.com> <4C87A87A.4060102@redhat.com> <20100908152234.GE22323@redhat.com> <alpine.LNX.2.00.1009081723400.26813@pobox.suse.cz>
+ <20100908160908.GF22323@redhat.com>
 MIME-Version: 1.0
-To: "Yann E. MORIN" <yann.morin.1998@anciens.enib.fr>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] v4l/dvb: add support for AVerMedia AVerTV Red HD+ (A850T)
-References: <1285795123-11046-1-git-send-email-yann.morin.1998@anciens.enib.fr> <1285795123-11046-2-git-send-email-yann.morin.1998@anciens.enib.fr>
-In-Reply-To: <1285795123-11046-2-git-send-email-yann.morin.1998@anciens.enib.fr>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On 09/30/2010 12:18 AM, Yann E. MORIN wrote:
-> The AVerTV Red HD+ (A850T) is basically the same as the existing
-> AVerTV Volar Black HD 9A850), but is specific to the french market.
->
-> This is a collection of information gathered from the french support
-> forums for Ubuntu, which I tried to properly format:
->    http://forum.ubuntu-fr.org/viewtopic.php?pid=3322825
+On Wed, 8 Sep 2010, Jarod Wilson wrote:
 
->   	/* AverMedia AVerTV Volar Black HD (A850) device have bad EEPROM
-> -	   content :-( Override some wrong values here. */
-> +	   content :-( Override some wrong values here. Ditto for the
-> +	   AVerTV Red HD+ (A850T) device. */
->   	if (le16_to_cpu(udev->descriptor.idVendor) == USB_VID_AVERMEDIA&&
-> -	    le16_to_cpu(udev->descriptor.idProduct) == USB_PID_AVERMEDIA_A850) {
-> +	    ((le16_to_cpu(udev->descriptor.idProduct) == USB_PID_AVERMEDIA_A850) ||
-> +	     (le16_to_cpu(udev->descriptor.idProduct) == USB_PID_AVERMEDIA_A850T))) {
->   		deb_info("%s: AverMedia A850: overriding config\n", __func__);
->   		/* disable dual mode */
->   		af9015_config.dual_mode = 0;
+> > > > > It'll conflict a little bith with the tivo slide patch I posted yesterday,
+> > > > > but mostly just minor context changes. I can redo that patch on top of
+> > > > > these changes if that's preferred.
+> > > > 
+> > > > I can handle those context changes when merging the patches at linux-next and
+> > > > when merging upstream. We just need to sync in a way that Dmitry send his patch
+> > > > series before mine when sending them to Linus, and I'll take care of fixing the
+> > > > merge conflicts.
+> > > 
+> > > Ah, the specific conflicts I was referring here are confined to
+> > > drivers/hid/hid-input.c, and I sent the patch thinking it would go in via
+> > > the hid tree. It *is* for a remote, but its a pure HID device in this
+> > > case.
+> > 
+> > Umm, what patch are you talking about please? I don't seem to have 
+> > anything from you in my queue.
+> 
+> Gah. I suck. Forgot to cc you on it.
+> 
+> http://www.spinics.net/lists/linux-input/msg11007.html
+> 
+> Can resend and/or bounce you a copy if need be.
 
-Are you sure it does also have such bad eeprom content? Is that really 
-needed? What it happens without this hack?
+No need to resend, I'll dig it out from linux-input@ archives where I have 
+overlooked it and will start a discussion in that thread if needed, so 
+that we don't pollute this one.
 
+Thanks,
 
->   				.name = "AverMedia AVerTV Volar Black HD " \
-> -					"(A850)",
-> -				.cold_ids = {&af9015_usb_table[20], NULL},
-> +					"(A850) / AVerTV Volar Red HD+ (A850T)",
-> +				.cold_ids = {&af9015_usb_table[20],
-> +					&af9015_usb_table[33], NULL},
-
-Add new entry for that device (and leave A850 as untouched).
-
-Antti
 -- 
-http://palosaari.fi/
+Jiri Kosina
+SUSE Labs, Novell Inc.
