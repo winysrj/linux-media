@@ -1,144 +1,78 @@
 Return-path: <mchehab@pedra>
-Received: from d1.icnet.pl ([212.160.220.21]:33306 "EHLO d1.icnet.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751391Ab0IXLhA convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1403 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754850Ab0IMMYE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Sep 2010 07:37:00 -0400
-From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v2 3/6] SoC Camera: add driver for OV6650 sensor
-Date: Fri, 24 Sep 2010 13:36:33 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	"Discussion of the Amstrad E3 emailer hardware/software"
-	<e3-hacking@earth.li>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl> <201009240045.24669.jkrzyszt@tis.icnet.pl> <Pine.LNX.4.64.1009240811280.14966@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1009240811280.14966@axis700.grange>
+	Mon, 13 Sep 2010 08:24:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: matti.j.aaltonen@nokia.com
+Subject: Re: [PATCH v9 0/4] FM Radio driver.
+Date: Mon, 13 Sep 2010 14:23:43 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>
+References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com> <201009131406.42719.hverkuil@xs4all.nl> <1284380100.12913.57.camel@masi.mnp.nokia.com>
+In-Reply-To: <1284380100.12913.57.camel@masi.mnp.nokia.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
+Content-Type: Text/Plain;
   charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Content-Disposition: inline
-Message-Id: <201009241336.34277.jkrzyszt@tis.icnet.pl>
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009131423.44011.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Friday 24 September 2010 08:52:32 Guennadi Liakhovetski napisał(a):
-> On Fri, 24 Sep 2010, Janusz Krzysztofik wrote:
-> > Thursday 23 September 2010 18:06:15 Guennadi Liakhovetski napisał(a):
-> > > On Wed, 22 Sep 2010, Janusz Krzysztofik wrote:
-> > > > Wednesday 22 September 2010 11:12:46 Guennadi Liakhovetski napisaÅ
-(a):
-> > > > > On Sat, 11 Sep 2010, Janusz Krzysztofik wrote:
+On Monday, September 13, 2010 14:15:00 Matti J. Aaltonen wrote:
+> On Mon, 2010-09-13 at 14:06 +0200, ext Hans Verkuil wrote:
+> > On Monday, September 13, 2010 13:59:30 Matti J. Aaltonen wrote:
+> > > On Mon, 2010-09-13 at 13:51 +0200, ext Hans Verkuil wrote:
+> > > > On Monday, September 13, 2010 13:44:31 Matti J. Aaltonen wrote:
+> > > > > On Mon, 2010-09-13 at 13:32 +0200, ext Hans Verkuil wrote:
+> > > > > > > Anyway the difference between the "completely raw bits" and the "raw"
+> > > > > > > blocks is small. And I doubt the usefulness of supporting the
+> > > > > > > "completely raw" format.
+> > > > > > 
+> > > > > > I don't intend to support it now. But we need to realize that it exists and
+> > > > > > we have to plan for it.
+> > > > > 
+> > > > > OK. So we can have RDS_RAW_READWRITE and also RDS_RAW_BLOCK_READWRITE
+> > > > > (or something to the same effect)?
+> > > > 
+> > > > In theory, yes. My proposed API additions allow for this to be added in the
+> > > > future. Frankly, I don't think it is likely that it will be needed, but you
+> > > > never know.
+> > > 
+> > > Yes but I would like to add the RDS_RAW_BLOCK_READWRITE possibility
+> > > right away because that's what the wl1273 driver does now... I guess
+> > > that's OK?
+> > 
+> > Well, yeah. That's what I proposed with the new tuner caps:
+> 
+> OK, I didn't fully get that... sorry...
+> 
+> > V4L2_TUNER_CAP_RDS_READWRITE    0x0100  Use read()/write()
+> > V4L2_TUNER_CAP_RDS_CONTROLS     0x0200  Use RDS controls
+> 
+> But now I see:-)
+> 
+> We'll have:
+> 
+> V4L2_TUNER_CAP_RDS_BLOCKS     read()/write()
+> V4L2_TUNER_CAP_RDS_CONTROLS   RDS controls
+> V4L2_TUNER_CAP_RDS_RAW        also read()/write()
 
-...
-> > > whereas COMA and COML select
-> > > whether to scale it to a CIF or to a QCIF output.
-> >
-> > I think the answer is: not exactly. AFAICT, the COMA_QCIF bit selects
-> > whether to scale it down by 2 (QCIF selection) or not (CIF selection).
->
-> Ah! Ok, that it would be better to select different names for those bits.
+Right! That's the idea.
 
-I was trying to keep all names more or less consistent with the wording used 
-in the sensor documentation (which doesn't follow the v4l2 specification 
-unfortunately :). In this case we have:
+Regards,
 
-COMA  Common Control A
-	...
-	Bit[5]: Output format – resolution
-		0: CIF (352 x 288)
-		1: QCIF (176 x 144)
+	Hans
 
-So I could rename it to something like COMA_OUTFMT or COMA_RESOLUTION. Which 
-one sounds better for you?
+> 
+> B.R.
+> Matti.
+> 
+> 
+> 
+> 
 
-...
-> > > But I think your driver might have a problem with its cropping /
-> > > scaling handling. Let's see if I understand it right:
-> > >
-> > > 1. as cropcap you currently return QCIF or CIF, depending on the last
-> > > S_FMT,
-> >
-> > Yes.
-> >
-> > BTW, my S_FMT always calls ov6650_reset(), which resets the current crop
-> > to defaults.
->
-> Oh, does it mean all registers are reset to their defaults? That'd be not
-> good - no v4l(2) ioctl, AFAIK, should affect parameters, not directly
-> related to it. Even closing and reopening the video device node shouldn't
-> reset values. So, maybe you should drop that reset completely.
-
-Shouldn't I rather move it over into the ov6650_video_probe()?
-
-...
-> > > 2. in your s_fmt you accept only two output sizes: CIF or QCIF, that's
-> > > ok, if that's all you can configure with your driver.
-> >
-> > Not any longer :). I'm able to configure using current crop geometry
-> > only, either unscaled or scaled down by 2. I'm not able to configure
-> > neither exact CIF nor QCIF if my current crop window doesn't match,
-> > unless I'm allowed to change the crop from here.
->
-> Hm, but in your s_fmt you do:
->
-> +	switch (mf->width) {
-> +	case W_QCIF:
-> +		dev_dbg(&client->dev, "resolution QCIF\n");
-> +		priv->qcif = 1;
-> +		coma_set |= COMA_QCIF;
-> +		priv->pclk_max /= 2;
-> +		break;
-> +	case W_CIF:
-> +		dev_dbg(&client->dev, "resolution CIF\n");
-> +		priv->qcif = 0;
-> +		coma_mask |= COMA_QCIF;
-> +		break;
-> +	default:
-> +		dev_err(&client->dev, "unspported resolution!\n");
-> +		return -EINVAL;
-> +	}
->
-> So, you accept only CIF or QCIF as your output window. Or do you mean a v3
-> by your "not any longer?" 
-
-Exactly!
-
-> And yes, you are allowed to change your input 
-> sensor window, if that lets you configure your output format more
-> precisely. And v.v. The rule is - the most recent command wins.
-
-I see.
-
-...
-> No, there's nothing wrong with your sensor:) So, what I would do is:
->
-> 1. in your struct ov6650:
->
-> +	struct v4l2_rect	rect;		/* sensor cropping window */
-> +	bool			half_scale;	/* scale down output by 2 */
->
-> 2. in s_crop verify left, width, top, height, program them into the chip
-> and store in ->rect
->
-> 3. in g_crop just return values from ->rect
->
-> 4. in s_fmt you have to select an input rectangle, that would allow you to
-> possibly exactly configure the requested output format. Say, if you have a
-> 320x240 cropping configured and you get an s_fmt request for 120x90. You
-> can either set your input rectangle to 240x180 and scale it down by 2, or
-> set the rectangle directly to 120x90. Obviously, it's better to use
-> 240x180 and scale down, because that's closer to the current cropping of
-> 320x240. So, in s_fmt you select a new input rectangle _closest_ to the
-> currently configured one, that would allow you to configure the correct
-> output format. Then you set your ->rect with the new values and your
-> ->half_scale
->
-> 5. in g_fmt you return ->rect scaled with ->half_scale
->
-> Makes sense?
-
-Absolutely. Hope to submit v3 soon.
-
-Thanks,
-Janusz
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
