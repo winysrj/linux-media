@@ -1,45 +1,69 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:40561 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753493Ab0IKRdr (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41124 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753708Ab0IMRHU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Sep 2010 13:33:47 -0400
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Joe Perches <joe@perches.com>,
-	Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: [PATCHv2 2/2] media: cx23885: use '%pM' format to print MAC address
-Date: Sat, 11 Sep 2010 20:33:28 +0300
-Message-Id: <28b7342272db43227dcb3a06931e2ab4dd866fe3.1284226282.git.andy.shevchenko@gmail.com>
-In-Reply-To: <0ffd3b30fbaa2168656dd17fbdb290cf2e0a867e.1284226281.git.andy.shevchenko@gmail.com>
-References: <0ffd3b30fbaa2168656dd17fbdb290cf2e0a867e.1284226281.git.andy.shevchenko@gmail.com>
-In-Reply-To: <0ffd3b30fbaa2168656dd17fbdb290cf2e0a867e.1284226281.git.andy.shevchenko@gmail.com>
-References: <0ffd3b30fbaa2168656dd17fbdb290cf2e0a867e.1284226281.git.andy.shevchenko@gmail.com>
+	Mon, 13 Sep 2010 13:07:20 -0400
+Date: Mon, 13 Sep 2010 13:07:08 -0400
+Subject: Re: [GIT PATCHES FOR 2.6.37] Remove V4L1 support from the pwc
+ driver
+Message-ID: <761ll0kg0nlwqo7niwmdrbwo.1284397628447@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Thomas Kaiser <linux-dvb@kaiser-linux.li>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans de Goede <hdegoede@redhat.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Signed-off-by: Andy Shevchenko <andy.shevchenko@gmail.com>
----
- drivers/media/video/cx23885/cx23885-dvb.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
-index 3d70af2..0674ea1 100644
---- a/drivers/media/video/cx23885/cx23885-dvb.c
-+++ b/drivers/media/video/cx23885/cx23885-dvb.c
-@@ -1017,10 +1017,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 		/* Read entire EEPROM */
- 		dev->i2c_bus[0].i2c_client.addr = 0xa0 >> 1;
- 		tveeprom_read(&dev->i2c_bus[0].i2c_client, eeprom, sizeof(eeprom));
--		printk(KERN_INFO "TeVii S470 MAC= "
--				"%02X:%02X:%02X:%02X:%02X:%02X\n",
--				eeprom[0xa0], eeprom[0xa1], eeprom[0xa2],
--				eeprom[0xa3], eeprom[0xa4], eeprom[0xa5]);
-+		printk(KERN_INFO "TeVii S470 MAC= %pM\n", eeprom + 0xa0);
- 		memcpy(port->frontends.adapter.proposed_mac, eeprom + 0xa0, 6);
- 		break;
- 		}
--- 
-1.7.2.2
+VGhlIGNwaWEyIGRyaXZlciBkb2Vzbid0IGtub3cgYWJvdXQgdGhvc2UgdXNiIGlkcy4KClRoZSBU
+cmF2ZWxlciBtaWNyb3Njb3BlcyBsb29rIG1lY2hhbmljYWxseSBzaW1pbGFyIHRvIHRoZSBRWDMg
+YW5kIFFYNSwgYnV0IHRoZSBwaXhlbCByZXNvbHV0aW9uIGlzIGhpZ2hlciB0aGFuIHRoZSBRWDMu
+ClRoZSBRWDUgaGFzIHRoZSBzYW1lIHB4aWVsIHJlc29sdXRpb24gYXMgdGhlIFRyYXZlbGVyIE1v
+ZCAxLCBidXQgdGhlIE1vZCAyIHN1cHBvcnQgYSBoaWdoZXIgcmVzb2x1dGlvbi4KCkdpdmVuIGFs
+bCB0aGF0LCBJJ20gbm90IHN1cmUgd2UgY291bGQgdXNlIHlvdXIgdW5pdCBmb3IgcmVncmVzc2lv
+biB0ZXN0aW5nIG9mIGNoYW5nZXMgdG8gdGhlIGNwaWEyIGRyaXZlci4gIEl0IG1heSBiZSBwb3Nz
+aWJsZSB0byBzdXBwb3J0IHRoZSBUcmF2dmVsZXIgdW5kZXIgbGludXggZXZlbnR1YWxseSwgYnV0
+IGF0IGEgbWluaW11bSB5b3UnbGwgbmVlZCB0byBwcm92aWRlIGluZm9ybWF0aW9uIG9uIHRoZSBj
+aGlwcyB1c2VkIGluIHRoZSB1bml0LgoKVGhhbmtzIGZvciB0aGUgb2ZmZXIgb2YgaGVscC4KClJl
+Z2FyZHMsCkFuZHkKCgpUaG9tYXMgS2Fpc2VyIDxsaW51eC1kdmJAa2Fpc2VyLWxpbnV4LmxpPiB3
+cm90ZToKCj5PbiAwOS8xMy8yMDEwIDAzOjMwIFBNLCBBbmR5IFdhbGxzIHdyb3RlOgo+PiBPbiBN
+b24sIDIwMTAtMDktMTMgYXQgMDg6MjcgLTAzMDAsIE1hdXJvIENhcnZhbGhvIENoZWhhYiB3cm90
+ZToKPj4+IEVtIDEyLTA5LTIwMTAgMTg6MjgsIEFuZHkgV2FsbHMgZXNjcmV2ZXU6Cj4+Pj4gT24g
+U3VuLCAyMDEwLTA5LTEyIGF0IDE3OjEyIC0wNDAwLCBBbmR5IFdhbGxzIHdyb3RlOgo+Pj4+PiBP
+biBTdW4sIDIwMTAtMDktMTIgYXQgMjI6MjYgKzAyMDAsIEhhbnMgVmVya3VpbCB3cm90ZToKPj4+
+Pj4KPj4+Pj4+IEFuZCBvdGhlciBuZXdzIG9uIHRoZSBWNEwxIGZyb250Ogo+Pj4+Pgo+Pj4+Pj4g
+SSdtIHdhaXRpbmcgZm9yIHRlc3QgcmVzdWx0cyBvbiB0aGUgY3BpYTIgZHJpdmVyLiBJZiBpdCB3
+b3JrcywgdGhlbiB0aGUgVjRMMQo+Pj4+Pj4gc3VwcG9ydCBjYW4gYmUgcmVtb3ZlZCBmcm9tIHRo
+YXQgZHJpdmVyIGFzIHdlbGwuCj4+Pj4+Cj4+Pj4+IEZZSSwgdGhhdCB3aWxsIGJyZWFrIHRoaXMg
+MjAwNSB2aW50YWdlIHBpZWNlIG9mIFY0TDEgc29mdHdhcmUgcGVvcGxlIG1heQo+Pj4+PiBzdGls
+bCBiZSB1c2luZyBmb3IgdGhlIFFYNSBtaWNyb3Njb3BlOgo+Pj4+Cj4+Pj4gU29ycnksIHRoYXQg
+aXMgb2YgY291cnNlLCBpZiB0aGVyZSBpcyBubyBWNEwxIGNvbXBhdCBsYXllciBzdGlsbCBpbgo+
+Pj4+IHBsYWNlLgo+Pj4+Cj4+Pj4gQlRXLCBxeDV2aWV3IHVzZXMgYSBwcml2YXRlIGlvY3RsKCkg
+dG8gY2hhbmdlIHRoZSBsaWdodHMgb24gYSBRWDUgYW5kCj4+Pj4gbm90IHRoZSBWNEwyIGNvbnRy
+b2wuCj4+Pgo+Pj4gVGhlIGJldHRlciB3b3VsZCBiZSB0byBwb3J0IHF4NXZpZXcgdG8gdXNlIGxp
+YnY0bCBhbmQgaW1wbGVtZW50IHRoZSBuZXcKPj4+IGlsbHVtaW5hdG9yIGN0cmwgb24gdGhlIGRy
+aXZlciBhbmQgb24gdGhlIHVzZXJzcGFzZSBhcHAuIERvIHlvdSBoYXZlCj4+PiBoYXJkd2FyZSBm
+b3IgdGVzdGluZyB0aGlzPwo+Pgo+PiBOby4gIEkgZGlkIGNoZWNrIEFtYXpvbi5jb20gYW5kIGVC
+YXkgYW5kIHNhdyBhIFFYNSBmb3IgYWJvdXQgVVMkNzUgYWZ0ZXIKPj4gc2hpcHBpbmcgY29zdHM6
+Cj4+Cj4+IGh0dHA6Ly9jZ2kuZWJheS5jb20vd3MvZUJheUlTQVBJLmRsbD9WaWV3SXRlbSZpdGVt
+PTM4MDI2MjQwNjk4OSZydnJfaWQ9MTM5MTQ3MzU5OTU0JmNybHA9MV8yNjM2MDJfMjYzNjIyJlVB
+PUwqRiUzRiZHVUlEPTBiM2I1Mzc0MTJiMGEwZTIwM2U2MzAwNmZmOWJlY2IwJml0ZW1pZD0zODAy
+NjI0MDY5ODkmZmY0PTI2MzYwMl8yNjM2MjIKPj4KPj4gSSdtIG5vdCBzdXJlIGlmIEkgd2FudCB0
+byBidXkgb25lIGF0IHRoYXQgcHJpY2UsIHNpbmNlIEkgYWxyZWFkeSBoYXZlIGEKPj4gUVgzLgo+
+Pgo+PiBSZWdhcmRzLAo+PiBBbmR5Cj4+Cj4+IC0tCj4+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhp
+cyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1tZWRpYSIgaW4KPj4gdGhl
+IGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcKPj4gTW9yZSBt
+YWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5o
+dG1sCj4KPkhlbGxvIEFuZHksIE1hdXJvCj4KPkkgb3duIGEgVVNCIE1pY3Jvc2NvcGUgd2hpY2gg
+bG9va3MgcXVpdGUgdGhlIHNhbWUgYXMgdGhlIG9uZSBpbiB5b3VyIAo+bGluaywgYnV0IEkgZG9u
+J3Qga25vdyBpZiBpdCBpcyBzaW1pbGFyIHRvIHRoZSBRWDMgb3IgUVg1Lgo+SXQgaXMgY2FsbGVk
+ICJUcmF2ZWxlciBVU0ItTWlrcm9za29wIiBhbmQgbW9kZWwgbnVtYmVyIGlzICJTVSAxMDcxIi4K
+Pk9uZSBvZiB0aGlzIHR3bzoKPmh0dHA6Ly93d3cudHJhdmVsZXItc2VydmljZS5kZS9jbXMvaW5k
+ZXgucGhwP2lkPXRyYXZlbGVyLW9wdGlzY2hlLWdlcmFldGUtZGUKPgo+VVNCIElEOiAxODcxOjAx
+YjAgQXZlbyBUZWNobm9sb2d5IENvcnAuCj4KPkl0IGlzIG5vdCB3b3JraW5nIGluIFVidW50dSAx
+MC4wNCwga2VybmVsIEFNRDY0IDIuNi4zMi0yNC1nZW5lcmljLgo+Cj5JZiBpdCBpcyBhIFFYNSwg
+SSBjYW4gaGVscCB0ZXN0aW5nLgo+Cj5SZWdhcmRzLAo+VGhvbWFzCj4KPgo=
 
