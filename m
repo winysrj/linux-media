@@ -1,34 +1,43 @@
-Return-path: <mchehab@localhost>
-Received: from smtp-gw11.han.skanova.net ([81.236.55.20]:47457 "EHLO
-	smtp-gw11.han.skanova.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750799Ab0IBL4P (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Sep 2010 07:56:15 -0400
-Subject: [RESEND][PATCH 0/2] media, mfd: Add timberdale video-in driver
-From: Richard =?ISO-8859-1?Q?R=F6jfors?=
-	<richard.rojfors@pelagicore.com>
-To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Douglas Schilling Landgraf <dougsland@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Thu, 02 Sep 2010 13:56:12 +0200
-Message-ID: <1283428572.23309.24.camel@debian>
-Mime-Version: 1.0
+Return-path: <mchehab@localhost.localdomain>
+Received: from perceval.irobotique.be ([92.243.18.41]:41026 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751434Ab0IMGqn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Sep 2010 02:46:43 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] Illuminators and status LED controls
+Date: Mon, 13 Sep 2010 08:47:24 +0200
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+References: <20100906201105.4029d7e7@tele> <4C860972.6020602@redhat.com> <201009071147.22643.hverkuil@xs4all.nl>
+In-Reply-To: <201009071147.22643.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009130847.24841.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@localhost.localdomain>
 
-To follow are two patches.
+Hi Hans,
 
-The first adds the timberdale video-in driver to the media tree.
+On Tuesday 07 September 2010 11:47:22 Hans Verkuil wrote:
 
-The second adds it to the timberdale MFD driver.
+[snip]
 
-Samuel and Mauro hope you can support and solve the potential merge
-issue between your two trees.
+> But I can guarantee that we will get video devices with multiple leds in
+> the future.
 
-Thanks
---Richard
+What about devices with illumination LEDs that can be dimmed ?
 
+> So we need to think *now* about how to do this. One simple
+> option is of course to name the controls CID_ILLUMINATOR0 and CID_LED0.
+> That way we can easily add LED1, LED2, etc. later without running into
+> weird inconsistent control names.
+
+-- 
+Regards,
+
+Laurent Pinchart
