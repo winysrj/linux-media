@@ -1,66 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from smtp.nokia.com ([147.243.1.47]:59220 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751813Ab0IOLiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 07:38:07 -0400
-Subject: Re: [PATCH v9 3/4] V4L2: WL1273 FM Radio: Controls for the FM
- radio.
-From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
-Reply-To: matti.j.aaltonen@nokia.com
-To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
-	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
-In-Reply-To: <4C87DF68.7070900@redhat.com>
-References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1283168302-19111-2-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1283168302-19111-3-git-send-email-matti.j.aaltonen@nokia.com>
-	 <1283168302-19111-4-git-send-email-matti.j.aaltonen@nokia.com>
-	 <4C87DF68.7070900@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Wed, 15 Sep 2010 14:36:22 +0300
-Message-ID: <1284550582.25428.79.camel@masi.mnp.nokia.com>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:35543 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755057Ab0IMMOH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Sep 2010 08:14:07 -0400
+Received: from epmmp1 (mailout2.samsung.com [203.254.224.25])
+ by mailout2.samsung.com
+ (Sun Java(tm) System Messaging Server 7u3-15.01 64bit (built Feb 12 2010))
+ with ESMTP id <0L8O00416PZGQ840@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 13 Sep 2010 21:14:04 +0900 (KST)
+Received: from TNRNDGASPAPP1.tn.corp.samsungelectronics.net ([165.213.149.150])
+ by mmp1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0L8O003X6PZGVD@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 13 Sep 2010 21:14:04 +0900 (KST)
+Date: Mon, 13 Sep 2010 21:14:04 +0900
+From: "Kim, HeungJun" <riverful.kim@samsung.com>
+Subject: how can deal with the stream in only on-the-fly-output available HW
+ block??
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Message-id: <023401cb533d$2819c8c0$784d5a40$%kim@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: ko
+Content-transfer-encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi.
+Hi all,
+ 
+What if some SoC's specific HW block supports only on-the-fly mode for
+stream output??
+In this case, what is the suitable buf_type??
+I'm faced with such problem.
+ 
+As explanation for my situation briefly, the processor I deal with now has 3
+Multimedia H/W blocks, and the problem-one in the 3 blocks do the work for
+sensor-interfacing and pre-processing.
+It supports CCD or CMOS for input, and DMA or On-The-Fly for output.
+Exactly, it has two cases - DMA mode using memory bus & On-The-Fly mode
+connected with any other multimedia blocks.
+Also, it use only one format "Bayer RGB" in case of mode the DMA and
+On-The-Fly mode both.
+ 
+So, when the device operates in the On-The-Fly mode, is it alright the
+driver's current type is  V4L2_BUF_TYPE_VIDEO_CAPTURE? or something else?
+or if setting buf_type is wrong itself, what v4l2 API flow is right for
+driver or userspace??
 
-On Wed, 2010-09-08 at 21:09 +0200, ext Mauro Carvalho Chehab wrote:
-> > +static int wl1273_fm_vidioc_s_tuner(struct file *file, void *priv,
-> > +                                 struct v4l2_tuner *tuner)
-> > +{
-> > +     struct wl1273_device *radio = video_get_drvdata(video_devdata(file));
-> > +     struct wl1273_core *core = radio->core;
-> > +     int r = 0;
-> > +
-> > +     dev_dbg(radio->dev, "%s\n", __func__);
-> > +     dev_dbg(radio->dev, "tuner->index: %d\n", tuner->index);
-> > +     dev_dbg(radio->dev, "tuner->name: %s\n", tuner->name);
-> > +     dev_dbg(radio->dev, "tuner->capability: 0x%04x\n", tuner->capability);
-> > +     dev_dbg(radio->dev, "tuner->rxsubchans: 0x%04x\n", tuner->rxsubchans);
-> > +     dev_dbg(radio->dev, "tuner->rangelow: %d\n", tuner->rangelow);
-> > +     dev_dbg(radio->dev, "tuner->rangehigh: %d\n", tuner->rangehigh);
-> 
-> Ranges should be using tuner->rangelow/rangehigh to change band limits.
+the v4l2 buf_type enumeratinos is defined here, but I have no idea about
+suitable enum value in this case, also except for any other under enums too.
 
-I just want to make sure that I understand you correctly. So the idea is
-that with the g_tuner the driver can tell the frequency range that's
-supported by the chip in RX mode, which is 76MHz to 108 MHz. The lowest
-part is in the Japan band and the highest is in the Europe/USA band, the
-middle section can be either...
+V4L2_BUF_TYPE_VIDEO_CAPTURE        = 1,
+V4L2_BUF_TYPE_VIDEO_OUTPUT         = 2,
+V4L2_BUF_TYPE_VIDEO_OVERLAY        = 3,
+V4L2_BUF_TYPE_VBI_CAPTURE          = 4,
+V4L2_BUF_TYPE_VBI_OUTPUT           = 5,
+V4L2_BUF_TYPE_SLICED_VBI_CAPTURE   = 6,
+V4L2_BUF_TYPE_SLICED_VBI_OUTPUT    = 7,
+V4L2_BUF_TYPE_VIDEO_OUTPUT_OVERLAY = 8,
+V4L2_BUF_TYPE_PRIVATE              = 0x80,
 
-Then the application can choose any sub-range of the above by calling
-s_tuner with any values rangelow > 76MHz and rangehigh < 108MHz? After
-that the driver just deals with the given frequencies by changing the
-band if necessary?
-
-Cheers,
-Matti
-
-
-
-
+I'll thanks for any idea or answer.
+ 
+Regards,
+HeungJun, Kim
 
 
