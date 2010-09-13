@@ -1,40 +1,68 @@
 Return-path: <mchehab@pedra>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:55443
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754164Ab0IPUHv (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:46025 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752308Ab0IMMBS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 16:07:51 -0400
-Date: Thu, 16 Sep 2010 13:08:09 -0700 (PDT)
-Message-Id: <20100916.130809.176654647.davem@davemloft.net>
-To: samuel@sortiz.org
-Cc: arnd@arndb.de, codalist@coda.cs.cmu.edu, autofs@linux.kernel.org,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	hch@infradead.org, mikulas@artax.karlin.mff.cuni.cz,
-	Trond.Myklebust@netapp.com, vandrove@vc.cvut.cz, al@alarsen.net,
-	jack@suse.cz, dushistov@mail.ru, mingo@elte.hu,
-	netdev@vger.kernel.org, acme@ghostprotocols.net,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	andrew.hendry@gmail.com
-Subject: Re: Remaining BKL users, what to do
-From: David Miller <davem@davemloft.net>
-In-Reply-To: <1284656277.2962.0.camel@sortiz-mobl>
-References: <201009161632.59210.arnd@arndb.de>
-	<1284656277.2962.0.camel@sortiz-mobl>
+	Mon, 13 Sep 2010 08:01:18 -0400
+Subject: Re: [PATCH v9 0/4] FM Radio driver.
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>
+In-Reply-To: <201009131351.35487.hverkuil@xs4all.nl>
+References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <201009131332.15287.hverkuil@xs4all.nl>
+	 <1284378271.12913.42.camel@masi.mnp.nokia.com>
+	 <201009131351.35487.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 13 Sep 2010 14:59:30 +0300
+Message-ID: <1284379170.12913.50.camel@masi.mnp.nokia.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Samuel Ortiz <samuel@sortiz.org>
-Date: Thu, 16 Sep 2010 18:57:56 +0200
+On Mon, 2010-09-13 at 13:51 +0200, ext Hans Verkuil wrote:
+> On Monday, September 13, 2010 13:44:31 Matti J. Aaltonen wrote:
+> > On Mon, 2010-09-13 at 13:32 +0200, ext Hans Verkuil wrote:
+> > > > Anyway the difference between the "completely raw bits" and the "raw"
+> > > > blocks is small. And I doubt the usefulness of supporting the
+> > > > "completely raw" format.
+> > > 
+> > > I don't intend to support it now. But we need to realize that it exists and
+> > > we have to plan for it.
+> > 
+> > OK. So we can have RDS_RAW_READWRITE and also RDS_RAW_BLOCK_READWRITE
+> > (or something to the same effect)?
+> 
+> In theory, yes. My proposed API additions allow for this to be added in the
+> future. Frankly, I don't think it is likely that it will be needed, but you
+> never know.
 
-> On Thu, 2010-09-16 at 16:32 +0200, Arnd Bergmann wrote:
->> net/appletalk:
->> net/ipx/af_ipx.c:
->> net/irda/af_irda.c:
->> 	Can probably be saved from retirement in drivers/staging if the
->> 	maintainers still care.
-> I'll take care of the IrDA part.
+Yes but I would like to add the RDS_RAW_BLOCK_READWRITE possibility
+right away because that's what the wl1273 driver does now... I guess
+that's OK?
 
-Thanks a lot Sam.
+B.R.
+Matti
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> > 
+> > B.R.
+> > Matti
+> > 
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > 
+> 
+
+
