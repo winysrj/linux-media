@@ -1,59 +1,48 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:36844 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753654Ab0ILV2H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Sep 2010 17:28:07 -0400
-Subject: Re: [GIT PATCHES FOR 2.6.37] Remove V4L1 support from the pwc
- driver
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <1284325962.2394.24.camel@localhost>
-References: <201009122226.11970.hverkuil@xs4all.nl>
-	 <1284325962.2394.24.camel@localhost>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 12 Sep 2010 17:28:59 -0400
-Message-ID: <1284326939.2394.29.camel@localhost>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from mail.perches.com ([173.55.12.10]:1843 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755173Ab0IMTsZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Sep 2010 15:48:25 -0400
+From: Joe Perches <joe@perches.com>
+To: linux-kernel@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	mjpeg-users@lists.sourceforge.net, linux-media@vger.kernel.org
+Subject: [PATCH 07/25] drivers/media: Use static const char arrays
+Date: Mon, 13 Sep 2010 12:47:45 -0700
+Message-Id: <6b7055a2e53510e8903828a53cad300a7d5bb912.1284406638.git.joe@perches.com>
+In-Reply-To: <cover.1284406638.git.joe@perches.com>
+References: <cover.1284406638.git.joe@perches.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
 
-On Sun, 2010-09-12 at 17:12 -0400, Andy Walls wrote:
-> On Sun, 2010-09-12 at 22:26 +0200, Hans Verkuil wrote:
-> 
-> > And other news on the V4L1 front:
-> 
-> > I'm waiting for test results on the cpia2 driver. If it works, then the V4L1
-> > support can be removed from that driver as well.
-> 
-> FYI, that will break this 2005 vintage piece of V4L1 software people may
-> still be using for the QX5 microscope:
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ drivers/media/video/zoran/zoran_device.c |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-Sorry, that is of course, if there is no V4L1 compat layer still in
-place.
-
-BTW, qx5view uses a private ioctl() to change the lights on a QX5 and
-not the V4L2 control.
-
-In qx5view:
-
-void setlight() {
-#define CPIA2_IOC_SET_GPIO         _IOR('v', BASE_VIDIOCPRIVATE + 17, __u32)
-    ioctl(dev, CPIA2_IOC_SET_GPIO, light_setting);
-}
-
-
-In the cpia2 driver:
-
-       /* CPIA2 extension to Video4Linux API */
-        case CPIA2_IOC_SET_GPIO:
-                retval = ioctl_set_gpio(arg, cam);
-                break;
-
-Yuck.
-
-Regards,
-Andy
+diff --git a/drivers/media/video/zoran/zoran_device.c b/drivers/media/video/zoran/zoran_device.c
+index 6f846ab..ea8a1e9 100644
+--- a/drivers/media/video/zoran/zoran_device.c
++++ b/drivers/media/video/zoran/zoran_device.c
+@@ -1470,8 +1470,7 @@ zoran_irq (int             irq,
+ 		    (zr->codec_mode == BUZ_MODE_MOTION_DECOMPRESS ||
+ 		     zr->codec_mode == BUZ_MODE_MOTION_COMPRESS)) {
+ 			if (zr36067_debug > 1 && (!zr->frame_num || zr->JPEG_error)) {
+-				char sc[] = "0000";
+-				char sv[5];
++				char sv[sizeof("0000")];
+ 				int i;
+ 
+ 				printk(KERN_INFO
+@@ -1481,7 +1480,7 @@ zoran_irq (int             irq,
+ 				       zr->jpg_settings.field_per_buff,
+ 				       zr->JPEG_missed);
+ 
+-				strcpy(sv, sc);
++				strcpy(sv, "0000");
+ 				for (i = 0; i < 4; i++) {
+ 					if (le32_to_cpu(zr->stat_com[i]) & 1)
+ 						sv[i] = '1';
+-- 
+1.7.3.rc1
 
