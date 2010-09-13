@@ -1,59 +1,67 @@
 Return-path: <mchehab@pedra>
-Received: from teleport-europe.com ([81.169.165.79]:42121 "EHLO
-	www.transplaneta.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751138Ab0ICIwO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Sep 2010 04:52:14 -0400
-Message-ID: <7356A86518AE46E8AC4A1CD5994000A6@KarstenSiebert>
-From: "Karsten Siebert" <Karsten.Siebert@transplaneta.com>
-To: <linux-media@vger.kernel.org>, <mo.ucina@gmail.com>
-References: <4C3CB05E.3080002@gmail.com><4C3CB704.1040908@ginder.xs4all.nl>	<AANLkTim0hthD272S1Z3CX-CEUMyAwF__Od0RBIzh0-zk@mail.gmail.com><AANLkTikpaA8qLjThqwsSQUpf9jYCcogjIMJvEkNdCD74@mail.gmail.com> <4C80B501.5000902@gmail.com>
-In-Reply-To: <4C80B501.5000902@gmail.com>
-Subject: Re: [linux-dvb] TeVii S470 periodically fails to tune/lock - needspoweroff
-Date: Fri, 3 Sep 2010 10:46:08 +0200
+Received: from bombadil.infradead.org ([18.85.46.34]:57021 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752710Ab0IMVuR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Sep 2010 17:50:17 -0400
+Message-ID: <4C8E9C95.8070201@infradead.org>
+Date: Mon, 13 Sep 2010 18:50:13 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="iso-8859-1";
-	reply-type=response
+To: Joe Perches <joe@perches.com>
+CC: linux-kernel@vger.kernel.org, mjpeg-users@lists.sourceforge.net,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 07/25] drivers/media: Use static const char arrays
+References: <cover.1284406638.git.joe@perches.com> <6b7055a2e53510e8903828a53cad300a7d5bb912.1284406638.git.joe@perches.com>
+In-Reply-To: <6b7055a2e53510e8903828a53cad300a7d5bb912.1284406638.git.joe@perches.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Check the temperature of the adapter. It is getting quite hot. I use fans to 
-cool it, which avoids this kind of problems.
+Em 13-09-2010 16:47, Joe Perches escreveu:
+> Signed-off-by: Joe Perches <joe@perches.com>
+> ---
+>  drivers/media/video/zoran/zoran_device.c |    5 ++---
+>  1 files changed, 2 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/zoran/zoran_device.c b/drivers/media/video/zoran/zoran_device.c
+> index 6f846ab..ea8a1e9 100644
+> --- a/drivers/media/video/zoran/zoran_device.c
+> +++ b/drivers/media/video/zoran/zoran_device.c
+> @@ -1470,8 +1470,7 @@ zoran_irq (int             irq,
+>  		    (zr->codec_mode == BUZ_MODE_MOTION_DECOMPRESS ||
+>  		     zr->codec_mode == BUZ_MODE_MOTION_COMPRESS)) {
+>  			if (zr36067_debug > 1 && (!zr->frame_num || zr->JPEG_error)) {
+> -				char sc[] = "0000";
+> -				char sv[5];
+> +				char sv[sizeof("0000")];
+>  				int i;
+>  
+>  				printk(KERN_INFO
+> @@ -1481,7 +1480,7 @@ zoran_irq (int             irq,
+>  				       zr->jpg_settings.field_per_buff,
+>  				       zr->JPEG_missed);
+>  
+> -				strcpy(sv, sc);
+> +				strcpy(sv, "0000");
+>  				for (i = 0; i < 4; i++) {
+>  					if (le32_to_cpu(zr->stat_com[i]) & 1)
+>  						sv[i] = '1';
+
+This looks ugly to me, as someone may change the string at strcpy and not change at sizeof.
+Could you please try to work on a better alternative?
+
+The cleaner way seems to be to rewrite it as:
+
+#define BUZ_MODE_STAT	4
+
+char sv[BUZ_MODE_STAT + 1];
+...
+for (i = 0; i < BUZ_MODE_STAT; i++)
+	sv[i] = (le32_to_cpu(zr->stat_com[i]) & 1)? '1' : '0';
 
 
---------------------------------------------------
-From: "O&M Ugarcina" <mo.ucina@gmail.com>
-Sent: Friday, September 03, 2010 10:42 AM
-To: <linux-media@vger.kernel.org>
-Cc: <linux-dvb@linuxtv.org>
-Subject: [linux-dvb] TeVii S470 periodically fails to tune/lock - 
-needspoweroff
 
->  Hello Guys,
->
-> I have been using my TeVii S470 DVBS2 card for about one month . I am 
-> using it with mythtv on fedora 12 using latest kernel , and compiled the 
-> latest v4l drivers . The sensitivity and picture is very good both on dvbs 
-> and dvbs2 transponders , very happy with that . However several times 
-> already when trying to watch live tv on myth the channel failed to tune . 
-> Usually happens in the morning after box was running 24x7 for a few days . 
-> The only way to restore functionality is to do a power off and wait a 
-> couple of mins then power on . If I just do a reboot , this does not help 
-> . Strange thing is that I see nothing unusual in the mythtv logs or 
-> dmesg/messages log . When the card is in this no-lock state , it will not 
-> tune into any transponder even when I run scandvb . After power reset 
-> everything works again for a few more days . Any info welcome .
->
->
-> Best Regards
->
-> Milorad
->
-> _______________________________________________
-> linux-dvb users mailing list
-> For V4L/DVB development, please use instead linux-media@vger.kernel.org
-> linux-dvb@linuxtv.org
-> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb 
-
+Cheers,
+Mauro
