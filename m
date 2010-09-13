@@ -1,88 +1,65 @@
-Return-path: <mchehab@localhost>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:24208 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753834Ab0IESog (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Sep 2010 14:44:36 -0400
-Subject: Re: [PATCH] LED control
-From: Andy Walls <awalls@md.metrocast.net>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Jean-Francois Moine <moinejf@free.fr>, linux-media@vger.kernel.org
-In-Reply-To: <4C83A12F.1070009@redhat.com>
-References: <20100904131048.6ca207d1@tele>	<4C834D46.5030801@redhat.com>
-	 <20100905105627.0d5d3dab@tele>  <4C83A12F.1070009@redhat.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 05 Sep 2010 14:43:27 -0400
-Message-ID: <1283712207.2057.77.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+Return-path: <mchehab@pedra>
+Received: from smtp.nokia.com ([147.243.1.47]:40583 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750920Ab0IMP14 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Sep 2010 11:27:56 -0400
+Message-ID: <4C8E42F8.1080201@maxwell.research.nokia.com>
+Date: Mon, 13 Sep 2010 18:27:52 +0300
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Ivan Ivanov <iivanov@mm-sol.com>
+Subject: Re: [Query] Is there a spec to request video sensor information?
+References: <A24693684029E5489D1D202277BE894472336FC3@dlee02.ent.ti.com>
+In-Reply-To: <A24693684029E5489D1D202277BE894472336FC3@dlee02.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-On Sun, 2010-09-05 at 15:54 +0200, Hans de Goede wrote:
+Aguirre, Sergio wrote:
 > Hi,
-> 
-> On 09/05/2010 10:56 AM, Jean-Francois Moine wrote:
-> > On Sun, 05 Sep 2010 09:56:54 +0200
-> > Hans de Goede<hdegoede@redhat.com>  wrote:
-> >
-> >> I think that using one control for both status leds (which is what we
-> >> are usually talking about) and illuminator(s) is a bad idea. I'm fine
-> >> with standardizing these, but can we please have 2 CID's one for
-> >> status lights and one for the led. Esp, as I can easily see us
-> >> supporting a microscope in the future where the microscope itself or
-> >> other devices with the same bridge will have a status led, so then we
-> >> will need 2 separate controls anyways.
-> >
-> > Hi Hans,
-> >
-> > I was not thinking about the status light (I do not see any other usage
-> > for it), but well about illuminators which I saw only in microscopes.
-> >
-> 
-> Ah, ok thanks for clarifying. For some more on this see p.s. below.
-> 
-> > So, which is the better name? V4L2_CID_LAMPS? V4L2_CID_ILLUMINATORS?
-> 
-> I think that V4L2_CID_ILLUMINATORS together with a comment in the .h
-> and explanation in the spec that this specifically applies to microscopes
-> would be good.
 
-I concur with ILLUMINATORS.  The word makes it very clear the control is
-about actively putting light on a subject.  A quick Goggle search shows
-that the term 'illuminator" appears to apply to photography and IR
-cameras as well.
+Hi Sergio,
 
-
-> Regards,
+> I was wondering if there exists a current standard way to query a
+> Imaging sensor driver for knowing things like the signal vert/horz blanking time.
 > 
-> Hans
+> In an old TI custom driver, we used to have a private IOCTL in the sensor
+> Driver we interfaced with the omap3 ISP, which was basically reporting:
 > 
-> p.s.
+> - Active resolution (Actual image size)
+> - Full resolution (Above size + dummy pixel columns/rows representing blanking times)
 > 
-> I think it would be good to have a V4L2_CID_STATUS_LED too. In many drivers
-> we are explicitly controlling the led by register writes. Some people may very
-> well prefer the led to always be off. I know that uvc logitech cameras have
-> controls for the status led through the extended uvc controls. Once we have
-> a standardized LED control, we can move the logitech uvc cams over from
-> using their own private one to this one.
+> However I resist to keep importing that custom interface, since I think its
+> Something that could be already part of an standard API.
 
-I saw two use cases mentioned for status LEDs:
+The N900 sensor drivers currently use private controls for this purpose.
+That is an issue which should be resolved. I agree there should be a
+uniform, standard way to access this information.
 
-1. always off
-2. driver automatically controls the LEDs.
+What we currently have is this, not in upstream:
 
-Can't that choice be handled with a module option, is there a case where
-one needs more control?
+---
+/* SMIA-type sensor information */
+#define V4L2_CID_MODE_CLASS_BASE                (V4L2_CTRL_CLASS_MODE |
+0x900)
+#define V4L2_CID_MODE_CLASS                     (V4L2_CTRL_CLASS_MODE | 1)
+#define V4L2_CID_MODE_FRAME_WIDTH               (V4L2_CID_MODE_CLASS_BASE+1)
+#define V4L2_CID_MODE_FRAME_HEIGHT              (V4L2_CID_MODE_CLASS_BASE+2)
+#define V4L2_CID_MODE_VISIBLE_WIDTH             (V4L2_CID_MODE_CLASS_BASE+3)
+#define V4L2_CID_MODE_VISIBLE_HEIGHT            (V4L2_CID_MODE_CLASS_BASE+4)
+#define V4L2_CID_MODE_PIXELCLOCK                (V4L2_CID_MODE_CLASS_BASE+5)
+#define V4L2_CID_MODE_SENSITIVITY               (V4L2_CID_MODE_CLASS_BASE+6)
+---
+
+The pixel clock is read-only but some of the others should likely be
+changeable.
 
 Regards,
-Andy
 
-> Once this is in place I would like to build some framework in to gspca
-> for supporting this control in gspca (the control would be handled by the core,
-> and sub drivers would have an sd_set_led function).
-> 
-> While at it could you write a proposal / patch for adding this control to the
-> spec as well ?
-
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
