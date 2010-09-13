@@ -1,138 +1,96 @@
-Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:61813 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751127Ab0I0U5x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 16:57:53 -0400
-Message-ID: <4CA10545.4010204@redhat.com>
-Date: Mon, 27 Sep 2010 17:57:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Return-path: <mchehab@localhost.localdomain>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1681 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750843Ab0IMJOP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Sep 2010 05:14:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: RFC: Replacing the 'Device Naming' section in the V4L spec
+Date: Mon, 13 Sep 2010 11:14:12 +0200
+Cc: linux-media@vger.kernel.org
+References: <201009111549.53435.hverkuil@xs4all.nl> <1284214252.2053.72.camel@morgan.silverblock.net>
+In-Reply-To: <1284214252.2053.72.camel@morgan.silverblock.net>
 MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for 2.6.36] V4L/DVB fixes
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009131114.12523.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@localhost.localdomain>
 
-The following changes since commit 32163f4b2cef28a5aab8b226ffecfc6379a53786:
+On Saturday, September 11, 2010 16:10:52 Andy Walls wrote:
+> On Sat, 2010-09-11 at 15:49 +0200, Hans Verkuil wrote:
+> > I'm working on the V4L2 DocBook spec and when reading through the "Device Naming"
+> > subsection of the "Opening and Closing Devices" section in the first chapter I
+> > realized that it is really out of date. The text is in this file:
+> > 
+> > Documentation/DocBook/v4l/common.xml
+> > 
+> > With udev pretty much everything in that section is useless (and probably confusing
+> > for first-time readers).
+> > 
+> > I propose that we replace it with something short like this:
+> > 
+> > -----------------------------------------------------
+> > Device Naming
+> > 
+> > V4L2 drivers create one or more device nodes with major number 81 and a minor number
+> > between 0 and 255. Three types of devices can be created:
+> > 
+> > /dev/videoX	Used for video capture/output/overlay.
+> 
+> PCM audio capture
 
-  alpha: fix usp value in multithreaded coredumps (2010-09-25 14:38:13 -0700)
+I don't really dare mention this :-) This really should have been an alsa
+device.
 
-are available in the git repository at:
-  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+PCM audio capture is really a big hack. This is a topic for a v4l summit to
+decide what to do with this. And I guess it depends on whether alsa can be
+extended with proper time stamping.
 
-Andy Walls (1):
-      V4L/DVB: cx25840: Fix typo in volume control initialization: 65335 vs. 65535
+> MPEG index (metadata)
 
-Baruch Siach (1):
-      V4L/DVB: mx2_camera: fix a race causing NULL dereference
+I think is a bit too detailed for an overview section.
 
-Dan Carpenter (5):
-      V4L/DVB: unlock on error path
-      V4L/DVB: IR: ir-raw-event: null pointer dereference
-      V4L/DVB: opera1: remove unneeded NULL check
-      V4L/DVB: pvrusb2: remove unneeded NULL checks
-      V4L/DVB: saa7164: move dereference under NULL check
+> 
+> > /dev/radioX	Used for radio and RDS tuning/modulating.
+> > /dev/vbiX	Used for VBI capture and output.
+> > -----------------------------------------------------
+> > 
+> > Is there anything else that should be in here?
+> 
+> You may want to mention, without fully specifying, that V4L2 drivers can
+> present ALSA device nodes as well.
 
-Dan Rosenberg (1):
-      V4L/DVB: ivtvfb: prevent reading uninitialized stack memory
+This is covered in the 'Related Devices' section.
 
-Dmitri Belimov (1):
-      V4L/DVB: Fix regression for BeholdTV Columbus
+> I don't think the V4L2 drivers have a really uniform convention for
+> their "card" name exported to ALSA nor the ALSA mixer control names.
+> 
+> To document the Media Controller, the document will eventually have to
+> mention ALSA, framebuffer, LED, etc. APIs anyway.
 
-Hans Verkuil (2):
-      V4L/DVB: ivtv: convert gpio subdev to new control framework
-      V4L/DVB: videobuf-dma-sg: set correct size in last sg element
+Of course.
 
-Ionut Gabriel Popescu (1):
-      V4L/DVB: mt9v022.c: Fixed compilation warning
+Regards,
 
-Jarod Wilson (1):
-      V4L/DVB: mceusb: add two new ASUS device IDs
+	Hans
 
-Jason Wang (1):
-      V4L/DVB: gspca - main: Fix a crash of some webcams on ARM arch
+>  
+> 
+> > BTW, I'm working on editing the 'Related Devices', 'Multiple Opens' and 
+> > 'Shared Data Streams' as well.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> 
+> Regards,
+> Andy
+> 
+> 
+> 
 
-Jean-François Moine (1):
-      V4L/DVB: gspca - sn9c20x: Bad transfer size of Bayer images
-
-Laurent Pinchart (3):
-      V4L/DVB: uvcvideo: Add support for Miricle 307K thermal webcam
-      V4L/DVB: uvcvideo: Fix support for Medion Akoya All-in-one PC integrated webcam
-      V4L/DVB: uvcvideo: Restrict frame rates for Chicony CNF7129 webcam
-
-Mauro Carvalho Chehab (3):
-      V4L/DVB: Don't identify PV SBTVD Hybrid as a DibCom device
-      V4L/DVB: rc-core: increase repeat time
-      V4L/DVB: cx231xx: Avoid an OOPS when card is unknown (card=0)
-
-Maxim Levitsky (4):
-      V4L/DVB: IR: Kconfig fixes
-      V4L/DVB: IR: fix duty cycle capability
-      V4L/DVB: IR: fix keys beeing stuck down forever
-      V4L/DVB: IR: extend MCE keymap
-
-Michael Grzeschik (2):
-      V4L/DVB: mt9m111: cropcap and s_crop check if type is VIDEO_CAPTURE
-      V4L/DVB: mt9m111: added current colorspace at g_fmt
-
-Olivier Grenie (2):
-      V4L/DVB: dib7770: enable the current mirror
-      V4L/DVB: dib7000p: add disable sample and hold, and diversity delay parameter
-
-Pawel Osciak (2):
-      V4L/DVB: v4l: mem2mem_testdev: fix errorenous comparison
-      V4L/DVB: v4l: mem2mem_testdev: add missing release for video_device
-
-Randy Dunlap (1):
-      V4L/DVB: tm6000: depends on IR_CORE
-
-Richard Zidlicky (1):
-      V4L/DVB: dvb: fix smscore_getbuffer() logic
-
-Stefan Ringel (1):
-      V4L/DVB: tm6000: bugfix data handling
-
-lawrence rust (1):
-      V4L/DVB: cx88: Kconfig: Remove EXPERIMENTAL dependency from VIDEO_CX88_ALSA
-
- drivers/media/IR/Kconfig                     |    2 +
- drivers/media/IR/ir-keytable.c               |    9 +++-
- drivers/media/IR/ir-lirc-codec.c             |    2 +-
- drivers/media/IR/ir-raw-event.c              |    4 +-
- drivers/media/IR/keymaps/rc-rc6-mce.c        |    3 +
- drivers/media/IR/mceusb.c                    |    4 ++
- drivers/media/dvb/dvb-usb/dib0700_core.c     |    3 -
- drivers/media/dvb/dvb-usb/dib0700_devices.c  |   56 +++++++++++++++++++++++-
- drivers/media/dvb/dvb-usb/opera1.c           |    4 +-
- drivers/media/dvb/frontends/dib7000p.c       |    8 +++-
- drivers/media/dvb/frontends/dib7000p.h       |    5 ++
- drivers/media/dvb/siano/smscoreapi.c         |   31 +++++--------
- drivers/media/video/cx231xx/Makefile         |    1 +
- drivers/media/video/cx231xx/cx231xx-cards.c  |   17 +++++---
- drivers/media/video/cx25840/cx25840-core.c   |    2 +-
- drivers/media/video/cx88/Kconfig             |    2 +-
- drivers/media/video/gspca/gspca.c            |    1 +
- drivers/media/video/gspca/sn9c20x.c          |    3 +-
- drivers/media/video/ivtv/ivtv-driver.c       |    1 +
- drivers/media/video/ivtv/ivtv-driver.h       |    1 +
- drivers/media/video/ivtv/ivtvfb.c            |    2 +
- drivers/media/video/mem2mem_testdev.c        |    3 +-
- drivers/media/video/mt9m111.c                |    8 +++-
- drivers/media/video/mt9v022.c                |    3 -
- drivers/media/video/mx2_camera.c             |    4 ++
- drivers/media/video/pvrusb2/pvrusb2-ctrl.c   |    6 +-
- drivers/media/video/s5p-fimc/fimc-core.c     |    3 +-
- drivers/media/video/saa7134/saa7134-cards.c  |   10 ++--
- drivers/media/video/saa7164/saa7164-buffer.c |    5 +-
- drivers/media/video/uvc/uvc_driver.c         |   33 ++++++++++++++
- drivers/media/video/uvc/uvcvideo.h           |    1 +
- drivers/media/video/videobuf-dma-sg.c        |   11 +++--
- drivers/staging/tm6000/Kconfig               |    2 +-
- drivers/staging/tm6000/tm6000-input.c        |   61 ++++++++++++++++---------
- include/media/videobuf-dma-sg.h              |    1 +
- 35 files changed, 228 insertions(+), 84 deletions(-)
-
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
