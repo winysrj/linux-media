@@ -1,153 +1,93 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:55869 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751278Ab0IZRvM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 13:51:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH 2/9] v4l: Group media bus pixel codes by types and sort them alphabetically
-Date: Sun, 26 Sep 2010 19:51:22 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com, g.liakhovetski@gmx.de
-References: <1285517612-20230-1-git-send-email-laurent.pinchart@ideasonboard.com> <201009261934.50895.laurent.pinchart@ideasonboard.com> <201009261944.38685.hverkuil@xs4all.nl>
-In-Reply-To: <201009261944.38685.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:54444 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751728Ab0IMOic (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Sep 2010 10:38:32 -0400
+Message-ID: <4C8E374B.4050103@redhat.com>
+Date: Mon, 13 Sep 2010 11:38:03 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Andy Walls <awalls@md.metrocast.net>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	eduardo.valentin@nokia.com,
+	ext Eino-Ville Talvala <talvala@stanford.edu>
+Subject: Re: [PATCH] Illuminators and status LED controls
+References: <b7de5li57kosi2uhdxrgxyq9.1283891610189@email.android.com>	 <4C88C9AA.2060405@redhat.com>	 <201009130904.19143.laurent.pinchart@ideasonboard.com>	 <201009131006.06967.hverkuil@xs4all.nl>  <4C8E0ED2.4010403@redhat.com> <1284385792.2031.87.camel@morgan.silverblock.net>
+In-Reply-To: <1284385792.2031.87.camel@morgan.silverblock.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009261951.23196.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
-
-On Sunday 26 September 2010 19:44:38 Hans Verkuil wrote:
-> On Sunday, September 26, 2010 19:34:49 Laurent Pinchart wrote:
-> > On Sunday 26 September 2010 19:29:53 Hans Verkuil wrote:
-> > > On Sunday, September 26, 2010 18:13:25 Laurent Pinchart wrote:
-> > > > Adding new pixel codes at the end of the enumeration will soon create
-> > > > a mess, so sort the pixel codes by type and then sort them
-> > > > alphabetically.
-> > > > 
-> > > > As the codes are part of the kernel ABI their value can't change when
-> > > > a new code is inserted in the enumeration, so they are given an
-> > > > explicit numerical value. When inserting a new pixel code developers
-> > > > must use and update the V4L2_MBUS_FMT_LAST value.
-> > > > 
-> > > > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > ---
-> > > > 
-> > > >  include/linux/v4l2-mediabus.h |   54
-> > > >  ++++++++++++++++++++++++---------------- 1 files changed, 32
-> > > >  insertions(+), 22 deletions(-)
-> > > > 
-> > > > diff --git a/include/linux/v4l2-mediabus.h
-> > > > b/include/linux/v4l2-mediabus.h index 127512a..bc637a5 100644
-> > > > --- a/include/linux/v4l2-mediabus.h
-> > > > +++ b/include/linux/v4l2-mediabus.h
-> > > > @@ -24,31 +24,41 @@
-> > > > 
-> > > >   * transferred first, "BE" means that the most significant bits are
-> > > >   transferred * first, and "PADHI" and "PADLO" define which bits -
-> > > >   low or high, in the * incomplete high byte, are filled with
-> > > >   padding bits.
-> > > > 
-> > > > + *
-> > > > + * The pixel codes are grouped by types and (mostly) sorted
-> > > > alphabetically. As + * their value can't change when a new pixel code
-> > > > is inserted in the + * enumeration, they are explicitly given a
-> > > > numerical value. When inserting a + * new pixel code use and update
-> > > > the V4L2_MBUS_FMT_LAST value.
-> > > > 
-> > > >   */
-> > > >  
-> > > >  enum v4l2_mbus_pixelcode {
-> > > >  
-> > > >  	V4L2_MBUS_FMT_FIXED = 1,
-> > > > 
-> > > > -	V4L2_MBUS_FMT_YUYV8_2X8,
-> > > > -	V4L2_MBUS_FMT_YVYU8_2X8,
-> > > > -	V4L2_MBUS_FMT_UYVY8_2X8,
-> > > > -	V4L2_MBUS_FMT_VYUY8_2X8,
-> > > > -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-> > > > -	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-> > > > -	V4L2_MBUS_FMT_RGB565_2X8_LE,
-> > > > -	V4L2_MBUS_FMT_RGB565_2X8_BE,
-> > > > -	V4L2_MBUS_FMT_SBGGR8_1X8,
-> > > > -	V4L2_MBUS_FMT_SBGGR10_1X10,
-> > > > -	V4L2_MBUS_FMT_GREY8_1X8,
-> > > > -	V4L2_MBUS_FMT_Y10_1X10,
-> > > > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-> > > > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-> > > > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-> > > > -	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-> > > > -	V4L2_MBUS_FMT_SGRBG8_1X8,
-> > > > -	V4L2_MBUS_FMT_SBGGR12_1X12,
-> > > > -	V4L2_MBUS_FMT_YUYV8_1_5X8,
-> > > > -	V4L2_MBUS_FMT_YVYU8_1_5X8,
-> > > > -	V4L2_MBUS_FMT_UYVY8_1_5X8,
-> > > > -	V4L2_MBUS_FMT_VYUY8_1_5X8,
-> > > > +	/* RGB */
-> > > > +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 7,
-> > > > +	V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE = 6,
-> > > > +	V4L2_MBUS_FMT_RGB565_2X8_BE = 9,
-> > > > +	V4L2_MBUS_FMT_RGB565_2X8_LE = 8,
-> > > > +	/* YUV (including grey) */
-> > > > +	V4L2_MBUS_FMT_GREY8_1X8 = 12,
-> > > > +	V4L2_MBUS_FMT_Y10_1X10 = 13,
-> > > > +	V4L2_MBUS_FMT_YUYV8_1_5X8 = 20,
-> > > > +	V4L2_MBUS_FMT_YVYU8_1_5X8 = 21,
-> > > > +	V4L2_MBUS_FMT_UYVY8_1_5X8 = 22,
-> > > > +	V4L2_MBUS_FMT_VYUY8_1_5X8 = 23,
-> > > > +	V4L2_MBUS_FMT_YUYV8_2X8 = 2,
-> > > > +	V4L2_MBUS_FMT_UYVY8_2X8 = 4,
-> > > > +	V4L2_MBUS_FMT_YVYU8_2X8 = 3,
-> > > > +	V4L2_MBUS_FMT_VYUY8_2X8 = 5,
-> > > > +	/* Bayer */
-> > > > +	V4L2_MBUS_FMT_SBGGR8_1X8 = 10,
-> > > > +	V4L2_MBUS_FMT_SBGGR10_1X10 = 11,
-> > > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 16,
-> > > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 14,
-> > > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 17,
-> > > > +	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE = 15,
-> > > > +	V4L2_MBUS_FMT_SBGGR12_1X12 = 19,
-> > > > +	V4L2_MBUS_FMT_SGRBG8_1X8 = 18,
-> > > 
-> > > Why on earth would you want to keep the original values? It was
-> > > internal only, so no need to stick to the old values.
-> > 
-> > Good point :-)
-> > 
-> > > Just let RGB start at 1000, YUV at 2000 and Bayer at 3000 or something
-> > > like that.
-> > > 
-> > > > +	/* Last - Update this when adding a new pixel code */
-> > > > +	V4L2_MBUS_FMT_LAST = 24,
-> > > 
-> > > Why would you need this?
-> > 
-> > We've discussed this in the past. Keeping holes won't help, as we will
-> > have to insert formats in places where we won't have holes sooner or
-> > later. We agreed that it was better to keep the list organized by
-> > format, as that's easier to read. V4L2_MBUS_FMT_LAST is thus a shortcut
-> > to avoid searching for the highest format when adding a new one. As the
-> > constant itself isn't really needed, we can keep the highest allocated
-> > format code in a comment instead.
+Em 13-09-2010 10:49, Andy Walls escreveu:
+> On Mon, 2010-09-13 at 08:45 -0300, Mauro Carvalho Chehab wrote:
+>> Em 13-09-2010 05:06, Hans Verkuil escreveu:
+>>> On Monday, September 13, 2010 09:04:18 Laurent Pinchart wrote:
+>>>> Hi Hans,
+>>>>
+>>>> On Thursday 09 September 2010 13:48:58 Hans de Goede wrote:
+>>>>> On 09/09/2010 03:29 PM, Hans Verkuil wrote:
+>>>>>>> On 09/09/2010 08:55 AM, Peter Korsgaard wrote:
+>>>>>>>> "Hans" == Hans Verkuil<hverkuil@xs4all.nl>   writes:
+>>>>>>>>
+>>>>>>>> I originally was in favor of controlling these through v4l as well, but
+>>>>>>>> people made some good arguments against that. The main one being: why
+>>>>>>>> would you want to show these as a control? What is the end user supposed
+>>>>>>>> to do with them? It makes little sense.
+>>>>
+>>>> Status LEDs reflect in glasses, making annoying color dots on webcam pictures. 
+>>>> That's why Logitech allows to turn the status LED off on its webcams.
+>>>
+>>> That's a really good argument. I didn't think of that one.
+>>
+>> There's one difference between illuminators and leds and anything else that we use
+>> currently via CTRL interface: all other controls affects just an internal hardware
+>> capability that are not visible to the user, nor can cause any kind of damage or 
+>> annoyance.
+>>
+>> On the other hand, a LED and an illuminator that an application may forget to turn
+>> off could be very annoying, and may eventually reduce the lifecycle or a device (in
+>> the case of non-LED illuminators, for example).
 > 
-> I would definitely make it a comment.
-
-OK.
-
-> Actually, a counter should be kept per section. It might actually be useful
-> in the future if you can do something like:
+> Yes, I can appreciate that.  On driver unload and suspend that should
+> certainly be the case for illuminators.
 > 
-> 	if ((mbus_fmt & MBUS_FMT_TYPE_MASK) == MBUS_FMT_TYPE_YUV)
+> However, I don't think that's a good idea for final close on a file
+> descriptor though.  That's a departure from normal V4L2 behavior.
 
-I'm not sure I like the concept of sections. How do you define what a section 
-is ?
+This doesn't seem to be a good reason. Keeping a LED after its usage is annoying to 
+the user, can cause damage on devices (reduce lifetime) and can draw lots of power 
+from the batteries (on battery-powered devices).
 
--- 
-Regards,
+> For a USB connected device, turning off the illuminator after the fact
+> is simple, if the user has no other recourse: unplug the device. :)
 
-Laurent Pinchart
+Try to unplug the flash led on your cell phone ;)
+
+>> So, a special treatment seems to be required for both cases: if the application that
+>> changed the LED or illuminator to ON dies or closes, the LED/illuminator should be
+>> turned off by the driver.
+> 
+> That will break cases like these:
+> 
+> $ v4l2-ctl -d /dev/video0 -c illuminator_2=1
+> $ (command to run app that doesn't present all controls, e.g. cheese)
+
+True, but it may have an alternative syntax for it, like:
+
+v4l2-ctl -d /dev/video0 -c illuminator_2=1 --run cheese [<args>]
+
+This way, if cheese or v4l2-ctl abends, the illuminator will be turned off.
+
+Of course, we'll likely need to have a flag visible on userspace, to say that such
+control resets to an "off" state when the application dies, to avoid someone to use it
+like:
+	v4l2-ctl -d /dev/video0 -c illuminator_2=1
+
+Cheers,
+Mauro
