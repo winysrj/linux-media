@@ -1,54 +1,49 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:60405 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932300Ab0IXOOn (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:55714 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751672Ab0IMRsQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Sep 2010 10:14:43 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean Delvare <khali@linux-fr.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Pete Eberlein <pete@sensoray.com>,
-	Mike Isely <isely@pobox.com>,
-	Eduardo Valentin <eduardo.valentin@nokia.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Vaibhav Hiremath <hvaibhav@ti.com>,
-	Muralidharan Karicheri <mkaricheri@gmail.com>
-Subject: [PATCH 12/16] vpif_display: Don't use module names to load I2C modules
-Date: Fri, 24 Sep 2010 16:14:10 +0200
-Message-Id: <1285337654-5044-13-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285337654-5044-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 13 Sep 2010 13:48:16 -0400
+MIME-Version: 1.0
+In-Reply-To: <20100908153435.GA4190@core.coreip.homeip.net>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+	<20100908143121.GD22323@redhat.com>
+	<20100908153435.GA4190@core.coreip.homeip.net>
+Date: Mon, 13 Sep 2010 13:48:14 -0400
+Message-ID: <AANLkTikV9jWWPhK0C-1ipFei18pHUg86Yj1Pm10010An@mail.gmail.com>
+Subject: Re: [PATCH 0/6] Large scancode handling
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-With the v4l2_i2c_new_subdev* functions now supporting loading modules
-based on modaliases, don't use the module names hardcoded in platform
-data by passing a NULL module name to those functions.
+On Wed, Sep 8, 2010 at 11:34 AM, Dmitry Torokhov
+<dmitry.torokhov@gmail.com> wrote:
+> On Wed, Sep 08, 2010 at 10:31:21AM -0400, Jarod Wilson wrote:
+>> On Wed, Sep 08, 2010 at 12:41:38AM -0700, Dmitry Torokhov wrote:
+...
+>> > Ville, do you still have the hardware to try our ati_remote2 changes?
+>>
+>> If not, I've got the hardware. (Speaking of which, porting ati_remote*
+>> over to {ir,rc}-core is also on the TODO list, albeit with very very
+>> low priority at the moment).
+>
+> Ok, then we'' pencil you in for testing if we do not hear from Ville ;)
 
-All corresponding I2C modules have been checked, and all of them include
-a module aliases table with names corresponding to what the vpif_display
-platform data uses.
+We've heard from Ville, but I went ahead and did some testing anyway.
+My RWII with the default mode (didn't try any of the others) works
+just fine after applying this patch atop 2.6.36-rc3-git1, as do my
+imon and mceusb receivers. Ran into some problems with streamzap, but
+I'm fairly sure they're not the fault of this patchset.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/davinci/vpif_display.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index 912c27b..2523a7f 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -1552,7 +1552,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 
- 	for (i = 0; i < subdev_count; i++) {
- 		vpif_obj.sd[i] = v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
--						i2c_adap, subdevdata[i].name,
-+						i2c_adap, NULL,
- 						&subdevdata[i].board_info,
- 						NULL);
- 		if (!vpif_obj.sd[i]) {
 -- 
-1.7.2.2
-
+Jarod Wilson
+jarod@wilsonet.com
