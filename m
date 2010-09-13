@@ -1,78 +1,83 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:19390 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760042Ab0I1Agq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 20:36:46 -0400
-Message-ID: <4CA13893.8050409@redhat.com>
-Date: Mon, 27 Sep 2010 21:36:35 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3747 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518Ab0IMMG5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Sep 2010 08:06:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: matti.j.aaltonen@nokia.com
+Subject: Re: [PATCH v9 0/4] FM Radio driver.
+Date: Mon, 13 Sep 2010 14:06:42 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>,
+	"mchehab@redhat.com" <mchehab@redhat.com>
+References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com> <201009131351.35487.hverkuil@xs4all.nl> <1284379170.12913.50.camel@masi.mnp.nokia.com>
+In-Reply-To: <1284379170.12913.50.camel@masi.mnp.nokia.com>
 MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [GIT PULL for 2.6.36] V4L/DVB fixes
-References: <4CA10545.4010204@redhat.com> <AANLkTikYyEPAHq5rYzzckExTSFFCAj_DUqAZEvoeU0WD@mail.gmail.com>
-In-Reply-To: <AANLkTikYyEPAHq5rYzzckExTSFFCAj_DUqAZEvoeU0WD@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009131406.42719.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Em 27-09-2010 21:02, Linus Torvalds escreveu:
-> On Mon, Sep 27, 2010 at 1:57 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> The following changes since commit 32163f4b2cef28a5aab8b226ffecfc6379a53786:
->>
->>  alpha: fix usp value in multithreaded coredumps (2010-09-25 14:38:13 -0700)
->>
->> are available in the git repository at:
->>  ssh://master.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-2.6.git v4l_for_linus
+On Monday, September 13, 2010 13:59:30 Matti J. Aaltonen wrote:
+> On Mon, 2010-09-13 at 13:51 +0200, ext Hans Verkuil wrote:
+> > On Monday, September 13, 2010 13:44:31 Matti J. Aaltonen wrote:
+> > > On Mon, 2010-09-13 at 13:32 +0200, ext Hans Verkuil wrote:
+> > > > > Anyway the difference between the "completely raw bits" and the "raw"
+> > > > > blocks is small. And I doubt the usefulness of supporting the
+> > > > > "completely raw" format.
+> > > > 
+> > > > I don't intend to support it now. But we need to realize that it exists and
+> > > > we have to plan for it.
+> > > 
+> > > OK. So we can have RDS_RAW_READWRITE and also RDS_RAW_BLOCK_READWRITE
+> > > (or something to the same effect)?
+> > 
+> > In theory, yes. My proposed API additions allow for this to be added in the
+> > future. Frankly, I don't think it is likely that it will be needed, but you
+> > never know.
 > 
-> I get
-> 
->   scripts/kconfig/conf --oldconfig arch/x86/Kconfig
->   drivers/media/Kconfig:146: 'endif' in different file than 'if'
->   drivers/media/IR/Kconfig:15: location of the 'if'
->   drivers/Kconfig:114: unexpected 'endmenu' within if block
->   drivers/Kconfig:1: missing end statement for this entry
->   make[1]: *** [oldconfig] Error 1
->   make: *** [oldconfig] Error 2
-> 
-> with this. And it seems to be due to a totally broken commit at the
-> very beginning of the series by a commit called "Kconfig fixes"
-> (Hah!), that clearly has not been tested at all.
+> Yes but I would like to add the RDS_RAW_BLOCK_READWRITE possibility
+> right away because that's what the wl1273 driver does now... I guess
+> that's OK?
 
-Argh! something got completely wrong here. Sorry for the mess.
-This patch is already upstream (changeset ade321c5b8a0e4).
+Well, yeah. That's what I proposed with the new tuner caps:
 
-I had some troubles on my local tree (some objects missed after a gc on
-a shared repository). I had to recover my local tree, to avoid loosing 
-some patches applied there for linux-next. It seems that I did a bad work 
-on recovering them. I always compile everything a few times before sending, 
-but this time, I just didn't notice.
+V4L2_TUNER_CAP_RDS_READWRITE    0x0100  Use read()/write()
+V4L2_TUNER_CAP_RDS_CONTROLS     0x0200  Use RDS controls
 
-> The commit sequence was also done today, apparently immediately before
-> sending me the pull request. Which sure as hell explains the "clearly
-> not tested at all" situation.
-> 
-> Don't do this. You are now officially on my shit-list for sending me
-> total crap.
-> 
-> How effing hard can it be to understand: you don't send me stuff that
-> hasn't been tested. It needs to be in -next for SEVERAL DAYS, and you
-> don't rebase it or take it from some random quilt series just before
-> sending it to me.
-> 
-> That's true _especially_ during the -rc series. But it's damn well
-> true at any other time too.
-> 
-> I'm angry. I expect at least some _minimal_ amount of competence from
-> people I pull from. This was not it. Get your ^&#! act together!
-> 
->                                    Linus
+Feel free to rename V4L2_TUNER_CAP_RDS_READWRITE to V4L2_TUNER_CAP_RDS_BLOCKS,
+that's a better name for it.
 
-I'll clean up the mess and prepare a new pull request in the next days.
+Regards,
 
-Sorry,
-Mauro.
+	Hans
+
+> 
+> B.R.
+> Matti
+> 
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> > 
+> > > 
+> > > B.R.
+> > > Matti
+> > > 
+> > > 
+> > > --
+> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > > the body of a message to majordomo@vger.kernel.org
+> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > > 
+> > 
+> 
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
