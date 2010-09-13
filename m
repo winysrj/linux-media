@@ -1,114 +1,106 @@
-Return-path: <mchehab@pedra>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3642 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009Ab0IORGD (ORCPT
+Return-path: <mchehab@localhost.localdomain>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3997 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754231Ab0IMIGP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 13:06:03 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8FH62K6013711
-	for <linux-media@vger.kernel.org>; Wed, 15 Sep 2010 19:06:02 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Wed, 15 Sep 2010 19:06:02 +0200 (CEST)
-Message-Id: <201009151706.o8FH62K6013711@smtp-vbr1.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+	Mon, 13 Sep 2010 04:06:15 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] Illuminators and status LED controls
+Date: Mon, 13 Sep 2010 10:06:06 +0200
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	"Jean-Francois Moine" <moinejf@free.fr>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Andy Walls <awalls@md.metrocast.net>,
+	eduardo.valentin@nokia.com,
+	"ext Eino-Ville Talvala" <talvala@stanford.edu>
+References: <b7de5li57kosi2uhdxrgxyq9.1283891610189@email.android.com> <4C88C9AA.2060405@redhat.com> <201009130904.19143.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201009130904.19143.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009131006.06967.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@pedra>
+Sender: <mchehab@localhost.localdomain>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Monday, September 13, 2010 09:04:18 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> On Thursday 09 September 2010 13:48:58 Hans de Goede wrote:
+> > On 09/09/2010 03:29 PM, Hans Verkuil wrote:
+> > >> On 09/09/2010 08:55 AM, Peter Korsgaard wrote:
+> > >>> "Hans" == Hans Verkuil<hverkuil@xs4all.nl>   writes:
+> > >>> 
+> > >>> I originally was in favor of controlling these through v4l as well, but
+> > >>> people made some good arguments against that. The main one being: why
+> > >>> would you want to show these as a control? What is the end user supposed
+> > >>> to do with them? It makes little sense.
+> 
+> Status LEDs reflect in glasses, making annoying color dots on webcam pictures. 
+> That's why Logitech allows to turn the status LED off on its webcams.
 
-Results of the daily build of v4l-dvb:
+That's a really good argument. I didn't think of that one.
 
-date:        Wed Sep 15 19:00:13 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15156:3d5785fe11c9
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+I'm happy with a menu control for LEDs, something like:
 
-linux-2.6.32.6-armv5: ERRORS
-linux-2.6.33-armv5: ERRORS
-linux-2.6.34-armv5: ERRORS
-linux-2.6.35.3-armv5: ERRORS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: ERRORS
-linux-2.6.33-armv5-davinci: ERRORS
-linux-2.6.34-armv5-davinci: ERRORS
-linux-2.6.35.3-armv5-davinci: ERRORS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: ERRORS
-linux-2.6.33-armv5-ixp: ERRORS
-linux-2.6.34-armv5-ixp: ERRORS
-linux-2.6.35.3-armv5-ixp: ERRORS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: ERRORS
-linux-2.6.33-armv5-omap2: ERRORS
-linux-2.6.34-armv5-omap2: ERRORS
-linux-2.6.35.3-armv5-omap2: ERRORS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: ERRORS
-linux-2.6.27.44-i686: ERRORS
-linux-2.6.28.10-i686: ERRORS
-linux-2.6.29.1-i686: ERRORS
-linux-2.6.30.10-i686: ERRORS
-linux-2.6.31.12-i686: ERRORS
-linux-2.6.32.6-i686: ERRORS
-linux-2.6.33-i686: ERRORS
-linux-2.6.34-i686: ERRORS
-linux-2.6.35.3-i686: ERRORS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: ERRORS
-linux-2.6.33-m32r: ERRORS
-linux-2.6.34-m32r: ERRORS
-linux-2.6.35.3-m32r: ERRORS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: ERRORS
-linux-2.6.33-mips: ERRORS
-linux-2.6.34-mips: ERRORS
-linux-2.6.35.3-mips: ERRORS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: ERRORS
-linux-2.6.33-powerpc64: ERRORS
-linux-2.6.34-powerpc64: ERRORS
-linux-2.6.35.3-powerpc64: ERRORS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: ERRORS
-linux-2.6.27.44-x86_64: ERRORS
-linux-2.6.28.10-x86_64: ERRORS
-linux-2.6.29.1-x86_64: ERRORS
-linux-2.6.30.10-x86_64: ERRORS
-linux-2.6.31.12-x86_64: ERRORS
-linux-2.6.32.6-x86_64: ERRORS
-linux-2.6.33-x86_64: ERRORS
-linux-2.6.34-x86_64: ERRORS
-linux-2.6.35.3-x86_64: ERRORS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: ERRORS
-sparse: ERRORS
+Auto (default)
+Off
 
-Detailed results are available here:
+and possibly:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+On
+Blink
 
-Full logs are available here:
+Although I'm not so sure we need/want these last two.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+It should be a control since otherwise v4l2 apps would need to add support for
+the LED interface just for this, whereas if it is a control it will 'just work'.
 
-The V4L-DVB specification failed to build, but the last compiled spec is here:
+I think it is up to the driver whether it wants to implement the LED interface
+as well.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards,
+
+	Hans
+
+> 
+> [snip]
+> 
+> > >> Reading this whole thread I have to agree that if we are going to expose
+> > >> camera status LEDs it would be done through the sysfs API. I think this
+> > >> can be done nicely for gspca based drivers (as we can put all the "crud"
+> > >> in the gspca core having to do it only once), but that is a low priority
+> > >> nice to have thingy.
+> > >> 
+> > >> This does leave us with the problem of logitech uvc cams where the LED
+> > >> currently is exposed as a v4l2 control.
+> > > 
+> > > Is it possible for the uvc driver to detect and use a LED control? That's
+> > > how I would expect this to work, but I know that uvc is a bit of a
+> > > strange beast.
+> > 
+> > Unfortunately no, some uvc cameras have "proprietary" controls. The uvc
+> > driver knows nothing about these but offers an API to map these to v4l2
+> > controls (where userspace tells it the v4l2 cid, type, min, max, etc.).
+> > 
+> > Currently on logitech cameras the userspace tools if installed will map
+> > the led control to a private v4l2 menu control with the following options:
+> > On
+> > Off
+> > Auto
+> > Blink
+> > 
+> > The cameras default to auto, where the led is turned on when video
+> > is being streamed and off when there is no streaming going on.
+> 
+> I confirm this. If the UVC LED controls were standard the driver could expose 
+> them through a LED-specific API. As UVC allows devices to implement private 
+> controls, the driver needs to expose all those private controls (both LED and 
+> non-LED) through the same API.
+> 
+> 
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
