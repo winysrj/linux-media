@@ -1,129 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from qmta13.emeryville.ca.mail.comcast.net ([76.96.27.243]:44893
-	"EHLO qmta13.emeryville.ca.mail.comcast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752454Ab0IONDB (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:41659 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751708Ab0IMNus (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 09:03:01 -0400
-Message-ID: <4C90C2A6.1010408@xyzw.org>
-Date: Wed, 15 Sep 2010 05:57:10 -0700
-From: Brian Rogers <brian@xyzw.org>
-MIME-Version: 1.0
-To: Jarod Wilson <jarod@redhat.com>
-CC: =?ISO-8859-1?Q?David_H=E4rdeman?= <david@hardeman.nu>,
-	jarod@wilsonet.com, linux-media@vger.kernel.org,
-	mchehab@redhat.com, linux-input@vger.kernel.org
-Subject: [PATCH] ir-core: Fix null dereferences in the protocols sysfs interface
-References: <20100613202718.6044.29599.stgit@localhost.localdomain> <20100613202930.6044.97940.stgit@localhost.localdomain> <4C8797D3.1060606@xyzw.org> <20100908141613.GB22323@redhat.com>
-In-Reply-To: <20100908141613.GB22323@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------010806040809040904040502"
+	Mon, 13 Sep 2010 09:50:48 -0400
+Subject: Re: [PATCH] Illuminators and status LED controls
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Peter Korsgaard <jacmet@sunsite.dk>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	eduardo.valentin@nokia.com,
+	ext Eino-Ville Talvala <talvala@stanford.edu>
+In-Reply-To: <4C8E0ED2.4010403@redhat.com>
+References: <b7de5li57kosi2uhdxrgxyq9.1283891610189@email.android.com>
+	 <4C88C9AA.2060405@redhat.com>
+	 <201009130904.19143.laurent.pinchart@ideasonboard.com>
+	 <201009131006.06967.hverkuil@xs4all.nl>  <4C8E0ED2.4010403@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 13 Sep 2010 09:49:52 -0400
+Message-ID: <1284385792.2031.87.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This is a multi-part message in MIME format.
---------------010806040809040904040502
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+On Mon, 2010-09-13 at 08:45 -0300, Mauro Carvalho Chehab wrote:
+> Em 13-09-2010 05:06, Hans Verkuil escreveu:
+> > On Monday, September 13, 2010 09:04:18 Laurent Pinchart wrote:
+> >> Hi Hans,
+> >>
+> >> On Thursday 09 September 2010 13:48:58 Hans de Goede wrote:
+> >>> On 09/09/2010 03:29 PM, Hans Verkuil wrote:
+> >>>>> On 09/09/2010 08:55 AM, Peter Korsgaard wrote:
+> >>>>>> "Hans" == Hans Verkuil<hverkuil@xs4all.nl>   writes:
+> >>>>>>
+> >>>>>> I originally was in favor of controlling these through v4l as well, but
+> >>>>>> people made some good arguments against that. The main one being: why
+> >>>>>> would you want to show these as a control? What is the end user supposed
+> >>>>>> to do with them? It makes little sense.
+> >>
+> >> Status LEDs reflect in glasses, making annoying color dots on webcam pictures. 
+> >> That's why Logitech allows to turn the status LED off on its webcams.
+> > 
+> > That's a really good argument. I didn't think of that one.
+> 
+> There's one difference between illuminators and leds and anything else that we use
+> currently via CTRL interface: all other controls affects just an internal hardware
+> capability that are not visible to the user, nor can cause any kind of damage or 
+> annoyance.
+> 
+> On the other hand, a LED and an illuminator that an application may forget to turn
+> off could be very annoying, and may eventually reduce the lifecycle or a device (in
+> the case of non-LED illuminators, for example).
 
-  On 09/08/2010 07:16 AM, Jarod Wilson wrote:
-> On Wed, Sep 08, 2010 at 07:04:03AM -0700, Brian Rogers wrote:
->> ir_dev->raw is also null. If I check these pointers before using
->> them, and bail out if both are null, then I get a working lircd, but
->> of course the file /sys/devices/virtual/rc/rc0/protocols no longer
->> does anything. On 2.6.35.4, the system never creates the
->> /sys/class/rc/rc0/current_protocol file. Is it the case that the
->> 'protocols' file should never appear, because my card can't support
->> this feature?
-> Hm... So protocols is indeed intended for hardware that handles raw IR, as
-> its a list of raw IR decoders available/enabled/disabled for the receiver.
-> But some devices that do onboard decoding and deal with scancodes still
-> need to support changing protocols, as they can be told "decode rc5" or
-> "decode nec", etc... My memory is currently foggy on how it was exactly
-> that it was supposed to be donee though. :) (Yet another reason I really
-> need to poke at the imon driver code again).
+Yes, I can appreciate that.  On driver unload and suspend that should
+certainly be the case for illuminators.
 
-How about the attached patch? Does this look like a reasonable solution 
-for 2.6.36?
+However, I don't think that's a good idea for final close on a file
+descriptor though.  That's a departure from normal V4L2 behavior.
 
-Brian
-
-
---------------010806040809040904040502
-Content-Type: text/x-patch;
- name="0001-ir-core-Fix-null-dereferences-in-the-protocols-sysfs.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-ir-core-Fix-null-dereferences-in-the-protocols-sysfs.pa";
- filename*1="tch"
-
->From 7937051c5e2c8b5b0410172d48e62d54bd1906ee Mon Sep 17 00:00:00 2001
-From: Brian Rogers <brian@xyzw.org>
-Date: Wed, 8 Sep 2010 05:33:34 -0700
-Subject: [PATCH] ir-core: Fix null dereferences in the protocols sysfs interface
-
-For some cards, ir_dev->props and ir_dev->raw are both NULL. These cards are
-using built-in IR decoding instead of raw, and can't easily be made to switch
-protocols.
-
-So upon reading /sys/class/rc/rc?/protocols on such a card, return 'builtin' as
-the supported and enabled protocol. Return -EINVAL on any attempts to change
-the protocol. And most important of all, don't crash.
-
-Signed-off-by: Brian Rogers <brian@xyzw.org>
----
- drivers/media/IR/ir-sysfs.c |   17 +++++++++++------
- 1 files changed, 11 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/IR/ir-sysfs.c b/drivers/media/IR/ir-sysfs.c
-index 96dafc4..46d4246 100644
---- a/drivers/media/IR/ir-sysfs.c
-+++ b/drivers/media/IR/ir-sysfs.c
-@@ -67,13 +67,14 @@ static ssize_t show_protocols(struct device *d,
- 	char *tmp = buf;
- 	int i;
- 
--	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
-+	if (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
- 		enabled = ir_dev->rc_tab.ir_type;
- 		allowed = ir_dev->props->allowed_protos;
--	} else {
-+	} else if (ir_dev->raw) {
- 		enabled = ir_dev->raw->enabled_protocols;
- 		allowed = ir_raw_get_allowed_protocols();
--	}
-+	} else
-+		return sprintf(tmp, "[builtin]\n");
- 
- 	IR_dprintk(1, "allowed - 0x%llx, enabled - 0x%llx\n",
- 		   (long long)allowed,
-@@ -121,10 +122,14 @@ static ssize_t store_protocols(struct device *d,
- 	int rc, i, count = 0;
- 	unsigned long flags;
- 
--	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE)
-+	if (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_SCANCODE)
- 		type = ir_dev->rc_tab.ir_type;
--	else
-+	else if (ir_dev->raw)
- 		type = ir_dev->raw->enabled_protocols;
-+	else {
-+		IR_dprintk(1, "Protocol switching not supported\n");
-+		return -EINVAL;
-+	}
- 
- 	while ((tmp = strsep((char **) &data, " \n")) != NULL) {
- 		if (!*tmp)
-@@ -185,7 +190,7 @@ static ssize_t store_protocols(struct device *d,
- 		}
- 	}
- 
--	if (ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
-+	if (ir_dev->props && ir_dev->props->driver_type == RC_DRIVER_SCANCODE) {
- 		spin_lock_irqsave(&ir_dev->rc_tab.lock, flags);
- 		ir_dev->rc_tab.ir_type = type;
- 		spin_unlock_irqrestore(&ir_dev->rc_tab.lock, flags);
--- 
-1.7.1
+For a USB connected device, turning off the illuminator after the fact
+is simple, if the user has no other recourse: unplug the device. :)
 
 
---------------010806040809040904040502--
+> So, a special treatment seems to be required for both cases: if the application that
+> changed the LED or illuminator to ON dies or closes, the LED/illuminator should be
+> turned off by the driver.
+
+That will break cases like these:
+
+$ v4l2-ctl -d /dev/video0 -c illuminator_2=1
+$ (command to run app that doesn't present all controls, e.g. cheese)
+
+Regards,
+Andy
+
+> Maybe we could add an internal flag to be consumed by the controls core, and call it
+> during release() callback, to be sure that such controls will return to a default state
+> (0) when users count reaches zero.
+> 
+> > 
+> > I'm happy with a menu control for LEDs, something like:
+> > 
+> > Auto (default)
+> > Off
+> > 
+> > and possibly:
+> > 
+> > On
+> > Blink
+> > 
+> > Although I'm not so sure we need/want these last two.
+> 
+> Provided that it will return to Off (or auto) after application shuts down, I don't see
+> why not offering such control to userspace. While it may not make sense on desktops,
+> turning LEDs on may be interesting on some cases. For example, there are several Android
+> applications to turn the webcam "flash" LED on, meant to use the cell phone as an 
+> emergency light.
+
+
