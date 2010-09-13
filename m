@@ -1,105 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:33318 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751711Ab0IPJUY (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:5113 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755081Ab0IMMtz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Sep 2010 05:20:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 13 Sep 2010 08:49:55 -0400
+Subject: Re: [PATCH] Illuminators control
+From: Andy Walls <awalls@md.metrocast.net>
 To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v4 07/11] media: Entities, pads and links enumeration
-Date: Thu, 16 Sep 2010 11:20:26 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <201009011605.12172.laurent.pinchart@ideasonboard.com> <201009061851.59844.hverkuil@xs4all.nl>
-In-Reply-To: <201009061851.59844.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Jean-Francois Moine <moinejf@free.fr>,
+	linux-media@vger.kernel.org
+In-Reply-To: <201009131007.58665.hverkuil@xs4all.nl>
+References: <20100911110350.02c55173@tele>
+	 <201009130908.37133.laurent.pinchart@ideasonboard.com>
+	 <201009131007.58665.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 13 Sep 2010 08:49:32 -0400
+Message-ID: <1284382172.2031.45.camel@morgan.silverblock.net>
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009161120.27327.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Hans,
-
-On Monday 06 September 2010 18:51:59 Hans Verkuil wrote:
-> On Wednesday, September 01, 2010 16:05:10 Laurent Pinchart wrote:
-> > On Saturday 28 August 2010 13:02:22 Hans Verkuil wrote:
-> > > On Friday, August 20, 2010 17:29:09 Laurent Pinchart wrote:
-> > [snip]
+On Mon, 2010-09-13 at 10:07 +0200, Hans Verkuil wrote:
+> On Monday, September 13, 2010 09:08:36 Laurent Pinchart wrote:
+> > Hi,
 > > 
-> > > > diff --git a/Documentation/media-framework.txt
-> > > > b/Documentation/media-framework.txt index 66f7f6c..74a137d 100644
-> > > > --- a/Documentation/media-framework.txt
-> > > > +++ b/Documentation/media-framework.txt
+> > On Saturday 11 September 2010 11:03:50 Jean-Francois Moine wrote:
 > > 
-> > [snip]
+> > > @@ -419,6 +421,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum 
+> > v4l2_ctrl_type *type,
+> > >  	case V4L2_CID_AUDIO_LIMITER_ENABLED:
+> > >  	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
+> > >  	case V4L2_CID_PILOT_TONE_ENABLED:
+> > > +	case V4L2_CID_ILLUMINATORS_1:
+> > > +	case V4L2_CID_ILLUMINATORS_2:
+> > >  		*type = V4L2_CTRL_TYPE_BOOLEAN;
+> > >  		*min = 0;
+> > >  		*max = *step = 1;
 > > 
-> > > > +The media_entity_desc structure is defined as
-> > > > +
-> > > > +- struct media_entity_desc
-> > > > +
-> > > > +__u32	id		Entity id, set by the application. When the id is
-> > > > +			or'ed with MEDIA_ENTITY_ID_FLAG_NEXT, the driver
-> > > > +			clears the flag and returns the first entity with a
-> > > > +			larger id.
-> > > > +char	name[32]	Entity name. UTF-8 NULL-terminated string.
-> > > 
-> > > Why UTF-8 instead of ASCII?
+> > I would prefer integer controls for this, as we will need to support dimmable 
+> > illuminators.
 > > 
-> > Because vendor-specific names could include non-ASCII characters (same
-> > reason for the model name in the media_device structure, if we decice to
-> > make the model name ASCII I'll make the entity name ASCII as well).
 > > 
-> > [snip]
-> > 
-> > > > +struct media_entity_desc {
-> > > > +	__u32 id;
-> > > > +	char name[32];
-> > > > +	__u32 type;
-> > > > +	__u32 revision;
-> > > > +	__u32 flags;
-> > > > +	__u32 group_id;
-> > > > +	__u16 pads;
-> > > > +	__u16 links;
-> > > > +
-> > > > +	__u32 reserved[4];
-> > > > +
-> > > > +	union {
-> > > > +		/* Node specifications */
-> > > > +		struct {
-> > > > +			__u32 major;
-> > > > +			__u32 minor;
-> > > > +		} v4l;
-> > > > +		struct {
-> > > > +			__u32 major;
-> > > > +			__u32 minor;
-> > > > +		} fb;
-> > > > +		int alsa;
-> > > > +		int dvb;
-> > > > +
-> > > > +		/* Sub-device specifications */
-> > > > +		/* Nothing needed yet */
-> > > > +		__u8 raw[64];
-> > > > +	};
-> > > > +};
-> > > 
-> > > Should this be a packed struct?
-> > 
-> > Why ? :-) Packed struct are most useful when they need to match hardware
-> > structures or network protocols. Packing a structure can generate
-> > unaligned fields, which are bad performance-wise.
 > 
-> I'm thinking about preventing a compat32 mess as we have for v4l.
-> 
-> It is my understanding that the only way to prevent different struct sizes
-> between 32 and 64 bit is to use packed.
+> Don't. That should be a separate control. I expect that the brightness is
+> something you touch a lot less than the on/of controls. Anyway, I think it
+> makes a lot more sense to separate these two functions.
 
-I don't think that's correct. Different struct sizes between 32bit and 64bit 
-are caused by variable-size fields, such as 'long' (32bit on 32bit 
-architectures, 64bit on 64bit architectures). I might be wrong though.
 
--- 
+
+I would need to research what computerized microscopes today actually
+have.
+
+A quick look reveals: 
+	http://www.bodelin.com/proscopehr/how_it_works/
+	http://www.ecoscopestore.com/main.sc
+	http://www.microscopeworld.com/MSWorld/Microscope-World/Digital-Microscopes/
+
+handheld units likely have only on/off control for illumination.
+Eyepiece cameras rely on what the existing laboratory microscope already
+has for illumination.
+
+
+In my limited experience, there are some microscope controls that a
+human is going to have his hands on to get the desired image:
+magnification, focus, and specimen position.  Illumination intensity
+seems like it would fit in that group.
+
+When I had a job in college fixing medical equipment, most microscopes
+limited light using a mechanical iris controlled by hand.  The
+illuminator was simply an on/off switch.  (BTW a mechanical iris is a
+pain to take apart and rebuild.)  Light filters could be installed
+between the illuminator and the iris. 
+
+On some of the "digital microscopes" in the links above, you can see the
+iris assembly underneath the stage.  The DMBA210 microscope has both a
+manual iris and an illumination intensity knob.
+
+
+So for digital microscopes we may not see illumination intensity
+controllable by software.  Maybe for other types of cameras we will.
+
 Regards,
+Andy
 
-Laurent Pinchart
+
+
