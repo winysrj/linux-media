@@ -1,59 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:15368 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751486Ab0IHOYn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Sep 2010 10:24:43 -0400
-Date: Wed, 8 Sep 2010 10:24:18 -0400
-From: Jarod Wilson <jarod@redhat.com>
-To: Jiri Kosina <jkosina@suse.cz>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	David Hardeman <david@hardeman.nu>,
-	Ville Syrjala <syrjala@sci.fi>
-Subject: Re: [PATCH 0/6] Large scancode handling
-Message-ID: <20100908142418.GC22323@redhat.com>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
- <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.2.00.1009081147540.26813@pobox.suse.cz>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3808 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754869Ab0IMTD1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Sep 2010 15:03:27 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8DJ3MOC005782
+	for <linux-media@vger.kernel.org>; Mon, 13 Sep 2010 21:03:26 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Mon, 13 Sep 2010 21:03:22 +0200 (CEST)
+Message-Id: <201009131903.o8DJ3MOC005782@smtp-vbr7.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Wed, Sep 08, 2010 at 11:48:50AM +0200, Jiri Kosina wrote:
-> On Wed, 8 Sep 2010, Dmitry Torokhov wrote:
-> 
-> > Hi Mauro,
-> > 
-> > I guess I better get off my behind and commit the changes to support large
-> > scancodes, or they will not make to 2.6.37 either... There isn't much
-> > changes, except I followed David's suggestion and changed boolean index
-> > field into u8 flags field. Still, please glance it over once again and
-> > shout if you see something you do not like.
-> > 
-> > Jiri, how do you want to handle the changes to HID? I could either push
-> > them through my tree together with the first patch or you can push through
-> > yours once the first change hits mainline.
-> 
-> I think that there will unlikely be any conflict in .37 merge window in 
-> this area (and if there were, I'll sort it out).
-> 
-> So please add
-> 
-> 	Acked-by: Jiri Kosina <jkosina@suse.cz>
-> 
-> to the hid-input.c bits and feel free to take it through your tree, if it 
-> is convenient for you.
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-It'll conflict a little bith with the tivo slide patch I posted yesterday,
-but mostly just minor context changes. I can redo that patch on top of
-these changes if that's preferred.
+Results of the daily build of v4l-dvb:
 
--- 
-Jarod Wilson
-jarod@redhat.com
+date:        Mon Sep 13 19:00:13 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15148:990bbeaeb761
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: ERRORS
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The V4L-DVB specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
