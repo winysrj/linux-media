@@ -1,46 +1,60 @@
-Return-path: <mchehab@localhost>
-Received: from mailout-de.gmx.net ([213.165.64.22]:46983 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with SMTP
-	id S1753096Ab0IDUEG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Sep 2010 16:04:06 -0400
-Date: Sat, 4 Sep 2010 22:04:00 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PULL] soc-camera 2.6.36 fixes
-Message-ID: <Pine.LNX.4.64.1009042202470.24729@axis700.grange>
+Return-path: <mchehab@localhost.localdomain>
+Received: from mail.kapsi.fi ([217.30.184.167]:38944 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752742Ab0IMA25 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Sep 2010 20:28:57 -0400
+Message-ID: <4C8D7045.4030408@iki.fi>
+Date: Mon, 13 Sep 2010 03:28:53 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Stefan Lippers-Hollmann <s.l-h@gmx.de>
+CC: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR 2.6.37] AF9015 changes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@localhost.localdomain>
 
-Hi Mauro
+Moikka Mauro,
+This replaces my earlier pull request. Amongst the other changes, I 
+rewrote whole remote controller part. Now it reads IR codes directly 
+from the memory. This makes possible to switch upcoming remote core system.
 
-The following changes since commit 2bfc96a127bc1cc94d26bfaa40159966064f9c8c:
+@Stefan, now you can add easily support for your TerraTec remote. Please 
+send patch me.
 
-  Linux 2.6.36-rc3 (2010-08-29 08:36:04 -0700)
+t. Antti
+
+
+The following changes since commit c9889354c6d36d6278ed851c74ace02d72efdd59:
+
+   V4L/DVB: rc-core: increase repeat time (2010-09-08 13:04:40 -0300)
 
 are available in the git repository at:
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-2.6.36
+   git://linuxtv.org/anttip/media_tree.git af9015
 
-Baruch Siach (1):
-      mx2_camera: fix a race causing NULL dereference
+Antti Palosaari (9):
+       af9015: simple comment update
+       af9015: fix bug introduced by commit 
+490ade7e3f4474f626a8f5d778ead4e599b94fbc
+       af9013: add support for MaxLinear MxL5007T tuner
+       af9015: add support for TerraTec Cinergy T Stick Dual RC
+       af9015: add remote support for TerraTec Cinergy T Stick Dual RC
+       af9015: map TerraTec Cinergy T Stick Dual RC remote to device ID
+       af9015: reimplement remote controller
+       af9013: optimize code size
+       af9015: use value from config instead hardcoded one
 
-Ionut Gabriel Popescu (1):
-      mt9v022.c: Fixed compilation warning
+  drivers/media/dvb/dvb-usb/Kconfig         |    1 +
+  drivers/media/dvb/dvb-usb/af9015.c        |  241 +++----
+  drivers/media/dvb/dvb-usb/af9015.h        | 1081 
+++++++++++-------------------
+  drivers/media/dvb/dvb-usb/dvb-usb-ids.h   |    1 +
+  drivers/media/dvb/frontends/af9013.c      |  195 +-----
+  drivers/media/dvb/frontends/af9013.h      |    1 +
+  drivers/media/dvb/frontends/af9013_priv.h |   48 ++-
+  7 files changed, 581 insertions(+), 987 deletions(-)
 
-Michael Grzeschik (2):
-      mt9m111: cropcap and s_crop check if type is VIDEO_CAPTURE
-      mt9m111: added current colorspace at g_fmt
-
- drivers/media/video/mt9m111.c    |    8 +++++++-
- drivers/media/video/mt9v022.c    |    3 ---
- drivers/media/video/mx2_camera.c |    4 ++++
- 3 files changed, 11 insertions(+), 4 deletions(-)
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+http://palosaari.fi/
