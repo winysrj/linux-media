@@ -1,113 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2467 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933389Ab0I0TLa (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:15999 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752751Ab0IMNaz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 15:11:30 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8RJBPDw057014
-	for <linux-media@vger.kernel.org>; Mon, 27 Sep 2010 21:11:29 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 27 Sep 2010 21:11:25 +0200 (CEST)
-Message-Id: <201009271911.o8RJBPDw057014@smtp-vbr14.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+	Mon, 13 Sep 2010 09:30:55 -0400
+Subject: Re: [GIT PATCHES FOR 2.6.37] Remove V4L1 support from the pwc
+ driver
+From: Andy Walls <awalls@md.metrocast.net>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	Hans de Goede <hdegoede@redhat.com>
+In-Reply-To: <4C8E0ABF.5060601@redhat.com>
+References: <201009122226.11970.hverkuil@xs4all.nl>
+	 <1284325962.2394.24.camel@localhost> <1284326939.2394.29.camel@localhost>
+	 <4C8E0ABF.5060601@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 13 Sep 2010 09:30:34 -0400
+Message-ID: <1284384634.2031.71.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Mon, 2010-09-13 at 08:27 -0300, Mauro Carvalho Chehab wrote:
+> Em 12-09-2010 18:28, Andy Walls escreveu:
+> > On Sun, 2010-09-12 at 17:12 -0400, Andy Walls wrote:
+> >> On Sun, 2010-09-12 at 22:26 +0200, Hans Verkuil wrote:
+> >>
+> >>> And other news on the V4L1 front:
+> >>
+> >>> I'm waiting for test results on the cpia2 driver. If it works, then the V4L1
+> >>> support can be removed from that driver as well.
+> >>
+> >> FYI, that will break this 2005 vintage piece of V4L1 software people may
+> >> still be using for the QX5 microscope:
+> > 
+> > Sorry, that is of course, if there is no V4L1 compat layer still in
+> > place.
+> > 
+> > BTW, qx5view uses a private ioctl() to change the lights on a QX5 and
+> > not the V4L2 control.
+> 
+> The better would be to port qx5view to use libv4l and implement the new
+> illuminator ctrl on the driver and on the userspase app. Do you have
+> hardware for testing this?
 
-Results of the daily build of v4l-dvb:
+No.  I did check Amazon.com and eBay and saw a QX5 for about US$75 after
+shipping costs:
 
-date:        Mon Sep 27 19:00:05 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15164:1da5fed5c8b2
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: dace3857de7a16b83ae7d4e13c94de8e4b267d2a
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+http://cgi.ebay.com/ws/eBayISAPI.dll?ViewItem&item=380262406989&rvr_id=139147359954&crlp=1_263602_263622&UA=L*F%3F&GUID=0b3b537412b0a0e203e63006ff9becb0&itemid=380262406989&ff4=263602_263622
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec-git: OK
-sparse: ERRORS
+I'm not sure if I want to buy one at that price, since I already have a
+QX3.
 
-Detailed results are available here:
+Regards,
+Andy
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
