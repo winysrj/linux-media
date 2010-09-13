@@ -1,123 +1,441 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:24069 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755492Ab0IJRDT (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:45181 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752003Ab0IMWJH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 13:03:19 -0400
-Date: Fri, 10 Sep 2010 19:03:07 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: [PATCH 1/5 v2] cx22702: Clean up register access functions
-Message-ID: <20100910190307.022fca56@hyperion.delvare>
-In-Reply-To: <4C8A4B1C.8010002@redhat.com>
-References: <20100910151943.103f7423@hyperion.delvare>
-	<20100910152700.69edd554@hyperion.delvare>
-	<4C8A4B1C.8010002@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Mon, 13 Sep 2010 18:09:07 -0400
+Received: by eyb6 with SMTP id 6so2918087eyb.19
+        for <linux-media@vger.kernel.org>; Mon, 13 Sep 2010 15:09:05 -0700 (PDT)
+From: "Igor M. Liplianin" <liplianin@me.by>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: Need info to understand TeVii S470 cx23885 MSI  problem
+Date: Tue, 14 Sep 2010 01:08:50 +0300
+Cc: linux-media@vger.kernel.org
+References: <1284321417.2394.10.camel@localhost> <201009132338.28664.liplianin@me.by> <201009132341.21818.liplianin@me.by>
+In-Reply-To: <201009132341.21818.liplianin@me.by>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201009140108.50109.liplianin@me.by>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Hi Mauro,
-
-On Fri, 10 Sep 2010 12:13:32 -0300, Mauro Carvalho Chehab wrote:
-> Em 10-09-2010 10:27, Jean Delvare escreveu:
-> > * Avoid temporary variables.
-> > * Optimize success paths.
-> > * Make error messages consistently verbose.
+В сообщении от 13 сентября 2010 23:41:21 автор Igor M. Liplianin написал:
+> В сообщении от 13 сентября 2010 23:38:28 автор Igor M. Liplianin написал:
+> > В сообщении от 12 сентября 2010 22:56:57 автор Andy Walls написал:
+> > > Igor,
+> > > 
+> > > To help understand the problem with the TeVii S470 CX23885 MSI not
+> > > working after module unload and reload, could you provide the output of
+> > > 
+> > > 	# lspci -d 14f1: -xxxx -vvvv
+> > > 
+> > > as root before the cx23885 module loads, after the module loads, and
+> > > after the module is removed and reloaded?
+> > > 
+> > > please also provide the MSI IRQ number listed in dmesg
+> > > (or /var/log/messages) assigned to the card.  Also the IRQ number of
+> > > the unhandled IRQ when the module is reloaded.
+> > > 
+> > > The linux kernel should be writing the MSI IRQ vector into the PCI
+> > > configuration space of the CX23885.  It looks like when you unload and
+> > > reload the cx23885 module, it is not changing the vector.
+> > > 
+> > > Regards,
+> > > Andy
 > > 
-> > Signed-off-by: Jean Delvare <khali@linux-fr.org>
-> > Cc: Steven Toth <stoth@kernellabs.com>
-> > ---
-> >  drivers/media/dvb/frontends/cx22702.c |   23 +++++++++++++----------
-> >  1 file changed, 13 insertions(+), 10 deletions(-)
+> > Andy,
+> > Error appears only and if you zap actual channel(interrupts actually
+> > calls). First time module loaded and zapped some channel. At this point
+> > there is no errors. /proc/interrupts shows some irq's for cx23885.
+> > Then rmmod-insmod and szap again. Voilla! No irq vector.
+> > /proc/interrupts shows zero irq calls for cx23885.
+> > In my case Do_irq complains about irq 153, dmesq says cx23885 uses 45.
 > > 
-> > --- linux-2.6.32-rc5.orig/drivers/media/dvb/frontends/cx22702.c	2009-10-16 09:47:14.000000000 +0200
-> > +++ linux-2.6.32-rc5/drivers/media/dvb/frontends/cx22702.c	2009-10-16 09:47:45.000000000 +0200
-> > @@ -92,33 +92,36 @@ static int cx22702_writereg(struct cx227
-> >  
-> >  	ret = i2c_transfer(state->i2c, &msg, 1);
-> >  
-> > -	if (ret != 1)
-> > +	if (ret != 1) {
+> > My first look not catch anything in lspci.
+> > For now I'm using workaround - find register and bit in cx23885 to write
+> > to disable MSI registers. In conjunction with particular card,
+> > naturally.
+> > 
+> > Regards
+> > Igor
 > 
-> As a suggestion, if you want to optimize success paths, you should use unlikely() for error
-> checks. This tells gcc to optimize the code to avoid cache cleanups for the likely condition:
-> 
-> 	if (unlikely(ret != 1)) {
+> Forget to mention. The tree is media_tree, branch staging/v2.6.37
+Sorry, I was inattentive.
 
-Good point. Updated patch follows:
+bash-4.1# lspci -d 14f1: -xxxx -vvvv 
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder 
+(rev 02)
+        Subsystem: Device d470:9022
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- 
+FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- 
+<PERR- INTx-
+        Latency: 0, Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 10
+        Region 0: Memory at fea00000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <2us, L1 <4us
+                        ClockPM- Surprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+                Product Name: "
+                End
+        Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
+                Address: 0000000000000000  Data: 0000
+        Kernel modules: cx23885
+00: f1 14 52 88 06 00 10 00 02 00 00 04 08 00 00 00
+10: 04 00 a0 fe 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 70 d4 22 90
+30: 00 00 00 00 40 00 00 00 00 00 00 00 0a 01 00 00
+40: 10 80 01 00 00 00 28 00 10 28 0a 00 11 5c 01 00
+50: 40 00 11 10 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 90 22 7e 00 00 00 00 00 00 00 00 00 00 00 00
+90: 03 a0 04 80 78 00 00 00 00 00 00 00 00 00 00 00
+a0: 05 00 80 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
-* * * * *
+bash-4.1# insmod cx23885.ko
+bash-4.1# lspci -d 14f1: -xxxx -vvvv 
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder 
+(rev 02)
+        Subsystem: Device d470:9022
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- 
+FastB2B- DisINTx+
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- 
+<PERR- INTx-
+        Latency: 0, Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 45
+        Region 0: Memory at fea00000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <2us, L1 <4us
+                        ClockPM- Surprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+                Product Name: "
+                End
+        Capabilities: [a0] MSI: Enable+ Count=1/1 Maskable- 64bit+
+                Address: 00000000fee0300c  Data: 4189
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
+00: f1 14 52 88 06 04 10 00 02 00 00 04 08 00 00 00
+10: 04 00 a0 fe 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 70 d4 22 90
+30: 00 00 00 00 40 00 00 00 00 00 00 00 0a 01 00 00
+40: 10 80 01 00 00 00 28 00 10 28 0a 00 11 5c 01 00
+50: 40 00 11 10 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 90 22 7e 00 00 00 00 00 00 00 00 00 00 00 00
+90: 03 a0 04 80 78 00 00 00 00 00 00 00 00 00 00 00
+a0: 05 00 81 00 0c 30 e0 fe 00 00 00 00 89 41 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
-* Avoid temporary variables.
-* Optimize success paths.
-* Make error messages consistently verbose.
+bash-4.1# rmmod cx23885
+bash-4.1# lspci -d 14f1: -xxxx -vvvv 
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder 
+(rev 02)
+        Subsystem: Device d470:9022
+        Control: I/O- Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- 
+FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- 
+<PERR- INTx-
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at fea00000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <2us, L1 <4us
+                        ClockPM- Surprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+                Product Name: "
+                End
+        Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
+                Address: 00000000fee0300c  Data: 4189
+        Kernel modules: cx23885
+00: f1 14 52 88 02 00 10 00 02 00 00 04 08 00 00 00
+10: 04 00 a0 fe 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 70 d4 22 90
+30: 00 00 00 00 40 00 00 00 00 00 00 00 0a 01 00 00
+40: 10 80 01 00 00 00 28 00 10 28 0a 00 11 5c 01 00
+50: 40 00 11 10 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 90 22 7e 00 00 00 00 00 00 00 00 00 00 00 00
+90: 03 a0 04 80 78 00 00 00 00 00 00 00 00 00 00 00
+a0: 05 00 80 00 0c 30 e0 fe 00 00 00 00 89 41 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Steven Toth <stoth@kernellabs.com>
----
-Changes in v2:
-* Use unlikely() to help gcc optimize the success paths.
+bash-4.1# insmod cx23885.ko
+bash-4.1# lspci -d 14f1: -xxxx -vvvv 
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder 
+(rev 02)
+        Subsystem: Device d470:9022
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- 
+FastB2B- DisINTx+
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- 
+<PERR- INTx-
+        Latency: 0, Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 45
+        Region 0: Memory at fea00000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <2us, L1 <4us
+                        ClockPM- Surprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+                Product Name: "
+                End
+        Capabilities: [a0] MSI: Enable+ Count=1/1 Maskable- 64bit+
+                Address: 00000000fee0300c  Data: 4191
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
+00: f1 14 52 88 06 04 10 00 02 00 00 04 08 00 00 00
+10: 04 00 a0 fe 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 70 d4 22 90
+30: 00 00 00 00 40 00 00 00 00 00 00 00 0a 01 00 00
+40: 10 80 01 00 00 00 28 00 10 28 0a 00 11 5c 01 00
+50: 40 00 11 10 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 90 22 7e 00 00 00 00 00 00 00 00 00 00 00 00
+90: 03 a0 04 80 78 00 00 00 00 00 00 00 00 00 00 00
+a0: 05 00 81 00 0c 30 e0 fe 00 00 00 00 91 41 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
- drivers/media/dvb/frontends/cx22702.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+bash-4.1# szap -l10750 bridge-tv -x
+reading channels from file '/root/.szap/channels.conf'
+zapping to 6 'bridge-tv':
+sat 1, frequency = 12303 MHz H, symbolrate 27500000, vpid = 0x0134, apid = 0x0100 sid = 0x003b
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal fde8 | snr e128 | ber 00000000 | unc 0000000b | FE_HAS_LOCK
+bash-4.1# lspci -d 14f1: -xxxx -vvvv 
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder 
+(rev 02)
+        Subsystem: Device d470:9022
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- 
+FastB2B- DisINTx+
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- 
+<PERR- INTx-
+        Latency: 0, Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 45
+        Region 0: Memory at fea00000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <2us, L1 <4us
+                        ClockPM- Surprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+                Product Name: "
+                End
+        Capabilities: [a0] MSI: Enable+ Count=1/1 Maskable- 64bit+
+                Address: 00000000fee0300c  Data: 4191
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
+00: f1 14 52 88 06 04 10 00 02 00 00 04 08 00 00 00
+10: 04 00 a0 fe 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 70 d4 22 90
+30: 00 00 00 00 40 00 00 00 00 00 00 00 0a 01 00 00
+40: 10 80 01 00 00 00 28 00 10 28 0a 00 11 5c 01 00
+50: 40 00 11 10 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 90 22 7e 00 00 00 00 00 00 00 00 00 00 00 00
+90: 03 a0 04 80 78 00 00 00 00 00 00 00 00 00 00 00
+a0: 05 00 81 00 0c 30 e0 fe 00 00 00 00 91 41 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
---- linux-2.6.35.orig/drivers/media/dvb/frontends/cx22702.c	2010-09-10 14:22:31.000000000 +0200
-+++ linux-2.6.35/drivers/media/dvb/frontends/cx22702.c	2010-09-10 17:39:58.000000000 +0200
-@@ -92,33 +92,36 @@ static int cx22702_writereg(struct cx227
- 
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
--	if (ret != 1)
-+	if (unlikely(ret != 1)) {
- 		printk(KERN_ERR
- 			"%s: error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
- 			__func__, reg, data, ret);
-+		return -1;
-+	}
- 
--	return (ret != 1) ? -1 : 0;
-+	return 0;
- }
- 
- static u8 cx22702_readreg(struct cx22702_state *state, u8 reg)
- {
- 	int ret;
--	u8 b0[] = { reg };
--	u8 b1[] = { 0 };
-+	u8 data;
- 
- 	struct i2c_msg msg[] = {
- 		{ .addr = state->config->demod_address, .flags = 0,
--			.buf = b0, .len = 1 },
-+			.buf = &reg, .len = 1 },
- 		{ .addr = state->config->demod_address, .flags = I2C_M_RD,
--			.buf = b1, .len = 1 } };
-+			.buf = &data, .len = 1 } };
- 
- 	ret = i2c_transfer(state->i2c, msg, 2);
- 
--	if (ret != 2)
--		printk(KERN_ERR "%s: readreg error (ret == %i)\n",
--			__func__, ret);
-+	if (unlikely(ret != 2)) {
-+		printk(KERN_ERR "%s: error (reg == 0x%02x, ret == %i)\n",
-+			__func__, reg, ret);
-+		return 0;
-+	}
- 
--	return b1[0];
-+	return data;
- }
- 
- static int cx22702_set_inversion(struct cx22702_state *state, int inversion)
+bash-4.1# rmmod cx23885
+bash-4.1# insmod cx23885.ko
+bash-4.1# lspci -d 14f1: -xxxx -vvvv 
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder 
+(rev 02)
+        Subsystem: Device d470:9022
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- 
+FastB2B- DisINTx+
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- 
+<PERR- INTx-
+        Latency: 0, Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 45
+        Region 0: Memory at fea00000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <2us, L1 <4us
+                        ClockPM- Surprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+                Product Name: "
+                End
+        Capabilities: [a0] MSI: Enable+ Count=1/1 Maskable- 64bit+
+                Address: 00000000fee0300c  Data: 4199
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
+00: f1 14 52 88 06 04 10 00 02 00 00 04 08 00 00 00
+10: 04 00 a0 fe 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 70 d4 22 90
+30: 00 00 00 00 40 00 00 00 00 00 00 00 0a 01 00 00
+40: 10 80 01 00 00 00 28 00 10 28 0a 00 11 5c 01 00
+50: 40 00 11 10 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 90 22 7e 00 00 00 00 00 00 00 00 00 00 00 00
+90: 03 a0 04 80 78 00 00 00 00 00 00 00 00 00 00 00
+a0: 05 00 81 00 0c 30 e0 fe 00 00 00 00 99 41 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
+bash-4.1# szap -l10750 bridge-tv -x
+reading channels from file '/root/.szap/channels.conf'
+zapping to 6 'bridge-tv':
+sat 1, frequency = 12303 MHz H, symbolrate 27500000, vpid = 0x0134, apid = 0x0100 sid = 0x003b
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 00 | signal f618 | snr e128 | ber 00000000 | unc 0000000b | 
 
+Message from syslogd@localhost at Tue Sep 14 01:00:50 2010 ...
+localhost kernel: do_IRQ: 0.145 No irq handler for vector (irq -1)
+status 00 | signal f618 | snr e128 | ber 00000000 | unc 00000000 | 
+status 00 | signal f618 | snr e128 | ber 00000000 | unc 00000000 | 
+^C
+bash-4.1# lspci -d 14f1: -xxxx -vvvv 
+02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder 
+(rev 02)
+        Subsystem: Device d470:9022
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR- 
+FastB2B- DisINTx+
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- 
+<PERR- INTx-
+        Latency: 0, Cache Line Size: 32 bytes
+        Interrupt: pin A routed to IRQ 45
+        Region 0: Memory at fea00000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s <64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal- Unsupported-
+                        RlxdOrd+ ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+ AuxPwr- TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1, Latency L0 <2us, L1 <4us
+                        ClockPM- Surprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train- SlotClk+ DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+                Product Name: "
+                End
+        Capabilities: [a0] MSI: Enable+ Count=1/1 Maskable- 64bit+
+                Address: 00000000fee0300c  Data: 4199
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
+00: f1 14 52 88 06 04 10 00 02 00 00 04 08 00 00 00
+10: 04 00 a0 fe 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 70 d4 22 90
+30: 00 00 00 00 40 00 00 00 00 00 00 00 0a 01 00 00
+40: 10 80 01 00 00 00 28 00 10 28 0a 00 11 5c 01 00
+50: 40 00 11 10 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 01 90 22 7e 00 00 00 00 00 00 00 00 00 00 00 00
+90: 03 a0 04 80 78 00 00 00 00 00 00 00 00 00 00 00
+a0: 05 00 81 00 0c 30 e0 fe 00 00 00 00 99 41 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 
+bash-4.1# 
 
 -- 
-Jean Delvare
+Igor M. Liplianin
+Microsoft Windows Free Zone - Linux used for all Computing Tasks
