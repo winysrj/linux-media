@@ -1,35 +1,62 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp1.infomaniak.ch ([84.16.68.89]:49663 "EHLO
-	smtp1.infomaniak.ch" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751409Ab0IGIcW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 04:32:22 -0400
-Received: from ams3-vpn-dhcp4303.cisco.com (64-103-25-233.cisco.com [64.103.25.233])
-	(authenticated bits=0)
-	by smtp1.infomaniak.ch (8.14.2/8.14.2) with ESMTP id o878Mj0S002919
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Tue, 7 Sep 2010 10:22:46 +0200
-Message-ID: <4C85F654.3020505@deckpoint.ch>
-Date: Tue, 07 Sep 2010 10:22:44 +0200
-From: Thomas Kernen <tkernen@deckpoint.ch>
+Return-path: <mchehab@pedra>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:55655 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751284Ab0INO4o convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Sep 2010 10:56:44 -0400
+Received: by mail-bw0-f46.google.com with SMTP id 11so5565702bwz.19
+        for <linux-media@vger.kernel.org>; Tue, 14 Sep 2010 07:56:43 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Hauppauge WinTV-NOVA-T-500 support
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1274978356-25836-1-git-send-email-david@identd.dyndns.org>
+References: <1274978356-25836-1-git-send-email-david@identd.dyndns.org>
+Date: Tue, 14 Sep 2010 10:56:43 -0400
+Message-ID: <AANLkTi=QujvRkdSLBMm14ZpOy2GCk8Ow3d87FAAz6GGY@mail.gmail.com>
+Subject: Re: [PATCH/RFC v2 0/8] dsbr100: driver cleanup and fixes
+From: David Ellingsworth <david@identd.dyndns.org>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Alexey Klimov <klimov.linux@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
+Alexey,
 
-Hello,
-
-According to the wiki entry for the Hauppauge WinTV-NOVA-T-500 hardware:
-http://www.linuxtv.org/wiki/index.php/Hauppauge_WinTV-NOVA-T-500
-
-Models 289 and 287 are supported (ie: the UK sold cards), but model 283 
-sold in Germany, Switzerland and maybe some other countries isn't.
-
-Is this still an accurate statement or has this situation evolved but 
-hasn't been updated in the wiki entry?
+Can you review/test this patch series? Patches 2/8, 3/8, and 5/8 are
+bug fixes the rest are mainly cleanups. Patch 2/8 should fix a crash
+in the normal case if the device is disconnected while not in use.
 
 Regards,
-Thomas
+
+David Ellingsworth
+
+On Thu, May 27, 2010 at 12:39 PM, David Ellingsworth
+<david@identd.dyndns.org> wrote:
+> This patch series addresses several issues in the dsbr100 driver.
+> This series is based on the v4l-dvb master git branch and has been
+> compile tested only. It should be tested before applying.
+>
+> This is the second version of this series. An additional patch has
+> been added to cleanup/clarify the return values from dsbr100_start
+> and dsbr100_stop.
+>
+> The following patches are included in this series:
+>   [PATCH/RFC v2 1/8] dsbr100: implement proper locking
+>   [PATCH/RFC v2 2/8] dsbr100: fix potential use after free
+>   [PATCH/RFC v2 3/8] dsbr100: only change frequency upon success
+>   [PATCH/RFC v2 4/8] dsbr100: remove disconnected indicator
+>   [PATCH/RFC v2 5/8] dsbr100: cleanup return value of start/stop handlers
+>   [PATCH/RFC v2 6/8] dsbr100: properly initialize the radio
+>   [PATCH/RFC v2 7/8] dsbr100: cleanup usb probe routine
+>   [PATCH/RFC v2 8/8] dsbr100: simplify access to radio device
+>
+> Regards,
+>
+> David Ellingsworth
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
