@@ -1,105 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:33251 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756329Ab0I0MZg (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:50798 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754880Ab0INTfi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Sep 2010 08:25:36 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH 5/6] omap3: Export omap3isp platform device structure
-Date: Mon, 27 Sep 2010 14:25:41 +0200
-Message-Id: <1285590342-5199-6-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285590342-5199-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285590342-5199-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 14 Sep 2010 15:35:38 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: arnd@arndb.de
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 15/18] dvb/bt8xx: kill the big kernel lock
+Date: Tue, 14 Sep 2010 21:35:06 +0200
+Message-Id: <1284492909-7147-16-git-send-email-arnd@arndb.de>
+In-Reply-To: <1284492909-7147-1-git-send-email-arnd@arndb.de>
+References: <1284492909-7147-1-git-send-email-arnd@arndb.de>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-From: Stanimir Varbanov <svarbanov@mm-sol.com>
+The bt8xx driver only uses the big kernel lock in its dst_ca_ioctl
+function and never to serialize against other code, so we can
+trivially replace it with a private mutex.
 
-The omap3isp platform device requires platform data. As the data can be
-provided by a kernel module, the device can't be registered during arch
-initialization.
-
-Remove the omap3isp platform device registration from
-omap_init_camera(), and export the platform device structure to let
-board code register/unregister it.
-
-Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
 ---
- arch/arm/mach-omap2/devices.c |   18 ++++++++++++++++--
- arch/arm/mach-omap2/devices.h |   17 +++++++++++++++++
- 2 files changed, 33 insertions(+), 2 deletions(-)
- create mode 100644 arch/arm/mach-omap2/devices.h
+ drivers/media/dvb/bt8xx/dst_ca.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index ade8db0..f9bc507 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -31,6 +31,8 @@
+diff --git a/drivers/media/dvb/bt8xx/dst_ca.c b/drivers/media/dvb/bt8xx/dst_ca.c
+index cf87051..d75788b 100644
+--- a/drivers/media/dvb/bt8xx/dst_ca.c
++++ b/drivers/media/dvb/bt8xx/dst_ca.c
+@@ -22,7 +22,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/init.h>
+-#include <linux/smp_lock.h>
++#include <linux/mutex.h>
+ #include <linux/string.h>
+ #include <linux/dvb/ca.h>
+ #include "dvbdev.h"
+@@ -52,6 +52,7 @@
+ } while(0)
  
- #include "mux.h"
  
-+#include "devices.h"
-+
- #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
++static DEFINE_MUTEX(dst_ca_mutex);
+ static unsigned int verbose = 5;
+ module_param(verbose, int, 0644);
+ MODULE_PARM_DESC(verbose, "verbose startup messages, default is 1 (yes)");
+@@ -564,7 +565,7 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 	void __user *arg = (void __user *)ioctl_arg;
+ 	int result = 0;
  
- static struct resource cam_resources[] = {
-@@ -141,16 +143,28 @@ static struct resource omap3isp_resources[] = {
- 	}
- };
+-	lock_kernel();
++	mutex_lock(&dst_ca_mutex);
+ 	dvbdev = file->private_data;
+ 	state = (struct dst_state *)dvbdev->priv;
+ 	p_ca_message = kmalloc(sizeof (struct ca_msg), GFP_KERNEL);
+@@ -652,7 +653,7 @@ static long dst_ca_ioctl(struct file *file, unsigned int cmd, unsigned long ioct
+ 	kfree (p_ca_slot_info);
+ 	kfree (p_ca_caps);
  
--static struct platform_device omap3isp_device = {
-+static void omap3isp_release(struct device *dev)
-+{
-+	/* Zero the device structure to avoid re-initialization complaints from
-+	 * kobject when the device will be re-registered.
-+	 */
-+	memset(dev, 0, sizeof(*dev));
-+	dev->release = omap3isp_release;
-+}
-+
-+struct platform_device omap3isp_device = {
- 	.name		= "omap3isp",
- 	.id		= -1,
- 	.num_resources	= ARRAY_SIZE(omap3isp_resources),
- 	.resource	= omap3isp_resources,
-+	.dev = {
-+		.release	= omap3isp_release,
-+	},
- };
-+EXPORT_SYMBOL_GPL(omap3isp_device);
- 
- static inline void omap_init_camera(void)
- {
--	platform_device_register(&omap3isp_device);
+-	unlock_kernel();
++	mutex_unlock(&dst_ca_mutex);
+ 	return result;
  }
- #else
- static inline void omap_init_camera(void)
-diff --git a/arch/arm/mach-omap2/devices.h b/arch/arm/mach-omap2/devices.h
-new file mode 100644
-index 0000000..f312d49
---- /dev/null
-+++ b/arch/arm/mach-omap2/devices.h
-@@ -0,0 +1,17 @@
-+/*
-+ * arch/arm/mach-omap2/devices.h
-+ *
-+ * OMAP2 platform device setup/initialization
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef __ARCH_ARM_MACH_OMAP_DEVICES_H
-+#define __ARCH_ARM_MACH_OMAP_DEVICES_H
-+
-+extern struct platform_device omap3isp_device;
-+
-+#endif
+ 
 -- 
-1.7.2.2
+1.7.1
 
