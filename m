@@ -1,58 +1,53 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:26102 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752450Ab0IFGxz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 02:53:55 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L8B0072HCHTIF20@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 06 Sep 2010 07:53:53 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L8B001C6CHSA4@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 06 Sep 2010 07:53:52 +0100 (BST)
-Date: Mon, 06 Sep 2010 08:53:43 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 1/8] v4l: s5p-fimc: Fix return value on probe() failure
-In-reply-to: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
+Return-path: <mchehab@pedra>
+Received: from web55403.mail.re4.yahoo.com ([206.190.58.197]:21607 "HELO
+	web55403.mail.re4.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751988Ab0INUjC convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Sep 2010 16:39:02 -0400
+Message-ID: <397375.74162.qm@web55403.mail.re4.yahoo.com>
+Date: Tue, 14 Sep 2010 13:32:21 -0700 (PDT)
+From: Suchita Gupta <suchitagupta@yahoo.com>
+Subject: Fw: [linux-dvb] DSM-CC question
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	p.osciak@samsung.com, s.nawrocki@samsung.com
-Message-id: <1283756030-28634-2-git-send-email-m.szyprowski@samsung.com>
-References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-From: Pawel Osciak <p.osciak@samsung.com>
+Hi,
 
-On failed create_workqueue() fimc_probe() was returning 0.
+First of all, I am new to this list, so I am not sire if this is right place for 
 
-Signed-off-by: Pawel Osciak <p.osciak@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+this question.
+If not, please forgive me and point me to right list.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index b151c7b..b03b856 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1414,8 +1414,10 @@ static int fimc_probe(struct platform_device *pdev)
- 	}
- 
- 	fimc->work_queue = create_workqueue(dev_name(&fimc->pdev->dev));
--	if (!fimc->work_queue)
-+	if (!fimc->work_queue) {
-+		ret = -ENOMEM;
- 		goto err_irq;
-+	}
- 
- 	ret = fimc_register_m2m_device(fimc);
- 	if (ret)
--- 
-1.7.2.2
+I am writing a DSMCC decoding implementation to persist it to local filesystem.
+I am unable to understand few thiings related to "srg"
 
+I know, it represents the top level directory. But how do I get the name of this 
+
+directory?
+I can extract the names of subdirs and files using name components but where is 
+the name of top level directory?
+
+Also, as far as I understand it, I can't start writing to the local filesystem 
+until I have acquired the whole carousel.
+
+Can, anyone please provide me some guidance.
+
+Thanks in Advance,
+rs
+
+
+      
+
+_______________________________________________
+linux-dvb users mailing list
+For V4L/DVB development, please use instead linux-media@vger.kernel.org
+linux-dvb@linuxtv.org
+http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+
+
+
+      
