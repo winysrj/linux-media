@@ -1,104 +1,105 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3723 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752966Ab0IIG0X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Sep 2010 02:26:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Jean-Francois Moine" <moinejf@free.fr>
-Subject: Re: [PATCH] Illuminators and status LED controls
-Date: Thu, 9 Sep 2010 08:25:51 +0200
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Peter Korsgaard <jacmet@sunsite.dk>,
-	Andy Walls <awalls@md.metrocast.net>,
-	eduardo.valentin@nokia.com,
-	"ext Eino-Ville Talvala" <talvala@stanford.edu>,
-	Hans de Goede <hdegoede@redhat.com>
-References: <b7de5li57kosi2uhdxrgxyq9.1283891610189@email.android.com> <87fwxkcbat.fsf@macbook.be.48ers.dk> <20100909080702.1687d29a@tele>
-In-Reply-To: <20100909080702.1687d29a@tele>
+Received: from perceval.irobotique.be ([92.243.18.41]:52852 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751943Ab0INMZo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Sep 2010 08:25:44 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC/PATCH v4 00/11] Media controller (core and V4L2)
+Date: Tue, 14 Sep 2010 14:25:27 +0200
+Cc: linux-media@vger.kernel.org,
+	sakari.ailus@maxwell.research.nokia.com
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <4C883BEF.5020504@redhat.com>
+In-Reply-To: <4C883BEF.5020504@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009090825.52050.hverkuil@xs4all.nl>
+Message-Id: <201009141425.28000.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Thursday, September 09, 2010 08:07:02 Jean-Francois Moine wrote:
-> On Wed, 08 Sep 2010 20:58:18 +0200
-> Peter Korsgaard <jacmet@sunsite.dk> wrote:
-> > >>>>> "Andy" == Andy Walls <awalls@md.metrocast.net> writes:
-> >  Andy> Incandescent and Halogen lamps that effect an image coming
-> >  Andy> into a camera are *not* LEDs that blink or flash automatically
-> >  Andy> based on driver or system trigger events.  They are components
-> >  Andy> of a video capture system with which a human attempts to
-> >  Andy> adjust the appearance of an image of a subject by changing the
-> >  Andy> subject's environment.  These illuminators are not some
-> >  Andy> generically connected device, but controlled by GPIO's on the
-> >  Andy> camera's bridge or sensor chip itself.  Such an illuminator
-> >  Andy> will essentially be used only in conjunction with the camera.
+Hi Mauro,
+
+On Thursday 09 September 2010 03:44:15 Mauro Carvalho Chehab wrote:
+> Em 20-08-2010 12:29, Laurent Pinchart escreveu:
+> > Hi everybody,
 > > 
-> > Agreed.
+> > Here's the fourth version of the media controller patches. All comments
+> > received so far have hopefully been incorporated.
 > > 
-> >  Andy> Status LEDs integrated into webcam devices that are not
-> >  Andy> generically connected devices but controlled with GPIOs on the
-> >  Andy> camera's bridge or sensor chip will also essentially be used
-> >  Andy> only in conjunction with the camera.
+> > Compared to the previous version, the patches have been rebased on top of
+> > 2.6.35 and a MEDIA_IOC_DEVICE_INFO ioctl has been added.
 > > 
-> > Or for any other usage the user envision - E.G. I could imagine using
-> > the status led of the webcam in my macbook for hard disk or wifi
-> > activity. I'm sure other people can come up with more creative use
-> > cases as well.
-> > 
-> >  Andy> Turning these sorts camera specific illuminators and LEDs on
-> >  Andy> an off should be as simple to implement for an application
-> >  Andy> developer as it is to grasp the concept of turning a light
-> >  Andy> bulb on and off.
-> > 
-> > The point is that the logic rarely needs to be in the v4l
-> > applications. The status LEDs should by default go on when the v4l
-> > device is active and go off again when not like it used to do. A v4l
-> > application developer would normally not want to worry about such
-> > things, and only care about the video data.
-> > 
-> > But if a user wants something special / non-standard, then it's just a
-> > matter of changing LED trigger in /sys/class/leds/..
-> 	[snip]
-> > Again, for status LEDs I don't see any reason why a standard v4l tool
-> > would care. As I mentioned above, illuminators are a different story
-> > (comparable to a gain setting imho).
-> 	[snip]
-> > Again, I see the sysfs LED interface for status LEDs as more of a
-> > user/administrator interface than a programming API.
+> > I won't submit a rebased version of the V4L2 API additions and OMAP3 ISP
+> > patches right now. I will first clean up (and document) the V4L2 API
+> > additions patches, and I will submit them as a proper RFC instead of
+> > sample code.
 > 
-> Hi,
+> Hi Laurent,
 > 
-> If I may resume this exchange:
-> 
-> - the (microscope or device dependant) illuminators may be controlled
->   by v4l2,
+> Sorry for a late review on the media controller API. I got flooded by
+> patches and other work since the merge window.
 
-Agreed.
- 
-> - the status LED should be controlled by the LED interface.
+No worries. I was on holidays last week anyway.
 
-I originally was in favor of controlling these through v4l as well, but people
-made some good arguments against that. The main one being: why would you want
-to show these as a control? What is the end user supposed to do with them? It
-makes little sense.
+> Anyway, just finished my review, and sent a per-patch comment for most
+> patches.
 
-Frankly, why would you want to expose LEDs at all? Shouldn't this be completely
-hidden by the driver? No generic application will ever do anything with status
-LEDs anyway. So it should be the driver that operates them and in that case the
-LEDs do not need to be exposed anywhere.
+Thanks.
 
-In some embedded systems there may be a need to actually expose the LEDs, and in
-that case the standard LED API can be used. And the upcoming media API can, if
-necessary, be used to let the app know where to find the LED device associated
-with the video hardware.
+> One general comment about it: the userspace API should be documented via
+> DocBook, to be consistent with V4L2 and DVB API specs.
 
-Regards,
+I feared so :-) I'll work on it.
 
-	Hans
+> It should also be clear at the API specs there that not all media drivers
+> will implement the media controller API,
+
+I agree.
+
+> as its main focus is to allow better control of SoC devices, where there are
+> needs to control some intrinsic characteristics of parts of the devices,
+> complementing the V4L2 spec.
+
+Some consumer devices (ivtv for instance) will also benefit from the media 
+controller, the API is not specific to SoC devices only.
+
+> This means that it is needed to add some comments at the kernelspace API
+> doc, saying that the drivers implementing the media controller API are
+> required to work properly even when userspace is not using the media
+> controller API;
+
+That's another issue. Drivers should make a best effort to allow pure V4L2 
+applications to work with a subset of the video device nodes, but they will 
+only offer a subset of the hardware capabilities. For SoC devices it's even 
+worse, it might be way too difficult to implement support for pure V4L2 
+applications in the kernel driver(s). In that case a device-specific libv4l 
+plugin will configure the driver using the media controller API for pure V4L2 
+applications.
+
+> This also means that it is needed to add some comments at the userspace API
+> doc, saying that userspace applications should not assume that media
+> drivers will implement the media controller API.
+
+Agreed. Many V4L2 drivers will not implement the media controller API.
+
+> So, userspace applications implementing the media controller and V4L2 API's
+> are required to work properly if the device doesn't present a media
+> controler API interface.
+
+Applications can require support for the media controller API, but they should 
+only do so for specific cases (for instance applications tied to specific SoC 
+hardware, or graphical user interfaces on top of the media controller API 
+similar to qv4l2).
+
+> It should also say that no driver should just implement the media controller
+> API.
+
+I haven't thought about that, as it would be pretty useless :-)
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Regards,
+
+Laurent Pinchart
