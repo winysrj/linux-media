@@ -1,71 +1,71 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1180 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750827Ab0IGVV5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Sep 2010 17:21:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Jean-Francois Moine" <moinejf@free.fr>
-Subject: Re: [PATCH] Illuminators and status LED controls
-Date: Tue, 7 Sep 2010 23:21:45 +0200
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org
-References: <20100906201105.4029d7e7@tele> <20100907195718.066b2986@tele> <201009072042.07487.hverkuil@xs4all.nl>
-In-Reply-To: <201009072042.07487.hverkuil@xs4all.nl>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:42754 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751492Ab0INVUh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Sep 2010 17:20:37 -0400
+Received: by gwj17 with SMTP id 17so2507559gwj.19
+        for <linux-media@vger.kernel.org>; Tue, 14 Sep 2010 14:20:36 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009072321.45377.hverkuil@xs4all.nl>
+In-Reply-To: <397375.74162.qm@web55403.mail.re4.yahoo.com>
+References: <397375.74162.qm@web55403.mail.re4.yahoo.com>
+Date: Tue, 14 Sep 2010 22:20:31 +0100
+Message-ID: <AANLkTikvMqZyrBWsdo5iGuGES9q4wjj2TJW2HZS5cOtV@mail.gmail.com>
+Subject: Re: Fw: [linux-dvb] DSM-CC question
+From: Simon Liddicott <simon@liddicott.com>
+To: Suchita Gupta <suchitagupta@yahoo.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Tuesday, September 07, 2010 20:42:07 Hans Verkuil wrote:
-> On Tuesday, September 07, 2010 19:57:18 Jean-Francois Moine wrote:
-> > On Tue, 7 Sep 2010 17:30:33 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > 
-> > > enum v4l2_illuminator {
-> > >         V4L2_ILLUMINATOR_OFF = 0,
-> > >         V4L2_ILLUMINATOR_ON = 1,
-> > > };
-> > > #define V4L2_CID_ILLUMINATOR_0              (V4L2_CID_BASE+37)
-> > > #define V4L2_CID_ILLUMINATOR_1              (V4L2_CID_BASE+38)
-> > > 
-> > > enum v4l2_led {
-> > >         V4L2_LED_AUTO = 0,
-> > >         V4L2_LED_OFF = 1,
-> > >         V4L2_LED_ON = 2,
-> > > };
-> > > #define V4L2_CID_LED_0              (V4L2_CID_BASE+39)
-> > > 
-> > > Simple and straightforward.
-> > 
-> > Hi,
-> > 
-> > Hans (de Goede), is this OK for you? I think that if we find more
-> > illuminators or LEDs on some devices, we may add more V4L2_CID_xxx_n
-> > controls.
-> > 
-> > Hans (Verkuil), may we have the same enum's for both light types?
-> > Something like:
-> > 
-> > enum v4l2_light {
-> > 	V4L2_LIGHT_OFF = 0,
-> > 	V4L2_LIGHT_ON = 1,
-> > 	V4L2_LIGHT_AUTO = 2,
-> > 	V4L2_LIGHT_BLINK = 3,
-> > };
-> 
-> I'm OK with that. Although 'blink' shouldn't be added yet unless we have a
-> driver that will actually make use of it.
+Have you had a look at the code for redbutton?
 
-I realized something else: while for us programmers it is perfectly natural
-to start counting at 0, for the rest of the world it is probably more
-understandable to start counting at 1. I know it goes against our religion,
-but sometimes you just have to conform. :-)
+http://redbutton.sourceforge.net/
 
-Regards,
+Si
 
-	Hans
-
--- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+On 14 September 2010 21:32, Suchita Gupta <suchitagupta@yahoo.com> wrote:
+>
+> Hi,
+>
+> First of all, I am new to this list, so I am not sire if this is right place for
+>
+> this question.
+> If not, please forgive me and point me to right list.
+>
+> I am writing a DSMCC decoding implementation to persist it to local filesystem.
+> I am unable to understand few thiings related to "srg"
+>
+> I know, it represents the top level directory. But how do I get the name of this
+>
+> directory?
+> I can extract the names of subdirs and files using name components but where is
+> the name of top level directory?
+>
+> Also, as far as I understand it, I can't start writing to the local filesystem
+> until I have acquired the whole carousel.
+>
+> Can, anyone please provide me some guidance.
+>
+> Thanks in Advance,
+> rs
+>
+>
+>
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>
+>
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
