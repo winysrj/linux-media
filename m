@@ -1,39 +1,72 @@
 Return-path: <mchehab@pedra>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:36945 "EHLO
-	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750932Ab0INPZi (ORCPT
+Received: from mo-p00-ob.rzone.de ([81.169.146.160]:64280 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752400Ab0INX5B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 11:25:38 -0400
-Received: by iwn5 with SMTP id 5so6167080iwn.19
-        for <linux-media@vger.kernel.org>; Tue, 14 Sep 2010 08:25:37 -0700 (PDT)
+	Tue, 14 Sep 2010 19:57:01 -0400
+From: rjkm <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-In-Reply-To: <AANLkTi=QujvRkdSLBMm14ZpOy2GCk8Ow3d87FAAz6GGY@mail.gmail.com>
-References: <1274978356-25836-1-git-send-email-david@identd.dyndns.org>
-	<AANLkTi=QujvRkdSLBMm14ZpOy2GCk8Ow3d87FAAz6GGY@mail.gmail.com>
-Date: Tue, 14 Sep 2010 12:25:37 -0300
-Message-ID: <AANLkTikHxgTrBq9+8Gm8eTNzXoWA0Br44dQx0eif91q4@mail.gmail.com>
-Subject: Re: [PATCH/RFC v2 0/8] dsbr100: driver cleanup and fixes
-From: Douglas Schilling Landgraf <dougsland@gmail.com>
-To: David Ellingsworth <david@identd.dyndns.org>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Alexey Klimov <klimov.linux@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	dougsland@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <19600.3015.410234.367070@valen.metzler>
+Date: Wed, 15 Sep 2010 01:56:55 +0200
+To: Johannes Stezenbach <js@linuxtv.org>
+Cc: linux-media@vger.kernel.org
+Subject: Re: How to handle independent CA devices
+In-Reply-To: <20100914144339.GA9525@linuxtv.org>
+References: <19593.22297.612764.560375@valen.metzler>
+	<20100914144339.GA9525@linuxtv.org>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi David,
+Hi Johannes,
 
-On Tue, Sep 14, 2010 at 11:56 AM, David Ellingsworth
-<david@identd.dyndns.org> wrote:
-> Alexey,
->
-> Can you review/test this patch series? Patches 2/8, 3/8, and 5/8 are
-> bug fixes the rest are mainly cleanups. Patch 2/8 should fix a crash
-> in the normal case if the device is disconnected while not in use.
 
-I will also check your patches soon. I have this old hardware at home.
+Johannes Stezenbach writes:
+ > > So, I would like to hear your opinions about how to handle such CA devices 
+ > > regarding device names/types, the DVB API and user libraries.
+ > 
+ > it looks like there isn't much interest from DVB developers
+ > in that topic...  I'll try...
+ > 
+ > 
+ > IMHO there are three sub topics:
+ > 
+ > 1. be compatible with existing applications
+ >    (I guess this means: feed stream from frontend through CI transparently)
+ > 2. create an API which would also work for CI-only
+ >    devices like this Hauppauge WinTV-CI USB thingy
+ > 3. how to switch between these modes?
+ > 
+ > This sec0 device is history (unused and deprecated for years), right?
 
-Cheers
-Douglas
+Yes, the former DiSEqC, etc. device. I only use it because it is is
+unused and I do not have to change anything in dvb-core this way.
+But trivial to change it or add ci0.
+
+
+ > How about the following:
+ > Rename it to ci0.  When ci0 is closed the stream is routed
+ > transparently from frontend through CI, if it's opened one needs to
+ > read/write the stream from userspace.
+
+
+You still need a mechanism to decide which tuner gets it. First one
+which opens its own ca device?
+Sharing the CI (multi-stream decoding) in such an automatic way 
+would also be complicated.
+I think I will only add such a feature if there is very high demand
+and rather look into the separate API solution.
+
+
+ > If you can't get responses here I guess you could talk to
+ > vdr or other application developers.  After all they'll have
+ > to use the API.
+
+I am in contact with some.
+Just wanted to check what people think about it on this list.
+
+Thanks for your comments.
+
+
+-Ralph
