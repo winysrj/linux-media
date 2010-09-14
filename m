@@ -1,228 +1,64 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:42707 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754678Ab0IWLfU (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:12400 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752328Ab0INLjS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 07:35:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@maxwell.research.nokia.com
-Subject: [RFC/PATCH v5 11/12] v4l: Make video_device inherit from media_entity
-Date: Thu, 23 Sep 2010 13:34:55 +0200
-Message-Id: <1285241696-16826-12-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1285241696-16826-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1285241696-16826-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 14 Sep 2010 07:39:18 -0400
+Subject: Re: extend video capture example to capture mpeg video file
+From: Andy Walls <awalls@md.metrocast.net>
+To: bad boy <badmash69@yahoo.com>
+Cc: video4linux-list@redhat.com, linux-media@vger.kernel.org
+In-Reply-To: <768645.43657.qm@web45308.mail.sp1.yahoo.com>
+References: <768645.43657.qm@web45308.mail.sp1.yahoo.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Tue, 14 Sep 2010 07:39:04 -0400
+Message-ID: <1284464344.2827.24.camel@morgan.silverblock.net>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-V4L2 devices are media entities. As such they need to inherit from
-(include) the media_entity structure.
+On Mon, 2010-09-13 at 21:43 -0700, bad boy wrote:
+> Hi
 
-When registering/unregistering the device, the media entity is
-automatically registered/unregistered. The entity is acquired on device
-open and released on device close.
+Please note, the video4linux-list is about dead; use
+linux-media@vger.kernel.org instead.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- Documentation/video4linux/v4l2-framework.txt |   38 +++++++++++++++++++++++--
- drivers/media/video/v4l2-dev.c               |   35 ++++++++++++++++++++++-
- include/media/v4l2-dev.h                     |    6 ++++
- 3 files changed, 74 insertions(+), 5 deletions(-)
+> I have a Hauppage TV capture card that seems to be working . I can use the
+> 
+> cat /dev/video0 > test.mpeg to capture a video file to hard disk.
+> 
+> I am trying to adapt the video capture example, source  "capture.c" to  capture 
+> the mpeg file.
+> 
+> The example code ins capture.c calls the read_frame() function that then calls 
+> process image, which writes a "." to the screen.
+> 
+> 
+> What do I need to modify to capture a proper mpeg file ? 
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 8a3f14e..7ff4016 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -71,6 +71,10 @@ sub-device instances, the video_device struct stores V4L2 device node data
- and in the future a v4l2_fh struct will keep track of filehandle instances
- (this is not yet implemented).
- 
-+The V4L2 framework also optionally integrates with the media framework. If a
-+driver sets the struct v4l2_device mdev field, sub-devices and video nodes
-+will automatically appear in the media framework as entities.
-+
- 
- struct v4l2_device
- ------------------
-@@ -84,11 +88,14 @@ You must register the device instance:
- 	v4l2_device_register(struct device *dev, struct v4l2_device *v4l2_dev);
- 
- Registration will initialize the v4l2_device struct. If the dev->driver_data
--field is NULL, it will be linked to v4l2_dev. Drivers that use the media
--device framework in addition to the V4L2 framework need to set
-+field is NULL, it will be linked to v4l2_dev.
-+
-+Drivers that want integration with the media device framework need to set
- dev->driver_data manually to point to the driver-specific device structure
- that embed the struct v4l2_device instance. This is achieved by a
--dev_set_drvdata() call before registering the V4L2 device instance.
-+dev_set_drvdata() call before registering the V4L2 device instance. They must
-+also set the struct v4l2_device mdev field to point to a properly initialized
-+and registered media_device instance.
- 
- If v4l2_dev->name is empty then it will be set to a value derived from dev
- (driver name followed by the bus_id, to be precise). If you set it up before
-@@ -523,6 +530,21 @@ If you use v4l2_ioctl_ops, then you should set either .unlocked_ioctl or
- The v4l2_file_operations struct is a subset of file_operations. The main
- difference is that the inode argument is omitted since it is never used.
- 
-+If integration with the media framework is needed, you must initialize the
-+media_entity struct embedded in the video_device struct (entity field) by
-+calling media_entity_init():
-+
-+	struct media_pad *pad = &my_vdev->pad;
-+	int err;
-+
-+	err = media_entity_init(&vdev->entity, 1, pad, 0);
-+
-+The pads array must have been previously initialized. There is no need to
-+manually set the struct media_entity type and name fields.
-+
-+A reference to the entity will be automatically acquired/released when the
-+video device is opened/closed.
-+
- 
- video_device registration
- -------------------------
-@@ -536,6 +558,9 @@ for you.
- 		return err;
- 	}
- 
-+If the v4l2_device parent device has a non-NULL mdev field, the video device
-+entity will be automatically registered with the media device.
-+
- Which device is registered depends on the type argument. The following
- types exist:
- 
-@@ -613,6 +638,13 @@ those will still be passed on since some buffer ioctls may still be needed.
- When the last user of the video device node exits, then the vdev->release()
- callback is called and you can do the final cleanup there.
- 
-+Don't forget to cleanup the media entity associated with the video device if
-+it has been initialized:
-+
-+	media_entity_cleanup(&vdev->entity);
-+
-+This can be done from the release callback.
-+
- 
- video_device helper functions
- -----------------------------
-diff --git a/drivers/media/video/v4l2-dev.c b/drivers/media/video/v4l2-dev.c
-index 36de632..58ef5d8 100644
---- a/drivers/media/video/v4l2-dev.c
-+++ b/drivers/media/video/v4l2-dev.c
-@@ -266,6 +266,7 @@ static int v4l2_mmap(struct file *filp, struct vm_area_struct *vm)
- static int v4l2_open(struct inode *inode, struct file *filp)
- {
- 	struct video_device *vdev;
-+	struct media_entity *entity = NULL;
- 	int ret = 0;
- 
- 	/* Check if the video device is available */
-@@ -280,12 +281,23 @@ static int v4l2_open(struct inode *inode, struct file *filp)
- 	/* and increase the device refcount */
- 	video_get(vdev);
- 	mutex_unlock(&videodev_lock);
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
-+		entity = media_entity_get(&vdev->entity);
-+		if (!entity) {
-+			ret = -EBUSY;
-+			video_put(vdev);
-+			return ret;
-+		}
-+	}
- 	if (vdev->fops->open)
- 		ret = vdev->fops->open(filp);
- 
- 	/* decrease the refcount in case of an error */
--	if (ret)
-+	if (ret) {
-+		if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-+			media_entity_put(entity);
- 		video_put(vdev);
-+	}
- 	return ret;
- }
- 
-@@ -298,6 +310,9 @@ static int v4l2_release(struct inode *inode, struct file *filp)
- 	if (vdev->fops->release)
- 		vdev->fops->release(filp);
- 
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-+		media_entity_put(&vdev->entity);
-+
- 	/* decrease the refcount unconditionally since the release()
- 	   return value is ignored. */
- 	video_put(vdev);
-@@ -545,11 +560,24 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 		printk(KERN_WARNING "%s: requested %s%d, got %s\n", __func__,
- 			name_base, nr, video_device_node_name(vdev));
- 
--	/* Part 5: Activate this minor. The char device can now be used. */
-+	/* Part 5: Register the entity. */
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev) {
-+		vdev->entity.type = MEDIA_ENTITY_TYPE_NODE_V4L;
-+		vdev->entity.name = vdev->name;
-+		vdev->entity.v4l.major = VIDEO_MAJOR;
-+		vdev->entity.v4l.minor = vdev->minor;
-+		ret = media_device_register_entity(vdev->v4l2_dev->mdev,
-+			&vdev->entity);
-+		if (ret < 0)
-+			printk(KERN_ERR "error\n"); /* TODO */
-+	}
-+
-+	/* Part 6: Activate this minor. The char device can now be used. */
- 	set_bit(V4L2_FL_REGISTERED, &vdev->flags);
- 	mutex_lock(&videodev_lock);
- 	video_device[vdev->minor] = vdev;
- 	mutex_unlock(&videodev_lock);
-+
- 	return 0;
- 
- cleanup:
-@@ -577,6 +605,9 @@ void video_unregister_device(struct video_device *vdev)
- 	if (!vdev || !video_is_registered(vdev))
- 		return;
- 
-+	if (vdev->v4l2_dev && vdev->v4l2_dev->mdev)
-+		media_device_unregister_entity(&vdev->entity);
-+
- 	clear_bit(V4L2_FL_REGISTERED, &vdev->flags);
- 	device_unregister(&vdev->dev);
- }
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 96a2e6b..320cd94 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -16,6 +16,8 @@
- #include <linux/mutex.h>
- #include <linux/videodev2.h>
- 
-+#include <media/media-entity.h>
-+
- #define VIDEO_MAJOR	81
- 
- #define VFL_TYPE_GRABBER	0
-@@ -58,6 +60,8 @@ struct v4l2_file_operations {
- 
- struct video_device
- {
-+	struct media_entity entity;
-+
- 	/* device ops */
- 	const struct v4l2_file_operations *fops;
- 
-@@ -100,6 +104,8 @@ struct video_device
- 	const struct v4l2_ioctl_ops *ioctl_ops;
- };
- 
-+#define media_entity_to_video_device(entity) \
-+	container_of(entity, struct video_device, entity)
- /* dev to video-device */
- #define to_video_device(cd) container_of(cd, struct video_device, dev)
- 
--- 
-1.7.2.2
+If you have a Hauppauge card whose driver supports the read() method and
+provides MPEG output (ivtv or cx18?), then 'cat /dev/video0' does
+capture a proper MPEG file to standard output.  
+
+Drivers that support the read() method, like ivtv and cx18, usually do
+not support the methods that use mmap().  I'm guessing capture.c uses
+the one of the mmap() methods, which is a completely different way of
+reading from a video device node than a read() call.  By the time you
+are done rewriting capture.c, you will end up with something close to
+cat.c.
+
+
+> Your help would be deeply appreciated.
+
+$ mplayer /dev/video0 -cache 8192
+
+will display the video and audio as it is captured.
+
+Regards,
+Andy
+
+> Thanks
+> badam
+
 
