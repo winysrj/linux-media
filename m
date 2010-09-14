@@ -1,63 +1,125 @@
 Return-path: <mchehab@pedra>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:17244 "EHLO
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:62955 "EHLO
 	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753417Ab0IMM4t (ORCPT
+	by vger.kernel.org with ESMTP id S1752079Ab0INVBm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 08:56:49 -0400
-Subject: Re: [GIT PATCHES FOR 2.6.37] Remove V4L1 support from the pwc
- driver
+	Tue, 14 Sep 2010 17:01:42 -0400
+Subject: Re: Need info to understand TeVii S470 cx23885 MSI  problem
 From: Andy Walls <awalls@md.metrocast.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-In-Reply-To: <201009130902.30242.hverkuil@xs4all.nl>
-References: <201009122226.11970.hverkuil@xs4all.nl>
-	 <1284325962.2394.24.camel@localhost>
-	 <201009130902.30242.hverkuil@xs4all.nl>
+To: "Igor M. Liplianin" <liplianin@me.by>
+Cc: linux-media@vger.kernel.org
+In-Reply-To: <201009140108.50109.liplianin@me.by>
+References: <1284321417.2394.10.camel@localhost>
+	 <201009132338.28664.liplianin@me.by> <201009132341.21818.liplianin@me.by>
+	 <201009140108.50109.liplianin@me.by>
 Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 13 Sep 2010 08:56:35 -0400
-Message-ID: <1284382595.2031.51.camel@morgan.silverblock.net>
+Date: Tue, 14 Sep 2010 17:01:20 -0400
+Message-ID: <1284498080.26360.45.camel@morgan.silverblock.net>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, 2010-09-13 at 09:02 +0200, Hans Verkuil wrote:
-> On Sunday, September 12, 2010 23:12:42 Andy Walls wrote:
-> > On Sun, 2010-09-12 at 22:26 +0200, Hans Verkuil wrote:
-> > 
-> > > And other news on the V4L1 front:
-> > 
-> > > I'm waiting for test results on the cpia2 driver. If it works, then the V4L1
-> > > support can be removed from that driver as well.
-> > 
-> > FYI, that will break this 2005 vintage piece of V4L1 software people may
-> > still be using for the QX5 microscope:
-> > 
-> > http://www.cryptoforge.net/qx5/qx5view/
-> > http://www.cryptoforge.net/qx5/qx5view/qx5view-0.5.tar.gz
+On Tue, 2010-09-14 at 01:08 +0300, Igor M. Liplianin wrote:
+> В сообщении от 13 сентября 2010 23:41:21 автор Igor M. Liplianin написал:
+> > В сообщении от 13 сентября 2010 23:38:28 автор Igor M. Liplianin написал:
+> > > В сообщении от 12 сентября 2010 22:56:57 автор Andy Walls написал:
+
+> > > > The linux kernel should be writing the MSI IRQ vector into the PCI
+> > > > configuration space of the CX23885.  It looks like when you unload and
+> > > > reload the cx23885 module, it is not changing the vector.
+
+> > > Error appears only and if you zap actual channel(interrupts actually
+> > > calls). First time module loaded and zapped some channel. At this point
+> > > there is no errors. /proc/interrupts shows some irq's for cx23885.
+> > > Then rmmod-insmod and szap again. Voilla! No irq vector.
+> > > /proc/interrupts shows zero irq calls for cx23885.
+> > > In my case Do_irq complains about irq 153, dmesq says cx23885 uses 45.
+
+> > Forget to mention. The tree is media_tree, branch staging/v2.6.37
+
+Hi Igor,
+
+On the surface what is going on is now obvious to me:
+
+> bash-4.1# szap -l10750 bridge-tv -x
+> reading channels from file '/root/.szap/channels.conf'
+> zapping to 6 'bridge-tv':
+> sat 1, frequency = 12303 MHz H, symbolrate 27500000, vpid = 0x0134, apid = 0x0100 sid = 0x003b
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> status 1f | signal fde8 | snr e128 | ber 00000000 | unc 0000000b | FE_HAS_LOCK
+> bash-4.1# lspci -d 14f1: -xxxx -vvvv 
+> 02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder 
+> (rev 02)
+>         Subsystem: Device d470:9022
+
+>         Capabilities: [a0] MSI: Enable+ Count=1/1 Maskable- 64bit+
+>                 Address: 00000000fee0300c  Data: 4191
+
+> a0: 05 00 81 00 0c 30 e0 fe 00 00 00 00 91 41 00 00
+             ^                            ^^
+             |                            |
+MSI Enabled--+                            |
+                                          |
+Linux MSI vector (0x91 = 145) ------------+
+
+
+> bash-4.1# rmmod cx23885
+> bash-4.1# insmod cx23885.ko
+> bash-4.1# lspci -d 14f1: -xxxx -vvvv 
+> 02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885 PCI Video and Audio Decoder 
+> (rev 02)
+>         Subsystem: Device d470:9022
+
+>         Capabilities: [a0] MSI: Enable+ Count=1/1 Maskable- 64bit+
+>                 Address: 00000000fee0300c  Data: 4199
+
+> a0: 05 00 81 00 0c 30 e0 fe 00 00 00 00 99 41 00 00
+             ^                            ^^
+             |                            |
+MSI Enabled--+                            |
+                                          |
+Linux MSI vector (0x99 = 153) ------------+ 
+
+
+> bash-4.1# szap -l10750 bridge-tv -x
+> reading channels from file '/root/.szap/channels.conf'
+> zapping to 6 'bridge-tv':
+> sat 1, frequency = 12303 MHz H, symbolrate 27500000, vpid = 0x0134, apid = 0x0100 sid = 0x003b
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> status 00 | signal f618 | snr e128 | ber 00000000 | unc 0000000b | 
 > 
-> Why? qx5view has support for v4l2 as well.
+> Message from syslogd@localhost at Tue Sep 14 01:00:50 2010 ...
+> localhost kernel: do_IRQ: 0.145 No irq handler for vector (irq -1)
+                              ^^^
+                               |
+Previous MSI vector used ------+
+(145 = 0x91 and is not 0x99 ! )
 
-The frontend.c file in the tar archive used these ioctls:
 
-VIDIOCSYNC
-VIDIOCSPICT
-VIDIOCMCAPTURE
-VIDIOCSWIN
-VIDIOCGCAP
-VIDIOCGWIN
-VIDIOCGMBUF
+The CX23885 hardware is sending the old/previous MSI data in the PCIe
+MSI message.
 
-I could have sworn those were V4L1.  But in any case, I forgot we have a
-V4L1 compat layer in place.
+The likely reasons I can think of for this to happen are:
 
-Please disregard.
+1. The CX23885 chip has a bug and send at least one PCIe MSI message
+with the old MSI data, when the MSI data payload in the PCIe config
+space of the CX23885 has changed.
 
-I apparently need to spend spend more time reading and testing to get my
-fact straight lately, and less time clicking the send button on
-emails. :P
+2. Your kernel is using the PCI Enhanced Configuration Access Method
+(Linux calls it MMCONFIG in dmesg) and PCI MMIO Configuration writes to
+the CX23885 are getting reordered due to motherboard/chipset design
+problem.  Under these conditions, MSI on the CX23885 could be re-enabled
+before the MSI Data vector is updated in the CX23885's PCI config space.
+
+(See page 5 of:
+http://www.pcisig.com/specifications/pciexpress/PciEx_ECN_MMCONFIG_040217.pdf )
+
+
+To eliminate #2 being a problem, could you please boot your kernel with
+"pci=nommconf" on the kernel command line and see if the MSI data vector
+problem goes away?
 
 Regards,
 Andy
-
 
