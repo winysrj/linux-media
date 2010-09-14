@@ -1,52 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from ozlabs.org ([203.10.76.45]:36730 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752208Ab0ITW7l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Sep 2010 18:59:41 -0400
-Date: Tue, 21 Sep 2010 08:55:27 +1000
-From: Anton Blanchard <anton@samba.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: Re: IR code autorepeat issue?
-Message-ID: <20100920225527.GK25306@kryten>
-References: <20100829064036.GB22853@kryten>
- <4C7A8056.4070901@infradead.org>
- <4C87BA04.7030908@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4C87BA04.7030908@redhat.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4177 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754290Ab0INTDa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Sep 2010 15:03:30 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8EJ3KLq076692
+	for <linux-media@vger.kernel.org>; Tue, 14 Sep 2010 21:03:29 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Tue, 14 Sep 2010 21:03:20 +0200 (CEST)
+Message-Id: <201009141903.o8EJ3KLq076692@smtp-vbr11.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Hi,
+Results of the daily build of v4l-dvb:
 
-> > > I'm seeing double IR events on 2.6.36-rc2 and a DViCO FusionHDTV DVB-T
-> > > Dual Express.
-> >
-> > There's one issue on touching on this constant: it is currently just one
-> > global timeout value that will be used by all protocols. This timeout
-> > should be enough to retrieve and proccess the repeat key event on all
-> > protocols, and on all devices, or we'll need to do a per-protocol (and
-> > eventually per device) timeout init. From
-> > http://www.sbprojects.com/knowledge/ir/ir.htm, we see that NEC prococol
-> > uses 110 ms for repeat code, and we need some aditional time to wake up the
-> > decoding task. I'd say that anything lower than 150-180ms would risk to not
-> > decode repeat events with NEC.
-> > 
-> > I got exactly the same problem when adding RC CORE support at the dib0700
-> > driver. At that driver, there's an additional time of sending/receiving
-> > URB's from USB. So, we probably need a higher timeout. Even so, I tried to
-> > reduce the timeout to 200ms or 150ms (not sure), but it didn't work. So, I
-> > ended by just patching the dibcom driver to do dev->rep[REP_DELAY] = 500:
-> 
-> Ok, just sent a patch adding it to rc-core, and removing from dib0700 driver.
+date:        Tue Sep 14 19:00:11 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15148:990bbeaeb761
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
-Thanks, tested and confirmed to work!
+linux-2.6.32.6-armv5: WARNINGS
+linux-2.6.33-armv5: OK
+linux-2.6.34-armv5: WARNINGS
+linux-2.6.35.3-armv5: WARNINGS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: WARNINGS
+linux-2.6.33-armv5-davinci: WARNINGS
+linux-2.6.34-armv5-davinci: WARNINGS
+linux-2.6.35.3-armv5-davinci: WARNINGS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: WARNINGS
+linux-2.6.33-armv5-ixp: WARNINGS
+linux-2.6.34-armv5-ixp: WARNINGS
+linux-2.6.35.3-armv5-ixp: WARNINGS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: WARNINGS
+linux-2.6.33-armv5-omap2: WARNINGS
+linux-2.6.34-armv5-omap2: WARNINGS
+linux-2.6.35.3-armv5-omap2: WARNINGS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: WARNINGS
+linux-2.6.27.44-i686: WARNINGS
+linux-2.6.28.10-i686: WARNINGS
+linux-2.6.29.1-i686: WARNINGS
+linux-2.6.30.10-i686: WARNINGS
+linux-2.6.31.12-i686: WARNINGS
+linux-2.6.32.6-i686: WARNINGS
+linux-2.6.33-i686: WARNINGS
+linux-2.6.34-i686: WARNINGS
+linux-2.6.35.3-i686: WARNINGS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: WARNINGS
+linux-2.6.33-m32r: OK
+linux-2.6.34-m32r: WARNINGS
+linux-2.6.35.3-m32r: WARNINGS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: WARNINGS
+linux-2.6.33-mips: WARNINGS
+linux-2.6.34-mips: WARNINGS
+linux-2.6.35.3-mips: WARNINGS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: WARNINGS
+linux-2.6.33-powerpc64: WARNINGS
+linux-2.6.34-powerpc64: WARNINGS
+linux-2.6.35.3-powerpc64: WARNINGS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: WARNINGS
+linux-2.6.27.44-x86_64: WARNINGS
+linux-2.6.28.10-x86_64: WARNINGS
+linux-2.6.29.1-x86_64: WARNINGS
+linux-2.6.30.10-x86_64: WARNINGS
+linux-2.6.31.12-x86_64: WARNINGS
+linux-2.6.32.6-x86_64: WARNINGS
+linux-2.6.33-x86_64: WARNINGS
+linux-2.6.34-x86_64: WARNINGS
+linux-2.6.35.3-x86_64: WARNINGS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: ERRORS
+sparse: ERRORS
 
-I originally hit this on Ubuntu Maverick. Would you be OK if I submit it for
-backport to 2.6.35 stable?
+Detailed results are available here:
 
-Anton
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The V4L-DVB specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
