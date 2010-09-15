@@ -1,64 +1,75 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:50756 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757237Ab0IHF65 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Sep 2010 01:58:57 -0400
-Received: by eyb6 with SMTP id 6so2817945eyb.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Sep 2010 22:58:56 -0700 (PDT)
-Date: Wed, 8 Sep 2010 08:59:38 +0300
-From: Jarkko Nikula <jhnikula@gmail.com>
-To: eduardo.valentin@nokia.com
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] V4L/DVB: radio-si4713: Add regulator framework
- support
-Message-Id: <20100908085938.2d2e5992.jhnikula@gmail.com>
-In-Reply-To: <20100907194949.GA15216@besouro.research.nokia.com>
-References: <1276452568-16366-1-git-send-email-jhnikula@gmail.com>
-	<1276452568-16366-2-git-send-email-jhnikula@gmail.com>
-	<20100907194949.GA15216@besouro.research.nokia.com>
-Mime-Version: 1.0
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3081 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754083Ab0IOP7i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Sep 2010 11:59:38 -0400
+Message-ID: <74bab26c7582158ca76426c5e211f4d7.squirrel@webmail.xs4all.nl>
+In-Reply-To: <AANLkTinAjJ2_qxFVJuJ=TRr7+OJPtHnESKW7yHpoXev7@mail.gmail.com>
+References: <AANLkTinAjJ2_qxFVJuJ=TRr7+OJPtHnESKW7yHpoXev7@mail.gmail.com>
+Date: Wed, 15 Sep 2010 17:59:36 +0200
+Subject: Re: pwc driver breakage in recent(ish) kernels (for old hardware)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: "Christopher Friedt" <chrisfriedt@gmail.com>
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-Hi
 
-On Tue, 7 Sep 2010 22:49:49 +0300
-Eduardo Valentin <eduardo.valentin@nokia.com> wrote:
+> Hi everyone,
+>
+> I've been using a Logitech Sphere for years on various projects. This
+> model is probably from the first batch ever made. In lsusb it shows up
+> as
+>
+> 046d:08b5 Logitech, Inc. QuickCam Sphere
+>
+> It's a bit troublesome, because on older kernel versions (~2.4.x,
+> ~2.6.2x) I never had a single issue with this hardware at all, on
+> several different platforms ranging from x86 to x86_64, to arm
+> (ep93xx), etc. However, somewhere between then and now, the pwc driver
+> underwent some changes rendering this device unusable in any recent
+> kernel. All of my old apps and new apps (including cheese, mplayer,
+> etc) simply hang indefinitely waiting to read a single frame (using
+> the v4l2 mmap api). The v4l2 read api also hangs indefinitely (using
+> pwcgrab). A few of the very old apps that I have also use the v4l1
+> api, with a 2.4.26 kernel, and that actually works.
+>
+> I can verify that the hardware itself is fine on windows (also using
+> very old drivers from Logitech).
+>
+> Who has been working on this driver? What were the major changes that
+> have been applied? I'm guessing that the bridge / sensor init sequence
+> has been messed up somehow. Any ideas?
 
-> Hello Jarkko,
-> 
-> On Sun, Jun 13, 2010 at 08:09:28PM +0200, Jarkko Nikula wrote:
-> > Convert the driver to use regulator framework instead of set_power callback.
-> > This with gpio_reset platform data provide cleaner way to manage chip VIO,
-> > VDD and reset signal inside the driver.
-> > 
-> > Signed-off-by: Jarkko Nikula <jhnikula@gmail.com>
-> > Cc: Eduardo Valentin <eduardo.valentin@nokia.com>
-> > ---
-> > I don't have specifications for this chip so I don't know how long the
-> > reset signal must be active after power-up. I used 50 us from Maemo
-> > kernel sources for Nokia N900 and I can successfully enable-disable
-> > transmitter on N900 with vdd power cycling.
-> > ---
-> >  drivers/media/radio/radio-si4713.c |   20 ++++++++++++++-
-> >  drivers/media/radio/si4713-i2c.c   |   48 ++++++++++++++++++++++++++++-------
-> >  drivers/media/radio/si4713-i2c.h   |    3 +-
-> >  include/media/si4713.h             |    3 +-
-> 
-> Could you please elaborate a bit more on the fact that you have put vio on
-> the platform driver and vdd on the i2c driver?
-> 
-This is good question and let me explain. The regulator management
-division between these two files were based on my assumption that only
-VIO is needed and must be on before probing the chip on I2C bus.
+You're in luck. I fixed this last weekend. It turns out that the
+/dev/videoX device is created too soon and the HAL daemon starts to use it
+immediately causing some initialization to go wrong or something like
+that. Moving the creation of /dev/videoX to the end fixed this issue.
 
-Another assumption was that only VDD can realistically be managed
-runtime in si4713_powerup function. I think usually IO voltages cannot
-be shutdown even in suspend while the system is powered so I let the
-driver to keep the VIO enabled as long as the module is loaded.
+This bug has been there probably for a long time, but it is only triggered
+if some other process opens the device node immediately.
+
+Check out the pwc patch I posted last weekend.
+
+Regards,
+
+          Hans
+
+>
+> Cheers,
+>
+> Chris
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 
 -- 
-Jarkko
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+
