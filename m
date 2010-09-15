@@ -1,60 +1,50 @@
-Return-path: <mchehab@localhost.localdomain>
-Received: from mail.kapsi.fi ([217.30.184.167]:38944 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752742Ab0IMA25 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Sep 2010 20:28:57 -0400
-Message-ID: <4C8D7045.4030408@iki.fi>
-Date: Mon, 13 Sep 2010 03:28:53 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Stefan Lippers-Hollmann <s.l-h@gmx.de>
-CC: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR 2.6.37] AF9015 changes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Return-path: <mchehab@pedra>
+Received: from mail-out.m-online.net ([212.18.0.10]:55274 "EHLO
+	mail-out.m-online.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754529Ab0IOVbK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Sep 2010 17:31:10 -0400
+From: Anatolij Gustschin <agust@denx.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Anatolij Gustschin <agust@denx.de>
+Subject: [PATCH] V4L/DVB: v4l: fsl-viu.c: add slab.h include to fix compile breakage
+Date: Wed, 15 Sep 2010 23:31:09 +0200
+Message-Id: <1284586269-8623-1-git-send-email-agust@denx.de>
 List-ID: <linux-media.vger.kernel.org>
-Sender: <mchehab@localhost.localdomain>
+Sender: <mchehab@pedra>
 
-Moikka Mauro,
-This replaces my earlier pull request. Amongst the other changes, I 
-rewrote whole remote controller part. Now it reads IR codes directly 
-from the memory. This makes possible to switch upcoming remote core system.
+mpc512x kernel configurations without SPI support do not build:
 
-@Stefan, now you can add easily support for your TerraTec remote. Please 
-send patch me.
+drivers/media/video/fsl-viu.c: In function 'viu_open':
+drivers/media/video/fsl-viu.c:1248: error: implicit declaration of function 'kzalloc'
+drivers/media/video/fsl-viu.c:1248: warning: assignment makes pointer from integer without a cast
+drivers/media/video/fsl-viu.c: In function 'viu_release':
+drivers/media/video/fsl-viu.c:1335: error: implicit declaration of function 'kfree'
 
-t. Antti
+If CONFIG_SPI is enabled, the slab.h will be included in
+linux/spi/spi.h which is included by media/v4l2-common.h
+and the fsl_viu.c driver builds.
 
+Let's incluce linux/slab.h directly to fix the build breakage.
 
-The following changes since commit c9889354c6d36d6278ed851c74ace02d72efdd59:
+Signed-off-by: Anatolij Gustschin <agust@denx.de>
+---
+ drivers/media/video/fsl-viu.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-   V4L/DVB: rc-core: increase repeat time (2010-09-08 13:04:40 -0300)
-
-are available in the git repository at:
-   git://linuxtv.org/anttip/media_tree.git af9015
-
-Antti Palosaari (9):
-       af9015: simple comment update
-       af9015: fix bug introduced by commit 
-490ade7e3f4474f626a8f5d778ead4e599b94fbc
-       af9013: add support for MaxLinear MxL5007T tuner
-       af9015: add support for TerraTec Cinergy T Stick Dual RC
-       af9015: add remote support for TerraTec Cinergy T Stick Dual RC
-       af9015: map TerraTec Cinergy T Stick Dual RC remote to device ID
-       af9015: reimplement remote controller
-       af9013: optimize code size
-       af9015: use value from config instead hardcoded one
-
-  drivers/media/dvb/dvb-usb/Kconfig         |    1 +
-  drivers/media/dvb/dvb-usb/af9015.c        |  241 +++----
-  drivers/media/dvb/dvb-usb/af9015.h        | 1081 
-++++++++++-------------------
-  drivers/media/dvb/dvb-usb/dvb-usb-ids.h   |    1 +
-  drivers/media/dvb/frontends/af9013.c      |  195 +-----
-  drivers/media/dvb/frontends/af9013.h      |    1 +
-  drivers/media/dvb/frontends/af9013_priv.h |   48 ++-
-  7 files changed, 581 insertions(+), 987 deletions(-)
-
+diff --git a/drivers/media/video/fsl-viu.c b/drivers/media/video/fsl-viu.c
+index 43d208f..0b318be 100644
+--- a/drivers/media/video/fsl-viu.c
++++ b/drivers/media/video/fsl-viu.c
+@@ -22,6 +22,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/of_platform.h>
++#include <linux/slab.h>
+ #include <linux/version.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
 -- 
-http://palosaari.fi/
+1.7.0.4
+
