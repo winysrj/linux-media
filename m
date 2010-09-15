@@ -1,130 +1,92 @@
-Return-path: <mchehab@gaivota>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:26102 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752940Ab0IFGx4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 02:53:56 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from eu_spt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0L8B0072HCHTIF20@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 06 Sep 2010 07:53:53 +0100 (BST)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0L8B00L4OCHSQN@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 06 Sep 2010 07:53:52 +0100 (BST)
-Date: Mon, 06 Sep 2010 08:53:45 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 3/8] v4l: s5p-fimc: Register definition cleanup
-In-reply-to: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	p.osciak@samsung.com, s.nawrocki@samsung.com
-Message-id: <1283756030-28634-4-git-send-email-m.szyprowski@samsung.com>
-References: <1283756030-28634-1-git-send-email-m.szyprowski@samsung.com>
+Return-path: <mchehab@pedra>
+Received: from mail.kapsi.fi ([217.30.184.167]:51282 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753652Ab0IOUOs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Sep 2010 16:14:48 -0400
+Message-ID: <4C912935.7010109@iki.fi>
+Date: Wed, 15 Sep 2010 23:14:45 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Gregory Orange <gregory.orange@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Leadtek DTV2000DS remote
+References: <AANLkTi=1cucc=LrMEp44xpWs=_f75C7iAgXfkC+r5dPP@mail.gmail.com> <AANLkTi=zhzZ9RJwRzUt_Ftg9sHDzBhuw7cUss-dXQoSs@mail.gmail.com>
+In-Reply-To: <AANLkTi=zhzZ9RJwRzUt_Ftg9sHDzBhuw7cUss-dXQoSs@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Leadtek WinFast DTV2000DS remote is not supported at all. Leadtek 
+WinFast DTV Dongle Gold remote is. If you can compile and install latest 
+drivers from http://git.linuxtv.org/anttip/media_tree.git af9015 tree I 
+can add support for that remote rather easily.
 
-Prepare DMA address definitions for interlaced input frame mode.
+Antti
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-reg.c  |    6 ++--
- drivers/media/video/s5p-fimc/regs-fimc.h |   38 ++++++-----------------------
- 2 files changed, 11 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-reg.c b/drivers/media/video/s5p-fimc/fimc-reg.c
-index 5570f1c..70f29c5 100644
---- a/drivers/media/video/s5p-fimc/fimc-reg.c
-+++ b/drivers/media/video/s5p-fimc/fimc-reg.c
-@@ -507,9 +507,9 @@ void fimc_hw_set_input_addr(struct fimc_dev *dev, struct fimc_addr *paddr)
- 	cfg |= S5P_CIREAL_ISIZE_ADDR_CH_DIS;
- 	writel(cfg, dev->regs + S5P_CIREAL_ISIZE);
- 
--	writel(paddr->y, dev->regs + S5P_CIIYSA0);
--	writel(paddr->cb, dev->regs + S5P_CIICBSA0);
--	writel(paddr->cr, dev->regs + S5P_CIICRSA0);
-+	writel(paddr->y, dev->regs + S5P_CIIYSA(0));
-+	writel(paddr->cb, dev->regs + S5P_CIICBSA(0));
-+	writel(paddr->cr, dev->regs + S5P_CIICRSA(0));
- 
- 	cfg &= ~S5P_CIREAL_ISIZE_ADDR_CH_DIS;
- 	writel(cfg, dev->regs + S5P_CIREAL_ISIZE);
-diff --git a/drivers/media/video/s5p-fimc/regs-fimc.h b/drivers/media/video/s5p-fimc/regs-fimc.h
-index a3cfe82..df8cdfb 100644
---- a/drivers/media/video/s5p-fimc/regs-fimc.h
-+++ b/drivers/media/video/s5p-fimc/regs-fimc.h
-@@ -11,10 +11,6 @@
- #ifndef REGS_FIMC_H_
- #define REGS_FIMC_H_
- 
--#define S5P_CIOYSA(__x)			(0x18 + (__x) * 4)
--#define S5P_CIOCBSA(__x)		(0x28 + (__x) * 4)
--#define S5P_CIOCRSA(__x)		(0x38 + (__x) * 4)
--
- /* Input source format */
- #define S5P_CISRCFMT			0x00
- #define S5P_CISRCFMT_ITU601_8BIT	(1 << 31)
-@@ -72,23 +68,10 @@
- #define S5P_CIWDOFST2_HOROFF(x)		((x) << 16)
- #define S5P_CIWDOFST2_VEROFF(x)		((x) << 0)
- 
--/* Output DMA Y plane start address */
--#define S5P_CIOYSA1			0x18
--#define S5P_CIOYSA2			0x1c
--#define S5P_CIOYSA3			0x20
--#define S5P_CIOYSA4			0x24
--
--/* Output DMA Cb plane start address */
--#define S5P_CIOCBSA1			0x28
--#define S5P_CIOCBSA2			0x2c
--#define S5P_CIOCBSA3			0x30
--#define S5P_CIOCBSA4			0x34
--
--/* Output DMA Cr plane start address */
--#define S5P_CIOCRSA1			0x38
--#define S5P_CIOCRSA2			0x3c
--#define S5P_CIOCRSA3			0x40
--#define S5P_CIOCRSA4			0x44
-+/* Output DMA Y/Cb/Cr plane start addresses */
-+#define S5P_CIOYSA(n)			(0x18 + (n) * 4)
-+#define S5P_CIOCBSA(n)			(0x28 + (n) * 4)
-+#define S5P_CIOCRSA(n)			(0x38 + (n) * 4)
- 
- /* Target image format */
- #define S5P_CITRGFMT			0x48
-@@ -206,10 +189,10 @@
- #define S5P_CIIMGEFF_PAT_CB(x)		((x) << 13)
- #define S5P_CIIMGEFF_PAT_CR(x)		((x) << 0)
- 
--/* Input DMA Y/Cb/Cr plane start address 0 */
--#define S5P_CIIYSA0			0xd4
--#define S5P_CIICBSA0			0xd8
--#define S5P_CIICRSA0			0xdc
-+/* Input DMA Y/Cb/Cr plane start address 0/1 */
-+#define S5P_CIIYSA(n)			(0xd4 + (n) * 0x70)
-+#define S5P_CIICBSA(n)			(0xd8 + (n) * 0x70)
-+#define S5P_CIICRSA(n)			(0xdc + (n) * 0x70)
- 
- /* Real input DMA image size */
- #define S5P_CIREAL_ISIZE		0xf8
-@@ -250,11 +233,6 @@
- #define S5P_MSCTRL_ENVID		(1 << 0)
- #define S5P_MSCTRL_FRAME_COUNT(x)	((x) << 24)
- 
--/* Input DMA Y/Cb/Cr plane start address 1 */
--#define S5P_CIIYSA1			0x144
--#define S5P_CIICBSA1			0x148
--#define S5P_CIICRSA1			0x14c
--
- /* Output DMA Y/Cb/Cr offset */
- #define S5P_CIOYOFF			0x168
- #define S5P_CIOCBOFF			0x16c
+
+On 09/15/2010 10:45 AM, Gregory Orange wrote:
+> Shall I assume that noone has had any experience with one of these
+> devices? From some input from other sources, I'm now not sure if I
+> lack a kernel module, or perhaps the firmware for this device isn't
+> supported (or somesuch - a bit confused on that).
+>
+> In any case, pretty well everything is now working including EIT at
+> last. The remote is all I lack. I have no idea who else to ask or what
+> to try, so I may try borrowing a different remote. I'm all Googled out
+> (:
+>
+> Regards,
+> Greg.
+>
+> On 9 September 2010 22:11, Gregory Orange<gregory.orange@gmail.com>  wrote:
+>> Hi all, first post.
+>>
+>> I have a newly purchased Leadtek DTV2000DS dual tuner card in my
+>> machine, configured and running in Mythbuntu 10.04 (after installing
+>> latest v4l-dvb from source). I am having a bit of trouble getting the
+>> supplied remote control working. Is anyone here able to assist? I
+>> asked on the LIRC sf.net list and after a bit of back and forth I was
+>> directed to see if you guys can help me. In particular I wonder if the
+>> author of dvb_usb_af9015 and af9013 is around - hmm, seems to be Antti
+>> Palosaari, who seems to be a fairly recent poster. Don't get me wrong
+>> though - anyone who can assist would be great (:
+>>
+>> I have confirmed that the hardware works - I installed the drivers in
+>> a Windows boot, and the remote works.
+>>
+>> In terms of driver support I'm not sure exactly what I'm looking for,
+>> but there is this line in dmesg:
+>> [   22.263721] input: IR-receiver inside an USB DVB receiver as
+>> /devices/pci0000:00/0000:00:0e.0/0000:02:0a.2/usb2/2-1/input/input5
+>>
+>> cat /proc/bus/input/devices yields
+>> I: Bus=0003 Vendor=0413 Product=6a04 Version=0200
+>> N: Name="IR-receiver inside an USB DVB receiver"
+>> P: Phys=usb-0000:02:0a.2-1/ir0
+>> S: Sysfs=/devices/pci0000:00/0000:00:0e.0/0000:02:0a.2/usb2/2-1/input/input5
+>> U: Uniq=
+>> H: Handlers=kbd event5
+>> B: EV=3
+>> B: KEY=108fc310 2802891 0 0 0 0 118000 200180 4803 e1680 0 100000 ffe
+>>
+>> So I've been using /dev/input/event5 in my tests. I have tried using
+>> evtest, mode2, and irw to no avail. I get no indication of any signal
+>> coming from the remote. Am I missing a kernel driver module? Any
+>> further advice or specific experience with this device would be
+>> gratefully welcomed.
+>>
+>> Cheers,
+>> Greg.
+>>
+>> --
+>> Gregory Orange
+>>
+>
+>
+>
+
+
 -- 
-1.7.2.2
-
+http://palosaari.fi/
