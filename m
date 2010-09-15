@@ -1,82 +1,104 @@
 Return-path: <mchehab@pedra>
-Received: from filtteri2.pp.htv.fi ([213.243.153.185]:45626 "EHLO
-	filtteri2.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752448Ab0IOVEW (ORCPT
+Received: from mailr.qinetiq-tim.net ([128.98.1.9]:2763 "EHLO
+	mailr.qinetiq-tim.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751294Ab0IOKI5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Sep 2010 17:04:22 -0400
-Date: Thu, 16 Sep 2010 00:04:19 +0300
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	David Hardeman <david@hardeman.nu>,
-	Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH 5/6] Input: ati-remote2 - switch to using new keycode
- interface
-Message-ID: <20100915210419.GA6052@sci.fi>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
- <20100908074205.32365.68835.stgit@hammer.corenet.prv>
- <20100909124003.GT10135@sci.fi>
- <20100913162807.GA14598@core.coreip.homeip.net>
+	Wed, 15 Sep 2010 06:08:57 -0400
+Received: from mailhost.eris.qinetiq.com (mailhost.eris.qinetiq.com [128.98.2.2])
+	by mailr.qinetiq-tim.net (Postfix) with SMTP id A14B48CCFE
+	for <linux-media@vger.kernel.org>; Wed, 15 Sep 2010 10:42:28 +0100 (BST)
+Message-ID: <4C909475.70000@eris.qinetiq.com>
+Date: Wed, 15 Sep 2010 10:40:05 +0100
+From: Simon Kilvington <s.kilvington@eris.qinetiq.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20100913162807.GA14598@core.coreip.homeip.net>
+To: linux-media@vger.kernel.org
+CC: Marc Murphy <marcmltd@marcm.co.uk>, linux-dvb@linuxtv.org
+Subject: Re: [linux-dvb] DSM-CC question
+References: <521CE7BF573A436C94F0D9CDAEAF3524@MARCM.local> <E0626F02-B5EC-439B-8673-EF870AC0B5BE@marcm.co.uk>
+In-Reply-To: <E0626F02-B5EC-439B-8673-EF870AC0B5BE@marcm.co.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Mon, Sep 13, 2010 at 09:28:07AM -0700, Dmitry Torokhov wrote:
-> On Thu, Sep 09, 2010 at 03:40:04PM +0300, Ville Syrjälä wrote:
-> > On Wed, Sep 08, 2010 at 12:42:05AM -0700, Dmitry Torokhov wrote:
-> > > Switch the code to use new style of getkeycode and setkeycode
-> > > methods to allow retrieving and setting keycodes not only by
-> > > their scancodes but also by index.
-> > > 
-> > > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
-> > > ---
-> > > 
-> > >  drivers/input/misc/ati_remote2.c |   93 +++++++++++++++++++++++++++-----------
-> > >  1 files changed, 65 insertions(+), 28 deletions(-)
-> > > 
-> > > diff --git a/drivers/input/misc/ati_remote2.c b/drivers/input/misc/ati_remote2.c
-> > > index 2325765..b2e0d82 100644
-> > > --- a/drivers/input/misc/ati_remote2.c
-> > > +++ b/drivers/input/misc/ati_remote2.c
-> > > @@ -483,51 +483,88 @@ static void ati_remote2_complete_key(struct urb *urb)
-> > >  }
-> > >  
-> > >  static int ati_remote2_getkeycode(struct input_dev *idev,
-> > > -				  unsigned int scancode, unsigned int *keycode)
-> > > +				  struct input_keymap_entry *ke)
-> > >  {
-> > >  	struct ati_remote2 *ar2 = input_get_drvdata(idev);
-> > >  	unsigned int mode;
-> > > -	int index;
-> > > +	int offset;
-> > > +	unsigned int index;
-> > > +	unsigned int scancode;
-> > > +
-> > > +	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
-> > > +		index = ke->index;
-> > > +		if (index >= (ATI_REMOTE2_MODES - 1) *
-> >                                                ^^^^
-> > That -1 looks wrong. Same in setkeycode().
-> > 
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+also have a look at my rb-download code,
+
+http://redbutton.sourceforge.net/
+
+this gets around the problem of having to know the directory structure
+before you download files by using symlinks - ie you download the files
+as they arrive on the carousel, then when you get a directory you create
+the directory but make all the file entries in it symlinks - if the
+files have already arrived, then the links point to them, if the files
+haven't arrived yet, you just have some dangling symlinks until they do
+
+this means you don't have to worry about trying to cache files in memory
+before you can write them to disc and so makes the whole thing a lot
+simpler to implement
+
+On 14/09/10 22:06, Marc Murphy wrote:
+> Have a look at libdsmcc. It will write by default to /tmp/cache I have modified my test software to notify of a new file or updated file version. 
 > 
-> Yes, indeed. Thanks for noticing.
+> Hope this helps
+> 
+> Marc
+> 
+> Sent from my iPhone
+> 
+> On 14 Sep 2010, at 21:31, "Suchita Gupta" <suchitagupta@yahoo.com> wrote:
+> 
+>> Hi,
+>>
+>> First of all, I am new to this list, so I am not sire if this is right place for 
+>> this question.
+>> If not, please forgive me and point me to right list.
+>>
+>> I am writing a DSMCC decoding implementation to persist it to local filesystem.
+>> I am unable to understand few thiings related to "srg"
+>>
+>> I know, it represents the top level directory. But how do I get the name of this 
+>> directory?
+>> I can extract the names of subdirs and files using name components but where is 
+>> the name of top level directory?
+>>
+>> Also, as far as I understand it, I can't start writing to the local filesystem 
+>> until I have acquired the whole carousel.
+>>
+>> Can, anyone please provide me some guidance.
+>>
+>> Thanks in Advance,
+>> rs
+>>
+>>
+>>
+>>
+>> _______________________________________________
+>> linux-dvb users mailing list
+>> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+>> linux-dvb@linuxtv.org
+>> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+>>
+> 
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
+> 
+> 
 
-I fixed this bug locally and gave this a short whirl with my RWII.
-I tried both the old and new style keycode ioctls. Everything
-worked as expected.
+- -- 
+Simon Kilvington
 
-So if you want more tags feel free to add my Acked-by and Tested-by
-for this (assuming the off-by-one fix is included) and you can add my
-Tested-by for patch 1/6 as well.
 
--- 
-Ville Syrjälä
-syrjala@sci.fi
-http://www.sci.fi/~syrjala/
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAkyQlHUACgkQmt9ZifioJSwN7QCffyS4wY25IMysdwFcJEUS/Aaw
+JBEAoIGShJ/kxMvOT73o7vEqfXMNKr/r
+=Jf4M
+-----END PGP SIGNATURE-----
