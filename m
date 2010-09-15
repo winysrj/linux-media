@@ -1,70 +1,137 @@
 Return-path: <mchehab@pedra>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:36325 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755687Ab0IJIki (ORCPT
+Received: from mail-px0-f174.google.com ([209.85.212.174]:48746 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754438Ab0IOSFL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 04:40:38 -0400
-Subject: Re: [PATCH 5/8] IR: extend MCE keymap.
-From: Maxim Levitsky <maximlevitsky@gmail.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: lirc-list@lists.sourceforge.net,
-	David =?ISO-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	mchehab@infradead.org, linux-input@vger.kernel.org,
-	linux-media@vger.kernel.org
-In-Reply-To: <AANLkTik4HAspKxOpH1VcT0+TnGa=H+-M2Wpxg5MefPg1@mail.gmail.com>
-References: <1283808373-27876-1-git-send-email-maximlevitsky@gmail.com>
-	 <1283808373-27876-6-git-send-email-maximlevitsky@gmail.com>
-	 <AANLkTi=EFZys7NnxixmQL3hqqGfin_VOV7XAWCm0BkwT@mail.gmail.com>
-	 <1284079254.4828.6.camel@maxim-laptop>
-	 <AANLkTik4HAspKxOpH1VcT0+TnGa=H+-M2Wpxg5MefPg1@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 10 Sep 2010 11:40:31 +0300
-Message-ID: <1284108031.3498.31.camel@maxim-laptop>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Wed, 15 Sep 2010 14:05:11 -0400
+Received: by pxi10 with SMTP id 10so140388pxi.19
+        for <linux-media@vger.kernel.org>; Wed, 15 Sep 2010 11:05:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <4C90B4FB.2050401@s5r6.in-berlin.de>
+References: <AANLkTin53SY_xaed_tRfWRPOFmc65GmGzXrEt15ZyriW@mail.gmail.com>
+	<4C90B4FB.2050401@s5r6.in-berlin.de>
+Date: Wed, 15 Sep 2010 20:05:10 +0200
+Message-ID: <AANLkTikQLd1_thyADU8AMjOATFQoZaJfko3Sn-qtNgQR@mail.gmail.com>
+Subject: Re: [PATCH] firedtv driver: support for PSK8 for S2 devices. To watch HD.
+From: Tommy Jonsson <quazzie2@gmail.com>
+To: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-On Thu, 2010-09-09 at 21:37 -0400, Jarod Wilson wrote: 
-> On Thu, Sep 9, 2010 at 8:40 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> > On Wed, 2010-09-08 at 10:47 -0400, Jarod Wilson wrote:
-> >> On Mon, Sep 6, 2010 at 5:26 PM, Maxim Levitsky <maximlevitsky@gmail.com> wrote:
-> >> > These keys are found on remote bundled with
-> >> > Toshiba Qosmio F50-10q.
-> >> >
-> >> > Found and tested by, Sami R <maesesami@gmail.com>
-> >> >
-> >> > Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
-> >> > ---
-> >> >  drivers/media/IR/keymaps/rc-rc6-mce.c |    3 +++
-> >> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> >
-> > Tommorow I will resend that patch with even more scancodes.
-> 
-> Saw the discussion on irc. Feel your pain big-time on the X server
-> limitation on keycodes. Its put a big damper on efforts to add native
-> support to mythtv. Peter Hutterer's libXi2 cookbook tutorials talk a
-> good game about how libXi2 supports 32-bit keycodes, but neglects to
-> mention that the X server still gobbles up anything above 248 or 255
-> or whatever it is, and remedying that is no small task. :(
-> 
-> I think for mythtv, we're going to end up having a daemon process with
-> elevated privs that reads directly from input devices to get around
-> this annoyance, until such time as the annoyance is gone.
+Oh, read the first question a bit wrong, yeah i have missed the
+default case for 14 & 15.
+Should probably be AUTO/35 & AUTO/OFF.
 
-
-Btw, indeed Xi2 still doesn't pass > 248 keycodes, just tested that with
--git versions of X stack from about 2 months ago.
-However this can be fixed relatively easily.
-Maybe even I could do that.
-
-The big problem is however about ability to map extended keycodes to
-actions, thing that should be provided by XKB2, which we will see
-probably when DNF is released on Phantom console...
-Also this will need lots of changes in toolkits.
-Thats the problem I don't have resources to fix.
-
-Best regards,
-Maxim Levitsky
-
-
+On Wed, Sep 15, 2010 at 1:58 PM, Stefan Richter
+<stefanr@s5r6.in-berlin.de> wrote:
+> Tommy Jonsson wrote:
+>> --- a/linux/drivers/media/dvb/firewire/firedtv-avc.c  Fri Sep 03
+>> 00:28:05 2010 -0300
+>> +++ b/linux/drivers/media/dvb/firewire/firedtv-avc.c  Sun Sep 12
+>> 06:52:02 2010 +0200
+> [...]
+>> @@ -368,10 +369,30 @@
+>>               c->operand[12] = 0;
+>>
+>>       if (fdtv->type == FIREDTV_DVB_S2) {
+>> -             c->operand[13] = 0x1;
+>> -             c->operand[14] = 0xff;
+>> -             c->operand[15] = 0xff;
+>> -
+>> +             if (fe->dtv_property_cache.delivery_system == SYS_DVBS2) {
+>> +                     switch (fe->dtv_property_cache.modulation) {
+>> +                     case QAM_16:            c->operand[13] = 0x1; break;
+>> +                     case QPSK:              c->operand[13] = 0x2; break;
+>> +                     case PSK_8:             c->operand[13] = 0x3; break;
+>> +                     default:                c->operand[13] = 0x2; break;
+>> +                     }
+>> +                     switch (fe->dtv_property_cache.rolloff) {
+>> +                     case ROLLOFF_AUTO:      c->operand[14] = 0x2; break;
+>> +                     case ROLLOFF_35:        c->operand[14] = 0x2; break;
+>> +                     case ROLLOFF_20:        c->operand[14] = 0x0; break;
+>> +                     case ROLLOFF_25:        c->operand[14] = 0x1; break;
+>> +                     /* case ROLLOFF_NONE:   c->operand[14] = 0xff; break; */
+>> +                     }
+>> +                     switch (fe->dtv_property_cache.pilot) {
+>> +                     case PILOT_AUTO:        c->operand[15] = 0x0; break;
+>> +                     case PILOT_OFF:         c->operand[15] = 0x0; break;
+>> +                     case PILOT_ON:          c->operand[15] = 0x1; break;
+>> +                     }
+>> +             } else {
+>> +                     c->operand[13] = 0x1;  /* auto modulation */
+>> +                     c->operand[14] = 0xff; /* disable rolloff */
+>> +                     c->operand[15] = 0xff; /* disable pilot */
+>> +             }
+>>               return 16;
+>
+> Is it correct that there is no default: case for operand[14] and [15]?
+>
+>>       } else {
+>>               return 13;
+>> @@ -548,7 +569,7 @@
+>>       return 17 + add_pid_filter(fdtv, &c->operand[17]);
+>>  }
+>>
+>> -int avc_tuner_dsd(struct firedtv *fdtv,
+>> +int avc_tuner_dsd(struct dvb_frontend *fe, struct firedtv *fdtv,
+>>                 struct dvb_frontend_parameters *params)
+>>  {
+>>       struct avc_command_frame *c = (void *)fdtv->avc_data;
+>
+> The frontend can be accessed via fdtv->fe also.  (I can change this together
+> with the whitespace things if you agree.)
+>
+>> @@ -561,7 +582,7 @@
+>>
+>>       switch (fdtv->type) {
+>>       case FIREDTV_DVB_S:
+>> -     case FIREDTV_DVB_S2: pos = avc_tuner_tuneqpsk(fdtv, params); break;
+>> +     case FIREDTV_DVB_S2: pos = avc_tuner_tuneqpsk(fe, fdtv, params); break;
+>>       case FIREDTV_DVB_C: pos = avc_tuner_dsd_dvb_c(fdtv, params); break;
+>>       case FIREDTV_DVB_T: pos = avc_tuner_dsd_dvb_t(fdtv, params); break;
+>>       default:
+>> diff -r 6e0befab696a linux/drivers/media/dvb/firewire/firedtv-fe.c
+>> --- a/linux/drivers/media/dvb/firewire/firedtv-fe.c   Fri Sep 03
+>> 00:28:05 2010 -0300
+>> +++ b/linux/drivers/media/dvb/firewire/firedtv-fe.c   Sun Sep 12
+>> 06:52:02 2010 +0200
+> [...]
+>> @@ -155,6 +156,17 @@
+>>       return -EOPNOTSUPP;
+>>  }
+>>
+>> +static int fdtv_get_property(struct dvb_frontend *fe,
+>> +                             struct dtv_property *tvp)
+>> +{
+>> +     return 0;
+>> +}
+>> +static int fdtv_set_property(struct dvb_frontend *fe,
+>> +                             struct dtv_property *tvp)
+>> +{
+>> +     return 0;
+>> +}
+>> +
+>>  void fdtv_frontend_init(struct firedtv *fdtv)
+>>  {
+>>       struct dvb_frontend_ops *ops = &fdtv->fe.ops;
+>> @@ -166,6 +178,9 @@
+>>       ops->set_frontend               = fdtv_set_frontend;
+>>       ops->get_frontend               = fdtv_get_frontend;
+>>
+>> +     ops->get_property               = fdtv_get_property;
+>> +     ops->set_property               = fdtv_set_property;
+>> +
+>>       ops->read_status                = fdtv_read_status;
+>>       ops->read_ber                   = fdtv_read_ber;
+>>       ops->read_signal_strength       = fdtv_read_signal_strength;
+> [...]
+>
+> (Hmm, note to self:  Can't DVB core provide empty default methods?)
+> --
+> Stefan Richter
+> -=====-==-=- =--= -====
+> http://arcgraph.de/sr/
+>
