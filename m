@@ -1,431 +1,199 @@
 Return-path: <mchehab@pedra>
-Received: from moutng.kundenserver.de ([212.227.126.171]:62492 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752299Ab0IQKrp (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3829 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753764Ab0IOUAv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Sep 2010 06:47:45 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Anton Altaparmakov <aia21@cam.ac.uk>
-Subject: Re: Remaining BKL users, what to do
-Date: Fri, 17 Sep 2010 12:45:41 +0200
-Cc: Jan Kara <jack@suse.cz>, codalist@coda.cs.cmu.edu,
-	autofs@linux.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	Christoph Hellwig <hch@infradead.org>,
-	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
-	Trond Myklebust <Trond.Myklebust@netapp.com>,
-	Petr Vandrovec <vandrove@vc.cvut.cz>,
-	Anders Larsen <al@alarsen.net>,
-	Evgeniy Dushistov <dushistov@mail.ru>,
-	Ingo Molnar <mingo@elte.hu>, netdev@vger.kernel.org,
-	Samuel Ortiz <samuel@sortiz.org>,
-	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	Andrew Hendry <andrew.hendry@gmail.com>
-References: <201009161632.59210.arnd@arndb.de> <20100916150459.GA8437@quack.suse.cz> <16843727-8A3D-48FF-9021-E0AD99C23E18@cam.ac.uk>
-In-Reply-To: <16843727-8A3D-48FF-9021-E0AD99C23E18@cam.ac.uk>
+	Wed, 15 Sep 2010 16:00:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PATCHES FOR 2.6.37] Remove v4l2-i2c-drv.h and most of i2c-id.h
+Date: Wed, 15 Sep 2010 22:00:26 +0200
+Cc: Jean Delvare <khali@linux-fr.org>, Janne Grunau <j@jannau.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8bit
-Message-Id: <201009171245.41930.arnd@arndb.de>
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201009152200.27132.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Thursday 16 September 2010, Anton Altaparmakov wrote:
-> On 16 Sep 2010, at 16:04, Jan Kara wrote:
-> > On Thu 16-09-10 16:32:59, Arnd Bergmann wrote:
-> >> The big kernel lock is gone from almost all code in linux-next, this is
-> >> the status of what I think will happen to the remaining users:
-> > ...
-> >> fs/ncpfs:
-> >>      Should be fixable if Petr still cares about it. Otherwise suggest
-> >>      moving to drivers/staging if there are no users left.
-> >  I think some people still use this...
-> 
-> Yes, indeed.  Netware is still alive (unfortunately!) and ncpfs is used in a lot of 
-> Universities here in the UK at least (we use it about a thousand workstations and
-> servers here at Cambridge University!).
+Mauro, Jean, Janne,
 
-Ok, that means at least when someone gets around to fix it, there will be
-people that can test the patches.
+This patch series finally retires the hackish v4l2-i2c-drv.h. It served honorably,
+but now that the hg repository no longer supports kernels <2.6.26 it is time to
+remove it.
 
-If you know someone who would like to help on this, it would be nice to try
-out the patch below, unless someone can come up with a better solution.
-My naïve understanding of the code tells me that simply using the super block
-lock there may work. In fact it makes locking stricter, so if it still works
-with that patch, there are probably no subtle regressions.
-The patch applies to current linux-next of my bkl/vfs series.
+Note that this patch series builds on the vtx-removal patch series.
 
-	Arnd
+Several patches at the end remove unused i2c-id.h includes and remove bogus uses
+of the I2C_HW_ defines (as found in i2c-id.h).
 
----
-ncpfs: replace BKL with lock_super
+After applying this patch series I get the following if I grep for
+I2C_HW_ in the kernel sources:
 
-This mindlessly changes every instance of lock_kernel in ncpfs to
-lock_super. I haven't tested this, it may work or may break horribly.
-Please test with CONFIG_LOCKDEP enabled.
+<skip some false positives in drivers/gpu>
+drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x)
+drivers/staging/lirc/lirc_i2c.c:                if (adap->id == I2C_HW_B_CX2388x) {
+drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
+drivers/staging/lirc/lirc_zilog.c:              if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR) {
+drivers/staging/lirc/lirc_zilog.c:#ifdef I2C_HW_B_HDPVR
+drivers/staging/lirc/lirc_zilog.c:      if (ir->c_rx.adapter->id == I2C_HW_B_HDPVR)
+drivers/video/riva/rivafb-i2c.c:        chan->adapter.id                = I2C_HW_B_RIVA;
+drivers/media/video/ir-kbd-i2c.c:       if (ir->c->adapter->id == I2C_HW_SAA7134 && ir->c->addr == 0x30)
+drivers/media/video/ir-kbd-i2c.c:               if (adap->id == I2C_HW_B_CX2388x) {
+drivers/media/video/saa7134/saa7134-i2c.c:      .id            = I2C_HW_SAA7134,
+drivers/media/video/cx88/cx88-i2c.c:    core->i2c_adap.id = I2C_HW_B_CX2388x;
+drivers/media/video/cx88/cx88-vp3054-i2c.c:     vp3054_i2c->adap.id = I2C_HW_B_CX2388x;
 
-Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Jean, I guess the one in rivafb-i2c.c can just be removed, right?
 
-diff --git a/fs/ncpfs/dir.c b/fs/ncpfs/dir.c
-index 9578cbe..303338d 100644
---- a/fs/ncpfs/dir.c
-+++ b/fs/ncpfs/dir.c
-@@ -19,7 +19,6 @@
- #include <linux/mm.h>
- #include <asm/uaccess.h>
- #include <asm/byteorder.h>
--#include <linux/smp_lock.h>
- 
- #include <linux/ncp_fs.h>
- 
-@@ -339,9 +338,10 @@ static int
- ncp_lookup_validate(struct dentry * dentry, struct nameidata *nd)
- {
- 	int res;
--	lock_kernel();
-+	struct super_block *sb = dentry->d_inode->i_sb;
-+	lock_super(sb);
- 	res = __ncp_lookup_validate(dentry);
--	unlock_kernel();
-+	unlock_super(sb);
- 	return res;
- }
- 
-@@ -404,6 +404,7 @@ static int ncp_readdir(struct file *filp, void *dirent, filldir_t filldir)
- {
- 	struct dentry *dentry = filp->f_path.dentry;
- 	struct inode *inode = dentry->d_inode;
-+	struct super_block *sb = inode->i_sb;
- 	struct page *page = NULL;
- 	struct ncp_server *server = NCP_SERVER(inode);
- 	union  ncp_dir_cache *cache = NULL;
-@@ -411,7 +412,7 @@ static int ncp_readdir(struct file *filp, void *dirent, filldir_t filldir)
- 	int result, mtime_valid = 0;
- 	time_t mtime = 0;
- 
--	lock_kernel();
-+	lock_super(sb);
- 
- 	ctl.page  = NULL;
- 	ctl.cache = NULL;
-@@ -546,7 +547,7 @@ finished:
- 		page_cache_release(ctl.page);
- 	}
- out:
--	unlock_kernel();
-+	unlock_super(sb);
- 	return result;
- }
- 
-@@ -794,12 +795,13 @@ out:
- static struct dentry *ncp_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
- {
- 	struct ncp_server *server = NCP_SERVER(dir);
-+	struct super_block *sb = dir->i_sb;
- 	struct inode *inode = NULL;
- 	struct ncp_entry_info finfo;
- 	int error, res, len;
- 	__u8 __name[NCP_MAXPATHLEN + 1];
- 
--	lock_kernel();
-+	lock_super(sb);
- 	error = -EIO;
- 	if (!ncp_conn_valid(server))
- 		goto finished;
-@@ -846,7 +848,7 @@ add_entry:
- 
- finished:
- 	PPRINTK("ncp_lookup: result=%d\n", error);
--	unlock_kernel();
-+	unlock_super(sb);
- 	return ERR_PTR(error);
- }
- 
-@@ -880,6 +882,7 @@ int ncp_create_new(struct inode *dir, struct dentry *dentry, int mode,
- {
- 	struct ncp_server *server = NCP_SERVER(dir);
- 	struct ncp_entry_info finfo;
-+	struct super_block *sb = dir->i_sb;
- 	int error, result, len;
- 	int opmode;
- 	__u8 __name[NCP_MAXPATHLEN + 1];
-@@ -888,7 +891,7 @@ int ncp_create_new(struct inode *dir, struct dentry *dentry, int mode,
- 		dentry->d_parent->d_name.name, dentry->d_name.name, mode);
- 
- 	error = -EIO;
--	lock_kernel();
-+	lock_super(sb);
- 	if (!ncp_conn_valid(server))
- 		goto out;
- 
-@@ -935,7 +938,7 @@ int ncp_create_new(struct inode *dir, struct dentry *dentry, int mode,
- 
- 	error = ncp_instantiate(dir, dentry, &finfo);
- out:
--	unlock_kernel();
-+	unlock_super(sb);
- 	return error;
- }
- 
-@@ -949,6 +952,7 @@ static int ncp_mkdir(struct inode *dir, struct dentry *dentry, int mode)
- {
- 	struct ncp_entry_info finfo;
- 	struct ncp_server *server = NCP_SERVER(dir);
-+	struct super_block *sb = dir->i_sb;
- 	int error, len;
- 	__u8 __name[NCP_MAXPATHLEN + 1];
- 
-@@ -956,7 +960,7 @@ static int ncp_mkdir(struct inode *dir, struct dentry *dentry, int mode)
- 		dentry->d_parent->d_name.name, dentry->d_name.name);
- 
- 	error = -EIO;
--	lock_kernel();
-+	lock_super(sb);
- 	if (!ncp_conn_valid(server))
- 		goto out;
- 
-@@ -985,13 +989,14 @@ static int ncp_mkdir(struct inode *dir, struct dentry *dentry, int mode)
- 		error = ncp_instantiate(dir, dentry, &finfo);
- 	}
- out:
--	unlock_kernel();
-+	unlock_super(sb);
- 	return error;
- }
- 
- static int ncp_rmdir(struct inode *dir, struct dentry *dentry)
- {
- 	struct ncp_server *server = NCP_SERVER(dir);
-+	struct super_block *sb = dir->i_sb;
- 	int error, result, len;
- 	__u8 __name[NCP_MAXPATHLEN + 1];
- 
-@@ -999,7 +1004,7 @@ static int ncp_rmdir(struct inode *dir, struct dentry *dentry)
- 		dentry->d_parent->d_name.name, dentry->d_name.name);
- 
- 	error = -EIO;
--	lock_kernel();
-+	lock_super(sb);
- 	if (!ncp_conn_valid(server))
- 		goto out;
- 
-@@ -1040,17 +1045,18 @@ static int ncp_rmdir(struct inode *dir, struct dentry *dentry)
- 			break;
-        	}
- out:
--	unlock_kernel();
-+	unlock_super(sb);
- 	return error;
- }
- 
- static int ncp_unlink(struct inode *dir, struct dentry *dentry)
- {
- 	struct inode *inode = dentry->d_inode;
-+	struct super_block *sb = dir->i_sb;
- 	struct ncp_server *server;
- 	int error;
- 
--	lock_kernel();
-+	lock_super(sb);
- 	server = NCP_SERVER(dir);
- 	DPRINTK("ncp_unlink: unlinking %s/%s\n",
- 		dentry->d_parent->d_name.name, dentry->d_name.name);
-@@ -1102,7 +1108,7 @@ static int ncp_unlink(struct inode *dir, struct dentry *dentry)
- 	}
- 		
- out:
--	unlock_kernel();
-+	unlock_super(sb);
- 	return error;
- }
- 
-@@ -1110,6 +1116,7 @@ static int ncp_rename(struct inode *old_dir, struct dentry *old_dentry,
- 		      struct inode *new_dir, struct dentry *new_dentry)
- {
- 	struct ncp_server *server = NCP_SERVER(old_dir);
-+	struct super_block *sb = old_dir->i_sb;
- 	int error;
- 	int old_len, new_len;
- 	__u8 __old_name[NCP_MAXPATHLEN + 1], __new_name[NCP_MAXPATHLEN + 1];
-@@ -1119,7 +1126,7 @@ static int ncp_rename(struct inode *old_dir, struct dentry *old_dentry,
- 		new_dentry->d_parent->d_name.name, new_dentry->d_name.name);
- 
- 	error = -EIO;
--	lock_kernel();
-+	lock_super(sb);
- 	if (!ncp_conn_valid(server))
- 		goto out;
- 
-@@ -1165,7 +1172,7 @@ static int ncp_rename(struct inode *old_dir, struct dentry *old_dentry,
- 			break;
- 	}
- out:
--	unlock_kernel();
-+	unlock_super(sb);
- 	return error;
- }
- 
-diff --git a/fs/ncpfs/file.c b/fs/ncpfs/file.c
-index 3639cc5..a871df0 100644
---- a/fs/ncpfs/file.c
-+++ b/fs/ncpfs/file.c
-@@ -17,7 +17,6 @@
- #include <linux/mm.h>
- #include <linux/vmalloc.h>
- #include <linux/sched.h>
--#include <linux/smp_lock.h>
- 
- #include <linux/ncp_fs.h>
- #include "ncplib_kernel.h"
-@@ -284,9 +283,11 @@ static int ncp_release(struct inode *inode, struct file *file) {
- static loff_t ncp_remote_llseek(struct file *file, loff_t offset, int origin)
- {
- 	loff_t ret;
--	lock_kernel();
-+	struct super_block *sb = file->f_path.dentry->d_inode->i_sb;
-+
-+	lock_super(sb);
- 	ret = generic_file_llseek_unlocked(file, offset, origin);
--	unlock_kernel();
-+	unlock_super(sb);
- 	return ret;
- }
- 
-diff --git a/fs/ncpfs/inode.c b/fs/ncpfs/inode.c
-index cdf0fce..f37d297 100644
---- a/fs/ncpfs/inode.c
-+++ b/fs/ncpfs/inode.c
-@@ -26,7 +26,6 @@
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
- #include <linux/init.h>
--#include <linux/smp_lock.h>
- #include <linux/vfs.h>
- #include <linux/mount.h>
- #include <linux/seq_file.h>
-@@ -445,12 +444,12 @@ static int ncp_fill_super(struct super_block *sb, void *raw_data, int silent)
- #endif
- 	struct ncp_entry_info finfo;
- 
--	lock_kernel();
-+	lock_super(sb);
- 
- 	data.wdog_pid = NULL;
- 	server = kzalloc(sizeof(struct ncp_server), GFP_KERNEL);
- 	if (!server) {
--		unlock_kernel();
-+		unlock_super(sb);
- 		return -ENOMEM;
- 	}
- 	sb->s_fs_info = server;
-@@ -704,7 +703,7 @@ static int ncp_fill_super(struct super_block *sb, void *raw_data, int silent)
-         if (!sb->s_root)
- 		goto out_no_root;
- 	sb->s_root->d_op = &ncp_root_dentry_operations;
--	unlock_kernel();
-+	unlock_super(sb);
- 	return 0;
- 
- out_no_root:
-@@ -741,7 +740,7 @@ out:
- 	put_pid(data.wdog_pid);
- 	sb->s_fs_info = NULL;
- 	kfree(server);
--	unlock_kernel();
-+	unlock_super(sb);
- 	return error;
- }
- 
-@@ -749,7 +748,7 @@ static void ncp_put_super(struct super_block *sb)
- {
- 	struct ncp_server *server = NCP_SBP(sb);
- 
--	lock_kernel();
-+	lock_super(sb);
- 
- 	ncp_lock_server(server);
- 	ncp_disconnect(server);
-@@ -778,7 +777,7 @@ static void ncp_put_super(struct super_block *sb)
- 	sb->s_fs_info = NULL;
- 	kfree(server);
- 
--	unlock_kernel();
-+	unlock_super(sb);
- }
- 
- static int ncp_statfs(struct dentry *dentry, struct kstatfs *buf)
-@@ -850,6 +849,7 @@ dflt:;
- int ncp_notify_change(struct dentry *dentry, struct iattr *attr)
- {
- 	struct inode *inode = dentry->d_inode;
-+	struct super_block *sb = inode->i_sb;
- 	int result = 0;
- 	__le32 info_mask;
- 	struct nw_modify_dos_info info;
-@@ -857,7 +857,7 @@ int ncp_notify_change(struct dentry *dentry, struct iattr *attr)
- 
- 	result = -EIO;
- 
--	lock_kernel();	
-+	lock_super(sb);	
- 
- 	server = NCP_SERVER(inode);
- 	if ((!server) || !ncp_conn_valid(server))
-@@ -1011,7 +1011,7 @@ int ncp_notify_change(struct dentry *dentry, struct iattr *attr)
- 	mark_inode_dirty(inode);
- 
- out:
--	unlock_kernel();
-+	unlock_super(sb);
- 	return result;
- }
- 
-diff --git a/fs/ncpfs/ioctl.c b/fs/ncpfs/ioctl.c
-index 84a8cfc..4ce88d4 100644
---- a/fs/ncpfs/ioctl.c
-+++ b/fs/ncpfs/ioctl.c
-@@ -17,7 +17,6 @@
- #include <linux/mount.h>
- #include <linux/slab.h>
- #include <linux/highuid.h>
--#include <linux/smp_lock.h>
- #include <linux/vmalloc.h>
- #include <linux/sched.h>
- 
-@@ -844,8 +843,9 @@ static int ncp_ioctl_need_write(unsigned int cmd)
- long ncp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- {
- 	long ret;
-+	struct super_block *sb = filp->f_path.dentry->d_inode->i_sb;
- 
--	lock_kernel();
-+	lock_super(sb);
- 	if (ncp_ioctl_need_write(cmd)) {
- 		/*
- 		 * inside the ioctl(), any failures which
-@@ -863,19 +863,20 @@ long ncp_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
- 		mnt_drop_write(filp->f_path.mnt);
- 
- out:
--	unlock_kernel();
-+	unlock_super(sb);
- 	return ret;
- }
- 
- #ifdef CONFIG_COMPAT
- long ncp_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
-+	struct super_block *sb = file->f_path.dentry->d_inode->i_sb;
- 	long ret;
- 
--	lock_kernel();
-+	lock_super(sb);
- 	arg = (unsigned long) compat_ptr(arg);
- 	ret = ncp_ioctl(file, cmd, arg);
--	unlock_kernel();
-+	unlock_super(sb);
- 	return ret;
- }
- #endif
+Janne, the HDPVR checks in lirc no longer work since hdpvr never sets the
+adapter ID (nor should it). This lirc code should be checked. I haven't
+been following the IR changes, but there must be a better way of doing this.
+
+The same is true for the CX2388x and SAA7134 checks. These all relate to the
+IR subsystem.
+
+Once we fixed these remaining users of the i2c-id.h defines, then Jean can
+remove that header together with the adapter's 'id' field.
+
+Regards,
+
+	Hans
+
+The following changes since commit 991403c594f666a2ed46297c592c60c3b9f4e1e2:
+  Mauro Carvalho Chehab (1):
+        V4L/DVB: cx231xx: Avoid an OOPS when card is unknown (card=0)
+
+are available in the git repository at:
+
+  ssh://linuxtv.org/git/hverkuil/v4l-dvb.git i2c
+
+Hans Verkuil (49):
+      saa5246a/saa5249: Remove obsolete teletext drivers
+      videotext: remove this obsolete API
+      Documentation: update now that the vtx/videotext API has been removed.
+      Merge branch 'vtx' into i2c
+
+The patches above are the same as the vtx patch series posted before. This
+patch series requires that vtx is merged first as there is no point to convert
+i2c drivers that are going to be removed anyway!
+
+      vp27smpx: remove obsolete v4l2-i2c-drv.h header
+      wm8739: remove obsolete v4l2-i2c-drv.h header
+      cs5345: remove obsolete v4l2-i2c-drv.h header
+      saa717x: remove obsolete v4l2-i2c-drv.h header
+      saa7115: remove obsolete v4l2-i2c-drv.h header.
+      tda9840: remove obsolete v4l2-i2c-drv.h header
+      ov7670: remove obsolete v4l2-i2c-drv.h header
+      mt9v011: remove obsolete v4l2-i2c-drv.h header
+      upd64031a: remove obsolete v4l2-i2c-drv.h header
+      saa6588: remove obsolete v4l2-i2c-drv.h header
+      saa6752hs: remove obsolete v4l2-i2c-drv.h header
+      bt819: remove obsolete v4l2-i2c-drv.h header
+      indycam: remove obsolete v4l2-i2c-drv.h header
+      m52790: remove obsolete v4l2-i2c-drv.h header
+      saa7185: remove obsolete v4l2-i2c-drv.h header
+      msp3400: remove obsolete v4l2-i2c-drv.h header
+      bt866: remove obsolete v4l2-i2c-drv.h header
+      tea6415c: remove obsolete v4l2-i2c-drv.h header
+      tvaudio: remove obsolete v4l2-i2c-drv.h header
+      wm8775: remove obsolete v4l2-i2c-drv.h header
+      adv7175: remove obsolete v4l2-i2c-drv.h header
+      saa7191: remove obsolete v4l2-i2c-drv.h header
+      bt856: remove obsolete v4l2-i2c-drv.h header
+      tlv320aic23b: remove obsolete v4l2-i2c-drv.h header
+      tuner: remove obsolete v4l2-i2c-drv.h header
+      tda9875: remove obsolete v4l2-i2c-drv.h header
+      saa7110: remove obsolete v4l2-i2c-drv.h header
+      tda7432: remove obsolete v4l2-i2c-drv.h header
+      tea6420: remove obsolete v4l2-i2c-drv.h header
+      cs53l32a: remove obsolete v4l2-i2c-drv.h header
+      vpx3220: remove obsolete v4l2-i2c-drv.h header
+      tvp5150: remove obsolete v4l2-i2c-drv.h header
+      upd64083: remove obsolete v4l2-i2c-drv.h header
+      saa7127: remove obsolete v4l2-i2c-drv.h header
+      cx25840: remove obsolete v4l2-i2c-drv.h header
+      adv7170: remove obsolete v4l2-i2c-drv.h header
+      ks0127: remove obsolete v4l2_i2c_drv.h header
+      au8522_decoder: remove obsolete v4l2-i2c-drv.h header
+      s2250: remove obsolete v4l2-i2c-drv.h header
+      v4l: remove unused i2c-id.h headers
+      tvaudio: remove obsolete tda8425 initialization
+      saa7146/tuner: remove mxb hack
+      ir-kbd-i2c: remove obsolete I2C_HW_B_CX2341X test
+      tm6000: removed unused i2c adapter ID
+      v4l: remove obsolete include/media/v4l2-i2c-drv.h file
+
+ Documentation/DocBook/v4l/compat.xml         |   24 +-
+ Documentation/DocBook/v4l/dev-teletext.xml   |   29 +-
+ Documentation/DocBook/v4l/v4l2.xml           |   10 +-
+ Documentation/feature-removal-schedule.txt   |   23 -
+ Documentation/ioctl/ioctl-number.txt         |    1 -
+ Documentation/video4linux/bttv/MAKEDEV       |    1 -
+ Documentation/video4linux/v4l2-framework.txt |    5 +-
+ drivers/media/common/saa7146_i2c.c           |    1 -
+ drivers/media/dvb/frontends/au8522_decoder.c |   27 +-
+ drivers/media/radio/tef6862.c                |    1 -
+ drivers/media/video/Kconfig                  |   20 -
+ drivers/media/video/Makefile                 |    2 -
+ drivers/media/video/adv7170.c                |   28 +-
+ drivers/media/video/adv7175.c                |   28 +-
+ drivers/media/video/adv7180.c                |    1 -
+ drivers/media/video/bt819.c                  |   28 +-
+ drivers/media/video/bt856.c                  |   28 +-
+ drivers/media/video/bt866.c                  |   28 +-
+ drivers/media/video/cs5345.c                 |   27 +-
+ drivers/media/video/cs53l32a.c               |   27 +-
+ drivers/media/video/cx18/cx18-ioctl.c        |    1 -
+ drivers/media/video/cx25840/cx25840-core.c   |   27 +-
+ drivers/media/video/indycam.c                |   27 +-
+ drivers/media/video/ir-kbd-i2c.c             |    6 +-
+ drivers/media/video/ivtv/ivtv-ioctl.c        |    1 -
+ drivers/media/video/ks0127.c                 |   27 +-
+ drivers/media/video/m52790.c                 |   28 +-
+ drivers/media/video/msp3400-driver.c         |   31 +-
+ drivers/media/video/mt9v011.c                |   29 +-
+ drivers/media/video/mxb.c                    |    5 -
+ drivers/media/video/ov7670.c                 |   27 +-
+ drivers/media/video/saa5246a.c               | 1123 --------------------------
+ drivers/media/video/saa5249.c                |  650 ---------------
+ drivers/media/video/saa6588.c                |   27 +-
+ drivers/media/video/saa7110.c                |   27 +-
+ drivers/media/video/saa7115.c                |   33 +-
+ drivers/media/video/saa7127.c                |   27 +-
+ drivers/media/video/saa7134/saa6752hs.c      |   27 +-
+ drivers/media/video/saa717x.c                |   27 +-
+ drivers/media/video/saa7185.c                |   28 +-
+ drivers/media/video/saa7191.c                |   27 +-
+ drivers/media/video/tda7432.c                |   27 +-
+ drivers/media/video/tda9840.c                |   27 +-
+ drivers/media/video/tda9875.c                |   27 +-
+ drivers/media/video/tea6415c.c               |   27 +-
+ drivers/media/video/tea6420.c                |   27 +-
+ drivers/media/video/tlv320aic23b.c           |   28 +-
+ drivers/media/video/tuner-core.c             |   39 +-
+ drivers/media/video/tvaudio.c                |   40 +-
+ drivers/media/video/tvp5150.c                |   27 +-
+ drivers/media/video/upd64031a.c              |   27 +-
+ drivers/media/video/upd64083.c               |   27 +-
+ drivers/media/video/v4l2-dev.c               |   11 +-
+ drivers/media/video/vp27smpx.c               |   28 +-
+ drivers/media/video/vpx3220.c                |   27 +-
+ drivers/media/video/wm8739.c                 |   27 +-
+ drivers/media/video/wm8775.c                 |   28 +-
+ drivers/staging/go7007/s2250-board.c         |   27 +-
+ drivers/staging/tm6000/tm6000-i2c.c          |    3 -
+ include/linux/Kbuild                         |    1 -
+ include/linux/videotext.h                    |  125 ---
+ include/media/v4l2-dev.h                     |    3 +-
+ include/media/v4l2-i2c-drv.h                 |   80 --
+ 63 files changed, 872 insertions(+), 2355 deletions(-)
+ delete mode 100644 drivers/media/video/saa5246a.c
+ delete mode 100644 drivers/media/video/saa5249.c
+ delete mode 100644 include/linux/videotext.h
+ delete mode 100644 include/media/v4l2-i2c-drv.h
+
+-- 
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
