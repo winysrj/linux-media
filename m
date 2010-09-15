@@ -1,122 +1,66 @@
 Return-path: <mchehab@pedra>
-Received: from mail-ew0-f46.google.com ([209.85.215.46]:65390 "EHLO
-	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754329Ab0ISP1n convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Sep 2010 11:27:43 -0400
-Received: by ewy23 with SMTP id 23so1386461ewy.19
-        for <linux-media@vger.kernel.org>; Sun, 19 Sep 2010 08:27:41 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <4C912935.7010109@iki.fi>
-References: <AANLkTi=1cucc=LrMEp44xpWs=_f75C7iAgXfkC+r5dPP@mail.gmail.com>
- <AANLkTi=zhzZ9RJwRzUt_Ftg9sHDzBhuw7cUss-dXQoSs@mail.gmail.com> <4C912935.7010109@iki.fi>
-From: Gregory Orange <gregory.orange@gmail.com>
-Date: Sun, 19 Sep 2010 23:27:21 +0800
-Message-ID: <AANLkTimGyY6-3nm9FvPmyxoaBViU22QdqZka4sDjQMaw@mail.gmail.com>
-Subject: Re: Leadtek DTV2000DS remote
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([147.243.1.47]:59220 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751813Ab0IOLiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Sep 2010 07:38:07 -0400
+Subject: Re: [PATCH v9 3/4] V4L2: WL1273 FM Radio: Controls for the FM
+ radio.
+From: "Matti J. Aaltonen" <matti.j.aaltonen@nokia.com>
+Reply-To: matti.j.aaltonen@nokia.com
+To: ext Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"Valentin Eduardo (Nokia-MS/Helsinki)" <eduardo.valentin@nokia.com>
+In-Reply-To: <4C87DF68.7070900@redhat.com>
+References: <1283168302-19111-1-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1283168302-19111-2-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1283168302-19111-3-git-send-email-matti.j.aaltonen@nokia.com>
+	 <1283168302-19111-4-git-send-email-matti.j.aaltonen@nokia.com>
+	 <4C87DF68.7070900@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
+Date: Wed, 15 Sep 2010 14:36:22 +0300
+Message-ID: <1284550582.25428.79.camel@masi.mnp.nokia.com>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Thank you for the response. I'm not entirely clear on what you're
-suggesting, but I'll try to clarify.
+Hi.
 
-I can and will compile and install the af9015 tree when I get a chance
-- I've been sick all weekend and now it's time to head back to work.
-What do you intend for me to do once I've achieved that? Or were you
-simply checking that I could before going ahead and adding support?
+On Wed, 2010-09-08 at 21:09 +0200, ext Mauro Carvalho Chehab wrote:
+> > +static int wl1273_fm_vidioc_s_tuner(struct file *file, void *priv,
+> > +                                 struct v4l2_tuner *tuner)
+> > +{
+> > +     struct wl1273_device *radio = video_get_drvdata(video_devdata(file));
+> > +     struct wl1273_core *core = radio->core;
+> > +     int r = 0;
+> > +
+> > +     dev_dbg(radio->dev, "%s\n", __func__);
+> > +     dev_dbg(radio->dev, "tuner->index: %d\n", tuner->index);
+> > +     dev_dbg(radio->dev, "tuner->name: %s\n", tuner->name);
+> > +     dev_dbg(radio->dev, "tuner->capability: 0x%04x\n", tuner->capability);
+> > +     dev_dbg(radio->dev, "tuner->rxsubchans: 0x%04x\n", tuner->rxsubchans);
+> > +     dev_dbg(radio->dev, "tuner->rangelow: %d\n", tuner->rangelow);
+> > +     dev_dbg(radio->dev, "tuner->rangehigh: %d\n", tuner->rangehigh);
+> 
+> Ranges should be using tuner->rangelow/rangehigh to change band limits.
 
-Are you saying you can add support for Leadtek WinFast DTV Dongle Gold
-remote, or my Leadtek WinFast DTV20000DS? I'm slightly confused by
-your mention of the Gold - was that just for comparison's sake?
+I just want to make sure that I understand you correctly. So the idea is
+that with the g_tuner the driver can tell the frequency range that's
+supported by the chip in RX mode, which is 76MHz to 108 MHz. The lowest
+part is in the Japan band and the highest is in the Europe/USA band, the
+middle section can be either...
+
+Then the application can choose any sub-range of the above by calling
+s_tuner with any values rangelow > 76MHz and rangehigh < 108MHz? After
+that the driver just deals with the given frequencies by changing the
+band if necessary?
 
 Cheers,
-Greg.
-
-On 16 September 2010 04:14, Antti Palosaari <crope@iki.fi> wrote:
-> Leadtek WinFast DTV2000DS remote is not supported at all. Leadtek WinFast
-> DTV Dongle Gold remote is. If you can compile and install latest drivers
-> from http://git.linuxtv.org/anttip/media_tree.git af9015 tree I can add
-> support for that remote rather easily.
->
-> Antti
->
->
->
-> On 09/15/2010 10:45 AM, Gregory Orange wrote:
->>
->> Shall I assume that noone has had any experience with one of these
->> devices? From some input from other sources, I'm now not sure if I
->> lack a kernel module, or perhaps the firmware for this device isn't
->> supported (or somesuch - a bit confused on that).
->>
->> In any case, pretty well everything is now working including EIT at
->> last. The remote is all I lack. I have no idea who else to ask or what
->> to try, so I may try borrowing a different remote. I'm all Googled out
->> (:
->>
->> Regards,
->> Greg.
->>
->> On 9 September 2010 22:11, Gregory Orange<gregory.orange@gmail.com>
->>  wrote:
->>>
->>> Hi all, first post.
->>>
->>> I have a newly purchased Leadtek DTV2000DS dual tuner card in my
->>> machine, configured and running in Mythbuntu 10.04 (after installing
->>> latest v4l-dvb from source). I am having a bit of trouble getting the
->>> supplied remote control working. Is anyone here able to assist? I
->>> asked on the LIRC sf.net list and after a bit of back and forth I was
->>> directed to see if you guys can help me. In particular I wonder if the
->>> author of dvb_usb_af9015 and af9013 is around - hmm, seems to be Antti
->>> Palosaari, who seems to be a fairly recent poster. Don't get me wrong
->>> though - anyone who can assist would be great (:
->>>
->>> I have confirmed that the hardware works - I installed the drivers in
->>> a Windows boot, and the remote works.
->>>
->>> In terms of driver support I'm not sure exactly what I'm looking for,
->>> but there is this line in dmesg:
->>> [   22.263721] input: IR-receiver inside an USB DVB receiver as
->>> /devices/pci0000:00/0000:00:0e.0/0000:02:0a.2/usb2/2-1/input/input5
->>>
->>> cat /proc/bus/input/devices yields
->>> I: Bus=0003 Vendor=0413 Product=6a04 Version=0200
->>> N: Name="IR-receiver inside an USB DVB receiver"
->>> P: Phys=usb-0000:02:0a.2-1/ir0
->>> S:
->>> Sysfs=/devices/pci0000:00/0000:00:0e.0/0000:02:0a.2/usb2/2-1/input/input5
->>> U: Uniq=
->>> H: Handlers=kbd event5
->>> B: EV=3
->>> B: KEY=108fc310 2802891 0 0 0 0 118000 200180 4803 e1680 0 100000 ffe
->>>
->>> So I've been using /dev/input/event5 in my tests. I have tried using
->>> evtest, mode2, and irw to no avail. I get no indication of any signal
->>> coming from the remote. Am I missing a kernel driver module? Any
->>> further advice or specific experience with this device would be
->>> gratefully welcomed.
->>>
->>> Cheers,
->>> Greg.
->>>
->>> --
->>> Gregory Orange
->>>
->>
->>
->>
->
->
-> --
-> http://palosaari.fi/
->
+Matti
 
 
 
--- 
-Gregory Orange
+
+
+
