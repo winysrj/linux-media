@@ -1,82 +1,74 @@
 Return-path: <mchehab@pedra>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:23863 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753936Ab0IJN1H (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3722 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752421Ab0IORvT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 09:27:07 -0400
-Date: Fri, 10 Sep 2010 15:27:00 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Steven Toth <stoth@kernellabs.com>
-Subject: [PATCH 1/5] cx22702: Clean up register access functions
-Message-ID: <20100910152700.69edd554@hyperion.delvare>
-In-Reply-To: <20100910151943.103f7423@hyperion.delvare>
-References: <20100910151943.103f7423@hyperion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Wed, 15 Sep 2010 13:51:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 2.6.37] Remove V4L1 support from the pwc driver
+Date: Wed, 15 Sep 2010 19:51:04 +0200
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <201009122226.11970.hverkuil@xs4all.nl>
+In-Reply-To: <201009122226.11970.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201009151951.04454.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-* Avoid temporary variables.
-* Optimize success paths.
-* Make error messages consistently verbose.
+On Sunday, September 12, 2010 22:26:11 Hans Verkuil wrote:
+> Thanks to Hans de Goede for supplying me with a Philips webcam to test this
+> driver with!
+> 
+> And other news on the V4L1 front:
+> 
+> I have since learned that the stradis driver has only ever worked for kernel 2.2.
+> I did contact the company and unless they want to work on it this driver can be
+> removed soon.
+> 
+> I'm waiting for test results on the cpia2 driver. If it works, then the V4L1
+> support can be removed from that driver as well.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> The following changes since commit 57fef3eb74a04716a8dd18af0ac510ec4f71bc05:
+>   Richard Zidlicky (1):
+>         V4L/DVB: dvb: fix smscore_getbuffer() logic
+> 
+> are available in the git repository at:
+> 
+>   ssh://linuxtv.org/git/hverkuil/v4l-dvb.git pwc
+> 
+> Hans Verkuil (1):
+>       pwc: fully convert driver to V4L2
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Steven Toth <stoth@kernellabs.com>
----
- drivers/media/dvb/frontends/cx22702.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+As requested by Mauro I also added:
 
---- linux-2.6.32-rc5.orig/drivers/media/dvb/frontends/cx22702.c	2009-10-16 09:47:14.000000000 +0200
-+++ linux-2.6.32-rc5/drivers/media/dvb/frontends/cx22702.c	2009-10-16 09:47:45.000000000 +0200
-@@ -92,33 +92,36 @@ static int cx22702_writereg(struct cx227
- 
- 	ret = i2c_transfer(state->i2c, &msg, 1);
- 
--	if (ret != 1)
-+	if (ret != 1) {
- 		printk(KERN_ERR
- 			"%s: error (reg == 0x%02x, val == 0x%02x, ret == %i)\n",
- 			__func__, reg, data, ret);
-+		return -1;
-+	}
- 
--	return (ret != 1) ? -1 : 0;
-+	return 0;
- }
- 
- static u8 cx22702_readreg(struct cx22702_state *state, u8 reg)
- {
- 	int ret;
--	u8 b0[] = { reg };
--	u8 b1[] = { 0 };
-+	u8 data;
- 
- 	struct i2c_msg msg[] = {
- 		{ .addr = state->config->demod_address, .flags = 0,
--			.buf = b0, .len = 1 },
-+			.buf = &reg, .len = 1 },
- 		{ .addr = state->config->demod_address, .flags = I2C_M_RD,
--			.buf = b1, .len = 1 } };
-+			.buf = &data, .len = 1 } };
- 
- 	ret = i2c_transfer(state->i2c, msg, 2);
- 
--	if (ret != 2)
--		printk(KERN_ERR "%s: readreg error (ret == %i)\n",
--			__func__, ret);
-+	if (ret != 2) {
-+		printk(KERN_ERR "%s: error (reg == 0x%02x, ret == %i)\n",
-+			__func__, reg, ret);
-+		return 0;
-+	}
- 
--	return b1[0];
-+	return data;
- }
- 
- static int cx22702_set_inversion(struct cx22702_state *state, int inversion)
+      pwc: remove BKL
+
+Tested with the Philips webcam.
+
+Regards,
+
+	Hans
+
+> 
+>  drivers/media/video/pwc/Kconfig          |    2 +-
+>  drivers/media/video/pwc/pwc-ctrl.c       |   20 +-
+>  drivers/media/video/pwc/pwc-if.c         |   23 +-
+>  drivers/media/video/pwc/pwc-misc.c       |    4 +-
+>  drivers/media/video/pwc/pwc-uncompress.c |    2 +-
+>  drivers/media/video/pwc/pwc-v4l.c        |  322 +-----------------------------
+>  drivers/media/video/pwc/pwc.h            |    6 +-
+>  7 files changed, 40 insertions(+), 339 deletions(-)
+> 
+> 
 
 -- 
-Jean Delvare
+Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
