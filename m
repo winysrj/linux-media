@@ -1,86 +1,91 @@
-Return-path: <mchehab@localhost>
-Received: from perceval.irobotique.be ([92.243.18.41]:50847 "EHLO
-	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754617Ab0IAOIa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Sep 2010 10:08:30 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [RFC/PATCH v4 08/11] media: Links setup
-Date: Wed, 1 Sep 2010 16:08:29 +0200
-Cc: linux-media@vger.kernel.org,
-	sakari.ailus@maxwell.research.nokia.com
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-9-git-send-email-laurent.pinchart@ideasonboard.com> <201008281314.18698.hverkuil@xs4all.nl>
-In-Reply-To: <201008281314.18698.hverkuil@xs4all.nl>
+Return-path: <mchehab@pedra>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:62170 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752214Ab0IOVNq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Sep 2010 17:13:46 -0400
+Date: Wed, 15 Sep 2010 14:13:37 -0700
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+To: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <syrjala@sci.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Input <linux-input@vger.kernel.org>,
+	linux-media@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
+	Maxim Levitsky <maximlevitsky@gmail.com>,
+	David Hardeman <david@hardeman.nu>,
+	Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [PATCH 5/6] Input: ati-remote2 - switch to using new keycode
+ interface
+Message-ID: <20100915211337.GA12119@core.coreip.homeip.net>
+References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
+ <20100908074205.32365.68835.stgit@hammer.corenet.prv>
+ <20100909124003.GT10135@sci.fi>
+ <20100913162807.GA14598@core.coreip.homeip.net>
+ <20100915210419.GA6052@sci.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201009011608.30918.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20100915210419.GA6052@sci.fi>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-Hi Hans,
-
-On Saturday 28 August 2010 13:14:18 Hans Verkuil wrote:
-> On Friday, August 20, 2010 17:29:10 Laurent Pinchart wrote:
-
-[snip]
-
-> > +/**
-> > + * media_entity_remote_pad - Locate the pad at the remote end of a link
-> > + * @entity: Local entity
-> > + * @pad: Pad at the local end of the link
-> > + *
-> > + * Search for a remote pad connected to the given pad by iterating over
-> > all
-> > + * links originating or terminating at that pad until an active link is
-> > found.
-> > + *
-> > + * Return a pointer to the pad at the remote end of the first found
-> > active link,
-> > + * or NULL if no active link has been found.
-> > + */
-> > +struct media_pad *media_entity_remote_pad(struct media_pad *pad)
-> > +{
-> > +	unsigned int i;
-> > +
-> > +	for (i = 0; i < pad->entity->num_links; i++) {
-> > +		struct media_link *link = &pad->entity->links[i];
-> > +
-> > +		if (!(link->flags & MEDIA_LINK_FLAG_ACTIVE))
-> > +			continue;
-> > +
-> > +		if (link->source == pad)
-> > +			return link->sink;
-> > +
-> > +		if (link->sink == pad)
-> > +			return link->source;
-> > +	}
-> > +
-> > +	return NULL;
-> > +
-> > +}
+On Thu, Sep 16, 2010 at 12:04:19AM +0300, Ville Syrjälä wrote:
+> On Mon, Sep 13, 2010 at 09:28:07AM -0700, Dmitry Torokhov wrote:
+> > On Thu, Sep 09, 2010 at 03:40:04PM +0300, Ville Syrjälä wrote:
+> > > On Wed, Sep 08, 2010 at 12:42:05AM -0700, Dmitry Torokhov wrote:
+> > > > Switch the code to use new style of getkeycode and setkeycode
+> > > > methods to allow retrieving and setting keycodes not only by
+> > > > their scancodes but also by index.
+> > > > 
+> > > > Signed-off-by: Dmitry Torokhov <dtor@mail.ru>
+> > > > ---
+> > > > 
+> > > >  drivers/input/misc/ati_remote2.c |   93 +++++++++++++++++++++++++++-----------
+> > > >  1 files changed, 65 insertions(+), 28 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/input/misc/ati_remote2.c b/drivers/input/misc/ati_remote2.c
+> > > > index 2325765..b2e0d82 100644
+> > > > --- a/drivers/input/misc/ati_remote2.c
+> > > > +++ b/drivers/input/misc/ati_remote2.c
+> > > > @@ -483,51 +483,88 @@ static void ati_remote2_complete_key(struct urb *urb)
+> > > >  }
+> > > >  
+> > > >  static int ati_remote2_getkeycode(struct input_dev *idev,
+> > > > -				  unsigned int scancode, unsigned int *keycode)
+> > > > +				  struct input_keymap_entry *ke)
+> > > >  {
+> > > >  	struct ati_remote2 *ar2 = input_get_drvdata(idev);
+> > > >  	unsigned int mode;
+> > > > -	int index;
+> > > > +	int offset;
+> > > > +	unsigned int index;
+> > > > +	unsigned int scancode;
+> > > > +
+> > > > +	if (ke->flags & INPUT_KEYMAP_BY_INDEX) {
+> > > > +		index = ke->index;
+> > > > +		if (index >= (ATI_REMOTE2_MODES - 1) *
+> > >                                                ^^^^
+> > > That -1 looks wrong. Same in setkeycode().
+> > > 
+> > 
+> > Yes, indeed. Thanks for noticing.
 > 
-> Why is this needed? Esp. since there can be multiple active remote pads if
-> you have multiple active outgoing links. Something this function doesn't
-> deal with.
+> I fixed this bug locally and gave this a short whirl with my RWII.
+> I tried both the old and new style keycode ioctls. Everything
+> worked as expected.
+> 
+> So if you want more tags feel free to add my Acked-by and Tested-by
+> for this (assuming the off-by-one fix is included)
 
-The function is meant to be used when only one of the links can be active. 
-It's most useful to find the entity connected to a given input pad, as input 
-pads can't be connected by multiple simultaneously active links.
+Thank you very much for reviewing and testing it Ville, I will surely
+add the tags.
 
-[snip]
+ and you can add my
+> Tested-by for patch 1/6 as well.
+> 
 
-> This patch made me wonder about something else: how is power management
-> handled for immutable links? They are by definition active, so they should
-> be powered on automatically as well. I'm not sure whether that happens
-> right now.
-
-Links are not powered, entities are. Whether a link is immutable or not 
-doesn't make much of a difference, it will just always be considered as 
-active.
+This one is already in public branch; I prefer not to rewind unless
+there are compile or other major issues....
 
 -- 
-Regards,
-
-Laurent Pinchart
+Dmitry
