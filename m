@@ -1,46 +1,114 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:10407 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754683Ab0I1SsV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Sep 2010 14:48:21 -0400
-Date: Tue, 28 Sep 2010 15:46:54 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Srinivasa.Deevi@conexant.com, Palash.Bandyopadhyay@conexant.com,
-	dheitmueller@kernellabs.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 02/10] V4L/DVB: cx231xx: fix Kconfig dependencies
-Message-ID: <20100928154654.737813ab@pedra>
-In-Reply-To: <cover.1285699057.git.mchehab@redhat.com>
-References: <cover.1285699057.git.mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3642 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752009Ab0IORGD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Sep 2010 13:06:03 -0400
+Received: from localhost (marune.xs4all.nl [82.95.89.49])
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8FH62K6013711
+	for <linux-media@vger.kernel.org>; Wed, 15 Sep 2010 19:06:02 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Date: Wed, 15 Sep 2010 19:06:02 +0200 (CEST)
+Message-Id: <201009151706.o8FH62K6013711@smtp-vbr1.xs4all.nl>
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-ERROR: "cx2341x_mpeg_ctrls" [drivers/media/video/cx231xx/cx231xx.ko] undefined!
-ERROR: "cx2341x_fill_defaults" [drivers/media/video/cx231xx/cx231xx.ko] undefined!
-ERROR: "cx2341x_log_status" [drivers/media/video/cx231xx/cx231xx.ko] undefined!
-ERROR: "cx2341x_ctrl_get_menu" [drivers/media/video/cx231xx/cx231xx.ko] undefined!
-ERROR: "cx2341x_update" [drivers/media/video/cx231xx/cx231xx.ko] undefined!
-ERROR: "cx2341x_ctrl_query" [drivers/media/video/cx231xx/cx231xx.ko] undefined!
-ERROR: "cx2341x_ext_ctrls" [drivers/media/video/cx231xx/cx231xx.ko] undefined!
+This message is generated daily by a cron job that builds v4l-dvb for
+the kernels and architectures in the list below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Results of the daily build of v4l-dvb:
 
-diff --git a/drivers/media/video/cx231xx/Kconfig b/drivers/media/video/cx231xx/Kconfig
-index 5ac7ece..bb04914 100644
---- a/drivers/media/video/cx231xx/Kconfig
-+++ b/drivers/media/video/cx231xx/Kconfig
-@@ -6,6 +6,7 @@ config VIDEO_CX231XX
- 	depends on VIDEO_IR
- 	select VIDEOBUF_VMALLOC
- 	select VIDEO_CX25840
-+	select VIDEO_CX2341X
- 
- 	---help---
- 	  This is a video4linux driver for Conexant 231xx USB based TV cards.
--- 
-1.7.1
+date:        Wed Sep 15 19:00:13 CEST 2010
+path:        http://www.linuxtv.org/hg/v4l-dvb
+changeset:   15156:3d5785fe11c9
+git master:       3e6dce76d99b328716b43929b9195adfee1de00c
+git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
+gcc version:      i686-linux-gcc (GCC) 4.4.3
+host hardware:    x86_64
+host os:          2.6.32.5
 
+linux-2.6.32.6-armv5: ERRORS
+linux-2.6.33-armv5: ERRORS
+linux-2.6.34-armv5: ERRORS
+linux-2.6.35.3-armv5: ERRORS
+linux-2.6.36-rc2-armv5: ERRORS
+linux-2.6.32.6-armv5-davinci: ERRORS
+linux-2.6.33-armv5-davinci: ERRORS
+linux-2.6.34-armv5-davinci: ERRORS
+linux-2.6.35.3-armv5-davinci: ERRORS
+linux-2.6.36-rc2-armv5-davinci: ERRORS
+linux-2.6.32.6-armv5-ixp: ERRORS
+linux-2.6.33-armv5-ixp: ERRORS
+linux-2.6.34-armv5-ixp: ERRORS
+linux-2.6.35.3-armv5-ixp: ERRORS
+linux-2.6.36-rc2-armv5-ixp: ERRORS
+linux-2.6.32.6-armv5-omap2: ERRORS
+linux-2.6.33-armv5-omap2: ERRORS
+linux-2.6.34-armv5-omap2: ERRORS
+linux-2.6.35.3-armv5-omap2: ERRORS
+linux-2.6.36-rc2-armv5-omap2: ERRORS
+linux-2.6.26.8-i686: ERRORS
+linux-2.6.27.44-i686: ERRORS
+linux-2.6.28.10-i686: ERRORS
+linux-2.6.29.1-i686: ERRORS
+linux-2.6.30.10-i686: ERRORS
+linux-2.6.31.12-i686: ERRORS
+linux-2.6.32.6-i686: ERRORS
+linux-2.6.33-i686: ERRORS
+linux-2.6.34-i686: ERRORS
+linux-2.6.35.3-i686: ERRORS
+linux-2.6.36-rc2-i686: ERRORS
+linux-2.6.32.6-m32r: ERRORS
+linux-2.6.33-m32r: ERRORS
+linux-2.6.34-m32r: ERRORS
+linux-2.6.35.3-m32r: ERRORS
+linux-2.6.36-rc2-m32r: ERRORS
+linux-2.6.32.6-mips: ERRORS
+linux-2.6.33-mips: ERRORS
+linux-2.6.34-mips: ERRORS
+linux-2.6.35.3-mips: ERRORS
+linux-2.6.36-rc2-mips: ERRORS
+linux-2.6.32.6-powerpc64: ERRORS
+linux-2.6.33-powerpc64: ERRORS
+linux-2.6.34-powerpc64: ERRORS
+linux-2.6.35.3-powerpc64: ERRORS
+linux-2.6.36-rc2-powerpc64: ERRORS
+linux-2.6.26.8-x86_64: ERRORS
+linux-2.6.27.44-x86_64: ERRORS
+linux-2.6.28.10-x86_64: ERRORS
+linux-2.6.29.1-x86_64: ERRORS
+linux-2.6.30.10-x86_64: ERRORS
+linux-2.6.31.12-x86_64: ERRORS
+linux-2.6.32.6-x86_64: ERRORS
+linux-2.6.33-x86_64: ERRORS
+linux-2.6.34-x86_64: ERRORS
+linux-2.6.35.3-x86_64: ERRORS
+linux-2.6.36-rc2-x86_64: ERRORS
+linux-git-Module.symvers: ERRORS
+linux-git-armv5: ERRORS
+linux-git-armv5-davinci: ERRORS
+linux-git-armv5-ixp: ERRORS
+linux-git-armv5-omap2: ERRORS
+linux-git-i686: ERRORS
+linux-git-m32r: ERRORS
+linux-git-mips: ERRORS
+linux-git-powerpc64: ERRORS
+linux-git-x86_64: ERRORS
+spec: ERRORS
+spec-git: ERRORS
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The V4L-DVB specification failed to build, but the last compiled spec is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
