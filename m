@@ -1,45 +1,55 @@
 Return-path: <mchehab@pedra>
-Received: from web45816.mail.sp1.yahoo.com ([68.180.199.61]:32003 "HELO
-	web45816.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1753650Ab0ICVUl (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:55153 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754338Ab0IPQ4m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Sep 2010 17:20:41 -0400
-Message-ID: <257277.1946.qm@web45816.mail.sp1.yahoo.com>
-References: <666098.4241.qm@web45811.mail.sp1.yahoo.com> <Pine.LNX.4.64.1008312227240.25720@axis700.grange> <934905.16227.qm@web45811.mail.sp1.yahoo.com> <Pine.LNX.4.64.1009032201180.8788@axis700.grange>
-Date: Fri, 3 Sep 2010 14:20:41 -0700 (PDT)
-From: Poyo VL <poyo_vl@yahoo.com>
-Subject: [PATCH] drivers/media/video/mt9v022.c (2.6.35.4): Fixed compilation warning
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-In-Reply-To: <Pine.LNX.4.64.1009032201180.8788@axis700.grange>
+	Thu, 16 Sep 2010 12:56:42 -0400
+Received: by qwh6 with SMTP id 6so1109896qwh.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Sep 2010 09:56:41 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <AANLkTi=C5vbVqcDe1JDcz7WxRRO3YeL-RKwQh5Bpv79G@mail.gmail.com>
+References: <AANLkTi=7fPmqkkhGpPEXP9b6od+QRMTF_Xwh-i=BjEku@mail.gmail.com>
+	<AANLkTi=C5vbVqcDe1JDcz7WxRRO3YeL-RKwQh5Bpv79G@mail.gmail.com>
+Date: Thu, 16 Sep 2010 13:56:41 -0300
+Message-ID: <AANLkTi=otOpFHMGKg9=wkMZKgY_KHOkBDAUq93-18fzb@mail.gmail.com>
+Subject: Re: Hello and question about firmwares
+From: =?UTF-8?B?4pyOxqZhZmFlbCBWaWVpcmHimaY=?= <rafastv@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
+Sender: <mchehab@pedra>
 
-From: Ionut Gabriel Popescu <poyo_vl@yahoo.com>
-Kernel: 2.6.35.4
+I realize now that I was kind of fast foward :) So nice to meet you all.
+I hope someday, I'm able to help you guys.
+Let me give you some more data from the device, although is not
+directly related to my questions.
 
-The drivers/media/video/mt9v022.c file, on line 405, tries a "case 0" o a 
-v4l2_mbus_pixelcode enum which don't have an 0 value element, so I got a compile 
-warning. That "case" is useless so it can be removed. 
+The two devices:
 
+http://www.pixelview.com.br/play_tv_usb_sbtvd_fullseg.asp (works already)
 
-Signed-off-by: Ionut Gabriel Popescu <poyo_vl@yahoo.com>
----
-
---- a/drivers/media/video/mt9v022.c    2010-08-27 02:47:12.000000000 +0300
-+++ b/drivers/media/video/mt9v022.c    2010-09-01 16:12:00.704505851 +0300
-@@ -402,9 +402,6 @@
-         if (mt9v022->model != V4L2_IDENT_MT9V022IX7ATC)
-             return -EINVAL;
-         break;
--    case 0:
--        /* No format change, only geometry */
--        break;
-     default:
-         return -EINVAL;
-     }
+http://www.pixelview.com.br/playtv_usb_hybrid.asp (I'm trying to get it to work)
 
 
-      
+The two boards even seems to be the same(lsusb output is the same from the two):
+
+(from #lsusb)
+Bus 001 Device 005: ID 1554:5010 Prolink Microsystems Corp.
+
+(from dmesg)
+[10994.296447] dvb-usb: found a 'Prolink Pixelview SBTVD' in cold
+state, will try to load a firmware
+[10994.296461] usb 1-3: firmware: requesting dvb-usb-dib0700-1.20.fw
+[10994.354616] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+[10994.354639] dib0700: firmware download failed at 7 with -22
+
+So, the problem to me seems to be only the firmware.
+I've upload the file (merlinD.rom) to here.
+
+http://www.2shared.com/file/URb2IeUi/merlinD.html
+
+If anyone care to take a look.
+
+Best wishes and many thanks for any help,
+
+Rafael Vieira - programmer and student.
