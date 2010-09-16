@@ -1,314 +1,96 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:45844 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756216Ab0IZSQg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Sep 2010 14:16:36 -0400
-Received: by wyb28 with SMTP id 28so3252064wyb.19
-        for <linux-media@vger.kernel.org>; Sun, 26 Sep 2010 11:16:34 -0700 (PDT)
-Subject: Re: [PATCH] DiSEqC bug fixed for stv0288 based interfaces
-From: tvbox <tvboxspy@gmail.com>
-To: josef@pavlik.it
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <maurochehab@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 26 Sep 2010 19:16:20 +0100
-Message-ID: <1285524980.6999.51.camel@canaries-desktop>
+Received: from mx1.redhat.com ([209.132.183.28]:62430 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751620Ab0IPBGR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Sep 2010 21:06:17 -0400
+Date: Wed, 15 Sep 2010 21:56:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 0/8] Removal of BKL part 1
+Message-ID: <20100915215643.42c697e6@pedra>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Josef
+This patch series remove direct calls for BKL on some V4L drivers. It also uses
+.unlocked_ioctl for some of those drivers.
 
-This patch does work and has been tested in my driver.
+This is a work in progress, as I'm doing the conversion manually. We still need to 
+touch on the drivers bellow, just due to explicit call to BKL:
 
-However, your patch was still corrupt, here is a cleaned up version.
+	drivers/media/video/tlg2300/pd-main.c
+	drivers/media/video/se401.c
+	drivers/media/video/zoran/zoran_driver.c
+	drivers/media/video/cx23885/cx23885-417.c
+	drivers/media/video/cx23885/cx23885-video.c
+	drivers/media/video/usbvideo/vicam.c
+	drivers/media/video/usbvision/usbvision-video.c
+	drivers/media/video/dabusb.c
+	drivers/media/video/pwc/pwc-if.c
+	drivers/media/video/v4l2-dev.c
+	drivers/media/video/stk-webcam.c
 
-I have had to shorten some quotes in some lines to within 80 characters
+Probably, there are more drivers still using .ioctl, instead of .unsigned_ioctl.
 
-Tested-by: Malcolm Priestley <tvboxspy@gmail.com>
+The patches here were not tested yet. Help is needed to test them and to review
+the patch series.
 
-It is also in my own hg tree at
-http://mercurial.intuxication.org/hg/tvboxspy/rev/666fe763c5f6
+Mauro Carvalho Chehab (8):
+  V4L/DVB: radio-si470x: remove the BKL lock used internally at the
+    driver
+  V4L/DVB: radio-si470x: use unlocked ioctl
+  V4L/DVB: bttv-driver: document functions using mutex_lock
+  V4L/DVB: bttv: fix driver lock and remove explicit calls to BKL
+  V4L/DVB: bttv: use unlocked ioctl
+  V4L/DVB: cx88: Remove BKL
+  V4L/DVB: Deprecate cpia driver (used for parallel port webcams)
+  V4L/DVB: Deprecate stradis driver
 
-
-diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
-index 2930a5d..6cd442e 100644
---- a/drivers/media/dvb/frontends/stv0288.c
-+++ b/drivers/media/dvb/frontends/stv0288.c
-@@ -6,6 +6,8 @@
- 	Copyright (C) 2008 Igor M. Liplianin <liplianin@me.by>
- 		Removed stb6000 specific tuner code and revised some
- 		procedures.
-+	2010-09-01 Josef Pavlik <josef@pavlik.it>
-+		Fixed diseqc_msg, diseqc_burst and set_tone problems
-
- 	This program is free software; you can redistribute it and/or modify
- 	it under the terms of the GNU General Public License as published by
-@@ -156,14 +158,13 @@ static int stv0288_send_diseqc_msg(struct dvb_frontend *fe,
- 
- 	stv0288_writeregI(state, 0x09, 0);
- 	msleep(30);
--	stv0288_writeregI(state, 0x05, 0x16);
-+	stv0288_writeregI(state, 0x05, 0x12);/* modulated mode, single shot */
-
- 	for (i = 0; i < m->msg_len; i++) {
- 		if (stv0288_writeregI(state, 0x06, m->msg[i]))
- 			return -EREMOTEIO;
--		msleep(12);
- 	}
--
-+	msleep(m->msg_len*12);
- 	return 0;
- }
-
-@@ -174,13 +175,14 @@ static int stv0288_send_diseqc_burst(struct dvb_frontend *fe,
-
- 	dprintk("%s\n", __func__);
- 
--	if (stv0288_writeregI(state, 0x05, 0x16))/* burst mode */
--		return -EREMOTEIO;
--
--	if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
-+	if (stv0288_writeregI(state, 0x05, 0x03))/* burst mode, single shot */
-+		return -EREMOTEIO;
-+
-+	if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
- 		return -EREMOTEIO;
-
--	if (stv0288_writeregI(state, 0x06, 0x12))
-+	msleep(15);
-+	if (stv0288_writeregI(state, 0x05, 0x12))
- 		return -EREMOTEIO;
- 
- 	return 0;
-@@ -192,18 +194,19 @@ static int stv0288_set_tone(struct dvb_frontend *fe, fe_sec_tone_mode_t tone)
-
- 	switch (tone) {
- 	case SEC_TONE_ON:
--		if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode */
-+		if (stv0288_writeregI(state, 0x05, 0x10))/* cont carrier */
- 			return -EREMOTEIO;
--		return stv0288_writeregI(state, 0x06, 0xff);
-+	break;
- 
- 	case SEC_TONE_OFF:
--		if (stv0288_writeregI(state, 0x05, 0x13))/* burst mode */
-+		if (stv0288_writeregI(state, 0x05, 0x12))/* burst mode off*/
- 			return -EREMOTEIO;
--		return stv0288_writeregI(state, 0x06, 0x00);
-+	break;
- 
- 	default:
- 		return -EINVAL;
- 	}
-+	return 0;
- }
- 
- static u8 stv0288_inittab[] = {
-
-
-> sorry, but something eats the leading spaces (but no the tabs) in the inlined 
-> patch making it unusable, so please use the attached one.
-> 
-> 
-> ---------------------
-> on  Sep 12, 2010, at 13:30, I wrote:
-> seems that the patch was corrupted by the kmail used for the post (missing 
-> space before the last close bracket resulting corrupted patch)
-> the corrected patch follows (and I'm sending it with another mail program)
-> 
-> Signed-off-by: Josef Pavlik <jo...@pavlik.it>
-> 
-> -------------------------------------
-> diff --git a/drivers/media/dvb/frontends/stv0288.c 
-> b/drivers/media/dvb/frontends/stv0288.c
-> index 2930a5d..6cd442e 100644
-> --- a/drivers/media/dvb/frontends/stv0288.c
-> +++ b/drivers/media/dvb/frontends/stv0288.c
-> @@ -6,6 +6,8 @@
->         Copyright (C) 2008 Igor M. Liplianin <liplia...@me.by>
->                 Removed stb6000 specific tuner code and revised some
->                 procedures.
-> +        2010-09-01 Josef Pavlik <jo...@pavlik.it>
-> +                Fixed diseqc_msg, diseqc_burst and set_tone problems
-> 
->         This program is free software; you can redistribute it and/or modify
->         it under the terms of the GNU General Public License as published by
-> @@ -156,14 +158,13 @@ static int stv0288_send_diseqc_msg(struct dvb_frontend 
-> *fe,
-> 
->         stv0288_writeregI(state, 0x09, 0);
->         msleep(30);
-> -       stv0288_writeregI(state, 0x05, 0x16);
-> +       stv0288_writeregI(state, 0x05, 0x12); /* modulated mode, single shot */
-> 
->         for (i = 0; i < m->msg_len; i++) {
->                 if (stv0288_writeregI(state, 0x06, m->msg[i]))
->                         return -EREMOTEIO;
-> -               msleep(12);
->         }
-> -
-> +    msleep(m->msg_len*12); 
->         return 0;
-> }
-> 
-> @@ -174,13 +175,14 @@ static int stv0288_send_diseqc_burst(struct dvb_frontend 
-> *fe,
-> 
->         dprintk("%s\n", __func__);
-> 
-> -       if (stv0288_writeregI(state, 0x05, 0x16))/* burst mode */
-> -               return -EREMOTEIO;
-> -
-> -       if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
-> +    if (stv0288_writeregI(state, 0x05, 0x03)) /* simple tone burst mode, 
-> single shot */
-> +        return -EREMOTEIO;
-> +       
-> +    if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
->                 return -EREMOTEIO;
-> 
-> -       if (stv0288_writeregI(state, 0x06, 0x12))
-> +    msleep(15);
-> +       if (stv0288_writeregI(state, 0x05, 0x12))
->                 return -EREMOTEIO;
-> 
->         return 0;
-> @@ -192,18 +194,19 @@ static int stv0288_set_tone(struct dvb_frontend *fe, 
-> fe_sec_tone_mode_t tone)
-> 
->         switch (tone) {
->         case SEC_TONE_ON:
-> -               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode */
-> +               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode, 
-> continuous carrier */
->                         return -EREMOTEIO;
-> -               return stv0288_writeregI(state, 0x06, 0xff);
-> +        break;
-> 
->         case SEC_TONE_OFF:
-> -               if (stv0288_writeregI(state, 0x05, 0x13))/* burst mode */
-> +               if (stv0288_writeregI(state, 0x05, 0x12))/* burst mode off*/
->                         return -EREMOTEIO;
-> -               return stv0288_writeregI(state, 0x06, 0x00);
-> +        break;
-> 
->         default:
->                 return -EINVAL;
->         }
-> +    return 0;
-> }
-> 
-> static u8 stv0288_inittab[] = {
-> -----------------------------------------------------
-> 
-> 
-> 
-> On Sep 8, 2010, at 21:16 , Mauro Carvalho Chehab wrote:
-> 
-> > Em 01-09-2010 09:35, Josef Pavlik escreveu:
-> >> Fixed problem with DiSEqC communication. The message was wrongly modulated, 
-> >> so the DiSEqC switch was not work.
-> >> 
-> >> This patch fixes DiSEqC messages, simple tone burst and tone on/off. 
-> >> I verified it with osciloscope against the DiSEqC documentation.
-> >> 
-> >> Interface: PCI DVB-S TV tuner TeVii S420
-> >> Kernel: 2.6.32-24-generic (UBUNTU 10.4)
-> >> 
-> >> Signed-off-by: Josef Pavlik <jo...@pavlik.it>
-> > 
-> > Patch doesn't apply against the latest version, at my -git tree. 
-> > Not sure if the bugs you're pointing were already fixed.
-> > 
-> > Cheers,
-> > Mauro.
-> >> 
-> >> 
-> >> 
-> >> 
-> >> diff --git a/drivers/media/dvb/frontends/stv0288.c 
-> >> b/drivers/media/dvb/frontends/stv0288.c
-> >> index 2930a5d..6a32535 100644
-> >> --- a/drivers/media/dvb/frontends/stv0288.c
-> >> +++ b/drivers/media/dvb/frontends/stv0288.c
-> >> @@ -6,6 +6,8 @@
-> >>       Copyright (C) 2008 Igor M. Liplianin <liplia...@me.by>
-> >>               Removed stb6000 specific tuner code and revised some
-> >>               procedures.
-> >> +       2010-09-01 Josef Pavlik <jo...@pavlik.it>
-> >> +               Fixed diseqc_msg, diseqc_burst and set_tone problems
-> >> 
-> >>       This program is free software; you can redistribute it and/or modify
-> >>       it under the terms of the GNU General Public License as published by
-> >> @@ -156,14 +158,13 @@ static int stv0288_send_diseqc_msg(struct dvb_frontend 
-> >> *fe,
-> >> 
-> >>       stv0288_writeregI(state, 0x09, 0);
-> >>       msleep(30);
-> >> -       stv0288_writeregI(state, 0x05, 0x16);
-> >> +       stv0288_writeregI(state, 0x05, 0x12); /* modulated mode, single shot 
-> >> */
-> >> 
-> >>       for (i = 0; i < m->msg_len; i++) {
-> >>               if (stv0288_writeregI(state, 0x06, m->msg[i]))
-> >>                       return -EREMOTEIO;
-> >> -               msleep(12);
-> >>       }
-> >> -
-> >> +       msleep(m->msg_len*12);
-> >>       return 0;
-> >> }
-> >> 
-> >> @@ -174,13 +175,14 @@ static int stv0288_send_diseqc_burst(struct 
-> >> dvb_frontend *fe,
-> >> 
-> >>       dprintk("%s\n", __func__);
-> >> 
-> >> -       if (stv0288_writeregI(state, 0x05, 0x16))/* burst mode */
-> >> +       if (stv0288_writeregI(state, 0x05, 0x03)) /* "simple tone burst" 
-> >> mode, single shot */
-> >>               return -EREMOTEIO;
-> >> 
-> >>       if (stv0288_writeregI(state, 0x06, burst == SEC_MINI_A ? 0x00 : 0xff))
-> >>               return -EREMOTEIO;
-> >> 
-> >> -       if (stv0288_writeregI(state, 0x06, 0x12))
-> >> +       msleep(15);
-> >> +       if (stv0288_writeregI(state, 0x05, 0x12))
-> >>               return -EREMOTEIO;
-> >> 
-> >>       return 0;
-> >> @@ -192,18 +194,19 @@ static int stv0288_set_tone(struct dvb_frontend *fe, 
-> >> fe_sec_tone_mode_t tone)
-> >> 
-> >>       switch (tone) {
-> >>       case SEC_TONE_ON:
-> >> -               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode */
-> >> +               if (stv0288_writeregI(state, 0x05, 0x10))/* burst mode, 
-> >> continuous carrier */
-> >>                       return -EREMOTEIO;
-> >> -               return stv0288_writeregI(state, 0x06, 0xff);
-> >> +               break;
-> >> 
-> >>       case SEC_TONE_OFF:
-> >> -               if (stv0288_writeregI(state, 0x05, 0x13))/* burst mode */
-> >> +               if (stv0288_writeregI(state, 0x05, 0x12))/* burst mode off*/
-> >>                       return -EREMOTEIO;
-> >> -               return stv0288_writeregI(state, 0x06, 0x00);
-> >> +               break;
-> >> 
-> >>       default:
-> >>               return -EINVAL;
-> >>       }
-> >> +       return 0;
-> >> }
-> >> 
-> >> static u8 stv0288_inittab[] = {
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majord...@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Documentation/feature-removal-schedule.txt       |   17 +-
+ drivers/media/radio/si470x/radio-si470x-common.c |   27 +-
+ drivers/media/radio/si470x/radio-si470x-usb.c    |   17 +-
+ drivers/media/radio/si470x/radio-si470x.h        |    2 -
+ drivers/media/video/Kconfig                      |   48 -
+ drivers/media/video/Makefile                     |    4 -
+ drivers/media/video/bt8xx/bttv-driver.c          |  269 +-
+ drivers/media/video/cpia.c                       | 4032 ----------------------
+ drivers/media/video/cpia.h                       |  432 ---
+ drivers/media/video/cpia_pp.c                    |  869 -----
+ drivers/media/video/cpia_usb.c                   |  640 ----
+ drivers/media/video/cx88/cx88-blackbird.c        |   14 +-
+ drivers/media/video/cx88/cx88-video.c            |   17 +-
+ drivers/media/video/stradis.c                    | 2213 ------------
+ drivers/staging/Kconfig                          |    2 +
+ drivers/staging/Makefile                         |    1 +
+ drivers/staging/cpia/Kconfig                     |   39 +
+ drivers/staging/cpia/Makefile                    |    5 +
+ drivers/staging/cpia/TODO                        |    8 +
+ drivers/staging/cpia/cpia.c                      | 4032 ++++++++++++++++++++++
+ drivers/staging/cpia/cpia.h                      |  432 +++
+ drivers/staging/cpia/cpia_pp.c                   |  869 +++++
+ drivers/staging/cpia/cpia_usb.c                  |  640 ++++
+ drivers/staging/stradis/Kconfig                  |    7 +
+ drivers/staging/stradis/Makefile                 |    3 +
+ drivers/staging/stradis/TODO                     |    6 +
+ drivers/staging/stradis/stradis.c                | 2213 ++++++++++++
+ 27 files changed, 8496 insertions(+), 8362 deletions(-)
+ delete mode 100644 drivers/media/video/cpia.c
+ delete mode 100644 drivers/media/video/cpia.h
+ delete mode 100644 drivers/media/video/cpia_pp.c
+ delete mode 100644 drivers/media/video/cpia_usb.c
+ delete mode 100644 drivers/media/video/stradis.c
+ create mode 100644 drivers/staging/cpia/Kconfig
+ create mode 100644 drivers/staging/cpia/Makefile
+ create mode 100644 drivers/staging/cpia/TODO
+ create mode 100644 drivers/staging/cpia/cpia.c
+ create mode 100644 drivers/staging/cpia/cpia.h
+ create mode 100644 drivers/staging/cpia/cpia_pp.c
+ create mode 100644 drivers/staging/cpia/cpia_usb.c
+ create mode 100644 drivers/staging/stradis/Kconfig
+ create mode 100644 drivers/staging/stradis/Makefile
+ create mode 100644 drivers/staging/stradis/TODO
+ create mode 100644 drivers/staging/stradis/stradis.c
 
