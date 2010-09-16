@@ -1,49 +1,43 @@
 Return-path: <mchehab@pedra>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:55714 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672Ab0IMRsQ (ORCPT
+Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:46064 "EHLO
+	www.etchedpixels.co.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754584Ab0IPOuv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 13:48:16 -0400
-MIME-Version: 1.0
-In-Reply-To: <20100908153435.GA4190@core.coreip.homeip.net>
-References: <20100908073233.32365.74621.stgit@hammer.corenet.prv>
-	<20100908143121.GD22323@redhat.com>
-	<20100908153435.GA4190@core.coreip.homeip.net>
-Date: Mon, 13 Sep 2010 13:48:14 -0400
-Message-ID: <AANLkTikV9jWWPhK0C-1ipFei18pHUg86Yj1Pm10010An@mail.gmail.com>
-Subject: Re: [PATCH 0/6] Large scancode handling
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Input <linux-input@vger.kernel.org>,
-	linux-media@vger.kernel.org,
-	Maxim Levitsky <maximlevitsky@gmail.com>,
-	David Hardeman <david@hardeman.nu>,
-	Jiri Kosina <jkosina@suse.cz>, Ville Syrjala <syrjala@sci.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 16 Sep 2010 10:50:51 -0400
+Date: Thu, 16 Sep 2010 16:07:59 +0100
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: codalist@TELEMANN.coda.cs.cmu.edu, autofs@linux.kernel.org,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	Christoph Hellwig <hch@infradead.org>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Trond Myklebust <Trond.Myklebust@netapp.com>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Anders Larsen <al@alarsen.net>, Jan Kara <jack@suse.cz>,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>, netdev@vger.kernel.org,
+	Samuel Ortiz <samuel@sortiz.org>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	Andrew Hendry <andrew.hendry@gmail.com>
+Subject: Re: Remaining BKL users, what to do
+Message-ID: <20100916160759.4411786c@lxorguk.ukuu.org.uk>
+In-Reply-To: <201009161632.59210.arnd@arndb.de>
+References: <201009161632.59210.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Wed, Sep 8, 2010 at 11:34 AM, Dmitry Torokhov
-<dmitry.torokhov@gmail.com> wrote:
-> On Wed, Sep 08, 2010 at 10:31:21AM -0400, Jarod Wilson wrote:
->> On Wed, Sep 08, 2010 at 12:41:38AM -0700, Dmitry Torokhov wrote:
-...
->> > Ville, do you still have the hardware to try our ati_remote2 changes?
->>
->> If not, I've got the hardware. (Speaking of which, porting ati_remote*
->> over to {ir,rc}-core is also on the TODO list, albeit with very very
->> low priority at the moment).
->
-> Ok, then we'' pencil you in for testing if we do not hear from Ville ;)
+> net/appletalk:
+> net/ipx/af_ipx.c:
+> net/irda/af_irda.c:
+> 	Can probably be saved from retirement in drivers/staging if the
+> 	maintainers still care.
 
-We've heard from Ville, but I went ahead and did some testing anyway.
-My RWII with the default mode (didn't try any of the others) works
-just fine after applying this patch atop 2.6.36-rc3-git1, as do my
-imon and mceusb receivers. Ran into some problems with streamzap, but
-I'm fairly sure they're not the fault of this patchset.
+IPX and Appletalk both have active users. They also look fairly fixable
+as the lock_kernel just maps to a stack private mutex, or in several
+cases can simply be dropped - its just a push down legacy.
 
--- 
-Jarod Wilson
-jarod@wilsonet.com
+IRDA may well be a candidate for staging
