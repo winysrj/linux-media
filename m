@@ -1,114 +1,58 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3808 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754869Ab0IMTD1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Sep 2010 15:03:27 -0400
-Received: from localhost (marune.xs4all.nl [82.95.89.49])
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id o8DJ3MOC005782
-	for <linux-media@vger.kernel.org>; Mon, 13 Sep 2010 21:03:26 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Date: Mon, 13 Sep 2010 21:03:22 +0200 (CEST)
-Message-Id: <201009131903.o8DJ3MOC005782@smtp-vbr7.xs4all.nl>
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [cron job] v4l-dvb daily build 2.6.26 and up: ERRORS
+Received: from mx1.redhat.com ([209.132.183.28]:36200 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754473Ab0IPNew (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Sep 2010 09:34:52 -0400
+Date: Thu, 16 Sep 2010 09:34:37 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>
+Cc: linux-media@vger.kernel.org,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Anders Eriksson <aeriksson@fastmail.fm>,
+	Anssi Hannula <anssi.hannula@iki.fi>
+Subject: Re: [PATCH 2/4] imon: split mouse events to a separate input dev
+Message-ID: <20100916133437.GB29829@redhat.com>
+References: <20100916051932.GA23299@redhat.com>
+ <20100916052245.GC23299@redhat.com>
+ <d1cd45c6d862e80252cf82047455e9b6.squirrel@www.hardeman.nu>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <d1cd45c6d862e80252cf82047455e9b6.squirrel@www.hardeman.nu>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-This message is generated daily by a cron job that builds v4l-dvb for
-the kernels and architectures in the list below.
+On Thu, Sep 16, 2010 at 01:32:07PM +0200, David Härdeman wrote:
+> On Thu, September 16, 2010 07:22, Jarod Wilson wrote:
+> > This is a stab at separating the mouse (and front panel/knob) events
+> > out to a separate input device. This is necessary in preparation for
+> > the next patch which makes the rc-core input dev opaque to rc
+> > drivers.
+> >
+> > I can't verify the correctness of the patch beyond the fact that it
+> > compiles without warnings. The driver has resisted most of my
+> > attempts at understanding it properly...for example, the double calls
+> > to le64_to_cpu() and be64_to_cpu() which are applied in
+> > imon_incoming_packet() and imon_panel_key_lookup() would amount
+> > to a bswab64() call, irregardless of the cpu endianness, and I think
+> > the code wouldn't have worked on a big-endian machine...
+> >
+> > Signed-off-by: David Härdeman <david@hardeman.nu>
+> >
+> > - Minor alterations to apply with minimal core IR changes
+> > - Use timer for imon keys too, since its entirely possible for the
+> >   receiver to miss release codes (either by way of another key being
+> >   pressed while the first is held or by the remote pointing away from
+> >   the recevier when the key is release. yes, I know, its ugly).
+> 
+> Where's the additional timer usage exactly? I can't see any in the patch...
 
-Results of the daily build of v4l-dvb:
+For ktype == IMON_KEY_IMON in your original patch, keys were submitted
+with ir_keydown_notimeout, and in this version, they're submitted with
+plain old ir_keydown, which has a built-in timeout.
 
-date:        Mon Sep 13 19:00:13 CEST 2010
-path:        http://www.linuxtv.org/hg/v4l-dvb
-changeset:   15148:990bbeaeb761
-git master:       3e6dce76d99b328716b43929b9195adfee1de00c
-git media-master: 991403c594f666a2ed46297c592c60c3b9f4e1e2
-gcc version:      i686-linux-gcc (GCC) 4.4.3
-host hardware:    x86_64
-host os:          2.6.32.5
+-- 
+Jarod Wilson
+jarod@redhat.com
 
-linux-2.6.32.6-armv5: WARNINGS
-linux-2.6.33-armv5: OK
-linux-2.6.34-armv5: WARNINGS
-linux-2.6.35.3-armv5: WARNINGS
-linux-2.6.36-rc2-armv5: ERRORS
-linux-2.6.32.6-armv5-davinci: WARNINGS
-linux-2.6.33-armv5-davinci: WARNINGS
-linux-2.6.34-armv5-davinci: WARNINGS
-linux-2.6.35.3-armv5-davinci: WARNINGS
-linux-2.6.36-rc2-armv5-davinci: ERRORS
-linux-2.6.32.6-armv5-ixp: WARNINGS
-linux-2.6.33-armv5-ixp: WARNINGS
-linux-2.6.34-armv5-ixp: WARNINGS
-linux-2.6.35.3-armv5-ixp: WARNINGS
-linux-2.6.36-rc2-armv5-ixp: ERRORS
-linux-2.6.32.6-armv5-omap2: WARNINGS
-linux-2.6.33-armv5-omap2: WARNINGS
-linux-2.6.34-armv5-omap2: WARNINGS
-linux-2.6.35.3-armv5-omap2: WARNINGS
-linux-2.6.36-rc2-armv5-omap2: ERRORS
-linux-2.6.26.8-i686: WARNINGS
-linux-2.6.27.44-i686: WARNINGS
-linux-2.6.28.10-i686: WARNINGS
-linux-2.6.29.1-i686: WARNINGS
-linux-2.6.30.10-i686: WARNINGS
-linux-2.6.31.12-i686: WARNINGS
-linux-2.6.32.6-i686: WARNINGS
-linux-2.6.33-i686: WARNINGS
-linux-2.6.34-i686: WARNINGS
-linux-2.6.35.3-i686: WARNINGS
-linux-2.6.36-rc2-i686: ERRORS
-linux-2.6.32.6-m32r: WARNINGS
-linux-2.6.33-m32r: OK
-linux-2.6.34-m32r: WARNINGS
-linux-2.6.35.3-m32r: WARNINGS
-linux-2.6.36-rc2-m32r: ERRORS
-linux-2.6.32.6-mips: WARNINGS
-linux-2.6.33-mips: WARNINGS
-linux-2.6.34-mips: WARNINGS
-linux-2.6.35.3-mips: WARNINGS
-linux-2.6.36-rc2-mips: ERRORS
-linux-2.6.32.6-powerpc64: WARNINGS
-linux-2.6.33-powerpc64: WARNINGS
-linux-2.6.34-powerpc64: WARNINGS
-linux-2.6.35.3-powerpc64: WARNINGS
-linux-2.6.36-rc2-powerpc64: ERRORS
-linux-2.6.26.8-x86_64: WARNINGS
-linux-2.6.27.44-x86_64: WARNINGS
-linux-2.6.28.10-x86_64: WARNINGS
-linux-2.6.29.1-x86_64: WARNINGS
-linux-2.6.30.10-x86_64: WARNINGS
-linux-2.6.31.12-x86_64: WARNINGS
-linux-2.6.32.6-x86_64: WARNINGS
-linux-2.6.33-x86_64: WARNINGS
-linux-2.6.34-x86_64: WARNINGS
-linux-2.6.35.3-x86_64: WARNINGS
-linux-2.6.36-rc2-x86_64: ERRORS
-linux-git-Module.symvers: ERRORS
-linux-git-armv5: ERRORS
-linux-git-armv5-davinci: ERRORS
-linux-git-armv5-ixp: ERRORS
-linux-git-armv5-omap2: ERRORS
-linux-git-i686: ERRORS
-linux-git-m32r: ERRORS
-linux-git-mips: ERRORS
-linux-git-powerpc64: ERRORS
-linux-git-x86_64: ERRORS
-spec: ERRORS
-spec-git: ERRORS
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The V4L-DVB specification failed to build, but the last compiled spec is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
