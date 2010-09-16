@@ -1,199 +1,59 @@
-Return-path: <mchehab@localhost>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:14645 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754338Ab0IESXp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Sep 2010 14:23:45 -0400
-Subject: Re: [PATCH] LED control
-From: Andy Walls <awalls@md.metrocast.net>
-To: Peter Korsgaard <jacmet@sunsite.dk>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	linux-media@vger.kernel.org
-In-Reply-To: <87sk1oty46.fsf@macbook.be.48ers.dk>
-References: <20100904131048.6ca207d1@tele> <4C834D46.5030801@redhat.com>
-	 <87sk1oty46.fsf@macbook.be.48ers.dk>
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 05 Sep 2010 14:23:18 -0400
-Message-ID: <1283710998.2057.62.camel@morgan.silverblock.net>
-Mime-Version: 1.0
+Return-path: <mchehab@pedra>
+Received: from mx2.fusionio.com ([64.244.102.31]:36627 "EHLO mx2.fusionio.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754128Ab0IPSvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Sep 2010 14:51:05 -0400
+Message-ID: <4C9262C4.9050006@fusionio.com>
+Date: Thu, 16 Sep 2010 20:32:36 +0200
+From: Jens Axboe <jaxboe@fusionio.com>
+MIME-Version: 1.0
+To: Steven Rostedt <rostedt@goodmis.org>
+CC: Arnd Bergmann <arnd@arndb.de>,
+	"codalist@coda.cs.cmu.edu" <codalist@coda.cs.cmu.edu>,
+	"autofs@linux.kernel.org" <autofs@linux.kernel.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	Christoph Hellwig <hch@infradead.org>,
+	Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>,
+	Trond Myklebust <Trond.Myklebust@netapp.com>,
+	Petr Vandrovec <vandrove@vc.cvut.cz>,
+	Anders Larsen <al@alarsen.net>, Jan Kara <jack@suse.cz>,
+	Evgeniy Dushistov <dushistov@mail.ru>,
+	Ingo Molnar <mingo@elte.hu>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Samuel Ortiz <samuel@sortiz.org>,
+	Arnaldo Carvalho de Melo <acme@ghostprotocols.net>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>,
+	Andrew Hendry <andrew.hendry@gmail.com>
+Subject: Re: Remaining BKL users, what to do
+References: <201009161632.59210.arnd@arndb.de> <1284648549.23787.26.camel@gandalf.stny.rr.com>
+In-Reply-To: <1284648549.23787.26.camel@gandalf.stny.rr.com>
+Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: 7bit
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@localhost>
+Sender: <mchehab@pedra>
 
-On Sun, 2010-09-05 at 10:04 +0200, Peter Korsgaard wrote:
-> >>>>> "Hans" == Hans de Goede <hdegoede@redhat.com> writes:
+On 2010-09-16 16:49, Steven Rostedt wrote:
+> On Thu, 2010-09-16 at 16:32 +0200, Arnd Bergmann wrote:
+>> The big kernel lock is gone from almost all code in linux-next, this is
+>> the status of what I think will happen to the remaining users:
 > 
-> Hi,
+>> kernel/trace/blktrace.c:
+>> 	Should be easy. Ingo? Steven?
+>>
 > 
->  >> +	<entry><constant>V4L2_CID_LEDS</constant></entry>
->  >> +	<entry>integer</entry>
->  >> +	<entry>Switch on or off the LED(s) or illuminator(s) of the device.
->  >> +	    The control type and values depend on the driver and may be either
->  >> +	    a single boolean (0: off, 1:on) or the index in a menu type.</entry>
->  >> +	</row>
+> Jens,
 > 
->  Hans> I think that using one control for both status leds (which is
->  Hans> what we are usually talking about) and illuminator(s) is a bad
->  Hans> idea. I'm fine with standardizing these, but can we please have 2
->  Hans> CID's one for status lights and one for the led. Esp, as I can
->  Hans> easily see us supporting a microscope in the future where the
->  Hans> microscope itself or other devices with the same bridge will have
->  Hans> a status led, so then we will need 2 separate controls anyways.
+> Git blame shows this to be your code (copied from block/blktrace.c from
+> years past).
 > 
-> Why does this need to go through the v4l2 api and not just use the
-> standard LED (sysfs) api in the first place?
+> Is the lock_kernel() needed here? (although Arnd did add it in 62c2a7d9)
 
-It puts a larger burden on the application programmer.
+It isn't, it can be removed.
 
-Video capture applications are already programmed to provide controls to
-the user using the V4L2 API for manipulating all aspects of the incoming
-video image.  Using something different for turning on subject
-illumination would be an exceptional case. 
-
-The V4L2 control API also allows applications to be written such that
-they need no apriori knowledge about a video driver's controls, and yet
-can still present all driver supported controls to the user for
-manipulation.  The VIDIOC_QUERYCTL interface allows applications to
-discover controls and metadata to build a UI.  Two applications that
-illustrate the point are 'qv4l2' (a Qt control GUI) and 'v4l2-ctl' (a
-CLI control UI) found here:
-
-http://git.linuxtv.org/v4l-utils.git?a=tree;f=utils;h=8d37309cc3b896d11fc77d9f275f82f02ee9c03d;hb=HEAD
- 
-
-As an example, here is the output of v4l2-ctl -L for my QX3 microscope:
-
-$ v4l2-ctl -d /dev/video1 -L
-                     brightness (int)  : min=0 max=100 step=1 default=50 value=50
-                       contrast (int)  : min=0 max=96 step=8 default=48 value=48
-                     saturation (int)  : min=0 max=100 step=1 default=50 value=50
-         light_frequency_filter (menu) : min=0 max=2 default=1 value=1
-				0: NoFliker
-				1: 50 Hz
-				2: 60 Hz
-             compression_target (menu) : min=0 max=1 default=0 value=0
-				0: Quality
-				1: Framerate
-                          lamps (menu) : min=0 max=3 default=0 value=0
-				0: Off
-				1: Bottom
-				2: Top
-				3: Both
-
-And here is the output for my PVR-350 TV capture card:
-
-$ v4l2-ctl -d /dev/video2 -L
-
-User Controls
-
-                     brightness (int)  : min=0 max=255 step=1 default=128 value=128 flags=slider
-                       contrast (int)  : min=0 max=127 step=1 default=64 value=64 flags=slider
-                     saturation (int)  : min=0 max=127 step=1 default=64 value=64 flags=slider
-                            hue (int)  : min=-128 max=127 step=1 default=0 value=0 flags=slider
-                         volume (int)  : min=0 max=65535 step=655 default=58880 value=58880 flags=slider
-                           mute (bool) : default=0 value=0
-
-MPEG Encoder Controls
-
-                    stream_type (menu) : min=0 max=5 default=0 value=0 flags=update
-				0: MPEG-2 Program Stream
-				2: MPEG-1 System Stream
-				3: MPEG-2 DVD-compatible Stream
-				4: MPEG-1 VCD-compatible Stream
-				5: MPEG-2 SVCD-compatible Stream
-              stream_vbi_format (menu) : min=0 max=1 default=0 value=0
-				0: No VBI
-				1: Private packet, IVTV format
-       audio_sampling_frequency (menu) : min=0 max=2 default=1 value=1
-				0: 44.1 kHz
-				1: 48 kHz
-				2: 32 kHz
-                 audio_encoding (menu) : min=1 max=1 default=1 value=1 flags=update
-				1: MPEG-1/2 Layer II
-         audio_layer_ii_bitrate (menu) : min=9 max=13 default=10 value=10
-				9: 192 kbps
-				10: 224 kbps
-				11: 256 kbps
-				12: 320 kbps
-				13: 384 kbps
-              audio_stereo_mode (menu) : min=0 max=3 default=0 value=0 flags=update
-				0: Stereo
-				1: Joint Stereo
-				2: Dual
-				3: Mono
-    audio_stereo_mode_extension (menu) : min=0 max=3 default=0 value=0 flags=inactive
-				0: Bound 4
-				1: Bound 8
-				2: Bound 12
-				3: Bound 16
-                 audio_emphasis (menu) : min=0 max=2 default=0 value=0
-				0: No Emphasis
-				1: 50/15 us
-				2: CCITT J17
-                      audio_crc (menu) : min=0 max=1 default=0 value=0
-				0: No CRC
-				1: 16-bit CRC
-                     audio_mute (bool) : default=0 value=0
-                 video_encoding (menu) : min=0 max=1 default=1 value=1 flags=readonly
-				0: MPEG-1
-				1: MPEG-2
-                   video_aspect (menu) : min=0 max=3 default=1 value=1
-				0: 1x1
-				1: 4x3
-				2: 16x9
-				3: 2.21x1
-                 video_b_frames (int)  : min=0 max=33 step=1 default=2 value=2 flags=update
-                 video_gop_size (int)  : min=1 max=34 step=1 default=15 value=15
-              video_gop_closure (bool) : default=1 value=1
-             video_bitrate_mode (menu) : min=0 max=1 default=0 value=0 flags=update
-				0: Variable Bitrate
-				1: Constant Bitrate
-                  video_bitrate (int)  : min=0 max=27000000 step=1 default=6000000 value=6000000
-             video_peak_bitrate (int)  : min=0 max=27000000 step=1 default=8000000 value=8000000
-      video_temporal_decimation (int)  : min=0 max=255 step=1 default=0 value=0
-                     video_mute (bool) : default=0 value=0
-                 video_mute_yuv (int)  : min=0 max=16777215 step=1 default=32896 value=32896
-            spatial_filter_mode (menu) : min=0 max=1 default=0 value=0 flags=update
-				0: Manual
-				1: Auto
-                 spatial_filter (int)  : min=0 max=15 step=1 default=0 value=0 flags=slider
-       spatial_luma_filter_type (menu) : min=0 max=4 default=1 value=1
-				0: Off
-				1: 1D Horizontal
-				2: 1D Vertical
-				3: 2D H/V Separable
-				4: 2D Symmetric non-separable
-     spatial_chroma_filter_type (menu) : min=0 max=1 default=1 value=1
-				0: Off
-				1: 1D Horizontal
-           temporal_filter_mode (menu) : min=0 max=1 default=0 value=0 flags=update
-				0: Manual
-				1: Auto
-                temporal_filter (int)  : min=0 max=31 step=1 default=8 value=8 flags=slider
-             median_filter_type (menu) : min=0 max=4 default=0 value=0 flags=update
-				0: Off
-				1: Horizontal
-				2: Vertical
-				3: Horizontal/Vertical
-				4: Diagonal
-     median_luma_filter_minimum (int)  : min=0 max=255 step=1 default=0 value=0 flags=inactive slider
-     median_luma_filter_maximum (int)  : min=0 max=255 step=1 default=255 value=255 flags=inactive slider
-   median_chroma_filter_minimum (int)  : min=0 max=255 step=1 default=0 value=0 flags=inactive slider
-   median_chroma_filter_maximum (int)  : min=0 max=255 step=1 default=255 value=255 flags=inactive slider
-      insert_navigation_packets (bool) : default=0 value=0
+-- 
+Jens Axboe
 
 
-
-v4l2-ctl needed no hardcoded knowledge of what the respective drivers
-(gspca_cpia1 and ivtv) supported to build a UI.  Nor did the v4l2-ctl
-need to go rummaging about in sysfs to find which control applied to
-which video device node, because the driver simply tell the app upon
-request: "here are your options for controlling this device".  No
-guesswork on where the control for this device may be located in sysfs,
-and no exceptional application code to be written just to toggle an
-illuminator on and off.
-
-Regards,
-Andy
-
+Confidentiality Notice: This e-mail message, its contents and any attachments to it are confidential to the intended recipient, and may contain information that is privileged and/or exempt from disclosure under applicable law. If you are not the intended recipient, please immediately notify the sender and destroy the original e-mail message and any attachments (and any copies that may have been made) from your system or otherwise. Any unauthorized use, copying, disclosure or distribution of this information is strictly prohibited.
