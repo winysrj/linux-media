@@ -1,114 +1,215 @@
 Return-path: <mchehab@pedra>
-Received: from perceval.irobotique.be ([92.243.18.41]:43961 "EHLO
+Received: from perceval.irobotique.be ([92.243.18.41]:45560 "EHLO
 	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581Ab0INJxA (ORCPT
+	with ESMTP id S1750726Ab0IPIqF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Sep 2010 05:53:00 -0400
+	Thu, 16 Sep 2010 04:46:05 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-Subject: Re: Linux V4L2 support dual stream video capture device
-Date: Tue, 14 Sep 2010 11:52:58 +0200
-Cc: "Wang, Wen W" <wen.w.wang@intel.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"Zhang, Xiaolin" <xiaolin.zhang@intel.com>,
-	"Huang, Kai" <kai.huang@intel.com>,
-	"Hu, Gang A" <gang.a.hu@intel.com>
-References: <D5AB6E638E5A3E4B8F4406B113A5A19A1E55D29F@shsmsx501.ccr.corp.intel.com> <201009130838.56888.laurent.pinchart@ideasonboard.com> <alpine.LNX.2.00.1009131142000.22384@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.1009131142000.22384@banach.math.auburn.edu>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC/PATCH v4 05/11] media: Reference count and power handling
+Date: Thu, 16 Sep 2010 10:46:02 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <4C883127.1070003@redhat.com> <4C8BE8C9.3050905@maxwell.research.nokia.com>
+In-Reply-To: <4C8BE8C9.3050905@maxwell.research.nokia.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009141152.59353.laurent.pinchart@ideasonboard.com>
+Message-Id: <201009161046.03098.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-Hi Theodore,
+Hi,
 
-On Monday 13 September 2010 19:17:48 Theodore Kilgore wrote:
-> On Mon, 13 Sep 2010, Laurent Pinchart wrote:
-> > On Friday 07 May 2010 20:20:38 Wang, Wen W wrote:
-> > > Hi all,
-> > > 
-> > > I'm wondering if V4L2 framework supports dual stream video capture
-> > > device that transfer a preview stream and a regular stream (still
-> > > capture or video capture) at the same time.
-> > > 
-> > > We are developing a device driver with such capability. Our proposal to
-> > > do this in V4L2 framework is to have two device nodes, one as primary
-> > > node for still/video capture and one for preview.
+On Saturday 11 September 2010 22:38:33 Sakari Ailus wrote:
+> Mauro Carvalho Chehab wrote:
+> > Em 20-08-2010 12:29, Laurent Pinchart escreveu:
+> >> From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> >> 
+> >> Basically these are the interface functions:
+> >> 
+> >> media_entity_get() - acquire entity
+> >> media_entity_put() - release entity
+> >> 
+> >> 	If the entity is of node type, the power change is distributed to
+> >> 	all connected entities. For non-nodes it only affects that very
+> >> 	node. A mutex is used to serialise access to the entity graph.
+> >> 
+> >> In the background there's a depth-first search algorithm that traverses
+> >> the active links in the graph. All these functions parse the graph to
+> >> implement whatever they're to do.
+> >> 
+> >> The module counters are increased/decreased in media_entity_get/put to
+> >> prevent module unloading when an entity is referenced.
+> >> 
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+> >> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> Signed-off-by: Stanimir Varbanov <svarbanov@mm-sol.com>
+> >> ---
+> >> 
+> >>  Documentation/media-framework.txt |   37 +++++++++
+> >>  drivers/media/media-device.c      |    1 +
+> >>  drivers/media/media-entity.c      |  146
+> >>  +++++++++++++++++++++++++++++++++++++ include/media/media-device.h    
+> >>   |    4 +
+> >>  include/media/media-entity.h      |   15 ++++
+> >>  5 files changed, 203 insertions(+), 0 deletions(-)
+> >> 
+> >> diff --git a/Documentation/media-framework.txt
+> >> b/Documentation/media-framework.txt index a599824..59649e9 100644
+> >> --- a/Documentation/media-framework.txt
+> >> +++ b/Documentation/media-framework.txt
+> >> @@ -278,3 +278,40 @@ When the graph traversal is complete the function
+> >> will return NULL.
+> >> 
+> >>  Graph traversal can be interrupted at any moment. No cleanup function
+> >>  call is required and the graph structure can be freed normally.
+> >> 
+> >> +
+> >> +Reference counting and power handling
+> >> +-------------------------------------
+> >> +
+> >> +Before accessing type-specific entities operations (such as the V4L2
+> >> +sub-device operations), drivers must acquire a reference to the entity.
+> >> This +ensures that the entity will be powered on and ready to accept
+> >> requests. +Similarly, after being done with an entity, drivers must
+> >> release the +reference.
+> >> +
+> >> +	media_entity_get(struct media_entity *entity)
+> >> +
+> >> +The function will increase the entity reference count. If the entity is
+> >> a node +(MEDIA_ENTITY_TYPE_NODE type), the reference count of all
+> >> entities it is +connected to, both directly or indirectly, through
+> >> active links is increased. +This ensures that the whole media pipeline
+> >> will be ready to process +
+> >> +Acquiring a reference to an entity increases the media device module
+> >> reference +count to prevent module unloading when an entity is being
+> >> used. +
+> >> +media_entity_get will return a pointer to the entity if successful, or
+> >> NULL +otherwise.
+> >> +
+> >> +	media_entity_put(struct media_entity *entity)
+> >> +
+> >> +The function will decrease the entity reference count and, for node
+> >> entities, +like media_entity_get, the reference count of all connected
+> >> entities. Calling +media_entity_put with a NULL argument is valid and
+> >> will return immediately. +
+> >> +When the first reference to an entity is acquired, or the last
+> >> reference +released, the entity's set_power operation is called. Entity
+> >> drivers must +implement the operation if they need to perform any power
+> >> management task, +such as turning powers or clocks on or off. If no
+> >> power management is +required, drivers don't need to provide a
+> >> set_power operation. The operation +is allowed to fail when turning
+> >> power on, in which case the media_entity_get +function will return
+> >> NULL.
 > > 
-> > If the device supports multiple simultaneous video streams, multiple
-> > video nodes is the way to go.
-> > 
-> > > The primary still/video capture device node is used for device
-> > > configuration which can be compatible with open sourced applications.
-> > > This will ensure the normal V4L2 application can run without code
-> > > modification. Device node for preview will only accept preview buffer
-> > > related operations. Buffer synchronization for still/video capture and
-> > > preview will be done internally in the driver.
-> > 
-> > I suspect that the preview device node will need to support more than the
-> > buffer-related operations, as you probably want applications to configure
-> > the preview video stream format and size.
-> > 
-> > > This is our initial idea about the dual stream support in V4L2. Your
-> > > comments will be appreciated!
-> > 
-> > You should use the media controller framework. This will allow
-> > applications to configure all sizes in the pipeline, including the frame
-> > sizes for the two video nodes.
+> > The idea of doing power management via media entity get/put doesn't seem
+> > right. The mediabus interface and its usage should be optional, and only
+> > specialized applications will likely implement it. If a refcount 0 means
+> > power off, it ends that a device implementing the media bus will not
+> > work with V4L2 applications.
 > 
-> Hi, Wen,
+> The Media controller does handle the power through reference count but
+> this does not limit to subdev entities. The reference count is also
+> applied recursively to all entities which are connected through active
+> links.
 > 
-> You have hit upon an old and rather vexing problem. It affects many
-> devices, not just your prospective one. The problem is that still mode is
-> supported in Linux for a lot of cameras through userspace tools, namely
-> libgphoto2 which uses libusb to interface with the device. But if the same
-> device can also do video streaming then the streaming has to be supported
-> through a kernel module. Thus until now it is not possible to do both of
-> these smoothly and simultaneously.
+> There are two cases:
 > 
-> As I have written both the kernel support and the libgphoto2 support for
-> several dual-mode cameras, I am looking into the related problems, along
-> with Hans de Goede. But right now I am dealing instead with a rather
-> severe illness of a family member. So there is not much coding going on
-> over here.
+> 1. The user application opens a subdev node. The subdev entity use count
+> will be incremented and the subdev will be powered up.
 > 
-> What I think that both of us (Hans and I) agree on is that the kernel
-> modules for the affected devices have to be rewritten in order to allow
-> the opening and closing of the different modes of the devices, and
-> (perhaps) the userspace support has to take that into account as well.
-> There might also have to be some additions to libv4l2 in order to make it
-> "aware" of such devices. We have not gotten very far with this project.
-> Hans is quite busy, and so am I (see above).
+> 2. The user application opens a video node. The reference count for all
+> entities connected to the video node entity through active links will be
+> incremented. Subdevs will be powered up as well (if they are not already
+> because of (1) above). The same works if the entities connected through
+> a video node are connected to another entity and the link to that entity
+> is activated. In this case the use_counts of the entity sets are applied
+> across the both sets.
 > 
-> In spite of my present preoccupation, however, I would be very curious
-> about any details of your envisioned camera. For example:
-> 
-> Does it use the isochronous mode for streaming and the bulk mode for
-> stills? Or not?
+> The user application does not need to use the Media controller interface
+> to get this functionality.
 
-There seems to be a small misunderstanding. The device Wen is working on (as 
-far as I'm aware of) isn't a USB device.
+That's correct. The subdev s_power operation is still there and can be called 
+directly by non-MC bridge drivers as required.
 
-> In still mode, is it some kind of standard device, such as Mass Storage or
-> PTP? Or will it use a proprietary or device-specific protocol? If so,
-> it will clearly require a libgphoto2 driver.
+> Another thing is that the user likely wants to use the device through
+> libv4l most likely, at least in the case of OMAP 3 ISP case. The link
+> configuration can be made by libv4l so that the regular V4L2
+> applications will work as expected.
 > 
-> In video mode, will it use a proprietary or device-specific protocol, or
-> will it be a standard USB video class device? If it is proprietary, then
-> it will presumably need its own module, and if standard then in any
-> event we have to figure out how to make the two different modes to
-> coexist.
+> >> +
+> >> diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> >> index eeb002e..c309d3c 100644
+> >> --- a/drivers/media/media-device.c
+> >> +++ b/drivers/media/media-device.c
+> >> @@ -71,6 +71,7 @@ int __must_check media_device_register(struct
+> >> media_device *mdev)
+> >> 
+> >>  	mdev->entity_id = 1;
+> >>  	INIT_LIST_HEAD(&mdev->entities);
+> >>  	spin_lock_init(&mdev->lock);
+> >> 
+> >> +	mutex_init(&mdev->graph_mutex);
+> >> 
+> >>  	/* Register the device node. */
+> >>  	mdev->devnode.fops = &media_device_fops;
+> >> 
+> >> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> >> index c277c18..da4fef6 100644
+> >> --- a/drivers/media/media-entity.c
+> >> +++ b/drivers/media/media-entity.c
+> >> @@ -21,6 +21,7 @@
+> >> 
+> >>  #include <linux/module.h>
+> >>  #include <linux/slab.h>
+> >>  #include <media/media-entity.h>
+> >> 
+> >> +#include <media/media-device.h>
+> >> 
+> >>  /**
+> >>  
+> >>   * media_entity_init - Initialize a media entity
+> >> 
+> >> @@ -194,6 +195,151 @@ media_entity_graph_walk_next(struct
+> >> media_entity_graph *graph)
+> >> 
+> >>  EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
+> >>  
+> >>  /*
+> >>  ----------------------------------------------------------------------
+> >>  -------
+> >> 
+> >> + * Power state handling
+> >> + */
+> >> +
+> >> +/* Apply use count to an entity. */
+> >> +static void media_entity_use_apply_one(struct media_entity *entity, int
+> >> change) +{
+> >> +	entity->use_count += change;
+> >> +	WARN_ON(entity->use_count < 0);
+> > 
+> > Instead of producing a warning, just deny it to have usage bellow zero.
+> > As this will be called from userspace, the entire interface should be
+> > reliable enough to avoid dumb applications to miss-use it.
 > 
-> If either of the still mode or the streaming video mode will use a
-> proprietary protocol and especially if some unknown data compression
-> algorithm is going to be in use, then clearly it is possible to get the
-> support going much earlier if information is provided.
+> This WARN_ON() always indicates a driver (or MC) bug. The entity
+> use_count should never be under 0, thus the warning.
 > 
-> Hoping that this will help you and thanking you for any additional
-> information about the new camera.
+> The calls to this function should be always related to an open file
+> handle in a way or another. There is no direct user influence over this.
+> 
+> > Also: what happens if an userspace application dies or suffer any
+> > troubles? You need to reset all use_count's at release() callback.
+> 
+> Yes, this is true. media_entity_{get,put} should always be called when
+> file handles are open()ed or release()d.
+
+media_entity_{get,put} are already called on open() and release(). There's not 
+explicit call to media_entity_{get,put} from userspace.
+
+> I guess Laurent will correct me if required. :-)
 
 -- 
 Regards,
