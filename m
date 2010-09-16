@@ -1,48 +1,89 @@
 Return-path: <mchehab@pedra>
-Received: from mx1.redhat.com ([209.132.183.28]:53358 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:8699 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758014Ab0IHNUs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Sep 2010 09:20:48 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o88DKmW6004745
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 09:20:48 -0400
-Received: from [10.11.11.235] (vpn-11-235.rdu.redhat.com [10.11.11.235])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o88DKk1d031311
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Wed, 8 Sep 2010 09:20:48 -0400
-Message-ID: <4C878DB1.9030703@redhat.com>
-Date: Wed, 08 Sep 2010 10:20:49 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750714Ab0IPFVx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Sep 2010 01:21:53 -0400
+Date: Thu, 16 Sep 2010 01:21:38 -0400
+From: Jarod Wilson <jarod@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
+	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Anders Eriksson <aeriksson@fastmail.fm>,
+	Anssi Hannula <anssi.hannula@iki.fi>
+Subject: [PATCH 1/4] IR: export ir_keyup so imon driver can use it directly
+Message-ID: <20100916052138.GB23299@redhat.com>
+References: <20100916051932.GA23299@redhat.com>
 MIME-Version: 1.0
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] V4L/DVB: cx25821: fix gcc warning when compiled with
- allyesconfig
-References: <853aa6f8137f702beb216b3aa1d31aff604f38f5.1283951980.git.mchehab@redhat.com>
-In-Reply-To: <853aa6f8137f702beb216b3aa1d31aff604f38f5.1283951980.git.mchehab@redhat.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20100916051932.GA23299@redhat.com>
+List-ID: <linux-media.vger.kernel.org>
+Sender: <mchehab@pedra>
+
+>From d31919ac08ba9a203bd673bbed18e78293ceaa68 Mon Sep 17 00:00:00 2001
+From: Jarod Wilson <jarod@redhat.com>
+Date: Wed, 15 Sep 2010 14:31:12 -0400
+Subject: [PATCH 1/4] IR: export ir_keyup so imon driver can use it directly
+MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@bombadil.infradead.org
-List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
 
-drivers/staging/cx25821/cx25821-alsa.c:632: warning: ‘cx25821_audio_pci_tbl’ defined but not used
+The imon driver currently reimplements its own version of ir_keyup
+(along with key release timer functionality also already present in the
+core IR code). A follow-up imon patch will make use of ir_keyup and the
+IR stack's key release code.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Trivial extraction from David H�rdeman's pending rc-core merge and
+device interface abstraction patchset to facilitate merging a patch
+based on his imon input dev split patch ahead of the larger churn, which
+is slated for post-2.6.37-rc1 (after Dmitry's large keycode patches are
+merged in mainline).
 
-diff --git a/drivers/staging/cx25821/cx25821-alsa.c b/drivers/staging/cx25821/cx25821-alsa.c
-index a43b188..095562c 100644
---- a/drivers/staging/cx25821/cx25821-alsa.c
-+++ b/drivers/staging/cx25821/cx25821-alsa.c
-@@ -629,7 +629,7 @@ static int snd_cx25821_pcm(struct cx25821_audio_dev *chip, int device,
-  * Only boards with eeprom and byte 1 at eeprom=1 have it
+Signed-off-by: Jarod Wilson <jarod@redhat.com>
+---
+ drivers/media/IR/ir-keytable.c |    3 ++-
+ include/media/ir-core.h        |    1 +
+ 2 files changed, 3 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/IR/ir-keytable.c b/drivers/media/IR/ir-keytable.c
+index 7961d59..59510cd 100644
+--- a/drivers/media/IR/ir-keytable.c
++++ b/drivers/media/IR/ir-keytable.c
+@@ -285,7 +285,7 @@ EXPORT_SYMBOL_GPL(ir_g_keycode_from_table);
+  * This routine is used to signal that a key has been released on the
+  * remote control. It reports a keyup input event via input_report_key().
   */
+-static void ir_keyup(struct ir_input_dev *ir)
++void ir_keyup(struct ir_input_dev *ir)
+ {
+ 	if (!ir->keypressed)
+ 		return;
+@@ -295,6 +295,7 @@ static void ir_keyup(struct ir_input_dev *ir)
+ 	input_sync(ir->input_dev);
+ 	ir->keypressed = false;
+ }
++EXPORT_SYMBOL_GPL(ir_keyup);
  
--static struct pci_device_id cx25821_audio_pci_tbl[] __devinitdata = {
-+static const struct pci_device_id cx25821_audio_pci_tbl[] __devinitdata = {
- 	{0x14f1, 0x0920, PCI_ANY_ID, PCI_ANY_ID, 0, 0, 0},
- 	{0,}
- };
+ /**
+  * ir_timer_keyup() - generates a keyup event after a timeout
+diff --git a/include/media/ir-core.h b/include/media/ir-core.h
+index eb7fddf..4dd43d4 100644
+--- a/include/media/ir-core.h
++++ b/include/media/ir-core.h
+@@ -157,6 +157,7 @@ void ir_input_unregister(struct input_dev *input_dev);
+ 
+ void ir_repeat(struct input_dev *dev);
+ void ir_keydown(struct input_dev *dev, int scancode, u8 toggle);
++void ir_keyup(struct ir_input_dev *ir);
+ u32 ir_g_keycode_from_table(struct input_dev *input_dev, u32 scancode);
+ 
+ /* From ir-raw-event.c */
 -- 
-1.7.1
+1.7.2.2
+
+
+-- 
+Jarod Wilson
+jarod@redhat.com
 
