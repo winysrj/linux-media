@@ -1,50 +1,40 @@
 Return-path: <mchehab@pedra>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:61508 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753407Ab0IWX0U (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:60592 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752421Ab0IPBCi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Sep 2010 19:26:20 -0400
-Date: Thu, 23 Sep 2010 16:26:17 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	Discussion of the Amstrad E3 emailer hardware/software
-	<e3-hacking@earth.li>
-Subject: Re: [PATCH v2 5/6] OMAP1: Amstrad Delta: add support for camera
-Message-ID: <20100923232617.GW4211@atomide.com>
-References: <201009110317.54899.jkrzyszt@tis.icnet.pl>
- <201009110327.31407.jkrzyszt@tis.icnet.pl>
- <20100923231415.GU4211@atomide.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20100923231415.GU4211@atomide.com>
+	Wed, 15 Sep 2010 21:02:38 -0400
+Date: Wed, 15 Sep 2010 20:59:19 -0400
+Subject: Re: [PATCH] drivers/media/video/ivtv/ivtvfb.c: prevent reading
+ uninitialized stack memory
+Message-ID: <o1tfvx3ftkp8gaxheeq61r4w.1284598759859@email.android.com>
+From: Andy Walls <awalls@md.metrocast.net>
+To: Dan Rosenberg <drosenberg@vsecurity.com>
+Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, security@kernel.org,
+	stable@kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-* Tony Lindgren <tony@atomide.com> [100923 16:06]:
-> * Janusz Krzysztofik <jkrzyszt@tis.icnet.pl> [100910 18:20]:
-> > This patch adds configuration data and initialization code required for camera 
-> > support to the Amstrad Delta board.
-> > 
-> > Three devices are declared: SoC camera, OMAP1 camera interface and OV6650 
-> > sensor.
-> > 
-> > Default 12MHz clock has been selected for driving the sensor. Pixel clock has 
-> > been limited to get reasonable frame rates, not exceeding the board 
-> > capabilities. Since both devices (interface and sensor) support both pixel 
-> > clock polarities, decision on polarity selection has been left to drivers.
-> > Interface GPIO line has been found not functional, thus not configured.
-> > 
-> > Created and tested against linux-2.6.36-rc3.
-> > 
-> > Works on top of previous patches from the series, at least 1/6, 2/6 and 3/6.
-> 
-> Queuing these last two patches of the series (5/6 and 6/6) for the upcoming
-> merge window.
+QWNrZWQtYnk6IEFuZHkgV2FsbHMgPGF3YWxsc0BtZC5tZXRyb2Nhc3QubmV0PgoKQnkgdG9tb3Jy
+b3cgZXZlbmluZyBJJ2xsIHB1dCB0aGlzIGluIG15IHJlcG8gYW5kIGFzayBmb3IgTWF1cm8gdG8g
+cHVsbCBpdC4KClJlZ2FyZHMsCkFuZHkKCkRhbiBSb3NlbmJlcmcgPGRyb3NlbmJlcmdAdnNlY3Vy
+aXR5LmNvbT4gd3JvdGU6Cgo+VGhlIEZCSU9HRVRfVkJMQU5LIGRldmljZSBpb2N0bCBhbGxvd3Mg
+dW5wcml2aWxlZ2VkIHVzZXJzIHRvIHJlYWQgMTYKPmJ5dGVzIG9mIHVuaW5pdGlhbGl6ZWQgc3Rh
+Y2sgbWVtb3J5LCBiZWNhdXNlIHRoZSAicmVzZXJ2ZWQiIG1lbWJlciBvZgo+dGhlIGZiX3ZibGFu
+ayBzdHJ1Y3QgZGVjbGFyZWQgb24gdGhlIHN0YWNrIGlzIG5vdCBhbHRlcmVkIG9yIHplcm9lZAo+
+YmVmb3JlIGJlaW5nIGNvcGllZCBiYWNrIHRvIHRoZSB1c2VyLiAgVGhpcyBwYXRjaCB0YWtlcyBj
+YXJlIG9mIGl0Lgo+Cj5TaWduZWQtb2ZmLWJ5OiBEYW4gUm9zZW5iZXJnIDxkYW4uai5yb3NlbmJl
+cmdAZ21haWwuY29tPgo+Cj4tLS0gbGludXgtMi42LjM1LjQub3JpZy9kcml2ZXJzL21lZGlhL3Zp
+ZGVvL2l2dHYvaXZ0dmZiLmMJMjAxMC0wOC0yNiAxOTo0NzoxMi4wMDAwMDAwMDAgLTA0MDAKPisr
+KyBsaW51eC0yLjYuMzUuNC9kcml2ZXJzL21lZGlhL3ZpZGVvL2l2dHYvaXZ0dmZiLmMJMjAxMC0w
+OS0xNSAxNDoxNjo0Ni43OTczNzUzOTkgLTA0MDAKPkBAIC00NTgsNiArNDU4LDggQEAgc3RhdGlj
+IGludCBpdnR2ZmJfaW9jdGwoc3RydWN0IGZiX2luZm8gKgo+IAkJCXN0cnVjdCBmYl92Ymxhbmsg
+dmJsYW5rOwo+IAkJCXUzMiB0cmFjZTsKPiAKPisJCQltZW1zZXQoJnZibGFuaywgMCwgc2l6ZW9m
+KHN0cnVjdCBmYl92YmxhbmspKTsKPisKPiAJCQl2YmxhbmsuZmxhZ3MgPSBGQl9WQkxBTktfSEFW
+RV9DT1VOVCB8RkJfVkJMQU5LX0hBVkVfVkNPVU5UIHwKPiAJCQkJCUZCX1ZCTEFOS19IQVZFX1ZT
+WU5DOwo+IAkJCXRyYWNlID0gcmVhZF9yZWcoSVZUVl9SRUdfREVDX0xJTkVfRklFTEQpID4+IDE2
+Owo+Cj4KPgo+Cg==
 
-BTW, these still depend on updated 2/6 to make compile happy.
-
-Tony
