@@ -1,91 +1,251 @@
 Return-path: <mchehab@pedra>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1521 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752354Ab0IQIbH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Sep 2010 04:31:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: RFC: Move ivtv utilities and ivtv X video extension to v4l-utils
-Date: Fri, 17 Sep 2010 10:30:15 +0200
-Cc: Hans de Goede <hdegoede@redhat.com>, linux-media@vger.kernel.org,
-	ivtv-devel@ivtvdriver.org
-References: <1284677925.2056.27.camel@morgan.silverblock.net>
-In-Reply-To: <1284677925.2056.27.camel@morgan.silverblock.net>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Received: from mx1.redhat.com ([209.132.183.28]:38135 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751620Ab0IPA6D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Sep 2010 20:58:03 -0400
+Date: Wed, 15 Sep 2010 21:56:36 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Subject: [PATCH 3/8] V4L/DVB: bttv-driver: document functions using
+ mutex_lock
+Message-ID: <20100915215636.60a2bed0@pedra>
+In-Reply-To: <cover.1284597566.git.mchehab@redhat.com>
+References: <cover.1284597566.git.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009171030.15512.hverkuil@xs4all.nl>
 List-ID: <linux-media.vger.kernel.org>
 Sender: <mchehab@pedra>
 
-On Friday, September 17, 2010 00:58:45 Andy Walls wrote:
-> Hi Hans and Hans,
-> 
-> I'd like to move the source code maintained here:
-> 
-> http://ivtvdriver.org/svn/
-> 
-> to someplace where it may be less likely to suffer bit rot.
-> I was hoping the v4l-utils git repo would be an appropriate place.
-> 
-> Do either of you have any opinions on this?
+There are a few ancillary static routines used by ioctl functions
+that takes bttv lock internally. As we'll be adding the same lock
+for all ioctl's that need, we need to properly document them, to
+avoid doing double locks
 
-I agree with this, but it would require some work.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-xf86-video-ivtv really belongs at freedesktop.org as part of the X video drivers.
-Nobody ever made the effort to integrate it there, but it would be the right
-thing to do.
-
-ivtvtv is more a private test application I made to test the MPEG encoder/decoder
-API. Either this has to be turned into a more full-fledged application for the
-PVR-350 and then it definitely might be a good candidate for inclusion in
-v4l-utils, or it stays here, or I can host it on my website as a simple tar
-archive.
-
-Looking that ivtv itself: in utils we have ivtv-radio, ivtvplay, ivtv-mpegindex,
-ivtv-tune and cx25840ctl.
-
-ivtv-radio is a good candidate for v4l-utils, but it would be really nice if it
-could be made more general. E.g. v4l2-radio.
-
-Ditto for ivtv-tune (although merging this functionality into v4l2-ctl is also
-an interesting option).
-
-cx25840ctl should really be integrated into v4l2-dbg.
-
-ivtv-mpegindex isn't ivtv specific and can go to contrib/test.
-
-ivtvplay I'm not sure about. There is a lot of overlap between ivtvplay and ivtvtv.
-
-Regarding the test utilities: some of these can go to contrib/test, some
-that are really ivtv specific can go to contrib/ivtv. And some should perhaps
-just die.
-
-Basically ivtv-utils is a bit of a mess: the really good stuff has already been
-moved to v4l-utils (v4l2-ctl and v4l2-dbg both came out of ivtv and are now
-maintained in v4l-utils).
-
-So the best thing is probably to clean up the useful utilities and test tools,
-making them generic where possible, and kill off the rest.
-
-It could be interesting to hear which utilities from ivtv people actually use.
-
-Regards,
-
-	Hans
-
-> 
-> If you think it would be acceptable, do you have a preference on where
-> they would be placed in the v4l-utils directory structure?
-> 
-> Thanks.
-> 
-> Regards,
-> Andy
-> 
-> 
-
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index 38c7f78..fcafe2f 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -842,7 +842,7 @@ static const struct v4l2_queryctrl *ctrl_by_id(int id)
+ 			 RESOURCE_OVERLAY)
+ 
+ static
+-int check_alloc_btres(struct bttv *btv, struct bttv_fh *fh, int bit)
++int check_alloc_btres_lock(struct bttv *btv, struct bttv_fh *fh, int bit)
+ {
+ 	int xbits; /* mutual exclusive resources */
+ 
+@@ -935,7 +935,7 @@ disclaim_video_lines(struct bttv *btv)
+ }
+ 
+ static
+-void free_btres(struct bttv *btv, struct bttv_fh *fh, int bits)
++void free_btres_lock(struct bttv *btv, struct bttv_fh *fh, int bits)
+ {
+ 	if ((fh->resources & bits) != bits) {
+ 		/* trying to free ressources not allocated by us ... */
+@@ -1682,7 +1682,7 @@ bttv_switch_overlay(struct bttv *btv, struct bttv_fh *fh,
+ 		kfree(old);
+ 	}
+ 	if (NULL == new)
+-		free_btres(btv,fh,RESOURCE_OVERLAY);
++		free_btres_lock(btv,fh,RESOURCE_OVERLAY);
+ 	dprintk("switch_overlay: done\n");
+ 	return retval;
+ }
+@@ -2124,7 +2124,7 @@ bttv_crop_adjust	(struct bttv_crop *             c,
+    also adjust the current cropping parameters to get closer to the
+    desired image size. */
+ static int
+-limit_scaled_size       (struct bttv_fh *               fh,
++limit_scaled_size_lock       (struct bttv_fh *               fh,
+ 			 __s32 *                        width,
+ 			 __s32 *                        height,
+ 			 enum v4l2_field                field,
+@@ -2238,7 +2238,7 @@ limit_scaled_size       (struct bttv_fh *               fh,
+    may also adjust the current cropping parameters to get closer
+    to the desired window size. */
+ static int
+-verify_window		(struct bttv_fh *               fh,
++verify_window_lock		(struct bttv_fh *               fh,
+ 			 struct v4l2_window *           win,
+ 			 int                            adjust_size,
+ 			 int                            adjust_crop)
+@@ -2292,7 +2292,7 @@ verify_window		(struct bttv_fh *               fh,
+ 	win->w.width -= win->w.left & ~width_mask;
+ 	win->w.left = (win->w.left - width_mask - 1) & width_mask;
+ 
+-	rc = limit_scaled_size(fh, &win->w.width, &win->w.height,
++	rc = limit_scaled_size_lock(fh, &win->w.width, &win->w.height,
+ 			       field, width_mask,
+ 			       /* width_bias: round down */ 0,
+ 			       adjust_size, adjust_crop);
+@@ -2303,7 +2303,7 @@ verify_window		(struct bttv_fh *               fh,
+ 	return 0;
+ }
+ 
+-static int setup_window(struct bttv_fh *fh, struct bttv *btv,
++static int setup_window_lock(struct bttv_fh *fh, struct bttv *btv,
+ 			struct v4l2_window *win, int fixup)
+ {
+ 	struct v4l2_clip *clips = NULL;
+@@ -2313,7 +2313,7 @@ static int setup_window(struct bttv_fh *fh, struct bttv *btv,
+ 		return -EINVAL;
+ 	if (!(fh->ovfmt->flags & FORMAT_FLAGS_PACKED))
+ 		return -EINVAL;
+-	retval = verify_window(fh, win,
++	retval = verify_window_lock(fh, win,
+ 			       /* adjust_size */ fixup,
+ 			       /* adjust_crop */ fixup);
+ 	if (0 != retval)
+@@ -2516,7 +2516,7 @@ static int bttv_try_fmt_vid_cap(struct file *file, void *priv,
+ 	width = f->fmt.pix.width;
+ 	height = f->fmt.pix.height;
+ 
+-	rc = limit_scaled_size(fh, &width, &height, field,
++	rc = limit_scaled_size_lock(fh, &width, &height, field,
+ 			       /* width_mask: 4 pixels */ ~3,
+ 			       /* width_bias: nearest */ 2,
+ 			       /* adjust_size */ 1,
+@@ -2536,7 +2536,7 @@ static int bttv_try_fmt_vid_overlay(struct file *file, void *priv,
+ {
+ 	struct bttv_fh *fh = priv;
+ 
+-	return verify_window(fh, &f->fmt.win,
++	return verify_window_lock(fh, &f->fmt.win,
+ 			/* adjust_size */ 1,
+ 			/* adjust_crop */ 0);
+ }
+@@ -2563,7 +2563,7 @@ static int bttv_s_fmt_vid_cap(struct file *file, void *priv,
+ 	height = f->fmt.pix.height;
+ 	field = f->fmt.pix.field;
+ 
+-	retval = limit_scaled_size(fh, &width, &height, f->fmt.pix.field,
++	retval = limit_scaled_size_lock(fh, &width, &height, f->fmt.pix.field,
+ 			       /* width_mask: 4 pixels */ ~3,
+ 			       /* width_bias: nearest */ 2,
+ 			       /* adjust_size */ 1,
+@@ -2601,7 +2601,7 @@ static int bttv_s_fmt_vid_overlay(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+ 
+-	return setup_window(fh, btv, &f->fmt.win, 1);
++	return setup_window_lock(fh, btv, &f->fmt.win, 1);
+ }
+ 
+ #ifdef CONFIG_VIDEO_V4L1_COMPAT
+@@ -2742,7 +2742,7 @@ static int bttv_overlay(struct file *file, void *f, unsigned int on)
+ 		}
+ 	}
+ 
+-	if (!check_alloc_btres(btv, fh, RESOURCE_OVERLAY))
++	if (!check_alloc_btres_lock(btv, fh, RESOURCE_OVERLAY))
+ 		return -EBUSY;
+ 
+ 	mutex_lock(&fh->cap.vb_lock);
+@@ -2785,7 +2785,7 @@ static int bttv_s_fbuf(struct file *file, void *f,
+ 		__s32 width = fb->fmt.width;
+ 		__s32 height = fb->fmt.height;
+ 
+-		retval = limit_scaled_size(fh, &width, &height,
++		retval = limit_scaled_size_lock(fh, &width, &height,
+ 					   V4L2_FIELD_INTERLACED,
+ 					   /* width_mask */ ~3,
+ 					   /* width_bias */ 2,
+@@ -2852,7 +2852,7 @@ static int bttv_qbuf(struct file *file, void *priv, struct v4l2_buffer *b)
+ 	struct bttv *btv = fh->btv;
+ 	int res = bttv_resource(fh);
+ 
+-	if (!check_alloc_btres(btv, fh, res))
++	if (!check_alloc_btres_lock(btv, fh, res))
+ 		return -EBUSY;
+ 
+ 	return videobuf_qbuf(bttv_queue(fh), b);
+@@ -2872,7 +2872,7 @@ static int bttv_streamon(struct file *file, void *priv,
+ 	struct bttv *btv = fh->btv;
+ 	int res = bttv_resource(fh);
+ 
+-	if (!check_alloc_btres(btv, fh, res))
++	if (!check_alloc_btres_lock(btv, fh, res))
+ 		return -EBUSY;
+ 	return videobuf_streamon(bttv_queue(fh));
+ }
+@@ -2890,7 +2890,7 @@ static int bttv_streamoff(struct file *file, void *priv,
+ 	retval = videobuf_streamoff(bttv_queue(fh));
+ 	if (retval < 0)
+ 		return retval;
+-	free_btres(btv, fh, res);
++	free_btres_lock(btv, fh, res);
+ 	return 0;
+ }
+ 
+@@ -3030,7 +3030,7 @@ static int bttv_s_crop(struct file *file, void *f, struct v4l2_crop *crop)
+ 
+ 	/* Make sure tvnorm, vbi_end and the current cropping
+ 	   parameters remain consistent until we're done. Note
+-	   read() may change vbi_end in check_alloc_btres(). */
++	   read() may change vbi_end in check_alloc_btres_lock(). */
+ 	mutex_lock(&btv->lock);
+ 
+ 	retval = -EBUSY;
+@@ -3128,17 +3128,17 @@ static ssize_t bttv_read(struct file *file, char __user *data,
+ 
+ 	switch (fh->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+-		if (!check_alloc_btres(fh->btv, fh, RESOURCE_VIDEO_READ)) {
++		if (!check_alloc_btres_lock(fh->btv, fh, RESOURCE_VIDEO_READ)) {
+ 			/* VIDEO_READ in use by another fh,
+ 			   or VIDEO_STREAM by any fh. */
+ 			return -EBUSY;
+ 		}
+ 		retval = videobuf_read_one(&fh->cap, data, count, ppos,
+ 					   file->f_flags & O_NONBLOCK);
+-		free_btres(fh->btv, fh, RESOURCE_VIDEO_READ);
++		free_btres_lock(fh->btv, fh, RESOURCE_VIDEO_READ);
+ 		break;
+ 	case V4L2_BUF_TYPE_VBI_CAPTURE:
+-		if (!check_alloc_btres(fh->btv,fh,RESOURCE_VBI))
++		if (!check_alloc_btres_lock(fh->btv,fh,RESOURCE_VBI))
+ 			return -EBUSY;
+ 		retval = videobuf_read_stream(&fh->vbi, data, count, ppos, 1,
+ 					      file->f_flags & O_NONBLOCK);
+@@ -3157,7 +3157,7 @@ static unsigned int bttv_poll(struct file *file, poll_table *wait)
+ 	unsigned int rc = POLLERR;
+ 
+ 	if (V4L2_BUF_TYPE_VBI_CAPTURE == fh->type) {
+-		if (!check_alloc_btres(fh->btv,fh,RESOURCE_VBI))
++		if (!check_alloc_btres_lock(fh->btv,fh,RESOURCE_VBI))
+ 			return POLLERR;
+ 		return videobuf_poll_stream(file, &fh->vbi, wait);
+ 	}
+@@ -3288,20 +3288,20 @@ static int bttv_release(struct file *file)
+ 	/* stop video capture */
+ 	if (check_btres(fh, RESOURCE_VIDEO_STREAM)) {
+ 		videobuf_streamoff(&fh->cap);
+-		free_btres(btv,fh,RESOURCE_VIDEO_STREAM);
++		free_btres_lock(btv,fh,RESOURCE_VIDEO_STREAM);
+ 	}
+ 	if (fh->cap.read_buf) {
+ 		buffer_release(&fh->cap,fh->cap.read_buf);
+ 		kfree(fh->cap.read_buf);
+ 	}
+ 	if (check_btres(fh, RESOURCE_VIDEO_READ)) {
+-		free_btres(btv, fh, RESOURCE_VIDEO_READ);
++		free_btres_lock(btv, fh, RESOURCE_VIDEO_READ);
+ 	}
+ 
+ 	/* stop vbi capture */
+ 	if (check_btres(fh, RESOURCE_VBI)) {
+ 		videobuf_stop(&fh->vbi);
+-		free_btres(btv,fh,RESOURCE_VBI);
++		free_btres_lock(btv,fh,RESOURCE_VBI);
+ 	}
+ 
+ 	/* free stuff */
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+1.7.1
+
+
