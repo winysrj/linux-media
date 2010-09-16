@@ -1,87 +1,127 @@
 Return-path: <mchehab@pedra>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:57272 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764Ab0IJHTI (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39249 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751818Ab0IPLaF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Sep 2010 03:19:08 -0400
-Received: by wyf22 with SMTP id 22so2447525wyf.19
-        for <linux-media@vger.kernel.org>; Fri, 10 Sep 2010 00:19:07 -0700 (PDT)
-From: Peter Korsgaard <jacmet@sunsite.dk>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Jean-Francois Moine <moinejf@free.fr>,
-	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>,
-	eduardo.valentin@nokia.com,
-	ext Eino-Ville Talvala <talvala@stanford.edu>
-Subject: Re: [PATCH] Illuminators and status LED controls
-References: <y1el0c4vecj8x6uk04ypatvd.1284039765001@email.android.com>
-	<275b6fc10404e9bda012060f49cdf2f3.squirrel@webmail.xs4all.nl>
-	<1284079784.4438.192.camel@morgan.silverblock.net>
-Date: Fri, 10 Sep 2010 09:19:00 +0200
-In-Reply-To: <1284079784.4438.192.camel@morgan.silverblock.net> (Andy Walls's
-	message of "Thu, 09 Sep 2010 20:49:44 -0400")
-Message-ID: <87r5h2awwr.fsf@macbook.be.48ers.dk>
+	Thu, 16 Sep 2010 07:30:05 -0400
+Received: by bwz11 with SMTP id 11so1457637bwz.19
+        for <linux-media@vger.kernel.org>; Thu, 16 Sep 2010 04:30:04 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Date: Thu, 16 Sep 2010 21:30:03 +1000
+Message-ID: <AANLkTi=UNa+aF3631jKSedsdbDNf1DZ2KnSPfyMhpfeZ@mail.gmail.com>
+Subject: Dvico Dual Express 2
+From: Mark Hetherington <mark@hethos.org>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@pedra>
-
->>>>> "Andy" == Andy Walls <awalls@md.metrocast.net> writes:
+Sender: <mchehab@pedra>
 
 Hi,
 
- Andy> Given choices I made when I patched up gspca/cpia1.c for my
- Andy> prototype LED API usage, I got these associations
+I've recently obtained a Dvico FusionHDTV DVB-T Dual Express2, and
+found it is not the same card as the Dual Express. There is a chance
+I've done something particularly silly, but I've tried specifying card
+types etc, and so far had no luck. I believe this is a new hardware
+revision and currently unsupported. I've made a quick note on the
+wiki, but I wasn't sure if I should create a new page separate from
+the existing info page in the Dual Express. From memory the card looks
+identical to the pictures at
+http://www.linuxtv.org/wiki/index.php/DViCO_FusionHDTV_DVB-T_Dual_Express.
 
- Andy> By exposed LED name:
+My dmesg looks like:
+[   17.112114] cx23885 driver version 0.0.2 loaded
+[   17.140399] cx23885 0000:02:00.0: PCI INT A -> Link[APC5] -> GSI 16
+(level, low) -> IRQ 16
+[   17.140405] cx23885[0]: Your board isn't known (yet) to the driver.
+[   17.140406] cx23885[0]: Try to pick one of the existing card configs via
+[   17.140408] cx23885[0]: card=<n> insmod option.  Updating to the latest
+[   17.140409] cx23885[0]: version might help as well.
+[   17.140412] cx23885[0]: Here is a list of valid choices for the
+card=<n> insmod option:
+[   17.140414] cx23885[0]:    card=0 -> UNKNOWN/GENERIC
+[   17.140416] cx23885[0]:    card=1 -> Hauppauge WinTV-HVR1800lp
+[   17.140419] cx23885[0]:    card=2 -> Hauppauge WinTV-HVR1800
+[   17.140421] cx23885[0]:    card=3 -> Hauppauge WinTV-HVR1250
+[   17.140423] cx23885[0]:    card=4 -> DViCO FusionHDTV5 Express
+[   17.140426] cx23885[0]:    card=5 -> Hauppauge WinTV-HVR1500Q
+[   17.140428] cx23885[0]:    card=6 -> Hauppauge WinTV-HVR1500
+[   17.140430] cx23885[0]:    card=7 -> Hauppauge WinTV-HVR1200
+[   17.140432] cx23885[0]:    card=8 -> Hauppauge WinTV-HVR1700
+[   17.140435] cx23885[0]:    card=9 -> Hauppauge WinTV-HVR1400
+[   17.140437] cx23885[0]:    card=10 -> DViCO FusionHDTV7 Dual Express
+[   17.140439] cx23885[0]:    card=11 -> DViCO FusionHDTV DVB-T Dual Express
+[   17.140442] cx23885[0]:    card=12 -> Leadtek Winfast PxDVR3200 H
+[   17.140444] cx23885[0]:    card=13 -> Compro VideoMate E650F
+[   17.140446] cx23885[0]:    card=14 -> TurboSight TBS 6920
+[   17.140448] cx23885[0]:    card=15 -> TeVii S470
+[   17.140451] cx23885[0]:    card=16 -> DVBWorld DVB-S2 2005
+[   17.140453] cx23885[0]:    card=17 -> NetUP Dual DVB-S2 CI
+[   17.140455] cx23885[0]:    card=18 -> Hauppauge WinTV-HVR1270
+[   17.140457] cx23885[0]:    card=19 -> Hauppauge WinTV-HVR1275
+[   17.140460] cx23885[0]:    card=20 -> Hauppauge WinTV-HVR1255
+[   17.140462] cx23885[0]:    card=21 -> Hauppauge WinTV-HVR1210
+[   17.140464] cx23885[0]:    card=22 -> Mygica X8506 DMB-TH
+[   17.140466] cx23885[0]:    card=23 -> Magic-Pro ProHDTV Extreme 2
+[   17.140469] cx23885[0]:    card=24 -> Hauppauge WinTV-HVR1850
+[   17.140471] cx23885[0]:    card=25 -> Compro VideoMate E800
+[   17.140473] cx23885[0]:    card=26 -> Hauppauge WinTV-HVR1290
+[   17.140476] cx23885[0]:    card=27 -> Mygica X8558 PRO DMB-TH
+[   17.140478] cx23885[0]:    card=28 -> LEADTEK WinFast PxTV1200
+[   17.140553] CORE cx23885[0]: subsystem: 18ac:db98, board:
+UNKNOWN/GENERIC [card=0,autodetected]
+[   17.355341] cx23885_dev_checkrevision() Hardware revision = 0xa5
+[   17.355348] cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 16,
+latency: 0, mmio: 0xf9000000
+[   17.355354] cx23885 0000:02:00.0: setting latency timer to 64
+[   17.355359] IRQ 16/cx23885[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+[  230.677212] cx23885 0000:02:00.0: PCI INT A disabled
 
- Andy> 	/sys/class/leds/video0:white:illuminator0
+Loading the module with card=11 (looks like the most obvious choice) shows:
+[113131.257580] cx23885 driver version 0.0.2 loaded
+[113131.276294] cx23885 0000:02:00.0: PCI INT A -> Link[APC5] -> GSI
+16 (level, low) -> IRQ 16
+[113131.276517] CORE cx23885[0]: subsystem: 18ac:db98, board: DViCO
+FusionHDTV DVB-T Dual Express [card=11,insmod option]
+[113131.512250] cx23885_dvb_register() allocating 1 frontend(s)
+[113131.512257] cx23885[0]: cx23885 based dvb card
+[113131.569079] cx23885[0]: frontend initialization failed
+[113131.569086] cx23885_dvb_register() dvb_register failed err = -1
+[113131.569089] cx23885_dev_setup() Failed to register dvb adapters on VID_B
+[113131.569091] cx23885_dvb_register() allocating 1 frontend(s)
+[113131.569096] cx23885[0]: cx23885 based dvb card
+[113131.569492] cx23885[0]: frontend initialization failed
+[113131.569494] cx23885_dvb_register() dvb_register failed err = -1
+[113131.569497] cx23885_dev_setup() Failed to register dvb on VID_C
+[113131.569501] cx23885_dev_checkrevision() Hardware revision = 0xa5
+[113131.569508] cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 16,
+latency: 0, mmio: 0xf9000000
+[113131.569516] cx23885 0000:02:00.0: setting latency timer to 64
+[113131.569521] IRQ 16/cx23885[0]: IRQF_DISABLED is not guaranteed on
+shared IRQs
 
-Indeed. But didn't we just decide that illuminators were an integral
-part of the video handling (similar to gain control), and only use the
-LED API for status LEDs that don't directly interfere with the video
-data?
+I've tried a few different card types to see the results, but nothing
+much more promising than that.
 
- Andy> The LED API has some shortcomings/annoyances:
+Is anyone familiar with this board? Any chance anyone has been
+tinkering with it?
 
- Andy> - The method a driver provides to set the LED brightness cannot sleep,
- Andy> so a workqueue is needed to simply turn a hardware light on and off for
- Andy> USB devices.
+#lspci -vnn
+02:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
+CX23885 PCI Video and Audio Decoder [14f1:8852] (rev 04)
+Subsystem: DViCO Corporation Device [18ac:db98]
+Flags: fast devsel, IRQ 16
+Memory at f9000000 (64-bit, non-prefetchable) [size=2M]
+Capabilities: [40] Express Endpoint, MSI 00
+Capabilities: [80] Power Management version 2
+Capabilities: [90] Vital Product Data
+Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
+Capabilities: [100] Advanced Error Reporting
+Capabilities: [200] Virtual Channel
 
- Andy> - The Documentation is not very good for end-users or kernel developers
- Andy> on using the LED API. 
+It seems like the DVICO dual express cards being shipped now might all
+be this new revision, so it might be worth spending a bit of time on.
+I'm happy to assist with more information if anyone is interested,
+otherwise I think I'm going to have to do a whole lot of reading (and
+tinkering).
 
-No? I agree that the documentation is pretty minimalistic, but ok - It's
-not that complicated.
-
- Andy> - For an LED trigger not to override a user's desire to inhibit an LED,
- Andy> the user needs to know to cancel all the triggers on an LED before
- Andy> setting the LEDs brightness to 0.
-
-Only a single trigger can be active at a time for a given LED.
-
- Andy> Again, that happens to be the only real compelling use case I see for
- Andy> using the LED API.  However, I doubt many users will try to take
- Andy> advantage of it, and I suspect even less will succeed in getting it
- Andy> configured right.  Good documentation could go a long way in correcting
- Andy> that.
-
-That and using the LED for something else (perhaps with another trigger
-like I eplained earlier with wlan/hdd activity).
-
- Andy> If a user configures multiple LED triggers on an LED, those triggers
- Andy> will compete with each other.  The net result is the most recent event
- Andy> from the driver, any LED triggers wins, or user manipulation of sysfs
- Andy> brightness.
-
-Only a single trigger can be active at a time for a given LED.
-
- Andy> With indicators that's annoying, but not a failure.  With illuminators,
- Andy> that is a failure.
-
-Again, I don't think we should use the LED API for something as integral
-to the video signal as illuminators.
-
--- 
-Bye, Peter Korsgaard
+Mark
