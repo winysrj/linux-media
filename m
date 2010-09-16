@@ -1,102 +1,56 @@
-Return-path: <mchehab@gaivota>
-Received: from smtp-vbr18.xs4all.nl ([194.109.24.38]:2184 "EHLO
-	smtp-vbr18.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753014Ab0IFQwN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Sep 2010 12:52:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC/PATCH v4 07/11] media: Entities, pads and links enumeration
-Date: Mon, 6 Sep 2010 18:51:59 +0200
+Return-path: <mchehab@pedra>
+Received: from perceval.irobotique.be ([92.243.18.41]:35308 "EHLO
+	perceval.irobotique.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752497Ab0IPJEW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Sep 2010 05:04:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFC/PATCH v4 08/11] media: Links setup
+Date: Thu, 16 Sep 2010 11:04:23 +0200
 Cc: linux-media@vger.kernel.org,
 	sakari.ailus@maxwell.research.nokia.com
-References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <201008281302.22703.hverkuil@xs4all.nl> <201009011605.12172.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201009011605.12172.laurent.pinchart@ideasonboard.com>
+References: <1282318153-18885-1-git-send-email-laurent.pinchart@ideasonboard.com> <1282318153-18885-9-git-send-email-laurent.pinchart@ideasonboard.com> <4C883504.50804@redhat.com>
+In-Reply-To: <4C883504.50804@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201009061851.59844.hverkuil@xs4all.nl>
+Message-Id: <201009161104.24138.laurent.pinchart@ideasonboard.com>
 List-ID: <linux-media.vger.kernel.org>
-Sender: Mauro Carvalho Chehab <mchehab@gaivota>
+Sender: <mchehab@pedra>
 
-On Wednesday, September 01, 2010 16:05:10 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> On Saturday 28 August 2010 13:02:22 Hans Verkuil wrote:
-> > On Friday, August 20, 2010 17:29:09 Laurent Pinchart wrote:
-> 
-> [snip]
-> 
-> > > diff --git a/Documentation/media-framework.txt
-> > > b/Documentation/media-framework.txt index 66f7f6c..74a137d 100644
-> > > --- a/Documentation/media-framework.txt
-> > > +++ b/Documentation/media-framework.txt
-> 
-> [snip]
-> 
-> > > +The media_entity_desc structure is defined as
-> > > +
-> > > +- struct media_entity_desc
-> > > +
-> > > +__u32	id		Entity id, set by the application. When the id is
-> > > +			or'ed with MEDIA_ENTITY_ID_FLAG_NEXT, the driver
-> > > +			clears the flag and returns the first entity with a
-> > > +			larger id.
-> > > +char	name[32]	Entity name. UTF-8 NULL-terminated string.
+Hi Mauro,
+
+On Thursday 09 September 2010 03:14:44 Mauro Carvalho Chehab wrote:
+> Em 20-08-2010 12:29, Laurent Pinchart escreveu:
+> > Create the following ioctl and implement it at the media device level to
+> > setup links.
 > > 
-> > Why UTF-8 instead of ASCII?
-> 
-> Because vendor-specific names could include non-ASCII characters (same reason 
-> for the model name in the media_device structure, if we decice to make the 
-> model name ASCII I'll make the entity name ASCII as well).
-> 
-> [snip]
-> 
-> > > +struct media_entity_desc {
-> > > +	__u32 id;
-> > > +	char name[32];
-> > > +	__u32 type;
-> > > +	__u32 revision;
-> > > +	__u32 flags;
-> > > +	__u32 group_id;
-> > > +	__u16 pads;
-> > > +	__u16 links;
-> > > +
-> > > +	__u32 reserved[4];
-> > > +
-> > > +	union {
-> > > +		/* Node specifications */
-> > > +		struct {
-> > > +			__u32 major;
-> > > +			__u32 minor;
-> > > +		} v4l;
-> > > +		struct {
-> > > +			__u32 major;
-> > > +			__u32 minor;
-> > > +		} fb;
-> > > +		int alsa;
-> > > +		int dvb;
-> > > +
-> > > +		/* Sub-device specifications */
-> > > +		/* Nothing needed yet */
-> > > +		__u8 raw[64];
-> > > +	};
-> > > +};
+> > - MEDIA_IOC_SETUP_LINK: Modify the properties of a given link
 > > 
-> > Should this be a packed struct?
+> > The only property that can currently be modified is the ACTIVE link flag
+> > to activate/deactivate a link. Links marked with the IMMUTABLE link flag
+> > can not be activated or deactivated.
+> > 
+> > Activating and deactivating a link has effects on entities' use count.
+> > Those changes are automatically propagated through the graph.
 > 
-> Why ? :-) Packed struct are most useful when they need to match hardware 
-> structures or network protocols. Packing a structure can generate unaligned 
-> fields, which are bad performance-wise.
+> You need to address here the release() call: if the userspace application
+> dies or just exits, the device should be set into a sane state, e. g.
+> devices powered on should be turned off,
 
-I'm thinking about preventing a compat32 mess as we have for v4l.
+That's already handled, as media_entity_put() is called in the vdev and subdev 
+release() functions.
 
-It is my understanding that the only way to prevent different struct sizes
-between 32 and 64 bit is to use packed.
+> and links activated by the application should be de-activated.
 
-Regards,
-
-	Hans
+I don't think that's required. When an application exits with a video device 
+node open, we don't reset all controls and formats. Power needs to be turned 
+off and resources need to be released on exit, but configuration doesn't need 
+to be reset.
 
 -- 
-Hans Verkuil - video4linux developer - sponsored by TANDBERG, part of Cisco
+Regards,
+
+Laurent Pinchart
